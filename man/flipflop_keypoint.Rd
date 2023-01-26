@@ -2,20 +2,17 @@
 % Please edit documentation in R/image_registering.R
 \name{flipflop_keypoint}
 \alias{flipflop_keypoint}
-\title{Flip and Flop transformations for Keypoints}
+\title{flipflop_keypoint}
 \usage{
 flipflop_keypoint(keypoints, image_limits, flipflop)
 }
 \arguments{
-\item{keypoints}{dataset of keypoints}
+\item{keypoints}{}
 
 \item{image_limits}{limits of the images}
 
 \item{flipflop}{a flip or flop action as string}
 }
-\value{
-keypoints
-}
 \description{
-find transformed keypoints on image given any flip or flop action by magick
+Find transformed keypoints on image given any flip or flop action by magick
 }

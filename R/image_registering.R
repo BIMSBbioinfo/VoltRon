@@ -1,9 +1,9 @@
-#' Image registration between slides
+#' register_slides
 #'
 #' A mini shiny app to calculate spatial cell(barcode) projection matrix between a visium slide and a xenium slide
 #'
 #' @param Visium_data visium data
-#' @param Xenium_data_image_path xenium image
+#' @param Xenium_data_image_path xenium data
 #'
 #' @return projection matrix
 #'
@@ -46,7 +46,7 @@ register_slides <- function(Visium_data, Xenium_data_image_path) {
                         h4("Image 2"),
                         fluidRow(
                           tableOutput("xy_Table2"),
-                          shiny::actionButton("remove1", "Remove Point")
+                          shiny::actionButton("remove2", "Remove Point")
                         ),
 
                         # done button for finishing the shiny app and return values
@@ -127,18 +127,14 @@ register_slides <- function(Visium_data, Xenium_data_image_path) {
       # click events for updating the keypoints
       observeEvent(input$click_plot1, {
         keypoint <- data.frame(x = input$click_plot1$x, y = input$click_plot1$y)
-        keypoint <- transform_keypoints(keypoint, trans_image1(), orig_image1(),
-                                        360 - as.numeric(input[[paste0("rotate_image1")]]),
-                                        "image1", input, session)
+        keypoint <- transform_keypoints(trans_image1(), keypoint, "image1", input, session)
         xyTable1() %>%
           add_row(KeyPoint = nrow(xyTable1())+1, x = keypoint$x, y = keypoint$y) %>%
           xyTable1()
       })
       observeEvent(input$click_plot2, {
         keypoint <- data.frame(x = input$click_plot2$x, y = input$click_plot2$y)
-        keypoint <- transform_keypoints(keypoint, trans_image2(), orig_image2(),
-                                        360 - as.numeric(input[[paste0("rotate_image2")]]),
-                                        "image2", input, session)
+        keypoint <- transform_keypoints(trans_image2(), keypoint, "image2", input, session)
         xyTable2() %>%
           add_row(KeyPoint = nrow(xyTable2())+1, x = keypoint$x, y = keypoint$y) %>%
           xyTable2()
@@ -149,9 +145,9 @@ register_slides <- function(Visium_data, Xenium_data_image_path) {
         if(nrow(xyTable1()) > 0)
           xyTable1() %>% filter(KeyPoint != nrow(xyTable1())) %>% xyTable1()
       })
-      observeEvent(input$remove1, {
+      observeEvent(input$remove2, {
         if(nrow(xyTable2()) > 0)
-          xyTable2() %>% filter(KeyPoint != nrow(xyTable1())) %>% xyTable2()
+          xyTable2() %>% filter(KeyPoint != nrow(xyTable2())) %>% xyTable2()
       })
 
       # get original images
@@ -167,19 +163,13 @@ register_slides <- function(Visium_data, Xenium_data_image_path) {
 
         # output images
         output$plot1 <- renderPlot({
-          keypoints <- transform_keypoints(xyTable1(), orig_image1(), trans_image1(),
-                                           as.numeric(input[[paste0("rotate_image1")]]),
-                                           "image1", input, session)
-          img <- trans_image1()
-          img <- image_ggplot_keypoint(image_ggplot(img), keypoints)
+          img <- transform_magick_image_keypoints(orig_image1(), xyTable1(), "image1", input, session)
+          img <- image_ggplot_keypoint(image_ggplot(img$image), img$keypoints)
           return(img)
         })
         output$plot2 <- renderPlot({
-          keypoints <- transform_keypoints(xyTable2(), orig_image2(), trans_image2(),
-                                           as.numeric(input[[paste0("rotate_image2")]]),
-                                           "image2", input, session)
-          img <- trans_image2()
-          img <- image_ggplot_keypoint(image_ggplot(img), keypoints)
+          img <- transform_magick_image_keypoints(orig_image2(), xyTable2(), "image2", input, session)
+          img <- image_ggplot_keypoint(image_ggplot(img$image), img$keypoints)
           return(img)
         })
       })
@@ -195,9 +185,9 @@ register_slides <- function(Visium_data, Xenium_data_image_path) {
   }
 }
 
-#' Rotate and Transform magick Image
+#' transform_magick_image
 #'
-#' apply given transformations to a magick image
+#' Apply given transformations to a magick image
 #'
 #' @param image magick image
 #' @param extension name extension for the shiny input parameter
@@ -222,19 +212,61 @@ transform_magick_image <- function(image, extension, input, session){
     image <- image_flop(image)
   }
 
-  # # ggplot output
-  # image <- image_ggplot(image)
   image
 }
 
-#' Rotate and Transform Keypoints
+#' transform_magick_image_keypoints
 #'
-#' apply transformations to keypoints given images
+#' Apply given transformations to a magick image and keypoints simultaneously for plotting
 #'
+#' @param image magick image
+#' @param extension name extension for the shiny input parameter
+#' @param keypoints a set of keypoints
+#' @param input input
+#' @param session session
+#'
+#' @return a list of magick image and keypoints
+#'
+#' @export
+#'
+transform_magick_image_keypoints <- function(image, keypoints, extension, input, session){
+
+  # get unrotated image info
+  image_limits <- unlist(image_info(image)[1,c("width", "height")])
+  image_origin <- image_limits/2
+
+  # rotate image and keypoints
+  input_rotate <- as.numeric(input[[paste0("rotate_", extension)]])
+  image <- image_rotate(image, input_rotate)
+
+  # get rotated image info
+  rotated_image_limits <- unlist(image_info(image)[1,c("width", "height")])
+  rotated_image_origin <- rotated_image_limits/2
+
+  # rotate keypoints
+  keypoints <- rotate_keypoint(keypoints, input_rotate, image_origin, image_limits, rotated_image_origin, rotated_image_limits)
+
+  # flip flop image and keypoints
+  input_flipflop <- input[[paste0("flipflop_", extension)]]
+  if(input_flipflop == "Flip"){
+    image <- image_flip(image)
+  } else if(input_flipflop == "Flop"){
+    image <- image_flop(image)
+  }
+
+  # flipflop keypoints
+  keypoints <- flipflop_keypoint(keypoints, rotated_image_limits, input_flipflop)
+
+  # return both the image and the keypoints
+  return(list(image = image, keypoints = keypoints))
+}
+
+#' transform_keypoints
+#'
+#' Apply transformations to keypoints given transformed images to find the keypoints locations in the original image
+#'
+#' @param image magick image
 #' @param keypoints keypoints visualized on image
-#' @param orig_image original magick image
-#' @param trans_image transformed magick image
-#' @param angle rotation angle
 #' @param extension name extension for the shiny input parameter
 #' @param input input
 #' @param session session
@@ -243,30 +275,38 @@ transform_magick_image <- function(image, extension, input, session){
 #'
 #' @export
 #'
-transform_keypoints <- function(keypoints, orig_image, trans_image, angle, extension, input, session){
+transform_keypoints <- function(image, keypoints, extension, input, session){
 
-  # original image features
-  image_limits <- unlist(image_info(orig_image)[1,c("width", "height")])
+  # get unrotated image info
+  image_limits <- unlist(image_info(image)[1,c("width", "height")])
   image_origin <- image_limits/2
 
-  # transformed image features
-  rotated_image_limits <- unlist(image_info(trans_image)[1,c("width", "height")])
+  # flip flop image and keypoints
+  input_flipflop <- input[[paste0("flipflop_", extension)]]
+  if(input_flipflop == "Flip"){
+    image <- image_flip(image)
+  } else if(input_flipflop == "Flop"){
+    image <- image_flop(image)
+  }
+  keypoints <- flipflop_keypoint(keypoints, image_limits, input_flipflop)
+
+  # rotate image (reverse) and keypoints
+  input_rotate <- 360 - as.numeric(input[[paste0("rotate_", extension)]])
+  image <- image_rotate(image, input_rotate)
+
+  # get rotated image info
+  rotated_image_limits <- unlist(image_info(image)[1,c("width", "height")])
   rotated_image_origin <- rotated_image_limits/2
 
-  # transformation info
-  # input_rotate <- as.numeric(input[[paste0("rotate_", extension)]])
-  input_flipflop <- input[[paste0("flipflop_", extension)]]
-
-  # transform keypoints
-  keypoints <- rotate_keypoint(keypoints, angle, image_origin, image_limits, rotated_image_origin, rotated_image_limits)
-  keypoints <- flipflop_keypoint(keypoints, image_limits, input_flipflop)
+  # rotate keypoints
+  keypoints <- rotate_keypoint(keypoints, input_rotate, image_origin, image_limits, rotated_image_origin, rotated_image_limits)
 
   return(keypoints)
 }
 
-#' Rotate KeyPoints
+#' rotate_keypoint
 #'
-#' find transformations of keypoints under clockwise rotations of the image
+#' Find transformations of keypoints under clockwise rotations of the image
 #'
 #' @param keypoints dataset of keypoints
 #' @param angle angle of rotation [0,360]
@@ -307,15 +347,15 @@ rotate_keypoint <- function(keypoints, angle, origin, limits, rotated_origin, ro
   return(keypoints)
 }
 
-#' Flip and Flop transformations for Keypoints
+#' flipflop_keypoint
 #'
-#' find transformed keypoints on image given any flip or flop action by magick
+#' Find transformed keypoints on image given any flip or flop action by magick
 #'
 #' @param keypoints dataset of keypoints
 #' @param image_limits limits of the images
 #' @param flipflop a flip or flop action as string
 #'
-#' @return keypoints
+#' @param keypoints
 #'
 #' @export
 #'
@@ -333,9 +373,9 @@ flipflop_keypoint <- function(keypoints, image_limits, flipflop){
   return(keypoints)
 }
 
-#' Image to ggplot
+#' image_ggplot_keypoint
 #'
-#' Transform magick image to a ggplot layer with given keypoints
+#' add keypoints as points on ggplot object
 #'
 #' @param image magick image
 #' @param keypoints keypoints to draw on image

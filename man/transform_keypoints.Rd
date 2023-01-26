@@ -2,26 +2,14 @@
 % Please edit documentation in R/image_registering.R
 \name{transform_keypoints}
 \alias{transform_keypoints}
-\title{Rotate and Transform Keypoints}
+\title{transform_keypoints}
 \usage{
-transform_keypoints(
-  keypoints,
-  orig_image,
-  trans_image,
-  angle,
-  extension,
-  input,
-  session
-)
+transform_keypoints(image, keypoints, extension, input, session)
 }
 \arguments{
+\item{image}{magick image}
+
 \item{keypoints}{keypoints visualized on image}
-
-\item{orig_image}{original magick image}
-
-\item{trans_image}{transformed magick image}
-
-\item{angle}{rotation angle}
 
 \item{extension}{name extension for the shiny input parameter}
 
@@ -33,5 +21,5 @@ transform_keypoints(
 magick image
 }
 \description{
-apply transformations to keypoints given images
+Apply transformations to keypoints given transformed images to find the keypoints locations in the original image
 }
