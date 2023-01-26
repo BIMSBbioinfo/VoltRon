@@ -2,7 +2,7 @@
 % Please edit documentation in R/image_registering.R
 \name{image_ggplot_keypoint}
 \alias{image_ggplot_keypoint}
-\title{Image to ggplot}
+\title{image_ggplot_keypoint}
 \usage{
 image_ggplot_keypoint(image, keypoints)
 }
@@ -15,5 +15,5 @@ image_ggplot_keypoint(image, keypoints)
 ggplot object
 }
 \description{
-Transform magick image to a ggplot layer with given keypoints
+add keypoints as points on ggplot object
 }

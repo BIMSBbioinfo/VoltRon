@@ -2,14 +2,14 @@
 % Please edit documentation in R/image_registering.R
 \name{register_slides}
 \alias{register_slides}
-\title{Image registration between slides}
+\title{register_slides}
 \usage{
 register_slides(Visium_data, Xenium_data_image_path)
 }
 \arguments{
 \item{Visium_data}{visium data}
 
-\item{Xenium_data_image_path}{xenium image}
+\item{Xenium_data_image_path}{xenium data}
 }
 \value{
 projection matrix

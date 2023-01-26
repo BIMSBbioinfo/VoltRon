@@ -2,7 +2,7 @@
 % Please edit documentation in R/image_registering.R
 \name{transform_magick_image}
 \alias{transform_magick_image}
-\title{Rotate and Transform magick Image}
+\title{transform_magick_image}
 \usage{
 transform_magick_image(image, extension, input, session)
 }
@@ -19,5 +19,5 @@ transform_magick_image(image, extension, input, session)
 magick image
 }
 \description{
-apply given transformations to a magick image
+Apply given transformations to a magick image
 }

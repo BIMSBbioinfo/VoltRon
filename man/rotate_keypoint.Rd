@@ -2,7 +2,7 @@
 % Please edit documentation in R/image_registering.R
 \name{rotate_keypoint}
 \alias{rotate_keypoint}
-\title{Rotate KeyPoints}
+\title{rotate_keypoint}
 \usage{
 rotate_keypoint(
   keypoints,
@@ -30,5 +30,5 @@ rotate_keypoint(
 keypoints
 }
 \description{
-find transformations of keypoints under clockwise rotations of the image
+Find transformations of keypoints under clockwise rotations of the image
 }
