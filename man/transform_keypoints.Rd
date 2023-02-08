@@ -13,9 +13,9 @@ transform_keypoints(image, keypoints, extension, input, session)
 
 \item{extension}{name extension for the shiny input parameter}
 
-\item{input}{input}
+\item{input}{shiny input}
 
-\item{session}{session}
+\item{session}{shiny session}
 }
 \value{
 magick image
