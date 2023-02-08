@@ -4,12 +4,12 @@
 \alias{register_slides}
 \title{register_slides}
 \usage{
-register_slides(Visium_data, Xenium_data_image_path)
+register_slides(reference_visium, query_image_paths, keypoints = NULL)
 }
 \arguments{
-\item{Visium_data}{visium data}
+\item{reference_visium}{visium data}
 
-\item{Xenium_data_image_path}{xenium data}
+\item{query_images}{a list of xenium data as query}
 }
 \value{
 projection matrix
