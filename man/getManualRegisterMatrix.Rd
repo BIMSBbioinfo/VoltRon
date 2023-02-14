@@ -7,6 +7,8 @@
 getManualRegisterMatrix(
   ManualRegisterMatrix_list,
   len_images,
+  image_list,
+  ref_image,
   xyTable_list,
   xyTable_ref,
   input,
@@ -18,6 +20,8 @@ getManualRegisterMatrix(
 \item{ManualRegisterMatrix_list}{a list of registration matrices of each query image}
 
 \item{len_images}{length of query images}
+
+\item{image_list}{the list of query images}
 
 \item{xyTable_list}{a list of keypoints x,y coordinates for query image}
 
