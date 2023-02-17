@@ -24,14 +24,6 @@ register_slides <- function(reference_seu, query_list_seu, keypoints = NULL) {
   orig_image_ref <- images$ref_image
   orig_image_query_list <- images$query_image_list
 
-  # # get the reference image
-  # orig_image_ref <- image_read(reference_seu@images$slice1@image)
-  #
-  # # get the query images
-  # orig_image_query_list <- lapply(query_list_seu, function(img_path) {
-  #   image_read(img_path)
-  # })
-
   # get the ui and server
   if (interactive()){
     # ui <- tagList(
@@ -73,14 +65,18 @@ register_slides <- function(reference_seu, query_list_seu, keypoints = NULL) {
                                                  tabPanel("Reference Image",
                                                           br(),
                                                           fluidRow(
-                                                            column(6,
+                                                            column(4,
                                                                    selectInput("rotate_ref", "Rotate (ClockWise):",
                                                                                choices = c(0,90,180,270), selected = 0),
                                                             ),
-                                                            column(6,
+                                                            column(4,
                                                                    selectInput("flipflop_ref", "Transform:",
                                                                                choices = c("None", "Flip", "Flop"), selected = "None"),
-                                                            )
+                                                            ),
+                                                            column(4,
+                                                                   selectInput("negate_ref", "Negate Image:",
+                                                                               choices = c("No", "Yes"), selected = "No"),
+                                                            ),
                                                           ),
                                                           fluidRow(
                                                             imageOutput("plot_ref", click = "click_plot_ref"),
@@ -232,8 +228,9 @@ QueryTabPanels <- function(len_images){
     tabPanel(paste0("Query ",i),
              br(),
              fluidRow(
-               column(6, selectInput(paste0("rotate_image",i), "Rotate (ClockWise):", choices = c(0,90,180,270), selected = 0)),
-               column(6, selectInput(paste0("flipflop_image",i), "Transform:", choices = c("None", "Flip", "Flop"), selected = "None"))
+               column(4, selectInput(paste0("rotate_image",i), "Rotate (ClockWise):", choices = c(0,90,180,270), selected = 0)),
+               column(4, selectInput(paste0("flipflop_image",i), "Transform:", choices = c("None", "Flip", "Flop"), selected = "None")),
+               column(4, selectInput(paste0("negate_image",i), "Negate Image:", choices = c("No", "Yes"), selected = "No"))
              ),
              fluidRow(imageOutput(paste0("plot_query",i), click = paste0("click_plot",i))),
              fluidRow(
@@ -417,6 +414,12 @@ QueryKeypointTable <- function(xyTable_list, image_list, input, output, session)
 #' @return a list of magick image and keypoints
 #'
 transform_magick_image_keypoints <- function(image, keypoints, extension, input, session){
+
+  # negate image
+  input_negate <- input[[paste0("negate_", extension)]]
+  if(input_negate == "Yes"){
+    image <- image_negate(image)
+  }
 
   # get unrotated image info
   image_limits <- unlist(image_info(image)[1,c("width", "height")])
@@ -671,7 +674,7 @@ getRegisteredImage <- function(query_image, ref_image, transmatrix){
   # plot
   p <- recordPlot
   terra::plot(ref_image_raster)
-  raster::plot(query_image_raster_1_trf, alpha = 0.6, add = TRUE, legend = FALSE)
+  raster::plot(query_image_raster_1_trf, alpha = 0.2, add = TRUE, legend = FALSE)
   p
 }
 
