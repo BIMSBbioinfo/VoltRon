@@ -4,15 +4,15 @@
 \alias{register_slides}
 \title{register_slides}
 \usage{
-register_slides(reference_visium, query_image_paths, keypoints = NULL)
+register_slides(reference_seu, query_list_seu, keypoints = NULL)
 }
 \arguments{
-\item{reference_visium}{visium data}
+\item{reference_seu}{Seurat object with reference spatial assay}
 
-\item{query_images}{a list of xenium data as query}
+\item{query_list_seu}{a list of Seurat Object with query images}
 }
 \value{
-projection matrix
+keypoints
 }
 \description{
 A mini shiny app to calculate spatial cell(barcode) projection matrix between a visium slide and a xenium slide
