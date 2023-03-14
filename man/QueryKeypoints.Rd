@@ -21,5 +21,5 @@ QueryKeypoints(len_images, keypoints_list, input, output, session)
 a shiny reactive values object
 }
 \description{
-Initiate shiny reactive values for keypoint dataframes
+Initiate shiny reactive values for keypoint dataframes for the query images
 }

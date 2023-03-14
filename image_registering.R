@@ -15,7 +15,7 @@
 #'
 #' @export
 #'
-SpatialRegistration <- function(reference_seu, query_list_seu, keypoints = NULL) {
+register_slides <- function(reference_seu, query_list_seu, keypoints = NULL) {
 
   # shiny
   require(shiny)
@@ -24,9 +24,6 @@ SpatialRegistration <- function(reference_seu, query_list_seu, keypoints = NULL)
   images <- getRegisteringImages(reference_seu, query_list_seu)
   orig_image_ref <- images$ref_image
   orig_image_query_list <- images$query_image_list
-
-  # # get cell/barcodes
-  # cells_data_list <- getRegisteringCells(query_list_seu)
 
   # get the ui and server
   if (interactive()){
@@ -62,16 +59,7 @@ SpatialRegistration <- function(reference_seu, query_list_seu, keypoints = NULL)
                       column(6,ReferenceTabPanel()),
 
                       # Interface for the query images
-                      column(6,
-
-                             # Original Query Images
-                             QueryTabPanels(length(orig_image_query_list)),
-
-                             br(),
-
-                             # Registered Query Images
-                             RegisteredQueryTabPanels(length(orig_image_query_list))
-                      ),
+                      column(6,QueryTabPanels(length(orig_image_query_list))),
 
                       # panel options
                       width = 9
@@ -94,16 +82,16 @@ SpatialRegistration <- function(reference_seu, query_list_seu, keypoints = NULL)
       trans_query_list <- transform_magick_image_query_list(orig_image_query_list, input, session)
 
       ## Return Registered keypoints ####
-      registered_query_list_seu <- QueryMatrices(length(orig_image_query_list))
-      getManualRegisteration(registered_query_list_seu, query_list_seu, length(orig_image_query_list),
-                             orig_image_query_list, orig_image_ref,
-                             xyTable_query_list, xyTable_ref(), input, output, session)
+      ManualRegisterMatrix_list <- QueryMatrices(length(orig_image_query_list))
+      getManualRegisterMatrix(ManualRegisterMatrix_list, length(orig_image_query_list),
+                              orig_image_query_list, orig_image_ref,
+                              xyTable_query_list, xyTable_ref(), input, output, session)
 
       ## Main observable ####
       observe({
 
         # output the reference image
-        ReferenceImageOutput(orig_image_ref, xyTable_ref, input, output, session)
+        ReferenceImageOutput(orig_image_ref, xyTable_ref(), input, output, session)
 
         # output the list of query images
         QueryImageOutput(orig_image_query_list, xyTable_query_list, input, output, session)
@@ -114,14 +102,15 @@ SpatialRegistration <- function(reference_seu, query_list_seu, keypoints = NULL)
       observeEvent(input$done, {
 
         # keypoints
-        keypoints <- list(xyTable_ref())
-        keypoints <-  c(keypoints, reactiveValuesToList(xyTable_query_list))
+        keypoints <- list()
+        keypoints$ref <- list(xyTable_ref())
+        keypoints$query <-  reactiveValuesToList(xyTable_query_list)
 
         # Transformation (Mapping) matrix
-        RegisteredSeurat <- reactiveValuesToList(registered_query_list_seu)
+        TransMatrix <- reactiveValuesToList(ManualRegisterMatrix_list)
 
         # stop app and return
-        stopApp(list(keypoints = keypoints, registered_seurat = RegisteredSeurat))
+        stopApp(list(Keypoints = keypoints, TransMatrix = TransMatrix))
       })
     }
 
@@ -130,8 +119,51 @@ SpatialRegistration <- function(reference_seu, query_list_seu, keypoints = NULL)
 }
 
 ####
-# Managing User Interface ####
+# Managing Images ####
 ####
+
+#' getRegisteringImages
+#'
+#' get the images from Spatial assays that will be used for registration
+#'
+#' @param reference Seurat object with reference spatial assay
+#' @param query_list the list of Seurat object with query images for registration
+#'
+getRegisteringImages <- function(reference, query_list){
+
+  # Seurat list of both reference and query list
+  seu_list <- c(reference, query_list)
+
+  # get images from Seurat list
+  image_list <- lapply(seu_list, getSeuratImage)
+  ref_image <- image_list[[1]]
+  query_image_list <- image_list[-1]
+
+  return(list(ref_image = ref_image, query_image_list = query_image_list))
+}
+
+#' getSeuratImage
+#'
+#' get the image from a Spatial assay
+#'
+#' @param seu Seurat object
+#'
+#' @import magick
+#'
+getSeuratImage <- function(seu){
+
+  image_classes <- sapply(seu@images, class)
+
+  if(any(grepl("FOV",image_classes))){
+    image <- seu@images[[names(seu@images)[which(grepl("FOVImage", image_classes))]]]
+    image <- image@image
+  } else if(any(grepl("Visium",image_classes))) {
+    image <- seu@images[[names(seu@images)[which(grepl("Visium", image_classes))]]]
+    image <- magick::image_read(image@image)
+  }
+
+  return(image)
+}
 
 #' ReferenceTabPanel
 #'
@@ -150,12 +182,12 @@ ReferenceTabPanel <- function(){
                                  column(4,selectInput("flipflop_ref", "Transform:",choices = c("None", "Flip", "Flop"), selected = "None")),
                                  column(4,selectInput("negate_ref", "Negate Image:", choices = c("No", "Yes"), selected = "No"))
                                ),
+                               fluidRow(imageOutput("plot_ref", click = "click_plot_ref")),
                                fluidRow(
                                  # tableOutput("xy_Table_ref"),
                                  shiny::actionButton("remove_ref", "Remove Point")
-                               ),
-                               fluidRow(imageOutput("plot_ref", click = "click_plot_ref")),
-                      )
+                               )
+                       )
   )
 }
 
@@ -176,115 +208,113 @@ QueryTabPanels <- function(len_images){
                column(4, selectInput(paste0("flipflop_image",i), "Transform:", choices = c("None", "Flip", "Flop"), selected = "None")),
                column(4, selectInput(paste0("negate_image",i), "Negate Image:", choices = c("No", "Yes"), selected = "No"))
              ),
+             fluidRow(imageOutput(paste0("plot_query",i), click = paste0("click_plot",i))),
              fluidRow(
                # tableOutput(paste0("xy_Table_query",i)),
                shiny::actionButton(paste0("remove_query",i), "Remove Point")
              ),
-             fluidRow(imageOutput(paste0("plot_query",i), click = paste0("click_plot",i))),
-             # br(),
-             # h5("Registered Image:"),
-             # column(6, sliderInput(paste0("plot_query_reg_alpha",i), label = "Alpha Level", min = 0, max = 1, value = 0.2)),
-             # fluidRow(imageOutput(paste0("plot_query_reg",i)))
-    )
-  })))
-}
-
-#' RegisteredQueryTabPanels
-#'
-#' The UI for a set of query spatial slides
-#'
-#' @param len_images the number of query images
-#'
-#' @return tabsetpanel
-#'
-RegisteredQueryTabPanels <- function(len_images){
-  do.call(sortableTabsetPanel, c(id='image_tab_panel_reg_query',lapply(1:len_images, function(i) {
-    tabPanel(paste0("Reg. Query ",i),
-             # br(),
-             # fluidRow(
-             #   column(4, selectInput(paste0("rotate_image",i), "Rotate (ClockWise):", choices = c(0,90,180,270), selected = 0)),
-             #   column(4, selectInput(paste0("flipflop_image",i), "Transform:", choices = c("None", "Flip", "Flop"), selected = "None")),
-             #   column(4, selectInput(paste0("negate_image",i), "Negate Image:", choices = c("No", "Yes"), selected = "No"))
-             # ),
-             # fluidRow(imageOutput(paste0("plot_query",i), click = paste0("click_plot",i))),
-             # fluidRow(
-             #   # tableOutput(paste0("xy_Table_query",i)),
-             #   shiny::actionButton(paste0("remove_query",i), "Remove Point")
-             # ),
              br(),
-             # h5("Registered Image:"),
-             column(6, sliderInput(paste0("plot_query_reg_alpha",i), label = "Alpha Level", min = 0, max = 1, value = 0.2)),
+             h5("Registered Image:"),
              fluidRow(imageOutput(paste0("plot_query_reg",i)))
     )
   })))
 }
 
-
-####
-# Managing Cells/Barcodes ####
-####
-
-#' getRegisteredSeurat
+#' ReferenceImageOutput
 #'
-#' get the cell data/locations from a Spatial assay
+#' Shiny outputs for a set of magick images with keypoints
 #'
-#' @param seu Seurat object
-#' @param trans_matrix transformation function for the registration
+#' @param image magick image
+#' @param keypoints keypoint data frame
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
 #'
-getRegisteredSeurat <- function(seu, trans_matrix){
+ReferenceImageOutput <- function(image, xyTable, input, output, session){
 
-  image_classes <- sapply(seu@images, class)
+  # output the reference image
+  output$plot_ref <- renderPlot({
+    img <- transform_magick_image_keypoints(image, xyTable, "ref", input, session)
+    img <- image_ggplot_keypoint(image_ggplot(img$image), img$keypoints)
+    return(img)
+  })
 
-  # Xenium (FOV)
-  if(any(grepl("FOV",image_classes))){
-
-    # get image and FOV data
-    imagedata <- seu@images[[names(seu@images)[image_classes == "FOV"]]]
-    image <- seu@images[[names(seu@images)[image_classes == "FOVImage"]]]
-
-    # flip y coords and adjust coordinates to image scale
-    cells <- imagedata$centroids@coords
-    cells_box <- imagedata$segmentation@bbox
-    cells[,2] <- max(cells[,2]) - cells[,2] + min(cells[,2])
-    cells <- rescaleXeniumCells(cells, cells_box, image@image)
-
-    # apply transformation to cells
-    registered_cells <- applyTransform(as.matrix(cells), trans_matrix)
-    registered_cells <- data.frame(x = registered_cells[,1], y = registered_cells[,2],
-                                   cell = imagedata$centroids@cells)
-    registered_segmentation_data <- list(centroids = CreateCentroids(registered_cells))
-    coords <- CreateFOV(coords = registered_segmentation_data, type = "centroids", molecules = NULL, assay = "Spatial")
-    seu[["registered_FOV"]] <- coords
-
-  } else if(any(grepl("Visium",image_classes))) {
-    imagedata <- seu@images[[names(seu@images)[which(grepl("Visium", image_classes))]]]
-    cells <- imagedata@coordinates[,c("imagerow", "imagecol")]
-  }
-
-  return(seu)
 }
 
-#' rescaleXeniumCells
+#' QueryImageOutput
 #'
-#' rescale Xenium cells coordinates for image registration
+#' Shiny outputs for a set of magick images with keypoints
 #'
-#' @param cells coordinates of the cells from the Xenium assays
-#' @param bbox the surrounding box of the Xenium cell coordinates
-#' @param image reference image
+#' @param image_list a list of magick images
+#' @param keypoints_list a list of data frames, each having a set of keypoints
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
 #'
-rescaleXeniumCells <- function(cells, bbox, image){
+QueryImageOutput <- function(image_list, keypoints_list, input, output, session){
 
-  # get image scales
-  scales <- unlist(image_info(image)[c("width","height")])
+  # get the length of images
+  len_images <- length(image_list)
 
-  # rescale cell locations
-  cells[,1] <- (cells[,1] - bbox["x","min"])/(bbox["x","max"] - bbox["x","min"])
-  cells[,1] <- cells[,1] * scales[1]
-  cells[,2] <- (cells[,2] - bbox["y","min"])/(bbox["y","max"] - bbox["y","min"])
-  cells[,2] <- cells[,2] * scales[2]
+  # output query images
+  lapply(1:len_images, function(i){
+    output[[paste0("plot_query",i)]] <- renderPlot({
+      keypoints <- keypoints_list[[paste0(i)]]
+      img <- transform_magick_image_keypoints(image_list[[i]], keypoints, paste0("image",i), input, session)
+      img <- image_ggplot_keypoint(image_ggplot(img$image), img$keypoints)
+      return(img)
+    })
+  })
 
-  # return
-  return(cells)
+}
+
+#' transform_magick_image
+#'
+#' Apply given transformations to a magick image
+#'
+#' @param image magick image
+#' @param extension name extension for the shiny input parameter
+#' @param input shiny input
+#' @param session shiny session
+#'
+#' @return magick image
+#'
+transform_magick_image <- function(image, extension, input, session){
+
+  # rotate image and keypoints
+  input_rotate <- as.numeric(input[[paste0("rotate_", extension)]])
+  image <- image_rotate(image, input_rotate)
+
+  # flip flop image and keypoints
+  input_flipflop <- input[[paste0("flipflop_", extension)]]
+  if(input_flipflop == "Flip"){
+    image <- image_flip(image)
+  } else if(input_flipflop == "Flop"){
+    image <- image_flop(image)
+  }
+
+  image
+}
+
+#' transform_magick_image
+#'
+#' Apply given transformations to a magick image
+#'
+#' @param image magick image
+#' @param extension name extension for the shiny input parameter
+#' @param input shiny input
+#' @param session shiny session
+#'
+#' @return magick image
+#'
+transform_magick_image_query_list <- function(image_list, input, session){
+
+  trans_query_list <- lapply(1:length(image_list), function(i){
+    reactive({
+      transform_magick_image(image_list[[i]], paste0("image",i), input, session)
+    })
+  })
+  return(trans_query_list)
 }
 
 ####
@@ -304,13 +334,23 @@ rescaleXeniumCells <- function(cells, bbox, image){
 #'
 ReferenceKeypoints <- function(keypoints = NULL, input, output, session){
 
-  if(is.null(keypoints)){
-    keypoints <- reactiveVal(tibble(KeyPoint = numeric(), x = numeric(), y = numeric()))
-  } else {
-    keypoints <- reactiveVal(tibble(KeyPoint = keypoints$KeyPoint, x = keypoints$x, y = keypoints$y))
-  }
+  # # initiate keypoints
+  # if(is.null(keypoints)){
+  #   keypoints_list <- tibble(KeyPoint = numeric(), x = numeric(), y = numeric())
+  # }
+  #
+  # # set names for keypoints
+  # names(keypoints_list) <- 1:len_images
+  #
+  # # return keypoints as reactive values
+  # do.call("reactiveValues", keypoints_list)
 
-  return(keypoints)
+  if(is.null(keypoints)){
+    xytable <- reactiveVal(tibble(KeyPoint = numeric(), x = numeric(), y = numeric()))
+  } else {
+    xytable <- reactiveVal(keypoints)
+  }
+  return(xytable)
 }
 
 #' QueryKeypoints
@@ -595,150 +635,6 @@ image_ggplot_keypoint <- function(image, keypoints){
 }
 
 ####
-# Managing Images ####
-####
-
-#' getRegisteringImages
-#'
-#' get the images from Spatial assays that will be used for registration
-#'
-#' @param reference Seurat object with reference spatial assay
-#' @param query_list the list of Seurat object with query images for registration
-#'
-getRegisteringImages <- function(reference, query_list){
-
-  # Seurat list of both reference and query list
-  seu_list <- c(reference, query_list)
-
-  # get images from Seurat list
-  image_list <- lapply(seu_list, getSeuratImage)
-  ref_image <- image_list[[1]]
-  query_image_list <- image_list[-1]
-
-  return(list(ref_image = ref_image, query_image_list = query_image_list))
-}
-
-#' getSeuratImage
-#'
-#' get the image from a Spatial assay
-#'
-#' @param seu Seurat object
-#'
-#' @import magick
-#'
-getSeuratImage <- function(seu){
-
-  image_classes <- sapply(seu@images, class)
-
-  if(any(grepl("FOV",image_classes))){
-    image <- seu@images[[names(seu@images)[which(grepl("FOVImage", image_classes))]]]
-    image <- image@image
-  } else if(any(grepl("Visium",image_classes))) {
-    image <- seu@images[[names(seu@images)[which(grepl("Visium", image_classes))]]]
-    image <- magick::image_read(image@image)
-  }
-
-  return(image)
-}
-
-#' ReferenceImageOutput
-#'
-#' Shiny outputs for a set of magick images with keypoints
-#'
-#' @param image magick image
-#' @param keypoints keypoint data frame
-#' @param input shiny input
-#' @param output shiny output
-#' @param session shiny session
-#'
-ReferenceImageOutput <- function(image, xyTable, input, output, session){
-
-  # output the reference image
-  output$plot_ref <- renderPlot({
-    img <- transform_magick_image_keypoints(image, xyTable(), "ref", input, session)
-    img <- image_ggplot_keypoint(image_ggplot(img$image), img$keypoints)
-    return(img)
-  })
-
-}
-
-#' QueryImageOutput
-#'
-#' Shiny outputs for a set of magick images with keypoints
-#'
-#' @param image_list a list of magick images
-#' @param keypoints_list a list of data frames, each having a set of keypoints
-#' @param input shiny input
-#' @param output shiny output
-#' @param session shiny session
-#'
-QueryImageOutput <- function(image_list, keypoints_list, input, output, session){
-
-  # get the length of images
-  len_images <- length(image_list)
-
-  # output query images
-  lapply(1:len_images, function(i){
-    output[[paste0("plot_query",i)]] <- renderPlot({
-      keypoints <- keypoints_list[[paste0(i)]]
-      img <- transform_magick_image_keypoints(image_list[[i]], keypoints, paste0("image",i), input, session)
-      img <- image_ggplot_keypoint(image_ggplot(img$image), img$keypoints)
-      return(img)
-    })
-  })
-
-}
-
-#' transform_magick_image
-#'
-#' Apply given transformations to a magick image
-#'
-#' @param image magick image
-#' @param extension name extension for the shiny input parameter
-#' @param input shiny input
-#' @param session shiny session
-#'
-#' @return magick image
-#'
-transform_magick_image <- function(image, extension, input, session){
-
-  # rotate image and keypoints
-  input_rotate <- as.numeric(input[[paste0("rotate_", extension)]])
-  image <- image_rotate(image, input_rotate)
-
-  # flip flop image and keypoints
-  input_flipflop <- input[[paste0("flipflop_", extension)]]
-  if(input_flipflop == "Flip"){
-    image <- image_flip(image)
-  } else if(input_flipflop == "Flop"){
-    image <- image_flop(image)
-  }
-
-  image
-}
-
-#' transform_magick_image
-#'
-#' Apply given transformations to a magick image
-#'
-#' @param image magick image
-#' @param extension name extension for the shiny input parameter
-#' @param input shiny input
-#' @param session shiny session
-#'
-#' @return magick image
-#'
-transform_magick_image_query_list <- function(image_list, input, session){
-
-  trans_query_list <- lapply(1:length(image_list), function(i){
-    reactive({
-      transform_magick_image(image_list[[i]], paste0("image",i), input, session)
-    })
-  })
-  return(trans_query_list)
-}
-
-####
 # Image Registration ####
 ####
 
@@ -757,21 +653,21 @@ QueryMatrices <- function(len_images, input, output, session){
 
   # initiate matrices
   matrix_list <- lapply(1:len_images, function(i) return(NULL))
+  # matrix_list <- list()
+  # length(matrix_list) <- len_images
   names(matrix_list) <- 1:len_images
 
   # return matrices as reactive values
   do.call("reactiveValues", matrix_list)
 }
 
-#' getManualRegisteration
+#' ManualRegisterMatrix
 #'
 #' Manuel registeration of images using manually entered keypoints
 #'
-#' @param registered_seurat_list a list of registered Seurat object of the query images
-#' @param seurat_list a list of Seurat object of the query images
+#' @param ManualRegisterMatrix_list a list of registration matrices of each query image
 #' @param len_images length of query images
 #' @param image_list the list of query images
-#' @param ref_image reference image
 #' @param xyTable_list a list of keypoints x,y coordinates for query image
 #' @param xyTable_ref the keypoints x,y coordinates of the reference image
 #' @param input shiny input
@@ -780,27 +676,16 @@ QueryMatrices <- function(len_images, input, output, session){
 #'
 #' @import Morpho
 #'
-getManualRegisteration <- function(registered_seurat_list, seurat_list, len_images, image_list, ref_image,
-                                   xyTable_list, xyTable_ref, input, output, session){
+getManualRegisterMatrix <- function(ManualRegisterMatrix_list, len_images, image_list, ref_image, xyTable_list, xyTable_ref, input, output, session){
 
   observeEvent(input$manualregister, {
 
     # Register keypoints
     reference_landmark <- as.matrix(xyTable_ref[,c("x","y")])
-    trans_matrix_list <- list()
     for(i in 1:len_images){
-
-      # target landmarks/keypoints
       target_landmark <- as.matrix(xyTable_list[[paste0(i)]][,c("x","y")])
-
-      # compute transform
-      trans_matrix <- computeTransform(reference_landmark, target_landmark, type = "tps")
-
-      # apply transform to query cells/barcodes and get registered cells/barcodes of the Seurat object
-      registered_seurat_list[[paste0(i)]] <- getRegisteredSeurat(seurat_list[[i]], trans_matrix)
-
-      # save transformation matrix
-      trans_matrix_list[[i]] <- trans_matrix
+      ManualRegisterMatrix_list[[paste0(i)]] <-
+        computeTransform(reference_landmark, target_landmark, type = "tps")
     }
 
     # Output summary
@@ -809,23 +694,24 @@ getManualRegisteration <- function(registered_seurat_list, seurat_list, len_imag
       str2 <- paste0("# of Query Images: ", len_images)
       str3 <- paste0("# of Keypoints: ", nrow(reference_landmark))
       all_str <- c(str1, str2, str3)
+      # for(i in 1:len_images){
+      #   target_landmark <- as.matrix(xyTable_list[[paste0(i)]][,c("x","y")])
+      #   all_str <- c(all_str,
+      #                paste0("# of Query ", i, " Keypoints: ", nrow(target_landmark)))
+      # }
       HTML(paste(all_str, collapse = '<br/>'))
     })
 
     # Registered Images
     lapply(1:len_images, function(i){
-      images <- getRegisteredImage(image_list[[i]], ref_image, trans_matrix_list[[i]], input)
       output[[paste0("plot_query_reg",i)]] <- renderPlot({
-        p <- recordPlot
-        terra::plot(images$ref)
-        raster::plot(images$query, alpha = input[[paste0("plot_query_reg_alpha",i)]], add = TRUE, legend = FALSE)
-        p
+        getRegisteredImage(image_list[[i]], ref_image, ManualRegisterMatrix_list[[paste0(i)]])
       })
     })
   })
 }
 
-getRegisteredImage <- function(query_image, ref_image, transmatrix, input){
+getRegisteredImage <- function(query_image, ref_image, transmatrix){
 
   # plot with raster
   ref_image_raster <- as.raster(ref_image) |> as.matrix() |> rast()
@@ -841,11 +727,15 @@ getRegisteredImage <- function(query_image, ref_image, transmatrix, input){
   raster::res(r) <- imageRes
   query_image_raster_1_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_1[,3], r, fun = mean)
   query_image_raster_1_trf <- focal(query_image_raster_1_tr,
-                                    w = matrix(1, nrow = 3, ncol = 3),
-                                    fun = fill.na, pad = TRUE, na.rm = FALSE)
+                                   w = matrix(1, nrow = 3, ncol = 3),
+                                   fun = fill.na, pad = TRUE, na.rm = FALSE)
   query_image_raster_1_trf <- terra::rast(query_image_raster_1_trf, crs = "")
 
-  return(list(ref = ref_image_raster, query = query_image_raster_1_trf))
+  # plot
+  p <- recordPlot
+  terra::plot(ref_image_raster)
+  raster::plot(query_image_raster_1_trf, alpha = 0.2, add = TRUE, legend = FALSE)
+  p
 }
 
 getRegisteredImage_old <- function(query_image, ref_image, transmatrix){

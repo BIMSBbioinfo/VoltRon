@@ -18,5 +18,5 @@ QueryKeypointTable(xyTable_list, image_list, input, output, session)
 \item{session}{shiny session}
 }
 \description{
-A list of shiny observe events for keypoints tables, updating keypoints and auxiliry operations
+A list of shiny observe events for keypoints tables, updating keypoints and auxiliry operations for query image
 }
