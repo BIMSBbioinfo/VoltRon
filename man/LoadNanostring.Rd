@@ -12,7 +12,13 @@ LoadNanostring(
 )
 }
 \arguments{
-\item{assay}{}
+\item{data.dir}{Path to folder containing Nanostring SMI outputs}
+
+\item{fov}{FOV name}
+
+\item{assay}{assay}
+
+\item{type}{the type of boundaries used for cells}
 }
 \description{
 Load Nanostring CosMx data
