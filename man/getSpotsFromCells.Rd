@@ -4,7 +4,13 @@
 \alias{getSpotsFromCells}
 \title{getSpotsFromCells}
 \usage{
-getSpotsFromCells(Visium, Xenium, scale_factors)
+getSpotsFromCells(
+  Visium,
+  Xenium,
+  scale_factors,
+  Vis_image_key = "slice1",
+  Xen_image_key = "registered_FOV"
+)
 }
 \arguments{
 \item{Visium}{Visium Seurat Object}
@@ -12,6 +18,10 @@ getSpotsFromCells(Visium, Xenium, scale_factors)
 \item{Xenium}{Xenium Seurat Object}
 
 \item{scale_factors}{scale factors from Visium object}
+
+\item{Vis_image_key}{the name of image with Visium spots}
+
+\item{Xen_image_key}{the name of image with Xenium cells}
 }
 \description{
 Generate Psuedo counts per spots and insert to as a separate image assay to the Visium object
