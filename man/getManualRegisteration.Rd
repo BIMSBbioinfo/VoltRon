@@ -5,12 +5,11 @@
 \title{getManualRegisteration}
 \usage{
 getManualRegisteration(
-  ManualRegisterMatrix_list,
-  ManualRegisterCells_list,
+  registered_seurat_list,
+  seurat_list,
   len_images,
   image_list,
   ref_image,
-  cells_data_list,
   xyTable_list,
   xyTable_ref,
   input,
@@ -19,17 +18,15 @@ getManualRegisteration(
 )
 }
 \arguments{
-\item{ManualRegisterMatrix_list}{a list of registration matrices of each query image}
+\item{registered_seurat_list}{a list of registered Seurat object of the query images}
 
-\item{ManualRegisterCells_list}{a list of registered cells/barcodes of each query image}
+\item{seurat_list}{a list of Seurat object of the query images}
 
 \item{len_images}{length of query images}
 
 \item{image_list}{the list of query images}
 
 \item{ref_image}{reference image}
-
-\item{cells_data_list}{the list of cells/barcodes locations for each image}
 
 \item{xyTable_list}{a list of keypoints x,y coordinates for query image}
 
