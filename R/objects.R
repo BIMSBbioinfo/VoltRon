@@ -1,66 +1,112 @@
-# Set magick-image as an S4 class
-setOldClass(Classes = c('magick-image'))
+####
+# SpaceRover classes ####
+####
 
-#' The FOVImage class
+## SpaceRover ####
+
+#' The SpaceRover Class
 #'
-#' The FOVImage stores the morphology image from the Xenium assay
+#' @slot samples A list of samples for the this project
+#' @slot integrated.datasets A list of integrated data objects that indicate integrated spatial layers
+#' @slot meta.data Contains meta-information about each sample
+#' @slot project Name of the project
 #'
-#' @slot image A magick-image class object from magick package
+#' @name SpaceRover-class
+#' @rdname SpaceRover-class
+#' @exportClass SpaceRover
 #'
-#' @name FOVImage-class
-#' @rdname FOVImage-class
-#' @exportClass FOVImage
-#'
-FOVImage <- setClass(
-  Class = 'FOVImage',
-  slots = list(
-    'image' = 'magick-image'
+SpaceRover <- setClass(
+  Class = 'SpaceRover',
+  slots = c(
+    samples = 'list',
+    integrated.datasets = "list",
+    meta.data = 'data.frame',
+    project = 'character'
   )
 )
 
-# set method for FOVImage class
+### show ####
 setMethod(
   f = 'show',
-  signature = 'FOVImage',
+  signature = 'SpaceRover',
   definition = function(object) {
-    cat("FOV Morphology Image \n")
-    cat(paste(format(image_info(object@image)), collapse = " \n "))
+
+    # print samples
+    cat(class(x = object), "Class \n")
+    cat("This object includes", length(object@samples), "sample(s). \n")
+
+    # layers
+    all_layers <- lapply(object@samples, function(x){
+      return(unlist(x@layers))
+    })
+    all_layers <- unlist(all_layers)
+    cat("This object includes", length(all_layers), "layer(s) in total. \n")
+
+    # return invisible
     return(invisible(x = NULL))
   }
 )
 
+## srSample ####
 
-#' LoadNanostring
+#' The srSample (SpaceRover Sample) Class
 #'
-#' Load Nanostring CosMx data
+#' @slot samples A list of layers for the this srSample object
 #'
-#' @param data.dir Path to folder containing Nanostring SMI outputs
-#' @param fov FOV name
-#' @param assay assay
-#' @param type the type of boundaries used for cells
+#' @name srSample-class
+#' @rdname srSample-class
+#' @exportClass srSample
 #'
-#' @export
-#'
-LoadNanostring <- function (data.dir, fov, assay = "Nanostring", type = c("centroids", "segmentations"))
-{
-  data <- ReadNanostring(data.dir = data.dir, type = type)
-  segmentations.data <- list()
-  if("segmentations" %in% type){
-    segmentations.data[["segmentation"]] <- CreateSegmentation(data$segmentations)
+srSample <- setClass(
+  Class = 'srSample',
+  slots = c(
+    layers = 'list'
+  )
+)
+
+### show ####
+setMethod(
+  f = 'show',
+  signature = 'srSample',
+  definition = function(object) {
+    cat(class(x = object), "(SpaceRover Sample) Class \n")
+    cat("This object includes", length(object@layers), "layers. \n")
+    return(invisible(x = NULL))
   }
-  if("centroids" %in% type){
-    segmentations.data[["centroids"]] <- CreateCentroids(data$centroids)
+)
+
+####
+# Auxiliary methods ####
+####
+
+makeSpaceRover <- function(samples, meta.data = NULL, project = NULL){
+
+  # set project name
+  if(is.null(project))
+    project <- "SpaceRover"
+
+  # check for samples
+  if(!is.list(samples))
+    stop("Please introduce a list of samples")
+
+  # set meta data
+  if(is.null(meta.data)){
+    if(any(lapply(names(samples), is.null))){
+      names_samples <- paste0("Sample", 1:length(samples))
+    } else {
+      names_samples <- names(samples)
+    }
+    meta.data <- data.frame(Sample = names_samples)
   }
-  coords <- CreateFOV(coords = segmentations.data, type = type, molecules = data$pixels, assay = assay)
-  obj <- CreateSeuratObject(counts = data$matrix, assay = assay)
-  if(all(c("centroids", "segmentations") %in% type)){
-    cells <- intersect(Cells(x = coords, boundary = "segmentation"),
-                       Cells(x = coords, boundary = "centroids"))
-  } else {
-    cells <- Cells(x = coords, boundary = "centroids")
-  }
-  cells <- intersect(Cells(obj), cells)
-  coords <- subset(x = coords, cells = cells)
-  obj[[fov]] <- coords
-  return(obj)
+
+  # set integrated datasets
+  integrated.datasets <- list()
+
+  # set SpaceRover class
+  new("SpaceRover", samples = samples, integrated.datasets = integrated.datasets, meta.data = meta.data, project = project)
 }
+
+
+
+
+
