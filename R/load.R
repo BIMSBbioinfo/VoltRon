@@ -18,7 +18,7 @@ ImportXenium <- function (dir.path, selected_assay = "Gene Expression", layer_na
   colnames(rawdata) <- paste0("Cell",1:ncol(rawdata))
 
   # coordinates
-  Xenium_coords <- read.csv(file = paste0(dir.path, "/cells_coordinates.csv"))
+  Xenium_coords <- read.csv(file = paste0(dir.path, "/cells.csv.gz"))
   coords <- as.matrix(Xenium_coords[,c("x_centroid", "y_centroid")])
   rownames(coords) <-  paste0("Cell",Xenium_coords$cell_id)
 

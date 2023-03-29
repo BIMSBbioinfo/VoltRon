@@ -34,7 +34,7 @@ setMethod(
   definition = function(object) {
 
     # print class
-    cat(class(x = object), "Class \n")
+    cat(class(x = object), "Object \n")
 
     # print samples and layers
     all_layers <- lapply(object@samples, function(x){
@@ -47,6 +47,26 @@ setMethod(
     return(invisible(x = NULL))
   }
 )
+
+### subset ####
+setMethod(
+  f = '[[',
+  signature = 'SpaceRover',
+  definition = function(x, i, j){
+
+    # sample names
+    sample_names <- names(slot(x, "samples"))
+
+    # check query sample name
+    if(!i %in% sample_names){
+      stop("There are no samples named ", i, "in this object")
+    }
+
+    # return samples
+    return(x@samples[[i]])
+  }
+)
+
 
 ## srSample ####
 
@@ -70,9 +90,28 @@ setMethod(
   f = 'show',
   signature = 'srSample',
   definition = function(object) {
-    cat(class(x = object), "(SpaceRover Sample) Class \n")
+    cat(class(x = object), "(SpaceRover Sample) Object \n")
     cat("This object includes", length(object@layer), "layer(s). \n")
     return(invisible(x = NULL))
+  }
+)
+
+### subset ####
+setMethod(
+  f = '[[',
+  signature = 'srSample',
+  definition = function(x, i, j){
+
+    # sample names
+    layer_names <- names(slot(x, "layer"))
+
+    # check query sample name
+    if(!i %in% layer_names){
+      stop("There are no layers named ", i, "in this object")
+    }
+
+    # return samples
+    return(x@layer[[i]])
   }
 )
 
@@ -98,7 +137,7 @@ setMethod(
   f = 'show',
   signature = 'srLayer',
   definition = function(object) {
-    cat(class(x = object), "(SpaceRover Layer) Class \n")
+    cat(class(x = object), "(SpaceRover Layer) Object \n")
     cat("This object includes", length(object@assay), "assays \n")
     return(invisible(x = NULL))
   }
