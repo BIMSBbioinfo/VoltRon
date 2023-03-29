@@ -1,3 +1,6 @@
+# Set magick-image as an S4 class
+setOldClass(Classes = c('magick-image'))
+
 ####
 # SpaceRover classes ####
 ####
@@ -69,7 +72,7 @@ setMethod(
   signature = 'srSample',
   definition = function(object) {
     cat(class(x = object), "(SpaceRover Sample) Class \n")
-    cat("This object includes", length(object@layer), "layers. \n")
+    cat("This object includes", length(object@layer), "layer(s). \n")
     return(invisible(x = NULL))
   }
 )
@@ -120,18 +123,17 @@ srAssay <- setClass(
   slots = c(
     rawdata = 'matrix',
     normdata = 'matrix',
-    coord = 'matrix',
-    image = ''
+    coords = 'matrix',
+    image = 'magick-image'
   )
 )
 
 ### show ####
 setMethod(
   f = 'show',
-  signature = 'srLayer',
+  signature = 'srAssay',
   definition = function(object) {
-    cat(class(x = object), "(SpaceRover Layer) Class \n")
-    cat("This object includes", length(object@assay), "assays \n")
+    cat("srAssay (SpaceRover Assay) of", ncol(object@rawdata), "cells and", nrow(object@rawdata), "features. \n")
     return(invisible(x = NULL))
   }
 )
