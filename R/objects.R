@@ -31,16 +31,15 @@ setMethod(
   signature = 'SpaceRover',
   definition = function(object) {
 
-    # print samples
+    # print class
     cat(class(x = object), "Class \n")
-    cat("This object includes", length(object@samples), "sample(s). \n")
 
-    # layers
+    # print samples and layers
     all_layers <- lapply(object@samples, function(x){
-      return(unlist(x@layers))
+      return(unlist(x@layer))
     })
     all_layers <- unlist(all_layers)
-    cat("This object includes", length(all_layers), "layer(s) in total. \n")
+    cat("This object includes", length(object@samples), "sample(s) with", length(all_layers), "layer(s) in total. \n")
 
     # return invisible
     return(invisible(x = NULL))
@@ -60,7 +59,7 @@ setMethod(
 srSample <- setClass(
   Class = 'srSample',
   slots = c(
-    layers = 'list'
+    layer = 'list'
   )
 )
 
@@ -70,16 +69,78 @@ setMethod(
   signature = 'srSample',
   definition = function(object) {
     cat(class(x = object), "(SpaceRover Sample) Class \n")
-    cat("This object includes", length(object@layers), "layers. \n")
+    cat("This object includes", length(object@layer), "layers. \n")
+    return(invisible(x = NULL))
+  }
+)
+
+## srLayer ####
+
+#' The srLayer (SpaceRover Layer) Class
+#'
+#' @slot assay
+#'
+#' @name srLayer-class
+#' @rdname srLayer-class
+#' @exportClass srLayer
+#'
+srLayer <- setClass(
+  Class = 'srLayer',
+  slots = c(
+    assay = 'list'
+  )
+)
+
+### show ####
+setMethod(
+  f = 'show',
+  signature = 'srLayer',
+  definition = function(object) {
+    cat(class(x = object), "(SpaceRover Layer) Class \n")
+    cat("This object includes", length(object@assay), "assays \n")
+    return(invisible(x = NULL))
+  }
+)
+
+## srAssay ####
+
+#' The srAssay (SpaceRover Assay) Class
+#'
+#' @slot rawdata
+#' @slot normdata
+#' @slot coord
+#' @slot image
+#'
+#' @name srAssay-class
+#' @rdname srAssay-class
+#' @exportClass srAssay
+#'
+srAssay <- setClass(
+  Class = 'srAssay',
+  slots = c(
+    rawdata = 'matrix',
+    normdata = 'matrix',
+    coord = 'matrix',
+    image = ''
+  )
+)
+
+### show ####
+setMethod(
+  f = 'show',
+  signature = 'srLayer',
+  definition = function(object) {
+    cat(class(x = object), "(SpaceRover Layer) Class \n")
+    cat("This object includes", length(object@assay), "assays \n")
     return(invisible(x = NULL))
   }
 )
 
 ####
-# Auxiliary methods ####
+# SpaceRover Methods ####
 ####
 
-makeSpaceRover <- function(samples, meta.data = NULL, project = NULL){
+CreateSpaceRover <- function(samples, meta.data = NULL, project = NULL){
 
   # set project name
   if(is.null(project))
@@ -91,7 +152,7 @@ makeSpaceRover <- function(samples, meta.data = NULL, project = NULL){
 
   # set meta data
   if(is.null(meta.data)){
-    if(any(lapply(names(samples), is.null))){
+    if(any(sapply(names(samples), is.null))){
       names_samples <- paste0("Sample", 1:length(samples))
     } else {
       names_samples <- names(samples)
