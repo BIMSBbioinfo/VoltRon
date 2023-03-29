@@ -10,7 +10,7 @@
 #'
 #' @export
 #'
-ImportXenium <- function (dir.path, selected_assay = "Gene Expression", layer_name = NULL, sample_name = NULL, assay_name = "Xenium")
+ImportXenium <- function (dir.path, selected_assay = "Gene Expression", layer_name = NULL, sample_name = NULL, assay_name = "Xenium", assay_type = "cell", ...)
 {
   # raw counts
   infile <- Read10X_h5(filename = paste0(dir.path, "/cell_feature_matrix.h5"))
@@ -27,7 +27,7 @@ ImportXenium <- function (dir.path, selected_assay = "Gene Expression", layer_na
   image <-  magick::image_read(morphology_image)
 
   # create srAssay
-  Xenium_assay <- new("srAssay", rawdata = rawdata, normdata = rawdata, coords = coords, image = image)
+  Xenium_assay <- new("srAssay", rawdata = rawdata, normdata = rawdata, coords = coords, image = image, type = assay_type)
   listofAssays <- list(Xenium_assay)
   names(listofAssays) <- assay_name
 
@@ -43,7 +43,7 @@ ImportXenium <- function (dir.path, selected_assay = "Gene Expression", layer_na
   names(listofSamples) <- sample_name
 
   # create SpaceRover
-  CreateSpaceRover(listofSamples)
+  CreateSpaceRover(listofSamples, ...)
 }
 
 #' ImportVisium
@@ -55,7 +55,7 @@ ImportXenium <- function (dir.path, selected_assay = "Gene Expression", layer_na
 #'
 #' @export
 #'
-ImportVisium <- function(dir.path, layer_name = NULL, sample_name = NULL, assay_name = "Xenium")
+ImportVisium <- function(dir.path, layer_name = NULL, sample_name = NULL, assay_name = "Visium", assay_type = "Spot", ...)
 {
   # raw counts
   listoffiles <- list.files(dir.path)
@@ -74,7 +74,7 @@ ImportVisium <- function(dir.path, layer_name = NULL, sample_name = NULL, assay_
   image <-  magick::image_read(image)
 
   # create srAssay
-  Visium_assay <- new("srAssay", rawdata = rawdata, normdata = rawdata, coords = coords, image = image)
+  Visium_assay <- new("srAssay", rawdata = rawdata, normdata = rawdata, coords = coords, image = image, type = assay_type)
   listofAssays <- list(Visium_assay)
   names(listofAssays) <- assay_name
 
@@ -90,5 +90,5 @@ ImportVisium <- function(dir.path, layer_name = NULL, sample_name = NULL, assay_
   names(listofSamples) <- sample_name
 
   # create SpaceRover
-  CreateSpaceRover(listofSamples)
+  CreateSpaceRover(listofSamples, ...)
 }
