@@ -59,7 +59,7 @@ setMethod(
 
     # check query sample name
     if(!i %in% sample_names){
-      stop("There are no samples named ", i, "in this object")
+      stop("There are no samples named ", i, " in this object")
     }
 
     # return samples
@@ -107,7 +107,7 @@ setMethod(
 
     # check query sample name
     if(!i %in% layer_names){
-      stop("There are no layers named ", i, "in this object")
+      stop("There are no layers named ", i, " in this sample")
     }
 
     # return samples
