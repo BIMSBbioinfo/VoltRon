@@ -20,9 +20,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// doing_something
+void doing_something();
+RcppExport SEXP _spaceRover_doing_something() {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    doing_something();
+    return R_NilValue;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_spaceRover_rcpp_hello_world", (DL_FUNC) &_spaceRover_rcpp_hello_world, 0},
+    {"_spaceRover_doing_something", (DL_FUNC) &_spaceRover_doing_something, 0},
     {NULL, NULL, 0}
 };
 

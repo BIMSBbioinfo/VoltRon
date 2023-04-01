@@ -5,3 +5,7 @@ rcpp_hello_world <- function() {
     .Call('_spaceRover_rcpp_hello_world', PACKAGE = 'spaceRover')
 }
 
+doing_something <- function() {
+    invisible(.Call('_spaceRover_doing_something', PACKAGE = 'spaceRover'))
+}
+
