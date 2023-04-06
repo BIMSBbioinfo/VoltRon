@@ -144,8 +144,6 @@ GenerateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #' @param fov FOV name, preferably the name used in the Seurat Object
 #' @param overwrite Overwrite the existing FOV image
 #'
-#' @import
-#'
 #' @export
 #'
 addFOVImage <- function(seu, file, fov = "fov", overwrite = FALSE) {
