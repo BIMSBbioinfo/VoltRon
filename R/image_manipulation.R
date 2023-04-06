@@ -161,11 +161,11 @@ addFOVImage <- function(seu, file, fov = "fov", overwrite = FALSE) {
       stop("FOV image is already provided")
   }
 
-  # # get image in FOVImage class
-  # image <- new(Class = "FOVImage", image = magick::image_read(file))
-  #
-  # # insert the image to the Seurat Object
-  # seu@images[[fov_image]] <- image
+  # get image in FOVImage class
+  image <- new(Class = "FOVImage", image = magick::image_read(file))
+
+  # insert the image to the Seurat Object
+  seu@images[[fov_image]] <- image
 
   # return Seurat Object
   return(seu)
