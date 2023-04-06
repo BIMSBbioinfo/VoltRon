@@ -4,7 +4,7 @@
 \alias{QueryImageOutput}
 \title{QueryImageOutput}
 \usage{
-QueryImageOutput(image_list, keypoints_list, input, output, session)
+QueryImageOutput(image_list, keypoints_list = NULL, input, output, session)
 }
 \arguments{
 \item{image_list}{a list of magick images}

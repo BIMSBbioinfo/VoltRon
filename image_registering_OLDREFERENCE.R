@@ -6,9 +6,8 @@
 #'
 #' A mini shiny app to calculate spatial cell(barcode) projection matrix between a visium slide and a xenium slide
 #'
-#' @param spatial_data_list a list of spatial data sets
-#' @param reference_spatdata a reference spatial data set, used only if \code{spatial_data_list} is \code{NULL}
-#' @param query_spatdata_list a list of query spatial data sets, used only if \code{spatial_data_list} is \code{NULL}
+#' @param reference_seu Seurat object with reference spatial assay
+#' @param query_list_seu a list of Seurat Object with query images
 #'
 #' @return keypoints
 #'
@@ -16,19 +15,18 @@
 #'
 #' @export
 #'
-SpatialRegistration <- function(spatial_data_list = NULL, reference_spatdata = NULL, query_spatdata_list = NULL, keypoints = NULL) {
+SpatialRegistration <- function(reference_seu, query_list_seu, keypoints = NULL) {
 
   # shiny
   require(shiny)
 
   # get images
-  if(!is.null(spatial_data_list)){
+  images <- getRegisteringImages(reference_seu, query_list_seu)
+  orig_image_ref <- images$ref_image
+  orig_image_query_list <- images$query_image_list
 
-  } else {
-    images <- getRegisteringImages(reference_spatdata, query_spatdata_list)
-    orig_image_ref <- images$ref_image
-    orig_image_query_list <- images$query_image_list
-  }
+  # # get cell/barcodes
+  # cells_data_list <- getRegisteringCells(query_list_seu)
 
   # get the ui and server
   if (interactive()){
@@ -61,13 +59,13 @@ SpatialRegistration <- function(spatial_data_list = NULL, reference_spatdata = N
 
                       # Interface for the reference image
                       br(),
-                      column(6,QueryTabPanels(length(orig_image_query_list), type = "ref")),
+                      column(6,ReferenceTabPanel()),
 
                       # Interface for the query images
                       column(6,
 
                              # Original Query Images
-                             QueryTabPanels(length(orig_image_query_list), type = "query"),
+                             QueryTabPanels(length(orig_image_query_list)),
 
                              br(),
 
@@ -83,25 +81,47 @@ SpatialRegistration <- function(spatial_data_list = NULL, reference_spatdata = N
 
     server <- function(input, output, session) {
 
-      ## Manage Interface ####
-      UpdateSequentialTabPanels(input, output, session, length(orig_image_query_list))
-
-      ## Set up reference and query keypoints ####
-      xyTable_list <- QueryKeypoints(length(orig_image_query_list), keypoints)
-
       ## Set up reference keypoints and output ####
-      # xyTable_ref <- ReferenceKeypoints(keypoints[[1]])
+      xyTable_ref <- ReferenceKeypoints(keypoints[[1]])
+      ReferenceKeypointTable(xyTable_ref, trans_ref(), input, output, session)
+
+      ## Set up query keypoints and output ####
+      xyTable_query_list <- QueryKeypoints(length(orig_image_query_list), keypoints[2:length(keypoints)])
+      QueryKeypointTable(xyTable_query_list, trans_query_list, input, output, session)
+
+      ## Get transformed reference and query images ####
+      trans_ref <- reactive(transform_magick_image(orig_image_ref, "ref", input, session))
+      trans_query_list <- transform_magick_image_query_list(orig_image_query_list, input, session)
+
+      ## Return Registered keypoints ####
+      registered_query_list_seu <- QueryMatrices(length(orig_image_query_list))
+      getManualRegisteration(registered_query_list_seu, query_list_seu, length(orig_image_query_list),
+                             orig_image_query_list, orig_image_ref,
+                             xyTable_query_list, xyTable_ref(), input, output, session)
 
       ## Main observable ####
       observe({
 
         # output the reference image
-        # ReferenceImageOutput(orig_image_ref, xyTable_ref, input, output, session)
-        ReferenceImageOutput(orig_image_query_list, NULL, input, output, session)
+        ReferenceImageOutput(orig_image_ref, xyTable_ref, input, output, session)
 
         # output the list of query images
-        QueryImageOutput(orig_image_query_list, NULL, input, output, session)
+        QueryImageOutput(orig_image_query_list, xyTable_query_list, input, output, session)
 
+      })
+
+      ## Return values for the shiny app ####
+      observeEvent(input$done, {
+
+        # keypoints
+        keypoints <- list(xyTable_ref())
+        keypoints <-  c(keypoints, reactiveValuesToList(xyTable_query_list))
+
+        # Transformation (Mapping) matrix
+        RegisteredSeurat <- reactiveValuesToList(registered_query_list_seu)
+
+        # stop app and return
+        stopApp(list(keypoints = keypoints, registered_seurat = RegisteredSeurat))
       })
     }
 
@@ -110,35 +130,61 @@ SpatialRegistration <- function(spatial_data_list = NULL, reference_spatdata = N
 }
 
 ####
-# User Interface ####
+# Managing User Interface ####
 ####
+
+#' ReferenceTabPanel
+#'
+#' The UI for the reference spatial slide
+#'
+#' @return tabsetpanel
+#'
+ReferenceTabPanel <- function(){
+  sortableTabsetPanel(id = 'image_tab_panel_ref',
+
+                      # Image 1 Tab
+                      tabPanel("Reference Image",
+                               br(),
+                               fluidRow(
+                                 column(4,selectInput("rotate_ref", "Rotate (ClockWise):",choices = c(0,90,180,270), selected = 0)),
+                                 column(4,selectInput("flipflop_ref", "Transform:",choices = c("None", "Flip", "Flop"), selected = "None")),
+                                 column(4,selectInput("negate_ref", "Negate Image:", choices = c("No", "Yes"), selected = "No"))
+                               ),
+                               fluidRow(
+                                 # tableOutput("xy_Table_ref"),
+                                 shiny::actionButton("remove_ref", "Remove Point")
+                               ),
+                               fluidRow(imageOutput("plot_ref", click = "click_plot_ref")),
+                      )
+  )
+}
 
 #' QueryTabPanels
 #'
-#' The UI for a set of reference/query spatial slides
+#' The UI for a set of query spatial slides
 #'
 #' @param len_images the number of query images
 #'
 #' @return tabsetpanel
 #'
-QueryTabPanels <- function(len_images, type){
-
-  # get panel label
-  label <- ifelse(type == "ref", "Ref. ", "Query ")
-
-  # call panels
-  do.call(sortableTabsetPanel, c(id=paste0('image_tab_panel_',type),lapply(1:len_images, function(i) {
-    tabPanel(paste0(label,i),
+QueryTabPanels <- function(len_images){
+  do.call(sortableTabsetPanel, c(id='image_tab_panel_query',lapply(1:len_images, function(i) {
+    tabPanel(paste0("Query ",i),
              br(),
              fluidRow(
-               column(4, selectInput(paste0("rotate_", type, "_image",i), "Rotate (ClockWise):", choices = c(0,90,180,270), selected = 0)),
-               column(4, selectInput(paste0("flipflop_", type, "_image",i), "Transform:", choices = c("None", "Flip", "Flop"), selected = "None")),
-               column(4, selectInput(paste0("negate_", type, "_image",i), "Negate Image:", choices = c("No", "Yes"), selected = "No"))
+               column(4, selectInput(paste0("rotate_image",i), "Rotate (ClockWise):", choices = c(0,90,180,270), selected = 0)),
+               column(4, selectInput(paste0("flipflop_image",i), "Transform:", choices = c("None", "Flip", "Flop"), selected = "None")),
+               column(4, selectInput(paste0("negate_image",i), "Negate Image:", choices = c("No", "Yes"), selected = "No"))
              ),
              fluidRow(
-               shiny::actionButton(paste0("remove_", type, i), "Remove Point")
+               # tableOutput(paste0("xy_Table_query",i)),
+               shiny::actionButton(paste0("remove_query",i), "Remove Point")
              ),
-             fluidRow(imageOutput(paste0("plot_", type, i), click = paste0("click_plot_", type, i))),
+             fluidRow(imageOutput(paste0("plot_query",i), click = paste0("click_plot",i))),
+             # br(),
+             # h5("Registered Image:"),
+             # column(6, sliderInput(paste0("plot_query_reg_alpha",i), label = "Alpha Level", min = 0, max = 1, value = 0.2)),
+             # fluidRow(imageOutput(paste0("plot_query_reg",i)))
     )
   })))
 }
@@ -154,6 +200,17 @@ QueryTabPanels <- function(len_images, type){
 RegisteredQueryTabPanels <- function(len_images){
   do.call(sortableTabsetPanel, c(id='image_tab_panel_reg_query',lapply(1:len_images, function(i) {
     tabPanel(paste0("Reg. Query ",i),
+             # br(),
+             # fluidRow(
+             #   column(4, selectInput(paste0("rotate_image",i), "Rotate (ClockWise):", choices = c(0,90,180,270), selected = 0)),
+             #   column(4, selectInput(paste0("flipflop_image",i), "Transform:", choices = c("None", "Flip", "Flop"), selected = "None")),
+             #   column(4, selectInput(paste0("negate_image",i), "Negate Image:", choices = c("No", "Yes"), selected = "No"))
+             # ),
+             # fluidRow(imageOutput(paste0("plot_query",i), click = paste0("click_plot",i))),
+             # fluidRow(
+             #   # tableOutput(paste0("xy_Table_query",i)),
+             #   shiny::actionButton(paste0("remove_query",i), "Remove Point")
+             # ),
              br(),
              # h5("Registered Image:"),
              column(6, sliderInput(paste0("plot_query_reg_alpha",i), label = "Alpha Level", min = 0, max = 1, value = 0.2)),
@@ -162,50 +219,6 @@ RegisteredQueryTabPanels <- function(len_images){
   })))
 }
 
-####
-# Managing User Interface ####
-####
-
-#' UpdateSequentialTabPanels
-#'
-#' A function for automatized selection of reference/query images
-#'
-#' @param input input
-#' @param output output
-#' @param session session
-#' @param npanels the number of panels in both reference and query image sections
-#'
-UpdateSequentialTabPanels <- function(input, output, session, npanels){
-
-  # observe changes in the reference tab panel
-  observeEvent(input$image_tab_panel_ref,{
-    selected_panel <- input$image_tab_panel_ref
-    selected_panel_ind <- as.numeric(strsplit(selected_panel, split = " ")[[1]][2])
-
-    query_panel_ind <- (selected_panel_ind + 1)
-    if(query_panel_ind == 1) query_panel_ind <- npanels
-    updateTabsetPanel(session, "image_tab_panel_query", paste0("Query ", query_panel_ind))
-
-    if(selected_panel_ind == npanels)
-      updateTabsetPanel(session, "image_tab_panel_ref", paste0("Ref. ", selected_panel_ind-1))
-  })
-
-  # observe changes in the query tab panel
-  observeEvent(input$image_tab_panel_query,{
-    selected_panel <- input$image_tab_panel_query
-    selected_panel_ind <- as.numeric(strsplit(selected_panel, split = " ")[[1]][2])
-
-    query_panel_ind <- (selected_panel_ind - 1)
-    if(query_panel_ind == 0) query_panel_ind <- 1
-    updateTabsetPanel(session, "image_tab_panel_ref", paste0("Ref. ", query_panel_ind))
-
-    if(selected_panel_ind == 1)
-      updateTabsetPanel(session, "image_tab_panel_query", paste0("Query ", selected_panel_ind+1))
-
-    query_panel_ind <- selected_panel_ind
-    updateTabsetPanel(session, "image_tab_panel_reg_query", paste0("Reg. Query ", query_panel_ind))
-  })
-}
 
 ####
 # Managing Cells/Barcodes ####
@@ -278,6 +291,28 @@ rescaleXeniumCells <- function(cells, bbox, image){
 # Managing Keypoints ####
 ####
 
+#' ReferenceKeypoints
+#'
+#' Initiate shiny reactive values for keypoint dataframes for the reference image
+#'
+#' @param keypoints the keypoints of reference image
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#'
+#' @return a shiny reactive values object
+#'
+ReferenceKeypoints <- function(keypoints = NULL, input, output, session){
+
+  if(is.null(keypoints)){
+    keypoints <- reactiveVal(tibble(KeyPoint = numeric(), x = numeric(), y = numeric()))
+  } else {
+    keypoints <- reactiveVal(tibble(KeyPoint = keypoints$KeyPoint, x = keypoints$x, y = keypoints$y))
+  }
+
+  return(keypoints)
+}
+
 #' QueryKeypoints
 #'
 #' Initiate shiny reactive values for keypoint dataframes for the query images
@@ -295,9 +330,7 @@ QueryKeypoints <- function(len_images, keypoints_list, input, output, session){
   # initiate keypoints
   if(is.null(keypoints_list)){
     keypoints_list <- lapply(1:len_images, function(i) {
-      list(ref = tibble(KeyPoint = numeric(), x = numeric(), y = numeric()),
-           query = tibble(KeyPoint = numeric(), x = numeric(), y = numeric()))
-
+      tibble(KeyPoint = numeric(), x = numeric(), y = numeric())
     })
   }
 
@@ -308,9 +341,40 @@ QueryKeypoints <- function(len_images, keypoints_list, input, output, session){
   do.call("reactiveValues", keypoints_list)
 }
 
+#' ReferenceKeypointTable
+#'
+#' A list of shiny observe events for keypoints tables, updating keypoints and auxiliary operations for reference image
+#'
+#' @param xyTable_list a list of keypoints x,y coordinates for each magick image
+#' @param image_list a lost of magick image
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#'
+ReferenceKeypointTable <- function(xyTable, image, input, output, session){
+
+  # output the keypoint table
+  output$xy_Table_ref <- renderTable(xyTable())
+
+  # click events for updating the keypoints
+  observeEvent(input$click_plot_ref, {
+    keypoint <- data.frame(x = input$click_plot_ref$x, y = input$click_plot_ref$y)
+    keypoint <- transform_keypoints(image, keypoint, "ref", input, session)
+    xyTable() %>%
+      add_row(KeyPoint = nrow(xyTable())+1, x = keypoint$x, y = keypoint$y) %>%
+      xyTable()
+  })
+
+  # remove points by click
+  observeEvent(input$remove_ref, {
+    if(nrow(xyTable()) > 0)
+      xyTable() %>% filter(KeyPoint != nrow(xyTable())) %>% xyTable()
+  })
+}
+
 #' QueryKeypointTable
 #'
-#' A list of shiny observe events for keypoints tables, updating keypoints and auxiliary operations for query image
+#' A list of shiny observe events for keypoints tables, updating keypoints and auxiliry operations for query image
 #'
 #' @param xyTable_list a list of keypoints x,y coordinates for each magick image
 #' @param image_list a lost of magick image
@@ -323,10 +387,15 @@ QueryKeypointTable <- function(xyTable_list, image_list, input, output, session)
   # get the length of tables
   len_tables <- length(xyTable_list)
 
+  # output query keypoint tables
+  lapply(1:len_tables, function(i){
+    output[[paste0("xy_Table_query",i)]] <- renderTable({xyTable_list[[paste0(i)]]})
+  })
+
   # set click operations for the set of keypoints
   lapply(1:len_tables, function(i){
-    observeEvent(input[[paste0("click_plot_query",i)]], {
-      keypoint <- data.frame(x = input[[paste0("click_plot_query",i)]]$x, y = input[[paste0("click_plot_query",i)]]$y)
+    observeEvent(input[[paste0("click_plot",i)]], {
+      keypoint <- data.frame(x = input[[paste0("click_plot",i)]]$x, y = input[[paste0("click_plot",i)]]$y)
       if(is.reactive(image_list[[i]])){
         image <- image_list[[i]]()
       } else {
@@ -366,37 +435,37 @@ QueryKeypointTable <- function(xyTable_list, image_list, input, output, session)
 #'
 transform_magick_image_keypoints <- function(image, keypoints, extension, input, session){
 
-  # # negate image
-  # input_negate <- input[[paste0("negate_", extension)]]
-  # if(input_negate == "Yes"){
-  #   image <- image_negate(image)
-  # }
-  #
-  # # get unrotated image info
-  # image_limits <- unlist(image_info(image)[1,c("width", "height")])
-  # image_origin <- image_limits/2
-  #
-  # # rotate image and keypoints
-  # input_rotate <- as.numeric(input[[paste0("rotate_", extension)]])
-  # image <- image_rotate(image, input_rotate)
-  #
-  # # get rotated image info
-  # rotated_image_limits <- unlist(image_info(image)[1,c("width", "height")])
-  # rotated_image_origin <- rotated_image_limits/2
-  #
-  # # rotate keypoints
-  # keypoints <- rotate_keypoint(keypoints, input_rotate, image_origin, image_limits, rotated_image_origin, rotated_image_limits)
-  #
-  # # flip flop image and keypoints
-  # input_flipflop <- input[[paste0("flipflop_", extension)]]
-  # if(input_flipflop == "Flip"){
-  #   image <- image_flip(image)
-  # } else if(input_flipflop == "Flop"){
-  #   image <- image_flop(image)
-  # }
-  #
-  # # flipflop keypoints
-  # keypoints <- flipflop_keypoint(keypoints, rotated_image_limits, input_flipflop)
+  # negate image
+  input_negate <- input[[paste0("negate_", extension)]]
+  if(input_negate == "Yes"){
+    image <- image_negate(image)
+  }
+
+  # get unrotated image info
+  image_limits <- unlist(image_info(image)[1,c("width", "height")])
+  image_origin <- image_limits/2
+
+  # rotate image and keypoints
+  input_rotate <- as.numeric(input[[paste0("rotate_", extension)]])
+  image <- image_rotate(image, input_rotate)
+
+  # get rotated image info
+  rotated_image_limits <- unlist(image_info(image)[1,c("width", "height")])
+  rotated_image_origin <- rotated_image_limits/2
+
+  # rotate keypoints
+  keypoints <- rotate_keypoint(keypoints, input_rotate, image_origin, image_limits, rotated_image_origin, rotated_image_limits)
+
+  # flip flop image and keypoints
+  input_flipflop <- input[[paste0("flipflop_", extension)]]
+  if(input_flipflop == "Flip"){
+    image <- image_flip(image)
+  } else if(input_flipflop == "Flop"){
+    image <- image_flop(image)
+  }
+
+  # flipflop keypoints
+  keypoints <- flipflop_keypoint(keypoints, rotated_image_limits, input_flipflop)
 
   # return both the image and the keypoints
   return(list(image = image, keypoints = keypoints))
@@ -542,19 +611,14 @@ getRegisteringImages <- function(reference, query_list){
   seu_list <- c(reference, query_list)
 
   # get images from Seurat list
-  image_list <- lapply(seu_list, getObjectImage)
+  image_list <- lapply(seu_list, getSeuratImage)
   ref_image <- image_list[[1]]
   query_image_list <- image_list[-1]
 
   return(list(ref_image = ref_image, query_image_list = query_image_list))
 }
 
-getObjectImage <- function(obj) {
-  if(class(obj) == "Seurat")
-    getObjectImage.Seurat(obj)
-}
-
-#' getObjectImage.Seurat
+#' getSeuratImage
 #'
 #' get the image from a Spatial assay
 #'
@@ -562,7 +626,7 @@ getObjectImage <- function(obj) {
 #'
 #' @import magick
 #'
-getObjectImage.Seurat <- function(seu){
+getSeuratImage <- function(seu){
 
   image_classes <- sapply(seu@images, class)
 
@@ -581,26 +645,19 @@ getObjectImage.Seurat <- function(seu){
 #'
 #' Shiny outputs for a set of magick images with keypoints
 #'
-#' @param image_list a list of magick images
-#' @param keypoints_list a list of data frames, each having a set of keypoints
+#' @param image magick image
+#' @param keypoints keypoint data frame
 #' @param input shiny input
 #' @param output shiny output
 #' @param session shiny session
 #'
-ReferenceImageOutput <- function(image_list, keypoints_list = NULL, input, output, session){
+ReferenceImageOutput <- function(image, xyTable, input, output, session){
 
-  # get the length of images
-  len_images <- length(image_list)
-
-  # output query images
-  lapply(1:len_images, function(i){
-    output[[paste0("plot_ref",i)]] <- renderPlot({
-      # keypoints <- keypoints_list[[paste0(i)]]
-      keypoints <- tibble(KeyPoint = numeric(), x = numeric(), y = numeric()) ## CHANGE LATER
-      img <- transform_magick_image_keypoints(image_list[[i]], keypoints, paste0("image",i), input, session)
-      img <- image_ggplot_keypoint(image_ggplot(img$image), img$keypoints)
-      return(img)
-    })
+  # output the reference image
+  output$plot_ref <- renderPlot({
+    img <- transform_magick_image_keypoints(image, xyTable(), "ref", input, session)
+    img <- image_ggplot_keypoint(image_ggplot(img$image), img$keypoints)
+    return(img)
   })
 
 }
@@ -615,7 +672,7 @@ ReferenceImageOutput <- function(image_list, keypoints_list = NULL, input, outpu
 #' @param output shiny output
 #' @param session shiny session
 #'
-QueryImageOutput <- function(image_list, keypoints_list = NULL, input, output, session){
+QueryImageOutput <- function(image_list, keypoints_list, input, output, session){
 
   # get the length of images
   len_images <- length(image_list)
@@ -623,8 +680,7 @@ QueryImageOutput <- function(image_list, keypoints_list = NULL, input, output, s
   # output query images
   lapply(1:len_images, function(i){
     output[[paste0("plot_query",i)]] <- renderPlot({
-      # keypoints <- keypoints_list[[paste0(i)]]
-      keypoints <- tibble(KeyPoint = numeric(), x = numeric(), y = numeric()) ## CHANGE LATER
+      keypoints <- keypoints_list[[paste0(i)]]
       img <- transform_magick_image_keypoints(image_list[[i]], keypoints, paste0("image",i), input, session)
       img <- image_ggplot_keypoint(image_ggplot(img$image), img$keypoints)
       return(img)

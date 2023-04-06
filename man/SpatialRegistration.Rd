@@ -4,12 +4,19 @@
 \alias{SpatialRegistration}
 \title{register_slides}
 \usage{
-SpatialRegistration(reference_seu, query_list_seu, keypoints = NULL)
+SpatialRegistration(
+  spatial_data_list = NULL,
+  reference_spatdata = NULL,
+  query_spatdata_list = NULL,
+  keypoints = NULL
+)
 }
 \arguments{
-\item{reference_seu}{Seurat object with reference spatial assay}
+\item{spatial_data_list}{a list of spatial data sets}
 
-\item{query_list_seu}{a list of Seurat Object with query images}
+\item{reference_spatdata}{a reference spatial data set, used only if \code{spatial_data_list} is \code{NULL}}
+
+\item{query_spatdata_list}{a list of query spatial data sets, used only if \code{spatial_data_list} is \code{NULL}}
 }
 \value{
 keypoints

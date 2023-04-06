@@ -4,18 +4,18 @@
 \alias{ReferenceImageOutput}
 \title{ReferenceImageOutput}
 \usage{
-ReferenceImageOutput(image, xyTable, input, output, session)
+ReferenceImageOutput(image_list, keypoints_list = NULL, input, output, session)
 }
 \arguments{
-\item{image}{magick image}
+\item{image_list}{a list of magick images}
+
+\item{keypoints_list}{a list of data frames, each having a set of keypoints}
 
 \item{input}{shiny input}
 
 \item{output}{shiny output}
 
 \item{session}{shiny session}
-
-\item{keypoints}{keypoint data frame}
 }
 \description{
 Shiny outputs for a set of magick images with keypoints
