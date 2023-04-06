@@ -42,8 +42,13 @@ ImportXenium <- function (dir.path, selected_assay = "Gene Expression", layer_na
   listofSamples <- list(new("srSample", layer = listofLayers))
   names(listofSamples) <- sample_name
 
+  # create metadata
+  metadata <- setSRMetadata(cell = data.frame(Count = colSums(rawdata), row.names = colnames(rawdata)),
+                                       spot = data.frame(),
+                                       ROI = data.frame())
+
   # create SpaceRover
-  CreateSpaceRover(listofSamples, ...)
+  CreateSpaceRover(listofSamples, metadata = metadata, ...)
 }
 
 #' ImportVisium
@@ -65,7 +70,6 @@ ImportVisium <- function(dir.path, layer_name = NULL, sample_name = NULL, assay_
 
   # coordinates
   Visium_coords <- read.csv(file = paste0(dir.path, "/spatial/tissue_positions.csv"))
-  print(head(Visium_coords))
   coords <- as.matrix(Visium_coords[,c("pxl_col_in_fullres", "pxl_row_in_fullres")])
   rownames(coords) <-  Visium_coords$barcode
 
@@ -89,6 +93,11 @@ ImportVisium <- function(dir.path, layer_name = NULL, sample_name = NULL, assay_
   listofSamples <- list(new("srSample", layer = listofLayers))
   names(listofSamples) <- sample_name
 
+  # create metadata
+  metadata <- setSRMetadata(cell = data.frame(),
+                                       spot = data.frame(Count = colSums(rawdata), row.names = colnames(rawdata)),
+                                       ROI = data.frame())
+
   # create SpaceRover
-  CreateSpaceRover(listofSamples, ...)
+  CreateSpaceRover(listofSamples, metadata = metadata, ...)
 }

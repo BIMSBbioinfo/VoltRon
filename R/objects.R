@@ -5,6 +5,39 @@ setOldClass(Classes = c('magick-image'))
 # SpaceRover classes ####
 ####
 
+## srMetadata ####
+
+#' The srMetadata (SpaceRover Metadata) Class
+#'
+#' @slot samples A list of layers for the this srSample object
+#'
+#' @name srMetadata-class
+#' @rdname srMetadata-class
+#' @exportClass srMetadata
+#'
+srMetadata <- setClass(
+  Class = 'srMetadata',
+  slots = c(
+    cell = 'data.frame',
+    spot = 'data.frame',
+    ROI = 'data.frame'
+  )
+)
+
+### show ####
+setMethod(
+  f = 'show',
+  signature = 'srMetadata',
+  definition = function(object) {
+    cat("SpaceRover Metadata \n")
+    cat("This object includes: \n")
+    cat("  ", nrow(object@cell), "cells \n")
+    cat("  ", nrow(object@spot), "spots \n")
+    cat("  ", nrow(object@ROI), "ROIs \n")
+    return(invisible(x = NULL))
+  }
+)
+
 ## SpaceRover ####
 
 #' The SpaceRover Class
@@ -22,6 +55,7 @@ SpaceRover <- setClass(
   Class = 'SpaceRover',
   slots = c(
     samples = 'list',
+    metadata = "srMetadata",
     sample.metadata = "data.frame",
     project = 'character'
   )
@@ -37,11 +71,18 @@ setMethod(
     cat(class(x = object), "Object \n")
 
     # print samples and layers
-    all_layers <- lapply(object@samples, function(x){
-      return(unlist(x@layer))
-    })
-    all_layers <- unlist(all_layers)
-    cat("This object includes", length(object@samples), "sample(s) with", length(all_layers), "layer(s) in total. \n")
+    for(samp in names(object@samples)){
+      cat(samp, ": \n", sep = "")
+      layers <- names(unlist(object@samples[[samp]]@layer))
+      cat("  Layers:", paste(layers, collapse = " "), "\n")
+    }
+
+    # all_layers <- lapply(object@samples, function(x){
+    #   return(unlist(x@layer))
+    # })
+    # all_layers <- unlist(all_layers)
+    # cat("  ", length(object@samples), "sample(s) \n")
+    # cat("  ", length(all_layers), "layer(s) \n")
 
     # return invisible
     return(invisible(x = NULL))
@@ -66,7 +107,6 @@ setMethod(
     return(x@samples[[i]])
   }
 )
-
 
 ## srSample ####
 
@@ -181,7 +221,7 @@ setMethod(
 # SpaceRover Methods ####
 ####
 
-CreateSpaceRover <- function(samples, sample.metadata = NULL, project = NULL){
+CreateSpaceRover <- function(samples, metadata = NULL, sample.metadata = NULL, project = NULL){
 
   # set project name
   if(is.null(project))
@@ -192,41 +232,54 @@ CreateSpaceRover <- function(samples, sample.metadata = NULL, project = NULL){
     stop("Please introduce a list of samples")
 
   # set meta data
+  if(is.null(metadata)){
+    metadata <- setSRMetadata(cell = data.frame(), spot = data.frame(), ROI = data.frame())
+  }
+
+  # set sample meta data
   if(is.null(sample.metadata)){
-
-    # imput missing sample names
-    sample_name_ind <- sapply(names(samples), is.null)
-    if(length(sample_name_ind) > 0){
-      names_samples <- names(samples)
-      if(any(sample_name_ind)){
-        null_samples_ind <- which(sample_name_ind)
-        names_samples[null_samples_ind] <- paste0("Sample", null_samples_ind)
-      }
-    } else {
-      names_samples <- paste0("Sample", 1:length(samples))
-    }
-
-    # get sample metadata
-    sample_list <- names(samples)
-    sample.metadata <- NULL
-    for(i in 1:length(sample_list)){
-      layer_list <- samples[[sample_list[i]]]@layer
-      layer_data <- NULL
-      for(j in 1:length(layer_list)){
-        assay_list <- layer_list[[j]]@assay
-        layer_data <- rbind(layer_data, cbind(names(assay_list), names(layer_list)[j]))
-      }
-      sample.metadata <- rbind(sample.metadata, cbind(layer_data, sample_list[i]))
-    }
-    sample.metadata <- data.frame(sample.metadata, row.names = paste0("Assay", 1:nrow(sample.metadata)))
-    colnames(sample.metadata) <- c("Assay", "Layer", "Sample")
+    sample.metadata <- setSRSampleMetadata(samples)
   }
 
   # set SpaceRover class
-  new("SpaceRover", samples = samples, sample.metadata = sample.metadata, project = project)
+  new("SpaceRover", samples = samples, metadata = metadata, sample.metadata = sample.metadata, project = project)
 }
 
+setSRMetadata <- function(cell, spot, ROI){
+  new("srMetadata", cell = cell, spot = spot, ROI = ROI)
+}
 
+setSRSampleMetadata <- function(samples){
+
+  # imput missing sample names
+  sample_name_ind <- sapply(names(samples), is.null)
+  if(length(sample_name_ind) > 0){
+    names_samples <- names(samples)
+    if(any(sample_name_ind)){
+      null_samples_ind <- which(sample_name_ind)
+      names_samples[null_samples_ind] <- paste0("Sample", null_samples_ind)
+    }
+  } else {
+    names_samples <- paste0("Sample", 1:length(samples))
+  }
+
+  # get sample metadata
+  sample_list <- names(samples)
+  sample.metadata <- NULL
+  for(i in 1:length(sample_list)){
+    layer_list <- samples[[sample_list[i]]]@layer
+    layer_data <- NULL
+    for(j in 1:length(layer_list)){
+      assay_list <- layer_list[[j]]@assay
+      layer_data <- rbind(layer_data, cbind(names(assay_list), names(layer_list)[j]))
+    }
+    sample.metadata <- rbind(sample.metadata, cbind(layer_data, sample_list[i]))
+  }
+  sample.metadata <- data.frame(sample.metadata, row.names = paste0("Assay", 1:nrow(sample.metadata)))
+  colnames(sample.metadata) <- c("Assay", "Layer", "Sample")
+
+  sample.metadata
+}
 
 
 
