@@ -84,7 +84,10 @@ SpatialRegistration <- function(spatial_data_list = NULL, reference_spatdata = N
     server <- function(input, output, session) {
 
       ## Manage Interface ####
-      SequentialTabPanels(input, output, session, length(orig_image_query_list))
+      UpdateSequentialTabPanels(input, output, session, length(orig_image_query_list))
+
+      ## Set up reference and query keypoints ####
+      xyTable_list <- RefvsQueryKeypoints(length(orig_image_query_list), keypoints)
 
       ## Set up reference keypoints and output ####
       xyTable_ref <- ReferenceKeypoints(keypoints[[1]])
@@ -129,7 +132,7 @@ SpatialRegistration <- function(spatial_data_list = NULL, reference_spatdata = N
 #'
 ReferenceTabPanel <- function(len_images){
   do.call(sortableTabsetPanel, c(id='image_tab_panel_ref',lapply(1:len_images, function(i) {
-    tabPanel(paste0("Query ",i),
+    tabPanel(paste0("Ref. ",i),
              br(),
              fluidRow(
                column(4, selectInput(paste0("rotate_image",i), "Rotate (ClockWise):", choices = c(0,90,180,270), selected = 0)),
@@ -220,7 +223,7 @@ RegisteredQueryTabPanels <- function(len_images){
 # Managing User Interface ####
 ####
 
-#' SequentialTabPanels
+#' UpdateSequentialTabPanels
 #'
 #' A function for automatized selection of reference/query images
 #'
@@ -229,7 +232,7 @@ RegisteredQueryTabPanels <- function(len_images){
 #' @param session session
 #' @param npanels the number of panels in both reference and query image sections
 #'
-SequentialTabPanels <- function(input, output, session, npanels){
+UpdateSequentialTabPanels <- function(input, output, session, npanels){
 
   # observe changes in the reference tab panel
   observeEvent(input$image_tab_panel_ref,{
@@ -244,9 +247,13 @@ SequentialTabPanels <- function(input, output, session, npanels){
   observeEvent(input$image_tab_panel_query,{
     selected_panel <- input$image_tab_panel_query
     selected_panel_ind <- as.numeric(strsplit(selected_panel, split = " ")[[1]][2])
+
     query_panel_ind <- (selected_panel_ind - 1)
     if(query_panel_ind == 0) query_panel_ind <- 1
-    updateTabsetPanel(session, "image_tab_panel_ref", paste0("Query ", query_panel_ind))
+    updateTabsetPanel(session, "image_tab_panel_ref", paste0("Ref. ", query_panel_ind))
+
+    query_panel_ind <- selected_panel_ind
+    updateTabsetPanel(session, "image_tab_panel_reg_query", paste0("Reg. Query ", query_panel_ind))
   })
 }
 
@@ -321,6 +328,36 @@ rescaleXeniumCells <- function(cells, bbox, image){
 # Managing Keypoints ####
 ####
 
+#' RefvsQueryKeypoints
+#'
+#' Initiate shiny reactive values for keypoint dataframes for the query images
+#'
+#' @param len_images the number of query images
+#' @param keypoints_list the keypoints list of query images
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#'
+#' @return a shiny reactive values object
+#'
+RefvsQueryKeypoints <- function(len_images, keypoints_list, input, output, session){
+
+  # initiate keypoints
+  if(is.null(keypoints_list)){
+    keypoints_list <- lapply(1:len_images, function(i) {
+      list(ref = tibble(KeyPoint = numeric(), x = numeric(), y = numeric()),
+           query = tibble(KeyPoint = numeric(), x = numeric(), y = numeric()))
+
+    })
+  }
+
+  # set names for keypoints
+  names(keypoints_list) <- 1:len_images
+
+  # return keypoints as reactive values
+  do.call("reactiveValues", keypoints_list)
+}
+
 #' ReferenceKeypoints
 #'
 #' Initiate shiny reactive values for keypoint dataframes for the reference image
@@ -369,6 +406,55 @@ QueryKeypoints <- function(len_images, keypoints_list, input, output, session){
 
   # return keypoints as reactive values
   do.call("reactiveValues", keypoints_list)
+}
+
+#' RefvsQueryKeypointTable
+#'
+#' A list of shiny observe events for keypoints tables, updating keypoints and auxiliry operations for query image
+#'
+#' @param xyTable_list a list of keypoints x,y coordinates for each magick image
+#' @param image_list a lost of magick image
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#'
+RefvsQueryKeypointTable <- function(xyTable_list, image_list, input, output, session){
+
+  # get the length of tables
+  len_tables <- length(xyTable_list)
+
+  # # output query keypoint tables
+  # lapply(1:len_tables, function(i){
+  #   output[[paste0("xy_Table_query",i)]] <- renderTable({xyTable_list[[paste0(i)]]})
+  # })
+
+  # set click operations for the set of keypoints
+  lapply(1:len_tables, function(i){
+    observeEvent(input[[paste0("click_plot",i)]], {
+      keypoint <- data.frame(x = input[[paste0("click_plot",i)]]$x, y = input[[paste0("click_plot",i)]]$y)
+      if(is.reactive(image_list[[i]])){
+        image <- image_list[[i]]()
+      } else {
+        image <- image_list[[i]]
+      }
+      keypoint <- transform_keypoints(image, keypoint, paste0("image",i), input, session)
+      temp <- xyTable_list[[paste0(i)]]
+      temp <- temp %>%
+        add_row(KeyPoint = nrow(temp)+1, x = keypoint$x, y = keypoint$y)
+      xyTable_list[[paste0(i)]] <- temp
+    })
+  })
+
+  # remove keypoints from query images
+  lapply(1:len_tables, function(i){
+    observeEvent(input[[paste0("remove_query",i)]], {
+      temp <- xyTable_list[[paste0(i)]]
+      if(nrow(temp) > 0){
+        temp <- temp %>% filter(KeyPoint != nrow(temp))
+        xyTable_list[[paste0(i)]] <- temp
+      }
+    })
+  })
 }
 
 #' ReferenceKeypointTable
@@ -695,6 +781,7 @@ ReferenceImageOutput <- function(image_list, keypoints_list, input, output, sess
   lapply(1:len_images, function(i){
     output[[paste0("plot_ref",i)]] <- renderPlot({
       keypoints <- keypoints_list[[paste0(i)]]
+      keypoints <- tibble(KeyPoint = numeric(), x = numeric(), y = numeric()) ## CHANGE LATER
       img <- transform_magick_image_keypoints(image_list[[i]], keypoints, paste0("image",i), input, session)
       img <- image_ggplot_keypoint(image_ggplot(img$image), img$keypoints)
       return(img)
@@ -743,6 +830,7 @@ QueryImageOutput <- function(image_list, keypoints_list, input, output, session)
   lapply(1:len_images, function(i){
     output[[paste0("plot_query",i)]] <- renderPlot({
       keypoints <- keypoints_list[[paste0(i)]]
+      keypoints <- tibble(KeyPoint = numeric(), x = numeric(), y = numeric()) ## CHANGE LATER
       img <- transform_magick_image_keypoints(image_list[[i]], keypoints, paste0("image",i), input, session)
       img <- image_ggplot_keypoint(image_ggplot(img$image), img$keypoints)
       return(img)
