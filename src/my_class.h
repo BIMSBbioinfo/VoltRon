@@ -1,7 +1,7 @@
 // my_class.h
-namespace Newclasses
+namespace Myclasses
 {
-  class Newclass
+  class Myclass
   {
     public:
       void do_something();
