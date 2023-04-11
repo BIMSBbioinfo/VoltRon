@@ -5,14 +5,14 @@
 \title{register_slides}
 \usage{
 SpatialRegistration(
-  spatial_data_list = NULL,
+  data_list = NULL,
   reference_spatdata = NULL,
   query_spatdata = NULL,
   keypoints = NULL
 )
 }
 \arguments{
-\item{spatial_data_list}{a list of spatial data sets}
+\item{data_list}{a list of SpaceRover objects}
 
 \item{reference_spatdata}{a reference spatial data set, used only if \code{spatial_data_list} is \code{NULL}}
 

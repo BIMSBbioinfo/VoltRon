@@ -6,7 +6,7 @@
 #'
 #' A mini shiny app to calculate spatial cell(barcode) projection matrix between a visium slide and a xenium slide
 #'
-#' @param spatial_data_list a list of spatial data sets
+#' @param data_list a list of SpaceRover objects
 #' @param reference_spatdata a reference spatial data set, used only if \code{spatial_data_list} is \code{NULL}
 #' @param query_spatdata a query spatial data set, used only if \code{spatial_data_list} is \code{NULL}
 #'
@@ -16,24 +16,28 @@
 #'
 #' @export
 #'
-SpatialRegistration <- function(spatial_data_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL) {
+SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL) {
 
   # shiny
   require(shiny)
 
-  # get images from object list
-  if(!is.null(spatial_data_list)){
+  ## Importing images ####
 
-    # check SpaceRover objects
-    if(!all(sapply(spatial_data_list, class)=="SpaceRover")){
+  # check object classes
+  if(!is.null(data_list)){
+    if(!all(sapply(data_list, class)=="SpaceRover")){
       stop("Please make sure that all objects in the list are of SpaceRover class")
     } else {
-
+      spatdata_list <- data_list
     }
   } else {
     spatdata_list <- list(reference_spatdata, query_spatdata)
-    orig_image_query_list <- lapply(spatdata_list, getObjectImage)
   }
+
+  # get images from the list of objects
+  orig_image_query_list <- lapply(spatdata_list, getImage)
+
+  ## UI and Server ####
 
   # get the ui and server
   if (interactive()){
@@ -92,26 +96,26 @@ SpatialRegistration <- function(spatial_data_list = NULL, reference_spatdata = N
 
     server <- function(input, output, session) {
 
-      ## Manage interface ####
+      ### Manage interface ####
       UpdateSequentialTabPanels(input, output, session, length(orig_image_query_list))
 
-      ## Transform images ####
+      ### Transform images ####
       trans_image_query_list <- transform_magick_image_query_list(orig_image_query_list, input, session)
 
-      ## Manage reference and query keypoints ####
+      ### Manage reference and query keypoints ####
       xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
       manageKeypoints(xyTable_list, trans_image_query_list, input, output, session)
 
-      ## Return Registered keypoints ####
+      ### Return Registered keypoints ####
       registered_spatdata_list <- QueryMatrices(length(spatdata_list))
       getManualRegisteration(registered_spatdata_list, spatdata_list, orig_image_query_list, xyTable_list,
                              input, output, session)
 
-      ## Main observable ####
+      ### Main observable ####
       observe({
 
         # output the list of query images
-        scImageOutput(orig_image_query_list, xyTable_list, input, output, session)
+        srImageOutput(orig_image_query_list, xyTable_list, input, output, session)
 
       })
     }
@@ -569,41 +573,7 @@ image_ggplot_keypoint <- function(image, keypoints){
 # Managing Images ####
 ####
 
-#' getObjectImage
-#'
-#' get the image from a Spatial assay
-#'
-#' @param obj Object
-#'
-getObjectImage <- function(obj) {
-  if(class(obj) == "Seurat")
-    getObjectImage.Seurat(obj)
-}
-
-#' getObjectImage.Seurat
-#'
-#' get the image from a Seurat Object
-#'
-#' @param seu Seurat object
-#'
-#' @import magick
-#'
-getObjectImage.Seurat <- function(seu){
-
-  image_classes <- sapply(seu@images, class)
-
-  if(any(grepl("FOV",image_classes))){
-    image <- seu@images[[names(seu@images)[which(grepl("FOVImage", image_classes))]]]
-    image <- image@image
-  } else if(any(grepl("Visium",image_classes))) {
-    image <- seu@images[[names(seu@images)[which(grepl("Visium", image_classes))]]]
-    image <- magick::image_read(image@image)
-  }
-
-  return(image)
-}
-
-#' scImageOutput
+#' srImageOutput
 #'
 #' Shiny outputs for a set of magick images with keypoints
 #'
@@ -613,7 +583,7 @@ getObjectImage.Seurat <- function(seu){
 #' @param output shiny output
 #' @param session shiny session
 #'
-scImageOutput <- function(image_list, keypoints_list = NULL, input, output, session){
+srImageOutput <- function(image_list, keypoints_list = NULL, input, output, session){
 
   # get image types
   image_types <- c("ref","query")

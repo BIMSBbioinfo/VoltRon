@@ -48,7 +48,7 @@ ImportXenium <- function (dir.path, selected_assay = "Gene Expression", layer_na
                                        ROI = data.frame())
 
   # create SpaceRover
-  CreateSpaceRover(listofSamples, metadata = metadata, ...)
+  CreateSpaceRover(listofSamples, metadata = metadata, main.assay = "Xenium", ...)
 }
 
 #' ImportVisium
@@ -95,9 +95,9 @@ ImportVisium <- function(dir.path, layer_name = NULL, sample_name = NULL, assay_
 
   # create metadata
   metadata <- setSRMetadata(cell = data.frame(),
-                                       spot = data.frame(Count = colSums(rawdata), row.names = colnames(rawdata)),
-                                       ROI = data.frame())
+                            spot = data.frame(Count = colSums(rawdata), row.names = colnames(rawdata)),
+                            ROI = data.frame())
 
   # create SpaceRover
-  CreateSpaceRover(listofSamples, metadata = metadata, ...)
+  CreateSpaceRover(listofSamples, metadata = metadata, main.assay = "Visium", ...)
 }

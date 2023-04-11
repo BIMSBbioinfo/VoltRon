@@ -4,10 +4,12 @@
 \alias{getRegisteredObject}
 \title{getRegisteredObject}
 \usage{
-getRegisteredObject(obj)
+getRegisteredObject(obj, trans_matrix)
 }
 \arguments{
 \item{obj}{Object}
+
+\item{trans_matrix}{transformation function for the registration}
 }
 \description{
 get a registered Spatial data object
