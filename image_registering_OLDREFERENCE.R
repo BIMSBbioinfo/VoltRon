@@ -721,8 +721,8 @@ transform_magick_image <- function(image, extension, input, session){
 #'
 #' Apply given transformations to a magick image
 #'
-#' @param image magick image
-#' @param extension name extension for the shiny input parameter
+#' @param image_list a list of magick image
+#' @param image_type either reference (ref) or query (query)
 #' @param input shiny input
 #' @param session shiny session
 #'
