@@ -2,7 +2,7 @@
 % Please edit documentation in R/image.R
 \name{addFOVImage}
 \alias{addFOVImage}
-\title{addFOVImage}
+\title{}
 \usage{
 addFOVImage(seu, file, fov = "fov", overwrite = FALSE)
 }
@@ -16,5 +16,9 @@ addFOVImage(seu, file, fov = "fov", overwrite = FALSE)
 \item{overwrite}{Overwrite the existing FOV image}
 }
 \description{
-Adding the Xenium image to the Seurat Object. Please run \code{GenerateXeniumDAPIImage} first.
+# check existing images in the spacerover object
+  assay <- MainAssay(sr)
+}
+\details{
+
 }

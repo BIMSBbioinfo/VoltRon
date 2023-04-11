@@ -49,6 +49,28 @@ getImage <- function(obj, ...) {
     return(getImage.SpaceRover(obj, ...))
 }
 
+
+#' #' @rdname getImage
+#' #' @method getImage Seurat
+#' #'
+#' getImage.Seurat <- function(seu, ...){
+#'
+#'   # image class from Seurat
+#'   image_classes <- sapply(seu@images, class)
+#'
+#'   # get image given class
+#'   if(any(grepl("FOV",image_classes))){
+#'     image <- seu@images[[names(seu@images)[which(grepl("FOVImage", image_classes))]]]
+#'     image <- image@image
+#'   } else if(any(grepl("Visium",image_classes))) {
+#'     image <- seu@images[[names(seu@images)[which(grepl("Visium", image_classes))]]]
+#'     image <- magick::image_read(image@image)
+#'   }
+#'
+#'   # return image
+#'   return(image)
+#' }
+
 #' getImage.Seurat
 #'
 #' get the image from a Seurat Object
@@ -74,6 +96,21 @@ getImage.Seurat <- function(seu, ...){
   # return image
   return(image)
 }
+
+#' #' @rdname getImage
+#' #' @method getImage SpaceRover
+#' #'
+#' getImage.SpaceRover <- function(sr, ...){
+#'
+#'   # check existing images in the spacerover object
+#'   assay <- MainAssay(sr)
+#'
+#'   # get image from the assay
+#'   image <- assay@image
+#'
+#'   # return image
+#'   return(image)
+#' }
 
 #' getImage.SpaceRover
 #'
