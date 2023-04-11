@@ -24,6 +24,12 @@ SpatialRegistration <- function(spatial_data_list = NULL, reference_spatdata = N
   # get images from object list
   if(!is.null(spatial_data_list)){
 
+    # check SpaceRover objects
+    if(!all(sapply(spatial_data_list, class)=="SpaceRover")){
+      stop("Please make sure that all objects in the list are of SpaceRover class")
+    } else {
+
+    }
   } else {
     spatdata_list <- list(reference_spatdata, query_spatdata)
     orig_image_query_list <- lapply(spatdata_list, getObjectImage)
@@ -216,10 +222,11 @@ UpdateSequentialTabPanels <- function(input, output, session, npanels){
 #' get a registered Spatial data object
 #'
 #' @param obj Object
+#' @param trans_matrix transformation function for the registration
 #'
-getRegisteredObject <- function(obj) {
+getRegisteredObject <- function(obj, trans_matrix) {
   if(class(obj) == "Seurat")
-    getRegisteredObject.Seurat(obj)
+    getRegisteredObject.Seurat(obj, trans_matrix)
 }
 
 #' getRegisteredObject.Seurat
@@ -741,11 +748,11 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
       reference_landmark <- as.matrix(keypoints[["ref"]][,c("x","y")])
       target_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
 
-      # compute transform
+      # compute and get transformation matrix
       trans_matrix <- computeTransform(reference_landmark, target_landmark, type = "tps")
 
       # apply transform to query cells/barcodes and get registered cells/barcodes of the Seurat object
-      registered_spatdata_list[[paste0(tar_ind)]] <- getRegisteredSeurat(spatdata_list[[tar_ind]], trans_matrix)
+      registered_spatdata_list[[paste0(tar_ind)]] <- getRegisteredObject(spatdata_list[[tar_ind]], trans_matrix)
 
       # save transformation matrix
       trans_matrix_list[[i]] <- trans_matrix
@@ -760,13 +767,10 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
       HTML(paste(all_str, collapse = '<br/>'))
     })
 
-    # Registered Images
+    # Plot registered i mages
     lapply(1:len_register, function(i){
       tar_ind <- i+1
-      reference_image <- image_list[[i]]
-      target_image <- image_list[[tar_ind]]
-      images <- getRegisteredImage(target_image, reference_image, trans_matrix_list[[i]], input)
-      print(images$query)
+      images <- getRegisteredImage(image_list[[tar_ind]], image_list[[i]], trans_matrix_list[[i]], input)
       output[[paste0("plot_query_reg",tar_ind)]] <- renderPlot({
         p <- recordPlot
         terra::plot(images$ref)

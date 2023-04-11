@@ -131,7 +131,8 @@ setMethod(
   signature = 'srSample',
   definition = function(object) {
     cat(class(x = object), "(SpaceRover Sample) Object \n")
-    cat("This object includes", length(object@layer), "layer(s). \n")
+    layers <- names(unlist(object@layer))
+    cat("Layer(s):", paste(layers, collapse = " "), "\n")
     return(invisible(x = NULL))
   }
 )
