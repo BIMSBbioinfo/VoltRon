@@ -25,8 +25,7 @@ SpatialRegistration <- function(spatial_data_list = NULL, reference_spatdata = N
   if(!is.null(spatial_data_list)){
 
   } else {
-    spatdata_list <- c(reference_spatdata, query_spatdata)
-    orig_object_query_list <-
+    spatdata_list <- list(reference_spatdata, query_spatdata)
     orig_image_query_list <- lapply(spatdata_list, getObjectImage)
   }
 
@@ -99,8 +98,7 @@ SpatialRegistration <- function(spatial_data_list = NULL, reference_spatdata = N
 
       ## Return Registered keypoints ####
       registered_spatdata_list <- QueryMatrices(length(spatdata_list))
-      getManualRegisteration(registered_spatdata_list, spatdata_list,
-                             orig_image_query_list, xyTable_list,
+      getManualRegisteration(registered_spatdata_list, spatdata_list, orig_image_query_list, xyTable_list,
                              input, output, session)
 
       ## Main observable ####
@@ -162,7 +160,6 @@ RegisteredImageTabPanels <- function(len_images){
   do.call(tabsetPanel, c(id='image_tab_panel_reg_query',lapply(1:len_images, function(i) {
     tabPanel(paste0("Reg. Query ",i),
              br(),
-             # h5("Registered Image:"),
              column(6, sliderInput(paste0("plot_query_reg_alpha",i), label = "Alpha Level", min = 0, max = 1, value = 0.2)),
              fluidRow(imageOutput(paste0("plot_query_reg",i)))
     )
@@ -214,14 +211,25 @@ UpdateSequentialTabPanels <- function(input, output, session, npanels){
 # Managing Cells/Barcodes ####
 ####
 
-#' getRegisteredSeurat
+#' getRegisteredObject
 #'
-#' get the cell data/locations from a Spatial assay
+#' get a registered Spatial data object
+#'
+#' @param obj Object
+#'
+getRegisteredObject <- function(obj) {
+  if(class(obj) == "Seurat")
+    getRegisteredObject.Seurat(obj)
+}
+
+#' getRegisteredObject.Seurat
+#'
+#' get the cell data/locations from a Seurat Object
 #'
 #' @param seu Seurat object
 #' @param trans_matrix transformation function for the registration
 #'
-getRegisteredSeurat <- function(seu, trans_matrix){
+getRegisteredObject.Seurat <- function(seu, trans_matrix){
 
   image_classes <- sapply(seu@images, class)
 
@@ -247,6 +255,8 @@ getRegisteredSeurat <- function(seu, trans_matrix){
     seu[["registered_FOV"]] <- coords
 
   } else if(any(grepl("Visium",image_classes))) {
+
+    # IMPLEMENT THIS LATER!!!!
     imagedata <- seu@images[[names(seu@images)[which(grepl("Visium", image_classes))]]]
     cells <- imagedata@coordinates[,c("imagerow", "imagecol")]
   }
@@ -701,36 +711,41 @@ QueryMatrices <- function(len_images, input, output, session){
 #'
 #' Manuel registeration of images using manually entered keypoints
 #'
-#' @param registered_seurat_list a list of registered Seurat object of the query images
-#' @param seurat_list a list of Seurat object of the query images
-#' @param len_images length of query images
+#' @param registered_spatdata_list a list of registered Spatial data object of the query images, updated with image registration
+#' @param spatdata_list a list of Spatial data object of the query images
 #' @param image_list the list of query images
-#' @param xyTable_list a list of keypoints x,y coordinates for query image
+#' @param keypoints_list a list of keypoints x,y coordinates for query image
 #' @param input shiny input
 #' @param output shiny output
 #' @param session shiny session
 #'
 #' @import Morpho
 #'
-getManualRegisteration <- function(registered_seurat_list, seurat_list,
-                                   len_images, image_list, xyTable_list,
+getManualRegisteration <- function(registered_spatdata_list, spatdata_list, image_list, keypoints_list,
                                    input, output, session){
 
+  # the number of registrations
+  len_register <- length(image_list) - 1
+
+  # Registration events
   observeEvent(input$manualregister, {
 
     # Register keypoints
-    reference_landmark <- as.matrix(xyTable_ref[,c("x","y")])
     trans_matrix_list <- list()
-    for(i in 1:len_images){
+    for(i in 1:len_register){
 
-      # target landmarks/keypoints
-      target_landmark <- as.matrix(xyTable_list[[paste0(i)]][,c("x","y")])
+      # reference and target landmarks/keypoints
+      tar_ind <- i+1
+      key_ind <- paste0(i, "->", i+1)
+      keypoints <- keypoints_list[[key_ind]]
+      reference_landmark <- as.matrix(keypoints[["ref"]][,c("x","y")])
+      target_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
 
       # compute transform
       trans_matrix <- computeTransform(reference_landmark, target_landmark, type = "tps")
 
       # apply transform to query cells/barcodes and get registered cells/barcodes of the Seurat object
-      registered_seurat_list[[paste0(i)]] <- getRegisteredSeurat(seurat_list[[i]], trans_matrix)
+      registered_spatdata_list[[paste0(tar_ind)]] <- getRegisteredSeurat(spatdata_list[[tar_ind]], trans_matrix)
 
       # save transformation matrix
       trans_matrix_list[[i]] <- trans_matrix
@@ -739,19 +754,23 @@ getManualRegisteration <- function(registered_seurat_list, seurat_list,
     # Output summary
     output[["summary"]] <- renderUI({
       str1 <- paste0(" Registration Summary:")
-      str2 <- paste0("# of Query Images: ", len_images)
-      str3 <- paste0("# of Keypoints: ", nrow(reference_landmark))
+      str2 <- paste0("# of Images: ", length(image_list))
+      str3 <- paste0("# of Registrations: ", len_register)
       all_str <- c(str1, str2, str3)
       HTML(paste(all_str, collapse = '<br/>'))
     })
 
     # Registered Images
-    lapply(1:len_images, function(i){
-      images <- getRegisteredImage(image_list[[i]], ref_image, trans_matrix_list[[i]], input)
-      output[[paste0("plot_query_reg",i)]] <- renderPlot({
+    lapply(1:len_register, function(i){
+      tar_ind <- i+1
+      reference_image <- image_list[[i]]
+      target_image <- image_list[[tar_ind]]
+      images <- getRegisteredImage(target_image, reference_image, trans_matrix_list[[i]], input)
+      print(images$query)
+      output[[paste0("plot_query_reg",tar_ind)]] <- renderPlot({
         p <- recordPlot
         terra::plot(images$ref)
-        raster::plot(images$query, alpha = input[[paste0("plot_query_reg_alpha",i)]], add = TRUE, legend = FALSE)
+        raster::plot(images$query, alpha = input[[paste0("plot_query_reg_alpha",tar_ind)]], add = TRUE, legend = FALSE)
         p
       })
     })
@@ -779,58 +798,4 @@ getRegisteredImage <- function(query_image, ref_image, transmatrix, input){
   query_image_raster_1_trf <- terra::rast(query_image_raster_1_trf, crs = "")
 
   return(list(ref = ref_image_raster, query = query_image_raster_1_trf))
-}
-
-getRegisteredImage_old <- function(query_image, ref_image, transmatrix){
-
-  # query image
-  ref_raster <- as.raster(ref_image) |> as.matrix() |> rast() |> stack()
-  ref_raster_1 <- raster::as.data.frame(ref_raster[[1]], xy = TRUE)
-  # ref_raster_2 <- raster::as.data.frame(ref_raster[[2]], xy = TRUE)
-  # ref_raster_3 <- raster::as.data.frame(ref_raster[[3]], xy = TRUE)
-  imageEx <- raster::extent(ref_raster)
-  r <- raster::raster(nrow = dim(ref_raster)[1], ncol = dim(ref_raster)[2])
-  raster::extent(r) <- imageEx
-  ref_raster_1r <- raster::rasterize(ref_raster_1[,1:2], field = ref_raster_1[,3], r, fun = mean)
-  # ref_raster_2r <- raster::rasterize(ref_raster_2[,1:2], field = ref_raster_2[,3], r, fun = mean)
-  # ref_raster_3r <- raster::rasterize(ref_raster_3[,1:2], field = ref_raster_3[,3], r, fun = mean)
-  # ref_raster <- raster::stack(ref_raster_1r, ref_raster_2r, ref_raster_3r)
-  ref_raster <- raster::stack(ref_raster_1r)
-  ref_raster_data <- raster::as.data.frame(ref_raster, xy = TRUE)
-
-  # make raster from magick
-  img <- query_image
-  query_raster <- as.raster(img) |> as.matrix() |> rast() |> stack()
-
-  # transform
-  query_raster_data <- raster::as.data.frame(query_raster[[1]], xy = TRUE)
-  query_raster_data_reg <- Morpho::applyTransform(as.matrix(query_raster_data)[,1:2], transmatrix)
-  r <- raster::raster(nrow = dim(query_raster)[1], ncol = dim(query_raster)[2])
-  raster::extent(r) <- imageEx
-  query_raster_data_regr <- raster::rasterize(query_raster_data_reg, field = query_raster_data[,3], r, fun = mean)
-  # query_raster_data_regr <- raster::stack(query_raster_data_regr)
-
-  # # visualize
-  # query_raster_data_regr_data <- raster::as.data.frame(query_raster_data_regr, xy = TRUE)
-  # ggplot() +
-  #   geom_raster(aes(x=x,y=y, fill = layer, alpha = 0.5), data = ref_raster_data) +
-  #   geom_raster(aes(x=x,y=y, fill = layer), data = query_raster_data_regr_data) +
-  #   coord_fixed()
-  #   # theme_bw() +
-  #   # theme(axis.line=element_blank(),axis.text.x=element_blank(),
-  #   #       axis.text.y=element_blank(),axis.ticks=element_blank(),
-  #   #       axis.title.x=element_blank(),
-  #   #       axis.title.y=element_blank(),
-  #   #       legend.position="none",
-  #   #       panel.background=element_blank(),
-  #   #       panel.border=element_blank(),
-  #   #       panel.grid.major=element_blank(),
-  #   #       panel.grid.minor=element_blank(),
-  #   #       plot.background=element_blank())
-  ref_raster <- as.raster(ref_image) |> as.matrix() |> rast()
-  query_raster_data_regr <- rast(query_raster_data_regr)
-  ggplot() +
-    geom_spatraster_rgb(data = ref_raster) +
-    geom_spatraster(data = query_raster_data_regr, alpha = 0.5) +
-    coord_fixed()
 }

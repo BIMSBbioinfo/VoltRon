@@ -187,10 +187,10 @@ setMethod(
 
 #' The srAssay (SpaceRover Assay) Class
 #'
-#' @slot rawdata
-#' @slot normdata
-#' @slot coord
-#' @slot image
+#' @slot rawdata raw count table
+#' @slot normdata normalized count table
+#' @slot coord spatial coordinates of the assay
+#' @slot image image of the spatial assay
 #'
 #' @name srAssay-class
 #' @rdname srAssay-class

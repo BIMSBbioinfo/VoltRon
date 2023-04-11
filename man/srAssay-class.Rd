@@ -11,6 +11,12 @@ The srAssay (SpaceRover Assay) Class
 \section{Slots}{
 
 \describe{
-\item{\code{image}}{}
+\item{\code{rawdata}}{raw count table}
+
+\item{\code{normdata}}{normalized count table}
+
+\item{\code{coord}}{spatial coordinates of the assay}
+
+\item{\code{image}}{image of the spatial assay}
 }}
 

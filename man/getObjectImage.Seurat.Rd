@@ -10,5 +10,5 @@ getObjectImage.Seurat(seu)
 \item{seu}{Seurat object}
 }
 \description{
-get the image from a Spatial assay
+get the image from a Seurat Object
 }

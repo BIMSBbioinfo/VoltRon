@@ -7,7 +7,7 @@
 SpatialRegistration(
   spatial_data_list = NULL,
   reference_spatdata = NULL,
-  query_spatdata_list = NULL,
+  query_spatdata = NULL,
   keypoints = NULL
 )
 }
@@ -16,7 +16,7 @@ SpatialRegistration(
 
 \item{reference_spatdata}{a reference spatial data set, used only if \code{spatial_data_list} is \code{NULL}}
 
-\item{query_spatdata_list}{a list of query spatial data sets, used only if \code{spatial_data_list} is \code{NULL}}
+\item{query_spatdata}{a query spatial data set, used only if \code{spatial_data_list} is \code{NULL}}
 }
 \value{
 keypoints

@@ -5,32 +5,23 @@
 \title{getManualRegisteration}
 \usage{
 getManualRegisteration(
-  registered_seurat_list,
-  seurat_list,
-  len_images,
+  registered_spatdata_list,
+  spatdata_list,
   image_list,
-  ref_image,
-  xyTable_list,
-  xyTable_ref,
+  keypoints_list,
   input,
   output,
   session
 )
 }
 \arguments{
-\item{registered_seurat_list}{a list of registered Seurat object of the query images}
+\item{registered_spatdata_list}{a list of registered Spatial data object of the query images, updated with image registration}
 
-\item{seurat_list}{a list of Seurat object of the query images}
-
-\item{len_images}{length of query images}
+\item{spatdata_list}{a list of Spatial data object of the query images}
 
 \item{image_list}{the list of query images}
 
-\item{ref_image}{reference image}
-
-\item{xyTable_list}{a list of keypoints x,y coordinates for query image}
-
-\item{xyTable_ref}{the keypoints x,y coordinates of the reference image}
+\item{keypoints_list}{a list of keypoints x,y coordinates for query image}
 
 \item{input}{shiny input}
 

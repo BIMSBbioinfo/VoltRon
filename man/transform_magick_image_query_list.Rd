@@ -2,16 +2,16 @@
 % Please edit documentation in R/image_registering.R
 \name{transform_magick_image_query_list}
 \alias{transform_magick_image_query_list}
-\title{transform_magick_image}
+\title{transform_magick_image_query_list}
 \usage{
 transform_magick_image_query_list(image_list, input, session)
 }
 \arguments{
+\item{image_list}{magick image}
+
 \item{input}{shiny input}
 
 \item{session}{shiny session}
-
-\item{image}{magick image}
 
 \item{extension}{name extension for the shiny input parameter}
 }
@@ -19,5 +19,5 @@ transform_magick_image_query_list(image_list, input, session)
 magick image
 }
 \description{
-Apply given transformations to a magick image
+Apply given transformations to a list of magick image and return shiny reactive
 }
