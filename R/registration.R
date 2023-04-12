@@ -311,8 +311,8 @@ getRegisteredObject.Seurat <- function(seu, trans_matrix){
     # flip y coords and adjust coordinates to image scale
     cells <- imagedata$centroids@coords
     cells_box <- imagedata$segmentation@bbox
-    # cells[,2] <- max(cells[,2]) - cells[,2] + min(cells[,2])
-    # cells <- rescaleXeniumCells(cells, cells_box, image@image)
+    cells[,2] <- max(cells[,2]) - cells[,2] + min(cells[,2])
+    cells <- rescaleXeniumCells(cells, cells_box, image@image)
 
     # apply transformation to cells
     registered_cells <- applyTransform(as.matrix(cells), trans_matrix)

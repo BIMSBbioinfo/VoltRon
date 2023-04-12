@@ -53,7 +53,9 @@ ImportXenium <- function (dir.path, selected_assay = "Gene Expression", layer_na
   names(listofSamples) <- sample_name
 
   # create metadata
-  metadata <- setSRMetadata(cell = data.frame(Count = colSums(rawdata), row.names = colnames(rawdata)),
+  metadata <- setSRMetadata(cell = data.frame(Count = colSums(rawdata),
+                                              row.names = paste(colnames(rawdata),
+                                                                 paste(c(assay_name, layer_name, sample_name), collapse = "_"), sep = "_")),
                                        spot = data.frame(),
                                        ROI = data.frame())
 
@@ -132,7 +134,9 @@ ImportVisium <- function(dir.path, layer_name = NULL, sample_name = NULL, assay_
 
   # create metadata
   metadata <- setSRMetadata(cell = data.frame(),
-                            spot = data.frame(Count = colSums(rawdata), row.names = colnames(rawdata)),
+                            spot = data.frame(Count = colSums(rawdata),
+                                              row.names = paste(colnames(rawdata),
+                                                                 paste(c(assay_name, layer_name, sample_name), collapse = "_"), sep = "_")),
                             ROI = data.frame())
 
   # create SpaceRover

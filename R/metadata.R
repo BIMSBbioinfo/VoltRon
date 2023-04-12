@@ -26,7 +26,7 @@ setMethod(
   f = 'show',
   signature = 'srMetadata',
   definition = function(object) {
-    cat("SpaceRover Metadata \n")
+    cat("SpaceRover Metadata Object \n")
     cat("This object includes: \n")
     if(nrow(object@cell) > 0)
       cat("  ", nrow(object@cell), "cells \n")
@@ -37,6 +37,25 @@ setMethod(
     return(invisible(x = NULL))
   }
 )
+
+####
+# Methods ####
+####
+
+#' @rdname Entities
+#' @method Entities srMetadata
+#'
+#' @export
+#'
+Entities.srMetadata <- function(object, ...) {
+
+  # get the combination of cells, spots and ROIs
+  points <- c(rownames(object@cell),
+                rownames(object@spot),
+                rownames(object@ROI))
+
+  return(points)
+}
 
 ####
 # Functions ####
