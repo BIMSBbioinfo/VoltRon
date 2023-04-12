@@ -4,7 +4,7 @@
 \alias{getImage}
 \alias{getImage.Seurat}
 \alias{getImage.SpaceRover}
-\title{Get Image}
+\title{getImage}
 \usage{
 getImage(object, ...)
 
@@ -21,12 +21,6 @@ getImage(object, ...)
 \code{getImage}: The name of the default assay
 }
 \description{
-Get and set the image of a spatial assay
-
-# image class from Seurat
-  image_classes <- sapply(seu@images, class)
-}
-\details{
-
+Get and set images of a spaceRover assay
 }
 \concept{data-access}

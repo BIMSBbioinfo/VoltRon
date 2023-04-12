@@ -12,5 +12,5 @@ getRegisteredObject.Seurat(seu, trans_matrix)
 \item{trans_matrix}{transformation function for the registration}
 }
 \description{
-get the cell data/locations from a Seurat Object
+get the registered cell data/locations from a Seurat Object
 }

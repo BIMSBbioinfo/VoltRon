@@ -25,13 +25,22 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
 
   # check object classes
   if(!is.null(data_list)){
+
+    # check if all elements of the list are spaceRover
     if(!all(sapply(data_list, class)=="SpaceRover")){
       stop("Please make sure that all objects in the list are of SpaceRover class")
     } else {
       spatdata_list <- data_list
     }
   } else {
-    spatdata_list <- list(reference_spatdata, query_spatdata)
+
+    # check if the reference and query data sets are either Seurat or Giotto
+    spat_classes <- c(class(reference_spatdata), class(query_spatdata))
+    if(!all(spat_classes %in% c("Seurat", "Giotto"))) {
+      stop("Please make sure that reference and query data sets are of either Seurat or Giotto class")
+    } else {
+      spatdata_list <- list(reference_spatdata, query_spatdata)
+    }
   }
 
   # get images from the list of objects
@@ -106,7 +115,7 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
       xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
       manageKeypoints(xyTable_list, trans_image_query_list, input, output, session)
 
-      ### Return Registered keypoints ####
+      ### Image registration ####
       registered_spatdata_list <- QueryMatrices(length(spatdata_list))
       getManualRegisteration(registered_spatdata_list, spatdata_list, orig_image_query_list, xyTable_list,
                              input, output, session)
@@ -117,6 +126,19 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
         # output the list of query images
         srImageOutput(orig_image_query_list, xyTable_list, input, output, session)
 
+      })
+
+      ## Return values for the shiny app ####
+      observeEvent(input$done, {
+
+        # keypoints
+        keypoints <- reactiveValuesToList(xyTable_list)
+
+        # Transformation (Mapping) matrix
+        RegisteredSpatialData <- reactiveValuesToList(registered_spatdata_list)
+
+        # stop app and return
+        stopApp(list(keypoints = keypoints, registered_seurat = RegisteredSpatialData))
       })
     }
 
@@ -195,6 +217,7 @@ UpdateSequentialTabPanels <- function(input, output, session, npanels){
     query_panel_ind <- (selected_panel_ind + 1)
     if(query_panel_ind == 1) query_panel_ind <- npanels
     updateTabsetPanel(session, "image_tab_panel_query", paste0("Query ", query_panel_ind))
+    updateTabsetPanel(session, "image_tab_panel_reg_query", paste0("Reg. Query ", query_panel_ind))
 
     if(selected_panel_ind == npanels)
       updateTabsetPanel(session, "image_tab_panel_ref", paste0("Ref. ", selected_panel_ind-1))
@@ -209,11 +232,20 @@ UpdateSequentialTabPanels <- function(input, output, session, npanels){
     if(query_panel_ind == 0) query_panel_ind <- 1
     updateTabsetPanel(session, "image_tab_panel_ref", paste0("Ref. ", query_panel_ind))
 
-    if(selected_panel_ind == 1)
+    if(selected_panel_ind == 1){
       updateTabsetPanel(session, "image_tab_panel_query", paste0("Query ", selected_panel_ind+1))
+      updateTabsetPanel(session, "image_tab_panel_reg_query", paste0("Reg. Query ", selected_panel_ind+1))
+    } else {
+      query_panel_ind <- selected_panel_ind
+      updateTabsetPanel(session, "image_tab_panel_reg_query", paste0("Reg. Query ", query_panel_ind))
+    }
+  })
 
-    query_panel_ind <- selected_panel_ind
-    updateTabsetPanel(session, "image_tab_panel_reg_query", paste0("Reg. Query ", query_panel_ind))
+  # observe changes in the registered query tab panel
+  observeEvent(input$image_tab_panel_reg_query,{
+    selected_panel <- input$image_tab_panel_reg_query
+    selected_panel_ind <- as.numeric(strsplit(selected_panel, split = " ")[[1]][3])
+    updateTabsetPanel(session, "image_tab_panel_query", paste0("Query ", selected_panel_ind))
   })
 }
 
@@ -225,17 +257,42 @@ UpdateSequentialTabPanels <- function(input, output, session, npanels){
 #'
 #' get a registered Spatial data object
 #'
-#' @param obj Object
-#' @param trans_matrix transformation function for the registration
+#' @param obj_list a list of spatial data object
+#' @param trans_matrix_list a list of transformation matrices
 #'
-getRegisteredObject <- function(obj, trans_matrix) {
-  if(class(obj) == "Seurat")
-    getRegisteredObject.Seurat(obj, trans_matrix)
+getRegisteredObject <- function(obj_list, trans_matrix_list) {
+
+  # check if the elements are SpaceRover
+  if(all(sapply(obj_list, class) == "SpaceRover")){
+    return(getRegisteredObject.SpaceRover(obj_list, trans_matrix_list))
+
+  # check if elements are Seurat
+  } else if(all(sapply(obj_list, class) == "Seurat")) {
+    return_list <- mapply(function(o,t) {
+      if(is.null(t))
+        return(NULL)
+      getRegisteredObject.Seurat(o,t)
+    }, obj, trans_matrix)
+    return(return_list)
+  }
+}
+
+#' getRegisteredObject.SpaceRover
+#'
+#' get registered and merged SpaceRover object composed of several Samples
+#'
+#' @param sr_list a list of SpaceRover objects
+#' @param trans_matrix_list transformation function for the registration
+#'
+getRegisteredObject.SpaceRover <- function(sr, trans_matrix_list){
+
+
+  return(seu)
 }
 
 #' getRegisteredObject.Seurat
 #'
-#' get the cell data/locations from a Seurat Object
+#' get the registered cell data/locations from a Seurat Object
 #'
 #' @param seu Seurat object
 #' @param trans_matrix transformation function for the registration
@@ -254,8 +311,8 @@ getRegisteredObject.Seurat <- function(seu, trans_matrix){
     # flip y coords and adjust coordinates to image scale
     cells <- imagedata$centroids@coords
     cells_box <- imagedata$segmentation@bbox
-    cells[,2] <- max(cells[,2]) - cells[,2] + min(cells[,2])
-    cells <- rescaleXeniumCells(cells, cells_box, image@image)
+    # cells[,2] <- max(cells[,2]) - cells[,2] + min(cells[,2])
+    # cells <- rescaleXeniumCells(cells, cells_box, image@image)
 
     # apply transformation to cells
     registered_cells <- applyTransform(as.matrix(cells), trans_matrix)
@@ -289,9 +346,9 @@ rescaleXeniumCells <- function(cells, bbox, image){
   scales <- unlist(image_info(image)[c("width","height")])
 
   # rescale cell locations
-  cells[,1] <- (cells[,1] - bbox["x","min"])/(bbox["x","max"] - bbox["x","min"])
+  cells[,1] <- (cells[,1] - bbox[1,1])/(bbox[2,1] - bbox[1,1])
   cells[,1] <- cells[,1] * scales[1]
-  cells[,2] <- (cells[,2] - bbox["y","min"])/(bbox["y","max"] - bbox["y","min"])
+  cells[,2] <- (cells[,2] - bbox[1,2])/(bbox[2,2] - bbox[1,2])
   cells[,2] <- cells[,2] * scales[2]
 
   # return
@@ -721,12 +778,12 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
       # compute and get transformation matrix
       trans_matrix <- computeTransform(reference_landmark, target_landmark, type = "tps")
 
-      # apply transform to query cells/barcodes and get registered cells/barcodes of the Seurat object
-      registered_spatdata_list[[paste0(tar_ind)]] <- getRegisteredObject(spatdata_list[[tar_ind]], trans_matrix)
-
       # save transformation matrix
       trans_matrix_list[[i]] <- trans_matrix
     }
+
+    # get registered spatial datasets
+    registered_spatdata_list <- getRegisteredObject(spatdata_list, trans_matrix_list)
 
     # Output summary
     output[["summary"]] <- renderUI({

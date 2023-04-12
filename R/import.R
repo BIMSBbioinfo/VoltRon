@@ -1,3 +1,7 @@
+####
+# Xenium ####
+####
+
 #' ImportXenium
 #'
 #' ImportXenium
@@ -17,14 +21,20 @@ ImportXenium <- function (dir.path, selected_assay = "Gene Expression", layer_na
   rawdata <- as.matrix(infile[[selected_assay]])
   colnames(rawdata) <- paste0("Cell",1:ncol(rawdata))
 
+  # image
+  morphology_image <- paste0(dir.path, "/morphology_lowres.tif")
+  image <-  magick::image_read(morphology_image)
+
+  # cell boundaries
+  Xenium_boundaries <- read.csv(paste0(dir.path, "/cell_boundaries.csv.gz"))
+  Xenium_box <- apply(Xenium_boundaries[,-1], 2, range)
+
   # coordinates
   Xenium_coords <- read.csv(file = paste0(dir.path, "/cells.csv.gz"))
   coords <- as.matrix(Xenium_coords[,c("x_centroid", "y_centroid")])
   rownames(coords) <-  paste0("Cell",Xenium_coords$cell_id)
-
-  # image
-  morphology_image <- paste0(dir.path, "/morphology_lowres.tif")
-  image <-  magick::image_read(morphology_image)
+  coords[,2] <- max(coords[,2]) - coords[,2] + min(coords[,2])
+  coords <- rescaleXeniumCells(coords, Xenium_box, image)
 
   # create srAssay
   Xenium_assay <- new("srAssay", rawdata = rawdata, normdata = rawdata, coords = coords, image = image, type = assay_type)
@@ -50,6 +60,33 @@ ImportXenium <- function (dir.path, selected_assay = "Gene Expression", layer_na
   # create SpaceRover
   CreateSpaceRover(listofSamples, metadata = metadata, main.assay = "Xenium", ...)
 }
+
+#' rescaleXeniumCells
+#'
+#' rescale Xenium cells coordinates for image registration
+#'
+#' @param cells coordinates of the cells from the Xenium assays
+#' @param bbox the surrounding box of the Xenium cell coordinates
+#' @param image reference image
+#'
+rescaleXeniumCells <- function(cells, bbox, image){
+
+  # get image scales
+  scales <- unlist(image_info(image)[c("width","height")])
+
+  # rescale cell locations
+  cells[,1] <- (cells[,1] - bbox[1,1])/(bbox[2,1] - bbox[1,1])
+  cells[,1] <- cells[,1] * scales[1]
+  cells[,2] <- (cells[,2] - bbox[1,2])/(bbox[2,2] - bbox[1,2])
+  cells[,2] <- cells[,2] * scales[2]
+
+  # return
+  return(cells)
+}
+
+####
+# Visium ####
+####
 
 #' ImportVisium
 #'

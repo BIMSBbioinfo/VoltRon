@@ -45,3 +45,19 @@ setMethod(
 # Methods ####
 ####
 
+#' @rdname Coordinates
+#' @method Coordinates SpaceRover
+#'
+#' @export
+#'
+Coordinates.SpaceRover <- function(sr, ...) {
+
+  # check existing images in the spacerover object
+  assay <- MainAssay(sr)
+
+  # get image from the assay
+  coords <- assay@coords
+
+  # return image
+  return(coords)
+}

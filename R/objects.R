@@ -79,6 +79,8 @@ setMethod(
 #' @rdname MainAssay
 #' @method MainAssay SpaceRover
 #'
+#' @export
+#'
 MainAssay.SpaceRover <- function(object, ...) {
 
   # get first sample and first layer with the main assay
