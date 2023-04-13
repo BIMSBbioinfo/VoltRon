@@ -46,18 +46,32 @@ setMethod(
 ####
 
 #' @rdname Coordinates
-#' @method Coordinates SpaceRover
+#' @method Coordinates srAssay
 #'
 #' @export
 #'
-Coordinates.SpaceRover <- function(sr, ...) {
+Coordinates.srAssay <- function(object, ...) {
+  return(object@coords)
+}
 
-  # check existing images in the spacerover object
-  assay <- MainAssay(sr)
+#' @rdname Coordinates
+#' @method Coordinates<- srAssay
+#'
+#' @export
+#'
+"Coordinates<-.srAssay" <- function(object, ..., value) {
 
-  # get image from the assay
-  coords <- assay@coords
+  # get coordinates
+  coords <- Coordinates(object)
 
-  # return image
-  return(coords)
+  # stop if the rownames are not matching
+  if(!all(rownames(values) %in% rownames(coords)))
+    stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
+
+  # stop if the colnames are not matching
+  if(!all(colnames(values) %in% colnames(coords)))
+    stop("Cant overwrite coordinates, only x or y coordinates should be provided!")
+
+  slot(object = object, name = 'coords') <- value
+  return(object)
 }

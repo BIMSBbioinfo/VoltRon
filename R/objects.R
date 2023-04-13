@@ -71,6 +71,28 @@ setMethod(
   }
 )
 
+setMethod(
+  f = '[[<-',
+  signature = c('SpaceRover', "character", "missing"),
+  definition = function(x, i, j, ..., value){
+
+    # sample names
+    sample_names <- names(slot(x, "samples"))
+
+    # check query sample name
+    if(!i %in% sample_names){
+      stop("There are no samples named ", i, " in this object")
+    }
+
+    if(!class(value) == "srSample"){
+      stop("The provided object is not of class srSample")
+    }
+
+    x@samples[[i]] <- value
+    return(x)
+  }
+)
+
 ### subset of samples and layers ####
 setMethod(
   f = '[[',
@@ -80,11 +102,25 @@ setMethod(
   }
 )
 
+setMethod(
+  f = '[[<-',
+  signature = c('SpaceRover', "character", "character"),
+  definition = function(x, i, j, ..., value){
+
+    if(!class(value) == "srLayer"){
+      stop("The provided object is not of class srLayer")
+    }
+
+    x[[i]]@layer[[j]] <- value
+    return(x)
+  }
+)
+
 ####
 # Methods ####
 ####
 
-### create SpaceRover object ####
+### Create SpaceRover object ####
 
 #' CreateSpaceRover
 #'
@@ -131,7 +167,7 @@ CreateSpaceRover <- function(samples, metadata = NULL, sample.metadata = NULL, z
   new("SpaceRover", samples = samples, metadata = metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
 }
 
-### get main assay ####
+### Get main assay ####
 
 #' @rdname MainAssay
 #' @method MainAssay SpaceRover
@@ -150,7 +186,32 @@ MainAssay.SpaceRover <- function(object, ...) {
   return(object[[sample.info$Sample, sample.info$Layer]]@assay[[main.assay]])
 }
 
-### get entities ####
+#' @rdname MainAssay
+#' @method MainAssay<- SpaceRover
+#'
+#' @export
+#'
+"MainAssay<-.SpaceRover" <- function(object, ..., value) {
+
+  # check class
+  if(class(value) != "srAssay") {
+    stop("The provided object is not of srAssay class")
+  } else {
+    # get first sample and first layer with the main assay
+    main.assay <- object@main.assay
+    sample.info <- object@sample.metadata
+    sample.info <- sample.info[sample.info$Assay == main.assay,, drop = FALSE]
+    sample.info <- sample.info[1,] # GET FIRST FOR NOW!!!!
+    print(head(object[[sample.info$Sample, sample.info$Layer]]@assay[[main.assay]]@coords))
+    print(head(value@coords))
+    object[[sample.info$Sample, sample.info$Layer]]@assay[[main.assay]] <- value
+  }
+
+  return(object)
+}
+
+
+### Get entities ####
 
 #' @rdname Entities
 #' @method Entities SpaceRover
@@ -160,3 +221,38 @@ MainAssay.SpaceRover <- function(object, ...) {
 Entities.SpaceRover <- function(object, ...) {
   return(Entities(object@metadata))
 }
+
+### Get coordinates ####
+
+#' @rdname Coordinates
+#' @method Coordinates SpaceRover
+#'
+#' @export
+#'
+Coordinates.SpaceRover <- function(object, ...) {
+
+  # check existing images in the spacerover object
+  assay <- MainAssay(object)
+
+  # get image from the assay
+  coords <- assay@coords
+
+  # return image
+  return(coords)
+}
+
+#' @rdname Coordinates
+#' @method Coordinates<- SpaceRover
+#'
+#' @export
+#'
+"Coordinates<-.SpaceRover" <- function(object, ..., value) {
+
+  # get assay
+  assay <- MainAssay(object)
+  Coordinates(assay) <- value
+  MainAssay(object) <- assay
+
+  return(object)
+}
+

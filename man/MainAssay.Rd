@@ -2,12 +2,18 @@
 % Please edit documentation in R/generics.R, R/objects.R
 \name{MainAssay}
 \alias{MainAssay}
+\alias{MainAssay<-}
 \alias{MainAssay.SpaceRover}
+\alias{MainAssay<-.SpaceRover}
 \title{Main Assay}
 \usage{
 MainAssay(object, ...)
 
+MainAssay(object, ...) <- value
+
 \method{MainAssay}{SpaceRover}(object, ...)
+
+\method{MainAssay}{SpaceRover}(object, ...) <- value
 }
 \arguments{
 \item{object}{An object}
@@ -16,6 +22,8 @@ MainAssay(object, ...)
 }
 \value{
 \code{MainAssay}: The name of the default assay
+
+\code{MainAssay<-}: The name of the default assay updated
 }
 \description{
 Get and set the main assay

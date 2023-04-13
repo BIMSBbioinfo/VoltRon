@@ -36,13 +36,13 @@ setMethod(
 # Managing Images ####
 ####
 
-#' @rdname getImage
-#' @method getImage Seurat
+#' @rdname Image
+#' @method Image Seurat
 #'
 #' @export
 #' @import magick
 #'
-getImage.Seurat <- function(seu, ...){
+Image.Seurat <- function(seu, ...){
 
   # image class from Seurat
   image_classes <- sapply(seu@images, class)
@@ -60,12 +60,12 @@ getImage.Seurat <- function(seu, ...){
   return(image)
 }
 
-#' @rdname getImage
-#' @method getImage SpaceRover
+#' @rdname Image
+#' @method Image SpaceRover
 #'
 #' @export
 #'
-getImage.SpaceRover <- function(sr, ...){
+Image.SpaceRover <- function(sr, ...){
 
   # check existing images in the spacerover object
   assay <- MainAssay(sr)

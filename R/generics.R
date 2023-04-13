@@ -16,6 +16,20 @@ MainAssay <- function(object, ...) {
   UseMethod(generic = 'MainAssay', object = object)
 }
 
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{MainAssay<-}: The name of the default assay updated
+#'
+#' @rdname MainAssay
+#' @export MainAssay<-
+#'
+#' @concept data-access
+#'
+"MainAssay<-" <- function(object, ...) {
+  UseMethod(generic = 'MainAssay<-', object = object)
+}
+
 #' Entities
 #'
 #' Get and set spatial entities (cells, spots, ROI)
@@ -52,20 +66,34 @@ Coordinates <- function(object, ...) {
   UseMethod(generic = 'Coordinates', object = object)
 }
 
-#' getImage
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{Coordinates<-}: The coordinates updated
+#'
+#' @rdname Coordinates
+#' @export Coordinates<-
+#'
+#' @concept data-access
+#'
+"Coordinates<-" <- function(object, ...) {
+  UseMethod(generic = 'Coordinates<-', object = object)
+}
+
+#' Image
 #'
 #' Get and set images of a spaceRover assay
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{getImage}: The name of the default assay
+#' @return \code{Image}: The name of the default assay
 #'
-#' @rdname getImage
-#' @export getImage
+#' @rdname Image
+#' @export Image
 #'
 #' @concept data-access
 #'
-getImage <- function(object, ...) {
-  UseMethod(generic = 'getImage', object = object)
+Image <- function(object, ...) {
+  UseMethod(generic = 'Image', object = object)
 }

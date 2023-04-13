@@ -19,7 +19,14 @@ ImportXenium <- function (dir.path, selected_assay = "Gene Expression", layer_na
   # raw counts
   infile <- Read10X_h5(filename = paste0(dir.path, "/cell_feature_matrix.h5"))
   rawdata <- as.matrix(infile[[selected_assay]])
-  colnames(rawdata) <- paste0("Cell",1:ncol(rawdata))
+
+  # labels
+  layer_name <- ifelse(is.null(layer_name), "slide1", layer_name)
+  sample_name <- ifelse(is.null(sample_name), "sample1", sample_name)
+  cellID <- paste(paste0("Cell",1:ncol(rawdata)),
+                  paste(c(assay_name, layer_name, sample_name), collapse = "_"),
+                  sep = "_")
+  colnames(rawdata) <- cellID
 
   # image
   morphology_image <- paste0(dir.path, "/morphology_lowres.tif")
@@ -32,7 +39,7 @@ ImportXenium <- function (dir.path, selected_assay = "Gene Expression", layer_na
   # coordinates
   Xenium_coords <- read.csv(file = paste0(dir.path, "/cells.csv.gz"))
   coords <- as.matrix(Xenium_coords[,c("x_centroid", "y_centroid")])
-  rownames(coords) <-  paste0("Cell",Xenium_coords$cell_id)
+  rownames(coords) <-  cellID
   coords[,2] <- max(coords[,2]) - coords[,2] + min(coords[,2])
   coords <- rescaleXeniumCells(coords, Xenium_box, image)
 
@@ -41,23 +48,16 @@ ImportXenium <- function (dir.path, selected_assay = "Gene Expression", layer_na
   listofAssays <- list(Xenium_assay)
   names(listofAssays) <- assay_name
 
-  # create layers
-  layer_name <- ifelse(is.null(layer_name), "slide1", layer_name)
-  sample_name <- ifelse(is.null(sample_name), "sample1", sample_name)
+  # create layers and samples
   listofLayers <- list(new("srLayer", assay = listofAssays))
   names(listofLayers) <- layer_name
-
-  # create samples
-  sample_name <- ifelse(is.null(sample_name), "sample1", sample_name)
   listofSamples <- list(new("srSample", layer = listofLayers))
   names(listofSamples) <- sample_name
 
   # create metadata
-  metadata <- setSRMetadata(cell = data.frame(Count = colSums(rawdata),
-                                              row.names = paste(colnames(rawdata),
-                                                                 paste(c(assay_name, layer_name, sample_name), collapse = "_"), sep = "_")),
-                                       spot = data.frame(),
-                                       ROI = data.frame())
+  metadata <- setSRMetadata(cell = data.frame(Count = colSums(rawdata),row.names = colnames(rawdata)),
+                            spot = data.frame(),
+                            ROI = data.frame())
 
   # create SpaceRover
   CreateSpaceRover(listofSamples, metadata = metadata, main.assay = "Xenium", ...)
@@ -107,10 +107,18 @@ ImportVisium <- function(dir.path, layer_name = NULL, sample_name = NULL, assay_
   infile <- Read10X_h5(filename = paste0(dir.path, "/", infile))
   rawdata <- as.matrix(infile)
 
+  # labels
+  layer_name <- ifelse(is.null(layer_name), "slide1", layer_name)
+  sample_name <- ifelse(is.null(sample_name), "sample1", sample_name)
+  spotID <- paste(colnames(rawdata),
+                  paste(c(assay_name, layer_name, sample_name), collapse = "_"),
+                  sep = "_")
+  colnames(rawdata) <- spotID
+
   # coordinates
   Visium_coords <- read.csv(file = paste0(dir.path, "/spatial/tissue_positions.csv"))
   coords <- as.matrix(Visium_coords[,c("pxl_col_in_fullres", "pxl_row_in_fullres")])
-  rownames(coords) <-  Visium_coords$barcode
+  rownames(coords) <-  spotID
 
   # image
   image <- paste0(dir.path, "/spatial/tissue_lowres_image.png")
@@ -121,22 +129,15 @@ ImportVisium <- function(dir.path, layer_name = NULL, sample_name = NULL, assay_
   listofAssays <- list(Visium_assay)
   names(listofAssays) <- assay_name
 
-  # create layers
-  layer_name <- ifelse(is.null(layer_name), "slide1", layer_name)
-  sample_name <- ifelse(is.null(sample_name), "sample1", sample_name)
+  # create layers and samples
   listofLayers <- list(new("srLayer", assay = listofAssays))
   names(listofLayers) <- layer_name
-
-  # create samples
-  sample_name <- ifelse(is.null(sample_name), "sample1", sample_name)
   listofSamples <- list(new("srSample", layer = listofLayers))
   names(listofSamples) <- sample_name
 
   # create metadata
   metadata <- setSRMetadata(cell = data.frame(),
-                            spot = data.frame(Count = colSums(rawdata),
-                                              row.names = paste(colnames(rawdata),
-                                                                 paste(c(assay_name, layer_name, sample_name), collapse = "_"), sep = "_")),
+                            spot = data.frame(Count = colSums(rawdata), row.names = colnames(rawdata)),
                             ROI = data.frame())
 
   # create SpaceRover

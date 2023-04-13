@@ -44,7 +44,7 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
   }
 
   # get images from the list of objects
-  orig_image_query_list <- lapply(spatdata_list, getImage)
+  orig_image_query_list <- lapply(spatdata_list, Image)
 
   ## UI and Server ####
 
@@ -286,8 +286,12 @@ getRegisteredObject <- function(obj_list, trans_matrix_list) {
 #'
 getRegisteredObject.SpaceRover <- function(sr, trans_matrix_list){
 
+  # compute adjacencies for each pair of adjacent slices
+  for(i in 1:length(trans_matrix_list)){
 
-  return(seu)
+  }
+
+  return(sr)
 }
 
 #' getRegisteredObject.Seurat
