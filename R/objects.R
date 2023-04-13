@@ -202,8 +202,6 @@ MainAssay.SpaceRover <- function(object, ...) {
     sample.info <- object@sample.metadata
     sample.info <- sample.info[sample.info$Assay == main.assay,, drop = FALSE]
     sample.info <- sample.info[1,] # GET FIRST FOR NOW!!!!
-    print(head(object[[sample.info$Sample, sample.info$Layer]]@assay[[main.assay]]@coords))
-    print(head(value@coords))
     object[[sample.info$Sample, sample.info$Layer]]@assay[[main.assay]] <- value
   }
 

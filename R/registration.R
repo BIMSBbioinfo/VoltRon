@@ -124,7 +124,7 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
       observe({
 
         # output the list of query images
-        srImageOutput(orig_image_query_list, xyTable_list, input, output, session)
+        ImageOutput(orig_image_query_list, xyTable_list, input, output, session)
 
       })
 
@@ -258,13 +258,20 @@ UpdateSequentialTabPanels <- function(input, output, session, npanels){
 #' get a registered Spatial data object
 #'
 #' @param obj_list a list of spatial data object
-#' @param trans_matrix_list a list of transformation matrices
+#' @param mapping_list a list of transformation matrices
+#' @param register_ind the indices of query images/spatialdatasets
+#' @param centre the index of the central referance image/spatialdata
 #'
-getRegisteredObject <- function(obj_list, trans_matrix_list) {
+getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre) {
 
   # check if the elements are SpaceRover
   if(all(sapply(obj_list, class) == "SpaceRover")){
-    return(getRegisteredObject.SpaceRover(obj_list, trans_matrix_list))
+    sr <- getRegisteredObject.SpaceRover(obj_list, mapping_list, register_ind, centre)
+    registered_sr <- list()
+    for(i in 1:length(sr)){
+      registered_sr[[i]] <- sr[[i]]
+    }
+    return(registered_sr)
 
   # check if elements are Seurat
   } else if(all(sapply(obj_list, class) == "Seurat")) {
@@ -272,7 +279,7 @@ getRegisteredObject <- function(obj_list, trans_matrix_list) {
       if(is.null(t))
         return(NULL)
       getRegisteredObject.Seurat(o,t)
-    }, obj, trans_matrix)
+    }, obj, mapping_list)
     return(return_list)
   }
 }
@@ -282,16 +289,27 @@ getRegisteredObject <- function(obj_list, trans_matrix_list) {
 #' get registered and merged SpaceRover object composed of several Samples
 #'
 #' @param sr_list a list of SpaceRover objects
-#' @param trans_matrix_list transformation function for the registration
+#' @param mapping_list a list of transformation matrices
+#' @param register_ind the indices of query images/spatialdatasets
+#' @param centre the index of the central referance image/spatialdata
 #'
-getRegisteredObject.SpaceRover <- function(sr, trans_matrix_list){
+getRegisteredObject.SpaceRover <- function(sr, mapping_list, register_ind, centre){
 
-  # compute adjacencies for each pair of adjacent slices
-  for(i in 1:length(trans_matrix_list)){
-
+  # initiate registered spacerover objects
+  ref_ind <- centre
+  registered_sr <- sr
+  for(i in register_ind){
+    mapping <- mapping_list[[i]]
+    coords <- Coordinates(registered_sr[[i]])
+    entities <- rownames(coords)
+    for(kk in 1:length(mapping)){
+      cur_mapping <- mapping[[kk]]
+      coords <- applyTransform(coords, cur_mapping)
+    }
+    rownames(coords) <- entities
+    Coordinates(registered_sr[[i]]) <- coords
   }
-
-  return(sr)
+  return(registered_sr)
 }
 
 #' getRegisteredObject.Seurat
@@ -634,7 +652,7 @@ image_ggplot_keypoint <- function(image, keypoints){
 # Managing Images ####
 ####
 
-#' srImageOutput
+#' ImageOutput
 #'
 #' Shiny outputs for a set of magick images with keypoints
 #'
@@ -644,7 +662,7 @@ image_ggplot_keypoint <- function(image, keypoints){
 #' @param output shiny output
 #' @param session shiny session
 #'
-srImageOutput <- function(image_list, keypoints_list = NULL, input, output, session){
+ImageOutput <- function(image_list, keypoints_list = NULL, input, output, session){
 
   # get image types
   image_types <- c("ref","query")
@@ -765,29 +783,45 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
   # the number of registrations
   len_register <- length(image_list) - 1
 
+  # index of the reference data vs query data
+  centre <- floor(median(1:length(image_list)))
+  register_ind <- setdiff(1:length(image_list), centre)
+
   # Registration events
   observeEvent(input$manualregister, {
 
     # Register keypoints
-    trans_matrix_list <- list()
-    for(i in 1:len_register){
+    mapping_list <- list()
+    for(i in register_ind){
 
-      # reference and target landmarks/keypoints
-      tar_ind <- i+1
-      key_ind <- paste0(i, "->", i+1)
-      keypoints <- keypoints_list[[key_ind]]
-      reference_landmark <- as.matrix(keypoints[["ref"]][,c("x","y")])
-      target_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
-
-      # compute and get transformation matrix
-      trans_matrix <- computeTransform(reference_landmark, target_landmark, type = "tps")
+      # get a sequential mapping between a query and reference image
+      mapping <- computePairwiseTransform(spatdata_list, keypoints_list, query_ind = i, ref_ind = centre)
 
       # save transformation matrix
-      trans_matrix_list[[i]] <- trans_matrix
+      mapping_list[[i]] <- mapping
     }
 
     # get registered spatial datasets
-    registered_spatdata_list <- getRegisteredObject(spatdata_list, trans_matrix_list)
+    temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre)
+    for(i in 1:length(temp_reg_list))
+      registered_spatdata_list[[paste0(i)]] <- temp_reg_list[[i]]
+
+    # Plot registered images
+    lapply(register_ind, function(i){
+      cur_mapping <- mapping_list[[i]]
+      images <- getRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
+      tar_ind <- which(register_ind == i) + 1
+      output[[paste0("plot_query_reg",tar_ind)]] <- renderPlot({
+        # new version
+        info <- image_info(image_list[[centre]])
+        r2 <- as.raster(images$query)
+        r2 <- rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",tar_ind)]]))
+        ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
+          ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
+          ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
+          ggplot2::annotation_custom(r2, 0, info$width, 0, info$height)
+      })
+    })
 
     # Output summary
     output[["summary"]] <- renderUI({
@@ -797,32 +831,57 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
       all_str <- c(str1, str2, str3)
       HTML(paste(all_str, collapse = '<br/>'))
     })
-
-    # Plot registered i mages
-    lapply(1:len_register, function(i){
-      tar_ind <- i+1
-      images <- getRegisteredImage(image_list[[tar_ind]], image_list[[i]], trans_matrix_list[[i]], input)
-      output[[paste0("plot_query_reg",tar_ind)]] <- renderPlot({
-        p <- recordPlot
-        terra::plot(images$ref)
-        raster::plot(images$query, alpha = input[[paste0("plot_query_reg_alpha",tar_ind)]], add = TRUE, legend = FALSE)
-        p
-      })
-    })
   })
 }
 
-getRegisteredImage <- function(query_image, ref_image, transmatrix, input){
+
+computePairwiseTransform <- function(spatdata_list, keypoints_list, query_ind, ref_ind){
+
+  # determine the number of transformation to map from query to the reference
+  indices <- query_ind:ref_ind
+  mapping <- rep(indices,c(1,rep(2,length(indices)-2),1))
+  mapping <- matrix(mapping,ncol=2,byrow=TRUE)
+
+  # reference and target landmarks/keypoints
+  mapping_list <- list()
+  for(kk in 1:nrow(mapping)){
+    cur_map <- mapping[kk,]
+    if(which.min(cur_map) == 1){
+      key_ind <- paste0(cur_map[1], "->", cur_map[2])
+      keypoints <- keypoints_list[[key_ind]]
+      target_landmark <- as.matrix(keypoints[["ref"]][,c("x","y")])
+      reference_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
+    } else {
+      key_ind <- paste0(cur_map[2], "->", cur_map[1])
+      keypoints <- keypoints_list[[key_ind]]
+      reference_landmark <- as.matrix(keypoints[["ref"]][,c("x","y")])
+      target_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
+    }
+    # compute and get transformation matrix
+    mapping_list[[kk]] <- computeTransform(reference_landmark, target_landmark, type = "tps")
+  }
+
+  return(mapping_list)
+}
+
+getRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, input){
 
   # plot with raster
-  ref_image_raster <- as.raster(ref_image) |> as.matrix() |> rast()
-  query_image_raster <- as.raster(query_image) |> as.matrix() |> rast() |> stack()
+  ref_image_raster <- as.raster(images[[ref_ind]]) |> as.matrix() |> rast()
+  query_image_raster <- as.raster(images[[query_ind]]) |> as.matrix() |> rast() |> stack()
 
-  # apply transformation to image
+  # prepare image
   imageEx <- raster::extent(stack(ref_image_raster))
   imageRes <- raster::res(stack(ref_image_raster))
   query_image_raster_1 <- raster::as.data.frame(query_image_raster[[1]], xy = TRUE)
-  query_image_raster_1_t <- Morpho::applyTransform(as.matrix(query_image_raster_1)[,1:2], transmatrix)
+
+  # apply transformation as many as it is needed
+  query_image_raster_1_t <- as.matrix(query_image_raster_1)[,1:2]
+  for(trans in transmatrix){
+    query_image_raster_1_t <- Morpho::applyTransform(query_image_raster_1_t, trans)
+  }
+
+  # finalize image
   r <- raster::raster(nrow = dim(query_image_raster)[1], ncol = dim(query_image_raster)[2], resolution = c(1,1))
   raster::extent(r) <- imageEx
   raster::res(r) <- imageRes

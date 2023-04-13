@@ -65,6 +65,9 @@ Coordinates.srAssay <- function(object, ...) {
   coords <- Coordinates(object)
 
   # stop if the rownames are not matching
+  if(any(sapply(rownames(values),is.null)))
+    stop("Provided coordinates data does not have cell/spot/ROI names")
+
   if(!all(rownames(values) %in% rownames(coords)))
     stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
 
