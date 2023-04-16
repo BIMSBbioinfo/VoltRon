@@ -138,7 +138,7 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
         RegisteredSpatialData <- reactiveValuesToList(registered_spatdata_list)
 
         # stop app and return
-        stopApp(list(keypoints = keypoints, registered_seurat = RegisteredSpatialData))
+        stopApp(list(keypoints = keypoints, registered_spat = RegisteredSpatialData))
       })
     }
 
@@ -279,7 +279,7 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre) {
       if(is.null(t))
         return(NULL)
       getRegisteredObject.Seurat(o,t)
-    }, obj, mapping_list)
+    }, obj_list, mapping_list)
     return(return_list)
   }
 }
@@ -317,9 +317,9 @@ getRegisteredObject.SpaceRover <- function(sr, mapping_list, register_ind, centr
 #' get the registered cell data/locations from a Seurat Object
 #'
 #' @param seu Seurat object
-#' @param trans_matrix transformation function for the registration
+#' @param mapping a list of transformation mapping matrices for the registration
 #'
-getRegisteredObject.Seurat <- function(seu, trans_matrix){
+getRegisteredObject.Seurat <- function(seu, mapping){
 
   image_classes <- sapply(seu@images, class)
 
@@ -334,10 +334,14 @@ getRegisteredObject.Seurat <- function(seu, trans_matrix){
     cells <- imagedata$centroids@coords
     cells_box <- imagedata$segmentation@bbox
     cells[,2] <- max(cells[,2]) - cells[,2] + min(cells[,2])
-    cells <- rescaleXeniumCells(cells, cells_box, image@image)
+    cells <- rescaleXeniumCells(cells, t(cells_box), image@image)
 
     # apply transformation to cells
-    registered_cells <- applyTransform(as.matrix(cells), trans_matrix)
+    registered_cells <- as.matrix(cells)
+    for(kk in 1:length(mapping)){
+      cur_mapping <- mapping[[kk]]
+      registered_cells <- applyTransform(registered_cells, cur_mapping)
+    }
     registered_cells <- data.frame(x = registered_cells[,1], y = registered_cells[,2],
                                    cell = imagedata$centroids@cells)
     registered_segmentation_data <- list(centroids = CreateCentroids(registered_cells))
@@ -789,6 +793,15 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
 
   # Registration events
   observeEvent(input$manualregister, {
+
+    # Check keypoints
+    keypoints_check_flag <- sapply(keypoints_list, function(key_list){
+      nrow(key_list$ref) == nrow(key_list$query)
+    })
+    if(!keypoints_check_flag){
+      showNotification("The number of reference and query keypoints should be equal for all pairwise spatial datasets \n")
+      return(NULL)
+    }
 
     # Register keypoints
     mapping_list <- list()
