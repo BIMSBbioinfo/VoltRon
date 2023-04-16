@@ -264,22 +264,69 @@ CreateSpaceRover_old <- function(samples, metadata = NULL, sample.metadata = NUL
 
 ### Merge SpaceRover objects ####
 
-#' @rdname merge
 #' @method merge SpaceRover
+#'
+#' @import igraph
 #'
 #' @export
 #'
-merge.SpaceRover <- function(object, ...) {
+merge.SpaceRover <- function(object, object_list, sample_name = NULL, main.assay = NULL) {
 
   # combine all elements
-  object_list <- c(object, list(...))
+  if(!is.list(object_list))
+    object_list <- list(object_list)
+  object_list <- c(object, object_list)
 
   # check if all are spaceRover
   if(!all(lapply(object_list, class) == "SpaceRover"))
      stop("All arguements have to be of SpaceRover class")
 
   # merge metadata
-  metadata <- merge(lapply(object_list), function(x) slot(x, name = "metadata"))
+  metadata_list <- lapply(object_list, function(x) slot(x, name = "metadata"))
+  metadata <- merge(metadata_list[[1]], metadata_list[-1])
+
+  # merge sample metadata
+  sample.metadata <- NULL
+  for(i in 1:length(object_list)){
+    sample.metadata <- rbind(sample.metadata, slot(object_list[[i]], "sample.metadata"))
+  }
+  rownames(sample.metadata) <- paste0("Assay", 1:nrow(sample.metadata))
+  if(!is.null(sample_name)){
+    sample.metadata$Sample <- sample_name
+    sample.metadata$Layer <- paste0("Section", 1:nrow(sample.metadata))
+    unique_assay <- unique(sample.metadata$Assay)
+    if(nrow(sample.metadata) != length(unique_assay)){
+      for(cur_assay in unique_assay){
+        cur_assay_ind <- which(sample.metadata$Assay %in% cur_assay)
+        sample.metadata$Assay[cur_assay_ind] <- paste0(sample.metadata$Assay[cur_assay_ind], "_", 1:length(cur_assay_ind))
+      }
+    }
+  }
+
+  # combine samples and rename layers
+  listofLayers <- NULL
+  for(i in 1:length(object_list)){
+    cur_object <- object_list[[i]]
+    listofLayers <- c(listofLayers, cur_object@samples[[1]]@layer)
+  }
+  names(listofLayers) <- sample.metadata$Layer
+  listofSamples <- list(new("srSample", layer = listofLayers))
+  names(listofSamples) <- ifelse(is.null(sample_name), "Sample", sample_name)
+
+  # get main assay
+  if(is.null(main.assay))
+    main.assay <- "Assay1"
+
+  # merge graphs
+  zstack_list <- lapply(object_list, function(x) slot(x, name = "zstack"))
+  zstack <- igraph::disjoint_union(zstack_list[1], zstack_list[-1])
+
+  # project
+  project <- slot(object_list[[1]], "project")
+
+  # set SpaceRover class
+  new("SpaceRover", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata,
+      zstack = zstack, main.assay = main.assay, project = project)
 }
 
 ### Get main assay ####

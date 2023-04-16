@@ -57,6 +57,43 @@ Entities.srMetadata <- function(object, ...) {
   return(points)
 }
 
+#' @method merge srMetadata
+#'
+#' @importFrom dplyr bind_rows
+#' @export
+#'
+merge.srMetadata <- function(object, object_list) {
+
+  # combine all elements
+  if(!is.list(object_list))
+    object_list <- list(object_list)
+  object_list <- c(object, object_list)
+
+  # check if all are spaceRover
+  if(!all(lapply(object_list, class) == "srMetadata"))
+    stop("All arguements have to be of srMetadata class")
+
+  # choose objects
+  obj1 <- object_list[[1]]
+  obj2 <- object_list[[2]]
+
+  # initial combination
+  if(length(object_list) > 2){
+    combined.metadata <- merge(obj1, obj2)
+    for(i in 1:(length(object_list)-2)){
+      combined.metadata <- merge(combined.metadata, object_list[[3]])
+    }
+  } else {
+    cell.metadata <- bind_rows(slot(obj1, "cell"), slot(obj2, "cell"))
+    spot.metadata <- bind_rows(slot(obj1, "spot"), slot(obj2, "spot"))
+    roi.metadata <- bind_rows(slot(obj1, "ROI"), slot(obj2, "ROI"))
+    combined.metadata <- setSRMetadata(cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata)
+  }
+
+  # return combined object
+  return(combined.metadata)
+}
+
 ####
 # Functions ####
 ####

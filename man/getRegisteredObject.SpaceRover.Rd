@@ -4,10 +4,14 @@
 \alias{getRegisteredObject.SpaceRover}
 \title{getRegisteredObject.SpaceRover}
 \usage{
-getRegisteredObject.SpaceRover(sr, trans_matrix_list)
+getRegisteredObject.SpaceRover(sr, mapping_list, register_ind, centre)
 }
 \arguments{
-\item{trans_matrix_list}{transformation function for the registration}
+\item{mapping_list}{a list of transformation matrices}
+
+\item{register_ind}{the indices of query images/spatialdatasets}
+
+\item{centre}{the index of the central referance image/spatialdata}
 
 \item{sr_list}{a list of SpaceRover objects}
 }

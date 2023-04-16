@@ -7,10 +7,7 @@
 ImportXenium(
   dir.path,
   selected_assay = "Gene Expression",
-  layer_name = NULL,
-  sample_name = NULL,
   assay_name = "Xenium",
-  assay_type = "cell",
   ...
 )
 }
@@ -18,7 +15,11 @@ ImportXenium(
 \item{dir.path}{path to Xenium}
 
 \item{selected_assay}{selected assay}
+
+\item{assay_name}{the assay name of the SR object}
+
+\item{...}{additional parameters passed to \code{CreateSpaceRover}}
 }
 \description{
-ImportXenium
+Importing a Xenium data
 }

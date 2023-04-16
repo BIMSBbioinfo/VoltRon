@@ -4,12 +4,16 @@
 \alias{getRegisteredObject}
 \title{getRegisteredObject}
 \usage{
-getRegisteredObject(obj_list, trans_matrix_list)
+getRegisteredObject(obj_list, mapping_list, register_ind, centre)
 }
 \arguments{
 \item{obj_list}{a list of spatial data object}
 
-\item{trans_matrix_list}{a list of transformation matrices}
+\item{mapping_list}{a list of transformation matrices}
+
+\item{register_ind}{the indices of query images/spatialdatasets}
+
+\item{centre}{the index of the central referance image/spatialdata}
 }
 \description{
 get a registered Spatial data object

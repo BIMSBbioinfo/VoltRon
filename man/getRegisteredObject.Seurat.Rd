@@ -4,12 +4,12 @@
 \alias{getRegisteredObject.Seurat}
 \title{getRegisteredObject.Seurat}
 \usage{
-getRegisteredObject.Seurat(seu, trans_matrix)
+getRegisteredObject.Seurat(seu, mapping)
 }
 \arguments{
 \item{seu}{Seurat object}
 
-\item{trans_matrix}{transformation function for the registration}
+\item{mapping}{a list of transformation mapping matrices for the registration}
 }
 \description{
 get the registered cell data/locations from a Seurat Object

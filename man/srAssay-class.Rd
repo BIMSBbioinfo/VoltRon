@@ -18,5 +18,7 @@ The srAssay (SpaceRover Assay) Class
 \item{\code{coord}}{spatial coordinates of the assay}
 
 \item{\code{image}}{image of the spatial assay}
+
+\item{\code{type}}{the type of the assay (cell, spot, ROI)}
 }}
 
