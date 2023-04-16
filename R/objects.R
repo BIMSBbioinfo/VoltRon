@@ -126,6 +126,93 @@ setMethod(
 #'
 #' Create a SpaceRover object
 #'
+#' @param data the count table
+#' @param metadata a metadata object of class \code{srMetadata}
+#' @param image the image of the data
+#' @param coord the coordinates of the spatial entities
+#' @param sample.metadata a data frame of the sample metadata
+#' @param zstack the zstack graph to determine the adjacency of spatial entities across layers
+#' @param main.assay the name of the main assay of the object
+#' @param assay_name the name of the assay
+#' @param sample_name the name of the sample
+#' @param layer_name the name of the layer
+#' @param assay.type the type of the assay (cells, spots, ROIs)
+#' @param project project name
+#'
+#' @export
+#' @import igraph
+#'
+CreateSpaceRover <- function(data, metadata = NULL, image = NULL, coords,
+                             sample.metadata = NULL, zstack = NULL,
+                             main.assay = NULL, assay.type = "cell",
+                             sample_name = NULL, layer_name = NULL,
+                             project = NULL, ...){
+
+  # set project name
+  if(is.null(project))
+    project <- "SpaceRover"
+
+  # labels
+  layer_name <- ifelse(is.null(layer_name), "Section1", layer_name)
+  sample_name <- ifelse(is.null(sample_name), "Sample1", sample_name)
+  if(is.null(colnames(data))){
+    entityID <- paste0(assay.type,1:ncol(data))
+    colnames(data) <- entityID
+  } else {
+    entityID <- colnames(data)
+  }
+  entityID <- paste(entityID, paste(c(main.assay, layer_name, sample_name), collapse = "_"), sep = "_")
+
+  # set meta data
+  if(is.null(metadata)){
+    metadata <- setSRMetadata(cell = data.frame(), spot = data.frame(), ROI = data.frame())
+    slot(metadata, name = assay.type) <- data.frame(Count = colSums(data), row.names = entityID)
+  }
+
+  # Coordinates
+  if(!is.null(coords)){
+    colcoords <- colnames(coords)
+    if(all(colcoords %in% c("x","y"))){
+      rownames(coords) <- entityID
+      coords <- coords[,c("x", "y")]
+    } else {
+      stop("The colnames of the coordinates matrix should be 'x' and 'y'")
+    }
+  } else {
+    stop("There are no coordinates matrix provided!")
+  }
+
+  # set zgraph
+  if(is.null(zstack)){
+    spatial_entities <- Entities(metadata)
+    zstack <- igraph::make_empty_graph(n = length(spatial_entities), directed = FALSE)
+    igraph::V(zstack)$name <- spatial_entities
+  }
+
+  # create srAssay
+  Xenium_assay <- new("srAssay", rawdata = data, normdata = data, coords = coords, image = image, type = assay.type)
+  listofAssays <- list(Xenium_assay)
+  names(listofAssays) <- main.assay
+
+  # create layers and samples
+  listofLayers <- list(new("srLayer", assay = listofAssays))
+  names(listofLayers) <- layer_name
+  listofSamples <- list(new("srSample", layer = listofLayers))
+  names(listofSamples) <- sample_name
+
+  # set sample meta data
+  if(is.null(sample.metadata)){
+    sample.metadata <- setSRSampleMetadata(listofSamples)
+  }
+
+  # set SpaceRover class
+  new("SpaceRover", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
+}
+
+#' CreateSpaceRover
+#'
+#' Create a SpaceRover object
+#'
 #' @param samples a list of samples list of class \code{srSamples}
 #' @param metadata a metadata object of class \code{srMetadata}
 #' @param sample.metadata a data frame of the sample metadata
@@ -136,7 +223,7 @@ setMethod(
 #' @export
 #' @import igraph
 #'
-CreateSpaceRover <- function(samples, metadata = NULL, sample.metadata = NULL, zstack = NULL, main.assay = NULL, project = NULL){
+CreateSpaceRover_old <- function(samples, metadata = NULL, sample.metadata = NULL, zstack = NULL, main.assay = NULL, project = NULL){
 
   # set project name
   if(is.null(project))
@@ -162,6 +249,14 @@ CreateSpaceRover <- function(samples, metadata = NULL, sample.metadata = NULL, z
     zstack <- igraph::make_empty_graph(n = length(spatial_entities), directed = FALSE)
     igraph::V(zstack)$name <- spatial_entities
   }
+
+  # # labels
+  # layer_name <- ifelse(is.null(layer_name), "slide1", layer_name)
+  # sample_name <- ifelse(is.null(sample_name), "sample1", sample_name)
+  # cellID <- paste(paste0("Cell",1:ncol(rawdata)),
+  #                 paste(c(assay_name, layer_name, sample_name), collapse = "_"),
+  #                 sep = "_")
+  # colnames(rawdata) <- cellID
 
   # set SpaceRover class
   new("SpaceRover", samples = samples, metadata = metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)

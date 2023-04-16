@@ -15,6 +15,7 @@ setOldClass(Classes = c('magick-image'))
 #' @slot normdata normalized count table
 #' @slot coord spatial coordinates of the assay
 #' @slot image image of the spatial assay
+#' @slot type the type of the assay (cell, spot, ROI)
 #'
 #' @name srAssay-class
 #' @rdname srAssay-class
