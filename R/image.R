@@ -1,3 +1,122 @@
+####
+# Objects and Classes ####
+####
+
+## FOVImage ####
+
+#' The FOVImage class
+#'
+#' The FOVImage stores the morphology image from the Xenium assay
+#'
+#' @slot image A magick-image class object from magick package
+#'
+#' @name FOVImage-class
+#' @rdname FOVImage-class
+#' @exportClass FOVImage
+#'
+FOVImage <- setClass(
+  Class = 'FOVImage',
+  slots = list(
+    'image' = 'magick-image'
+  )
+)
+
+### show ####
+setMethod(
+  f = 'show',
+  signature = 'FOVImage',
+  definition = function(object) {
+    cat("FOV Morphology Image \n")
+    cat(paste(format(image_info(object@image)), collapse = " \n "))
+    return(invisible(x = NULL))
+  }
+)
+
+####
+# Managing Images ####
+####
+
+#' @rdname Image
+#' @method Image Seurat
+#'
+#' @export
+#' @import magick
+#'
+Image.Seurat <- function(seu, ...){
+
+  # image class from Seurat
+  image_classes <- sapply(seu@images, class)
+
+  # get image given class
+  if(any(grepl("FOV",image_classes))){
+    image <- seu@images[[names(seu@images)[which(grepl("FOVImage", image_classes))]]]
+    image <- image@image
+  } else if(any(grepl("Visium",image_classes))) {
+    image <- seu@images[[names(seu@images)[which(grepl("Visium", image_classes))]]]
+    image <- magick::image_read(image@image)
+  }
+
+  # return image
+  return(image)
+}
+
+#' @rdname Image
+#' @method Image SpaceRover
+#'
+#' @export
+#'
+Image.SpaceRover <- function(sr, ...){
+
+  # check existing images in the spacerover object
+  assay <- MainAssay(sr)
+
+  # get image from the assay
+  image <- assay@image
+
+  # return image
+  return(image)
+}
+
+#' addFOVImage
+#'
+#' Adding the Xenium image to the Seurat Object. Please run \code{GenerateXeniumDAPIImage} first.
+#'
+#' @param seu Seurat Object with Xenium Data
+#' @param file the morphology image file created by \code{GenerateXeniumDAPIImage}.
+#' @param fov FOV name, preferably the name used in the Seurat Object
+#' @param overwrite Overwrite the existing FOV image
+#'
+#' @export
+#'
+addFOVImage <- function(seu, file, fov = "fov", overwrite = FALSE) {
+
+  # fov image name
+  fov_image <- paste0(fov, "_image")
+
+  # check if the image file exists
+  if(!file.exists(file))
+    stop("FOV image was not generated. Please run GenerateXeniumDAPIImage() first!")
+
+  # check if the image exists in the Seurat Object
+  if(!is.null(seu@images[[fov_image]])){
+    if(!overwrite)
+      stop("FOV image is already provided")
+  }
+
+  # get image in FOVImage class
+  image <- new(Class = "FOVImage", image = magick::image_read(file))
+
+  # insert the image to the Seurat Object
+  seu@images[[fov_image]] <- image
+
+  # return Seurat Object
+  return(seu)
+}
+
+####
+# Image File Manipulation ####
+####
+
 #' GenerateXeniumDAPIImage
 #'
 #' Generates a low resolution DAPI image from
@@ -133,40 +252,4 @@ GenerateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
   }
 
   return(NULL)
-}
-
-#' addFOVImage
-#'
-#' Adding the Xenium image to the Seurat Object. Please run \code{GenerateXeniumDAPIImage} first.
-#'
-#' @param seu Seurat Object with Xenium Data
-#' @param file the morphology image file created by \code{GenerateXeniumDAPIImage}.
-#' @param fov FOV name, preferably the name used in the Seurat Object
-#' @param overwrite Overwrite the existing FOV image
-#'
-#' @export
-#'
-addFOVImage <- function(seu, file, fov = "fov", overwrite = FALSE) {
-
-  # fov image name
-  fov_image <- paste0(fov, "_image")
-
-  # check if the image file exists
-  if(!file.exists(file))
-    stop("FOV image was not generated. Please run GenerateXeniumDAPIImage() first!")
-
-  # check if the image exists in the Seurat Object
-  if(!is.null(seu@images[[fov_image]])){
-    if(!overwrite)
-      stop("FOV image is already provided")
-  }
-
-  # get image in FOVImage class
-  image <- new(Class = "FOVImage", image = magick::image_read(file))
-
-  # insert the image to the Seurat Object
-  seu@images[[fov_image]] <- image
-
-  # return Seurat Object
-  return(seu)
 }
