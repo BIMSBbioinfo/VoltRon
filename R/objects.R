@@ -262,6 +262,26 @@ CreateSpaceRover_old <- function(samples, metadata = NULL, sample.metadata = NUL
   new("SpaceRover", samples = samples, metadata = metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
 }
 
+### Merge SpaceRover objects ####
+
+#' @rdname merge
+#' @method merge SpaceRover
+#'
+#' @export
+#'
+merge.SpaceRover <- function(object, ...) {
+
+  # combine all elements
+  object_list <- c(object, list(...))
+
+  # check if all are spaceRover
+  if(!all(lapply(object_list, class) == "SpaceRover"))
+     stop("All arguements have to be of SpaceRover class")
+
+  # merge metadata
+  metadata <- merge(lapply(object_list), function(x) slot(x, name = "metadata"))
+}
+
 ### Get main assay ####
 
 #' @rdname MainAssay

@@ -798,7 +798,9 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
     keypoints_check_flag <- sapply(keypoints_list, function(key_list){
       nrow(key_list$ref) == nrow(key_list$query)
     })
-    if(!keypoints_check_flag){
+    # print(unlist(keypoints_check_flag))
+    # print(unlist(reactiveValuesToList(keypoints_check_flag)))
+    if(!all(unlist(keypoints_check_flag))){
       showNotification("The number of reference and query keypoints should be equal for all pairwise spatial datasets \n")
       return(NULL)
     }
