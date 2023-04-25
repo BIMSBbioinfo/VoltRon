@@ -825,7 +825,6 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
       images <- getRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
       tar_ind <- which(register_ind == i) + 1
       output[[paste0("plot_query_reg",tar_ind)]] <- renderPlot({
-        # new version
         info <- image_info(image_list[[centre]])
         r2 <- as.raster(images$query)
         r2 <- rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",tar_ind)]]))

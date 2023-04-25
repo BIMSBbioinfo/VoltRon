@@ -27,6 +27,7 @@ srAssay <- setClass(
     rawdata = 'matrix',
     normdata = 'matrix',
     coords = 'matrix',
+    coords_reg = 'matrix',
     image = 'magick-image',
     type = "character"
   )
@@ -51,8 +52,12 @@ setMethod(
 #'
 #' @export
 #'
-Coordinates.srAssay <- function(object, ...) {
-  return(object@coords)
+Coordinates.srAssay <- function(object, reg = FALSE, ...) {
+  if(reg){
+    return(object@coords_reg)
+  } else {
+    return(object@coords)
+  }
 }
 
 #' @rdname Coordinates
@@ -60,10 +65,10 @@ Coordinates.srAssay <- function(object, ...) {
 #'
 #' @export
 #'
-"Coordinates<-.srAssay" <- function(object, ..., value) {
+"Coordinates<-.srAssay" <- function(object, reg = FALSE, ..., value) {
 
   # get coordinates
-  coords <- Coordinates(object)
+  coords <- Coordinates(object, ...)
 
   # stop if the rownames are not matching
   if(any(sapply(rownames(values),is.null)))
@@ -76,6 +81,10 @@ Coordinates.srAssay <- function(object, ...) {
   if(!all(colnames(values) %in% colnames(coords)))
     stop("Cant overwrite coordinates, only x or y coordinates should be provided!")
 
-  slot(object = object, name = 'coords') <- value
+  if(reg){
+    slot(object = object, name = 'coords') <- value
+  } else{
+    slot(object = object, name = 'coords_reg') <- value
+  }
   return(object)
 }

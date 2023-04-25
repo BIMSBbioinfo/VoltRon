@@ -397,13 +397,17 @@ Entities.SpaceRover <- function(object, ...) {
 #'
 #' @export
 #'
-Coordinates.SpaceRover <- function(object, ...) {
+Coordinates.SpaceRover <- function(object, reg = FALSE, ...) {
 
   # check existing images in the spacerover object
   assay <- MainAssay(object)
 
   # get image from the assay
-  coords <- assay@coords
+  if(reg){
+    coords <- assay@coords_reg
+  } else {
+    coords <- assay@coords
+  }
 
   # return image
   return(coords)
