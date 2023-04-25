@@ -7,9 +7,8 @@ using namespace std;
 using namespace cv;
 using namespace cv::xfeatures2d;
 
-void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
+void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
 {
-
   // Convert images to grayscale
   Mat im1Gray, im2Gray;
   cvtColor(im1, im1Gray, cv::COLOR_BGR2GRAY);
@@ -37,9 +36,9 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, const float GOOD_MATCH
   matches.erase(matches.begin()+numGoodMatches, matches.end());
 
   // Draw top matches
-  Mat imMatches;
-  drawMatches(im1, keypoints1, im2, keypoints2, matches, imMatches);
-  imwrite("matches.jpg", imMatches);
+  // Mat imMatches;
+  // drawMatches(im1, keypoints1, im2, keypoints2, matches, imMatches);
+  // imwrite("matches.jpg", imMatches);
 
   // Extract location of good matches
   std::vector<Point2f> points1, points2;
@@ -60,9 +59,9 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, const float GOOD_MATCH
   }
 
   // Draw top matches and good ones only
-  Mat imMatches_new;
-  drawMatches(im1, keypoints1_best, im2, keypoints2_best, goodMatches, imMatches_new);
-  imwrite("matches_best.jpg", imMatches_new);
+  // Mat imMatches;
+  drawMatches(im1, keypoints1_best, im2, keypoints2_best, goodMatches, imMatches);
+  imwrite("matches_best.jpg", imMatches);
 
   // Find homography
   h = findHomography( points1, points2, RANSAC );
@@ -71,32 +70,97 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, const float GOOD_MATCH
   warpPerspective(im1, im1Reg, h, im2.size());
 }
 
+cv::Mat imageToMat(Rcpp::RawVector image_data, int width, int height) {
+
+  // Create cv::Mat object
+  cv::Mat mat(height, width, CV_8UC3, image_data.begin());
+
+  // Convert from RGBA to BGRA
+  cv::cvtColor(mat, mat, cv::COLOR_RGBA2BGR);
+
+  return mat;
+}
+
+Rcpp::RawVector matToImage(cv::Mat mat) {
+
+  // Create RawVector object
+  Rcpp::RawVector rawvec(mat.total() * mat.elemSize());
+  rawvec.attr("dim") = Rcpp::Dimension(3, mat.cols, mat.rows);
+
+  // Copy Mat data to RawVector
+  std::memcpy(rawvec.begin(), mat.data, rawvec.size());
+
+  return rawvec;
+}
+
+// Function to convert a cv::Mat object to a NumericMatrix
+Rcpp::NumericMatrix matToNumericMatrix(cv::Mat m) {
+  Rcpp::NumericMatrix nm(m.rows, m.cols);
+  for (int i = 0; i < m.rows; ++i) {
+    for (int j = 0; j < m.cols; ++j) {
+      nm(i, j) = m.at<double>(i, j);
+    }
+  }
+  return nm;
+}
+
 // [[Rcpp::export]]
-void register_images(Rcpp::String ref_image, Rcpp::String query_image, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
+Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image,
+                            const int width1, const int height1,
+                            const int width2, const int height2,
+                            const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
 {
+  // define return data, 1 = transformation matrix, 2 = aligned image
+  Rcpp::List out(3);
+
   // Read reference image
-  const cv::String refFilename(ref_image);
-  cout << "Reading reference image : " << refFilename << endl;
-  Mat imReference = imread(refFilename);
+  cv::Mat imReference = imageToMat(ref_image, width1, height1);
 
   // Read image to be aligned
-  const cv:: String imFilename(query_image);
-  cout << "Reading image to align : " << imFilename << endl;
-  Mat im = imread(imFilename);
+  cv::Mat im = imageToMat(query_image, width2, height2);
 
   // Registered image will be resotred in imReg.
   // The estimated homography will be stored in h.
-  Mat imReg, h;
+  Mat imMatches, imReg, h;
 
   // Align images
   cout << "Aligning images ..." << endl;
-  alignImages(im, imReference, imReg, h, GOOD_MATCH_PERCENT, MAX_FEATURES);
+  // alignImages(im, imReference, imReg, h, GOOD_MATCH_PERCENT, MAX_FEATURES);
+  alignImages(im, imReference, imReg, imMatches, h, GOOD_MATCH_PERCENT, MAX_FEATURES);
 
-  // Write aligned image to disk.
-  string outFilename("aligned.jpg");
-  cout << "Saving aligned image : " << outFilename << endl;
-  imwrite(outFilename, imReg);
-
-  // Print estimated homography
-  cout << "Estimated homography : \n" << h << endl;
+  // return transformation matrix and alignment images
+  out[0] = matToNumericMatrix(h.clone());
+  out[1] = matToImage(imReg.clone());
+  out[2] = matToImage(imMatches.clone());
+  return out;
 }
+
+// // [[Rcpp::export]]
+// void register_images_old(Rcpp::String ref_image, Rcpp::String query_image, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
+// {
+//   // Read reference image
+//   const cv::String refFilename(ref_image);
+//   cout << "Reading reference image : " << refFilename << endl;
+//   Mat imReference = imread(refFilename);
+//
+//   // Read image to be aligned
+//   const cv:: String imFilename(query_image);
+//   cout << "Reading image to align : " << imFilename << endl;
+//   Mat im = imread(imFilename);
+//
+//   // Registered image will be resotred in imReg.
+//   // The estimated homography will be stored in h.
+//   Mat imReg, h;
+//
+//   // Align images
+//   cout << "Aligning images ..." << endl;
+//   alignImages(im, imReference, imReg, h, GOOD_MATCH_PERCENT, MAX_FEATURES);
+//
+//   // Write aligned image to disk.
+//   string outFilename("aligned.jpg");
+//   cout << "Saving aligned image : " << outFilename << endl;
+//   imwrite(outFilename, imReg);
+//
+//   // Print estimated homography
+//   cout << "Estimated homography : \n" << h << endl;
+// }

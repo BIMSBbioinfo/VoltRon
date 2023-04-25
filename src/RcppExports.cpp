@@ -10,22 +10,27 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// register_images
-void register_images(Rcpp::String ref_image, Rcpp::String query_image, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES);
-RcppExport SEXP _spaceRover_register_images(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP GOOD_MATCH_PERCENTSEXP, SEXP MAX_FEATURESSEXP) {
+// automated_registeration_rawvector
+Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, const int width1, const int height1, const int width2, const int height2, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES);
+RcppExport SEXP _spaceRover_automated_registeration_rawvector(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP, SEXP GOOD_MATCH_PERCENTSEXP, SEXP MAX_FEATURESSEXP) {
 BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::String >::type ref_image(ref_imageSEXP);
-    Rcpp::traits::input_parameter< Rcpp::String >::type query_image(query_imageSEXP);
+    Rcpp::traits::input_parameter< Rcpp::RawVector >::type ref_image(ref_imageSEXP);
+    Rcpp::traits::input_parameter< Rcpp::RawVector >::type query_image(query_imageSEXP);
+    Rcpp::traits::input_parameter< const int >::type width1(width1SEXP);
+    Rcpp::traits::input_parameter< const int >::type height1(height1SEXP);
+    Rcpp::traits::input_parameter< const int >::type width2(width2SEXP);
+    Rcpp::traits::input_parameter< const int >::type height2(height2SEXP);
     Rcpp::traits::input_parameter< const float >::type GOOD_MATCH_PERCENT(GOOD_MATCH_PERCENTSEXP);
     Rcpp::traits::input_parameter< const int >::type MAX_FEATURES(MAX_FEATURESSEXP);
-    register_images(ref_image, query_image, GOOD_MATCH_PERCENT, MAX_FEATURES);
-    return R_NilValue;
+    rcpp_result_gen = Rcpp::wrap(automated_registeration_rawvector(ref_image, query_image, width1, height1, width2, height2, GOOD_MATCH_PERCENT, MAX_FEATURES));
+    return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_spaceRover_register_images", (DL_FUNC) &_spaceRover_register_images, 4},
+    {"_spaceRover_automated_registeration_rawvector", (DL_FUNC) &_spaceRover_automated_registeration_rawvector, 8},
     {NULL, NULL, 0}
 };
 
