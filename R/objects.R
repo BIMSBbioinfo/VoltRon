@@ -42,11 +42,16 @@ setMethod(
     cat(class(x = object), "Object \n")
 
     # print samples and layers
+    all_assays <- NULL
     for(samp in names(object@samples)){
       cat(samp, ": \n", sep = "")
       layers <- names(unlist(object@samples[[samp]]@layer))
       cat("  Layers:", paste(layers, collapse = " "), "\n")
+      assays <- sapply(names(object@samples[[samp]]@layer), function(x) names(object[[samp, x]]@assay))
+      all_assays <- c(all_assays, assays)
     }
+
+    cat("Assays:", paste(unique(all_assays), collapse = " "), "\n")
 
     # return invisible
     return(invisible(x = NULL))
@@ -59,15 +64,15 @@ setMethod(
   signature = c('SpaceRover', "character", "missing"),
   definition = function(x, i, j, ...){
 
-    # sample names
+    # if no assay were found, check sample names
     sample_names <- names(slot(x, "samples"))
 
     # check query sample name
     if(!i %in% sample_names){
-      stop("There are no samples named ", i, " in this object")
+      stop("There are no samples or assays named ", i, " in this object")
+    } else {
+      return(x@samples[[i]])
     }
-
-    return(x@samples[[i]])
   }
 )
 
@@ -152,9 +157,15 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL, coords,
   if(is.null(project))
     project <- "SpaceRover"
 
-  # labels
+  # layer and sample names
   layer_name <- ifelse(is.null(layer_name), "Section1", layer_name)
+  if(main.assay == layer_name)
+      stop(paste0("'", layer_name, "' cannot be a layer name, since main assay is named '", main.assay, "'."))
   sample_name <- ifelse(is.null(sample_name), "Sample1", sample_name)
+  if(main.assay == sample_name)
+    stop(paste0("'", sample_name, "' cannot be a sample name, since main assay is named '", main.assay, "'."))
+
+  # entity IDs
   if(is.null(colnames(data))){
     entityID <- paste0(assay.type,1:ncol(data))
     colnames(data) <- entityID
@@ -166,7 +177,7 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL, coords,
   # set meta data
   if(is.null(metadata)){
     metadata <- setSRMetadata(cell = data.frame(), spot = data.frame(), ROI = data.frame())
-    slot(metadata, name = assay.type) <- data.frame(Count = colSums(data), row.names = entityID)
+    slot(metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, row.names = entityID)
   }
 
   # Coordinates
@@ -209,57 +220,42 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL, coords,
   new("SpaceRover", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
 }
 
-#' CreateSpaceRover
+### Subset SpaceRover objects ####
+
+#' @method subset SpaceRover
 #'
-#' Create a SpaceRover object
-#'
-#' @param samples a list of samples list of class \code{srSamples}
-#' @param metadata a metadata object of class \code{srMetadata}
-#' @param sample.metadata a data frame of the sample metadata
-#' @param zstack the zstack graph to determine the adjacency of spatial entities across layers
-#' @param main.assay the name of the main assay of the object
-#' @param project project name
-#'
-#' @export
+#' @importFrom rlang enquo
 #' @import igraph
 #'
-CreateSpaceRover_old <- function(samples, metadata = NULL, sample.metadata = NULL, zstack = NULL, main.assay = NULL, project = NULL){
+#' @export
+#'
+subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL) {
 
-  # set project name
-  if(is.null(project))
-    project <- "SpaceRover"
-
-  # check for samples
-  if(!is.list(samples))
-    stop("Please introduce a list of samples")
-
-  # set meta data
-  if(is.null(metadata)){
-    metadata <- setSRMetadata(cell = data.frame(), spot = data.frame(), ROI = data.frame())
+  if (!missing(x = subset)) {
+    subset <- enquo(arg = subset)
   }
 
-  # set sample meta data
-  if(is.null(sample.metadata)){
-    sample.metadata <- setSRSampleMetadata(samples)
+  # subseting on samples, layers and assays
+  if(!is.null(samples)){
+    sample.metadata <- object@sample.metadata[object@sample.metadata$Sample %in% samples,]
+    metadata <- subset.srMetadata(object@metadata, samples = samples) # CAN WE CHANGE THIS TO ONLY SUBSET LATER ????
+    listofSamples <- object@samples[samples]
+  } else if(!is.null(assays)) {
+    sample.metadata <- object@sample.metadata[object@sample.metadata$Assay %in% assays,]
+    metadata <- subset.srMetadata(object@metadata, assays = assays)
+    samples <- unique(sample.metadata$Sample[sample.metadata$Assay %in% assays])
+    listofSamples <- sapply(object@samples[samples], function(samp) {
+      subset.srSample(samp, assays = assays)
+    }, USE.NAMES = TRUE)
   }
 
-  # set zgraph
-  if(is.null(zstack)){
-    spatial_entities <- Entities(metadata)
-    zstack <- igraph::make_empty_graph(n = length(spatial_entities), directed = FALSE)
-    igraph::V(zstack)$name <- spatial_entities
-  }
-
-  # # labels
-  # layer_name <- ifelse(is.null(layer_name), "slide1", layer_name)
-  # sample_name <- ifelse(is.null(sample_name), "sample1", sample_name)
-  # cellID <- paste(paste0("Cell",1:ncol(rawdata)),
-  #                 paste(c(assay_name, layer_name, sample_name), collapse = "_"),
-  #                 sep = "_")
-  # colnames(rawdata) <- cellID
+  # other attributes
+  main.assay <- unique(sample.metadata$Assay)[which.max(unique(sample.metadata$Assay))]
+  zstack <- subgraph(object@zstack, V(object@zstack)[names(V(Vis_seu@zstack)) %in% Entities(metadata)])
+  project <- object@project
 
   # set SpaceRover class
-  new("SpaceRover", samples = samples, metadata = metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
+  new("SpaceRover", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
 }
 
 ### Merge SpaceRover objects ####
@@ -267,7 +263,6 @@ CreateSpaceRover_old <- function(samples, metadata = NULL, sample.metadata = NUL
 #' @method merge SpaceRover
 #'
 #' @import igraph
-#'
 #' @export
 #'
 merge.SpaceRover <- function(object, object_list, sample_name = NULL, main.assay = NULL) {
@@ -323,7 +318,7 @@ merge.SpaceRover <- function(object, object_list, sample_name = NULL, main.assay
 
   # get main assay
   if(is.null(main.assay))
-    main.assay <- "Assay1"
+    main.assay <- names(sort(table(sample.metadata$Assay), decreasing = TRUE))[1]
 
   # merge graphs
   zstack_list <- lapply(object_list, function(x) slot(x, name = "zstack"))
@@ -345,15 +340,7 @@ merge.SpaceRover <- function(object, object_list, sample_name = NULL, main.assay
 #' @export
 #'
 MainAssay.SpaceRover <- function(object, ...) {
-
-  # get first sample and first layer with the main assay
-  main.assay <- object@main.assay
-  sample.info <- object@sample.metadata
-  sample.info <- sample.info[sample.info$Assay == main.assay,, drop = FALSE]
-  sample.info <- sample.info[1,] # GET FIRST FOR NOW!!!!
-
-  # return assay
-  return(object[[sample.info$Sample, sample.info$Layer]]@assay[[main.assay]])
+  object@main.assay
 }
 
 #' @rdname MainAssay
@@ -362,21 +349,55 @@ MainAssay.SpaceRover <- function(object, ...) {
 #' @export
 #'
 "MainAssay<-.SpaceRover" <- function(object, ..., value) {
-
-  # check class
-  if(class(value) != "srAssay") {
-    stop("The provided object is not of srAssay class")
+  assay_names <- unique(object@sample.metadata$Assay)
+  if(!value %in% assay_names){
+    stop("There is no assay names '", value, "' in this object")
   } else {
-    # get first sample and first layer with the main assay
-    main.assay <- object@main.assay
-    sample.info <- object@sample.metadata
-    sample.info <- sample.info[sample.info$Assay == main.assay,, drop = FALSE]
-    sample.info <- sample.info[1,] # GET FIRST FOR NOW!!!!
-    object[[sample.info$Sample, sample.info$Layer]]@assay[[main.assay]] <- value
+    object@main.assay <- value
   }
-
   return(object)
 }
+
+#' ### Get main assay ####
+#'
+#' #' @rdname MainAssay
+#' #' @method MainAssay SpaceRover
+#' #'
+#' #' @export
+#' #'
+#' MainAssay.SpaceRover <- function(object, ...) {
+#'
+#'   # get first sample and first layer with the main assay
+#'   main.assay <- object@main.assay
+#'   sample.info <- object@sample.metadata
+#'   sample.info <- sample.info[sample.info$Assay == main.assay,, drop = FALSE]
+#'   sample.info <- sample.info[1,] # GET FIRST FOR NOW!!!!
+#'
+#'   # return assay
+#'   return(object[[sample.info$Sample, sample.info$Layer]]@assay[[main.assay]])
+#' }
+#'
+#' #' @rdname MainAssay
+#' #' @method MainAssay<- SpaceRover
+#' #'
+#' #' @export
+#' #'
+#' "MainAssay<-.SpaceRover" <- function(object, ..., value) {
+#'
+#'   # check class
+#'   if(class(value) != "srAssay") {
+#'     stop("The provided object is not of srAssay class")
+#'   } else {
+#'     # get first sample and first layer with the main assay
+#'     main.assay <- object@main.assay
+#'     sample.info <- object@sample.metadata
+#'     sample.info <- sample.info[sample.info$Assay == main.assay,, drop = FALSE]
+#'     sample.info <- sample.info[1,] # GET FIRST FOR NOW!!!!
+#'     object[[sample.info$Sample, sample.info$Layer]]@assay[[main.assay]] <- value
+#'   }
+#'
+#'   return(object)
+#' }
 
 
 ### Get entities ####
@@ -397,16 +418,24 @@ Entities.SpaceRover <- function(object, ...) {
 #'
 #' @export
 #'
-Coordinates.SpaceRover <- function(object, reg = FALSE, ...) {
+Coordinates.SpaceRover <- function(object, reg = FALSE, assay = NULL, ...) {
 
-  # check existing images in the spacerover object
-  assay <- MainAssay(object)
+  # check assays
+  if(is.null(assay))
+    assay = object@main.assay
 
-  # get image from the assay
-  if(reg){
-    coords <- assay@coords_reg
-  } else {
-    coords <- assay@coords
+  # get all assays that are of main assay
+  assay_names <- unique(object@sample.metadata$Assay)
+  if(!assay %in% assay_names)
+    stop("There are no assays named '", assay, "' in this object!")
+  sample.metadata <- object@sample.metadata[object@sample.metadata == assay,]
+
+  # get all coordinates
+  coords <- NULL
+  for(i in 1:nrow(sample.metadata)){
+    cur_assay <- sample.metadata[i,]
+    srassay <- object[[cur_assay$Sample, cur_assay$Layer]][[cur_assay$Assay]]
+    coords <- rbind(coords, Coordinates(srassay, reg = reg))
   }
 
   # return image
@@ -418,12 +447,22 @@ Coordinates.SpaceRover <- function(object, reg = FALSE, ...) {
 #'
 #' @export
 #'
-"Coordinates<-.SpaceRover" <- function(object, ..., value) {
+"Coordinates<-.SpaceRover" <- function(object, reg = FALSE, ..., value) {
+
+  # check the number of assays in the object
+  if(nrow(object@sample.metadata) > 1)
+    stop("Changing the coordinates of multiple assays are not permitted!")
 
   # get assay
-  assay <- MainAssay(object)
-  Coordinates(assay) <- value
-  MainAssay(object) <- assay
+  cur_assay <- object@sample.metadata[1,]
+  srlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
+  srassay <- srlayer[[cur_assay$Assay]]
+
+  # change coordinates
+  print(head(value))
+  Coordinates(srassay, reg = reg) <- value
+  srlayer[[cur_assay$Assay]] <- srassay
+  object[[cur_assay$Sample, cur_assay$Layer]] <- srlayer
 
   return(object)
 }

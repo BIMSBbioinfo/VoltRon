@@ -9,15 +9,15 @@
 \alias{Coordinates<-.SpaceRover}
 \title{Coordinates}
 \usage{
-\method{Coordinates}{srAssay}(object, ...)
+\method{Coordinates}{srAssay}(object, reg = FALSE, ...)
 
-\method{Coordinates}{srAssay}(object, ...) <- value
+\method{Coordinates}{srAssay}(object, reg = FALSE, ...) <- value
 
 Coordinates(object, ...)
 
 Coordinates(object, ...) <- value
 
-\method{Coordinates}{SpaceRover}(object, ...)
+\method{Coordinates}{SpaceRover}(object, reg = FALSE, ...)
 
 \method{Coordinates}{SpaceRover}(object, ...) <- value
 }

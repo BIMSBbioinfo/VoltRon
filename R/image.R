@@ -33,7 +33,7 @@ setMethod(
 )
 
 ####
-# Managing Images ####
+# Get Images ####
 ####
 
 #' @rdname Image
@@ -66,16 +66,30 @@ Image.Seurat <- function(seu, ...){
 #' @export
 #'
 Image.SpaceRover <- function(sr, ...){
-
-  # check existing images in the spacerover object
-  assay <- MainAssay(sr)
-
-  # get image from the assay
-  image <- assay@image
-
-  # return image
-  return(image)
+  sapply(sr@samples, function(samp) Image(samp), USE.NAMES = TRUE)
 }
+
+#' @rdname Image
+#' @method Image srSample
+#'
+#' @export
+#'
+Image.srSample <- function(sr, ...){
+  sapply(sr@layer, function(lay) Image(lay), USE.NAMES = TRUE)
+}
+
+#' @rdname Image
+#' @method Image srLayer
+#'
+#' @export
+#'
+Image.srLayer <- function(sr, ...){
+  sapply(sr@assay, function(a) a@image, USE.NAMES = TRUE)
+}
+
+####
+# Managing Images ####
+####
 
 #' addFOVImage
 #'
@@ -244,7 +258,6 @@ GenerateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 
   # write to the same folder
   cat("Writing Tiff File \n")
-  # morphology_image <- reshape2::acast(magick::image_raster(morphology_image), y ~ x)
   if(is.null(output.path)){
     EBImage::writeImage(magick::as_EBImage(morphology_image), file = file.path, ...)
   } else {

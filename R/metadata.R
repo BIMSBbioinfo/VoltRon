@@ -57,6 +57,36 @@ Entities.srMetadata <- function(object, ...) {
   return(points)
 }
 
+#' @method subset srMetadata
+#'
+#' @aliases subset
+#'
+#' @importFrom rlang enquo
+#' @export
+#'
+subset.srMetadata <- function(metadata, subset, samples = NULL, assays = NULL) {
+
+  if (!missing(x = subset)) {
+    subset <- enquo(arg = subset)
+  }
+
+  # subset all metadata types
+  if(!is.null(samples)){
+    cell.metadata <- metadata@cell[metadata@cell$Sample %in% samples, ]
+    spot.metadata <- metadata@spot[metadata@spot$Sample %in% samples, ]
+    roi.metadata <- metadata@ROI[metadata@ROI$Sample %in% samples, ]
+  } else if(!is.null(assays)){
+    cell.metadata <- metadata@cell[metadata@cell$Assay %in% assays, ]
+    spot.metadata <- metadata@spot[metadata@spot$Assay %in% assays, ]
+    roi.metadata <- metadata@ROI[metadata@ROI$Assay %in% assays, ]
+  } else {
+    stop(paste0("No assay or sample name was provided!"))
+  }
+
+  # return new metadata
+  setSRMetadata(cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata)
+}
+
 #' @method merge srMetadata
 #'
 #' @importFrom dplyr bind_rows

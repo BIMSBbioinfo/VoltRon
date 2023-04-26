@@ -4,6 +4,8 @@
 \alias{Image}
 \alias{Image.Seurat}
 \alias{Image.SpaceRover}
+\alias{Image.srSample}
+\alias{Image.srLayer}
 \title{Image}
 \usage{
 Image(object, ...)
@@ -11,6 +13,10 @@ Image(object, ...)
 \method{Image}{Seurat}(seu, ...)
 
 \method{Image}{SpaceRover}(sr, ...)
+
+\method{Image}{srSample}(sr, ...)
+
+\method{Image}{srLayer}(sr, ...)
 }
 \arguments{
 \item{object}{An object}

@@ -81,6 +81,7 @@ cv::Mat imageToMat(Rcpp::RawVector image_data, int width, int height) {
   return mat;
 }
 
+// Function to convert a cv::Mat object to a RawVector for magick images
 Rcpp::RawVector matToImage(cv::Mat mat) {
 
   // Create RawVector object

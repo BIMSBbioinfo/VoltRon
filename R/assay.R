@@ -54,7 +54,11 @@ setMethod(
 #'
 Coordinates.srAssay <- function(object, reg = FALSE, ...) {
   if(reg){
-    return(object@coords_reg)
+    if(nrow(object@coords_reg) < 1) {
+      return(object@coords)
+    } else {
+      return(object@coords_reg)
+    }
   } else {
     return(object@coords)
   }
