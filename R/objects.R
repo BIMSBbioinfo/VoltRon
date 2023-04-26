@@ -358,48 +358,6 @@ MainAssay.SpaceRover <- function(object, ...) {
   return(object)
 }
 
-#' ### Get main assay ####
-#'
-#' #' @rdname MainAssay
-#' #' @method MainAssay SpaceRover
-#' #'
-#' #' @export
-#' #'
-#' MainAssay.SpaceRover <- function(object, ...) {
-#'
-#'   # get first sample and first layer with the main assay
-#'   main.assay <- object@main.assay
-#'   sample.info <- object@sample.metadata
-#'   sample.info <- sample.info[sample.info$Assay == main.assay,, drop = FALSE]
-#'   sample.info <- sample.info[1,] # GET FIRST FOR NOW!!!!
-#'
-#'   # return assay
-#'   return(object[[sample.info$Sample, sample.info$Layer]]@assay[[main.assay]])
-#' }
-#'
-#' #' @rdname MainAssay
-#' #' @method MainAssay<- SpaceRover
-#' #'
-#' #' @export
-#' #'
-#' "MainAssay<-.SpaceRover" <- function(object, ..., value) {
-#'
-#'   # check class
-#'   if(class(value) != "srAssay") {
-#'     stop("The provided object is not of srAssay class")
-#'   } else {
-#'     # get first sample and first layer with the main assay
-#'     main.assay <- object@main.assay
-#'     sample.info <- object@sample.metadata
-#'     sample.info <- sample.info[sample.info$Assay == main.assay,, drop = FALSE]
-#'     sample.info <- sample.info[1,] # GET FIRST FOR NOW!!!!
-#'     object[[sample.info$Sample, sample.info$Layer]]@assay[[main.assay]] <- value
-#'   }
-#'
-#'   return(object)
-#' }
-
-
 ### Get entities ####
 
 #' @rdname Entities

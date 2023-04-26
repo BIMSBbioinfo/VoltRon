@@ -86,9 +86,9 @@ Coordinates.srAssay <- function(object, reg = FALSE, ...) {
     stop("Cant overwrite coordinates, only x or y coordinates should be provided!")
 
   if(reg){
-    slot(object = object, name = 'coords') <- value
-  } else{
     slot(object = object, name = 'coords_reg') <- value
+  } else{
+    slot(object = object, name = 'coords') <- value
   }
   return(object)
 }
