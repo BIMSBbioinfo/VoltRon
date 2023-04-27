@@ -825,7 +825,6 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
       images <- getRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
       tar_ind <- which(register_ind == i) + 1
       output[[paste0("plot_query_reg",tar_ind)]] <- renderPlot({
-        # new version
         info <- image_info(image_list[[centre]])
         r2 <- as.raster(images$query)
         r2 <- rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",tar_ind)]]))
@@ -847,6 +846,17 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
   })
 }
 
+automated_registration <- function(ref_image, query_image, GOOD_MATCH_PERCENT = 0.15, MAX_FEATURES = 500) {
+  ref_image_rast <- image_data(ref_image)
+  query_image_rast <- image_data(query_image)
+  reg <- automated_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
+                          width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
+                          width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3],
+                          GOOD_MATCH_PERCENT, MAX_FEATURES)
+  aligned_image <- image_read(reg[[2]])
+  alignment_image <- image_read(reg[[3]])
+  return(list(transmat = reg[[1]], aligned_image = aligned_image, alignment_image = alignment_image))
+}
 
 computePairwiseTransform <- function(spatdata_list, keypoints_list, query_ind, ref_ind){
 

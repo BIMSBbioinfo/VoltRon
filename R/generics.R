@@ -1,19 +1,3 @@
-#' #' merge
-#' #'
-#' #' Merge multiple spaceRover objects
-#' #'
-#' #' @param object An object
-#' #' @param ... Arguments passed to other methods
-#' #'
-#' #' @return \code{merge}: The name of the default assay
-#' #'
-#' #' @rdname merge
-#' #' @export merge
-#' #'
-#' merge <- function(object, ...) {
-#'   UseMethod(generic = 'merge', object = object)
-#' }
-
 #' Main Assay
 #'
 #' Get and set the main assay

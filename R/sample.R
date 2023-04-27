@@ -80,6 +80,93 @@ setMethod(
   }
 )
 
+### subset of assays ####
+setMethod(
+  f = '[[',
+  signature = c('srLayer', "character"),
+  definition = function(x, i, ...){
+
+    # if no assay were found, check sample names
+    assay_names <- names(slot(x, "assay"))
+
+    # check query sample name
+    if(!i %in% assay_names){
+      stop("There are no assays named ", i, " in this object")
+    } else {
+      return(x@assay[[i]])
+    }
+  }
+)
+
+setMethod(
+  f = '[[<-',
+  signature = c('srLayer', "character"),
+  definition = function(x, i, ..., value){
+
+    # if no assay were found, check sample names
+    assay_names <- names(slot(x, "assay"))
+
+    # check query sample name
+    if(!i %in% assay_names){
+      stop("There are no assays named ", i, " in this object")
+    }
+
+    x@assay[[i]] <- value
+    return(x)
+  }
+)
+
 ####
 # Methods ####
 ####
+
+### Subset ####
+
+#' @method subset srSample
+#'
+#' @importFrom rlang enquo
+#' @import igraph
+#'
+#' @export
+#'
+subset.srSample <- function(object, subset, assays = NULL) {
+
+  if (!missing(x = subset)) {
+    subset <- enquo(arg = subset)
+  }
+
+  # subseting on samples, layers and assays
+  if(!is.null(assays)){
+    layers <- object@layer
+    lapply(layers, function(lay) {
+      subset.srLayer(lay, assays = assays)
+    })
+  }
+
+  # set SpaceRover class
+  return(object)
+}
+
+### Subset srLayer objects ####
+
+#' @method subset srLayer
+#'
+#' @importFrom rlang enquo
+#' @import igraph
+#'
+#' @export
+#'
+subset.srLayer <- function(object, subset, assays = NULL) {
+
+  if (!missing(x = subset)) {
+    subset <- enquo(arg = subset)
+  }
+
+  # subseting on samples, layers and assays
+  if(!is.null(assays)){
+    object@assay  <- object@assay[names(object@assay) %in% assays]
+  }
+
+  # set SpaceRover class
+  return(object)
+}

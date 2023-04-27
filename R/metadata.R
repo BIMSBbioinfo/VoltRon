@@ -57,6 +57,73 @@ Entities.srMetadata <- function(object, ...) {
   return(points)
 }
 
+#' @method subset srMetadata
+#'
+#' @aliases subset
+#'
+#' @importFrom rlang enquo
+#' @importFrom stringr str_extract
+#' @export
+#'
+subset.srMetadata <- function(metadata, subset, samples = NULL, assays = NULL) {
+
+  if (!missing(x = subset)) {
+    subset <- enquo(arg = subset)
+  }
+
+  # subset all metadata types
+  if(!is.null(samples)){
+    cell.metadata <- metadata@cell[metadata@cell$Sample %in% samples, ]
+    spot.metadata <- metadata@spot[metadata@spot$Sample %in% samples, ]
+    roi.metadata <- metadata@ROI[metadata@ROI$Sample %in% samples, ]
+  } else if(!is.null(assays)){
+    assay_names <- unique(lapply(slotToList(metadata), function(x) {
+      unique(stringr::str_extract(rownames(x), "Assay[0-9]+"))
+    }))
+    assay_names <- unique(do.call(c,assay_names))
+    if(assays %in% assay_names){
+      cell.metadata <- metadata@cell[stringr::str_extract(rownames(metadata@cell), "Assay[0-9]+") %in% assays, ]
+      spot.metadata <- metadata@spot[stringr::str_extract(rownames(metadata@spot), "Assay[0-9]+") %in% assays, ]
+      roi.metadata <- metadata@ROI[stringr::str_extract(rownames(metadata@ROI), "Assay[0-9]+") %in% assays, ]
+    } else {
+      cell.metadata <- metadata@cell[metadata@cell$Assay %in% assays, ]
+      spot.metadata <- metadata@spot[metadata@spot$Assay %in% assays, ]
+      roi.metadata <- metadata@ROI[metadata@ROI$Assay %in% assays, ]
+    }
+  } else {
+    stop(paste0("No assay or sample name was provided!"))
+  }
+
+  # return new metadata
+  setSRMetadata(cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata)
+}
+
+
+#' subset.sampleMetadata
+#'
+#' @param metadata sample metadata of a spaceRover object
+#' @param samples samples
+#' @param assays assays
+#'
+#' @export
+#'
+subset.sampleMetadata <- function(metadata, samples = NULL, assays = NULL) {
+
+  # subseting on samples, layers and assays
+  if(!is.null(samples)){
+    metadata <- metadata[metadata$Sample %in% samples,]
+  } else if(!is.null(assays)) {
+    if(assays %in% rownames(metadata)){
+      metadata <- metadata[assays,]
+    } else if(assays %in% metadata$Assay){
+      metadata <- metadata[metadata$Assay %in% assays,]
+    } else {
+      stop("No assay with the names or types '", paste(assays, collapse = ", "), "' found in the object")
+    }
+  }
+  metadata
+}
+
 #' @method merge srMetadata
 #'
 #' @importFrom dplyr bind_rows
@@ -84,6 +151,9 @@ merge.srMetadata <- function(object, object_list) {
       combined.metadata <- merge(combined.metadata, object_list[[3]])
     }
   } else {
+    updateobjects <- updateMetadataAssay(obj1, obj2)
+    obj1 <- updateobjects$object1
+    obj2 <- updateobjects$object2
     cell.metadata <- bind_rows(slot(obj1, "cell"), slot(obj2, "cell"))
     spot.metadata <- bind_rows(slot(obj1, "spot"), slot(obj2, "spot"))
     roi.metadata <- bind_rows(slot(obj1, "ROI"), slot(obj2, "ROI"))
@@ -92,6 +162,81 @@ merge.srMetadata <- function(object, object_list) {
 
   # return combined object
   return(combined.metadata)
+}
+
+#' updateMetadataAssay
+#'
+#' updating assay names for merge
+#'
+#' @param object1 srMetadata object
+#' @param object2 srMetadata object
+#'
+#' @importFrom stringr str_extract
+#' @importFrom stringi stri_replace_all_regex
+#'
+updateMetadataAssay <- function(object1, object2){
+
+  # get assay types
+  object_list <- slotToList(object1)
+  assaytype <- unlist(lapply(object_list, function(obj) {
+    unique(stringr::str_extract(rownames(obj), "Assay[0-9]+"))
+  }))
+  assaytype <- sort(assaytype)
+
+  # replace assay names
+  replacement <- paste0("Assay", 1:length(assaytype))
+  object1 <- lapply(object_list, function(obj) {
+    rownames(obj) <- stringi::stri_replace_all_regex(rownames(obj),
+                                                     pattern=assaytype,
+                                                     replacement=replacement)
+    obj
+  })
+  object1 <- new("srMetadata", cell = object1$cell, spot = object1$spot, ROI = object1$ROI)
+
+  # get assay types
+  object_list <- slotToList(object2)
+  assaytype <- unlist(lapply(object_list, function(obj) {
+    unique(stringr::str_extract(rownames(obj), "Assay[0-9]+"))
+  }))
+  assaytype <- sort(assaytype)
+
+  # replace assay names
+  replacement <- paste0("Assay", (length(replacement)+1):(length(replacement) + length(assaytype)))
+  object2 <- lapply(object_list, function(obj) {
+    rownames(obj) <- stringi::stri_replace_all_regex(rownames(obj),
+                                                     pattern=assaytype,
+                                                     replacement=replacement)
+    obj
+  })
+  object2 <- new("srMetadata", cell = object2$cell, spot = object2$spot, ROI = object2$ROI)
+
+  # return
+  return(list(object1 = object1, object2 = object2))
+}
+
+#' merge.sampleMetadata
+#'
+#' @param metadata_list a list of sample metadata of a spaceRover object
+#' @param sample_name sample
+#'
+#' @export
+#'
+merge.sampleMetadata <- function(metadata_list, sample_name = NULL) {
+
+  sample.metadata <- do.call(rbind, metadata_list)
+  rownames(sample.metadata) <- paste0("Assay", 1:nrow(sample.metadata))
+  if(!is.null(sample_name)){
+    sample.metadata$Sample <- sample_name
+    sample.metadata$Layer <- paste0("Section", 1:nrow(sample.metadata))
+    unique_assay <- unique(sample.metadata$Assay)
+    if(nrow(sample.metadata) != length(unique_assay)){
+      for(cur_assay in unique_assay){
+        cur_assay_ind <- which(sample.metadata$Assay %in% cur_assay)
+        sample.metadata$Assay[cur_assay_ind] <- paste0(sample.metadata$Assay[cur_assay_ind], "_", 1:length(cur_assay_ind))
+      }
+    }
+  }
+  sample.metadata
 }
 
 ####
