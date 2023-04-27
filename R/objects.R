@@ -172,7 +172,8 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL, coords,
   } else {
     entityID <- colnames(data)
   }
-  entityID <- paste(entityID, paste(c(main.assay, layer_name, sample_name), collapse = "_"), sep = "_")
+  entityID <- paste(entityID, "Assay1", sep = "_")
+  # entityID <- paste(entityID, paste(c(main.assay, layer_name, sample_name), collapse = "_"), sep = "_")
 
   # set meta data
   if(is.null(metadata)){
@@ -237,13 +238,13 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL) {
 
   # subseting on samples, layers and assays
   if(!is.null(samples)){
-    sample.metadata <- object@sample.metadata[object@sample.metadata$Sample %in% samples,]
+    sample.metadata <- subset.sampleMetadata(object@sample.metadata, samples = samples)
     metadata <- subset.srMetadata(object@metadata, samples = samples) # CAN WE CHANGE THIS TO ONLY SUBSET LATER ????
     listofSamples <- object@samples[samples]
   } else if(!is.null(assays)) {
-    sample.metadata <- object@sample.metadata[object@sample.metadata$Assay %in% assays,]
+    sample.metadata <- subset.sampleMetadata(object@sample.metadata, assays = assays)
     metadata <- subset.srMetadata(object@metadata, assays = assays)
-    samples <- unique(sample.metadata$Sample[sample.metadata$Assay %in% assays])
+    samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subset.srSample(samp, assays = assays)
     }, USE.NAMES = TRUE)
@@ -276,27 +277,11 @@ merge.SpaceRover <- function(object, object_list, sample_name = NULL, main.assay
   if(!all(lapply(object_list, class) == "SpaceRover"))
      stop("All arguements have to be of SpaceRover class")
 
-  # merge metadata
+  # merge metadata and sample metadata
   metadata_list <- lapply(object_list, function(x) slot(x, name = "metadata"))
   metadata <- merge(metadata_list[[1]], metadata_list[-1])
-
-  # merge sample metadata
-  sample.metadata <- NULL
-  for(i in 1:length(object_list)){
-    sample.metadata <- rbind(sample.metadata, slot(object_list[[i]], "sample.metadata"))
-  }
-  rownames(sample.metadata) <- paste0("Assay", 1:nrow(sample.metadata))
-  if(!is.null(sample_name)){
-    sample.metadata$Sample <- sample_name
-    sample.metadata$Layer <- paste0("Section", 1:nrow(sample.metadata))
-    unique_assay <- unique(sample.metadata$Assay)
-    if(nrow(sample.metadata) != length(unique_assay)){
-      for(cur_assay in unique_assay){
-        cur_assay_ind <- which(sample.metadata$Assay %in% cur_assay)
-        sample.metadata$Assay[cur_assay_ind] <- paste0(sample.metadata$Assay[cur_assay_ind], "_", 1:length(cur_assay_ind))
-      }
-    }
-  }
+  sample.metadata_list <- lapply(object_list, function(x) slot(x, name = "sample.metadata"))
+  sample.metadata <- merge.sampleMetadata(sample.metadata_list, sample_name = sample_name)
 
   # combine samples and rename layers
   if(!is.null(sample_name)){
