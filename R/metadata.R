@@ -63,9 +63,8 @@ Entities.srMetadata <- function(object, ...) {
 #'
 #' @importFrom rlang enquo
 #' @importFrom stringr str_extract
-#' @export
 #'
-subset.srMetadata <- function(metadata, subset, samples = NULL, assays = NULL) {
+subset.srMetadata <- function(metadata, subset, samples = NULL, assays = NULL, entities = NULL) {
 
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
@@ -90,6 +89,10 @@ subset.srMetadata <- function(metadata, subset, samples = NULL, assays = NULL) {
       spot.metadata <- metadata@spot[metadata@spot$Assay %in% assays, ]
       roi.metadata <- metadata@ROI[metadata@ROI$Assay %in% assays, ]
     }
+  } else if(!is.null(cells)){
+    cell.metadata <- metadata@cell[rownames(metadata@cell) %in% entities, ]
+    spot.metadata <- metadata@spot[rownames(metadata@spot) %in% entities, ]
+    roi.metadata <- metadata@ROI[rownames(metadata@ROI) %in% entities, ]
   } else {
     stop(paste0("No assay or sample name was provided!"))
   }

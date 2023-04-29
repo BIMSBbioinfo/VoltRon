@@ -120,7 +120,7 @@ setMethod(
 # Methods ####
 ####
 
-### Subset ####
+### Subset srSample object ####
 
 #' @method subset srSample
 #'
@@ -129,22 +129,46 @@ setMethod(
 #'
 #' @export
 #'
-subset.srSample <- function(object, subset, assays = NULL) {
+subset.srSample <- function(object, subset, assays = NULL, entities = NULL, image = NULL) {
 
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
   }
 
   # subseting on samples, layers and assays
+  layers <- object@layer
   if(!is.null(assays)){
-    layers <- object@layer
-    lapply(layers, function(lay) {
+    object@layer <- sapply(layers, function(lay) {
       subset.srLayer(lay, assays = assays)
-    })
+    }, USE.NAMES = TRUE)
+  } else if(!is.null(entities)){
+    object@layer <- sapply(layers, function(lay) {
+      subset.srLayer(lay, entities = entities)
+    }, USE.NAMES = TRUE)
+  } else if(!is.null(image)){
+    object@layer <- sapply(layers, function(lay) {
+      subset.srLayer(lay, image = image)
+    }, USE.NAMES = TRUE)
   }
 
   # set SpaceRover class
   return(object)
+}
+
+### Get entities srSample ####
+
+#' @rdname Entities
+#' @method Entities srSample
+#'
+#' @export
+#'
+Entities.srSample <- function(object, ...) {
+
+  layers <- object@layer
+  entities <- lapply(layers, function(lay) {
+    Entities(lay)
+  })
+  do.call(c, entities)
 }
 
 ### Subset srLayer objects ####
@@ -156,7 +180,7 @@ subset.srSample <- function(object, subset, assays = NULL) {
 #'
 #' @export
 #'
-subset.srLayer <- function(object, subset, assays = NULL) {
+subset.srLayer <- function(object, subset, assays = NULL, entities = NULL, image = NULL) {
 
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
@@ -165,8 +189,31 @@ subset.srLayer <- function(object, subset, assays = NULL) {
   # subseting on samples, layers and assays
   if(!is.null(assays)){
     object@assay  <- object@assay[names(object@assay) %in% assays]
+  } else if(!is.null(entities)){
+    assay_set <- object@assay
+    object@assay <- sapply(assay_set, function(assy) {
+      subset.srAssay(assy, entities = entities)
+    }, USE.NAMES = TRUE)
+  } else if(!is.null(image)){
+    assay_set <- object@assay
+    object@assay <- sapply(assay_set, function(assy) {
+      subset.srAssay(assy, image = image)
+    }, USE.NAMES = TRUE)
   }
 
   # set SpaceRover class
   return(object)
+}
+
+#' @rdname Entities
+#' @method Entities srLayer
+#'
+#' @export
+#'
+Entities.srLayer <- function(object, ...) {
+  assays <- object@assay
+  entities <- lapply(assays, function(assy) {
+    Entities(assy)
+  })
+  do.call(c, entities)
 }
