@@ -17,9 +17,9 @@ Coordinates(object, ...)
 
 Coordinates(object, ...) <- value
 
-\method{Coordinates}{SpaceRover}(object, reg = FALSE, ...)
+\method{Coordinates}{SpaceRover}(object, reg = FALSE, assay = NULL, ...)
 
-\method{Coordinates}{SpaceRover}(object, ...) <- value
+\method{Coordinates}{SpaceRover}(object, reg = FALSE, ...) <- value
 }
 \arguments{
 \item{object}{An object}

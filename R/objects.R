@@ -173,6 +173,7 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL, coords,
     entityID <- colnames(data)
   }
   entityID <- paste(entityID, "Assay1", sep = "_")
+  colnames(data) <- entityID
   # entityID <- paste(entityID, paste(c(main.assay, layer_name, sample_name), collapse = "_"), sep = "_")
 
   # set meta data
@@ -227,10 +228,12 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL, coords,
 #'
 #' @importFrom rlang enquo
 #' @import igraph
+#' @importFrom stringr str_extract
 #'
 #' @export
 #'
-subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL) {
+#'
+subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, entities = NULL, image = NULL) {
 
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
@@ -248,11 +251,30 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL) {
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subset.srSample(samp, assays = assays)
     }, USE.NAMES = TRUE)
+  } else if(!is.null(entities)) {
+    metadata <- subset.srMetadata(object@metadata, entities = entities)
+    assays <- unique(stringr::str_extract(Entities(metadata), "Assay[0-9]+"))
+    sample.metadata <- subset.sampleMetadata(object@sample.metadata, assays = assays)
+    samples <- unique(sample.metadata$Sample)
+    listofSamples <- sapply(object@samples[samples], function(samp) {
+      subset.srSample(samp, entities = entities)
+    }, USE.NAMES = TRUE)
+  } else if(!is.null(image)) {
+    if(nrow(object@sample.metadata) > 1){
+      stop("Subseting on images can only be performed on SpaceRover objects with a single assay")
+    } else {
+      sample.metadata <- object@sample.metadata
+      samples <- unique(sample.metadata$Sample)
+      metadata <- object@metadata
+      listofSamples <- sapply(object@samples[samples], function(samp) {
+        subset.srSample(samp, image = image)
+      }, USE.NAMES = TRUE)
+    }
   }
 
   # other attributes
   main.assay <- unique(sample.metadata$Assay)[which.max(unique(sample.metadata$Assay))]
-  zstack <- subgraph(object@zstack, V(object@zstack)[names(V(Vis_seu@zstack)) %in% Entities(metadata)])
+  zstack <- subgraph(object@zstack, V(object@zstack)[names(V(object@zstack)) %in% Entities(metadata)])
   project <- object@project
 
   # set SpaceRover class

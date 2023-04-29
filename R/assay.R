@@ -47,6 +47,77 @@ setMethod(
 # Methods ####
 ####
 
+### Subset srAssay objects ####
+
+#' @method subset srAssay
+#'
+#' @importFrom rlang enquo
+#' @import igraph
+#'
+#' @export
+#'
+subset.srAssay <- function(object, subset, entities = NULL, image = NULL) {
+
+  if (!missing(x = subset)) {
+    subset <- enquo(arg = subset)
+  }
+
+  # subseting on samples, layers and assays
+  if(!is.null(entities)){
+    object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% entities]
+    object@normdata  <- object@normdata[,colnames(object@normdata) %in% entities]
+    object@coords  <- object@coords[rownames(object@coords) %in% entities,]
+    if(nrow(object@coords_reg) > 0)
+      object@coords_reg  <- object@coords_reg[rownames(object@coords_reg) %in% entities,]
+  } else if(!is.null(image)) {
+    cropped_coords <- subsetCoordinates(object@coords, object@image, image)
+    object <- subset.srAssay(object, entities = rownames(cropped_coords))
+    object@image <- image_crop(object@image, image)
+    object@coords <- cropped_coords
+  }
+
+  # set SpaceRover class
+  return(object)
+}
+
+subsetCoordinates <- function(coords, image, crop_info){
+
+  # image
+  imageinfo <- image_info(image)
+
+  # get crop coordinates
+  crop_info <- strsplit(crop_info, split = "\\+")[[1]]
+  crop_info <- unlist(lapply(crop_info, function(x) strsplit(x, "x")))
+  crop_info <- as.numeric(crop_info)
+
+  # get uncropped entities
+  xlim <- c(crop_info[3], crop_info[3]+crop_info[1])
+  ylim <- c(crop_info[4], crop_info[4]+crop_info[2])
+  ylim <- imageinfo$height - ylim
+
+  # adjust for maximum res
+  if(ylim[2] < 0){
+    ylim[2] <- 0
+    ylim[1] <- ylim[2] - imageinfo$height + crop_info[2]
+  }
+  if(xlim[2] > imageinfo$width){
+    xlim[2] <- imageinfo$width
+    xlim[1] <- xlim[2] - crop_info[1]
+  }
+
+  # get inside coords
+  inside <- (coords[,1] > xlim[1] & coords[,1] < xlim[2]) & (coords[,2] > ylim[1] & coords[,2] < ylim[2])
+  coords <- coords[inside,]
+
+  # adjust coordinates
+  coords[,1] <- coords[,1] - xlim[1]
+  coords[,2] <- coords[,2] - ylim[1]
+
+  # return new coords
+  return(coords)
+}
+
+
 #' @rdname Coordinates
 #' @method Coordinates srAssay
 #'
