@@ -93,7 +93,7 @@ subsetCoordinates <- function(coords, image, crop_info){
   # get uncropped entities
   xlim <- c(crop_info[3], crop_info[3]+crop_info[1])
   ylim <- c(crop_info[4], crop_info[4]+crop_info[2])
-  ylim <- imageinfo$height - ylim
+  ylim <- rev(imageinfo$height - ylim)
 
   # adjust for maximum res
   if(ylim[2] < 0){

@@ -273,7 +273,7 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
   }
 
   # other attributes
-  main.assay <- unique(sample.metadata$Assay)[which.max(unique(sample.metadata$Assay))]
+  main.assay <- unique(sample.metadata$Assay)[unique(sample.metadata$Assay) == names(table(sample.metadata$Assay))[which.max(table(sample.metadata$Assay))]]
   zstack <- subgraph(object@zstack, V(object@zstack)[names(V(object@zstack)) %in% Entities(metadata)])
   project <- object@project
 
