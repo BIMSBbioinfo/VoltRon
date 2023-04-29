@@ -163,3 +163,12 @@ Coordinates.srAssay <- function(object, reg = FALSE, ...) {
   }
   return(object)
 }
+
+#' @rdname Entities
+#' @method Entities srAssay
+#'
+#' @export
+#'
+Entities.srAssay <- function(object, ...) {
+  colnames(object@rawdata)
+}

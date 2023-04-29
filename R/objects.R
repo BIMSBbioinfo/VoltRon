@@ -239,19 +239,26 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
     subset <- enquo(arg = subset)
   }
 
-  # subseting on samples, layers and assays
+  # subseting on samples
   if(!is.null(samples)){
+
     sample.metadata <- subset.sampleMetadata(object@sample.metadata, samples = samples)
     metadata <- subset.srMetadata(object@metadata, samples = samples) # CAN WE CHANGE THIS TO ONLY SUBSET LATER ????
     listofSamples <- object@samples[samples]
+
+  # subsetting on assays name
   } else if(!is.null(assays)) {
+
     sample.metadata <- subset.sampleMetadata(object@sample.metadata, assays = assays)
     metadata <- subset.srMetadata(object@metadata, assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subset.srSample(samp, assays = assays)
     }, USE.NAMES = TRUE)
+
+  # subsetting on entity names
   } else if(!is.null(entities)) {
+
     metadata <- subset.srMetadata(object@metadata, entities = entities)
     assays <- unique(stringr::str_extract(Entities(metadata), "Assay[0-9]+"))
     sample.metadata <- subset.sampleMetadata(object@sample.metadata, assays = assays)
@@ -259,16 +266,21 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subset.srSample(samp, entities = entities)
     }, USE.NAMES = TRUE)
+
+  # subsetting on image
   } else if(!is.null(image)) {
+
+    # check if there are only one image and one assay
     if(nrow(object@sample.metadata) > 1){
       stop("Subseting on images can only be performed on SpaceRover objects with a single assay")
     } else {
       sample.metadata <- object@sample.metadata
       samples <- unique(sample.metadata$Sample)
-      metadata <- object@metadata
       listofSamples <- sapply(object@samples[samples], function(samp) {
         subset.srSample(samp, image = image)
       }, USE.NAMES = TRUE)
+      entities <-  do.call(c, lapply(listofSamples, Entities.srSample))
+      metadata <- subset.srMetadata(object@metadata, entities = entities)
     }
   }
 

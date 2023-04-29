@@ -120,7 +120,7 @@ setMethod(
 # Methods ####
 ####
 
-### Subset ####
+### Subset srSample object ####
 
 #' @method subset srSample
 #'
@@ -155,6 +155,22 @@ subset.srSample <- function(object, subset, assays = NULL, entities = NULL, imag
   return(object)
 }
 
+### Get entities srSample ####
+
+#' @rdname Entities
+#' @method Entities srSample
+#'
+#' @export
+#'
+Entities.srSample <- function(object, ...) {
+
+  layers <- object@layer
+  entities <- lapply(layers, function(lay) {
+    Entities(lay)
+  })
+  do.call(c, entities)
+}
+
 ### Subset srLayer objects ####
 
 #' @method subset srLayer
@@ -187,4 +203,17 @@ subset.srLayer <- function(object, subset, assays = NULL, entities = NULL, image
 
   # set SpaceRover class
   return(object)
+}
+
+#' @rdname Entities
+#' @method Entities srLayer
+#'
+#' @export
+#'
+Entities.srLayer <- function(object, ...) {
+  assays <- object@assay
+  entities <- lapply(assays, function(assy) {
+    Entities(assy)
+  })
+  do.call(c, entities)
 }
