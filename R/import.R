@@ -344,7 +344,6 @@ DemuxGeoMx <- function(object, scale_param = 800)
         corners <- selected_corners()
         corners <- corners*scale_factor
         corners <- apply(corners,2,ceiling)
-        print(corners)
         corners <- paste0(abs(corners[2,1]-corners[1,1]), "x",
                        abs(corners[2,2]-corners[1,2]), "+",
                        min(corners[,1]), "+", imageinfo$height - max(corners[,2]))
@@ -374,9 +373,7 @@ DemuxGeoMx <- function(object, scale_param = 800)
 
         RegisteredSpatialDataList <- list()
         corners_list <- selected_corners_list()
-        print(corners_list)
         for(i in 1:length(corners_list$box)){
-          print(corners_list$box[i])
           RegisteredSpatialDataList[[i]] <- subset(object, image = corners_list$box[i])
         }
         stopApp(list(RegisteredSpatialDataList = RegisteredSpatialDataList))
