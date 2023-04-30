@@ -2,6 +2,19 @@
 # ROI plotting ####
 ####
 
+#' SFPlot
+#'
+#' Functions for plotting spatial objects
+#'
+#' @param object SpaceRover object
+#' @param features a vector of features to visualize
+#' @param ncol ncol
+#' @param nrow nrow
+#' @param sample sample names matching spatial points (i.e. entities)
+#' @param font.size font sizes
+#'
+#' @export
+#'
 SFPlot <- function(object, features, ncol = 3, nrow = NULL, sample = NULL, font.size = 2) {
 
   if(nrow(object@sample.metadata) > 1)

@@ -246,10 +246,20 @@ merge.sampleMetadata <- function(metadata_list, sample_name = NULL) {
 # Functions ####
 ####
 
+#' setSRMetadata
+#'
+#' @param cell cell data frame
+#' @param spot spot data frame
+#' @param ROI ROI data frame
+#'
 setSRMetadata <- function(cell, spot, ROI){
   new("srMetadata", cell = cell, spot = spot, ROI = ROI)
 }
 
+#' setSRSampleMetadata
+#'
+#' @param samples a list of srSamplep object
+#'
 setSRSampleMetadata <- function(samples){
 
   # imput missing sample names

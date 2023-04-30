@@ -82,7 +82,7 @@ Coordinates <- function(object, ...) {
 
 #' Image
 #'
-#' Get and set images of a spaceRover assay
+#' Get images of a spaceRover assay
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
