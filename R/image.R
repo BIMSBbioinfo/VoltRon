@@ -275,8 +275,6 @@ GenerateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #'
 #' @param object a SpaceRover object
 #'
-#' @export
-#'
 demuxSpaceRover <- function(object, scale_width = 800)
 {
   # get images

@@ -233,10 +233,15 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL, coords,
 #' @export
 #'
 #'
-subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, entities = NULL, image = NULL) {
+subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, entities = NULL, image = NULL, interactive = FALSE) {
 
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
+  }
+
+  if(interactive){
+    results <- demuxSpaceRover(object)
+    return(results)
   }
 
   # subseting on samples
