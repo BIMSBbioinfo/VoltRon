@@ -275,17 +275,24 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
   # subsetting on image
   } else if(!is.null(image)) {
 
-    # check if there are only one image and one assay
-    if(nrow(object@sample.metadata) > 1){
-      stop("Subseting on images can only be performed on SpaceRover objects with a single assay")
-    } else {
-      sample.metadata <- object@sample.metadata
-      samples <- unique(sample.metadata$Sample)
-      listofSamples <- sapply(object@samples[samples], function(samp) {
-        subset.srSample(samp, image = image)
-      }, USE.NAMES = TRUE)
-      entities <-  do.call(c, lapply(listofSamples, Entities.srSample))
-      metadata <- subset.srMetadata(object@metadata, entities = entities)
+    # subsetting based on image magick parameters
+    if(class(image) == "character") {
+
+      # check if there are only one image and one assay
+      if(nrow(object@sample.metadata) > 1){
+        stop("Subseting on images can only be performed on SpaceRover objects with a single assay")
+      } else {
+        sample.metadata <- object@sample.metadata
+        samples <- unique(sample.metadata$Sample)
+        listofSamples <- sapply(object@samples[samples], function(samp) {
+          subset.srSample(samp, image = image)
+        }, USE.NAMES = TRUE)
+        entities <-  do.call(c, lapply(listofSamples, Entities.srSample))
+        metadata <- subset.srMetadata(object@metadata, entities = entities)
+      }
+    } else if(image){
+      results <- demuxSpaceRover(object)
+      return(results)
     }
   }
 
