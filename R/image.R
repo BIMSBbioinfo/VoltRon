@@ -410,11 +410,14 @@ demuxSpaceRover <- function(object, scale_width = 800)
 
       ## select points on the image ####
       observeEvent(input$done, {
-
         RegisteredSpatialDataList <- list()
         corners_list <- selected_corners_list()
+        sample_names <- paste0("Sample", 1:length(corners_list$box))
+        print(sample_names)
         for(i in 1:length(corners_list$box)){
-          RegisteredSpatialDataList[[i]] <- subset(object, image = corners_list$box[i])
+          temp <- subset(object, image = corners_list$box[i])
+          temp$Sample <- sample_names[i]
+          RegisteredSpatialDataList[[sample_names[i]]] <- temp
         }
         stopApp(list(RegisteredSpatialDataList = RegisteredSpatialDataList))
       })

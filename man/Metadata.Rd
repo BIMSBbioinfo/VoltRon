@@ -7,7 +7,7 @@
 \usage{
 Metadata(object, ...)
 
-\method{Metadata}{SpaceRover}(object, ...)
+\method{Metadata}{SpaceRover}(object, type = "cell")
 }
 \arguments{
 \item{object}{An object}

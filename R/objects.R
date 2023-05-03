@@ -58,7 +58,36 @@ setMethod(
   }
 )
 
-### subset of samples ####
+### $ method ####
+
+#' @export
+#' @method $ SpaceRover
+#'
+"$.SpaceRover" <- function(x, i, ...) {
+  return(SampleMetadata(x)[[i]])
+}
+
+#' @export
+#' @method $<- SpaceRover
+#'
+"$<-.SpaceRover" <- function(x, i, ..., value) {
+  if(nrow(SampleMetadata(x)) > 1)
+    stop("You can only change the name of a single name")
+
+  # update sample names
+  if(i == "Sample"){
+    names(x@samples) <- value
+  }
+
+  # update sample metadata and metadata
+  x@sample.metadata[[i]] <- value
+  x@metadata[[i]] <- value
+
+  return(x)
+}
+
+### subset of samples and layers ####
+
 setMethod(
   f = '[[',
   signature = c('SpaceRover', "character", "missing"),
@@ -98,7 +127,6 @@ setMethod(
   }
 )
 
-### subset of samples and layers ####
 setMethod(
   f = '[[',
   signature = c('SpaceRover', "character", "character"),
@@ -329,23 +357,14 @@ merge.SpaceRover <- function(object, object_list, sample_name = NULL, main.assay
 
   # combine samples and rename layers
   if(!is.null(sample_name)){
-    if(length(sample_name) > 1) {
-      listofSamples <- NULL
-      for(i in 1:length(object_list)){
-        cur_object <- object_list[[i]]@samples
-        listofSamples <- c(listofSamples, cur_object)
-      }
-      names(listofSamples) <- sample_name
-    } else {
-      listofLayers <- NULL
-      for(i in 1:length(object_list)){
-        cur_object <- object_list[[i]]
-        listofLayers <- c(listofLayers, cur_object@samples[[1]]@layer)
-      }
-      names(listofLayers) <- sample.metadata$Layer
-      listofSamples <- list(new("srSample", layer = listofLayers))
-      names(listofSamples) <- sample_name
+    listofLayers <- NULL
+    for(i in 1:length(object_list)){
+      cur_object <- object_list[[i]]
+      listofLayers <- c(listofLayers, cur_object@samples[[1]]@layer)
     }
+    names(listofLayers) <- sample.metadata$Layer
+    listofSamples <- list(new("srSample", layer = listofLayers))
+    names(listofSamples) <- sample_name
   } else {
     listofSamples <- NULL
     for(i in 1:length(object_list)){

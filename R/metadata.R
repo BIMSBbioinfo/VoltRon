@@ -22,6 +22,7 @@ srMetadata <- setClass(
 )
 
 ### show ####
+
 setMethod(
   f = 'show',
   signature = 'srMetadata',
@@ -37,6 +38,61 @@ setMethod(
     return(invisible(x = NULL))
   }
 )
+
+### $ methods ####
+
+#' @export
+#' @method $ srMetadata
+#'
+"$.srMetadata" <- function(x, i, ...) {
+  return(NULL)
+}
+
+#' @export
+#' @method $<- srMetadata
+#'
+"$<-.srMetadata" <- function(x, i, ..., value) {
+
+  # cell metadata
+  cell.metadata <- slot(x, "cell")
+  if(nrow(cell.metadata) > 0)
+    cell.metadata[[i]] <- value
+
+  # spot metadata
+  spot.metadata <- slot(x, "spot")
+  if(nrow(spot.metadata) > 0)
+    spot.metadata[[i]] <- value
+
+  # ROI metadata
+  roi.metadata <- slot(x, "ROI")
+  if(nrow(roi.metadata) > 0)
+    roi.metadata[[i]] <- value
+
+  return(new("srMetadata", cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata))
+}
+
+#' @export
+#' @method $<- srMetadata
+#'
+"[[<-.srMetadata" <- function(x, i, ..., value) {
+
+  # cell metadata
+  cell.metadata <- slot(x, "cell")
+  if(nrow(cell.metadata) > 0)
+    cell.metadata[[i]] <- value
+
+  # spot metadata
+  spot.metadata <- slot(x, "spot")
+  if(nrow(spot.metadata) > 0)
+    spot.metadata[[i]] <- value
+
+  # ROI metadata
+  roi.metadata <- slot(x, "ROI")
+  if(nrow(roi.metadata) > 0)
+    roi.metadata[[i]] <- value
+
+  return(new("srMetadata", cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata))
+}
 
 ####
 # Methods ####
