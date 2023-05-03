@@ -98,7 +98,17 @@ setMethod(
 
     # check query sample name
     if(!i %in% sample_names){
-      stop("There are no samples or assays named ", i, " in this object")
+
+      # check assays
+      sample.metadata <- SampleMetadata(x)
+      assay_names <- rownames(sample.metadata)
+      if(i %in% assay_names){
+        cur_assay <- sample.metadata[i,]
+        return(x@samples[[cur_assay$Sample]]@layer[[cur_assay$Layer]]@assay[[cur_assay$Assay]])
+      } else {
+        stop("There are no samples or assays named ", i, " in this object")
+      }
+
     } else {
       return(x@samples[[i]])
     }
@@ -115,14 +125,22 @@ setMethod(
 
     # check query sample name
     if(!i %in% sample_names){
-      stop("There are no samples named ", i, " in this object")
-    }
 
-    if(!class(value) == "srSample"){
-      stop("The provided object is not of class srSample")
+      # check assays
+      sample.metadata <- SampleMetadata(x)
+      assay_names <- rownames(sample.metadata)
+      if(i %in% assay_names){
+        cur_assay <- sample.metadata[i,]
+        x@samples[[cur_assay$Sample]]@layer[[cur_assay$Layer]]@assay[[cur_assay$Assay]] <- value
+      } else {
+        stop("There are no samples named ", i, " in this object")
+      }
+    } else {
+      if(!class(value) == "srSample"){
+        stop("The provided object is not of class srSample")
+      }
+      x@samples[[i]] <- value
     }
-
-    x@samples[[i]] <- value
     return(x)
   }
 )

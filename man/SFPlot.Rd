@@ -12,7 +12,8 @@ SFPlot(
   sample = NULL,
   font.size = 2,
   keep.scale = "feature",
-  mode = "ROI"
+  mode = "ROI",
+  split.by = NULL
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ SFPlot(
 \item{keep.scale}{whether unify all scales for all features or not}
 
 \item{mode}{plotting mode for different spatial entities, ROI, Spot or cell}
+
+\item{split.by}{split by a metadata element}
 }
 \description{
 Functions for plotting spatial objects
