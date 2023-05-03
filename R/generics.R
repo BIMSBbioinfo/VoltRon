@@ -1,3 +1,39 @@
+#' Metadata
+#'
+#' Get the metadata
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{Metadata}: The name of the default assay
+#'
+#' @rdname Metadata
+#' @export Metadata
+#'
+#' @concept data-access
+#'
+Metadata <- function(object, ...) {
+  UseMethod(generic = 'Metadata', object = object)
+}
+
+#' SampleMetadata
+#'
+#' Get the sample metadata
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{SampleMetadata}: The name of the default assay
+#'
+#' @rdname SampleMetadata
+#' @export SampleMetadata
+#'
+#' @concept data-access
+#'
+SampleMetadata <- function(object, ...) {
+  UseMethod(generic = 'SampleMetadata', object = object)
+}
+
 #' Main Assay
 #'
 #' Get and set the main assay

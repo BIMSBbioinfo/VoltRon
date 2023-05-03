@@ -150,8 +150,8 @@ merge.srMetadata <- function(object, object_list) {
   # initial combination
   if(length(object_list) > 2){
     combined.metadata <- merge(obj1, obj2)
-    for(i in 1:(length(object_list)-2)){
-      combined.metadata <- merge(combined.metadata, object_list[[3]])
+    for(i in 3:(length(object_list))){
+      combined.metadata <- merge(combined.metadata, object_list[[i]])
     }
   } else {
     updateobjects <- updateMetadataAssay(obj1, obj2)

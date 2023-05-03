@@ -222,7 +222,7 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL, coords,
   new("SpaceRover", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
 }
 
-### Subset SpaceRover objects ####
+### Object Methods ####
 
 #' @method subset SpaceRover
 #'
@@ -305,8 +305,6 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
   new("SpaceRover", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
 }
 
-### Merge SpaceRover objects ####
-
 #' @method merge SpaceRover
 #'
 #' @import igraph
@@ -372,7 +370,23 @@ merge.SpaceRover <- function(object, object_list, sample_name = NULL, main.assay
       zstack = zstack, main.assay = main.assay, project = project)
 }
 
-### Get main assay ####
+#' @rdname Metadata
+#' @method Metadata SpaceRover
+#'
+#' @export
+#'
+Metadata.SpaceRover <- function(object, type = "cell") {
+  slot(object@metadata, name = type)
+}
+
+#' @rdname SampleMetadata
+#' @method SampleMetadata SpaceRover
+#'
+#' @export
+#'
+SampleMetadata.SpaceRover <- function(object, ...) {
+  object@sample.metadata
+}
 
 #' @rdname MainAssay
 #' @method MainAssay SpaceRover
@@ -398,8 +412,6 @@ MainAssay.SpaceRover <- function(object, ...) {
   return(object)
 }
 
-### Get entities ####
-
 #' @rdname Entities
 #' @method Entities SpaceRover
 #'
@@ -408,8 +420,6 @@ MainAssay.SpaceRover <- function(object, ...) {
 Entities.SpaceRover <- function(object, ...) {
   return(Entities(object@metadata))
 }
-
-### Get coordinates ####
 
 #' @rdname Coordinates
 #' @method Coordinates SpaceRover
