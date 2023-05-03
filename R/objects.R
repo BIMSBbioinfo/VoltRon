@@ -331,14 +331,23 @@ merge.SpaceRover <- function(object, object_list, sample_name = NULL, main.assay
 
   # combine samples and rename layers
   if(!is.null(sample_name)){
-    listofLayers <- NULL
-    for(i in 1:length(object_list)){
-      cur_object <- object_list[[i]]
-      listofLayers <- c(listofLayers, cur_object@samples[[1]]@layer)
+    if(length(sample_name) > 1) {
+      listofSamples <- NULL
+      for(i in 1:length(object_list)){
+        cur_object <- object_list[[i]]@samples
+        listofSamples <- c(listofSamples, cur_object)
+      }
+      names(listofSamples) <- sample_name
+    } else {
+      listofLayers <- NULL
+      for(i in 1:length(object_list)){
+        cur_object <- object_list[[i]]
+        listofLayers <- c(listofLayers, cur_object@samples[[1]]@layer)
+      }
+      names(listofLayers) <- sample.metadata$Layer
+      listofSamples <- list(new("srSample", layer = listofLayers))
+      names(listofSamples) <- sample_name
     }
-    names(listofLayers) <- sample.metadata$Layer
-    listofSamples <- list(new("srSample", layer = listofLayers))
-    names(listofSamples) <- sample_name
   } else {
     listofSamples <- NULL
     for(i in 1:length(object_list)){
