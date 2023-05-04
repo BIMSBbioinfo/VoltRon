@@ -44,7 +44,7 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
   }
 
   # get images from the list of objects
-  orig_image_query_list <- lapply(spatdata_list, Image)
+  orig_image_query_list <- unlist(lapply(spatdata_list, Image))
 
   ## UI and Server ####
 

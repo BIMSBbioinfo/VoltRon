@@ -27,6 +27,6 @@ Image(object, ...)
 \code{Image}: The name of the default assay
 }
 \description{
-Get and set images of a spaceRover assay
+Get images of a spaceRover assay
 }
 \concept{data-access}

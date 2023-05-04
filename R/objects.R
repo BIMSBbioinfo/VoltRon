@@ -58,7 +58,36 @@ setMethod(
   }
 )
 
-### subset of samples ####
+### $ method ####
+
+#' @export
+#' @method $ SpaceRover
+#'
+"$.SpaceRover" <- function(x, i, ...) {
+  return(SampleMetadata(x)[[i]])
+}
+
+#' @export
+#' @method $<- SpaceRover
+#'
+"$<-.SpaceRover" <- function(x, i, ..., value) {
+  if(nrow(SampleMetadata(x)) > 1)
+    stop("You can only change the name of a single name")
+
+  # update sample names
+  if(i == "Sample"){
+    names(x@samples) <- value
+  }
+
+  # update sample metadata and metadata
+  x@sample.metadata[[i]] <- value
+  x@metadata[[i]] <- value
+
+  return(x)
+}
+
+### subset of samples and layers ####
+
 setMethod(
   f = '[[',
   signature = c('SpaceRover', "character", "missing"),
@@ -69,7 +98,17 @@ setMethod(
 
     # check query sample name
     if(!i %in% sample_names){
-      stop("There are no samples or assays named ", i, " in this object")
+
+      # check assays
+      sample.metadata <- SampleMetadata(x)
+      assay_names <- rownames(sample.metadata)
+      if(i %in% assay_names){
+        cur_assay <- sample.metadata[i,]
+        return(x@samples[[cur_assay$Sample]]@layer[[cur_assay$Layer]]@assay[[cur_assay$Assay]])
+      } else {
+        stop("There are no samples or assays named ", i, " in this object")
+      }
+
     } else {
       return(x@samples[[i]])
     }
@@ -86,19 +125,26 @@ setMethod(
 
     # check query sample name
     if(!i %in% sample_names){
-      stop("There are no samples named ", i, " in this object")
-    }
 
-    if(!class(value) == "srSample"){
-      stop("The provided object is not of class srSample")
+      # check assays
+      sample.metadata <- SampleMetadata(x)
+      assay_names <- rownames(sample.metadata)
+      if(i %in% assay_names){
+        cur_assay <- sample.metadata[i,]
+        x@samples[[cur_assay$Sample]]@layer[[cur_assay$Layer]]@assay[[cur_assay$Assay]] <- value
+      } else {
+        stop("There are no samples named ", i, " in this object")
+      }
+    } else {
+      if(!class(value) == "srSample"){
+        stop("The provided object is not of class srSample")
+      }
+      x@samples[[i]] <- value
     }
-
-    x@samples[[i]] <- value
     return(x)
   }
 )
 
-### subset of samples and layers ####
 setMethod(
   f = '[[',
   signature = c('SpaceRover', "character", "character"),
@@ -222,7 +268,7 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL, coords,
   new("SpaceRover", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
 }
 
-### Subset SpaceRover objects ####
+### Object Methods ####
 
 #' @method subset SpaceRover
 #'
@@ -233,10 +279,15 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL, coords,
 #' @export
 #'
 #'
-subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, entities = NULL, image = NULL) {
+subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, entities = NULL, image = NULL, interactive = FALSE) {
 
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
+  }
+
+  if(interactive){
+    results <- demuxSpaceRover(object)
+    return(results)
   }
 
   # subseting on samples
@@ -270,17 +321,24 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
   # subsetting on image
   } else if(!is.null(image)) {
 
-    # check if there are only one image and one assay
-    if(nrow(object@sample.metadata) > 1){
-      stop("Subseting on images can only be performed on SpaceRover objects with a single assay")
-    } else {
-      sample.metadata <- object@sample.metadata
-      samples <- unique(sample.metadata$Sample)
-      listofSamples <- sapply(object@samples[samples], function(samp) {
-        subset.srSample(samp, image = image)
-      }, USE.NAMES = TRUE)
-      entities <-  do.call(c, lapply(listofSamples, Entities.srSample))
-      metadata <- subset.srMetadata(object@metadata, entities = entities)
+    # subsetting based on image magick parameters
+    if(class(image) == "character") {
+
+      # check if there are only one image and one assay
+      if(nrow(object@sample.metadata) > 1){
+        stop("Subseting on images can only be performed on SpaceRover objects with a single assay")
+      } else {
+        sample.metadata <- object@sample.metadata
+        samples <- unique(sample.metadata$Sample)
+        listofSamples <- sapply(object@samples[samples], function(samp) {
+          subset.srSample(samp, image = image)
+        }, USE.NAMES = TRUE)
+        entities <-  do.call(c, lapply(listofSamples, Entities.srSample))
+        metadata <- subset.srMetadata(object@metadata, entities = entities)
+      }
+    } else if(image){
+      results <- demuxSpaceRover(object)
+      return(results)
     }
   }
 
@@ -292,8 +350,6 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
   # set SpaceRover class
   new("SpaceRover", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
 }
-
-### Merge SpaceRover objects ####
 
 #' @method merge SpaceRover
 #'
@@ -351,7 +407,23 @@ merge.SpaceRover <- function(object, object_list, sample_name = NULL, main.assay
       zstack = zstack, main.assay = main.assay, project = project)
 }
 
-### Get main assay ####
+#' @rdname Metadata
+#' @method Metadata SpaceRover
+#'
+#' @export
+#'
+Metadata.SpaceRover <- function(object, type = "cell") {
+  slot(object@metadata, name = type)
+}
+
+#' @rdname SampleMetadata
+#' @method SampleMetadata SpaceRover
+#'
+#' @export
+#'
+SampleMetadata.SpaceRover <- function(object, ...) {
+  object@sample.metadata
+}
 
 #' @rdname MainAssay
 #' @method MainAssay SpaceRover
@@ -377,8 +449,6 @@ MainAssay.SpaceRover <- function(object, ...) {
   return(object)
 }
 
-### Get entities ####
-
 #' @rdname Entities
 #' @method Entities SpaceRover
 #'
@@ -387,8 +457,6 @@ MainAssay.SpaceRover <- function(object, ...) {
 Entities.SpaceRover <- function(object, ...) {
   return(Entities(object@metadata))
 }
-
-### Get coordinates ####
 
 #' @rdname Coordinates
 #' @method Coordinates SpaceRover

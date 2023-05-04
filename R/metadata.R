@@ -22,6 +22,7 @@ srMetadata <- setClass(
 )
 
 ### show ####
+
 setMethod(
   f = 'show',
   signature = 'srMetadata',
@@ -37,6 +38,61 @@ setMethod(
     return(invisible(x = NULL))
   }
 )
+
+### $ methods ####
+
+#' @export
+#' @method $ srMetadata
+#'
+"$.srMetadata" <- function(x, i, ...) {
+  return(NULL)
+}
+
+#' @export
+#' @method $<- srMetadata
+#'
+"$<-.srMetadata" <- function(x, i, ..., value) {
+
+  # cell metadata
+  cell.metadata <- slot(x, "cell")
+  if(nrow(cell.metadata) > 0)
+    cell.metadata[[i]] <- value
+
+  # spot metadata
+  spot.metadata <- slot(x, "spot")
+  if(nrow(spot.metadata) > 0)
+    spot.metadata[[i]] <- value
+
+  # ROI metadata
+  roi.metadata <- slot(x, "ROI")
+  if(nrow(roi.metadata) > 0)
+    roi.metadata[[i]] <- value
+
+  return(new("srMetadata", cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata))
+}
+
+#' @export
+#' @method $<- srMetadata
+#'
+"[[<-.srMetadata" <- function(x, i, ..., value) {
+
+  # cell metadata
+  cell.metadata <- slot(x, "cell")
+  if(nrow(cell.metadata) > 0)
+    cell.metadata[[i]] <- value
+
+  # spot metadata
+  spot.metadata <- slot(x, "spot")
+  if(nrow(spot.metadata) > 0)
+    spot.metadata[[i]] <- value
+
+  # ROI metadata
+  roi.metadata <- slot(x, "ROI")
+  if(nrow(roi.metadata) > 0)
+    roi.metadata[[i]] <- value
+
+  return(new("srMetadata", cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata))
+}
 
 ####
 # Methods ####
@@ -150,8 +206,8 @@ merge.srMetadata <- function(object, object_list) {
   # initial combination
   if(length(object_list) > 2){
     combined.metadata <- merge(obj1, obj2)
-    for(i in 1:(length(object_list)-2)){
-      combined.metadata <- merge(combined.metadata, object_list[[3]])
+    for(i in 3:(length(object_list))){
+      combined.metadata <- merge(combined.metadata, object_list[[i]])
     }
   } else {
     updateobjects <- updateMetadataAssay(obj1, obj2)
@@ -232,12 +288,12 @@ merge.sampleMetadata <- function(metadata_list, sample_name = NULL) {
     sample.metadata$Sample <- sample_name
     sample.metadata$Layer <- paste0("Section", 1:nrow(sample.metadata))
     unique_assay <- unique(sample.metadata$Assay)
-    if(nrow(sample.metadata) != length(unique_assay)){
-      for(cur_assay in unique_assay){
-        cur_assay_ind <- which(sample.metadata$Assay %in% cur_assay)
-        sample.metadata$Assay[cur_assay_ind] <- paste0(sample.metadata$Assay[cur_assay_ind], "_", 1:length(cur_assay_ind))
-      }
-    }
+    # if(nrow(sample.metadata) != length(unique_assay)){
+    #   for(cur_assay in unique_assay){
+    #     cur_assay_ind <- which(sample.metadata$Assay %in% cur_assay)
+    #     # sample.metadata$Assay[cur_assay_ind] <- paste0(sample.metadata$Assay[cur_assay_ind], "_", 1:length(cur_assay_ind))
+    #   }
+    # }
   }
   sample.metadata
 }
@@ -246,10 +302,20 @@ merge.sampleMetadata <- function(metadata_list, sample_name = NULL) {
 # Functions ####
 ####
 
+#' setSRMetadata
+#'
+#' @param cell cell data frame
+#' @param spot spot data frame
+#' @param ROI ROI data frame
+#'
 setSRMetadata <- function(cell, spot, ROI){
   new("srMetadata", cell = cell, spot = spot, ROI = ROI)
 }
 
+#' setSRSampleMetadata
+#'
+#' @param samples a list of srSamplep object
+#'
 setSRSampleMetadata <- function(samples){
 
   # imput missing sample names

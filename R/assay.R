@@ -80,6 +80,14 @@ subset.srAssay <- function(object, subset, entities = NULL, image = NULL) {
   return(object)
 }
 
+#' subsetCoordinates
+#'
+#' subsetting coordinates given cropping parameters of a magick image objects
+#'
+#' @param coords coordinates
+#' @param image the magick image associated with the coordinates
+#' @param crop_info image crop parameters in character, see \code{image_crop}
+#'
 subsetCoordinates <- function(coords, image, crop_info){
 
   # image
