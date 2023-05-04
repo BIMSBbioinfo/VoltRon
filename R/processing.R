@@ -10,7 +10,7 @@ NormalizeData.SpaceRover <- function(object, ...) {
   assay_names <- rownames(sample.metadata)
   for(assy in assay_names){
     cur_assay <- object[[assy]]
-    object[[assy]] <- NormalizeData(cur_assay)
+    object[[assy]] <- NormalizeData(cur_assay, ...)
   }
   return(object)
 }
@@ -20,16 +20,18 @@ NormalizeData.SpaceRover <- function(object, ...) {
 #'
 #' @export
 #'
-NormalizeData.srAssay <- function(object, ...) {
+NormalizeData.srAssay <- function(object, method = "LogNormalize") {
 
   # size factor
   rawdata <- object@rawdata
   sizefactor <- colSums(rawdata)
 
-  # log transformation
-  sizefactor <- matrix(rep(sizefactor, nrow(rawdata)), byrow = T, nrow = nrow(rawdata))
-  normdata <- (rawdata/sizefactor)*1000000
-  normdata <- log(normdata + 1)
+  if(method == "LogNormalize"){
+    # log transformation
+    sizefactor <- matrix(rep(sizefactor, nrow(rawdata)), byrow = T, nrow = nrow(rawdata))
+    normdata <- (rawdata/sizefactor)*1000000
+    normdata <- log(normdata + 1)
+  }
 
   # get normalized data
   object@normdata <- normdata

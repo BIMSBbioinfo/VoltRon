@@ -1,3 +1,19 @@
+#' Normalize Data
+#'
+#' Normalize the count data present in a given assay.
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return Returns object after normalization
+#'
+#' @rdname NormalizeData
+#' @export NormalizeData
+#'
+NormalizeData <- function(object, ...) {
+  UseMethod(generic = 'NormalizeData', object = object)
+}
+
 #' Metadata
 #'
 #' Get the metadata
