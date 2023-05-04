@@ -2,17 +2,18 @@
 % Please edit documentation in R/visualization.R
 \name{SFPlot}
 \alias{SFPlot}
-\title{SFPlot}
+\title{SFPlotMulti}
 \usage{
 SFPlot(
   object,
   features,
-  ncol = 3,
+  group.by = "label",
+  assay = "GeoMx",
+  ncol = 2,
   nrow = NULL,
-  sample = NULL,
   font.size = 2,
   keep.scale = "feature",
-  mode = "ROI"
+  label = FALSE
 )
 }
 \arguments{
@@ -20,19 +21,19 @@ SFPlot(
 
 \item{features}{a vector of features to visualize}
 
+\item{group.by}{a grouping label for the spatial entities}
+
+\item{assay}{the assay type name}
+
 \item{ncol}{ncol}
 
 \item{nrow}{nrow}
-
-\item{sample}{sample names matching spatial points (i.e. entities)}
 
 \item{font.size}{font sizes}
 
 \item{keep.scale}{whether unify all scales for all features or not}
 
-\item{mode}{plotting mode for different spatial entities, ROI, Spot or cell}
-
-\item{split.by}{split by a metadata element}
+\item{sample}{sample names}
 }
 \description{
 Functions for plotting spatial objects

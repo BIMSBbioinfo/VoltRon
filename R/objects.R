@@ -272,7 +272,7 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL, coords,
 
 #' @method subset SpaceRover
 #'
-#' @importFrom rlang enquo
+#' @importFrom rlang enquo eval_tidy quo_get_expr
 #' @import igraph
 #' @importFrom stringr str_extract
 #'
@@ -291,7 +291,15 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
   }
 
   # subseting on samples
-  if(!is.null(samples)){
+  if(!missing(subset)){
+
+    metadata <- Metadata(GeoMxR1, type = "ROI")
+    # variable <- str_extract(as.character(subset)[2],"[a-zA-Z]+")
+    entities <- rownames(metadata)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
+    object <- subset(object, entities = entities)
+    return(object)
+
+  } else if(!is.null(samples)){
 
     sample.metadata <- subset.sampleMetadata(object@sample.metadata, samples = samples)
     metadata <- subset.srMetadata(object@metadata, samples = samples) # CAN WE CHANGE THIS TO ONLY SUBSET LATER ????
@@ -504,7 +512,6 @@ Coordinates.SpaceRover <- function(object, reg = FALSE, assay = NULL, ...) {
   srassay <- srlayer[[cur_assay$Assay]]
 
   # change coordinates
-  print(head(value))
   Coordinates(srassay, reg = reg) <- value
   srlayer[[cur_assay$Assay]] <- srassay
   object[[cur_assay$Sample, cur_assay$Layer]] <- srlayer

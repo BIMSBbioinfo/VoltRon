@@ -141,10 +141,10 @@ SFPlotSingle <- function(coords, image, feature, limits, group.by = "label", fon
     scale_fill_gradientn(name = legend_title,
                          colors=c("dodgerblue2", "white", "yellow3"),
                          values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits) +
-    ggtitle(plot_title) + theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,-15,0)), panel.background = element_blank(), panel.grid.minor = element_blank(),
+    ggtitle(plot_title) + theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,-10,0)), panel.background = element_blank(), panel.grid.minor = element_blank(),
                                 axis.line=element_blank(),axis.text.x=element_blank(), axis.text.y=element_blank(),
                                 axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
-                                legend.margin = margin(0,0,0,-20)) +
+                                legend.margin = margin(0,0,0,-10)) +
     xlim(0,info$width) + ylim(0, info$height)
 
   # visualize labels

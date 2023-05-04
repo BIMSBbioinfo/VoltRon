@@ -233,7 +233,6 @@ GenerateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
   image.dir.path <- paste0(dir.path,"/CellComposite/")
   morphology_image_data <- NULL
   for(i in relative_fov_positions$fov){
-    print(i)
     image_path <- paste0(image.dir.path, "CellComposite_F", str_pad(as.character(i), 3, pad = 0), ".jpg")
     image_data <- magick::image_read(image_path) %>% magick::image_resize("x500") %>% magick::image_raster()
     if(is.null(morphology_image_data))
@@ -413,7 +412,6 @@ demuxSpaceRover <- function(object, scale_width = 800)
         RegisteredSpatialDataList <- list()
         corners_list <- selected_corners_list()
         sample_names <- paste0("Sample", 1:length(corners_list$box))
-        print(sample_names)
         for(i in 1:length(corners_list$box)){
           temp <- subset(object, image = corners_list$box[i])
           temp$Sample <- sample_names[i]
