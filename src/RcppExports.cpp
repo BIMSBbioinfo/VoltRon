@@ -28,9 +28,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// perspectiveTransform
+Rcpp::NumericMatrix perspectiveTransform(Rcpp::NumericMatrix coords, Rcpp::NumericMatrix hmatrix);
+RcppExport SEXP _spaceRover_perspectiveTransform(SEXP coordsSEXP, SEXP hmatrixSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type hmatrix(hmatrixSEXP);
+    rcpp_result_gen = Rcpp::wrap(perspectiveTransform(coords, hmatrix));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_spaceRover_automated_registeration_rawvector", (DL_FUNC) &_spaceRover_automated_registeration_rawvector, 8},
+    {"_spaceRover_perspectiveTransform", (DL_FUNC) &_spaceRover_perspectiveTransform, 2},
     {NULL, NULL, 0}
 };
 

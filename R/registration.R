@@ -24,6 +24,7 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
   ## Importing images ####
 
   # check object classes
+  # if the input is not a list, switch to reference vs query mode
   if(!is.null(data_list)){
 
     # check if all elements of the list are spaceRover
@@ -32,6 +33,8 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
     } else {
       spatdata_list <- data_list
     }
+
+  # reference vs query mode
   } else {
 
     # check if the reference and query data sets are either Seurat or Giotto
@@ -63,6 +66,8 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
                       h4("Image Registration"),
                       fluidRow(
                         column(12,shiny::actionButton("manualregister", "Manuel Registration")),
+                        br(),
+                        column(12,shiny::actionButton("automaticregister", "Auto Registration")),
                         br(),
                         column(12,shiny::actionButton("done", "Done")),
                       ),
@@ -118,6 +123,8 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
       ### Image registration ####
       registered_spatdata_list <- QueryMatrices(length(spatdata_list))
       getManualRegisteration(registered_spatdata_list, spatdata_list, orig_image_query_list, xyTable_list,
+                             input, output, session)
+      getAutomatedRegisteration(registered_spatdata_list, spatdata_list, orig_image_query_list,
                              input, output, session)
 
       ### Main observable ####
@@ -743,7 +750,7 @@ transform_magick_image_query_list <- function(image_list, input, session){
 }
 
 ####
-# Image Registration ####
+# Manual Image Registration ####
 ####
 
 #' QueryMatrices
@@ -808,7 +815,7 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
     for(i in register_ind){
 
       # get a sequential mapping between a query and reference image
-      mapping <- computePairwiseTransform(spatdata_list, keypoints_list, query_ind = i, ref_ind = centre)
+      mapping <- computeManuelPairwiseTransform(keypoints_list, query_ind = i, ref_ind = centre)
 
       # save transformation matrix
       mapping_list[[i]] <- mapping
@@ -822,7 +829,7 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
     # Plot registered images
     lapply(register_ind, function(i){
       cur_mapping <- mapping_list[[i]]
-      images <- getRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
+      images <- getManuelRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
       tar_ind <- which(register_ind == i) + 1
       output[[paste0("plot_query_reg",tar_ind)]] <- renderPlot({
         info <- image_info(image_list[[centre]])
@@ -846,19 +853,7 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
   })
 }
 
-automated_registration <- function(ref_image, query_image, GOOD_MATCH_PERCENT = 0.15, MAX_FEATURES = 500) {
-  ref_image_rast <- image_data(ref_image)
-  query_image_rast <- image_data(query_image)
-  reg <- automated_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
-                          width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
-                          width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3],
-                          GOOD_MATCH_PERCENT, MAX_FEATURES)
-  aligned_image <- image_read(reg[[2]])
-  alignment_image <- image_read(reg[[3]])
-  return(list(transmat = reg[[1]], aligned_image = aligned_image, alignment_image = alignment_image))
-}
-
-computePairwiseTransform <- function(spatdata_list, keypoints_list, query_ind, ref_ind){
+computeManuelPairwiseTransform <- function(keypoints_list, query_ind, ref_ind){
 
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -887,7 +882,7 @@ computePairwiseTransform <- function(spatdata_list, keypoints_list, query_ind, r
   return(mapping_list)
 }
 
-getRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, input){
+getManuelRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, input){
 
   # plot with raster
   ref_image_raster <- as.raster(images[[ref_ind]]) |> as.matrix() |> rast()
@@ -916,3 +911,160 @@ getRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, input){
 
   return(list(ref = ref_image_raster, query = query_image_raster_1_trf))
 }
+
+####
+# Manual Image Registration ####
+####
+
+#' getManualRegisteration
+#'
+#' Manuel registeration of images using manually entered keypoints
+#'
+#' @param registered_spatdata_list a list of registered Spatial data object of the query images, updated with image registration
+#' @param spatdata_list a list of Spatial data object of the query images
+#' @param image_list the list of query images
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#'
+#' @import Morpho
+#'
+getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, image_list,
+                                   input, output, session){
+
+  # the number of registrations
+  len_register <- length(image_list) - 1
+
+  # index of the reference data vs query data
+  centre <- floor(median(1:length(image_list)))
+  register_ind <- setdiff(1:length(image_list), centre)
+
+  # Registration events
+  observeEvent(input$automaticregister, {
+
+    # Register keypoints
+    mapping_list <- list()
+    for(i in register_ind){
+
+      # get a sequential mapping between a query and reference image
+      mapping <- computeAutomatedPairwiseTransform(spatdata_list, query_ind = i, ref_ind = centre)
+
+      # save transformation matrix
+      mapping_list[[i]] <- mapping
+    }
+
+    # get registered spatial datasets
+    temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre)
+    for(i in 1:length(temp_reg_list))
+      registered_spatdata_list[[paste0(i)]] <- temp_reg_list[[i]]
+
+    # Plot registered images
+    lapply(register_ind, function(i){
+      cur_mapping <- mapping_list[[i]]
+      images <- getAutomatedRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
+      tar_ind <- which(register_ind == i) + 1
+      output[[paste0("plot_query_reg",tar_ind)]] <- renderPlot({
+        info <- image_info(image_list[[centre]])
+        r2 <- as.raster(images$query)
+        r2 <- rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",tar_ind)]]))
+        ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
+          ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
+          ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
+          ggplot2::annotation_custom(r2, 0, info$width, 0, info$height)
+      })
+    })
+
+    # Output summary
+    output[["summary"]] <- renderUI({
+      str1 <- paste0(" Registration Summary:")
+      str2 <- paste0("# of Images: ", length(image_list))
+      str3 <- paste0("# of Registrations: ", len_register)
+      all_str <- c(str1, str2, str3)
+      HTML(paste(all_str, collapse = '<br/>'))
+    })
+  })
+}
+
+computeAutomatedPairwiseTransform <- function(spatdata_list, query_ind, ref_ind){
+
+  # determine the number of transformation to map from query to the reference
+  indices <- query_ind:ref_ind
+  mapping <- rep(indices,c(1,rep(2,length(indices)-2),1))
+  mapping <- matrix(mapping,ncol=2,byrow=TRUE)
+
+  # reference and target landmarks/keypoints
+  mapping_list <- list()
+  for(kk in 1:nrow(mapping)){
+    cur_map <- mapping[kk,]
+    if(which.min(cur_map) == 1){
+      key_ind <- paste0(cur_map[1], "->", cur_map[2])
+      keypoints <- keypoints_list[[key_ind]]
+      target_landmark <- as.matrix(keypoints[["ref"]][,c("x","y")])
+      reference_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
+    } else {
+      key_ind <- paste0(cur_map[2], "->", cur_map[1])
+      keypoints <- keypoints_list[[key_ind]]
+      reference_landmark <- as.matrix(keypoints[["ref"]][,c("x","y")])
+      target_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
+    }
+
+    # compute and get transformation matrix
+    mapping_list[[kk]] <- computeTransform(reference_landmark, target_landmark, type = "tps")
+  }
+
+  return(mapping_list)
+}
+
+#' automated_registration
+#'
+#' automated registration with Rcpp/C++
+#'
+#' @useDynLib spaceRover
+#'
+#' @param ref_image reference image
+#' @param query_image query image
+#' @param GOOD_MATCH_PERCENT the percentage of good matching keypoints
+#' @param MAX_FEATURES maximum number of detected features, i.e. keypoints
+#'
+automated_registration_rcpp <- function(ref_image, query_image, GOOD_MATCH_PERCENT = 0.15, MAX_FEATURES = 500) {
+  ref_image_rast <- image_data(ref_image)
+  query_image_rast <- image_data(query_image)
+  reg <- automated_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
+                                           width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
+                                           width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3],
+                                           GOOD_MATCH_PERCENT, MAX_FEATURES)
+  aligned_image <- image_read(reg[[2]])
+  alignment_image <- image_read(reg[[3]])
+  return(list(transmat = reg[[1]], aligned_image = aligned_image, alignment_image = alignment_image))
+}
+
+getAutomatedRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, input){
+
+  # plot with raster
+  ref_image_raster <- as.raster(images[[ref_ind]]) |> as.matrix() |> rast()
+  query_image_raster <- as.raster(images[[query_ind]]) |> as.matrix() |> rast() |> stack()
+
+  # prepare image
+  imageEx <- raster::extent(stack(ref_image_raster))
+  imageRes <- raster::res(stack(ref_image_raster))
+  query_image_raster_1 <- raster::as.data.frame(query_image_raster[[1]], xy = TRUE)
+
+  # apply transformation as many as it is needed
+  query_image_raster_1_t <- as.matrix(query_image_raster_1)[,1:2]
+  for(trans in transmatrix){
+    query_image_raster_1_t <- Morpho::applyTransform(query_image_raster_1_t, trans)
+  }
+
+  # finalize image
+  r <- raster::raster(nrow = dim(query_image_raster)[1], ncol = dim(query_image_raster)[2], resolution = c(1,1))
+  raster::extent(r) <- imageEx
+  raster::res(r) <- imageRes
+  query_image_raster_1_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_1[,3], r, fun = mean)
+  query_image_raster_1_trf <- focal(query_image_raster_1_tr,
+                                    w = matrix(1, nrow = 3, ncol = 3),
+                                    fun = fill.na, pad = TRUE, na.rm = FALSE)
+  query_image_raster_1_trf <- terra::rast(query_image_raster_1_trf, crs = "")
+
+  return(list(ref = ref_image_raster, query = query_image_raster_1_trf))
+}
+

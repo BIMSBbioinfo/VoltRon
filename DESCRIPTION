@@ -2,7 +2,7 @@ Package: spaceRover
 Type: Package
 Title: spaceRover for Spatial Data Analysis 
 Version: 0.1.0
-Author: Artur Manukyan, Bora Uyar, Markus Landthaler, Altuna Akalin
+Author: Artur Manukyan, Ella Bahry, Markus Landthaler, Altuna Akalin
 Maintainer: Artur Manukyan <artur-man@hotmail.com>
 Description: spaceRover is a spatial data analysis toolbox for spatial data analysis, integration and image registration 
 License: License

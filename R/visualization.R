@@ -18,7 +18,7 @@
 #'
 #' @export
 #'
-SFPlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol = 2, nrow = NULL, font.size = 2, keep.scale = "feature", label = FALSE) {
+SpatFeaturePlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol = 2, nrow = NULL, font.size = 2, keep.scale = "feature", label = FALSE) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -97,7 +97,7 @@ SFPlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol =
       l_title <- legend_title[[feat]]
 
       # visualize
-      gg[[i]] <- SFPlotSingle(coords = coords, image = image, feature = feat, limits = limits[[feat]][[assy]],
+      gg[[i]] <- SpatFeaturePlotSingle(coords = coords, image = image, feature = feat, limits = limits[[feat]][[assy]],
                               group.by = group.by, font.size = font.size, keep.scale = keep.scale,
                               label = label, plot_title = p_title, legend_title = l_title)
       i <- i + 1
@@ -116,7 +116,7 @@ SFPlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol =
   }
 }
 
-SFPlotSingle <- function(coords, image, feature, limits, group.by = "label", font.size = 2, keep.scale = "feature", label = FALSE, plot_title = NULL, legend_title = NULL){
+SpatFeaturePlotSingle <- function(coords, image, feature, limits, group.by = "label", font.size = 2, keep.scale = "feature", label = FALSE, plot_title = NULL, legend_title = NULL){
 
   # get image information and plotting features
   info <- image_info(image)

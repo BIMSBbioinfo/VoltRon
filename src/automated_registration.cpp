@@ -94,6 +94,26 @@ Rcpp::RawVector matToImage(cv::Mat mat) {
   return rawvec;
 }
 
+// Function to convert a NumericMatrix object to a cv::Mat
+cv::Mat numericMatrixToMat(Rcpp::NumericMatrix nm) {
+  cv::Mat m(nm.rows(), nm.cols(), CV_64F);
+  for (int i = 0; i < nm.rows(); ++i) {
+    for (int j = 0; j < nm.cols(); ++j) {
+      m.at<double>(i, j) = nm(i, j);
+    }
+  }
+  return m;
+}
+
+// Function to convert a NumericMatrix object to a cv::Point2f
+std::vector<cv::Point2f> numericMatrixToPoint2f(Rcpp::NumericMatrix mat) {
+  std::vector<cv::Point2f> points;
+  for (int i = 0; i < mat.nrow(); i++) {
+    points.push_back(cv::Point2f(mat(i, 0), mat(i, 1)));
+  }
+  return points;
+}
+
 // Function to convert a cv::Mat object to a NumericMatrix
 Rcpp::NumericMatrix matToNumericMatrix(cv::Mat m) {
   Rcpp::NumericMatrix nm(m.rows, m.cols);
@@ -105,11 +125,22 @@ Rcpp::NumericMatrix matToNumericMatrix(cv::Mat m) {
   return nm;
 }
 
+// Function to convert a cv::Point2f object to a NumericMatrix
+Rcpp::NumericMatrix point2fToNumericMatrix(std::vector<cv::Point2f> points) {
+  int n = points.size();
+  Rcpp::NumericMatrix mat(n, 2);
+  for (int i = 0; i < n; i++) {
+    mat(i, 0) = points[i].x;
+    mat(i, 1) = points[i].y;
+  }
+  return mat;
+}
+
 // [[Rcpp::export]]
 Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image,
-                            const int width1, const int height1,
-                            const int width2, const int height2,
-                            const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
+                                             const int width1, const int height1,
+                                             const int width2, const int height2,
+                                             const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
 {
   // define return data, 1 = transformation matrix, 2 = aligned image
   Rcpp::List out(3);
@@ -136,32 +167,20 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   return out;
 }
 
-// // [[Rcpp::export]]
-// void register_images_old(Rcpp::String ref_image, Rcpp::String query_image, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
-// {
-//   // Read reference image
-//   const cv::String refFilename(ref_image);
-//   cout << "Reading reference image : " << refFilename << endl;
-//   Mat imReference = imread(refFilename);
-//
-//   // Read image to be aligned
-//   const cv:: String imFilename(query_image);
-//   cout << "Reading image to align : " << imFilename << endl;
-//   Mat im = imread(imFilename);
-//
-//   // Registered image will be resotred in imReg.
-//   // The estimated homography will be stored in h.
-//   Mat imReg, h;
-//
-//   // Align images
-//   cout << "Aligning images ..." << endl;
-//   alignImages(im, imReference, imReg, h, GOOD_MATCH_PERCENT, MAX_FEATURES);
-//
-//   // Write aligned image to disk.
-//   string outFilename("aligned.jpg");
-//   cout << "Saving aligned image : " << outFilename << endl;
-//   imwrite(outFilename, imReg);
-//
-//   // Print estimated homography
-//   cout << "Estimated homography : \n" << h << endl;
-// }
+// [[Rcpp::export]]
+Rcpp::NumericMatrix perspectiveTransform(Rcpp::NumericMatrix coords, Rcpp::NumericMatrix hmatrix)
+{
+  // Get coordinates as cv::Mat
+  std::vector<cv::Point2f> coords_mat = numericMatrixToPoint2f(coords);
+  std::vector<cv::Point2f> coords_reg;
+  cv::Mat hmatrix_mat = numericMatrixToMat(hmatrix);
+
+  // transform coordinates
+  cv::perspectiveTransform(coords_mat, coords_reg, hmatrix_mat);
+
+  // return transformation matrix and alignment images
+  Rcpp::NumericMatrix coords_regToMat = point2fToNumericMatrix(coords_reg);
+
+  // return
+  return coords_regToMat;
+}
