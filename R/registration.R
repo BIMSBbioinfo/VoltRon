@@ -34,6 +34,10 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
       spatdata_list <- data_list
     }
 
+    # reference and query indices
+    centre <- floor(median(1:length(spatdata_list)))
+    register_ind <- setdiff(1:length(spatdata_list), centre)
+
   # reference vs query mode
   } else {
 
@@ -44,10 +48,15 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
     } else {
       spatdata_list <- list(reference_spatdata, query_spatdata)
     }
+
+    # reference and query indices
+    centre <- 1
+    register_ind <- 2
   }
 
   # get images from the list of objects
   orig_image_query_list <- unlist(lapply(spatdata_list, Image))
+
 
   ## UI and Server ####
 
@@ -99,7 +108,7 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
                              br(),
 
                              # Registered Query Images
-                             RegisteredImageTabPanels(length(orig_image_query_list))
+                             RegisteredImageTabPanels(length(orig_image_query_list), centre, register_ind)
                       ),
 
                       # panel options
@@ -111,14 +120,15 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
     server <- function(input, output, session) {
 
       ### Manage interface ####
-      UpdateSequentialTabPanels(input, output, session, length(orig_image_query_list))
+      UpdateSequentialTabPanels(input, output, session, centre, register_ind)
 
       ### Transform images ####
-      trans_image_query_list <- transform_magick_image_query_list(orig_image_query_list, input, session)
+      trans_image_query_list <- transform_magick_image_query_list(centre, register_ind, orig_image_query_list, input, session)
 
       ### Manage reference and query keypoints ####
-      xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
-      manageKeypoints(xyTable_list, trans_image_query_list, input, output, session)
+      # xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
+      xyTable_list <- initateKeypoints(centre, register_ind, keypoints)
+      manageKeypoints(centre, register_ind, xyTable_list, trans_image_query_list, input, output, session)
 
       ### Image registration ####
       registered_spatdata_list <- QueryMatrices(length(spatdata_list))
@@ -192,17 +202,28 @@ ImageTabPanels <- function(len_images, type){
 #' The UI for a set of query spatial slides
 #'
 #' @param len_images the number of query images
+#' @param centre center image index
+#' @param register_ind query image indices
 #'
 #' @return tabsetpanel
 #'
-RegisteredImageTabPanels <- function(len_images){
-  do.call(tabsetPanel, c(id='image_tab_panel_reg_query',lapply(1:len_images, function(i) {
-    tabPanel(paste0("Reg. Query ",i),
+RegisteredImageTabPanels <- function(len_images, centre, register_ind){
+
+  do.call(tabsetPanel, c(id='image_tab_panel_reg_query',lapply(register_ind, function(i) {
+    tabPanel(paste0("Reg. ",i, "->", centre),
              br(),
              column(6, sliderInput(paste0("plot_query_reg_alpha",i), label = "Alpha Level", min = 0, max = 1, value = 0.2)),
              fluidRow(imageOutput(paste0("plot_query_reg",i)))
     )
   })))
+
+  # do.call(tabsetPanel, c(id='image_tab_panel_reg_query',lapply(1:len_images, function(i) {
+  #   tabPanel(paste0("Reg. Query ",i),
+  #            br(),
+  #            column(6, sliderInput(paste0("plot_query_reg_alpha",i), label = "Alpha Level", min = 0, max = 1, value = 0.2)),
+  #            fluidRow(imageOutput(paste0("plot_query_reg",i)))
+  #   )
+  # })))
 }
 
 #' UpdateSequentialTabPanels
@@ -212,9 +233,13 @@ RegisteredImageTabPanels <- function(len_images){
 #' @param input input
 #' @param output output
 #' @param session session
-#' @param npanels the number of panels in both reference and query image sections
+#' @param centre center image index
+#' @param register_ind query image indices
 #'
-UpdateSequentialTabPanels <- function(input, output, session, npanels){
+UpdateSequentialTabPanels <- function(input, output, session, centre, register_ind){
+
+  # number of panels
+  npanels <- length(register_ind) + 1
 
   # observe changes in the reference tab panel
   observeEvent(input$image_tab_panel_ref,{
@@ -224,7 +249,7 @@ UpdateSequentialTabPanels <- function(input, output, session, npanels){
     query_panel_ind <- (selected_panel_ind + 1)
     if(query_panel_ind == 1) query_panel_ind <- npanels
     updateTabsetPanel(session, "image_tab_panel_query", paste0("Query ", query_panel_ind))
-    updateTabsetPanel(session, "image_tab_panel_reg_query", paste0("Reg. Query ", query_panel_ind))
+    updateTabsetPanel(session, "image_tab_panel_reg_query", paste0("Reg. ",selected_panel_ind, "->", centre))
 
     if(selected_panel_ind == npanels)
       updateTabsetPanel(session, "image_tab_panel_ref", paste0("Ref. ", selected_panel_ind-1))
@@ -241,17 +266,18 @@ UpdateSequentialTabPanels <- function(input, output, session, npanels){
 
     if(selected_panel_ind == 1){
       updateTabsetPanel(session, "image_tab_panel_query", paste0("Query ", selected_panel_ind+1))
-      updateTabsetPanel(session, "image_tab_panel_reg_query", paste0("Reg. Query ", selected_panel_ind+1))
+      updateTabsetPanel(session, "image_tab_panel_reg_query", paste0("Reg. ",selected_panel_ind+1, "->", centre))
     } else {
       query_panel_ind <- selected_panel_ind
-      updateTabsetPanel(session, "image_tab_panel_reg_query", paste0("Reg. Query ", query_panel_ind))
+      updateTabsetPanel(session, "image_tab_panel_reg_query", paste0("Reg. ",query_panel_ind, "->", centre))
     }
   })
 
   # observe changes in the registered query tab panel
   observeEvent(input$image_tab_panel_reg_query,{
     selected_panel <- input$image_tab_panel_reg_query
-    selected_panel_ind <- as.numeric(strsplit(selected_panel, split = " ")[[1]][3])
+    selected_panel_ind <- strsplit(selected_panel, split = " ")[[1]][2]
+    selected_panel_ind <- as.numeric(strsplit(selected_panel_ind, split = "->")[[1]][1])
     updateTabsetPanel(session, "image_tab_panel_query", paste0("Query ", selected_panel_ind))
   })
 }
@@ -396,7 +422,8 @@ rescaleXeniumCells <- function(cells, bbox, image){
 #'
 #' Initiate shiny reactive values for keypoint dataframes for pairwise reference and query images
 #'
-#' @param len_images the number of query images
+#' @param centre center image index
+#' @param register_ind query image indices
 #' @param keypoints_list the keypoints list of query images
 #' @param input shiny input
 #' @param output shiny output
@@ -404,7 +431,10 @@ rescaleXeniumCells <- function(cells, bbox, image){
 #'
 #' @return a shiny reactive values object
 #'
-initateKeypoints <- function(len_images, keypoints_list, input, output, session){
+initateKeypoints <- function(centre, register_ind, keypoints_list, input, output, session){
+
+  # number of panels
+  len_images <- length(register_ind) + 1
 
   # initiate keypoints
   if(is.null(keypoints_list)){
@@ -415,7 +445,7 @@ initateKeypoints <- function(len_images, keypoints_list, input, output, session)
     })
 
     # set names for keypoints
-    names(keypoints_list) <- paste0(1:(len_images-1),"->",2:(len_images))
+    names(keypoints_list) <- paste0(register_ind,"->",centre)
   }
 
   # return keypoints as reactive values
@@ -426,13 +456,15 @@ initateKeypoints <- function(len_images, keypoints_list, input, output, session)
 #'
 #' A list of shiny observe events for tables and auxiliary operations for pairwise reference and query image
 #'
+#' @param centre center image index
+#' @param register_ind query image indices
 #' @param xyTable_list a list of keypoints x,y coordinates for each magick image
 #' @param image_list a lost of magick image
 #' @param input shiny input
 #' @param output shiny output
 #' @param session shiny session
 #'
-manageKeypoints <- function(xyTable_list, image_list, input, output, session){
+manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, input, output, session){
 
   # get image types
   image_types <- c("ref","query")
@@ -457,6 +489,7 @@ manageKeypoints <- function(xyTable_list, image_list, input, output, session){
         }
         image <- image[[type]]
         keypoint <- transform_keypoints(image, keypoint, paste0(type, "_image",i), input, session)
+        # keypoint <- temp_temp(input, image_list, session, i, type)
 
         # insert keypoint to associated table
         ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
@@ -479,6 +512,18 @@ manageKeypoints <- function(xyTable_list, image_list, input, output, session){
     })
   })
 }
+
+# temp_temp <- function(input, image_list, session, i, type){
+#   keypoint <- data.frame(x = input[[paste0("click_plot_",type,i)]]$x,
+#                          y = input[[paste0("click_plot_",type,i)]]$y)
+#   if(is.reactive(image_list[[i]])){
+#     image <- image_list[[i]]()
+#   } else {
+#     image <- image_list[[i]]
+#   }
+#   image <- image[[type]]
+#   keypoint <- transform_keypoints(image, keypoint, paste0(type, "_image",i), input, session)
+# }
 
 #' transform_magick_image_keypoints
 #'
@@ -731,18 +776,19 @@ transform_magick_image <- function(image, extension, input, session){
 #'
 #' Apply given transformations to a list of magick image and return shiny reactive
 #'
+#' @param centre center image index
+#' @param register_ind query image indices
 #' @param image_list magick image
-#' @param extension name extension for the shiny input parameter
 #' @param input shiny input
 #' @param session shiny session
 #'
 #' @return magick image
 #'
-transform_magick_image_query_list <- function(image_list, input, session){
+transform_magick_image_query_list <- function(centre, register_ind, image_list, input, session){
 
-  trans_query_list <- lapply(1:length(image_list), function(i){
+  trans_query_list <- lapply(register_ind, function(i){
     reactive({
-      list(ref = transform_magick_image(image_list[[i]], paste0("ref_image",i), input, session),
+      list(ref = transform_magick_image(image_list[[centre]], paste0("ref_image",i), input, session),
            query = transform_magick_image(image_list[[i]], paste0("query_image",i), input, session))
     })
   })
