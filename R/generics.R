@@ -1,3 +1,8 @@
+#' @include zzz.R
+#' @include generics.R
+#'
+NULL
+
 #' Normalize Data
 #'
 #' Normalize the count data present in a given assay.

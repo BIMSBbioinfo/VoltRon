@@ -1,5 +1,5 @@
 ####
-# ROI plotting ####
+# Feature plots ####
 ####
 
 #' SFPlotMulti
@@ -18,7 +18,7 @@
 #'
 #' @export
 #'
-SpatFeaturePlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol = 2, nrow = NULL, font.size = 2, keep.scale = "feature", label = FALSE) {
+SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol = 2, nrow = NULL, font.size = 2, keep.scale = "feature", label = FALSE) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -97,7 +97,7 @@ SpatFeaturePlot <- function(object, features, group.by = "label", assay = "GeoMx
       l_title <- legend_title[[feat]]
 
       # visualize
-      gg[[i]] <- SpatFeaturePlotSingle(coords = coords, image = image, feature = feat, limits = limits[[feat]][[assy]],
+      gg[[i]] <- SpatFeatPlotSingle(coords = coords, image = image, feature = feat, limits = limits[[feat]][[assy]],
                               group.by = group.by, font.size = font.size, keep.scale = keep.scale,
                               label = label, plot_title = p_title, legend_title = l_title)
       i <- i + 1
@@ -116,7 +116,24 @@ SpatFeaturePlot <- function(object, features, group.by = "label", assay = "GeoMx
   }
 }
 
-SpatFeaturePlotSingle <- function(coords, image, feature, limits, group.by = "label", font.size = 2, keep.scale = "feature", label = FALSE, plot_title = NULL, legend_title = NULL){
+#' SpatFeatPlotSingle
+#'
+#' @param coords
+#' @param image
+#' @param feature
+#' @param limits
+#' @param group.by
+#' @param font.size
+#' @param keep.scale
+#' @param label
+#' @param plot_title
+#' @param legend_title
+#'
+#' @return
+#' @export
+#'
+#' @examples
+SpatFeatPlotSingle <- function(coords, image, feature, limits, group.by = "label", font.size = 2, keep.scale = "feature", label = FALSE, plot_title = NULL, legend_title = NULL){
 
   # get image information and plotting features
   info <- image_info(image)
@@ -158,155 +175,9 @@ SpatFeaturePlotSingle <- function(coords, image, feature, limits, group.by = "la
 }
 
 ####
-# old functions ####
+# FeatPlot ####
 ####
 
-#' SFPlotold
-#'
-#' Functions for plotting spatial objects
-#'
-#' @param object SpaceRover object
-#' @param features a vector of features to visualize
-#' @param ncol ncol
-#' @param nrow nrow
-#' @param sample sample names matching spatial points (i.e. entities)
-#' @param font.size font sizes
-#' @param keep.scale whether unify all scales for all features or not
-#' @param mode plotting mode for different spatial entities, ROI, Spot or cell
-#' @param split.by split by a metadata element
-#'
-#' @export
-#'
-SFPlotold <- function(object, features, ncol = 3, nrow = NULL, sample = NULL, font.size = 2, keep.scale = "feature", mode = "ROI") {
+FeatPlot <- function(object, features, group.by = "label", assay = "GeoMx") {
 
-  # get assay
-  assay <- GeoMxR1_subset[[object@sample.metadata$Sample, object@sample.metadata$Layer]][[MainAssay(object)]]
-
-  # normalize
-  info <- image_info(assay@image)
-  image <- assay@image
-  coords <- as.data.frame(assay@coords)
-  normdata <- assay@normdata
-
-  # Check keep.scale param for valid entries
-  if (!(is.null(x = keep.scale)) && !(keep.scale %in% c("feature", "all"))) {
-    stop("`keep.scale` must be set to either `feature`, `all`, or NULL")
-  }
-
-  # calculate limits for plotting
-  if(keep.scale == "all") {
-    normdata <- normdata[features,, drop = FALSE]
-    limits <- lapply(1:length(features), function(x) range(normdata))
-  } else if(keep.scale == "feature"){
-    normdata <- normdata[features,, drop = FALSE]
-    limits <- lapply(features, function(feat) range(normdata[feat,]))
-  }
-  midpoint <- lapply(limits, function(x) sum(x)/2)
-
-  # visualize for either one feature or multiple features
-  if(length(features) > 1){
-    gg <- list()
-    for(i in 1:length(features)){
-      coords$feature <- normdata[features[i],]
-      g1 <- ggplot() +
-        ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
-        ggplot2::annotation_raster(assay@image, 0, info$width, info$height, 0, interpolate = FALSE) +
-        geom_point(mapping = aes(x = x, y = y, fill = feature), coords, shape = 21, size = 10) +
-        scale_fill_gradientn(name = "Log.Exp.",
-                             # low = "darkgreen", mid = "white", high = "yellow2",
-                             colors=c("dodgerblue2", "white", "yellow3"),
-                             values=scales::rescale(c(limits[[i]][1],midpoint[[i]],limits[[i]][2])), limits = limits[[i]]) +
-        NoAxes() +
-        ggtitle(paste(features[i])) +
-        theme(plot.title = element_text(hjust = 0.5))
-      gg[[i]]  <- g1 + geom_label_repel(mapping = aes(x = x, y = y, label = sample), coords,
-                                        box.padding = 0.5, size = font.size, direction = "y", seed = 1)
-    }
-    if(length(gg) > ncol){
-      nrow <- ceiling(length(gg)/ncol)
-    } else{
-      ncol <- length(gg)
-    }
-    return(ggarrange(plotlist = gg, ncol = ncol, nrow = nrow))
-  } else {
-    coords$score <- normdata[features,]
-    g1 <- ggplot() +
-      ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
-      ggplot2::annotation_raster(assay@image, 0, info$width, info$height, 0, interpolate = FALSE) +
-      geom_point(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, size = 10) +
-      scale_fill_gradientn(name = "Log.Exp.",
-                           # low = "darkgreen", mid = "white", high = "yellow2",
-                           colors=c("dodgerblue2", "white", "yellow3"),
-                           values=scales::rescale(c(limits[[1]][1],midpoint[[1]],limits[[1]][2])), limits = limits[[1]]) +
-      NoAxes() +
-      ggtitle(paste(features[1])) +
-      theme(plot.title = element_text(hjust = 0.5))
-    g1 <- g1 + geom_label_repel(mapping = aes(x = x, y = y, label = sample_names), coords,
-                                box.padding = 0.5, size = font.size, direction = "y", seed = 1)
-    return(g1)
-  }
-}
-
-#' SFPlotMulti2
-#'
-#' Functions for plotting spatial objects
-#'
-#' @param object SpaceRover object
-#' @param features a vector of features to visualize
-#' @param sample sample names matching spatial points (i.e. entities)
-#' @param split.by split by a metadata element
-#' @param mode plotting mode for different spatial entities, ROI, Spot or cell
-#' @param ncol ncol
-#' @param nrow nrow
-#' @param font.size font sizes
-#' @param keep.scale whether unify all scales for all features or not
-#'
-#' @export
-#'
-SFPlotMulti2 <- function(object, features, sample = NULL, split.by = NULL, assay = "GeoMx", ncol = 3, nrow = NULL, font.size = 2, keep.scale = "feature") {
-
-  # sample metadata
-  sample.metadata <- SampleMetadata(object)
-
-  # list of plots
-  gg <- list()
-
-  # normalize
-  info <- image_info(assay@image)
-  image <- assay@image
-  coords <- as.data.frame(assay@coords)
-  normdata <- assay@normdata
-
-  # Check keep.scale param for valid entries
-  if (!(is.null(x = keep.scale)) && !(keep.scale %in% c("feature", "all"))) {
-    stop("`keep.scale` must be set to either `feature`, `all`, or NULL")
-  }
-
-  # calculate limits for plotting, all for making one scale, feature for making multiple
-  if(keep.scale == "all") {
-    normdata <- normdata[features,, drop = FALSE]
-    limits <- lapply(1:length(features), function(x) range(normdata))
-  } else if(keep.scale == "feature"){
-    normdata <- normdata[features,, drop = FALSE]
-    limits <- lapply(features, function(feat) range(normdata[feat,]))
-  }
-
-  # visualize for either one feature or multiple features
-  if(length(features) > 1){
-    gg <- list()
-    for(i in 1:length(features)){
-      coords$score <- normdata[features[i],]
-      gg[[i]] <- SFPlotSingle(coords, image, limits[[i]], sample, font.size, features[i])
-    }
-    if(length(gg) > ncol){
-      nrow <- ceiling(length(gg)/ncol)
-    } else{
-      ncol <- length(gg)
-    }
-    return(ggarrange(plotlist = gg, ncol = ncol, nrow = nrow))
-  } else {
-    coords$score <- normdata[features,]
-    g1 <- SFPlotSingle(coords, image, limits[[1]], sample, font.size, features[1])
-    return(g1)
-  }
 }

@@ -1,8 +1,12 @@
+#' @include generics.R
+#'
+NULL
+
 #' @rdname NormalizeData
+#' @concept preprocessing
 #' @method NormalizeData SpaceRover
 #'
 #' @export
-#'
 NormalizeData.SpaceRover <- function(object, ...) {
 
   # check assays
@@ -16,10 +20,10 @@ NormalizeData.SpaceRover <- function(object, ...) {
 }
 
 #' @rdname NormalizeData
+#' @concept preprocessing
 #' @method NormalizeData srAssay
 #'
 #' @export
-#'
 NormalizeData.srAssay <- function(object, method = "LogNormalize") {
 
   # size factor
@@ -38,4 +42,12 @@ NormalizeData.srAssay <- function(object, method = "LogNormalize") {
 
   # return
   return(object)
+}
+
+#' @rdname NormalizeData
+#' @concept preprocessing
+#'
+#' @export
+NormalizeData.default <- function(object, ...) {
+  Seurat::NormalizeData(object, ...)
 }

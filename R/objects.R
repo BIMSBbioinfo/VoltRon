@@ -359,10 +359,15 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
   new("SpaceRover", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
 }
 
+#' @param object a SpaceRover Object
+#' @param object_list a list of SpaceRover objects
+#' @param sample_name a single sample name if objects are of the same sample
+#' @param main.assay name of the assay
+#'
+#' @export
 #' @method merge SpaceRover
 #'
 #' @import igraph
-#' @export
 #'
 merge.SpaceRover <- function(object, object_list, sample_name = NULL, main.assay = NULL) {
 
