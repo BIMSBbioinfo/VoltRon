@@ -24,17 +24,21 @@ NormalizeData.SpaceRover <- function(object, ...) {
 #' @method NormalizeData srAssay
 #'
 #' @export
-NormalizeData.srAssay <- function(object, method = "LogNormalize") {
+NormalizeData.srAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9) {
 
   # size factor
   rawdata <- object@rawdata
   sizefactor <- colSums(rawdata)
 
-  if(method == "LogNormalize"){
+  if(method == "LogNorm"){
     # log transformation
     sizefactor <- matrix(rep(sizefactor, nrow(rawdata)), byrow = T, nrow = nrow(rawdata))
     normdata <- (rawdata/sizefactor)*1000000
     normdata <- log(normdata + 1)
+  } else if(method == "QuanNorm") {
+    rawdata[rawdata==0] <- 1
+    qs <- apply(rawdata, 2, function(x) stats::quantile(x, desiredQuantile))
+    normdata <- sweep(rawdata, 2L, qs / exp(mean(log(qs))), FUN = "/")
   }
 
   # get normalized data

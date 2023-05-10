@@ -14,11 +14,12 @@
 #' @param ncol ncol
 #' @param nrow nrow
 #' @param font.size font sizes
+#' @param pt.size point size
 #' @param keep.scale whether unify all scales for all features or not
 #'
 #' @export
 #'
-SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol = 2, nrow = NULL, font.size = 2, keep.scale = "feature", label = FALSE) {
+SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol = 2, nrow = NULL, font.size = 2, pt.size = 10, keep.scale = "feature", label = FALSE) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -98,7 +99,7 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
 
       # visualize
       gg[[i]] <- SpatFeatPlotSingle(coords = coords, image = image, feature = feat, limits = limits[[feat]][[assy]],
-                              group.by = group.by, font.size = font.size, keep.scale = keep.scale,
+                              group.by = group.by, font.size = font.size, pt.size = pt.size, keep.scale = keep.scale,
                               label = label, plot_title = p_title, legend_title = l_title)
       i <- i + 1
     }
@@ -124,6 +125,7 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
 #' @param limits
 #' @param group.by
 #' @param font.size
+#' @param pt.size
 #' @param keep.scale
 #' @param label
 #' @param plot_title
@@ -133,7 +135,7 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
 #' @export
 #'
 #' @examples
-SpatFeatPlotSingle <- function(coords, image, feature, limits, group.by = "label", font.size = 2, keep.scale = "feature", label = FALSE, plot_title = NULL, legend_title = NULL){
+SpatFeatPlotSingle <- function(coords, image, feature, limits, group.by = "label", font.size = 2, pt.size = 10, keep.scale = "feature", label = FALSE, plot_title = NULL, legend_title = NULL){
 
   # get image information and plotting features
   info <- image_info(image)
@@ -154,7 +156,7 @@ SpatFeatPlotSingle <- function(coords, image, feature, limits, group.by = "label
   # visualize with ggplot
   g <- ggplot() +
     ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE) +
-    geom_point(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, size = 10) +
+    geom_point(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, size = pt.size) +
     scale_fill_gradientn(name = legend_title,
                          colors=c("dodgerblue2", "white", "yellow3"),
                          values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits) +
