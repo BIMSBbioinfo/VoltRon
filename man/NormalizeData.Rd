@@ -11,7 +11,7 @@ NormalizeData(object, ...)
 
 \method{NormalizeData}{SpaceRover}(object, ...)
 
-\method{NormalizeData}{srAssay}(object, method = "LogNormalize")
+\method{NormalizeData}{srAssay}(object, method = "LogNorm", desiredQuantile = 0.9)
 
 \method{NormalizeData}{default}(object, ...)
 }

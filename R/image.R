@@ -127,6 +127,40 @@ addFOVImage <- function(seu, file, fov = "fov", overwrite = FALSE) {
   return(seu)
 }
 
+#' @rdname ResizeImage
+#' @method ResizeImage SpaceRover
+#'
+#' @export
+#'
+ResizeImage.SpaceRover <- function(object, ...){
+  sample.metadata <- SampleMetadata(object)
+  assay_names <- rownames(sample.metadata)
+  for(assy in assay_names){
+    cur_assay <- object[[assy]]
+    object[[assy]] <- ResizeImage(cur_assay, ...)
+  }
+  return(object)
+}
+
+#' @rdname ResizeImage
+#' @method ResizeImage srAssay
+#'
+#' @export
+#'
+ResizeImage.srAssay <- function(object, size){
+
+  # resize coordinates
+  sizefactor <- image_info(object@image)$width
+  object@coords <- (object@coords)*size/sizefactor
+
+  # resize images
+  size <- paste0(size,"x")
+  object@image <- image_resize(object@image, geometry = size)
+
+  # return
+  return(object)
+}
+
 ####
 # Image File Manipulation ####
 ####

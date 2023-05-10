@@ -154,3 +154,21 @@ Coordinates <- function(object, ...) {
 Image <- function(object, ...) {
   UseMethod(generic = 'Image', object = object)
 }
+
+#' ResizeImage
+#'
+#' Resizing Magick images
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{ResizeImage}: The name of the default assay
+#'
+#' @rdname ResizeImage
+#' @export ResizeImage
+#'
+#' @concept data-access
+#'
+ResizeImage <- function(object, ...) {
+  UseMethod(generic = 'ResizeImage', object = object)
+}

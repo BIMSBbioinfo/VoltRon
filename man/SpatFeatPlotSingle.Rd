@@ -11,6 +11,7 @@ SpatFeatPlotSingle(
   limits,
   group.by = "label",
   font.size = 2,
+  pt.size = 10,
   keep.scale = "feature",
   label = FALSE,
   plot_title = NULL,

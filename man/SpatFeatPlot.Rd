@@ -12,6 +12,7 @@ SpatFeatPlot(
   ncol = 2,
   nrow = NULL,
   font.size = 2,
+  pt.size = 10,
   keep.scale = "feature",
   label = FALSE
 )
@@ -30,6 +31,8 @@ SpatFeatPlot(
 \item{nrow}{nrow}
 
 \item{font.size}{font sizes}
+
+\item{pt.size}{point size}
 
 \item{keep.scale}{whether unify all scales for all features or not}
 
