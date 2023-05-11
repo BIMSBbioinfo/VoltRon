@@ -38,10 +38,18 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
     }
   }
 
+
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
     range_feat <- Map(function(assy){
-      range(object[[assy]]@normdata[feat, ])
+      normdata <- object[[assy]]@normdata
+      metadata <- Metadata(object, type = "ROI")
+      metadata <- metadata[grepl(assy, rownames(metadata)),]
+      if(feat %in% rownames(normdata)){
+        range(normdata[feat, ])
+      } else {
+        range(metadata[,feat])
+      }
     }, assay_names)
     if(keep.scale == "all"){
       range_feat_all <- c(do.call(min, range_feat), do.call(max, range_feat))
@@ -55,22 +63,24 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
   names(assay_title) <- assay_names
   feature_title <- as.list(features)
   names(feature_title) <- features
-  if(length(features) > 1 && length(assay_names) > 1){
-    plot_title <- assay_title
-    legend_title <- feature_title
-  } else if(length(features) > 1 && length(assay_names) == 1){
-    plot_title <- feature_title
-    legend_title <- as.list(rep("Log.Exp", length(features)))
-    names(legend_title) <- features
-  } else if(length(features) == 1 && length(assay_names) > 1){
-    plot_title <- assay_title
-    legend_title <- feature_title
-  } else {
-    plot_title <- as.list(assay_title)
-    names(plot_title) <- assay_names
-    legend_title <- as.list(features)
-    names(legend_title) <- features
-  }
+  # if(length(features) > 1 && length(assay_names) > 1){
+  #   plot_title <- assay_title
+  #   legend_title <- feature_title
+  # } else if(length(features) > 1 && length(assay_names) == 1){
+  #   plot_title <- feature_title
+  #   legend_title <- as.list(rep("Log.Exp", length(features)))
+  #   names(legend_title) <- features
+  # } else if(length(features) == 1 && length(assay_names) > 1){
+  #   plot_title <- assay_title
+  #   legend_title <- feature_title
+  # } else {
+  #   plot_title <- as.list(assay_title)
+  #   names(plot_title) <- assay_names
+  #   legend_title <- as.list(features)
+  #   names(legend_title) <- features
+  # }
+  plot_title <- assay_title
+  legend_title <- feature_title
 
   # for each feature
   i <- 1
@@ -81,6 +91,7 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
 
       # get assay
       cur_assay <- object[[assy]]
+      cur_metadata <- object
 
       # normalize
       info <- image_info(cur_assay@image)
@@ -88,14 +99,18 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
       coords <- as.data.frame(cur_assay@coords)
       normdata <- cur_assay@normdata
 
-      # get data
-      coords$score <- normdata[feat,]
-
       # plotting features
-      group.by_labels <- Metadata(object, type = "ROI")
-      coords[[group.by]] <- group.by_labels[grepl(assy, rownames(group.by_labels)),group.by]
+      metadata <- Metadata(object, type = "ROI")
+      coords[[group.by]] <- metadata[grepl(assy, rownames(metadata)),group.by]
       p_title <- plot_title[[assy]]
       l_title <- legend_title[[feat]]
+
+      # get data
+      if(feat %in% rownames(normdata)){
+        coords$score <- normdata[feat,]
+      } else {
+        coords$score <- metadata[,feat]
+      }
 
       # visualize
       gg[[i]] <- SpatFeatPlotSingle(coords = coords, image = image, feature = feat, limits = limits[[feat]][[assy]],
@@ -169,7 +184,7 @@ SpatFeatPlotSingle <- function(coords, image, feature, limits, group.by = "label
   # visualize labels
   if(label){
     g <- g + geom_label_repel(mapping = aes_string(x = "x", y = "y", label = group.by), coords,
-                                box.padding = 0.5, size = font.size, direction = "y", seed = 1)
+                                box.padding = 0.5, size = font.size, direction = "both", seed = 1)
   }
 
   # return data
