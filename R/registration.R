@@ -34,6 +34,10 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
       spatdata_list <- data_list
     }
 
+    # reference and query indices
+    centre <- floor(median(1:length(spatdata_list)))
+    register_ind <- setdiff(1:length(spatdata_list), centre)
+
   # reference vs query mode
   } else {
 
@@ -44,10 +48,15 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
     } else {
       spatdata_list <- list(reference_spatdata, query_spatdata)
     }
+
+    # reference and query indices
+    centre <- 1
+    register_ind <- 2
   }
 
   # get images from the list of objects
   orig_image_query_list <- unlist(lapply(spatdata_list, Image))
+
 
   ## UI and Server ####
 
@@ -65,9 +74,11 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
 
                       h4("Image Registration"),
                       fluidRow(
-                        column(12,shiny::actionButton("manualregister", "Manuel Registration")),
+                        column(12,shiny::actionButton("manualregister", "Manual Registration")),
+                        br(),
                         br(),
                         column(12,shiny::actionButton("automaticregister", "Auto Registration")),
+                        br(),
                         br(),
                         column(12,shiny::actionButton("done", "Done")),
                       ),
@@ -99,7 +110,7 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
                              br(),
 
                              # Registered Query Images
-                             RegisteredImageTabPanels(length(orig_image_query_list))
+                             RegisteredImageTabPanels(length(orig_image_query_list), centre, register_ind)
                       ),
 
                       # panel options
@@ -111,27 +122,27 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
     server <- function(input, output, session) {
 
       ### Manage interface ####
-      UpdateSequentialTabPanels(input, output, session, length(orig_image_query_list))
+      UpdateSequentialTabPanels(input, output, session, centre, register_ind)
 
       ### Transform images ####
       trans_image_query_list <- transform_magick_image_query_list(orig_image_query_list, input, session)
 
       ### Manage reference and query keypoints ####
       xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
-      manageKeypoints(xyTable_list, trans_image_query_list, input, output, session)
+      manageKeypoints(centre, register_ind, xyTable_list, trans_image_query_list, input, output, session)
 
       ### Image registration ####
       registered_spatdata_list <- QueryMatrices(length(spatdata_list))
       getManualRegisteration(registered_spatdata_list, spatdata_list, orig_image_query_list, xyTable_list,
-                             input, output, session)
+                             centre, register_ind, input, output, session)
       getAutomatedRegisteration(registered_spatdata_list, spatdata_list, orig_image_query_list,
-                             input, output, session)
+                                centre, register_ind, input, output, session)
 
       ### Main observable ####
       observe({
 
         # output the list of query images
-        ImageOutput(orig_image_query_list, xyTable_list, input, output, session)
+        ImageOutput(orig_image_query_list, xyTable_list, centre, input, output, session)
 
       })
 
@@ -192,17 +203,29 @@ ImageTabPanels <- function(len_images, type){
 #' The UI for a set of query spatial slides
 #'
 #' @param len_images the number of query images
+#' @param centre center image index
+#' @param register_ind query image indices
 #'
 #' @return tabsetpanel
 #'
-RegisteredImageTabPanels <- function(len_images){
-  do.call(tabsetPanel, c(id='image_tab_panel_reg_query',lapply(1:len_images, function(i) {
-    tabPanel(paste0("Reg. Query ",i),
+RegisteredImageTabPanels <- function(len_images, centre, register_ind){
+
+  # tab panels
+  do.call(tabsetPanel, c(id='image_tab_panel_reg_query',lapply(register_ind, function(i) {
+    tabPanel(paste0("Reg. ",i, "->", centre),
              br(),
              column(6, sliderInput(paste0("plot_query_reg_alpha",i), label = "Alpha Level", min = 0, max = 1, value = 0.2)),
              fluidRow(imageOutput(paste0("plot_query_reg",i)))
     )
   })))
+
+  # do.call(tabsetPanel, c(id='image_tab_panel_reg_query',lapply(1:len_images, function(i) {
+  #   tabPanel(paste0("Reg. Query ",i),
+  #            br(),
+  #            column(6, sliderInput(paste0("plot_query_reg_alpha",i), label = "Alpha Level", min = 0, max = 1, value = 0.2)),
+  #            fluidRow(imageOutput(paste0("plot_query_reg",i)))
+  #   )
+  # })))
 }
 
 #' UpdateSequentialTabPanels
@@ -212,9 +235,13 @@ RegisteredImageTabPanels <- function(len_images){
 #' @param input input
 #' @param output output
 #' @param session session
-#' @param npanels the number of panels in both reference and query image sections
+#' @param centre center image index
+#' @param register_ind query image indices
 #'
-UpdateSequentialTabPanels <- function(input, output, session, npanels){
+UpdateSequentialTabPanels <- function(input, output, session, centre, register_ind){
+
+  # number of panels
+  npanels <- length(register_ind) + 1
 
   # observe changes in the reference tab panel
   observeEvent(input$image_tab_panel_ref,{
@@ -224,7 +251,7 @@ UpdateSequentialTabPanels <- function(input, output, session, npanels){
     query_panel_ind <- (selected_panel_ind + 1)
     if(query_panel_ind == 1) query_panel_ind <- npanels
     updateTabsetPanel(session, "image_tab_panel_query", paste0("Query ", query_panel_ind))
-    updateTabsetPanel(session, "image_tab_panel_reg_query", paste0("Reg. Query ", query_panel_ind))
+    updateTabsetPanel(session, "image_tab_panel_reg_query", paste0("Reg. ",selected_panel_ind, "->", centre))
 
     if(selected_panel_ind == npanels)
       updateTabsetPanel(session, "image_tab_panel_ref", paste0("Ref. ", selected_panel_ind-1))
@@ -241,17 +268,18 @@ UpdateSequentialTabPanels <- function(input, output, session, npanels){
 
     if(selected_panel_ind == 1){
       updateTabsetPanel(session, "image_tab_panel_query", paste0("Query ", selected_panel_ind+1))
-      updateTabsetPanel(session, "image_tab_panel_reg_query", paste0("Reg. Query ", selected_panel_ind+1))
+      updateTabsetPanel(session, "image_tab_panel_reg_query", paste0("Reg. ",selected_panel_ind+1, "->", centre))
     } else {
       query_panel_ind <- selected_panel_ind
-      updateTabsetPanel(session, "image_tab_panel_reg_query", paste0("Reg. Query ", query_panel_ind))
+      updateTabsetPanel(session, "image_tab_panel_reg_query", paste0("Reg. ",query_panel_ind, "->", centre))
     }
   })
 
   # observe changes in the registered query tab panel
   observeEvent(input$image_tab_panel_reg_query,{
     selected_panel <- input$image_tab_panel_reg_query
-    selected_panel_ind <- as.numeric(strsplit(selected_panel, split = " ")[[1]][3])
+    selected_panel_ind <- strsplit(selected_panel, split = " ")[[1]][2]
+    selected_panel_ind <- as.numeric(strsplit(selected_panel_ind, split = "->")[[1]][1])
     updateTabsetPanel(session, "image_tab_panel_query", paste0("Query ", selected_panel_ind))
   })
 }
@@ -269,11 +297,11 @@ UpdateSequentialTabPanels <- function(input, output, session, npanels){
 #' @param register_ind the indices of query images/spatialdatasets
 #' @param centre the index of the central referance image/spatialdata
 #'
-getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre) {
+getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, ...) {
 
   # check if the elements are SpaceRover
   if(all(sapply(obj_list, class) == "SpaceRover")){
-    sr <- getRegisteredObject.SpaceRover(obj_list, mapping_list, register_ind, centre)
+    sr <- getRegisteredObject.SpaceRover(obj_list, mapping_list, register_ind, centre, ...)
     registered_sr <- list()
     for(i in 1:length(sr)){
       registered_sr[[i]] <- sr[[i]]
@@ -285,7 +313,7 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre) {
     return_list <- mapply(function(o,t) {
       if(is.null(t))
         return(NULL)
-      getRegisteredObject.Seurat(o,t)
+      getRegisteredObject.Seurat(o, t, ...)
     }, obj_list, mapping_list)
     return(return_list)
   }
@@ -295,14 +323,17 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre) {
 #'
 #' get registered and merged SpaceRover object composed of several Samples
 #'
-#' @param sr_list a list of SpaceRover objects
+#' @param sr a list of SpaceRover objects
 #' @param mapping_list a list of transformation matrices
 #' @param register_ind the indices of query images/spatialdatasets
-#' @param centre the index of the central referance image/spatialdata
+#' @param centre the index of the central reference image/spatialdata
+#' @param reg_mode the registration mode, either "auto" or "manual"
 #'
-getRegisteredObject.SpaceRover <- function(sr, mapping_list, register_ind, centre){
+#' @importFrom Morpho applyTransform
+#'
+getRegisteredObject.SpaceRover <- function(sr, mapping_list, register_ind, centre, reg_mode = "manual"){
 
-  # initiate registered spacerover objects
+  # initiate registered SpaceRover objects
   ref_ind <- centre
   registered_sr <- sr
   for(i in register_ind){
@@ -311,10 +342,17 @@ getRegisteredObject.SpaceRover <- function(sr, mapping_list, register_ind, centr
     entities <- rownames(coords)
     for(kk in 1:length(mapping)){
       cur_mapping <- mapping[[kk]]
-      coords <- applyTransform(coords, cur_mapping)
+      if(reg_mode == "manual"){
+        coords <- Morpho::applyTransform(coords, cur_mapping)
+      } else {
+        info <- image_info(Image(registered_sr[[i]])[[1]])
+        coords[,2] <- info$height - coords[,2]
+        coords <- perspectiveTransform(coords, cur_mapping)
+        coords[,2] <- info$height - coords[,2]
+      }
     }
     rownames(coords) <- entities
-    Coordinates(registered_sr[[i]]) <- coords
+    Coordinates(registered_sr[[i]], reg = TRUE) <- coords
   }
   return(registered_sr)
 }
@@ -396,8 +434,8 @@ rescaleXeniumCells <- function(cells, bbox, image){
 #'
 #' Initiate shiny reactive values for keypoint dataframes for pairwise reference and query images
 #'
-#' @param len_images the number of query images
-#' @param keypoints_list the keypoints list of query images
+#' @param len_images the length of images
+#' @param keypoints_list the list of keypoint pairs
 #' @param input shiny input
 #' @param output shiny output
 #' @param session shiny session
@@ -415,7 +453,7 @@ initateKeypoints <- function(len_images, keypoints_list, input, output, session)
     })
 
     # set names for keypoints
-    names(keypoints_list) <- paste0(1:(len_images-1),"->",2:(len_images))
+    names(keypoints_list) <- paste0(1:(len_images-1),"-",2:len_images)
   }
 
   # return keypoints as reactive values
@@ -426,13 +464,15 @@ initateKeypoints <- function(len_images, keypoints_list, input, output, session)
 #'
 #' A list of shiny observe events for tables and auxiliary operations for pairwise reference and query image
 #'
+#' @param centre center image index
+#' @param register_ind query image indices
 #' @param xyTable_list a list of keypoints x,y coordinates for each magick image
 #' @param image_list a lost of magick image
 #' @param input shiny input
 #' @param output shiny output
 #' @param session shiny session
 #'
-manageKeypoints <- function(xyTable_list, image_list, input, output, session){
+manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, input, output, session){
 
   # get image types
   image_types <- c("ref","query")
@@ -460,22 +500,25 @@ manageKeypoints <- function(xyTable_list, image_list, input, output, session){
 
         # insert keypoint to associated table
         ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
-        temp <- xyTable_list[[paste0(ref_ind, "->", ref_ind+1)]][[type]]
+        temp <- xyTable_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]]
         temp <- temp %>%
           add_row(KeyPoint = nrow(temp)+1, x = keypoint$x, y = keypoint$y)
-        xyTable_list[[paste0(ref_ind, "->", ref_ind+1)]][[type]] <- temp
+        xyTable_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]] <- temp
       })
     })
   })
 
-  # remove keypoints from query images
+  # remove keypoints from images
   lapply(1:len_tables, function(i){
-    observeEvent(input[[paste0("remove_query",i)]], {
-      temp <- xyTable_list[[paste0(i)]]
-      if(nrow(temp) > 0){
-        temp <- temp %>% filter(KeyPoint != nrow(temp))
-        xyTable_list[[paste0(i)]] <- temp
-      }
+    lapply(image_types, function(type){
+      observeEvent(input[[paste0("remove_", type, i)]], {
+        ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
+        temp <- xyTable_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]]
+        if(nrow(temp) > 0){
+          temp <- temp %>% filter(KeyPoint != nrow(temp))
+          xyTable_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]] <- temp
+        }
+      })
     })
   })
 }
@@ -669,11 +712,12 @@ image_ggplot_keypoint <- function(image, keypoints){
 #'
 #' @param image_list a list of magick images
 #' @param keypoints_list a list of data frames, each having a set of keypoints
+#' @param centre the center image index
 #' @param input shiny input
 #' @param output shiny output
 #' @param session shiny session
 #'
-ImageOutput <- function(image_list, keypoints_list = NULL, input, output, session){
+ImageOutput <- function(image_list, keypoints_list = NULL, centre, input, output, session){
 
   # get image types
   image_types <- c("ref","query")
@@ -688,7 +732,7 @@ ImageOutput <- function(image_list, keypoints_list = NULL, input, output, sessio
 
         # select keypoints
         ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
-        keypoints <- keypoints_list[[paste0(ref_ind, "->", ref_ind+1)]][[type]]
+        keypoints <- keypoints_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]]
 
         # transform image and keypoints
         img <- transform_magick_image_keypoints(image_list[[i]], keypoints, paste0(type, "_image",i), input, session)
@@ -732,7 +776,6 @@ transform_magick_image <- function(image, extension, input, session){
 #' Apply given transformations to a list of magick image and return shiny reactive
 #'
 #' @param image_list magick image
-#' @param extension name extension for the shiny input parameter
 #' @param input shiny input
 #' @param session shiny session
 #'
@@ -740,10 +783,13 @@ transform_magick_image <- function(image, extension, input, session){
 #'
 transform_magick_image_query_list <- function(image_list, input, session){
 
-  trans_query_list <- lapply(1:length(image_list), function(i){
+  # length of images
+  len_register <- length(image_list) - 1
+
+  trans_query_list <- lapply(1:len_register, function(i){
     reactive({
       list(ref = transform_magick_image(image_list[[i]], paste0("ref_image",i), input, session),
-           query = transform_magick_image(image_list[[i]], paste0("query_image",i), input, session))
+           query = transform_magick_image(image_list[[i+1]], paste0("query_image",i), input, session))
     })
   })
   return(trans_query_list)
@@ -776,12 +822,14 @@ QueryMatrices <- function(len_images, input, output, session){
 
 #' getManualRegisteration
 #'
-#' Manuel registeration of images using manually entered keypoints
+#' Manual registeration of images using manually entered keypoints
 #'
 #' @param registered_spatdata_list a list of registered Spatial data object of the query images, updated with image registration
 #' @param spatdata_list a list of Spatial data object of the query images
 #' @param image_list the list of query images
 #' @param keypoints_list a list of keypoints x,y coordinates for query image
+#' @param centre center image index
+#' @param register_ind query image indices
 #' @param input shiny input
 #' @param output shiny output
 #' @param session shiny session
@@ -789,14 +837,10 @@ QueryMatrices <- function(len_images, input, output, session){
 #' @import Morpho
 #'
 getManualRegisteration <- function(registered_spatdata_list, spatdata_list, image_list, keypoints_list,
-                                   input, output, session){
+                                   centre, register_ind, input, output, session){
 
   # the number of registrations
   len_register <- length(image_list) - 1
-
-  # index of the reference data vs query data
-  centre <- floor(median(1:length(image_list)))
-  register_ind <- setdiff(1:length(image_list), centre)
 
   # Registration events
   observeEvent(input$manualregister, {
@@ -815,7 +859,7 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
     for(i in register_ind){
 
       # get a sequential mapping between a query and reference image
-      mapping <- computeManuelPairwiseTransform(keypoints_list, query_ind = i, ref_ind = centre)
+      mapping <- computeManualPairwiseTransform(keypoints_list, query_ind = i, ref_ind = centre)
 
       # save transformation matrix
       mapping_list[[i]] <- mapping
@@ -829,12 +873,11 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
     # Plot registered images
     lapply(register_ind, function(i){
       cur_mapping <- mapping_list[[i]]
-      images <- getManuelRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
-      tar_ind <- which(register_ind == i) + 1
-      output[[paste0("plot_query_reg",tar_ind)]] <- renderPlot({
+      images <- getManualRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
+      output[[paste0("plot_query_reg",i)]] <- renderPlot({
         info <- image_info(image_list[[centre]])
         r2 <- as.raster(images$query)
-        r2 <- rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",tar_ind)]]))
+        r2 <- rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",i)]]))
         ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
           ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
           ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
@@ -853,7 +896,7 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
   })
 }
 
-computeManuelPairwiseTransform <- function(keypoints_list, query_ind, ref_ind){
+computeManualPairwiseTransform <- function(keypoints_list, query_ind, ref_ind){
 
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -865,12 +908,12 @@ computeManuelPairwiseTransform <- function(keypoints_list, query_ind, ref_ind){
   for(kk in 1:nrow(mapping)){
     cur_map <- mapping[kk,]
     if(which.min(cur_map) == 1){
-      key_ind <- paste0(cur_map[1], "->", cur_map[2])
+      key_ind <- paste0(cur_map[1], "-", cur_map[2])
       keypoints <- keypoints_list[[key_ind]]
       target_landmark <- as.matrix(keypoints[["ref"]][,c("x","y")])
       reference_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
     } else {
-      key_ind <- paste0(cur_map[2], "->", cur_map[1])
+      key_ind <- paste0(cur_map[2], "-", cur_map[1])
       keypoints <- keypoints_list[[key_ind]]
       reference_landmark <- as.matrix(keypoints[["ref"]][,c("x","y")])
       target_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
@@ -882,7 +925,7 @@ computeManuelPairwiseTransform <- function(keypoints_list, query_ind, ref_ind){
   return(mapping_list)
 }
 
-getManuelRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, input){
+getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, input){
 
   # plot with raster
   ref_image_raster <- as.raster(images[[ref_ind]]) |> as.matrix() |> rast()
@@ -918,55 +961,56 @@ getManuelRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, in
 
 #' getManualRegisteration
 #'
-#' Manuel registeration of images using manually entered keypoints
+#' Manual registeration of images using manually entered keypoints
 #'
 #' @param registered_spatdata_list a list of registered Spatial data object of the query images, updated with image registration
 #' @param spatdata_list a list of Spatial data object of the query images
 #' @param image_list the list of query images
+#' @param centre center image index
+#' @param register_ind query image indices
 #' @param input shiny input
 #' @param output shiny output
 #' @param session shiny session
 #'
 #' @import Morpho
 #'
-getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, image_list,
-                                   input, output, session){
+getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, image_list, centre, register_ind,
+                                      input, output, session){
 
   # the number of registrations
   len_register <- length(image_list) - 1
-
-  # index of the reference data vs query data
-  centre <- floor(median(1:length(image_list)))
-  register_ind <- setdiff(1:length(image_list), centre)
 
   # Registration events
   observeEvent(input$automaticregister, {
 
     # Register keypoints
     mapping_list <- list()
+    aligned_image_list <- list()
     for(i in register_ind){
 
       # get a sequential mapping between a query and reference image
-      mapping <- computeAutomatedPairwiseTransform(spatdata_list, query_ind = i, ref_ind = centre)
+      results <- computeAutomatedPairwiseTransform(image_list, query_ind = i, ref_ind = centre)
 
       # save transformation matrix
-      mapping_list[[i]] <- mapping
+      mapping_list[[i]] <- results$mapping
+
+      # save alignment
+      aligned_image_list[[i]] <- results$aligned_image
     }
 
     # get registered spatial datasets
-    temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre)
+    temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre, reg_mode = "auto")
     for(i in 1:length(temp_reg_list))
       registered_spatdata_list[[paste0(i)]] <- temp_reg_list[[i]]
 
     # Plot registered images
     lapply(register_ind, function(i){
       cur_mapping <- mapping_list[[i]]
-      images <- getAutomatedRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
-      tar_ind <- which(register_ind == i) + 1
-      output[[paste0("plot_query_reg",tar_ind)]] <- renderPlot({
+      cur_aligned_image <- aligned_image_list[[i]]
+      output[[paste0("plot_query_reg",i)]] <- renderPlot({
         info <- image_info(image_list[[centre]])
-        r2 <- as.raster(images$query)
-        r2 <- rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",tar_ind)]]))
+        r2 <- as.raster(cur_aligned_image)
+        r2 <- rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",i)]]))
         ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
           ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
           ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
@@ -985,34 +1029,27 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
   })
 }
 
-computeAutomatedPairwiseTransform <- function(spatdata_list, query_ind, ref_ind){
+computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind){
 
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
-  mapping <- rep(indices,c(1,rep(2,length(indices)-2),1))
-  mapping <- matrix(mapping,ncol=2,byrow=TRUE)
+  mapping_mat <- rep(indices,c(1,rep(2,length(indices)-2),1))
+  mapping_mat <- matrix(mapping_mat,ncol=2,byrow=TRUE)
 
   # reference and target landmarks/keypoints
-  mapping_list <- list()
-  for(kk in 1:nrow(mapping)){
-    cur_map <- mapping[kk,]
-    if(which.min(cur_map) == 1){
-      key_ind <- paste0(cur_map[1], "->", cur_map[2])
-      keypoints <- keypoints_list[[key_ind]]
-      target_landmark <- as.matrix(keypoints[["ref"]][,c("x","y")])
-      reference_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
-    } else {
-      key_ind <- paste0(cur_map[2], "->", cur_map[1])
-      keypoints <- keypoints_list[[key_ind]]
-      reference_landmark <- as.matrix(keypoints[["ref"]][,c("x","y")])
-      target_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
-    }
+  mapping <- list()
+  aligned_image <- image_list[[query_ind]]
+  for(kk in 1:nrow(mapping_mat)){
+    cur_map <- mapping_mat[kk,]
+    ref_image <- image_list[[cur_map[2]]]
 
     # compute and get transformation matrix
-    mapping_list[[kk]] <- computeTransform(reference_landmark, target_landmark, type = "tps")
+    reg <- automated_registration_rcpp(ref_image = ref_image, query_image = aligned_image,  0.20, 1000)
+    mapping[[kk]] <- reg$transmat
+    aligned_image <- reg$aligned_image
   }
 
-  return(mapping_list)
+  return(list(mapping = mapping, aligned_image = aligned_image))
 }
 
 #' automated_registration
