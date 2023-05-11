@@ -1,5 +1,5 @@
 ####
-# ROI plotting ####
+# Feature plots ####
 ####
 
 #' SFPlotMulti
@@ -14,11 +14,12 @@
 #' @param ncol ncol
 #' @param nrow nrow
 #' @param font.size font sizes
+#' @param pt.size point size
 #' @param keep.scale whether unify all scales for all features or not
 #'
 #' @export
 #'
-SFPlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol = 2, nrow = NULL, font.size = 2, keep.scale = "feature", label = FALSE) {
+SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol = 2, nrow = NULL, font.size = 2, pt.size = 10, keep.scale = "feature", label = FALSE) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -37,10 +38,18 @@ SFPlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol =
     }
   }
 
+
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
     range_feat <- Map(function(assy){
-      range(object[[assy]]@normdata[feat, ])
+      normdata <- object[[assy]]@normdata
+      metadata <- Metadata(object, type = "ROI")
+      metadata <- metadata[grepl(assy, rownames(metadata)),]
+      if(feat %in% rownames(normdata)){
+        range(normdata[feat, ])
+      } else {
+        range(metadata[,feat])
+      }
     }, assay_names)
     if(keep.scale == "all"){
       range_feat_all <- c(do.call(min, range_feat), do.call(max, range_feat))
@@ -54,22 +63,24 @@ SFPlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol =
   names(assay_title) <- assay_names
   feature_title <- as.list(features)
   names(feature_title) <- features
-  if(length(features) > 1 && length(assay_names) > 1){
-    plot_title <- assay_title
-    legend_title <- feature_title
-  } else if(length(features) > 1 && length(assay_names) == 1){
-    plot_title <- feature_title
-    legend_title <- as.list(rep("Log.Exp", length(features)))
-    names(legend_title) <- features
-  } else if(length(features) == 1 && length(assay_names) > 1){
-    plot_title <- assay_title
-    legend_title <- feature_title
-  } else {
-    plot_title <- as.list(assay_title)
-    names(plot_title) <- assay_names
-    legend_title <- as.list(features)
-    names(legend_title) <- features
-  }
+  # if(length(features) > 1 && length(assay_names) > 1){
+  #   plot_title <- assay_title
+  #   legend_title <- feature_title
+  # } else if(length(features) > 1 && length(assay_names) == 1){
+  #   plot_title <- feature_title
+  #   legend_title <- as.list(rep("Log.Exp", length(features)))
+  #   names(legend_title) <- features
+  # } else if(length(features) == 1 && length(assay_names) > 1){
+  #   plot_title <- assay_title
+  #   legend_title <- feature_title
+  # } else {
+  #   plot_title <- as.list(assay_title)
+  #   names(plot_title) <- assay_names
+  #   legend_title <- as.list(features)
+  #   names(legend_title) <- features
+  # }
+  plot_title <- assay_title
+  legend_title <- feature_title
 
   # for each feature
   i <- 1
@@ -80,6 +91,7 @@ SFPlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol =
 
       # get assay
       cur_assay <- object[[assy]]
+      cur_metadata <- object
 
       # normalize
       info <- image_info(cur_assay@image)
@@ -87,18 +99,22 @@ SFPlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol =
       coords <- as.data.frame(cur_assay@coords)
       normdata <- cur_assay@normdata
 
-      # get data
-      coords$score <- normdata[feat,]
-
       # plotting features
-      group.by_labels <- Metadata(object, type = "ROI")
-      coords[[group.by]] <- group.by_labels[grepl(assy, rownames(group.by_labels)),group.by]
+      metadata <- Metadata(object, type = "ROI")
+      coords[[group.by]] <- metadata[grepl(assy, rownames(metadata)),group.by]
       p_title <- plot_title[[assy]]
       l_title <- legend_title[[feat]]
 
+      # get data
+      if(feat %in% rownames(normdata)){
+        coords$score <- normdata[feat,]
+      } else {
+        coords$score <- metadata[,feat]
+      }
+
       # visualize
-      gg[[i]] <- SFPlotSingle(coords = coords, image = image, feature = feat, limits = limits[[feat]][[assy]],
-                              group.by = group.by, font.size = font.size, keep.scale = keep.scale,
+      gg[[i]] <- SpatFeatPlotSingle(coords = coords, image = image, feature = feat, limits = limits[[feat]][[assy]],
+                              group.by = group.by, font.size = font.size, pt.size = pt.size, keep.scale = keep.scale,
                               label = label, plot_title = p_title, legend_title = l_title)
       i <- i + 1
     }
@@ -116,7 +132,25 @@ SFPlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol =
   }
 }
 
-SFPlotSingle <- function(coords, image, feature, limits, group.by = "label", font.size = 2, keep.scale = "feature", label = FALSE, plot_title = NULL, legend_title = NULL){
+#' SpatFeatPlotSingle
+#'
+#' @param coords
+#' @param image
+#' @param feature
+#' @param limits
+#' @param group.by
+#' @param font.size
+#' @param pt.size
+#' @param keep.scale
+#' @param label
+#' @param plot_title
+#' @param legend_title
+#'
+#' @return
+#' @export
+#'
+#' @examples
+SpatFeatPlotSingle <- function(coords, image, feature, limits, group.by = "label", font.size = 2, pt.size = 10, keep.scale = "feature", label = FALSE, plot_title = NULL, legend_title = NULL){
 
   # get image information and plotting features
   info <- image_info(image)
@@ -137,20 +171,20 @@ SFPlotSingle <- function(coords, image, feature, limits, group.by = "label", fon
   # visualize with ggplot
   g <- ggplot() +
     ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE) +
-    geom_point(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, size = 10) +
+    geom_point(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, size = pt.size) +
     scale_fill_gradientn(name = legend_title,
                          colors=c("dodgerblue2", "white", "yellow3"),
                          values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits) +
-    ggtitle(plot_title) + theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,-15,0)), panel.background = element_blank(), panel.grid.minor = element_blank(),
+    ggtitle(plot_title) + theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,-10,0)), panel.background = element_blank(), panel.grid.minor = element_blank(),
                                 axis.line=element_blank(),axis.text.x=element_blank(), axis.text.y=element_blank(),
                                 axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
-                                legend.margin = margin(0,0,0,-20)) +
+                                legend.margin = margin(0,0,0,-10)) +
     xlim(0,info$width) + ylim(0, info$height)
 
   # visualize labels
   if(label){
     g <- g + geom_label_repel(mapping = aes_string(x = "x", y = "y", label = group.by), coords,
-                                box.padding = 0.5, size = font.size, direction = "y", seed = 1)
+                                box.padding = 0.5, size = font.size, direction = "both", seed = 1)
   }
 
   # return data
@@ -158,155 +192,9 @@ SFPlotSingle <- function(coords, image, feature, limits, group.by = "label", fon
 }
 
 ####
-# old functions ####
+# FeatPlot ####
 ####
 
-#' SFPlotold
-#'
-#' Functions for plotting spatial objects
-#'
-#' @param object SpaceRover object
-#' @param features a vector of features to visualize
-#' @param ncol ncol
-#' @param nrow nrow
-#' @param sample sample names matching spatial points (i.e. entities)
-#' @param font.size font sizes
-#' @param keep.scale whether unify all scales for all features or not
-#' @param mode plotting mode for different spatial entities, ROI, Spot or cell
-#' @param split.by split by a metadata element
-#'
-#' @export
-#'
-SFPlotold <- function(object, features, ncol = 3, nrow = NULL, sample = NULL, font.size = 2, keep.scale = "feature", mode = "ROI") {
+FeatPlot <- function(object, features, group.by = "label", assay = "GeoMx") {
 
-  # get assay
-  assay <- GeoMxR1_subset[[object@sample.metadata$Sample, object@sample.metadata$Layer]][[MainAssay(object)]]
-
-  # normalize
-  info <- image_info(assay@image)
-  image <- assay@image
-  coords <- as.data.frame(assay@coords)
-  normdata <- assay@normdata
-
-  # Check keep.scale param for valid entries
-  if (!(is.null(x = keep.scale)) && !(keep.scale %in% c("feature", "all"))) {
-    stop("`keep.scale` must be set to either `feature`, `all`, or NULL")
-  }
-
-  # calculate limits for plotting
-  if(keep.scale == "all") {
-    normdata <- normdata[features,, drop = FALSE]
-    limits <- lapply(1:length(features), function(x) range(normdata))
-  } else if(keep.scale == "feature"){
-    normdata <- normdata[features,, drop = FALSE]
-    limits <- lapply(features, function(feat) range(normdata[feat,]))
-  }
-  midpoint <- lapply(limits, function(x) sum(x)/2)
-
-  # visualize for either one feature or multiple features
-  if(length(features) > 1){
-    gg <- list()
-    for(i in 1:length(features)){
-      coords$feature <- normdata[features[i],]
-      g1 <- ggplot() +
-        ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
-        ggplot2::annotation_raster(assay@image, 0, info$width, info$height, 0, interpolate = FALSE) +
-        geom_point(mapping = aes(x = x, y = y, fill = feature), coords, shape = 21, size = 10) +
-        scale_fill_gradientn(name = "Log.Exp.",
-                             # low = "darkgreen", mid = "white", high = "yellow2",
-                             colors=c("dodgerblue2", "white", "yellow3"),
-                             values=scales::rescale(c(limits[[i]][1],midpoint[[i]],limits[[i]][2])), limits = limits[[i]]) +
-        NoAxes() +
-        ggtitle(paste(features[i])) +
-        theme(plot.title = element_text(hjust = 0.5))
-      gg[[i]]  <- g1 + geom_label_repel(mapping = aes(x = x, y = y, label = sample), coords,
-                                        box.padding = 0.5, size = font.size, direction = "y", seed = 1)
-    }
-    if(length(gg) > ncol){
-      nrow <- ceiling(length(gg)/ncol)
-    } else{
-      ncol <- length(gg)
-    }
-    return(ggarrange(plotlist = gg, ncol = ncol, nrow = nrow))
-  } else {
-    coords$score <- normdata[features,]
-    g1 <- ggplot() +
-      ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
-      ggplot2::annotation_raster(assay@image, 0, info$width, info$height, 0, interpolate = FALSE) +
-      geom_point(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, size = 10) +
-      scale_fill_gradientn(name = "Log.Exp.",
-                           # low = "darkgreen", mid = "white", high = "yellow2",
-                           colors=c("dodgerblue2", "white", "yellow3"),
-                           values=scales::rescale(c(limits[[1]][1],midpoint[[1]],limits[[1]][2])), limits = limits[[1]]) +
-      NoAxes() +
-      ggtitle(paste(features[1])) +
-      theme(plot.title = element_text(hjust = 0.5))
-    g1 <- g1 + geom_label_repel(mapping = aes(x = x, y = y, label = sample_names), coords,
-                                box.padding = 0.5, size = font.size, direction = "y", seed = 1)
-    return(g1)
-  }
-}
-
-#' SFPlotMulti2
-#'
-#' Functions for plotting spatial objects
-#'
-#' @param object SpaceRover object
-#' @param features a vector of features to visualize
-#' @param sample sample names matching spatial points (i.e. entities)
-#' @param split.by split by a metadata element
-#' @param mode plotting mode for different spatial entities, ROI, Spot or cell
-#' @param ncol ncol
-#' @param nrow nrow
-#' @param font.size font sizes
-#' @param keep.scale whether unify all scales for all features or not
-#'
-#' @export
-#'
-SFPlotMulti2 <- function(object, features, sample = NULL, split.by = NULL, assay = "GeoMx", ncol = 3, nrow = NULL, font.size = 2, keep.scale = "feature") {
-
-  # sample metadata
-  sample.metadata <- SampleMetadata(object)
-
-  # list of plots
-  gg <- list()
-
-  # normalize
-  info <- image_info(assay@image)
-  image <- assay@image
-  coords <- as.data.frame(assay@coords)
-  normdata <- assay@normdata
-
-  # Check keep.scale param for valid entries
-  if (!(is.null(x = keep.scale)) && !(keep.scale %in% c("feature", "all"))) {
-    stop("`keep.scale` must be set to either `feature`, `all`, or NULL")
-  }
-
-  # calculate limits for plotting, all for making one scale, feature for making multiple
-  if(keep.scale == "all") {
-    normdata <- normdata[features,, drop = FALSE]
-    limits <- lapply(1:length(features), function(x) range(normdata))
-  } else if(keep.scale == "feature"){
-    normdata <- normdata[features,, drop = FALSE]
-    limits <- lapply(features, function(feat) range(normdata[feat,]))
-  }
-
-  # visualize for either one feature or multiple features
-  if(length(features) > 1){
-    gg <- list()
-    for(i in 1:length(features)){
-      coords$score <- normdata[features[i],]
-      gg[[i]] <- SFPlotSingle(coords, image, limits[[i]], sample, font.size, features[i])
-    }
-    if(length(gg) > ncol){
-      nrow <- ceiling(length(gg)/ncol)
-    } else{
-      ncol <- length(gg)
-    }
-    return(ggarrange(plotlist = gg, ncol = ncol, nrow = nrow))
-  } else {
-    coords$score <- normdata[features,]
-    g1 <- SFPlotSingle(coords, image, limits[[1]], sample, font.size, features[1])
-    return(g1)
-  }
 }

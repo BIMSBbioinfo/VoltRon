@@ -4,13 +4,16 @@
 \alias{NormalizeData}
 \alias{NormalizeData.SpaceRover}
 \alias{NormalizeData.srAssay}
+\alias{NormalizeData.default}
 \title{Normalize Data}
 \usage{
 NormalizeData(object, ...)
 
 \method{NormalizeData}{SpaceRover}(object, ...)
 
-\method{NormalizeData}{srAssay}(object, method = "LogNormalize")
+\method{NormalizeData}{srAssay}(object, method = "LogNorm", desiredQuantile = 0.9)
+
+\method{NormalizeData}{default}(object, ...)
 }
 \arguments{
 \item{object}{An object}
@@ -23,3 +26,4 @@ Returns object after normalization
 \description{
 Normalize the count data present in a given assay.
 }
+\concept{preprocessing}

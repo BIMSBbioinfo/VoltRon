@@ -5,3 +5,7 @@ automated_registeration_rawvector <- function(ref_image, query_image, width1, he
     .Call('_spaceRover_automated_registeration_rawvector', PACKAGE = 'spaceRover', ref_image, query_image, width1, height1, width2, height2, GOOD_MATCH_PERCENT, MAX_FEATURES)
 }
 
+perspectiveTransform <- function(coords, hmatrix) {
+    .Call('_spaceRover_perspectiveTransform', PACKAGE = 'spaceRover', coords, hmatrix)
+}
+

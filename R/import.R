@@ -116,6 +116,7 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
   image_file <- paste0(dir.path, "/spatial/tissue_lowres_image.png")
   if(file.exists(image_file)){
     image <-  magick::image_read(image_file)
+    info <- image_info(image)
   } else {
     stop("There are no spatial image files in the path")
   }
@@ -127,7 +128,7 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
   } else {
     stop("There are no files named 'tissue_positions.csv' in the path")
   }
-  coords$pxl_row_in_fullres <- max(coords$pxl_row_in_fullres) - coords$pxl_row_in_fullres + min(coords$pxl_row_in_fullres)
+  # coords$pxl_row_in_fullres <- max(coords$pxl_row_in_fullres) - coords$pxl_row_in_fullres + min(coords$pxl_row_in_fullres)
   if(InTissue){
     coords <- coords[coords$in_tissue==1,]
     rawdata <- rawdata[,colnames(rawdata) %in% coords$barcode]
@@ -143,6 +144,7 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
     scalefactors <- jsonlite::read_json(path = scale_file)
     scales <- scalefactors$tissue_lowres_scalef
     coords <- coords*scales
+    coords[,2] <- info$height - coords[,2]
   } else {
     stop("There are no files named 'scalefactors_json.json' in the path")
   }
