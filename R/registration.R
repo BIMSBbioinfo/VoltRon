@@ -80,6 +80,9 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
                         column(12,shiny::actionButton("automaticregister", "Auto Registration")),
                         br(),
                         br(),
+                        textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = NULL, placeholder = NULL),
+                        textInput("MAX_FEATURES", "# of Features", value = "1000", width = NULL, placeholder = NULL),
+                        br(),
                         column(12,shiny::actionButton("done", "Done")),
                       ),
                       br(),
@@ -989,7 +992,7 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
     for(i in register_ind){
 
       # get a sequential mapping between a query and reference image
-      results <- computeAutomatedPairwiseTransform(image_list, query_ind = i, ref_ind = centre)
+      results <- computeAutomatedPairwiseTransform(image_list, query_ind = i, ref_ind = centre, input)
 
       # save transformation matrix
       mapping_list[[i]] <- results$mapping
@@ -1029,7 +1032,7 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
   })
 }
 
-computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind){
+computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, input){
 
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -1044,7 +1047,9 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind){
     ref_image <- image_list[[cur_map[2]]]
 
     # compute and get transformation matrix
-    reg <- automated_registration_rcpp(ref_image = ref_image, query_image = aligned_image,  0.20, 1000)
+    reg <- automated_registration_rcpp(ref_image = ref_image, query_image = aligned_image,
+                                       as.numeric(input$GOOD_MATCH_PERCENT), as.numeric(input$MAX_FEATURES))
+    # reg <- automated_registration_rcpp(ref_image = ref_image, query_image = aligned_image,  0.20, 1000)
     mapping[[kk]] <- reg$transmat
     aligned_image <- reg$aligned_image
   }
