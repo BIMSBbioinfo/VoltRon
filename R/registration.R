@@ -74,14 +74,16 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
 
                       h4("Image Registration"),
                       fluidRow(
+                        # column(12,shiny::actionButton("manualregister", "Manual Registration", width = "80%")),
                         column(12,shiny::actionButton("manualregister", "Manual Registration")),
                         br(),
                         br(),
+                        # column(12,shiny::actionButton("automaticregister", "Auto Registration", width = "80%")),
                         column(12,shiny::actionButton("automaticregister", "Auto Registration")),
                         br(),
                         br(),
-                        column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "100%", placeholder = NULL)),
-                        column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "100%", placeholder = NULL)),
+                        column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
+                        column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
                         br(),
                         column(12,shiny::actionButton("done", "Done")),
                       ),
@@ -101,7 +103,12 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
                       column(6,
 
                              # Reference Images
-                             ImageTabPanels(length(orig_image_query_list), type = "ref")
+                             ImageTabPanels(length(orig_image_query_list), type = "ref"),
+
+                             br(),
+
+                             # Matching Alignment
+                             AlignmentTabPanel(length(orig_image_query_list), centre, register_ind),
                       ),
 
                       # Interface for the query images
@@ -211,6 +218,27 @@ ImageTabPanels <- function(len_images, type){
 #'
 #' @return tabsetpanel
 #'
+AlignmentTabPanel <- function(len_images, centre, register_ind){
+
+  # tab panels
+  do.call(tabsetPanel, c(id='image_tab_panel_alignment',lapply(register_ind, function(i) {
+    tabPanel(paste0("Ali. ",i, "->", centre),
+             br(),
+             fluidRow(imageOutput(paste0("plot_alignment",i)))
+    )
+  })))
+}
+
+#' RegisteredImageTabPanels
+#'
+#' The UI for a set of query spatial slides
+#'
+#' @param len_images the number of query images
+#' @param centre center image index
+#' @param register_ind query image indices
+#'
+#' @return tabsetpanel
+#'
 RegisteredImageTabPanels <- function(len_images, centre, register_ind){
 
   # tab panels
@@ -221,14 +249,6 @@ RegisteredImageTabPanels <- function(len_images, centre, register_ind){
              fluidRow(imageOutput(paste0("plot_query_reg",i)))
     )
   })))
-
-  # do.call(tabsetPanel, c(id='image_tab_panel_reg_query',lapply(1:len_images, function(i) {
-  #   tabPanel(paste0("Reg. Query ",i),
-  #            br(),
-  #            column(6, sliderInput(paste0("plot_query_reg_alpha",i), label = "Alpha Level", min = 0, max = 1, value = 0.2)),
-  #            fluidRow(imageOutput(paste0("plot_query_reg",i)))
-  #   )
-  # })))
 }
 
 #' UpdateSequentialTabPanels
@@ -989,6 +1009,7 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
     # Register keypoints
     mapping_list <- list()
     aligned_image_list <- list()
+    alignment_image_list <- list()
     for(i in register_ind){
 
       # get a sequential mapping between a query and reference image
@@ -999,6 +1020,9 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
 
       # save alignment
       aligned_image_list[[i]] <- results$aligned_image
+
+      # save matches
+      alignment_image_list[[i]] <- results$alignment_image
     }
 
     # get registered spatial datasets
@@ -1018,6 +1042,14 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
           ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
           ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
           ggplot2::annotation_custom(r2, 0, info$width, 0, info$height)
+      })
+    })
+
+    # Plot Alignment
+    lapply(register_ind, function(i){
+      cur_alignment_image <- alignment_image_list[[i]]
+      output[[paste0("plot_alignment",i)]] <- renderPlot({
+        image_ggplot(cur_alignment_image)
       })
     })
 
@@ -1052,9 +1084,10 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
     # reg <- automated_registration_rcpp(ref_image = ref_image, query_image = aligned_image,  0.20, 1000)
     mapping[[kk]] <- reg$transmat
     aligned_image <- reg$aligned_image
+    alignment_image <- reg$alignment_image
   }
 
-  return(list(mapping = mapping, aligned_image = aligned_image))
+  return(list(mapping = mapping, aligned_image = aligned_image, alignment_image = alignment_image))
 }
 
 #' automated_registration
