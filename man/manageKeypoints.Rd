@@ -4,9 +4,21 @@
 \alias{manageKeypoints}
 \title{manageKeypoints}
 \usage{
-manageKeypoints(xyTable_list, image_list, input, output, session)
+manageKeypoints(
+  centre,
+  register_ind,
+  xyTable_list,
+  image_list,
+  input,
+  output,
+  session
+)
 }
 \arguments{
+\item{centre}{center image index}
+
+\item{register_ind}{query image indices}
+
 \item{xyTable_list}{a list of keypoints x,y coordinates for each magick image}
 
 \item{image_list}{a lost of magick image}

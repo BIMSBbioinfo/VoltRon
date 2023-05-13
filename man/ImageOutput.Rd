@@ -4,12 +4,14 @@
 \alias{ImageOutput}
 \title{ImageOutput}
 \usage{
-ImageOutput(image_list, keypoints_list = NULL, input, output, session)
+ImageOutput(image_list, keypoints_list = NULL, centre, input, output, session)
 }
 \arguments{
 \item{image_list}{a list of magick images}
 
 \item{keypoints_list}{a list of data frames, each having a set of keypoints}
+
+\item{centre}{the center image index}
 
 \item{input}{shiny input}
 

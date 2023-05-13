@@ -181,6 +181,7 @@ setMethod(
 #' @param metadata a metadata object of class \code{srMetadata}
 #' @param image the image of the data
 #' @param coord the coordinates of the spatial entities
+#' @param segments the segments of the spatial entities, optional
 #' @param sample.metadata a data frame of the sample metadata
 #' @param zstack the zstack graph to determine the adjacency of spatial entities across layers
 #' @param main.assay the name of the main assay of the object
@@ -193,7 +194,8 @@ setMethod(
 #' @export
 #' @import igraph
 #'
-CreateSpaceRover <- function(data, metadata = NULL, image = NULL, coords,
+CreateSpaceRover <- function(data, metadata = NULL, image = NULL,
+                             coords, segments = NULL,
                              sample.metadata = NULL, zstack = NULL,
                              main.assay = NULL, assay.type = "cell",
                              sample_name = NULL, layer_name = NULL,
@@ -220,7 +222,6 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL, coords,
   }
   entityID <- paste(entityID, "Assay1", sep = "_")
   colnames(data) <- entityID
-  # entityID <- paste(entityID, paste(c(main.assay, layer_name, sample_name), collapse = "_"), sep = "_")
 
   # set meta data
   if(is.null(metadata)){
@@ -241,6 +242,11 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL, coords,
     stop("There are no coordinates matrix provided!")
   }
 
+  # Segments
+  if(!is.null(segments)){
+    names(segments) <- entityID
+  }
+
   # set zgraph
   if(is.null(zstack)){
     spatial_entities <- Entities(metadata)
@@ -249,7 +255,7 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL, coords,
   }
 
   # create srAssay
-  Xenium_assay <- new("srAssay", rawdata = data, normdata = data, coords = coords, image = image, type = assay.type)
+  Xenium_assay <- new("srAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = image, type = assay.type)
   listofAssays <- list(Xenium_assay)
   names(listofAssays) <- main.assay
 
@@ -518,6 +524,59 @@ Coordinates.SpaceRover <- function(object, reg = FALSE, assay = NULL, ...) {
 
   # change coordinates
   Coordinates(srassay, reg = reg) <- value
+  srlayer[[cur_assay$Assay]] <- srassay
+  object[[cur_assay$Sample, cur_assay$Layer]] <- srlayer
+
+  return(object)
+}
+
+#' @rdname Segments
+#' @method Segments SpaceRover
+#'
+#' @export
+#'
+Segments.SpaceRover <- function(object, reg = FALSE, assay = NULL, ...) {
+
+  # check assays
+  if(is.null(assay))
+    assay = object@main.assay
+
+  # get all assays that are of main assay
+  assay_names <- unique(object@sample.metadata$Assay)
+  if(!assay %in% assay_names)
+    stop("There are no assays named '", assay, "' in this object!")
+  sample.metadata <- object@sample.metadata[object@sample.metadata == assay,]
+
+  # get all coordinates
+  segts <- NULL
+  for(i in 1:nrow(sample.metadata)){
+    cur_assay <- sample.metadata[i,]
+    srassay <- object[[cur_assay$Sample, cur_assay$Layer]][[cur_assay$Assay]]
+    segts <- c(segts, Segments(srassay, reg = reg))
+  }
+
+  # return image
+  return(segts)
+}
+
+#' @rdname Segments
+#' @method Segments<- SpaceRover
+#'
+#' @export
+#'
+"Segments<-.SpaceRover" <- function(object, reg = FALSE, ..., value) {
+
+  # check the number of assays in the object
+  if(nrow(object@sample.metadata) > 1)
+    stop("Changing the coordinates of multiple assays are not permitted!")
+
+  # get assay
+  cur_assay <- object@sample.metadata[1,]
+  srlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
+  srassay <- srlayer[[cur_assay$Assay]]
+
+  # change coordinates
+  Segments(srassay, reg = reg) <- value
   srlayer[[cur_assay$Assay]] <- srassay
   object[[cur_assay$Sample, cur_assay$Layer]] <- srlayer
 

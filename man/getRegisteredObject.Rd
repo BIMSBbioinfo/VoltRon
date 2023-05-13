@@ -4,7 +4,7 @@
 \alias{getRegisteredObject}
 \title{getRegisteredObject}
 \usage{
-getRegisteredObject(obj_list, mapping_list, register_ind, centre)
+getRegisteredObject(obj_list, mapping_list, register_ind, centre, ...)
 }
 \arguments{
 \item{obj_list}{a list of spatial data object}

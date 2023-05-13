@@ -12,8 +12,6 @@ transform_magick_image_query_list(image_list, input, session)
 \item{input}{shiny input}
 
 \item{session}{shiny session}
-
-\item{extension}{name extension for the shiny input parameter}
 }
 \value{
 magick image

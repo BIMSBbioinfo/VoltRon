@@ -8,6 +8,8 @@ getAutomatedRegisteration(
   registered_spatdata_list,
   spatdata_list,
   image_list,
+  centre,
+  register_ind,
   input,
   output,
   session
@@ -20,6 +22,10 @@ getAutomatedRegisteration(
 
 \item{image_list}{the list of query images}
 
+\item{centre}{center image index}
+
+\item{register_ind}{query image indices}
+
 \item{input}{shiny input}
 
 \item{output}{shiny output}
@@ -27,5 +33,5 @@ getAutomatedRegisteration(
 \item{session}{shiny session}
 }
 \description{
-Manuel registeration of images using manually entered keypoints
+Manual registeration of images using manually entered keypoints
 }

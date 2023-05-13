@@ -137,6 +137,38 @@ Coordinates <- function(object, ...) {
   UseMethod(generic = 'Coordinates<-', object = object)
 }
 
+#' Segments
+#'
+#' Get and set the segments of spatian points of the main assay
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{Segments}: The name of the default assay
+#'
+#' @rdname Segments
+#' @export Segments
+#'
+#' @concept data-access
+#'
+Segments <- function(object, ...) {
+  UseMethod(generic = 'Segments', object = object)
+}
+
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{Segments<-}: The coordinates updated
+#'
+#' @rdname Segments
+#' @export Segments<-
+#'
+#' @concept data-access
+#'
+"Segments<-" <- function(object, ...) {
+  UseMethod(generic = 'Segments<-', object = object)
+}
+
 #' Image
 #'
 #' Get images of a spaceRover assay

@@ -4,7 +4,7 @@
 \alias{UpdateSequentialTabPanels}
 \title{UpdateSequentialTabPanels}
 \usage{
-UpdateSequentialTabPanels(input, output, session, npanels)
+UpdateSequentialTabPanels(input, output, session, centre, register_ind)
 }
 \arguments{
 \item{input}{input}
@@ -13,7 +13,9 @@ UpdateSequentialTabPanels(input, output, session, npanels)
 
 \item{session}{session}
 
-\item{npanels}{the number of panels in both reference and query image sections}
+\item{centre}{center image index}
+
+\item{register_ind}{query image indices}
 }
 \description{
 A function for automatized selection of reference/query images

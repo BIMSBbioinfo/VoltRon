@@ -14,6 +14,9 @@ setOldClass(Classes = c('magick-image'))
 #' @slot rawdata raw count table
 #' @slot normdata normalized count table
 #' @slot coord spatial coordinates of the assay
+#' @slot coord_reg spatial coordinates of the registered assay
+#' @slot segments spatial coordinates of the segments
+#' @slot segments_reg spatial coordinates of the registered segments
 #' @slot image image of the spatial assay
 #' @slot type the type of the assay (cell, spot, ROI)
 #'
@@ -28,6 +31,8 @@ srAssay <- setClass(
     normdata = 'matrix',
     coords = 'matrix',
     coords_reg = 'matrix',
+    segments = 'list',
+    segments_reg = 'list',
     image = 'magick-image',
     type = "character"
   )
@@ -69,6 +74,9 @@ subset.srAssay <- function(object, subset, entities = NULL, image = NULL) {
     object@coords  <- object@coords[rownames(object@coords) %in% entities,]
     if(nrow(object@coords_reg) > 0)
       object@coords_reg  <- object@coords_reg[rownames(object@coords_reg) %in% entities,]
+    object@segments  <- object@segments[names(object@segments) %in% entities]
+    if(length(object@segments_reg) > 0)
+      object@segments_reg  <- object@segments_reg[names(object@segments_reg) %in% entities]
   } else if(!is.null(image)) {
     cropped_coords <- subsetCoordinates(object@coords, object@image, image)
     object <- subset.srAssay(object, entities = rownames(cropped_coords))
@@ -125,6 +133,14 @@ subsetCoordinates <- function(coords, image, crop_info){
   return(coords)
 }
 
+#' @rdname Entities
+#' @method Entities srAssay
+#'
+#' @export
+#'
+Entities.srAssay <- function(object, ...) {
+  colnames(object@rawdata)
+}
 
 #' @rdname Coordinates
 #' @method Coordinates srAssay
@@ -172,11 +188,44 @@ Coordinates.srAssay <- function(object, reg = FALSE, ...) {
   return(object)
 }
 
-#' @rdname Entities
-#' @method Entities srAssay
+#' @rdname Segments
+#' @method Segments srAssay
 #'
 #' @export
 #'
-Entities.srAssay <- function(object, ...) {
-  colnames(object@rawdata)
+Segments.srAssay <- function(object, reg = FALSE, ...) {
+  if(reg){
+    if(length(object@segments_reg) < 1) {
+      return(object@segments)
+    } else {
+      return(object@segments_reg)
+    }
+  } else {
+    return(object@segments)
+  }
+}
+
+#' @rdname Segments
+#' @method Segments<- srAssay
+#'
+#' @export
+#'
+"Segments<-.srAssay" <- function(object, reg = FALSE, ..., value) {
+
+  # get coordinates
+  segts <- Segments(object, ...)
+
+  # stop if the names are not matching
+  if(any(sapply(names(values),is.null)))
+    stop("Provided coordinates data does not have cell/spot/ROI names")
+
+  if(!all(names(values) %in% names(coords)))
+    stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
+
+  if(reg){
+    slot(object = object, name = 'segments_reg') <- value
+  } else{
+    slot(object = object, name = 'segments') <- value
+  }
+  return(object)
 }
