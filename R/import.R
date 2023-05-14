@@ -222,22 +222,15 @@ ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
   coords <- segmentsummary[,c("X","Y")]
   colnames(coords) <- c("x", "y")
   rownames(coords) <- segmentsummary$ROI.name
-
-  # convert coordinates
-  xRatio = geomx_image_info$width/segmentsummary$Scan.Width[1]
-  yRatio = geomx_image_info$height/segmentsummary$Scan.Height[1]
-  coords$x = (coords$x - segmentsummary$Scan.Offset.X[1]) * xRatio
-  coords$y = (coords$y - segmentsummary$Scan.Offset.Y[1]) * yRatio
-  coords$y = geomx_image_info$height - coords$y
-  coords <- as.matrix(coords)
+  coords <- rescaleGeoMxPoints(coords, segmentsummary, geomx_image_info)
 
   # get ROI segments (polygons)
-  segments <- NULL
+  segments <- list()
   if(segment_polygons){
     if(is.null(ome.tiff)){
       ome.tiff <- paste0(dir.path, "/geomx.ome.tiff")
     }
-    segments <- ImportGeoMxROISegments(ome.tiff)
+    segments <- ImportGeoMxROISegments(ome.tiff, segmentsummary, geomx_image_info)
   }
 
   # create SpaceRover
@@ -250,8 +243,10 @@ ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
 #' Import ROI polygons from the OME.TIFF file
 #'
 #' @param ome.tiff the OME.TIFF file of the GeoMx Experiment
+#' @param summary segmentation summary data frame
+#' @param imageinfo image information
 #'
-ImportGeoMxROISegments <- function(ome.tiff){
+ImportGeoMxROISegments <- function(ome.tiff, summary, imageinfo){
 
   # get the xml file
   xmltemp <- xmlExtraction(ometiff = ome.tiff)
@@ -273,20 +268,44 @@ ImportGeoMxROISegments <- function(ome.tiff){
       # ID <- coords$ID
       coords <- strsplit(coords$Points, split = " ")[[1]]
       coords <- sapply(coords, function(x) as.numeric(strsplit(x, split = ",")[[1]]), USE.NAMES = FALSE)
-      coords <- t(coords)
+      coords <- as.data.frame(t(coords))
       colnames(coords) <- c("x", "y")
-      coords[,2] <- sizeY - coords[,2]
+      coords <- rescaleGeoMxPoints(coords, summary, imageinfo)
       mask_lists[[cur_ROI$.attrs]] <- data.frame(coords)
 
     # if the shape is an ellipse
     } else if("Ellipse" %in% names(cur_ROI$Union)){
       # ID <- cur_ROI$Union$Ellipse[["ID"]]
       coords <- as.numeric(cur_ROI$Union$Ellipse[c("X","Y", "RadiusX", "RadiusY")])
-      coords[2] <- sizeY - coords[2]
-      mask_lists[[cur_ROI$.attrs]] <- as.data.frame(matrix(coords, nrow = 1))
-      colnames(mask_lists[[cur_ROI$.attrs]]) <- c("x", "y", "rx", "ry")
+      coords <-  as.data.frame(matrix(coords, nrow = 1))
+      colnames(coords) <- c("x", "y", "rx", "ry")
+      coords[,c("x", "y")] <- rescaleGeoMxPoints(coords[,c("x", "y")], summary, imageinfo)
+      coords$rx <- coords$rx * imageinfo$width/summary$Scan.Width[1]
+      coords$ry <- coords$ry * imageinfo$height/summary$Scan.Height[1]
+      mask_lists[[cur_ROI$.attrs]] <- coords
     }
   }
 
   mask_lists
+}
+
+#' rescaleGeoMxROIs
+#'
+#' rescale GeoMx point (center or polygon corners of ROI) coordinates for image registration
+#'
+#' @param pts coordinates of the cells from the Xenium assays
+#' @param summary segmentation summary data frame
+#' @param imageinfo image information
+#'
+rescaleGeoMxPoints <- function(pts, summary, imageinfo){
+
+  xRatio = imageinfo$width/summary$Scan.Width[1]
+  yRatio = imageinfo$height/summary$Scan.Height[1]
+  pts$x = (pts$x - summary$Scan.Offset.X[1]) * xRatio
+  pts$y = (pts$y - summary$Scan.Offset.Y[1]) * yRatio
+  pts$y = imageinfo$height - pts$y
+  pts <- as.matrix(pts)
+
+  # return
+  return(pts)
 }

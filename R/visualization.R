@@ -2,7 +2,7 @@
 # Feature plots ####
 ####
 
-#' SFPlotMulti
+#' SpatFeatPlot
 #'
 #' Functions for plotting spatial objects
 #'
@@ -15,11 +15,13 @@
 #' @param nrow nrow
 #' @param font.size font sizes
 #' @param pt.size point size
+#' @param alpha alpha
 #' @param keep.scale whether unify all scales for all features or not
+#' @param label
 #'
 #' @export
 #'
-SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol = 2, nrow = NULL, font.size = 2, pt.size = 10, keep.scale = "feature", label = FALSE) {
+SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol = 2, nrow = NULL, font.size = 2, pt.size = 10, alpha = 1, keep.scale = "feature", label = FALSE) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -91,30 +93,14 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
 
       # get assay
       cur_assay <- object[[assy]]
-      cur_metadata <- object
-
-      # normalize
-      info <- image_info(cur_assay@image)
-      image <- cur_assay@image
-      coords <- as.data.frame(cur_assay@coords)
-      normdata <- cur_assay@normdata
-
-      # plotting features
       metadata <- Metadata(object, type = "ROI")
-      coords[[group.by]] <- metadata[grepl(assy, rownames(metadata)),group.by]
-      p_title <- plot_title[[assy]]
-      l_title <- legend_title[[feat]]
-
-      # get data
-      if(feat %in% rownames(normdata)){
-        coords$score <- normdata[feat,]
-      } else {
-        coords$score <- metadata[,feat]
-      }
+      metadata <- metadata[grepl(assy, rownames(metadata)),]
 
       # visualize
-      gg[[i]] <- SpatFeatPlotSingle(coords = coords, image = image, feature = feat, limits = limits[[feat]][[assy]],
-                              group.by = group.by, font.size = font.size, pt.size = pt.size, keep.scale = keep.scale,
+      p_title <- plot_title[[assy]]
+      l_title <- legend_title[[feat]]
+      gg[[i]] <- SpatFeatPlotSingle(assay = cur_assay, metadata = metadata, feature = feat, limits = limits[[feat]][[assy]],
+                              group.by = group.by, font.size = font.size, pt.size = pt.size, alpha = alpha,
                               label = label, plot_title = p_title, legend_title = l_title)
       i <- i + 1
     }
@@ -134,47 +120,83 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
 
 #' SpatFeatPlotSingle
 #'
-#' @param coords
-#' @param image
+#' A single Spatial Feature plot of spacerover objects
+#'
+#' @param assay
+#' @param metadata
 #' @param feature
 #' @param limits
 #' @param group.by
 #' @param font.size
 #' @param pt.size
-#' @param keep.scale
+#' @param alpha
 #' @param label
 #' @param plot_title
 #' @param legend_title
 #'
-#' @return
-#' @export
-#'
-#' @examples
-SpatFeatPlotSingle <- function(coords, image, feature, limits, group.by = "label", font.size = 2, pt.size = 10, keep.scale = "feature", label = FALSE, plot_title = NULL, legend_title = NULL){
+SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "label",
+                               font.size = 2, pt.size = 10, alpha = 1, label = FALSE, plot_title = NULL, legend_title = NULL){
+
+  # data
+  info <- image_info(assay@image)
+  image <- assay@image
+  coords <- as.data.frame(assay@coords)
+  normdata <- assay@normdata
+
+  # plotting features
+  coords[[group.by]] <- metadata[,group.by]
+
+  # get data
+  if(feature %in% rownames(normdata)){
+    coords$score <- normdata[feature,]
+  } else {
+    coords$score <- metadata[,feature]
+  }
 
   # get image information and plotting features
   info <- image_info(image)
   midpoint <- sum(limits)/2
 
-  # visualize with ggplot
-  # g <- ggplot() +
-  #   ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
-  #   ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = TRUE) +
-  #   geom_point(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, size = 10) +
-  #   scale_fill_gradientn(name = legend_title,
-  #                        colors=c("dodgerblue2", "white", "yellow3"),
-  #                        values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits) +
-  #   NoAxes() +
-  #   ggtitle(plot_title) +
-  #   theme(plot.title = element_text(hjust = 0.5))
-
-  # visualize with ggplot
+  # add image
   g <- ggplot() +
-    ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE) +
-    geom_point(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, size = pt.size) +
+    ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
+
+  # add points or segments
+  if(assay@type == "ROI" && !is.null(assay@segments)){
+    polygon_data <- NULL
+    circle_data <- NULL
+    for(i in 1:length(assay@segments)){
+      cur_data <- as.data.frame(cbind(assay@segments[[i]], names(assay@segments)[i], coords$score[i]))
+      if(nrow(assay@segments[[i]]) > 1){
+        colnames(cur_data) <- c("x", "y", "segment", "score")
+        polygon_data <- as.data.frame(rbind(polygon_data, cur_data))
+      } else {
+        colnames(cur_data) <- c("x", "y", "rx", "ry", "segment", "score")
+        circle_data <- as.data.frame(rbind(circle_data,  cur_data))
+      }
+    }
+    if(!is.null(geom_polygon)){
+      g <- g +
+        geom_polygon(aes(x = x, y = y, fill = score, group = segment), data = polygon_data, alpha = alpha)
+    }
+    if(!is.null(circle_data)){
+      g <- g +
+        geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0,
+                         fill = score, group = segment), data = circle_data, lwd = 0, alpha = alpha)
+    }
+  } else {
+    g <- g +
+      geom_point(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, size = pt.size, alpha = alpha)
+  }
+
+  # adjust gradient
+  g <- g +
     scale_fill_gradientn(name = legend_title,
                          colors=c("dodgerblue2", "white", "yellow3"),
-                         values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits) +
+                         values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
+
+  # more visualization parameters
+  g <- g +
     ggtitle(plot_title) + theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,-10,0)), panel.background = element_blank(), panel.grid.minor = element_blank(),
                                 axis.line=element_blank(),axis.text.x=element_blank(), axis.text.y=element_blank(),
                                 axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),

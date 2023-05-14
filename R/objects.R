@@ -244,7 +244,8 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL,
 
   # Segments
   if(!is.null(segments)){
-    names(segments) <- entityID
+    if(length(segments) > 0)
+      names(segments) <- entityID
   }
 
   # set zgraph

@@ -69,19 +69,29 @@ subset.srAssay <- function(object, subset, entities = NULL, image = NULL) {
 
   # subseting on samples, layers and assays
   if(!is.null(entities)){
+
+    # data
     object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% entities]
     object@normdata  <- object@normdata[,colnames(object@normdata) %in% entities]
+
+    # coordinates
     object@coords  <- object@coords[rownames(object@coords) %in% entities,]
     if(nrow(object@coords_reg) > 0)
       object@coords_reg  <- object@coords_reg[rownames(object@coords_reg) %in% entities,]
-    object@segments  <- object@segments[names(object@segments) %in% entities]
+
+    # segments
+    if(length(object@segments) > 0)
+      object@segments  <- object@segments[names(object@segments) %in% entities]
     if(length(object@segments_reg) > 0)
       object@segments_reg  <- object@segments_reg[names(object@segments_reg) %in% entities]
   } else if(!is.null(image)) {
     cropped_coords <- subsetCoordinates(object@coords, object@image, image)
+    object@coords <- cropped_coords
+    if(length(object@segments) > 0){
+      object@segments <- subsetSegments(object@segments, object@image, image)
+    }
     object <- subset.srAssay(object, entities = rownames(cropped_coords))
     object@image <- image_crop(object@image, image)
-    object@coords <- cropped_coords
   }
 
   # set SpaceRover class
@@ -101,7 +111,7 @@ subsetCoordinates <- function(coords, image, crop_info){
   # image
   imageinfo <- image_info(image)
 
-  # get crop coordinates
+  # get crop information
   crop_info <- strsplit(crop_info, split = "\\+")[[1]]
   crop_info <- unlist(lapply(crop_info, function(x) strsplit(x, "x")))
   crop_info <- as.numeric(crop_info)
@@ -131,6 +141,25 @@ subsetCoordinates <- function(coords, image, crop_info){
 
   # return new coords
   return(coords)
+}
+
+#' subsetCoordinates
+#'
+#' subsetting coordinates given cropping parameters of a magick image objects
+#'
+#' @param coords coordinates
+#' @param image the magick image associated with the coordinates
+#' @param crop_info image crop parameters in character, see \code{image_crop}
+#'
+subsetSegments <- function(segments, image, crop_info){
+  for(i in 1:length(segments)){
+    if(nrow(segments[[i]]) > 1){
+      segments[[i]] <- subsetCoordinates(segments[[i]], image, crop_info)
+    } else {
+      segments[[i]][,c("x","y")] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
+    }
+  }
+  segments
 }
 
 #' @rdname Entities

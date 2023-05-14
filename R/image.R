@@ -153,6 +153,9 @@ ResizeImage.srAssay <- function(object, size){
   sizefactor <- image_info(object@image)$width
   object@coords <- (object@coords)*size/sizefactor
 
+  # resize segments
+  object@segments <- lapply(object@segments, function(x) x*size/sizefactor)
+
   # resize images
   size <- paste0(size,"x")
   object@image <- image_resize(object@image, geometry = size)
