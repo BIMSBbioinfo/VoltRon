@@ -143,9 +143,9 @@ subsetCoordinates <- function(coords, image, crop_info){
   return(coords)
 }
 
-#' subsetCoordinates
+#' subsetSegments
 #'
-#' subsetting coordinates given cropping parameters of a magick image objects
+#' subsetting segments given cropping parameters of a magick image objects
 #'
 #' @param coords coordinates
 #' @param image the magick image associated with the coordinates

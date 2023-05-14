@@ -338,15 +338,30 @@ demuxSpaceRover <- function(object, scale_width = 800)
                     # Side bar
                     sidebarPanel(
 
-                      h4("Selected Sections"),
+                      # Interface
                       fluidRow(
-                        htmlOutput("summary"),
-                        br(),
+                        column(12,h4("Subsetting Interface"))
+                      ),
+
+                      # Buttons
+                      fluidRow(
                         column(12,shiny::actionButton("resetpoints", "Reset Points")),
                         br(),
                         column(12,shiny::actionButton("addbox", "Add Box")),
-                        br(),
-                        column(12,shiny::actionButton("done", "Done")),
+                        br()
+                      ),
+
+                      # Subsets
+                      fluidRow(
+                        column(12,h4("Selected Sections")),
+                        column(12,htmlOutput("summary")),
+                        br()
+                      ),
+
+                      # Subsets
+                      fluidRow(
+                        column(12,h4("Finished Selecting?")),
+                        column(12,shiny::actionButton("done", "Yes!"))
                       ),
                       br(),
                       # panel options
@@ -393,11 +408,6 @@ demuxSpaceRover <- function(object, scale_width = 800)
         output[["cropped_image"]] <- renderPlot({
           if(nrow(selected_corners()) < 2){
             corners <- apply(as.matrix(selected_corners()),2,as.numeric)
-            # corners <- as.data.frame(corners)
-            # colnames(corners) <- c("x", "y")
-            # print(corners)
-            # image_ggplot(images) +
-            #   geom_point(mapping = aes(x = x, y = y), corners, size = 5, shape = 21, fill = "white")
             image_ggplot(images)
           } else {
             corners <- apply(as.matrix(selected_corners()),2,as.numeric)
@@ -416,18 +426,20 @@ demuxSpaceRover <- function(object, scale_width = 800)
 
       ## add box ####
       observeEvent(input$addbox, {
-        next_ind <- length(selected_corners_list()) + 1
-        corners <- selected_corners()
-        corners <- corners*scale_factor
-        corners <- apply(corners,2,ceiling)
-        corners <- paste0(abs(corners[2,1]-corners[1,1]), "x",
-                          abs(corners[2,2]-corners[1,2]), "+",
-                          min(corners[,1]), "+", imageinfo$height - max(corners[,2]))
-        selected_corners_list() %>%
-          add_row(box = corners) %>%
-          selected_corners_list()
-        selected_corners() %>%
-          filter(FALSE) %>% selected_corners()
+        if(nrow(selected_corners()) == 2){
+          next_ind <- length(selected_corners_list()) + 1
+          corners <- selected_corners()
+          corners <- corners*scale_factor
+          corners <- apply(corners,2,ceiling)
+          corners <- paste0(abs(corners[2,1]-corners[1,1]), "x",
+                            abs(corners[2,2]-corners[1,2]), "+",
+                            min(corners[,1]), "+", imageinfo$height - max(corners[,2]))
+          selected_corners_list() %>%
+            add_row(box = corners) %>%
+            selected_corners_list()
+          selected_corners() %>%
+            filter(FALSE) %>% selected_corners()
+        }
       })
 
       ## select points on the image ####
@@ -446,15 +458,17 @@ demuxSpaceRover <- function(object, scale_width = 800)
 
       ## select points on the image ####
       observeEvent(input$done, {
-        RegisteredSpatialDataList <- list()
-        corners_list <- selected_corners_list()
-        sample_names <- paste0("Sample", 1:length(corners_list$box))
-        for(i in 1:length(corners_list$box)){
-          temp <- subset(object, image = corners_list$box[i])
-          temp$Sample <- sample_names[i]
-          RegisteredSpatialDataList[[sample_names[i]]] <- temp
+        if(nrow(selected_corners_list()) > 0){
+          registration <- list()
+          box_list <- selected_corners_list()
+          sample_names <- paste0("Sample", 1:length(box_list$box))
+          for(i in 1:length(box_list$box)){
+            temp <- subset(object, image = box_list$box[i])
+            temp$Sample <- sample_names[i]
+            registration[[sample_names[i]]] <- temp
+          }
+          stopApp(list(registration = registration, subset_info_list = box_list))
         }
-        stopApp(list(RegisteredSpatialDataList = RegisteredSpatialDataList))
       })
 
     }

@@ -5,14 +5,14 @@
 \title{SpatFeatPlotSingle}
 \usage{
 SpatFeatPlotSingle(
-  coords,
-  image,
+  assay,
+  metadata,
   feature,
   limits,
   group.by = "label",
   font.size = 2,
   pt.size = 10,
-  keep.scale = "feature",
+  alpha = 1,
   label = FALSE,
   plot_title = NULL,
   legend_title = NULL
@@ -22,5 +22,5 @@ SpatFeatPlotSingle(
 \item{legend_title}{}
 }
 \description{
-SpatFeatPlotSingle
+A single Spatial Feature plot of spacerover objects
 }

@@ -1094,8 +1094,6 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
 #'
 #' automated registration with Rcpp/C++
 #'
-#' @useDynLib spaceRover
-#'
 #' @param ref_image reference image
 #' @param query_image query image
 #' @param GOOD_MATCH_PERCENT the percentage of good matching keypoints

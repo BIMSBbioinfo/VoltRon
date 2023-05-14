@@ -9,6 +9,7 @@ CreateSpaceRover(
   metadata = NULL,
   image = NULL,
   coords,
+  segments = NULL,
   sample.metadata = NULL,
   zstack = NULL,
   main.assay = NULL,
@@ -25,6 +26,8 @@ CreateSpaceRover(
 \item{metadata}{a metadata object of class \code{srMetadata}}
 
 \item{image}{the image of the data}
+
+\item{segments}{the segments of the spatial entities, optional}
 
 \item{sample.metadata}{a data frame of the sample metadata}
 

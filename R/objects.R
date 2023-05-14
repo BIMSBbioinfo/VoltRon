@@ -1,3 +1,9 @@
+#' @include zzz.R
+#' @include generics.R
+#'
+#' @useDynLib spaceRover
+NULL
+
 ####
 # SpaceRover classes ####
 ####

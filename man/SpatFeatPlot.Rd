@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{SpatFeatPlot}
 \alias{SpatFeatPlot}
-\title{SFPlotMulti}
+\title{SpatFeatPlot}
 \usage{
 SpatFeatPlot(
   object,
@@ -13,6 +13,7 @@ SpatFeatPlot(
   nrow = NULL,
   font.size = 2,
   pt.size = 10,
+  alpha = 1,
   keep.scale = "feature",
   label = FALSE
 )
@@ -34,7 +35,11 @@ SpatFeatPlot(
 
 \item{pt.size}{point size}
 
+\item{alpha}{alpha}
+
 \item{keep.scale}{whether unify all scales for all features or not}
+
+\item{label}{}
 
 \item{sample}{sample names}
 }

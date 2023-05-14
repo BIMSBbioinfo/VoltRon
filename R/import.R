@@ -169,7 +169,6 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
 #' @param ... additional parameters passed to \code{CreateSpaceRover}
 #'
 #' @import dplyr
-#' @import jsonlite
 #' @import GeomxTools
 #' @import xlsx
 #'
@@ -215,7 +214,7 @@ ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
   segmentsummary <- xlsx::read.xlsx(summarySegment, sheetName = summarySegmentSheetName)
 
   # get image
-  image <- image_read(paste0(dir.path, "/geomx_lowres.tif"))
+  image <- image_read(paste0(dir.path, "/morphology.tiff"))
   geomx_image_info <- image_info(image)
 
   # get coordinates
@@ -230,7 +229,7 @@ ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
     if(is.null(ome.tiff)){
       ome.tiff <- paste0(dir.path, "/geomx.ome.tiff")
     }
-    segments <- ImportGeoMxROISegments(ome.tiff, segmentsummary, geomx_image_info)
+    segments <- ImportGeoMxSegments(ome.tiff, segmentsummary, geomx_image_info)
   }
 
   # create SpaceRover
@@ -238,7 +237,7 @@ ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
 }
 
 
-#' ImportGeoMxROISegments
+#' ImportGeoMxSegments
 #'
 #' Import ROI polygons from the OME.TIFF file
 #'
@@ -246,7 +245,9 @@ ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
 #' @param summary segmentation summary data frame
 #' @param imageinfo image information
 #'
-ImportGeoMxROISegments <- function(ome.tiff, summary, imageinfo){
+#' @importFrom SpatialOmicsOverlay xmlExtraction
+#'
+ImportGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
   # get the xml file
   xmltemp <- xmlExtraction(ometiff = ome.tiff)
