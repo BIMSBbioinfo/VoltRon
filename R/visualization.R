@@ -21,7 +21,7 @@
 #'
 #' @export
 #'
-SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol = 2, nrow = NULL, font.size = 2, pt.size = 10, alpha = 0.7, keep.scale = "feature", label = FALSE) {
+SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol = 2, nrow = NULL, font.size = 2, pt.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -135,7 +135,7 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
 #' @param legend_title
 #'
 SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "label",
-                               font.size = 2, pt.size = 10, alpha = 0.7, label = FALSE, plot_title = NULL, legend_title = NULL){
+                               font.size = 2, pt.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL, legend_title = NULL){
 
   # data
   info <- image_info(assay@image)

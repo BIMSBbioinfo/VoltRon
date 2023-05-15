@@ -87,8 +87,9 @@ subset.srAssay <- function(object, subset, entities = NULL, image = NULL) {
   } else if(!is.null(image)) {
     cropped_coords <- subsetCoordinates(object@coords, object@image, image)
     object@coords <- cropped_coords
+    cropped_segments <- object@segments[rownames(cropped_coords)]
     if(length(object@segments) > 0){
-      object@segments <- subsetSegments(object@segments, object@image, image)
+      object@segments[rownames(cropped_coords)] <- subsetSegments(cropped_segments, object@image, image)
     }
     object <- subset.srAssay(object, entities = rownames(cropped_coords))
     object@image <- image_crop(object@image, image)

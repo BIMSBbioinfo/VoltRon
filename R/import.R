@@ -262,28 +262,25 @@ ImportGeoMxSegments <- function(ome.tiff, summary, imageinfo){
   mask_lists <- list()
   for(i in 1:length(ROIs)){
     cur_ROI <- ROIs[[i]]
-
     # if the shape is a polygon
     if("Polygon" %in% names(cur_ROI$Union)){
       coords <- strsplit(cur_ROI$Union$Polygon, split = "\\n")
-      # ID <- coords$ID
       coords <- strsplit(coords$Points, split = " ")[[1]]
       coords <- sapply(coords, function(x) as.numeric(strsplit(x, split = ",")[[1]]), USE.NAMES = FALSE)
       coords <- as.data.frame(t(coords))
       colnames(coords) <- c("x", "y")
       coords <- rescaleGeoMxPoints(coords, summary, imageinfo)
-      mask_lists[[cur_ROI$.attrs]] <- data.frame(coords)
+      mask_lists[[cur_ROI$Union$Label[["Text"]]]] <- data.frame(coords)
 
     # if the shape is an ellipse
     } else if("Ellipse" %in% names(cur_ROI$Union)){
-      # ID <- cur_ROI$Union$Ellipse[["ID"]]
       coords <- as.numeric(cur_ROI$Union$Ellipse[c("X","Y", "RadiusX", "RadiusY")])
       coords <-  as.data.frame(matrix(coords, nrow = 1))
       colnames(coords) <- c("x", "y", "rx", "ry")
       coords[,c("x", "y")] <- rescaleGeoMxPoints(coords[,c("x", "y")], summary, imageinfo)
       coords$rx <- coords$rx * imageinfo$width/summary$Scan.Width[1]
       coords$ry <- coords$ry * imageinfo$height/summary$Scan.Height[1]
-      mask_lists[[cur_ROI$.attrs]] <- coords
+      mask_lists[[cur_ROI$Union$Label[["Text"]]]] <- coords
     }
   }
 
