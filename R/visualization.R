@@ -1,5 +1,5 @@
 ####
-# Feature plots ####
+# Spatial plots ####
 ####
 
 #' SpatFeatPlot
@@ -7,21 +7,20 @@
 #' Functions for plotting spatial objects
 #'
 #' @param object SpaceRover object
-#' @param features a vector of features to visualize
-#' @param sample sample names
 #' @param group.by a grouping label for the spatial entities
-#' @param assay the assay type name
+#' @param assay the assay name
+#' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
 #' @param ncol ncol
 #' @param nrow nrow
 #' @param font.size font sizes
 #' @param pt.size point size
 #' @param alpha alpha
-#' @param keep.scale whether unify all scales for all features or not
 #' @param label
 #'
+#' @importFrom ggpubr ggarrange
 #' @export
 #'
-SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", ncol = 2, nrow = NULL, font.size = 2, pt.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE) {
+SpatPlot <- function(object, group.by = "label", assay = "Visium", assay.type = NULL, ncol = 2, nrow = NULL, font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, background = "image", common.legend = TRUE) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -40,6 +39,172 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
     }
   }
 
+  # get entity type and metadata
+  if(is.null(assay.type)){
+    assay_types <- unlist(lapply(assay_names, function(x) object[[x]]@type))
+    if(length(unique(assay_types)) == 1){
+      metadata <- Metadata(object, type = unique(assay_types))
+    } else {
+      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+    }
+  } else {
+    metadata <- Metadata(object, type = assay.type)
+  }
+
+  # configure titles
+  plot_title <- as.list(apply(sample.metadata[assay_names,], 1, function(x) paste(x["Sample"], x["Layer"], sep = ", ")))
+  names(plot_title) <- assay_names
+
+  # for each assay
+  i <- 1
+  for(assy in assay_names){
+
+    # get assay
+    cur_assay <- object[[assy]]
+    assy_id <- paste0(assy,"$")
+    cur_metadata <- metadata[grepl(assy_id, rownames(metadata)),]
+
+    # visualize
+    p_title <- plot_title[[assy]]
+    gg[[i]] <- SpatPlotSingle(assay = cur_assay, metadata = cur_metadata, limits = limits[[feat]][[assy]],
+                              group.by = group.by, font.size = font.size, pt.size = pt.size, alpha = alpha,
+                              label = label, plot_title = p_title, background = background)
+    i <- i + 1
+  }
+
+  # return a list of plots or a single one
+  if(length(assay_names) > 1){
+    return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = "right"))
+  } else {
+    return(gg[[1]])
+  }
+}
+
+#' SpatFeatPlotSingle
+#'
+#' A single Spatial Feature plot of spacerover objects
+#'
+#' @param assay
+#' @param metadata
+#' @param limits
+#' @param group.by
+#' @param font.size
+#' @param pt.size
+#' @param alpha
+#' @param label
+#' @param plot_title
+#' @param background
+#'
+#' @import ggplot2
+#'
+SpatPlotSingle <- function(assay, metadata, limits, group.by = "label", font.size = 2, pt.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL, background = "image"){
+
+  # data
+  info <- image_info(assay@image)
+  image <- assay@image
+  coords <- as.data.frame(assay@coords)
+  normdata <- assay@normdata
+
+  # plotting features
+  coords[[group.by]] <- metadata[,group.by]
+
+  # get image information and plotting features
+  info <- image_info(image)
+
+  # plot
+  g <- ggplot()
+
+  # add image
+  if(background == "image") {
+    g <- g +
+      ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
+  }
+
+  # add points or segments
+  g <- g +
+    geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = 21, size = pt.size, alpha = alpha)
+
+  # more visualization parameters
+  g <- g +
+    ggtitle(plot_title) + theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,0,0)),
+                                panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+                                axis.line=element_blank(),axis.text.x=element_blank(), axis.text.y=element_blank(),
+                                axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
+                                legend.margin = margin(0,0,0,0)) +
+    xlim(0,info$width) + ylim(0, info$height)
+
+  # background
+  if(any(background %in% c("white","black"))){
+    g <- g +
+      theme(panel.background = element_rect(fill = background, colour = background, size = 0.5, linetype = "solid"))
+  } else{
+    g <- g +
+      theme(panel.background = element_blank())
+  }
+
+  # visualize labels
+  if(label){
+    g <- g + geom_label_repel(mapping = aes_string(x = "x", y = "y", label = group.by), coords,
+                              box.padding = 0.5, size = font.size, direction = "both", seed = 1)
+  }
+
+  # return data
+  return(g)
+}
+
+####
+# Feature plots ####
+####
+
+#' SpatFeatPlot
+#'
+#' Functions for plotting spatial objects
+#'
+#' @param object SpaceRover object
+#' @param group.by a grouping label for the spatial entities
+#' @param assay the assay name
+#' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
+#' @param ncol ncol
+#' @param nrow nrow
+#' @param font.size font sizes
+#' @param pt.size point size
+#' @param alpha alpha
+#' @param keep.scale whether unify all scales for all features or not
+#' @param label
+#'
+#' @importFrom ggpubr ggarrange
+#' @export
+#'
+SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", assay.type = NULL, ncol = 2, nrow = NULL, font.size = 2, pt.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE) {
+
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
+  # list of plots
+  gg <- list()
+
+  # get assay names
+  if(assay %in% sample.metadata$Assay){
+    assay_names <- rownames(sample.metadata)[sample.metadata$Assay %in% assay]
+  } else {
+    if(assay %in% rownames(sample.metadata)) {
+      assay_names <- assay
+    } else {
+      stop("Assay name or type is not found in the object")
+    }
+  }
+
+  # get entity type and metadata
+  if(is.null(assay.type)){
+    assay_types <- lapply(assay_names, function(x) object[[x]]@type)
+    if(length(unique(assay_types)) == 1){
+      metadata <- Metadata(object, type = unique(assay_types))
+    } else {
+      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+    }
+  } else {
+    metadata <- Metadata(object, type = assay.type)
+  }
 
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
@@ -93,13 +258,12 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
 
       # get assay
       cur_assay <- object[[assy]]
-      metadata <- Metadata(object, type = "ROI")
-      metadata <- metadata[grepl(assy, rownames(metadata)),]
+      cur_metadata <- metadata[grepl(assy, rownames(metadata)),]
 
       # visualize
       p_title <- plot_title[[assy]]
       l_title <- legend_title[[feat]]
-      gg[[i]] <- SpatFeatPlotSingle(assay = cur_assay, metadata = metadata, feature = feat, limits = limits[[feat]][[assy]],
+      gg[[i]] <- SpatFeatPlotSingle(assay = cur_assay, metadata = cur_metadata, feature = feat, limits = limits[[feat]][[assy]],
                               group.by = group.by, font.size = font.size, pt.size = pt.size, alpha = alpha,
                               label = label, plot_title = p_title, legend_title = l_title)
       i <- i + 1
@@ -133,6 +297,8 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
 #' @param label
 #' @param plot_title
 #' @param legend_title
+#'
+#' @import ggplot2
 #'
 SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "label",
                                font.size = 2, pt.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL, legend_title = NULL){
@@ -211,12 +377,4 @@ SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "lab
 
   # return data
   return(g)
-}
-
-####
-# FeatPlot ####
-####
-
-FeatPlot <- function(object, features, group.by = "label", assay = "GeoMx") {
-
 }

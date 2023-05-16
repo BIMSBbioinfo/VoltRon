@@ -203,7 +203,7 @@ setMethod(
 CreateSpaceRover <- function(data, metadata = NULL, image = NULL,
                              coords, segments = NULL,
                              sample.metadata = NULL, zstack = NULL,
-                             main.assay = NULL, assay.type = "cell",
+                             main.assay = "Custom_cell", assay.type = "cell",
                              sample_name = NULL, layer_name = NULL,
                              project = NULL, ...){
 
@@ -231,8 +231,18 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL,
 
   # set meta data
   if(is.null(metadata)){
-    metadata <- setSRMetadata(cell = data.frame(), spot = data.frame(), ROI = data.frame())
-    slot(metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, row.names = entityID)
+    sr_metadata <- setSRMetadata(cell = data.frame(), spot = data.frame(), ROI = data.frame())
+    slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, row.names = entityID)
+  } else {
+    if(any(class(metadata) %in% c("data.frame", "matrix"))){
+      sr_metadata <- setSRMetadata(cell = data.frame(), spot = data.frame(), ROI = data.frame())
+      if(any(!rownames(metadata) %in% gsub("_Assay1$", "", entityID))){
+        stop("Entity IDs are not matching")
+      } else {
+        metadata <- metadata[gsub("_Assay1$", "", entityID),]
+        slot(sr_metadata, name = assay.type) <- data.frame(metadata, Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, row.names = entityID)
+      }
+    }
   }
 
   # Coordinates
@@ -252,11 +262,13 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL,
   if(!is.null(segments)){
     if(length(segments) > 0)
       names(segments) <- entityID
+  } else {
+    segments <- list()
   }
 
   # set zgraph
   if(is.null(zstack)){
-    spatial_entities <- Entities(metadata)
+    spatial_entities <- Entities(sr_metadata)
     zstack <- igraph::make_empty_graph(n = length(spatial_entities), directed = FALSE)
     igraph::V(zstack)$name <- spatial_entities
   }
@@ -278,7 +290,7 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL,
   }
 
   # set SpaceRover class
-  new("SpaceRover", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
+  new("SpaceRover", samples = listofSamples, metadata = sr_metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
 }
 
 ### Object Methods ####

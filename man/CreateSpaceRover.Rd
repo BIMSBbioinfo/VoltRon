@@ -12,7 +12,7 @@ CreateSpaceRover(
   segments = NULL,
   sample.metadata = NULL,
   zstack = NULL,
-  main.assay = NULL,
+  main.assay = "Custom_cell",
   assay.type = "cell",
   sample_name = NULL,
   layer_name = NULL,

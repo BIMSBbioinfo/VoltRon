@@ -238,15 +238,15 @@ updateMetadataAssay <- function(object1, object2){
   # get assay types
   object_list <- slotToList(object1)
   assaytype <- unlist(lapply(object_list, function(obj) {
-    unique(stringr::str_extract(rownames(obj), "Assay[0-9]+"))
+    unique(stringr::str_extract(rownames(obj), "Assay[0-9]+$"))
   }))
-  assaytype <- sort(assaytype)
+  assaytype <- assaytype[order(nchar(assaytype), assaytype)]
 
   # replace assay names
   replacement <- paste0("Assay", 1:length(assaytype))
   object1 <- lapply(object_list, function(obj) {
     rownames(obj) <- stringi::stri_replace_all_regex(rownames(obj),
-                                                     pattern=assaytype,
+                                                     pattern=paste0(assaytype,"$"),
                                                      replacement=replacement)
     obj
   })
@@ -255,7 +255,7 @@ updateMetadataAssay <- function(object1, object2){
   # get assay types
   object_list <- slotToList(object2)
   assaytype <- unlist(lapply(object_list, function(obj) {
-    unique(stringr::str_extract(rownames(obj), "Assay[0-9]+"))
+    unique(stringr::str_extract(rownames(obj), "Assay[0-9]+$"))
   }))
   assaytype <- sort(assaytype)
 
@@ -263,7 +263,7 @@ updateMetadataAssay <- function(object1, object2){
   replacement <- paste0("Assay", (length(replacement)+1):(length(replacement) + length(assaytype)))
   object2 <- lapply(object_list, function(obj) {
     rownames(obj) <- stringi::stri_replace_all_regex(rownames(obj),
-                                                     pattern=assaytype,
+                                                     pattern=paste0(assaytype,"$"),
                                                      replacement=replacement)
     obj
   })
