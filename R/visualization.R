@@ -16,6 +16,8 @@
 #' @param pt.size point size
 #' @param alpha alpha
 #' @param label
+#' @param background background color or image
+#' @param common.legend whether to use a common legend for all plots
 #'
 #' @importFrom ggpubr ggarrange
 #' @export
@@ -171,11 +173,13 @@ SpatPlotSingle <- function(assay, metadata, limits, group.by = "label", font.siz
 #' @param alpha alpha
 #' @param keep.scale whether unify all scales for all features or not
 #' @param label
+#' @param background background color or image
+#' @param common.legend whether to use a common legend for all plots
 #'
 #' @importFrom ggpubr ggarrange
 #' @export
 #'
-SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", assay.type = NULL, ncol = 2, nrow = NULL, font.size = 2, pt.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE) {
+SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", assay.type = NULL, ncol = 2, nrow = NULL, font.size = 2, pt.size = 2, alpha = 0.6, keep.scale = "feature", label = FALSE, background = "image", common.legend = TRUE) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -196,7 +200,7 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
 
   # get entity type and metadata
   if(is.null(assay.type)){
-    assay_types <- lapply(assay_names, function(x) object[[x]]@type)
+    assay_types <- unlist(lapply(assay_names, function(x) object[[x]]@type))
     if(length(unique(assay_types)) == 1){
       metadata <- Metadata(object, type = unique(assay_types))
     } else {
@@ -265,18 +269,18 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
       l_title <- legend_title[[feat]]
       gg[[i]] <- SpatFeatPlotSingle(assay = cur_assay, metadata = cur_metadata, feature = feat, limits = limits[[feat]][[assy]],
                               group.by = group.by, font.size = font.size, pt.size = pt.size, alpha = alpha,
-                              label = label, plot_title = p_title, legend_title = l_title)
+                              label = label, plot_title = p_title, legend_title = l_title, background = background)
       i <- i + 1
     }
   }
 
   # return a list of plots or a single one
   if(length(features) > 1 && length(assay_names) > 1){
-    return(ggarrange(plotlist = gg, ncol = length(features), nrow = length(assay_names)))
+    return(ggarrange(plotlist = gg, ncol = length(features), nrow = length(assay_names), common.legend = common.legend, legend = "right"))
   } else if(length(features) > 1 && length(assay_names) == 1){
-    return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol)))
+    return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = "right"))
   } else if(length(features) == 1 && length(assay_names) > 1){
-    return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol)))
+    return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = "right"))
   } else {
     return(gg[[1]])
   }
@@ -301,16 +305,13 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
 #' @import ggplot2
 #'
 SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "label",
-                               font.size = 2, pt.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL, legend_title = NULL){
+                               font.size = 2, pt.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL, legend_title = NULL, background = "image"){
 
   # data
   info <- image_info(assay@image)
   image <- assay@image
   coords <- as.data.frame(assay@coords)
   normdata <- assay@normdata
-
-  # plotting features
-  coords[[group.by]] <- metadata[,group.by]
 
   # get data
   if(feature %in% rownames(normdata)){
@@ -323,9 +324,14 @@ SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "lab
   info <- image_info(image)
   midpoint <- sum(limits)/2
 
+  # plot
+  g <- ggplot()
+
   # add image
-  g <- ggplot() +
-    ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
+  if(background == "image") {
+    g <- g +
+      ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
+  }
 
   # add points or segments
   if(assay@type == "ROI" && !is.null(assay@segments)){
@@ -363,14 +369,25 @@ SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "lab
 
   # more visualization parameters
   g <- g +
-    ggtitle(plot_title) + theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,-10,0)), panel.background = element_blank(), panel.grid.minor = element_blank(),
+    ggtitle(plot_title) + theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,0,0)),
+                                panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
                                 axis.line=element_blank(),axis.text.x=element_blank(), axis.text.y=element_blank(),
                                 axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
-                                legend.margin = margin(0,0,0,-10)) +
+                                legend.margin = margin(0,0,0,0)) +
     xlim(0,info$width) + ylim(0, info$height)
+
+  # background
+  if(any(background %in% c("white","black"))){
+    g <- g +
+      theme(panel.background = element_rect(fill = background, colour = background, size = 0.5, linetype = "solid"))
+  } else{
+    g <- g +
+      theme(panel.background = element_blank())
+  }
 
   # visualize labels
   if(label){
+    coords[[group.by]] <- metadata[,group.by]
     g <- g + geom_label_repel(mapping = aes_string(x = "x", y = "y", label = group.by), coords,
                                 box.padding = 0.5, size = font.size, direction = "both", seed = 1)
   }
