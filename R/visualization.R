@@ -2,7 +2,7 @@
 # Spatial plots ####
 ####
 
-#' SpatFeatPlot
+#' SpatPlot
 #'
 #' Functions for plotting spatial objects
 #'
@@ -76,15 +76,16 @@ SpatPlot <- function(object, group.by = "label", assay = "Visium", assay.type = 
 
   # return a list of plots or a single one
   if(length(assay_names) > 1){
+    if(length(gg) < ncol) ncol <- length(gg)
     return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = "right"))
   } else {
     return(gg[[1]])
   }
 }
 
-#' SpatFeatPlotSingle
+#' SpatPlotSingle
 #'
-#' A single Spatial Feature plot of spacerover objects
+#' A single Spatial plot of spacerover objects
 #'
 #' @param assay
 #' @param metadata
@@ -99,7 +100,7 @@ SpatPlot <- function(object, group.by = "label", assay = "Visium", assay.type = 
 #'
 #' @import ggplot2
 #'
-SpatPlotSingle <- function(assay, metadata, limits, group.by = "label", font.size = 2, pt.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL, background = "image"){
+SpatPlotSingle <- function(assay, metadata, limits, group.by = "label", font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, plot_title = NULL, background = "image"){
 
   # data
   info <- image_info(assay@image)
@@ -124,7 +125,7 @@ SpatPlotSingle <- function(assay, metadata, limits, group.by = "label", font.siz
 
   # add points or segments
   g <- g +
-    geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = 21, size = pt.size, alpha = alpha)
+    geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, size = pt.size, alpha = alpha)
 
   # more visualization parameters
   g <- g +
@@ -278,8 +279,10 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
   if(length(features) > 1 && length(assay_names) > 1){
     return(ggarrange(plotlist = gg, ncol = length(features), nrow = length(assay_names), common.legend = common.legend, legend = "right"))
   } else if(length(features) > 1 && length(assay_names) == 1){
+    if(length(gg) < ncol) ncol <- length(gg)
     return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = "right"))
   } else if(length(features) == 1 && length(assay_names) > 1){
+    if(length(gg) < ncol) ncol <- length(gg)
     return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = "right"))
   } else {
     return(gg[[1]])
@@ -305,7 +308,7 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
 #' @import ggplot2
 #'
 SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "label",
-                               font.size = 2, pt.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL, legend_title = NULL, background = "image"){
+                               font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, plot_title = NULL, legend_title = NULL, background = "image"){
 
   # data
   info <- image_info(assay@image)
