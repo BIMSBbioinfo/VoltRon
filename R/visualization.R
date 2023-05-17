@@ -140,9 +140,6 @@ SpatPlotSingle <- function(assay, metadata, limits, group.by = "label", font.siz
     stop("Only spots and cells can be visualized with SpatPlot!")
   }
 
-  # g <- g +
-  #   geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, size = pt.size, alpha = alpha)
-
   # more visualization parameters
   g <- g +
     ggtitle(plot_title) + theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,0,0)),
@@ -152,11 +149,9 @@ SpatPlotSingle <- function(assay, metadata, limits, group.by = "label", font.siz
                                 legend.margin = margin(0,0,0,0))
 
   # set up the limits
-  if(crop){
-    xlimits <- range(coords$x) + c(-6,6)
-    ylimits <- range(coords$y) + c(-6,6)
+  if(crop && assay@type == "spot"){
     g <- g +
-      xlim(xlimits[1],xlimits[2]) + ylim(ylimits[1],ylimits[2])
+      xlim(range(coords$x)[1],range(coords$x)[2]) + ylim(range(coords$y)[1],range(coords$y)[2])
   } else {
     g <- g +
       xlim(0,info$width) + ylim(0, info$height)
@@ -422,9 +417,9 @@ SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "lab
                                 legend.margin = margin(0,0,0,0))
 
   # set up the limits
-  if(crop){
-    xlimits <- range(coords$x) + c(-6,6)
-    ylimits <- range(coords$y) + c(-6,6)
+  if(crop && assay@type == "spot"){
+    xlimits <- range(coords$x) + c(-1,1)*assay@params[["spot.radius"]]
+    ylimits <- range(coords$y) + c(-1,1)*assay@params[["spot.radius"]]
     g <- g +
       xlim(xlimits[1],xlimits[2]) + ylim(ylimits[1],ylimits[2])
   } else {
