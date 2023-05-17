@@ -105,6 +105,24 @@ Entities <- function(object, ...) {
   UseMethod(generic = 'Entities', object = object)
 }
 
+#' Features
+#'
+#' Get features from the main.assay
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{Features}: The name of the default assay
+#'
+#' @rdname Features
+#' @export Features
+#'
+#' @concept data-access
+#'
+Features <- function(object, ...) {
+  UseMethod(generic = 'Features', object = object)
+}
+
 #' Coordinates
 #'
 #' Get and set the coordinates of the main assay

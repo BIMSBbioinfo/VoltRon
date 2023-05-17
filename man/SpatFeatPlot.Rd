@@ -13,10 +13,12 @@ SpatFeatPlot(
   ncol = 2,
   nrow = NULL,
   font.size = 2,
-  pt.size = 10,
+  pt.size = 2,
   alpha = 0.6,
   keep.scale = "feature",
-  label = FALSE
+  label = FALSE,
+  background = "image",
+  common.legend = TRUE
 )
 }
 \arguments{
@@ -40,7 +42,9 @@ SpatFeatPlot(
 
 \item{keep.scale}{whether unify all scales for all features or not}
 
-\item{label}{}
+\item{background}{background color or image}
+
+\item{common.legend}{whether to use a common legend for all plots}
 }
 \description{
 Functions for plotting spatial objects

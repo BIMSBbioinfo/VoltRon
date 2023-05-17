@@ -277,10 +277,10 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
 
   # return a list of plots or a single one
   if(length(features) > 1 && length(assay_names) > 1){
-    return(ggarrange(plotlist = gg, ncol = length(features), nrow = length(assay_names), common.legend = common.legend, legend = "right"))
+    return(ggarrange(plotlist = gg, ncol = length(features), nrow = length(assay_names)))
   } else if(length(features) > 1 && length(assay_names) == 1){
     if(length(gg) < ncol) ncol <- length(gg)
-    return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = "right"))
+    return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol)))
   } else if(length(features) == 1 && length(assay_names) > 1){
     if(length(gg) < ncol) ncol <- length(gg)
     return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = "right"))

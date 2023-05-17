@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{SpatPlotSingle}
 \alias{SpatPlotSingle}
-\title{SpatFeatPlotSingle}
+\title{SpatPlotSingle}
 \usage{
 SpatPlotSingle(
   assay,
@@ -10,7 +10,7 @@ SpatPlotSingle(
   limits,
   group.by = "label",
   font.size = 2,
-  pt.size = 10,
+  pt.size = 2,
   alpha = 0.6,
   label = FALSE,
   plot_title = NULL,
@@ -21,5 +21,5 @@ SpatPlotSingle(
 \item{background}{}
 }
 \description{
-A single Spatial Feature plot of spacerover objects
+A single Spatial plot of spacerover objects
 }

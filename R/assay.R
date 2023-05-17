@@ -172,6 +172,15 @@ Entities.srAssay <- function(object, ...) {
   colnames(object@rawdata)
 }
 
+#' @rdname Features
+#' @method Features srAssay
+#'
+#' @export
+#'
+Features.srAssay <- function(object, ...) {
+  return(rownames(object@rawdata))
+}
+
 #' @rdname Coordinates
 #' @method Coordinates srAssay
 #'

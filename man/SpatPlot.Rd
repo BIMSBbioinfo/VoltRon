@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{SpatPlot}
 \alias{SpatPlot}
-\title{SpatFeatPlot}
+\title{SpatPlot}
 \usage{
 SpatPlot(
   object,
@@ -38,7 +38,9 @@ SpatPlot(
 
 \item{alpha}{alpha}
 
-\item{label}{}
+\item{background}{background color or image}
+
+\item{common.legend}{whether to use a common legend for all plots}
 }
 \description{
 Functions for plotting spatial objects

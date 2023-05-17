@@ -11,11 +11,12 @@ SpatFeatPlotSingle(
   limits,
   group.by = "label",
   font.size = 2,
-  pt.size = 10,
+  pt.size = 2,
   alpha = 0.6,
   label = FALSE,
   plot_title = NULL,
-  legend_title = NULL
+  legend_title = NULL,
+  background = "image"
 )
 }
 \arguments{
