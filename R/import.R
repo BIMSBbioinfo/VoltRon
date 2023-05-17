@@ -143,6 +143,8 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
   if(file.exists(scale_file)){
     scalefactors <- jsonlite::read_json(path = scale_file)
     scales <- scalefactors$tissue_lowres_scalef
+    # spot.radius is the half of the diameter, but we visualize by a factor of 1.5 larger
+    params <- list(spot.radius = scalefactors$spot_diameter_fullres*scalefactors$tissue_lowres_scalef*1.5)
     coords <- coords*scales
     coords[,2] <- info$height - coords[,2]
   } else {
@@ -150,7 +152,7 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
   }
 
   # create SpaceRover
-  CreateSpaceRover(rawdata, metadata = NULL, image, coords, main.assay = assay_name, assay.type = "spot", ...)
+  CreateSpaceRover(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", ...)
 }
 
 ####

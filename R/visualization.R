@@ -30,6 +30,10 @@ SpatPlot <- function(object, group.by = "label", assay = "Visium", assay.type = 
   # list of plots
   gg <- list()
 
+  # check assays
+  if(is.null(assay))
+    assay <- object@main.assay
+
   # get assay names
   if(assay %in% sample.metadata$Assay){
     assay_names <- rownames(sample.metadata)[sample.metadata$Assay %in% assay]
@@ -175,18 +179,25 @@ SpatPlotSingle <- function(assay, metadata, limits, group.by = "label", font.siz
 #' @param keep.scale whether unify all scales for all features or not
 #' @param label
 #' @param background background color or image
+#' @param crop
 #' @param common.legend whether to use a common legend for all plots
 #'
 #' @importFrom ggpubr ggarrange
 #' @export
 #'
-SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", assay.type = NULL, ncol = 2, nrow = NULL, font.size = 2, pt.size = 2, alpha = 0.6, keep.scale = "feature", label = FALSE, background = "image", common.legend = TRUE) {
+SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
+                         font.size = 2, pt.size = 2, alpha = 0.6, keep.scale = "feature", label = FALSE, background = "image",
+                         crop = FALSE, common.legend = TRUE) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
 
   # list of plots
   gg <- list()
+
+  # check assays
+  if(is.null(assay))
+    assay <- object@main.assay
 
   # get assay names
   if(assay %in% sample.metadata$Assay){
@@ -220,7 +231,11 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
       if(feat %in% rownames(normdata)){
         range(normdata[feat, ])
       } else {
-        range(metadata[,feat])
+        if(feat %in% colnames(metadata)){
+          range(metadata[,feat])
+        } else {
+          stop("Feature ", feat, " cannot be found in data or metadata!")
+        }
       }
     }, assay_names)
     if(keep.scale == "all"){
@@ -270,7 +285,7 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
       l_title <- legend_title[[feat]]
       gg[[i]] <- SpatFeatPlotSingle(assay = cur_assay, metadata = cur_metadata, feature = feat, limits = limits[[feat]][[assy]],
                               group.by = group.by, font.size = font.size, pt.size = pt.size, alpha = alpha,
-                              label = label, plot_title = p_title, legend_title = l_title, background = background)
+                              label = label, plot_title = p_title, legend_title = l_title, background = background, crop = crop)
       i <- i + 1
     }
   }
@@ -304,11 +319,13 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = "GeoMx", 
 #' @param label
 #' @param plot_title
 #' @param legend_title
+#' @param background
+#' @param crop
 #'
 #' @import ggplot2
 #'
 SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "label",
-                               font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, plot_title = NULL, legend_title = NULL, background = "image"){
+                               font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, plot_title = NULL, legend_title = NULL, background = "image", crop = FALSE){
 
   # data
   info <- image_info(assay@image)
@@ -359,9 +376,12 @@ SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "lab
         geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0,
                          fill = score, group = segment), data = circle_data, lwd = 0, alpha = alpha)
     }
+  } else if(assay@type == "spot"){
+    g <- g +
+      geom_spot(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]])
   } else {
     g <- g +
-      geom_point(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, size = pt.size, alpha = alpha)
+      geom_point(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, size = rel(pt.size), alpha = alpha)
   }
 
   # adjust gradient
@@ -376,8 +396,18 @@ SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "lab
                                 panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
                                 axis.line=element_blank(),axis.text.x=element_blank(), axis.text.y=element_blank(),
                                 axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
-                                legend.margin = margin(0,0,0,0)) +
-    xlim(0,info$width) + ylim(0, info$height)
+                                legend.margin = margin(0,0,0,0))
+
+  # set up the limits
+  if(crop){
+    xlimits <- range(coords$x) + c(-6,6)
+    ylimits <- range(coords$y) + c(-6,6)
+    g <- g +
+      xlim(xlimits[1],xlimits[2]) + ylim(ylimits[1],ylimits[2])
+  } else {
+    g <- g +
+      xlim(0,info$width) + ylim(0, info$height)
+  }
 
   # background
   if(any(background %in% c("white","black"))){
@@ -398,3 +428,60 @@ SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "lab
   # return data
   return(g)
 }
+
+####
+# Auxiiary ####
+####
+
+geom_spot <- function (mapping = NULL, data = NULL, stat = "identity", position = "identity",
+                           ..., na.rm = FALSE, show.legend = NA, inherit.aes = TRUE) {
+  layer(data = data, mapping = mapping, stat = stat, geom = GeomSpot,
+        position = position, show.legend = show.legend, inherit.aes = inherit.aes,
+        params = rlang::list2(na.rm = na.rm, ...))
+}
+
+GeomSpot <- ggproto("GeomSpot",
+                      Geom,
+                      required_aes = c("x", "y"),
+                      non_missing_aes = c("size", "shape", "colour"),
+                      default_aes = aes(
+                        shape = 19,
+                        colour = "black",
+                        size = 1.5,
+                        fill = NA,
+                        spot.radius = 1,
+                        alpha = NA, stroke = 0.5
+                      ),
+                      draw_panel = function(self, data, panel_params, coord, na.rm = FALSE) {
+                        if (is.character(data$shape)) {
+                          data$shape <- translate_shape_string(data$shape)
+                        }
+                        coords <- coord$transform(data, panel_params)
+                        stroke_size <- coords$stroke
+                        stroke_size[is.na(stroke_size)] <- 0
+                        xrange <- panel_params$x.range[2] - panel_params$x.range[1]
+                        yrange <- panel_params$y.range[2] - panel_params$y.range[1]
+                        print(panel_params$x.range)
+                        print(panel_params$y.range)
+                        mainrange <- max(xrange, yrange)
+                        print(mainrange)
+                        spot.radius <- data$spot.radius/mainrange
+                        ggname("geom_spot",
+                               pointsGrob(
+                                 coords$x, coords$y,
+                                 pch = coords$shape,
+                                 size = unit(spot.radius, "npc"),
+                                 gp = gpar(
+                                   col = alpha(coords$colour, coords$alpha),
+                                   fill = alpha(coords$fill, coords$alpha),
+                                   fontsize = coords$size * .pt + stroke_size * .stroke / 2,
+                                   lwd = coords$stroke * .stroke / 2
+                                 )
+                               )
+                        )
+                      },
+
+                      draw_key = draw_key_point
+)
+
+

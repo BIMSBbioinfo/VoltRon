@@ -18,6 +18,7 @@ setOldClass(Classes = c('magick-image'))
 #' @slot segments spatial coordinates of the segments
 #' @slot segments_reg spatial coordinates of the registered segments
 #' @slot image image of the spatial assay
+#' @slot params additional parameters used by different assay types
 #' @slot type the type of the assay (cell, spot, ROI)
 #'
 #' @name srAssay-class
@@ -34,6 +35,7 @@ srAssay <- setClass(
     segments = 'list',
     segments_reg = 'list',
     image = 'magick-image',
+    params = "list",
     type = "character"
   )
 )

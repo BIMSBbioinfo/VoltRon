@@ -192,18 +192,20 @@ setMethod(
 #' @param zstack the zstack graph to determine the adjacency of spatial entities across layers
 #' @param main.assay the name of the main assay of the object
 #' @param assay_name the name of the assay
+#' @param assay.type the type of the assay (cells, spots, ROIs)
+#' @param params additional parameters of the object
 #' @param sample_name the name of the sample
 #' @param layer_name the name of the layer
-#' @param assay.type the type of the assay (cells, spots, ROIs)
 #' @param project project name
+#' @param ... additional parameters passed to spacerover object
 #'
 #' @export
 #' @import igraph
 #'
 CreateSpaceRover <- function(data, metadata = NULL, image = NULL,
-                             coords, segments = NULL,
+                             coords, segments = list(),
                              sample.metadata = NULL, zstack = NULL,
-                             main.assay = "Custom_cell", assay.type = "cell",
+                             main.assay = "Custom_cell", assay.type = "cell", params = list(),
                              sample_name = NULL, layer_name = NULL,
                              project = NULL, ...){
 
@@ -259,12 +261,7 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL,
   }
 
   # Segments
-  if(!is.null(segments)){
-    if(length(segments) > 0)
-      names(segments) <- entityID
-  } else {
-    segments <- list()
-  }
+  if(length(segments) > 0) names(segments) <- entityID
 
   # set zgraph
   if(is.null(zstack)){
@@ -274,7 +271,7 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL,
   }
 
   # create srAssay
-  Xenium_assay <- new("srAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = image, type = assay.type)
+  Xenium_assay <- new("srAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = image, params = params, type = assay.type)
   listofAssays <- list(Xenium_assay)
   names(listofAssays) <- main.assay
 
