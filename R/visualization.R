@@ -17,12 +17,13 @@
 #' @param alpha alpha
 #' @param label
 #' @param background background color or image
+#' @param crop
 #' @param common.legend whether to use a common legend for all plots
 #'
 #' @importFrom ggpubr ggarrange
 #' @export
 #'
-SpatPlot <- function(object, group.by = "label", assay = "Visium", assay.type = NULL, ncol = 2, nrow = NULL, font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, background = "image", common.legend = TRUE) {
+SpatPlot <- function(object, group.by = "label", assay = "Visium", assay.type = NULL, ncol = 2, nrow = NULL, font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, background = "image", crop = FALSE, common.legend = TRUE) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -74,7 +75,7 @@ SpatPlot <- function(object, group.by = "label", assay = "Visium", assay.type = 
     p_title <- plot_title[[assy]]
     gg[[i]] <- SpatPlotSingle(assay = cur_assay, metadata = cur_metadata, limits = limits[[feat]][[assy]],
                               group.by = group.by, font.size = font.size, pt.size = pt.size, alpha = alpha,
-                              label = label, plot_title = p_title, background = background)
+                              label = label, plot_title = p_title, background = background, crop = crop)
     i <- i + 1
   }
 
@@ -101,10 +102,11 @@ SpatPlot <- function(object, group.by = "label", assay = "Visium", assay.type = 
 #' @param label
 #' @param plot_title
 #' @param background
+#' @param crop
 #'
 #' @import ggplot2
 #'
-SpatPlotSingle <- function(assay, metadata, limits, group.by = "label", font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, plot_title = NULL, background = "image"){
+SpatPlotSingle <- function(assay, metadata, limits, group.by = "label", font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, plot_title = NULL, background = "image", crop = FALSE){
 
   # data
   info <- image_info(assay@image)
@@ -113,7 +115,7 @@ SpatPlotSingle <- function(assay, metadata, limits, group.by = "label", font.siz
   normdata <- assay@normdata
 
   # plotting features
-  coords[[group.by]] <- metadata[,group.by]
+  coords[[group.by]] <- as.factor(metadata[,group.by])
 
   # get image information and plotting features
   info <- image_info(image)
@@ -128,8 +130,18 @@ SpatPlotSingle <- function(assay, metadata, limits, group.by = "label", font.siz
   }
 
   # add points or segments
-  g <- g +
-    geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, size = pt.size, alpha = alpha)
+  if(assay@type == "spot"){
+    g <- g +
+      geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]])
+  } else if(assay@type == "spot") {
+    g <- g +
+      geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = 21, size = rel(pt.size), alpha = alpha)
+  } else {
+    stop("Only spots and cells can be visualized with SpatPlot!")
+  }
+
+  # g <- g +
+  #   geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, size = pt.size, alpha = alpha)
 
   # more visualization parameters
   g <- g +
@@ -137,8 +149,18 @@ SpatPlotSingle <- function(assay, metadata, limits, group.by = "label", font.siz
                                 panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
                                 axis.line=element_blank(),axis.text.x=element_blank(), axis.text.y=element_blank(),
                                 axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
-                                legend.margin = margin(0,0,0,0)) +
-    xlim(0,info$width) + ylim(0, info$height)
+                                legend.margin = margin(0,0,0,0))
+
+  # set up the limits
+  if(crop){
+    xlimits <- range(coords$x) + c(-6,6)
+    ylimits <- range(coords$y) + c(-6,6)
+    g <- g +
+      xlim(xlimits[1],xlimits[2]) + ylim(ylimits[1],ylimits[2])
+  } else {
+    g <- g +
+      xlim(0,info$width) + ylim(0, info$height)
+  }
 
   # background
   if(any(background %in% c("white","black"))){
@@ -214,7 +236,8 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, ass
   if(is.null(assay.type)){
     assay_types <- unlist(lapply(assay_names, function(x) object[[x]]@type))
     if(length(unique(assay_types)) == 1){
-      metadata <- Metadata(object, type = unique(assay_types))
+      assay.type <- unique(assay_types)
+      metadata <- Metadata(object, type = assay.type)
     } else {
       stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
     }
@@ -226,7 +249,7 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, ass
   limits <- Map(function(feat){
     range_feat <- Map(function(assy){
       normdata <- object[[assy]]@normdata
-      metadata <- Metadata(object, type = "ROI")
+      metadata <- Metadata(object, type = assay.type)
       metadata <- metadata[grepl(assy, rownames(metadata)),]
       if(feat %in% rownames(normdata)){
         range(normdata[feat, ])
@@ -461,10 +484,7 @@ GeomSpot <- ggproto("GeomSpot",
                         stroke_size[is.na(stroke_size)] <- 0
                         xrange <- panel_params$x.range[2] - panel_params$x.range[1]
                         yrange <- panel_params$y.range[2] - panel_params$y.range[1]
-                        print(panel_params$x.range)
-                        print(panel_params$y.range)
-                        mainrange <- max(xrange, yrange)
-                        print(mainrange)
+                        mainrange <- min(xrange, yrange)
                         spot.radius <- data$spot.radius/mainrange
                         ggname("geom_spot",
                                pointsGrob(
