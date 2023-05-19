@@ -7,7 +7,6 @@
 SpatPlotSingle(
   assay,
   metadata,
-  limits,
   group.by = "label",
   font.size = 2,
   pt.size = 2,
@@ -19,8 +18,26 @@ SpatPlotSingle(
 )
 }
 \arguments{
-\item{crop}{}
+\item{assay}{srAssay object}
+
+\item{metadata}{the metadata associated with the assay}
+
+\item{group.by}{a grouping label for the spatial entities}
+
+\item{font.size}{font sizes}
+
+\item{pt.size}{point size}
+
+\item{alpha}{alpha level for cells/spots/ROIs}
+
+\item{label}{if TRUE, the labels of the ROI assays will be visualized}
+
+\item{plot_title}{the title of the single plot}
+
+\item{background}{the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)}
+
+\item{crop}{whether to crop an image of a spot assay}
 }
 \description{
-A single Spatial plot of spacerover objects
+Plotting a single assay from a SpaceRover object. We plot the identification of spatially resolved cells, spots, and ROI on associated images.
 }

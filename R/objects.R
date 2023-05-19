@@ -353,6 +353,46 @@ AddAssay.SpaceRover <- function(object, newassay, newassay_name, sample = "Sampl
   return(object)
 }
 
+#' @rdname AssayNames
+#' @method AssayNames SpaceRover
+#'
+AssayNames.SpaceRover <- function(object, assay = NULL){
+
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
+  # check assays
+  if(is.null(assay))
+    assay <- MainAssay(object)
+
+  # get assay names
+  if(assay %in% sample.metadata$Assay){
+    assay_names <- rownames(sample.metadata)[sample.metadata$Assay %in% assay]
+  } else {
+    if(assay %in% rownames(sample.metadata)) {
+      assay_names <- assay
+    } else {
+      stop("Assay name or type is not found in the object")
+    }
+  }
+
+  return(assay_names)
+}
+
+#' @rdname AssayTypes
+#' @method AssayTypes SpaceRover
+#'
+AssayTypes.SpaceRover <- function(object, assay = NULL){
+
+  # get assay names
+  assay_names <- AssayNames(object, assay = assay)
+
+  # get assay types
+  assay_types <- sapply(assay_names, function(x) AssayTypes(object[[x]]))
+
+  return(assay_types)
+}
+
 ### Object Methods ####
 
 #' @method subset SpaceRover
@@ -444,6 +484,10 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
   new("SpaceRover", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
 }
 
+#' Merging spacerover objects
+#'
+#' Given a spacerover object, and a list of spacerover object, merge all.
+#'
 #' @param object a SpaceRover Object
 #' @param object_list a list of SpaceRover objects
 #' @param sample_name a single sample name if objects are of the same sample

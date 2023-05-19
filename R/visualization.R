@@ -31,24 +31,13 @@ SpatPlot <- function(object, group.by = "label", assay = "Visium", assay.type = 
   # list of plots
   gg <- list()
 
-  # check assays
-  if(is.null(assay))
-    assay <- object@main.assay
-
   # get assay names
-  if(assay %in% sample.metadata$Assay){
-    assay_names <- rownames(sample.metadata)[sample.metadata$Assay %in% assay]
-  } else {
-    if(assay %in% rownames(sample.metadata)) {
-      assay_names <- assay
-    } else {
-      stop("Assay name or type is not found in the object")
-    }
-  }
+  assay_names <- AssayNames(object, assay = assay)
 
   # get entity type and metadata
   if(is.null(assay.type)){
-    assay_types <- unlist(lapply(assay_names, function(x) object[[x]]@type))
+    # assay_types <- unlist(lapply(assay_names, function(x) object[[x]]@type))
+    assay_types <- AssayTypes(object, assay = assay)
     if(length(unique(assay_types)) == 1){
       metadata <- Metadata(object, type = unique(assay_types))
     } else {
@@ -212,24 +201,13 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, ass
   # list of plots
   gg <- list()
 
-  # check assays
-  if(is.null(assay))
-    assay <- object@main.assay
-
   # get assay names
-  if(assay %in% sample.metadata$Assay){
-    assay_names <- rownames(sample.metadata)[sample.metadata$Assay %in% assay]
-  } else {
-    if(assay %in% rownames(sample.metadata)) {
-      assay_names <- assay
-    } else {
-      stop("Assay name or type is not found in the object")
-    }
-  }
+  assay_names <- AssayNames(object, assay = assay)
 
   # get entity type and metadata
   if(is.null(assay.type)){
-    assay_types <- unlist(lapply(assay_names, function(x) object[[x]]@type))
+    # assay_types <- unlist(lapply(assay_names, function(x) object[[x]]@type))
+    assay_types <- AssayTypes(object, assay = assay)
     if(length(unique(assay_types)) == 1){
       assay.type <- unique(assay_types)
       metadata <- Metadata(object, type = assay.type)
@@ -268,22 +246,6 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, ass
   names(assay_title) <- assay_names
   feature_title <- as.list(features)
   names(feature_title) <- features
-  # if(length(features) > 1 && length(assay_names) > 1){
-  #   plot_title <- assay_title
-  #   legend_title <- feature_title
-  # } else if(length(features) > 1 && length(assay_names) == 1){
-  #   plot_title <- feature_title
-  #   legend_title <- as.list(rep("Log.Exp", length(features)))
-  #   names(legend_title) <- features
-  # } else if(length(features) == 1 && length(assay_names) > 1){
-  #   plot_title <- assay_title
-  #   legend_title <- feature_title
-  # } else {
-  #   plot_title <- as.list(assay_title)
-  #   names(plot_title) <- assay_names
-  #   legend_title <- as.list(features)
-  #   names(legend_title) <- features
-  # }
   plot_title <- assay_title
   legend_title <- feature_title
 

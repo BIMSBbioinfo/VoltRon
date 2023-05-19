@@ -47,3 +47,9 @@ ggname <- function(prefix, grob) {
   grob$name <- grid::grobName(grob, prefix)
   grob
 }
+
+quiet <- function(x) {
+  sink(tempfile())
+  on.exit(sink())
+  invisible(force(x))
+}

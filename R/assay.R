@@ -183,6 +183,15 @@ Features.srAssay <- function(object, ...) {
   return(rownames(object@rawdata))
 }
 
+#' @rdname AssayTypes
+#' @method AssayTypes srAssay
+#'
+#' @export
+#'
+AssayTypes.srAssay <- function(object, ...) {
+  return(object@type)
+}
+
 #' @rdname Data
 #' @method Data srAssay
 #'
