@@ -7,9 +7,9 @@
 initateKeypoints(len_images, keypoints_list, input, output, session)
 }
 \arguments{
-\item{len_images}{the number of query images}
+\item{len_images}{the length of images}
 
-\item{keypoints_list}{the keypoints list of query images}
+\item{keypoints_list}{the list of keypoint pairs}
 
 \item{input}{shiny input}
 

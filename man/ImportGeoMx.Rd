@@ -10,6 +10,8 @@ ImportGeoMx(
   summarySegment,
   summarySegmentSheetName,
   assay_name = "GeoMx",
+  segment_polygons = FALSE,
+  ome.tiff = NULL,
   ...
 )
 }
@@ -18,7 +20,15 @@ ImportGeoMx(
 
 \item{pkc_file}{path to the pkc file}
 
-\item{assay_name}{the assay name}
+\item{summarySegment}{the annotation excel file}
+
+\item{summarySegmentSheetName}{the sheet name of the excel file, \code{summarySegment}}
+
+\item{assay_name}{the assay name, default: GeoMx}
+
+\item{segment_polygons}{if TRUE, the ROI polygons are parsed from the OME.TIFF file}
+
+\item{ome.tiff}{the OME.TIFF file of the GeoMx experiment if exists}
 
 \item{...}{additional parameters passed to \code{CreateSpaceRover}}
 }

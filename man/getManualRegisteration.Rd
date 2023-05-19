@@ -9,6 +9,8 @@ getManualRegisteration(
   spatdata_list,
   image_list,
   keypoints_list,
+  centre,
+  register_ind,
   input,
   output,
   session
@@ -23,6 +25,10 @@ getManualRegisteration(
 
 \item{keypoints_list}{a list of keypoints x,y coordinates for query image}
 
+\item{centre}{center image index}
+
+\item{register_ind}{query image indices}
+
 \item{input}{shiny input}
 
 \item{output}{shiny output}
@@ -30,5 +36,5 @@ getManualRegisteration(
 \item{session}{shiny session}
 }
 \description{
-Manuel registeration of images using manually entered keypoints
+Manual registeration of images using manually entered keypoints
 }

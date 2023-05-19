@@ -9,7 +9,7 @@
 \usage{
 NormalizeData(object, ...)
 
-\method{NormalizeData}{SpaceRover}(object, ...)
+\method{NormalizeData}{SpaceRover}(object, assay = NULL, ...)
 
 \method{NormalizeData}{srAssay}(object, method = "LogNorm", desiredQuantile = 0.9)
 

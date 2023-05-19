@@ -61,7 +61,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const 
   // Draw top matches and good ones only
   // Mat imMatches;
   drawMatches(im1, keypoints1_best, im2, keypoints2_best, goodMatches, imMatches);
-  imwrite("matches_best.jpg", imMatches);
+  // imwrite("matches_best.jpg", imMatches);
 
   // Find homography
   h = findHomography( points1, points2, RANSAC );
@@ -156,7 +156,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   Mat imMatches, imReg, h;
 
   // Align images
-  cout << "Aligning images ..." << endl;
+  // cout << "Aligning images ..." << endl;
   // alignImages(im, imReference, imReg, h, GOOD_MATCH_PERCENT, MAX_FEATURES);
   alignImages(im, imReference, imReg, imMatches, h, GOOD_MATCH_PERCENT, MAX_FEATURES);
 

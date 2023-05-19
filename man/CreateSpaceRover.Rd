@@ -9,10 +9,12 @@ CreateSpaceRover(
   metadata = NULL,
   image = NULL,
   coords,
+  segments = list(),
   sample.metadata = NULL,
   zstack = NULL,
-  main.assay = NULL,
+  main.assay = "Custom_cell",
   assay.type = "cell",
+  params = list(),
   sample_name = NULL,
   layer_name = NULL,
   project = NULL,
@@ -26,6 +28,8 @@ CreateSpaceRover(
 
 \item{image}{the image of the data}
 
+\item{segments}{the segments of the spatial entities, optional}
+
 \item{sample.metadata}{a data frame of the sample metadata}
 
 \item{zstack}{the zstack graph to determine the adjacency of spatial entities across layers}
@@ -34,11 +38,15 @@ CreateSpaceRover(
 
 \item{assay.type}{the type of the assay (cells, spots, ROIs)}
 
+\item{params}{additional parameters of the object}
+
 \item{sample_name}{the name of the sample}
 
 \item{layer_name}{the name of the layer}
 
 \item{project}{project name}
+
+\item{...}{additional parameters passed to spacerover object}
 
 \item{coord}{the coordinates of the spatial entities}
 

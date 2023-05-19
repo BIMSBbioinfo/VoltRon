@@ -4,16 +4,24 @@
 \alias{getRegisteredObject.SpaceRover}
 \title{getRegisteredObject.SpaceRover}
 \usage{
-getRegisteredObject.SpaceRover(sr, mapping_list, register_ind, centre)
+getRegisteredObject.SpaceRover(
+  sr,
+  mapping_list,
+  register_ind,
+  centre,
+  reg_mode = "manual"
+)
 }
 \arguments{
+\item{sr}{a list of SpaceRover objects}
+
 \item{mapping_list}{a list of transformation matrices}
 
 \item{register_ind}{the indices of query images/spatialdatasets}
 
-\item{centre}{the index of the central referance image/spatialdata}
+\item{centre}{the index of the central reference image/spatialdata}
 
-\item{sr_list}{a list of SpaceRover objects}
+\item{reg_mode}{the registration mode, either "auto" or "manual"}
 }
 \description{
 get registered and merged SpaceRover object composed of several Samples

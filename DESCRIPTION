@@ -15,6 +15,7 @@ Collate:
     'RcppExports.R'
     'assay.R'
     'auxiliary.R'
+    'deconvolution.R'
     'zzz.R'
     'generics.R'
     'image.R'
