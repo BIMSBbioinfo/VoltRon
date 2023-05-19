@@ -2,7 +2,11 @@
 # Spot Deconvolution ####
 ####
 
-runRCTD <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.cluster = "seurat_clusters", sc.nUMI = "nCount_RNA", ...){
+RunDecon <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.cluster = "seurat_clusters", sc.nUMI = "nCount_RNA", ...){
+  RunRCTD(object, sc.object, sc.assay = "RNA", assay = NULL, sc.cluster = "seurat_clusters", sc.nUMI = "nCount_RNA", ...)
+}
+
+RunRCTD <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.cluster = "seurat_clusters", sc.nUMI = "nCount_RNA", ...){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
