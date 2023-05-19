@@ -57,7 +57,11 @@ setMethod(
       all_assays <- c(all_assays, assays)
     }
 
-    cat("Assays:", paste(unique(all_assays), collapse = " "), "\n")
+    # print assays
+    unique_assays <- unique(all_assays)
+    unique_assays <- unique_assays[c(which(unique_assays == object@main.assay),which(unique_assays != object@main.assay))]
+    unique_assays[1] <- paste0(unique_assays[1], " (Main)")
+    cat("Assays:", paste(unique_assays, collapse = " "), "\n")
 
     # return invisible
     return(invisible(x = NULL))
@@ -290,6 +294,65 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL,
   new("SpaceRover", samples = listofSamples, metadata = sr_metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
 }
 
+### Assay Methods ####
+
+#' @rdname MainAssay
+#' @method MainAssay SpaceRover
+#'
+#' @export
+#'
+MainAssay.SpaceRover <- function(object, ...) {
+  object@main.assay
+}
+
+#' @rdname MainAssay
+#' @method MainAssay<- SpaceRover
+#'
+#' @export
+#'
+"MainAssay<-.SpaceRover" <- function(object, ..., value) {
+  assay_names <- unique(object@sample.metadata$Assay)
+  if(!value %in% assay_names){
+    stop("There is no assay names '", value, "' in this object")
+  } else {
+    object@main.assay <- value
+  }
+  return(object)
+}
+
+#' @rdname AddAssay
+#' @method AddAssay SpaceRover
+#'
+AddAssay.SpaceRover <- function(object, newassay, newassay_name, sample = "Sample1", layer = "Section1"){
+
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
+  # get assay id
+  assay_ids <- as.numeric(gsub("Assay", "", rownames(sample.metadata)))
+  assay_id <- paste0("Assay", max(assay_ids)+1)
+  assay_names <- c(rownames(sample.metadata), assay_id)
+
+
+  # update sample.metadata and metadata
+  object@sample.metadata <- rbind(sample.metadata, c(newassay_name, layer, sample))
+  rownames(object@sample.metadata) <- assay_names
+
+  # update
+  # slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, row.names = entityID)
+  # object@metadata <- AddAssay(object@metadata, newassay)
+
+  # update sample and layer
+  assay_list <- object[[sample, layer]]@assay
+  newassay <- list(newassay)
+  names(newassay) <- newassay_name
+  assay_list <- c(assay_list, newassay)
+  object[[sample, layer]]@assay <- assay_list
+
+  # return
+  return(object)
+}
+
 ### Object Methods ####
 
 #' @method subset SpaceRover
@@ -460,30 +523,6 @@ SampleMetadata.SpaceRover <- function(object, ...) {
   object@sample.metadata
 }
 
-#' @rdname MainAssay
-#' @method MainAssay SpaceRover
-#'
-#' @export
-#'
-MainAssay.SpaceRover <- function(object, ...) {
-  object@main.assay
-}
-
-#' @rdname MainAssay
-#' @method MainAssay<- SpaceRover
-#'
-#' @export
-#'
-"MainAssay<-.SpaceRover" <- function(object, ..., value) {
-  assay_names <- unique(object@sample.metadata$Assay)
-  if(!value %in% assay_names){
-    stop("There is no assay names '", value, "' in this object")
-  } else {
-    object@main.assay <- value
-  }
-  return(object)
-}
-
 #' @rdname Entities
 #' @method Entities SpaceRover
 #'
@@ -517,6 +556,32 @@ Features.SpaceRover <- function(object, assay = NULL, ...) {
     features <- c(features, Features(object[[assays[i]]]))
 
   return(unique(features))
+}
+
+#' @rdname Data
+#' @method Data SpaceRover
+#'
+#' @export
+#'
+Data.SpaceRover <- function(object, type = NULL, assay = NULL, ...) {
+
+  # check assays
+  if(is.null(assay))
+    assay <- object@main.assay
+
+  # get all assays that are of main assay
+  assay_names <- unique(object@sample.metadata$Assay)
+  if(!assay %in% assay_names)
+    stop("There are no assays named '", assay, "' in this object!")
+  sample.metadata <- object@sample.metadata[object@sample.metadata == assay,]
+  assays <- rownames(sample.metadata)
+
+  # get all coordinates
+  returndata_list <- list()
+  for(i in 1:length(assays))
+    returndata_list[[i]] <- Data(object[[assays[i]]], type = type)
+
+  return(do.call(rbind, returndata_list))
 }
 
 #' @rdname Coordinates

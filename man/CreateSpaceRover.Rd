@@ -9,11 +9,12 @@ CreateSpaceRover(
   metadata = NULL,
   image = NULL,
   coords,
-  segments = NULL,
+  segments = list(),
   sample.metadata = NULL,
   zstack = NULL,
   main.assay = "Custom_cell",
   assay.type = "cell",
+  params = list(),
   sample_name = NULL,
   layer_name = NULL,
   project = NULL,
@@ -37,11 +38,15 @@ CreateSpaceRover(
 
 \item{assay.type}{the type of the assay (cells, spots, ROIs)}
 
+\item{params}{additional parameters of the object}
+
 \item{sample_name}{the name of the sample}
 
 \item{layer_name}{the name of the layer}
 
 \item{project}{project name}
+
+\item{...}{additional parameters passed to spacerover object}
 
 \item{coord}{the coordinates of the spatial entities}
 

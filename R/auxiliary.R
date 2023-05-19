@@ -42,3 +42,8 @@ slotToList <- function(x){
     returnlist[[cur_slot]] <- slot(x, name = cur_slot)
   returnlist
 }
+
+ggname <- function(prefix, grob) {
+  grob$name <- grid::grobName(grob, prefix)
+  grob
+}

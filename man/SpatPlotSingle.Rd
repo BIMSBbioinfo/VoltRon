@@ -14,11 +14,12 @@ SpatPlotSingle(
   alpha = 0.6,
   label = FALSE,
   plot_title = NULL,
-  background = "image"
+  background = "image",
+  crop = FALSE
 )
 }
 \arguments{
-\item{background}{}
+\item{crop}{}
 }
 \description{
 A single Spatial plot of spacerover objects

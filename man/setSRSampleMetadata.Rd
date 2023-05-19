@@ -7,7 +7,7 @@
 setSRSampleMetadata(samples)
 }
 \arguments{
-\item{samples}{a list of srSamplep object}
+\item{samples}{a list of srSample object}
 }
 \description{
 setSRSampleMetadata

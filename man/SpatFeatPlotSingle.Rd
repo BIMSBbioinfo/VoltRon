@@ -16,11 +16,12 @@ SpatFeatPlotSingle(
   label = FALSE,
   plot_title = NULL,
   legend_title = NULL,
-  background = "image"
+  background = "image",
+  crop = FALSE
 )
 }
 \arguments{
-\item{legend_title}{}
+\item{crop}{}
 }
 \description{
 A single Spatial Feature plot of spacerover objects

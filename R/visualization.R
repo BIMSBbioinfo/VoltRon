@@ -394,19 +394,29 @@ SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "lab
         geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0,
                          fill = score, group = segment), data = circle_data, lwd = 0, alpha = alpha)
     }
+    g <- g +
+      scale_fill_gradientn(name = legend_title,
+                           colors=c("dodgerblue2", "white", "yellow3"),
+                           values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
   } else if(assay@type == "spot"){
     g <- g +
-      geom_spot(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]])
+      geom_spot(mapping = aes(x = x, y = y, color = score), coords, shape = 19, alpha = alpha, spot.radius = assay@params[["spot.radius"]]) +
+      scale_colour_gradientn(name = legend_title,
+                             colors=c("dodgerblue3", "yellow", "red"),
+                             values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
   } else {
     g <- g +
-      geom_point(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, size = rel(pt.size), alpha = alpha)
+      geom_point(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, size = rel(pt.size), alpha = alpha) +
+      scale_fill_gradientn(name = legend_title,
+                             colors=c("dodgerblue2", "white", "yellow3"),
+                             values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
   }
 
   # adjust gradient
-  g <- g +
-    scale_fill_gradientn(name = legend_title,
-                         colors=c("dodgerblue2", "white", "yellow3"),
-                         values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
+  # g <- g +
+  #   scale_fill_gradientn(name = legend_title,
+  #                        colors=c("dodgerblue2", "white", "yellow3"),
+  #                        values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
 
   # more visualization parameters
   g <- g +
@@ -482,11 +492,11 @@ GeomSpot <- ggproto("GeomSpot",
                         mainrange <- min(xrange, yrange)
                         spot.radius <- data$spot.radius/mainrange
                         ggname("geom_spot",
-                               pointsGrob(
+                               grid::pointsGrob(
                                  coords$x, coords$y,
                                  pch = coords$shape,
                                  size = unit(spot.radius, "npc"),
-                                 gp = gpar(
+                                 gp = grid::gpar(
                                    col = alpha(coords$colour, coords$alpha),
                                    fill = alpha(coords$fill, coords$alpha),
                                    fontsize = coords$size * .pt + stroke_size * .stroke / 2,

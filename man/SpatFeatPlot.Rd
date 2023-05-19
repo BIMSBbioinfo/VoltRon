@@ -8,7 +8,7 @@ SpatFeatPlot(
   object,
   features,
   group.by = "label",
-  assay = "GeoMx",
+  assay = NULL,
   assay.type = NULL,
   ncol = 2,
   nrow = NULL,
@@ -18,6 +18,7 @@ SpatFeatPlot(
   keep.scale = "feature",
   label = FALSE,
   background = "image",
+  crop = FALSE,
   common.legend = TRUE
 )
 }

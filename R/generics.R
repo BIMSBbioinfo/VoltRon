@@ -55,6 +55,24 @@ SampleMetadata <- function(object, ...) {
   UseMethod(generic = 'SampleMetadata', object = object)
 }
 
+#' Add Assay
+#'
+#' add assay to the object
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{AddAssay}: The name of the default assay
+#'
+#' @rdname AddAssay
+#' @export AddAssay
+#'
+#' @concept data-access
+#'
+AddAssay <- function(object, ...) {
+  UseMethod(generic = 'AddAssay', object = object)
+}
+
 #' Main Assay
 #'
 #' Get and set the main assay
@@ -121,6 +139,24 @@ Entities <- function(object, ...) {
 #'
 Features <- function(object, ...) {
   UseMethod(generic = 'Features', object = object)
+}
+
+#' Data
+#'
+#' Get data from the main.assay
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{Data}: The name of the default assay
+#'
+#' @rdname Data
+#' @export Data
+#'
+#' @concept data-access
+#'
+Data <- function(object, ...) {
+  UseMethod(generic = 'Data', object = object)
 }
 
 #' Coordinates

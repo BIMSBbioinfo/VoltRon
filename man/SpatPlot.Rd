@@ -16,6 +16,7 @@ SpatPlot(
   alpha = 0.6,
   label = FALSE,
   background = "image",
+  crop = FALSE,
   common.legend = TRUE
 )
 }

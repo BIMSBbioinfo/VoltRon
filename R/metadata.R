@@ -314,7 +314,7 @@ setSRMetadata <- function(cell, spot, ROI){
 
 #' setSRSampleMetadata
 #'
-#' @param samples a list of srSamplep object
+#' @param samples a list of srSample object
 #'
 setSRSampleMetadata <- function(samples){
 
