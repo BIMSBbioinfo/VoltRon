@@ -400,6 +400,8 @@ AssayTypes.SpaceRover <- function(object, assay = NULL){
 #' @importFrom rlang enquo eval_tidy quo_get_expr
 #' @import igraph
 #' @importFrom stringr str_extract
+#' @import shiny
+#' @import shinyjs
 #'
 #' @export
 #'
