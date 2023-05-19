@@ -145,7 +145,7 @@ subset.srMetadata <- function(metadata, subset, samples = NULL, assays = NULL, e
       spot.metadata <- metadata@spot[metadata@spot$Assay %in% assays, ]
       roi.metadata <- metadata@ROI[metadata@ROI$Assay %in% assays, ]
     }
-  } else if(!is.null(cells)){
+  } else if(!is.null(entities)){
     cell.metadata <- metadata@cell[rownames(metadata@cell) %in% entities, ]
     spot.metadata <- metadata@spot[rownames(metadata@spot) %in% entities, ]
     roi.metadata <- metadata@ROI[rownames(metadata@ROI) %in% entities, ]

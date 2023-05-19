@@ -9,17 +9,6 @@ NULL
 #' @export
 NormalizeData.SpaceRover <- function(object, assay = NULL, ...) {
 
-  # # check assays
-  # if(is.null(assay))
-  #   assay <- object@main.assay
-  #
-  # # get all assays that are of main assay
-  # assay_names <- unique(object@sample.metadata$Assay)
-  # if(!assay %in% assay_names)
-  #   stop("There are no assays named '", assay, "' in this object!")
-  # sample.metadata <- object@sample.metadata[object@sample.metadata == assay,]
-  # assays <- rownames(sample.metadata)
-
   # get assay names
   assay_names <- AssayNames(object, assay = assay)
 

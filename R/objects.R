@@ -583,21 +583,13 @@ Entities.SpaceRover <- function(object, ...) {
 #'
 Features.SpaceRover <- function(object, assay = NULL, ...) {
 
-  # check assays
-  if(is.null(assay))
-    assay <- object@main.assay
+  # get assay names
+  assay_names <- AssayNames(object, assay = assay)
 
-  # get all assays that are of main assay
-  assay_names <- unique(object@sample.metadata$Assay)
-  if(!assay %in% assay_names)
-    stop("There are no assays named '", assay, "' in this object!")
-  sample.metadata <- object@sample.metadata[object@sample.metadata == assay,]
-  assays <- rownames(sample.metadata)
-
-  # get all coordinates
+  # get all features
   features <- NULL
-  for(i in 1:length(assays))
-    features <- c(features, Features(object[[assays[i]]]))
+  for(assy in assay_names)
+    features <- c(features, Features(object[[assy]]))
 
   return(unique(features))
 }
@@ -609,20 +601,12 @@ Features.SpaceRover <- function(object, assay = NULL, ...) {
 #'
 Data.SpaceRover <- function(object, type = NULL, assay = NULL, ...) {
 
-  # check assays
-  if(is.null(assay))
-    assay <- object@main.assay
-
-  # get all assays that are of main assay
-  assay_names <- unique(object@sample.metadata$Assay)
-  if(!assay %in% assay_names)
-    stop("There are no assays named '", assay, "' in this object!")
-  sample.metadata <- object@sample.metadata[object@sample.metadata == assay,]
-  assays <- rownames(sample.metadata)
+  # get assay names
+  assay_names <- AssayNames(object, assay = assay)
 
   # get all coordinates
   returndata_list <- list()
-  for(i in 1:length(assays))
+  for(i in 1:length(assay_names))
     returndata_list[[i]] <- Data(object[[assays[i]]], type = type)
 
   return(do.call(rbind, returndata_list))
@@ -635,23 +619,13 @@ Data.SpaceRover <- function(object, type = NULL, assay = NULL, ...) {
 #'
 Coordinates.SpaceRover <- function(object, reg = FALSE, assay = NULL, ...) {
 
-  # check assays
-  if(is.null(assay))
-    assay = object@main.assay
-
-  # get all assays that are of main assay
-  assay_names <- unique(object@sample.metadata$Assay)
-  if(!assay %in% assay_names)
-    stop("There are no assays named '", assay, "' in this object!")
-  sample.metadata <- object@sample.metadata[object@sample.metadata == assay,]
+  # get assay names
+  assay_names <- AssayNames(object, assay = assay)
 
   # get all coordinates
   coords <- NULL
-  for(i in 1:nrow(sample.metadata)){
-    cur_assay <- sample.metadata[i,]
-    srassay <- object[[cur_assay$Sample, cur_assay$Layer]][[cur_assay$Assay]]
-    coords <- rbind(coords, Coordinates(srassay, reg = reg))
-  }
+  for(assy in assay_names)
+    coords <- rbind(coords, Coordinates(object[[assy]], reg = reg))
 
   # return image
   return(coords)
@@ -688,23 +662,13 @@ Coordinates.SpaceRover <- function(object, reg = FALSE, assay = NULL, ...) {
 #'
 Segments.SpaceRover <- function(object, reg = FALSE, assay = NULL, ...) {
 
-  # check assays
-  if(is.null(assay))
-    assay = object@main.assay
-
-  # get all assays that are of main assay
-  assay_names <- unique(object@sample.metadata$Assay)
-  if(!assay %in% assay_names)
-    stop("There are no assays named '", assay, "' in this object!")
-  sample.metadata <- object@sample.metadata[object@sample.metadata == assay,]
+  # get assay names
+  assay_names <- AssayNames(object, assay = assay)
 
   # get all coordinates
   segts <- NULL
-  for(i in 1:nrow(sample.metadata)){
-    cur_assay <- sample.metadata[i,]
-    srassay <- object[[cur_assay$Sample, cur_assay$Layer]][[cur_assay$Assay]]
-    segts <- c(segts, Segments(srassay, reg = reg))
-  }
+  for(assy in assay_names)
+    segts <- rbind(segts, Segments(object[[assy]], reg = reg))
 
   # return image
   return(segts)
