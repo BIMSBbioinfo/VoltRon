@@ -29,7 +29,7 @@ RunDecon <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.clust
       rawdata <- new("srAssay",
                      rawdata = rawdata, normdata = rawdata,
                      coords = cur_assay@coords[colnames(rawdata),],
-                     image = cur_assay@image, segments = segments,
+                     image = cur_assay@image, segments = cur_assay@segments,
                      type = cur_assay@type, params = cur_assay@params)
       object <- AddAssay(object,
                          newassay = rawdata,

@@ -323,6 +323,8 @@ MainAssay.SpaceRover <- function(object, ...) {
 #' @rdname AddAssay
 #' @method AddAssay SpaceRover
 #'
+#' @export
+#'
 AddAssay.SpaceRover <- function(object, newassay, newassay_name, sample = "Sample1", layer = "Section1"){
 
   # sample metadata
@@ -356,6 +358,8 @@ AddAssay.SpaceRover <- function(object, newassay, newassay_name, sample = "Sampl
 #' @rdname AssayNames
 #' @method AssayNames SpaceRover
 #'
+#' @export
+#'
 AssayNames.SpaceRover <- function(object, assay = NULL){
 
   # sample metadata
@@ -382,6 +386,8 @@ AssayNames.SpaceRover <- function(object, assay = NULL){
 #' @rdname AssayTypes
 #' @method AssayTypes SpaceRover
 #'
+#' @export
+#'
 AssayTypes.SpaceRover <- function(object, assay = NULL){
 
   # get assay names
@@ -404,7 +410,6 @@ AssayTypes.SpaceRover <- function(object, assay = NULL){
 #' @import shinyjs
 #'
 #' @export
-#'
 #'
 subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, entities = NULL, image = NULL, interactive = FALSE) {
 

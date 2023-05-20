@@ -1,5 +1,4 @@
 #' @include zzz.R
-#' @include generics.R
 #'
 NULL
 
