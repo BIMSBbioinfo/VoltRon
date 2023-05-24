@@ -197,8 +197,12 @@ AssayTypes.srAssay <- function(object, ...) {
 #'
 #' @export
 #'
-Data.srAssay <- function(object, ...) {
-  return(object@rawdata)
+Data.srAssay <- function(object, norm = FALSE) {
+  if(norm){
+    return(object@normdata)
+  } else {
+    return(object@rawdata)
+  }
 }
 
 #' @rdname Coordinates

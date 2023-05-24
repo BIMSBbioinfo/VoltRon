@@ -2,6 +2,10 @@
 # Spatial plots ####
 ####
 
+####
+## Spatial Identity Plot ####
+####
+
 #' SpatPlot
 #'
 #' Plotting identification of spatially resolved cells, spots, and ROI on associated images from multiple assays in a SpaceRover object.
@@ -62,7 +66,7 @@ SpatPlot <- function(object, group.by = "label", assay = "Visium", assay.type = 
 
     # visualize
     p_title <- plot_title[[assy]]
-    gg[[i]] <- SpatPlotSingle(assay = cur_assay, metadata = cur_metadata, limits = limits[[feat]][[assy]],
+    gg[[i]] <- SpatPlotSingle(assay = cur_assay, metadata = cur_metadata,
                               group.by = group.by, font.size = font.size, pt.size = pt.size, alpha = alpha,
                               label = label, plot_title = p_title, background = background, crop = crop)
     i <- i + 1
@@ -121,7 +125,7 @@ SpatPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, p
   if(assay@type == "spot"){
     g <- g +
       geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]])
-  } else if(assay@type == "spot") {
+  } else if(assay@type == "cell") {
     g <- g +
       geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = 21, size = rel(pt.size), alpha = alpha)
   } else {
@@ -165,7 +169,7 @@ SpatPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, p
 }
 
 ####
-# Feature plots ####
+## Spatial Feature Plot ####
 ####
 
 #' SpatFeatPlot
@@ -420,7 +424,7 @@ SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "lab
 }
 
 ####
-# Auxiiary ####
+## Spatial Auxiiary ####
 ####
 
 geom_spot <- function (mapping = NULL, data = NULL, stat = "identity", position = "identity",
@@ -471,4 +475,70 @@ GeomSpot <- ggproto("GeomSpot",
                       draw_key = draw_key_point
 )
 
+####
+# Scatter Plot ####
+####
+
+ScatterFeaturePlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NULL, assay.type = NULL,
+                               pt.size = 2, font.size = 2, group.by = "label", label = FALSE){
+
+  # check the number of features
+  if(is.null(feature.1) | is.null(feature.2))
+    stop("Please provide both 'feature.1' and 'feature.2'")
+
+  # check the number of features
+  if((length(feature.1) != 1 | length(feature.2) != 1))
+    stop("Both 'feature.1' and 'feature.2' should be of length 1.")
+
+  # data
+  normdata <- Data(object, norm = norm)
+
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
+  # list of plots
+  gg <- list()
+
+  # get assay names
+  assay_names <- AssayNames(object, assay = assay)
+
+  # get entity type and metadata
+  if(is.null(assay.type)){
+    assay_types <- AssayTypes(object, assay = assay)
+    if(length(unique(assay_types)) == 1){
+      assay.type <- unique(assay_types)
+      metadata <- Metadata(object, type = assay.type)
+    } else {
+      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+    }
+  } else {
+    metadata <- Metadata(object, type = assay.type)
+  }
+
+  # get data
+  data_feature <- sapply(c(feature.1, feature.2), function(feat){
+    if(feat %in% rownames(normdata)){
+      return(normdata[feat,])
+    } else {
+      return(metadata[,feat])
+    }
+  })
+  data_feature <- as.data.frame(data_feature)
+
+  # plot
+  g <- ggplot()
+
+  # plot scatter
+  g <- g +
+    geom_point(mapping = aes_string(x = feature.1, y = feature.2), data = data_feature, size = pt.size)
+
+  # visualize labels
+  if(label){
+    data_feature[[group.by]] <- metadata[,group.by]
+    g <- g + geom_label_repel(mapping = aes_string(x = feature.1, y = feature.2, label = group.by), data_feature,
+                                box.padding = 0.5, size = font.size, direction = "both", seed = 1)
+  }
+
+  g
+}
 

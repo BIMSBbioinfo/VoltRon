@@ -40,6 +40,11 @@ NormalizeData.srAssay <- function(object, method = "LogNorm", desiredQuantile = 
     rawdata[rawdata==0] <- 1
     qs <- apply(rawdata, 2, function(x) stats::quantile(x, desiredQuantile))
     normdata <- sweep(rawdata, 2L, qs / exp(mean(log(qs))), FUN = "/")
+  } else if(method == "LogQuanNorm") {
+    rawdata[rawdata==0] <- 1
+    qs <- apply(rawdata, 2, function(x) stats::quantile(x, desiredQuantile))
+    normdata <- sweep(rawdata, 2L, qs / exp(mean(log(qs))), FUN = "/")
+    normdata <- log(normdata + 1)
   }
 
   # get normalized data

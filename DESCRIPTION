@@ -25,5 +25,12 @@ Collate:
     'objects.R'
     'processing.R'
     'registration.R'
-    'sample.R'
+    'sample.R'w
     'visualization.R'
+Suggests:
+    SingleCellExperiment,
+    Seurat,
+    DESeq2,
+    MuSiC,
+    spacexr
+    

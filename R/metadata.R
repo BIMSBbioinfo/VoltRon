@@ -288,12 +288,6 @@ merge.sampleMetadata <- function(metadata_list, sample_name = NULL) {
     sample.metadata$Sample <- sample_name
     sample.metadata$Layer <- paste0("Section", 1:nrow(sample.metadata))
     unique_assay <- unique(sample.metadata$Assay)
-    # if(nrow(sample.metadata) != length(unique_assay)){
-    #   for(cur_assay in unique_assay){
-    #     cur_assay_ind <- which(sample.metadata$Assay %in% cur_assay)
-    #     # sample.metadata$Assay[cur_assay_ind] <- paste0(sample.metadata$Assay[cur_assay_ind], "_", 1:length(cur_assay_ind))
-    #   }
-    # }
   }
   sample.metadata
 }

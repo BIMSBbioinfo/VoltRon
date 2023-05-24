@@ -22,7 +22,7 @@ RunDecon <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.clust
       cur_assay <- object[[assy]]
 
       # RCTD
-      rawdata <- RunDeconSingle(object = cur_assay, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, sc.nUMI = sc.nUMI, ...)
+      rawdata <- RunDeconSingle(object = cur_assay, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
 
       # Add as new assay
       cat("Adding cell type compositions as new assay:", paste(sample.metadata[assy, "Assay"], "decon", sep = "_"), "...\n")
@@ -42,7 +42,7 @@ RunDecon <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.clust
   return(object)
 }
 
-RunDeconSingle <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", sc.nUMI = "nCount_RNA", ...){
+RunDeconSingle <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", ...){
 
   # get assay type
   assay.type <- AssayTypes(object)
@@ -50,7 +50,7 @@ RunDeconSingle <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "se
   if(assay.type == "spot"){
 
     cat("Running RCTD for spot deconvolution ...\n")
-    rawdata <- RunRCTD(object = object, sc.object = sc.object, sc.assay = sc.assay, assay = assay, sc.cluster = sc.cluster, sc.nUMI = sc.nUMI, ...)
+    rawdata <- RunRCTD(object = object, sc.object = sc.object, sc.assay = sc.assay, assay = assay, sc.cluster = sc.cluster, ...)
 
   } else if(assay.type == "ROI"){
 
@@ -63,14 +63,17 @@ RunDeconSingle <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "se
   return(rawdata)
 }
 
-RunRCTD <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", sc.nUMI = "nCount_RNA", ...){
+RunRCTD <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", ...){
+
+  if (!requireNamespace('spacexr'))
+    stop("Please install spacexr package to use the RCTD algorithm")
 
   # create spatial data
   cat("Configuring Spatial Assay ...\n")
   spatialcounts <- Data(object, type = "raw")
   coords <- as.data.frame(Coordinates(object))
   spatialnUMI <- colSums(spatialcounts)
-  spatialdata <- SpatialRNA(coords, spatialcounts, spatialnUMI)
+  spatialdata <- spacexr::SpatialRNA(coords, spatialcounts, spatialnUMI)
 
   # create single cell reference
   cat("Configuring Single Cell Assay (reference) ...\n")
@@ -79,13 +82,13 @@ RunRCTD <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_cl
   rownames(sccounts) <- rownames(sc.object[[sc.assay]])
   cell_types <- as.factor(sc.object@meta.data[[sc.cluster]])
   names(cell_types) <- colnames(sc.object)
-  sc.nUMI <- as.integer(sc.object@meta.data[[sc.nUMI]])
+  sc.nUMI <- colSums(sccounts)
   names(sc.nUMI) <- colnames(sc.object)
-  reference <- Reference(sccounts, cell_types, sc.nUMI)
+  reference <- spacexr::Reference(sccounts, cell_types, sc.nUMI)
 
   # Run RCTD
   myRCTD <- create.RCTD(spatialdata, reference, ...)
-  cat("Calculating Cell Type Compositions ...\n")
+  cat("Calculating Cell Type Compositions of spots with RCTD ...\n")
   myRCTD <- quiet(run.RCTD(myRCTD, doublet_mode = 'full'))
   results <- as.matrix(myRCTD@results$weights)
   norm_weights <- t(sweep(results, 1, rowSums(results), "/"))
@@ -94,7 +97,21 @@ RunRCTD <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_cl
   return(norm_weights)
 }
 
-RunMuSiC <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", sc.nUMI = "nCount_RNA", sc.Samples = NULL){
+#' Title
+#'
+#' @param object An srAssay object
+#' @param sc.object a Seurat object
+#' @param sc.assay an assay in Seurat object where single cell count data is pulled
+#' @param sc.cluster metadata column in Seurat provides the cell types in single cell data
+#' @param sc.Samples metadata column in Seurat that provides the samples in the single cell data
+#'
+#' @examples
+RunMuSiC <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", sc.Samples = NULL){
+
+  if (!requireNamespace('Seurat'))
+    stop("Please install Seurat package for using Seurat objects")
+  if (!requireNamespace('MuSiC'))
+    stop("Please install MuSiC package for ROI deconvolution")
 
   if(is.null(sc.Samples))
     stop("Please provide a metadata column for samples for MuSiC algorithm to work")
@@ -104,12 +121,10 @@ RunMuSiC <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_c
   sccounts <- GetAssayData(sc.object[[sc.assay]], slot = "counts")
   sccounts <- as.matrix(apply(sccounts,2,ceiling))
   rownames(sccounts) <- rownames(sc.object[[sc.assay]])
-  # scRNAseq <- SingleCellExperiment::SingleCellExperiment(sccounts)
-  # scRNAseq[[sc.cluster]] <- sc.object@meta.data[[sc.cluster]]
-  # scRNAseq[[sc.Samples]] <- sc.object@meta.data[[sc.Samples]]
   scRNAseq <- Seurat::as.SingleCellExperiment(CreateSeuratObject(sccounts, meta.data = sc.object@meta.data))
 
-  # deconvolute
+  # deconvolute using
+  cat("Calculating Cell Type Compositions of ROIs with MuSiC ...\n")
   results <- music_prop(bulk.mtx = as.matrix(Data(object)),
                         sc.sce = scRNAseq,
                         clusters = sc.cluster,
