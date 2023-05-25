@@ -21,7 +21,31 @@ SpatFeatPlotSingle(
 )
 }
 \arguments{
-\item{crop}{}
+\item{assay}{srAssay object}
+
+\item{metadata}{the metadata associated with the assay}
+
+\item{feature}{a feature, either from the rows of rawdata, normdata or columns of the metadata}
+
+\item{limits}{limits of the legend of the plot}
+
+\item{group.by}{a grouping label for the spatial entities}
+
+\item{font.size}{font sizes}
+
+\item{pt.size}{point size}
+
+\item{alpha}{alpha level for cells/spots/ROIs}
+
+\item{label}{if TRUE, labels of ROIs will be visualized too}
+
+\item{plot_title}{the main title of the single plot}
+
+\item{legend_title}{the legend title of the single plot}
+
+\item{background}{the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)}
+
+\item{crop}{whether to crop an image of a spot assay}
 }
 \description{
 A single Spatial Feature plot of spacerover objects

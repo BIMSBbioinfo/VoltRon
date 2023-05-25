@@ -25,28 +25,34 @@ SpatFeatPlot(
 \arguments{
 \item{object}{SpaceRover object}
 
+\item{features}{a set of features, either from the rows of rawdata, normdata or columns of the metadata}
+
 \item{group.by}{a grouping label for the spatial entities}
 
 \item{assay}{the assay name}
 
 \item{assay.type}{the assay type name: 'cell', 'spot' or 'ROI'}
 
-\item{ncol}{ncol}
+\item{ncol}{column wise number of plots, for \code{ggarrange}}
 
-\item{nrow}{nrow}
+\item{nrow}{row wise number of plots, for \code{ggarrange}}
 
 \item{font.size}{font sizes}
 
 \item{pt.size}{point size}
 
-\item{alpha}{alpha}
+\item{alpha}{alpha level for cells/spots/ROIs}
 
 \item{keep.scale}{whether unify all scales for all features or not}
 
-\item{background}{background color or image}
+\item{label}{if TRUE, labels of ROIs will be visualized too}
+
+\item{background}{the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)}
+
+\item{crop}{whether to crop an image of a spot assay}
 
 \item{common.legend}{whether to use a common legend for all plots}
 }
 \description{
-Functions for plotting spatial objects
+Plotting single/multiple features of spatially resolved cells, spots, and ROI on associated images from multiple assays in a SpaceRover object.
 }

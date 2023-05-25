@@ -145,7 +145,7 @@ subset.srMetadata <- function(metadata, subset, samples = NULL, assays = NULL, e
       spot.metadata <- metadata@spot[metadata@spot$Assay %in% assays, ]
       roi.metadata <- metadata@ROI[metadata@ROI$Assay %in% assays, ]
     }
-  } else if(!is.null(cells)){
+  } else if(!is.null(entities)){
     cell.metadata <- metadata@cell[rownames(metadata@cell) %in% entities, ]
     spot.metadata <- metadata@spot[rownames(metadata@spot) %in% entities, ]
     roi.metadata <- metadata@ROI[rownames(metadata@ROI) %in% entities, ]
@@ -288,12 +288,6 @@ merge.sampleMetadata <- function(metadata_list, sample_name = NULL) {
     sample.metadata$Sample <- sample_name
     sample.metadata$Layer <- paste0("Section", 1:nrow(sample.metadata))
     unique_assay <- unique(sample.metadata$Assay)
-    # if(nrow(sample.metadata) != length(unique_assay)){
-    #   for(cur_assay in unique_assay){
-    #     cur_assay_ind <- which(sample.metadata$Assay %in% cur_assay)
-    #     # sample.metadata$Assay[cur_assay_ind] <- paste0(sample.metadata$Assay[cur_assay_ind], "_", 1:length(cur_assay_ind))
-    #   }
-    # }
   }
   sample.metadata
 }

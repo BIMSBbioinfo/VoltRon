@@ -29,20 +29,24 @@ SpatPlot(
 
 \item{assay.type}{the assay type name: 'cell', 'spot' or 'ROI'}
 
-\item{ncol}{ncol}
+\item{ncol}{column wise number of plots, for \code{ggarrange}}
 
-\item{nrow}{nrow}
+\item{nrow}{row wise number of plots, for \code{ggarrange}}
 
 \item{font.size}{font sizes}
 
 \item{pt.size}{point size}
 
-\item{alpha}{alpha}
+\item{alpha}{alpha level for cells/spots/ROIs}
 
-\item{background}{background color or image}
+\item{label}{if TRUE, the labels of the ROI assays will be visualized}
+
+\item{background}{the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)}
+
+\item{crop}{whether to crop an image of a spot assay}
 
 \item{common.legend}{whether to use a common legend for all plots}
 }
 \description{
-Functions for plotting spatial objects
+Plotting identification of spatially resolved cells, spots, and ROI on associated images from multiple assays in a SpaceRover object.
 }

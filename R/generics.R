@@ -1,5 +1,4 @@
 #' @include zzz.R
-#' @include generics.R
 #'
 NULL
 
@@ -71,6 +70,43 @@ SampleMetadata <- function(object, ...) {
 #'
 AddAssay <- function(object, ...) {
   UseMethod(generic = 'AddAssay', object = object)
+}
+
+#' Get Assay names
+#'
+#' Given a SpaceRover object, give names of assays of some type, or main assay.
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{AssayNames}: The name of the default assay
+#'
+#' @rdname AssayNames
+#' @export AssayNames
+#'
+#' @concept data-access
+#'
+AssayNames <- function(object, ...) {
+  UseMethod(generic = 'AssayNames', object = object)
+}
+
+#' Get Assay types
+#'
+#' Given a SpaceRover object, give types of assays of some type, or of the main assay.
+#' Here, an assay type is of either cell, spot or ROI.
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{AssayTypes}: The name of the default assay
+#'
+#' @rdname AssayTypes
+#' @export AssayTypes
+#'
+#' @concept data-access
+#'
+AssayTypes <- function(object, ...) {
+  UseMethod(generic = 'AssayTypes', object = object)
 }
 
 #' Main Assay

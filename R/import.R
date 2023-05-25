@@ -11,7 +11,7 @@
 #' @param assay_name the assay name of the SR object
 #' @param ... additional parameters passed to \code{CreateSpaceRover}
 #'
-#' @import magick
+#' @importFrom magick image_read
 #'
 #' @export
 #'
@@ -29,7 +29,7 @@ ImportXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   # image
   image_file <- paste0(dir.path, "/morphology_lowres.tif")
   if(file.exists(image_file)){
-    image <-  magick::image_read(image_file)
+    image <-  image_read(image_file)
   } else {
     stop("There are no spatial image files in the path")
   }
@@ -171,13 +171,18 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
 #' @param ... additional parameters passed to \code{CreateSpaceRover}
 #'
 #' @import dplyr
-#' @import GeomxTools
-#' @import xlsx
+#' @importFrom xlsx read.xlsx
 #'
 #' @export
 #'
 ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetName, assay_name = "GeoMx", segment_polygons = FALSE, ome.tiff = NULL, ...)
 {
+  if (!requireNamespace('GeomxTools'))
+    stop("Please install Seurat package for using Seurat objects")
+
+  # Get pkc file
+  pkcdata <- GeomxTools::readPKCFile(pkc_file)
+
   # Get dcc file
   dcc_files <- dir(dir.path, pattern = ".dcc$", full.names = TRUE)
   dcc_files <- dcc_files[!grepl("A01.dcc$", dcc_files)]
@@ -203,9 +208,6 @@ ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
   rownames(rawdata) <- rawdata$RTS_ID
   rawdata <- rawdata[,!colnames(rawdata) %in% "RTS_ID"]
 
-  # get pkc file
-  pkcdata <- readPKCFile(pkc_file)
-
   # get genes
   NegProbes <- pkcdata$RTS_ID[pkcdata$Target == "NegProbe-WTX"]
   rawdata <- rawdata[!rownames(rawdata) %in% NegProbes, ]
@@ -213,7 +215,7 @@ ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
   rawdata <- as.matrix(rawdata)
 
   # get segment summary
-  segmentsummary <- xlsx::read.xlsx(summarySegment, sheetName = summarySegmentSheetName)
+  segmentsummary <- read.xlsx(summarySegment, sheetName = summarySegmentSheetName)
 
   # get image
   image <- image_read(paste0(dir.path, "/morphology.tiff"))
@@ -247,18 +249,21 @@ ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
 #' @param summary segmentation summary data frame
 #' @param imageinfo image information
 #'
-#' @importFrom SpatialOmicsOverlay xmlExtraction
+#' @importFrom RBioFormats read.omexml
+#' @importFrom XML xmlToList
 #'
 ImportGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
   # get the xml file
-  xmltemp <- xmlExtraction(ometiff = ome.tiff)
+  # xmltemp <- xmlExtraction(ometiff = ome.tiff)
+  omexml <- read.omexml(ome.tiff)
+  omexml <- xmlToList(omexml, simplify = TRUE)
 
   # get ROIs
-  ROIs <- xmltemp[which(names(xmltemp) == "ROI")]
+  ROIs <- omexml[which(names(omexml) == "ROI")]
 
   # Y-axis height
-  sizeY <- as.numeric(xmltemp$Image$Pixels$.attrs['SizeY'])
+  sizeY <- as.numeric(omexml$Image$Pixels$.attrs['SizeY'])
 
   # get masks for each ROI
   mask_lists <- list()

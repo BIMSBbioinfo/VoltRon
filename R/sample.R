@@ -120,6 +120,24 @@ setMethod(
 # Methods ####
 ####
 
+### Merge srSample object ####
+
+#' @method merge srSample
+#'
+#' @export
+#'
+merge.srSample <- function(object, object_list, samples = NULL){
+
+  # combine all elements
+  if(!is.list(object_list))
+    object_list <- list(object_list)
+  object_list <- c(object, object_list)
+  names(object_list) <- samples
+
+  # set SpaceRover class
+  return(object_list)
+}
+
 ### Subset srSample object ####
 
 #' @method subset srSample

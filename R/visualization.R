@@ -2,22 +2,26 @@
 # Spatial plots ####
 ####
 
+####
+## Spatial Identity Plot ####
+####
+
 #' SpatPlot
 #'
-#' Functions for plotting spatial objects
+#' Plotting identification of spatially resolved cells, spots, and ROI on associated images from multiple assays in a SpaceRover object.
 #'
 #' @param object SpaceRover object
 #' @param group.by a grouping label for the spatial entities
 #' @param assay the assay name
 #' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
-#' @param ncol ncol
-#' @param nrow nrow
+#' @param ncol column wise number of plots, for \code{ggarrange}
+#' @param nrow row wise number of plots, for \code{ggarrange}
 #' @param font.size font sizes
 #' @param pt.size point size
-#' @param alpha alpha
-#' @param label
-#' @param background background color or image
-#' @param crop
+#' @param alpha alpha level for cells/spots/ROIs
+#' @param label if TRUE, the labels of the ROI assays will be visualized
+#' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
+#' @param crop whether to crop an image of a spot assay
 #' @param common.legend whether to use a common legend for all plots
 #'
 #' @importFrom ggpubr ggarrange
@@ -31,24 +35,13 @@ SpatPlot <- function(object, group.by = "label", assay = "Visium", assay.type = 
   # list of plots
   gg <- list()
 
-  # check assays
-  if(is.null(assay))
-    assay <- object@main.assay
-
   # get assay names
-  if(assay %in% sample.metadata$Assay){
-    assay_names <- rownames(sample.metadata)[sample.metadata$Assay %in% assay]
-  } else {
-    if(assay %in% rownames(sample.metadata)) {
-      assay_names <- assay
-    } else {
-      stop("Assay name or type is not found in the object")
-    }
-  }
+  assay_names <- AssayNames(object, assay = assay)
 
   # get entity type and metadata
   if(is.null(assay.type)){
-    assay_types <- unlist(lapply(assay_names, function(x) object[[x]]@type))
+    # assay_types <- unlist(lapply(assay_names, function(x) object[[x]]@type))
+    assay_types <- AssayTypes(object, assay = assay)
     if(length(unique(assay_types)) == 1){
       metadata <- Metadata(object, type = unique(assay_types))
     } else {
@@ -73,7 +66,7 @@ SpatPlot <- function(object, group.by = "label", assay = "Visium", assay.type = 
 
     # visualize
     p_title <- plot_title[[assy]]
-    gg[[i]] <- SpatPlotSingle(assay = cur_assay, metadata = cur_metadata, limits = limits[[feat]][[assy]],
+    gg[[i]] <- SpatPlotSingle(assay = cur_assay, metadata = cur_metadata,
                               group.by = group.by, font.size = font.size, pt.size = pt.size, alpha = alpha,
                               label = label, plot_title = p_title, background = background, crop = crop)
     i <- i + 1
@@ -90,23 +83,22 @@ SpatPlot <- function(object, group.by = "label", assay = "Visium", assay.type = 
 
 #' SpatPlotSingle
 #'
-#' A single Spatial plot of spacerover objects
+#' Plotting a single assay from a SpaceRover object. We plot the identification of spatially resolved cells, spots, and ROI on associated images.
 #'
-#' @param assay
-#' @param metadata
-#' @param limits
-#' @param group.by
-#' @param font.size
-#' @param pt.size
-#' @param alpha
-#' @param label
-#' @param plot_title
-#' @param background
-#' @param crop
+#' @param assay srAssay object
+#' @param metadata the metadata associated with the assay
+#' @param group.by a grouping label for the spatial entities
+#' @param font.size font sizes
+#' @param pt.size point size
+#' @param alpha alpha level for cells/spots/ROIs
+#' @param label if TRUE, the labels of the ROI assays will be visualized
+#' @param plot_title the title of the single plot
+#' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
+#' @param crop whether to crop an image of a spot assay
 #'
 #' @import ggplot2
 #'
-SpatPlotSingle <- function(assay, metadata, limits, group.by = "label", font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, plot_title = NULL, background = "image", crop = FALSE){
+SpatPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, plot_title = NULL, background = "image", crop = FALSE){
 
   # data
   info <- image_info(assay@image)
@@ -133,7 +125,7 @@ SpatPlotSingle <- function(assay, metadata, limits, group.by = "label", font.siz
   if(assay@type == "spot"){
     g <- g +
       geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]])
-  } else if(assay@type == "spot") {
+  } else if(assay@type == "cell") {
     g <- g +
       geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = 21, size = rel(pt.size), alpha = alpha)
   } else {
@@ -177,26 +169,27 @@ SpatPlotSingle <- function(assay, metadata, limits, group.by = "label", font.siz
 }
 
 ####
-# Feature plots ####
+## Spatial Feature Plot ####
 ####
 
 #' SpatFeatPlot
 #'
-#' Functions for plotting spatial objects
+#' Plotting single/multiple features of spatially resolved cells, spots, and ROI on associated images from multiple assays in a SpaceRover object.
 #'
 #' @param object SpaceRover object
+#' @param features a set of features, either from the rows of rawdata, normdata or columns of the metadata
 #' @param group.by a grouping label for the spatial entities
 #' @param assay the assay name
 #' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
-#' @param ncol ncol
-#' @param nrow nrow
+#' @param ncol column wise number of plots, for \code{ggarrange}
+#' @param nrow row wise number of plots, for \code{ggarrange}
 #' @param font.size font sizes
 #' @param pt.size point size
-#' @param alpha alpha
+#' @param alpha alpha level for cells/spots/ROIs
 #' @param keep.scale whether unify all scales for all features or not
-#' @param label
-#' @param background background color or image
-#' @param crop
+#' @param label if TRUE, labels of ROIs will be visualized too
+#' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
+#' @param crop whether to crop an image of a spot assay
 #' @param common.legend whether to use a common legend for all plots
 #'
 #' @importFrom ggpubr ggarrange
@@ -212,24 +205,13 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, ass
   # list of plots
   gg <- list()
 
-  # check assays
-  if(is.null(assay))
-    assay <- object@main.assay
-
   # get assay names
-  if(assay %in% sample.metadata$Assay){
-    assay_names <- rownames(sample.metadata)[sample.metadata$Assay %in% assay]
-  } else {
-    if(assay %in% rownames(sample.metadata)) {
-      assay_names <- assay
-    } else {
-      stop("Assay name or type is not found in the object")
-    }
-  }
+  assay_names <- AssayNames(object, assay = assay)
 
   # get entity type and metadata
   if(is.null(assay.type)){
-    assay_types <- unlist(lapply(assay_names, function(x) object[[x]]@type))
+    # assay_types <- unlist(lapply(assay_names, function(x) object[[x]]@type))
+    assay_types <- AssayTypes(object, assay = assay)
     if(length(unique(assay_types)) == 1){
       assay.type <- unique(assay_types)
       metadata <- Metadata(object, type = assay.type)
@@ -268,22 +250,6 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, ass
   names(assay_title) <- assay_names
   feature_title <- as.list(features)
   names(feature_title) <- features
-  # if(length(features) > 1 && length(assay_names) > 1){
-  #   plot_title <- assay_title
-  #   legend_title <- feature_title
-  # } else if(length(features) > 1 && length(assay_names) == 1){
-  #   plot_title <- feature_title
-  #   legend_title <- as.list(rep("Log.Exp", length(features)))
-  #   names(legend_title) <- features
-  # } else if(length(features) == 1 && length(assay_names) > 1){
-  #   plot_title <- assay_title
-  #   legend_title <- feature_title
-  # } else {
-  #   plot_title <- as.list(assay_title)
-  #   names(plot_title) <- assay_names
-  #   legend_title <- as.list(features)
-  #   names(legend_title) <- features
-  # }
   plot_title <- assay_title
   legend_title <- feature_title
 
@@ -326,19 +292,19 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, ass
 #'
 #' A single Spatial Feature plot of spacerover objects
 #'
-#' @param assay
-#' @param metadata
-#' @param feature
-#' @param limits
-#' @param group.by
-#' @param font.size
-#' @param pt.size
-#' @param alpha
-#' @param label
-#' @param plot_title
-#' @param legend_title
-#' @param background
-#' @param crop
+#' @param assay srAssay object
+#' @param metadata the metadata associated with the assay
+#' @param feature a feature, either from the rows of rawdata, normdata or columns of the metadata
+#' @param limits limits of the legend of the plot
+#' @param group.by a grouping label for the spatial entities
+#' @param font.size font sizes
+#' @param pt.size point size
+#' @param alpha alpha level for cells/spots/ROIs
+#' @param label if TRUE, labels of ROIs will be visualized too
+#' @param plot_title the main title of the single plot
+#' @param legend_title the legend title of the single plot
+#' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
+#' @param crop whether to crop an image of a spot assay
 #'
 #' @import ggplot2
 #'
@@ -458,7 +424,7 @@ SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "lab
 }
 
 ####
-# Auxiiary ####
+## Spatial Auxiiary ####
 ####
 
 geom_spot <- function (mapping = NULL, data = NULL, stat = "identity", position = "identity",
@@ -509,4 +475,70 @@ GeomSpot <- ggproto("GeomSpot",
                       draw_key = draw_key_point
 )
 
+####
+# Scatter Plot ####
+####
+
+ScatterFeaturePlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NULL, assay.type = NULL,
+                               pt.size = 2, font.size = 2, group.by = "label", label = FALSE){
+
+  # check the number of features
+  if(is.null(feature.1) | is.null(feature.2))
+    stop("Please provide both 'feature.1' and 'feature.2'")
+
+  # check the number of features
+  if((length(feature.1) != 1 | length(feature.2) != 1))
+    stop("Both 'feature.1' and 'feature.2' should be of length 1.")
+
+  # data
+  normdata <- Data(object, norm = norm)
+
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
+  # list of plots
+  gg <- list()
+
+  # get assay names
+  assay_names <- AssayNames(object, assay = assay)
+
+  # get entity type and metadata
+  if(is.null(assay.type)){
+    assay_types <- AssayTypes(object, assay = assay)
+    if(length(unique(assay_types)) == 1){
+      assay.type <- unique(assay_types)
+      metadata <- Metadata(object, type = assay.type)
+    } else {
+      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+    }
+  } else {
+    metadata <- Metadata(object, type = assay.type)
+  }
+
+  # get data
+  data_feature <- sapply(c(feature.1, feature.2), function(feat){
+    if(feat %in% rownames(normdata)){
+      return(normdata[feat,])
+    } else {
+      return(metadata[,feat])
+    }
+  })
+  data_feature <- as.data.frame(data_feature)
+
+  # plot
+  g <- ggplot()
+
+  # plot scatter
+  g <- g +
+    geom_point(mapping = aes_string(x = feature.1, y = feature.2), data = data_feature, size = pt.size)
+
+  # visualize labels
+  if(label){
+    data_feature[[group.by]] <- metadata[,group.by]
+    g <- g + geom_label_repel(mapping = aes_string(x = feature.1, y = feature.2, label = group.by), data_feature,
+                                box.padding = 0.5, size = font.size, direction = "both", seed = 1)
+  }
+
+  g
+}
 
