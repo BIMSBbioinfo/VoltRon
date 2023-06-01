@@ -406,7 +406,7 @@ AssayTypes.SpaceRover <- function(object, assay = NULL){
 #'
 #' @export
 #'
-subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, entities = NULL, image = NULL, interactive = FALSE) {
+subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, entities = NULL, features = NULL, image = NULL, interactive = FALSE) {
 
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
@@ -421,7 +421,6 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
   if(!missing(subset)){
 
     metadata <- Metadata(GeoMxR1, type = "ROI")
-    # variable <- str_extract(as.character(subset)[2],"[a-zA-Z]+")
     entities <- rownames(metadata)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
     object <- subset(object, entities = entities)
     return(object)
@@ -452,6 +451,22 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subset.srSample(samp, entities = entities)
     }, USE.NAMES = TRUE)
+
+  # subsetting on features
+  } else if(!is.null(features)){
+
+    sample.metadata <- SampleMetadata(object)
+    assay_names <- AssayNames(object)
+    for(assy in assay_names){
+      cur_assay <- sample.metadata[assy,]
+      srlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
+      srassay <- srlayer[[cur_assay$Assay]]
+      srassay <- subset.srAssay(srassay, features = features)
+      srlayer[[cur_assay$Assay]] <- srassay
+      object[[cur_assay$Sample, cur_assay$Layer]] <- srlayer
+    }
+    metadata <- object@metadata
+    listofSamples <- object@samples
 
   # subsetting on image
   } else if(!is.null(image)) {

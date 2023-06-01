@@ -23,11 +23,14 @@
 #' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
 #' @param crop whether to crop an image of a spot assay
 #' @param common.legend whether to use a common legend for all plots
+#' @param collapse whether to combine all ggplots
 #'
 #' @importFrom ggpubr ggarrange
 #' @export
 #'
-SpatPlot <- function(object, group.by = "label", assay = "Visium", assay.type = NULL, ncol = 2, nrow = NULL, font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, background = "image", crop = FALSE, common.legend = TRUE) {
+SpatPlot <- function(object, group.by = "label", assay = "Visium", assay.type = NULL, ncol = 2, nrow = NULL,
+                     font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, background = "image",
+                     crop = FALSE, common.legend = TRUE, collapse = TRUE) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -73,11 +76,15 @@ SpatPlot <- function(object, group.by = "label", assay = "Visium", assay.type = 
   }
 
   # return a list of plots or a single one
-  if(length(assay_names) > 1){
-    if(length(gg) < ncol) ncol <- length(gg)
-    return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = "right"))
+  if(collapse){
+    if(length(assay_names) > 1){
+      if(length(gg) < ncol) ncol <- length(gg)
+      return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = "right"))
+    } else {
+      return(gg[[1]])
+    }
   } else {
-    return(gg[[1]])
+    gg
   }
 }
 
@@ -191,13 +198,14 @@ SpatPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, p
 #' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
 #' @param crop whether to crop an image of a spot assay
 #' @param common.legend whether to use a common legend for all plots
+#' @param collapse whether to combine all ggplots
 #'
 #' @importFrom ggpubr ggarrange
 #' @export
 #'
 SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
                          font.size = 2, pt.size = 2, alpha = 0.6, keep.scale = "feature", label = FALSE, background = "image",
-                         crop = FALSE, common.legend = TRUE) {
+                         crop = FALSE, common.legend = TRUE, collapse = TRUE) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -274,17 +282,21 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, ass
     }
   }
 
-  # return a list of plots or a single one
-  if(length(features) > 1 && length(assay_names) > 1){
-    return(ggarrange(plotlist = gg, ncol = length(features), nrow = length(assay_names)))
-  } else if(length(features) > 1 && length(assay_names) == 1){
-    if(length(gg) < ncol) ncol <- length(gg)
-    return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol)))
-  } else if(length(features) == 1 && length(assay_names) > 1){
-    if(length(gg) < ncol) ncol <- length(gg)
-    return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = "right"))
+  if(collapse){
+    # return a list of plots or a single one
+    if(length(features) > 1 && length(assay_names) > 1){
+      return(ggarrange(plotlist = gg, ncol = length(features), nrow = length(assay_names)))
+    } else if(length(features) > 1 && length(assay_names) == 1){
+      if(length(gg) < ncol) ncol <- length(gg)
+      return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol)))
+    } else if(length(features) == 1 && length(assay_names) > 1){
+      if(length(gg) < ncol) ncol <- length(gg)
+      return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = "right"))
+    } else {
+      return(gg[[1]])
+    }
   } else {
-    return(gg[[1]])
+    return(gg)
   }
 }
 
@@ -480,7 +492,7 @@ GeomSpot <- ggproto("GeomSpot",
 ####
 
 ScatterFeaturePlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NULL, assay.type = NULL,
-                               pt.size = 2, font.size = 2, group.by = "label", label = FALSE){
+                               pt.size = 2, font.size = 2, group.by = "label", label = FALSE, trend = FALSE){
 
   # check the number of features
   if(is.null(feature.1) | is.null(feature.2))
@@ -537,6 +549,11 @@ ScatterFeaturePlot <- function(object, feature.1, feature.2, norm = TRUE, assay 
     data_feature[[group.by]] <- metadata[,group.by]
     g <- g + geom_label_repel(mapping = aes_string(x = feature.1, y = feature.2, label = group.by), data_feature,
                                 box.padding = 0.5, size = font.size, direction = "both", seed = 1)
+  }
+
+  # visualize trend
+  if(trend){
+    g <- g + geom_smooth()
   }
 
   g

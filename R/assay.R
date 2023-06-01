@@ -45,7 +45,7 @@ setMethod(
   f = 'show',
   signature = 'srAssay',
   definition = function(object) {
-    cat("srAssay (SpaceRover Assay) of", ncol(object@rawdata), "cells and", nrow(object@rawdata), "features. \n")
+    cat("srAssay (SpaceRover Assay) of", ncol(object@rawdata), "spatial entities and", nrow(object@rawdata), "features. \n")
     return(invisible(x = NULL))
   }
 )
@@ -59,11 +59,10 @@ setMethod(
 #' @method subset srAssay
 #'
 #' @importFrom rlang enquo
-#' @import igraph
 #'
 #' @export
 #'
-subset.srAssay <- function(object, subset, entities = NULL, image = NULL) {
+subset.srAssay <- function(object, subset, entities = NULL, features = NULL, image = NULL) {
 
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
@@ -86,15 +85,29 @@ subset.srAssay <- function(object, subset, entities = NULL, image = NULL) {
       object@segments  <- object@segments[names(object@segments) %in% entities]
     if(length(object@segments_reg) > 0)
       object@segments_reg  <- object@segments_reg[names(object@segments_reg) %in% entities]
+
+  } else if(!is.null(features)){
+
+    # select features
+    object@rawdata <- object@rawdata[rownames(object@rawdata) %in% features,]
+    object@normdata <- object@normdata[rownames(object@normdata) %in% features,]
+
   } else if(!is.null(image)) {
+
+    # coordinates
     cropped_coords <- subsetCoordinates(object@coords, object@image, image)
     object@coords <- cropped_coords
+
+    # segments
     cropped_segments <- object@segments[rownames(cropped_coords)]
     if(length(object@segments) > 0){
       object@segments[rownames(cropped_coords)] <- subsetSegments(cropped_segments, object@image, image)
     }
+
+    # image
     object <- subset.srAssay(object, entities = rownames(cropped_coords))
     object@image <- image_crop(object@image, image)
+
   }
 
   # set SpaceRover class

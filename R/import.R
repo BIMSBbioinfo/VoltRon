@@ -122,9 +122,17 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
   }
 
   # coordinates
-  coords_file <- paste0(dir.path, "/spatial/tissue_positions.csv")
-  if(file.exists(coords_file)){
-    coords <- read.csv(file = coords_file)
+  coords_file <- list.files(paste0(dir.path, "/spatial/"), full.names = TRUE)
+  coords_file <- coords_file[grepl("tissue_positions",coords_file)]
+  if(length(coords_file) == 1){
+    if(grepl("tissue_positions_list.csv", coords_file)) {
+      coords <- read.csv(file = coords_file, header = FALSE)
+      colnames(coords) <- c("barcode", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres")
+    } else {
+      coords <- read.csv(file = coords_file, header = FALSE)
+    }
+  } else if(length(coords_file) > 1) {
+    stop("There are more than 1 position files in the path")
   } else {
     stop("There are no files named 'tissue_positions.csv' in the path")
   }
@@ -133,6 +141,7 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
     coords <- coords[coords$in_tissue==1,]
     rawdata <- rawdata[,colnames(rawdata) %in% coords$barcode]
   }
+  coords <- coords[match(colnames(rawdata), coords$barcode),]
   spotID <- coords$barcode
   coords <- as.matrix(coords[,c("pxl_col_in_fullres", "pxl_row_in_fullres")])
   colnames(coords) <- c("x", "y")

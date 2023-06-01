@@ -1038,6 +1038,11 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
         info <- image_info(image_list[[centre]])
         r2 <- as.raster(cur_aligned_image)
         r2 <- rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",i)]]))
+        p <- ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
+          ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
+          ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
+          ggplot2::annotation_custom(r2, 0, info$width, 0, info$height)
+        ggsave(filename = paste0("plot_query_reg_alpha",i, "pdf"), plot = p, device = "pdf", width = 7, height = 10, bg = "transparent")
         ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
           ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
           ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +

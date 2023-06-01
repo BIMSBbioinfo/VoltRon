@@ -2,7 +2,7 @@
 # Spot Deconvolution ####
 ####
 
-RunDecon <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.cluster = "seurat_clusters", sc.nUMI = "nCount_RNA", ...){
+RunDecon <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.cluster = "seurat_clusters", sc.nUMI = "nCount_RNA", method = "RCTD", ...){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -22,7 +22,7 @@ RunDecon <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.clust
       cur_assay <- object[[assy]]
 
       # RCTD
-      rawdata <- RunDeconSingle(object = cur_assay, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
+      rawdata <- RunDeconSingle(object = cur_assay, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, method = method, ...)
 
       # Add as new assay
       cat("Adding cell type compositions as new assay:", paste(sample.metadata[assy, "Assay"], "decon", sep = "_"), "...\n")
@@ -42,20 +42,33 @@ RunDecon <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.clust
   return(object)
 }
 
-RunDeconSingle <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", ...){
+RunDeconSingle <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", method = "RCTD", ...){
 
   # get assay type
   assay.type <- AssayTypes(object)
 
   if(assay.type == "spot"){
 
-    cat("Running RCTD for spot deconvolution ...\n")
-    rawdata <- RunRCTD(object = object, sc.object = sc.object, sc.assay = sc.assay, assay = assay, sc.cluster = sc.cluster, ...)
+    if(method == "RCTD"){
+      cat("Running RCTD for spot deconvolution ...\n")
+      rawdata <- RunRCTD(object = object, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
+    } else if(method == "SPOTlight") {
+      cat("Running SPOTlight for spot deconvolution ...\n")
+      rawdata <- RunSPOTlight(object = object, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
+    } else {
+      stop("The selected method is not provided for spot deconvolution. Switching to RCTD")
+      rawdata <- RunRCTD(object = object, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
+    }
 
   } else if(assay.type == "ROI"){
 
-    cat("Running MuSiC for ROI deconvolution ...\n")
-    rawdata <- RunMuSiC(object = object, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
+    if(method == "MuSiC"){
+      cat("Running MuSiC for ROI deconvolution ...\n")
+      rawdata <- RunMuSiC(object = object, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
+    } else {
+      stop("The selected method is not provided for spot deconvolution. Switching to MuSiC")
+      rawdata <- RunMuSiC(object = object, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
+    }
 
   }
 
@@ -70,7 +83,7 @@ RunRCTD <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_cl
 
   # create spatial data
   cat("Configuring Spatial Assay ...\n")
-  spatialcounts <- Data(object, type = "raw")
+  spatialcounts <- Data(object, norm = FALSE)
   coords <- as.data.frame(Coordinates(object))
   spatialnUMI <- colSums(spatialcounts)
   spatialdata <- spacexr::SpatialRNA(coords, spatialcounts, spatialnUMI)
@@ -90,6 +103,40 @@ RunRCTD <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_cl
   myRCTD <- create.RCTD(spatialdata, reference, ...)
   cat("Calculating Cell Type Compositions of spots with RCTD ...\n")
   myRCTD <- quiet(run.RCTD(myRCTD, doublet_mode = 'full'))
+  results <- as.matrix(myRCTD@results$weights)
+  norm_weights <- t(sweep(results, 1, rowSums(results), "/"))
+
+  # return
+  return(norm_weights)
+}
+
+RunSPOTlight <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", ...){
+
+  if (!requireNamespace('spacexr'))
+    stop("Please install spacexr package to use the RCTD algorithm")
+
+  # create spatial data
+  cat("Configuring Spatial Assay ...\n")
+  spatialcounts <- Data(object, norm = FALSE)
+  coords <- as.data.frame(Coordinates(object))
+  spatialnUMI <- colSums(spatialcounts)
+  spatialdata <- spacexr::SpatialRNA(coords, spatialcounts, spatialnUMI)
+
+  # create single cell reference
+  cat("Configuring Single Cell Assay (reference) ...\n")
+  sccounts <- GetAssayData(sc.object[[sc.assay]], slot = "counts")
+  sccounts <- as.matrix(apply(sccounts,2,ceiling))
+  rownames(sccounts) <- rownames(sc.object[[sc.assay]])
+  cell_types <- as.factor(sc.object@meta.data[[sc.cluster]])
+  names(cell_types) <- colnames(sc.object)
+  sc.nUMI <- colSums(sccounts)
+  names(sc.nUMI) <- colnames(sc.object)
+  reference <- spacexr::Reference(sccounts, cell_types, sc.nUMI)
+
+  # Run RCTD
+  myRCTD <- create.RCTD(spatialdata, reference, ...)
+  cat("Calculating Cell Type Compositions of spots with RCTD ...\n")
+  myRCTD <- quiet(run.RCTD(myRCTD, doublet_mode = 'doublet'))
   results <- as.matrix(myRCTD@results$weights)
   norm_weights <- t(sweep(results, 1, rowSums(results), "/"))
 
