@@ -131,7 +131,7 @@ SpatPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, p
   # add points or segments
   if(assay@type == "spot"){
     g <- g +
-      geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]])
+      geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]])
   } else if(assay@type == "cell") {
     g <- g +
       geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = 21, size = rel(pt.size), alpha = alpha)
@@ -218,7 +218,6 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, ass
 
   # get entity type and metadata
   if(is.null(assay.type)){
-    # assay_types <- unlist(lapply(assay_names, function(x) object[[x]]@type))
     assay_types <- AssayTypes(object, assay = assay)
     if(length(unique(assay_types)) == 1){
       assay.type <- unique(assay_types)

@@ -19,7 +19,8 @@ SpatFeatPlot(
   label = FALSE,
   background = "image",
   crop = FALSE,
-  common.legend = TRUE
+  common.legend = TRUE,
+  collapse = TRUE
 )
 }
 \arguments{
@@ -52,6 +53,8 @@ SpatFeatPlot(
 \item{crop}{whether to crop an image of a spot assay}
 
 \item{common.legend}{whether to use a common legend for all plots}
+
+\item{collapse}{whether to combine all ggplots}
 }
 \description{
 Plotting single/multiple features of spatially resolved cells, spots, and ROI on associated images from multiple assays in a SpaceRover object.

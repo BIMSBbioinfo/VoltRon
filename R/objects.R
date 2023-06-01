@@ -323,9 +323,10 @@ MainAssay.SpaceRover <- function(object, ...) {
 #' @rdname AddAssay
 #' @method AddAssay SpaceRover
 #'
+#' @importfrom igraph union
 #' @export
 #'
-AddAssay.SpaceRover <- function(object, newassay, newassay_name, sample = "Sample1", layer = "Section1"){
+AddAssay.SpaceRover <- function(object, assay, assay_name, sample = "Sample1", layer = "Section1"){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -336,15 +337,24 @@ AddAssay.SpaceRover <- function(object, newassay, newassay_name, sample = "Sampl
   assay_names <- c(rownames(sample.metadata), assay_id)
 
   # update sample.metadata and metadata
-  object@sample.metadata <- rbind(sample.metadata, c(newassay_name, layer, sample))
+  object@sample.metadata <- rbind(sample.metadata, c(assay_name, layer, sample))
   rownames(object@sample.metadata) <- assay_names
+  object@metadata <- AddAssay(object@metadata,
+                              assay = assay, assay_name = assay_name,
+                              sample = sample, layer = layer)
 
   # update sample and layer
   assay_list <- object[[sample, layer]]@assay
-  newassay <- list(newassay)
-  names(newassay) <- newassay_name
-  assay_list <- c(assay_list, newassay)
+  AssayNames(assay) <- assay_id
+  new_assay_list <- list(assay)
+  names(new_assay_list) <- assay_name
+  assay_list <- c(assay_list, new_assay_list)
   object[[sample, layer]]@assay <- assay_list
+
+  # update graph
+  newgraph <- igraph::make_empty_graph(n = length(Entities(assay)), directed = FALSE)
+  igraph::V(newgraph)$name <- Entities(assay)
+  object@zstack <- igraph::union(object@zstack, newgraph)
 
   # return
   return(object)

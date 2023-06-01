@@ -196,6 +196,43 @@ Features.srAssay <- function(object, ...) {
   return(rownames(object@rawdata))
 }
 
+#' @rdname AssayNames
+#' @method AssayNames srAssay
+#'
+#' @export
+#'
+AssayNames.srAssay <- function(object, ...) {
+  assay_ids <- stringr::str_extract(Entities(object), "Assay[0-9]+")
+  assay_id <- unique(assay_ids)
+  return(assay_id)
+}
+
+#' @rdname AssayNames
+#' @method AssayNames<- srAssay
+#'
+#' @export
+#'
+"AssayNames<-.srAssay" <- function(object, ..., value){
+
+  # change assay names
+  colnames(object@rawdata) <- gsub("Assay[0-9]+$", value, colnames(object@rawdata))
+  colnames(object@normdata) <- gsub("Assay[0-9]+$", value, colnames(object@normdata))
+
+  # coordinates
+  rownames(object@coords)  <- gsub("Assay[0-9]+$", value, rownames(object@coords))
+  if(nrow(object@coords_reg) > 0)
+    rownames(object@coords_reg) <- gsub("Assay[0-9]+$", value, rownames(object@coords_reg))
+
+  # segments
+  if(length(object@segments) > 0)
+    names(object@segments) <- gsub("Assay[0-9]+$", value, names(object@segments))
+  if(length(object@segments_reg) > 0)
+    names(object@segments_reg) <- gsub("Assay[0-9]+$", value, names(object@segments_reg))
+
+  # return
+  return(object)
+}
+
 #' @rdname AssayTypes
 #' @method AssayTypes srAssay
 #'

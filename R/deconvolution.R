@@ -32,8 +32,8 @@ RunDecon <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.clust
                      image = cur_assay@image, segments = cur_assay@segments,
                      type = cur_assay@type, params = cur_assay@params)
       object <- AddAssay(object,
-                         newassay = rawdata,
-                         newassay_name = paste(sample.metadata[assy, "Assay"], "decon", sep = "_"),
+                         assay = rawdata,
+                         assay_names = paste(sample.metadata[assy, "Assay"], "decon", sep = "_"),
                          sample = sample.metadata[assy, "Sample"],
                          layer = sample.metadata[assy, "Layer"])
     }
