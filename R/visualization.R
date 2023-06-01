@@ -131,6 +131,7 @@ SpatPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, p
   # add points or segments
   if(assay@type == "spot"){
     g <- g +
+      coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height)) +
       geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]])
   } else if(assay@type == "cell") {
     g <- g +
@@ -149,8 +150,10 @@ SpatPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, p
 
   # set up the limits
   if(crop && assay@type == "spot"){
+    # g <- g +
+    #   xlim(range(coords$x)[1],range(coords$x)[2]) + ylim(range(coords$y)[1],range(coords$y)[2])
     g <- g +
-      xlim(range(coords$x)[1],range(coords$x)[2]) + ylim(range(coords$y)[1],range(coords$y)[2])
+      coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
   } else {
     g <- g +
       xlim(0,info$width) + ylim(0, info$height)
@@ -378,6 +381,7 @@ SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "lab
   } else if(assay@type == "spot"){
     g <- g +
       geom_spot(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]]) +
+      coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height)) +
       scale_fill_gradientn(name = legend_title,
                              colors=c("dodgerblue3", "yellow", "red"),
                              values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
@@ -388,12 +392,6 @@ SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "lab
                              colors=c("dodgerblue2", "white", "yellow3"),
                              values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
   }
-
-  # adjust gradient
-  # g <- g +
-  #   scale_fill_gradientn(name = legend_title,
-  #                        colors=c("dodgerblue2", "white", "yellow3"),
-  #                        values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
 
   # more visualization parameters
   g <- g +
@@ -408,7 +406,7 @@ SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "lab
     xlimits <- range(coords$x) + c(-1,1)*assay@params[["spot.radius"]]
     ylimits <- range(coords$y) + c(-1,1)*assay@params[["spot.radius"]]
     g <- g +
-      xlim(xlimits[1],xlimits[2]) + ylim(ylimits[1],ylimits[2])
+      coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
   } else {
     g <- g +
       xlim(0,info$width) + ylim(0, info$height)
