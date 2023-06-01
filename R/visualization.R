@@ -378,8 +378,8 @@ SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "lab
                            values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
   } else if(assay@type == "spot"){
     g <- g +
-      geom_spot(mapping = aes(x = x, y = y, color = score), coords, shape = 19, alpha = alpha, spot.radius = assay@params[["spot.radius"]]) +
-      scale_colour_gradientn(name = legend_title,
+      geom_spot(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]]) +
+      scale_fill_gradientn(name = legend_title,
                              colors=c("dodgerblue3", "yellow", "red"),
                              values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
   } else {
@@ -451,7 +451,7 @@ GeomSpot <- ggproto("GeomSpot",
                       required_aes = c("x", "y"),
                       non_missing_aes = c("size", "shape", "colour"),
                       default_aes = aes(
-                        shape = 19,
+                        shape = 21,
                         colour = "black",
                         size = 1.5,
                         fill = NA,

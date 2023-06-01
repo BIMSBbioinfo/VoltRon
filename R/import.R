@@ -143,7 +143,7 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
   }
   coords <- coords[match(colnames(rawdata), coords$barcode),]
   spotID <- coords$barcode
-  coords <- as.matrix(coords[,c("pxl_col_in_fullres", "pxl_row_in_fullres")])
+  coords <- as.matrix(coords[,c("pxl_col_in_fullres", "pxl_row_in_fullres")], )
   colnames(coords) <- c("x", "y")
   rownames(coords) <- spotID
 
@@ -153,7 +153,8 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
     scalefactors <- jsonlite::read_json(path = scale_file)
     scales <- scalefactors$tissue_lowres_scalef
     # spot.radius is the half of the diameter, but we visualize by a factor of 1.5 larger
-    params <- list(spot.radius = scalefactors$spot_diameter_fullres*scalefactors$tissue_lowres_scalef*1.5)
+    # params <- list(spot.radius = scalefactors$spot_diameter_fullres*scalefactors$tissue_lowres_scalef*1.5)
+    params <- list(spot.radius = scalefactors$spot_diameter_fullres*scalefactors$tissue_lowres_scalef*2)
     coords <- coords*scales
     coords[,2] <- info$height - coords[,2]
   } else {
