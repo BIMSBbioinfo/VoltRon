@@ -7,7 +7,7 @@
 SpatPlot(
   object,
   group.by = "label",
-  assay = "Visium",
+  assay = NULL,
   assay.type = NULL,
   ncol = 2,
   nrow = NULL,
@@ -17,7 +17,8 @@ SpatPlot(
   label = FALSE,
   background = "image",
   crop = FALSE,
-  common.legend = TRUE
+  common.legend = TRUE,
+  collapse = TRUE
 )
 }
 \arguments{
@@ -46,6 +47,8 @@ SpatPlot(
 \item{crop}{whether to crop an image of a spot assay}
 
 \item{common.legend}{whether to use a common legend for all plots}
+
+\item{collapse}{whether to combine all ggplots}
 }
 \description{
 Plotting identification of spatially resolved cells, spots, and ROI on associated images from multiple assays in a SpaceRover object.

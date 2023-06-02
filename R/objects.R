@@ -323,9 +323,10 @@ MainAssay.SpaceRover <- function(object, ...) {
 #' @rdname AddAssay
 #' @method AddAssay SpaceRover
 #'
+#' @importfrom igraph union
 #' @export
 #'
-AddAssay.SpaceRover <- function(object, newassay, newassay_name, sample = "Sample1", layer = "Section1"){
+AddAssay.SpaceRover <- function(object, assay, assay_name, sample = "Sample1", layer = "Section1"){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -336,15 +337,24 @@ AddAssay.SpaceRover <- function(object, newassay, newassay_name, sample = "Sampl
   assay_names <- c(rownames(sample.metadata), assay_id)
 
   # update sample.metadata and metadata
-  object@sample.metadata <- rbind(sample.metadata, c(newassay_name, layer, sample))
+  object@sample.metadata <- rbind(sample.metadata, c(assay_name, layer, sample))
   rownames(object@sample.metadata) <- assay_names
+  object@metadata <- AddAssay(object@metadata,
+                              assay = assay, assay_name = assay_name,
+                              sample = sample, layer = layer)
 
   # update sample and layer
   assay_list <- object[[sample, layer]]@assay
-  newassay <- list(newassay)
-  names(newassay) <- newassay_name
-  assay_list <- c(assay_list, newassay)
+  AssayNames(assay) <- assay_id
+  new_assay_list <- list(assay)
+  names(new_assay_list) <- assay_name
+  assay_list <- c(assay_list, new_assay_list)
   object[[sample, layer]]@assay <- assay_list
+
+  # update graph
+  newgraph <- igraph::make_empty_graph(n = length(Entities(assay)), directed = FALSE)
+  igraph::V(newgraph)$name <- Entities(assay)
+  object@zstack <- igraph::union(object@zstack, newgraph)
 
   # return
   return(object)
@@ -406,7 +416,7 @@ AssayTypes.SpaceRover <- function(object, assay = NULL){
 #'
 #' @export
 #'
-subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, entities = NULL, image = NULL, interactive = FALSE) {
+subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, entities = NULL, features = NULL, image = NULL, interactive = FALSE) {
 
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
@@ -421,7 +431,6 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
   if(!missing(subset)){
 
     metadata <- Metadata(GeoMxR1, type = "ROI")
-    # variable <- str_extract(as.character(subset)[2],"[a-zA-Z]+")
     entities <- rownames(metadata)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
     object <- subset(object, entities = entities)
     return(object)
@@ -452,6 +461,22 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subset.srSample(samp, entities = entities)
     }, USE.NAMES = TRUE)
+
+  # subsetting on features
+  } else if(!is.null(features)){
+
+    sample.metadata <- SampleMetadata(object)
+    assay_names <- AssayNames(object)
+    for(assy in assay_names){
+      cur_assay <- sample.metadata[assy,]
+      srlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
+      srassay <- srlayer[[cur_assay$Assay]]
+      srassay <- subset.srAssay(srassay, features = features)
+      srlayer[[cur_assay$Assay]] <- srassay
+      object[[cur_assay$Sample, cur_assay$Layer]] <- srlayer
+    }
+    metadata <- object@metadata
+    listofSamples <- object@samples
 
   # subsetting on image
   } else if(!is.null(image)) {
@@ -626,6 +651,16 @@ Metadata.SpaceRover <- function(object, type = "cell") {
   slot(object@metadata, name = type)
 }
 
+#' @rdname Metadata
+#' @method Metadata<- SpaceRover
+#'
+#' @export
+#'
+"Metadata<-.SpaceRover" <- function(object, type = "cell", ..., value) {
+  slot(object@metadata, name = type) <- value
+  return(object)
+}
+
 #' @rdname SampleMetadata
 #' @method SampleMetadata SpaceRover
 #'
@@ -678,6 +713,22 @@ Data.SpaceRover <- function(object, assay = NULL, ...) {
     returndata_list[[i]] <- Data(object[[assay_names[i]]], ...)
 
   return(do.call(cbind, returndata_list))
+}
+
+#' @rdname Graph
+#' @method Graph SpaceRover
+#'
+#' @export
+#'
+Graph.SpaceRover <- function(object, assay = NULL, ...) {
+
+  # get assay names
+  assay_names <- AssayNames(object, assay = assay)
+  assay_pattern <- paste0(assay_names, collapse = "|")
+  node_names <- Entities(object)[grepl(assay_pattern, Entities(object))]
+
+  returngraph <- induced_subgraph(object@zstack, node_names)
+  return(returngraph)
 }
 
 #' @rdname Coordinates

@@ -2,12 +2,12 @@
 #'
 NULL
 
-#' @rdname NormalizeData
+#' @rdname normalizeData
 #' @concept preprocessing
-#' @method NormalizeData SpaceRover
+#' @method normalizeData SpaceRover
 #'
 #' @export
-NormalizeData.SpaceRover <- function(object, assay = NULL, ...) {
+normalizeData.SpaceRover <- function(object, assay = NULL, ...) {
 
   # get assay names
   assay_names <- AssayNames(object, assay = assay)
@@ -15,17 +15,17 @@ NormalizeData.SpaceRover <- function(object, assay = NULL, ...) {
   # normalize assays
   for(assy in assay_names){
     cur_assay <- object[[assy]]
-    object[[assy]] <- NormalizeData(cur_assay, ...)
+    object[[assy]] <- normalizeData(cur_assay, ...)
   }
   return(object)
 }
 
-#' @rdname NormalizeData
+#' @rdname normalizeData
 #' @concept preprocessing
-#' @method NormalizeData srAssay
+#' @method normalizeData srAssay
 #'
 #' @export
-NormalizeData.srAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9) {
+normalizeData.srAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9) {
 
   # size factor
   rawdata <- object@rawdata
@@ -45,6 +45,10 @@ NormalizeData.srAssay <- function(object, method = "LogNorm", desiredQuantile = 
     qs <- apply(rawdata, 2, function(x) stats::quantile(x, desiredQuantile))
     normdata <- sweep(rawdata, 2L, qs / exp(mean(log(qs))), FUN = "/")
     normdata <- log(normdata + 1)
+  } else if(method == "CLR") {
+    normdata <- apply(rawdata, 2, function(x) {
+      log1p(x = x / (exp(x = sum(log1p(x = x[x > 0]), na.rm = TRUE) / length(x = x))))
+    })
   }
 
   # get normalized data
@@ -52,12 +56,4 @@ NormalizeData.srAssay <- function(object, method = "LogNorm", desiredQuantile = 
 
   # return
   return(object)
-}
-
-#' @rdname NormalizeData
-#' @concept preprocessing
-#'
-#' @export
-NormalizeData.default <- function(object, ...) {
-  Seurat::NormalizeData(object, ...)
 }

@@ -6,11 +6,11 @@
 \alias{Data.SpaceRover}
 \title{Data}
 \usage{
-\method{Data}{srAssay}(object, ...)
+\method{Data}{srAssay}(object, norm = FALSE)
 
 Data(object, ...)
 
-\method{Data}{SpaceRover}(object, type = NULL, assay = NULL, ...)
+\method{Data}{SpaceRover}(object, assay = NULL, ...)
 }
 \arguments{
 \item{object}{An object}

@@ -15,9 +15,10 @@ Collate:
     'RcppExports.R'
     'assay.R'
     'auxiliary.R'
-    'deconvolution.R'
     'zzz.R'
     'generics.R'
+    'clustering.R'
+    'deconvolution.R'
     'image.R'
     'import.R'
     'integration.R'
@@ -25,7 +26,7 @@ Collate:
     'objects.R'
     'processing.R'
     'registration.R'
-    'sample.R'w
+    'sample.R'
     'visualization.R'
 Suggests:
     SingleCellExperiment,
@@ -33,4 +34,3 @@ Suggests:
     DESeq2,
     MuSiC,
     spacexr
-    

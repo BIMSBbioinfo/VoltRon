@@ -223,6 +223,62 @@ merge.srMetadata <- function(object, object_list) {
   return(combined.metadata)
 }
 
+#' merge.sampleMetadata
+#'
+#' @param metadata_list a list of sample metadata of a spaceRover object
+#' @param sample_name sample
+#'
+#' @export
+#'
+merge.sampleMetadata <- function(metadata_list, sample_name = NULL) {
+
+  sample.metadata <- do.call(rbind, metadata_list)
+  rownames(sample.metadata) <- paste0("Assay", 1:nrow(sample.metadata))
+  if(!is.null(sample_name)){
+    sample.metadata$Sample <- sample_name
+    sample.metadata$Layer <- paste0("Section", 1:nrow(sample.metadata))
+    unique_assay <- unique(sample.metadata$Assay)
+  }
+  sample.metadata
+}
+
+### Assay Methods ####
+
+#' @rdname AddAssay
+#' @method AddAssay srMetadata
+#'
+#' @importFrom stringr str_extract str_replace
+#' @importFrom stringi str_replace
+#' @export
+#'
+AddAssay.srMetadata <- function(object, assay, assay_name, sample = "Sample1", layer = "Section1"){
+
+  # assay info
+  assay.type <- AssayTypes(assay)
+
+  # get metadata and other info
+  metadata <- slot(object, name = assay.type)
+  data <- Data(assay, norm = FALSE)
+  entities <- Entities(assay)
+
+  # add new assay
+  assay_ids <- stringr::str_extract(entities, "Assay[0-9]+")
+  assay_ids <- as.numeric(gsub("Assay", "", assay_ids))
+  assay_id <- paste0("Assay", max(assay_ids)+1)
+  entityID <- gsub("Assay[0-9]+$", assay_id, entities)
+
+  # metadata
+  metadata <- rbind(metadata, data.frame(Count = colSums(data),
+                               Assay = rep(assay_name, length(entityID)),
+                               Layer = rep(layer, length(entityID)),
+                               Sample = rep(sample, length(entityID)),
+                               row.names = entityID))
+  slot(object, name = assay.type) <- metadata
+
+  # return
+  return(object)
+}
+
 #' updateMetadataAssay
 #'
 #' updating assay names for merge
@@ -271,25 +327,6 @@ updateMetadataAssay <- function(object1, object2){
 
   # return
   return(list(object1 = object1, object2 = object2))
-}
-
-#' merge.sampleMetadata
-#'
-#' @param metadata_list a list of sample metadata of a spaceRover object
-#' @param sample_name sample
-#'
-#' @export
-#'
-merge.sampleMetadata <- function(metadata_list, sample_name = NULL) {
-
-  sample.metadata <- do.call(rbind, metadata_list)
-  rownames(sample.metadata) <- paste0("Assay", 1:nrow(sample.metadata))
-  if(!is.null(sample_name)){
-    sample.metadata$Sample <- sample_name
-    sample.metadata$Layer <- paste0("Section", 1:nrow(sample.metadata))
-    unique_assay <- unique(sample.metadata$Assay)
-  }
-  sample.metadata
 }
 
 ####

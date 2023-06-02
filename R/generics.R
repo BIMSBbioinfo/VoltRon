@@ -2,6 +2,22 @@
 #'
 NULL
 
+#' Find neighbors
+#'
+#' find neighbors in an assay
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return Returns object after normalization
+#'
+#' @rdname findNeighbors
+#' @export findNeighbors
+#'
+findNeighbors <- function(object, ...) {
+  UseMethod(generic = 'findNeighbors', object = object)
+}
+
 #' Normalize Data
 #'
 #' Normalize the count data present in a given assay.
@@ -11,11 +27,11 @@ NULL
 #'
 #' @return Returns object after normalization
 #'
-#' @rdname NormalizeData
-#' @export NormalizeData
+#' @rdname normalizeData
+#' @export normalizeData
 #'
-NormalizeData <- function(object, ...) {
-  UseMethod(generic = 'NormalizeData', object = object)
+normalizeData <- function(object, ...) {
+  UseMethod(generic = 'normalizeData', object = object)
 }
 
 #' Metadata
@@ -34,6 +50,20 @@ NormalizeData <- function(object, ...) {
 #'
 Metadata <- function(object, ...) {
   UseMethod(generic = 'Metadata', object = object)
+}
+
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{Metadata<-}: The coordinates updated
+#'
+#' @rdname Metadata
+#' @export Metadata<-
+#'
+#' @concept data-access
+#'
+"Metadata<-" <- function(object, ...) {
+  UseMethod(generic = 'Metadata<-', object = object)
 }
 
 #' SampleMetadata
@@ -88,6 +118,20 @@ AddAssay <- function(object, ...) {
 #'
 AssayNames <- function(object, ...) {
   UseMethod(generic = 'AssayNames', object = object)
+}
+
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{AssayNames<-}: The coordinates updated
+#'
+#' @rdname AssayNames
+#' @export AssayNames<-
+#'
+#' @concept data-access
+#'
+"AssayNames<-" <- function(object, ...) {
+  UseMethod(generic = 'AssayNames<-', object = object)
 }
 
 #' Get Assay types
@@ -193,6 +237,24 @@ Features <- function(object, ...) {
 #'
 Data <- function(object, ...) {
   UseMethod(generic = 'Data', object = object)
+}
+
+#' Graph
+#'
+#' Get graph from the main.assay
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{Graph}: The name of the default assay
+#'
+#' @rdname Graph
+#' @export Graph
+#'
+#' @concept data-access
+#'
+Graph <- function(object, ...) {
+  UseMethod(generic = 'Graph', object = object)
 }
 
 #' Coordinates
