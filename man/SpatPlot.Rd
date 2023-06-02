@@ -7,7 +7,7 @@
 SpatPlot(
   object,
   group.by = "label",
-  assay = "Visium",
+  assay = NULL,
   assay.type = NULL,
   ncol = 2,
   nrow = NULL,
