@@ -33,7 +33,7 @@ RunDecon <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.clust
                      type = cur_assay@type, params = cur_assay@params)
       object <- AddAssay(object,
                          assay = rawdata,
-                         assay_names = paste(sample.metadata[assy, "Assay"], "decon", sep = "_"),
+                         assay_name = paste(sample.metadata[assy, "Assay"], "decon", sep = "_"),
                          sample = sample.metadata[assy, "Sample"],
                          layer = sample.metadata[assy, "Layer"])
     }
@@ -144,7 +144,7 @@ RunSPOTlight <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seur
   return(norm_weights)
 }
 
-#' Title
+#' RunMuSiC
 #'
 #' @param object An srAssay object
 #' @param sc.object a Seurat object

@@ -28,7 +28,7 @@
 #' @importFrom ggpubr ggarrange
 #' @export
 #'
-SpatPlot <- function(object, group.by = "label", assay = "Visium", assay.type = NULL, ncol = 2, nrow = NULL,
+SpatPlot <- function(object, group.by = "label", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
                      font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, background = "image",
                      crop = FALSE, common.legend = TRUE, collapse = TRUE) {
 
@@ -381,7 +381,6 @@ SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "lab
   } else if(assay@type == "spot"){
     g <- g +
       geom_spot(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]]) +
-      coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height)) +
       scale_fill_gradientn(name = legend_title,
                              colors=c("dodgerblue3", "yellow", "red"),
                              values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
@@ -402,11 +401,14 @@ SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "lab
                                 legend.margin = margin(0,0,0,0))
 
   # set up the limits
-  if(crop && assay@type == "spot"){
-    xlimits <- range(coords$x) + c(-1,1)*assay@params[["spot.radius"]]
-    ylimits <- range(coords$y) + c(-1,1)*assay@params[["spot.radius"]]
-    g <- g +
-      coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
+  if(assay@type == "spot"){
+    if(crop){
+      g <- g +
+        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
+    } else {
+      g <- g +
+        coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
+    }
   } else {
     g <- g +
       xlim(0,info$width) + ylim(0, info$height)

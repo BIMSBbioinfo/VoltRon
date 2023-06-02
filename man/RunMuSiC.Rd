@@ -2,7 +2,7 @@
 % Please edit documentation in R/deconvolution.R
 \name{RunMuSiC}
 \alias{RunMuSiC}
-\title{Title}
+\title{RunMuSiC}
 \usage{
 RunMuSiC(
   object,
@@ -24,5 +24,5 @@ RunMuSiC(
 \item{sc.Samples}{metadata column in Seurat that provides the samples in the single cell data}
 }
 \description{
-Title
+RunMuSiC
 }

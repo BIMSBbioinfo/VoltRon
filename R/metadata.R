@@ -223,56 +223,6 @@ merge.srMetadata <- function(object, object_list) {
   return(combined.metadata)
 }
 
-#' updateMetadataAssay
-#'
-#' updating assay names for merge
-#'
-#' @param object1 srMetadata object
-#' @param object2 srMetadata object
-#'
-#' @importFrom stringr str_extract
-#' @importFrom stringi stri_replace_all_regex
-#'
-updateMetadataAssay <- function(object1, object2){
-
-  # get assay types
-  object_list <- slotToList(object1)
-  assaytype <- unlist(lapply(object_list, function(obj) {
-    unique(stringr::str_extract(rownames(obj), "Assay[0-9]+$"))
-  }))
-  assaytype <- assaytype[order(nchar(assaytype), assaytype)]
-
-  # replace assay names
-  replacement <- paste0("Assay", 1:length(assaytype))
-  object1 <- lapply(object_list, function(obj) {
-    rownames(obj) <- stringi::stri_replace_all_regex(rownames(obj),
-                                                     pattern=paste0(assaytype,"$"),
-                                                     replacement=replacement)
-    obj
-  })
-  object1 <- new("srMetadata", cell = object1$cell, spot = object1$spot, ROI = object1$ROI)
-
-  # get assay types
-  object_list <- slotToList(object2)
-  assaytype <- unlist(lapply(object_list, function(obj) {
-    unique(stringr::str_extract(rownames(obj), "Assay[0-9]+$"))
-  }))
-  assaytype <- sort(assaytype)
-
-  # replace assay names
-  replacement <- paste0("Assay", (length(replacement)+1):(length(replacement) + length(assaytype)))
-  object2 <- lapply(object_list, function(obj) {
-    rownames(obj) <- stringi::stri_replace_all_regex(rownames(obj),
-                                                     pattern=paste0(assaytype,"$"),
-                                                     replacement=replacement)
-    obj
-  })
-  object2 <- new("srMetadata", cell = object2$cell, spot = object2$spot, ROI = object2$ROI)
-
-  # return
-  return(list(object1 = object1, object2 = object2))
-}
-
 #' merge.sampleMetadata
 #'
 #' @param metadata_list a list of sample metadata of a spaceRover object
@@ -327,6 +277,56 @@ AddAssay.srMetadata <- function(object, assay, assay_name, sample = "Sample1", l
 
   # return
   return(object)
+}
+
+#' updateMetadataAssay
+#'
+#' updating assay names for merge
+#'
+#' @param object1 srMetadata object
+#' @param object2 srMetadata object
+#'
+#' @importFrom stringr str_extract
+#' @importFrom stringi stri_replace_all_regex
+#'
+updateMetadataAssay <- function(object1, object2){
+
+  # get assay types
+  object_list <- slotToList(object1)
+  assaytype <- unlist(lapply(object_list, function(obj) {
+    unique(stringr::str_extract(rownames(obj), "Assay[0-9]+$"))
+  }))
+  assaytype <- assaytype[order(nchar(assaytype), assaytype)]
+
+  # replace assay names
+  replacement <- paste0("Assay", 1:length(assaytype))
+  object1 <- lapply(object_list, function(obj) {
+    rownames(obj) <- stringi::stri_replace_all_regex(rownames(obj),
+                                                     pattern=paste0(assaytype,"$"),
+                                                     replacement=replacement)
+    obj
+  })
+  object1 <- new("srMetadata", cell = object1$cell, spot = object1$spot, ROI = object1$ROI)
+
+  # get assay types
+  object_list <- slotToList(object2)
+  assaytype <- unlist(lapply(object_list, function(obj) {
+    unique(stringr::str_extract(rownames(obj), "Assay[0-9]+$"))
+  }))
+  assaytype <- sort(assaytype)
+
+  # replace assay names
+  replacement <- paste0("Assay", (length(replacement)+1):(length(replacement) + length(assaytype)))
+  object2 <- lapply(object_list, function(obj) {
+    rownames(obj) <- stringi::stri_replace_all_regex(rownames(obj),
+                                                     pattern=paste0(assaytype,"$"),
+                                                     replacement=replacement)
+    obj
+  })
+  object2 <- new("srMetadata", cell = object2$cell, spot = object2$spot, ROI = object2$ROI)
+
+  # return
+  return(list(object1 = object1, object2 = object2))
 }
 
 ####

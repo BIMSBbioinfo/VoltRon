@@ -52,6 +52,20 @@ Metadata <- function(object, ...) {
   UseMethod(generic = 'Metadata', object = object)
 }
 
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{Metadata<-}: The coordinates updated
+#'
+#' @rdname Metadata
+#' @export Metadata<-
+#'
+#' @concept data-access
+#'
+"Metadata<-" <- function(object, ...) {
+  UseMethod(generic = 'Metadata<-', object = object)
+}
+
 #' SampleMetadata
 #'
 #' Get the sample metadata
@@ -223,6 +237,24 @@ Features <- function(object, ...) {
 #'
 Data <- function(object, ...) {
   UseMethod(generic = 'Data', object = object)
+}
+
+#' Graph
+#'
+#' Get graph from the main.assay
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{Graph}: The name of the default assay
+#'
+#' @rdname Graph
+#' @export Graph
+#'
+#' @concept data-access
+#'
+Graph <- function(object, ...) {
+  UseMethod(generic = 'Graph', object = object)
 }
 
 #' Coordinates

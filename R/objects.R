@@ -651,6 +651,16 @@ Metadata.SpaceRover <- function(object, type = "cell") {
   slot(object@metadata, name = type)
 }
 
+#' @rdname Metadata
+#' @method Metadata<- SpaceRover
+#'
+#' @export
+#'
+"Metadata<-.SpaceRover" <- function(object, type = "cell", ..., value) {
+  slot(object@metadata, name = type) <- value
+  return(object)
+}
+
 #' @rdname SampleMetadata
 #' @method SampleMetadata SpaceRover
 #'
@@ -703,6 +713,22 @@ Data.SpaceRover <- function(object, assay = NULL, ...) {
     returndata_list[[i]] <- Data(object[[assay_names[i]]], ...)
 
   return(do.call(cbind, returndata_list))
+}
+
+#' @rdname Graph
+#' @method Graph SpaceRover
+#'
+#' @export
+#'
+Graph.SpaceRover <- function(object, assay = NULL, ...) {
+
+  # get assay names
+  assay_names <- AssayNames(object, assay = assay)
+  assay_pattern <- paste0(assay_names, collapse = "|")
+  node_names <- Entities(object)[grepl(assay_pattern, Entities(object))]
+
+  returngraph <- induced_subgraph(object@zstack, node_names)
+  return(returngraph)
 }
 
 #' @rdname Coordinates

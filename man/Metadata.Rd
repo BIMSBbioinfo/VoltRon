@@ -3,11 +3,14 @@
 \name{Metadata}
 \alias{Metadata}
 \alias{Metadata.SpaceRover}
+\alias{Metadata<-.SpaceRover}
 \title{Metadata}
 \usage{
 Metadata(object, ...)
 
 \method{Metadata}{SpaceRover}(object, type = "cell")
+
+\method{Metadata}{SpaceRover}(object, type = "cell", ...) <- value
 }
 \arguments{
 \item{object}{An object}
