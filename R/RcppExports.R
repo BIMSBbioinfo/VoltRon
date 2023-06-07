@@ -2,14 +2,14 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 automated_registeration_rawvector <- function(ref_image, query_image, width1, height1, width2, height2, GOOD_MATCH_PERCENT, MAX_FEATURES) {
-    .Call('_spaceRover_automated_registeration_rawvector', PACKAGE = 'spaceRover', ref_image, query_image, width1, height1, width2, height2, GOOD_MATCH_PERCENT, MAX_FEATURES)
+    .Call('_VoltRon_automated_registeration_rawvector', PACKAGE = 'VoltRon', ref_image, query_image, width1, height1, width2, height2, GOOD_MATCH_PERCENT, MAX_FEATURES)
 }
 
 perspectiveTransform <- function(coords, hmatrix) {
-    .Call('_spaceRover_perspectiveTransform', PACKAGE = 'spaceRover', coords, hmatrix)
+    .Call('_VoltRon_perspectiveTransform', PACKAGE = 'VoltRon', coords, hmatrix)
 }
 
 calculateMoransI <- function(data, datadist, sumW) {
-    .Call('_spaceRover_calculateMoransI', PACKAGE = 'spaceRover', data, datadist, sumW)
+    .Call('_VoltRon_calculateMoransI', PACKAGE = 'VoltRon', data, datadist, sumW)
 }
 
