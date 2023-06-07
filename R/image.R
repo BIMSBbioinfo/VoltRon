@@ -61,30 +61,30 @@ Image.Seurat <- function(seu, ...){
 }
 
 #' @rdname Image
-#' @method Image SpaceRover
+#' @method Image VoltRon
 #'
 #' @export
 #'
-Image.SpaceRover <- function(sr, ...){
+Image.VoltRon <- function(sr, ...){
   sapply(sr@samples, function(samp) Image(samp), USE.NAMES = TRUE)
 }
 
 #' @rdname Image
-#' @method Image srSample
+#' @method Image vrSample
 #'
 #' @export
 #'
-Image.srSample <- function(sr, ...){
-  sapply(sr@layer, function(lay) Image(lay), USE.NAMES = TRUE)
+Image.vrSample <- function(vr, ...){
+  sapply(vr@layer, function(lay) Image(lay), USE.NAMES = TRUE)
 }
 
 #' @rdname Image
-#' @method Image srLayer
+#' @method Image vrLayer
 #'
 #' @export
 #'
-Image.srLayer <- function(sr, ...){
-  sapply(sr@assay, function(a) a@image, USE.NAMES = TRUE)
+Image.vrLayer <- function(vr, ...){
+  sapply(vr@assay, function(a) a@image, USE.NAMES = TRUE)
 }
 
 ####
@@ -128,11 +128,11 @@ addFOVImage <- function(seu, file, fov = "fov", overwrite = FALSE) {
 }
 
 #' @rdname ResizeImage
-#' @method ResizeImage SpaceRover
+#' @method ResizeImage VoltRon
 #'
 #' @export
 #'
-ResizeImage.SpaceRover <- function(object, ...){
+ResizeImage.VoltRon <- function(object, ...){
   sample.metadata <- SampleMetadata(object)
   assay_names <- rownames(sample.metadata)
   for(assy in assay_names){
@@ -143,11 +143,11 @@ ResizeImage.SpaceRover <- function(object, ...){
 }
 
 #' @rdname ResizeImage
-#' @method ResizeImage srAssay
+#' @method ResizeImage vrAssay
 #'
 #' @export
 #'
-ResizeImage.srAssay <- function(object, size){
+ResizeImage.vrAssay <- function(object, size){
 
   # resize coordinates
   sizefactor <- image_info(object@image)$width
@@ -309,9 +309,9 @@ GenerateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 
 #' DemuxGeoMx
 #'
-#' @param object a SpaceRover object
+#' @param object a VoltRon object
 #'
-demuxSpaceRover <- function(object, scale_width = 800)
+demuxVoltRon <- function(object, scale_width = 800)
 {
   # get images
   images <- Image(object)

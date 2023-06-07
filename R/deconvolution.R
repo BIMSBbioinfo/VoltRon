@@ -26,7 +26,7 @@ RunDecon <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.clust
 
       # Add as new assay
       cat("Adding cell type compositions as new assay:", paste(sample.metadata[assy, "Assay"], "decon", sep = "_"), "...\n")
-      rawdata <- new("srAssay",
+      rawdata <- new("vrAssay",
                      rawdata = rawdata, normdata = rawdata,
                      coords = cur_assay@coords[colnames(rawdata),],
                      image = cur_assay@image, segments = cur_assay@segments,
@@ -146,7 +146,7 @@ RunSPOTlight <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seur
 
 #' RunMuSiC
 #'
-#' @param object An srAssay object
+#' @param object A vrAssay object
 #' @param sc.object a Seurat object
 #' @param sc.assay an assay in Seurat object where single cell count data is pulled
 #' @param sc.cluster metadata column in Seurat provides the cell types in single cell data

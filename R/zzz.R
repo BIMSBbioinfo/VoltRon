@@ -13,7 +13,7 @@
 
   # Normalize Data
   # conflicted::conflict_prefer("NormalizeData", "spaceRover")
-  # registerS3method("NormalizeData", "SpaceRover", "NormalizeData", envir = getNamespace("spaceRover"))
-  # registerS3method('NormalizeData', 'SpaceRover', "NormalizeData.SpaceRover", envir = getNamespace("spaceRover"))
+  # registerS3method("NormalizeData", "VoltRon", "NormalizeData", envir = getNamespace("spaceRover"))
+  # registerS3method('NormalizeData', 'VoltRon', "NormalizeData.VoltRon", envir = getNamespace("spaceRover"))
   # registerS3method('NormalizeData', 'srAssay', "NormalizeData.srAssay", envir = getNamespace("spaceRover"))
 }

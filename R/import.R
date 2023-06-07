@@ -9,7 +9,7 @@
 #' @param dir.path path to Xenium
 #' @param selected_assay selected assay
 #' @param assay_name the assay name of the SR object
-#' @param ... additional parameters passed to \code{CreateSpaceRover}
+#' @param ... additional parameters passed to \code{CreateVoltRon}
 #'
 #' @importFrom magick image_read
 #'
@@ -55,8 +55,8 @@ ImportXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
     stop("There are no files named 'cells.csv.gz' in the path")
   }
 
-  # create SpaceRover
-  CreateSpaceRover(rawdata, metadata = NULL, image, coords, main.assay = assay_name, assay.type = "cell", ...)
+  # create VoltRon
+  CreateVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, assay.type = "cell", ...)
 }
 
 #' rescaleXeniumCells
@@ -91,7 +91,7 @@ rescaleXeniumCells <- function(cells, bbox, image){
 #' @param dir.path path to Xenium
 #' @param assay_name the assay name
 #' @param inTissue if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)
-#' @param ... additional parameters passed to \code{CreateSpaceRover}
+#' @param ... additional parameters passed to \code{CreateVoltRon}
 #'
 #' @import hdf5r
 #' @import magick
@@ -161,8 +161,8 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
     stop("There are no files named 'scalefactors_json.json' in the path")
   }
 
-  # create SpaceRover
-  CreateSpaceRover(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", ...)
+  # create VoltRon
+  CreateVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", ...)
 }
 
 ####
@@ -178,7 +178,7 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
 #' @param assay_name the assay name, default: GeoMx
 #' @param segment_polygons if TRUE, the ROI polygons are parsed from the OME.TIFF file
 #' @param ome.tiff the OME.TIFF file of the GeoMx experiment if exists
-#' @param ... additional parameters passed to \code{CreateSpaceRover}
+#' @param ... additional parameters passed to \code{CreateVoltRon}
 #'
 #' @import dplyr
 #' @importFrom xlsx read.xlsx
@@ -246,8 +246,8 @@ ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
     segments <- ImportGeoMxSegments(ome.tiff, segmentsummary, geomx_image_info)
   }
 
-  # create SpaceRover
-  CreateSpaceRover(rawdata, metadata = NULL, image, coords, segments, main.assay = assay_name, assay.type = "ROI", ...)
+  # create VoltRon
+  CreateVoltRon(rawdata, metadata = NULL, image, coords, segments, main.assay = assay_name, assay.type = "ROI", ...)
 }
 
 

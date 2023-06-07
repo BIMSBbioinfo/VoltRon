@@ -6,7 +6,7 @@
 #'
 #' A mini shiny app to calculate spatial cell(barcode) projection matrix between a visium slide and a xenium slide
 #'
-#' @param data_list a list of SpaceRover objects
+#' @param data_list a list of VoltRon objects
 #' @param reference_spatdata a reference spatial data set, used only if \code{spatial_data_list} is \code{NULL}
 #' @param query_spatdata a query spatial data set, used only if \code{spatial_data_list} is \code{NULL}
 #'
@@ -28,8 +28,8 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
   if(!is.null(data_list)){
 
     # check if all elements of the list are spaceRover
-    if(!all(sapply(data_list, class)=="SpaceRover")){
-      stop("Please make sure that all objects in the list are of SpaceRover class")
+    if(!all(sapply(data_list, class)=="VoltRon")){
+      stop("Please make sure that all objects in the list are of VoltRon class")
     } else {
       spatdata_list <- data_list
     }
@@ -322,9 +322,9 @@ UpdateSequentialTabPanels <- function(input, output, session, centre, register_i
 #'
 getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, ...) {
 
-  # check if the elements are SpaceRover
-  if(all(sapply(obj_list, class) == "SpaceRover")){
-    sr <- getRegisteredObject.SpaceRover(obj_list, mapping_list, register_ind, centre, ...)
+  # check if the elements are VoltRon
+  if(all(sapply(obj_list, class) == "VoltRon")){
+    sr <- getRegisteredObject.VoltRon(obj_list, mapping_list, register_ind, centre, ...)
     registered_sr <- list()
     for(i in 1:length(sr)){
       registered_sr[[i]] <- sr[[i]]
@@ -342,11 +342,11 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, ..
   }
 }
 
-#' getRegisteredObject.SpaceRover
+#' getRegisteredObject.VoltRon
 #'
-#' get registered and merged SpaceRover object composed of several Samples
+#' get registered and merged VoltRon object composed of several Samples
 #'
-#' @param sr a list of SpaceRover objects
+#' @param sr a list of VoltRon objects
 #' @param mapping_list a list of transformation matrices
 #' @param register_ind the indices of query images/spatialdatasets
 #' @param centre the index of the central reference image/spatialdata
@@ -354,9 +354,9 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, ..
 #'
 #' @importFrom Morpho applyTransform
 #'
-getRegisteredObject.SpaceRover <- function(sr, mapping_list, register_ind, centre, reg_mode = "manual"){
+getRegisteredObject.VoltRon <- function(sr, mapping_list, register_ind, centre, reg_mode = "manual"){
 
-  # initiate registered SpaceRover objects
+  # initiate registered VoltRon objects
   ref_ind <- centre
   registered_sr <- sr
   for(i in register_ind){

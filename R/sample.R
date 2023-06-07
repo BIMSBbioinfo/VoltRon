@@ -2,18 +2,18 @@
 # Objects and Classes ####
 ####
 
-## srSample ####
+## vrSample ####
 
-#' The srSample (SpaceRover Sample) Class
+#' The vrSample (VoltRon Sample) Class
 #'
-#' @slot samples A list of layers for the this srSample object
+#' @slot samples A list of layers for the this vrSample object
 #'
-#' @name srSample-class
-#' @rdname srSample-class
-#' @exportClass srSample
+#' @name vrSample-class
+#' @rdname vrSample-class
+#' @exportClass vrSample
 #'
-srSample <- setClass(
-  Class = 'srSample',
+vrSample <- setClass(
+  Class = 'vrSample',
   slots = c(
     layer = 'list'
   )
@@ -22,9 +22,9 @@ srSample <- setClass(
 ### show ####
 setMethod(
   f = 'show',
-  signature = 'srSample',
+  signature = 'vrSample',
   definition = function(object) {
-    cat(class(x = object), "(SpaceRover Sample) Object \n")
+    cat(class(x = object), "(VoltRon Sample) Object \n")
     layers <- names(unlist(object@layer))
     cat("Layer(s):", paste(layers, collapse = " "), "\n")
     return(invisible(x = NULL))
@@ -34,7 +34,7 @@ setMethod(
 ### subset ####
 setMethod(
   f = '[[',
-  signature = 'srSample',
+  signature = 'vrSample',
   definition = function(x, i, j){
 
     # sample names
@@ -50,18 +50,18 @@ setMethod(
   }
 )
 
-## srLayer ####
+## vrLayer ####
 
-#' The srLayer (SpaceRover Layer) Class
+#' The vrLayer (VoltRon Layer) Class
 #'
 #' @slot assay
 #'
-#' @name srLayer-class
-#' @rdname srLayer-class
-#' @exportClass srLayer
+#' @name vrLayer-class
+#' @rdname vrLayer-class
+#' @exportClass vrLayer
 #'
-srLayer <- setClass(
-  Class = 'srLayer',
+vrLayer <- setClass(
+  Class = 'vrLayer',
   slots = c(
     assay = 'list'
   )
@@ -70,9 +70,9 @@ srLayer <- setClass(
 ### show ####
 setMethod(
   f = 'show',
-  signature = 'srLayer',
+  signature = 'vrLayer',
   definition = function(object) {
-    cat(class(x = object), "(SpaceRover Layer) Object \n")
+    cat(class(x = object), "(VoltRon Layer) Object \n")
     # cat("This object includes", length(object@assay), "assays \n")
     layers <- names(unlist(object@assay))
     cat("Assay(s):", paste(layers, collapse = " "), "\n")
@@ -83,7 +83,7 @@ setMethod(
 ### subset of assays ####
 setMethod(
   f = '[[',
-  signature = c('srLayer', "character"),
+  signature = c('vrLayer', "character"),
   definition = function(x, i, ...){
 
     # if no assay were found, check sample names
@@ -100,7 +100,7 @@ setMethod(
 
 setMethod(
   f = '[[<-',
-  signature = c('srLayer', "character"),
+  signature = c('vrLayer', "character"),
   definition = function(x, i, ..., value){
 
     # if no assay were found, check sample names
@@ -120,13 +120,13 @@ setMethod(
 # Methods ####
 ####
 
-### Merge srSample object ####
+### Merge vrSample object ####
 
-#' @method merge srSample
+#' @method merge vrSample
 #'
 #' @export
 #'
-merge.srSample <- function(object, object_list, samples = NULL){
+merge.vrSample <- function(object, object_list, samples = NULL){
 
   # combine all elements
   if(!is.list(object_list))
@@ -134,20 +134,20 @@ merge.srSample <- function(object, object_list, samples = NULL){
   object_list <- c(object, object_list)
   names(object_list) <- samples
 
-  # set SpaceRover class
+  # set VoltRon class
   return(object_list)
 }
 
-### Subset srSample object ####
+### Subset vrSample object ####
 
-#' @method subset srSample
+#' @method subset vrSample
 #'
 #' @importFrom rlang enquo
 #' @import igraph
 #'
 #' @export
 #'
-subset.srSample <- function(object, subset, assays = NULL, entities = NULL, image = NULL) {
+subset.vrSample <- function(object, subset, assays = NULL, entities = NULL, image = NULL) {
 
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
@@ -157,30 +157,30 @@ subset.srSample <- function(object, subset, assays = NULL, entities = NULL, imag
   layers <- object@layer
   if(!is.null(assays)){
     object@layer <- sapply(layers, function(lay) {
-      subset.srLayer(lay, assays = assays)
+      subset.vrLayer(lay, assays = assays)
     }, USE.NAMES = TRUE)
   } else if(!is.null(entities)){
     object@layer <- sapply(layers, function(lay) {
-      subset.srLayer(lay, entities = entities)
+      subset.vrLayer(lay, entities = entities)
     }, USE.NAMES = TRUE)
   } else if(!is.null(image)){
     object@layer <- sapply(layers, function(lay) {
-      subset.srLayer(lay, image = image)
+      subset.vrLayer(lay, image = image)
     }, USE.NAMES = TRUE)
   }
 
-  # set SpaceRover class
+  # set VoltRon class
   return(object)
 }
 
-### Get entities srSample ####
+### Get entities vrSample ####
 
 #' @rdname Entities
-#' @method Entities srSample
+#' @method Entities vrSample
 #'
 #' @export
 #'
-Entities.srSample <- function(object, ...) {
+Entities.vrSample <- function(object, ...) {
 
   layers <- object@layer
   entities <- lapply(layers, function(lay) {
@@ -189,16 +189,16 @@ Entities.srSample <- function(object, ...) {
   do.call(c, entities)
 }
 
-### Subset srLayer objects ####
+### Subset vrLayer objects ####
 
-#' @method subset srLayer
+#' @method subset vrLayer
 #'
 #' @importFrom rlang enquo
 #' @import igraph
 #'
 #' @export
 #'
-subset.srLayer <- function(object, subset, assays = NULL, entities = NULL, image = NULL) {
+subset.vrLayer <- function(object, subset, assays = NULL, entities = NULL, image = NULL) {
 
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
@@ -210,25 +210,25 @@ subset.srLayer <- function(object, subset, assays = NULL, entities = NULL, image
   } else if(!is.null(entities)){
     assay_set <- object@assay
     object@assay <- sapply(assay_set, function(assy) {
-      subset.srAssay(assy, entities = entities)
+      subset.vrAssay(assy, entities = entities)
     }, USE.NAMES = TRUE)
   } else if(!is.null(image)){
     assay_set <- object@assay
     object@assay <- sapply(assay_set, function(assy) {
-      subset.srAssay(assy, image = image)
+      subset.vrAssay(assy, image = image)
     }, USE.NAMES = TRUE)
   }
 
-  # set SpaceRover class
+  # set VoltRon class
   return(object)
 }
 
 #' @rdname Entities
-#' @method Entities srLayer
+#' @method Entities vrLayer
 #'
 #' @export
 #'
-Entities.srLayer <- function(object, ...) {
+Entities.vrLayer <- function(object, ...) {
   assays <- object@assay
   entities <- lapply(assays, function(assy) {
     Entities(assy)

@@ -8,9 +8,9 @@
 
 #' SpatPlot
 #'
-#' Plotting identification of spatially resolved cells, spots, and ROI on associated images from multiple assays in a SpaceRover object.
+#' Plotting identification of spatially resolved cells, spots, and ROI on associated images from multiple assays in a VoltRon object.
 #'
-#' @param object SpaceRover object
+#' @param object VoltRon object
 #' @param group.by a grouping label for the spatial entities
 #' @param assay the assay name
 #' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
@@ -90,9 +90,9 @@ SpatPlot <- function(object, group.by = "label", assay = NULL, assay.type = NULL
 
 #' SpatPlotSingle
 #'
-#' Plotting a single assay from a SpaceRover object. We plot the identification of spatially resolved cells, spots, and ROI on associated images.
+#' Plotting a single assay from a VoltRon object. We plot the identification of spatially resolved cells, spots, and ROI on associated images.
 #'
-#' @param assay srAssay object
+#' @param assay vrAssay object
 #' @param metadata the metadata associated with the assay
 #' @param group.by a grouping label for the spatial entities
 #' @param font.size font sizes
@@ -181,9 +181,9 @@ SpatPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, p
 
 #' SpatFeatPlot
 #'
-#' Plotting single/multiple features of spatially resolved cells, spots, and ROI on associated images from multiple assays in a SpaceRover object.
+#' Plotting single/multiple features of spatially resolved cells, spots, and ROI on associated images from multiple assays in a VoltRon object.
 #'
-#' @param object SpaceRover object
+#' @param object VoltRon object
 #' @param features a set of features, either from the rows of rawdata, normdata or columns of the metadata
 #' @param group.by a grouping label for the spatial entities
 #' @param assay the assay name
@@ -301,9 +301,9 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, ass
 
 #' SpatFeatPlotSingle
 #'
-#' A single Spatial Feature plot of spacerover objects
+#' A single Spatial Feature plot of VoltRon objects
 #'
-#' @param assay srAssay object
+#' @param assay vrAssay object
 #' @param metadata the metadata associated with the assay
 #' @param feature a feature, either from the rows of rawdata, normdata or columns of the metadata
 #' @param limits limits of the legend of the plot
@@ -558,7 +558,7 @@ ScatterFeaturePlot <- function(object, feature.1, feature.2, norm = TRUE, assay 
 
 #' HeatmapPlot
 #'
-#' @param object spacerover object
+#' @param object VoltRon object
 #' @param assay
 #' @param assay.type
 #' @param group.by

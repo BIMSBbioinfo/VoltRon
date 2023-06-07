@@ -2,18 +2,18 @@
 # Objects and Classes ####
 ####
 
-## srMetadata ####
+## vrMetadata ####
 
-#' The srMetadata (SpaceRover Metadata) Class
+#' The vrMetadata (VoltRon Metadata) Class
 #'
-#' @slot samples A list of layers for the this srSample object
+#' @slot samples A list of layers for the this vrSample object
 #'
-#' @name srMetadata-class
-#' @rdname srMetadata-class
-#' @exportClass srMetadata
+#' @name vrMetadata-class
+#' @rdname vrMetadata-class
+#' @exportClass vrMetadata
 #'
-srMetadata <- setClass(
-  Class = 'srMetadata',
+vrMetadata <- setClass(
+  Class = 'vrMetadata',
   slots = c(
     cell = 'data.frame',
     spot = 'data.frame',
@@ -25,9 +25,9 @@ srMetadata <- setClass(
 
 setMethod(
   f = 'show',
-  signature = 'srMetadata',
+  signature = 'vrMetadata',
   definition = function(object) {
-    cat("SpaceRover Metadata Object \n")
+    cat("VoltRon Metadata Object \n")
     cat("This object includes: \n")
     if(nrow(object@cell) > 0)
       cat("  ", nrow(object@cell), "cells \n")
@@ -42,16 +42,16 @@ setMethod(
 ### $ methods ####
 
 #' @export
-#' @method $ srMetadata
+#' @method $ vrMetadata
 #'
-"$.srMetadata" <- function(x, i, ...) {
+"$.vrMetadata" <- function(x, i, ...) {
   return(NULL)
 }
 
 #' @export
-#' @method $<- srMetadata
+#' @method $<- vrMetadata
 #'
-"$<-.srMetadata" <- function(x, i, ..., value) {
+"$<-.vrMetadata" <- function(x, i, ..., value) {
 
   # cell metadata
   cell.metadata <- slot(x, "cell")
@@ -68,13 +68,13 @@ setMethod(
   if(nrow(roi.metadata) > 0)
     roi.metadata[[i]] <- value
 
-  return(new("srMetadata", cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata))
+  return(new("vrMetadata", cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata))
 }
 
 #' @export
-#' @method $<- srMetadata
+#' @method $<- vrMetadata
 #'
-"[[<-.srMetadata" <- function(x, i, ..., value) {
+"[[<-.vrMetadata" <- function(x, i, ..., value) {
 
   # cell metadata
   cell.metadata <- slot(x, "cell")
@@ -91,7 +91,7 @@ setMethod(
   if(nrow(roi.metadata) > 0)
     roi.metadata[[i]] <- value
 
-  return(new("srMetadata", cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata))
+  return(new("vrMetadata", cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata))
 }
 
 ####
@@ -99,11 +99,11 @@ setMethod(
 ####
 
 #' @rdname Entities
-#' @method Entities srMetadata
+#' @method Entities vrMetadata
 #'
 #' @export
 #'
-Entities.srMetadata <- function(object, ...) {
+Entities.vrMetadata <- function(object, ...) {
 
   # get the combination of cells, spots and ROIs
   points <- c(rownames(object@cell),
@@ -113,14 +113,14 @@ Entities.srMetadata <- function(object, ...) {
   return(points)
 }
 
-#' @method subset srMetadata
+#' @method subset vrMetadata
 #'
 #' @aliases subset
 #'
 #' @importFrom rlang enquo
 #' @importFrom stringr str_extract
 #'
-subset.srMetadata <- function(metadata, subset, samples = NULL, assays = NULL, entities = NULL) {
+subset.vrMetadata <- function(metadata, subset, samples = NULL, assays = NULL, entities = NULL) {
 
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
@@ -154,7 +154,7 @@ subset.srMetadata <- function(metadata, subset, samples = NULL, assays = NULL, e
   }
 
   # return new metadata
-  setSRMetadata(cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata)
+  setVRMetadata(cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata)
 }
 
 
@@ -183,12 +183,12 @@ subset.sampleMetadata <- function(metadata, samples = NULL, assays = NULL) {
   metadata
 }
 
-#' @method merge srMetadata
+#' @method merge vrMetadata
 #'
 #' @importFrom dplyr bind_rows
 #' @export
 #'
-merge.srMetadata <- function(object, object_list) {
+merge.vrMetadata <- function(object, object_list) {
 
   # combine all elements
   if(!is.list(object_list))
@@ -196,8 +196,8 @@ merge.srMetadata <- function(object, object_list) {
   object_list <- c(object, object_list)
 
   # check if all are spaceRover
-  if(!all(lapply(object_list, class) == "srMetadata"))
-    stop("All arguements have to be of srMetadata class")
+  if(!all(lapply(object_list, class) == "vrMetadata"))
+    stop("All arguements have to be of vrMetadata class")
 
   # choose objects
   obj1 <- object_list[[1]]
@@ -216,7 +216,7 @@ merge.srMetadata <- function(object, object_list) {
     cell.metadata <- bind_rows(slot(obj1, "cell"), slot(obj2, "cell"))
     spot.metadata <- bind_rows(slot(obj1, "spot"), slot(obj2, "spot"))
     roi.metadata <- bind_rows(slot(obj1, "ROI"), slot(obj2, "ROI"))
-    combined.metadata <- setSRMetadata(cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata)
+    combined.metadata <- setVRMetadata(cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata)
   }
 
   # return combined object
@@ -245,14 +245,14 @@ merge.sampleMetadata <- function(metadata_list, sample_name = NULL) {
 ### Assay Methods ####
 
 #' @rdname AddAssay
-#' @method AddAssay srMetadata
+#' @method AddAssay vrMetadata
 #'
 #' @importFrom stringr str_extract str_replace
 #' @importFrom stringi str_replace
 #' @import
 #' @export
 #'
-AddAssay.srMetadata <- function(object, assay, assay_name, sample = "Sample1", layer = "Section1"){
+AddAssay.vrMetadata <- function(object, assay, assay_name, sample = "Sample1", layer = "Section1"){
 
   # assay info
   assay.type <- AssayTypes(assay)
@@ -291,8 +291,8 @@ AddAssay.srMetadata <- function(object, assay, assay_name, sample = "Sample1", l
 #'
 #' updating assay names for merge
 #'
-#' @param object1 srMetadata object
-#' @param object2 srMetadata object
+#' @param object1 vrMetadata object
+#' @param object2 vrMetadata object
 #'
 #' @importFrom stringr str_extract
 #' @importFrom stringi stri_replace_all_regex
@@ -314,7 +314,7 @@ updateMetadataAssay <- function(object1, object2){
                                                      replacement=replacement)
     obj
   })
-  object1 <- new("srMetadata", cell = object1$cell, spot = object1$spot, ROI = object1$ROI)
+  object1 <- new("vrMetadata", cell = object1$cell, spot = object1$spot, ROI = object1$ROI)
 
   # get assay types
   object_list <- slotToList(object2)
@@ -331,7 +331,7 @@ updateMetadataAssay <- function(object1, object2){
                                                      replacement=replacement)
     obj
   })
-  object2 <- new("srMetadata", cell = object2$cell, spot = object2$spot, ROI = object2$ROI)
+  object2 <- new("vrMetadata", cell = object2$cell, spot = object2$spot, ROI = object2$ROI)
 
   # return
   return(list(object1 = object1, object2 = object2))
@@ -341,21 +341,21 @@ updateMetadataAssay <- function(object1, object2){
 # Functions ####
 ####
 
-#' setSRMetadata
+#' setVRMetadata
 #'
 #' @param cell cell data frame
 #' @param spot spot data frame
 #' @param ROI ROI data frame
 #'
-setSRMetadata <- function(cell, spot, ROI){
-  new("srMetadata", cell = cell, spot = spot, ROI = ROI)
+setVRMetadata <- function(cell, spot, ROI){
+  new("vrMetadata", cell = cell, spot = spot, ROI = ROI)
 }
 
-#' setSRSampleMetadata
+#' setVRSampleMetadata
 #'
-#' @param samples a list of srSample object
+#' @param samples a list of vrSample object
 #'
-setSRSampleMetadata <- function(samples){
+setVRSampleMetadata <- function(samples){
 
   # imput missing sample names
   sample_name_ind <- sapply(names(samples), is.null)
