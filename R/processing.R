@@ -2,6 +2,10 @@
 #'
 NULL
 
+####
+# Normalization ####
+####
+
 #' @rdname normalizeData
 #' @concept preprocessing
 #' @method normalizeData SpaceRover
@@ -17,6 +21,8 @@ normalizeData.SpaceRover <- function(object, assay = NULL, ...) {
     cur_assay <- object[[assy]]
     object[[assy]] <- normalizeData(cur_assay, ...)
   }
+
+  # return
   return(object)
 }
 
@@ -31,10 +37,10 @@ normalizeData.srAssay <- function(object, method = "LogNorm", desiredQuantile = 
   rawdata <- object@rawdata
   sizefactor <- colSums(rawdata)
 
+  # normalization method
   if(method == "LogNorm"){
-    # log transformation
     sizefactor <- matrix(rep(sizefactor, nrow(rawdata)), byrow = T, nrow = nrow(rawdata))
-    normdata <- (rawdata/sizefactor)*1000000
+    normdata <- (rawdata/sizefactor)*10000
     normdata <- log(normdata + 1)
   } else if(method == "QuanNorm") {
     rawdata[rawdata==0] <- 1
@@ -53,6 +59,155 @@ normalizeData.srAssay <- function(object, method = "LogNorm", desiredQuantile = 
 
   # get normalized data
   object@normdata <- normdata
+
+  # return
+  return(object)
+}
+
+####
+# Features ####
+####
+
+#' @rdname getSpatialFeatures
+#' @concept preprocessing
+#' @method getSpatialFeatures SpaceRover
+#'
+#' @export
+getSpatialFeatures.SpaceRover <- function(object, assay = NULL, ...){
+
+  # get assay names
+  assay_names <- AssayNames(object, assay = assay)
+
+  # get features for all coordinates
+  for(assy in assay_names){
+    object[[assy]] <- getSpatialFeatures(object[[assy]], ...)
+  }
+
+  # return
+  return(object)
+}
+
+#' @rdname getSpatialFeatures
+#' @concept preprocessing
+#' @method getSpatialFeatures srAssay
+#'
+#' @export
+getSpatialFeatures.srAssay <- function(object, max.count = 1, n = 3000){
+
+  # get data and coordinates
+  normdata <- Data(object, norm = TRUE)
+  rawdata <- Data(object, norm = FALSE)
+  coords <- Coordinates(object)
+  features <- Features(object)
+
+  # eliminate genes with low counts
+  keep.genes <- which(apply(rawdata,1,max) > max.count)
+  rawdata_subset <- rawdata[keep.genes,]
+
+  # vst estimation
+  vst_data <- data.frame(mean = rowMeans(rawdata), var = apply(rawdata, 1, var))
+  loess_data <- vst_data[keep.genes,]
+  loess_results <- loess(var~mean, loess_data, span = 0.3)
+  vst_data$adj_var <- 0
+  vst_data$rank <- 0
+  vst_data[keep.genes,]$adj_var <- predict(loess_results)
+  vst_data[keep.genes,]$rank <- order(order(vst_data$adj_var[keep.genes], decreasing = TRUE))
+
+  # set feature data
+  FeatureData(object) <- vst_data
+
+  # return
+  return(object)
+}
+
+
+#' getSharedFeatures
+#'
+#' get shared variable features across multiple assays
+#'
+#' @importFrom dplyr full_join
+#'
+getSharedFeatures <- function(object, assay = NULL, n = 3000, ...){
+
+  # get assay names
+  assay_names <- AssayNames(object, assay = assay)
+
+  # get features for all coordinates
+  ranks <- NULL
+  for(assy in assay_names){
+    feature_data <- FeatureData(object[[assy]], ...)
+    feature_data$gene <- rownames(feature_data)
+    if(is.null(ranks)){
+      ranks <- feature_data[,c("gene", "rank")]
+    } else {
+      ranks <- ranks %>% full_join(feature_data[,c("gene", "rank")], by = c("gene" = "gene"))
+    }
+  }
+
+  # get geometric mean of ranks, i.e. rank product statistic
+  ranks <- ranks[,!colnames(ranks) %in% "gene", drop = FALSE]
+  ranks <- apply(ranks, 1, function(x) exp(mean(log(x))))
+  ranks <- ranks[ranks != 0]
+
+  # get selected features
+  selected_features <- names(head(sort(ranks, decreasing = FALSE), n))
+
+  # return
+  return(selected_features)
+}
+
+####
+# Embeddings ####
+####
+
+#' @rdname PCA
+#' @concept embedding
+#' @method PCA SpaceRover
+#'
+#' @export
+PCA.SpaceRover <- function(object, assay = NULL, dims = 30){
+
+  # get assay names
+  assay_names <- AssayNames(object, assay = assay)
+
+  # get shared features and subset
+  features <- getSharedFeatures(object, assay = assay)
+  object <- subset(object, features = features)
+
+  # get data
+  normdata <- Data(object, norm = TRUE)
+
+  # scale data before PCA
+  scale.data <- apply(normdata, 1, scale)
+
+  # get PCA embedding
+  pr.data <- irlba(scale.data, nv=dims, center=colMeans(scale.data))
+  pr.data <- pr.data$u
+  colnames(pr.data) <- paste0("PC", 1:dims)
+  rownames(pr.data) <- colnames(normdata)
+
+  # set Embeddings
+  Embeddings(object, type = "pca") <- pr.data
+
+  # return
+  return(object)
+}
+
+#' @rdname UMAP
+#' @concept embedding
+#' @method UMAP SpaceRover
+#'
+#' @export
+UMAP.SpaceRover <- function(object, assay = NULL, dims = 30, seed = 1){
+
+  # set Embeddings
+  embedding_data <- Embeddings(object, assay = assay)
+
+  # get umap
+  umap_data <- umap::umap(embedding_data, preserve.seed = seed)
+  umap_data <- umap_data$layout
+  colnames(umap_data) <- c("x", "y")
+  Embeddings(object, type = "umap") <- umap_data
 
   # return
   return(object)

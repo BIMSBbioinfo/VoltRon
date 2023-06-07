@@ -40,10 +40,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// calculateMoransI
+double calculateMoransI(NumericMatrix data, NumericMatrix datadist, double sumW);
+RcppExport SEXP _spaceRover_calculateMoransI(SEXP dataSEXP, SEXP datadistSEXP, SEXP sumWSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type datadist(datadistSEXP);
+    Rcpp::traits::input_parameter< double >::type sumW(sumWSEXP);
+    rcpp_result_gen = Rcpp::wrap(calculateMoransI(data, datadist, sumW));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_spaceRover_automated_registeration_rawvector", (DL_FUNC) &_spaceRover_automated_registeration_rawvector, 8},
     {"_spaceRover_perspectiveTransform", (DL_FUNC) &_spaceRover_perspectiveTransform, 2},
+    {"_spaceRover_calculateMoransI", (DL_FUNC) &_spaceRover_calculateMoransI, 3},
     {NULL, NULL, 0}
 };
 

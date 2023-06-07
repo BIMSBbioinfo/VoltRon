@@ -9,3 +9,7 @@ perspectiveTransform <- function(coords, hmatrix) {
     .Call('_spaceRover_perspectiveTransform', PACKAGE = 'spaceRover', coords, hmatrix)
 }
 
+calculateMoransI <- function(data, datadist, sumW) {
+    .Call('_spaceRover_calculateMoransI', PACKAGE = 'spaceRover', data, datadist, sumW)
+}
+

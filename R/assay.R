@@ -30,6 +30,8 @@ srAssay <- setClass(
   slots = c(
     rawdata = 'matrix',
     normdata = 'matrix',
+    featuredata = 'data.frame',
+    embeddings = "list",
     coords = 'matrix',
     coords_reg = 'matrix',
     segments = 'list',
@@ -196,6 +198,25 @@ Features.srAssay <- function(object, ...) {
   return(rownames(object@rawdata))
 }
 
+#' @rdname FeatureData
+#' @method FeatureData srAssay
+#'
+#' @export
+#'
+FeatureData.srAssay <- function(object, ...) {
+  return(object@featuredata)
+}
+
+#' @rdname FeatureData
+#' @method FeatureData<- srAssay
+#'
+#' @export
+#'
+"FeatureData<-.srAssay" <- function(object, ..., value) {
+  object@featuredata <- value
+  return(object)
+}
+
 #' @rdname AssayNames
 #' @method AssayNames srAssay
 #'
@@ -340,5 +361,34 @@ Segments.srAssay <- function(object, reg = FALSE, ...) {
   } else{
     slot(object = object, name = 'segments') <- value
   }
+  return(object)
+}
+
+#' @rdname Distances
+#' @method Distances srAssay
+#'
+#' @export
+#'
+Distances.srAssay <- function(object, reg = FALSE, method = "euclidean", ...) {
+  coords <- Coordinates(object, reg = reg, ...)
+  return(as.matrix(dist(coords, method = method)))
+}
+
+#' @rdname Embeddings
+#' @method Embeddings srAssay
+#'
+#' @export
+#'
+Embeddings.srAssay <- function(object, type = "pca") {
+  return(object@embeddings[[type]])
+}
+
+#' @rdname Embeddings
+#' @method Embeddings<- srAssay
+#'
+#' @export
+#'
+"Embeddings<-.srAssay" <- function(object, type = "pca", ..., value) {
+  object@embeddings[[type]] <- value
   return(object)
 }

@@ -6,12 +6,12 @@ NULL
 # Nearest Neighbor graphs ####
 ####
 
-#' @rdname findNeighbors
+#' @rdname getNeighbors
 #' @concept clustering
-#' @method findNeighbors SpaceRover
+#' @method getNeighbors SpaceRover
 #'
 #' @export
-findNeighbors.SpaceRover <- function(object, assay = NULL, assay.type = NULL, ...){
+getNeighbors.SpaceRover <- function(object, assay = NULL, data.type = "pca", ...){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -25,7 +25,7 @@ findNeighbors.SpaceRover <- function(object, assay = NULL, assay.type = NULL, ..
   # normalize assays
   for(assy in assay_names){
     cur_assay <- object[[assy]]
-    nnedges <- findNeighbors(cur_assay, ...)
+    nnedges <- getNeighbors(cur_assay, data.type = data.type, ...)
     object@zstack <- add_edges(object@zstack, edges = nnedges)
   }
 
@@ -33,24 +33,29 @@ findNeighbors.SpaceRover <- function(object, assay = NULL, assay.type = NULL, ..
   return(object)
 }
 
-#' @rdname findNeighbors
+#' @rdname getNeighbors
 #' @concept clustering
-#' @method findNeighbors srAssay
+#' @method getNeighbors srAssay
 #'
 #' @export
-findNeighbors.srAssay <- function(object, assay = NULL, assay.type = NULL, ...){
+getNeighbors.srAssay <- function(object, data.type = "pca", ...){
 
   # get data
-  normdata <- object@normdata
+  if(data.type %in% c("raw", "norm")){
+    nndata <- Data(object, norm = (data.type == "norm"))
+    nndata <- t(nndata)
+  } else {
+    nndata <- Embeddings(object, type = data.type)
+  }
 
   # find neighborhood
-  nnedges <- FNN::get.knn(t(normdata))
+  nnedges <- FNN::get.knn(nndata)
   nnedges <- nnedges$nn.index
-  nnedges <- cbind(1:length(colnames(normdata)), nnedges)
+  nnedges <- cbind(1:length(Entities(object)), nnedges)
   nnedges <- apply(nnedges, 1, function(x){
     do.call(c,lapply(x[-1], function(y) return(c(x[1],y))))
   })
-  nnedges <- colnames(normdata)[nnedges]
+  nnedges <- Entities(object)[nnedges]
 
   # return
   return(nnedges)
@@ -60,7 +65,7 @@ findNeighbors.srAssay <- function(object, assay = NULL, assay.type = NULL, ...){
 # Nearest Neighbor graphs ####
 ####
 
-cluster <- function(object, resolution = 1, assay = NULL){
+getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters"){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -84,9 +89,9 @@ cluster <- function(object, resolution = 1, assay = NULL){
   # metadata
   metadata <- Metadata(object, type = AssayTypes(object))
   metadata_clusters <- rep(NA, nrow(metadata))
-  metadata$clusters <- metadata_clusters
+  metadata[[label]] <- metadata_clusters
   entities <- Entities(object_subset)
-  metadata[entities,]$clusters <- clusters
+  metadata[entities,][[label]] <- clusters
   Metadata(object, type = AssayTypes(object)) <- metadata
 
   # return
