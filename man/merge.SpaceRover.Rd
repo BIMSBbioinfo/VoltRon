@@ -2,7 +2,7 @@
 % Please edit documentation in R/objects.R
 \name{merge.SpaceRover}
 \alias{merge.SpaceRover}
-\title{}
+\title{Merging spacerover objects}
 \usage{
 \method{merge}{SpaceRover}(object, object_list, sample_name = NULL, main.assay = NULL)
 }
@@ -16,11 +16,5 @@
 \item{main.assay}{name of the assay}
 }
 \description{
-# combine all elements
-  if(!is.list(object_list))
-    object_list <- list(object_list)
-  object_list <- c(object, object_list)
-}
-\details{
-
+Given a spacerover object, and a list of spacerover object, merge all.
 }

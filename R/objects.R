@@ -511,72 +511,6 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
   new("SpaceRover", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
 }
 
-#' #' Merging spacerover objects
-#' #'
-#' #' Given a spacerover object, and a list of spacerover object, merge all.
-#' #'
-#' #' @param object a SpaceRover Object
-#' #' @param object_list a list of SpaceRover objects
-#' #' @param sample_name a single sample name if objects are of the same sample
-#' #' @param main.assay name of the assay
-#' #'
-#' #' @export
-#' #' @method merge SpaceRover
-#' #'
-#' #' @import igraph
-#' #'
-#' merge.SpaceRover <- function(object, object_list, sample_name = NULL, main.assay = NULL) {
-#'
-#'   # combine all elements
-#'   if(!is.list(object_list))
-#'     object_list <- list(object_list)
-#'   object_list <- c(object, object_list)
-#'
-#'   # check if all are spaceRover
-#'   if(!all(lapply(object_list, class) == "SpaceRover"))
-#'     stop("All arguements have to be of SpaceRover class")
-#'
-#'   # choose objects
-#'   obj1 <- object_list[[1]]
-#'   obj2 <- object_list[[2]]
-#'
-#'   # pair
-#'   if(length(object_list) == 2){
-#'
-#'     # merge metadata and sample metadata
-#'     metadata <- merge(slot(obj1, name = "metadata"), list(slot(obj2, name = "metadata")))
-#'     sample.metadata <- merge.sampleMetadata(list(SampleMetadata(obj1), SampleMetadata(obj2)), sample_name = sample_name)
-#'
-#'     # combine samples and rename layers
-#'     samples_list <- c(obj1@samples, obj2@samples)
-#'     listofSamples <- merge(samples_list[[1]], samples_list[-1], samples = names(samples_list))
-#'
-#'     # get main assay
-#'     if(is.null(main.assay))
-#'       main.assay <- names(sort(table(sample.metadata$Assay), decreasing = TRUE))[1]
-#'
-#'     # merge graphs
-#'     zstack_list <- lapply(object_list, function(x) slot(x, name = "zstack"))
-#'     zstack <- igraph::disjoint_union(zstack_list[1], zstack_list[-1])
-#'
-#'     # project
-#'     project <- slot(object_list[[1]], "project")
-#'
-#'     # set SpaceRover class
-#'     combined.object <- new("SpaceRover", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata,
-#'                            zstack = zstack, main.assay = main.assay, project = project)
-#'
-#'    # multiple combination
-#'    } else {
-#'      combined.object <- merge(object_list[[1]], object_list[2])
-#'      for(i in 3:(length(object_list))){
-#'        combined.object <- merge(combined.object, object_list[[i]])
-#'      }
-#'    }
-#'
-#'   combined.object
-#' }
-
 #' Merging spacerover objects
 #'
 #' Given a spacerover object, and a list of spacerover object, merge all.
@@ -813,6 +747,44 @@ Segments.SpaceRover <- function(object, reg = FALSE, assay = NULL, ...) {
   Segments(srassay, reg = reg) <- value
   srlayer[[cur_assay$Assay]] <- srassay
   object[[cur_assay$Sample, cur_assay$Layer]] <- srlayer
+
+  return(object)
+}
+
+#' @rdname Embeddings
+#' @method Embeddings SpaceRover
+#'
+#' @export
+#'
+Embeddings.SpaceRover <- function(object, assay = NULL, type = "pca", ..., value) {
+
+  # get assay names
+  assay_names <- AssayNames(object, assay = assay)
+
+  # get all coordinates
+  returndata_list <- list()
+  for(i in 1:length(assay_names))
+    returndata_list[[i]] <- Embeddings(object[[assay_names[i]]], type = type, ...)
+
+  return(do.call(rbind, returndata_list))
+}
+
+#' @rdname Embeddings
+#' @method Embeddings<- SpaceRover
+#'
+#' @export
+#'
+"Embeddings<-.SpaceRover" <- function(object, assay = NULL, type = "pca", ..., value) {
+
+  # get assay names
+  assay_names <- AssayNames(object, assay = assay)
+
+  # set embeddings
+  for(assy in assay_names){
+    assayobject <- object[[assy]]
+    Embeddings(assayobject, type = type) <- value[grepl(paste0(assy, "$"), rownames(value)),]
+    object[[assy]] <- assayobject
+  }
 
   return(object)
 }

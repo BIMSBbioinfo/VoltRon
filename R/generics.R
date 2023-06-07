@@ -2,22 +2,6 @@
 #'
 NULL
 
-#' Find neighbors
-#'
-#' find neighbors in an assay
-#'
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#'
-#' @return Returns object after normalization
-#'
-#' @rdname findNeighbors
-#' @export findNeighbors
-#'
-findNeighbors <- function(object, ...) {
-  UseMethod(generic = 'findNeighbors', object = object)
-}
-
 #' Normalize Data
 #'
 #' Normalize the count data present in a given assay.
@@ -221,6 +205,38 @@ Features <- function(object, ...) {
   UseMethod(generic = 'Features', object = object)
 }
 
+#' Feature Data
+#'
+#' Get and set feature data from the main.assay
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{FeatureData}: The name of the default assay
+#'
+#' @rdname FeatureData
+#' @export FeatureData
+#'
+#' @concept data-access
+#'
+FeatureData <- function(object, ...) {
+  UseMethod(generic = 'FeatureData', object = object)
+}
+
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{FeatureData<-}: The coordinates updated
+#'
+#' @rdname FeatureData
+#' @export FeatureData<-
+#'
+#' @concept data-access
+#'
+"FeatureData<-" <- function(object, ...) {
+  UseMethod(generic = 'FeatureData<-', object = object)
+}
+
 #' Data
 #'
 #' Get data from the main.assay
@@ -256,6 +272,39 @@ Data <- function(object, ...) {
 Graph <- function(object, ...) {
   UseMethod(generic = 'Graph', object = object)
 }
+
+#' Get neighbors
+#'
+#' get neighbors in an assay
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return Returns object after normalization
+#'
+#' @rdname getNeighbors
+#' @export getNeighbors
+#'
+getNeighbors <- function(object, ...) {
+  UseMethod(generic = 'getNeighbors', object = object)
+}
+
+#' Get spatially variable feature
+#'
+#' get spatially variable features in an assay
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return Returns object after normalization
+#'
+#' @rdname getSpatialFeatures
+#' @export getSpatialFeatures
+#'
+getSpatialFeatures <- function(object, ...) {
+  UseMethod(generic = 'getSpatialFeatures', object = object)
+}
+
 
 #' Coordinates
 #'
@@ -319,6 +368,92 @@ Segments <- function(object, ...) {
 #'
 "Segments<-" <- function(object, ...) {
   UseMethod(generic = 'Segments<-', object = object)
+}
+
+#' Distances
+#'
+#' Get distances between spatial points using coordinates
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{Distances}: The name of the default assay
+#'
+#' @rdname Distances
+#' @export Distances
+#'
+#' @concept data-access
+#'
+Distances <- function(object, ...) {
+  UseMethod(generic = 'Distances', object = object)
+}
+
+#' Embeddings
+#'
+#' Get embeddings of spatial points
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{Embeddings}: The name of the default assay
+#'
+#' @rdname Embeddings
+#' @export Embeddings
+#'
+#' @concept data-access
+#'
+Embeddings <- function(object, ...) {
+  UseMethod(generic = 'Embeddings', object = object)
+}
+
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{Embeddings}: The name of the default assay
+#'
+#' @rdname Embeddings
+#' @export Embeddings<-
+#'
+#' @concept data-access
+#'
+"Embeddings<-" <- function(object, ...) {
+  UseMethod(generic = 'Embeddings<-', object = object)
+}
+
+#' PCA
+#'
+#' calculate PCA of the spacerover objects
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{PCA}: The name of the default assay
+#'
+#' @rdname PCA
+#' @export PCA
+#'
+#' @concept data-access
+#'
+PCA <- function(object, ...) {
+  UseMethod(generic = 'PCA', object = object)
+}
+
+#' UMAP
+#'
+#' calculate UMAP of the spacerover objects
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{UMAP}: The name of the default assay
+#'
+#' @rdname UMAP
+#' @export UMAP
+#'
+#' @concept data-access
+#'
+UMAP <- function(object, ...) {
+  UseMethod(generic = 'UMAP', object = object)
 }
 
 #' Image

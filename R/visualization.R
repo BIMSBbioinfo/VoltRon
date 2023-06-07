@@ -235,7 +235,7 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, ass
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
     range_feat <- Map(function(assy){
-      normdata <- object[[assy]]@normdata
+      normdata <- Data(object[[assy]], norm = TRUE)
       metadata <- Metadata(object, type = assay.type)
       metadata <- metadata[grepl(assy, rownames(metadata)),]
       if(feat %in% rownames(normdata)){
