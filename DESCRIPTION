@@ -1,10 +1,10 @@
-Package: spaceRover
+Package: VoltRon
 Type: Package
-Title: spaceRover for Spatial Data Analysis 
+Title: VoltRon for Spatial Data Analysis and Integration
 Version: 0.1.0
-Author: Artur Manukyan, Ella Bahry, Markus Landthaler, Altuna Akalin
+Author: Artur Manukyan, Vedran Franke, Ella Bahry, Markus Landthaler, Altuna Akalin
 Maintainer: Artur Manukyan <artur-man@hotmail.com>
-Description: spaceRover is a spatial data analysis toolbox for spatial data analysis, integration and image registration 
+Description: VoltRon is a spatial data analysis toolbox for spatial data analysis, integration and image registration 
 License: MIT
 Encoding: UTF-8
 LazyData: true
