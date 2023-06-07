@@ -2,15 +2,15 @@
 % Please edit documentation in R/generics.R, R/image.R
 \name{ResizeImage}
 \alias{ResizeImage}
-\alias{ResizeImage.SpaceRover}
-\alias{ResizeImage.srAssay}
+\alias{ResizeImage.VoltRon}
+\alias{ResizeImage.vrAssay}
 \title{ResizeImage}
 \usage{
 ResizeImage(object, ...)
 
-\method{ResizeImage}{SpaceRover}(object, ...)
+\method{ResizeImage}{VoltRon}(object, ...)
 
-\method{ResizeImage}{srAssay}(object, size)
+\method{ResizeImage}{vrAssay}(object, size)
 }
 \arguments{
 \item{object}{An object}

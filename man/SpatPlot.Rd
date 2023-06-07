@@ -22,7 +22,7 @@ SpatPlot(
 )
 }
 \arguments{
-\item{object}{SpaceRover object}
+\item{object}{VoltRon object}
 
 \item{group.by}{a grouping label for the spatial entities}
 
@@ -51,5 +51,5 @@ SpatPlot(
 \item{collapse}{whether to combine all ggplots}
 }
 \description{
-Plotting identification of spatially resolved cells, spots, and ROI on associated images from multiple assays in a SpaceRover object.
+Plotting identification of spatially resolved cells, spots, and ROI on associated images from multiple assays in a VoltRon object.
 }

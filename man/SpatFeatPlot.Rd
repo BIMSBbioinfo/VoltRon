@@ -24,7 +24,7 @@ SpatFeatPlot(
 )
 }
 \arguments{
-\item{object}{SpaceRover object}
+\item{object}{VoltRon object}
 
 \item{features}{a set of features, either from the rows of rawdata, normdata or columns of the metadata}
 
@@ -57,5 +57,5 @@ SpatFeatPlot(
 \item{collapse}{whether to combine all ggplots}
 }
 \description{
-Plotting single/multiple features of spatially resolved cells, spots, and ROI on associated images from multiple assays in a SpaceRover object.
+Plotting single/multiple features of spatially resolved cells, spots, and ROI on associated images from multiple assays in a VoltRon object.
 }

@@ -2,9 +2,9 @@
 % Please edit documentation in R/zzz.R
 \docType{package}
 \name{spaceRover-package}
-\alias{spaceRover}
-\alias{spaceRover-package}
-\title{spaceRover: spaceRover for Spatial Data Analysis}
+\alias{VoltRon}
+\alias{VoltRon-package}
+\title{VoltRon: VoltRon for Spatial Data Analysis and Integration}
 \description{
-spaceRover is a spatial data analysis toolbox for spatial data analysis, integration and image registration
+VoltRon is a spatial data analysis toolbox for spatial data analysis, integration and image registration
 }

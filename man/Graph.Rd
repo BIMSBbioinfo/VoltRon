@@ -2,12 +2,12 @@
 % Please edit documentation in R/generics.R, R/objects.R
 \name{Graph}
 \alias{Graph}
-\alias{Graph.SpaceRover}
+\alias{Graph.VoltRon}
 \title{Graph}
 \usage{
 Graph(object, ...)
 
-\method{Graph}{SpaceRover}(object, assay = NULL, ...)
+\method{Graph}{VoltRon}(object, assay = NULL, ...)
 }
 \arguments{
 \item{object}{An object}

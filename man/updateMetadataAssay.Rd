@@ -7,9 +7,9 @@
 updateMetadataAssay(object1, object2)
 }
 \arguments{
-\item{object1}{srMetadata object}
+\item{object1}{vrMetadata object}
 
-\item{object2}{srMetadata object}
+\item{object2}{vrMetadata object}
 }
 \description{
 updating assay names for merge

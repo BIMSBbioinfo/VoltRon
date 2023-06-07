@@ -12,7 +12,7 @@ SpatialRegistration(
 )
 }
 \arguments{
-\item{data_list}{a list of SpaceRover objects}
+\item{data_list}{a list of VoltRon objects}
 
 \item{reference_spatdata}{a reference spatial data set, used only if \code{spatial_data_list} is \code{NULL}}
 

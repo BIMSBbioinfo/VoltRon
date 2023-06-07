@@ -1,7 +1,7 @@
 #' @include zzz.R
 #' @include generics.R
 #'
-#' @useDynLib spaceRover
+#' @useDynLib VoltRon
 NULL
 
 ####
@@ -532,7 +532,7 @@ merge.VoltRon <- function(object, object_list, sample_name = NULL, main.assay = 
     object_list <- list(object_list)
   object_list <- c(object, object_list)
 
-  # check if all are spaceRover
+  # check if all are VoltRon
   if(!all(lapply(object_list, class) == "VoltRon"))
      stop("All arguements have to be of VoltRon class")
 

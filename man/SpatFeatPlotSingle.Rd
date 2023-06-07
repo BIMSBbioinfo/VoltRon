@@ -21,7 +21,7 @@ SpatFeatPlotSingle(
 )
 }
 \arguments{
-\item{assay}{srAssay object}
+\item{assay}{vrAssay object}
 
 \item{metadata}{the metadata associated with the assay}
 
@@ -48,5 +48,5 @@ SpatFeatPlotSingle(
 \item{crop}{whether to crop an image of a spot assay}
 }
 \description{
-A single Spatial Feature plot of spacerover objects
+A single Spatial Feature plot of VoltRon objects
 }

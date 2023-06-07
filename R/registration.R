@@ -27,7 +27,7 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
   # if the input is not a list, switch to reference vs query mode
   if(!is.null(data_list)){
 
-    # check if all elements of the list are spaceRover
+    # check if all elements of the list are VoltRon
     if(!all(sapply(data_list, class)=="VoltRon")){
       stop("Please make sure that all objects in the list are of VoltRon class")
     } else {

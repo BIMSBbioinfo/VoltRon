@@ -2,15 +2,15 @@
 % Please edit documentation in R/generics.R, R/processing.R
 \name{getSpatialFeatures}
 \alias{getSpatialFeatures}
-\alias{getSpatialFeatures.SpaceRover}
-\alias{getSpatialFeatures.srAssay}
+\alias{getSpatialFeatures.VoltRon}
+\alias{getSpatialFeatures.vrAssay}
 \title{Get spatially variable feature}
 \usage{
 getSpatialFeatures(object, ...)
 
-\method{getSpatialFeatures}{SpaceRover}(object, assay = NULL, ...)
+\method{getSpatialFeatures}{VoltRon}(object, assay = NULL, ...)
 
-\method{getSpatialFeatures}{srAssay}(object, max.count = 1, n = 3000)
+\method{getSpatialFeatures}{vrAssay}(object, max.count = 1, n = 3000)
 }
 \arguments{
 \item{object}{An object}

@@ -11,14 +11,13 @@ SpatPlotSingle(
   font.size = 2,
   pt.size = 2,
   alpha = 0.6,
-  label = FALSE,
   plot_title = NULL,
   background = "image",
   crop = FALSE
 )
 }
 \arguments{
-\item{assay}{srAssay object}
+\item{assay}{vrAssay object}
 
 \item{metadata}{the metadata associated with the assay}
 
@@ -30,8 +29,6 @@ SpatPlotSingle(
 
 \item{alpha}{alpha level for cells/spots/ROIs}
 
-\item{label}{if TRUE, the labels of the ROI assays will be visualized}
-
 \item{plot_title}{the title of the single plot}
 
 \item{background}{the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)}
@@ -39,5 +36,5 @@ SpatPlotSingle(
 \item{crop}{whether to crop an image of a spot assay}
 }
 \description{
-Plotting a single assay from a SpaceRover object. We plot the identification of spatially resolved cells, spots, and ROI on associated images.
+Plotting a single assay from a VoltRon object. We plot the identification of spatially resolved cells, spots, and ROI on associated images.
 }

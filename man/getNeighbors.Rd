@@ -2,15 +2,15 @@
 % Please edit documentation in R/generics.R, R/clustering.R
 \name{getNeighbors}
 \alias{getNeighbors}
-\alias{getNeighbors.SpaceRover}
-\alias{getNeighbors.srAssay}
+\alias{getNeighbors.VoltRon}
+\alias{getNeighbors.vrAssay}
 \title{Get neighbors}
 \usage{
 getNeighbors(object, ...)
 
-\method{getNeighbors}{SpaceRover}(object, assay = NULL, assay.type = NULL, ...)
+\method{getNeighbors}{VoltRon}(object, assay = NULL, data.type = "pca", ...)
 
-\method{getNeighbors}{srAssay}(object, assay = NULL, assay.type = NULL, ...)
+\method{getNeighbors}{vrAssay}(object, data.type = "pca", ...)
 }
 \arguments{
 \item{object}{An object}

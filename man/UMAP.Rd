@@ -2,12 +2,12 @@
 % Please edit documentation in R/generics.R, R/processing.R
 \name{UMAP}
 \alias{UMAP}
-\alias{UMAP.SpaceRover}
+\alias{UMAP.VoltRon}
 \title{UMAP}
 \usage{
 UMAP(object, ...)
 
-\method{UMAP}{SpaceRover}(object, assay = NULL, dims = 30)
+\method{UMAP}{VoltRon}(object, assay = NULL, dims = 30, seed = 1)
 }
 \arguments{
 \item{object}{An object}
@@ -18,7 +18,7 @@ UMAP(object, ...)
 \code{UMAP}: The name of the default assay
 }
 \description{
-calculate UMAP of the spacerover objects
+calculate UMAP of the VoltRon objects
 }
 \concept{data-access}
 \concept{embedding}

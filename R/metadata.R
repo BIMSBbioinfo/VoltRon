@@ -160,7 +160,7 @@ subset.vrMetadata <- function(metadata, subset, samples = NULL, assays = NULL, e
 
 #' subset.sampleMetadata
 #'
-#' @param metadata sample metadata of a spaceRover object
+#' @param metadata sample metadata of a VoltRon object
 #' @param samples samples
 #' @param assays assays
 #'
@@ -195,7 +195,7 @@ merge.vrMetadata <- function(object, object_list) {
     object_list <- list(object_list)
   object_list <- c(object, object_list)
 
-  # check if all are spaceRover
+  # check if all are VoltRon
   if(!all(lapply(object_list, class) == "vrMetadata"))
     stop("All arguements have to be of vrMetadata class")
 
@@ -225,7 +225,7 @@ merge.vrMetadata <- function(object, object_list) {
 
 #' merge.sampleMetadata
 #'
-#' @param metadata_list a list of sample metadata of a spaceRover object
+#' @param metadata_list a list of sample metadata of a VoltRon object
 #' @param sample_name sample
 #'
 #' @export

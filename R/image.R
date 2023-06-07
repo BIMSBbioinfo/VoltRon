@@ -318,7 +318,7 @@ demuxVoltRon <- function(object, scale_width = 800)
 
   # check if there are only one assay in the object
   if(length(images) > 1)
-    stop("You can only subset a spaceRover assay with one image")
+    stop("You can only subset a VoltRon assay with one image")
 
   # scale
   imageinfo <- image_info(images[[1]])
