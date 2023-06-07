@@ -71,7 +71,7 @@ SpatPlot <- function(object, group.by = "label", assay = NULL, assay.type = NULL
     p_title <- plot_title[[assy]]
     gg[[i]] <- SpatPlotSingle(assay = cur_assay, metadata = cur_metadata,
                               group.by = group.by, font.size = font.size, pt.size = pt.size, alpha = alpha,
-                              label = label, plot_title = p_title, background = background, crop = crop)
+                              plot_title = p_title, background = background, crop = crop)
     i <- i + 1
   }
 
@@ -98,14 +98,13 @@ SpatPlot <- function(object, group.by = "label", assay = NULL, assay.type = NULL
 #' @param font.size font sizes
 #' @param pt.size point size
 #' @param alpha alpha level for cells/spots/ROIs
-#' @param label if TRUE, the labels of the ROI assays will be visualized
 #' @param plot_title the title of the single plot
 #' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
 #' @param crop whether to crop an image of a spot assay
 #'
 #' @import ggplot2
 #'
-SpatPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, plot_title = NULL, background = "image", crop = FALSE){
+SpatPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, pt.size = 2, alpha = 0.6, plot_title = NULL, background = "image", crop = FALSE){
 
   # data
   info <- image_info(assay@image)
@@ -132,7 +131,8 @@ SpatPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, p
   if(assay@type == "spot"){
     g <- g +
       coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height)) +
-      geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]])
+      geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]]) +
+      guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
   } else if(assay@type == "cell") {
     g <- g +
       geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = 21, size = rel(pt.size), alpha = alpha)
@@ -149,11 +149,14 @@ SpatPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, p
                                 legend.margin = margin(0,0,0,0))
 
   # set up the limits
-  if(crop && assay@type == "spot"){
-    # g <- g +
-    #   xlim(range(coords$x)[1],range(coords$x)[2]) + ylim(range(coords$y)[1],range(coords$y)[2])
-    g <- g +
-      coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
+  if(assay@type == "spot"){
+    if(crop){
+      g <- g +
+        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
+    } else {
+      g <- g +
+        coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
+    }
   } else {
     g <- g +
       xlim(0,info$width) + ylim(0, info$height)
@@ -166,12 +169,6 @@ SpatPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, p
   } else{
     g <- g +
       theme(panel.background = element_blank())
-  }
-
-  # visualize labels
-  if(label){
-    g <- g + geom_label_repel(mapping = aes_string(x = "x", y = "y", label = group.by), coords,
-                              box.padding = 0.5, size = font.size, direction = "both", seed = 1)
   }
 
   # return data
@@ -502,13 +499,10 @@ ScatterFeaturePlot <- function(object, feature.1, feature.2, norm = TRUE, assay 
     stop("Both 'feature.1' and 'feature.2' should be of length 1.")
 
   # data
-  normdata <- Data(object, norm = norm)
+  normdata <- Data(object, assay = assay, norm = norm)
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
-
-  # list of plots
-  gg <- list()
 
   # get assay names
   assay_names <- AssayNames(object, assay = assay)
@@ -558,3 +552,46 @@ ScatterFeaturePlot <- function(object, feature.1, feature.2, norm = TRUE, assay 
   g
 }
 
+####
+# Heatmap Plot ####
+####
+
+#' HeatmapPlot
+#'
+#' @param object spacerover object
+#' @param assay
+#' @param assay.type
+#' @param group.by
+#' @param norm
+#'
+#' @import ComplexHeatmap
+#'
+HeatmapPlot <- function(object, assay = NULL, assay.type = NULL, group.by = "clusters", norm = TRUE){
+
+  # data
+  heatmapdata <- Data(object, assay = assay, norm = norm)
+
+  # get entity type and metadata
+  if(is.null(assay.type)){
+    assay_types <- AssayTypes(object, assay = assay)
+    if(length(unique(assay_types)) == 1){
+      assay.type <- unique(assay_types)
+      metadata <- Metadata(object, type = assay.type)
+    } else {
+      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+    }
+  } else {
+    metadata <- Metadata(object, type = assay.type)
+  }
+  metadata <- metadata[colnames(heatmapdata),]
+
+  # manage data for plotting
+  heatmapdata_scale <- apply(heatmapdata, 1, scale)
+  heatmapdata_scale <- t(heatmapdata_scale)
+  heatmapdata_scale_order <- heatmapdata_scale[,order(metadata[[group.by]], decreasing = FALSE)]
+  labels_ordered <- metadata[[group.by]][order(metadata[[group.by]], decreasing = FALSE)]
+  labels_ordered_table <- table(labels_ordered)
+  col_split = factor(labels_ordered, levels = names(labels_ordered_table))
+  ComplexHeatmap::Heatmap(heatmapdata_scale_order, show_row_names = TRUE, show_column_names = FALSE,
+          column_split = col_split, cluster_columns = FALSE)
+}
