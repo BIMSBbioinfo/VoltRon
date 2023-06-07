@@ -8,10 +8,10 @@ NULL
 
 #' @rdname getNeighbors
 #' @concept clustering
-#' @method getNeighbors SpaceRover
+#' @method getNeighbors VoltRon
 #'
 #' @export
-getNeighbors.SpaceRover <- function(object, assay = NULL, data.type = "pca", ...){
+getNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca", ...){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -35,10 +35,10 @@ getNeighbors.SpaceRover <- function(object, assay = NULL, data.type = "pca", ...
 
 #' @rdname getNeighbors
 #' @concept clustering
-#' @method getNeighbors srAssay
+#' @method getNeighbors vrAssay
 #'
 #' @export
-getNeighbors.srAssay <- function(object, data.type = "pca", ...){
+getNeighbors.vrAssay <- function(object, data.type = "pca", ...){
 
   # get data
   if(data.type %in% c("raw", "norm")){

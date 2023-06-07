@@ -2,12 +2,12 @@
 % Please edit documentation in R/generics.R, R/processing.R
 \name{PCA}
 \alias{PCA}
-\alias{PCA.SpaceRover}
+\alias{PCA.VoltRon}
 \title{PCA}
 \usage{
 PCA(object, ...)
 
-\method{PCA}{SpaceRover}(object, assay = NULL, dims = 30)
+\method{PCA}{VoltRon}(object, assay = NULL, dims = 30)
 }
 \arguments{
 \item{object}{An object}
@@ -18,7 +18,7 @@ PCA(object, ...)
 \code{PCA}: The name of the default assay
 }
 \description{
-calculate PCA of the spacerover objects
+calculate PCA of the VoltRon objects
 }
 \concept{data-access}
 \concept{embedding}

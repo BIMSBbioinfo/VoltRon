@@ -2,12 +2,12 @@
 % Please edit documentation in R/generics.R, R/objects.R
 \name{SampleMetadata}
 \alias{SampleMetadata}
-\alias{SampleMetadata.SpaceRover}
+\alias{SampleMetadata.VoltRon}
 \title{SampleMetadata}
 \usage{
 SampleMetadata(object, ...)
 
-\method{SampleMetadata}{SpaceRover}(object, ...)
+\method{SampleMetadata}{VoltRon}(object, ...)
 }
 \arguments{
 \item{object}{An object}

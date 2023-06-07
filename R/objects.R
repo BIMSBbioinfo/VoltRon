@@ -1,11 +1,11 @@
 #' @include zzz.R
 #' @include generics.R
 #'
-#' @useDynLib spaceRover
+#' @useDynLib VoltRon
 NULL
 
 ####
-# SpaceRover classes ####
+# VoltRon classes ####
 ####
 
 ## Auxiliary ####
@@ -13,24 +13,24 @@ NULL
 # Set magick-image as an S4 class
 setOldClass(Classes = c('igraph'))
 
-## SpaceRover ####
+## VoltRon ####
 
-#' The SpaceRover Class
+#' The VoltRon Class
 #'
 #' @slot samples A list of samples for the this project
 #' @slot integrated.datasets A list of integrated data objects that indicate integrated spatial layers
 #' @slot meta.data Contains meta-information about each sample
 #' @slot project Name of the project
 #'
-#' @name SpaceRover-class
-#' @rdname SpaceRover-class
-#' @exportClass SpaceRover
+#' @name VoltRon-class
+#' @rdname VoltRon-class
+#' @exportClass VoltRon
 #'
-SpaceRover <- setClass(
-  Class = 'SpaceRover',
+VoltRon <- setClass(
+  Class = 'VoltRon',
   slots = c(
     samples = 'list',
-    metadata = "srMetadata",
+    metadata = "vrMetadata",
     sample.metadata = "data.frame",
     zstack = "igraph",
     main.assay = "character",
@@ -41,7 +41,7 @@ SpaceRover <- setClass(
 ### show ####
 setMethod(
   f = 'show',
-  signature = 'SpaceRover',
+  signature = 'VoltRon',
   definition = function(object) {
 
     # print class
@@ -71,16 +71,16 @@ setMethod(
 ### $ method ####
 
 #' @export
-#' @method $ SpaceRover
+#' @method $ VoltRon
 #'
-"$.SpaceRover" <- function(x, i, ...) {
+"$.VoltRon" <- function(x, i, ...) {
   return(SampleMetadata(x)[[i]])
 }
 
 #' @export
-#' @method $<- SpaceRover
+#' @method $<- VoltRon
 #'
-"$<-.SpaceRover" <- function(x, i, ..., value) {
+"$<-.VoltRon" <- function(x, i, ..., value) {
   if(nrow(SampleMetadata(x)) > 1)
     stop("You can only change the name of a single name")
 
@@ -100,7 +100,7 @@ setMethod(
 
 setMethod(
   f = '[[',
-  signature = c('SpaceRover', "character", "missing"),
+  signature = c('VoltRon', "character", "missing"),
   definition = function(x, i, j, ...){
 
     # if no assay were found, check sample names
@@ -127,7 +127,7 @@ setMethod(
 
 setMethod(
   f = '[[<-',
-  signature = c('SpaceRover', "character", "missing"),
+  signature = c('VoltRon', "character", "missing"),
   definition = function(x, i, j, ..., value){
 
     # sample names
@@ -146,8 +146,8 @@ setMethod(
         stop("There are no samples named ", i, " in this object")
       }
     } else {
-      if(!class(value) == "srSample"){
-        stop("The provided object is not of class srSample")
+      if(!class(value) == "vrSample"){
+        stop("The provided object is not of class vrSample")
       }
       x@samples[[i]] <- value
     }
@@ -157,7 +157,7 @@ setMethod(
 
 setMethod(
   f = '[[',
-  signature = c('SpaceRover', "character", "character"),
+  signature = c('VoltRon', "character", "character"),
   definition = function(x, i, j, ...){
     return(x[[i]]@layer[[j]])
   }
@@ -165,11 +165,11 @@ setMethod(
 
 setMethod(
   f = '[[<-',
-  signature = c('SpaceRover', "character", "character"),
+  signature = c('VoltRon', "character", "character"),
   definition = function(x, i, j, ..., value){
 
-    if(!class(value) == "srLayer"){
-      stop("The provided object is not of class srLayer")
+    if(!class(value) == "vrLayer"){
+      stop("The provided object is not of class vrLayer")
     }
 
     x[[i]]@layer[[j]] <- value
@@ -181,14 +181,14 @@ setMethod(
 # Methods ####
 ####
 
-### Create SpaceRover object ####
+### Create VoltRon object ####
 
-#' CreateSpaceRover
+#' CreateVoltRon
 #'
-#' Create a SpaceRover object
+#' Create a VoltRon object
 #'
 #' @param data the count table
-#' @param metadata a metadata object of class \code{srMetadata}
+#' @param metadata a metadata object of class \code{vrMetadata}
 #' @param image the image of the data
 #' @param coord the coordinates of the spatial entities
 #' @param segments the segments of the spatial entities, optional
@@ -201,12 +201,12 @@ setMethod(
 #' @param sample_name the name of the sample
 #' @param layer_name the name of the layer
 #' @param project project name
-#' @param ... additional parameters passed to spacerover object
+#' @param ... additional parameters passed to VoltRon object
 #'
 #' @export
 #' @import igraph
 #'
-CreateSpaceRover <- function(data, metadata = NULL, image = NULL,
+CreateVoltRon <- function(data, metadata = NULL, image = NULL,
                              coords, segments = list(),
                              sample.metadata = NULL, zstack = NULL,
                              main.assay = "Custom_cell", assay.type = "cell", params = list(),
@@ -215,7 +215,7 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL,
 
   # set project name
   if(is.null(project))
-    project <- "SpaceRover"
+    project <- "VoltRon"
 
   # layer and sample names
   layer_name <- ifelse(is.null(layer_name), "Section1", layer_name)
@@ -237,11 +237,11 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL,
 
   # set meta data
   if(is.null(metadata)){
-    sr_metadata <- setSRMetadata(cell = data.frame(), spot = data.frame(), ROI = data.frame())
+    sr_metadata <- setVRMetadata(cell = data.frame(), spot = data.frame(), ROI = data.frame())
     slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, row.names = entityID)
   } else {
     if(any(class(metadata) %in% c("data.frame", "matrix"))){
-      sr_metadata <- setSRMetadata(cell = data.frame(), spot = data.frame(), ROI = data.frame())
+      sr_metadata <- setVRMetadata(cell = data.frame(), spot = data.frame(), ROI = data.frame())
       if(any(!rownames(metadata) %in% gsub("_Assay1$", "", entityID))){
         stop("Entity IDs are not matching")
       } else {
@@ -274,43 +274,43 @@ CreateSpaceRover <- function(data, metadata = NULL, image = NULL,
     igraph::V(zstack)$name <- spatial_entities
   }
 
-  # create srAssay
-  Xenium_assay <- new("srAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = image, params = params, type = assay.type)
+  # create vrAssay
+  Xenium_assay <- new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = image, params = params, type = assay.type)
   listofAssays <- list(Xenium_assay)
   names(listofAssays) <- main.assay
 
   # create layers and samples
-  listofLayers <- list(new("srLayer", assay = listofAssays))
+  listofLayers <- list(new("vrLayer", assay = listofAssays))
   names(listofLayers) <- layer_name
-  listofSamples <- list(new("srSample", layer = listofLayers))
+  listofSamples <- list(new("vrSample", layer = listofLayers))
   names(listofSamples) <- sample_name
 
   # set sample meta data
   if(is.null(sample.metadata)){
-    sample.metadata <- setSRSampleMetadata(listofSamples)
+    sample.metadata <- setVRSampleMetadata(listofSamples)
   }
 
-  # set SpaceRover class
-  new("SpaceRover", samples = listofSamples, metadata = sr_metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
+  # set VoltRon class
+  new("VoltRon", samples = listofSamples, metadata = sr_metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
 }
 
 ### Assay Methods ####
 
 #' @rdname MainAssay
-#' @method MainAssay SpaceRover
+#' @method MainAssay VoltRon
 #'
 #' @export
 #'
-MainAssay.SpaceRover <- function(object, ...) {
+MainAssay.VoltRon <- function(object, ...) {
   object@main.assay
 }
 
 #' @rdname MainAssay
-#' @method MainAssay<- SpaceRover
+#' @method MainAssay<- VoltRon
 #'
 #' @export
 #'
-"MainAssay<-.SpaceRover" <- function(object, ..., value) {
+"MainAssay<-.VoltRon" <- function(object, ..., value) {
   assay_names <- unique(object@sample.metadata$Assay)
   if(!value %in% assay_names){
     stop("There is no assay names '", value, "' in this object")
@@ -321,12 +321,12 @@ MainAssay.SpaceRover <- function(object, ...) {
 }
 
 #' @rdname AddAssay
-#' @method AddAssay SpaceRover
+#' @method AddAssay VoltRon
 #'
 #' @importfrom igraph union
 #' @export
 #'
-AddAssay.SpaceRover <- function(object, assay, assay_name, sample = "Sample1", layer = "Section1"){
+AddAssay.VoltRon <- function(object, assay, assay_name, sample = "Sample1", layer = "Section1"){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -361,11 +361,11 @@ AddAssay.SpaceRover <- function(object, assay, assay_name, sample = "Sample1", l
 }
 
 #' @rdname AssayNames
-#' @method AssayNames SpaceRover
+#' @method AssayNames VoltRon
 #'
 #' @export
 #'
-AssayNames.SpaceRover <- function(object, assay = NULL){
+AssayNames.VoltRon <- function(object, assay = NULL){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -389,11 +389,11 @@ AssayNames.SpaceRover <- function(object, assay = NULL){
 }
 
 #' @rdname AssayTypes
-#' @method AssayTypes SpaceRover
+#' @method AssayTypes VoltRon
 #'
 #' @export
 #'
-AssayTypes.SpaceRover <- function(object, assay = NULL){
+AssayTypes.VoltRon <- function(object, assay = NULL){
 
   # get assay names
   assay_names <- AssayNames(object, assay = assay)
@@ -406,7 +406,7 @@ AssayTypes.SpaceRover <- function(object, assay = NULL){
 
 ### Object Methods ####
 
-#' @method subset SpaceRover
+#' @method subset VoltRon
 #'
 #' @importFrom rlang enquo eval_tidy quo_get_expr
 #' @import igraph
@@ -416,14 +416,14 @@ AssayTypes.SpaceRover <- function(object, assay = NULL){
 #'
 #' @export
 #'
-subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, entities = NULL, features = NULL, image = NULL, interactive = FALSE) {
+subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, entities = NULL, features = NULL, image = NULL, interactive = FALSE) {
 
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
   }
 
   if(interactive){
-    results <- demuxSpaceRover(object)
+    results <- demuxVoltRon(object)
     return(results)
   }
 
@@ -438,28 +438,28 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
   } else if(!is.null(samples)){
 
     sample.metadata <- subset.sampleMetadata(object@sample.metadata, samples = samples)
-    metadata <- subset.srMetadata(object@metadata, samples = samples) # CAN WE CHANGE THIS TO ONLY SUBSET LATER ????
+    metadata <- subset.vrMetadata(object@metadata, samples = samples) # CAN WE CHANGE THIS TO ONLY SUBSET LATER ????
     listofSamples <- object@samples[samples]
 
   # subsetting on assays name
   } else if(!is.null(assays)) {
 
     sample.metadata <- subset.sampleMetadata(object@sample.metadata, assays = assays)
-    metadata <- subset.srMetadata(object@metadata, assays = assays)
+    metadata <- subset.vrMetadata(object@metadata, assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
-      subset.srSample(samp, assays = assays)
+      subset.vrSample(samp, assays = assays)
     }, USE.NAMES = TRUE)
 
   # subsetting on entity names
   } else if(!is.null(entities)) {
 
-    metadata <- subset.srMetadata(object@metadata, entities = entities)
+    metadata <- subset.vrMetadata(object@metadata, entities = entities)
     assays <- unique(stringr::str_extract(Entities(metadata), "Assay[0-9]+"))
     sample.metadata <- subset.sampleMetadata(object@sample.metadata, assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
-      subset.srSample(samp, entities = entities)
+      subset.vrSample(samp, entities = entities)
     }, USE.NAMES = TRUE)
 
   # subsetting on features
@@ -469,11 +469,11 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
     assay_names <- AssayNames(object)
     for(assy in assay_names){
       cur_assay <- sample.metadata[assy,]
-      srlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
-      srassay <- srlayer[[cur_assay$Assay]]
-      srassay <- subset.srAssay(srassay, features = features)
-      srlayer[[cur_assay$Assay]] <- srassay
-      object[[cur_assay$Sample, cur_assay$Layer]] <- srlayer
+      vrlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
+      vrassay <- vrlayer[[cur_assay$Assay]]
+      vrassay <- subset.vrAssay(vrassay, features = features)
+      vrlayer[[cur_assay$Assay]] <- vrassay
+      object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
     }
     metadata <- object@metadata
     listofSamples <- object@samples
@@ -486,18 +486,18 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
 
       # check if there are only one image and one assay
       if(nrow(object@sample.metadata) > 1){
-        stop("Subseting on images can only be performed on SpaceRover objects with a single assay")
+        stop("Subseting on images can only be performed on VoltRon objects with a single assay")
       } else {
         sample.metadata <- object@sample.metadata
         samples <- unique(sample.metadata$Sample)
         listofSamples <- sapply(object@samples[samples], function(samp) {
-          subset.srSample(samp, image = image)
+          subset.vrSample(samp, image = image)
         }, USE.NAMES = TRUE)
-        entities <-  do.call(c, lapply(listofSamples, Entities.srSample))
-        metadata <- subset.srMetadata(object@metadata, entities = entities)
+        entities <-  do.call(c, lapply(listofSamples, Entities.vrSample))
+        metadata <- subset.vrMetadata(object@metadata, entities = entities)
       }
     } else if(image){
-      results <- demuxSpaceRover(object)
+      results <- demuxVoltRon(object)
       return(results)
     }
   }
@@ -507,34 +507,34 @@ subset.SpaceRover <- function(object, subset, samples = NULL, assays = NULL, ent
   zstack <- subgraph(object@zstack, V(object@zstack)[names(V(object@zstack)) %in% Entities(metadata)])
   project <- object@project
 
-  # set SpaceRover class
-  new("SpaceRover", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
+  # set VoltRon class
+  new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
 }
 
-#' Merging spacerover objects
+#' Merging VoltRon objects
 #'
-#' Given a spacerover object, and a list of spacerover object, merge all.
+#' Given a VoltRon object, and a list of VoltRon object, merge all.
 #'
-#' @param object a SpaceRover Object
-#' @param object_list a list of SpaceRover objects
+#' @param object a VoltRon Object
+#' @param object_list a list of VoltRon objects
 #' @param sample_name a single sample name if objects are of the same sample
 #' @param main.assay name of the assay
 #'
 #' @export
-#' @method merge SpaceRover
+#' @method merge VoltRon
 #'
 #' @import igraph
 #'
-merge.SpaceRover <- function(object, object_list, sample_name = NULL, main.assay = NULL) {
+merge.VoltRon <- function(object, object_list, sample_name = NULL, main.assay = NULL) {
 
   # combine all elements
   if(!is.list(object_list))
     object_list <- list(object_list)
   object_list <- c(object, object_list)
 
-  # check if all are spaceRover
-  if(!all(lapply(object_list, class) == "SpaceRover"))
-     stop("All arguements have to be of SpaceRover class")
+  # check if all are VoltRon
+  if(!all(lapply(object_list, class) == "VoltRon"))
+     stop("All arguements have to be of VoltRon class")
 
   # merge metadata and sample metadata
   metadata_list <- lapply(object_list, function(x) slot(x, name = "metadata"))
@@ -550,7 +550,7 @@ merge.SpaceRover <- function(object, object_list, sample_name = NULL, main.assay
       listofLayers <- c(listofLayers, cur_object@samples[[1]]@layer)
     }
     names(listofLayers) <- sample.metadata$Layer
-    listofSamples <- list(new("srSample", layer = listofLayers))
+    listofSamples <- list(new("vrSample", layer = listofLayers))
     names(listofSamples) <- sample_name
   } else {
     listofSamples <- NULL
@@ -571,54 +571,54 @@ merge.SpaceRover <- function(object, object_list, sample_name = NULL, main.assay
   # project
   project <- slot(object_list[[1]], "project")
 
-  # set SpaceRover class
-  new("SpaceRover", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata,
+  # set VoltRon class
+  new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata,
       zstack = zstack, main.assay = main.assay, project = project)
 }
 
 #' @rdname Metadata
-#' @method Metadata SpaceRover
+#' @method Metadata VoltRon
 #'
 #' @export
 #'
-Metadata.SpaceRover <- function(object, type = "cell") {
+Metadata.VoltRon <- function(object, type = "cell") {
   slot(object@metadata, name = type)
 }
 
 #' @rdname Metadata
-#' @method Metadata<- SpaceRover
+#' @method Metadata<- VoltRon
 #'
 #' @export
 #'
-"Metadata<-.SpaceRover" <- function(object, type = "cell", ..., value) {
+"Metadata<-.VoltRon" <- function(object, type = "cell", ..., value) {
   slot(object@metadata, name = type) <- value
   return(object)
 }
 
 #' @rdname SampleMetadata
-#' @method SampleMetadata SpaceRover
+#' @method SampleMetadata VoltRon
 #'
 #' @export
 #'
-SampleMetadata.SpaceRover <- function(object, ...) {
+SampleMetadata.VoltRon <- function(object, ...) {
   object@sample.metadata
 }
 
 #' @rdname Entities
-#' @method Entities SpaceRover
+#' @method Entities VoltRon
 #'
 #' @export
 #'
-Entities.SpaceRover <- function(object, ...) {
+Entities.VoltRon <- function(object, ...) {
   return(Entities(object@metadata))
 }
 
 #' @rdname Features
-#' @method Features SpaceRover
+#' @method Features VoltRon
 #'
 #' @export
 #'
-Features.SpaceRover <- function(object, assay = NULL, ...) {
+Features.VoltRon <- function(object, assay = NULL, ...) {
 
   # get assay names
   assay_names <- AssayNames(object, assay = assay)
@@ -632,11 +632,11 @@ Features.SpaceRover <- function(object, assay = NULL, ...) {
 }
 
 #' @rdname Data
-#' @method Data SpaceRover
+#' @method Data VoltRon
 #'
 #' @export
 #'
-Data.SpaceRover <- function(object, assay = NULL, ...) {
+Data.VoltRon <- function(object, assay = NULL, ...) {
 
   # get assay names
   assay_names <- AssayNames(object, assay = assay)
@@ -650,11 +650,11 @@ Data.SpaceRover <- function(object, assay = NULL, ...) {
 }
 
 #' @rdname Graph
-#' @method Graph SpaceRover
+#' @method Graph VoltRon
 #'
 #' @export
 #'
-Graph.SpaceRover <- function(object, assay = NULL, ...) {
+Graph.VoltRon <- function(object, assay = NULL, ...) {
 
   # get assay names
   assay_names <- AssayNames(object, assay = assay)
@@ -666,11 +666,11 @@ Graph.SpaceRover <- function(object, assay = NULL, ...) {
 }
 
 #' @rdname Coordinates
-#' @method Coordinates SpaceRover
+#' @method Coordinates VoltRon
 #'
 #' @export
 #'
-Coordinates.SpaceRover <- function(object, reg = FALSE, assay = NULL, ...) {
+Coordinates.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
 
   # get assay names
   assay_names <- AssayNames(object, assay = assay)
@@ -685,11 +685,11 @@ Coordinates.SpaceRover <- function(object, reg = FALSE, assay = NULL, ...) {
 }
 
 #' @rdname Coordinates
-#' @method Coordinates<- SpaceRover
+#' @method Coordinates<- VoltRon
 #'
 #' @export
 #'
-"Coordinates<-.SpaceRover" <- function(object, reg = FALSE, ..., value) {
+"Coordinates<-.VoltRon" <- function(object, reg = FALSE, ..., value) {
 
   # check the number of assays in the object
   if(nrow(object@sample.metadata) > 1)
@@ -697,23 +697,23 @@ Coordinates.SpaceRover <- function(object, reg = FALSE, assay = NULL, ...) {
 
   # get assay
   cur_assay <- object@sample.metadata[1,]
-  srlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
-  srassay <- srlayer[[cur_assay$Assay]]
+  vrlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
+  vrassay <- vrlayer[[cur_assay$Assay]]
 
   # change coordinates
-  Coordinates(srassay, reg = reg) <- value
-  srlayer[[cur_assay$Assay]] <- srassay
-  object[[cur_assay$Sample, cur_assay$Layer]] <- srlayer
+  Coordinates(vrassay, reg = reg) <- value
+  vrlayer[[cur_assay$Assay]] <- vrassay
+  object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
 
   return(object)
 }
 
 #' @rdname Segments
-#' @method Segments SpaceRover
+#' @method Segments VoltRon
 #'
 #' @export
 #'
-Segments.SpaceRover <- function(object, reg = FALSE, assay = NULL, ...) {
+Segments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
 
   # get assay names
   assay_names <- AssayNames(object, assay = assay)
@@ -728,11 +728,11 @@ Segments.SpaceRover <- function(object, reg = FALSE, assay = NULL, ...) {
 }
 
 #' @rdname Segments
-#' @method Segments<- SpaceRover
+#' @method Segments<- VoltRon
 #'
 #' @export
 #'
-"Segments<-.SpaceRover" <- function(object, reg = FALSE, ..., value) {
+"Segments<-.VoltRon" <- function(object, reg = FALSE, ..., value) {
 
   # check the number of assays in the object
   if(nrow(object@sample.metadata) > 1)
@@ -740,23 +740,23 @@ Segments.SpaceRover <- function(object, reg = FALSE, assay = NULL, ...) {
 
   # get assay
   cur_assay <- object@sample.metadata[1,]
-  srlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
-  srassay <- srlayer[[cur_assay$Assay]]
+  vrlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
+  vrassay <- vrlayer[[cur_assay$Assay]]
 
   # change coordinates
-  Segments(srassay, reg = reg) <- value
-  srlayer[[cur_assay$Assay]] <- srassay
-  object[[cur_assay$Sample, cur_assay$Layer]] <- srlayer
+  Segments(vrassay, reg = reg) <- value
+  vrlayer[[cur_assay$Assay]] <- vrassay
+  object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
 
   return(object)
 }
 
 #' @rdname Embeddings
-#' @method Embeddings SpaceRover
+#' @method Embeddings VoltRon
 #'
 #' @export
 #'
-Embeddings.SpaceRover <- function(object, assay = NULL, type = "pca", ..., value) {
+Embeddings.VoltRon <- function(object, assay = NULL, type = "pca", ..., value) {
 
   # get assay names
   assay_names <- AssayNames(object, assay = assay)
@@ -770,11 +770,11 @@ Embeddings.SpaceRover <- function(object, assay = NULL, type = "pca", ..., value
 }
 
 #' @rdname Embeddings
-#' @method Embeddings<- SpaceRover
+#' @method Embeddings<- VoltRon
 #'
 #' @export
 #'
-"Embeddings<-.SpaceRover" <- function(object, assay = NULL, type = "pca", ..., value) {
+"Embeddings<-.VoltRon" <- function(object, assay = NULL, type = "pca", ..., value) {
 
   # get assay names
   assay_names <- AssayNames(object, assay = assay)

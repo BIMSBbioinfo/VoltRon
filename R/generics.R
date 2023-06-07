@@ -88,7 +88,7 @@ AddAssay <- function(object, ...) {
 
 #' Get Assay names
 #'
-#' Given a SpaceRover object, give names of assays of some type, or main assay.
+#' Given a VoltRon object, give names of assays of some type, or main assay.
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
@@ -120,7 +120,7 @@ AssayNames <- function(object, ...) {
 
 #' Get Assay types
 #'
-#' Given a SpaceRover object, give types of assays of some type, or of the main assay.
+#' Given a VoltRon object, give types of assays of some type, or of the main assay.
 #' Here, an assay type is of either cell, spot or ROI.
 #'
 #' @param object An object
@@ -422,7 +422,7 @@ Embeddings <- function(object, ...) {
 
 #' PCA
 #'
-#' calculate PCA of the spacerover objects
+#' calculate PCA of the VoltRon objects
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
@@ -440,7 +440,7 @@ PCA <- function(object, ...) {
 
 #' UMAP
 #'
-#' calculate UMAP of the spacerover objects
+#' calculate UMAP of the VoltRon objects
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
@@ -458,7 +458,7 @@ UMAP <- function(object, ...) {
 
 #' Image
 #'
-#' Get images of a spaceRover assay
+#' Get images of a VoltRon assay
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods

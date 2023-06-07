@@ -13,7 +13,7 @@ RunMuSiC(
 )
 }
 \arguments{
-\item{object}{An srAssay object}
+\item{object}{A vrAssay object}
 
 \item{sc.object}{a Seurat object}
 

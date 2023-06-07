@@ -3,20 +3,20 @@
 \name{Image}
 \alias{Image}
 \alias{Image.Seurat}
-\alias{Image.SpaceRover}
-\alias{Image.srSample}
-\alias{Image.srLayer}
+\alias{Image.VoltRon}
+\alias{Image.vrSample}
+\alias{Image.vrLayer}
 \title{Image}
 \usage{
 Image(object, ...)
 
 \method{Image}{Seurat}(seu, ...)
 
-\method{Image}{SpaceRover}(sr, ...)
+\method{Image}{VoltRon}(sr, ...)
 
-\method{Image}{srSample}(sr, ...)
+\method{Image}{vrSample}(vr, ...)
 
-\method{Image}{srLayer}(sr, ...)
+\method{Image}{vrLayer}(vr, ...)
 }
 \arguments{
 \item{object}{An object}
@@ -27,6 +27,6 @@ Image(object, ...)
 \code{Image}: The name of the default assay
 }
 \description{
-Get images of a spaceRover assay
+Get images of a VoltRon assay
 }
 \concept{data-access}

@@ -2,15 +2,15 @@
 % Please edit documentation in R/generics.R, R/metadata.R, R/objects.R
 \name{AddAssay}
 \alias{AddAssay}
-\alias{AddAssay.srMetadata}
-\alias{AddAssay.SpaceRover}
+\alias{AddAssay.vrMetadata}
+\alias{AddAssay.VoltRon}
 \title{Add Assay}
 \usage{
 AddAssay(object, ...)
 
-\method{AddAssay}{srMetadata}(object, assay, assay_name, sample = "Sample1", layer = "Section1")
+\method{AddAssay}{vrMetadata}(object, assay, assay_name, sample = "Sample1", layer = "Section1")
 
-\method{AddAssay}{SpaceRover}(object, assay, assay_name, sample = "Sample1", layer = "Section1")
+\method{AddAssay}{VoltRon}(object, assay, assay_name, sample = "Sample1", layer = "Section1")
 }
 \arguments{
 \item{object}{An object}

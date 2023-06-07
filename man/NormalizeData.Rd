@@ -2,15 +2,15 @@
 % Please edit documentation in R/generics.R, R/processing.R
 \name{normalizeData}
 \alias{normalizeData}
-\alias{normalizeData.SpaceRover}
-\alias{normalizeData.srAssay}
+\alias{normalizeData.VoltRon}
+\alias{normalizeData.vrAssay}
 \title{Normalize Data}
 \usage{
 normalizeData(object, ...)
 
-\method{normalizeData}{SpaceRover}(object, assay = NULL, ...)
+\method{normalizeData}{VoltRon}(object, assay = NULL, ...)
 
-\method{normalizeData}{srAssay}(object, method = "LogNorm", desiredQuantile = 0.9)
+\method{normalizeData}{vrAssay}(object, method = "LogNorm", desiredQuantile = 0.9)
 }
 \arguments{
 \item{object}{An object}

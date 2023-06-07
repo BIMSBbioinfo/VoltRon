@@ -8,10 +8,10 @@ NULL
 
 #' @rdname normalizeData
 #' @concept preprocessing
-#' @method normalizeData SpaceRover
+#' @method normalizeData VoltRon
 #'
 #' @export
-normalizeData.SpaceRover <- function(object, assay = NULL, ...) {
+normalizeData.VoltRon <- function(object, assay = NULL, ...) {
 
   # get assay names
   assay_names <- AssayNames(object, assay = assay)
@@ -28,10 +28,10 @@ normalizeData.SpaceRover <- function(object, assay = NULL, ...) {
 
 #' @rdname normalizeData
 #' @concept preprocessing
-#' @method normalizeData srAssay
+#' @method normalizeData vrAssay
 #'
 #' @export
-normalizeData.srAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9) {
+normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9) {
 
   # size factor
   rawdata <- object@rawdata
@@ -70,10 +70,10 @@ normalizeData.srAssay <- function(object, method = "LogNorm", desiredQuantile = 
 
 #' @rdname getSpatialFeatures
 #' @concept preprocessing
-#' @method getSpatialFeatures SpaceRover
+#' @method getSpatialFeatures VoltRon
 #'
 #' @export
-getSpatialFeatures.SpaceRover <- function(object, assay = NULL, ...){
+getSpatialFeatures.VoltRon <- function(object, assay = NULL, ...){
 
   # get assay names
   assay_names <- AssayNames(object, assay = assay)
@@ -89,10 +89,10 @@ getSpatialFeatures.SpaceRover <- function(object, assay = NULL, ...){
 
 #' @rdname getSpatialFeatures
 #' @concept preprocessing
-#' @method getSpatialFeatures srAssay
+#' @method getSpatialFeatures vrAssay
 #'
 #' @export
-getSpatialFeatures.srAssay <- function(object, max.count = 1, n = 3000){
+getSpatialFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
 
   # get data and coordinates
   normdata <- Data(object, norm = TRUE)
@@ -162,10 +162,10 @@ getSharedFeatures <- function(object, assay = NULL, n = 3000, ...){
 
 #' @rdname PCA
 #' @concept embedding
-#' @method PCA SpaceRover
+#' @method PCA VoltRon
 #'
 #' @export
-PCA.SpaceRover <- function(object, assay = NULL, dims = 30){
+PCA.VoltRon <- function(object, assay = NULL, dims = 30){
 
   # get assay names
   assay_names <- AssayNames(object, assay = assay)
@@ -195,10 +195,10 @@ PCA.SpaceRover <- function(object, assay = NULL, dims = 30){
 
 #' @rdname UMAP
 #' @concept embedding
-#' @method UMAP SpaceRover
+#' @method UMAP VoltRon
 #'
 #' @export
-UMAP.SpaceRover <- function(object, assay = NULL, dims = 30, seed = 1){
+UMAP.VoltRon <- function(object, assay = NULL, dims = 30, seed = 1){
 
   # set Embeddings
   embedding_data <- Embeddings(object, assay = assay)

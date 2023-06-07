@@ -1,6 +1,6 @@
 #' @docType package
-#' @name spaceRover-package
-#' @rdname spaceRover-package
+#' @name VoltRon-package
+#' @rdname VoltRon-package
 #'
 #' @importFrom conflicted conflict_prefer
 "_PACKAGE"
@@ -12,8 +12,8 @@
 .onLoad = function(libname, pkgname) {
 
   # Normalize Data
-  # conflicted::conflict_prefer("NormalizeData", "spaceRover")
-  # registerS3method("NormalizeData", "SpaceRover", "NormalizeData", envir = getNamespace("spaceRover"))
-  # registerS3method('NormalizeData', 'SpaceRover', "NormalizeData.SpaceRover", envir = getNamespace("spaceRover"))
-  # registerS3method('NormalizeData', 'srAssay', "NormalizeData.srAssay", envir = getNamespace("spaceRover"))
+  # conflicted::conflict_prefer("NormalizeData", "VoltRon")
+  # registerS3method("NormalizeData", "VoltRon", "NormalizeData", envir = getNamespace("VoltRon"))
+  # registerS3method('NormalizeData', 'VoltRon', "NormalizeData.VoltRon", envir = getNamespace("VoltRon"))
+  # registerS3method('NormalizeData', 'srAssay', "NormalizeData.srAssay", envir = getNamespace("VoltRon"))
 }

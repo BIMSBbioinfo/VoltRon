@@ -12,7 +12,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 // automated_registeration_rawvector
 Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, const int width1, const int height1, const int width2, const int height2, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES);
-RcppExport SEXP _spaceRover_automated_registeration_rawvector(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP, SEXP GOOD_MATCH_PERCENTSEXP, SEXP MAX_FEATURESSEXP) {
+RcppExport SEXP _VoltRon_automated_registeration_rawvector(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP, SEXP GOOD_MATCH_PERCENTSEXP, SEXP MAX_FEATURESSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -30,7 +30,7 @@ END_RCPP
 }
 // perspectiveTransform
 Rcpp::NumericMatrix perspectiveTransform(Rcpp::NumericMatrix coords, Rcpp::NumericMatrix hmatrix);
-RcppExport SEXP _spaceRover_perspectiveTransform(SEXP coordsSEXP, SEXP hmatrixSEXP) {
+RcppExport SEXP _VoltRon_perspectiveTransform(SEXP coordsSEXP, SEXP hmatrixSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -42,7 +42,7 @@ END_RCPP
 }
 // calculateMoransI
 double calculateMoransI(NumericMatrix data, NumericMatrix datadist, double sumW);
-RcppExport SEXP _spaceRover_calculateMoransI(SEXP dataSEXP, SEXP datadistSEXP, SEXP sumWSEXP) {
+RcppExport SEXP _VoltRon_calculateMoransI(SEXP dataSEXP, SEXP datadistSEXP, SEXP sumWSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -55,13 +55,13 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_spaceRover_automated_registeration_rawvector", (DL_FUNC) &_spaceRover_automated_registeration_rawvector, 8},
-    {"_spaceRover_perspectiveTransform", (DL_FUNC) &_spaceRover_perspectiveTransform, 2},
-    {"_spaceRover_calculateMoransI", (DL_FUNC) &_spaceRover_calculateMoransI, 3},
+    {"_VoltRon_automated_registeration_rawvector", (DL_FUNC) &_VoltRon_automated_registeration_rawvector, 8},
+    {"_VoltRon_perspectiveTransform", (DL_FUNC) &_VoltRon_perspectiveTransform, 2},
+    {"_VoltRon_calculateMoransI", (DL_FUNC) &_VoltRon_calculateMoransI, 3},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_spaceRover(DllInfo *dll) {
+RcppExport void R_init_VoltRon(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

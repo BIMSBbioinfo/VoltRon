@@ -7,9 +7,9 @@
 # Set magick-image as an S4 class
 setOldClass(Classes = c('magick-image'))
 
-## srAssay ####
+## vrAssay ####
 
-#' The srAssay (SpaceRover Assay) Class
+#' The vrAssay (VoltRon Assay) Class
 #'
 #' @slot rawdata raw count table
 #' @slot normdata normalized count table
@@ -21,12 +21,12 @@ setOldClass(Classes = c('magick-image'))
 #' @slot params additional parameters used by different assay types
 #' @slot type the type of the assay (cell, spot, ROI)
 #'
-#' @name srAssay-class
-#' @rdname srAssay-class
-#' @exportClass srAssay
+#' @name vrAssay-class
+#' @rdname vrAssay-class
+#' @exportClass vrAssay
 #'
-srAssay <- setClass(
-  Class = 'srAssay',
+vrAssay <- setClass(
+  Class = 'vrAssay',
   slots = c(
     rawdata = 'matrix',
     normdata = 'matrix',
@@ -45,9 +45,9 @@ srAssay <- setClass(
 ### show ####
 setMethod(
   f = 'show',
-  signature = 'srAssay',
+  signature = 'vrAssay',
   definition = function(object) {
-    cat("srAssay (SpaceRover Assay) of", ncol(object@rawdata), "spatial entities and", nrow(object@rawdata), "features. \n")
+    cat("vrAssay (VoltRon Assay) of", ncol(object@rawdata), "spatial entities and", nrow(object@rawdata), "features. \n")
     return(invisible(x = NULL))
   }
 )
@@ -56,15 +56,15 @@ setMethod(
 # Methods ####
 ####
 
-### Subset srAssay objects ####
+### Subset vrAssay objects ####
 
-#' @method subset srAssay
+#' @method subset vrAssay
 #'
 #' @importFrom rlang enquo
 #'
 #' @export
 #'
-subset.srAssay <- function(object, subset, entities = NULL, features = NULL, image = NULL) {
+subset.vrAssay <- function(object, subset, entities = NULL, features = NULL, image = NULL) {
 
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
@@ -107,12 +107,12 @@ subset.srAssay <- function(object, subset, entities = NULL, features = NULL, ima
     }
 
     # image
-    object <- subset.srAssay(object, entities = rownames(cropped_coords))
+    object <- subset.vrAssay(object, entities = rownames(cropped_coords))
     object@image <- image_crop(object@image, image)
 
   }
 
-  # set SpaceRover class
+  # set VoltRon class
   return(object)
 }
 
@@ -181,59 +181,59 @@ subsetSegments <- function(segments, image, crop_info){
 }
 
 #' @rdname Entities
-#' @method Entities srAssay
+#' @method Entities vrAssay
 #'
 #' @export
 #'
-Entities.srAssay <- function(object, ...) {
+Entities.vrAssay <- function(object, ...) {
   colnames(object@rawdata)
 }
 
 #' @rdname Features
-#' @method Features srAssay
+#' @method Features vrAssay
 #'
 #' @export
 #'
-Features.srAssay <- function(object, ...) {
+Features.vrAssay <- function(object, ...) {
   return(rownames(object@rawdata))
 }
 
 #' @rdname FeatureData
-#' @method FeatureData srAssay
+#' @method FeatureData vrAssay
 #'
 #' @export
 #'
-FeatureData.srAssay <- function(object, ...) {
+FeatureData.vrAssay <- function(object, ...) {
   return(object@featuredata)
 }
 
 #' @rdname FeatureData
-#' @method FeatureData<- srAssay
+#' @method FeatureData<- vrAssay
 #'
 #' @export
 #'
-"FeatureData<-.srAssay" <- function(object, ..., value) {
+"FeatureData<-.vrAssay" <- function(object, ..., value) {
   object@featuredata <- value
   return(object)
 }
 
 #' @rdname AssayNames
-#' @method AssayNames srAssay
+#' @method AssayNames vrAssay
 #'
 #' @export
 #'
-AssayNames.srAssay <- function(object, ...) {
+AssayNames.vrAssay <- function(object, ...) {
   assay_ids <- stringr::str_extract(Entities(object), "Assay[0-9]+")
   assay_id <- unique(assay_ids)
   return(assay_id)
 }
 
 #' @rdname AssayNames
-#' @method AssayNames<- srAssay
+#' @method AssayNames<- vrAssay
 #'
 #' @export
 #'
-"AssayNames<-.srAssay" <- function(object, ..., value){
+"AssayNames<-.vrAssay" <- function(object, ..., value){
 
   # change assay names
   colnames(object@rawdata) <- gsub("Assay[0-9]+$", value, colnames(object@rawdata))
@@ -255,20 +255,20 @@ AssayNames.srAssay <- function(object, ...) {
 }
 
 #' @rdname AssayTypes
-#' @method AssayTypes srAssay
+#' @method AssayTypes vrAssay
 #'
 #' @export
 #'
-AssayTypes.srAssay <- function(object, ...) {
+AssayTypes.vrAssay <- function(object, ...) {
   return(object@type)
 }
 
 #' @rdname Data
-#' @method Data srAssay
+#' @method Data vrAssay
 #'
 #' @export
 #'
-Data.srAssay <- function(object, norm = FALSE) {
+Data.vrAssay <- function(object, norm = FALSE) {
   if(norm){
     return(object@normdata)
   } else {
@@ -277,11 +277,11 @@ Data.srAssay <- function(object, norm = FALSE) {
 }
 
 #' @rdname Coordinates
-#' @method Coordinates srAssay
+#' @method Coordinates vrAssay
 #'
 #' @export
 #'
-Coordinates.srAssay <- function(object, reg = FALSE, ...) {
+Coordinates.vrAssay <- function(object, reg = FALSE, ...) {
   if(reg){
     if(nrow(object@coords_reg) < 1) {
       return(object@coords)
@@ -294,11 +294,11 @@ Coordinates.srAssay <- function(object, reg = FALSE, ...) {
 }
 
 #' @rdname Coordinates
-#' @method Coordinates<- srAssay
+#' @method Coordinates<- vrAssay
 #'
 #' @export
 #'
-"Coordinates<-.srAssay" <- function(object, reg = FALSE, ..., value) {
+"Coordinates<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
 
   # get coordinates
   coords <- Coordinates(object, ...)
@@ -323,11 +323,11 @@ Coordinates.srAssay <- function(object, reg = FALSE, ...) {
 }
 
 #' @rdname Segments
-#' @method Segments srAssay
+#' @method Segments vrAssay
 #'
 #' @export
 #'
-Segments.srAssay <- function(object, reg = FALSE, ...) {
+Segments.vrAssay <- function(object, reg = FALSE, ...) {
   if(reg){
     if(length(object@segments_reg) < 1) {
       return(object@segments)
@@ -340,11 +340,11 @@ Segments.srAssay <- function(object, reg = FALSE, ...) {
 }
 
 #' @rdname Segments
-#' @method Segments<- srAssay
+#' @method Segments<- vrAssay
 #'
 #' @export
 #'
-"Segments<-.srAssay" <- function(object, reg = FALSE, ..., value) {
+"Segments<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
 
   # get coordinates
   segts <- Segments(object, ...)
@@ -365,30 +365,30 @@ Segments.srAssay <- function(object, reg = FALSE, ...) {
 }
 
 #' @rdname Distances
-#' @method Distances srAssay
+#' @method Distances vrAssay
 #'
 #' @export
 #'
-Distances.srAssay <- function(object, reg = FALSE, method = "euclidean", ...) {
+Distances.vrAssay <- function(object, reg = FALSE, method = "euclidean", ...) {
   coords <- Coordinates(object, reg = reg, ...)
   return(as.matrix(dist(coords, method = method)))
 }
 
 #' @rdname Embeddings
-#' @method Embeddings srAssay
+#' @method Embeddings vrAssay
 #'
 #' @export
 #'
-Embeddings.srAssay <- function(object, type = "pca") {
+Embeddings.vrAssay <- function(object, type = "pca") {
   return(object@embeddings[[type]])
 }
 
 #' @rdname Embeddings
-#' @method Embeddings<- srAssay
+#' @method Embeddings<- vrAssay
 #'
 #' @export
 #'
-"Embeddings<-.srAssay" <- function(object, type = "pca", ..., value) {
+"Embeddings<-.vrAssay" <- function(object, type = "pca", ..., value) {
   object@embeddings[[type]] <- value
   return(object)
 }

@@ -3,17 +3,17 @@
 \name{MainAssay}
 \alias{MainAssay}
 \alias{MainAssay<-}
-\alias{MainAssay.SpaceRover}
-\alias{MainAssay<-.SpaceRover}
+\alias{MainAssay.VoltRon}
+\alias{MainAssay<-.VoltRon}
 \title{Main Assay}
 \usage{
 MainAssay(object, ...)
 
 MainAssay(object, ...) <- value
 
-\method{MainAssay}{SpaceRover}(object, ...)
+\method{MainAssay}{VoltRon}(object, ...)
 
-\method{MainAssay}{SpaceRover}(object, ...) <- value
+\method{MainAssay}{VoltRon}(object, ...) <- value
 }
 \arguments{
 \item{object}{An object}

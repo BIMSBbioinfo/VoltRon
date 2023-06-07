@@ -3,17 +3,17 @@
 \name{Metadata}
 \alias{Metadata}
 \alias{Metadata<-}
-\alias{Metadata.SpaceRover}
-\alias{Metadata<-.SpaceRover}
+\alias{Metadata.VoltRon}
+\alias{Metadata<-.VoltRon}
 \title{Metadata}
 \usage{
 Metadata(object, ...)
 
 Metadata(object, ...) <- value
 
-\method{Metadata}{SpaceRover}(object, type = "cell")
+\method{Metadata}{VoltRon}(object, type = "cell")
 
-\method{Metadata}{SpaceRover}(object, type = "cell", ...) <- value
+\method{Metadata}{VoltRon}(object, type = "cell", ...) <- value
 }
 \arguments{
 \item{object}{An object}
