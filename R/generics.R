@@ -169,22 +169,22 @@ MainAssay <- function(object, ...) {
   UseMethod(generic = 'MainAssay<-', object = object)
 }
 
-#' Entities
+#' vrSpatialPoints
 #'
 #' Get and set spatial entities (cells, spots, ROI)
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{Entities}: The name of the default assay
+#' @return \code{vrSpatialPoints}: The name of the default assay
 #'
-#' @rdname Entities
-#' @export Entities
+#' @rdname vrSpatialPoints
+#' @export vrSpatialPoints
 #'
 #' @concept data-access
 #'
-Entities <- function(object, ...) {
-  UseMethod(generic = 'Entities', object = object)
+vrSpatialPoints <- function(object, ...) {
+  UseMethod(generic = 'vrSpatialPoints', object = object)
 }
 
 #' Features

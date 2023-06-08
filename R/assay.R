@@ -180,12 +180,12 @@ subsetSegments <- function(segments, image, crop_info){
   segments
 }
 
-#' @rdname Entities
-#' @method Entities vrAssay
+#' @rdname vrSpatialPoints
+#' @method vrSpatialPoints vrAssay
 #'
 #' @export
 #'
-Entities.vrAssay <- function(object, ...) {
+vrSpatialPoints.vrAssay <- function(object, ...) {
   colnames(object@rawdata)
 }
 
@@ -223,7 +223,7 @@ FeatureData.vrAssay <- function(object, ...) {
 #' @export
 #'
 AssayNames.vrAssay <- function(object, ...) {
-  assay_ids <- stringr::str_extract(Entities(object), "Assay[0-9]+")
+  assay_ids <- stringr::str_extract(vrSpatialPoints(object), "Assay[0-9]+")
   assay_id <- unique(assay_ids)
   return(assay_id)
 }

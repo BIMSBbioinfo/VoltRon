@@ -269,7 +269,7 @@ CreateVoltRon <- function(data, metadata = NULL, image = NULL,
 
   # set zgraph
   if(is.null(zstack)){
-    spatial_entities <- Entities(sr_metadata)
+    spatial_entities <- vrSpatialPoints(sr_metadata)
     zstack <- igraph::make_empty_graph(n = length(spatial_entities), directed = FALSE)
     igraph::V(zstack)$name <- spatial_entities
   }
@@ -352,8 +352,8 @@ AddAssay.VoltRon <- function(object, assay, assay_name, sample = "Sample1", laye
   object[[sample, layer]]@assay <- assay_list
 
   # update graph
-  newgraph <- igraph::make_empty_graph(n = length(Entities(assay)), directed = FALSE)
-  igraph::V(newgraph)$name <- Entities(assay)
+  newgraph <- igraph::make_empty_graph(n = length(vrSpatialPoints(assay)), directed = FALSE)
+  igraph::V(newgraph)$name <- vrSpatialPoints(assay)
   object@zstack <- igraph::union(object@zstack, newgraph)
 
   # return
@@ -455,7 +455,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, entiti
   } else if(!is.null(entities)) {
 
     metadata <- subset.vrMetadata(object@metadata, entities = entities)
-    assays <- unique(stringr::str_extract(Entities(metadata), "Assay[0-9]+"))
+    assays <- unique(stringr::str_extract(vrSpatialPoints(metadata), "Assay[0-9]+"))
     sample.metadata <- subset.sampleMetadata(object@sample.metadata, assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
@@ -493,7 +493,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, entiti
         listofSamples <- sapply(object@samples[samples], function(samp) {
           subset.vrSample(samp, image = image)
         }, USE.NAMES = TRUE)
-        entities <-  do.call(c, lapply(listofSamples, Entities.vrSample))
+        entities <-  do.call(c, lapply(listofSamples, vrSpatialPoints.vrSample))
         metadata <- subset.vrMetadata(object@metadata, entities = entities)
       }
     } else if(image){
@@ -504,7 +504,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, entiti
 
   # other attributes
   main.assay <- unique(sample.metadata$Assay)[unique(sample.metadata$Assay) == names(table(sample.metadata$Assay))[which.max(table(sample.metadata$Assay))]]
-  zstack <- subgraph(object@zstack, V(object@zstack)[names(V(object@zstack)) %in% Entities(metadata)])
+  zstack <- subgraph(object@zstack, V(object@zstack)[names(V(object@zstack)) %in% vrSpatialPoints(metadata)])
   project <- object@project
 
   # set VoltRon class
@@ -604,13 +604,13 @@ SampleMetadata.VoltRon <- function(object, ...) {
   object@sample.metadata
 }
 
-#' @rdname Entities
-#' @method Entities VoltRon
+#' @rdname vrSpatialPoints
+#' @method vrSpatialPoints VoltRon
 #'
 #' @export
 #'
-Entities.VoltRon <- function(object, ...) {
-  return(Entities(object@metadata))
+vrSpatialPoints.VoltRon <- function(object, ...) {
+  return(vrSpatialPoints(object@metadata))
 }
 
 #' @rdname Features
@@ -659,7 +659,7 @@ Graph.VoltRon <- function(object, assay = NULL, ...) {
   # get assay names
   assay_names <- AssayNames(object, assay = assay)
   assay_pattern <- paste0(assay_names, collapse = "|")
-  node_names <- Entities(object)[grepl(assay_pattern, Entities(object))]
+  node_names <- vrSpatialPoints(object)[grepl(assay_pattern, vrSpatialPoints(object))]
 
   returngraph <- induced_subgraph(object@zstack, node_names)
   return(returngraph)

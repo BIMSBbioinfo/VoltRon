@@ -98,12 +98,12 @@ setMethod(
 # Methods ####
 ####
 
-#' @rdname Entities
-#' @method Entities vrMetadata
+#' @rdname vrSpatialPoints
+#' @method vrSpatialPoints vrMetadata
 #'
 #' @export
 #'
-Entities.vrMetadata <- function(object, ...) {
+vrSpatialPoints.vrMetadata <- function(object, ...) {
 
   # get the combination of cells, spots and ROIs
   points <- c(rownames(object@cell),
@@ -259,7 +259,7 @@ AddAssay.vrMetadata <- function(object, assay, assay_name, sample = "Sample1", l
   # get metadata and other info
   metadata <- slot(object, name = assay.type)
   data <- Data(assay, norm = FALSE)
-  entities <- Entities(assay)
+  entities <- vrSpatialPoints(assay)
 
   # add new assay
   assay_ids <- stringr::str_extract(entities, "Assay[0-9]+")
