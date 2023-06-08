@@ -247,9 +247,8 @@ merge.sampleMetadata <- function(metadata_list, sample_name = NULL) {
 #' @rdname AddAssay
 #' @method AddAssay vrMetadata
 #'
-#' @importFrom stringr str_extract str_replace
-#' @importFrom stringi str_replace
-#' @import
+#' @importFrom dplyr bind_rows
+#'
 #' @export
 #'
 AddAssay.vrMetadata <- function(object, assay, assay_name, sample = "Sample1", layer = "Section1"){
@@ -269,11 +268,6 @@ AddAssay.vrMetadata <- function(object, assay, assay_name, sample = "Sample1", l
   entityID <- gsub("Assay[0-9]+$", assay_id, entities)
 
   # metadata
-  # metadata <- rbind(metadata, data.frame(Count = colSums(data),
-  #                              Assay = rep(assay_name, length(entityID)),
-  #                              Layer = rep(layer, length(entityID)),
-  #                              Sample = rep(sample, length(entityID)),
-  #                              row.names = entityID))
   assay_metadata <- data.frame(Count = colSums(data),
                                Assay = rep(assay_name, length(entityID)),
                                Layer = rep(layer, length(entityID)),

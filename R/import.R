@@ -94,8 +94,8 @@ rescaleXeniumCells <- function(cells, bbox, image){
 #' @param ... additional parameters passed to \code{CreateVoltRon}
 #'
 #' @import hdf5r
-#' @import magick
-#' @import jsonlite
+#' @importFrom magick image_read
+#' @importFrom jsonlite read_json
 #'
 #' @export
 #'
@@ -180,8 +180,10 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
 #' @param ome.tiff the OME.TIFF file of the GeoMx experiment if exists
 #' @param ... additional parameters passed to \code{CreateVoltRon}
 #'
-#' @import dplyr
+#' @importFrom dplyr %>% full_join
 #' @importFrom xlsx read.xlsx
+#' @importFrom GeomxTools readPKCFile readDccFile
+#' @importFrom magick image_info
 #'
 #' @export
 #'
@@ -225,7 +227,7 @@ ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
   rawdata <- as.matrix(rawdata)
 
   # get segment summary
-  segmentsummary <- read.xlsx(summarySegment, sheetName = summarySegmentSheetName)
+  segmentsummary <- xlsx::read.xlsx(summarySegment, sheetName = summarySegmentSheetName)
 
   # get image
   image <- image_read(paste0(dir.path, "/morphology.tiff"))

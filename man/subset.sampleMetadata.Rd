@@ -7,7 +7,7 @@
 \method{subset}{sampleMetadata}(metadata, samples = NULL, assays = NULL)
 }
 \arguments{
-\item{metadata}{sample metadata of a spaceRover object}
+\item{metadata}{sample metadata of a VoltRon object}
 
 \item{samples}{samples}
 

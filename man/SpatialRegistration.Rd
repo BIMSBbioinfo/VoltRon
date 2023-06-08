@@ -18,9 +18,6 @@ SpatialRegistration(
 
 \item{query_spatdata}{a query spatial data set, used only if \code{spatial_data_list} is \code{NULL}}
 }
-\value{
-keypoints
-}
 \description{
 A mini shiny app to calculate spatial cell(barcode) projection matrix between a visium slide and a xenium slide
 }

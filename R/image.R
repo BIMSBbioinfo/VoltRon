@@ -178,8 +178,8 @@ ResizeImage.vrAssay <- function(object, size){
 #' @param output.path The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.
 #' @param ... additional parameters passed to the EBImage::writeImage function
 #'
-#' @import RBioFormats
-#' @import EBImage
+#' @importFrom RBioFormats read.image
+#' @importFrom EBImage writeImage
 #'
 #' @export
 #'
@@ -231,8 +231,9 @@ GenerateXeniumDAPIImage <- function(dir.path, increase.contrast = TRUE, resoluti
 #' @param output.path The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.
 #' @param ... additional parameters passed to the EBImage::writeImage function
 #'
-#' @import RBioFormats
-#' @import EBImage
+#' @importFrom magick image_read image_contrast
+#' @importFrom EBImage writeImage
+#' @importFrom reshape2 acast
 #'
 #' @export
 #'
@@ -289,7 +290,7 @@ GenerateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
   # increase contrast using EBImage
   if(increase.contrast) {
     cat("Increasing Contrast \n")
-    morphology_image <- image_contrast(morphology_image, sharpen = 1)
+    morphology_image <- magick::image_contrast(morphology_image, sharpen = 1)
   }
 
   # write to the same folder

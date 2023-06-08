@@ -8,7 +8,7 @@
 #' @param Vis_image_key the name of image with Visium spots
 #' @param Xen_image_key the name of image with Xenium cells
 #'
-#' @import dplyr
+#' @importFrom dplyr %>% left_join
 #'
 #' @export
 #'
