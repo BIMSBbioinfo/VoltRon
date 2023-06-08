@@ -183,7 +183,7 @@ setMethod(
 
 ### Create VoltRon object ####
 
-#' CreateVoltRon
+#' formVoltRon
 #'
 #' Create a VoltRon object
 #'
@@ -206,7 +206,7 @@ setMethod(
 #' @export
 #' @import igraph
 #'
-CreateVoltRon <- function(data, metadata = NULL, image = NULL,
+formVoltRon <- function(data, metadata = NULL, image = NULL,
                              coords, segments = list(),
                              sample.metadata = NULL, zstack = NULL,
                              main.assay = "Custom_cell", assay.type = "cell", params = list(),
