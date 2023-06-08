@@ -631,12 +631,12 @@ vrFeatures.VoltRon <- function(object, assay = NULL, ...) {
   return(unique(features))
 }
 
-#' @rdname Data
-#' @method Data VoltRon
+#' @rdname vrData
+#' @method vrData VoltRon
 #'
 #' @export
 #'
-Data.VoltRon <- function(object, assay = NULL, ...) {
+vrData.VoltRon <- function(object, assay = NULL, ...) {
 
   # get assay names
   assay_names <- AssayNames(object, assay = assay)
@@ -644,7 +644,7 @@ Data.VoltRon <- function(object, assay = NULL, ...) {
   # get all coordinates
   returndata_list <- list()
   for(i in 1:length(assay_names))
-    returndata_list[[i]] <- Data(object[[assay_names[i]]], ...)
+    returndata_list[[i]] <- vrData(object[[assay_names[i]]], ...)
 
   return(do.call(cbind, returndata_list))
 }

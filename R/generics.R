@@ -237,22 +237,22 @@ FeatureData <- function(object, ...) {
   UseMethod(generic = 'FeatureData<-', object = object)
 }
 
-#' Data
+#' vrData
 #'
 #' Get data from the main.assay
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{Data}: The name of the default assay
+#' @return \code{vrData}: The name of the default assay
 #'
-#' @rdname Data
-#' @export Data
+#' @rdname vrData
+#' @export vrData
 #'
 #' @concept data-access
 #'
-Data <- function(object, ...) {
-  UseMethod(generic = 'Data', object = object)
+vrData <- function(object, ...) {
+  UseMethod(generic = 'vrData', object = object)
 }
 
 #' Graph

@@ -232,7 +232,7 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, ass
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
     range_feat <- Map(function(assy){
-      normdata <- Data(object[[assy]], norm = TRUE)
+      normdata <- vrData(object[[assy]], norm = TRUE)
       metadata <- Metadata(object, type = assay.type)
       metadata <- metadata[grepl(assy, rownames(metadata)),]
       if(feat %in% rownames(normdata)){
@@ -499,7 +499,7 @@ ScatterFeaturePlot <- function(object, feature.1, feature.2, norm = TRUE, assay 
     stop("Both 'feature.1' and 'feature.2' should be of length 1.")
 
   # data
-  normdata <- Data(object, assay = assay, norm = norm)
+  normdata <- vrData(object, assay = assay, norm = norm)
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -569,7 +569,7 @@ ScatterFeaturePlot <- function(object, feature.1, feature.2, norm = TRUE, assay 
 HeatmapPlot <- function(object, assay = NULL, assay.type = NULL, group.by = "clusters", norm = TRUE){
 
   # data
-  heatmapdata <- Data(object, assay = assay, norm = norm)
+  heatmapdata <- vrData(object, assay = assay, norm = norm)
 
   # get entity type and metadata
   if(is.null(assay.type)){

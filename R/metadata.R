@@ -258,7 +258,7 @@ AddAssay.vrMetadata <- function(object, assay, assay_name, sample = "Sample1", l
 
   # get metadata and other info
   metadata <- slot(object, name = assay.type)
-  data <- Data(assay, norm = FALSE)
+  data <- vrData(assay, norm = FALSE)
   entities <- vrSpatialPoints(assay)
 
   # add new assay

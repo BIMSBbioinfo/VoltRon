@@ -83,7 +83,7 @@ RunRCTD <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_cl
 
   # create spatial data
   cat("Configuring Spatial Assay ...\n")
-  spatialcounts <- Data(object, norm = FALSE)
+  spatialcounts <- vrData(object, norm = FALSE)
   coords <- as.data.frame(Coordinates(object))
   spatialnUMI <- colSums(spatialcounts)
   spatialdata <- spacexr::SpatialRNA(coords, spatialcounts, spatialnUMI)
@@ -117,7 +117,7 @@ RunSPOTlight <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seur
 
   # create spatial data
   cat("Configuring Spatial Assay ...\n")
-  spatialcounts <- Data(object, norm = FALSE)
+  spatialcounts <- vrData(object, norm = FALSE)
   coords <- as.data.frame(Coordinates(object))
   spatialnUMI <- colSums(spatialcounts)
   spatialdata <- spacexr::SpatialRNA(coords, spatialcounts, spatialnUMI)
@@ -172,7 +172,7 @@ RunMuSiC <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_c
 
   # deconvolute using
   cat("Calculating Cell Type Compositions of ROIs with MuSiC ...\n")
-  results <- music_prop(bulk.mtx = as.matrix(Data(object)),
+  results <- music_prop(bulk.mtx = as.matrix(vrData(object)),
                         sc.sce = scRNAseq,
                         clusters = sc.cluster,
                         samples = sc.Samples,

@@ -42,7 +42,7 @@ getNeighbors.vrAssay <- function(object, data.type = "pca", ...){
 
   # get data
   if(data.type %in% c("raw", "norm")){
-    nndata <- Data(object, norm = (data.type == "norm"))
+    nndata <- vrData(object, norm = (data.type == "norm"))
     nndata <- t(nndata)
   } else {
     nndata <- Embeddings(object, type = data.type)

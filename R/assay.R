@@ -263,12 +263,12 @@ AssayTypes.vrAssay <- function(object, ...) {
   return(object@type)
 }
 
-#' @rdname Data
-#' @method Data vrAssay
+#' @rdname vrData
+#' @method vrData vrAssay
 #'
 #' @export
 #'
-Data.vrAssay <- function(object, norm = FALSE) {
+vrData.vrAssay <- function(object, norm = FALSE) {
   if(norm){
     return(object@normdata)
   } else {

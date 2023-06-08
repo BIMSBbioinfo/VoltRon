@@ -95,8 +95,8 @@ getSpatialFeatures.VoltRon <- function(object, assay = NULL, ...){
 getSpatialFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
 
   # get data and coordinates
-  normdata <- Data(object, norm = TRUE)
-  rawdata <- Data(object, norm = FALSE)
+  normdata <- vrData(object, norm = TRUE)
+  rawdata <- vrData(object, norm = FALSE)
   coords <- Coordinates(object)
   features <- vrFeatures(object)
 
@@ -175,7 +175,7 @@ PCA.VoltRon <- function(object, assay = NULL, dims = 30){
   object <- subset(object, features = features)
 
   # get data
-  normdata <- Data(object, norm = TRUE)
+  normdata <- vrData(object, norm = TRUE)
 
   # scale data before PCA
   scale.data <- apply(normdata, 1, scale)
