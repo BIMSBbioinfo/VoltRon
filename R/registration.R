@@ -11,6 +11,8 @@
 #' @param query_spatdata a query spatial data set, used only if \code{spatial_data_list} is \code{NULL}
 #'
 #' @import shiny
+#' @importFrom shinyjs useShinyjs
+#'
 #'
 #' @export
 #'
@@ -63,7 +65,7 @@ registerSpatialData <- function(data_list = NULL, reference_spatdata = NULL, que
     # ui <- tagList(
     ui <- fluidPage(
       # use javascript extensions for Shiny
-      useShinyjs(),
+      shinyjs::useShinyjs(),
 
       sidebarLayout(position = "left",
 
@@ -87,7 +89,7 @@ registerSpatialData <- function(data_list = NULL, reference_spatdata = NULL, que
                       ),
                       br(),
                       fluidRow(
-                        column(12,htmlOutput("summary"))
+                        column(12,shiny::htmlOutput("summary"))
                       ),
 
                       # panel options
@@ -101,24 +103,24 @@ registerSpatialData <- function(data_list = NULL, reference_spatdata = NULL, que
                       column(6,
 
                              # Reference Images
-                             ImageTabPanels(length(orig_image_query_list), type = "ref"),
+                             getImageTabPanels(length(orig_image_query_list), type = "ref"),
 
                              br(),
 
                              # Matching Alignment
-                             AlignmentTabPanel(length(orig_image_query_list), centre, register_ind),
+                             getAlignmentTabPanel(length(orig_image_query_list), centre, register_ind),
                       ),
 
                       # Interface for the query images
                       column(6,
 
                              # Query Images
-                             ImageTabPanels(length(orig_image_query_list), type = "query"),
+                             getImageTabPanels(length(orig_image_query_list), type = "query"),
 
                              br(),
 
                              # Registered Query Images
-                             RegisteredImageTabPanels(length(orig_image_query_list), centre, register_ind)
+                             getRegisteredImageTabPanels(length(orig_image_query_list), centre, register_ind)
                       ),
 
                       # panel options
@@ -130,17 +132,17 @@ registerSpatialData <- function(data_list = NULL, reference_spatdata = NULL, que
     server <- function(input, output, session) {
 
       ### Manage interface ####
-      UpdateSequentialTabPanels(input, output, session, centre, register_ind)
+      updateSequentialTabPanels(input, output, session, centre, register_ind)
 
       ### Transform images ####
-      trans_image_query_list <- transform_magick_image_query_list(orig_image_query_list, input, session)
+      trans_image_query_list <- transformImageQueryList(orig_image_query_list, input, session)
 
       ### Manage reference and query keypoints ####
       xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
       manageKeypoints(centre, register_ind, xyTable_list, trans_image_query_list, input, output, session)
 
       ### Image registration ####
-      registered_spatdata_list <- QueryMatrices(length(spatdata_list))
+      registered_spatdata_list <- initiateQueryMatrices(length(spatdata_list))
       getManualRegisteration(registered_spatdata_list, spatdata_list, orig_image_query_list, xyTable_list,
                              centre, register_ind, input, output, session)
       getAutomatedRegisteration(registered_spatdata_list, spatdata_list, orig_image_query_list,
@@ -150,7 +152,7 @@ registerSpatialData <- function(data_list = NULL, reference_spatdata = NULL, que
       observe({
 
         # output the list of query images
-        ImageOutput(orig_image_query_list, xyTable_list, centre, input, output, session)
+        getImageOutput(orig_image_query_list, xyTable_list, centre, input, output, session)
 
       })
 
@@ -176,7 +178,7 @@ registerSpatialData <- function(data_list = NULL, reference_spatdata = NULL, que
 # User Interface ####
 ####
 
-#' ImageTabPanels
+#' getImageTabPanels
 #'
 #' The UI for a set of reference/query spatial slides
 #'
@@ -184,7 +186,7 @@ registerSpatialData <- function(data_list = NULL, reference_spatdata = NULL, que
 #'
 #' @return tabsetpanel
 #'
-ImageTabPanels <- function(len_images, type){
+getImageTabPanels <- function(len_images, type){
 
   # get panel label
   label <- ifelse(type == "ref", "Ref. ", "Query ")
@@ -206,7 +208,7 @@ ImageTabPanels <- function(len_images, type){
   })))
 }
 
-#' RegisteredImageTabPanels
+#' getRegisteredImageTabPanels
 #'
 #' The UI for a set of query spatial slides
 #'
@@ -216,7 +218,7 @@ ImageTabPanels <- function(len_images, type){
 #'
 #' @return tabsetpanel
 #'
-AlignmentTabPanel <- function(len_images, centre, register_ind){
+getAlignmentTabPanel <- function(len_images, centre, register_ind){
 
   # tab panels
   do.call(tabsetPanel, c(id='image_tab_panel_alignment',lapply(register_ind, function(i) {
@@ -227,7 +229,7 @@ AlignmentTabPanel <- function(len_images, centre, register_ind){
   })))
 }
 
-#' RegisteredImageTabPanels
+#' getRegisteredImageTabPanels
 #'
 #' The UI for a set of query spatial slides
 #'
@@ -237,7 +239,7 @@ AlignmentTabPanel <- function(len_images, centre, register_ind){
 #'
 #' @return tabsetpanel
 #'
-RegisteredImageTabPanels <- function(len_images, centre, register_ind){
+getRegisteredImageTabPanels <- function(len_images, centre, register_ind){
 
   # tab panels
   do.call(tabsetPanel, c(id='image_tab_panel_reg_query',lapply(register_ind, function(i) {
@@ -249,7 +251,7 @@ RegisteredImageTabPanels <- function(len_images, centre, register_ind){
   })))
 }
 
-#' UpdateSequentialTabPanels
+#' updateSequentialTabPanels
 #'
 #' A function for automatized selection of reference/query images
 #'
@@ -259,7 +261,7 @@ RegisteredImageTabPanels <- function(len_images, centre, register_ind){
 #' @param centre center image index
 #' @param register_ind query image indices
 #'
-UpdateSequentialTabPanels <- function(input, output, session, centre, register_ind){
+updateSequentialTabPanels <- function(input, output, session, centre, register_ind){
 
   # number of panels
   npanels <- length(register_ind) + 1
@@ -519,7 +521,7 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, inpu
           image <- image_list[[i]]
         }
         image <- image[[type]]
-        keypoint <- transform_keypoints(image, keypoint, paste0(type, "_image",i), input, session)
+        keypoint <- transformKeypoints(image, keypoint, paste0(type, "_image",i), input, session)
 
         # insert keypoint to associated table
         ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
@@ -546,7 +548,7 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, inpu
   })
 }
 
-#' transform_magick_image_keypoints
+#' transformImageKeypoints
 #'
 #' Apply given transformations to a magick image and keypoints simultaneously for plotting
 #'
@@ -558,7 +560,7 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, inpu
 #'
 #' @return a list of magick image and keypoints
 #'
-transform_magick_image_keypoints <- function(image, keypoints, extension, input, session){
+transformImageKeypoints <- function(image, keypoints, extension, input, session){
 
   if(is.null(keypoints))
     return(list(image = image, keypoints = keypoints))
@@ -582,7 +584,7 @@ transform_magick_image_keypoints <- function(image, keypoints, extension, input,
   rotated_image_origin <- rotated_image_limits/2
 
   # rotate keypoints
-  keypoints <- rotate_keypoint(keypoints, input_rotate, image_origin, image_limits, rotated_image_origin, rotated_image_limits)
+  keypoints <- rotateKeypoint(keypoints, input_rotate, image_origin, image_limits, rotated_image_origin, rotated_image_limits)
 
   # flip flop image and keypoints
   input_flipflop <- input[[paste0("flipflop_", extension)]]
@@ -593,13 +595,13 @@ transform_magick_image_keypoints <- function(image, keypoints, extension, input,
   }
 
   # flipflop keypoints
-  keypoints <- flipflop_keypoint(keypoints, rotated_image_limits, input_flipflop)
+  keypoints <- flipflopKeypoint(keypoints, rotated_image_limits, input_flipflop)
 
   # return both the image and the keypoints
   return(list(image = image, keypoints = keypoints))
 }
 
-#' transform_keypoints
+#' transformKeypoints
 #'
 #' Apply transformations to keypoints given transformed images to find the keypoints locations in the original image
 #'
@@ -611,7 +613,7 @@ transform_magick_image_keypoints <- function(image, keypoints, extension, input,
 #'
 #' @return magick image
 #'
-transform_keypoints <- function(image, keypoints, extension, input, session){
+transformKeypoints <- function(image, keypoints, extension, input, session){
 
   # get unrotated image info
   image_limits <- unlist(image_info(image)[1,c("width", "height")])
@@ -624,7 +626,7 @@ transform_keypoints <- function(image, keypoints, extension, input, session){
   } else if(input_flipflop == "Flop"){
     image <- image_flop(image)
   }
-  keypoints <- flipflop_keypoint(keypoints, image_limits, input_flipflop)
+  keypoints <- flipflopKeypoint(keypoints, image_limits, input_flipflop)
 
   # rotate image (reverse) and keypoints
   input_rotate <- 360 - as.numeric(input[[paste0("rotate_", extension)]])
@@ -635,12 +637,12 @@ transform_keypoints <- function(image, keypoints, extension, input, session){
   rotated_image_origin <- rotated_image_limits/2
 
   # rotate keypoints
-  keypoints <- rotate_keypoint(keypoints, input_rotate, image_origin, image_limits, rotated_image_origin, rotated_image_limits)
+  keypoints <- rotateKeypoint(keypoints, input_rotate, image_origin, image_limits, rotated_image_origin, rotated_image_limits)
 
   return(keypoints)
 }
 
-#' rotate_keypoint
+#' rotateKeypoint
 #'
 #' Find transformations of keypoints under clockwise rotations of the image
 #'
@@ -653,7 +655,7 @@ transform_keypoints <- function(image, keypoints, extension, input, session){
 #'
 #' @return keypoints
 #'
-rotate_keypoint <- function(keypoints, angle, origin, limits, rotated_origin, rotated_limits){
+rotateKeypoint <- function(keypoints, angle, origin, limits, rotated_origin, rotated_limits){
 
   # if there are no points, return
   if(nrow(keypoints) == 0)
@@ -681,7 +683,7 @@ rotate_keypoint <- function(keypoints, angle, origin, limits, rotated_origin, ro
   return(keypoints)
 }
 
-#' flipflop_keypoint
+#' flipflopKeypoint
 #'
 #' Find transformed keypoints on image given any flip or flop action by magick
 #'
@@ -691,7 +693,7 @@ rotate_keypoint <- function(keypoints, angle, origin, limits, rotated_origin, ro
 #'
 #' @param keypoints
 #'
-flipflop_keypoint <- function(keypoints, image_limits, flipflop){
+flipflopKeypoint <- function(keypoints, image_limits, flipflop){
 
   if(nrow(keypoints) == 0)
     return(keypoints)
@@ -705,7 +707,7 @@ flipflop_keypoint <- function(keypoints, image_limits, flipflop){
   return(keypoints)
 }
 
-#' image_ggplot_keypoint
+#' imageKeypoint
 #'
 #' add keypoints as points on ggplot object
 #'
@@ -714,7 +716,7 @@ flipflop_keypoint <- function(keypoints, image_limits, flipflop){
 #'
 #' @return ggplot object
 #'
-image_ggplot_keypoint <- function(image, keypoints){
+imageKeypoint <- function(image, keypoints){
 
   if(is.null(keypoints))
     return(image)
@@ -729,7 +731,7 @@ image_ggplot_keypoint <- function(image, keypoints){
 # Managing Images ####
 ####
 
-#' ImageOutput
+#' getImageOutput
 #'
 #' Shiny outputs for a set of magick images with keypoints
 #'
@@ -740,7 +742,7 @@ image_ggplot_keypoint <- function(image, keypoints){
 #' @param output shiny output
 #' @param session shiny session
 #'
-ImageOutput <- function(image_list, keypoints_list = NULL, centre, input, output, session){
+getImageOutput <- function(image_list, keypoints_list = NULL, centre, input, output, session){
 
   # get image types
   image_types <- c("ref","query")
@@ -758,15 +760,15 @@ ImageOutput <- function(image_list, keypoints_list = NULL, centre, input, output
         keypoints <- keypoints_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]]
 
         # transform image and keypoints
-        img <- transform_magick_image_keypoints(image_list[[i]], keypoints, paste0(type, "_image",i), input, session)
-        img <- image_ggplot_keypoint(image_ggplot(img$image), img$keypoints)
+        img <- transformImageKeypoints(image_list[[i]], keypoints, paste0(type, "_image",i), input, session)
+        img <- imageKeypoint(image_ggplot(img$image), img$keypoints)
         return(img)
       })
     })
   })
 }
 
-#' transform_magick_image
+#' transformImage
 #'
 #' Apply given transformations to a magick image
 #'
@@ -777,7 +779,7 @@ ImageOutput <- function(image_list, keypoints_list = NULL, centre, input, output
 #'
 #' @return magick image
 #'
-transform_magick_image <- function(image, extension, input, session){
+transformImage <- function(image, extension, input, session){
 
   # rotate image and keypoints
   input_rotate <- as.numeric(input[[paste0("rotate_", extension)]])
@@ -794,7 +796,7 @@ transform_magick_image <- function(image, extension, input, session){
   image
 }
 
-#' transform_magick_image_query_list
+#' transformImageQueryList
 #'
 #' Apply given transformations to a list of magick image and return shiny reactive
 #'
@@ -804,15 +806,15 @@ transform_magick_image <- function(image, extension, input, session){
 #'
 #' @return magick image
 #'
-transform_magick_image_query_list <- function(image_list, input, session){
+transformImageQueryList <- function(image_list, input, session){
 
   # length of images
   len_register <- length(image_list) - 1
 
   trans_query_list <- lapply(1:len_register, function(i){
     reactive({
-      list(ref = transform_magick_image(image_list[[i]], paste0("ref_image",i), input, session),
-           query = transform_magick_image(image_list[[i+1]], paste0("query_image",i), input, session))
+      list(ref = transformImage(image_list[[i]], paste0("ref_image",i), input, session),
+           query = transformImage(image_list[[i+1]], paste0("query_image",i), input, session))
     })
   })
   return(trans_query_list)
@@ -822,7 +824,7 @@ transform_magick_image_query_list <- function(image_list, input, session){
 # Manual Image Registration ####
 ####
 
-#' QueryMatrices
+#' initiateQueryMatrices
 #'
 #' Initiate shiny reactive values for registeration matrices
 #'
@@ -833,7 +835,7 @@ transform_magick_image_query_list <- function(image_list, input, session){
 #'
 #' @return a shiny reactive values object
 #'
-QueryMatrices <- function(len_images, input, output, session){
+initiateQueryMatrices <- function(len_images, input, output, session){
 
   # initiate matrices
   matrix_list <- lapply(1:len_images, function(i) return(NULL))
@@ -1120,9 +1122,8 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
     ref_image <- image_list[[cur_map[2]]]
 
     # compute and get transformation matrix
-    reg <- automated_registration_rcpp(ref_image = ref_image, query_image = aligned_image,
+    reg <- getRcppAutomatedRegistration(ref_image = ref_image, query_image = aligned_image,
                                        as.numeric(input$GOOD_MATCH_PERCENT), as.numeric(input$MAX_FEATURES))
-    # reg <- automated_registration_rcpp(ref_image = ref_image, query_image = aligned_image,  0.20, 1000)
     mapping[[kk]] <- reg$transmat
     aligned_image <- reg$aligned_image
     alignment_image <- reg$alignment_image
@@ -1131,7 +1132,7 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
   return(list(mapping = mapping, aligned_image = aligned_image, alignment_image = alignment_image))
 }
 
-#' automated_registration
+#' getRcppAutomatedRegistration
 #'
 #' automated registration with Rcpp/C++
 #'
@@ -1142,7 +1143,7 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
 #'
 #' @importFrom magick image_read image_data
 #'
-automated_registration_rcpp <- function(ref_image, query_image, GOOD_MATCH_PERCENT = 0.15, MAX_FEATURES = 500) {
+getRcppAutomatedRegistration <- function(ref_image, query_image, GOOD_MATCH_PERCENT = 0.15, MAX_FEATURES = 500) {
   ref_image_rast <- magick::image_data(ref_image)
   query_image_rast <- magick::image_data(query_image)
   reg <- automated_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,

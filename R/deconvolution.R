@@ -181,6 +181,8 @@ getSPOTlight <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seur
 
 #' getMuSiC
 #'
+#' Calculate MuSiC deconvolution for ROIs
+#'
 #' @param object A vrAssay object
 #' @param sc.object a Seurat object
 #' @param sc.assay an assay in Seurat object where single cell count data is pulled

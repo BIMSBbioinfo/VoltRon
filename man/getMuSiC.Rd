@@ -24,5 +24,5 @@ getMuSiC(
 \item{sc.Samples}{metadata column in Seurat that provides the samples in the single cell data}
 }
 \description{
-getMuSiC
+Calculate MuSiC deconvolution for ROIs
 }
