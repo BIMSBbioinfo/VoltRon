@@ -14,7 +14,7 @@
 #'
 #' @export
 #'
-SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL) {
+registerSpatialData <- function(data_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL) {
 
   # shiny
   require(shiny)

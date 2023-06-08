@@ -51,11 +51,11 @@ getNeighbors.vrAssay <- function(object, data.type = "pca", ...){
   # find neighborhood
   nnedges <- FNN::get.knn(nndata)
   nnedges <- nnedges$nn.index
-  nnedges <- cbind(1:length(vrSpatialPoint(object)), nnedges)
+  nnedges <- cbind(1:length(vrSpatialPoints(object)), nnedges)
   nnedges <- apply(nnedges, 1, function(x){
     do.call(c,lapply(x[-1], function(y) return(c(x[1],y))))
   })
-  nnedges <- vrSpatialPoint(object)[nnedges]
+  nnedges <- vrSpatialPoints(object)[nnedges]
 
   # return
   return(nnedges)
@@ -90,7 +90,7 @@ getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters"
   metadata <- Metadata(object, type = vrAssayTypes(object))
   metadata_clusters <- rep(NA, nrow(metadata))
   metadata[[label]] <- metadata_clusters
-  entities <- vrSpatialPoint(object_subset)
+  entities <- vrSpatialPoints(object_subset)
   metadata[entities,][[label]] <- clusters
   Metadata(object, type = vrAssayTypes(object)) <- metadata
 

@@ -96,7 +96,6 @@ vrImages.vrAssay <- function(vr, ...){
   vr@image
 }
 
-
 ####
 # Managing Images ####
 ####

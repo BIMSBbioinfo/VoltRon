@@ -14,7 +14,7 @@ NULL
 normalizeData.VoltRon <- function(object, assay = NULL, ...) {
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # normalize assays
   for(assy in assay_names){
@@ -76,7 +76,7 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
 getFeatures.VoltRon <- function(object, assay = NULL, ...){
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # get features for all coordinates
   for(assy in assay_names){
@@ -130,7 +130,7 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
 getSharedFeatures <- function(object, assay = NULL, n = 3000, ...){
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # get features for all coordinates
   ranks <- NULL
@@ -168,7 +168,7 @@ getSharedFeatures <- function(object, assay = NULL, n = 3000, ...){
 getPCA.VoltRon <- function(object, assay = NULL, dims = 30){
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # get shared features and subset
   features <- getSharedFeatures(object, assay = assay)

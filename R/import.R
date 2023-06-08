@@ -2,9 +2,9 @@
 # Xenium ####
 ####
 
-#' ImportXenium
+#' importXenium
 #'
-#' Importing a Xenium data
+#' Importing Xenium data
 #'
 #' @param dir.path path to Xenium
 #' @param selected_assay selected assay
@@ -15,7 +15,7 @@
 #'
 #' @export
 #'
-ImportXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", ...)
+importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", ...)
 {
   # raw counts
   datafile <- paste0(dir.path, "/cell_feature_matrix.h5")
@@ -86,7 +86,9 @@ rescaleXeniumCells <- function(cells, bbox, image){
 # Visium ####
 ####
 
-#' ImportVisium
+#' importVisium
+#'
+#' Importing Visium data
 #'
 #' @param dir.path path to Xenium
 #' @param assay_name the assay name
@@ -99,7 +101,7 @@ rescaleXeniumCells <- function(cells, bbox, image){
 #'
 #' @export
 #'
-ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
+importVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
 {
   # raw counts
   listoffiles <- list.files(dir.path)
@@ -169,7 +171,9 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
 # GeoMx ####
 ####
 
-#' ImportGeoMx
+#' importGeoMx
+#'
+#' Import GeoMx data
 #'
 #' @param dir.path path to GeoMx run
 #' @param pkc_file path to the pkc file
@@ -187,7 +191,7 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
 #'
 #' @export
 #'
-ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetName, assay_name = "GeoMx", segment_polygons = FALSE, ome.tiff = NULL, ...)
+importGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetName, assay_name = "GeoMx", segment_polygons = FALSE, ome.tiff = NULL, ...)
 {
   if (!requireNamespace('GeomxTools'))
     stop("Please install Seurat package for using Seurat objects")
@@ -245,7 +249,7 @@ ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
     if(is.null(ome.tiff)){
       ome.tiff <- paste0(dir.path, "/geomx.ome.tiff")
     }
-    segments <- ImportGeoMxSegments(ome.tiff, segmentsummary, geomx_image_info)
+    segments <- importGeoMxSegments(ome.tiff, segmentsummary, geomx_image_info)
   }
 
   # create VoltRon
@@ -253,7 +257,7 @@ ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
 }
 
 
-#' ImportGeoMxSegments
+#' importGeoMxSegments
 #'
 #' Import ROI polygons from the OME.TIFF file
 #'
@@ -264,7 +268,7 @@ ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
 #' @importFrom RBioFormats read.omexml
 #' @importFrom XML xmlToList
 #'
-ImportGeoMxSegments <- function(ome.tiff, summary, imageinfo){
+importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
   # get the xml file
   # xmltemp <- xmlExtraction(ometiff = ome.tiff)

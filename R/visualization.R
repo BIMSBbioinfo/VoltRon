@@ -111,7 +111,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "label", font.size =
   # image <- assay@image
   info <- image_info(image)
   coords <- as.data.frame(vrCoordinates(assay))
-  normdata <- Data(assay, norm = TRUE)
+  normdata <- vrData(assay, norm = TRUE)
   # normdata <- assay@normdata
 
   # plotting features
@@ -328,7 +328,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.b
   image <- vrImages(assay)
   info <- image_info(image)
   coords <- as.data.frame(vrCoordinates(assay))
-  normdata <- Data(assay, norm = TRUE)
+  normdata <- vrData(assay, norm = TRUE)
 
   # get data
   if(feature %in% rownames(normdata)){
