@@ -97,7 +97,7 @@ getSpatialFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
   # get data and coordinates
   normdata <- vrData(object, norm = TRUE)
   rawdata <- vrData(object, norm = FALSE)
-  coords <- Coordinates(object)
+  coords <- vrCoordinates(object)
   features <- vrFeatures(object)
 
   # eliminate genes with low counts

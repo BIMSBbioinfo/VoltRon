@@ -359,7 +359,7 @@ getRegisteredObject.VoltRon <- function(sr, mapping_list, register_ind, centre, 
   registered_sr <- sr
   for(i in register_ind){
     mapping <- mapping_list[[i]]
-    coords <- Coordinates(registered_sr[[i]])
+    coords <- vrCoordinates(registered_sr[[i]])
     entities <- rownames(coords)
     for(kk in 1:length(mapping)){
       cur_mapping <- mapping[[kk]]
@@ -373,7 +373,7 @@ getRegisteredObject.VoltRon <- function(sr, mapping_list, register_ind, centre, 
       }
     }
     rownames(coords) <- entities
-    Coordinates(registered_sr[[i]], reg = TRUE) <- coords
+    vrCoordinates(registered_sr[[i]], reg = TRUE) <- coords
   }
   return(registered_sr)
 }

@@ -665,12 +665,12 @@ Graph.VoltRon <- function(object, assay = NULL, ...) {
   return(returngraph)
 }
 
-#' @rdname Coordinates
-#' @method Coordinates VoltRon
+#' @rdname vrCoordinates
+#' @method vrCoordinates VoltRon
 #'
 #' @export
 #'
-Coordinates.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
+vrCoordinates.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
 
   # get assay names
   assay_names <- AssayNames(object, assay = assay)
@@ -678,18 +678,18 @@ Coordinates.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   # get all coordinates
   coords <- NULL
   for(assy in assay_names)
-    coords <- rbind(coords, Coordinates(object[[assy]], reg = reg))
+    coords <- rbind(coords, vrCoordinates(object[[assy]], reg = reg))
 
   # return image
   return(coords)
 }
 
-#' @rdname Coordinates
-#' @method Coordinates<- VoltRon
+#' @rdname vrCoordinates
+#' @method vrCoordinates<- VoltRon
 #'
 #' @export
 #'
-"Coordinates<-.VoltRon" <- function(object, reg = FALSE, ..., value) {
+"vrCoordinates<-.VoltRon" <- function(object, reg = FALSE, ..., value) {
 
   # check the number of assays in the object
   if(nrow(object@sample.metadata) > 1)
@@ -701,19 +701,19 @@ Coordinates.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   vrassay <- vrlayer[[cur_assay$Assay]]
 
   # change coordinates
-  Coordinates(vrassay, reg = reg) <- value
+  vrCoordinates(vrassay, reg = reg) <- value
   vrlayer[[cur_assay$Assay]] <- vrassay
   object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
 
   return(object)
 }
 
-#' @rdname Segments
-#' @method Segments VoltRon
+#' @rdname vrSegments
+#' @method vrSegments VoltRon
 #'
 #' @export
 #'
-Segments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
+vrSegments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
 
   # get assay names
   assay_names <- AssayNames(object, assay = assay)
@@ -721,18 +721,18 @@ Segments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   # get all coordinates
   segts <- NULL
   for(assy in assay_names)
-    segts <- rbind(segts, Segments(object[[assy]], reg = reg))
+    segts <- rbind(segts, vrSegments(object[[assy]], reg = reg))
 
   # return image
   return(segts)
 }
 
-#' @rdname Segments
-#' @method Segments<- VoltRon
+#' @rdname vrSegments
+#' @method vrSegments<- VoltRon
 #'
 #' @export
 #'
-"Segments<-.VoltRon" <- function(object, reg = FALSE, ..., value) {
+"vrSegments<-.VoltRon" <- function(object, reg = FALSE, ..., value) {
 
   # check the number of assays in the object
   if(nrow(object@sample.metadata) > 1)
@@ -744,7 +744,7 @@ Segments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   vrassay <- vrlayer[[cur_assay$Assay]]
 
   # change coordinates
-  Segments(vrassay, reg = reg) <- value
+  vrSegments(vrassay, reg = reg) <- value
   vrlayer[[cur_assay$Assay]] <- vrassay
   object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
 

@@ -109,7 +109,7 @@ SpatPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, p
   # data
   info <- image_info(assay@image)
   image <- assay@image
-  coords <- as.data.frame(assay@coords)
+  coords <- as.data.frame(vrCoordinates(assay))
   normdata <- assay@normdata
 
   # plotting features
@@ -325,7 +325,8 @@ SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "lab
   # data
   info <- image_info(assay@image)
   image <- assay@image
-  coords <- as.data.frame(assay@coords)
+  coords <- as.data.frame(vrCoordinates(assay))
+  # coords <- as.data.frame(assay@coords)
   normdata <- assay@normdata
 
   # get data

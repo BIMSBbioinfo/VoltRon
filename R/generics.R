@@ -306,68 +306,68 @@ getSpatialFeatures <- function(object, ...) {
 }
 
 
-#' Coordinates
+#' vrCoordinates
 #'
 #' Get and set the coordinates of the main assay
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{Coordinates}: The name of the default assay
+#' @return \code{vrCoordinates}: The name of the default assay
 #'
-#' @rdname Coordinates
-#' @export Coordinates
+#' @rdname vrCoordinates
+#' @export vrCoordinates
 #'
 #' @concept data-access
 #'
-Coordinates <- function(object, ...) {
-  UseMethod(generic = 'Coordinates', object = object)
+vrCoordinates <- function(object, ...) {
+  UseMethod(generic = 'vrCoordinates', object = object)
 }
 
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{Coordinates<-}: The coordinates updated
+#' @return \code{vrCoordinates<-}: The coordinates updated
 #'
-#' @rdname Coordinates
-#' @export Coordinates<-
+#' @rdname vrCoordinates
+#' @export vrCoordinates<-
 #'
 #' @concept data-access
 #'
-"Coordinates<-" <- function(object, ...) {
-  UseMethod(generic = 'Coordinates<-', object = object)
+"vrCoordinates<-" <- function(object, ...) {
+  UseMethod(generic = 'vrCoordinates<-', object = object)
 }
 
-#' Segments
+#' vrSegments
 #'
 #' Get and set the segments of spatian points of the main assay
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{Segments}: The name of the default assay
+#' @return \code{vrSegments}: The name of the default assay
 #'
-#' @rdname Segments
-#' @export Segments
+#' @rdname vrSegments
+#' @export vrSegments
 #'
 #' @concept data-access
 #'
-Segments <- function(object, ...) {
-  UseMethod(generic = 'Segments', object = object)
+vrSegments <- function(object, ...) {
+  UseMethod(generic = 'vrSegments', object = object)
 }
 
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{Segments<-}: The coordinates updated
+#' @return \code{vrSegments<-}: The coordinates updated
 #'
-#' @rdname Segments
-#' @export Segments<-
+#' @rdname vrSegments
+#' @export vrSegments<-
 #'
 #' @concept data-access
 #'
-"Segments<-" <- function(object, ...) {
-  UseMethod(generic = 'Segments<-', object = object)
+"vrSegments<-" <- function(object, ...) {
+  UseMethod(generic = 'vrSegments<-', object = object)
 }
 
 #' Distances

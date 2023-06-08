@@ -84,7 +84,7 @@ RunRCTD <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_cl
   # create spatial data
   cat("Configuring Spatial Assay ...\n")
   spatialcounts <- vrData(object, norm = FALSE)
-  coords <- as.data.frame(Coordinates(object))
+  coords <- as.data.frame(vrCoordinates(object))
   spatialnUMI <- colSums(spatialcounts)
   spatialdata <- spacexr::SpatialRNA(coords, spatialcounts, spatialnUMI)
 
@@ -118,7 +118,7 @@ RunSPOTlight <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seur
   # create spatial data
   cat("Configuring Spatial Assay ...\n")
   spatialcounts <- vrData(object, norm = FALSE)
-  coords <- as.data.frame(Coordinates(object))
+  coords <- as.data.frame(vrCoordinates(object))
   spatialnUMI <- colSums(spatialcounts)
   spatialdata <- spacexr::SpatialRNA(coords, spatialcounts, spatialnUMI)
 

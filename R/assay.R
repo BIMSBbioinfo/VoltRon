@@ -276,12 +276,12 @@ vrData.vrAssay <- function(object, norm = FALSE) {
   }
 }
 
-#' @rdname Coordinates
-#' @method Coordinates vrAssay
+#' @rdname vrCoordinates
+#' @method vrCoordinates vrAssay
 #'
 #' @export
 #'
-Coordinates.vrAssay <- function(object, reg = FALSE, ...) {
+vrCoordinates.vrAssay <- function(object, reg = FALSE, ...) {
   if(reg){
     if(nrow(object@coords_reg) < 1) {
       return(object@coords)
@@ -293,15 +293,15 @@ Coordinates.vrAssay <- function(object, reg = FALSE, ...) {
   }
 }
 
-#' @rdname Coordinates
-#' @method Coordinates<- vrAssay
+#' @rdname vrCoordinates
+#' @method vrCoordinates<- vrAssay
 #'
 #' @export
 #'
-"Coordinates<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
+"vrCoordinates<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
 
   # get coordinates
-  coords <- Coordinates(object, ...)
+  coords <- vrCoordinates(object, ...)
 
   # stop if the rownames are not matching
   if(any(sapply(rownames(values),is.null)))
@@ -322,12 +322,12 @@ Coordinates.vrAssay <- function(object, reg = FALSE, ...) {
   return(object)
 }
 
-#' @rdname Segments
-#' @method Segments vrAssay
+#' @rdname vrSegments
+#' @method vrSegments vrAssay
 #'
 #' @export
 #'
-Segments.vrAssay <- function(object, reg = FALSE, ...) {
+vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
   if(reg){
     if(length(object@segments_reg) < 1) {
       return(object@segments)
@@ -339,15 +339,15 @@ Segments.vrAssay <- function(object, reg = FALSE, ...) {
   }
 }
 
-#' @rdname Segments
-#' @method Segments<- vrAssay
+#' @rdname vrSegments
+#' @method vrSegments<- vrAssay
 #'
 #' @export
 #'
-"Segments<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
+"vrSegments<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
 
   # get coordinates
-  segts <- Segments(object, ...)
+  segts <- vrSegments(object, ...)
 
   # stop if the names are not matching
   if(any(sapply(names(values),is.null)))
@@ -370,7 +370,7 @@ Segments.vrAssay <- function(object, reg = FALSE, ...) {
 #' @export
 #'
 Distances.vrAssay <- function(object, reg = FALSE, method = "euclidean", ...) {
-  coords <- Coordinates(object, reg = reg, ...)
+  coords <- vrCoordinates(object, reg = reg, ...)
   return(as.matrix(dist(coords, method = method)))
 }
 
