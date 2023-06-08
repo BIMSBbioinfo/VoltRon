@@ -613,12 +613,12 @@ vrSpatialPoints.VoltRon <- function(object, ...) {
   return(vrSpatialPoints(object@metadata))
 }
 
-#' @rdname Features
-#' @method Features VoltRon
+#' @rdname vrFeatures
+#' @method vrFeatures VoltRon
 #'
 #' @export
 #'
-Features.VoltRon <- function(object, assay = NULL, ...) {
+vrFeatures.VoltRon <- function(object, assay = NULL, ...) {
 
   # get assay names
   assay_names <- AssayNames(object, assay = assay)
@@ -626,7 +626,7 @@ Features.VoltRon <- function(object, assay = NULL, ...) {
   # get all features
   features <- NULL
   for(assy in assay_names)
-    features <- c(features, Features(object[[assy]]))
+    features <- c(features, vrFeatures(object[[assy]]))
 
   return(unique(features))
 }

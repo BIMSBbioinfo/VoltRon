@@ -189,12 +189,12 @@ vrSpatialPoints.vrAssay <- function(object, ...) {
   colnames(object@rawdata)
 }
 
-#' @rdname Features
-#' @method Features vrAssay
+#' @rdname vrFeatures
+#' @method vrFeatures vrAssay
 #'
 #' @export
 #'
-Features.vrAssay <- function(object, ...) {
+vrFeatures.vrAssay <- function(object, ...) {
   return(rownames(object@rawdata))
 }
 

@@ -187,22 +187,22 @@ vrSpatialPoints <- function(object, ...) {
   UseMethod(generic = 'vrSpatialPoints', object = object)
 }
 
-#' Features
+#' vrFeatures
 #'
 #' Get features from the main.assay
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{Features}: The name of the default assay
+#' @return \code{vrFeatures}: The name of the default assay
 #'
-#' @rdname Features
-#' @export Features
+#' @rdname vrFeatures
+#' @export vrFeatures
 #'
 #' @concept data-access
 #'
-Features <- function(object, ...) {
-  UseMethod(generic = 'Features', object = object)
+vrFeatures <- function(object, ...) {
+  UseMethod(generic = 'vrFeatures', object = object)
 }
 
 #' Feature Data
