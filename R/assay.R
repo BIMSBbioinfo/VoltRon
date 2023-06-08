@@ -180,60 +180,60 @@ subsetSegments <- function(segments, image, crop_info){
   segments
 }
 
-#' @rdname Entities
-#' @method Entities vrAssay
+#' @rdname vrSpatialPoints
+#' @method vrSpatialPoints vrAssay
 #'
 #' @export
 #'
-Entities.vrAssay <- function(object, ...) {
+vrSpatialPoints.vrAssay <- function(object, ...) {
   colnames(object@rawdata)
 }
 
-#' @rdname Features
-#' @method Features vrAssay
+#' @rdname vrFeatures
+#' @method vrFeatures vrAssay
 #'
 #' @export
 #'
-Features.vrAssay <- function(object, ...) {
+vrFeatures.vrAssay <- function(object, ...) {
   return(rownames(object@rawdata))
 }
 
-#' @rdname FeatureData
-#' @method FeatureData vrAssay
+#' @rdname vrFeatureData
+#' @method vrFeatureData vrAssay
 #'
 #' @export
 #'
-FeatureData.vrAssay <- function(object, ...) {
+vrFeatureData.vrAssay <- function(object, ...) {
   return(object@featuredata)
 }
 
-#' @rdname FeatureData
-#' @method FeatureData<- vrAssay
+#' @rdname vrFeatureData
+#' @method vrFeatureData<- vrAssay
 #'
 #' @export
 #'
-"FeatureData<-.vrAssay" <- function(object, ..., value) {
+"vrFeatureData<-.vrAssay" <- function(object, ..., value) {
   object@featuredata <- value
   return(object)
 }
 
-#' @rdname AssayNames
-#' @method AssayNames vrAssay
+#' @rdname vrAssayNames
+#' @method vrAssayNames vrAssay
 #'
 #' @export
 #'
-AssayNames.vrAssay <- function(object, ...) {
-  assay_ids <- stringr::str_extract(Entities(object), "Assay[0-9]+")
+vrAssayNames.vrAssay <- function(object, ...) {
+  assay_ids <- stringr::str_extract(vrSpatialPoints(object), "Assay[0-9]+")
   assay_id <- unique(assay_ids)
   return(assay_id)
 }
 
-#' @rdname AssayNames
-#' @method AssayNames<- vrAssay
+#' @rdname vrAssayNames
+#' @method vrAssayNames<- vrAssay
 #'
 #' @export
 #'
-"AssayNames<-.vrAssay" <- function(object, ..., value){
+"vrAssayNames<-.vrAssay" <- function(object, ..., value){
 
   # change assay names
   colnames(object@rawdata) <- gsub("Assay[0-9]+$", value, colnames(object@rawdata))
@@ -254,21 +254,21 @@ AssayNames.vrAssay <- function(object, ...) {
   return(object)
 }
 
-#' @rdname AssayTypes
-#' @method AssayTypes vrAssay
+#' @rdname vrAssayTypes
+#' @method vrAssayTypes vrAssay
 #'
 #' @export
 #'
-AssayTypes.vrAssay <- function(object, ...) {
+vrAssayTypes.vrAssay <- function(object, ...) {
   return(object@type)
 }
 
-#' @rdname Data
-#' @method Data vrAssay
+#' @rdname vrData
+#' @method vrData vrAssay
 #'
 #' @export
 #'
-Data.vrAssay <- function(object, norm = FALSE) {
+vrData.vrAssay <- function(object, norm = FALSE) {
   if(norm){
     return(object@normdata)
   } else {
@@ -276,12 +276,12 @@ Data.vrAssay <- function(object, norm = FALSE) {
   }
 }
 
-#' @rdname Coordinates
-#' @method Coordinates vrAssay
+#' @rdname vrCoordinates
+#' @method vrCoordinates vrAssay
 #'
 #' @export
 #'
-Coordinates.vrAssay <- function(object, reg = FALSE, ...) {
+vrCoordinates.vrAssay <- function(object, reg = FALSE, ...) {
   if(reg){
     if(nrow(object@coords_reg) < 1) {
       return(object@coords)
@@ -293,15 +293,15 @@ Coordinates.vrAssay <- function(object, reg = FALSE, ...) {
   }
 }
 
-#' @rdname Coordinates
-#' @method Coordinates<- vrAssay
+#' @rdname vrCoordinates
+#' @method vrCoordinates<- vrAssay
 #'
 #' @export
 #'
-"Coordinates<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
+"vrCoordinates<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
 
   # get coordinates
-  coords <- Coordinates(object, ...)
+  coords <- vrCoordinates(object, ...)
 
   # stop if the rownames are not matching
   if(any(sapply(rownames(values),is.null)))
@@ -322,12 +322,12 @@ Coordinates.vrAssay <- function(object, reg = FALSE, ...) {
   return(object)
 }
 
-#' @rdname Segments
-#' @method Segments vrAssay
+#' @rdname vrSegments
+#' @method vrSegments vrAssay
 #'
 #' @export
 #'
-Segments.vrAssay <- function(object, reg = FALSE, ...) {
+vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
   if(reg){
     if(length(object@segments_reg) < 1) {
       return(object@segments)
@@ -339,15 +339,15 @@ Segments.vrAssay <- function(object, reg = FALSE, ...) {
   }
 }
 
-#' @rdname Segments
-#' @method Segments<- vrAssay
+#' @rdname vrSegments
+#' @method vrSegments<- vrAssay
 #'
 #' @export
 #'
-"Segments<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
+"vrSegments<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
 
   # get coordinates
-  segts <- Segments(object, ...)
+  segts <- vrSegments(object, ...)
 
   # stop if the names are not matching
   if(any(sapply(names(values),is.null)))
@@ -364,31 +364,31 @@ Segments.vrAssay <- function(object, reg = FALSE, ...) {
   return(object)
 }
 
-#' @rdname Distances
-#' @method Distances vrAssay
+#' @rdname vrDistances
+#' @method vrDistances vrAssay
 #'
 #' @export
 #'
-Distances.vrAssay <- function(object, reg = FALSE, method = "euclidean", ...) {
-  coords <- Coordinates(object, reg = reg, ...)
+vrDistances.vrAssay <- function(object, reg = FALSE, method = "euclidean", ...) {
+  coords <- vrCoordinates(object, reg = reg, ...)
   return(as.matrix(dist(coords, method = method)))
 }
 
-#' @rdname Embeddings
-#' @method Embeddings vrAssay
+#' @rdname vrEmbeddings
+#' @method vrEmbeddings vrAssay
 #'
 #' @export
 #'
-Embeddings.vrAssay <- function(object, type = "pca") {
+vrEmbeddings.vrAssay <- function(object, type = "pca") {
   return(object@embeddings[[type]])
 }
 
-#' @rdname Embeddings
-#' @method Embeddings<- vrAssay
+#' @rdname vrEmbeddings
+#' @method vrEmbeddings<- vrAssay
 #'
 #' @export
 #'
-"Embeddings<-.vrAssay" <- function(object, type = "pca", ..., value) {
+"vrEmbeddings<-.vrAssay" <- function(object, type = "pca", ..., value) {
   object@embeddings[[type]] <- value
   return(object)
 }

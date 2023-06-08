@@ -2,16 +2,30 @@
 # Spot Deconvolution ####
 ####
 
-RunDecon <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.cluster = "seurat_clusters", sc.nUMI = "nCount_RNA", method = "RCTD", ...){
+#' getDeconvolution
+#'
+#' Calculate deconvolution of spatial spots and ROIs
+#'
+#' @param object a VoltRon object
+#' @param assay assay
+#' @param sc.object Seurat Object
+#' @param sc.assay assay of the Seurat Object used for the single cell data reference
+#' @param sc.cluster metadata column variable used for the single cell data reference
+#' @param method Deconvolution method, RCTD (spot), SPOTlight (spot), MuSiC (ROI)
+#' @param ... additional parameters passed to \code{}
+#'
+#' @export
+#'
+getDeconvolution <- function(object, assay = NULL, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", method = "RCTD", ...){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # check assay type
-  assay.types <- unique(AssayTypes(object, assay = assay))
+  assay.types <- unique(vrAssayTypes(object, assay = assay))
 
   if(length(assay.types) > 1){
     stop("Please make sure that only assays of one assay type (cell/spot/ROI) are being deconvoluted at a time!")
@@ -22,7 +36,7 @@ RunDecon <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.clust
       cur_assay <- object[[assy]]
 
       # RCTD
-      rawdata <- RunDeconSingle(object = cur_assay, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, method = method, ...)
+      rawdata <- getDeconSingle(object = cur_assay, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, method = method, ...)
 
       # Add as new assay
       cat("Adding cell type compositions as new assay:", paste(sample.metadata[assy, "Assay"], "decon", sep = "_"), "...\n")
@@ -31,7 +45,7 @@ RunDecon <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.clust
                      coords = cur_assay@coords[colnames(rawdata),],
                      image = cur_assay@image, segments = cur_assay@segments,
                      type = cur_assay@type, params = cur_assay@params)
-      object <- AddAssay(object,
+      object <- addAssay(object,
                          assay = rawdata,
                          assay_name = paste(sample.metadata[assy, "Assay"], "decon", sep = "_"),
                          sample = sample.metadata[assy, "Sample"],
@@ -42,32 +56,43 @@ RunDecon <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.clust
   return(object)
 }
 
-RunDeconSingle <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", method = "RCTD", ...){
+#' getDeconvolution
+#'
+#' Calculate deconvolution of spots and ROIs of a single vrAssay object
+#'
+#' @param object a vrAssay object
+#' @param sc.object Seurat Object
+#' @param sc.assay assay of the Seurat Object used for the single cell data reference
+#' @param sc.cluster metadata column variable used for the single cell data reference
+#' @param method Deconvolution method, RCTD (spot), SPOTlight (spot), MuSiC (ROI)
+#' @param ... additional parameters passed to \code{}
+#'
+getDeconSingle <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", method = "RCTD", ...){
 
   # get assay type
-  assay.type <- AssayTypes(object)
+  assay.type <- vrAssayTypes(object)
 
   if(assay.type == "spot"){
 
     if(method == "RCTD"){
       cat("Running RCTD for spot deconvolution ...\n")
-      rawdata <- RunRCTD(object = object, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
+      rawdata <- getRCTD(object = object, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
     } else if(method == "SPOTlight") {
       cat("Running SPOTlight for spot deconvolution ...\n")
-      rawdata <- RunSPOTlight(object = object, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
+      rawdata <- getSPOTlight(object = object, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
     } else {
       stop("The selected method is not provided for spot deconvolution. Switching to RCTD")
-      rawdata <- RunRCTD(object = object, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
+      rawdata <- getRCTD(object = object, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
     }
 
   } else if(assay.type == "ROI"){
 
     if(method == "MuSiC"){
       cat("Running MuSiC for ROI deconvolution ...\n")
-      rawdata <- RunMuSiC(object = object, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
+      rawdata <- getMuSiC(object = object, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
     } else {
       stop("The selected method is not provided for spot deconvolution. Switching to MuSiC")
-      rawdata <- RunMuSiC(object = object, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
+      rawdata <- getMuSiC(object = object, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
     }
 
   }
@@ -76,15 +101,25 @@ RunDeconSingle <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "se
   return(rawdata)
 }
 
-RunRCTD <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", ...){
+#' getRCTD
+#'
+#' Calculate RCTD deconvolution for spot transcriptomics
+#'
+#' @param object a VoltRon object
+#' @param sc.object Seurat Object
+#' @param sc.assay assay of the Seurat Object used for the single cell data reference
+#' @param sc.cluster metadata column variable used for the single cell data reference
+#' @param ... additional parameters passed to \code{create.RCTD} function
+#'
+getRCTD <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", ...){
 
   if (!requireNamespace('spacexr'))
     stop("Please install spacexr package to use the RCTD algorithm")
 
   # create spatial data
   cat("Configuring Spatial Assay ...\n")
-  spatialcounts <- Data(object, norm = FALSE)
-  coords <- as.data.frame(Coordinates(object))
+  spatialcounts <- vrData(object, norm = FALSE)
+  coords <- as.data.frame(vrCoordinates(object))
   spatialnUMI <- colSums(spatialcounts)
   spatialdata <- spacexr::SpatialRNA(coords, spatialcounts, spatialnUMI)
 
@@ -110,15 +145,15 @@ RunRCTD <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_cl
   return(norm_weights)
 }
 
-RunSPOTlight <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", ...){
+getSPOTlight <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", ...){
 
   if (!requireNamespace('spacexr'))
     stop("Please install spacexr package to use the RCTD algorithm")
 
   # create spatial data
   cat("Configuring Spatial Assay ...\n")
-  spatialcounts <- Data(object, norm = FALSE)
-  coords <- as.data.frame(Coordinates(object))
+  spatialcounts <- vrData(object, norm = FALSE)
+  coords <- as.data.frame(vrCoordinates(object))
   spatialnUMI <- colSums(spatialcounts)
   spatialdata <- spacexr::SpatialRNA(coords, spatialcounts, spatialnUMI)
 
@@ -144,7 +179,9 @@ RunSPOTlight <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seur
   return(norm_weights)
 }
 
-#' RunMuSiC
+#' getMuSiC
+#'
+#' Calculate MuSiC deconvolution for ROIs
 #'
 #' @param object A vrAssay object
 #' @param sc.object a Seurat object
@@ -152,8 +189,7 @@ RunSPOTlight <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seur
 #' @param sc.cluster metadata column in Seurat provides the cell types in single cell data
 #' @param sc.Samples metadata column in Seurat that provides the samples in the single cell data
 #'
-#' @examples
-RunMuSiC <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", sc.Samples = NULL){
+getMuSiC <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", sc.Samples = NULL){
 
   if (!requireNamespace('Seurat'))
     stop("Please install Seurat package for using Seurat objects")
@@ -172,7 +208,7 @@ RunMuSiC <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_c
 
   # deconvolute using
   cat("Calculating Cell Type Compositions of ROIs with MuSiC ...\n")
-  results <- music_prop(bulk.mtx = as.matrix(Data(object)),
+  results <- music_prop(bulk.mtx = as.matrix(vrData(object)),
                         sc.sce = scRNAseq,
                         clusters = sc.cluster,
                         samples = sc.Samples,

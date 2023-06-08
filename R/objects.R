@@ -183,7 +183,7 @@ setMethod(
 
 ### Create VoltRon object ####
 
-#' CreateVoltRon
+#' formVoltRon
 #'
 #' Create a VoltRon object
 #'
@@ -206,7 +206,7 @@ setMethod(
 #' @export
 #' @import igraph
 #'
-CreateVoltRon <- function(data, metadata = NULL, image = NULL,
+formVoltRon <- function(data, metadata = NULL, image = NULL,
                              coords, segments = list(),
                              sample.metadata = NULL, zstack = NULL,
                              main.assay = "Custom_cell", assay.type = "cell", params = list(),
@@ -269,7 +269,7 @@ CreateVoltRon <- function(data, metadata = NULL, image = NULL,
 
   # set zgraph
   if(is.null(zstack)){
-    spatial_entities <- Entities(sr_metadata)
+    spatial_entities <- vrSpatialPoints(sr_metadata)
     zstack <- igraph::make_empty_graph(n = length(spatial_entities), directed = FALSE)
     igraph::V(zstack)$name <- spatial_entities
   }
@@ -296,21 +296,21 @@ CreateVoltRon <- function(data, metadata = NULL, image = NULL,
 
 ### Assay Methods ####
 
-#' @rdname MainAssay
-#' @method MainAssay VoltRon
+#' @rdname vrMainAssay
+#' @method vrMainAssay VoltRon
 #'
 #' @export
 #'
-MainAssay.VoltRon <- function(object, ...) {
+vrMainAssay.VoltRon <- function(object, ...) {
   object@main.assay
 }
 
-#' @rdname MainAssay
-#' @method MainAssay<- VoltRon
+#' @rdname vrMainAssay
+#' @method vrMainAssay<- VoltRon
 #'
 #' @export
 #'
-"MainAssay<-.VoltRon" <- function(object, ..., value) {
+"vrMainAssay<-.VoltRon" <- function(object, ..., value) {
   assay_names <- unique(object@sample.metadata$Assay)
   if(!value %in% assay_names){
     stop("There is no assay names '", value, "' in this object")
@@ -320,13 +320,13 @@ MainAssay.VoltRon <- function(object, ...) {
   return(object)
 }
 
-#' @rdname AddAssay
-#' @method AddAssay VoltRon
+#' @rdname addAssay
+#' @method addAssay VoltRon
 #'
-#' @importfrom igraph union
+#' @importFrom igraph union
 #' @export
 #'
-AddAssay.VoltRon <- function(object, assay, assay_name, sample = "Sample1", layer = "Section1"){
+addAssay.VoltRon <- function(object, assay, assay_name, sample = "Sample1", layer = "Section1"){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -339,40 +339,40 @@ AddAssay.VoltRon <- function(object, assay, assay_name, sample = "Sample1", laye
   # update sample.metadata and metadata
   object@sample.metadata <- rbind(sample.metadata, c(assay_name, layer, sample))
   rownames(object@sample.metadata) <- assay_names
-  object@metadata <- AddAssay(object@metadata,
+  object@metadata <- addAssay(object@metadata,
                               assay = assay, assay_name = assay_name,
                               sample = sample, layer = layer)
 
   # update sample and layer
   assay_list <- object[[sample, layer]]@assay
-  AssayNames(assay) <- assay_id
+  vrAssayNames(assay) <- assay_id
   new_assay_list <- list(assay)
   names(new_assay_list) <- assay_name
   assay_list <- c(assay_list, new_assay_list)
   object[[sample, layer]]@assay <- assay_list
 
   # update graph
-  newgraph <- igraph::make_empty_graph(n = length(Entities(assay)), directed = FALSE)
-  igraph::V(newgraph)$name <- Entities(assay)
+  newgraph <- igraph::make_empty_graph(n = length(vrSpatialPoints(assay)), directed = FALSE)
+  igraph::V(newgraph)$name <- vrSpatialPoints(assay)
   object@zstack <- igraph::union(object@zstack, newgraph)
 
   # return
   return(object)
 }
 
-#' @rdname AssayNames
-#' @method AssayNames VoltRon
+#' @rdname vrAssayNames
+#' @method vrAssayNames VoltRon
 #'
 #' @export
 #'
-AssayNames.VoltRon <- function(object, assay = NULL){
+vrAssayNames.VoltRon <- function(object, assay = NULL){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
 
   # check assays
   if(is.null(assay))
-    assay <- MainAssay(object)
+    assay <- vrMainAssay(object)
 
   # get assay names
   if(assay %in% sample.metadata$Assay){
@@ -388,18 +388,18 @@ AssayNames.VoltRon <- function(object, assay = NULL){
   return(assay_names)
 }
 
-#' @rdname AssayTypes
-#' @method AssayTypes VoltRon
+#' @rdname vrAssayTypes
+#' @method vrAssayTypes VoltRon
 #'
 #' @export
 #'
-AssayTypes.VoltRon <- function(object, assay = NULL){
+vrAssayTypes.VoltRon <- function(object, assay = NULL){
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # get assay types
-  assay_types <- sapply(assay_names, function(x) AssayTypes(object[[x]]))
+  assay_types <- sapply(assay_names, function(x) vrAssayTypes(object[[x]]))
 
   return(assay_types)
 }
@@ -455,7 +455,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, entiti
   } else if(!is.null(entities)) {
 
     metadata <- subset.vrMetadata(object@metadata, entities = entities)
-    assays <- unique(stringr::str_extract(Entities(metadata), "Assay[0-9]+"))
+    assays <- unique(stringr::str_extract(vrSpatialPoints(metadata), "Assay[0-9]+"))
     sample.metadata <- subset.sampleMetadata(object@sample.metadata, assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
@@ -466,7 +466,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, entiti
   } else if(!is.null(features)){
 
     sample.metadata <- SampleMetadata(object)
-    assay_names <- AssayNames(object)
+    assay_names <- vrAssayNames(object)
     for(assy in assay_names){
       cur_assay <- sample.metadata[assy,]
       vrlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
@@ -493,7 +493,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, entiti
         listofSamples <- sapply(object@samples[samples], function(samp) {
           subset.vrSample(samp, image = image)
         }, USE.NAMES = TRUE)
-        entities <-  do.call(c, lapply(listofSamples, Entities.vrSample))
+        entities <-  do.call(c, lapply(listofSamples, vrSpatialPoints.vrSample))
         metadata <- subset.vrMetadata(object@metadata, entities = entities)
       }
     } else if(image){
@@ -504,7 +504,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, entiti
 
   # other attributes
   main.assay <- unique(sample.metadata$Assay)[unique(sample.metadata$Assay) == names(table(sample.metadata$Assay))[which.max(table(sample.metadata$Assay))]]
-  zstack <- subgraph(object@zstack, V(object@zstack)[names(V(object@zstack)) %in% Entities(metadata)])
+  zstack <- subgraph(object@zstack, V(object@zstack)[names(V(object@zstack)) %in% vrSpatialPoints(metadata)])
   project <- object@project
 
   # set VoltRon class
@@ -604,92 +604,92 @@ SampleMetadata.VoltRon <- function(object, ...) {
   object@sample.metadata
 }
 
-#' @rdname Entities
-#' @method Entities VoltRon
+#' @rdname vrSpatialPoints
+#' @method vrSpatialPoints VoltRon
 #'
 #' @export
 #'
-Entities.VoltRon <- function(object, ...) {
-  return(Entities(object@metadata))
+vrSpatialPoints.VoltRon <- function(object, ...) {
+  return(vrSpatialPoints(object@metadata))
 }
 
-#' @rdname Features
-#' @method Features VoltRon
+#' @rdname vrFeatures
+#' @method vrFeatures VoltRon
 #'
 #' @export
 #'
-Features.VoltRon <- function(object, assay = NULL, ...) {
+vrFeatures.VoltRon <- function(object, assay = NULL, ...) {
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # get all features
   features <- NULL
   for(assy in assay_names)
-    features <- c(features, Features(object[[assy]]))
+    features <- c(features, vrFeatures(object[[assy]]))
 
   return(unique(features))
 }
 
-#' @rdname Data
-#' @method Data VoltRon
+#' @rdname vrData
+#' @method vrData VoltRon
 #'
 #' @export
 #'
-Data.VoltRon <- function(object, assay = NULL, ...) {
+vrData.VoltRon <- function(object, assay = NULL, ...) {
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # get all coordinates
   returndata_list <- list()
   for(i in 1:length(assay_names))
-    returndata_list[[i]] <- Data(object[[assay_names[i]]], ...)
+    returndata_list[[i]] <- vrData(object[[assay_names[i]]], ...)
 
   return(do.call(cbind, returndata_list))
 }
 
-#' @rdname Graph
-#' @method Graph VoltRon
+#' @rdname vrGraph
+#' @method vrGraph VoltRon
 #'
 #' @export
 #'
-Graph.VoltRon <- function(object, assay = NULL, ...) {
+vrGraph.VoltRon <- function(object, assay = NULL, ...) {
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
   assay_pattern <- paste0(assay_names, collapse = "|")
-  node_names <- Entities(object)[grepl(assay_pattern, Entities(object))]
+  node_names <- vrSpatialPoints(object)[grepl(assay_pattern, vrSpatialPoints(object))]
 
   returngraph <- induced_subgraph(object@zstack, node_names)
   return(returngraph)
 }
 
-#' @rdname Coordinates
-#' @method Coordinates VoltRon
+#' @rdname vrCoordinates
+#' @method vrCoordinates VoltRon
 #'
 #' @export
 #'
-Coordinates.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
+vrCoordinates.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # get all coordinates
   coords <- NULL
   for(assy in assay_names)
-    coords <- rbind(coords, Coordinates(object[[assy]], reg = reg))
+    coords <- rbind(coords, vrCoordinates(object[[assy]], reg = reg))
 
   # return image
   return(coords)
 }
 
-#' @rdname Coordinates
-#' @method Coordinates<- VoltRon
+#' @rdname vrCoordinates
+#' @method vrCoordinates<- VoltRon
 #'
 #' @export
 #'
-"Coordinates<-.VoltRon" <- function(object, reg = FALSE, ..., value) {
+"vrCoordinates<-.VoltRon" <- function(object, reg = FALSE, ..., value) {
 
   # check the number of assays in the object
   if(nrow(object@sample.metadata) > 1)
@@ -701,38 +701,38 @@ Coordinates.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   vrassay <- vrlayer[[cur_assay$Assay]]
 
   # change coordinates
-  Coordinates(vrassay, reg = reg) <- value
+  vrCoordinates(vrassay, reg = reg) <- value
   vrlayer[[cur_assay$Assay]] <- vrassay
   object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
 
   return(object)
 }
 
-#' @rdname Segments
-#' @method Segments VoltRon
+#' @rdname vrSegments
+#' @method vrSegments VoltRon
 #'
 #' @export
 #'
-Segments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
+vrSegments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # get all coordinates
   segts <- NULL
   for(assy in assay_names)
-    segts <- rbind(segts, Segments(object[[assy]], reg = reg))
+    segts <- rbind(segts, vrSegments(object[[assy]], reg = reg))
 
   # return image
   return(segts)
 }
 
-#' @rdname Segments
-#' @method Segments<- VoltRon
+#' @rdname vrSegments
+#' @method vrSegments<- VoltRon
 #'
 #' @export
 #'
-"Segments<-.VoltRon" <- function(object, reg = FALSE, ..., value) {
+"vrSegments<-.VoltRon" <- function(object, reg = FALSE, ..., value) {
 
   # check the number of assays in the object
   if(nrow(object@sample.metadata) > 1)
@@ -744,45 +744,45 @@ Segments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   vrassay <- vrlayer[[cur_assay$Assay]]
 
   # change coordinates
-  Segments(vrassay, reg = reg) <- value
+  vrSegments(vrassay, reg = reg) <- value
   vrlayer[[cur_assay$Assay]] <- vrassay
   object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
 
   return(object)
 }
 
-#' @rdname Embeddings
-#' @method Embeddings VoltRon
+#' @rdname vrEmbeddings
+#' @method vrEmbeddings VoltRon
 #'
 #' @export
 #'
-Embeddings.VoltRon <- function(object, assay = NULL, type = "pca", ..., value) {
+vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", ..., value) {
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # get all coordinates
   returndata_list <- list()
   for(i in 1:length(assay_names))
-    returndata_list[[i]] <- Embeddings(object[[assay_names[i]]], type = type, ...)
+    returndata_list[[i]] <- vrEmbeddings(object[[assay_names[i]]], type = type, ...)
 
   return(do.call(rbind, returndata_list))
 }
 
-#' @rdname Embeddings
-#' @method Embeddings<- VoltRon
+#' @rdname vrEmbeddings
+#' @method vrEmbeddings<- VoltRon
 #'
 #' @export
 #'
-"Embeddings<-.VoltRon" <- function(object, assay = NULL, type = "pca", ..., value) {
+"vrEmbeddings<-.VoltRon" <- function(object, assay = NULL, type = "pca", ..., value) {
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # set embeddings
   for(assy in assay_names){
     assayobject <- object[[assy]]
-    Embeddings(assayobject, type = type) <- value[grepl(paste0(assy, "$"), rownames(value)),]
+    vrEmbeddings(assayobject, type = type) <- value[grepl(paste0(assy, "$"), rownames(value)),]
     object[[assy]] <- assayobject
   }
 

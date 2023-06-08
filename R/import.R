@@ -2,20 +2,20 @@
 # Xenium ####
 ####
 
-#' ImportXenium
+#' importXenium
 #'
-#' Importing a Xenium data
+#' Importing Xenium data
 #'
 #' @param dir.path path to Xenium
 #' @param selected_assay selected assay
 #' @param assay_name the assay name of the SR object
-#' @param ... additional parameters passed to \code{CreateVoltRon}
+#' @param ... additional parameters passed to \code{formVoltRon}
 #'
 #' @importFrom magick image_read
 #'
 #' @export
 #'
-ImportXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", ...)
+importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", ...)
 {
   # raw counts
   datafile <- paste0(dir.path, "/cell_feature_matrix.h5")
@@ -56,7 +56,7 @@ ImportXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   }
 
   # create VoltRon
-  CreateVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, assay.type = "cell", ...)
+  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, assay.type = "cell", ...)
 }
 
 #' rescaleXeniumCells
@@ -86,20 +86,22 @@ rescaleXeniumCells <- function(cells, bbox, image){
 # Visium ####
 ####
 
-#' ImportVisium
+#' importVisium
+#'
+#' Importing Visium data
 #'
 #' @param dir.path path to Xenium
 #' @param assay_name the assay name
 #' @param inTissue if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)
-#' @param ... additional parameters passed to \code{CreateVoltRon}
+#' @param ... additional parameters passed to \code{formVoltRon}
 #'
 #' @import hdf5r
-#' @import magick
-#' @import jsonlite
+#' @importFrom magick image_read
+#' @importFrom jsonlite read_json
 #'
 #' @export
 #'
-ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
+importVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
 {
   # raw counts
   listoffiles <- list.files(dir.path)
@@ -129,7 +131,7 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
       coords <- read.csv(file = coords_file, header = FALSE)
       colnames(coords) <- c("barcode", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres")
     } else {
-      coords <- read.csv(file = coords_file, header = FALSE)
+      coords <- read.csv(file = coords_file, header = TRUE)
     }
   } else if(length(coords_file) > 1) {
     stop("There are more than 1 position files in the path")
@@ -162,14 +164,16 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
   }
 
   # create VoltRon
-  CreateVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", ...)
+  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", ...)
 }
 
 ####
 # GeoMx ####
 ####
 
-#' ImportGeoMx
+#' importGeoMx
+#'
+#' Import GeoMx data
 #'
 #' @param dir.path path to GeoMx run
 #' @param pkc_file path to the pkc file
@@ -178,14 +182,16 @@ ImportVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
 #' @param assay_name the assay name, default: GeoMx
 #' @param segment_polygons if TRUE, the ROI polygons are parsed from the OME.TIFF file
 #' @param ome.tiff the OME.TIFF file of the GeoMx experiment if exists
-#' @param ... additional parameters passed to \code{CreateVoltRon}
+#' @param ... additional parameters passed to \code{formVoltRon}
 #'
-#' @import dplyr
+#' @importFrom dplyr %>% full_join
 #' @importFrom xlsx read.xlsx
+#' @importFrom GeomxTools readPKCFile readDccFile
+#' @importFrom magick image_info
 #'
 #' @export
 #'
-ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetName, assay_name = "GeoMx", segment_polygons = FALSE, ome.tiff = NULL, ...)
+importGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetName, assay_name = "GeoMx", segment_polygons = FALSE, ome.tiff = NULL, ...)
 {
   if (!requireNamespace('GeomxTools'))
     stop("Please install Seurat package for using Seurat objects")
@@ -225,7 +231,7 @@ ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
   rawdata <- as.matrix(rawdata)
 
   # get segment summary
-  segmentsummary <- read.xlsx(summarySegment, sheetName = summarySegmentSheetName)
+  segmentsummary <- xlsx::read.xlsx(summarySegment, sheetName = summarySegmentSheetName)
 
   # get image
   image <- image_read(paste0(dir.path, "/morphology.tiff"))
@@ -243,15 +249,15 @@ ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
     if(is.null(ome.tiff)){
       ome.tiff <- paste0(dir.path, "/geomx.ome.tiff")
     }
-    segments <- ImportGeoMxSegments(ome.tiff, segmentsummary, geomx_image_info)
+    segments <- importGeoMxSegments(ome.tiff, segmentsummary, geomx_image_info)
   }
 
   # create VoltRon
-  CreateVoltRon(rawdata, metadata = NULL, image, coords, segments, main.assay = assay_name, assay.type = "ROI", ...)
+  formVoltRon(rawdata, metadata = NULL, image, coords, segments, main.assay = assay_name, assay.type = "ROI", ...)
 }
 
 
-#' ImportGeoMxSegments
+#' importGeoMxSegments
 #'
 #' Import ROI polygons from the OME.TIFF file
 #'
@@ -262,7 +268,7 @@ ImportGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
 #' @importFrom RBioFormats read.omexml
 #' @importFrom XML xmlToList
 #'
-ImportGeoMxSegments <- function(ome.tiff, summary, imageinfo){
+importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
   # get the xml file
   # xmltemp <- xmlExtraction(ometiff = ome.tiff)

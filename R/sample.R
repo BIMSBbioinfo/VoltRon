@@ -175,16 +175,16 @@ subset.vrSample <- function(object, subset, assays = NULL, entities = NULL, imag
 
 ### Get entities vrSample ####
 
-#' @rdname Entities
-#' @method Entities vrSample
+#' @rdname vrSpatialPoints
+#' @method vrSpatialPoints vrSample
 #'
 #' @export
 #'
-Entities.vrSample <- function(object, ...) {
+vrSpatialPoints.vrSample <- function(object, ...) {
 
   layers <- object@layer
   entities <- lapply(layers, function(lay) {
-    Entities(lay)
+    vrSpatialPoints(lay)
   })
   do.call(c, entities)
 }
@@ -223,15 +223,15 @@ subset.vrLayer <- function(object, subset, assays = NULL, entities = NULL, image
   return(object)
 }
 
-#' @rdname Entities
-#' @method Entities vrLayer
+#' @rdname vrSpatialPoints
+#' @method vrSpatialPoints vrLayer
 #'
 #' @export
 #'
-Entities.vrLayer <- function(object, ...) {
+vrSpatialPoints.vrLayer <- function(object, ...) {
   assays <- object@assay
   entities <- lapply(assays, function(assy) {
-    Entities(assy)
+    vrSpatialPoints(assy)
   })
   do.call(c, entities)
 }

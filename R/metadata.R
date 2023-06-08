@@ -98,12 +98,12 @@ setMethod(
 # Methods ####
 ####
 
-#' @rdname Entities
-#' @method Entities vrMetadata
+#' @rdname vrSpatialPoints
+#' @method vrSpatialPoints vrMetadata
 #'
 #' @export
 #'
-Entities.vrMetadata <- function(object, ...) {
+vrSpatialPoints.vrMetadata <- function(object, ...) {
 
   # get the combination of cells, spots and ROIs
   points <- c(rownames(object@cell),
@@ -244,23 +244,22 @@ merge.sampleMetadata <- function(metadata_list, sample_name = NULL) {
 
 ### Assay Methods ####
 
-#' @rdname AddAssay
-#' @method AddAssay vrMetadata
+#' @rdname addAssay
+#' @method addAssay vrMetadata
 #'
-#' @importFrom stringr str_extract str_replace
-#' @importFrom stringi str_replace
-#' @import
+#' @importFrom dplyr bind_rows
+#'
 #' @export
 #'
-AddAssay.vrMetadata <- function(object, assay, assay_name, sample = "Sample1", layer = "Section1"){
+addAssay.vrMetadata <- function(object, assay, assay_name, sample = "Sample1", layer = "Section1"){
 
   # assay info
-  assay.type <- AssayTypes(assay)
+  assay.type <- vrAssayTypes(assay)
 
   # get metadata and other info
   metadata <- slot(object, name = assay.type)
-  data <- Data(assay, norm = FALSE)
-  entities <- Entities(assay)
+  data <- vrData(assay, norm = FALSE)
+  entities <- vrSpatialPoints(assay)
 
   # add new assay
   assay_ids <- stringr::str_extract(entities, "Assay[0-9]+")
@@ -269,11 +268,6 @@ AddAssay.vrMetadata <- function(object, assay, assay_name, sample = "Sample1", l
   entityID <- gsub("Assay[0-9]+$", assay_id, entities)
 
   # metadata
-  # metadata <- rbind(metadata, data.frame(Count = colSums(data),
-  #                              Assay = rep(assay_name, length(entityID)),
-  #                              Layer = rep(layer, length(entityID)),
-  #                              Sample = rep(sample, length(entityID)),
-  #                              row.names = entityID))
   assay_metadata <- data.frame(Count = colSums(data),
                                Assay = rep(assay_name, length(entityID)),
                                Layer = rep(layer, length(entityID)),

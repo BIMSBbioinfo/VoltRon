@@ -9,12 +9,12 @@ addFOVImage(seu, file, fov = "fov", overwrite = FALSE)
 \arguments{
 \item{seu}{Seurat Object with Xenium Data}
 
-\item{file}{the morphology image file created by \code{GenerateXeniumDAPIImage}.}
+\item{file}{the morphology image file created by \code{generateXeniumImage}.}
 
 \item{fov}{FOV name, preferably the name used in the Seurat Object}
 
 \item{overwrite}{Overwrite the existing FOV image}
 }
 \description{
-Adding the Xenium image to the Seurat Object. Please run \code{GenerateXeniumDAPIImage} first.
+Adding the Xenium image to the Seurat Object. Please run \code{generateXeniumImage} first.
 }

@@ -14,7 +14,7 @@ NULL
 normalizeData.VoltRon <- function(object, assay = NULL, ...) {
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # normalize assays
   for(assy in assay_names){
@@ -68,37 +68,37 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
 # Features ####
 ####
 
-#' @rdname getSpatialFeatures
+#' @rdname getFeatures
 #' @concept preprocessing
-#' @method getSpatialFeatures VoltRon
+#' @method getFeatures VoltRon
 #'
 #' @export
-getSpatialFeatures.VoltRon <- function(object, assay = NULL, ...){
+getFeatures.VoltRon <- function(object, assay = NULL, ...){
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # get features for all coordinates
   for(assy in assay_names){
-    object[[assy]] <- getSpatialFeatures(object[[assy]], ...)
+    object[[assy]] <- getFeatures(object[[assy]], ...)
   }
 
   # return
   return(object)
 }
 
-#' @rdname getSpatialFeatures
+#' @rdname getFeatures
 #' @concept preprocessing
-#' @method getSpatialFeatures vrAssay
+#' @method getFeatures vrAssay
 #'
 #' @export
-getSpatialFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
+getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
 
   # get data and coordinates
-  normdata <- Data(object, norm = TRUE)
-  rawdata <- Data(object, norm = FALSE)
-  coords <- Coordinates(object)
-  features <- Features(object)
+  normdata <- vrData(object, norm = TRUE)
+  rawdata <- vrData(object, norm = FALSE)
+  coords <- vrCoordinates(object)
+  features <- vrFeatures(object)
 
   # eliminate genes with low counts
   keep.genes <- which(apply(rawdata,1,max) > max.count)
@@ -114,7 +114,7 @@ getSpatialFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
   vst_data[keep.genes,]$rank <- order(order(vst_data$adj_var[keep.genes], decreasing = TRUE))
 
   # set feature data
-  FeatureData(object) <- vst_data
+  vrFeatureData(object) <- vst_data
 
   # return
   return(object)
@@ -130,12 +130,12 @@ getSpatialFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
 getSharedFeatures <- function(object, assay = NULL, n = 3000, ...){
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # get features for all coordinates
   ranks <- NULL
   for(assy in assay_names){
-    feature_data <- FeatureData(object[[assy]], ...)
+    feature_data <- vrFeatureData(object[[assy]], ...)
     feature_data$gene <- rownames(feature_data)
     if(is.null(ranks)){
       ranks <- feature_data[,c("gene", "rank")]
@@ -157,25 +157,25 @@ getSharedFeatures <- function(object, assay = NULL, n = 3000, ...){
 }
 
 ####
-# Embeddings ####
+# vrEmbeddings ####
 ####
 
-#' @rdname PCA
+#' @rdname getPCA
 #' @concept embedding
-#' @method PCA VoltRon
+#' @method getPCA VoltRon
 #'
 #' @export
-PCA.VoltRon <- function(object, assay = NULL, dims = 30){
+getPCA.VoltRon <- function(object, assay = NULL, dims = 30){
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # get shared features and subset
   features <- getSharedFeatures(object, assay = assay)
   object <- subset(object, features = features)
 
   # get data
-  normdata <- Data(object, norm = TRUE)
+  normdata <- vrData(object, norm = TRUE)
 
   # scale data before PCA
   scale.data <- apply(normdata, 1, scale)
@@ -187,27 +187,27 @@ PCA.VoltRon <- function(object, assay = NULL, dims = 30){
   rownames(pr.data) <- colnames(normdata)
 
   # set Embeddings
-  Embeddings(object, type = "pca") <- pr.data
+  vrEmbeddings(object, type = "pca") <- pr.data
 
   # return
   return(object)
 }
 
-#' @rdname UMAP
+#' @rdname getUMAP
 #' @concept embedding
-#' @method UMAP VoltRon
+#' @method getUMAP VoltRon
 #'
 #' @export
-UMAP.VoltRon <- function(object, assay = NULL, dims = 30, seed = 1){
+getUMAP.VoltRon <- function(object, assay = NULL, dims = 30, seed = 1){
 
   # set Embeddings
-  embedding_data <- Embeddings(object, assay = assay)
+  embedding_data <- vrEmbeddings(object, assay = assay)
 
   # get umap
   umap_data <- umap::umap(embedding_data, preserve.seed = seed)
   umap_data <- umap_data$layout
   colnames(umap_data) <- c("x", "y")
-  Embeddings(object, type = "umap") <- umap_data
+  vrEmbeddings(object, type = "umap") <- umap_data
 
   # return
   return(object)

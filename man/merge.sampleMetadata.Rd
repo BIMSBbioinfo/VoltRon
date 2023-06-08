@@ -7,7 +7,7 @@
 \method{merge}{sampleMetadata}(metadata_list, sample_name = NULL)
 }
 \arguments{
-\item{metadata_list}{a list of sample metadata of a spaceRover object}
+\item{metadata_list}{a list of sample metadata of a VoltRon object}
 
 \item{sample_name}{sample}
 }
