@@ -18,7 +18,7 @@ ImportXenium(
 
 \item{assay_name}{the assay name of the SR object}
 
-\item{...}{additional parameters passed to \code{CreateVoltRon}}
+\item{...}{additional parameters passed to \code{formVoltRon}}
 }
 \description{
 Importing a Xenium data

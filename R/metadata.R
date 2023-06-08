@@ -244,17 +244,17 @@ merge.sampleMetadata <- function(metadata_list, sample_name = NULL) {
 
 ### Assay Methods ####
 
-#' @rdname AddAssay
-#' @method AddAssay vrMetadata
+#' @rdname addAssay
+#' @method addAssay vrMetadata
 #'
 #' @importFrom dplyr bind_rows
 #'
 #' @export
 #'
-AddAssay.vrMetadata <- function(object, assay, assay_name, sample = "Sample1", layer = "Section1"){
+addAssay.vrMetadata <- function(object, assay, assay_name, sample = "Sample1", layer = "Section1"){
 
   # assay info
-  assay.type <- AssayTypes(assay)
+  assay.type <- vrAssayTypes(assay)
 
   # get metadata and other info
   metadata <- slot(object, name = assay.type)

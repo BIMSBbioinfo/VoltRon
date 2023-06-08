@@ -6,7 +6,7 @@
 ## Spatial Identity Plot ####
 ####
 
-#' SpatPlot
+#' vrSpatialPlot
 #'
 #' Plotting identification of spatially resolved cells, spots, and ROI on associated images from multiple assays in a VoltRon object.
 #'
@@ -28,7 +28,7 @@
 #' @importFrom ggpubr ggarrange
 #' @export
 #'
-SpatPlot <- function(object, group.by = "label", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
+vrSpatialPlot <- function(object, group.by = "label", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
                      font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, background = "image",
                      crop = FALSE, common.legend = TRUE, collapse = TRUE) {
 
@@ -39,12 +39,12 @@ SpatPlot <- function(object, group.by = "label", assay = NULL, assay.type = NULL
   gg <- list()
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # get entity type and metadata
   if(is.null(assay.type)){
     # assay_types <- unlist(lapply(assay_names, function(x) object[[x]]@type))
-    assay_types <- AssayTypes(object, assay = assay)
+    assay_types <- vrAssayTypes(object, assay = assay)
     if(length(unique(assay_types)) == 1){
       metadata <- Metadata(object, type = unique(assay_types))
     } else {
@@ -69,7 +69,7 @@ SpatPlot <- function(object, group.by = "label", assay = NULL, assay.type = NULL
 
     # visualize
     p_title <- plot_title[[assy]]
-    gg[[i]] <- SpatPlotSingle(assay = cur_assay, metadata = cur_metadata,
+    gg[[i]] <- vrSpatialPlotSingle(assay = cur_assay, metadata = cur_metadata,
                               group.by = group.by, font.size = font.size, pt.size = pt.size, alpha = alpha,
                               plot_title = p_title, background = background, crop = crop)
     i <- i + 1
@@ -88,7 +88,7 @@ SpatPlot <- function(object, group.by = "label", assay = NULL, assay.type = NULL
   }
 }
 
-#' SpatPlotSingle
+#' vrSpatialPlotSingle
 #'
 #' Plotting a single assay from a VoltRon object. We plot the identification of spatially resolved cells, spots, and ROI on associated images.
 #'
@@ -104,13 +104,15 @@ SpatPlot <- function(object, group.by = "label", assay = NULL, assay.type = NULL
 #'
 #' @import ggplot2
 #'
-SpatPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, pt.size = 2, alpha = 0.6, plot_title = NULL, background = "image", crop = FALSE){
+vrSpatialPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, pt.size = 2, alpha = 0.6, plot_title = NULL, background = "image", crop = FALSE){
 
   # data
-  info <- image_info(assay@image)
-  image <- assay@image
+  image <- vrImages(assay)
+  # image <- assay@image
+  info <- image_info(image)
   coords <- as.data.frame(vrCoordinates(assay))
-  normdata <- assay@normdata
+  normdata <- Data(assay, norm = TRUE)
+  # normdata <- assay@normdata
 
   # plotting features
   coords[[group.by]] <- as.factor(metadata[,group.by])
@@ -137,7 +139,7 @@ SpatPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, p
     g <- g +
       geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = 21, size = rel(pt.size), alpha = alpha)
   } else {
-    stop("Only spots and cells can be visualized with SpatPlot!")
+    stop("Only spots and cells can be visualized with vrSpatialPlot!")
   }
 
   # more visualization parameters
@@ -179,7 +181,7 @@ SpatPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, p
 ## Spatial Feature Plot ####
 ####
 
-#' SpatFeatPlot
+#' vrSpatialFeaturePlot
 #'
 #' Plotting single/multiple features of spatially resolved cells, spots, and ROI on associated images from multiple assays in a VoltRon object.
 #'
@@ -203,7 +205,7 @@ SpatPlotSingle <- function(assay, metadata, group.by = "label", font.size = 2, p
 #' @importFrom ggpubr ggarrange
 #' @export
 #'
-SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
+vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
                          font.size = 2, pt.size = 2, alpha = 0.6, keep.scale = "feature", label = FALSE, background = "image",
                          crop = FALSE, common.legend = TRUE, collapse = TRUE) {
 
@@ -214,11 +216,11 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, ass
   gg <- list()
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # get entity type and metadata
   if(is.null(assay.type)){
-    assay_types <- AssayTypes(object, assay = assay)
+    assay_types <- vrAssayTypes(object, assay = assay)
     if(length(unique(assay_types)) == 1){
       assay.type <- unique(assay_types)
       metadata <- Metadata(object, type = assay.type)
@@ -274,7 +276,7 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, ass
       # visualize
       p_title <- plot_title[[assy]]
       l_title <- legend_title[[feat]]
-      gg[[i]] <- SpatFeatPlotSingle(assay = cur_assay, metadata = cur_metadata, feature = feat, limits = limits[[feat]][[assy]],
+      gg[[i]] <- vrSpatialFeaturePlotSingle(assay = cur_assay, metadata = cur_metadata, feature = feat, limits = limits[[feat]][[assy]],
                               group.by = group.by, font.size = font.size, pt.size = pt.size, alpha = alpha,
                               label = label, plot_title = p_title, legend_title = l_title, background = background, crop = crop)
       i <- i + 1
@@ -299,7 +301,7 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, ass
   }
 }
 
-#' SpatFeatPlotSingle
+#' vrSpatialFeaturePlotSingle
 #'
 #' A single Spatial Feature plot of VoltRon objects
 #'
@@ -319,15 +321,14 @@ SpatFeatPlot <- function(object, features, group.by = "label", assay = NULL, ass
 #'
 #' @import ggplot2
 #'
-SpatFeatPlotSingle <- function(assay, metadata, feature, limits, group.by = "label",
+vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.by = "label",
                                font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, plot_title = NULL, legend_title = NULL, background = "image", crop = FALSE){
 
   # data
-  info <- image_info(assay@image)
-  image <- assay@image
+  image <- vrImages(assay)
+  info <- image_info(image)
   coords <- as.data.frame(vrCoordinates(assay))
-  # coords <- as.data.frame(assay@coords)
-  normdata <- assay@normdata
+  normdata <- Data(assay, norm = TRUE)
 
   # get data
   if(feature %in% rownames(normdata)){
@@ -488,7 +489,25 @@ GeomSpot <- ggproto("GeomSpot",
 # Scatter Plot ####
 ####
 
-ScatterFeaturePlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NULL, assay.type = NULL,
+#' vrScatterPlot
+#'
+#' get a scatter plot between two features
+#'
+#' @param object a VoltRon object
+#' @param feature.1 first feature
+#' @param feature.2 second feature
+#' @param norm if TRUE, the normalize data will be used
+#' @param assay assay name
+#' @param assay.type assay type
+#' @param pt.size point size
+#' @param font.size font size
+#' @param group.by a column from metadata to label points
+#' @param label whether labels are visualized or not
+#' @param trend inserting a trend line two the scatter plot
+#'
+#' @export
+#'
+vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NULL, assay.type = NULL,
                                pt.size = 2, font.size = 2, group.by = "label", label = FALSE, trend = FALSE){
 
   # check the number of features
@@ -506,11 +525,11 @@ ScatterFeaturePlot <- function(object, feature.1, feature.2, norm = TRUE, assay 
   sample.metadata <- SampleMetadata(object)
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # get entity type and metadata
   if(is.null(assay.type)){
-    assay_types <- AssayTypes(object, assay = assay)
+    assay_types <- vrAssayTypes(object, assay = assay)
     if(length(unique(assay_types)) == 1){
       assay.type <- unique(assay_types)
       metadata <- Metadata(object, type = assay.type)
@@ -560,21 +579,23 @@ ScatterFeaturePlot <- function(object, feature.1, feature.2, norm = TRUE, assay 
 #' HeatmapPlot
 #'
 #' @param object VoltRon object
-#' @param assay
-#' @param assay.type
-#' @param group.by
-#' @param norm
+#' @param assay assay name
+#' @param assay.type assay type
+#' @param group.by a column from metadata to seperate columns of the heatmap
+#' @param norm if TRUE, the normalized data is used
 #'
-#' @import ComplexHeatmap
+#' @importFrom ComplexHeatmap Heatmap
 #'
-HeatmapPlot <- function(object, assay = NULL, assay.type = NULL, group.by = "clusters", norm = TRUE){
+#' @export
+#'
+vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, group.by = "clusters", norm = TRUE){
 
   # data
   heatmapdata <- vrData(object, assay = assay, norm = norm)
 
   # get entity type and metadata
   if(is.null(assay.type)){
-    assay_types <- AssayTypes(object, assay = assay)
+    assay_types <- vrAssayTypes(object, assay = assay)
     if(length(unique(assay_types)) == 1){
       assay.type <- unique(assay_types)
       metadata <- Metadata(object, type = assay.type)

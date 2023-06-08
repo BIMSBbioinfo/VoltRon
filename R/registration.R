@@ -53,7 +53,7 @@ SpatialRegistration <- function(data_list = NULL, reference_spatdata = NULL, que
   }
 
   # get images from the list of objects
-  orig_image_query_list <- unlist(lapply(spatdata_list, Image))
+  orig_image_query_list <- unlist(lapply(spatdata_list, vrImages))
 
 
   ## UI and Server ####
@@ -366,7 +366,7 @@ getRegisteredObject.VoltRon <- function(sr, mapping_list, register_ind, centre, 
       if(reg_mode == "manual"){
         coords <- Morpho::applyTransform(coords, cur_mapping)
       } else {
-        info <- image_info(Image(registered_sr[[i]])[[1]])
+        info <- image_info(vrImages(registered_sr[[i]])[[1]])
         coords[,2] <- info$height - coords[,2]
         coords <- perspectiveTransform(coords, cur_mapping)
         coords[,2] <- info$height - coords[,2]
@@ -972,7 +972,6 @@ computeManualPairwiseTransform <- function(keypoints_list, query_ind, ref_ind){
 #' @importFrom raster rasterize focal res
 #' @importFrom terra rast
 #'
-#' @examples
 getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, input){
 
   # plot with raster

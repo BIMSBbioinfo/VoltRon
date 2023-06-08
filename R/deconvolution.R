@@ -8,10 +8,10 @@ RunDecon <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.clust
   sample.metadata <- SampleMetadata(object)
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # check assay type
-  assay.types <- unique(AssayTypes(object, assay = assay))
+  assay.types <- unique(vrAssayTypes(object, assay = assay))
 
   if(length(assay.types) > 1){
     stop("Please make sure that only assays of one assay type (cell/spot/ROI) are being deconvoluted at a time!")
@@ -31,7 +31,7 @@ RunDecon <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.clust
                      coords = cur_assay@coords[colnames(rawdata),],
                      image = cur_assay@image, segments = cur_assay@segments,
                      type = cur_assay@type, params = cur_assay@params)
-      object <- AddAssay(object,
+      object <- addAssay(object,
                          assay = rawdata,
                          assay_name = paste(sample.metadata[assy, "Assay"], "decon", sep = "_"),
                          sample = sample.metadata[assy, "Sample"],
@@ -45,7 +45,7 @@ RunDecon <- function(object, sc.object, sc.assay = "RNA", assay = NULL, sc.clust
 RunDeconSingle <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", method = "RCTD", ...){
 
   # get assay type
-  assay.type <- AssayTypes(object)
+  assay.type <- vrAssayTypes(object)
 
   if(assay.type == "spot"){
 
@@ -152,7 +152,6 @@ RunSPOTlight <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seur
 #' @param sc.cluster metadata column in Seurat provides the cell types in single cell data
 #' @param sc.Samples metadata column in Seurat that provides the samples in the single cell data
 #'
-#' @examples
 RunMuSiC <- function(object, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", sc.Samples = NULL){
 
   if (!requireNamespace('Seurat'))

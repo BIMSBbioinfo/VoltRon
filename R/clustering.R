@@ -20,7 +20,7 @@ getNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca", ...){
   gg <- list()
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # normalize assays
   for(assy in assay_names){
@@ -45,7 +45,7 @@ getNeighbors.vrAssay <- function(object, data.type = "pca", ...){
     nndata <- vrData(object, norm = (data.type == "norm"))
     nndata <- t(nndata)
   } else {
-    nndata <- Embeddings(object, type = data.type)
+    nndata <- vrEmbeddings(object, type = data.type)
   }
 
   # find neighborhood
@@ -74,25 +74,25 @@ getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters"
   gg <- list()
 
   # get assay names
-  assay_names <- AssayNames(object, assay = assay)
+  assay_names <- vrAssayNames(object, assay = assay)
 
   # get assays
   object_subset <- subset(object, assays = assay_names)
 
   # graph
-  object_graph <- Graph(object_subset)
+  object_graph <- vrGraph(object_subset)
 
   # clustering
   clusters <- cluster_leiden(object_graph, objective_function = "modularity", resolution_parameter = resolution)
   clusters <- clusters$membership
 
   # metadata
-  metadata <- Metadata(object, type = AssayTypes(object))
+  metadata <- Metadata(object, type = vrAssayTypes(object))
   metadata_clusters <- rep(NA, nrow(metadata))
   metadata[[label]] <- metadata_clusters
   entities <- vrSpatialPoint(object_subset)
   metadata[entities,][[label]] <- clusters
-  Metadata(object, type = AssayTypes(object)) <- metadata
+  Metadata(object, type = vrAssayTypes(object)) <- metadata
 
   # return
   return(object)

@@ -30,7 +30,7 @@ ImportGeoMx(
 
 \item{ome.tiff}{the OME.TIFF file of the GeoMx experiment if exists}
 
-\item{...}{additional parameters passed to \code{CreateVoltRon}}
+\item{...}{additional parameters passed to \code{formVoltRon}}
 }
 \description{
 ImportGeoMx

@@ -11,7 +11,7 @@ ImportVisium(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
 
 \item{assay_name}{the assay name}
 
-\item{...}{additional parameters passed to \code{CreateVoltRon}}
+\item{...}{additional parameters passed to \code{formVoltRon}}
 
 \item{inTissue}{if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)}
 }

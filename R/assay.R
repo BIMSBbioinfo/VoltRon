@@ -198,42 +198,42 @@ vrFeatures.vrAssay <- function(object, ...) {
   return(rownames(object@rawdata))
 }
 
-#' @rdname FeatureData
-#' @method FeatureData vrAssay
+#' @rdname vrFeatureData
+#' @method vrFeatureData vrAssay
 #'
 #' @export
 #'
-FeatureData.vrAssay <- function(object, ...) {
+vrFeatureData.vrAssay <- function(object, ...) {
   return(object@featuredata)
 }
 
-#' @rdname FeatureData
-#' @method FeatureData<- vrAssay
+#' @rdname vrFeatureData
+#' @method vrFeatureData<- vrAssay
 #'
 #' @export
 #'
-"FeatureData<-.vrAssay" <- function(object, ..., value) {
+"vrFeatureData<-.vrAssay" <- function(object, ..., value) {
   object@featuredata <- value
   return(object)
 }
 
-#' @rdname AssayNames
-#' @method AssayNames vrAssay
+#' @rdname vrAssayNames
+#' @method vrAssayNames vrAssay
 #'
 #' @export
 #'
-AssayNames.vrAssay <- function(object, ...) {
+vrAssayNames.vrAssay <- function(object, ...) {
   assay_ids <- stringr::str_extract(vrSpatialPoints(object), "Assay[0-9]+")
   assay_id <- unique(assay_ids)
   return(assay_id)
 }
 
-#' @rdname AssayNames
-#' @method AssayNames<- vrAssay
+#' @rdname vrAssayNames
+#' @method vrAssayNames<- vrAssay
 #'
 #' @export
 #'
-"AssayNames<-.vrAssay" <- function(object, ..., value){
+"vrAssayNames<-.vrAssay" <- function(object, ..., value){
 
   # change assay names
   colnames(object@rawdata) <- gsub("Assay[0-9]+$", value, colnames(object@rawdata))
@@ -254,12 +254,12 @@ AssayNames.vrAssay <- function(object, ...) {
   return(object)
 }
 
-#' @rdname AssayTypes
-#' @method AssayTypes vrAssay
+#' @rdname vrAssayTypes
+#' @method vrAssayTypes vrAssay
 #'
 #' @export
 #'
-AssayTypes.vrAssay <- function(object, ...) {
+vrAssayTypes.vrAssay <- function(object, ...) {
   return(object@type)
 }
 
@@ -364,31 +364,31 @@ vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
   return(object)
 }
 
-#' @rdname Distances
-#' @method Distances vrAssay
+#' @rdname vrDistances
+#' @method vrDistances vrAssay
 #'
 #' @export
 #'
-Distances.vrAssay <- function(object, reg = FALSE, method = "euclidean", ...) {
+vrDistances.vrAssay <- function(object, reg = FALSE, method = "euclidean", ...) {
   coords <- vrCoordinates(object, reg = reg, ...)
   return(as.matrix(dist(coords, method = method)))
 }
 
-#' @rdname Embeddings
-#' @method Embeddings vrAssay
+#' @rdname vrEmbeddings
+#' @method vrEmbeddings vrAssay
 #'
 #' @export
 #'
-Embeddings.vrAssay <- function(object, type = "pca") {
+vrEmbeddings.vrAssay <- function(object, type = "pca") {
   return(object@embeddings[[type]])
 }
 
-#' @rdname Embeddings
-#' @method Embeddings<- vrAssay
+#' @rdname vrEmbeddings
+#' @method vrEmbeddings<- vrAssay
 #'
 #' @export
 #'
-"Embeddings<-.vrAssay" <- function(object, type = "pca", ..., value) {
+"vrEmbeddings<-.vrAssay" <- function(object, type = "pca", ..., value) {
   object@embeddings[[type]] <- value
   return(object)
 }

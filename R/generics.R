@@ -75,15 +75,15 @@ SampleMetadata <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{AddAssay}: The name of the default assay
+#' @return \code{addAssay}: The name of the default assay
 #'
-#' @rdname AddAssay
-#' @export AddAssay
+#' @rdname addAssay
+#' @export addAssay
 #'
 #' @concept data-access
 #'
-AddAssay <- function(object, ...) {
-  UseMethod(generic = 'AddAssay', object = object)
+addAssay <- function(object, ...) {
+  UseMethod(generic = 'addAssay', object = object)
 }
 
 #' Get Assay names
@@ -93,29 +93,29 @@ AddAssay <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{AssayNames}: The name of the default assay
+#' @return \code{vrAssayNames}: The name of the default assay
 #'
-#' @rdname AssayNames
-#' @export AssayNames
+#' @rdname vrAssayNames
+#' @export vrAssayNames
 #'
 #' @concept data-access
 #'
-AssayNames <- function(object, ...) {
-  UseMethod(generic = 'AssayNames', object = object)
+vrAssayNames <- function(object, ...) {
+  UseMethod(generic = 'vrAssayNames', object = object)
 }
 
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{AssayNames<-}: The coordinates updated
+#' @return \code{vrAssayNames<-}: The coordinates updated
 #'
-#' @rdname AssayNames
-#' @export AssayNames<-
+#' @rdname vrAssayNames
+#' @export vrAssayNames<-
 #'
 #' @concept data-access
 #'
-"AssayNames<-" <- function(object, ...) {
-  UseMethod(generic = 'AssayNames<-', object = object)
+"vrAssayNames<-" <- function(object, ...) {
+  UseMethod(generic = 'vrAssayNames<-', object = object)
 }
 
 #' Get Assay types
@@ -126,15 +126,15 @@ AssayNames <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{AssayTypes}: The name of the default assay
+#' @return \code{vrAssayTypes}: The name of the default assay
 #'
-#' @rdname AssayTypes
-#' @export AssayTypes
+#' @rdname vrAssayTypes
+#' @export vrAssayTypes
 #'
 #' @concept data-access
 #'
-AssayTypes <- function(object, ...) {
-  UseMethod(generic = 'AssayTypes', object = object)
+vrAssayTypes <- function(object, ...) {
+  UseMethod(generic = 'vrAssayTypes', object = object)
 }
 
 #' Main Assay
@@ -144,29 +144,29 @@ AssayTypes <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{MainAssay}: The name of the default assay
+#' @return \code{vrMainAssay}: The name of the default assay
 #'
-#' @rdname MainAssay
-#' @export MainAssay
+#' @rdname vrMainAssay
+#' @export vrMainAssay
 #'
 #' @concept data-access
 #'
-MainAssay <- function(object, ...) {
-  UseMethod(generic = 'MainAssay', object = object)
+vrMainAssay <- function(object, ...) {
+  UseMethod(generic = 'vrMainAssay', object = object)
 }
 
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{MainAssay<-}: The name of the default assay updated
+#' @return \code{vrMainAssay<-}: The name of the default assay updated
 #'
-#' @rdname MainAssay
-#' @export MainAssay<-
+#' @rdname vrMainAssay
+#' @export vrMainAssay<-
 #'
 #' @concept data-access
 #'
-"MainAssay<-" <- function(object, ...) {
-  UseMethod(generic = 'MainAssay<-', object = object)
+"vrMainAssay<-" <- function(object, ...) {
+  UseMethod(generic = 'vrMainAssay<-', object = object)
 }
 
 #' vrSpatialPoints
@@ -212,29 +212,29 @@ vrFeatures <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{FeatureData}: The name of the default assay
+#' @return \code{vrFeatureData}: The name of the default assay
 #'
-#' @rdname FeatureData
-#' @export FeatureData
+#' @rdname vrFeatureData
+#' @export vrFeatureData
 #'
 #' @concept data-access
 #'
-FeatureData <- function(object, ...) {
-  UseMethod(generic = 'FeatureData', object = object)
+vrFeatureData <- function(object, ...) {
+  UseMethod(generic = 'vrFeatureData', object = object)
 }
 
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{FeatureData<-}: The coordinates updated
+#' @return \code{vrFeatureData<-}: The coordinates updated
 #'
-#' @rdname FeatureData
-#' @export FeatureData<-
+#' @rdname vrFeatureData
+#' @export vrFeatureData<-
 #'
 #' @concept data-access
 #'
-"FeatureData<-" <- function(object, ...) {
-  UseMethod(generic = 'FeatureData<-', object = object)
+"vrFeatureData<-" <- function(object, ...) {
+  UseMethod(generic = 'vrFeatureData<-', object = object)
 }
 
 #' vrData
@@ -255,22 +255,22 @@ vrData <- function(object, ...) {
   UseMethod(generic = 'vrData', object = object)
 }
 
-#' Graph
+#' vrGraph
 #'
 #' Get graph from the main.assay
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{Graph}: The name of the default assay
+#' @return \code{vrGraph}: The name of the default assay
 #'
-#' @rdname Graph
-#' @export Graph
+#' @rdname vrGraph
+#' @export vrGraph
 #'
 #' @concept data-access
 #'
-Graph <- function(object, ...) {
-  UseMethod(generic = 'Graph', object = object)
+vrGraph <- function(object, ...) {
+  UseMethod(generic = 'vrGraph', object = object)
 }
 
 #' Get neighbors
@@ -298,11 +298,11 @@ getNeighbors <- function(object, ...) {
 #'
 #' @return Returns object after normalization
 #'
-#' @rdname getSpatialFeatures
-#' @export getSpatialFeatures
+#' @rdname getFeatures
+#' @export getFeatures
 #'
-getSpatialFeatures <- function(object, ...) {
-  UseMethod(generic = 'getSpatialFeatures', object = object)
+getFeatures <- function(object, ...) {
+  UseMethod(generic = 'getFeatures', object = object)
 }
 
 
@@ -370,124 +370,124 @@ vrSegments <- function(object, ...) {
   UseMethod(generic = 'vrSegments<-', object = object)
 }
 
-#' Distances
+#' vrDistances
 #'
 #' Get distances between spatial points using coordinates
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{Distances}: The name of the default assay
+#' @return \code{vrDistances}: The name of the default assay
 #'
-#' @rdname Distances
-#' @export Distances
+#' @rdname vrDistances
+#' @export vrDistances
 #'
 #' @concept data-access
 #'
-Distances <- function(object, ...) {
-  UseMethod(generic = 'Distances', object = object)
+vrDistances <- function(object, ...) {
+  UseMethod(generic = 'vrDistances', object = object)
 }
 
-#' Embeddings
+#' vrEmbeddings
 #'
 #' Get embeddings of spatial points
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{Embeddings}: The name of the default assay
+#' @return \code{vrEmbeddings}: The name of the default assay
 #'
-#' @rdname Embeddings
-#' @export Embeddings
+#' @rdname vrEmbeddings
+#' @export vrEmbeddings
 #'
 #' @concept data-access
 #'
-Embeddings <- function(object, ...) {
-  UseMethod(generic = 'Embeddings', object = object)
+vrEmbeddings <- function(object, ...) {
+  UseMethod(generic = 'vrEmbeddings', object = object)
 }
 
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{Embeddings}: The name of the default assay
+#' @return \code{vrEmbeddings}: The name of the default assay
 #'
-#' @rdname Embeddings
-#' @export Embeddings<-
+#' @rdname vrEmbeddings
+#' @export vrEmbeddings<-
 #'
 #' @concept data-access
 #'
-"Embeddings<-" <- function(object, ...) {
-  UseMethod(generic = 'Embeddings<-', object = object)
+"vrEmbeddings<-" <- function(object, ...) {
+  UseMethod(generic = 'vrEmbeddings<-', object = object)
 }
 
-#' PCA
+#' getPCA
 #'
-#' calculate PCA of the VoltRon objects
+#' calculate getPCA of the VoltRon objects
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{PCA}: The name of the default assay
+#' @return \code{getPCA}: The name of the default assay
 #'
-#' @rdname PCA
-#' @export PCA
+#' @rdname getPCA
+#' @export getPCA
 #'
 #' @concept data-access
 #'
-PCA <- function(object, ...) {
-  UseMethod(generic = 'PCA', object = object)
+getPCA <- function(object, ...) {
+  UseMethod(generic = 'getPCA', object = object)
 }
 
-#' UMAP
+#' getUMAP
 #'
-#' calculate UMAP of the VoltRon objects
+#' calculate getUMAP of the VoltRon objects
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{UMAP}: The name of the default assay
+#' @return \code{getUMAP}: The name of the default assay
 #'
-#' @rdname UMAP
-#' @export UMAP
+#' @rdname getUMAP
+#' @export getUMAP
 #'
 #' @concept data-access
 #'
-UMAP <- function(object, ...) {
-  UseMethod(generic = 'UMAP', object = object)
+getUMAP <- function(object, ...) {
+  UseMethod(generic = 'getUMAP', object = object)
 }
 
-#' Image
+#' vrImages
 #'
 #' Get images of a VoltRon assay
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{Image}: The name of the default assay
+#' @return \code{vrImages}: The name of the default assay
 #'
-#' @rdname Image
-#' @export Image
+#' @rdname vrImages
+#' @export vrImages
 #'
 #' @concept data-access
 #'
-Image <- function(object, ...) {
-  UseMethod(generic = 'Image', object = object)
+vrImages <- function(object, ...) {
+  UseMethod(generic = 'vrImages', object = object)
 }
 
-#' ResizeImage
+#' resizeImage
 #'
 #' Resizing Magick images
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{ResizeImage}: The name of the default assay
+#' @return \code{resizeImage}: The name of the default assay
 #'
-#' @rdname ResizeImage
-#' @export ResizeImage
+#' @rdname resizeImage
+#' @export resizeImage
 #'
 #' @concept data-access
 #'
-ResizeImage <- function(object, ...) {
-  UseMethod(generic = 'ResizeImage', object = object)
+resizeImage <- function(object, ...) {
+  UseMethod(generic = 'resizeImage', object = object)
 }

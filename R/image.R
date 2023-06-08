@@ -36,13 +36,13 @@ setMethod(
 # Get Images ####
 ####
 
-#' @rdname Image
-#' @method Image Seurat
+#' @rdname vrImages
+#' @method vrImages Seurat
 #'
 #' @export
 #' @import magick
 #'
-Image.Seurat <- function(seu, ...){
+vrImages.Seurat <- function(seu, ...){
 
   # image class from Seurat
   image_classes <- sapply(seu@images, class)
@@ -60,32 +60,42 @@ Image.Seurat <- function(seu, ...){
   return(image)
 }
 
-#' @rdname Image
-#' @method Image VoltRon
+#' @rdname vrImages
+#' @method vrImages VoltRon
 #'
 #' @export
 #'
-Image.VoltRon <- function(sr, ...){
-  sapply(sr@samples, function(samp) Image(samp), USE.NAMES = TRUE)
+vrImages.VoltRon <- function(sr, ...){
+  sapply(sr@samples, function(samp) vrImages(samp), USE.NAMES = TRUE)
 }
 
-#' @rdname Image
-#' @method Image vrSample
+#' @rdname vrImages
+#' @method vrImages vrSample
 #'
 #' @export
 #'
-Image.vrSample <- function(vr, ...){
-  sapply(vr@layer, function(lay) Image(lay), USE.NAMES = TRUE)
+vrImages.vrSample <- function(vr, ...){
+  sapply(vr@layer, function(lay) vrImages(lay), USE.NAMES = TRUE)
 }
 
-#' @rdname Image
-#' @method Image vrLayer
+#' @rdname vrImages
+#' @method vrImages vrLayer
 #'
 #' @export
 #'
-Image.vrLayer <- function(vr, ...){
-  sapply(vr@assay, function(a) a@image, USE.NAMES = TRUE)
+vrImages.vrLayer <- function(vr, ...){
+  sapply(vr@assay, function(a) vrImages(a), USE.NAMES = TRUE)
 }
+
+#' @rdname vrImages
+#' @method vrImages vrAssay
+#'
+#' @export
+#'
+vrImages.vrAssay <- function(vr, ...){
+  vr@image
+}
+
 
 ####
 # Managing Images ####
@@ -93,10 +103,10 @@ Image.vrLayer <- function(vr, ...){
 
 #' addFOVImage
 #'
-#' Adding the Xenium image to the Seurat Object. Please run \code{GenerateXeniumDAPIImage} first.
+#' Adding the Xenium image to the Seurat Object. Please run \code{generateXeniumImage} first.
 #'
 #' @param seu Seurat Object with Xenium Data
-#' @param file the morphology image file created by \code{GenerateXeniumDAPIImage}.
+#' @param file the morphology image file created by \code{generateXeniumImage}.
 #' @param fov FOV name, preferably the name used in the Seurat Object
 #' @param overwrite Overwrite the existing FOV image
 #'
@@ -109,7 +119,7 @@ addFOVImage <- function(seu, file, fov = "fov", overwrite = FALSE) {
 
   # check if the image file exists
   if(!file.exists(file))
-    stop("FOV image was not generated. Please run GenerateXeniumDAPIImage() first!")
+    stop("FOV image was not generated. Please run generateXeniumImage() first!")
 
   # check if the image exists in the Seurat Object
   if(!is.null(seu@images[[fov_image]])){
@@ -127,30 +137,31 @@ addFOVImage <- function(seu, file, fov = "fov", overwrite = FALSE) {
   return(seu)
 }
 
-#' @rdname ResizeImage
-#' @method ResizeImage VoltRon
+#' @rdname resizeImage
+#' @method resizeImage VoltRon
 #'
 #' @export
 #'
-ResizeImage.VoltRon <- function(object, ...){
+resizeImage.VoltRon <- function(object, ...){
   sample.metadata <- SampleMetadata(object)
   assay_names <- rownames(sample.metadata)
   for(assy in assay_names){
     cur_assay <- object[[assy]]
-    object[[assy]] <- ResizeImage(cur_assay, ...)
+    object[[assy]] <- resizeImage(cur_assay, ...)
   }
   return(object)
 }
 
-#' @rdname ResizeImage
-#' @method ResizeImage vrAssay
+#' @rdname resizeImage
+#' @method resizeImage vrAssay
 #'
 #' @export
 #'
-ResizeImage.vrAssay <- function(object, size){
+resizeImage.vrAssay <- function(object, size){
 
   # resize coordinates
-  sizefactor <- image_info(object@image)$width
+  # sizefactor <- image_info(object@image)$width
+  sizefactor <- image_info(vrImages(object))$width
   object@coords <- (object@coords)*size/sizefactor
 
   # resize segments
@@ -168,7 +179,7 @@ ResizeImage.vrAssay <- function(object, size){
 # Image File Manipulation ####
 ####
 
-#' GenerateXeniumDAPIImage
+#' generateXeniumImage
 #'
 #' Generates a low resolution DAPI image from
 #'
@@ -183,7 +194,7 @@ ResizeImage.vrAssay <- function(object, size){
 #'
 #' @export
 #'
-GenerateXeniumDAPIImage <- function(dir.path, increase.contrast = TRUE, resolutionLevel = 7, output.path = NULL, ...) {
+generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolutionLevel = 7, output.path = NULL, ...) {
 
   # file path to either Xenium output folder or specified folder
   file.path <- paste0(dir.path, "/morphology_lowres.tif")
@@ -222,7 +233,7 @@ GenerateXeniumDAPIImage <- function(dir.path, increase.contrast = TRUE, resoluti
   return(NULL)
 }
 
-#' GenerateCosMxImage
+#' generateCosMxImage
 #'
 #' Generates a low resolution Morphology image from CosMx
 #'
@@ -237,7 +248,7 @@ GenerateXeniumDAPIImage <- function(dir.path, increase.contrast = TRUE, resoluti
 #'
 #' @export
 #'
-GenerateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path = NULL, ...) {
+generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path = NULL, ...) {
 
   # file path to either Xenium output folder or specified folder
   file.path <- paste0(dir.path, "/CellComposite_lowres.tif")
@@ -315,7 +326,7 @@ GenerateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 demuxVoltRon <- function(object, scale_width = 800)
 {
   # get images
-  images <- Image(object)
+  images <- vrImages(object)
 
   # check if there are only one assay in the object
   if(length(images) > 1)
