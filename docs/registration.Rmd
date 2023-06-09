@@ -1,0 +1,40 @@
+---
+title: "Spatial Data Registration"
+output: html_document
+date: "2023-06-09"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Import
+
+```{r eval = FALSE}
+library(VoltRon)
+
+# Load Xenium Data Replicate 1
+Xen_seu_R1 <- importXenium("../../../data/10X_Xenium_Visium/Xenium_R1/outs", sample_name = "XeniumR1")
+
+# Load Xenium Data Replicate 2
+Xen_seu_R2 <- importXenium("../../../data/10X_Xenium_Visium/Xenium_R2/outs", sample_name = "XeniumR2")
+
+# Load Visium Data
+Vis_seu <- importVisium("../../../data/10X_Xenium_Visium/Visium", sample_name = "VisiumR1")
+```
+
+## Registration
+
+```{r eval = FALSE}
+keypoints <- readRDS("saved_keypoints/Xenium&Visium_keypoints.rds")
+keypoints <- list(`1-2` = list(ref = keypoints[[2]], query = keypoints[[1]]),
+                  `2-3` = list(ref = keypoints[[1]], query = keypoints[[3]]))
+xen_reg <- registerSpatialData(data_list = list(Xen_seu_R1, Vis_seu, Xen_seu_R2), keypoints = keypoints)
+```
+
+## Combine VoltRon object
+
+```{r eval = FALSE}
+merge_list <- xen_reg$registered_spat
+SRBlock <- merge(merge_list[[1]], merge_list[-1], sample_name = "10XBlock")
+```
