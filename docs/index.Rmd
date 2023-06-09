@@ -1,0 +1,43 @@
+---
+title: "VoltRon: the Defender of Spatial Biology"
+output:
+  html_document:
+    df_print: paged
+---
+
+<style>
+body {
+text-align: justify}
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+.main-container {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+<img width="100%" height="100%" src="images/voltron.png" class="center">
+
+<br>
+
+<p style="text-align: justify">
+<strong> VoltRon </strong> is a novel spatial data analysis toolbox for spatial data analysis, multi-omics integration using spatial image registration. VoltRon provides spatial data integration using multiple image alignment workflows.  
+</p>
+
+<p style="text-align: justify">
+<strong> Analysis of distinct spatial biology technologies </strong> are supported. VoltRon visualizes and analyzes regions of interests (ROIs), spots, cells and even molecules. 
+</p>
+
+<p style="text-align: justify">
+<strong> Automated Image Registration </strong> incorporates OpenCV (fully embedded into the package using Rcpp) to detect common features across images and achieves alignment. Users may interact with shiny apps to change alignment parameters and check alignment accuracy
+</p>
+
+<p style="text-align: justify">
+<strong> Manual Image Registration </strong> helps users to select common features across spatial datasets using reference images stored in spaceRover object. In case, automated registration doesnt work, you can still align images.
+</p>
+
+<br>

@@ -1,0 +1,33 @@
+name: "VoltRon"
+output_dir: "."
+navbar:
+  title: "VoltRon"
+  type: inverse
+  left:
+    - text: "Home"
+      icon: fa-home
+      href: index.html
+    - text: "Tutorials"
+      icon: fa-dna
+      menu:
+      - text: "Spatial Data Registration"
+        href: registration.html
+      - text: "ROI/Spot Deconvolution and Niche Clustering"
+        href: deconvolution.html
+  right:
+    - text: "Contact"
+      icon: fa-envelope-o
+      menu:
+      - text: "Altuna Lab/BIMSB Bioinfo"
+        href: https://www.mdc-berlin.de/bioinformatics
+      - text: "Lanthaler Lab/BIMSB"
+        href: https://www.mdc-berlin.de/landthaler
+    - text: "GitHub"
+      icon: fa-github
+      menu:
+      - text: "VoltRon"
+        href: https://github.com/BIMSBbioinfo/VoltRon
+output:
+  html_document:
+    theme: cosmo
+    highlight: textmate
