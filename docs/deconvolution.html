@@ -10,8 +10,9 @@
 
 
 
+<meta name="date" content="2023-06-09" />
 
-<title>VoltRon: the Defender of Spatial Biology</title>
+<title>ROI/Spot Deconvolution and Niche Clustering</title>
 
 <script src="site_libs/header-attrs-2.21/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -32,8 +33,6 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
-<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
 <link href="site_libs/font-awesome-6.4.0/css/all.min.css" rel="stylesheet" />
 <link href="site_libs/font-awesome-6.4.0/css/v4-shims.min.css" rel="stylesheet" />
 
@@ -312,52 +311,91 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">VoltRon: the Defender of Spatial
-Biology</h1>
+<h1 class="title toc-ignore">ROI/Spot Deconvolution and Niche
+Clustering</h1>
+<h4 class="date">2023-06-09</h4>
 
 </div>
 
 
-<style>
-body {
-text-align: justify}
-.center {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-}
-.main-container {
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-}
-</style>
-<p><img width="100%" height="100%" src="images/voltron.png" class="center"></p>
-<p><br></p>
-<p style="text-align: justify">
-<strong> VoltRon </strong> is a novel spatial data analysis toolbox for
-spatial data analysis, multi-omics integration using spatial image
-registration. VoltRon provides spatial data integration using multiple
-image alignment workflows.
-</p>
-<p style="text-align: justify">
-<strong> Analysis of distinct spatial biology technologies </strong> are
-supported. VoltRon visualizes and analyzes regions of interests (ROIs),
-spots, cells and even molecules.
-</p>
-<p style="text-align: justify">
-<strong> Automated Image Registration </strong> incorporates OpenCV
-(fully embedded into the package using Rcpp) to detect common features
-across images and achieves alignment. Users may interact with shiny apps
-to change alignment parameters and check alignment accuracy
-</p>
-<p style="text-align: justify">
-<strong> Manual Image Registration </strong> helps users to select
-common features across spatial datasets using reference images stored in
-spaceRover object. In case, automated registration doesnt work, you can
-still align images.
-</p>
-<p><br></p>
+<div id="import" class="section level2">
+<h2>Import</h2>
+<pre class="r"><code>library(VoltRon)
+Vis_A1 &lt;- importVisium(&quot;hColon_N_A1/&quot;, sample_name = &quot;Vis_A1&quot;)</code></pre>
+</div>
+<div id="import-single-cell-rna-data" class="section level2">
+<h2>Import Single Cell RNA data</h2>
+<pre class="r"><code>library(Seurat)
+scdata &lt;- readRDS(&quot;GSE166555_uhlitz.rds&quot;)
+meta.data &lt;- read.table(&quot;GSE166555_meta_data.tsv&quot;, header = T, sep = &quot;\t&quot;, na.strings = &quot;NA&quot;, fill = TRUE)
+
+# normalize RNA assay before Spot deconvolution
+scdata &lt;- NormalizeData(scdata, assay = &quot;RNA&quot;)
+
+# subset normal samples
+scdata_subset_normal &lt;- scdata[,scdata$SampleType == &quot;Normal&quot;]
+scdata_subset_normal &lt;- scdata_subset_normal[,!scdata_subset_normal$minorcelltype %in% c(&quot;TC1&quot;, &quot;TC2&quot;, &quot;TC3&quot;, &quot;TC4&quot;, &quot;CAFs&quot;, &quot;Pericytes&quot;)]
+Idents(scdata_subset_normal) &lt;- &quot;minorcelltype&quot;
+
+# Visualize subset
+DimPlot(scdata_subset_normal, reduction = &quot;umap&quot;, label = T) + NoLegend()</code></pre>
+</div>
+<div id="spot-deconvolution-with-rctd" class="section level2">
+<h2>Spot Deconvolution with RCTD</h2>
+<pre class="r"><code># libraries for RCTD algorithm
+library(spacexr)
+
+# Spot Deconvolution
+MainAssay(Vis_A1) &lt;- &quot;Visium&quot;
+Vis_A1 &lt;- RunDecon(Vis_A1, sc.object = scdata_subset_normal, sc.cluster = &quot;minorcelltype&quot;, max_cores = 6)
+
+# Visualize
+MainAssay(Vis_A1) &lt;- &quot;Visium_decon&quot;
+SpatFeatPlot(Vis_A1, features = Features(Vis_A1), crop = TRUE, ncol = 5, alpha = 1)
+SpatFeatPlot(Vis_A1, features = &quot;MyoFBs&quot;, crop = TRUE, ncol = 5, alpha = 1)</code></pre>
+</div>
+<div id="niche-clustering-with-deconvolution-results"
+class="section level2">
+<h2>Niche Clustering with Deconvolution results</h2>
+<pre class="r"><code># get neighbors
+Vis_A1 &lt;- getNeighbors(Vis_A1, data.type = &quot;norm&quot;, assay = &quot;Visium_decon&quot;)
+
+# get clustering
+Vis_A1 &lt;- getClusters(Vis_A1, resolution = 0.4, label = &quot;Decon_clusters&quot;)
+
+# visualize
+MainAssay(Vis_A1) &lt;- &quot;Visium_decon&quot;
+g2 &lt;- SpatPlot(Vis_A1, group.by = &quot;Decon_clusters&quot;, crop = TRUE, alpha = 1)</code></pre>
+</div>
+<div id="regular-clustering-on-gene-expression-data"
+class="section level2">
+<h2>Regular Clustering on gene expression data</h2>
+<pre class="r"><code># normalize
+vrMainAssay(Vis_A1) &lt;- &quot;Visium&quot;
+Vis_A1 &lt;- normalizeData(Vis_A1, method = &quot;LogNorm&quot;)
+
+# get variable features
+Vis_A1 &lt;- getFeatures(Vis_A1)
+Vis_A1 &lt;- getPCA(Vis_A1)
+
+# get neighbors
+Vis_A1 &lt;- getNeighbors(Vis_A1)
+
+# get clustering
+Vis_A1 &lt;- getClusters(Vis_A1, resolution = 0.6, label = &quot;GEX_Clusters&quot;)
+
+# visualize
+vrMainAssay(Vis_A1) &lt;- &quot;Visium&quot;
+g1 &lt;- vrSpatialPlot(Vis_A1, group.by = &quot;GEX_Clusters&quot;, crop = TRUE, alpha = 1)
+
+# Compare two clustering methods
+g1 | g2</code></pre>
+</div>
+<div id="visualization-and-comparison" class="section level2">
+<h2>Visualization and Comparison</h2>
+<pre class="r"><code>MainAssay(Vis_A1) &lt;- &quot;Visium_decon&quot;
+HeatmapPlot(Vis_A1, group.by = &quot;Decon_clusters&quot;)</code></pre>
+</div>
 
 
 

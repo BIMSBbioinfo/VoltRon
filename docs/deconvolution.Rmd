@@ -1,0 +1,98 @@
+---
+title: "ROI/Spot Deconvolution and Niche Clustering"
+output: html_document
+date: "2023-06-09"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Import
+
+```{r eval = FALSE}
+library(VoltRon)
+Vis_A1 <- importVisium("hColon_N_A1/", sample_name = "Vis_A1")
+```
+
+## Import Single Cell RNA data
+
+```{r eval = FALSE}
+library(Seurat)
+scdata <- readRDS("GSE166555_uhlitz.rds")
+meta.data <- read.table("GSE166555_meta_data.tsv", header = T, sep = "\t", na.strings = "NA", fill = TRUE)
+
+# normalize RNA assay before Spot deconvolution
+scdata <- NormalizeData(scdata, assay = "RNA")
+
+# subset normal samples
+scdata_subset_normal <- scdata[,scdata$SampleType == "Normal"]
+scdata_subset_normal <- scdata_subset_normal[,!scdata_subset_normal$minorcelltype %in% c("TC1", "TC2", "TC3", "TC4", "CAFs", "Pericytes")]
+Idents(scdata_subset_normal) <- "minorcelltype"
+
+# Visualize subset
+DimPlot(scdata_subset_normal, reduction = "umap", label = T) + NoLegend()
+```
+
+## Spot Deconvolution with RCTD
+
+```{r eval = FALSE}
+# libraries for RCTD algorithm
+library(spacexr)
+
+# Spot Deconvolution
+MainAssay(Vis_A1) <- "Visium"
+Vis_A1 <- RunDecon(Vis_A1, sc.object = scdata_subset_normal, sc.cluster = "minorcelltype", max_cores = 6)
+
+# Visualize
+MainAssay(Vis_A1) <- "Visium_decon"
+SpatFeatPlot(Vis_A1, features = Features(Vis_A1), crop = TRUE, ncol = 5, alpha = 1)
+SpatFeatPlot(Vis_A1, features = "MyoFBs", crop = TRUE, ncol = 5, alpha = 1)
+
+```
+
+## Niche Clustering with Deconvolution results
+
+```{r eval = FALSE}
+# get neighbors
+Vis_A1 <- getNeighbors(Vis_A1, data.type = "norm", assay = "Visium_decon")
+
+# get clustering
+Vis_A1 <- getClusters(Vis_A1, resolution = 0.4, label = "Decon_clusters")
+
+# visualize
+MainAssay(Vis_A1) <- "Visium_decon"
+g2 <- SpatPlot(Vis_A1, group.by = "Decon_clusters", crop = TRUE, alpha = 1)
+```
+
+## Regular Clustering on gene expression data
+
+```{r eval = FALSE}
+# normalize
+vrMainAssay(Vis_A1) <- "Visium"
+Vis_A1 <- normalizeData(Vis_A1, method = "LogNorm")
+
+# get variable features
+Vis_A1 <- getFeatures(Vis_A1)
+Vis_A1 <- getPCA(Vis_A1)
+
+# get neighbors
+Vis_A1 <- getNeighbors(Vis_A1)
+
+# get clustering
+Vis_A1 <- getClusters(Vis_A1, resolution = 0.6, label = "GEX_Clusters")
+
+# visualize
+vrMainAssay(Vis_A1) <- "Visium"
+g1 <- vrSpatialPlot(Vis_A1, group.by = "GEX_Clusters", crop = TRUE, alpha = 1)
+
+# Compare two clustering methods
+g1 | g2
+```
+
+## Visualization and Comparison
+
+```{r eval = FALSE}
+MainAssay(Vis_A1) <- "Visium_decon"
+HeatmapPlot(Vis_A1, group.by = "Decon_clusters")
+```

@@ -4,10 +4,13 @@ navbar:
   title: "VoltRon"
   type: inverse
   left:
-    - text: "Home"
-      icon: fa-home
-      href: index.html
+    # - text: "Home"
+    #   icon: fa-home
+    #   href: index.html
     - text: "Tutorials"
+      icon: fa-home
+      href: tutorials.html
+    - text: "Vignette"
       icon: fa-dna
       menu:
       - text: "Spatial Data Registration"
