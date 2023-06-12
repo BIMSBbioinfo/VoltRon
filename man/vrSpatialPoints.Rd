@@ -32,6 +32,8 @@ vrSpatialPoints(object, ...) <- value
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{value}{new spatial points}
 }
 \description{
 Get and set spatial entities (cells, spots, ROI)

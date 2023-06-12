@@ -24,7 +24,11 @@ vrEmbeddings(object, ...) <- value
 \arguments{
 \item{object}{An object}
 
+\item{type}{the key name for the embedding}
+
 \item{...}{Arguments passed to other methods}
+
+\item{value}{new embedding data}
 }
 \value{
 \code{vrEmbeddings}: The name of the default assay

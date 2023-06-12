@@ -24,7 +24,11 @@ vrCoordinates(object, ...) <- value
 \arguments{
 \item{object}{An object}
 
+\item{reg}{TRUE if registered segments are being updated}
+
 \item{...}{Arguments passed to other methods}
+
+\item{value}{the new set of 2D coordinates}
 }
 \value{
 \code{vrCoordinates}: The name of the default assay

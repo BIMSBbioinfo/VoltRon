@@ -15,6 +15,8 @@ vrData(object, ...)
 \arguments{
 \item{object}{An object}
 
+\item{norm}{TRUE if normalized data should be returned}
+
 \item{...}{Arguments passed to other methods}
 }
 \value{

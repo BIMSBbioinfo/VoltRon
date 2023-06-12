@@ -9,7 +9,7 @@ subsetSegments(segments, image, crop_info)
 \arguments{
 \item{image}{the magick image associated with the coordinates}
 
-\item{crop_info}{image crop parameters in character, see \code{image_crop}}
+\item{crop_info}{the subseting string passed to \code{magick::image_crop}}
 
 \item{coords}{coordinates}
 }

@@ -12,6 +12,10 @@ vrDistances(object, ...)
 \arguments{
 \item{object}{An object}
 
+\item{reg}{TRUE if registered segments are being updated}
+
+\item{method}{the method argument passed to \code{base::dist}}
+
 \item{...}{Arguments passed to other methods}
 }
 \value{

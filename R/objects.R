@@ -32,7 +32,7 @@ VoltRon <- setClass(
     samples = 'list',
     metadata = "vrMetadata",
     sample.metadata = "data.frame",
-    zstack = "igraph",
+    graph = "igraph",
     main.assay = "character",
     project = 'character'
   )
@@ -193,7 +193,7 @@ setMethod(
 #' @param coord the coordinates of the spatial points
 #' @param segments the segments of the spatial points, optional
 #' @param sample.metadata a data frame of the sample metadata
-#' @param zstack the zstack graph to determine the adjacency of spatial points across layers
+#' @param graph the graph to determine the adjacency of spatial points across layers
 #' @param main.assay the name of the main assay of the object
 #' @param assay_name the name of the assay
 #' @param assay.type the type of the assay (cells, spots, ROIs)
@@ -208,7 +208,7 @@ setMethod(
 #'
 formVoltRon <- function(data, metadata = NULL, image = NULL,
                              coords, segments = list(),
-                             sample.metadata = NULL, zstack = NULL,
+                             sample.metadata = NULL, graph = NULL,
                              main.assay = "Custom_cell", assay.type = "cell", params = list(),
                              sample_name = NULL, layer_name = NULL,
                              project = NULL, ...){
@@ -268,10 +268,10 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
   if(length(segments) > 0) names(segments) <- entityID
 
   # set zgraph
-  if(is.null(zstack)){
+  if(is.null(graph)){
     spatial_points <- vrSpatialPoints(sr_metadata)
-    zstack <- igraph::make_empty_graph(n = length(spatial_points), directed = FALSE)
-    igraph::V(zstack)$name <- spatial_points
+    graph <- igraph::make_empty_graph(n = length(spatial_points), directed = FALSE)
+    igraph::V(graph)$name <- spatial_points
   }
 
   # create vrAssay
@@ -291,7 +291,7 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
   }
 
   # set VoltRon class
-  new("VoltRon", samples = listofSamples, metadata = sr_metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
+  new("VoltRon", samples = listofSamples, metadata = sr_metadata, sample.metadata = sample.metadata, graph = graph, main.assay = main.assay, project = project)
 }
 
 ### Assay Methods ####
@@ -355,7 +355,7 @@ addAssay.VoltRon <- function(object, assay, assay_name, sample = "Sample1", laye
   # update graph
   newgraph <- igraph::make_empty_graph(n = length(vrSpatialPoints(assay)), directed = FALSE)
   igraph::V(newgraph)$name <- vrSpatialPoints(assay)
-  object@zstack <- igraph::union(object@zstack, newgraph)
+  object@graph <- igraph::union(object@graph, newgraph)
 
   # return
   return(object)
@@ -410,10 +410,8 @@ vrAssayTypes.VoltRon <- function(object, assay = NULL){
 #' @method subset VoltRon
 #'
 #' @importFrom rlang enquo eval_tidy quo_get_expr
-#' @import igraph
 #' @importFrom stringr str_extract
-#' @import shiny
-#' @import shinyjs
+#' @import igraph
 #'
 #' @export
 #'
@@ -507,11 +505,11 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 
   # other attributes
   main.assay <- unique(sample.metadata$Assay)[unique(sample.metadata$Assay) == names(table(sample.metadata$Assay))[which.max(table(sample.metadata$Assay))]]
-  zstack <- subgraph(object@zstack, V(object@zstack)[names(V(object@zstack)) %in% vrSpatialPoints(metadata)])
+  graph <- igraph::subgraph(object@graph, V(object@graph)[names(V(object@graph)) %in% vrSpatialPoints(metadata)])
   project <- object@project
 
   # set VoltRon class
-  new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, zstack = zstack, main.assay = main.assay, project = project)
+  new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, graph = graph, main.assay = main.assay, project = project)
 }
 
 #' Merging VoltRon objects
@@ -568,15 +566,15 @@ merge.VoltRon <- function(object, object_list, sample_name = NULL, main.assay = 
     main.assay <- names(sort(table(sample.metadata$Assay), decreasing = TRUE))[1]
 
   # merge graphs
-  zstack_list <- lapply(object_list, function(x) slot(x, name = "zstack"))
-  zstack <- igraph::disjoint_union(zstack_list[1], zstack_list[-1])
+  graph_list <- lapply(object_list, function(x) slot(x, name = "graph"))
+  graph <- igraph::disjoint_union(graph_list[1], graph_list[-1])
 
   # project
   project <- slot(object_list[[1]], "project")
 
   # set VoltRon class
   new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata,
-      zstack = zstack, main.assay = main.assay, project = project)
+      graph = graph, main.assay = main.assay, project = project)
 }
 
 #' @rdname Metadata
@@ -634,6 +632,23 @@ vrFeatures.VoltRon <- function(object, assay = NULL, ...) {
   return(unique(features))
 }
 
+#' @rdname vrFeatureData
+#' @method vrFeatureData VoltRon
+#'
+#' @export
+#'
+vrFeatureData.VoltRon <- function(object, assay = NULL, ...) {
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get all features
+  features <- vrFeatureData(object[[assay_names[1]]], ...)
+
+  # return
+  return(features)
+}
+
 #' @rdname vrData
 #' @method vrData VoltRon
 #'
@@ -664,7 +679,7 @@ vrGraph.VoltRon <- function(object, assay = NULL, ...) {
   assay_pattern <- paste0(assay_names, collapse = "|")
   node_names <- vrSpatialPoints(object)[grepl(assay_pattern, vrSpatialPoints(object))]
 
-  returngraph <- induced_subgraph(object@zstack, node_names)
+  returngraph <- induced_subgraph(object@graph, node_names)
   return(returngraph)
 }
 

@@ -58,6 +58,13 @@ setMethod(
 
 ### Subset vrAssay objects ####
 
+#' @param object A vrAssay object
+#' @param subset Logical statement for subsetting
+#' @param spatialpoints the set of spatial points to subset the object
+#' @param features the set of features to subset the object
+#' @param image the subseting string passed to \code{magick::image_crop}
+#'
+#' @rdname subset
 #' @method subset vrAssay
 #'
 #' @importFrom rlang enquo
@@ -132,7 +139,7 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
 #'
 #' @param coords coordinates
 #' @param image the magick image associated with the coordinates
-#' @param crop_info image crop parameters in character, see \code{image_crop}
+#' @param crop_info the subseting string passed to \code{magick::image_crop}
 #'
 subsetCoordinates <- function(coords, image, crop_info){
 
@@ -177,7 +184,7 @@ subsetCoordinates <- function(coords, image, crop_info){
 #'
 #' @param coords coordinates
 #' @param image the magick image associated with the coordinates
-#' @param crop_info image crop parameters in character, see \code{image_crop}
+#' @param crop_info the subseting string passed to \code{magick::image_crop}
 #'
 subsetSegments <- function(segments, image, crop_info){
   for(i in 1:length(segments)){
@@ -199,6 +206,8 @@ vrSpatialPoints.vrAssay <- function(object, ...) {
   colnames(object@rawdata)
 }
 
+#' @param value new spatial points
+#'
 #' @rdname vrSpatialPoints
 #' @method vrSpatialPoints<- vrAssay
 #'
@@ -277,6 +286,8 @@ vrFeatureData.vrAssay <- function(object, ...) {
   return(object@featuredata)
 }
 
+#' @param value new feature data
+#'
 #' @rdname vrFeatureData
 #' @method vrFeatureData<- vrAssay
 #'
@@ -298,6 +309,8 @@ vrAssayNames.vrAssay <- function(object, ...) {
   return(assay_id)
 }
 
+#' @param value the new postfix name of the assay
+#'
 #' @rdname vrAssayNames
 #' @method vrAssayNames<- vrAssay
 #'
@@ -324,6 +337,8 @@ vrAssayTypes.vrAssay <- function(object, ...) {
   return(object@type)
 }
 
+#' @param norm TRUE if normalized data should be returned
+#'
 #' @rdname vrData
 #' @method vrData vrAssay
 #'
@@ -337,6 +352,8 @@ vrData.vrAssay <- function(object, norm = FALSE) {
   }
 }
 
+#' @param reg TRUE if registered segments are being updated
+#'
 #' @rdname vrCoordinates
 #' @method vrCoordinates vrAssay
 #'
@@ -354,6 +371,9 @@ vrCoordinates.vrAssay <- function(object, reg = FALSE, ...) {
   }
 }
 
+#' @param reg TRUE if registered segments are being updated
+#' @param value the new set of 2D coordinates
+#'
 #' @rdname vrCoordinates
 #' @method vrCoordinates<- vrAssay
 #'
@@ -383,6 +403,8 @@ vrCoordinates.vrAssay <- function(object, reg = FALSE, ...) {
   return(object)
 }
 
+#' @param reg TRUE if registered segments are being updated
+#'
 #' @rdname vrSegments
 #' @method vrSegments vrAssay
 #'
@@ -400,6 +422,9 @@ vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
   }
 }
 
+#' @param reg TRUE if registered segments are being updated
+#' @param value the new set of 2D segments for each spatial point
+#'
 #' @rdname vrSegments
 #' @method vrSegments<- vrAssay
 #'
@@ -425,6 +450,9 @@ vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
   return(object)
 }
 
+#' @param reg TRUE if registered segments are being updated
+#' @param method the method argument passed to \code{base::dist}
+#'
 #' @rdname vrDistances
 #' @method vrDistances vrAssay
 #'
@@ -435,6 +463,8 @@ vrDistances.vrAssay <- function(object, reg = FALSE, method = "euclidean", ...) 
   return(as.matrix(dist(coords, method = method)))
 }
 
+#' @param type the key name for the embedding
+#'
 #' @rdname vrEmbeddings
 #' @method vrEmbeddings vrAssay
 #'
@@ -444,6 +474,9 @@ vrEmbeddings.vrAssay <- function(object, type = "pca") {
   return(object@embeddings[[type]])
 }
 
+#' @param type the key name for the embedding
+#' @param value new embedding data
+#'
 #' @rdname vrEmbeddings
 #' @method vrEmbeddings<- vrAssay
 #'
