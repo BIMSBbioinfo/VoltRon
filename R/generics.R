@@ -176,8 +176,6 @@ vrMainAssay <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{vrSpatialPoints}: The name of the default assay
-#'
 #' @rdname vrSpatialPoints
 #' @export vrSpatialPoints
 #'
@@ -187,14 +185,24 @@ vrSpatialPoints <- function(object, ...) {
   UseMethod(generic = 'vrSpatialPoints', object = object)
 }
 
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname vrSpatialPoints
+#' @export vrSpatialPoints<-
+#'
+#' @concept data-access
+#'
+"vrSpatialPoints<-" <- function(object, ...) {
+  UseMethod(generic = 'vrSpatialPoints<-', object = object)
+}
+
 #' vrFeatures
 #'
 #' Get features from the main.assay
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
-#'
-#' @return \code{vrFeatures}: The name of the default assay
 #'
 #' @rdname vrFeatures
 #' @export vrFeatures
@@ -472,6 +480,20 @@ getUMAP <- function(object, ...) {
 #'
 vrImages <- function(object, ...) {
   UseMethod(generic = 'vrImages', object = object)
+}
+
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{vrImages<-}: The coordinates updated
+#'
+#' @rdname vrImages
+#' @export vrImages<-
+#'
+#' @concept data-access
+#'
+"vrImages<-" <- function(object, ...) {
+  UseMethod(generic = 'vrImages<-', object = object)
 }
 
 #' resizeImage

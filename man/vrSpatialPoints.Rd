@@ -3,7 +3,9 @@
 %   R/objects.R, R/sample.R
 \name{vrSpatialPoints.vrAssay}
 \alias{vrSpatialPoints.vrAssay}
+\alias{vrSpatialPoints<-.vrAssay}
 \alias{vrSpatialPoints}
+\alias{vrSpatialPoints<-}
 \alias{vrSpatialPoints.vrMetadata}
 \alias{vrSpatialPoints.VoltRon}
 \alias{vrSpatialPoints.vrSample}
@@ -12,7 +14,11 @@
 \usage{
 \method{vrSpatialPoints}{vrAssay}(object, ...)
 
+\method{vrSpatialPoints}{vrAssay}(object, ...) <- value
+
 vrSpatialPoints(object, ...)
+
+vrSpatialPoints(object, ...) <- value
 
 \method{vrSpatialPoints}{vrMetadata}(object, ...)
 
@@ -26,9 +32,6 @@ vrSpatialPoints(object, ...)
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
-}
-\value{
-\code{vrSpatialPoints}: The name of the default assay
 }
 \description{
 Get and set spatial entities (cells, spots, ROI)

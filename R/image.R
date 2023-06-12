@@ -96,6 +96,16 @@ vrImages.vrAssay <- function(vr, ...){
   vr@image
 }
 
+#' @rdname vrImages
+#' @method vrImages<- vrAssay
+#'
+#' @export
+#'
+"vrImages<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
+  object@image <- value
+  return(object)
+}
+
 ####
 # Managing Images ####
 ####
