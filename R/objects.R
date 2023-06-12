@@ -190,10 +190,10 @@ setMethod(
 #' @param data the count table
 #' @param metadata a metadata object of class \code{vrMetadata}
 #' @param image the image of the data
-#' @param coord the coordinates of the spatial entities
-#' @param segments the segments of the spatial entities, optional
+#' @param coord the coordinates of the spatial points
+#' @param segments the segments of the spatial points, optional
 #' @param sample.metadata a data frame of the sample metadata
-#' @param zstack the zstack graph to determine the adjacency of spatial entities across layers
+#' @param zstack the zstack graph to determine the adjacency of spatial points across layers
 #' @param main.assay the name of the main assay of the object
 #' @param assay_name the name of the assay
 #' @param assay.type the type of the assay (cells, spots, ROIs)
@@ -269,9 +269,9 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
 
   # set zgraph
   if(is.null(zstack)){
-    spatial_entities <- vrSpatialPoints(sr_metadata)
-    zstack <- igraph::make_empty_graph(n = length(spatial_entities), directed = FALSE)
-    igraph::V(zstack)$name <- spatial_entities
+    spatial_points <- vrSpatialPoints(sr_metadata)
+    zstack <- igraph::make_empty_graph(n = length(spatial_points), directed = FALSE)
+    igraph::V(zstack)$name <- spatial_points
   }
 
   # create vrAssay
@@ -311,7 +311,8 @@ vrMainAssay.VoltRon <- function(object, ...) {
 #' @export
 #'
 "vrMainAssay<-.VoltRon" <- function(object, ..., value) {
-  assay_names <- unique(object@sample.metadata$Assay)
+  sample.metadata <- SampleMetadata(object)
+  assay_names <- unique(sample.metadata$Assay)
   if(!value %in% assay_names){
     stop("There is no assay names '", value, "' in this object")
   } else {
@@ -416,35 +417,35 @@ vrAssayTypes.VoltRon <- function(object, assay = NULL){
 #'
 #' @export
 #'
-subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, entities = NULL, features = NULL, image = NULL, interactive = FALSE) {
+subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatialpoints = NULL, features = NULL, image = NULL, interactive = FALSE) {
 
+  # subseting based on subset argument
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
   }
-
-  if(interactive){
-    results <- demuxVoltRon(object)
-    return(results)
+  if(!missing(subset)){
+    metadata <- Metadata(GeoMxR1, type = "ROI")
+    spatialpoints <- rownames(metadata)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
+    object <- subset(object, spatialpoints = spatialpoints)
+    return(object)
   }
 
-  # subseting on samples
-  if(!missing(subset)){
+  # subseting on other attributes
+  attrinfo <- c(sapply(list(samples, assays, spatialpoints, features), function(x) length(x) > 0), interactive)
+  if(sum(attrinfo) > 1){
+    stop("Please choose only one of the subsetting attributes: 'samples', 'assays', 'spatialpoints', 'features' or 'interactive'")
+  }
 
-    metadata <- Metadata(GeoMxR1, type = "ROI")
-    entities <- rownames(metadata)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
-    object <- subset(object, entities = entities)
-    return(object)
+  if(!is.null(samples)){
 
-  } else if(!is.null(samples)){
-
-    sample.metadata <- subset.sampleMetadata(object@sample.metadata, samples = samples)
+    sample.metadata <- subset.sampleMetadata(SampleMetadata(object), samples = samples)
     metadata <- subset.vrMetadata(object@metadata, samples = samples) # CAN WE CHANGE THIS TO ONLY SUBSET LATER ????
     listofSamples <- object@samples[samples]
 
   # subsetting on assays name
   } else if(!is.null(assays)) {
 
-    sample.metadata <- subset.sampleMetadata(object@sample.metadata, assays = assays)
+    sample.metadata <- subset.sampleMetadata(SampleMetadata(object), assays = assays)
     metadata <- subset.vrMetadata(object@metadata, assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
@@ -452,14 +453,14 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, entiti
     }, USE.NAMES = TRUE)
 
   # subsetting on entity names
-  } else if(!is.null(entities)) {
+  } else if(!is.null(spatialpoints)) {
 
-    metadata <- subset.vrMetadata(object@metadata, entities = entities)
+    metadata <- subset.vrMetadata(object@metadata, spatialpoints = spatialpoints)
     assays <- unique(stringr::str_extract(vrSpatialPoints(metadata), "Assay[0-9]+"))
-    sample.metadata <- subset.sampleMetadata(object@sample.metadata, assays = assays)
+    sample.metadata <- subset.sampleMetadata(SampleMetadata(object), assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
-      subset.vrSample(samp, entities = entities)
+      subset.vrSample(samp, spatialpoints = spatialpoints)
     }, USE.NAMES = TRUE)
 
   # subsetting on features
@@ -485,21 +486,23 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, entiti
     if(class(image) == "character") {
 
       # check if there are only one image and one assay
-      if(nrow(object@sample.metadata) > 1){
+      sample.metadata <- SampleMetadata(object)
+      if(nrow(sample.metadata) > 1){
         stop("Subseting on images can only be performed on VoltRon objects with a single assay")
       } else {
-        sample.metadata <- object@sample.metadata
         samples <- unique(sample.metadata$Sample)
         listofSamples <- sapply(object@samples[samples], function(samp) {
           subset.vrSample(samp, image = image)
         }, USE.NAMES = TRUE)
-        entities <-  do.call(c, lapply(listofSamples, vrSpatialPoints.vrSample))
-        metadata <- subset.vrMetadata(object@metadata, entities = entities)
+        spatialpoints <-  do.call(c, lapply(listofSamples, vrSpatialPoints.vrSample))
+        metadata <- subset.vrMetadata(object@metadata, spatialpoints = spatialpoints)
       }
-    } else if(image){
-      results <- demuxVoltRon(object)
-      return(results)
+    } else {
+      stop("Please provide a character based subsetting notation, see magick documentation")
     }
+  } else if(interactive){
+    results <- demuxVoltRon(object)
+    return(results)
   }
 
   # other attributes
@@ -691,12 +694,15 @@ vrCoordinates.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
 #'
 "vrCoordinates<-.VoltRon" <- function(object, reg = FALSE, ..., value) {
 
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
   # check the number of assays in the object
-  if(nrow(object@sample.metadata) > 1)
+  if(nrow(sample.metadata) > 1)
     stop("Changing the coordinates of multiple assays are not permitted!")
 
   # get assay
-  cur_assay <- object@sample.metadata[1,]
+  cur_assay <- sample.metadata[1,]
   vrlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
   vrassay <- vrlayer[[cur_assay$Assay]]
 
@@ -734,12 +740,15 @@ vrSegments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
 #'
 "vrSegments<-.VoltRon" <- function(object, reg = FALSE, ..., value) {
 
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
   # check the number of assays in the object
-  if(nrow(object@sample.metadata) > 1)
+  if(nrow(sample.metadata) > 1)
     stop("Changing the coordinates of multiple assays are not permitted!")
 
   # get assay
-  cur_assay <- object@sample.metadata[1,]
+  cur_assay <- sample.metadata[1,]
   vrlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
   vrassay <- vrlayer[[cur_assay$Assay]]
 

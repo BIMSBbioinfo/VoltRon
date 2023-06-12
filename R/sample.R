@@ -147,7 +147,7 @@ merge.vrSample <- function(object, object_list, samples = NULL){
 #'
 #' @export
 #'
-subset.vrSample <- function(object, subset, assays = NULL, entities = NULL, image = NULL) {
+subset.vrSample <- function(object, subset, assays = NULL, spatialpoints = NULL, image = NULL) {
 
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
@@ -159,9 +159,9 @@ subset.vrSample <- function(object, subset, assays = NULL, entities = NULL, imag
     object@layer <- sapply(layers, function(lay) {
       subset.vrLayer(lay, assays = assays)
     }, USE.NAMES = TRUE)
-  } else if(!is.null(entities)){
+  } else if(!is.null(spatialpoints)){
     object@layer <- sapply(layers, function(lay) {
-      subset.vrLayer(lay, entities = entities)
+      subset.vrLayer(lay, spatialpoints = spatialpoints)
     }, USE.NAMES = TRUE)
   } else if(!is.null(image)){
     object@layer <- sapply(layers, function(lay) {
@@ -173,7 +173,7 @@ subset.vrSample <- function(object, subset, assays = NULL, entities = NULL, imag
   return(object)
 }
 
-### Get entities vrSample ####
+### Get Spatial Points of vrSample ####
 
 #' @rdname vrSpatialPoints
 #' @method vrSpatialPoints vrSample
@@ -183,10 +183,10 @@ subset.vrSample <- function(object, subset, assays = NULL, entities = NULL, imag
 vrSpatialPoints.vrSample <- function(object, ...) {
 
   layers <- object@layer
-  entities <- lapply(layers, function(lay) {
+  spatialpoints <- lapply(layers, function(lay) {
     vrSpatialPoints(lay)
   })
-  do.call(c, entities)
+  do.call(c, spatialpoints)
 }
 
 ### Subset vrLayer objects ####
@@ -198,7 +198,7 @@ vrSpatialPoints.vrSample <- function(object, ...) {
 #'
 #' @export
 #'
-subset.vrLayer <- function(object, subset, assays = NULL, entities = NULL, image = NULL) {
+subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, image = NULL) {
 
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
@@ -207,10 +207,10 @@ subset.vrLayer <- function(object, subset, assays = NULL, entities = NULL, image
   # subseting on samples, layers and assays
   if(!is.null(assays)){
     object@assay  <- object@assay[names(object@assay) %in% assays]
-  } else if(!is.null(entities)){
+  } else if(!is.null(spatialpoints)){
     assay_set <- object@assay
     object@assay <- sapply(assay_set, function(assy) {
-      subset.vrAssay(assy, entities = entities)
+      subset.vrAssay(assy, spatialpoints = spatialpoints)
     }, USE.NAMES = TRUE)
   } else if(!is.null(image)){
     assay_set <- object@assay
@@ -230,8 +230,8 @@ subset.vrLayer <- function(object, subset, assays = NULL, entities = NULL, image
 #'
 vrSpatialPoints.vrLayer <- function(object, ...) {
   assays <- object@assay
-  entities <- lapply(assays, function(assy) {
+  spatialpoints <- lapply(assays, function(assy) {
     vrSpatialPoints(assy)
   })
-  do.call(c, entities)
+  do.call(c, spatialpoints)
 }

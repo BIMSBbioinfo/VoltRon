@@ -47,7 +47,7 @@ setMethod(
   f = 'show',
   signature = 'vrAssay',
   definition = function(object) {
-    cat("vrAssay (VoltRon Assay) of", ncol(object@rawdata), "spatial entities and", nrow(object@rawdata), "features. \n")
+    cat("vrAssay (VoltRon Assay) of", ncol(object@rawdata), "spatial points and", nrow(object@rawdata), "features. \n")
     return(invisible(x = NULL))
   }
 )
@@ -65,7 +65,7 @@ setMethod(
 #'
 #' @export
 #'
-subset.vrAssay <- function(object, subset, entities = NULL, features = NULL, image = NULL) {
+subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL, image = NULL) {
 
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
@@ -85,22 +85,22 @@ subset.vrAssay <- function(object, subset, entities = NULL, features = NULL, ima
     segments <- vrSegments(object)
     segments_reg <- vrSegments(object, reg = TRUE)
 
-    if(!is.null(entities)){
+    if(!is.null(spatialpoints)){
 
       # data
-      object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% entities]
-      object@normdata  <- object@normdata[,colnames(object@normdata) %in% entities]
+      object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints]
+      object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints]
 
       # coordinates
-      vrCoordinates(object) <- coords[rownames(coords) %in% entities,]
+      vrCoordinates(object) <- coords[rownames(coords) %in% spatialpoints,]
       if(nrow(coords_reg) > 0)
-        vrCoordinates(object, reg = TRUE) <- coords_reg[rownames(coords_reg) %in% entities,]
+        vrCoordinates(object, reg = TRUE) <- coords_reg[rownames(coords_reg) %in% spatialpoints,]
 
       # segments
       if(length(segments) > 0)
-        vrSegments(object) <- segments[names(segments) %in% entities]
+        vrSegments(object) <- segments[names(segments) %in% spatialpoints]
       if(length(segments_reg) > 0)
-        vrSegments(object, reg = TRUE) <- segments_reg[names(segments_reg) %in% entities]
+        vrSegments(object, reg = TRUE) <- segments_reg[names(segments_reg) %in% spatialpoints]
 
     } else if(!is.null(image)) {
 
@@ -117,8 +117,7 @@ subset.vrAssay <- function(object, subset, entities = NULL, features = NULL, ima
       }
 
       # image
-      # object <- subset.vrAssay(object, entities = rownames(cropped_coords))
-      object <- subset(object, entities = rownames(cropped_coords))
+      object <- subset(object, spatialpoints = rownames(cropped_coords))
       vrImages(object) <- magick::image_crop(vrimage, image)
     }
   }
@@ -145,7 +144,7 @@ subsetCoordinates <- function(coords, image, crop_info){
   crop_info <- unlist(lapply(crop_info, function(x) strsplit(x, "x")))
   crop_info <- as.numeric(crop_info)
 
-  # get uncropped entities
+  # get uncropped spatial points
   xlim <- c(crop_info[3], crop_info[3]+crop_info[1])
   ylim <- c(crop_info[4], crop_info[4]+crop_info[2])
   ylim <- rev(imageinfo$height - ylim)
@@ -221,6 +220,21 @@ vrSpatialPoints.vrAssay <- function(object, ...) {
     colnames(object@normdata) <- value
   }
 
+  # embeddings
+  embeddings <- object@embeddings
+  embed_names <- names(embeddings)
+  if(length(embed_names) > 0){
+    for(type in embed_names){
+      if(nrow(embeddings[[type]]) > 0 ){
+        if(nrow(embeddings[[type]]) != length(value)){
+          stop("The number of spatial points is not matching with the input")
+        } else {
+          rownames(embeddings) <- value
+        }
+      }
+    }
+  }
+
   # coordinates
   if(length(rownames(object@coords)) != length(value)){
     stop("The number of spatial points is not matching with the input")
@@ -279,7 +293,6 @@ vrFeatureData.vrAssay <- function(object, ...) {
 #' @export
 #'
 vrAssayNames.vrAssay <- function(object, ...) {
-  # assay_ids <- stringr::str_extract(vrSpatialPoints(object), "Assay[0-9]+")
   assay_ids <- stringr::str_extract(vrSpatialPoints(object), "Assay[0-9]+$")
   assay_id <- unique(assay_ids)
   return(assay_id)
@@ -297,19 +310,6 @@ vrAssayNames.vrAssay <- function(object, ...) {
 
   # change assay names
   vrSpatialPoints(object) <- gsub(assayname, value, vrSpatialPoints(object))
-
-  # colnames(object@normdata) <- gsub(assayname, value, colnames(object@normdata))
-  #
-  # # coordinates
-  # rownames(object@coords)  <- gsub(assayname, value, rownames(object@coords))
-  # if(nrow(object@coords_reg) > 0)
-  #   rownames(object@coords_reg) <- gsub(assayname, value, rownames(object@coords_reg))
-  #
-  # # segments
-  # if(length(object@segments) > 0)
-  #   names(object@segments) <- gsub(assayname, value, names(object@segments))
-  # if(length(object@segments_reg) > 0)
-  #   names(object@segments_reg) <- gsub(assayname, value, names(object@segments_reg))
 
   # return
   return(object)

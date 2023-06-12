@@ -120,7 +120,7 @@ vrSpatialPoints.vrMetadata <- function(object, ...) {
 #' @importFrom rlang enquo
 #' @importFrom stringr str_extract
 #'
-subset.vrMetadata <- function(metadata, subset, samples = NULL, assays = NULL, entities = NULL) {
+subset.vrMetadata <- function(metadata, subset, samples = NULL, assays = NULL, spatialpoints = NULL) {
 
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
@@ -145,10 +145,10 @@ subset.vrMetadata <- function(metadata, subset, samples = NULL, assays = NULL, e
       spot.metadata <- metadata@spot[metadata@spot$Assay %in% assays, ]
       roi.metadata <- metadata@ROI[metadata@ROI$Assay %in% assays, ]
     }
-  } else if(!is.null(entities)){
-    cell.metadata <- metadata@cell[rownames(metadata@cell) %in% entities, ]
-    spot.metadata <- metadata@spot[rownames(metadata@spot) %in% entities, ]
-    roi.metadata <- metadata@ROI[rownames(metadata@ROI) %in% entities, ]
+  } else if(!is.null(spatialpoints)){
+    cell.metadata <- metadata@cell[rownames(metadata@cell) %in% spatialpoints, ]
+    spot.metadata <- metadata@spot[rownames(metadata@spot) %in% spatialpoints, ]
+    roi.metadata <- metadata@ROI[rownames(metadata@ROI) %in% spatialpoints, ]
   } else {
     stop(paste0("No assay or sample name was provided!"))
   }
@@ -259,13 +259,13 @@ addAssay.vrMetadata <- function(object, assay, assay_name, sample = "Sample1", l
   # get metadata and other info
   metadata <- slot(object, name = assay.type)
   data <- vrData(assay, norm = FALSE)
-  entities <- vrSpatialPoints(assay)
+  spatialpoints <- vrSpatialPoints(assay)
 
   # add new assay
-  assay_ids <- stringr::str_extract(entities, "Assay[0-9]+")
+  assay_ids <- stringr::str_extract(spatialpoints, "Assay[0-9]+")
   assay_ids <- as.numeric(gsub("Assay", "", assay_ids))
   assay_id <- paste0("Assay", max(assay_ids)+1)
-  entityID <- gsub("Assay[0-9]+$", assay_id, entities)
+  entityID <- gsub("Assay[0-9]+$", assay_id, spatialpoints)
 
   # metadata
   assay_metadata <- data.frame(Count = colSums(data),
