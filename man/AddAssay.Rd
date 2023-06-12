@@ -16,6 +16,14 @@ addAssay(object, ...)
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{assay}{assay}
+
+\item{assay_name}{assay name}
+
+\item{sample}{sample name}
+
+\item{layer}{layer name}
 }
 \value{
 \code{addAssay}: The name of the default assay

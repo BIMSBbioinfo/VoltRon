@@ -16,6 +16,8 @@ vrFeatures(object, ...)
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{assay}{assay}
 }
 \description{
 Get features from the main.assay

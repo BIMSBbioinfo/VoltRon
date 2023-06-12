@@ -17,8 +17,7 @@ formVoltRon(
   params = list(),
   sample_name = NULL,
   layer_name = NULL,
-  project = NULL,
-  ...
+  project = NULL
 )
 }
 \arguments{
@@ -45,8 +44,6 @@ formVoltRon(
 \item{layer_name}{the name of the layer}
 
 \item{project}{project name}
-
-\item{...}{additional parameters passed to VoltRon object}
 
 \item{coord}{the coordinates of the spatial points}
 

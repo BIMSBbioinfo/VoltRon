@@ -17,7 +17,7 @@ vrEmbeddings(object, ...)
 
 vrEmbeddings(object, ...) <- value
 
-\method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", ..., value)
+\method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", ...)
 
 \method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", ...) <- value
 }
@@ -29,6 +29,8 @@ vrEmbeddings(object, ...) <- value
 \item{...}{Arguments passed to other methods}
 
 \item{value}{new embedding data}
+
+\item{assay}{assay}
 }
 \value{
 \code{vrEmbeddings}: The name of the default assay

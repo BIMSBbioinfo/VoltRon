@@ -24,6 +24,8 @@ vrAssayNames(object, ...) <- value
 \item{...}{Arguments passed to other methods}
 
 \item{value}{the new postfix name of the assay}
+
+\item{assay}{assay}
 }
 \value{
 \code{vrAssayNames}: The name of the default assay

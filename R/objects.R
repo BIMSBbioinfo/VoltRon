@@ -201,7 +201,6 @@ setMethod(
 #' @param sample_name the name of the sample
 #' @param layer_name the name of the layer
 #' @param project project name
-#' @param ... additional parameters passed to VoltRon object
 #'
 #' @export
 #' @import igraph
@@ -211,7 +210,7 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
                              sample.metadata = NULL, graph = NULL,
                              main.assay = "Custom_cell", assay.type = "cell", params = list(),
                              sample_name = NULL, layer_name = NULL,
-                             project = NULL, ...){
+                             project = NULL){
 
   # set project name
   if(is.null(project))
@@ -305,6 +304,8 @@ vrMainAssay.VoltRon <- function(object, ...) {
   object@main.assay
 }
 
+#' @param value new assay name
+#'
 #' @rdname vrMainAssay
 #' @method vrMainAssay<- VoltRon
 #'
@@ -321,10 +322,15 @@ vrMainAssay.VoltRon <- function(object, ...) {
   return(object)
 }
 
+#' @param assay assay
+#' @param assay_name assay name
+#' @param sample sample name
+#' @param layer layer name
+#'
 #' @rdname addAssay
 #' @method addAssay VoltRon
 #'
-#' @importFrom igraph union
+#' @importFrom igraph union V
 #' @export
 #'
 addAssay.VoltRon <- function(object, assay, assay_name, sample = "Sample1", layer = "Section1"){
@@ -361,6 +367,8 @@ addAssay.VoltRon <- function(object, assay, assay_name, sample = "Sample1", laye
   return(object)
 }
 
+#' @param assay assay
+#'
 #' @rdname vrAssayNames
 #' @method vrAssayNames VoltRon
 #'
@@ -389,6 +397,8 @@ vrAssayNames.VoltRon <- function(object, assay = NULL){
   return(assay_names)
 }
 
+#' @param assay assay
+#'
 #' @rdname vrAssayTypes
 #' @method vrAssayTypes VoltRon
 #'
@@ -407,6 +417,19 @@ vrAssayTypes.VoltRon <- function(object, assay = NULL){
 
 ### Object Methods ####
 
+#' Subsetting VoltRon objects
+#'
+#' Given a VoltRon object, subset the object given one of the attributes
+#'
+#' @param object A vrAssay object
+#' @param subset Logical statement for subsetting
+#' @param samples the set of samples to subset the object
+#' @param spatialpoints the set of spatial points to subset the object
+#' @param features the set of features to subset the object
+#' @param image the subseting string passed to \code{magick::image_crop}
+#' @param interactive TRUE if interactive subsetting on the image is demanded
+#'
+#' @rdname subset
 #' @method subset VoltRon
 #'
 #' @importFrom rlang enquo eval_tidy quo_get_expr
@@ -577,6 +600,8 @@ merge.VoltRon <- function(object, object_list, sample_name = NULL, main.assay = 
       graph = graph, main.assay = main.assay, project = project)
 }
 
+#' @param type the assay type: ROI, spot or cell
+#'
 #' @rdname Metadata
 #' @method Metadata VoltRon
 #'
@@ -586,6 +611,9 @@ Metadata.VoltRon <- function(object, type = "cell") {
   slot(object@metadata, name = type)
 }
 
+#' @param type the assay type: ROI, spot or cell
+#' @param value new metadata
+#'
 #' @rdname Metadata
 #' @method Metadata<- VoltRon
 #'
@@ -614,6 +642,8 @@ vrSpatialPoints.VoltRon <- function(object, ...) {
   return(vrSpatialPoints(object@metadata))
 }
 
+#' @param assay assay
+#'
 #' @rdname vrFeatures
 #' @method vrFeatures VoltRon
 #'
@@ -632,6 +662,8 @@ vrFeatures.VoltRon <- function(object, assay = NULL, ...) {
   return(unique(features))
 }
 
+#' @param assay assay
+#'
 #' @rdname vrFeatureData
 #' @method vrFeatureData VoltRon
 #'
@@ -649,6 +681,8 @@ vrFeatureData.VoltRon <- function(object, assay = NULL, ...) {
   return(features)
 }
 
+#' @param assay assay
+#'
 #' @rdname vrData
 #' @method vrData VoltRon
 #'
@@ -667,6 +701,8 @@ vrData.VoltRon <- function(object, assay = NULL, ...) {
   return(do.call(cbind, returndata_list))
 }
 
+#' @param assay assay
+#'
 #' @rdname vrGraph
 #' @method vrGraph VoltRon
 #'
@@ -683,6 +719,9 @@ vrGraph.VoltRon <- function(object, assay = NULL, ...) {
   return(returngraph)
 }
 
+#' @param assay assay
+#' @param reg TRUE if registered segments are being updated
+#'
 #' @rdname vrCoordinates
 #' @method vrCoordinates VoltRon
 #'
@@ -702,6 +741,9 @@ vrCoordinates.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   return(coords)
 }
 
+#' @param reg TRUE if registered segments are being updated
+#' @param value the new set of 2D coordinates
+#'
 #' @rdname vrCoordinates
 #' @method vrCoordinates<- VoltRon
 #'
@@ -729,6 +771,9 @@ vrCoordinates.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   return(object)
 }
 
+#' @param assay assay
+#' @param reg TRUE if registered segments are being updated
+#'
 #' @rdname vrSegments
 #' @method vrSegments VoltRon
 #'
@@ -748,6 +793,10 @@ vrSegments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   return(segts)
 }
 
+#' @param assay assay
+#' @param reg TRUE if registered segments are being updated
+#' @param value the new set of 2D segments for each spatial point
+#'
 #' @rdname vrSegments
 #' @method vrSegments<- VoltRon
 #'
@@ -775,12 +824,15 @@ vrSegments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   return(object)
 }
 
+#' @param type the key name for the embedding
+#' @param assay assay
+#'
 #' @rdname vrEmbeddings
 #' @method vrEmbeddings VoltRon
 #'
 #' @export
 #'
-vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", ..., value) {
+vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", ...) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -793,6 +845,10 @@ vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", ..., value)
   return(do.call(rbind, returndata_list))
 }
 
+#' @param type the key name for the embedding
+#' @param assay assay
+#' @param value new embedding data
+#'
 #' @rdname vrEmbeddings
 #' @method vrEmbeddings<- VoltRon
 #'

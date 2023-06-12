@@ -29,6 +29,8 @@ vrCoordinates(object, ...) <- value
 \item{...}{Arguments passed to other methods}
 
 \item{value}{the new set of 2D coordinates}
+
+\item{assay}{assay}
 }
 \value{
 \code{vrCoordinates}: The name of the default assay

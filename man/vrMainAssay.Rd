@@ -19,6 +19,8 @@ vrMainAssay(object, ...) <- value
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{value}{new assay name}
 }
 \value{
 \code{vrMainAssay}: The name of the default assay

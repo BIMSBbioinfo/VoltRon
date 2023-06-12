@@ -19,6 +19,10 @@ Metadata(object, ...) <- value
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{type}{the assay type: ROI, spot or cell}
+
+\item{value}{new metadata}
 }
 \value{
 \code{Metadata}: The name of the default assay

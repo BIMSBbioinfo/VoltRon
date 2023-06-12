@@ -24,6 +24,8 @@ vrFeatureData(object, ...) <- value
 \item{...}{Arguments passed to other methods}
 
 \item{value}{new feature data}
+
+\item{assay}{assay}
 }
 \value{
 \code{vrFeatureData}: The name of the default assay

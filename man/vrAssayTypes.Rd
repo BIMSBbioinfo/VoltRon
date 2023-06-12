@@ -16,6 +16,8 @@ vrAssayTypes(object, ...)
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{assay}{assay}
 }
 \value{
 \code{vrAssayTypes}: The name of the default assay

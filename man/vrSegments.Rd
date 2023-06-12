@@ -29,6 +29,8 @@ vrSegments(object, ...) <- value
 \item{...}{Arguments passed to other methods}
 
 \item{value}{the new set of 2D segments for each spatial point}
+
+\item{assay}{assay}
 }
 \value{
 \code{vrSegments}: The name of the default assay
