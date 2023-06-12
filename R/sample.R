@@ -122,6 +122,9 @@ setMethod(
 
 ### Merge vrSample object ####
 
+#' @param object_list a list of vrSample objects
+#' @param samples the sample names
+#'
 #' @method merge vrSample
 #'
 #' @export
@@ -140,6 +143,10 @@ merge.vrSample <- function(object, object_list, samples = NULL){
 
 ### Subset vrSample object ####
 
+#' @param assays the set of assays to subset the object
+#' @param spatialpoints the set of spatial points to subset the object
+#' @param image the subseting string passed to \code{magick::image_crop}
+#'
 #' @method subset vrSample
 #'
 #' @importFrom rlang enquo
@@ -191,6 +198,10 @@ vrSpatialPoints.vrSample <- function(object, ...) {
 
 ### Subset vrLayer objects ####
 
+#' @param assays the set of assays to subset the object
+#' @param spatialpoints the set of spatial points to subset the object
+#' @param image the subseting string passed to \code{magick::image_crop}
+#'
 #' @method subset vrLayer
 #'
 #' @importFrom rlang enquo

@@ -424,6 +424,7 @@ vrAssayTypes.VoltRon <- function(object, assay = NULL){
 #' @param object A vrAssay object
 #' @param subset Logical statement for subsetting
 #' @param samples the set of samples to subset the object
+#' @param assays the set of assays to subset the object
 #' @param spatialpoints the set of spatial points to subset the object
 #' @param features the set of features to subset the object
 #' @param image the subseting string passed to \code{magick::image_crop}

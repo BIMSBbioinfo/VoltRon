@@ -4,15 +4,15 @@
 
 #' register_slides
 #'
-#' A mini shiny app to calculate spatial cell(barcode) projection matrix between a visium slide and a xenium slide
+#' A mini shiny app to for registering images and spatial coordinates of multiple consequtive spatial datasets
 #'
 #' @param data_list a list of VoltRon objects
 #' @param reference_spatdata a reference spatial data set, used only if \code{spatial_data_list} is \code{NULL}
 #' @param query_spatdata a query spatial data set, used only if \code{spatial_data_list} is \code{NULL}
+#' @param keypoints keypoints tables for each registration
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs
-#'
 #'
 #' @export
 #'
@@ -183,8 +183,7 @@ registerSpatialData <- function(data_list = NULL, reference_spatdata = NULL, que
 #' The UI for a set of reference/query spatial slides
 #'
 #' @param len_images the number of query images
-#'
-#' @return tabsetpanel
+#' @param type Either reference (ref) or query (query) image
 #'
 getImageTabPanels <- function(len_images, type){
 
@@ -215,8 +214,6 @@ getImageTabPanels <- function(len_images, type){
 #' @param len_images the number of query images
 #' @param centre center image index
 #' @param register_ind query image indices
-#'
-#' @return tabsetpanel
 #'
 getAlignmentTabPanel <- function(len_images, centre, register_ind){
 
@@ -253,7 +250,7 @@ getRegisteredImageTabPanels <- function(len_images, centre, register_ind){
 
 #' updateSequentialTabPanels
 #'
-#' A function for automatized selection of reference/query images
+#' A function for automatized selection of reference/query tab panels
 #'
 #' @param input input
 #' @param output output
@@ -313,12 +310,13 @@ updateSequentialTabPanels <- function(input, output, session, centre, register_i
 
 #' getRegisteredObject
 #'
-#' get a registered Spatial data object
+#' Get a registered VoltRon or Seurat object
 #'
 #' @param obj_list a list of spatial data object
 #' @param mapping_list a list of transformation matrices
 #' @param register_ind the indices of query images/spatialdatasets
 #' @param centre the index of the central referance image/spatialdata
+#' @param ... additional parameters passed to \code{getRegisteredObject.VoltRon} or \code{getRegisteredObject.Seurat}
 #'
 getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, ...) {
 
@@ -344,7 +342,7 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, ..
 
 #' getRegisteredObject.VoltRon
 #'
-#' get registered and merged VoltRon object composed of several Samples
+#' Get registered and merged VoltRon object composed of several Samples
 #'
 #' @param sr a list of VoltRon objects
 #' @param mapping_list a list of transformation matrices
@@ -382,7 +380,7 @@ getRegisteredObject.VoltRon <- function(sr, mapping_list, register_ind, centre, 
 
 #' getRegisteredObject.Seurat
 #'
-#' get the registered cell data/locations from a Seurat Object
+#' Get a Seurat Object wigth the registered spatial coordinates and images
 #'
 #' @param seu Seurat object
 #' @param mapping a list of transformation mapping matrices for the registration
@@ -428,7 +426,7 @@ getRegisteredObject.Seurat <- function(seu, mapping){
 
 #' rescaleXeniumCells
 #'
-#' rescale Xenium cells coordinates for image registration
+#' Rescale Xenium spatial coordinates for image registration
 #'
 #' @param cells coordinates of the cells from the Xenium assays
 #' @param bbox the surrounding box of the Xenium cell coordinates
@@ -464,8 +462,6 @@ rescaleXeniumCells <- function(cells, bbox, image){
 #' @param input shiny input
 #' @param output shiny output
 #' @param session shiny session
-#'
-#' @return a shiny reactive values object
 #'
 initateKeypoints <- function(len_images, keypoints_list, input, output, session){
 
@@ -550,15 +546,13 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, inpu
 
 #' transformImageKeypoints
 #'
-#' Apply given transformations to a magick image and keypoints simultaneously for plotting
+#' Apply given transformations to a magick image and keypoints for plotting
 #'
 #' @param image magick image
 #' @param extension name extension for the shiny input parameter
 #' @param keypoints a set of keypoints
 #' @param input shiny input
 #' @param session shiny session
-#'
-#' @return a list of magick image and keypoints
 #'
 transformImageKeypoints <- function(image, keypoints, extension, input, session){
 
@@ -611,7 +605,7 @@ transformImageKeypoints <- function(image, keypoints, extension, input, session)
 #' @param input shiny input
 #' @param session shiny session
 #'
-#' @return magick image
+#' @importFrom magick image
 #'
 transformKeypoints <- function(image, keypoints, extension, input, session){
 
@@ -652,8 +646,6 @@ transformKeypoints <- function(image, keypoints, extension, input, session){
 #' @param limits limits of the image
 #' @param rotated_origin center of the rotated image
 #' @param rotated_limits limits of the rotated image
-#'
-#' @return keypoints
 #'
 rotateKeypoint <- function(keypoints, angle, origin, limits, rotated_origin, rotated_limits){
 
@@ -714,8 +706,6 @@ flipflopKeypoint <- function(keypoints, image_limits, flipflop){
 #' @param image magick image
 #' @param keypoints keypoints to draw on image
 #'
-#' @return ggplot object
-#'
 imageKeypoint <- function(image, keypoints){
 
   if(is.null(keypoints))
@@ -742,6 +732,8 @@ imageKeypoint <- function(image, keypoints){
 #' @param output shiny output
 #' @param session shiny session
 #'
+#' @importFrom magick image_ggplot
+#'
 getImageOutput <- function(image_list, keypoints_list = NULL, centre, input, output, session){
 
   # get image types
@@ -761,7 +753,7 @@ getImageOutput <- function(image_list, keypoints_list = NULL, centre, input, out
 
         # transform image and keypoints
         img <- transformImageKeypoints(image_list[[i]], keypoints, paste0(type, "_image",i), input, session)
-        img <- imageKeypoint(image_ggplot(img$image), img$keypoints)
+        img <- imageKeypoint(magick::image_ggplot(img$image), img$keypoints)
         return(img)
       })
     })
@@ -777,20 +769,20 @@ getImageOutput <- function(image_list, keypoints_list = NULL, centre, input, out
 #' @param input shiny input
 #' @param session shiny session
 #'
-#' @return magick image
+#' @importFrom magick image_flip image_flop image_rotate
 #'
 transformImage <- function(image, extension, input, session){
 
   # rotate image and keypoints
   input_rotate <- as.numeric(input[[paste0("rotate_", extension)]])
-  image <- image_rotate(image, input_rotate)
+  image <- magick::image_rotate(image, input_rotate)
 
   # flip flop image and keypoints
   input_flipflop <- input[[paste0("flipflop_", extension)]]
   if(input_flipflop == "Flip"){
-    image <- image_flip(image)
+    image <- magick::image_flip(image)
   } else if(input_flipflop == "Flop"){
-    image <- image_flop(image)
+    image <- magick::image_flop(image)
   }
 
   image
@@ -803,8 +795,6 @@ transformImage <- function(image, extension, input, session){
 #' @param image_list magick image
 #' @param input shiny input
 #' @param session shiny session
-#'
-#' @return magick image
 #'
 transformImageQueryList <- function(image_list, input, session){
 
@@ -833,8 +823,6 @@ transformImageQueryList <- function(image_list, input, session){
 #' @param output shiny output
 #' @param session shiny session
 #'
-#' @return a shiny reactive values object
-#'
 initiateQueryMatrices <- function(len_images, input, output, session){
 
   # initiate matrices
@@ -859,7 +847,7 @@ initiateQueryMatrices <- function(len_images, input, output, session){
 #' @param output shiny output
 #' @param session shiny session
 #'
-#' @import Morpho
+#' @import ggplot2
 #'
 getManualRegisteration <- function(registered_spatdata_list, spatdata_list, image_list, keypoints_list,
                                    centre, register_ind, input, output, session){
@@ -1134,7 +1122,7 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
 
 #' getRcppAutomatedRegistration
 #'
-#' automated registration with Rcpp/C++
+#' Automated registration with Rcpp
 #'
 #' @param ref_image reference image
 #' @param query_image query image
@@ -1154,48 +1142,4 @@ getRcppAutomatedRegistration <- function(ref_image, query_image, GOOD_MATCH_PERC
   alignment_image <- magick::image_read(reg[[3]])
   return(list(transmat = reg[[1]], aligned_image = aligned_image, alignment_image = alignment_image))
 }
-
-#' #' getAutomatedRegisteredImage
-#' #'
-#' #' get registered images
-#' #'
-#' #' @param images
-#' #' @param transmatrix
-#' #' @param query_ind
-#' #' @param ref_ind
-#' #' @param input
-#' #'
-#' #' @return
-#' #' @export
-#' #'
-#' #' @examples
-#' getAutomatedRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, input){
-#'
-#'   # plot with raster
-#'   ref_image_raster <- as.raster(images[[ref_ind]]) |> as.matrix() |> rast()
-#'   query_image_raster <- as.raster(images[[query_ind]]) |> as.matrix() |> rast() |> stack()
-#'
-#'   # prepare image
-#'   imageEx <- raster::extent(stack(ref_image_raster))
-#'   imageRes <- raster::res(stack(ref_image_raster))
-#'   query_image_raster_1 <- raster::as.data.frame(query_image_raster[[1]], xy = TRUE)
-#'
-#'   # apply transformation as many as it is needed
-#'   query_image_raster_1_t <- as.matrix(query_image_raster_1)[,1:2]
-#'   for(trans in transmatrix){
-#'     query_image_raster_1_t <- Morpho::applyTransform(query_image_raster_1_t, trans)
-#'   }
-#'
-#'   # finalize image
-#'   r <- raster::raster(nrow = dim(query_image_raster)[1], ncol = dim(query_image_raster)[2], resolution = c(1,1))
-#'   raster::extent(r) <- imageEx
-#'   raster::res(r) <- imageRes
-#'   query_image_raster_1_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_1[,3], r, fun = mean)
-#'   query_image_raster_1_trf <- focal(query_image_raster_1_tr,
-#'                                     w = matrix(1, nrow = 3, ncol = 3),
-#'                                     fun = fill.na, pad = TRUE, na.rm = FALSE)
-#'   query_image_raster_1_trf <- terra::rast(query_image_raster_1_trf, crs = "")
-#'
-#'   return(list(ref = ref_image_raster, query = query_image_raster_1_trf))
-#' }
 
