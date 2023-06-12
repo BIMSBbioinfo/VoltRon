@@ -11,9 +11,6 @@ imageKeypoint(image, keypoints)
 
 \item{keypoints}{keypoints to draw on image}
 }
-\value{
-ggplot object
-}
 \description{
 add keypoints as points on ggplot object
 }

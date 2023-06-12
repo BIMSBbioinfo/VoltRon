@@ -20,4 +20,3 @@ SampleMetadata(object, ...)
 \description{
 Get the sample metadata
 }
-\concept{data-access}

@@ -24,5 +24,5 @@ generateXeniumImage(
 \item{...}{additional parameters passed to the EBImage::writeImage function}
 }
 \description{
-Generates a low resolution DAPI image from
+Generate a low resolution DAPI image of the Xenium experiment
 }

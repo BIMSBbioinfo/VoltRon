@@ -16,6 +16,12 @@ normalizeData(object, ...)
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{assay}{assay}
+
+\item{method}{the normalization method}
+
+\item{desiredQuantile}{the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}}
 }
 \value{
 Returns object after normalization
@@ -23,4 +29,3 @@ Returns object after normalization
 \description{
 Normalize the count data present in a given assay.
 }
-\concept{preprocessing}

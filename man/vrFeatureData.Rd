@@ -35,4 +35,3 @@ vrFeatureData(object, ...) <- value
 \description{
 Get and set feature data from the main.assay
 }
-\concept{data-access}

@@ -24,4 +24,3 @@ vrDistances(object, ...)
 \description{
 Get distances between spatial points using coordinates
 }
-\concept{data-access}

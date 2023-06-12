@@ -17,9 +17,6 @@ transformKeypoints(image, keypoints, extension, input, session)
 
 \item{session}{shiny session}
 }
-\value{
-magick image
-}
 \description{
 Apply transformations to keypoints given transformed images to find the keypoints locations in the original image
 }

@@ -17,9 +17,6 @@ initateKeypoints(len_images, keypoints_list, input, output, session)
 
 \item{session}{shiny session}
 }
-\value{
-a shiny reactive values object
-}
 \description{
 Initiate shiny reactive values for keypoint dataframes for pairwise reference and query images
 }

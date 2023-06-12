@@ -27,4 +27,3 @@ vrData(object, ...)
 \description{
 Get data from the main.assay
 }
-\concept{data-access}

@@ -13,9 +13,6 @@ transformImageQueryList(image_list, input, session)
 
 \item{session}{shiny session}
 }
-\value{
-magick image
-}
 \description{
 Apply given transformations to a list of magick image and return shiny reactive
 }

@@ -21,5 +21,5 @@ getRcppAutomatedRegistration(
 \item{MAX_FEATURES}{maximum number of detected features, i.e. keypoints}
 }
 \description{
-automated registration with Rcpp/C++
+Automated registration with Rcpp
 }

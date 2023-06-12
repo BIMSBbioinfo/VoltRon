@@ -32,4 +32,3 @@ Metadata(object, ...) <- value
 \description{
 Get the metadata
 }
-\concept{data-access}

@@ -8,9 +8,8 @@ getImageTabPanels(len_images, type)
 }
 \arguments{
 \item{len_images}{the number of query images}
-}
-\value{
-tabsetpanel
+
+\item{type}{Either reference (ref) or query (query) image}
 }
 \description{
 The UI for a set of reference/query spatial slides

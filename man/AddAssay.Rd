@@ -31,4 +31,3 @@ addAssay(object, ...)
 \description{
 add assay to the object
 }
-\concept{data-access}

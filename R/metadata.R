@@ -113,9 +113,11 @@ vrSpatialPoints.vrMetadata <- function(object, ...) {
   return(points)
 }
 
-#' @method subset vrMetadata
+#' @param samples the set of samples to subset the object
+#' @param assays the set of assays to subset the object
+#' @param spatialpoints the set of spatial points to subset the object
 #'
-#' @aliases subset
+#' @method subset vrMetadata
 #'
 #' @importFrom rlang enquo
 #' @importFrom stringr str_extract
@@ -161,8 +163,8 @@ subset.vrMetadata <- function(metadata, subset, samples = NULL, assays = NULL, s
 #' subset.sampleMetadata
 #'
 #' @param metadata sample metadata of a VoltRon object
-#' @param samples samples
-#' @param assays assays
+#' @param samples the set of samples to subset the object
+#' @param assays the set of assays to subset the object
 #'
 #' @export
 #'
@@ -183,9 +185,12 @@ subset.sampleMetadata <- function(metadata, samples = NULL, assays = NULL) {
   metadata
 }
 
+#' @param object_list a list of vrMetadata objects
+#'
 #' @method merge vrMetadata
 #'
 #' @importFrom dplyr bind_rows
+#'
 #' @export
 #'
 merge.vrMetadata <- function(object, object_list) {
@@ -225,6 +230,8 @@ merge.vrMetadata <- function(object, object_list) {
 
 #' merge.sampleMetadata
 #'
+#' Merging sample.metadata from two VoltRon objects
+#'
 #' @param metadata_list a list of sample metadata of a VoltRon object
 #' @param sample_name sample
 #'
@@ -244,6 +251,11 @@ merge.sampleMetadata <- function(metadata_list, sample_name = NULL) {
 
 ### Assay Methods ####
 
+#' @param assay assay
+#' @param assay_name assay name
+#' @param sample sample name
+#' @param layer layer name
+#'
 #' @rdname addAssay
 #' @method addAssay vrMetadata
 #'
@@ -283,7 +295,7 @@ addAssay.vrMetadata <- function(object, assay, assay_name, sample = "Sample1", l
 
 #' updateMetadataAssay
 #'
-#' updating assay names for merge
+#' Updating assay names for merge
 #'
 #' @param object1 vrMetadata object
 #' @param object2 vrMetadata object

@@ -14,5 +14,5 @@ rescaleGeoMxPoints(pts, summary, imageinfo)
 \item{imageinfo}{image information}
 }
 \description{
-rescale GeoMx point (center or polygon corners of ROI) coordinates for image registration
+Rescale GeoMx point (center or polygon corners of ROI) coordinates for image registration
 }

@@ -2,13 +2,15 @@
 % Please edit documentation in R/image.R
 \name{demuxVoltRon}
 \alias{demuxVoltRon}
-\title{DemuxGeoMx}
+\title{demuxVoltRon}
 \usage{
 demuxVoltRon(object, scale_width = 800)
 }
 \arguments{
 \item{object}{a VoltRon object}
+
+\item{scale_width}{the initial width of the object image}
 }
 \description{
-DemuxGeoMx
+Subsetting/demultiplexing of the VoltRon Object using interactive shiny app
 }

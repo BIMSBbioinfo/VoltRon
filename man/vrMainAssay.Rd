@@ -30,4 +30,3 @@ vrMainAssay(object, ...) <- value
 \description{
 Get and set the main assay
 }
-\concept{data-access}

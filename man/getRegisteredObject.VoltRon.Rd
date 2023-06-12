@@ -24,5 +24,5 @@ getRegisteredObject.VoltRon(
 \item{reg_mode}{the registration mode, either "auto" or "manual"}
 }
 \description{
-get registered and merged VoltRon object composed of several Samples
+Get registered and merged VoltRon object composed of several Samples
 }

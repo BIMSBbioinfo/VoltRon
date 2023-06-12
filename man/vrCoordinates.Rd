@@ -40,4 +40,3 @@ vrCoordinates(object, ...) <- value
 \description{
 Get and set the coordinates of the main assay
 }
-\concept{data-access}

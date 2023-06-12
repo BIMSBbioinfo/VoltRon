@@ -40,4 +40,3 @@ vrSegments(object, ...) <- value
 \description{
 Get and set the segments of spatian points of the main assay
 }
-\concept{data-access}

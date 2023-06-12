@@ -22,4 +22,3 @@ vrGraph(object, ...)
 \description{
 Get graph from the main.assay
 }
-\concept{data-access}

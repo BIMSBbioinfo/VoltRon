@@ -16,6 +16,8 @@ resizeImage(object, ...)
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{size}{the width of the resized image}
 }
 \value{
 \code{resizeImage}: The name of the default assay
@@ -23,4 +25,3 @@ resizeImage(object, ...)
 \description{
 Resizing Magick images
 }
-\concept{data-access}

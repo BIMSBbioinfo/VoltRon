@@ -31,6 +31,8 @@
 
 \item{samples}{the set of samples to subset the object}
 
+\item{assays}{the set of assays to subset the object}
+
 \item{interactive}{TRUE if interactive subsetting on the image is demanded}
 }
 \description{

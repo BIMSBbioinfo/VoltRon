@@ -38,4 +38,3 @@ vrSpatialPoints(object, ...) <- value
 \description{
 Get and set spatial entities (cells, spots, ROI)
 }
-\concept{data-access}

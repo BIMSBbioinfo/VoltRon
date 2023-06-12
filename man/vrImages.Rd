@@ -17,13 +17,13 @@ vrImages(object, ...) <- value
 
 \method{vrImages}{Seurat}(seu, ...)
 
-\method{vrImages}{VoltRon}(sr, ...)
+\method{vrImages}{VoltRon}(object, ...)
 
-\method{vrImages}{vrSample}(vr, ...)
+\method{vrImages}{vrSample}(object, ...)
 
-\method{vrImages}{vrLayer}(vr, ...)
+\method{vrImages}{vrLayer}(object, ...)
 
-\method{vrImages}{vrAssay}(vr, ...)
+\method{vrImages}{vrAssay}(object)
 
 \method{vrImages}{vrAssay}(object, reg = FALSE, ...) <- value
 }
@@ -31,6 +31,8 @@ vrImages(object, ...) <- value
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{value}{new image}
 }
 \value{
 \code{vrImages}: The name of the default assay
@@ -40,4 +42,3 @@ vrImages(object, ...) <- value
 \description{
 Get images of a VoltRon assay
 }
-\concept{data-access}

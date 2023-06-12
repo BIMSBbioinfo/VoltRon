@@ -40,4 +40,3 @@ vrEmbeddings(object, ...) <- value
 \description{
 Get embeddings of spatial points
 }
-\concept{data-access}

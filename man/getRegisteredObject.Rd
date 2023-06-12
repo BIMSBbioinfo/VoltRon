@@ -14,7 +14,9 @@ getRegisteredObject(obj_list, mapping_list, register_ind, centre, ...)
 \item{register_ind}{the indices of query images/spatialdatasets}
 
 \item{centre}{the index of the central referance image/spatialdata}
+
+\item{...}{additional parameters passed to \code{getRegisteredObject.VoltRon} or \code{getRegisteredObject.Seurat}}
 }
 \description{
-get a registered Spatial data object
+Get a registered VoltRon or Seurat object
 }

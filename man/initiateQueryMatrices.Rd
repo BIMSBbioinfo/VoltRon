@@ -15,9 +15,6 @@ initiateQueryMatrices(len_images, input, output, session)
 
 \item{session}{shiny session}
 }
-\value{
-a shiny reactive values object
-}
 \description{
 Initiate shiny reactive values for registeration matrices
 }

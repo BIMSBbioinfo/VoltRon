@@ -35,4 +35,3 @@ vrAssayNames(object, ...) <- value
 \description{
 Given a VoltRon object, give names of assays of some type, or main assay.
 }
-\concept{data-access}

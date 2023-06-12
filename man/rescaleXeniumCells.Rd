@@ -18,5 +18,5 @@ rescaleXeniumCells(cells, bbox, image)
 \description{
 rescale Xenium cells coordinates for image registration
 
-rescale Xenium cells coordinates for image registration
+Rescale Xenium spatial coordinates for image registration
 }

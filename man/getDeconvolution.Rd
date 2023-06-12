@@ -27,7 +27,7 @@ getDeconvolution(
 
 \item{method}{Deconvolution method, RCTD (spot), SPOTlight (spot), MuSiC (ROI)}
 
-\item{...}{additional parameters passed to \code{}}
+\item{...}{additional parameters passed to \code{getDeconSingle}}
 }
 \description{
 Calculate deconvolution of spatial spots and ROIs

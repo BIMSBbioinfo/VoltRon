@@ -22,4 +22,3 @@ vrFeatures(object, ...)
 \description{
 Get features from the main.assay
 }
-\concept{data-access}

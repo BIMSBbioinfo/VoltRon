@@ -17,9 +17,6 @@ transformImageKeypoints(image, keypoints, extension, input, session)
 
 \item{session}{shiny session}
 }
-\value{
-a list of magick image and keypoints
-}
 \description{
-Apply given transformations to a magick image and keypoints simultaneously for plotting
+Apply given transformations to a magick image and keypoints for plotting
 }
