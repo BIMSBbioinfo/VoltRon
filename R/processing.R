@@ -9,7 +9,6 @@ NULL
 #' @param assay assay
 #'
 #' @rdname normalizeData
-#' @concept preprocessing
 #' @method normalizeData VoltRon
 #'
 #' @export
@@ -33,7 +32,6 @@ normalizeData.VoltRon <- function(object, assay = NULL, ...) {
 #' @param desiredQuantile the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}
 #'
 #' @rdname normalizeData
-#' @concept preprocessing
 #' @method normalizeData vrAssay
 #'
 #' @export
@@ -78,7 +76,6 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
 #' @param assay assay
 #'
 #' @rdname getFeatures
-#' @concept preprocessing
 #' @method getFeatures VoltRon
 #'
 #' @export
@@ -101,7 +98,6 @@ getFeatures.VoltRon <- function(object, assay = NULL, ...){
 #' @param n the number of features
 #'
 #' @rdname getFeatures
-#' @concept preprocessing
 #' @method getFeatures vrAssay
 #'
 #' @export
@@ -181,7 +177,6 @@ getSharedFeatures <- function(object, assay = NULL, n = 3000, ...){
 #' @param dims the number of dimensions extracted from PCA
 #'
 #' @rdname getPCA
-#' @concept embedding
 #' @method getPCA VoltRon
 #'
 #' @export
@@ -219,7 +214,6 @@ getPCA.VoltRon <- function(object, assay = NULL, dims = 30){
 #' @param seed seed
 #'
 #' @rdname getUMAP
-#' @concept embedding
 #' @method getUMAP VoltRon
 #'
 #' @export

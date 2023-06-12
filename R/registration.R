@@ -605,7 +605,7 @@ transformImageKeypoints <- function(image, keypoints, extension, input, session)
 #' @param input shiny input
 #' @param session shiny session
 #'
-#' @importFrom magick image
+#' @importFrom magick image_flip image_flop image_rotate
 #'
 transformKeypoints <- function(image, keypoints, extension, input, session){
 
@@ -616,15 +616,15 @@ transformKeypoints <- function(image, keypoints, extension, input, session){
   # flip flop image and keypoints
   input_flipflop <- input[[paste0("flipflop_", extension)]]
   if(input_flipflop == "Flip"){
-    image <- image_flip(image)
+    image <- magick::image_flip(image)
   } else if(input_flipflop == "Flop"){
-    image <- image_flop(image)
+    image <- magick::image_flop(image)
   }
   keypoints <- flipflopKeypoint(keypoints, image_limits, input_flipflop)
 
   # rotate image (reverse) and keypoints
   input_rotate <- 360 - as.numeric(input[[paste0("rotate_", extension)]])
-  image <- image_rotate(image, input_rotate)
+  image <- magick::image_rotate(image, input_rotate)
 
   # get rotated image info
   rotated_image_limits <- unlist(image_info(image)[1,c("width", "height")])

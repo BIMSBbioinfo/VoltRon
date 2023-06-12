@@ -312,7 +312,7 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
 #' rescaleGeoMxROIs
 #'
-#' rescale GeoMx point (center or polygon corners of ROI) coordinates for image registration
+#' Rescale GeoMx point (center or polygon corners of ROI) coordinates for image registration
 #'
 #' @param pts coordinates of the cells from the Xenium assays
 #' @param summary segmentation summary data frame
