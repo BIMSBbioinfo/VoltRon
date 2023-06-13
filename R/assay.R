@@ -64,7 +64,6 @@ setMethod(
 #' @param features the set of features to subset the object
 #' @param image the subseting string passed to \code{magick::image_crop}
 #'
-#' @rdname subset
 #' @method subset vrAssay
 #'
 #' @importFrom rlang enquo
@@ -124,7 +123,7 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
       }
 
       # image
-      object <- subset(object, spatialpoints = rownames(cropped_coords))
+      object <- subset.vrAssay(object, spatialpoints = rownames(cropped_coords))
       vrImages(object) <- magick::image_crop(vrimage, image)
     }
   }

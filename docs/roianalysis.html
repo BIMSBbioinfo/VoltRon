@@ -12,7 +12,7 @@
 
 <meta name="date" content="2023-06-09" />
 
-<title>Spatial Data Registration</title>
+<title>ROI Analysis</title>
 
 <script src="site_libs/header-attrs-2.21/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -314,7 +314,7 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Spatial Data Registration</h1>
+<h1 class="title toc-ignore">ROI Analysis</h1>
 <h4 class="date">2023-06-09</h4>
 
 </div>
@@ -322,28 +322,58 @@ $(document).ready(function () {
 
 <div id="import" class="section level2">
 <h2>Import</h2>
-<pre class="r"><code>library(VoltRon)
+<pre class="r"><code>GeoMxR1 &lt;- importGeoMx(&quot;../../Covid/data/P3136/&quot;,
+                       pkc_file = &quot;../../Covid/data/Hs_R_NGS_WTA_v1.0.pkc&quot;,
+                       summarySegment = &quot;../../Covid/data/P3136/segmentSummary.xlsx&quot;,
+                       summarySegmentSheetName = &quot;Segment summary&quot;,
+                       sample_name = &quot;GeoMxR1&quot;)
 
-# Load Xenium Data Replicate 1
-Xen_seu_R1 &lt;- importXenium(&quot;../../../data/10X_Xenium_Visium/Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
+## add metadata ####
+geometadata &lt;- read.xlsx(&quot;../../Covid/data/P3136/segmentSummary.xlsx&quot;, sheetName = &quot;Segment summary&quot;)
+GeoMxR1@metadata@ROI$ROIlabel &lt;- geometadata$ROI.name
+GeoMxR1@metadata@ROI$Surface.area &lt;- geometadata$Surface.area
+GeoMxR1@metadata@ROI$Nuclei.count &lt;- geometadata$Nuclei.count
+GeoMxR1@metadata@ROI$SaturationRate &lt;- geometadata$Sequencing.saturation
+GeoMxR1@metadata@ROI$CountPerNuclei &lt;- GeoMxR1@metadata@ROI$Count/GeoMxR1@metadata@ROI$Nuclei.count
 
-# Load Xenium Data Replicate 2
-Xen_seu_R2 &lt;- importXenium(&quot;../../../data/10X_Xenium_Visium/Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;)
-
-# Load Visium Data
-Vis_seu &lt;- importVisium(&quot;../../../data/10X_Xenium_Visium/Visium&quot;, sample_name = &quot;VisiumR1&quot;)</code></pre>
+# get segments
+segments_all &lt;- importGeoMxSegments(&quot;../../Covid/data/P3136/Lu 1A 1B 5 um, true exp.ome.tiff&quot;, summary = geometadata, imageinfo = image_info(vrImages(GeoMxR1)[[1]]))
+segments_all &lt;- segments_all[GeoMxR1@metadata@ROI$ROIlabel]
+names(segments_all) &lt;- vrSpatialPoints(GeoMxR1)
+vrSegments(GeoMxR1) &lt;- segments_all</code></pre>
 </div>
-<div id="registration" class="section level2">
-<h2>Registration</h2>
-<pre class="r"><code>keypoints &lt;- readRDS(&quot;saved_keypoints/Xenium&amp;Visium_keypoints.rds&quot;)
-keypoints &lt;- list(`1-2` = list(ref = keypoints[[2]], query = keypoints[[1]]),
-                  `2-3` = list(ref = keypoints[[1]], query = keypoints[[3]]))
-xen_reg &lt;- registerSpatialData(data_list = list(Xen_seu_R1, Vis_seu, Xen_seu_R2), keypoints = keypoints)</code></pre>
+<div id="processing" class="section level2">
+<h2>Processing</h2>
+<pre class="r"><code># image reduction
+GeoMxR1_resized &lt;- resizeImage(GeoMxR1, size = 4000)
+
+# Subsetting features
+GeoMxR1_resized_data &lt;- vrData(GeoMxR1_resized, norm = FALSE)
+feature_ind &lt;- apply(GeoMxR1_resized_data, 1, function(x) max(x) &gt; 10) 
+selected_features &lt;- vrFeatures(GeoMxR1_resized)[feature_ind]
+GeoMxR1_lessfeatures &lt;- subset(GeoMxR1_resized, features = selected_features)
+
+# filtering and subsetting
+GeoMxR1_less &lt;- subset(GeoMxR1_lessfeatures, subset = CountPerNuclei &gt; 500)
+
+# Normalization
+GeoMxR1_less &lt;- normalizeData(GeoMxR1_less, method = &quot;QuanNorm&quot;)</code></pre>
 </div>
-<div id="combine-voltron-object" class="section level2">
-<h2>Combine VoltRon object</h2>
-<pre class="r"><code>merge_list &lt;- xen_reg$registered_spat
-SRBlock &lt;- merge(merge_list[[1]], merge_list[-1], sample_name = &quot;10XBlock&quot;)</code></pre>
+<div id="interactive-subsetting-of-spatial-datasets"
+class="section level2">
+<h2>Interactive subsetting of spatial datasets</h2>
+<pre class="r"><code># interactive subsetting
+GeoMxR1_subset_list &lt;- subset(GeoMxR1_less, interactive = TRUE)
+GeoMxR1_subset_list &lt;- GeoMxR1_subset_list$registration
+
+# merging VoltRon objects
+GeoMxR1_merged &lt;- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1])</code></pre>
+</div>
+<div id="visualization" class="section level2">
+<h2>Visualization</h2>
+<pre class="r"><code># CXCL11 for all sections, same scale
+GeoMxR1_subset2 &lt;- subset(GeoMxR1_merged, sample = c(&quot;Sample1&quot;,&quot;Sample2&quot;))
+vrSpatialFeaturePlot(GeoMxR1_subset2, features = c(&quot;CXCL11&quot;, &quot;COL1A1&quot;), group.by = &quot;ROIlabel&quot;, label = TRUE, pt.size = 8, keep.scale = &quot;all&quot;)</code></pre>
 </div>
 
 

@@ -4,9 +4,6 @@ navbar:
   title: "VoltRon"
   type: inverse
   left:
-    # - text: "Home"
-    #   icon: fa-home
-    #   href: index.html
     - text: "Tutorials"
       icon: fa-home
       href: tutorials.html
@@ -15,8 +12,10 @@ navbar:
       menu:
       - text: "Spatial Data Registration"
         href: registration.html
-      - text: "ROI/Spot Deconvolution and Niche Clustering"
+      - text: "Niche Clustering"
         href: deconvolution.html
+      - text: "ROI Analysis"
+        href: roianalysis.html
   right:
     - text: "Contact"
       icon: fa-envelope-o

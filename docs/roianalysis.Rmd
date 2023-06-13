@@ -1,0 +1,82 @@
+---
+title: "ROI Analysis"
+output: html_document
+date: "2023-06-09"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Import
+
+```{r eval = FALSE}
+GeoMxR1 <- importGeoMx("../../Covid/data/P3136/",
+                       pkc_file = "../../Covid/data/Hs_R_NGS_WTA_v1.0.pkc",
+                       summarySegment = "../../Covid/data/P3136/segmentSummary.xlsx",
+                       summarySegmentSheetName = "Segment summary",
+                       sample_name = "GeoMxR1")
+
+## add metadata ####
+geometadata <- read.xlsx("../../Covid/data/P3136/segmentSummary.xlsx", sheetName = "Segment summary")
+GeoMxR1@metadata@ROI$ROIlabel <- geometadata$ROI.name
+GeoMxR1@metadata@ROI$Surface.area <- geometadata$Surface.area
+GeoMxR1@metadata@ROI$Nuclei.count <- geometadata$Nuclei.count
+GeoMxR1@metadata@ROI$SaturationRate <- geometadata$Sequencing.saturation
+GeoMxR1@metadata@ROI$CountPerNuclei <- GeoMxR1@metadata@ROI$Count/GeoMxR1@metadata@ROI$Nuclei.count
+
+# get segments
+segments_all <- importGeoMxSegments("../../Covid/data/P3136/Lu 1A 1B 5 um, true exp.ome.tiff", summary = geometadata, imageinfo = image_info(vrImages(GeoMxR1)[[1]]))
+segments_all <- segments_all[GeoMxR1@metadata@ROI$ROIlabel]
+names(segments_all) <- vrSpatialPoints(GeoMxR1)
+vrSegments(GeoMxR1) <- segments_all
+```
+
+## Processing 
+
+```{r eval = FALSE}
+# image reduction
+GeoMxR1_resized <- resizeImage(GeoMxR1, size = 4000)
+
+# Subsetting features
+GeoMxR1_resized_data <- vrData(GeoMxR1_resized, norm = FALSE)
+feature_ind <- apply(GeoMxR1_resized_data, 1, function(x) max(x) > 10) 
+selected_features <- vrFeatures(GeoMxR1_resized)[feature_ind]
+GeoMxR1_lessfeatures <- subset(GeoMxR1_resized, features = selected_features)
+
+# filtering and subsetting
+GeoMxR1_less <- subset(GeoMxR1_lessfeatures, subset = CountPerNuclei > 500)
+
+# Normalization
+GeoMxR1_less <- normalizeData(GeoMxR1_less, method = "QuanNorm")
+```
+
+## Interactive subsetting of spatial datasets
+
+```{r include = FALSE, eval = FALSE}
+subset_info_list <- readRDS("data/saved_image_subset.rds")
+GeoMxR1_subset_list <- list()
+for(i in 1:length(subset_info_list[[1]])){
+  sample_names <- paste0("Sample", 1:length(subset_info_list[[1]]))
+  temp <- subset(GeoMxR1_less, image = subset_info_list[[1]][i])
+  temp$Sample <- sample_names[i]
+  GeoMxR1_subset_list[[i]]  <- temp
+}
+```
+
+```{r eval = FALSE}
+# interactive subsetting
+GeoMxR1_subset_list <- subset(GeoMxR1_less, interactive = TRUE)
+GeoMxR1_subset_list <- GeoMxR1_subset_list$registration
+
+# merging VoltRon objects
+GeoMxR1_merged <- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1])
+```
+
+## Visualization
+
+```{r eval = FALSE}
+# CXCL11 for all sections, same scale
+GeoMxR1_subset2 <- subset(GeoMxR1_merged, sample = c("Sample1","Sample2"))
+vrSpatialFeaturePlot(GeoMxR1_subset2, features = c("CXCL11", "COL1A1"), group.by = "ROIlabel", label = TRUE, pt.size = 8, keep.scale = "all")
+```
