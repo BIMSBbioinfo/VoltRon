@@ -16,7 +16,7 @@
 <script src="site_libs/header-attrs-2.21/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<link href="site_libs/bootstrap-3.3.5/css/lumen.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
@@ -261,13 +261,16 @@ $(document).ready(function () {
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="registration.html">Spatial Data Registration</a>
-    </li>
-    <li>
-      <a href="deconvolution.html">Niche Clustering</a>
+      <a href="spotanalysis.html">Cell/Spot Analysis</a>
     </li>
     <li>
       <a href="roianalysis.html">ROI Analysis</a>
+    </li>
+    <li>
+      <a href="registration.html">Spatial Data Alignment</a>
+    </li>
+    <li>
+      <a href="deconvolution.html">Niche Clustering</a>
     </li>
   </ul>
 </li>
@@ -286,7 +289,7 @@ $(document).ready(function () {
       <a href="https://www.mdc-berlin.de/bioinformatics">Altuna Lab/BIMSB Bioinfo</a>
     </li>
     <li>
-      <a href="https://www.mdc-berlin.de/landthaler">Lanthaler Lab/BIMSB</a>
+      <a href="https://www.mdc-berlin.de/landthaler">Landthaler Lab/BIMSB</a>
     </li>
   </ul>
 </li>
@@ -319,55 +322,101 @@ $(document).ready(function () {
 
 
 <style>
-table, th, td {
-  border: 1px solid black;
-  border-collapse: collapse;
-}
 body {
-text-align: justify}
+  text-align: justify
+}
+table, th, td, tr{
+  empty-cells:hide;
+  border-spacing: 25px;
+  border-collapse: separate;
+}
+td{
+  filter:drop-shadow(0 0 10px rgba(0,0,0,0.3));
+  padding: 10px;
+  background:white;
+  text-align:center;
+  width:33%;
+  vertical-align: text-top;
+}
+.main-container {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+a.tutorial:link {
+  text-decoration: none!important;
+  font-size: 1.5em;
+  color: #23803A;
+}
+a.tutorial:visited { text-decoration: none!important; }
+a.tutorial:hover { text-decoration: underline!important; }
+a.tutorial:active { text-decoration: underline!important; }
 </style>
 <p><br> <br></p>
+<div id="main-analysis-workflows" class="section level2">
+<h2>Main Analysis Workflows</h2>
 <table>
 <tbody>
 <tr>
-<td style="text-align:center;width:33%; vertical-align: text-top;">
-<p>
-<a href="registration.html" target="_blank" style="font-size: 1.5em;">Spatial
-Data Registration</a>
+<td>
+<p style="margin: 3%">
+<a href="spotanalysis.html" target="_blank" class ="tutorial">Cell/Spot
+Analysis Workflow</a>
 </p>
-<img width="250" height="250" src="images/registration.png" class="center">
-<br>
-<p>
-Computer Vision for aligning distinct spatial modalities and
-technologies
+<img width="280" height="250" src="images/spotanalysis.png" class="center">
+<p style="margin: 3%">
+Quality control, analysis and visualization of ROI segments
 </p>
 </td>
-<td style="text-align:center;width:33%; vertical-align: text-top;">
-<p>
-<a href="deconvolution.html" target="_blank" style="font-size: 1.5em;">Niche
+<td>
+<p style="margin: 3%">
+<a href="roianalysis.html" target="_blank" class ="tutorial">ROI
+Analysis Workflow</a>
+</p>
+<img width="280" height="250" src="images/GeoMx.png" class="center">
+<p style="margin: 3%">
+Quality control, analysis and visualization of ROI segments
+</p>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+</div>
+<div id="data-integration-workflows" class="section level2">
+<h2>Data Integration Workflows</h2>
+<table>
+<tbody>
+<tr>
+<td>
+<p style="margin: 3%">
+<a href="registration.html" target="_blank" class ="tutorial">Spatial
+Data Alignment</a>
+</p>
+<img width="250" height="250" src="images/registration.png" class="center">
+<p style="margin: 3%">
+Manual and automated alignment of spatial technologies
+</p>
+</td>
+<td>
+<p style="margin: 3%">
+<a href="deconvolution.html" target="_blank" class ="tutorial">Niche
 Clustering</a>
 </p>
 <img width="250" height="250" src="images/deconvolution.png" class="center">
-<br>
-<p>
-Clustering with ROI/Spot Deconvolution
+<p style="margin: 3%">
+Clustering with ROI/spot deconvolution
 </p>
 </td>
-<td style="text-align:center;width:33%; vertical-align: text-top;">
-<p>
-<a href="roianalysis.html" target="_blank" style="font-size: 1.5em;">ROI
-Analysis</a>
-</p>
-<img width="280" height="250" src="images/GeoMx.png" class="center">
-<br>
-<p>
-Quality Control, Analysis and Visualization of ROI Segments
-</p>
+<td>
 </td>
 </tr>
 </tbody>
 </table>
 <p><br> <br></p>
+</div>
 
 
 

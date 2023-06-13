@@ -11,12 +11,12 @@
 
 
 
-<title>VoltRon: the Defender of Spatial Biology</title>
+<title>index.knit</title>
 
 <script src="site_libs/header-attrs-2.21/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<link href="site_libs/bootstrap-3.3.5/css/lumen.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
@@ -32,8 +32,6 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
-<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
 <link href="site_libs/font-awesome-6.4.0/css/all.min.css" rel="stylesheet" />
 <link href="site_libs/font-awesome-6.4.0/css/v4-shims.min.css" rel="stylesheet" />
 
@@ -263,13 +261,16 @@ $(document).ready(function () {
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="registration.html">Spatial Data Registration</a>
-    </li>
-    <li>
-      <a href="deconvolution.html">Niche Clustering</a>
+      <a href="spotanalysis.html">Cell/Spot Analysis</a>
     </li>
     <li>
       <a href="roianalysis.html">ROI Analysis</a>
+    </li>
+    <li>
+      <a href="registration.html">Spatial Data Alignment</a>
+    </li>
+    <li>
+      <a href="deconvolution.html">Niche Clustering</a>
     </li>
   </ul>
 </li>
@@ -288,7 +289,7 @@ $(document).ready(function () {
       <a href="https://www.mdc-berlin.de/bioinformatics">Altuna Lab/BIMSB Bioinfo</a>
     </li>
     <li>
-      <a href="https://www.mdc-berlin.de/landthaler">Lanthaler Lab/BIMSB</a>
+      <a href="https://www.mdc-berlin.de/landthaler">Landthaler Lab/BIMSB</a>
     </li>
   </ul>
 </li>
@@ -315,15 +316,15 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">VoltRon: the Defender of Spatial
-Biology</h1>
 
 </div>
 
 
 <style>
 body {
-text-align: justify}
+  text-align: justify;
+  <!-- background-color: grey; -->
+}
 .center {
   display: block;
   margin-left: auto;
@@ -334,8 +335,10 @@ text-align: justify}
   margin-left: auto;
   margin-right: auto;
 }
+p {
+  font-size: 1.2em;
+}
 </style>
-<p><img width="100%" height="100%" src="images/voltron.png" class="center"></p>
 <p><br></p>
 <p style="text-align: justify">
 <strong> VoltRon </strong> is a novel spatial data analysis toolbox for
@@ -361,6 +364,7 @@ spaceRover object. In case, automated registration doesnt work, you can
 still align images.
 </p>
 <p><br></p>
+<p><img width="100%" height="100%" src="images/voltron.png" class="center"></p>
 
 
 

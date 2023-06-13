@@ -10,19 +10,21 @@ navbar:
     - text: "Vignette"
       icon: fa-dna
       menu:
-      - text: "Spatial Data Registration"
+      - text: "Cell/Spot Analysis"
+        href: spotanalysis.html
+      - text: "ROI Analysis"
+        href: roianalysis.html
+      - text: "Spatial Data Alignment"
         href: registration.html
       - text: "Niche Clustering"
         href: deconvolution.html
-      - text: "ROI Analysis"
-        href: roianalysis.html
   right:
     - text: "Contact"
       icon: fa-envelope-o
       menu:
       - text: "Altuna Lab/BIMSB Bioinfo"
         href: https://www.mdc-berlin.de/bioinformatics
-      - text: "Lanthaler Lab/BIMSB"
+      - text: "Landthaler Lab/BIMSB"
         href: https://www.mdc-berlin.de/landthaler
     - text: "GitHub"
       icon: fa-github

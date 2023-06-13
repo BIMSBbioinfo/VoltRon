@@ -1,7 +1,11 @@
 ---
 title: "ROI/Spot Deconvolution and Niche Clustering"
-output: html_document
-date: "2023-06-09"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    theme: lumen
 ---
 
 ```{r setup, include=FALSE}
@@ -48,7 +52,6 @@ Vis_A1 <- RunDecon(Vis_A1, sc.object = scdata_subset_normal, sc.cluster = "minor
 MainAssay(Vis_A1) <- "Visium_decon"
 SpatFeatPlot(Vis_A1, features = Features(Vis_A1), crop = TRUE, ncol = 5, alpha = 1)
 SpatFeatPlot(Vis_A1, features = "MyoFBs", crop = TRUE, ncol = 5, alpha = 1)
-
 ```
 
 ## Niche Clustering with Deconvolution results

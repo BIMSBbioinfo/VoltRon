@@ -27,7 +27,7 @@ getNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca", ...){
   for(assy in assay_names){
     cur_assay <- object[[assy]]
     nnedges <- getNeighbors(cur_assay, data.type = data.type, ...)
-    object@zstack <- add_edges(object@zstack, edges = nnedges)
+    object@graph <- add_edges(object@graph, edges = nnedges)
   }
 
   # return

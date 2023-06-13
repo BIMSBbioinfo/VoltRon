@@ -1,10 +1,15 @@
 ---
 title: "ROI Analysis"
-output: html_document
-date: "2023-06-09"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    theme: lumen
 ---
 
 ```{r setup, include=FALSE}
+# use rmarkdown::render_site(envir = knitr::knit_global())
 knitr::opts_chunk$set(echo = TRUE)
 ```
 

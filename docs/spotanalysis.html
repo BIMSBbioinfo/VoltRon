@@ -11,7 +11,7 @@
 
 
 
-<title>Spatial Data Registration</title>
+<title>Cell/Spot Analysis</title>
 
 <script src="site_libs/header-attrs-2.21/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -392,7 +392,7 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Spatial Data Registration</h1>
+<h1 class="title toc-ignore">Cell/Spot Analysis</h1>
 
 </div>
 
@@ -400,27 +400,33 @@ div.tocify {
 <div id="import" class="section level2">
 <h2>Import</h2>
 <pre class="r"><code>library(VoltRon)
-
-# Load Xenium Data Replicate 1
-Xen_seu_R1 &lt;- importXenium(&quot;../../../data/10X_Xenium_Visium/Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
-
-# Load Xenium Data Replicate 2
-Xen_seu_R2 &lt;- importXenium(&quot;../../../data/10X_Xenium_Visium/Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;)
-
-# Load Visium Data
-Vis_seu &lt;- importVisium(&quot;../../../data/10X_Xenium_Visium/Visium&quot;, sample_name = &quot;VisiumR1&quot;)</code></pre>
+Vis_A1 &lt;- importVisium(&quot;hColon_N_A1/&quot;, sample_name = &quot;Vis_A1&quot;)</code></pre>
 </div>
-<div id="registration" class="section level2">
-<h2>Registration</h2>
-<pre class="r"><code>keypoints &lt;- readRDS(&quot;saved_keypoints/Xenium&amp;Visium_keypoints.rds&quot;)
-keypoints &lt;- list(`1-2` = list(ref = keypoints[[2]], query = keypoints[[1]]),
-                  `2-3` = list(ref = keypoints[[1]], query = keypoints[[3]]))
-xen_reg &lt;- registerSpatialData(data_list = list(Xen_seu_R1, Vis_seu, Xen_seu_R2), keypoints = keypoints)</code></pre>
-</div>
-<div id="combine-voltron-object" class="section level2">
-<h2>Combine VoltRon object</h2>
-<pre class="r"><code>merge_list &lt;- xen_reg$registered_spat
-SRBlock &lt;- merge(merge_list[[1]], merge_list[-1], sample_name = &quot;10XBlock&quot;)</code></pre>
+<div id="regular-clustering-on-gene-expression-data"
+class="section level2">
+<h2>Regular Clustering on gene expression data</h2>
+<pre class="r"><code># normalize
+vrMainAssay(Vis_A1) &lt;- &quot;Visium&quot;
+Vis_A1 &lt;- normalizeData(Vis_A1, method = &quot;LogNorm&quot;)
+
+# get variable features
+Vis_A1 &lt;- getFeatures(Vis_A1)
+Vis_A1 &lt;- getPCA(Vis_A1)
+
+# get neighbors
+Vis_A1 &lt;- getNeighbors(Vis_A1)
+
+# get clustering
+Vis_A1 &lt;- getClusters(Vis_A1, resolution = 0.6, label = &quot;GEX_Clusters&quot;)
+
+# visualize
+vrMainAssay(Vis_A1) &lt;- &quot;Visium&quot;
+
+# get UMAP and visualize
+Vis_A1 &lt;- getUMAP(Vis_A1)
+ggplot(data = data.frame(vrEmbeddings(Vis_A1, type = &quot;umap&quot;)), aes(x = x, y = y, color = factor(Metadata(Vis_A1, type = &quot;spot&quot;)$GEX_Clusters)))+
+  geom_point() + guides(col = guide_legend(title = &quot;Cluster&quot;)) + NoAxes()</code></pre>
+<p><img src="spotanalysis_files/figure-html/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 
 
