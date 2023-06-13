@@ -24,7 +24,13 @@ vrSegments(object, ...) <- value
 \arguments{
 \item{object}{An object}
 
+\item{reg}{TRUE if registered segments are being updated}
+
 \item{...}{Arguments passed to other methods}
+
+\item{value}{the new set of 2D segments for each spatial point}
+
+\item{assay}{assay}
 }
 \value{
 \code{vrSegments}: The name of the default assay
@@ -34,4 +40,3 @@ vrSegments(object, ...) <- value
 \description{
 Get and set the segments of spatian points of the main assay
 }
-\concept{data-access}

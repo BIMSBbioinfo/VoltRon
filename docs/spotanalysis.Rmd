@@ -1,0 +1,53 @@
+---
+title: "Cell/Spot Analysis"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    theme: lumen
+---
+
+```{r setup, include=FALSE}
+# use rmarkdown::render_site(envir = knitr::knit_global())
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Import
+
+```{r include = FALSE, eval = TRUE, ca }
+library(irlba)
+library(Seurat)
+Vis_A1 <- importVisium("../../../../SpatialSLAM/data/SimoneSlidesSpatial/hColon_N_A1_new/", sample_name = "Vis_A1")
+```
+
+```{r eval = FALSE}
+library(VoltRon)
+Vis_A1 <- importVisium("hColon_N_A1/", sample_name = "Vis_A1")
+```
+
+## Regular Clustering on gene expression data
+
+```{r eval = TRUE, fig.align='center'}
+# normalize
+vrMainAssay(Vis_A1) <- "Visium"
+Vis_A1 <- normalizeData(Vis_A1, method = "LogNorm")
+
+# get variable features
+Vis_A1 <- getFeatures(Vis_A1)
+Vis_A1 <- getPCA(Vis_A1)
+
+# get neighbors
+Vis_A1 <- getNeighbors(Vis_A1)
+
+# get clustering
+Vis_A1 <- getClusters(Vis_A1, resolution = 0.6, label = "GEX_Clusters")
+
+# visualize
+vrMainAssay(Vis_A1) <- "Visium"
+
+# get UMAP and visualize
+Vis_A1 <- getUMAP(Vis_A1)
+ggplot(data = data.frame(vrEmbeddings(Vis_A1, type = "umap")), aes(x = x, y = y, color = factor(Metadata(Vis_A1, type = "spot")$GEX_Clusters)))+
+  geom_point() + guides(col = guide_legend(title = "Cluster")) + NoAxes()
+```

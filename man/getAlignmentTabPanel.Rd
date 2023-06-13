@@ -13,9 +13,6 @@ getAlignmentTabPanel(len_images, centre, register_ind)
 
 \item{register_ind}{query image indices}
 }
-\value{
-tabsetpanel
-}
 \description{
 The UI for a set of query spatial slides
 }

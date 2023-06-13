@@ -16,6 +16,12 @@ getFeatures(object, ...)
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{assay}{assay}
+
+\item{max.count}{max count (maximum across spatial points) for low count filtering}
+
+\item{n}{the number of features}
 }
 \value{
 Returns object after normalization
@@ -23,4 +29,3 @@ Returns object after normalization
 \description{
 get spatially variable features in an assay
 }
-\concept{preprocessing}

@@ -16,6 +16,8 @@ vrAssayTypes(object, ...)
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{assay}{assay}
 }
 \value{
 \code{vrAssayTypes}: The name of the default assay
@@ -24,4 +26,3 @@ vrAssayTypes(object, ...)
 Given a VoltRon object, give types of assays of some type, or of the main assay.
 Here, an assay type is of either cell, spot or ROI.
 }
-\concept{data-access}

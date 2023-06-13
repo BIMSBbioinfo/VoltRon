@@ -17,14 +17,20 @@ vrEmbeddings(object, ...)
 
 vrEmbeddings(object, ...) <- value
 
-\method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", ..., value)
+\method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", ...)
 
 \method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", ...) <- value
 }
 \arguments{
 \item{object}{An object}
 
+\item{type}{the key name for the embedding}
+
 \item{...}{Arguments passed to other methods}
+
+\item{value}{new embedding data}
+
+\item{assay}{assay}
 }
 \value{
 \code{vrEmbeddings}: The name of the default assay
@@ -34,4 +40,3 @@ vrEmbeddings(object, ...) <- value
 \description{
 Get embeddings of spatial points
 }
-\concept{data-access}

@@ -17,7 +17,9 @@ registerSpatialData(
 \item{reference_spatdata}{a reference spatial data set, used only if \code{spatial_data_list} is \code{NULL}}
 
 \item{query_spatdata}{a query spatial data set, used only if \code{spatial_data_list} is \code{NULL}}
+
+\item{keypoints}{keypoints tables for each registration}
 }
 \description{
-A mini shiny app to calculate spatial cell(barcode) projection matrix between a visium slide and a xenium slide
+A mini shiny app to for registering images and spatial coordinates of multiple consequtive spatial datasets
 }

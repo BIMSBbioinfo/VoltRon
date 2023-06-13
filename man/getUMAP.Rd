@@ -13,6 +13,12 @@ getUMAP(object, ...)
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{assay}{assay}
+
+\item{dims}{the number of dimensions extracted from PCA}
+
+\item{seed}{seed}
 }
 \value{
 \code{getUMAP}: The name of the default assay
@@ -20,5 +26,3 @@ getUMAP(object, ...)
 \description{
 calculate getUMAP of the VoltRon objects
 }
-\concept{data-access}
-\concept{embedding}

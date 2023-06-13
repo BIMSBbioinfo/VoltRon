@@ -16,11 +16,9 @@ vrFeatures(object, ...)
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
-}
-\value{
-\code{vrFeatures}: The name of the default assay
+
+\item{assay}{assay}
 }
 \description{
 Get features from the main.assay
 }
-\concept{data-access}

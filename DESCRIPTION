@@ -2,7 +2,7 @@ Package: VoltRon
 Type: Package
 Title: VoltRon for Spatial Data Analysis and Integration
 Version: 0.1.0
-Author: Artur Manukyan, Vedran Franke, Ella Bahry, Markus Landthaler, Altuna Akalin
+Author: Artur Manukyan, Ella Bahry, Vedran Franke, Deborah Schmidt, Markus Landthaler, Altuna Akalin
 Maintainer: Artur Manukyan <artur-man@hotmail.com>
 Description: VoltRon is a spatial data analysis toolbox for spatial data analysis, integration and image registration 
 License: MIT

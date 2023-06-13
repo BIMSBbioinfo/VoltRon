@@ -9,9 +9,9 @@
 \arguments{
 \item{metadata}{sample metadata of a VoltRon object}
 
-\item{samples}{samples}
+\item{samples}{the set of samples to subset the object}
 
-\item{assays}{assays}
+\item{assays}{the set of assays to subset the object}
 }
 \description{
 subset.sampleMetadata

@@ -39,8 +39,9 @@ setMethod(
 #' @rdname vrImages
 #' @method vrImages Seurat
 #'
+#' @importFrom magick image_read
+#'
 #' @export
-#' @import magick
 #'
 vrImages.Seurat <- function(seu, ...){
 
@@ -65,8 +66,8 @@ vrImages.Seurat <- function(seu, ...){
 #'
 #' @export
 #'
-vrImages.VoltRon <- function(sr, ...){
-  sapply(sr@samples, function(samp) vrImages(samp), USE.NAMES = TRUE)
+vrImages.VoltRon <- function(object, ...){
+  sapply(object@samples, function(samp) vrImages(samp), USE.NAMES = TRUE)
 }
 
 #' @rdname vrImages
@@ -74,8 +75,8 @@ vrImages.VoltRon <- function(sr, ...){
 #'
 #' @export
 #'
-vrImages.vrSample <- function(vr, ...){
-  sapply(vr@layer, function(lay) vrImages(lay), USE.NAMES = TRUE)
+vrImages.vrSample <- function(object, ...){
+  sapply(object@layer, function(lay) vrImages(lay), USE.NAMES = TRUE)
 }
 
 #' @rdname vrImages
@@ -83,8 +84,8 @@ vrImages.vrSample <- function(vr, ...){
 #'
 #' @export
 #'
-vrImages.vrLayer <- function(vr, ...){
-  sapply(vr@assay, function(a) vrImages(a), USE.NAMES = TRUE)
+vrImages.vrLayer <- function(object, ...){
+  sapply(object@assay, function(assy) vrImages(assy), USE.NAMES = TRUE)
 }
 
 #' @rdname vrImages
@@ -92,8 +93,20 @@ vrImages.vrLayer <- function(vr, ...){
 #'
 #' @export
 #'
-vrImages.vrAssay <- function(vr, ...){
-  vr@image
+vrImages.vrAssay <- function(object){
+  object@image
+}
+
+#' @param value new image
+#'
+#' @rdname vrImages
+#' @method vrImages<- vrAssay
+#'
+#' @export
+#'
+"vrImages<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
+  object@image <- value
+  return(object)
 }
 
 ####
@@ -151,9 +164,12 @@ resizeImage.VoltRon <- function(object, ...){
   return(object)
 }
 
+#' @param size the width of the resized image
+#'
 #' @rdname resizeImage
 #' @method resizeImage vrAssay
 #'
+#' @importFrom magick image_info image_resize
 #' @export
 #'
 resizeImage.vrAssay <- function(object, size){
@@ -180,7 +196,7 @@ resizeImage.vrAssay <- function(object, size){
 
 #' generateXeniumImage
 #'
-#' Generates a low resolution DAPI image from
+#' Generate a low resolution DAPI image of the Xenium experiment
 #'
 #' @param dir.path Xenium output folder
 #' @param increase.contrast increase the contrast of the image before writing
@@ -234,7 +250,7 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolutionLe
 
 #' generateCosMxImage
 #'
-#' Generates a low resolution Morphology image from CosMx
+#' Generates a low resolution Morphology image of the CosMx experiment
 #'
 #' @param dir.path CosMx output folder
 #' @param increase.contrast increase the contrast of the image before writing
@@ -318,9 +334,15 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 # Demultiplex Images ####
 ####
 
-#' DemuxGeoMx
+#' demuxVoltRon
+#'
+#' Subsetting/demultiplexing of the VoltRon Object using interactive shiny app
 #'
 #' @param object a VoltRon object
+#' @param scale_width the initial width of the object image
+#'
+#' @import shiny
+#' @import shinyjs
 #'
 demuxVoltRon <- function(object, scale_width = 800)
 {
@@ -481,7 +503,6 @@ demuxVoltRon <- function(object, scale_width = 800)
           stopApp(list(registration = registration, subset_info_list = box_list))
         }
       })
-
     }
 
     shiny::runApp(shiny::shinyApp(ui, server))

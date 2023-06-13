@@ -18,5 +18,5 @@ updateSequentialTabPanels(input, output, session, centre, register_ind)
 \item{register_ind}{query image indices}
 }
 \description{
-A function for automatized selection of reference/query images
+A function for automatized selection of reference/query tab panels
 }

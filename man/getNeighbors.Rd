@@ -15,7 +15,11 @@ getNeighbors(object, ...)
 \arguments{
 \item{object}{An object}
 
-\item{...}{Arguments passed to other methods}
+\item{...}{additional parameters passed to \code{getNeighbors.vrAssay}}
+
+\item{assay}{assay}
+
+\item{data.type}{the type of embedding used for neighborhood calculation, e.g. raw counts (raw), normalized counts (norm), PCA embeddings (pca), UMAP embeddings (umap) etc.}
 }
 \value{
 Returns object after normalization
@@ -23,4 +27,3 @@ Returns object after normalization
 \description{
 get neighbors in an assay
 }
-\concept{clustering}

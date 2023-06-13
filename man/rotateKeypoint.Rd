@@ -26,9 +26,6 @@ rotateKeypoint(
 
 \item{rotated_limits}{limits of the rotated image}
 }
-\value{
-keypoints
-}
 \description{
 Find transformations of keypoints under clockwise rotations of the image
 }

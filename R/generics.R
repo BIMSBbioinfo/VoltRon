@@ -30,8 +30,6 @@ normalizeData <- function(object, ...) {
 #' @rdname Metadata
 #' @export Metadata
 #'
-#' @concept data-access
-#'
 Metadata <- function(object, ...) {
   UseMethod(generic = 'Metadata', object = object)
 }
@@ -43,8 +41,6 @@ Metadata <- function(object, ...) {
 #'
 #' @rdname Metadata
 #' @export Metadata<-
-#'
-#' @concept data-access
 #'
 "Metadata<-" <- function(object, ...) {
   UseMethod(generic = 'Metadata<-', object = object)
@@ -62,8 +58,6 @@ Metadata <- function(object, ...) {
 #' @rdname SampleMetadata
 #' @export SampleMetadata
 #'
-#' @concept data-access
-#'
 SampleMetadata <- function(object, ...) {
   UseMethod(generic = 'SampleMetadata', object = object)
 }
@@ -79,8 +73,6 @@ SampleMetadata <- function(object, ...) {
 #'
 #' @rdname addAssay
 #' @export addAssay
-#'
-#' @concept data-access
 #'
 addAssay <- function(object, ...) {
   UseMethod(generic = 'addAssay', object = object)
@@ -98,8 +90,6 @@ addAssay <- function(object, ...) {
 #' @rdname vrAssayNames
 #' @export vrAssayNames
 #'
-#' @concept data-access
-#'
 vrAssayNames <- function(object, ...) {
   UseMethod(generic = 'vrAssayNames', object = object)
 }
@@ -111,8 +101,6 @@ vrAssayNames <- function(object, ...) {
 #'
 #' @rdname vrAssayNames
 #' @export vrAssayNames<-
-#'
-#' @concept data-access
 #'
 "vrAssayNames<-" <- function(object, ...) {
   UseMethod(generic = 'vrAssayNames<-', object = object)
@@ -131,8 +119,6 @@ vrAssayNames <- function(object, ...) {
 #' @rdname vrAssayTypes
 #' @export vrAssayTypes
 #'
-#' @concept data-access
-#'
 vrAssayTypes <- function(object, ...) {
   UseMethod(generic = 'vrAssayTypes', object = object)
 }
@@ -149,8 +135,6 @@ vrAssayTypes <- function(object, ...) {
 #' @rdname vrMainAssay
 #' @export vrMainAssay
 #'
-#' @concept data-access
-#'
 vrMainAssay <- function(object, ...) {
   UseMethod(generic = 'vrMainAssay', object = object)
 }
@@ -163,8 +147,6 @@ vrMainAssay <- function(object, ...) {
 #' @rdname vrMainAssay
 #' @export vrMainAssay<-
 #'
-#' @concept data-access
-#'
 "vrMainAssay<-" <- function(object, ...) {
   UseMethod(generic = 'vrMainAssay<-', object = object)
 }
@@ -176,15 +158,21 @@ vrMainAssay <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{vrSpatialPoints}: The name of the default assay
-#'
 #' @rdname vrSpatialPoints
 #' @export vrSpatialPoints
 #'
-#' @concept data-access
-#'
 vrSpatialPoints <- function(object, ...) {
   UseMethod(generic = 'vrSpatialPoints', object = object)
+}
+
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname vrSpatialPoints
+#' @export vrSpatialPoints<-
+#'
+"vrSpatialPoints<-" <- function(object, ...) {
+  UseMethod(generic = 'vrSpatialPoints<-', object = object)
 }
 
 #' vrFeatures
@@ -194,12 +182,8 @@ vrSpatialPoints <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{vrFeatures}: The name of the default assay
-#'
 #' @rdname vrFeatures
 #' @export vrFeatures
-#'
-#' @concept data-access
 #'
 vrFeatures <- function(object, ...) {
   UseMethod(generic = 'vrFeatures', object = object)
@@ -217,8 +201,6 @@ vrFeatures <- function(object, ...) {
 #' @rdname vrFeatureData
 #' @export vrFeatureData
 #'
-#' @concept data-access
-#'
 vrFeatureData <- function(object, ...) {
   UseMethod(generic = 'vrFeatureData', object = object)
 }
@@ -230,8 +212,6 @@ vrFeatureData <- function(object, ...) {
 #'
 #' @rdname vrFeatureData
 #' @export vrFeatureData<-
-#'
-#' @concept data-access
 #'
 "vrFeatureData<-" <- function(object, ...) {
   UseMethod(generic = 'vrFeatureData<-', object = object)
@@ -249,8 +229,6 @@ vrFeatureData <- function(object, ...) {
 #' @rdname vrData
 #' @export vrData
 #'
-#' @concept data-access
-#'
 vrData <- function(object, ...) {
   UseMethod(generic = 'vrData', object = object)
 }
@@ -266,8 +244,6 @@ vrData <- function(object, ...) {
 #'
 #' @rdname vrGraph
 #' @export vrGraph
-#'
-#' @concept data-access
 #'
 vrGraph <- function(object, ...) {
   UseMethod(generic = 'vrGraph', object = object)
@@ -318,8 +294,6 @@ getFeatures <- function(object, ...) {
 #' @rdname vrCoordinates
 #' @export vrCoordinates
 #'
-#' @concept data-access
-#'
 vrCoordinates <- function(object, ...) {
   UseMethod(generic = 'vrCoordinates', object = object)
 }
@@ -331,8 +305,6 @@ vrCoordinates <- function(object, ...) {
 #'
 #' @rdname vrCoordinates
 #' @export vrCoordinates<-
-#'
-#' @concept data-access
 #'
 "vrCoordinates<-" <- function(object, ...) {
   UseMethod(generic = 'vrCoordinates<-', object = object)
@@ -350,8 +322,6 @@ vrCoordinates <- function(object, ...) {
 #' @rdname vrSegments
 #' @export vrSegments
 #'
-#' @concept data-access
-#'
 vrSegments <- function(object, ...) {
   UseMethod(generic = 'vrSegments', object = object)
 }
@@ -363,8 +333,6 @@ vrSegments <- function(object, ...) {
 #'
 #' @rdname vrSegments
 #' @export vrSegments<-
-#'
-#' @concept data-access
 #'
 "vrSegments<-" <- function(object, ...) {
   UseMethod(generic = 'vrSegments<-', object = object)
@@ -382,8 +350,6 @@ vrSegments <- function(object, ...) {
 #' @rdname vrDistances
 #' @export vrDistances
 #'
-#' @concept data-access
-#'
 vrDistances <- function(object, ...) {
   UseMethod(generic = 'vrDistances', object = object)
 }
@@ -400,8 +366,6 @@ vrDistances <- function(object, ...) {
 #' @rdname vrEmbeddings
 #' @export vrEmbeddings
 #'
-#' @concept data-access
-#'
 vrEmbeddings <- function(object, ...) {
   UseMethod(generic = 'vrEmbeddings', object = object)
 }
@@ -413,8 +377,6 @@ vrEmbeddings <- function(object, ...) {
 #'
 #' @rdname vrEmbeddings
 #' @export vrEmbeddings<-
-#'
-#' @concept data-access
 #'
 "vrEmbeddings<-" <- function(object, ...) {
   UseMethod(generic = 'vrEmbeddings<-', object = object)
@@ -432,8 +394,6 @@ vrEmbeddings <- function(object, ...) {
 #' @rdname getPCA
 #' @export getPCA
 #'
-#' @concept data-access
-#'
 getPCA <- function(object, ...) {
   UseMethod(generic = 'getPCA', object = object)
 }
@@ -449,8 +409,6 @@ getPCA <- function(object, ...) {
 #'
 #' @rdname getUMAP
 #' @export getUMAP
-#'
-#' @concept data-access
 #'
 getUMAP <- function(object, ...) {
   UseMethod(generic = 'getUMAP', object = object)
@@ -468,10 +426,20 @@ getUMAP <- function(object, ...) {
 #' @rdname vrImages
 #' @export vrImages
 #'
-#' @concept data-access
-#'
 vrImages <- function(object, ...) {
   UseMethod(generic = 'vrImages', object = object)
+}
+
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{vrImages<-}: The coordinates updated
+#'
+#' @rdname vrImages
+#' @export vrImages<-
+#'
+"vrImages<-" <- function(object, ...) {
+  UseMethod(generic = 'vrImages<-', object = object)
 }
 
 #' resizeImage
@@ -485,8 +453,6 @@ vrImages <- function(object, ...) {
 #'
 #' @rdname resizeImage
 #' @export resizeImage
-#'
-#' @concept data-access
 #'
 resizeImage <- function(object, ...) {
   UseMethod(generic = 'resizeImage', object = object)

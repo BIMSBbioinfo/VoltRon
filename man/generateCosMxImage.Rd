@@ -16,5 +16,5 @@ generateCosMxImage(dir.path, increase.contrast = TRUE, output.path = NULL, ...)
 \item{...}{additional parameters passed to the EBImage::writeImage function}
 }
 \description{
-Generates a low resolution Morphology image from CosMx
+Generates a low resolution Morphology image of the CosMx experiment
 }

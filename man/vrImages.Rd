@@ -2,34 +2,43 @@
 % Please edit documentation in R/generics.R, R/image.R
 \name{vrImages}
 \alias{vrImages}
+\alias{vrImages<-}
 \alias{vrImages.Seurat}
 \alias{vrImages.VoltRon}
 \alias{vrImages.vrSample}
 \alias{vrImages.vrLayer}
 \alias{vrImages.vrAssay}
+\alias{vrImages<-.vrAssay}
 \title{vrImages}
 \usage{
 vrImages(object, ...)
 
+vrImages(object, ...) <- value
+
 \method{vrImages}{Seurat}(seu, ...)
 
-\method{vrImages}{VoltRon}(sr, ...)
+\method{vrImages}{VoltRon}(object, ...)
 
-\method{vrImages}{vrSample}(vr, ...)
+\method{vrImages}{vrSample}(object, ...)
 
-\method{vrImages}{vrLayer}(vr, ...)
+\method{vrImages}{vrLayer}(object, ...)
 
-\method{vrImages}{vrAssay}(vr, ...)
+\method{vrImages}{vrAssay}(object)
+
+\method{vrImages}{vrAssay}(object, reg = FALSE, ...) <- value
 }
 \arguments{
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{value}{new image}
 }
 \value{
 \code{vrImages}: The name of the default assay
+
+\code{vrImages<-}: The coordinates updated
 }
 \description{
 Get images of a VoltRon assay
 }
-\concept{data-access}

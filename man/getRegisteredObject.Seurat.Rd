@@ -12,5 +12,5 @@ getRegisteredObject.Seurat(seu, mapping)
 \item{mapping}{a list of transformation mapping matrices for the registration}
 }
 \description{
-get the registered cell data/locations from a Seurat Object
+Get a Seurat Object wigth the registered spatial coordinates and images
 }

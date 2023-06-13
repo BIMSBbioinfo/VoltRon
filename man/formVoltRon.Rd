@@ -11,14 +11,13 @@ formVoltRon(
   coords,
   segments = list(),
   sample.metadata = NULL,
-  zstack = NULL,
+  graph = NULL,
   main.assay = "Custom_cell",
   assay.type = "cell",
   params = list(),
   sample_name = NULL,
   layer_name = NULL,
-  project = NULL,
-  ...
+  project = NULL
 )
 }
 \arguments{
@@ -28,11 +27,11 @@ formVoltRon(
 
 \item{image}{the image of the data}
 
-\item{segments}{the segments of the spatial entities, optional}
+\item{segments}{the segments of the spatial points, optional}
 
 \item{sample.metadata}{a data frame of the sample metadata}
 
-\item{zstack}{the zstack graph to determine the adjacency of spatial entities across layers}
+\item{graph}{the graph to determine the adjacency of spatial points across layers}
 
 \item{main.assay}{the name of the main assay of the object}
 
@@ -46,9 +45,7 @@ formVoltRon(
 
 \item{project}{project name}
 
-\item{...}{additional parameters passed to VoltRon object}
-
-\item{coord}{the coordinates of the spatial entities}
+\item{coord}{the coordinates of the spatial points}
 
 \item{assay_name}{the name of the assay}
 }

@@ -6,6 +6,13 @@
 \usage{
 getSharedFeatures(object, assay = NULL, n = 3000, ...)
 }
+\arguments{
+\item{object}{A Voltron Object}
+
+\item{assay}{assay}
+
+\item{n}{the number of features}
+}
 \description{
 get shared variable features across multiple assays
 }

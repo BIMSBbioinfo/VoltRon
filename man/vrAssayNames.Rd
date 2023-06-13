@@ -22,6 +22,10 @@ vrAssayNames(object, ...) <- value
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{value}{the new postfix name of the assay}
+
+\item{assay}{assay}
 }
 \value{
 \code{vrAssayNames}: The name of the default assay
@@ -31,4 +35,3 @@ vrAssayNames(object, ...) <- value
 \description{
 Given a VoltRon object, give names of assays of some type, or main assay.
 }
-\concept{data-access}

@@ -15,7 +15,11 @@ vrData(object, ...)
 \arguments{
 \item{object}{An object}
 
+\item{norm}{TRUE if normalized data should be returned}
+
 \item{...}{Arguments passed to other methods}
+
+\item{assay}{assay}
 }
 \value{
 \code{vrData}: The name of the default assay
@@ -23,4 +27,3 @@ vrData(object, ...)
 \description{
 Get data from the main.assay
 }
-\concept{data-access}

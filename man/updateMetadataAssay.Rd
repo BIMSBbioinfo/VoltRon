@@ -12,5 +12,5 @@ updateMetadataAssay(object1, object2)
 \item{object2}{vrMetadata object}
 }
 \description{
-updating assay names for merge
+Updating assay names for merge
 }

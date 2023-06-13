@@ -12,7 +12,7 @@
 #' @param sc.assay assay of the Seurat Object used for the single cell data reference
 #' @param sc.cluster metadata column variable used for the single cell data reference
 #' @param method Deconvolution method, RCTD (spot), SPOTlight (spot), MuSiC (ROI)
-#' @param ... additional parameters passed to \code{}
+#' @param ... additional parameters passed to \code{getDeconSingle}
 #'
 #' @export
 #'

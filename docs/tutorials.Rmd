@@ -1,33 +1,89 @@
 ---
 title: "VoltRon Tutorials"
+output: 
+  html_document:
+    theme: lumen
 ---
 
 <style>
-table, th, td {
-  border: 1px solid black;
-  border-collapse: collapse;
-}
 body {
-text-align: justify}
+  text-align: justify
+}
+table, th, td, tr{
+  empty-cells:hide;
+  border-spacing: 25px;
+  border-collapse: separate;
+}
+td{
+  filter:drop-shadow(0 0 10px rgba(0,0,0,0.3));
+  padding: 10px;
+  background:white;
+  text-align:center;
+  width:33%;
+  vertical-align: text-top;
+}
+.main-container {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+a.tutorial:link {
+  text-decoration: none!important;
+  font-size: 1.5em;
+  color: #23803A;
+}
+a.tutorial:visited { text-decoration: none!important; }
+a.tutorial:hover { text-decoration: underline!important; }
+a.tutorial:active { text-decoration: underline!important; }
 </style>
 
 <br>
 <br>
 
+```{r setup, include=FALSE}
+# use rmarkdown::render_site(envir = knitr::knit_global())
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Main Analysis Workflows
+
 <table>
 <tbody>
   <tr>
-   <td style="text-align:center;width:33%; vertical-align: text-top;"> 
-      <p> <a href="registration.html" target="_blank" style="font-size: 1.5em;">Spatial Data Registration</a> </p>
-      <img width="280" height="300" src="images/registration.png" class="center">
-      <br>
-      <p> **Spatial Data Registration**: Computer Vision for aligning distinct spatial modalities and technologies </p>
+   <td> 
+      <p style = "margin: 3%"> <a href="spotanalysis.html" target="_blank" class ="tutorial">Cell/Spot Analysis Workflow</a> </p>
+      <img width="280" height="250" src="images/spotanalysis.png" class="center">
+      <p style = "margin: 3%"> Quality control, analysis and visualization of ROI segments </p>
    </td>
-   <td style="text-align:center;width:33%; vertical-align: text-top;"> 
-      <p> <a href="deconvolution.html" target="_blank" style="font-size: 1.5em;">Niche Clustering</a> </p>
-      <img width="300" height="300" src="images/deconvolution.png" class="center">
-      <br>
-      <p> **ROI/Spot Deconvolution**: Niche Clustering with Deconvolution </p>
+   <td> 
+      <p style = "margin: 3%"> <a href="roianalysis.html" target="_blank" class ="tutorial">ROI Analysis Workflow</a> </p>
+      <img width="280" height="250" src="images/GeoMx.png" class="center">
+      <p style = "margin: 3%"> Quality control, analysis and visualization of ROI segments </p>
+   </td>
+   <td> 
+   </td>
+  </tr>
+</tbody>
+</table>
+
+<br>
+
+## Data Integration Workflows
+
+<table>
+<tbody>
+  <tr>
+   <td> 
+      <p style = "margin: 3%"> <a href="registration.html" target="_blank" class ="tutorial">Spatial Data Alignment</a> </p>
+      <img width="250" height="250" src="images/registration.png" class="center">
+      <p style = "margin: 3%"> Manual and automated alignment of spatial technologies </p>
+   </td>
+   <td> 
+      <p style = "margin: 3%"> <a href="deconvolution.html" target="_blank" class ="tutorial">Niche Clustering</a> </p>
+      <img width="250" height="250" src="images/deconvolution.png" class="center">
+      <p style = "margin: 3%"> Clustering with ROI/spot deconvolution </p>
+   </td>
+   <td> 
    </td>
   </tr>
 </tbody>

@@ -15,9 +15,6 @@ transformImage(image, extension, input, session)
 
 \item{session}{shiny session}
 }
-\value{
-magick image
-}
 \description{
 Apply given transformations to a magick image
 }

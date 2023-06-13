@@ -6,8 +6,9 @@ NULL
 # Normalization ####
 ####
 
+#' @param assay assay
+#'
 #' @rdname normalizeData
-#' @concept preprocessing
 #' @method normalizeData VoltRon
 #'
 #' @export
@@ -26,11 +27,15 @@ normalizeData.VoltRon <- function(object, assay = NULL, ...) {
   return(object)
 }
 
+#' @param assay assay
+#' @param method the normalization method
+#' @param desiredQuantile the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}
+#'
 #' @rdname normalizeData
-#' @concept preprocessing
 #' @method normalizeData vrAssay
 #'
 #' @export
+#'
 normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9) {
 
   # size factor
@@ -68,11 +73,13 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
 # Features ####
 ####
 
+#' @param assay assay
+#'
 #' @rdname getFeatures
-#' @concept preprocessing
 #' @method getFeatures VoltRon
 #'
 #' @export
+#'
 getFeatures.VoltRon <- function(object, assay = NULL, ...){
 
   # get assay names
@@ -87,8 +94,10 @@ getFeatures.VoltRon <- function(object, assay = NULL, ...){
   return(object)
 }
 
+#' @param max.count max count (maximum across spatial points) for low count filtering
+#' @param n the number of features
+#'
 #' @rdname getFeatures
-#' @concept preprocessing
 #' @method getFeatures vrAssay
 #'
 #' @export
@@ -125,6 +134,10 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
 #'
 #' get shared variable features across multiple assays
 #'
+#' @param object A Voltron Object
+#' @param assay assay
+#' @param n the number of features
+#'
 #' @importFrom dplyr full_join
 #'
 getSharedFeatures <- function(object, assay = NULL, n = 3000, ...){
@@ -160,11 +173,14 @@ getSharedFeatures <- function(object, assay = NULL, n = 3000, ...){
 # vrEmbeddings ####
 ####
 
+#' @param assay assay
+#' @param dims the number of dimensions extracted from PCA
+#'
 #' @rdname getPCA
-#' @concept embedding
 #' @method getPCA VoltRon
 #'
 #' @export
+#'
 getPCA.VoltRon <- function(object, assay = NULL, dims = 30){
 
   # get assay names
@@ -193,11 +209,15 @@ getPCA.VoltRon <- function(object, assay = NULL, dims = 30){
   return(object)
 }
 
+#' @param assay assay
+#' @param dims the number of dimensions extracted from PCA
+#' @param seed seed
+#'
 #' @rdname getUMAP
-#' @concept embedding
 #' @method getUMAP VoltRon
 #'
 #' @export
+#'
 getUMAP.VoltRon <- function(object, assay = NULL, dims = 30, seed = 1){
 
   # set Embeddings

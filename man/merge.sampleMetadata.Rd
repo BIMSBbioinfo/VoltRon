@@ -12,5 +12,5 @@
 \item{sample_name}{sample}
 }
 \description{
-merge.sampleMetadata
+Merging sample.metadata from two VoltRon objects
 }

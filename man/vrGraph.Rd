@@ -13,6 +13,8 @@ vrGraph(object, ...)
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{assay}{assay}
 }
 \value{
 \code{vrGraph}: The name of the default assay
@@ -20,4 +22,3 @@ vrGraph(object, ...)
 \description{
 Get graph from the main.assay
 }
-\concept{data-access}

@@ -24,7 +24,13 @@ vrCoordinates(object, ...) <- value
 \arguments{
 \item{object}{An object}
 
+\item{reg}{TRUE if registered segments are being updated}
+
 \item{...}{Arguments passed to other methods}
+
+\item{value}{the new set of 2D coordinates}
+
+\item{assay}{assay}
 }
 \value{
 \code{vrCoordinates}: The name of the default assay
@@ -34,4 +40,3 @@ vrCoordinates(object, ...) <- value
 \description{
 Get and set the coordinates of the main assay
 }
-\concept{data-access}

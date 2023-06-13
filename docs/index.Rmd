@@ -1,13 +1,15 @@
 ---
-title: "VoltRon: the Defender of Spatial Biology"
-output:
+title: ""
+output: 
   html_document:
-    df_print: paged
+    theme: lumen
 ---
 
 <style>
 body {
-text-align: justify}
+  text-align: justify;
+  <!-- background-color: grey; -->
+}
 .center {
   display: block;
   margin-left: auto;
@@ -18,9 +20,15 @@ text-align: justify}
   margin-left: auto;
   margin-right: auto;
 }
+p {
+  font-size: 1.2em;
+}
 </style>
 
-<img width="100%" height="100%" src="images/voltron.png" class="center">
+```{r setup, include=FALSE}
+# use rmarkdown::render_site(envir = knitr::knit_global())
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 <br>
 
@@ -41,3 +49,5 @@ text-align: justify}
 </p>
 
 <br>
+
+<img width="100%" height="100%" src="images/voltron.png" class="center">

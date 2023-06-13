@@ -13,6 +13,10 @@ getPCA(object, ...)
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{assay}{assay}
+
+\item{dims}{the number of dimensions extracted from PCA}
 }
 \value{
 \code{getPCA}: The name of the default assay
@@ -20,5 +24,3 @@ getPCA(object, ...)
 \description{
 calculate getPCA of the VoltRon objects
 }
-\concept{data-access}
-\concept{embedding}
