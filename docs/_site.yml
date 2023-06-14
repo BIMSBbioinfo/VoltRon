@@ -2,28 +2,29 @@ name: "VoltRon"
 output_dir: "."
 navbar:
   title: "VoltRon"
-  type: inverse
   left:
-    - text: "Tutorials"
-      icon: fa-home
+    - text: "Explore"
       href: tutorials.html
     - text: "Vignette"
-      icon: fa-dna
       menu:
-      - text: "Cell/Spot Analysis"
-        href: spotanalysis.html
-      - text: "ROI Analysis"
-        href: roianalysis.html
-      - text: "Spatial Data Alignment"
-        href: registration.html
-      - text: "Niche Clustering"
-        href: deconvolution.html
+      - text: "Spatial Data Integration"
+        menu:
+        - text: "Spatial Data Alignment"
+          href: registration.html
+        - text: "Niche Clustering"
+          href: deconvolution.html
+      - text: "Downstream Analysis and Utilities"
+        menu:
+        - text: "Cell/Spot Analysis"
+          href: spotanalysis.html
+        - text: "ROI Analysis"
+          href: roianalysis.html
   right:
     - text: "Contact"
       icon: fa-envelope-o
       menu:
       - text: "Altuna Lab/BIMSB Bioinfo"
-        href: https://www.mdc-berlin.de/bioinformatics
+        href: https://bioinformatics.mdc-berlin.de
       - text: "Landthaler Lab/BIMSB"
         href: https://www.mdc-berlin.de/landthaler
     - text: "GitHub"
@@ -31,7 +32,9 @@ navbar:
       menu:
       - text: "VoltRon"
         href: https://github.com/BIMSBbioinfo/VoltRon
+      - text: "BIMSBbioinfo"
+        href: https://github.com/BIMSBbioinfo
 output:
   html_document:
-    theme: cosmo
+    theme: flatly
     highlight: textmate

@@ -11,12 +11,12 @@
 
 
 
-<title>ROI Analysis</title>
+<title>roianalysis.knit</title>
 
 <script src="site_libs/header-attrs-2.21/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/lumen.min.css" rel="stylesheet" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
@@ -283,6 +283,12 @@ div.tocify {
   border-radius: 0px;
 }
 
+.tocify-subheader {
+  display: inline;
+}
+.tocify-subheader .tocify-item {
+  font-size: 0.95em;
+}
 
 </style>
 
@@ -308,7 +314,7 @@ div.tocify {
 
 
 
-<div class="navbar navbar-inverse  navbar-fixed-top" role="navigation">
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
   <div class="container">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
@@ -321,32 +327,36 @@ div.tocify {
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li>
-  <a href="tutorials.html">
-    <span class="fa fa-home"></span>
-     
-    Tutorials
-  </a>
+  <a href="tutorials.html">Explore</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    <span class="fa fa-dna"></span>
-     
     Vignette
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="spotanalysis.html">Cell/Spot Analysis</a>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Spatial Data Integration</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="registration.html">Spatial Data Alignment</a>
+        </li>
+        <li>
+          <a href="deconvolution.html">Niche Clustering</a>
+        </li>
+      </ul>
     </li>
-    <li>
-      <a href="roianalysis.html">ROI Analysis</a>
-    </li>
-    <li>
-      <a href="registration.html">Spatial Data Alignment</a>
-    </li>
-    <li>
-      <a href="deconvolution.html">Niche Clustering</a>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Downstream Spatial Data Analysis</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="spotanalysis.html">Cell/Spot Analysis</a>
+        </li>
+        <li>
+          <a href="roianalysis.html">ROI Analysis</a>
+        </li>
+      </ul>
     </li>
   </ul>
 </li>
@@ -362,7 +372,7 @@ div.tocify {
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="https://www.mdc-berlin.de/bioinformatics">Altuna Lab/BIMSB Bioinfo</a>
+      <a href="https://bioinformatics.mdc-berlin.de">Altuna Lab/BIMSB Bioinfo</a>
     </li>
     <li>
       <a href="https://www.mdc-berlin.de/landthaler">Landthaler Lab/BIMSB</a>
@@ -381,6 +391,9 @@ div.tocify {
     <li>
       <a href="https://github.com/BIMSBbioinfo/VoltRon">VoltRon</a>
     </li>
+    <li>
+      <a href="https://github.com/BIMSBbioinfo">BIMSBbioinfo</a>
+    </li>
   </ul>
 </li>
       </ul>
@@ -392,14 +405,21 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">ROI Analysis</h1>
 
 </div>
 
 
-<div id="import" class="section level2">
-<h2>Import</h2>
-<pre class="r"><code>GeoMxR1 &lt;- importGeoMx(&quot;../../Covid/data/P3136/&quot;,
+<style type="text/css">
+.watch-out {
+  color: black;
+}
+</style>
+<p><br></p>
+<div id="roi-analysis" class="section level2">
+<h2>ROI Analysis</h2>
+<div id="import" class="section level3">
+<h3>Import</h3>
+<pre class="r watch-out"><code>GeoMxR1 &lt;- importGeoMx(&quot;../../Covid/data/P3136/&quot;,
                        pkc_file = &quot;../../Covid/data/Hs_R_NGS_WTA_v1.0.pkc&quot;,
                        summarySegment = &quot;../../Covid/data/P3136/segmentSummary.xlsx&quot;,
                        summarySegmentSheetName = &quot;Segment summary&quot;,
@@ -419,9 +439,9 @@ segments_all &lt;- segments_all[GeoMxR1@metadata@ROI$ROIlabel]
 names(segments_all) &lt;- vrSpatialPoints(GeoMxR1)
 vrSegments(GeoMxR1) &lt;- segments_all</code></pre>
 </div>
-<div id="processing" class="section level2">
-<h2>Processing</h2>
-<pre class="r"><code># image reduction
+<div id="processing" class="section level3">
+<h3>Processing</h3>
+<pre class="r watch-out"><code># image reduction
 GeoMxR1_resized &lt;- resizeImage(GeoMxR1, size = 4000)
 
 # Subsetting features
@@ -436,21 +456,21 @@ GeoMxR1_less &lt;- subset(GeoMxR1_lessfeatures, subset = CountPerNuclei &gt; 500
 # Normalization
 GeoMxR1_less &lt;- normalizeData(GeoMxR1_less, method = &quot;QuanNorm&quot;)</code></pre>
 </div>
-<div id="interactive-subsetting-of-spatial-datasets"
-class="section level2">
-<h2>Interactive subsetting of spatial datasets</h2>
-<pre class="r"><code># interactive subsetting
+<div id="interactive-subsetting" class="section level3">
+<h3>Interactive subsetting</h3>
+<pre class="r watch-out"><code># interactive subsetting
 GeoMxR1_subset_list &lt;- subset(GeoMxR1_less, interactive = TRUE)
 GeoMxR1_subset_list &lt;- GeoMxR1_subset_list$registration
 
 # merging VoltRon objects
 GeoMxR1_merged &lt;- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1])</code></pre>
 </div>
-<div id="visualization" class="section level2">
-<h2>Visualization</h2>
-<pre class="r"><code># CXCL11 for all sections, same scale
+<div id="visualization" class="section level3">
+<h3>Visualization</h3>
+<pre class="r watch-out"><code># CXCL11 for all sections, same scale
 GeoMxR1_subset2 &lt;- subset(GeoMxR1_merged, sample = c(&quot;Sample1&quot;,&quot;Sample2&quot;))
 vrSpatialFeaturePlot(GeoMxR1_subset2, features = c(&quot;CXCL11&quot;, &quot;COL1A1&quot;), group.by = &quot;ROIlabel&quot;, label = TRUE, pt.size = 8, keep.scale = &quot;all&quot;)</code></pre>
+</div>
 </div>
 
 
@@ -511,8 +531,8 @@ $(document).ready(function ()  {
       ignoreSelector: ".toc-ignore",
       scrollTo: 0
     };
-    options.showAndHide = true;
-    options.smoothScroll = true;
+    options.showAndHide = false;
+    options.smoothScroll = false;
 
     // tocify
     var toc = $("#TOC").tocify(options).data("toc-tocify");

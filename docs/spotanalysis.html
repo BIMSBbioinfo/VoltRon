@@ -16,7 +16,7 @@
 <script src="site_libs/header-attrs-2.21/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/lumen.min.css" rel="stylesheet" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
@@ -283,6 +283,12 @@ div.tocify {
   border-radius: 0px;
 }
 
+.tocify-subheader {
+  display: inline;
+}
+.tocify-subheader .tocify-item {
+  font-size: 0.95em;
+}
 
 </style>
 
@@ -308,7 +314,7 @@ div.tocify {
 
 
 
-<div class="navbar navbar-inverse  navbar-fixed-top" role="navigation">
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
   <div class="container">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
@@ -321,32 +327,36 @@ div.tocify {
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li>
-  <a href="tutorials.html">
-    <span class="fa fa-home"></span>
-     
-    Tutorials
-  </a>
+  <a href="tutorials.html">Explore</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    <span class="fa fa-dna"></span>
-     
     Vignette
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="spotanalysis.html">Cell/Spot Analysis</a>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Spatial Data Integration</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="registration.html">Spatial Data Alignment</a>
+        </li>
+        <li>
+          <a href="deconvolution.html">Niche Clustering</a>
+        </li>
+      </ul>
     </li>
-    <li>
-      <a href="roianalysis.html">ROI Analysis</a>
-    </li>
-    <li>
-      <a href="registration.html">Spatial Data Alignment</a>
-    </li>
-    <li>
-      <a href="deconvolution.html">Niche Clustering</a>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Downstream Spatial Data Analysis</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="spotanalysis.html">Cell/Spot Analysis</a>
+        </li>
+        <li>
+          <a href="roianalysis.html">ROI Analysis</a>
+        </li>
+      </ul>
     </li>
   </ul>
 </li>
@@ -362,7 +372,7 @@ div.tocify {
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="https://www.mdc-berlin.de/bioinformatics">Altuna Lab/BIMSB Bioinfo</a>
+      <a href="https://bioinformatics.mdc-berlin.de">Altuna Lab/BIMSB Bioinfo</a>
     </li>
     <li>
       <a href="https://www.mdc-berlin.de/landthaler">Landthaler Lab/BIMSB</a>
@@ -381,6 +391,9 @@ div.tocify {
     <li>
       <a href="https://github.com/BIMSBbioinfo/VoltRon">VoltRon</a>
     </li>
+    <li>
+      <a href="https://github.com/BIMSBbioinfo">BIMSBbioinfo</a>
+    </li>
   </ul>
 </li>
       </ul>
@@ -397,15 +410,20 @@ div.tocify {
 </div>
 
 
+<style type="text/css">
+.watch-out {
+  color: black;
+}
+</style>
 <div id="import" class="section level2">
 <h2>Import</h2>
-<pre class="r"><code>library(VoltRon)
+<pre class="r watch-out"><code>library(VoltRon)
 Vis_A1 &lt;- importVisium(&quot;hColon_N_A1/&quot;, sample_name = &quot;Vis_A1&quot;)</code></pre>
 </div>
 <div id="regular-clustering-on-gene-expression-data"
 class="section level2">
 <h2>Regular Clustering on gene expression data</h2>
-<pre class="r"><code># normalize
+<pre class="r watch-out"><code># normalize
 vrMainAssay(Vis_A1) &lt;- &quot;Visium&quot;
 Vis_A1 &lt;- normalizeData(Vis_A1, method = &quot;LogNorm&quot;)
 
@@ -426,7 +444,6 @@ vrMainAssay(Vis_A1) &lt;- &quot;Visium&quot;
 Vis_A1 &lt;- getUMAP(Vis_A1)
 ggplot(data = data.frame(vrEmbeddings(Vis_A1, type = &quot;umap&quot;)), aes(x = x, y = y, color = factor(Metadata(Vis_A1, type = &quot;spot&quot;)$GEX_Clusters)))+
   geom_point() + guides(col = guide_legend(title = &quot;Cluster&quot;)) + NoAxes()</code></pre>
-<p><img src="spotanalysis_files/figure-html/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 
 
@@ -487,8 +504,8 @@ $(document).ready(function ()  {
       ignoreSelector: ".toc-ignore",
       scrollTo: 0
     };
-    options.showAndHide = true;
-    options.smoothScroll = true;
+    options.showAndHide = false;
+    options.smoothScroll = false;
 
     // tocify
     var toc = $("#TOC").tocify(options).data("toc-tocify");

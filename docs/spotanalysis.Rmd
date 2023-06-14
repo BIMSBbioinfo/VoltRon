@@ -3,32 +3,38 @@ title: "Cell/Spot Analysis"
 output: 
   html_document:
     toc: true
-    toc_float: true
-    toc_collapsed: true
-    theme: lumen
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
 ---
+
+```{css, echo=FALSE}
+.watch-out {
+  color: black;
+}
+```
 
 ```{r setup, include=FALSE}
 # use rmarkdown::render_site(envir = knitr::knit_global())
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 ```
 
 ## Import
 
-```{r include = FALSE, eval = TRUE, ca }
+```{r include = FALSE, eval = TRUE}
 library(irlba)
 library(Seurat)
 Vis_A1 <- importVisium("../../../../SpatialSLAM/data/SimoneSlidesSpatial/hColon_N_A1_new/", sample_name = "Vis_A1")
 ```
 
-```{r eval = FALSE}
+```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
 Vis_A1 <- importVisium("hColon_N_A1/", sample_name = "Vis_A1")
 ```
 
 ## Regular Clustering on gene expression data
 
-```{r eval = TRUE, fig.align='center'}
+```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 # normalize
 vrMainAssay(Vis_A1) <- "Visium"
 Vis_A1 <- normalizeData(Vis_A1, method = "LogNorm")

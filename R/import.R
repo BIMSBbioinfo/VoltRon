@@ -9,13 +9,15 @@
 #' @param dir.path path to Xenium
 #' @param selected_assay selected assay
 #' @param assay_name the assay name of the SR object
+#' @param morphology_image the name of the lowred morphology image. Default: morphology_lowres.tif
+#' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
 #' @importFrom magick image_read
 #'
 #' @export
 #'
-importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", ...)
+importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", morphology_image = "morphology_lowres.tif", resolution_level = 7, ...)
 {
   # raw counts
   datafile <- paste0(dir.path, "/cell_feature_matrix.h5")
@@ -27,7 +29,8 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   }
 
   # image
-  image_file <- paste0(dir.path, "/morphology_lowres.tif")
+  suppressMessages(generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level))
+  image_file <- paste0(dir.path, "/", morphology_image)
   if(file.exists(image_file)){
     image <-  image_read(image_file)
   } else {

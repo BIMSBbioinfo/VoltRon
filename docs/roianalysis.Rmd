@@ -1,21 +1,31 @@
 ---
-title: "ROI Analysis"
+title: ""
 output: 
   html_document:
     toc: true
-    toc_float: true
-    toc_collapsed: true
-    theme: lumen
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
 ---
+
+```{css, echo=FALSE}
+.watch-out {
+  color: black;
+}
+```
 
 ```{r setup, include=FALSE}
 # use rmarkdown::render_site(envir = knitr::knit_global())
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 ```
 
-## Import
+<br>
 
-```{r eval = FALSE}
+## ROI Analysis
+
+### Import
+
+```{r eval = FALSE, class.source="watch-out"}
 GeoMxR1 <- importGeoMx("../../Covid/data/P3136/",
                        pkc_file = "../../Covid/data/Hs_R_NGS_WTA_v1.0.pkc",
                        summarySegment = "../../Covid/data/P3136/segmentSummary.xlsx",
@@ -37,9 +47,9 @@ names(segments_all) <- vrSpatialPoints(GeoMxR1)
 vrSegments(GeoMxR1) <- segments_all
 ```
 
-## Processing 
+### Processing 
 
-```{r eval = FALSE}
+```{r eval = FALSE, class.source="watch-out"}
 # image reduction
 GeoMxR1_resized <- resizeImage(GeoMxR1, size = 4000)
 
@@ -56,7 +66,7 @@ GeoMxR1_less <- subset(GeoMxR1_lessfeatures, subset = CountPerNuclei > 500)
 GeoMxR1_less <- normalizeData(GeoMxR1_less, method = "QuanNorm")
 ```
 
-## Interactive subsetting of spatial datasets
+### Interactive subsetting
 
 ```{r include = FALSE, eval = FALSE}
 subset_info_list <- readRDS("data/saved_image_subset.rds")
@@ -69,7 +79,7 @@ for(i in 1:length(subset_info_list[[1]])){
 }
 ```
 
-```{r eval = FALSE}
+```{r eval = FALSE, class.source="watch-out"}
 # interactive subsetting
 GeoMxR1_subset_list <- subset(GeoMxR1_less, interactive = TRUE)
 GeoMxR1_subset_list <- GeoMxR1_subset_list$registration
@@ -78,9 +88,9 @@ GeoMxR1_subset_list <- GeoMxR1_subset_list$registration
 GeoMxR1_merged <- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1])
 ```
 
-## Visualization
+### Visualization
 
-```{r eval = FALSE}
+```{r eval = FALSE, class.source="watch-out"}
 # CXCL11 for all sections, same scale
 GeoMxR1_subset2 <- subset(GeoMxR1_merged, sample = c("Sample1","Sample2"))
 vrSpatialFeaturePlot(GeoMxR1_subset2, features = c("CXCL11", "COL1A1"), group.by = "ROIlabel", label = TRUE, pt.size = 8, keep.scale = "all")

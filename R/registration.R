@@ -71,8 +71,9 @@ registerSpatialData <- function(data_list = NULL, reference_spatdata = NULL, que
 
                     # Side bar
                     sidebarPanel(
+                      tags$style(tableHTML::make_css(list('.well', 'margin', '7%'))),
 
-                      h4("Image Registration"),
+                      h4("Spatial Data Registration"),
                       fluidRow(
                         # column(12,shiny::actionButton("manualregister", "Manual Registration", width = "80%")),
                         column(12,shiny::actionButton("manualregister", "Manual Registration")),
@@ -199,10 +200,11 @@ getImageTabPanels <- function(len_images, type){
                column(4, selectInput(paste0("flipflop_", type, "_image",i), "Transform:", choices = c("None", "Flip", "Flop"), selected = "None")),
                column(4, selectInput(paste0("negate_", type, "_image",i), "Negate Image:", choices = c("No", "Yes"), selected = "No"))
              ),
+             fluidRow(imageOutput(paste0("plot_", type, i), click = paste0("click_plot_", type, i))),
+             br(),
              fluidRow(
                shiny::actionButton(paste0("remove_", type, i), "Remove Point")
              ),
-             fluidRow(imageOutput(paste0("plot_", type, i), click = paste0("click_plot_", type, i))),
     )
   })))
 }
@@ -894,7 +896,8 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
         ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
           ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
           ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
-          ggplot2::annotation_custom(r2, 0, info$width, 0, info$height)
+          ggplot2::annotation_custom(r2, 0, info$width, 0, info$height) +
+          theme(axis.title.x = element_blank(), axis.title.y = element_blank())
       })
     })
 
@@ -1055,15 +1058,16 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
         info <- magick::image_info(image_list[[centre]])
         r2 <- as.raster(cur_aligned_image)
         r2 <- grid::rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",i)]]))
-        p <- ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
-          ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
-          ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
-          ggplot2::annotation_custom(r2, 0, info$width, 0, info$height)
-        ggsave(filename = paste0("plot_query_reg_alpha",i, "pdf"), plot = p, device = "pdf", width = 7, height = 10, bg = "transparent")
+        # p <- ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
+        #   ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
+        #   ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
+        #   ggplot2::annotation_custom(r2, 0, info$width, 0, info$height)
+        # ggsave(filename = paste0("plot_query_reg_alpha",i, "pdf"), plot = p, device = "pdf", width = 7, height = 10, bg = "transparent")
         ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
           ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
           ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
-          ggplot2::annotation_custom(r2, 0, info$width, 0, info$height)
+          ggplot2::annotation_custom(r2, 0, info$width, 0, info$height) +
+          theme(axis.title.x = element_blank(), axis.title.y = element_blank())
       })
     })
 

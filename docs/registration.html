@@ -11,12 +11,12 @@
 
 
 
-<title>Spatial Data Registration</title>
+<title>registration.knit</title>
 
 <script src="site_libs/header-attrs-2.21/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/lumen.min.css" rel="stylesheet" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
@@ -283,6 +283,12 @@ div.tocify {
   border-radius: 0px;
 }
 
+.tocify-subheader {
+  display: inline;
+}
+.tocify-subheader .tocify-item {
+  font-size: 0.95em;
+}
 
 </style>
 
@@ -308,7 +314,7 @@ div.tocify {
 
 
 
-<div class="navbar navbar-inverse  navbar-fixed-top" role="navigation">
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
   <div class="container">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
@@ -321,32 +327,36 @@ div.tocify {
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li>
-  <a href="tutorials.html">
-    <span class="fa fa-home"></span>
-     
-    Tutorials
-  </a>
+  <a href="tutorials.html">Explore</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    <span class="fa fa-dna"></span>
-     
     Vignette
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="spotanalysis.html">Cell/Spot Analysis</a>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Spatial Data Integration</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="registration.html">Spatial Data Alignment</a>
+        </li>
+        <li>
+          <a href="deconvolution.html">Niche Clustering</a>
+        </li>
+      </ul>
     </li>
-    <li>
-      <a href="roianalysis.html">ROI Analysis</a>
-    </li>
-    <li>
-      <a href="registration.html">Spatial Data Alignment</a>
-    </li>
-    <li>
-      <a href="deconvolution.html">Niche Clustering</a>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Downstream Analysis and Utilities</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="spotanalysis.html">Cell/Spot Analysis</a>
+        </li>
+        <li>
+          <a href="roianalysis.html">ROI Analysis</a>
+        </li>
+      </ul>
     </li>
   </ul>
 </li>
@@ -362,7 +372,7 @@ div.tocify {
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="https://www.mdc-berlin.de/bioinformatics">Altuna Lab/BIMSB Bioinfo</a>
+      <a href="https://bioinformatics.mdc-berlin.de">Altuna Lab/BIMSB Bioinfo</a>
     </li>
     <li>
       <a href="https://www.mdc-berlin.de/landthaler">Landthaler Lab/BIMSB</a>
@@ -381,6 +391,9 @@ div.tocify {
     <li>
       <a href="https://github.com/BIMSBbioinfo/VoltRon">VoltRon</a>
     </li>
+    <li>
+      <a href="https://github.com/BIMSBbioinfo">BIMSBbioinfo</a>
+    </li>
   </ul>
 </li>
       </ul>
@@ -392,35 +405,188 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Spatial Data Registration</h1>
 
 </div>
 
 
-<div id="import" class="section level2">
-<h2>Import</h2>
-<pre class="r"><code>library(VoltRon)
-
-# Load Xenium Data Replicate 1
-Xen_seu_R1 &lt;- importXenium(&quot;../../../data/10X_Xenium_Visium/Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
-
-# Load Xenium Data Replicate 2
-Xen_seu_R2 &lt;- importXenium(&quot;../../../data/10X_Xenium_Visium/Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;)
-
-# Load Visium Data
-Vis_seu &lt;- importVisium(&quot;../../../data/10X_Xenium_Visium/Visium&quot;, sample_name = &quot;VisiumR1&quot;)</code></pre>
+<style>
+body {
+  text-align: justify
+}
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+<style type="text/css">
+.watch-out {
+  color: black;
+}
+</style>
+<p><br></p>
+<div id="spatial-data-alignment" class="section level1">
+<h1>Spatial Data Alignment</h1>
+<p>At its core, VoltRon allows users to align multiple consecutive
+spatial data slices for data transfer and 3 dimensional stack alignment.
+The order of the tissue/sample slices, and the prior information on the
+adjacency of these slices, should be provided by the user. VoltRon
+provides a fully embedded shiny application to allow users to either
+automatically or manually align consecutive 2d spatial datasets.</p>
+<p>Using both automated or manual alignment options, users are given the
+option to tune the alignment parameters to check the accuracy of the
+alignment.</p>
+<p><br></p>
+<table>
+<tbody>
+<tr style="vertical-align: center">
+<td style="width:43%; vertical-align: center">
+<img src="images/manualregistration.png" class="center">
+</td>
+<td style="width:43%; vertical-align: center">
+<img src="images/autoregistration.png" class="center">
+</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<div id="xenium-and-visium" class="section level2">
+<h2>Xenium and Visium</h2>
+<p>In this use case, we will align immunofluorescence (IF) and H&amp;E
+images associated with the readouts of Xenium In Situ and Visium
+CytAssist platforms. Tissue sections are derived from a single
+formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block
+where 3 serial sections of 5 <span class="math inline">\(\mu\)</span>m
+thickness. A 5 <span class="math inline">\(\mu\)</span>m section was
+taken for Visium CytAssist and two replicate 5 <span
+class="math inline">\(\mu\)</span>m sections were taken for Xenium. The
+dataset is download from <a
+href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">here</a>.</p>
+<p>More information on the dataset and the study can be also be found on
+the <a
+href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">BioArxiv
+preprint</a>.</p>
+<p><br></p>
+<div id="import" class="section level3">
+<h3>Import</h3>
+<p>VoltRon includes built-in functions to converting readouts from both
+Xenium and Visium platforms into VoltRon objects. We will import both
+Xenium replicates alongside with the Visium CytAssist data.</p>
+<pre class="r watch-out"><code>library(VoltRon)
+Xen_seu_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
+Xen_seu_R2 &lt;- importXenium(&quot;Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;)
+Vis_seu &lt;- importVisium(&quot;Visium/outs&quot;, sample_name = &quot;VisiumR1&quot;)</code></pre>
+<p><br></p>
 </div>
-<div id="registration" class="section level2">
-<h2>Registration</h2>
-<pre class="r"><code>keypoints &lt;- readRDS(&quot;saved_keypoints/Xenium&amp;Visium_keypoints.rds&quot;)
-keypoints &lt;- list(`1-2` = list(ref = keypoints[[2]], query = keypoints[[1]]),
-                  `2-3` = list(ref = keypoints[[1]], query = keypoints[[3]]))
+<div id="image-alignment" class="section level3">
+<h3>Image Alignment</h3>
+<p>In order to achieve data transfer and integration across these two
+modalities, we need to first make sure that spatial coordinate spaces of
+these three datasets are aligned. For this, we will make use of the
+<strong>registerSpatialData</strong> function which calls a small shiny
+app embedded into VoltRon. Users have to provide the list of VoltRon
+objects associated with each dataset where the order of components of
+the list should be the same as the serial order of the sections within
+the tissue/sample block.</p>
+<p>In this example, we will manually choose keypoints (or landmarks)
+that are observed to be common across pairs of images. The image in the
+middle (Visium CytAssist) would be taken as the image of reference, and
+hence all other images (or spatial datasets) are to be aligned to the
+Visium data. <strong>registerSpatialData</strong> will return a list of
+VoltRon objects whose assays include both the original and registered
+versions of spatial coordinates and images.</p>
+<pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(data_list = list(Xen_seu_R1, Vis_seu, Xen_seu_R2))</code></pre>
+<p><img width="80%" height="80%" src="images/XeniumVisiumRegistration.png" class="center"></p>
+<p>The returned list will also include a set of keypoints selected by
+the user if they have used manual alignment. You can use this keypoints
+object again to call <strong>registerSpatialData</strong> and reproduce
+the earlier manual alignment.</p>
+<pre class="r watch-out"><code>keypoints &lt;- xen_reg$keypoints
 xen_reg &lt;- registerSpatialData(data_list = list(Xen_seu_R1, Vis_seu, Xen_seu_R2), keypoints = keypoints)</code></pre>
+<p><br></p>
 </div>
-<div id="combine-voltron-object" class="section level2">
-<h2>Combine VoltRon object</h2>
-<pre class="r"><code>merge_list &lt;- xen_reg$registered_spat
-SRBlock &lt;- merge(merge_list[[1]], merge_list[-1], sample_name = &quot;10XBlock&quot;)</code></pre>
+<div id="combine-voltron-object" class="section level3">
+<h3>Combine VoltRon object</h3>
+<p>Now that the VoltRon objects of Xenium and Visium datasets are
+accurately aligned, we can combine these objects to create one VoltRon
+object with three layers. Since all sections are derived from the same
+tissue block, we want them to be associated with the same sample, hence
+we define the sample name as well.</p>
+<p>VoltRon will pick the assay type that is of the majority across all
+layers across the VoltRon object and appoint that as the main assay.</p>
+<pre class="r watch-out"><code>merge_list &lt;- xen_reg$registered_spat
+SRBlock &lt;- merge(merge_list[[1]], merge_list[-1], sample_name = &quot;10XBlock&quot;)
+SRBlock</code></pre>
+<pre><code>10XBlock: 
+  Layers: Section1 Section2 Section3 
+Assays: Xenium (Main) Visium</code></pre>
+<p><br></p>
+</div>
+</div>
+<div id="alignment-of-dlpfc-visium" class="section level2">
+<h2>Alignment of DLPFC Visium</h2>
+<p>In the next use case, we will align H&amp;E images associated with
+Visium data generated from tissue block sections of adult humans with
+postmortem dorsolateral prefrontal cortex (DLPFC). Two pairs of adjacent
+sections, that are 10 <span class="math inline">\(\mu\)</span>m away
+from each other, was obtained from the tissue block of the third donor.
+Hence, we align each pair individually.</p>
+<div id="import-1" class="section level3">
+<h3>Import</h3>
+<pre class="r watch-out"><code>library(VoltRon)
+DLPFC_1 &lt;- importVisium(&quot;../../../data/10X_Visium_DLPFC/151673&quot;, sample_name = &quot;DLPFC_1&quot;)
+DLPFC_2 &lt;- importVisium(&quot;../../../data/10X_Visium_DLPFC/151674&quot;, sample_name = &quot;DLPFC_2&quot;)
+DLPFC_3 &lt;- importVisium(&quot;../../../data/10X_Visium_DLPFC/151675&quot;, sample_name = &quot;DLPFC_3&quot;)
+DLPFC_4 &lt;- importVisium(&quot;../../../data/10X_Visium_DLPFC/151676&quot;, sample_name = &quot;DLPFC_4&quot;)</code></pre>
+<p><br></p>
+</div>
+<div id="automated-image-alignment" class="section level3">
+<h3>Automated Image Alignment</h3>
+<p>We will use the <strong>registerSpatialData</strong> function to
+automatically register H&amp;E images, and hence two VoltRon objects, to
+each other, without choosing the landmark points. The shiny app will
+provide two images for this task: (i) the matching image that shows the
+automated matched points across two images, and (ii) a slideshow with
+both registered images that demonstrates the accuracy of the
+alignment.</p>
+<p>This app also provide two tuning parameters that used by the OpenCV’s
+image registration workflow fully embedded in VoltRon. The <strong># of
+Features</strong> option specifies the number of maximum image features
+spotted within each image which later be used to match these across
+multiple images, and the <strong>Match %</strong> specifies part
+percentage of these features should be matching at max to be used to
+compute the registeration/transformation matrix. The same matrix is used
+to convert the spatial coordinates of the VoltRon object to align
+coordinates to a single reference.</p>
+<p>We will use 1000 features for this alignment, ask for %20 of the
+features to be matched across images. The quality of the alignment will
+be determined by the fine tuning of these parameters where users will
+immediately observe the alignment quality by sliding registered
+images.</p>
+<pre class="r watch-out"><code>DLPFC_list &lt;- list(DLPFC_1, DLPFC_2)
+reg1and2 &lt;- registerSpatialData(data_list = DLPFC_list)</code></pre>
+<p><img width="80%" height="80%" src="images/VisiumDLFPCRegistration.png" class="center"></p>
+<p><br></p>
+<p>We can now apply a similar alignment across the second pair of
+VoltRon objects. We will use 800 features for this alignment, ask for
+%50 of the features to be matched across images.</p>
+<pre class="r watch-out"><code>DLPFC_list &lt;- list(DLPFC_3, DLPFC_4)
+reg3and4 &lt;- registerSpatialData(data_list = DLPFC_list)</code></pre>
+</div>
+<div id="combine-voltron-object-1" class="section level3">
+<h3>Combine VoltRon object</h3>
+<p>We can now combine these two spatial datasets and make a block of
+Visium slices. Since there is only a one type of assay, which is Visium,
+that would be the main assay.</p>
+<pre class="r watch-out"><code>merge_list &lt;- c(reg1and2$registered_spat, reg3and4$registered_spat)
+SRBlock &lt;- merge(merge_list[[1]], merge_list[-1], sample_name = &quot;DLPFC_Block_R3&quot;)
+SRBlock</code></pre>
+<pre><code>VoltRon Object 
+10XBlock: 
+  Layers: Section1 Section2 
+Assays: Visium (Main) </code></pre>
+</div>
+</div>
 </div>
 
 
@@ -481,8 +647,8 @@ $(document).ready(function ()  {
       ignoreSelector: ".toc-ignore",
       scrollTo: 0
     };
-    options.showAndHide = true;
-    options.smoothScroll = true;
+    options.showAndHide = false;
+    options.smoothScroll = false;
 
     // tocify
     var toc = $("#TOC").tocify(options).data("toc-tocify");
