@@ -38,7 +38,7 @@ registerSpatialData <- function(data_list = NULL, reference_spatdata = NULL, que
     centre <- floor(median(1:length(spatdata_list)))
     register_ind <- setdiff(1:length(spatdata_list), centre)
 
-  # reference vs query mode
+    # reference vs query mode
   } else {
 
     # check if the reference and query data sets are either Seurat or Giotto
@@ -75,13 +75,17 @@ registerSpatialData <- function(data_list = NULL, reference_spatdata = NULL, que
 
                       h4("Spatial Data Registration"),
                       fluidRow(
-                        # column(12,shiny::actionButton("manualregister", "Manual Registration", width = "80%")),
-                        column(12,shiny::actionButton("manualregister", "Manual Registration")),
+                        # column(12,shiny::actionButton("manualregister", "Manual Registration")),
+                        # br(),
+                        # br(),
+                        # column(12,shiny::actionButton("automaticregister", "Auto Registration")),
+                        # br(),
+                        # br(),
+                        br(),
+                        column(12,shiny::actionButton("register", "Register!")),
                         br(),
                         br(),
-                        # column(12,shiny::actionButton("automaticregister", "Auto Registration", width = "80%")),
-                        column(12,shiny::actionButton("automaticregister", "Auto Registration")),
-                        br(),
+                        column(12,shiny::checkboxInput("automatictag", "Automated Registration", value = FALSE)),
                         br(),
                         column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
                         column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
@@ -133,6 +137,8 @@ registerSpatialData <- function(data_list = NULL, reference_spatdata = NULL, que
     server <- function(input, output, session) {
 
       ### Manage interface ####
+      shinyjs::hide(id = "GOOD_MATCH_PERCENT")
+      shinyjs::hide(id = "MAX_FEATURES")
       updateSequentialTabPanels(input, output, session, centre, register_ind)
 
       ### Transform images ####
@@ -155,6 +161,16 @@ registerSpatialData <- function(data_list = NULL, reference_spatdata = NULL, que
         # output the list of query images
         getImageOutput(orig_image_query_list, xyTable_list, centre, input, output, session)
 
+      })
+
+      observeEvent(input$automatictag, {
+        if(input$automatictag){
+          shinyjs::show(id = "GOOD_MATCH_PERCENT")
+          shinyjs::show(id = "MAX_FEATURES")
+        } else {
+          shinyjs::hide(id = "GOOD_MATCH_PERCENT")
+          shinyjs::hide(id = "MAX_FEATURES")
+        }
       })
 
       ## Return values for the shiny app ####
@@ -245,7 +261,11 @@ getRegisteredImageTabPanels <- function(len_images, centre, register_ind){
     tabPanel(paste0("Reg. ",i, "->", centre),
              br(),
              column(6, sliderInput(paste0("plot_query_reg_alpha",i), label = "Alpha Level", min = 0, max = 1, value = 0.2)),
-             fluidRow(imageOutput(paste0("plot_query_reg",i)))
+             fluidRow(
+               column(12, align="center",
+                      imageOutput(paste0("plot_query_reg",i))
+               )
+             )
     )
   })))
 }
@@ -306,6 +326,8 @@ updateSequentialTabPanels <- function(input, output, session, centre, register_i
   })
 }
 
+
+
 ####
 # Managing Cells/Barcodes ####
 ####
@@ -331,7 +353,7 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, ..
     }
     return(registered_sr)
 
-  # check if elements are Seurat
+    # check if elements are Seurat
   } else if(all(sapply(obj_list, class) == "Seurat")) {
     return_list <- mapply(function(o,t) {
       if(is.null(t))
@@ -858,8 +880,9 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
   len_register <- length(image_list) - 1
 
   # Registration events
-  observeEvent(input$manualregister, {
-
+  # observeEvent(input$manualregister, {
+  observeEvent(input$register, {
+  if(!input$automatictag){
     # Check keypoints
     keypoints_check_flag <- sapply(keypoints_list, function(key_list){
       nrow(key_list$ref) == nrow(key_list$query)
@@ -889,16 +912,25 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
     lapply(register_ind, function(i){
       cur_mapping <- mapping_list[[i]]
       images <- getManualRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
-      output[[paste0("plot_query_reg",i)]] <- renderPlot({
-        info <- image_info(image_list[[centre]])
-        r2 <- as.raster(images$query)
-        r2 <- rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",i)]]))
-        ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
-          ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
-          ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
-          ggplot2::annotation_custom(r2, 0, info$width, 0, info$height) +
-          theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-      })
+      output[[paste0("plot_query_reg",i)]] <- renderImage({
+        r2 <- image_read(as.raster(images$query))
+        image_view_list <- list(rep(image_resize(image_list[[centre]], geometry = "400x"),5),
+                                rep(image_resize(r2, geometry = "400x"),5))
+        image_view_list <- image_view_list %>%
+          image_join() %>%
+          image_write(tempfile(fileext='gif'), format = 'gif')
+        list(src = image_view_list, contentType = "image/gif")
+      }, deleteFile = TRUE)
+      # output[[paste0("plot_query_reg",i)]] <- renderPlot({
+      #   info <- image_info(image_list[[centre]])
+      #   r2 <- as.raster(images$query)
+      #   r2 <- rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",i)]]))
+      #   ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
+      #     ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
+      #     ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
+      #     ggplot2::annotation_custom(r2, 0, info$width, 0, info$height) +
+      #     theme(axis.title.x = element_blank(), axis.title.y = element_blank())
+      # })
     })
 
     # Output summary
@@ -909,6 +941,7 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
       all_str <- c(str1, str2, str3)
       HTML(paste(all_str, collapse = '<br/>'))
     })
+  }
   })
 }
 
@@ -988,8 +1021,8 @@ getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, in
   raster::res(r) <- imageRes
   query_image_raster_1_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_1[,3], r, fun = mean)
   query_image_raster_1_trf <- raster::focal(query_image_raster_1_tr,
-                                    w = matrix(1, nrow = 3, ncol = 3),
-                                    fun = fill.na, pad = TRUE, na.rm = FALSE)
+                                            w = matrix(1, nrow = 3, ncol = 3),
+                                            fun = fill.na, pad = TRUE, na.rm = FALSE)
   query_image_raster_1_trf <- terra::rast(query_image_raster_1_trf, crs = "")
 
   return(list(ref = ref_image_raster, query = query_image_raster_1_trf))
@@ -1024,8 +1057,9 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
   len_register <- length(image_list) - 1
 
   # Registration events
-  observeEvent(input$automaticregister, {
-
+  #observeEvent(input$automaticregister, {
+  observeEvent(input$register, {
+  if(input$automatictag){
     # Register keypoints
     mapping_list <- list()
     aligned_image_list <- list()
@@ -1054,21 +1088,29 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
     lapply(register_ind, function(i){
       cur_mapping <- mapping_list[[i]]
       cur_aligned_image <- aligned_image_list[[i]]
-      output[[paste0("plot_query_reg",i)]] <- renderPlot({
-        info <- magick::image_info(image_list[[centre]])
-        r2 <- as.raster(cur_aligned_image)
-        r2 <- grid::rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",i)]]))
-        # p <- ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
-        #   ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
-        #   ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
-        #   ggplot2::annotation_custom(r2, 0, info$width, 0, info$height)
-        # ggsave(filename = paste0("plot_query_reg_alpha",i, "pdf"), plot = p, device = "pdf", width = 7, height = 10, bg = "transparent")
-        ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
-          ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
-          ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
-          ggplot2::annotation_custom(r2, 0, info$width, 0, info$height) +
-          theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-      })
+      output[[paste0("plot_query_reg",i)]] <- renderImage({
+        image_view_list <- list(rep(image_resize(image_list[[centre]], geometry = "400x"),5),
+                                rep(image_resize(aligned_image_list[[i]], geometry = "400x"),5))
+        image_view_list <- image_view_list %>%
+          image_join() %>%
+          image_write(tempfile(fileext='gif'), format = 'gif')
+        list(src = image_view_list, contentType = "image/gif")
+      }, deleteFile = TRUE)
+      # output[[paste0("plot_query_reg",i)]] <- renderPlot({
+      #   info <- magick::image_info(image_list[[centre]])
+      #   r2 <- as.raster(cur_aligned_image)
+      #   r2 <- grid::rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",i)]]))
+      #   # p <- ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
+      #   #   ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
+      #   #   ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
+      #   #   ggplot2::annotation_custom(r2, 0, info$width, 0, info$height)
+      #   # ggsave(filename = paste0("plot_query_reg_alpha",i, "pdf"), plot = p, device = "pdf", width = 7, height = 10, bg = "transparent")
+      #   ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
+      #     ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
+      #     ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
+      #     ggplot2::annotation_custom(r2, 0, info$width, 0, info$height) +
+      #     theme(axis.title.x = element_blank(), axis.title.y = element_blank())
+      # })
     })
 
     # Plot Alignment
@@ -1087,6 +1129,7 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
       all_str <- c(str1, str2, str3)
       htmltools::HTML(paste(all_str, collapse = '<br/>'))
     })
+  }
   })
 }
 
@@ -1115,7 +1158,7 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
 
     # compute and get transformation matrix
     reg <- getRcppAutomatedRegistration(ref_image = ref_image, query_image = aligned_image,
-                                       as.numeric(input$GOOD_MATCH_PERCENT), as.numeric(input$MAX_FEATURES))
+                                        as.numeric(input$GOOD_MATCH_PERCENT), as.numeric(input$MAX_FEATURES))
     mapping[[kk]] <- reg$transmat
     aligned_image <- reg$aligned_image
     alignment_image <- reg$alignment_image
@@ -1146,4 +1189,3 @@ getRcppAutomatedRegistration <- function(ref_image, query_image, GOOD_MATCH_PERC
   alignment_image <- magick::image_read(reg[[3]])
   return(list(transmat = reg[[1]], aligned_image = aligned_image, alignment_image = alignment_image))
 }
-
