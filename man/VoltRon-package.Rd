@@ -4,7 +4,7 @@
 \name{VoltRon-package}
 \alias{VoltRon}
 \alias{VoltRon-package}
-\title{VoltRon: VoltRon for Spatial Data Analysis and Integration}
+\title{VoltRon: VoltRon for Spatial Data Integration and Analysis}
 \description{
-VoltRon is a spatial data analysis toolbox for spatial data analysis, integration and image registration
+VoltRon is a spatial data analysis toolbox for spatial data integration, analysis and image registration
 }

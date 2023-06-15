@@ -6,17 +6,17 @@
 #'
 #' A mini shiny app to for registering images and spatial coordinates of multiple consequtive spatial datasets
 #'
-#' @param data_list a list of VoltRon objects
-#' @param reference_spatdata a reference spatial data set, used only if \code{spatial_data_list} is \code{NULL}
-#' @param query_spatdata a query spatial data set, used only if \code{spatial_data_list} is \code{NULL}
+#' @param object_list a list of VoltRon (or Seurat) objects
+#' @param reference_spatdata a reference spatial data set, used only if \code{object_list} is \code{NULL}
+#' @param query_spatdata a query spatial data set, used only if \code{object_list} is \code{NULL}
 #' @param keypoints keypoints tables for each registration
 #'
 #' @import shiny
-#' @importFrom shinyjs useShinyjs
+#' @importFrom shinyjs useShinyjs show hide
 #'
 #' @export
 #'
-registerSpatialData <- function(data_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL) {
+registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL) {
 
   # shiny
   require(shiny)
@@ -24,30 +24,18 @@ registerSpatialData <- function(data_list = NULL, reference_spatdata = NULL, que
   ## Importing images ####
 
   # check object classes
+
   # if the input is not a list, switch to reference vs query mode
-  if(!is.null(data_list)){
-
-    # check if all elements of the list are VoltRon
-    if(!all(sapply(data_list, class)=="VoltRon")){
-      stop("Please make sure that all objects in the list are of VoltRon class")
-    } else {
-      spatdata_list <- data_list
-    }
-
+  if(!is.null(object_list)){
     # reference and query indices
+    spatdata_list <- object_list
     centre <- floor(median(1:length(spatdata_list)))
     register_ind <- setdiff(1:length(spatdata_list), centre)
 
-    # reference vs query mode
+  # reference vs query mode
   } else {
 
-    # check if the reference and query data sets are either Seurat or Giotto
-    spat_classes <- c(class(reference_spatdata), class(query_spatdata))
-    if(!all(spat_classes %in% c("Seurat", "Giotto"))) {
-      stop("Please make sure that reference and query data sets are of either Seurat or Giotto class")
-    } else {
-      spatdata_list <- list(reference_spatdata, query_spatdata)
-    }
+    spatdata_list <- list(reference_spatdata, query_spatdata)
 
     # reference and query indices
     centre <- 1
@@ -56,7 +44,6 @@ registerSpatialData <- function(data_list = NULL, reference_spatdata = NULL, que
 
   # get images from the list of objects
   orig_image_query_list <- unlist(lapply(spatdata_list, vrImages))
-
 
   ## UI and Server ####
 
@@ -75,12 +62,6 @@ registerSpatialData <- function(data_list = NULL, reference_spatdata = NULL, que
 
                       h4("Spatial Data Registration"),
                       fluidRow(
-                        # column(12,shiny::actionButton("manualregister", "Manual Registration")),
-                        # br(),
-                        # br(),
-                        # column(12,shiny::actionButton("automaticregister", "Auto Registration")),
-                        # br(),
-                        # br(),
                         br(),
                         column(12,shiny::actionButton("register", "Register!")),
                         br(),
@@ -346,25 +327,17 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, ..
 
   # check if the elements are VoltRon
   if(all(sapply(obj_list, class) == "VoltRon")){
-    sr <- getRegisteredObject.VoltRon(obj_list, mapping_list, register_ind, centre, ...)
-    registered_sr <- list()
-    for(i in 1:length(sr)){
-      registered_sr[[i]] <- sr[[i]]
-    }
-    return(registered_sr)
+    registered_vr <- getRegisteredObjectListVoltRon(obj_list, mapping_list, register_ind, centre, ...)
+    return(registered_vr)
 
-    # check if elements are Seurat
+  # check if elements are Seurat
   } else if(all(sapply(obj_list, class) == "Seurat")) {
-    return_list <- mapply(function(o,t) {
-      if(is.null(t))
-        return(NULL)
-      getRegisteredObject.Seurat(o, t, ...)
-    }, obj_list, mapping_list)
-    return(return_list)
+    registered_seu <- getRegisteredObjectListSeurat(obj_list, mapping_list, register_ind, centre, ...)
+    return(registered_seu)
   }
 }
 
-#' getRegisteredObject.VoltRon
+#' getRegisteredObjectListVoltRon
 #'
 #' Get registered and merged VoltRon object composed of several Samples
 #'
@@ -376,7 +349,7 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, ..
 #'
 #' @importFrom Morpho applyTransform
 #'
-getRegisteredObject.VoltRon <- function(sr, mapping_list, register_ind, centre, reg_mode = "manual"){
+getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centre, reg_mode = "manual"){
 
   # initiate registered VoltRon objects
   ref_ind <- centre
@@ -384,6 +357,48 @@ getRegisteredObject.VoltRon <- function(sr, mapping_list, register_ind, centre, 
   for(i in register_ind){
     mapping <- mapping_list[[i]]
     coords <- vrCoordinates(registered_sr[[i]])
+    entities <- rownames(coords)
+    for(kk in 1:length(mapping)){
+      cur_mapping <- mapping[[kk]]
+      if(reg_mode == "manual"){
+        coords <- Morpho::applyTransform(coords, cur_mapping)
+      } else {
+        info <- image_info(vrImages(registered_sr[[i]])[[1]])
+        coords[,2] <- info$height - coords[,2]
+        coords <- perspectiveTransform(coords, cur_mapping)
+        coords[,2] <- info$height - coords[,2]
+      }
+    }
+    rownames(coords) <- entities
+    vrCoordinates(registered_sr[[i]], reg = TRUE) <- coords
+  }
+  return(registered_sr)
+}
+
+#' getRegisteredObjectListSeurat
+#'
+#' Get registered and merged VoltRon object composed of several Samples
+#'
+#' @param sr a list of VoltRon objects
+#' @param mapping_list a list of transformation matrices
+#' @param register_ind the indices of query images/spatialdatasets
+#' @param centre the index of the central reference image/spatialdata
+#' @param reg_mode the registration mode, either "auto" or "manual"
+#'
+#' @importFrom Morpho applyTransform
+#'
+getRegisteredObjectListSeurat <- function(sr, mapping_list, register_ind, centre, reg_mode = "manual"){
+
+  if (!requireNamespace('Seurat'))
+    stop("Please install Seurat package to use the RCTD algorithm")
+
+  # initiate registered VoltRon objects
+  ref_ind <- centre
+  registered_sr <- sr
+  for(i in register_ind){
+    mapping <- mapping_list[[i]]
+    # coords <- vrCoordinates(registered_sr[[i]])
+    coords <- Seurat::GetTissueCoordinates(registered_sr[[i]])
     entities <- rownames(coords)
     for(kk in 1:length(mapping)){
       cur_mapping <- mapping[[kk]]
@@ -737,8 +752,8 @@ imageKeypoint <- function(image, keypoints){
 
   # select keypoints and texts on image
   image <- image +
-    geom_point(mapping = aes(x = x, y = y), keypoints, size = 5, shape = 21, fill = "white") +
-    geom_text(mapping = aes(x = x, y = y, label = KeyPoint), keypoints, size = 3)
+    geom_point(mapping = aes(x = x, y = y), keypoints, size = 8, shape = 21, fill = "white") +
+    geom_text(mapping = aes(x = x, y = y, label = KeyPoint), keypoints, size = 5)
 }
 
 ####
@@ -880,68 +895,70 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
   len_register <- length(image_list) - 1
 
   # Registration events
-  # observeEvent(input$manualregister, {
   observeEvent(input$register, {
-  if(!input$automatictag){
-    # Check keypoints
-    keypoints_check_flag <- sapply(keypoints_list, function(key_list){
-      nrow(key_list$ref) == nrow(key_list$query)
-    })
-    if(!all(unlist(keypoints_check_flag))){
-      showNotification("The number of reference and query keypoints should be equal for all pairwise spatial datasets \n")
-      return(NULL)
+
+    # Manual Registration
+    if(!input$automatictag){
+
+      # Check keypoints
+      keypoints_check_flag <- sapply(keypoints_list, function(key_list){
+        nrow(key_list$ref) == nrow(key_list$query)
+      })
+      if(!all(unlist(keypoints_check_flag))){
+        showNotification("The number of reference and query keypoints should be equal for all pairwise spatial datasets \n")
+        return(NULL)
+      }
+
+      # Register keypoints
+      mapping_list <- list()
+      for(i in register_ind){
+
+        # get a sequential mapping between a query and reference image
+        mapping <- computeManualPairwiseTransform(keypoints_list, query_ind = i, ref_ind = centre)
+
+        # save transformation matrix
+        mapping_list[[i]] <- mapping
+      }
+
+      # get registered spatial datasets
+      temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre)
+      for(i in 1:length(temp_reg_list))
+        registered_spatdata_list[[paste0(i)]] <- temp_reg_list[[i]]
+
+      # Plot registered images
+      lapply(register_ind, function(i){
+        cur_mapping <- mapping_list[[i]]
+        images <- getManualRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
+        output[[paste0("plot_query_reg",i)]] <- renderImage({
+          r2 <- image_read(as.raster(images$query))
+          image_view_list <- list(rep(image_resize(image_list[[centre]], geometry = "400x"),5),
+                                  rep(image_resize(r2, geometry = "400x"),5))
+          image_view_list <- image_view_list %>%
+            image_join() %>%
+            image_write(tempfile(fileext='gif'), format = 'gif')
+          list(src = image_view_list, contentType = "image/gif")
+        }, deleteFile = TRUE)
+        # output[[paste0("plot_query_reg",i)]] <- renderPlot({
+        #   info <- image_info(image_list[[centre]])
+        #   r2 <- as.raster(images$query)
+        #   r2 <- rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",i)]]))
+        #   ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
+        #     ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
+        #     ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
+        #     ggplot2::annotation_custom(r2, 0, info$width, 0, info$height) +
+        #     theme(axis.title.x = element_blank(), axis.title.y = element_blank())
+        # })
+      })
+
+      # Output summary
+      output[["summary"]] <- renderUI({
+        str1 <- paste0(" Registration Summary:")
+        str2 <- paste0("# of Images: ", length(image_list))
+        str3 <- paste0("# of Registrations: ", len_register)
+        all_str <- c(str1, str2, str3)
+        HTML(paste(all_str, collapse = '<br/>'))
+      })
     }
-
-    # Register keypoints
-    mapping_list <- list()
-    for(i in register_ind){
-
-      # get a sequential mapping between a query and reference image
-      mapping <- computeManualPairwiseTransform(keypoints_list, query_ind = i, ref_ind = centre)
-
-      # save transformation matrix
-      mapping_list[[i]] <- mapping
-    }
-
-    # get registered spatial datasets
-    temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre)
-    for(i in 1:length(temp_reg_list))
-      registered_spatdata_list[[paste0(i)]] <- temp_reg_list[[i]]
-
-    # Plot registered images
-    lapply(register_ind, function(i){
-      cur_mapping <- mapping_list[[i]]
-      images <- getManualRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
-      output[[paste0("plot_query_reg",i)]] <- renderImage({
-        r2 <- image_read(as.raster(images$query))
-        image_view_list <- list(rep(image_resize(image_list[[centre]], geometry = "400x"),5),
-                                rep(image_resize(r2, geometry = "400x"),5))
-        image_view_list <- image_view_list %>%
-          image_join() %>%
-          image_write(tempfile(fileext='gif'), format = 'gif')
-        list(src = image_view_list, contentType = "image/gif")
-      }, deleteFile = TRUE)
-      # output[[paste0("plot_query_reg",i)]] <- renderPlot({
-      #   info <- image_info(image_list[[centre]])
-      #   r2 <- as.raster(images$query)
-      #   r2 <- rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",i)]]))
-      #   ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
-      #     ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
-      #     ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
-      #     ggplot2::annotation_custom(r2, 0, info$width, 0, info$height) +
-      #     theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-      # })
-    })
-
-    # Output summary
-    output[["summary"]] <- renderUI({
-      str1 <- paste0(" Registration Summary:")
-      str2 <- paste0("# of Images: ", length(image_list))
-      str3 <- paste0("# of Registrations: ", len_register)
-      all_str <- c(str1, str2, str3)
-      HTML(paste(all_str, collapse = '<br/>'))
-    })
-  }
   })
 }
 
@@ -1057,79 +1074,81 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
   len_register <- length(image_list) - 1
 
   # Registration events
-  #observeEvent(input$automaticregister, {
   observeEvent(input$register, {
-  if(input$automatictag){
-    # Register keypoints
-    mapping_list <- list()
-    aligned_image_list <- list()
-    alignment_image_list <- list()
-    for(i in register_ind){
 
-      # get a sequential mapping between a query and reference image
-      results <- computeAutomatedPairwiseTransform(image_list, query_ind = i, ref_ind = centre, input)
+    # Automated registration
+    if(input$automatictag){
 
-      # save transformation matrix
-      mapping_list[[i]] <- results$mapping
+      # Register keypoints
+      mapping_list <- list()
+      aligned_image_list <- list()
+      alignment_image_list <- list()
+      for(i in register_ind){
 
-      # save alignment
-      aligned_image_list[[i]] <- results$aligned_image
+        # get a sequential mapping between a query and reference image
+        results <- computeAutomatedPairwiseTransform(image_list, query_ind = i, ref_ind = centre, input)
 
-      # save matches
-      alignment_image_list[[i]] <- results$alignment_image
-    }
+        # save transformation matrix
+        mapping_list[[i]] <- results$mapping
 
-    # get registered spatial datasets
-    temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre, reg_mode = "auto")
-    for(i in 1:length(temp_reg_list))
-      registered_spatdata_list[[paste0(i)]] <- temp_reg_list[[i]]
+        # save alignment
+        aligned_image_list[[i]] <- results$aligned_image
 
-    # Plot registered images
-    lapply(register_ind, function(i){
-      cur_mapping <- mapping_list[[i]]
-      cur_aligned_image <- aligned_image_list[[i]]
-      output[[paste0("plot_query_reg",i)]] <- renderImage({
-        image_view_list <- list(rep(image_resize(image_list[[centre]], geometry = "400x"),5),
-                                rep(image_resize(aligned_image_list[[i]], geometry = "400x"),5))
-        image_view_list <- image_view_list %>%
-          image_join() %>%
-          image_write(tempfile(fileext='gif'), format = 'gif')
-        list(src = image_view_list, contentType = "image/gif")
-      }, deleteFile = TRUE)
-      # output[[paste0("plot_query_reg",i)]] <- renderPlot({
-      #   info <- magick::image_info(image_list[[centre]])
-      #   r2 <- as.raster(cur_aligned_image)
-      #   r2 <- grid::rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",i)]]))
-      #   # p <- ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
-      #   #   ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
-      #   #   ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
-      #   #   ggplot2::annotation_custom(r2, 0, info$width, 0, info$height)
-      #   # ggsave(filename = paste0("plot_query_reg_alpha",i, "pdf"), plot = p, device = "pdf", width = 7, height = 10, bg = "transparent")
-      #   ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
-      #     ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
-      #     ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
-      #     ggplot2::annotation_custom(r2, 0, info$width, 0, info$height) +
-      #     theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-      # })
-    })
+        # save matches
+        alignment_image_list[[i]] <- results$alignment_image
+      }
 
-    # Plot Alignment
-    lapply(register_ind, function(i){
-      cur_alignment_image <- alignment_image_list[[i]]
-      output[[paste0("plot_alignment",i)]] <- renderPlot({
-        image_ggplot(cur_alignment_image)
+      # get registered spatial datasets
+      temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre, reg_mode = "auto")
+      for(i in 1:length(temp_reg_list))
+        registered_spatdata_list[[paste0(i)]] <- temp_reg_list[[i]]
+
+      # Plot registered images
+      lapply(register_ind, function(i){
+        cur_mapping <- mapping_list[[i]]
+        cur_aligned_image <- aligned_image_list[[i]]
+        output[[paste0("plot_query_reg",i)]] <- renderImage({
+          image_view_list <- list(rep(image_resize(image_list[[centre]], geometry = "400x"),5),
+                                  rep(image_resize(aligned_image_list[[i]], geometry = "400x"),5))
+          image_view_list <- image_view_list %>%
+            image_join() %>%
+            image_write(tempfile(fileext='gif'), format = 'gif')
+          list(src = image_view_list, contentType = "image/gif")
+        }, deleteFile = TRUE)
+        # output[[paste0("plot_query_reg",i)]] <- renderPlot({
+        #   info <- magick::image_info(image_list[[centre]])
+        #   r2 <- as.raster(cur_aligned_image)
+        #   r2 <- grid::rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",i)]]))
+        #   # p <- ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
+        #   #   ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
+        #   #   ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
+        #   #   ggplot2::annotation_custom(r2, 0, info$width, 0, info$height)
+        #   # ggsave(filename = paste0("plot_query_reg_alpha",i, "pdf"), plot = p, device = "pdf", width = 7, height = 10, bg = "transparent")
+        #   ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
+        #     ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
+        #     ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
+        #     ggplot2::annotation_custom(r2, 0, info$width, 0, info$height) +
+        #     theme(axis.title.x = element_blank(), axis.title.y = element_blank())
+        # })
       })
-    })
 
-    # Output summary
-    output[["summary"]] <- renderUI({
-      str1 <- paste0(" Registration Summary:")
-      str2 <- paste0("# of Images: ", length(image_list))
-      str3 <- paste0("# of Registrations: ", len_register)
-      all_str <- c(str1, str2, str3)
-      htmltools::HTML(paste(all_str, collapse = '<br/>'))
-    })
-  }
+      # Plot Alignment
+      lapply(register_ind, function(i){
+        cur_alignment_image <- alignment_image_list[[i]]
+        output[[paste0("plot_alignment",i)]] <- renderPlot({
+          image_ggplot(cur_alignment_image)
+        })
+      })
+
+      # Output summary
+      output[["summary"]] <- renderUI({
+        str1 <- paste0(" Registration Summary:")
+        str2 <- paste0("# of Images: ", length(image_list))
+        str3 <- paste0("# of Registrations: ", len_register)
+        all_str <- c(str1, str2, str3)
+        htmltools::HTML(paste(all_str, collapse = '<br/>'))
+      })
+    }
   })
 }
 

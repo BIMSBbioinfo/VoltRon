@@ -140,7 +140,7 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
 #'
 #' @importFrom dplyr full_join
 #'
-getSharedFeatures <- function(object, assay = NULL, n = 3000, ...){
+getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -187,11 +187,11 @@ getPCA.VoltRon <- function(object, assay = NULL, dims = 30){
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get shared features and subset
-  features <- getSharedFeatures(object, assay = assay)
-  object <- subset(object, features = features)
+  features <- getVariableFeatures(object, assay = assay)
+  object_subset <- subset(object, features = features)
 
   # get data
-  normdata <- vrData(object, norm = TRUE)
+  normdata <- vrData(object_subset, norm = TRUE)
 
   # scale data before PCA
   scale.data <- apply(normdata, 1, scale)

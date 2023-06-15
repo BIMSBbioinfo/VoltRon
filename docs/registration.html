@@ -496,7 +496,7 @@ Visium data. <strong>registerSpatialData</strong> will return a list of
 VoltRon objects whose assays include both the original and registered
 versions of spatial coordinates and images.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(data_list = list(Xen_seu_R1, Vis_seu, Xen_seu_R2))</code></pre>
-<p><img width="80%" height="80%" src="images/XeniumVisiumRegistration.png" class="center"></p>
+<p><img width="80%" height="80%" src="images/XeniumVisiumRegistration.gif" class="center"></p>
 <p>The returned list will also include a set of keypoints selected by
 the user if they have used manual alignment. You can use this keypoints
 object again to call <strong>registerSpatialData</strong> and reproduce
@@ -565,7 +565,7 @@ immediately observe the alignment quality by sliding registered
 images.</p>
 <pre class="r watch-out"><code>DLPFC_list &lt;- list(DLPFC_1, DLPFC_2)
 reg1and2 &lt;- registerSpatialData(data_list = DLPFC_list)</code></pre>
-<p><img width="80%" height="80%" src="images/VisiumDLFPCRegistration.png" class="center"></p>
+<p><img width="80%" height="80%" src="images/VisiumDLFPCRegistration.gif" class="center"></p>
 <p><br></p>
 <p>We can now apply a similar alignment across the second pair of
 VoltRon objects. We will use 800 features for this alignment, ask for

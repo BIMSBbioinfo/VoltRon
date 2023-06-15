@@ -101,7 +101,7 @@ In this example, we will manually choose keypoints (or landmarks) that are obser
 xen_reg <- registerSpatialData(data_list = list(Xen_seu_R1, Vis_seu, Xen_seu_R2))
 ```
 
-<img width="80%" height="80%" src="images/XeniumVisiumRegistration.png" class="center">
+<img width="80%" height="80%" src="images/XeniumVisiumRegistration.gif" class="center">
 
 The returned list will also include a set of keypoints selected by the user if they have used manual alignment. You can use this keypoints object again to call **registerSpatialData** and reproduce the earlier manual alignment. 
 
@@ -167,7 +167,7 @@ DLPFC_list <- list(DLPFC_1, DLPFC_2)
 reg1and2 <- registerSpatialData(data_list = DLPFC_list)
 ```
 
-<img width="80%" height="80%" src="images/VisiumDLFPCRegistration.png" class="center">
+<img width="80%" height="80%" src="images/VisiumDLFPCRegistration.gif" class="center">
 
 <br>
 

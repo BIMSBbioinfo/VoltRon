@@ -581,17 +581,30 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 #' @param object VoltRon object
 #' @param assay assay name
 #' @param assay.type assay type
+#' @param features a set of features to be visualized
 #' @param group.by a column from metadata to seperate columns of the heatmap
 #' @param norm if TRUE, the normalized data is used
+#' @param show_row_names if TRUE, row names of the heatmap will be shown
+#' @param ... additional parameters passed to \code{getVariableFeatures}
 #'
 #' @importFrom ComplexHeatmap Heatmap
 #'
 #' @export
 #'
-vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, group.by = "clusters", norm = TRUE){
+vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NULL, group.by = "clusters", norm = TRUE, show_row_names = TRUE, ...){
 
   # data
   heatmapdata <- vrData(object, assay = assay, norm = norm)
+
+  # features
+  if(is.null(features)){
+    if(nrow(vrFeatureData(object)) > 0){
+      features <- getVariableFeatures(object, assay = assay)
+    } else {
+      features <- vrFeatures(object, assay = assay)
+    }
+  }
+  heatmapdata <- heatmapdata[features, ]
 
   # get entity type and metadata
   if(is.null(assay.type)){
@@ -614,6 +627,100 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, group.by = "c
   labels_ordered <- metadata[[group.by]][order(metadata[[group.by]], decreasing = FALSE)]
   labels_ordered_table <- table(labels_ordered)
   col_split = factor(labels_ordered, levels = names(labels_ordered_table))
-  ComplexHeatmap::Heatmap(heatmapdata_scale_order, show_row_names = TRUE, show_column_names = FALSE,
-          column_split = col_split, cluster_columns = FALSE)
+  ComplexHeatmap::Heatmap(heatmapdata_scale_order, show_row_names = show_row_names, show_column_names = FALSE,
+                          show_row_dend = FALSE, column_split = col_split, cluster_columns = FALSE)
+}
+
+####
+# Violin Plot ####
+####
+
+#' vrViolinPlot
+#'
+#' @param object A VoltRon object
+#' @param assay assay name
+#' @param assay.type assay type
+#' @param features a set of features to be visualized
+#' @param group.by a column from metadata to seperate columns of the heatmap
+#' @param norm if TRUE, the normalized data is used
+#' @param ... additional parameters passed to \code{getVariableFeatures}
+#'
+#' @import ggplot2
+#' @importFrom reshape2 melt
+#'
+#' @export
+#'
+vrViolinPlot <- function(object, assay = NULL, assay.type = NULL, features = NULL, group.by = "clusters", norm = TRUE, ...){
+
+  # features
+  if(is.null(features))
+    stop("You have to define at least one feature")
+
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
+  # list of plots
+  gg <- list()
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get data
+  violindata <- vrData(object, assay = assay, norm = norm)
+
+  # get entity type and metadata
+  if(is.null(assay.type)){
+    assay_types <- vrAssayTypes(object, assay = assay)
+    if(length(unique(assay_types)) == 1){
+      assay.type <- unique(assay_types)
+      metadata <- Metadata(object, type = assay.type)
+    } else {
+      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+    }
+  } else {
+    metadata <- Metadata(object, type = assay.type)
+  }
+  metadata <- metadata[colnames(violindata),]
+
+  # get feature data
+  datax <- lapply(features, function(x){
+    if(feature %in% rownames(violindata)){
+      return(violindata[x,])
+    } else {
+      return(metadata[,x])
+    }
+  })
+  datax <- do.call(cbind, datax)
+  colnames(datax) <- features
+
+  # violin plot
+  assays <- stringr::str_extract(rownames(metadata), "Assay[0-9]+$")
+  assay_title <- apply(sample.metadata[assays,], 1, function(x) paste(x["Sample"], x["Layer"], x["Assay"], sep = "|"))
+  ggplotdatax <- data.frame(datax,
+                      group.by =  factor(metadata[[group.by]]),
+                      assay_title = assay_title,
+                      spatialpoints = rownames(metadata))
+  ggplotdatax <- melt(ggplotdatax, id.var = c("group.by", "assay_title", "spatialpoints"))
+  gg <- ggplot(ggplotdatax, aes(x = group.by, y = value, fill = group.by)) +
+    geom_violin() +
+    geom_point(size = 0.5, position = position_jitter()) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+    ylab("") + xlab(group.by)
+    guides(fill = guide_legend(title = ""))
+
+  # return a list of plots or a single one
+  if(length(features) > 1 && length(assay_names) > 1){
+    gg <- gg + facet_grid(assay_title~variable)
+  } else if(length(features) > 1 && length(assay_names) == 1){
+    gg <- gg + facet_grid(.~variable)
+  } else if(length(features) == 1 && length(assay_names) > 1){
+    gg <- gg + facet_grid(.~assay_title)
+  } else{
+    gg <- gg +
+      labs(title = assay_title) +
+      theme(plot.title = element_text(hjust = 0.5)) +
+      guides(fill = guide_legend(title = features))
+  }
+
+  gg
 }

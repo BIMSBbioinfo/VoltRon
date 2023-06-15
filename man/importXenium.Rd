@@ -8,6 +8,8 @@ importXenium(
   dir.path,
   selected_assay = "Gene Expression",
   assay_name = "Xenium",
+  morphology_image = "morphology_lowres.tif",
+  resolution_level = 7,
   ...
 )
 }
@@ -17,6 +19,10 @@ importXenium(
 \item{selected_assay}{selected assay}
 
 \item{assay_name}{the assay name of the SR object}
+
+\item{morphology_image}{the name of the lowred morphology image. Default: morphology_lowres.tif}
+
+\item{resolution_level}{the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)}
 
 \item{...}{additional parameters passed to \code{formVoltRon}}
 }

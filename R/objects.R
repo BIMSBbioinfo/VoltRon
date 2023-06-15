@@ -60,7 +60,7 @@ setMethod(
     # print assays
     unique_assays <- unique(all_assays)
     unique_assays <- unique_assays[c(which(unique_assays == object@main.assay),which(unique_assays != object@main.assay))]
-    unique_assays[1] <- paste0(unique_assays[1], " (Main)")
+    unique_assays[1] <- paste0(unique_assays[1], "(Main)")
     cat("Assays:", paste(unique_assays, collapse = " "), "\n")
 
     # return invisible
