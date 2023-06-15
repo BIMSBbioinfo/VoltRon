@@ -6,26 +6,32 @@
 \usage{
 vrViolinPlot(
   object,
+  features = NULL,
   assay = NULL,
   assay.type = NULL,
-  features = NULL,
   group.by = "clusters",
   norm = TRUE,
+  ncol = 2,
+  nrow = NULL,
   ...
 )
 }
 \arguments{
 \item{object}{A VoltRon object}
 
+\item{features}{a set of features to be visualized}
+
 \item{assay}{assay name}
 
 \item{assay.type}{assay type}
 
-\item{features}{a set of features to be visualized}
-
 \item{group.by}{a column from metadata to seperate columns of the heatmap}
 
 \item{norm}{if TRUE, the normalized data is used}
+
+\item{ncol}{column wise number of plots, for \code{ggarrange}}
+
+\item{nrow}{row wise number of plots, for \code{ggarrange}}
 
 \item{...}{additional parameters passed to \code{getVariableFeatures}}
 }

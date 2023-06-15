@@ -756,6 +756,7 @@ vrEmbeddingFeaturePlotSingle <- function(assay, embedding = "pca", metadata, fea
   # data
   normdata <- vrData(assay, norm = TRUE)
   datax <- data.frame(vrEmbeddings(assay, type = embedding))
+  colnames(datax) <- c("x", "y")
 
   # get data
   if(feature %in% rownames(normdata)){
