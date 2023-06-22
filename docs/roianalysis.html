@@ -348,7 +348,7 @@ div.tocify {
       </ul>
     </li>
     <li class="dropdown-submenu">
-      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Downstream Spatial Data Analysis</a>
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Downstream Analysis and Utilities</a>
       <ul class="dropdown-menu" role="menu">
         <li>
           <a href="spotanalysis.html">Cell/Spot Analysis</a>
@@ -356,6 +356,7 @@ div.tocify {
         <li>
           <a href="roianalysis.html">ROI Analysis</a>
         </li>
+        <li class="dropdown-header">Converting VoltRon Objects</li>
       </ul>
     </li>
   </ul>
@@ -392,7 +393,7 @@ div.tocify {
       <a href="https://github.com/BIMSBbioinfo/VoltRon">VoltRon</a>
     </li>
     <li>
-      <a href="https://github.com/BIMSBbioinfo">BIMSBbioinfo</a>
+      <a href="https://github.com/BIMSBbioinfo">BIMSB Bioinfo</a>
     </li>
   </ul>
 </li>
@@ -409,6 +410,16 @@ div.tocify {
 </div>
 
 
+<style>
+body {
+  text-align: justify
+}
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
 <style type="text/css">
 .watch-out {
   color: black;
@@ -417,59 +428,87 @@ div.tocify {
 <p><br></p>
 <div id="roi-analysis" class="section level2">
 <h2>ROI Analysis</h2>
-<div id="import" class="section level3">
-<h3>Import</h3>
-<pre class="r watch-out"><code>GeoMxR1 &lt;- importGeoMx(&quot;../../Covid/data/P3136/&quot;,
-                       pkc_file = &quot;../../Covid/data/Hs_R_NGS_WTA_v1.0.pkc&quot;,
-                       summarySegment = &quot;../../Covid/data/P3136/segmentSummary.xlsx&quot;,
+<p>VoltRon is capable of analyzing readouts from distinct spatial
+technologies including segmentation based transciptomics assays that
+capture a large polygonic regions within a tissue section. VoltRon’s
+interface is capable of recognizing these datasets from these distinct
+technologies and allows users to use similar functions to analyze these
+datasets.</p>
+<p>We now import the GeoMx data, and start analyzing 87 user selected
+segments to check spatial localization of signals.</p>
+<pre class="r watch-out"><code># get data
+GeoMxR1 &lt;- importGeoMx(&quot;out/&quot;,
+                       pkc_file = &quot;out/Hs_R_NGS_WTA_v1.0.pkc&quot;,
+                       summarySegment = &quot;out/segmentSummary.xlsx&quot;,
                        summarySegmentSheetName = &quot;Segment summary&quot;,
-                       sample_name = &quot;GeoMxR1&quot;)
-
-## add metadata ####
-geometadata &lt;- read.xlsx(&quot;../../Covid/data/P3136/segmentSummary.xlsx&quot;, sheetName = &quot;Segment summary&quot;)
-GeoMxR1@metadata@ROI$ROIlabel &lt;- geometadata$ROI.name
-GeoMxR1@metadata@ROI$Surface.area &lt;- geometadata$Surface.area
-GeoMxR1@metadata@ROI$Nuclei.count &lt;- geometadata$Nuclei.count
-GeoMxR1@metadata@ROI$SaturationRate &lt;- geometadata$Sequencing.saturation
-GeoMxR1@metadata@ROI$CountPerNuclei &lt;- GeoMxR1@metadata@ROI$Count/GeoMxR1@metadata@ROI$Nuclei.count
-
-# get segments
-segments_all &lt;- importGeoMxSegments(&quot;../../Covid/data/P3136/Lu 1A 1B 5 um, true exp.ome.tiff&quot;, summary = geometadata, imageinfo = image_info(vrImages(GeoMxR1)[[1]]))
-segments_all &lt;- segments_all[GeoMxR1@metadata@ROI$ROIlabel]
-names(segments_all) &lt;- vrSpatialPoints(GeoMxR1)
-vrSegments(GeoMxR1) &lt;- segments_all</code></pre>
-</div>
+                       image = &quot;out/morphology.tiff&quot;,
+                       ome.tiff = &quot;out/Lu 1A 1B 5 um, true exp.ome.tiff&quot;,
+                       sample_name = &quot;GeoMxR1&quot;)</code></pre>
+<p><br></p>
 <div id="processing" class="section level3">
 <h3>Processing</h3>
-<pre class="r watch-out"><code># image reduction
-GeoMxR1_resized &lt;- resizeImage(GeoMxR1, size = 4000)
-
-# Subsetting features
-GeoMxR1_resized_data &lt;- vrData(GeoMxR1_resized, norm = FALSE)
-feature_ind &lt;- apply(GeoMxR1_resized_data, 1, function(x) max(x) &gt; 10) 
-selected_features &lt;- vrFeatures(GeoMxR1_resized)[feature_ind]
-GeoMxR1_lessfeatures &lt;- subset(GeoMxR1_resized, features = selected_features)
-
-# filtering and subsetting
-GeoMxR1_less &lt;- subset(GeoMxR1_lessfeatures, subset = CountPerNuclei &gt; 500)
-
-# Normalization
-GeoMxR1_less &lt;- normalizeData(GeoMxR1_less, method = &quot;QuanNorm&quot;)</code></pre>
+<p>We first filter low count genes by extracting the count matrix and
+remove all genes whose maximum count across all 87 ROIs less than
+10.</p>
+<pre class="r watch-out"><code>GeoMxR1_data &lt;- vrData(GeoMxR1, norm = FALSE)
+feature_ind &lt;- apply(GeoMxR1_data, 1, function(x) max(x) &gt; 10)
+selected_features &lt;- vrFeatures(GeoMxR1)[feature_ind]
+GeoMxR1_lessfeatures &lt;- subset(GeoMxR1, features = selected_features)</code></pre>
+<p>GeoMx platform provides both nuclei count per ROI as well as the
+transcipt count which we can measure the depth of each ROI. To measure
+the quality of each individual ROI, we add a new metadata column which
+indicates the transcript counts per nuclei.</p>
+<pre class="r watch-out"><code>Metadata(GeoMxR1)$CountPerNuclei &lt;- Metadata(GeoMxR1)$Count/Metadata(GeoMxR1)$Nuclei.count
+GeoMxR1 &lt;- subset(GeoMxR1, subset = CountPerNuclei &gt; 500)</code></pre>
+<p>VoltRon is capable of normalizing data provided by a diverse set of
+spatial technologies, including the quantile normalization method
+suggested by the <a
+href="https://nanostring.com/support-documents/geomx-dsp-data-analysis-user-manual/">GeoMx
+DSP Data Analysis User Manual</a> which scales the ROI profiles to the
+third quartile followed by the geometric mean of all third quartiles
+multipled to the scaled profile.</p>
+<pre class="r watch-out"><code>GeoMxR1 &lt;- normalizeData(GeoMxR1, method = &quot;Q3Norm&quot;)</code></pre>
+<p><br></p>
 </div>
 <div id="interactive-subsetting" class="section level3">
 <h3>Interactive subsetting</h3>
-<pre class="r watch-out"><code># interactive subsetting
-GeoMxR1_subset_list &lt;- subset(GeoMxR1_less, interactive = TRUE)
-GeoMxR1_subset_list &lt;- GeoMxR1_subset_list$registration
-
-# merging VoltRon objects
-GeoMxR1_merged &lt;- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1])</code></pre>
+<p>Spatially informed genomic technologies heavily depend on image
+manipulation and computer vision. Hence, VoltRon allows additional
+built-in operations to manipulate spatial images including operations
+that provide subsetting assays using the reference image.</p>
+<p>We first resize the morphology image relative to the width for
+reducing the size.</p>
+<pre class="r watch-out"><code># resizing the image
+GeoMxR1 &lt;- resizeImage(GeoMxR1, size = 4000)</code></pre>
+<p>VoltRon provides mini shiny apps to subsetting spatial points of a
+VoltRon object by using the image as a reference. Users may fit multiple
+tissue or organoid sections to a GeoMx scan area, hence we may use the
+shiny app to demultiplex/separate a single GeoMx experiment into
+multiple samples.</p>
+<pre class="r watch-out"><code>GeoMxR1_subset &lt;- subset(GeoMxR1, interactive = TRUE)
+GeoMxR1_subset_list &lt;- GeoMxR1_subset$subsets
+GeoMxR1 &lt;- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1])</code></pre>
+<p><img width="85%" height="85%" src="images/interactivesubset.gif" class="center"></p>
+<p><br></p>
+<p>Users may also save the selected image subsets and reproduce the
+interactive subsetting operation for later use.</p>
+<pre class="r watch-out"><code>subset_info_list &lt;- GeoMxR1_subset$subset_info_list
+GeoMxR1_subset_list &lt;- list()
+for(i in 1:length(subset_info_list[[1]])){
+  sample_names &lt;- paste0(&quot;Sample&quot;, 1:length(subset_info_list[[1]]))
+  temp &lt;- subset(GeoMxR1_less, image = subset_info_list[[1]][i])
+  temp$Sample &lt;- sample_names[i]
+  GeoMxR1_subset_list[[i]]  &lt;- temp
+}
+GeoMxR1 &lt;- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1])</code></pre>
+<p><br></p>
 </div>
 <div id="visualization" class="section level3">
 <h3>Visualization</h3>
-<pre class="r watch-out"><code># CXCL11 for all sections, same scale
-GeoMxR1_subset2 &lt;- subset(GeoMxR1_merged, sample = c(&quot;Sample1&quot;,&quot;Sample2&quot;))
-vrSpatialFeaturePlot(GeoMxR1_subset2, features = c(&quot;CXCL11&quot;, &quot;COL1A1&quot;), group.by = &quot;ROIlabel&quot;, label = TRUE, pt.size = 8, keep.scale = &quot;all&quot;)</code></pre>
+<p>We will now select sections of interests from the VoltRon object, and
+visualize features may anything with bla bla bla.</p>
+<pre class="r watch-out"><code>GeoMxR1_subset &lt;- subset(GeoMxR1, sample = c(&quot;Sample1&quot;,&quot;Sample2&quot;))
+vrSpatialFeaturePlot(GeoMxR1_subset, features = c(&quot;CXCL11&quot;, &quot;COL1A1&quot;), group.by = &quot;ROIlabel&quot;, label = TRUE, pt.size = 8, keep.scale = &quot;all&quot;)</code></pre>
 </div>
 </div>
 

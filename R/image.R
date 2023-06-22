@@ -359,7 +359,6 @@ demuxVoltRon <- function(object, scale_width = 800)
 
   # scale
   imageinfo <- image_info(images[[1]])
-  scale_factor <- imageinfo$width/800
   scale_width <- paste0(scale_width, "x")
   images <- image_scale(images[[1]], scale_width)
 
@@ -374,6 +373,7 @@ demuxVoltRon <- function(object, scale_width = 800)
 
                     # Side bar
                     sidebarPanel(
+                      tags$style(tableHTML::make_css(list('.well', 'margin', '7%'))),
 
                       # Interface
                       fluidRow(
@@ -496,15 +496,15 @@ demuxVoltRon <- function(object, scale_width = 800)
       ## select points on the image ####
       observeEvent(input$done, {
         if(nrow(selected_corners_list()) > 0){
-          registration <- list()
+          subsets <- list()
           box_list <- selected_corners_list()
           sample_names <- paste0("Sample", 1:length(box_list$box))
           for(i in 1:length(box_list$box)){
             temp <- subset(object, image = box_list$box[i])
             temp$Sample <- sample_names[i]
-            registration[[sample_names[i]]] <- temp
+            subsets[[sample_names[i]]] <- temp
           }
-          stopApp(list(registration = registration, subset_info_list = box_list))
+          stopApp(list(subsets = subsets, subset_info_list = box_list))
         }
       })
     }

@@ -8,7 +8,7 @@ NULL
 
 #' @param assay assay
 #' @param data.type the type of embedding used for neighborhood calculation, e.g. raw counts (raw), normalized counts (norm), PCA embeddings (pca), UMAP embeddings (umap) etc.
-#' @param ... additional parameters passed to \code{getNeighbors.vrAssay}
+#' @param ... additional parameters passed to \code{getNeighbors.vrAssay} and \code{FNN:get.knn}
 #'
 #' @rdname getNeighbors
 #' @method getNeighbors VoltRon
@@ -35,6 +35,7 @@ getNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca", ...){
 }
 
 #' @param data.type the type of embedding used for neighborhood calculation, e.g. raw counts (raw), normalized counts (norm), PCA embeddings (pca), UMAP embeddings (umap) etc.
+#' @param ... additional parameters passed to \code{FNN::get.knn}
 #'
 #' @rdname getNeighbors
 #' @method getNeighbors vrAssay
@@ -52,7 +53,7 @@ getNeighbors.vrAssay <- function(object, data.type = "pca", ...){
   }
 
   # find neighborhood
-  nnedges <- FNN::get.knn(nndata)
+  nnedges <- FNN::get.knn(nndata, ...)
   nnedges <- nnedges$nn.index
   nnedges <- cbind(1:length(vrSpatialPoints(object)), nnedges)
   nnedges <- apply(nnedges, 1, function(x){
@@ -98,12 +99,12 @@ getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters"
   clusters <- clusters$membership
 
   # metadata
-  metadata <- Metadata(object, type = vrAssayTypes(object))
+  metadata <- Metadata(object)
   metadata_clusters <- rep(NA, nrow(metadata))
   metadata[[label]] <- metadata_clusters
   entities <- vrSpatialPoints(object_subset)
   metadata[entities,][[label]] <- clusters
-  Metadata(object, type = vrAssayTypes(object)) <- metadata
+  Metadata(object) <- metadata
 
   # return
   return(object)

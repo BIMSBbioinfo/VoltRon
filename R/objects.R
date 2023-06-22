@@ -58,8 +58,9 @@ setMethod(
     }
 
     # print assays
+    main.assay <- vrMainAssay(object)
     unique_assays <- unique(all_assays)
-    unique_assays <- unique_assays[c(which(unique_assays == object@main.assay),which(unique_assays != object@main.assay))]
+    unique_assays <- unique_assays[c(which(unique_assays == main.assay),which(unique_assays != main.assay))]
     unique_assays[1] <- paste0(unique_assays[1], "(Main)")
     cat("Assays:", paste(unique_assays, collapse = " "), "\n")
 
@@ -91,7 +92,7 @@ setMethod(
 
   # update sample metadata and metadata
   x@sample.metadata[[i]] <- value
-  x@metadata[[i]] <- value
+  Metadata(x)[[i]] <- value
 
   return(x)
 }
@@ -245,7 +246,7 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
         stop("Entity IDs are not matching")
       } else {
         metadata <- metadata[gsub("_Assay1$", "", entityID),]
-        slot(sr_metadata, name = assay.type) <- data.frame(metadata, Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, row.names = entityID)
+        slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
       }
     }
   }
@@ -384,10 +385,10 @@ vrAssayNames.VoltRon <- function(object, assay = NULL){
     assay <- vrMainAssay(object)
 
   # get assay names
-  if(assay %in% sample.metadata$Assay){
+  if(all(assay %in% sample.metadata$Assay)){
     assay_names <- rownames(sample.metadata)[sample.metadata$Assay %in% assay]
   } else {
-    if(assay %in% rownames(sample.metadata)) {
+    if(all(assay %in% rownames(sample.metadata))) {
       assay_names <- assay
     } else {
       stop("Assay name or type is not found in the object")
@@ -446,7 +447,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
     subset <- enquo(arg = subset)
   }
   if(!missing(subset)){
-    metadata <- Metadata(GeoMxR1, type = "ROI")
+    metadata <- Metadata(object)
     spatialpoints <- rownames(metadata)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
     object <- subset(object, spatialpoints = spatialpoints)
     return(object)
@@ -590,17 +591,29 @@ merge.VoltRon <- function(object, object_list, sample_name = NULL, main.assay = 
     main.assay <- names(sort(table(sample.metadata$Assay), decreasing = TRUE))[1]
 
   # merge graphs
-  graph_list <- lapply(object_list, function(x) slot(x, name = "graph"))
+  graph_list <- mapply(function(x,assy) {
+    cur_graph <- slot(x, name = "graph")
+    V(cur_graph)$name <- gsub("Assay[0-9]+$", assy, V(cur_graph)$name)
+    cur_graph
+  }, object_list, rownames(sample.metadata))
   graph <- igraph::disjoint_union(graph_list[1], graph_list[-1])
 
   # project
   project <- slot(object_list[[1]], "project")
 
   # set VoltRon class
-  new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata,
+  object <- new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata,
       graph = graph, main.assay = main.assay, project = project)
+
+  # change assay names
+  for(assy in rownames(sample.metadata))
+    vrAssayNames(object[[assy]]) <- assy
+
+  # return
+  object
 }
 
+#' @param assay assay
 #' @param type the assay type: ROI, spot or cell
 #'
 #' @rdname Metadata
@@ -608,11 +621,17 @@ merge.VoltRon <- function(object, object_list, sample_name = NULL, main.assay = 
 #'
 #' @export
 #'
-Metadata.VoltRon <- function(object, type = "cell") {
+Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
+
+  if(is.null(type)){
+    type <- unique(vrAssayTypes(object, assay = assay))
+  }
+
   slot(object@metadata, name = type)
 }
 
 #' @param type the assay type: ROI, spot or cell
+#' @param assay assay
 #' @param value new metadata
 #'
 #' @rdname Metadata
@@ -620,7 +639,12 @@ Metadata.VoltRon <- function(object, type = "cell") {
 #'
 #' @export
 #'
-"Metadata<-.VoltRon" <- function(object, type = "cell", ..., value) {
+"Metadata<-.VoltRon" <- function(object, type = NULL, assay = NULL, ..., value) {
+
+  if(is.null(type)){
+    type <- unique(vrAssayTypes(object, assay = assay))
+  }
+
   slot(object@metadata, name = type) <- value
   return(object)
 }
@@ -825,8 +849,8 @@ vrSegments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   return(object)
 }
 
-#' @param type the key name for the embedding
 #' @param assay assay
+#' @param type the key name for the embedding
 #'
 #' @rdname vrEmbeddings
 #' @method vrEmbeddings VoltRon

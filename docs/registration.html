@@ -356,6 +356,7 @@ div.tocify {
         <li>
           <a href="roianalysis.html">ROI Analysis</a>
         </li>
+        <li class="dropdown-header">Converting VoltRon Objects</li>
       </ul>
     </li>
   </ul>
@@ -392,7 +393,7 @@ div.tocify {
       <a href="https://github.com/BIMSBbioinfo/VoltRon">VoltRon</a>
     </li>
     <li>
-      <a href="https://github.com/BIMSBbioinfo">BIMSBbioinfo</a>
+      <a href="https://github.com/BIMSBbioinfo">BIMSB Bioinfo</a>
     </li>
   </ul>
 </li>
@@ -450,8 +451,8 @@ alignment.</p>
 </tbody>
 </table>
 <p><br></p>
-<div id="xenium-and-visium" class="section level2">
-<h2>Xenium and Visium</h2>
+<div id="alignment-of-xenium-and-visium" class="section level2">
+<h2>Alignment of Xenium and Visium</h2>
 <p>In this use case, we will align immunofluorescence (IF) and H&amp;E
 images associated with the readouts of Xenium In Situ and Visium
 CytAssist platforms. Tissue sections are derived from a single
@@ -466,9 +467,6 @@ href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-
 the <a
 href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">BioArxiv
 preprint</a>.</p>
-<p><br></p>
-<div id="import" class="section level3">
-<h3>Import</h3>
 <p>VoltRon includes built-in functions to converting readouts from both
 Xenium and Visium platforms into VoltRon objects. We will import both
 Xenium replicates alongside with the Visium CytAssist data.</p>
@@ -477,9 +475,8 @@ Xen_seu_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;Xe
 Xen_seu_R2 &lt;- importXenium(&quot;Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;)
 Vis_seu &lt;- importVisium(&quot;Visium/outs&quot;, sample_name = &quot;VisiumR1&quot;)</code></pre>
 <p><br></p>
-</div>
-<div id="image-alignment" class="section level3">
-<h3>Image Alignment</h3>
+<div id="manual-image-alignment" class="section level3">
+<h3>Manual Image Alignment</h3>
 <p>In order to achieve data transfer and integration across these two
 modalities, we need to first make sure that spatial coordinate spaces of
 these three datasets are aligned. For this, we will make use of the
@@ -496,7 +493,7 @@ Visium data. <strong>registerSpatialData</strong> will return a list of
 VoltRon objects whose assays include both the original and registered
 versions of spatial coordinates and images.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(data_list = list(Xen_seu_R1, Vis_seu, Xen_seu_R2))</code></pre>
-<p><img width="80%" height="80%" src="images/XeniumVisiumRegistration.gif" class="center"></p>
+<p><img width="100%" height="100%" src="images/XeniumVisiumRegistration.gif" class="center"></p>
 <p>The returned list will also include a set of keypoints selected by
 the user if they have used manual alignment. You can use this keypoints
 object again to call <strong>registerSpatialData</strong> and reproduce
@@ -531,15 +528,11 @@ postmortem dorsolateral prefrontal cortex (DLPFC). Two pairs of adjacent
 sections, that are 10 <span class="math inline">\(\mu\)</span>m away
 from each other, was obtained from the tissue block of the third donor.
 Hence, we align each pair individually.</p>
-<div id="import-1" class="section level3">
-<h3>Import</h3>
-<pre class="r watch-out"><code>library(VoltRon)
-DLPFC_1 &lt;- importVisium(&quot;../../../data/10X_Visium_DLPFC/151673&quot;, sample_name = &quot;DLPFC_1&quot;)
+<pre class="r watch-out"><code>DLPFC_1 &lt;- importVisium(&quot;../../../data/10X_Visium_DLPFC/151673&quot;, sample_name = &quot;DLPFC_1&quot;)
 DLPFC_2 &lt;- importVisium(&quot;../../../data/10X_Visium_DLPFC/151674&quot;, sample_name = &quot;DLPFC_2&quot;)
 DLPFC_3 &lt;- importVisium(&quot;../../../data/10X_Visium_DLPFC/151675&quot;, sample_name = &quot;DLPFC_3&quot;)
 DLPFC_4 &lt;- importVisium(&quot;../../../data/10X_Visium_DLPFC/151676&quot;, sample_name = &quot;DLPFC_4&quot;)</code></pre>
 <p><br></p>
-</div>
 <div id="automated-image-alignment" class="section level3">
 <h3>Automated Image Alignment</h3>
 <p>We will use the <strong>registerSpatialData</strong> function to
@@ -565,7 +558,7 @@ immediately observe the alignment quality by sliding registered
 images.</p>
 <pre class="r watch-out"><code>DLPFC_list &lt;- list(DLPFC_1, DLPFC_2)
 reg1and2 &lt;- registerSpatialData(data_list = DLPFC_list)</code></pre>
-<p><img width="80%" height="80%" src="images/VisiumDLFPCRegistration.gif" class="center"></p>
+<p><img width="100%" height="100%" src="images/VisiumDLFPCRegistration.gif" class="center"></p>
 <p><br></p>
 <p>We can now apply a similar alignment across the second pair of
 VoltRon objects. We will use 800 features for this alignment, ask for

@@ -138,7 +138,7 @@ subset.vrMetadata <- function(metadata, subset, samples = NULL, assays = NULL, s
       unique(stringr::str_extract(rownames(x), "Assay[0-9]+"))
     }))
     assay_names <- unique(do.call(c,assay_names))
-    if(assays %in% assay_names){
+    if(all(assays %in% assay_names)){
       cell.metadata <- metadata@cell[stringr::str_extract(rownames(metadata@cell), "Assay[0-9]+") %in% assays, ]
       spot.metadata <- metadata@spot[stringr::str_extract(rownames(metadata@spot), "Assay[0-9]+") %in% assays, ]
       roi.metadata <- metadata@ROI[stringr::str_extract(rownames(metadata@ROI), "Assay[0-9]+") %in% assays, ]
@@ -174,9 +174,9 @@ subset.sampleMetadata <- function(metadata, samples = NULL, assays = NULL) {
   if(!is.null(samples)){
     metadata <- metadata[metadata$Sample %in% samples,]
   } else if(!is.null(assays)) {
-    if(assays %in% rownames(metadata)){
+    if(all(assays %in% rownames(metadata))){
       metadata <- metadata[assays,]
-    } else if(assays %in% metadata$Assay){
+    } else if(all(assays %in% metadata$Assay)){
       metadata <- metadata[metadata$Assay %in% assays,]
     } else {
       stop("No assay with the names or types '", paste(assays, collapse = ", "), "' found in the object")

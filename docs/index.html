@@ -274,6 +274,7 @@ $(document).ready(function () {
         <li>
           <a href="roianalysis.html">ROI Analysis</a>
         </li>
+        <li class="dropdown-header">Converting VoltRon Objects</li>
       </ul>
     </li>
   </ul>
@@ -310,7 +311,7 @@ $(document).ready(function () {
       <a href="https://github.com/BIMSBbioinfo/VoltRon">VoltRon</a>
     </li>
     <li>
-      <a href="https://github.com/BIMSBbioinfo">BIMSBbioinfo</a>
+      <a href="https://github.com/BIMSBbioinfo">BIMSB Bioinfo</a>
     </li>
   </ul>
 </li>
@@ -337,7 +338,7 @@ body {
   margin-right: auto;
 }
 .main-container {
-  max-width: 1000px;
+  max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -347,7 +348,7 @@ p.maintext {
 table td, table td * {
     vertical-align: top;
 }
-ul, il {
+ul.maintext2, il.maintext2 {
   font-size: 1.1em; 
 }
 </style>
@@ -368,19 +369,19 @@ spatial data analysis, multi-omics integration using spatial image
 registration. VoltRon provides spatial data integration using multiple
 image alignment workflows.
 </p>
-<ul>
-<li>
+<ul class="maintext2">
+<li class="maintext2">
 <strong> Analysis of distinct spatial biology technologies </strong> are
 supported. VoltRon visualizes and analyzes regions of interests (ROIs),
 spots, cells and even molecules.
 </li>
-<li>
+<li class="maintext2">
 <strong> Automated Image Registration </strong> incorporates OpenCV
 (fully embedded into the package using Rcpp) to detect common features
 across images and achieves alignment. Users may interact with shiny apps
 to change alignment parameters and check alignment accuracy
 </li>
-<li>
+<li class="maintext2">
 <strong> Manual Image Registration </strong> helps users to select
 common features across spatial datasets using reference images stored in
 spaceRover object. In case, automated registration doesnt work, you can

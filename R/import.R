@@ -183,6 +183,7 @@ importVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
 #' @param summarySegment the annotation excel file
 #' @param summarySegmentSheetName the sheet name of the excel file, \code{summarySegment}
 #' @param assay_name the assay name, default: GeoMx
+#' @param image the reference morphology image of the GeoMx assay
 #' @param segment_polygons if TRUE, the ROI polygons are parsed from the OME.TIFF file
 #' @param ome.tiff the OME.TIFF file of the GeoMx experiment if exists
 #' @param ... additional parameters passed to \code{formVoltRon}
@@ -194,7 +195,8 @@ importVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
 #'
 #' @export
 #'
-importGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetName, assay_name = "GeoMx", segment_polygons = FALSE, ome.tiff = NULL, ...)
+importGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetName, assay_name = "GeoMx",
+                        image = NULL, segment_polygons = FALSE, ome.tiff = NULL, ...)
 {
   if (!requireNamespace('GeomxTools'))
     stop("Please install Seurat package for using Seurat objects")
@@ -235,9 +237,20 @@ importGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
 
   # get segment summary
   segmentsummary <- xlsx::read.xlsx(summarySegment, sheetName = summarySegmentSheetName)
+  rownames(segmentsummary) <- gsub(".dcc$", "", segmentsummary$Sample_ID)
+  rownames(segmentsummary) <- gsub("-", "_", rownames(segmentsummary))
+  if(all(dcc_filenames %in% rownames(segmentsummary))){
+    segmentsummary <- segmentsummary[dcc_filenames, ]
+  } else{
+    stop("Some GeoMx dcc files is not represented in the segment summary file!")
+  }
 
   # get image
-  image <- image_read(paste0(dir.path, "/morphology.tiff"))
+  if(!is.null(ome.tiff)){
+    image <- image_read(image)
+  } else {
+    stop("Please provide a morphology image for the GeoMx data!")
+  }
   geomx_image_info <- image_info(image)
 
   # get coordinates
@@ -248,15 +261,12 @@ importGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
 
   # get ROI segments (polygons)
   segments <- list()
-  if(segment_polygons){
-    if(is.null(ome.tiff)){
-      ome.tiff <- paste0(dir.path, "/geomx.ome.tiff")
-    }
+  if(!is.null(ome.tiff)){
     segments <- importGeoMxSegments(ome.tiff, segmentsummary, geomx_image_info)
   }
 
   # create VoltRon
-  formVoltRon(rawdata, metadata = NULL, image, coords, segments, main.assay = assay_name, assay.type = "ROI", ...)
+  formVoltRon(rawdata, metadata = segmentsummary, image, coords, segments, main.assay = assay_name, assay.type = "ROI", ...)
 }
 
 
@@ -272,6 +282,10 @@ importGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
 #' @importFrom XML xmlToList
 #'
 importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
+
+  # dependencies, load RBioFormats
+  require(RBioFormats)
+  library(RBioFormats)
 
   # get the xml file
   # xmltemp <- xmlExtraction(ometiff = ome.tiff)

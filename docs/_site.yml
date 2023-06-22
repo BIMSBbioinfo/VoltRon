@@ -19,6 +19,7 @@ navbar:
           href: spotanalysis.html
         - text: "ROI Analysis"
           href: roianalysis.html
+        - text: "Converting VoltRon Objects"
   right:
     - text: "Contact"
       icon: fa-envelope-o
@@ -32,7 +33,7 @@ navbar:
       menu:
       - text: "VoltRon"
         href: https://github.com/BIMSBbioinfo/VoltRon
-      - text: "BIMSBbioinfo"
+      - text: "BIMSB Bioinfo"
         href: https://github.com/BIMSBbioinfo
 output:
   html_document:

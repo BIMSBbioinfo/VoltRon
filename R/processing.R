@@ -47,11 +47,11 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
     sizefactor <- matrix(rep(sizefactor, nrow(rawdata)), byrow = T, nrow = nrow(rawdata))
     normdata <- (rawdata/sizefactor)*10000
     normdata <- log(normdata + 1)
-  } else if(method == "QuanNorm") {
+  } else if(method == "Q3Norm") {
     rawdata[rawdata==0] <- 1
     qs <- apply(rawdata, 2, function(x) stats::quantile(x, desiredQuantile))
     normdata <- sweep(rawdata, 2L, qs / exp(mean(log(qs))), FUN = "/")
-  } else if(method == "LogQuanNorm") {
+  } else if(method == "LogQ3Norm") {
     rawdata[rawdata==0] <- 1
     qs <- apply(rawdata, 2, function(x) stats::quantile(x, desiredQuantile))
     normdata <- sweep(rawdata, 2L, qs / exp(mean(log(qs))), FUN = "/")
@@ -160,9 +160,11 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
   # get geometric mean of ranks, i.e. rank product statistic
   ranks <- ranks[,!colnames(ranks) %in% "gene", drop = FALSE]
   ranks <- apply(ranks, 1, function(x) exp(mean(log(x))))
+  names(ranks) <- rownames(feature_data)
   ranks <- ranks[ranks != 0]
 
   # get selected features
+  # selected_features <- rownames(feature_data)[head(order(ranks, decreasing = FALSE), n)]
   selected_features <- names(head(sort(ranks, decreasing = FALSE), n))
 
   # return
@@ -178,6 +180,8 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #'
 #' @rdname getPCA
 #' @method getPCA VoltRon
+#'
+#' @importFrom irlba irlba
 #'
 #' @export
 #'
@@ -197,7 +201,7 @@ getPCA.VoltRon <- function(object, assay = NULL, dims = 30){
   scale.data <- apply(normdata, 1, scale)
 
   # get PCA embedding
-  pr.data <- irlba(scale.data, nv=dims, center=colMeans(scale.data))
+  pr.data <- irlba::irlba(scale.data, nv=dims, center=colMeans(scale.data))
   pr.data <- pr.data$u
   colnames(pr.data) <- paste0("PC", 1:dims)
   rownames(pr.data) <- colnames(normdata)

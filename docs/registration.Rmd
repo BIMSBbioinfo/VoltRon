@@ -51,15 +51,11 @@ Using both automated or manual alignment options, users are given the option to 
 
 <br>
 
-## Xenium and Visium
+## Alignment of Xenium and Visium 
 
 In this use case, we will align immunofluorescence (IF) and H&E images associated with the readouts of Xenium In Situ and Visium CytAssist platforms. Tissue sections are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block where 3 serial sections of 5 $\mu$m thickness. A 5 $\mu$m section was taken for Visium CytAssist and two replicate 5 $\mu$m sections were taken for Xenium. The dataset is download from [here](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast).
 
 More information on the dataset and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
-
-<br>
-
-### Import
 
 VoltRon includes built-in functions to converting readouts from both Xenium and Visium platforms into VoltRon objects. We will import both Xenium replicates alongside with the Visium CytAssist data.
 
@@ -91,7 +87,7 @@ xen_reg <- registerSpatialData(data_list = list(Xen_seu_R1, Vis_seu, Xen_seu_R2)
 
 <br>
 
-### Image Alignment
+### Manual Image Alignment
 
 In order to achieve data transfer and integration across these two modalities, we need to first make sure that spatial coordinate spaces of these three datasets are aligned. For this, we will make use of the **registerSpatialData** function which calls a small shiny app embedded into VoltRon. Users have to provide the list of VoltRon objects associated with each dataset where the order of components of the list should be the same as the serial order of the sections within the tissue/sample block. 
 
@@ -101,7 +97,7 @@ In this example, we will manually choose keypoints (or landmarks) that are obser
 xen_reg <- registerSpatialData(data_list = list(Xen_seu_R1, Vis_seu, Xen_seu_R2))
 ```
 
-<img width="80%" height="80%" src="images/XeniumVisiumRegistration.gif" class="center">
+<img width="100%" height="100%" src="images/XeniumVisiumRegistration.gif" class="center">
 
 The returned list will also include a set of keypoints selected by the user if they have used manual alignment. You can use this keypoints object again to call **registerSpatialData** and reproduce the earlier manual alignment. 
 
@@ -142,10 +138,7 @@ Assays: Xenium (Main) Visium
 
 In the next use case, we will align H&E images associated with Visium data generated from tissue block sections of adult humans with postmortem dorsolateral prefrontal cortex (DLPFC). Two pairs of adjacent sections, that are 10 $\mu$m away from each other, was obtained from the tissue block of the third donor. Hence, we align each pair individually. 
 
-### Import
-
 ```{r class.source="watch-out", eval = FALSE} 
-library(VoltRon)
 DLPFC_1 <- importVisium("../../../data/10X_Visium_DLPFC/151673", sample_name = "DLPFC_1")
 DLPFC_2 <- importVisium("../../../data/10X_Visium_DLPFC/151674", sample_name = "DLPFC_2")
 DLPFC_3 <- importVisium("../../../data/10X_Visium_DLPFC/151675", sample_name = "DLPFC_3")
@@ -167,7 +160,7 @@ DLPFC_list <- list(DLPFC_1, DLPFC_2)
 reg1and2 <- registerSpatialData(data_list = DLPFC_list)
 ```
 
-<img width="80%" height="80%" src="images/VisiumDLFPCRegistration.gif" class="center">
+<img width="100%" height="100%" src="images/VisiumDLFPCRegistration.gif" class="center">
 
 <br>
 

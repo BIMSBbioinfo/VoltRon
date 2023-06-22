@@ -207,7 +207,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "label", font.size =
 #'
 vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
                          font.size = 2, pt.size = 2, alpha = 0.6, keep.scale = "feature", label = FALSE, background = "image",
-                         crop = FALSE, common.legend = TRUE, collapse = TRUE) {
+                         crop = FALSE, common.legend = FALSE, collapse = TRUE) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -264,10 +264,10 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = N
 
   # for each feature
   i <- 1
-  for(feat in features){
+  for(assy in assay_names){
 
     # for each assay
-    for(assy in assay_names){
+    for(feat in features){
 
       # get assay
       cur_assay <- object[[assy]]
@@ -398,7 +398,6 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.b
                                 axis.line=element_blank(),axis.text.x=element_blank(), axis.text.y=element_blank(),
                                 axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
                                 legend.margin = margin(0,0,0,0))
-
   # set up the limits
   if(assay@type == "spot"){
     if(crop){
@@ -513,6 +512,77 @@ GeomSpot <- ggproto("GeomSpot",
 #' @export
 #'
 vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "label", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
+                            font.size = 2, pt.size = 1, label = FALSE, common.legend = TRUE, collapse = TRUE) {
+
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
+  # list of plots
+  gg <- list()
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get entity type and metadata
+  if(is.null(assay.type)){
+    assay_types <- vrAssayTypes(object, assay = assay)
+    if(length(unique(assay_types)) == 1){
+      metadata <- Metadata(object, type = unique(assay_types))
+    } else {
+      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+    }
+  } else {
+    metadata <- Metadata(object, type = assay.type)
+  }
+
+  # plotting features
+  # object_subset <- subset(object, assays = assay_names)
+  datax <- data.frame(vrEmbeddings(object, assay = assay_names, type = embedding))
+  datax[[group.by]] <- as.factor(metadata[,group.by])
+
+  # plot
+  g <- ggplot()
+
+  # add points or segments
+  if(unique(vrAssayTypes(object)) %in% c("spot", "cell")){
+    g <- g +
+      geom_point(mapping = aes_string(x = "x", y = "y", color = group.by), datax, shape = 16, size = pt.size)
+  } else {
+    stop("Only spots and cells can be visualized with vrEmbeddingPlot!")
+  }
+
+  # more visualization parameters
+  g <- g +
+    theme_classic() +
+    theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,0,0)),
+          panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+          legend.margin = margin(0,0,0,0), panel.background = element_blank()) +
+    xlab(paste0(toupper(embedding), "_1")) + ylab(paste0(toupper(embedding), "_2"))
+
+  # return data
+  return(g)
+}
+
+#' vrEmbeddingPlot_old
+#'
+#' Plotting embeddings of cells and spots on associated images from multiple assays in a VoltRon object.
+#'
+#' @param object VoltRon object
+#' @param embedding the embedding type, i.e. pca, umap etc.
+#' @param group.by a grouping label for the spatial entities
+#' @param assay the assay name
+#' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
+#' @param ncol column wise number of plots, for \code{ggarrange}
+#' @param nrow row wise number of plots, for \code{ggarrange}
+#' @param font.size font sizes
+#' @param pt.size point size
+#' @param label if TRUE, the labels of the ROI assays will be visualized
+#' @param common.legend whether to use a common legend for all plots
+#' @param collapse whether to combine all ggplots
+#'
+#' @export
+#'
+vrEmbeddingPlot_old <- function(object, embedding = "pca", group.by = "label", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
                           font.size = 2, pt.size = 1, label = FALSE, common.legend = TRUE, collapse = TRUE) {
 
   # sample metadata
@@ -639,6 +709,128 @@ vrEmbeddingPlotSingle <- function(assay, embedding = "pca", metadata, group.by =
 #' @export
 #'
 vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
+                                   font.size = 2, pt.size = 1, keep.scale = "feature", common.legend = TRUE, collapse = TRUE) {
+
+  # features
+  if(is.null(features))
+    stop("You have to define at least one feature")
+
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
+  # list of plots
+  gg <- list()
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get entity type and metadata
+  if(is.null(assay.type)){
+    assay_types <- vrAssayTypes(object, assay = assay)
+    if(length(unique(assay_types)) == 1){
+      assay.type <- unique(assay_types)
+      metadata <- Metadata(object, type = assay.type)
+    } else {
+      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+    }
+  } else {
+    metadata <- Metadata(object, type = assay.type)
+  }
+
+  # get data and embedding
+  normdata <- vrData(object, assay = assay_names, norm = TRUE)
+  datax <- data.frame(vrEmbeddings(object, assay = assay_names, type = embedding))
+  colnames(datax) <- c("x", "y")
+
+  # calculate limits for plotting, all for making one scale, feature for making multiple
+  limits <- Map(function(feat){
+    if(feat %in% rownames(normdata)){
+      return(range(normdata[feat, ]))
+    } else {
+      if(feat %in% colnames(metadata)){
+        return(range(metadata[,feat]))
+      } else {
+        stop("Feature ", feat, " cannot be found in data or metadata!")
+      }
+    }
+  }, features)
+
+  # configure titles
+  feature_title <- as.list(features)
+  names(feature_title) <- features
+  legend_title <- feature_title
+
+  # for each feature
+  i <- 1
+  for(feat in features){
+
+    # get data
+    if(feat %in% rownames(normdata)){
+      datax$score <- normdata[feat,]
+    } else {
+      datax$score <- metadata[,feat]
+    }
+
+    # get image information and plotting features
+    midpoint <- sum(limits[[feat]])/2
+
+    # plot
+    g <- ggplot()
+
+    # add points or segments
+    if(unique(vrAssayTypes(object)) %in% c("spot","cell")){
+      g <- g +
+        geom_point(mapping = aes(x = x, y = y, color = score), datax, shape = 16, size = pt.size) +
+        scale_color_gradientn(name = legend_title[[feat]],
+                              colors=c("lightgrey", "blue"),
+                              values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
+    }
+
+    # more visualization parameters
+    g <- g +
+      theme_classic() +
+      theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,0,0)),
+            panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+            legend.margin = margin(0,0,0,0), panel.background = element_blank()) +
+      xlab(paste0(toupper(embedding), "_1")) + ylab(paste0(toupper(embedding), "_2"))
+    gg[[i]] <- g
+    i <- i + 1
+  }
+
+  if(collapse){
+    # return a list of plots or a single one
+    if(length(features) > 1){
+      if(length(gg) < ncol) ncol <- length(gg)
+      return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol)))
+    } else {
+      return(gg[[1]])
+    }
+  } else {
+    return(gg)
+  }
+}
+
+#' vrEmbeddingFeaturePlot_old
+#'
+#' Plotting features of spatially resolved cells and spots on embeddings from multiple assays in a VoltRon object.
+#'
+#' @param object VoltRon object
+#' @param embedding the embedding type, i.e. pca, umap etc.
+#' @param features a set of features, either from the rows of rawdata, normdata or columns of the metadata
+#' @param limits limits of the legend of the plot
+#' @param assay the assay name
+#' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
+#' @param ncol column wise number of plots, for \code{ggarrange}
+#' @param nrow row wise number of plots, for \code{ggarrange}
+#' @param font.size font sizes
+#' @param pt.size point size
+#' @param keep.scale whether unify all scales for all features or not
+#' @param common.legend whether to use a common legend for all plots
+#' @param collapse whether to combine all ggplots
+#'
+#' @export
+#'
+vrEmbeddingFeaturePlot_old <- function(object, embedding = "pca", features = NULL, assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
                             font.size = 2, pt.size = 1, keep.scale = "feature", common.legend = TRUE, collapse = TRUE) {
 
   # features
