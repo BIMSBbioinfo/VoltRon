@@ -108,11 +108,9 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "label", font.size =
 
   # data
   image <- vrImages(assay)
-  # image <- assay@image
   info <- image_info(image)
   coords <- as.data.frame(vrCoordinates(assay))
   normdata <- vrData(assay, norm = TRUE)
-  # normdata <- assay@normdata
 
   # plotting features
   coords[[group.by]] <- as.factor(metadata[,group.by])
@@ -1084,14 +1082,16 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 #' @param features a set of features to be visualized
 #' @param group.by a column from metadata to seperate columns of the heatmap
 #' @param norm if TRUE, the normalized data is used
+#' @param scaled if TRUE, the data will be scaled before visualization
 #' @param show_row_names if TRUE, row names of the heatmap will be shown
 #' @param ... additional parameters passed to \code{getVariableFeatures}
 #'
 #' @importFrom ComplexHeatmap Heatmap
+#' @importFrom scales viridis_pal
 #'
 #' @export
 #'
-vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NULL, group.by = "clusters", norm = TRUE, show_row_names = TRUE, ...){
+vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NULL, group.by = "clusters", norm = TRUE, scaled = TRUE, show_row_names = NULL, ...){
 
   # data
   heatmapdata <- vrData(object, assay = assay, norm = norm)
@@ -1099,7 +1099,7 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
   # features
   if(is.null(features)){
     if(nrow(vrFeatureData(object)) > 0){
-      features <- getVariableFeatures(object, assay = assay)
+      features <- getVariableFeatures(object, assay = assay, ...)
     } else {
       features <- vrFeatures(object, assay = assay)
     }
@@ -1120,15 +1120,33 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
   }
   metadata <- metadata[colnames(heatmapdata),]
 
+  # scaling, optional
+  if(scaled){
+    heatmapdata <- apply(heatmapdata, 1, scale)
+    heatmapdata <- t(heatmapdata)
+  }
+
   # manage data for plotting
-  heatmapdata_scale <- apply(heatmapdata, 1, scale)
-  heatmapdata_scale <- t(heatmapdata_scale)
-  heatmapdata_scale_order <- heatmapdata_scale[,order(metadata[[group.by]], decreasing = FALSE)]
+  heatmapdata <- heatmapdata[,order(metadata[[group.by]], decreasing = FALSE)]
   labels_ordered <- metadata[[group.by]][order(metadata[[group.by]], decreasing = FALSE)]
   labels_ordered_table <- table(labels_ordered)
   col_split = factor(labels_ordered, levels = names(labels_ordered_table))
-  ComplexHeatmap::Heatmap(heatmapdata_scale_order, show_row_names = show_row_names, show_column_names = FALSE,
-                          show_row_dend = FALSE, column_split = col_split, cluster_columns = FALSE)
+
+  # visualize
+  if(is.null(show_row_names))
+    show_row_names <- (nrow(heatmapdata) < 50)
+  # col_fun = colorRamp2(c(min(heatmapdata),0,max(heatmapdata)), c("lightyellow", "white", "red"))
+  limits <- quantile(as.vector(heatmapdata), probs = c(0.01, 0.99))
+  heatmapdata[heatmapdata > limits[2]] <- limits[2]
+  heatmapdata[heatmapdata < limits[1]] <- limits[1]
+  legend_at <- seq(min(heatmapdata), max(heatmapdata), (max(heatmapdata)-min(heatmapdata))/5)
+  legend_label <- round(legend_at, 2)
+  ComplexHeatmap::Heatmap(heatmapdata,
+                          show_row_names = show_row_names, show_row_dend = FALSE,
+                          show_column_names = FALSE, column_title_rot = 45,
+                          column_split = col_split, cluster_columns = FALSE,
+                          heatmap_legend_param = list(title = "Exp.", at = legend_at, labels = rep("", length(legend_at))),
+                          col = scales::viridis_pal()(100))
 }
 
 ####
@@ -1141,10 +1159,10 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
 #' @param features a set of features to be visualized
 #' @param assay assay name
 #' @param assay.type assay type
-#' @param ncol column wise number of plots, for \code{ggarrange}
-#' @param nrow row wise number of plots, for \code{ggarrange}
 #' @param group.by a column from metadata to seperate columns of the heatmap
 #' @param norm if TRUE, the normalized data is used
+#' @param ncol column wise number of plots, for \code{ggarrange}
+#' @param nrow row wise number of plots, for \code{ggarrange}
 #' @param ... additional parameters passed to \code{getVariableFeatures}
 #'
 #' @import ggplot2
@@ -1186,7 +1204,7 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NUL
 
   # get feature data
   datax <- lapply(features, function(x){
-    if(feature %in% rownames(violindata)){
+    if(x %in% rownames(violindata)){
       return(violindata[x,])
     } else {
       return(metadata[,x])
@@ -1203,30 +1221,20 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NUL
                       assay_title = assay_title,
                       spatialpoints = rownames(metadata))
   ggplotdatax <- melt(ggplotdatax, id.var = c("group.by", "assay_title", "spatialpoints"))
-  gg <- ggplot(ggplotdatax, aes(x = group.by, y = value, fill = group.by)) +
+  gg <- ggplot(ggplotdatax, aes(x = group.by, y = value, color = group.by)) +
     geom_violin() +
     geom_point(size = 0.5, position = position_jitter()) +
     theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
     ylab("") + xlab(group.by) +
     guides(fill = guide_legend(title = ""))
 
-  # return a list of plots or a single one
-  if(length(features) > 1 && length(assay_names) > 1){
-    gg <- gg + facet_grid(assay_title~variable)
-  } else if(length(features) > 1 && length(assay_names) == 1){
-    if(length(features) < ncol) ncol <- length(features)
-    gg <- gg + facet_wrap(.~variable, ncol = ncol, nrow = ceiling(length(features)/ncol))
-  } else if(length(features) == 1 && length(assay_names) > 1){
-    if(length(assay_names) < ncol) ncol <- length(assay_names)
-    gg <- gg + facet_wrap(.~assay_title, ncol = ncol, nrow = ceiling(length(assay_names)/ncol))
-  } else{
-    gg <- gg +
-      labs(title = assay_title) +
-      theme(plot.title = element_text(hjust = 0.5)) +
-      guides(fill = guide_legend(title = features))
+  if(length(features) > 1){
+    if(length(gg) < ncol) ncol <- length(gg)
+    gg <- gg + facet_wrap(.~variable, ncol = ncol, nrow = ceiling(length(gg)/ncol))
+  } else {
+    gg <- gg + labs(title = features)
+    return(gg)
   }
-
-  gg
 }
 
 

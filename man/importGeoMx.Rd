@@ -10,6 +10,7 @@ importGeoMx(
   summarySegment,
   summarySegmentSheetName,
   assay_name = "GeoMx",
+  image = NULL,
   segment_polygons = FALSE,
   ome.tiff = NULL,
   ...
@@ -25,6 +26,8 @@ importGeoMx(
 \item{summarySegmentSheetName}{the sheet name of the excel file, \code{summarySegment}}
 
 \item{assay_name}{the assay name, default: GeoMx}
+
+\item{image}{the reference morphology image of the GeoMx assay}
 
 \item{segment_polygons}{if TRUE, the ROI polygons are parsed from the OME.TIFF file}
 

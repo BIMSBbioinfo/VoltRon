@@ -11,14 +11,16 @@ Metadata(object, ...)
 
 Metadata(object, ...) <- value
 
-\method{Metadata}{VoltRon}(object, type = "cell")
+\method{Metadata}{VoltRon}(object, assay = NULL, type = NULL)
 
-\method{Metadata}{VoltRon}(object, type = "cell", ...) <- value
+\method{Metadata}{VoltRon}(object, type = NULL, assay = NULL, ...) <- value
 }
 \arguments{
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{assay}{assay}
 
 \item{type}{the assay type: ROI, spot or cell}
 

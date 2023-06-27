@@ -327,7 +327,7 @@ updateMetadataAssay <- function(object1, object2){
   assaytype <- unlist(lapply(object_list, function(obj) {
     unique(stringr::str_extract(rownames(obj), "Assay[0-9]+$"))
   }))
-  assaytype <- sort(assaytype)
+  assaytype <- assaytype[order(nchar(assaytype), assaytype)]
 
   # replace assay names
   replacement <- paste0("Assay", (length(replacement)+1):(length(replacement) + length(assaytype)))

@@ -149,7 +149,11 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
   ranks <- NULL
   for(assy in assay_names){
     feature_data <- vrFeatureData(object[[assy]], ...)
-    feature_data$gene <- rownames(feature_data)
+    if(nrow(feature_data) > 0){
+      feature_data$gene <- rownames(feature_data)
+    } else {
+      feature_data <- data.frame(gene = vrFeatures(object[[assy]]), rank = NA)
+    }
     if(is.null(ranks)){
       ranks <- feature_data[,c("gene", "rank")]
     } else {
@@ -164,8 +168,11 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
   ranks <- ranks[ranks != 0]
 
   # get selected features
-  # selected_features <- rownames(feature_data)[head(order(ranks, decreasing = FALSE), n)]
-  selected_features <- names(head(sort(ranks, decreasing = FALSE), n))
+  if(length(ranks[!is.na(ranks)]) > 0){
+    selected_features <- names(head(sort(ranks, decreasing = FALSE), n))
+  } else {
+    selected_features <- vrFeatures(object, assay = assay)
+  }
 
   # return
   return(selected_features)
@@ -222,10 +229,10 @@ getPCA.VoltRon <- function(object, assay = NULL, dims = 30){
 #'
 #' @export
 #'
-getUMAP.VoltRon <- function(object, assay = NULL, dims = 30, seed = 1){
+getUMAP.VoltRon <- function(object, assay = NULL, dims = 1:30, seed = 1){
 
   # set Embeddings
-  embedding_data <- vrEmbeddings(object, assay = assay)
+  embedding_data <- vrEmbeddings(object, assay = assay, dims = dims)
 
   # get umap
   umap_data <- umap::umap(embedding_data, preserve.seed = seed)

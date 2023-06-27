@@ -19,7 +19,7 @@ vrSpatialFeaturePlot(
   label = FALSE,
   background = "image",
   crop = FALSE,
-  common.legend = TRUE,
+  common.legend = FALSE,
   collapse = TRUE
 )
 }

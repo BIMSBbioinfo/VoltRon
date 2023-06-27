@@ -4,10 +4,18 @@
 \alias{importVisium}
 \title{importVisium}
 \usage{
-importVisium(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
+importVisium(
+  dir.path,
+  selected_assay = "Gene Expression",
+  assay_name = "Visium",
+  InTissue = TRUE,
+  ...
+)
 }
 \arguments{
-\item{dir.path}{path to Xenium}
+\item{dir.path}{path to Visium output folder}
+
+\item{selected_assay}{selected assay from Visium}
 
 \item{assay_name}{the assay name}
 

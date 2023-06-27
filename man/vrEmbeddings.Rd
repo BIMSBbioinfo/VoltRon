@@ -9,7 +9,7 @@
 \alias{vrEmbeddings<-.VoltRon}
 \title{vrEmbeddings}
 \usage{
-\method{vrEmbeddings}{vrAssay}(object, type = "pca")
+\method{vrEmbeddings}{vrAssay}(object, type = "pca", dims = 1:30)
 
 \method{vrEmbeddings}{vrAssay}(object, type = "pca", ...) <- value
 
@@ -17,7 +17,7 @@ vrEmbeddings(object, ...)
 
 vrEmbeddings(object, ...) <- value
 
-\method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", ...)
+\method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", dims = 1:30, ...)
 
 \method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", ...) <- value
 }
@@ -25,6 +25,8 @@ vrEmbeddings(object, ...) <- value
 \item{object}{An object}
 
 \item{type}{the key name for the embedding}
+
+\item{dims}{the set of dimensions of the embedding data}
 
 \item{...}{Arguments passed to other methods}
 

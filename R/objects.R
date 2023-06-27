@@ -49,12 +49,19 @@ setMethod(
 
     # print samples and layers
     all_assays <- NULL
-    for(samp in names(object@samples)){
+    sample_names <- names(object@samples)
+    show_length <- min(5,length(sample_names))
+    for(samp in sample_names[1:show_length]){
       cat(samp, ": \n", sep = "")
       layers <- names(unlist(object@samples[[samp]]@layer))
       cat("  Layers:", paste(layers, collapse = " "), "\n")
       assays <- sapply(names(object@samples[[samp]]@layer), function(x) names(object[[samp, x]]@assay))
       all_assays <- c(all_assays, assays)
+    }
+
+    if(length(sample_names) > 5){
+      cat("...", "\n")
+      cat("There are", length(samples), "samples in total", "\n")
     }
 
     # print assays
@@ -850,6 +857,7 @@ vrSegments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
 }
 
 #' @param assay assay
+#' @param dims the set of dimensions of the embedding data
 #' @param type the key name for the embedding
 #'
 #' @rdname vrEmbeddings
@@ -857,7 +865,7 @@ vrSegments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
 #'
 #' @export
 #'
-vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", ...) {
+vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", dims = 1:30, ...) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -865,7 +873,7 @@ vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", ...) {
   # get all coordinates
   returndata_list <- list()
   for(i in 1:length(assay_names))
-    returndata_list[[i]] <- vrEmbeddings(object[[assay_names[i]]], type = type, ...)
+    returndata_list[[i]] <- vrEmbeddings(object[[assay_names[i]]], type = type, dims = dims, ...)
 
   return(do.call(rbind, returndata_list))
 }

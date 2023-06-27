@@ -14,9 +14,9 @@ importXenium(
 )
 }
 \arguments{
-\item{dir.path}{path to Xenium}
+\item{dir.path}{path to Xenium output folder}
 
-\item{selected_assay}{selected assay}
+\item{selected_assay}{selected assay from Xenium}
 
 \item{assay_name}{the assay name of the SR object}
 

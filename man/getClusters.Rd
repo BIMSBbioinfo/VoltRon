@@ -2,7 +2,7 @@
 % Please edit documentation in R/clustering.R
 \name{getClusters}
 \alias{getClusters}
-\title{getClusters}
+\title{}
 \usage{
 getClusters(object, resolution = 1, assay = NULL, label = "clusters")
 }
@@ -16,5 +16,9 @@ getClusters(object, resolution = 1, assay = NULL, label = "clusters")
 \item{label}{the name for the newly created clustering column in the metadata}
 }
 \description{
-Get clustering of the VoltRon object
+# sample metadata
+  sample.metadata <- SampleMetadata(object)
+}
+\details{
+
 }

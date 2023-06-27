@@ -1,13 +1,17 @@
 ####
-# Xenium ####
+# 10X Genomics ####
+####
+
+####
+## Xenium ####
 ####
 
 #' importXenium
 #'
 #' Importing Xenium data
 #'
-#' @param dir.path path to Xenium
-#' @param selected_assay selected assay
+#' @param dir.path path to Xenium output folder
+#' @param selected_assay selected assay from Xenium
 #' @param assay_name the assay name of the SR object
 #' @param morphology_image the name of the lowred morphology image. Default: morphology_lowres.tif
 #' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)
@@ -22,7 +26,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   # raw counts
   datafile <- paste0(dir.path, "/cell_feature_matrix.h5")
   if(file.exists(datafile)){
-    rawdata <- Read10X_h5(filename = datafile)
+    rawdata <- import10Xh5(filename = datafile)
     rawdata <- as.matrix(rawdata[[selected_assay]])
   } else {
     stop("There are no files named 'filtered_feature_bc_matrix.h5' in the path")
@@ -86,14 +90,15 @@ rescaleXeniumCells <- function(cells, bbox, image){
 }
 
 ####
-# Visium ####
+## Visium ####
 ####
 
 #' importVisium
 #'
 #' Importing Visium data
 #'
-#' @param dir.path path to Xenium
+#' @param dir.path path to Visium output folder
+#' @param selected_assay selected assay from Visium
 #' @param assay_name the assay name
 #' @param inTissue if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)
 #' @param ... additional parameters passed to \code{formVoltRon}
@@ -104,15 +109,15 @@ rescaleXeniumCells <- function(cells, bbox, image){
 #'
 #' @export
 #'
-importVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
+importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_name = "Visium", InTissue = TRUE, ...)
 {
   # raw counts
   listoffiles <- list.files(dir.path)
   datafile <- listoffiles[grepl("filtered_feature_bc_matrix.h5", listoffiles)][1]
   datafile <- paste0(dir.path, "/", datafile)
   if(file.exists(datafile)){
-    rawdata <- Read10X_h5(filename = datafile)
-    rawdata <- as.matrix(rawdata)
+    rawdata <- import10Xh5(filename = datafile)
+    rawdata <- as.matrix(rawdata[[selected_assay]])
   } else {
     stop("There are no files named 'filtered_feature_bc_matrix.h5' in the path")
   }
@@ -168,6 +173,49 @@ importVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
 
   # create VoltRon
   formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", ...)
+}
+
+####
+## Auxiliary ####
+####
+
+#' import10Xh5
+#'
+#' import the sparse matrix from the H5 file
+#'
+#' @param filename the path tp h5 file
+#'
+#' @import hdf5r
+#' @importFrom Matrix sparseMatrix
+#'
+import10Xh5 <- function(filename){
+
+  # get file
+  input.file <- hdf5r::H5File$new(filename = filename, mode = "r")
+  matrix.10X <- input.file[["matrix"]]
+
+  # get data, barcodes and feature
+  features <- hdf5r::readDataSet(matrix.10X[["features"]][["name"]])
+  feature_type <- hdf5r::readDataSet(matrix.10X[["features"]][["feature_type"]])
+  cells <- hdf5r::readDataSet(matrix.10X[["barcodes"]])
+  mat <- hdf5r::readDataSet(matrix.10X[["data"]])
+  indices <- hdf5r::readDataSet(matrix.10X[["indices"]])
+  indptr <- hdf5r::readDataSet(matrix.10X[["indptr"]])
+  sparse.mat <- sparseMatrix(i = indices + 1, p = indptr,
+                             x = as.numeric(mat), dims = c(length(features), length(cells)),
+                             repr = "T")
+  colnames(sparse.mat) <- cells
+  rownames(sparse.mat) <- features
+
+  # separate feature types
+  matrix.10X <- list()
+  for(feat in unique(feature_type)){
+    cur_features <- features[feature_type %in% feat]
+    cur_mat <- sparse.mat[features %in% cur_features,]
+    matrix.10X[[feat]] <- cur_mat
+  }
+
+  return(matrix.10X)
 }
 
 ####
@@ -347,3 +395,4 @@ rescaleGeoMxPoints <- function(pts, summary, imageinfo){
   # return
   return(pts)
 }
+

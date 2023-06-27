@@ -3,23 +3,31 @@
 \name{getNeighbors}
 \alias{getNeighbors}
 \alias{getNeighbors.VoltRon}
-\alias{getNeighbors.vrAssay}
 \title{Get neighbors}
 \usage{
 getNeighbors(object, ...)
 
-\method{getNeighbors}{VoltRon}(object, assay = NULL, data.type = "pca", ...)
-
-\method{getNeighbors}{vrAssay}(object, data.type = "pca", ...)
+\method{getNeighbors}{VoltRon}(
+  object,
+  assay = NULL,
+  data.type = "pca",
+  dims = 1:30,
+  method = "kNN",
+  ...
+)
 }
 \arguments{
 \item{object}{An object}
 
-\item{...}{additional parameters passed to \code{getNeighbors.vrAssay}}
+\item{...}{additional parameters passed to \code{FNN:get.knn}}
 
 \item{assay}{assay}
 
 \item{data.type}{the type of embedding used for neighborhood calculation, e.g. raw counts (raw), normalized counts (norm), PCA embeddings (pca), UMAP embeddings (umap) etc.}
+
+\item{dims}{the set of dimensions of the embedding data}
+
+\item{method}{the method used for graph construction, kNN or SNN}
 }
 \value{
 Returns object after normalization

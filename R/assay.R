@@ -463,14 +463,30 @@ vrDistances.vrAssay <- function(object, reg = FALSE, method = "euclidean", ...) 
 }
 
 #' @param type the key name for the embedding
+#' @param dims the set of dimensions of the embedding data
 #'
 #' @rdname vrEmbeddings
 #' @method vrEmbeddings vrAssay
 #'
 #' @export
 #'
-vrEmbeddings.vrAssay <- function(object, type = "pca") {
-  return(object@embeddings[[type]])
+vrEmbeddings.vrAssay <- function(object, type = "pca", dims = 1:30) {
+
+  # embeddings
+  embeddings <- object@embeddings
+  embedding_names <- names(embeddings)
+
+  # check embeddings and return
+  if(!type %in% embedding_names){
+    stop("Embedding type ", type, " is not found!")
+  } else{
+    embedding <- object@embeddings[[type]]
+    if(max(dims) > ncol(embedding)){
+      message("Requested too many embedding dimensions! now ncol is", ncol(embedding))
+      dims <- 1:ncol(embedding)
+    }
+    return(embedding[,dims])
+  }
 }
 
 #' @param type the key name for the embedding
