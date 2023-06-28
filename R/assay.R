@@ -187,11 +187,7 @@ subsetCoordinates <- function(coords, image, crop_info){
 #'
 subsetSegments <- function(segments, image, crop_info){
   for(i in 1:length(segments)){
-    if(nrow(segments[[i]]) > 1){
-      segments[[i]] <- subsetCoordinates(segments[[i]], image, crop_info)
-    } else {
-      segments[[i]][,c("x","y")] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
-    }
+    segments[[i]][,c("x","y")] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
   }
   segments
 }
@@ -482,7 +478,7 @@ vrEmbeddings.vrAssay <- function(object, type = "pca", dims = 1:30) {
   } else{
     embedding <- object@embeddings[[type]]
     if(max(dims) > ncol(embedding)){
-      message("Requested too many embedding dimensions! now ncol is", ncol(embedding))
+      # message("Requested too many embedding dimensions! now ncol is", ncol(embedding))
       dims <- 1:ncol(embedding)
     }
     return(embedding[,dims])

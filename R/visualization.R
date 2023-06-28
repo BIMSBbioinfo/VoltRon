@@ -349,12 +349,13 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.b
   }
 
   # add points or segments
-  if(assay@type == "ROI" && !is.null(assay@segments)){
+  segments <- vrSegments(assay)
+  if(assay@type == "ROI" && !is.null(segments)){
     polygon_data <- NULL
     circle_data <- NULL
-    for(i in 1:length(assay@segments)){
-      cur_data <- as.data.frame(cbind(assay@segments[[i]], names(assay@segments)[i], coords$score[i]))
-      if(nrow(assay@segments[[i]]) > 1){
+    for(i in 1:length(segments)){
+      cur_data <- as.data.frame(cbind(segments[[i]], names(segments)[i], coords$score[i]))
+      if(nrow(segments[[i]]) > 1){
         colnames(cur_data) <- c("x", "y", "segment", "score")
         polygon_data <- as.data.frame(rbind(polygon_data, cur_data))
       } else {
@@ -1084,6 +1085,7 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 #' @param norm if TRUE, the normalized data is used
 #' @param scaled if TRUE, the data will be scaled before visualization
 #' @param show_row_names if TRUE, row names of the heatmap will be shown
+#' @param outlier.quantile quantile for detecting outliers whose values are set to the quantile, change to lower values to adjust large number of outliers, default: 0.99
 #' @param ... additional parameters passed to \code{getVariableFeatures}
 #'
 #' @importFrom ComplexHeatmap Heatmap
@@ -1091,7 +1093,7 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 #'
 #' @export
 #'
-vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NULL, group.by = "clusters", norm = TRUE, scaled = TRUE, show_row_names = NULL, ...){
+vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NULL, group.by = "clusters", norm = TRUE, scaled = TRUE, show_row_names = NULL, outlier.quantile = 0.99, ...){
 
   # data
   heatmapdata <- vrData(object, assay = assay, norm = norm)
@@ -1132,20 +1134,21 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
   labels_ordered_table <- table(labels_ordered)
   col_split = factor(labels_ordered, levels = names(labels_ordered_table))
 
+  # update limits
+  limits <- quantile(as.vector(heatmapdata), probs = c(1-outlier.quantile, outlier.quantile))
+  heatmapdata[heatmapdata > limits[2]] <- limits[2]
+  heatmapdata[heatmapdata < limits[1]] <- limits[1]
+
   # visualize
   if(is.null(show_row_names))
     show_row_names <- (nrow(heatmapdata) < 50)
-  # col_fun = colorRamp2(c(min(heatmapdata),0,max(heatmapdata)), c("lightyellow", "white", "red"))
-  limits <- quantile(as.vector(heatmapdata), probs = c(0.01, 0.99))
-  heatmapdata[heatmapdata > limits[2]] <- limits[2]
-  heatmapdata[heatmapdata < limits[1]] <- limits[1]
   legend_at <- seq(min(heatmapdata), max(heatmapdata), (max(heatmapdata)-min(heatmapdata))/5)
   legend_label <- round(legend_at, 2)
   ComplexHeatmap::Heatmap(heatmapdata,
                           show_row_names = show_row_names, show_row_dend = FALSE,
                           show_column_names = FALSE, column_title_rot = 45,
                           column_split = col_split, cluster_columns = FALSE,
-                          heatmap_legend_param = list(title = "Exp.", at = legend_at, labels = rep("", length(legend_at))),
+                          show_heatmap_legend = FALSE, heatmap_legend_param = list(title = "Exp.", at = legend_at, labels = rep("", length(legend_at))),
                           col = scales::viridis_pal()(100))
 }
 

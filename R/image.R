@@ -359,6 +359,7 @@ demuxVoltRon <- function(object, scale_width = 800)
 
   # scale
   imageinfo <- image_info(images[[1]])
+  scale_factor <- imageinfo$width/scale_width
   scale_width <- paste0(scale_width, "x")
   images <- image_scale(images[[1]], scale_width)
 

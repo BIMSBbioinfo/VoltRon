@@ -61,7 +61,7 @@ setMethod(
 
     if(length(sample_names) > 5){
       cat("...", "\n")
-      cat("There are", length(samples), "samples in total", "\n")
+      cat("There are", length(sample_names), "samples in total", "\n")
     }
 
     # print assays
@@ -819,7 +819,7 @@ vrSegments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   # get all coordinates
   segts <- NULL
   for(assy in assay_names)
-    segts <- rbind(segts, vrSegments(object[[assy]], reg = reg))
+    segts <- c(segts, vrSegments(object[[assy]], reg = reg))
 
   # return image
   return(segts)
