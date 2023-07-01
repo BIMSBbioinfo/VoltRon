@@ -352,34 +352,18 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
   for(i in 1:length(ROIs)){
     cur_ROI <- ROIs[[i]]
 
-    print("######")
-    print(ROIs[[i]]$Union$Label[["Text"]])
-
     # if the shape is a polygon
     if("Polygon" %in% names(cur_ROI$Union)){
-      if(ROIs[[i]]$Union$Label[["Text"]] == "a8_small vessel_13")
-        print(ROIs[[i]]$Union$Polygon)
-
-      if(ROIs[[i]]$Union$Label[["Text"]] == "a8_small vessel_13")
-        print(ROIs[[i]]$Union$Label)
-
       coords <- strsplit(cur_ROI$Union$Polygon, split = "\\n")
       coords <- strsplit(coords$Points, split = " ")[[1]]
       coords <- sapply(coords, function(x) as.numeric(strsplit(x, split = ",")[[1]]), USE.NAMES = FALSE)
       coords <- as.data.frame(t(coords))
       colnames(coords) <- c("x", "y")
-
-      if(ROIs[[i]]$Union$Label[["Text"]] == "a8_small vessel_13")
-        print(coords)
-
       coords <- rescaleGeoMxPoints(coords, summary, imageinfo)
       mask_lists[[cur_ROI$Union$Label[["Text"]]]] <- data.frame(coords)
 
     # if the shape is an ellipse
     } else if("Ellipse" %in% names(cur_ROI$Union)){
-      if(ROIs[[i]]$Union$Label[["Text"]] == "a8_small vessel_13")
-        print(ROIs[[i]]$Union$Ellipse)
-
       coords <- as.numeric(cur_ROI$Union$Ellipse[c("X","Y", "RadiusX", "RadiusY")])
       coords <-  as.data.frame(matrix(coords, nrow = 1))
       colnames(coords) <- c("x", "y", "rx", "ry")

@@ -4,12 +4,12 @@
 \alias{merge.sampleMetadata}
 \title{merge.sampleMetadata}
 \usage{
-\method{merge}{sampleMetadata}(metadata_list, sample_name = NULL)
+\method{merge}{sampleMetadata}(metadata_list)
 }
 \arguments{
 \item{metadata_list}{a list of sample metadata of a VoltRon object}
 
-\item{sample_name}{sample}
+\item{sample_names}{new sample names}
 }
 \description{
 Merging sample.metadata from two VoltRon objects

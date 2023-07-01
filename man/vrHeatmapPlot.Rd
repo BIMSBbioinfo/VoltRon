@@ -11,7 +11,9 @@ vrHeatmapPlot(
   features = NULL,
   group.by = "clusters",
   norm = TRUE,
-  show_row_names = TRUE,
+  scaled = TRUE,
+  show_row_names = NULL,
+  outlier.quantile = 0.99,
   ...
 )
 }
@@ -28,7 +30,11 @@ vrHeatmapPlot(
 
 \item{norm}{if TRUE, the normalized data is used}
 
+\item{scaled}{if TRUE, the data will be scaled before visualization}
+
 \item{show_row_names}{if TRUE, row names of the heatmap will be shown}
+
+\item{outlier.quantile}{quantile for detecting outliers whose values are set to the quantile, change to lower values to adjust large number of outliers, default: 0.99}
 
 \item{...}{additional parameters passed to \code{getVariableFeatures}}
 }

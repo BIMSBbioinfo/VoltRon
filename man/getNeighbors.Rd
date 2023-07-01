@@ -12,7 +12,8 @@ getNeighbors(object, ...)
   assay = NULL,
   data.type = "pca",
   dims = 1:30,
-  method = "kNN",
+  k = 10,
+  method = "SNN",
   ...
 )
 }
@@ -27,7 +28,9 @@ getNeighbors(object, ...)
 
 \item{dims}{the set of dimensions of the embedding data}
 
-\item{method}{the method used for graph construction, kNN or SNN}
+\item{k}{number of neighbors for kNN}
+
+\item{method}{the method used for graph construction, SNN or kNN}
 }
 \value{
 Returns object after normalization

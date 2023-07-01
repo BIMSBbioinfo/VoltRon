@@ -14,6 +14,7 @@ vrSpatialFeaturePlot(
   nrow = NULL,
   font.size = 2,
   pt.size = 2,
+  title.size = 10,
   alpha = 0.6,
   keep.scale = "feature",
   label = FALSE,
@@ -41,6 +42,8 @@ vrSpatialFeaturePlot(
 \item{font.size}{font sizes}
 
 \item{pt.size}{point size}
+
+\item{title.size}{title size of legend and plot}
 
 \item{alpha}{alpha level for cells/spots/ROIs}
 
