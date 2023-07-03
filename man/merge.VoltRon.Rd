@@ -4,14 +4,14 @@
 \alias{merge.VoltRon}
 \title{Merging VoltRon objects}
 \usage{
-\method{merge}{VoltRon}(object, object_list, sample_name = NULL, main.assay = NULL)
+\method{merge}{VoltRon}(object, object_list, sample_names = NULL, main.assay = NULL)
 }
 \arguments{
 \item{object}{a VoltRon Object}
 
 \item{object_list}{a list of VoltRon objects}
 
-\item{sample_name}{a single sample name if objects are of the same sample}
+\item{sample_names}{a single sample name or multiple sample names of the same size as the given VoltRon objects}
 
 \item{main.assay}{name of the assay}
 }

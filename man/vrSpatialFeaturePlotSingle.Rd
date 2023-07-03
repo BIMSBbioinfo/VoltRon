@@ -12,6 +12,7 @@ vrSpatialFeaturePlotSingle(
   group.by = "label",
   font.size = 2,
   pt.size = 2,
+  title.size = 10,
   alpha = 0.6,
   label = FALSE,
   plot_title = NULL,
@@ -34,6 +35,8 @@ vrSpatialFeaturePlotSingle(
 \item{font.size}{font sizes}
 
 \item{pt.size}{point size}
+
+\item{title.size}{title size of legend and plot}
 
 \item{alpha}{alpha level for cells/spots/ROIs}
 

@@ -1,8 +1,5 @@
 ---
-title: "VoltRon Tutorials"
-output: 
-  html_document:
-    theme: lumen
+title: ""
 ---
 
 <style>
@@ -22,72 +19,88 @@ td{
   width:33%;
   vertical-align: text-top;
 }
+td:hover, td:active{
+  filter:drop-shadow(0 0 10px rgba(0,0,0,0.3));
+  transform: scale(1.02);
+  cursor: pointer;
+}
 .main-container {
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
 }
-a.tutorial:link {
+p.tutorial {
   text-decoration: none!important;
   font-size: 1.5em;
   color: #23803A;
+  margin: 3%
 }
-a.tutorial:visited { text-decoration: none!important; }
-a.tutorial:hover { text-decoration: underline!important; }
-a.tutorial:active { text-decoration: underline!important; }
 </style>
-
-<br>
-<br>
 
 ```{r setup, include=FALSE}
 # use rmarkdown::render_site(envir = knitr::knit_global())
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Main Analysis Workflows
+<br>
+<br>
+
+## Spatial Data Analysis with VoltRon
+
+<br>
+
+### Spatial Data Integration
+
+**VoltRon** incorporates multiple data integration modules to achieve data transfer across a diverse set of transcriptomics modalities. We incorporate the OpenCV, fully embedded into VoltRon using Rcpp, to incorporate alignment across spatial datasets using computer vision and image registration. Users can automaticaly or manually align a list of images (H&E, microscopy or DAPI images) using a small shiny images.
+
+In addition, VoltRon integrates with ST spot deconvolution methods such as RCTD and SpotLIGHT to infer estimates cell type abundances of a reference single cell data (Seurat, SingleCellExperiment etc.) to generate additional assays associated with layers of the VoltRon object, and implements clustering on cell type abundance data to discover niches in the dataset. 
 
 <table>
 <tbody>
   <tr>
-   <td> 
-      <p style = "margin: 3%"> <a href="spotanalysis.html" target="_blank" class ="tutorial">Cell/Spot Analysis Workflow</a> </p>
-      <img width="280" height="250" src="images/spotanalysis.png" class="center">
-      <p style = "margin: 3%"> Quality control, analysis and visualization of ROI segments </p>
+   <td onclick="location.href='registration.html';"> 
+      <p class ="tutorial"> Spatial Data Alignment </p>
+      <img width="250" height="250" src="images/registration.png" class="center">
+      <p style = "margin: 3%"> Manual and automated alignment of spatial data assays</p>
+   </td>
+   <td onclick="location.href='deconvolution.html';"> 
+      <p class ="tutorial"> Niche Clustering </p>
+      <img width="250" height="250" src="images/deconvolution.png" class="center">
+      <p style = "margin: 3%"> Clustering with ROI/spot deconvolution</p>
    </td>
    <td> 
-      <p style = "margin: 3%"> <a href="roianalysis.html" target="_blank" class ="tutorial">ROI Analysis Workflow</a> </p>
+   </td>
+  </tr>
+</tbody>
+</table>
+
+<br>
+<br>
+
+### Downstream Analysis and Utilities
+
+**VoltRon** is also capable of end-to-end analysis of diverse set of spatial data types such as ROI (region of interest) based, spot-based, cell-based and molecule-based assays. VoltRon objects can be converted to a diverse set of objects/datatypes commonly incorporated spatial data analysis (Seurat, SpatialExperiment, Squidpy, SpatialData etc.) 
+
+<table>
+<tbody>
+  <tr>
+   <td onclick="location.href='roianalysis.html';"> 
+      <p class ="tutorial"> Region of Interests (ROIs) </p>
       <img width="280" height="250" src="images/GeoMx.png" class="center">
       <p style = "margin: 3%"> Quality control, analysis and visualization of ROI segments </p>
    </td>
+   <td onclick="location.href='spotanalysis.html';"> 
+      <p class ="tutorial"> Cells/Spots </p>
+      <img width="280" height="250" src="images/spotanalysis.png" class="center">
+      <p style = "margin: 3%"> Quality control, analysis and visualization of Cell/Spot datasets </p>
+   </td>
    <td> 
+      <p class ="tutorial"> Converting VoltRon Objects </p>
+      <img width="270" height="250" src="images/conversion.png" class="center">
+      <p style = "margin: 3%"> Converting VoltRon objects into Seurat, Giotto, squidpy (anndata) etc. </p>
    </td>
   </tr>
 </tbody>
 </table>
 
-<br>
-
-## Data Integration Workflows
-
-<table>
-<tbody>
-  <tr>
-   <td> 
-      <p style = "margin: 3%"> <a href="registration.html" target="_blank" class ="tutorial">Spatial Data Alignment</a> </p>
-      <img width="250" height="250" src="images/registration.png" class="center">
-      <p style = "margin: 3%"> Manual and automated alignment of spatial technologies </p>
-   </td>
-   <td> 
-      <p style = "margin: 3%"> <a href="deconvolution.html" target="_blank" class ="tutorial">Niche Clustering</a> </p>
-      <img width="250" height="250" src="images/deconvolution.png" class="center">
-      <p style = "margin: 3%"> Clustering with ROI/spot deconvolution </p>
-   </td>
-   <td> 
-   </td>
-  </tr>
-</tbody>
-</table>
-
-<br>
 <br>

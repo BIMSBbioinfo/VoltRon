@@ -18,7 +18,6 @@ draw.circle <- function (x, y, radius, nv = 100, border = NULL, col = NA, lty = 
     col <- rep(col, length.out = length(radius))
   for (circle in 1:length(radius)) {
     xv <- cos(angles) * radius[circle] + x
-    # yv <- sin(angles) * radius[circle] * ymult + y
     yv <- sin(angles) * radius[circle] + y
     polygon(xv, yv, border = border, col = col[circle], lty = lty,
             density = density, angle = angle, lwd = lwd)
@@ -53,3 +52,19 @@ quiet <- function(x) {
   on.exit(sink())
   invisible(force(x))
 }
+
+stopQuietly <- function(...) {
+  blankMsg <- sprintf("\r%s\r", paste(rep(" ", getOption("width")-1L), collapse=" "));
+  stop(simpleError(blankMsg));
+}
+
+jaccard_similarity <- function(mat) {
+  matinv <- 1 - mat
+  return((mat %*% mat)/(nrow(mat) - (matinv %*% matinv)))
+}
+
+# jaccard_similarity <- function(set1, set2) {
+#   intersection <- length(intersect(set1, set2))
+#   union <- length(union(set1, set2))
+#   return(intersection / union)
+# }

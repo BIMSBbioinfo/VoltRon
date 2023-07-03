@@ -1,33 +1,40 @@
 ####
-# Xenium ####
+# 10X Genomics ####
+####
+
+####
+## Xenium ####
 ####
 
 #' importXenium
 #'
 #' Importing Xenium data
 #'
-#' @param dir.path path to Xenium
-#' @param selected_assay selected assay
+#' @param dir.path path to Xenium output folder
+#' @param selected_assay selected assay from Xenium
 #' @param assay_name the assay name of the SR object
+#' @param morphology_image the name of the lowred morphology image. Default: morphology_lowres.tif
+#' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
 #' @importFrom magick image_read
 #'
 #' @export
 #'
-importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", ...)
+importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", morphology_image = "morphology_lowres.tif", resolution_level = 7, ...)
 {
   # raw counts
   datafile <- paste0(dir.path, "/cell_feature_matrix.h5")
   if(file.exists(datafile)){
-    rawdata <- Read10X_h5(filename = datafile)
+    rawdata <- import10Xh5(filename = datafile)
     rawdata <- as.matrix(rawdata[[selected_assay]])
   } else {
     stop("There are no files named 'filtered_feature_bc_matrix.h5' in the path")
   }
 
   # image
-  image_file <- paste0(dir.path, "/morphology_lowres.tif")
+  suppressMessages(generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level))
+  image_file <- paste0(dir.path, "/", morphology_image)
   if(file.exists(image_file)){
     image <-  image_read(image_file)
   } else {
@@ -83,14 +90,15 @@ rescaleXeniumCells <- function(cells, bbox, image){
 }
 
 ####
-# Visium ####
+## Visium ####
 ####
 
 #' importVisium
 #'
 #' Importing Visium data
 #'
-#' @param dir.path path to Xenium
+#' @param dir.path path to Visium output folder
+#' @param selected_assay selected assay from Visium
 #' @param assay_name the assay name
 #' @param inTissue if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)
 #' @param ... additional parameters passed to \code{formVoltRon}
@@ -101,15 +109,15 @@ rescaleXeniumCells <- function(cells, bbox, image){
 #'
 #' @export
 #'
-importVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
+importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_name = "Visium", InTissue = TRUE, ...)
 {
   # raw counts
   listoffiles <- list.files(dir.path)
   datafile <- listoffiles[grepl("filtered_feature_bc_matrix.h5", listoffiles)][1]
   datafile <- paste0(dir.path, "/", datafile)
   if(file.exists(datafile)){
-    rawdata <- Read10X_h5(filename = datafile)
-    rawdata <- as.matrix(rawdata)
+    rawdata <- import10Xh5(filename = datafile)
+    rawdata <- as.matrix(rawdata[[selected_assay]])
   } else {
     stop("There are no files named 'filtered_feature_bc_matrix.h5' in the path")
   }
@@ -168,6 +176,49 @@ importVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
 }
 
 ####
+## Auxiliary ####
+####
+
+#' import10Xh5
+#'
+#' import the sparse matrix from the H5 file
+#'
+#' @param filename the path tp h5 file
+#'
+#' @import hdf5r
+#' @importFrom Matrix sparseMatrix
+#'
+import10Xh5 <- function(filename){
+
+  # get file
+  input.file <- hdf5r::H5File$new(filename = filename, mode = "r")
+  matrix.10X <- input.file[["matrix"]]
+
+  # get data, barcodes and feature
+  features <- hdf5r::readDataSet(matrix.10X[["features"]][["name"]])
+  feature_type <- hdf5r::readDataSet(matrix.10X[["features"]][["feature_type"]])
+  cells <- hdf5r::readDataSet(matrix.10X[["barcodes"]])
+  mat <- hdf5r::readDataSet(matrix.10X[["data"]])
+  indices <- hdf5r::readDataSet(matrix.10X[["indices"]])
+  indptr <- hdf5r::readDataSet(matrix.10X[["indptr"]])
+  sparse.mat <- sparseMatrix(i = indices + 1, p = indptr,
+                             x = as.numeric(mat), dims = c(length(features), length(cells)),
+                             repr = "T")
+  colnames(sparse.mat) <- cells
+  rownames(sparse.mat) <- features
+
+  # separate feature types
+  matrix.10X <- list()
+  for(feat in unique(feature_type)){
+    cur_features <- features[feature_type %in% feat]
+    cur_mat <- sparse.mat[features %in% cur_features,]
+    matrix.10X[[feat]] <- cur_mat
+  }
+
+  return(matrix.10X)
+}
+
+####
 # GeoMx ####
 ####
 
@@ -175,11 +226,12 @@ importVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
 #'
 #' Import GeoMx data
 #'
-#' @param dir.path path to GeoMx run
-#' @param pkc_file path to the pkc file
+#' @param dcc.path path to the folder where the dcc files are found
+#' @param pkc.file path to the pkc file
 #' @param summarySegment the annotation excel file
 #' @param summarySegmentSheetName the sheet name of the excel file, \code{summarySegment}
 #' @param assay_name the assay name, default: GeoMx
+#' @param image the reference morphology image of the GeoMx assay
 #' @param segment_polygons if TRUE, the ROI polygons are parsed from the OME.TIFF file
 #' @param ome.tiff the OME.TIFF file of the GeoMx experiment if exists
 #' @param ... additional parameters passed to \code{formVoltRon}
@@ -191,18 +243,19 @@ importVisium <- function(dir.path, assay_name = "Visium", InTissue = TRUE, ...)
 #'
 #' @export
 #'
-importGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetName, assay_name = "GeoMx", segment_polygons = FALSE, ome.tiff = NULL, ...)
+importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetName, assay_name = "GeoMx",
+                        image = NULL, segment_polygons = FALSE, ome.tiff = NULL, ...)
 {
   if (!requireNamespace('GeomxTools'))
     stop("Please install Seurat package for using Seurat objects")
 
   # Get pkc file
-  pkcdata <- GeomxTools::readPKCFile(pkc_file)
+  pkcdata <- GeomxTools::readPKCFile(pkc.file)
 
   # Get dcc file
-  dcc_files <- dir(dir.path, pattern = ".dcc$", full.names = TRUE)
+  dcc_files <- dir(dcc.path, pattern = ".dcc$", full.names = TRUE)
   dcc_files <- dcc_files[!grepl("A01.dcc$", dcc_files)]
-  dcc_filenames <- dir(dir.path, pattern = ".dcc$", full.names = FALSE)
+  dcc_filenames <- dir(dcc.path, pattern = ".dcc$", full.names = FALSE)
   dcc_filenames <- dcc_filenames[!grepl("A01.dcc$", dcc_filenames)]
   dcc_filenames <- gsub(".dcc$", "", dcc_filenames)
   dcc_filenames <- gsub("-", "_", dcc_filenames)
@@ -232,9 +285,20 @@ importGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
 
   # get segment summary
   segmentsummary <- xlsx::read.xlsx(summarySegment, sheetName = summarySegmentSheetName)
+  rownames(segmentsummary) <- gsub(".dcc$", "", segmentsummary$Sample_ID)
+  rownames(segmentsummary) <- gsub("-", "_", rownames(segmentsummary))
+  if(all(dcc_filenames %in% rownames(segmentsummary))){
+    segmentsummary <- segmentsummary[dcc_filenames, ]
+  } else{
+    stop("Some GeoMx dcc files is not represented in the segment summary file!")
+  }
 
   # get image
-  image <- image_read(paste0(dir.path, "/morphology.tiff"))
+  if(!is.null(image)){
+    image <- image_read(image)
+  } else {
+    stop("Please provide a morphology image for the GeoMx data!")
+  }
   geomx_image_info <- image_info(image)
 
   # get coordinates
@@ -245,15 +309,13 @@ importGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
 
   # get ROI segments (polygons)
   segments <- list()
-  if(segment_polygons){
-    if(is.null(ome.tiff)){
-      ome.tiff <- paste0(dir.path, "/geomx.ome.tiff")
-    }
+  if(!is.null(ome.tiff)){
     segments <- importGeoMxSegments(ome.tiff, segmentsummary, geomx_image_info)
+    segments <- segments[rownames(coords)]
   }
 
   # create VoltRon
-  formVoltRon(rawdata, metadata = NULL, image, coords, segments, main.assay = assay_name, assay.type = "ROI", ...)
+  formVoltRon(rawdata, metadata = segmentsummary, image, coords, segments, main.assay = assay_name, assay.type = "ROI", ...)
 }
 
 
@@ -270,6 +332,10 @@ importGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetN
 #'
 importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
+  # dependencies, load RBioFormats
+  require(RBioFormats)
+  library(RBioFormats)
+
   # get the xml file
   # xmltemp <- xmlExtraction(ometiff = ome.tiff)
   omexml <- read.omexml(ome.tiff)
@@ -285,6 +351,7 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
   mask_lists <- list()
   for(i in 1:length(ROIs)){
     cur_ROI <- ROIs[[i]]
+
     # if the shape is a polygon
     if("Polygon" %in% names(cur_ROI$Union)){
       coords <- strsplit(cur_ROI$Union$Polygon, split = "\\n")
@@ -330,3 +397,4 @@ rescaleGeoMxPoints <- function(pts, summary, imageinfo){
   # return
   return(pts)
 }
+

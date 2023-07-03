@@ -7,8 +7,9 @@
 generateXeniumImage(
   dir.path,
   increase.contrast = TRUE,
-  resolutionLevel = 7,
+  resolution_level = 7,
   output.path = NULL,
+  file.name = "morphology_lowres.tif",
   ...
 )
 }
@@ -17,12 +18,20 @@ generateXeniumImage(
 
 \item{increase.contrast}{increase the contrast of the image before writing}
 
-\item{resolutionLevel}{the level of resolution within Xenium OME-TIFF image. Default: 7 (553x402)}
+\item{resolution_level}{the level of resolution within Xenium OME-TIFF image. Default: 7 (553x402)}
 
 \item{output.path}{The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.}
+
+\item{file.name}{the name of the lowred morphology image. Default: morphology_lowres.tif}
 
 \item{...}{additional parameters passed to the EBImage::writeImage function}
 }
 \description{
 Generate a low resolution DAPI image of the Xenium experiment
+}
+\details{
+The Xenium morphology_mip.ome.tif file that is found under the outs folder comes is an hyperstack of different resolutions of the DAPI image.
+\code{generateXeniumImage} allows extracting only one of these layers by specifying the \code{resolution} parameter (Default: 7 for 553x402) among 1 to 8.
+Lower incides of resolutions have higher higher resolutions, e.g. 1 for 35416x25778. Note that you may need to allocate larger memory of Java to import
+higher resolution images.
 }

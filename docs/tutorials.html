@@ -11,12 +11,12 @@
 
 
 
-<title>VoltRon Tutorials</title>
+<title>tutorials.knit</title>
 
 <script src="site_libs/header-attrs-2.21/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/lumen.min.css" rel="stylesheet" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
@@ -232,7 +232,7 @@ $(document).ready(function () {
 
 
 
-<div class="navbar navbar-inverse  navbar-fixed-top" role="navigation">
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
   <div class="container">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
@@ -245,32 +245,37 @@ $(document).ready(function () {
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li>
-  <a href="tutorials.html">
-    <span class="fa fa-home"></span>
-     
-    Tutorials
-  </a>
+  <a href="tutorials.html">Explore</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    <span class="fa fa-dna"></span>
-     
     Vignette
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="spotanalysis.html">Cell/Spot Analysis</a>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Spatial Data Integration</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="registration.html">Spatial Data Alignment</a>
+        </li>
+        <li>
+          <a href="deconvolution.html">Niche Clustering</a>
+        </li>
+      </ul>
     </li>
-    <li>
-      <a href="roianalysis.html">ROI Analysis</a>
-    </li>
-    <li>
-      <a href="registration.html">Spatial Data Alignment</a>
-    </li>
-    <li>
-      <a href="deconvolution.html">Niche Clustering</a>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Downstream Analysis and Utilities</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="roianalysis.html">ROI Analysis</a>
+        </li>
+        <li>
+          <a href="spotanalysis.html">Cell/Spot Analysis</a>
+        </li>
+        <li class="dropdown-header">Converting VoltRon Objects</li>
+      </ul>
     </li>
   </ul>
 </li>
@@ -286,7 +291,7 @@ $(document).ready(function () {
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="https://www.mdc-berlin.de/bioinformatics">Altuna Lab/BIMSB Bioinfo</a>
+      <a href="https://bioinformatics.mdc-berlin.de">Altuna Lab/BIMSB Bioinfo</a>
     </li>
     <li>
       <a href="https://www.mdc-berlin.de/landthaler">Landthaler Lab/BIMSB</a>
@@ -305,6 +310,9 @@ $(document).ready(function () {
     <li>
       <a href="https://github.com/BIMSBbioinfo/VoltRon">VoltRon</a>
     </li>
+    <li>
+      <a href="https://github.com/BIMSBbioinfo">BIMSB Bioinfo</a>
+    </li>
   </ul>
 </li>
       </ul>
@@ -316,7 +324,6 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">VoltRon Tutorials</h1>
 
 </div>
 
@@ -338,72 +345,57 @@ td{
   width:33%;
   vertical-align: text-top;
 }
+td:hover, td:active{
+  filter:drop-shadow(0 0 10px rgba(0,0,0,0.3));
+  transform: scale(1.02);
+  cursor: pointer;
+}
 .main-container {
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
 }
-a.tutorial:link {
+p.tutorial {
   text-decoration: none!important;
   font-size: 1.5em;
   color: #23803A;
+  margin: 3%
 }
-a.tutorial:visited { text-decoration: none!important; }
-a.tutorial:hover { text-decoration: underline!important; }
-a.tutorial:active { text-decoration: underline!important; }
 </style>
 <p><br> <br></p>
-<div id="main-analysis-workflows" class="section level2">
-<h2>Main Analysis Workflows</h2>
-<table>
-<tbody>
-<tr>
-<td>
-<p style="margin: 3%">
-<a href="spotanalysis.html" target="_blank" class ="tutorial">Cell/Spot
-Analysis Workflow</a>
-</p>
-<img width="280" height="250" src="images/spotanalysis.png" class="center">
-<p style="margin: 3%">
-Quality control, analysis and visualization of ROI segments
-</p>
-</td>
-<td>
-<p style="margin: 3%">
-<a href="roianalysis.html" target="_blank" class ="tutorial">ROI
-Analysis Workflow</a>
-</p>
-<img width="280" height="250" src="images/GeoMx.png" class="center">
-<p style="margin: 3%">
-Quality control, analysis and visualization of ROI segments
-</p>
-</td>
-<td>
-</td>
-</tr>
-</tbody>
-</table>
+<div id="spatial-data-analysis-with-voltron" class="section level2">
+<h2>Spatial Data Analysis with VoltRon</h2>
 <p><br></p>
-</div>
-<div id="data-integration-workflows" class="section level2">
-<h2>Data Integration Workflows</h2>
+<div id="spatial-data-integration" class="section level3">
+<h3>Spatial Data Integration</h3>
+<p><strong>VoltRon</strong> incorporates multiple data integration
+modules to achieve data transfer across a diverse set of transcriptomics
+modalities. We incorporate the OpenCV, fully embedded into VoltRon using
+Rcpp, to incorporate alignment across spatial datasets using computer
+vision and image registration. Users can automaticaly or manually align
+a list of images (H&amp;E, microscopy or DAPI images) using a small
+shiny images.</p>
+<p>In addition, VoltRon integrates with ST spot deconvolution methods
+such as RCTD and SpotLIGHT to infer estimates cell type abundances of a
+reference single cell data (Seurat, SingleCellExperiment etc.) to
+generate additional assays associated with layers of the VoltRon object,
+and implements clustering on cell type abundance data to discover niches
+in the dataset.</p>
 <table>
 <tbody>
 <tr>
-<td>
-<p style="margin: 3%">
-<a href="registration.html" target="_blank" class ="tutorial">Spatial
-Data Alignment</a>
+<td onclick="location.href=&#39;registration.html&#39;;">
+<p class="tutorial">
+Spatial Data Alignment
 </p>
 <img width="250" height="250" src="images/registration.png" class="center">
 <p style="margin: 3%">
-Manual and automated alignment of spatial technologies
+Manual and automated alignment of spatial data assays
 </p>
 </td>
-<td>
-<p style="margin: 3%">
-<a href="deconvolution.html" target="_blank" class ="tutorial">Niche
-Clustering</a>
+<td onclick="location.href=&#39;deconvolution.html&#39;;">
+<p class="tutorial">
+Niche Clustering
 </p>
 <img width="250" height="250" src="images/deconvolution.png" class="center">
 <p style="margin: 3%">
@@ -416,6 +408,50 @@ Clustering with ROI/spot deconvolution
 </tbody>
 </table>
 <p><br> <br></p>
+</div>
+<div id="downstream-analysis-and-utilities" class="section level3">
+<h3>Downstream Analysis and Utilities</h3>
+<p><strong>VoltRon</strong> is also capable of end-to-end analysis of
+diverse set of spatial data types such as ROI (region of interest)
+based, spot-based, cell-based and molecule-based assays. VoltRon objects
+can be converted to a diverse set of objects/datatypes commonly
+incorporated spatial data analysis (Seurat, SpatialExperiment, Squidpy,
+SpatialData etc.)</p>
+<table>
+<tbody>
+<tr>
+<td onclick="location.href=&#39;roianalysis.html&#39;;">
+<p class="tutorial">
+Region of Interests (ROIs)
+</p>
+<img width="280" height="250" src="images/GeoMx.png" class="center">
+<p style="margin: 3%">
+Quality control, analysis and visualization of ROI segments
+</p>
+</td>
+<td onclick="location.href=&#39;spotanalysis.html&#39;;">
+<p class="tutorial">
+Cells/Spots
+</p>
+<img width="280" height="250" src="images/spotanalysis.png" class="center">
+<p style="margin: 3%">
+Quality control, analysis and visualization of Cell/Spot datasets
+</p>
+</td>
+<td>
+<p class="tutorial">
+Converting VoltRon Objects
+</p>
+<img width="270" height="250" src="images/conversion.png" class="center">
+<p style="margin: 3%">
+Converting VoltRon objects into Seurat, Giotto, squidpy (anndata) etc.
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+</div>
 </div>
 
 

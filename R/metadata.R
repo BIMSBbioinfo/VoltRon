@@ -138,7 +138,7 @@ subset.vrMetadata <- function(metadata, subset, samples = NULL, assays = NULL, s
       unique(stringr::str_extract(rownames(x), "Assay[0-9]+"))
     }))
     assay_names <- unique(do.call(c,assay_names))
-    if(assays %in% assay_names){
+    if(all(assays %in% assay_names)){
       cell.metadata <- metadata@cell[stringr::str_extract(rownames(metadata@cell), "Assay[0-9]+") %in% assays, ]
       spot.metadata <- metadata@spot[stringr::str_extract(rownames(metadata@spot), "Assay[0-9]+") %in% assays, ]
       roi.metadata <- metadata@ROI[stringr::str_extract(rownames(metadata@ROI), "Assay[0-9]+") %in% assays, ]
@@ -174,9 +174,9 @@ subset.sampleMetadata <- function(metadata, samples = NULL, assays = NULL) {
   if(!is.null(samples)){
     metadata <- metadata[metadata$Sample %in% samples,]
   } else if(!is.null(assays)) {
-    if(assays %in% rownames(metadata)){
+    if(all(assays %in% rownames(metadata))){
       metadata <- metadata[assays,]
-    } else if(assays %in% metadata$Assay){
+    } else if(all(assays %in% metadata$Assay)){
       metadata <- metadata[metadata$Assay %in% assays,]
     } else {
       stop("No assay with the names or types '", paste(assays, collapse = ", "), "' found in the object")
@@ -233,18 +233,32 @@ merge.vrMetadata <- function(object, object_list) {
 #' Merging sample.metadata from two VoltRon objects
 #'
 #' @param metadata_list a list of sample metadata of a VoltRon object
-#' @param sample_name sample
+#' @param sample_names new sample names
 #'
 #' @export
 #'
-merge.sampleMetadata <- function(metadata_list, sample_name = NULL) {
+merge.sampleMetadata <- function(metadata_list) {
 
+  sample_names <- NULL
   sample.metadata <- do.call(rbind, metadata_list)
   rownames(sample.metadata) <- paste0("Assay", 1:nrow(sample.metadata))
-  if(!is.null(sample_name)){
-    sample.metadata$Sample <- sample_name
-    sample.metadata$Layer <- paste0("Section", 1:nrow(sample.metadata))
-    unique_assay <- unique(sample.metadata$Assay)
+
+  # change sample names if provided
+  if(!is.null(sample_names)){
+
+    # check the number sample names
+    if(!length(sample_names) %in% c(1,nrow(sample.metadata))){
+      stop("Please provide only one sample name or of length of object list!")
+    } else {
+      sample.metadata$Sample <- sample_names
+      section_ids <- rep(NA,nrow(sample.metadata))
+      uniq_names <- unique(sample.metadata$Sample)
+      for(i in 1:length(uniq_names)){
+        cur_ind <- which(sample.metadata$Sample == uniq_names[i])
+        section_ids[cur_ind] <- 1:length(cur_ind)
+      }
+      sample.metadata$Layer <- paste0("Section", section_ids)
+    }
   }
   sample.metadata
 }
@@ -327,7 +341,7 @@ updateMetadataAssay <- function(object1, object2){
   assaytype <- unlist(lapply(object_list, function(obj) {
     unique(stringr::str_extract(rownames(obj), "Assay[0-9]+$"))
   }))
-  assaytype <- sort(assaytype)
+  assaytype <- assaytype[order(nchar(assaytype), assaytype)]
 
   # replace assay names
   replacement <- paste0("Assay", (length(replacement)+1):(length(replacement) + length(assaytype)))
@@ -341,6 +355,49 @@ updateMetadataAssay <- function(object1, object2){
 
   # return
   return(list(object1 = object1, object2 = object2))
+}
+
+#' changeSampleNames.vrMetadata
+#'
+#' Change the sample names of the vrMetadata object and reorient layers if needed
+#' This functions requires the new and old sample and layer names passed from \code{changeSampleNames.VoltRon}
+#'
+#' @rdname changeSampleNames
+#' @method changeSampleNames vrMetadata
+#'
+#' @param object A VoltRon object
+#' @param sample_metadata_table the sample metadata with old and new layers and samples passed from \code{changeSampleNames.VoltRon}
+#'
+changeSampleNames.vrMetadata <- function(object, sample_metadata_table){
+
+  # get old and new samples
+  old.samples <- sample_metadata_table$Sample
+  new.samples <- sample_metadata_table$NewSample
+
+  # check all types in the vrMetadata object
+  new_object <- object
+  all_types <- slotNames(object)
+  for(type in all_types){
+    metadata <- slot(object, name = type)
+    new_metadata <-  slot(new_object, name = type)
+    if(nrow(new_metadata) > 0){
+
+      # change samples
+      for(i in 1:length(old.samples))
+        new_metadata$Sample[new_metadata$Sample==old.samples[i]] <- new.samples[i]
+
+      # change layers
+      for(i in 1:nrow(sample_metadata_table)){
+        new_metadata$Layer[grepl(paste0(sample_metadata_table$AssayID[i], "$"), rownames(new_metadata))] <- sample_metadata_table[sample_metadata_table$AssayID[i], "NewLayer"]
+      }
+
+      # rewrite metadata type
+      slot(new_object, name = type) <- new_metadata
+    }
+  }
+
+  # return
+  return(new_object)
 }
 
 ####

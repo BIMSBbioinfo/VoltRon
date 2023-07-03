@@ -106,6 +106,22 @@ vrAssayNames <- function(object, ...) {
   UseMethod(generic = 'vrAssayNames<-', object = object)
 }
 
+#' changeSampleNames
+#'
+#' change sample names of VoltRon or other objects
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{changeSampleNames}: The name of the default assay
+#'
+#' @rdname changeSampleNames
+#' @export changeSampleNames
+#'
+changeSampleNames <- function(object, ...) {
+  UseMethod(generic = 'changeSampleNames', object = object)
+}
+
 #' Get Assay types
 #'
 #' Given a VoltRon object, give types of assays of some type, or of the main assay.

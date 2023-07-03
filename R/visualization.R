@@ -25,7 +25,9 @@
 #' @param common.legend whether to use a common legend for all plots
 #' @param collapse whether to combine all ggplots
 #'
+#' @import ggplot2
 #' @importFrom ggpubr ggarrange
+#'
 #' @export
 #'
 vrSpatialPlot <- function(object, group.by = "label", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
@@ -108,11 +110,9 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "label", font.size =
 
   # data
   image <- vrImages(assay)
-  # image <- assay@image
   info <- image_info(image)
   coords <- as.data.frame(vrCoordinates(assay))
   normdata <- vrData(assay, norm = TRUE)
-  # normdata <- assay@normdata
 
   # plotting features
   coords[[group.by]] <- as.factor(metadata[,group.by])
@@ -194,6 +194,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "label", font.size =
 #' @param nrow row wise number of plots, for \code{ggarrange}
 #' @param font.size font sizes
 #' @param pt.size point size
+#' @param title.size title size of legend and plot
 #' @param alpha alpha level for cells/spots/ROIs
 #' @param keep.scale whether unify all scales for all features or not
 #' @param label if TRUE, labels of ROIs will be visualized too
@@ -202,12 +203,14 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "label", font.size =
 #' @param common.legend whether to use a common legend for all plots
 #' @param collapse whether to combine all ggplots
 #'
+#' @import ggplot2
 #' @importFrom ggpubr ggarrange
+#'
 #' @export
 #'
 vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
-                         font.size = 2, pt.size = 2, alpha = 0.6, keep.scale = "feature", label = FALSE, background = "image",
-                         crop = FALSE, common.legend = TRUE, collapse = TRUE) {
+                         font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, background = "image",
+                         crop = FALSE, common.legend = FALSE, collapse = TRUE) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -264,10 +267,10 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = N
 
   # for each feature
   i <- 1
-  for(feat in features){
+  for(assy in assay_names){
 
     # for each assay
-    for(assy in assay_names){
+    for(feat in features){
 
       # get assay
       cur_assay <- object[[assy]]
@@ -277,7 +280,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = N
       p_title <- plot_title[[assy]]
       l_title <- legend_title[[feat]]
       gg[[i]] <- vrSpatialFeaturePlotSingle(assay = cur_assay, metadata = cur_metadata, feature = feat, limits = limits[[feat]][[assy]],
-                              group.by = group.by, font.size = font.size, pt.size = pt.size, alpha = alpha,
+                              group.by = group.by, font.size = font.size, pt.size = pt.size, title.size = title.size, alpha = alpha,
                               label = label, plot_title = p_title, legend_title = l_title, background = background, crop = crop)
       i <- i + 1
     }
@@ -312,6 +315,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = N
 #' @param group.by a grouping label for the spatial entities
 #' @param font.size font sizes
 #' @param pt.size point size
+#' @param title.size title size of legend and plot
 #' @param alpha alpha level for cells/spots/ROIs
 #' @param label if TRUE, labels of ROIs will be visualized too
 #' @param plot_title the main title of the single plot
@@ -320,9 +324,11 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = N
 #' @param crop whether to crop an image of a spot assay
 #'
 #' @import ggplot2
+#' @importFrom ggrepel geom_label_repel
+#' @importFrom ggforce geom_ellipse
 #'
 vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.by = "label",
-                               font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, plot_title = NULL, legend_title = NULL, background = "image", crop = FALSE){
+                               font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL, legend_title = NULL, background = "image", crop = FALSE){
 
   # data
   image <- vrImages(assay)
@@ -351,12 +357,13 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.b
   }
 
   # add points or segments
-  if(assay@type == "ROI" && !is.null(assay@segments)){
+  segments <- vrSegments(assay)
+  if(assay@type == "ROI" && !is.null(segments)){
     polygon_data <- NULL
     circle_data <- NULL
-    for(i in 1:length(assay@segments)){
-      cur_data <- as.data.frame(cbind(assay@segments[[i]], names(assay@segments)[i], coords$score[i]))
-      if(nrow(assay@segments[[i]]) > 1){
+    for(i in 1:length(segments)){
+      cur_data <- as.data.frame(cbind(segments[[i]], names(segments)[i], coords$score[i]))
+      if(nrow(segments[[i]]) > 1){
         colnames(cur_data) <- c("x", "y", "segment", "score")
         polygon_data <- as.data.frame(rbind(polygon_data, cur_data))
       } else {
@@ -370,7 +377,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.b
     }
     if(!is.null(circle_data)){
       g <- g +
-        geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0,
+        ggforce::geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0,
                          fill = score, group = segment), data = circle_data, lwd = 0, alpha = alpha)
     }
     g <- g +
@@ -393,12 +400,12 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.b
 
   # more visualization parameters
   g <- g +
-    ggtitle(plot_title) + theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,0,0)),
+    ggtitle(plot_title) + theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,0,0), size = title.size),
                                 panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
                                 axis.line=element_blank(),axis.text.x=element_blank(), axis.text.y=element_blank(),
                                 axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
+                                legend.key.size = unit(title.size, "points"), legend.title = element_text(size=title.size),
                                 legend.margin = margin(0,0,0,0))
-
   # set up the limits
   if(assay@type == "spot"){
     if(crop){
@@ -425,7 +432,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.b
   # visualize labels
   if(label){
     coords[[group.by]] <- metadata[,group.by]
-    g <- g + geom_label_repel(mapping = aes_string(x = "x", y = "y", label = group.by), coords,
+    g <- g + ggrepel::geom_label_repel(mapping = aes_string(x = "x", y = "y", label = group.by), coords,
                                 box.padding = 0.5, size = font.size, direction = "both", seed = 1)
   }
 
@@ -486,6 +493,225 @@ GeomSpot <- ggproto("GeomSpot",
 )
 
 ####
+# Embeddings plots ####
+####
+
+####
+## Embedding Identity Plot ####
+####
+
+#' vrEmbeddingPlot
+#'
+#' Plotting embeddings of cells and spots on associated images from multiple assays in a VoltRon object.
+#'
+#' @param object VoltRon object
+#' @param embedding the embedding type, i.e. pca, umap etc.
+#' @param group.by a grouping label for the spatial entities
+#' @param assay the assay name
+#' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
+#' @param ncol column wise number of plots, for \code{ggarrange}
+#' @param nrow row wise number of plots, for \code{ggarrange}
+#' @param font.size font sizes
+#' @param pt.size point size
+#' @param label if TRUE, the labels of the ROI assays will be visualized
+#' @param common.legend whether to use a common legend for all plots
+#' @param collapse whether to combine all ggplots
+#'
+#' @import ggplot2
+#'
+#' @export
+#'
+vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "label", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
+                            font.size = 2, pt.size = 1, label = FALSE, common.legend = TRUE, collapse = TRUE) {
+
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
+  # list of plots
+  gg <- list()
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get entity type and metadata
+  if(is.null(assay.type)){
+    assay_types <- vrAssayTypes(object, assay = assay)
+    if(length(unique(assay_types)) == 1){
+      metadata <- Metadata(object, type = unique(assay_types))
+    } else {
+      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+    }
+  } else {
+    metadata <- Metadata(object, type = assay.type)
+  }
+
+  # plotting features
+  # object_subset <- subset(object, assays = assay_names)
+  datax <- data.frame(vrEmbeddings(object, assay = assay_names, type = embedding))
+  datax <- datax[,1:2]
+  colnames(datax) <- c("x", "y")
+  datax[[group.by]] <- as.factor(metadata[,group.by])
+
+  # plot
+  g <- ggplot()
+
+  # add points or segments
+  # if(unique(vrAssayTypes(object)) %in% c("spot", "cell")){
+  #   g <- g +
+  #     geom_point(mapping = aes_string(x = "x", y = "y", color = group.by), datax, shape = 16, size = pt.size)
+  # } else {
+  #   stop("Only spots and cells can be visualized with vrEmbeddingPlot!")
+  # }
+  g <- g +
+    geom_point(mapping = aes_string(x = "x", y = "y", color = group.by), datax, shape = 16, size = pt.size)
+
+  # more visualization parameters
+  g <- g +
+    theme_classic() +
+    theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,0,0)),
+          panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+          legend.margin = margin(0,0,0,0), panel.background = element_blank()) +
+    xlab(paste0(toupper(embedding), "_1")) + ylab(paste0(toupper(embedding), "_2"))
+
+  # return data
+  return(g)
+}
+
+####
+## Embedding Feature Plot ####
+####
+
+#' vrEmbeddingFeaturePlot
+#'
+#' Plotting features of spatially resolved cells and spots on embeddings from multiple assays in a VoltRon object.
+#'
+#' @param object VoltRon object
+#' @param embedding the embedding type, i.e. pca, umap etc.
+#' @param features a set of features, either from the rows of rawdata, normdata or columns of the metadata
+#' @param limits limits of the legend of the plot
+#' @param assay the assay name
+#' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
+#' @param ncol column wise number of plots, for \code{ggarrange}
+#' @param nrow row wise number of plots, for \code{ggarrange}
+#' @param font.size font sizes
+#' @param pt.size point size
+#' @param keep.scale whether unify all scales for all features or not
+#' @param common.legend whether to use a common legend for all plots
+#' @param collapse whether to combine all ggplots
+#'
+#' @import ggplot2
+#'
+#' @export
+#'
+vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
+                                   font.size = 2, pt.size = 1, keep.scale = "feature", common.legend = TRUE, collapse = TRUE) {
+
+  # features
+  if(is.null(features))
+    stop("You have to define at least one feature")
+
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
+  # list of plots
+  gg <- list()
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get entity type and metadata
+  if(is.null(assay.type)){
+    assay_types <- vrAssayTypes(object, assay = assay)
+    if(length(unique(assay_types)) == 1){
+      assay.type <- unique(assay_types)
+      metadata <- Metadata(object, type = assay.type)
+    } else {
+      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+    }
+  } else {
+    metadata <- Metadata(object, type = assay.type)
+  }
+
+  # get data and embedding
+  normdata <- vrData(object, assay = assay_names, norm = TRUE)
+  datax <- data.frame(vrEmbeddings(object, assay = assay_names, type = embedding))
+  datax <- datax[,1:2]
+  colnames(datax) <- c("x", "y")
+
+  # calculate limits for plotting, all for making one scale, feature for making multiple
+  limits <- Map(function(feat){
+    if(feat %in% rownames(normdata)){
+      return(range(normdata[feat, ]))
+    } else {
+      if(feat %in% colnames(metadata)){
+        return(range(metadata[,feat]))
+      } else {
+        stop("Feature ", feat, " cannot be found in data or metadata!")
+      }
+    }
+  }, features)
+
+  # configure titles
+  feature_title <- as.list(features)
+  names(feature_title) <- features
+  legend_title <- feature_title
+
+  # for each feature
+  i <- 1
+  for(feat in features){
+
+    # get data
+    if(feat %in% rownames(normdata)){
+      datax$score <- normdata[feat,]
+    } else {
+      datax$score <- metadata[,feat]
+    }
+
+    # get image information and plotting features
+    midpoint <- sum(limits[[feat]])/2
+
+    # plot
+    g <- ggplot()
+
+    # add points or segments
+    # if(unique(vrAssayTypes(object)) %in% c("spot","cell")){
+    #   g <- g +
+    #     geom_point(mapping = aes(x = x, y = y, color = score), datax, shape = 16, size = pt.size) +
+    #     scale_color_gradientn(name = legend_title[[feat]],
+    #                           colors=c("lightgrey", "blue"),
+    #                           values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
+    # }
+    g <- g +
+      geom_point(mapping = aes(x = x, y = y, color = score), datax, shape = 16, size = pt.size) +
+      scale_color_gradientn(name = legend_title[[feat]],
+                            colors=c("lightgrey", "blue"),
+                            values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
+
+    # more visualization parameters
+    g <- g +
+      theme_classic() +
+      theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,0,0)),
+            panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+            legend.margin = margin(0,0,0,0), panel.background = element_blank()) +
+      xlab(paste0(toupper(embedding), "_1")) + ylab(paste0(toupper(embedding), "_2"))
+    gg[[i]] <- g
+    i <- i + 1
+  }
+
+  if(collapse){
+    # return a list of plots or a single one
+    if(length(features) > 1){
+      if(length(gg) < ncol) ncol <- length(gg)
+      return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol)))
+    } else {
+      return(gg[[1]])
+    }
+  } else {
+    return(gg)
+  }
+}
+
+####
 # Scatter Plot ####
 ####
 
@@ -504,6 +730,9 @@ GeomSpot <- ggproto("GeomSpot",
 #' @param group.by a column from metadata to label points
 #' @param label whether labels are visualized or not
 #' @param trend inserting a trend line two the scatter plot
+#'
+#' @import ggplot2
+#' @importFrom ggrepel geom_label_repel
 #'
 #' @export
 #'
@@ -560,7 +789,7 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
   # visualize labels
   if(label){
     data_feature[[group.by]] <- metadata[,group.by]
-    g <- g + geom_label_repel(mapping = aes_string(x = feature.1, y = feature.2, label = group.by), data_feature,
+    g <- g + ggrepel::geom_label_repel(mapping = aes_string(x = feature.1, y = feature.2, label = group.by), data_feature,
                                 box.padding = 0.5, size = font.size, direction = "both", seed = 1)
   }
 
@@ -581,17 +810,39 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 #' @param object VoltRon object
 #' @param assay assay name
 #' @param assay.type assay type
+#' @param features a set of features to be visualized
 #' @param group.by a column from metadata to seperate columns of the heatmap
 #' @param norm if TRUE, the normalized data is used
+#' @param scaled if TRUE, the data will be scaled before visualization
+#' @param show_row_names if TRUE, row names of the heatmap will be shown
+#' @param outlier.quantile quantile for detecting outliers whose values are set to the quantile, change to lower values to adjust large number of outliers, default: 0.99
+#' @param highlight.some if TRUE, some rows will be showed at random, reproducible by \code{seed} arguement
+#' @param seed the seed for \code{set.seed}
+#' @param ... additional parameters passed to \code{getVariableFeatures}
 #'
 #' @importFrom ComplexHeatmap Heatmap
+#' @importFrom scales viridis_pal
 #'
 #' @export
 #'
-vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, group.by = "clusters", norm = TRUE){
+vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NULL, group.by = "clusters",
+                          norm = TRUE, scaled = TRUE, show_row_names = NULL, outlier.quantile = 0.99, highlight.some = FALSE, seed = 1, ...){
+
+  # seed
+  set.seed(seed)
 
   # data
   heatmapdata <- vrData(object, assay = assay, norm = norm)
+
+  # features
+  if(is.null(features)){
+    if(nrow(vrFeatureData(object)) > 0){
+      features <- getVariableFeatures(object, assay = assay, ...)
+    } else {
+      features <- vrFeatures(object, assay = assay)
+    }
+  }
+  heatmapdata <- heatmapdata[features, ]
 
   # get entity type and metadata
   if(is.null(assay.type)){
@@ -607,13 +858,211 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, group.by = "c
   }
   metadata <- metadata[colnames(heatmapdata),]
 
+  # scaling, optional
+  if(scaled){
+    heatmapdata <- apply(heatmapdata, 1, scale)
+    heatmapdata <- t(heatmapdata)
+  }
+
   # manage data for plotting
-  heatmapdata_scale <- apply(heatmapdata, 1, scale)
-  heatmapdata_scale <- t(heatmapdata_scale)
-  heatmapdata_scale_order <- heatmapdata_scale[,order(metadata[[group.by]], decreasing = FALSE)]
+  heatmapdata <- heatmapdata[,order(metadata[[group.by]], decreasing = FALSE)]
   labels_ordered <- metadata[[group.by]][order(metadata[[group.by]], decreasing = FALSE)]
   labels_ordered_table <- table(labels_ordered)
   col_split = factor(labels_ordered, levels = names(labels_ordered_table))
-  ComplexHeatmap::Heatmap(heatmapdata_scale_order, show_row_names = TRUE, show_column_names = FALSE,
-          column_split = col_split, cluster_columns = FALSE)
+
+  # update limits
+  limits <- quantile(as.vector(heatmapdata), probs = c(1-outlier.quantile, outlier.quantile))
+  heatmapdata[heatmapdata > limits[2]] <- limits[2]
+  heatmapdata[heatmapdata < limits[1]] <- limits[1]
+
+  # highlight some rows
+  if(highlight.some){
+    ind <- sample(1:nrow(heatmapdata), 25, replace = FALSE)
+    ha <- ComplexHeatmap::rowAnnotation(foo = ComplexHeatmap::anno_mark(at = ind, labels = rownames(heatmapdata)[ind], padding = 1))
+  } else{
+    ha <- NULL
+  }
+
+  # visualize
+  if(is.null(show_row_names))
+    show_row_names <- (nrow(heatmapdata) < 30)
+  legend_at <- seq(min(heatmapdata), max(heatmapdata), (max(heatmapdata)-min(heatmapdata))/5)
+  legend_label <- round(legend_at, 2)
+  ComplexHeatmap::Heatmap(heatmapdata,
+                          show_row_names = show_row_names, show_row_dend = FALSE,
+                          show_column_names = FALSE, column_title_rot = 45,
+                          column_split = col_split, cluster_columns = FALSE,
+                          show_heatmap_legend = FALSE, heatmap_legend_param = list(title = "Exp.", at = legend_at, labels = rep("", length(legend_at))),
+                          right_annotation = ha,
+                          col = scales::viridis_pal()(100))
+}
+
+####
+# Violin Plot ####
+####
+
+#' vrViolinPlot
+#'
+#' @param object A VoltRon object
+#' @param features a set of features to be visualized
+#' @param assay assay name
+#' @param assay.type assay type
+#' @param group.by a column from metadata to seperate columns of the heatmap
+#' @param norm if TRUE, the normalized data is used
+#' @param ncol column wise number of plots, for \code{ggarrange}
+#' @param nrow row wise number of plots, for \code{ggarrange}
+#' @param ... additional parameters passed to \code{getVariableFeatures}
+#'
+#' @import ggplot2
+#' @importFrom reshape2 melt
+#'
+#' @export
+#'
+vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NULL, group.by = "clusters", norm = TRUE,  ncol = 2, nrow = NULL, ...){
+
+  # features
+  if(is.null(features))
+    stop("You have to define at least one feature")
+
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
+  # list of plots
+  gg <- list()
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get data
+  violindata <- vrData(object, assay = assay, norm = norm)
+
+  # get entity type and metadata
+  if(is.null(assay.type)){
+    assay_types <- vrAssayTypes(object, assay = assay)
+    if(length(unique(assay_types)) == 1){
+      assay.type <- unique(assay_types)
+      metadata <- Metadata(object, type = assay.type)
+    } else {
+      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+    }
+  } else {
+    metadata <- Metadata(object, type = assay.type)
+  }
+  metadata <- metadata[colnames(violindata),]
+
+  # get feature data
+  datax <- lapply(features, function(x){
+    if(x %in% rownames(violindata)){
+      return(violindata[x,])
+    } else {
+      return(metadata[,x])
+    }
+  })
+  datax <- do.call(cbind, datax)
+  colnames(datax) <- features
+
+  # violin plot
+  assays <- stringr::str_extract(rownames(metadata), "Assay[0-9]+$")
+  assay_title <- apply(sample.metadata[assays,], 1, function(x) paste(x["Sample"], x["Layer"], x["Assay"], sep = "|"))
+  ggplotdatax <- data.frame(datax,
+                      group.by =  factor(metadata[[group.by]]),
+                      assay_title = assay_title,
+                      spatialpoints = rownames(metadata))
+  ggplotdatax <- melt(ggplotdatax, id.var = c("group.by", "assay_title", "spatialpoints"))
+  gg <- ggplot(ggplotdatax, aes(x = group.by, y = value, color = group.by)) +
+    geom_violin() +
+    geom_point(size = 0.5, position = position_jitter()) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+    ylab("") + xlab(group.by) +
+    guides(fill = guide_legend(title = ""))
+
+  if(length(features) > 1){
+    if(length(gg) < ncol) ncol <- length(gg)
+    gg <- gg + facet_wrap(.~variable, ncol = ncol, nrow = ceiling(length(gg)/ncol))
+  } else {
+    gg <- gg + labs(title = features)
+    return(gg)
+  }
+}
+
+####
+# Bar Plot ####
+####
+
+#' vrBarPlot
+#'
+#' @param object A VoltRon object
+#' @param features a set of features to be visualized
+#' @param assay assay name
+#' @param group.by a column from metadata to seperate columns of the heatmap
+#' @param norm if TRUE, the normalized data is used
+#' @param ncol column wise number of plots, for \code{ggarrange}
+#' @param nrow row wise number of plots, for \code{ggarrange}
+#' @param ... additional parameters passed to \code{getVariableFeatures}
+#'
+#' @import ggplot2
+#' @importFrom reshape2 melt
+#'
+#' @export
+#'
+vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = "ROI.name", group.by = "ROI.name", norm = TRUE,  ncol = 2, nrow = NULL, ...){
+
+  # features
+  if(is.null(features))
+    stop("You have to define at least one feature")
+
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
+  # list of plots
+  gg <- list()
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get data
+  barplotdata <- vrData(object, assay = assay, norm = norm)
+
+  # get entity type and metadata
+  assay_types <- vrAssayTypes(object, assay = assay)
+  if(unique(assay_types) %in% c("spot","cell")){
+    stop("vrBarPlot can only be used for ROI assays")
+  } else {
+    metadata <- Metadata(object, type = "ROI")
+  }
+
+  # get feature data
+  datax <- lapply(features, function(x){
+    if(x %in% rownames(barplotdata)){
+      return(barplotdata[x,])
+    } else {
+      return(metadata[,x])
+    }
+  })
+  datax <- as.data.frame(do.call(cbind, datax))
+  colnames(datax) <- features
+
+  # violin plot
+  assays <- stringr::str_extract(rownames(metadata), "Assay[0-9]+$")
+  assay_title <- apply(sample.metadata[assays,], 1, function(x) paste(x["Sample"], x["Layer"], x["Assay"], sep = "|"))
+  ggplotdatax <- data.frame(datax,
+                            x.label =  factor(metadata[[x.label]]),
+                            group.by =  factor(metadata[[group.by]]),
+                            assay_title = assay_title,
+                            spatialpoints = rownames(metadata))
+  ggplotdatax <- melt(ggplotdatax, id.var = c("x.label", "assay_title", "group.by", "spatialpoints"))
+  gg <- ggplot(ggplotdatax, aes(x = x.label, y = value, fill = group.by)) +
+    geom_bar(stat = "identity") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+    ylab("") + xlab(x.label) +
+    guides(fill = guide_legend(title = group.by))
+
+  if(length(features) > 1){
+    if(length(gg) < ncol) ncol <- length(gg)
+    gg <- gg + facet_wrap(.~variable, ncol = ncol, nrow = ceiling(length(gg)/ncol), scales = "free")
+    return(gg)
+  } else {
+    gg <- gg + labs(title = features)
+    return(gg)
+  }
 }

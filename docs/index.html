@@ -16,7 +16,7 @@
 <script src="site_libs/header-attrs-2.21/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="site_libs/bootstrap-3.3.5/css/lumen.min.css" rel="stylesheet" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
@@ -232,7 +232,7 @@ $(document).ready(function () {
 
 
 
-<div class="navbar navbar-inverse  navbar-fixed-top" role="navigation">
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
   <div class="container">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
@@ -245,32 +245,37 @@ $(document).ready(function () {
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li>
-  <a href="tutorials.html">
-    <span class="fa fa-home"></span>
-     
-    Tutorials
-  </a>
+  <a href="tutorials.html">Explore</a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    <span class="fa fa-dna"></span>
-     
     Vignette
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="spotanalysis.html">Cell/Spot Analysis</a>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Spatial Data Integration</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="registration.html">Spatial Data Alignment</a>
+        </li>
+        <li>
+          <a href="deconvolution.html">Niche Clustering</a>
+        </li>
+      </ul>
     </li>
-    <li>
-      <a href="roianalysis.html">ROI Analysis</a>
-    </li>
-    <li>
-      <a href="registration.html">Spatial Data Alignment</a>
-    </li>
-    <li>
-      <a href="deconvolution.html">Niche Clustering</a>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Downstream Analysis and Utilities</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="roianalysis.html">ROI Analysis</a>
+        </li>
+        <li>
+          <a href="spotanalysis.html">Cell/Spot Analysis</a>
+        </li>
+        <li class="dropdown-header">Converting VoltRon Objects</li>
+      </ul>
     </li>
   </ul>
 </li>
@@ -286,7 +291,7 @@ $(document).ready(function () {
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="https://www.mdc-berlin.de/bioinformatics">Altuna Lab/BIMSB Bioinfo</a>
+      <a href="https://bioinformatics.mdc-berlin.de">Altuna Lab/BIMSB Bioinfo</a>
     </li>
     <li>
       <a href="https://www.mdc-berlin.de/landthaler">Landthaler Lab/BIMSB</a>
@@ -304,6 +309,9 @@ $(document).ready(function () {
   <ul class="dropdown-menu" role="menu">
     <li>
       <a href="https://github.com/BIMSBbioinfo/VoltRon">VoltRon</a>
+    </li>
+    <li>
+      <a href="https://github.com/BIMSBbioinfo">BIMSB Bioinfo</a>
     </li>
   </ul>
 </li>
@@ -323,7 +331,6 @@ $(document).ready(function () {
 <style>
 body {
   text-align: justify;
-  <!-- background-color: grey; -->
 }
 .center {
   display: block;
@@ -335,36 +342,58 @@ body {
   margin-left: auto;
   margin-right: auto;
 }
-p {
+p.maintext {
   font-size: 1.2em;
 }
+table td, table td * {
+    vertical-align: top;
+}
+ul.maintext2, il.maintext2 {
+  font-size: 1.1em; 
+}
 </style>
+<p><br> <br></p>
+<div id="voltron-an-r-package-for-spatial-data-analysis-and-integration"
+class="section level2">
+<h2>VoltRon: An R package for Spatial Data Analysis and Integration</h2>
 <p><br></p>
-<p style="text-align: justify">
+<table>
+<tr>
+<td style="width:33%;">
+<img width="100%" height="100%" src="images/modalities.png" class="center">
+</td>
+<td style="width:67%;">
+<p class="maintext">
 <strong> VoltRon </strong> is a novel spatial data analysis toolbox for
 spatial data analysis, multi-omics integration using spatial image
 registration. VoltRon provides spatial data integration using multiple
 image alignment workflows.
 </p>
-<p style="text-align: justify">
+<ul class="maintext2">
+<li class="maintext2">
 <strong> Analysis of distinct spatial biology technologies </strong> are
 supported. VoltRon visualizes and analyzes regions of interests (ROIs),
 spots, cells and even molecules.
-</p>
-<p style="text-align: justify">
+</li>
+<li class="maintext2">
 <strong> Automated Image Registration </strong> incorporates OpenCV
 (fully embedded into the package using Rcpp) to detect common features
 across images and achieves alignment. Users may interact with shiny apps
 to change alignment parameters and check alignment accuracy
-</p>
-<p style="text-align: justify">
+</li>
+<li class="maintext2">
 <strong> Manual Image Registration </strong> helps users to select
 common features across spatial datasets using reference images stored in
 spaceRover object. In case, automated registration doesnt work, you can
 still align images.
-</p>
-<p><br></p>
-<p><img width="100%" height="100%" src="images/voltron.png" class="center"></p>
+</li>
+</ul>
+</td>
+<td>
+</td>
+</tr>
+</table>
+</div>
 
 
 

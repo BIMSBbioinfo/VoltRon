@@ -6,6 +6,7 @@
 
 # Set magick-image as an S4 class
 setOldClass(Classes = c('magick-image'))
+setOldClass(Classes = c('raster'))
 
 ## vrAssay ####
 
@@ -36,7 +37,8 @@ vrAssay <- setClass(
     coords_reg = 'matrix',
     segments = 'list',
     segments_reg = 'list',
-    image = 'magick-image',
+    # image = 'magick-image',
+    image = 'raster',
     params = "list",
     type = "character"
   )
@@ -187,11 +189,7 @@ subsetCoordinates <- function(coords, image, crop_info){
 #'
 subsetSegments <- function(segments, image, crop_info){
   for(i in 1:length(segments)){
-    if(nrow(segments[[i]]) > 1){
-      segments[[i]] <- subsetCoordinates(segments[[i]], image, crop_info)
-    } else {
-      segments[[i]][,c("x","y")] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
-    }
+    segments[[i]][,c("x","y")] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
   }
   segments
 }
@@ -438,7 +436,7 @@ vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
   if(any(sapply(names(values),is.null)))
     stop("Provided coordinates data does not have cell/spot/ROI names")
 
-  if(!all(names(values) %in% names(coords)))
+  if(!all(names(values) %in% names(segts)))
     stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
 
   if(reg){
@@ -463,14 +461,30 @@ vrDistances.vrAssay <- function(object, reg = FALSE, method = "euclidean", ...) 
 }
 
 #' @param type the key name for the embedding
+#' @param dims the set of dimensions of the embedding data
 #'
 #' @rdname vrEmbeddings
 #' @method vrEmbeddings vrAssay
 #'
 #' @export
 #'
-vrEmbeddings.vrAssay <- function(object, type = "pca") {
-  return(object@embeddings[[type]])
+vrEmbeddings.vrAssay <- function(object, type = "pca", dims = 1:30) {
+
+  # embeddings
+  embeddings <- object@embeddings
+  embedding_names <- names(embeddings)
+
+  # check embeddings and return
+  if(!type %in% embedding_names){
+    stop("Embedding type ", type, " is not found!")
+  } else{
+    embedding <- object@embeddings[[type]]
+    if(max(dims) > ncol(embedding)){
+      # message("Requested too many embedding dimensions! now ncol is", ncol(embedding))
+      dims <- 1:ncol(embedding)
+    }
+    return(embedding[,dims])
+  }
 }
 
 #' @param type the key name for the embedding

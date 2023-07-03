@@ -49,7 +49,9 @@ setMethod(
 
     # print samples and layers
     all_assays <- NULL
-    for(samp in names(object@samples)){
+    sample_names <- names(object@samples)
+    show_length <- min(5,length(sample_names))
+    for(samp in sample_names[1:show_length]){
       cat(samp, ": \n", sep = "")
       layers <- names(unlist(object@samples[[samp]]@layer))
       cat("  Layers:", paste(layers, collapse = " "), "\n")
@@ -57,10 +59,16 @@ setMethod(
       all_assays <- c(all_assays, assays)
     }
 
+    if(length(sample_names) > 5){
+      cat("...", "\n")
+      cat("There are", length(sample_names), "samples in total", "\n")
+    }
+
     # print assays
+    main.assay <- vrMainAssay(object)
     unique_assays <- unique(all_assays)
-    unique_assays <- unique_assays[c(which(unique_assays == object@main.assay),which(unique_assays != object@main.assay))]
-    unique_assays[1] <- paste0(unique_assays[1], " (Main)")
+    unique_assays <- unique_assays[c(which(unique_assays == main.assay),which(unique_assays != main.assay))]
+    unique_assays[1] <- paste0(unique_assays[1], "(Main)")
     cat("Assays:", paste(unique_assays, collapse = " "), "\n")
 
     # return invisible
@@ -74,27 +82,75 @@ setMethod(
 #' @method $ VoltRon
 #'
 "$.VoltRon" <- function(x, i, ...) {
-  return(SampleMetadata(x)[[i]])
+
+  # get assay names
+  assay_names <- vrAssayNames(x)
+
+  # metadata
+  metadata <- Metadata(x, assay = assay_names)
+
+  # get metadata column
+  return(metadata[[i]])
 }
 
 #' @export
 #' @method $<- VoltRon
 #'
 "$<-.VoltRon" <- function(x, i, ..., value) {
-  if(nrow(SampleMetadata(x)) > 1)
-    stop("You can only change the name of a single name")
 
-  # update sample names
-  if(i == "Sample"){
-    names(x@samples) <- value
+  # sample metadata
+  sample.metadata <- SampleMetadata(x)
+
+  # get assay names
+  assay_names <- vrAssayNames(x)
+
+  # metadata
+  metadata <- Metadata(x, assay = assay_names)
+
+  # dont change Assays or Layers
+  if(i %in% c("Assay", "Layer")){
+    stop("Changing names of assay types or layers aren't allowed!")
   }
 
-  # update sample metadata and metadata
-  x@sample.metadata[[i]] <- value
-  x@metadata[[i]] <- value
+  # change/insert either sample names of metadata columns of main assays
+  if(i == "Sample"){
+    if(!any(length(value) %in% c(1,nrow(sample.metadata)))){
+      stop("New sample names should of length 1 or the same number of assays!")
+    } else {
+      sample.metadata[[i]] <- value
+      x <- changeSampleNames(x, samples = value)
+    }
+  } else {
+    if(!nrow(metadata) %in% c(1,length(value))){
+      stop("The new or the existing column should of length 1 or the same as the number of rows")
+    } else {
+      metadata[[i]] <- value
+      Metadata(x, assay = assay_names) <- metadata
+    }
+  }
 
   return(x)
 }
+
+#' #' @export
+#' #' @method $<- VoltRon
+#' #'
+#' "$<-.VoltRon" <- function(x, i, ..., value) {
+#'
+#'   # update sample metadata and metadata
+#'   x@sample.metadata[[i]] <- value
+#'   Metadata(x)[[i]] <- value
+#'
+#'   # update if sample names are provided
+#'   if(i == "Sample"){
+#'     if(!length(x@sample.metadata) %in% c(1,length(value))){
+#'       stop("Sample names should be of length 1 or the same length as the number of assays!")
+#'     }
+#'     names(x@samples) <- value
+#'   }
+#'
+#'   return(x)
+#' }
 
 ### subset of samples and layers ####
 
@@ -202,8 +258,9 @@ setMethod(
 #' @param layer_name the name of the layer
 #' @param project project name
 #'
-#' @export
 #' @import igraph
+#'
+#' @export
 #'
 formVoltRon <- function(data, metadata = NULL, image = NULL,
                              coords, segments = list(),
@@ -245,7 +302,7 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
         stop("Entity IDs are not matching")
       } else {
         metadata <- metadata[gsub("_Assay1$", "", entityID),]
-        slot(sr_metadata, name = assay.type) <- data.frame(metadata, Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, row.names = entityID)
+        slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
       }
     }
   }
@@ -274,7 +331,7 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
   }
 
   # create vrAssay
-  Xenium_assay <- new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = image, params = params, type = assay.type)
+  Xenium_assay <- new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = as.raster(image), params = params, type = assay.type)
   listofAssays <- list(Xenium_assay)
   names(listofAssays) <- main.assay
 
@@ -384,10 +441,10 @@ vrAssayNames.VoltRon <- function(object, assay = NULL){
     assay <- vrMainAssay(object)
 
   # get assay names
-  if(assay %in% sample.metadata$Assay){
+  if(all(assay %in% sample.metadata$Assay)){
     assay_names <- rownames(sample.metadata)[sample.metadata$Assay %in% assay]
   } else {
-    if(assay %in% rownames(sample.metadata)) {
+    if(all(assay %in% rownames(sample.metadata))) {
       assay_names <- assay
     } else {
       stop("Assay name or type is not found in the object")
@@ -414,6 +471,77 @@ vrAssayTypes.VoltRon <- function(object, assay = NULL){
 
   return(assay_types)
 }
+
+
+#' changeSampleNames.VoltRon
+#'
+#' Change the sample names of the VoltRon object and reorient layers if needed
+#'
+#' @rdname changeSampleNames
+#' @method changeSampleNames VoltRon
+#'
+#' @param object a VoltRon object
+#' @param samples a single or a set of sample names
+#'
+#' @import dplyr
+#'
+changeSampleNames.VoltRon <- function(object, samples = NULL){
+
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
+  # old to new samples table
+  samples_table <- data.frame(sample.metadata, AssayID = rownames(sample.metadata), NewSample = samples)
+
+  # check if multiple new sample names are associated with the same section of one sample
+  check_samples_table <- samples_table %>%
+    group_by(Assay, Sample) %>% mutate(n = dplyr::n_distinct(NewSample)) %>%
+    select(c("Assay", "Sample", "n")) %>% distinct()
+  if(any(check_samples_table$n > 1)){
+    message("Overwriting the sample names of assays that were original from a single layer of a sample arent allowed")
+    message("Check Sample Metadata for the correct Sample reassignment")
+    print(sample.metadata)
+    stop()
+  }
+
+  # assign new sample names to samples and sample metadata
+  new_sample.metadata <- NULL
+  new_listofSamples <- list()
+  for(cur_sample in unique(samples)){
+
+    # current sample and sample table
+    cur_sample.metadata <- samples_table[samples_table$NewSample == cur_sample,]
+
+    # for each unique sample names, combine layers and multiple samples into one
+    listofLayers <- NULL
+    uniq_old_samples <- unique(cur_sample.metadata$Sample)
+    for(i in 1:length(uniq_old_samples)){
+      listofLayers <- c(listofLayers, object[[uniq_old_samples[i]]]@layer)
+    }
+    cur_sample.metadata$comb <- paste(cur_sample.metadata$Sample, cur_sample.metadata$Layer, sep = "_")
+    cur_sample.metadata$NewLayer <- paste0("Section", as.numeric(factor(cur_sample.metadata$comb, levels = unique(cur_sample.metadata$comb))))
+    names(listofLayers) <- cur_sample.metadata$NewLayer
+    listofSamples <- list(new("vrSample", layer = listofLayers))
+    names(listofSamples) <- cur_sample
+    new_listofSamples <- c(new_listofSamples, listofSamples)
+    new_sample.metadata <- rbind(new_sample.metadata, cur_sample.metadata)
+  }
+
+  # assign new samples and layers to metadata
+  metadata <- changeSampleNames(Metadata(object, type = "all"), sample_metadata_table = new_sample.metadata)
+
+  # sample metadata
+  new_sample.metadata <- new_sample.metadata[,c("Assay", "NewLayer", "NewSample")]
+  colnames(new_sample.metadata) <- c("Assay", "Layer", "Sample")
+
+  # reinsert object elements
+  object@sample.metadata <- new_sample.metadata
+  object@samples <- new_listofSamples
+  object@metadata <- metadata
+
+  return(object)
+}
+
 
 ### Object Methods ####
 
@@ -446,7 +574,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
     subset <- enquo(arg = subset)
   }
   if(!missing(subset)){
-    metadata <- Metadata(GeoMxR1, type = "ROI")
+    metadata <- Metadata(object)
     spatialpoints <- rownames(metadata)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
     object <- subset(object, spatialpoints = spatialpoints)
     return(object)
@@ -542,7 +670,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 #'
 #' @param object a VoltRon Object
 #' @param object_list a list of VoltRon objects
-#' @param sample_name a single sample name if objects are of the same sample
+#' @param samples a single sample name or multiple sample names of the same size as the given VoltRon objects
 #' @param main.assay name of the assay
 #'
 #' @export
@@ -550,7 +678,78 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 #'
 #' @import igraph
 #'
-merge.VoltRon <- function(object, object_list, sample_name = NULL, main.assay = NULL) {
+merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL) {
+
+  # combine all elements
+  if(!is.list(object_list))
+    object_list <- list(object_list)
+  object_list <- c(object, object_list)
+
+  # check if all are VoltRon
+  if(!all(lapply(object_list, class) == "VoltRon"))
+    stop("All arguements have to be of VoltRon class")
+
+  # merge sample metadata
+  sample.metadata_list <- lapply(object_list, function(x) slot(x, name = "sample.metadata"))
+  sample.metadata <- merge.sampleMetadata(sample.metadata_list)
+
+  # merge metadata and sample metadata
+  metadata_list <- lapply(object_list, function(x) slot(x, name = "metadata"))
+  metadata <- merge(metadata_list[[1]], metadata_list[-1])
+
+  # combine samples and rename layers
+  listofSamples <- NULL
+  for(i in 1:length(object_list)){
+    cur_object <- object_list[[i]]@samples
+    listofSamples <- c(listofSamples, cur_object)
+  }
+
+  # merge graphs
+  graph_list <- mapply(function(x,assy) {
+    cur_graph <- slot(x, name = "graph")
+    V(cur_graph)$name <- gsub("Assay[0-9]+$", assy, V(cur_graph)$name)
+    cur_graph
+  }, object_list, rownames(sample.metadata))
+  graph <- igraph::disjoint_union(graph_list[1], graph_list[-1])
+
+
+  # get main assay
+  if(is.null(main.assay))
+      main.assay <- names(sort(table(sample.metadata$Assay), decreasing = TRUE))[1]
+
+  # project
+  project <- slot(object_list[[1]], "project")
+
+  # set VoltRon class
+  object <- new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata,
+                graph = graph, main.assay = main.assay, project = project)
+
+  # change assay names and sample names
+  for(assy in rownames(sample.metadata))
+    vrAssayNames(object[[assy]]) <- assy
+
+  # change sample names
+  if(!is.null(samples))
+    object$Sample <- samples
+
+  # return
+  object
+}
+
+#' Merging VoltRon objects
+#'
+#' Given a VoltRon object, and a list of VoltRon object, merge all.
+#'
+#' @param object a VoltRon Object
+#' @param object_list a list of VoltRon objects
+#' @param sample_name a single sample name if objects are of the same sample
+#' @param main.assay name of the assay
+#'
+#' @export
+#'
+#' @import igraph
+#'
+merge.VoltRon_old <- function(object, object_list, sample_name = NULL, main.assay = NULL) {
 
   # combine all elements
   if(!is.list(object_list))
@@ -590,17 +789,29 @@ merge.VoltRon <- function(object, object_list, sample_name = NULL, main.assay = 
     main.assay <- names(sort(table(sample.metadata$Assay), decreasing = TRUE))[1]
 
   # merge graphs
-  graph_list <- lapply(object_list, function(x) slot(x, name = "graph"))
+  graph_list <- mapply(function(x,assy) {
+    cur_graph <- slot(x, name = "graph")
+    V(cur_graph)$name <- gsub("Assay[0-9]+$", assy, V(cur_graph)$name)
+    cur_graph
+  }, object_list, rownames(sample.metadata))
   graph <- igraph::disjoint_union(graph_list[1], graph_list[-1])
 
   # project
   project <- slot(object_list[[1]], "project")
 
   # set VoltRon class
-  new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata,
+  object <- new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata,
       graph = graph, main.assay = main.assay, project = project)
+
+  # change assay names
+  for(assy in rownames(sample.metadata))
+    vrAssayNames(object[[assy]]) <- assy
+
+  # return
+  object
 }
 
+#' @param assay assay
 #' @param type the assay type: ROI, spot or cell
 #'
 #' @rdname Metadata
@@ -608,11 +819,18 @@ merge.VoltRon <- function(object, object_list, sample_name = NULL, main.assay = 
 #'
 #' @export
 #'
-Metadata.VoltRon <- function(object, type = "cell") {
-  slot(object@metadata, name = type)
+Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
+  if(is.null(type)){
+    type <- unique(vrAssayTypes(object, assay = assay))
+  } else{
+    if(type == "all")
+      return(object@metadata)
+  }
+  return(slot(object@metadata, name = type))
 }
 
 #' @param type the assay type: ROI, spot or cell
+#' @param assay assay
 #' @param value new metadata
 #'
 #' @rdname Metadata
@@ -620,8 +838,27 @@ Metadata.VoltRon <- function(object, type = "cell") {
 #'
 #' @export
 #'
-"Metadata<-.VoltRon" <- function(object, type = "cell", ..., value) {
+"Metadata<-.VoltRon" <- function(object, type = NULL, assay = NULL, ..., value) {
+
+  if(is.null(type)){
+    type <- unique(vrAssayTypes(object, assay = assay))
+  }
+
   slot(object@metadata, name = type) <- value
+
+  if(type == "all"){
+    all_types <- names(slotToList(object@metadata))
+    for(cur_type in all_types){
+      cur_metadata <- slot(object@metadata, name = cur_type)
+      if(nrow(cur_metadata) > 0){
+        slot(object@metadata, name = cur_type) <- value
+      }
+      slot(object@metadata, name = cur_type)
+    }
+  } else {
+    slot(object@metadata, name = type) <- value
+  }
+
   return(object)
 }
 
@@ -788,7 +1025,7 @@ vrSegments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   # get all coordinates
   segts <- NULL
   for(assy in assay_names)
-    segts <- rbind(segts, vrSegments(object[[assy]], reg = reg))
+    segts <- c(segts, vrSegments(object[[assy]], reg = reg))
 
   # return image
   return(segts)
@@ -825,15 +1062,16 @@ vrSegments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   return(object)
 }
 
-#' @param type the key name for the embedding
 #' @param assay assay
+#' @param dims the set of dimensions of the embedding data
+#' @param type the key name for the embedding
 #'
 #' @rdname vrEmbeddings
 #' @method vrEmbeddings VoltRon
 #'
 #' @export
 #'
-vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", ...) {
+vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", dims = 1:30, ...) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -841,7 +1079,7 @@ vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", ...) {
   # get all coordinates
   returndata_list <- list()
   for(i in 1:length(assay_names))
-    returndata_list[[i]] <- vrEmbeddings(object[[assay_names[i]]], type = type, ...)
+    returndata_list[[i]] <- vrEmbeddings(object[[assay_names[i]]], type = type, dims = dims, ...)
 
   return(do.call(rbind, returndata_list))
 }

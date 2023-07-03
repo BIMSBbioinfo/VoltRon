@@ -91,10 +91,12 @@ vrImages.vrLayer <- function(object, ...){
 #' @rdname vrImages
 #' @method vrImages vrAssay
 #'
+#' @importFrom magick image_read
+#'
 #' @export
 #'
 vrImages.vrAssay <- function(object){
-  object@image
+  image_read(object@image)
 }
 
 #' @param value new image
@@ -105,7 +107,13 @@ vrImages.vrAssay <- function(object){
 #' @export
 #'
 "vrImages<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
-  object@image <- value
+  if(class(value) == "raster"){
+    object@image <- value
+  } else if(class(value) == "magick-image"){
+    object@image <- as.raster(value)
+  } else {
+    stop("Please provide either a magick-image or raster class image object!")
+  }
   return(object)
 }
 
@@ -184,7 +192,7 @@ resizeImage.vrAssay <- function(object, size){
 
   # resize images
   size <- paste0(size,"x")
-  object@image <- image_resize(object@image, geometry = size)
+  vrImages(object) <- image_resize(vrImages(object), geometry = size)
 
   # return
   return(object)
@@ -200,52 +208,56 @@ resizeImage.vrAssay <- function(object, size){
 #'
 #' @param dir.path Xenium output folder
 #' @param increase.contrast increase the contrast of the image before writing
-#' @param resolutionLevel the level of resolution within Xenium OME-TIFF image. Default: 7 (553x402)
+#' @param resolution_level the level of resolution within Xenium OME-TIFF image. Default: 7 (553x402)
 #' @param output.path The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.
+#' @param file.name the name of the lowred morphology image. Default: morphology_lowres.tif
 #' @param ... additional parameters passed to the EBImage::writeImage function
 #'
 #' @importFrom RBioFormats read.image
 #' @importFrom EBImage writeImage
 #'
+#' @details
+#' The Xenium morphology_mip.ome.tif file that is found under the outs folder comes is an hyperstack of different resolutions of the DAPI image.
+#' \code{generateXeniumImage} allows extracting only one of these layers by specifying the \code{resolution} parameter (Default: 7 for 553x402) among 1 to 8.
+#' Lower incides of resolutions have higher higher resolutions, e.g. 1 for 35416x25778. Note that you may need to allocate larger memory of Java to import
+#' higher resolution images.
+#'
 #' @export
 #'
-generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolutionLevel = 7, output.path = NULL, ...) {
+generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_level = 7, output.path = NULL, file.name = "morphology_lowres.tif", ...) {
 
   # file path to either Xenium output folder or specified folder
-  file.path <- paste0(dir.path, "/morphology_lowres.tif")
-  output.file <- paste0(output.path, "/morphology_lowres.tif")
+  file.path <- paste0(dir.path, "/", file.name)
+  output.file <- paste0(output.path, "/", file.name)
 
   # check if the file exists in either Xenium output folder, or the specified location
   if(file.exists(file.path) | file.exists(paste0(output.file))){
-    cat("morphology_lowres.tif already exists! \n")
-    return(NULL)
-  }
-
-  # read ome tiff file
-  # options(java.parameters = "-Xmx4g") update 4g if more memory needed, see RBioFormats
-  cat("Loading morphology_mip.ome.tif \n")
-  morphology_image <- RBioFormats::read.image(paste0(dir.path, "/morphology_mip.ome.tif"))
-
-  # pick a resolution level
-  morphology_image_lowres <- morphology_image[[resolutionLevel]]
-  image_info <- morphology_image_lowres@metadata$coreMetadata
-  cat(paste0("Image Resolution (X:", image_info$sizeX, " Y:", image_info$sizeY, ") \n"))
-
-  # increase contrast using EBImage
-  if(increase.contrast) {
-    cat("Increasing Contrast \n")
-    morphology_image_lowres <- (morphology_image_lowres/max(morphology_image_lowres))
-  }
-
-  # write to the same folder
-  cat("Writing Tiff File \n")
-  if(is.null(output.path)){
-    EBImage::writeImage(morphology_image_lowres, file = file.path, ...)
+    message(paste0(file.name, " already exists!"))
   } else {
-    EBImage::writeImage(morphology_image_lowres, file = output.file, ...)
-  }
+    # read ome tiff file
+    # options(java.parameters = "-Xmx4g") update 4g if more memory needed, see RBioFormats
+    message("Loading morphology_mip.ome.tif \n")
+    morphology_image_lowres <- RBioFormats::read.image(paste0(dir.path, "/morphology_mip.ome.tif"), resolution = resolution_level)
 
-  return(NULL)
+    # pick a resolution level
+    image_info <- morphology_image_lowres@metadata$coreMetadata
+    message(paste0("Image Resolution (X:", image_info$sizeX, " Y:", image_info$sizeY, ") \n"))
+
+    # increase contrast using EBImage
+    if(increase.contrast) {
+      message("Increasing Contrast \n")
+      morphology_image_lowres <- (morphology_image_lowres/max(morphology_image_lowres))
+    }
+
+    # write to the same folder
+    message("Writing Tiff File")
+    if(is.null(output.path)){
+      EBImage::writeImage(morphology_image_lowres, file = file.path, ...)
+    } else {
+      EBImage::writeImage(morphology_image_lowres, file = output.file, ...)
+    }
+  }
+  invisible()
 }
 
 #' generateCosMxImage
@@ -343,6 +355,7 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #'
 #' @import shiny
 #' @import shinyjs
+#' @importFrom magick image_scale image_info
 #'
 demuxVoltRon <- function(object, scale_width = 800)
 {
@@ -355,7 +368,7 @@ demuxVoltRon <- function(object, scale_width = 800)
 
   # scale
   imageinfo <- image_info(images[[1]])
-  scale_factor <- imageinfo$width/800
+  scale_factor <- imageinfo$width/scale_width
   scale_width <- paste0(scale_width, "x")
   images <- image_scale(images[[1]], scale_width)
 
@@ -370,6 +383,7 @@ demuxVoltRon <- function(object, scale_width = 800)
 
                     # Side bar
                     sidebarPanel(
+                      tags$style(tableHTML::make_css(list('.well', 'margin', '7%'))),
 
                       # Interface
                       fluidRow(
@@ -492,15 +506,15 @@ demuxVoltRon <- function(object, scale_width = 800)
       ## select points on the image ####
       observeEvent(input$done, {
         if(nrow(selected_corners_list()) > 0){
-          registration <- list()
+          subsets <- list()
           box_list <- selected_corners_list()
           sample_names <- paste0("Sample", 1:length(box_list$box))
           for(i in 1:length(box_list$box)){
             temp <- subset(object, image = box_list$box[i])
             temp$Sample <- sample_names[i]
-            registration[[sample_names[i]]] <- temp
+            subsets[[sample_names[i]]] <- temp
           }
-          stopApp(list(registration = registration, subset_info_list = box_list))
+          stopApp(list(subsets = subsets, subset_info_list = box_list))
         }
       })
     }

@@ -5,18 +5,18 @@
 \title{register_slides}
 \usage{
 registerSpatialData(
-  data_list = NULL,
+  object_list = NULL,
   reference_spatdata = NULL,
   query_spatdata = NULL,
   keypoints = NULL
 )
 }
 \arguments{
-\item{data_list}{a list of VoltRon objects}
+\item{object_list}{a list of VoltRon (or Seurat) objects}
 
-\item{reference_spatdata}{a reference spatial data set, used only if \code{spatial_data_list} is \code{NULL}}
+\item{reference_spatdata}{a reference spatial data set, used only if \code{object_list} is \code{NULL}}
 
-\item{query_spatdata}{a query spatial data set, used only if \code{spatial_data_list} is \code{NULL}}
+\item{query_spatdata}{a query spatial data set, used only if \code{object_list} is \code{NULL}}
 
 \item{keypoints}{keypoints tables for each registration}
 }

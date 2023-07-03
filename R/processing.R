@@ -47,11 +47,11 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
     sizefactor <- matrix(rep(sizefactor, nrow(rawdata)), byrow = T, nrow = nrow(rawdata))
     normdata <- (rawdata/sizefactor)*10000
     normdata <- log(normdata + 1)
-  } else if(method == "QuanNorm") {
+  } else if(method == "Q3Norm") {
     rawdata[rawdata==0] <- 1
     qs <- apply(rawdata, 2, function(x) stats::quantile(x, desiredQuantile))
     normdata <- sweep(rawdata, 2L, qs / exp(mean(log(qs))), FUN = "/")
-  } else if(method == "LogQuanNorm") {
+  } else if(method == "LogQ3Norm") {
     rawdata[rawdata==0] <- 1
     qs <- apply(rawdata, 2, function(x) stats::quantile(x, desiredQuantile))
     normdata <- sweep(rawdata, 2L, qs / exp(mean(log(qs))), FUN = "/")
@@ -140,7 +140,7 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
 #'
 #' @importFrom dplyr full_join
 #'
-getSharedFeatures <- function(object, assay = NULL, n = 3000, ...){
+getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -149,7 +149,11 @@ getSharedFeatures <- function(object, assay = NULL, n = 3000, ...){
   ranks <- NULL
   for(assy in assay_names){
     feature_data <- vrFeatureData(object[[assy]], ...)
-    feature_data$gene <- rownames(feature_data)
+    if(nrow(feature_data) > 0){
+      feature_data$gene <- rownames(feature_data)
+    } else {
+      feature_data <- data.frame(gene = vrFeatures(object[[assy]]), rank = NA)
+    }
     if(is.null(ranks)){
       ranks <- feature_data[,c("gene", "rank")]
     } else {
@@ -160,10 +164,15 @@ getSharedFeatures <- function(object, assay = NULL, n = 3000, ...){
   # get geometric mean of ranks, i.e. rank product statistic
   ranks <- ranks[,!colnames(ranks) %in% "gene", drop = FALSE]
   ranks <- apply(ranks, 1, function(x) exp(mean(log(x))))
+  names(ranks) <- rownames(feature_data)
   ranks <- ranks[ranks != 0]
 
   # get selected features
-  selected_features <- names(head(sort(ranks, decreasing = FALSE), n))
+  if(length(ranks[!is.na(ranks)]) > 0){
+    selected_features <- names(head(sort(ranks, decreasing = FALSE), n))
+  } else {
+    selected_features <- vrFeatures(object, assay = assay)
+  }
 
   # return
   return(selected_features)
@@ -179,6 +188,8 @@ getSharedFeatures <- function(object, assay = NULL, n = 3000, ...){
 #' @rdname getPCA
 #' @method getPCA VoltRon
 #'
+#' @importFrom irlba irlba
+#'
 #' @export
 #'
 getPCA.VoltRon <- function(object, assay = NULL, dims = 30){
@@ -187,17 +198,17 @@ getPCA.VoltRon <- function(object, assay = NULL, dims = 30){
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get shared features and subset
-  features <- getSharedFeatures(object, assay = assay)
-  object <- subset(object, features = features)
+  features <- getVariableFeatures(object, assay = assay)
+  object_subset <- subset(object, features = features)
 
   # get data
-  normdata <- vrData(object, norm = TRUE)
+  normdata <- vrData(object_subset, norm = TRUE)
 
   # scale data before PCA
   scale.data <- apply(normdata, 1, scale)
 
   # get PCA embedding
-  pr.data <- irlba(scale.data, nv=dims, center=colMeans(scale.data))
+  pr.data <- irlba::irlba(scale.data, nv=dims, center=colMeans(scale.data))
   pr.data <- pr.data$u
   colnames(pr.data) <- paste0("PC", 1:dims)
   rownames(pr.data) <- colnames(normdata)
@@ -218,10 +229,10 @@ getPCA.VoltRon <- function(object, assay = NULL, dims = 30){
 #'
 #' @export
 #'
-getUMAP.VoltRon <- function(object, assay = NULL, dims = 30, seed = 1){
+getUMAP.VoltRon <- function(object, assay = NULL, dims = 1:30, seed = 1){
 
   # set Embeddings
-  embedding_data <- vrEmbeddings(object, assay = assay)
+  embedding_data <- vrEmbeddings(object, assay = assay, dims = dims)
 
   # get umap
   umap_data <- umap::umap(embedding_data, preserve.seed = seed)
