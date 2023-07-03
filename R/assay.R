@@ -6,6 +6,7 @@
 
 # Set magick-image as an S4 class
 setOldClass(Classes = c('magick-image'))
+setOldClass(Classes = c('raster'))
 
 ## vrAssay ####
 
@@ -36,7 +37,8 @@ vrAssay <- setClass(
     coords_reg = 'matrix',
     segments = 'list',
     segments_reg = 'list',
-    image = 'magick-image',
+    # image = 'magick-image',
+    image = 'raster',
     params = "list",
     type = "character"
   )
@@ -434,7 +436,7 @@ vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
   if(any(sapply(names(values),is.null)))
     stop("Provided coordinates data does not have cell/spot/ROI names")
 
-  if(!all(names(values) %in% names(coords)))
+  if(!all(names(values) %in% names(segts)))
     stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
 
   if(reg){

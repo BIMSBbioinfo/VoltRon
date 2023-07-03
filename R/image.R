@@ -91,10 +91,12 @@ vrImages.vrLayer <- function(object, ...){
 #' @rdname vrImages
 #' @method vrImages vrAssay
 #'
+#' @importFrom magick image_read
+#'
 #' @export
 #'
 vrImages.vrAssay <- function(object){
-  object@image
+  image_read(object@image)
 }
 
 #' @param value new image
@@ -105,7 +107,13 @@ vrImages.vrAssay <- function(object){
 #' @export
 #'
 "vrImages<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
-  object@image <- value
+  if(class(value) == "raster"){
+    object@image <- value
+  } else if(class(value) == "magick-image"){
+    object@image <- as.raster(value)
+  } else {
+    stop("Please provide either a magick-image or raster class image object!")
+  }
   return(object)
 }
 
@@ -184,7 +192,7 @@ resizeImage.vrAssay <- function(object, size){
 
   # resize images
   size <- paste0(size,"x")
-  object@image <- image_resize(object@image, geometry = size)
+  vrImages(object) <- image_resize(vrImages(object), geometry = size)
 
   # return
   return(object)
@@ -347,6 +355,7 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #'
 #' @import shiny
 #' @import shinyjs
+#' @importFrom magick image_scale image_info
 #'
 demuxVoltRon <- function(object, scale_width = 800)
 {

@@ -258,8 +258,9 @@ setMethod(
 #' @param layer_name the name of the layer
 #' @param project project name
 #'
-#' @export
 #' @import igraph
+#'
+#' @export
 #'
 formVoltRon <- function(data, metadata = NULL, image = NULL,
                              coords, segments = list(),
@@ -330,7 +331,7 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
   }
 
   # create vrAssay
-  Xenium_assay <- new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = image, params = params, type = assay.type)
+  Xenium_assay <- new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = as.raster(image), params = params, type = assay.type)
   listofAssays <- list(Xenium_assay)
   names(listofAssays) <- main.assay
 
@@ -493,10 +494,8 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
   samples_table <- data.frame(sample.metadata, AssayID = rownames(sample.metadata), NewSample = samples)
 
   # check if multiple new sample names are associated with the same section of one sample
-  # check_samples_table <- samples_table %>% group_by(Assay, Sample) %>% summarise(n = dplyr::n_distinct(NewSample))
   check_samples_table <- samples_table %>%
-    group_by(Assay, Sample) %>%
-    mutate(n = dplyr::n_distinct(NewSample)) %>%
+    group_by(Assay, Sample) %>% mutate(n = dplyr::n_distinct(NewSample)) %>%
     select(c("Assay", "Sample", "n")) %>% distinct()
   if(any(check_samples_table$n > 1)){
     message("Overwriting the sample names of assays that were original from a single layer of a sample arent allowed")
@@ -671,7 +670,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 #'
 #' @param object a VoltRon Object
 #' @param object_list a list of VoltRon objects
-#' @param sample_names a single sample name or multiple sample names of the same size as the given VoltRon objects
+#' @param samples a single sample name or multiple sample names of the same size as the given VoltRon objects
 #' @param main.assay name of the assay
 #'
 #' @export
@@ -679,7 +678,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 #'
 #' @import igraph
 #'
-merge.VoltRon <- function(object, object_list, sample_names = NULL, main.assay = NULL) {
+merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL) {
 
   # combine all elements
   if(!is.list(object_list))
@@ -699,26 +698,6 @@ merge.VoltRon <- function(object, object_list, sample_names = NULL, main.assay =
   metadata <- merge(metadata_list[[1]], metadata_list[-1])
 
   # combine samples and rename layers
-  # if(!is.null(sample_names)){
-  #   if(length(sample_names) > 1){
-  #   } else {
-  #     listofLayers <- NULL
-  #     for(i in 1:length(object_list)){
-  #       cur_object <- object_list[[i]]
-  #       listofLayers <- c(listofLayers, cur_object@samples[[1]]@layer)
-  #     }
-  #     names(listofLayers) <- sample.metadata$Layer
-  #     listofSamples <- list(new("vrSample", layer = listofLayers))
-  #     names(listofSamples) <- sample_names
-  #   }
-  # } else {
-  #   listofSamples <- NULL
-  #   for(i in 1:length(object_list)){
-  #     cur_object <- object_list[[i]]@samples
-  #     listofSamples <- c(listofSamples, cur_object)
-  #   }
-  # }
-  #
   listofSamples <- NULL
   for(i in 1:length(object_list)){
     cur_object <- object_list[[i]]@samples
@@ -750,8 +729,8 @@ merge.VoltRon <- function(object, object_list, sample_names = NULL, main.assay =
     vrAssayNames(object[[assy]]) <- assy
 
   # change sample names
-  if(!is.null(sample_names))
-    object$Sample <- sample_names
+  if(!is.null(samples))
+    object$Sample <- samples
 
   # return
   object

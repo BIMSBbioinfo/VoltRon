@@ -15,10 +15,10 @@ navbar:
           href: deconvolution.html
       - text: "Downstream Analysis and Utilities"
         menu:
-        - text: "Cell/Spot Analysis"
-          href: spotanalysis.html
         - text: "ROI Analysis"
           href: roianalysis.html
+        - text: "Cell/Spot Analysis"
+          href: spotanalysis.html
         - text: "Converting VoltRon Objects"
   right:
     - text: "Contact"

@@ -1,11 +1,13 @@
 ---
-title: ""
-output: 
+title: ''
+output:
   html_document:
-    toc: true
+    toc: yes
     toc_float:
-      collapsed: false
-      smooth_scroll: false
+      collapsed: no
+      smooth_scroll: no
+  pdf_document: 
+    toc: yes
 ---
 
 <style>
@@ -34,14 +36,21 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 ## ROI Analysis
 
-VoltRon is capable of analyzing readouts from distinct spatial technologies including segmentation based transciptomics assays that capture a large polygonic regions within a tissue section. VoltRon's interface is capable of recognizing these datasets from these distinct technologies and allows users to use similar functions to analyze these datasets. 
+VoltRon is capable of analyzing readouts from distinct spatial technologies including **segmentation (ROI)-based transciptomics assays** that capture large polygonic regions on tissue sections. VoltRon recognizes such readouts including ones from commercially available tools and allows users to implement a workflow similar to ones conducted on bulk RNA-Seq datasets. In this tutorial, we will analyze morphological images and gene expression profiles provided by the readouts of the [Nanostring's GeoMx Digital Spatial Profiler](https://nanostring.com/products/geomx-digital-spatial-profiler/geomx-dsp-overview/) platform, a high-plex spatial profiling technology which produces segmentation-based protein and RNA assays. 
 
-We now import the GeoMx data, and start analyzing 87 user selected segments to check spatial localization of signals. 
+In this use case, **eight tissue sections** were fitted into the scan area of the slide loaded on the GeoMx DSP instrument. These sections were cut from **control and COVID-19 lung tissues** of donors categorized based on disease durations (acute and prolonged). See [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information.  
+
+We now import the GeoMx data, and start analyzing 87 user selected segments (i.e. region of interests, **ROI**) to check spatial localization of signals. The **importGeoMx** function requires:
+
+* The path to the Digital Count Conversion file, **dcc.path**, and Probe Kit Configuration file, **pkc.file**, which are both provided as the output of the [GeoMx NGS Pipeline](https://emea.illumina.com/products/by-type/informatics-products/basespace-sequence-hub/apps/nanostring-geomxr-ngs-pipeline.html). 
+* The path the to the metadata file, **summarySegment**, and the specific excel sheet that the metadata is found, **summarySegmentSheetName**, the path to the main morphology **image** and the original **ome.tiff** file, all of which are provided by the DSP Control Center. Please see [GeoMx DSP Data Analysis User Manual](https://nanostring.com/support-documents/geomx-dsp-data-analysis-user-manual/) for more information.
 
 ```{r eval = FALSE, class.source="watch-out"}
 # get data
-GeoMxR1 <- importGeoMx("out/",
-                       pkc_file = "out/Hs_R_NGS_WTA_v1.0.pkc",
+library(dplyr)
+library(VoltRon)
+GeoMxR1 <- importGeoMx(dcc.path = "out/", 
+                       pkc.file = "out/Hs_R_NGS_WTA_v1.0.pkc",
                        summarySegment = "out/segmentSummary.xlsx",
                        summarySegmentSheetName = "Segment summary",
                        image = "out/morphology.tiff",
@@ -51,22 +60,57 @@ GeoMxR1 <- importGeoMx("out/",
 
 <br>
 
-### Processing
+### Quality Control
 
-We first filter low count genes by extracting the count matrix and remove all genes whose maximum count across all 87 ROIs less than 10.
+Once the GeoMx data is imported, we can start off with examining key quality control measures and statistics on each segment to investigate each individual ROI such as sequencing saturation and the number of cells (nuclei) within each segment. VoltRon also provides the total number of unique transcripts per ROI and stores in the metadata. 
 
 ```{r eval = FALSE, class.source="watch-out"}
+# visualize values
+vrBarPlot(GeoMxR1_lessfeatures, features = c("Count", "Nuclei.count", "Sequencing.saturation"),
+          x.label = "ROI.name", group.by = "ROI.type") + 
+  theme(axis.text.x = element_text(size = 3))
+```
+
+<img width="100%" height="100%" src="images/roi_barplot.png" class="center">
+
+For measuring the quality of individual ROIs, we can add a new metadata column, called **CountPerNuclei**, to check the average quality of cells per ROI. It seems some number of ROIs with low counts per nuclei also have low sequencing saturation. 
+
+```{r eval = FALSE, class.source="watch-out"}
+# creating new metadata fields
+Metadata(GeoMxR1)$CountPerNuclei <- Metadata(GeoMxR1)$Count/Metadata(GeoMxR1)$Nuclei.count
+
+# visualize values again
+vrBarPlot(GeoMxR1, 
+          features = c("Count", "Nuclei.count", 
+                       "Sequencing.saturation", "CountPerNuclei"),
+          x.label = "ROI.name", group.by = "ROI.type", ncol = 3) + 
+  theme(axis.text.x = element_text(size = 5))
+```
+
+<img width="100%" height="100%" src="images/roi_barplot2.png" class="center">
+
+<br>
+
+### Processing
+
+We can now filter ROIs based on our earlier observation of them having low count per nuclei where some also have low sequencing saturation. 
+
+```{r eval = FALSE, class.source="watch-out"}
+# Filter for count per nuclei
+GeoMxR1 <- subset(GeoMxR1, subset = CountPerNuclei > 500)
+```
+
+We then filter genes with low counts by extracting the count matrix and putting aside all genes whose maximum count across all 87 ROIs are less than 10.
+
+```{r eval = FALSE, class.source="watch-out"}
+# Filter for count per nuclei
+GeoMxR1 <- subset(GeoMxR1, subset = CountPerNuclei > 500)
+
+# filter for low count features
 GeoMxR1_data <- vrData(GeoMxR1, norm = FALSE)
 feature_ind <- apply(GeoMxR1_data, 1, function(x) max(x) > 10)
 selected_features <- vrFeatures(GeoMxR1)[feature_ind]
 GeoMxR1_lessfeatures <- subset(GeoMxR1, features = selected_features)
-```
-
-GeoMx platform provides both nuclei count per ROI as well as the transcipt count which we can measure the depth of each ROI. To measure the quality of each individual ROI, we add a new metadata column which indicates the transcript counts per nuclei. 
-
-```{r eval = FALSE, class.source="watch-out"}
-Metadata(GeoMxR1)$CountPerNuclei <- Metadata(GeoMxR1)$Count/Metadata(GeoMxR1)$Nuclei.count
-GeoMxR1 <- subset(GeoMxR1, subset = CountPerNuclei > 500)
 ```
 
 VoltRon is capable of normalizing data provided by a diverse set of spatial technologies, including the quantile normalization method suggested by the [GeoMx DSP Data Analysis User Manual](https://nanostring.com/support-documents/geomx-dsp-data-analysis-user-manual/) which scales the ROI profiles to the third quartile followed by the geometric mean of all third quartiles multipled to the scaled profile. 
@@ -77,39 +121,46 @@ GeoMxR1 <- normalizeData(GeoMxR1, method = "Q3Norm")
 
 <br>
 
-### Interactive subsetting
+### Interactive Subsetting
 
-Spatially informed genomic technologies heavily depend on image manipulation and computer vision. Hence, VoltRon allows additional built-in operations to manipulate spatial images including operations that provide subsetting assays using the reference image. 
-
-We first resize the morphology image relative to the width for reducing the size. 
+Spatially informed genomic technologies heavily depend on image manipulation as images provide an additional set of information. Hence, VoltRon incorporates several interactive built-in utilities. One such functionality allows manipulating images of VoltRon assays where users can interactively choose subsets of images. However, we first resize the morphology image by providing the width of the new image (thus height will be reduced to preserve the aspect ratio). 
 
 ```{r eval = FALSE, class.source="watch-out"}
 # resizing the image
 GeoMxR1 <- resizeImage(GeoMxR1, size = 4000)
 ```
 
-VoltRon provides mini shiny apps to subsetting spatial points of a VoltRon object by using the image as a reference. Users may fit multiple tissue or organoid sections to a GeoMx scan area, hence we may use the shiny app to demultiplex/separate a single GeoMx experiment into multiple samples. 
+VoltRon provides **a mini Shiny app** for subsetting spatial points of a VoltRon object by using the image as a reference. This app is particularly useful when multiple tissue sections were fitted to a scan area of a slide, such as the one from GeoMx DSP instrument. We use **interactive = TRUE** option in the subset function to call the mini Shiny app, and select bounding boxes of each newly created subset. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 GeoMxR1_subset <- subset(GeoMxR1, interactive = TRUE)
+```
+
+We can now merge the list of subsets, or samples, each associated with one of eight sections. You can provide a list of names for the newly subsetted samples. 
+
+```{r eval = FALSE, class.source="watch-out"}
 GeoMxR1_subset_list <- GeoMxR1_subset$subsets
-GeoMxR1 <- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1])
+samples <- c("prolonged case 4", "acute case 3", "control case 2", 
+             "acute case 1", "acute case 2", "prolonged case 5", 
+             "prolonged case 3", "control case 1")
+GeoMxR1 <- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1], samples = samples)
 ```
 
 <img width="85%" height="85%" src="images/interactivesubset.gif" class="center">
 
 <br>
 
-Users may also save the selected image subsets and reproduce the interactive subsetting operation for later use. 
+You may also save the selected image subsets and reproduce the interactive subsetting operation for later use. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-subset_info_list <- GeoMxR1_subset$subset_info_list
+samples <- c("prolonged case 4", "acute case 3", "control case 2", 
+             "acute case 1", "acute case 2", "prolonged case 5", 
+             "prolonged case 3", "control case 1")
+subset_info_list <- GeoMxR1_subset$subset_info_list[[1]]
 GeoMxR1_subset_list <- list()
-for(i in 1:length(subset_info_list[[1]])){
-  sample_names <- paste0("Sample", 1:length(subset_info_list[[1]]))
-  temp <- subset(GeoMxR1_less, image = subset_info_list[[1]][i])
-  temp$Sample <- sample_names[i]
-  GeoMxR1_subset_list[[i]]  <- temp
+for(i in 1:length(subset_info_list)){
+  GeoMxR1_subset_list[[i]]  <- subset(GeoMxR1, image = subset_info_list[i])
+  GeoMxR1_subset_list[[i]] <- samples[i]
 }
 GeoMxR1 <- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1])
 ```
@@ -118,9 +169,96 @@ GeoMxR1 <- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1])
 
 ### Visualization
 
-We will now select sections of interests from the VoltRon object, and visualize features may anything with bla bla bla.
+We will now select sections of interests from the VoltRon object, and visualize features for each of them. The function **vrSpatialFeaturePlot** detects the number of assays within each VoltRon object and visualizes each feature per each spatial image. A grid of images are visualized either the number of assays or the number of features are larger than 1. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-GeoMxR1_subset <- subset(GeoMxR1, sample = c("Sample1","Sample2"))
-vrSpatialFeaturePlot(GeoMxR1_subset, features = c("CXCL11", "COL1A1"), group.by = "ROIlabel", label = TRUE, pt.size = 8, keep.scale = "all")
+GeoMxR1_subset <- subset(GeoMxR1, sample = c("prolonged case 4","acute case 3"))
+vrSpatialFeaturePlot(GeoMxR1_subset, features = c("CXCL11", "COL1A1"), group.by = "ROI.name", 
+                     label = TRUE, keep.scale = "all", title.size = 15)
 ```
+
+<img width="85%" height="85%" src="images/roi_featureplot.png" class="center">
+
+<br>
+
+### Dimensionality Reduction
+
+We can now process the normalized and demultiplexed samples to map ROIs across all sections onto lower dimensional spaces. The functions **getFeatures** and **getPCA** select features (i.e. genes) of interest from the data matrix across all samples and reduce it to a selected number of principal components. 
+
+```{r eval = FALSE, class.source="watch-out"}
+GeoMxR1 <- getFeatures(GeoMxR1)
+GeoMxR1 <- getPCA(GeoMxR1, dims = 30)
+```
+
+<img width="60%" height="60%" src="images/roi_embeddingplotsingle.png" class="center">
+
+VoltRon provides additional dimensionality reduction techniques such as **UMAP**. 
+
+```{r eval = FALSE, class.source="watch-out"}
+GeoMxR1 <- getUMAP(GeoMxR1)
+```
+
+The function **vrEmbeddingPlot** can be used to visualize embedding spaces (pca, umap, etc.) for any spatial point supported by VoltRon, hence cells, spots and ROI are all visualized using the same set of functions. Here we generate a new metadata column that represents the **disease durations (control, acute and prolonged case)**, then map gene profiles to the first two principal components.
+
+```{r eval = FALSE, class.source="watch-out"}
+Metadata(GeoMxR1)$Condition <- gsub(" [0-9]+$", "", Metadata(GeoMxR1)$Sample)
+vrEmbeddingPlot(GeoMxR1, group.by = c("Condition"), embedding = "pca", pt.size = 3)
+```
+
+<img width="70%" height="70%" src="images/roi_embeddingplotsingle.png" class="center">
+
+Gene expression profiles of ROIs associated with prolonged case sections seem to show some heterogeneity. We now color segments by section (or replicate, **Sample**) to observe the sources of variability. Three replicates of prolonged cases exhibit three different clusters of ROIs.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrEmbeddingPlot(GeoMxR1, group.by = c("Condition"), embedding = "pca", pt.size = 3)
+vrEmbeddingPlot(GeoMxR1, group.by = c("Sample"), embedding = "pca", pt.size = 3)
+vrEmbeddingPlot(GeoMxR1, group.by = c("Sample"), embedding = "umap", pt.size = 3)
+```
+
+<img width="100%" height="100%" src="images/roi_embeddingplot.png" class="center">
+
+### Differential Expression Analysis
+
+VoltRon provides wrapping functions for calling tools and methods from popular differential expression analysis package such as [DESeq2](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-014-0550-8). We utilize **DESeq2** to find differentially expressed genes across disease conditions and select the **control case** as the base group (the condition that is of the baseline expression). 
+
+```{r eval = FALSE, class.source="watch-out"}
+# get DE for all conditions
+library(DESeq2)
+DEresults <- getDiffExp(GeoMxR1, group.by = "Condition", 
+                        group.base = "control case", method = "DESeq2")
+DEresults_sig <- DEresults %>% filter(!is.na(padj)) %>% 
+  filter(padj < 0.05, abs(log2FoldChange) > 1)
+head(DEresults_sig)
+```
+
+</div><pre><code style="font-size: 10px;">        baseMean log2FoldChange     lfcSE     stat       pvalue         padj   gene                               comparison
+COL1A1  48.19791       2.612843 0.3928580 6.650859 2.913866e-11 1.502553e-08 COL1A1 Condition_prolonged.case_vs_control.case
+COL1A2 101.50889       2.201342 0.3985002 5.524068 3.312388e-08 6.506870e-06 COL1A2 Condition_prolonged.case_vs_control.case
+COL5A1  22.14014       1.012716 0.2867603 3.531576 4.130906e-04 1.472226e-02 COL5A1 Condition_prolonged.case_vs_control.case
+C7      43.77944       1.286227 0.3470877 3.705769 2.107501e-04 9.079861e-03     C7 Condition_prolonged.case_vs_control.case
+IGF1    13.71023       1.125923 0.2157737 5.218073 1.807938e-07 2.788110e-05   IGF1 Condition_prolonged.case_vs_control.case
+DRD5    18.04997       1.087036 0.1774495 6.125887 9.017989e-10 3.100121e-07   DRD5 Condition_prolonged.case_vs_control.case</code></pre></div>
+
+<br>
+
+The **vrHeatmapPlot** takes a set of features for any type of spatial point (cells, spots and ROIs) and visualizes scaled data per each feature. The select **highlight.some = TRUE** to annotate features which could be large in size. The heterogeneity across prolonged case segments are highlighted by different set of markers. 
+
+```{r eval = FALSE, class.source="watch-out"}
+# get DE for all conditions
+vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene), 
+              group.by = "Condition", highlight.some = TRUE)
+```
+
+<img width="90%" height="90%" src="images/roi_heatmap.png" class="center">
+
+<br>
+
+Markers of each individual tissue section for each disease duration is shown on the Heatmap. 
+
+```{r eval = FALSE, class.source="watch-out"}
+# get DE for all conditions
+vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene), 
+              group.by = "Sample", highlight.some = TRUE)
+```
+
+<img width="90%" height="90%" src="images/roi_heatmap2.png" class="center">

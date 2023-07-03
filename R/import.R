@@ -226,8 +226,8 @@ import10Xh5 <- function(filename){
 #'
 #' Import GeoMx data
 #'
-#' @param dir.path path to GeoMx run
-#' @param pkc_file path to the pkc file
+#' @param dcc.path path to the folder where the dcc files are found
+#' @param pkc.file path to the pkc file
 #' @param summarySegment the annotation excel file
 #' @param summarySegmentSheetName the sheet name of the excel file, \code{summarySegment}
 #' @param assay_name the assay name, default: GeoMx
@@ -243,19 +243,19 @@ import10Xh5 <- function(filename){
 #'
 #' @export
 #'
-importGeoMx <- function(dir.path, pkc_file, summarySegment, summarySegmentSheetName, assay_name = "GeoMx",
+importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetName, assay_name = "GeoMx",
                         image = NULL, segment_polygons = FALSE, ome.tiff = NULL, ...)
 {
   if (!requireNamespace('GeomxTools'))
     stop("Please install Seurat package for using Seurat objects")
 
   # Get pkc file
-  pkcdata <- GeomxTools::readPKCFile(pkc_file)
+  pkcdata <- GeomxTools::readPKCFile(pkc.file)
 
   # Get dcc file
-  dcc_files <- dir(dir.path, pattern = ".dcc$", full.names = TRUE)
+  dcc_files <- dir(dcc.path, pattern = ".dcc$", full.names = TRUE)
   dcc_files <- dcc_files[!grepl("A01.dcc$", dcc_files)]
-  dcc_filenames <- dir(dir.path, pattern = ".dcc$", full.names = FALSE)
+  dcc_filenames <- dir(dcc.path, pattern = ".dcc$", full.names = FALSE)
   dcc_filenames <- dcc_filenames[!grepl("A01.dcc$", dcc_filenames)]
   dcc_filenames <- gsub(".dcc$", "", dcc_filenames)
   dcc_filenames <- gsub("-", "_", dcc_filenames)
