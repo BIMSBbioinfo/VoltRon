@@ -441,13 +441,17 @@ vrAssayNames.VoltRon <- function(object, assay = NULL){
     assay <- vrMainAssay(object)
 
   # get assay names
-  if(all(assay %in% sample.metadata$Assay)){
-    assay_names <- rownames(sample.metadata)[sample.metadata$Assay %in% assay]
+  if(any(assay == "all")){
+    assay_names <- rownames(sample.metadata)
   } else {
-    if(all(assay %in% rownames(sample.metadata))) {
-      assay_names <- assay
+    if(all(assay %in% sample.metadata$Assay)){
+      assay_names <- rownames(sample.metadata)[sample.metadata$Assay %in% assay]
     } else {
-      stop("Assay name or type is not found in the object")
+      if(all(assay %in% rownames(sample.metadata))) {
+        assay_names <- assay
+      } else {
+        stop("Assay name or type is not found in the object")
+      }
     }
   }
 
@@ -673,10 +677,12 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 #' @param samples a single sample name or multiple sample names of the same size as the given VoltRon objects
 #' @param main.assay name of the assay
 #'
-#' @export
 #' @method merge VoltRon
 #'
 #' @import igraph
+#'
+#' @export
+#'
 #'
 merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL) {
 
@@ -689,9 +695,14 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   if(!all(lapply(object_list, class) == "VoltRon"))
     stop("All arguements have to be of VoltRon class")
 
-  # merge sample metadata
+  # sample metadata list
   sample.metadata_list <- lapply(object_list, function(x) slot(x, name = "sample.metadata"))
-  sample.metadata <- merge.sampleMetadata(sample.metadata_list)
+
+  # old assay names
+  old_assay_names <- do.call(c, lapply(sample.metadata_list, rownames))
+
+  # merge sample metadata
+  sample.metadata <- merge_sampleMetadata(sample.metadata_list)
 
   # merge metadata and sample metadata
   metadata_list <- lapply(object_list, function(x) slot(x, name = "metadata"))
@@ -705,13 +716,7 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   }
 
   # merge graphs
-  graph_list <- mapply(function(x,assy) {
-    cur_graph <- slot(x, name = "graph")
-    V(cur_graph)$name <- gsub("Assay[0-9]+$", assy, V(cur_graph)$name)
-    cur_graph
-  }, object_list, rownames(sample.metadata))
-  graph <- igraph::disjoint_union(graph_list[1], graph_list[-1])
-
+  graph <- merge_graphs(object_list[[1]], object_list[-1])
 
   # get main assay
   if(is.null(main.assay))
@@ -736,80 +741,77 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   object
 }
 
-#' Merging VoltRon objects
-#'
-#' Given a VoltRon object, and a list of VoltRon object, merge all.
-#'
-#' @param object a VoltRon Object
-#' @param object_list a list of VoltRon objects
-#' @param sample_name a single sample name if objects are of the same sample
-#' @param main.assay name of the assay
-#'
-#' @export
-#'
-#' @import igraph
-#'
-merge.VoltRon_old <- function(object, object_list, sample_name = NULL, main.assay = NULL) {
+merge_graphs <- function(object, object_list){
 
   # combine all elements
   if(!is.list(object_list))
     object_list <- list(object_list)
-  object_list <- c(object, object_list)
-
-  # check if all are VoltRon
-  if(!all(lapply(object_list, class) == "VoltRon"))
-     stop("All arguements have to be of VoltRon class")
-
-  # merge metadata and sample metadata
-  metadata_list <- lapply(object_list, function(x) slot(x, name = "metadata"))
-  metadata <- merge(metadata_list[[1]], metadata_list[-1])
-  sample.metadata_list <- lapply(object_list, function(x) slot(x, name = "sample.metadata"))
-  sample.metadata <- merge.sampleMetadata(sample.metadata_list, sample_name = sample_name)
-
-  # combine samples and rename layers
-  if(!is.null(sample_name)){
-    listofLayers <- NULL
-    for(i in 1:length(object_list)){
-      cur_object <- object_list[[i]]
-      listofLayers <- c(listofLayers, cur_object@samples[[1]]@layer)
-    }
-    names(listofLayers) <- sample.metadata$Layer
-    listofSamples <- list(new("vrSample", layer = listofLayers))
-    names(listofSamples) <- sample_name
+  if(class(object) == "VoltRon"){
+    object_list <- c(object, object_list)
   } else {
-    listofSamples <- NULL
-    for(i in 1:length(object_list)){
-      cur_object <- object_list[[i]]@samples
-      listofSamples <- c(listofSamples, cur_object)
-    }
+    object_list <- c(list(object), object_list)
   }
 
-  # get main assay
-  if(is.null(main.assay))
-    main.assay <- names(sort(table(sample.metadata$Assay), decreasing = TRUE))[1]
+  # choose objects
+  obj1 <- object_list[[1]]
+  obj2 <- object_list[[2]]
 
-  # merge graphs
-  graph_list <- mapply(function(x,assy) {
-    cur_graph <- slot(x, name = "graph")
-    V(cur_graph)$name <- gsub("Assay[0-9]+$", assy, V(cur_graph)$name)
-    cur_graph
-  }, object_list, rownames(sample.metadata))
-  graph <- igraph::disjoint_union(graph_list[1], graph_list[-1])
+  # initial combination
+  if(length(object_list) > 2){
+    combined_graph <- merge_graphs(obj1, obj2)
+    for(i in 3:(length(object_list))){
+      combined_graph <- merge_graphs(combined_graph, object_list[[i]])
+    }
+  } else {
+    updateobjects <- updateGraphAssay(obj1, obj2)
+    obj1 <- updateobjects$object1
+    obj2 <- updateobjects$object2
+    combined_graph <- igraph::disjoint_union(obj1, obj2)
+  }
 
-  # project
-  project <- slot(object_list[[1]], "project")
+  return(combined_graph)
+}
 
-  # set VoltRon class
-  object <- new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata,
-      graph = graph, main.assay = main.assay, project = project)
+updateGraphAssay <- function(object1, object2){
 
-  # change assay names
-  for(assy in rownames(sample.metadata))
-    vrAssayNames(object[[assy]]) <- assy
+  if(class(object1) == "VoltRon")
+    object1 <- vrGraph(object1, assay = "all")
+  if(class(object2) == "VoltRon")
+    object2 <- vrGraph(object2, assay = "all")
+
+  # get assay types
+  assaytype <- unique(stringr::str_extract(V(object1)$name, "Assay[0-9]+$"))
+  assaytype <- assaytype[order(nchar(assaytype), assaytype)]
+
+  # replace assay names
+  replacement <- paste0("Assay", 1:length(assaytype))
+  vertex_names <- V(object1)$name
+  temp <- vertex_names
+  for(i in 1:length(assaytype))
+    temp[grepl(paste0(assaytype[i],"$"), vertex_names)] <- gsub(paste0(assaytype[i],"$"), replacement[i],
+                                                                vertex_names[grepl(paste0(assaytype[i],"$"), vertex_names)])
+  V(object1)$name <- temp
+
+  # get assay types
+  assaytype <- unique(stringr::str_extract(V(object2)$name, "Assay[0-9]+$"))
+  assaytype <- assaytype[order(nchar(assaytype), assaytype)]
+
+  # replace assay names
+  replacement <- paste0("Assay", (length(replacement)+1):(length(replacement) + length(assaytype)))
+  vertex_names <- V(object2)$name
+  temp <- vertex_names
+  for(i in 1:length(assaytype))
+    temp[grepl(paste0(assaytype[i],"$"), vertex_names)] <- gsub(paste0(assaytype[i],"$"), replacement[i],
+                                                                vertex_names[grepl(paste0(assaytype[i],"$"), vertex_names)])
+  V(object2)$name <- temp
 
   # return
-  object
+  return(list(object1 = object1, object2 = object2))
 }
+
+
+
+
 
 #' @param assay assay
 #' @param type the assay type: ROI, spot or cell
@@ -932,11 +934,23 @@ vrData.VoltRon <- function(object, assay = NULL, ...) {
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get all coordinates
-  returndata_list <- list()
-  for(i in 1:length(assay_names))
-    returndata_list[[i]] <- vrData(object[[assay_names[i]]], ...)
+  data <- NULL
+  for(i in 1:length(assay_names)){
+    cur_data <- vrData(object[[assay_names[i]]], ...)
+    cur_data <- data.frame(cur_data, feature.ID = rownames(cur_data), check.names = FALSE)
+    if(i == 1){
+      data <- cur_data
+    } else {
+      data <- merge(data, cur_data, by = "feature.ID", all = TRUE)
+    }
+  }
+  rownames(data) <- data$feature.ID
+  data <- data[,!colnames(data) %in% "feature.ID"]
+  data[is.na(data)] <- 0
+  data <- as.matrix(data)
+  colnames(data) <- gsub("\\.","-", colnames(data))
 
-  return(do.call(cbind, returndata_list))
+  return(data)
 }
 
 #' @param assay assay

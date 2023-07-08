@@ -148,9 +148,13 @@ subset.vrMetadata <- function(metadata, subset, samples = NULL, assays = NULL, s
       roi.metadata <- metadata@ROI[metadata@ROI$Assay %in% assays, ]
     }
   } else if(!is.null(spatialpoints)){
-    cell.metadata <- metadata@cell[rownames(metadata@cell) %in% spatialpoints, ]
-    spot.metadata <- metadata@spot[rownames(metadata@spot) %in% spatialpoints, ]
-    roi.metadata <- metadata@ROI[rownames(metadata@ROI) %in% spatialpoints, ]
+    if(all(spatialpoints %in% vrSpatialPoints(metadata))){
+      cell.metadata <- metadata@cell[rownames(metadata@cell) %in% spatialpoints, ]
+      spot.metadata <- metadata@spot[rownames(metadata@spot) %in% spatialpoints, ]
+      roi.metadata <- metadata@ROI[rownames(metadata@ROI) %in% spatialpoints, ]
+    } else {
+      stop("Some spatial points are not found in the metadata and the object")
+    }
   } else {
     stop(paste0("No assay or sample name was provided!"))
   }
@@ -172,14 +176,18 @@ subset.sampleMetadata <- function(metadata, samples = NULL, assays = NULL) {
 
   # subseting on samples, layers and assays
   if(!is.null(samples)){
-    metadata <- metadata[metadata$Sample %in% samples,]
+    if(all(samples %in% metadata$Sample)){
+      metadata <- metadata[metadata$Sample %in% samples,]
+    } else {
+      stop("Some samples with the names '", paste(samples, collapse = ", "), "' are not found in the object")
+    }
   } else if(!is.null(assays)) {
     if(all(assays %in% rownames(metadata))){
       metadata <- metadata[assays,]
     } else if(all(assays %in% metadata$Assay)){
       metadata <- metadata[metadata$Assay %in% assays,]
     } else {
-      stop("No assay with the names or types '", paste(assays, collapse = ", "), "' found in the object")
+      stop("Some assay with the names or types '", paste(assays, collapse = ", "), "' are not found in the object")
     }
   }
   metadata
@@ -237,7 +245,7 @@ merge.vrMetadata <- function(object, object_list) {
 #'
 #' @export
 #'
-merge.sampleMetadata <- function(metadata_list) {
+merge_sampleMetadata <- function(metadata_list) {
 
   sample_names <- NULL
   sample.metadata <- do.call(rbind, metadata_list)
@@ -285,13 +293,13 @@ addAssay.vrMetadata <- function(object, assay, assay_name, sample = "Sample1", l
   # get metadata and other info
   metadata <- slot(object, name = assay.type)
   data <- vrData(assay, norm = FALSE)
-  spatialpoints <- vrSpatialPoints(assay)
+  spatialpoints <- vrSpatialPoints(object)
 
   # add new assay
   assay_ids <- stringr::str_extract(spatialpoints, "Assay[0-9]+")
   assay_ids <- as.numeric(gsub("Assay", "", assay_ids))
   assay_id <- paste0("Assay", max(assay_ids)+1)
-  entityID <- gsub("Assay[0-9]+$", assay_id, spatialpoints)
+  entityID <- gsub("Assay[0-9]+$", assay_id, vrSpatialPoints(assay))
 
   # metadata
   assay_metadata <- data.frame(Count = colSums(data),
@@ -329,9 +337,11 @@ updateMetadataAssay <- function(object1, object2){
   # replace assay names
   replacement <- paste0("Assay", 1:length(assaytype))
   object1 <- lapply(object_list, function(obj) {
-    rownames(obj) <- stringi::stri_replace_all_regex(rownames(obj),
-                                                     pattern=paste0(assaytype,"$"),
-                                                     replacement=replacement)
+    temp <- rownames(obj)
+    for(i in 1:length(assaytype))
+      temp[grepl(paste0(assaytype[i],"$"), rownames(obj))] <- gsub(paste0(assaytype[i],"$"), replacement[i],
+                                                                   rownames(obj)[grepl(paste0(assaytype[i],"$"), rownames(obj))])
+    rownames(obj) <- temp
     obj
   })
   object1 <- new("vrMetadata", cell = object1$cell, spot = object1$spot, ROI = object1$ROI)
@@ -346,9 +356,11 @@ updateMetadataAssay <- function(object1, object2){
   # replace assay names
   replacement <- paste0("Assay", (length(replacement)+1):(length(replacement) + length(assaytype)))
   object2 <- lapply(object_list, function(obj) {
-    rownames(obj) <- stringi::stri_replace_all_regex(rownames(obj),
-                                                     pattern=paste0(assaytype,"$"),
-                                                     replacement=replacement)
+    temp <- rownames(obj)
+    for(i in 1:length(assaytype))
+      temp[grepl(paste0(assaytype[i],"$"), rownames(obj))] <- gsub(paste0(assaytype[i],"$"), replacement[i],
+                                                                   rownames(obj)[grepl(paste0(assaytype[i],"$"), rownames(obj))])
+    rownames(obj) <- temp
     obj
   })
   object2 <- new("vrMetadata", cell = object2$cell, spot = object2$spot, ROI = object2$ROI)

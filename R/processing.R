@@ -201,6 +201,12 @@ getPCA.VoltRon <- function(object, assay = NULL, dims = 30){
   features <- getVariableFeatures(object, assay = assay)
   object_subset <- subset(object, features = features)
 
+  # adjust extraction features length
+  if(dims > length(features)){
+    message("Requested more PC dimensions than existing features: dims = length(features) now!")
+    dims <- length(features)
+  }
+
   # get data
   normdata <- vrData(object_subset, norm = TRUE)
 
@@ -229,13 +235,20 @@ getPCA.VoltRon <- function(object, assay = NULL, dims = 30){
 #'
 #' @export
 #'
-getUMAP.VoltRon <- function(object, assay = NULL, dims = 1:30, seed = 1){
+getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30, seed = 1){
 
-  # set Embeddings
-  embedding_data <- vrEmbeddings(object, assay = assay, dims = dims)
+  # get data
+  if(data.type %in% c("raw", "norm")){
+    data <- vrData(object, assay = assay, norm = (data.type == "norm"))
+    data <- t(data)
+  } else if(data.type == "pca") {
+    data <- vrEmbeddings(object, assay = assay, type = data.type, dims = dims)
+  } else {
+    stop("Please provide a data type from one of three choices: raw, norm and pca")
+  }
 
   # get umap
-  umap_data <- umap::umap(embedding_data, preserve.seed = seed)
+  umap_data <- umap::umap(data, preserve.seed = seed)
   umap_data <- umap_data$layout
   colnames(umap_data) <- c("x", "y")
   vrEmbeddings(object, type = "umap") <- umap_data

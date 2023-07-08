@@ -7,7 +7,7 @@
 \usage{
 getUMAP(object, ...)
 
-\method{getUMAP}{VoltRon}(object, assay = NULL, dims = 1:30, seed = 1)
+\method{getUMAP}{VoltRon}(object, assay = NULL, data.type = "pca", dims = 1:30, seed = 1)
 }
 \arguments{
 \item{object}{An object}

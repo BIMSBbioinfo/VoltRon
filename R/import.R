@@ -205,7 +205,7 @@ import10Xh5 <- function(filename){
                              x = as.numeric(mat), dims = c(length(features), length(cells)),
                              repr = "T")
   colnames(sparse.mat) <- cells
-  rownames(sparse.mat) <- features
+  rownames(sparse.mat) <- make.unique(features)
 
   # separate feature types
   matrix.10X <- list()

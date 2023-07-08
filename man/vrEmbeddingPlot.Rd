@@ -7,12 +7,12 @@
 vrEmbeddingPlot(
   object,
   embedding = "pca",
-  group.by = "label",
+  group.by = "Sample",
   assay = NULL,
   assay.type = NULL,
   ncol = 2,
   nrow = NULL,
-  font.size = 2,
+  font.size = 5,
   pt.size = 1,
   label = FALSE,
   common.legend = TRUE,
@@ -34,7 +34,7 @@ vrEmbeddingPlot(
 
 \item{nrow}{row wise number of plots, for \code{ggarrange}}
 
-\item{font.size}{font sizes}
+\item{font.size}{font size of labels, if label is TRUE}
 
 \item{pt.size}{point size}
 

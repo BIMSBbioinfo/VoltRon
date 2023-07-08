@@ -13,7 +13,7 @@ getNeighbors(object, ...)
   data.type = "pca",
   dims = 1:30,
   k = 10,
-  method = "SNN",
+  method = "kNN",
   ...
 )
 }
