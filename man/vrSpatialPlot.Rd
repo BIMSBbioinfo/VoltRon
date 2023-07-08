@@ -6,7 +6,7 @@
 \usage{
 vrSpatialPlot(
   object,
-  group.by = "label",
+  group.by = "Sample",
   assay = NULL,
   assay.type = NULL,
   ncol = 2,

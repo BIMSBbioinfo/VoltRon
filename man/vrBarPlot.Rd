@@ -9,7 +9,7 @@ vrBarPlot(
   features = NULL,
   assay = NULL,
   x.label = "ROI.name",
-  group.by = "ROI.name",
+  group.by = "Sample",
   norm = TRUE,
   ncol = 2,
   nrow = NULL,

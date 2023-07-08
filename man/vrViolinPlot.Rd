@@ -9,7 +9,7 @@ vrViolinPlot(
   features = NULL,
   assay = NULL,
   assay.type = NULL,
-  group.by = "clusters",
+  group.by = "Sample",
   norm = TRUE,
   ncol = 2,
   nrow = NULL,

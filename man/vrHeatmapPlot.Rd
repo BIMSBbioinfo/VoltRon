@@ -13,7 +13,10 @@ vrHeatmapPlot(
   norm = TRUE,
   scaled = TRUE,
   show_row_names = NULL,
+  show_heatmap_legend = FALSE,
   outlier.quantile = 0.99,
+  highlight.some = FALSE,
+  seed = 1,
   ...
 )
 }
@@ -34,7 +37,13 @@ vrHeatmapPlot(
 
 \item{show_row_names}{if TRUE, row names of the heatmap will be shown}
 
+\item{show_heatmap_legend}{if TRUE, the heatmap legend is shown}
+
 \item{outlier.quantile}{quantile for detecting outliers whose values are set to the quantile, change to lower values to adjust large number of outliers, default: 0.99}
+
+\item{highlight.some}{if TRUE, some rows will be showed at random, reproducible by \code{seed} arguement}
+
+\item{seed}{the seed for \code{set.seed}}
 
 \item{...}{additional parameters passed to \code{getVariableFeatures}}
 }

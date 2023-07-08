@@ -7,7 +7,7 @@
 vrSpatialPlotSingle(
   assay,
   metadata,
-  group.by = "label",
+  group.by = "Sample",
   font.size = 2,
   pt.size = 2,
   alpha = 0.6,

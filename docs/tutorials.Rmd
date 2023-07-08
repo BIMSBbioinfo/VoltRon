@@ -97,7 +97,7 @@ In addition, VoltRon integrates with ST spot deconvolution methods such as RCTD 
    <td> 
       <p class ="tutorial"> Converting VoltRon Objects </p>
       <img width="270" height="250" src="images/conversion.png" class="center">
-      <p style = "margin: 3%"> Converting VoltRon objects into Seurat, Giotto, squidpy (anndata) etc. </p>
+      <p style = "margin: 3%"> Converting VoltRon objects into Seurat, Giotto, squidpy (anndata) etc. <strong> (Under Development) </strong></p>
    </td>
   </tr>
 </tbody>

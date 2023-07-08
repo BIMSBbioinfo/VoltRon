@@ -19,6 +19,7 @@ Collate:
     'generics.R'
     'clustering.R'
     'deconvolution.R'
+    'differentialexpression.R'
     'image.R'
     'import.R'
     'integration.R'

@@ -32,11 +32,13 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 <br>
 
-# ROI/Spot Deconvolution and Niche Clustering
+# Spot Deconvolution and Niche Clustering
 
-Essentially, Regions of Interests (ROIs) and Spots include often some arbitrary of cells that are of multiple types. RNA Deconvolution is then incorporated to estimate the percentage/abundance of these cell types within each spot/ROI given a reference scRNAseq dataset. 
+Essentially, Spots in transcriptomics assays such as [Visium](https://www.10xgenomics.com/products/spatial-gene-expression) include often some arbitrary number of cells that are of multiple types. RNA Deconvolution is then incorporated to estimate the percentage/abundance of these cell types within each spot/ROI given a reference scRNAseq dataset. 
 
-VoltRon includes wrapper commands for using popular RNA deconvolution methods such as [RCTD](https://www.nature.com/articles/s41587-021-00830-w) (**spot**), [SPOTlight](https://academic.oup.com/nar/article/49/9/e50/6129341) (**spot**) and [MuSiC](https://www.nature.com/articles/s41467-018-08023-x) (**ROI**), and return estimated abundances as additional assays within each layer. These novel assays then can be further processed and used for clustering to detect niches across multiple datatypes.  
+VoltRon includes wrapper commands for using popular RNA deconvolution methods such as [RCTD](https://www.nature.com/articles/s41587-021-00830-w) (**spot**) and return estimated abundances as additional assays within each layer. These novel assays then can be further processed and used for clustering to detect niches across multiple datatypes.
+
+<!-- VoltRon includes wrapper commands for using popular RNA deconvolution methods such as [RCTD](https://www.nature.com/articles/s41587-021-00830-w) (**spot**), [SPOTlight](https://academic.oup.com/nar/article/49/9/e50/6129341) (**spot**) and [MuSiC](https://www.nature.com/articles/s41467-018-08023-x) (**ROI**), and return estimated abundances as additional assays within each layer. These novel assays then can be further processed and used for clustering to detect niches across multiple datatypes.   -->
 
 <br>
 
@@ -50,11 +52,9 @@ library(VoltRon)
 # import Visium data
 Vis_A1 <- importVisium("hColon_N_A1/", sample_name = "Vis_A1")
 Vis_B1 <- ImportVisium("hColon_T_B1/", sample_name = "Vis_B1")
-Vis_C1 <- ImportVisium("hColon_N_C1/", sample_name = "Vis_C1")
-Vis_D1 <- ImportVisium("hColon_T_D1/", sample_name = "Vis_D1")
 
 # merge datasets
-Vis_CRC <- list(Vis_A1, Vis_B1, Vis_C1, Vis_D1)
+Vis_CRC <- list(Vis_A1, Vis_B1)
 Vis_CRC <- merge(Vis_CRC[[1]], Vis_CRC[-1])
 vrSpatialFeaturePlot(Vis_CRC, features = "Count", crop = TRUE, alpha = 1, ncol = 2)
 ```
@@ -65,14 +65,10 @@ Vis_A1:
   Layers: Section1 
 Vis_B1: 
   Layers: Section1 
-Vis_C1: 
-  Layers: Section1 
-Vis_D1: 
-  Layers: Section1 
 Assays: Visium(Main) 
 ```
 
-<img width="65%" height="65%" src="images/decon_first_plot.png" class="center">
+<img width="90%" height="90%" src="images/decon_first_plot.png" class="center">
 
 <br>
 
@@ -89,7 +85,8 @@ meta.data <- read.table("GSE166555_meta_data.tsv", header = T, sep = "\t", na.st
 scdata <- Seurat::NormalizeData(scdata, assay = "RNA")
 
 # Visualize
-gtype <- DimPlot(scdata, reduction = "umap", label = T, group.by = "agg_minorcelltype") + NoLegend()
+gtype <- DimPlot(scdata, reduction = "umap", label = T, group.by = "agg_minorcelltype") + 
+  NoLegend()
 gsample <- DimPlot(scdata, reduction = "umap", label = F, group.by = "SampleType")
 gsample | gtype
 ```
@@ -102,13 +99,32 @@ gsample | gtype
 
 In order to integrate the scRNA data and the Visium data sets within the VoltRon objects, we will use **RCTD** algorithm which is accessible with the [spacexr](https://github.com/dmcable/spacexr) package. For all layers with a Visium data, an additional assay within the same layer with **_decon** postfix will be created. 
 
+It is important at this stage to deconvolute the spots with phenotypically best suitable single cell reference. Hence, we subset and create aditional Seurat objects for each individual type of Visium assay. 
+
 ```{r eval = FALSE, class.source="watch-out"}
 # libraries for RCTD algorithm
 library(spacexr)
 
-# Spot Deconvolution
-vrMainAssay(Vis_CRC) <- "Visium"
-Vis_CRC <- getDeconvolution(Vis_CRC, sc.object = scdata_subset_tumor, sc.cluster = "minorcelltype", max_cores = 6)
+# Deconvolute normal tissues
+scdata_subset_normal <- scdata[,scdata$SampleType == "Normal"]
+scdata_subset_normal <- scdata_subset_normal[,!scdata_subset_normal$agg_minorcelltype %in% c("TC", "CAFs", "Pericytes")]
+Vis_CRC_normal <- subset(Vis_CRC, samples = "Vis_A1")
+Vis_CRC_normal <- getDeconvolution(Vis_CRC_normal, sc.object = scdata_subset_normal, 
+                                   sc.cluster = "agg_minorcelltype", max_cores = 6)
+
+# Deconvolute tumor tissues
+scdata_subset_tumor <- scdata[,scdata$SampleType == "Tumor"]
+Vis_CRC_tumor <- subset(Vis_CRC, samples = "Vis_B1")
+Vis_CRC_tumor <- getDeconvolution(Vis_CRC_tumor, sc.object = scdata_subset_tumor, 
+                                  sc.cluster = "agg_minorcelltype", max_cores = 6)
+```
+
+We now merge two batches of Visium data sets that were deconvoluted separately.
+
+```{r eval = FALSE, class.source="watch-out"}
+# merge samples
+Vis_CRC_list <- list(Vis_CRC_normal, Vis_CRC_tumor)
+Vis_CRC <- merge(Vis_CRC_list[[1]], Vis_CRC_list[-1])
 Vis_CRC
 ```
 
@@ -118,56 +134,97 @@ Vis_A1:
   Layers: Section1 
 Vis_B1: 
   Layers: Section1 
-Vis_C1: 
-  Layers: Section1 
-Vis_D1: 
-  Layers: Section1 
 Assays: Visium(Main) Visium_decon
 ```
 
 We can now switch to the **Visium_decon** assays where features are now cell types from the scRNA reference and the data values are cell types percentages in each spot. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-# Visualize
 vrMainAssay(Vis_CRC) <- "Visium_decon"
+vrFeatures(Vis_CRC)
+```
+
+```
+ [1] "B_cells"     "CB_FBs"      "CCL_FBs"     "CD8_T"       "Endothelial" "Ent_Prog"   
+ [7] "Enterocytes" "GC_B_cells"  "Glia"        "Goblet"      "Imma_Gob"    "Mast"       
+[13] "Monocyte"    "MyoFBs"      "Plasma_K"    "Plasma_L"    "Stem"        "StemTA"     
+[19] "Tconv"       "Treg"        "Tuft"        "UC_FBs"      "CAFs"        "Pericytes"  
+[25] "TC"         
+```
+
+These features (i.e. cell type abundances) can be visualized like any other feature. 
+
+```{r eval = FALSE, class.source="watch-out"}
 vrSpatialFeaturePlot(Vis_CRC, features = "MyoFBs", crop = TRUE, ncol = 5, alpha = 1)
 ```
+
+<img width="90%" height="90%" src="images/decon_spatialfeature_plot.png" class="center">
 
 <br>
 
 ## Niche Clustering 
 
-After creating the new cell type abundance assays, we can now process them for clustering. Cell type abundance can be realized as [compositional data](https://en.wikipedia.org/wiki/Compositional_data), hence we incorporate **centred log ratio (CLR)** transformation for normalizing these relative abundances.
+Relative cell type abundances that are learned by RCTD and stored within VoltRon can now be used to cluster spots. These groups or clusters of spots now can be realized as **niches**, regions within tissue sections that have a distinct cell type composition compared to other groups. 
+
+We will now normalize and process relative cell type abundances to learn these niche clusters. Cell type abundance can be realized as [compositional data](https://en.wikipedia.org/wiki/Compositional_data), hence we incorporate **centred log ratio (CLR)** transformation for normalizing these relative abundances.
 
 ```{r eval = FALSE, class.source="watch-out"}
-# process
-vrMainAssay(Vis_CRC) <- "Visium_decon"
 Vis_CRC <- normalizeData(Vis_CRC, method = "CLR")
 ```
 
-<br>
+The CLR normalized assay have only 25 features, each representing a cell type from the single cell reference data. Hence, we can **directly calculate UMAP reductions from this feature set** without relying on a prior dimensionality reduction such as PCA.
 
-Using normalized cell type abundances, we generate k-nearest neighbor graphs and cluster the graph using leiden method.  
+VoltRon is also capable of calculating the UMAP reduction from normalized data slots. Hence, we build a UMAP reduction from CLR data. However, UMAP will always be calculated from a PCA reduction by default (if a PCA embedding is found in the object). 
 
 ```{r eval = FALSE, class.source="watch-out"}
-# assay
-vrMainAssay(Vis_CRC) <- "Visium_decon"
+Vis_CRC <- getUMAP(Vis_CRC, assay = "Visium_decon", data.type = "norm")
+vrEmbeddingPlot(Vis_CRC, embedding = "umap", group.by = "Sample")
+```
 
+<img width="60%" height="60%" src="images/decon_embedding_sample.png" class="center">
+
+<br>
+
+Using normalized cell type abundances, we can now generate k-nearest neighbor graphs and cluster the graph using leiden method.  
+
+```{r eval = FALSE, class.source="watch-out"}
 # get neighbors
 Vis_CRC <- getNeighbors(Vis_CRC, data.type = "norm", assay = "Visium_decon")
 
 # get clustering
-Vis_CRC <- getClusters(Vis_CRC, resolution = 0.4, label = "Decon_clusters")
-
-# visualize
-vrSpatialFeaturePlot(Vis_CRC, group.by = "Decon_clusters", crop = TRUE, alpha = 1)
+Vis_CRC <- getClusters(Vis_CRC, resolution = 0.6, label = "Decon_clusters")
 ```
+
+## Visualization
+
+VoltRon incorporates distinct plotting functions for, e.g. embeddings, coordinates, heatmap and even barplots. We can now map the clusters we have generated on the UMAP embeddings. 
+
+```{r eval = FALSE, class.source="watch-out"}
+# visualize 
+g1 <- vrEmbeddingPlot(Vis_CRC, embedding = "umap", group.by = "Sample")
+g2 <- vrEmbeddingPlot(Vis_CRC, embedding = "umap", group.by = "clusters")
+g1 | g2
+```
+
+<img width="100%" height="100%" src="images/decon_embedding_clusters.png" class="center">
 
 <br>
 
-## Visualization and Comparison
+We use **vrHeatmapPlot** to investigate relative cell type abundances across clusters. We can map these clusters on the tissue and investigate the locations of spots that are of similar niches. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrMainAssay(Vis_CRC) <- "Visium_decon"
-vrHeatmapPlot(Vis_CRC, features = vrFeatures(Vis_CRC), group.by = "Decon_clusters")
+vrSpatialPlot(Vis_CRC, group.by = "clusters", crop = TRUE, alpha = 1)
+vrHeatmapPlot(Vis_CRC, features = vrFeatures(Vis_CRC_merged), group.by = "clusters", 
+              show_row_names = T, show_heatmap_legend = T)
 ```
+
+<!-- <table> -->
+<!-- <tr> -->
+<!--   <td width="53%"><img width="100%" height="100%" src="images/decon_spatial_clusters.png" class="center"> </td> -->
+<!--   <td width="46%"><img width="100%" height="100%" src="images/decon_heatmap_clusters.png" class="center"> </td> -->
+<!-- </tr> -->
+<!-- </table> -->
+
+<img width="80%" height="80%" src="images/decon_spatial_clusters.png" class="center">
+<img width="80%" height="80%" src="images/decon_heatmap_clusters.png" class="center">
+<br>

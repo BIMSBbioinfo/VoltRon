@@ -5,8 +5,8 @@
 \title{importGeoMx}
 \usage{
 importGeoMx(
-  dir.path,
-  pkc_file,
+  dcc.path,
+  pkc.file,
   summarySegment,
   summarySegmentSheetName,
   assay_name = "GeoMx",
@@ -17,9 +17,9 @@ importGeoMx(
 )
 }
 \arguments{
-\item{dir.path}{path to GeoMx run}
+\item{dcc.path}{path to the folder where the dcc files are found}
 
-\item{pkc_file}{path to the pkc file}
+\item{pkc.file}{path to the pkc file}
 
 \item{summarySegment}{the annotation excel file}
 
