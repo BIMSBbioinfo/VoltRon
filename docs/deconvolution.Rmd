@@ -1,5 +1,5 @@
 ---
-title: ""
+title: "Niche Clustering"
 output: 
   html_document:
     toc: true
@@ -9,6 +9,9 @@ output:
 ---
 
 <style>
+.title{
+  display: none;
+}
 body {
   text-align: justify
 }

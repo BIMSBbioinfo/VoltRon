@@ -1,5 +1,5 @@
 ---
-title: ""
+title: "Image Registration"
 output: 
   html_document:
     toc: true
@@ -9,6 +9,9 @@ output:
 ---
 
 <style>
+.title{
+  display: none;
+}
 body {
   text-align: justify
 }
@@ -134,6 +137,22 @@ Assays: Xenium (Main) Visium
 
 <br>
 
+### Data/Label Transfer
+
+The combined Visium and Xenium datasets in the shape of a VoltRon object can be used to transfer information across layers and assays. This is accomplished by aggregating and summarizing, for example, gene counts of cells from the Xenium assay aligned with each spots of Visium assay. 
+
+Either labels or cell types can be summarized to generate; 
+
+* pseudo cell type abundance assays or
+* pseudo gene expression assays 
+
+given the same spot orientation of the adjacent Visium layer **(Under Development)**.
+
+```{r class.source="watch-out", eval = FALSE}
+```
+
+<br>
+
 ## Alignment of DLPFC Visium
 
 In the next use case, we will align H&E images associated with Visium data generated from tissue block sections of adult humans with postmortem dorsolateral prefrontal cortex (DLPFC). Two pairs of adjacent sections, that are 10 $\mu$m away from each other, was obtained from the tissue block of the third donor. Hence, we align each pair individually. 
@@ -171,6 +190,7 @@ DLPFC_list <- list(DLPFC_3, DLPFC_4)
 reg3and4 <- registerSpatialData(data_list = DLPFC_list)
 ```
 
+<br>
 
 ### Combine VoltRon object
 
@@ -188,6 +208,13 @@ VoltRon Object
   Layers: Section1 Section2 
 Assays: Visium (Main) 
 ```
+
+<br>
+
+### 3D Spot Clustering 
+
+Aligning spots along the z-stack allows us to cluster these spots using both the gene expression similarities and spatial adjacency (both along the x-y direction and in the z direction). We first generate a spatial neighborhood graph and use this graph along with the gene expression neighborhood graph **(Under Development)**.
+
 
 
 

@@ -389,14 +389,36 @@ vrCoordinates.vrAssay <- function(object, reg = FALSE, ...) {
     stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
 
   # stop if the colnames are not matching
-  if(!all(colnames(values) %in% colnames(coords)))
-    stop("Cant overwrite coordinates, only x or y coordinates should be provided!")
+  # if(!all(colnames(values) %in% colnames(coords)))
+  #   stop("Cant overwrite coordinates, only x or y coordinates should be provided!")
+
+  # stop if the colnames there are more than two columns
+  if(length(colnames(value)) != 2) {
+    stop("Please make sure that the coordinates matrix have only two columns: for x and y coordinates")
+  } else {
+    colnames(value) <- c("x", "y")
+  }
 
   if(reg){
     slot(object = object, name = 'coords_reg') <- value
   } else{
     slot(object = object, name = 'coords') <- value
   }
+  return(object)
+}
+
+#' @rdname flipCoords
+#' @method flipCoords vrAssay
+#'
+#' @importFrom magick image_info
+#'
+#' @export
+#'
+flipCoords.vrAssay <- function(object, ...) {
+  imageinfo <- magick::image_info(vrImages(object))
+  coords <- vrCoordinates(object)
+  coords[,"y"] <- imageinfo$height - coords[,"y"]
+  vrCoordinates(object) <- coords
   return(object)
 }
 

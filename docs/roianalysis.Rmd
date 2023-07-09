@@ -1,5 +1,5 @@
 ---
-title: ''
+title: 'ROI Analysis'
 output:
   html_document:
     toc: yes
@@ -11,6 +11,9 @@ output:
 ---
 
 <style>
+.title{
+  display: none;
+}
 body {
   text-align: justify
 }
@@ -231,7 +234,7 @@ DEresults_sig <- DEresults %>% filter(!is.na(padj)) %>%
 head(DEresults_sig)
 ```
 
-</div><pre><code style="font-size: 10px;">        baseMean log2FoldChange     lfcSE     stat       pvalue         padj   gene                               comparison
+</div><pre><code style="font-size: 10.6px;">        baseMean log2FoldChange     lfcSE     stat       pvalue         padj   gene                               comparison
 COL1A1  48.19791       2.612843 0.3928580 6.650859 2.913866e-11 1.502553e-08 COL1A1 Condition_prolonged.case_vs_control.case
 COL1A2 101.50889       2.201342 0.3985002 5.524068 3.312388e-08 6.506870e-06 COL1A2 Condition_prolonged.case_vs_control.case
 COL5A1  22.14014       1.012716 0.2867603 3.531576 4.130906e-04 1.472226e-02 COL5A1 Condition_prolonged.case_vs_control.case

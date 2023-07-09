@@ -427,81 +427,57 @@ body {
 }
 </style>
 <p><br></p>
-<div id="downstream-analysis-on-cells-and-spots" class="section level1">
-<h1>Downstream analysis on Cells and Spots</h1>
-<p>VoltRon is also an end-to-end spatial data analysis package. VoltRon
+<div id="downstream-analysis-on-cells" class="section level1">
+<h1>Downstream analysis on Cells</h1>
+<p>VoltRon is also an end-to-end spatial data analysis package which
+supports investigating spatial points in single cell resolution. VoltRon
 includes some essential built-in functions capable to filtering,
 processing and clustering as well as visualizing datasets on both
 spatial and embeddings domains.</p>
-<pre class="r watch-out"><code>library(VoltRon)
-
-# Load Visium Data
-Vis_A1 &lt;- importVisium(&quot;hColon_N_A1/&quot;, sample_name = &quot;Vis_A1&quot;)
-Vis_B1 &lt;- importVisium(&quot;hColon_T_B1/&quot;, sample_name = &quot;Vis_B1&quot;)
-Vis_C1 &lt;- importVisium(&quot;hColon_N_C1/&quot;, sample_name = &quot;Vis_C1&quot;)
-Vis_D1 &lt;- importVisium(&quot;hColon_T_D1/&quot;, sample_name = &quot;Vis_D1&quot;)
-
-# merge datasets
-Vis_CRC &lt;- list(Vis_A1, Vis_B1, Vis_C1, Vis_D1)
-Vis_CRC &lt;- merge(Vis_CRC[[1]], Vis_CRC[-1])</code></pre>
+<p>In this use case, we analyzed cells segmented from microscopy images
+of <strong>control and COVID-19 lung tissues</strong> of donors
+categorized based on disease durations (control, acute and prolonged).
+Each image is associated with one of few field of views (FOVs) of a
+single tissue section of a donor. See <a
+href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732">GSE190732</a>
+for more information.</p>
+<p>We analyze cells characterized by multi-epitope ligand cartography
+(MELC) with a panel of 44 parameters. We use the already segmented cells
+which 42 protein expression features mapped on these cells.</p>
+<p>We first import the protein intensities, metadata and coordinates
+associated with segmented cells across FOVs of samples.</p>
+<pre class="r watch-out"><code># csv file
+IFdata &lt;- read.csv(&quot;data/IFdata.csv&quot;)
+data &lt;- IFdata[,c(2:43)]
+metadata &lt;- IFdata[,c(&quot;disease_state&quot;, &quot;object_id&quot;, &quot;cluster&quot;, &quot;Clusters&quot;, &quot;SourceID&quot;, &quot;BioSample&quot;, &quot;FOV&quot;, &quot;Sample&quot;)]
+coords &lt;- as.matrix(IFdata[,c(&quot;posX&quot;,&quot;posY&quot;)], rownames.force = TRUE)</code></pre>
 <p><br></p>
-<div id="processing" class="section level2">
-<h2>Processing</h2>
-<p>In order to dimensionally reduce and cluster spots, we first need to
-normalize the count table. VoltRon is capable to normalizing data of any
-type of spatial points (ROIs, spots, cells and molecules). For spots and
-cells, standard choice of normalization method is the size factor
-scaling followed by log transformation.</p>
-<pre class="r watch-out"><code># assay
-vrMainAssay(Vis_CRC) &lt;- &quot;Visium&quot;
-
-# normalize
-Vis_CRC &lt;- normalizeData(Vis_CRC, method = &quot;LogNorm&quot;)</code></pre>
-<p><br></p>
-</div>
-<div id="feature-selection-and-reduction" class="section level2">
-<h2>Feature Selection and Reduction</h2>
-<p>Later, we detect features of each assay associated with the main
-assay and update the feature data.</p>
-<pre class="r watch-out"><code># get variable features
-Vis_CRC &lt;- getFeatures(Vis_CRC)</code></pre>
-<p>VoltRon is capable of computing both PCA and UMAP level embeddings of
-the normalized data with or without a selected number of variable
-features. VoltRon also allows users to compute UMAPs from any type of
-data in which cases PCA reduction is redundant due to small number of
-features in the original dataset.</p>
-<pre class="r watch-out"><code># get embedding
-Vis_CRC &lt;- getPCA(Vis_CRC)
-Vis_CRC &lt;- getUMAP(Vis_CRC)
-
-# visualize markers
-vrEmbeddingFeaturePlot(Vis_CRC, features = c(&quot;COL1A1&quot;, &quot;CXCL11&quot;), embedding = &quot;umap&quot;)</code></pre>
-<p><img width="90%" height="90%" src="images/cellspot_featureplot.png" class="center"></p>
-<p><br></p>
-</div>
-<div id="nn-nased-clustering" class="section level2">
-<h2>NN-nased Clustering</h2>
-<p>We search for k-nearest neighbors of each spot using either a PCA
-embedding, normalized data or any data available to the VoltRon object.
-The graph built by the <strong>getNeighbors</strong> function is then
-incorporated to cluster the spots using leiden clustering with a given
-resolution parameter.</p>
-<pre class="r watch-out"><code># get neighbors
-Vis_CRC &lt;- getNeighbors(Vis_CRC)
-
-# get clustering
-Vis_CRC &lt;- getClusters(Vis_CRC, resolution = 1, label = &quot;GEX_Clusters&quot;)</code></pre>
-<p><br></p>
-</div>
-<div id="visualization" class="section level2">
-<h2>Visualization</h2>
-<p>VoltRon allows visualizing the clusters of spots on both the spatial
-and the embedding domains</p>
-<pre class="r watch-out"><code># visualize embedding and spatial data
-g_embed &lt;- vrEmbeddingPlot(Vis_CRC, group.by = &quot;GEX_Clusters&quot;, embedding = &quot;umap&quot;)
-g_spatial &lt;- vrSpatialPlot(Vis_CRC, group.by = &quot;GEX_Clusters&quot;, crop = TRUE, alpha = 1)
-g_embed | g_spatial</code></pre>
-<p><img width="100%" height="100%" src="images/cellspot_finalplot.png" class="center"></p>
+<div id="building-the-voltron-object" class="section level2">
+<h2>Building the VoltRon object</h2>
+<p>First, we normalize the data using the hyperbolic arcsine function
+with a scale argument of 0.2.</p>
+<pre class="r watch-out"><code>data &lt;- asinh(data/0.2)</code></pre>
+<p>Before the downsteam analysis on the MELC assays of cells across
+FOVs, we should separate each individual FOV/Section to a VoltRon object
+by using the <strong>formVoltron</strong> function where each object has
+only one section, then merge these sections using the sample of origins.
+We can also define assay names, types and sample (i.e. block) names of
+these assays.</p>
+<p>In addition, we flip the coordinates of these images and resize
+them.</p>
+<pre class="r watch-out"><code>vr_list &lt;- list()
+sample_metadata &lt;- metadata %&gt;% select(Sample, FOV, Section) %&gt;% distinct()
+for(i in 1:nrow(sample_metadata)){
+  vrassay &lt;- sample_metadata[i,]
+  cells &lt;- rownames(metadata)[metadata$Section == entry$Section]
+  image &lt;- magick::image_read(paste0(&quot;DAPI/&quot;, entry$BioSample, &quot;/DAPI_&quot;, entry$FOV, &quot;.tif&quot;))
+  vr_list[[entry$Sample]] &lt;- formVoltRon(data = data[cells,], metadata = metadata[cells,], 
+                                         image = image, coords = coords[cells,],
+                                         main.assay = &quot;MELC&quot;, assay.type = &quot;cell&quot;, 
+                                         sample_name = entry$Sample)
+  vr_list[[entry$Sample]] &lt;- flipCoords(vr_list[[entry$Sample]])
+  vr_list[[entry$Sample]] &lt;- resizeImage(vr_list[[entry$Sample]], size = 600)
+}</code></pre>
 </div>
 </div>
 

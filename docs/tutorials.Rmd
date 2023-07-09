@@ -1,8 +1,11 @@
 ---
-title: ""
+title: "Tutorials"
 ---
 
 <style>
+.title{
+  display: none;
+}
 body {
   text-align: justify
 }
