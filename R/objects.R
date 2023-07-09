@@ -310,11 +310,11 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
   # Coordinates
   if(!is.null(coords)){
     colcoords <- colnames(coords)
-    if(all(colcoords %in% c("x","y"))){
+    if(length(colnames(coords)) == 2){
       rownames(coords) <- entityID
-      coords <- coords[,c("x", "y")]
+      colnames(coords) <- c("x", "y")
     } else {
-      stop("The colnames of the coordinates matrix should be 'x' and 'y'")
+      stop("The length of colnames of the coordinates matrix should two!")
     }
   } else {
     stop("There are no coordinates matrix provided!")
@@ -1020,6 +1020,20 @@ vrCoordinates.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   vrlayer[[cur_assay$Assay]] <- vrassay
   object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
 
+  return(object)
+}
+
+#' @rdname flipCoords
+#' @method flipCoords VoltRon
+#'
+#' @export
+#'
+flipCoords.VoltRon <- function(object, ...){
+  sample.metadata <- SampleMetadata(object)
+  assay_names <- rownames(sample.metadata)
+  for(assy in assay_names){
+    object[[assy]] <- flipCoords(object[[assy]], ...)
+  }
   return(object)
 }
 

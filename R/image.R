@@ -166,8 +166,7 @@ resizeImage.VoltRon <- function(object, ...){
   sample.metadata <- SampleMetadata(object)
   assay_names <- rownames(sample.metadata)
   for(assy in assay_names){
-    cur_assay <- object[[assy]]
-    object[[assy]] <- resizeImage(cur_assay, ...)
+    object[[assy]] <- resizeImage(object[[assy]], ...)
   }
   return(object)
 }
