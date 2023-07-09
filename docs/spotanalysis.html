@@ -412,6 +412,9 @@ div.tocify {
 
 
 <style>
+.title{
+  display: none;
+}
 body {
   text-align: justify
 }
@@ -430,10 +433,11 @@ body {
 <div id="downstream-analysis-on-cells" class="section level1">
 <h1>Downstream analysis on Cells</h1>
 <p>VoltRon is also an end-to-end spatial data analysis package which
-supports investigating spatial points in single cell resolution. VoltRon
-includes some essential built-in functions capable to filtering,
-processing and clustering as well as visualizing datasets on both
-spatial and embeddings domains.</p>
+supports investigating spatial points in any level of resoluion
+including single cell. VoltRon includes some essential built-in
+functions capable to filtering, processing and clustering as well as
+visualizing datasets on cells with a goal of cell type discovery and
+annotation.</p>
 <p>In this use case, we analyzed cells segmented from microscopy images
 of <strong>control and COVID-19 lung tissues</strong> of donors
 categorized based on disease durations (control, acute and prolonged).
@@ -443,7 +447,7 @@ href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732">GSE190732</a
 for more information.</p>
 <p>We analyze cells characterized by multi-epitope ligand cartography
 (MELC) with a panel of 44 parameters. We use the already segmented cells
-which 42 protein expression features mapped on these cells.</p>
+which expression of 43 protein features mapped on these cells.</p>
 <p>We first import the protein intensities, metadata and coordinates
 associated with segmented cells across FOVs of samples.</p>
 <pre class="r watch-out"><code># csv file
@@ -458,12 +462,13 @@ coords &lt;- as.matrix(IFdata[,c(&quot;posX&quot;,&quot;posY&quot;)], rownames.f
 <p>First, we normalize the data using the hyperbolic arcsine function
 with a scale argument of 0.2.</p>
 <pre class="r watch-out"><code>data &lt;- asinh(data/0.2)</code></pre>
-<p>Before the downsteam analysis on the MELC assays of cells across
-FOVs, we should separate each individual FOV/Section to a VoltRon object
-by using the <strong>formVoltron</strong> function where each object has
-only one section, then merge these sections using the sample of origins.
-We can also define assay names, types and sample (i.e. block) names of
-these assays.</p>
+<p>Before analyzing MELC assays of cells across FOVs, we should define a
+VoltRon object for each individual FOV/Section by using the
+<strong>formVoltron</strong> function where each object has only one
+section. We then merge these sections to respective tissue blocks using
+the sample of origins. We can also define assay names, types and sample
+(i.e. block) names of these objects using
+<strong>formVoltron</strong>.</p>
 <pre class="r watch-out"><code>vr_list &lt;- list()
 sample_metadata &lt;- metadata %&gt;% select(Sample, FOV, Section) %&gt;% distinct()
 for(i in 1:nrow(sample_metadata)){
@@ -475,8 +480,11 @@ for(i in 1:nrow(sample_metadata)){
                                            main.assay = &quot;MELC&quot;, assay.type = &quot;cell&quot;,
                                            sample_name = vrassay$Section)
 }</code></pre>
-<p>In addition, we flip the coordinates of the images and and then
-resize these images.</p>
+<p>In addition, we can flip the coordinates of the images and and then
+resize these images. The main reason for this coordinate flipping is
+that the y-axis of most digital images are of the opposite direction to
+the y-axis of euclidean space. Hence, VoltRon offers the option to flip
+images using <strong>flipCoords</strong> function.</p>
 <pre class="r watch-out"><code>for(i in 1:nrow(sample_metadata)){
   vrassay &lt;- sample_metadata[i,]
   vr_list[[vrassay$Sample]] &lt;- flipCoords(vr_list[[vrassay$Sample]])
@@ -485,13 +493,29 @@ resize these images.</p>
 <p>Finally, we merge these assays into one VoltRon object. The
 <strong>samples</strong> arguement in the merge function determines
 which assays are layers of a single tissue sample/block.</p>
-<pre class="r watch-out"><code>vr_merged &lt;- merge(vr_list[[1]], vr_list[-1], samples = sample_metadata$Sample)</code></pre>
+<pre class="r watch-out"><code>vr_merged &lt;- merge(vr_list[[1]], vr_list[-1], samples = sample_metadata$Sample)
+vr_merged </code></pre>
+<pre><code>VoltRon Object 
+control_case_3: 
+  Layers: Section1 Section2 
+control_case_2: 
+  Layers: Section1 Section2 
+control_case_1: 
+  Layers: Section1 Section2 Section3 
+acute_case_3: 
+  Layers: Section1 Section2 
+acute_case_1: 
+  Layers: Section1 Section2 
+... 
+There are 13 samples in total 
+Assays: MELC(Main) </code></pre>
 </div>
 <div id="dimensionality-reduction" class="section level2">
 <h2>Dimensionality Reduction</h2>
 <p>Lets visualize some protein features on tissue sections. We can
-either use the DAPI images as a background, or select either “black” or
-“white” backgrounds (e.g. <strong>background = “white”</strong>)</p>
+either use the DAPI images as a background (e.g. <strong>background =
+image</strong>), or select either “black” or “white” backgrounds
+(e.g. <strong>background = “white”</strong>).</p>
 <pre class="r watch-out"><code>vr_subset &lt;- subset(vr_merged, samples = &quot;control_case_1&quot;)
 g1 &lt;- vrSpatialFeaturePlot(vr_subset, features = c(&quot;CollagenIV&quot;, &quot;CD11b&quot;), alpha = 1, pt.size = 0.7)</code></pre>
 <p><img width="70%" height="70%" src="images/cellspot_spatialfeature.png" class="center"></p>
@@ -510,13 +534,13 @@ embedding spaces.</p>
 <div id="clustering" class="section level2">
 <h2>Clustering</h2>
 <p>Next, we build neighborhood graphs using the k-nearest neighbor
-graphs of similarity between dimensionally reduced gene expression
-profiles. Using this graph, we can conduct a clustering of cells using
-leiden’s method.</p>
+graphs of cells using dimensionally reduced gene expression profiles. We
+can conduct a clustering of cells using leiden’s method.</p>
 <pre class="r watch-out"><code>vr_merged &lt;- getNeighbors(vr_merged, dims = 1:10, k = 10, method = &quot;kNN&quot;)
 vr_merged &lt;- getClusters(vr_merged, resolution = 0.8, label = &quot;MELC_Clusters&quot;)</code></pre>
-<p>Now we can visualize these clusters and perhaps check for
-inter-condition effects that may reside across the data.</p>
+<p>Now we can visualize these clusters and perhaps check for possibly
+existing inter-condition variances that may reside across within the
+data.</p>
 <pre class="r watch-out"><code>Metadata(vr_merged)$Condition &lt;- gsub(&quot;_[0-9]$&quot;, &quot;&quot;, Metadata(vr_merged)$Sample)
 g1 &lt;- vrEmbeddingPlot(vr_merged, group.by = c(&quot;Condition&quot;), embedding = &quot;umap&quot;)
 g2 &lt;- vrEmbeddingPlot(vr_merged, group.by = c(&quot;MELC_Clusters&quot;), embedding = &quot;umap&quot;, label = TRUE)
@@ -526,13 +550,16 @@ g1 | g2</code></pre>
 </div>
 <div id="visualization" class="section level2">
 <h2>Visualization</h2>
+<p>VoltRon provides both violin plots (vrViolinPlot) and heatmaps
+(vrHeatmapPlot) to further investigate the enrichment of markers across
+newly clustered dataset.</p>
 <pre class="r watch-out"><code>vrHeatmapPlot(vr_merged, features = vrFeatures(vr_merged), 
               group.by = &quot;MELC_Clusters&quot;, show_row_names = TRUE)</code></pre>
 <p><img width="100%" height="100%" src="images/cellspot_heatmapclusters.png" class="center"></p>
 <p><br></p>
 <pre class="r watch-out"><code>vrViolinPlot(vr_merged, features = c(&quot;CD3&quot;, &quot;SMA&quot;, &quot;Pancytokeratin&quot;, &quot;CCR2&quot;), 
              group.by = &quot;MELC_Clusters&quot;, ncol = 2)</code></pre>
-<p><img width="100%" height="100%" src="images/cellspot_violinclusters.png" class="center"></p>
+<p><img width="100%" height="80%" src="images/cellspot_violinclusters.png" class="center"></p>
 <p><br></p>
 </div>
 </div>

@@ -997,7 +997,6 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NUL
     theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
     ylab("") + xlab(group.by) +
     guides(fill = guide_legend(show = FALSE), color = guide_legend(title = group.by, override.aes=list(size = 2)))
-    # scale_color_manual(values = levels(as.factor(metadata[[group.by]])), labels = levels(as.factor(metadata[[group.by]])), drop = FALSE) +
 
   if(length(features) > 1){
     if(length(gg) < ncol) ncol <- length(gg)
