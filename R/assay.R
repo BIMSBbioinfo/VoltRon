@@ -235,7 +235,7 @@ vrSpatialPoints.vrAssay <- function(object, ...) {
         if(nrow(embeddings[[type]]) != length(value)){
           stop("The number of spatial points is not matching with the input")
         } else {
-          rownames(embeddings) <- value
+          rownames(embeddings[[type]]) <- value
         }
       }
     }
@@ -407,14 +407,14 @@ vrCoordinates.vrAssay <- function(object, reg = FALSE, ...) {
   return(object)
 }
 
-#' @rdname flipCoords
-#' @method flipCoords vrAssay
+#' @rdname flipCoordinates
+#' @method flipCoordinates vrAssay
 #'
 #' @importFrom magick image_info
 #'
 #' @export
 #'
-flipCoords.vrAssay <- function(object, ...) {
+flipCoordinates.vrAssay <- function(object, ...) {
   imageinfo <- magick::image_info(vrImages(object))
   coords <- vrCoordinates(object)
   coords[,"y"] <- imageinfo$height - coords[,"y"]

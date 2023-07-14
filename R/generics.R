@@ -326,20 +326,20 @@ vrCoordinates <- function(object, ...) {
   UseMethod(generic = 'vrCoordinates<-', object = object)
 }
 
-#' flipCoords
+#' flipCoordinates
 #'
-#' Get and set the coordinates of the main assay
+#' Flip the coordinates of the spatial points in the y axis direction
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{flipCoords}: The name of the default assay
+#' @return \code{flipCoordinates}: The name of the default assay
 #'
-#' @rdname flipCoords
-#' @export flipCoords
+#' @rdname flipCoordinates
+#' @export flipCoordinates
 #'
-flipCoords <- function(object, ...) {
-  UseMethod(generic = 'flipCoords', object = object)
+flipCoordinates <- function(object, ...) {
+  UseMethod(generic = 'flipCoordinates', object = object)
 }
 
 #' vrSegments

@@ -1023,16 +1023,16 @@ vrCoordinates.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   return(object)
 }
 
-#' @rdname flipCoords
-#' @method flipCoords VoltRon
+#' @rdname flipCoordinates
+#' @method flipCoordinates VoltRon
 #'
 #' @export
 #'
-flipCoords.VoltRon <- function(object, ...){
+flipCoordinates.VoltRon <- function(object, ...){
   sample.metadata <- SampleMetadata(object)
   assay_names <- rownames(sample.metadata)
   for(assy in assay_names){
-    object[[assy]] <- flipCoords(object[[assy]], ...)
+    object[[assy]] <- flipCoordinates(object[[assy]], ...)
   }
   return(object)
 }

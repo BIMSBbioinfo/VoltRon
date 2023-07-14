@@ -47,31 +47,42 @@ VoltRon includes wrapper commands for using popular RNA deconvolution methods su
 
 ## Import ST Data
 
-We will now import the samples and merge them into one VoltRon object
+We will now import the samples and merge them into one VoltRon object. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
 
 # import Visium data
-Vis_A1 <- importVisium("hColon_N_A1/", sample_name = "Vis_A1")
-Vis_B1 <- ImportVisium("hColon_T_B1/", sample_name = "Vis_B1")
+Ant_Sec1 <- importVisium("../data/10X_Visium_Mouse_Brain/Sagittal_Anterior/Section1/", 
+                         sample_name = "Anterior1")
+Ant_Sec2 <- importVisium("../data/10X_Visium_Mouse_Brain/Sagittal_Anterior/Section2/", 
+                         sample_name = "Anterior2")
+Pos_Sec1 <- importVisium("../data/10X_Visium_Mouse_Brain/Sagittal_Posterior/Section1/", 
+                         sample_name = "Posterior1")
+Pos_Sec2 <- importVisium("../data/10X_Visium_Mouse_Brain/Sagittal_Posterior/Section2/", 
+                         sample_name = "Posterior2")
 
 # merge datasets
-Vis_CRC <- list(Vis_A1, Vis_B1)
-Vis_CRC <- merge(Vis_CRC[[1]], Vis_CRC[-1])
-vrSpatialFeaturePlot(Vis_CRC, features = "Count", crop = TRUE, alpha = 1, ncol = 2)
+MBrain_Sec_list <- list(Ant_Sec1, Ant_Sec2, Pos_Sec1, Pos_Sec2)
+MBrain_Sec <- merge(MBrain_Sec_list[[1]], MBrain_Sec_list[-1], 
+                    samples = c("Anterior", "Anterior", "Posterior", "Posterior"))
+vrSpatialFeaturePlot(MBrain_Sec, features = "Count", crop = TRUE, alpha = 1, ncol = 2)
 ```
 
 ```
 VoltRon Object 
-Vis_A1: 
-  Layers: Section1 
-Vis_B1: 
-  Layers: Section1 
+Anterior: 
+  Layers: Section1 Section2 
+Posterior: 
+  Layers: Section1 Section2 
 Assays: Visium(Main) 
 ```
 
-<img width="90%" height="90%" src="images/decon_first_plot.png" class="center">
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialFeaturePlot(MBrain_Sec, features = "Count", crop = TRUE, alpha = 1, ncol = 2)
+```
+
+<img width="80%" height="80%" src="images/decon_first_plot.png" class="center">
 
 <br>
 
@@ -81,20 +92,26 @@ We will now import the scRNA data for reference
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(Seurat)
-scdata <- readRDS("GSE166555_uhlitz.rds")
-meta.data <- read.table("GSE166555_meta_data.tsv", header = T, sep = "\t", na.strings = "NA", fill = TRUE)
+allen_reference <- readRDS("../data/10X_Visium_Mouse_Brain/allen_cortex.rds")
 
-# normalize RNA assay before Spot deconvolution
-scdata <- Seurat::NormalizeData(scdata, assay = "RNA")
+# process and reduce dimensionality
+allen_reference <- SCTransform(allen_reference, ncells = 3000, verbose = FALSE) %>%
+  RunPCA(verbose = FALSE) %>%
+  RunUMAP(dims = 1:30)
 
-# Visualize
-gtype <- DimPlot(scdata, reduction = "umap", label = T, group.by = "agg_minorcelltype") + 
-  NoLegend()
-gsample <- DimPlot(scdata, reduction = "umap", label = F, group.by = "SampleType")
-gsample | gtype
+# update labels and subset
+allen_reference$subclass <- gsub("L2/3 IT", "L23 IT", allen_reference$subclass)
+allen_reference <- allen_reference[,colnames(allen_reference)[!allen_reference@meta.data$subclass %in% "CR"]]
+
+# visualize
+Idents(allen_reference) <- "subclass"
+gsubclass <- DimPlot(allen_reference, reduction = "umap", label = T) + NoLegend()
+Idents(allen_reference) <- "class"
+gclass <- DimPlot(allen_reference, reduction = "umap", label = T) + NoLegend()
+gsubclass | gclass
 ```
 
-<img width="90%" height="90%" src="images/decon_singlecell.png" class="center">
+<img width="95%" height="95%" src="images/decon_singlecell.png" class="center">
 
 <br>
 
@@ -108,36 +125,19 @@ It is important at this stage to deconvolute the spots with phenotypically best 
 # libraries for RCTD algorithm
 library(spacexr)
 
-# Deconvolute normal tissues
-scdata_subset_normal <- scdata[,scdata$SampleType == "Normal"]
-scdata_subset_normal <- scdata_subset_normal[,!scdata_subset_normal$agg_minorcelltype %in% c("TC", "CAFs", "Pericytes")]
-Vis_CRC_normal <- subset(Vis_CRC, samples = "Vis_A1")
-Vis_CRC_normal <- getDeconvolution(Vis_CRC_normal, sc.object = scdata_subset_normal, 
-                                   sc.cluster = "agg_minorcelltype", max_cores = 6)
-
-# Deconvolute tumor tissues
-scdata_subset_tumor <- scdata[,scdata$SampleType == "Tumor"]
-Vis_CRC_tumor <- subset(Vis_CRC, samples = "Vis_B1")
-Vis_CRC_tumor <- getDeconvolution(Vis_CRC_tumor, sc.object = scdata_subset_tumor, 
-                                  sc.cluster = "agg_minorcelltype", max_cores = 6)
-```
-
-We now merge two batches of Visium data sets that were deconvoluted separately.
-
-```{r eval = FALSE, class.source="watch-out"}
-# merge samples
-Vis_CRC_list <- list(Vis_CRC_normal, Vis_CRC_tumor)
-Vis_CRC <- merge(Vis_CRC_list[[1]], Vis_CRC_list[-1])
-Vis_CRC
+# Deconvolute anterior and posterior Visium spots
+MBrain_Sec <- getDeconvolution(MBrain_Sec, sc.object = allen_reference, 
+                               sc.cluster = "subclass", max_cores = 6)
+MBrain_Sec
 ```
 
 ```
 VoltRon Object 
-Vis_A1: 
-  Layers: Section1 
-Vis_B1: 
-  Layers: Section1 
-Assays: Visium(Main) Visium_decon
+Anterior: 
+  Layers: Section1 Section2 
+Posterior: 
+  Layers: Section1 Section2 
+Assays: Visium_decon(Main) Visium 
 ```
 
 We can now switch to the **Visium_decon** assays where features are now cell types from the scRNA reference and the data values are cell types percentages in each spot. 
@@ -148,17 +148,17 @@ vrFeatures(Vis_CRC)
 ```
 
 ```
- [1] "B_cells"     "CB_FBs"      "CCL_FBs"     "CD8_T"       "Endothelial" "Ent_Prog"   
- [7] "Enterocytes" "GC_B_cells"  "Glia"        "Goblet"      "Imma_Gob"    "Mast"       
-[13] "Monocyte"    "MyoFBs"      "Plasma_K"    "Plasma_L"    "Stem"        "StemTA"     
-[19] "Tconv"       "Treg"        "Tuft"        "UC_FBs"      "CAFs"        "Pericytes"  
-[25] "TC"         
+ [1] "Astro"      "Endo"       "L23 IT"     "L4"         "L5 IT"      "L5 PT"     
+ [7] "L6 CT"      "L6 IT"      "L6b"        "Lamp5"      "Macrophage" "Meis2"     
+[13] "NP"         "Oligo"      "Peri"       "Pvalb"      "Serpinf1"   "SMC"       
+[19] "Sncg"       "Sst"        "Vip"        "VLMC"          
 ```
 
 These features (i.e. cell type abundances) can be visualized like any other feature. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialFeaturePlot(Vis_CRC, features = "MyoFBs", crop = TRUE, ncol = 5, alpha = 1)
+vrSpatialFeaturePlot(MBrain_Sec, features = c("L4", "L5 PT", "Oligo", "Vip"), 
+                     crop = TRUE, ncol = 2, alpha = 1, keep.scale = "all")
 ```
 
 <img width="90%" height="90%" src="images/decon_spatialfeature_plot.png" class="center">
@@ -172,7 +172,7 @@ Relative cell type abundances that are learned by RCTD and stored within VoltRon
 We will now normalize and process relative cell type abundances to learn these niche clusters. Cell type abundance can be realized as [compositional data](https://en.wikipedia.org/wiki/Compositional_data), hence we incorporate **centred log ratio (CLR)** transformation for normalizing these relative abundances.
 
 ```{r eval = FALSE, class.source="watch-out"}
-Vis_CRC <- normalizeData(Vis_CRC, method = "CLR")
+MBrain_Sec <- normalizeData(MBrain_Sec, method = "CLR")
 ```
 
 The CLR normalized assay have only 25 features, each representing a cell type from the single cell reference data. Hence, we can **directly calculate UMAP reductions from this feature set** without relying on a prior dimensionality reduction such as PCA.
@@ -180,8 +180,8 @@ The CLR normalized assay have only 25 features, each representing a cell type fr
 VoltRon is also capable of calculating the UMAP reduction from normalized data slots. Hence, we build a UMAP reduction from CLR data. However, UMAP will always be calculated from a PCA reduction by default (if a PCA embedding is found in the object). 
 
 ```{r eval = FALSE, class.source="watch-out"}
-Vis_CRC <- getUMAP(Vis_CRC, assay = "Visium_decon", data.type = "norm")
-vrEmbeddingPlot(Vis_CRC, embedding = "umap", group.by = "Sample")
+MBrain_Sec <- getUMAP(MBrain_Sec, assay = "Visium_decon", data.type = "norm")
+vrEmbeddingPlot(MBrain_Sec, embedding = "umap", group.by = "Sample")
 ```
 
 <img width="60%" height="60%" src="images/decon_embedding_sample.png" class="center">
@@ -192,10 +192,10 @@ Using normalized cell type abundances, we can now generate k-nearest neighbor gr
 
 ```{r eval = FALSE, class.source="watch-out"}
 # get neighbors
-Vis_CRC <- getNeighbors(Vis_CRC, data.type = "norm", assay = "Visium_decon")
+MBrain_Sec <- getNeighbors(MBrain_Sec, assay = "Visium_decon", data.type = "norm")
 
 # get clustering
-Vis_CRC <- getClusters(Vis_CRC, resolution = 0.6, label = "Decon_clusters")
+MBrain_Sec <- getClusters(MBrain_Sec, resolution = 0.6)
 ```
 
 ## Visualization
@@ -204,8 +204,8 @@ VoltRon incorporates distinct plotting functions for, e.g. embeddings, coordinat
 
 ```{r eval = FALSE, class.source="watch-out"}
 # visualize 
-g1 <- vrEmbeddingPlot(Vis_CRC, embedding = "umap", group.by = "Sample")
-g2 <- vrEmbeddingPlot(Vis_CRC, embedding = "umap", group.by = "clusters")
+g1 <- vrEmbeddingPlot(MBrain_Sec, embedding = "umap", group.by = "Sample")
+g2 <- vrEmbeddingPlot(MBrain_Sec, embedding = "umap", group.by = "clusters", label = TRUE)
 g1 | g2
 ```
 
@@ -213,13 +213,15 @@ g1 | g2
 
 <br>
 
-We use **vrHeatmapPlot** to investigate relative cell type abundances across clusters. We can map these clusters on the tissue and investigate the locations of spots that are of similar niches. 
+We can map these clusters on the tissue and investigate the locations of spots that are of similar niches. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(Vis_CRC, group.by = "clusters", crop = TRUE, alpha = 1)
-vrHeatmapPlot(Vis_CRC, features = vrFeatures(Vis_CRC_merged), group.by = "clusters", 
-              show_row_names = T, show_heatmap_legend = T)
+vrSpatialPlot(MBrain_Sec, group.by = "clusters", crop = TRUE, alpha = 1)
 ```
+
+<img width="80%" height="80%" src="images/decon_spatial_clusters.png" class="center">
+
+<br>
 
 <!-- <table> -->
 <!-- <tr> -->
@@ -228,6 +230,12 @@ vrHeatmapPlot(Vis_CRC, features = vrFeatures(Vis_CRC_merged), group.by = "cluste
 <!-- </tr> -->
 <!-- </table> -->
 
-<img width="80%" height="80%" src="images/decon_spatial_clusters.png" class="center">
+We use **vrHeatmapPlot** to investigate relative cell type abundances across clusters.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrHeatmapPlot(MBrain_Sec, features = vrFeatures(MBrain_Sec), group.by = "clusters", 
+              show_row_names = T, show_heatmap_legend = T)
+```
+
 <img width="80%" height="80%" src="images/decon_heatmap_clusters.png" class="center">
 <br>

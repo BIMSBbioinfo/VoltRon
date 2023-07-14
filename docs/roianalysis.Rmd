@@ -20,6 +20,13 @@ body {
   margin-left: auto;
   margin-right: auto;
 }
+table, th, td {
+  border-collapse: collapse;
+  align-self: center;
+  <!-- padding: 2px; -->
+  padding-right: 10px;
+  padding-left: 10px;
+}
 </style>
 
 ```{css, echo=FALSE}
@@ -41,21 +48,52 @@ VoltRon is capable of analyzing readouts from distinct spatial technologies incl
 
 In this use case, **eight tissue sections** were fitted into the scan area of the slide loaded on the GeoMx DSP instrument. These sections were cut from **control and COVID-19 lung tissues** of donors categorized based on disease durations (acute and prolonged). See [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information.  
 
+You can download these tutorial files from here:
+
+<table>
+  <tr>
+    <th>File</th>
+    <th>Link</th>
+  </tr>
+  <tr>
+    <td>Counts</td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/DCC-20230427.zip">DDC files</a></td>
+  </tr>
+  <tr>
+    <td>GeoMx Human Whole Transcriptome Atlas</td>
+    <td><a href="https://nanostring.com/wp-content/uploads/Hs_R_NGS_WTA_v1.0.pkc_.zip">Human RNA WTA for NGS</a></td>
+  </tr>
+  <tr>
+    <td>Segment Summary</td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/segmentSummary.xlsx"> Excel file </a></td>
+  </tr>
+  <tr>
+    <td>Morphology Image</td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/Lu 1A 1B 5 um, true exp.tiff"> Image file </a></td>
+  </tr>
+  <tr>
+    <td>OME.TIFF Image </td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/Lu 1A 1B 5 um, true exp.tiff"> OME.TIFF file </a></td>
+  </tr>
+</table>
+
+<p></p>
+
 We now import the GeoMx data, and start analyzing 87 user selected segments (i.e. region of interests, **ROI**) to check spatial localization of signals. The **importGeoMx** function requires:
 
 * The path to the Digital Count Conversion file, **dcc.path**, and Probe Kit Configuration file, **pkc.file**, which are both provided as the output of the [GeoMx NGS Pipeline](https://emea.illumina.com/products/by-type/informatics-products/basespace-sequence-hub/apps/nanostring-geomxr-ngs-pipeline.html). 
-* The path the to the metadata file, **summarySegment**, and the specific excel sheet that the metadata is found, **summarySegmentSheetName**, the path to the main morphology **image** and the original **ome.tiff** file, all of which are provided by the DSP Control Center. Please see [GeoMx DSP Data Analysis User Manual](https://nanostring.com/support-documents/geomx-dsp-data-analysis-user-manual/) for more information.
+* The path the to the metadata file, **summarySegment**, and the specific excel sheet that the metadata is found, **summarySegmentSheetName**, the path to the main morphology **image** and the original **ome.tiff** file, all of which are provided and imported from the DSP Control Center. Please see [GeoMx DSP Data Analysis User Manual](https://nanostring.com/support-documents/geomx-dsp-data-analysis-user-manual/) for more information.
 
 ```{r eval = FALSE, class.source="watch-out"}
 # get data
 library(dplyr)
 library(VoltRon)
-GeoMxR1 <- importGeoMx(dcc.path = "out/", 
-                       pkc.file = "out/Hs_R_NGS_WTA_v1.0.pkc",
-                       summarySegment = "out/segmentSummary.xlsx",
+GeoMxR1 <- importGeoMx(dcc.path = "DCC-20230427/", 
+                       pkc.file = "Hs_R_NGS_WTA_v1.0.pkc",
+                       summarySegment = "segmentSummary.xlsx",
                        summarySegmentSheetName = "Segment summary",
-                       image = "out/morphology.tiff",
-                       ome.tiff = "out/Lu 1A 1B 5 um, true exp.ome.tiff",
+                       image = "Lu 1A 1B 5 um, true exp.tiff",
+                       ome.tiff = "Lu 1A 1B 5 um, true exp.ome.tiff",
                        sample_name = "GeoMxR1")
 ```
 
@@ -67,7 +105,8 @@ Once the GeoMx data is imported, we can start off with examining key quality con
 
 ```{r eval = FALSE, class.source="watch-out"}
 # visualize values
-vrBarPlot(GeoMxR1_lessfeatures, features = c("Count", "Nuclei.count", "Sequencing.saturation"),
+vrBarPlot(GeoMxR1_lessfeatures, 
+          features = c("Count", "Nuclei.count", "Sequencing.saturation"),
           x.label = "ROI.name", group.by = "ROI.type") + 
   theme(axis.text.x = element_text(size = 3))
 ```
