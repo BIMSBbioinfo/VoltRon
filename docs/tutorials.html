@@ -13,7 +13,7 @@
 
 <title>Tutorials</title>
 
-<script src="site_libs/header-attrs-2.21/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.23/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -366,27 +366,28 @@ p.tutorial {
   margin: 3%
 }
 </style>
-<p><br> <br></p>
-<div id="spatial-data-analysis-with-voltron" class="section level2">
-<h2>Spatial Data Analysis with VoltRon</h2>
+<p><br> <!-- <br> --></p>
+<!-- ## Spatial Data Analysis with VoltRon -->
 <p><br></p>
-<div id="spatial-data-integration" class="section level3">
-<h3>Spatial Data Integration</h3>
+<div id="spatial-data-integration" class="section level2">
+<h2>Spatial Data Integration</h2>
 <p><strong>VoltRon</strong> will incorporate multiple data integration
 modules to achieve data transfer across a diverse set of modalities. We
-utilize the OpenCV library which fully embedded into VoltRon using Rcpp,
+utilize the <a href="https://opencv.org/">OpenCV</a> library which fully
+embedded into VoltRon using <a href="https://www.rcpp.org/">Rcpp</a>,
 hence VoltRon can align reference images of spatial datasets using
 computer vision and image registration. Users can automaticaly or
-manually align a list of images (H&amp;E, microscopy or DAPI images)
-using a small shiny app incorporated within our analysis workflow.</p>
+manually align a list of images (<strong>H&amp;E, microscopy or DAPI
+images</strong>) using a small shiny app incorporated within our
+analysis workflow.</p>
 <p>In addition, VoltRon integrates with spot deconvolution methods such
 as RCTD and SpotLIGHT (<strong>under development</strong>) to infer spot
 transcriptomics assays such as Visium and DBIT-Seq. We estimate the cell
 type abundances from a reference single cell data (Seurat,
 SingleCellExperiment etc.) with already annotated cell types. Then we
 generate additional assays associated with layers of the VoltRon object,
-and implement clustering on cell type abundance data to discover niches
-in the dataset.</p>
+and implement <strong>clustering on normalized cell type abundance
+data</strong> to discover niches in the dataset.</p>
 <table>
 <tbody>
 <tr>
@@ -415,8 +416,8 @@ Clustering with ROI/spot deconvolution
 </table>
 <p><br> <br></p>
 </div>
-<div id="downstream-analysis-and-utilities" class="section level3">
-<h3>Downstream Analysis and Utilities</h3>
+<div id="downstream-analysis-and-utilities" class="section level2">
+<h2>Downstream Analysis and Utilities</h2>
 <p><strong>VoltRon</strong> is also capable of end-to-end analysis of
 diverse set of spatial data types such as ROI (region of interest)
 based, spot-based, cell-based and molecule-based (<strong>under
@@ -459,7 +460,6 @@ Converting VoltRon objects into Seurat, Giotto, squidpy (anndata) etc.
 </tbody>
 </table>
 <p><br></p>
-</div>
 </div>
 
 
