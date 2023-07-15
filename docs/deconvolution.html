@@ -451,7 +451,14 @@ datatypes.</p>
 <div id="import-st-data" class="section level2">
 <h2>Import ST Data</h2>
 <p>We will now import the samples and merge them into one VoltRon
-object.</p>
+object. Here, we use example Visium (v1 chemistry) data sets provided by
+the 10x Genomics where there are four sections in total given two serial
+anterior and serial posterior sections. The dataset can be download from
+<a
+href="https://www.10xgenomics.com/resources/datasets?menu%5Bproducts.name%5D=Spatial%20Gene%20Expression&amp;query=&amp;page=1&amp;configure%5BhitsPerPage%5D=50&amp;configure%5BmaxValuesPerFacet%5D=1000">here</a>
+(specifically, one should search for <strong>Mouse</strong>,
+<strong>brain</strong>, <strong>Spatial Gene Expression</strong>,
+<strong>v1</strong>).</p>
 <pre class="r watch-out"><code>library(VoltRon)
 
 # import Visium data
@@ -527,7 +534,7 @@ Anterior:
   Layers: Section1 Section2 
 Posterior: 
   Layers: Section1 Section2 
-Assays: Visium_decon(Main) Visium </code></pre>
+Assays: Visium(Main) Visium_decon </code></pre>
 <p>We can now switch to the <strong>Visium_decon</strong> assays where
 features are now cell types from the scRNA reference and the data values
 are cell types percentages in each spot.</p>
