@@ -20,4 +20,13 @@ VoltRon  is a spatial data analysis toolbox for spatial data analysis, multi-omi
     </li>
    </ul>
    
+## Installation
+
+Install from the GitHub repository using devtools:
+
+```
+if (!require("devtools", quietly = TRUE))
+    install.packages("devtools")
+devtools::install_github("BIMSBbioinfo/VoltRon)
+```
 ![](docs/images/main.png)

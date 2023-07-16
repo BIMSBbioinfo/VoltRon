@@ -52,7 +52,7 @@ VoltRon allows users to **align serial spatial data slices** for data transfer a
 
 ## Alignment of Xenium and Visium 
 
-In this use case, we will align **immunofluorescence (IF)** and **H&E images** associated with the readouts of **Xenium In Situ and Visium CytAssist platforms**. Tissue sections are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block where 3 serial sections of 5 $\mu$m thickness. A 5 $\mu$m section was taken for Visium CytAssist and two replicate 5 $\mu$m sections were taken for Xenium. 
+In this use case, we will align **immunofluorescence (IF)** and **H&E images**  readouts of the **Xenium In Situ and Visium CytAssist platforms** readouts. Tissue sections are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block where 3 serial sections of 5 $\mu$m thickness. A 5 $\mu$m section was taken for Visium CytAssist and two replicate 5 $\mu$m sections were taken for the Xenium replicates. 
 
 The dataset can be downloaded from [here](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import **In Situ Replicate 1/2 and Visium Spatial**). More information on the dataset and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
 
