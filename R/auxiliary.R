@@ -62,9 +62,3 @@ jaccard_similarity <- function(mat) {
   matinv <- 1 - mat
   return((mat %*% mat)/(nrow(mat) - (matinv %*% matinv)))
 }
-
-# jaccard_similarity <- function(set1, set2) {
-#   intersection <- length(intersect(set1, set2))
-#   union <- length(union(set1, set2))
-#   return(intersection / union)
-# }

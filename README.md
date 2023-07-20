@@ -20,24 +20,20 @@ VoltRon  is a spatial data analysis toolbox for spatial data analysis, multi-omi
     </li>
    </ul>
 
-### Install from source
+## Configuration
 
-To install from source on MacOS, you need to install the opencv library from homebrew:
+Before installing VoltRon, you have to instal [OpenCV](https://opencv.org/) library first. 
+
+To install from source on **MacOS**, you need to install the OpenCV library from homebrew:
 
 ```sh
 brew install opencv
 ```
 
-On Ubuntu or Fedora you need [`libopencv-dev`](https://packages.debian.org/testing/libopencv-dev) or [`opencv-devel`](https://src.fedoraproject.org/rpms/opencv):
+On **Ubuntu** or **Fedora** you need [`libopencv-dev`](https://packages.debian.org/testing/libopencv-dev) or [`opencv-devel`](https://src.fedoraproject.org/rpms/opencv):
 
 ```sh
 sudo apt-get install libopencv-dev
-```
-
-And then install the R bindings:
-
-```r
-install.packages("opencv", type = "source")
 ```
 
 ## Installation
@@ -47,6 +43,6 @@ Install from the GitHub repository using devtools:
 ```
 if (!require("devtools", quietly = TRUE))
     install.packages("devtools")
-devtools::install_github("BIMSBbioinfo/VoltRon)
+devtools::install_github("BIMSBbioinfo/VoltRon"")
 ```
 ![](docs/images/main.png)

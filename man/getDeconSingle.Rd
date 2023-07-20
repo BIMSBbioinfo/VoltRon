@@ -6,6 +6,7 @@
 \usage{
 getDeconSingle(
   object,
+  features = features,
   sc.object,
   sc.assay = "RNA",
   sc.cluster = "seurat_clusters",
@@ -15,6 +16,8 @@ getDeconSingle(
 }
 \arguments{
 \item{object}{a vrAssay object}
+
+\item{features}{features}
 
 \item{sc.object}{Seurat Object}
 

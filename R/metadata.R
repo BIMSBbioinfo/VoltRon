@@ -41,14 +41,12 @@ setMethod(
 
 ### $ methods ####
 
-#' @export
 #' @method $ vrMetadata
 #'
 "$.vrMetadata" <- function(x, i, ...) {
   return(NULL)
 }
 
-#' @export
 #' @method $<- vrMetadata
 #'
 "$<-.vrMetadata" <- function(x, i, ..., value) {
@@ -71,7 +69,6 @@ setMethod(
   return(new("vrMetadata", cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata))
 }
 
-#' @export
 #' @method $<- vrMetadata
 #'
 "[[<-.vrMetadata" <- function(x, i, ..., value) {
@@ -101,8 +98,6 @@ setMethod(
 #' @rdname vrSpatialPoints
 #' @method vrSpatialPoints vrMetadata
 #'
-#' @export
-#'
 vrSpatialPoints.vrMetadata <- function(object, ...) {
 
   # get the combination of cells, spots and ROIs
@@ -113,6 +108,10 @@ vrSpatialPoints.vrMetadata <- function(object, ...) {
   return(points)
 }
 
+#' Subsetting vrMetadata objects
+#'
+#' Given a vrMetadata object, subset the object given one of the attributes
+#'
 #' @param samples the set of samples to subset the object
 #' @param assays the set of assays to subset the object
 #' @param spatialpoints the set of spatial points to subset the object
@@ -166,6 +165,8 @@ subset.vrMetadata <- function(metadata, subset, samples = NULL, assays = NULL, s
 
 #' subset.sampleMetadata
 #'
+#' Subseting sample metadata
+#'
 #' @param metadata sample metadata of a VoltRon object
 #' @param samples the set of samples to subset the object
 #' @param assays the set of assays to subset the object
@@ -193,12 +194,15 @@ subset.sampleMetadata <- function(metadata, samples = NULL, assays = NULL) {
   metadata
 }
 
+#' Merging vrMetadata objects
+#'
+#' Given a vrMetadata object, and a list of vrMetadata objects, merge all.
+#'
 #' @param object_list a list of vrMetadata objects
 #'
 #' @method merge vrMetadata
 #'
 #' @importFrom dplyr bind_rows
-#'
 #' @export
 #'
 merge.vrMetadata <- function(object, object_list) {

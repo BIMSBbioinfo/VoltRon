@@ -60,6 +60,10 @@ setMethod(
 
 ### Subset vrAssay objects ####
 
+#' Subsetting vrAssay objects
+#'
+#' Given a vrAssay object, subset the object given one of the attributes
+#'
 #' @param object A vrAssay object
 #' @param subset Logical statement for subsetting
 #' @param spatialpoints the set of spatial points to subset the object

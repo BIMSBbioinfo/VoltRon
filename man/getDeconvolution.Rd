@@ -7,6 +7,7 @@
 getDeconvolution(
   object,
   assay = NULL,
+  features = NULL,
   sc.object,
   sc.assay = "RNA",
   sc.cluster = "seurat_clusters",
@@ -18,6 +19,8 @@ getDeconvolution(
 \item{object}{a VoltRon object}
 
 \item{assay}{assay}
+
+\item{features}{features}
 
 \item{sc.object}{Seurat Object}
 

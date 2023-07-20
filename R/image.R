@@ -353,8 +353,13 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #' @param scale_width the initial width of the object image
 #'
 #' @import shiny
-#' @import shinyjs
-#' @importFrom magick image_scale image_info
+#' @importFrom shinyjs useShinyjs
+#' @importFrom magick image_scale image_info image_ggplot
+#' @importFrom tableHTML make_css
+#' @importFrom ggplot2 geom_rect
+#' @importFrom htmltools HTML
+#' @importFrom dplyr filter
+#' @importFrom tibble add_row
 #'
 demuxVoltRon <- function(object, scale_width = 800)
 {
@@ -366,17 +371,17 @@ demuxVoltRon <- function(object, scale_width = 800)
     stop("You can only subset a VoltRon assay with one image")
 
   # scale
-  imageinfo <- image_info(images[[1]])
+  imageinfo <- magick::image_info(images[[1]])
   scale_factor <- imageinfo$width/scale_width
   scale_width <- paste0(scale_width, "x")
-  images <- image_scale(images[[1]], scale_width)
+  images <- magick::image_scale(images[[1]], scale_width)
 
   # get the ui and server
   if (interactive()){
     # ui <- tagList(
     ui <- fluidPage(
       # use javascript extensions for Shiny
-      useShinyjs(),
+      shinyjs::useShinyjs(),
 
       sidebarLayout(position = "left",
 
@@ -445,7 +450,7 @@ demuxVoltRon <- function(object, scale_width = 800)
           if(nrow(selected_corners_list()) > 0){
             corners <- selected_corners_list()$box
             print_selected <- paste0("Subset ", 1:length(corners), ": ", corners)
-            HTML(paste(print_selected, collapse = '<br/>'))
+            htmltools::HTML(paste(print_selected, collapse = '<br/>'))
           }
         })
 
@@ -457,8 +462,8 @@ demuxVoltRon <- function(object, scale_width = 800)
             image_ggplot(images)
           } else {
             corners <- apply(as.matrix(selected_corners()),2,as.numeric)
-            image_ggplot(images) +
-              geom_rect(aes(xmin = corners[1,1], xmax = corners[2,1], ymin = corners[1,2], ymax = corners[2,2]),
+            magick::image_ggplot(images) +
+              ggplot2::geom_rect(aes(xmin = corners[1,1], xmax = corners[2,1], ymin = corners[1,2], ymax = corners[2,2]),
                         fill = "green", alpha = 0.3, color = "black")
           }
         })
@@ -467,7 +472,7 @@ demuxVoltRon <- function(object, scale_width = 800)
       ## reset points ####
       observeEvent(input$resetpoints, {
         selected_corners() %>%
-          filter(FALSE) %>% selected_corners()
+          dplyr::filter(FALSE) %>% selected_corners()
       })
 
       ## add box ####
@@ -481,10 +486,10 @@ demuxVoltRon <- function(object, scale_width = 800)
                             abs(corners[2,2]-corners[1,2]), "+",
                             min(corners[,1]), "+", imageinfo$height - max(corners[,2]))
           selected_corners_list() %>%
-            add_row(box = corners) %>%
+            tibble::add_row(box = corners) %>%
             selected_corners_list()
           selected_corners() %>%
-            filter(FALSE) %>% selected_corners()
+            dplyr::filter(FALSE) %>% selected_corners()
         }
       })
 
@@ -494,11 +499,11 @@ demuxVoltRon <- function(object, scale_width = 800)
           keypoint <- data.frame(x = input[["choose_corner"]]$x,
                                  y = input[["choose_corner"]]$y)
           selected_corners() %>%
-            add_row(x = keypoint$x, y = keypoint$y) %>%
+            tibble::add_row(x = keypoint$x, y = keypoint$y) %>%
             selected_corners()
         } else {
           selected_corners() %>%
-            filter(FALSE) %>% selected_corners()
+            dplyr::filter(FALSE) %>% selected_corners()
         }
       })
 

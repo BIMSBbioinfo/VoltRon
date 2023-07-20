@@ -16,6 +16,8 @@ vrHeatmapPlot(
   show_heatmap_legend = FALSE,
   outlier.quantile = 0.99,
   highlight.some = FALSE,
+  n_highlight = 30,
+  font.size = 13.2,
   seed = 1,
   ...
 )
@@ -42,6 +44,10 @@ vrHeatmapPlot(
 \item{outlier.quantile}{quantile for detecting outliers whose values are set to the quantile, change to lower values to adjust large number of outliers, default: 0.99}
 
 \item{highlight.some}{if TRUE, some rows will be showed at random, reproducible by \code{seed} arguement}
+
+\item{n_highlight}{the number of shown row labels, if \code{show_row_names} is TRUE}
+
+\item{font.size}{font size}
 
 \item{seed}{the seed for \code{set.seed}}
 

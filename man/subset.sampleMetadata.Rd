@@ -14,5 +14,5 @@
 \item{assays}{the set of assays to subset the object}
 }
 \description{
-subset.sampleMetadata
+Subseting sample metadata
 }

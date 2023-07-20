@@ -16,5 +16,5 @@
 \item{main.assay}{name of the assay}
 }
 \description{
-Given a VoltRon object, and a list of VoltRon object, merge all.
+Given a VoltRon object, and a list of VoltRon objects, merge all.
 }

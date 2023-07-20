@@ -6,6 +6,7 @@
 \alias{vrFeatureData}
 \alias{vrFeatureData<-}
 \alias{vrFeatureData.VoltRon}
+\alias{vrFeatureData<-.VoltRon}
 \title{Feature Data}
 \usage{
 \method{vrFeatureData}{vrAssay}(object, ...)
@@ -17,13 +18,15 @@ vrFeatureData(object, ...)
 vrFeatureData(object, ...) <- value
 
 \method{vrFeatureData}{VoltRon}(object, assay = NULL, ...)
+
+\method{vrFeatureData}{VoltRon}(object, assay = NULL, ...) <- value
 }
 \arguments{
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
 
-\item{value}{new feature data}
+\item{value}{new Feature Data}
 
 \item{assay}{assay}
 }

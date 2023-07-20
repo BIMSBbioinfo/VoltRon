@@ -6,6 +6,7 @@
 \usage{
 getMuSiC(
   object,
+  features = NULL,
   sc.object,
   sc.assay = "RNA",
   sc.cluster = "seurat_clusters",
@@ -14,6 +15,8 @@ getMuSiC(
 }
 \arguments{
 \item{object}{A vrAssay object}
+
+\item{features}{features}
 
 \item{sc.object}{a Seurat object}
 
