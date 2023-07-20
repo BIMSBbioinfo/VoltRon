@@ -6,6 +6,7 @@
 \usage{
 getRCTD(
   object,
+  features = NULL,
   sc.object,
   sc.assay = "RNA",
   sc.cluster = "seurat_clusters",
@@ -14,6 +15,8 @@ getRCTD(
 }
 \arguments{
 \item{object}{a VoltRon object}
+
+\item{features}{features}
 
 \item{sc.object}{Seurat Object}
 

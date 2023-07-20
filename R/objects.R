@@ -76,8 +76,42 @@ setMethod(
   }
 )
 
-### $ method ####
+####
+# Methods ####
+####
 
+#' Methods for VoltRon
+#'
+#' Methods for \code{\link{VoltRon}} objects for generics defined in other
+#' packages
+#'
+#' @param x,object A \code{\link{VoltRon}} object
+#' @param i,features Depends on the method
+#' \describe{
+#'  \item{\code{[}, \code{subset}}{Feature names or indices}
+#'  \item{\code{$}, \code{$<-}}{Name of a single metadata column}
+#'  \item{\code{[[}, \code{[[<-}}{
+#'   Name of one or more metadata columns or an associated object; associated
+#'   objects include \code{\link{Assay}}, \code{\link{DimReduc}},
+#'   \code{\link{Graph}}, \code{\link{SeuratCommand}}, or
+#'   \code{\link{SpatialImage}} objects
+#'  }
+#' }
+#' @param j,cells Cell names or indices
+#' @param n The number of rows of metadata to return
+#' @param ... Arguments passed to other methods
+#'
+#' @name VoltRon-methods
+#' @rdname VoltRon-methods
+#'
+#' @concept voltron
+#'
+NULL
+
+## $ method ####
+
+#' @describeIn VoltRon-methods Metadata access for \code{VoltRon} objects
+#'
 #' @export
 #' @method $ VoltRon
 #'
@@ -93,6 +127,8 @@ setMethod(
   return(metadata[[i]])
 }
 
+#' @describeIn VoltRon-methods Metadata overwrite for \code{VoltRon} objects
+#'
 #' @export
 #' @method $<- VoltRon
 #'
@@ -132,28 +168,12 @@ setMethod(
   return(x)
 }
 
-#' #' @export
-#' #' @method $<- VoltRon
-#' #'
-#' "$<-.VoltRon" <- function(x, i, ..., value) {
-#'
-#'   # update sample metadata and metadata
-#'   x@sample.metadata[[i]] <- value
-#'   Metadata(x)[[i]] <- value
-#'
-#'   # update if sample names are provided
-#'   if(i == "Sample"){
-#'     if(!length(x@sample.metadata) %in% c(1,length(value))){
-#'       stop("Sample names should be of length 1 or the same length as the number of assays!")
-#'     }
-#'     names(x@samples) <- value
-#'   }
-#'
-#'   return(x)
-#' }
-
 ### subset of samples and layers ####
 
+#' @describeIn VoltRon-methods Accessing vrAssay or vrSample objects from \code{VoltRon} objects
+#'
+#' @export
+#'
 setMethod(
   f = '[[',
   signature = c('VoltRon', "character", "missing"),
@@ -181,6 +201,10 @@ setMethod(
   }
 )
 
+#' @describeIn VoltRon-methods Overwriting vrAssay or vrSample objects from \code{VoltRon} objects
+#'
+#' @export
+#'
 setMethod(
   f = '[[<-',
   signature = c('VoltRon', "character", "missing"),
@@ -211,6 +235,10 @@ setMethod(
   }
 )
 
+#' @describeIn VoltRon-methods Accessing vrLayer objects from \code{VoltRon} objects
+#'
+#' @export
+#'
 setMethod(
   f = '[[',
   signature = c('VoltRon', "character", "character"),
@@ -219,6 +247,10 @@ setMethod(
   }
 )
 
+#' @describeIn VoltRon-methods Overwriting vrLayer objects from \code{VoltRon} objects
+#'
+#' @export
+#'
 setMethod(
   f = '[[<-',
   signature = c('VoltRon', "character", "character"),
@@ -232,10 +264,6 @@ setMethod(
     return(x)
   }
 )
-
-####
-# Methods ####
-####
 
 ### Create VoltRon object ####
 
@@ -258,7 +286,7 @@ setMethod(
 #' @param layer_name the name of the layer
 #' @param project project name
 #'
-#' @import igraph
+#' @importFrom igraph make_empty_graph V
 #'
 #' @export
 #'
@@ -487,7 +515,7 @@ vrAssayTypes.VoltRon <- function(object, assay = NULL){
 #' @param object a VoltRon object
 #' @param samples a single or a set of sample names
 #'
-#' @import dplyr
+#' @importFrom dplyr n_distinct %>% distinct select
 #'
 changeSampleNames.VoltRon <- function(object, samples = NULL){
 
@@ -567,7 +595,7 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
 #'
 #' @importFrom rlang enquo eval_tidy quo_get_expr
 #' @importFrom stringr str_extract
-#' @import igraph
+#' @importFrom igraph subgraph V
 #'
 #' @export
 #'
@@ -661,7 +689,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 
   # other attributes
   main.assay <- unique(sample.metadata$Assay)[unique(sample.metadata$Assay) == names(table(sample.metadata$Assay))[which.max(table(sample.metadata$Assay))]]
-  graph <- igraph::subgraph(object@graph, V(object@graph)[names(V(object@graph)) %in% vrSpatialPoints(metadata)])
+  graph <- igraph::subgraph(object@graph, igraph::V(object@graph)[names(V(object@graph)) %in% vrSpatialPoints(metadata)])
   project <- object@project
 
   # set VoltRon class
@@ -670,7 +698,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 
 #' Merging VoltRon objects
 #'
-#' Given a VoltRon object, and a list of VoltRon object, merge all.
+#' Given a VoltRon object, and a list of VoltRon objects, merge all.
 #'
 #' @param object a VoltRon Object
 #' @param object_list a list of VoltRon objects
@@ -679,10 +707,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 #'
 #' @method merge VoltRon
 #'
-#' @import igraph
-#'
 #' @export
-#'
 #'
 merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL) {
 
@@ -741,6 +766,15 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   object
 }
 
+#' merge_graphs
+#'
+#' Given a VoltRon object, and a list of VoltRon objects, merge their graphs.
+#'
+#' @param object a VoltRon Object
+#' @param object_list a list of VoltRon objects
+#'
+#' @importFrom igraph disjoint_union
+#'
 merge_graphs <- function(object, object_list){
 
   # combine all elements
@@ -772,6 +806,14 @@ merge_graphs <- function(object, object_list){
   return(combined_graph)
 }
 
+#' updateGraphAssay
+#'
+#' @param object1 VoltRon object
+#' @param object2 VoltRon object
+#'
+#' @importFrom igraph V
+#' @importFrom stringr str_extract
+#'
 updateGraphAssay <- function(object1, object2){
 
   if(class(object1) == "VoltRon")
@@ -780,17 +822,17 @@ updateGraphAssay <- function(object1, object2){
     object2 <- vrGraph(object2, assay = "all")
 
   # get assay types
-  assaytype <- unique(stringr::str_extract(V(object1)$name, "Assay[0-9]+$"))
+  assaytype <- unique(stringr::str_extract(igraph::V(object1)$name, "Assay[0-9]+$"))
   assaytype <- assaytype[order(nchar(assaytype), assaytype)]
 
   # replace assay names
   replacement <- paste0("Assay", 1:length(assaytype))
-  vertex_names <- V(object1)$name
+  vertex_names <- igraph::V(object1)$name
   temp <- vertex_names
   for(i in 1:length(assaytype))
     temp[grepl(paste0(assaytype[i],"$"), vertex_names)] <- gsub(paste0(assaytype[i],"$"), replacement[i],
                                                                 vertex_names[grepl(paste0(assaytype[i],"$"), vertex_names)])
-  V(object1)$name <- temp
+  igraph::V(object1)$name <- temp
 
   # get assay types
   assaytype <- unique(stringr::str_extract(V(object2)$name, "Assay[0-9]+$"))

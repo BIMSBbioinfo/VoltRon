@@ -1,7 +1,7 @@
 Package: VoltRon
 Type: Package
 Title: VoltRon for Spatial Data Integration and Analysis
-Version: 0.1.0
+Version: 1.0.0
 Author: Artur Manukyan, Ella Bahry, Anna Pascual, Emanuel Wyler, Vedran Franke, Deborah Schmidt, Markus Landthaler, Altuna Akalin
 Maintainer: Artur Manukyan <artur-man@hotmail.com>
 Description: VoltRon is a spatial data analysis toolbox for spatial data integration, analysis and image registration 
@@ -9,7 +9,11 @@ License: MIT
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3
-Imports: Rcpp (>= 0.11.0)
+biocViews:
+Imports: Rcpp (>= 0.11.0), ComplexHeatmap, EBImage, FNN, GeomxTools, Matrix, Morpho,
+    RBioFormats, XML, dplyr, ggforce, ggplot2, ggpubr, ggrepel, hdf5r, htmltools, igraph, irlba,
+    jsonlite, magick, proxy, raster, reshape2, rlang, scales, shiny, shinyjs, stringi, stringr, terra, xlsx, 
+    tableHTML, tibble
 LinkingTo: Rcpp
 Collate: 
     'RcppExports.R'
