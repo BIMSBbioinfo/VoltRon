@@ -19,5 +19,34 @@ VoltRon  is a spatial data analysis toolbox for spatial data analysis, multi-omi
       <strong> Niche Clustering </strong> allows integration to single cell RNA analysis platforms such as <a href="https://satijalab.org/seurat/">Seurat</a> and <a href="https://github.com/dmcable/spacexr">spacexr</a> to deconvolute spots using reference single cell datasets. Estimated cell type abundances are then used to partition spots into groups of cell type niches, defined as spots with distinct composition of cell types.  
     </li>
    </ul>
-   
+
+### Install from source
+
+To install from source on MacOS, you need to install the opencv library from homebrew:
+
+```sh
+brew install opencv
+```
+
+On Ubuntu or Fedora you need [`libopencv-dev`](https://packages.debian.org/testing/libopencv-dev) or [`opencv-devel`](https://src.fedoraproject.org/rpms/opencv):
+
+```sh
+sudo apt-get install libopencv-dev
+```
+
+And then install the R bindings:
+
+```r
+install.packages("opencv", type = "source")
+```
+
+## Installation
+
+Install from the GitHub repository using devtools:
+
+```
+if (!require("devtools", quietly = TRUE))
+    install.packages("devtools")
+devtools::install_github("BIMSBbioinfo/VoltRon)
+```
 ![](docs/images/main.png)

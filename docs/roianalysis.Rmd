@@ -117,7 +117,7 @@ For measuring the quality of individual ROIs, we can add a new metadata column, 
 
 ```{r eval = FALSE, class.source="watch-out"}
 # creating new metadata fields
-Metadata(GeoMxR1)$CountPerNuclei <- Metadata(GeoMxR1)$Count/Metadata(GeoMxR1)$Nuclei.count
+GeoMxR1$CountPerNuclei <- GeoMxR1$Count/GeoMxR1$Nuclei.count
 
 # visualize values again
 vrBarPlot(GeoMxR1, 
@@ -143,10 +143,6 @@ GeoMxR1 <- subset(GeoMxR1, subset = CountPerNuclei > 500)
 We then filter genes with low counts by extracting the count matrix and putting aside all genes whose maximum count across all 87 ROIs are less than 10.
 
 ```{r eval = FALSE, class.source="watch-out"}
-# Filter for count per nuclei
-GeoMxR1 <- subset(GeoMxR1, subset = CountPerNuclei > 500)
-
-# filter for low count features
 GeoMxR1_data <- vrData(GeoMxR1, norm = FALSE)
 feature_ind <- apply(GeoMxR1_data, 1, function(x) max(x) > 10)
 selected_features <- vrFeatures(GeoMxR1)[feature_ind]

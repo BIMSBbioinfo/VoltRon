@@ -922,6 +922,26 @@ vrFeatureData.VoltRon <- function(object, assay = NULL, ...) {
 }
 
 #' @param assay assay
+#' @param value new Feature Data
+#'
+#' @rdname vrFeatureData
+#' @method vrFeatureData<- VoltRon
+#'
+#' @export
+#'
+"vrFeatureData<-.VoltRon" <- function(object, assay = NULL, ..., value) {
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # set embeddings
+  for(assy in assay_names)
+    vrFeatureData(object[[assy]]) <- value
+
+  return(object)
+}
+
+#' @param assay assay
 #'
 #' @rdname vrData
 #' @method vrData VoltRon

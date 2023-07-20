@@ -834,6 +834,8 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 #' @param show_heatmap_legend if TRUE, the heatmap legend is shown
 #' @param outlier.quantile quantile for detecting outliers whose values are set to the quantile, change to lower values to adjust large number of outliers, default: 0.99
 #' @param highlight.some if TRUE, some rows will be showed at random, reproducible by \code{seed} arguement
+#' @param n_highlight the number of shown row labels, if \code{show_row_names} is TRUE
+#' @param font.size font size
 #' @param seed the seed for \code{set.seed}
 #' @param ... additional parameters passed to \code{getVariableFeatures}
 #'
@@ -843,7 +845,8 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 #' @export
 #'
 vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NULL, group.by = "clusters",
-                          norm = TRUE, scaled = TRUE, show_row_names = NULL, show_heatmap_legend = FALSE, outlier.quantile = 0.99, highlight.some = FALSE, seed = 1, ...){
+                          norm = TRUE, scaled = TRUE, show_row_names = NULL, show_heatmap_legend = FALSE,
+                          outlier.quantile = 0.99, highlight.some = FALSE, n_highlight = 30, font.size = 13.2, seed = 1, ...){
 
   # seed
   set.seed(seed)
@@ -894,8 +897,9 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
 
   # highlight some rows
   if(highlight.some){
-    ind <- sample(1:nrow(heatmapdata), 25, replace = FALSE)
-    ha <- ComplexHeatmap::rowAnnotation(foo = ComplexHeatmap::anno_mark(at = ind, labels = rownames(heatmapdata)[ind], padding = 1))
+    ind <- sample(1:nrow(heatmapdata), n_highlight, replace = FALSE)
+    ha <- ComplexHeatmap::rowAnnotation(foo = ComplexHeatmap::anno_mark(at = ind, labels = rownames(heatmapdata)[ind], padding = 1,
+                                                                        labels_gp = gpar(fontsize = font.size)))
   } else{
     ha <- NULL
   }
@@ -906,8 +910,8 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
   legend_at <- seq(min(heatmapdata), max(heatmapdata), (max(heatmapdata)-min(heatmapdata))/5)
   legend_label <- round(legend_at, 2)
   ComplexHeatmap::Heatmap(heatmapdata,
-                          show_row_names = show_row_names, show_row_dend = FALSE,
-                          show_column_names = FALSE, column_title_rot = 45,
+                          show_row_names = show_row_names, show_row_dend = FALSE, row_names_gp = gpar(fontsize = font.size),
+                          show_column_names = FALSE, column_title_rot = 45, column_title_gp = gpar(fontsize = font.size),
                           column_split = col_split, cluster_columns = FALSE,
                           show_heatmap_legend = show_heatmap_legend,
                           heatmap_legend_param = list(title = "Exp.", at = legend_at, labels = legend_label),
@@ -1009,7 +1013,7 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NUL
 }
 
 ####
-# Bar Plot ####
+# ROI Plots ####
 ####
 
 #' vrBarPlot
@@ -1028,7 +1032,7 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NUL
 #'
 #' @export
 #'
-vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = "ROI.name", group.by = "Sample", norm = TRUE,  ncol = 2, nrow = NULL, ...){
+vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, group.by = "Sample", norm = TRUE,  ncol = 2, nrow = NULL, ...){
 
   # features
   if(is.null(features))
@@ -1051,7 +1055,9 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = "ROI.name
   if(unique(assay_types) %in% c("spot","cell")){
     stop("vrBarPlot can only be used for ROI assays")
   } else {
-    metadata <- Metadata(object, type = "ROI")
+    metadata <- Metadata(object, assay = assay, type = "ROI")
+    assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
+    metadata <- metadata[grepl(assy_id, rownames(metadata)),]
   }
 
   # get feature data
@@ -1068,13 +1074,21 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = "ROI.name
   # violin plot
   assays <- stringr::str_extract(rownames(metadata), "Assay[0-9]+$")
   assay_title <- apply(sample.metadata[assays,], 1, function(x) paste(x["Sample"], x["Layer"], x["Assay"], sep = "|"))
+
+  if(is.null(x.label)) {
+    x.label <- factor(rownames(metadata))
+  } else {
+    x.label <- factor(metadata[[x.label]])
+  }
+
   ggplotdatax <- data.frame(datax,
-                            x.label =  factor(metadata[[x.label]]),
+                            x.label =  x.label,
                             group.by =  factor(metadata[[group.by]]),
                             assay_title = assay_title,
                             spatialpoints = rownames(metadata))
   ggplotdatax <- melt(ggplotdatax, id.var = c("x.label", "assay_title", "group.by", "spatialpoints"))
-  gg <- ggplot(ggplotdatax, aes(x = x.label, y = value, fill = group.by)) +
+  gg <- ggplot(ggplotdatax, aes(x = x.label, y = value,
+                                fill = factor(group.by, levels = unique(group.by)))) +
     geom_bar(stat = "identity") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
     ylab("") + xlab(x.label) +
@@ -1082,10 +1096,78 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = "ROI.name
 
   if(length(features) > 1){
     if(length(gg) < ncol) ncol <- length(gg)
-    gg <- gg + facet_wrap(.~variable, ncol = ncol, nrow = ceiling(length(gg)/ncol), scales = "free")
+    gg <- gg + facet_wrap(.~variable, ncol = ncol, nrow = ceiling(length(features)/ncol), scales = "free")
     return(gg)
   } else {
     gg <- gg + labs(title = features)
     return(gg)
   }
+}
+
+#' vrPercentagePlot
+#'
+#' @param object A VoltRon object
+#' @param assay assay name
+#' @param group.by a column from metadata to seperate columns of the heatmap
+#' @param ncol column wise number of plots, for \code{ggarrange}
+#' @param nrow row wise number of plots, for \code{ggarrange}
+#' @param ... additional parameters passed to \code{getVariableFeatures}
+#'
+#' @import ggplot2
+#' @importFrom reshape2 melt
+#'
+#' @export
+#'
+vrProportionPlot <- function(object, assay = NULL, x.label = NULL, group.by = "Sample", ncol = 2, nrow = NULL, ...){
+
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
+  # list of plots
+  gg <- list()
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get data
+  barplotdata <- vrData(object, assay = assay, norm = FALSE)
+
+  # get entity type and metadata
+  assay_types <- vrAssayTypes(object, assay = assay)
+  if(unique(assay_types) %in% c("spot","cell")){
+    stop("vrProportionPlot can only be used for ROI assays")
+  } else {
+    metadata <- Metadata(object, assay = assay, type = "ROI")
+    assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
+    metadata <- metadata[grepl(assy_id, rownames(metadata)),]
+  }
+
+  # violin plot
+  assays <- stringr::str_extract(rownames(metadata), "Assay[0-9]+$")
+  assay_title <- apply(sample.metadata[assays,], 1, function(x) paste(x["Sample"], x["Layer"], x["Assay"], sep = "|"))
+
+  if(is.null(x.label)) {
+    x.label <- factor(rownames(metadata))
+  } else {
+    x.label <- factor(metadata[[x.label]])
+  }
+
+  ggplotdatax <- data.frame(t(barplotdata),
+                            x.label =  x.label,
+                            group.by =  factor(metadata[[group.by]]),
+                            assay_title = assay_title,
+                            spatialpoints = rownames(metadata))
+  ggplotdatax <- melt(ggplotdatax, id.var = c("x.label", "assay_title", "group.by", "spatialpoints"))
+  ggplotdatax <- ggplotdatax[ggplotdatax$value > 0,]
+  gg <- ggplot(ggplotdatax, aes(x = x.label, y = value, fill = variable)) +
+    geom_bar(stat = "identity") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+    ylab("") + xlab(x.label) +
+    guides(fill = guide_legend(title = group.by))
+
+  if(length(group.by) > 1){
+    if(length(group.by) < ncol) ncol <- length(gg)
+    gg <- gg + facet_wrap(.~group.by, ncol = ncol, nrow = ceiling(length(group.by)/ncol), scales = "free_x")
+  }
+  return(gg)
 }

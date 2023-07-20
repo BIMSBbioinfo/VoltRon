@@ -37,7 +37,12 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 # Spatial Data Alignment
 
-VoltRon allows users to **align serial spatial data slices** for data transfer and 3 dimensional stack alignment. The order of the tissue/sample slices should be provided by the user. VoltRon provides a fully embedded **shiny application** to either automatically or manually align images. The automatic alignment is achieved by the **OpenCV**'s C++ library fully embedded in the VoltRon package.
+Spatial genomic technologies often generate diverse images and spatial readouts, even though the tissue slices are from adjacent sections of a single tissue block. Hence, the alignment of images and spatial coordinates across tissue sections are of utmost importance to dissect the correct spatial closeness across 
+
+
+Hence, any spatial data analysis across entities (ROIs, spots, cells, molecules etc.) would be inconclusive due to 
+
+VoltRon allows users to **align spatial omics datasets of these serial sections** for data transfer and 3 dimensional stack alignment. The order of the tissue/sample slices should be provided by the user. VoltRon provides a fully embedded **shiny application** to either automatically or manually align images. The automatic alignment is achieved by the **OpenCV**'s C++ library fully embedded in the VoltRon package.
 
 <table>
 <tbody>
@@ -52,11 +57,11 @@ VoltRon allows users to **align serial spatial data slices** for data transfer a
 
 ## Alignment of Xenium and Visium 
 
-In this use case, we will align **immunofluorescence (IF)** and **H&E images** associated with the readouts of **Xenium In Situ and Visium CytAssist platforms**. Tissue sections are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block where 3 serial sections of 5 $\mu$m thickness. A 5 $\mu$m section was taken for Visium CytAssist and two replicate 5 $\mu$m sections were taken for Xenium. 
+In this use case, we will align **immunofluorescence (IF)** and **H&E images** of the **Xenium In Situ and Visium CytAssist platforms** readouts. Three tissue sections are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. A 5 $\mu$m section was taken for Visium CytAssist and two replicate 5 $\mu$m sections were taken for the Xenium replicates. 
 
-The dataset can be downloaded from [here](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import **In Situ Replicate 1/2 and Visium Spatial**). More information on the dataset and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
+Xenium and Visium readouts can be downloaded from [here](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import **In Situ Replicate 1/2 and Visium Spatial**). More information on the spatial datasets and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
 
-VoltRon includes built-in functions to converting readouts from both Xenium and Visium platforms into VoltRon objects. We will import both Xenium replicates alongside with the Visium CytAssist data so that we can register images of these assays and merge them into one VoltRon object. 
+VoltRon includes built-in functions to converting single readouts from Xenium and Visium platforms into VoltRon objects. We will import both Xenium replicates alongside with the Visium CytAssist data so that we can register images of these assays and merge them into one VoltRon object. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
