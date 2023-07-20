@@ -392,12 +392,8 @@ vrCoordinates.vrAssay <- function(object, reg = FALSE, ...) {
   if(!all(rownames(values) %in% rownames(coords)))
     stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
 
-  # stop if the colnames are not matching
-  # if(!all(colnames(values) %in% colnames(coords)))
-  #   stop("Cant overwrite coordinates, only x or y coordinates should be provided!")
-
   # stop if the colnames there are more than two columns
-  if(length(colnames(value)) != 2) {
+  if(ncol(value) != 2) {
     stop("Please make sure that the coordinates matrix have only two columns: for x and y coordinates")
   } else {
     colnames(value) <- c("x", "y")
