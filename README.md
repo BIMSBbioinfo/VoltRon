@@ -1,6 +1,8 @@
-# VoltRon
+![](docs/images/main_small.png)
 
-VoltRon  is a spatial data analysis toolbox for spatial data analysis, multi-omics integration using spatial image registration. VoltRon is capable of analyzing multiple types and modalities of spatially-aware datasets.
+<br>
+
+**VoltRon**  is a spatial data analysis toolbox for spatial data analysis, multi-omics integration using spatial image registration. VoltRon is capable of analyzing multiple types and modalities of spatially-aware datasets.
 
    <ul class="maintext2">
      <li style="padding-bottom: 10px">
@@ -40,9 +42,8 @@ sudo apt-get install libopencv-dev
 
 Install from the GitHub repository using devtools:
 
-```
+``` r
 if (!require("devtools", quietly = TRUE))
     install.packages("devtools")
-devtools::install_github("BIMSBbioinfo/VoltRon"")
+devtools::install_github("BIMSBbioinfo/VoltRon")
 ```
-![](docs/images/main.png)
