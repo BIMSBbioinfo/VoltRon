@@ -168,6 +168,19 @@ NULL
   return(x)
 }
 
+#' @describeIn VoltRon-methods Autocompletion for \code{$} access for \code{VoltRon} objects
+#'
+#' @inheritParams utils::.DollarNames
+#'
+#' @importFrom utils .DollarNames
+#' @export
+#' @method .DollarNames VoltRon
+#'
+".DollarNames.VoltRon" <- function(object, pattern = '') {
+  meta.data <- as.list(x = Metadata(object))
+  return(.DollarNames(x = meta.data, pattern = pattern))
+}
+
 ### subset of samples and layers ####
 
 #' @describeIn VoltRon-methods Accessing vrAssay or vrSample objects from \code{VoltRon} objects
