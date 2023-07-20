@@ -189,6 +189,7 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #' @method getPCA VoltRon
 #'
 #' @importFrom irlba irlba
+#' @importFrom dplyr left_join
 #'
 #' @export
 #'
@@ -214,10 +215,19 @@ getPCA.VoltRon <- function(object, assay = NULL, dims = 30){
   scale.data <- apply(normdata, 1, scale)
 
   # get PCA embedding
-  pr.data <- irlba::irlba(scale.data, nv=dims, center=colMeans(scale.data))
-  pr.data <- pr.data$u
+  # pr.data <- irlba::irlba(scale.data, nv=dims, center=colMeans(scale.data))
+  # pr.data <- pr.data$u
+  pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+  loading_matrix <- data.frame(pr.data$rotation, features = features)
+  pr.data <- pr.data$x
   colnames(pr.data) <- paste0("PC", 1:dims)
   rownames(pr.data) <- colnames(normdata)
+
+  # update feature matrix
+  feature_data <- data.frame(vrFeatureData(object), features = vrFeatures(object))
+  feature_data <- feature_data %>% left_join(loading_matrix)
+  vrFeatureData(object) <- data.frame(feature_data[,colnames(feature_data)[!colnames(feature_data) %in% "features"]],
+                                      row.names = feature_data$features)
 
   # set Embeddings
   vrEmbeddings(object, type = "pca") <- pr.data

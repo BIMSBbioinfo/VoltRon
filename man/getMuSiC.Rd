@@ -9,7 +9,7 @@ getMuSiC(
   sc.object,
   sc.assay = "RNA",
   sc.cluster = "seurat_clusters",
-  sc.Samples = NULL
+  sc.samples = NULL
 )
 }
 \arguments{
@@ -21,7 +21,7 @@ getMuSiC(
 
 \item{sc.cluster}{metadata column in Seurat provides the cell types in single cell data}
 
-\item{sc.Samples}{metadata column in Seurat that provides the samples in the single cell data}
+\item{sc.samples}{metadata column in Seurat that provides the samples in the single cell data}
 }
 \description{
 Calculate MuSiC deconvolution for ROIs
