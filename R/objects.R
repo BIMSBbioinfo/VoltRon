@@ -528,7 +528,7 @@ vrAssayTypes.VoltRon <- function(object, assay = NULL){
 #' @param object a VoltRon object
 #' @param samples a single or a set of sample names
 #'
-#' @importFrom dplyr n_distinct %>% distinct select
+#' @importFrom dplyr n_distinct %>% distinct select mutate group_by
 #'
 changeSampleNames.VoltRon <- function(object, samples = NULL){
 
@@ -540,7 +540,7 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
 
   # check if multiple new sample names are associated with the same section of one sample
   check_samples_table <- samples_table %>%
-    group_by(Assay, Sample) %>% mutate(n = dplyr::n_distinct(NewSample)) %>%
+    dplyr::group_by(Assay, Sample) %>% dplyr::mutate(n = dplyr::n_distinct(NewSample)) %>%
     select(c("Assay", "Sample", "n")) %>% distinct()
   if(any(check_samples_table$n > 1)){
     message("Overwriting the sample names of assays that were original from a single layer of a sample arent allowed")
