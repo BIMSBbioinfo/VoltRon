@@ -24,7 +24,6 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
   ## Importing images ####
 
   # check object classes
-
   # if the input is not a list, switch to reference vs query mode
   if(!is.null(object_list)){
     # reference and query indices
@@ -502,13 +501,15 @@ rescaleXeniumCells <- function(cells, bbox, image){
 #' @param output shiny output
 #' @param session shiny session
 #'
+#' @importFrom tibble tibble
+#'
 initateKeypoints <- function(len_images, keypoints_list, input, output, session){
 
   # initiate keypoints
   if(is.null(keypoints_list)){
     keypoints_list <- lapply(1:(len_images-1), function(i) {
-      list(ref = tibble(KeyPoint = numeric(), x = numeric(), y = numeric()),
-           query = tibble(KeyPoint = numeric(), x = numeric(), y = numeric()))
+      list(ref = tibble::tibble(KeyPoint = numeric(), x = numeric(), y = numeric()),
+           query = tibble::tibble(KeyPoint = numeric(), x = numeric(), y = numeric()))
 
     })
 
@@ -887,6 +888,9 @@ initiateQueryMatrices <- function(len_images, input, output, session){
 #' @param session shiny session
 #'
 #' @import ggplot2
+#' @importFrom raster as.raster
+#' @importFrom magick image_write image_join image_read image_resize
+#' @importFrom htmltools HTML
 #'
 getManualRegisteration <- function(registered_spatdata_list, spatdata_list, image_list, keypoints_list,
                                    centre, register_ind, input, output, session){
@@ -930,24 +934,14 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
         cur_mapping <- mapping_list[[i]]
         images <- getManualRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
         output[[paste0("plot_query_reg",i)]] <- renderImage({
-          r2 <- image_read(as.raster(images$query))
-          image_view_list <- list(rep(image_resize(image_list[[centre]], geometry = "400x"),5),
-                                  rep(image_resize(r2, geometry = "400x"),5))
+          r2 <- magick::image_read(raster::as.raster(images$query))
+          image_view_list <- list(rep(magick::image_resize(image_list[[centre]], geometry = "400x"),5),
+                                  rep(magick::image_resize(r2, geometry = "400x"),5))
           image_view_list <- image_view_list %>%
-            image_join() %>%
-            image_write(tempfile(fileext='gif'), format = 'gif')
+            magick::image_join() %>%
+            magick::image_write(tempfile(fileext='gif'), format = 'gif')
           list(src = image_view_list, contentType = "image/gif")
         }, deleteFile = TRUE)
-        # output[[paste0("plot_query_reg",i)]] <- renderPlot({
-        #   info <- image_info(image_list[[centre]])
-        #   r2 <- as.raster(images$query)
-        #   r2 <- rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",i)]]))
-        #   ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
-        #     ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
-        #     ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
-        #     ggplot2::annotation_custom(r2, 0, info$width, 0, info$height) +
-        #     theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-        # })
       })
 
       # Output summary
@@ -956,7 +950,7 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
         str2 <- paste0("# of Images: ", length(image_list))
         str3 <- paste0("# of Registrations: ", len_register)
         all_str <- c(str1, str2, str3)
-        HTML(paste(all_str, collapse = '<br/>'))
+        htmltools::HTML(paste(all_str, collapse = '<br/>'))
       })
     }
   })
@@ -1012,18 +1006,18 @@ computeManualPairwiseTransform <- function(keypoints_list, query_ind, ref_ind){
 #' @param input input
 #'
 #' @importFrom Morpho applyTransform
-#' @importFrom raster rasterize focal res
+#' @importFrom raster rasterize focal res stack extent
 #' @importFrom terra rast
 #'
 getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, input){
 
   # plot with raster
-  ref_image_raster <- as.raster(images[[ref_ind]]) |> as.matrix() |> rast()
-  query_image_raster <- as.raster(images[[query_ind]]) |> as.matrix() |> rast() |> stack()
+  ref_image_raster <- as.raster(images[[ref_ind]]) |> as.matrix() |> terra::rast()
+  query_image_raster <- as.raster(images[[query_ind]]) |> as.matrix() |> terra::rast() |> raster::stack()
 
   # prepare image
-  imageEx <- raster::extent(stack(ref_image_raster))
-  imageRes <- raster::res(stack(ref_image_raster))
+  imageEx <- raster::extent(raster::stack(ref_image_raster))
+  imageRes <- raster::res(raster::stack(ref_image_raster))
   query_image_raster_1 <- raster::as.data.frame(query_image_raster[[1]], xy = TRUE)
 
   # apply transformation as many as it is needed
@@ -1062,7 +1056,7 @@ getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, in
 #' @param output shiny output
 #' @param session shiny session
 #'
-#' @importFrom magick image_info image_ggplot
+#' @importFrom magick image_info image_ggplot image_write image_join image_resize
 #' @importFrom grid rasterGrob
 #' @importFrom ggplot2 ggplot coord_fixed annotation_raster annotation_custom
 #' @importFrom htmltools HTML
@@ -1108,35 +1102,20 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
         cur_mapping <- mapping_list[[i]]
         cur_aligned_image <- aligned_image_list[[i]]
         output[[paste0("plot_query_reg",i)]] <- renderImage({
-          image_view_list <- list(rep(image_resize(image_list[[centre]], geometry = "400x"),5),
-                                  rep(image_resize(aligned_image_list[[i]], geometry = "400x"),5))
+          image_view_list <- list(rep(magick::image_resize(image_list[[centre]], geometry = "400x"),5),
+                                  rep(magick::image_resize(aligned_image_list[[i]], geometry = "400x"),5))
           image_view_list <- image_view_list %>%
-            image_join() %>%
-            image_write(tempfile(fileext='gif'), format = 'gif')
+            magick::image_join() %>%
+            magick::image_write(tempfile(fileext='gif'), format = 'gif')
           list(src = image_view_list, contentType = "image/gif")
         }, deleteFile = TRUE)
-        # output[[paste0("plot_query_reg",i)]] <- renderPlot({
-        #   info <- magick::image_info(image_list[[centre]])
-        #   r2 <- as.raster(cur_aligned_image)
-        #   r2 <- grid::rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",i)]]))
-        #   # p <- ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
-        #   #   ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
-        #   #   ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
-        #   #   ggplot2::annotation_custom(r2, 0, info$width, 0, info$height)
-        #   # ggsave(filename = paste0("plot_query_reg_alpha",i, "pdf"), plot = p, device = "pdf", width = 7, height = 10, bg = "transparent")
-        #   ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
-        #     ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
-        #     ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
-        #     ggplot2::annotation_custom(r2, 0, info$width, 0, info$height) +
-        #     theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-        # })
       })
 
       # Plot Alignment
       lapply(register_ind, function(i){
         cur_alignment_image <- alignment_image_list[[i]]
         output[[paste0("plot_alignment",i)]] <- renderPlot({
-          image_ggplot(cur_alignment_image)
+          magick::image_ggplot(cur_alignment_image)
         })
       })
 

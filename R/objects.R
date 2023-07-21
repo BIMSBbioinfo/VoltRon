@@ -168,6 +168,19 @@ NULL
   return(x)
 }
 
+#' @describeIn VoltRon-methods Autocompletion for \code{$} access for \code{VoltRon} objects
+#'
+#' @inheritParams utils::.DollarNames
+#'
+#' @importFrom utils .DollarNames
+#' @export
+#' @method .DollarNames VoltRon
+#'
+".DollarNames.VoltRon" <- function(object, pattern = '') {
+  meta.data <- as.list(x = Metadata(object))
+  return(.DollarNames(x = meta.data, pattern = pattern))
+}
+
 ### subset of samples and layers ####
 
 #' @describeIn VoltRon-methods Accessing vrAssay or vrSample objects from \code{VoltRon} objects
@@ -287,6 +300,7 @@ setMethod(
 #' @param project project name
 #'
 #' @importFrom igraph make_empty_graph V
+#' @importFrom magick image_data
 #'
 #' @export
 #'
@@ -359,8 +373,9 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
   }
 
   # create vrAssay
-  Xenium_assay <- new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = as.raster(image), params = params, type = assay.type)
-  listofAssays <- list(Xenium_assay)
+  # Xenium_assay <- new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = as.raster(image), params = params, type = assay.type)
+  Assay <- new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = magick::image_data(image), params = params, type = assay.type)
+  listofAssays <- list(Assay)
   names(listofAssays) <- main.assay
 
   # create layers and samples
@@ -515,7 +530,7 @@ vrAssayTypes.VoltRon <- function(object, assay = NULL){
 #' @param object a VoltRon object
 #' @param samples a single or a set of sample names
 #'
-#' @importFrom dplyr n_distinct %>% distinct select
+#' @importFrom dplyr n_distinct %>% distinct select mutate group_by
 #'
 changeSampleNames.VoltRon <- function(object, samples = NULL){
 
@@ -527,7 +542,7 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
 
   # check if multiple new sample names are associated with the same section of one sample
   check_samples_table <- samples_table %>%
-    group_by(Assay, Sample) %>% mutate(n = dplyr::n_distinct(NewSample)) %>%
+    dplyr::group_by(Assay, Sample) %>% dplyr::mutate(n = dplyr::n_distinct(NewSample)) %>%
     select(c("Assay", "Sample", "n")) %>% distinct()
   if(any(check_samples_table$n > 1)){
     message("Overwriting the sample names of assays that were original from a single layer of a sample arent allowed")
@@ -689,7 +704,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 
   # other attributes
   main.assay <- unique(sample.metadata$Assay)[unique(sample.metadata$Assay) == names(table(sample.metadata$Assay))[which.max(table(sample.metadata$Assay))]]
-  graph <- igraph::subgraph(object@graph, igraph::V(object@graph)[names(V(object@graph)) %in% vrSpatialPoints(metadata)])
+  graph <- igraph::subgraph(object@graph, igraph::V(object@graph)[names(igraph::V(object@graph)) %in% vrSpatialPoints(metadata)])
   project <- object@project
 
   # set VoltRon class
@@ -835,17 +850,17 @@ updateGraphAssay <- function(object1, object2){
   igraph::V(object1)$name <- temp
 
   # get assay types
-  assaytype <- unique(stringr::str_extract(V(object2)$name, "Assay[0-9]+$"))
+  assaytype <- unique(stringr::str_extract(igraph::V(object2)$name, "Assay[0-9]+$"))
   assaytype <- assaytype[order(nchar(assaytype), assaytype)]
 
   # replace assay names
   replacement <- paste0("Assay", (length(replacement)+1):(length(replacement) + length(assaytype)))
-  vertex_names <- V(object2)$name
+  vertex_names <- igraph::V(object2)$name
   temp <- vertex_names
   for(i in 1:length(assaytype))
     temp[grepl(paste0(assaytype[i],"$"), vertex_names)] <- gsub(paste0(assaytype[i],"$"), replacement[i],
                                                                 vertex_names[grepl(paste0(assaytype[i],"$"), vertex_names)])
-  V(object2)$name <- temp
+  igraph::V(object2)$name <- temp
 
   # return
   return(list(object1 = object1, object2 = object2))
@@ -1020,6 +1035,7 @@ vrData.VoltRon <- function(object, assay = NULL, ...) {
 #' @rdname vrGraph
 #' @method vrGraph VoltRon
 #'
+#' @importFrom igraph induced_subgraph
 #' @export
 #'
 vrGraph.VoltRon <- function(object, assay = NULL, ...) {
@@ -1029,7 +1045,7 @@ vrGraph.VoltRon <- function(object, assay = NULL, ...) {
   assay_pattern <- paste0(assay_names, collapse = "|")
   node_names <- vrSpatialPoints(object)[grepl(assay_pattern, vrSpatialPoints(object))]
 
-  returngraph <- induced_subgraph(object@graph, node_names)
+  returngraph <- igraph::induced_subgraph(object@graph, node_names)
   return(returngraph)
 }
 
