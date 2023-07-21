@@ -300,6 +300,7 @@ setMethod(
 #' @param project project name
 #'
 #' @importFrom igraph make_empty_graph V
+#' @importFrom magick image_data
 #'
 #' @export
 #'
@@ -372,8 +373,9 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
   }
 
   # create vrAssay
-  Xenium_assay <- new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = as.raster(image), params = params, type = assay.type)
-  listofAssays <- list(Xenium_assay)
+  # Xenium_assay <- new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = as.raster(image), params = params, type = assay.type)
+  Assay <- new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = magick::image_data(image), params = params, type = assay.type)
+  listofAssays <- list(Assay)
   names(listofAssays) <- main.assay
 
   # create layers and samples
@@ -1033,6 +1035,7 @@ vrData.VoltRon <- function(object, assay = NULL, ...) {
 #' @rdname vrGraph
 #' @method vrGraph VoltRon
 #'
+#' @importFrom igraph induced_subgraph
 #' @export
 #'
 vrGraph.VoltRon <- function(object, assay = NULL, ...) {

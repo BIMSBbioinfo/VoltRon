@@ -96,7 +96,7 @@ vrImages.vrLayer <- function(object, ...){
 #' @export
 #'
 vrImages.vrAssay <- function(object){
-  image_read(object@image)
+  magick::image_read(object@image)
 }
 
 #' @param value new image
@@ -359,7 +359,7 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #' @importFrom ggplot2 geom_rect
 #' @importFrom htmltools HTML
 #' @importFrom dplyr filter
-#' @importFrom tibble add_row
+#' @importFrom tibble add_row tibble
 #'
 demuxVoltRon <- function(object, scale_width = 800)
 {
@@ -437,10 +437,10 @@ demuxVoltRon <- function(object, scale_width = 800)
     server <- function(input, output, session) {
 
       # selected corners
-      selected_corners <- reactiveVal(tibble(x = numeric(), y = numeric()))
+      selected_corners <- reactiveVal(tibble::tibble(x = numeric(), y = numeric()))
 
       # selected corner list
-      selected_corners_list <- reactiveVal(tibble(box = character()))
+      selected_corners_list <- reactiveVal(tibble::tibble(box = character()))
 
       ### Main observable ####
       observe({

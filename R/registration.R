@@ -501,13 +501,15 @@ rescaleXeniumCells <- function(cells, bbox, image){
 #' @param output shiny output
 #' @param session shiny session
 #'
+#' @importFrom tibble tibble
+#'
 initateKeypoints <- function(len_images, keypoints_list, input, output, session){
 
   # initiate keypoints
   if(is.null(keypoints_list)){
     keypoints_list <- lapply(1:(len_images-1), function(i) {
-      list(ref = tibble(KeyPoint = numeric(), x = numeric(), y = numeric()),
-           query = tibble(KeyPoint = numeric(), x = numeric(), y = numeric()))
+      list(ref = tibble::tibble(KeyPoint = numeric(), x = numeric(), y = numeric()),
+           query = tibble::tibble(KeyPoint = numeric(), x = numeric(), y = numeric()))
 
     })
 
@@ -1054,7 +1056,7 @@ getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, in
 #' @param output shiny output
 #' @param session shiny session
 #'
-#' @importFrom magick image_info image_ggplot
+#' @importFrom magick image_info image_ggplot image_write image_join image_resize
 #' @importFrom grid rasterGrob
 #' @importFrom ggplot2 ggplot coord_fixed annotation_raster annotation_custom
 #' @importFrom htmltools HTML
@@ -1100,35 +1102,20 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
         cur_mapping <- mapping_list[[i]]
         cur_aligned_image <- aligned_image_list[[i]]
         output[[paste0("plot_query_reg",i)]] <- renderImage({
-          image_view_list <- list(rep(image_resize(image_list[[centre]], geometry = "400x"),5),
-                                  rep(image_resize(aligned_image_list[[i]], geometry = "400x"),5))
+          image_view_list <- list(rep(magick::image_resize(image_list[[centre]], geometry = "400x"),5),
+                                  rep(magick::image_resize(aligned_image_list[[i]], geometry = "400x"),5))
           image_view_list <- image_view_list %>%
-            image_join() %>%
-            image_write(tempfile(fileext='gif'), format = 'gif')
+            magick::image_join() %>%
+            magick::image_write(tempfile(fileext='gif'), format = 'gif')
           list(src = image_view_list, contentType = "image/gif")
         }, deleteFile = TRUE)
-        # output[[paste0("plot_query_reg",i)]] <- renderPlot({
-        #   info <- magick::image_info(image_list[[centre]])
-        #   r2 <- as.raster(cur_aligned_image)
-        #   r2 <- grid::rasterGrob(apply(r2,2,scales::alpha, alpha = input[[paste0("plot_query_reg_alpha",i)]]))
-        #   # p <- ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
-        #   #   ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
-        #   #   ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
-        #   #   ggplot2::annotation_custom(r2, 0, info$width, 0, info$height)
-        #   # ggsave(filename = paste0("plot_query_reg_alpha",i, "pdf"), plot = p, device = "pdf", width = 7, height = 10, bg = "transparent")
-        #   ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x","y")) +
-        #     ggplot2::coord_fixed(expand = FALSE, xlim = c(0, info$width), ylim = c(0, info$height)) +
-        #     ggplot2::annotation_raster(image_list[[centre]], 0, info$width, info$height, 0, interpolate = FALSE) +
-        #     ggplot2::annotation_custom(r2, 0, info$width, 0, info$height) +
-        #     theme(axis.title.x = element_blank(), axis.title.y = element_blank())
-        # })
       })
 
       # Plot Alignment
       lapply(register_ind, function(i){
         cur_alignment_image <- alignment_image_list[[i]]
         output[[paste0("plot_alignment",i)]] <- renderPlot({
-          image_ggplot(cur_alignment_image)
+          magick::image_ggplot(cur_alignment_image)
         })
       })
 

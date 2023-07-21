@@ -3,6 +3,7 @@
 #include "opencv2/xfeatures2d.hpp"
 #include "opencv2/features2d.hpp"
 
+using namespace Rcpp;
 using namespace std;
 using namespace cv;
 using namespace cv::xfeatures2d;
@@ -61,7 +62,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const 
   // Draw top matches and good ones only
   // Mat imMatches;
   drawMatches(im1, keypoints1_best, im2, keypoints2_best, goodMatches, imMatches);
-  // imwrite("matches_best.jpg", imMatches);
+  // imwrite("matches_best2.jpg", imMatches);
 
   // Find homography
   h = findHomography( points1, points2, RANSAC );

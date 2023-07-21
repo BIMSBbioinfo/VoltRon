@@ -7,6 +7,7 @@
 # Set magick-image as an S4 class
 setOldClass(Classes = c('magick-image'))
 setOldClass(Classes = c('raster'))
+setOldClass(Classes = c('bitmap'))
 
 ## vrAssay ####
 
@@ -38,7 +39,8 @@ vrAssay <- setClass(
     segments = 'list',
     segments_reg = 'list',
     # image = 'magick-image',
-    image = 'raster',
+    # image = 'raster',
+    image = "bitmap",
     params = "list",
     type = "character"
   )
