@@ -1045,7 +1045,7 @@ vrGraph.VoltRon <- function(object, assay = NULL, ...) {
   assay_pattern <- paste0(assay_names, collapse = "|")
   node_names <- vrSpatialPoints(object)[grepl(assay_pattern, vrSpatialPoints(object))]
 
-  returngraph <- induced_subgraph(object@graph, node_names)
+  returngraph <- igraph::induced_subgraph(object@graph, node_names)
   return(returngraph)
 }
 
