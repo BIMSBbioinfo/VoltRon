@@ -704,7 +704,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 
   # other attributes
   main.assay <- unique(sample.metadata$Assay)[unique(sample.metadata$Assay) == names(table(sample.metadata$Assay))[which.max(table(sample.metadata$Assay))]]
-  graph <- igraph::subgraph(object@graph, igraph::V(object@graph)[names(V(object@graph)) %in% vrSpatialPoints(metadata)])
+  graph <- igraph::subgraph(object@graph, igraph::V(object@graph)[names(igraph::V(object@graph)) %in% vrSpatialPoints(metadata)])
   project <- object@project
 
   # set VoltRon class
@@ -850,17 +850,17 @@ updateGraphAssay <- function(object1, object2){
   igraph::V(object1)$name <- temp
 
   # get assay types
-  assaytype <- unique(stringr::str_extract(V(object2)$name, "Assay[0-9]+$"))
+  assaytype <- unique(stringr::str_extract(igraph::V(object2)$name, "Assay[0-9]+$"))
   assaytype <- assaytype[order(nchar(assaytype), assaytype)]
 
   # replace assay names
   replacement <- paste0("Assay", (length(replacement)+1):(length(replacement) + length(assaytype)))
-  vertex_names <- V(object2)$name
+  vertex_names <- igraph::V(object2)$name
   temp <- vertex_names
   for(i in 1:length(assaytype))
     temp[grepl(paste0(assaytype[i],"$"), vertex_names)] <- gsub(paste0(assaytype[i],"$"), replacement[i],
                                                                 vertex_names[grepl(paste0(assaytype[i],"$"), vertex_names)])
-  V(object2)$name <- temp
+  igraph::V(object2)$name <- temp
 
   # return
   return(list(object1 = object1, object2 = object2))
