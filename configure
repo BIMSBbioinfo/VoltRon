@@ -1,0 +1,102 @@
+#!/bin/sh
+# Anticonf (tm) script by Jeroen Ooms (2020)
+PKG_CONFIG_NAME="opencv4"
+PKG_CONFIG_NAME_ALT="opencv"
+PKG_DEB_NAME="libopencv-dev"
+PKG_RPM_NAME="opencv-devel"
+PKG_BREW_NAME="opencv"
+PKG_TEST_HEADER="<opencv2/opencv.hpp>"
+PKG_TEST_HEADER_XFEATURES2D="<opencv2/xfeatures2d.hpp>"
+PKG_LIBS="-lopencv_{stitching,superres,videostab,aruco,bgsegm,bioinspired,ccalib,dnn_objdetect,\
+dpm,face,photo,fuzzy,hfs,img_hash,line_descriptor,optflow,reg,rgbd,saliency,stereo,structured_light,\
+phase_unwrapping,surface_matching,tracking,datasets,dnn,plot,xfeatures2d,shape,video,ml,ximgproc,\
+calib3d,features2d,highgui,videoio,flann,xobjdetect,imgcodecs,objdetect,xphoto,imgproc,core}"
+
+# For debugging opencv3 in macos:
+#export PKG_CONFIG_PATH="/usr/local/opt/opencv@3/lib/pkgconfig"
+
+# Use pkg-config if available
+PCVERSION=`pkg-config --version 2>/dev/null`
+if [ $? -eq 0 ]; then
+  echo "This is pkg-config $PCVERSION"
+  if pkg-config --exists ${PKG_CONFIG_NAME} ; then
+    PKGCONFIG_CFLAGS=`pkg-config --cflags ${PKG_CONFIG_NAME}`
+    PKGCONFIG_LIBS=`pkg-config --libs ${PKG_CONFIG_NAME}`
+    PKGCONFIG_PREFIX=`pkg-config --variable=prefix ${PKG_CONFIG_NAME}`
+  elif pkg-config --exists ${PKG_CONFIG_NAME_ALT}; then
+    PKGCONFIG_CFLAGS=`pkg-config --cflags ${PKG_CONFIG_NAME_ALT}`
+    PKGCONFIG_LIBS=`pkg-config --libs ${PKG_CONFIG_NAME_ALT}`
+    PKGCONFIG_PREFIX=`pkg-config --variable=prefix ${PKG_CONFIG_NAME_ALT}`
+  fi
+fi
+
+# Note that cflags may be empty in case of success
+if [ "$PKGCONFIG_CFLAGS" ] || [ "$PKGCONFIG_LIBS" ]; then
+  echo "Found pkg-config cflags and libs!"
+  PKG_CFLAGS=${PKGCONFIG_CFLAGS}
+  PKG_LIBS=${PKGCONFIG_LIBS}
+  if [ "$PKGCONFIG_PREFIX" ]; then
+    PKG_CFLAGS="$PKG_CFLAGS -D_DATA_PREFIX=${PKGCONFIG_PREFIX}"
+  fi
+elif [ `uname` = "Darwin" ]; then
+  test ! "$CI" && brew --version 2>/dev/null
+  if [ $? -eq 0 ]; then
+    BREWDIR=`brew --prefix`
+    PKG_CFLAGS="-I$BREWDIR/opt/opencv/include"
+    PKG_LIBS="-L$BREWDIR/opt/opencv/lib $PKG_LIBS"
+  else
+    curl -sfL "https://autobrew.github.io/scripts/opencv" > autobrew
+    . ./autobrew
+  fi
+fi
+
+# For debugging
+echo "Using PKG_CFLAGS=$PKG_CFLAGS"
+echo "Using PKG_LIBS=$PKG_LIBS"
+
+# Use CXX17 if available (preferred for recent opencv)
+CXX17=`${R_HOME}/bin/R CMD config CXX17` || unset CXX17
+
+if [ "$CXX17" ]; then
+echo "Found C++17 compiler: $CXX17"
+CXXVER=CXX17
+else
+echo "Using C++11 compiler"
+CXXVER=CXX11
+fi
+
+CXX=$($R_HOME/bin/R CMD config ${CXXVER})
+CXXSTD=$($R_HOME/bin/R CMD config ${CXXVER}STD)
+CXXFLAGS="$($R_HOME/bin/R CMD config ${CXXVER}FLAGS)"
+CPPFLAGS="$($R_HOME/bin/R CMD config CPPFLAGS)"
+CXXCPP="$CXX $CXXSTD -E"
+
+# Test configuration
+echo "#include $PKG_TEST_HEADER" | ${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS} ${CXXFLAGS} -xc++ - >/dev/null 2>configure.log
+
+if [ $? -ne 0 ]; then
+  echo "-----------------------------[ ANTICONF ]-------------------------------"
+  echo "Configuration failed to find $PKG_CONFIG_NAME library. Try installing:"
+  echo " * deb: $PKG_DEB_NAME (Debian, Ubuntu, etc)"
+  echo " * rpm: $PKG_RPM_NAME (Fedora, CentOS, RHEL)"
+  echo " * brew: $PKG_BREW_NAME (Mac OSX)"
+  echo "If $PKG_CONFIG_NAME is already installed, check that 'pkg-config' is in your"
+  echo "PATH and PKG_CONFIG_PATH contains a $PKG_CONFIG_NAME.pc file."
+  echo "---------------------------[ ERROR MESSAGE ]----------------------------"
+  cat configure.log
+  echo "------------------------------------------------------------------------"
+  exit 1
+fi
+
+echo "#include $PKG_TEST_HEADER_XFEATURES2D" | ${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS}  ${CXXFLAGS} -xc++ - >/dev/null 2>>configure.log
+if [ $? -ne 0 ]; then
+  echo "Module $PKG_TEST_HEADER_XFEATURES2D has not been found on your system, disabling keypoint detection."
+else
+  PKG_CFLAGS="$PKG_CFLAGS -DHAVE_XFEATURES2D"
+fi
+
+# Write to Makevars
+sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|CXX11|${CXXVER}|" src/Makevars.in > src/Makevars
+
+# Success
+exit 0
