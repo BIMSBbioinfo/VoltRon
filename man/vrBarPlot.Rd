@@ -23,6 +23,8 @@ vrBarPlot(
 
 \item{assay}{assay name}
 
+\item{x.label}{labels of the x axis}
+
 \item{group.by}{a column from metadata to seperate columns of the heatmap}
 
 \item{norm}{if TRUE, the normalized data is used}

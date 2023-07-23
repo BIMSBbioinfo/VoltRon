@@ -11,6 +11,6 @@ The vrSample (VoltRon Sample) Class
 \section{Slots}{
 
 \describe{
-\item{\code{samples}}{A list of layers for the this vrSample object}
+\item{\code{layer}}{A list of layers (vrLayer)}
 }}
 

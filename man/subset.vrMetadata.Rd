@@ -4,9 +4,13 @@
 \alias{subset.vrMetadata}
 \title{Subsetting vrMetadata objects}
 \usage{
-\method{subset}{vrMetadata}(metadata, subset, samples = NULL, assays = NULL, spatialpoints = NULL)
+\method{subset}{vrMetadata}(object, subset, samples = NULL, assays = NULL, spatialpoints = NULL)
 }
 \arguments{
+\item{object}{a vrMetadata object}
+
+\item{subset}{the subset statement}
+
 \item{samples}{the set of samples to subset the object}
 
 \item{assays}{the set of assays to subset the object}

@@ -8,8 +8,6 @@ merge_sampleMetadata(metadata_list)
 }
 \arguments{
 \item{metadata_list}{a list of sample metadata of a VoltRon object}
-
-\item{sample_names}{new sample names}
 }
 \description{
 Merging sample.metadata from two VoltRon objects

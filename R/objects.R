@@ -1,6 +1,5 @@
 #' @include zzz.R
 #' @include generics.R
-#'
 #' @useDynLib VoltRon
 NULL
 
@@ -17,9 +16,11 @@ setOldClass(Classes = c('igraph'))
 
 #' The VoltRon Class
 #'
-#' @slot samples A list of samples for the this project
-#' @slot integrated.datasets A list of integrated data objects that indicate integrated spatial layers
-#' @slot meta.data Contains meta-information about each sample
+#' @slot samples A list of samples (vrSample)
+#' @slot metadata A vrMetadata object that includes metadata of ROIs, spots, and cells
+#' @slot sample.metadata Contains meta-information about each sample, layer and assay
+#' @slot graph A igraph object
+#' @slot main.assay The type of the main assay (i.e. Visium, Xenium, GeoMx etc.)
 #' @slot project Name of the project
 #'
 #' @name VoltRon-class
@@ -39,6 +40,7 @@ VoltRon <- setClass(
 )
 
 ### show ####
+
 setMethod(
   f = 'show',
   signature = 'VoltRon',
@@ -239,7 +241,7 @@ setMethod(
         stop("There are no samples named ", i, " in this object")
       }
     } else {
-      if(!class(value) == "vrSample"){
+      if(!inherits(value, "vrSample")) {
         stop("The provided object is not of class vrSample")
       }
       x@samples[[i]] <- value
@@ -269,7 +271,7 @@ setMethod(
   signature = c('VoltRon', "character", "character"),
   definition = function(x, i, j, ..., value){
 
-    if(!class(value) == "vrLayer"){
+    if(!inherits(value, "vrLayer")){
       stop("The provided object is not of class vrLayer")
     }
 
@@ -287,12 +289,11 @@ setMethod(
 #' @param data the count table
 #' @param metadata a metadata object of class \code{vrMetadata}
 #' @param image the image of the data
-#' @param coord the coordinates of the spatial points
+#' @param coords the coordinates of the spatial points
 #' @param segments the segments of the spatial points, optional
 #' @param sample.metadata a data frame of the sample metadata
 #' @param graph the graph to determine the adjacency of spatial points across layers
 #' @param main.assay the name of the main assay of the object
-#' @param assay_name the name of the assay
 #' @param assay.type the type of the assay (cells, spots, ROIs)
 #' @param params additional parameters of the object
 #' @param sample_name the name of the sample
@@ -301,6 +302,7 @@ setMethod(
 #'
 #' @importFrom igraph make_empty_graph V
 #' @importFrom magick image_data
+#' @importFrom methods new
 #'
 #' @export
 #'
@@ -373,15 +375,15 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
   }
 
   # create vrAssay
-  # Xenium_assay <- new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = as.raster(image), params = params, type = assay.type)
-  Assay <- new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = magick::image_data(image), params = params, type = assay.type)
+  # Xenium_assay <- methods::new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = as.raster(image), params = params, type = assay.type)
+  Assay <- methods::new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = magick::image_data(image), params = params, type = assay.type)
   listofAssays <- list(Assay)
   names(listofAssays) <- main.assay
 
   # create layers and samples
-  listofLayers <- list(new("vrLayer", assay = listofAssays))
+  listofLayers <- list(methods::new("vrLayer", assay = listofAssays))
   names(listofLayers) <- layer_name
-  listofSamples <- list(new("vrSample", layer = listofLayers))
+  listofSamples <- list(methods::new("vrSample", layer = listofLayers))
   names(listofSamples) <- sample_name
 
   # set sample meta data
@@ -390,7 +392,7 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
   }
 
   # set VoltRon class
-  new("VoltRon", samples = listofSamples, metadata = sr_metadata, sample.metadata = sample.metadata, graph = graph, main.assay = main.assay, project = project)
+  methods::new("VoltRon", samples = listofSamples, metadata = sr_metadata, sample.metadata = sample.metadata, graph = graph, main.assay = main.assay, project = project)
 }
 
 ### Assay Methods ####
@@ -531,6 +533,7 @@ vrAssayTypes.VoltRon <- function(object, assay = NULL){
 #' @param samples a single or a set of sample names
 #'
 #' @importFrom dplyr n_distinct %>% distinct select mutate group_by
+#' @importFrom methods new
 #'
 changeSampleNames.VoltRon <- function(object, samples = NULL){
 
@@ -568,7 +571,7 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
     cur_sample.metadata$comb <- paste(cur_sample.metadata$Sample, cur_sample.metadata$Layer, sep = "_")
     cur_sample.metadata$NewLayer <- paste0("Section", as.numeric(factor(cur_sample.metadata$comb, levels = unique(cur_sample.metadata$comb))))
     names(listofLayers) <- cur_sample.metadata$NewLayer
-    listofSamples <- list(new("vrSample", layer = listofLayers))
+    listofSamples <- list(methods::new("vrSample", layer = listofLayers))
     names(listofSamples) <- cur_sample
     new_listofSamples <- c(new_listofSamples, listofSamples)
     new_sample.metadata <- rbind(new_sample.metadata, cur_sample.metadata)
@@ -611,6 +614,7 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
 #' @importFrom rlang enquo eval_tidy quo_get_expr
 #' @importFrom stringr str_extract
 #' @importFrom igraph subgraph V
+#' @importFrom methods new
 #'
 #' @export
 #'
@@ -680,7 +684,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
   } else if(!is.null(image)) {
 
     # subsetting based on image magick parameters
-    if(class(image) == "character") {
+    if(inherits(image, "character")){
 
       # check if there are only one image and one assay
       sample.metadata <- SampleMetadata(object)
@@ -708,7 +712,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
   project <- object@project
 
   # set VoltRon class
-  new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, graph = graph, main.assay = main.assay, project = project)
+  methods::new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, graph = graph, main.assay = main.assay, project = project)
 }
 
 #' Merging VoltRon objects
@@ -721,6 +725,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 #' @param main.assay name of the assay
 #'
 #' @method merge VoltRon
+#' @importFrom methods new
 #'
 #' @export
 #'
@@ -766,7 +771,7 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   project <- slot(object_list[[1]], "project")
 
   # set VoltRon class
-  object <- new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata,
+  object <- methods::new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata,
                 graph = graph, main.assay = main.assay, project = project)
 
   # change assay names and sample names
@@ -795,7 +800,7 @@ merge_graphs <- function(object, object_list){
   # combine all elements
   if(!is.list(object_list))
     object_list <- list(object_list)
-  if(class(object) == "VoltRon"){
+  if(inherits(object, "VoltRon")){
     object_list <- c(object, object_list)
   } else {
     object_list <- c(list(object), object_list)
@@ -831,9 +836,10 @@ merge_graphs <- function(object, object_list){
 #'
 updateGraphAssay <- function(object1, object2){
 
-  if(class(object1) == "VoltRon")
+
+  if(inherits(object1, "VoltRon"))
     object1 <- vrGraph(object1, assay = "all")
-  if(class(object2) == "VoltRon")
+  if(inherits(object2, "VoltRon"))
     object2 <- vrGraph(object2, assay = "all")
 
   # get assay types

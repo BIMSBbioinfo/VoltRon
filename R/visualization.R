@@ -451,8 +451,18 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.b
 }
 
 ####
-## Spatial Auxiiary ####
+## Spatial Auxiliary ####
 ####
+
+#' Spatial Auxiliary function
+#'
+#' @name SpatialAuxiliary
+#'
+#' @import ggplot2
+#' @importFrom grid pointsGrob unit gpar
+#' @importFrom rlang list2
+#'
+NULL
 
 geom_spot <- function (mapping = NULL, data = NULL, stat = "identity", position = "identity",
                            ..., na.rm = FALSE, show.legend = NA, inherit.aes = TRUE) {
@@ -488,10 +498,10 @@ GeomSpot <- ggproto("GeomSpot",
                                grid::pointsGrob(
                                  coords$x, coords$y,
                                  pch = coords$shape,
-                                 size = unit(spot.radius, "npc"),
+                                 size = grid::unit(spot.radius, "npc"),
                                  gp = grid::gpar(
-                                   col = alpha(coords$colour, coords$alpha),
-                                   fill = alpha(coords$fill, coords$alpha),
+                                   col = ggplot2::alpha(coords$colour, coords$alpha),
+                                   fill = ggplot2::alpha(coords$fill, coords$alpha),
                                    fontsize = coords$size * .pt + stroke_size * .stroke / 2,
                                    lwd = coords$stroke * .stroke / 2
                                  )
@@ -528,6 +538,7 @@ GeomSpot <- ggproto("GeomSpot",
 #' @param collapse whether to combine all ggplots
 #'
 #' @import ggplot2
+#' @importFrom stats aggregate
 #'
 #' @export
 #'
@@ -583,7 +594,7 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", assa
 
   # labels
   if(label){
-    datax_group <- aggregate(datax[,c("x","y")], list(datax[[group.by]]),mean)
+    datax_group <- stats::aggregate(datax[,c("x","y")], list(datax[[group.by]]),mean)
     colnames(datax_group) <- c(group.by, "x", "y")
     g <- g +
       geom_text(mapping = aes_string(x = "x", y = "y", label = group.by), datax_group, size = font.size)
@@ -604,7 +615,6 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", assa
 #' @param object VoltRon object
 #' @param embedding the embedding type, i.e. pca, umap etc.
 #' @param features a set of features, either from the rows of rawdata, normdata or columns of the metadata
-#' @param limits limits of the legend of the plot
 #' @param assay the assay name
 #' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
 #' @param ncol column wise number of plots, for \code{ggarrange}
@@ -841,6 +851,7 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 #'
 #' @importFrom ComplexHeatmap Heatmap
 #' @importFrom scales viridis_pal
+#' @importFrom stats quantile
 #'
 #' @export
 #'
@@ -891,7 +902,7 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
   col_split = factor(labels_ordered, levels = names(labels_ordered_table))
 
   # update limits
-  limits <- quantile(as.vector(heatmapdata), probs = c(1-outlier.quantile, outlier.quantile))
+  limits <- stats::quantile(as.vector(heatmapdata), probs = c(1-outlier.quantile, outlier.quantile))
   heatmapdata[heatmapdata > limits[2]] <- limits[2]
   heatmapdata[heatmapdata < limits[1]] <- limits[1]
 
@@ -1021,6 +1032,7 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NUL
 #' @param object A VoltRon object
 #' @param features a set of features to be visualized
 #' @param assay assay name
+#' @param x.label labels of the x axis
 #' @param group.by a column from metadata to seperate columns of the heatmap
 #' @param norm if TRUE, the normalized data is used
 #' @param ncol column wise number of plots, for \code{ggarrange}
@@ -1108,6 +1120,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 #'
 #' @param object A VoltRon object
 #' @param assay assay name
+#' @param x.label labels of the x axis
 #' @param group.by a column from metadata to seperate columns of the heatmap
 #' @param ncol column wise number of plots, for \code{ggarrange}
 #' @param nrow row wise number of plots, for \code{ggarrange}

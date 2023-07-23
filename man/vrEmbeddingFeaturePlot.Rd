@@ -43,8 +43,6 @@ vrEmbeddingFeaturePlot(
 \item{common.legend}{whether to use a common legend for all plots}
 
 \item{collapse}{whether to combine all ggplots}
-
-\item{limits}{limits of the legend of the plot}
 }
 \description{
 Plotting features of spatially resolved cells and spots on embeddings from multiple assays in a VoltRon object.

@@ -11,6 +11,10 @@ The vrMetadata (VoltRon Metadata) Class
 \section{Slots}{
 
 \describe{
-\item{\code{samples}}{A list of layers for the this vrSample object}
+\item{\code{cell}}{the metadata data frame of cells}
+
+\item{\code{spot}}{the metadata data frame of spot}
+
+\item{\code{ROI}}{the metadata data frame of ROI}
 }}
 

@@ -4,6 +4,7 @@
 \alias{VoltRon-methods}
 \alias{$.VoltRon}
 \alias{$<-.VoltRon}
+\alias{.DollarNames.VoltRon}
 \alias{[[,VoltRon,character,missing-method}
 \alias{[[<-,VoltRon,character,missing,ANY-method}
 \alias{[[,VoltRon,character,character-method}
@@ -13,6 +14,8 @@
 \method{$}{VoltRon}(x, i, ...)
 
 \method{$}{VoltRon}(x, i, ...) <- value
+
+\method{.DollarNames}{VoltRon}(object, pattern = "")
 
 \S4method{[[}{VoltRon,character,missing}(x, i, j, ...)
 
@@ -39,6 +42,10 @@
 
 \item{...}{Arguments passed to other methods}
 
+\item{pattern}{ A regular expression.  Only matching names are
+    returned.
+  }
+
 \item{j, cells}{Cell names or indices}
 
 \item{n}{The number of rows of metadata to return}
@@ -52,6 +59,8 @@ packages
 \item \code{$}: Metadata access for \code{VoltRon} objects
 
 \item \code{`$`(VoltRon) <- value}: Metadata overwrite for \code{VoltRon} objects
+
+\item \code{.DollarNames(VoltRon)}: Autocompletion for \code{$} access for \code{VoltRon} objects
 
 \item \code{x[[i}: Accessing vrAssay or vrSample objects from \code{VoltRon} objects
 

@@ -36,13 +36,14 @@ Metadata <- function(object, ...) {
 
 #' @param object An object
 #' @param ... Arguments passed to other methods
+#' @param value metadata
 #'
 #' @return \code{Metadata<-}: The coordinates updated
 #'
 #' @rdname Metadata
 #' @export Metadata<-
 #'
-"Metadata<-" <- function(object, ...) {
+"Metadata<-" <- function(object, ..., value) {
   UseMethod(generic = 'Metadata<-', object = object)
 }
 
@@ -96,13 +97,14 @@ vrAssayNames <- function(object, ...) {
 
 #' @param object An object
 #' @param ... Arguments passed to other methods
+#' @param value assay name
 #'
 #' @return \code{vrAssayNames<-}: The coordinates updated
 #'
 #' @rdname vrAssayNames
 #' @export vrAssayNames<-
 #'
-"vrAssayNames<-" <- function(object, ...) {
+"vrAssayNames<-" <- function(object, ..., value) {
   UseMethod(generic = 'vrAssayNames<-', object = object)
 }
 
@@ -157,13 +159,14 @@ vrMainAssay <- function(object, ...) {
 
 #' @param object An object
 #' @param ... Arguments passed to other methods
+#' @param value assay name
 #'
 #' @return \code{vrMainAssay<-}: The name of the default assay updated
 #'
 #' @rdname vrMainAssay
 #' @export vrMainAssay<-
 #'
-"vrMainAssay<-" <- function(object, ...) {
+"vrMainAssay<-" <- function(object, ..., value) {
   UseMethod(generic = 'vrMainAssay<-', object = object)
 }
 
@@ -183,11 +186,12 @@ vrSpatialPoints <- function(object, ...) {
 
 #' @param object An object
 #' @param ... Arguments passed to other methods
+#' @param value names for spatial points
 #'
 #' @rdname vrSpatialPoints
 #' @export vrSpatialPoints<-
 #'
-"vrSpatialPoints<-" <- function(object, ...) {
+"vrSpatialPoints<-" <- function(object, ..., value) {
   UseMethod(generic = 'vrSpatialPoints<-', object = object)
 }
 
@@ -223,13 +227,12 @@ vrFeatureData <- function(object, ...) {
 
 #' @param object An object
 #' @param ... Arguments passed to other methods
-#'
-#' @return \code{vrFeatureData<-}: The coordinates updated
+#' @param value feature data
 #'
 #' @rdname vrFeatureData
 #' @export vrFeatureData<-
 #'
-"vrFeatureData<-" <- function(object, ...) {
+"vrFeatureData<-" <- function(object, ..., value) {
   UseMethod(generic = 'vrFeatureData<-', object = object)
 }
 
@@ -316,13 +319,14 @@ vrCoordinates <- function(object, ...) {
 
 #' @param object An object
 #' @param ... Arguments passed to other methods
+#' @param value coordinates
 #'
 #' @return \code{vrCoordinates<-}: The coordinates updated
 #'
 #' @rdname vrCoordinates
 #' @export vrCoordinates<-
 #'
-"vrCoordinates<-" <- function(object, ...) {
+"vrCoordinates<-" <- function(object, ..., value) {
   UseMethod(generic = 'vrCoordinates<-', object = object)
 }
 
@@ -360,13 +364,14 @@ vrSegments <- function(object, ...) {
 
 #' @param object An object
 #' @param ... Arguments passed to other methods
+#' @param value segments
 #'
 #' @return \code{vrSegments<-}: The coordinates updated
 #'
 #' @rdname vrSegments
 #' @export vrSegments<-
 #'
-"vrSegments<-" <- function(object, ...) {
+"vrSegments<-" <- function(object, ..., value) {
   UseMethod(generic = 'vrSegments<-', object = object)
 }
 
@@ -404,13 +409,12 @@ vrEmbeddings <- function(object, ...) {
 
 #' @param object An object
 #' @param ... Arguments passed to other methods
-#'
-#' @return \code{vrEmbeddings}: The name of the default assay
+#' @param value embeddings
 #'
 #' @rdname vrEmbeddings
 #' @export vrEmbeddings<-
 #'
-"vrEmbeddings<-" <- function(object, ...) {
+"vrEmbeddings<-" <- function(object, ..., value) {
   UseMethod(generic = 'vrEmbeddings<-', object = object)
 }
 
@@ -420,8 +424,6 @@ vrEmbeddings <- function(object, ...) {
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
-#'
-#' @return \code{getPCA}: The name of the default assay
 #'
 #' @rdname getPCA
 #' @export getPCA
@@ -436,8 +438,6 @@ getPCA <- function(object, ...) {
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
-#'
-#' @return \code{getUMAP}: The name of the default assay
 #'
 #' @rdname getUMAP
 #' @export getUMAP
@@ -464,13 +464,12 @@ vrImages <- function(object, ...) {
 
 #' @param object An object
 #' @param ... Arguments passed to other methods
-#'
-#' @return \code{vrImages<-}: The coordinates updated
+#' @param value image
 #'
 #' @rdname vrImages
 #' @export vrImages<-
 #'
-"vrImages<-" <- function(object, ...) {
+"vrImages<-" <- function(object, ..., value) {
   UseMethod(generic = 'vrImages<-', object = object)
 }
 

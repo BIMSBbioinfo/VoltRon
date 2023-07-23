@@ -11,6 +11,6 @@ The vrLayer (VoltRon Layer) Class
 \section{Slots}{
 
 \describe{
-\item{\code{assay}}{}
+\item{\code{assay}}{A list of assays (vrAssay)}
 }}
 

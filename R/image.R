@@ -22,6 +22,7 @@ FOVImage <- setClass(
 )
 
 ### show ####
+
 setMethod(
   f = 'show',
   signature = 'FOVImage',
@@ -36,6 +37,8 @@ setMethod(
 # Get Images ####
 ####
 
+#' @param seu A Seurat Object
+#'
 #' @rdname vrImages
 #' @method vrImages Seurat
 #'
@@ -61,6 +64,8 @@ vrImages.Seurat <- function(seu, ...){
   return(image)
 }
 
+#' @param object A VoltRon object
+#'
 #' @rdname vrImages
 #' @method vrImages VoltRon
 #'
@@ -70,6 +75,8 @@ vrImages.VoltRon <- function(object, ...){
   sapply(object@samples, function(samp) vrImages(samp), USE.NAMES = TRUE)
 }
 
+#' @param object A vrSample object
+#'
 #' @rdname vrImages
 #' @method vrImages vrSample
 #'
@@ -79,6 +86,8 @@ vrImages.vrSample <- function(object, ...){
   sapply(object@layer, function(lay) vrImages(lay), USE.NAMES = TRUE)
 }
 
+#' @param object A vrLayer object
+#'
 #' @rdname vrImages
 #' @method vrImages vrLayer
 #'
@@ -88,6 +97,8 @@ vrImages.vrLayer <- function(object, ...){
   sapply(object@assay, function(assy) vrImages(assy), USE.NAMES = TRUE)
 }
 
+#' @param object A vrAssay object
+#'
 #' @rdname vrImages
 #' @method vrImages vrAssay
 #'
@@ -99,6 +110,8 @@ vrImages.vrAssay <- function(object){
   magick::image_read(object@image)
 }
 
+#' @param object A vrAssay object
+#' @param reg TRUE if registered coordinates are assigned
 #' @param value new image
 #'
 #' @rdname vrImages
@@ -107,9 +120,9 @@ vrImages.vrAssay <- function(object){
 #' @export
 #'
 "vrImages<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
-  if(class(value) == "raster"){
+  if(inherits(value, "raster")){
     object@image <- value
-  } else if(class(value) == "magick-image"){
+  } else if(inherits(value, "magick-image")){
     object@image <- as.raster(value)
   } else {
     stop("Please provide either a magick-image or raster class image object!")
@@ -130,6 +143,8 @@ vrImages.vrAssay <- function(object){
 #' @param fov FOV name, preferably the name used in the Seurat Object
 #' @param overwrite Overwrite the existing FOV image
 #'
+#' @importFrom methods new
+#'
 #' @export
 #'
 addFOVImage <- function(seu, file, fov = "fov", overwrite = FALSE) {
@@ -148,7 +163,7 @@ addFOVImage <- function(seu, file, fov = "fov", overwrite = FALSE) {
   }
 
   # get image in FOVImage class
-  image <- new(Class = "FOVImage", image = magick::image_read(file))
+  image <- methods::new(Class = "FOVImage", image = magick::image_read(file))
 
   # insert the image to the Seurat Object
   seu@images[[fov_image]] <- image

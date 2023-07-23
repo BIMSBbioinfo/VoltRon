@@ -23,7 +23,7 @@ vrAssayNames(object, ...) <- value
 
 \item{...}{Arguments passed to other methods}
 
-\item{value}{the new postfix name of the assay}
+\item{value}{assay name}
 
 \item{assay}{assay}
 }

@@ -16,12 +16,11 @@ getUMAP(object, ...)
 
 \item{assay}{assay}
 
+\item{data.type}{the type of data used to calculate UMAP from: "pca" (default), "raw" or "norm"}
+
 \item{dims}{the number of dimensions extracted from PCA}
 
 \item{seed}{seed}
-}
-\value{
-\code{getUMAP}: The name of the default assay
 }
 \description{
 calculate getUMAP of the VoltRon objects

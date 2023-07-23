@@ -7,7 +7,7 @@
 flipflopKeypoint(keypoints, image_limits, flipflop)
 }
 \arguments{
-\item{keypoints}{}
+\item{keypoints}{dataset of keypoints}
 
 \item{image_limits}{limits of the images}
 

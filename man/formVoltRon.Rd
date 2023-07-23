@@ -27,6 +27,8 @@ formVoltRon(
 
 \item{image}{the image of the data}
 
+\item{coords}{the coordinates of the spatial points}
+
 \item{segments}{the segments of the spatial points, optional}
 
 \item{sample.metadata}{a data frame of the sample metadata}
@@ -44,10 +46,6 @@ formVoltRon(
 \item{layer_name}{the name of the layer}
 
 \item{project}{project name}
-
-\item{coord}{the coordinates of the spatial points}
-
-\item{assay_name}{the name of the assay}
 }
 \description{
 Create a VoltRon object

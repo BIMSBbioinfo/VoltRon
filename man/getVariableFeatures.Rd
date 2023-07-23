@@ -12,6 +12,8 @@ getVariableFeatures(object, assay = NULL, n = 3000, ...)
 \item{assay}{assay}
 
 \item{n}{the number of features}
+
+\item{...}{additional arguements passed to \code{vrFeatureData}}
 }
 \description{
 get shared variable features across multiple assays

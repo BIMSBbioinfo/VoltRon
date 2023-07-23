@@ -2,8 +2,8 @@
 % Please edit documentation in R/zzz.R
 \docType{package}
 \name{VoltRon-package}
-\alias{VoltRon}
 \alias{VoltRon-package}
+\alias{_PACKAGE}
 \title{VoltRon: VoltRon for Spatial Data Integration and Analysis}
 \description{
 VoltRon is a spatial data analysis toolbox for spatial data integration, analysis and image registration

@@ -19,6 +19,8 @@ vrProportionPlot(
 
 \item{assay}{assay name}
 
+\item{x.label}{labels of the x axis}
+
 \item{group.by}{a column from metadata to seperate columns of the heatmap}
 
 \item{ncol}{column wise number of plots, for \code{ggarrange}}

@@ -84,6 +84,7 @@ getNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca", dims =
 #' @param assay assay
 #' @param label the name for the newly created clustering column in the metadata
 #'
+#' @importFrom igraph cluster_leiden
 #' @export
 #'
 getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters"){
@@ -101,7 +102,7 @@ getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters"
   object_graph <- vrGraph(object_subset)
 
   # clustering
-  clusters <- cluster_leiden(object_graph, objective_function = "modularity", resolution_parameter = resolution)
+  clusters <- igraph::cluster_leiden(object_graph, objective_function = "modularity", resolution_parameter = resolution)
   clusters <- clusters$membership
 
   # metadata

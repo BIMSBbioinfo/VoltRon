@@ -15,15 +15,19 @@ The vrAssay (VoltRon Assay) Class
 
 \item{\code{normdata}}{normalized count table}
 
-\item{\code{coord}}{spatial coordinates of the assay}
+\item{\code{featuredata}}{feature metadata}
 
-\item{\code{coord_reg}}{spatial coordinates of the registered assay}
+\item{\code{embeddings}}{list of embeddings}
+
+\item{\code{coords}}{spatial coordinates of the assay}
+
+\item{\code{coords_reg}}{spatial coordinates of the registered assay}
 
 \item{\code{segments}}{spatial coordinates of the segments}
 
 \item{\code{segments_reg}}{spatial coordinates of the registered segments}
 
-\item{\code{image}}{image of the spatial assay}
+\item{\code{image}}{image of the spatial assay, bitmap class}
 
 \item{\code{params}}{additional parameters used by different assay types}
 
