@@ -11,11 +11,15 @@ The VoltRon Class
 \section{Slots}{
 
 \describe{
-\item{\code{samples}}{A list of samples for the this project}
+\item{\code{samples}}{A list of samples (vrSample)}
 
-\item{\code{integrated.datasets}}{A list of integrated data objects that indicate integrated spatial layers}
+\item{\code{metadata}}{A vrMetadata object that includes metadata of ROIs, spots, and cells}
 
-\item{\code{meta.data}}{Contains meta-information about each sample}
+\item{\code{sample.metadata}}{Contains meta-information about each sample, layer and assay}
+
+\item{\code{graph}}{A igraph object}
+
+\item{\code{main.assay}}{The type of the main assay (i.e. Visium, Xenium, GeoMx etc.)}
 
 \item{\code{project}}{Name of the project}
 }}

@@ -48,6 +48,9 @@ getDiffExp <- function(object, assay = NULL, group.by, group.base = NULL, covari
 #' @param group.base Optional, the base category in \code{group.by} which is used as control group
 #' @param covariates the covariate variable for the design formula
 #'
+#' @importFrom stats as.formula
+#' @importFrom S4Vectors DataFrame
+#'
 getDiffExpDESeq2 <- function(data, metadata, group.by, group.base = NULL, covariates){
 
   if (!requireNamespace('DESeq2'))
@@ -64,7 +67,7 @@ getDiffExpDESeq2 <- function(data, metadata, group.by, group.base = NULL, covari
     group.by.data <- factor(group.by.data, levels = uniq_groups)
     colData <- S4Vectors::DataFrame(group.by.data)
     colnames(colData) <- c(group.by, covariates)
-    deseq2.formula <- as.formula(paste0("~", group.by))
+    deseq2.formula <- stats::as.formula(paste0("~", group.by))
   } else {
     design.data <- metadata[,c(group.by, covariates)]
     uniq_groups <- unique(design.data[[group.by]])
@@ -74,18 +77,18 @@ getDiffExpDESeq2 <- function(data, metadata, group.by, group.base = NULL, covari
     design.data[[group.by]] <- group.by.data
     colData <- S4Vectors::DataFrame(design.data)
     colnames(colData) <- c(group.by, covariates)
-    deseq2.formula <- as.formula(paste0("~", group.by, " + ", paste(covariates, collapse = " + ")))
+    deseq2.formula <- stats::as.formula(paste0("~", group.by, " + ", paste(covariates, collapse = " + ")))
   }
 
   # run DESeq2
-  dds <- DESeqDataSetFromMatrix(countData = data, colData = colData, design = deseq2.formula)
-  dds <- DESeq(dds)
+  dds <- DESeq2::DESeqDataSetFromMatrix(countData = data, colData = colData, design = deseq2.formula)
+  dds <- DESeq2::DESeq(dds)
 
   all_results <- NULL
   for(i in 1:(length(uniq_groups)-1)){
     for(j in (i+1):length(uniq_groups)){
       comparison <- c(group.by, uniq_groups[i], uniq_groups[j])
-      cur_results <- as.data.frame(results(dds, comparison))
+      cur_results <- as.data.frame(DESeq2::results(dds, comparison))
       cur_results <- data.frame(cur_results, gene = rownames(cur_results), comparison = paste(comparison, collapse = "_"))
       all_results <- rbind(all_results, cur_results)
     }

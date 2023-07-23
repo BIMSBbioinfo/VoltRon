@@ -8,7 +8,7 @@ importVisium(
   dir.path,
   selected_assay = "Gene Expression",
   assay_name = "Visium",
-  InTissue = TRUE,
+  inTissue = TRUE,
   ...
 )
 }
@@ -19,9 +19,9 @@ importVisium(
 
 \item{assay_name}{the assay name}
 
-\item{...}{additional parameters passed to \code{formVoltRon}}
-
 \item{inTissue}{if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)}
+
+\item{...}{additional parameters passed to \code{formVoltRon}}
 }
 \description{
 Importing Visium data

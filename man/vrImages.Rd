@@ -28,16 +28,18 @@ vrImages(object, ...) <- value
 \method{vrImages}{vrAssay}(object, reg = FALSE, ...) <- value
 }
 \arguments{
-\item{object}{An object}
+\item{object}{A vrAssay object}
 
 \item{...}{Arguments passed to other methods}
 
 \item{value}{new image}
+
+\item{seu}{A Seurat Object}
+
+\item{reg}{TRUE if registered coordinates are assigned}
 }
 \value{
 \code{vrImages}: The name of the default assay
-
-\code{vrImages<-}: The coordinates updated
 }
 \description{
 Get images of a VoltRon assay

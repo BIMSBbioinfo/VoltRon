@@ -18,9 +18,6 @@ getPCA(object, ...)
 
 \item{dims}{the number of dimensions extracted from PCA}
 }
-\value{
-\code{getPCA}: The name of the default assay
-}
 \description{
 calculate getPCA of the VoltRon objects
 }

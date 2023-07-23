@@ -7,6 +7,8 @@
 \method{merge}{vrMetadata}(object, object_list)
 }
 \arguments{
+\item{object}{a vrMetadata object}
+
 \item{object_list}{a list of vrMetadata objects}
 }
 \description{

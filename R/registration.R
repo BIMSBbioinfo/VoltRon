@@ -13,13 +13,11 @@
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs show hide
+#' @importFrom stats median
 #'
 #' @export
 #'
 registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL) {
-
-  # shiny
-  require(shiny)
 
   ## Importing images ####
 
@@ -28,7 +26,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
   if(!is.null(object_list)){
     # reference and query indices
     spatdata_list <- object_list
-    centre <- floor(median(1:length(spatdata_list)))
+    centre <- floor(stats::median(1:length(spatdata_list)))
     register_ind <- setdiff(1:length(spatdata_list), centre)
 
   # reference vs query mode
@@ -425,6 +423,9 @@ getRegisteredObjectListSeurat <- function(sr, mapping_list, register_ind, centre
 #'
 getRegisteredObject.Seurat <- function(seu, mapping){
 
+  if (!requireNamespace('Seurat'))
+    stop("Please install Seurat package for using Seurat objects")
+
   image_classes <- sapply(seu@images, class)
 
   # Xenium (FOV)
@@ -448,8 +449,8 @@ getRegisteredObject.Seurat <- function(seu, mapping){
     }
     registered_cells <- data.frame(x = registered_cells[,1], y = registered_cells[,2],
                                    cell = imagedata$centroids@cells)
-    registered_segmentation_data <- list(centroids = CreateCentroids(registered_cells))
-    coords <- CreateFOV(coords = registered_segmentation_data, type = "centroids", molecules = NULL, assay = "Spatial")
+    registered_segmentation_data <- list(centroids = Seurat::CreateCentroids(registered_cells))
+    coords <- Seurat::CreateFOV(coords = registered_segmentation_data, type = "centroids", molecules = NULL, assay = "Spatial")
     seu[["registered_FOV"]] <- coords
 
   } else if(any(grepl("Visium",image_classes))) {
@@ -594,6 +595,8 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, inpu
 #' @param input shiny input
 #' @param session shiny session
 #'
+#' @importFrom magick image_negate image_rotate image_flip image_flop image_info
+#'
 transformImageKeypoints <- function(image, keypoints, extension, input, session){
 
   if(is.null(keypoints))
@@ -602,19 +605,19 @@ transformImageKeypoints <- function(image, keypoints, extension, input, session)
   # negate image
   input_negate <- input[[paste0("negate_", extension)]]
   if(input_negate == "Yes"){
-    image <- image_negate(image)
+    image <- magick::image_negate(image)
   }
 
   # get unrotated image info
-  image_limits <- unlist(image_info(image)[1,c("width", "height")])
+  image_limits <- unlist(magick::image_info(image)[1,c("width", "height")])
   image_origin <- image_limits/2
 
   # rotate image and keypoints
   input_rotate <- as.numeric(input[[paste0("rotate_", extension)]])
-  image <- image_rotate(image, input_rotate)
+  image <- magick::image_rotate(image, input_rotate)
 
   # get rotated image info
-  rotated_image_limits <- unlist(image_info(image)[1,c("width", "height")])
+  rotated_image_limits <- unlist(magick::image_info(image)[1,c("width", "height")])
   rotated_image_origin <- rotated_image_limits/2
 
   # rotate keypoints
@@ -623,9 +626,9 @@ transformImageKeypoints <- function(image, keypoints, extension, input, session)
   # flip flop image and keypoints
   input_flipflop <- input[[paste0("flipflop_", extension)]]
   if(input_flipflop == "Flip"){
-    image <- image_flip(image)
+    image <- magick::image_flip(image)
   } else if(input_flipflop == "Flop"){
-    image <- image_flop(image)
+    image <- magick::image_flop(image)
   }
 
   # flipflop keypoints
@@ -722,8 +725,6 @@ rotateKeypoint <- function(keypoints, angle, origin, limits, rotated_origin, rot
 #' @param keypoints dataset of keypoints
 #' @param image_limits limits of the images
 #' @param flipflop a flip or flop action as string
-#'
-#' @param keypoints
 #'
 flipflopKeypoint <- function(keypoints, image_limits, flipflop){
 

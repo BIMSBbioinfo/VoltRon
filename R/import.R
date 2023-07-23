@@ -18,6 +18,7 @@
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
 #' @importFrom magick image_read
+#' @importFrom utils read.csv
 #'
 #' @export
 #'
@@ -44,7 +45,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   # cell boundaries
   bound_file <- paste0(dir.path, "/cell_boundaries.csv.gz")
   if(file.exists(bound_file)){
-    Xenium_boundaries <- read.csv(bound_file)
+    Xenium_boundaries <- utils::read.csv(bound_file)
     Xenium_box <- apply(Xenium_boundaries[,-1], 2, range)
   } else {
     stop("There are no files named 'cell_boundaries.csv.gz' in the path")
@@ -53,7 +54,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   # coordinates
   coord_file <- paste0(dir.path, "/cells.csv.gz")
   if(file.exists(coord_file)){
-    Xenium_coords <- read.csv(file = coord_file)
+    Xenium_coords <- utils::read.csv(file = coord_file)
     coords <- as.matrix(Xenium_coords[,c("x_centroid", "y_centroid")])
     colnames(coords) <- c("x","y")
     coords[,2] <- max(coords[,2]) - coords[,2] + min(coords[,2])
@@ -106,10 +107,11 @@ rescaleXeniumCells <- function(cells, bbox, image){
 #' @import hdf5r
 #' @importFrom magick image_read
 #' @importFrom jsonlite read_json
+#' @importFrom utils read.csv
 #'
 #' @export
 #'
-importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_name = "Visium", InTissue = TRUE, ...)
+importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_name = "Visium", inTissue = TRUE, ...)
 {
   # raw counts
   listoffiles <- list.files(dir.path)
@@ -136,10 +138,10 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   coords_file <- coords_file[grepl("tissue_positions",coords_file)]
   if(length(coords_file) == 1){
     if(grepl("tissue_positions_list.csv", coords_file)) {
-      coords <- read.csv(file = coords_file, header = FALSE)
+      coords <- utils::read.csv(file = coords_file, header = FALSE)
       colnames(coords) <- c("barcode", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres")
     } else {
-      coords <- read.csv(file = coords_file, header = TRUE)
+      coords <- utils::read.csv(file = coords_file, header = TRUE)
     }
   } else if(length(coords_file) > 1) {
     stop("There are more than 1 position files in the path")
@@ -147,7 +149,7 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
     stop("There are no files named 'tissue_positions.csv' in the path")
   }
   # coords$pxl_row_in_fullres <- max(coords$pxl_row_in_fullres) - coords$pxl_row_in_fullres + min(coords$pxl_row_in_fullres)
-  if(InTissue){
+  if(inTissue){
     coords <- coords[coords$in_tissue==1,]
     rawdata <- rawdata[,colnames(rawdata) %in% coords$barcode]
   }
@@ -331,10 +333,6 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
 #' @importFrom XML xmlToList
 #'
 importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
-
-  # dependencies, load RBioFormats
-  require(RBioFormats)
-  library(RBioFormats)
 
   # get the xml file
   # xmltemp <- xmlExtraction(ometiff = ome.tiff)

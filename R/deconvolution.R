@@ -118,6 +118,8 @@ getRCTD <- function(object, features = NULL, sc.object, sc.assay = "RNA", sc.clu
 
   if (!requireNamespace('spacexr'))
     stop("Please install spacexr package to use the RCTD algorithm")
+  if (!requireNamespace('Seurat'))
+    stop("Please install Seurat package for using Seurat objects")
 
   # create spatial data
   cat("Configuring Spatial Assay ...\n")
@@ -128,7 +130,7 @@ getRCTD <- function(object, features = NULL, sc.object, sc.assay = "RNA", sc.clu
 
   # create single cell reference
   cat("Configuring Single Cell Assay (reference) ...\n")
-  sccounts <- GetAssayData(sc.object[[sc.assay]], slot = "counts")
+  sccounts <- Seurat::GetAssayData(sc.object[[sc.assay]], slot = "counts")
   sccounts <- as.matrix(apply(sccounts,2,ceiling))
   rownames(sccounts) <- rownames(sc.object[[sc.assay]])
   cell_types <- as.factor(sc.object@meta.data[[sc.cluster]])
@@ -138,9 +140,9 @@ getRCTD <- function(object, features = NULL, sc.object, sc.assay = "RNA", sc.clu
   reference <- spacexr::Reference(sccounts, cell_types, sc.nUMI)
 
   # Run RCTD
-  myRCTD <- create.RCTD(spatialdata, reference, ...)
+  myRCTD <- spacexr::create.RCTD(spatialdata, reference, ...)
   cat("Calculating Cell Type Compositions of spots with RCTD ...\n")
-  myRCTD <- quiet(run.RCTD(myRCTD, doublet_mode = 'full'))
+  myRCTD <- quiet(spacexr::run.RCTD(myRCTD, doublet_mode = 'full'))
   results <- as.matrix(myRCTD@results$weights)
   norm_weights <- t(sweep(results, 1, rowSums(results), "/"))
 
@@ -152,6 +154,8 @@ getSPOTlight <- function(object, features = NULL, sc.object, sc.assay = "RNA", s
 
   if (!requireNamespace('spacexr'))
     stop("Please install spacexr package to use the RCTD algorithm")
+  if (!requireNamespace('Seurat'))
+    stop("Please install Seurat package for using Seurat objects")
 
   # create spatial data
   cat("Configuring Spatial Assay ...\n")
@@ -162,7 +166,7 @@ getSPOTlight <- function(object, features = NULL, sc.object, sc.assay = "RNA", s
 
   # create single cell reference
   cat("Configuring Single Cell Assay (reference) ...\n")
-  sccounts <- GetAssayData(sc.object[[sc.assay]], slot = "counts")
+  sccounts <- Seurat::GetAssayData(sc.object[[sc.assay]], slot = "counts")
   sccounts <- as.matrix(apply(sccounts,2,ceiling))
   rownames(sccounts) <- rownames(sc.object[[sc.assay]])
   cell_types <- as.factor(sc.object@meta.data[[sc.cluster]])
@@ -172,9 +176,9 @@ getSPOTlight <- function(object, features = NULL, sc.object, sc.assay = "RNA", s
   reference <- spacexr::Reference(sccounts, cell_types, sc.nUMI)
 
   # Run RCTD
-  myRCTD <- create.RCTD(spatialdata, reference, ...)
+  myRCTD <- spacexr::create.RCTD(spatialdata, reference, ...)
   cat("Calculating Cell Type Compositions of spots with RCTD ...\n")
-  myRCTD <- quiet(run.RCTD(myRCTD, doublet_mode = 'doublet'))
+  myRCTD <- quiet(spacexr::run.RCTD(myRCTD, doublet_mode = 'doublet'))
   results <- as.matrix(myRCTD@results$weights)
   norm_weights <- t(sweep(results, 1, rowSums(results), "/"))
 
@@ -211,13 +215,13 @@ getMuSiC <- function(object, features = NULL, sc.object, sc.assay = "RNA", sc.cl
 
   # Single cell data
   cat("Configuring Single Cell Assay (reference) ...\n")
-  if(class(sc.object) == "SingleCellExperiment"){
+  if(inherits(sc.object, "SingleCellExperiment")){
     scRNAseq <- sc.object
-  } else if(class(sc.object) == "Seurat"){
-    sccounts <- GetAssayData(sc.object[[sc.assay]], slot = "counts")
+  } else if(inherits(sc.object, "Seurat")){
+    sccounts <- Seurat::GetAssayData(sc.object[[sc.assay]], slot = "counts")
     sccounts <- as.matrix(apply(sccounts,2,ceiling))
     rownames(sccounts) <- rownames(sc.object[[sc.assay]])
-    scRNAseq <- Seurat::as.SingleCellExperiment(CreateSeuratObject(sccounts, meta.data = sc.object@meta.data))
+    scRNAseq <- Seurat::as.SingleCellExperiment(Seurat::CreateSeuratObject(sccounts, meta.data = sc.object@meta.data))
   } else{
     stop("'sc.object' should either be of a Seurat or SingleCellExperiment class!")
   }

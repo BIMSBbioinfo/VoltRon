@@ -1,3 +1,6 @@
+#' @include zzz.R
+NULL
+
 ####
 # Objects and Classes ####
 ####
@@ -15,11 +18,13 @@ setOldClass(Classes = c('bitmap'))
 #'
 #' @slot rawdata raw count table
 #' @slot normdata normalized count table
-#' @slot coord spatial coordinates of the assay
-#' @slot coord_reg spatial coordinates of the registered assay
+#' @slot featuredata feature metadata
+#' @slot embeddings list of embeddings
+#' @slot coords spatial coordinates of the assay
+#' @slot coords_reg spatial coordinates of the registered assay
 #' @slot segments spatial coordinates of the segments
 #' @slot segments_reg spatial coordinates of the registered segments
-#' @slot image image of the spatial assay
+#' @slot image image of the spatial assay, bitmap class
 #' @slot params additional parameters used by different assay types
 #' @slot type the type of the assay (cell, spot, ROI)
 #'
@@ -38,8 +43,6 @@ vrAssay <- setClass(
     coords_reg = 'matrix',
     segments = 'list',
     segments_reg = 'list',
-    # image = 'magick-image',
-    # image = 'raster',
     image = "bitmap",
     params = "list",
     type = "character"
@@ -47,6 +50,7 @@ vrAssay <- setClass(
 )
 
 ### show ####
+
 setMethod(
   f = 'show',
   signature = 'vrAssay',
@@ -189,7 +193,7 @@ subsetCoordinates <- function(coords, image, crop_info){
 #'
 #' subsetting segments given cropping parameters of a magick image objects
 #'
-#' @param coords coordinates
+#' @param segments a list of coordinates for each segment
 #' @param image the magick image associated with the coordinates
 #' @param crop_info the subseting string passed to \code{magick::image_crop}
 #'
@@ -380,6 +384,8 @@ vrCoordinates.vrAssay <- function(object, reg = FALSE, ...) {
 #' @rdname vrCoordinates
 #' @method vrCoordinates<- vrAssay
 #'
+#' @importFrom methods slot
+#'
 #' @export
 #'
 "vrCoordinates<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
@@ -402,9 +408,9 @@ vrCoordinates.vrAssay <- function(object, reg = FALSE, ...) {
   }
 
   if(reg){
-    slot(object = object, name = 'coords_reg') <- value
+    methods::slot(object = object, name = 'coords_reg') <- value
   } else{
-    slot(object = object, name = 'coords') <- value
+    methods::slot(object = object, name = 'coords') <- value
   }
   return(object)
 }
@@ -449,6 +455,7 @@ vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
 #' @rdname vrSegments
 #' @method vrSegments<- vrAssay
 #'
+#' @importFrom methods slot
 #' @export
 #'
 "vrSegments<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
@@ -464,9 +471,9 @@ vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
     stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
 
   if(reg){
-    slot(object = object, name = 'segments_reg') <- value
+    methods::slot(object = object, name = 'segments_reg') <- value
   } else{
-    slot(object = object, name = 'segments') <- value
+    methods::slot(object = object, name = 'segments') <- value
   }
   return(object)
 }

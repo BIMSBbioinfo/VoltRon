@@ -32,8 +32,6 @@ vrFeatureData(object, ...) <- value
 }
 \value{
 \code{vrFeatureData}: The name of the default assay
-
-\code{vrFeatureData<-}: The coordinates updated
 }
 \description{
 Get and set feature data from the main.assay

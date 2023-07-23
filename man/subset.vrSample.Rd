@@ -7,6 +7,10 @@
 \method{subset}{vrSample}(object, subset, assays = NULL, spatialpoints = NULL, image = NULL)
 }
 \arguments{
+\item{object}{a vrSample object}
+
+\item{subset}{the subset statement}
+
 \item{assays}{the set of assays to subset the object}
 
 \item{spatialpoints}{the set of spatial points to subset the object}

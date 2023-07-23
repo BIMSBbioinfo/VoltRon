@@ -34,6 +34,8 @@ normalizeData.VoltRon <- function(object, assay = NULL, ...) {
 #' @rdname normalizeData
 #' @method normalizeData vrAssay
 #'
+#' @importFrom stats quantile
+#'
 #' @export
 #'
 normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9) {
@@ -100,6 +102,8 @@ getFeatures.VoltRon <- function(object, assay = NULL, ...){
 #' @rdname getFeatures
 #' @method getFeatures vrAssay
 #'
+#' @importFrom stats loess predict var
+#'
 #' @export
 getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
 
@@ -114,12 +118,12 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
   rawdata_subset <- rawdata[keep.genes,]
 
   # vst estimation
-  vst_data <- data.frame(mean = rowMeans(rawdata), var = apply(rawdata, 1, var))
+  vst_data <- data.frame(mean = rowMeans(rawdata), var = apply(rawdata, 1, stats::var))
   loess_data <- vst_data[keep.genes,]
-  loess_results <- loess(var~mean, loess_data, span = 0.3)
+  loess_results <- stats::loess(var~mean, loess_data, span = 0.3)
   vst_data$adj_var <- 0
   vst_data$rank <- 0
-  vst_data[keep.genes,]$adj_var <- predict(loess_results)
+  vst_data[keep.genes,]$adj_var <- stats::predict(loess_results)
   vst_data[keep.genes,]$rank <- order(order(vst_data$adj_var[keep.genes], decreasing = TRUE))
 
   # set feature data
@@ -137,8 +141,10 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
 #' @param object A Voltron Object
 #' @param assay assay
 #' @param n the number of features
+#' @param ... additional arguements passed to \code{vrFeatureData}
 #'
 #' @importFrom dplyr full_join
+#' @importFrom utils head
 #'
 getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 
@@ -169,7 +175,7 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 
   # get selected features
   if(length(ranks[!is.na(ranks)]) > 0){
-    selected_features <- names(head(sort(ranks, decreasing = FALSE), n))
+    selected_features <- names(utils::head(sort(ranks, decreasing = FALSE), n))
   } else {
     selected_features <- vrFeatures(object, assay = assay)
   }
@@ -237,11 +243,14 @@ getPCA.VoltRon <- function(object, assay = NULL, dims = 30){
 }
 
 #' @param assay assay
+#' @param data.type the type of data used to calculate UMAP from: "pca" (default), "raw" or "norm"
 #' @param dims the number of dimensions extracted from PCA
 #' @param seed seed
 #'
 #' @rdname getUMAP
 #' @method getUMAP VoltRon
+#'
+#' @importFrom umap umap
 #'
 #' @export
 #'

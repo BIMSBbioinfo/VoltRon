@@ -7,6 +7,8 @@
 \method{merge}{vrSample}(object, object_list, samples = NULL)
 }
 \arguments{
+\item{object}{a vrSample object}
+
 \item{object_list}{a list of vrSample objects}
 
 \item{samples}{the sample names}

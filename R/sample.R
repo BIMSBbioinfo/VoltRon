@@ -6,7 +6,7 @@
 
 #' The vrSample (VoltRon Sample) Class
 #'
-#' @slot samples A list of layers for the this vrSample object
+#' @slot layer A list of layers (vrLayer)
 #'
 #' @name vrSample-class
 #' @rdname vrSample-class
@@ -20,6 +20,7 @@ vrSample <- setClass(
 )
 
 ### show ####
+
 setMethod(
   f = 'show',
   signature = 'vrSample',
@@ -32,13 +33,16 @@ setMethod(
 )
 
 ### subset ####
+
+#' @importFrom methods slot
+#'
 setMethod(
   f = '[[',
   signature = 'vrSample',
   definition = function(x, i, j){
 
     # sample names
-    layer_names <- names(slot(x, "layer"))
+    layer_names <- names(methods::slot(x, "layer"))
 
     # check query sample name
     if(!i %in% layer_names){
@@ -54,7 +58,7 @@ setMethod(
 
 #' The vrLayer (VoltRon Layer) Class
 #'
-#' @slot assay
+#' @slot assay A list of assays (vrAssay)
 #'
 #' @name vrLayer-class
 #' @rdname vrLayer-class
@@ -68,6 +72,7 @@ vrLayer <- setClass(
 )
 
 ### show ####
+
 setMethod(
   f = 'show',
   signature = 'vrLayer',
@@ -81,13 +86,16 @@ setMethod(
 )
 
 ### subset of assays ####
+
+#' @importFrom methods slot
+#'
 setMethod(
   f = '[[',
   signature = c('vrLayer', "character"),
   definition = function(x, i, ...){
 
     # if no assay were found, check sample names
-    assay_names <- names(slot(x, "assay"))
+    assay_names <- names(methods::slot(x, "assay"))
 
     # check query sample name
     if(!i %in% assay_names){
@@ -98,13 +106,15 @@ setMethod(
   }
 )
 
+#' @importFrom methods slot
+#'
 setMethod(
   f = '[[<-',
   signature = c('vrLayer', "character"),
   definition = function(x, i, ..., value){
 
     # if no assay were found, check sample names
-    assay_names <- names(slot(x, "assay"))
+    assay_names <- names(methods::slot(x, "assay"))
 
     # check query sample name
     if(!i %in% assay_names){
@@ -126,6 +136,7 @@ setMethod(
 #'
 #' Given a vrSample object, and a list of vrSample objects, merge all.
 #'
+#' @param object a vrSample object
 #' @param object_list a list of vrSample objects
 #' @param samples the sample names
 #'
@@ -149,6 +160,8 @@ merge.vrSample <- function(object, object_list, samples = NULL){
 #'
 #' Given a vrSample object, subset the object given one of the attributes
 #'
+#' @param object a vrSample object
+#' @param subset the subset statement
 #' @param assays the set of assays to subset the object
 #' @param spatialpoints the set of spatial points to subset the object
 #' @param image the subseting string passed to \code{magick::image_crop}
@@ -205,6 +218,8 @@ vrSpatialPoints.vrSample <- function(object, ...) {
 #'
 #' Given a vrLayer object, subset the object given one of the attributes
 #'
+#' @param object a vrLayer object
+#' @param subset the subset statement
 #' @param assays the set of assays to subset the object
 #' @param spatialpoints the set of spatial points to subset the object
 #' @param image the subseting string passed to \code{magick::image_crop}
