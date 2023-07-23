@@ -38,6 +38,9 @@ On **Ubuntu** or **Fedora** you need [`libopencv-dev`](https://packages.debian.o
 sudo apt-get install libopencv-dev
 ```
 
+On **Windows**, OpenCV will be downloaded automatically upon installation. 
+However, [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html) may be required to be downloaded too, hence this may take some time!
+
 ## Installation
 
 Install from the GitHub repository using devtools:
