@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>ROI Analysis</title>
+
+<script src="site_libs/header-attrs-2.23/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-6.4.0/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.0/css/v4-shims.min.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+.tocify-subheader {
+  display: inline;
+}
+.tocify-subheader .tocify-item {
+  font-size: 0.95em;
+}
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">VoltRon</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="tutorials.html">Explore</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Vignette
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Spatial Data Integration</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="registration.html">Spatial Data Alignment</a>
+        </li>
+        <li>
+          <a href="deconvolution.html">Niche Clustering</a>
+        </li>
+      </ul>
+    </li>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Downstream Analysis and Utilities</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="roianalysis.html">ROI Analysis</a>
+        </li>
+        <li>
+          <a href="spotanalysis.html">Cell/Spot Analysis</a>
+        </li>
+        <li class="dropdown-header">Converting VoltRon Objects</li>
+      </ul>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <span class="fa fa-envelope-o"></span>
+     
+    Contact
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="https://bioinformatics.mdc-berlin.de">Altuna Lab/BIMSB Bioinfo</a>
+    </li>
+    <li>
+      <a href="https://www.mdc-berlin.de/landthaler">Landthaler Lab/BIMSB</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <span class="fa fa-github"></span>
+     
+    GitHub
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="https://github.com/BIMSBbioinfo/VoltRon">VoltRon</a>
+    </li>
+    <li>
+      <a href="https://github.com/BIMSBbioinfo">BIMSB Bioinfo</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">ROI Analysis</h1>
+
+</div>
+
+
+<style>
+.title{
+  display: none;
+}
+body {
+  text-align: justify
+}
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+table, th, td {
+  border-collapse: collapse;
+  align-self: center;
+  <!-- padding: 2px; -->
+  padding-right: 10px;
+  padding-left: 10px;
+}
+</style>
+<style type="text/css">
+.watch-out {
+  color: black;
+}
+</style>
+<p><br></p>
+<div id="roi-analysis" class="section level2">
+<h2>ROI Analysis</h2>
+<p>VoltRon is capable of analyzing readouts from distinct spatial
+technologies including <strong>segmentation (ROI)-based transciptomics
+assays</strong> that capture large polygonic regions on tissue sections.
+VoltRon recognizes such readouts including ones from commercially
+available tools and allows users to implement a workflow similar to ones
+conducted on bulk RNA-Seq datasets. In this tutorial, we will analyze
+morphological images and gene expression profiles provided by the
+readouts of the <a
+href="https://nanostring.com/products/geomx-digital-spatial-profiler/geomx-dsp-overview/">Nanostring’s
+GeoMx Digital Spatial Profiler</a> platform, a high-plex spatial
+profiling technology which produces segmentation-based protein and RNA
+assays.</p>
+<p>In this use case, <strong>eight tissue sections</strong> were fitted
+into the scan area of the slide loaded on the GeoMx DSP instrument.
+These sections were cut from <strong>control and COVID-19 lung
+tissues</strong> of donors categorized based on disease durations (acute
+and prolonged). See <a
+href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732">GSE190732</a>
+for more information.</p>
+<p>You can download these tutorial files from here:</p>
+<table>
+<tr>
+<th>
+File
+</th>
+<th>
+Link
+</th>
+</tr>
+<tr>
+<td>
+Counts
+</td>
+<td>
+<a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/DCC-20230427.zip">DDC
+files</a>
+</td>
+</tr>
+<tr>
+<td>
+GeoMx Human Whole Transcriptome Atlas
+</td>
+<td>
+<a href="https://nanostring.com/wp-content/uploads/Hs_R_NGS_WTA_v1.0.pkc_.zip">Human
+RNA WTA for NGS</a>
+</td>
+</tr>
+<tr>
+<td>
+Segment Summary
+</td>
+<td>
+<a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/segmentSummary.xlsx">
+Excel file </a>
+</td>
+</tr>
+<tr>
+<td>
+Morphology Image
+</td>
+<td>
+<a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/Lu 1A 1B 5 um, true exp.tiff">
+Image file </a>
+</td>
+</tr>
+<tr>
+<td>
+OME.TIFF Image
+</td>
+<td>
+<a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/Lu 1A 1B 5 um, true exp.tiff">
+OME.TIFF file </a>
+</td>
+</tr>
+</table>
+<p>
+</p>
+<p>We now import the GeoMx data, and start analyzing 87 user selected
+segments (i.e. region of interests, <strong>ROI</strong>) to check
+spatial localization of signals. The <strong>importGeoMx</strong>
+function requires:</p>
+<ul>
+<li>The path to the Digital Count Conversion file,
+<strong>dcc.path</strong>, and Probe Kit Configuration file,
+<strong>pkc.file</strong>, which are both provided as the output of the
+<a
+href="https://emea.illumina.com/products/by-type/informatics-products/basespace-sequence-hub/apps/nanostring-geomxr-ngs-pipeline.html">GeoMx
+NGS Pipeline</a>.</li>
+<li>The path the to the metadata file, <strong>summarySegment</strong>,
+and the specific excel sheet that the metadata is found,
+<strong>summarySegmentSheetName</strong>, the path to the main
+morphology <strong>image</strong> and the original
+<strong>ome.tiff</strong> file, all of which are provided and imported
+from the DSP Control Center. Please see <a
+href="https://nanostring.com/support-documents/geomx-dsp-data-analysis-user-manual/">GeoMx
+DSP Data Analysis User Manual</a> for more information.</li>
+</ul>
+<pre class="r watch-out"><code># get data
+library(dplyr)
+library(VoltRon)
+GeoMxR1 &lt;- importGeoMx(dcc.path = &quot;DCC-20230427/&quot;, 
+                       pkc.file = &quot;Hs_R_NGS_WTA_v1.0.pkc&quot;,
+                       summarySegment = &quot;segmentSummary.xlsx&quot;,
+                       summarySegmentSheetName = &quot;Segment summary&quot;,
+                       image = &quot;Lu 1A 1B 5 um, true exp.tiff&quot;,
+                       ome.tiff = &quot;Lu 1A 1B 5 um, true exp.ome.tiff&quot;,
+                       sample_name = &quot;GeoMxR1&quot;)</code></pre>
+<p><br></p>
+<div id="quality-control" class="section level3">
+<h3>Quality Control</h3>
+<p>Once the GeoMx data is imported, we can start off with examining key
+quality control measures and statistics on each segment to investigate
+each individual ROI such as sequencing saturation and the number of
+cells (nuclei) within each segment. VoltRon also provides the total
+number of unique transcripts per ROI and stores in the metadata.</p>
+<pre class="r watch-out"><code># visualize values
+vrBarPlot(GeoMxR1_lessfeatures, 
+          features = c(&quot;Count&quot;, &quot;Nuclei.count&quot;, &quot;Sequencing.saturation&quot;),
+          x.label = &quot;ROI.name&quot;, group.by = &quot;ROI.type&quot;) + 
+  theme(axis.text.x = element_text(size = 3))</code></pre>
+<p><img width="100%" height="100%" src="images/roi_barplot.png" class="center"></p>
+<p>For measuring the quality of individual ROIs, we can add a new
+metadata column, called <strong>CountPerNuclei</strong>, to check the
+average quality of cells per ROI. It seems some number of ROIs with low
+counts per nuclei also have low sequencing saturation.</p>
+<pre class="r watch-out"><code># creating new metadata fields
+Metadata(GeoMxR1)$CountPerNuclei &lt;- Metadata(GeoMxR1)$Count/Metadata(GeoMxR1)$Nuclei.count
+
+# visualize values again
+vrBarPlot(GeoMxR1, 
+          features = c(&quot;Count&quot;, &quot;Nuclei.count&quot;, 
+                       &quot;Sequencing.saturation&quot;, &quot;CountPerNuclei&quot;),
+          x.label = &quot;ROI.name&quot;, group.by = &quot;ROI.type&quot;, ncol = 3) + 
+  theme(axis.text.x = element_text(size = 5))</code></pre>
+<p><img width="100%" height="100%" src="images/roi_barplot2.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="processing" class="section level3">
+<h3>Processing</h3>
+<p>We can now filter ROIs based on our earlier observation of them
+having low count per nuclei where some also have low sequencing
+saturation.</p>
+<pre class="r watch-out"><code># Filter for count per nuclei
+GeoMxR1 &lt;- subset(GeoMxR1, subset = CountPerNuclei &gt; 500)</code></pre>
+<p>We then filter genes with low counts by extracting the count matrix
+and putting aside all genes whose maximum count across all 87 ROIs are
+less than 10.</p>
+<pre class="r watch-out"><code># Filter for count per nuclei
+GeoMxR1 &lt;- subset(GeoMxR1, subset = CountPerNuclei &gt; 500)
+
+# filter for low count features
+GeoMxR1_data &lt;- vrData(GeoMxR1, norm = FALSE)
+feature_ind &lt;- apply(GeoMxR1_data, 1, function(x) max(x) &gt; 10)
+selected_features &lt;- vrFeatures(GeoMxR1)[feature_ind]
+GeoMxR1_lessfeatures &lt;- subset(GeoMxR1, features = selected_features)</code></pre>
+<p>VoltRon is capable of normalizing data provided by a diverse set of
+spatial technologies, including the quantile normalization method
+suggested by the <a
+href="https://nanostring.com/support-documents/geomx-dsp-data-analysis-user-manual/">GeoMx
+DSP Data Analysis User Manual</a> which scales the ROI profiles to the
+third quartile followed by the geometric mean of all third quartiles
+multipled to the scaled profile.</p>
+<pre class="r watch-out"><code>GeoMxR1 &lt;- normalizeData(GeoMxR1, method = &quot;Q3Norm&quot;)</code></pre>
+<p><br></p>
+</div>
+<div id="interactive-subsetting" class="section level3">
+<h3>Interactive Subsetting</h3>
+<p>Spatially informed genomic technologies heavily depend on image
+manipulation as images provide an additional set of information. Hence,
+VoltRon incorporates several interactive built-in utilities. One such
+functionality allows manipulating images of VoltRon assays where users
+can interactively choose subsets of images. However, we first resize the
+morphology image by providing the width of the new image (thus height
+will be reduced to preserve the aspect ratio).</p>
+<pre class="r watch-out"><code># resizing the image
+GeoMxR1 &lt;- resizeImage(GeoMxR1, size = 4000)</code></pre>
+<p>VoltRon provides <strong>a mini Shiny app</strong> for subsetting
+spatial points of a VoltRon object by using the image as a reference.
+This app is particularly useful when multiple tissue sections were
+fitted to a scan area of a slide, such as the one from GeoMx DSP
+instrument. We use <strong>interactive = TRUE</strong> option in the
+subset function to call the mini Shiny app, and select bounding boxes of
+each newly created subset.</p>
+<pre class="r watch-out"><code>GeoMxR1_subset &lt;- subset(GeoMxR1, interactive = TRUE)</code></pre>
+<p>We can now merge the list of subsets, or samples, each associated
+with one of eight sections. You can provide a list of names for the
+newly subsetted samples.</p>
+<pre class="r watch-out"><code>GeoMxR1_subset_list &lt;- GeoMxR1_subset$subsets
+samples &lt;- c(&quot;prolonged case 4&quot;, &quot;acute case 3&quot;, &quot;control case 2&quot;, 
+             &quot;acute case 1&quot;, &quot;acute case 2&quot;, &quot;prolonged case 5&quot;, 
+             &quot;prolonged case 3&quot;, &quot;control case 1&quot;)
+GeoMxR1 &lt;- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1], samples = samples)</code></pre>
+<p><img width="85%" height="85%" src="images/interactivesubset.gif" class="center"></p>
+<p><br></p>
+<p>You may also save the selected image subsets and reproduce the
+interactive subsetting operation for later use.</p>
+<pre class="r watch-out"><code>samples &lt;- c(&quot;prolonged case 4&quot;, &quot;acute case 3&quot;, &quot;control case 2&quot;, 
+             &quot;acute case 1&quot;, &quot;acute case 2&quot;, &quot;prolonged case 5&quot;, 
+             &quot;prolonged case 3&quot;, &quot;control case 1&quot;)
+subset_info_list &lt;- GeoMxR1_subset$subset_info_list[[1]]
+GeoMxR1_subset_list &lt;- list()
+for(i in 1:length(subset_info_list)){
+  GeoMxR1_subset_list[[i]]  &lt;- subset(GeoMxR1, image = subset_info_list[i])
+  GeoMxR1_subset_list[[i]] &lt;- samples[i]
+}
+GeoMxR1 &lt;- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1])</code></pre>
+<p><br></p>
+</div>
+<div id="visualization" class="section level3">
+<h3>Visualization</h3>
+<p>We will now select sections of interests from the VoltRon object, and
+visualize features for each of them. The function
+<strong>vrSpatialFeaturePlot</strong> detects the number of assays
+within each VoltRon object and visualizes each feature per each spatial
+image. A grid of images are visualized either the number of assays or
+the number of features are larger than 1.</p>
+<pre class="r watch-out"><code>GeoMxR1_subset &lt;- subset(GeoMxR1, sample = c(&quot;prolonged case 4&quot;,&quot;acute case 3&quot;))
+vrSpatialFeaturePlot(GeoMxR1_subset, features = c(&quot;CXCL11&quot;, &quot;COL1A1&quot;), group.by = &quot;ROI.name&quot;, 
+                     label = TRUE, keep.scale = &quot;all&quot;, title.size = 15)</code></pre>
+<p><img width="85%" height="85%" src="images/roi_featureplot.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="dimensionality-reduction" class="section level3">
+<h3>Dimensionality Reduction</h3>
+<p>We can now process the normalized and demultiplexed samples to map
+ROIs across all sections onto lower dimensional spaces. The functions
+<strong>getFeatures</strong> and <strong>getPCA</strong> select features
+(i.e. genes) of interest from the data matrix across all samples and
+reduce it to a selected number of principal components.</p>
+<pre class="r watch-out"><code>GeoMxR1 &lt;- getFeatures(GeoMxR1)
+GeoMxR1 &lt;- getPCA(GeoMxR1, dims = 30)</code></pre>
+<p><img width="60%" height="60%" src="images/roi_embeddingplotsingle.png" class="center"></p>
+<p>VoltRon provides additional dimensionality reduction techniques such
+as <strong>UMAP</strong>.</p>
+<pre class="r watch-out"><code>GeoMxR1 &lt;- getUMAP(GeoMxR1)</code></pre>
+<p>The function <strong>vrEmbeddingPlot</strong> can be used to
+visualize embedding spaces (pca, umap, etc.) for any spatial point
+supported by VoltRon, hence cells, spots and ROI are all visualized
+using the same set of functions. Here we generate a new metadata column
+that represents the <strong>disease durations (control, acute and
+prolonged case)</strong>, then map gene profiles to the first two
+principal components.</p>
+<pre class="r watch-out"><code>Metadata(GeoMxR1)$Condition &lt;- gsub(&quot; [0-9]+$&quot;, &quot;&quot;, Metadata(GeoMxR1)$Sample)
+vrEmbeddingPlot(GeoMxR1, group.by = c(&quot;Condition&quot;), embedding = &quot;pca&quot;, pt.size = 3)</code></pre>
+<p><img width="70%" height="70%" src="images/roi_embeddingplotsingle.png" class="center"></p>
+<p>Gene expression profiles of ROIs associated with prolonged case
+sections seem to show some heterogeneity. We now color segments by
+section (or replicate, <strong>Sample</strong>) to observe the sources
+of variability. Three replicates of prolonged cases exhibit three
+different clusters of ROIs.</p>
+<pre class="r watch-out"><code>vrEmbeddingPlot(GeoMxR1, group.by = c(&quot;Condition&quot;), embedding = &quot;pca&quot;, pt.size = 3)
+vrEmbeddingPlot(GeoMxR1, group.by = c(&quot;Sample&quot;), embedding = &quot;pca&quot;, pt.size = 3)
+vrEmbeddingPlot(GeoMxR1, group.by = c(&quot;Sample&quot;), embedding = &quot;umap&quot;, pt.size = 3)</code></pre>
+<p><img width="100%" height="100%" src="images/roi_embeddingplot.png" class="center"></p>
+</div>
+<div id="differential-expression-analysis" class="section level3">
+<h3>Differential Expression Analysis</h3>
+<p>VoltRon provides wrapping functions for calling tools and methods
+from popular differential expression analysis package such as <a
+href="https://genomebiology.biomedcentral.com/articles/10.1186/s13059-014-0550-8">DESeq2</a>.
+We utilize <strong>DESeq2</strong> to find differentially expressed
+genes across disease conditions and select the <strong>control
+case</strong> as the base group (the condition that is of the baseline
+expression).</p>
+<pre class="r watch-out"><code># get DE for all conditions
+library(DESeq2)
+DEresults &lt;- getDiffExp(GeoMxR1, group.by = &quot;Condition&quot;, 
+                        group.base = &quot;control case&quot;, method = &quot;DESeq2&quot;)
+DEresults_sig &lt;- DEresults %&gt;% filter(!is.na(padj)) %&gt;% 
+  filter(padj &lt; 0.05, abs(log2FoldChange) &gt; 1)
+head(DEresults_sig)</code></pre>
+</div>
+<pre><code style="font-size: 10.6px;">        baseMean log2FoldChange     lfcSE     stat       pvalue         padj   gene                               comparison
+COL1A1  48.19791       2.612843 0.3928580 6.650859 2.913866e-11 1.502553e-08 COL1A1 Condition_prolonged.case_vs_control.case
+COL1A2 101.50889       2.201342 0.3985002 5.524068 3.312388e-08 6.506870e-06 COL1A2 Condition_prolonged.case_vs_control.case
+COL5A1  22.14014       1.012716 0.2867603 3.531576 4.130906e-04 1.472226e-02 COL5A1 Condition_prolonged.case_vs_control.case
+C7      43.77944       1.286227 0.3470877 3.705769 2.107501e-04 9.079861e-03     C7 Condition_prolonged.case_vs_control.case
+IGF1    13.71023       1.125923 0.2157737 5.218073 1.807938e-07 2.788110e-05   IGF1 Condition_prolonged.case_vs_control.case
+DRD5    18.04997       1.087036 0.1774495 6.125887 9.017989e-10 3.100121e-07   DRD5 Condition_prolonged.case_vs_control.case</code></pre>
+</div>
+<p><br></p>
+<p>The <strong>vrHeatmapPlot</strong> takes a set of features for any
+type of spatial point (cells, spots and ROIs) and visualizes scaled data
+per each feature. The select <strong>highlight.some = TRUE</strong> to
+annotate features which could be large in size. The heterogeneity across
+prolonged case segments are highlighted by different set of markers.</p>
+<pre class="r watch-out"><code># get DE for all conditions
+vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene), 
+              group.by = &quot;Condition&quot;, highlight.some = TRUE)</code></pre>
+<p><img width="90%" height="90%" src="images/roi_heatmap.png" class="center"></p>
+<p><br></p>
+<p>Markers of each individual tissue section for each disease duration
+is shown on the Heatmap.</p>
+<pre class="r watch-out"><code># get DE for all conditions
+vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene), 
+              group.by = &quot;Sample&quot;, highlight.some = TRUE)</code></pre>
+<p><img width="90%" height="90%" src="images/roi_heatmap2.png" class="center"></p>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = false;
+    options.smoothScroll = false;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
