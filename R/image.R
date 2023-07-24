@@ -117,15 +117,17 @@ vrImages.vrAssay <- function(object){
 #' @rdname vrImages
 #' @method vrImages<- vrAssay
 #'
+#' @importFrom magick image_data
+#'
 #' @export
 #'
 "vrImages<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
-  if(inherits(value, "raster")){
+  if(inherits(value, "bitmap")){
     object@image <- value
   } else if(inherits(value, "magick-image")){
-    object@image <- as.raster(value)
+    object@image <- magick::image_data(value)
   } else {
-    stop("Please provide either a magick-image or raster class image object!")
+    stop("Please provide either a magick-image or bitmap class image object!")
   }
   return(object)
 }
