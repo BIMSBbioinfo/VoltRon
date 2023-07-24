@@ -370,11 +370,9 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #' @import shiny
 #' @importFrom shinyjs useShinyjs
 #' @importFrom magick image_scale image_info image_ggplot
-#' @importFrom tableHTML make_css
 #' @importFrom ggplot2 geom_rect
 #' @importFrom htmltools HTML
-#' @importFrom dplyr filter
-#' @importFrom tibble add_row tibble
+#' @importFrom dplyr filter add_row tibble
 #'
 demuxVoltRon <- function(object, scale_width = 800)
 {
@@ -393,7 +391,6 @@ demuxVoltRon <- function(object, scale_width = 800)
 
   # get the ui and server
   if (interactive()){
-    # ui <- tagList(
     ui <- fluidPage(
       # use javascript extensions for Shiny
       shinyjs::useShinyjs(),
@@ -402,7 +399,7 @@ demuxVoltRon <- function(object, scale_width = 800)
 
                     # Side bar
                     sidebarPanel(
-                      tags$style(tableHTML::make_css(list('.well', 'margin', '7%'))),
+                      tags$style(make_css(list('.well', 'margin', '7%'))),
 
                       # Interface
                       fluidRow(
@@ -452,10 +449,10 @@ demuxVoltRon <- function(object, scale_width = 800)
     server <- function(input, output, session) {
 
       # selected corners
-      selected_corners <- reactiveVal(tibble::tibble(x = numeric(), y = numeric()))
+      selected_corners <- reactiveVal(dplyr::tibble(x = numeric(), y = numeric()))
 
       # selected corner list
-      selected_corners_list <- reactiveVal(tibble::tibble(box = character()))
+      selected_corners_list <- reactiveVal(dplyr::tibble(box = character()))
 
       ### Main observable ####
       observe({
@@ -501,7 +498,7 @@ demuxVoltRon <- function(object, scale_width = 800)
                             abs(corners[2,2]-corners[1,2]), "+",
                             min(corners[,1]), "+", imageinfo$height - max(corners[,2]))
           selected_corners_list() %>%
-            tibble::add_row(box = corners) %>%
+            dplyr::add_row(box = corners) %>%
             selected_corners_list()
           selected_corners() %>%
             dplyr::filter(FALSE) %>% selected_corners()
@@ -514,7 +511,7 @@ demuxVoltRon <- function(object, scale_width = 800)
           keypoint <- data.frame(x = input[["choose_corner"]]$x,
                                  y = input[["choose_corner"]]$y)
           selected_corners() %>%
-            tibble::add_row(x = keypoint$x, y = keypoint$y) %>%
+            dplyr::add_row(x = keypoint$x, y = keypoint$y) %>%
             selected_corners()
         } else {
           selected_corners() %>%

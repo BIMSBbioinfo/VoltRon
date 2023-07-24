@@ -26,29 +26,13 @@
 \S4method{[[}{VoltRon,character,character,ANY}(x, i, j, ...) <- value
 }
 \arguments{
-\item{x, object}{A \code{\link{VoltRon}} object}
-
-\item{i, features}{Depends on the method
-\describe{
- \item{\code{[}, \code{subset}}{Feature names or indices}
- \item{\code{$}, \code{$<-}}{Name of a single metadata column}
- \item{\code{[[}, \code{[[<-}}{
-  Name of one or more metadata columns or an associated object; associated
-  objects include \code{\link{Assay}}, \code{\link{DimReduc}},
-  \code{\link{Graph}}, \code{\link{SeuratCommand}}, or
-  \code{\link{SpatialImage}} objects
- }
-}}
-
-\item{...}{Arguments passed to other methods}
+\item{x}{ An R object for which valid names after \code{"$"}
+    are computed and returned.
+  }
 
 \item{pattern}{ A regular expression.  Only matching names are
     returned.
   }
-
-\item{j, cells}{Cell names or indices}
-
-\item{n}{The number of rows of metadata to return}
 }
 \description{
 Methods for \code{\link{VoltRon}} objects for generics defined in other

@@ -336,8 +336,8 @@ addAssay.vrMetadata <- function(object, assay, assay_name, sample = "Sample1", l
 #' @param object2 vrMetadata object
 #'
 #' @importFrom stringr str_extract
-#' @importFrom stringi stri_replace_all_regex
 #' @importFrom methods new
+#'
 updateMetadataAssay <- function(object1, object2){
 
   # get assay types

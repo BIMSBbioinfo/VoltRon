@@ -1005,7 +1005,7 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NUL
                       group.by =  as.factor(metadata[[group.by]]),
                       assay_title = assay_title,
                       spatialpoints = rownames(metadata))
-  ggplotdatax <- melt(ggplotdatax, id.var = c("group.by", "assay_title", "spatialpoints"))
+  ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("group.by", "assay_title", "spatialpoints"))
   gg <- ggplot(ggplotdatax, aes(x = group.by, y = value, color = group.by)) +
     geom_violin() +
     geom_point(size = 0.5, position = position_jitter()) +
@@ -1098,7 +1098,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
                             group.by =  factor(metadata[[group.by]]),
                             assay_title = assay_title,
                             spatialpoints = rownames(metadata))
-  ggplotdatax <- melt(ggplotdatax, id.var = c("x.label", "assay_title", "group.by", "spatialpoints"))
+  ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "group.by", "spatialpoints"))
   gg <- ggplot(ggplotdatax, aes(x = x.label, y = value,
                                 fill = factor(group.by, levels = unique(group.by)))) +
     geom_bar(stat = "identity") +
@@ -1170,7 +1170,7 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL, group.by = "S
                             group.by =  factor(metadata[[group.by]]),
                             assay_title = assay_title,
                             spatialpoints = rownames(metadata))
-  ggplotdatax <- melt(ggplotdatax, id.var = c("x.label", "assay_title", "group.by", "spatialpoints"))
+  ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "group.by", "spatialpoints"))
   ggplotdatax <- ggplotdatax[ggplotdatax$value > 0,]
   gg <- ggplot(ggplotdatax, aes(x = x.label, y = value, fill = variable)) +
     geom_bar(stat = "identity") +

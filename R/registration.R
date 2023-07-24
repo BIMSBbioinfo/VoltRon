@@ -55,7 +55,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
 
                     # Side bar
                     sidebarPanel(
-                      tags$style(tableHTML::make_css(list('.well', 'margin', '7%'))),
+                      tags$style(make_css(list('.well', 'margin', '7%'))),
 
                       h4("Spatial Data Registration"),
                       fluidRow(
@@ -502,15 +502,15 @@ rescaleXeniumCells <- function(cells, bbox, image){
 #' @param output shiny output
 #' @param session shiny session
 #'
-#' @importFrom tibble tibble
+#' @importFrom dplyr tibble
 #'
 initateKeypoints <- function(len_images, keypoints_list, input, output, session){
 
   # initiate keypoints
   if(is.null(keypoints_list)){
     keypoints_list <- lapply(1:(len_images-1), function(i) {
-      list(ref = tibble::tibble(KeyPoint = numeric(), x = numeric(), y = numeric()),
-           query = tibble::tibble(KeyPoint = numeric(), x = numeric(), y = numeric()))
+      list(ref = dplyr::tibble(KeyPoint = numeric(), x = numeric(), y = numeric()),
+           query = dplyr::tibble(KeyPoint = numeric(), x = numeric(), y = numeric()))
 
     })
 

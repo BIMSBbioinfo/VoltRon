@@ -4,7 +4,7 @@ Title: VoltRon for Spatial Data Integration and Analysis
 Version: 1.0.0
 Author: Artür Manukyan, Ella Bahry, Anna Pascual, Deborah Schmidt, Markus Landthaler, Altuna Akalin
 Maintainer: Artur Manukyan <artur-man@hotmail.com>
-Description: VoltRon is a spatial data analysis toolbox for spatial data integration, analysis and image registration 
+Description: VoltRon is a novel spatial data analysis toolbox for spatial data analysis, multi-omics integration using spatial image registration. VoltRon is capable of analyzing multiple types and modalities of spatially-aware datasets. VoltRon visualizes and analyzes regions of interests (ROIs), spots, cells and even molecules (under development).
 License: MIT + file LICENSE
 SystemRequirements: OpenCV 4.7: libopencv-dev (Debian, Ubuntu) or opencv-devel (Fedora)
 Encoding: UTF-8
@@ -12,8 +12,7 @@ RoxygenNote: 7.2.3
 biocViews:
 Imports: methods, S4Vectors, ComplexHeatmap, EBImage, FNN, GeomxTools, Matrix, Morpho,
     RBioFormats, XML, dplyr, ggforce, ggplot2, ggpubr, ggrepel, hdf5r, htmltools, igraph, irlba,
-    jsonlite, magick, proxy, raster, reshape2, rlang, scales, shiny, shinyjs, stringi, stringr, terra, xlsx, 
-    tableHTML, tibble, umap
+    jsonlite, magick, raster, reshape2, rlang, scales, shiny, shinyjs, stringr, terra, umap
 LinkingTo: Rcpp
 Collate: 
     'RcppExports.R'

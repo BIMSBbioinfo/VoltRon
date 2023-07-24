@@ -239,9 +239,9 @@ import10Xh5 <- function(filename){
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
 #' @importFrom dplyr %>% full_join
-#' @importFrom xlsx read.xlsx
+#' @importFrom utils read.csv
 #' @importFrom GeomxTools readPKCFile readDccFile
-#' @importFrom magick image_info
+#' @importFrom magick image_info image_read
 #'
 #' @export
 #'
@@ -286,7 +286,17 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
   rawdata <- as.matrix(rawdata)
 
   # get segment summary
-  segmentsummary <- xlsx::read.xlsx(summarySegment, sheetName = summarySegmentSheetName)
+  if(grepl(".xls$", summarySegment)){
+    if (!requireNamespace('xlsx'))
+      stop("Please install xlsx package for using read.xlsx function!")
+    if(!is.null(summarySegmentSheetName)){
+      segmentsummary <- xlsx::read.xlsx(summarySegment, sheetName = summarySegmentSheetName)
+    } else {
+      stop("Please provide 'summarySegmentSheetName' for the excel sheet name!")
+    }
+  } else if(grepl(".csv$", summarySegment)) {
+    segmentsummary <- utils::read.csv(summarySegment)
+  }
   rownames(segmentsummary) <- gsub(".dcc$", "", segmentsummary$Sample_ID)
   rownames(segmentsummary) <- gsub("-", "_", rownames(segmentsummary))
   if(all(dcc_filenames %in% rownames(segmentsummary))){
@@ -297,11 +307,11 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
 
   # get image
   if(!is.null(image)){
-    image <- image_read(image)
+    image <- magick::image_read(image)
   } else {
     stop("Please provide a morphology image for the GeoMx data!")
   }
-  geomx_image_info <- image_info(image)
+  geomx_image_info <- magick::image_info(image)
 
   # get coordinates
   coords <- segmentsummary[,c("X","Y")]
@@ -335,9 +345,8 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
 importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
   # get the xml file
-  # xmltemp <- xmlExtraction(ometiff = ome.tiff)
-  omexml <- read.omexml(ome.tiff)
-  omexml <- xmlToList(omexml, simplify = TRUE)
+  omexml <- RBioFormats::read.omexml(ome.tiff)
+  omexml <- XML::xmlToList(omexml, simplify = TRUE)
 
   # get ROIs
   ROIs <- omexml[which(names(omexml) == "ROI")]
