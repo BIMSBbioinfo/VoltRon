@@ -225,14 +225,6 @@ GeoMxR1 <- getFeatures(GeoMxR1)
 GeoMxR1 <- getPCA(GeoMxR1, dims = 30)
 ```
 
-<img width="60%" height="60%" src="images/roi_embeddingplotsingle.png" class="center">
-
-VoltRon provides additional dimensionality reduction techniques such as **UMAP**. 
-
-```{r eval = FALSE, class.source="watch-out"}
-GeoMxR1 <- getUMAP(GeoMxR1)
-```
-
 The function **vrEmbeddingPlot** can be used to visualize embedding spaces (pca, umap, etc.) for any spatial point supported by VoltRon, hence cells, spots and ROI are all visualized using the same set of functions. Here we generate a new metadata column that represents the **disease durations (control, acute and prolonged case)**, then map gene profiles to the first two principal components.
 
 ```{r eval = FALSE, class.source="watch-out"}
@@ -241,6 +233,12 @@ vrEmbeddingPlot(GeoMxR1, group.by = c("Condition"), embedding = "pca", pt.size =
 ```
 
 <img width="70%" height="70%" src="images/roi_embeddingplotsingle.png" class="center">
+
+VoltRon provides additional dimensionality reduction techniques such as **UMAP**. 
+
+```{r eval = FALSE, class.source="watch-out"}
+GeoMxR1 <- getUMAP(GeoMxR1)
+```
 
 Gene expression profiles of ROIs associated with prolonged case sections seem to show some heterogeneity. We now color segments by section (or replicate, **Sample**) to observe the sources of variability. Three replicates of prolonged cases exhibit three different clusters of ROIs.
 

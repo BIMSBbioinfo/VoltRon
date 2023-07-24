@@ -536,7 +536,7 @@ from the DSP Control Center. Please see <a
 href="https://nanostring.com/support-documents/geomx-dsp-data-analysis-user-manual/">GeoMx
 DSP Data Analysis User Manual</a> for more information.</li>
 </ul>
-<pre class="r watch-out"><code># get data
+<pre class="r watch-out"><code>library(VoltRon)
 library(xlsx)
 GeoMxR1 &lt;- importGeoMx(dcc.path = &quot;DCC-20230427/&quot;, 
                        pkc.file = &quot;Hs_R_NGS_WTA_v1.0.pkc&quot;,
@@ -665,10 +665,6 @@ ROIs across all sections onto lower dimensional spaces. The functions
 reduce it to a selected number of principal components.</p>
 <pre class="r watch-out"><code>GeoMxR1 &lt;- getFeatures(GeoMxR1)
 GeoMxR1 &lt;- getPCA(GeoMxR1, dims = 30)</code></pre>
-<p><img width="60%" height="60%" src="images/roi_embeddingplotsingle.png" class="center"></p>
-<p>VoltRon provides additional dimensionality reduction techniques such
-as <strong>UMAP</strong>.</p>
-<pre class="r watch-out"><code>GeoMxR1 &lt;- getUMAP(GeoMxR1)</code></pre>
 <p>The function <strong>vrEmbeddingPlot</strong> can be used to
 visualize embedding spaces (pca, umap, etc.) for any spatial point
 supported by VoltRon, hence cells, spots and ROI are all visualized
@@ -679,6 +675,9 @@ principal components.</p>
 <pre class="r watch-out"><code>Metadata(GeoMxR1)$Condition &lt;- gsub(&quot; [0-9]+$&quot;, &quot;&quot;, Metadata(GeoMxR1)$Sample)
 vrEmbeddingPlot(GeoMxR1, group.by = c(&quot;Condition&quot;), embedding = &quot;pca&quot;, pt.size = 3)</code></pre>
 <p><img width="70%" height="70%" src="images/roi_embeddingplotsingle.png" class="center"></p>
+<p>VoltRon provides additional dimensionality reduction techniques such
+as <strong>UMAP</strong>.</p>
+<pre class="r watch-out"><code>GeoMxR1 &lt;- getUMAP(GeoMxR1)</code></pre>
 <p>Gene expression profiles of ROIs associated with prolonged case
 sections seem to show some heterogeneity. We now color segments by
 section (or replicate, <strong>Sample</strong>) to observe the sources

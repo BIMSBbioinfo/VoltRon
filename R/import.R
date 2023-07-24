@@ -286,7 +286,7 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
   rawdata <- as.matrix(rawdata)
 
   # get segment summary
-  if(grepl(".xls$", summarySegment)){
+  if(grepl(".xls$|.xlsx$", summarySegment)){
     if (!requireNamespace('xlsx'))
       stop("Please install xlsx package for using read.xlsx function!")
     if(!is.null(summarySegmentSheetName)){
