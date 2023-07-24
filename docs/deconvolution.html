@@ -453,12 +453,12 @@ datatypes.</p>
 <p>We will now import the samples and merge them into one VoltRon
 object. Here, we use example Visium (v1 chemistry) data sets provided by
 the 10x Genomics where there are four sections in total given two serial
-anterior and serial posterior sections. The dataset can be download from
-<a
+anterior and serial posterior sections. The <strong>Mouse Brain Serial
+Section 1/2</strong> datasets can be download from <a
 href="https://www.10xgenomics.com/resources/datasets?menu%5Bproducts.name%5D=Spatial%20Gene%20Expression&amp;query=&amp;page=1&amp;configure%5BhitsPerPage%5D=50&amp;configure%5BmaxValuesPerFacet%5D=1000">here</a>
-(specifically, one should search for <strong>Mouse</strong>,
-<strong>brain</strong>, <strong>Spatial Gene Expression</strong>,
-<strong>v1</strong>).</p>
+(specifically, please filter for <strong>Species=Mouse</strong>,
+<strong>AnatomicalEntity=brain</strong>, <strong>Chemistry=v1</strong>
+and <strong>PipelineVersion=v1.1.0</strong>).</p>
 <pre class="r watch-out"><code>library(VoltRon)
 
 # import Visium data

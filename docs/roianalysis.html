@@ -473,7 +473,7 @@ Link
 Counts
 </td>
 <td>
-<a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/DCC-20230427.zip">DDC
+<a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/DCC-20230427.zip">DDC
 files</a>
 </td>
 </tr>
@@ -491,7 +491,7 @@ RNA WTA for NGS</a>
 Segment Summary
 </td>
 <td>
-<a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/segmentSummary.xlsx">
+<a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/segmentSummary.xlsx">
 Excel file </a>
 </td>
 </tr>
@@ -500,7 +500,7 @@ Excel file </a>
 Morphology Image
 </td>
 <td>
-<a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/Lu 1A 1B 5 um, true exp.tiff">
+<a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.tif">
 Image file </a>
 </td>
 </tr>
@@ -509,7 +509,7 @@ Image file </a>
 OME.TIFF Image
 </td>
 <td>
-<a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/Lu 1A 1B 5 um, true exp.tiff">
+<a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.tiff">
 OME.TIFF file </a>
 </td>
 </tr>
@@ -537,14 +537,13 @@ href="https://nanostring.com/support-documents/geomx-dsp-data-analysis-user-manu
 DSP Data Analysis User Manual</a> for more information.</li>
 </ul>
 <pre class="r watch-out"><code># get data
-library(dplyr)
-library(VoltRon)
+library(xlsx)
 GeoMxR1 &lt;- importGeoMx(dcc.path = &quot;DCC-20230427/&quot;, 
                        pkc.file = &quot;Hs_R_NGS_WTA_v1.0.pkc&quot;,
                        summarySegment = &quot;segmentSummary.xlsx&quot;,
                        summarySegmentSheetName = &quot;Segment summary&quot;,
-                       image = &quot;Lu 1A 1B 5 um, true exp.tiff&quot;,
-                       ome.tiff = &quot;Lu 1A 1B 5 um, true exp.ome.tiff&quot;,
+                       image = &quot;Lu1A1B5umtrueexp.tif&quot;,
+                       ome.tiff = &quot;Lu1A1B5umtrueexp.ome.tiff&quot;,
                        sample_name = &quot;GeoMxR1&quot;)</code></pre>
 <p><br></p>
 <div id="quality-control" class="section level3">
@@ -565,7 +564,7 @@ metadata column, called <strong>CountPerNuclei</strong>, to check the
 average quality of cells per ROI. It seems some number of ROIs with low
 counts per nuclei also have low sequencing saturation.</p>
 <pre class="r watch-out"><code># creating new metadata fields
-Metadata(GeoMxR1)$CountPerNuclei &lt;- Metadata(GeoMxR1)$Count/Metadata(GeoMxR1)$Nuclei.count
+GeoMxR1$CountPerNuclei &lt;- GeoMxR1$Count/GeoMxR1$Nuclei.count
 
 # visualize values again
 vrBarPlot(GeoMxR1, 
@@ -586,11 +585,7 @@ GeoMxR1 &lt;- subset(GeoMxR1, subset = CountPerNuclei &gt; 500)</code></pre>
 <p>We then filter genes with low counts by extracting the count matrix
 and putting aside all genes whose maximum count across all 87 ROIs are
 less than 10.</p>
-<pre class="r watch-out"><code># Filter for count per nuclei
-GeoMxR1 &lt;- subset(GeoMxR1, subset = CountPerNuclei &gt; 500)
-
-# filter for low count features
-GeoMxR1_data &lt;- vrData(GeoMxR1, norm = FALSE)
+<pre class="r watch-out"><code>GeoMxR1_data &lt;- vrData(GeoMxR1, norm = FALSE)
 feature_ind &lt;- apply(GeoMxR1_data, 1, function(x) max(x) &gt; 10)
 selected_features &lt;- vrFeatures(GeoMxR1)[feature_ind]
 GeoMxR1_lessfeatures &lt;- subset(GeoMxR1, features = selected_features)</code></pre>

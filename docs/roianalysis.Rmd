@@ -57,7 +57,7 @@ You can download these tutorial files from here:
   </tr>
   <tr>
     <td>Counts</td>
-    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/DCC-20230427.zip">DDC files</a></td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/DCC-20230427.zip">DDC files</a></td>
   </tr>
   <tr>
     <td>GeoMx Human Whole Transcriptome Atlas</td>
@@ -65,15 +65,15 @@ You can download these tutorial files from here:
   </tr>
   <tr>
     <td>Segment Summary</td>
-    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/segmentSummary.xlsx"> Excel file </a></td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/segmentSummary.xlsx"> Excel file </a></td>
   </tr>
   <tr>
     <td>Morphology Image</td>
-    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/Lu 1A 1B 5 um, true exp.tiff"> Image file </a></td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.tif"> Image file </a></td>
   </tr>
   <tr>
     <td>OME.TIFF Image </td>
-    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/Lu 1A 1B 5 um, true exp.tiff"> OME.TIFF file </a></td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.tiff"> OME.TIFF file </a></td>
   </tr>
 </table>
 
@@ -86,14 +86,13 @@ We now import the GeoMx data, and start analyzing 87 user selected segments (i.e
 
 ```{r eval = FALSE, class.source="watch-out"}
 # get data
-library(dplyr)
-library(VoltRon)
+library(xlsx)
 GeoMxR1 <- importGeoMx(dcc.path = "DCC-20230427/", 
                        pkc.file = "Hs_R_NGS_WTA_v1.0.pkc",
                        summarySegment = "segmentSummary.xlsx",
                        summarySegmentSheetName = "Segment summary",
-                       image = "Lu 1A 1B 5 um, true exp.tiff",
-                       ome.tiff = "Lu 1A 1B 5 um, true exp.ome.tiff",
+                       image = "Lu1A1B5umtrueexp.tif",
+                       ome.tiff = "Lu1A1B5umtrueexp.ome.tiff",
                        sample_name = "GeoMxR1")
 ```
 

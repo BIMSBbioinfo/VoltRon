@@ -47,7 +47,7 @@ VoltRon includes wrapper commands for using popular RNA deconvolution methods su
 
 ## Import ST Data
 
-We will now import the samples and merge them into one VoltRon object. Here, we use example Visium (v1 chemistry) data sets provided by the 10x Genomics where there are four sections in total given two serial anterior and serial posterior sections. The dataset can be download from [here](https://www.10xgenomics.com/resources/datasets?menu%5Bproducts.name%5D=Spatial%20Gene%20Expression&query=&page=1&configure%5BhitsPerPage%5D=50&configure%5BmaxValuesPerFacet%5D=1000) (specifically, one should search for **Mouse**, **brain**, **Spatial Gene Expression**, **v1**).
+We will now import the samples and merge them into one VoltRon object. Here, we use example Visium (v1 chemistry) data sets provided by the 10x Genomics where there are four sections in total given two serial anterior and serial posterior sections. The **Mouse Brain Serial Section 1/2** datasets can be download from [here](https://www.10xgenomics.com/resources/datasets?menu%5Bproducts.name%5D=Spatial%20Gene%20Expression&query=&page=1&configure%5BhitsPerPage%5D=50&configure%5BmaxValuesPerFacet%5D=1000) (specifically, please filter for **Species=Mouse**, **AnatomicalEntity=brain**, **Chemistry=v1** and **PipelineVersion=v1.1.0**).
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)

@@ -39,7 +39,7 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 VoltRon is an end-to-end spatial data analysis package which supports investigating spatial points in any level of resoluion including single cell. VoltRon includes essential **built-in functions capable of filtering, processing and clustering as well as visualizing** spatial datasets with a goal of cell type discovery and annotation. 
 
-In this use case, we analyze cells segmented from microscopy images collected from **control and COVID-19 lung tissues** of donors categorized based on disease durations (control, acute and prolonged). Each image is associated with one of few field of views (FOVs) of a single tissue section of a donor. See [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information. You can download the **IFdata.csv** file and the folder with the **DAPI** images [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GSE190732/GSE190732.zip). 
+In this use case, we analyze cells segmented from microscopy images collected from **control and COVID-19 lung tissues** of donors categorized based on disease durations (control, acute and prolonged). Each image is associated with one of few field of views (FOVs) of a single tissue section of a donor. See [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information. You can download the **IFdata.csv** file and the folder with the **DAPI** images [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/MELC/GSE190732.zip). 
 
 We analyze cells characterized by **multi-epitope ligand cartography (MELC)** with a panel of 44 parameters. We use the already segmented cells on which expression of **43 protein features** were mapped to these cells. 
 
