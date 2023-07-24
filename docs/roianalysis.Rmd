@@ -85,7 +85,7 @@ We now import the GeoMx data, and start analyzing 87 user selected segments (i.e
 * The path the to the metadata file, **summarySegment**, and the specific excel sheet that the metadata is found, **summarySegmentSheetName**, the path to the main morphology **image** and the original **ome.tiff** file, all of which are provided and imported from the DSP Control Center. Please see [GeoMx DSP Data Analysis User Manual](https://nanostring.com/support-documents/geomx-dsp-data-analysis-user-manual/) for more information.
 
 ```{r eval = FALSE, class.source="watch-out"}
-# get data
+library(VoltRon)
 library(xlsx)
 GeoMxR1 <- importGeoMx(dcc.path = "DCC-20230427/", 
                        pkc.file = "Hs_R_NGS_WTA_v1.0.pkc",
