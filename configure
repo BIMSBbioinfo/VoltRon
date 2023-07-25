@@ -1,5 +1,5 @@
 #!/bin/sh
-# Anticonf (tm) script by Jeroen Ooms (2020)
+# Anticonf (tm) script by Jeroen Ooms (2020) from (https://github.com/ropensci/opencv)
 PKG_CONFIG_NAME="opencv4"
 PKG_CONFIG_NAME_ALT="opencv"
 PKG_DEB_NAME="libopencv-dev"
