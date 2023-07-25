@@ -200,6 +200,7 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 
 #' @param assay assay
 #' @param dims the number of dimensions extracted from PCA
+#' @param seed seed
 #'
 #' @rdname getPCA
 #' @method getPCA VoltRon
@@ -209,7 +210,7 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #'
 #' @export
 #'
-getPCA.VoltRon <- function(object, assay = NULL, dims = 30){
+getPCA.VoltRon <- function(object, assay = NULL, dims = 30, seed = 1){
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -231,8 +232,7 @@ getPCA.VoltRon <- function(object, assay = NULL, dims = 30){
   scale.data <- apply(normdata, 1, scale)
 
   # get PCA embedding
-  # pr.data <- irlba::irlba(scale.data, nv=dims, center=colMeans(scale.data))
-  # pr.data <- pr.data$u
+  set.seed(seed)
   pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
   loading_matrix <- data.frame(pr.data$rotation, features = features)
   pr.data <- pr.data$x
