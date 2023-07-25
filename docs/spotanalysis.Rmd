@@ -129,7 +129,7 @@ vr_subset <- subset(vr_merged, samples = "control_case_1")
 g1 <- vrSpatialFeaturePlot(vr_subset, features = c("CollagenIV", "CD11b"), alpha = 1, pt.size = 0.7)
 ```
 
-<img width="90%" height="90%" src="images/cellspot_spatialfeature.png" class="center">
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatialfeature.png" class="center">
 
 <br>
 
@@ -146,7 +146,7 @@ We can also visualize the expression and measure of these features on embedding 
 vrEmbeddingFeaturePlot(vr_merged, features = c("CollagenIV", "CD11b"), embedding = "umap")
 ```
 
-<img width="100%" height="100%" src="images/cellspot_embedding.png" class="center">
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_embedding.png" class="center">
 
 <br>
 
@@ -169,7 +169,7 @@ g2 <- vrEmbeddingPlot(vr_merged, group.by = c("MELC_Clusters"), embedding = "uma
 g1 | g2
 ```
 
-<img width="100%" height="100%" src="images/cellspot_embeddingclusters.png" class="center">
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_embeddingclusters.png" class="center">
 
 <br>
 
@@ -182,7 +182,7 @@ vrHeatmapPlot(vr_merged, features = vrFeatures(vr_merged),
               group.by = "MELC_Clusters", show_row_names = TRUE)
 ```
 
-<img width="100%" height="100%" src="images/cellspot_heatmapclusters.png" class="center">
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_heatmapclusters.png" class="center">
 
 <br>
 
@@ -191,6 +191,6 @@ vrViolinPlot(vr_merged, features = c("CD3", "SMA", "Pancytokeratin", "CCR2"),
              group.by = "MELC_Clusters", ncol = 2)
 ```
 
-<img width="100%" height="80%" src="images/cellspot_violinclusters.png" class="center">
+<img width="100%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_violinclusters.png" class="center">
 
 <br>
