@@ -484,11 +484,12 @@ vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
 #' @rdname vrDistances
 #' @method vrDistances vrAssay
 #'
+#' @importFrom stats dist
 #' @export
 #'
 vrDistances.vrAssay <- function(object, reg = FALSE, method = "euclidean", ...) {
   coords <- vrCoordinates(object, reg = reg, ...)
-  return(as.matrix(dist(coords, method = method)))
+  return(as.matrix(stats::dist(coords, method = method)))
 }
 
 #' @param type the key name for the embedding

@@ -18,7 +18,6 @@ NULL
 #'
 #' @importFrom igraph add_edges simplify make_empty_graph vertices
 #' @importFrom FNN get.knn
-#' @importFrom proxy dist
 #'
 #' @export
 #'

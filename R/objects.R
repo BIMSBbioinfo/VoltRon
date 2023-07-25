@@ -87,22 +87,6 @@ setMethod(
 #' Methods for \code{\link{VoltRon}} objects for generics defined in other
 #' packages
 #'
-#' @param x,object A \code{\link{VoltRon}} object
-#' @param i,features Depends on the method
-#' \describe{
-#'  \item{\code{[}, \code{subset}}{Feature names or indices}
-#'  \item{\code{$}, \code{$<-}}{Name of a single metadata column}
-#'  \item{\code{[[}, \code{[[<-}}{
-#'   Name of one or more metadata columns or an associated object; associated
-#'   objects include \code{\link{Assay}}, \code{\link{DimReduc}},
-#'   \code{\link{Graph}}, \code{\link{SeuratCommand}}, or
-#'   \code{\link{SpatialImage}} objects
-#'  }
-#' }
-#' @param j,cells Cell names or indices
-#' @param n The number of rows of metadata to return
-#' @param ... Arguments passed to other methods
-#'
 #' @name VoltRon-methods
 #' @rdname VoltRon-methods
 #'

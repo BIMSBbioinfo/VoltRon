@@ -64,12 +64,12 @@ In addition, VoltRon integrates with spot deconvolution methods such as RCTD and
   <tr>
    <td onclick="location.href='registration.html';"> 
       <p class ="tutorial"> Spatial Data Alignment </p>
-      <img width="250" height="250" src="images/registration.png" class="center">
+      <img width="250" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration.png" class="center">
       <p style = "margin: 3%"> Manual and automated alignment of spatial data assays</p>
    </td>
    <td onclick="location.href='deconvolution.html';"> 
       <p class ="tutorial"> Niche Clustering </p>
-      <img width="250" height="250" src="images/deconvolution.png" class="center">
+      <img width="250" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/deconvolution.png" class="center">
       <p style = "margin: 3%"> Clustering with ROI/spot deconvolution</p>
    </td>
    <td> 
@@ -90,17 +90,17 @@ In addition, VoltRon integrates with spot deconvolution methods such as RCTD and
   <tr>
    <td onclick="location.href='roianalysis.html';"> 
       <p class ="tutorial"> Region of Interests (ROIs) </p>
-      <img width="280" height="250" src="images/GeoMx.png" class="center">
+      <img width="280" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/GeoMx.png" class="center">
       <p style = "margin: 3%"> Quality control, analysis and visualization of ROI segments </p>
    </td>
    <td onclick="location.href='spotanalysis.html';"> 
       <p class ="tutorial"> Cells/Spots </p>
-      <img width="280" height="250" src="images/spotanalysis.png" class="center">
+      <img width="280" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/spotanalysis.png" class="center">
       <p style = "margin: 3%"> Quality control, analysis and visualization of Cell/Spot datasets </p>
    </td>
    <td> 
       <p class ="tutorial"> Converting VoltRon Objects </p>
-      <img width="270" height="250" src="images/conversion.png" class="center">
+      <img width="270" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversion.png" class="center">
       <p style = "margin: 3%"> Converting VoltRon objects into Seurat, Giotto, squidpy (anndata) etc. <strong> (under development) </strong></p>
    </td>
   </tr>

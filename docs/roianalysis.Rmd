@@ -57,7 +57,7 @@ You can download these tutorial files from here:
   </tr>
   <tr>
     <td>Counts</td>
-    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/DCC-20230427.zip">DDC files</a></td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/DCC-20230427.zip">DDC files</a></td>
   </tr>
   <tr>
     <td>GeoMx Human Whole Transcriptome Atlas</td>
@@ -65,15 +65,15 @@ You can download these tutorial files from here:
   </tr>
   <tr>
     <td>Segment Summary</td>
-    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/segmentSummary.xlsx"> Excel file </a></td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/segmentSummary.xlsx"> Excel file </a></td>
   </tr>
   <tr>
     <td>Morphology Image</td>
-    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/Lu 1A 1B 5 um, true exp.tiff"> Image file </a></td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.tif"> Image file </a></td>
   </tr>
   <tr>
     <td>OME.TIFF Image </td>
-    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/GeoMxTutorial/Lu 1A 1B 5 um, true exp.tiff"> OME.TIFF file </a></td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.tiff"> OME.TIFF file </a></td>
   </tr>
 </table>
 
@@ -85,15 +85,14 @@ We now import the GeoMx data, and start analyzing 87 user selected segments (i.e
 * The path the to the metadata file, **summarySegment**, and the specific excel sheet that the metadata is found, **summarySegmentSheetName**, the path to the main morphology **image** and the original **ome.tiff** file, all of which are provided and imported from the DSP Control Center. Please see [GeoMx DSP Data Analysis User Manual](https://nanostring.com/support-documents/geomx-dsp-data-analysis-user-manual/) for more information.
 
 ```{r eval = FALSE, class.source="watch-out"}
-# get data
-library(dplyr)
 library(VoltRon)
+library(xlsx)
 GeoMxR1 <- importGeoMx(dcc.path = "DCC-20230427/", 
                        pkc.file = "Hs_R_NGS_WTA_v1.0.pkc",
                        summarySegment = "segmentSummary.xlsx",
                        summarySegmentSheetName = "Segment summary",
-                       image = "Lu 1A 1B 5 um, true exp.tiff",
-                       ome.tiff = "Lu 1A 1B 5 um, true exp.ome.tiff",
+                       image = "Lu1A1B5umtrueexp.tif",
+                       ome.tiff = "Lu1A1B5umtrueexp.ome.tiff",
                        sample_name = "GeoMxR1")
 ```
 
@@ -111,7 +110,7 @@ vrBarPlot(GeoMxR1_lessfeatures,
   theme(axis.text.x = element_text(size = 3))
 ```
 
-<img width="100%" height="100%" src="images/roi_barplot.png" class="center">
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_barplot.png" class="center">
 
 For measuring the quality of individual ROIs, we can add a new metadata column, called **CountPerNuclei**, to check the average quality of cells per ROI. It seems some number of ROIs with low counts per nuclei also have low sequencing saturation. 
 
@@ -127,7 +126,7 @@ vrBarPlot(GeoMxR1,
   theme(axis.text.x = element_text(size = 5))
 ```
 
-<img width="100%" height="100%" src="images/roi_barplot2.png" class="center">
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_barplot2.png" class="center">
 
 <br>
 
@@ -182,7 +181,7 @@ samples <- c("prolonged case 4", "acute case 3", "control case 2",
 GeoMxR1 <- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1], samples = samples)
 ```
 
-<img width="85%" height="85%" src="images/interactivesubset.gif" class="center">
+<img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactivesubset.gif" class="center">
 
 <br>
 
@@ -213,7 +212,7 @@ vrSpatialFeaturePlot(GeoMxR1_subset, features = c("CXCL11", "COL1A1"), group.by 
                      label = TRUE, keep.scale = "all", title.size = 15)
 ```
 
-<img width="85%" height="85%" src="images/roi_featureplot.png" class="center">
+<img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_featureplot.png" class="center">
 
 <br>
 
@@ -226,7 +225,14 @@ GeoMxR1 <- getFeatures(GeoMxR1)
 GeoMxR1 <- getPCA(GeoMxR1, dims = 30)
 ```
 
-<img width="60%" height="60%" src="images/roi_embeddingplotsingle.png" class="center">
+The function **vrEmbeddingPlot** can be used to visualize embedding spaces (pca, umap, etc.) for any spatial point supported by VoltRon, hence cells, spots and ROI are all visualized using the same set of functions. Here we generate a new metadata column that represents the **disease durations (control, acute and prolonged case)**, then map gene profiles to the first two principal components.
+
+```{r eval = FALSE, class.source="watch-out"}
+GeoMxR1_merged$Condition <- gsub(" [0-9]+$", "", GeoMxR1_merged$Sample)
+vrEmbeddingPlot(GeoMxR1, group.by = c("Condition"), embedding = "pca", pt.size = 3)
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_embeddingplotsingle.png" class="center">
 
 VoltRon provides additional dimensionality reduction techniques such as **UMAP**. 
 
@@ -234,24 +240,15 @@ VoltRon provides additional dimensionality reduction techniques such as **UMAP**
 GeoMxR1 <- getUMAP(GeoMxR1)
 ```
 
-The function **vrEmbeddingPlot** can be used to visualize embedding spaces (pca, umap, etc.) for any spatial point supported by VoltRon, hence cells, spots and ROI are all visualized using the same set of functions. Here we generate a new metadata column that represents the **disease durations (control, acute and prolonged case)**, then map gene profiles to the first two principal components.
-
-```{r eval = FALSE, class.source="watch-out"}
-Metadata(GeoMxR1)$Condition <- gsub(" [0-9]+$", "", Metadata(GeoMxR1)$Sample)
-vrEmbeddingPlot(GeoMxR1, group.by = c("Condition"), embedding = "pca", pt.size = 3)
-```
-
-<img width="70%" height="70%" src="images/roi_embeddingplotsingle.png" class="center">
-
 Gene expression profiles of ROIs associated with prolonged case sections seem to show some heterogeneity. We now color segments by section (or replicate, **Sample**) to observe the sources of variability. Three replicates of prolonged cases exhibit three different clusters of ROIs.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrEmbeddingPlot(GeoMxR1, group.by = c("Condition"), embedding = "pca", pt.size = 3)
-vrEmbeddingPlot(GeoMxR1, group.by = c("Sample"), embedding = "pca", pt.size = 3)
-vrEmbeddingPlot(GeoMxR1, group.by = c("Sample"), embedding = "umap", pt.size = 3)
+vrEmbeddingPlot(GeoMxR1, group.by = c("ROI.type"), embedding = "pca", pt.size = 3)
+vrEmbeddingPlot(GeoMxR1, group.by = c("ROI.type"), embedding = "umap", pt.size = 3)
 ```
 
-<img width="100%" height="100%" src="images/roi_embeddingplot.png" class="center">
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_embeddingplot.png" class="center">
 
 ### Differential Expression Analysis
 
@@ -285,7 +282,7 @@ vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene),
               group.by = "Condition", highlight.some = TRUE)
 ```
 
-<img width="90%" height="90%" src="images/roi_heatmap.png" class="center">
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap.png" class="center">
 
 <br>
 
@@ -297,4 +294,4 @@ vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene),
               group.by = "Sample", highlight.some = TRUE)
 ```
 
-<img width="90%" height="90%" src="images/roi_heatmap2.png" class="center">
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap2.png" class="center">
