@@ -240,7 +240,9 @@ getPCA.VoltRon <- function(object, assay = NULL, dims = 30, seed = 1){
   rownames(pr.data) <- colnames(normdata)
 
   # update feature matrix
-  feature_data <- data.frame(vrFeatureData(object), features = vrFeatures(object))
+  feature_data <- vrFeatureData(object)
+  feature_data <- feature_data[, !grepl("PC[0-9]+", colnames(feature_data))]
+  feature_data <- data.frame(feature_data, features = vrFeatures(object))
   feature_data <- feature_data %>% left_join(loading_matrix)
   vrFeatureData(object) <- data.frame(feature_data[,colnames(feature_data)[!colnames(feature_data) %in% "features"]],
                                       row.names = feature_data$features)
