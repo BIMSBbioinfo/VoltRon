@@ -111,7 +111,7 @@ Once the GeoMx data is imported, we can start off with examining key quality con
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(ggplot2)
-vrBarPlot(GeoMxR1_lessfeatures, 
+vrBarPlot(GeoMxR1, 
           features = c("Count", "Nuclei.count", "Sequencing.saturation"),
           x.label = "ROI.name", group.by = "ROI.type") + 
   theme(axis.text.x = element_text(size = 3))
@@ -320,7 +320,7 @@ g1 | g2
 
 <img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_deconvolution_singlecell.png" class="center">
 
-We utilize **getDeconvolution** function to call wrapper functions for deconvolution algorithms. For all layers with GoeMx assays, an additional assay within the same layer with **_decon** postfix will be created. 
+We utilize the **getDeconvolution** function to call wrapper functions for deconvolution algorithms. For all layers with GoeMx assays, an additional assay within the same layer with **\_decon** postfix will be created. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 GeoMxR1_decon <- getDeconvolution(GeoMxR1,
