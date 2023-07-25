@@ -47,7 +47,7 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
   if(!is.numeric(desiredQuantile)){
     stop("desiredQuantile should be numeric")
   } else {
-    if(findInterval(desiredQuantile, c(0,1)) == 1L){
+    if(!findInterval(desiredQuantile, c(0,1)) == 1L){
       stop("desiredQuantile should be between [0,1]")
     }
   }

@@ -4,15 +4,7 @@
 \alias{vrProportionPlot}
 \title{vrPercentagePlot}
 \usage{
-vrProportionPlot(
-  object,
-  assay = NULL,
-  x.label = NULL,
-  group.by = "Sample",
-  ncol = 2,
-  nrow = NULL,
-  ...
-)
+vrProportionPlot(object, assay = NULL, x.label = NULL, ...)
 }
 \arguments{
 \item{object}{A VoltRon object}
@@ -20,12 +12,6 @@ vrProportionPlot(
 \item{assay}{assay name}
 
 \item{x.label}{labels of the x axis}
-
-\item{group.by}{a column from metadata to seperate columns of the heatmap}
-
-\item{ncol}{column wise number of plots, for \code{ggarrange}}
-
-\item{nrow}{row wise number of plots, for \code{ggarrange}}
 
 \item{...}{additional parameters passed to \code{getVariableFeatures}}
 }
