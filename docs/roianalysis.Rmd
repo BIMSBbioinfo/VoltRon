@@ -308,6 +308,8 @@ VoltRon supports multiple bulk RNA deconvolution algorithms to analyze the cellu
 
 ```{r eval = FALSE, class.source="watch-out"}
 set.seed(1)
+library(Seurat)
+library(SingleCellExperiment)
 seu <- readRDS("GSE198864_lung_combined_all.rds")
 scRNAlung <- seu[,sample(1:ncol(seu), 10000, replace = FALSE)]
 
@@ -322,7 +324,7 @@ We utilize **getDeconvolution** function to call wrapper functions for deconvolu
 
 ```{r eval = FALSE, class.source="watch-out"}
 GeoMxR1_decon <- getDeconvolution(GeoMxR1,
-                            sc.object = sce, sc.assay = "RNA", 
+                            sc.object = scRNAlung, sc.assay = "RNA", 
                             sc.cluster = "cluster", sc.samples = "orig.ident")
 GeoMxR1_decon
 ```

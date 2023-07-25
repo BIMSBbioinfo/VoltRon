@@ -748,6 +748,8 @@ href="https://ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE198864">GSE198864</a>).
 Please download and unzip
 <strong>GSE198864_lung_combined_all.rds.gz</strong>.</p>
 <pre class="r watch-out"><code>set.seed(1)
+library(Seurat)
+library(SingleCellExperiment)
 seu &lt;- readRDS(&quot;GSE198864_lung_combined_all.rds&quot;)
 scRNAlung &lt;- seu[,sample(1:ncol(seu), 10000, replace = FALSE)]
 
@@ -760,7 +762,7 @@ functions for deconvolution algorithms. For all layers with GoeMx
 assays, an additional assay within the same layer with **_decon**
 postfix will be created.</p>
 <pre class="r watch-out"><code>GeoMxR1_decon &lt;- getDeconvolution(GeoMxR1,
-                            sc.object = sce, sc.assay = &quot;RNA&quot;, 
+                            sc.object = scRNAlung, sc.assay = &quot;RNA&quot;, 
                             sc.cluster = &quot;cluster&quot;, sc.samples = &quot;orig.ident&quot;)
 GeoMxR1_decon</code></pre>
 <pre><code>              Assay    Layer           Sample
