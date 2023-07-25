@@ -22,11 +22,15 @@ getDiffExp <- function(object, assay = NULL, group.by, group.base = NULL, covari
   metadata <- Metadata(object, assay = assay)
 
   # check groups
-  if(!is.null(group.base)){
-    if(!group.base %in% unique(metadata[[group.by]]))
-      stop("Please specify a group that is included in the group.by column of metadata to define the base group!")
-  } else{
-    group.base <- levels(factor(metadata[[group.by]]))[1]
+  if(group.by %in% colnames(metadata)){
+    if(!is.null(group.base)){
+      if(!group.base %in% unique(metadata[[group.by]]))
+        stop("Please specify a group that is included in the group.by column of metadata to define the base group!")
+    } else{
+      group.base <- levels(factor(metadata[[group.by]]))[1]
+    }
+  } else {
+    stop("Column ", group.by, " cannot be found in metadata!")
   }
 
   # select a method
@@ -69,15 +73,19 @@ getDiffExpDESeq2 <- function(data, metadata, group.by, group.base = NULL, covari
     colnames(colData) <- c(group.by, covariates)
     deseq2.formula <- stats::as.formula(paste0("~", group.by))
   } else {
-    design.data <- metadata[,c(group.by, covariates)]
-    uniq_groups <- unique(design.data[[group.by]])
-    if(is.null(group.base))
-      uniq_groups <- c(group.base, uniq_groups[!uniq_groups %in% group.base])
-    group.by.data <- factor(design.data[[group.by]], levels = uniq_groups)
-    design.data[[group.by]] <- group.by.data
-    colData <- S4Vectors::DataFrame(design.data)
-    colnames(colData) <- c(group.by, covariates)
-    deseq2.formula <- stats::as.formula(paste0("~", group.by, " + ", paste(covariates, collapse = " + ")))
+    if(all(covariates %in% colnames(metadata))){
+      design.data <- metadata[,c(group.by, covariates)]
+      uniq_groups <- unique(design.data[[group.by]])
+      if(is.null(group.base))
+        uniq_groups <- c(group.base, uniq_groups[!uniq_groups %in% group.base])
+      group.by.data <- factor(design.data[[group.by]], levels = uniq_groups)
+      design.data[[group.by]] <- group.by.data
+      colData <- S4Vectors::DataFrame(design.data)
+      colnames(colData) <- c(group.by, covariates)
+      deseq2.formula <- stats::as.formula(paste0("~", group.by, " + ", paste(covariates, collapse = " + ")))
+    } else {
+      stop("Columns ", paste(covariates, collapse = ", "), " cannot be found in metadata!")
+    }
   }
 
   # run DESeq2

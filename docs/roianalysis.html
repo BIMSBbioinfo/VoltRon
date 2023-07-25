@@ -426,7 +426,6 @@ body {
 table, th, td {
   border-collapse: collapse;
   align-self: center;
-  <!-- padding: 2px; -->
   padding-right: 10px;
   padding-left: 10px;
 }
@@ -437,8 +436,8 @@ table, th, td {
 }
 </style>
 <p><br></p>
-<div id="roi-analysis" class="section level2">
-<h2>ROI Analysis</h2>
+<div id="roi-analysis" class="section level1">
+<h1>ROI Analysis</h1>
 <p>VoltRon is capable of analyzing readouts from distinct spatial
 technologies including <strong>segmentation (ROI)-based transciptomics
 assays</strong> that capture large polygonic regions on tissue sections.
@@ -545,15 +544,21 @@ GeoMxR1 &lt;- importGeoMx(dcc.path = &quot;DCC-20230427/&quot;,
                        image = &quot;Lu1A1B5umtrueexp.tif&quot;,
                        ome.tiff = &quot;Lu1A1B5umtrueexp.ome.tiff&quot;,
                        sample_name = &quot;GeoMxR1&quot;)</code></pre>
+<p>If you are getting a <strong>java error</strong> when running
+importGeoMx(), try increasing the maximum heap size by supplying the
+-Xmx parameter. Run the code below before rerunning <strong>importGeoMx
+function above</strong>.</p>
+<pre class="r watch-out"><code>options(java.parameters = &quot;-Xmx4g&quot;)
+library(RBioFormats)</code></pre>
 <p><br></p>
-<div id="quality-control" class="section level3">
-<h3>Quality Control</h3>
+<div id="quality-control" class="section level2">
+<h2>Quality Control</h2>
 <p>Once the GeoMx data is imported, we can start off with examining key
 quality control measures and statistics on each segment to investigate
 each individual ROI such as sequencing saturation and the number of
 cells (nuclei) within each segment. VoltRon also provides the total
 number of unique transcripts per ROI and stores in the metadata.</p>
-<pre class="r watch-out"><code># visualize values
+<pre class="r watch-out"><code>library(ggplot2)
 vrBarPlot(GeoMxR1_lessfeatures, 
           features = c(&quot;Count&quot;, &quot;Nuclei.count&quot;, &quot;Sequencing.saturation&quot;),
           x.label = &quot;ROI.name&quot;, group.by = &quot;ROI.type&quot;) + 
@@ -563,10 +568,7 @@ vrBarPlot(GeoMxR1_lessfeatures,
 metadata column, called <strong>CountPerNuclei</strong>, to check the
 average quality of cells per ROI. It seems some number of ROIs with low
 counts per nuclei also have low sequencing saturation.</p>
-<pre class="r watch-out"><code># creating new metadata fields
-GeoMxR1$CountPerNuclei &lt;- GeoMxR1$Count/GeoMxR1$Nuclei.count
-
-# visualize values again
+<pre class="r watch-out"><code>GeoMxR1$CountPerNuclei &lt;- GeoMxR1$Count/GeoMxR1$Nuclei.count
 vrBarPlot(GeoMxR1, 
           features = c(&quot;Count&quot;, &quot;Nuclei.count&quot;, 
                        &quot;Sequencing.saturation&quot;, &quot;CountPerNuclei&quot;),
@@ -575,8 +577,8 @@ vrBarPlot(GeoMxR1,
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_barplot2.png" class="center"></p>
 <p><br></p>
 </div>
-<div id="processing" class="section level3">
-<h3>Processing</h3>
+<div id="processing" class="section level2">
+<h2>Processing</h2>
 <p>We can now filter ROIs based on our earlier observation of them
 having low count per nuclei where some also have low sequencing
 saturation.</p>
@@ -599,8 +601,8 @@ multipled to the scaled profile.</p>
 <pre class="r watch-out"><code>GeoMxR1 &lt;- normalizeData(GeoMxR1, method = &quot;Q3Norm&quot;)</code></pre>
 <p><br></p>
 </div>
-<div id="interactive-subsetting" class="section level3">
-<h3>Interactive Subsetting</h3>
+<div id="interactive-subsetting" class="section level2">
+<h2>Interactive Subsetting</h2>
 <p>Spatially informed genomic technologies heavily depend on image
 manipulation as images provide an additional set of information. Hence,
 VoltRon incorporates several interactive built-in utilities. One such
@@ -642,8 +644,8 @@ for(i in 1:length(subset_info_list)){
 GeoMxR1 &lt;- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1])</code></pre>
 <p><br></p>
 </div>
-<div id="visualization" class="section level3">
-<h3>Visualization</h3>
+<div id="visualization" class="section level2">
+<h2>Visualization</h2>
 <p>We will now select sections of interests from the VoltRon object, and
 visualize features for each of them. The function
 <strong>vrSpatialFeaturePlot</strong> detects the number of assays
@@ -656,8 +658,8 @@ vrSpatialFeaturePlot(GeoMxR1_subset, features = c(&quot;CXCL11&quot;, &quot;COL1
 <p><img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_featureplot.png" class="center"></p>
 <p><br></p>
 </div>
-<div id="dimensionality-reduction" class="section level3">
-<h3>Dimensionality Reduction</h3>
+<div id="dimensionality-reduction" class="section level2">
+<h2>Dimensionality Reduction</h2>
 <p>We can now process the normalized and demultiplexed samples to map
 ROIs across all sections onto lower dimensional spaces. The functions
 <strong>getFeatures</strong> and <strong>getPCA</strong> select features
@@ -688,8 +690,8 @@ vrEmbeddingPlot(GeoMxR1, group.by = c(&quot;ROI.type&quot;), embedding = &quot;p
 vrEmbeddingPlot(GeoMxR1, group.by = c(&quot;ROI.type&quot;), embedding = &quot;umap&quot;, pt.size = 3)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_embeddingplot.png" class="center"></p>
 </div>
-<div id="differential-expression-analysis" class="section level3">
-<h3>Differential Expression Analysis</h3>
+<div id="differential-expression-analysis" class="section level2">
+<h2>Differential Expression Analysis</h2>
 <p>VoltRon provides wrapping functions for calling tools and methods
 from popular differential expression analysis package such as <a
 href="https://genomebiology.biomedcentral.com/articles/10.1186/s13059-014-0550-8">DESeq2</a>.
@@ -704,7 +706,7 @@ DEresults &lt;- getDiffExp(GeoMxR1, group.by = &quot;Condition&quot;,
 DEresults_sig &lt;- DEresults %&gt;% filter(!is.na(padj)) %&gt;% 
   filter(padj &lt; 0.05, abs(log2FoldChange) &gt; 1)
 head(DEresults_sig)</code></pre>
-</div>
+<div>
 <pre><code style="font-size: 10.6px;">        baseMean log2FoldChange     lfcSE     stat       pvalue         padj   gene                               comparison
 COL1A1  48.19791       2.612843 0.3928580 6.650859 2.913866e-11 1.502553e-08 COL1A1 Condition_prolonged.case_vs_control.case
 COL1A2 101.50889       2.201342 0.3985002 5.524068 3.312388e-08 6.506870e-06 COL1A2 Condition_prolonged.case_vs_control.case
@@ -730,6 +732,59 @@ is shown on the Heatmap.</p>
 vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene), 
               group.by = &quot;Sample&quot;, highlight.some = TRUE)</code></pre>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap2.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="roi-deconvolution" class="section level2">
+<h2>ROI Deconvolution</h2>
+<p>VoltRon supports multiple bulk RNA deconvolution algorithms to
+analyze the cellular composition of both ROIs and spots. In order to
+integrate the scRNA data and the GeoMx data sets within the VoltRon
+objects, we will use the <a
+href="https://xuranw.github.io/MuSiC/articles/MuSiC.html">MuSiC</a>
+package. We will use a human lung scRNA dataset as reference, which is
+found here (<a
+href="https://ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE198864">GSE198864</a>).
+Please download and unzip
+<strong>GSE198864_lung_combined_all.rds.gz</strong>.</p>
+<pre class="r watch-out"><code>set.seed(1)
+seu &lt;- readRDS(&quot;GSE198864_lung_combined_all.rds&quot;)
+scRNAlung &lt;- seu[,sample(1:ncol(seu), 10000, replace = FALSE)]
+
+g1 &lt;- DimPlot(scRNAlung, reduction = &quot;umap&quot;, label = T, group.by = &quot;cluster&quot;) + NoLegend()
+g2 &lt;- DimPlot(scRNAlung, reduction = &quot;umap&quot;, label = T, group.by = &quot;predicted.id&quot;) + NoLegend()
+g1 | g2</code></pre>
+<p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_deconvolution_singlecell.png" class="center"></p>
+<p>We utilize <strong>getDeconvolution</strong> function to call wrapper
+functions for deconvolution algorithms. For all layers with GoeMx
+assays, an additional assay within the same layer with **_decon**
+postfix will be created.</p>
+<pre class="r watch-out"><code>GeoMxR1_decon &lt;- getDeconvolution(GeoMxR1,
+                            sc.object = sce, sc.assay = &quot;RNA&quot;, 
+                            sc.cluster = &quot;cluster&quot;, sc.samples = &quot;orig.ident&quot;)
+GeoMxR1_decon</code></pre>
+<pre><code>              Assay    Layer           Sample
+Assay1        GeoMx Section1 prolonged case 4
+Assay2        GeoMx Section1     acute case 3
+Assay3        GeoMx Section1   control case 2
+Assay4        GeoMx Section1     acute case 1
+Assay5        GeoMx Section1     acute case 2
+Assay6        GeoMx Section1 prolonged case 5
+Assay7        GeoMx Section1 prolonged case 3
+Assay8        GeoMx Section1   control case 1
+Assay9  GeoMx_decon Section1 prolonged case 4
+Assay10 GeoMx_decon Section1     acute case 3
+Assay11 GeoMx_decon Section1   control case 2
+Assay12 GeoMx_decon Section1     acute case 1
+Assay13 GeoMx_decon Section1     acute case 2
+Assay14 GeoMx_decon Section1 prolonged case 5
+Assay15 GeoMx_decon Section1 prolonged case 3
+Assay16 GeoMx_decon Section1   control case 1</code></pre>
+<p>We can now visualize cell type compositions of each ROI. Before
+running <strong>vrProportionPlot</strong> function, we need to set the
+main assay as <strong>GeoMx_decon</strong>.</p>
+<pre class="r watch-out"><code>vrMainAssay(GeoMxR1_decon) &lt;- &quot;GeoMx_decon&quot;
+vrProportionPlot(GeoMxR1_decon)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_deconvolution.png" class="center"></p>
 </div>
 </div>
 

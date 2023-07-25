@@ -93,8 +93,18 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
   if(!is.null(features)){
 
     # select features
-    object@rawdata <- object@rawdata[rownames(object@rawdata) %in% features,]
-    object@normdata <- object@normdata[rownames(object@normdata) %in% features,]
+    nonmatching_features <- setdiff(features, vrFeatures(object))
+    features <- intersect(vrFeatures(object), features)
+
+    if(length(features) > 0){
+      object@rawdata <- object@rawdata[rownames(object@rawdata) %in% features,]
+      object@normdata <- object@normdata[rownames(object@normdata) %in% features,]
+    } else {
+      stop("none of the provided features are found in the assay")
+    }
+
+    if(length(nonmatching_features))
+      message("the following features are not found in the assay: ", paste(nonmatching_features, collapse = ", "))
 
   } else {
 
@@ -181,12 +191,16 @@ subsetCoordinates <- function(coords, image, crop_info){
   inside <- (coords[,1] > xlim[1] & coords[,1] < xlim[2]) & (coords[,2] > ylim[1] & coords[,2] < ylim[2])
   coords <- coords[inside,]
 
-  # adjust coordinates
-  coords[,1] <- coords[,1] - xlim[1]
-  coords[,2] <- coords[,2] - ylim[1]
+  if(nrow(coords) > 0){
+    # adjust coordinates
+    coords[,1] <- coords[,1] - xlim[1]
+    coords[,2] <- coords[,2] - ylim[1]
 
-  # return new coords
-  return(coords)
+    # return new coords
+    return(coords)
+  } else {
+    stop("No spatial points remain after cropping!")
+  }
 }
 
 #' subsetSegments
@@ -512,7 +526,6 @@ vrEmbeddings.vrAssay <- function(object, type = "pca", dims = 1:30) {
   } else{
     embedding <- object@embeddings[[type]]
     if(max(dims) > ncol(embedding)){
-      # message("Requested too many embedding dimensions! now ncol is", ncol(embedding))
       dims <- 1:ncol(embedding)
     }
     return(embedding[,dims])
