@@ -24,9 +24,13 @@
 
 ## Configuration
 
-Before installing VoltRon, you have to install [OpenCV](https://opencv.org/) library first. 
+Before installing VoltRon, you have to install [OpenCV](https://opencv.org/) library first. To install on **MacOS**, you need to first install the [homebrew](https://brew.sh/): 
 
-To install on **MacOS**, you need to install the OpenCV library from homebrew:
+```sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+Then, OpenCV is installed using homebrew.
 
 ```sh
 brew install opencv
