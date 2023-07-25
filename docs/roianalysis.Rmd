@@ -301,12 +301,11 @@ vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene),
 
 ## ROI Deconvolution
 
-In order to integrate the scRNA data and the GeoMx data sets within the VoltRon objects, we will use the [MuSiC](https://xuranw.github.io/MuSiC/articles/MuSiC.html) package. 
+In order to integrate the scRNA data and the GeoMx data sets within the VoltRon objects, we will use the [MuSiC](https://xuranw.github.io/MuSiC/articles/MuSiC.html) package. We will use a human lung scRNA dataset as reference, which is found here ([GSE198864](https://ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE198864)). Please download and unzip **GSE198864_lung_combined_all.rds.gz**. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-## Seurat Object
 set.seed(1)
-seu <- readRDS("../data/AnjaLung2023/GSE198864_lung_combined_all.rds")
+seu <- readRDS("GSE198864_lung_combined_all.rds")
 scRNAlung <- seu[,sample(1:ncol(seu), 10000, replace = FALSE)]
 
 g1 <- DimPlot(scRNAlung, reduction = "umap", label = T, group.by = "cluster") + NoLegend()
