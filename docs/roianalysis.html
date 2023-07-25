@@ -558,7 +558,7 @@ vrBarPlot(GeoMxR1_lessfeatures,
           features = c(&quot;Count&quot;, &quot;Nuclei.count&quot;, &quot;Sequencing.saturation&quot;),
           x.label = &quot;ROI.name&quot;, group.by = &quot;ROI.type&quot;) + 
   theme(axis.text.x = element_text(size = 3))</code></pre>
-<p><img width="100%" height="100%" src="images/roi_barplot.png" class="center"></p>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_barplot.png" class="center"></p>
 <p>For measuring the quality of individual ROIs, we can add a new
 metadata column, called <strong>CountPerNuclei</strong>, to check the
 average quality of cells per ROI. It seems some number of ROIs with low
@@ -572,7 +572,7 @@ vrBarPlot(GeoMxR1,
                        &quot;Sequencing.saturation&quot;, &quot;CountPerNuclei&quot;),
           x.label = &quot;ROI.name&quot;, group.by = &quot;ROI.type&quot;, ncol = 3) + 
   theme(axis.text.x = element_text(size = 5))</code></pre>
-<p><img width="100%" height="100%" src="images/roi_barplot2.png" class="center"></p>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_barplot2.png" class="center"></p>
 <p><br></p>
 </div>
 <div id="processing" class="section level3">
@@ -626,7 +626,7 @@ samples &lt;- c(&quot;prolonged case 4&quot;, &quot;acute case 3&quot;, &quot;co
              &quot;acute case 1&quot;, &quot;acute case 2&quot;, &quot;prolonged case 5&quot;, 
              &quot;prolonged case 3&quot;, &quot;control case 1&quot;)
 GeoMxR1 &lt;- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1], samples = samples)</code></pre>
-<p><img width="85%" height="85%" src="images/interactivesubset.gif" class="center"></p>
+<p><img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactivesubset.gif" class="center"></p>
 <p><br></p>
 <p>You may also save the selected image subsets and reproduce the
 interactive subsetting operation for later use.</p>
@@ -653,7 +653,7 @@ the number of features are larger than 1.</p>
 <pre class="r watch-out"><code>GeoMxR1_subset &lt;- subset(GeoMxR1, sample = c(&quot;prolonged case 4&quot;,&quot;acute case 3&quot;))
 vrSpatialFeaturePlot(GeoMxR1_subset, features = c(&quot;CXCL11&quot;, &quot;COL1A1&quot;), group.by = &quot;ROI.name&quot;, 
                      label = TRUE, keep.scale = &quot;all&quot;, title.size = 15)</code></pre>
-<p><img width="85%" height="85%" src="images/roi_featureplot.png" class="center"></p>
+<p><img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_featureplot.png" class="center"></p>
 <p><br></p>
 </div>
 <div id="dimensionality-reduction" class="section level3">
@@ -672,9 +672,9 @@ using the same set of functions. Here we generate a new metadata column
 that represents the <strong>disease durations (control, acute and
 prolonged case)</strong>, then map gene profiles to the first two
 principal components.</p>
-<pre class="r watch-out"><code>Metadata(GeoMxR1)$Condition &lt;- gsub(&quot; [0-9]+$&quot;, &quot;&quot;, Metadata(GeoMxR1)$Sample)
+<pre class="r watch-out"><code>GeoMxR1_merged$Condition &lt;- gsub(&quot; [0-9]+$&quot;, &quot;&quot;, GeoMxR1_merged$Sample)
 vrEmbeddingPlot(GeoMxR1, group.by = c(&quot;Condition&quot;), embedding = &quot;pca&quot;, pt.size = 3)</code></pre>
-<p><img width="70%" height="70%" src="images/roi_embeddingplotsingle.png" class="center"></p>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_embeddingplotsingle.png" class="center"></p>
 <p>VoltRon provides additional dimensionality reduction techniques such
 as <strong>UMAP</strong>.</p>
 <pre class="r watch-out"><code>GeoMxR1 &lt;- getUMAP(GeoMxR1)</code></pre>
@@ -684,9 +684,9 @@ section (or replicate, <strong>Sample</strong>) to observe the sources
 of variability. Three replicates of prolonged cases exhibit three
 different clusters of ROIs.</p>
 <pre class="r watch-out"><code>vrEmbeddingPlot(GeoMxR1, group.by = c(&quot;Condition&quot;), embedding = &quot;pca&quot;, pt.size = 3)
-vrEmbeddingPlot(GeoMxR1, group.by = c(&quot;Sample&quot;), embedding = &quot;pca&quot;, pt.size = 3)
-vrEmbeddingPlot(GeoMxR1, group.by = c(&quot;Sample&quot;), embedding = &quot;umap&quot;, pt.size = 3)</code></pre>
-<p><img width="100%" height="100%" src="images/roi_embeddingplot.png" class="center"></p>
+vrEmbeddingPlot(GeoMxR1, group.by = c(&quot;ROI.type&quot;), embedding = &quot;pca&quot;, pt.size = 3)
+vrEmbeddingPlot(GeoMxR1, group.by = c(&quot;ROI.type&quot;), embedding = &quot;umap&quot;, pt.size = 3)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_embeddingplot.png" class="center"></p>
 </div>
 <div id="differential-expression-analysis" class="section level3">
 <h3>Differential Expression Analysis</h3>
@@ -722,14 +722,14 @@ prolonged case segments are highlighted by different set of markers.</p>
 <pre class="r watch-out"><code># get DE for all conditions
 vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene), 
               group.by = &quot;Condition&quot;, highlight.some = TRUE)</code></pre>
-<p><img width="90%" height="90%" src="images/roi_heatmap.png" class="center"></p>
+<p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap.png" class="center"></p>
 <p><br></p>
 <p>Markers of each individual tissue section for each disease duration
 is shown on the Heatmap.</p>
 <pre class="r watch-out"><code># get DE for all conditions
 vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene), 
               group.by = &quot;Sample&quot;, highlight.some = TRUE)</code></pre>
-<p><img width="90%" height="90%" src="images/roi_heatmap2.png" class="center"></p>
+<p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap2.png" class="center"></p>
 </div>
 </div>
 

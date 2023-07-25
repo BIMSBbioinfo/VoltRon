@@ -110,7 +110,7 @@ vrBarPlot(GeoMxR1_lessfeatures,
   theme(axis.text.x = element_text(size = 3))
 ```
 
-<img width="100%" height="100%" src="images/roi_barplot.png" class="center">
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_barplot.png" class="center">
 
 For measuring the quality of individual ROIs, we can add a new metadata column, called **CountPerNuclei**, to check the average quality of cells per ROI. It seems some number of ROIs with low counts per nuclei also have low sequencing saturation. 
 
@@ -126,7 +126,7 @@ vrBarPlot(GeoMxR1,
   theme(axis.text.x = element_text(size = 5))
 ```
 
-<img width="100%" height="100%" src="images/roi_barplot2.png" class="center">
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_barplot2.png" class="center">
 
 <br>
 
@@ -181,7 +181,7 @@ samples <- c("prolonged case 4", "acute case 3", "control case 2",
 GeoMxR1 <- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1], samples = samples)
 ```
 
-<img width="85%" height="85%" src="images/interactivesubset.gif" class="center">
+<img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactivesubset.gif" class="center">
 
 <br>
 
@@ -212,7 +212,7 @@ vrSpatialFeaturePlot(GeoMxR1_subset, features = c("CXCL11", "COL1A1"), group.by 
                      label = TRUE, keep.scale = "all", title.size = 15)
 ```
 
-<img width="85%" height="85%" src="images/roi_featureplot.png" class="center">
+<img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_featureplot.png" class="center">
 
 <br>
 
@@ -228,11 +228,11 @@ GeoMxR1 <- getPCA(GeoMxR1, dims = 30)
 The function **vrEmbeddingPlot** can be used to visualize embedding spaces (pca, umap, etc.) for any spatial point supported by VoltRon, hence cells, spots and ROI are all visualized using the same set of functions. Here we generate a new metadata column that represents the **disease durations (control, acute and prolonged case)**, then map gene profiles to the first two principal components.
 
 ```{r eval = FALSE, class.source="watch-out"}
-Metadata(GeoMxR1)$Condition <- gsub(" [0-9]+$", "", Metadata(GeoMxR1)$Sample)
+GeoMxR1_merged$Condition <- gsub(" [0-9]+$", "", GeoMxR1_merged$Sample)
 vrEmbeddingPlot(GeoMxR1, group.by = c("Condition"), embedding = "pca", pt.size = 3)
 ```
 
-<img width="70%" height="70%" src="images/roi_embeddingplotsingle.png" class="center">
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_embeddingplotsingle.png" class="center">
 
 VoltRon provides additional dimensionality reduction techniques such as **UMAP**. 
 
@@ -244,11 +244,11 @@ Gene expression profiles of ROIs associated with prolonged case sections seem to
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrEmbeddingPlot(GeoMxR1, group.by = c("Condition"), embedding = "pca", pt.size = 3)
-vrEmbeddingPlot(GeoMxR1, group.by = c("Sample"), embedding = "pca", pt.size = 3)
-vrEmbeddingPlot(GeoMxR1, group.by = c("Sample"), embedding = "umap", pt.size = 3)
+vrEmbeddingPlot(GeoMxR1, group.by = c("ROI.type"), embedding = "pca", pt.size = 3)
+vrEmbeddingPlot(GeoMxR1, group.by = c("ROI.type"), embedding = "umap", pt.size = 3)
 ```
 
-<img width="100%" height="100%" src="images/roi_embeddingplot.png" class="center">
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_embeddingplot.png" class="center">
 
 ### Differential Expression Analysis
 
@@ -282,7 +282,7 @@ vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene),
               group.by = "Condition", highlight.some = TRUE)
 ```
 
-<img width="90%" height="90%" src="images/roi_heatmap.png" class="center">
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap.png" class="center">
 
 <br>
 
@@ -294,4 +294,4 @@ vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene),
               group.by = "Sample", highlight.some = TRUE)
 ```
 
-<img width="90%" height="90%" src="images/roi_heatmap2.png" class="center">
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap2.png" class="center">
