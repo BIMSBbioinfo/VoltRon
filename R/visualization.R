@@ -1157,9 +1157,6 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 #' @param object A VoltRon object
 #' @param assay assay name
 #' @param x.label labels of the x axis
-#' @param group.by a column from metadata to seperate columns of the heatmap
-#' @param ncol column wise number of plots, for \code{ggarrange}
-#' @param nrow row wise number of plots, for \code{ggarrange}
 #' @param ... additional parameters passed to \code{getVariableFeatures}
 #'
 #' @import ggplot2
@@ -1167,7 +1164,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 #'
 #' @export
 #'
-vrProportionPlot <- function(object, assay = NULL, x.label = NULL, group.by = "Sample", ncol = 2, nrow = NULL, ...){
+vrProportionPlot <- function(object, assay = NULL, x.label = NULL, ...){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -1203,20 +1200,15 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL, group.by = "S
 
   ggplotdatax <- data.frame(t(barplotdata),
                             x.label =  x.label,
-                            group.by =  factor(metadata[[group.by]]),
                             assay_title = assay_title,
                             spatialpoints = rownames(metadata))
-  ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "group.by", "spatialpoints"))
+  ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "spatialpoints"))
   ggplotdatax <- ggplotdatax[ggplotdatax$value > 0,]
   gg <- ggplot(ggplotdatax, aes(x = x.label, y = value, fill = variable)) +
     geom_bar(stat = "identity") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
-    ylab("") + xlab(x.label) +
-    guides(fill = guide_legend(title = group.by))
+    ylab("") + xlab("") +
+    guides(fill = guide_legend(title = ""))
 
-  if(length(group.by) > 1){
-    if(length(group.by) < ncol) ncol <- length(gg)
-    gg <- gg + facet_wrap(.~group.by, ncol = ncol, nrow = ceiling(length(group.by)/ncol), scales = "free_x")
-  }
   return(gg)
 }

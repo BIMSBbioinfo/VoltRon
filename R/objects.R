@@ -881,7 +881,7 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
     if(type == "all")
       return(object@metadata)
   }
-  if(type %in% slotNames(GeoMxR1@metadata)){
+  if(type %in% slotNames(object@metadata)){
     return(slot(object@metadata, name = type))
   } else {
     stop("Please provide one of three assay types: 'ROI', 'cell', 'spot'.")
