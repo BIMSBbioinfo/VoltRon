@@ -1,4 +1,4 @@
-![](docs/images/main_small.png)
+![](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/main_small.png)
 
 <br>
 
