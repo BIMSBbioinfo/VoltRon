@@ -169,7 +169,7 @@ Spatially informed genomic technologies heavily depend on image manipulation as 
 GeoMxR1 <- resizeImage(GeoMxR1, size = 4000)
 ```
 
-VoltRon provides **a mini Shiny app** for subsetting spatial points of a VoltRon object by using the image as a reference. This app is particularly useful when multiple tissue sections were fitted to a scan area of a slide, such as the one from GeoMx DSP instrument. We use **interactive = TRUE** option in the subset function to call the mini Shiny app, and select bounding boxes of each newly created subset. 
+VoltRon provides **a mini Shiny app** for subsetting spatial points of a VoltRon object by using the image as a reference. This app is particularly useful when multiple tissue sections were fitted to a scan area of a slide, such as the one from GeoMx DSP instrument. We use **interactive = TRUE** option in the subset function to call the mini Shiny app, and select bounding boxes of each newly created subset. **Please continue until all eight sections are selected and subsetted**. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 GeoMxR1_subset <- subset(GeoMxR1, interactive = TRUE)
