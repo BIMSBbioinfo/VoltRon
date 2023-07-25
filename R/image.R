@@ -198,8 +198,15 @@ resizeImage.VoltRon <- function(object, ...){
 #'
 resizeImage.vrAssay <- function(object, size){
 
+  # check size
+  if(!is.numeric(size))
+    stop("width size should be numeric")
+  if(!all.equal(size, as.integer(size)) & size > 0)
+    stop("width size should be a positive integer")
+  if(size < 100)
+    stop("width size cannot be less than 100px")
+
   # resize coordinates
-  # sizefactor <- image_info(object@image)$width
   sizefactor <- image_info(vrImages(object))$width
   object@coords <- (object@coords)*size/sizefactor
 
@@ -253,7 +260,7 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
     # read ome tiff file
     # options(java.parameters = "-Xmx4g") update 4g if more memory needed, see RBioFormats
     message("Loading morphology_mip.ome.tif \n")
-    morphology_image_lowres <- RBioFormats::read.image(paste0(dir.path, "/morphology_mip.ome.tif"), resolution = resolution_level)
+    morphology_image_lowres <- RBioFormats::read.image(paste0(dir.path, "/morphology_mip.ome.tif"), resolution = resolution_level, )
 
     # pick a resolution level
     image_info <- morphology_image_lowres@metadata$coreMetadata
@@ -533,6 +540,8 @@ demuxVoltRon <- function(object, scale_width = 800)
             subsets[[sample_names[i]]] <- temp
           }
           stopApp(list(subsets = subsets, subset_info_list = box_list))
+        } else {
+          showNotification("You have not selected a subset yet!")
         }
       })
     }

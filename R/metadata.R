@@ -170,7 +170,7 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
 }
 
 
-#' subset.sampleMetadata
+#' subset_sampleMetadata
 #'
 #' Subseting sample metadata
 #'
@@ -180,7 +180,7 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
 #'
 #' @export
 #'
-subset.sampleMetadata <- function(metadata, samples = NULL, assays = NULL) {
+subset_sampleMetadata <- function(metadata, samples = NULL, assays = NULL) {
 
   # subseting on samples, layers and assays
   if(!is.null(samples)){

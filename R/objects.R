@@ -595,7 +595,7 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
 #' @rdname subset
 #' @method subset VoltRon
 #'
-#' @importFrom rlang enquo eval_tidy quo_get_expr
+#' @importFrom rlang enquo eval_tidy quo_get_expr quo_text
 #' @importFrom stringr str_extract
 #' @importFrom igraph subgraph V
 #' @importFrom methods new
@@ -610,6 +610,12 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
   }
   if(!missing(subset)){
     metadata <- Metadata(object)
+    name <- strsplit(rlang::quo_text(subset), split = " ")[[1]][1]
+    if(name %in% colnames(metadata)){
+      spatialpoints <- rownames(metadata)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
+    } else {
+      stop("Column '", name, "' is not found in the metadata")
+    }
     spatialpoints <- rownames(metadata)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
     object <- subset(object, spatialpoints = spatialpoints)
     return(object)
@@ -623,14 +629,14 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 
   if(!is.null(samples)){
 
-    sample.metadata <- subset.sampleMetadata(SampleMetadata(object), samples = samples)
+    sample.metadata <- subset_sampleMetadata(SampleMetadata(object), samples = samples)
     metadata <- subset.vrMetadata(object@metadata, samples = samples) # CAN WE CHANGE THIS TO ONLY SUBSET LATER ????
     listofSamples <- object@samples[samples]
 
   # subsetting on assays name
   } else if(!is.null(assays)) {
 
-    sample.metadata <- subset.sampleMetadata(SampleMetadata(object), assays = assays)
+    sample.metadata <- subset_sampleMetadata(SampleMetadata(object), assays = assays)
     metadata <- subset.vrMetadata(object@metadata, assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
@@ -642,7 +648,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 
     metadata <- subset.vrMetadata(object@metadata, spatialpoints = spatialpoints)
     assays <- unique(stringr::str_extract(vrSpatialPoints(metadata), "Assay[0-9]+"))
-    sample.metadata <- subset.sampleMetadata(SampleMetadata(object), assays = assays)
+    sample.metadata <- subset_sampleMetadata(SampleMetadata(object), assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subset.vrSample(samp, spatialpoints = spatialpoints)
@@ -683,7 +689,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
         metadata <- subset.vrMetadata(object@metadata, spatialpoints = spatialpoints)
       }
     } else {
-      stop("Please provide a character based subsetting notation, see magick documentation")
+      stop("Please provide a character based subsetting notation, see magick::image_crop documentation")
     }
   } else if(interactive){
     results <- demuxVoltRon(object)
@@ -875,7 +881,11 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
     if(type == "all")
       return(object@metadata)
   }
-  return(slot(object@metadata, name = type))
+  if(type %in% slotNames(GeoMxR1@metadata)){
+    return(slot(object@metadata, name = type))
+  } else {
+    stop("Please provide one of three assay types: 'ROI', 'cell', 'spot'.")
+  }
 }
 
 #' @param type the assay type: ROI, spot or cell
@@ -1160,7 +1170,7 @@ vrSegments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
 
 #' @param assay assay
 #' @param dims the set of dimensions of the embedding data
-#' @param type the key name for the embedding
+#' @param type the key name for the embedding, i.e. "pca" or "umap"
 #'
 #' @rdname vrEmbeddings
 #' @method vrEmbeddings VoltRon

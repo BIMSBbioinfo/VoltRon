@@ -28,7 +28,7 @@ normalizeData.VoltRon <- function(object, assay = NULL, ...) {
 }
 
 #' @param assay assay
-#' @param method the normalization method
+#' @param method the normalization method: "LogNorm", "Q3Norm", "LogQ3Norm" or "CLR"
 #' @param desiredQuantile the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}
 #'
 #' @rdname normalizeData
@@ -41,8 +41,16 @@ normalizeData.VoltRon <- function(object, assay = NULL, ...) {
 normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9) {
 
   # size factor
-  rawdata <- object@rawdata
+  rawdata <- vrData(object)
   sizefactor <- colSums(rawdata)
+
+  if(!is.numeric(desiredQuantile)){
+    stop("desiredQuantile should be numeric")
+  } else {
+    if(findInterval(desiredQuantile, c(0,1)) == 1L){
+      stop("desiredQuantile should be between [0,1]")
+    }
+  }
 
   # normalization method
   if(method == "LogNorm"){
@@ -62,6 +70,8 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
     normdata <- apply(rawdata, 2, function(x) {
       log1p(x = x / (exp(x = sum(log1p(x = x[x > 0]), na.rm = TRUE) / length(x = x))))
     })
+  } else {
+    stop('Please select one of these methods: "LogNorm", "Q3Norm", "LogQ3Norm" or "CLR"')
   }
 
   # get normalized data

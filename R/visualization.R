@@ -264,6 +264,9 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = N
       range_feat_all <- c(do.call(min, range_feat), do.call(max, range_feat))
       range_feat <- Map(function(assy) return(range_feat_all), assay_names)
     }
+    if(!keep.scale %in% c("all", "feature")){
+      stop("keep.scale should be either 'all' or 'feature', check help(vrSpatialFeaturePlot)")
+    }
     return(range_feat)
   }, features)
 
@@ -441,7 +444,11 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.b
 
   # visualize labels
   if(label){
-    coords[[group.by]] <- metadata[,group.by]
+    if(group.by %in% colnames(metadata)){
+      coords[[group.by]] <- metadata[,group.by]
+    } else {
+      stop("Column ", group.by, " cannot be found in metadata!")
+    }
     g <- g + ggrepel::geom_label_repel(mapping = aes_string(x = "x", y = "y", label = group.by), coords,
                                 box.padding = 0.5, size = font.size, direction = "both", seed = 1)
   }
@@ -574,7 +581,11 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", assa
   datax <- data.frame(vrEmbeddings(object, assay = assay_names, type = embedding))
   datax <- datax[,1:2]
   colnames(datax) <- c("x", "y")
-  datax[[group.by]] <- as.factor(metadata[,group.by])
+  if(group.by %in% colnames(metadata)){
+    datax[[group.by]] <- as.factor(metadata[,group.by])
+  } else {
+    stop("Column ", group.by, " cannot be found in metadata!")
+  }
 
   # plot
   g <- ggplot()
@@ -872,6 +883,14 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
     } else {
       features <- vrFeatures(object, assay = assay)
     }
+  } else {
+    nonmatching_features <- setdiff(features, vrFeatures(object))
+    features <- intersect(vrFeatures(object), features)
+    if(length(features) == 0){
+      stop("None of the provided features are found in the assay")
+    }
+    if(length(nonmatching_features))
+      message("the following features are not found in the assay: ", paste(nonmatching_features, collapse = ", "))
   }
   heatmapdata <- heatmapdata[features, ]
 
@@ -896,10 +915,14 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
   }
 
   # manage data for plotting
-  heatmapdata <- heatmapdata[,order(metadata[[group.by]], decreasing = FALSE)]
-  labels_ordered <- metadata[[group.by]][order(metadata[[group.by]], decreasing = FALSE)]
-  labels_ordered_table <- table(labels_ordered)
-  col_split = factor(labels_ordered, levels = names(labels_ordered_table))
+  if(group.by %in% colnames(metadata)){
+    heatmapdata <- heatmapdata[,order(metadata[[group.by]], decreasing = FALSE)]
+    labels_ordered <- metadata[[group.by]][order(metadata[[group.by]], decreasing = FALSE)]
+    labels_ordered_table <- table(labels_ordered)
+    col_split = factor(labels_ordered, levels = names(labels_ordered_table))
+  } else {
+    stop("Column ", group.by, " cannot be found in metadata!")
+  }
 
   # update limits
   limits <- stats::quantile(as.vector(heatmapdata), probs = c(1-outlier.quantile, outlier.quantile))
@@ -1076,8 +1099,10 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
   datax <- lapply(features, function(x){
     if(x %in% rownames(barplotdata)){
       return(barplotdata[x,])
-    } else {
+    } else if(x %in% colnames(metadata)){
       return(metadata[,x])
+    } else{
+      stop("Feature ", x, " cannot be found in data or metadata!")
     }
   })
   datax <- as.data.frame(do.call(cbind, datax))
@@ -1087,15 +1112,26 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
   assays <- stringr::str_extract(rownames(metadata), "Assay[0-9]+$")
   assay_title <- apply(sample.metadata[assays,], 1, function(x) paste(x["Sample"], x["Layer"], x["Assay"], sep = "|"))
 
+  # labels and groups
   if(is.null(x.label)) {
     x.label <- factor(rownames(metadata))
   } else {
-    x.label <- factor(metadata[[x.label]])
+    if(x.label %in% colnames(metadata)){
+      x.label <- factor(metadata[[x.label]])
+    } else {
+      stop("Column ", x.label, " cannot be found in metadata!")
+    }
+  }
+  if(group.by %in% colnames(metadata)){
+    group.by.col <- factor(metadata[[group.by]])
+  } else {
+    stop("Column ", group.by, " cannot be found in metadata!")
   }
 
+  # plotting data
   ggplotdatax <- data.frame(datax,
                             x.label =  x.label,
-                            group.by =  factor(metadata[[group.by]]),
+                            group.by =  group.by.col,
                             assay_title = assay_title,
                             spatialpoints = rownames(metadata))
   ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "group.by", "spatialpoints"))

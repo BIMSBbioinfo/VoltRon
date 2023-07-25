@@ -192,9 +192,13 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
 #'
 import10Xh5 <- function(filename){
 
-  # get file
-  input.file <- hdf5r::H5File$new(filename = filename, mode = "r")
-  matrix.10X <- input.file[["matrix"]]
+  # check file
+  if(file.exists(filename)){
+    input.file <- hdf5r::H5File$new(filename = filename, mode = "r")
+    matrix.10X <- input.file[["matrix"]]
+  } else {
+    stop("There are no files named ", filename," in the path")
+  }
 
   # get data, barcodes and feature
   features <- hdf5r::readDataSet(matrix.10X[["features"]][["name"]])
@@ -252,17 +256,29 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
     stop("Please install Seurat package for using Seurat objects")
 
   # Get pkc file
-  pkcdata <- GeomxTools::readPKCFile(pkc.file)
+  if(file.exists(pkc.file)){
+    pkcdata <- GeomxTools::readPKCFile(pkc.file)
+  } else {
+    stop("pkc file is not found!")
+  }
 
   # Get dcc file
-  dcc_files <- dir(dcc.path, pattern = ".dcc$", full.names = TRUE)
-  dcc_files <- dcc_files[!grepl("A01.dcc$", dcc_files)]
-  dcc_filenames <- dir(dcc.path, pattern = ".dcc$", full.names = FALSE)
-  dcc_filenames <- dcc_filenames[!grepl("A01.dcc$", dcc_filenames)]
-  dcc_filenames <- gsub(".dcc$", "", dcc_filenames)
-  dcc_filenames <- gsub("-", "_", dcc_filenames)
-  dccData <- sapply(dcc_files, GeomxTools::readDccFile, simplify = FALSE, USE.NAMES = FALSE)
-  names(dccData) <- dcc_filenames
+  if(file.exists(dcc.path)){
+    dcc_files <- dir(dcc.path, pattern = ".dcc$", full.names = TRUE)
+    if(length(dcc_files) == 0){
+      stop("no dcc files are found under ", dcc.path)
+    } else {
+      dcc_files <- dcc_files[!grepl("A01.dcc$", dcc_files)]
+      dcc_filenames <- dir(dcc.path, pattern = ".dcc$", full.names = FALSE)
+      dcc_filenames <- dcc_filenames[!grepl("A01.dcc$", dcc_filenames)]
+      dcc_filenames <- gsub(".dcc$", "", dcc_filenames)
+      dcc_filenames <- gsub("-", "_", dcc_filenames)
+      dccData <- sapply(dcc_files, GeomxTools::readDccFile, simplify = FALSE, USE.NAMES = FALSE)
+      names(dccData) <- dcc_filenames
+    }
+  } else {
+    stop("path to dcc files does not exist!")
+  }
 
   # merge dcc files
   rawdata <- NULL
@@ -286,30 +302,38 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
   rawdata <- as.matrix(rawdata)
 
   # get segment summary
-  if(grepl(".xls$|.xlsx$", summarySegment)){
-    if (!requireNamespace('xlsx'))
-      stop("Please install xlsx package for using read.xlsx function!")
-    if(!is.null(summarySegmentSheetName)){
-      segmentsummary <- xlsx::read.xlsx(summarySegment, sheetName = summarySegmentSheetName)
-    } else {
-      stop("Please provide 'summarySegmentSheetName' for the excel sheet name!")
+  if(file.exists(summarySegment)){
+    if(grepl(".xls$|.xlsx$", summarySegment)){
+      if (!requireNamespace('xlsx'))
+        stop("Please install xlsx package for using read.xlsx function!")
+      if(!is.null(summarySegmentSheetName)){
+        segmentsummary <- xlsx::read.xlsx(summarySegment, sheetName = summarySegmentSheetName)
+      } else {
+        stop("Please provide 'summarySegmentSheetName' for the excel sheet name!")
+      }
+    } else if(grepl(".csv$", summarySegment)) {
+      segmentsummary <- utils::read.csv(summarySegment)
     }
-  } else if(grepl(".csv$", summarySegment)) {
-    segmentsummary <- utils::read.csv(summarySegment)
-  }
-  rownames(segmentsummary) <- gsub(".dcc$", "", segmentsummary$Sample_ID)
-  rownames(segmentsummary) <- gsub("-", "_", rownames(segmentsummary))
-  if(all(dcc_filenames %in% rownames(segmentsummary))){
-    segmentsummary <- segmentsummary[dcc_filenames, ]
-  } else{
-    stop("Some GeoMx dcc files is not represented in the segment summary file!")
+    rownames(segmentsummary) <- gsub(".dcc$", "", segmentsummary$Sample_ID)
+    rownames(segmentsummary) <- gsub("-", "_", rownames(segmentsummary))
+    if(all(dcc_filenames %in% rownames(segmentsummary))){
+      segmentsummary <- segmentsummary[dcc_filenames, ]
+    } else{
+      stop("Some GeoMx dcc files are not represented in the segment summary file!")
+    }
+  } else {
+    stop(summarySegment, " is not found!")
   }
 
   # get image
   if(!is.null(image)){
-    image <- magick::image_read(image)
+    if(file.exists(image)){
+      image <- magick::image_read(image)
+    } else {
+      stop(image, " is not found!")
+    }
   } else {
-    stop("Please provide a morphology image for the GeoMx data!")
+    stop("Please provide a image for the GeoMx data!")
   }
   geomx_image_info <- magick::image_info(image)
 
@@ -344,9 +368,14 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
 #'
 importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
-  # get the xml file
-  omexml <- RBioFormats::read.omexml(ome.tiff)
-  omexml <- XML::xmlToList(omexml, simplify = TRUE)
+  # check file
+  if(file.exists(ome.tiff)){
+    options(java.parameters = "-Xmx4g")
+    omexml <- RBioFormats::read.omexml(ome.tiff)
+    omexml <- XML::xmlToList(omexml, simplify = TRUE)
+  } else {
+    stop("There are no files named ", ome.tiff," in the path")
+  }
 
   # get ROIs
   ROIs <- omexml[which(names(omexml) == "ROI")]

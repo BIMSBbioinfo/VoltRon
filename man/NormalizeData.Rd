@@ -19,7 +19,7 @@ normalizeData(object, ...)
 
 \item{assay}{assay}
 
-\item{method}{the normalization method}
+\item{method}{the normalization method: "LogNorm", "Q3Norm", "LogQ3Norm" or "CLR"}
 
 \item{desiredQuantile}{the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}}
 }
