@@ -31,7 +31,12 @@ To ask questions please use VoltRon discussion forum on google groups.
 
 ## Configuration
 
-Before installing VoltRon, you have to install [OpenCV](https://opencv.org/) library first. To install on **MacOS**, you need to first install the [homebrew](https://brew.sh/): 
+Before installing VoltRon, you have to install [OpenCV](https://opencv.org/) library first. 
+
+On **Windows**, OpenCV will be downloaded automatically upon installation. 
+However, [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html) and [Java](https://cimentadaj.github.io/blog/2018-05-25-installing-rjava-on-windows-10/installing-rjava-on-windows-10/) may be required to be downloaded too, hence this may take some time!
+
+To install on **MacOS**, you need to first install the [homebrew](https://brew.sh/): 
 
 ```sh
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -50,9 +55,6 @@ On **Ubuntu** or **Fedora** you need [`libopencv-dev`](https://packages.debian.o
 ```sh
 sudo apt-get install libopencv-dev
 ```
-
-On **Windows**, OpenCV will be downloaded automatically upon installation. 
-However, [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html) may be required to be downloaded too, hence this may take some time!
 
 ## Installation
 
