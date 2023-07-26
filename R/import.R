@@ -106,7 +106,7 @@ rescaleXeniumCells <- function(cells, bbox, image){
 #'
 #' @import hdf5r
 #' @importFrom magick image_read
-#' @importFrom jsonlite read_json
+#' @importFrom rjson fromJSON
 #' @importFrom utils read.csv
 #'
 #' @export
