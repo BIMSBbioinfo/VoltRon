@@ -232,7 +232,7 @@ GeoMxR1 <- getPCA(GeoMxR1, dims = 30)
 The function **vrEmbeddingPlot** can be used to visualize embedding spaces (pca, umap, etc.) for any spatial point supported by VoltRon, hence cells, spots and ROI are all visualized using the same set of functions. Here we generate a new metadata column that represents the **disease durations (control, acute and prolonged case)**, then map gene profiles to the first two principal components.
 
 ```{r eval = FALSE, class.source="watch-out"}
-GeoMxR1_merged$Condition <- gsub(" [0-9]+$", "", GeoMxR1_merged$Sample)
+GeoMxR1$Condition <- gsub(" [0-9]+$", "", GeoMxR1$Sample)
 vrEmbeddingPlot(GeoMxR1, group.by = c("Condition"), embedding = "pca", pt.size = 3)
 ```
 
@@ -326,7 +326,7 @@ We utilize the **getDeconvolution** function to call wrapper functions for decon
 GeoMxR1_decon <- getDeconvolution(GeoMxR1,
                             sc.object = scRNAlung, sc.assay = "RNA", 
                             sc.cluster = "cluster", sc.samples = "orig.ident")
-GeoMxR1_decon
+SampleMetadata(GeoMxR1_decon)
 ```
 
 ```

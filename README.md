@@ -33,6 +33,7 @@ Before installing VoltRon, you have to install [OpenCV](https://opencv.org/) lib
 Then, OpenCV is installed using homebrew.
 
 ```sh
+brew install openjdk
 brew install pkg-config
 brew install opencv
 ```
