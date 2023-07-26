@@ -22,6 +22,13 @@
     </li>
    </ul>
 
+## Staying up-to-date
+
+
+To ask questions please use VoltRon discussion forum on google groups.
+
+- https://groups.google.com/forum/#!forum/voltron_discussion
+
 ## Configuration
 
 Before installing VoltRon, you have to install [OpenCV](https://opencv.org/) library first. To install on **MacOS**, you need to first install the [homebrew](https://brew.sh/): 

@@ -702,6 +702,7 @@ case</strong> as the base group (the condition that is of the baseline
 expression).</p>
 <pre class="r watch-out"><code># get DE for all conditions
 library(DESeq2)
+library(dplyr)
 DEresults &lt;- getDiffExp(GeoMxR1, group.by = &quot;Condition&quot;, 
                         group.base = &quot;control case&quot;, method = &quot;DESeq2&quot;)
 DEresults_sig &lt;- DEresults %&gt;% filter(!is.na(padj)) %&gt;% 
