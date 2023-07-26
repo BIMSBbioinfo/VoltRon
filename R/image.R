@@ -236,7 +236,6 @@ resizeImage.vrAssay <- function(object, size){
 #' @param file.name the name of the lowred morphology image. Default: morphology_lowres.tif
 #' @param ... additional parameters passed to the EBImage::writeImage function
 #'
-#' @importFrom RBioFormats read.image
 #' @importFrom EBImage writeImage
 #'
 #' @details
@@ -257,10 +256,10 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
   if(file.exists(file.path) | file.exists(paste0(output.file))){
     message(paste0(file.name, " already exists!"))
   } else {
-    # read ome tiff file
-    # options(java.parameters = "-Xmx4g") update 4g if more memory needed, see RBioFormats
     message("Loading morphology_mip.ome.tif \n")
-    morphology_image_lowres <- RBioFormats::read.image(paste0(dir.path, "/morphology_mip.ome.tif"), resolution = resolution_level, )
+    if (!requireNamespace('RBioFormats'))
+      stop("Please install RBioFormats package to read the ome.tiff file!")
+    morphology_image_lowres <- RBioFormats::read.image(paste0(dir.path, "/morphology_mip.ome.tif"), resolution = resolution_level)
 
     # pick a resolution level
     image_info <- morphology_image_lowres@metadata$coreMetadata

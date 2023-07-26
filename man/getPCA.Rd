@@ -7,7 +7,7 @@
 \usage{
 getPCA(object, ...)
 
-\method{getPCA}{VoltRon}(object, assay = NULL, dims = 30)
+\method{getPCA}{VoltRon}(object, assay = NULL, dims = 30, seed = 1)
 }
 \arguments{
 \item{object}{An object}
@@ -17,6 +17,8 @@ getPCA(object, ...)
 \item{assay}{assay}
 
 \item{dims}{the number of dimensions extracted from PCA}
+
+\item{seed}{seed}
 }
 \description{
 calculate getPCA of the VoltRon objects

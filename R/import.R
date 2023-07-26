@@ -162,7 +162,7 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   # scale coordinates
   scale_file <- paste0(dir.path, "/spatial/scalefactors_json.json")
   if(file.exists(scale_file)){
-    scalefactors <- jsonlite::read_json(path = scale_file)
+    scalefactors <- rjson::fromJSON(file = scale_file)
     scales <- scalefactors$tissue_lowres_scalef
     # spot.radius is the half of the diameter, but we visualize by a factor of 1.5 larger
     # params <- list(spot.radius = scalefactors$spot_diameter_fullres*scalefactors$tissue_lowres_scalef*1.5)
@@ -244,7 +244,6 @@ import10Xh5 <- function(filename){
 #'
 #' @importFrom dplyr %>% full_join
 #' @importFrom utils read.csv
-#' @importFrom GeomxTools readPKCFile readDccFile
 #' @importFrom magick image_info image_read
 #'
 #' @export
@@ -252,12 +251,10 @@ import10Xh5 <- function(filename){
 importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetName, assay_name = "GeoMx",
                         image = NULL, segment_polygons = FALSE, ome.tiff = NULL, ...)
 {
-  if (!requireNamespace('GeomxTools'))
-    stop("Please install Seurat package for using Seurat objects")
-
   # Get pkc file
   if(file.exists(pkc.file)){
-    pkcdata <- GeomxTools::readPKCFile(pkc.file)
+    # pkcdata <- GeomxTools::readPKCFile(pkc.file)
+    pkcdata <- readPKC(pkc.file)
   } else {
     stop("pkc file is not found!")
   }
@@ -273,7 +270,8 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
       dcc_filenames <- dcc_filenames[!grepl("A01.dcc$", dcc_filenames)]
       dcc_filenames <- gsub(".dcc$", "", dcc_filenames)
       dcc_filenames <- gsub("-", "_", dcc_filenames)
-      dccData <- sapply(dcc_files, GeomxTools::readDccFile, simplify = FALSE, USE.NAMES = FALSE)
+      # dccData <- sapply(dcc_files, GeomxTools::readDccFile, simplify = FALSE, USE.NAMES = FALSE)
+      dccData <- sapply(dcc_files, readDCC, simplify = FALSE, USE.NAMES = FALSE)
       names(dccData) <- dcc_filenames
     }
   } else {
@@ -354,6 +352,210 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
   formVoltRon(rawdata, metadata = segmentsummary, image, coords, segments, main.assay = assay_name, assay.type = "ROI", ...)
 }
 
+#' readPKC
+#'
+#' Read a NanoString Probe Kit Configuration (PKC) file. Adapted from \code{GeomxTools} package.
+#'
+#' @param file A character string containing the path to the PKC file.
+#' @param default_pkc_vers Optional list of pkc file names to use as default if more than one pkc version of each module is provided.
+#'
+#' @importFrom utils capture.output
+#' @importFrom rjson fromJSON
+#' @importFrom S4Vectors metadata DataFrame
+#'
+readPKC <- function (file, default_pkc_vers = NULL)
+{
+  pkc_json_list <- lapply(file, function(pkc_file) {
+    rjson::fromJSON(file = pkc_file)
+  })
+  pkc_names <- unlist(lapply(file, function(pkc_file) {
+    base_pkc_name <- gsub(".pkc", "", trimws(basename(pkc_file)))
+    return(base_pkc_name)
+  }))
+  names(pkc_json_list) <- pkc_names
+  pkc_modules <- basename(unlist(lapply(pkc_names, sub, pattern = "_[^_]+$",
+                                        replacement = "")))
+  names(pkc_modules) <- pkc_names
+  header <- list(PKCFileName = sapply(pkc_json_list, function(list) list[["Name"]]),
+                 PKCModule = pkc_modules,
+                 PKCFileVersion = sapply(pkc_json_list, function(list) list[["Version"]]),
+                 PKCFileDate = sapply(pkc_json_list, function(list) list[["Date"]]),
+                 AnalyteType = sapply(pkc_json_list, function(list) list[["AnalyteType"]]),
+                 MinArea = sapply(pkc_json_list, function(list) list[["MinArea"]]),
+                 MinNuclei = sapply(pkc_json_list, function(list) list[["MinNuclei"]]))
+
+  multi_idx <- duplicated(header[["PKCModule"]])
+  multi_mods <- unique(header[["PKCModule"]][multi_idx])
+  if (length(multi_mods) < 1) {
+    if (!is.null(default_pkc_vers)) {
+      warning("Only one version found per PKC module. ",
+              "No PKCs need to be combined. ", "Therefore, no default PKC versions will be used.")
+    }
+  }
+  else {
+    use_pkc_names <- lapply(multi_mods, function(mod) {
+      mod_idx <- header[["PKCModule"]] == mod
+      max_vers <- as.numeric(as.character(max(as.numeric_version(header[["PKCFileVersion"]][mod_idx]))))
+      max_name <- names(header[["PKCFileVersion"]][header[["PKCFileVersion"]] == max_vers])
+      return(max_name)
+    })
+    names(use_pkc_names) <- multi_mods
+    if (!is.null(default_pkc_vers)) {
+      default_names <- unlist(lapply(default_pkc_vers, function(pkc_file) {
+        base_pkc_name <- gsub(".pkc", "", trimws(basename(pkc_file)))
+        return(base_pkc_name)
+      }))
+      default_mods <- unlist(lapply(default_names, sub, pattern = "_[^_]+$",
+                                replacement = ""))
+      dup_defaults <- default_names[duplicated(default_mods) |
+                                      duplicated(default_mods, fromLast = TRUE)]
+      if (!all(default_names %in% names(header[["PKCFileName"]]))) {
+        removed_pkcs <- default_pkc_vers[!default_names %in%
+                                           names(header[["PKCFileName"]])]
+        stop("Could not match all default PKC versions with a PKC file name. ",
+             "Check default file names match exactly to a PKC file name.\n",
+             paste0("Unmatched default PKC versions: ",
+                    removed_pkcs))
+      }
+      else if (length(dup_defaults) > 0) {
+        stop("There should only be one default PKC version per module. ",
+             "Ensure only one version per module in default PKCs list.\n",
+             "Multiple default PKC version conflicts: ",
+             paste(dup_defaults, collapse = ", "))
+      }
+      else {
+        use_pkc_names[default_mods] <- default_names
+      }
+    }
+  }
+  rtsid_lookup_df <- generate_pkc_lookup(pkc_json_list)
+  rtsid_lookup_df$Negative <- grepl("Negative", rtsid_lookup_df$CodeClass)
+  rtsid_lookup_df$RTS_ID <- gsub("RNA", "RTS00", rtsid_lookup_df[["RTS_ID"]])
+  rtsid_lookup_df <- S4Vectors::DataFrame(rtsid_lookup_df)
+  if (length(multi_mods) > 0) {
+    for (mod in names(use_pkc_names)) {
+      mod_vers <- names(header[["PKCModule"]])[header[["PKCModule"]] ==
+                                                 mod]
+      mod_lookup <- rtsid_lookup_df[rtsid_lookup_df$Module %in%
+                                      mod_vers, ]
+      mod_tab <- table(mod_lookup$RTS_ID)
+      remove_rts <- names(mod_tab[mod_tab != length(mod_vers)])
+      if (length(remove_rts) > 0) {
+        warning("The following probes were removed from analysis",
+                " as they were not found in all PKC module versions used.\n",
+                paste(utils::capture.output(print(subset(rtsid_lookup_df,
+                                                  subset = RTS_ID %in% remove_rts))), collapse = "\n"))
+        rtsid_lookup_df <- subset(rtsid_lookup_df, subset = !RTS_ID %in%
+                                    remove_rts)
+      }
+      remove_vers <- mod_vers[mod_vers != use_pkc_names[mod]]
+      rtsid_lookup_df <- subset(rtsid_lookup_df, subset = !Module %in%
+                                  remove_vers)
+      warning("The following PKC versions were removed from analysis",
+              " as they were overridden by a newer PKC version or",
+              " were overridden by a user-defined default PKC version.\n",
+              paste(remove_vers, collapse = ", "))
+      header <- lapply(header, function(elem) {
+        elem[!names(elem) %in% remove_vers]
+      })
+    }
+  }
+  S4Vectors::metadata(rtsid_lookup_df) <- header
+  return(rtsid_lookup_df)
+}
+
+#' readDCC
+#'
+#' Read a NanoString GeoMx Digital Count Conversion (DCC) file.
+#'
+#' @param file A character string containing the path to the DCC file.
+#'
+readDCC <- function(file)
+{
+  lines <- trimws(readLines(file))
+  trimGalore <- grep("trimGalore", lines)
+  if (length(trimGalore) > 0) {
+    Raw <- grep("Raw", lines)
+    lines <- lines[-c(trimGalore:(Raw - 1))]
+  }
+  lines <- gsub("SoftwareVersion,\"GeoMx_NGS_Pipeline_ ",
+                "SoftwareVersion,", lines)
+  lines <- gsub("SoftwareVersion,\"GeoMx_NGS_Pipeline_", "SoftwareVersion,",
+                lines)
+  lines <- gsub("SoftwareVersion,DRAGEN_GeoMx_", "SoftwareVersion,",
+                lines)
+  lines[grepl("SoftwareVersion", lines)] <- gsub("\"", "",
+                                                 lines[grepl("SoftwareVersion", lines)])
+  tags <- c("Header", "Scan_Attributes", "NGS_Processing_Attributes", "Code_Summary")
+  output <- sapply(tags, function(tag) {
+    bounds <- charmatch(sprintf(c("<%s>", "</%s>"), tag),
+                        lines)
+    if (anyNA(bounds) || bounds[1L] + 1L >= bounds[2L])
+      lines[integer(0)]
+    else lines[(bounds[1L] + 1L):(bounds[2L] - 1L)]
+  }, simplify = FALSE)
+  for (tag in c("Header", "Scan_Attributes", "NGS_Processing_Attributes")) {
+    while (length(bad <- grep(",", output[[tag]], invert = TRUE)) >
+           0L) {
+      bad <- bad[1L]
+      if (bad == 1L)
+        stop(sprintf("%s section has malformed first line",
+                     tag))
+      fixed <- output[[tag]]
+      fixed[bad - 1L] <- sprintf("%s %s", fixed[bad -
+                                                  1L], fixed[bad])
+      output[[tag]] <- fixed[-bad]
+    }
+    output[[tag]] <- strsplit(output[[tag]], split = ",")
+    output[[tag]] <- structure(lapply(output[[tag]], function(x) if (length(x) ==
+                                                                     1L)
+      ""
+      else x[2L]), names = lapply(output[[tag]], `[`, 1L),
+      class = "data.frame", row.names = basename(file))
+  }
+  cols <- c("FileVersion", "SoftwareVersion")
+  if (!(all(cols %in% colnames(output[["Header"]]))))
+    stop("Header section must contain \"FileVersion\" and \"SoftwareVersion\"")
+  output[["Header"]][, cols] <- lapply(output[["Header"]][,
+                                                          cols], numeric_version)
+  fileVersion <- output[["Header"]][1L, "FileVersion"]
+  if (!(numeric_version(fileVersion) %in% numeric_version(c("0.01",
+                                                            "0.02"))))
+    stop("\"FileVersion\" in Header section must be 0.01 or 0.02")
+  for (section in c("Header", "Scan_Attributes", "NGS_Processing_Attributes")) {
+    valid <- .validDccSchema(output[[section]], fileVersion,
+                             section)
+    if (!isTRUE(valid))
+      stop(valid)
+  }
+  output[["Header"]][["Date"]] <- as.Date(output[["Header"]][["Date"]],
+                                          format = "%Y-%m-%d")
+  cols <- c("Raw", "Trimmed", "Stitched", "Aligned", "umiQ30",
+            "rtsQ30")
+  output[["NGS_Processing_Attributes"]][, cols] <- lapply(output[["NGS_Processing_Attributes"]][,
+                                                                                                cols], as.numeric)
+  names(output[["Scan_Attributes"]])[names(output[["Scan_Attributes"]]) ==
+                                       "ID"] <- "SampleID"
+  output[["Code_Summary"]] <- paste0("RTS_ID,Count\n", paste(output[["Code_Summary"]],
+                                                             collapse = "\n"))
+  output[["Code_Summary"]] <- utils::read.csv(textConnection(output[["Code_Summary"]]),
+                                              colClasses = c(RTS_ID = "character", Count = "numeric"))
+  output[["Code_Summary"]][["Count"]] <- as.integer(round(output[["Code_Summary"]][["Count"]]))
+  rn <- output[["Code_Summary"]][["RTS_ID"]]
+  if ((ndups <- anyDuplicated(rn)) > 0L) {
+    warning(sprintf("removed %d rows from \"Code_Summary\" due to duplicate rownames",
+                    ndups))
+    ok <- which(!duplicated(rn, fromLast = FALSE) & !duplicated(rn,
+                                                                fromLast = TRUE))
+    rn <- rn[ok]
+    output[["Code_Summary"]] <- output[["Code_Summary"]][ok,
+                                                         , drop = FALSE]
+  }
+  rownames(output[["Code_Summary"]]) <- rn
+  output[["NGS_Processing_Attributes"]][, "DeduplicatedReads"] <- sum(output[["Code_Summary"]][["Count"]])
+  return(output)
+}
+
 
 #' importGeoMxSegments
 #'
@@ -363,7 +565,6 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
 #' @param summary segmentation summary data frame
 #' @param imageinfo image information
 #'
-#' @importFrom RBioFormats read.omexml
 #' @importFrom XML xmlToList
 #'
 importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
@@ -371,7 +572,15 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
   # check file
   if(file.exists(ome.tiff)){
     options(java.parameters = "-Xmx4g")
-    omexml <- RBioFormats::read.omexml(ome.tiff)
+    if(grepl(".ome.tiff$|.ome.tif$", ome.tiff)){
+      if (!requireNamespace('RBioFormats'))
+        stop("Please install RBioFormats package extract xml from the ome.tiff file!")
+      omexml <- RBioFormats::read.omexml(ome.tiff)
+    } else if(grepl(".xml$", ome.tiff)){
+      omexml <- ome.tiff
+    } else {
+      stop("Please provide either an ome.tiff or .xml file!")
+    }
     omexml <- XML::xmlToList(omexml, simplify = TRUE)
   } else {
     stop("There are no files named ", ome.tiff," in the path")
