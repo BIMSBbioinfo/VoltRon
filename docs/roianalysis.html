@@ -559,7 +559,7 @@ each individual ROI such as sequencing saturation and the number of
 cells (nuclei) within each segment. VoltRon also provides the total
 number of unique transcripts per ROI and stores in the metadata.</p>
 <pre class="r watch-out"><code>library(ggplot2)
-vrBarPlot(GeoMxR1_lessfeatures, 
+vrBarPlot(GeoMxR1, 
           features = c(&quot;Count&quot;, &quot;Nuclei.count&quot;, &quot;Sequencing.saturation&quot;),
           x.label = &quot;ROI.name&quot;, group.by = &quot;ROI.type&quot;) + 
   theme(axis.text.x = element_text(size = 3))</code></pre>
@@ -675,7 +675,7 @@ using the same set of functions. Here we generate a new metadata column
 that represents the <strong>disease durations (control, acute and
 prolonged case)</strong>, then map gene profiles to the first two
 principal components.</p>
-<pre class="r watch-out"><code>GeoMxR1_merged$Condition &lt;- gsub(&quot; [0-9]+$&quot;, &quot;&quot;, GeoMxR1_merged$Sample)
+<pre class="r watch-out"><code>GeoMxR1$Condition &lt;- gsub(&quot; [0-9]+$&quot;, &quot;&quot;, GeoMxR1$Sample)
 vrEmbeddingPlot(GeoMxR1, group.by = c(&quot;Condition&quot;), embedding = &quot;pca&quot;, pt.size = 3)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_embeddingplotsingle.png" class="center"></p>
 <p>VoltRon provides additional dimensionality reduction techniques such
@@ -757,14 +757,14 @@ g1 &lt;- DimPlot(scRNAlung, reduction = &quot;umap&quot;, label = T, group.by = 
 g2 &lt;- DimPlot(scRNAlung, reduction = &quot;umap&quot;, label = T, group.by = &quot;predicted.id&quot;) + NoLegend()
 g1 | g2</code></pre>
 <p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_deconvolution_singlecell.png" class="center"></p>
-<p>We utilize <strong>getDeconvolution</strong> function to call wrapper
-functions for deconvolution algorithms. For all layers with GoeMx
-assays, an additional assay within the same layer with **_decon**
-postfix will be created.</p>
+<p>We utilize the <strong>getDeconvolution</strong> function to call
+wrapper functions for deconvolution algorithms. For all layers with
+GoeMx assays, an additional assay within the same layer with
+<strong>_decon</strong> postfix will be created.</p>
 <pre class="r watch-out"><code>GeoMxR1_decon &lt;- getDeconvolution(GeoMxR1,
                             sc.object = scRNAlung, sc.assay = &quot;RNA&quot;, 
                             sc.cluster = &quot;cluster&quot;, sc.samples = &quot;orig.ident&quot;)
-GeoMxR1_decon</code></pre>
+SampleMetadata(GeoMxR1_decon)</code></pre>
 <pre><code>              Assay    Layer           Sample
 Assay1        GeoMx Section1 prolonged case 4
 Assay2        GeoMx Section1     acute case 3
