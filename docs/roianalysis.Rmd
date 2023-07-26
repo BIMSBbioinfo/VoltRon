@@ -65,7 +65,7 @@ You can download these tutorial files from here:
   </tr>
   <tr>
     <td>Segment Summary</td>
-    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/segmentSummary.xlsx"> Excel file </a></td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/segmentSummary.csv"> ROI Metadata file </a></td>
   </tr>
   <tr>
     <td>Morphology Image</td>
@@ -75,6 +75,10 @@ You can download these tutorial files from here:
     <td>OME.TIFF Image </td>
     <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.ome.tiff"> OME.TIFF file </a></td>
   </tr>
+    <tr>
+    <td>OME.TIFF Image (XML) </td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.ome.tiff.xml" download target="_blank"> OME.TIFF (XML) file </a></td>
+  </tr>
 </table>
 
 <p></p>
@@ -82,21 +86,20 @@ You can download these tutorial files from here:
 We now import the GeoMx data, and start analyzing 87 user selected segments (i.e. region of interests, **ROI**) to check spatial localization of signals. The **importGeoMx** function requires:
 
 * The path to the Digital Count Conversion file, **dcc.path**, and Probe Kit Configuration file, **pkc.file**, which are both provided as the output of the [GeoMx NGS Pipeline](https://emea.illumina.com/products/by-type/informatics-products/basespace-sequence-hub/apps/nanostring-geomxr-ngs-pipeline.html). 
-* The path the to the metadata file, **summarySegment**, and the specific excel sheet that the metadata is found, **summarySegmentSheetName**, the path to the main morphology **image** and the original **ome.tiff** file, all of which are provided and imported from the DSP Control Center. Please see [GeoMx DSP Data Analysis User Manual](https://nanostring.com/support-documents/geomx-dsp-data-analysis-user-manual/) for more information.
+* The path the to the metadata file, **summarySegment**, and the specific excel sheet that the metadata is found, **summarySegmentSheetName**, the path to the main morphology **image** and the original **ome.tiff (xml)** file, all of which are provided and imported from the DSP Control Center. Please see [GeoMx DSP Data Analysis User Manual](https://nanostring.com/support-documents/geomx-dsp-data-analysis-user-manual/) for more information.
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
 library(xlsx)
 GeoMxR1 <- importGeoMx(dcc.path = "DCC-20230427/", 
                        pkc.file = "Hs_R_NGS_WTA_v1.0.pkc",
-                       summarySegment = "segmentSummary.xlsx",
-                       summarySegmentSheetName = "Segment summary",
+                       summarySegment = "segmentSummary.csv",
                        image = "Lu1A1B5umtrueexp.tif",
-                       ome.tiff = "Lu1A1B5umtrueexp.ome.tiff",
+                       ome.tiff = "Lu1A1B5umtrueexp.ome.tiff.xml",
                        sample_name = "GeoMxR1")
 ```
 
-If you are getting a **java error** when running importGeoMx(), try increasing the maximum heap size by supplying the -Xmx parameter. Run the code below before rerunning **importGeoMx function above**.
+We can import the GeoMx ROI segments from the **Lu1A1B5umtrueexp.ome.tiff** image file directly by replacing the .xml file with the .ome.tiff file in the **ome.tiff** argument. Note that you need to call the **RBioFormats** library. If you are getting a **java error** when running importGeoMx, try increasing the maximum heap size by supplying the **-Xmx** parameter. Run the code below before rerunning **importGeoMx** again.
 
 ```{r eval = FALSE, class.source="watch-out"}
 options(java.parameters = "-Xmx4g")
@@ -256,14 +259,13 @@ vrEmbeddingPlot(GeoMxR1, group.by = c("ROI.type"), embedding = "umap", pt.size =
 
 ## Differential Expression Analysis
 
-VoltRon provides wrapping functions for calling tools and methods from popular differential expression analysis package such as [DESeq2](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-014-0550-8). We utilize **DESeq2** to find differentially expressed genes across disease conditions and select the **control case** as the base group (the condition that is of the baseline expression). 
+VoltRon provides wrapping functions for calling tools and methods from popular differential expression analysis package such as [DESeq2](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-014-0550-8). We utilize **DESeq2** to find differentially expressed genes across each pair of disease conditions. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 # get DE for all conditions
 library(DESeq2)
 library(dplyr)
-DEresults <- getDiffExp(GeoMxR1, group.by = "Condition", 
-                        group.base = "control case", method = "DESeq2")
+DEresults <- getDiffExp(GeoMxR1, group.by = "Condition", method = "DESeq2")
 DEresults_sig <- DEresults %>% filter(!is.na(padj)) %>% 
   filter(padj < 0.05, abs(log2FoldChange) > 1)
 head(DEresults_sig)
@@ -283,6 +285,7 @@ The **vrHeatmapPlot** takes a set of features for any type of spatial point (cel
 
 ```{r eval = FALSE, class.source="watch-out"}
 # get DE for all conditions
+library(ComplexHeatmap)
 vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene), 
               group.by = "Condition", highlight.some = TRUE)
 ```
@@ -321,7 +324,7 @@ g1 | g2
 
 <img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_deconvolution_singlecell.png" class="center">
 
-We utilize the **getDeconvolution** function to call wrapper functions for deconvolution algorithms. For all layers with GoeMx assays, an additional assay within the same layer with **\_decon** postfix will be created. 
+We utilize the **getDeconvolution** function to call wrapper functions for deconvolution algorithms. For all layers with GoeMx assays, an additional assay within the same layer with **\_decon** postfix will be created. The **sc.object** argument can either be a **Seurat** or **SingleCellExperiment** object. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 GeoMxR1_decon <- getDeconvolution(GeoMxR1,

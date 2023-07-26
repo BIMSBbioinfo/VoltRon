@@ -234,7 +234,7 @@ import10Xh5 <- function(filename){
 #'
 #' @param dcc.path path to the folder where the dcc files are found
 #' @param pkc.file path to the pkc file
-#' @param summarySegment the annotation excel file
+#' @param summarySegment the metadata csv (sep = ";") or excel file, if the file is an excel file, \code{summarySegmentSheetName} should be provided as well.
 #' @param summarySegmentSheetName the sheet name of the excel file, \code{summarySegment}
 #' @param assay_name the assay name, default: GeoMx
 #' @param image the reference morphology image of the GeoMx assay
@@ -253,7 +253,6 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
 {
   # Get pkc file
   if(file.exists(pkc.file)){
-    # pkcdata <- GeomxTools::readPKCFile(pkc.file)
     pkcdata <- readPKC(pkc.file)
   } else {
     stop("pkc file is not found!")
@@ -270,7 +269,6 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
       dcc_filenames <- dcc_filenames[!grepl("A01.dcc$", dcc_filenames)]
       dcc_filenames <- gsub(".dcc$", "", dcc_filenames)
       dcc_filenames <- gsub("-", "_", dcc_filenames)
-      # dccData <- sapply(dcc_files, GeomxTools::readDccFile, simplify = FALSE, USE.NAMES = FALSE)
       dccData <- sapply(dcc_files, readDCC, simplify = FALSE, USE.NAMES = FALSE)
       names(dccData) <- dcc_filenames
     }
@@ -303,14 +301,14 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
   if(file.exists(summarySegment)){
     if(grepl(".xls$|.xlsx$", summarySegment)){
       if (!requireNamespace('xlsx'))
-        stop("Please install xlsx package for using read.xlsx function!")
+        stop("Please install xlsx package for using the read.xlsx function!")
       if(!is.null(summarySegmentSheetName)){
         segmentsummary <- xlsx::read.xlsx(summarySegment, sheetName = summarySegmentSheetName)
       } else {
         stop("Please provide 'summarySegmentSheetName' for the excel sheet name!")
       }
     } else if(grepl(".csv$", summarySegment)) {
-      segmentsummary <- utils::read.csv(summarySegment)
+      segmentsummary <- utils::read.csv(summarySegment, row.names = NULL, header = T, sep = ";")
     }
     rownames(segmentsummary) <- gsub(".dcc$", "", segmentsummary$Sample_ID)
     rownames(segmentsummary) <- gsub("-", "_", rownames(segmentsummary))
@@ -577,7 +575,7 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
         stop("Please install RBioFormats package extract xml from the ome.tiff file!")
       omexml <- RBioFormats::read.omexml(ome.tiff)
     } else if(grepl(".xml$", ome.tiff)){
-      omexml <- ome.tiff
+      omexml <- XML::xmlParse(file = ome.tiff)
     } else {
       stop("Please provide either an ome.tiff or .xml file!")
     }
