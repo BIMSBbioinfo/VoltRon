@@ -12,7 +12,6 @@ dpm,face,photo,fuzzy,hfs,img_hash,line_descriptor,optflow,reg,rgbd,saliency,ster
 phase_unwrapping,surface_matching,tracking,datasets,dnn,plot,xfeatures2d,shape,video,ml,ximgproc,\
 calib3d,features2d,highgui,videoio,flann,xobjdetect,imgcodecs,objdetect,xphoto,imgproc,core}"
 
-
 # Use pkg-config if available
 PCVERSION=`pkg-config --version 2>/dev/null`
 if [ $? -eq 0 ]; then

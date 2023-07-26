@@ -261,6 +261,7 @@ VoltRon provides wrapping functions for calling tools and methods from popular d
 ```{r eval = FALSE, class.source="watch-out"}
 # get DE for all conditions
 library(DESeq2)
+library(dplyr)
 DEresults <- getDiffExp(GeoMxR1, group.by = "Condition", 
                         group.base = "control case", method = "DESeq2")
 DEresults_sig <- DEresults %>% filter(!is.na(padj)) %>% 
