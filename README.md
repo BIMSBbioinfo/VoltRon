@@ -24,11 +24,8 @@
 
 ## Staying up-to-date
 
-You can subscribe to our googlegroups page to get the latest information about new releases and features (low-frequency, only updates are posted)
 
-- https://groups.google.com/forum/#!forum/voltron
-
-To ask questions please use methylKit_discussion forum
+To ask questions please use VoltRon discussion forum on google groups.
 
 - https://groups.google.com/forum/#!forum/voltron_discussion
 
