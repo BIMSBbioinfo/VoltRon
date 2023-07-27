@@ -10,9 +10,9 @@ SystemRequirements: OpenCV 4.7 (or higher): libopencv-dev (Debian, Ubuntu) or op
 Encoding: UTF-8
 RoxygenNote: 7.2.3
 biocViews:
-Imports: methods, S4Vectors, ComplexHeatmap, EBImage, FNN, GeomxTools, Matrix, Morpho,
-    RBioFormats, XML, dplyr, ggforce, ggplot2, ggpubr, ggrepel, hdf5r, htmltools, igraph, irlba,
-    jsonlite, magick, raster, reshape2, rlang, scales, shiny, shinyjs, stringr, terra, umap
+Imports: methods, S4Vectors, EBImage, FNN, Matrix, Morpho, XML, dplyr, ggforce, 
+         ggplot2, ggpubr, ggrepel, hdf5r, htmltools, igraph, irlba, rjson, magick, raster, 
+         reshape2, rlang, scales, shiny, shinyjs, stringr, terra, umap
 LinkingTo: Rcpp
 Collate: 
     'RcppExports.R'
@@ -37,4 +37,6 @@ Suggests:
     Seurat,
     DESeq2,
     MuSiC,
-    spacexr
+    spacexr, 
+    RBioFormats, 
+    ComplexHeatmap

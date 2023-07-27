@@ -21,6 +21,8 @@
       <strong> Niche Clustering </strong> allows integration to single cell RNA analysis platforms such as <a href="https://satijalab.org/seurat/">Seurat</a> and <a href="https://github.com/dmcable/spacexr">spacexr</a> to deconvolute spots using reference single cell datasets. Estimated cell type abundances are then used to partition spots into groups of cell type niches, defined as spots with distinct composition of cell types.  
     </li>
    </ul>
+   
+**Website and Tutorials**: <a href="https://bioinformatics.mdc-berlin.de/VoltRon">https://bioinformatics.mdc-berlin.de/VoltRon</a>
 
 ## Staying up-to-date
 
@@ -33,8 +35,7 @@ To ask questions please use VoltRon discussion forum on google groups.
 
 Before installing VoltRon, you have to install [OpenCV](https://opencv.org/) library first. 
 
-On **Windows**, OpenCV will be downloaded automatically upon installation. 
-However, [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html) and [Java](https://cimentadaj.github.io/blog/2018-05-25-installing-rjava-on-windows-10/installing-rjava-on-windows-10/) may be required to be downloaded too, hence this may take some time!
+On **Windows**, OpenCV will be downloaded automatically upon installation. However, [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html) may be required to be downloaded too, hence this may take some time!
 
 To install on **MacOS**, you need to first install the [homebrew](https://brew.sh/): 
 
@@ -45,7 +46,6 @@ To install on **MacOS**, you need to first install the [homebrew](https://brew.s
 Then, OpenCV is installed using homebrew.
 
 ```sh
-brew install openjdk
 brew install pkg-config
 brew install opencv
 ```

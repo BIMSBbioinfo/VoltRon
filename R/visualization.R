@@ -860,7 +860,6 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 #' @param seed the seed for \code{set.seed}
 #' @param ... additional parameters passed to \code{getVariableFeatures}
 #'
-#' @importFrom ComplexHeatmap Heatmap
 #' @importFrom scales viridis_pal
 #' @importFrom stats quantile
 #'
@@ -869,6 +868,9 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NULL, group.by = "clusters",
                           norm = TRUE, scaled = TRUE, show_row_names = NULL, show_heatmap_legend = FALSE,
                           outlier.quantile = 0.99, highlight.some = FALSE, n_highlight = 30, font.size = 13.2, seed = 1, ...){
+
+  if (!requireNamespace('ComplexHeatmap'))
+    stop("Please install ComplexHeatmap package to use the Heatmap function")
 
   # seed
   set.seed(seed)

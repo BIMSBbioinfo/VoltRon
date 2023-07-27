@@ -490,8 +490,8 @@ RNA WTA for NGS</a>
 Segment Summary
 </td>
 <td>
-<a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/segmentSummary.xlsx">
-Excel file </a>
+<a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/segmentSummary.csv">
+ROI Metadata file </a>
 </td>
 </tr>
 <tr>
@@ -512,6 +512,15 @@ OME.TIFF Image
 OME.TIFF file </a>
 </td>
 </tr>
+<tr>
+<td>
+OME.TIFF Image (XML)
+</td>
+<td>
+<a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.ome.tiff.xml" download target="_blank">
+OME.TIFF (XML) file </a>
+</td>
+</tr>
 </table>
 <p>
 </p>
@@ -529,9 +538,9 @@ NGS Pipeline</a>.</li>
 <li>The path the to the metadata file, <strong>summarySegment</strong>,
 and the specific excel sheet that the metadata is found,
 <strong>summarySegmentSheetName</strong>, the path to the main
-morphology <strong>image</strong> and the original
-<strong>ome.tiff</strong> file, all of which are provided and imported
-from the DSP Control Center. Please see <a
+morphology <strong>image</strong> and the original <strong>ome.tiff
+(xml)</strong> file, all of which are provided and imported from the DSP
+Control Center. Please see <a
 href="https://nanostring.com/support-documents/geomx-dsp-data-analysis-user-manual/">GeoMx
 DSP Data Analysis User Manual</a> for more information.</li>
 </ul>
@@ -539,15 +548,18 @@ DSP Data Analysis User Manual</a> for more information.</li>
 library(xlsx)
 GeoMxR1 &lt;- importGeoMx(dcc.path = &quot;DCC-20230427/&quot;, 
                        pkc.file = &quot;Hs_R_NGS_WTA_v1.0.pkc&quot;,
-                       summarySegment = &quot;segmentSummary.xlsx&quot;,
-                       summarySegmentSheetName = &quot;Segment summary&quot;,
+                       summarySegment = &quot;segmentSummary.csv&quot;,
                        image = &quot;Lu1A1B5umtrueexp.tif&quot;,
-                       ome.tiff = &quot;Lu1A1B5umtrueexp.ome.tiff&quot;,
+                       ome.tiff = &quot;Lu1A1B5umtrueexp.ome.tiff.xml&quot;,
                        sample_name = &quot;GeoMxR1&quot;)</code></pre>
-<p>If you are getting a <strong>java error</strong> when running
-importGeoMx(), try increasing the maximum heap size by supplying the
--Xmx parameter. Run the code below before rerunning <strong>importGeoMx
-function above</strong>.</p>
+<p>We can import the GeoMx ROI segments from the
+<strong>Lu1A1B5umtrueexp.ome.tiff</strong> image file directly by
+replacing the .xml file with the .ome.tiff file in the
+<strong>ome.tiff</strong> argument. Note that you need to call the
+<strong>RBioFormats</strong> library. If you are getting a <strong>java
+error</strong> when running importGeoMx, try increasing the maximum heap
+size by supplying the <strong>-Xmx</strong> parameter. Run the code
+below before rerunning <strong>importGeoMx</strong> again.</p>
 <pre class="r watch-out"><code>options(java.parameters = &quot;-Xmx4g&quot;)
 library(RBioFormats)</code></pre>
 <p><br></p>
@@ -697,14 +709,11 @@ vrEmbeddingPlot(GeoMxR1, group.by = c(&quot;ROI.type&quot;), embedding = &quot;u
 from popular differential expression analysis package such as <a
 href="https://genomebiology.biomedcentral.com/articles/10.1186/s13059-014-0550-8">DESeq2</a>.
 We utilize <strong>DESeq2</strong> to find differentially expressed
-genes across disease conditions and select the <strong>control
-case</strong> as the base group (the condition that is of the baseline
-expression).</p>
+genes across each pair of disease conditions.</p>
 <pre class="r watch-out"><code># get DE for all conditions
 library(DESeq2)
 library(dplyr)
-DEresults &lt;- getDiffExp(GeoMxR1, group.by = &quot;Condition&quot;, 
-                        group.base = &quot;control case&quot;, method = &quot;DESeq2&quot;)
+DEresults &lt;- getDiffExp(GeoMxR1, group.by = &quot;Condition&quot;, method = &quot;DESeq2&quot;)
 DEresults_sig &lt;- DEresults %&gt;% filter(!is.na(padj)) %&gt;% 
   filter(padj &lt; 0.05, abs(log2FoldChange) &gt; 1)
 head(DEresults_sig)</code></pre>
@@ -724,6 +733,7 @@ per each feature. The select <strong>highlight.some = TRUE</strong> to
 annotate features which could be large in size. The heterogeneity across
 prolonged case segments are highlighted by different set of markers.</p>
 <pre class="r watch-out"><code># get DE for all conditions
+library(ComplexHeatmap)
 vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene), 
               group.by = &quot;Condition&quot;, highlight.some = TRUE)</code></pre>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap.png" class="center"></p>
@@ -761,7 +771,10 @@ g1 | g2</code></pre>
 <p>We utilize the <strong>getDeconvolution</strong> function to call
 wrapper functions for deconvolution algorithms. For all layers with
 GoeMx assays, an additional assay within the same layer with
-<strong>_decon</strong> postfix will be created.</p>
+<strong>_decon</strong> postfix will be created. The
+<strong>sc.object</strong> argument can either be a
+<strong>Seurat</strong> or <strong>SingleCellExperiment</strong>
+object.</p>
 <pre class="r watch-out"><code>GeoMxR1_decon &lt;- getDeconvolution(GeoMxR1,
                             sc.object = scRNAlung, sc.assay = &quot;RNA&quot;, 
                             sc.cluster = &quot;cluster&quot;, sc.samples = &quot;orig.ident&quot;)
