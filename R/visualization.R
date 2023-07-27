@@ -34,11 +34,12 @@ vrSpatialPlot <- function(object, group.by = "Sample", assay = NULL, assay.type 
                      font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, background = "image",
                      crop = FALSE, common.legend = TRUE, collapse = TRUE) {
 
+  # check object
+  if(!inherits(object, "VoltRon"))
+    stop("Please provide a VoltRon object!")
+
   # sample metadata
   sample.metadata <- SampleMetadata(object)
-
-  # list of plots
-  gg <- list()
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -61,6 +62,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", assay = NULL, assay.type 
 
   # for each assay
   i <- 1
+  gg <- list()
   for(assy in assay_names){
 
     # get assay
@@ -175,9 +177,11 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", font.size 
   if(any(background %in% c("white","black"))){
     g <- g +
       theme(panel.background = element_rect(fill = background, colour = background, size = 0.5, linetype = "solid"))
-  } else{
+  } else if(background == "image"){
     g <- g +
       theme(panel.background = element_blank())
+  } else {
+    stop("background should either 'image', 'black', 'white'.")
   }
 
   # return data
@@ -219,11 +223,12 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = N
                          font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, background = "image",
                          crop = FALSE, common.legend = FALSE, collapse = TRUE) {
 
+  # check object
+  if(!inherits(object, "VoltRon"))
+    stop("Please provide a VoltRon object!")
+
   # sample metadata
   sample.metadata <- SampleMetadata(object)
-
-  # list of plots
-  gg <- list()
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -256,7 +261,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = N
         if(feat %in% colnames(metadata)){
           range(metadata[,feat])
         } else {
-          stop("Feature ", feat, " cannot be found in data or metadata!")
+          stop("Feature '", feat, "' cannot be found in data or metadata!")
         }
       }
     }, assay_names)
@@ -280,6 +285,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = N
 
   # for each feature
   i <- 1
+  gg <- list()
   for(assy in assay_names){
 
     # for each assay
@@ -437,9 +443,11 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.b
   if(any(background %in% c("white","black"))){
     g <- g +
       theme(panel.background = element_rect(fill = background, colour = background, size = 0.5, linetype = "solid"))
-  } else{
+  } else if(background == "image"){
     g <- g +
       theme(panel.background = element_blank())
+  } else {
+    stop("background should either 'image', 'black', 'white'.")
   }
 
   # visualize labels
@@ -552,11 +560,12 @@ GeomSpot <- ggproto("GeomSpot",
 vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
                             font.size = 5, pt.size = 1, label = FALSE, common.legend = TRUE, collapse = TRUE) {
 
+  # check object
+  if(!inherits(object, "VoltRon"))
+    stop("Please provide a VoltRon object!")
+
   # sample metadata
   sample.metadata <- SampleMetadata(object)
-
-  # list of plots
-  gg <- list()
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -643,15 +652,16 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", assa
 vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
                                    font.size = 2, pt.size = 1, keep.scale = "feature", common.legend = TRUE, collapse = TRUE) {
 
+  # check object
+  if(!inherits(object, "VoltRon"))
+    stop("Please provide a VoltRon object!")
+
   # features
   if(is.null(features))
     stop("You have to define at least one feature")
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
-
-  # list of plots
-  gg <- list()
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -683,7 +693,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, a
       if(feat %in% colnames(metadata)){
         return(range(metadata[,feat]))
       } else {
-        stop("Feature ", feat, " cannot be found in data or metadata!")
+        stop("Feature '", feat, "' cannot be found in data or metadata!")
       }
     }
   }, features)
@@ -695,6 +705,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, a
 
   # for each feature
   i <- 1
+  gg <- list()
   for(feat in features){
 
     # get data
@@ -711,13 +722,6 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, a
     g <- ggplot()
 
     # add points or segments
-    # if(unique(vrAssayTypes(object)) %in% c("spot","cell")){
-    #   g <- g +
-    #     geom_point(mapping = aes(x = x, y = y, color = score), datax, shape = 16, size = pt.size) +
-    #     scale_color_gradientn(name = legend_title[[feat]],
-    #                           colors=c("lightgrey", "blue"),
-    #                           values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
-    # }
     g <- g +
       geom_point(mapping = aes(x = x, y = y, color = score), datax, shape = 16, size = pt.size) +
       scale_color_gradientn(name = legend_title[[feat]],
@@ -775,6 +779,10 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, a
 #'
 vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NULL, assay.type = NULL,
                                pt.size = 2, font.size = 2, group.by = "label", label = FALSE, trend = FALSE){
+
+  # check object
+  if(!inherits(object, "VoltRon"))
+    stop("Please provide a VoltRon object!")
 
   # check the number of features
   if(is.null(feature.1) | is.null(feature.2))
@@ -872,6 +880,10 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
   if (!requireNamespace('ComplexHeatmap'))
     stop("Please install ComplexHeatmap package to use the Heatmap function")
 
+  # check object
+  if(!inherits(object, "VoltRon"))
+    stop("Please provide a VoltRon object!")
+
   # seed
   set.seed(seed)
 
@@ -923,7 +935,7 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
     labels_ordered_table <- table(labels_ordered)
     col_split = factor(labels_ordered, levels = names(labels_ordered_table))
   } else {
-    stop("Column ", group.by, " cannot be found in metadata!")
+    stop("Column '", group.by, "' cannot be found in metadata!")
   }
 
   # update limits
@@ -978,15 +990,16 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
 #'
 vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NULL, group.by = "Sample", norm = TRUE,  ncol = 2, nrow = NULL, ...){
 
+  # check object
+  if(!inherits(object, "VoltRon"))
+    stop("Please provide a VoltRon object!")
+
   # features
   if(is.null(features))
     stop("You have to define at least one feature")
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
-
-  # list of plots
-  gg <- list()
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1071,15 +1084,16 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NUL
 #'
 vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, group.by = "Sample", norm = TRUE,  ncol = 2, nrow = NULL, ...){
 
+  # check object
+  if(!inherits(object, "VoltRon"))
+    stop("Please provide a VoltRon object!")
+
   # features
   if(is.null(features))
     stop("You have to define at least one feature")
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
-
-  # list of plots
-  gg <- list()
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1104,7 +1118,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
     } else if(x %in% colnames(metadata)){
       return(metadata[,x])
     } else{
-      stop("Feature ", x, " cannot be found in data or metadata!")
+      stop("Feature '", x, "' cannot be found in data or metadata!")
     }
   })
   datax <- as.data.frame(do.call(cbind, datax))
@@ -1121,13 +1135,13 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
     if(x.label %in% colnames(metadata)){
       x.label <- factor(metadata[[x.label]])
     } else {
-      stop("Column ", x.label, " cannot be found in metadata!")
+      stop("Column '", x.label, "' cannot be found in metadata!")
     }
   }
   if(group.by %in% colnames(metadata)){
     group.by.col <- factor(metadata[[group.by]])
   } else {
-    stop("Column ", group.by, " cannot be found in metadata!")
+    stop("Column '", group.by, "' cannot be found in metadata!")
   }
 
   # plotting data
@@ -1168,11 +1182,12 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 #'
 vrProportionPlot <- function(object, assay = NULL, x.label = NULL, ...){
 
+  # check object
+  if(!inherits(object, "VoltRon"))
+    stop("Please provide a VoltRon object!")
+
   # sample metadata
   sample.metadata <- SampleMetadata(object)
-
-  # list of plots
-  gg <- list()
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
