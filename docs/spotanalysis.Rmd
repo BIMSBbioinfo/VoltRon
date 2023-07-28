@@ -37,20 +37,20 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 # Downstream Analysis on Cells
 
-VoltRon is an end-to-end spatial data analysis package which supports investigating spatial points in any level of resoluion including single cell. VoltRon includes essential **built-in functions capable of filtering, processing and clustering as well as visualizing** spatial datasets with a goal of cell type discovery and annotation. 
+VoltRon is an end-to-end spatial data analysis package which also supports investigating spatial points in single cell resolution. VoltRon includes essential built-in functions capable of **filtering**, **processing** and **clustering** as well as **visualizing** spatial datasets with a goal of cell type discovery and annotation. 
 
-In this use case, we analyze cells segmented from microscopy images collected from **control and COVID-19 lung tissues** of donors categorized based on disease durations (control, acute and prolonged). Each image is associated with one of few field of views (FOVs) of a single tissue section of a donor. See [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information. You can download the **IFdata.csv** file and the folder with the **DAPI** images [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/MELC/GSE190732.zip). 
+In this use case, we analyze segmented cells over microscopy images collected from **control** and **COVID-19** lung tissues of donors categorized based on disease durations (**control**, **acute**, **chronic** and **prolonged**). Each image is associated with one of few field of views (FOVs) from a single tissue section of a donor. See [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information. You can download the **IFdata.csv** file and the folder with the **DAPI** images [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/MELC/GSE190732.zip). 
 
-We analyze cells characterized by **multi-epitope ligand cartography (MELC)** with a panel of 44 parameters. We use the already segmented cells on which expression of **43 protein features** were mapped to these cells. 
+We analyze cells characterized by **multi-epitope ligand cartography (MELC)** with a panel of 44 parameters. We use the already segmented cells on which expression of **43 protein features** (excluding DAPI) were mapped to these cells. 
 
-We first import the protein intensities, metadata and coordinates associated with segmented cells across FOVs of samples.
+We import the **protein intensities**, **metadata** and **coordinates** associated with segmented cells across FOVs of samples.
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
 IFdata <- read.csv("IFdata.csv")
 data <- IFdata[,c(2:43)]
-metadata <- IFdata[,c("disease_state", "object_id", "cluster", "Clusters", 
-                      "SourceID", "BioSample", "FOV", "Sample")]
+metadata <- IFdata[,c("disease_state", "object_id", "cluster", "Clusters",
+                      "SourceID", "Sample", "FOV", "Section")]
 coordinates <- as.matrix(IFdata[,c("posX","posY")], rownames.force = TRUE)
 ```
 
@@ -64,10 +64,11 @@ First, we normalize the data using the hyperbolic arcsine function with a scale 
 data <- asinh(data/0.2)
 ```
 
-Before analyzing MELC assays across FOVs, we should define a VoltRon object for each individual FOV/Section by using the **formVoltron** function. We then merge these sections to respective tissue blocks using the sample of origins. We can also define **assay names, assay types and sample (i.e. block) names** of these objects. 
+Before analyzing MELC assays across FOVs, we should **build a VoltRon object** for each individual FOV/Section by using the **formVoltron** function. We then merge these sections to respective tissue blocks by defining their samples of origins. We can also define **assay names**, **assay types** and **sample (i.e. block) names** of these objects. 
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 library(dplyr)
+library(magick)
 vr_list <- list()
 sample_metadata <- metadata %>% select(Sample, FOV, Section) %>% distinct()
 for(i in 1:nrow(sample_metadata)){
@@ -77,20 +78,20 @@ for(i in 1:nrow(sample_metadata)){
   vr_list[[vrassay$Section]] <- formVoltRon(data = t(data[cells,]), 
                                             metadata = metadata[cells,],
                                             image = image, 
-                                            coordinates = coordinates[cells,],
+                                            coords = coordinates[cells,],
                                             main.assay = "MELC", 
                                             assay.type = "cell",
                                             sample_name = vrassay$Section)
 }
 ```
 
-Before moving forward with merging sections, we should flip the coordinates of cells and perhaps also then resize these images. The main reason for this coordinate flipping is that the y-axis of most digital images are of the opposite direction to the commonly used coordinate spaces. Hence, VoltRon offers the option to flip coordinates of spatial points with respect to the image using **flipCoordinates** function. 
+Before moving forward with merging sections, we should **flip coordinates** of cells and perhaps also then **resize** these images. The main reason for this coordinate flipping is that the y-axis of most digital images are of the opposite direction to the commonly used coordinate spaces. Hence, VoltRon offers the option to flip coordinates of spatial points with respect to the image using **flipCoordinates** function. 
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 for(i in 1:nrow(sample_metadata)){
   vrassay <- sample_metadata[i,]
-  vr_list[[vrassay$Sample]] <- flipCoordinates(vr_list[[vrassay$Sample]])
-  vr_list[[vrassay$Sample]] <- resizeImage(vr_list[[vrassay$Sample]], size = 600)
+  vr_list[[vrassay$Sample]] <- flipCoordinates(vr_list[[vrassay$Section]])
+  vr_list[[vrassay$Sample]] <- resizeImage(vr_list[[vrassay$Section]], size = 600)
 }
 ```
 
@@ -126,21 +127,21 @@ Lets visualize some protein features on tissue sections. We can either use the D
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 vr_subset <- subset(vr_merged, samples = "control_case_1")
-g1 <- vrSpatialFeaturePlot(vr_subset, features = c("CollagenIV", "CD11b"), alpha = 1, pt.size = 0.7)
+vrSpatialFeaturePlot(vr_subset, features = c("CollagenIV", "CD11b"), alpha = 1, pt.size = 0.7)
 ```
 
 <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatialfeature.png" class="center">
 
 <br>
 
-VoltRon is capable of reducing dimensionality of assay datasets using both PCA and UMAP which we gonna use to build neighborhood graphs and partition the data in cell types.  
+VoltRon is capable of reducing dimensionality of datasets using both PCA and UMAP which we gonna use to build neighborhood graphs and partition the data into cell types.  
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 vr_merged <- getPCA(vr_merged, dims = 10)
 vr_merged <- getUMAP(vr_merged, dims = 1:10)
 ```
 
-We can also visualize the expression and measure of these features on embedding spaces. 
+We can also visualize the normalized expression of these features on embedding spaces using **vrEmbeddingFeaturePlot** function. 
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 vrEmbeddingFeaturePlot(vr_merged, features = c("CollagenIV", "CD11b"), embedding = "umap")
@@ -152,7 +153,7 @@ vrEmbeddingFeaturePlot(vr_merged, features = c("CollagenIV", "CD11b"), embedding
 
 ## Clustering
 
-Next, we build neighborhood graphs with the k-nearest neighbors of cells which are represented by dimensionally reduced gene expression profiles. We can conduct a clustering of cells using leiden's method. 
+Next, we build neighborhood graphs with the **k-nearest neighbors of cells** which are constructed by dimensionally reduced gene expression profiles. We can conduct a clustering of cells using the **leiden's method** from the igraph package. 
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 vr_merged <- getNeighbors(vr_merged, dims = 1:10, k = 10, method = "kNN")
@@ -162,7 +163,8 @@ vr_merged <- getClusters(vr_merged, resolution = 0.8, label = "MELC_Clusters")
 Now we can visualize these clusters and perhaps also check for clusters that may reside in only specific disease conditions. 
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-Metadata(vr_merged)$Condition <- gsub("_[0-9]$", "", Metadata(vr_merged)$Sample)
+library(patchwork)
+vr_merged$Condition <- gsub("_[0-9]$", "", vr_merged$Sample)
 g1 <- vrEmbeddingPlot(vr_merged, group.by = c("Condition"), embedding = "umap")
 g2 <- vrEmbeddingPlot(vr_merged, group.by = c("MELC_Clusters"), embedding = "umap", 
                       label = TRUE)
@@ -175,9 +177,10 @@ g1 | g2
 
 ## Visualization
 
-VoltRon provides both violin plots (vrViolinPlot) and heatmaps (vrHeatmapPlot) to further investigate the enrichment of markers across newly clustered datasets. 
+VoltRon provides both violin plots (**vrViolinPlot**) and heatmaps (**vrHeatmapPlot**) to further investigate the enrichment of markers across newly clustered datasets. **Note:** the vrHeatmapPlot function would require you to have the **ComplexHeatmap** package in your namespace. 
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
+library(ComplexHeatmap)
 vrHeatmapPlot(vr_merged, features = vrFeatures(vr_merged), 
               group.by = "MELC_Clusters", show_row_names = TRUE)
 ```

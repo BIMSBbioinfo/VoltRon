@@ -29,7 +29,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     centre <- floor(stats::median(1:length(spatdata_list)))
     register_ind <- setdiff(1:length(spatdata_list), centre)
 
-  # reference vs query mode
+    # reference vs query mode
   } else {
 
     spatdata_list <- list(reference_spatdata, query_spatdata)
@@ -238,7 +238,7 @@ getRegisteredImageTabPanels <- function(len_images, centre, register_ind){
   do.call(tabsetPanel, c(id='image_tab_panel_reg_query',lapply(register_ind, function(i) {
     tabPanel(paste0("Reg. ",i, "->", centre),
              br(),
-             column(6, sliderInput(paste0("plot_query_reg_alpha",i), label = "Alpha Level", min = 0, max = 1, value = 0.2)),
+             # column(6, sliderInput(paste0("plot_query_reg_alpha",i), label = "Alpha Level", min = 0, max = 1, value = 0.2)),
              fluidRow(
                column(12, align="center",
                       imageOutput(paste0("plot_query_reg",i))
@@ -327,7 +327,7 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, ..
     registered_vr <- getRegisteredObjectListVoltRon(obj_list, mapping_list, register_ind, centre, ...)
     return(registered_vr)
 
-  # check if elements are Seurat
+    # check if elements are Seurat
   } else if(all(sapply(obj_list, class) == "Seurat")) {
     registered_seu <- getRegisteredObjectListSeurat(obj_list, mapping_list, register_ind, centre, ...)
     return(registered_seu)
@@ -345,6 +345,7 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, ..
 #' @param reg_mode the registration mode, either "auto" or "manual"
 #'
 #' @importFrom Morpho applyTransform
+#' @importFrom magick image_info
 #'
 getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centre, reg_mode = "manual"){
 
@@ -360,7 +361,7 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
       if(reg_mode == "manual"){
         coords <- Morpho::applyTransform(coords, cur_mapping)
       } else {
-        info <- image_info(vrImages(registered_sr[[i]])[[1]])
+        info <- magick::image_info(vrImages(registered_sr[[i]]))
         coords[,2] <- info$height - coords[,2]
         coords <- perspectiveTransform(coords, cur_mapping)
         coords[,2] <- info$height - coords[,2]
@@ -549,19 +550,21 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, inpu
       # listen to click operations for reference/query plots
       observeEvent(input[[paste0("click_plot_", type ,i)]], {
 
+        # insert keypoint to associated table
+        ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
+
         # get and transform keypoints
         keypoint <- data.frame(x = input[[paste0("click_plot_",type,i)]]$x,
                                y = input[[paste0("click_plot_",type,i)]]$y)
-        if(is.reactive(image_list[[i]])){
-          image <- image_list[[i]]()
+        if(is.reactive(image_list[[ref_ind]])){
+          image <- image_list[[ref_ind]]()
         } else {
-          image <- image_list[[i]]
+          image <- image_list[[ref_ind]]
         }
         image <- image[[type]]
         keypoint <- transformKeypoints(image, keypoint, paste0(type, "_image",i), input, session)
 
         # insert keypoint to associated table
-        ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
         temp <- xyTable_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]]
         temp <- temp %>%
           add_row(KeyPoint = nrow(temp)+1, x = keypoint$x, y = keypoint$y)
@@ -845,9 +848,14 @@ transformImageQueryList <- function(image_list, input, session){
   trans_query_list <- lapply(1:len_register, function(i){
     reactive({
       list(ref = transformImage(image_list[[i]], paste0("ref_image",i), input, session),
-           query = transformImage(image_list[[i+1]], paste0("query_image",i), input, session))
+           query = transformImage(image_list[[i+1]], paste0("query_image",i+1), input, session))
     })
   })
+
+  ####
+  names(trans_query_list) <- paste0(1:(length(image_list)-1),"-",2:length(image_list)) # REMOVE LATER, or decide not to
+  ####
+
   return(trans_query_list)
 }
 
@@ -907,10 +915,18 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
 
       # Check keypoints
       keypoints_check_flag <- sapply(keypoints_list, function(key_list){
+        nrow(key_list$ref) > 0 | nrow(key_list$query) > 0
+      })
+      if(!all(unlist(keypoints_check_flag))){
+        showNotification("Please select keypoints for all images\n")
+        return(NULL)
+      }
+
+      keypoints_check_flag <- sapply(keypoints_list, function(key_list){
         nrow(key_list$ref) == nrow(key_list$query)
       })
       if(!all(unlist(keypoints_check_flag))){
-        showNotification("The number of reference and query keypoints should be equal for all pairwise spatial datasets \n")
+        showNotification("The number of reference and query keypoints should be equal! \n")
         return(NULL)
       }
 
@@ -1041,7 +1057,7 @@ getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, in
 }
 
 ####
-# Manual Image Registration ####
+# Automated Image Registration ####
 ####
 
 #' getManualRegisteration

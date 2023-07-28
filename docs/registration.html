@@ -436,16 +436,14 @@ body {
 spatial readouts, even though the tissue slices are from adjacent
 sections of a single tissue block. Hence, the alignment of images and
 spatial coordinates across tissue sections are of utmost importance to
-dissect the correct spatial closeness across</p>
-<p>Hence, any spatial data analysis across entities (ROIs, spots, cells,
-molecules etc.) would be inconclusive due to</p>
+dissect the correct spatial closeness across these sections.</p>
 <p>VoltRon allows users to <strong>align spatial omics datasets of these
 serial sections</strong> for data transfer and 3 dimensional stack
 alignment. The order of the tissue/sample slices should be provided by
 the user. VoltRon provides a fully embedded <strong>shiny
 application</strong> to either automatically or manually align images.
-The automatic alignment is achieved by the <strong>OpenCV</strong>’s C++
-library fully embedded in the VoltRon package.</p>
+The automatic alignment is achieved with the <strong>OpenCV</strong>’s
+C++ library fully embedded in the VoltRon package.</p>
 <table>
 <tbody>
 <tr style="vertical-align: center">
@@ -463,55 +461,88 @@ library fully embedded in the VoltRon package.</p>
 <h2>Alignment of Xenium and Visium</h2>
 <p>In this use case, we will align <strong>immunofluorescence
 (IF)</strong> and <strong>H&amp;E images</strong> of the <strong>Xenium
-In Situ and Visium CytAssist platforms</strong> readouts. Three tissue
-sections are derived from a single formalin-fixed, paraffin-embedded
-(FFPE) breast cancer tissue block. A 5 <span
-class="math inline">\(\mu\)</span>m section was taken for Visium
+In Situ</strong> and <strong>Visium CytAssist</strong> platforms
+readouts. Three tissue sections are derived from a single
+formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. A 5
+<span class="math inline">\(\mu\)</span>m section was taken for Visium
 CytAssist and two replicate 5 <span class="math inline">\(\mu\)</span>m
-sections were taken for the Xenium replicates.</p>
-<p>Xenium and Visium readouts can be downloaded from <a
-href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">here</a>
-(specifically, import <strong>In Situ Replicate 1/2 and Visium
-Spatial</strong>). Alternatively, you can <strong>download a zipped
-collection of three Visium and Xenium readouts</strong> from <a
-href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip">here</a>.
-More information on the spatial datasets and the study can be also be
-found on the <a
+sections were taken for the Xenium replicates. More information on the
+spatial datasets and the study can be also be found on the <a
 href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">BioArxiv
 preprint</a>.</p>
-<p>VoltRon includes built-in functions to converting single readouts
-from Xenium and Visium platforms into VoltRon objects. We will import
-both Xenium replicates alongside with the Visium CytAssist data so that
-we can register images of these assays and merge them into one VoltRon
+<p>You can download the Xenium and Visium readouts from the <a
+href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
+Genomics website</a> (specifically, import <strong>In Situ Replicate 1/2
+and Visium Spatial</strong>). Alternatively, you can <strong>download a
+zipped collection of three Visium and Xenium readouts</strong> from <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip">here</a>.</p>
+<p>VoltRon includes built-in functions for converting readouts from both
+Xenium and Visium platforms into VoltRon objects. We will import both
+Xenium replicates alongside with the Visium CytAssist data so that we
+can register images of these assays and merge them into one VoltRon
 object.</p>
 <pre class="r watch-out"><code>library(VoltRon)
-Xen_seu_R1 &lt;- importXenium(&quot;XeniumR1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
-Xen_seu_R2 &lt;- importXenium(&quot;XeniumR2/outs&quot;, sample_name = &quot;XeniumR2&quot;)
-Vis_seu &lt;- importVisium(&quot;VisiumR1/outs&quot;, sample_name = &quot;VisiumR1&quot;)</code></pre>
+Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
+Xen_R2 &lt;- importXenium(&quot;Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;)
+Vis &lt;- importVisium(&quot;Visium/&quot;, sample_name = &quot;VisiumR1&quot;)</code></pre>
+<p>Before moving on to image alignment, we can inspect both Xenium and
+Visium images. We use the vrImages() function to call and visualize
+reference images of all VoltRon objects.</p>
+<pre class="r watch-out"><code>vrImages(Xen_R1)
+vrImages(Xen_R2)
+vrImages(Vis)</code></pre>
+<table>
+<tbody>
+<tr style="vertical-align: center">
+<td style="width:33%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/xeniumr1.png" class="center">
+</td>
+<td style="width:33%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/xeniumr2.png" class="center">
+</td>
+<td style="width:33%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/visium.png" class="center">
+</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>Although images of the first Xenium replicate and the Visium assay
+are workable, we have to adjust the brightness of the second Xenium
+replicate before image alignment. You can use
+<strong>modulateImage</strong> function to change the brightness and`
+saturation of the reference image of this VoltRon object. This
+functionality is optional for VoltRon objects and should be used when
+images require further adjustments.</p>
+<pre class="r watch-out"><code>Xen_R2 &lt;- modulateImage(Xen_R2, brightness = 800)
+vrImages(Xen_R2)</code></pre>
+<p><img width="40%" height="40%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/xeniumr2_new.png" class="center"></p>
 <p><br></p>
 <div id="manual-image-alignment" class="section level3">
 <h3>Manual Image Alignment</h3>
 <p>In order to achieve data transfer and integration across these two
-modalities, we need to first make sure that spatial coordinate spaces of
-these three datasets are aligned. For this, we will make use of the
-<strong>registerSpatialData</strong> function which calls a small
+modalities, we need to first make sure that spatial coordinates of these
+three datasets are perfectly aligned. To this end, we will make use of
+the <strong>registerSpatialData</strong> function which calls a
 <strong>shiny app</strong> embedded into VoltRon. The function takes a
 single list as an input where the order of VoltRon objects in the list
 should be the same as the <strong>order of serial sections</strong>.</p>
 <p>In this example, we will <strong>manually choose keypoints (or
-landmarks)</strong> that are observed to be common across pairs of
-images. The image in the middle (Visium CytAssist) would be taken as the
-image of reference, and hence all other images (or spatial datasets) are
-to be aligned to the Visium data. <strong>registerSpatialData</strong>
-will return a list of VoltRon objects whose assays include both the
-original and registered versions of spatial coordinates and images.</p>
-<pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(data_list = list(Xen_seu_R1, Vis_seu, Xen_seu_R2))</code></pre>
+landmarks)</strong> on images that are locations on the tissue with
+structural/morphological similarity. The Visium CytAssist image would be
+taken as the image of reference, and hence all other images (or spatial
+datasets) are to be aligned to the Visium data. Then,
+<strong>registerSpatialData</strong> will return a list of VoltRon
+objects whose assays include both the original and registered versions
+of spatial coordinates.</p>
+<pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration.gif" class="center"></p>
-<p>You can use the same keypoints you have selected in the first run,
-and reproduce the manual alignment without choosing for the second
-time.</p>
+<p>You can save and use the same keypoints later, and reproduce the
+manual alignment without choosing keypoints for the second time. You can
+find a presaved set of keypoints <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/keypoints.rds">here</a>.</p>
 <pre class="r watch-out"><code>keypoints &lt;- xen_reg$keypoints
-xen_reg &lt;- registerSpatialData(data_list = list(Xen_seu_R1, Vis_seu, Xen_seu_R2), keypoints = keypoints)</code></pre>
+xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), keypoints = keypoints)</code></pre>
 <p><br></p>
 </div>
 <div id="combine-voltron-object" class="section level3">
@@ -524,11 +555,11 @@ the same sample, hence we define the sample name as well. VoltRon will
 recognize that all layers are originated from the same sample/block, and
 choose the majority assay as the main assay.</p>
 <pre class="r watch-out"><code>merge_list &lt;- xen_reg$registered_spat
-SRBlock &lt;- merge(merge_list[[1]], merge_list[-1], sample_name = &quot;10XBlock&quot;)
+SRBlock &lt;- merge(merge_list[[1]], merge_list[-1], samples = &quot;10XBlock&quot;)
 SRBlock</code></pre>
 <pre><code>10XBlock: 
   Layers: Section1 Section2 Section3 
-Assays: Xenium (Main) Visium</code></pre>
+Assays: Xenium(Main) Visium</code></pre>
 <p><br></p>
 </div>
 <div id="datalabel-transfer" class="section level3">
@@ -536,26 +567,27 @@ Assays: Xenium (Main) Visium</code></pre>
 <p>The combined VoltRon object of Visium and Xenium datasets can be used
 to transfer information across layers and assays. This is accomplished
 by aggregating and summarizing, for example, gene counts of cells from
-the Xenium assay aligned with each spots of Visium assay.</p>
-<p>Either labels or cell types can be summarized to generate;</p>
+the Xenium assay aligned to Visium spots. Either labels or cell types
+can be summarized to generate <strong>(under development)</strong>;</p>
 <ul>
 <li>pseudo cell type abundance assays or</li>
-<li>pseudo gene expression assays</li>
+<li>pseudo gene expression assays.</li>
 </ul>
-<p>given the same spot orientation of the adjacent Visium layer
-<strong>(under development)</strong>.</p>
 <p><br></p>
 </div>
 </div>
 <div id="alignment-of-dlpfc-visium" class="section level2">
 <h2>Alignment of DLPFC Visium</h2>
-<p>In the next use case, we will align H&amp;E images associated with
-Visium data generated from tissue block sections of adult humans with
-postmortem dorsolateral prefrontal cortex (DLPFC). Two pairs of adjacent
-sections, that are 10 <span class="math inline">\(\mu\)</span>m away
-from each other, was obtained from the tissue block of the third donor.
-Hence, we align each pair individually. The datasets can be download
-from <a href="https://research.libd.org/spatialLIBD/">here</a>.</p>
+<p>In the next use case, we will align <strong>H&amp;E images</strong>
+associated with Visium data generated from tissue block sections of
+<strong>adult humans with postmortem dorsolateral prefrontal cortex
+(DLPFC)</strong>. Two pairs of adjacent sections was obtained from the
+tissue block of the third donor. Each pair are composed of two 10 <span
+class="math inline">\(\mu\)</span>m serial tissue sections, and pairs
+are located 300 <span class="math inline">\(\mu\)</span>m apart from
+each other. Hence, we align each pair individually. The datasets can be
+downloaded from <a
+href="https://research.libd.org/spatialLIBD/">here</a>.</p>
 <pre class="r watch-out"><code>library(VoltRon)
 DLPFC_1 &lt;- importVisium(&quot;DLPFC/151673&quot;, sample_name = &quot;DLPFC_1&quot;)
 DLPFC_2 &lt;- importVisium(&quot;DLPFC/151674&quot;, sample_name = &quot;DLPFC_2&quot;)
@@ -564,15 +596,14 @@ DLPFC_4 &lt;- importVisium(&quot;DLPFC/151676&quot;, sample_name = &quot;DLPFC_4
 <p><br></p>
 <div id="automated-image-alignment" class="section level3">
 <h3>Automated Image Alignment</h3>
-<p>We will use the registerSpatialData function to <strong>automatically
-register two Visium assays (two H&amp;E images)</strong> without
-choosing the landmark points. The shiny app will provide <strong>two
-images</strong> for this task:</p>
+<p>We will again use the registerSpatialData function to
+<strong>automatically register two Visium assays (two H&amp;E
+images)</strong>, but without choosing any landmark points. The shiny
+app will provide <strong>two images</strong> for this task:</p>
 <ul>
-<li>An image that shows the automated matched points across two images,
-and</li>
-<li>A slideshow with both registered images that demonstrates the
-accuracy of the alignment.</li>
+<li>An image that shows the matched points across two images, and</li>
+<li>A slideshow with of the reference and registered images that
+demonstrates the alignment accuracy.</li>
 </ul>
 <p>This app also provide two tuning parameters that used by the
 <strong>OpenCV’s image registration</strong> workflow fully embedded in
@@ -580,7 +611,7 @@ VoltRon:</p>
 <ul>
 <li><strong># of Features</strong> option specifies the number of
 maximum image features spotted within each image which later be used to
-match these across multiple images.</li>
+match to the other image.</li>
 <li><strong>Match %</strong> specifies the percentage of these features
 matching at max which in turn used to compute the
 registration/transformation matrix.</li>
@@ -588,28 +619,31 @@ registration/transformation matrix.</li>
 <p>The registration matrix is used to convert the spatial coordinates of
 the VoltRon object to align coordinates to a single reference.</p>
 <p>We will use <strong>1000 features</strong> for this alignment, set
-<strong>Match %</strong> to %20 of the features to be matched across
+<strong>Match %</strong> to 20% of the features to be matched across
 images. The quality of the alignment will be determined by the fine
 tuning of these parameters where users will immediately observe the
-alignment quality by sliding registered images.</p>
+alignment quality looking at the slideshow.</p>
 <pre class="r watch-out"><code>DLPFC_list &lt;- list(DLPFC_1, DLPFC_2)
-reg1and2 &lt;- registerSpatialData(data_list = DLPFC_list)</code></pre>
+reg1and2 &lt;- registerSpatialData(object_list = DLPFC_list)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/VisiumDLFPCRegistration.gif" class="center"></p>
 <p><br></p>
 <p>We can now apply a similar alignment across the second pair of
-VoltRon objects. We will use 800 features for this alignment, set “Match
-%” to %50 of the features to be matched across images.</p>
+VoltRon objects. We will use <strong>800 features</strong> for this
+alignment, set <strong>Match %</strong> to 50% of the features to be
+matched across images.</p>
 <pre class="r watch-out"><code>DLPFC_list &lt;- list(DLPFC_3, DLPFC_4)
-reg3and4 &lt;- registerSpatialData(data_list = DLPFC_list)</code></pre>
+reg3and4 &lt;- registerSpatialData(object_list = DLPFC_list)</code></pre>
 <p><br></p>
 </div>
 <div id="combine-voltron-object-1" class="section level3">
 <h3>Combine VoltRon object</h3>
-<p>There are two pairs of adjacent sections which we aligned each pairs
-separately. We can combine these two lists into one list and merge
-VoltRon objects.</p>
+<p>We can now combine all sections into one VoltRon object. There are
+two pairs of serial tissue sections, but both pairs (thus 4 sections)
+are from the same tissue block. Hence, we can combine these two lists
+into one list and merge VoltRon objects even though sections were
+aligned separately.</p>
 <pre class="r watch-out"><code>merge_list &lt;- c(reg1and2$registered_spat, reg3and4$registered_spat)
-SRBlock &lt;- merge(merge_list[[1]], merge_list[-1], sample_name = &quot;DLPFC_Block&quot;)
+SRBlock &lt;- merge(merge_list[[1]], merge_list[-1], samples = &quot;DLPFC_Block&quot;)
 SRBlock</code></pre>
 <pre><code>VoltRon Object 
 10XBlock: 
@@ -619,11 +653,11 @@ Assays: Visium (Main) </code></pre>
 </div>
 <div id="d-spot-clustering" class="section level3">
 <h3>3D Spot Clustering</h3>
-<p>Aligning spots along the z-stack allows us to cluster these spots
+<p>Aligning spots along the z dimension allows us to cluster these spots
 using both the gene expression similarities and spatial adjacency (both
 along the x-y direction and in the z direction). We first generate a
 spatial neighborhood graph and use this graph along with the gene
-expression neighborhood graph <strong>(under Development)</strong>.</p>
+expression neighborhood graph <strong>(under development)</strong>.</p>
 </div>
 </div>
 </div>

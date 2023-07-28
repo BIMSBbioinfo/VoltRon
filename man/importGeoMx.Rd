@@ -21,7 +21,7 @@ importGeoMx(
 
 \item{pkc.file}{path to the pkc file}
 
-\item{summarySegment}{the annotation excel file}
+\item{summarySegment}{the metadata csv (sep = ";") or excel file, if the file is an excel file, \code{summarySegmentSheetName} should be provided as well.}
 
 \item{summarySegmentSheetName}{the sheet name of the excel file, \code{summarySegment}}
 
