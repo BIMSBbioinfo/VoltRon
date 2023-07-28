@@ -72,7 +72,12 @@ vrImages.Seurat <- function(seu, ...){
 #' @export
 #'
 vrImages.VoltRon <- function(object, ...){
-  sapply(object@samples, function(samp) vrImages(samp), USE.NAMES = TRUE)
+  images <- sapply(object@samples, function(samp) vrImages(samp), USE.NAMES = TRUE)
+  if(length(images) == 1){
+    return(images[[1]])
+  } else {
+    return(images)
+  }
 }
 
 #' @param object A vrSample object
@@ -216,6 +221,39 @@ resizeImage.vrAssay <- function(object, size){
   # resize images
   size <- paste0(size,"x")
   vrImages(object) <- image_resize(vrImages(object), geometry = size)
+
+  # return
+  return(object)
+}
+
+#' @rdname modulateImage
+#' @method modulateImage VoltRon
+#'
+#' @export
+#'
+modulateImage.VoltRon <- function(object, ...){
+  sample.metadata <- SampleMetadata(object)
+  assay_names <- rownames(sample.metadata)
+  for(assy in assay_names){
+    object[[assy]] <- modulateImage(object[[assy]], ...)
+  }
+  return(object)
+}
+
+#' @param brightness modulation of brightness as percentage of the current value (100 for no change)
+#' @param saturation modulation of saturation as percentage of the current value (100 for no change)
+#' @param hue modulation of hue is an absolute rotation of -180 degrees to +180 degrees from the current position corresponding to an argument range of 0 to 200 (100 for no change)
+#'
+#' @rdname modulateImage
+#' @method modulateImage vrAssay
+#'
+#' @importFrom magick image_info image_resize
+#' @export
+#'
+modulateImage.vrAssay <- function(object, brightness = 100, saturation = 100, hue = 100){
+
+  # modulate image
+  vrImages(object) <- magick::image_modulate(vrImages(object), brightness = brightness, saturation = saturation, hue = hue)
 
   # return
   return(object)

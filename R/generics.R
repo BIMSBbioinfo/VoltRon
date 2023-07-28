@@ -488,3 +488,19 @@ vrImages <- function(object, ...) {
 resizeImage <- function(object, ...) {
   UseMethod(generic = 'resizeImage', object = object)
 }
+
+#' modulateImage
+#'
+#' Modulating Magick images
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{modulateImage}: The name of the default assay
+#'
+#' @rdname modulateImage
+#' @export modulateImage
+#'
+modulateImage <- function(object, ...) {
+  UseMethod(generic = 'modulateImage', object = object)
+}

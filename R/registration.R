@@ -345,6 +345,7 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, ..
 #' @param reg_mode the registration mode, either "auto" or "manual"
 #'
 #' @importFrom Morpho applyTransform
+#' @importFrom magick image_info
 #'
 getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centre, reg_mode = "manual"){
 
@@ -360,7 +361,7 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
       if(reg_mode == "manual"){
         coords <- Morpho::applyTransform(coords, cur_mapping)
       } else {
-        info <- image_info(vrImages(registered_sr[[i]])[[1]])
+        info <- magick::image_info(vrImages(registered_sr[[i]]))
         coords[,2] <- info$height - coords[,2]
         coords <- perspectiveTransform(coords, cur_mapping)
         coords[,2] <- info$height - coords[,2]
@@ -914,10 +915,18 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
 
       # Check keypoints
       keypoints_check_flag <- sapply(keypoints_list, function(key_list){
+        nrow(key_list$ref) > 0 | nrow(key_list$query) > 0
+      })
+      if(!all(unlist(keypoints_check_flag))){
+        showNotification("Please select keypoints for all images\n")
+        return(NULL)
+      }
+
+      keypoints_check_flag <- sapply(keypoints_list, function(key_list){
         nrow(key_list$ref) == nrow(key_list$query)
       })
       if(!all(unlist(keypoints_check_flag))){
-        showNotification("The number of reference and query keypoints should be equal for all pairwise spatial datasets \n")
+        showNotification("The number of reference and query keypoints should be equal! \n")
         return(NULL)
       }
 
@@ -1048,7 +1057,7 @@ getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, in
 }
 
 ####
-# Manual Image Registration ####
+# Automated Image Registration ####
 ####
 
 #' getManualRegisteration
