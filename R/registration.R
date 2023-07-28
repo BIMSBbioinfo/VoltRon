@@ -238,7 +238,7 @@ getRegisteredImageTabPanels <- function(len_images, centre, register_ind){
   do.call(tabsetPanel, c(id='image_tab_panel_reg_query',lapply(register_ind, function(i) {
     tabPanel(paste0("Reg. ",i, "->", centre),
              br(),
-             column(6, sliderInput(paste0("plot_query_reg_alpha",i), label = "Alpha Level", min = 0, max = 1, value = 0.2)),
+             # column(6, sliderInput(paste0("plot_query_reg_alpha",i), label = "Alpha Level", min = 0, max = 1, value = 0.2)),
              fluidRow(
                column(12, align="center",
                       imageOutput(paste0("plot_query_reg",i))

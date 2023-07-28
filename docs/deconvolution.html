@@ -466,8 +466,6 @@ into one VoltRon object. There are four sections in total given two
 serial anterior and serial posterior sections, hence we have <strong>two
 tissue blocks each having two layers</strong>.</p>
 <pre class="r watch-out"><code>library(VoltRon)
-
-# import Visium data
 Ant_Sec1 &lt;- importVisium(&quot;../data/10X_Visium_Mouse_Brain/Sagittal_Anterior/Section1/&quot;, 
                          sample_name = &quot;Anterior1&quot;)
 Ant_Sec2 &lt;- importVisium(&quot;../data/10X_Visium_Mouse_Brain/Sagittal_Anterior/Section2/&quot;, 
@@ -512,6 +510,7 @@ drop some cell types with extremely few number of cells (e.g. “CR”).</p>
 allen_reference &lt;- readRDS(&quot;allen_cortex.rds&quot;)
 
 # process and reduce dimensionality
+library(dplyr)
 allen_reference &lt;- SCTransform(allen_reference, ncells = 3000, verbose = FALSE) %&gt;%
   RunPCA(verbose = FALSE) %&gt;%
   RunUMAP(dims = 1:30)
@@ -537,10 +536,7 @@ is accessible with the <a
 href="https://github.com/dmcable/spacexr">spacexr</a> package. For all
 layers with a Visium data, an additional assay within the same layer
 with **_decon** postfix will be created.</p>
-<pre class="r watch-out"><code># libraries for RCTD algorithm
-library(spacexr)
-
-# Deconvolute anterior and posterior Visium spots
+<pre class="r watch-out"><code>library(spacexr)
 MBrain_Sec &lt;- getDeconvolution(MBrain_Sec, sc.object = allen_reference, 
                                sc.cluster = &quot;subclass&quot;, max_cores = 6)
 MBrain_Sec</code></pre>
