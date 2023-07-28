@@ -549,19 +549,21 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, inpu
       # listen to click operations for reference/query plots
       observeEvent(input[[paste0("click_plot_", type ,i)]], {
 
+        # insert keypoint to associated table
+        ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
+
         # get and transform keypoints
         keypoint <- data.frame(x = input[[paste0("click_plot_",type,i)]]$x,
                                y = input[[paste0("click_plot_",type,i)]]$y)
-        if(is.reactive(image_list[[i]])){
-          image <- image_list[[i]]()
+        if(is.reactive(image_list[[ref_ind]])){
+          image <- image_list[[ref_ind]]()
         } else {
-          image <- image_list[[i]]
+          image <- image_list[[ref_ind]]
         }
         image <- image[[type]]
         keypoint <- transformKeypoints(image, keypoint, paste0(type, "_image",i), input, session)
 
         # insert keypoint to associated table
-        ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
         temp <- xyTable_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]]
         temp <- temp %>%
           add_row(KeyPoint = nrow(temp)+1, x = keypoint$x, y = keypoint$y)
