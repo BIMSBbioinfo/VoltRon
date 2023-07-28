@@ -53,8 +53,6 @@ We will now import each of four samples separately and merge them into one VoltR
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
-
-# import Visium data
 Ant_Sec1 <- importVisium("../data/10X_Visium_Mouse_Brain/Sagittal_Anterior/Section1/", 
                          sample_name = "Anterior1")
 Ant_Sec2 <- importVisium("../data/10X_Visium_Mouse_Brain/Sagittal_Anterior/Section2/", 
@@ -101,6 +99,7 @@ library(Seurat)
 allen_reference <- readRDS("allen_cortex.rds")
 
 # process and reduce dimensionality
+library(dplyr)
 allen_reference <- SCTransform(allen_reference, ncells = 3000, verbose = FALSE) %>%
   RunPCA(verbose = FALSE) %>%
   RunUMAP(dims = 1:30)
@@ -126,10 +125,7 @@ gsubclass | gclass
 In order to integrate the scRNA data and the Visium data sets within the VoltRon objects, we will use **RCTD** algorithm which is accessible with the [spacexr](https://github.com/dmcable/spacexr) package. For all layers with a Visium data, an additional assay within the same layer with **_decon** postfix will be created. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-# libraries for RCTD algorithm
 library(spacexr)
-
-# Deconvolute anterior and posterior Visium spots
 MBrain_Sec <- getDeconvolution(MBrain_Sec, sc.object = allen_reference, 
                                sc.cluster = "subclass", max_cores = 6)
 MBrain_Sec
@@ -226,7 +222,7 @@ vrSpatialPlot(MBrain_Sec, group.by = "clusters", crop = TRUE, alpha = 1)
 
 <br>
 
-We use **vrHeatmapPlot** to investigate relative cell type abundances across these niche clusters.
+We use **vrHeatmapPlot** to investigate relative cell type abundances across these niche clusters. You will need to have **ComplexHeatmap** package in your namespace.
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(ComplexHeatmap)

@@ -28,7 +28,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   datafile <- paste0(dir.path, "/cell_feature_matrix.h5")
   if(file.exists(datafile)){
     rawdata <- import10Xh5(filename = datafile)
-    if(names(rawdata) %in% selected_assay){
+    if(any(names(rawdata) %in% selected_assay)){
       rawdata <- as.matrix(rawdata[[selected_assay]])
     } else {
       stop("There are no assays called ", selected_assay, " in the h5 file!")
@@ -123,7 +123,7 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   datafile <- paste0(dir.path, "/", datafile)
   if(file.exists(datafile)){
     rawdata <- import10Xh5(filename = datafile)
-    if(names(rawdata) %in% selected_assay){
+    if(any(names(rawdata) %in% selected_assay)){
       rawdata <- as.matrix(rawdata[[selected_assay]])
     } else {
       stop("There are no assays called ", selected_assay, " in the h5 file!")

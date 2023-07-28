@@ -29,7 +29,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     centre <- floor(stats::median(1:length(spatdata_list)))
     register_ind <- setdiff(1:length(spatdata_list), centre)
 
-  # reference vs query mode
+    # reference vs query mode
   } else {
 
     spatdata_list <- list(reference_spatdata, query_spatdata)
@@ -327,7 +327,7 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, ..
     registered_vr <- getRegisteredObjectListVoltRon(obj_list, mapping_list, register_ind, centre, ...)
     return(registered_vr)
 
-  # check if elements are Seurat
+    # check if elements are Seurat
   } else if(all(sapply(obj_list, class) == "Seurat")) {
     registered_seu <- getRegisteredObjectListSeurat(obj_list, mapping_list, register_ind, centre, ...)
     return(registered_seu)
@@ -845,9 +845,14 @@ transformImageQueryList <- function(image_list, input, session){
   trans_query_list <- lapply(1:len_register, function(i){
     reactive({
       list(ref = transformImage(image_list[[i]], paste0("ref_image",i), input, session),
-           query = transformImage(image_list[[i+1]], paste0("query_image",i), input, session))
+           query = transformImage(image_list[[i+1]], paste0("query_image",i+1), input, session))
     })
   })
+
+  ####
+  names(trans_query_list) <- paste0(1:(length(image_list)-1),"-",2:length(image_list)) # REMOVE LATER, or decide not to
+  ####
+
   return(trans_query_list)
 }
 
