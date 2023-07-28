@@ -485,7 +485,7 @@ object.</p>
 Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
 Xen_R2 &lt;- importXenium(&quot;Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;)
 Vis &lt;- importVisium(&quot;Visium/&quot;, sample_name = &quot;VisiumR1&quot;)</code></pre>
-<p>Before moving on the image alignment, we can inspect Xenium and
+<p>Before moving on to image alignment, we can inspect both Xenium and
 Visium images. We use the vrImages() function to call and visualize
 reference images of all VoltRon objects.</p>
 <pre class="r watch-out"><code>vrImages(Xen_R1)
@@ -507,11 +507,12 @@ vrImages(Vis)</code></pre>
 </tbody>
 </table>
 <p><br></p>
-<p>Although images of Xen_R1 of Vis objects are workable, we have to
-adjust the brightness of Xen_R2 before image alignment. You can use
-<strong>modulateImage</strong> function to change brightness and
+<p>Although images of the first Xenium replicate and the Visium assay
+are workable, we have to adjust the brightness of the second Xenium
+replicate before image alignment. You can use
+<strong>modulateImage</strong> function to change the brightness and`
 saturation of the reference image of this VoltRon object. This
-functional is optional for VoltRon objects and should be used when
+functionality is optional for VoltRon objects and should be used when
 images require further adjustments.</p>
 <pre class="r watch-out"><code>Xen_R2 &lt;- modulateImage(Xen_R2, brightness = 800)
 vrImages(Xen_R2)</code></pre>

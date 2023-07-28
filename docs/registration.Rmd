@@ -68,7 +68,7 @@ Xen_R2 <- importXenium("Xenium_R2/outs", sample_name = "XeniumR2")
 Vis <- importVisium("Visium/", sample_name = "VisiumR1")
 ```
 
-Before moving on the image alignment, we can inspect Xenium and Visium images. We use the vrImages() function to call and visualize reference images of all VoltRon objects. 
+Before moving on to image alignment, we can inspect both Xenium and Visium images. We use the vrImages() function to call and visualize reference images of all VoltRon objects. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrImages(Xen_R1)
@@ -88,7 +88,7 @@ vrImages(Vis)
 
 <br>
 
-Although images of Xen_R1 of Vis objects are workable, we have to adjust the brightness of Xen_R2 before image alignment. You can use **modulateImage** function to change brightness and saturation of the reference image of this VoltRon object. This functional is optional for VoltRon objects and should be used when images require further adjustments. 
+Although images of the first Xenium replicate and the Visium assay are workable, we have to adjust the brightness of the second Xenium replicate before image alignment. You can use **modulateImage** function to change the brightness and` saturation of the reference image of this VoltRon object. This functionality is optional for VoltRon objects and should be used when images require further adjustments. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R2 <- modulateImage(Xen_R2, brightness = 800)

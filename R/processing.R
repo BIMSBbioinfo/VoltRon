@@ -241,11 +241,13 @@ getPCA.VoltRon <- function(object, assay = NULL, dims = 30, seed = 1){
 
   # update feature matrix
   feature_data <- vrFeatureData(object)
-  feature_data <- feature_data[, !grepl("PC[0-9]+", colnames(feature_data))]
-  feature_data <- data.frame(feature_data, features = vrFeatures(object))
-  feature_data <- feature_data %>% left_join(loading_matrix)
-  vrFeatureData(object) <- data.frame(feature_data[,colnames(feature_data)[!colnames(feature_data) %in% "features"]],
-                                      row.names = feature_data$features)
+  if(nrow(feature_data) > 0){
+    feature_data <- feature_data[, !grepl("PC[0-9]+", colnames(feature_data))]
+    feature_data <- data.frame(feature_data, features = vrFeatures(object))
+    feature_data <- feature_data %>% left_join(loading_matrix)
+    vrFeatureData(object) <- data.frame(feature_data[,colnames(feature_data)[!colnames(feature_data) %in% "features"]],
+                                        row.names = feature_data$features)
+  }
 
   # set Embeddings
   vrEmbeddings(object, type = "pca") <- pr.data
@@ -279,6 +281,7 @@ getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30
   }
 
   # get umap
+  set.seed(seed)
   umap_data <- umap::umap(data, preserve.seed = seed)
   umap_data <- umap_data$layout
   colnames(umap_data) <- c("x", "y")
