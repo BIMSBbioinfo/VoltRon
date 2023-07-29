@@ -6,3 +6,5 @@ old_files
 .gitignore
 src/*.o
 src/*.so
+.DS_Store
+*/.DS_Store
