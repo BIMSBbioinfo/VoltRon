@@ -4,3 +4,5 @@
 .Ruserdata
 old_files
 .gitignore
+src/*.o
+src/*.so
