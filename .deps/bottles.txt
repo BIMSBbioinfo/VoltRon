@@ -1,8 +1,0 @@
-jpeg;https://ghcr.io/v2/homebrew/core/jpeg/blobs/sha256:27409eb75ac182025c27b4aa9c2290c40feec924cbe9edc095c754120c87bdf4
-libpng;https://ghcr.io/v2/homebrew/core/libpng/blobs/sha256:cf59cedc91afc6f2f3377567ba82b99b97744c60925a5d1df6ecf923fdb2f234
-libtiff;https://ghcr.io/v2/homebrew/core/libtiff/blobs/sha256:66d1c7e7453aba5775da8d024cda9427774bbb4acc2a0c09fe29575990467343
-tbb;https://ghcr.io/v2/homebrew/core/tbb/blobs/sha256:e90bca15b4f94460841a2f9eb15c752082f103808dd2be8fa488bc42a357ea13
-webp;https://ghcr.io/v2/homebrew/core/webp/blobs/sha256:e694b99161c42592d69ec3f08ce1f6bfe89cb9f1de4af2d5381675a0892cb766
-protobuf;https://ghcr.io/v2/homebrew/core/protobuf/blobs/sha256:dbbfa2c402ab0551e6d7adc70be7e600e44b104db1453a8d9031bb7045ff6193
-zstd;https://ghcr.io/v2/homebrew/core/zstd/blobs/sha256:faf929cf92dad72eca2b16fb5aedb695f5d291aac18b496061b8b14003b2e224
-opencv-static;https://github.com/autobrew/homebrew-cran/releases/download/opencv-static-4.7.0_1/opencv-static-4.7.0_1.arm64_big_sur.bottle.tar.gz
