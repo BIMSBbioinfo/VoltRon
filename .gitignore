@@ -9,3 +9,5 @@ src/*.so
 .DS_Store
 */.DS_Store
 configure.log
+autobrew
+.deps
