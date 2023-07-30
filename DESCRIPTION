@@ -35,8 +35,10 @@ Collate:
 Suggests:
     SingleCellExperiment,
     Seurat,
+    SeuratObject,
     DESeq2,
     MuSiC,
     spacexr, 
     RBioFormats, 
-    ComplexHeatmap
+    ComplexHeatmap, 
+    xlsx

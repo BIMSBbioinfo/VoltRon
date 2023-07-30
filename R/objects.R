@@ -87,6 +87,18 @@ setMethod(
 #' Methods for \code{\link{VoltRon}} objects for generics defined in other
 #' packages
 #'
+#' @param x A VoltRon object
+#' @param i,value Depends on the usage
+#' \describe{
+#'  \item{\code{$}, \code{$<-}}{Name (\code{i}) of a single metadata column from the main assay, see \code{vrMainAssay}}
+#'  \item{\code{[[}, \code{[[<-}}{
+#'    If only \code{i} is given, either a vrSample object or a vrAssay for \code{i} (and \code{value}) being name of the sample or assay.
+#'    If both \code{i} and \code{j} are given, vrLayer with layer name \code{j} (and \code{value}) of vrSample with same name \code{i}.
+#'  }
+#' }
+#' @param j Depends on the usage, see \code{i}.
+#' @param ... Arguments passed to other methods
+#'
 #' @name VoltRon-methods
 #' @rdname VoltRon-methods
 #'
@@ -159,17 +171,19 @@ NULL
 #' @inheritParams utils::.DollarNames
 #'
 #' @importFrom utils .DollarNames
-#' @export
 #' @method .DollarNames VoltRon
 #'
-".DollarNames.VoltRon" <- function(object, pattern = '') {
-  meta.data <- as.list(x = Metadata(object))
+".DollarNames.VoltRon" <- function(x, pattern = '') {
+  meta.data <- as.list(x = Metadata(x))
   return(.DollarNames(x = meta.data, pattern = pattern))
 }
 
 ### subset of samples and layers ####
 
 #' @describeIn VoltRon-methods Accessing vrAssay or vrSample objects from \code{VoltRon} objects
+#'
+#' @aliases [[,VoltRon-methods
+#' @docType methods
 #'
 #' @export
 #'
@@ -201,6 +215,13 @@ setMethod(
 )
 
 #' @describeIn VoltRon-methods Overwriting vrAssay or vrSample objects from \code{VoltRon} objects
+#'
+#' @aliases [[<-,VoltRon-methods
+#' @docType methods
+#'
+#' @return \code{[[<-}: \code{x} with the metadata or associated objects added
+#' as \code{i}; if \code{value} is \code{NULL}, removes metadata or associated
+#' object \code{i} from object \code{x}
 #'
 #' @export
 #'
@@ -236,6 +257,9 @@ setMethod(
 
 #' @describeIn VoltRon-methods Accessing vrLayer objects from \code{VoltRon} objects
 #'
+#' @aliases [[,VoltRon-methods
+#' @docType methods
+#'
 #' @export
 #'
 setMethod(
@@ -247,6 +271,13 @@ setMethod(
 )
 
 #' @describeIn VoltRon-methods Overwriting vrLayer objects from \code{VoltRon} objects
+#'
+#' @aliases [[<-,VoltRon-methods
+#' @docType methods
+#'
+#' @return \code{[[<-}: \code{x} with the metadata or associated objects added
+#' as \code{i}; if \code{value} is \code{NULL}, removes metadata or associated
+#' object \code{i} from object \code{x}
 #'
 #' @export
 #'
