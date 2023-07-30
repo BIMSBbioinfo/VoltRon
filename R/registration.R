@@ -450,8 +450,8 @@ getRegisteredObject.Seurat <- function(seu, mapping){
     }
     registered_cells <- data.frame(x = registered_cells[,1], y = registered_cells[,2],
                                    cell = imagedata$centroids@cells)
-    registered_segmentation_data <- list(centroids = Seurat::CreateCentroids(registered_cells))
-    coords <- Seurat::CreateFOV(coords = registered_segmentation_data, type = "centroids", molecules = NULL, assay = "Spatial")
+    registered_segmentation_data <- list(centroids = SeuratObject::CreateCentroids(registered_cells))
+    coords <- SeuratObject::CreateFOV(coords = registered_segmentation_data, type = "centroids", molecules = NULL, assay = "Spatial")
     seu[["registered_FOV"]] <- coords
 
   } else if(any(grepl("Visium",image_classes))) {
