@@ -11,7 +11,7 @@
       <strong> Unique Data Structure </strong> of VoltRon allows users to seamlessly define tissue blocks, layers and multiple assay types in one R object.
      </li>
      <li style="padding-bottom: 10px">
-      <strong> End-to-end downstream data analysis </strong> for distinct spatial biology technologies are supported. VoltRon visualizes and analyzes regions of interests (ROIs), spots, cells and even molecules **(under development)**.
+      <strong> End-to-end downstream data analysis </strong> for distinct spatial biology technologies are supported. VoltRon visualizes and analyzes regions of interests (ROIs), spots, cells and even molecules <strong>(under development)</strong>.
      </li>
     <li style="padding-bottom: 10px">
       <strong> Automated Image Registration </strong> incorporates <a href="https://opencv.org/">OpenCV</a> (fully embedded into the package using <a href="https://www.rcpp.org/">Rcpp</a>) to detect common features across images and achieves registration. Users may interact with built-in mini shiny apps to change alignment parameters and validate alignment accuracy. 
