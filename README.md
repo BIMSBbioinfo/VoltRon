@@ -11,16 +11,16 @@
       <strong> Unique Data Structure </strong> of VoltRon allows users to seamlessly define tissue blocks, layers and multiple assay types in one R object.
      </li>
      <li style="padding-bottom: 10px">
-      <strong> End-to-end Analysis </strong> for distinct spatial biology technologies are supported. VoltRon visualizes and analyzes regions of interests (ROIs), spots and cells **(even molecules, under development)**.
+      <strong> End-to-end downstream data analysis </strong> for distinct spatial biology technologies are supported. VoltRon visualizes and analyzes regions of interests (ROIs), spots, cells and even molecules **(under development)**.
      </li>
     <li style="padding-bottom: 10px">
-      <strong> Automated Spatial Registration </strong> incorporates <a href="https://opencv.org/">OpenCV</a> (fully embedded into the package with <a href="https://www.rcpp.org/">Rcpp</a>) to detect common features across images and achieves registration. Users may interact with built-in mini shiny apps to change alignment parameters and validate accuracy. 
+      <strong> Automated Image Registration </strong> incorporates <a href="https://opencv.org/">OpenCV</a> (fully embedded into the package using <a href="https://www.rcpp.org/">Rcpp</a>) to detect common features across images and achieves registration. Users may interact with built-in mini shiny apps to change alignment parameters and validate alignment accuracy. 
     </li>
     <li style="padding-bottom: 10px">
-      <strong> Manual Spatial Registration </strong> helps users to select common features across spatial datasets using reference images stored in VoltRon objects. In case automated registration doesnt work, you can still align images by manually picking landmark points.
+      <strong> Manual Image Registration </strong> helps users to select common features across spatial datasets using reference images stored in VoltRon objects. In case automated image registration doesn't work, you can still align images by manually picking landmark points.
     </li>
     <li style="padding-bottom: 10px">
-      <strong> Niche Clustering </strong> allows integration to single cell RNA analysis datasets using <a href="https://satijalab.org/seurat/">Seurat</a>, <a href="https://www.bioconductor.org/packages/release/bioc/vignettes/SingleCellExperiment/inst/doc/intro.html">SingleCellExperiment</a> and <a href="https://github.com/dmcable/spacexr">spacexr</a> to deconvolute spots. Estimated cell type abundances are then used to cluster spots into groups of cell type niches which are defined as spots with distinct composition of cell types.  
+      <strong> Niche Clustering </strong> allows integration to single cell RNA analysis datasets using <a href="https://satijalab.org/seurat/">Seurat</a>, <a href="https://www.bioconductor.org/packages/release/bioc/vignettes/SingleCellExperiment/inst/doc/intro.html">SingleCellExperiment</a> and <a href="https://github.com/dmcable/spacexr">spacexr</a> for spot deconvolution. Estimated cell type abundances are then used to cluster spots into groups of cell type niches which are defined as spots with distinct composition of cell types.  
     </li>
    </ul>
 
