@@ -6,8 +6,6 @@ output:
     toc_float:
       collapsed: no
       smooth_scroll: no
-  pdf_document:
-    toc: yes
 ---
 
 <style>
