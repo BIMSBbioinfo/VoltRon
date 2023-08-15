@@ -11,10 +11,10 @@ SystemRequirements: OpenCV 4.7 (or higher): libopencv-dev (Debian, Ubuntu) or op
 Encoding: UTF-8
 RoxygenNote: 7.2.3
 biocViews:
-Imports: methods, S4Vectors, EBImage, FNN, Matrix, Morpho, XML, dplyr, ggforce, 
+Imports: methods, S4Vectors, EBImage, FNN, Matrix, XML, dplyr, ggforce, 
          ggplot2, ggpubr, ggrepel, hdf5r, htmltools, igraph, irlba, rjson, magick, raster, 
          reshape2, rlang, scales, shiny, shinyjs, stringr, terra, umap
-LinkingTo: Rcpp
+LinkingTo: Rcpp, RcppArmadillo (>= 0.4)
 Collate: 
     'RcppExports.R'
     'zzz.R'

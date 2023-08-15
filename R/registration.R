@@ -344,7 +344,6 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, ..
 #' @param centre the index of the central reference image/spatialdata
 #' @param reg_mode the registration mode, either "auto" or "manual"
 #'
-#' @importFrom Morpho applyTransform
 #' @importFrom magick image_info
 #'
 getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centre, reg_mode = "manual"){
@@ -359,7 +358,8 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
     for(kk in 1:length(mapping)){
       cur_mapping <- mapping[[kk]]
       if(reg_mode == "manual"){
-        coords <- Morpho::applyTransform(coords, cur_mapping)
+        # coords <- Morpho::applyTransform(coords, cur_mapping)
+        coords <- applyTPSTransform(coords, cur_mapping)
       } else {
         info <- magick::image_info(vrImages(registered_sr[[i]]))
         coords[,2] <- info$height - coords[,2]
@@ -383,8 +383,6 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
 #' @param centre the index of the central reference image/spatialdata
 #' @param reg_mode the registration mode, either "auto" or "manual"
 #'
-#' @importFrom Morpho applyTransform
-#'
 getRegisteredObjectListSeurat <- function(sr, mapping_list, register_ind, centre, reg_mode = "manual"){
 
   if (!requireNamespace('Seurat'))
@@ -401,7 +399,8 @@ getRegisteredObjectListSeurat <- function(sr, mapping_list, register_ind, centre
     for(kk in 1:length(mapping)){
       cur_mapping <- mapping[[kk]]
       if(reg_mode == "manual"){
-        coords <- Morpho::applyTransform(coords, cur_mapping)
+        # coords <- Morpho::applyTransform(coords, cur_mapping)
+        coords <- applyTPSTransform(coords, cur_mapping)
       } else {
         info <- image_info(vrImages(registered_sr[[i]])[[1]])
         coords[,2] <- info$height - coords[,2]
@@ -446,7 +445,8 @@ getRegisteredObject.Seurat <- function(seu, mapping){
     registered_cells <- as.matrix(cells)
     for(kk in 1:length(mapping)){
       cur_mapping <- mapping[[kk]]
-      registered_cells <- applyTransform(registered_cells, cur_mapping)
+      # registered_cells <- applyTransform(registered_cells, cur_mapping)
+      registered_cells <- applyTPSTransform(registered_cells, cur_mapping)
     }
     registered_cells <- data.frame(x = registered_cells[,1], y = registered_cells[,2],
                                    cell = imagedata$centroids@cells)
@@ -1006,7 +1006,8 @@ computeManualPairwiseTransform <- function(keypoints_list, query_ind, ref_ind){
       target_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
     }
     # compute and get transformation matrix
-    mapping_list[[kk]] <- Morpho::computeTransform(reference_landmark, target_landmark, type = "tps")
+    # mapping_list[[kk]] <- Morpho::computeTransform(reference_landmark, target_landmark, type = "tps")
+    mapping_list[[kk]] <- computeTPSTransform(reference_landmark, target_landmark)
   }
 
   return(mapping_list)
@@ -1022,7 +1023,6 @@ computeManualPairwiseTransform <- function(keypoints_list, query_ind, ref_ind){
 #' @param ref_ind the index of the reference image
 #' @param input input
 #'
-#' @importFrom Morpho applyTransform
 #' @importFrom raster rasterize focal res stack extent
 #' @importFrom terra rast
 #'
@@ -1031,6 +1031,8 @@ getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, in
   # plot with raster
   ref_image_raster <- as.raster(images[[ref_ind]]) |> as.matrix() |> terra::rast()
   query_image_raster <- as.raster(images[[query_ind]]) |> as.matrix() |> terra::rast() |> raster::stack()
+  # ref_image_raster <- raster::as.raster(images[[ref_ind]]) |> as.matrix() |> raster::rasterize()
+  # query_image_raster <- raster::as.raster(images[[query_ind]]) |> as.matrix() |> raster::rasterize()
 
   # prepare image
   imageEx <- raster::extent(raster::stack(ref_image_raster))
@@ -1040,7 +1042,8 @@ getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, in
   # apply transformation as many as it is needed
   query_image_raster_1_t <- as.matrix(query_image_raster_1)[,1:2]
   for(trans in transmatrix){
-    query_image_raster_1_t <- Morpho::applyTransform(query_image_raster_1_t, trans)
+    # query_image_raster_1_t <- Morpho::applyTransform(query_image_raster_1_t, trans)
+    query_image_raster_1_t <- applyTPSTransform(query_image_raster_1_t, trans)
   }
 
   # finalize image
@@ -1054,6 +1057,92 @@ getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, in
   query_image_raster_1_trf <- terra::rast(query_image_raster_1_trf, crs = "")
 
   return(list(ref = ref_image_raster, query = query_image_raster_1_trf))
+}
+
+#' computeTPSTransform
+#'
+#' calculate an affine transformation matrix, adapted from \code{Morpho} package.
+#'
+#' @param x fix landmarks from a k x m matrix
+#' @param y moving landmarks from a k x m matrix
+#'
+computeTPSTransform <- function(x, y)
+{
+  xrows <- rowSums(x)
+  yrows <- rowSums(y)
+  xbad <- which(as.logical(is.na(xrows) + is.nan(xrows)))
+  ybad <- which(as.logical(is.na(yrows) + is.nan(yrows)))
+  bad <- unique(c(xbad, ybad))
+  if (length(bad)) {
+    message("some landmarks are missing and ignored for calculating the transform")
+    x <- x[-bad, , drop = FALSE]
+    y <- y[-bad, , drop = FALSE]
+  }
+  m <- ncol(y)
+  L <- CreateL(y, lambda = 1e-08)
+  m2 <- rbind(x, matrix(0, m + 1, m))
+  coeff <- try(as.matrix(base::solve(L, m2, tol = 1e-20)),
+               silent = TRUE)
+  if (inherits(coeff, "try-error"))
+    coeff <- try(as.matrix(Matrix::solve(L, m2)))
+  trafo <- list(refmat = y, tarmat = x, coeff = coeff)
+  return(trafo)
+}
+
+#' Create Matrices necessary for Thin-Plate Spline
+#'
+#' Create (Bending Engergy) Matrices necessary for Thin-Plate Spline, and sliding of Semilandmarks, adapted from \code{Morpho} package.
+#'
+#' @param matrix k x 3 or k x 2 matrix containing landmark coordinates.
+#' @param lambda numeric: regularization factor
+#' @param threads threads to be used for parallel execution calculating K.
+#' sliding of semilandmarks.
+#'
+#' @return {Matrix L as specified in Bookstein (1989)}
+#' @note This function is not intended to be called directly - except for playing around to grasp the mechansims of the Thin-Plate Spline.
+#'
+#' @references Gunz, P., P. Mitteroecker, and F. L. Bookstein. 2005. Semilandmarks in Three Dimensions, in Modern Morphometrics in Physical
+#' Anthropology. Edited by D. E. Slice, pp. 73-98. New York: Kluwer
+#' Academic/Plenum Publishers.
+#'
+#' Bookstein FL. 1989. Principal Warps: Thin-plate splines and the
+#' decomposition of deformations. IEEE Transactions on pattern analysis and
+#' machine intelligence 11(6).
+#'
+#' @importFrom Matrix forceSymmetric
+#'
+CreateL <- function(matrix,lambda=1e-8) {
+  out <- list()
+  k <- nrow(matrix)
+  m <- ncol(matrix)
+  Q <- cbind(1,matrix)
+  if (!is.matrix(matrix) || !is.numeric(matrix))
+    stop("matrix must be a numeric matrix")
+  K <- .Call("createL",matrix,1)
+  L <- matrix(0,k+m+1,k+m+1)
+  if (lambda !=0 )
+    diag(K) <- lambda
+  L[1:k,1:k] <- K
+  L[(k+1):(k+m+1),1:k] <- t(Q)
+  L[1:k,(k+1):(k+m+1)] <- Q
+  L <- Matrix::forceSymmetric(L)
+  return(L)
+}
+
+#' applyTPSTransform
+#'
+#' apply affine transformation to data, adapted from \code{Morpho} package.
+#'
+#' @param x matrix
+#' @param trafo 4x4 transformation matrix or an object of class "tpsCoeff"
+#'
+applyTPSTransform <- function(x,trafo) {
+  # .fx(trafo$refmat,x,trafo$coeff,threads=threads)
+  # .fx <- function(refmat,M,coefs,time=TRUE,threads=1) {
+  x <- cbind(1,x)
+  splM <- .Call("tpsfx",trafo$refmat,  x, t(trafo$coeff))
+  return(splM)
+
 }
 
 ####
