@@ -13,7 +13,7 @@
 
 <title>ROI Analysis</title>
 
-<script src="site_libs/header-attrs-2.23/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -769,13 +769,14 @@ g2 &lt;- DimPlot(scRNAlung, reduction = &quot;umap&quot;, label = T, group.by = 
 g1 | g2</code></pre>
 <p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_deconvolution_singlecell.png" class="center"></p>
 <p>We utilize the <strong>getDeconvolution</strong> function to call
-wrapper functions for deconvolution algorithms. For all layers with
-GoeMx assays, an additional assay within the same layer with
+wrapper functions for deconvolution algorithms (see ). For all layers
+with GoeMx assays, an additional assay within the same layer with
 <strong>_decon</strong> postfix will be created. The
 <strong>sc.object</strong> argument can either be a
 <strong>Seurat</strong> or <strong>SingleCellExperiment</strong>
 object.</p>
-<pre class="r watch-out"><code>GeoMxR1_decon &lt;- getDeconvolution(GeoMxR1,
+<pre class="r watch-out"><code>library(MuSiC)
+GeoMxR1_decon &lt;- getDeconvolution(GeoMxR1,
                             sc.object = scRNAlung, sc.assay = &quot;RNA&quot;, 
                             sc.cluster = &quot;cluster&quot;, sc.samples = &quot;orig.ident&quot;)
 SampleMetadata(GeoMxR1_decon)</code></pre>
