@@ -324,9 +324,10 @@ g1 | g2
 
 <img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_deconvolution_singlecell.png" class="center">
 
-We utilize the **getDeconvolution** function to call wrapper functions for deconvolution algorithms. For all layers with GoeMx assays, an additional assay within the same layer with **\_decon** postfix will be created. The **sc.object** argument can either be a **Seurat** or **SingleCellExperiment** object. 
+We utilize the **getDeconvolution** function to call wrapper functions for deconvolution algorithms (see ). For all layers with GoeMx assays, an additional assay within the same layer with **\_decon** postfix will be created. The **sc.object** argument can either be a **Seurat** or **SingleCellExperiment** object. 
 
 ```{r eval = FALSE, class.source="watch-out"}
+library(MuSiC)
 GeoMxR1_decon <- getDeconvolution(GeoMxR1,
                             sc.object = scRNAlung, sc.assay = "RNA", 
                             sc.cluster = "cluster", sc.samples = "orig.ident")
