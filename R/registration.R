@@ -981,8 +981,6 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
 #' @param query_ind the index of the query image
 #' @param ref_ind the index of the reference image
 #'
-#' @importFrom Morpho computeTransform
-#'
 computeManualPairwiseTransform <- function(keypoints_list, query_ind, ref_ind){
 
   # determine the number of transformation to map from query to the reference
@@ -1031,8 +1029,6 @@ getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, in
   # plot with raster
   ref_image_raster <- as.raster(images[[ref_ind]]) |> as.matrix() |> terra::rast()
   query_image_raster <- as.raster(images[[query_ind]]) |> as.matrix() |> terra::rast() |> raster::stack()
-  # ref_image_raster <- raster::as.raster(images[[ref_ind]]) |> as.matrix() |> raster::rasterize()
-  # query_image_raster <- raster::as.raster(images[[query_ind]]) |> as.matrix() |> raster::rasterize()
 
   # prepare image
   imageEx <- raster::extent(raster::stack(ref_image_raster))
@@ -1095,8 +1091,6 @@ computeTPSTransform <- function(x, y)
 #'
 #' @param matrix k x 3 or k x 2 matrix containing landmark coordinates.
 #' @param lambda numeric: regularization factor
-#' @param threads threads to be used for parallel execution calculating K.
-#' sliding of semilandmarks.
 #'
 #' @return {Matrix L as specified in Bookstein (1989)}
 #' @note This function is not intended to be called directly - except for playing around to grasp the mechansims of the Thin-Plate Spline.

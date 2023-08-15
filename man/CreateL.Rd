@@ -10,9 +10,6 @@ CreateL(matrix, lambda = 1e-08)
 \item{matrix}{k x 3 or k x 2 matrix containing landmark coordinates.}
 
 \item{lambda}{numeric: regularization factor}
-
-\item{threads}{threads to be used for parallel execution calculating K.
-sliding of semilandmarks.}
 }
 \value{
 {Matrix L as specified in Bookstein (1989)}
