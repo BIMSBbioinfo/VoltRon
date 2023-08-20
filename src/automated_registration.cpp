@@ -10,6 +10,7 @@ using namespace cv::xfeatures2d;
 
 void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
 {
+
   // Convert images to grayscale
   Mat im1Gray, im2Gray;
   cvtColor(im1, im1Gray, cv::COLOR_BGR2GRAY);
