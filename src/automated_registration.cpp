@@ -20,15 +20,18 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const 
   std::vector<KeyPoint> keypoints1, keypoints2;
   Mat descriptors1, descriptors2;
 
-  // Detect ORB features and compute descriptors.
-  Ptr<Feature2D> orb = ORB::create(MAX_FEATURES);
-  orb->detectAndCompute(im1Gray, Mat(), keypoints1, descriptors1);
-  orb->detectAndCompute(im2Gray, Mat(), keypoints2, descriptors2);
+  // Detect SIFT features
+  Ptr<Feature2D> sift = cv::SIFT::create();
+  sift->detectAndCompute(im1Gray, Mat(), keypoints1, descriptors1);
+  sift->detectAndCompute(im2Gray, Mat(), keypoints2, descriptors2);
+  cout << "DONE: sift based key-points detection and descriptors computation" << endl;
 
-  // Match features.
-  std::vector<DMatch> matches;
-  Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
-  matcher->match(descriptors1, descriptors2, matches, Mat());
+  // Match features using FLANN matching
+  std::vector< std::vector<DMatch> > matches;
+  cv::FlannBasedMatcher custom_matcher = cv::FlannBasedMatcher(cv::makePtr<cv::flann::KDTreeIndexParams>(5), cv::makePtr<cv::flann::SearchParams>(50));
+  cv::Ptr<cv::FlannBasedMatcher> matcher = custom_matcher.create();
+  matcher->knnMatch(descriptors1, descriptors2, matches, 2);
+  cout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
 
   // Sort matches by score
   std::sort(matches.begin(), matches.end());
@@ -36,11 +39,6 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const 
   // Remove not so good matches
   const int numGoodMatches = matches.size() * GOOD_MATCH_PERCENT;
   matches.erase(matches.begin()+numGoodMatches, matches.end());
-
-  // Draw top matches
-  // Mat imMatches;
-  // drawMatches(im1, keypoints1, im2, keypoints2, matches, imMatches);
-  // imwrite("matches.jpg", imMatches);
 
   // Extract location of good matches
   std::vector<Point2f> points1, points2;
@@ -61,12 +59,11 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const 
   }
 
   // Draw top matches and good ones only
-  // Mat imMatches;
   drawMatches(im1, keypoints1_best, im2, keypoints2_best, goodMatches, imMatches);
-  // imwrite("matches_best2.jpg", imMatches);
 
   // Find homography
-  h = findHomography( points1, points2, RANSAC );
+  h = findHomography(points1, points2, RANSAC, 5);
+  cout << "'DONE: calculated homography matrix" << endl;
 
   // Use homography to warp image
   warpPerspective(im1, im1Reg, h, im2.size());
