@@ -133,8 +133,8 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const 
   std::vector<Point2f> points1, points2;
   for( size_t i = 0; i < good_matches.size(); i++ )
   {
-    points1.push_back( keypoints1[good_matches[i].queryIdx].pt );
-    points2.push_back( keypoints2[good_matches[i].trainIdx].pt );
+    points1.push_back(keypoints1[good_matches[i].queryIdx].pt);
+    points2.push_back(keypoints2[good_matches[i].trainIdx].pt);
   }
 
   // Find homography
@@ -142,8 +142,8 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const 
   cout << "'DONE: calculated homography matrix" << endl;
 
   // Draw top matches and good ones only
-  std::vector<KeyPoint> keypoints1_best, keypoints2_best;
   std::vector<cv::DMatch> top_matches;
+  std::vector<KeyPoint> keypoints1_best, keypoints2_best;
   for( size_t i = 0; i < good_matches.size(); i++ )
   {
     keypoints1_best.push_back(keypoints1[good_matches[i].queryIdx]);
