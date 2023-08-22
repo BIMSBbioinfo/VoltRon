@@ -74,18 +74,18 @@ Rcpp::NumericMatrix point2fToNumericMatrix(std::vector<cv::Point2f> points) {
   return mat;
 }
 
-void computeSiftTiles(Mat image, std::vector<KeyPoint> &keypoints, Mat &descriptors, const int tile_size_tuple[2], const int tile_overlap, Ptr<Feature2D> sift){
-
-  // image shape
-  int height = image.rows;
-  int width = image.cols;
-
-  // Extend the image so that it can be divided into equal size tiles
-  float h_extend = ((height - 1) / (tile_size_tuple[1] - tile_overlap) + 1) * (tile_size_tuple[1] - tile_overlap) + tile_overlap;
-  float w_extend = ((width - 1) / (tile_size_tuple[0] - tile_overlap) + 1) * (tile_size_tuple[0] - tile_overlap) + tile_overlap;
-  cv::Mat image_extended = cv::Mat::zeros(height, width, image.type());
-
-}
+// void computeSiftTiles(Mat image, std::vector<KeyPoint> &keypoints, Mat &descriptors, const int tile_size_tuple[2], const int tile_overlap, Ptr<Feature2D> sift){
+//
+//   // image shape
+//   int height = image.rows;
+//   int width = image.cols;
+//
+//   // Extend the image so that it can be divided into equal size tiles
+//   float h_extend = ((height - 1) / (tile_size_tuple[1] - tile_overlap) + 1) * (tile_size_tuple[1] - tile_overlap) + tile_overlap;
+//   float w_extend = ((width - 1) / (tile_size_tuple[0] - tile_overlap) + 1) * (tile_size_tuple[0] - tile_overlap) + tile_overlap;
+//   cv::Mat image_extended = cv::Mat::zeros(height, width, image.type());
+//
+// }
 
 void getGoodMatches(std::vector<std::vector<DMatch>> matches, std::vector<DMatch> &good_matches, const float lowe_ratio = 0.8)
 {
@@ -98,35 +98,52 @@ void getGoodMatches(std::vector<std::vector<DMatch>> matches, std::vector<DMatch
   }
 }
 
-cv::Mat preprocessImage(Mat &im, const bool invert)
+cv::Mat preprocessImage(Mat &im, const bool invert, const char* flipflop, const char* rotate)
 {
-  // Processed image
-  Mat imProcess;
-
   // gray color
   Mat imGray;
   cvtColor(im, imGray, cv::COLOR_BGR2GRAY);
-  // imwrite("test_Gray.jpg", imGray);
 
   // normalize
   Mat imNorm;
   cv::normalize(imGray, imNorm, 0, 255, cv::NORM_MINMAX, CV_8UC1);
-  // imwrite("test_Normalize.jpg", imNorm);
 
-  //
-  if(invert) {
-    cv::bitwise_not(imNorm, imProcess);
-    cout << "Image is inverted!" << endl;
-    // imwrite("test_Inverted.jpg", imProcess);
+  // rotate image
+  Mat imRotate;
+  if(atoi(rotate) > 0){
+    cv::rotate(imNorm, imRotate, (atoi(rotate)/90)-1);
   } else {
-    imProcess = imNorm;
+    imRotate = imNorm;
+  }
+  imwrite("test_rotate.jpg", imRotate);
+
+  // Flipflop image
+  Mat imFlipFlop;
+  if(strcmp(flipflop, "Flip") == 0){
+    cv::flip(imRotate, imFlipFlop, 0);
+  } else if(strcmp(flipflop, "Flop") == 0){
+    cv::flip(imRotate, imFlipFlop, 1);
+  } else if(strcmp(flipflop, "None") == 0){
+    imFlipFlop = imRotate;
   }
 
-  //
+  // invert/negate image and full processed image
+  Mat imProcess;
+  if(invert) {
+    cv::bitwise_not(imFlipFlop, imProcess);
+    cout << "Image is inverted!" << endl;
+  } else {
+    imProcess = imFlipFlop;
+  }
+
+  // return
   return imProcess;
 }
 
-void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const bool invert_query, const bool invert_ref)
+void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h,
+                 const bool invert_query, const bool invert_ref,
+                 const char* flipflop_query, const char* flipflop_ref,
+                 const char* rotate_query, const char* rotate_ref)
 {
 
   // seed
@@ -134,8 +151,8 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const 
 
   // Convert images to grayscale
   Mat im1Gray, im2Gray;
-  im1Gray = preprocessImage(im1, TRUE);
-  im2Gray = preprocessImage(im2, FALSE);
+  im1Gray = preprocessImage(im1, invert_query, flipflop_query, rotate_query);
+  im2Gray = preprocessImage(im2, invert_ref, flipflop_ref, rotate_ref);
 
   // Variables to store keypoints and descriptors
   std::vector<KeyPoint> keypoints1, keypoints2;
@@ -181,26 +198,36 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const 
     keypoints2_best.push_back(keypoints2[good_matches[i].trainIdx]);
     top_matches.push_back(cv::DMatch(static_cast<int>(i), static_cast<int>(i), 0));
   }
-  // drawMatches(im1, keypoints1_best, im2, keypoints2_best, top_matches, imMatches);
   drawMatches(im1Gray, keypoints1_best, im2Gray, keypoints2_best, top_matches, imMatches);
 
   // Use homography to warp image
   Mat im1Warp;
-  warpPerspective(im1, im1Warp, h, im2.size());
+  warpPerspective(im1Gray, im1Warp, h, im2Gray.size());
   cout << "'DONE: warped query image" << endl;
 
-  // overlay image
-  cv::addWeighted(im2, 0.5, im1Warp, 0.5, 0, im1Reg);
+  // // overlay image
+  // Mat im1ColorMap;
+  // cv::applyColorMap(im1Warp, im1ColorMap, cv::COLORMAP_HOT);
+
+  // change color map
+  Mat im1Combine;
+  cv::addWeighted(im2Gray, 0.5, im1Warp, 0.5, 0, im1Combine);
+
+  // return as rgb
+  cvtColor(im1Combine, im1Reg, cv::COLOR_GRAY2BGR);
+  cvtColor(im2Gray, im2, cv::COLOR_GRAY2BGR);
 }
 
 // [[Rcpp::export]]
 Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image,
                                              const int width1, const int height1,
                                              const int width2, const int height2,
-                                             const bool invert_query, const bool invert_ref)
+                                             const bool invert_query, const bool invert_ref,
+                                             Rcpp::String flipflop_query, Rcpp::String flipflop_ref,
+                                             Rcpp::String rotate_query, Rcpp::String rotate_ref)
 {
   // define return data, 1 = transformation matrix, 2 = aligned image
-  Rcpp::List out(3);
+  Rcpp::List out(4);
 
   // Read reference image
   cv::Mat imReference = imageToMat(ref_image, width1, height1);
@@ -216,12 +243,15 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   Mat imReg, h, imMatches;
 
   // Align images
-  alignImages(im, imReference, imReg, imMatches, h, invert_query, invert_ref);
+  alignImages(im, imReference, imReg, imMatches, h, invert_query, invert_ref,
+              flipflop_query.get_cstring(), flipflop_ref.get_cstring(), rotate_query.get_cstring(), rotate_ref.get_cstring());
+  imwrite("test_query.jpg", imReg);
 
-  // return transformation matrix, registered image, and keypoint matching image
+  // return transformation matrix, destinated image, registered image, and keypoint matching image
   out[0] = matToNumericMatrix(h.clone());
-  out[1] = matToImage(imReg.clone());
-  out[2] = matToImage(imMatches.clone());
+  out[1] = matToImage(imReference.clone());
+  out[2] = matToImage(imReg.clone());
+  out[3] = matToImage(imMatches.clone());
   return out;
 }
 

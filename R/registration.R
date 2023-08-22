@@ -1184,6 +1184,7 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
 
       # Register keypoints
       mapping_list <- list()
+      dest_image_list <- list()
       aligned_image_list <- list()
       alignment_image_list <- list()
       for(i in register_ind){
@@ -1193,6 +1194,9 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
 
         # save transformation matrix
         mapping_list[[i]] <- results$mapping
+
+        # destination image
+        dest_image_list[[i]] <- results$dest_image
 
         # save alignment
         aligned_image_list[[i]] <- results$aligned_image
@@ -1209,9 +1213,8 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
       # Plot registered images
       lapply(register_ind, function(i){
         cur_mapping <- mapping_list[[i]]
-        cur_aligned_image <- aligned_image_list[[i]]
         output[[paste0("plot_query_reg",i)]] <- renderImage({
-          image_view_list <- list(rep(magick::image_resize(image_list[[centre]], geometry = "400x"),5),
+          image_view_list <- list(rep(magick::image_resize(dest_image_list[[i]], geometry = "400x"),5),
                                   rep(magick::image_resize(aligned_image_list[[i]], geometry = "400x"),5))
           image_view_list <- image_view_list %>%
             magick::image_join() %>%
@@ -1265,19 +1268,26 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
 
     # compute and get transformation matrix
     if(which.max(cur_map) == 1){
-      cur_map_point = cur_map
+      ref_label = "ref"
+      query_label = "query"
     } else {
-      cur_map_point = rev(cur_map)
+      ref_label = "query"
+      query_label = "ref"
     }
     reg <- getRcppAutomatedRegistration(ref_image = ref_image, query_image = aligned_image,
-                                        invert_query = input[[paste0("negate_query_image", cur_map_point[1])]] == "Yes",
-                                        invert_ref = input[[paste0("negate_ref_image", cur_map_point[2])]] == "Yes")
+                                        invert_query = input[[paste0("negate_", query_label, "_image", cur_map[1])]] == "Yes",
+                                        invert_ref = input[[paste0("negate_", ref_label, "_image", cur_map[2])]] == "Yes",
+                                        flipflop_query = input[[paste0("flipflop_", query_label, "_image", cur_map[1])]],
+                                        flipflop_ref = input[[paste0("flipflop_", ref_label, "_image", cur_map[2])]],
+                                        rotate_query = input[[paste0("rotate_", query_label, "_image", cur_map[1])]],
+                                        rotate_ref = input[[paste0("rotate_", ref_label, "_image", cur_map[2])]])
     mapping[[kk]] <- reg$transmat
+    dest_image <- reg$dest_image
     aligned_image <- reg$aligned_image
     alignment_image <- reg$alignment_image
   }
 
-  return(list(mapping = mapping, aligned_image = aligned_image, alignment_image = alignment_image))
+  return(list(mapping = mapping, dest_image = dest_image, aligned_image = aligned_image, alignment_image = alignment_image))
 }
 
 #' getRcppAutomatedRegistration
@@ -1286,17 +1296,29 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
 #'
 #' @param ref_image reference image
 #' @param query_image query image
+#' @param invert_query invert query image?
+#' @param invert_ref invert reference image
+#' @param flipflop_query flip or flop the query image
+#' @param flipflop_ref flip or flop the reference image
+#' @param rotate_query rotation of query image
+#' @param rotate_ref rotation of reference image
 #'
 #' @importFrom magick image_read image_data
 #'
-getRcppAutomatedRegistration <- function(ref_image, query_image, invert_query = FALSE, invert_ref = FALSE) {
+getRcppAutomatedRegistration <- function(ref_image, query_image,
+                                         invert_query = FALSE, invert_ref = FALSE,
+                                         flipflop_query = "None", flipflop_ref = "None",
+                                         rotate_query = "0", rotate_ref = "0") {
   ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
   query_image_rast <- magick::image_data(query_image, channels = "rgb")
   reg <- automated_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
                                            width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
                                            width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3],
-                                           invert_query = invert_query, invert_ref = invert_ref)
-  aligned_image <- magick::image_read(reg[[2]])
-  alignment_image <- magick::image_read(reg[[3]])
-  return(list(transmat = reg[[1]], aligned_image = aligned_image, alignment_image = alignment_image))
+                                           invert_query = invert_query, invert_ref = invert_ref,
+                                           flipflop_query = flipflop_query, flipflop_ref = flipflop_ref,
+                                           rotate_query = rotate_query, rotate_ref = rotate_ref)
+  return(list(transmat = reg[[1]],
+              dest_image = magick::image_read(reg[[2]]),
+              aligned_image = magick::image_read(reg[[3]]),
+              alignment_image = magick::image_read(reg[[4]])))
 }
