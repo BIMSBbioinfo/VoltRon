@@ -336,11 +336,14 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, ..
     registered_vr <- getRegisteredObjectListVoltRon(obj_list, mapping_list, register_ind, centre, ...)
     return(registered_vr)
 
-    # check if elements are Seurat
-  } else if(all(sapply(obj_list, class) == "Seurat")) {
-    registered_seu <- getRegisteredObjectListSeurat(obj_list, mapping_list, register_ind, centre, ...)
-    return(registered_seu)
+  } else {
+    stop("Please provide a VoltRon object")
   }
+    # check if elements are Seurat
+  # } else if(all(sapply(obj_list, class) == "Seurat")) {
+  #   registered_seu <- getRegisteredObjectListSeurat(obj_list, mapping_list, register_ind, centre, ...)
+  #   return(registered_seu)
+  # }
 }
 
 #' getRegisteredObjectListVoltRon
@@ -367,7 +370,6 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
     for(kk in 1:length(mapping)){
       cur_mapping <- mapping[[kk]]
       if(reg_mode == "manual"){
-        # coords <- Morpho::applyTransform(coords, cur_mapping)
         coords <- applyTPSTransform(coords, cur_mapping)
       } else {
         info <- magick::image_info(vrImages(registered_sr[[i]]))
@@ -382,46 +384,46 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
   return(registered_sr)
 }
 
-#' getRegisteredObjectListSeurat
+#' #' getRegisteredObjectListSeurat
+#' #'
+#' #' Get registered and merged VoltRon object composed of several Samples
+#' #'
+#' #' @param sr a list of VoltRon objects
+#' #' @param mapping_list a list of transformation matrices
+#' #' @param register_ind the indices of query images/spatialdatasets
+#' #' @param centre the index of the central reference image/spatialdata
+#' #' @param reg_mode the registration mode, either "auto" or "manual"
+#' #'
+#' getRegisteredObjectListSeurat <- function(sr, mapping_list, register_ind, centre, reg_mode = "manual"){
 #'
-#' Get registered and merged VoltRon object composed of several Samples
+#'   if (!requireNamespace('Seurat'))
+#'     stop("Please install Seurat package to use the RCTD algorithm")
 #'
-#' @param sr a list of VoltRon objects
-#' @param mapping_list a list of transformation matrices
-#' @param register_ind the indices of query images/spatialdatasets
-#' @param centre the index of the central reference image/spatialdata
-#' @param reg_mode the registration mode, either "auto" or "manual"
-#'
-getRegisteredObjectListSeurat <- function(sr, mapping_list, register_ind, centre, reg_mode = "manual"){
-
-  if (!requireNamespace('Seurat'))
-    stop("Please install Seurat package to use the RCTD algorithm")
-
-  # initiate registered VoltRon objects
-  ref_ind <- centre
-  registered_sr <- sr
-  for(i in register_ind){
-    mapping <- mapping_list[[i]]
-    # coords <- vrCoordinates(registered_sr[[i]])
-    coords <- Seurat::GetTissueCoordinates(registered_sr[[i]])
-    entities <- rownames(coords)
-    for(kk in 1:length(mapping)){
-      cur_mapping <- mapping[[kk]]
-      if(reg_mode == "manual"){
-        # coords <- Morpho::applyTransform(coords, cur_mapping)
-        coords <- applyTPSTransform(coords, cur_mapping)
-      } else {
-        info <- image_info(vrImages(registered_sr[[i]])[[1]])
-        coords[,2] <- info$height - coords[,2]
-        coords <- perspectiveTransform(coords, cur_mapping)
-        coords[,2] <- info$height - coords[,2]
-      }
-    }
-    rownames(coords) <- entities
-    vrCoordinates(registered_sr[[i]], reg = TRUE) <- coords
-  }
-  return(registered_sr)
-}
+#'   # initiate registered VoltRon objects
+#'   ref_ind <- centre
+#'   registered_sr <- sr
+#'   for(i in register_ind){
+#'     mapping <- mapping_list[[i]]
+#'     # coords <- vrCoordinates(registered_sr[[i]])
+#'     coords <- Seurat::GetTissueCoordinates(registered_sr[[i]])
+#'     entities <- rownames(coords)
+#'     for(kk in 1:length(mapping)){
+#'       cur_mapping <- mapping[[kk]]
+#'       if(reg_mode == "manual"){
+#'         # coords <- Morpho::applyTransform(coords, cur_mapping)
+#'         coords <- applyTPSTransform(coords, cur_mapping)
+#'       } else {
+#'         info <- image_info(vrImages(registered_sr[[i]])[[1]])
+#'         coords[,2] <- info$height - coords[,2]
+#'         coords <- perspectiveTransform(coords, cur_mapping)
+#'         coords[,2] <- info$height - coords[,2]
+#'       }
+#'     }
+#'     rownames(coords) <- entities
+#'     vrCoordinates(registered_sr[[i]], reg = TRUE) <- coords
+#'   }
+#'   return(registered_sr)
+#' }
 
 #' getRegisteredObject.Seurat
 #'

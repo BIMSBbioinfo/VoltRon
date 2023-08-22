@@ -187,7 +187,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h,
 
   // Find homography
   h = findHomography(points1, points2, RANSAC, 5);
-  cout << "'DONE: calculated homography matrix" << endl;
+  cout << "DONE: calculated homography matrix" << endl;
 
   // Draw top matches and good ones only
   std::vector<cv::DMatch> top_matches;
@@ -203,7 +203,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h,
   // Use homography to warp image
   Mat im1Warp;
   warpPerspective(im1Gray, im1Warp, h, im2Gray.size());
-  cout << "'DONE: warped query image" << endl;
+  cout << "DONE: warped query image" << endl;
 
   // // overlay image
   // Mat im1ColorMap;
@@ -211,7 +211,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h,
 
   // change color map
   Mat im1Combine;
-  cv::addWeighted(im2Gray, 0.5, im1Warp, 0.5, 0, im1Combine);
+  cv::addWeighted(im2Gray, 0.7, im1Warp, 0.3, 0, im1Combine);
 
   // return as rgb
   cvtColor(im1Combine, im1Reg, cv::COLOR_GRAY2BGR);
