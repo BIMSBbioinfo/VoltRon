@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // automated_registeration_rawvector
-Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, const int width1, const int height1, const int width2, const int height2, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES);
-RcppExport SEXP _VoltRon_automated_registeration_rawvector(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP, SEXP GOOD_MATCH_PERCENTSEXP, SEXP MAX_FEATURESSEXP) {
+Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, const int width1, const int height1, const int width2, const int height2, const bool invert_query, const bool invert_ref);
+RcppExport SEXP _VoltRon_automated_registeration_rawvector(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP, SEXP invert_querySEXP, SEXP invert_refSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -23,9 +23,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type height1(height1SEXP);
     Rcpp::traits::input_parameter< const int >::type width2(width2SEXP);
     Rcpp::traits::input_parameter< const int >::type height2(height2SEXP);
-    Rcpp::traits::input_parameter< const float >::type GOOD_MATCH_PERCENT(GOOD_MATCH_PERCENTSEXP);
-    Rcpp::traits::input_parameter< const int >::type MAX_FEATURES(MAX_FEATURESSEXP);
-    rcpp_result_gen = Rcpp::wrap(automated_registeration_rawvector(ref_image, query_image, width1, height1, width2, height2, GOOD_MATCH_PERCENT, MAX_FEATURES));
+    Rcpp::traits::input_parameter< const bool >::type invert_query(invert_querySEXP);
+    Rcpp::traits::input_parameter< const bool >::type invert_ref(invert_refSEXP);
+    rcpp_result_gen = Rcpp::wrap(automated_registeration_rawvector(ref_image, query_image, width1, height1, width2, height2, invert_query, invert_ref));
     return rcpp_result_gen;
 END_RCPP
 }

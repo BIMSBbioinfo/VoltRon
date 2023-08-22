@@ -64,9 +64,9 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
                         br(),
                         br(),
                         column(12,shiny::checkboxInput("automatictag", "Automated Registration", value = FALSE)),
-                        br(),
-                        column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
-                        column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
+                        # br(),
+                        # column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
+                        # column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
                         br(),
                         column(12,shiny::actionButton("done", "Done")),
                       ),
@@ -115,8 +115,8 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     server <- function(input, output, session) {
 
       ### Manage interface ####
-      shinyjs::hide(id = "GOOD_MATCH_PERCENT")
-      shinyjs::hide(id = "MAX_FEATURES")
+      # shinyjs::hide(id = "GOOD_MATCH_PERCENT")
+      # shinyjs::hide(id = "MAX_FEATURES")
       updateSequentialTabPanels(input, output, session, centre, register_ind)
 
       ### Transform images ####
@@ -141,15 +141,15 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
 
       })
 
-      observeEvent(input$automatictag, {
-        if(input$automatictag){
-          shinyjs::show(id = "GOOD_MATCH_PERCENT")
-          shinyjs::show(id = "MAX_FEATURES")
-        } else {
-          shinyjs::hide(id = "GOOD_MATCH_PERCENT")
-          shinyjs::hide(id = "MAX_FEATURES")
-        }
-      })
+      # observeEvent(input$automatictag, {
+      #   if(input$automatictag){
+      #     shinyjs::show(id = "GOOD_MATCH_PERCENT")
+      #     shinyjs::show(id = "MAX_FEATURES")
+      #   } else {
+      #     shinyjs::hide(id = "GOOD_MATCH_PERCENT")
+      #     shinyjs::hide(id = "MAX_FEATURES")
+      #   }
+      # })
 
       ## Return values for the shiny app ####
       observeEvent(input$done, {
@@ -301,6 +301,15 @@ updateSequentialTabPanels <- function(input, output, session, centre, register_i
     selected_panel_ind <- strsplit(selected_panel, split = " ")[[1]][2]
     selected_panel_ind <- as.numeric(strsplit(selected_panel_ind, split = "->")[[1]][1])
     updateTabsetPanel(session, "image_tab_panel_query", paste0("Query ", selected_panel_ind))
+    selected_panel_ali <- gsub("Reg.", "Ali.", selected_panel)
+    updateTabsetPanel(session, "image_tab_panel_alignment", selected_panel_ali)
+  })
+
+  # observe changes in the registered query tab panel
+  observeEvent(input$image_tab_panel_alignment,{
+    selected_panel <- input$image_tab_panel_alignment
+    selected_panel_reg <- gsub("Ali.", "Reg.", selected_panel)
+    updateTabsetPanel(session, "image_tab_panel_reg_query", selected_panel_reg)
   })
 }
 
@@ -1255,8 +1264,14 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
     ref_image <- image_list[[cur_map[2]]]
 
     # compute and get transformation matrix
+    if(which.max(cur_map) == 1){
+      cur_map_point = cur_map
+    } else {
+      cur_map_point = rev(cur_map)
+    }
     reg <- getRcppAutomatedRegistration(ref_image = ref_image, query_image = aligned_image,
-                                        as.numeric(input$GOOD_MATCH_PERCENT), as.numeric(input$MAX_FEATURES))
+                                        invert_query = input[[paste0("negate_query_image", cur_map_point[1])]] == "Yes",
+                                        invert_ref = input[[paste0("negate_ref_image", cur_map_point[2])]] == "Yes")
     mapping[[kk]] <- reg$transmat
     aligned_image <- reg$aligned_image
     alignment_image <- reg$alignment_image
@@ -1271,18 +1286,16 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
 #'
 #' @param ref_image reference image
 #' @param query_image query image
-#' @param GOOD_MATCH_PERCENT the percentage of good matching keypoints
-#' @param MAX_FEATURES maximum number of detected features, i.e. keypoints
 #'
 #' @importFrom magick image_read image_data
 #'
-getRcppAutomatedRegistration <- function(ref_image, query_image, GOOD_MATCH_PERCENT = 0.15, MAX_FEATURES = 500) {
-  ref_image_rast <- magick::image_data(ref_image)
-  query_image_rast <- magick::image_data(query_image)
+getRcppAutomatedRegistration <- function(ref_image, query_image, invert_query = FALSE, invert_ref = FALSE) {
+  ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
+  query_image_rast <- magick::image_data(query_image, channels = "rgb")
   reg <- automated_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
                                            width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
                                            width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3],
-                                           GOOD_MATCH_PERCENT, MAX_FEATURES)
+                                           invert_query = invert_query, invert_ref = invert_ref)
   aligned_image <- magick::image_read(reg[[2]])
   alignment_image <- magick::image_read(reg[[3]])
   return(list(transmat = reg[[1]], aligned_image = aligned_image, alignment_image = alignment_image))

@@ -91,20 +91,51 @@ void getGoodMatches(std::vector<std::vector<DMatch>> matches, std::vector<DMatch
 {
   for (size_t i = 0; i < matches.size(); i++)
   {
-    if (matches[i][0].distance < 0.8 * matches[i][1].distance)
+    if (matches[i][0].distance < lowe_ratio * matches[i][1].distance)
     {
       good_matches.push_back(matches[i][0]);
     }
   }
 }
 
-void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
+cv::Mat preprocessImage(Mat &im, const bool invert)
 {
+  // Processed image
+  Mat imProcess;
+
+  // gray color
+  Mat imGray;
+  cvtColor(im, imGray, cv::COLOR_BGR2GRAY);
+  // imwrite("test_Gray.jpg", imGray);
+
+  // normalize
+  Mat imNorm;
+  cv::normalize(imGray, imNorm, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+  // imwrite("test_Normalize.jpg", imNorm);
+
+  //
+  if(invert) {
+    cv::bitwise_not(imNorm, imProcess);
+    cout << "Image is inverted!" << endl;
+    // imwrite("test_Inverted.jpg", imProcess);
+  } else {
+    imProcess = imNorm;
+  }
+
+  //
+  return imProcess;
+}
+
+void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const bool invert_query, const bool invert_ref)
+{
+
+  // seed
+  cv::setRNGSeed(0);
 
   // Convert images to grayscale
   Mat im1Gray, im2Gray;
-  cvtColor(im1, im1Gray, cv::COLOR_BGR2GRAY);
-  cvtColor(im2, im2Gray, cv::COLOR_BGR2GRAY);
+  im1Gray = preprocessImage(im1, TRUE);
+  im2Gray = preprocessImage(im2, FALSE);
 
   // Variables to store keypoints and descriptors
   std::vector<KeyPoint> keypoints1, keypoints2;
@@ -117,8 +148,8 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const 
   cout << "DONE: sift based key-points detection and descriptors computation" << endl;
 
   // Match features using FLANN matching
-  std::vector<std::vector<DMatch> > matches;
-  cv::FlannBasedMatcher custom_matcher = cv::FlannBasedMatcher(cv::makePtr<cv::flann::KDTreeIndexParams>(5), cv::makePtr<cv::flann::SearchParams>(50));
+  std::vector<std::vector<DMatch>> matches;
+  cv::FlannBasedMatcher custom_matcher = cv::FlannBasedMatcher(cv::makePtr<cv::flann::KDTreeIndexParams>(5), cv::makePtr<cv::flann::SearchParams>(50, 0, TRUE));
   cv::Ptr<cv::FlannBasedMatcher> matcher = custom_matcher.create();
   matcher->knnMatch(descriptors1, descriptors2, matches, 2);
   cout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
@@ -150,26 +181,34 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const 
     keypoints2_best.push_back(keypoints2[good_matches[i].trainIdx]);
     top_matches.push_back(cv::DMatch(static_cast<int>(i), static_cast<int>(i), 0));
   }
-  drawMatches(im1, keypoints1_best, im2, keypoints2_best, top_matches, imMatches);
+  // drawMatches(im1, keypoints1_best, im2, keypoints2_best, top_matches, imMatches);
+  drawMatches(im1Gray, keypoints1_best, im2Gray, keypoints2_best, top_matches, imMatches);
 
   // Use homography to warp image
-  warpPerspective(im1, im1Reg, h, im2.size());
+  Mat im1Warp;
+  warpPerspective(im1, im1Warp, h, im2.size());
+  cout << "'DONE: warped query image" << endl;
+
+  // overlay image
+  cv::addWeighted(im2, 0.5, im1Warp, 0.5, 0, im1Reg);
 }
 
 // [[Rcpp::export]]
 Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image,
                                              const int width1, const int height1,
                                              const int width2, const int height2,
-                                             const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
+                                             const bool invert_query, const bool invert_ref)
 {
   // define return data, 1 = transformation matrix, 2 = aligned image
   Rcpp::List out(3);
 
   // Read reference image
   cv::Mat imReference = imageToMat(ref_image, width1, height1);
+  // imwrite("test_ref.jpg", imReference);
 
   // Read image to be aligned
   cv::Mat im = imageToMat(query_image, width2, height2);
+  // imwrite("test_query.jpg", im);
 
   // Registered image will be resotred in imReg.
   // The estimated homography will be stored in h.
@@ -177,7 +216,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   Mat imReg, h, imMatches;
 
   // Align images
-  alignImages(im, imReference, imReg, imMatches, h, GOOD_MATCH_PERCENT, MAX_FEATURES);
+  alignImages(im, imReference, imReg, imMatches, h, invert_query, invert_ref);
 
   // return transformation matrix, registered image, and keypoint matching image
   out[0] = matToNumericMatrix(h.clone());
