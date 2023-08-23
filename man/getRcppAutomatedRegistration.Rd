@@ -7,18 +7,25 @@
 getRcppAutomatedRegistration(
   ref_image,
   query_image,
+  GOOD_MATCH_PERCENT = 0.15,
+  MAX_FEATURES = 500,
   invert_query = FALSE,
   invert_ref = FALSE,
   flipflop_query = "None",
   flipflop_ref = "None",
   rotate_query = "0",
-  rotate_ref = "0"
+  rotate_ref = "0",
+  method = "FLANN"
 )
 }
 \arguments{
 \item{ref_image}{reference image}
 
 \item{query_image}{query image}
+
+\item{GOOD_MATCH_PERCENT}{the percentage of good matching keypoints, used by "Brute force" method}
+
+\item{MAX_FEATURES}{maximum number of detected features, i.e. keypoints, used by "Brute force" method}
 
 \item{invert_query}{invert query image?}
 
@@ -31,6 +38,8 @@ getRcppAutomatedRegistration(
 \item{rotate_query}{rotation of query image}
 
 \item{rotate_ref}{rotation of reference image}
+
+\item{method}{the automated registration method, either FLANN or BRUTE-FORCE}
 }
 \description{
 Automated registration with Rcpp
