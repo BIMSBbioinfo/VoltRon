@@ -413,7 +413,7 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
 
         # rotate and flipflip back with respect to reference image
         colnames(coords) <- c('x', 'y')
-        coords <- transformKeypoints(image_list[[ref_ind]], coords, ref_extension, input)
+        coords <- transformKeypoints(ref_image, coords, ref_extension, input)
       }
     }
     rownames(coords) <- entities
