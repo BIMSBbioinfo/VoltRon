@@ -120,7 +120,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
       updateSequentialTabPanels(input, output, session, centre, register_ind)
 
       ### Transform images ####
-      trans_image_query_list <- transformImageQueryList(orig_image_query_list, input, session)
+      trans_image_query_list <- transformImageQueryList(orig_image_query_list, input)
 
       ### Manage reference and query keypoints ####
       xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
@@ -327,13 +327,14 @@ updateSequentialTabPanels <- function(input, output, session, centre, register_i
 #' @param mapping_list a list of transformation matrices
 #' @param register_ind the indices of query images/spatialdatasets
 #' @param centre the index of the central referance image/spatialdata
+#' @param input input
 #' @param ... additional parameters passed to \code{getRegisteredObject.VoltRon} or \code{getRegisteredObject.Seurat}
 #'
-getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, ...) {
+getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, input, ...) {
 
   # check if the elements are VoltRon
   if(all(sapply(obj_list, class) == "VoltRon")){
-    registered_vr <- getRegisteredObjectListVoltRon(obj_list, mapping_list, register_ind, centre, ...)
+    registered_vr <- getRegisteredObjectListVoltRon(obj_list, mapping_list, register_ind, centre, input, ...)
     return(registered_vr)
 
   } else {
@@ -354,28 +355,66 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, ..
 #' @param mapping_list a list of transformation matrices
 #' @param register_ind the indices of query images/spatialdatasets
 #' @param centre the index of the central reference image/spatialdata
+#' @param input input
 #' @param reg_mode the registration mode, either "auto" or "manual"
+#' @param image_list the list of query/ref images
 #'
 #' @importFrom magick image_info
 #'
-getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centre, reg_mode = "manual"){
+getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centre, input, reg_mode = "manual", image_list = NULL){
 
   # initiate registered VoltRon objects
   ref_ind <- centre
   registered_sr <- sr
   for(i in register_ind){
-    mapping <- mapping_list[[i]]
+
+    # coordinates
     coords <- vrCoordinates(registered_sr[[i]])
     entities <- rownames(coords)
+
+    # choose image query and ref order
+    if(i > ref_ind){
+      ref_extension = paste0("ref_image",ref_ind)
+      query_extension = paste0("query_image",i)
+    } else {
+      ref_extension = paste0("query_image",ref_ind)
+      query_extension = paste0("ref_image",i)
+    }
+
+    # mapping
+    mapping <- mapping_list[[i]]
     for(kk in 1:length(mapping)){
       cur_mapping <- mapping[[kk]]
+
+      # manual registration
       if(reg_mode == "manual"){
         coords <- applyTPSTransform(coords, cur_mapping)
+
+      # automated registration
       } else {
-        info <- magick::image_info(vrImages(registered_sr[[i]]))
+
+        # images
+        ref_image <- transformImage(image_list[[ref_ind]], ref_extension, input)
+        query_image <- transformImage(image_list[[i]], query_extension, input)
+
+        # rotate and flipflip with respect to query image
+        coords <- transformImageKeypoints(image_list[[i]], coords, query_extension, input)$keypoints
+
+        # get image
+        # info <- magick::image_info(vrImages(registered_sr[[i]]))
+        info <- magick::image_info(query_image)
+
+        # warp coordinates
         coords[,2] <- info$height - coords[,2]
         coords <- perspectiveTransform(coords, cur_mapping)
+
+        # adjust height
+        info <- magick::image_info(ref_image)
         coords[,2] <- info$height - coords[,2]
+
+        # rotate and flipflip back with respect to reference image
+        colnames(coords) <- c('x', 'y')
+        coords <- transformKeypoints(image_list[[ref_ind]], coords, ref_extension, input)
       }
     }
     rownames(coords) <- entities
@@ -425,55 +464,55 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
 #'   return(registered_sr)
 #' }
 
-#' getRegisteredObject.Seurat
+#' #' getRegisteredObject.Seurat
+#' #'
+#' #' Get a Seurat Object wigth the registered spatial coordinates and images
+#' #'
+#' #' @param seu Seurat object
+#' #' @param mapping a list of transformation mapping matrices for the registration
+#' #'
+#' getRegisteredObject.Seurat <- function(seu, mapping){
 #'
-#' Get a Seurat Object wigth the registered spatial coordinates and images
+#'   if (!requireNamespace('Seurat'))
+#'     stop("Please install Seurat package for using Seurat objects")
 #'
-#' @param seu Seurat object
-#' @param mapping a list of transformation mapping matrices for the registration
+#'   image_classes <- sapply(seu@images, class)
 #'
-getRegisteredObject.Seurat <- function(seu, mapping){
-
-  if (!requireNamespace('Seurat'))
-    stop("Please install Seurat package for using Seurat objects")
-
-  image_classes <- sapply(seu@images, class)
-
-  # Xenium (FOV)
-  if(any(grepl("FOV",image_classes))){
-
-    # get image and FOV data
-    imagedata <- seu@images[[names(seu@images)[image_classes == "FOV"]]]
-    image <- seu@images[[names(seu@images)[image_classes == "FOVImage"]]]
-
-    # flip y coords and adjust coordinates to image scale
-    cells <- imagedata$centroids@coords
-    cells_box <- imagedata$segmentation@bbox
-    cells[,2] <- max(cells[,2]) - cells[,2] + min(cells[,2])
-    cells <- rescaleXeniumCells(cells, t(cells_box), image@image)
-
-    # apply transformation to cells
-    registered_cells <- as.matrix(cells)
-    for(kk in 1:length(mapping)){
-      cur_mapping <- mapping[[kk]]
-      # registered_cells <- applyTransform(registered_cells, cur_mapping)
-      registered_cells <- applyTPSTransform(registered_cells, cur_mapping)
-    }
-    registered_cells <- data.frame(x = registered_cells[,1], y = registered_cells[,2],
-                                   cell = imagedata$centroids@cells)
-    registered_segmentation_data <- list(centroids = SeuratObject::CreateCentroids(registered_cells))
-    coords <- SeuratObject::CreateFOV(coords = registered_segmentation_data, type = "centroids", molecules = NULL, assay = "Spatial")
-    seu[["registered_FOV"]] <- coords
-
-  } else if(any(grepl("Visium",image_classes))) {
-
-    # IMPLEMENT THIS LATER!!!!
-    imagedata <- seu@images[[names(seu@images)[which(grepl("Visium", image_classes))]]]
-    cells <- imagedata@coordinates[,c("imagerow", "imagecol")]
-  }
-
-  return(seu)
-}
+#'   # Xenium (FOV)
+#'   if(any(grepl("FOV",image_classes))){
+#'
+#'     # get image and FOV data
+#'     imagedata <- seu@images[[names(seu@images)[image_classes == "FOV"]]]
+#'     image <- seu@images[[names(seu@images)[image_classes == "FOVImage"]]]
+#'
+#'     # flip y coords and adjust coordinates to image scale
+#'     cells <- imagedata$centroids@coords
+#'     cells_box <- imagedata$segmentation@bbox
+#'     cells[,2] <- max(cells[,2]) - cells[,2] + min(cells[,2])
+#'     cells <- rescaleXeniumCells(cells, t(cells_box), image@image)
+#'
+#'     # apply transformation to cells
+#'     registered_cells <- as.matrix(cells)
+#'     for(kk in 1:length(mapping)){
+#'       cur_mapping <- mapping[[kk]]
+#'       # registered_cells <- applyTransform(registered_cells, cur_mapping)
+#'       registered_cells <- applyTPSTransform(registered_cells, cur_mapping)
+#'     }
+#'     registered_cells <- data.frame(x = registered_cells[,1], y = registered_cells[,2],
+#'                                    cell = imagedata$centroids@cells)
+#'     registered_segmentation_data <- list(centroids = SeuratObject::CreateCentroids(registered_cells))
+#'     coords <- SeuratObject::CreateFOV(coords = registered_segmentation_data, type = "centroids", molecules = NULL, assay = "Spatial")
+#'     seu[["registered_FOV"]] <- coords
+#'
+#'   } else if(any(grepl("Visium",image_classes))) {
+#'
+#'     # IMPLEMENT THIS LATER!!!!
+#'     imagedata <- seu@images[[names(seu@images)[which(grepl("Visium", image_classes))]]]
+#'     cells <- imagedata@coordinates[,c("imagerow", "imagecol")]
+#'   }
+#'
+#'   return(seu)
+#' }
 
 #' rescaleXeniumCells
 #'
@@ -573,7 +612,7 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, inpu
           image <- image_list[[ref_ind]]
         }
         image <- image[[type]]
-        keypoint <- transformKeypoints(image, keypoint, paste0(type, "_image",i), input, session)
+        keypoint <- transformKeypoints(image, keypoint, paste0(type, "_image",i), input)
 
         # insert keypoint to associated table
         temp <- xyTable_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]]
@@ -660,11 +699,10 @@ transformImageKeypoints <- function(image, keypoints, extension, input, session)
 #' @param keypoints keypoints visualized on image
 #' @param extension name extension for the shiny input parameter
 #' @param input shiny input
-#' @param session shiny session
 #'
 #' @importFrom magick image_flip image_flop image_rotate
 #'
-transformKeypoints <- function(image, keypoints, extension, input, session){
+transformKeypoints <- function(image, keypoints, extension, input){
 
   # get unrotated image info
   image_limits <- unlist(image_info(image)[1,c("width", "height")])
@@ -822,11 +860,10 @@ getImageOutput <- function(image_list, keypoints_list = NULL, centre, input, out
 #' @param image magick image
 #' @param extension name extension for the shiny input parameter
 #' @param input shiny input
-#' @param session shiny session
 #'
 #' @importFrom magick image_flip image_flop image_rotate
 #'
-transformImage <- function(image, extension, input, session){
+transformImage <- function(image, extension, input){
 
   # rotate image and keypoints
   input_rotate <- as.numeric(input[[paste0("rotate_", extension)]])
@@ -849,17 +886,16 @@ transformImage <- function(image, extension, input, session){
 #'
 #' @param image_list magick image
 #' @param input shiny input
-#' @param session shiny session
 #'
-transformImageQueryList <- function(image_list, input, session){
+transformImageQueryList <- function(image_list, input){
 
   # length of images
   len_register <- length(image_list) - 1
 
   trans_query_list <- lapply(1:len_register, function(i){
     reactive({
-      list(ref = transformImage(image_list[[i]], paste0("ref_image",i), input, session),
-           query = transformImage(image_list[[i+1]], paste0("query_image",i+1), input, session))
+      list(ref = transformImage(image_list[[i]], paste0("ref_image",i), input),
+           query = transformImage(image_list[[i+1]], paste0("query_image",i+1), input))
     })
   })
 
@@ -953,7 +989,7 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
       }
 
       # get registered spatial datasets
-      temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre)
+      temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre, input)
       for(i in 1:length(temp_reg_list))
         registered_spatdata_list[[paste0(i)]] <- temp_reg_list[[i]]
 
@@ -1208,7 +1244,7 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
       }
 
       # get registered spatial datasets
-      temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre, reg_mode = "auto")
+      temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre, input, reg_mode = "auto", image_list)
       for(i in 1:length(temp_reg_list))
         registered_spatdata_list[[paste0(i)]] <- temp_reg_list[[i]]
 

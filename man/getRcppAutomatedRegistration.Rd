@@ -7,8 +7,12 @@
 getRcppAutomatedRegistration(
   ref_image,
   query_image,
-  GOOD_MATCH_PERCENT = 0.15,
-  MAX_FEATURES = 500
+  invert_query = FALSE,
+  invert_ref = FALSE,
+  flipflop_query = "None",
+  flipflop_ref = "None",
+  rotate_query = "0",
+  rotate_ref = "0"
 )
 }
 \arguments{
@@ -16,9 +20,17 @@ getRcppAutomatedRegistration(
 
 \item{query_image}{query image}
 
-\item{GOOD_MATCH_PERCENT}{the percentage of good matching keypoints}
+\item{invert_query}{invert query image?}
 
-\item{MAX_FEATURES}{maximum number of detected features, i.e. keypoints}
+\item{invert_ref}{invert reference image}
+
+\item{flipflop_query}{flip or flop the query image}
+
+\item{flipflop_ref}{flip or flop the reference image}
+
+\item{rotate_query}{rotation of query image}
+
+\item{rotate_ref}{rotation of reference image}
 }
 \description{
 Automated registration with Rcpp
