@@ -64,9 +64,11 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
                         br(),
                         br(),
                         column(12,shiny::checkboxInput("automatictag", "Automated Registration", value = FALSE)),
-                        # br(),
-                        # column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
-                        # column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
+                        br(),
+                        column(12,selectInput("AutoMethod", "Method", choices = c("FLANN", "BRUTE-FORCE"), selected = "FLANN")),
+                        br(),
+                        column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
+                        column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
                         br(),
                         column(12,shiny::actionButton("done", "Done")),
                       ),
@@ -114,9 +116,8 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
 
     server <- function(input, output, session) {
 
-      ### Manage interface ####
-      # shinyjs::hide(id = "GOOD_MATCH_PERCENT")
-      # shinyjs::hide(id = "MAX_FEATURES")
+      ## Manage interface ####
+      updateParameterPanels(input, output, session)
       updateSequentialTabPanels(input, output, session, centre, register_ind)
 
       ### Transform images ####
@@ -140,16 +141,6 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
         getImageOutput(orig_image_query_list, xyTable_list, centre, input, output, session)
 
       })
-
-      # observeEvent(input$automatictag, {
-      #   if(input$automatictag){
-      #     shinyjs::show(id = "GOOD_MATCH_PERCENT")
-      #     shinyjs::show(id = "MAX_FEATURES")
-      #   } else {
-      #     shinyjs::hide(id = "GOOD_MATCH_PERCENT")
-      #     shinyjs::hide(id = "MAX_FEATURES")
-      #   }
-      # })
 
       ## Return values for the shiny app ####
       observeEvent(input$done, {
@@ -313,7 +304,44 @@ updateSequentialTabPanels <- function(input, output, session, centre, register_i
   })
 }
 
+#' updateParameterPanels
+#'
+#' A function for managing which parameter panels or input boxes to appear on UI
+#'
+#' @param input input
+#' @param output output
+#' @param session session
+#'
+updateParameterPanels <- function(input, output, session){
 
+  shinyjs::hide(id = "GOOD_MATCH_PERCENT")
+  shinyjs::hide(id = "MAX_FEATURES")
+  shinyjs::hide(id = "AutoMethod")
+
+  observeEvent(input$automatictag, {
+    if(input$automatictag){
+      shinyjs::show(id = "AutoMethod")
+      if(input$AutoMethod == "BRUTE-FORCE"){
+        shinyjs::show(id = "GOOD_MATCH_PERCENT")
+        shinyjs::show(id = "MAX_FEATURES")
+      }
+    } else {
+      shinyjs::hide(id = "AutoMethod")
+      shinyjs::hide(id = "GOOD_MATCH_PERCENT")
+      shinyjs::hide(id = "MAX_FEATURES")
+    }
+  })
+
+  observeEvent(input$AutoMethod, {
+    if(input$AutoMethod == "FLANN"){
+      shinyjs::hide(id = "GOOD_MATCH_PERCENT")
+      shinyjs::hide(id = "MAX_FEATURES")
+    } else {
+      shinyjs::show(id = "GOOD_MATCH_PERCENT")
+      shinyjs::show(id = "MAX_FEATURES")
+    }
+  })
+}
 
 ####
 # Managing Cells/Barcodes ####
@@ -1312,12 +1340,14 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
       query_label = "ref"
     }
     reg <- getRcppAutomatedRegistration(ref_image = ref_image, query_image = aligned_image,
+                                        GOOD_MATCH_PERCENT = as.numeric(input$GOOD_MATCH_PERCENT), MAX_FEATURES = as.numeric(input$MAX_FEATURES),
                                         invert_query = input[[paste0("negate_", query_label, "_image", cur_map[1])]] == "Yes",
                                         invert_ref = input[[paste0("negate_", ref_label, "_image", cur_map[2])]] == "Yes",
                                         flipflop_query = input[[paste0("flipflop_", query_label, "_image", cur_map[1])]],
                                         flipflop_ref = input[[paste0("flipflop_", ref_label, "_image", cur_map[2])]],
                                         rotate_query = input[[paste0("rotate_", query_label, "_image", cur_map[1])]],
-                                        rotate_ref = input[[paste0("rotate_", ref_label, "_image", cur_map[2])]])
+                                        rotate_ref = input[[paste0("rotate_", ref_label, "_image", cur_map[2])]],
+                                        method = input$AutoMethod)
     mapping[[kk]] <- reg$transmat
     dest_image <- reg$dest_image
     aligned_image <- reg$aligned_image
@@ -1333,27 +1363,33 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
 #'
 #' @param ref_image reference image
 #' @param query_image query image
+#' @param GOOD_MATCH_PERCENT the percentage of good matching keypoints, used by "Brute force" method
+#' @param MAX_FEATURES maximum number of detected features, i.e. keypoints, used by "Brute force" method
 #' @param invert_query invert query image?
 #' @param invert_ref invert reference image
 #' @param flipflop_query flip or flop the query image
 #' @param flipflop_ref flip or flop the reference image
 #' @param rotate_query rotation of query image
 #' @param rotate_ref rotation of reference image
+#' @param method the automated registration method, either FLANN or BRUTE-FORCE
 #'
 #' @importFrom magick image_read image_data
 #'
 getRcppAutomatedRegistration <- function(ref_image, query_image,
+                                         GOOD_MATCH_PERCENT = 0.15, MAX_FEATURES = 500,
                                          invert_query = FALSE, invert_ref = FALSE,
                                          flipflop_query = "None", flipflop_ref = "None",
-                                         rotate_query = "0", rotate_ref = "0") {
+                                         rotate_query = "0", rotate_ref = "0", method = "FLANN") {
   ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
   query_image_rast <- magick::image_data(query_image, channels = "rgb")
   reg <- automated_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
                                            width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
                                            width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3],
+                                           GOOD_MATCH_PERCENT = GOOD_MATCH_PERCENT, MAX_FEATURES = MAX_FEATURES,
                                            invert_query = invert_query, invert_ref = invert_ref,
                                            flipflop_query = flipflop_query, flipflop_ref = flipflop_ref,
-                                           rotate_query = rotate_query, rotate_ref = rotate_ref)
+                                           rotate_query = rotate_query, rotate_ref = rotate_ref,
+                                           method = method)
   return(list(transmat = reg[[1]],
               dest_image = magick::image_read(reg[[2]]),
               aligned_image = magick::image_read(reg[[3]]),
