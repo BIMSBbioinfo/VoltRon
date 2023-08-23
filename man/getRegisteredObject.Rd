@@ -4,7 +4,7 @@
 \alias{getRegisteredObject}
 \title{getRegisteredObject}
 \usage{
-getRegisteredObject(obj_list, mapping_list, register_ind, centre, ...)
+getRegisteredObject(obj_list, mapping_list, register_ind, centre, input, ...)
 }
 \arguments{
 \item{obj_list}{a list of spatial data object}
@@ -14,6 +14,8 @@ getRegisteredObject(obj_list, mapping_list, register_ind, centre, ...)
 \item{register_ind}{the indices of query images/spatialdatasets}
 
 \item{centre}{the index of the central referance image/spatialdata}
+
+\item{input}{input}
 
 \item{...}{additional parameters passed to \code{getRegisteredObject.VoltRon} or \code{getRegisteredObject.Seurat}}
 }

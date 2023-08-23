@@ -4,7 +4,7 @@
 \alias{transformImage}
 \title{transformImage}
 \usage{
-transformImage(image, extension, input, session)
+transformImage(image, extension, input)
 }
 \arguments{
 \item{image}{magick image}
@@ -12,8 +12,6 @@ transformImage(image, extension, input, session)
 \item{extension}{name extension for the shiny input parameter}
 
 \item{input}{shiny input}
-
-\item{session}{shiny session}
 }
 \description{
 Apply given transformations to a magick image
