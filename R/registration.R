@@ -401,7 +401,6 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
         coords <- transformImageKeypoints(image_list[[i]], coords, query_extension, input)$keypoints
 
         # get image
-        # info <- magick::image_info(vrImages(registered_sr[[i]]))
         info <- magick::image_info(query_image)
 
         # warp coordinates
