@@ -54,7 +54,7 @@ fi
 
 ## adding additional features for Morpho derived C++ functions
 # PKG_LIBS=$(echo $PKG_LIBS $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS))
-PKG_LIBS="$(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $PKG_LIBS"
+PKG_LIBS="$LAPACK_LIBS $BLAS_LIBS $FLIBS $PKG_LIBS"
 
 # For debugging
 echo "Using PKG_CFLAGS=$PKG_CFLAGS"
