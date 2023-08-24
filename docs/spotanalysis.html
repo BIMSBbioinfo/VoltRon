@@ -500,8 +500,8 @@ respect to the image using <strong>flipCoordinates</strong>
 function.</p>
 <pre class="r watch-out"><code>for(i in 1:nrow(sample_metadata)){
   vrassay &lt;- sample_metadata[i,]
-  vr_list[[vrassay$Sample]] &lt;- flipCoordinates(vr_list[[vrassay$Section]])
-  vr_list[[vrassay$Sample]] &lt;- resizeImage(vr_list[[vrassay$Section]], size = 600)
+  vr_list[[vrassay$Section]] &lt;- flipCoordinates(vr_list[[vrassay$Section]])
+  vr_list[[vrassay$Section]] &lt;- resizeImage(vr_list[[vrassay$Section]], size = 600)
 }</code></pre>
 <p>Finally, we merge these assays into one VoltRon object. The
 <strong>samples</strong> arguement in the merge function determines

@@ -90,8 +90,8 @@ Before moving forward with merging sections, we should **flip coordinates** of c
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 for(i in 1:nrow(sample_metadata)){
   vrassay <- sample_metadata[i,]
-  vr_list[[vrassay$Sample]] <- flipCoordinates(vr_list[[vrassay$Section]])
-  vr_list[[vrassay$Sample]] <- resizeImage(vr_list[[vrassay$Section]], size = 600)
+  vr_list[[vrassay$Section]] <- flipCoordinates(vr_list[[vrassay$Section]])
+  vr_list[[vrassay$Section]] <- resizeImage(vr_list[[vrassay$Section]], size = 600)
 }
 ```
 
