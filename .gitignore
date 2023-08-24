@@ -11,3 +11,5 @@ src/*.so
 configure.log
 autobrew
 .deps
+Makevars
+
