@@ -51,11 +51,13 @@ On **Windows** and **MacOS**, OpenCV will be downloaded automatically upon insta
 # ```
 -->
 
+<!--
 On **Ubuntu** or **Fedora** you need [`libopencv-dev`](https://packages.debian.org/testing/libopencv-dev) or [`opencv-devel`](https://src.fedoraproject.org/rpms/opencv):
 
 ```sh
 sudo apt-get install libopencv-dev
 ```
+-->
 
 ## Installation
 
