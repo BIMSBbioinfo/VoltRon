@@ -4,14 +4,12 @@
 \alias{transformImageQueryList}
 \title{transformImageQueryList}
 \usage{
-transformImageQueryList(image_list, input, session)
+transformImageQueryList(image_list, input)
 }
 \arguments{
 \item{image_list}{magick image}
 
 \item{input}{shiny input}
-
-\item{session}{shiny session}
 }
 \description{
 Apply given transformations to a list of magick image and return shiny reactive

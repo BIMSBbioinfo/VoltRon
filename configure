@@ -1,5 +1,5 @@
 #!/bin/sh
-# Anticonf (tm) script by Jeroen Ooms (2020) from (https://github.com/ropensci/opencv)
+# Anticonf (tm) script by Jeroen Ooms (2020)
 PKG_CONFIG_NAME="opencv4"
 PKG_CONFIG_NAME_ALT="opencv"
 PKG_DEB_NAME="libopencv-dev"
@@ -12,42 +12,49 @@ dpm,face,photo,fuzzy,hfs,img_hash,line_descriptor,optflow,reg,rgbd,saliency,ster
 phase_unwrapping,surface_matching,tracking,datasets,dnn,plot,xfeatures2d,shape,video,ml,ximgproc,\
 calib3d,features2d,highgui,videoio,flann,xobjdetect,imgcodecs,objdetect,xphoto,imgproc,core}"
 
-# # Use pkg-config if available
-# PCVERSION=`pkg-config --version 2>/dev/null`
-# if [ $? -eq 0 ]; then
-#   echo "This is pkg-config $PCVERSION"
-#   if pkg-config --exists ${PKG_CONFIG_NAME} ; then
-#     PKGCONFIG_CFLAGS=`pkg-config --cflags ${PKG_CONFIG_NAME}`
-#     PKGCONFIG_LIBS=`pkg-config --libs ${PKG_CONFIG_NAME}`
-#     PKGCONFIG_PREFIX=`pkg-config --variable=prefix ${PKG_CONFIG_NAME}`
-#   elif pkg-config --exists ${PKG_CONFIG_NAME_ALT}; then
-#     PKGCONFIG_CFLAGS=`pkg-config --cflags ${PKG_CONFIG_NAME_ALT}`
-#     PKGCONFIG_LIBS=`pkg-config --libs ${PKG_CONFIG_NAME_ALT}`
-#     PKGCONFIG_PREFIX=`pkg-config --variable=prefix ${PKG_CONFIG_NAME_ALT}`
-#   fi
-# fi
-#
-# # Note that cflags may be empty in case of success
-# if [ "$PKGCONFIG_CFLAGS" ] || [ "$PKGCONFIG_LIBS" ]; then
-#   echo "Found pkg-config cflags and libs!"
-#   PKG_CFLAGS=${PKGCONFIG_CFLAGS}
-#   PKG_LIBS=${PKGCONFIG_LIBS}
-#   if [ "$PKGCONFIG_PREFIX" ]; then
-#     PKG_CFLAGS="$PKG_CFLAGS -D_DATA_PREFIX=${PKGCONFIG_PREFIX}"
-#   fi
-# elif [ `uname` = "Darwin" ]; then
-#   test ! "$CI" && brew --version 2>/dev/null
-#   if [ $? -eq 0 ]; then
-#     BREWDIR=`brew --prefix`
-#     PKG_CFLAGS="-I$BREWDIR/opt/opencv/include"
-#     PKG_LIBS="-L$BREWDIR/opt/opencv/lib $PKG_LIBS"
-#   else
-#     curl -sfL "https://autobrew.github.io/scripts/opencv" > autobrew
-#     . ./autobrew
-#   fi
-# fi
-curl -sfL "https://autobrew.github.io/scripts/opencv" > autobrew
-. ./autobrew
+# For debugging opencv3 in macos:
+#export PKG_CONFIG_PATH="/usr/local/opt/opencv@3/lib/pkgconfig"
+
+# Use pkg-config if available
+PCVERSION=`pkg-config --version 2>/dev/null`
+if [ $? -eq 0 ]; then
+  echo "This is pkg-config $PCVERSION"
+  if pkg-config --exists ${PKG_CONFIG_NAME} ; then
+    PKGCONFIG_CFLAGS=`pkg-config --cflags ${PKG_CONFIG_NAME}`
+    PKGCONFIG_LIBS=`pkg-config --libs ${PKG_CONFIG_NAME}`
+    PKGCONFIG_PREFIX=`pkg-config --variable=prefix ${PKG_CONFIG_NAME}`
+  elif pkg-config --exists ${PKG_CONFIG_NAME_ALT}; then
+    PKGCONFIG_CFLAGS=`pkg-config --cflags ${PKG_CONFIG_NAME_ALT}`
+    PKGCONFIG_LIBS=`pkg-config --libs ${PKG_CONFIG_NAME_ALT}`
+    PKGCONFIG_PREFIX=`pkg-config --variable=prefix ${PKG_CONFIG_NAME_ALT}`
+  fi
+fi
+
+# Note that cflags may be empty in case of success
+if [ "$PKGCONFIG_CFLAGS" ] || [ "$PKGCONFIG_LIBS" ]; then
+  echo "Found pkg-config cflags and libs!"
+  PKG_CFLAGS=${PKGCONFIG_CFLAGS}
+  PKG_LIBS=${PKGCONFIG_LIBS}
+  if [ "$PKGCONFIG_PREFIX" ]; then
+    PKG_CFLAGS="$PKG_CFLAGS -D_DATA_PREFIX=${PKGCONFIG_PREFIX}"
+  fi
+elif [ `uname` = "Darwin" ]; then
+  # test ! "$CI" && brew --version 2>/dev/null
+  # if [ $? -eq 0 ]; then
+  #   BREWDIR=`brew --prefix`
+  #   PKG_CFLAGS="-I$BREWDIR/opt/opencv/include"
+  #   PKG_LIBS="-L$BREWDIR/opt/opencv/lib $PKG_LIBS"
+  # else
+  #   curl -sfL "https://autobrew.github.io/scripts/opencv" > autobrew
+  #   . ./autobrew
+  # fi
+  curl -sfL "https://autobrew.github.io/scripts/opencv" > autobrew
+    . ./autobrew
+fi
+
+## adding additional features for Morpho derived C++ functions
+# PKG_LIBS=$(echo $PKG_LIBS $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS))
+PKG_LIBS="$LAPACK_LIBS $BLAS_LIBS $FLIBS $PKG_LIBS"
 
 # For debugging
 echo "Using PKG_CFLAGS=$PKG_CFLAGS"

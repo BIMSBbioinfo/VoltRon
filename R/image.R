@@ -430,10 +430,10 @@ demuxVoltRon <- function(object, scale_width = 800)
     stop("You can only subset a VoltRon assay with one image")
 
   # scale
-  imageinfo <- magick::image_info(images[[1]])
+  imageinfo <- magick::image_info(images)
   scale_factor <- imageinfo$width/scale_width
   scale_width <- paste0(scale_width, "x")
-  images <- magick::image_scale(images[[1]], scale_width)
+  images <- magick::image_scale(images, scale_width)
 
   # get the ui and server
   if (interactive()){

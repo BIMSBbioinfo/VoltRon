@@ -4,7 +4,7 @@
 \alias{transformKeypoints}
 \title{transformKeypoints}
 \usage{
-transformKeypoints(image, keypoints, extension, input, session)
+transformKeypoints(image, keypoints, extension, input)
 }
 \arguments{
 \item{image}{magick image}
@@ -14,8 +14,6 @@ transformKeypoints(image, keypoints, extension, input, session)
 \item{extension}{name extension for the shiny input parameter}
 
 \item{input}{shiny input}
-
-\item{session}{shiny session}
 }
 \description{
 Apply transformations to keypoints given transformed images to find the keypoints locations in the original image

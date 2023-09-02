@@ -8,69 +8,6 @@ using namespace std;
 using namespace cv;
 using namespace cv::xfeatures2d;
 
-void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
-{
-  // Convert images to grayscale
-  Mat im1Gray, im2Gray;
-  cvtColor(im1, im1Gray, cv::COLOR_BGR2GRAY);
-  cvtColor(im2, im2Gray, cv::COLOR_BGR2GRAY);
-
-  // Variables to store keypoints and descriptors
-  std::vector<KeyPoint> keypoints1, keypoints2;
-  Mat descriptors1, descriptors2;
-
-  // Detect ORB features and compute descriptors.
-  Ptr<Feature2D> orb = ORB::create(MAX_FEATURES);
-  orb->detectAndCompute(im1Gray, Mat(), keypoints1, descriptors1);
-  orb->detectAndCompute(im2Gray, Mat(), keypoints2, descriptors2);
-
-  // Match features.
-  std::vector<DMatch> matches;
-  Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
-  matcher->match(descriptors1, descriptors2, matches, Mat());
-
-  // Sort matches by score
-  std::sort(matches.begin(), matches.end());
-
-  // Remove not so good matches
-  const int numGoodMatches = matches.size() * GOOD_MATCH_PERCENT;
-  matches.erase(matches.begin()+numGoodMatches, matches.end());
-
-  // Draw top matches
-  // Mat imMatches;
-  // drawMatches(im1, keypoints1, im2, keypoints2, matches, imMatches);
-  // imwrite("matches.jpg", imMatches);
-
-  // Extract location of good matches
-  std::vector<Point2f> points1, points2;
-  for( size_t i = 0; i < matches.size(); i++ )
-  {
-    points1.push_back( keypoints1[ matches[i].queryIdx ].pt );
-    points2.push_back( keypoints2[ matches[i].trainIdx ].pt );
-  }
-
-  // Extract location of good matches in terms of keypoints
-  std::vector<KeyPoint> keypoints1_best, keypoints2_best;
-  std::vector<cv::DMatch> goodMatches;
-  for( size_t i = 0; i < matches.size(); i++ )
-  {
-    keypoints1_best.push_back(keypoints1[matches[i].queryIdx]);
-    keypoints2_best.push_back(keypoints2[matches[i].trainIdx]);
-    goodMatches.push_back(cv::DMatch(static_cast<int>(i), static_cast<int>(i), 0));
-  }
-
-  // Draw top matches and good ones only
-  // Mat imMatches;
-  drawMatches(im1, keypoints1_best, im2, keypoints2_best, goodMatches, imMatches);
-  // imwrite("matches_best2.jpg", imMatches);
-
-  // Find homography
-  h = findHomography( points1, points2, RANSAC );
-
-  // Use homography to warp image
-  warpPerspective(im1, im1Reg, h, im2.size());
-}
-
 cv::Mat imageToMat(Rcpp::RawVector image_data, int width, int height) {
 
   // Create cv::Mat object
@@ -137,14 +74,224 @@ Rcpp::NumericMatrix point2fToNumericMatrix(std::vector<cv::Point2f> points) {
   return mat;
 }
 
+// void computeSiftTiles(Mat image, std::vector<KeyPoint> &keypoints, Mat &descriptors, const int tile_size_tuple[2], const int tile_overlap, Ptr<Feature2D> sift){
+//
+//   // image shape
+//   int height = image.rows;
+//   int width = image.cols;
+//
+//   // Extend the image so that it can be divided into equal size tiles
+//   float h_extend = ((height - 1) / (tile_size_tuple[1] - tile_overlap) + 1) * (tile_size_tuple[1] - tile_overlap) + tile_overlap;
+//   float w_extend = ((width - 1) / (tile_size_tuple[0] - tile_overlap) + 1) * (tile_size_tuple[0] - tile_overlap) + tile_overlap;
+//   cv::Mat image_extended = cv::Mat::zeros(height, width, image.type());
+//
+// }
+
+void getGoodMatches(std::vector<std::vector<DMatch>> matches, std::vector<DMatch> &good_matches, const float lowe_ratio = 0.8)
+{
+  for (size_t i = 0; i < matches.size(); i++)
+  {
+    if (matches[i][0].distance < lowe_ratio * matches[i][1].distance)
+    {
+      good_matches.push_back(matches[i][0]);
+    }
+  }
+}
+
+cv::Mat preprocessImage(Mat &im, const bool invert, const char* flipflop, const char* rotate)
+{
+  // gray color
+  Mat imGray;
+  cvtColor(im, imGray, cv::COLOR_BGR2GRAY);
+
+  // normalize
+  Mat imNorm;
+  cv::normalize(imGray, imNorm, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+
+  // rotate image
+  Mat imRotate;
+  if(atoi(rotate) > 0){
+    cv::rotate(imNorm, imRotate, (atoi(rotate)/90)-1);
+  } else {
+    imRotate = imNorm;
+  }
+  imwrite("test_rotate.jpg", imRotate);
+
+  // Flipflop image
+  Mat imFlipFlop;
+  if(strcmp(flipflop, "Flip") == 0){
+    cv::flip(imRotate, imFlipFlop, 0);
+  } else if(strcmp(flipflop, "Flop") == 0){
+    cv::flip(imRotate, imFlipFlop, 1);
+  } else if(strcmp(flipflop, "None") == 0){
+    imFlipFlop = imRotate;
+  }
+
+  // invert/negate image and full processed image
+  Mat imProcess;
+  if(invert) {
+    cv::bitwise_not(imFlipFlop, imProcess);
+    cout << "Image is inverted!" << endl;
+  } else {
+    imProcess = imFlipFlop;
+  }
+
+  // return
+  return imProcess;
+}
+
+void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
+{
+  // Convert images to grayscale
+  Mat im1Gray, im2Gray;
+  cvtColor(im1, im1Gray, cv::COLOR_BGR2GRAY);
+  cvtColor(im2, im2Gray, cv::COLOR_BGR2GRAY);
+
+  // Variables to store keypoints and descriptors
+  std::vector<KeyPoint> keypoints1, keypoints2;
+  Mat descriptors1, descriptors2;
+
+  // Detect ORB features and compute descriptors.
+  Ptr<Feature2D> orb = ORB::create(MAX_FEATURES);
+  orb->detectAndCompute(im1Gray, Mat(), keypoints1, descriptors1);
+  orb->detectAndCompute(im2Gray, Mat(), keypoints2, descriptors2);
+  cout << "DONE: orb based key-points detection and descriptors computation" << endl;
+
+  // Match features.
+  std::vector<DMatch> matches;
+  Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
+  matcher->match(descriptors1, descriptors2, matches, Mat());
+  cout << "DONE: BruteForce-Hamming - descriptor matching" << endl;
+
+  // Sort matches by score
+  std::sort(matches.begin(), matches.end());
+
+  // Remove not so good matches
+  const int numGoodMatches = matches.size() * GOOD_MATCH_PERCENT;
+  matches.erase(matches.begin()+numGoodMatches, matches.end());
+  cout << "DONE: get good matches by distance thresholding" << endl;
+
+  // Extract location of good matches
+  std::vector<Point2f> points1, points2;
+  for( size_t i = 0; i < matches.size(); i++ )
+  {
+    points1.push_back( keypoints1[ matches[i].queryIdx ].pt );
+    points2.push_back( keypoints2[ matches[i].trainIdx ].pt );
+  }
+
+  // Find homography
+  h = findHomography( points1, points2, RANSAC );
+  cout << "DONE: calculated homography matrix" << endl;
+
+  // Extract location of good matches in terms of keypoints
+  std::vector<KeyPoint> keypoints1_best, keypoints2_best;
+  std::vector<cv::DMatch> goodMatches;
+  for( size_t i = 0; i < matches.size(); i++ )
+  {
+    keypoints1_best.push_back(keypoints1[matches[i].queryIdx]);
+    keypoints2_best.push_back(keypoints2[matches[i].trainIdx]);
+    goodMatches.push_back(cv::DMatch(static_cast<int>(i), static_cast<int>(i), 0));
+  }
+
+  // Draw top matches and good ones only
+  // Mat imMatches;
+  drawMatches(im1, keypoints1_best, im2, keypoints2_best, goodMatches, imMatches);
+
+  // Use homography to warp image
+  warpPerspective(im1, im1Reg, h, im2.size());
+  cout << "DONE: warped query image" << endl;
+}
+
+void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h,
+                 const bool invert_query, const bool invert_ref,
+                 const char* flipflop_query, const char* flipflop_ref,
+                 const char* rotate_query, const char* rotate_ref)
+{
+
+  // seed
+  cv::setRNGSeed(0);
+
+  // Convert images to grayscale
+  Mat im1Gray, im2Gray;
+  im1Gray = preprocessImage(im1, invert_query, flipflop_query, rotate_query);
+  im2Gray = preprocessImage(im2, invert_ref, flipflop_ref, rotate_ref);
+
+  // Variables to store keypoints and descriptors
+  std::vector<KeyPoint> keypoints1, keypoints2;
+  Mat descriptors1, descriptors2;
+
+  // Detect SIFT features
+  Ptr<Feature2D> sift = cv::SIFT::create();
+  sift->detectAndCompute(im1Gray, Mat(), keypoints1, descriptors1);
+  sift->detectAndCompute(im2Gray, Mat(), keypoints2, descriptors2);
+  cout << "DONE: sift based key-points detection and descriptors computation" << endl;
+
+  // Match features using FLANN matching
+  std::vector<std::vector<DMatch>> matches;
+  cv::FlannBasedMatcher custom_matcher = cv::FlannBasedMatcher(cv::makePtr<cv::flann::KDTreeIndexParams>(5), cv::makePtr<cv::flann::SearchParams>(50, 0, TRUE));
+  cv::Ptr<cv::FlannBasedMatcher> matcher = custom_matcher.create();
+  matcher->knnMatch(descriptors1, descriptors2, matches, 2);
+  cout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
+
+  // Find good matches
+  // goodMatches = get_good_matches(matches)
+  std::vector<DMatch> good_matches;
+  getGoodMatches(matches, good_matches);
+  cout << "DONE: get good matches by distance thresholding" << endl;
+
+  // Extract location of good matches
+  std::vector<Point2f> points1, points2;
+  for( size_t i = 0; i < good_matches.size(); i++ )
+  {
+    points1.push_back(keypoints1[good_matches[i].queryIdx].pt);
+    points2.push_back(keypoints2[good_matches[i].trainIdx].pt);
+  }
+
+  // Find homography
+  h = findHomography(points1, points2, RANSAC, 5);
+  cout << "DONE: calculated homography matrix" << endl;
+
+  // Draw top matches and good ones only
+  std::vector<cv::DMatch> top_matches;
+  std::vector<KeyPoint> keypoints1_best, keypoints2_best;
+  for( size_t i = 0; i < good_matches.size(); i++ )
+  {
+    keypoints1_best.push_back(keypoints1[good_matches[i].queryIdx]);
+    keypoints2_best.push_back(keypoints2[good_matches[i].trainIdx]);
+    top_matches.push_back(cv::DMatch(static_cast<int>(i), static_cast<int>(i), 0));
+  }
+  drawMatches(im1Gray, keypoints1_best, im2Gray, keypoints2_best, top_matches, imMatches);
+
+  // Use homography to warp image
+  Mat im1Warp;
+  warpPerspective(im1Gray, im1Warp, h, im2Gray.size());
+  cout << "DONE: warped query image" << endl;
+
+  // // overlay image
+  // Mat im1ColorMap;
+  // cv::applyColorMap(im1Warp, im1ColorMap, cv::COLORMAP_HOT);
+
+  // change color map
+  Mat im1Combine;
+  cv::addWeighted(im2Gray, 0.7, im1Warp, 0.3, 0, im1Combine);
+
+  // return as rgb
+  cvtColor(im1Combine, im1Reg, cv::COLOR_GRAY2BGR);
+  cvtColor(im2Gray, im2, cv::COLOR_GRAY2BGR);
+}
+
 // [[Rcpp::export]]
 Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image,
                                              const int width1, const int height1,
                                              const int width2, const int height2,
-                                             const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
+                                             const float GOOD_MATCH_PERCENT, const int MAX_FEATURES,
+                                             const bool invert_query, const bool invert_ref,
+                                             Rcpp::String flipflop_query, Rcpp::String flipflop_ref,
+                                             Rcpp::String rotate_query, Rcpp::String rotate_ref,
+                                             Rcpp::String method)
 {
   // define return data, 1 = transformation matrix, 2 = aligned image
-  Rcpp::List out(3);
+  Rcpp::List out(4);
 
   // Read reference image
   cv::Mat imReference = imageToMat(ref_image, width1, height1);
@@ -154,17 +301,25 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
 
   // Registered image will be resotred in imReg.
   // The estimated homography will be stored in h.
-  Mat imMatches, imReg, h;
+  // The matching illustration of both images with be given in imMatches.
+  Mat imReg, h, imMatches;
 
   // Align images
-  // cout << "Aligning images ..." << endl;
-  // alignImages(im, imReference, imReg, h, GOOD_MATCH_PERCENT, MAX_FEATURES);
-  alignImages(im, imReference, imReg, imMatches, h, GOOD_MATCH_PERCENT, MAX_FEATURES);
+  if(strcmp(method.get_cstring(), "FLANN") == 0){
+    cout << "Fast Library for Approximate Nearest Neighbors (FLANN) - descriptor matching" << endl;
+    alignImagesFLANN(im, imReference, imReg, imMatches, h, invert_query, invert_ref,
+                     flipflop_query.get_cstring(), flipflop_ref.get_cstring(), rotate_query.get_cstring(), rotate_ref.get_cstring());
+  }
+  if(strcmp(method.get_cstring(), "BRUTE-FORCE") == 0){
+    cout << "BruteForce-Hamming - descriptor matching" << endl;
+    alignImagesBRUTE(im, imReference, imReg, imMatches, h, GOOD_MATCH_PERCENT, MAX_FEATURES);
+  }
 
-  // return transformation matrix and alignment images
+  // return transformation matrix, destinated image, registered image, and keypoint matching image
   out[0] = matToNumericMatrix(h.clone());
-  out[1] = matToImage(imReg.clone());
-  out[2] = matToImage(imMatches.clone());
+  out[1] = matToImage(imReference.clone());
+  out[2] = matToImage(imReg.clone());
+  out[3] = matToImage(imMatches.clone());
   return out;
 }
 

@@ -35,8 +35,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-6.4.0/css/all.min.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-6.4.0/css/v4-shims.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -518,8 +518,8 @@ images require further adjustments.</p>
 vrImages(Xen_R2)</code></pre>
 <p><img width="40%" height="40%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/xeniumr2_new.png" class="center"></p>
 <p><br></p>
-<div id="manual-image-alignment" class="section level3">
-<h3>Manual Image Alignment</h3>
+<div id="automated-image-alignment" class="section level3">
+<h3>Automated Image Alignment</h3>
 <p>In order to achieve data transfer and integration across these two
 modalities, we need to first make sure that spatial coordinates of these
 three datasets are perfectly aligned. To this end, we will make use of
@@ -527,14 +527,41 @@ the <strong>registerSpatialData</strong> function which calls a
 <strong>shiny app</strong> embedded into VoltRon. The function takes a
 single list as an input where the order of VoltRon objects in the list
 should be the same as the <strong>order of serial sections</strong>.</p>
-<p>In this example, we will <strong>manually choose keypoints (or
-landmarks)</strong> on images that are locations on the tissue with
-structural/morphological similarity. The Visium CytAssist image would be
-taken as the image of reference, and hence all other images (or spatial
-datasets) are to be aligned to the Visium data. Then,
-<strong>registerSpatialData</strong> will return a list of VoltRon
-objects whose assays include both the original and registered versions
-of spatial coordinates.</p>
+<p>We will make use of the <strong>registerSpatialData</strong> function
+to <strong>automatically register two Xenium assays onto the Visium
+assay</strong>. The Visium CytAssist image would be taken as the image
+of reference, and hence all other images (or spatial datasets) are to be
+aligned to the Visium data. Then, registerSpatialData will return a list
+of VoltRon objects whose assays include both the original and registered
+versions of spatial coordinates. The shiny app will provide <strong>two
+images</strong> for this task:</p>
+<ul>
+<li>An image that shows the matched points across two images, and</li>
+<li>A slideshow with of the reference and registered images that
+demonstrates the alignment accuracy.</li>
+</ul>
+<p>We will select <strong>FLANN</strong> method for automated alignment
+which incorporates the <strong>SIFT</strong> method for automated
+keypoints selection and utilizes the <strong>Fast library for
+Approximate Nearest Neighbors (FLANN) algorithm</strong> for matching
+keypoints. <strong>NOTE:</strong> For better alignment performance,
+users can incorporate image manipulation tools above each image and sync
+images into the same orientation by rotating, flipping (horizontally and
+vertically) and negating these images. We always negate DAPI images to
+align them onto H&amp;E images.</p>
+<pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration_FLANN.gif" class="center"></p>
+<p><br></p>
+</div>
+<div id="manual-image-alignment" class="section level3">
+<h3>Manual Image Alignment</h3>
+<p>Given the diverse types of tissue sections and their complex
+morphology, we need an alternative alignment strategy if automated
+registration may fail. VoltRon allows <strong>manually choosing
+keypoints (or landmarks)</strong> on images that are locations on the
+tissue with structural/morphological similarity. Similar to the
+automated mode, the users will be able to observe the quality of the
+registration and remove/reselect keypoints as they see fit.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration.gif" class="center"></p>
 <p>You can save and use the same keypoints later, and reproduce the
@@ -594,20 +621,15 @@ DLPFC_2 &lt;- importVisium(&quot;DLPFC/151674&quot;, sample_name = &quot;DLPFC_2
 DLPFC_3 &lt;- importVisium(&quot;DLPFC/151675&quot;, sample_name = &quot;DLPFC_3&quot;)
 DLPFC_4 &lt;- importVisium(&quot;DLPFC/151676&quot;, sample_name = &quot;DLPFC_4&quot;)</code></pre>
 <p><br></p>
-<div id="automated-image-alignment" class="section level3">
+<div id="automated-image-alignment-1" class="section level3">
 <h3>Automated Image Alignment</h3>
 <p>We will again use the registerSpatialData function to
 <strong>automatically register two Visium assays (two H&amp;E
-images)</strong>, but without choosing any landmark points. The shiny
-app will provide <strong>two images</strong> for this task:</p>
-<ul>
-<li>An image that shows the matched points across two images, and</li>
-<li>A slideshow with of the reference and registered images that
-demonstrates the alignment accuracy.</li>
-</ul>
-<p>This app also provide two tuning parameters that used by the
-<strong>OpenCV’s image registration</strong> workflow fully embedded in
-VoltRon:</p>
+images)</strong>. This time, we will use the
+<strong>BRUTE-FORCE</strong> method for automated alignment which we
+found to be more accurate compared to FLANN when aligning two H&amp;E
+images. The shiny app also provides two tuning parameters that used by
+the the BRUTE-FORCE workflow:</p>
 <ul>
 <li><strong># of Features</strong> option specifies the number of
 maximum image features spotted within each image which later be used to
@@ -616,8 +638,6 @@ match to the other image.</li>
 matching at max which in turn used to compute the
 registration/transformation matrix.</li>
 </ul>
-<p>The registration matrix is used to convert the spatial coordinates of
-the VoltRon object to align coordinates to a single reference.</p>
 <p>We will use <strong>1000 features</strong> for this alignment, set
 <strong>Match %</strong> to 20% of the features to be matched across
 images. The quality of the alignment will be determined by the fine
@@ -635,8 +655,8 @@ matched across images.</p>
 reg3and4 &lt;- registerSpatialData(object_list = DLPFC_list)</code></pre>
 <p><br></p>
 </div>
-<div id="combine-voltron-object-1" class="section level3">
-<h3>Combine VoltRon object</h3>
+<div id="d-spot-clustering" class="section level3">
+<h3>3D Spot Clustering</h3>
 <p>We can now combine all sections into one VoltRon object. There are
 two pairs of serial tissue sections, but both pairs (thus 4 sections)
 are from the same tissue block. Hence, we can combine these two lists
@@ -649,14 +669,10 @@ SRBlock</code></pre>
 10XBlock: 
   Layers: Section1 Section2 
 Assays: Visium (Main) </code></pre>
-<p><br></p>
-</div>
-<div id="d-spot-clustering" class="section level3">
-<h3>3D Spot Clustering</h3>
-<p>Aligning spots along the z dimension allows us to cluster these spots
-using both the gene expression similarities and spatial adjacency (both
-along the x-y direction and in the z direction). We first generate a
-spatial neighborhood graph and use this graph along with the gene
+<p><br> Aligning spots along the z dimension allows us to cluster these
+spots using both the gene expression similarities and spatial adjacency
+(both along the x-y direction and in the z direction). We first generate
+a spatial neighborhood graph and use this graph along with the gene
 expression neighborhood graph <strong>(under development)</strong>.</p>
 </div>
 </div>

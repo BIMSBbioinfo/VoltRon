@@ -9,7 +9,9 @@ getRegisteredObjectListVoltRon(
   mapping_list,
   register_ind,
   centre,
-  reg_mode = "manual"
+  input,
+  reg_mode = "manual",
+  image_list = NULL
 )
 }
 \arguments{
@@ -21,7 +23,11 @@ getRegisteredObjectListVoltRon(
 
 \item{centre}{the index of the central reference image/spatialdata}
 
+\item{input}{input}
+
 \item{reg_mode}{the registration mode, either "auto" or "manual"}
+
+\item{image_list}{the list of query/ref images}
 }
 \description{
 Get registered and merged VoltRon object composed of several Samples
