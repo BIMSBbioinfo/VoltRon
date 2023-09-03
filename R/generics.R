@@ -504,3 +504,51 @@ resizeImage <- function(object, ...) {
 modulateImage <- function(object, ...) {
   UseMethod(generic = 'modulateImage', object = object)
 }
+
+#' as.Seurat
+#'
+#' Generic methods for conversion into a Seurat object
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{as.Seurat}: The name of the default assay
+#'
+#' @rdname as.Seurat
+#' @export as.Seurat
+#'
+as.Seurat <- function(object, ...) {
+  UseMethod(generic = 'as.Seurat', object = object)
+}
+
+#' as.Giotto
+#'
+#' Generic methods for conversion into a Giotto object
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{as.Giotto}: The name of the default assay
+#'
+#' @rdname as.Giotto
+#' @export as.Giotto
+#'
+as.Giotto <- function(object, ...) {
+  UseMethod(generic = 'as.Giotto', object = object)
+}
+
+#' as.VoltRon
+#'
+#' Generic methods for conversion into a VoltRon object
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{as.VoltRon}: The name of the default assay
+#'
+#' @rdname as.VoltRon
+#' @export as.VoltRon
+#'
+as.VoltRon <- function(object, ...) {
+  UseMethod(generic = 'as.VoltRon', object = object)
+}

@@ -22,6 +22,7 @@ Collate:
     'auxiliary.R'
     'generics.R'
     'clustering.R'
+    'conversion.R'
     'deconvolution.R'
     'differentialexpression.R'
     'image.R'
