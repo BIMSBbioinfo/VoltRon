@@ -12,6 +12,7 @@
 #'
 as.VoltRon.Seurat <- function(object, ...){
 
+  # check Seurat package
   if(!requireNamespace('Seurat'))
     stop("Please install Seurat package for using Seurat objects")
 
@@ -85,8 +86,45 @@ as.VoltRon.Giotto <- function(object){
 #'
 #' @export
 #'
-as.Seurat.VoltRon <- function(object){
+as.Seurat.VoltRon <- function(object, image = "fov"){
 
+  # check Seurat package
+  if(!requireNamespace('Seurat'))
+    stop("Please install Seurat package for using Seurat objects")
+
+  # check the number of assays
+  if(nrow(SampleMetadata(object)) > 1)
+    stop("You can only convert a single VoltRon assay into a Seurat object!")
+
+  # check the number of assays
+  if(vrAssayTypes(object) == "spot") {
+    stop("Conversion of Spot assays into Seurat is not permitted!")
+  } else {
+    assay = "Xenium"
+  }
+
+  # data
+  data <- vrData(object, norm = FALSE)
+  colnames(data) <- gsub("_Assay[0-9]+", "", colnames(data))
+
+  # metadata
+  metadata <- Metadata(object)
+  rownames(metadata) <- gsub("_Assay[0-9]+", "", rownames(metadata))
+
+  # Seurat object
+  seu <- CreateSeuratObject(counts = data, meta.data = metadata, assay = assay)
+
+  # get coordinates
+  coords <- vrCoordinates(object, reg = TRUE)
+  rownames(coords) <- gsub("_Assay[0-9]+", "", rownames(coords))
+
+  # define image
+  image.data <- list(centroids = CreateCentroids(coords))
+  image.data <- CreateFOV(coords = image.data, type = c("centroids"), assay = assay)
+  seu[[image]] <- image.data
+
+  # return
+  seu
 }
 
 #' @param object A VoltRon object
