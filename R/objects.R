@@ -382,6 +382,16 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
   # Segments
   if(length(segments) > 0) names(segments) <- entityID
 
+  # image
+  if(!is.null(image)){
+    image <- magick::image_data(image)
+  } else {
+    height <- max(ceiling(coords[,2]))
+    width <- max(ceiling(coords[,1]))
+    image <- matrix(rep("#030303ff", height*width), nrow = height, ncol = width)
+    image <- magick::image_data(magick::image_read(image))
+  }
+
   # set zgraph
   if(is.null(graph)){
     spatial_points <- vrSpatialPoints(sr_metadata)
@@ -390,8 +400,7 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
   }
 
   # create vrAssay
-  # Xenium_assay <- methods::new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = as.raster(image), params = params, type = assay.type)
-  Assay <- methods::new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = magick::image_data(image), params = params, type = assay.type)
+  Assay <- methods::new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = image, params = params, type = assay.type)
   listofAssays <- list(Assay)
   names(listofAssays) <- main.assay
 

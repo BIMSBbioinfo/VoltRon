@@ -411,8 +411,8 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.b
                              values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
   } else {
     g <- g +
-      geom_point(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, size = rel(pt.size), alpha = alpha) +
-      scale_fill_gradientn(name = legend_title,
+      geom_point(mapping = aes(x = x, y = y, colour = score), coords, shape = 16, size = rel(pt.size), alpha = alpha) +
+      scale_colour_gradientn(name = legend_title,
                              colors=c("dodgerblue2", "white", "yellow3"),
                              values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
   }

@@ -112,7 +112,11 @@ vrImages.vrLayer <- function(object, ...){
 #' @export
 #'
 vrImages.vrAssay <- function(object){
-  magick::image_read(object@image)
+  if(!is.null(object@image)){
+    return(magick::image_read(object@image))
+  } else {
+    return(NULL)
+  }
 }
 
 #' @param object A vrAssay object

@@ -21,6 +21,16 @@ as.VoltRon.Seurat <- function(object, ...){
   # metadata
   metadata <- object@meta.data
 
+  # coordinates
+  if(grepl("Visium", class(object@images[[1]]))){
+    coords <- as.matrix(Seurat::GetTissueCoordinates(object))[,2:1]
+    colnames(coords) <- c("x", "y")
+  } else{
+    coords <- as.matrix(Seurat::GetTissueCoordinates(object))[,1:2]
+    coords <- apply(coords, 2, as.numeric)
+    colnames(coords) <- c("x", "y")
+  }
+
   # image
   spatialobjectlist <- object@images
   if(length(spatialobjectlist) > 0){
@@ -28,17 +38,15 @@ as.VoltRon.Seurat <- function(object, ...){
     if("image" %in% slotNames(spatialobject)){
       image <-  magick::image_read(spatialobject@image)
       info <- image_info(image)
+      coords[,2] <- info$height - coords[,2]
     } else {
-      stop("There are no images available in this Seurat object")
+      image <- NULL
+      warning("There are no images available in this Seurat object")
     }
   } else{
-    stop("There are no images available in this Seurat object")
+    image <- NULL
+    warning("There are no images available in this Seurat object")
   }
-
-  # coordinates
-  coords <- as.matrix(Seurat::GetTissueCoordinates(object))[,2:1]
-  coords[,2] <- info$height - coords[,2]
-  colnames(coords) <- c("x", "y")
 
   # scale coordinates and assay.type
   if(grepl("Visium", class(object@images[[1]]))){
