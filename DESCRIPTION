@@ -13,7 +13,7 @@ RoxygenNote: 7.2.3
 biocViews:
 Imports: methods, S4Vectors, EBImage, FNN, Matrix, XML, dplyr, ggforce, 
          ggplot2, ggpubr, ggrepel, hdf5r, htmltools, igraph, irlba, rjson, magick, raster, 
-         reshape2, rlang, scales, shiny, shinyjs, stringr, terra, umap
+         reshape2, rlang, scales, shiny, shinyjs, stringr, terra, umap, data.table
 LinkingTo: Rcpp, RcppArmadillo (>= 0.4)
 Collate: 
     'RcppExports.R'
@@ -43,4 +43,6 @@ Suggests:
     spacexr, 
     RBioFormats, 
     ComplexHeatmap, 
-    xlsx
+    xlsx, 
+    tiledb,
+    tiledbsc

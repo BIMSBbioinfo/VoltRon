@@ -7,7 +7,7 @@
 \usage{
 as.Seurat(object, ...)
 
-\method{as.Seurat}{VoltRon}(object)
+\method{as.Seurat}{VoltRon}(object, image = "fov")
 }
 \arguments{
 \item{object}{A VoltRon object}

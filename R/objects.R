@@ -322,7 +322,9 @@ setMethod(
 #' @export
 #'
 formVoltRon <- function(data, metadata = NULL, image = NULL,
-                             coords, segments = list(),
+                             coords,
+                             segments = list(),
+                             subcellular = NULL,
                              sample.metadata = NULL, graph = NULL,
                              main.assay = "Custom_cell", assay.type = "cell", params = list(),
                              sample_name = NULL, layer_name = NULL,
@@ -392,6 +394,13 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
     image <- magick::image_data(magick::image_read(image))
   }
 
+  # subcellular
+  if(!is.null(subcellular)){
+    subcellular[,1] <- paste(subcellular[,1], "Assay1", sep = "_")
+  } else {
+    subcellular = matrix(, nrow = 0, ncol = 0)
+  }
+
   # set zgraph
   if(is.null(graph)){
     spatial_points <- vrSpatialPoints(sr_metadata)
@@ -400,7 +409,10 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
   }
 
   # create vrAssay
-  Assay <- methods::new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = image, params = params, type = assay.type)
+  Assay <- methods::new("vrAssay", rawdata = data, normdata = data,
+                        coords = coords, coords_reg = coords,
+                        segments = segments, segments_reg = segments,
+                        subcellular = subcellular, image = image, params = params, type = assay.type)
   listofAssays <- list(Assay)
   names(listofAssays) <- main.assay
 
@@ -1206,6 +1218,28 @@ vrSegments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
 
   return(object)
+}
+
+#' @param assay assay
+#' @param reg TRUE if registered segments are being updated
+#'
+#' @rdname vrSubcellular
+#' @method vrSubcellular VoltRon
+#'
+#' @export
+#'
+vrSubcellular.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get all coordinates
+  coords <- NULL
+  for(assy in assay_names)
+    coords <- rbind(coords, vrSubcellular(object[[assy]], reg = reg))
+
+  # return image
+  return(coords)
 }
 
 #' @param assay assay

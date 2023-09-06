@@ -22,8 +22,9 @@ setOldClass(Classes = c('bitmap'))
 #' @slot embeddings list of embeddings
 #' @slot coords spatial coordinates of the assay
 #' @slot coords_reg spatial coordinates of the registered assay
-#' @slot segments spatial coordinates of the segments
-#' @slot segments_reg spatial coordinates of the registered segments
+#' @slot segments spatial coordinates of the segments, if available
+#' @slot segments_reg spatial coordinates of the registered segments, if available
+#' @slot subcellular subcellular data of the assays, if available
 #' @slot image image of the spatial assay, bitmap class
 #' @slot params additional parameters used by different assay types
 #' @slot type the type of the assay (cell, spot, ROI)
@@ -43,6 +44,7 @@ vrAssay <- setClass(
     coords_reg = 'matrix',
     segments = 'list',
     segments_reg = 'list',
+    subcellular = 'data.frame',
     image = "bitmap",
     params = "list",
     type = "character"
@@ -490,6 +492,21 @@ vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
     methods::slot(object = object, name = 'segments') <- value
   }
   return(object)
+}
+
+#' @param reg TRUE if registered subcellular data are being updated
+#'
+#' @rdname vrSubcellular
+#' @method vrSubcellular vrAssay
+#'
+#' @export
+#'
+vrSubcellular.vrAssay <- function(object, reg = FALSE, ...) {
+  if(reg){
+    return(object@subcellular[,c("x_reg", "y_reg")])
+  } else {
+    return(object@subcellular[,c("x", "y")])
+  }
 }
 
 #' @param reg TRUE if registered segments are being updated

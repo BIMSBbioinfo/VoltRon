@@ -112,15 +112,15 @@ as.Seurat.VoltRon <- function(object, image = "fov"){
   rownames(metadata) <- gsub("_Assay[0-9]+", "", rownames(metadata))
 
   # Seurat object
-  seu <- CreateSeuratObject(counts = data, meta.data = metadata, assay = assay)
+  seu <- Seurat::CreateSeuratObject(counts = data, meta.data = metadata, assay = assay)
 
   # get coordinates
   coords <- vrCoordinates(object, reg = TRUE)
   rownames(coords) <- gsub("_Assay[0-9]+", "", rownames(coords))
 
   # define image
-  image.data <- list(centroids = CreateCentroids(coords))
-  image.data <- CreateFOV(coords = image.data, type = c("centroids"), assay = assay)
+  image.data <- list(centroids = Seurat::CreateCentroids(coords))
+  image.data <- Seurat::CreateFOV(coords = image.data, type = c("centroids"), assay = assay)
   seu[[image]] <- image.data
 
   # return

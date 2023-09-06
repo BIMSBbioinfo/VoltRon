@@ -5,10 +5,7 @@
 \title{importCosMx}
 \usage{
 importCosMx(
-  dcc.path,
-  pkc.file,
-  summarySegment,
-  summarySegmentSheetName,
+  tiledbURI,
   assay_name = "CosMx",
   image = NULL,
   segment_polygons = FALSE,
@@ -17,13 +14,7 @@ importCosMx(
 )
 }
 \arguments{
-\item{dcc.path}{path to the folder where the dcc files are found}
-
-\item{pkc.file}{path to the pkc file}
-
-\item{summarySegment}{the metadata csv (sep = ";") or excel file, if the file is an excel file, \code{summarySegmentSheetName} should be provided as well.}
-
-\item{summarySegmentSheetName}{the sheet name of the excel file, \code{summarySegment}}
+\item{tiledbURI}{the path to the tiledb folder}
 
 \item{assay_name}{the assay name, default: CosMx}
 

@@ -19,6 +19,7 @@
 #'
 #' @importFrom magick image_read
 #' @importFrom utils read.csv
+#' @importFrom data.table fread
 #'
 #' @export
 #'
@@ -67,8 +68,17 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
     stop("There are no files named 'cells.csv.gz' in the path")
   }
 
+  # transcripts
+  transcripts_file <- paste0(dir.path, "/transcripts.csv.gz")
+  if(file.exists(transcripts_file)){
+    subcellular <- as.data.frame(data.table::fread(transcripts_file))
+    subcellular <- subcellular[,c("cell_id", colnames(subcellular)[!colnames(subcellular) %in% "cell_id"])]
+  } else {
+    stop("There are no files named 'transcripts.csv.gz' in the path")
+  }
+
   # create VoltRon
-  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, assay.type = "cell", ...)
+  formVoltRon(rawdata, metadata = NULL, image, coords, subcellular = subcellular, main.assay = assay_name, assay.type = "cell", ...)
 }
 
 #' rescaleXeniumCells
@@ -687,6 +697,9 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
          remotes::install_github('tiledb-inc/tiledbsc', force = TRUE,
                             ref = '8157b7d54398b1f957832f37fff0b173d355530e')")
 
+  # get tiledb
+  tiledb_scdataset <- tiledbsc::SOMACollection$new(uri = tiledbURI, verbose = FALSE)
+
   # raw counts
   counts <- tiledb_scdataset$somas$RNA$X$members$counts$to_matrix(batch_mode = TRUE)
   counts <- as.matrix(counts)
@@ -697,6 +710,12 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
   # coordinates
   coords <- as.matrix(metadata[,c("x_slide_mm", "y_slide_mm")])
   colnames(coords) <- c("x","y")
+
+  # transcripts
+  subcellular <- tiledb::tiledb_array(
+    tiledb_scdataset$somas$RNA$obsm$members$transcriptCoords$uri,
+    return_as="data.frame")[]
+  subcellular <- subcellular[,c("cell_id", colnames(subcellular)[!colnames(subcellular) %in% "cell_id"])]
 
   # get slides and construct VoltRon objects for each slides
   slides <- unique(metadata$slide_ID_numeric)
@@ -709,9 +728,11 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
     cur_coords <- coords[metadata$slide_ID_numeric == slide,]
     cur_counts <- counts[,rownames(cur_coords)]
     cur_metadata <- metadata[rownames(cur_coords),]
+    cur_subcellular <- subcellular[subcellular$slideID == slide,]
 
     # create VoltRon
-    vr_object <- formVoltRon(cur_counts, metadata = cur_metadata, image, cur_coords, main.assay = assay_name, assay.type = "cell", ...)
+    vr_object <- formVoltRon(cur_counts, metadata = cur_metadata, image, cur_coords, subcellular = cur_subcellular,
+                             main.assay = assay_name, assay.type = "cell", ...)
     vr_object$Sample <- paste0("Slide", slide)
     vr_list <- append(vr_list, vr_object)
   }

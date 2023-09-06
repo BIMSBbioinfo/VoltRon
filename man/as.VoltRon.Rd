@@ -8,14 +8,14 @@
 \usage{
 as.VoltRon(object, ...)
 
-\method{as.VoltRon}{Seurat}(object)
+\method{as.VoltRon}{Seurat}(object, ...)
 
 \method{as.VoltRon}{Giotto}(object)
 }
 \arguments{
 \item{object}{A Giotto object}
 
-\item{...}{Arguments passed to other methods}
+\item{...}{Additional parameter passed to \code{formVoltRon}}
 }
 \value{
 \code{as.VoltRon}: The name of the default assay
