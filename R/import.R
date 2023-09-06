@@ -661,10 +661,7 @@ rescaleGeoMxPoints <- function(pts, summary, imageinfo){
 #'
 #' Import CosMx data
 #'
-#' @param dcc.path path to the folder where the dcc files are found
-#' @param pkc.file path to the pkc file
-#' @param summarySegment the metadata csv (sep = ";") or excel file, if the file is an excel file, \code{summarySegmentSheetName} should be provided as well.
-#' @param summarySegmentSheetName the sheet name of the excel file, \code{summarySegment}
+#' @param tiledbURI the path to the tiledb folder
 #' @param assay_name the assay name, default: CosMx
 #' @param image the reference morphology image of the CosMx assay
 #' @param segment_polygons if TRUE, the ROI polygons are parsed from the OME.TIFF file
@@ -677,104 +674,48 @@ rescaleGeoMxPoints <- function(pts, summary, imageinfo){
 #'
 #' @export
 #'
-importCosMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetName, assay_name = "CosMx",
+importCosMx <- function(tiledbURI, assay_name = "CosMx",
                         image = NULL, segment_polygons = FALSE, ome.tiff = NULL, ...)
 {
-  # Get pkc file
-  if(file.exists(pkc.file)){
-    pkcdata <- readPKC(pkc.file)
-  } else {
-    stop("pkc file is not found!")
+  # check tiledb and tiledbsc
+  if (!requireNamespace("tiledb", quietly = TRUE))
+    stop("Please install the tiledb package: \n
+         remotes::install_github('TileDB-Inc/TileDB-R', force = TRUE,
+                            ref = '0.17.0')")
+  if (!requireNamespace("tiledbsc", quietly = TRUE))
+    stop("Please install the tiledbsc package: \n
+         remotes::install_github('tiledb-inc/tiledbsc', force = TRUE,
+                            ref = '8157b7d54398b1f957832f37fff0b173d355530e')")
+
+  # raw counts
+  counts <- tiledb_scdataset$somas$RNA$X$members$counts$to_matrix(batch_mode = TRUE)
+  counts <- as.matrix(counts)
+
+  # cell metadata
+  metadata <- tiledb_scdataset$somas$RNA$obs$to_dataframe()
+
+  # coordinates
+  coords <- as.matrix(metadata[,c("x_slide_mm", "y_slide_mm")])
+  colnames(coords) <- c("x","y")
+
+  # get slides and construct VoltRon objects for each slides
+  slides <- unique(metadata$slide_ID_numeric)
+
+  # for each slide create a VoltRon object with combined layers
+  vr_list <- list()
+  for(slide in slides){
+
+    # slide info
+    cur_coords <- coords[metadata$slide_ID_numeric == slide,]
+    cur_counts <- counts[,rownames(cur_coords)]
+    cur_metadata <- metadata[rownames(cur_coords),]
+
+    # create VoltRon
+    vr_object <- formVoltRon(cur_counts, metadata = cur_metadata, image, cur_coords, main.assay = assay_name, assay.type = "cell", ...)
+    vr_object$Sample <- paste0("Slide", slide)
+    vr_list <- append(vr_list, vr_object)
   }
 
-  # Get dcc file
-  if(file.exists(dcc.path)){
-    dcc_files <- dir(dcc.path, pattern = ".dcc$", full.names = TRUE)
-    if(length(dcc_files) == 0){
-      stop("no dcc files are found under ", dcc.path)
-    } else {
-      dcc_files <- dcc_files[!grepl("A01.dcc$", dcc_files)]
-      dcc_filenames <- dir(dcc.path, pattern = ".dcc$", full.names = FALSE)
-      dcc_filenames <- dcc_filenames[!grepl("A01.dcc$", dcc_filenames)]
-      dcc_filenames <- gsub(".dcc$", "", dcc_filenames)
-      dcc_filenames <- gsub("-", "_", dcc_filenames)
-      dccData <- sapply(dcc_files, readDCC, simplify = FALSE, USE.NAMES = FALSE)
-      names(dccData) <- dcc_filenames
-    }
-  } else {
-    stop("path to dcc files does not exist!")
-  }
-
-  # merge dcc files
-  rawdata <- NULL
-  for(i in 1:length(dccData)){
-    cur_data <- dccData[[i]]$Code_Summary
-    colnames(cur_data) <- c("RTS_ID", dcc_filenames[i])
-    if(i == 1){
-      rawdata <- cur_data
-    } else {
-      suppressMessages(rawdata <- rawdata %>% full_join(cur_data))
-    }
-  }
-  rawdata[is.na(rawdata)] <- 0
-  rownames(rawdata) <- rawdata$RTS_ID
-  rawdata <- rawdata[,!colnames(rawdata) %in% "RTS_ID"]
-
-  # get genes
-  NegProbes <- pkcdata$RTS_ID[pkcdata$Target == "NegProbe-WTX"]
-  rawdata <- rawdata[!rownames(rawdata) %in% NegProbes, ]
-  rownames(rawdata) <- pkcdata$Target[match(rownames(rawdata), pkcdata$RTS_ID)]
-  rawdata <- as.matrix(rawdata)
-
-  # get segment summary
-  if(file.exists(summarySegment)){
-    if(grepl(".xls$|.xlsx$", summarySegment)){
-      if (!requireNamespace('xlsx'))
-        stop("Please install xlsx package for using the read.xlsx function!")
-      if(!is.null(summarySegmentSheetName)){
-        segmentsummary <- xlsx::read.xlsx(summarySegment, sheetName = summarySegmentSheetName)
-      } else {
-        stop("Please provide 'summarySegmentSheetName' for the excel sheet name!")
-      }
-    } else if(grepl(".csv$", summarySegment)) {
-      segmentsummary <- utils::read.csv(summarySegment, row.names = NULL, header = T, sep = ";")
-    }
-    rownames(segmentsummary) <- gsub(".dcc$", "", segmentsummary$Sample_ID)
-    rownames(segmentsummary) <- gsub("-", "_", rownames(segmentsummary))
-    if(all(dcc_filenames %in% rownames(segmentsummary))){
-      segmentsummary <- segmentsummary[dcc_filenames, ]
-    } else{
-      stop("Some GeoMx dcc files are not represented in the segment summary file!")
-    }
-  } else {
-    stop(summarySegment, " is not found!")
-  }
-
-  # get image
-  if(!is.null(image)){
-    if(file.exists(image)){
-      image <- magick::image_read(image)
-    } else {
-      stop(image, " is not found!")
-    }
-  } else {
-    stop("Please provide a image for the GeoMx data!")
-  }
-  geomx_image_info <- magick::image_info(image)
-
-  # get coordinates
-  coords <- segmentsummary[,c("X","Y")]
-  colnames(coords) <- c("x", "y")
-  rownames(coords) <- segmentsummary$ROI.name
-  coords <- rescaleGeoMxPoints(coords, segmentsummary, geomx_image_info)
-
-  # get ROI segments (polygons)
-  segments <- list()
-  if(!is.null(ome.tiff)){
-    segments <- importGeoMxSegments(ome.tiff, segmentsummary, geomx_image_info)
-    segments <- segments[rownames(coords)]
-  }
-
-  # create VoltRon
-  formVoltRon(rawdata, metadata = segmentsummary, image, coords, segments, main.assay = assay_name, assay.type = "ROI", ...)
+  # return
+  vr <- merge(vr_list[[1]], vr_list[-1])
 }
