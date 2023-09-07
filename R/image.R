@@ -1,68 +1,6 @@
 ####
-# Objects and Classes ####
-####
-
-## FOVImage ####
-
-#' The FOVImage class
-#'
-#' The FOVImage stores the morphology image from the Xenium assay
-#'
-#' @slot image A magick-image class object from magick package
-#'
-#' @name FOVImage-class
-#' @rdname FOVImage-class
-#' @exportClass FOVImage
-#'
-FOVImage <- setClass(
-  Class = 'FOVImage',
-  slots = list(
-    'image' = 'magick-image'
-  )
-)
-
-### show ####
-
-setMethod(
-  f = 'show',
-  signature = 'FOVImage',
-  definition = function(object) {
-    cat("FOV Morphology Image \n")
-    cat(paste(format(image_info(object@image)), collapse = " \n "))
-    return(invisible(x = NULL))
-  }
-)
-
-####
 # Get Images ####
 ####
-
-#' @param seu A Seurat Object
-#'
-#' @rdname vrImages
-#' @method vrImages Seurat
-#'
-#' @importFrom magick image_read
-#'
-#' @export
-#'
-vrImages.Seurat <- function(seu, ...){
-
-  # image class from Seurat
-  image_classes <- sapply(seu@images, class)
-
-  # get image given class
-  if(any(grepl("FOV",image_classes))){
-    image <- seu@images[[names(seu@images)[which(grepl("FOVImage", image_classes))]]]
-    image <- image@image
-  } else if(any(grepl("Visium",image_classes))) {
-    image <- seu@images[[names(seu@images)[which(grepl("Visium", image_classes))]]]
-    image <- magick::image_read(image@image)
-  }
-
-  # return image
-  return(image)
-}
 
 #' @param object A VoltRon object
 #'
@@ -144,44 +82,6 @@ vrImages.vrAssay <- function(object){
 ####
 # Managing Images ####
 ####
-
-#' addFOVImage
-#'
-#' Adding the Xenium image to the Seurat Object. Please run \code{generateXeniumImage} first.
-#'
-#' @param seu Seurat Object with Xenium Data
-#' @param file the morphology image file created by \code{generateXeniumImage}.
-#' @param fov FOV name, preferably the name used in the Seurat Object
-#' @param overwrite Overwrite the existing FOV image
-#'
-#' @importFrom methods new
-#'
-#' @export
-#'
-addFOVImage <- function(seu, file, fov = "fov", overwrite = FALSE) {
-
-  # fov image name
-  fov_image <- paste0(fov, "_image")
-
-  # check if the image file exists
-  if(!file.exists(file))
-    stop("FOV image was not generated. Please run generateXeniumImage() first!")
-
-  # check if the image exists in the Seurat Object
-  if(!is.null(seu@images[[fov_image]])){
-    if(!overwrite)
-      stop("FOV image is already provided")
-  }
-
-  # get image in FOVImage class
-  image <- methods::new(Class = "FOVImage", image = magick::image_read(file))
-
-  # insert the image to the Seurat Object
-  seu@images[[fov_image]] <- image
-
-  # return Seurat Object
-  return(seu)
-}
 
 #' @rdname resizeImage
 #' @method resizeImage VoltRon

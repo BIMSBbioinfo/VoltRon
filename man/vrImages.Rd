@@ -3,7 +3,6 @@
 \name{vrImages}
 \alias{vrImages}
 \alias{vrImages<-}
-\alias{vrImages.Seurat}
 \alias{vrImages.VoltRon}
 \alias{vrImages.vrSample}
 \alias{vrImages.vrLayer}
@@ -14,8 +13,6 @@
 vrImages(object, ...)
 
 vrImages(object, ...) <- value
-
-\method{vrImages}{Seurat}(seu, ...)
 
 \method{vrImages}{VoltRon}(object, ...)
 
@@ -33,8 +30,6 @@ vrImages(object, ...) <- value
 \item{...}{Arguments passed to other methods}
 
 \item{value}{new image}
-
-\item{seu}{A Seurat Object}
 
 \item{reg}{TRUE if registered coordinates are assigned}
 }
