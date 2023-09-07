@@ -22,7 +22,7 @@ as.VoltRon.Seurat <- function(object, ...){
   # metadata
   metadata <- object@meta.data
 
-  # coordinates
+  # coordinates and subcellular
   if(grepl("Visium", class(object@images[[1]]))){
     coords <- as.matrix(Seurat::GetTissueCoordinates(object))[,2:1]
     colnames(coords) <- c("x", "y")
@@ -118,9 +118,13 @@ as.Seurat.VoltRon <- function(object, image = "fov"){
   coords <- vrCoordinates(object, reg = TRUE)
   rownames(coords) <- gsub("_Assay[0-9]+", "", rownames(coords))
 
+  # molecules
+  subcellular <- vrSubcellular(object, reg = TRUE)
+  colnames(subcellular)[colnames(subcellular) %in% "feature_name"] <- "gene"
+
   # define image
-  image.data <- list(centroids = Seurat::CreateCentroids(coords))
-  image.data <- Seurat::CreateFOV(coords = image.data, type = c("centroids"), assay = assay)
+  image.data <- list(centroids = SeuratObject::CreateCentroids(coords))
+  image.data <- SeuratObject::CreateFOV(coords = image.data, type = c("centroids"), molecules = subcellular, assay = assay)
   seu[[image]] <- image.data
 
   # return

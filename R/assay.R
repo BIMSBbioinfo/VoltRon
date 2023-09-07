@@ -503,9 +503,13 @@ vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
 #'
 vrSubcellular.vrAssay <- function(object, reg = FALSE, ...) {
   if(reg){
-    return(object@subcellular[,c("x_reg", "y_reg")])
+    if(any(colnames(object@subcellular) %in% c("x_reg", "y_reg"))) {
+      return(object@subcellular[,c("cell_id", "x_reg", "y_reg", "feature_name")])
+    } else {
+      return(object@subcellular[,c("cell_id", "x", "y", "feature_name")])
+    }
   } else {
-    return(object@subcellular[,c("x", "y")])
+    return(object@subcellular[,c("cell_id", "x", "y", "feature_name")])
   }
 }
 

@@ -73,6 +73,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   if(file.exists(transcripts_file)){
     subcellular <- as.data.frame(data.table::fread(transcripts_file))
     subcellular <- subcellular[,c("cell_id", colnames(subcellular)[!colnames(subcellular) %in% "cell_id"])]
+    colnames(subcellular)[colnames(subcellular) %in% c("x_location", "y_location")] <- c("x", "y")
   } else {
     stop("There are no files named 'transcripts.csv.gz' in the path")
   }
