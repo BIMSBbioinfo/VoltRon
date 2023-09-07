@@ -10,7 +10,7 @@
 #' @export
 #'
 vrImages.VoltRon <- function(object, ...){
-  images <- sapply(object@samples, function(samp) vrImages(samp), USE.NAMES = TRUE)
+  images <- sapply(object@samples, function(samp) vrImages(samp, ...), USE.NAMES = TRUE)
   if(length(images) == 1){
     return(images[[1]])
   } else {
@@ -26,7 +26,7 @@ vrImages.VoltRon <- function(object, ...){
 #' @export
 #'
 vrImages.vrSample <- function(object, ...){
-  sapply(object@layer, function(lay) vrImages(lay), USE.NAMES = TRUE)
+  sapply(object@layer, function(lay) vrImages(lay, ...), USE.NAMES = TRUE)
 }
 
 #' @param object A vrLayer object
@@ -37,10 +37,11 @@ vrImages.vrSample <- function(object, ...){
 #' @export
 #'
 vrImages.vrLayer <- function(object, ...){
-  sapply(object@assay, function(assy) vrImages(assy), USE.NAMES = TRUE)
+  sapply(object@assay, function(assy) vrImages(assy, ...), USE.NAMES = TRUE)
 }
 
 #' @param object A vrAssay object
+#' @param main_image the name of the main image
 #'
 #' @rdname vrImages
 #' @method vrImages vrAssay
@@ -49,9 +50,12 @@ vrImages.vrLayer <- function(object, ...){
 #'
 #' @export
 #'
-vrImages.vrAssay <- function(object){
+vrImages.vrAssay <- function(object, main_image = NULL){
   if(!is.null(object@image)){
-    return(magick::image_read(object@image))
+    if(is.null(main_image)) {
+      main_image <- object@main_image
+    }
+    return(magick::image_read(object@image[[main_image]]))
   } else {
     return(NULL)
   }

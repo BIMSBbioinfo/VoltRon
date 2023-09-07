@@ -316,7 +316,7 @@ setMethod(
 #' @param project project name
 #'
 #' @importFrom igraph make_empty_graph V
-#' @importFrom magick image_data
+#' @importFrom magick image_data image_read image_info
 #' @importFrom methods new
 #'
 #' @export
@@ -386,19 +386,30 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
 
   # image
   if(!is.null(image)){
-    image <- magick::image_data(image)
+    if(is.list(image)){
+      imageinfo <- sapply(image, function(x) magick::image_info(x)[,c("width", "height")], USE.NAMES = TRUE)
+      flag <- all(apply(imageinfo, 1, function(x) length(unique(x)) == 1))
+      if(!flag) {
+        stop("When providing multiple images, make sure that all images have the same dimensionality!")
+      } else {
+        image <- lapply(image, magick::image_data)
+        names(image) <- colnames(imageinfo)
+      }
+    } else {
+      image <- list(main_image = magick::image_data(image))
+    }
   } else {
     height <- max(ceiling(coords[,2]))
     width <- max(ceiling(coords[,1]))
     image <- matrix(rep("#030303ff", height*width), nrow = height, ncol = width)
-    image <- magick::image_data(magick::image_read(image))
+    image <- list(main_image = magick::image_data(magick::image_read(image)))
   }
 
   # subcellular
   if(!is.null(subcellular)){
     subcellular[,1] <- paste(subcellular[,1], "Assay1", sep = "_")
   } else {
-    subcellular = matrix(, nrow = 0, ncol = 0)
+    subcellular = data.frame()
   }
 
   # set zgraph
@@ -410,9 +421,8 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
 
   # create vrAssay
   Assay <- methods::new("vrAssay", rawdata = data, normdata = data,
-                        coords = coords, coords_reg = coords,
-                        segments = segments, segments_reg = segments,
-                        subcellular = subcellular, image = image, params = params, type = assay.type)
+                        coords = coords, coords_reg = coords, segments = segments, segments_reg = segments,
+                        subcellular = subcellular, image = image, params = params, type = assay.type, main_image = names(image)[[1]])
   listofAssays <- list(Assay)
   names(listofAssays) <- main.assay
 

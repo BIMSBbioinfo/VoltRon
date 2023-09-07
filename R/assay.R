@@ -28,6 +28,7 @@ setOldClass(Classes = c('bitmap'))
 #' @slot image image of the spatial assay, bitmap class
 #' @slot params additional parameters used by different assay types
 #' @slot type the type of the assay (cell, spot, ROI)
+#' @slot main_image the key of the main image
 #'
 #' @name vrAssay-class
 #' @rdname vrAssay-class
@@ -45,9 +46,11 @@ vrAssay <- setClass(
     segments = 'list',
     segments_reg = 'list',
     subcellular = 'data.frame',
-    image = "bitmap",
+    # image = "bitmap",
+    image = "list",
     params = "list",
-    type = "character"
+    type = "character",
+    main_image = "character"
   )
 )
 
