@@ -20,9 +20,9 @@ vrImages(object, ...) <- value
 
 \method{vrImages}{vrLayer}(object, ...)
 
-\method{vrImages}{vrAssay}(object)
+\method{vrImages}{vrAssay}(object, main_image = NULL)
 
-\method{vrImages}{vrAssay}(object, reg = FALSE, ...) <- value
+\method{vrImages}{vrAssay}(object, main_image = NULL, reg = FALSE, ...) <- value
 }
 \arguments{
 \item{object}{A vrAssay object}
@@ -30,6 +30,8 @@ vrImages(object, ...) <- value
 \item{...}{Arguments passed to other methods}
 
 \item{value}{new image}
+
+\item{main_image}{the name of the main image}
 
 \item{reg}{TRUE if registered coordinates are assigned}
 }

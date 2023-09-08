@@ -62,6 +62,7 @@ vrImages.vrAssay <- function(object, main_image = NULL){
 }
 
 #' @param object A vrAssay object
+#' @param main_image the name of the main image
 #' @param reg TRUE if registered coordinates are assigned
 #' @param value new image
 #'
@@ -72,15 +73,47 @@ vrImages.vrAssay <- function(object, main_image = NULL){
 #'
 #' @export
 #'
-"vrImages<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
+"vrImages<-.vrAssay" <- function(object, main_image = NULL, reg = FALSE, ..., value) {
+  if(is.null(main_image)) {
+    main_image <- object@main_image
+  }
   if(inherits(value, "bitmap")){
-    object@image <- value
+    object@image[[main_image]] <- value
   } else if(inherits(value, "magick-image")){
-    object@image <- magick::image_data(value)
+    object@image[[main_image]] <- magick::image_data(value)
   } else {
     stop("Please provide either a magick-image or bitmap class image object!")
   }
   return(object)
+}
+
+#' @param assay assay
+#'
+#' @rdname vrImageNames
+#' @method vrImageNames VoltRon
+#'
+#' @export
+#'
+vrImageNames.VoltRon <- function(object, assay = NULL){
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get assay types
+  image_names <- unique(unlist(lapply(assay_names, function(x) vrImageNames(object[[x]]))))
+
+  return(image_names)
+}
+
+#' @param assay assay
+#'
+#' @rdname vrImageNames
+#' @method vrImageNames vrAssay
+#'
+#' @export
+#'
+vrImageNames.vrAssay <- function(object){
+  return(names(object@image))
 }
 
 ####
@@ -128,7 +161,10 @@ resizeImage.vrAssay <- function(object, size){
 
   # resize images
   size <- paste0(size,"x")
-  vrImages(object) <- image_resize(vrImages(object), geometry = size)
+  image_names <- vrImageNames(object)
+  for(img in image_names){
+    vrImages(object, main_image = img) <- image_resize(vrImages(object, main_image = img), geometry = size)
+  }
 
   # return
   return(object)
@@ -161,7 +197,11 @@ modulateImage.VoltRon <- function(object, ...){
 modulateImage.vrAssay <- function(object, brightness = 100, saturation = 100, hue = 100){
 
   # modulate image
-  vrImages(object) <- magick::image_modulate(vrImages(object), brightness = brightness, saturation = saturation, hue = hue)
+  image_names <- vrImageNames(object)
+  for(img in image_names){
+    vrImages(object, main_image = img) <- magick::image_modulate(vrImages(object, main_image = img),
+                                                                 brightness = brightness, saturation = saturation, hue = hue)
+  }
 
   # return
   return(object)

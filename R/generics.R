@@ -489,6 +489,22 @@ vrImages <- function(object, ...) {
   UseMethod(generic = 'vrImages<-', object = object)
 }
 
+#' vrImageNames
+#'
+#' Get names of all images
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{vrImageNames}: The name of the default assay
+#'
+#' @rdname vrImageNames
+#' @export vrImageNames
+#'
+vrImageNames <- function(object, ...) {
+  UseMethod(generic = 'vrImageNames', object = object)
+}
+
 #' resizeImage
 #'
 #' Resizing Magick images

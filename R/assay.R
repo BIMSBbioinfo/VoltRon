@@ -46,7 +46,6 @@ vrAssay <- setClass(
     segments = 'list',
     segments_reg = 'list',
     subcellular = 'data.frame',
-    # image = "bitmap",
     image = "list",
     params = "list",
     type = "character",
