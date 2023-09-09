@@ -12,7 +12,6 @@ formVoltRon(
   segments = list(),
   subcellular = NULL,
   sample.metadata = NULL,
-  graph = NULL,
   main.assay = "Custom_cell",
   assay.type = "cell",
   params = list(),
@@ -34,8 +33,6 @@ formVoltRon(
 
 \item{sample.metadata}{a data frame of the sample metadata}
 
-\item{graph}{the graph to determine the adjacency of spatial points across layers}
-
 \item{main.assay}{the name of the main assay of the object}
 
 \item{assay.type}{the type of the assay (cells, spots, ROIs)}
@@ -47,6 +44,8 @@ formVoltRon(
 \item{layer_name}{the name of the layer}
 
 \item{project}{project name}
+
+\item{graph}{the graph to determine the adjacency of spatial points across layers # DELETE THIS LATER}
 }
 \description{
 Create a VoltRon object

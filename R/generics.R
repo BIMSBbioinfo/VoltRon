@@ -268,20 +268,66 @@ vrGraph <- function(object, ...) {
   UseMethod(generic = 'vrGraph', object = object)
 }
 
-#' Get neighbors
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#' @param value an igraph object
 #'
-#' get neighbors in an assay
+#' @return \code{vrGraph<-}: graph updated
+#'
+#' @rdname vrGraph
+#' @export vrGraph<-
+#'
+"vrGraph<-" <- function(object, ..., value) {
+  UseMethod(generic = 'vrGraph<-', object = object)
+}
+
+#' vrGraphNames
+#'
+#' Get names of all graphs
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{vrGraphNames}: The names of all graphs
+#'
+#' @rdname vrGraphNames
+#' @export vrGraphNames
+#'
+vrGraphNames <- function(object, ...) {
+  UseMethod(generic = 'vrGraphNames', object = object)
+}
+
+
+#' Get profile specific neighbors
+#'
+#' get neighbors in an assay given omic profiles
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
 #' @return Returns object after normalization
 #'
-#' @rdname getNeighbors
-#' @export getNeighbors
+#' @rdname getProfileNeighbors
+#' @export getProfileNeighbors
 #'
-getNeighbors <- function(object, ...) {
-  UseMethod(generic = 'getNeighbors', object = object)
+getProfileNeighbors <- function(object, ...) {
+  UseMethod(generic = 'getProfileNeighbors', object = object)
+}
+
+#' Get spatial neighbors
+#'
+#' get neighbors in an assay given spatial coordinates
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return Returns object after normalization
+#'
+#' @rdname getSpatialNeighbors
+#' @export getSpatialNeighbors
+#'
+getSpatialNeighbors <- function(object, ...) {
+  UseMethod(generic = 'getSpatialNeighbors', object = object)
 }
 
 #' Get spatially variable feature

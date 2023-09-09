@@ -33,7 +33,7 @@ VoltRon <- setClass(
     samples = 'list',
     metadata = "vrMetadata",
     sample.metadata = "data.frame",
-    graph = "igraph",
+    graph = "list",
     main.assay = "character",
     project = 'character'
   )
@@ -307,7 +307,7 @@ setMethod(
 #' @param coords the coordinates of the spatial points
 #' @param segments the segments of the spatial points, optional
 #' @param sample.metadata a data frame of the sample metadata
-#' @param graph the graph to determine the adjacency of spatial points across layers
+#' @param graph the graph to determine the adjacency of spatial points across layers # DELETE THIS LATER
 #' @param main.assay the name of the main assay of the object
 #' @param assay.type the type of the assay (cells, spots, ROIs)
 #' @param params additional parameters of the object
@@ -325,7 +325,7 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
                              coords,
                              segments = list(),
                              subcellular = NULL,
-                             sample.metadata = NULL, graph = NULL,
+                             sample.metadata = NULL,
                              main.assay = "Custom_cell", assay.type = "cell", params = list(),
                              sample_name = NULL, layer_name = NULL,
                              project = NULL){
@@ -413,11 +413,12 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
   }
 
   # set zgraph
-  if(is.null(graph)){
-    spatial_points <- vrSpatialPoints(sr_metadata)
-    graph <- igraph::make_empty_graph(n = length(spatial_points), directed = FALSE)
-    igraph::V(graph)$name <- spatial_points
-  }
+  # if(is.null(graph)){
+  #   spatial_points <- vrSpatialPoints(sr_metadata)
+  #   graph <- igraph::make_empty_graph(n = length(spatial_points), directed = FALSE)
+  #   igraph::V(graph)$name <- spatial_points
+  # }
+  # graph <- list()
 
   # create vrAssay
   Assay <- methods::new("vrAssay", rawdata = data, normdata = data,
@@ -438,7 +439,7 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
   }
 
   # set VoltRon class
-  methods::new("VoltRon", samples = listofSamples, metadata = sr_metadata, sample.metadata = sample.metadata, graph = graph, main.assay = main.assay, project = project)
+  methods::new("VoltRon", samples = listofSamples, metadata = sr_metadata, sample.metadata = sample.metadata, main.assay = main.assay, project = project)
 }
 
 ### Assay Methods ####
@@ -760,11 +761,23 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 
   # other attributes
   main.assay <- unique(sample.metadata$Assay)[unique(sample.metadata$Assay) == names(table(sample.metadata$Assay))[which.max(table(sample.metadata$Assay))]]
-  graph <- igraph::subgraph(object@graph, igraph::V(object@graph)[names(igraph::V(object@graph)) %in% vrSpatialPoints(metadata)])
   project <- object@project
 
+  # subset graphs
+  graphnames <- vrGraphNames(object)
+  if(!is.null(graphnames)){
+    graph_list <- object@graph
+    for(g in vrGraphNames(object)){
+      cur_graph <- graph_list[[g]]
+      cur_graph<- igraph::subgraph(cur_graph, igraph::V(cur_graph)[names(igraph::V(cur_graph)) %in% vrSpatialPoints(metadata)])
+      graph_list[[g]] <- cur_graph
+    }
+  } else {
+    graph_list <- list()
+  }
+
   # set VoltRon class
-  methods::new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, graph = graph, main.assay = main.assay, project = project)
+  methods::new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, graph = graph_list, main.assay = main.assay, project = project)
 }
 
 #' Merging VoltRon objects
@@ -813,7 +826,7 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   }
 
   # merge graphs
-  graph <- merge_graphs(object_list[[1]], object_list[-1])
+  # graph <- merge_graphs(object_list[[1]], object_list[-1])
 
   # get main assay
   if(is.null(main.assay))
@@ -823,8 +836,7 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   project <- slot(object_list[[1]], "project")
 
   # set VoltRon class
-  object <- methods::new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata,
-                graph = graph, main.assay = main.assay, project = project)
+  object <- methods::new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, main.assay = main.assay, project = project)
 
   # change assay names and sample names
   for(assy in rownames(sample.metadata))
@@ -1093,6 +1105,7 @@ vrData.VoltRon <- function(object, assay = NULL, ...) {
 }
 
 #' @param assay assay
+#' @param graph.type the type of the graph, either custom or given by \code{getProfileNeighbors} or \code{getSpatialNeighbors} functions
 #'
 #' @rdname vrGraph
 #' @method vrGraph VoltRon
@@ -1100,15 +1113,82 @@ vrData.VoltRon <- function(object, assay = NULL, ...) {
 #' @importFrom igraph induced_subgraph
 #' @export
 #'
-vrGraph.VoltRon <- function(object, assay = NULL, ...) {
+vrGraph.VoltRon <- function(object, assay = NULL, graph.type = "kNN", ...) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
   assay_pattern <- paste0(assay_names, collapse = "|")
   node_names <- vrSpatialPoints(object)[grepl(assay_pattern, vrSpatialPoints(object))]
 
-  returngraph <- igraph::induced_subgraph(object@graph, node_names)
-  return(returngraph)
+  # check if there exists graphs
+  if(length(names(object@graph)) == 0)
+    stop("There are no graphs in this VoltRon object!")
+
+  # check graph type
+  if(!graph.type %in% names(object@graph))
+    stop("The graph name '", graph.type, "' can't be found in this VoltRon object!")
+
+  # return graph
+  if(length(object@graph[[graph.type]]) > 0){
+    returngraph <- igraph::induced_subgraph(object@graph[[graph.type]], node_names)
+    return(returngraph)
+  } else {
+    warning("This VoltRon object does not have any graphs yet!")
+    return(NULL)
+  }
+}
+
+#' @param assay assay
+#' @param value new Feature Data
+#'
+#' @rdname vrGraph
+#' @method vrGraph<- VoltRon
+#'
+#' @export
+#'
+"vrGraph<-.VoltRon" <- function(object, assay = NULL, graph.type = "kNN", ..., value) {
+
+  # check value
+  if(!inherits(value, "igraph"))
+    stop("The 'value' should be of an igraph class!")
+
+  # all vertices
+  spobject <- vrSpatialPoints(object)
+
+  # check if there exists graphs
+  graph <- object@graph
+  if(length(names(object@graph)) == 0 || !graph.type %in% names(object@graph)){
+    graph[[graph.type]] <- make_empty_graph(directed = FALSE) + vertices(spobject)
+  }
+
+  # vertices
+  new_vert <- V(value)$name
+
+  # edges
+  subg_inv <- igraph::induced_subgraph(graph[[graph.type]], spobject[!spobject%in%new_vert])
+  graph[[graph.type]] <- igraph::disjoint_union(value, subg_inv)
+
+  # update object
+  object@graph <- graph
+
+  # return
+  return(object)
+}
+
+#' @param assay assay
+#'
+#' @rdname vrGraphNames
+#' @method vrGraphNames VoltRon
+#'
+#' @export
+#'
+vrGraphNames.VoltRon <- function(object, assay = NULL){
+  # if(length(names(object@graph)) == 0){
+  #   return
+  # } else {
+  #   return(names(object@graph))
+  # }
+  return(names(object@graph))
 }
 
 #' @param assay assay
