@@ -15,7 +15,7 @@ vrSpatialPlot(
   pt.size = 2,
   alpha = 0.6,
   label = FALSE,
-  background = "image",
+  background = NULL,
   crop = FALSE,
   common.legend = TRUE,
   collapse = TRUE

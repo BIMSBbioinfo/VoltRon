@@ -17,7 +17,7 @@ vrSpatialFeaturePlotSingle(
   label = FALSE,
   plot_title = NULL,
   legend_title = NULL,
-  background = "image",
+  background = NULL,
   crop = FALSE
 )
 }

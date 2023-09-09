@@ -31,7 +31,7 @@
 #' @export
 #'
 vrSpatialPlot <- function(object, group.by = "Sample", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
-                     font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, background = "image",
+                     font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, background = NULL,
                      crop = FALSE, common.legend = TRUE, collapse = TRUE) {
 
   # check object
@@ -114,25 +114,24 @@ vrSpatialPlot <- function(object, group.by = "Sample", assay = NULL, assay.type 
 #'
 #' @import ggplot2
 #'
-vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", font.size = 2, pt.size = 2, alpha = 0.6, plot_title = NULL, background = "image", crop = FALSE){
+vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", font.size = 2, pt.size = 2, alpha = 0.6, plot_title = NULL, background = NULL, crop = FALSE){
 
   # data
-  image <- vrImages(assay)
-  info <- image_info(image)
   coords <- as.data.frame(vrCoordinates(assay))
   normdata <- vrData(assay, norm = TRUE)
 
   # plotting features
   coords[[group.by]] <- metadata[,group.by]
 
-  # get image information and plotting features
-  info <- image_info(image)
-
   # plot
   g <- ggplot()
 
   # add image
-  if(background == "image") {
+  if(is.null(background))
+    background <- vrMainImage(assay)
+  image <- vrImages(assay, main_image = background)
+  info <- image_info(image)
+  if(background %in% vrImageNames(assay)){
     g <- g +
       ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
   }
@@ -177,11 +176,11 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", font.size 
   if(any(background %in% c("white","black"))){
     g <- g +
       theme(panel.background = element_rect(fill = background, colour = background, size = 0.5, linetype = "solid"))
-  } else if(background == "image"){
+  } else if(background %in% vrImageNames(assay)){
     g <- g +
       theme(panel.background = element_blank())
   } else {
-    stop("background should either 'image', 'black', 'white'.")
+    stop("background should either 'black', 'white' or a image from vrImageNames(assay)")
   }
 
   # return data
@@ -220,7 +219,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", font.size 
 #' @export
 #'
 vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
-                         font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, background = "image",
+                         font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, background = NULL,
                          crop = FALSE, common.legend = FALSE, collapse = TRUE) {
 
   # check object
@@ -347,11 +346,9 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = N
 #' @importFrom ggforce geom_ellipse
 #'
 vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.by = "label",
-                               font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL, legend_title = NULL, background = "image", crop = FALSE){
+                               font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL, legend_title = NULL, background = NULL, crop = FALSE){
 
   # data
-  image <- vrImages(assay)
-  info <- image_info(image)
   coords <- as.data.frame(vrCoordinates(assay))
   normdata <- vrData(assay, norm = TRUE)
 
@@ -363,14 +360,17 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.b
   }
 
   # get image information and plotting features
-  info <- image_info(image)
   midpoint <- sum(limits)/2
 
   # plot
   g <- ggplot()
 
   # add image
-  if(background == "image") {
+  if(is.null(background))
+    background <- vrMainImage(assay)
+  image <- vrImages(assay, main_image = background)
+  info <- image_info(image)
+  if(background %in% vrImageNames(assay)){
     g <- g +
       ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
   }
@@ -443,12 +443,13 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.b
   if(any(background %in% c("white","black"))){
     g <- g +
       theme(panel.background = element_rect(fill = background, colour = background, size = 0.5, linetype = "solid"))
-  } else if(background == "image"){
+  } else if(background %in% vrImageNames(assay)){
     g <- g +
       theme(panel.background = element_blank())
   } else {
-    stop("background should either 'image', 'black', 'white'.")
+    stop("background should either 'black', 'white' or a image from vrImageNames(assay)")
   }
+
 
   # visualize labels
   if(label){

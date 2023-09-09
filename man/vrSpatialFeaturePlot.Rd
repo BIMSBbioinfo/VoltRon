@@ -18,7 +18,7 @@ vrSpatialFeaturePlot(
   alpha = 0.6,
   keep.scale = "feature",
   label = FALSE,
-  background = "image",
+  background = NULL,
   crop = FALSE,
   common.legend = FALSE,
   collapse = TRUE

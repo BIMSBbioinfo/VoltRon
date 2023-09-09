@@ -505,6 +505,22 @@ vrImageNames <- function(object, ...) {
   UseMethod(generic = 'vrImageNames', object = object)
 }
 
+#' vrMainImage
+#'
+#' Get the main image
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{vrMainImage}: The name of the default assay
+#'
+#' @rdname vrMainImage
+#' @export vrMainImage
+#'
+vrMainImage <- function(object, ...) {
+  UseMethod(generic = 'vrMainImage', object = object)
+}
+
 #' resizeImage
 #'
 #' Resizing Magick images

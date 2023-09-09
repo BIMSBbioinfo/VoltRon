@@ -12,7 +12,7 @@ vrSpatialPlotSingle(
   pt.size = 2,
   alpha = 0.6,
   plot_title = NULL,
-  background = "image",
+  background = NULL,
   crop = FALSE
 )
 }

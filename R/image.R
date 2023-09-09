@@ -105,8 +105,6 @@ vrImageNames.VoltRon <- function(object, assay = NULL){
   return(image_names)
 }
 
-#' @param assay assay
-#'
 #' @rdname vrImageNames
 #' @method vrImageNames vrAssay
 #'
@@ -115,6 +113,17 @@ vrImageNames.VoltRon <- function(object, assay = NULL){
 vrImageNames.vrAssay <- function(object){
   return(names(object@image))
 }
+
+#'
+#' @rdname vrMainImage
+#' @method vrMainImage vrAssay
+#'
+#' @export
+#'
+vrMainImage.vrAssay <- function(object){
+  return(object@main_image)
+}
+
 
 ####
 # Managing Images ####
