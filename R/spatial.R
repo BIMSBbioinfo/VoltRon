@@ -14,6 +14,8 @@ NULL
 #' @method getSpatialNeighbors VoltRon
 #'
 #' @importFrom tripack tri.mesh neighbours
+#' @importFrom igraph add_edges simplify make_empty_graph vertices
+#' @importFrom FNN get.knn
 #'
 #' @export
 #'
@@ -41,12 +43,12 @@ getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay
              },
              NN = {
                nnedges <- FNN::get.knn(cur_coords, k = 1)
-               nnedges <- cbind(1:nrow(coords), nnedges)
+               nnedges <- cbind(1:nrow(cur_coords), nnedges)
                nnedges <- apply(nnedges, 1, function(x){
                  do.call(c,lapply(x[-1], function(y) return(c(x[1],y))))
                })
                nnedges <- unlist(nnedges)
-               nnedges <- rownames(coords)[nnedges]
+               nnedges <- rownames(cur_coords)[nnedges]
                nnedges
              })
     spatialedges_list[[assy]] <- spatialedges
@@ -63,4 +65,42 @@ getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay
   return(object)
 }
 
+####
+# Neighbor test ####
+####
+
+vrNeighbourhoodEnrichment <- function(object, assay = NULL, assay.type = NULL, group.by = NULL, method = "dixon", assy_id = NULL){
+
+  # check object
+  if(!inherits(object, "VoltRon"))
+    stop("Please provide a VoltRon object!")
+
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get entity type and metadata
+  if(is.null(assay.type)){
+    assay_types <- vrAssayTypes(object, assay = assay)
+    if(length(unique(assay_types)) == 1){
+      metadata <- Metadata(object, type = unique(assay_types))
+    } else {
+      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+    }
+  } else {
+    metadata <- Metadata(object, type = assay.type)
+  }
+  cur_metadata <- metadata[grepl(paste0(assy_id,"$"), rownames(metadata)),]
+
+  # coords
+  coords <- as.data.frame(vrCoordinates(object[[assy_id]]))
+
+
+  if(method == "dixon"){
+    datax <- cbind(coords, cur_metadata[[group.by]])
+    return(dixon::dixon(datax))
+  }
+}
 
