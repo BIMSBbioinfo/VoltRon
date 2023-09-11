@@ -55,7 +55,11 @@ vrImages.vrAssay <- function(object, main_image = NULL){
     if(is.null(main_image)) {
       main_image <- object@main_image
     }
-    return(magick::image_read(object@image[[main_image]]))
+    if(main_image %in% vrImageNames(object)){
+      return(magick::image_read(object@image[[main_image]]))
+    } else {
+      return(NULL)
+    }
   } else {
     return(NULL)
   }

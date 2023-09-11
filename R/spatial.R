@@ -69,7 +69,10 @@ getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay
 # Neighbor test ####
 ####
 
-vrNeighbourhoodEnrichment <- function(object, assay = NULL, assay.type = NULL, group.by = NULL, method = "dixon", assy_id = NULL){
+vrNeighbourhoodEnrichment <- function(object, assay = NULL, assay.type = NULL, group.by = NULL, method = "dixon", graph.type = "delaunay", seed = 1, num.sim = 100){
+
+  # set the seed
+  set.seed(seed)
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -92,15 +95,22 @@ vrNeighbourhoodEnrichment <- function(object, assay = NULL, assay.type = NULL, g
   } else {
     metadata <- Metadata(object, type = assay.type)
   }
-  cur_metadata <- metadata[grepl(paste0(assy_id,"$"), rownames(metadata)),]
 
   # coords
-  coords <- as.data.frame(vrCoordinates(object[[assy_id]]))
+  coords <- as.data.frame(vrCoordinates(object))
 
-
+  dixon_results <- NULL
   if(method == "dixon"){
     datax <- cbind(coords, cur_metadata[[group.by]])
-    return(dixon::dixon(datax))
+    dixon_results <- dixon::dixon(datax)
+    return(dixon_results$tablaZ)
+  } else if(method == "permutation"){
+    graph <- vrGraph(object, graph.type = graph.type)
+    neighbors_graph <- igraph::neighborhood(graph)
+
+
   }
+
+  return(dixon_results)
 }
 
