@@ -10,7 +10,7 @@ vrSpatialPlotSingle(
   group.by = "Sample",
   font.size = 2,
   pt.size = 2,
-  alpha = 0.6,
+  alpha = 1,
   plot_title = NULL,
   background = NULL,
   crop = FALSE

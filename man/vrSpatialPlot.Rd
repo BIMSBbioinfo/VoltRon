@@ -13,7 +13,7 @@ vrSpatialPlot(
   nrow = NULL,
   font.size = 2,
   pt.size = 2,
-  alpha = 0.6,
+  alpha = 1,
   label = FALSE,
   background = NULL,
   crop = FALSE,

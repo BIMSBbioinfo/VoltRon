@@ -31,7 +31,7 @@
 #' @export
 #'
 vrSpatialPlot <- function(object, group.by = "Sample", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
-                     font.size = 2, pt.size = 2, alpha = 0.6, label = FALSE, background = NULL,
+                     font.size = 2, pt.size = 2, alpha = 1, label = FALSE, background = NULL,
                      crop = FALSE, common.legend = TRUE, collapse = TRUE) {
 
   # check object
@@ -114,7 +114,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", assay = NULL, assay.type 
 #'
 #' @import ggplot2
 #'
-vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", font.size = 2, pt.size = 2, alpha = 0.6, plot_title = NULL, background = NULL, crop = FALSE){
+vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", font.size = 2, pt.size = 2, alpha = 1, plot_title = NULL, background = NULL, crop = FALSE){
 
   # data
   coords <- as.data.frame(vrCoordinates(assay))
@@ -138,7 +138,33 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", font.size 
   }
 
   # add points or segments
-  if(assay@type == "spot"){
+  segments <- vrSegments(assay)
+  if(assay@type == "ROI" && !is.null(segments)){
+    polygon_data <- NULL
+    circle_data <- NULL
+    for(i in 1:length(segments)){
+      cur_data <- as.data.frame(cbind(segments[[i]], names(segments)[i], coords[[group.by]][i]))
+      if(nrow(segments[[i]]) > 1){
+        colnames(cur_data) <- c("x", "y", "segment", "group.by")
+        polygon_data <- as.data.frame(rbind(polygon_data, cur_data))
+      } else {
+        colnames(cur_data) <- c("x", "y", "rx", "ry", "segment", "group.by")
+        circle_data <- as.data.frame(rbind(circle_data,  cur_data))
+      }
+    }
+    if(!is.null(geom_polygon)){
+      g <- g +
+        geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha)
+    }
+    if(!is.null(circle_data)){
+      g <- g +
+        ggforce::geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0,
+                                  fill = group.by, group = segment), data = circle_data, lwd = 0, alpha = alpha)
+    }
+    g <- g +
+      scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+      guides(fill = guide_legend(title = group.by))
+  } else if(assay@type == "spot"){
     g <- g +
       coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height)) +
       geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]]) +
@@ -148,7 +174,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", font.size 
     g <- g +
       geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = 21, size = rel(pt.size), alpha = alpha)
   } else {
-    stop("Only spots and cells can be visualized with vrSpatialPlot!")
+    stop("Only ROIs, spots and cells can be visualized with vrSpatialPlot!")
   }
 
   # more visualization parameters
