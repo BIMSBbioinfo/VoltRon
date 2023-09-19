@@ -8,6 +8,8 @@ vrSpatialFeaturePlot(
   object,
   features,
   group.by = "label",
+  norm = TRUE,
+  log = FALSE,
   assay = NULL,
   assay.type = NULL,
   ncol = 2,
@@ -30,6 +32,10 @@ vrSpatialFeaturePlot(
 \item{features}{a set of features, either from the rows of rawdata, normdata or columns of the metadata}
 
 \item{group.by}{a grouping label for the spatial entities}
+
+\item{norm}{if TRUE, the normalized data is used}
+
+\item{log}{if TRUE, data features (excluding metadata features) will be log transformed}
 
 \item{assay}{the assay name}
 

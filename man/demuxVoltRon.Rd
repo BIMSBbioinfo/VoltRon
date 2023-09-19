@@ -4,7 +4,7 @@
 \alias{demuxVoltRon}
 \title{demuxVoltRon}
 \usage{
-demuxVoltRon(object, scale_width = 800)
+demuxVoltRon(object, scale_width = 800, use_points = FALSE)
 }
 \arguments{
 \item{object}{a VoltRon object}

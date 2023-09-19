@@ -10,6 +10,8 @@ vrSpatialFeaturePlotSingle(
   feature,
   limits,
   group.by = "label",
+  norm = TRUE,
+  log = FALSE,
   font.size = 2,
   pt.size = 2,
   title.size = 10,
@@ -31,6 +33,10 @@ vrSpatialFeaturePlotSingle(
 \item{limits}{limits of the legend of the plot}
 
 \item{group.by}{a grouping label for the spatial entities}
+
+\item{norm}{if TRUE, the normalized data is used}
+
+\item{log}{if TRUE, data features (excluding metadata features) will be log transformed}
 
 \item{font.size}{font sizes}
 

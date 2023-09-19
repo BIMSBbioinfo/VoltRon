@@ -12,7 +12,8 @@
   spatialpoints = NULL,
   features = NULL,
   image = NULL,
-  interactive = FALSE
+  interactive = FALSE,
+  use_points = FALSE
 )
 }
 \arguments{
