@@ -13,6 +13,7 @@
 #' @param dir.path path to Xenium output folder
 #' @param selected_assay selected assay from Xenium
 #' @param assay_name the assay name of the SR object
+#' @param use_image if TRUE, the DAPI image will be used.
 #' @param morphology_image the name of the lowred morphology image. Default: morphology_lowres.tif
 #' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)
 #' @param ... additional parameters passed to \code{formVoltRon}
@@ -23,7 +24,7 @@
 #'
 #' @export
 #'
-importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", morphology_image = "morphology_lowres.tif", resolution_level = 7, ...)
+importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, ...)
 {
   # raw counts
   datafile <- paste0(dir.path, "/cell_feature_matrix.h5")
@@ -39,12 +40,16 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   }
 
   # image
-  suppressMessages(generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level))
-  image_file <- paste0(dir.path, "/", morphology_image)
-  if(file.exists(image_file)){
-    image <-  image_read(image_file)
+  if(use_image){
+    suppressMessages(generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level))
+    image_file <- paste0(dir.path, "/", morphology_image)
+    if(file.exists(image_file)){
+      image <-  image_read(image_file)
+    } else {
+      stop("There are no spatial image files in the path")
+    }
   } else {
-    stop("There are no spatial image files in the path")
+    image <- NULL
   }
 
   # cell boundaries
@@ -63,7 +68,8 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
     coords <- as.matrix(Xenium_coords[,c("x_centroid", "y_centroid")])
     colnames(coords) <- c("x","y")
     coords[,2] <- max(coords[,2]) - coords[,2] + min(coords[,2])
-    coords <- rescaleXeniumCells(coords, Xenium_box, image)
+    if(use_image)
+      coords <- rescaleXeniumCells(coords, Xenium_box, image)
   } else {
     stop("There are no files named 'cells.csv.gz' in the path")
   }
@@ -79,7 +85,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   }
 
   # create VoltRon
-  formVoltRon(rawdata, metadata = NULL, image, coords, subcellular = subcellular, main.assay = assay_name, assay.type = "cell", ...)
+  formVoltRon(rawdata, metadata = NULL, image = image, coords, subcellular = subcellular, main.assay = assay_name, assay.type = "cell", ...)
 }
 
 #' rescaleXeniumCells

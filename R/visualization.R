@@ -225,6 +225,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", font.size 
 #' @param object VoltRon object
 #' @param features a set of features, either from the rows of rawdata, normdata or columns of the metadata
 #' @param group.by a grouping label for the spatial entities
+#' @param norm if TRUE, the normalized data is used
+#' @param log if TRUE, data features (excluding metadata features) will be log transformed
 #' @param assay the assay name
 #' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
 #' @param ncol column wise number of plots, for \code{ggarrange}
@@ -245,7 +247,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", font.size 
 #'
 #' @export
 #'
-vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
+vrSpatialFeaturePlot <- function(object, features, group.by = "label", norm = TRUE, log = FALSE, assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
                          font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, background = NULL,
                          crop = FALSE, common.legend = FALSE, collapse = TRUE) {
 
@@ -260,7 +262,9 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = N
   assay_names <- vrAssayNames(object, assay = assay)
 
   # all data
-  data <- vrData(object, assay = assay, norm = TRUE)
+  data <- vrData(object, assay = assay, norm = norm)
+  if(log)
+    data <- log(data)
 
   # get entity type and metadata
   if(is.null(assay.type)){
@@ -325,7 +329,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = N
       p_title <- plot_title[[assy]]
       l_title <- legend_title[[feat]]
       gg[[i]] <- vrSpatialFeaturePlotSingle(assay = cur_assay, metadata = cur_metadata, feature = feat, limits = limits[[feat]][[assy]],
-                              group.by = group.by, font.size = font.size, pt.size = pt.size, title.size = title.size, alpha = alpha,
+                              group.by = group.by, norm = norm, log = log, font.size = font.size, pt.size = pt.size, title.size = title.size, alpha = alpha,
                               label = label, plot_title = p_title, legend_title = l_title, background = background, crop = crop)
       i <- i + 1
     }
@@ -358,6 +362,8 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = N
 #' @param feature a feature, either from the rows of rawdata, normdata or columns of the metadata
 #' @param limits limits of the legend of the plot
 #' @param group.by a grouping label for the spatial entities
+#' @param norm if TRUE, the normalized data is used
+#' @param log if TRUE, data features (excluding metadata features) will be log transformed
 #' @param font.size font sizes
 #' @param pt.size point size
 #' @param title.size title size of legend and plot
@@ -372,12 +378,14 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", assay = N
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom ggforce geom_ellipse
 #'
-vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.by = "label",
+vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.by = "label", norm = TRUE, log = FALSE,
                                font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL, legend_title = NULL, background = NULL, crop = FALSE){
 
   # data
   coords <- as.data.frame(vrCoordinates(assay))
-  normdata <- vrData(assay, norm = TRUE)
+  normdata <- vrData(assay, norm = norm)
+  if(log)
+    normdata <- log(normdata)
 
   # get data
   if(feature %in% rownames(normdata)){
@@ -1101,7 +1109,9 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NUL
 #' @param assay assay name
 #' @param x.label labels of the x axis
 #' @param group.by a column from metadata to seperate columns of the heatmap
+#' @param split.by the column to split the barplots by
 #' @param norm if TRUE, the normalized data is used
+#' @param log if TRUE, data features (excluding metadata features) will be log transformed
 #' @param ncol column wise number of plots, for \code{ggarrange}
 #' @param nrow row wise number of plots, for \code{ggarrange}
 #' @param ... additional parameters passed to \code{getVariableFeatures}
@@ -1111,7 +1121,7 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NUL
 #'
 #' @export
 #'
-vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, group.by = "Sample", norm = TRUE,  ncol = 2, nrow = NULL, ...){
+vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, group.by = "Sample", split.by = NULL, norm = TRUE, log = FALSE, ncol = 2, nrow = NULL, ...){
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -1129,6 +1139,8 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 
   # get data
   barplotdata <- vrData(object, assay = assay, norm = norm)
+  if(log)
+    barplotdata <- log(barplotdata)
 
   # get entity type and metadata
   assay_types <- vrAssayTypes(object, assay = assay)
@@ -1174,26 +1186,60 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
   }
 
   # plotting data
-  ggplotdatax <- data.frame(datax,
-                            x.label =  x.label,
-                            group.by =  group.by.col,
-                            assay_title = assay_title,
-                            spatialpoints = rownames(metadata))
-  ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "group.by", "spatialpoints"))
-  gg <- ggplot(ggplotdatax, aes(x = x.label, y = value,
-                                fill = factor(group.by, levels = unique(group.by)))) +
-    geom_bar(stat = "identity") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
-    ylab("") + xlab(x.label) +
-    guides(fill = guide_legend(title = group.by))
+  if(is.null(split.by)){
+    ggplotdatax <- data.frame(datax,
+                              x.label = x.label,
+                              group.by = group.by.col,
+                              assay_title = assay_title,
+                              spatialpoints = rownames(metadata))
+    ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "group.by", "spatialpoints"))
+    gg <- ggplot(ggplotdatax, aes(x = x.label, y = value,
+                                  fill = factor(group.by, levels = unique(group.by)))) +
+      geom_bar(stat = "identity") +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+      ylab("") + xlab(x.label) +
+      guides(fill = guide_legend(title = group.by))
 
-  if(length(features) > 1){
-    if(length(gg) < ncol) ncol <- length(gg)
-    gg <- gg + facet_wrap(.~variable, ncol = ncol, nrow = ceiling(length(features)/ncol), scales = "free")
-    return(gg)
+    if(length(features) > 1){
+      if(length(gg) < ncol) ncol <- length(gg)
+      gg <- gg + facet_wrap(.~variable, ncol = ncol, nrow = ceiling(length(features)/ncol), scales = "free")
+      return(gg)
+    } else {
+      gg <- gg + labs(title = features)
+      return(gg)
+    }
   } else {
-    gg <- gg + labs(title = features)
-    return(gg)
+
+    # check split.by column name
+    if(split.by %in% colnames(metadata)){
+      split.by.col <- factor(metadata[[split.by]])
+    } else {
+      stop("Column '", split.by, "' cannot be found in metadata!")
+    }
+
+    # make ggplot
+    ggplotdatax <- data.frame(datax,
+                              x.label =  x.label,
+                              group.by = group.by.col,
+                              split.by = split.by.col,
+                              assay_title = assay_title,
+                              spatialpoints = rownames(metadata))
+    ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "group.by", "split.by", "spatialpoints"))
+    gg <- ggplot(ggplotdatax, aes(x = x.label, y = value,
+                                  fill = factor(group.by, levels = unique(group.by)))) +
+      geom_bar(stat = "identity") +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+      ylab("") + xlab(x.label) +
+      guides(fill = guide_legend(title = group.by))
+
+    if(length(features) > 1){
+      gg <- gg + facet_grid(variable~split.by, scales = "free_x", space = "free")
+      return(gg)
+    } else {
+      if(length(gg) < ncol) ncol <- length(gg)
+      gg <- gg + facet_wrap(.~split.by, ncol = ncol, nrow = ceiling(length(unique(split.by.col))/ncol), scales = "free_x")
+      return(gg)
+    }
   }
 }
 
@@ -1202,6 +1248,9 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 #' @param object A VoltRon object
 #' @param assay assay name
 #' @param x.label labels of the x axis
+#' @param split.by the column to split the barplots by
+#' @param ncol column wise number of plots, for \code{ggarrange}
+#' @param nrow row wise number of plots, for \code{ggarrange}
 #' @param ... additional parameters passed to \code{getVariableFeatures}
 #'
 #' @import ggplot2
@@ -1209,7 +1258,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 #'
 #' @export
 #'
-vrProportionPlot <- function(object, assay = NULL, x.label = NULL, ...){
+vrProportionPlot <- function(object, assay = NULL, x.label = NULL, split.by = NULL, ncol = 2, nrow = NULL, ...){
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -1256,5 +1305,43 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL, ...){
     ylab("") + xlab("") +
     guides(fill = guide_legend(title = ""))
 
+
+  if(is.null(split.by)){
+    ggplotdatax <- data.frame(t(barplotdata),
+                              x.label =  x.label,
+                              assay_title = assay_title,
+                              spatialpoints = rownames(metadata))
+    ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "spatialpoints"))
+    ggplotdatax <- ggplotdatax[ggplotdatax$value > 0,]
+    gg <- ggplot(ggplotdatax, aes(x = x.label, y = value, fill = variable)) +
+      geom_bar(stat = "identity") +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+      ylab("") + xlab("") +
+      guides(fill = guide_legend(title = ""))
+  } else {
+
+    # check split.by column name
+    if(split.by %in% colnames(metadata)){
+      split.by.col <- factor(metadata[[split.by]])
+    } else {
+      stop("Column '", split.by, "' cannot be found in metadata!")
+    }
+    ggplotdatax <- data.frame(t(barplotdata),
+                              x.label =  x.label,
+                              assay_title = assay_title,
+                              split.by = split.by.col,
+                              spatialpoints = rownames(metadata))
+    ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "split.by", "spatialpoints"))
+    ggplotdatax <- ggplotdatax[ggplotdatax$value > 0,]
+    gg <- ggplot(ggplotdatax, aes(x = x.label, y = value, fill = variable)) +
+      geom_bar(stat = "identity") +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+      ylab("") + xlab("") +
+      guides(fill = guide_legend(title = ""))
+
+    # split
+    if(length(gg) < ncol) ncol <- length(gg)
+    gg <- gg + facet_wrap(.~split.by, ncol = ncol, nrow = ceiling(length(unique(split.by.col))/ncol), scales = "free_x")
+  }
   return(gg)
 }

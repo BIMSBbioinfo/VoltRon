@@ -101,8 +101,8 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
     features <- intersect(vrFeatures(object), features)
 
     if(length(features) > 0){
-      object@rawdata <- object@rawdata[rownames(object@rawdata) %in% features,]
-      object@normdata <- object@normdata[rownames(object@normdata) %in% features,]
+      object@rawdata <- object@rawdata[rownames(object@rawdata) %in% features,, drop = FALSE]
+      object@normdata <- object@normdata[rownames(object@normdata) %in% features,, drop = FALSE]
     } else {
       stop("none of the provided features are found in the assay")
     }
@@ -120,13 +120,13 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
     if(!is.null(spatialpoints)){
 
       # data
-      object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints]
-      object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints]
+      object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
+      object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE]
 
       # coordinates
-      vrCoordinates(object) <- coords[rownames(coords) %in% spatialpoints,]
+      vrCoordinates(object) <- coords[rownames(coords) %in% spatialpoints,, drop = FALSE]
       if(nrow(coords_reg) > 0)
-        vrCoordinates(object, reg = TRUE) <- coords_reg[rownames(coords_reg) %in% spatialpoints,]
+        vrCoordinates(object, reg = TRUE) <- coords_reg[rownames(coords_reg) %in% spatialpoints,, drop = FALSE]
 
       # segments
       if(length(segments) > 0)

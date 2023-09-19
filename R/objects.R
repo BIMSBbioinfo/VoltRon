@@ -665,7 +665,7 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
 #'
 #' @export
 #'
-subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatialpoints = NULL, features = NULL, image = NULL, interactive = FALSE) {
+subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatialpoints = NULL, features = NULL, image = NULL, interactive = FALSE, use_points = FALSE) {
 
   # subseting based on subset argument
   if (!missing(x = subset)) {
@@ -755,7 +755,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
       stop("Please provide a character based subsetting notation, see magick::image_crop documentation")
     }
   } else if(interactive){
-    results <- demuxVoltRon(object)
+    results <- demuxVoltRon(object, use_points = use_points)
     return(results)
   }
 

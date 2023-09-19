@@ -381,20 +381,29 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #' @importFrom htmltools HTML
 #' @importFrom dplyr filter add_row tibble
 #'
-demuxVoltRon <- function(object, scale_width = 800)
+demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
 {
   # get images
   images <- vrImages(object)
 
   # check if there are only one assay in the object
-  if(length(images) > 1)
+  if(nrow(SampleMetadata(object)) > 1)
     stop("You can only subset a VoltRon assay with one image")
 
   # scale
+  # if(!is.null(images)){
+  #   imageinfo <- magick::image_info(images)
+  #   scale_factor <- imageinfo$width/scale_width
+  #   scale_width <- paste0(scale_width, "x")
+  #   images <- magick::image_scale(images, scale_width)
+  # } else {
+  #   object <- resizeImage(object, size)
+  #   coords <- vrCoordinates(object, reg = TRUE)
+  # }
   imageinfo <- magick::image_info(images)
   scale_factor <- imageinfo$width/scale_width
-  scale_width <- paste0(scale_width, "x")
-  images <- magick::image_scale(images, scale_width)
+  scale_width_char <- paste0(scale_width, "x")
+  images <- magick::image_scale(images, scale_width_char)
 
   # get the ui and server
   if (interactive()){
@@ -461,6 +470,20 @@ demuxVoltRon <- function(object, scale_width = 800)
       # selected corner list
       selected_corners_list <- reactiveVal(dplyr::tibble(box = character()))
 
+      # the image
+      if(use_points){
+        print(scale_width)
+        object <- resizeImage(object, size = scale_width)
+        coords <- as.data.frame(vrCoordinates(object, reg = TRUE))
+        print(apply(coords, 2, range))
+        pl <- ggplot() + geom_point(aes_string(x = "x", y = "y"), coords, size = 1.5, color = "black") +
+          theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+                axis.line=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
+                legend.margin = margin(0,0,0,0)) + coord_fixed()
+      } else {
+        pl <- magick::image_ggplot(images)
+      }
+
       ### Main observable ####
       observe({
 
@@ -473,18 +496,17 @@ demuxVoltRon <- function(object, scale_width = 800)
           }
         })
 
-
         # output image
         output[["cropped_image"]] <- renderPlot({
           if(nrow(selected_corners()) < 2){
             corners <- apply(as.matrix(selected_corners()),2,as.numeric)
-            image_ggplot(images)
           } else {
             corners <- apply(as.matrix(selected_corners()),2,as.numeric)
-            magick::image_ggplot(images) +
+            pl +
               ggplot2::geom_rect(aes(xmin = corners[1,1], xmax = corners[2,1], ymin = corners[1,2], ymax = corners[2,2]),
                         fill = "green", alpha = 0.3, color = "black")
           }
+          pl
         })
       })
 
@@ -499,11 +521,15 @@ demuxVoltRon <- function(object, scale_width = 800)
         if(nrow(selected_corners()) == 2){
           next_ind <- length(selected_corners_list()) + 1
           corners <- selected_corners()
+          print(corners)
           corners <- corners*scale_factor
+          print(corners)
           corners <- apply(corners,2,ceiling)
+          print(corners)
           corners <- paste0(abs(corners[2,1]-corners[1,1]), "x",
                             abs(corners[2,2]-corners[1,2]), "+",
                             min(corners[,1]), "+", imageinfo$height - max(corners[,2]))
+          print(corners)
           selected_corners_list() %>%
             dplyr::add_row(box = corners) %>%
             selected_corners_list()

@@ -66,7 +66,7 @@ getDiffExpDESeq2 <- function(data, metadata, group.by, group.base = NULL, covari
   if(is.null(covariates)){
     group.by.data <- metadata[[group.by]]
     uniq_groups <- unique(group.by.data)
-    if(is.null(group.base))
+    if(!is.null(group.base))
       uniq_groups <- c(group.base, uniq_groups[!uniq_groups %in% group.base])
     group.by.data <- factor(group.by.data, levels = uniq_groups)
     colData <- S4Vectors::DataFrame(group.by.data)
