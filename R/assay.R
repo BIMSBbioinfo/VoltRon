@@ -116,6 +116,7 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
     coords_reg <- vrCoordinates(object, reg = TRUE)
     segments <- vrSegments(object)
     segments_reg <- vrSegments(object, reg = TRUE)
+    subcellular <- vrSubcellular(object)
 
     if(!is.null(spatialpoints)){
 
@@ -146,6 +147,14 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
       if(length(segments) > 0){
         segments[rownames(cropped_coords)] <- subsetSegments(cropped_segments, vrimage, image)
         vrSegments(object) <- segments
+      }
+
+      # subcellular
+      if(nrow(subcellular) > 0){
+        cropped_subcellular <- subsetCoordinates(subcellular[,c("x","y")], vrimage, image)
+        subcellular <- subcellular[rownames(cropped_subcellular),]
+        subcellular[,c("x","y")] <- cropped_subcellular
+        vrSubcellular(object) <- subcellular
       }
 
       # image
@@ -184,7 +193,7 @@ subsetCoordinates <- function(coords, image, crop_info){
   # adjust for maximum res
   if(ylim[2] < 0){
     ylim[2] <- 0
-    ylim[1] <- ylim[2] - imageinfo$height + crop_info[2]
+    # ylim[1] <- ylim[2] - imageinfo$height + crop_info[2] # CHANGE THIS LATER ?
   }
   if(xlim[2] > imageinfo$width){
     xlim[2] <- imageinfo$width
@@ -504,15 +513,33 @@ vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
 #' @export
 #'
 vrSubcellular.vrAssay <- function(object, reg = FALSE, ...) {
-  if(reg){
-    if(any(colnames(object@subcellular) %in% c("x_reg", "y_reg"))) {
-      return(object@subcellular[,c("cell_id", "x_reg", "y_reg", "feature_name")])
+  if(nrow(object@subcellular) > 0){
+    if(reg){
+      if(any(colnames(object@subcellular) %in% c("x_reg", "y_reg"))) {
+        return(object@subcellular[,c("cell_id", "x_reg", "y_reg", "feature_name")])
+      } else {
+        return(object@subcellular[,c("cell_id", "x", "y", "feature_name")])
+      }
     } else {
       return(object@subcellular[,c("cell_id", "x", "y", "feature_name")])
     }
-  } else {
-    return(object@subcellular[,c("cell_id", "x", "y", "feature_name")])
+  } else{
+    return(object@subcellular)
   }
+}
+
+#' @param reg TRUE if registered subcellular data are being updated
+#' @param value the new set of subcellular data
+#'
+#' @rdname vrSubcellular
+#' @method vrSubcellular<- vrAssay
+#'
+#' @importFrom methods slot
+#' @export
+#'
+"vrSubcellular<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
+  methods::slot(object = object, name = 'subcellular') <- value
+  return(object)
 }
 
 #' @param reg TRUE if registered segments are being updated

@@ -2,13 +2,19 @@
 % Please edit documentation in R/assay.R, R/generics.R, R/objects.R
 \name{vrSubcellular.vrAssay}
 \alias{vrSubcellular.vrAssay}
+\alias{vrSubcellular<-.vrAssay}
 \alias{vrSubcellular}
+\alias{vrSubcellular<-}
 \alias{vrSubcellular.VoltRon}
 \title{vrSubcellular}
 \usage{
 \method{vrSubcellular}{vrAssay}(object, reg = FALSE, ...)
 
+\method{vrSubcellular}{vrAssay}(object, reg = FALSE, ...) <- value
+
 vrSubcellular(object, ...)
+
+vrSubcellular(object, ...) <- value
 
 \method{vrSubcellular}{VoltRon}(object, reg = FALSE, assay = NULL, ...)
 }
@@ -19,10 +25,14 @@ vrSubcellular(object, ...)
 
 \item{...}{Arguments passed to other methods}
 
+\item{value}{subcellular data}
+
 \item{assay}{assay}
 }
 \value{
 \code{vrSubcellular}: The name of the default assay
+
+\code{vrSubcellular<-}: The coordinates updated
 }
 \description{
 Get and set the subcellular data

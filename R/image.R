@@ -515,8 +515,6 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
           # adjust corners
           corners <- corners*scale_factor
           corners <- apply(corners,2,ceiling)
-          print(corners)
-          print(imageinfo)
 
           # fix for limits
           corners[1,1] <- ifelse(corners[1,1] < 0, 0, corners[1,1])
@@ -562,6 +560,7 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
           subsets <- list()
           box_list <- selected_corners_list()
           sample_names <- paste0("Sample", 1:length(box_list$box))
+          print(sample_names)
           for(i in 1:length(box_list$box)){
             temp <- subset(object, image = box_list$box[i])
             temp$Sample <- sample_names[i]
