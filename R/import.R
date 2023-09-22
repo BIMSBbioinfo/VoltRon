@@ -52,24 +52,25 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
     image <- NULL
   }
 
-  # cell boundaries
-  bound_file <- paste0(dir.path, "/cell_boundaries.csv.gz")
-  if(file.exists(bound_file)){
-    Xenium_boundaries <- utils::read.csv(bound_file)
-    Xenium_box <- apply(Xenium_boundaries[,-1], 2, range)
-  } else {
-    stop("There are no files named 'cell_boundaries.csv.gz' in the path")
-  }
-
   # coordinates
   coord_file <- paste0(dir.path, "/cells.csv.gz")
   if(file.exists(coord_file)){
     Xenium_coords <- utils::read.csv(file = coord_file)
     coords <- as.matrix(Xenium_coords[,c("x_centroid", "y_centroid")])
     colnames(coords) <- c("x","y")
-    coords[,2] <- max(coords[,2]) - coords[,2] + min(coords[,2])
-    if(use_image)
+    range_coords <- range(coords[,2])
+    coords[,2] <- range_coords[2] - coords[,2] + range_coords[1]
+    if(use_image) {
+      # cell boundaries
+      bound_file <- paste0(dir.path, "/cell_boundaries.csv.gz")
+      if(file.exists(bound_file)){
+        Xenium_boundaries <- utils::read.csv(bound_file)
+        Xenium_box <- apply(Xenium_boundaries[,-1], 2, range)
+      } else {
+        stop("There are no files named 'cell_boundaries.csv.gz' in the path")
+      }
       coords <- rescaleXeniumCells(coords, Xenium_box, image)
+    }
   } else {
     stop("There are no files named 'cells.csv.gz' in the path")
   }
@@ -80,6 +81,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
     subcellular <- as.data.frame(data.table::fread(transcripts_file))
     subcellular <- subcellular[,c("cell_id", colnames(subcellular)[!colnames(subcellular) %in% "cell_id"])]
     colnames(subcellular)[colnames(subcellular) %in% c("x_location", "y_location")] <- c("x", "y")
+    subcellular[,"y"] <- range_coords[2] - subcellular[,"y"]  + range_coords[1]
   } else {
     stop("There are no files named 'transcripts.csv.gz' in the path")
   }

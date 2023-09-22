@@ -188,7 +188,7 @@ subsetCoordinates <- function(coords, image, crop_info){
   }
   if(xlim[2] > imageinfo$width){
     xlim[2] <- imageinfo$width
-    xlim[1] <- xlim[2] - crop_info[1]
+    # xlim[1] <- xlim[2] - crop_info[1] # CHANGE THIS LATER ?
   }
 
   # get inside coords

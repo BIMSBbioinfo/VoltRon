@@ -391,15 +391,6 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
     stop("You can only subset a VoltRon assay with one image")
 
   # scale
-  # if(!is.null(images)){
-  #   imageinfo <- magick::image_info(images)
-  #   scale_factor <- imageinfo$width/scale_width
-  #   scale_width <- paste0(scale_width, "x")
-  #   images <- magick::image_scale(images, scale_width)
-  # } else {
-  #   object <- resizeImage(object, size)
-  #   coords <- vrCoordinates(object, reg = TRUE)
-  # }
   imageinfo <- magick::image_info(images)
   scale_factor <- imageinfo$width/scale_width
   scale_width_char <- paste0(scale_width, "x")
@@ -472,14 +463,15 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
 
       # the image
       if(use_points){
-        print(scale_width)
-        object <- resizeImage(object, size = scale_width)
-        coords <- as.data.frame(vrCoordinates(object, reg = TRUE))
-        print(apply(coords, 2, range))
+        object_small <- resizeImage(object, size = scale_width)
+        image_info_small <- magick::image_info(vrImages(object_small))
+        coords <- as.data.frame(vrCoordinates(object_small, reg = FALSE))
+        # coords[,2] <- max(coords[,2]) - coords[,2] + min(coords[,2])
         pl <- ggplot() + geom_point(aes_string(x = "x", y = "y"), coords, size = 1.5, color = "black") +
           theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
                 axis.line=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
-                legend.margin = margin(0,0,0,0)) + coord_fixed()
+                legend.margin = margin(0,0,0,0), plot.margin = unit( c(0,0,0,0),"in")) +
+          coord_fixed()
       } else {
         pl <- magick::image_ggplot(images)
       }
@@ -498,13 +490,11 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
 
         # output image
         output[["cropped_image"]] <- renderPlot({
-          if(nrow(selected_corners()) < 2){
-            corners <- apply(as.matrix(selected_corners()),2,as.numeric)
-          } else {
-            corners <- apply(as.matrix(selected_corners()),2,as.numeric)
-            pl +
+          corners <- apply(as.matrix(selected_corners()),2,as.numeric)
+          if(nrow(selected_corners()) > 1){
+            pl <- pl +
               ggplot2::geom_rect(aes(xmin = corners[1,1], xmax = corners[2,1], ymin = corners[1,2], ymax = corners[2,2]),
-                        fill = "green", alpha = 0.3, color = "black")
+                                 fill = "green", alpha = 0.3, color = "black")
           }
           pl
         })
@@ -521,15 +511,29 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
         if(nrow(selected_corners()) == 2){
           next_ind <- length(selected_corners_list()) + 1
           corners <- selected_corners()
-          print(corners)
+
+          # adjust corners
           corners <- corners*scale_factor
-          print(corners)
           corners <- apply(corners,2,ceiling)
           print(corners)
+          print(imageinfo)
+
+          # fix for limits
+          corners[1,1] <- ifelse(corners[1,1] < 0, 0, corners[1,1])
+          corners[1,1] <- ifelse(corners[1,1] > imageinfo$width, imageinfo$width, corners[1,1])
+          corners[2,1] <- ifelse(corners[2,1] < 0, 0, corners[2,1])
+          corners[2,1] <- ifelse(corners[2,1] > imageinfo$width, imageinfo$width, corners[2,1])
+          corners[1,2] <- ifelse(corners[1,2] < 0, 0, corners[1,2])
+          corners[1,2] <- ifelse(corners[1,2] > imageinfo$height, imageinfo$height, corners[1,2])
+          corners[2,2] <- ifelse(corners[2,2] < 0, 0, corners[2,2])
+          corners[2,2] <- ifelse(corners[2,2] > imageinfo$height, imageinfo$height, corners[2,2])
+
+          # get crop info
           corners <- paste0(abs(corners[2,1]-corners[1,1]), "x",
                             abs(corners[2,2]-corners[1,2]), "+",
                             min(corners[,1]), "+", imageinfo$height - max(corners[,2]))
-          print(corners)
+
+          # add to box list
           selected_corners_list() %>%
             dplyr::add_row(box = corners) %>%
             selected_corners_list()
