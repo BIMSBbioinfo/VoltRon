@@ -12,6 +12,7 @@
 #'
 #' @param object VoltRon object
 #' @param group.by a grouping label for the spatial entities
+#' @param transcripts Only for spatial data with existing subcellular information, visualize the location of given transcripts
 #' @param assay the assay name
 #' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
 #' @param ncol column wise number of plots, for \code{ggarrange}
@@ -30,7 +31,7 @@
 #'
 #' @export
 #'
-vrSpatialPlot <- function(object, group.by = "Sample", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
+vrSpatialPlot <- function(object, group.by = "Sample", transcripts = NULL, assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
                      font.size = 2, pt.size = 2, alpha = 1, label = FALSE, background = NULL,
                      crop = FALSE, common.legend = TRUE, collapse = TRUE) {
 
@@ -80,7 +81,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", assay = NULL, assay.type 
     # visualize
     p_title <- plot_title[[assy]]
     gg[[i]] <- vrSpatialPlotSingle(assay = cur_assay, metadata = cur_metadata,
-                              group.by = group.by, font.size = font.size, pt.size = pt.size, alpha = alpha,
+                              group.by = group.by, transcripts = transcripts, font.size = font.size, pt.size = pt.size, alpha = alpha,
                               plot_title = p_title, background = background, crop = crop)
     i <- i + 1
   }
@@ -105,6 +106,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", assay = NULL, assay.type 
 #' @param assay vrAssay object
 #' @param metadata the metadata associated with the assay
 #' @param group.by a grouping label for the spatial entities
+#' @param transcripts Only for spatial data with existing subcellular information, visualize the location of given transcripts
 #' @param font.size font sizes
 #' @param pt.size point size
 #' @param alpha alpha level for cells/spots/ROIs
@@ -114,7 +116,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", assay = NULL, assay.type 
 #'
 #' @import ggplot2
 #'
-vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", font.size = 2, pt.size = 2, alpha = 1, plot_title = NULL, background = NULL, crop = FALSE){
+vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcripts = NULL, font.size = 2, pt.size = 2, alpha = 1, plot_title = NULL, background = NULL, crop = FALSE){
 
   # data
   coords <- as.data.frame(vrCoordinates(assay))
@@ -171,8 +173,19 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", font.size 
       scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
   } else if(assay@type == "cell") {
-    g <- g +
-      geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = 21, size = rel(pt.size), alpha = alpha)
+    subcellular <- vrSubcellular(assay)
+    if(!is.null(transcripts)){
+      if(nrow(subcellular) > 0){
+        subcellular <- subcellular[subcellular[["feature_name"]] %in% transcripts,]
+        g <- g +
+          geom_point(mapping = aes_string(x = "x", y = "y", fill = "feature_name", color = "feature_name"), subcellular, shape = 21, size = 0.5, alpha = 1)
+      } else {
+        stop("No transcript name was provided!")
+      }
+    } else {
+      g <- g +
+        geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = 21, size = rel(pt.size), alpha = alpha)
+    }
   } else {
     stop("Only ROIs, spots and cells can be visualized with vrSpatialPlot!")
   }
