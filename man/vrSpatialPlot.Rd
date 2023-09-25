@@ -7,6 +7,7 @@
 vrSpatialPlot(
   object,
   group.by = "Sample",
+  transcripts = NULL,
   assay = NULL,
   assay.type = NULL,
   ncol = 2,
@@ -25,6 +26,8 @@ vrSpatialPlot(
 \item{object}{VoltRon object}
 
 \item{group.by}{a grouping label for the spatial entities}
+
+\item{transcripts}{Only for spatial data with existing subcellular information, visualize the location of given transcripts}
 
 \item{assay}{the assay name}
 

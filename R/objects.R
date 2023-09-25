@@ -155,11 +155,11 @@ NULL
       x <- changeSampleNames(x, samples = value)
     }
   } else {
-    if(!nrow(metadata) %in% c(1,length(value))){
-      stop("The new or the existing column should of length 1 or the same as the number of rows")
-    } else {
+    if(length(value) == 1 | nrow(metadata) == length(value)){
       metadata[[i]] <- value
       Metadata(x, assay = assay_names) <- metadata
+    } else {
+      stop("The new or the existing column should of length 1 or the same as the number of rows")
     }
   }
 

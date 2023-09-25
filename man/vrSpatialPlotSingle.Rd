@@ -8,6 +8,7 @@ vrSpatialPlotSingle(
   assay,
   metadata,
   group.by = "Sample",
+  transcripts = NULL,
   font.size = 2,
   pt.size = 2,
   alpha = 1,
@@ -22,6 +23,8 @@ vrSpatialPlotSingle(
 \item{metadata}{the metadata associated with the assay}
 
 \item{group.by}{a grouping label for the spatial entities}
+
+\item{transcripts}{Only for spatial data with existing subcellular information, visualize the location of given transcripts}
 
 \item{font.size}{font sizes}
 
