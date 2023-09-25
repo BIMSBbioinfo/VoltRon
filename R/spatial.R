@@ -122,6 +122,8 @@ vrNeighbourhoodEnrichment <- function(object, assay = NULL, group.by = NULL, gra
 #' @param num.sim the number of simulations
 #' @param seed seed
 #'
+#' @importFrom dplyr neighborhood group.by bind_rows filter summarize mutate
+#'
 vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type = "delaunay", num.sim = 1000, seed = 1) {
 
   # set the seed
@@ -149,7 +151,7 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
   neighbors_graph_data_list <- list(data.frame(neighbors_graph_data, from_value = grp[neighbors_graph_data[,1]], to_value = grp[neighbors_graph_data[,2]], type = "obs"))
   for(i in 2:(ncol(grp_sim)+1))
     neighbors_graph_data_list[[i]] <- data.frame(neighbors_graph_data, from_value = grp_sim[,i-1][neighbors_graph_data[,1]], to_value = grp_sim[,i-1][neighbors_graph_data[,2]], type = paste0("sim", i))
-  neighbors_graph_data <- bind_rows(neighbors_graph_data_list)
+  neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data_list)
 
   # conduct randomized test
   `%notin%` <- Negate(`%in%`)
