@@ -3,7 +3,7 @@
 NULL
 
 ####
-# Neighbor graphs ####
+# Spatial Neighbor graphs ####
 ####
 
 #' @param assay assay
@@ -66,7 +66,7 @@ getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay
 }
 
 ####
-# Neighbor test ####
+# Neighbor Enrichment test ####
 ####
 
 #' vrNeighbourhoodEnrichment
