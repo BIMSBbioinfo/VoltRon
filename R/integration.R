@@ -1,10 +1,28 @@
 
+#' transferData
+#'
+#' transfer data across assays
+#'
+#' @param object a VoltRon object
+#' @param from The ID of assay whose data transfer to the second assay
+#' @param to The ID of the target assay where data is transfered to
+#' @param features The set of data or metadata features that are transfered. Only one metadata feature can be transfered at a time.
+#'
+#' @export
+#'
+transferData <- function(object, from = NULL, to = NULL, features = NULL){
 
-transferData <- function(object, from = NULL, to = NULL){
+  # check if assays are in the same block
+  samples <- SampleMetadata(object)[c(from, to), "Sample"]
+
+  if(length(unique(samples)) > 1)
+    stop("Selected assays have to be within the same sample block!")
 
   # get assays
   to_object <- object[[to]]
   from_object <- object[[from]]
+  from_metadata <- Metadata(object, type = from_object@type)
+  from_metadata <- from_metadata[grepl(paste0(from, "$"), rownames(from_metadata)),]
 
   # get assay types
   to_object_type <- vrAssayTypes(to_object)
@@ -13,7 +31,7 @@ transferData <- function(object, from = NULL, to = NULL){
   # get transfer data type
   if(to_object_type == "spot"){
     if(from_object_type == "cell"){
-      new_assay <- getSpotsFromCells(from_object, to_object)
+      new_assay <- getSpotsFromCells(from_object, from_metadata, to_object, features = features)
     }
   }
 
@@ -24,6 +42,8 @@ transferData <- function(object, from = NULL, to = NULL){
                      assay_name = paste(SampleMetadata(object)[to, "Assay"], "pseudo", sep = "_"),
                      sample = SampleMetadata(object)[to, "Sample"],
                      layer = SampleMetadata(object)[to, "Layer"])
+
+  # return
   object
 }
 
@@ -32,17 +52,19 @@ transferData <- function(object, from = NULL, to = NULL){
 #'
 #' Generate Psuedo counts per spots and insert to as a separate image assay to the Visium object
 #'
-#' @param from_object The first vrAssay
-#' @param to_object The second vrAssay
+#' @param from_object The vrAssay object whose data transfer to the second assay
+#' @param from_metadata the metadata associated with \code{from_object}
+#' @param to_object The ID of the target vrAssay object where data is transfered to
 #'
 #' @importFrom dplyr %>% right_join
 #' @importFrom stats aggregate
 #' @importFrom FNN get.knnx
 #' @importFrom magick image_data
+#' @importFrom fastDummies dummy_cols
 #'
 #' @export
 #'
-getSpotsFromCells <- function(from_object, to_object) {
+getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, features = NULL) {
 
   # get the spot radius of Visium spots
   Vis_spotradius <- to_object@params$spot.radius
@@ -65,8 +87,36 @@ getSpotsFromCells <- function(from_object, to_object) {
   cat("Find associated spots for each cell \n")
   cell_to_spot_id <- names(cell_to_spot_nnid)
 
-  # pool cell counts to Spots
-  raw_counts <- vrData(from_object, norm = FALSE)
+  # get data
+  if(is.null(features)){
+    raw_counts <- vrData(from_object, norm = FALSE)
+  } else {
+    data_features <- features[features %in% vrFeatures(from_object)]
+    metadata_features <- features[features %in% colnames(from_metadata)]
+    if(length(data_features) > 0){
+      if(length(metadata_features) > 0){
+        stop("Data and metadata features cannot be transfered in the same time!")
+      } else {
+        raw_counts <- vrData(from_object, norm = FALSE)
+        raw_counts <- raw_counts[features,]
+        message("There are ", length(setdiff(features, data_features)), " unknown features!")
+      }
+    } else {
+      if(length(metadata_features) > 1){
+        stop("Only one metadata column can be transfered at a time")
+      } else if(length(metadata_features) == 1) {
+        raw_counts <- from_metadata[,metadata_features, drop = FALSE]
+        rownames_raw_counts <- rownames(raw_counts)
+        raw_counts <- fastDummies::dummy_cols(raw_counts, remove_first_dummy = FALSE)
+        raw_counts <- raw_counts[,-1]
+        raw_counts <- t(raw_counts)
+        colnames(raw_counts) <- rownames_raw_counts
+        rownames(raw_counts) <- gsub(paste0("^", metadata_features, "_"), "", rownames(raw_counts))
+      } else {
+        stop("Features cannot be found in data and metadata!")
+      }
+    }
+  }
   raw_counts <- raw_counts[,cell_to_spot_id]
 
   # pool cell counts to Spots
@@ -83,12 +133,12 @@ getSpotsFromCells <- function(from_object, to_object) {
     images[[img]] <- magick::image_data(vrImages(to_object, main_image = img))
   }
   new_assay <- new("vrAssay",
-                 rawdata = aggregate_raw_counts, normdata = aggregate_raw_counts,
-                 coords = vrCoordinates(to_object)[colnames(aggregate_raw_counts),],
-                 image = images,
-                 type =  vrAssayTypes(to_object),
-                 main_image = to_object@main_image,
-                 params = to_object@params)
+                   rawdata = aggregate_raw_counts, normdata = aggregate_raw_counts,
+                   coords = vrCoordinates(to_object)[colnames(aggregate_raw_counts),],
+                   image = images,
+                   type =  vrAssayTypes(to_object),
+                   main_image = to_object@main_image,
+                   params = to_object@params)
 
   # return
   return(new_assay)

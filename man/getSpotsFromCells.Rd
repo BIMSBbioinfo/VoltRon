@@ -4,12 +4,19 @@
 \alias{getSpotsFromCells}
 \title{getSpotsFromCells}
 \usage{
-getSpotsFromCells(Visium, Xenium)
+getSpotsFromCells(
+  from_object,
+  from_metadata = NULL,
+  to_object,
+  features = NULL
+)
 }
 \arguments{
-\item{Visium}{Visium Seurat Object}
+\item{from_object}{The vrAssay object whose data transfer to the second assay}
 
-\item{Xenium}{Xenium Seurat Object}
+\item{from_metadata}{the metadata associated with \code{from_object}}
+
+\item{to_object}{The ID of the target vrAssay object where data is transfered to}
 }
 \description{
 Generate Psuedo counts per spots and insert to as a separate image assay to the Visium object
