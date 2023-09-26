@@ -60,6 +60,7 @@ setMethod(
       assays <- sapply(names(object@samples[[samp]]@layer), function(x) names(object[[samp, x]]@assay))
       all_assays <- c(all_assays, assays)
     }
+    all_assays <- unlist(all_assays)
 
     if(length(sample_names) > 5){
       cat("...", "\n")
