@@ -39,7 +39,7 @@ getProfileNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca",
              g.out <- build_snn_number(nnedges$nn.index)
              nnedges <- g.out[[1]]
              weights <- g.out[[2]]
-             weights <- weights/(2 * (ncol(indices) + 1) - weights)
+             weights <- weights/(2 * (ncol(nnedges) + 1) - weights)
              nnedges
            },
            kNN = {
