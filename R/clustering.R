@@ -58,7 +58,7 @@ getProfileNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca",
   if(!is.null(weights))
     igraph::E(graph)$weight <- weights
   graph <- simplify(graph, remove.multiple = TRUE, remove.loops = FALSE)
-  vrGraph(object, assay = assay, graph.type = "kNN") <- graph
+  vrGraph(object, assay = assay, graph.type = method) <- graph
 
   # return
   return(object)
