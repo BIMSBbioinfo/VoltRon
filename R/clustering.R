@@ -16,7 +16,7 @@ NULL
 #' @rdname getProfileNeighbors
 #' @method getProfileNeighbors VoltRon
 #'
-#' @importFrom igraph add_edges simplify make_empty_graph vertices
+#' @importFrom igraph add_edges simplify make_empty_graph vertices E<- E
 #' @importFrom FNN get.knn
 #'
 #' @export
@@ -39,7 +39,7 @@ getProfileNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca",
              g.out <- build_snn_number(nnedges$nn.index)
              nnedges <- g.out[[1]]
              weights <- g.out[[2]]
-             weights <- weights/(2 * (ncol(nnedges) + 1) - weights)
+             weights <- weights/(2 * (k+2) - weights)
              nnedges
            },
            kNN = {
@@ -55,6 +55,8 @@ getProfileNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca",
   # make graph and add edges
   graph <- make_empty_graph(directed = FALSE) + vertices(rownames(nndata))
   graph <- add_edges(graph, edges = nnedges)
+  if(!is.null(weights))
+    igraph::E(graph)$weight <- weights
   graph <- simplify(graph, remove.multiple = TRUE, remove.loops = FALSE)
   vrGraph(object, assay = assay, graph.type = "kNN") <- graph
 
