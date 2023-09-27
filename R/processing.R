@@ -199,6 +199,7 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 ####
 
 #' @param assay assay
+#' @param features the selected features for PCA reduction
 #' @param dims the number of dimensions extracted from PCA
 #' @param seed seed
 #'
@@ -210,13 +211,15 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #'
 #' @export
 #'
-getPCA.VoltRon <- function(object, assay = NULL, dims = 30, seed = 1){
+getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, seed = 1){
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get shared features and subset
-  features <- getVariableFeatures(object, assay = assay)
+  if(is.null(features)){
+    features <- getVariableFeatures(object, assay = assay)
+  }
   object_subset <- subset(object, features = features)
 
   # adjust extraction features length

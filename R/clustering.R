@@ -36,27 +36,20 @@ getProfileNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca",
   nnedges <-
     switch(method,
            SNN = {
-             nnedges <- apply(nnedges$nn.index, 1, function(x) {
-               result <- rep(0, nrow(nndata))
-               result[x] <- 1
-               return(result)
-             }, simplify = FALSE)
-             nnedges <- do.call(rbind, nnedges)
-             jaccard_matrix <- jaccard_similarity(nnedges)
-             jaccard_matrix[jaccard_matrix < 0.5] <- 0
-             nnedges <- apply(jaccard_matrix, 1, function(x) which(x > 0))
+             g.out <- build_snn_number(nnedges$nn.index)
+             nnedges <- g.out[[1]]
+             weights <- g.out[[2]]
+             weights <- weights/(2 * (ncol(indices) + 1) - weights)
              nnedges
            },
            kNN = {
              nnedges <- nnedges$nn.index
+             nnedges <- cbind(1:nrow(nndata), nnedges)
+             nnedges <- apply(nnedges, 1, function(x){
+               do.call(c,lapply(x[-1], function(y) return(c(x[1],y))))
+             })
              nnedges
            })
-
-  # add edges to the graph
-  nnedges <- cbind(1:nrow(nndata), nnedges)
-  nnedges <- apply(nnedges, 1, function(x){
-    do.call(c,lapply(x[-1], function(y) return(c(x[1],y))))
-  })
   nnedges <- rownames(nndata)[nnedges]
 
   # make graph and add edges

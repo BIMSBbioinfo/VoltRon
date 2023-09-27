@@ -61,6 +61,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// build_snn_rank
+Rcpp::List build_snn_rank(Rcpp::IntegerMatrix neighbors);
+RcppExport SEXP _VoltRon_build_snn_rank(SEXP neighborsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::IntegerMatrix >::type neighbors(neighborsSEXP);
+    rcpp_result_gen = Rcpp::wrap(build_snn_rank(neighbors));
+    return rcpp_result_gen;
+END_RCPP
+}
+// build_snn_number
+Rcpp::List build_snn_number(Rcpp::IntegerMatrix neighbors);
+RcppExport SEXP _VoltRon_build_snn_number(SEXP neighborsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::IntegerMatrix >::type neighbors(neighborsSEXP);
+    rcpp_result_gen = Rcpp::wrap(build_snn_number(neighbors));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 RcppExport SEXP createL(void *, void *);
 RcppExport SEXP tpsfx(void *, void *, void *);
@@ -69,6 +89,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_VoltRon_automated_registeration_rawvector", (DL_FUNC) &_VoltRon_automated_registeration_rawvector, 15},
     {"_VoltRon_perspectiveTransform", (DL_FUNC) &_VoltRon_perspectiveTransform, 2},
     {"_VoltRon_calculateMoransI", (DL_FUNC) &_VoltRon_calculateMoransI, 3},
+    {"_VoltRon_build_snn_rank", (DL_FUNC) &_VoltRon_build_snn_rank, 1},
+    {"_VoltRon_build_snn_number", (DL_FUNC) &_VoltRon_build_snn_number, 1},
     {"createL", (DL_FUNC) &createL, 2},
     {"tpsfx",   (DL_FUNC) &tpsfx,   3},
     {NULL, NULL, 0}

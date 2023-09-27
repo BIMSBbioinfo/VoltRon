@@ -13,3 +13,11 @@ calculateMoransI <- function(data, datadist, sumW) {
     .Call('_VoltRon_calculateMoransI', PACKAGE = 'VoltRon', data, datadist, sumW)
 }
 
+build_snn_rank <- function(neighbors) {
+    .Call('_VoltRon_build_snn_rank', PACKAGE = 'VoltRon', neighbors)
+}
+
+build_snn_number <- function(neighbors) {
+    .Call('_VoltRon_build_snn_number', PACKAGE = 'VoltRon', neighbors)
+}
+
