@@ -62,7 +62,6 @@ transferData <- function(object, from = NULL, to = NULL, features = NULL){
 #' @importFrom magick image_data
 #' @importFrom fastDummies dummy_cols
 #'
-#' @export
 #'
 getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, features = NULL) {
 
