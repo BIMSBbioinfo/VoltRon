@@ -64,80 +64,67 @@ as.VoltRon.Seurat <- function(object, ...){
   formVoltRon(rawdata, metadata, image, coords, main.assay = assay_name, params = params, assay.type = assay.type, ...)
 }
 
-#' @param object A Giotto object
-#'
-#' @rdname as.VoltRon
-#' @method as.VoltRon Giotto
-#'
-#' @export
-#'
-as.VoltRon.Giotto <- function(object){
-
-}
-
 ####
 # Other Packages ####
 ####
 
-#' @param object A VoltRon object
+#' @param assay the name(type) of the assay to be converted
+#' @param image_key the name (or prefix) of the image(s)
+#' @param type the spatial data type of Seurat object: "image" or "spatial"
 #'
 #' @rdname as.Seurat
 #' @method as.Seurat VoltRon
 #'
 #' @export
 #'
-as.Seurat.VoltRon <- function(object, image = "fov"){
+as.Seurat.VoltRon <- function(object, assay = NULL, image_key = "fov", type = c("image", "spatial")){
 
   # check Seurat package
   if(!requireNamespace('Seurat'))
     stop("Please install Seurat package for using Seurat objects")
 
   # check the number of assays
-  if(nrow(SampleMetadata(object)) > 1)
-    stop("You can only convert a single VoltRon assay into a Seurat object!")
+  if(is.null(assay)){
+    if(unique(SampleMetadata(object)[["Assay"]]) > 1)
+      stop("You can only convert a single VoltRon assay into a Seurat object!")
+  } else {
+    vrMainAssay(object) <- assay
+  }
 
   # check the number of assays
-  if(vrAssayTypes(object) == "spot") {
-    stop("Conversion of Spot assays into Seurat is not permitted!")
-  } else {
-    assay = "Xenium"
+  if(unique(vrAssayTypes(object, assay = assay)) %in% c("spot","ROI")) {
+    stop("Conversion of Spot or ROI assays into Seurat is not permitted!")
   }
 
   # data
-  data <- vrData(object, norm = FALSE)
-  colnames(data) <- gsub("_Assay[0-9]+", "", colnames(data))
+  data <- vrData(object, assay = assay, norm = FALSE)
 
   # metadata
-  metadata <- Metadata(object)
-  rownames(metadata) <- gsub("_Assay[0-9]+", "", rownames(metadata))
+  metadata <- Metadata(object, assay = assay)
 
   # Seurat object
   seu <- Seurat::CreateSeuratObject(counts = data, meta.data = metadata, assay = assay)
 
-  # get coordinates
-  coords <- vrCoordinates(object, reg = TRUE)
-  rownames(coords) <- gsub("_Assay[0-9]+", "", rownames(coords))
-
-  # molecules
-  subcellular <- vrSubcellular(object, reg = TRUE)
-  colnames(subcellular)[colnames(subcellular) %in% "feature_name"] <- "gene"
-
-  # define image
-  image.data <- list(centroids = SeuratObject::CreateCentroids(coords))
-  image.data <- SeuratObject::CreateFOV(coords = image.data, type = c("centroids"), molecules = subcellular, assay = assay)
-  seu[[image]] <- image.data
+  # get image objects for each assay
+  for(assy in vrAssayNames(object)){
+    assay_object <- object[[assy]]
+    if(type == "image"){
+      coords <- vrCoordinates(assay_object, reg = TRUE)
+      image.data <- list(centroids = SeuratObject::CreateCentroids(coords))
+      subcellular <- vrSubcellular(assay_object, reg = TRUE)
+      if(nrow(subcellular) > 0){
+        colnames(subcellular)[colnames(subcellular) %in% "feature_name"] <- "gene"
+      } else {
+        subcellular <- NULL
+      }
+      image.data <- SeuratObject::CreateFOV(coords = image.data, type = c("centroids"), molecules = subcellular, assay = assay)
+      image <- paste0(image_key, "_", assy)
+      seu[[image]] <- image.data
+    } else if(type == "spatial"){
+      stop("Currently VoltRon does not support converting into Spatial-type (e.g. VisiumV1) Spatial objects!")
+    }
+  }
 
   # return
   seu
-}
-
-#' @param object A VoltRon object
-#'
-#' @rdname as.Giotto
-#' @method as.Giotto VoltRon
-#'
-#' @export
-#'
-as.Giotto.VoltRon <- function(object){
-
 }

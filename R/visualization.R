@@ -178,7 +178,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcript
       if(nrow(subcellular) > 0){
         subcellular <- subcellular[subcellular[["feature_name"]] %in% transcripts,]
         g <- g +
-          geom_point(mapping = aes_string(x = "x", y = "y", fill = "feature_name", color = "feature_name"), subcellular, shape = 21, size = 0.5, alpha = 1)
+          geom_point(mapping = aes_string(x = "x", y = "y", fill = "feature_name", color = "feature_name"), subcellular, shape = 21, size = pt.size, alpha = 1)
       } else {
         stop("No transcript name was provided!")
       }
@@ -1029,6 +1029,7 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
 #' @param assay.type assay type
 #' @param group.by a column from metadata to seperate columns of the heatmap
 #' @param norm if TRUE, the normalized data is used
+#' @param points if TRUE, measures are visualized as points as well.
 #' @param ncol column wise number of plots, for \code{ggarrange}
 #' @param nrow row wise number of plots, for \code{ggarrange}
 #' @param ... additional parameters passed to \code{getVariableFeatures}
@@ -1038,7 +1039,7 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
 #'
 #' @export
 #'
-vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NULL, group.by = "Sample", norm = TRUE,  ncol = 2, nrow = NULL, ...){
+vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NULL, group.by = "Sample", norm = TRUE, points = TRUE, ncol = 2, nrow = NULL, ...){
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -1095,8 +1096,16 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NUL
                       spatialpoints = rownames(metadata))
   ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("group.by", "assay_title", "spatialpoints"))
   gg <- ggplot(ggplotdatax, aes(x = group.by, y = value, color = group.by)) +
-    geom_violin() +
-    geom_point(size = 0.5, position = position_jitter()) +
+    geom_violin()
+
+  # visualize points on violin
+  if(points){
+    gg <- gg +
+      geom_point(size = 0.5, position = position_jitter())
+  }
+
+  # theme
+  gg <- gg +
     theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
     ylab("") + xlab(group.by) +
     guides(fill = guide_legend(show = FALSE), color = guide_legend(title = group.by, override.aes=list(size = 2)))

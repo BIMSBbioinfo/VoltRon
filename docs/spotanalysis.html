@@ -13,7 +13,7 @@
 
 <title>Cell/Spot Analysis</title>
 
-<script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -35,8 +35,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-6.4.0/css/all.min.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-6.4.0/css/v4-shims.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -430,8 +430,8 @@ body {
 }
 </style>
 <p><br></p>
-<div id="downstream-analysis-on-cells" class="section level1">
-<h1>Downstream Analysis on Cells</h1>
+<div id="melc-data-analysis" class="section level1">
+<h1>MELC Data Analysis</h1>
 <p>VoltRon is an end-to-end spatial data analysis package which also
 supports investigating spatial points in single cell resolution. VoltRon
 includes essential built-in functions capable of
@@ -552,7 +552,7 @@ function.</p>
 neighbors of cells</strong> which are constructed by dimensionally
 reduced gene expression profiles. We can conduct a clustering of cells
 using the <strong>leiden’s method</strong> from the igraph package.</p>
-<pre class="r watch-out"><code>vr_merged &lt;- getNeighbors(vr_merged, dims = 1:10, k = 10, method = &quot;kNN&quot;)
+<pre class="r watch-out"><code>vr_merged &lt;- getProfileNeighbors(vr_merged, dims = 1:10, k = 10, method = &quot;kNN&quot;)
 vr_merged &lt;- getClusters(vr_merged, resolution = 0.8, label = &quot;MELC_Clusters&quot;)</code></pre>
 <p>Now we can visualize these clusters and perhaps also check for
 clusters that may reside in only specific disease conditions.</p>
@@ -581,6 +581,94 @@ vrHeatmapPlot(vr_merged, features = vrFeatures(vr_merged),
              group.by = &quot;MELC_Clusters&quot;, ncol = 2)</code></pre>
 <p><img width="100%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_violinclusters.png" class="center"></p>
 <p><br></p>
+</div>
+</div>
+<div id="xenium-data-analysis" class="section level1">
+<h1>Xenium Data Analysis</h1>
+<p>In this use case, we analyse <strong>immunofluorescence (IF)</strong>
+and <strong>H&amp;E images</strong> of the <strong>Xenium In
+Situ</strong> and <strong>Visium CytAssist</strong> platforms readouts.
+Three tissue sections are derived from a single formalin-fixed,
+paraffin-embedded (FFPE) breast cancer tissue block. A 5 <span
+class="math inline">\(\mu\)</span>m section was taken for Visium
+CytAssist and two replicate 5 <span class="math inline">\(\mu\)</span>m
+sections were taken for the Xenium replicates. More information on the
+spatial datasets and the study can be also be found on the <a
+href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">BioArxiv
+preprint</a>.</p>
+<p>In this use case, we will analyze the Xenium from the <a
+href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
+Genomics website</a> (specifically, import <strong>In Situ Replicate
+1/2</strong>). Alternatively, you can <strong>download a zipped
+collection of Xenium readouts</strong> from <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip">here</a>.</p>
+<p>VoltRon includes built-in functions for converting readouts from both
+Xenium into VoltRon objects.</p>
+<pre class="r watch-out"><code>library(VoltRon)
+Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
+Xen_R2 &lt;- importXenium(&quot;Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;)</code></pre>
+<p>Before moving on to the downstream analysis of the imaging-based
+data, we can inspect both Xenium images. We use the
+<strong>vrImages</strong> function to call and visualize reference
+images of all VoltRon objects.</p>
+<pre class="r watch-out"><code>vrImages(Xen_R1)
+vrImages(Xen_R2)</code></pre>
+<table>
+<tbody>
+<tr style="vertical-align: center">
+<td style="width:50%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/xeniumr1.png" class="center">
+</td>
+<td style="width:50%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/xeniumr2.png" class="center">
+</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>Although images of the first Xenium replicate and the Visium assay
+are workable, we have to adjust the brightness of the second Xenium
+replicate before image alignment. You can use
+<strong>modulateImage</strong> function to change the brightness and`
+saturation of the reference image of this VoltRon object. This
+functionality is optional for VoltRon objects and should be used when
+images require further adjustments.</p>
+<pre class="r watch-out"><code>Xen_R2 &lt;- modulateImage(Xen_R2, brightness = 800)
+vrImages(Xen_R2)</code></pre>
+<p><img width="40%" height="40%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/xeniumr2_new.png" class="center"></p>
+<p><br></p>
+<p>Once both VoltRon objects are created and images are well-tuned, we
+can merge these two into a single VoltRon object.</p>
+<pre class="r watch-out"><code>Xen_list &lt;- list(Xen_R1, Xen_R2)
+Xen_data &lt;- merge(Xen_list[[1]], Xen_list[-1])</code></pre>
+<p><br></p>
+<div id="processing-and-embedding" class="section level2">
+<h2>Processing and Embedding</h2>
+<p>Some number of cells in both Xenium images might have extremely low
+molecule counts. Although cells are detected at these locations, the low
+total counts of cells would make it hard for phenotyping and clustering
+these cells. Hence, we remove such cells from the VoltRon objects.
+Later, we can move on to normalizing the dataset to correct for count
+depth of cells, and conduct additional dimensionality reduction
+methods.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- subset(Xen_data, Count &gt; 5)
+Xen_data &lt;- normalizeData(Xen_data)
+Xen_data &lt;- getPCA(Xen_data, dims = 20)
+Xen_data &lt;- getUMAP(Xen_data, dims = 1:20)</code></pre>
+</div>
+<div id="clustering-1" class="section level2">
+<h2>Clustering</h2>
+<p>The <strong>getProfileNeighbors</strong> functions supports building
+graphs based on both k-nearest neighbors or <strong>shared nearest
+neigbor</strong> where edges between two cells represent the percentage
+of shared k-nearest neighbors between these two cells. Then, clustering
+is performed using the SNN graph.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- getProfileNeighbors(Xen_data, dims = 1:10, k = 10, method = &quot;SNN&quot;)
+Xen_data &lt;- getClusters(Xen_data, resolution = 1.0, label = &quot;Clusters&quot;, graph = &quot;SNN&quot;)</code></pre>
+<p>We can now visualize the clusters on both Xenium images, and query
+cell type markers.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(Xen_data, group.by = &quot;Clusters&quot;, pt.size = 0.4, background = &quot;black&quot;)
+vrSpatialFeaturePlot(Xen_data, features = c(&quot;ACTA2&quot;, &quot;CCR7&quot;, &quot;BANK1&quot;, &quot;LRRC15&quot;), pt.size = 0.4)</code></pre>
 </div>
 </div>
 

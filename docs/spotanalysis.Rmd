@@ -35,7 +35,7 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 <br>
 
-# Downstream Analysis on Cells
+# MELC Data Analysis
 
 VoltRon is an end-to-end spatial data analysis package which also supports investigating spatial points in single cell resolution. VoltRon includes essential built-in functions capable of **filtering**, **processing** and **clustering** as well as **visualizing** spatial datasets with a goal of cell type discovery and annotation. 
 
@@ -156,7 +156,7 @@ vrEmbeddingFeaturePlot(vr_merged, features = c("CollagenIV", "CD11b"), embedding
 Next, we build neighborhood graphs with the **k-nearest neighbors of cells** which are constructed by dimensionally reduced gene expression profiles. We can conduct a clustering of cells using the **leiden's method** from the igraph package. 
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-vr_merged <- getNeighbors(vr_merged, dims = 1:10, k = 10, method = "kNN")
+vr_merged <- getProfileNeighbors(vr_merged, dims = 1:10, k = 10, method = "kNN")
 vr_merged <- getClusters(vr_merged, resolution = 0.8, label = "MELC_Clusters")
 ```
 
@@ -197,3 +197,83 @@ vrViolinPlot(vr_merged, features = c("CD3", "SMA", "Pancytokeratin", "CCR2"),
 <img width="100%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_violinclusters.png" class="center">
 
 <br>
+
+# Xenium Data Analysis
+
+In this use case, we analyse **immunofluorescence (IF)** and **H&E images** of the **Xenium In Situ** and **Visium CytAssist** platforms readouts. Three tissue sections are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. A 5 $\mu$m section was taken for Visium CytAssist and two replicate 5 $\mu$m sections were taken for the Xenium replicates. More information on the spatial datasets and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
+ 
+In this use case, we will analyze the Xenium from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import **In Situ Replicate 1/2**). Alternatively, you can **download a zipped collection of Xenium readouts** from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip). 
+
+VoltRon includes built-in functions for converting readouts from both Xenium into VoltRon objects.
+
+```{r eval = FALSE, class.source="watch-out"}
+library(VoltRon)
+Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1")
+Xen_R2 <- importXenium("Xenium_R2/outs", sample_name = "XeniumR2")
+```
+
+Before moving on to the downstream analysis of the imaging-based data, we can inspect both Xenium images. We use the **vrImages** function to call and visualize reference images of all VoltRon objects. 
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImages(Xen_R1)
+vrImages(Xen_R2)
+```
+
+<table>
+<tbody>
+  <tr style = "vertical-align: center">
+  <td style = "width:50%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/xeniumr1.png" class="center"></td>
+  <td style = "width:50%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/xeniumr2.png" class="center"></td>
+  </tr>
+</tbody>
+</table>
+
+<br>
+
+Although images of the first Xenium replicate and the Visium assay are workable, we have to adjust the brightness of the second Xenium replicate before image alignment. You can use **modulateImage** function to change the brightness and` saturation of the reference image of this VoltRon object. This functionality is optional for VoltRon objects and should be used when images require further adjustments. 
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_R2 <- modulateImage(Xen_R2, brightness = 800)
+vrImages(Xen_R2)
+```
+
+<img width="40%" height="40%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/xeniumr2_new.png" class="center">
+
+<br>
+
+Once both VoltRon objects are created and images are well-tuned, we can merge these two into a single VoltRon object. 
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_list <- list(Xen_R1, Xen_R2)
+Xen_data <- merge(Xen_list[[1]], Xen_list[-1])
+```
+
+<br>
+
+## Processing and Embedding 
+
+Some number of cells in both Xenium images might have extremely low molecule counts. Although cells are detected at these locations, the low total counts of cells would make it hard for phenotyping and clustering these cells. Hence, we remove such cells from the VoltRon objects. Later, we can move on to normalizing the dataset to correct for count depth of cells, and conduct additional dimensionality reduction methods.
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_data <- subset(Xen_data, Count > 5)
+Xen_data <- normalizeData(Xen_data)
+Xen_data <- getPCA(Xen_data, dims = 20)
+Xen_data <- getUMAP(Xen_data, dims = 1:20)
+```
+
+## Clustering
+
+The **getProfileNeighbors** functions supports building graphs based on both k-nearest neighbors or **shared nearest neigbor** where edges between two cells represent the percentage of shared k-nearest neighbors between these two cells. Then, clustering is performed using the SNN graph. 
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_data <- getProfileNeighbors(Xen_data, dims = 1:10, k = 10, method = "SNN")
+Xen_data <- getClusters(Xen_data, resolution = 1.0, label = "Clusters", graph = "SNN")
+```
+
+We can now visualize the clusters on both Xenium images, and query cell type markers.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPlot(Xen_data, group.by = "Clusters", pt.size = 0.4, background = "black")
+vrSpatialFeaturePlot(Xen_data, features = c("ACTA2", "CCR7", "BANK1", "LRRC15"), pt.size = 0.4)
+```
+

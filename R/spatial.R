@@ -168,6 +168,11 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
     dplyr::mutate(p_assoc_adj = p.adjust(p_assoc, method = "fdr"),
                   p_segreg_adj = p.adjust(p_segreg, method = "fdr"))
 
+  # number of samples
+  grp_table <- table(grp)
+  neigh_results$n_from <- grp_table[neigh_results$from_value]
+  neigh_results$n_to <- grp_table[neigh_results$to_value]
+
   # return
   neigh_results
 }

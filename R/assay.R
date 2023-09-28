@@ -358,6 +358,13 @@ vrAssayNames.vrAssay <- function(object, ...) {
   # change assay names
   vrSpatialPoints(object) <- gsub(assayname, value, vrSpatialPoints(object))
 
+  # change subcellular assay names
+  subcellular <- vrSubcellular(object)
+  if(nrow(subcellular) > 0){
+    subcellular$cell_id <- gsub(paste0("_", assayname, "$"), value, subcellular$cell_id)
+    vrSubcellular(object) <- subcellular
+  }
+
   # return
   return(object)
 }

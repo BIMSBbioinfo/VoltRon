@@ -7,12 +7,23 @@
 \usage{
 as.Seurat(object, ...)
 
-\method{as.Seurat}{VoltRon}(object, image = "fov")
+\method{as.Seurat}{VoltRon}(
+  object,
+  assay = NULL,
+  image_key = "fov",
+  type = c("image", "spatial")
+)
 }
 \arguments{
-\item{object}{A VoltRon object}
+\item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{assay}{the name(type) of the assay to be converted}
+
+\item{image_key}{the name (or prefix) of the image(s)}
+
+\item{type}{the spatial data type of Seurat object: "image" or "spatial"}
 }
 \value{
 \code{as.Seurat}: The name of the default assay

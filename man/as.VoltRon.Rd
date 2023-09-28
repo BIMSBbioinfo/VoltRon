@@ -3,17 +3,14 @@
 \name{as.VoltRon}
 \alias{as.VoltRon}
 \alias{as.VoltRon.Seurat}
-\alias{as.VoltRon.Giotto}
 \title{as.VoltRon}
 \usage{
 as.VoltRon(object, ...)
 
 \method{as.VoltRon}{Seurat}(object, ...)
-
-\method{as.VoltRon}{Giotto}(object)
 }
 \arguments{
-\item{object}{A Giotto object}
+\item{object}{A Seurat object}
 
 \item{...}{Additional parameter passed to \code{formVoltRon}}
 }

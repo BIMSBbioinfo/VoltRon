@@ -13,7 +13,7 @@
 
 <title>Image Registration</title>
 
-<script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -486,8 +486,8 @@ Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;Xenium
 Xen_R2 &lt;- importXenium(&quot;Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;)
 Vis &lt;- importVisium(&quot;Visium/&quot;, sample_name = &quot;VisiumR1&quot;)</code></pre>
 <p>Before moving on to image alignment, we can inspect both Xenium and
-Visium images. We use the vrImages() function to call and visualize
-reference images of all VoltRon objects.</p>
+Visium images. We use the <strong>vrImages</strong> function to call and
+visualize reference images of all VoltRon objects.</p>
 <pre class="r watch-out"><code>vrImages(Xen_R1)
 vrImages(Xen_R2)
 vrImages(Vis)</code></pre>
