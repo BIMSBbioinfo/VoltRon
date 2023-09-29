@@ -118,7 +118,6 @@ getFeatures.VoltRon <- function(object, assay = NULL, ...){
 getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
 
   # get data and coordinates
-  normdata <- vrData(object, norm = TRUE)
   rawdata <- vrData(object, norm = FALSE)
   coords <- vrCoordinates(object)
   features <- vrFeatures(object)
@@ -242,15 +241,15 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
   colnames(pr.data) <- paste0("PC", 1:dims)
   rownames(pr.data) <- colnames(normdata)
 
-  # update feature matrix
-  feature_data <- vrFeatureData(object)
-  if(nrow(feature_data) > 0){
-    feature_data <- feature_data[, !grepl("PC[0-9]+", colnames(feature_data))]
-    feature_data <- data.frame(feature_data, features = vrFeatures(object))
-    feature_data <- feature_data %>% left_join(loading_matrix)
-    vrFeatureData(object) <- data.frame(feature_data[,colnames(feature_data)[!colnames(feature_data) %in% "features"]],
-                                        row.names = feature_data$features)
-  }
+  # # update feature matrix
+  # feature_data <- vrFeatureData(object)
+  # if(nrow(feature_data) > 0){
+  #   feature_data <- feature_data[, !grepl("PC[0-9]+", colnames(feature_data))]
+  #   feature_data <- data.frame(feature_data, features = vrFeatures(object))
+  #   feature_data <- feature_data %>% left_join(loading_matrix)
+  #   vrFeatureData(object) <- data.frame(feature_data[,colnames(feature_data)[!colnames(feature_data) %in% "features"]],
+  #                                       row.names = feature_data$features)
+  # }
 
   # set Embeddings
   vrEmbeddings(object, type = "pca") <- pr.data
