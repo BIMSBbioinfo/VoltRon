@@ -160,18 +160,19 @@ The combined VoltRon object of Visium and Xenium datasets can be used to transfe
 * pseudo cell type abundance assays or
 * pseudo gene expression assays. 
 
-In this case, we will transfer cluster labels that were trained on the Xenium sections onto the Visium sections. We will use the cluster labels generated at the end of the Xenium analysis section of workflow from [Cell/Spot Analysis](spotanalysis.html). You can tissue block with clustered Xenium readouts from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip). 
+In this case, we will transfer cluster labels that were trained on the Xenium sections onto the Visium sections. We will use the cluster labels generated at the end of the Xenium analysis section of workflow from [Cell/Spot Analysis](spotanalysis.html). You can download the VoltRon object with clustered Xenium cells from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip). 
 
-We will use the metadata feature "Cluster" as the information that is transfered across one layer to the other.
+Here, we can see that both Xenium layers are clustered where we can use these cell annotations and transfer them to the Visium assay. 
 
 ```{r class.source="watch-out", eval = FALSE}
-vrSpatialPlot(SRBlock, assay = "Xenium", group.by = "Clusters", pt.size = 0.4)
+vrSpatialPlot(10XBlock, assay = "Xenium", group.by = "Clusters", pt.size = 0.4)
 ```
 
-We must first determine the names of the assays where labels are transfered **from** one **to** the other.
+We must first determine the names of the assays where labels are transfered **from** one **to** the other. Hence, we can select Assay1 of Xenium as the source assay and the Assay2 of Visium as the destination assay.
+
 
 ```{r class.source="watch-out", eval = FALSE}
-SampleMetadata(SRBlock)
+SampleMetadata(10XBlock)
 ```
 
 ```
@@ -181,10 +182,48 @@ Assay2 Visium Section2 10XBlock
 Assay3 Xenium Section3 10XBlock
 ```
 
-Hence, we can select Assay1 of Xenium as the source assay and the Assay2 of Visium as the destination assay. We will 
+The function **transferData** detects the types of both the source (from) and the destination (to) assays and determines the how the data should be transfered. In this case, the labels or counts data of each cell in the source Xenium assay will be aggregated into spots in a newly create pseudo Visium assay. The new assay with aggregated counts will be named "Visium_pseudo"
 
 ```{r class.source="watch-out", eval = FALSE}
-SRBlock <- transferData(SRBlock, from = "Assay1", to = "Assay2", features = "Cluster")
+10XBlock <- transferData(10XBlock, from = "Assay1", to = "Assay2")
+```
+
+We can now visualize both the original and aggregated counts of a gene, say TACSTD2, to validate the correlation of gene signatures across adjacent tissue secions, and to validate the accuracy of the automated image alignment.
+
+```{r class.source="watch-out", eval = FALSE}
+g1 <- vrSpatialFeaturePlot(SRBlock_new, assay = "Visium", features = "TACSTD2", 
+                           crop = TRUE, norm = FALSE)
+g2 <- vrSpatialFeaturePlot(SRBlock_new, assay = "Visium_pseudo", features = "TACSTD2", 
+                           crop = TRUE, norm = FALSE)
+g1 + g2
+```
+
+If the features argument is specified, and if its a single metadata feature with, e.g. cell types, then the each spot at the new pseudo Visium will be collection of estimated cell type abundances. 
+
+```{r class.source="watch-out", eval = FALSE}
+10XBlock <- transferData(10XBlock, from = "Assay1", to = "Assay2", features = "Cluster", 
+                         new_assay_name = "Visium_pseudo_Clusters")
+vrSpatialFeaturePlot(10XBlock, assay = "Visium_pseudo_Clusters", features = c("3","4"), 
+                     crop = TRUE)
+```
+
+VoltRon supports multiple assays within in layer. Now, Section 2 includes three spot-type assays: 
+
+* the original Visium spot assay, 
+* a pseudo Visium assay with aggregated Xenium raw counts, 
+* and estimated Xenium cell type abundances (found by aggregating cell type counts).
+
+```{r class.source="watch-out", eval = FALSE}
+SampleMetadata(10XBlock)
+```
+
+```
+                        Assay    Layer   Sample
+Assay1                 Xenium Section1 10XBlock
+Assay2                 Visium Section2 10XBlock
+Assay3                 Xenium Section3 10XBlock
+Assay4          Visium_pseudo Section2 10XBlock
+Assay5 Visium_pseudo_Clusters Section2 10XBlock
 ```
 
 <br>

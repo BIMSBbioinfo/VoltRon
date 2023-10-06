@@ -600,6 +600,62 @@ can be summarized to generate <strong>(under development)</strong>;</p>
 <li>pseudo cell type abundance assays or</li>
 <li>pseudo gene expression assays.</li>
 </ul>
+<p>In this case, we will transfer cluster labels that were trained on
+the Xenium sections onto the Visium sections. We will use the cluster
+labels generated at the end of the Xenium analysis section of workflow
+from <a href="spotanalysis.html">Cell/Spot Analysis</a>. You can
+download the VoltRon object with clustered Xenium cells from <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip">here</a>.</p>
+<p>Here, we can see that both Xenium layers are clustered where we can
+use these cell annotations and transfer them to the Visium assay.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(10XBlock, assay = &quot;Xenium&quot;, group.by = &quot;Clusters&quot;, pt.size = 0.4)</code></pre>
+<p>We must first determine the names of the assays where labels are
+transfered <strong>from</strong> one <strong>to</strong> the other.
+Hence, we can select Assay1 of Xenium as the source assay and the Assay2
+of Visium as the destination assay.</p>
+<pre class="r watch-out"><code>SampleMetadata(10XBlock)</code></pre>
+<pre><code>        Assay    Layer   Sample
+Assay1 Xenium Section1 10XBlock
+Assay2 Visium Section2 10XBlock
+Assay3 Xenium Section3 10XBlock</code></pre>
+<p>The function <strong>transferData</strong> detects the types of both
+the source (from) and the destination (to) assays and determines the how
+the data should be transfered. In this case, the labels or counts data
+of each cell in the source Xenium assay will be aggregated into spots in
+a newly create pseudo Visium assay. The new assay with aggregated counts
+will be named “Visium_pseudo”</p>
+<pre class="r watch-out"><code>10XBlock &lt;- transferData(10XBlock, from = &quot;Assay1&quot;, to = &quot;Assay2&quot;)</code></pre>
+<p>We can now visualize both the original and aggregated counts of a
+gene, say TACSTD2, to validate the correlation of gene signatures across
+adjacent tissue secions, and to validate the accuracy of the automated
+image alignment.</p>
+<pre class="r watch-out"><code>g1 &lt;- vrSpatialFeaturePlot(SRBlock_new, assay = &quot;Visium&quot;, features = &quot;TACSTD2&quot;, 
+                           crop = TRUE, norm = FALSE)
+g2 &lt;- vrSpatialFeaturePlot(SRBlock_new, assay = &quot;Visium_pseudo&quot;, features = &quot;TACSTD2&quot;, 
+                           crop = TRUE, norm = FALSE)
+g1 + g2</code></pre>
+<p>If the features argument is specified, and if its a single metadata
+feature with, e.g. cell types, then the each spot at the new pseudo
+Visium will be collection of estimated cell type abundances.</p>
+<pre class="r watch-out"><code>10XBlock &lt;- transferData(10XBlock, from = &quot;Assay1&quot;, to = &quot;Assay2&quot;, features = &quot;Cluster&quot;, 
+                         new_assay_name = &quot;Visium_pseudo_Clusters&quot;)
+vrSpatialFeaturePlot(10XBlock, assay = &quot;Visium_pseudo_Clusters&quot;, features = c(&quot;3&quot;,&quot;4&quot;), 
+                     crop = TRUE)</code></pre>
+<p>VoltRon supports multiple assays within in layer. Now, Section 2
+includes three spot-type assays:</p>
+<ul>
+<li>the original Visium spot assay,</li>
+<li>a pseudo Visium assay with aggregated Xenium raw counts,</li>
+<li>and estimated Xenium cell type abundances (found by aggregating cell
+type counts).</li>
+</ul>
+<pre class="r watch-out"><code>SampleMetadata(10XBlock)</code></pre>
+<pre><code>                        Assay    Layer   Sample
+Assay1                 Xenium Section1 10XBlock
+Assay2                 Visium Section2 10XBlock
+Assay3                 Xenium Section3 10XBlock
+Assay4          Visium_pseudo Section2 10XBlock
+Assay5 Visium_pseudo_Clusters Section2 10XBlock</code></pre>
 <p><br></p>
 </div>
 </div>

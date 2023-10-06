@@ -582,6 +582,28 @@ vrHeatmapPlot(vr_merged, features = vrFeatures(vr_merged),
 <p><img width="100%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_violinclusters.png" class="center"></p>
 <p><br></p>
 </div>
+<div id="cell-neighborhood-analysis" class="section level2">
+<h2>Cell Neighborhood Analysis</h2>
+<p>We use the <strong>vrNeighbourhoodEnrichment</strong> function to
+detect cell type pairs that co occur within each other neighborhoods.
+First, we establish spatial neighborhood graphs that determine the
+neighbors of each cell on tissue sections. <strong>Delaunay
+tesselations</strong> or graphs are commonly used to determine neighbors
+of spatial entities. The function <strong>getSpatialNeighbors</strong>
+builds a delaunay graph of all assays of a certain type and detects
+neighbors of cells in a VoltRon object.</p>
+<pre class="r watch-out"><code>vr_merged_result &lt;- getSpatialNeighbors(vr_merged, method = &quot;delaunay&quot;)</code></pre>
+<p>Once neighbors are founds, we can apply a permutation test compares
+the number of cell type occurances with an expected number of these
+occurances under multiple permutations of labels in the tissue (fixed
+coordinates but cells are randomly labelled). A similar approach is used
+to by several spatial analysis frameworks and packages ([Schapiro et. al
+2017]{<a href="https://www.nature.com/articles/nmeth.4391"
+class="uri">https://www.nature.com/articles/nmeth.4391</a>}, [Palla et.
+al 2022]{<a href="https://www.nature.com/articles/s41592-021-01358-2"
+class="uri">https://www.nature.com/articles/s41592-021-01358-2</a>}).</p>
+<pre class="r watch-out"><code>neighborhood_results &lt;- vrNeighbourhoodEnrichment(vr_merged_result, group.by = &quot;Clusters&quot;)</code></pre>
+</div>
 </div>
 <div id="xenium-data-analysis" class="section level1">
 <h1>Xenium Data Analysis</h1>
@@ -639,6 +661,18 @@ can merge these two into a single VoltRon object.</p>
 <pre class="r watch-out"><code>Xen_list &lt;- list(Xen_R1, Xen_R2)
 Xen_data &lt;- merge(Xen_list[[1]], Xen_list[-1])</code></pre>
 <p><br></p>
+<div id="visualization-1" class="section level2">
+<h2>Visualization</h2>
+<p>With <strong>vrSpatialPlot</strong> we can visualize subcellular
+components as well as cells with several identities. We visualize mRNAs
+of ACTA2, a marker for smooth muscle cell actin, and TCF7, an early
+exhausted t cell marker. We can select interactively subset of the
+tissue sections and visualize the localization of these transcripts.</p>
+<pre class="r watch-out"><code>Xen_R1_subsetinfo &lt;- subset(Xen_R1, interactive = TRUE)
+Xen_R1_subset &lt;- Xen_R1_subsetinfo$subsets[[1]]
+vrSpatialPlot(Xen_R1_subset, transcripts = c(&quot;ACTA2&quot;, &quot;TCF7&quot;), pt.size = 0.2)</code></pre>
+<p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize.png" class="center"></p>
+</div>
 <div id="processing-and-embedding" class="section level2">
 <h2>Processing and Embedding</h2>
 <p>Some number of cells in both Xenium images might have extremely low

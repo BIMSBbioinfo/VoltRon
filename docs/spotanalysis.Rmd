@@ -198,6 +198,22 @@ vrViolinPlot(vr_merged, features = c("CD3", "SMA", "Pancytokeratin", "CCR2"),
 
 <br>
 
+## Cell Neighborhood Analysis
+
+We use the **vrNeighbourhoodEnrichment** function to detect cell type pairs that co occur within each other neighborhoods. First, we establish spatial neighborhood graphs that determine the neighbors of each cell on tissue sections. **Delaunay tesselations** or graphs are commonly used to determine neighbors of spatial entities. The function **getSpatialNeighbors** builds a delaunay graph of all assays of a certain type and detects neighbors of cells in a VoltRon object.
+
+```{r eval = FALSE, class.source="watch-out", fig.align='center'}
+vr_merged_result <- getSpatialNeighbors(vr_merged, method = "delaunay")
+```
+
+Once neighbors are founds, we can apply a permutation test compares the number of cell type occurances with an expected number of these occurances under multiple permutations of labels in the tissue (fixed coordinates but cells are randomly labelled). A similar approach is used to by several spatial analysis frameworks and packages ([Schapiro et. al 2017]{https://www.nature.com/articles/nmeth.4391}, [Palla et. al 2022]{https://www.nature.com/articles/s41592-021-01358-2}).
+
+```{r eval = FALSE, class.source="watch-out", fig.align='center'}
+neighborhood_results <- vrNeighbourhoodEnrichment(vr_merged_result, group.by = "Clusters")
+```
+
+
+
 # Xenium Data Analysis
 
 In this use case, we analyse readouts of the **Xenium In Situ** platform. Two tissue sections are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. Two replicate of 5 $\mu$m sections were taken for the Xenium replicates. More information on the spatial datasets and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
