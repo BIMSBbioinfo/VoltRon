@@ -82,6 +82,17 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
     subcellular <- subcellular[,c("cell_id", colnames(subcellular)[!colnames(subcellular) %in% "cell_id"])]
     colnames(subcellular)[colnames(subcellular) %in% c("x_location", "y_location")] <- c("x", "y")
     subcellular[,"y"] <- range_coords[2] - subcellular[,"y"]  + range_coords[1]
+    if(use_image) {
+      # cell boundaries
+      bound_file <- paste0(dir.path, "/cell_boundaries.csv.gz")
+      if(file.exists(bound_file)){
+        Xenium_boundaries <- utils::read.csv(bound_file)
+        Xenium_box <- apply(Xenium_boundaries[,-1], 2, range)
+      } else {
+        stop("There are no files named 'cell_boundaries.csv.gz' in the path")
+      }
+      subcellular[,c("x","y")] <- rescaleXeniumCells(subcellular[,c("x","y")], Xenium_box, image)
+    }
   } else {
     stop("There are no files named 'transcripts.csv.gz' in the path")
   }

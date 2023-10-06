@@ -160,8 +160,31 @@ The combined VoltRon object of Visium and Xenium datasets can be used to transfe
 * pseudo cell type abundance assays or
 * pseudo gene expression assays. 
 
+In this case, we will transfer cluster labels that were trained on the Xenium sections onto the Visium sections. We will use the cluster labels generated at the end of the Xenium analysis section of workflow from [Cell/Spot Analysis](spotanalysis.html). You can tissue block with clustered Xenium readouts from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip). 
+
+We will use the metadata feature "Cluster" as the information that is transfered across one layer to the other.
 
 ```{r class.source="watch-out", eval = FALSE}
+vrSpatialPlot(SRBlock, assay = "Xenium", group.by = "Clusters", pt.size = 0.4)
+```
+
+We must first determine the names of the assays where labels are transfered **from** one **to** the other.
+
+```{r class.source="watch-out", eval = FALSE}
+SampleMetadata(SRBlock)
+```
+
+```
+        Assay    Layer   Sample
+Assay1 Xenium Section1 10XBlock
+Assay2 Visium Section2 10XBlock
+Assay3 Xenium Section3 10XBlock
+```
+
+Hence, we can select Assay1 of Xenium as the source assay and the Assay2 of Visium as the destination assay. We will 
+
+```{r class.source="watch-out", eval = FALSE}
+SRBlock <- transferData(SRBlock, from = "Assay1", to = "Assay2", features = "Cluster")
 ```
 
 <br>

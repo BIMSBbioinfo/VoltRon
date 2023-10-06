@@ -691,28 +691,37 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
     stop("Please choose only one of the subsetting attributes: 'samples', 'assays', 'spatialpoints', 'features' or 'interactive'")
   }
 
-  if(!is.null(samples)){
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
 
-    sample.metadata <- subset_sampleMetadata(SampleMetadata(object), samples = samples)
+  # subsetting
+  if(!is.null(samples)){
+    sample.metadata <- subset_sampleMetadata(sample.metadata, samples = samples)
     metadata <- subset.vrMetadata(object@metadata, samples = samples) # CAN WE CHANGE THIS TO ONLY SUBSET LATER ????
     listofSamples <- object@samples[samples]
 
   # subsetting on assays name
   } else if(!is.null(assays)) {
-
-    sample.metadata <- subset_sampleMetadata(SampleMetadata(object), assays = assays)
+    sample.metadata <- subset_sampleMetadata(sample.metadata, assays = assays)
     metadata <- subset.vrMetadata(object@metadata, assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subset.vrSample(samp, assays = assays)
     }, USE.NAMES = TRUE)
+  # if(!is.null(samples) | !is.null(assays)){
+  #
+  #   # get assay IDs from assays and samples
+  #   sample.metadata <- subset_sampleMetadata(sample.metadata, samples = samples)
+  #   sample.metadata <- subset_sampleMetadata(sample.metadata, assays = assays)
+  #
+  #   #
 
   # subsetting on entity names
   } else if(!is.null(spatialpoints)) {
 
     metadata <- subset.vrMetadata(object@metadata, spatialpoints = spatialpoints)
     assays <- unique(stringr::str_extract(vrSpatialPoints(metadata), "Assay[0-9]+"))
-    sample.metadata <- subset_sampleMetadata(SampleMetadata(object), assays = assays)
+    sample.metadata <- subset_sampleMetadata(sample.metadata, assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subset.vrSample(samp, spatialpoints = spatialpoints)
@@ -720,8 +729,6 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 
   # subsetting on features
   } else if(!is.null(features)){
-
-    sample.metadata <- SampleMetadata(object)
     assay_names <- vrAssayNames(object)
     for(assy in assay_names){
       cur_assay <- sample.metadata[assy,]
@@ -741,7 +748,6 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
     if(inherits(image, "character")){
 
       # check if there are only one image and one assay
-      sample.metadata <- SampleMetadata(object)
       if(nrow(sample.metadata) > 1){
         stop("Subseting on images can only be performed on VoltRon objects with a single assay")
       } else {

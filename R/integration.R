@@ -7,10 +7,11 @@
 #' @param from The ID of assay whose data transfer to the second assay
 #' @param to The ID of the target assay where data is transfered to
 #' @param features The set of data or metadata features that are transfered. Only one metadata feature can be transfered at a time.
+#' @param new_assay_name the name of the new assay created from the source assay defined in \code{from}.
 #'
 #' @export
 #'
-transferData <- function(object, from = NULL, to = NULL, features = NULL){
+transferData <- function(object, from = NULL, to = NULL, features = NULL, new_assay_name = NULL){
 
   # check if assays are in the same block
   samples <- SampleMetadata(object)[c(from, to), "Sample"]
@@ -36,10 +37,13 @@ transferData <- function(object, from = NULL, to = NULL, features = NULL){
   }
 
   # add new assay
-  cat("Adding cell type compositions as new assay:", paste(SampleMetadata(object)[to, "Assay"], "pseudo", sep = "_"), "\n")
+  if(is.null(new_assay_name)){
+    new_assay_name <- paste(SampleMetadata(object)[to, "Assay"], "pseudo", sep = "_")
+  }
+  cat("Adding cell type compositions as new assay:", new_assay_name, "\n")
   object <- addAssay(object,
                      assay = new_assay,
-                     assay_name = paste(SampleMetadata(object)[to, "Assay"], "pseudo", sep = "_"),
+                     assay_name = new_assay_name,
                      sample = SampleMetadata(object)[to, "Sample"],
                      layer = SampleMetadata(object)[to, "Layer"])
 
