@@ -108,6 +108,22 @@ vrAssayNames <- function(object, ...) {
   UseMethod(generic = 'vrAssayNames<-', object = object)
 }
 
+#' Get Embedding names
+#'
+#' Given a VoltRon object, give names of embeddings
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{vrEmbeddingNames}: The name of embeddings
+#'
+#' @rdname vrEmbeddingNames
+#' @export vrEmbeddingNames
+#'
+vrEmbeddingNames <- function(object, ...) {
+  UseMethod(generic = 'vrEmbeddingNames', object = object)
+}
+
 #' changeSampleNames
 #'
 #' change sample names of VoltRon or other objects

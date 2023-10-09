@@ -110,7 +110,7 @@ Xen_R1_subset <- Xen_R1_subsetinfo$subsets[[1]]
 vrSpatialPlot(Xen_R1_subset, transcripts = c("ACTA2", "TCF7"), pt.size = 0.2)
 ```
 
-<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize.png" class="center">
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize.png" class="center">
 
 We can also visualize cell counts on spatially-aware data. The behaviour of **vrSpatialFeaturePlot** (and most plotting functions) depend on the number of assays associated with the assay type (e.g. Xenium). Here, we have to assays, and we visualize two features, hence the resulting plot would include four figures (two features for both assays). 
 

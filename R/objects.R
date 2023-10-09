@@ -1385,3 +1385,20 @@ vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", dims = 1:30
   return(object)
 }
 
+#' @param assay assay
+#'
+#' @rdname vrEmbeddingNames
+#' @method vrEmbeddingNames VoltRon
+#'
+#' @export
+#'
+vrEmbeddingNames.VoltRon <- function(object, assay = NULL){
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get assay types
+  embed_names <- unique(unlist(lapply(assay_names, function(x) vrEmbeddingNames(object[[x]]))))
+
+  return(embed_names)
+}

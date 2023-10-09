@@ -4,7 +4,13 @@
 \alias{transferData}
 \title{transferData}
 \usage{
-transferData(object, from = NULL, to = NULL, features = NULL)
+transferData(
+  object,
+  from = NULL,
+  to = NULL,
+  features = NULL,
+  new_assay_name = NULL
+)
 }
 \arguments{
 \item{object}{a VoltRon object}
@@ -14,6 +20,8 @@ transferData(object, from = NULL, to = NULL, features = NULL)
 \item{to}{The ID of the target assay where data is transfered to}
 
 \item{features}{The set of data or metadata features that are transfered. Only one metadata feature can be transfered at a time.}
+
+\item{new_assay_name}{the name of the new assay created from the source assay defined in \code{from}.}
 }
 \description{
 transfer data across assays

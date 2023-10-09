@@ -118,6 +118,9 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
     segments_reg <- vrSegments(object, reg = TRUE)
     subcellular <- vrSubcellular(object)
 
+    # subset embeddings
+    unique_embed <-
+
     if(!is.null(spatialpoints)){
 
       # data
@@ -600,4 +603,13 @@ vrEmbeddings.vrAssay <- function(object, type = "pca", dims = 1:30) {
 "vrEmbeddings<-.vrAssay" <- function(object, type = "pca", ..., value) {
   object@embeddings[[type]] <- value
   return(object)
+}
+
+#' @rdname vrEmbeddingNames
+#' @method vrEmbeddingNames vrAssay
+#'
+#' @export
+#'
+vrEmbeddingNames.vrAssay <- function(object){
+  return(names(object@embeddings))
 }
