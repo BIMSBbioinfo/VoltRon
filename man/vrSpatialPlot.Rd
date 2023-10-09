@@ -18,6 +18,8 @@ vrSpatialPlot(
   label = FALSE,
   background = NULL,
   crop = FALSE,
+  legend.pt.size = 2,
+  legend.loc = "right",
   common.legend = TRUE,
   collapse = TRUE
 )
@@ -48,6 +50,10 @@ vrSpatialPlot(
 \item{background}{the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)}
 
 \item{crop}{whether to crop an image of a spot assay}
+
+\item{legend.pt.size}{the size of points at the legend}
+
+\item{legend.loc}{the location of the legend, default is "right"}
 
 \item{common.legend}{whether to use a common legend for all plots}
 

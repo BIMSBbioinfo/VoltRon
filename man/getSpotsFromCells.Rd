@@ -17,6 +17,8 @@ getSpotsFromCells(
 \item{from_metadata}{the metadata associated with \code{from_object}}
 
 \item{to_object}{The ID of the target vrAssay object where data is transfered to}
+
+\item{features}{the name of the metadata feature to transfer, if NULL, the rawdata will be transfered}
 }
 \description{
 Generate Psuedo counts per spots and insert to as a separate image assay to the Visium object

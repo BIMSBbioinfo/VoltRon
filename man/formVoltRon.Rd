@@ -31,6 +31,8 @@ formVoltRon(
 
 \item{segments}{the segments of the spatial points, optional}
 
+\item{subcellular}{subcellular data}
+
 \item{sample.metadata}{a data frame of the sample metadata}
 
 \item{main.assay}{the name of the main assay of the object}
@@ -44,8 +46,6 @@ formVoltRon(
 \item{layer_name}{the name of the layer}
 
 \item{project}{project name}
-
-\item{graph}{the graph to determine the adjacency of spatial points across layers # DELETE THIS LATER}
 }
 \description{
 Create a VoltRon object

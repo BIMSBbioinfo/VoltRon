@@ -118,14 +118,17 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
     segments_reg <- vrSegments(object, reg = TRUE)
     subcellular <- vrSubcellular(object)
 
-    # subset embeddings
-    unique_embed <-
-
     if(!is.null(spatialpoints)){
 
       # data
       object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
       object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE]
+
+      # embeddings
+      for(embed in vrEmbeddingNames(object)){
+        embedding <- vrEmbeddings(object, type = embed)
+        vrEmbeddings(object, type = embed) <- embedding[rownames(embedding) %in% spatialpoints,]
+      }
 
       # coordinates
       vrCoordinates(object) <- coords[rownames(coords) %in% spatialpoints,, drop = FALSE]

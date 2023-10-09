@@ -373,6 +373,7 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #'
 #' @param object a VoltRon object
 #' @param scale_width the initial width of the object image
+#' @param use_points use spatial points instead of the reference image
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs

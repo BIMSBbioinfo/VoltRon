@@ -23,6 +23,8 @@
 #' @param label if TRUE, the labels of the ROI assays will be visualized
 #' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
 #' @param crop whether to crop an image of a spot assay
+#' @param legend.pt.size the size of points at the legend
+#' @param legend.loc the location of the legend, default is "right"
 #' @param common.legend whether to use a common legend for all plots
 #' @param collapse whether to combine all ggplots
 #'
@@ -33,7 +35,7 @@
 #'
 vrSpatialPlot <- function(object, group.by = "Sample", transcripts = NULL, assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
                      font.size = 2, pt.size = 2, alpha = 1, label = FALSE, background = NULL,
-                     crop = FALSE, common.legend = TRUE, collapse = TRUE) {
+                     crop = FALSE, legend.pt.size = 2, legend.loc = "right", common.legend = TRUE, collapse = TRUE) {
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -82,7 +84,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", transcripts = NULL, assay
     p_title <- plot_title[[assy]]
     gg[[i]] <- vrSpatialPlotSingle(assay = cur_assay, metadata = cur_metadata,
                               group.by = group.by, transcripts = transcripts, font.size = font.size, pt.size = pt.size, alpha = alpha,
-                              plot_title = p_title, background = background, crop = crop)
+                              plot_title = p_title, background = background, crop = crop, legend.pt.size = legend.pt.size)
     i <- i + 1
   }
 
@@ -90,7 +92,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", transcripts = NULL, assay
   if(collapse){
     if(length(assay_names) > 1){
       if(length(gg) < ncol) ncol <- length(gg)
-      return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = "right"))
+      return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = legend.loc))
     } else {
       return(gg[[1]])
     }
@@ -113,10 +115,11 @@ vrSpatialPlot <- function(object, group.by = "Sample", transcripts = NULL, assay
 #' @param plot_title the title of the single plot
 #' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
 #' @param crop whether to crop an image of a spot assay
+#' @param legend.pt.size the size of points at the legend
 #'
 #' @import ggplot2
 #'
-vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcripts = NULL, font.size = 2, pt.size = 2, alpha = 1, plot_title = NULL, background = NULL, crop = FALSE){
+vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcripts = NULL, font.size = 2, pt.size = 2, alpha = 1, plot_title = NULL, background = NULL, crop = FALSE, legend.pt.size = 2){
 
   # data
   coords <- as.data.frame(vrCoordinates(assay))
@@ -184,7 +187,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcript
       }
     } else {
       g <- g +
-        geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = 21, size = rel(pt.size), alpha = alpha)
+        geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = 21, size = rel(pt.size), alpha = alpha) +
+        guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
     }
   } else {
     stop("Only ROIs, spots and cells can be visualized with vrSpatialPlot!")

@@ -14,7 +14,8 @@ vrSpatialPlotSingle(
   alpha = 1,
   plot_title = NULL,
   background = NULL,
-  crop = FALSE
+  crop = FALSE,
+  legend.pt.size = 2
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ vrSpatialPlotSingle(
 \item{background}{the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)}
 
 \item{crop}{whether to crop an image of a spot assay}
+
+\item{legend.pt.size}{the size of points at the legend}
 }
 \description{
 Plotting a single assay from a VoltRon object. We plot the identification of spatially resolved cells, spots, and ROI on associated images.

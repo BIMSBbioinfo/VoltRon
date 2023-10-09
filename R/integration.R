@@ -1,3 +1,6 @@
+####
+# Data Transfer ####
+####
 
 #' transferData
 #'
@@ -59,6 +62,7 @@ transferData <- function(object, from = NULL, to = NULL, features = NULL, new_as
 #' @param from_object The vrAssay object whose data transfer to the second assay
 #' @param from_metadata the metadata associated with \code{from_object}
 #' @param to_object The ID of the target vrAssay object where data is transfered to
+#' @param features the name of the metadata feature to transfer, if NULL, the rawdata will be transfered
 #'
 #' @importFrom dplyr %>% right_join
 #' @importFrom stats aggregate

@@ -3,6 +3,7 @@ title: "Image Registration"
 output: 
   html_document:
     toc: true
+    toc_depth: 4
     toc_float:
       collapsed: false
       smooth_scroll: false
@@ -142,8 +143,8 @@ Now that the VoltRon objects of Xenium and Visium datasets are accurately aligne
 
 ```{r class.source="watch-out", eval = FALSE}
 merge_list <- xen_reg$registered_spat
-SRBlock <- merge(merge_list[[1]], merge_list[-1], samples = "10XBlock")
-SRBlock
+VRBlock <- merge(merge_list[[1]], merge_list[-1], samples = "10XBlock")
+VRBlock
 ```
 ```
 10XBlock: 
@@ -153,26 +154,21 @@ Assays: Xenium(Main) Visium
 
 <br>
 
-### Data/Label Transfer
+### Data/Label Transfer Across Layers
 
-The combined VoltRon object of Visium and Xenium datasets can be used to transfer information across layers and assays. This is accomplished by aggregating and summarizing, for example, gene counts of cells from the Xenium assay aligned to Visium spots. Either labels or cell types can be summarized to generate **(under development)**; 
+The combined VoltRon object of Visium and Xenium datasets can be used to transfer information across layers and assays. This is accomplished by aggregating and summarizing, for example, gene counts of cells from the Xenium assay aligned to Visium spots. Either labels or cell types can be summarized to generate: 
 
 * pseudo cell type abundance assays or
 * pseudo gene expression assays. 
 
-In this case, we will transfer cluster labels that were trained on the Xenium sections onto the Visium sections. We will use the cluster labels generated at the end of the Xenium analysis section of workflow from [Cell/Spot Analysis](spotanalysis.html). You can download the VoltRon object with clustered Xenium cells from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip). 
+<br>
 
-Here, we can see that both Xenium layers are clustered where we can use these cell annotations and transfer them to the Visium assay. 
+#### Data Transfer
 
-```{r class.source="watch-out", eval = FALSE}
-vrSpatialPlot(10XBlock, assay = "Xenium", group.by = "Clusters", pt.size = 0.4)
-```
-
-We must first determine the names of the assays where labels are transfered **from** one **to** the other. Hence, we can select Assay1 of Xenium as the source assay and the Assay2 of Visium as the destination assay.
-
+We must first determine the names of the assays where labels are transfered **from** one **to** the other. For the sake of this tutorial, we can select Assay1 of **Xenium as the source** assay and the Assay2 of **Visium as the destination** assay. 
 
 ```{r class.source="watch-out", eval = FALSE}
-SampleMetadata(10XBlock)
+SampleMetadata(VRBlock)
 ```
 
 ```
@@ -182,39 +178,57 @@ Assay2 Visium Section2 10XBlock
 Assay3 Xenium Section3 10XBlock
 ```
 
-The function **transferData** detects the types of both the source (from) and the destination (to) assays and determines the how the data should be transfered. In this case, the labels or counts data of each cell in the source Xenium assay will be aggregated into spots in a newly create pseudo Visium assay. The new assay with aggregated counts will be named "Visium_pseudo"
+The **transferData** function detects the types of both the **source (from)** and the **destination (to)** assays and determines the how the data should be transfered. Since we transfer data from the Xenium assay to the Visium assay (hence **Cells -> Spots**), the raw count data of each cell in the source Xenium assay will be aggregated into spots in a newly create pseudo Visium assay. The new assay with aggregated counts will be named **Visium_pseudo**. 
 
 ```{r class.source="watch-out", eval = FALSE}
-10XBlock <- transferData(10XBlock, from = "Assay1", to = "Assay2")
+VRBlock <- transferData(VRBlock, from = "Assay1", to = "Assay2")
 ```
 
-We can now visualize both the original and aggregated counts of a gene, say TACSTD2, to validate the correlation of gene signatures across adjacent tissue secions, and to validate the accuracy of the automated image alignment.
+VoltRon supports multiple assays within each layer. Now, Section 2 includes two spot-type assays:
+
+* the original Visium spot assay,
+* a pseudo Visium assay with aggregated Xenium raw counts.
 
 ```{r class.source="watch-out", eval = FALSE}
-g1 <- vrSpatialFeaturePlot(SRBlock_new, assay = "Visium", features = "TACSTD2", 
+SampleMetadata(VRBlock)
+```
+
+```
+               Assay    Layer   Sample
+Assay1        Xenium Section1 10XBlock
+Assay2        Visium Section2 10XBlock
+Assay3        Xenium Section3 10XBlock
+Assay4 Visium_pseudo Section2 10XBlock
+```
+
+We can now visualize both the original and aggregated counts of a gene, say TACSTD2, to validate the correlation of gene signatures across adjacent tissue sections, and to validate the accuracy of the automated image alignment.
+
+```{r class.source="watch-out", eval = FALSE}
+g1 <- vrSpatialFeaturePlot(VRBlock, assay = "Visium", features = "TACSTD2", 
                            crop = TRUE, norm = FALSE)
-g2 <- vrSpatialFeaturePlot(SRBlock_new, assay = "Visium_pseudo", features = "TACSTD2", 
+g2 <- vrSpatialFeaturePlot(VRBlock, assay = "Visium_pseudo", features = "TACSTD2", 
                            crop = TRUE, norm = FALSE)
 g1 + g2
 ```
 
-If the features argument is specified, and if its a single metadata feature with, e.g. cell types, then the each spot at the new pseudo Visium will be collection of estimated cell type abundances. 
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_TACSTD2.png" class="center">
+
+#### Label Transfer
+
+The **transferData** function can also transfer **metadata features** across layers and assays. In this case, we will transfer cell type labels that were trained on the Xenium sections onto the Visium sections. We will use the cluster labels generated at the end of the Xenium analysis section of workflow from [Cell/Spot Analysis](spotanalysis.html). You can download the VoltRon object with clustered Xenium cells from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip). 
 
 ```{r class.source="watch-out", eval = FALSE}
-10XBlock <- transferData(10XBlock, from = "Assay1", to = "Assay2", features = "Cluster", 
-                         new_assay_name = "Visium_pseudo_Clusters")
-vrSpatialFeaturePlot(10XBlock, assay = "Visium_pseudo_Clusters", features = c("3","4"), 
-                     crop = TRUE)
+vrSpatialPlot(VRBlock, assay = "Xenium", group.by = "CellType", pt.size = 0.4)
 ```
 
-VoltRon supports multiple assays within in layer. Now, Section 2 includes three spot-type assays: 
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_annotated.png" class="center">
 
-* the original Visium spot assay, 
-* a pseudo Visium assay with aggregated Xenium raw counts, 
-* and estimated Xenium cell type abundances (found by aggregating cell type counts).
+Here, we can see that both Xenium layers are clustered and annotated where we can use these cell annotations and transfer them to the Visium assay to create an assay of **estimated cell type abundances**. If the features argument is specified, and if its a single metadata feature with, e.g. cell types, then the each spot at the new pseudo Visium will be collection of abundances of the categories within that metadata feature. 
 
 ```{r class.source="watch-out", eval = FALSE}
-SampleMetadata(10XBlock)
+VRBlock <- transferData(VRBlock, from = "Assay1", to = "Assay2", features = "CellType", 
+                         new_assay_name = "Visium_pseudo_CellType")
+SampleMetadata(VRBlock)
 ```
 
 ```
@@ -223,8 +237,16 @@ Assay1                 Xenium Section1 10XBlock
 Assay2                 Visium Section2 10XBlock
 Assay3                 Xenium Section3 10XBlock
 Assay4          Visium_pseudo Section2 10XBlock
-Assay5 Visium_pseudo_Clusters Section2 10XBlock
+Assay5 Visium_pseudo_CellType Section2 10XBlock
 ```
+
+```{r class.source="watch-out", eval = FALSE}
+vrSpatialFeaturePlot(VRBlock_new, features = c("KRT15_myoepithelial",
+                                               "ACT2_myoepithelial"), 
+                     crop = TRUE)
+```
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_CellType.png" class="center">
 
 <br>
 

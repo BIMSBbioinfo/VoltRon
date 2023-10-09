@@ -171,42 +171,36 @@ vrEmbeddingPlot(Xen_data, group.by = "Clusters", embedding = "umap", pt.size = 0
 We can also visualize these clusters on a spatial context. 
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-vrSpatialPlot(Xen_data, group.by = "Clusters", pt.size = 0.4, background = "black")
+vrSpatialPlot(Xen_data, group.by = "Clusters", pt.size = 0.18, background = "black")
 ```
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium.png" class="center">
 
 <br>
 
-## Neighborhood Analysis
+## Annotation
 
-We use the **vrNeighbourhoodEnrichment** function to detect cell type pairs that co occur within each other neighborhoods. First, we establish spatial neighborhood graphs that determine the neighbors of each cell on tissue sections. **Delaunay tesselations** or graphs are commonly used to determine neighbors of spatial entities. The function **getSpatialNeighbors** builds a delaunay graph of all assays of a certain type and detects neighbors of cells in a VoltRon object.
+We can annotate each of these clusters according to their positive markers across 313 features. One can use the **FindAllMarkers** from the [Seurat](https://satijalab.org/seurat/) package to pinpoint these markers by first utilizing the **as.Seurat** function on the Xenium assays of the VoltRon object. For more information on conversion to other packages, please visit the [Converting VoltRon Objects](conversion.html).
 
-```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-vr_merged_result <- getSpatialNeighbors(vr_merged, method = "delaunay")
-```
-
-Once neighbors are founds, we can apply a permutation test compares the number of cell type occurances with an expected number of these occurances under multiple permutations of labels in the tissue (fixed coordinates but cells are randomly labelled). A similar approach is used to by several spatial analysis frameworks and packages ([Schapiro et. al 2017](https://www.nature.com/articles/nmeth.4391), [Palla et. al 2022](https://www.nature.com/articles/s41592-021-01358-2)).
+Let us create a new metadata feature from the **Clusters** column, called **CellType**, we can insert this new metadata column directly to the object.
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-neighborhood_results <- vrNeighbourhoodEnrichment(vr_merged_result, group.by = "Clusters")
+clusters <- factor(Xen_data$Clusters, levels = sort(unique(Xen_data$Clusters)))
+levels(clusters) <- c("DCIS_1", "DCIS_2_CEACAM6+", "DCIS_3_TACSTD2+", "Macrophages",
+                      "Adipocytes", "StromalCells", "IT_1", "CD8_TCells", "CD4_TCells",
+                      "EndothelialCells", "ACT2_myoepithelial", "KRT15_myoepithelial",
+                      "IT_2", "IT_3_Proliferative", "MyelomaCells", "MastCells", "BCells", "IT_4_LILRA4+",
+                      "PLD4+_LILRA4+_CD4+_Cells")
+Xen_data$CellType <- as.character(clusters)
 ```
 
-The neighbor analysis provides the results of both the association and segregation tests between all cell type pairs across each layer and assay. Here, the number of each cell in a pair in each section is reported to assess the impact of the results of the test (i.e. low number of abundance in one cell type may indicate low impact).
+**vrSpatialPlot** function can visualize multiple types of metadata columns, and users can change the location of the legends as well.
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-head(neighborhood_results)
+vrSpatialPlot(Xen_data, group.by = "CellType", pt.size = 0.13, background = "black", legend.loc = "top")
 ```
 
-<div><pre><code style="font-size: 10px;">          from_value     to_value   p_assoc   p_segreg p_assoc_adj p_segreg_adj n_from n_to AssayID Assay    Layer         Sample
-Assay1.1 CD163+ macs  CD163+ macs 0.0000000 1.00000000      0.0000   1.00000000     41   41  Assay1  MELC Section1 control_case_3
-Assay1.2 CD163+ macs CD4+ T cells 0.9380000 0.03300000      0.9980   0.09762866     41   48  Assay1  MELC Section1 control_case_3
-Assay1.3 CD163+ macs  CD8+ Tcells 0.8779011 0.04339051      0.9980   0.09762866     41   11  Assay1  MELC Section1 control_case_3
-Assay1.4 CD163+ macs     NK cells 0.8190000 0.08700000      0.9980   0.15660000     41   15  Assay1  MELC Section1 control_case_3
-Assay1.5 CD163+ macs   endothelia 0.1230000 0.85100000      0.5535   0.95737500     41  139  Assay1  MELC Section1 control_case_3
-Assay1.6 CD163+ macs    epithelia 0.9320000 0.03600000      0.9980   0.09762866     41   39  Assay1  MELC Section1 control_case_3</code></pre></div>
-
-<br>
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_annotated.png" class="center">
 
 # MELC Data Analysis
 
@@ -325,8 +319,8 @@ Now we can visualize the clusters across these sections and perhaps also check f
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 # SNN graph and clusters
-vr_merged <- getProfileNeighbors(vr_merged, dims = 1:10, k = 10, method = "kNN")
-vr_merged <- getClusters(vr_merged, resolution = 0.8, label = "MELC_Clusters")
+vr_merged <- getProfileNeighbors(vr_merged, dims = 1:10, k = 10, method = "SNN")
+vr_merged <- getClusters(vr_merged, resolution = 0.8, label = "MELC_Clusters", graph = "SNN")
 
 # visualize conditions and clusters
 library(patchwork)
@@ -366,9 +360,31 @@ vrViolinPlot(vr_merged, features = c("CD3", "SMA", "Pancytokeratin", "CCR2"),
 
 ## Neighborhood Analysis
 
+We use the **vrNeighbourhoodEnrichment** function to detect cell type pairs that co occur within each other neighborhoods. First, we establish spatial neighborhood graphs that determine the neighbors of each cell on tissue sections. **Delaunay tesselations** or graphs are commonly used to determine neighbors of spatial entities. The function **getSpatialNeighbors** builds a delaunay graph of all assays of a certain type and detects neighbors of cells in a VoltRon object.
+
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 vr_merged_result <- getSpatialNeighbors(vr_merged, method = "delaunay")
+```
+
+Once neighbors are founds, we can apply a permutation test that compares the number of cell type occurances with an expected number of these occurances under multiple permutations of labels in the tissue (fixed coordinates but cells are randomly labelled). A similar approach is used to by several spatial analysis frameworks and packages ([Schapiro et. al 2017](https://www.nature.com/articles/nmeth.4391), [Palla et. al 2022](https://www.nature.com/articles/s41592-021-01358-2)).
+
+Here, we will use the original cell type labels annotated by [Mothes et. al 2023](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9922044/).
+
+```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 neighborhood_results <- vrNeighbourhoodEnrichment(vr_merged_result, group.by = "Clusters")
+```
+
+The neighborhood analysis provides the results of:
+
+* the **association** tests (whether cell types are within each other's neighborhood)
+* the **segregation** tests (whether cell types are clustered separately) 
+
+between all cell type pairs across each layers and assay. 
+
+Here, the number of each cell in a pair in each section is reported to assess the impact of the results of the test (i.e. low number of abundance in one cell type may indicate low impact).
+
+```{r eval = FALSE, class.source="watch-out", fig.align='center'}
+head(neighborhood_results)
 ```
 
 <div><pre><code style="font-size: 10px;">          from_value     to_value   p_assoc   p_segreg p_assoc_adj p_segreg_adj n_from n_to AssayID Assay    Layer         Sample
@@ -380,3 +396,4 @@ Assay1.5 CD163+ macs   endothelia 0.1230000 0.85100000      0.5535   0.95737500 
 Assay1.6 CD163+ macs    epithelia 0.9320000 0.03600000      0.9980   0.09762866     41   39  Assay1  MELC Section1 control_case_3</code></pre></div>
 
 <br>
+

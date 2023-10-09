@@ -307,8 +307,8 @@ setMethod(
 #' @param image the image of the data
 #' @param coords the coordinates of the spatial points
 #' @param segments the segments of the spatial points, optional
+#' @param subcellular subcellular data
 #' @param sample.metadata a data frame of the sample metadata
-#' @param graph the graph to determine the adjacency of spatial points across layers # DELETE THIS LATER
 #' @param main.assay the name of the main assay of the object
 #' @param assay.type the type of the assay (cells, spots, ROIs)
 #' @param params additional parameters of the object
@@ -655,6 +655,7 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
 #' @param features the set of features to subset the object
 #' @param image the subseting string passed to \code{magick::image_crop}
 #' @param interactive TRUE if interactive subsetting on the image is demanded
+#' @param use_points if \code{interactive} is \code{TRUE}, use spatial points instead of the reference image
 #'
 #' @rdname subset
 #' @method subset VoltRon
