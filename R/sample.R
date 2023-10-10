@@ -239,7 +239,6 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
 
   # subseting on samples, layers and assays
   if(!is.null(assays)){
-
     # get assay names of all assays
     assay_names <- sapply(object@assay, vrAssayNames)
     if(any(assays %in% assay_names)) {
@@ -250,21 +249,25 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
     } else {
       return(NULL)
     }
-
   } else if(!is.null(spatialpoints)){
-    assay_set <- object@assay
-    object@assay <- sapply(assay_set, function(assy) {
+    object@assay <- sapply(object@assay, function(assy) {
       subset.vrAssay(assy, spatialpoints = spatialpoints)
-    }, USE.NAMES = TRUE)
+    }, USE.NAMES = TRUE, simplify = TRUE)
   } else if(!is.null(image)){
-    assay_set <- object@assay
-    object@assay <- sapply(assay_set, function(assy) {
+    object@assay <- sapply(object@assay, function(assy) {
       subset.vrAssay(assy, image = image)
-    }, USE.NAMES = TRUE)
+    }, USE.NAMES = TRUE, simplify = TRUE)
   }
 
+  # remove NULL assays
+  object@assay <- object@assay[which(sapply(object@assay, function(x) !is.null(x)))]
+
   # set VoltRon class
-  return(object)
+  if(length(object@assay) > 0){
+    return(object)
+  } else {
+    return(NULL)
+  }
 }
 
 #' @rdname vrSpatialPoints

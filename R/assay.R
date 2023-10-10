@@ -120,6 +120,10 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
 
     if(!is.null(spatialpoints)){
 
+      # check if spatial points are here
+      if(!any(colnames(object@rawdata) %in% spatialpoints))
+        return(NULL)
+
       # data
       object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
       object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE]
