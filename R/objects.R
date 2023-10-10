@@ -662,7 +662,6 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
 #'
 #' @importFrom rlang enquo eval_tidy quo_get_expr quo_text
 #' @importFrom stringr str_extract
-#' @importFrom igraph subgraph V
 #' @importFrom methods new
 #'
 #' @export
@@ -697,25 +696,24 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 
   # subsetting
   if(!is.null(samples)){
-    sample.metadata <- subset_sampleMetadata(sample.metadata, samples = samples)
-    metadata <- subset.vrMetadata(object@metadata, samples = samples) # CAN WE CHANGE THIS TO ONLY SUBSET LATER ????
-    listofSamples <- object@samples[samples]
 
-  # subsetting on assays name
-  } else if(!is.null(assays)) {
+    # check assays associated with samples and subset for assays
+    if(samples %in% sample.metadata$Sample){
+      assays <- rownames(sample.metadata)[sample.metadata$Sample %in% samples]
+      return(subset.VoltRon(object, assays = assays))
+    } else {
+      stop("The requested samples are not found in this VoltRon object!")
+    }
+
+  } else if(!is.null(assays)){
+
+    # subset for assays
     sample.metadata <- subset_sampleMetadata(sample.metadata, assays = assays)
     metadata <- subset.vrMetadata(object@metadata, assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subset.vrSample(samp, assays = assays)
     }, USE.NAMES = TRUE)
-  # if(!is.null(samples) | !is.null(assays)){
-  #
-  #   # get assay IDs from assays and samples
-  #   sample.metadata <- subset_sampleMetadata(sample.metadata, samples = samples)
-  #   sample.metadata <- subset_sampleMetadata(sample.metadata, assays = assays)
-  #
-  #   #
 
   # subsetting on entity names
   } else if(!is.null(spatialpoints)) {
@@ -767,12 +765,36 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
     return(results)
   }
 
-  # other attributes
+  # main.assay
   main.assay <- unique(sample.metadata$Assay)[unique(sample.metadata$Assay) == names(table(sample.metadata$Assay))[which.max(table(sample.metadata$Assay))]]
+
+  # project
   project <- object@project
 
   # subset graphs
+  graph_list <- subset_graphs(object, metadata)
+
+  # set VoltRon class
+  methods::new("VoltRon",
+               samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata,
+               graph = graph_list, main.assay = main.assay, project = project)
+}
+
+#' subset_graphs
+#'
+#' Given a VoltRon object and a vrMetadata, subset the graph
+#'
+#' @param object a VoltRon Object
+#' @param metadata a vrMetadata Object
+#'
+#' @importFrom igraph subgraph V
+#'
+subset_graphs <- function(object, metadata){
+
+  # graph names
   graphnames <- vrGraphNames(object)
+
+  # for all graphs
   if(!is.null(graphnames)){
     graph_list <- object@graph
     for(g in vrGraphNames(object)){
@@ -784,8 +806,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
     graph_list <- list()
   }
 
-  # set VoltRon class
-  methods::new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, graph = graph_list, main.assay = main.assay, project = project)
+  return(graph_list)
 }
 
 #' Merging VoltRon objects

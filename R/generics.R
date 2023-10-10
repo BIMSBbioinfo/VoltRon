@@ -15,7 +15,7 @@ NULL
 #' @export
 #'
 normalizeData <- function(object, ...) {
-  UseMethod(generic = 'normalizeData', object = object, ...)
+  UseMethod(generic = 'normalizeData', object = object)
 }
 
 #' Metadata
@@ -31,7 +31,7 @@ normalizeData <- function(object, ...) {
 #' @export Metadata
 #'
 Metadata <- function(object, ...) {
-  UseMethod(generic = 'Metadata', object = object, ...)
+  UseMethod(generic = 'Metadata', object = object)
 }
 
 #' @param object An object
@@ -44,7 +44,7 @@ Metadata <- function(object, ...) {
 #' @export Metadata<-
 #'
 "Metadata<-" <- function(object, ..., value) {
-  UseMethod(generic = 'Metadata<-', object = object, ...)
+  UseMethod(generic = 'Metadata<-', object = object)
 }
 
 #' SampleMetadata
@@ -60,7 +60,7 @@ Metadata <- function(object, ...) {
 #' @export SampleMetadata
 #'
 SampleMetadata <- function(object, ...) {
-  UseMethod(generic = 'SampleMetadata', object = object, ...)
+  UseMethod(generic = 'SampleMetadata', object = object)
 }
 
 #' Add Assay
@@ -76,7 +76,7 @@ SampleMetadata <- function(object, ...) {
 #' @export addAssay
 #'
 addAssay <- function(object, ...) {
-  UseMethod(generic = 'addAssay', object = object, ...)
+  UseMethod(generic = 'addAssay', object = object)
 }
 
 #' Get Assay names
@@ -92,7 +92,7 @@ addAssay <- function(object, ...) {
 #' @export vrAssayNames
 #'
 vrAssayNames <- function(object, ...) {
-  UseMethod(generic = 'vrAssayNames', object = object, ...)
+  UseMethod(generic = 'vrAssayNames', object = object)
 }
 
 #' @param object An object
@@ -105,7 +105,7 @@ vrAssayNames <- function(object, ...) {
 #' @export vrAssayNames<-
 #'
 "vrAssayNames<-" <- function(object, ..., value) {
-  UseMethod(generic = 'vrAssayNames<-', object = object, ...)
+  UseMethod(generic = 'vrAssayNames<-', object = object)
 }
 
 #' Get Embedding names
@@ -121,7 +121,7 @@ vrAssayNames <- function(object, ...) {
 #' @export vrEmbeddingNames
 #'
 vrEmbeddingNames <- function(object, ...) {
-  UseMethod(generic = 'vrEmbeddingNames', object = object, ...)
+  UseMethod(generic = 'vrEmbeddingNames', object = object)
 }
 
 #' changeSampleNames
@@ -137,7 +137,7 @@ vrEmbeddingNames <- function(object, ...) {
 #' @export changeSampleNames
 #'
 changeSampleNames <- function(object, ...) {
-  UseMethod(generic = 'changeSampleNames', object = object, ...)
+  UseMethod(generic = 'changeSampleNames', object = object)
 }
 
 #' Get Assay types
@@ -154,7 +154,7 @@ changeSampleNames <- function(object, ...) {
 #' @export vrAssayTypes
 #'
 vrAssayTypes <- function(object, ...) {
-  UseMethod(generic = 'vrAssayTypes', object = object, ...)
+  UseMethod(generic = 'vrAssayTypes', object = object)
 }
 
 #' Main Assay
@@ -170,7 +170,7 @@ vrAssayTypes <- function(object, ...) {
 #' @export vrMainAssay
 #'
 vrMainAssay <- function(object, ...) {
-  UseMethod(generic = 'vrMainAssay', object = object, ...)
+  UseMethod(generic = 'vrMainAssay', object = object)
 }
 
 #' @param object An object
@@ -183,7 +183,7 @@ vrMainAssay <- function(object, ...) {
 #' @export vrMainAssay<-
 #'
 "vrMainAssay<-" <- function(object, ..., value) {
-  UseMethod(generic = 'vrMainAssay<-', object = object, ...)
+  UseMethod(generic = 'vrMainAssay<-', object = object)
 }
 
 #' vrSpatialPoints
@@ -197,7 +197,7 @@ vrMainAssay <- function(object, ...) {
 #' @export vrSpatialPoints
 #'
 vrSpatialPoints <- function(object, ...) {
-  UseMethod(generic = 'vrSpatialPoints', object = object, ...)
+  UseMethod(generic = 'vrSpatialPoints', object = object)
 }
 
 #' @param object An object
@@ -208,7 +208,7 @@ vrSpatialPoints <- function(object, ...) {
 #' @export vrSpatialPoints<-
 #'
 "vrSpatialPoints<-" <- function(object, ..., value) {
-  UseMethod(generic = 'vrSpatialPoints<-', object = object, ...)
+  UseMethod(generic = 'vrSpatialPoints<-', object = object)
 }
 
 #' vrFeatures
@@ -222,7 +222,7 @@ vrSpatialPoints <- function(object, ...) {
 #' @export vrFeatures
 #'
 vrFeatures <- function(object, ...) {
-  UseMethod(generic = 'vrFeatures', object = object, ...)
+  UseMethod(generic = 'vrFeatures', object = object)
 }
 
 #' Feature Data
@@ -238,7 +238,7 @@ vrFeatures <- function(object, ...) {
 #' @export vrFeatureData
 #'
 vrFeatureData <- function(object, ...) {
-  UseMethod(generic = 'vrFeatureData', object = object, ...)
+  UseMethod(generic = 'vrFeatureData', object = object)
 }
 
 #' @param object An object
@@ -249,7 +249,7 @@ vrFeatureData <- function(object, ...) {
 #' @export vrFeatureData<-
 #'
 "vrFeatureData<-" <- function(object, ..., value) {
-  UseMethod(generic = 'vrFeatureData<-', object = object, ...)
+  UseMethod(generic = 'vrFeatureData<-', object = object)
 }
 
 #' vrData
@@ -265,7 +265,7 @@ vrFeatureData <- function(object, ...) {
 #' @export vrData
 #'
 vrData <- function(object, ...) {
-  UseMethod(generic = 'vrData', object = object, ...)
+  UseMethod(generic = 'vrData', object = object)
 }
 
 #' vrGraph
@@ -281,7 +281,7 @@ vrData <- function(object, ...) {
 #' @export vrGraph
 #'
 vrGraph <- function(object, ...) {
-  UseMethod(generic = 'vrGraph', object = object, ...)
+  UseMethod(generic = 'vrGraph', object = object)
 }
 
 #' @param object An object
@@ -294,7 +294,7 @@ vrGraph <- function(object, ...) {
 #' @export vrGraph<-
 #'
 "vrGraph<-" <- function(object, ..., value) {
-  UseMethod(generic = 'vrGraph<-', object = object, ...)
+  UseMethod(generic = 'vrGraph<-', object = object)
 }
 
 #' vrGraphNames
@@ -310,7 +310,7 @@ vrGraph <- function(object, ...) {
 #' @export vrGraphNames
 #'
 vrGraphNames <- function(object, ...) {
-  UseMethod(generic = 'vrGraphNames', object = object, ...)
+  UseMethod(generic = 'vrGraphNames', object = object)
 }
 
 
@@ -327,7 +327,7 @@ vrGraphNames <- function(object, ...) {
 #' @export getProfileNeighbors
 #'
 getProfileNeighbors <- function(object, ...) {
-  UseMethod(generic = 'getProfileNeighbors', object = object, ...)
+  UseMethod(generic = 'getProfileNeighbors', object = object)
 }
 
 #' Get spatial neighbors
@@ -343,7 +343,7 @@ getProfileNeighbors <- function(object, ...) {
 #' @export getSpatialNeighbors
 #'
 getSpatialNeighbors <- function(object, ...) {
-  UseMethod(generic = 'getSpatialNeighbors', object = object, ...)
+  UseMethod(generic = 'getSpatialNeighbors', object = object)
 }
 
 #' Get spatially variable feature
@@ -359,7 +359,7 @@ getSpatialNeighbors <- function(object, ...) {
 #' @export getFeatures
 #'
 getFeatures <- function(object, ...) {
-  UseMethod(generic = 'getFeatures', object = object, ...)
+  UseMethod(generic = 'getFeatures', object = object)
 }
 
 
@@ -376,7 +376,7 @@ getFeatures <- function(object, ...) {
 #' @export vrCoordinates
 #'
 vrCoordinates <- function(object, ...) {
-  UseMethod(generic = 'vrCoordinates', object = object, ...)
+  UseMethod(generic = 'vrCoordinates', object = object)
 }
 
 #' @param object An object
@@ -389,7 +389,7 @@ vrCoordinates <- function(object, ...) {
 #' @export vrCoordinates<-
 #'
 "vrCoordinates<-" <- function(object, ..., value) {
-  UseMethod(generic = 'vrCoordinates<-', object = object, ...)
+  UseMethod(generic = 'vrCoordinates<-', object = object)
 }
 
 #' flipCoordinates
@@ -405,7 +405,7 @@ vrCoordinates <- function(object, ...) {
 #' @export flipCoordinates
 #'
 flipCoordinates <- function(object, ...) {
-  UseMethod(generic = 'flipCoordinates', object = object, ...)
+  UseMethod(generic = 'flipCoordinates', object = object)
 }
 
 #' vrSegments
@@ -421,7 +421,7 @@ flipCoordinates <- function(object, ...) {
 #' @export vrSegments
 #'
 vrSegments <- function(object, ...) {
-  UseMethod(generic = 'vrSegments', object = object, ...)
+  UseMethod(generic = 'vrSegments', object = object)
 }
 
 #' @param object An object
@@ -434,7 +434,7 @@ vrSegments <- function(object, ...) {
 #' @export vrSegments<-
 #'
 "vrSegments<-" <- function(object, ..., value) {
-  UseMethod(generic = 'vrSegments<-', object = object, ...)
+  UseMethod(generic = 'vrSegments<-', object = object)
 }
 
 #' vrSubcellular
@@ -450,7 +450,7 @@ vrSegments <- function(object, ...) {
 #' @export vrSubcellular
 #'
 vrSubcellular <- function(object, ...) {
-  UseMethod(generic = 'vrSubcellular', object = object, ...)
+  UseMethod(generic = 'vrSubcellular', object = object)
 }
 
 #' @param object An object
@@ -463,7 +463,7 @@ vrSubcellular <- function(object, ...) {
 #' @export vrSubcellular<-
 #'
 "vrSubcellular<-" <- function(object, ..., value) {
-  UseMethod(generic = 'vrSubcellular<-', object = object, ...)
+  UseMethod(generic = 'vrSubcellular<-', object = object)
 }
 
 #' vrDistances
@@ -479,7 +479,7 @@ vrSubcellular <- function(object, ...) {
 #' @export vrDistances
 #'
 vrDistances <- function(object, ...) {
-  UseMethod(generic = 'vrDistances', object = object, ...)
+  UseMethod(generic = 'vrDistances', object = object)
 }
 
 #' vrEmbeddings
@@ -495,7 +495,7 @@ vrDistances <- function(object, ...) {
 #' @export vrEmbeddings
 #'
 vrEmbeddings <- function(object, ...) {
-  UseMethod(generic = 'vrEmbeddings', object = object, ...)
+  UseMethod(generic = 'vrEmbeddings', object = object)
 }
 
 #' @param object An object
@@ -506,7 +506,7 @@ vrEmbeddings <- function(object, ...) {
 #' @export vrEmbeddings<-
 #'
 "vrEmbeddings<-" <- function(object, ..., value) {
-  UseMethod(generic = 'vrEmbeddings<-', object = object, ...)
+  UseMethod(generic = 'vrEmbeddings<-', object = object)
 }
 
 #' getPCA
@@ -520,7 +520,7 @@ vrEmbeddings <- function(object, ...) {
 #' @export getPCA
 #'
 getPCA <- function(object, ...) {
-  UseMethod(generic = 'getPCA', object = object, ...)
+  UseMethod(generic = 'getPCA', object = object)
 }
 
 #' getUMAP
@@ -534,7 +534,7 @@ getPCA <- function(object, ...) {
 #' @export getUMAP
 #'
 getUMAP <- function(object, ...) {
-  UseMethod(generic = 'getUMAP', object = object, ...)
+  UseMethod(generic = 'getUMAP', object = object)
 }
 
 #' vrImages
@@ -550,7 +550,7 @@ getUMAP <- function(object, ...) {
 #' @export vrImages
 #'
 vrImages <- function(object, ...) {
-  UseMethod(generic = 'vrImages', object = object, ...)
+  UseMethod(generic = 'vrImages', object = object)
 }
 
 #' @param object An object
@@ -561,7 +561,7 @@ vrImages <- function(object, ...) {
 #' @export vrImages<-
 #'
 "vrImages<-" <- function(object, ..., value) {
-  UseMethod(generic = 'vrImages<-', object = object, ...)
+  UseMethod(generic = 'vrImages<-', object = object)
 }
 
 #' vrImageNames
@@ -577,7 +577,7 @@ vrImages <- function(object, ...) {
 #' @export vrImageNames
 #'
 vrImageNames <- function(object, ...) {
-  UseMethod(generic = 'vrImageNames', object = object, ...)
+  UseMethod(generic = 'vrImageNames', object = object)
 }
 
 #' vrMainImage
@@ -593,7 +593,7 @@ vrImageNames <- function(object, ...) {
 #' @export vrMainImage
 #'
 vrMainImage <- function(object, ...) {
-  UseMethod(generic = 'vrMainImage', object = object, ...)
+  UseMethod(generic = 'vrMainImage', object = object)
 }
 
 #' resizeImage
@@ -609,7 +609,7 @@ vrMainImage <- function(object, ...) {
 #' @export resizeImage
 #'
 resizeImage <- function(object, ...) {
-  UseMethod(generic = 'resizeImage', object = object, ...)
+  UseMethod(generic = 'resizeImage', object = object)
 }
 
 #' modulateImage
@@ -625,7 +625,7 @@ resizeImage <- function(object, ...) {
 #' @export modulateImage
 #'
 modulateImage <- function(object, ...) {
-  UseMethod(generic = 'modulateImage', object = object, ...)
+  UseMethod(generic = 'modulateImage', object = object)
 }
 
 #' as.Seurat
@@ -641,7 +641,7 @@ modulateImage <- function(object, ...) {
 #' @export as.Seurat
 #'
 as.Seurat <- function(object, ...) {
-  UseMethod(generic = 'as.Seurat', object = object, ...)
+  UseMethod(generic = 'as.Seurat', object = object)
 }
 
 #' as.Giotto
@@ -657,7 +657,7 @@ as.Seurat <- function(object, ...) {
 #' @export as.Giotto
 #'
 as.Giotto <- function(object, ...) {
-  UseMethod(generic = 'as.Giotto', object = object, ...)
+  UseMethod(generic = 'as.Giotto', object = object)
 }
 
 #' as.VoltRon
@@ -673,5 +673,5 @@ as.Giotto <- function(object, ...) {
 #' @export as.VoltRon
 #'
 as.VoltRon <- function(object, ...) {
-  UseMethod(generic = 'as.VoltRon', object = object, ...)
+  UseMethod(generic = 'as.VoltRon', object = object)
 }
