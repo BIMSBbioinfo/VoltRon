@@ -276,10 +276,13 @@ getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30
   if(data.type %in% c("raw", "norm")){
     data <- vrData(object, assay = assay, norm = (data.type == "norm"))
     data <- t(data)
-  } else if(data.type == "pca") {
-    data <- vrEmbeddings(object, assay = assay, type = data.type, dims = dims)
-  } else {
-    stop("Please provide a data type from one of three choices: raw, norm and pca")
+  } else{
+    embedding_names <- vrEmbeddingNames(object)
+    if(data.type %in% vrEmbeddingNames(object)) {
+      data <- vrEmbeddings(object, assay = assay, type = data.type, dims = dims)
+    } else {
+      stop("Please provide a data type from one of three choices: raw, norm and pca")
+    }
   }
 
   # get umap

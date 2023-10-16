@@ -193,10 +193,13 @@ subset.vrSample <- function(object, subset, assays = NULL, spatialpoints = NULL,
   }
 
   # remove NULL assays
-  object@layer <- object@layer[-which(sapply(object@layer, is.null))]
+  object@layer <- object@layer[which(sapply(object@layer, function(x) !is.null(x)))]
 
-  # set VoltRon class
-  return(object)
+  if(length(object@layer) > 0){
+    return(object)
+  } else {
+    return(NULL)
+  }
 }
 
 ### Get Spatial Points of vrSample ####
