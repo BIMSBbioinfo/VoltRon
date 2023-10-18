@@ -261,6 +261,7 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
 #' @param assay assay
 #' @param data.type the type of data used to calculate UMAP from: "pca" (default), "raw" or "norm"
 #' @param dims the number of dimensions extracted from PCA
+#' @param umap.key the name of the umap embedding, default: umap
 #' @param seed seed
 #'
 #' @rdname getUMAP
@@ -270,7 +271,7 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
 #'
 #' @export
 #'
-getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30, seed = 1){
+getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30, umap.key = "umap", seed = 1){
 
   # get data
   if(data.type %in% c("raw", "norm")){
@@ -290,7 +291,7 @@ getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30
   umap_data <- umap::umap(data, preserve.seed = seed)
   umap_data <- umap_data$layout
   colnames(umap_data) <- c("x", "y")
-  vrEmbeddings(object, type = "umap") <- umap_data
+  vrEmbeddings(object, type = umap.key) <- umap_data
 
   # return
   return(object)

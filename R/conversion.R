@@ -85,8 +85,11 @@ as.Seurat.VoltRon <- function(object, assay = NULL, image_key = "fov", type = c(
 
   # check the number of assays
   if(is.null(assay)){
-    if(unique(SampleMetadata(object)[["Assay"]]) > 1)
+    if(length(unique(SampleMetadata(object)[["Assay"]])) > 1){
       stop("You can only convert a single VoltRon assay into a Seurat object!")
+    } else {
+      assay <- SampleMetadata(object)[["Assay"]]
+    }
   } else {
     vrMainAssay(object) <- assay
   }
@@ -98,9 +101,11 @@ as.Seurat.VoltRon <- function(object, assay = NULL, image_key = "fov", type = c(
 
   # data
   data <- vrData(object, assay = assay, norm = FALSE)
+  # colnames(data) <- gsub("_", "-", colnames(data))
 
   # metadata
   metadata <- Metadata(object, assay = assay)
+  # rownames(metadata) <- gsub("_", "-", rownames(metadata))
 
   # Seurat object
   seu <- Seurat::CreateSeuratObject(counts = data, meta.data = metadata, assay = assay)
@@ -110,6 +115,7 @@ as.Seurat.VoltRon <- function(object, assay = NULL, image_key = "fov", type = c(
     assay_object <- object[[assy]]
     if(type == "image"){
       coords <- vrCoordinates(assay_object, reg = TRUE)
+      # rownames(coords) <- gsub("_", "-", rownames(coords))
       image.data <- list(centroids = SeuratObject::CreateCentroids(coords))
       subcellular <- vrSubcellular(assay_object, reg = TRUE)
       if(nrow(subcellular) > 0){

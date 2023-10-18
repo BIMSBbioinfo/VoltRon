@@ -21,14 +21,19 @@ NULL
 #'
 #' @export
 #'
-getProfileNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30, k = 10, method = "kNN", ...){
+getProfileNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30, k = 10, method = "kNN", graph.key = method, ...){
 
   # get data
   if(data.type %in% c("raw", "norm")){
     nndata <- vrData(object, assay = assay, norm = (data.type == "norm"))
     nndata <- t(nndata)
   } else {
-    nndata <- vrEmbeddings(object, assay = assay, type = data.type, dims = dims)
+    embedding_names <- vrEmbeddingNames(object)
+    if(data.type %in% vrEmbeddingNames(object)) {
+      nndata <- vrEmbeddings(object, assay = assay, type = data.type, dims = dims)
+    } else {
+      stop("Please provide a data type from one of three choices: raw, norm and pca")
+    }
   }
 
   # find neighborhood
@@ -58,7 +63,7 @@ getProfileNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca",
   if(!is.null(weights))
     igraph::E(graph)$weight <- weights
   graph <- simplify(graph, remove.multiple = TRUE, remove.loops = FALSE)
-  vrGraph(object, assay = assay, graph.type = method) <- graph
+  vrGraph(object, assay = assay, graph.type = graph.key) <- graph
 
   # return
   return(object)

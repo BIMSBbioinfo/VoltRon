@@ -776,6 +776,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, a
     g <- ggplot()
 
     # add points or segments
+    # datax <- datax[sample(1:nrow(datax)),]
     g <- g +
       geom_point(mapping = aes(x = x, y = y, color = score), datax, shape = 16, size = pt.size) +
       scale_color_gradientn(name = legend_title[[feat]],
@@ -914,6 +915,7 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 #' @param norm if TRUE, the normalized data is used
 #' @param scaled if TRUE, the data will be scaled before visualization
 #' @param show_row_names if TRUE, row names of the heatmap will be shown
+#' @param cluster_rows if TRUE, the rows of the heatmap will be clustered
 #' @param show_heatmap_legend if TRUE, the heatmap legend is shown
 #' @param outlier.quantile quantile for detecting outliers whose values are set to the quantile, change to lower values to adjust large number of outliers, default: 0.99
 #' @param highlight.some if TRUE, some rows will be showed at random, reproducible by \code{seed} arguement
@@ -928,7 +930,7 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 #' @export
 #'
 vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NULL, group.by = "clusters",
-                          norm = TRUE, scaled = TRUE, show_row_names = NULL, show_heatmap_legend = FALSE,
+                          norm = TRUE, scaled = TRUE, show_row_names = NULL, cluster_rows = TRUE, show_heatmap_legend = FALSE,
                           outlier.quantile = 0.99, highlight.some = FALSE, n_highlight = 30, font.size = 13.2, seed = 1, ...){
 
   if (!requireNamespace('ComplexHeatmap'))
@@ -953,7 +955,7 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
     }
   } else {
     nonmatching_features <- setdiff(features, vrFeatures(object))
-    features <- intersect(vrFeatures(object), features)
+    features <- features[features %in% vrFeatures(object)]
     if(length(features) == 0){
       stop("None of the provided features are found in the assay")
     }
@@ -1014,7 +1016,7 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
   ComplexHeatmap::Heatmap(heatmapdata,
                           show_row_names = show_row_names, show_row_dend = FALSE, row_names_gp = gpar(fontsize = font.size),
                           show_column_names = FALSE, column_title_rot = 45, column_title_gp = gpar(fontsize = font.size),
-                          column_split = col_split, cluster_columns = FALSE,
+                          column_split = col_split, cluster_columns = FALSE, cluster_rows = cluster_rows,
                           show_heatmap_legend = show_heatmap_legend,
                           heatmap_legend_param = list(title = "Exp.", at = legend_at, labels = legend_label),
                           right_annotation = ha,
