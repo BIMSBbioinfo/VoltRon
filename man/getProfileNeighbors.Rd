@@ -14,6 +14,7 @@ getProfileNeighbors(object, ...)
   dims = 1:30,
   k = 10,
   method = "kNN",
+  graph.key = method,
   ...
 )
 }

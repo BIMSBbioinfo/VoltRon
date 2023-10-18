@@ -13,6 +13,7 @@ vrHeatmapPlot(
   norm = TRUE,
   scaled = TRUE,
   show_row_names = NULL,
+  cluster_rows = TRUE,
   show_heatmap_legend = FALSE,
   outlier.quantile = 0.99,
   highlight.some = FALSE,
@@ -38,6 +39,8 @@ vrHeatmapPlot(
 \item{scaled}{if TRUE, the data will be scaled before visualization}
 
 \item{show_row_names}{if TRUE, row names of the heatmap will be shown}
+
+\item{cluster_rows}{if TRUE, the rows of the heatmap will be clustered}
 
 \item{show_heatmap_legend}{if TRUE, the heatmap legend is shown}
 

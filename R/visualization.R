@@ -1261,7 +1261,8 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
       guides(fill = guide_legend(title = group.by))
 
     if(length(features) > 1){
-      gg <- gg + facet_grid(variable~split.by, scales = "free_x", space = "free")
+      # gg <- gg + facet_grid(variable~split.by, scales = "free_x", space = "free")
+      gg <- gg + facet_grid(variable~split.by, scales = "free", space = "free_x")
       return(gg)
     } else {
       if(length(gg) < ncol) ncol <- length(gg)

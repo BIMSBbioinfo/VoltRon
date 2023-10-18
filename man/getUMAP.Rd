@@ -7,7 +7,14 @@
 \usage{
 getUMAP(object, ...)
 
-\method{getUMAP}{VoltRon}(object, assay = NULL, data.type = "pca", dims = 1:30, seed = 1)
+\method{getUMAP}{VoltRon}(
+  object,
+  assay = NULL,
+  data.type = "pca",
+  dims = 1:30,
+  umap.key = "umap",
+  seed = 1
+)
 }
 \arguments{
 \item{object}{An object}
@@ -19,6 +26,8 @@ getUMAP(object, ...)
 \item{data.type}{the type of data used to calculate UMAP from: "pca" (default), "raw" or "norm"}
 
 \item{dims}{the number of dimensions extracted from PCA}
+
+\item{umap.key}{the name of the umap embedding, default: umap}
 
 \item{seed}{seed}
 }
