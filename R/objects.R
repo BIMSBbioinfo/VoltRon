@@ -698,11 +698,11 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
   if(!is.null(samples)){
 
     # check assays associated with samples and subset for assays
-    if(samples %in% sample.metadata$Sample){
+    if(all(samples %in% sample.metadata$Sample)){
       assays <- rownames(sample.metadata)[sample.metadata$Sample %in% samples]
       return(subset.VoltRon(object, assays = assays))
     } else {
-      stop("The requested samples are not found in this VoltRon object!")
+      stop("Some requested samples are not found in this VoltRon object!")
     }
 
   } else if(!is.null(assays)){
