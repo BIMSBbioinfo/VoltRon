@@ -48,6 +48,7 @@ getDeconvolution <- function(object, assay = NULL, features = NULL, sc.object, s
                      type = cur_assay@type, params = cur_assay@params)
       object <- addAssay(object,
                          assay = rawdata,
+                         metadata = Metadata(object, assay = assy),
                          assay_name = paste(sample.metadata[assy, "Assay"], "decon", sep = "_"),
                          sample = sample.metadata[assy, "Sample"],
                          layer = sample.metadata[assy, "Layer"])
@@ -229,9 +230,16 @@ getMuSiC <- function(object, features = NULL, sc.object, sc.assay = "RNA", sc.cl
 
   # data
   datax <- as.matrix(vrData(object))
-  datax <- datax[features, ]
 
-  # deconvolute using
+  # common features
+  common_features <- intersect(rownames(scRNAseq), rownames(datax))
+  common_features <- intersect(common_features, features)
+  if(length(common_features) < 5)
+    stop("The number of common or selected features are less than 5!")
+  scRNAseq <- scRNAseq[rownames(scRNAseq) %in% common_features,]
+  datax <- datax[common_features,]
+
+  # deconvolute
   cat("Calculating Cell Type Compositions of ROIs with MuSiC ...\n")
   results <- MuSiC::music_prop(bulk.mtx = datax,
                         sc.sce = scRNAseq,

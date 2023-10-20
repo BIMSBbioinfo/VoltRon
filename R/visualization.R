@@ -1278,6 +1278,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 #' @param assay assay name
 #' @param x.label labels of the x axis
 #' @param split.by the column to split the barplots by
+#' @param split.method either facet_grid or facet_wrap, not affected if \code{split.by} is \code{NULL}
 #' @param ncol column wise number of plots, for \code{ggarrange}
 #' @param nrow row wise number of plots, for \code{ggarrange}
 #' @param ... additional parameters passed to \code{getVariableFeatures}
@@ -1287,7 +1288,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 #'
 #' @export
 #'
-vrProportionPlot <- function(object, assay = NULL, x.label = NULL, split.by = NULL, ncol = 2, nrow = NULL, ...){
+vrProportionPlot <- function(object, assay = NULL, x.label = NULL, split.by = NULL, split.method = "facet_wrap", ncol = 2, nrow = NULL, ...){
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -1334,7 +1335,6 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL, split.by = NU
     ylab("") + xlab("") +
     guides(fill = guide_legend(title = ""))
 
-
   if(is.null(split.by)){
     ggplotdatax <- data.frame(t(barplotdata),
                               x.label =  x.label,
@@ -1370,7 +1370,11 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL, split.by = NU
 
     # split
     if(length(gg) < ncol) ncol <- length(gg)
-    gg <- gg + facet_wrap(.~split.by, ncol = ncol, nrow = ceiling(length(unique(split.by.col))/ncol), scales = "free_x")
+    if(split.method == "facet_wrap"){
+      gg <- gg + facet_wrap(.~split.by, ncol = ncol, nrow = ceiling(length(unique(split.by.col))/ncol), scales = "free_x")
+    } else {
+      gg <- gg + facet_grid(.~split.by, scales = "free_x", space = "free_x", )
+    }
   }
   return(gg)
 }

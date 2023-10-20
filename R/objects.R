@@ -473,6 +473,7 @@ vrMainAssay.VoltRon <- function(object, ...) {
 }
 
 #' @param assay assay
+#' @param metadata a predefined metadata
 #' @param assay_name assay name
 #' @param sample sample name
 #' @param layer layer name
@@ -483,7 +484,7 @@ vrMainAssay.VoltRon <- function(object, ...) {
 #' @importFrom igraph union V
 #' @export
 #'
-addAssay.VoltRon <- function(object, assay, assay_name, sample = "Sample1", layer = "Section1"){
+addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample = "Sample1", layer = "Section1"){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -496,7 +497,7 @@ addAssay.VoltRon <- function(object, assay, assay_name, sample = "Sample1", laye
   # update sample.metadata and metadata
   object@sample.metadata <- rbind(sample.metadata, c(assay_name, layer, sample))
   rownames(object@sample.metadata) <- assay_names
-  object@metadata <- addAssay(object@metadata,
+  object@metadata <- addAssay(object@metadata, metadata = metadata,
                               assay = assay, assay_name = assay_name,
                               sample = sample, layer = layer)
 
@@ -985,7 +986,17 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
       return(object@metadata)
   }
   if(type %in% slotNames(object@metadata)){
-    return(slot(object@metadata, name = type))
+
+    # sample metadata
+    sample.metadata <- SampleMetadata(object)
+
+    # get assay names
+    assay_names <- vrAssayNames(object, assay = assay)
+
+    # get metadata
+    metadata <- slot(object@metadata, name = type)
+    metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assay_names, ]
+    return(metadata)
   } else {
     stop("Please provide one of three assay types: 'ROI', 'cell', 'spot'.")
   }

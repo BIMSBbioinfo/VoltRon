@@ -349,18 +349,16 @@ A2M    466.4328       4.925236 0.4542682 10.842133 2.173435e-27 3.774636e-24    
 
 ## ROI Deconvolution
 
-VoltRon supports multiple bulk RNA deconvolution algorithms to analyze the cellular composition of both ROIs and spots. In order to integrate the scRNA data and the GeoMx data sets within the VoltRon objects, we will use the [MuSiC](https://xuranw.github.io/MuSiC/articles/MuSiC.html) package. We will use a human lung scRNA dataset as reference, which is found here ([GSE198864](https://ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE198864)). Please download and unzip **GSE198864_lung_combined_all.rds.gz**. 
+VoltRon supports multiple bulk RNA deconvolution algorithms to analyze the cellular composition of both ROIs and spots. In order to integrate the scRNA data and the GeoMx data sets within the VoltRon objects, we will use the [MuSiC](https://xuranw.github.io/MuSiC/articles/MuSiC.html) package. We will use a human lung scRNA dataset as reference, which is found here ([GSE198864](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GSE198864_lung.rds)). 
 
 ```{r eval = FALSE, class.source="watch-out"}
 set.seed(1)
 library(Seurat)
 library(SingleCellExperiment)
-seu <- readRDS("GSE198864_lung_combined_all.rds")
+seu <- readRDS("GSE198864_lung.rds")
 scRNAlung <- seu[,sample(1:ncol(seu), 10000, replace = FALSE)]
 
-g1 <- DimPlot(scRNAlung, reduction = "umap", label = T, group.by = "cluster") + NoLegend()
-g2 <- DimPlot(scRNAlung, reduction = "umap", label = T, group.by = "predicted.id") + NoLegend()
-g1 | g2
+DimPlot(scRNAlung, reduction = "umap", label = T, group.by = "Clusters") + NoLegend()
 ```
 
 <img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_deconvolution_singlecell.png" class="center">
@@ -369,10 +367,10 @@ We utilize the **getDeconvolution** function to call wrapper functions for decon
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(MuSiC)
-GeoMxR1_decon <- getDeconvolution(GeoMxR1,
+GeoMxR1 <- getDeconvolution(GeoMxR1,
                             sc.object = scRNAlung, sc.assay = "RNA", 
-                            sc.cluster = "cluster", sc.samples = "orig.ident")
-SampleMetadata(GeoMxR1_decon)
+                            sc.cluster = "Clusters", sc.samples = "orig.ident")
+SampleMetadata(GeoMxR1)
 ```
 
 ```
@@ -395,11 +393,32 @@ Assay15 GeoMx_decon Section1 prolonged case 3
 Assay16 GeoMx_decon Section1   control case 1
 ```
 
-We can now visualize cell type compositions of each ROI. Before running **vrProportionPlot** function, we need to set the main assay as **GeoMx_decon**. 
+We can now visualize cell type compositions of each ROI. Before running **vrProportionPlot** function, we need to set the main assay as **GeoMx_decon**. One may see the increased proportion of cells NK cells and T cells in immune ROIs. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrMainAssay(GeoMxR1_decon) <- "GeoMx_decon"
-vrProportionPlot(GeoMxR1_decon)
+vrMainAssay(GeoMxR1) <- "GeoMx_decon"
+vrProportionPlot(GeoMxR1)
 ```
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_deconvolution.png" class="center">
+
+Here, we can subset the GeoMx object further to dive deep into the cellular proportions of each fibrotic region of prolonged cases. Comparing prolonged case 5 against case 4, we see an increase in the cellular population of the stromal cluster defined in [Mothes et. al 2023](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9922044/) (that are both vascular and airway smooth muscle cells), and an increase abundance of macrophages which may indicate that these macrophages are profibrotic being within and close to fibrotic regions with increased gene expression of FN1. 
+
+```{r eval = FALSE, class.source="watch-out"}
+# subsetting fibrotic regions
+spatialpoints <- vrSpatialPoints(GeoMxR1)[GeoMxR1$ROI.type == "fibrotic"]
+GeoMxR1_subset <- subset(GeoMxR1, spatialpoints = spatialpoints)
+
+# Proportion plot
+vrProportionPlot(GeoMxR1_decon_subset, x.label = "ROI.name", split.method = "facet_grid", 
+                 split.by = "Sample")
+
+# barplot 
+vrBarPlot(GeoMxR1_decon_subset, features = c("stromal", "macrophages"), group.by = "Sample",
+          x.label = "ROI.name", split.by = "Sample")
+```
+
+<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap_fibrotic.png" class="center">
+
+<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_barplot_prop_fibrotic.png" class="center">
+
