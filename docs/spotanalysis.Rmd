@@ -314,7 +314,7 @@ We can utilize dimensional reduction of the available protein markers using the 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 vr_merged <- getPCA(vr_merged, dims = 10)
 vr_merged <- getUMAP(vr_merged, dims = 1:10)
-vrEmbeddingFeaturePlot(vr_merged, features = c("CollagenIV", "CD11b"), embedding = "umap")
+vrEmbeddingFeaturePlot(vr_merged, features = c("CD31", "Pancytokeratin"), embedding = "umap")
 ```
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_embedding.png" class="center">

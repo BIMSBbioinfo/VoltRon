@@ -181,7 +181,9 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcript
       if(nrow(subcellular) > 0){
         subcellular <- subcellular[subcellular[["feature_name"]] %in% transcripts,]
         g <- g +
-          geom_point(mapping = aes_string(x = "x", y = "y", fill = "feature_name", color = "feature_name"), subcellular, shape = 21, size = pt.size, alpha = 1)
+          geom_point(mapping = aes_string(x = "x", y = "y", fill = "feature_name", color = "feature_name"), subcellular, shape = 21, size = pt.size, alpha = 1) +
+          guides(fill = guide_legend(title = "features", override.aes=list(size = legend.pt.size)),
+                 color =  guide_legend(title = "features", override.aes=list(size = legend.pt.size)))
       } else {
         stop("No transcript name was provided!")
       }
