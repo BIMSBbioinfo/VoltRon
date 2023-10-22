@@ -122,7 +122,7 @@ vrNeighbourhoodEnrichment <- function(object, assay = NULL, group.by = NULL, gra
 #' @param num.sim the number of simulations
 #' @param seed seed
 #'
-#' @importFrom dplyr group_by bind_rows filter summarize mutate
+#' @importFrom dplyr group_by bind_rows filter summarize mutate n
 #' @importFrom igraph neighborhood
 #'
 vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type = "delaunay", num.sim = 1000, seed = 1) {
@@ -158,7 +158,7 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
   `%notin%` <- Negate(`%in%`)
   neigh_results <- neighbors_graph_data %>%
     dplyr::group_by(from_value, to_value, type) %>%
-    dplyr::summarize(mean_value = n()) %>%
+    dplyr::summarize(mean_value = dplyr::n()) %>%
     dplyr::group_by(from_value, to_value) %>%
     dplyr::mutate(assoc_test = mean_value > ifelse("obs" %in% type, mean_value[type == "obs"], 0),
                   segreg_test = mean_value < ifelse("obs" %in% type, mean_value[type == "obs"], 0)) %>%

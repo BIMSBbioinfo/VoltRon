@@ -693,13 +693,14 @@ acute_case_1:
 There are 13 samples in total 
 Assays: MELC(Main) </code></pre>
 <p><br></p>
-<p>The first control case have three fields of views (FOVs). By
-subsetting on the sample of the first control case, we can visualize
-only these three sections, and visualize multiple protein markers of
-interest.</p>
-<pre class="r watch-out"><code>vr_subset &lt;- subset(vr_merged, samples = &quot;control_case_1&quot;)
-vrSpatialFeaturePlot(vr_subset, features = c(&quot;CollagenIV&quot;, &quot;CD11b&quot;), alpha = 1, 
-                     pt.size = 0.7)</code></pre>
+<p>The prolonged case 4 has two fields of views (FOVs). By subsetting on
+the sample of a prolonged case, we can visualize only these two
+sections, and visualize the protein expression of CD31 and
+Pancytokeratin which are markers of endothelial and epithelial
+cells.</p>
+<pre class="r watch-out"><code>vr_subset &lt;- subset(vr_merged, samples = &quot;prolonged_case_4&quot;)
+g1 &lt;- vrSpatialFeaturePlot(vr_subset, features = c(&quot;CD31&quot;, &quot;Pancytokeratin&quot;), alpha = 1, 
+                           pt.size = 0.7, background = &quot;black&quot;)</code></pre>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatialfeature.png" class="center"></p>
 <p><br></p>
 </div>

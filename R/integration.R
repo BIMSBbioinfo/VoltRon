@@ -25,7 +25,7 @@ transferData <- function(object, from = NULL, to = NULL, features = NULL, new_as
   # get assays
   to_object <- object[[to]]
   from_object <- object[[from]]
-  from_metadata <- Metadata(object, type = from_object@type)
+  from_metadata <- Metadata(object, assay = from, type = from_object@type)
   from_metadata <- from_metadata[grepl(paste0(from, "$"), rownames(from_metadata)),]
 
   # get assay types

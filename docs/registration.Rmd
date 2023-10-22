@@ -201,14 +201,17 @@ Assay3        Xenium Section3 10XBlock
 Assay4 Visium_pseudo Section2 10XBlock
 ```
 
-We can now visualize both the original and aggregated counts of a gene, say TACSTD2, to validate the correlation of gene signatures across adjacent tissue sections, and to validate the accuracy of the automated image alignment.
+We can now visualize both the original and aggregated counts of a gene, such as ERBB2 and ESR1 that marks ductal carcinoma in situ (DCIS) regions, to validate the correlation of gene signatures across adjacent tissue sections, and to validate the accuracy of the automated image alignment. Here, PGR is also expressed at a small DCIS region found on adipocyte niche of the tissue. 
 
 ```{r class.source="watch-out", eval = FALSE}
-g1 <- vrSpatialFeaturePlot(VRBlock, assay = "Visium", features = "TACSTD2", 
-                           crop = TRUE, norm = FALSE)
-g2 <- vrSpatialFeaturePlot(VRBlock, assay = "Visium_pseudo", features = "TACSTD2", 
-                           crop = TRUE, norm = FALSE)
-g1 + g2
+library(patchwork)
+g1 <- vrSpatialFeaturePlot(VRBlock, assay = "Visium", 
+                           features = c("ERBB2", "ESR1", "PGR"), crop = FALSE, 
+                           norm = FALSE, ncol = 3)
+g2 <- vrSpatialFeaturePlot(VRBlock, assay = "Visium_pseudo", 
+                           features = c("ERBB2", "ESR1", "PGR"), crop = FALSE, 
+                           norm = FALSE, ncol = 3)
+g1 / g2
 ```
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_TACSTD2.png" class="center">
@@ -227,7 +230,7 @@ Here, we can see that both Xenium layers are clustered and annotated where we ca
 
 ```{r class.source="watch-out", eval = FALSE}
 VRBlock <- transferData(VRBlock, from = "Assay1", to = "Assay2", features = "CellType", 
-                         new_assay_name = "Visium_pseudo_CellType")
+                        new_assay_name = "Visium_pseudo_CellType")
 SampleMetadata(VRBlock)
 ```
 
@@ -240,10 +243,12 @@ Assay4          Visium_pseudo Section2 10XBlock
 Assay5 Visium_pseudo_CellType Section2 10XBlock
 ```
 
+By visualizing the transferred labels on the Visium spots, we can see that DCIS_2 CEACAM6+ cell type is more abundant in this niche which was also founds to be triple positive PGR+/ERBB2+/ESR1+ locations.
+
 ```{r class.source="watch-out", eval = FALSE}
-vrSpatialFeaturePlot(VRBlock_new, features = c("KRT15_myoepithelial",
-                                               "ACT2_myoepithelial"), 
-                     crop = TRUE)
+vrSpatialFeaturePlot(VRBlock_new, assay = "Visium_pseudo_CellType",
+                     features = c("DCIS_1","DCIS_2_CEACAM6+", "DCIS_3_TACSTD2+"), 
+                     crop = TRUE, alpha = 1, ncol = 3)
 ```
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_CellType.png" class="center">

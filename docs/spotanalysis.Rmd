@@ -295,12 +295,12 @@ Assays: MELC(Main)
 
 <br>
 
-The first control case have three fields of views (FOVs). By subsetting on the sample of the first control case, we can visualize only these three sections, and visualize multiple protein markers of interest. 
+The prolonged case 4 has two fields of views (FOVs). By subsetting on the sample of a prolonged case, we can visualize only these two sections, and visualize the protein expression of CD31 and Pancytokeratin which are markers of endothelial and epithelial cells.
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-vr_subset <- subset(vr_merged, samples = "control_case_1")
-vrSpatialFeaturePlot(vr_subset, features = c("CollagenIV", "CD11b"), alpha = 1, 
-                     pt.size = 0.7)
+vr_subset <- subset(vr_merged, samples = "prolonged_case_4")
+g1 <- vrSpatialFeaturePlot(vr_subset, features = c("CD31", "Pancytokeratin"), alpha = 1, 
+                           pt.size = 0.7, background = "black")
 ```
 
 <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatialfeature.png" class="center">
