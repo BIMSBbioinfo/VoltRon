@@ -267,7 +267,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcript
 #' @export
 #'
 vrSpatialFeaturePlot <- function(object, features, group.by = "label", norm = TRUE, log = FALSE, assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
-                         font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, background = NULL,
+                         font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, background = NULL, reg = FALSE,
                          crop = FALSE, common.legend = FALSE, collapse = TRUE) {
 
   # check object
@@ -349,7 +349,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", norm = TR
       l_title <- legend_title[[feat]]
       gg[[i]] <- vrSpatialFeaturePlotSingle(assay = cur_assay, metadata = cur_metadata, feature = feat, limits = limits[[feat]][[assy]],
                               group.by = group.by, norm = norm, log = log, font.size = font.size, pt.size = pt.size, title.size = title.size, alpha = alpha,
-                              label = label, plot_title = p_title, legend_title = l_title, background = background, crop = crop)
+                              label = label, plot_title = p_title, legend_title = l_title, background = background, reg = reg, crop = crop)
       i <- i + 1
     }
   }
@@ -391,6 +391,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", norm = TR
 #' @param plot_title the main title of the single plot
 #' @param legend_title the legend title of the single plot
 #' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
+#' @param reg if TRUE, the registered coordinates will be used
 #' @param crop whether to crop an image of a spot assay
 #'
 #' @import ggplot2
@@ -398,10 +399,11 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", norm = TR
 #' @importFrom ggforce geom_ellipse
 #'
 vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.by = "label", norm = TRUE, log = FALSE,
-                               font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL, legend_title = NULL, background = NULL, crop = FALSE){
+                               font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL,
+                               legend_title = NULL, background = NULL, reg = FALSE, crop = FALSE){
 
   # data
-  coords <- as.data.frame(vrCoordinates(assay))
+  coords <- as.data.frame(vrCoordinates(assay, reg = reg))
   normdata <- vrData(assay, norm = norm)
   if(log)
     normdata <- log(normdata)
@@ -465,8 +467,9 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.b
                              colors=c("dodgerblue3", "yellow", "red"),
                              values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
   } else {
+    # coords <- coords[sample(rownames(coords)),]
     g <- g +
-      geom_point(mapping = aes(x = x, y = y, colour = score), coords, shape = 16, size = rel(pt.size), alpha = alpha) +
+      geom_point(mapping = aes(x = x, y = y, colour = score), arrange(coords,score), shape = 16, size = rel(pt.size), alpha = alpha) +
       scale_colour_gradientn(name = legend_title,
                              colors=c("dodgerblue2", "white", "yellow3"),
                              values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
@@ -490,8 +493,13 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, limits, group.b
         coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
     }
   } else {
-    g <- g +
-      xlim(0,info$width) + ylim(0, info$height)
+    if(crop){
+      g <- g +
+        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
+    } else {
+      g <- g +
+        xlim(0,info$width) + ylim(0, info$height)
+    }
   }
 
   # background
