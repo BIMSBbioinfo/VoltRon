@@ -1157,7 +1157,7 @@ vrGraph.VoltRon <- function(object, assay = NULL, graph.type = "kNN", ...) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
-  assay_pattern <- paste0(assay_names, collapse = "|")
+  assay_pattern <- paste0(assay_names, "$", collapse = "|")
   node_names <- vrSpatialPoints(object)[grepl(assay_pattern, vrSpatialPoints(object))]
 
   # check if there exists graphs
