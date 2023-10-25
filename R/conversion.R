@@ -64,6 +64,50 @@ as.VoltRon.Seurat <- function(object, ...){
   formVoltRon(rawdata, metadata, image, coords, main.assay = assay_name, params = params, assay.type = assay.type, ...)
 }
 
+#' convertAnnDataToVoltRon
+#'
+#' converting AnnData h5ad files to VoltRon objects
+#'
+#' @param file h5ad file
+#' @param AssayID the ID assays in the h5ad file
+#' @param ... additional parameters passed to \code{formVoltRon}
+#'
+#' @importFrom anndata AnnData read_h5ad
+#'
+#' @export
+#'
+convertAnnDataToVoltRon <- function(file, AssayID = NULL, Sample = ""){
+
+  # read anndata
+  adata <- anndata::read_h5ad(file)
+
+  # raw counts
+  rawdata <- as.matrix(t(adata$X))
+
+  # metadata
+  metadata <- adata$obs
+
+  # coordinates and subcellular
+  if(is.null(AssayID)){
+    coords <- data.frame(adata$obsm, row.names = colnames(rawdata))
+    coords <- apply(coords, 2, as.numeric)
+    colnames(coords) <- c("x", "y")
+
+    # scale coordinates and assay.type
+    params <- list()
+    assay.type <- "cell"
+    assay_name <- "Xenium"
+
+    # create VoltRon
+    object <- formVoltRon(rawdata, metadata, image = NULL, coords, main.assay = assay_name, params = params, assay.type = assay.type, ...)
+
+    # return
+    return(object)
+  } else {
+
+  }
+}
+
 ####
 # Other Packages ####
 ####
@@ -145,6 +189,7 @@ as.Seurat.VoltRon <- function(object, assay = NULL, image_key = "fov", type = c(
 #'
 #' @importFrom anndata AnnData write_h5ad
 #' @importFrom stringr str_extract
+#'
 #' @export
 #'
 as.AnnData.VoltRon <- function(object, file, assay = NULL, image_key = "fov", type = c("image", "spatial")){
