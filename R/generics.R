@@ -644,6 +644,22 @@ as.Seurat <- function(object, ...) {
   UseMethod(generic = 'as.Seurat', object = object)
 }
 
+#' as.AnnData
+#'
+#' Generic methods for conversion into a AnnData object
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{as.AnnData}: The name of the default assay
+#'
+#' @rdname as.AnnData
+#' @export as.AnnData
+#'
+as.AnnData <- function(object, ...) {
+  UseMethod(generic = 'as.AnnData', object = object)
+}
+
 #' as.Giotto
 #'
 #' Generic methods for conversion into a Giotto object

@@ -134,3 +134,57 @@ as.Seurat.VoltRon <- function(object, assay = NULL, image_key = "fov", type = c(
   # return
   seu
 }
+
+#' @param assay the name(type) of the assay to be converted
+#' @param file the name of the h5ad file
+#' @param image_key the name (or prefix) of the image(s)
+#' @param type the spatial data type of Seurat object: "image" or "spatial"
+#'
+#' @rdname as.AnnData
+#' @method as.AnnData VoltRon
+#'
+#' @importFrom anndata AnnData write_h5ad
+#' @importFrom stringr str_extract
+#' @export
+#'
+as.AnnData.VoltRon <- function(object, file, assay = NULL, image_key = "fov", type = c("image", "spatial")){
+
+  # check Seurat package
+  if(!requireNamespace('Seurat'))
+    stop("Please install Seurat package for using Seurat objects")
+
+  # check the number of assays
+  if(is.null(assay)){
+    if(length(unique(SampleMetadata(object)[["Assay"]])) > 1){
+      stop("You can only convert a single VoltRon assay into a Seurat object!")
+    } else {
+      assay <- SampleMetadata(object)[["Assay"]]
+    }
+  } else {
+    vrMainAssay(object) <- assay
+  }
+
+  # check the number of assays
+  if(unique(vrAssayTypes(object, assay = assay)) %in% c("spot","ROI")) {
+    stop("Conversion of Spot or ROI assays into Seurat is not permitted!")
+  }
+
+  # data
+  data <- vrData(object, assay = assay, norm = FALSE)
+
+  # metadata
+  metadata <- Metadata(object, assay = assay)
+  metadata$AssayID <- stringr::str_extract(rownames(metadata), "_Assay[0-9]+$")
+
+  # coordinates
+  coords <- vrCoordinates(object, assay = assay, reg = TRUE)
+
+  # create anndata
+  adata <- anndata::AnnData(X = t(data), obs = metadata, obsm = list(spatial = coords, spatial_AssayID = coords))
+
+  # create anndata file
+  anndata::write_h5ad(adata, filename = file)
+
+  # return
+  NULL
+}
