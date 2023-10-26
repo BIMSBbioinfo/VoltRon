@@ -9,11 +9,13 @@ vrSpatialPlotSingle(
   metadata,
   group.by = "Sample",
   transcripts = NULL,
+  graph = NULL,
   font.size = 2,
   pt.size = 2,
   alpha = 1,
   plot_title = NULL,
   background = NULL,
+  reg = FALSE,
   crop = FALSE,
   legend.pt.size = 2
 )
@@ -27,6 +29,8 @@ vrSpatialPlotSingle(
 
 \item{transcripts}{Only for spatial data with existing subcellular information, visualize the location of given transcripts}
 
+\item{graph}{if not NULL, the graph is added to the plot}
+
 \item{font.size}{font sizes}
 
 \item{pt.size}{point size}
@@ -36,6 +40,8 @@ vrSpatialPlotSingle(
 \item{plot_title}{the title of the single plot}
 
 \item{background}{the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)}
+
+\item{reg}{if TRUE, the registered coordinates will be used}
 
 \item{crop}{whether to crop an image of a spot assay}
 

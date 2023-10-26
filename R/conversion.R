@@ -76,7 +76,7 @@ as.VoltRon.Seurat <- function(object, ...){
 #'
 #' @export
 #'
-convertAnnDataToVoltRon <- function(file, AssayID = NULL, Sample = ""){
+convertAnnDataToVoltRon <- function(file, AssayID = NULL, Sample = NULL, ...){
 
   # read anndata
   adata <- anndata::read_h5ad(file)
@@ -104,7 +104,6 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, Sample = ""){
     # return
     return(object)
   } else {
-
   }
 }
 

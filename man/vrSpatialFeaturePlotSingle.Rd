@@ -8,6 +8,7 @@ vrSpatialFeaturePlotSingle(
   assay,
   metadata,
   feature,
+  graph = NULL,
   limits,
   group.by = "label",
   norm = TRUE,
@@ -20,6 +21,7 @@ vrSpatialFeaturePlotSingle(
   plot_title = NULL,
   legend_title = NULL,
   background = NULL,
+  reg = FALSE,
   crop = FALSE
 )
 }
@@ -29,6 +31,8 @@ vrSpatialFeaturePlotSingle(
 \item{metadata}{the metadata associated with the assay}
 
 \item{feature}{a feature, either from the rows of rawdata, normdata or columns of the metadata}
+
+\item{graph}{if not NULL, the graph is added to the plot}
 
 \item{limits}{limits of the legend of the plot}
 
@@ -53,6 +57,8 @@ vrSpatialFeaturePlotSingle(
 \item{legend_title}{the legend title of the single plot}
 
 \item{background}{the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)}
+
+\item{reg}{if TRUE, the registered coordinates will be used}
 
 \item{crop}{whether to crop an image of a spot assay}
 }

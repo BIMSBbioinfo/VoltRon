@@ -10,6 +10,7 @@ vrSpatialPlot(
   transcripts = NULL,
   assay = NULL,
   assay.type = NULL,
+  graph.name = NULL,
   ncol = 2,
   nrow = NULL,
   font.size = 2,
@@ -17,6 +18,7 @@ vrSpatialPlot(
   alpha = 1,
   label = FALSE,
   background = NULL,
+  reg = FALSE,
   crop = FALSE,
   legend.pt.size = 2,
   legend.loc = "right",
@@ -35,6 +37,8 @@ vrSpatialPlot(
 
 \item{assay.type}{the assay type name: 'cell', 'spot' or 'ROI'}
 
+\item{graph.name}{if not NULL, the spatial graph is with name \code{graph.name} is visualized as well}
+
 \item{ncol}{column wise number of plots, for \code{ggarrange}}
 
 \item{nrow}{row wise number of plots, for \code{ggarrange}}
@@ -48,6 +52,8 @@ vrSpatialPlot(
 \item{label}{if TRUE, the labels of the ROI assays will be visualized}
 
 \item{background}{the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)}
+
+\item{reg}{if TRUE, the registered coordinates will be used}
 
 \item{crop}{whether to crop an image of a spot assay}
 
