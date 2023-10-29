@@ -13,22 +13,27 @@ NULL
 #' @param method the method used for graph construction, SNN or kNN
 #' @param ... additional parameters passed to \code{FNN:get.knn}
 #'
-#' @rdname getNeighbors
-#' @method getNeighbors VoltRon
+#' @rdname getProfileNeighbors
+#' @method getProfileNeighbors VoltRon
 #'
-#' @importFrom igraph add_edges simplify make_empty_graph vertices
+#' @importFrom igraph add_edges simplify make_empty_graph vertices E<- E
 #' @importFrom FNN get.knn
 #'
 #' @export
 #'
-getNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30, k = 10, method = "kNN", ...){
+getProfileNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30, k = 10, method = "kNN", graph.key = method, ...){
 
   # get data
   if(data.type %in% c("raw", "norm")){
     nndata <- vrData(object, assay = assay, norm = (data.type == "norm"))
     nndata <- t(nndata)
   } else {
-    nndata <- vrEmbeddings(object, assay = assay, type = data.type, dims = dims)
+    embedding_names <- vrEmbeddingNames(object)
+    if(data.type %in% vrEmbeddingNames(object)) {
+      nndata <- vrEmbeddings(object, assay = assay, type = data.type, dims = dims)
+    } else {
+      stop("Please provide a data type from one of three choices: raw, norm and pca")
+    }
   }
 
   # find neighborhood
@@ -36,42 +41,36 @@ getNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca", dims =
   nnedges <-
     switch(method,
            SNN = {
-             nnedges <- apply(nnedges$nn.index, 1, function(x) {
-               result <- rep(0, nrow(nndata))
-               result[x] <- 1
-               return(result)
-             }, simplify = FALSE)
-             nnedges <- do.call(rbind, nnedges)
-             jaccard_matrix <- jaccard_similarity(nnedges)
-             jaccard_matrix[jaccard_matrix < 0.5] <- 0
-             nnedges <- apply(jaccard_matrix, 1, function(x) which(x > 0))
+             g.out <- build_snn_number(nnedges$nn.index)
+             nnedges <- g.out[[1]]
+             weights <- g.out[[2]]
+             weights <- weights/(2 * (k+2) - weights)
              nnedges
            },
            kNN = {
              nnedges <- nnedges$nn.index
+             nnedges <- cbind(1:nrow(nndata), nnedges)
+             nnedges <- apply(nnedges, 1, function(x){
+               do.call(c,lapply(x[-1], function(y) return(c(x[1],y))))
+             })
              nnedges
            })
-
-  # add edges to the graph
-  nnedges <- cbind(1:nrow(nndata), nnedges)
-  nnedges <- apply(nnedges, 1, function(x){
-    do.call(c,lapply(x[-1], function(y) return(c(x[1],y))))
-  })
   nnedges <- rownames(nndata)[nnedges]
 
   # make graph and add edges
-  object@graph <- make_empty_graph(directed = FALSE) + vertices(V(object@graph)$name)
-  object@graph <- add_edges(object@graph, edges = nnedges)
-
-  # remove multiple edges
-  object@graph <- simplify(object@graph, remove.multiple = TRUE, remove.loops = FALSE)
+  graph <- make_empty_graph(directed = FALSE) + vertices(rownames(nndata))
+  graph <- add_edges(graph, edges = nnedges)
+  if(!is.null(weights))
+    igraph::E(graph)$weight <- weights
+  graph <- simplify(graph, remove.multiple = TRUE, remove.loops = FALSE)
+  vrGraph(object, assay = assay, graph.type = graph.key) <- graph
 
   # return
   return(object)
 }
 
 ####
-# Nearest Neighbor graphs ####
+# Clustering ####
 ####
 
 #' getClusters
@@ -82,11 +81,12 @@ getNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca", dims =
 #' @param resolution the resolution parameter for leiden clustering
 #' @param assay assay
 #' @param label the name for the newly created clustering column in the metadata
+#' @param graph the graph type to be used
 #'
 #' @importFrom igraph cluster_leiden
 #' @export
 #'
-getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters"){
+getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters", graph = "kNN"){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -98,7 +98,7 @@ getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters"
   object_subset <- subset(object, assays = assay_names)
 
   # graph
-  object_graph <- vrGraph(object_subset)
+  object_graph <- vrGraph(object_subset, assay = assay, graph.type = graph)
 
   # clustering
   clusters <- igraph::cluster_leiden(object_graph, objective_function = "modularity", resolution_parameter = resolution)

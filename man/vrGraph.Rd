@@ -2,22 +2,34 @@
 % Please edit documentation in R/generics.R, R/objects.R
 \name{vrGraph}
 \alias{vrGraph}
+\alias{vrGraph<-}
 \alias{vrGraph.VoltRon}
+\alias{vrGraph<-.VoltRon}
 \title{vrGraph}
 \usage{
 vrGraph(object, ...)
 
-\method{vrGraph}{VoltRon}(object, assay = NULL, ...)
+vrGraph(object, ...) <- value
+
+\method{vrGraph}{VoltRon}(object, assay = NULL, graph.type = "kNN", ...)
+
+\method{vrGraph}{VoltRon}(object, assay = NULL, graph.type = "kNN", ...) <- value
 }
 \arguments{
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
 
+\item{value}{new Feature Data}
+
 \item{assay}{assay}
+
+\item{graph.type}{the type of the graph, either custom or given by \code{getProfileNeighbors} or \code{getSpatialNeighbors} functions}
 }
 \value{
 \code{vrGraph}: The name of the default assay
+
+\code{vrGraph<-}: graph updated
 }
 \description{
 Get graph from the main.assay

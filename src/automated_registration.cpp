@@ -115,7 +115,6 @@ cv::Mat preprocessImage(Mat &im, const bool invert, const char* flipflop, const 
   } else {
     imRotate = imNorm;
   }
-  imwrite("test_rotate.jpg", imRotate);
 
   // Flipflop image
   Mat imFlipFlop;

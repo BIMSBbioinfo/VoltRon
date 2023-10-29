@@ -8,8 +8,11 @@ vrSpatialFeaturePlot(
   object,
   features,
   group.by = "label",
+  norm = TRUE,
+  log = FALSE,
   assay = NULL,
   assay.type = NULL,
+  graph.name = NULL,
   ncol = 2,
   nrow = NULL,
   font.size = 2,
@@ -18,7 +21,8 @@ vrSpatialFeaturePlot(
   alpha = 0.6,
   keep.scale = "feature",
   label = FALSE,
-  background = "image",
+  background = NULL,
+  reg = FALSE,
   crop = FALSE,
   common.legend = FALSE,
   collapse = TRUE
@@ -31,9 +35,15 @@ vrSpatialFeaturePlot(
 
 \item{group.by}{a grouping label for the spatial entities}
 
+\item{norm}{if TRUE, the normalized data is used}
+
+\item{log}{if TRUE, data features (excluding metadata features) will be log transformed}
+
 \item{assay}{the assay name}
 
 \item{assay.type}{the assay type name: 'cell', 'spot' or 'ROI'}
+
+\item{graph.name}{if not NULL, the spatial graph is with name \code{graph.name} is visualized as well}
 
 \item{ncol}{column wise number of plots, for \code{ggarrange}}
 

@@ -13,7 +13,7 @@
 
 <title>Image Registration</title>
 
-<script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -486,8 +486,8 @@ Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;Xenium
 Xen_R2 &lt;- importXenium(&quot;Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;)
 Vis &lt;- importVisium(&quot;Visium/&quot;, sample_name = &quot;VisiumR1&quot;)</code></pre>
 <p>Before moving on to image alignment, we can inspect both Xenium and
-Visium images. We use the vrImages() function to call and visualize
-reference images of all VoltRon objects.</p>
+Visium images. We use the <strong>vrImages</strong> function to call and
+visualize reference images of all VoltRon objects.</p>
 <pre class="r watch-out"><code>vrImages(Xen_R1)
 vrImages(Xen_R2)
 vrImages(Vis)</code></pre>
@@ -582,25 +582,111 @@ the same sample, hence we define the sample name as well. VoltRon will
 recognize that all layers are originated from the same sample/block, and
 choose the majority assay as the main assay.</p>
 <pre class="r watch-out"><code>merge_list &lt;- xen_reg$registered_spat
-SRBlock &lt;- merge(merge_list[[1]], merge_list[-1], samples = &quot;10XBlock&quot;)
-SRBlock</code></pre>
+VRBlock &lt;- merge(merge_list[[1]], merge_list[-1], samples = &quot;10XBlock&quot;)
+VRBlock</code></pre>
 <pre><code>10XBlock: 
   Layers: Section1 Section2 Section3 
 Assays: Xenium(Main) Visium</code></pre>
 <p><br></p>
 </div>
-<div id="datalabel-transfer" class="section level3">
-<h3>Data/Label Transfer</h3>
+<div id="datalabel-transfer-across-layers" class="section level3">
+<h3>Data/Label Transfer Across Layers</h3>
 <p>The combined VoltRon object of Visium and Xenium datasets can be used
 to transfer information across layers and assays. This is accomplished
 by aggregating and summarizing, for example, gene counts of cells from
 the Xenium assay aligned to Visium spots. Either labels or cell types
-can be summarized to generate <strong>(under development)</strong>;</p>
+can be summarized to generate:</p>
 <ul>
 <li>pseudo cell type abundance assays or</li>
 <li>pseudo gene expression assays.</li>
 </ul>
 <p><br></p>
+<div id="data-transfer" class="section level4">
+<h4>Data Transfer</h4>
+<p>We must first determine the names of the assays where labels are
+transfered <strong>from</strong> one <strong>to</strong> the other. For
+the sake of this tutorial, we can select Assay1 of <strong>Xenium as the
+source</strong> assay and the Assay2 of <strong>Visium as the
+destination</strong> assay.</p>
+<pre class="r watch-out"><code>SampleMetadata(VRBlock)</code></pre>
+<pre><code>        Assay    Layer   Sample
+Assay1 Xenium Section1 10XBlock
+Assay2 Visium Section2 10XBlock
+Assay3 Xenium Section3 10XBlock</code></pre>
+<p>The <strong>transferData</strong> function detects the types of both
+the <strong>source (from)</strong> and the <strong>destination
+(to)</strong> assays and determines the how the data should be
+transfered. Since we transfer data from the Xenium assay to the Visium
+assay (hence <strong>Cells -&gt; Spots</strong>), the raw count data of
+each cell in the source Xenium assay will be aggregated into spots in a
+newly create pseudo Visium assay. The new assay with aggregated counts
+will be named <strong>Visium_pseudo</strong>.</p>
+<pre class="r watch-out"><code>VRBlock &lt;- transferData(VRBlock, from = &quot;Assay1&quot;, to = &quot;Assay2&quot;)</code></pre>
+<p>VoltRon supports multiple assays within each layer. Now, Section 2
+includes two spot-type assays:</p>
+<ul>
+<li>the original Visium spot assay,</li>
+<li>a pseudo Visium assay with aggregated Xenium raw counts.</li>
+</ul>
+<pre class="r watch-out"><code>SampleMetadata(VRBlock)</code></pre>
+<pre><code>               Assay    Layer   Sample
+Assay1        Xenium Section1 10XBlock
+Assay2        Visium Section2 10XBlock
+Assay3        Xenium Section3 10XBlock
+Assay4 Visium_pseudo Section2 10XBlock</code></pre>
+<p>We can now visualize both the original and aggregated counts of a
+gene, such as ERBB2 and ESR1 that marks ductal carcinoma in situ (DCIS)
+regions, to validate the correlation of gene signatures across adjacent
+tissue sections, and to validate the accuracy of the automated image
+alignment. Here, PGR is also expressed at a small DCIS region found on
+adipocyte niche of the tissue.</p>
+<pre class="r watch-out"><code>library(patchwork)
+g1 &lt;- vrSpatialFeaturePlot(VRBlock, assay = &quot;Visium&quot;, 
+                           features = c(&quot;ERBB2&quot;, &quot;ESR1&quot;, &quot;PGR&quot;), crop = FALSE, 
+                           norm = FALSE, ncol = 3)
+g2 &lt;- vrSpatialFeaturePlot(VRBlock, assay = &quot;Visium_pseudo&quot;, 
+                           features = c(&quot;ERBB2&quot;, &quot;ESR1&quot;, &quot;PGR&quot;), crop = FALSE, 
+                           norm = FALSE, ncol = 3)
+g1 / g2</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_TACSTD2.png" class="center"></p>
+</div>
+<div id="label-transfer" class="section level4">
+<h4>Label Transfer</h4>
+<p>The <strong>transferData</strong> function can also transfer
+<strong>metadata features</strong> across layers and assays. In this
+case, we will transfer cell type labels that were trained on the Xenium
+sections onto the Visium sections. We will use the cluster labels
+generated at the end of the Xenium analysis section of workflow from <a
+href="spotanalysis.html">Cell/Spot Analysis</a>. You can download the
+VoltRon object with clustered Xenium cells from <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip">here</a>.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(VRBlock, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;, pt.size = 0.4)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_annotated.png" class="center"></p>
+<p>Here, we can see that both Xenium layers are clustered and annotated
+where we can use these cell annotations and transfer them to the Visium
+assay to create an assay of <strong>estimated cell type
+abundances</strong>. If the features argument is specified, and if its a
+single metadata feature with, e.g. cell types, then the each spot at the
+new pseudo Visium will be collection of abundances of the categories
+within that metadata feature.</p>
+<pre class="r watch-out"><code>VRBlock &lt;- transferData(VRBlock, from = &quot;Assay1&quot;, to = &quot;Assay2&quot;, features = &quot;CellType&quot;, 
+                         new_assay_name = &quot;Visium_pseudo_CellType&quot;)
+SampleMetadata(VRBlock)</code></pre>
+<pre><code>                        Assay    Layer   Sample
+Assay1                 Xenium Section1 10XBlock
+Assay2                 Visium Section2 10XBlock
+Assay3                 Xenium Section3 10XBlock
+Assay4          Visium_pseudo Section2 10XBlock
+Assay5 Visium_pseudo_CellType Section2 10XBlock</code></pre>
+<p>By visualizing the transferred labels on the Visium spots, we can see
+that DCIS_2 CEACAM6+ cell type is more abundant in this niche which was
+also founds to be triple positive PGR+/ERBB2+/ESR1+ locations.</p>
+<pre class="r watch-out"><code>vrSpatialFeaturePlot(VRBlock_new, assay = &quot;Visium_pseudo_CellType&quot;,
+                     features = c(&quot;DCIS_1&quot;,&quot;DCIS_2_CEACAM6+&quot;, &quot;DCIS_3_TACSTD2+&quot;), 
+                     crop = TRUE, alpha = 1, ncol = 3)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_CellType.png" class="center"></p>
+<p><br></p>
+</div>
 </div>
 </div>
 <div id="alignment-of-dlpfc-visium" class="section level2">
@@ -727,7 +813,7 @@ $(document).ready(function ()  {
 
     // establish options
     var options = {
-      selectors: "h1,h2,h3",
+      selectors: "h1,h2,h3,h4",
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {

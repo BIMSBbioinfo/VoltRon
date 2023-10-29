@@ -22,11 +22,13 @@ setOldClass(Classes = c('bitmap'))
 #' @slot embeddings list of embeddings
 #' @slot coords spatial coordinates of the assay
 #' @slot coords_reg spatial coordinates of the registered assay
-#' @slot segments spatial coordinates of the segments
-#' @slot segments_reg spatial coordinates of the registered segments
+#' @slot segments spatial coordinates of the segments, if available
+#' @slot segments_reg spatial coordinates of the registered segments, if available
+#' @slot subcellular subcellular data of the assays, if available
 #' @slot image image of the spatial assay, bitmap class
 #' @slot params additional parameters used by different assay types
 #' @slot type the type of the assay (cell, spot, ROI)
+#' @slot main_image the key of the main image
 #'
 #' @name vrAssay-class
 #' @rdname vrAssay-class
@@ -43,9 +45,11 @@ vrAssay <- setClass(
     coords_reg = 'matrix',
     segments = 'list',
     segments_reg = 'list',
-    image = "bitmap",
+    subcellular = 'data.frame',
+    image = "list",
     params = "list",
-    type = "character"
+    type = "character",
+    main_image = "character"
   )
 )
 
@@ -97,8 +101,8 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
     features <- intersect(vrFeatures(object), features)
 
     if(length(features) > 0){
-      object@rawdata <- object@rawdata[rownames(object@rawdata) %in% features,]
-      object@normdata <- object@normdata[rownames(object@normdata) %in% features,]
+      object@rawdata <- object@rawdata[rownames(object@rawdata) %in% features,, drop = FALSE]
+      object@normdata <- object@normdata[rownames(object@normdata) %in% features,, drop = FALSE]
     } else {
       stop("none of the provided features are found in the assay")
     }
@@ -112,17 +116,28 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
     coords_reg <- vrCoordinates(object, reg = TRUE)
     segments <- vrSegments(object)
     segments_reg <- vrSegments(object, reg = TRUE)
+    subcellular <- vrSubcellular(object)
 
     if(!is.null(spatialpoints)){
 
+      # check if spatial points are here
+      if(!any(colnames(object@rawdata) %in% spatialpoints))
+        return(NULL)
+
       # data
-      object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints]
-      object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints]
+      object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
+      object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE]
+
+      # embeddings
+      for(embed in vrEmbeddingNames(object)){
+        embedding <- vrEmbeddings(object, type = embed)
+        vrEmbeddings(object, type = embed) <- embedding[rownames(embedding) %in% spatialpoints,]
+      }
 
       # coordinates
-      vrCoordinates(object) <- coords[rownames(coords) %in% spatialpoints,]
+      vrCoordinates(object) <- coords[rownames(coords) %in% spatialpoints,, drop = FALSE]
       if(nrow(coords_reg) > 0)
-        vrCoordinates(object, reg = TRUE) <- coords_reg[rownames(coords_reg) %in% spatialpoints,]
+        vrCoordinates(object, reg = TRUE) <- coords_reg[rownames(coords_reg) %in% spatialpoints,, drop = FALSE]
 
       # segments
       if(length(segments) > 0)
@@ -142,6 +157,14 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
       if(length(segments) > 0){
         segments[rownames(cropped_coords)] <- subsetSegments(cropped_segments, vrimage, image)
         vrSegments(object) <- segments
+      }
+
+      # subcellular
+      if(nrow(subcellular) > 0){
+        cropped_subcellular <- subsetCoordinates(subcellular[,c("x","y")], vrimage, image)
+        subcellular <- subcellular[rownames(cropped_subcellular),]
+        subcellular[,c("x","y")] <- cropped_subcellular
+        vrSubcellular(object) <- subcellular
       }
 
       # image
@@ -180,11 +203,11 @@ subsetCoordinates <- function(coords, image, crop_info){
   # adjust for maximum res
   if(ylim[2] < 0){
     ylim[2] <- 0
-    ylim[1] <- ylim[2] - imageinfo$height + crop_info[2]
+    # ylim[1] <- ylim[2] - imageinfo$height + crop_info[2] # CHANGE THIS LATER ?
   }
   if(xlim[2] > imageinfo$width){
     xlim[2] <- imageinfo$width
-    xlim[1] <- xlim[2] - crop_info[1]
+    # xlim[1] <- xlim[2] - crop_info[1] # CHANGE THIS LATER ?
   }
 
   # get inside coords
@@ -345,6 +368,13 @@ vrAssayNames.vrAssay <- function(object, ...) {
   # change assay names
   vrSpatialPoints(object) <- gsub(assayname, value, vrSpatialPoints(object))
 
+  # change subcellular assay names
+  subcellular <- vrSubcellular(object)
+  if(nrow(subcellular) > 0){
+    subcellular$cell_id <- gsub(paste0("_", assayname, "$"), value, subcellular$cell_id)
+    vrSubcellular(object) <- subcellular
+  }
+
   # return
   return(object)
 }
@@ -492,6 +522,43 @@ vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
   return(object)
 }
 
+#' @param reg TRUE if registered subcellular data are being updated
+#'
+#' @rdname vrSubcellular
+#' @method vrSubcellular vrAssay
+#'
+#' @export
+#'
+vrSubcellular.vrAssay <- function(object, reg = FALSE, ...) {
+  if(nrow(object@subcellular) > 0){
+    if(reg){
+      if(any(colnames(object@subcellular) %in% c("x_reg", "y_reg"))) {
+        return(object@subcellular[,c("cell_id", "x_reg", "y_reg", "feature_name")])
+      } else {
+        return(object@subcellular[,c("cell_id", "x", "y", "feature_name")])
+      }
+    } else {
+      return(object@subcellular[,c("cell_id", "x", "y", "feature_name")])
+    }
+  } else{
+    return(object@subcellular)
+  }
+}
+
+#' @param reg TRUE if registered subcellular data are being updated
+#' @param value the new set of subcellular data
+#'
+#' @rdname vrSubcellular
+#' @method vrSubcellular<- vrAssay
+#'
+#' @importFrom methods slot
+#' @export
+#'
+"vrSubcellular<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
+  methods::slot(object = object, name = 'subcellular') <- value
+  return(object)
+}
+
 #' @param reg TRUE if registered segments are being updated
 #' @param method the method argument passed to \code{base::dist}
 #'
@@ -543,4 +610,13 @@ vrEmbeddings.vrAssay <- function(object, type = "pca", dims = 1:30) {
 "vrEmbeddings<-.vrAssay" <- function(object, type = "pca", ..., value) {
   object@embeddings[[type]] <- value
   return(object)
+}
+
+#' @rdname vrEmbeddingNames
+#' @method vrEmbeddingNames vrAssay
+#'
+#' @export
+#'
+vrEmbeddingNames.vrAssay <- function(object){
+  return(names(object@embeddings))
 }

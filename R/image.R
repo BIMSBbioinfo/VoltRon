@@ -1,68 +1,6 @@
 ####
-# Objects and Classes ####
-####
-
-## FOVImage ####
-
-#' The FOVImage class
-#'
-#' The FOVImage stores the morphology image from the Xenium assay
-#'
-#' @slot image A magick-image class object from magick package
-#'
-#' @name FOVImage-class
-#' @rdname FOVImage-class
-#' @exportClass FOVImage
-#'
-FOVImage <- setClass(
-  Class = 'FOVImage',
-  slots = list(
-    'image' = 'magick-image'
-  )
-)
-
-### show ####
-
-setMethod(
-  f = 'show',
-  signature = 'FOVImage',
-  definition = function(object) {
-    cat("FOV Morphology Image \n")
-    cat(paste(format(image_info(object@image)), collapse = " \n "))
-    return(invisible(x = NULL))
-  }
-)
-
-####
 # Get Images ####
 ####
-
-#' @param seu A Seurat Object
-#'
-#' @rdname vrImages
-#' @method vrImages Seurat
-#'
-#' @importFrom magick image_read
-#'
-#' @export
-#'
-vrImages.Seurat <- function(seu, ...){
-
-  # image class from Seurat
-  image_classes <- sapply(seu@images, class)
-
-  # get image given class
-  if(any(grepl("FOV",image_classes))){
-    image <- seu@images[[names(seu@images)[which(grepl("FOVImage", image_classes))]]]
-    image <- image@image
-  } else if(any(grepl("Visium",image_classes))) {
-    image <- seu@images[[names(seu@images)[which(grepl("Visium", image_classes))]]]
-    image <- magick::image_read(image@image)
-  }
-
-  # return image
-  return(image)
-}
 
 #' @param object A VoltRon object
 #'
@@ -72,7 +10,7 @@ vrImages.Seurat <- function(seu, ...){
 #' @export
 #'
 vrImages.VoltRon <- function(object, ...){
-  images <- sapply(object@samples, function(samp) vrImages(samp), USE.NAMES = TRUE)
+  images <- sapply(object@samples, function(samp) vrImages(samp, ...), USE.NAMES = TRUE)
   if(length(images) == 1){
     return(images[[1]])
   } else {
@@ -88,7 +26,7 @@ vrImages.VoltRon <- function(object, ...){
 #' @export
 #'
 vrImages.vrSample <- function(object, ...){
-  sapply(object@layer, function(lay) vrImages(lay), USE.NAMES = TRUE)
+  sapply(object@layer, function(lay) vrImages(lay, ...), USE.NAMES = TRUE)
 }
 
 #' @param object A vrLayer object
@@ -99,10 +37,11 @@ vrImages.vrSample <- function(object, ...){
 #' @export
 #'
 vrImages.vrLayer <- function(object, ...){
-  sapply(object@assay, function(assy) vrImages(assy), USE.NAMES = TRUE)
+  sapply(object@assay, function(assy) vrImages(assy, ...), USE.NAMES = TRUE)
 }
 
 #' @param object A vrAssay object
+#' @param main_image the name of the main image
 #'
 #' @rdname vrImages
 #' @method vrImages vrAssay
@@ -111,11 +50,23 @@ vrImages.vrLayer <- function(object, ...){
 #'
 #' @export
 #'
-vrImages.vrAssay <- function(object){
-  magick::image_read(object@image)
+vrImages.vrAssay <- function(object, main_image = NULL){
+  if(!is.null(object@image)){
+    if(is.null(main_image)) {
+      main_image <- object@main_image
+    }
+    if(main_image %in% vrImageNames(object)){
+      return(magick::image_read(object@image[[main_image]]))
+    } else {
+      return(NULL)
+    }
+  } else {
+    return(NULL)
+  }
 }
 
 #' @param object A vrAssay object
+#' @param main_image the name of the main image
 #' @param reg TRUE if registered coordinates are assigned
 #' @param value new image
 #'
@@ -126,58 +77,61 @@ vrImages.vrAssay <- function(object){
 #'
 #' @export
 #'
-"vrImages<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
+"vrImages<-.vrAssay" <- function(object, main_image = NULL, reg = FALSE, ..., value) {
+  if(is.null(main_image)) {
+    main_image <- object@main_image
+  }
   if(inherits(value, "bitmap")){
-    object@image <- value
+    object@image[[main_image]] <- value
   } else if(inherits(value, "magick-image")){
-    object@image <- magick::image_data(value)
+    object@image[[main_image]] <- magick::image_data(value)
   } else {
     stop("Please provide either a magick-image or bitmap class image object!")
   }
   return(object)
 }
 
-####
-# Managing Images ####
-####
-
-#' addFOVImage
+#' @param assay assay
 #'
-#' Adding the Xenium image to the Seurat Object. Please run \code{generateXeniumImage} first.
-#'
-#' @param seu Seurat Object with Xenium Data
-#' @param file the morphology image file created by \code{generateXeniumImage}.
-#' @param fov FOV name, preferably the name used in the Seurat Object
-#' @param overwrite Overwrite the existing FOV image
-#'
-#' @importFrom methods new
+#' @rdname vrImageNames
+#' @method vrImageNames VoltRon
 #'
 #' @export
 #'
-addFOVImage <- function(seu, file, fov = "fov", overwrite = FALSE) {
+vrImageNames.VoltRon <- function(object, assay = NULL){
 
-  # fov image name
-  fov_image <- paste0(fov, "_image")
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
 
-  # check if the image file exists
-  if(!file.exists(file))
-    stop("FOV image was not generated. Please run generateXeniumImage() first!")
+  # get assay types
+  image_names <- unique(unlist(lapply(assay_names, function(x) vrImageNames(object[[x]]))))
 
-  # check if the image exists in the Seurat Object
-  if(!is.null(seu@images[[fov_image]])){
-    if(!overwrite)
-      stop("FOV image is already provided")
-  }
-
-  # get image in FOVImage class
-  image <- methods::new(Class = "FOVImage", image = magick::image_read(file))
-
-  # insert the image to the Seurat Object
-  seu@images[[fov_image]] <- image
-
-  # return Seurat Object
-  return(seu)
+  return(image_names)
 }
+
+#' @rdname vrImageNames
+#' @method vrImageNames vrAssay
+#'
+#' @export
+#'
+vrImageNames.vrAssay <- function(object){
+  return(names(object@image))
+}
+
+#'
+#' @rdname vrMainImage
+#' @method vrMainImage vrAssay
+#'
+#' @export
+#'
+vrMainImage.vrAssay <- function(object){
+  return(object@main_image)
+}
+
+
+####
+# Managing Images ####
+####
 
 #' @rdname resizeImage
 #' @method resizeImage VoltRon
@@ -220,7 +174,10 @@ resizeImage.vrAssay <- function(object, size){
 
   # resize images
   size <- paste0(size,"x")
-  vrImages(object) <- image_resize(vrImages(object), geometry = size)
+  image_names <- vrImageNames(object)
+  for(img in image_names){
+    vrImages(object, main_image = img) <- image_resize(vrImages(object, main_image = img), geometry = size)
+  }
 
   # return
   return(object)
@@ -253,7 +210,11 @@ modulateImage.VoltRon <- function(object, ...){
 modulateImage.vrAssay <- function(object, brightness = 100, saturation = 100, hue = 100){
 
   # modulate image
-  vrImages(object) <- magick::image_modulate(vrImages(object), brightness = brightness, saturation = saturation, hue = hue)
+  image_names <- vrImageNames(object)
+  for(img in image_names){
+    vrImages(object, main_image = img) <- magick::image_modulate(vrImages(object, main_image = img),
+                                                                 brightness = brightness, saturation = saturation, hue = hue)
+  }
 
   # return
   return(object)
@@ -412,6 +373,7 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #'
 #' @param object a VoltRon object
 #' @param scale_width the initial width of the object image
+#' @param use_points use spatial points instead of the reference image
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs
@@ -420,20 +382,20 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #' @importFrom htmltools HTML
 #' @importFrom dplyr filter add_row tibble
 #'
-demuxVoltRon <- function(object, scale_width = 800)
+demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
 {
   # get images
   images <- vrImages(object)
 
   # check if there are only one assay in the object
-  if(length(images) > 1)
+  if(nrow(SampleMetadata(object)) > 1)
     stop("You can only subset a VoltRon assay with one image")
 
   # scale
   imageinfo <- magick::image_info(images)
   scale_factor <- imageinfo$width/scale_width
-  scale_width <- paste0(scale_width, "x")
-  images <- magick::image_scale(images, scale_width)
+  scale_width_char <- paste0(scale_width, "x")
+  images <- magick::image_scale(images, scale_width_char)
 
   # get the ui and server
   if (interactive()){
@@ -500,6 +462,21 @@ demuxVoltRon <- function(object, scale_width = 800)
       # selected corner list
       selected_corners_list <- reactiveVal(dplyr::tibble(box = character()))
 
+      # the image
+      if(use_points){
+        object_small <- resizeImage(object, size = scale_width)
+        image_info_small <- magick::image_info(vrImages(object_small))
+        coords <- as.data.frame(vrCoordinates(object_small, reg = FALSE))
+        # coords[,2] <- max(coords[,2]) - coords[,2] + min(coords[,2])
+        pl <- ggplot() + geom_point(aes_string(x = "x", y = "y"), coords, size = 1.5, color = "black") +
+          theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+                axis.line=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
+                legend.margin = margin(0,0,0,0), plot.margin = unit( c(0,0,0,0),"in")) +
+          coord_fixed()
+      } else {
+        pl <- magick::image_ggplot(images)
+      }
+
       ### Main observable ####
       observe({
 
@@ -512,18 +489,15 @@ demuxVoltRon <- function(object, scale_width = 800)
           }
         })
 
-
         # output image
         output[["cropped_image"]] <- renderPlot({
-          if(nrow(selected_corners()) < 2){
-            corners <- apply(as.matrix(selected_corners()),2,as.numeric)
-            image_ggplot(images)
-          } else {
-            corners <- apply(as.matrix(selected_corners()),2,as.numeric)
-            magick::image_ggplot(images) +
+          corners <- apply(as.matrix(selected_corners()),2,as.numeric)
+          if(nrow(selected_corners()) > 1){
+            pl <- pl +
               ggplot2::geom_rect(aes(xmin = corners[1,1], xmax = corners[2,1], ymin = corners[1,2], ymax = corners[2,2]),
-                        fill = "green", alpha = 0.3, color = "black")
+                                 fill = "green", alpha = 0.3, color = "black")
           }
+          pl
         })
       })
 
@@ -538,11 +512,27 @@ demuxVoltRon <- function(object, scale_width = 800)
         if(nrow(selected_corners()) == 2){
           next_ind <- length(selected_corners_list()) + 1
           corners <- selected_corners()
+
+          # adjust corners
           corners <- corners*scale_factor
           corners <- apply(corners,2,ceiling)
+
+          # fix for limits
+          corners[1,1] <- ifelse(corners[1,1] < 0, 0, corners[1,1])
+          corners[1,1] <- ifelse(corners[1,1] > imageinfo$width, imageinfo$width, corners[1,1])
+          corners[2,1] <- ifelse(corners[2,1] < 0, 0, corners[2,1])
+          corners[2,1] <- ifelse(corners[2,1] > imageinfo$width, imageinfo$width, corners[2,1])
+          corners[1,2] <- ifelse(corners[1,2] < 0, 0, corners[1,2])
+          corners[1,2] <- ifelse(corners[1,2] > imageinfo$height, imageinfo$height, corners[1,2])
+          corners[2,2] <- ifelse(corners[2,2] < 0, 0, corners[2,2])
+          corners[2,2] <- ifelse(corners[2,2] > imageinfo$height, imageinfo$height, corners[2,2])
+
+          # get crop info
           corners <- paste0(abs(corners[2,1]-corners[1,1]), "x",
                             abs(corners[2,2]-corners[1,2]), "+",
                             min(corners[,1]), "+", imageinfo$height - max(corners[,2]))
+
+          # add to box list
           selected_corners_list() %>%
             dplyr::add_row(box = corners) %>%
             selected_corners_list()
@@ -571,6 +561,7 @@ demuxVoltRon <- function(object, scale_width = 800)
           subsets <- list()
           box_list <- selected_corners_list()
           sample_names <- paste0("Sample", 1:length(box_list$box))
+          print(sample_names)
           for(i in 1:length(box_list$box)){
             temp <- subset(object, image = box_list$box[i])
             temp$Sample <- sample_names[i]

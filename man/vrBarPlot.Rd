@@ -10,7 +10,9 @@ vrBarPlot(
   assay = NULL,
   x.label = NULL,
   group.by = "Sample",
+  split.by = NULL,
   norm = TRUE,
+  log = FALSE,
   ncol = 2,
   nrow = NULL,
   ...
@@ -27,7 +29,11 @@ vrBarPlot(
 
 \item{group.by}{a column from metadata to seperate columns of the heatmap}
 
+\item{split.by}{the column to split the barplots by}
+
 \item{norm}{if TRUE, the normalized data is used}
+
+\item{log}{if TRUE, data features (excluding metadata features) will be log transformed}
 
 \item{ncol}{column wise number of plots, for \code{ggarrange}}
 

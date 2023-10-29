@@ -8,12 +8,16 @@ vrSpatialPlotSingle(
   assay,
   metadata,
   group.by = "Sample",
+  transcripts = NULL,
+  graph = NULL,
   font.size = 2,
   pt.size = 2,
-  alpha = 0.6,
+  alpha = 1,
   plot_title = NULL,
-  background = "image",
-  crop = FALSE
+  background = NULL,
+  reg = FALSE,
+  crop = FALSE,
+  legend.pt.size = 2
 )
 }
 \arguments{
@@ -22,6 +26,10 @@ vrSpatialPlotSingle(
 \item{metadata}{the metadata associated with the assay}
 
 \item{group.by}{a grouping label for the spatial entities}
+
+\item{transcripts}{Only for spatial data with existing subcellular information, visualize the location of given transcripts}
+
+\item{graph}{if not NULL, the graph is added to the plot}
 
 \item{font.size}{font sizes}
 
@@ -33,7 +41,11 @@ vrSpatialPlotSingle(
 
 \item{background}{the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)}
 
+\item{reg}{if TRUE, the registered coordinates will be used}
+
 \item{crop}{whether to crop an image of a spot assay}
+
+\item{legend.pt.size}{the size of points at the legend}
 }
 \description{
 Plotting a single assay from a VoltRon object. We plot the identification of spatially resolved cells, spots, and ROI on associated images.

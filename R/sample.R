@@ -181,19 +181,25 @@ subset.vrSample <- function(object, subset, assays = NULL, spatialpoints = NULL,
   if(!is.null(assays)){
     object@layer <- sapply(layers, function(lay) {
       subset.vrLayer(lay, assays = assays)
-    }, USE.NAMES = TRUE)
+    }, USE.NAMES = TRUE, simplify = TRUE)
   } else if(!is.null(spatialpoints)){
     object@layer <- sapply(layers, function(lay) {
       subset.vrLayer(lay, spatialpoints = spatialpoints)
-    }, USE.NAMES = TRUE)
+    }, USE.NAMES = TRUE, simplify = TRUE)
   } else if(!is.null(image)){
     object@layer <- sapply(layers, function(lay) {
       subset.vrLayer(lay, image = image)
-    }, USE.NAMES = TRUE)
+    }, USE.NAMES = TRUE, simplify = TRUE)
   }
 
-  # set VoltRon class
-  return(object)
+  # remove NULL assays
+  object@layer <- object@layer[which(sapply(object@layer, function(x) !is.null(x)))]
+
+  if(length(object@layer) > 0){
+    return(object)
+  } else {
+    return(NULL)
+  }
 }
 
 ### Get Spatial Points of vrSample ####
@@ -236,21 +242,35 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
 
   # subseting on samples, layers and assays
   if(!is.null(assays)){
-    object@assay  <- object@assay[names(object@assay) %in% assays]
+    # get assay names of all assays
+    assay_names <- sapply(object@assay, vrAssayNames)
+    if(any(assays %in% assay_names)) {
+      assays <- intersect(assays, assay_names)
+      object@assay  <- object@assay[which(assays %in% assay_names)]
+    } else if(any(assays %in% names(object@assay))) {
+      object@assay  <- object@assay[names(object@assay) %in% assays]
+    } else {
+      return(NULL)
+    }
   } else if(!is.null(spatialpoints)){
-    assay_set <- object@assay
-    object@assay <- sapply(assay_set, function(assy) {
+    object@assay <- sapply(object@assay, function(assy) {
       subset.vrAssay(assy, spatialpoints = spatialpoints)
-    }, USE.NAMES = TRUE)
+    }, USE.NAMES = TRUE, simplify = TRUE)
   } else if(!is.null(image)){
-    assay_set <- object@assay
-    object@assay <- sapply(assay_set, function(assy) {
+    object@assay <- sapply(object@assay, function(assy) {
       subset.vrAssay(assy, image = image)
-    }, USE.NAMES = TRUE)
+    }, USE.NAMES = TRUE, simplify = TRUE)
   }
 
+  # remove NULL assays
+  object@assay <- object@assay[which(sapply(object@assay, function(x) !is.null(x)))]
+
   # set VoltRon class
-  return(object)
+  if(length(object@assay) > 0){
+    return(object)
+  } else {
+    return(NULL)
+  }
 }
 
 #' @rdname vrSpatialPoints

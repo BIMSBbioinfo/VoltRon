@@ -41,13 +41,15 @@ getDeconvolution <- function(object, assay = NULL, features = NULL, sc.object, s
 
       # Add as new assay
       cat("Adding cell type compositions as new assay:", paste(sample.metadata[assy, "Assay"], "decon", sep = "_"), "...\n")
+      spatialpoints <- colnames(rawdata)
       rawdata <- new("vrAssay",
                      rawdata = rawdata, normdata = rawdata,
-                     coords = cur_assay@coords[colnames(rawdata),],
+                     coords = cur_assay@coords[spatialpoints,],
                      image = cur_assay@image, segments = cur_assay@segments,
                      type = cur_assay@type, params = cur_assay@params)
       object <- addAssay(object,
                          assay = rawdata,
+                         metadata = Metadata(object, assay = assy)[spatialpoints,],
                          assay_name = paste(sample.metadata[assy, "Assay"], "decon", sep = "_"),
                          sample = sample.metadata[assy, "Sample"],
                          layer = sample.metadata[assy, "Layer"])
@@ -229,9 +231,16 @@ getMuSiC <- function(object, features = NULL, sc.object, sc.assay = "RNA", sc.cl
 
   # data
   datax <- as.matrix(vrData(object))
-  datax <- datax[features, ]
 
-  # deconvolute using
+  # common features
+  common_features <- intersect(rownames(scRNAseq), rownames(datax))
+  common_features <- intersect(common_features, features)
+  if(length(common_features) < 5)
+    stop("The number of common or selected features are less than 5!")
+  scRNAseq <- scRNAseq[rownames(scRNAseq) %in% common_features,]
+  datax <- datax[common_features,]
+
+  # deconvolute
   cat("Calculating Cell Type Compositions of ROIs with MuSiC ...\n")
   results <- MuSiC::music_prop(bulk.mtx = datax,
                         sc.sce = scRNAseq,

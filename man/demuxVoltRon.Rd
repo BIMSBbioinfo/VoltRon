@@ -4,12 +4,14 @@
 \alias{demuxVoltRon}
 \title{demuxVoltRon}
 \usage{
-demuxVoltRon(object, scale_width = 800)
+demuxVoltRon(object, scale_width = 800, use_points = FALSE)
 }
 \arguments{
 \item{object}{a VoltRon object}
 
 \item{scale_width}{the initial width of the object image}
+
+\item{use_points}{use spatial points instead of the reference image}
 }
 \description{
 Subsetting/demultiplexing of the VoltRon Object using interactive shiny app

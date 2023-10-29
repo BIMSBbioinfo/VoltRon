@@ -12,7 +12,8 @@
   spatialpoints = NULL,
   features = NULL,
   image = NULL,
-  interactive = FALSE
+  interactive = FALSE,
+  use_points = FALSE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@
 \item{image}{the subseting string passed to \code{magick::image_crop}}
 
 \item{interactive}{TRUE if interactive subsetting on the image is demanded}
+
+\item{use_points}{if \code{interactive} is \code{TRUE}, use spatial points instead of the reference image}
 }
 \description{
 Given a VoltRon object, subset the object given one of the attributes

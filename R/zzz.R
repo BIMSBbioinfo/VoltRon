@@ -6,5 +6,5 @@
 "_PACKAGE"
 
 utils::globalVariables(c("Assay", "KeyPoint", "NewSample", "Sample", "rx", "ry", "score", "segment", "str_pad", "value","variable", "x", "y",
-                         "RTS_ID", "Module"),
+                         "RTS_ID", "Module", "assoc_test", "from_value", "mean_value", "n", "p.adjust", "p_assoc", "p_segreg", "segreg_test", "to_value", "type"),
                        package = "VoltRon", add = FALSE)

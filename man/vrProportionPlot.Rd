@@ -4,7 +4,16 @@
 \alias{vrProportionPlot}
 \title{vrPercentagePlot}
 \usage{
-vrProportionPlot(object, assay = NULL, x.label = NULL, ...)
+vrProportionPlot(
+  object,
+  assay = NULL,
+  x.label = NULL,
+  split.by = NULL,
+  split.method = "facet_wrap",
+  ncol = 2,
+  nrow = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{A VoltRon object}
@@ -12,6 +21,14 @@ vrProportionPlot(object, assay = NULL, x.label = NULL, ...)
 \item{assay}{assay name}
 
 \item{x.label}{labels of the x axis}
+
+\item{split.by}{the column to split the barplots by}
+
+\item{split.method}{either facet_grid or facet_wrap, not affected if \code{split.by} is \code{NULL}}
+
+\item{ncol}{column wise number of plots, for \code{ggarrange}}
+
+\item{nrow}{row wise number of plots, for \code{ggarrange}}
 
 \item{...}{additional parameters passed to \code{getVariableFeatures}}
 }

@@ -286,6 +286,7 @@ merge_sampleMetadata <- function(metadata_list) {
 ### Assay Methods ####
 
 #' @param assay assay
+#' @param metadata a predefined metadata
 #' @param assay_name assay name
 #' @param sample sample name
 #' @param layer layer name
@@ -298,13 +299,13 @@ merge_sampleMetadata <- function(metadata_list) {
 #'
 #' @export
 #'
-addAssay.vrMetadata <- function(object, assay, assay_name, sample = "Sample1", layer = "Section1"){
+addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, sample = "Sample1", layer = "Section1"){
 
   # assay info
   assay.type <- vrAssayTypes(assay)
 
   # get metadata and other info
-  metadata <- methods::slot(object, name = assay.type)
+  object_metadata <- methods::slot(object, name = assay.type)
   data <- vrData(assay, norm = FALSE)
   spatialpoints <- vrSpatialPoints(object)
 
@@ -315,14 +316,27 @@ addAssay.vrMetadata <- function(object, assay, assay_name, sample = "Sample1", l
   entityID <- gsub("Assay[0-9]+$", assay_id, vrSpatialPoints(assay))
 
   # metadata
-  assay_metadata <- data.frame(Count = colSums(data),
-                               Assay = rep(assay_name, length(entityID)),
-                               Layer = rep(layer, length(entityID)),
-                               Sample = rep(sample, length(entityID)),
-                               row.names = entityID)
-  metadata <- dplyr::bind_rows(metadata, assay_metadata)
+  if(!is.null(metadata)){
+    if(!all(gsub("Assay[0-9]+$", "", vrSpatialPoints(assay)) %in% gsub("Assay[0-9]+$", "", rownames(metadata)))){
+      stop("Some spatial points in the assay does not match with the provided metadata!")
+    } else{
+      assay_metadata <- data.frame(Count = colSums(data),
+                                   metadata[,!colnames(metadata) %in% c("Count", "Assay", "Layer", "Sample")],
+                                   Assay = rep(assay_name, length(entityID)),
+                                   Layer = rep(layer, length(entityID)),
+                                   Sample = rep(sample, length(entityID)),
+                                   row.names = entityID)
+    }
+  } else {
+    assay_metadata <- data.frame(Count = colSums(data),
+                                 Assay = rep(assay_name, length(entityID)),
+                                 Layer = rep(layer, length(entityID)),
+                                 Sample = rep(sample, length(entityID)),
+                                 row.names = entityID)
+  }
+  object_metadata <- dplyr::bind_rows(object_metadata, assay_metadata)
 
-  methods::slot(object, name = assay.type) <- metadata
+  methods::slot(object, name = assay.type) <- object_metadata
 
   # return
   return(object)

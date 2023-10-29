@@ -3,6 +3,7 @@ title: "Image Registration"
 output: 
   html_document:
     toc: true
+    toc_depth: 4
     toc_float:
       collapsed: false
       smooth_scroll: false
@@ -67,7 +68,7 @@ Xen_R2 <- importXenium("Xenium_R2/outs", sample_name = "XeniumR2")
 Vis <- importVisium("Visium/", sample_name = "VisiumR1")
 ```
 
-Before moving on to image alignment, we can inspect both Xenium and Visium images. We use the vrImages() function to call and visualize reference images of all VoltRon objects. 
+Before moving on to image alignment, we can inspect both Xenium and Visium images. We use the **vrImages** function to call and visualize reference images of all VoltRon objects. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrImages(Xen_R1)
@@ -142,8 +143,8 @@ Now that the VoltRon objects of Xenium and Visium datasets are accurately aligne
 
 ```{r class.source="watch-out", eval = FALSE}
 merge_list <- xen_reg$registered_spat
-SRBlock <- merge(merge_list[[1]], merge_list[-1], samples = "10XBlock")
-SRBlock
+VRBlock <- merge(merge_list[[1]], merge_list[-1], samples = "10XBlock")
+VRBlock
 ```
 ```
 10XBlock: 
@@ -153,16 +154,104 @@ Assays: Xenium(Main) Visium
 
 <br>
 
-### Data/Label Transfer
+### Data/Label Transfer Across Layers
 
-The combined VoltRon object of Visium and Xenium datasets can be used to transfer information across layers and assays. This is accomplished by aggregating and summarizing, for example, gene counts of cells from the Xenium assay aligned to Visium spots. Either labels or cell types can be summarized to generate **(under development)**; 
+The combined VoltRon object of Visium and Xenium datasets can be used to transfer information across layers and assays. This is accomplished by aggregating and summarizing, for example, gene counts of cells from the Xenium assay aligned to Visium spots. Either labels or cell types can be summarized to generate: 
 
 * pseudo cell type abundance assays or
 * pseudo gene expression assays. 
 
+<br>
+
+#### Data Transfer
+
+We must first determine the names of the assays where labels are transfered **from** one **to** the other. For the sake of this tutorial, we can select Assay1 of **Xenium as the source** assay and the Assay2 of **Visium as the destination** assay. 
 
 ```{r class.source="watch-out", eval = FALSE}
+SampleMetadata(VRBlock)
 ```
+
+```
+        Assay    Layer   Sample
+Assay1 Xenium Section1 10XBlock
+Assay2 Visium Section2 10XBlock
+Assay3 Xenium Section3 10XBlock
+```
+
+The **transferData** function detects the types of both the **source (from)** and the **destination (to)** assays and determines the how the data should be transfered. Since we transfer data from the Xenium assay to the Visium assay (hence **Cells -> Spots**), the raw count data of each cell in the source Xenium assay will be aggregated into spots in a newly create pseudo Visium assay. The new assay with aggregated counts will be named **Visium_pseudo**. 
+
+```{r class.source="watch-out", eval = FALSE}
+VRBlock <- transferData(VRBlock, from = "Assay1", to = "Assay2")
+```
+
+VoltRon supports multiple assays within each layer. Now, Section 2 includes two spot-type assays:
+
+* the original Visium spot assay,
+* a pseudo Visium assay with aggregated Xenium raw counts.
+
+```{r class.source="watch-out", eval = FALSE}
+SampleMetadata(VRBlock)
+```
+
+```
+               Assay    Layer   Sample
+Assay1        Xenium Section1 10XBlock
+Assay2        Visium Section2 10XBlock
+Assay3        Xenium Section3 10XBlock
+Assay4 Visium_pseudo Section2 10XBlock
+```
+
+We can now visualize both the original and aggregated counts of a gene, such as ERBB2 and ESR1 that marks ductal carcinoma in situ (DCIS) regions, to validate the correlation of gene signatures across adjacent tissue sections, and to validate the accuracy of the automated image alignment. Here, PGR is also expressed at a small DCIS region found on adipocyte niche of the tissue. 
+
+```{r class.source="watch-out", eval = FALSE}
+library(patchwork)
+g1 <- vrSpatialFeaturePlot(VRBlock, assay = "Visium", 
+                           features = c("ERBB2", "ESR1", "PGR"), crop = FALSE, 
+                           norm = FALSE, ncol = 3)
+g2 <- vrSpatialFeaturePlot(VRBlock, assay = "Visium_pseudo", 
+                           features = c("ERBB2", "ESR1", "PGR"), crop = FALSE, 
+                           norm = FALSE, ncol = 3)
+g1 / g2
+```
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_TACSTD2.png" class="center">
+
+#### Label Transfer
+
+The **transferData** function can also transfer **metadata features** across layers and assays. In this case, we will transfer cell type labels that were trained on the Xenium sections onto the Visium sections. We will use the cluster labels generated at the end of the Xenium analysis section of workflow from [Cell/Spot Analysis](spotanalysis.html). You can download the VoltRon object with clustered Xenium cells from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip). 
+
+```{r class.source="watch-out", eval = FALSE}
+vrSpatialPlot(VRBlock, assay = "Xenium", group.by = "CellType", pt.size = 0.4)
+```
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_annotated.png" class="center">
+
+Here, we can see that both Xenium layers are clustered and annotated where we can use these cell annotations and transfer them to the Visium assay to create an assay of **estimated cell type abundances**. If the features argument is specified, and if its a single metadata feature with, e.g. cell types, then the each spot at the new pseudo Visium will be collection of abundances of the categories within that metadata feature. 
+
+```{r class.source="watch-out", eval = FALSE}
+VRBlock <- transferData(VRBlock, from = "Assay1", to = "Assay2", features = "CellType", 
+                        new_assay_name = "Visium_pseudo_CellType")
+SampleMetadata(VRBlock)
+```
+
+```
+                        Assay    Layer   Sample
+Assay1                 Xenium Section1 10XBlock
+Assay2                 Visium Section2 10XBlock
+Assay3                 Xenium Section3 10XBlock
+Assay4          Visium_pseudo Section2 10XBlock
+Assay5 Visium_pseudo_CellType Section2 10XBlock
+```
+
+By visualizing the transferred labels on the Visium spots, we can see that DCIS_2 CEACAM6+ cell type is more abundant in this niche which was also founds to be triple positive PGR+/ERBB2+/ESR1+ locations.
+
+```{r class.source="watch-out", eval = FALSE}
+vrSpatialFeaturePlot(VRBlock_new, assay = "Visium_pseudo_CellType",
+                     features = c("DCIS_1","DCIS_2_CEACAM6+", "DCIS_3_TACSTD2+"), 
+                     crop = TRUE, alpha = 1, ncol = 3)
+```
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_CellType.png" class="center">
 
 <br>
 

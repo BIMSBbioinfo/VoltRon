@@ -18,9 +18,5 @@ rescaleXeniumCells(cells, bbox, image)
 \description{
 rescale Xenium cells coordinates for image registration
 
-if (!requireNamespace('Seurat'))
-    stop("Please install Seurat package to use the RCTD algorithm")
-}
-\details{
-
+Rescale Xenium spatial coordinates for image registration
 }

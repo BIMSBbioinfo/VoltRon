@@ -3,7 +3,6 @@
 \name{vrImages}
 \alias{vrImages}
 \alias{vrImages<-}
-\alias{vrImages.Seurat}
 \alias{vrImages.VoltRon}
 \alias{vrImages.vrSample}
 \alias{vrImages.vrLayer}
@@ -15,17 +14,15 @@ vrImages(object, ...)
 
 vrImages(object, ...) <- value
 
-\method{vrImages}{Seurat}(seu, ...)
-
 \method{vrImages}{VoltRon}(object, ...)
 
 \method{vrImages}{vrSample}(object, ...)
 
 \method{vrImages}{vrLayer}(object, ...)
 
-\method{vrImages}{vrAssay}(object)
+\method{vrImages}{vrAssay}(object, main_image = NULL)
 
-\method{vrImages}{vrAssay}(object, reg = FALSE, ...) <- value
+\method{vrImages}{vrAssay}(object, main_image = NULL, reg = FALSE, ...) <- value
 }
 \arguments{
 \item{object}{A vrAssay object}
@@ -34,7 +31,7 @@ vrImages(object, ...) <- value
 
 \item{value}{new image}
 
-\item{seu}{A Seurat Object}
+\item{main_image}{the name of the main image}
 
 \item{reg}{TRUE if registered coordinates are assigned}
 }

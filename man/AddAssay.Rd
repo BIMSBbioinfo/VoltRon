@@ -8,14 +8,30 @@
 \usage{
 addAssay(object, ...)
 
-\method{addAssay}{vrMetadata}(object, assay, assay_name, sample = "Sample1", layer = "Section1")
+\method{addAssay}{vrMetadata}(
+  object,
+  metadata = NULL,
+  assay,
+  assay_name,
+  sample = "Sample1",
+  layer = "Section1"
+)
 
-\method{addAssay}{VoltRon}(object, assay, assay_name, sample = "Sample1", layer = "Section1")
+\method{addAssay}{VoltRon}(
+  object,
+  assay,
+  metadata = NULL,
+  assay_name,
+  sample = "Sample1",
+  layer = "Section1"
+)
 }
 \arguments{
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{metadata}{a predefined metadata}
 
 \item{assay}{assay}
 

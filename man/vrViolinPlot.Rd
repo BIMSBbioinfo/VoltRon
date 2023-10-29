@@ -11,6 +11,7 @@ vrViolinPlot(
   assay.type = NULL,
   group.by = "Sample",
   norm = TRUE,
+  points = TRUE,
   ncol = 2,
   nrow = NULL,
   ...
@@ -28,6 +29,8 @@ vrViolinPlot(
 \item{group.by}{a column from metadata to seperate columns of the heatmap}
 
 \item{norm}{if TRUE, the normalized data is used}
+
+\item{points}{if TRUE, measures are visualized as points as well.}
 
 \item{ncol}{column wise number of plots, for \code{ggarrange}}
 

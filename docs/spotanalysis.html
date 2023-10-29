@@ -13,7 +13,7 @@
 
 <title>Cell/Spot Analysis</title>
 
-<script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -35,8 +35,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-6.4.0/css/all.min.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-6.4.0/css/v4-shims.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -430,29 +430,202 @@ body {
 }
 </style>
 <p><br></p>
-<div id="downstream-analysis-on-cells" class="section level1">
-<h1>Downstream Analysis on Cells</h1>
+<div id="xenium-data-analysis" class="section level1">
+<h1>Xenium Data Analysis</h1>
 <p>VoltRon is an end-to-end spatial data analysis package which also
 supports investigating spatial points in single cell resolution. VoltRon
 includes essential built-in functions capable of
 <strong>filtering</strong>, <strong>processing</strong> and
 <strong>clustering</strong> as well as <strong>visualizing</strong>
 spatial datasets with a goal of cell type discovery and annotation.</p>
-<p>In this use case, we analyze segmented cells over microscopy images
-collected from <strong>control</strong> and <strong>COVID-19</strong>
-lung tissues of donors categorized based on disease durations
-(<strong>control</strong>, <strong>acute</strong>,
-<strong>chronic</strong> and <strong>prolonged</strong>). Each image is
-associated with one of few field of views (FOVs) from a single tissue
-section of a donor. See <a
+<p>In this use case, we analyse readouts of the experiments conducted on
+example tissue sections analysed by the <a
+href="https://www.10xgenomics.com/platforms/xenium">Xenium In Situ</a>
+platform. Two tissue sections of 5 <span
+class="math inline">\(\mu\)</span>m tickness are derived from a single
+formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block.
+More information on the spatial datasets and the study can be also be
+found on the <a
+href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">BioArxiv
+preprint</a>.</p>
+<p>You can import these readouts from the <a
+href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
+Genomics website</a> (specifically, import <strong>In Situ Replicate
+1/2</strong>). Alternatively, you can <strong>download a zipped
+collection of Xenium readouts</strong> from <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip">here</a>.</p>
+<div id="building-voltron-objects" class="section level2">
+<h2>Building VoltRon objects</h2>
+<p>VoltRon includes built-in functions for converting readouts of Xenium
+experiments into VoltRon objects. The <strong>importXenium</strong>
+function locates all readout documents under the output folder of the
+Xenium experiment, and forms a VoltRon object. We will import both
+Xenium replicates separately, and merge them after some image
+manipulation.</p>
+<pre class="r watch-out"><code>library(VoltRon)
+Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
+Xen_R2 &lt;- importXenium(&quot;Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;)</code></pre>
+<p>Before moving on to the downstream analysis of the imaging-based
+data, we can inspect both Xenium images. We use the
+<strong>vrImages</strong> function to call and visualize reference
+images of all VoltRon objects. Observe that the DAPI image of the second
+Xenium replicate is dim, hence we might need to increase the
+brightness.</p>
+<pre class="r watch-out"><code>vrImages(Xen_R1)
+vrImages(Xen_R2)</code></pre>
+<table>
+<tbody>
+<tr style="vertical-align: center">
+<td style="width:50%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/xeniumr1.png" class="center">
+</td>
+<td style="width:50%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/xeniumr2.png" class="center">
+</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>We can adjust the brightness of the second Xenium replicate using the
+<strong>modulateImage</strong> function where we can change the
+brightness and saturation of the reference image of this VoltRon object.
+This functionality is optional for VoltRon objects and should be used
+when images require further adjustments.</p>
+<pre class="r watch-out"><code>Xen_R2 &lt;- modulateImage(Xen_R2, brightness = 800)
+vrImages(Xen_R2)</code></pre>
+<p><img width="40%" height="40%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/xeniumr2_new.png" class="center"></p>
+<p><br></p>
+<p>Once both VoltRon objects are created and images are well-tuned, we
+can merge these two into a single VoltRon object.</p>
+<pre class="r watch-out"><code>Xen_list &lt;- list(Xen_R1, Xen_R2)
+Xen_data &lt;- merge(Xen_list[[1]], Xen_list[-1])</code></pre>
+<pre><code>VoltRon Object 
+XeniumR1: 
+  Layers: Section1 
+XeniumR2: 
+  Layers: Section1 
+Assays: Xenium(Main) </code></pre>
+<p><br></p>
+</div>
+<div id="spatial-visualization" class="section level2">
+<h2>Spatial Visualization</h2>
+<p>With <strong>vrSpatialPlot</strong>, we can visualize Xenium
+experiments in both cellular and subcellular context. Since we have not
+yet started analyzing raw counts of cells, we can first visualize some
+transcripts of interest. We first visualize mRNAs of ACTA2, a marker for
+smooth muscle cell actin, and TCF7, an early exhausted t cell marker. We
+can interactively select a subset of interest within the tissue section
+and visualize the localization of these transcripts. Here we subset a
+ductal carcinoma niche, and visualize visualize mRNAs of
+<strong>(i)</strong> ACTA2, a marker for smooth muscle cell actin, and
+<strong>(ii)</strong> TCF7, an early exhausted t cell marker.</p>
+<pre class="r watch-out"><code>Xen_R1_subsetinfo &lt;- subset(Xen_R1, interactive = TRUE)
+Xen_R1_subset &lt;- Xen_R1_subsetinfo$subsets[[1]]
+vrSpatialPlot(Xen_R1_subset, transcripts = c(&quot;ACTA2&quot;, &quot;TCF7&quot;), pt.size = 0.2)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize.png" class="center"></p>
+<p>We can also visualize count data of cells in the Xenium replicates.
+The behaviour of <strong>vrSpatialFeaturePlot</strong> (and most
+plotting functions in VoltRon) depend on the number of assays associated
+with the assay type (e.g. Xenium is both cell and subcellular type).
+Here, we have two assays, and we visualize two features, hence the
+resulting plot would include four panels.</p>
+<!-- We can either use the original main image as a background, which is the default behaviour of both vrSpatialFeaturePlot and vrSpatialPlot functions, or select either "black" or "white" backgrounds (e.g. **background = "white"**) as an additional arguement in both functions.  -->
+<pre class="r watch-out"><code>vrSpatialFeaturePlot(Xen_data, features = c(&quot;ACTA2&quot;, &quot;TCF7&quot;), alpha = 1, pt.size = 0.7)</code></pre>
+<p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatialfeature_xenium.png" class="center"></p>
+</div>
+<div id="processing-and-embedding" class="section level2">
+<h2>Processing and Embedding</h2>
+<p>Some number of cells in both Xenium replicates might have extremely
+low counts. Although cells are detected at these locations, the low
+total counts of cells would make it challenging for phenotyping and
+clustering these cells. Hence, we remove such cells from the VoltRon
+objects.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- subset(Xen_data, Count &gt; 5)</code></pre>
+<p>Later, we can move on to normalizing the counts to correct for count
+depth of cells by <strong>(i)</strong> dividing counts with total counts
+in each cell, <strong>(ii)</strong> multiply with some constant
+(default: 10000), and followed by <strong>(iii)</strong> log
+transformation of the counts.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- normalizeData(Xen_data)</code></pre>
+<p>VoltRon is capable of reducing dimensionality of datasets using both
+PCA and UMAP which we gonna use to build profile-specific neighborhood
+graphs and partition the data into cell types.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- getPCA(Xen_data, dims = 20)
+Xen_data &lt;- getUMAP(Xen_data, dims = 1:20)</code></pre>
+<p>We can also visualize the normalized expression of these features on
+embedding spaces (e.g. UMAP) using
+<strong>vrEmbeddingFeaturePlot</strong> function.</p>
+<pre class="r watch-out"><code>vrEmbeddingFeaturePlot(Xen_data, features = c(&quot;LRRC15&quot;, &quot;TCF7&quot;), embedding = &quot;umap&quot;, 
+                       pt.size = 0.4)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_featureplot_xenium.png" class="center"></p>
+</div>
+<div id="clustering" class="section level2">
+<h2>Clustering</h2>
+<p>Next, we build neighborhood graphs with the <strong>shared nearest
+neighbors (SNN)</strong> of cells which are constructed from
+dimensionally reduced gene expression profiles. The function
+<strong>getProfileNeighbors</strong> also has an option of building
+<strong>k-nearest neighbors (kNN)</strong> graphs.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- getProfileNeighbors(Xen_data, dims = 1:20, k = 10, method = &quot;SNN&quot;)</code></pre>
+<p>We can later conduct a clustering of cells using the <strong>leiden’s
+method</strong> from the igraph package, which is utilized with the
+<strong>getClusters</strong> function.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- getClusters(Xen_data, resolution = 1.0, label = &quot;Clusters&quot;, graph = &quot;SNN&quot;)</code></pre>
+<p>Now we can label each cell with the associated clustering index and
+take a look at the clustering accuracy on the embedding space, and we
+can also visualize these clusters on a spatial context.</p>
+<pre class="r watch-out"><code>vrEmbeddingPlot(Xen_data, group.by = &quot;Clusters&quot;, embedding = &quot;umap&quot;, pt.size = 0.4)</code></pre>
+<p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_embedplot_xenium.png" class="center"></p>
+<pre class="r watch-out"><code>vrSpatialPlot(Xen_data, group.by = &quot;Clusters&quot;, pt.size = 0.18, background = &quot;black&quot;)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="annotation" class="section level2">
+<h2>Annotation</h2>
+<p>We can annotate each of these clusters according to their positive
+markers across 313 features. One can use the
+<strong>FindAllMarkers</strong> from the <a
+href="https://satijalab.org/seurat/">Seurat</a> package to pinpoint
+these markers by first utilizing the <strong>as.Seurat</strong> function
+first on the Xenium assays of the VoltRon object.</p>
+<p>For more information on conversion to other packages, please visit
+the <a href="conversion.html">Converting VoltRon Objects</a>.</p>
+<p>Let us create a new metadata feature from the
+<strong>Clusters</strong> column, called <strong>CellType</strong>, we
+can insert this new metadata column directly to the object.</p>
+<pre class="r watch-out"><code>clusters &lt;- factor(Xen_data$Clusters, levels = sort(unique(Xen_data$Clusters)))
+levels(clusters) &lt;- c(&quot;DCIS_1&quot;, &quot;DCIS_2_CEACAM6+&quot;, &quot;DCIS_3_TACSTD2+&quot;, &quot;Macrophages&quot;,
+                      &quot;Adipocytes&quot;, &quot;StromalCells&quot;, &quot;IT_1&quot;, &quot;CD8_TCells&quot;, &quot;CD4_TCells&quot;,
+                      &quot;EndothelialCells&quot;, &quot;ACT2_myoepithelial&quot;, &quot;KRT15_myoepithelial&quot;,
+                      &quot;IT_2&quot;, &quot;IT_3_Proliferative&quot;, &quot;MyelomaCells&quot;, &quot;MastCells&quot;, &quot;BCells&quot;, 
+                      &quot;IT_4_LILRA4+&quot;, &quot;PLD4+_LILRA4+_CD4+_Cells&quot;)
+Xen_data$CellType &lt;- as.character(clusters)</code></pre>
+<p><strong>vrSpatialPlot</strong> function can visualize multiple types
+of metadata columns, and users can change the location of the legends as
+well.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(Xen_data, group.by = &quot;CellType&quot;, pt.size = 0.13, background = &quot;black&quot;, legend.loc = &quot;top&quot;)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_annotated.png" class="center"></p>
+<p><br></p>
+</div>
+</div>
+<div id="melc-data-analysis" class="section level1">
+<h1>MELC Data Analysis</h1>
+<p>VoltRon also provides support for imaging based proteomics assays as
+well. In this next use case, we analyze cells characterized by
+<strong>multi-epitope ligand cartography (MELC)</strong> with a panel of
+44 parameters. We use the already segmented cells on which expression of
+<strong>43 protein features</strong> (excluding DAPI) were mapped to
+these cells.</p>
+<p>We use the segmented cells over microscopy images collected from
+<strong>control</strong> and <strong>COVID-19</strong> lung tissues of
+donors categorized based on disease durations (<strong>control</strong>,
+<strong>acute</strong>, <strong>chronic</strong> and
+<strong>prolonged</strong>). Each image is associated with one of few
+field of views (FOVs) from a single tissue section of a donor. See <a
 href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732">GSE190732</a>
 for more information. You can download the <strong>IFdata.csv</strong>
 file and the folder with the <strong>DAPI</strong> images <a
 href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/MELC/GSE190732.zip">here</a>.</p>
-<p>We analyze cells characterized by <strong>multi-epitope ligand
-cartography (MELC)</strong> with a panel of 44 parameters. We use the
-already segmented cells on which expression of <strong>43 protein
-features</strong> (excluding DAPI) were mapped to these cells.</p>
 <p>We import the <strong>protein intensities</strong>,
 <strong>metadata</strong> and <strong>coordinates</strong> associated
 with segmented cells across FOVs of samples.</p>
@@ -463,8 +636,8 @@ metadata &lt;- IFdata[,c(&quot;disease_state&quot;, &quot;object_id&quot;, &quot
                       &quot;SourceID&quot;, &quot;Sample&quot;, &quot;FOV&quot;, &quot;Section&quot;)]
 coordinates &lt;- as.matrix(IFdata[,c(&quot;posX&quot;,&quot;posY&quot;)], rownames.force = TRUE)</code></pre>
 <p><br></p>
-<div id="building-voltron-objects" class="section level2">
-<h2>Building VoltRon objects</h2>
+<div id="importing-melc-data" class="section level2">
+<h2>Importing MELC data</h2>
 <p>First, we normalize the data using the hyperbolic arcsine function
 with a scale argument of 0.2.</p>
 <pre class="r watch-out"><code>data &lt;- asinh(data/0.2)</code></pre>
@@ -490,14 +663,11 @@ for(i in 1:nrow(sample_metadata)){
                                             assay.type = &quot;cell&quot;,
                                             sample_name = vrassay$Section)
 }</code></pre>
-<p>Before moving forward with merging sections, we should <strong>flip
+<p>Before moving forward with merging FOVs, we should <strong>flip
 coordinates</strong> of cells and perhaps also then
 <strong>resize</strong> these images. The main reason for this
 coordinate flipping is that the y-axis of most digital images are of the
-opposite direction to the commonly used coordinate spaces. Hence,
-VoltRon offers the option to flip coordinates of spatial points with
-respect to the image using <strong>flipCoordinates</strong>
-function.</p>
+opposite direction to the commonly used coordinate spaces.</p>
 <pre class="r watch-out"><code>for(i in 1:nrow(sample_metadata)){
   vrassay &lt;- sample_metadata[i,]
   vr_list[[vrassay$Section]] &lt;- flipCoordinates(vr_list[[vrassay$Section]])
@@ -523,40 +693,44 @@ acute_case_1:
 There are 13 samples in total 
 Assays: MELC(Main) </code></pre>
 <p><br></p>
+<p>The prolonged case 4 has two fields of views (FOVs). By subsetting on
+the sample of a prolonged case, we can visualize only these two
+sections, and visualize the protein expression of CD31 and
+Pancytokeratin which are markers of endothelial and epithelial
+cells.</p>
+<pre class="r watch-out"><code>vr_subset &lt;- subset(vr_merged, samples = &quot;prolonged_case_4&quot;)
+g1 &lt;- vrSpatialFeaturePlot(vr_subset, features = c(&quot;CD31&quot;, &quot;Pancytokeratin&quot;), alpha = 1, 
+                           pt.size = 0.7, background = &quot;black&quot;)</code></pre>
+<p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatialfeature.png" class="center"></p>
+<p><br></p>
 </div>
 <div id="dimensionality-reduction" class="section level2">
 <h2>Dimensionality Reduction</h2>
-<p>Lets visualize some protein features on tissue sections. We can
-either use the DAPI images as a background (e.g. <strong>background =
-image</strong>), or select either “black” or “white” backgrounds
-(e.g. <strong>background = “white”</strong>).</p>
-<pre class="r watch-out"><code>vr_subset &lt;- subset(vr_merged, samples = &quot;control_case_1&quot;)
-vrSpatialFeaturePlot(vr_subset, features = c(&quot;CollagenIV&quot;, &quot;CD11b&quot;), alpha = 1, pt.size = 0.7)</code></pre>
-<p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatialfeature.png" class="center"></p>
-<p><br></p>
-<p>VoltRon is capable of reducing dimensionality of datasets using both
-PCA and UMAP which we gonna use to build neighborhood graphs and
-partition the data into cell types.</p>
+<p>We can utilize dimensional reduction of the available protein markers
+using the getPCA and getUMAP functions, but now with relatively lower
+numbers of principal components which are enough to capture the
+information across 44 features.</p>
 <pre class="r watch-out"><code>vr_merged &lt;- getPCA(vr_merged, dims = 10)
-vr_merged &lt;- getUMAP(vr_merged, dims = 1:10)</code></pre>
-<p>We can also visualize the normalized expression of these features on
-embedding spaces using <strong>vrEmbeddingFeaturePlot</strong>
-function.</p>
-<pre class="r watch-out"><code>vrEmbeddingFeaturePlot(vr_merged, features = c(&quot;CollagenIV&quot;, &quot;CD11b&quot;), embedding = &quot;umap&quot;)</code></pre>
+vr_merged &lt;- getUMAP(vr_merged, dims = 1:10)
+vrEmbeddingFeaturePlot(vr_merged, features = c(&quot;CD31&quot;, &quot;Pancytokeratin&quot;), embedding = &quot;umap&quot;)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_embedding.png" class="center"></p>
 <p><br></p>
 </div>
-<div id="clustering" class="section level2">
+<div id="clustering-1" class="section level2">
 <h2>Clustering</h2>
-<p>Next, we build neighborhood graphs with the <strong>k-nearest
-neighbors of cells</strong> which are constructed by dimensionally
-reduced gene expression profiles. We can conduct a clustering of cells
-using the <strong>leiden’s method</strong> from the igraph package.</p>
-<pre class="r watch-out"><code>vr_merged &lt;- getNeighbors(vr_merged, dims = 1:10, k = 10, method = &quot;kNN&quot;)
-vr_merged &lt;- getClusters(vr_merged, resolution = 0.8, label = &quot;MELC_Clusters&quot;)</code></pre>
-<p>Now we can visualize these clusters and perhaps also check for
-clusters that may reside in only specific disease conditions.</p>
-<pre class="r watch-out"><code>library(patchwork)
+<p>Now we can visualize the clusters across these sections and perhaps
+also check for clusters that may reside in only specific disease
+conditions.</p>
+<pre class="r watch-out"><code># SNN graph and clusters
+vr_merged &lt;- getProfileNeighbors(vr_merged, dims = 1:10, k = 10, method = &quot;SNN&quot;)
+vr_merged &lt;- getClusters(vr_merged, resolution = 0.8, label = &quot;MELC_Clusters&quot;, graph = &quot;SNN&quot;)
+
+# install patchwork package
+if (!requireNamespace(&quot;patchwork&quot;, quietly = TRUE))
+  install.packages(&quot;patchwork&quot;)
+library(patchwork)
+
+# visualize conditions and clusters
 vr_merged$Condition &lt;- gsub(&quot;_[0-9]$&quot;, &quot;&quot;, vr_merged$Sample)
 g1 &lt;- vrEmbeddingPlot(vr_merged, group.by = c(&quot;Condition&quot;), embedding = &quot;umap&quot;)
 g2 &lt;- vrEmbeddingPlot(vr_merged, group.by = c(&quot;MELC_Clusters&quot;), embedding = &quot;umap&quot;, 
@@ -565,21 +739,76 @@ g1 | g2</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_embeddingclusters.png" class="center"></p>
 <p><br></p>
 </div>
-<div id="visualization" class="section level2">
-<h2>Visualization</h2>
+<div id="visualization-of-markers" class="section level2">
+<h2>Visualization of Markers</h2>
 <p>VoltRon provides both violin plots (<strong>vrViolinPlot</strong>)
 and heatmaps (<strong>vrHeatmapPlot</strong>) to further investigate the
 enrichment of markers across newly clustered datasets.
 <strong>Note:</strong> the vrHeatmapPlot function would require you to
 have the <strong>ComplexHeatmap</strong> package in your namespace.</p>
-<pre class="r watch-out"><code>library(ComplexHeatmap)
+<pre class="r watch-out"><code># install patchwork package
+if (!requireNamespace(&quot;ComplexHeatmap&quot;, quietly = TRUE))
+  BiocManager::install(&quot;ComplexHeatmap&quot;)
+library(ComplexHeatmap)
+
+# Visualize Markers
 vrHeatmapPlot(vr_merged, features = vrFeatures(vr_merged), 
               group.by = &quot;MELC_Clusters&quot;, show_row_names = TRUE)</code></pre>
-<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_heatmapclusters.png" class="center"></p>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_heatmapclusters.png" class="center"></p>
 <p><br></p>
 <pre class="r watch-out"><code>vrViolinPlot(vr_merged, features = c(&quot;CD3&quot;, &quot;SMA&quot;, &quot;Pancytokeratin&quot;, &quot;CCR2&quot;), 
              group.by = &quot;MELC_Clusters&quot;, ncol = 2)</code></pre>
-<p><img width="100%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_violinclusters.png" class="center"></p>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_violinclusters.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="neighborhood-analysis" class="section level2">
+<h2>Neighborhood Analysis</h2>
+<p>We use the <strong>vrNeighbourhoodEnrichment</strong> function to
+detect cell type pairs that co occur within each others’ neighborhoods.
+First, we establish <strong>spatial neighborhood graphs</strong> that
+determine the neighbors of each cell on tissue sections.</p>
+<p><a
+href="https://en.wikipedia.org/wiki/Delaunay_triangulation">Delaunay
+tesselations</a> or graphs are commonly used to determine neighbors of
+spatial entities. The function <strong>getSpatialNeighbors</strong>
+builds a delaunay graph of all assays of a certain type and detects
+neighbors of cells in a VoltRon object.</p>
+<pre class="r watch-out"><code>vr_merged_result &lt;- getSpatialNeighbors(vr_merged, method = &quot;delaunay&quot;)</code></pre>
+<p>Once neighbors are founds, we can apply a <strong>permutation
+test</strong> that compares the number of cell type occurances with an
+expected number of these occurances under multiple permutations of
+labels in the tissue (fixed coordinates but cells are randomly
+labelled). A similar approach is used to by several spatial analysis
+frameworks and packages (<a
+href="https://www.nature.com/articles/nmeth.4391">Schapiro et. al
+2017</a>, <a
+href="https://www.nature.com/articles/s41592-021-01358-2">Palla et. al
+2022</a>).</p>
+<p>Here, we will use the original cell type labels annotated by <a
+href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9922044/">Mothes et.
+al 2023</a>.</p>
+<pre class="r watch-out"><code>neighborhood_results &lt;- vrNeighbourhoodEnrichment(vr_merged_result, group.by = &quot;Clusters&quot;)</code></pre>
+<p>The neighborhood analysis provides the results of:</p>
+<ul>
+<li>the <strong>association</strong> tests (whether cell types are
+within each other’s neighborhood)</li>
+<li>the <strong>segregation</strong> tests (whether cell types are
+clustered separately)</li>
+</ul>
+<p>between all cell type pairs across each layers and assay.</p>
+<p>The number of each cell in a pair in each section is reported to
+assess the impact of the results of the test (i.e. low number of
+abundance in one cell type may indicate low impact).</p>
+<pre class="r watch-out"><code>head(neighborhood_results)</code></pre>
+<div>
+<pre><code style="font-size: 10px;">          from_value     to_value   p_assoc   p_segreg p_assoc_adj p_segreg_adj n_from n_to AssayID Assay    Layer         Sample
+Assay1.1 CD163+ macs  CD163+ macs 0.0000000 1.00000000      0.0000   1.00000000     41   41  Assay1  MELC Section1 control_case_3
+Assay1.2 CD163+ macs CD4+ T cells 0.9380000 0.03300000      0.9980   0.09762866     41   48  Assay1  MELC Section1 control_case_3
+Assay1.3 CD163+ macs  CD8+ Tcells 0.8779011 0.04339051      0.9980   0.09762866     41   11  Assay1  MELC Section1 control_case_3
+Assay1.4 CD163+ macs     NK cells 0.8190000 0.08700000      0.9980   0.15660000     41   15  Assay1  MELC Section1 control_case_3
+Assay1.5 CD163+ macs   endothelia 0.1230000 0.85100000      0.5535   0.95737500     41  139  Assay1  MELC Section1 control_case_3
+Assay1.6 CD163+ macs    epithelia 0.9320000 0.03600000      0.9980   0.09762866     41   39  Assay1  MELC Section1 control_case_3</code></pre>
+</div>
 <p><br></p>
 </div>
 </div>

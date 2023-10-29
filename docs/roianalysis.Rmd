@@ -209,12 +209,23 @@ GeoMxR1 <- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1])
 
 ## Visualization
 
-We will now select sections of interests from the VoltRon object, and visualize features for each of them. The function **vrSpatialFeaturePlot** detects the number of assays within each VoltRon object and visualizes each feature per each spatial image. A grid of images are visualized either the number of assays or the number of features are larger than 1. 
+We will now select sections of interests from the VoltRon object, and visualize ROIs and features for each of these sections.
+
+The function **vrSpatialPlot** plots categorical attributes associated with ROIs. In this case, we will visualize types of ROIs that were labelled and annotated during ROI selection. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 GeoMxR1_subset <- subset(GeoMxR1, sample = c("prolonged case 4","acute case 3"))
-vrSpatialFeaturePlot(GeoMxR1_subset, features = c("CXCL11", "COL1A1"), group.by = "ROI.name", 
-                     label = TRUE, keep.scale = "all", title.size = 15)
+vrSpatialPlot(GeoMxR1_subset, group.by = "ROI.type", ncol = 3, alpha = 0.6)
+```
+
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_spatialplot.png" class="center">
+
+The function **vrSpatialFeaturePlot** detects the number of assays within each VoltRon object and visualizes each feature per each spatial image. A grid of images are visualized either the number of assays or the number of features are larger than 1. Here, we visualize the normalized expression of COL1A1 and C1S, two fibrotic markers, across ROIs of two prolonged covid cases. One may observe that the fibrotic regions of prolonged case 5 have considerably more COL1A1 and C1S compared to prolonged case 4. 
+
+```{r eval = FALSE, class.source="watch-out"}
+GeoMxR1_subset <- subset(GeoMxR1, sample = c("prolonged case 4","prolonged case 5"))
+vrSpatialFeaturePlot(GeoMxR1_subset, features = c("COL1A1", "C1S"), group.by = "ROI.name", log = FALSE,
+                     label = TRUE, keep.scale = "feature", title.size = 15)
 ```
 
 <img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_featureplot.png" class="center">
@@ -257,67 +268,97 @@ vrEmbeddingPlot(GeoMxR1, group.by = c("ROI.type"), embedding = "umap", pt.size =
 
 ## Differential Expression Analysis
 
-VoltRon provides wrapping functions for calling tools and methods from popular differential expression analysis package such as [DESeq2](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-014-0550-8). We utilize **DESeq2** to find differentially expressed genes across each pair of disease conditions. 
+VoltRon provides wrapping functions for calling tools and methods from popular differential expression analysis package such as [DESeq2](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-014-0550-8). We utilize **DESeq2** to find differentially expressed genes across each pair of ROI types conditions.
 
 ```{r eval = FALSE, class.source="watch-out"}
 # get DE for all conditions
 library(DESeq2)
 library(dplyr)
-DEresults <- getDiffExp(GeoMxR1, group.by = "Condition", method = "DESeq2")
+DEresults <- getDiffExp(GeoMxR1, group.by = "ROI.type",
+                        group.base = "vessel", method = "DESeq2")
 DEresults_sig <- DEresults %>% filter(!is.na(padj)) %>% 
   filter(padj < 0.05, abs(log2FoldChange) > 1)
 head(DEresults_sig)
 ```
 
-<div><pre><code style="font-size: 10.6px;">        baseMean log2FoldChange     lfcSE     stat       pvalue         padj   gene                               comparison
-COL1A1  48.19791       2.612843 0.3928580 6.650859 2.913866e-11 1.502553e-08 COL1A1 Condition_prolonged.case_vs_control.case
-COL1A2 101.50889       2.201342 0.3985002 5.524068 3.312388e-08 6.506870e-06 COL1A2 Condition_prolonged.case_vs_control.case
-COL5A1  22.14014       1.012716 0.2867603 3.531576 4.130906e-04 1.472226e-02 COL5A1 Condition_prolonged.case_vs_control.case
-C7      43.77944       1.286227 0.3470877 3.705769 2.107501e-04 9.079861e-03     C7 Condition_prolonged.case_vs_control.case
-IGF1    13.71023       1.125923 0.2157737 5.218073 1.807938e-07 2.788110e-05   IGF1 Condition_prolonged.case_vs_control.case
-DRD5    18.04997       1.087036 0.1774495 6.125887 9.017989e-10 3.100121e-07   DRD5 Condition_prolonged.case_vs_control.case</code></pre></div>
+<div><pre><code style="font-size: 11.7px;">         baseMean log2FoldChange     lfcSE     stat       pvalue         padj     gene             comparison
+ACTA2    33.48395       1.508701 0.3458464 4.362343 1.286768e-05 4.902586e-03    ACTA2 ROI.type_vessel_airway
+ADAMTS1  22.29160       1.152556 0.2272085 5.072680 3.922515e-07 4.109815e-04  ADAMTS1 ROI.type_vessel_airway
+C11orf96 27.48924       1.142085 0.3041057 3.755554 1.729585e-04 2.588819e-02 C11orf96 ROI.type_vessel_airway
+CNN1     16.87670       1.112662 0.2680222 4.151381 3.304757e-05 9.766004e-03     CNN1 ROI.type_vessel_airway
+CRYAB    21.85960       1.264747 0.2173272 5.819552 5.900570e-09 2.472929e-05    CRYAB ROI.type_vessel_airway
+FLNA     44.50957       1.270025 0.3243115 3.916066 9.000548e-05 1.985331e-02     FLNA ROI.type_vessel_airway</code></pre></div>
 
 <br>
 
-The **vrHeatmapPlot** takes a set of features for any type of spatial point (cells, spots and ROIs) and visualizes scaled data per each feature. The select **highlight.some = TRUE** to annotate features which could be large in size. The heterogeneity across prolonged case segments are highlighted by different set of markers. 
+The **vrHeatmapPlot** takes a set of features for any type of spatial point (cells, spots and ROIs) and visualizes scaled data per each feature. We select **highlight.some = TRUE** to annotate features which could be large in size where you can also select the number of such highlighted genes with **n_highlight**. There seems to be two groups of fibrotic regions that most likely associated with two prolonged case samples. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 # get DE for all conditions
 library(ComplexHeatmap)
-vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene), 
-              group.by = "Condition", highlight.some = TRUE)
+vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene), group.by = "ROI.type", 
+              highlight.some = TRUE, n_highlight = 40)
 ```
 
 <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap.png" class="center">
 
 <br>
 
-Markers of each individual tissue section for each disease duration is shown on the Heatmap. 
+In order to get a deeper understanding of differences between fibrotic regions across two prolonged case replicates. We first subset the GeoMx data to only sections with fibrotic ROIs. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-# get DE for all conditions
-vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene), 
-              group.by = "Sample", highlight.some = TRUE)
+fibrotic_ROI <- vrSpatialPoints(GeoMxR1)[GeoMxR1$ROI.type == "fibrotic"]
+GeoMxR1_subset <- subset(GeoMxR1, spatialpoints = fibrotic_ROI)
+vrSpatialPlot(GeoMxR1_subset, group.by = "ROI.type", ncol = 3, alpha = 0.4)
 ```
 
-<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap2.png" class="center">
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_spatialplot_fibrotic.png" class="center">
+
+The **getDiffExp** function is capable of testing differential expression across all metadata columns, including the **Samples** column that captures labels of different tissue sections. Macrophage markers such as CD68 and CD163 are differentially expressed in fibrotic regions of case 5 compared to case 4, including FN1, a profibrotic gene whose expression can be found on macrophages.  
+
+```{r eval = FALSE, class.source="watch-out"}
+DEresults <- getDiffExp(GeoMxR1_subset, group.by = "Sample", 
+                        group.base = "prolonged case 5", method = "DESeq2")
+DEresults_sig <- DEresults %>% filter(!is.na(padj)) %>%
+  filter(padj < 0.05, abs(log2FoldChange) > 1)
+DEresults_sig <- DEresults_sig[order(DEresults_sig$log2FoldChange, decreasing = TRUE),]
+head(DEresults_sig)
+```
+
+<div><pre><code style="font-size: 10.7px;">       baseMean log2FoldChange     lfcSE      stat       pvalue         padj   gene                               comparison
+COL3A1 708.5599       6.635411 0.5198805 12.763338 2.626978e-37 1.596809e-33 COL3A1 Sample_prolonged case 5_prolonged case 4
+COL1A2 836.0790       5.237228 0.4407380 11.882861 1.453071e-32 4.416246e-29 COL1A2 Sample_prolonged case 5_prolonged case 4
+COL1A1 460.2184       5.175153 0.5237868  9.880267 5.069785e-23 3.081669e-20 COL1A1 Sample_prolonged case 5_prolonged case 4
+FN1    278.6594       5.083687 0.3717299 13.675754 1.417301e-42 1.723013e-38    FN1 Sample_prolonged case 5_prolonged case 4
+HBB    202.7693       4.944228 0.4884175 10.122955 4.370193e-24 3.794888e-21    HBB Sample_prolonged case 5_prolonged case 4
+A2M    466.4328       4.925236 0.4542682 10.842133 2.173435e-27 3.774636e-24    A2M Sample_prolonged case 5_prolonged case 4</code></pre></div>
 
 <br>
 
+<!-- Markers of each individual tissue section for each disease duration is shown on the Heatmap.  -->
+
+<!-- ```{r eval = FALSE, class.source="watch-out"} -->
+<!-- # get DE for all conditions -->
+<!-- vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene),  -->
+<!--               group.by = "Sample", highlight.some = TRUE) -->
+<!-- ``` -->
+
+<!-- <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap2.png" class="center"> -->
+
+<!-- <br> -->
+
 ## ROI Deconvolution
 
-VoltRon supports multiple bulk RNA deconvolution algorithms to analyze the cellular composition of both ROIs and spots. In order to integrate the scRNA data and the GeoMx data sets within the VoltRon objects, we will use the [MuSiC](https://xuranw.github.io/MuSiC/articles/MuSiC.html) package. We will use a human lung scRNA dataset as reference, which is found here ([GSE198864](https://ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE198864)). Please download and unzip **GSE198864_lung_combined_all.rds.gz**. 
+VoltRon supports multiple bulk RNA deconvolution algorithms to analyze the cellular composition of both ROIs and spots. In order to integrate the scRNA data and the GeoMx data sets within the VoltRon objects, we will use the [MuSiC](https://xuranw.github.io/MuSiC/articles/MuSiC.html) package. We will use a human lung scRNA dataset as reference, which is found here ([GSE198864](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GSE198864_lung.rds)). 
 
 ```{r eval = FALSE, class.source="watch-out"}
 set.seed(1)
 library(Seurat)
 library(SingleCellExperiment)
-seu <- readRDS("GSE198864_lung_combined_all.rds")
+seu <- readRDS("GSE198864_lung.rds")
 scRNAlung <- seu[,sample(1:ncol(seu), 10000, replace = FALSE)]
 
-g1 <- DimPlot(scRNAlung, reduction = "umap", label = T, group.by = "cluster") + NoLegend()
-g2 <- DimPlot(scRNAlung, reduction = "umap", label = T, group.by = "predicted.id") + NoLegend()
-g1 | g2
+DimPlot(scRNAlung, reduction = "umap", label = T, group.by = "Clusters") + NoLegend()
 ```
 
 <img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_deconvolution_singlecell.png" class="center">
@@ -326,10 +367,10 @@ We utilize the **getDeconvolution** function to call wrapper functions for decon
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(MuSiC)
-GeoMxR1_decon <- getDeconvolution(GeoMxR1,
+GeoMxR1 <- getDeconvolution(GeoMxR1,
                             sc.object = scRNAlung, sc.assay = "RNA", 
-                            sc.cluster = "cluster", sc.samples = "orig.ident")
-SampleMetadata(GeoMxR1_decon)
+                            sc.cluster = "Clusters", sc.samples = "orig.ident")
+SampleMetadata(GeoMxR1)
 ```
 
 ```
@@ -352,11 +393,32 @@ Assay15 GeoMx_decon Section1 prolonged case 3
 Assay16 GeoMx_decon Section1   control case 1
 ```
 
-We can now visualize cell type compositions of each ROI. Before running **vrProportionPlot** function, we need to set the main assay as **GeoMx_decon**. 
+We can now visualize cell type compositions of each ROI. Before running **vrProportionPlot** function, we need to set the main assay as **GeoMx_decon**. One may see the increased proportion of cells NK cells and T cells in immune ROIs. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrMainAssay(GeoMxR1_decon) <- "GeoMx_decon"
-vrProportionPlot(GeoMxR1_decon)
+vrMainAssay(GeoMxR1) <- "GeoMx_decon"
+vrProportionPlot(GeoMxR1)
 ```
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_deconvolution.png" class="center">
+
+Here, we can subset the GeoMx object further to dive deep into the cellular proportions of each fibrotic region of prolonged cases. Comparing prolonged case 5 against case 4, we see an increase in the cellular population of the stromal cluster defined in [Mothes et. al 2023](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9922044/) (that are both vascular and airway smooth muscle cells), and an increase abundance of macrophages which may indicate that these macrophages are profibrotic being within and close to fibrotic regions with increased gene expression of FN1. 
+
+```{r eval = FALSE, class.source="watch-out"}
+# subsetting fibrotic regions
+spatialpoints <- vrSpatialPoints(GeoMxR1)[GeoMxR1$ROI.type == "fibrotic"]
+GeoMxR1_subset <- subset(GeoMxR1, spatialpoints = spatialpoints)
+
+# Proportion plot
+vrProportionPlot(GeoMxR1_decon_subset, x.label = "ROI.name", split.method = "facet_grid", 
+                 split.by = "Sample")
+
+# barplot 
+vrBarPlot(GeoMxR1_decon_subset, features = c("stromal", "macrophages"), group.by = "Sample",
+          x.label = "ROI.name", split.by = "Sample")
+```
+
+<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap_fibrotic.png" class="center">
+
+<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_barplot_prop_fibrotic.png" class="center">
+

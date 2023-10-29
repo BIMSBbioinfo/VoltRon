@@ -8,8 +8,11 @@ vrSpatialFeaturePlotSingle(
   assay,
   metadata,
   feature,
+  graph = NULL,
   limits,
   group.by = "label",
+  norm = TRUE,
+  log = FALSE,
   font.size = 2,
   pt.size = 2,
   title.size = 10,
@@ -17,7 +20,8 @@ vrSpatialFeaturePlotSingle(
   label = FALSE,
   plot_title = NULL,
   legend_title = NULL,
-  background = "image",
+  background = NULL,
+  reg = FALSE,
   crop = FALSE
 )
 }
@@ -28,9 +32,15 @@ vrSpatialFeaturePlotSingle(
 
 \item{feature}{a feature, either from the rows of rawdata, normdata or columns of the metadata}
 
+\item{graph}{if not NULL, the graph is added to the plot}
+
 \item{limits}{limits of the legend of the plot}
 
 \item{group.by}{a grouping label for the spatial entities}
+
+\item{norm}{if TRUE, the normalized data is used}
+
+\item{log}{if TRUE, data features (excluding metadata features) will be log transformed}
 
 \item{font.size}{font sizes}
 
@@ -47,6 +57,8 @@ vrSpatialFeaturePlotSingle(
 \item{legend_title}{the legend title of the single plot}
 
 \item{background}{the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)}
+
+\item{reg}{if TRUE, the registered coordinates will be used}
 
 \item{crop}{whether to crop an image of a spot assay}
 }

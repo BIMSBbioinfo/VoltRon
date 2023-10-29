@@ -7,7 +7,7 @@
 \usage{
 getPCA(object, ...)
 
-\method{getPCA}{VoltRon}(object, assay = NULL, dims = 30, seed = 1)
+\method{getPCA}{VoltRon}(object, assay = NULL, features = NULL, dims = 30, seed = 1)
 }
 \arguments{
 \item{object}{An object}
@@ -15,6 +15,8 @@ getPCA(object, ...)
 \item{...}{Arguments passed to other methods}
 
 \item{assay}{assay}
+
+\item{features}{the selected features for PCA reduction}
 
 \item{dims}{the number of dimensions extracted from PCA}
 

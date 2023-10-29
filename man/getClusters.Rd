@@ -4,7 +4,13 @@
 \alias{getClusters}
 \title{getClusters}
 \usage{
-getClusters(object, resolution = 1, assay = NULL, label = "clusters")
+getClusters(
+  object,
+  resolution = 1,
+  assay = NULL,
+  label = "clusters",
+  graph = "kNN"
+)
 }
 \arguments{
 \item{object}{A VoltRon object}
@@ -14,6 +20,8 @@ getClusters(object, resolution = 1, assay = NULL, label = "clusters")
 \item{assay}{assay}
 
 \item{label}{the name for the newly created clustering column in the metadata}
+
+\item{graph}{the graph type to be used}
 }
 \description{
 Get clustering of the VoltRon object

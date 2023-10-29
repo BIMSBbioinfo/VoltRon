@@ -7,16 +7,21 @@
 vrSpatialPlot(
   object,
   group.by = "Sample",
+  transcripts = NULL,
   assay = NULL,
   assay.type = NULL,
+  graph.name = NULL,
   ncol = 2,
   nrow = NULL,
   font.size = 2,
   pt.size = 2,
-  alpha = 0.6,
+  alpha = 1,
   label = FALSE,
-  background = "image",
+  background = NULL,
+  reg = FALSE,
   crop = FALSE,
+  legend.pt.size = 2,
+  legend.loc = "right",
   common.legend = TRUE,
   collapse = TRUE
 )
@@ -26,9 +31,13 @@ vrSpatialPlot(
 
 \item{group.by}{a grouping label for the spatial entities}
 
+\item{transcripts}{Only for spatial data with existing subcellular information, visualize the location of given transcripts}
+
 \item{assay}{the assay name}
 
 \item{assay.type}{the assay type name: 'cell', 'spot' or 'ROI'}
+
+\item{graph.name}{if not NULL, the spatial graph is with name \code{graph.name} is visualized as well}
 
 \item{ncol}{column wise number of plots, for \code{ggarrange}}
 
@@ -44,7 +53,13 @@ vrSpatialPlot(
 
 \item{background}{the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)}
 
+\item{reg}{if TRUE, the registered coordinates will be used}
+
 \item{crop}{whether to crop an image of a spot assay}
+
+\item{legend.pt.size}{the size of points at the legend}
+
+\item{legend.loc}{the location of the legend, default is "right"}
 
 \item{common.legend}{whether to use a common legend for all plots}
 

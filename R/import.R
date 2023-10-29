@@ -13,16 +13,18 @@
 #' @param dir.path path to Xenium output folder
 #' @param selected_assay selected assay from Xenium
 #' @param assay_name the assay name of the SR object
+#' @param use_image if TRUE, the DAPI image will be used.
 #' @param morphology_image the name of the lowred morphology image. Default: morphology_lowres.tif
 #' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
 #' @importFrom magick image_read
 #' @importFrom utils read.csv
+#' @importFrom data.table fread
 #'
 #' @export
 #'
-importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", morphology_image = "morphology_lowres.tif", resolution_level = 7, ...)
+importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, ...)
 {
   # raw counts
   datafile <- paste0(dir.path, "/cell_feature_matrix.h5")
@@ -38,21 +40,16 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   }
 
   # image
-  suppressMessages(generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level))
-  image_file <- paste0(dir.path, "/", morphology_image)
-  if(file.exists(image_file)){
-    image <-  image_read(image_file)
+  if(use_image){
+    suppressMessages(generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level))
+    image_file <- paste0(dir.path, "/", morphology_image)
+    if(file.exists(image_file)){
+      image <-  image_read(image_file)
+    } else {
+      stop("There are no spatial image files in the path")
+    }
   } else {
-    stop("There are no spatial image files in the path")
-  }
-
-  # cell boundaries
-  bound_file <- paste0(dir.path, "/cell_boundaries.csv.gz")
-  if(file.exists(bound_file)){
-    Xenium_boundaries <- utils::read.csv(bound_file)
-    Xenium_box <- apply(Xenium_boundaries[,-1], 2, range)
-  } else {
-    stop("There are no files named 'cell_boundaries.csv.gz' in the path")
+    image <- NULL
   }
 
   # coordinates
@@ -61,14 +58,47 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
     Xenium_coords <- utils::read.csv(file = coord_file)
     coords <- as.matrix(Xenium_coords[,c("x_centroid", "y_centroid")])
     colnames(coords) <- c("x","y")
-    coords[,2] <- max(coords[,2]) - coords[,2] + min(coords[,2])
-    coords <- rescaleXeniumCells(coords, Xenium_box, image)
+    range_coords <- range(coords[,2])
+    coords[,2] <- range_coords[2] - coords[,2] + range_coords[1]
+    if(use_image) {
+      # cell boundaries
+      bound_file <- paste0(dir.path, "/cell_boundaries.csv.gz")
+      if(file.exists(bound_file)){
+        Xenium_boundaries <- utils::read.csv(bound_file)
+        Xenium_box <- apply(Xenium_boundaries[,-1], 2, range)
+      } else {
+        stop("There are no files named 'cell_boundaries.csv.gz' in the path")
+      }
+      coords <- rescaleXeniumCells(coords, Xenium_box, image)
+    }
   } else {
     stop("There are no files named 'cells.csv.gz' in the path")
   }
 
+  # transcripts
+  transcripts_file <- paste0(dir.path, "/transcripts.csv.gz")
+  if(file.exists(transcripts_file)){
+    subcellular <- as.data.frame(data.table::fread(transcripts_file))
+    subcellular <- subcellular[,c("cell_id", colnames(subcellular)[!colnames(subcellular) %in% "cell_id"])]
+    colnames(subcellular)[colnames(subcellular) %in% c("x_location", "y_location")] <- c("x", "y")
+    subcellular[,"y"] <- range_coords[2] - subcellular[,"y"]  + range_coords[1]
+    if(use_image) {
+      # cell boundaries
+      bound_file <- paste0(dir.path, "/cell_boundaries.csv.gz")
+      if(file.exists(bound_file)){
+        Xenium_boundaries <- utils::read.csv(bound_file)
+        Xenium_box <- apply(Xenium_boundaries[,-1], 2, range)
+      } else {
+        stop("There are no files named 'cell_boundaries.csv.gz' in the path")
+      }
+      subcellular[,c("x","y")] <- rescaleXeniumCells(subcellular[,c("x","y")], Xenium_box, image)
+    }
+  } else {
+    stop("There are no files named 'transcripts.csv.gz' in the path")
+  }
+
   # create VoltRon
-  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, assay.type = "cell", ...)
+  formVoltRon(rawdata, metadata = NULL, image = image, coords, subcellular = subcellular, main.assay = assay_name, assay.type = "cell", ...)
 }
 
 #' rescaleXeniumCells
@@ -233,7 +263,11 @@ import10Xh5 <- function(filename){
 }
 
 ####
-# GeoMx ####
+# Nanostring ####
+####
+
+####
+## GeoMx ####
 ####
 
 #' importGeoMx
@@ -649,3 +683,80 @@ rescaleGeoMxPoints <- function(pts, summary, imageinfo){
   return(pts)
 }
 
+####
+## CosMx ####
+####
+
+#' importCosMx
+#'
+#' Import CosMx data
+#'
+#' @param tiledbURI the path to the tiledb folder
+#' @param assay_name the assay name, default: CosMx
+#' @param image the reference morphology image of the CosMx assay
+#' @param segment_polygons if TRUE, the ROI polygons are parsed from the OME.TIFF file
+#' @param ome.tiff the OME.TIFF file of the CosMx experiment if exists
+#' @param ... additional parameters passed to \code{formVoltRon}
+#'
+#' @importFrom dplyr %>% full_join
+#' @importFrom utils read.csv
+#' @importFrom magick image_info image_read
+#'
+#' @export
+#'
+importCosMx <- function(tiledbURI, assay_name = "CosMx",
+                        image = NULL, segment_polygons = FALSE, ome.tiff = NULL, ...)
+{
+  # check tiledb and tiledbsc
+  if (!requireNamespace("tiledb", quietly = TRUE))
+    stop("Please install the tiledb package: \n
+         remotes::install_github('TileDB-Inc/TileDB-R', force = TRUE,
+                            ref = '0.17.0')")
+  if (!requireNamespace("tiledbsc", quietly = TRUE))
+    stop("Please install the tiledbsc package: \n
+         remotes::install_github('tiledb-inc/tiledbsc', force = TRUE,
+                            ref = '8157b7d54398b1f957832f37fff0b173d355530e')")
+
+  # get tiledb
+  tiledb_scdataset <- tiledbsc::SOMACollection$new(uri = tiledbURI, verbose = FALSE)
+
+  # raw counts
+  counts <- tiledb_scdataset$somas$RNA$X$members$counts$to_matrix(batch_mode = TRUE)
+  counts <- as.matrix(counts)
+
+  # cell metadata
+  metadata <- tiledb_scdataset$somas$RNA$obs$to_dataframe()
+
+  # coordinates
+  coords <- as.matrix(metadata[,c("x_slide_mm", "y_slide_mm")])
+  colnames(coords) <- c("x","y")
+
+  # transcripts
+  subcellular <- tiledb::tiledb_array(
+    tiledb_scdataset$somas$RNA$obsm$members$transcriptCoords$uri,
+    return_as="data.frame")[]
+  subcellular <- subcellular[,c("cell_id", colnames(subcellular)[!colnames(subcellular) %in% "cell_id"])]
+
+  # get slides and construct VoltRon objects for each slides
+  slides <- unique(metadata$slide_ID_numeric)
+
+  # for each slide create a VoltRon object with combined layers
+  vr_list <- list()
+  for(slide in slides){
+
+    # slide info
+    cur_coords <- coords[metadata$slide_ID_numeric == slide,]
+    cur_counts <- counts[,rownames(cur_coords)]
+    cur_metadata <- metadata[rownames(cur_coords),]
+    cur_subcellular <- subcellular[subcellular$slideID == slide,]
+
+    # create VoltRon
+    vr_object <- formVoltRon(cur_counts, metadata = cur_metadata, image, cur_coords, subcellular = cur_subcellular,
+                             main.assay = assay_name, assay.type = "cell", ...)
+    vr_object$Sample <- paste0("Slide", slide)
+    vr_list <- append(vr_list, vr_object)
+  }
+
+  # return
+  vr <- merge(vr_list[[1]], vr_list[-1])
+}

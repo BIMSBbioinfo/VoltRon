@@ -10,8 +10,8 @@ formVoltRon(
   image = NULL,
   coords,
   segments = list(),
+  subcellular = NULL,
   sample.metadata = NULL,
-  graph = NULL,
   main.assay = "Custom_cell",
   assay.type = "cell",
   params = list(),
@@ -31,9 +31,9 @@ formVoltRon(
 
 \item{segments}{the segments of the spatial points, optional}
 
-\item{sample.metadata}{a data frame of the sample metadata}
+\item{subcellular}{subcellular data}
 
-\item{graph}{the graph to determine the adjacency of spatial points across layers}
+\item{sample.metadata}{a data frame of the sample metadata}
 
 \item{main.assay}{the name of the main assay of the object}
 

@@ -33,7 +33,7 @@ VoltRon <- setClass(
     samples = 'list',
     metadata = "vrMetadata",
     sample.metadata = "data.frame",
-    graph = "igraph",
+    graph = "list",
     main.assay = "character",
     project = 'character'
   )
@@ -60,6 +60,7 @@ setMethod(
       assays <- sapply(names(object@samples[[samp]]@layer), function(x) names(object[[samp, x]]@assay))
       all_assays <- c(all_assays, assays)
     }
+    all_assays <- unlist(all_assays)
 
     if(length(sample_names) > 5){
       cat("...", "\n")
@@ -155,11 +156,11 @@ NULL
       x <- changeSampleNames(x, samples = value)
     }
   } else {
-    if(!nrow(metadata) %in% c(1,length(value))){
-      stop("The new or the existing column should of length 1 or the same as the number of rows")
-    } else {
+    if(length(value) == 1 | nrow(metadata) == length(value)){
       metadata[[i]] <- value
       Metadata(x, assay = assay_names) <- metadata
+    } else {
+      stop("The new or the existing column should of length 1 or the same as the number of rows")
     }
   }
 
@@ -306,8 +307,8 @@ setMethod(
 #' @param image the image of the data
 #' @param coords the coordinates of the spatial points
 #' @param segments the segments of the spatial points, optional
+#' @param subcellular subcellular data
 #' @param sample.metadata a data frame of the sample metadata
-#' @param graph the graph to determine the adjacency of spatial points across layers
 #' @param main.assay the name of the main assay of the object
 #' @param assay.type the type of the assay (cells, spots, ROIs)
 #' @param params additional parameters of the object
@@ -316,14 +317,16 @@ setMethod(
 #' @param project project name
 #'
 #' @importFrom igraph make_empty_graph V
-#' @importFrom magick image_data
+#' @importFrom magick image_data image_read image_info
 #' @importFrom methods new
 #'
 #' @export
 #'
 formVoltRon <- function(data, metadata = NULL, image = NULL,
-                             coords, segments = list(),
-                             sample.metadata = NULL, graph = NULL,
+                             coords,
+                             segments = list(),
+                             subcellular = NULL,
+                             sample.metadata = NULL,
                              main.assay = "Custom_cell", assay.type = "cell", params = list(),
                              sample_name = NULL, layer_name = NULL,
                              project = NULL){
@@ -382,16 +385,46 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
   # Segments
   if(length(segments) > 0) names(segments) <- entityID
 
-  # set zgraph
-  if(is.null(graph)){
-    spatial_points <- vrSpatialPoints(sr_metadata)
-    graph <- igraph::make_empty_graph(n = length(spatial_points), directed = FALSE)
-    igraph::V(graph)$name <- spatial_points
+  # image
+  if(!is.null(image)){
+    if(is.list(image)){
+      imageinfo <- sapply(image, function(x) magick::image_info(x)[,c("width", "height")], USE.NAMES = TRUE)
+      flag <- all(apply(imageinfo, 1, function(x) length(unique(x)) == 1))
+      if(!flag) {
+        stop("When providing multiple images, make sure that all images have the same dimensionality!")
+      } else {
+        image <- lapply(image, magick::image_data)
+        names(image) <- colnames(imageinfo)
+      }
+    } else {
+      image <- list(main_image = magick::image_data(image))
+    }
+  } else {
+    height <- max(ceiling(coords[,2]))
+    width <- max(ceiling(coords[,1]))
+    image <- matrix(rep("#030303ff", height*width), nrow = height, ncol = width)
+    image <- list(main_image = magick::image_data(magick::image_read(image)))
   }
 
+  # subcellular
+  if(!is.null(subcellular)){
+    subcellular[,1] <- paste(subcellular[,1], "Assay1", sep = "_")
+  } else {
+    subcellular = data.frame()
+  }
+
+  # set zgraph
+  # if(is.null(graph)){
+  #   spatial_points <- vrSpatialPoints(sr_metadata)
+  #   graph <- igraph::make_empty_graph(n = length(spatial_points), directed = FALSE)
+  #   igraph::V(graph)$name <- spatial_points
+  # }
+  # graph <- list()
+
   # create vrAssay
-  # Xenium_assay <- methods::new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = as.raster(image), params = params, type = assay.type)
-  Assay <- methods::new("vrAssay", rawdata = data, normdata = data, coords = coords, segments = segments, image = magick::image_data(image), params = params, type = assay.type)
+  Assay <- methods::new("vrAssay", rawdata = data, normdata = data,
+                        coords = coords, coords_reg = coords, segments = segments, segments_reg = segments,
+                        subcellular = subcellular, image = image, params = params, type = assay.type, main_image = names(image)[[1]])
   listofAssays <- list(Assay)
   names(listofAssays) <- main.assay
 
@@ -407,7 +440,7 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
   }
 
   # set VoltRon class
-  methods::new("VoltRon", samples = listofSamples, metadata = sr_metadata, sample.metadata = sample.metadata, graph = graph, main.assay = main.assay, project = project)
+  methods::new("VoltRon", samples = listofSamples, metadata = sr_metadata, sample.metadata = sample.metadata, main.assay = main.assay, project = project)
 }
 
 ### Assay Methods ####
@@ -440,6 +473,7 @@ vrMainAssay.VoltRon <- function(object, ...) {
 }
 
 #' @param assay assay
+#' @param metadata a predefined metadata
 #' @param assay_name assay name
 #' @param sample sample name
 #' @param layer layer name
@@ -450,7 +484,7 @@ vrMainAssay.VoltRon <- function(object, ...) {
 #' @importFrom igraph union V
 #' @export
 #'
-addAssay.VoltRon <- function(object, assay, assay_name, sample = "Sample1", layer = "Section1"){
+addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample = "Sample1", layer = "Section1"){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -463,7 +497,7 @@ addAssay.VoltRon <- function(object, assay, assay_name, sample = "Sample1", laye
   # update sample.metadata and metadata
   object@sample.metadata <- rbind(sample.metadata, c(assay_name, layer, sample))
   rownames(object@sample.metadata) <- assay_names
-  object@metadata <- addAssay(object@metadata,
+  object@metadata <- addAssay(object@metadata, metadata = metadata,
                               assay = assay, assay_name = assay_name,
                               sample = sample, layer = layer)
 
@@ -622,18 +656,18 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
 #' @param features the set of features to subset the object
 #' @param image the subseting string passed to \code{magick::image_crop}
 #' @param interactive TRUE if interactive subsetting on the image is demanded
+#' @param use_points if \code{interactive} is \code{TRUE}, use spatial points instead of the reference image
 #'
 #' @rdname subset
 #' @method subset VoltRon
 #'
 #' @importFrom rlang enquo eval_tidy quo_get_expr quo_text
 #' @importFrom stringr str_extract
-#' @importFrom igraph subgraph V
 #' @importFrom methods new
 #'
 #' @export
 #'
-subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatialpoints = NULL, features = NULL, image = NULL, interactive = FALSE) {
+subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatialpoints = NULL, features = NULL, image = NULL, interactive = FALSE, use_points = FALSE) {
 
   # subseting based on subset argument
   if (!missing(x = subset)) {
@@ -658,16 +692,24 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
     stop("Please choose only one of the subsetting attributes: 'samples', 'assays', 'spatialpoints', 'features' or 'interactive'")
   }
 
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
+  # subsetting
   if(!is.null(samples)){
 
-    sample.metadata <- subset_sampleMetadata(SampleMetadata(object), samples = samples)
-    metadata <- subset.vrMetadata(object@metadata, samples = samples) # CAN WE CHANGE THIS TO ONLY SUBSET LATER ????
-    listofSamples <- object@samples[samples]
+    # check assays associated with samples and subset for assays
+    if(all(samples %in% sample.metadata$Sample)){
+      assays <- rownames(sample.metadata)[sample.metadata$Sample %in% samples]
+      return(subset.VoltRon(object, assays = assays))
+    } else {
+      stop("Some requested samples are not found in this VoltRon object!")
+    }
 
-  # subsetting on assays name
-  } else if(!is.null(assays)) {
+  } else if(!is.null(assays)){
 
-    sample.metadata <- subset_sampleMetadata(SampleMetadata(object), assays = assays)
+    # subset for assays
+    sample.metadata <- subset_sampleMetadata(sample.metadata, assays = assays)
     metadata <- subset.vrMetadata(object@metadata, assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
@@ -679,7 +721,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 
     metadata <- subset.vrMetadata(object@metadata, spatialpoints = spatialpoints)
     assays <- unique(stringr::str_extract(vrSpatialPoints(metadata), "Assay[0-9]+"))
-    sample.metadata <- subset_sampleMetadata(SampleMetadata(object), assays = assays)
+    sample.metadata <- subset_sampleMetadata(sample.metadata, assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subset.vrSample(samp, spatialpoints = spatialpoints)
@@ -687,8 +729,6 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 
   # subsetting on features
   } else if(!is.null(features)){
-
-    sample.metadata <- SampleMetadata(object)
     assay_names <- vrAssayNames(object)
     for(assy in assay_names){
       cur_assay <- sample.metadata[assy,]
@@ -708,7 +748,6 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
     if(inherits(image, "character")){
 
       # check if there are only one image and one assay
-      sample.metadata <- SampleMetadata(object)
       if(nrow(sample.metadata) > 1){
         stop("Subseting on images can only be performed on VoltRon objects with a single assay")
       } else {
@@ -723,17 +762,52 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
       stop("Please provide a character based subsetting notation, see magick::image_crop documentation")
     }
   } else if(interactive){
-    results <- demuxVoltRon(object)
+    results <- demuxVoltRon(object, use_points = use_points)
     return(results)
   }
 
-  # other attributes
+  # main.assay
   main.assay <- unique(sample.metadata$Assay)[unique(sample.metadata$Assay) == names(table(sample.metadata$Assay))[which.max(table(sample.metadata$Assay))]]
-  graph <- igraph::subgraph(object@graph, igraph::V(object@graph)[names(igraph::V(object@graph)) %in% vrSpatialPoints(metadata)])
+
+  # project
   project <- object@project
 
+  # subset graphs
+  graph_list <- subset_graphs(object, metadata)
+
   # set VoltRon class
-  methods::new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, graph = graph, main.assay = main.assay, project = project)
+  methods::new("VoltRon",
+               samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata,
+               graph = graph_list, main.assay = main.assay, project = project)
+}
+
+#' subset_graphs
+#'
+#' Given a VoltRon object and a vrMetadata, subset the graph
+#'
+#' @param object a VoltRon Object
+#' @param metadata a vrMetadata Object
+#'
+#' @importFrom igraph subgraph V
+#'
+subset_graphs <- function(object, metadata){
+
+  # graph names
+  graphnames <- vrGraphNames(object)
+
+  # for all graphs
+  if(!is.null(graphnames)){
+    graph_list <- object@graph
+    for(g in vrGraphNames(object)){
+      cur_graph <- graph_list[[g]]
+      cur_graph<- igraph::subgraph(cur_graph, igraph::V(cur_graph)[names(igraph::V(cur_graph)) %in% vrSpatialPoints(metadata)])
+      graph_list[[g]] <- cur_graph
+    }
+  } else {
+    graph_list <- list()
+  }
+
+  return(graph_list)
 }
 
 #' Merging VoltRon objects
@@ -782,7 +856,7 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   }
 
   # merge graphs
-  graph <- merge_graphs(object_list[[1]], object_list[-1])
+  # graph <- merge_graphs(object_list[[1]], object_list[-1])
 
   # get main assay
   if(is.null(main.assay))
@@ -792,8 +866,7 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   project <- slot(object_list[[1]], "project")
 
   # set VoltRon class
-  object <- methods::new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata,
-                graph = graph, main.assay = main.assay, project = project)
+  object <- methods::new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, main.assay = main.assay, project = project)
 
   # change assay names and sample names
   for(assy in rownames(sample.metadata))
@@ -913,7 +986,17 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
       return(object@metadata)
   }
   if(type %in% slotNames(object@metadata)){
-    return(slot(object@metadata, name = type))
+
+    # sample metadata
+    sample.metadata <- SampleMetadata(object)
+
+    # get assay names
+    assay_names <- vrAssayNames(object, assay = assay)
+
+    # get metadata
+    metadata <- slot(object@metadata, name = type)
+    metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assay_names, ]
+    return(metadata)
   } else {
     stop("Please provide one of three assay types: 'ROI', 'cell', 'spot'.")
   }
@@ -1062,6 +1145,7 @@ vrData.VoltRon <- function(object, assay = NULL, ...) {
 }
 
 #' @param assay assay
+#' @param graph.type the type of the graph, either custom or given by \code{getProfileNeighbors} or \code{getSpatialNeighbors} functions
 #'
 #' @rdname vrGraph
 #' @method vrGraph VoltRon
@@ -1069,15 +1153,82 @@ vrData.VoltRon <- function(object, assay = NULL, ...) {
 #' @importFrom igraph induced_subgraph
 #' @export
 #'
-vrGraph.VoltRon <- function(object, assay = NULL, ...) {
+vrGraph.VoltRon <- function(object, assay = NULL, graph.type = "kNN", ...) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
-  assay_pattern <- paste0(assay_names, collapse = "|")
+  assay_pattern <- paste0(assay_names, "$", collapse = "|")
   node_names <- vrSpatialPoints(object)[grepl(assay_pattern, vrSpatialPoints(object))]
 
-  returngraph <- igraph::induced_subgraph(object@graph, node_names)
-  return(returngraph)
+  # check if there exists graphs
+  if(length(names(object@graph)) == 0)
+    stop("There are no graphs in this VoltRon object!")
+
+  # check graph type
+  if(!graph.type %in% names(object@graph))
+    stop("The graph name '", graph.type, "' can't be found in this VoltRon object!")
+
+  # return graph
+  if(length(object@graph[[graph.type]]) > 0){
+    returngraph <- igraph::induced_subgraph(object@graph[[graph.type]], node_names)
+    return(returngraph)
+  } else {
+    warning("This VoltRon object does not have any graphs yet!")
+    return(NULL)
+  }
+}
+
+#' @param assay assay
+#' @param value new Feature Data
+#'
+#' @rdname vrGraph
+#' @method vrGraph<- VoltRon
+#'
+#' @export
+#'
+"vrGraph<-.VoltRon" <- function(object, assay = NULL, graph.type = "kNN", ..., value) {
+
+  # check value
+  if(!inherits(value, "igraph"))
+    stop("The 'value' should be of an igraph class!")
+
+  # all vertices
+  spobject <- vrSpatialPoints(object)
+
+  # check if there exists graphs
+  graph <- object@graph
+  if(length(names(object@graph)) == 0 || !graph.type %in% names(object@graph)){
+    graph[[graph.type]] <- make_empty_graph(directed = FALSE) + vertices(spobject)
+  }
+
+  # vertices
+  new_vert <- V(value)$name
+
+  # edges
+  subg_inv <- igraph::induced_subgraph(graph[[graph.type]], spobject[!spobject%in%new_vert])
+  graph[[graph.type]] <- igraph::disjoint_union(value, subg_inv)
+
+  # update object
+  object@graph <- graph
+
+  # return
+  return(object)
+}
+
+#' @param assay assay
+#'
+#' @rdname vrGraphNames
+#' @method vrGraphNames VoltRon
+#'
+#' @export
+#'
+vrGraphNames.VoltRon <- function(object, assay = NULL){
+  # if(length(names(object@graph)) == 0){
+  #   return
+  # } else {
+  #   return(names(object@graph))
+  # }
+  return(names(object@graph))
 }
 
 #' @param assay assay
@@ -1200,6 +1351,28 @@ vrSegments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
 }
 
 #' @param assay assay
+#' @param reg TRUE if registered segments are being updated
+#'
+#' @rdname vrSubcellular
+#' @method vrSubcellular VoltRon
+#'
+#' @export
+#'
+vrSubcellular.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get all coordinates
+  coords <- NULL
+  for(assy in assay_names)
+    coords <- rbind(coords, vrSubcellular(object[[assy]], reg = reg))
+
+  # return image
+  return(coords)
+}
+
+#' @param assay assay
 #' @param dims the set of dimensions of the embedding data
 #' @param type the key name for the embedding, i.e. "pca" or "umap"
 #'
@@ -1245,3 +1418,20 @@ vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", dims = 1:30
   return(object)
 }
 
+#' @param assay assay
+#'
+#' @rdname vrEmbeddingNames
+#' @method vrEmbeddingNames VoltRon
+#'
+#' @export
+#'
+vrEmbeddingNames.VoltRon <- function(object, assay = NULL){
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get assay types
+  embed_names <- unique(unlist(lapply(assay_names, function(x) vrEmbeddingNames(object[[x]]))))
+
+  return(embed_names)
+}

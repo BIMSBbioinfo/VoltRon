@@ -12,7 +12,7 @@ NULL
 #' @return Returns object after normalization
 #'
 #' @rdname normalizeData
-#' @export normalizeData
+#' @export
 #'
 normalizeData <- function(object, ...) {
   UseMethod(generic = 'normalizeData', object = object)
@@ -106,6 +106,22 @@ vrAssayNames <- function(object, ...) {
 #'
 "vrAssayNames<-" <- function(object, ..., value) {
   UseMethod(generic = 'vrAssayNames<-', object = object)
+}
+
+#' Get Embedding names
+#'
+#' Given a VoltRon object, give names of embeddings
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{vrEmbeddingNames}: The name of embeddings
+#'
+#' @rdname vrEmbeddingNames
+#' @export vrEmbeddingNames
+#'
+vrEmbeddingNames <- function(object, ...) {
+  UseMethod(generic = 'vrEmbeddingNames', object = object)
 }
 
 #' changeSampleNames
@@ -268,20 +284,66 @@ vrGraph <- function(object, ...) {
   UseMethod(generic = 'vrGraph', object = object)
 }
 
-#' Get neighbors
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#' @param value an igraph object
 #'
-#' get neighbors in an assay
+#' @return \code{vrGraph<-}: graph updated
+#'
+#' @rdname vrGraph
+#' @export vrGraph<-
+#'
+"vrGraph<-" <- function(object, ..., value) {
+  UseMethod(generic = 'vrGraph<-', object = object)
+}
+
+#' vrGraphNames
+#'
+#' Get names of all graphs
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{vrGraphNames}: The names of all graphs
+#'
+#' @rdname vrGraphNames
+#' @export vrGraphNames
+#'
+vrGraphNames <- function(object, ...) {
+  UseMethod(generic = 'vrGraphNames', object = object)
+}
+
+
+#' Get profile specific neighbors
+#'
+#' get neighbors in an assay given omic profiles
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
 #' @return Returns object after normalization
 #'
-#' @rdname getNeighbors
-#' @export getNeighbors
+#' @rdname getProfileNeighbors
+#' @export getProfileNeighbors
 #'
-getNeighbors <- function(object, ...) {
-  UseMethod(generic = 'getNeighbors', object = object)
+getProfileNeighbors <- function(object, ...) {
+  UseMethod(generic = 'getProfileNeighbors', object = object)
+}
+
+#' Get spatial neighbors
+#'
+#' get neighbors in an assay given spatial coordinates
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return Returns object after normalization
+#'
+#' @rdname getSpatialNeighbors
+#' @export getSpatialNeighbors
+#'
+getSpatialNeighbors <- function(object, ...) {
+  UseMethod(generic = 'getSpatialNeighbors', object = object)
 }
 
 #' Get spatially variable feature
@@ -373,6 +435,35 @@ vrSegments <- function(object, ...) {
 #'
 "vrSegments<-" <- function(object, ..., value) {
   UseMethod(generic = 'vrSegments<-', object = object)
+}
+
+#' vrSubcellular
+#'
+#' Get and set the subcellular data
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{vrSubcellular}: The name of the default assay
+#'
+#' @rdname vrSubcellular
+#' @export vrSubcellular
+#'
+vrSubcellular <- function(object, ...) {
+  UseMethod(generic = 'vrSubcellular', object = object)
+}
+
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#' @param value subcellular data
+#'
+#' @return \code{vrSubcellular<-}: The coordinates updated
+#'
+#' @rdname vrSubcellular
+#' @export vrSubcellular<-
+#'
+"vrSubcellular<-" <- function(object, ..., value) {
+  UseMethod(generic = 'vrSubcellular<-', object = object)
 }
 
 #' vrDistances
@@ -473,6 +564,38 @@ vrImages <- function(object, ...) {
   UseMethod(generic = 'vrImages<-', object = object)
 }
 
+#' vrImageNames
+#'
+#' Get names of all images
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{vrImageNames}: The name of the default assay
+#'
+#' @rdname vrImageNames
+#' @export vrImageNames
+#'
+vrImageNames <- function(object, ...) {
+  UseMethod(generic = 'vrImageNames', object = object)
+}
+
+#' vrMainImage
+#'
+#' Get the main image
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{vrMainImage}: The name of the default assay
+#'
+#' @rdname vrMainImage
+#' @export vrMainImage
+#'
+vrMainImage <- function(object, ...) {
+  UseMethod(generic = 'vrMainImage', object = object)
+}
+
 #' resizeImage
 #'
 #' Resizing Magick images
@@ -503,4 +626,68 @@ resizeImage <- function(object, ...) {
 #'
 modulateImage <- function(object, ...) {
   UseMethod(generic = 'modulateImage', object = object)
+}
+
+#' as.Seurat
+#'
+#' Generic methods for conversion into a Seurat object
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{as.Seurat}: The name of the default assay
+#'
+#' @rdname as.Seurat
+#' @export as.Seurat
+#'
+as.Seurat <- function(object, ...) {
+  UseMethod(generic = 'as.Seurat', object = object)
+}
+
+#' as.AnnData
+#'
+#' Generic methods for conversion into a AnnData object
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{as.AnnData}: The name of the default assay
+#'
+#' @rdname as.AnnData
+#' @export as.AnnData
+#'
+as.AnnData <- function(object, ...) {
+  UseMethod(generic = 'as.AnnData', object = object)
+}
+
+#' as.Giotto
+#'
+#' Generic methods for conversion into a Giotto object
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{as.Giotto}: The name of the default assay
+#'
+#' @rdname as.Giotto
+#' @export as.Giotto
+#'
+as.Giotto <- function(object, ...) {
+  UseMethod(generic = 'as.Giotto', object = object)
+}
+
+#' as.VoltRon
+#'
+#' Generic methods for conversion into a VoltRon object
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{as.VoltRon}: The name of the default assay
+#'
+#' @rdname as.VoltRon
+#' @export as.VoltRon
+#'
+as.VoltRon <- function(object, ...) {
+  UseMethod(generic = 'as.VoltRon', object = object)
 }
