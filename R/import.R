@@ -70,7 +70,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
     }
     coords[,2] <- range_coords[2] - coords[,2] + range_coords[1]
   } else {
-    stop("There are no files named 'cells.csv.gz' in the path")
+    stop("There are no file named 'cells.csv.gz' in the path")
   }
 
   # transcripts
@@ -83,7 +83,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
     subcellular[,c("x","y")] <- subcellular[,c("x","y")]/scaleparam
     subcellular[,"y"] <- range_coords[2] - subcellular[,"y"]  + range_coords[1]
   } else {
-    stop("There are no files named 'transcripts.csv.gz' in the path")
+    stop("There are no file named 'transcripts.csv.gz' in the path")
   }
 
   # create VoltRon

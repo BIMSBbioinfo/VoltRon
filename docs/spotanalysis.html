@@ -638,9 +638,10 @@ coordinates &lt;- as.matrix(IFdata[,c(&quot;posX&quot;,&quot;posY&quot;)], rowna
 <p><br></p>
 <div id="importing-melc-data" class="section level2">
 <h2>Importing MELC data</h2>
-<p>First, we normalize the data using the hyperbolic arcsine function
-with a scale argument of 0.2.</p>
-<pre class="r watch-out"><code>data &lt;- asinh(data/0.2)</code></pre>
+<!-- First, we normalize the data using the hyperbolic arcsine function with a scale argument of 0.2. -->
+<!-- ```{r eval = FALSE, class.source="watch-out", fig.align='center'} -->
+<!-- data <- asinh(data/0.2) -->
+<!-- ``` -->
 <p>Before analyzing MELC assays across FOVs, we should <strong>build a
 VoltRon object</strong> for each individual FOV/Section by using the
 <strong>formVoltron</strong> function. We then merge these sections to

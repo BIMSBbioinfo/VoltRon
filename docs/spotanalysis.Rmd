@@ -232,11 +232,11 @@ coordinates <- as.matrix(IFdata[,c("posX","posY")], rownames.force = TRUE)
 
 ## Importing MELC data
 
-First, we normalize the data using the hyperbolic arcsine function with a scale argument of 0.2.
+<!-- First, we normalize the data using the hyperbolic arcsine function with a scale argument of 0.2. -->
 
-```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-data <- asinh(data/0.2)
-```
+<!-- ```{r eval = FALSE, class.source="watch-out", fig.align='center'} -->
+<!-- data <- asinh(data/0.2) -->
+<!-- ``` -->
 
 Before analyzing MELC assays across FOVs, we should **build a VoltRon object** for each individual FOV/Section by using the **formVoltron** function. We then merge these sections to respective tissue blocks by defining their samples of origins. We can also define **assay names**, **assay types** and **sample (i.e. block) names** of these objects. 
 
