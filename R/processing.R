@@ -30,6 +30,7 @@ normalizeData.VoltRon <- function(object, assay = NULL, ...) {
 #' @param assay assay
 #' @param method the normalization method: "LogNorm", "Q3Norm", "LogQ3Norm" or "CLR"
 #' @param desiredQuantile the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}
+#' @param scale the scale parameter for the hyperbolic arcsine transformation
 #'
 #' @rdname normalizeData
 #' @method normalizeData vrAssay
@@ -38,7 +39,7 @@ normalizeData.VoltRon <- function(object, assay = NULL, ...) {
 #'
 #' @export
 #'
-normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9) {
+normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2) {
 
   # size factor
   rawdata <- vrData(object)
@@ -70,6 +71,8 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
     normdata <- apply(rawdata, 2, function(x) {
       log1p(x = x / (exp(x = sum(log1p(x = x[x > 0]), na.rm = TRUE) / length(x = x))))
     })
+  } else if(method == "hyper.arcsine") {
+    normdata <- asinh(rawdata/scale)
   } else {
     stop('Please select one of these methods: "LogNorm", "Q3Norm", "LogQ3Norm" or "CLR"')
   }

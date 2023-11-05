@@ -356,7 +356,9 @@ div.tocify {
         <li>
           <a href="spotanalysis.html">Cell/Spot Analysis</a>
         </li>
-        <li class="dropdown-header">Converting VoltRon Objects</li>
+        <li>
+          <a href="conversion.html">Converting VoltRon Objects</a>
+        </li>
       </ul>
     </li>
   </ul>
@@ -670,7 +672,7 @@ single metadata feature with, e.g. cell types, then the each spot at the
 new pseudo Visium will be collection of abundances of the categories
 within that metadata feature.</p>
 <pre class="r watch-out"><code>VRBlock &lt;- transferData(VRBlock, from = &quot;Assay1&quot;, to = &quot;Assay2&quot;, features = &quot;CellType&quot;, 
-                         new_assay_name = &quot;Visium_pseudo_CellType&quot;)
+                        new_assay_name = &quot;Visium_pseudo_CellType&quot;)
 SampleMetadata(VRBlock)</code></pre>
 <pre><code>                        Assay    Layer   Sample
 Assay1                 Xenium Section1 10XBlock

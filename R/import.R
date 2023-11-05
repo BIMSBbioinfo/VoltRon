@@ -6,6 +6,7 @@
 ## Xenium ####
 ####
 
+
 #' importXenium
 #'
 #' Importing Xenium data
@@ -18,7 +19,7 @@
 #' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
-#' @importFrom magick image_read
+#' @importFrom magick image_read image_info
 #' @importFrom utils read.csv
 #' @importFrom data.table fread
 #'
@@ -48,6 +49,8 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
     } else {
       stop("There are no spatial image files in the path")
     }
+    # scale the xenium image instructed by 10x Genomics help page
+    scaleparam <- 0.2125*(2^(resolution_level-1))
   } else {
     image <- NULL
   }
@@ -58,21 +61,16 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
     Xenium_coords <- utils::read.csv(file = coord_file)
     coords <- as.matrix(Xenium_coords[,c("x_centroid", "y_centroid")])
     colnames(coords) <- c("x","y")
-    range_coords <- range(coords[,2])
-    coords[,2] <- range_coords[2] - coords[,2] + range_coords[1]
     if(use_image) {
-      # cell boundaries
-      bound_file <- paste0(dir.path, "/cell_boundaries.csv.gz")
-      if(file.exists(bound_file)){
-        Xenium_boundaries <- utils::read.csv(bound_file)
-        Xenium_box <- apply(Xenium_boundaries[,-1], 2, range)
-      } else {
-        stop("There are no files named 'cell_boundaries.csv.gz' in the path")
-      }
-      coords <- rescaleXeniumCells(coords, Xenium_box, image)
+      coords <- coords/scaleparam
+      imageinfo <- unlist(magick::image_info(image)[c("height")])
+      range_coords <- c(0,imageinfo)
+    } else {
+      range_coords <- range(coords[,2])
     }
+    coords[,2] <- range_coords[2] - coords[,2] + range_coords[1]
   } else {
-    stop("There are no files named 'cells.csv.gz' in the path")
+    stop("There are no file named 'cells.csv.gz' in the path")
   }
 
   # transcripts
@@ -80,48 +78,16 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   if(file.exists(transcripts_file)){
     subcellular <- as.data.frame(data.table::fread(transcripts_file))
     subcellular <- subcellular[,c("cell_id", colnames(subcellular)[!colnames(subcellular) %in% "cell_id"])]
+    subcellular <- subcellular[subcellular$qv >= 20, ]
     colnames(subcellular)[colnames(subcellular) %in% c("x_location", "y_location")] <- c("x", "y")
+    subcellular[,c("x","y")] <- subcellular[,c("x","y")]/scaleparam
     subcellular[,"y"] <- range_coords[2] - subcellular[,"y"]  + range_coords[1]
-    if(use_image) {
-      # cell boundaries
-      bound_file <- paste0(dir.path, "/cell_boundaries.csv.gz")
-      if(file.exists(bound_file)){
-        Xenium_boundaries <- utils::read.csv(bound_file)
-        Xenium_box <- apply(Xenium_boundaries[,-1], 2, range)
-      } else {
-        stop("There are no files named 'cell_boundaries.csv.gz' in the path")
-      }
-      subcellular[,c("x","y")] <- rescaleXeniumCells(subcellular[,c("x","y")], Xenium_box, image)
-    }
   } else {
-    stop("There are no files named 'transcripts.csv.gz' in the path")
+    stop("There are no file named 'transcripts.csv.gz' in the path")
   }
 
   # create VoltRon
   formVoltRon(rawdata, metadata = NULL, image = image, coords, subcellular = subcellular, main.assay = assay_name, assay.type = "cell", ...)
-}
-
-#' rescaleXeniumCells
-#'
-#' rescale Xenium cells coordinates for image registration
-#'
-#' @param cells coordinates of the cells from the Xenium assays
-#' @param bbox the surrounding box of the Xenium cell coordinates
-#' @param image reference image
-#'
-rescaleXeniumCells <- function(cells, bbox, image){
-
-  # get image scales
-  scales <- unlist(image_info(image)[c("width","height")])
-
-  # rescale cell locations
-  cells[,1] <- (cells[,1] - bbox[1,1])/(bbox[2,1] - bbox[1,1])
-  cells[,1] <- cells[,1] * scales[1]
-  cells[,2] <- (cells[,2] - bbox[1,2])/(bbox[2,2] - bbox[1,2])
-  cells[,2] <- cells[,2] * scales[2]
-
-  # return
-  return(cells)
 }
 
 ####

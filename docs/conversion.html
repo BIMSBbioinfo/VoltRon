@@ -11,7 +11,7 @@
 
 
 
-<title>Tutorials</title>
+<title>Conversion</title>
 
 <script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -29,6 +29,9 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
@@ -221,6 +224,75 @@ $(document).ready(function () {
 
 
 
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+.tocify-subheader {
+  display: inline;
+}
+.tocify-subheader .tocify-item {
+  font-size: 0.95em;
+}
+
+</style>
+
+
 
 </head>
 
@@ -228,6 +300,16 @@ $(document).ready(function () {
 
 
 <div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -326,7 +408,7 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Tutorials</h1>
+<h1 class="title toc-ignore">Conversion</h1>
 
 </div>
 
@@ -338,135 +420,108 @@ $(document).ready(function () {
 body {
   text-align: justify
 }
-table, th, td, tr{
-  empty-cells:hide;
-  border-spacing: 25px;
-  border-collapse: separate;
-}
-td{
-  filter:drop-shadow(0 0 10px rgba(0,0,0,0.3));
-  padding: 10px;
-  background:white;
-  text-align:center;
-  width:33%;
-  vertical-align: text-top;
-}
-td:hover, td:active{
-  filter:drop-shadow(0 0 10px rgba(0,0,0,0.3));
-  transform: scale(1.02);
-  cursor: pointer;
-}
-.main-container {
-  max-width: 1200px;
+.center {
+  display: block;
   margin-left: auto;
   margin-right: auto;
 }
-p.tutorial {
-  text-decoration: none!important;
-  font-size: 1.5em;
-  color: #23803A;
-  margin: 3%
+</style>
+<style type="text/css">
+.watch-out {
+  color: black;
 }
 </style>
-<p><br> <!-- <br> --></p>
-<!-- ## Spatial Data Analysis with VoltRon -->
 <p><br></p>
-<div id="spatial-data-integration" class="section level2">
-<h2>Spatial Data Integration</h2>
-<p><strong>VoltRon</strong> will incorporate multiple data integration
-modules to achieve data transfer across a diverse set of modalities. We
-utilize the <a href="https://opencv.org/">OpenCV</a> library which fully
-embedded into VoltRon using <a href="https://www.rcpp.org/">Rcpp</a>,
-hence VoltRon can align reference images of spatial datasets using
-computer vision and image registration. Users can automaticaly or
-manually align a list of images (<strong>H&amp;E, microscopy or DAPI
-images</strong>) using a small shiny app incorporated within our
-analysis workflow.</p>
-<p>In addition, VoltRon integrates with spot deconvolution methods such
-as RCTD and SpotLIGHT (<strong>under development</strong>) to infer spot
-transcriptomics assays such as Visium and DBIT-Seq. We estimate the cell
-type abundances from a reference single cell data (Seurat,
-SingleCellExperiment etc.) with already annotated cell types. Then we
-generate additional assays associated with layers of the VoltRon object,
-and implement <strong>clustering on normalized cell type abundance
-data</strong> to discover niches in the dataset.</p>
-<table>
-<tbody>
-<tr>
-<td onclick="location.href=&#39;registration.html&#39;;">
-<p class="tutorial">
-Spatial Data Alignment
-</p>
-<img width="250" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration.png" class="center">
-<p style="margin: 3%">
-Manual and automated alignment of spatial data assays
-</p>
-</td>
-<td onclick="location.href=&#39;deconvolution.html&#39;;">
-<p class="tutorial">
-Niche Clustering
-</p>
-<img width="250" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/deconvolution.png" class="center">
-<p style="margin: 3%">
-Clustering with ROI/spot deconvolution
-</p>
-</td>
-<td>
-</td>
-</tr>
-</tbody>
-</table>
-<p><br> <br></p>
+<div id="conversion-to-seurat-object" class="section level1">
+<h1>Conversion to Seurat object</h1>
+<pre class="r watch-out"><code>Xen_data_seu &lt;- as.Seurat(Xen_data, assay = &quot;Xenium&quot;, type = &quot;image&quot;)
+Xen_data_seu &lt;- NormalizeData(Xen_data_seu)
+Xen_data_seu</code></pre>
+<pre><code>An object of class Seurat 
+313 features across 283298 samples within 1 assay 
+Active assay: Xenium (313 features, 0 variable features)
+ 2 layers present: counts, data
+ 2 spatial fields of view present: fov_Assay1 fov_Assay2</code></pre>
+<p><br></p>
+<div id="marker-analysis" class="section level2">
+<h2>Marker Analysis</h2>
+<pre class="r watch-out"><code>Idents(Xen_data_seu) &lt;- &quot;Clusters&quot;
+markers &lt;- FindAllMarkers(Xen_data_seu)
+head(markers[order(markers$avg_log2FC, decreasing = TRUE),])</code></pre>
+<div>
+<pre><code style="font-size: 13px;">         p_val avg_log2FC pct.1 pct.2 p_val_adj cluster   gene
+CPA3         0   7.343881 0.977 0.029         0      16   CPA3
+CTSG         0   7.114698 0.878 0.011         0      16   CTSG
+LILRA4.1     0   6.992717 0.939 0.015         0      19 LILRA4
+ADIPOQ       0   6.860190 0.974 0.025         0       5 ADIPOQ
+MS4A1        0   6.763083 0.919 0.027         0      17  MS4A1
+BANK1        0   6.082192 0.889 0.037         0      17  BANK1</code></pre>
 </div>
-<div id="downstream-analysis-and-utilities" class="section level2">
-<h2>Downstream Analysis and Utilities</h2>
-<p><strong>VoltRon</strong> is also capable of end-to-end analysis of
-diverse set of spatial data types such as ROI (region of interest)
-based, spot-based, cell-based and molecule-based (<strong>under
-development</strong>) assays. VoltRon will be able to convert its
-objects to a diverse set of objects/datatypes commonly incorporated
-spatial data analysis (Seurat, SpatialExperiment, Giotto, anndata,
-SpatialData etc.)</p>
-<table>
-<tbody>
-<tr>
-<td onclick="location.href=&#39;roianalysis.html&#39;;">
-<p class="tutorial">
-Region of Interests (ROIs)
-</p>
-<img width="280" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/GeoMx.png" class="center">
-<p style="margin: 3%">
-Quality control, analysis and visualization of ROI segments
-</p>
-</td>
-<td onclick="location.href=&#39;spotanalysis.html&#39;;">
-<p class="tutorial">
-Cells/Spots
-</p>
-<img width="280" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/spotanalysis.png" class="center">
-<p style="margin: 3%">
-Quality control, analysis and visualization of Cell/Spot datasets
-</p>
-</td>
-<td onclick="location.href=&#39;conversion.html&#39;;">
-<p class="tutorial">
-Converting VoltRon Objects
-</p>
-<br>
-<img width="270" height="200" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversion.png" class="center">
-<br> <br>
-<p style="margin: 3%">
-Converting VoltRon objects into Seurat and squidpy (anndata) </strong>
-</p>
-</td>
-</tr>
-</tbody>
-</table>
+<pre class="r watch-out"><code>topmarkers &lt;- markers %&gt;%
+  group_by(cluster) %&gt;%
+  top_n(n = 5, wt = avg_log2FC)</code></pre>
 <p><br></p>
+</div>
+<div id="visualization" class="section level2">
+<h2>Visualization</h2>
+<pre class="r watch-out"><code>library(ComplexHeatmap)
+marker_features &lt;- unique(topmarkers$gene)
+vrHeatmapPlot(Xen_data, features = marker_features, group.by = &quot;Clusters&quot;, show_row_names = TRUE, font.size = 10)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_seurat_heatmap.png" class="center"></p>
+<p><br></p>
+</div>
+</div>
+<div id="conversion-to-anndata-object" class="section level1">
+<h1>Conversion to Anndata object</h1>
+<pre class="r watch-out"><code>as.AnnData(Xen_data, file = &quot;Xen_adata_annotated.h5ad&quot;)</code></pre>
+<p><br></p>
+<div id="configure-squidpy-scverse" class="section level2">
+<h2>Configure squidpy (scverse)</h2>
+<pre class="r watch-out"><code>library(reticulate)
+use_condaenv(&quot;scverse&quot;, required = T)</code></pre>
+<p><br></p>
+<pre class="python watch-out"><code>from pathlib import Path
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import scanpy as sc
+import squidpy as sq
+sc.logging.print_header()</code></pre>
+<p><br></p>
+</div>
+<div id="filter-and-normalize" class="section level2">
+<h2>Filter and Normalize</h2>
+<pre class="python watch-out"><code>adata = sc.read_h5ad(&quot;Xen_adata_annotated.h5ad&quot;)
+adata.layers[&quot;counts&quot;] = adata.X.copy()
+sc.pp.normalize_total(adata, inplace=True)
+sc.pp.log1p(adata)</code></pre>
+<p><br></p>
+</div>
+<div id="visualize" class="section level2">
+<h2>Visualize</h2>
+<pre class="python watch-out"><code>fig, ax = plt.subplots(1, 2, figsize=(10, 7))
+sq.pl.spatial_scatter(adata, library_key = &quot;AssayID&quot;, library_id = &quot;_Assay1&quot;, color=[&quot;CellType&quot;], shape=None, size=1, img = False, ax=ax[0])
+sq.pl.spatial_scatter(adata, library_key = &quot;AssayID&quot;, library_id = &quot;_Assay2&quot;, color=[&quot;CellType&quot;], shape=None, size=1, img = False, ax=ax[1])
+plt.show(ax)</code></pre>
+<p><br></p>
+</div>
+<div id="neighborhood-enrichment" class="section level2">
+<h2>Neighborhood Enrichment</h2>
+<pre class="python watch-out"><code>sq.gr.nhood_enrichment(adata, cluster_key=&quot;CellType&quot;)</code></pre>
+<pre class="python watch-out"><code>fig, ax = plt.subplots(1, 2, figsize=(13, 7))
+sq.pl.nhood_enrichment(adata, cluster_key=&quot;CellType&quot;, figsize=(8, 8), 
+                       title=&quot;Neighborhood enrichment adata&quot;, ax=ax[0])
+sq.pl.spatial_scatter(adata, color=&quot;CellType&quot;, library_key = &quot;AssayID&quot;, 
+                      library_id = &quot;_Assay1&quot;, shape=None, size=2, ax=ax[1])
+plt.show(ax)</code></pre>
+</div>
 </div>
 
 
 
+</div>
+</div>
 
 </div>
 
@@ -499,6 +554,35 @@ $(document).ready(function () {
 
 <!-- code folding -->
 
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = false;
+    options.smoothScroll = false;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>

@@ -20,6 +20,7 @@ navbar:
         - text: "Cell/Spot Analysis"
           href: spotanalysis.html
         - text: "Converting VoltRon Objects"
+          href: conversion.html
   right:
     - text: "Contact"
       icon: fa-envelope-o

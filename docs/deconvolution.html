@@ -13,7 +13,7 @@
 
 <title>Niche Clustering</title>
 
-<script src="site_libs/header-attrs-2.24/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -35,8 +35,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-6.4.0/css/all.min.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-6.4.0/css/v4-shims.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -356,7 +356,9 @@ div.tocify {
         <li>
           <a href="spotanalysis.html">Cell/Spot Analysis</a>
         </li>
-        <li class="dropdown-header">Converting VoltRon Objects</li>
+        <li>
+          <a href="conversion.html">Converting VoltRon Objects</a>
+        </li>
       </ul>
     </li>
   </ul>
@@ -584,8 +586,8 @@ PCA.</p>
 normalized data slots. Hence, we build a UMAP reduction from CLR data.
 However, UMAP will always be calculated from a PCA reduction by default
 (if a PCA embedding is found in the object).</p>
-<pre class="r watch-out"><code>MBrain_Sec &lt;- getUMAP(MBrain_Sec, assay = &quot;Visium_decon&quot;, data.type = &quot;norm&quot;)
-vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;Sample&quot;)</code></pre>
+<pre class="r watch-out"><code>MBrain_Sec &lt;- getUMAP(MBrain_Sec, assay = &quot;Visium_decon&quot;, data.type = &quot;norm&quot;, method = &quot;SNN&quot;)
+vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;Sample&quot;, graph = &quot;SNN&quot;)</code></pre>
 <p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_embedding_sample.png" class="center"></p>
 <p><br></p>
 <p>Using normalized cell type abundances, we can now generate k-nearest
@@ -600,8 +602,8 @@ MBrain_Sec &lt;- getClusters(MBrain_Sec, resolution = 0.6)</code></pre>
 e.g. embeddings, coordinates, heatmap and even barplots. We can now map
 the clusters we have generated on UMAP embeddings.</p>
 <pre class="r watch-out"><code># visualize 
-g1 &lt;- vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;Sample&quot;)
-g2 &lt;- vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;clusters&quot;, label = TRUE)
+g1 &lt;- vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;Sample&quot;, graph = &quot;SNN&quot;)
+g2 &lt;- vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;clusters&quot;, graph = &quot;SNN&quot;, label = TRUE)
 g1 | g2</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_embedding_clusters.png" class="center"></p>
 <p><br></p>

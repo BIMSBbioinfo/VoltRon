@@ -1,0 +1,158 @@
+---
+title: "Conversion"
+output: 
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+<style>
+.title{
+  display: none;
+}
+body {
+  text-align: justify
+}
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+```{css, echo=FALSE}
+.watch-out {
+  color: black;
+}
+```
+
+```{r setup, include=FALSE}
+# use rmarkdown::render_site(envir = knitr::knit_global())
+knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
+```
+
+<br>
+
+# Conversion to Seurat object
+
+```{r class.source="watch-out", eval = FALSE}
+Xen_data_seu <- as.Seurat(Xen_data, assay = "Xenium", type = "image")
+Xen_data_seu <- NormalizeData(Xen_data_seu)
+Xen_data_seu
+```
+
+```
+An object of class Seurat 
+313 features across 283298 samples within 1 assay 
+Active assay: Xenium (313 features, 0 variable features)
+ 2 layers present: counts, data
+ 2 spatial fields of view present: fov_Assay1 fov_Assay2
+```
+
+<br>
+
+## Marker Analysis
+
+```{r class.source="watch-out", eval = FALSE}
+Idents(Xen_data_seu) <- "Clusters"
+markers <- FindAllMarkers(Xen_data_seu)
+head(markers[order(markers$avg_log2FC, decreasing = TRUE),])
+```
+
+<div><pre><code style="font-size: 13px;">         p_val avg_log2FC pct.1 pct.2 p_val_adj cluster   gene
+CPA3         0   7.343881 0.977 0.029         0      16   CPA3
+CTSG         0   7.114698 0.878 0.011         0      16   CTSG
+LILRA4.1     0   6.992717 0.939 0.015         0      19 LILRA4
+ADIPOQ       0   6.860190 0.974 0.025         0       5 ADIPOQ
+MS4A1        0   6.763083 0.919 0.027         0      17  MS4A1
+BANK1        0   6.082192 0.889 0.037         0      17  BANK1</code></pre></div>
+
+```{r class.source="watch-out", eval = FALSE}
+topmarkers <- markers %>%
+  group_by(cluster) %>%
+  top_n(n = 5, wt = avg_log2FC)
+```
+
+<br>
+
+## Visualization
+
+```{r class.source="watch-out", eval = FALSE}
+library(ComplexHeatmap)
+marker_features <- unique(topmarkers$gene)
+vrHeatmapPlot(Xen_data, features = marker_features, group.by = "Clusters", show_row_names = TRUE, font.size = 10)
+```
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_seurat_heatmap.png" class="center">
+
+<br>
+
+# Conversion to Anndata object
+
+```{r class.source="watch-out", eval = FALSE}
+as.AnnData(Xen_data, file = "Xen_adata_annotated.h5ad")
+```
+
+<br>
+
+## Configure squidpy (scverse)
+
+```{r class.source="watch-out", eval = FALSE}
+library(reticulate)
+use_condaenv("scverse", required = T)
+```
+
+<br>
+
+```{python class.source="watch-out", eval = FALSE}
+from pathlib import Path
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import scanpy as sc
+import squidpy as sq
+sc.logging.print_header()
+```
+
+<br>
+
+## Filter and Normalize 
+
+```{python class.source="watch-out", eval = FALSE}
+adata = sc.read_h5ad("Xen_adata_annotated.h5ad")
+adata.layers["counts"] = adata.X.copy()
+sc.pp.normalize_total(adata, inplace=True)
+sc.pp.log1p(adata)
+```
+
+<br>
+
+## Visualize
+
+```{python class.source="watch-out", eval = FALSE}
+fig, ax = plt.subplots(1, 2, figsize=(10, 7))
+sq.pl.spatial_scatter(adata, library_key = "AssayID", library_id = "_Assay1", color=["CellType"], shape=None, size=1, img = False, ax=ax[0])
+sq.pl.spatial_scatter(adata, library_key = "AssayID", library_id = "_Assay2", color=["CellType"], shape=None, size=1, img = False, ax=ax[1])
+plt.show(ax)
+```
+
+<br>
+
+## Neighborhood Enrichment 
+
+```{python class.source="watch-out", eval = FALSE}
+sq.gr.nhood_enrichment(adata, cluster_key="CellType")
+```
+
+```{python class.source="watch-out", eval = FALSE}
+fig, ax = plt.subplots(1, 2, figsize=(13, 7))
+sq.pl.nhood_enrichment(adata, cluster_key="CellType", figsize=(8, 8), 
+                       title="Neighborhood enrichment adata", ax=ax[0])
+sq.pl.spatial_scatter(adata, color="CellType", library_key = "AssayID", 
+                      library_id = "_Assay1", shape=None, size=2, ax=ax[1])
+plt.show(ax)
+```
+
