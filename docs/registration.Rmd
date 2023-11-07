@@ -218,7 +218,7 @@ g1 / g2
 
 #### Label Transfer
 
-The **transferData** function can also transfer **metadata features** across layers and assays. In this case, we will transfer cell type labels that were trained on the Xenium sections onto the Visium sections. We will use the cluster labels generated at the end of the Xenium analysis section of workflow from [Cell/Spot Analysis](spotanalysis.html). You can download the VoltRon object with clustered Xenium cells from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip). 
+The **transferData** function can also transfer **metadata features** across layers and assays. In this case, we will transfer cell type labels that were trained on the Xenium sections onto the Visium sections. We will use the cluster labels generated at the end of the Xenium analysis section of workflow from [Cell/Spot Analysis](spotanalysis.html). You can download the VoltRon object with clustered and annotated Xenium cells along with the Visium assay from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/VRBlock_data_clustered.rds). 
 
 ```{r class.source="watch-out", eval = FALSE}
 vrSpatialPlot(VRBlock, assay = "Xenium", group.by = "CellType", pt.size = 0.4)

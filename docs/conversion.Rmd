@@ -35,7 +35,35 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 <br>
 
-# Conversion to Seurat object
+# Conversion to Other Platforms
+
+VoltRon is capable of end-to-end spatial data analysis for all levels of spatial resolutions, including those of single cell resolution. However, VoltRon provides a ecosystem friendly infrastructure where VoltRon objects could be transformed into data structures used by popular computational platforms such as [Seurat](https://satijalab.org/seurat/) and [Squidpy](https://squidpy.readthedocs.io/en/stable/).  
+
+For both **Seurat (R)** and **Squidpy (Python)**, we analyse readouts of the experiments conducted on example tissue sections analysed by the [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform. For more information on processing and analyzing Xenium datasets, check the [Cell/Spot Analysis](spotanalysis.html) tutorial.
+
+<br>
+
+## Seurat
+
+We will first see how we can transform VoltRon objects into Seurat object and use built-in functions such as **FindAllMarkers** to visualize marker genes of clusters found by VoltRon. You can find the clustered Xenium data using VoltRon [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/VRBlock_data_clustered.rds). 
+
+```{r class.source="watch-out", eval = FALSE}
+Xen_data <- readRDS("Xenium_data_clustered.rds")
+SampleMetadata(Xen_data)
+```
+
+```
+        Assay    Layer   Sample
+Assay1 Xenium Section1 XeniumR1
+Assay2 Xenium Section1 XeniumR2
+```
+
+<br>
+
+We use the **as.Seurat** function to convert spatial assays of VoltRon into Seurat objects. Here, a Seurat object defines spatial components of cellular and subcellular assays as **FOV** objects, and we use the **type = "image"** argument to convert spatial coordinates of cells and molecules into individual FOV objects for each Xenium assay/layer in the VoltRon object.  
+
+Please check the [Analysis of Image-based Spatial Data in Seurat](https://satijalab.org/seurat/articles/seurat5_spatial_vignette_2) tutorial for more information on analyzing FOV-based spatial data sets with Seurat. 
+
 
 ```{r class.source="watch-out", eval = FALSE}
 Xen_data_seu <- as.Seurat(Xen_data, assay = "Xenium", type = "image")
@@ -53,7 +81,9 @@ Active assay: Xenium (313 features, 0 variable features)
 
 <br>
 
-## Marker Analysis
+### Marker Analysis
+
+Now that we converted VoltRon into a Seurat object, we can pick the **Clusters** metadata column indicating the clustering of cells and test for marker genes of each individual cluster. 
 
 ```{r class.source="watch-out", eval = FALSE}
 Idents(Xen_data_seu) <- "Clusters"
@@ -69,27 +99,37 @@ ADIPOQ       0   6.860190 0.974 0.025         0       5 ADIPOQ
 MS4A1        0   6.763083 0.919 0.027         0      17  MS4A1
 BANK1        0   6.082192 0.889 0.037         0      17  BANK1</code></pre></div>
 
+<br>
+
+### Visualization
+
+We can now pick top positive markers from each of these clusters prior to visualization.
+
 ```{r class.source="watch-out", eval = FALSE}
 topmarkers <- markers %>%
   group_by(cluster) %>%
   top_n(n = 5, wt = avg_log2FC)
 ```
 
-<br>
-
-## Visualization
+Here, VoltRon incorporates the unique markers learned by the **FindAllMarkers** function from Seurat and uses them to visualize the expression of these markers on heatmaps, and now we can also use these markers for annotating the clusters.   
 
 ```{r class.source="watch-out", eval = FALSE}
 library(ComplexHeatmap)
 marker_features <- unique(topmarkers$gene)
-vrHeatmapPlot(Xen_data, features = marker_features, group.by = "Clusters", show_row_names = TRUE, font.size = 10)
+vrHeatmapPlot(Xen_data, features = marker_features, group.by = "Clusters", 
+              show_row_names = TRUE, font.size = 10)
 ```
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_seurat_heatmap.png" class="center">
 
 <br>
 
-# Conversion to Anndata object
+## Squidpy (Anndata)
+
+A true ecosystem friendly computational platform should support data types across multiple computing environments. By allowing users to convert VoltRon objects into annotated data matrix formats such as [anndata](https://github.com/scverse/anndata), we can use built-in spatial data analysis methods available on [squidpy](https://squidpy.readthedocs.io/en/stable/).
+
+Anndata objects wrapped on h5ad files are commonly used by the [scverse](https://www.nature.com/articles/s41587-023-01733-8) ecosystem for single cell analysis which bring together numeruous tools maintained and distributed by a large community effort. Both squidpy and [scanpy](https://scanpy.readthedocs.io/en/stable/) are currently available on scverse. 
+
 
 ```{r class.source="watch-out", eval = FALSE}
 as.AnnData(Xen_data, file = "Xen_adata_annotated.h5ad")
@@ -97,14 +137,16 @@ as.AnnData(Xen_data, file = "Xen_adata_annotated.h5ad")
 
 <br>
 
-## Configure squidpy (scverse)
+### Configure squidpy (scverse)
+
+Here, we use the [reticulate](https://rstudio.github.io/reticulate/) package to call **scverse** module in Python through a prebuilt anaconda environment. However, any python installation with the scverse module can be incorporated by reticulate.   
 
 ```{r class.source="watch-out", eval = FALSE}
 library(reticulate)
 use_condaenv("scverse", required = T)
 ```
 
-<br>
+We import some other necessary modules such as pandas, scanpy and squidpy.
 
 ```{python class.source="watch-out", eval = FALSE}
 from pathlib import Path
@@ -119,7 +161,9 @@ sc.logging.print_header()
 
 <br>
 
-## Filter and Normalize 
+### Filter and Normalize 
+
+We read the annotated Xenium object that was saved as an h5ad file using the **as.Anndata** function in VoltRon, and process before analysis. For more information using scanpy and squidpy on Xenium datasets, check the [Analyzing Xenium data](https://squidpy.readthedocs.io/en/stable/notebooks/tutorials/tutorial_xenium.html) tutorial at squidpy webpage. 
 
 ```{python class.source="watch-out", eval = FALSE}
 adata = sc.read_h5ad("Xen_adata_annotated.h5ad")
@@ -130,18 +174,42 @@ sc.pp.log1p(adata)
 
 <br>
 
-## Visualize
+### Visualize
+
+We use the **squidpy.pl.spatial_scatter** functions available in squidpy to visualize the spatial localization of cell types of both Xenium replicates.
 
 ```{python class.source="watch-out", eval = FALSE}
 fig, ax = plt.subplots(1, 2, figsize=(10, 7))
-sq.pl.spatial_scatter(adata, library_key = "AssayID", library_id = "_Assay1", color=["CellType"], shape=None, size=1, img = False, ax=ax[0])
-sq.pl.spatial_scatter(adata, library_key = "AssayID", library_id = "_Assay2", color=["CellType"], shape=None, size=1, img = False, ax=ax[1])
+sq.pl.spatial_scatter(adata, library_key = "AssayID", library_id = "_Assay1", 
+                      color=["CellType"], shape=None, size=1, img = False, ax=ax[0])
+sq.pl.spatial_scatter(adata, library_key = "AssayID", library_id = "_Assay2", 
+                      color=["CellType"], shape=None, size=1, img = False, ax=ax[1])
 plt.show(ax)
 ```
 
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_anndata_spatial_scatter.png" class="center">
+
 <br>
 
-## Neighborhood Enrichment 
+### Neighborhood Enrichment
+
+We can now use high level spatially-aware functions available in squidpy. We first establish spatial neighbors using the delaunay graphs. The spatial graph and distances will be stored under **.obsp** attribute/matrix. 
+
+```{python class.source="watch-out", eval = FALSE}
+sq.gr.spatial_neighbors(adata, coord_type="generic", delaunay=True)
+adata
+```
+
+```
+AnnData object with n_obs × n_vars = 283298 × 313
+    obs: 'Count', 'Assay', 'Layer', 'Sample', 'Clusters', 'CellType', 'AssayID'
+    uns: 'log1p', 'spatial_neighbors'
+    obsm: 'spatial', 'spatial_AssayID'
+    layers: 'counts'
+    obsp: 'spatial_connectivities', 'spatial_distances'
+```
+
+We can now conduct the permutation test for neighborhood enrichment across cell type pairs. 
 
 ```{python class.source="watch-out", eval = FALSE}
 sq.gr.nhood_enrichment(adata, cluster_key="CellType")
@@ -155,4 +223,6 @@ sq.pl.spatial_scatter(adata, color="CellType", library_key = "AssayID",
                       library_id = "_Assay1", shape=None, size=2, ax=ax[1])
 plt.show(ax)
 ```
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_anndata_neighborhood.png" class="center">
 
