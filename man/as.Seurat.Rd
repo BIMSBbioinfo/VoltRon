@@ -11,7 +11,8 @@ as.Seurat(object, ...)
   object,
   assay = NULL,
   image_key = "fov",
-  type = c("image", "spatial")
+  type = c("image", "spatial"),
+  reg = FALSE
 )
 }
 \arguments{
@@ -24,6 +25,8 @@ as.Seurat(object, ...)
 \item{image_key}{the name (or prefix) of the image(s)}
 
 \item{type}{the spatial data type of Seurat object: "image" or "spatial"}
+
+\item{reg}{if TRUE, registered coordinates will be used}
 }
 \value{
 \code{as.Seurat}: The name of the default assay

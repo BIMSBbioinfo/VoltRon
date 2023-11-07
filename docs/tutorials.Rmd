@@ -57,7 +57,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 **VoltRon** will incorporate multiple data integration modules to achieve data transfer across a diverse set of modalities. We utilize the <a href="https://opencv.org/">OpenCV</a> library which fully embedded into VoltRon using <a href="https://www.rcpp.org/">Rcpp</a>, hence VoltRon can align reference images of spatial datasets using computer vision and image registration. Users can automaticaly or manually align a list of images (**H&E, microscopy or DAPI images**) using a small shiny app incorporated within our analysis workflow. 
 
-In addition, VoltRon integrates with spot deconvolution methods such as RCTD and SpotLIGHT (**under development**) to infer spot transcriptomics assays such as Visium and DBIT-Seq. We estimate the cell type abundances from a reference single cell data (Seurat, SingleCellExperiment etc.) with already annotated cell types. Then we generate additional assays associated with layers of the VoltRon object, and implement **clustering on normalized cell type abundance data** to discover niches in the dataset. 
+In addition, VoltRon integrates with spot deconvolution methods such as RCTD to infer spot transcriptomics assays such as Visium and DBIT-Seq. We estimate the cell type abundances from a reference single cell data (Seurat, SingleCellExperiment etc.) with already annotated cell types. Then we generate additional assays associated with layers of the VoltRon object, and implement **clustering on normalized cell type abundance data** to discover niches in the dataset. 
 
 <table>
 <tbody>

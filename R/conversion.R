@@ -114,13 +114,14 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, Sample = NULL, ...){
 #' @param assay the name(type) of the assay to be converted
 #' @param image_key the name (or prefix) of the image(s)
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
+#' @param reg if TRUE, registered coordinates will be used
 #'
 #' @rdname as.Seurat
 #' @method as.Seurat VoltRon
 #'
 #' @export
 #'
-as.Seurat.VoltRon <- function(object, assay = NULL, image_key = "fov", type = c("image", "spatial")){
+as.Seurat.VoltRon <- function(object, assay = NULL, image_key = "fov", type = c("image", "spatial"), reg = FALSE){
 
   # check Seurat package
   if(!requireNamespace('Seurat'))
@@ -157,17 +158,18 @@ as.Seurat.VoltRon <- function(object, assay = NULL, image_key = "fov", type = c(
   for(assy in vrAssayNames(object)){
     assay_object <- object[[assy]]
     if(type == "image"){
-      coords <- vrCoordinates(assay_object, reg = TRUE)
+      coords <- vrCoordinates(assay_object, reg = reg)
       # rownames(coords) <- gsub("_", "-", rownames(coords))
       image.data <- list(centroids = SeuratObject::CreateCentroids(coords))
-      subcellular <- vrSubcellular(assay_object, reg = TRUE)
+      subcellular <- vrSubcellular(assay_object, reg = reg)
       if(nrow(subcellular) > 0){
         colnames(subcellular)[colnames(subcellular) %in% "feature_name"] <- "gene"
       } else {
         subcellular <- NULL
       }
       image.data <- SeuratObject::CreateFOV(coords = image.data, type = c("centroids"), molecules = subcellular, assay = assay)
-      image <- paste0(image_key, "_", assy)
+      # image <- paste0(image_key, "_", assy)
+      image <- paste0(image_key, assy)
       seu[[image]] <- image.data
     } else if(type == "spatial"){
       stop("Currently VoltRon does not support converting into Spatial-type (e.g. VisiumV1) Spatial objects!")
