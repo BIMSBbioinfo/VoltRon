@@ -80,7 +80,9 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
     subcellular <- subcellular[,c("cell_id", colnames(subcellular)[!colnames(subcellular) %in% "cell_id"])]
     subcellular <- subcellular[subcellular$qv >= 20, ]
     colnames(subcellular)[colnames(subcellular) %in% c("x_location", "y_location")] <- c("x", "y")
-    subcellular[,c("x","y")] <- subcellular[,c("x","y")]/scaleparam
+    if(use_image){
+      subcellular[,c("x","y")] <- subcellular[,c("x","y")]/scaleparam
+    }
     subcellular[,"y"] <- range_coords[2] - subcellular[,"y"]  + range_coords[1]
   } else {
     stop("There are no file named 'transcripts.csv.gz' in the path")

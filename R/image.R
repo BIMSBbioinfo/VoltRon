@@ -128,6 +128,16 @@ vrMainImage.vrAssay <- function(object){
   return(object@main_image)
 }
 
+#'
+#' @rdname vrMainImage
+#' @method vrMainImage<- vrAssay
+#'
+#' @export
+#'
+"vrMainImage<-.vrAssay" <- function(object, value){
+  object@main_image <- value
+  return(object)
+}
 
 ####
 # Managing Images ####

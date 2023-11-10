@@ -10,7 +10,13 @@ normalizeData(object, ...)
 
 \method{normalizeData}{VoltRon}(object, assay = NULL, ...)
 
-\method{normalizeData}{vrAssay}(object, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2)
+\method{normalizeData}{vrAssay}(
+  object,
+  method = "LogNorm",
+  desiredQuantile = 0.9,
+  scale = 0.2,
+  sizefactor = 10000
+)
 }
 \arguments{
 \item{object}{An object}
@@ -24,6 +30,8 @@ normalizeData(object, ...)
 \item{desiredQuantile}{the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}}
 
 \item{scale}{the scale parameter for the hyperbolic arcsine transformation}
+
+\item{sizefactor}{size factor if \code{method} is selected as \code{LogNorm}}
 }
 \value{
 Returns object after normalization

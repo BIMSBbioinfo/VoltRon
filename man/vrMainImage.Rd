@@ -2,12 +2,18 @@
 % Please edit documentation in R/generics.R, R/image.R
 \name{vrMainImage}
 \alias{vrMainImage}
+\alias{vrMainImage<-}
 \alias{vrMainImage.vrAssay}
+\alias{vrMainImage<-.vrAssay}
 \title{vrMainImage}
 \usage{
 vrMainImage(object, ...)
 
+vrMainImage(object, ...) <- value
+
 \method{vrMainImage}{vrAssay}(object)
+
+\method{vrMainImage}{vrAssay}(object) <- value
 }
 \arguments{
 \item{object}{An object}
@@ -16,7 +22,11 @@ vrMainImage(object, ...)
 }
 \value{
 \code{vrMainImage}: The name of the default assay
+
+\code{vrMainImage}: The name of the default assay
 }
 \description{
 Get the main image
+
+Set the main image
 }
