@@ -31,6 +31,7 @@ normalizeData.VoltRon <- function(object, assay = NULL, ...) {
 #' @param method the normalization method: "LogNorm", "Q3Norm", "LogQ3Norm" or "CLR"
 #' @param desiredQuantile the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}
 #' @param scale the scale parameter for the hyperbolic arcsine transformation
+#' @param sizefactor size factor if \code{method} is selected as \code{LogNorm}
 #'
 #' @rdname normalizeData
 #' @method normalizeData vrAssay
@@ -39,7 +40,7 @@ normalizeData.VoltRon <- function(object, assay = NULL, ...) {
 #'
 #' @export
 #'
-normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2) {
+normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2, sizefactor = 10000) {
 
   # size factor
   rawdata <- vrData(object)
@@ -55,8 +56,8 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
 
   # normalization method
   if(method == "LogNorm"){
-    sizefactor <- matrix(rep(sizefactor, nrow(rawdata)), byrow = T, nrow = nrow(rawdata))
-    normdata <- (rawdata/sizefactor)*10000
+    depth <- matrix(rep(sizefactor, nrow(rawdata)), byrow = T, nrow = nrow(rawdata))
+    normdata <- (rawdata/depth)*10000
     normdata <- log(normdata + 1)
   } else if(method == "Q3Norm") {
     rawdata[rawdata==0] <- 1
