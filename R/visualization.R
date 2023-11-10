@@ -440,6 +440,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", norm = TR
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom ggforce geom_ellipse
 #' @importFrom igraph get.data.frame
+#' @importFrom dplyr arrange
 #'
 vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, graph = NULL, limits, group.by = "label", norm = TRUE, log = FALSE,
                                font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL,
@@ -524,7 +525,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, graph = NULL, l
     }
 
     g <- g +
-      geom_point(mapping = aes(x = x, y = y, colour = score), arrange(coords,score), shape = 16, size = rel(pt.size), alpha = alpha) +
+      geom_point(mapping = aes(x = x, y = y, colour = score), dplyr::arrange(coords,score), shape = 16, size = rel(pt.size), alpha = alpha) +
       scale_colour_gradientn(name = legend_title,
                              colors=c("dodgerblue2", "white", "yellow3"),
                              values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
