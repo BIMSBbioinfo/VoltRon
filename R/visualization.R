@@ -20,6 +20,7 @@
 #' @param nrow row wise number of plots, for \code{ggarrange}
 #' @param font.size font sizes
 #' @param pt.size point size
+#' @param cell.shape the shape of the points representing cells, see \code{help(geom_point)}
 #' @param alpha alpha level for cells/spots/ROIs
 #' @param label if TRUE, the labels of the ROI assays will be visualized
 #' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
@@ -36,7 +37,7 @@
 #' @export
 #'
 vrSpatialPlot <- function(object, group.by = "Sample", transcripts = NULL, assay = NULL, assay.type = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
-                     font.size = 2, pt.size = 2, alpha = 1, label = FALSE, background = NULL, reg = FALSE,
+                     font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, label = FALSE, background = NULL, reg = FALSE,
                      crop = FALSE, legend.pt.size = 2, legend.loc = "right", common.legend = TRUE, collapse = TRUE) {
 
   # check object
@@ -96,8 +97,9 @@ vrSpatialPlot <- function(object, group.by = "Sample", transcripts = NULL, assay
     # visualize
     p_title <- plot_title[[assy]]
     gg[[i]] <- vrSpatialPlotSingle(assay = cur_assay, metadata = cur_metadata,
-                              group.by = group.by, transcripts = transcripts, graph = graph, font.size = font.size, pt.size = pt.size, alpha = alpha,
-                              plot_title = p_title, background = background, reg = reg, crop = crop, legend.pt.size = legend.pt.size)
+                              group.by = group.by, transcripts = transcripts, graph = graph, font.size = font.size, pt.size = pt.size,
+                              alpha = alpha, cell.shape = cell.shape, plot_title = p_title, background = background, reg = reg,
+                              crop = crop, legend.pt.size = legend.pt.size)
     i <- i + 1
   }
 
@@ -125,6 +127,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", transcripts = NULL, assay
 #' @param graph if not NULL, the graph is added to the plot
 #' @param font.size font sizes
 #' @param pt.size point size
+#' @param cell.shape the shape of the points representing cells, see \code{help(geom_point)}
 #' @param alpha alpha level for cells/spots/ROIs
 #' @param plot_title the title of the single plot
 #' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
@@ -135,7 +138,9 @@ vrSpatialPlot <- function(object, group.by = "Sample", transcripts = NULL, assay
 #' @import ggplot2
 #' @importFrom igraph get.data.frame
 #'
-vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcripts = NULL, graph = NULL, font.size = 2, pt.size = 2, alpha = 1, plot_title = NULL, background = NULL, reg = FALSE, crop = FALSE, legend.pt.size = 2){
+vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcripts = NULL, graph = NULL,
+                                font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, plot_title = NULL, background = NULL,
+                                reg = FALSE, crop = FALSE, legend.pt.size = 2){
 
   # data
   coords <- as.data.frame(vrCoordinates(assay, reg = reg))
@@ -205,6 +210,11 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcript
       }
     } else {
 
+      # add points
+      g <- g +
+        geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
+        guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
+
       # add if a graph exists
       if(!is.null(graph)){
         graph.df <- igraph::get.data.frame(graph)
@@ -215,11 +225,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcript
         g <- g +
           geom_segment(data = graph.df, mapping = aes(x=from.x,xend = to.x, y=from.y,yend = to.y), alpha = 0.5, color = ifelse(background == "black", "grey", "black"))
       }
-
-      # add points
-      g <- g +
-        geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = 21, size = rel(pt.size), alpha = alpha) +
-        guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
     }
   } else {
     stop("Only ROIs, spots and cells can be visualized with vrSpatialPlot!")

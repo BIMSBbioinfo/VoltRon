@@ -15,6 +15,7 @@ vrSpatialPlot(
   nrow = NULL,
   font.size = 2,
   pt.size = 2,
+  cell.shape = 21,
   alpha = 1,
   label = FALSE,
   background = NULL,
@@ -46,6 +47,8 @@ vrSpatialPlot(
 \item{font.size}{font sizes}
 
 \item{pt.size}{point size}
+
+\item{cell.shape}{the shape of the points representing cells, see \code{help(geom_point)}}
 
 \item{alpha}{alpha level for cells/spots/ROIs}
 
