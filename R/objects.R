@@ -1050,7 +1050,7 @@ SampleMetadata.VoltRon <- function(object, ...) {
 #' @export
 #'
 vrSpatialPoints.VoltRon <- function(object, ...) {
-  return(vrSpatialPoints(object@metadata))
+  return(vrSpatialPoints(object@metadata, ...))
 }
 
 #' @param assay assay
