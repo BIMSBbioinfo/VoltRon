@@ -255,7 +255,9 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcript
     g <- g +
       theme(panel.background = element_blank())
   } else {
-    stop("background should either 'black', 'white' or a image from vrImageNames(assay)")
+    g <- g +
+      theme(panel.background = element_rect(fill = "lightgrey", colour = "lightgrey", size = 0.5, linetype = "solid"))
+    warning("background image ", background, " is not found in ", vrAssayNames(assay), "\n")
   }
 
   # return data
@@ -566,7 +568,9 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, graph = NULL, l
     g <- g +
       theme(panel.background = element_blank())
   } else {
-    stop("background should either 'black', 'white' or a image from vrImageNames(assay)")
+    g <- g +
+      theme(panel.background = element_rect(fill = "lightgrey", colour = "lightgrey", size = 0.5, linetype = "solid"))
+    warning("background image ", background, " is not found in ", vrAssayNames(assay), "\n")
   }
 
 
