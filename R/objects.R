@@ -322,7 +322,7 @@ setMethod(
 #'
 #' @export
 #'
-formVoltRon <- function(data, metadata = NULL, image = NULL,
+formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
                              coords,
                              segments = list(),
                              subcellular = NULL,
@@ -344,27 +344,46 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
     stop(paste0("'", sample_name, "' cannot be a sample name, since main assay is named '", main.assay, "'."))
 
   # entity IDs
-  if(is.null(colnames(data))){
-    entityID <- paste0(assay.type,1:ncol(data))
+  if(!is.null(data)){
+    if(is.null(colnames(data))){
+      entityID <- paste0(assay.type,1:ncol(data))
+      colnames(data) <- entityID
+    } else {
+      entityID <- colnames(data)
+    }
+    entityID <- paste(entityID, "Assay1", sep = "_")
     colnames(data) <- entityID
-  } else {
-    entityID <- colnames(data)
+  } else{
+    data <- matrix(nrow = 0, ncol = 0)
+    if(!is.null(metadata)) {
+      if(is.null(colnames(metadata))){
+        entityID <- paste0(assay.type,1:nrow(metadata))
+        rownames(metadata) <- entityID
+      } else {
+        entityID <- rownames(metadata)
+      }
+      entityID <- paste(entityID, "Assay1", sep = "_")
+    } else {
+      stop("Either data or metadata has to be provided to build a VoltRon object")
+    }
   }
-  entityID <- paste(entityID, "Assay1", sep = "_")
-  colnames(data) <- entityID
 
   # set meta data
   if(is.null(metadata)){
-    sr_metadata <- setVRMetadata(cell = data.frame(), spot = data.frame(), ROI = data.frame())
+    sr_metadata <- setVRMetadata(molecule = data.frame(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
     slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, row.names = entityID)
   } else {
     if(any(class(metadata) %in% c("data.frame", "matrix"))){
-      sr_metadata <- setVRMetadata(cell = data.frame(), spot = data.frame(), ROI = data.frame())
+      sr_metadata <- setVRMetadata(molecule = data.frame(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
       if(any(!rownames(metadata) %in% gsub("_Assay1$", "", entityID))){
         stop("Entity IDs are not matching")
       } else {
         metadata <- metadata[gsub("_Assay1$", "", entityID),]
-        slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
+        if(nrow(data) > 0){
+          slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
+        } else{
+          slot(sr_metadata, name = assay.type) <- data.frame(Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
+        }
       }
     }
   }
@@ -406,25 +425,17 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
     image <- list(main_image = magick::image_data(magick::image_read(image)))
   }
 
-  # subcellular
-  if(!is.null(subcellular)){
-    subcellular[,1] <- paste(subcellular[,1], "Assay1", sep = "_")
-  } else {
-    subcellular = data.frame()
-  }
-
-  # set zgraph
-  # if(is.null(graph)){
-  #   spatial_points <- vrSpatialPoints(sr_metadata)
-  #   graph <- igraph::make_empty_graph(n = length(spatial_points), directed = FALSE)
-  #   igraph::V(graph)$name <- spatial_points
+  # # subcellular
+  # if(!is.null(subcellular)){
+  #   subcellular[,1] <- paste(subcellular[,1], "Assay1", sep = "_")
+  # } else {
+  #   subcellular = data.frame()
   # }
-  # graph <- list()
 
   # create vrAssay
   Assay <- methods::new("vrAssay", rawdata = data, normdata = data,
                         coords = coords, coords_reg = coords, segments = segments, segments_reg = segments,
-                        subcellular = subcellular, image = image, params = params, type = assay.type, main_image = names(image)[[1]])
+                        subcellular = data.frame(), image = image, params = params, type = assay.type, main_image = names(image)[[1]])
   listofAssays <- list(Assay)
   names(listofAssays) <- main.assay
 

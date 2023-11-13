@@ -33,7 +33,7 @@ setMethod(
   definition = function(object) {
     cat("VoltRon Metadata Object \n")
     cat("This object includes: \n")
-    if(nrow(object@subcell) > 0)
+    if(nrow(object@molecule) > 0)
       cat("  ", nrow(object@molecule), "molecules \n")
     if(nrow(object@cell) > 0)
       cat("  ", nrow(object@cell), "cells \n")
@@ -114,20 +114,23 @@ setMethod(
 # Methods ####
 ####
 
+#' @param assay the assay name or type
+#' @param ... additional parameters passed to \code{Metadata()}
+#'
 #' @rdname vrSpatialPoints
 #' @method vrSpatialPoints vrMetadata
 #'
 vrSpatialPoints.vrMetadata <- function(object, assay = NULL, ...) {
 
-  # metadata
-  metadata <- Metadata(object, assay = assay)
-
-  # get the combination of cells, spots and ROIs
-  points <- rownames(metadata)
-  # points <- c(rownames(object@molecule)
-  #               rownames(object@cell),
-  #               rownames(object@spot),
-  #               rownames(object@ROI))
+  # # metadata
+  # metadata <- Metadata(object, assay = assay)
+  #
+  # # get the combination of cells, spots and ROIs
+  # points <- rownames(metadata)
+  points <- c(rownames(object@molecule),
+                rownames(object@cell),
+                rownames(object@spot),
+                rownames(object@ROI))
 
   return(points)
 }
@@ -318,7 +321,7 @@ merge_sampleMetadata <- function(metadata_list) {
 #' @rdname addAssay
 #' @method addAssay vrMetadata
 #'
-#' @importFrom dplyr bind_rows
+#' @importFrom dplyr bind_rows bind_cols
 #' @importFrom methods slot slot<-
 #'
 #' @export
@@ -340,24 +343,27 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
   entityID <- gsub("Assay[0-9]+$", assay_id, vrSpatialPoints(assay))
 
   # metadata
+  if(nrow(data) > 0){
+    assay_metadata <- data.frame(Count = colSums(data))
+  } else {
+    assay_metadata <- NULL
+  }
+
   if(!is.null(metadata)){
     if(!all(gsub("Assay[0-9]+$", "", vrSpatialPoints(assay)) %in% gsub("Assay[0-9]+$", "", rownames(metadata)))){
       stop("Some spatial points in the assay does not match with the provided metadata!")
     } else{
-      assay_metadata <- data.frame(Count = colSums(data),
-                                   metadata[,!colnames(metadata) %in% c("Count", "Assay", "Layer", "Sample")],
-                                   Assay = rep(assay_name, length(entityID)),
-                                   Layer = rep(layer, length(entityID)),
-                                   Sample = rep(sample, length(entityID)),
-                                   row.names = entityID)
+      assay_metadata <- dplyr::bind_cols(assay_metadata,
+                                         metadata[,!colnames(metadata) %in% c("Count", "Assay", "Layer", "Sample")])
     }
-  } else {
-    assay_metadata <- data.frame(Count = colSums(data),
-                                 Assay = rep(assay_name, length(entityID)),
-                                 Layer = rep(layer, length(entityID)),
-                                 Sample = rep(sample, length(entityID)),
-                                 row.names = entityID)
   }
+
+  # complete assay_metadata
+  assay_metadata <- dplyr::bind_cols(assay_metadata,
+                                     data.frame(Assay = rep(assay_name, length(entityID)),
+                                                Layer = rep(layer, length(entityID)),
+                                                Sample = rep(sample, length(entityID)),
+                                                row.names = entityID))
   object_metadata <- dplyr::bind_rows(object_metadata, assay_metadata)
 
   methods::slot(object, name = assay.type) <- object_metadata
@@ -471,12 +477,13 @@ changeSampleNames.vrMetadata <- function(object, sample_metadata_table){
 
 #' setVRMetadata
 #'
+#' @param molecule molecule data frame
 #' @param cell cell data frame
 #' @param spot spot data frame
 #' @param ROI ROI data frame
 #'
 #' @importFrom methods new
-setVRMetadata <- function(cell, spot, ROI){
+setVRMetadata <- function(molecule, cell, spot, ROI){
   methods::new("vrMetadata", molecule = molecule, cell = cell, spot = spot, ROI = ROI)
 }
 

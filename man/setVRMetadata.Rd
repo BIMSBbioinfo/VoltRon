@@ -4,9 +4,11 @@
 \alias{setVRMetadata}
 \title{setVRMetadata}
 \usage{
-setVRMetadata(cell, spot, ROI)
+setVRMetadata(molecule, cell, spot, ROI)
 }
 \arguments{
+\item{molecule}{molecule data frame}
+
 \item{cell}{cell data frame}
 
 \item{spot}{spot data frame}

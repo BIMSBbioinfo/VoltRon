@@ -59,7 +59,7 @@ setMethod(
   f = 'show',
   signature = 'vrAssay',
   definition = function(object) {
-    cat("vrAssay (VoltRon Assay) of", ncol(object@rawdata), "spatial points and", nrow(object@rawdata), "features. \n")
+    cat("vrAssay (VoltRon Assay) of", nrow(vrCoordinates(object)), "spatial points and", nrow(object@rawdata), "features. \n")
     return(invisible(x = NULL))
   }
 )
@@ -247,7 +247,11 @@ subsetSegments <- function(segments, image, crop_info){
 #' @export
 #'
 vrSpatialPoints.vrAssay <- function(object, ...) {
-  colnames(object@rawdata)
+  if(ncol(object@rawdata) > 0){
+    return(colnames(object@rawdata))
+  } else {
+    return(rownames(vrCoordinates(object)))
+  }
 }
 
 #' @param value new spatial points
