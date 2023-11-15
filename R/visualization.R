@@ -1312,10 +1312,10 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 
   # labels and groups
   if(is.null(x.label)) {
-    x.label <- factor(rownames(metadata))
+    x.labels <- factor(rownames(metadata))
   } else {
     if(x.label %in% colnames(metadata)){
-      x.label <- factor(metadata[[x.label]])
+      x.labels <- factor(metadata[[x.label]])
     } else {
       stop("Column '", x.label, "' cannot be found in metadata!")
     }
@@ -1329,7 +1329,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
   # plotting data
   if(is.null(split.by)){
     ggplotdatax <- data.frame(datax,
-                              x.label = x.label,
+                              x.label = x.labels,
                               group.by = group.by.col,
                               assay_title = assay_title,
                               spatialpoints = rownames(metadata))
@@ -1360,7 +1360,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 
     # make ggplot
     ggplotdatax <- data.frame(datax,
-                              x.label =  x.label,
+                              x.label =  x.labels,
                               group.by = group.by.col,
                               split.by = split.by.col,
                               assay_title = assay_title,

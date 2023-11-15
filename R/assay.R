@@ -239,9 +239,8 @@ subsetSegments <- function(segments, image, crop_info){
   # change strategy based on the length of segments
   if(length(segments) < 200) {
     for(i in 1:length(segments)){
-      print(i)
-      # segments[[i]][,c("x","y")] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
-      segments[[i]] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
+      segments[[i]][,c("x","y")] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
+      # segments[[i]] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
     }
   } else {
     segment_names <- rep(names(segments), sapply(segments, nrow, simplify = TRUE))
