@@ -235,9 +235,27 @@ subsetCoordinates <- function(coords, image, crop_info){
 #' @param crop_info the subseting string passed to \code{magick::image_crop}
 #'
 subsetSegments <- function(segments, image, crop_info){
-  for(i in 1:length(segments)){
-    segments[[i]][,c("x","y")] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
+
+  # change strategy based on the length of segments
+  if(length(segments) < 200) {
+    for(i in 1:length(segments)){
+      print(i)
+      # segments[[i]][,c("x","y")] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
+      segments[[i]] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
+    }
+  } else {
+    segment_names <- rep(names(segments), sapply(segments, nrow, simplify = TRUE))
+    segments <- do.call(rbind,segments)
+    rownames(segments) <- 1:nrow(segments)
+    segments <- data.frame(segments, row_id = rownames(segments))
+    cropped_segments <- subsetCoordinates(segments[,c("x","y")], image, crop_info)
+    cropped_segments <- data.frame(cropped_segments, cell_id = segments[rownames(cropped_segments),]$cell_id, row_id = rownames(cropped_segments))
+    cropped_segments <- cropped_segments %>% right_join(segments[,c("cell_id", "row_id")], by = c("row_id" = "row_id"))
+    cropped_segments <- cropped_segments[,c("cell_id.y", "x", "y")]
+    colnames(cropped_segments) <- c("cell_id", "x", "y")
+    segments <- cropped_segments %>% dplyr::group_split(cell_id)
   }
+
   segments
 }
 

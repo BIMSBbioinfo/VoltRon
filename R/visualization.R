@@ -12,6 +12,7 @@
 #'
 #' @param object VoltRon object
 #' @param group.by a grouping label for the spatial entities
+#' @param plot.segments plot segments instead of points
 #' @param transcripts Only for spatial data with existing subcellular information, visualize the location of given transcripts
 #' @param assay the assay name
 #' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
@@ -36,7 +37,7 @@
 #'
 #' @export
 #'
-vrSpatialPlot <- function(object, group.by = "Sample", transcripts = NULL, assay = NULL, assay.type = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
+vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, transcripts = NULL, assay = NULL, assay.type = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
                      font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, label = FALSE, background = NULL, reg = FALSE,
                      crop = FALSE, legend.pt.size = 2, legend.loc = "right", common.legend = TRUE, collapse = TRUE) {
 
@@ -97,7 +98,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", transcripts = NULL, assay
     # visualize
     p_title <- plot_title[[assy]]
     gg[[i]] <- vrSpatialPlotSingle(assay = cur_assay, metadata = cur_metadata,
-                              group.by = group.by, transcripts = transcripts, graph = graph, font.size = font.size, pt.size = pt.size,
+                              group.by = group.by, plot.segments = plot.segments, transcripts = transcripts, graph = graph, font.size = font.size, pt.size = pt.size,
                               alpha = alpha, cell.shape = cell.shape, plot_title = p_title, background = background, reg = reg,
                               crop = crop, legend.pt.size = legend.pt.size)
     i <- i + 1
@@ -123,6 +124,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", transcripts = NULL, assay
 #' @param assay vrAssay object
 #' @param metadata the metadata associated with the assay
 #' @param group.by a grouping label for the spatial entities
+#' @param plot.segments plot segments instead of points
 #' @param transcripts Only for spatial data with existing subcellular information, visualize the location of given transcripts
 #' @param graph if not NULL, the graph is added to the plot
 #' @param font.size font sizes
@@ -138,13 +140,14 @@ vrSpatialPlot <- function(object, group.by = "Sample", transcripts = NULL, assay
 #' @import ggplot2
 #' @importFrom igraph get.data.frame
 #'
-vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcripts = NULL, graph = NULL,
+vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segments = FALSE, transcripts = NULL, graph = NULL,
                                 font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, plot_title = NULL, background = NULL,
                                 reg = FALSE, crop = FALSE, legend.pt.size = 2){
 
   # data
   coords <- as.data.frame(vrCoordinates(assay, reg = reg))
   normdata <- vrData(assay, norm = TRUE)
+  segments <- vrSegments(assay)
 
   # plotting features
   coords[[group.by]] <- metadata[,group.by]
@@ -163,9 +166,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcript
       ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
   }
 
-  # add points or segments
-  segments <- vrSegments(assay)
-  if(assay@type == "ROI" && !is.null(segments)){
+  # ROI visualization
+  if(assay@type == "ROI"){
     polygon_data <- NULL
     circle_data <- NULL
     for(i in 1:length(segments)){
@@ -178,7 +180,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcript
         circle_data <- as.data.frame(rbind(circle_data,  cur_data))
       }
     }
-    if(!is.null(geom_polygon)){
+    if(!is.null(polygon_data)){
       g <- g +
         geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha)
     }
@@ -190,12 +192,16 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcript
     g <- g +
       scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
       guides(fill = guide_legend(title = group.by))
+
+  # spot visualization
   } else if(assay@type == "spot"){
     g <- g +
       coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height)) +
       geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]]) +
       scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
+
+  # cell visualization
   } else if(assay@type == "cell") {
     subcellular <- vrSubcellular(assay)
     if(!is.null(transcripts)){
@@ -210,20 +216,34 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcript
       }
     } else {
 
-      # add points
-      g <- g +
-        geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
-        guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
+      if(plot.segments){
 
-      # add if a graph exists
-      if(!is.null(graph)){
-        graph.df <- igraph::get.data.frame(graph)
-        graph.df$from.x <- coords$x[match(graph.df$from, rownames(coords))]
-        graph.df$from.y <- coords$y[match(graph.df$from, rownames(coords))]
-        graph.df$to.x <- coords$x[match(graph.df$to, rownames(coords))]
-        graph.df$to.y <- coords$y[match(graph.df$to, rownames(coords))]
+        if(length(segments) == 0) {
+          stop("No Segments are available in this assay!")
+        } else {
+          polygon_data <- do.call(rbind,segments)
+          len_segments <- sapply(segments, nrow, simplify = TRUE)
+          polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), group.by = rep(coords[[group.by]], len_segments))
+          g <- g +
+            geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha)
+        }
+      } else {
+
+        # add points
         g <- g +
-          geom_segment(data = graph.df, mapping = aes(x=from.x,xend = to.x, y=from.y,yend = to.y), alpha = 0.5, color = ifelse(background == "black", "grey", "black"))
+          geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
+          guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
+
+        # add if a graph exists
+        if(!is.null(graph)){
+          graph.df <- igraph::get.data.frame(graph)
+          graph.df$from.x <- coords$x[match(graph.df$from, rownames(coords))]
+          graph.df$from.y <- coords$y[match(graph.df$from, rownames(coords))]
+          graph.df$to.x <- coords$x[match(graph.df$to, rownames(coords))]
+          graph.df$to.y <- coords$y[match(graph.df$to, rownames(coords))]
+          g <- g +
+            geom_segment(data = graph.df, mapping = aes(x=from.x,xend = to.x, y=from.y,yend = to.y), alpha = 0.5, color = ifelse(background == "black", "grey", "black"))
+        }
       }
     }
   } else {
@@ -280,6 +300,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcript
 #' @param object VoltRon object
 #' @param features a set of features, either from the rows of rawdata, normdata or columns of the metadata
 #' @param group.by a grouping label for the spatial entities
+#' @param plot.segments plot segments instead of points
 #' @param norm if TRUE, the normalized data is used
 #' @param log if TRUE, data features (excluding metadata features) will be log transformed
 #' @param assay the assay name
@@ -303,7 +324,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcript
 #'
 #' @export
 #'
-vrSpatialFeaturePlot <- function(object, features, group.by = "label", norm = TRUE, log = FALSE, assay = NULL, assay.type = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
+vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segments = FALSE, norm = TRUE, log = FALSE, assay = NULL, assay.type = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
                          font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, background = NULL, reg = FALSE,
                          crop = FALSE, common.legend = FALSE, collapse = TRUE) {
 
@@ -395,7 +416,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", norm = TR
       # visualize
       p_title <- plot_title[[assy]]
       l_title <- legend_title[[feat]]
-      gg[[i]] <- vrSpatialFeaturePlotSingle(assay = cur_assay, metadata = cur_metadata, feature = feat, graph = graph, limits = limits[[feat]][[assy]],
+      gg[[i]] <- vrSpatialFeaturePlotSingle(assay = cur_assay, metadata = cur_metadata, feature = feat, plot.segments = plot.segments, graph = graph, limits = limits[[feat]][[assy]],
                               group.by = group.by, norm = norm, log = log, font.size = font.size, pt.size = pt.size, title.size = title.size, alpha = alpha,
                               label = label, plot_title = p_title, legend_title = l_title, background = background, reg = reg, crop = crop)
       i <- i + 1
@@ -427,6 +448,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", norm = TR
 #' @param assay vrAssay object
 #' @param metadata the metadata associated with the assay
 #' @param feature a feature, either from the rows of rawdata, normdata or columns of the metadata
+#' @param plot.segments plot segments instead of points
 #' @param graph if not NULL, the graph is added to the plot
 #' @param limits limits of the legend of the plot
 #' @param group.by a grouping label for the spatial entities
@@ -449,7 +471,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", norm = TR
 #' @importFrom igraph get.data.frame
 #' @importFrom dplyr arrange
 #'
-vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, graph = NULL, limits, group.by = "label", norm = TRUE, log = FALSE,
+vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments = FALSE, graph = NULL, limits, group.by = "label", norm = TRUE, log = FALSE,
                                font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL,
                                legend_title = NULL, background = NULL, reg = FALSE, crop = FALSE){
 
@@ -517,25 +539,41 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, graph = NULL, l
       scale_fill_gradientn(name = legend_title,
                              colors=c("dodgerblue3", "yellow", "red"),
                              values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
-  } else {
-    # coords <- coords[sample(rownames(coords)),]
+  } else if(assay@type == "cell"){
 
-    # add if a graph exists
-    if(!is.null(graph)){
-      graph.df <- igraph::get.data.frame(graph)
-      graph.df$from.x <- coords$x[match(graph.df$from, rownames(coords))]
-      graph.df$from.y <- coords$y[match(graph.df$from, rownames(coords))]
-      graph.df$to.x <- coords$x[match(graph.df$to, rownames(coords))]
-      graph.df$to.y <- coords$y[match(graph.df$to, rownames(coords))]
+    if(plot.segments){
+
+      if(length(segments) == 0) {
+        stop("No Segments are available in this assay!")
+      } else {
+        polygon_data <- do.call(rbind,segments)
+        len_segments <- sapply(segments, nrow, simplify = TRUE)
+        polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), score = rep(coords$score, len_segments))
+        g <- g +
+          geom_polygon(aes(x = x, y = y, fill = score, group = segment), data = polygon_data, alpha = alpha)
+      }
       g <- g +
-        geom_segment(data = graph.df, mapping = aes(x=from.x,xend = to.x, y=from.y,yend = to.y), alpha = 0.5, color = ifelse(background == "black", "grey", "black"))
-    }
-
-    g <- g +
-      geom_point(mapping = aes(x = x, y = y, colour = score), dplyr::arrange(coords,score), shape = 16, size = rel(pt.size), alpha = alpha) +
-      scale_colour_gradientn(name = legend_title,
+        scale_fill_gradientn(name = legend_title,
                              colors=c("dodgerblue2", "white", "yellow3"),
                              values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
+    } else {
+      g <- g +
+        geom_point(mapping = aes(x = x, y = y, colour = score), dplyr::arrange(coords,score), shape = 16, size = rel(pt.size), alpha = alpha) +
+        scale_colour_gradientn(name = legend_title,
+                               colors=c("dodgerblue2", "white", "yellow3"),
+                               values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
+
+      # add if a graph exists
+      if(!is.null(graph)){
+        graph.df <- igraph::get.data.frame(graph)
+        graph.df$from.x <- coords$x[match(graph.df$from, rownames(coords))]
+        graph.df$from.y <- coords$y[match(graph.df$from, rownames(coords))]
+        graph.df$to.x <- coords$x[match(graph.df$to, rownames(coords))]
+        graph.df$to.y <- coords$y[match(graph.df$to, rownames(coords))]
+        g <- g +
+          geom_segment(data = graph.df, mapping = aes(x=from.x,xend = to.x, y=from.y,yend = to.y), alpha = 0.5, color = ifelse(background == "black", "grey", "black"))
+      }
+    }
   }
 
   # more visualization parameters

@@ -86,7 +86,7 @@ getProfileNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca",
 #' @importFrom igraph cluster_leiden
 #' @export
 #'
-getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters", graph = "kNN"){
+getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters", graph = "kNN", seed = 1){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -101,6 +101,7 @@ getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters"
   object_graph <- vrGraph(object_subset, assay = assay, graph.type = graph)
 
   # clustering
+  set.seed(seed)
   clusters <- igraph::cluster_leiden(object_graph, objective_function = "modularity", resolution_parameter = resolution)
   clusters <- clusters$membership
 

@@ -92,6 +92,108 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   formVoltRon(rawdata, metadata = NULL, image = image, coords, subcellular = subcellular, main.assay = assay_name, assay.type = "cell", ...)
 }
 
+#' importXenium
+#'
+#' Importing Xenium data
+#'
+#' @param dir.path path to Xenium output folder
+#' @param selected_assay selected assay from Xenium
+#' @param assay_name the assay name of the SR object
+#' @param use_image if TRUE, the DAPI image will be used.
+#' @param morphology_image the name of the lowred morphology image. Default: morphology_lowres.tif
+#' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)
+#' @param ... additional parameters passed to \code{formVoltRon}
+#'
+#' @importFrom magick image_read image_info
+#' @importFrom utils read.csv
+#' @importFrom data.table fread
+#' @importFrom dplyr group_split
+#'
+#' @export
+#'
+importXeniumSegments <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, ...)
+{
+  # raw counts
+  datafile <- paste0(dir.path, "/cell_feature_matrix.h5")
+  if(file.exists(datafile)){
+    rawdata <- import10Xh5(filename = datafile)
+    if(any(names(rawdata) %in% selected_assay)){
+      rawdata <- as.matrix(rawdata[[selected_assay]])
+    } else {
+      stop("There are no assays called ", selected_assay, " in the h5 file!")
+    }
+  } else {
+    stop("There are no files named 'filtered_feature_bc_matrix.h5' in the path")
+  }
+
+  # image
+  if(use_image){
+    suppressMessages(generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level))
+    image_file <- paste0(dir.path, "/", morphology_image)
+    if(file.exists(image_file)){
+      image <-  image_read(image_file)
+    } else {
+      stop("There are no spatial image files in the path")
+    }
+    # scale the xenium image instructed by 10x Genomics help page
+    scaleparam <- 0.2125*(2^(resolution_level-1))
+  } else {
+    image <- NULL
+  }
+
+  # coordinates
+  coord_file <- paste0(dir.path, "/cells.csv.gz")
+  if(file.exists(coord_file)){
+    Xenium_coords <- utils::read.csv(file = coord_file)
+    coords <- as.matrix(Xenium_coords[,c("x_centroid", "y_centroid")])
+    colnames(coords) <- c("x","y")
+    if(use_image) {
+      coords <- coords/scaleparam
+      imageinfo <- unlist(magick::image_info(image)[c("height")])
+      range_coords <- c(0,imageinfo)
+    } else {
+      range_coords <- range(coords[,2])
+    }
+    coords[,2] <- range_coords[2] - coords[,2] + range_coords[1]
+  } else {
+    stop("There are no file named 'cells.csv.gz' in the path")
+  }
+
+  # transcripts
+  transcripts_file <- paste0(dir.path, "/transcripts.csv.gz")
+  if(file.exists(transcripts_file)){
+    subcellular <- as.data.frame(data.table::fread(transcripts_file))
+    subcellular <- subcellular[,c("cell_id", colnames(subcellular)[!colnames(subcellular) %in% "cell_id"])]
+    subcellular <- subcellular[subcellular$qv >= 20, ]
+    colnames(subcellular)[colnames(subcellular) %in% c("x_location", "y_location")] <- c("x", "y")
+    if(use_image){
+      subcellular[,c("x","y")] <- subcellular[,c("x","y")]/scaleparam
+    }
+    subcellular[,"y"] <- range_coords[2] - subcellular[,"y"]  + range_coords[1]
+  } else {
+    stop("There are no file named 'transcripts.csv.gz' in the path")
+  }
+
+  # segments
+  segments_file <- paste0(dir.path, "/cell_boundaries.csv.gz")
+  if(file.exists(segments_file)){
+    segments <- as.data.frame(data.table::fread(segments_file))
+    colnames(segments) <- c("cell_id", "x", "y")
+    if(use_image){
+      segments[,c("x","y")] <- segments[,c("x","y")]/scaleparam
+    }
+    segments[,"y"] <- range_coords[2] - segments[,"y"]  + range_coords[1]
+    segments <- segments %>% dplyr::group_split(cell_id)
+    segments <- as.list(segments)
+    names(segments) <- rownames(coords)
+  } else {
+    stop("There are no file named 'cell_boundaries.csv.gz' in the path")
+  }
+
+  # create VoltRon
+  formVoltRon(rawdata, metadata = NULL, image = image, coords, segments = segments, subcellular = subcellular, main.assay = assay_name, assay.type = "cell", ...)
+}
+
 ####
 ## Visium ####
 ####
