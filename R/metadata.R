@@ -340,7 +340,8 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
   assay_ids <- stringr::str_extract(spatialpoints, "Assay[0-9]+")
   assay_ids <- as.numeric(gsub("Assay", "", assay_ids))
   assay_id <- paste0("Assay", max(assay_ids)+1)
-  entityID <- gsub("Assay[0-9]+$", assay_id, vrSpatialPoints(assay))
+  entityID_nopostfix <- gsub("Assay[0-9]+$", "", vrSpatialPoints(assay))
+  entityID <- paste0(entityID_nopostfix, "_", assay_id)
 
   # metadata
   if(nrow(data) > 0){
@@ -350,8 +351,10 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
   }
 
   if(!is.null(metadata)){
-    if(!all(gsub("Assay[0-9]+$", "", vrSpatialPoints(assay)) %in% gsub("Assay[0-9]+$", "", rownames(metadata)))){
-      stop("Some spatial points in the assay does not match with the provided metadata!")
+    rownames_metadata <- gsub("Assay[0-9]+$", "", rownames(metadata))
+    # if(!all(gsub("Assay[0-9]+$", "", vrSpatialPoints(assay)) %in% gsub("Assay[0-9]+$", "", rownames(metadata)))){
+    if(length(setdiff(rownames_metadata, entityID_nopostfix)) > 0){
+      stop("Some spatial points in the metadata does not match with the assay!")
     } else{
       assay_metadata <- dplyr::bind_cols(assay_metadata,
                                          metadata[,!colnames(metadata) %in% c("Count", "Assay", "Layer", "Sample")])

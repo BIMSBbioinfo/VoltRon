@@ -263,18 +263,17 @@ vrSpatialPoints.vrAssay <- function(object, ...) {
 #'
 "vrSpatialPoints<-.vrAssay" <- function(object, ..., value) {
 
-  # rawdata
-  if(length(colnames(object@rawdata)) != length(value)){
+  # coordinates
+  if(length(rownames(object@coords)) != length(value)){
     stop("The number of spatial points is not matching with the input")
   } else {
-    colnames(object@rawdata) <- value
-  }
-
-  # normdata
-  if(length(colnames(object@normdata)) != length(value)){
-    stop("The number of spatial points is not matching with the input")
-  } else {
-    colnames(object@normdata) <- value
+    if(nrow(object@rawdata) > 0){
+      colnames(object@rawdata) <- value
+      colnames(object@normdata) <- value
+    }
+    rownames(object@coords)  <- value
+    if(nrow(object@coords_reg) > 0)
+      rownames(object@coords_reg) <- value
   }
 
   # embeddings
@@ -290,15 +289,6 @@ vrSpatialPoints.vrAssay <- function(object, ...) {
         }
       }
     }
-  }
-
-  # coordinates
-  if(length(rownames(object@coords)) != length(value)){
-    stop("The number of spatial points is not matching with the input")
-  } else {
-    rownames(object@coords)  <- value
-    if(nrow(object@coords_reg) > 0)
-      rownames(object@coords_reg) <- value
   }
 
   # segments

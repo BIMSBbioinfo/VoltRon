@@ -343,26 +343,26 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
   if(main.assay == sample_name)
     stop(paste0("'", sample_name, "' cannot be a sample name, since main assay is named '", main.assay, "'."))
 
-  # entity IDs
+  # entity IDs from either the data or metadata
   if(!is.null(data)){
     if(is.null(colnames(data))){
-      entityID <- paste0(assay.type,1:ncol(data))
-      colnames(data) <- entityID
+      entityID_nopostfox <- paste0(assay.type,1:ncol(data))
+      colnames(data) <- entityID_nopostfox
     } else {
-      entityID <- colnames(data)
+      entityID_nopostfox <- colnames(data)
     }
-    entityID <- paste(entityID, "Assay1", sep = "_")
+    entityID <- paste(entityID_nopostfox, "Assay1", sep = "_")
     colnames(data) <- entityID
   } else{
     data <- matrix(nrow = 0, ncol = 0)
     if(!is.null(metadata)) {
-      if(is.null(colnames(metadata))){
-        entityID <- paste0(assay.type,1:nrow(metadata))
+      if(is.null(rownames(metadata))){
+        entityID_nopostfox <- paste0(assay.type,1:nrow(metadata))
         rownames(metadata) <- entityID
       } else {
-        entityID <- rownames(metadata)
+        entityID_nopostfox <- rownames(metadata)
       }
-      entityID <- paste(entityID, "Assay1", sep = "_")
+      entityID <- paste(entityID_nopostfox, "Assay1", sep = "_")
     } else {
       stop("Either data or metadata has to be provided to build a VoltRon object")
     }
@@ -375,10 +375,11 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
   } else {
     if(any(class(metadata) %in% c("data.frame", "matrix"))){
       sr_metadata <- setVRMetadata(molecule = data.frame(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
-      if(any(!rownames(metadata) %in% gsub("_Assay1$", "", entityID))){
+      # if(any(!rownames(metadata) %in% gsub("_Assay1$", "", entityID))){
+      if(any(!rownames(metadata) %in% entityID_nopostfox)){
         stop("Entity IDs are not matching")
       } else {
-        metadata <- metadata[gsub("_Assay1$", "", entityID),]
+        metadata <- metadata[entityID_nopostfox,]
         if(nrow(data) > 0){
           slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
         } else{
