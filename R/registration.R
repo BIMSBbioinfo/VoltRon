@@ -932,7 +932,8 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
       # Plot registered images
       lapply(register_ind, function(i){
         cur_mapping <- mapping_list[[i]]
-        images <- getManualRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
+        # images <- getManualRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
+        images <- getManualRegisteredImage_complete(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
         output[[paste0("plot_query_reg",i)]] <- renderImage({
           r2 <- magick::image_read(raster::as.raster(images$query))
           image_view_list <- list(rep(magick::image_resize(image_list[[centre]], geometry = "400x"),5),
@@ -1034,6 +1035,70 @@ getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, in
                                             w = matrix(1, nrow = 3, ncol = 3),
                                             fun = fill.na, pad = TRUE, na.rm = FALSE)
   query_image_raster_1_trf <- terra::rast(query_image_raster_1_trf, crs = "")
+
+  return(list(ref = ref_image_raster, query = query_image_raster_1_trf))
+}
+#' getManualRegisteredImage
+#'
+#' Generating the manually registered images
+#'
+#' @param images the list of images
+#' @param transmatrix the transformation matrix
+#' @param query_ind the index of the query image
+#' @param ref_ind the index of the reference image
+#' @param input input
+#'
+#' @importFrom raster rasterize focal res stack extent
+#' @importFrom terra rast
+#'
+getManualRegisteredImage_complete <- function(images, transmatrix, query_ind, ref_ind, input){
+
+  # plot with raster
+  ref_image_raster <- as.raster(images[[ref_ind]]) |> as.matrix() |> terra::rast()
+  query_image_raster <- as.raster(images[[query_ind]]) |> as.matrix() |> terra::rast() |> raster::stack()
+
+  # prepare image
+  imageEx <- raster::extent(raster::stack(ref_image_raster))
+  imageRes <- raster::res(raster::stack(ref_image_raster))
+  query_image_raster_1 <- raster::as.data.frame(query_image_raster[[1]], xy = TRUE)
+  query_image_raster_2 <- raster::as.data.frame(query_image_raster[[2]], xy = TRUE)
+  query_image_raster_3 <- raster::as.data.frame(query_image_raster[[3]], xy = TRUE)
+
+  # apply transformation as many as it is needed
+  query_image_raster_1_t <- as.matrix(query_image_raster_1)[,1:2]
+  for(trans in transmatrix){
+    # query_image_raster_1_t <- Morpho::applyTransform(query_image_raster_1_t, trans)
+    query_image_raster_1_t <- applyTPSTransform(query_image_raster_1_t, trans)
+  }
+  query_image_raster_2_t <- as.matrix(query_image_raster_2)[,1:2]
+  for(trans in transmatrix){
+    # query_image_raster_1_t <- Morpho::applyTransform(query_image_raster_1_t, trans)
+    query_image_raster_2_t <- applyTPSTransform(query_image_raster_2_t, trans)
+  }
+  query_image_raster_3_t <- as.matrix(query_image_raster_3)[,1:2]
+  for(trans in transmatrix){
+    # query_image_raster_1_t <- Morpho::applyTransform(query_image_raster_1_t, trans)
+    query_image_raster_3_t <- applyTPSTransform(query_image_raster_3_t, trans)
+  }
+
+  # finalize image
+  r <- raster::raster(nrow = dim(query_image_raster)[1], ncol = dim(query_image_raster)[2], resolution = c(1,1))
+  raster::extent(r) <- imageEx
+  # raster::res(r) <- imageRes
+  query_image_raster_1_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_1[,3], r, fun = mean)
+  query_image_raster_1_trf <- raster::focal(query_image_raster_1_tr,
+                                            w = matrix(1, nrow = 3, ncol = 3),
+                                            fun = fill.na, pad = TRUE, na.rm = FALSE)
+  query_image_raster_2_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_2[,3], r, fun = mean)
+  query_image_raster_2_trf <- raster::focal(query_image_raster_2_tr,
+                                            w = matrix(1, nrow = 3, ncol = 3),
+                                            fun = fill.na, pad = TRUE, na.rm = FALSE)
+  query_image_raster_3_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_3[,3], r, fun = mean)
+  query_image_raster_3_trf <- raster::focal(query_image_raster_3_tr,
+                                            w = matrix(1, nrow = 3, ncol = 3),
+                                            fun = fill.na, pad = TRUE, na.rm = FALSE)
+  imageTr <- raster::stack(query_image_raster_1_trf, query_image_raster_2_trf, query_image_raster_3_trf)
+  query_image_raster_1_trf <- terra::rast(imageTr, crs = "")
 
   return(list(ref = ref_image_raster, query = query_image_raster_1_trf))
 }

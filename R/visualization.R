@@ -1095,6 +1095,9 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
   if(scaled){
     heatmapdata <- apply(heatmapdata, 1, scale)
     heatmapdata <- t(heatmapdata)
+    legend_title <- "Scaled \n Exp."
+  } else {
+    legend_title <- "Norm. \n Exp."
   }
 
   # manage data for plotting
@@ -1131,7 +1134,7 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
                           show_column_names = FALSE, column_title_rot = 45, column_title_gp = gpar(fontsize = font.size),
                           column_split = col_split, cluster_columns = FALSE, cluster_rows = cluster_rows,
                           show_heatmap_legend = show_heatmap_legend,
-                          heatmap_legend_param = list(title = "Exp.", at = legend_at, labels = legend_label),
+                          heatmap_legend_param = list(title = legend_title, at = legend_at, labels = legend_label),
                           right_annotation = ha,
                           col = scales::viridis_pal()(100))
 }
