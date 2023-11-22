@@ -346,23 +346,25 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
   # entity IDs from either the data or metadata
   if(!is.null(data)){
     if(is.null(colnames(data))){
-      entityID_nopostfox <- paste0(assay.type,1:ncol(data))
-      colnames(data) <- entityID_nopostfox
+      entityID_nopostfix <- paste0(assay.type,1:ncol(data))
+      colnames(data) <- entityID_nopostfix
     } else {
-      entityID_nopostfox <- colnames(data)
+      entityID_nopostfix <- colnames(data)
     }
-    entityID <- paste(entityID_nopostfox, "Assay1", sep = "_")
+    # entityID <- paste(entityID_nopostfix, "Assay1", sep = "_")
+    entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_Assay1"))
     colnames(data) <- entityID
   } else{
     data <- matrix(nrow = 0, ncol = 0)
     if(!is.null(metadata)) {
       if(is.null(rownames(metadata))){
-        entityID_nopostfox <- paste0(assay.type,1:nrow(metadata))
+        entityID_nopostfix <- paste0(assay.type,1:nrow(metadata))
         rownames(metadata) <- entityID
       } else {
-        entityID_nopostfox <- rownames(metadata)
+        entityID_nopostfix <- rownames(metadata)
       }
-      entityID <- paste(entityID_nopostfox, "Assay1", sep = "_")
+      # entityID <- paste(entityID_nopostfix, "Assay1", sep = "_")
+      entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_Assay1"))
     } else {
       stop("Either data or metadata has to be provided to build a VoltRon object")
     }
@@ -375,11 +377,10 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
   } else {
     if(any(class(metadata) %in% c("data.frame", "matrix"))){
       sr_metadata <- setVRMetadata(molecule = data.frame(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
-      # if(any(!rownames(metadata) %in% gsub("_Assay1$", "", entityID))){
-      if(any(!rownames(metadata) %in% entityID_nopostfox)){
+      if(any(!rownames(metadata) %in% entityID_nopostfix)){
         stop("Entity IDs are not matching")
       } else {
-        metadata <- metadata[entityID_nopostfox,]
+        metadata <- metadata[entityID_nopostfix,]
         if(nrow(data) > 0){
           slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
         } else{
@@ -498,6 +499,8 @@ vrMainAssay.VoltRon <- function(object, ...) {
 #'
 addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample = "Sample1", layer = "Section1"){
 
+  start_time <- Sys.time()
+
   # sample metadata
   sample.metadata <- SampleMetadata(object)
 
@@ -513,6 +516,11 @@ addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample 
                               assay = assay, assay_name = assay_name,
                               sample = sample, layer = layer)
 
+  end_time <- Sys.time()
+  print("make new assay metadata data:")
+  print(end_time-start_time)
+  start_time <- Sys.time()
+
   # update sample and layer
   assay_list <- object[[sample, layer]]@assay
   vrAssayNames(assay) <- assay_id
@@ -525,6 +533,11 @@ addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample 
   newgraph <- igraph::make_empty_graph(n = length(vrSpatialPoints(assay)), directed = FALSE)
   igraph::V(newgraph)$name <- vrSpatialPoints(assay)
   object@graph <- igraph::union(object@graph, newgraph)
+
+  end_time <- Sys.time()
+  print("finish adding new assay:")
+  print(end_time-start_time)
+  start_time <- Sys.time()
 
   # return
   return(object)

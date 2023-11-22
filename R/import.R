@@ -73,6 +73,7 @@ importXenium_new <- function (dir.path, selected_assay = "Gene Expression", assa
   }
 
   # create VoltRon object for cells
+  message("Creating cell level assay ...")
   cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, subcellular = NULL, main.assay = assay_name, assay.type = "cell", ...)
 
   # transcripts
@@ -99,10 +100,12 @@ importXenium_new <- function (dir.path, selected_assay = "Gene Expression", assa
   }
 
   # create VoltRon object for molecules
+  message("Creating molecule level assay ...")
   mol_object <- formVoltRon(data = NULL, metadata = metadata, image = image, coords, subcellular = NULL, main.assay = paste0(assay_name, "_mol"), assay.type = "molecule", ...)
 
   # merge assays in one section
-  sample.metadata <- SampleMetadata(object)
+  message("Merging assays ...")
+  sample.metadata <- SampleMetadata(cell_object)
   object <- addAssay(cell_object,
                      assay = mol_object[["Assay1"]],
                      metadata = Metadata(mol_object),

@@ -323,6 +323,7 @@ merge_sampleMetadata <- function(metadata_list) {
 #'
 #' @importFrom dplyr bind_rows bind_cols
 #' @importFrom methods slot slot<-
+#' @importFrom stringr str_replace
 #'
 #' @export
 #'
@@ -340,8 +341,10 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
   assay_ids <- stringr::str_extract(spatialpoints, "Assay[0-9]+")
   assay_ids <- as.numeric(gsub("Assay", "", assay_ids))
   assay_id <- paste0("Assay", max(assay_ids)+1)
-  entityID_nopostfix <- gsub("Assay[0-9]+$", "", vrSpatialPoints(assay))
-  entityID <- paste0(entityID_nopostfix, "_", assay_id)
+  # entityID_nopostfix <- gsub("Assay[0-9]+$", "", vrSpatialPoints(assay))
+  entityID_nopostfix <- stringr::str_replace(vrSpatialPoints(assay), pattern = "_Assay[0-9]+", "")
+  # entityID <- paste0(entityID_nopostfix, "_", assay_id)
+  entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_", assay_id))
 
   # metadata
   if(nrow(data) > 0){
@@ -351,8 +354,7 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
   }
 
   if(!is.null(metadata)){
-    rownames_metadata <- gsub("Assay[0-9]+$", "", rownames(metadata))
-    # if(!all(gsub("Assay[0-9]+$", "", vrSpatialPoints(assay)) %in% gsub("Assay[0-9]+$", "", rownames(metadata)))){
+    rownames_metadata <- stringr::str_replace(rownames(metadata), pattern = "_Assay[0-9]+", "")
     if(length(setdiff(rownames_metadata, entityID_nopostfix)) > 0){
       stop("Some spatial points in the metadata does not match with the assay!")
     } else{
