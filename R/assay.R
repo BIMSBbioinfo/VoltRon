@@ -24,7 +24,6 @@ setOldClass(Classes = c('bitmap'))
 #' @slot coords_reg spatial coordinates of the registered assay
 #' @slot segments spatial coordinates of the segments, if available
 #' @slot segments_reg spatial coordinates of the registered segments, if available
-#' @slot subcellular subcellular data of the assays, if available
 #' @slot image image of the spatial assay, bitmap class
 #' @slot params additional parameters used by different assay types
 #' @slot type the type of the assay (cell, spot, ROI)
@@ -45,7 +44,6 @@ vrAssay <- setClass(
     coords_reg = 'matrix',
     segments = 'list',
     segments_reg = 'list',
-    subcellular = 'data.frame',
     image = "list",
     params = "list",
     type = "character",
@@ -116,7 +114,6 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
     coords_reg <- vrCoordinates(object, reg = TRUE)
     segments <- vrSegments(object)
     segments_reg <- vrSegments(object, reg = TRUE)
-    subcellular <- vrSubcellular(object)
 
     if(!is.null(spatialpoints)){
 
@@ -157,14 +154,6 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
       if(length(segments) > 0){
         segments[rownames(cropped_coords)] <- subsetSegments(cropped_segments, vrimage, image)
         vrSegments(object) <- segments
-      }
-
-      # subcellular
-      if(nrow(subcellular) > 0){
-        cropped_subcellular <- subsetCoordinates(subcellular[,c("x","y")], vrimage, image)
-        subcellular <- subcellular[rownames(cropped_subcellular),]
-        subcellular[,c("x","y")] <- cropped_subcellular
-        vrSubcellular(object) <- subcellular
       }
 
       # image
@@ -381,14 +370,6 @@ vrAssayNames.vrAssay <- function(object, ...) {
   vrSpatialPoints(object)  <- stringr::str_replace(vrSpatialPoints(object), assayname, value)
   # vrSpatialPoints(object) <- gsub(assayname, value, vrSpatialPoints(object))
 
-  # change subcellular assay names
-  subcellular <- vrSubcellular(object)
-  if(nrow(subcellular) > 0){
-    subcellular$cell_id <- stringr::str_replace(subcellular$cell_id, paste0("_", assayname, "$"), value)
-    # subcellular$cell_id <- gsub(paste0("_", assayname, "$"), value, subcellular$cell_id)
-    vrSubcellular(object) <- subcellular
-  }
-
   # return
   return(object)
 }
@@ -545,43 +526,6 @@ vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
   } else{
     methods::slot(object = object, name = 'segments') <- value
   }
-  return(object)
-}
-
-#' @param reg TRUE if registered subcellular data are being updated
-#'
-#' @rdname vrSubcellular
-#' @method vrSubcellular vrAssay
-#'
-#' @export
-#'
-vrSubcellular.vrAssay <- function(object, reg = FALSE, ...) {
-  if(nrow(object@subcellular) > 0){
-    if(reg){
-      if(any(colnames(object@subcellular) %in% c("x_reg", "y_reg"))) {
-        return(object@subcellular[,c("cell_id", "x_reg", "y_reg", "feature_name")])
-      } else {
-        return(object@subcellular[,c("cell_id", "x", "y", "feature_name")])
-      }
-    } else {
-      return(object@subcellular[,c("cell_id", "x", "y", "feature_name")])
-    }
-  } else{
-    return(object@subcellular)
-  }
-}
-
-#' @param reg TRUE if registered subcellular data are being updated
-#' @param value the new set of subcellular data
-#'
-#' @rdname vrSubcellular
-#' @method vrSubcellular<- vrAssay
-#'
-#' @importFrom methods slot
-#' @export
-#'
-"vrSubcellular<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
-  methods::slot(object = object, name = 'subcellular') <- value
   return(object)
 }
 

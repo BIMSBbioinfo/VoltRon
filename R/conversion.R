@@ -159,7 +159,6 @@ as.Seurat.VoltRon <- function(object, assay = NULL, image_key = "fov", type = c(
     assay_object <- object[[assy]]
     if(type == "image"){
       coords <- vrCoordinates(assay_object, reg = reg)
-      # rownames(coords) <- gsub("_", "-", rownames(coords))
       image.data <- list(centroids = SeuratObject::CreateCentroids(coords))
       subcellular <- vrSubcellular(assay_object, reg = reg)
       if(nrow(subcellular) > 0){
