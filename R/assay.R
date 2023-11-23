@@ -402,6 +402,7 @@ vrAssayTypes.vrAssay <- function(object, ...) {
   return(object@type)
 }
 
+#' @param features features
 #' @param norm TRUE if normalized data should be returned
 #'
 #' @rdname vrData
@@ -409,11 +410,22 @@ vrAssayTypes.vrAssay <- function(object, ...) {
 #'
 #' @export
 #'
-vrData.vrAssay <- function(object, norm = FALSE) {
-  if(norm){
-    return(object@normdata)
+vrData.vrAssay <- function(object, features = NULL, norm = FALSE) {
+  if(!is.null(features)){
+    if(!all(features %in% vrFeatures(object))){
+      stop("Some features are not available in the assay!")
+    }
+    if(norm){
+      return(object@normdata[features,,drop = FALSE])
+    } else {
+      return(object@rawdata[features,])
+    }
   } else {
-    return(object@rawdata)
+    if(norm){
+      return(object@normdata)
+    } else {
+      return(object@rawdata)
+    }
   }
 }
 

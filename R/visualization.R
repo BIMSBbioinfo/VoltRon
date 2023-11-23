@@ -339,11 +339,6 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
 
-  # all data
-  data <- vrData(object, assay = assay, norm = norm)
-  if(log)
-    data <- log(data)
-
   # get entity type and metadata
   if(is.null(assay.type)){
     assay_types <- vrAssayTypes(object, assay = assay)
@@ -360,14 +355,15 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
     range_feat <- Map(function(assy){
-      normdata <- data[,grepl(paste0(assy,"$"), colnames(data))]
-      metadata <- Metadata(object, type = assay.type)
-      metadata <- metadata[grepl(assy, rownames(metadata)),]
-      if(feat %in% rownames(normdata)){
-        range(normdata[feat, ])
+      if(feat %in% vrFeatures(object, assay = assy)){
+        data <- vrData(object, assay = assay, features = feat, norm = norm)
+        if(log)
+          data <- log(data)
+        return(range(data))
       } else {
+        metadata <- Metadata(object, assay = assy)
         if(feat %in% colnames(metadata)){
-          range(metadata[,feat])
+          return(range(metadata[,feat]))
         } else {
           stop("Feature '", feat, "' cannot be found in data or metadata!")
         }
