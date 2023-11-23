@@ -356,9 +356,9 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
     if(length(setdiff(rownames_metadata, entityID_nopostfix)) > 0){
       stop("Some spatial points in the metadata does not match with the assay!")
     } else{
-      rownames(metadata) <- entityID
       assay_metadata <- dplyr::bind_cols(assay_metadata,
                                          metadata[,!colnames(metadata) %in% c("Count", "Assay", "Layer", "Sample")])
+      rownames(assay_metadata) <- entityID
     }
   }
 

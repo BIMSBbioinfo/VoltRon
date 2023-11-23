@@ -858,12 +858,12 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   sample.metadata <- merge_sampleMetadata(sample.metadata_list)
 
   # merge metadata and sample metadata
-  message("Mergin metadata ...")
+  message("Merging metadata ...")
   metadata_list <- lapply(object_list, function(x) slot(x, name = "metadata"))
   metadata <- merge(metadata_list[[1]], metadata_list[-1])
 
   # combine samples and rename layers
-  message("Mergin samples and layers ...")
+  message("Merging samples and layers ...")
   listofSamples <- NULL
   for(i in 1:length(object_list)){
     cur_object <- object_list[[i]]@samples
