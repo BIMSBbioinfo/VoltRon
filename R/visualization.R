@@ -233,7 +233,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
             geom_segment(data = graph.df, mapping = aes(x=from.x,xend = to.x, y=from.y,yend = to.y), alpha = 0.5, color = ifelse(background == "black", "grey", "black"))
         }
       }
-    }
   } else if(assay@type == "molecule") {
 
     coords <- coords[coords[[group.by]] %in% transcripts, ]
