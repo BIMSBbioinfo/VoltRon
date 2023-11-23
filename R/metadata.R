@@ -269,7 +269,7 @@ merge.vrMetadata <- function(object, object_list) {
     cell.metadata <- bind_rows(methods::slot(obj1, "cell"), methods::slot(obj2, "cell"))
     spot.metadata <- bind_rows(methods::slot(obj1, "spot"), methods::slot(obj2, "spot"))
     roi.metadata <- bind_rows(methods::slot(obj1, "ROI"), methods::slot(obj2, "ROI"))
-    combined.metadata <- setVRMetadata(cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata)
+    combined.metadata <- setVRMetadata(molecule = mol.metadata, cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata)
   }
 
   # return combined object
@@ -341,9 +341,7 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
   assay_ids <- stringr::str_extract(spatialpoints, "Assay[0-9]+")
   assay_ids <- as.numeric(gsub("Assay", "", assay_ids))
   assay_id <- paste0("Assay", max(assay_ids)+1)
-  # entityID_nopostfix <- gsub("Assay[0-9]+$", "", vrSpatialPoints(assay))
   entityID_nopostfix <- stringr::str_replace(vrSpatialPoints(assay), pattern = "_Assay[0-9]+", "")
-  # entityID <- paste0(entityID_nopostfix, "_", assay_id)
   entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_", assay_id))
 
   # metadata
@@ -358,6 +356,7 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
     if(length(setdiff(rownames_metadata, entityID_nopostfix)) > 0){
       stop("Some spatial points in the metadata does not match with the assay!")
     } else{
+      rownames(metadata) <- entityID
       assay_metadata <- dplyr::bind_cols(assay_metadata,
                                          metadata[,!colnames(metadata) %in% c("Count", "Assay", "Layer", "Sample")])
     }
@@ -367,10 +366,8 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
   assay_metadata <- dplyr::bind_cols(assay_metadata,
                                      data.frame(Assay = rep(assay_name, length(entityID)),
                                                 Layer = rep(layer, length(entityID)),
-                                                Sample = rep(sample, length(entityID)),
-                                                row.names = entityID))
+                                                Sample = rep(sample, length(entityID))))
   object_metadata <- dplyr::bind_rows(object_metadata, assay_metadata)
-
   methods::slot(object, name = assay.type) <- object_metadata
 
   # return

@@ -121,7 +121,7 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
     if(!is.null(spatialpoints)){
 
       # check if spatial points are here
-      if(!any(colnames(object@rawdata) %in% spatialpoints))
+      if(length(setdiff(spatialpoints, rownames(coords))) > 0)
         return(NULL)
 
       # data
@@ -352,6 +352,7 @@ vrAssayNames.vrAssay <- function(object, ...) {
 #' @rdname vrAssayNames
 #' @method vrAssayNames<- vrAssay
 #'
+#' @importFrom stringr str_replace
 #' @export
 #'
 "vrAssayNames<-.vrAssay" <- function(object, ..., value){
@@ -360,12 +361,14 @@ vrAssayNames.vrAssay <- function(object, ...) {
   assayname <- vrAssayNames(object)
 
   # change assay names
-  vrSpatialPoints(object) <- gsub(assayname, value, vrSpatialPoints(object))
+  vrSpatialPoints(object)  <- stringr::str_replace(vrSpatialPoints(object), assayname, value)
+  # vrSpatialPoints(object) <- gsub(assayname, value, vrSpatialPoints(object))
 
   # change subcellular assay names
   subcellular <- vrSubcellular(object)
   if(nrow(subcellular) > 0){
-    subcellular$cell_id <- gsub(paste0("_", assayname, "$"), value, subcellular$cell_id)
+    subcellular$cell_id <- stringr::str_replace(subcellular$cell_id, paste0("_", assayname, "$"), value)
+    # subcellular$cell_id <- gsub(paste0("_", assayname, "$"), value, subcellular$cell_id)
     vrSubcellular(object) <- subcellular
   }
 

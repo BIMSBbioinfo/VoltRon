@@ -499,8 +499,6 @@ vrMainAssay.VoltRon <- function(object, ...) {
 #'
 addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample = "Sample1", layer = "Section1"){
 
-  start_time <- Sys.time()
-
   # sample metadata
   sample.metadata <- SampleMetadata(object)
 
@@ -516,11 +514,6 @@ addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample 
                               assay = assay, assay_name = assay_name,
                               sample = sample, layer = layer)
 
-  end_time <- Sys.time()
-  print("make new assay metadata data:")
-  print(end_time-start_time)
-  start_time <- Sys.time()
-
   # update sample and layer
   assay_list <- object[[sample, layer]]@assay
   vrAssayNames(assay) <- assay_id
@@ -533,11 +526,6 @@ addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample 
   newgraph <- igraph::make_empty_graph(n = length(vrSpatialPoints(assay)), directed = FALSE)
   igraph::V(newgraph)$name <- vrSpatialPoints(assay)
   object@graph <- igraph::union(object@graph, newgraph)
-
-  end_time <- Sys.time()
-  print("finish adding new assay:")
-  print(end_time-start_time)
-  start_time <- Sys.time()
 
   # return
   return(object)
@@ -870,18 +858,17 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   sample.metadata <- merge_sampleMetadata(sample.metadata_list)
 
   # merge metadata and sample metadata
+  message("Mergin metadata ...")
   metadata_list <- lapply(object_list, function(x) slot(x, name = "metadata"))
   metadata <- merge(metadata_list[[1]], metadata_list[-1])
 
   # combine samples and rename layers
+  message("Mergin samples and layers ...")
   listofSamples <- NULL
   for(i in 1:length(object_list)){
     cur_object <- object_list[[i]]@samples
     listofSamples <- c(listofSamples, cur_object)
   }
-
-  # merge graphs
-  # graph <- merge_graphs(object_list[[1]], object_list[-1])
 
   # get main assay
   if(is.null(main.assay))
