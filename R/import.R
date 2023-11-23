@@ -16,7 +16,7 @@
 #' @param use_image if TRUE, the DAPI image will be used.
 #' @param morphology_image the name of the lowred morphology image. Default: morphology_lowres.tif
 #' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)
-#' @param cell_only if TRUE, only cell assay will be built, ignoring molecules
+#' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
@@ -25,7 +25,7 @@
 #'
 #' @export
 #'
-importXenium_new <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, cell_only = TRUE, ...)
+importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, import_molecules = FALSE, ...)
 {
   # raw counts
   datafile <- paste0(dir.path, "/cell_feature_matrix.h5")
@@ -93,7 +93,7 @@ importXenium_new <- function (dir.path, selected_assay = "Gene Expression", assa
   message("Creating cell level assay ...")
   cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, segments = segments, subcellular = NULL, main.assay = assay_name, assay.type = "cell", ...)
 
-  if(cell_only){
+  if(!import_molecules){
     return(cell_object)
   } else {
     # transcripts
@@ -137,7 +137,7 @@ importXenium_new <- function (dir.path, selected_assay = "Gene Expression", assa
 }
 
 
-#' importXenium
+#' importXenium_old
 #'
 #' Importing Xenium data
 #'
@@ -155,7 +155,7 @@ importXenium_new <- function (dir.path, selected_assay = "Gene Expression", assa
 #'
 #' @export
 #'
-importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, ...)
+importXenium_old <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, ...)
 {
   # raw counts
   datafile <- paste0(dir.path, "/cell_feature_matrix.h5")
