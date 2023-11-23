@@ -322,7 +322,7 @@ setMethod(
 #'
 #' @export
 #'
-formVoltRon <- function(data, metadata = NULL, image = NULL,
+formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
                              coords,
                              segments = list(),
                              subcellular = NULL,
@@ -343,28 +343,49 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
   if(main.assay == sample_name)
     stop(paste0("'", sample_name, "' cannot be a sample name, since main assay is named '", main.assay, "'."))
 
-  # entity IDs
-  if(is.null(colnames(data))){
-    entityID <- paste0(assay.type,1:ncol(data))
+  # entity IDs from either the data or metadata
+  if(!is.null(data)){
+    if(is.null(colnames(data))){
+      entityID_nopostfix <- paste0(assay.type,1:ncol(data))
+      colnames(data) <- entityID_nopostfix
+    } else {
+      entityID_nopostfix <- colnames(data)
+    }
+    # entityID <- paste(entityID_nopostfix, "Assay1", sep = "_")
+    entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_Assay1"))
     colnames(data) <- entityID
-  } else {
-    entityID <- colnames(data)
+  } else{
+    data <- matrix(nrow = 0, ncol = 0)
+    if(!is.null(metadata)) {
+      if(is.null(rownames(metadata))){
+        entityID_nopostfix <- paste0(assay.type,1:nrow(metadata))
+        rownames(metadata) <- entityID
+      } else {
+        entityID_nopostfix <- rownames(metadata)
+      }
+      # entityID <- paste(entityID_nopostfix, "Assay1", sep = "_")
+      entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_Assay1"))
+    } else {
+      stop("Either data or metadata has to be provided to build a VoltRon object")
+    }
   }
-  entityID <- paste(entityID, "Assay1", sep = "_")
-  colnames(data) <- entityID
 
   # set meta data
   if(is.null(metadata)){
-    sr_metadata <- setVRMetadata(cell = data.frame(), spot = data.frame(), ROI = data.frame())
+    sr_metadata <- setVRMetadata(molecule = data.frame(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
     slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, row.names = entityID)
   } else {
     if(any(class(metadata) %in% c("data.frame", "matrix"))){
-      sr_metadata <- setVRMetadata(cell = data.frame(), spot = data.frame(), ROI = data.frame())
-      if(any(!rownames(metadata) %in% gsub("_Assay1$", "", entityID))){
+      sr_metadata <- setVRMetadata(molecule = data.frame(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
+      if(any(!rownames(metadata) %in% entityID_nopostfix)){
         stop("Entity IDs are not matching")
       } else {
-        metadata <- metadata[gsub("_Assay1$", "", entityID),]
-        slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
+        metadata <- metadata[entityID_nopostfix,]
+        if(nrow(data) > 0){
+          slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
+        } else{
+          slot(sr_metadata, name = assay.type) <- data.frame(Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
+        }
       }
     }
   }
@@ -406,25 +427,17 @@ formVoltRon <- function(data, metadata = NULL, image = NULL,
     image <- list(main_image = magick::image_data(magick::image_read(image)))
   }
 
-  # subcellular
-  if(!is.null(subcellular)){
-    subcellular[,1] <- paste(subcellular[,1], "Assay1", sep = "_")
-  } else {
-    subcellular = data.frame()
-  }
-
-  # set zgraph
-  # if(is.null(graph)){
-  #   spatial_points <- vrSpatialPoints(sr_metadata)
-  #   graph <- igraph::make_empty_graph(n = length(spatial_points), directed = FALSE)
-  #   igraph::V(graph)$name <- spatial_points
+  # # subcellular
+  # if(!is.null(subcellular)){
+  #   subcellular[,1] <- paste(subcellular[,1], "Assay1", sep = "_")
+  # } else {
+  #   subcellular = data.frame()
   # }
-  # graph <- list()
 
   # create vrAssay
   Assay <- methods::new("vrAssay", rawdata = data, normdata = data,
                         coords = coords, coords_reg = coords, segments = segments, segments_reg = segments,
-                        subcellular = subcellular, image = image, params = params, type = assay.type, main_image = names(image)[[1]])
+                        subcellular = data.frame(), image = image, params = params, type = assay.type, main_image = names(image)[[1]])
   listofAssays <- list(Assay)
   names(listofAssays) <- main.assay
 
@@ -845,18 +858,17 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   sample.metadata <- merge_sampleMetadata(sample.metadata_list)
 
   # merge metadata and sample metadata
+  message("Mergin metadata ...")
   metadata_list <- lapply(object_list, function(x) slot(x, name = "metadata"))
   metadata <- merge(metadata_list[[1]], metadata_list[-1])
 
   # combine samples and rename layers
+  message("Mergin samples and layers ...")
   listofSamples <- NULL
   for(i in 1:length(object_list)){
     cur_object <- object_list[[i]]@samples
     listofSamples <- c(listofSamples, cur_object)
   }
-
-  # merge graphs
-  # graph <- merge_graphs(object_list[[1]], object_list[-1])
 
   # get main assay
   if(is.null(main.assay))
@@ -1050,7 +1062,7 @@ SampleMetadata.VoltRon <- function(object, ...) {
 #' @export
 #'
 vrSpatialPoints.VoltRon <- function(object, ...) {
-  return(vrSpatialPoints(object@metadata))
+  return(vrSpatialPoints(object@metadata, ...))
 }
 
 #' @param assay assay

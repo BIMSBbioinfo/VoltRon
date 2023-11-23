@@ -246,7 +246,7 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
     assay_names <- sapply(object@assay, vrAssayNames)
     if(any(assays %in% assay_names)) {
       assays <- intersect(assays, assay_names)
-      object@assay  <- object@assay[which(assays %in% assay_names)]
+      object@assay  <- object@assay[which(assay_names %in% assays)]
     } else if(any(assays %in% names(object@assay))) {
       object@assay  <- object@assay[names(object@assay) %in% assays]
     } else {

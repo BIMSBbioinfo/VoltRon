@@ -203,18 +203,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 
   # cell visualization
   } else if(assay@type == "cell") {
-    subcellular <- vrSubcellular(assay)
-    if(!is.null(transcripts)){
-      if(nrow(subcellular) > 0){
-        subcellular <- subcellular[subcellular[["feature_name"]] %in% transcripts,]
-        g <- g +
-          geom_point(mapping = aes_string(x = "x", y = "y", fill = "feature_name", color = "feature_name"), subcellular, shape = 21, size = pt.size, alpha = 1) +
-          guides(fill = guide_legend(title = "features", override.aes=list(size = legend.pt.size)),
-                 color =  guide_legend(title = "features", override.aes=list(size = legend.pt.size)))
-      } else {
-        stop("No transcript name was provided!")
-      }
-    } else {
 
       if(plot.segments){
 
@@ -246,6 +234,13 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         }
       }
     }
+  } else if(assay@type == "molecule") {
+
+    coords <- coords[coords[[group.by]] %in% transcripts, ]
+    g <- g +
+      geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
+      guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
+
   } else {
     stop("Only ROIs, spots and cells can be visualized with vrSpatialPlot!")
   }

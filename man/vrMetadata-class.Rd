@@ -11,6 +11,8 @@ The vrMetadata (VoltRon Metadata) Class
 \section{Slots}{
 
 \describe{
+\item{\code{molecule}}{the metadata data frame of molecules}
+
 \item{\code{cell}}{the metadata data frame of cells}
 
 \item{\code{spot}}{the metadata data frame of spot}

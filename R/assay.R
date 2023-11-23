@@ -59,7 +59,7 @@ setMethod(
   f = 'show',
   signature = 'vrAssay',
   definition = function(object) {
-    cat("vrAssay (VoltRon Assay) of", ncol(object@rawdata), "spatial points and", nrow(object@rawdata), "features. \n")
+    cat("vrAssay (VoltRon Assay) of", nrow(vrCoordinates(object)), "spatial points and", nrow(object@rawdata), "features. \n")
     return(invisible(x = NULL))
   }
 )
@@ -121,7 +121,7 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
     if(!is.null(spatialpoints)){
 
       # check if spatial points are here
-      if(!any(colnames(object@rawdata) %in% spatialpoints))
+      if(length(intersect(spatialpoints, rownames(coords))) == 0)
         return(NULL)
 
       # data
@@ -264,7 +264,11 @@ subsetSegments <- function(segments, image, crop_info){
 #' @export
 #'
 vrSpatialPoints.vrAssay <- function(object, ...) {
-  colnames(object@rawdata)
+  if(ncol(object@rawdata) > 0){
+    return(colnames(object@rawdata))
+  } else {
+    return(rownames(vrCoordinates(object)))
+  }
 }
 
 #' @param value new spatial points
@@ -276,18 +280,17 @@ vrSpatialPoints.vrAssay <- function(object, ...) {
 #'
 "vrSpatialPoints<-.vrAssay" <- function(object, ..., value) {
 
-  # rawdata
-  if(length(colnames(object@rawdata)) != length(value)){
+  # coordinates
+  if(length(rownames(object@coords)) != length(value)){
     stop("The number of spatial points is not matching with the input")
   } else {
-    colnames(object@rawdata) <- value
-  }
-
-  # normdata
-  if(length(colnames(object@normdata)) != length(value)){
-    stop("The number of spatial points is not matching with the input")
-  } else {
-    colnames(object@normdata) <- value
+    if(nrow(object@rawdata) > 0){
+      colnames(object@rawdata) <- value
+      colnames(object@normdata) <- value
+    }
+    rownames(object@coords)  <- value
+    if(nrow(object@coords_reg) > 0)
+      rownames(object@coords_reg) <- value
   }
 
   # embeddings
@@ -303,15 +306,6 @@ vrSpatialPoints.vrAssay <- function(object, ...) {
         }
       }
     }
-  }
-
-  # coordinates
-  if(length(rownames(object@coords)) != length(value)){
-    stop("The number of spatial points is not matching with the input")
-  } else {
-    rownames(object@coords)  <- value
-    if(nrow(object@coords_reg) > 0)
-      rownames(object@coords_reg) <- value
   }
 
   # segments
@@ -375,6 +369,7 @@ vrAssayNames.vrAssay <- function(object, ...) {
 #' @rdname vrAssayNames
 #' @method vrAssayNames<- vrAssay
 #'
+#' @importFrom stringr str_replace
 #' @export
 #'
 "vrAssayNames<-.vrAssay" <- function(object, ..., value){
@@ -383,12 +378,14 @@ vrAssayNames.vrAssay <- function(object, ...) {
   assayname <- vrAssayNames(object)
 
   # change assay names
-  vrSpatialPoints(object) <- gsub(assayname, value, vrSpatialPoints(object))
+  vrSpatialPoints(object)  <- stringr::str_replace(vrSpatialPoints(object), assayname, value)
+  # vrSpatialPoints(object) <- gsub(assayname, value, vrSpatialPoints(object))
 
   # change subcellular assay names
   subcellular <- vrSubcellular(object)
   if(nrow(subcellular) > 0){
-    subcellular$cell_id <- gsub(paste0("_", assayname, "$"), value, subcellular$cell_id)
+    subcellular$cell_id <- stringr::str_replace(subcellular$cell_id, paste0("_", assayname, "$"), value)
+    # subcellular$cell_id <- gsub(paste0("_", assayname, "$"), value, subcellular$cell_id)
     vrSubcellular(object) <- subcellular
   }
 

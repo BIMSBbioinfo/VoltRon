@@ -5,7 +5,7 @@
 \title{formVoltRon}
 \usage{
 formVoltRon(
-  data,
+  data = NULL,
   metadata = NULL,
   image = NULL,
   coords,
