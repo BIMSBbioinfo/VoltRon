@@ -8,6 +8,7 @@ vrSpatialFeaturePlot(
   object,
   features,
   group.by = "label",
+  plot.segments = FALSE,
   norm = TRUE,
   log = FALSE,
   assay = NULL,
@@ -34,6 +35,8 @@ vrSpatialFeaturePlot(
 \item{features}{a set of features, either from the rows of rawdata, normdata or columns of the metadata}
 
 \item{group.by}{a grouping label for the spatial entities}
+
+\item{plot.segments}{plot segments instead of points}
 
 \item{norm}{if TRUE, the normalized data is used}
 

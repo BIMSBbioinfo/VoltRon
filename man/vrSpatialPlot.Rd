@@ -7,7 +7,8 @@
 vrSpatialPlot(
   object,
   group.by = "Sample",
-  transcripts = NULL,
+  plot.segments = FALSE,
+  group.ids = NULL,
   assay = NULL,
   assay.type = NULL,
   graph.name = NULL,
@@ -32,7 +33,9 @@ vrSpatialPlot(
 
 \item{group.by}{a grouping label for the spatial entities}
 
-\item{transcripts}{Only for spatial data with existing subcellular information, visualize the location of given transcripts}
+\item{plot.segments}{plot segments instead of points}
+
+\item{group.ids}{a subset of categories defined with in the grouping label \code{group.by}}
 
 \item{assay}{the assay name}
 

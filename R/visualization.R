@@ -13,7 +13,7 @@
 #' @param object VoltRon object
 #' @param group.by a grouping label for the spatial entities
 #' @param plot.segments plot segments instead of points
-#' @param transcripts Only for spatial data with existing subcellular information, visualize the location of given transcripts
+#' @param group.ids a subset of categories defined with in the grouping label \code{group.by}
 #' @param assay the assay name
 #' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
 #' @param graph.name if not NULL, the spatial graph is with name \code{graph.name} is visualized as well
@@ -37,7 +37,7 @@
 #'
 #' @export
 #'
-vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, transcripts = NULL, assay = NULL, assay.type = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
+vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, assay = NULL, assay.type = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
                      font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, label = FALSE, background = NULL, reg = FALSE,
                      crop = FALSE, legend.pt.size = 2, legend.loc = "right", common.legend = TRUE, collapse = TRUE) {
 
@@ -98,7 +98,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, tr
     # visualize
     p_title <- plot_title[[assy]]
     gg[[i]] <- vrSpatialPlotSingle(assay = cur_assay, metadata = cur_metadata,
-                              group.by = group.by, plot.segments = plot.segments, transcripts = transcripts, graph = graph, font.size = font.size, pt.size = pt.size,
+                              group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, graph = graph, font.size = font.size, pt.size = pt.size,
                               alpha = alpha, cell.shape = cell.shape, plot_title = p_title, background = background, reg = reg,
                               crop = crop, legend.pt.size = legend.pt.size)
     i <- i + 1
@@ -125,7 +125,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, tr
 #' @param metadata the metadata associated with the assay
 #' @param group.by a grouping label for the spatial entities
 #' @param plot.segments plot segments instead of points
-#' @param transcripts Only for spatial data with existing subcellular information, visualize the location of given transcripts
+#' @param group.ids a subset of categories defined with in the grouping label \code{group.by}
 #' @param graph if not NULL, the graph is added to the plot
 #' @param font.size font sizes
 #' @param pt.size point size
@@ -140,7 +140,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, tr
 #' @import ggplot2
 #' @importFrom igraph get.data.frame
 #'
-vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segments = FALSE, transcripts = NULL, graph = NULL,
+vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, graph = NULL,
                                 font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, plot_title = NULL, background = NULL,
                                 reg = FALSE, crop = FALSE, legend.pt.size = 2){
 
@@ -151,6 +151,13 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 
   # plotting features
   coords[[group.by]] <- metadata[,group.by]
+  if(!is.null(group.ids)){
+    if(length(setdiff(group.ids,  coords[[group.by]])) > 0){
+      stop("Some groups defined in group.ids does not exist in group.by!")
+    } else {
+      coords <- coords[coords[[group.by]] %in% group.ids,]
+    }
+  }
 
   # plot
   g <- ggplot()
@@ -235,7 +242,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       }
   } else if(assay@type == "molecule") {
 
-    coords <- coords[coords[[group.by]] %in% transcripts, ]
+    # coords <- coords[coords[[group.by]] %in% transcripts, ]
     g <- g +
       geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
       guides(color = guide_legend(override.aes=list(size = legend.pt.size)))

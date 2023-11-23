@@ -8,7 +8,8 @@ vrSpatialPlotSingle(
   assay,
   metadata,
   group.by = "Sample",
-  transcripts = NULL,
+  plot.segments = FALSE,
+  group.ids = NULL,
   graph = NULL,
   font.size = 2,
   pt.size = 2,
@@ -28,7 +29,9 @@ vrSpatialPlotSingle(
 
 \item{group.by}{a grouping label for the spatial entities}
 
-\item{transcripts}{Only for spatial data with existing subcellular information, visualize the location of given transcripts}
+\item{plot.segments}{plot segments instead of points}
+
+\item{group.ids}{a subset of categories defined with in the grouping label \code{group.by}}
 
 \item{graph}{if not NULL, the graph is added to the plot}
 
