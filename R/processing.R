@@ -271,7 +271,7 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
 #' @rdname getUMAP
 #' @method getUMAP VoltRon
 #'
-#' @importFrom umap umap
+#' @importFrom uwot umap
 #'
 #' @export
 #'
@@ -292,8 +292,7 @@ getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30
 
   # get umap
   set.seed(seed)
-  umap_data <- umap::umap(data, preserve.seed = seed)
-  umap_data <- umap_data$layout
+  umap_data <- uwot::umap(data)
   colnames(umap_data) <- c("x", "y")
   vrEmbeddings(object, type = umap.key) <- umap_data
 

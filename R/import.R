@@ -24,7 +24,7 @@
 #'
 #' @export
 #'
-importXenium_new <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, ...)
+importXenium_new <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, cell_only = TRUE, ...)
 {
   # raw counts
   datafile <- paste0(dir.path, "/cell_feature_matrix.h5")
@@ -76,44 +76,47 @@ importXenium_new <- function (dir.path, selected_assay = "Gene Expression", assa
   message("Creating cell level assay ...")
   cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, subcellular = NULL, main.assay = assay_name, assay.type = "cell", ...)
 
-  # transcripts
-  transcripts_file <- paste0(dir.path, "/transcripts.csv.gz")
-  if(!file.exists(transcripts_file)){
-    stop("There are no file named 'transcripts.csv.gz' in the path")
+  if(cell_only){
+    return(cell_object)
   } else {
-    # get subcellur data components
-    subcellular_data <- as.data.frame(data.table::fread(transcripts_file))
-    subcellular_data <- subcellular_data[,c("cell_id", colnames(subcellular_data)[!colnames(subcellular_data) %in% "cell_id"])]
-    subcellular_data <- subcellular_data[subcellular_data$qv >= 20, ]
-    rownames(subcellular_data) <- subcellular_data$transcript_id
+    # transcripts
+    transcripts_file <- paste0(dir.path, "/transcripts.csv.gz")
+    if(!file.exists(transcripts_file)){
+      stop("There are no file named 'transcripts.csv.gz' in the path")
+    } else {
+      # get subcellur data components
+      subcellular_data <- as.data.frame(data.table::fread(transcripts_file))
+      subcellular_data <- subcellular_data[,c("cell_id", colnames(subcellular_data)[!colnames(subcellular_data) %in% "cell_id"])]
+      subcellular_data <- subcellular_data[subcellular_data$qv >= 20, ]
+      rownames(subcellular_data) <- subcellular_data$transcript_id
 
-    # coordinates
-    coords <- as.matrix(subcellular_data[,c("x_location", "y_location")])
-    colnames(coords) <- c("x", "y")
-    if(use_image){
-      coords <- coords/scaleparam
+      # coordinates
+      coords <- as.matrix(subcellular_data[,c("x_location", "y_location")])
+      colnames(coords) <- c("x", "y")
+      if(use_image){
+        coords <- coords/scaleparam
+      }
+      coords[,"y"] <- range_coords[2] - coords[,"y"]  + range_coords[1]
+
+      # metadata
+      metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell_id", "transcript_id", "x_location", "y_location")]]
     }
-    coords[,"y"] <- range_coords[2] - coords[,"y"]  + range_coords[1]
 
-    # metadata
-    metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell_id", "transcript_id", "x_location", "y_location")]]
+    # create VoltRon object for molecules
+    message("Creating molecule level assay ...")
+    mol_object <- formVoltRon(data = NULL, metadata = metadata, image = image, coords, subcellular = NULL, main.assay = paste0(assay_name, "_mol"), assay.type = "molecule", ...)
+
+    # merge assays in one section
+    message("Merging assays ...")
+    sample.metadata <- SampleMetadata(cell_object)
+    object <- addAssay(cell_object,
+                       assay = mol_object[["Assay1"]],
+                       metadata = Metadata(mol_object),
+                       assay_name = paste0(assay_name, "_mol"),
+                       sample = sample.metadata["Assay1", "Sample"],
+                       layer = sample.metadata["Assay1", "Layer"])
+    return(object)
   }
-
-  # create VoltRon object for molecules
-  message("Creating molecule level assay ...")
-  mol_object <- formVoltRon(data = NULL, metadata = metadata, image = image, coords, subcellular = NULL, main.assay = paste0(assay_name, "_mol"), assay.type = "molecule", ...)
-
-  # merge assays in one section
-  message("Merging assays ...")
-  sample.metadata <- SampleMetadata(cell_object)
-  object <- addAssay(cell_object,
-                     assay = mol_object[["Assay1"]],
-                     metadata = Metadata(mol_object),
-                     assay_name = paste0(assay_name, "_mol"),
-                     sample = sample.metadata["Assay1", "Sample"],
-                     layer = sample.metadata["Assay1", "Layer"])
-
-  return(object)
 }
 
 
