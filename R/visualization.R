@@ -197,35 +197,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", transcript
       scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
   } else if(assay@type == "cell") {
-    # subcellular <- vrSubcellular(assay)
-    # if(!is.null(transcripts)){
-    #   if(nrow(subcellular) > 0){
-    #     subcellular <- subcellular[subcellular[["feature_name"]] %in% transcripts,]
-    #     g <- g +
-    #       geom_point(mapping = aes_string(x = "x", y = "y", fill = "feature_name", color = "feature_name"), subcellular, shape = 21, size = pt.size, alpha = 1) +
-    #       guides(fill = guide_legend(title = "features", override.aes=list(size = legend.pt.size)),
-    #              color =  guide_legend(title = "features", override.aes=list(size = legend.pt.size)))
-    #   } else {
-    #     stop("No transcript name was provided!")
-    #   }
-    # } else {
-    #
-    #   # add points
-    #   g <- g +
-    #     geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
-    #     guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
-    #
-    #   # add if a graph exists
-    #   if(!is.null(graph)){
-    #     graph.df <- igraph::get.data.frame(graph)
-    #     graph.df$from.x <- coords$x[match(graph.df$from, rownames(coords))]
-    #     graph.df$from.y <- coords$y[match(graph.df$from, rownames(coords))]
-    #     graph.df$to.x <- coords$x[match(graph.df$to, rownames(coords))]
-    #     graph.df$to.y <- coords$y[match(graph.df$to, rownames(coords))]
-    #     g <- g +
-    #       geom_segment(data = graph.df, mapping = aes(x=from.x,xend = to.x, y=from.y,yend = to.y), alpha = 0.5, color = ifelse(background == "black", "grey", "black"))
-    #   }
-    # }
 
     # add points
     g <- g +

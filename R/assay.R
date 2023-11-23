@@ -121,7 +121,7 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
     if(!is.null(spatialpoints)){
 
       # check if spatial points are here
-      if(length(setdiff(spatialpoints, rownames(coords))) > 0)
+      if(length(intersect(spatialpoints, rownames(coords))) == 0)
         return(NULL)
 
       # data
