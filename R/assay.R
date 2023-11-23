@@ -418,7 +418,7 @@ vrData.vrAssay <- function(object, features = NULL, norm = FALSE) {
     if(norm){
       return(object@normdata[features,,drop = FALSE])
     } else {
-      return(object@rawdata[features,])
+      return(object@rawdata[features,,drop = FALSE])
     }
   } else {
     if(norm){
