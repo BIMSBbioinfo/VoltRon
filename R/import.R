@@ -27,6 +27,9 @@
 #'
 importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, import_molecules = FALSE, ...)
 {
+  # cell assay
+  message("Creating cell level assay ...")
+
   # raw counts
   datafile <- paste0(dir.path, "/cell_feature_matrix.h5")
   if(file.exists(datafile)){
@@ -90,9 +93,10 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   }
 
   # create VoltRon object for cells
-  message("Creating cell level assay ...")
   cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, segments = segments, main.assay = assay_name, assay.type = "cell", ...)
 
+  # molecule assay
+  message("Creating molecule level assay ...")
   if(!import_molecules){
     return(cell_object)
   } else {
@@ -120,7 +124,6 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
     }
 
     # create VoltRon object for molecules
-    message("Creating molecule level assay ...")
     mol_object <- formVoltRon(data = NULL, metadata = metadata, image = image, coords, main.assay = paste0(assay_name, "_mol"), assay.type = "molecule", ...)
 
     # merge assays in one section

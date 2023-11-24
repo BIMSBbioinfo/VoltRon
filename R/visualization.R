@@ -352,18 +352,28 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
     metadata <- Metadata(object, type = assay.type)
   }
 
+  # # check features and download data if necessary
+  # if(any(features %in% vrFeatures(object, assay = assay_names))){
+  #   overlapping_features <- features[features %in% vrFeatures(object)]
+  #   data <- vrData(object, assay = assay, features = features, norm = norm)
+  #   if(log)
+  #     data <- log(data)
+  # }
+
+
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
     range_feat <- Map(function(assy){
+      spatialpoints <- vrSpatialPoints(object[[assy]])
       if(feat %in% vrFeatures(object, assay = assy)){
-        data <- vrData(object, assay = assay, features = feat, norm = norm)
+        data <- vrData(object[[assy]], features = feat, norm = norm)
         if(log)
           data <- log(data)
-        return(range(data))
+        return(range(data, na.rm = TRUE, finite = TRUE))
       } else {
         metadata <- Metadata(object, assay = assy)
         if(feat %in% colnames(metadata)){
-          return(range(metadata[,feat]))
+          return(range(metadata[,feat], na.rm = TRUE, finite = TRUE))
         } else {
           stop("Feature '", feat, "' cannot be found in data or metadata!")
         }
