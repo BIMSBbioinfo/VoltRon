@@ -27,8 +27,6 @@ The vrAssay (VoltRon Assay) Class
 
 \item{\code{segments_reg}}{spatial coordinates of the registered segments, if available}
 
-\item{\code{subcellular}}{subcellular data of the assays, if available}
-
 \item{\code{image}}{image of the spatial assay, bitmap class}
 
 \item{\code{params}}{additional parameters used by different assay types}
