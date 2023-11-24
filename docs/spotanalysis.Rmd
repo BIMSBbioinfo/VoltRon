@@ -106,9 +106,11 @@ With **vrSpatialPlot**, we can visualize Xenium experiments in both cellular and
 We can interactively select a subset of interest within the tissue section and visualize the localization of these transcripts. Here we subset a ductal carcinoma niche, and visualize visualize mRNAs of **(i)** ACTA2, a marker for smooth muscle cell actin, and **(ii)** TCF7, an early exhausted t cell marker.
 
 ```{r eval = FALSE, class.source="watch-out"}
-Xen_R1_subsetinfo <- subset(Xen_R1, interactive = TRUE)
+Xen_R1_assay <- subset(Xen_R1, assays = "Assay2")
+Xen_R1_subsetinfo <- subset(Xen_R1_assay, interactive = TRUE)
 Xen_R1_subset <- Xen_R1_subsetinfo$subsets[[1]]
-vrSpatialPlot(Xen_R1_subset, transcripts = c("ACTA2", "TCF7"), pt.size = 0.2)
+vrSpatialPlot(Xen_R1_subset, group.by = "feature_name", 
+              group.id = c("ACTA2", "KRT15", "TACSTD2", "CEACAM6"), pt.size = 0.2)
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize.png" class="center">
@@ -118,6 +120,7 @@ We can also visualize count data of cells in the Xenium replicates. The behaviou
 <!-- We can either use the original main image as a background, which is the default behaviour of both vrSpatialFeaturePlot and vrSpatialPlot functions, or select either "black" or "white" backgrounds (e.g. **background = "white"**) as an additional arguement in both functions.  -->
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
+Xen_data <- normalizeData(Xen_data)
 vrSpatialFeaturePlot(Xen_data, features = c("ACTA2", "TCF7"), alpha = 1, pt.size = 0.7)
 ```
 
@@ -170,7 +173,7 @@ Xen_data <- getClusters(Xen_data, resolution = 1.0, label = "Clusters", graph = 
 Now we can label each cell with the associated clustering index and take a look at the clustering accuracy on the embedding space, and we can also visualize these clusters on a spatial context. 
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-vrEmbeddingPlot(Xen_data, group.by = "Clusters", embedding = "umap", pt.size = 0.4)
+vrEmbeddingPlot(Xen_data, group.by = "Clusters", embedding = "umap", pt.size = 0.4, label = TRUE)
 ```
 
 <img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_embedplot_xenium.png" class="center">

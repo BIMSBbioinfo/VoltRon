@@ -44,7 +44,7 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
 
   # size factor
   rawdata <- vrData(object)
-  sizefactor <- colSums(rawdata)
+  coldepth <- colSums(rawdata)
 
   if(!is.numeric(desiredQuantile)){
     stop("desiredQuantile should be numeric")
@@ -56,8 +56,8 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
 
   # normalization method
   if(method == "LogNorm"){
-    depth <- matrix(rep(sizefactor, nrow(rawdata)), byrow = T, nrow = nrow(rawdata))
-    normdata <- (rawdata/depth)*10000
+    depth <- matrix(rep(coldepth, nrow(rawdata)), byrow = T, nrow = nrow(rawdata))
+    normdata <- (rawdata/depth)*sizefactor
     normdata <- log(normdata + 1)
   } else if(method == "Q3Norm") {
     rawdata[rawdata==0] <- 1
