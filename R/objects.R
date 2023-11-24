@@ -514,11 +514,6 @@ addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample 
   assay_list <- c(assay_list, new_assay_list)
   object[[sample, layer]]@assay <- assay_list
 
-  # update graph
-  newgraph <- igraph::make_empty_graph(n = length(vrSpatialPoints(assay)), directed = FALSE)
-  igraph::V(newgraph)$name <- vrSpatialPoints(assay)
-  object@graph <- igraph::union(object@graph, newgraph)
-
   # return
   return(object)
 }
