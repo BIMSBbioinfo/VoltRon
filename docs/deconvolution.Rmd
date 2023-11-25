@@ -203,8 +203,8 @@ VoltRon incorporates distinct plotting functions for, e.g. embeddings, coordinat
 
 ```{r eval = FALSE, class.source="watch-out"}
 # visualize 
-g1 <- vrEmbeddingPlot(MBrain_Sec, embedding = "umap", group.by = "Sample", graph = "SNN")
-g2 <- vrEmbeddingPlot(MBrain_Sec, embedding = "umap", group.by = "clusters", graph = "SNN", label = TRUE)
+g1 <- vrEmbeddingPlot(MBrain_Sec, embedding = "umap", group.by = "Sample")
+g2 <- vrEmbeddingPlot(MBrain_Sec, embedding = "umap", group.by = "clusters", label = TRUE)
 g1 | g2
 ```
 
