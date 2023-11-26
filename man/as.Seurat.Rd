@@ -9,7 +9,8 @@ as.Seurat(object, ...)
 
 \method{as.Seurat}{VoltRon}(
   object,
-  assay = NULL,
+  cell.assay = NULL,
+  molecule.assay = NULL,
   image_key = "fov",
   type = c("image", "spatial"),
   reg = FALSE
@@ -20,7 +21,9 @@ as.Seurat(object, ...)
 
 \item{...}{Arguments passed to other methods}
 
-\item{assay}{the name(type) of the assay to be converted}
+\item{cell.assay}{the name(type) of the cell assay to be converted}
+
+\item{molecule.assay}{the name(type) of the molecule assay to be added to the cell assay in Seurat object}
 
 \item{image_key}{the name (or prefix) of the image(s)}
 

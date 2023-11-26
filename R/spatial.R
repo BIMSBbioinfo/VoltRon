@@ -6,6 +6,7 @@ NULL
 # Spatial Neighbor graphs ####
 ####
 
+# #' @importFrom tripack tri.mesh neighbours
 #' @param assay assay
 #' @param method the method spatial connectivity
 #' @param ... additional parameters passed to \code{FNN:get.knn}
@@ -13,7 +14,7 @@ NULL
 #' @rdname getSpatialNeighbors
 #' @method getSpatialNeighbors VoltRon
 #'
-#' @importFrom tripack tri.mesh neighbours
+#' @importFrom interp tri.mesh neighbours
 #' @importFrom igraph add_edges simplify make_empty_graph vertices
 #' @importFrom FNN get.knn
 #'
@@ -32,8 +33,10 @@ getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay
     spatialedges <-
       switch(method,
              delaunay = {
-               tess <- tripack::tri.mesh(cur_coords[,1], cur_coords[,2])
-               nnedges <- tripack::neighbours(tess)
+               # tess <- tripack::tri.mesh(cur_coords[,1], cur_coords[,2])
+               tess <- interp::tri.mesh(cur_coords[,1], cur_coords[,2])
+               # nnedges <- tripack::neighbours(tess)
+               nnedges <- interp::neighbours(tess)
                nnedges <- mapply(function(x,y) {
                  do.call(c,lapply(y, function(z) c(x,z)))
                }, 1:length(nnedges), nnedges)

@@ -5,12 +5,11 @@
 \title{formVoltRon}
 \usage{
 formVoltRon(
-  data,
+  data = NULL,
   metadata = NULL,
   image = NULL,
   coords,
   segments = list(),
-  subcellular = NULL,
   sample.metadata = NULL,
   main.assay = "Custom_cell",
   assay.type = "cell",
@@ -30,8 +29,6 @@ formVoltRon(
 \item{coords}{the coordinates of the spatial points}
 
 \item{segments}{the segments of the spatial points, optional}
-
-\item{subcellular}{subcellular data}
 
 \item{sample.metadata}{a data frame of the sample metadata}
 

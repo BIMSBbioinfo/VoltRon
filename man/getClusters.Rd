@@ -9,7 +9,8 @@ getClusters(
   resolution = 1,
   assay = NULL,
   label = "clusters",
-  graph = "kNN"
+  graph = "kNN",
+  seed = 1
 )
 }
 \arguments{

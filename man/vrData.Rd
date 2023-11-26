@@ -6,7 +6,7 @@
 \alias{vrData.VoltRon}
 \title{vrData}
 \usage{
-\method{vrData}{vrAssay}(object, norm = FALSE)
+\method{vrData}{vrAssay}(object, features = NULL, norm = FALSE)
 
 vrData(object, ...)
 
@@ -14,6 +14,8 @@ vrData(object, ...)
 }
 \arguments{
 \item{object}{An object}
+
+\item{features}{features}
 
 \item{norm}{TRUE if normalized data should be returned}
 

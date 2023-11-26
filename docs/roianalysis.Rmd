@@ -282,12 +282,12 @@ head(DEresults_sig)
 ```
 
 <div><pre><code style="font-size: 11.7px;">         baseMean log2FoldChange     lfcSE     stat       pvalue         padj     gene             comparison
-ACTA2    33.48395       1.508701 0.3458464 4.362343 1.286768e-05 4.902586e-03    ACTA2 ROI.type_vessel_airway
-ADAMTS1  22.29160       1.152556 0.2272085 5.072680 3.922515e-07 4.109815e-04  ADAMTS1 ROI.type_vessel_airway
-C11orf96 27.48924       1.142085 0.3041057 3.755554 1.729585e-04 2.588819e-02 C11orf96 ROI.type_vessel_airway
-CNN1     16.87670       1.112662 0.2680222 4.151381 3.304757e-05 9.766004e-03     CNN1 ROI.type_vessel_airway
-CRYAB    21.85960       1.264747 0.2173272 5.819552 5.900570e-09 2.472929e-05    CRYAB ROI.type_vessel_airway
-FLNA     44.50957       1.270025 0.3243115 3.916066 9.000548e-05 1.985331e-02     FLNA ROI.type_vessel_airway</code></pre></div>
+ACTA2    33.48395       1.508701 0.3458464 4.362343 1.286768e-05 4.902586e-03    ACTA2 ROI.type_vessel_epithelium
+ADAMTS1  22.29160       1.152556 0.2272085 5.072680 3.922515e-07 4.109815e-04  ADAMTS1 ROI.type_vessel_epithelium
+C11orf96 27.48924       1.142085 0.3041057 3.755554 1.729585e-04 2.588819e-02 C11orf96 ROI.type_vessel_epithelium
+CNN1     16.87670       1.112662 0.2680222 4.151381 3.304757e-05 9.766004e-03     CNN1 ROI.type_vessel_epithelium
+CRYAB    21.85960       1.264747 0.2173272 5.819552 5.900570e-09 2.472929e-05    CRYAB ROI.type_vessel_epithelium
+FLNA     44.50957       1.270025 0.3243115 3.916066 9.000548e-05 1.985331e-02     FLNA ROI.type_vessel_epithelium</code></pre></div>
 
 <br>
 

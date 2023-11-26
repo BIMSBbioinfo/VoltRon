@@ -7,7 +7,8 @@
 vrSpatialPlot(
   object,
   group.by = "Sample",
-  transcripts = NULL,
+  plot.segments = FALSE,
+  group.ids = NULL,
   assay = NULL,
   assay.type = NULL,
   graph.name = NULL,
@@ -15,6 +16,7 @@ vrSpatialPlot(
   nrow = NULL,
   font.size = 2,
   pt.size = 2,
+  cell.shape = 21,
   alpha = 1,
   label = FALSE,
   background = NULL,
@@ -31,7 +33,9 @@ vrSpatialPlot(
 
 \item{group.by}{a grouping label for the spatial entities}
 
-\item{transcripts}{Only for spatial data with existing subcellular information, visualize the location of given transcripts}
+\item{plot.segments}{plot segments instead of points}
+
+\item{group.ids}{a subset of categories defined with in the grouping label \code{group.by}}
 
 \item{assay}{the assay name}
 
@@ -46,6 +50,8 @@ vrSpatialPlot(
 \item{font.size}{font sizes}
 
 \item{pt.size}{point size}
+
+\item{cell.shape}{the shape of the points representing cells, see \code{help(geom_point)}}
 
 \item{alpha}{alpha level for cells/spots/ROIs}
 

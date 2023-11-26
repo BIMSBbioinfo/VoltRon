@@ -521,9 +521,11 @@ and visualize the localization of these transcripts. Here we subset a
 ductal carcinoma niche, and visualize visualize mRNAs of
 <strong>(i)</strong> ACTA2, a marker for smooth muscle cell actin, and
 <strong>(ii)</strong> TCF7, an early exhausted t cell marker.</p>
-<pre class="r watch-out"><code>Xen_R1_subsetinfo &lt;- subset(Xen_R1, interactive = TRUE)
+<pre class="r watch-out"><code>Xen_R1_assay &lt;- subset(Xen_R1, assays = &quot;Assay2&quot;)
+Xen_R1_subsetinfo &lt;- subset(Xen_R1_assay, interactive = TRUE)
 Xen_R1_subset &lt;- Xen_R1_subsetinfo$subsets[[1]]
-vrSpatialPlot(Xen_R1_subset, transcripts = c(&quot;ACTA2&quot;, &quot;TCF7&quot;), pt.size = 0.2)</code></pre>
+vrSpatialPlot(Xen_R1_subset, group.by = &quot;feature_name&quot;, 
+              group.id = c(&quot;ACTA2&quot;, &quot;KRT15&quot;, &quot;TACSTD2&quot;, &quot;CEACAM6&quot;), pt.size = 0.2)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize.png" class="center"></p>
 <p>We can also visualize count data of cells in the Xenium replicates.
 The behaviour of <strong>vrSpatialFeaturePlot</strong> (and most
@@ -532,7 +534,8 @@ with the assay type (e.g. Xenium is both cell and subcellular type).
 Here, we have two assays, and we visualize two features, hence the
 resulting plot would include four panels.</p>
 <!-- We can either use the original main image as a background, which is the default behaviour of both vrSpatialFeaturePlot and vrSpatialPlot functions, or select either "black" or "white" backgrounds (e.g. **background = "white"**) as an additional arguement in both functions.  -->
-<pre class="r watch-out"><code>vrSpatialFeaturePlot(Xen_data, features = c(&quot;ACTA2&quot;, &quot;TCF7&quot;), alpha = 1, pt.size = 0.7)</code></pre>
+<pre class="r watch-out"><code>Xen_data &lt;- normalizeData(Xen_data)
+vrSpatialFeaturePlot(Xen_data, features = c(&quot;ACTA2&quot;, &quot;TCF7&quot;), alpha = 1, pt.size = 0.7)</code></pre>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatialfeature_xenium.png" class="center"></p>
 </div>
 <div id="processing-and-embedding" class="section level2">
@@ -576,7 +579,7 @@ method</strong> from the igraph package, which is utilized with the
 <p>Now we can label each cell with the associated clustering index and
 take a look at the clustering accuracy on the embedding space, and we
 can also visualize these clusters on a spatial context.</p>
-<pre class="r watch-out"><code>vrEmbeddingPlot(Xen_data, group.by = &quot;Clusters&quot;, embedding = &quot;umap&quot;, pt.size = 0.4)</code></pre>
+<pre class="r watch-out"><code>vrEmbeddingPlot(Xen_data, group.by = &quot;Clusters&quot;, embedding = &quot;umap&quot;, pt.size = 0.4, label = TRUE)</code></pre>
 <p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_embedplot_xenium.png" class="center"></p>
 <pre class="r watch-out"><code>vrSpatialPlot(Xen_data, group.by = &quot;Clusters&quot;, pt.size = 0.18, background = &quot;black&quot;)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium.png" class="center"></p>

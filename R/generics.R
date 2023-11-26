@@ -437,35 +437,6 @@ vrSegments <- function(object, ...) {
   UseMethod(generic = 'vrSegments<-', object = object)
 }
 
-#' vrSubcellular
-#'
-#' Get and set the subcellular data
-#'
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#'
-#' @return \code{vrSubcellular}: The name of the default assay
-#'
-#' @rdname vrSubcellular
-#' @export vrSubcellular
-#'
-vrSubcellular <- function(object, ...) {
-  UseMethod(generic = 'vrSubcellular', object = object)
-}
-
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#' @param value subcellular data
-#'
-#' @return \code{vrSubcellular<-}: The coordinates updated
-#'
-#' @rdname vrSubcellular
-#' @export vrSubcellular<-
-#'
-"vrSubcellular<-" <- function(object, ..., value) {
-  UseMethod(generic = 'vrSubcellular<-', object = object)
-}
-
 #' vrDistances
 #'
 #' Get distances between spatial points using coordinates

@@ -177,10 +177,10 @@ resizeImage.vrAssay <- function(object, size){
 
   # resize coordinates
   sizefactor <- image_info(vrImages(object))$width
-  object@coords <- (object@coords)*size/sizefactor
+  vrCoordinates(object) <- (vrCoordinates(object)*size)/sizefactor
 
   # resize segments
-  object@segments <- lapply(object@segments, function(x) x*size/sizefactor)
+  vrSegments(object) <- lapply(vrSegments(object), function(x) x*size/sizefactor)
 
   # resize images
   size <- paste0(size,"x")

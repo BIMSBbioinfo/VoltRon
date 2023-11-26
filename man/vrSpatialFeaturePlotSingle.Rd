@@ -8,6 +8,7 @@ vrSpatialFeaturePlotSingle(
   assay,
   metadata,
   feature,
+  plot.segments = FALSE,
   graph = NULL,
   limits,
   group.by = "label",
@@ -31,6 +32,8 @@ vrSpatialFeaturePlotSingle(
 \item{metadata}{the metadata associated with the assay}
 
 \item{feature}{a feature, either from the rows of rawdata, normdata or columns of the metadata}
+
+\item{plot.segments}{plot segments instead of points}
 
 \item{graph}{if not NULL, the graph is added to the plot}
 

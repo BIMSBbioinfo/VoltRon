@@ -135,7 +135,7 @@ sudo apt-get install libopencv-dev
 
 ## Installation
 
-Install from the GitHub repository using devtools:
+Install from the GitHub repository using devtools (with R version 4.3.0 or higher):
 
 ``` r
 if (!require("devtools", quietly = TRUE))

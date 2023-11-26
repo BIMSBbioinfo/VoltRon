@@ -111,7 +111,8 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, Sample = NULL, ...){
 # Other Packages ####
 ####
 
-#' @param assay the name(type) of the assay to be converted
+#' @param cell.assay the name(type) of the cell assay to be converted
+#' @param molecule.assay the name(type) of the molecule assay to be added to the cell assay in Seurat object
 #' @param image_key the name (or prefix) of the image(s)
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
 #' @param reg if TRUE, registered coordinates will be used
@@ -119,62 +120,72 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, Sample = NULL, ...){
 #' @rdname as.Seurat
 #' @method as.Seurat VoltRon
 #'
+#' @importFrom dplyr bind_cols
+#' @importFrom stringr str_replace
+#'
 #' @export
 #'
-as.Seurat.VoltRon <- function(object, assay = NULL, image_key = "fov", type = c("image", "spatial"), reg = FALSE){
+as.Seurat.VoltRon <- function(object, cell.assay = NULL, molecule.assay = NULL, image_key = "fov", type = c("image", "spatial"), reg = FALSE){
+
+  # sample metadata
+  sample_metadata <- SampleMetadata(object)
 
   # check Seurat package
   if(!requireNamespace('Seurat'))
     stop("Please install Seurat package for using Seurat objects")
 
   # check the number of assays
-  if(is.null(assay)){
-    if(length(unique(SampleMetadata(object)[["Assay"]])) > 1){
+  if(is.null(cell.assay)){
+    if(length(unique(sample.metadata[["Assay"]])) > 1){
       stop("You can only convert a single VoltRon assay into a Seurat object!")
     } else {
-      assay <- SampleMetadata(object)[["Assay"]]
+      cell.assay <- sample.metadata[["Assay"]]
     }
   } else {
-    vrMainAssay(object) <- assay
+    vrMainAssay(object) <- cell.assay
   }
 
   # check the number of assays
-  if(unique(vrAssayTypes(object, assay = assay)) %in% c("spot","ROI")) {
-    stop("Conversion of Spot or ROI assays into Seurat is not permitted!")
+  if(unique(vrAssayTypes(object, assay = cell.assay)) %in% c("spot","ROI")) {
+    stop("Conversion of Spot or ROI assays into Seurat is not yet permitted!")
   }
 
   # data
-  data <- vrData(object, assay = assay, norm = FALSE)
-  # colnames(data) <- gsub("_", "-", colnames(data))
+  data <- vrData(object, assay = cell.assay, norm = FALSE)
 
   # metadata
-  metadata <- Metadata(object, assay = assay)
-  # rownames(metadata) <- gsub("_", "-", rownames(metadata))
+  metadata <- Metadata(object, assay = cell.assay)
 
   # Seurat object
-  seu <- Seurat::CreateSeuratObject(counts = data, meta.data = metadata, assay = assay)
+  seu <- Seurat::CreateSeuratObject(counts = data, meta.data = metadata, assay = cell.assay)
 
   # get image objects for each assay
   for(assy in vrAssayNames(object)){
     assay_object <- object[[assy]]
     if(type == "image"){
       coords <- vrCoordinates(assay_object, reg = reg)
-      # rownames(coords) <- gsub("_", "-", rownames(coords))
       image.data <- list(centroids = SeuratObject::CreateCentroids(coords))
-      subcellular <- vrSubcellular(assay_object, reg = reg)
-      if(nrow(subcellular) > 0){
-        colnames(subcellular)[colnames(subcellular) %in% "feature_name"] <- "gene"
+      if(!is.null(molecule.assay)){
+        assay_metadata <- sample_metadata[assy,]
+        molecule.assay.id <- rownames(sample_metadata)[sample_metadata$Assay == molecule.assay & (assay_metadata$Layer == sample_metadata$Layer & assay_metadata$Sample == sample_metadata$Sample)]
+        if(length(molecule.assay.id) > 0){
+          molecules_metadata <- Metadata(object, assay = molecule.assay.id)
+          molecules_coords <- vrCoordinates(object, assay = molecule.assay.id, reg = reg)
+          molecules <- dplyr::bind_cols(molecules_metadata, molecules_coords)
+          rownames(molecules) <- stringr::str_replace(rownames(molecules), pattern = molecule.assay.id, replacement = assy)
+          colnames(molecules)[colnames(molecules) %in% "feature_name"] <- "gene"
+        }
       } else {
-        subcellular <- NULL
+        molecules <- NULL
       }
-      image.data <- SeuratObject::CreateFOV(coords = image.data, type = c("centroids"), molecules = subcellular, assay = assay)
-      # image <- paste0(image_key, "_", assy)
+      image.data <- SeuratObject::CreateFOV(coords = image.data, type = c("centroids"), molecules = molecules, assay = cell.assay)
       image <- paste0(image_key, assy)
       seu[[image]] <- image.data
     } else if(type == "spatial"){
       stop("Currently VoltRon does not support converting into Spatial-type (e.g. VisiumV1) Spatial objects!")
     }
   }
+
 
   # return
   seu

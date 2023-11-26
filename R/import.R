@@ -6,7 +6,6 @@
 ## Xenium ####
 ####
 
-
 #' importXenium
 #'
 #' Importing Xenium data
@@ -17,6 +16,7 @@
 #' @param use_image if TRUE, the DAPI image will be used.
 #' @param morphology_image the name of the lowred morphology image. Default: morphology_lowres.tif
 #' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)
+#' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
@@ -25,8 +25,11 @@
 #'
 #' @export
 #'
-importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, ...)
+importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, import_molecules = FALSE, ...)
 {
+  # cell assay
+  message("Creating cell level assay ...")
+
   # raw counts
   datafile <- paste0(dir.path, "/cell_feature_matrix.h5")
   if(file.exists(datafile)){
@@ -73,23 +76,67 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
     stop("There are no file named 'cells.csv.gz' in the path")
   }
 
-  # transcripts
-  transcripts_file <- paste0(dir.path, "/transcripts.csv.gz")
-  if(file.exists(transcripts_file)){
-    subcellular <- as.data.frame(data.table::fread(transcripts_file))
-    subcellular <- subcellular[,c("cell_id", colnames(subcellular)[!colnames(subcellular) %in% "cell_id"])]
-    subcellular <- subcellular[subcellular$qv >= 20, ]
-    colnames(subcellular)[colnames(subcellular) %in% c("x_location", "y_location")] <- c("x", "y")
+  # segments
+  segments_file <- paste0(dir.path, "/cell_boundaries.csv.gz")
+  if(file.exists(segments_file)){
+    segments <- as.data.frame(data.table::fread(segments_file))
+    colnames(segments) <- c("cell_id", "x", "y")
     if(use_image){
-      subcellular[,c("x","y")] <- subcellular[,c("x","y")]/scaleparam
+      segments[,c("x","y")] <- segments[,c("x","y")]/scaleparam
     }
-    subcellular[,"y"] <- range_coords[2] - subcellular[,"y"]  + range_coords[1]
+    segments[,"y"] <- range_coords[2] - segments[,"y"]  + range_coords[1]
+    segments <- segments %>% dplyr::group_split(cell_id)
+    segments <- as.list(segments)
+    names(segments) <- rownames(coords)
   } else {
-    stop("There are no file named 'transcripts.csv.gz' in the path")
+    stop("There are no file named 'cell_boundaries.csv.gz' in the path")
   }
 
-  # create VoltRon
-  formVoltRon(rawdata, metadata = NULL, image = image, coords, subcellular = subcellular, main.assay = assay_name, assay.type = "cell", ...)
+  # create VoltRon object for cells
+  cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, segments = segments, main.assay = assay_name, assay.type = "cell", ...)
+
+  # molecule assay
+  message("Creating molecule level assay ...")
+  if(!import_molecules){
+    return(cell_object)
+  } else {
+    # transcripts
+    transcripts_file <- paste0(dir.path, "/transcripts.csv.gz")
+    if(!file.exists(transcripts_file)){
+      stop("There are no file named 'transcripts.csv.gz' in the path")
+    } else {
+      # get subcellur data components
+      subcellular_data <- as.data.frame(data.table::fread(transcripts_file))
+      subcellular_data <- subcellular_data[,c("cell_id", colnames(subcellular_data)[!colnames(subcellular_data) %in% "cell_id"])]
+      subcellular_data <- subcellular_data[subcellular_data$qv >= 20, ]
+      rownames(subcellular_data) <- subcellular_data$transcript_id
+
+      # coordinates
+      coords <- as.matrix(subcellular_data[,c("x_location", "y_location")])
+      colnames(coords) <- c("x", "y")
+      if(use_image){
+        coords <- coords/scaleparam
+      }
+      coords[,"y"] <- range_coords[2] - coords[,"y"]  + range_coords[1]
+
+      # metadata
+      metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell_id", "transcript_id", "x_location", "y_location")]]
+    }
+
+    # create VoltRon object for molecules
+    mol_object <- formVoltRon(data = NULL, metadata = metadata, image = image, coords, main.assay = paste0(assay_name, "_mol"), assay.type = "molecule", ...)
+
+    # merge assays in one section
+    message("Merging assays ...")
+    sample.metadata <- SampleMetadata(cell_object)
+    object <- addAssay(cell_object,
+                       assay = mol_object[["Assay1"]],
+                       metadata = Metadata(mol_object),
+                       assay_name = paste0(assay_name, "_mol"),
+                       sample = sample.metadata["Assay1", "Sample"],
+                       layer = sample.metadata["Assay1", "Layer"])
+    return(object)
+  }
 }
 
 ####

@@ -46,7 +46,7 @@ getDeconvolution <- function(object, assay = NULL, features = NULL, sc.object, s
                      rawdata = rawdata, normdata = rawdata,
                      coords = cur_assay@coords[spatialpoints,],
                      image = cur_assay@image, segments = cur_assay@segments,
-                     type = cur_assay@type, params = cur_assay@params)
+                     type = cur_assay@type, params = cur_assay@params, main_image = "main_image")
       object <- addAssay(object,
                          assay = rawdata,
                          metadata = Metadata(object, assay = assy)[spatialpoints,],
