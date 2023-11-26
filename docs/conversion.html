@@ -456,7 +456,7 @@ object and use built-in functions such as
 <strong>FindAllMarkers</strong> to visualize marker genes of clusters
 found by VoltRon. You can find the clustered Xenium data using VoltRon
 <a
-href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/VRBlock_data_clustered.rds">here</a>.</p>
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/Xenium_data_clustered.rds">here</a>.</p>
 <pre class="r watch-out"><code>Xen_data &lt;- readRDS(&quot;Xenium_data_clustered.rds&quot;)
 SampleMetadata(Xen_data)</code></pre>
 <pre><code>        Assay    Layer   Sample
@@ -524,7 +524,9 @@ vrHeatmapPlot(Xen_data, features = marker_features, group.by = &quot;Clusters&qu
 <h3>Convert with Molecule Data</h3>
 <p>If defined, the <strong>as.Seurat</strong> function may also convert
 the molecule assay of the VoltRon object into a Seurat FOV object and
-allow visualizing molecules.</p>
+allow visualizing molecules. You can find the Xenium VoltRon object with
+the molecule assay <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/Xen_R1.rds">here</a>.</p>
 <pre class="r watch-out"><code>Xen_R1 &lt;- readRDS(&quot;Xen_R1.rds&quot;)
 SampleMetadata(Xen_R1)</code></pre>
 <pre><code>            Assay    Layer   Sample
@@ -536,6 +538,7 @@ Assay2 Xenium_mol Section1 XeniumR1</code></pre>
 <p><br></p>
 <p>Now we can visualize molecules alongside with cells.</p>
 <pre class="r watch-out"><code>ImageDimPlot(Xen_R1_seu, fov = &quot;fovAssay1&quot;, molecules = &quot;PGR&quot;, group.by = &quot;orig.ident&quot;, cols = &quot;lightgrey&quot;, mols.size = 1)</code></pre>
+<p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_seurat_imagedimplot.png" class="center"></p>
 <p><br></p>
 </div>
 </div>
