@@ -80,3 +80,56 @@ vrImage_to_zarr <- function (vrimage, out_path, image_id = "main_image")
   }, img_arr = img_arr, image_id = image_id, out_path = out_path)
   return(success)
 }
+
+vr_to_anndata_zarr <- function (object, out_path)
+{
+  # object data
+  datax <- vrData(object, norm = FALSE)
+  metadata <- Metadata(object)
+  # feature.metadata <- vrFeatureData(object)
+
+  # obsm
+  obsm <- list()
+  coords <- vrCoordinates(object)
+  obsm[["spatial"]] <- t(as.matrix(coords))
+  if (length(vrEmbeddingNames(object)) > 0) {
+    for (embed_name in vrEmbeddingNames(object)) {
+      embedding <- vrEmbeddings(object, type = embed_name)
+      obsm[[embed_name]] <- t(as.matrix(embedding))
+    }
+  }
+
+  proc <- basilisk::basiliskStart(py_env)
+  on.exit(basilisk::basiliskStop(proc))
+  success <- basilisk::basiliskRun(proc, function(datax, metadata, obsm, out_path) {
+    anndata <- reticulate::import("anndata")
+    zarr <- reticulate::import("zarr")
+    make_numpy_friendly <- function(x, transpose = TRUE) {
+      if (transpose) {
+        x <- Matrix::t(x)
+      }
+      if (DelayedArray::is_sparse(x)) {
+        methods::as(x, "dgCMatrix")
+      }
+      else {
+        as.matrix(x)
+      }
+    }
+    X <- make_numpy_friendly(datax)
+    adata <- anndata$AnnData(X = X, obs = metadata)
+    # adata <- anndata$AnnData(X = X, obs = metadata, var = feature.metadata)
+    if (length(obsm) > 0) {
+      obsm <- lapply(obsm, make_numpy_friendly)
+      adata$obsm <- obsm
+    }
+    adata$write_zarr(out_path)
+    return(TRUE)
+  }, datax = datax, metadata = metadata, obsm = obsm, out_path = out_path)
+  return(success)
+}
+
+test_function <- function(adata, object, make_numpy_friendly){
+  X <- make_numpy_friendly(vrData(object, norm = FALSE))
+  obs <- Metadata(object)
+  return(X)
+}
