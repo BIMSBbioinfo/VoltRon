@@ -13,8 +13,8 @@
 #'
 #' @keywords internal
 py_env <- basilisk::BasiliskEnvironment(
-  envname="vitessce_basilisk_env",
-  pkgname="vitessceR",
+  envname="VoltRon_basilisk_env",
+  pkgname="VoltRon",
   packages=c(
     "numpy==1.*",
     "pandas==1.*",

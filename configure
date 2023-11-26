@@ -106,3 +106,6 @@ sed -e "s|@cflags@|$PKG_CFLAGS|" -e "s|@libs@|$PKG_LIBS|" -e "s|CXX11|${CXXVER}|
 
 # Success
 exit 0
+
+# Basilisk configuration
+${R_HOME}/bin/Rscript -e "basilisk::configureBasiliskEnv()"
