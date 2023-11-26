@@ -66,7 +66,7 @@ Please check the [Analysis of Image-based Spatial Data in Seurat](https://satija
 
 
 ```{r class.source="watch-out", eval = FALSE}
-Xen_data_seu <- as.Seurat(Xen_data, assay = "Xenium", type = "image")
+Xen_data_seu <- as.Seurat(Xen_data, cell.assay = "Xenium", type = "image")
 Xen_data_seu <- NormalizeData(Xen_data_seu)
 Xen_data_seu
 ```
@@ -121,6 +121,41 @@ vrHeatmapPlot(Xen_data, features = marker_features, group.by = "Clusters",
 ```
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_seurat_heatmap.png" class="center">
+
+<br>
+
+### Convert with Molecule Data
+
+If defined, the **as.Seurat** function may also convert the molecule assay of the VoltRon object into a Seurat FOV object and allow visualizing molecules. 
+
+```{r class.source="watch-out", eval = FALSE}
+Xen_R1 <- readRDS("Xen_R1.rds")
+SampleMetadata(Xen_R1)
+```
+
+```
+            Assay    Layer   Sample
+Assay1     Xenium Section1 XeniumR1
+Assay2 Xenium_mol Section1 XeniumR1
+```
+
+<br>
+
+We define both the cell level assay and the molecule level assay. 
+
+```{r class.source="watch-out", eval = FALSE}
+Xen_R1_seu <- as.Seurat(Xen_R1, cell.assay = "Xenium", molecule.assay = "Xenium_mol", type = "image")
+```
+
+<br>
+
+Now we can visualize molecules alongside with cells.
+
+```{r class.source="watch-out", eval = FALSE}
+ImageDimPlot(Xen_R1_seu, fov = "fovAssay1", molecules = "PGR", group.by = "orig.ident", cols = "lightgrey", mols.size = 1)
+```
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_anndata_spatial_scatter.png" class="center">
 
 <br>
 
