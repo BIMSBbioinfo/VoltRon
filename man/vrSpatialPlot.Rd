@@ -12,6 +12,7 @@ vrSpatialPlot(
   assay = NULL,
   assay.type = NULL,
   graph.name = NULL,
+  reduction = "umap",
   ncol = 2,
   nrow = NULL,
   font.size = 2,
@@ -42,6 +43,8 @@ vrSpatialPlot(
 \item{assay.type}{the assay type name: 'cell', 'spot' or 'ROI'}
 
 \item{graph.name}{if not NULL, the spatial graph is with name \code{graph.name} is visualized as well}
+
+\item{reduction}{Used by \code{vrSpatialPlotInteractive}, to visualize an embedding alongside with the spatial plot.}
 
 \item{ncol}{column wise number of plots, for \code{ggarrange}}
 
