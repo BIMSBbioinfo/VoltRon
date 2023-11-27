@@ -127,9 +127,3 @@ vr_to_anndata_zarr <- function (object, out_path)
   }, datax = datax, metadata = metadata, obsm = obsm, out_path = out_path)
   return(success)
 }
-
-test_function <- function(adata, object, make_numpy_friendly){
-  X <- make_numpy_friendly(vrData(object, norm = FALSE))
-  obs <- Metadata(object)
-  return(X)
-}

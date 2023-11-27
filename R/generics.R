@@ -648,6 +648,25 @@ as.AnnData <- function(object, ...) {
   UseMethod(generic = 'as.AnnData', object = object)
 }
 
+#' as.Zarr
+#'
+#' Generic methods for conversion into a Seurat object
+#'
+#' @param object An object
+#' @param out_path output path to ome.zarr
+#' @param image_id image name
+#' @param ... Arguments passed to other methods
+#'
+#' @return \code{as.Zarr}: The name of the default assay
+#'
+#' @rdname as.Zarr
+#' @export as.Zarr
+#'
+as.Zarr <- function(object, out_path, image_id, ...) {
+  UseMethod(generic = 'as.Zarr', object = object)
+}
+
+
 #' as.Giotto
 #'
 #' Generic methods for conversion into a Giotto object
