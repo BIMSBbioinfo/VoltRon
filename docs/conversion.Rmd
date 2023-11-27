@@ -263,7 +263,7 @@ plt.show(ax)
 
 <br>
 
-## Zarr (Interactive Visualization)
+## Zarr 
  
 In this section, we will transform VoltRon objects of Xenium data into zarr arrays, and use them for interactive visualization in [Vitessce](http://vitessce.io/). We should first download the vitessceR package which incorporates wrapper function to visualize zarr arrays interactively in R.
 
@@ -289,9 +289,12 @@ Assay2 Xenium Section1 XeniumR2
 
 <br>
 
+### Interactive Visualization (Vitessce)
+
 Now we can convert the VoltRon object into a zarr array using the **as.Zarr** function which will create the array in a specified location
 
 ```{r class.source="watch-out", eval = FALSE}
+Xendata_assay <- subset(Xen_data, assays = "Assay1")
 as.Zarr(Xendata_assay, out_path = "data/xendata_clustered_annotated.zarr")
 ```
 
