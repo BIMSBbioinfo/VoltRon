@@ -20,7 +20,7 @@ vrImages(object, ...) <- value
 
 \method{vrImages}{vrLayer}(object, ...)
 
-\method{vrImages}{vrAssay}(object, main_image = NULL)
+\method{vrImages}{vrAssay}(object, main_image = NULL, as.raster = FALSE)
 
 \method{vrImages}{vrAssay}(object, main_image = NULL, reg = FALSE, ...) <- value
 }

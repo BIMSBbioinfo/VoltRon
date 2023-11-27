@@ -37,7 +37,7 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 # Conversion to Other Platforms
 
-VoltRon is capable of end-to-end spatial data analysis for all levels of spatial resolutions, including those of single cell resolution. However, VoltRon provides a ecosystem friendly infrastructure where VoltRon objects could be transformed into data structures used by popular computational platforms such as [Seurat](https://satijalab.org/seurat/) and [Squidpy](https://squidpy.readthedocs.io/en/stable/).  
+VoltRon is capable of end-to-end spatial data analysis for all levels of spatial resolutions, including those of single cell resolution. However, VoltRon provides a ecosystem friendly infrastructure where VoltRon objects could be transformed into data structures used by popular computational platforms such as [Seurat](https://satijalab.org/seurat/), [Squidpy](https://squidpy.readthedocs.io/en/stable/) and even [Zarr](http://vitessce.io/docs/data-file-types/#anndata-zarr) for interactive spatial data visualizatiob with [Vitessce](http://vitessce.io/).
 
 For both **Seurat (R)** and **Squidpy (Python)**, we analyse readouts of the experiments conducted on example tissue sections analysed by the [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform. For more information on processing and analyzing Xenium datasets, check the [Cell/Spot Analysis](spotanalysis.html) tutorial.
 
@@ -45,7 +45,7 @@ For both **Seurat (R)** and **Squidpy (Python)**, we analyse readouts of the exp
 
 ## Seurat
 
-We will first see how we can transform VoltRon objects into Seurat object and use built-in functions such as **FindAllMarkers** to visualize marker genes of clusters found by VoltRon. You can find the clustered Xenium data using VoltRon [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/Xenium_data_clustered.rds). 
+We will first see how we can transform VoltRon objects into Seurat object and use built-in functions such as **FindAllMarkers** to visualize marker genes of clusters found by VoltRon. You can find the clustered Xenium data using VoltRon [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered.rds). 
 
 ```{r class.source="watch-out", eval = FALSE}
 Xen_data <- readRDS("Xenium_data_clustered.rds")
@@ -126,7 +126,7 @@ vrHeatmapPlot(Xen_data, features = marker_features, group.by = "Clusters",
 
 ### Convert with Molecule Data
 
-If defined, the **as.Seurat** function may also convert the molecule assay of the VoltRon object into a Seurat FOV object and allow visualizing molecules. You can find the Xenium VoltRon object with the molecule assay [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/Xen_R1.rds). 
+If defined, the **as.Seurat** function may also convert the molecule assay of the VoltRon object into a Seurat FOV object and allow visualizing molecules. You can find the Xenium VoltRon object with the molecule assay [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xen_R1.rds). 
 
 ```{r class.source="watch-out", eval = FALSE}
 Xen_R1 <- readRDS("Xen_R1.rds")
@@ -260,4 +260,56 @@ plt.show(ax)
 ```
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_anndata_neighborhood.png" class="center">
+
+<br>
+
+## Zarr 
+ 
+In this section, we will transform VoltRon objects of Xenium data into zarr arrays, and use them for interactive visualization in [Vitessce](http://vitessce.io/). We should first download the vitessceR package which incorporates wrapper function to visualize zarr arrays interactively in R.
+
+```{r class.source="watch-out", eval = FALSE}
+install.packages("devtools")
+devtools::install_github("vitessce/vitessceR")
+```
+
+<br>
+
+You can find the clustered and annotated Xenium data using VoltRon [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered.rds). 
+
+```{r class.source="watch-out", eval = FALSE}
+Xen_data <- readRDS("Xenium_data_clustered_annotated.rds")
+SampleMetadata(Xen_data)
+```
+
+```
+        Assay    Layer   Sample
+Assay1 Xenium Section1 XeniumR1
+Assay2 Xenium Section1 XeniumR2
+```
+
+<br>
+
+### Interactive Visualization (Vitessce)
+
+Now we can convert the VoltRon object into a zarr array using the **as.Zarr** function which will create the array in a specified location
+
+```{r class.source="watch-out", eval = FALSE}
+Xendata_assay <- subset(Xen_data, assays = "Assay1")
+as.Zarr(Xendata_assay, out_path = "data/xendata_clustered_annotated.zarr")
+```
+
+<br>
+
+We can use the zarr file directly in the **vrSpatialPlot** function to visualize the zarr array interactively in Rstudio viewer. The **reduction** arguement allows the umap of the Xenium data to be visualized alongside with the spatial coordinates of the Xenium cells.
+
+```{r class.source="watch-out", eval = FALSE}
+vrSpatialPlot("data/xendata_clustered_annotated.zarr", 
+              group.by = "CellType", reduction = "umap")
+```
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_interactive.png" class="center">
+
+
+
+
 

@@ -50,13 +50,17 @@ vrImages.vrLayer <- function(object, ...){
 #'
 #' @export
 #'
-vrImages.vrAssay <- function(object, main_image = NULL){
+vrImages.vrAssay <- function(object, main_image = NULL, as.raster = FALSE){
   if(!is.null(object@image)){
     if(is.null(main_image)) {
       main_image <- object@main_image
     }
     if(main_image %in% vrImageNames(object)){
-      return(magick::image_read(object@image[[main_image]]))
+      if(as.raster){
+        return(object@image[[main_image]])
+      } else {
+        return(magick::image_read(object@image[[main_image]]))
+      }
     } else {
       return(NULL)
     }
