@@ -44,9 +44,11 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
                           crop = FALSE, legend.pt.size = 2, legend.loc = "right", common.legend = TRUE, collapse = TRUE) {
 
   # check object for zarr
-  if(grepl(".zarr$", object)){
-    return(vrSpatialPlotInteractive(zarr.file = object, group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, assay = assay,
-                             reduction = reduction, background = background, reg = reg,  crop = crop))
+  if(is.character(object)){
+    if(grepl(".zarr$", object)){
+      return(vrSpatialPlotInteractive(zarr.file = object, group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, assay = assay,
+                                      reduction = reduction, background = background, reg = reg,  crop = crop))
+    }
   }
 
   # check object

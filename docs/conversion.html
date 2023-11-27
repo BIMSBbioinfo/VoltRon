@@ -439,8 +439,11 @@ of spatial resolutions, including those of single cell resolution.
 However, VoltRon provides a ecosystem friendly infrastructure where
 VoltRon objects could be transformed into data structures used by
 popular computational platforms such as <a
-href="https://satijalab.org/seurat/">Seurat</a> and <a
-href="https://squidpy.readthedocs.io/en/stable/">Squidpy</a>.</p>
+href="https://satijalab.org/seurat/">Seurat</a>, <a
+href="https://squidpy.readthedocs.io/en/stable/">Squidpy</a> and even <a
+href="http://vitessce.io/docs/data-file-types/#anndata-zarr">Zarr</a>
+for interactive spatial data visualizatiob with <a
+href="http://vitessce.io/">Vitessce</a>.</p>
 <p>For both <strong>Seurat (R)</strong> and <strong>Squidpy
 (Python)</strong>, we analyse readouts of the experiments conducted on
 example tissue sections analysed by the <a
@@ -456,7 +459,7 @@ object and use built-in functions such as
 <strong>FindAllMarkers</strong> to visualize marker genes of clusters
 found by VoltRon. You can find the clustered Xenium data using VoltRon
 <a
-href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/Xenium_data_clustered.rds">here</a>.</p>
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered.rds">here</a>.</p>
 <pre class="r watch-out"><code>Xen_data &lt;- readRDS(&quot;Xenium_data_clustered.rds&quot;)
 SampleMetadata(Xen_data)</code></pre>
 <pre><code>        Assay    Layer   Sample
@@ -526,7 +529,7 @@ vrHeatmapPlot(Xen_data, features = marker_features, group.by = &quot;Clusters&qu
 the molecule assay of the VoltRon object into a Seurat FOV object and
 allow visualizing molecules. You can find the Xenium VoltRon object with
 the molecule assay <a
-href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/Xen_R1.rds">here</a>.</p>
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xen_R1.rds">here</a>.</p>
 <pre class="r watch-out"><code>Xen_R1 &lt;- readRDS(&quot;Xen_R1.rds&quot;)
 SampleMetadata(Xen_R1)</code></pre>
 <pre><code>            Assay    Layer   Sample
@@ -632,6 +635,38 @@ sq.pl.spatial_scatter(adata, color=&quot;CellType&quot;, library_key = &quot;Ass
 plt.show(ax)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_anndata_neighborhood.png" class="center"></p>
 </div>
+</div>
+<div id="zarr-interactive-visualization" class="section level2">
+<h2>Zarr (Interactive Visualization)</h2>
+<p>In this section, we will transform VoltRon objects of Xenium data
+into zarr arrays, and use them for interactive visualization in <a
+href="http://vitessce.io/">Vitessce</a>. We should first download the
+vitessceR package which incorporates wrapper function to visualize zarr
+arrays interactively in R.</p>
+<pre class="r watch-out"><code>install.packages(&quot;devtools&quot;)
+devtools::install_github(&quot;vitessce/vitessceR&quot;)</code></pre>
+<p><br></p>
+<p>You can find the clustered and annotated Xenium data using VoltRon <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered.rds">here</a>.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- readRDS(&quot;Xenium_data_clustered_annotated.rds&quot;)
+SampleMetadata(Xen_data)</code></pre>
+<pre><code>        Assay    Layer   Sample
+Assay1 Xenium Section1 XeniumR1
+Assay2 Xenium Section1 XeniumR2</code></pre>
+<p><br></p>
+<p>Now we can convert the VoltRon object into a zarr array using the
+<strong>as.Zarr</strong> function which will create the array in a
+specified location</p>
+<pre class="r watch-out"><code>as.Zarr(Xendata_assay, out_path = &quot;data/xendata_clustered_annotated.zarr&quot;)</code></pre>
+<p><br></p>
+<p>We can use the zarr file directly in the
+<strong>vrSpatialPlot</strong> function to visualize the zarr array
+interactively in Rstudio viewer. The <strong>reduction</strong>
+arguement allows the umap of the Xenium data to be visualized alongside
+with the spatial coordinates of the Xenium cells.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(&quot;data/xendata_clustered_annotated.zarr&quot;, 
+              group.by = &quot;CellType&quot;, reduction = &quot;umap&quot;)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_interactive.png" class="center"></p>
 </div>
 </div>
 
