@@ -2,16 +2,21 @@
 % Please edit documentation in R/annotation.R
 \name{annotateSpatialData}
 \alias{annotateSpatialData}
-\title{register_slides}
+\title{annotateSpatialData}
 \usage{
-annotateSpatialData(object, assay = NULL, ...)
+annotateSpatialData(object, assay = NULL, annotation = NULL, ...)
 }
 \arguments{
 \item{object}{a list of VoltRon (or Seurat) objects}
 
 \item{assay}{a reference spatial data set, used only if \code{object_list} is \code{NULL}}
 
+\item{annotation}{the name of the new metadata feature (annotation) of selected spatial points}
+
 \item{...}{additional parameters passed to \code{vrSpatialPlot}}
+}
+\value{
+a vector of annotations
 }
 \description{
 A mini shiny app to for annotating spatial points
