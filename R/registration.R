@@ -2,7 +2,7 @@
 # Main Shiny App ####
 ####
 
-#' register_slides
+#' registerSpatialData
 #'
 #' A mini shiny app to for registering images and spatial coordinates of multiple consequtive spatial datasets
 #'
