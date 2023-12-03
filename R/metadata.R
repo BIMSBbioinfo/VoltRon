@@ -21,7 +21,8 @@ vrMetadata <- setClass(
     molecule = 'data.frame',
     cell = 'data.frame',
     spot = 'data.frame',
-    ROI = 'data.frame'
+    ROI = 'data.frame',
+    tile = 'data.frame'
   )
 )
 
@@ -38,14 +39,6 @@ setMethod(
         cat("  ", nrow(slot(object, name = x)), x, "\n")
       }
     })
-    # if(nrow(object@molecule) > 0)
-    #   cat("  ", nrow(object@molecule), "molecules \n")
-    # if(nrow(object@cell) > 0)
-    #   cat("  ", nrow(object@cell), "cells \n")
-    # if(nrow(object@spot) > 0)
-    #   cat("  ", nrow(object@spot), "spots \n")
-    # if(nrow(object@ROI) > 0)
-    #   cat("  ", nrow(object@ROI), "ROIs \n")
     return(invisible(x = NULL))
   }
 )
@@ -64,6 +57,7 @@ setMethod(
 "$<-.vrMetadata" <- function(x, i, ..., value) {
 
   # molecule metadata
+
   mol.metadata <- methods::slot(x, "molecule")
   if(nrow(mol.metadata) > 0)
     mol.metadata[[i]] <- value
@@ -83,7 +77,12 @@ setMethod(
   if(nrow(roi.metadata) > 0)
     roi.metadata[[i]] <- value
 
-  return(methods::new("vrMetadata", molecule = mol.metadata, cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata))
+  # ROI metadata
+  tile.metadata <- methods::slot(x, "tile")
+  if(nrow(tile.metadata) > 0)
+    tile.metadata[[i]] <- value
+
+  return(methods::new("vrMetadata", molecule = mol.metadata, cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata, tile = tile.metadata))
 }
 
 #' @method $<- vrMetadata
@@ -112,7 +111,12 @@ setMethod(
   if(nrow(roi.metadata) > 0)
     roi.metadata[[i]] <- value
 
-  return(methods::new("vrMetadata", molecule = mol.metadata, cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata))
+  # ROI metadata
+  tile.metadata <- methods::slot(x, "tile")
+  if(nrow(tile.metadata) > 0)
+    tile.metadata[[i]] <- value
+
+  return(methods::new("vrMetadata", molecule = mol.metadata, cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata, tile = tile.metadata))
 }
 
 ####
@@ -127,10 +131,6 @@ setMethod(
 #'
 vrSpatialPoints.vrMetadata <- function(object, assay = NULL, ...) {
 
-  # points <- c(rownames(object@molecule),
-  #               rownames(object@cell),
-  #               rownames(object@spot),
-  #               rownames(object@ROI))
   print(slotNames(object))
   points <- unlist(lapply(slotNames(object), function(x) rownames(slot(object, name = x))))
 
@@ -164,6 +164,7 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
     cell.metadata <- object@cell[object@cell$Sample %in% samples, ]
     spot.metadata <- object@spot[object@spot$Sample %in% samples, ]
     roi.metadata <- object@ROI[object@ROI$Sample %in% samples, ]
+    tile.metadata <- object@tile[object@tile$Sample %in% samples, ]
   } else if(!is.null(assays)){
     assay_names <- unique(lapply(slotToList(object), function(x) {
       unique(stringr::str_extract(rownames(x), "Assay[0-9]+"))
@@ -174,11 +175,13 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
       cell.metadata <- object@cell[stringr::str_extract(rownames(object@cell), "Assay[0-9]+") %in% assays, ]
       spot.metadata <- object@spot[stringr::str_extract(rownames(object@spot), "Assay[0-9]+") %in% assays, ]
       roi.metadata <- object@ROI[stringr::str_extract(rownames(object@ROI), "Assay[0-9]+") %in% assays, ]
+      tile.metadata <- object@tile[stringr::str_extract(rownames(object@tile), "Assay[0-9]+") %in% assays, ]
     } else {
       mol.metadata <- object@molecule[object@molecule$Assay %in% assays, ]
       cell.metadata <- object@cell[object@cell$Assay %in% assays, ]
       spot.metadata <- object@spot[object@spot$Assay %in% assays, ]
       roi.metadata <- object@ROI[object@ROI$Assay %in% assays, ]
+      tile.metadata <- object@tile[object@tile$Assay %in% assays, ]
     }
   } else if(!is.null(spatialpoints)){
     if(all(spatialpoints %in% vrSpatialPoints(object))){
@@ -186,6 +189,7 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
       cell.metadata <- object@cell[rownames(object@cell) %in% spatialpoints, ]
       spot.metadata <- object@spot[rownames(object@spot) %in% spatialpoints, ]
       roi.metadata <- object@ROI[rownames(object@ROI) %in% spatialpoints, ]
+      tile.metadata <- object@tile[rownames(object@tile) %in% spatialpoints, ]
     } else {
       stop("Some spatial points are not found in the metadata and the object")
     }
@@ -194,7 +198,7 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
   }
 
   # return new metadata
-  setVRMetadata(molecule = mol.metadata, cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata)
+  setVRMetadata(molecule = mol.metadata, cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata, tile = tile.metadata)
 }
 
 
@@ -271,7 +275,8 @@ merge.vrMetadata <- function(object, object_list) {
     cell.metadata <- bind_rows(methods::slot(obj1, "cell"), methods::slot(obj2, "cell"))
     spot.metadata <- bind_rows(methods::slot(obj1, "spot"), methods::slot(obj2, "spot"))
     roi.metadata <- bind_rows(methods::slot(obj1, "ROI"), methods::slot(obj2, "ROI"))
-    combined.metadata <- setVRMetadata(molecule = mol.metadata, cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata)
+    tile.metadata <- bind_rows(methods::slot(obj1, "tile"), methods::slot(obj2, "tile"))
+    combined.metadata <- setVRMetadata(molecule = mol.metadata, cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata, tile = tile.metadata)
   }
 
   # return combined object
@@ -405,7 +410,7 @@ updateMetadataAssay <- function(object1, object2){
     rownames(obj) <- temp
     obj
   })
-  object1 <- methods::new("vrMetadata", molecule = object1$molecule, cell = object1$cell, spot = object1$spot, ROI = object1$ROI)
+  object1 <- methods::new("vrMetadata", molecule = object1$molecule, cell = object1$cell, spot = object1$spot, ROI = object1$ROI, tile = object1@tile)
 
   # get assay types
   object_list <- slotToList(object2)
@@ -424,7 +429,7 @@ updateMetadataAssay <- function(object1, object2){
     rownames(obj) <- temp
     obj
   })
-  object2 <- methods::new("vrMetadata", molecule = object2$molecule, cell = object2$cell, spot = object2$spot, ROI = object2$ROI)
+  object2 <- methods::new("vrMetadata", molecule = object2$molecule, cell = object2$cell, spot = object2$spot, ROI = object2$ROI, tile = object2@tile)
 
   # return
   return(list(object1 = object1, object2 = object2))
@@ -485,10 +490,11 @@ changeSampleNames.vrMetadata <- function(object, sample_metadata_table){
 #' @param cell cell data frame
 #' @param spot spot data frame
 #' @param ROI ROI data frame
+#' @param tile tile data frame
 #'
 #' @importFrom methods new
-setVRMetadata <- function(molecule, cell, spot, ROI){
-  methods::new("vrMetadata", molecule = molecule, cell = cell, spot = spot, ROI = ROI)
+setVRMetadata <- function(molecule, cell, spot, ROI, tile){
+  methods::new("vrMetadata", molecule = molecule, cell = cell, spot = spot, ROI = ROI, tile = tile)
 }
 
 #' setVRSampleMetadata

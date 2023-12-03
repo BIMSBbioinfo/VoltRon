@@ -1367,5 +1367,6 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
   return(list(transmat = reg[[1]],
               dest_image = magick::image_read(reg[[2]]),
               aligned_image = magick::image_read(reg[[3]]),
-              alignment_image = magick::image_read(reg[[4]])))
+              alignment_image = magick::image_read(reg[[4]]),
+              align_image = magick::image_read(reg[[5]])))
 }

@@ -139,7 +139,7 @@ cv::Mat preprocessImage(Mat &im, const bool invert, const char* flipflop, const 
   return imProcess;
 }
 
-void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
+void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imMatches, Mat &h, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
 {
   // Convert images to grayscale
   Mat im1Gray, im2Gray;
@@ -201,7 +201,7 @@ void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h, c
   cout << "DONE: warped query image" << endl;
 }
 
-void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h,
+void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imMatches, Mat &h,
                  const bool invert_query, const bool invert_ref,
                  const char* flipflop_query, const char* flipflop_ref,
                  const char* rotate_query, const char* rotate_ref)
@@ -262,8 +262,9 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h,
   drawMatches(im1Gray, keypoints1_best, im2Gray, keypoints2_best, top_matches, imMatches);
 
   // Use homography to warp image
-  Mat im1Warp;
+  Mat im1Warp, im1NormalWarp;
   warpPerspective(im1Gray, im1Warp, h, im2Gray.size());
+  warpPerspective(im1, im1Reg, h, im2Gray.size());
   cout << "DONE: warped query image" << endl;
 
   // // overlay image
@@ -275,7 +276,8 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &imMatches, Mat &h,
   cv::addWeighted(im2Gray, 0.7, im1Warp, 0.3, 0, im1Combine);
 
   // return as rgb
-  cvtColor(im1Combine, im1Reg, cv::COLOR_GRAY2BGR);
+  // cvtColor(im1Combine, im1Reg, cv::COLOR_GRAY2BGR);
+  cvtColor(im1Combine, im1Overlay, cv::COLOR_GRAY2BGR);
   cvtColor(im2Gray, im2, cv::COLOR_GRAY2BGR);
 }
 
@@ -290,7 +292,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
                                              Rcpp::String method)
 {
   // define return data, 1 = transformation matrix, 2 = aligned image
-  Rcpp::List out(4);
+  Rcpp::List out(5);
 
   // Read reference image
   cv::Mat imReference = imageToMat(ref_image, width1, height1);
@@ -301,17 +303,17 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   // Registered image will be resotred in imReg.
   // The estimated homography will be stored in h.
   // The matching illustration of both images with be given in imMatches.
-  Mat imReg, h, imMatches;
+  Mat imOverlay, imReg, h, imMatches;
 
   // Align images
   if(strcmp(method.get_cstring(), "FLANN") == 0){
     cout << "Fast Library for Approximate Nearest Neighbors (FLANN) - descriptor matching" << endl;
-    alignImagesFLANN(im, imReference, imReg, imMatches, h, invert_query, invert_ref,
+    alignImagesFLANN(im, imReference, imReg, imOverlay, imMatches, h, invert_query, invert_ref,
                      flipflop_query.get_cstring(), flipflop_ref.get_cstring(), rotate_query.get_cstring(), rotate_ref.get_cstring());
   }
   if(strcmp(method.get_cstring(), "BRUTE-FORCE") == 0){
     cout << "BruteForce-Hamming - descriptor matching" << endl;
-    alignImagesBRUTE(im, imReference, imReg, imMatches, h, GOOD_MATCH_PERCENT, MAX_FEATURES);
+    alignImagesBRUTE(im, imReference, imReg, imOverlay, imMatches, h, GOOD_MATCH_PERCENT, MAX_FEATURES);
   }
 
   // return transformation matrix, destinated image, registered image, and keypoint matching image
@@ -319,6 +321,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   out[1] = matToImage(imReference.clone());
   out[2] = matToImage(imReg.clone());
   out[3] = matToImage(imMatches.clone());
+  out[4] = matToImage(imOverlay.clone());
   return out;
 }
 
