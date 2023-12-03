@@ -932,8 +932,8 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
       # Plot registered images
       lapply(register_ind, function(i){
         cur_mapping <- mapping_list[[i]]
-        # images <- getManualRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
-        images <- getManualRegisteredImage_complete(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
+        images <- getManualRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
+        # images <- getManualRegisteredImage_complete(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
         output[[paste0("plot_query_reg",i)]] <- renderImage({
           r2 <- magick::image_read(raster::as.raster(images$query))
           image_view_list <- list(rep(magick::image_resize(image_list[[centre]], geometry = "400x"),5),

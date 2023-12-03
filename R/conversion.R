@@ -296,7 +296,6 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "main_image")
     }
     X <- make_numpy_friendly(datax)
     adata <- anndata$AnnData(X = X, obs = metadata)
-    # adata <- anndata$AnnData(X = X, obs = metadata, var = feature.metadata)
     if (length(obsm) > 0) {
       obsm <- lapply(obsm, make_numpy_friendly)
       adata$obsm <- obsm

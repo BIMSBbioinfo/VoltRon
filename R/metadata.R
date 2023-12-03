@@ -131,7 +131,6 @@ vrSpatialPoints.vrMetadata <- function(object, assay = NULL, ...) {
   #               rownames(object@cell),
   #               rownames(object@spot),
   #               rownames(object@ROI))
-  print(slotNames(object))
   points <- unlist(lapply(slotNames(object), function(x) rownames(slot(object, name = x))))
 
   return(points)
