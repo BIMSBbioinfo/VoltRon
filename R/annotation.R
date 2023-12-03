@@ -96,14 +96,6 @@ annotateSpatialData <- function(object, assay = NULL, annotation = NULL, ...) {
       # Initialize data frame to store points
       selected_corners <- reactiveVal(data.frame(x = numeric(0), y = numeric(0)))
       selected_corners_list <- reactiveVal(list())
-      # selected_corners_list_label <- reactiveVal(list())
-
-      # # update summary
-      # output[["summary"]] <- renderUI({
-      #   if(length(selected_corners_list_label()) > 0){
-      #     htmltools::HTML(paste(unlist(selected_corners_list_label()), collapse = '<br/>'))
-      #   }
-      # })
 
       # point click event
       observeEvent(input$plot_click, {
@@ -130,16 +122,6 @@ annotateSpatialData <- function(object, assay = NULL, annotation = NULL, ...) {
 
           # add to region list
           selected_corners_list(c(selected_corners_list(), list(selected_corners())))
-          # print(selected_corners_list())
-
-          # # add to region label
-          # if(length(selected_corners_list_label) == 0){
-          #   new_label <- "Region 1"
-          # } else {
-          #   new_label <- paste0("Region ", length(selected_corners_list_label()) + 1)
-          # }
-          # selected_corners_list_label(c(selected_corners_list_label(), list(new_label)))
-          # print(selected_corners_list_label())
 
           # remove selected points
           selected_corners(data.frame(x = numeric(0), y = numeric(0)))

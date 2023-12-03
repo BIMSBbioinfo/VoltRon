@@ -33,14 +33,19 @@ setMethod(
   definition = function(object) {
     cat("VoltRon Metadata Object \n")
     cat("This object includes: \n")
-    if(nrow(object@molecule) > 0)
-      cat("  ", nrow(object@molecule), "molecules \n")
-    if(nrow(object@cell) > 0)
-      cat("  ", nrow(object@cell), "cells \n")
-    if(nrow(object@spot) > 0)
-      cat("  ", nrow(object@spot), "spots \n")
-    if(nrow(object@ROI) > 0)
-      cat("  ", nrow(object@ROI), "ROIs \n")
+    lapply(slotNames(object), function(x){
+      if(nrow(slot(object, name = x))){
+        cat("  ", nrow(slot(object, name = x)), x, "\n")
+      }
+    })
+    # if(nrow(object@molecule) > 0)
+    #   cat("  ", nrow(object@molecule), "molecules \n")
+    # if(nrow(object@cell) > 0)
+    #   cat("  ", nrow(object@cell), "cells \n")
+    # if(nrow(object@spot) > 0)
+    #   cat("  ", nrow(object@spot), "spots \n")
+    # if(nrow(object@ROI) > 0)
+    #   cat("  ", nrow(object@ROI), "ROIs \n")
     return(invisible(x = NULL))
   }
 )
@@ -122,15 +127,12 @@ setMethod(
 #'
 vrSpatialPoints.vrMetadata <- function(object, assay = NULL, ...) {
 
-  # # metadata
-  # metadata <- Metadata(object, assay = assay)
-  #
-  # # get the combination of cells, spots and ROIs
-  # points <- rownames(metadata)
-  points <- c(rownames(object@molecule),
-                rownames(object@cell),
-                rownames(object@spot),
-                rownames(object@ROI))
+  # points <- c(rownames(object@molecule),
+  #               rownames(object@cell),
+  #               rownames(object@spot),
+  #               rownames(object@ROI))
+  print(slotNames(object))
+  points <- unlist(lapply(slotNames(object), function(x) rownames(slot(object, name = x))))
 
   return(points)
 }
