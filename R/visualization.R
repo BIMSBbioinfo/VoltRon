@@ -105,7 +105,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
     }
 
     # check group.by
-    levels_group.by <- unique(metadata[[group.by]][!is.na(metadata[[group.by]])])
+    levels_group.by <- as.character(unique(metadata[[group.by]][!is.na(metadata[[group.by]])]))
     if(all(!is.na(as.numeric(levels_group.by)))){
       levels_group.by <- sort(as.numeric(levels_group.by))
     }

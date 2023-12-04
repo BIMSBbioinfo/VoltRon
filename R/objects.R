@@ -423,6 +423,7 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
     width <- max(ceiling(coords[,1]))
     image <- matrix(rep("#030303ff", height*width), nrow = height, ncol = width)
     image <- list(main_image = magick::image_data(magick::image_read(image)))
+    # image <- list()
   }
 
 
