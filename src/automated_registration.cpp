@@ -100,13 +100,9 @@ void getGoodMatches(std::vector<std::vector<DMatch>> matches, std::vector<DMatch
 
 cv::Mat preprocessImage(Mat &im, const bool invert, const char* flipflop, const char* rotate)
 {
-  // gray color
-  Mat imGray;
-  cvtColor(im, imGray, cv::COLOR_BGR2GRAY);
-
   // normalize
   Mat imNorm;
-  cv::normalize(imGray, imNorm, 0, 255, cv::NORM_MINMAX, CV_8UC1);
+  cv::normalize(im, imNorm, 0, 255, cv::NORM_MINMAX, CV_8UC1);
 
   // rotate image
   Mat imRotate;
@@ -137,6 +133,31 @@ cv::Mat preprocessImage(Mat &im, const bool invert, const char* flipflop, const 
 
   // return
   return imProcess;
+}
+
+cv::Mat reversepreprocessImage(Mat &im, const char* flipflop, const char* rotate)
+{
+
+  // Flipflop image
+  Mat imFlipFlop;
+  if(strcmp(flipflop, "Flip") == 0){
+    cv::flip(im, imFlipFlop, 0);
+  } else if(strcmp(flipflop, "Flop") == 0){
+    cv::flip(im, imFlipFlop, 1);
+  } else if(strcmp(flipflop, "None") == 0){
+    imFlipFlop = im;
+  }
+
+  // rotate image
+  Mat imRotate;
+  if(atoi(rotate) > 0){
+    cv::rotate(imFlipFlop, imRotate, ((360-atoi(rotate))/90)-1);
+  } else {
+    imRotate = imFlipFlop;
+  }
+
+  // return
+  return imRotate;
 }
 
 void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imMatches, Mat &h, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
@@ -212,8 +233,14 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
 
   // Convert images to grayscale
   Mat im1Gray, im2Gray;
-  im1Gray = preprocessImage(im1, invert_query, flipflop_query, rotate_query);
-  im2Gray = preprocessImage(im2, invert_ref, flipflop_ref, rotate_ref);
+  cvtColor(im1, im1Gray, cv::COLOR_BGR2GRAY);
+  cvtColor(im2, im2Gray, cv::COLOR_BGR2GRAY);
+
+  // Process images
+  Mat im1Proc, im2Proc, im1NormalProc;
+  im1Proc = preprocessImage(im1Gray, invert_query, flipflop_query, rotate_query);
+  im1NormalProc = preprocessImage(im1, FALSE, flipflop_query, rotate_query);
+  im2Proc = preprocessImage(im2Gray, invert_ref, flipflop_ref, rotate_ref);
 
   // Variables to store keypoints and descriptors
   std::vector<KeyPoint> keypoints1, keypoints2;
@@ -221,8 +248,8 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
 
   // Detect SIFT features
   Ptr<Feature2D> sift = cv::SIFT::create();
-  sift->detectAndCompute(im1Gray, Mat(), keypoints1, descriptors1);
-  sift->detectAndCompute(im2Gray, Mat(), keypoints2, descriptors2);
+  sift->detectAndCompute(im1Proc, Mat(), keypoints1, descriptors1);
+  sift->detectAndCompute(im2Proc, Mat(), keypoints2, descriptors2);
   cout << "DONE: sift based key-points detection and descriptors computation" << endl;
 
   // Match features using FLANN matching
@@ -259,12 +286,13 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
     keypoints2_best.push_back(keypoints2[good_matches[i].trainIdx]);
     top_matches.push_back(cv::DMatch(static_cast<int>(i), static_cast<int>(i), 0));
   }
-  drawMatches(im1Gray, keypoints1_best, im2Gray, keypoints2_best, top_matches, imMatches);
+  drawMatches(im1Proc, keypoints1_best, im2Proc, keypoints2_best, top_matches, imMatches);
 
   // Use homography to warp image
   Mat im1Warp, im1NormalWarp;
-  warpPerspective(im1Gray, im1Warp, h, im2Gray.size());
-  warpPerspective(im1, im1Reg, h, im2Gray.size());
+  warpPerspective(im1Proc, im1Warp, h, im2Proc.size());
+  warpPerspective(im1NormalProc, im1NormalWarp, h, im2Proc.size());
+  im1Reg = reversepreprocessImage(im1NormalWarp, flipflop_ref, rotate_ref);
   cout << "DONE: warped query image" << endl;
 
   // // overlay image
@@ -273,7 +301,7 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
 
   // change color map
   Mat im1Combine;
-  cv::addWeighted(im2Gray, 0.7, im1Warp, 0.3, 0, im1Combine);
+  cv::addWeighted(im2Proc, 0.7, im1Warp, 0.3, 0, im1Combine);
 
   // return as rgb
   // cvtColor(im1Combine, im1Reg, cv::COLOR_GRAY2BGR);

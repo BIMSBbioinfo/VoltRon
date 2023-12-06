@@ -368,11 +368,6 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
   } else {
     stop("Please provide a VoltRon object")
   }
-    # check if elements are Seurat
-  # } else if(all(sapply(obj_list, class) == "Seurat")) {
-  #   registered_seu <- getRegisteredObjectListSeurat(obj_list, mapping_list, register_ind, centre, ...)
-  #   return(registered_seu)
-  # }
 }
 
 #' getRegisteredObjectListVoltRon
@@ -426,7 +421,9 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
         query_image <- transformImage(image_list[[i]], query_extension, input)
 
         # rotate and flipflip with respect to query image
+        coords <- as.data.frame(coords)
         coords <- transformImageKeypoints(image_list[[i]], coords, query_extension, input)$keypoints
+        coords <- as.matrix(coords)
 
         # get image
         info <- magick::image_info(query_image)
@@ -440,11 +437,15 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
         coords[,2] <- info$height - coords[,2]
 
         # rotate and flipflip back with respect to reference image
+        coords <- as.data.frame(coords)
         colnames(coords) <- c('x', 'y')
         coords <- transformKeypoints(ref_image, coords, ref_extension, input)
+        coords <- as.matrix(coords)
       }
     }
+    coords <- as.matrix(coords)
     rownames(coords) <- entities
+    colnames(coords) <- c("x", "y")
     vrCoordinates(registered_sr[[i]], reg = TRUE) <- coords
   }
   return(registered_sr)
@@ -1224,6 +1225,7 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
       # Register keypoints
       mapping_list <- list()
       dest_image_list <- list()
+      overlayed_image_list <- list()
       aligned_image_list <- list()
       alignment_image_list <- list()
       for(i in register_ind){
@@ -1238,7 +1240,7 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
         dest_image_list[[i]] <- results$dest_image
 
         # save alignment
-        aligned_image_list[[i]] <- results$aligned_image
+        overlayed_image_list[[i]] <- results$overlay_image
 
         # save matches
         alignment_image_list[[i]] <- results$alignment_image
@@ -1254,7 +1256,7 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
         cur_mapping <- mapping_list[[i]]
         output[[paste0("plot_query_reg",i)]] <- renderImage({
           image_view_list <- list(rep(magick::image_resize(dest_image_list[[i]], geometry = "400x"),5),
-                                  rep(magick::image_resize(aligned_image_list[[i]], geometry = "400x"),5))
+                                  rep(magick::image_resize(overlayed_image_list[[i]], geometry = "400x"),5))
           image_view_list <- image_view_list %>%
             magick::image_join() %>%
             magick::image_write(tempfile(fileext='gif'), format = 'gif')
@@ -1326,9 +1328,10 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
     dest_image <- reg$dest_image
     aligned_image <- reg$aligned_image
     alignment_image <- reg$alignment_image
+    overlay_image <- reg$overlay_image
   }
 
-  return(list(mapping = mapping, dest_image = dest_image, aligned_image = aligned_image, alignment_image = alignment_image))
+  return(list(mapping = mapping, dest_image = dest_image, aligned_image = aligned_image, alignment_image = alignment_image, overlay_image = overlay_image))
 }
 
 #' getRcppAutomatedRegistration
@@ -1368,5 +1371,5 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
               dest_image = magick::image_read(reg[[2]]),
               aligned_image = magick::image_read(reg[[3]]),
               alignment_image = magick::image_read(reg[[4]]),
-              align_image = magick::image_read(reg[[5]])))
+              overlay_image = magick::image_read(reg[[5]])))
 }
