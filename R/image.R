@@ -71,7 +71,7 @@ vrImages.vrAssay <- function(object, main_image = NULL, as.raster = FALSE){
 
 #' @param object A vrAssay object
 #' @param main_image the name of the main image
-#' @param reg TRUE if registered coordinates are assigned
+#' @param reg TRUE if registered images are assigned
 #' @param value new image
 #'
 #' @rdname vrImages
@@ -84,6 +84,9 @@ vrImages.vrAssay <- function(object, main_image = NULL, as.raster = FALSE){
 "vrImages<-.vrAssay" <- function(object, main_image = NULL, reg = FALSE, ..., value) {
   if(is.null(main_image)) {
     main_image <- object@main_image
+  }
+  if(reg){
+    main_image <- paste0(main_image, "_reg")
   }
   if(inherits(value, "bitmap")){
     object@image[[main_image]] <- value

@@ -356,7 +356,7 @@ updateParameterPanels <- function(input, output, session){
 #' @param register_ind the indices of query images/spatialdatasets
 #' @param centre the index of the central referance image/spatialdata
 #' @param input input
-#' @param ... additional parameters passed to \code{getRegisteredObject.VoltRon} or \code{getRegisteredObject.Seurat}
+#' @param ... additional parameters passed to \code{getRegisteredObjectListVoltRon} or \code{getRegisteredObject.Seurat}
 #'
 getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, input, ...) {
 
@@ -381,10 +381,11 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
 #' @param input input
 #' @param reg_mode the registration mode, either "auto" or "manual"
 #' @param image_list the list of query/ref images
+#' @param aligned_image_list the list of aligned query/ref images
 #'
 #' @importFrom magick image_info
 #'
-getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centre, input, reg_mode = "manual", image_list = NULL){
+getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centre, input, reg_mode = "manual", image_list = NULL, aligned_image_list = NULL){
 
   # initiate registered VoltRon objects
   ref_ind <- centre
@@ -447,6 +448,7 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
     rownames(coords) <- entities
     colnames(coords) <- c("x", "y")
     vrCoordinates(registered_sr[[i]], reg = TRUE) <- coords
+    vrImages(registered_sr[[i]][[vrAssayNames(registered_sr[[i]])]], reg = TRUE) <- aligned_image_list[[i]]
   }
   return(registered_sr)
 }
@@ -1239,6 +1241,9 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
         # destination image
         dest_image_list[[i]] <- results$dest_image
 
+        # save aligned images
+        aligned_image_list[[i]] <- results$aligned_image
+
         # save alignment
         overlayed_image_list[[i]] <- results$overlay_image
 
@@ -1247,7 +1252,7 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
       }
 
       # get registered spatial datasets
-      temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre, input, reg_mode = "auto", image_list)
+      temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre, input, reg_mode = "auto", image_list, aligned_image_list)
       for(i in 1:length(temp_reg_list))
         registered_spatdata_list[[paste0(i)]] <- temp_reg_list[[i]]
 

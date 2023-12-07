@@ -200,7 +200,7 @@ void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   }
 
   // Find homography
-  h = findHomography( points1, points2, RANSAC );
+  h = findHomography(points1, points2, RANSAC);
   cout << "DONE: calculated homography matrix" << endl;
 
   // Extract location of good matches in terms of keypoints
@@ -219,6 +219,7 @@ void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
 
   // Use homography to warp image
   warpPerspective(im1, im1Reg, h, im2.size());
+  im1Reg = im1Overlay;
   cout << "DONE: warped query image" << endl;
 }
 
@@ -306,7 +307,11 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   // return as rgb
   // cvtColor(im1Combine, im1Reg, cv::COLOR_GRAY2BGR);
   cvtColor(im1Combine, im1Overlay, cv::COLOR_GRAY2BGR);
-  cvtColor(im2Gray, im2, cv::COLOR_GRAY2BGR);
+  cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
+
+  //destination and overlay
+  cv::imwrite("dest.jpg", im2);
+  cv::imwrite("source.jpg", im1Overlay);
 }
 
 // [[Rcpp::export]]
