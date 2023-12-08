@@ -553,16 +553,20 @@ convert VoltRon objects into annotated data matrix formats such as <a
 href="https://github.com/scverse/anndata">anndata</a>, we can use
 built-in spatial data analysis methods available on <a
 href="https://squidpy.readthedocs.io/en/stable/">squidpy</a>.</p>
+<p>You can find the clustered and the annotated Xenium data using
+VoltRon <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered_annotated.rds">here</a>.</p>
 <p>Anndata objects wrapped on h5ad files are commonly used by the <a
 href="https://www.nature.com/articles/s41587-023-01733-8">scverse</a>
 ecosystem for single cell analysis which bring together numeruous tools
 maintained and distributed by a large community effort. Both squidpy and
 <a href="https://scanpy.readthedocs.io/en/stable/">scanpy</a> are
 currently available on scverse.</p>
-<pre class="r watch-out"><code>as.AnnData(Xen_data, file = &quot;Xen_adata_annotated.h5ad&quot;)</code></pre>
+<pre class="r watch-out"><code>Xen_data &lt;- readRDS(&quot;Xenium_data_clustered_annotated.rds&quot;)
+as.AnnData(Xen_data, file = &quot;Xen_adata_annotated.h5ad&quot;)</code></pre>
 <p><br></p>
 <div id="configure-squidpy-scverse" class="section level3">
-<h3>Configure squidpy (scverse)</h3>
+<h3>Configure Squidpy (scverse)</h3>
 <p>Here, we use the <a
 href="https://rstudio.github.io/reticulate/">reticulate</a> package to
 call <strong>scverse</strong> module in Python through a prebuilt
@@ -648,7 +652,7 @@ arrays interactively in R.</p>
 devtools::install_github(&quot;vitessce/vitessceR&quot;)</code></pre>
 <p><br></p>
 <p>You can find the clustered and annotated Xenium data using VoltRon <a
-href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered.rds">here</a>.</p>
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered_annotated.rds">here</a>.</p>
 <pre class="r watch-out"><code>Xen_data &lt;- readRDS(&quot;Xenium_data_clustered_annotated.rds&quot;)
 SampleMetadata(Xen_data)</code></pre>
 <pre><code>        Assay    Layer   Sample

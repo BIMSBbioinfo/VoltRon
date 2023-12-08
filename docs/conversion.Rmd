@@ -163,16 +163,18 @@ ImageDimPlot(Xen_R1_seu, fov = "fovAssay1", molecules = "PGR", group.by = "orig.
 
 A true ecosystem friendly computational platform should support data types across multiple computing environments. By allowing users to convert VoltRon objects into annotated data matrix formats such as [anndata](https://github.com/scverse/anndata), we can use built-in spatial data analysis methods available on [squidpy](https://squidpy.readthedocs.io/en/stable/).
 
+You can find the clustered and the annotated Xenium data using VoltRon [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered_annotated.rds). 
+
 Anndata objects wrapped on h5ad files are commonly used by the [scverse](https://www.nature.com/articles/s41587-023-01733-8) ecosystem for single cell analysis which bring together numeruous tools maintained and distributed by a large community effort. Both squidpy and [scanpy](https://scanpy.readthedocs.io/en/stable/) are currently available on scverse. 
 
-
 ```{r class.source="watch-out", eval = FALSE}
+Xen_data <- readRDS("Xenium_data_clustered_annotated.rds")
 as.AnnData(Xen_data, file = "Xen_adata_annotated.h5ad")
 ```
 
 <br>
 
-### Configure squidpy (scverse)
+### Configure Squidpy (scverse)
 
 Here, we use the [reticulate](https://rstudio.github.io/reticulate/) package to call **scverse** module in Python through a prebuilt anaconda environment. However, any python installation with the scverse module can be incorporated by reticulate.   
 
@@ -274,7 +276,7 @@ devtools::install_github("vitessce/vitessceR")
 
 <br>
 
-You can find the clustered and annotated Xenium data using VoltRon [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered.rds). 
+You can find the clustered and annotated Xenium data using VoltRon [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered_annotated.rds). 
 
 ```{r class.source="watch-out", eval = FALSE}
 Xen_data <- readRDS("Xenium_data_clustered_annotated.rds")

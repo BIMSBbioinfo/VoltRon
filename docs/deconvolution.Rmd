@@ -180,8 +180,8 @@ The CLR normalized assay have only 25 features, each representing a cell type fr
 VoltRon is also capable of calculating the UMAP reduction from normalized data slots. Hence, we build a UMAP reduction from CLR data. However, UMAP will always be calculated from a PCA reduction by default (if a PCA embedding is found in the object). 
 
 ```{r eval = FALSE, class.source="watch-out"}
-MBrain_Sec <- getUMAP(MBrain_Sec, assay = "Visium_decon", data.type = "norm", method = "SNN")
-vrEmbeddingPlot(MBrain_Sec, embedding = "umap", group.by = "Sample", graph = "SNN")
+MBrain_Sec <- getUMAP(MBrain_Sec, assay = "Visium_decon", data.type = "norm")
+vrEmbeddingPlot(MBrain_Sec, embedding = "umap", group.by = "Sample")
 ```
 
 <img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_embedding_sample.png" class="center">
@@ -191,8 +191,8 @@ vrEmbeddingPlot(MBrain_Sec, embedding = "umap", group.by = "Sample", graph = "SN
 Using normalized cell type abundances, we can now generate k-nearest neighbor graphs and cluster the graph using leiden method.  
 
 ```{r eval = FALSE, class.source="watch-out"}
-MBrain_Sec <- getNeighbors(MBrain_Sec, assay = "Visium_decon", data.type = "norm")
-MBrain_Sec <- getClusters(MBrain_Sec, resolution = 0.6)
+MBrain_Sec <- getNeighbors(MBrain_Sec, assay = "Visium_decon", data.type = "norm", method = "SNN")
+MBrain_Sec <- getClusters(MBrain_Sec, resolution = 0.6, graph = "SNN")
 ```
 
 <br>

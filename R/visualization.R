@@ -357,7 +357,7 @@ vrSpatialPlotInteractive <- function(zarr.file, group.by = "Sample", plot.segmen
   } else {
     umap <- vc$add_view(dataset, vitessceR::Component$SCATTERPLOT, mapping = reduction)
     vc$layout(
-      hconcat(spatial, vconcat(umap, cell_sets))
+      vitessceR::hconcat(spatial, vitessceR::vconcat(umap, cell_sets))
     )
   }
 
