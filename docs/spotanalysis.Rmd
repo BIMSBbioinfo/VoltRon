@@ -49,8 +49,8 @@ VoltRon includes built-in functions for converting readouts of Xenium experiment
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
-Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1")
-Xen_R2 <- importXenium("Xenium_R2/outs", sample_name = "XeniumR2")
+Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1", import_molecules = TRUE)
+Xen_R2 <- importXenium("Xenium_R2/outs", sample_name = "XeniumR2", import_molecules = TRUE)
 ```
 
 Before moving on to the downstream analysis of the imaging-based data, we can inspect both Xenium images. We use the **vrImages** function to call and visualize reference images of all VoltRon objects. Observe that the DAPI image of the second Xenium replicate is dim, hence we might need to increase the brightness.  

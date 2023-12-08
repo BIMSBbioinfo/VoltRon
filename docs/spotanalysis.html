@@ -465,8 +465,8 @@ Xenium experiment, and forms a VoltRon object. We will import both
 Xenium replicates separately, and merge them after some image
 manipulation.</p>
 <pre class="r watch-out"><code>library(VoltRon)
-Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
-Xen_R2 &lt;- importXenium(&quot;Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;)</code></pre>
+Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;, import_molecules = TRUE)
+Xen_R2 &lt;- importXenium(&quot;Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;, import_molecules = TRUE)</code></pre>
 <p>Before moving on to the downstream analysis of the imaging-based
 data, we can inspect both Xenium images. We use the
 <strong>vrImages</strong> function to call and visualize reference
