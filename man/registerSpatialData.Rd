@@ -2,7 +2,7 @@
 % Please edit documentation in R/registration.R
 \name{registerSpatialData}
 \alias{registerSpatialData}
-\title{register_slides}
+\title{registerSpatialData}
 \usage{
 registerSpatialData(
   object_list = NULL,

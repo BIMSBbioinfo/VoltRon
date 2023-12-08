@@ -46,6 +46,12 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
   # check object for zarr
   if(is.character(object)){
     if(grepl(".zarr$", object)){
+
+      # check Seurat package
+      if(!requireNamespace('vitessceR'))
+        stop("Please install vitessceR package for using Seurat objects")
+
+
       return(vrSpatialPlotInteractive(zarr.file = object, group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, assay = assay,
                                       reduction = reduction, background = background, reg = reg,  crop = crop))
     }
@@ -99,7 +105,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
     }
 
     # check group.by
-    levels_group.by <- unique(metadata[[group.by]][!is.na(metadata[[group.by]])])
+    levels_group.by <- as.character(unique(metadata[[group.by]][!is.na(metadata[[group.by]])]))
     if(all(!is.na(as.numeric(levels_group.by)))){
       levels_group.by <- sort(as.numeric(levels_group.by))
     }
@@ -270,7 +276,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
                                 legend.margin = margin(0,0,0,0))
 
   # set up the limits
-  if(assay@type == "spot"){
+  if(assay@type %in% c("spot", "cell")){
     if(crop){
       g <- g +
         coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
@@ -351,7 +357,7 @@ vrSpatialPlotInteractive <- function(zarr.file, group.by = "Sample", plot.segmen
   } else {
     umap <- vc$add_view(dataset, vitessceR::Component$SCATTERPLOT, mapping = reduction)
     vc$layout(
-      hconcat(spatial, vconcat(umap, cell_sets))
+      vitessceR::hconcat(spatial, vitessceR::vconcat(umap, cell_sets))
     )
   }
 

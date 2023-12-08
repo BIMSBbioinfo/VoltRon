@@ -27,6 +27,8 @@ transferData <- function(object, from = NULL, to = NULL, features = NULL, new_as
   from_object <- object[[from]]
   from_metadata <- Metadata(object, assay = from, type = from_object@type)
   from_metadata <- from_metadata[grepl(paste0(from, "$"), rownames(from_metadata)),]
+  to_metadata <- Metadata(object, assay = to, type = to_object@type)
+  to_metadata <- to_metadata[grepl(paste0(to, "$"), rownames(to_metadata)),]
 
   # get assay types
   to_object_type <- vrAssayTypes(to_object)
@@ -46,6 +48,7 @@ transferData <- function(object, from = NULL, to = NULL, features = NULL, new_as
   cat("Adding cell type compositions as new assay:", new_assay_name, "\n")
   object <- addAssay(object,
                      assay = new_assay,
+                     metadata = to_metadata[vrSpatialPoints(new_assay),],
                      assay_name = new_assay_name,
                      sample = SampleMetadata(object)[to, "Sample"],
                      layer = SampleMetadata(object)[to, "Layer"])

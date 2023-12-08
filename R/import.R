@@ -96,10 +96,10 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, segments = segments, main.assay = assay_name, assay.type = "cell", ...)
 
   # molecule assay
-  message("Creating molecule level assay ...")
   if(!import_molecules){
     return(cell_object)
   } else {
+    message("Creating molecule level assay ...")
     # transcripts
     transcripts_file <- paste0(dir.path, "/transcripts.csv.gz")
     if(!file.exists(transcripts_file)){

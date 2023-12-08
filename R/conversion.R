@@ -3,6 +3,7 @@
 ####
 
 #' @param object A Seurat object
+#' @param type the spatial data type of Seurat object: "image" or "spatial"
 #' @param ... Additional parameter passed to \code{formVoltRon}
 #'
 #' @rdname as.VoltRon
@@ -10,7 +11,7 @@
 #'
 #' @export
 #'
-as.VoltRon.Seurat <- function(object, ...){
+as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name = NULL, ...){
 
   # check Seurat package
   if(!requireNamespace('Seurat'))
@@ -22,46 +23,49 @@ as.VoltRon.Seurat <- function(object, ...){
   # metadata
   metadata <- object@meta.data
 
-  # coordinates and subcellular
-  if(grepl("Visium", class(object@images[[1]]))){
-    coords <- as.matrix(Seurat::GetTissueCoordinates(object))[,2:1]
-    colnames(coords) <- c("x", "y")
-  } else{
-    coords <- as.matrix(Seurat::GetTissueCoordinates(object))[,1:2]
-    coords <- apply(coords, 2, as.numeric)
-    colnames(coords) <- c("x", "y")
-  }
-
   # image
+  voltron_list <- list()
   spatialobjectlist <- object@images
+  fov_names <- names(spatialobjectlist)
   if(length(spatialobjectlist) > 0){
-    spatialobject <- spatialobjectlist[[1]]
-    if("image" %in% slotNames(spatialobject)){
-      image <-  magick::image_read(spatialobject@image)
-      info <- image_info(image)
-      coords[,2] <- info$height - coords[,2]
-    } else {
-      image <- NULL
-      warning("There are no images available in this Seurat object")
+    for(fn in fov_names){
+
+      # message
+      message("Converting FOV: ", fn, " ...")
+
+      # image object
+      spatialobject <- spatialobjectlist[[fn]]
+
+      # cells
+      cells <- Seurat::Cells(spatialobject)
+
+      # count
+      cur_rawdata <- rawdata[,cells]
+
+      # metadata
+      cur_metadata <- metadata[cells,]
+
+      # coords
+      coords <- as.matrix(Seurat::GetTissueCoordinates(spatialobject))[,1:2]
+      coords <- apply(coords, 2, as.numeric)
+      colnames(coords) <- c("x", "y")
+
+      # from voltron
+      params <- list()
+      assay.type <- "cell"
+      assay_name <- "FOV"
+      voltron_list[[fn]] <- formVoltRon(data = cur_rawdata, metadata = cur_metadata, coords = coords, main.assay = assay_name, params = params, assay.type = assay.type, sample_name = fn, ...)
     }
+
+    # merge object
+    message("Merging object ...")
+    vrobject <- merge(voltron_list[[1]], voltron_list[-1])
   } else{
     image <- NULL
-    warning("There are no images available in this Seurat object")
+    warning("There are no spatial objects available in this Seurat object")
   }
 
-  # scale coordinates and assay.type
-  if(grepl("Visium", class(object@images[[1]]))){
-    params <- list(spot.radius = Seurat::Radius(object@images[[1]])*max(info$width, info$height))
-    assay.type <- "spot"
-    assay_name <- "Visium"
-  } else{
-    params <- list()
-    assay.type <- "cell"
-    assay_name <- "Xenium"
-  }
-
-  # create VoltRon
-  formVoltRon(rawdata, metadata, image, coords, main.assay = assay_name, params = params, assay.type = assay.type, ...)
+  return(vrobject)
 }
 
 #' convertAnnDataToVoltRon
@@ -296,7 +300,6 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "main_image")
     }
     X <- make_numpy_friendly(datax)
     adata <- anndata$AnnData(X = X, obs = metadata)
-    # adata <- anndata$AnnData(X = X, obs = metadata, var = feature.metadata)
     if (length(obsm) > 0) {
       obsm <- lapply(obsm, make_numpy_friendly)
       adata$obsm <- obsm

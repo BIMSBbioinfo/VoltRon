@@ -586,14 +586,14 @@ PCA.</p>
 normalized data slots. Hence, we build a UMAP reduction from CLR data.
 However, UMAP will always be calculated from a PCA reduction by default
 (if a PCA embedding is found in the object).</p>
-<pre class="r watch-out"><code>MBrain_Sec &lt;- getUMAP(MBrain_Sec, assay = &quot;Visium_decon&quot;, data.type = &quot;norm&quot;, method = &quot;SNN&quot;)
-vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;Sample&quot;, graph = &quot;SNN&quot;)</code></pre>
+<pre class="r watch-out"><code>MBrain_Sec &lt;- getUMAP(MBrain_Sec, assay = &quot;Visium_decon&quot;, data.type = &quot;norm&quot;)
+vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;Sample&quot;)</code></pre>
 <p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_embedding_sample.png" class="center"></p>
 <p><br></p>
 <p>Using normalized cell type abundances, we can now generate k-nearest
 neighbor graphs and cluster the graph using leiden method.</p>
-<pre class="r watch-out"><code>MBrain_Sec &lt;- getNeighbors(MBrain_Sec, assay = &quot;Visium_decon&quot;, data.type = &quot;norm&quot;)
-MBrain_Sec &lt;- getClusters(MBrain_Sec, resolution = 0.6)</code></pre>
+<pre class="r watch-out"><code>MBrain_Sec &lt;- getNeighbors(MBrain_Sec, assay = &quot;Visium_decon&quot;, data.type = &quot;norm&quot;, method = &quot;SNN&quot;)
+MBrain_Sec &lt;- getClusters(MBrain_Sec, resolution = 0.6, graph = &quot;SNN&quot;)</code></pre>
 <p><br></p>
 </div>
 <div id="visualization" class="section level2">

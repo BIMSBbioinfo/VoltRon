@@ -465,8 +465,8 @@ Xenium experiment, and forms a VoltRon object. We will import both
 Xenium replicates separately, and merge them after some image
 manipulation.</p>
 <pre class="r watch-out"><code>library(VoltRon)
-Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
-Xen_R2 &lt;- importXenium(&quot;Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;)</code></pre>
+Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;, import_molecules = TRUE)
+Xen_R2 &lt;- importXenium(&quot;Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;, import_molecules = TRUE)</code></pre>
 <p>Before moving on to the downstream analysis of the imaging-based
 data, we can inspect both Xenium images. We use the
 <strong>vrImages</strong> function to call and visualize reference
@@ -579,7 +579,8 @@ method</strong> from the igraph package, which is utilized with the
 <p>Now we can label each cell with the associated clustering index and
 take a look at the clustering accuracy on the embedding space, and we
 can also visualize these clusters on a spatial context.</p>
-<pre class="r watch-out"><code>vrEmbeddingPlot(Xen_data, group.by = &quot;Clusters&quot;, embedding = &quot;umap&quot;, pt.size = 0.4, label = TRUE)</code></pre>
+<pre class="r watch-out"><code>vrEmbeddingPlot(Xen_data, group.by = &quot;Clusters&quot;, embedding = &quot;umap&quot;, 
+                pt.size = 0.4, label = TRUE)</code></pre>
 <p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_embedplot_xenium.png" class="center"></p>
 <pre class="r watch-out"><code>vrSpatialPlot(Xen_data, group.by = &quot;Clusters&quot;, pt.size = 0.18, background = &quot;black&quot;)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium.png" class="center"></p>
@@ -599,16 +600,16 @@ the <a href="conversion.html">Converting VoltRon Objects</a>.</p>
 <strong>Clusters</strong> column, called <strong>CellType</strong>, we
 can insert this new metadata column directly to the object.</p>
 <pre class="r watch-out"><code>clusters &lt;- factor(Xen_data$Clusters, levels = sort(unique(Xen_data$Clusters)))
-levels(clusters) &lt;- c(&quot;DCIS_1&quot;, &quot;DCIS_2_CEACAM6+&quot;, &quot;DCIS_3_TACSTD2+&quot;, &quot;Macrophages&quot;,
-                      &quot;Adipocytes&quot;, &quot;StromalCells&quot;, &quot;IT_1&quot;, &quot;CD8_TCells&quot;, &quot;CD4_TCells&quot;,
-                      &quot;EndothelialCells&quot;, &quot;ACT2_myoepithelial&quot;, &quot;KRT15_myoepithelial&quot;,
-                      &quot;IT_2&quot;, &quot;IT_3_Proliferative&quot;, &quot;MyelomaCells&quot;, &quot;MastCells&quot;, &quot;BCells&quot;, 
-                      &quot;IT_4_LILRA4+&quot;, &quot;PLD4+_LILRA4+_CD4+_Cells&quot;)
+levels(clusters) &lt;- c(&quot;DCIS_1&quot;, &quot;DCIS_2&quot;, &quot;IT_1&quot;, &quot;ACTA2_myoepithelial&quot;, &quot;IT_2&quot;, &quot;IT_2&quot;,
+                      &quot;Macrophages&quot;, &quot;Adipocytes&quot;, &quot;CD8_TCells&quot;, &quot;CD4_TCells&quot;, &quot;KRT15_myoepithelial&quot;,
+                      &quot;EndothelialCells&quot;, &quot;IT_4_LILRA4+&quot;, &quot;StromalCells&quot;, &quot;PLD4+_LILRA4+_CD4+_Cells&quot;, &quot;MastCells&quot;, &quot;MyelomaCells&quot;,
+                      &quot;BCells&quot;)
 Xen_data$CellType &lt;- as.character(clusters)</code></pre>
 <p><strong>vrSpatialPlot</strong> function can visualize multiple types
 of metadata columns, and users can change the location of the legends as
 well.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(Xen_data, group.by = &quot;CellType&quot;, pt.size = 0.13, background = &quot;black&quot;, legend.loc = &quot;top&quot;)</code></pre>
+<pre class="r watch-out"><code>vrSpatialPlot(Xen_data, group.by = &quot;CellType&quot;, pt.size = 0.13, background = &quot;black&quot;, 
+              legend.loc = &quot;top&quot;)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_annotated.png" class="center"></p>
 <p><br></p>
 </div>

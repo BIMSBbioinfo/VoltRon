@@ -49,8 +49,8 @@ VoltRon includes built-in functions for converting readouts of Xenium experiment
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
-Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1")
-Xen_R2 <- importXenium("Xenium_R2/outs", sample_name = "XeniumR2")
+Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1", import_molecules = TRUE)
+Xen_R2 <- importXenium("Xenium_R2/outs", sample_name = "XeniumR2", import_molecules = TRUE)
 ```
 
 Before moving on to the downstream analysis of the imaging-based data, we can inspect both Xenium images. We use the **vrImages** function to call and visualize reference images of all VoltRon objects. Observe that the DAPI image of the second Xenium replicate is dim, hence we might need to increase the brightness.  
@@ -173,7 +173,8 @@ Xen_data <- getClusters(Xen_data, resolution = 1.0, label = "Clusters", graph = 
 Now we can label each cell with the associated clustering index and take a look at the clustering accuracy on the embedding space, and we can also visualize these clusters on a spatial context. 
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-vrEmbeddingPlot(Xen_data, group.by = "Clusters", embedding = "umap", pt.size = 0.4, label = TRUE)
+vrEmbeddingPlot(Xen_data, group.by = "Clusters", embedding = "umap", 
+                pt.size = 0.4, label = TRUE)
 ```
 
 <img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_embedplot_xenium.png" class="center">
@@ -196,18 +197,18 @@ Let us create a new metadata feature from the **Clusters** column, called **Cell
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 clusters <- factor(Xen_data$Clusters, levels = sort(unique(Xen_data$Clusters)))
-levels(clusters) <- c("DCIS_1", "DCIS_2_CEACAM6+", "DCIS_3_TACSTD2+", "Macrophages",
-                      "Adipocytes", "StromalCells", "IT_1", "CD8_TCells", "CD4_TCells",
-                      "EndothelialCells", "ACT2_myoepithelial", "KRT15_myoepithelial",
-                      "IT_2", "IT_3_Proliferative", "MyelomaCells", "MastCells", "BCells", 
-                      "IT_4_LILRA4+", "PLD4+_LILRA4+_CD4+_Cells")
+levels(clusters) <- c("DCIS_1", "DCIS_2", "IT_1", "ACTA2_myoepithelial", "IT_2", "IT_2",
+                      "Macrophages", "Adipocytes", "CD8_TCells", "CD4_TCells", "KRT15_myoepithelial",
+                      "EndothelialCells", "IT_4_LILRA4+", "StromalCells", "PLD4+_LILRA4+_CD4+_Cells", "MastCells", "MyelomaCells",
+                      "BCells")
 Xen_data$CellType <- as.character(clusters)
 ```
 
 **vrSpatialPlot** function can visualize multiple types of metadata columns, and users can change the location of the legends as well.
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-vrSpatialPlot(Xen_data, group.by = "CellType", pt.size = 0.13, background = "black", legend.loc = "top")
+vrSpatialPlot(Xen_data, group.by = "CellType", pt.size = 0.13, background = "black", 
+              legend.loc = "top")
 ```
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_annotated.png" class="center">
