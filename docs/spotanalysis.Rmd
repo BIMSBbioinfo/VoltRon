@@ -43,6 +43,8 @@ In this use case, we analyse readouts of the experiments conducted on example ti
  
 You can import these readouts from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import **In Situ Replicate 1/2**). Alternatively, you can **download a zipped collection of Xenium readouts** from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip). 
 
+<br>
+
 ## Building VoltRon objects
 
 VoltRon includes built-in functions for converting readouts of Xenium experiments into VoltRon objects. The **importXenium** function locates all readout documents under the output folder of the Xenium experiment, and forms a VoltRon object. We will import both Xenium replicates separately, and merge them after some image manipulation.
@@ -156,6 +158,8 @@ vrEmbeddingFeaturePlot(Xen_data, features = c("LRRC15", "TCF7"), embedding = "um
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_featureplot_xenium.png" class="center">
 
+<br>
+
 ## Clustering
 
 Next, we build neighborhood graphs with the **shared nearest neighbors (SNN)** of cells which are constructed from dimensionally reduced gene expression profiles. The function **getProfileNeighbors** also has an option of building **k-nearest neighbors (kNN)** graphs. 
@@ -198,9 +202,9 @@ Let us create a new metadata feature from the **Clusters** column, called **Cell
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 clusters <- factor(Xen_data$Clusters, levels = sort(unique(Xen_data$Clusters)))
 levels(clusters) <- c("DCIS_1", "DCIS_2", "IT_1", "ACTA2_myoepithelial", "IT_2", "IT_2",
-                      "Macrophages", "Adipocytes", "CD8_TCells", "CD4_TCells", "KRT15_myoepithelial",
-                      "EndothelialCells", "IT_4_LILRA4+", "StromalCells", "PLD4+_LILRA4+_CD4+_Cells", "MastCells", "MyelomaCells",
-                      "BCells")
+                      "Macrophages", "Adipocytes", "CD8_TCells", "CD4_TCells", 
+                      "KRT15_myoepithelial", "EndothelialCells", "IT_4_LILRA4+", "StromalCells", 
+                      "PLD4+_LILRA4+_CD4+_Cells", "MastCells", "MyelomaCells", "BCells")
 Xen_data$CellType <- as.character(clusters)
 ```
 

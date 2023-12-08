@@ -456,6 +456,7 @@ Genomics website</a> (specifically, import <strong>In Situ Replicate
 1/2</strong>). Alternatively, you can <strong>download a zipped
 collection of Xenium readouts</strong> from <a
 href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip">here</a>.</p>
+<p><br></p>
 <div id="building-voltron-objects" class="section level2">
 <h2>Building VoltRon objects</h2>
 <p>VoltRon includes built-in functions for converting readouts of Xenium
@@ -563,6 +564,7 @@ embedding spaces (e.g. UMAP) using
 <pre class="r watch-out"><code>vrEmbeddingFeaturePlot(Xen_data, features = c(&quot;LRRC15&quot;, &quot;TCF7&quot;), embedding = &quot;umap&quot;, 
                        pt.size = 0.4)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_featureplot_xenium.png" class="center"></p>
+<p><br></p>
 </div>
 <div id="clustering" class="section level2">
 <h2>Clustering</h2>
@@ -601,9 +603,9 @@ the <a href="conversion.html">Converting VoltRon Objects</a>.</p>
 can insert this new metadata column directly to the object.</p>
 <pre class="r watch-out"><code>clusters &lt;- factor(Xen_data$Clusters, levels = sort(unique(Xen_data$Clusters)))
 levels(clusters) &lt;- c(&quot;DCIS_1&quot;, &quot;DCIS_2&quot;, &quot;IT_1&quot;, &quot;ACTA2_myoepithelial&quot;, &quot;IT_2&quot;, &quot;IT_2&quot;,
-                      &quot;Macrophages&quot;, &quot;Adipocytes&quot;, &quot;CD8_TCells&quot;, &quot;CD4_TCells&quot;, &quot;KRT15_myoepithelial&quot;,
-                      &quot;EndothelialCells&quot;, &quot;IT_4_LILRA4+&quot;, &quot;StromalCells&quot;, &quot;PLD4+_LILRA4+_CD4+_Cells&quot;, &quot;MastCells&quot;, &quot;MyelomaCells&quot;,
-                      &quot;BCells&quot;)
+                      &quot;Macrophages&quot;, &quot;Adipocytes&quot;, &quot;CD8_TCells&quot;, &quot;CD4_TCells&quot;, 
+                      &quot;KRT15_myoepithelial&quot;, &quot;EndothelialCells&quot;, &quot;IT_4_LILRA4+&quot;, &quot;StromalCells&quot;, 
+                      &quot;PLD4+_LILRA4+_CD4+_Cells&quot;, &quot;MastCells&quot;, &quot;MyelomaCells&quot;, &quot;BCells&quot;)
 Xen_data$CellType &lt;- as.character(clusters)</code></pre>
 <p><strong>vrSpatialPlot</strong> function can visualize multiple types
 of metadata columns, and users can change the location of the legends as
