@@ -474,3 +474,28 @@ Rcpp::NumericMatrix perspectiveTransform(Rcpp::NumericMatrix coords, Rcpp::Numer
   // return
   return coords_regToMat;
 }
+
+// [[Rcpp::export]]
+Rcpp::RawVector warpImage(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, Rcpp::NumericMatrix hmatrix,
+                              const int width1, const int height1,
+                              const int width2, const int height2)
+{
+  // Read reference image
+  cv::Mat imReference = imageToMat(ref_image, width1, height1);
+
+  // Read image to be aligned
+  cv::Mat im = imageToMat(query_image, width2, height2);
+
+  // Get coordinates as cv::Mat
+  cv::Mat hmatrix_mat = numericMatrixToMat(hmatrix);
+
+  cv::imwrite("dest.jpg", imReference);
+  cv::imwrite("source.jpg", im);
+
+  // transform coordinates
+  Mat imWarp;
+  cv::warpPerspective(im, imWarp, hmatrix_mat, imReference.size());
+
+  // return
+  return matToImage(imWarp.clone());;
+}

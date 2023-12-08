@@ -412,7 +412,20 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
 
       # manual registration
       if(reg_mode == "manual"){
+
+        # get coordinates
         coords <- applyTPSTransform(coords, cur_mapping)
+
+        # # get transformed image
+        # image <- image_list[[i]]
+        # ref_image_rast <- magick::image_data(image_list[[ref_ind]], channels = "rgb")
+        # query_image_rast <- magick::image_data(image_list[[i]], channels = "rgb")
+        # image <- warpImage(ref_image_rast, query_image_rast, cur_mapping,
+        #                    width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
+        #                    width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3])
+        #
+        # # get image
+        # vrImages(registered_sr[[i]][[vrAssayNames(registered_sr[[i]])]], reg = TRUE) <- image
 
       # automated registration
       } else {
@@ -442,13 +455,15 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
         colnames(coords) <- c('x', 'y')
         coords <- transformKeypoints(ref_image, coords, ref_extension, input)
         coords <- as.matrix(coords)
+
+        # get image
+        vrImages(registered_sr[[i]][[vrAssayNames(registered_sr[[i]])]], reg = TRUE) <- aligned_image_list[[i]]
       }
     }
     coords <- as.matrix(coords)
     rownames(coords) <- entities
     colnames(coords) <- c("x", "y")
     vrCoordinates(registered_sr[[i]], reg = TRUE) <- coords
-    vrImages(registered_sr[[i]][[vrAssayNames(registered_sr[[i]])]], reg = TRUE) <- aligned_image_list[[i]]
   }
   return(registered_sr)
 }
@@ -928,7 +943,7 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
       }
 
       # get registered spatial datasets
-      temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre, input)
+      temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre, input, image_list = image_list)
       for(i in 1:length(temp_reg_list))
         registered_spatdata_list[[paste0(i)]] <- temp_reg_list[[i]]
 
@@ -1057,6 +1072,7 @@ getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, in
 getManualRegisteredImage_complete <- function(images, transmatrix, query_ind, ref_ind, input){
 
   # plot with raster
+  temp <- magick::image_data(images[[ref_ind]], channels = "rgb")
   ref_image_raster <- as.raster(images[[ref_ind]]) |> as.matrix() |> terra::rast()
   query_image_raster <- as.raster(images[[query_ind]]) |> as.matrix() |> terra::rast() |> raster::stack()
 
