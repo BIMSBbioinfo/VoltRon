@@ -131,7 +131,7 @@ setMethod(
 #'
 vrSpatialPoints.vrMetadata <- function(object, assay = NULL, ...) {
 
-  print(slotNames(object))
+  # get points
   points <- unlist(lapply(slotNames(object), function(x) rownames(slot(object, name = x))))
 
   return(points)
