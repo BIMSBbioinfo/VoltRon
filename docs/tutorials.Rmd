@@ -120,19 +120,23 @@ Here, we provide a group of tutorials to use additional features of the VoltRon 
 <table>
 <tbody>
   <tr>
-   <td> 
-      <p class ="tutorial"> VoltRon Objects </p>
-      <br>
-      <img width="280" height="220" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects.png" class="center">
-      <br>
-      <p style = "margin: 3%"> Manipulating and Configuring VoltRon objects \n <strong> (Under Development) </strong> </p>
-   </td>
    <td onclick="location.href='interactive.html';"> 
       <p class ="tutorial"> Interactive Utilities </p>
       <img width="280" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactiveannotation.png" class="center">
-      <p style = "margin: 3%"> Interactive Annotation and Visualization <br> <strong> (Under Development) </strong> </p>
+      <p style = "margin: 3%"> Interactive annotation and visualization <br> <strong> (Under Development) </strong> </p>
    </td>
    <td> 
+      <p class ="tutorial"> VoltRon Objects </p>
+      <br>
+      <img width="280" height="210" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects.png" class="center">
+      <br>
+      <br>
+      <p style = "margin: 3%"> Manipulating and configuring VoltRon objects \n <strong> (Under Development) </strong> </p>
+   </td>
+   <td> 
+      <p class ="tutorial"> Importing Spatial Data </p>
+      <img width="250" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/technologies.png" class="center">
+      <p style = "margin: 3%"> Importing readouts of spatial technologies <br> <strong> (Under Development) </strong> </p>
    </td>
   </tr>
 </tbody>
