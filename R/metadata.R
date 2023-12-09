@@ -38,14 +38,6 @@ setMethod(
         cat("  ", nrow(slot(object, name = x)), x, "\n")
       }
     })
-    # if(nrow(object@molecule) > 0)
-    #   cat("  ", nrow(object@molecule), "molecules \n")
-    # if(nrow(object@cell) > 0)
-    #   cat("  ", nrow(object@cell), "cells \n")
-    # if(nrow(object@spot) > 0)
-    #   cat("  ", nrow(object@spot), "spots \n")
-    # if(nrow(object@ROI) > 0)
-    #   cat("  ", nrow(object@ROI), "ROIs \n")
     return(invisible(x = NULL))
   }
 )
