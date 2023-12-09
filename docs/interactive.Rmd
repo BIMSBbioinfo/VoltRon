@@ -94,7 +94,7 @@ as.Zarr(Xendata_assay, out_path = "data/xendata_clustered_annotated.zarr")
 
 <br>
 
-## Vitessce
+## Vitessce (Interactive)
 
 We can use the zarr file directly in the **vrSpatialPlot** function to visualize the zarr array interactively in Rstudio viewer. The **reduction** arguement allows the umap of the Xenium data to be visualized alongside with the spatial coordinates of the Xenium cells.
 
