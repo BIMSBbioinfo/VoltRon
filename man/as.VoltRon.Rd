@@ -7,12 +7,14 @@
 \usage{
 as.VoltRon(object, ...)
 
-\method{as.VoltRon}{Seurat}(object, ...)
+\method{as.VoltRon}{Seurat}(object, type = c("image", "spatial"), assay_name = NULL, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
 
 \item{...}{Additional parameter passed to \code{formVoltRon}}
+
+\item{type}{the spatial data type of Seurat object: "image" or "spatial"}
 }
 \value{
 \code{as.VoltRon}: The name of the default assay

@@ -7,8 +7,8 @@
 #' A mini shiny app to for annotating spatial points
 #'
 #' @param object a list of VoltRon (or Seurat) objects
+#' @param label the name of the new metadata feature (annotation) of selected spatial points
 #' @param assay a reference spatial data set, used only if \code{object_list} is \code{NULL}
-#' @param annotation the name of the new metadata feature (annotation) of selected spatial points
 #' @param ... additional parameters passed to \code{vrSpatialPlot}
 #'
 #' @import shiny
@@ -20,7 +20,7 @@
 #' @export
 #'
 #' @return a vector of annotations
-annotateSpatialData <- function(object, assay = NULL, annotation = NULL, ...) {
+annotateSpatialData <- function(object, label, assay = NULL, ...) {
 
   if(!inherits(object, "VoltRon"))
     stop("Please provide a VoltRon object!")
@@ -30,7 +30,7 @@ annotateSpatialData <- function(object, assay = NULL, annotation = NULL, ...) {
   # sample metadata
   sample_metadata <- SampleMetadata(object)
 
-  # get assay names
+  # get assay names, and always get a single assay
   assay_names <- vrAssayNames(object, assay = assay)
   if(length(assay_names) > 0)
     assay <- assay_names[1]
@@ -189,9 +189,6 @@ annotateSpatialData <- function(object, assay = NULL, annotation = NULL, ...) {
         # collect labels
         selected_label_list <- sapply(1:length(selected_polygon_list), function(i) input[[paste0("region",i)]])
 
-        # change assay names
-        vrMainAssay(object) <- sample_metadata[assay, "Assay"]
-
         # annotate spatial points
         spatialpoints <- rownames(metadata)
         new_label <- rep("undefined", length(spatialpoints))
@@ -203,8 +200,12 @@ annotateSpatialData <- function(object, assay = NULL, annotation = NULL, ...) {
           new_label[rownames(coords)[!!in.list]] <- selected_label_list[i]
         }
 
+        # place annotation to metadata
+        metadata[[label]] <- new_label
+        Metadata(object, assays = sample_metadata[assay, "Assay"]) <- metadata
+
         # stop app and return
-        stopApp(new_label)
+        stopApp(object)
       })
     }
 

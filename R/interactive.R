@@ -2,15 +2,13 @@
 # Basilisk Environment ####
 ####
 
-#' The Python environment
+#' The Python Basilisk environment
 #'
-#' Defines a conda environment via Basilisk, which is used
-#' to convert R objects to Zarr stores.
-#' This environment has been adapted from zellkonverter::.AnnDataDependencies.
-#' Reference: https://bioconductor.org/packages/release/bioc/vignettes/basilisk/inst/doc/motivation.html
+#' Defines a conda environment via Basilisk, which is used to convert R objects to Zarr stores.
 #'
 #' @importFrom basilisk BasiliskEnvironment
 #'
+#' @keywords internal
 py_env <- basilisk::BasiliskEnvironment(
   envname="VoltRon_basilisk_env",
   pkgname="VoltRon",
