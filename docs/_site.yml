@@ -13,7 +13,7 @@ navbar:
           href: registration.html
         - text: "Niche Clustering"
           href: deconvolution.html
-      - text: "Downstream Analysis and Utilities"
+      - text: "Downstream Analysis"
         menu:
         - text: "ROI Analysis"
           href: roianalysis.html
@@ -21,6 +21,10 @@ navbar:
           href: spotanalysis.html
         - text: "Converting VoltRon Objects"
           href: conversion.html
+      - text: "Utilities"
+        menu:
+        - text: "Interactive Utilities"
+          href: interactive.html
   right:
     - text: "Contact"
       icon: fa-envelope-o

@@ -11,7 +11,7 @@
 
 
 
-<title>Tutorials</title>
+<title>Interactive</title>
 
 <script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -29,6 +29,9 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
@@ -221,6 +224,75 @@ $(document).ready(function () {
 
 
 
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+.tocify-subheader {
+  display: inline;
+}
+.tocify-subheader .tocify-item {
+  font-size: 0.95em;
+}
+
+</style>
+
+
 
 </head>
 
@@ -228,6 +300,16 @@ $(document).ready(function () {
 
 
 <div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -334,7 +416,7 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Tutorials</h1>
+<h1 class="title toc-ignore">Interactive</h1>
 
 </div>
 
@@ -346,170 +428,84 @@ $(document).ready(function () {
 body {
   text-align: justify
 }
-table, th, td, tr{
-  empty-cells:hide;
-  border-spacing: 25px;
-  border-collapse: separate;
-}
-td{
-  filter:drop-shadow(0 0 10px rgba(0,0,0,0.3));
-  padding: 10px;
-  background:white;
-  text-align:center;
-  width:33%;
-  vertical-align: text-top;
-}
-td:hover, td:active{
-  filter:drop-shadow(0 0 10px rgba(0,0,0,0.3));
-  transform: scale(1.02);
-  cursor: pointer;
-}
-.main-container {
-  max-width: 1200px;
+.center {
+  display: block;
   margin-left: auto;
   margin-right: auto;
 }
-p.tutorial {
-  text-decoration: none!important;
-  font-size: 1.5em;
-  color: #23803A;
-  margin: 3%
+</style>
+<style type="text/css">
+.watch-out {
+  color: black;
 }
 </style>
-<p><br> <!-- <br> --></p>
-<!-- ## Spatial Data Analysis with VoltRon -->
 <p><br></p>
-<div id="spatial-data-integration" class="section level2">
-<h2>Spatial Data Integration</h2>
-<p><strong>VoltRon</strong> will incorporate multiple data integration
-modules to achieve data transfer across a diverse set of modalities. We
-utilize the <a href="https://opencv.org/">OpenCV</a> library which fully
-embedded into VoltRon using <a href="https://www.rcpp.org/">Rcpp</a>,
-hence VoltRon can align reference images of spatial datasets using
-computer vision and image registration. Users can automaticaly or
-manually align a list of images (<strong>H&amp;E, microscopy or DAPI
-images</strong>) using a small shiny app incorporated within our
-analysis workflow.</p>
-<p>In addition, VoltRon integrates with spot deconvolution methods such
-as RCTD to infer spot transcriptomics assays such as Visium and
-DBIT-Seq. We estimate the cell type abundances from a reference single
-cell data (Seurat, SingleCellExperiment etc.) with already annotated
-cell types. Then we generate additional assays associated with layers of
-the VoltRon object, and implement <strong>clustering on normalized cell
-type abundance data</strong> to discover niches in the dataset.</p>
-<table>
-<tbody>
-<tr>
-<td onclick="location.href=&#39;registration.html&#39;;">
-<p class="tutorial">
-Spatial Data Alignment
-</p>
-<img width="250" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration.png" class="center">
-<p style="margin: 3%">
-Manual and automated alignment of spatial data assays
-</p>
-</td>
-<td onclick="location.href=&#39;deconvolution.html&#39;;">
-<p class="tutorial">
-Niche Clustering
-</p>
-<img width="250" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/deconvolution.png" class="center">
-<p style="margin: 3%">
-Clustering with ROI/spot deconvolution
-</p>
-</td>
-<td>
-</td>
-</tr>
-</tbody>
-</table>
-<p><br> <br></p>
-</div>
-<div id="downstream-analysis" class="section level2">
-<h2>Downstream Analysis</h2>
-<p><strong>VoltRon</strong> is also capable of end-to-end analysis of
-diverse set of spatial data types such as ROI (region of interest)
-based, spot-based, cell-based and molecule-based (<strong>under
-development</strong>) assays. VoltRon will be able to convert its
-objects to a diverse set of objects/datatypes commonly incorporated
-spatial data analysis (Seurat, SpatialExperiment, Giotto, anndata,
-SpatialData etc.)</p>
-<table>
-<tbody>
-<tr>
-<td onclick="location.href=&#39;roianalysis.html&#39;;">
-<p class="tutorial">
-Region of Interests (ROIs)
-</p>
-<img width="280" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/GeoMx.png" class="center">
-<p style="margin: 3%">
-Quality control, analysis and visualization of ROI segments
-</p>
-</td>
-<td onclick="location.href=&#39;spotanalysis.html&#39;;">
-<p class="tutorial">
-Cells/Spots
-</p>
-<img width="280" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/spotanalysis.png" class="center">
-<p style="margin: 3%">
-Quality control, analysis and visualization of Cell/Spot datasets
-</p>
-</td>
-<td onclick="location.href=&#39;conversion.html&#39;;">
-<p class="tutorial">
-Converting VoltRon Objects
-</p>
-<br>
-<img width="270" height="200" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversion.png" class="center">
-<br> <br>
-<p style="margin: 3%">
-Converting VoltRon objects into Seurat and squidpy (anndata) </strong>
-</p>
-</td>
-</tr>
-</tbody>
-</table>
-<p><br> <br></p>
-</div>
-<div id="utilities" class="section level2">
-<h2>Utilities</h2>
-<p>Here, we provide a group of tutorials to use additional features of
-the VoltRon objects.</p>
-<table>
-<tbody>
-<tr>
-<td>
-<p class="tutorial">
-VoltRon Objects
-</p>
-<br>
-<img width="280" height="220" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects.png" class="center">
-<br>
-<p style="margin: 3%">
-Manipulating and Configuring VoltRon objects <strong> (Under
-Development) </strong>
-</p>
-</td>
-<td onclick="location.href=&#39;interactive.html&#39;;">
-<p class="tutorial">
-Interactive Utilities
-</p>
-<img width="280" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactiveannotation.png" class="center">
-<p style="margin: 3%">
-Interactive Annotation and Visualization <br> <strong> (Under
-Development) </strong>
-</p>
-</td>
-<td>
-</td>
-</tr>
-</tbody>
-</table>
+<div id="interactive-annotation" class="section level1">
+<h1>Interactive Annotation</h1>
+<p><strong>VoltRon</strong> includes interactive applications to select
+and manually label spatial points by drawing polygons.</p>
+<p>As an example, we will use a Spot-based spatial transcriptomic assay,
+specifically the <strong>Mouse Brain Serial Section 1/2</strong>
+datasets, analyzed in the <a href="deconvolution.html">Niche
+Clustering</a> tutorial. You can find the already analyzed data stored
+as a VoltRon object <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/NicheClustering/Visium&amp;Visium_data_decon_analyzed.rds">here</a></p>
+<pre class="r watch-out"><code>MBrain_Sec &lt;- readRDS(&quot;Visium&amp;Visium_data_decon_analyzed.rds&quot;)</code></pre>
+<p><br></p>
+<div id="shiny-app-annotation" class="section level2">
+<h2>Shiny App (Annotation)</h2>
+<p>Now we can start annotating the spatial assay. By passing arguments
+used by the <strong>vrSpatialPlot</strong> function to visualize labels
+(e.g. clusters), we can better select regions within tissue sections for
+annotation.</p>
+<pre class="r watch-out"><code>MBrain_Sec &lt;- annotateSpatialData(MBrain_Sec, group.by = &quot;clusters&quot;, label = &quot;annotation&quot;)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_annotation_example.png" class="center"></p>
 <p><br></p>
 </div>
+</div>
+<div id="interactive-visualization" class="section level1">
+<h1>Interactive Visualization</h1>
+<p>In this section, we will transform VoltRon objects of Xenium data
+into zarr arrays, and use them for interactive visualization in <a
+href="http://vitessce.io/">Vitessce</a>. We should first download the
+vitessceR package which incorporates wrapper function to visualize zarr
+arrays interactively in R.</p>
+<pre class="r watch-out"><code>install.packages(&quot;devtools&quot;)
+devtools::install_github(&quot;vitessce/vitessceR&quot;)</code></pre>
+<p>You can find the clustered and annotated Xenium data using VoltRon <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered_annotated.rds">here</a>.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- readRDS(&quot;Xenium_data_clustered_annotated.rds&quot;)
+SampleMetadata(Xen_data)</code></pre>
+<pre><code>        Assay    Layer   Sample
+Assay1 Xenium Section1 XeniumR1
+Assay2 Xenium Section1 XeniumR2</code></pre>
+<p><br></p>
+<div id="conversion-into-zarr" class="section level2">
+<h2>Conversion into Zarr</h2>
+<p>Now we can convert the VoltRon object into a zarr array using the
+<strong>as.Zarr</strong> function which will create the array in a
+specified location</p>
+<pre class="r watch-out"><code>Xendata_assay &lt;- subset(Xen_data, assays = &quot;Assay1&quot;)
+as.Zarr(Xendata_assay, out_path = &quot;data/xendata_clustered_annotated.zarr&quot;)</code></pre>
+<p><br></p>
+</div>
+<div id="vitessce" class="section level2">
+<h2>Vitessce</h2>
+<p>We can use the zarr file directly in the
+<strong>vrSpatialPlot</strong> function to visualize the zarr array
+interactively in Rstudio viewer. The <strong>reduction</strong>
+arguement allows the umap of the Xenium data to be visualized alongside
+with the spatial coordinates of the Xenium cells.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(&quot;data/xendata_clustered_annotated.zarr&quot;, 
+              group.by = &quot;CellType&quot;, reduction = &quot;umap&quot;)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_interactive.png" class="center"></p>
+</div>
+</div>
 
 
 
+</div>
+</div>
 
 </div>
 
@@ -542,6 +538,35 @@ $(document).ready(function () {
 
 <!-- code folding -->
 
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = false;
+    options.smoothScroll = false;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>
