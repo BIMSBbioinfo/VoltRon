@@ -9,6 +9,10 @@ perspectiveTransform <- function(coords, hmatrix) {
     .Call('_VoltRon_perspectiveTransform', PACKAGE = 'VoltRon', coords, hmatrix)
 }
 
+warpImage <- function(ref_image, query_image, hmatrix, width1, height1, width2, height2) {
+    .Call('_VoltRon_warpImage', PACKAGE = 'VoltRon', ref_image, query_image, hmatrix, width1, height1, width2, height2)
+}
+
 calculateMoransI <- function(data, datadist, sumW) {
     .Call('_VoltRon_calculateMoransI', PACKAGE = 'VoltRon', data, datadist, sumW)
 }

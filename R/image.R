@@ -42,6 +42,8 @@ vrImages.vrLayer <- function(object, ...){
 
 #' @param object A vrAssay object
 #' @param main_image the name of the main image
+#' @param reg TRUE if registered images are assigned
+#' @param as.raster return as a raster
 #'
 #' @rdname vrImages
 #' @method vrImages vrAssay
@@ -50,11 +52,23 @@ vrImages.vrLayer <- function(object, ...){
 #'
 #' @export
 #'
-vrImages.vrAssay <- function(object, main_image = NULL, as.raster = FALSE){
+vrImages.vrAssay <- function(object, main_image = NULL, reg = TRUE, as.raster = FALSE){
   if(!is.null(object@image)){
+
+    # get main image is main_image is null
     if(is.null(main_image)) {
       main_image <- object@main_image
     }
+
+    # get registered image
+    if(reg){
+      main_image_query <- paste0(main_image, "_reg")
+      if(main_image_query %in% vrImageNames(object)){
+        main_image <- paste0(main_image, "_reg")
+      }
+    }
+
+    # check if image is here
     if(main_image %in% vrImageNames(object)){
       if(as.raster){
         return(object@image[[main_image]])
@@ -71,7 +85,7 @@ vrImages.vrAssay <- function(object, main_image = NULL, as.raster = FALSE){
 
 #' @param object A vrAssay object
 #' @param main_image the name of the main image
-#' @param reg TRUE if registered coordinates are assigned
+#' @param reg TRUE if registered images are assigned
 #' @param value new image
 #'
 #' @rdname vrImages
@@ -84,6 +98,9 @@ vrImages.vrAssay <- function(object, main_image = NULL, as.raster = FALSE){
 "vrImages<-.vrAssay" <- function(object, main_image = NULL, reg = FALSE, ..., value) {
   if(is.null(main_image)) {
     main_image <- object@main_image
+  }
+  if(reg){
+    main_image <- paste0(main_image, "_reg")
   }
   if(inherits(value, "bitmap")){
     object@image[[main_image]] <- value
