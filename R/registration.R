@@ -315,7 +315,6 @@ updateParameterPanels <- function(input, output, session){
 
   # done event
   shinyjs::hide(id = "done")
-
   observeEvent(input$register, {
     shinyjs::show(id = "done")
   })
