@@ -966,12 +966,8 @@ updateGraphAssay <- function(object1, object2){
   return(list(object1 = object1, object2 = object2))
 }
 
-
-
-
-
 #' @param assay assay
-#' @param type the assay type: ROI, spot or cell
+#' @param type the assay type: ROI, spot or cell, or all for the entire metadata object
 #'
 #' @rdname Metadata
 #' @method Metadata VoltRon
@@ -1013,24 +1009,71 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
 #'
 "Metadata<-.VoltRon" <- function(object, type = NULL, assay = NULL, ..., value) {
 
+  if(!is.data.frame(value))
+    stop("The new or updated metadata has to be a data frame")
+
+  if(is.null(rownames(value)))
+    stop("The new metadata should have row names to match its rows with the existing one")
+
   if(is.null(type)){
     type <- unique(vrAssayTypes(object, assay = assay))
   }
 
-  slot(object@metadata, name = type) <- value
+  if(type %in% slotNames(object@metadata)){
 
-  if(type == "all"){
-    all_types <- names(slotToList(object@metadata))
-    for(cur_type in all_types){
-      cur_metadata <- slot(object@metadata, name = cur_type)
-      if(nrow(cur_metadata) > 0){
-        slot(object@metadata, name = cur_type) <- value
+    # sample metadata
+    sample.metadata <- SampleMetadata(object)
+
+    # get assay names
+    assay_names <- vrAssayNames(object, assay = assay)
+
+    # get metadata
+    metadata <- slot(object@metadata, name = type)
+    # cur_metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assay_names, ]
+
+    # replace the metadata (or some part of it) with the new value
+    if(length(setdiff(rownames(values), rownames(metadata))) == 0){
+
+      # check columns of the new table
+      new_columns <- setdiff(colnames(value), colnames(metadata))
+
+      # current metadata shouldnt have columns that value doesnt have
+      if(length(setdiff(colnames(metadata), colnames(value))) > 0)
+        stop("Some columns of new data frame are not available in the metadata")
+
+      # if new columns appear, update the column names of the metadata'
+      if(length(new_columns) > 0){
+        value <- value[,c(colnames(metadata), new_columns)]
+        for(cur_col in new_columns){
+          metadata[[cur_col]] <- ""
+        }
       }
-      slot(object@metadata, name = cur_type)
+
+      # replace data
+      metadata[rownames(value), ] <- value
+      slot(object@metadata, name = type) <- metadata
+
+    } else {
+      stop("Some rows of new data frame are not available in the metadata")
     }
+
   } else {
-    slot(object@metadata, name = type) <- value
+    stop("Please provide one of three assay types: 'ROI', 'cell', 'spot'.")
   }
+
+
+  # if(type == "all"){
+  #   all_types <- names(slotToList(object@metadata))
+  #   for(cur_type in all_types){
+  #     cur_metadata <- slot(object@metadata, name = cur_type)
+  #     if(nrow(cur_metadata) > 0){
+  #       slot(object@metadata, name = cur_type) <- value
+  #     }
+  #     slot(object@metadata, name = cur_type)
+  #   }
+  # } else {
+  #   slot(object@metadata, name = type) <- value
+  # }
 
   return(object)
 }

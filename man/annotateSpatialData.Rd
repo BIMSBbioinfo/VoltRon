@@ -4,14 +4,14 @@
 \alias{annotateSpatialData}
 \title{annotateSpatialData}
 \usage{
-annotateSpatialData(object, assay = NULL, annotation = NULL, ...)
+annotateSpatialData(object, label, assay = NULL, ...)
 }
 \arguments{
 \item{object}{a list of VoltRon (or Seurat) objects}
 
-\item{assay}{a reference spatial data set, used only if \code{object_list} is \code{NULL}}
+\item{label}{the name of the new metadata feature (annotation) of selected spatial points}
 
-\item{annotation}{the name of the new metadata feature (annotation) of selected spatial points}
+\item{assay}{a reference spatial data set, used only if \code{object_list} is \code{NULL}}
 
 \item{...}{additional parameters passed to \code{vrSpatialPlot}}
 }
