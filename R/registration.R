@@ -59,16 +59,15 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
 
                       h4("Spatial Data Registration"),
                       fluidRow(
-                        br(),
-                        column(12,shiny::actionButton("register", "Register!")),
-                        br(),
-                        br(),
                         column(12,shiny::checkboxInput("automatictag", "Automated Registration", value = FALSE)),
                         br(),
                         column(12,selectInput("AutoMethod", "Method", choices = c("FLANN", "BRUTE-FORCE"), selected = "FLANN")),
                         br(),
                         column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
                         column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
+                        br(),
+                        column(12,shiny::actionButton("register", "Register!")),
+                        br(),
                         br(),
                         column(12,shiny::actionButton("done", "Done")),
                       ),
@@ -314,6 +313,14 @@ updateSequentialTabPanels <- function(input, output, session, centre, register_i
 #'
 updateParameterPanels <- function(input, output, session){
 
+  # done event
+  shinyjs::hide(id = "done")
+
+  observeEvent(input$register, {
+    shinyjs::show(id = "done")
+  })
+
+  # automated registration event
   shinyjs::hide(id = "GOOD_MATCH_PERCENT")
   shinyjs::hide(id = "MAX_FEATURES")
   shinyjs::hide(id = "AutoMethod")
