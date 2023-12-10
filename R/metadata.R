@@ -36,7 +36,7 @@ setMethod(
     cat("This object includes: \n")
     lapply(slotNames(object), function(x){
       if(nrow(slot(object, name = x))){
-        cat("  ", nrow(slot(object, name = x)), x, "\n")
+        cat("  ", nrow(slot(object, name = x)), paste0(x, "s"), "\n")
       }
     })
     return(invisible(x = NULL))
@@ -410,7 +410,7 @@ updateMetadataAssay <- function(object1, object2){
     rownames(obj) <- temp
     obj
   })
-  object1 <- methods::new("vrMetadata", molecule = object1$molecule, cell = object1$cell, spot = object1$spot, ROI = object1$ROI, tile = object1@tile)
+  object1 <- methods::new("vrMetadata", molecule = object1$molecule, cell = object1$cell, spot = object1$spot, ROI = object1$ROI, tile = object1$tile)
 
   # get assay types
   object_list <- slotToList(object2)
@@ -429,7 +429,7 @@ updateMetadataAssay <- function(object1, object2){
     rownames(obj) <- temp
     obj
   })
-  object2 <- methods::new("vrMetadata", molecule = object2$molecule, cell = object2$cell, spot = object2$spot, ROI = object2$ROI, tile = object2@tile)
+  object2 <- methods::new("vrMetadata", molecule = object2$molecule, cell = object2$cell, spot = object2$spot, ROI = object2$ROI, tile = object2$tile)
 
   # return
   return(list(object1 = object1, object2 = object2))
