@@ -25,7 +25,7 @@
 #'
 #' @export
 #'
-importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, import_molecules = FALSE, ...)
+importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, overwrite_resolution = FALSE, import_molecules = FALSE, ...)
 {
   # cell assay
   message("Creating cell level assay ...")
@@ -45,7 +45,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 
   # image
   if(use_image){
-    suppressMessages(generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level))
+    suppressMessages(generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level, overwrite_resolution = overwrite_resolution))
     image_file <- paste0(dir.path, "/", morphology_image)
     if(file.exists(image_file)){
       image <-  image_read(image_file)
