@@ -98,6 +98,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// replacePatternInRcppVectorWrapper
+Rcpp::CharacterVector replacePatternInRcppVectorWrapper(Rcpp::CharacterVector textVector, const std::string& pattern, const std::string& replacement);
+RcppExport SEXP _VoltRon_replacePatternInRcppVectorWrapper(SEXP textVectorSEXP, SEXP patternSEXP, SEXP replacementSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type textVector(textVectorSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type pattern(patternSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type replacement(replacementSEXP);
+    rcpp_result_gen = Rcpp::wrap(replacePatternInRcppVectorWrapper(textVector, pattern, replacement));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 RcppExport SEXP createL(void *, void *);
 RcppExport SEXP tpsfx(void *, void *, void *);
@@ -109,6 +122,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_VoltRon_calculateMoransI", (DL_FUNC) &_VoltRon_calculateMoransI, 3},
     {"_VoltRon_build_snn_rank", (DL_FUNC) &_VoltRon_build_snn_rank, 1},
     {"_VoltRon_build_snn_number", (DL_FUNC) &_VoltRon_build_snn_number, 1},
+    {"_VoltRon_replacePatternInRcppVectorWrapper", (DL_FUNC) &_VoltRon_replacePatternInRcppVectorWrapper, 3},
     {"createL", (DL_FUNC) &createL, 2},
     {"tpsfx",   (DL_FUNC) &tpsfx,   3},
     {NULL, NULL, 0}
