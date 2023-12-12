@@ -396,6 +396,7 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #' @importFrom ggplot2 geom_rect
 #' @importFrom htmltools HTML
 #' @importFrom dplyr filter add_row tibble
+#' @importFrom ggrepel geom_label_repel
 #'
 demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
 {
@@ -415,9 +416,11 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
   # get the ui and server
   if (interactive()){
     ui <- fluidPage(
+
       # use javascript extensions for Shiny
       shinyjs::useShinyjs(),
 
+      # sidebar
       sidebarLayout(position = "left",
 
                     # Side bar
@@ -440,7 +443,8 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
                       # Subsets
                       fluidRow(
                         column(12,h4("Selected Sections")),
-                        column(12,htmlOutput("summary")),
+                        # column(12,htmlOutput("summary")),
+                        column(12, uiOutput("textbox_ui")),
                         br()
                       ),
 
@@ -475,14 +479,14 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
       selected_corners <- reactiveVal(dplyr::tibble(x = numeric(), y = numeric()))
 
       # selected corner list
-      selected_corners_list <- reactiveVal(dplyr::tibble(box = character()))
+      selected_corners_list_image <- reactiveVal(dplyr::tibble(box = character()))
+      selected_corners_list <- reactiveVal(list())
 
       # the image
       if(use_points){
         object_small <- resizeImage(object, size = scale_width)
         image_info_small <- magick::image_info(vrImages(object_small))
         coords <- as.data.frame(vrCoordinates(object_small, reg = FALSE))
-        # coords[,2] <- max(coords[,2]) - coords[,2] + min(coords[,2])
         pl <- ggplot() + geom_point(aes_string(x = "x", y = "y"), coords, size = 1.5, color = "black") +
           theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
                 axis.line=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
@@ -492,26 +496,69 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
         pl <- magick::image_ggplot(images)
       }
 
+      # counter for boxes
+      counter <- reactiveValues(n = 0)
+      output$textbox_ui <- renderUI({ textboxes() })
+      textboxes <- reactive({
+        n <- counter$n
+        if (n > 0) {
+          lapply(seq_len(n), function(i) {
+            column(12,textInput(inputId = paste0("region", i),
+                                label = paste0("Region ", i), value = paste0("Region ", i)))
+          })
+        }
+      })
+
       ### Main observable ####
       observe({
 
-        # update summary
-        output[["summary"]] <- renderUI({
-          if(nrow(selected_corners_list()) > 0){
-            corners <- selected_corners_list()$box
-            print_selected <- paste0("Subset ", 1:length(corners), ": ", corners)
-            htmltools::HTML(paste(print_selected, collapse = '<br/>'))
-          }
-        })
+        # # update summary
+        # output[["summary"]] <- renderUI({
+        #   if(nrow(selected_corners_list_image()) > 0){
+        #     corners <- selected_corners_list_image()$box
+        #     print_selected <- paste0("Subset ", 1:length(corners), ": ", corners)
+        #     htmltools::HTML(paste(print_selected, collapse = '<br/>'))
+        #   }
+        # })
 
         # output image
         output[["cropped_image"]] <- renderPlot({
-          corners <- apply(as.matrix(selected_corners()),2,as.numeric)
-          if(nrow(selected_corners()) > 1){
-            pl <- pl +
-              ggplot2::geom_rect(aes(xmin = corners[1,1], xmax = corners[2,1], ymin = corners[1,2], ymax = corners[2,2]),
-                                 fill = "green", alpha = 0.3, color = "black")
+
+          # visualize already selected boxes
+          if(length(selected_corners_list()) > 0){
+            for (i in 1:length(selected_corners_list())){
+              corners <- apply(as.matrix(selected_corners_list()[[i]]),2,as.numeric)
+              if(nrow(corners) > 1){
+                corners <- as.data.frame(rbind(cbind(corners[1,1], corners[1:2,2]), cbind(corners[2,1], corners[2:1,2])))
+                colnames(corners) <- c("x", "y")
+                pl <- pl + ggplot2::geom_polygon(aes(x = x, y = y), data = corners, alpha = 0.3, fill = "green", color = "black")
+
+              }
+            }
           }
+
+          # add currently selected points
+          if(nrow(selected_corners()) > 1){
+            corners <- apply(as.matrix(selected_corners()),2,as.numeric)
+            corners <- as.data.frame(rbind(cbind(corners[1,1], corners[1:2,2]), cbind(corners[2,1], corners[2:1,2])))
+            colnames(corners) <- c("x", "y")
+            pl <- pl + ggplot2::geom_polygon(aes(x = x, y = y), data = corners, alpha = 0.3, fill = "green", color = "black")
+          }
+
+          # put labels of the already selected polygons
+          if(length(selected_corners_list()) > 0){
+            for (i in 1:length(selected_corners_list())){
+              corners <- selected_corners_list()[[i]]
+              corners <- as.data.frame(rbind(cbind(corners[1,1], corners[1:2,2]), cbind(corners[2,1], corners[2:1,2])))
+              corners <- data.frame(x = mean(corners[,1]), y = max(corners[,2]), region = paste("Region ", i))
+              pl <- pl +
+                ggrepel::geom_label_repel(mapping = aes(x = x, y = y, label = region), data = corners,
+                                          size = 5, direction = "y", nudge_y = 6, box.padding = 0, label.padding = 1, seed = 1, color = "red")
+
+            }
+          }
+
+          # return graph
           pl
         })
       })
@@ -525,12 +572,20 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
       ## add box ####
       observeEvent(input$addbox, {
         if(nrow(selected_corners()) == 2){
+
+          # get corners
           next_ind <- length(selected_corners_list()) + 1
           corners <- selected_corners()
+
+          # record corners
+          selected_corners_list(c(selected_corners_list(), list(corners)))
 
           # adjust corners
           corners <- corners*scale_factor
           corners <- apply(corners,2,ceiling)
+
+          # Track the number of input boxes to render
+          counter$n <- counter$n + 1
 
           # fix for limits
           corners[1,1] <- ifelse(corners[1,1] < 0, 0, corners[1,1])
@@ -548,9 +603,9 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
                             min(corners[,1]), "+", imageinfo$height - max(corners[,2]))
 
           # add to box list
-          selected_corners_list() %>%
+          selected_corners_list_image() %>%
             dplyr::add_row(box = corners) %>%
-            selected_corners_list()
+            selected_corners_list_image()
           selected_corners() %>%
             dplyr::filter(FALSE) %>% selected_corners()
         }
@@ -572,9 +627,9 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
 
       ## select points on the image ####
       observeEvent(input$done, {
-        if(nrow(selected_corners_list()) > 0){
+        if(nrow(selected_corners_list_image()) > 0){
           subsets <- list()
-          box_list <- selected_corners_list()
+          box_list <- selected_corners_list_image()
           sample_names <- paste0("Sample", 1:length(box_list$box))
           print(sample_names)
           for(i in 1:length(box_list$box)){
