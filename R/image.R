@@ -503,8 +503,8 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
         n <- counter$n
         if (n > 0) {
           lapply(seq_len(n), function(i) {
-            column(12,textInput(inputId = paste0("region", i),
-                                label = paste0("Region ", i), value = paste0("Region ", i)))
+            column(12,textInput(inputId = paste0("sample", i),
+                                label = paste0("Sample ", i), value = paste0("Sample ", i)))
           })
         }
       })
@@ -550,9 +550,13 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
             for (i in 1:length(selected_corners_list())){
               corners <- selected_corners_list()[[i]]
               corners <- as.data.frame(rbind(cbind(corners[1,1], corners[1:2,2]), cbind(corners[2,1], corners[2:1,2])))
-              corners <- data.frame(x = mean(corners[,1]), y = max(corners[,2]), region = paste("Region ", i))
+              if(is.null(input[[paste0("sample",i)]])){
+                corners <- data.frame(x = mean(corners[,1]), y = max(corners[,2]), sample = paste0("Sample ",i))
+              } else {
+                corners <- data.frame(x = mean(corners[,1]), y = max(corners[,2]), sample = input[[paste0("sample",i)]])
+              }
               pl <- pl +
-                ggrepel::geom_label_repel(mapping = aes(x = x, y = y, label = region), data = corners,
+                ggrepel::geom_label_repel(mapping = aes(x = x, y = y, label = sample), data = corners,
                                           size = 5, direction = "y", nudge_y = 6, box.padding = 0, label.padding = 1, seed = 1, color = "red")
 
             }
@@ -630,8 +634,12 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
         if(nrow(selected_corners_list_image()) > 0){
           subsets <- list()
           box_list <- selected_corners_list_image()
-          sample_names <- paste0("Sample", 1:length(box_list$box))
+          # sample_names <- paste0("Sample", 1:length(box_list$box))
+
+          # collect labels
+          sample_names <- sapply(1:length(box_list$box), function(i) input[[paste0("sample",i)]])
           print(sample_names)
+
           for(i in 1:length(box_list$box)){
             temp <- subset(object, image = box_list$box[i])
             temp$Sample <- sample_names[i]
