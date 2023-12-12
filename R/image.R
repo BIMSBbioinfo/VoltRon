@@ -245,9 +245,10 @@ modulateImage.vrAssay <- function(object, brightness = 100, saturation = 100, hu
 #' @param dir.path Xenium output folder
 #' @param increase.contrast increase the contrast of the image before writing
 #' @param resolution_level the level of resolution within Xenium OME-TIFF image. Default: 7 (553x402)
+#' @param overwrite_resolution if TRUE, the image "file.name" will be generated again although it exists at "dir.path"
 #' @param output.path The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.
 #' @param file.name the name of the lowred morphology image. Default: morphology_lowres.tif
-#' @param ... additional parameters passed to the EBImage::writeImage function
+#' @param ... additional parameters passed to the \code{EBImage::writeImage} function
 #'
 #' @importFrom EBImage writeImage
 #'
@@ -259,14 +260,14 @@ modulateImage.vrAssay <- function(object, brightness = 100, saturation = 100, hu
 #'
 #' @export
 #'
-generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_level = 7, output.path = NULL, file.name = "morphology_lowres.tif", ...) {
+generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_level = 7, overwrite_resolution = FALSE, output.path = NULL, file.name = "morphology_lowres.tif", ...) {
 
   # file path to either Xenium output folder or specified folder
   file.path <- paste0(dir.path, "/", file.name)
   output.file <- paste0(output.path, "/", file.name)
 
   # check if the file exists in either Xenium output folder, or the specified location
-  if(file.exists(file.path) | file.exists(paste0(output.file))){
+  if((file.exists(file.path) | file.exists(paste0(output.file))) & !overwrite_resolution){
     message(paste0(file.name, " already exists!"))
   } else {
     message("Loading morphology_mip.ome.tif \n")
