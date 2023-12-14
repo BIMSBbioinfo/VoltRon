@@ -25,3 +25,7 @@ build_snn_number <- function(neighbors) {
     .Call('_VoltRon_build_snn_number', PACKAGE = 'VoltRon', neighbors)
 }
 
+replacePatternInRcppVectorWrapper <- function(textVector, pattern, replacement) {
+    .Call('_VoltRon_replacePatternInRcppVectorWrapper', PACKAGE = 'VoltRon', textVector, pattern, replacement)
+}
+
