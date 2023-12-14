@@ -66,6 +66,8 @@ vrSpatialFeaturePlot(
 
 \item{background}{the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)}
 
+\item{reg}{if TRUE, the registered coordinates will be used}
+
 \item{crop}{whether to crop an image of a spot assay}
 
 \item{common.legend}{whether to use a common legend for all plots}

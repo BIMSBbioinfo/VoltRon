@@ -4,7 +4,7 @@
 \alias{convertAnnDataToVoltRon}
 \title{convertAnnDataToVoltRon}
 \usage{
-convertAnnDataToVoltRon(file, AssayID = NULL, Sample = NULL, ...)
+convertAnnDataToVoltRon(file, AssayID = NULL, ...)
 }
 \arguments{
 \item{file}{h5ad file}

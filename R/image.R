@@ -42,6 +42,7 @@ vrImages.vrLayer <- function(object, ...){
 
 #' @param object A vrAssay object
 #' @param main_image the name of the main image
+#' @param as.raster if TRUE, return as raster matrix
 #'
 #' @rdname vrImages
 #' @method vrImages vrAssay
@@ -122,7 +123,6 @@ vrImageNames.vrAssay <- function(object){
   return(names(object@image))
 }
 
-#'
 #' @rdname vrMainImage
 #' @method vrMainImage vrAssay
 #'
@@ -132,6 +132,7 @@ vrMainImage.vrAssay <- function(object){
   return(object@main_image)
 }
 
+#' @param value the name of main image
 #'
 #' @rdname vrMainImage
 #' @method vrMainImage<- vrAssay

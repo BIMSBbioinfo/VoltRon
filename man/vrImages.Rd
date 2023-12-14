@@ -33,6 +33,8 @@ vrImages(object, ...) <- value
 
 \item{main_image}{the name of the main image}
 
+\item{as.raster}{if TRUE, return as raster matrix}
+
 \item{reg}{TRUE if registered coordinates are assigned}
 }
 \value{

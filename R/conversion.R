@@ -4,6 +4,7 @@
 
 #' @param object A Seurat object
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
+#' @param assay_name the assay name
 #' @param ... Additional parameter passed to \code{formVoltRon}
 #'
 #' @rdname as.VoltRon
@@ -80,7 +81,7 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
 #'
 #' @export
 #'
-convertAnnDataToVoltRon <- function(file, AssayID = NULL, Sample = NULL, ...){
+convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
 
   # read anndata
   adata <- anndata::read_h5ad(file)
@@ -250,7 +251,7 @@ as.AnnData.VoltRon <- function(object, file, assay = NULL, image_key = "fov", ty
   NULL
 }
 
-#' @param vrimage VoltRon image
+#' @param object VoltRon image
 #' @param out_path output path to ome.zarr
 #' @param image_id image name
 #'
@@ -310,7 +311,7 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "main_image")
   return(success)
 }
 
-#' @param vrimage VoltRon image
+#' @param object a VoltRon image
 #' @param out_path output path to ome.zarr
 #' @param image_id image name
 #'

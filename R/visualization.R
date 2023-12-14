@@ -47,11 +47,6 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
   if(is.character(object)){
     if(grepl(".zarr$", object)){
 
-      # check Seurat package
-      if(!requireNamespace('vitessceR'))
-        stop("Please install vitessceR package for using Seurat objects")
-
-
       return(vrSpatialPlotInteractive(zarr.file = object, group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, assay = assay,
                                       reduction = reduction, background = background, reg = reg,  crop = crop))
     }
@@ -352,7 +347,7 @@ vrSpatialPlotInteractive <- function(zarr.file, group.by = "Sample", plot.segmen
 
   if(is.null(reduction)){
     vc$layout(
-      hconcat(spatial, cell_sets)
+      vitessceR::hconcat(spatial, cell_sets)
     )
   } else {
     umap <- vc$add_view(dataset, vitessceR::Component$SCATTERPLOT, mapping = reduction)
@@ -390,6 +385,7 @@ vrSpatialPlotInteractive <- function(zarr.file, group.by = "Sample", plot.segmen
 #' @param keep.scale whether unify all scales for all features or not
 #' @param label if TRUE, labels of ROIs will be visualized too
 #' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
+#' @param reg if TRUE, the registered coordinates will be used
 #' @param crop whether to crop an image of a spot assay
 #' @param common.legend whether to use a common legend for all plots
 #' @param collapse whether to combine all ggplots
