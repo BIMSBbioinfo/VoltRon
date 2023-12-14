@@ -35,9 +35,6 @@ getProfileNeighbors(object, ...)
 
 \item{graph.key}{the name of the graph}
 }
-\value{
-Returns object after normalization
-}
 \description{
 get neighbors in an assay given omic profiles
 }

@@ -37,9 +37,6 @@ vrImages(object, ...) <- value
 
 \item{reg}{TRUE if registered coordinates are assigned}
 }
-\value{
-\code{vrImages}: The name of the default assay
-}
 \description{
 Get images of a VoltRon assay
 }

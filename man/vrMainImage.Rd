@@ -22,11 +22,6 @@ vrMainImage(object, ...) <- value
 
 \item{value}{the name of main image}
 }
-\value{
-\code{vrMainImage}: The name of the default assay
-
-\code{vrMainImage}: The name of the default assay
-}
 \description{
 Get the main image
 

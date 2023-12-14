@@ -16,9 +16,6 @@ vrGraphNames(object, ...)
 
 \item{assay}{assay}
 }
-\value{
-\code{vrGraphNames}: The names of all graphs
-}
 \description{
 Get names of all graphs
 }

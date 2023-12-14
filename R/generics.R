@@ -9,8 +9,6 @@ NULL
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return Returns object after normalization
-#'
 #' @rdname normalizeData
 #' @export
 #'
@@ -25,8 +23,6 @@ normalizeData <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{Metadata}: The name of the default assay
-#'
 #' @rdname Metadata
 #' @export Metadata
 #'
@@ -37,8 +33,6 @@ Metadata <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #' @param value metadata
-#'
-#' @return \code{Metadata<-}: The coordinates updated
 #'
 #' @rdname Metadata
 #' @export Metadata<-
@@ -54,8 +48,6 @@ Metadata <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{SampleMetadata}: The name of the default assay
-#'
 #' @rdname SampleMetadata
 #' @export SampleMetadata
 #'
@@ -69,8 +61,6 @@ SampleMetadata <- function(object, ...) {
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
-#'
-#' @return \code{addAssay}: The name of the default assay
 #'
 #' @rdname addAssay
 #' @export addAssay
@@ -86,8 +76,6 @@ addAssay <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{vrAssayNames}: The name of the default assay
-#'
 #' @rdname vrAssayNames
 #' @export vrAssayNames
 #'
@@ -98,8 +86,6 @@ vrAssayNames <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #' @param value assay name
-#'
-#' @return \code{vrAssayNames<-}: The coordinates updated
 #'
 #' @rdname vrAssayNames
 #' @export vrAssayNames<-
@@ -115,8 +101,6 @@ vrAssayNames <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{vrEmbeddingNames}: The name of embeddings
-#'
 #' @rdname vrEmbeddingNames
 #' @export vrEmbeddingNames
 #'
@@ -130,8 +114,6 @@ vrEmbeddingNames <- function(object, ...) {
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
-#'
-#' @return \code{changeSampleNames}: The name of the default assay
 #'
 #' @rdname changeSampleNames
 #' @export changeSampleNames
@@ -148,8 +130,6 @@ changeSampleNames <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{vrAssayTypes}: The name of the default assay
-#'
 #' @rdname vrAssayTypes
 #' @export vrAssayTypes
 #'
@@ -164,8 +144,6 @@ vrAssayTypes <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{vrMainAssay}: The name of the default assay
-#'
 #' @rdname vrMainAssay
 #' @export vrMainAssay
 #'
@@ -176,8 +154,6 @@ vrMainAssay <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #' @param value assay name
-#'
-#' @return \code{vrMainAssay<-}: The name of the default assay updated
 #'
 #' @rdname vrMainAssay
 #' @export vrMainAssay<-
@@ -232,8 +208,6 @@ vrFeatures <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{vrFeatureData}: The name of the default assay
-#'
 #' @rdname vrFeatureData
 #' @export vrFeatureData
 #'
@@ -259,8 +233,6 @@ vrFeatureData <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{vrData}: The name of the default assay
-#'
 #' @rdname vrData
 #' @export vrData
 #'
@@ -275,8 +247,6 @@ vrData <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{vrGraph}: The name of the default assay
-#'
 #' @rdname vrGraph
 #' @export vrGraph
 #'
@@ -287,8 +257,6 @@ vrGraph <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #' @param value an igraph object
-#'
-#' @return \code{vrGraph<-}: graph updated
 #'
 #' @rdname vrGraph
 #' @export vrGraph<-
@@ -303,8 +271,6 @@ vrGraph <- function(object, ...) {
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
-#'
-#' @return \code{vrGraphNames}: The names of all graphs
 #'
 #' @rdname vrGraphNames
 #' @export vrGraphNames
@@ -321,8 +287,6 @@ vrGraphNames <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return Returns object after normalization
-#'
 #' @rdname getProfileNeighbors
 #' @export getProfileNeighbors
 #'
@@ -337,8 +301,6 @@ getProfileNeighbors <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return Returns object after normalization
-#'
 #' @rdname getSpatialNeighbors
 #' @export getSpatialNeighbors
 #'
@@ -352,8 +314,6 @@ getSpatialNeighbors <- function(object, ...) {
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
-#'
-#' @return Returns object after normalization
 #'
 #' @rdname getFeatures
 #' @export getFeatures
@@ -370,8 +330,6 @@ getFeatures <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{vrCoordinates}: The name of the default assay
-#'
 #' @rdname vrCoordinates
 #' @export vrCoordinates
 #'
@@ -382,8 +340,6 @@ vrCoordinates <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #' @param value coordinates
-#'
-#' @return \code{vrCoordinates<-}: The coordinates updated
 #'
 #' @rdname vrCoordinates
 #' @export vrCoordinates<-
@@ -399,8 +355,6 @@ vrCoordinates <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{flipCoordinates}: The name of the default assay
-#'
 #' @rdname flipCoordinates
 #' @export flipCoordinates
 #'
@@ -415,8 +369,6 @@ flipCoordinates <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{vrSegments}: The name of the default assay
-#'
 #' @rdname vrSegments
 #' @export vrSegments
 #'
@@ -427,8 +379,6 @@ vrSegments <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #' @param value segments
-#'
-#' @return \code{vrSegments<-}: The coordinates updated
 #'
 #' @rdname vrSegments
 #' @export vrSegments<-
@@ -444,8 +394,6 @@ vrSegments <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{vrDistances}: The name of the default assay
-#'
 #' @rdname vrDistances
 #' @export vrDistances
 #'
@@ -459,8 +407,6 @@ vrDistances <- function(object, ...) {
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
-#'
-#' @return \code{vrEmbeddings}: The name of the default assay
 #'
 #' @rdname vrEmbeddings
 #' @export vrEmbeddings
@@ -515,8 +461,6 @@ getUMAP <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{vrImages}: The name of the default assay
-#'
 #' @rdname vrImages
 #' @export vrImages
 #'
@@ -542,8 +486,6 @@ vrImages <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{vrImageNames}: The name of the default assay
-#'
 #' @rdname vrImageNames
 #' @export vrImageNames
 #'
@@ -557,8 +499,6 @@ vrImageNames <- function(object, ...) {
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
-#'
-#' @return \code{vrMainImage}: The name of the default assay
 #'
 #' @rdname vrMainImage
 #' @export vrMainImage
@@ -574,12 +514,10 @@ vrMainImage <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{vrMainImage}: The name of the default assay
-#'
 #' @rdname vrMainImage
 #' @export vrMainImage<-
 #'
-"vrMainImage<-" <- function(object, ...) {
+"vrMainImage<-" <- function(object, ..., value) {
   UseMethod(generic = 'vrMainImage<-', object = object)
 }
 
@@ -590,8 +528,6 @@ vrMainImage <- function(object, ...) {
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
-#'
-#' @return \code{resizeImage}: The name of the default assay
 #'
 #' @rdname resizeImage
 #' @export resizeImage
@@ -607,7 +543,6 @@ resizeImage <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{modulateImage}: The name of the default assay
 #'
 #' @rdname modulateImage
 #' @export modulateImage
@@ -623,8 +558,6 @@ modulateImage <- function(object, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{as.Seurat}: The name of the default assay
-#'
 #' @rdname as.Seurat
 #' @export as.Seurat
 #'
@@ -638,8 +571,6 @@ as.Seurat <- function(object, ...) {
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
-#'
-#' @return \code{as.AnnData}: The name of the default assay
 #'
 #' @rdname as.AnnData
 #' @export as.AnnData
@@ -657,8 +588,6 @@ as.AnnData <- function(object, ...) {
 #' @param image_id image name
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{as.Zarr}: The name of the default assay
-#'
 #' @rdname as.Zarr
 #' @export as.Zarr
 #'
@@ -674,8 +603,6 @@ as.Zarr <- function(object, out_path, image_id, ...) {
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @return \code{as.Giotto}: The name of the default assay
-#'
 #' @rdname as.Giotto
 #' @export as.Giotto
 #'
@@ -689,8 +616,6 @@ as.Giotto <- function(object, ...) {
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
-#'
-#' @return \code{as.VoltRon}: The name of the default assay
 #'
 #' @rdname as.VoltRon
 #' @export as.VoltRon

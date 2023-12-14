@@ -28,9 +28,6 @@ as.AnnData(object, ...)
 
 \item{type}{the spatial data type of Seurat object: "image" or "spatial"}
 }
-\value{
-\code{as.AnnData}: The name of the default assay
-}
 \description{
 Generic methods for conversion into a AnnData object
 }

@@ -32,11 +32,6 @@ vrSegments(object, ...) <- value
 
 \item{assay}{assay}
 }
-\value{
-\code{vrSegments}: The name of the default assay
-
-\code{vrSegments<-}: The coordinates updated
-}
 \description{
 Get and set the segments of spatian points of the main assay
 }

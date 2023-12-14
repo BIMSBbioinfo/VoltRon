@@ -17,9 +17,6 @@ flipCoordinates(object, ...)
 
 \item{...}{Arguments passed to other methods}
 }
-\value{
-\code{flipCoordinates}: The name of the default assay
-}
 \description{
 Flip the coordinates of the spatial points in the y axis direction
 }

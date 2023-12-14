@@ -23,9 +23,6 @@ getFeatures(object, ...)
 
 \item{n}{the number of features}
 }
-\value{
-Returns object after normalization
-}
 \description{
 get spatially variable features in an assay
 }

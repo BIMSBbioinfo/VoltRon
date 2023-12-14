@@ -19,9 +19,6 @@ resizeImage(object, ...)
 
 \item{size}{the width of the resized image}
 }
-\value{
-\code{resizeImage}: The name of the default assay
-}
 \description{
 Resizing Magick images
 }

@@ -33,9 +33,6 @@ normalizeData(object, ...)
 
 \item{sizefactor}{size factor if \code{method} is selected as \code{LogNorm}}
 }
-\value{
-Returns object after normalization
-}
 \description{
 Normalize the count data present in a given assay.
 }

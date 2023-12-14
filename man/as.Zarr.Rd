@@ -21,9 +21,6 @@ as.Zarr(object, out_path, image_id, ...)
 
 \item{...}{Arguments passed to other methods}
 }
-\value{
-\code{as.Zarr}: The name of the default assay
-}
 \description{
 Generic methods for conversion into a Seurat object
 }

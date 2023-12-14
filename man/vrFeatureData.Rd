@@ -30,9 +30,6 @@ vrFeatureData(object, ...) <- value
 
 \item{assay}{assay}
 }
-\value{
-\code{vrFeatureData}: The name of the default assay
-}
 \description{
 Get and set feature data from the main.assay
 }
