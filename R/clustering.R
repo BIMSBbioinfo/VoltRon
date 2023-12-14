@@ -11,6 +11,7 @@ NULL
 #' @param dims the set of dimensions of the embedding data
 #' @param k number of neighbors for kNN
 #' @param method the method used for graph construction, SNN or kNN
+#' @param graph.key the name of the graph
 #' @param ... additional parameters passed to \code{FNN:get.knn}
 #'
 #' @rdname getProfileNeighbors
@@ -82,6 +83,7 @@ getProfileNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca",
 #' @param assay assay
 #' @param label the name for the newly created clustering column in the metadata
 #' @param graph the graph type to be used
+#' @param seed seed
 #'
 #' @importFrom igraph cluster_leiden
 #' @export

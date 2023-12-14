@@ -138,8 +138,13 @@ annotateSpatialData <- function(object, label, assay = NULL, ...) {
         n <- counter$n
         if (n > 0) {
           lapply(seq_len(n), function(i) {
+            if(is.null(input[[paste0("region",i)]])){
               column(12,textInput(inputId = paste0("region", i),
                                   label = paste0("Region ", i), value = paste0("Region ", i)))
+            } else {
+              column(12,textInput(inputId = paste0("region", i),
+                                  label = paste0("Region ", i), value = input[[paste0("region",i)]]))
+            }
           })
         }
       })
@@ -168,7 +173,11 @@ annotateSpatialData <- function(object, label, assay = NULL, ...) {
         if(length(selected_corners_list()) > 0){
           for (i in 1:length(selected_corners_list())){
             cur_corners <- selected_corners_list()[[i]]
-            cur_corners <- data.frame(x = mean(cur_corners[,1]), y = max(cur_corners[,2]), region = paste("Region ", i))
+            if(is.null(input[[paste0("sample",i)]])){
+              cur_corners <- data.frame(x = mean(cur_corners[,1]), y = max(cur_corners[,2]), region = paste("Region ", i))
+            } else {
+              cur_corners <- data.frame(x = mean(cur_corners[,1]), y = max(cur_corners[,2]), region = input[[paste0("region",i)]])
+            }
             g <- g +
               ggrepel::geom_label_repel(mapping = aes(x = x, y = y, label = region), data = cur_corners,
                                         size = 5, direction = "y", nudge_y = 6, box.padding = 0, label.padding = 1, seed = 1, color = "red")

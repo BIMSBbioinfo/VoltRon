@@ -19,6 +19,8 @@ vrMainImage(object, ...) <- value
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{value}{the name of main image}
 }
 \value{
 \code{vrMainImage}: The name of the default assay

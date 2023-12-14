@@ -23,6 +23,8 @@ getClusters(
 \item{label}{the name for the newly created clustering column in the metadata}
 
 \item{graph}{the graph type to be used}
+
+\item{seed}{seed}
 }
 \description{
 Get clustering of the VoltRon object

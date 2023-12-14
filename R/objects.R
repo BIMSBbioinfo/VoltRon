@@ -1045,7 +1045,11 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
       if(length(new_columns) > 0){
         value <- value[,c(colnames(metadata), new_columns)]
         for(cur_col in new_columns){
-          metadata[[cur_col]] <- ""
+          if(is.numeric(value[[cur_col]])){
+            metadata[[cur_col]] <- NA
+          } else {
+            metadata[[cur_col]] <- ""
+          }
         }
       }
 
