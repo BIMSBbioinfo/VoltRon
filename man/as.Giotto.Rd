@@ -11,9 +11,6 @@ as.Giotto(object, ...)
 
 \item{...}{Arguments passed to other methods}
 }
-\value{
-\code{as.Giotto}: The name of the default assay
-}
 \description{
 Generic methods for conversion into a Giotto object
 }

@@ -26,11 +26,6 @@ Metadata(object, ...) <- value
 
 \item{type}{the assay type: ROI, spot or cell}
 }
-\value{
-\code{Metadata}: The name of the default assay
-
-\code{Metadata<-}: The coordinates updated
-}
 \description{
 Get the metadata
 }

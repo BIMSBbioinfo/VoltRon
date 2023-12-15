@@ -14,9 +14,6 @@ SampleMetadata(object, ...)
 
 \item{...}{Arguments passed to other methods}
 }
-\value{
-\code{SampleMetadata}: The name of the default assay
-}
 \description{
 Get the sample metadata
 }

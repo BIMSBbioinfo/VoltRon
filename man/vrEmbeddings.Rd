@@ -34,9 +34,6 @@ vrEmbeddings(object, ...) <- value
 
 \item{assay}{assay}
 }
-\value{
-\code{vrEmbeddings}: The name of the default assay
-}
 \description{
 Get embeddings of spatial points
 }

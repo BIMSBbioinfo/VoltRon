@@ -19,9 +19,6 @@ vrEmbeddingNames(object, ...)
 
 \item{assay}{assay}
 }
-\value{
-\code{vrEmbeddingNames}: The name of embeddings
-}
 \description{
 Given a VoltRon object, give names of embeddings
 }

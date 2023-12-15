@@ -18,9 +18,6 @@ vrDistances(object, ...)
 
 \item{...}{Arguments passed to other methods}
 }
-\value{
-\code{vrDistances}: The name of the default assay
-}
 \description{
 Get distances between spatial points using coordinates
 }

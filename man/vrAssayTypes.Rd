@@ -19,9 +19,6 @@ vrAssayTypes(object, ...)
 
 \item{assay}{assay}
 }
-\value{
-\code{vrAssayTypes}: The name of the default assay
-}
 \description{
 Given a VoltRon object, give types of assays of some type, or of the main assay.
 Here, an assay type is of either cell, spot or ROI.

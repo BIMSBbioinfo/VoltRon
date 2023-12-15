@@ -23,9 +23,6 @@ modulateImage(object, ...)
 
 \item{hue}{modulation of hue is an absolute rotation of -180 degrees to +180 degrees from the current position corresponding to an argument range of 0 to 200 (100 for no change)}
 }
-\value{
-\code{modulateImage}: The name of the default assay
-}
 \description{
 Modulating Magick images
 }

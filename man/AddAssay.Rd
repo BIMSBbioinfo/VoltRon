@@ -41,9 +41,6 @@ addAssay(object, ...)
 
 \item{layer}{layer name}
 }
-\value{
-\code{addAssay}: The name of the default assay
-}
 \description{
 add assay to the object
 }

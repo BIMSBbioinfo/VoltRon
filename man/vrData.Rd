@@ -23,9 +23,6 @@ vrData(object, ...)
 
 \item{assay}{assay}
 }
-\value{
-\code{vrData}: The name of the default assay
-}
 \description{
 Get data from the main.assay
 }

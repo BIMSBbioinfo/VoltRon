@@ -32,11 +32,6 @@ vrCoordinates(object, ...) <- value
 
 \item{assay}{assay}
 }
-\value{
-\code{vrCoordinates}: The name of the default assay
-
-\code{vrCoordinates<-}: The coordinates updated
-}
 \description{
 Get and set the coordinates of the main assay
 }

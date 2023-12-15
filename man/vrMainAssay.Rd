@@ -22,11 +22,6 @@ vrMainAssay(object, ...) <- value
 
 \item{value}{new assay name}
 }
-\value{
-\code{vrMainAssay}: The name of the default assay
-
-\code{vrMainAssay<-}: The name of the default assay updated
-}
 \description{
 Get and set the main assay
 }

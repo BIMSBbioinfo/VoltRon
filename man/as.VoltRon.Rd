@@ -18,9 +18,6 @@ as.VoltRon(object, ...)
 
 \item{assay_name}{the assay name}
 }
-\value{
-\code{as.VoltRon}: The name of the default assay
-}
 \description{
 Generic methods for conversion into a VoltRon object
 }

@@ -18,9 +18,6 @@ getSpatialNeighbors(object, ...)
 
 \item{method}{the method spatial connectivity}
 }
-\value{
-Returns object after normalization
-}
 \description{
 get neighbors in an assay given spatial coordinates
 }
