@@ -939,7 +939,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, a
 
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
-    if(feat %in% rownames(normdata)){
+    if(feat %in% vrFeatures(object)){
       return(range(normdata[feat, ]))
     } else {
       if(feat %in% colnames(metadata)){
@@ -961,7 +961,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, a
   for(feat in features){
 
     # get data
-    if(feat %in% rownames(normdata)){
+    if(feat %in% vrFeatures(object)){
       datax$score <- normdata[feat,]
     } else {
       datax$score <- metadata[,feat]
