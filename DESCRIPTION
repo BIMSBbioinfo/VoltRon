@@ -25,6 +25,7 @@ Collate:
     'generics.R'
     'clustering.R'
     'conversion.R'
+    'data.R'
     'deconvolution.R'
     'differentialexpression.R'
     'image.R'
@@ -53,3 +54,4 @@ Suggests:
     vitessceR,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+LazyData: true
