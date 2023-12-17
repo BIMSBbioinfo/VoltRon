@@ -15,9 +15,8 @@ as.VoltRon(object, ...)
 \item{...}{Additional parameter passed to \code{formVoltRon}}
 
 \item{type}{the spatial data type of Seurat object: "image" or "spatial"}
-}
-\value{
-\code{as.VoltRon}: The name of the default assay
+
+\item{assay_name}{the assay name}
 }
 \description{
 Generic methods for conversion into a VoltRon object

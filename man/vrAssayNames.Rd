@@ -27,11 +27,6 @@ vrAssayNames(object, ...) <- value
 
 \item{assay}{assay}
 }
-\value{
-\code{vrAssayNames}: The name of the default assay
-
-\code{vrAssayNames<-}: The coordinates updated
-}
 \description{
 Given a VoltRon object, give names of assays of some type, or main assay.
 }

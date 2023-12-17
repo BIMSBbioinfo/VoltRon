@@ -138,8 +138,13 @@ annotateSpatialData <- function(object, label, assay = NULL, ...) {
         n <- counter$n
         if (n > 0) {
           lapply(seq_len(n), function(i) {
+            if(is.null(input[[paste0("region",i)]])){
               column(12,textInput(inputId = paste0("region", i),
                                   label = paste0("Region ", i), value = paste0("Region ", i)))
+            } else {
+              column(12,textInput(inputId = paste0("region", i),
+                                  label = paste0("Region ", i), value = input[[paste0("region",i)]]))
+            }
           })
         }
       })

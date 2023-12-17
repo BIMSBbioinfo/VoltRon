@@ -32,9 +32,8 @@ getProfileNeighbors(object, ...)
 \item{k}{number of neighbors for kNN}
 
 \item{method}{the method used for graph construction, SNN or kNN}
-}
-\value{
-Returns object after normalization
+
+\item{graph.key}{the name of the graph}
 }
 \description{
 get neighbors in an assay given omic profiles

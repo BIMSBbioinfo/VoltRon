@@ -139,7 +139,6 @@ vrImageNames.vrAssay <- function(object){
   return(names(object@image))
 }
 
-#'
 #' @rdname vrMainImage
 #' @method vrMainImage vrAssay
 #'
@@ -149,6 +148,7 @@ vrMainImage.vrAssay <- function(object){
   return(object@main_image)
 }
 
+#' @param value the name of main image
 #'
 #' @rdname vrMainImage
 #' @method vrMainImage<- vrAssay
@@ -463,7 +463,6 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
                       # Subsets
                       fluidRow(
                         column(12,h4("Selected Sections")),
-                        # column(12,htmlOutput("summary")),
                         column(12, uiOutput("textbox_ui")),
                         br()
                       ),
@@ -523,23 +522,19 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
         n <- counter$n
         if (n > 0) {
           lapply(seq_len(n), function(i) {
-            column(12,textInput(inputId = paste0("sample", i),
-                                label = paste0("Sample ", i), value = paste0("Sample ", i)))
+            if(is.null(input[[paste0("sample",i)]])){
+              column(12,textInput(inputId = paste0("sample", i),
+                                  label = paste0("Sample ", i), value = paste0("Sample ", i)))
+            } else {
+              column(12,textInput(inputId = paste0("sample", i),
+                                  label = paste0("Sample ", i), value = input[[paste0("sample",i)]]))
+            }
           })
         }
       })
 
       ### Main observable ####
       observe({
-
-        # # update summary
-        # output[["summary"]] <- renderUI({
-        #   if(nrow(selected_corners_list_image()) > 0){
-        #     corners <- selected_corners_list_image()$box
-        #     print_selected <- paste0("Subset ", 1:length(corners), ": ", corners)
-        #     htmltools::HTML(paste(print_selected, collapse = '<br/>'))
-        #   }
-        # })
 
         # output image
         output[["cropped_image"]] <- renderPlot({
@@ -649,12 +644,11 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
         }
       })
 
-      ## select points on the image ####
+      ## done ####
       observeEvent(input$done, {
         if(nrow(selected_corners_list_image()) > 0){
           subsets <- list()
           box_list <- selected_corners_list_image()
-          # sample_names <- paste0("Sample", 1:length(box_list$box))
 
           # collect labels
           sample_names <- sapply(1:length(box_list$box), function(i) input[[paste0("sample",i)]])

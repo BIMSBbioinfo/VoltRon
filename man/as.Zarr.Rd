@@ -13,18 +13,13 @@ as.Zarr(object, out_path, image_id, ...)
 \method{as.Zarr}{`magick-image`}(object, out_path, image_id = "main_image")
 }
 \arguments{
-\item{object}{An object}
+\item{object}{a VoltRon image}
 
 \item{out_path}{output path to ome.zarr}
 
 \item{image_id}{image name}
 
 \item{...}{Arguments passed to other methods}
-
-\item{vrimage}{VoltRon image}
-}
-\value{
-\code{as.Zarr}: The name of the default assay
 }
 \description{
 Generic methods for conversion into a Seurat object

@@ -26,11 +26,6 @@ vrGraph(object, ...) <- value
 
 \item{graph.type}{the type of the graph, either custom or given by \code{getProfileNeighbors} or \code{getSpatialNeighbors} functions}
 }
-\value{
-\code{vrGraph}: The name of the default assay
-
-\code{vrGraph<-}: graph updated
-}
 \description{
 Get graph from the main.assay
 }

@@ -31,9 +31,6 @@ as.Seurat(object, ...)
 
 \item{reg}{if TRUE, registered coordinates will be used}
 }
-\value{
-\code{as.Seurat}: The name of the default assay
-}
 \description{
 Generic methods for conversion into a Seurat object
 }

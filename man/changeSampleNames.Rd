@@ -21,9 +21,6 @@ changeSampleNames(object, ...)
 
 \item{samples}{a single or a set of sample names}
 }
-\value{
-\code{changeSampleNames}: The name of the default assay
-}
 \description{
 change sample names of VoltRon or other objects
 

@@ -8,6 +8,7 @@ generateXeniumImage(
   dir.path,
   increase.contrast = TRUE,
   resolution_level = 7,
+  overwrite_resolution = FALSE,
   output.path = NULL,
   file.name = "morphology_lowres.tif",
   ...
@@ -20,11 +21,13 @@ generateXeniumImage(
 
 \item{resolution_level}{the level of resolution within Xenium OME-TIFF image. Default: 7 (553x402)}
 
+\item{overwrite_resolution}{if TRUE, the image "file.name" will be generated again although it exists at "dir.path"}
+
 \item{output.path}{The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.}
 
 \item{file.name}{the name of the lowred morphology image. Default: morphology_lowres.tif}
 
-\item{...}{additional parameters passed to the EBImage::writeImage function}
+\item{...}{additional parameters passed to the \code{EBImage::writeImage} function}
 }
 \description{
 Generate a low resolution DAPI image of the Xenium experiment

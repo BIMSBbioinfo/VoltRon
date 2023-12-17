@@ -19,9 +19,6 @@ vrImageNames(object, ...)
 
 \item{assay}{assay}
 }
-\value{
-\code{vrImageNames}: The name of the default assay
-}
 \description{
 Get names of all images
 }

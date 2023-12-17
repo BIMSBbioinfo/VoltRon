@@ -16,6 +16,7 @@
 #' @param use_image if TRUE, the DAPI image will be used.
 #' @param morphology_image the name of the lowred morphology image. Default: morphology_lowres.tif
 #' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)
+#' @param overwrite_resolution if TRUE, the image "file.name" will be generated again although it exists at "dir.path"
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'

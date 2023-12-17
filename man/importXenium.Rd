@@ -11,6 +11,7 @@ importXenium(
   use_image = TRUE,
   morphology_image = "morphology_lowres.tif",
   resolution_level = 7,
+  overwrite_resolution = FALSE,
   import_molecules = FALSE,
   ...
 )
@@ -27,6 +28,8 @@ importXenium(
 \item{morphology_image}{the name of the lowred morphology image. Default: morphology_lowres.tif}
 
 \item{resolution_level}{the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)}
+
+\item{overwrite_resolution}{if TRUE, the image "file.name" will be generated again although it exists at "dir.path"}
 
 \item{import_molecules}{if TRUE, molecule assay will be created along with cell assay.}
 
