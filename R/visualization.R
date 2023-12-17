@@ -554,7 +554,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 
   # data
   coords <- as.data.frame(vrCoordinates(assay, reg = reg))
-  normdata <- vrData(assay, norm = norm)
+  normdata <- vrData(assay, features = feature, norm = norm)
   if(log)
     normdata <- log(normdata)
 
@@ -923,8 +923,13 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, a
     metadata <- Metadata(object, type = assay.type)
   }
 
-  # get data and embedding
-  normdata <- vrData(object, assay = assay_names, norm = TRUE)
+  # get data
+  data_features <- features[features %in% vrFeatures(object)]
+  if(length(data_features) > 0){
+    normdata <- vrData(object, features = data_features, assay = assay_names, norm = TRUE)
+  }
+
+  # get embedding
   datax <- data.frame(vrEmbeddings(object, assay = assay_names, type = embedding))
   datax <- datax[,1:2]
   colnames(datax) <- c("x", "y")
