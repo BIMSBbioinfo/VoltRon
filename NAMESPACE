@@ -3,7 +3,6 @@
 S3method("$",VoltRon)
 S3method("$<-",VoltRon)
 S3method("Metadata<-",VoltRon)
-S3method("vrAssayNames<-",vrAssay)
 S3method("vrCoordinates<-",VoltRon)
 S3method("vrCoordinates<-",vrAssay)
 S3method("vrEmbeddings<-",VoltRon)
