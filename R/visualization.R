@@ -554,12 +554,15 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 
   # data
   coords <- as.data.frame(vrCoordinates(assay, reg = reg))
-  normdata <- vrData(assay, features = feature, norm = norm)
-  if(log)
-    normdata <- log(normdata)
+  data_features <- feature[feature %in% vrFeatures(assay)]
+  if(length(data_features) > 0){
+    normdata <- vrData(assay, features = feature, norm = norm)
+    if(log)
+      normdata <- log(normdata)
+  }
 
   # get data
-  if(feature %in% rownames(normdata)){
+  if(feature %in% data_features){
     coords$score <- normdata[feature,]
   } else {
     coords$score <- metadata[,feature]
