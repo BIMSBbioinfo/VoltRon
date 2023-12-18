@@ -107,8 +107,8 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
       stop("There are no file named 'transcripts.csv.gz' in the path")
     } else {
       # get subcellur data components
-      subcellular_data <- as.data.frame(data.table::fread(transcripts_file))
-      subcellular_data <- subcellular_data[,c("cell_id", colnames(subcellular_data)[!colnames(subcellular_data) %in% "cell_id"])]
+      subcellular_data <- data.table::fread(transcripts_file)
+      subcellular_data <- subcellular_data[,c("cell_id", colnames(subcellular_data)[!colnames(subcellular_data) %in% "cell_id"]), with = FALSE]
       subcellular_data <- subcellular_data[subcellular_data$qv >= 20, ]
       rownames(subcellular_data) <- subcellular_data$transcript_id
 
@@ -121,7 +121,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
       coords[,"y"] <- range_coords[2] - coords[,"y"]  + range_coords[1]
 
       # metadata
-      metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell_id", "transcript_id", "x_location", "y_location")]]
+      metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell_id", "transcript_id", "x_location", "y_location")], with = FALSE]
     }
 
     # create VoltRon object for molecules

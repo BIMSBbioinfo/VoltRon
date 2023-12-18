@@ -318,6 +318,7 @@ setMethod(
 #' @importFrom igraph make_empty_graph V
 #' @importFrom magick image_data image_read image_info
 #' @importFrom methods new
+#' @importFrom data.table data.table
 #'
 #' @export
 #'
@@ -370,11 +371,11 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
 
   # set meta data
   if(is.null(metadata)){
-    sr_metadata <- setVRMetadata(molecule = data.frame(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
+    sr_metadata <- setVRMetadata(molecule = data.table::data.table(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
     slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, row.names = entityID)
   } else {
     if(any(class(metadata) %in% c("data.frame", "matrix"))){
-      sr_metadata <- setVRMetadata(molecule = data.frame(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
+      sr_metadata <- setVRMetadata(molecule = data.table::data.table(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
       if(any(!rownames(metadata) %in% entityID_nopostfix)){
         stop("Entity IDs are not matching")
       } else {

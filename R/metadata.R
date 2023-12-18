@@ -18,7 +18,7 @@
 vrMetadata <- setClass(
   Class = 'vrMetadata',
   slots = c(
-    molecule = 'data.frame',
+    molecule = 'data.table',
     cell = 'data.frame',
     spot = 'data.frame',
     ROI = 'data.frame'
