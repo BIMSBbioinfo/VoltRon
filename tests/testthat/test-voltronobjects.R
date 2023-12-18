@@ -1,3 +1,60 @@
+# Testing functions of manipulating assays ####
+test_that("assay", {
+  data("visium_data")
+
+  # get assay names
+  expect_equal(vrAssayNames(visium_data), "Assay1")
+
+  # get assay object
+  print(visium_data[["Assay1"]])
+
+  # subset on assay name
+  visium_data_sub <- subset(visium_data, assays = "Assay1")
+
+  # subset on assay type
+  visium_data_sub <- subset(visium_data, assays = "Visium")
+
+  expect_equal(1,1L)
+})
+
+# Testing functions of manipulating samples ####
+test_that("sample", {
+  data("visium_data")
+
+  # get sample metadata
+  print(SampleMetadata(visium_data))
+
+  # change sample name
+  visium_data$Sample <- "Test_Sample_Name"
+
+  # check metadata
+  expect_equal(unique(visium_data$Sample), "Test_Sample_Name")
+
+  # check list name
+  expect_equal(unique(names(visium_data@samples)), "Test_Sample_Name")
+
+  # check metadata name
+  sample.metadata <- SampleMetadata(visium_data)
+  expect_equal(sample.metadata$Sample == "Test_Sample_Name", TRUE)
+
+  expect_equal(1,1L)
+})
+
+# Testing functions of manipulating spatialpoints ####
+test_that("spatialpoints", {
+  data("visium_data")
+
+  # get spatial points
+  print(head(vrSpatialPoints(visium_data)))
+  print(head(vrSpatialPoints(visium_data, assays = "Assay1")))
+
+  # subset on spatial points
+  spatialpoints <- vrSpatialPoints(visium_data)
+  visium_data_sub <- subset(visium_data, spatialpoints = spatialpoints[1:5])
+
+  expect_equal(1,1L)
+})
+
 # Testing functions of manipulating coordinates ####
 test_that("coordinates", {
   data("visium_data")
@@ -5,18 +62,24 @@ test_that("coordinates", {
   # coordinates
   coords <- vrCoordinates(visium_data)
   coords <- vrCoordinates(visium_data, reg = TRUE)
+  coords <- vrCoordinates(visium_data, assays = "Assay1", reg = TRUE)
 
   # update coordinates
   vrCoordinates(visium_data) <- coords*2
   vrCoordinates(visium_data, reg = TRUE) <- coords*3
 
+  # flip coordinates
+  visium_data <- flipCoordinates(visium_data)
+  visium_data <- flipCoordinates(visium_data, reg = TRUE)
+
   # segments
   segments <- vrSegments(visium_data)
   segments <- vrSegments(visium_data, reg = TRUE)
+  segments <- vrSegments(visium_data, assays = "Assay1", reg = TRUE)
   expect_equal(1,1L)
 })
 
-# Testing functions of manipulating coordinates ####
+# Testing functions of manipulating images ####
 test_that("image", {
   data("visium_data")
 

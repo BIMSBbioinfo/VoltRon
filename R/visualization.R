@@ -1,3 +1,6 @@
+#' @importFrom ggplot2 ggproto
+NULL
+
 ####
 # Spatial plots ####
 ####
@@ -733,7 +736,7 @@ geom_spot <- function (mapping = NULL, data = NULL, stat = "identity", position 
         params = rlang::list2(na.rm = na.rm, ...))
 }
 
-GeomSpot <- ggproto("GeomSpot",
+GeomSpot <- ggplot2::ggproto("GeomSpot",
                       Geom,
                       required_aes = c("x", "y"),
                       non_missing_aes = c("size", "shape", "colour"),
