@@ -57,7 +57,6 @@ setMethod(
 "$<-.vrMetadata" <- function(x, i, ..., value) {
 
   # molecule metadata
-
   mol.metadata <- methods::slot(x, "molecule")
   if(nrow(mol.metadata) > 0)
     mol.metadata[[i]] <- value
