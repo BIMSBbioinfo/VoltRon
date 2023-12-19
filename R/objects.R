@@ -372,13 +372,17 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
     }
   }
 
-  # create entity IDs using Assay index, make it colnames
-  entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_Assay1"))
-  colnames(data) <- entityID
-
   # set meta data if its empty
   if(is.null(metadata)){
+
+    # set metadata
     sr_metadata <- setVRMetadata(molecule = data.table::data.table(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
+
+    # create entity IDs using Assay index, make it colnames
+    entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_Assay1"))
+    colnames(data) <- entityID
+
+    # create metadata
     slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, row.names = entityID)
 
   } else {
@@ -389,14 +393,16 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
       if(inherits(metadata, "data.table")){
 
         # check ID names
-        if(any(!metadata$id %in% entityID_nopostfix)){
+        if(length(setdiff(metadata$id, entityID_nopostfix)) > 0){
           stop("Entity IDs are not matching")
         } else {
           metadata <- subset(metadata, subset = entityID_nopostfix %in% id)
           if(nrow(data) > 0){
-            slot(sr_metadata, name = assay.type) <- data.table::data.table(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata)
+            slot(sr_metadata, name = assay.type) <- data.table::data.table(metadata[, "id", with=FALSE], assay_id = "Assay1", Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name,
+                                                                           metadata[, colnames(metadata)[!colnames(metadata) %in% "id"], with=FALSE])
           } else{
-            slot(sr_metadata, name = assay.type) <- data.table::data.table(Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata)
+            slot(sr_metadata, name = assay.type) <- data.table::data.table(metadata[, "id", with=FALSE], assay_id = "Assay1", Assay = main.assay, Layer = layer_name, Sample = sample_name,
+                                                                           metadata[, colnames(metadata)[!colnames(metadata) %in% "id"], with=FALSE])
           }
         }
 
@@ -404,10 +410,18 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
       } else if(inherits(metadata, "data.frame")){
 
         # check row names
-        if(any(!rownames(metadata) %in% entityID_nopostfix)){
+        if(length(setdiff(rownames(metadata), entityID_nopostfix)) > 0){
           stop("Entity IDs are not matching")
         } else {
+
+          # entity IDs
           metadata <- metadata[entityID_nopostfix,]
+
+          # create entity IDs using Assay index, make it colnames
+          entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_Assay1"))
+          colnames(data) <- entityID
+
+          # create metadata
           if(nrow(data) > 0){
             slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
           } else{
@@ -420,9 +434,8 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
 
   # Coordinates
   if(!is.null(coords)){
-    colcoords <- colnames(coords)
     if(length(colnames(coords)) == 2){
-      rownames(coords) <- entityID
+      rownames(coords) <- metadata$id %||% entityID
       colnames(coords) <- c("x", "y")
     } else {
       stop("The length of colnames of the coordinates matrix should two!")
@@ -432,7 +445,7 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
   }
 
   # Segments
-  if(length(segments) > 0) names(segments) <- entityID
+  if(length(segments) > 0) names(segments) <- metadata$id %||% entityID
 
   # image
   if(!is.null(image)){
@@ -1028,7 +1041,7 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
     }
     return(metadata)
   } else {
-    stop("Please provide one of three assay types: 'ROI', 'cell', 'spot'.")
+    stop("Please provide one of three assay types: 'ROI', 'cell', 'spot' and 'molecules'.")
   }
 }
 

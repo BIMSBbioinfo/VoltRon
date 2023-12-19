@@ -112,12 +112,11 @@ setMethod(
 ####
 
 #' @param assay the assay name or type
-#' @param ... additional parameters passed to \code{Metadata()}
 #'
 #' @rdname vrSpatialPoints
 #' @method vrSpatialPoints vrMetadata
 #'
-vrSpatialPoints.vrMetadata <- function(object, assay = NULL, ...) {
+vrSpatialPoints.vrMetadata <- function(object, assay = NULL) {
 
   # points <- c(rownames(object@molecule),
   #               rownames(object@cell),
@@ -328,32 +327,75 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
   # get metadata and other info
   object_metadata <- methods::slot(object, name = assay.type)
   data <- vrData(assay, norm = FALSE)
-  spatialpoints <- vrSpatialPoints(object)
+  # spatialpoints <- vrSpatialPoints(object)
 
   # add new assay
-  assay_ids <- stringr::str_extract(spatialpoints, "Assay[0-9]+")
+  # assay_ids <- stringr::str_extract(spatialpoints, "Assay[0-9]+")
+  assay_ids <- vrAssayNames(object)
   assay_ids <- as.numeric(gsub("Assay", "", assay_ids))
   assay_id <- paste0("Assay", max(assay_ids)+1)
-  entityID_nopostfix <- stringr::str_replace(vrSpatialPoints(assay), pattern = "_Assay[0-9]+", "")
-  entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_", assay_id))
 
   # metadata
-  if(nrow(data) > 0){
-    assay_metadata <- data.frame(Count = colSums(data))
-  } else {
-    assay_metadata <- NULL
-  }
+  if(assay.type %in% c("molecule", "tile")){
 
-  if(!is.null(metadata)){
-    rownames_metadata <- stringr::str_replace(rownames(metadata), pattern = "_Assay[0-9]+", "")
-    if(length(setdiff(rownames_metadata, entityID_nopostfix)) > 0){
-      stop("Some spatial points in the metadata does not match with the assay!")
-    } else{
-      assay_metadata <- dplyr::bind_cols(assay_metadata,
-                                         metadata[,!colnames(metadata) %in% c("Count", "Assay", "Layer", "Sample")])
-      rownames(assay_metadata) <- entityID
+    # check ID names
+    if(length(setdiff(metadata$id, entityID_nopostfix)) > 0){
+      stop("Entity IDs are not matching")
+    } else {
+      metadata <- subset(metadata, subset = entityID_nopostfix %in% id)
+      if(nrow(data) > 0){
+        slot(sr_metadata, name = assay.type) <- data.table::data.table(metadata[, "id", with=FALSE], assay_id = "Assay1", Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name,
+                                                                       metadata[, colnames(metadata)[!colnames(metadata) %in% "id"], with=FALSE])
+      } else{
+        slot(sr_metadata, name = assay.type) <- data.table::data.table(metadata[, "id", with=FALSE], assay_id = "Assay1", Assay = main.assay, Layer = layer_name, Sample = sample_name,
+                                                                       metadata[, colnames(metadata)[!colnames(metadata) %in% "id"], with=FALSE])
+      }
+    }
+  } else {
+
+    entityID_nopostfix <- stringr::str_replace(vrSpatialPoints(assay), pattern = "_Assay[0-9]+", "")
+    entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_", assay_id))
+
+    if(nrow(data) > 0){
+      assay_metadata <- data.frame(Count = colSums(data))
+    } else {
+      assay_metadata <- NULL
+    }
+
+    if(!is.null(metadata)){
+      rownames_metadata <- stringr::str_replace(rownames(metadata), pattern = "_Assay[0-9]+", "")
+      if(length(setdiff(rownames_metadata, entityID_nopostfix)) > 0){
+        stop("Some spatial points in the metadata does not match with the assay!")
+      } else{
+        assay_metadata <- dplyr::bind_cols(assay_metadata,
+                                           metadata[,!colnames(metadata) %in% c("Count", "Assay", "Layer", "Sample")])
+        rownames(assay_metadata) <- entityID
+      }
     }
   }
+
+
+  # entityID_nopostfix <- stringr::str_replace(vrSpatialPoints(assay), pattern = "_Assay[0-9]+", "")
+  # entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_", assay_id))
+
+  # metadata
+  # if(nrow(data) > 0){
+  #   assay_metadata <- data.frame(Count = colSums(data))
+  # } else {
+  #   assay_metadata <- NULL
+  # }
+  #
+  # if(!is.null(metadata)){
+  #   rownames_metadata <- stringr::str_replace(rownames(metadata), pattern = "_Assay[0-9]+", "")
+  #   if(length(setdiff(rownames_metadata, entityID_nopostfix)) > 0){
+  #     stop("Some spatial points in the metadata does not match with the assay!")
+  #   } else{
+  #     assay_metadata <- dplyr::bind_cols(assay_metadata,
+  #                                        metadata[,!colnames(metadata) %in% c("Count", "Assay", "Layer", "Sample")])
+  #     rownames(assay_metadata) <- entityID
+  #   }
+  # }
+
 
   # complete assay_metadata
   assay_metadata <- dplyr::bind_cols(assay_metadata,
@@ -365,6 +407,27 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
 
   # return
   return(object)
+}
+
+#' @rdname vrAssayNames
+#' @method vrAssayNames vrMetadata
+#'
+#' @export
+#'
+vrAssayNames.vrMetadata <- function(object){
+
+  # get assay names from metadata
+  assay_names <- NULL
+  for(sl in slotNames(object)){
+    cur_metadata <- slot(object, name = sl)
+    if(sl %in% c("molecule", "tile")){
+      cur_names <- cur_metadata$assay_id
+    } else {
+      cur_names <- stringr::str_extract(rownames(cur_metadata), "Assay[0-9]+")
+    }
+    assay_names <- c(assay_names, unique(cur_names))
+  }
+  assay_names
 }
 
 #' updateMetadataAssay
