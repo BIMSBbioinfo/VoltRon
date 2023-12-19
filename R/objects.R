@@ -1021,7 +1021,11 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
 
     # get metadata
     metadata <- slot(object@metadata, name = type)
-    metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assay_names, ]
+    if(inherits(metadata, "data.table")){
+      metadata <- subset(metadata, assay_id %in% assay_names)
+    } else {
+      metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assay_names, ]
+    }
     return(metadata)
   } else {
     stop("Please provide one of three assay types: 'ROI', 'cell', 'spot'.")
