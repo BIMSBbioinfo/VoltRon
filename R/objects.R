@@ -344,46 +344,75 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
 
   # entity IDs from either the data or metadata
   if(!is.null(data)){
+
+    # check for colnames of the raw data
     if(is.null(colnames(data))){
       entityID_nopostfix <- paste0(assay.type,1:ncol(data))
-      colnames(data) <- entityID_nopostfix
     } else {
       entityID_nopostfix <- colnames(data)
     }
-    # entityID <- paste(entityID_nopostfix, "Assay1", sep = "_")
-    entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_Assay1"))
-    colnames(data) <- entityID
+
   } else{
-    data <- matrix(nrow = 0, ncol = 0)
+
+    # make empty data if data is missing
+    data <- matrix(nrow = 0, ncol = nrow(metadata))
+
+    # check for metadata
     if(!is.null(metadata)) {
-      if(is.null(rownames(metadata))){
+
+      # check row names if exists
+      if(is.null(rownames(metadata)) && is.null(metadata$id)){
         entityID_nopostfix <- paste0(assay.type,1:nrow(metadata))
         rownames(metadata) <- entityID
       } else {
-        entityID_nopostfix <- rownames(metadata)
+        entityID_nopostfix <- metadata$id %||% rownames(metadata)
       }
-      # entityID <- paste(entityID_nopostfix, "Assay1", sep = "_")
-      entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_Assay1"))
     } else {
       stop("Either data or metadata has to be provided to build a VoltRon object")
     }
   }
 
-  # set meta data
+  # create entity IDs using Assay index, make it colnames
+  entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_Assay1"))
+  colnames(data) <- entityID
+
+  # set meta data if its empty
   if(is.null(metadata)){
     sr_metadata <- setVRMetadata(molecule = data.table::data.table(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
     slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, row.names = entityID)
+
   } else {
-    if(any(class(metadata) %in% c("data.frame", "matrix"))){
+    if(any(class(metadata) %in% c("data.table", "data.frame", "matrix"))){
       sr_metadata <- setVRMetadata(molecule = data.table::data.table(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
-      if(any(!rownames(metadata) %in% entityID_nopostfix)){
-        stop("Entity IDs are not matching")
-      } else {
-        metadata <- metadata[entityID_nopostfix,]
-        if(nrow(data) > 0){
-          slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
-        } else{
-          slot(sr_metadata, name = assay.type) <- data.frame(Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
+
+      # if metadata is a data.table
+      if(inherits(metadata, "data.table")){
+
+        # check ID names
+        if(any(!metadata$id %in% entityID_nopostfix)){
+          stop("Entity IDs are not matching")
+        } else {
+          metadata <- subset(metadata, subset = entityID_nopostfix %in% id)
+          if(nrow(data) > 0){
+            slot(sr_metadata, name = assay.type) <- data.table::data.table(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata)
+          } else{
+            slot(sr_metadata, name = assay.type) <- data.table::data.table(Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata)
+          }
+        }
+
+      # if metadata is a regular data.frame
+      } else if(inherits(metadata, "data.frame")){
+
+        # check row names
+        if(any(!rownames(metadata) %in% entityID_nopostfix)){
+          stop("Entity IDs are not matching")
+        } else {
+          metadata <- metadata[entityID_nopostfix,]
+          if(nrow(data) > 0){
+            slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
+          } else{
+            slot(sr_metadata, name = assay.type) <- data.frame(Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
+          }
         }
       }
     }

@@ -108,9 +108,9 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
     } else {
       # get subcellur data components
       subcellular_data <- data.table::fread(transcripts_file)
-      subcellular_data <- subcellular_data[,c("cell_id", colnames(subcellular_data)[!colnames(subcellular_data) %in% "cell_id"]), with = FALSE]
+      subcellular_data <- subcellular_data[,c("transcript_id", colnames(subcellular_data)[!colnames(subcellular_data) %in% "transcript_id"]), with = FALSE]
+      colnames(subcellular_data)[colnames(subcellular_data)=="transcript_id"] <- "id"
       subcellular_data <- subcellular_data[subcellular_data$qv >= 20, ]
-      rownames(subcellular_data) <- subcellular_data$transcript_id
 
       # coordinates
       coords <- as.matrix(subcellular_data[,c("x_location", "y_location")])
