@@ -46,7 +46,7 @@ test_that("spatialpoints", {
 
   # get spatial points
   print(head(vrSpatialPoints(visium_data)))
-  print(head(vrSpatialPoints(visium_data, assays = "Assay1")))
+  print(head(vrSpatialPoints(visium_data, assay = "Assay1")))
 
   # subset on spatial points
   spatialpoints <- vrSpatialPoints(visium_data)
