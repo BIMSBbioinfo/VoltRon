@@ -38,7 +38,6 @@ Collate:
     'registration.R'
     'sample.R'
     'spatial.R'
-    'visium_data.R'
     'visualization.R'
 Suggests:
     SingleCellExperiment,

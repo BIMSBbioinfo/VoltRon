@@ -20,7 +20,7 @@ vrSpatialPoints(object, ...)
 
 vrSpatialPoints(object, ...) <- value
 
-\method{vrSpatialPoints}{vrMetadata}(object, assay = NULL, ...)
+\method{vrSpatialPoints}{vrMetadata}(object, assay = NULL)
 
 \method{vrSpatialPoints}{VoltRon}(object, ...)
 
@@ -31,7 +31,7 @@ vrSpatialPoints(object, ...) <- value
 \arguments{
 \item{object}{An object}
 
-\item{...}{additional parameters passed to \code{Metadata()}}
+\item{...}{Arguments passed to other methods}
 
 \item{value}{names for spatial points}
 

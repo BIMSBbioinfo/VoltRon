@@ -49,19 +49,22 @@ setMethod(
     # print class
     cat(class(x = object), "Object \n")
 
-    # print samples and layers
-    all_assays <- NULL
-    sample_names <- names(object@samples)
+    # sample metadata
+    sample.metadata <- SampleMetadata(object)
+
+    # get sample and layer names
+    sample_names <- unique(sample.metadata$Sample)
     show_length <- min(5,length(sample_names))
     for(samp in sample_names[1:show_length]){
       cat(samp, ": \n", sep = "")
-      layers <- names(unlist(object@samples[[samp]]@layer))
+      layers <- unique(sample.metadata$Layer[sample.metadata$Sample == samp])
       cat("  Layers:", paste(layers, collapse = " "), "\n")
-      assays <- sapply(names(object@samples[[samp]]@layer), function(x) names(object[[samp, x]]@assay))
-      all_assays <- c(all_assays, assays)
     }
-    all_assays <- unlist(all_assays)
 
+    # get assay names
+    unique_assays <- unique(sample.metadata$Assay)
+
+    # print
     if(length(sample_names) > 5){
       cat("...", "\n")
       cat("There are", length(sample_names), "samples in total", "\n")
@@ -69,7 +72,6 @@ setMethod(
 
     # print assays
     main.assay <- vrMainAssay(object)
-    unique_assays <- unique(all_assays)
     unique_assays <- unique_assays[c(which(unique_assays == main.assay),which(unique_assays != main.assay))]
     unique_assays[1] <- paste0(unique_assays[1], "(Main)")
     cat("Assays:", paste(unique_assays, collapse = " "), "\n")
@@ -396,7 +398,13 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
         if(length(setdiff(metadata$id, entityID_nopostfix)) > 0){
           stop("Entity IDs are not matching")
         } else {
+
+          # entity IDs
           metadata <- subset(metadata, subset = entityID_nopostfix %in% id)
+
+          # create entity IDs using Assay index, make it colnames
+          colnames(data) <- metadata$id
+
           if(nrow(data) > 0){
             slot(sr_metadata, name = assay.type) <- data.table::data.table(metadata[, "id", with=FALSE], assay_id = "Assay1", Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name,
                                                                            metadata[, colnames(metadata)[!colnames(metadata) %in% "id"], with=FALSE])
