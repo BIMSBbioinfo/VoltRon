@@ -150,29 +150,37 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
 
   # subset all metadata types
   if(!is.null(samples)){
-    mol.metadata <- object@molecule[object@molecule$Sample %in% samples, ]
+    # mol.metadata <- object@molecule[object@molecule$Sample %in% samples, ]
+    mol.metadata <- object@molecule[Sample %in% samples, ]
     cell.metadata <- object@cell[object@cell$Sample %in% samples, ]
     spot.metadata <- object@spot[object@spot$Sample %in% samples, ]
     roi.metadata <- object@ROI[object@ROI$Sample %in% samples, ]
   } else if(!is.null(assays)){
     assay_names <- unique(lapply(slotToList(object), function(x) {
-      unique(stringr::str_extract(rownames(x), "Assay[0-9]+"))
+      if(inherits(x, "data.table")){
+        unique(x$assay_id)
+      } else {
+        unique(stringr::str_extract(rownames(x), "Assay[0-9]+"))
+      }
     }))
     assay_names <- unique(do.call(c,assay_names))
     if(all(assays %in% assay_names)){
-      mol.metadata <- object@molecule[stringr::str_extract(rownames(object@molecule), "Assay[0-9]+") %in% assays, ]
+      # mol.metadata <- object@molecule[stringr::str_extract(rownames(object@molecule), "Assay[0-9]+") %in% assays, ]
+      mol.metadata <- object@molecule[assay_id %in% assays, ]
       cell.metadata <- object@cell[stringr::str_extract(rownames(object@cell), "Assay[0-9]+") %in% assays, ]
       spot.metadata <- object@spot[stringr::str_extract(rownames(object@spot), "Assay[0-9]+") %in% assays, ]
       roi.metadata <- object@ROI[stringr::str_extract(rownames(object@ROI), "Assay[0-9]+") %in% assays, ]
     } else {
-      mol.metadata <- object@molecule[object@molecule$Assay %in% assays, ]
+      # mol.metadata <- object@molecule[object@molecule$Assay %in% assays, ]
+      mol.metadata <- object@molecule[Assay %in% assays, ]
       cell.metadata <- object@cell[object@cell$Assay %in% assays, ]
       spot.metadata <- object@spot[object@spot$Assay %in% assays, ]
       roi.metadata <- object@ROI[object@ROI$Assay %in% assays, ]
     }
   } else if(!is.null(spatialpoints)){
     if(all(spatialpoints %in% vrSpatialPoints(object))){
-      mol.metadata <- object@molecule[rownames(object@molecule) %in% spatialpoints, ]
+      # mol.metadata <- object@molecule[rownames(object@molecule) %in% spatialpoints, ]
+      mol.metadata <- object@molecule[id %in% spatialpoints, ]
       cell.metadata <- object@cell[rownames(object@cell) %in% spatialpoints, ]
       spot.metadata <- object@spot[rownames(object@spot) %in% spatialpoints, ]
       roi.metadata <- object@ROI[rownames(object@ROI) %in% spatialpoints, ]
