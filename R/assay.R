@@ -47,6 +47,7 @@ vrAssay <- setClass(
     image = "list",
     params = "list",
     type = "character",
+    name = "character",
     main_image = "character"
   )
 )
@@ -348,9 +349,20 @@ vrFeatureData.vrAssay <- function(object, ...) {
 #' @export
 #'
 vrAssayNames.vrAssay <- function(object, ...) {
-  assay_ids <- stringr::str_extract(vrSpatialPoints(object), "Assay[0-9]+$")
-  assay_id <- unique(assay_ids)
-  return(assay_id)
+
+  if(.hasSlot(object, name = "name")){
+    if(grep("Assay", object@name)){
+      return(object@name)
+    } else {
+      assay_ids <- stringr::str_extract(vrSpatialPoints(object), "Assay[0-9]+$")
+      assay_id <- unique(assay_ids)
+      return(assay_id)
+    }
+  } else {
+    assay_ids <- stringr::str_extract(vrSpatialPoints(object), "Assay[0-9]+$")
+    assay_id <- unique(assay_ids)
+    return(assay_id)
+  }
 }
 
 #' @param value the new postfix name of the assay
@@ -369,6 +381,10 @@ vrAssayNames.vrAssay <- function(object, ...) {
   vrSpatialPoints(object)  <- stringr::str_replace(vrSpatialPoints(object), assayname, value)
   # vrSpatialPoints(object) <- gsub(assayname, value, vrSpatialPoints(object))
 
+  # if(!.hasSlot(object, name = "name"))
+  #   object@name <- value
+  object@name <- value
+
   # return
   return(object)
 }
@@ -378,7 +394,7 @@ vrAssayNames.vrAssay <- function(object, ...) {
 #'
 #' @export
 #'
-vrAssayTypes.vrAssay <- function(object, ...) {
+vrAssayTypes.vrAssay <- function(object) {
   return(object@type)
 }
 

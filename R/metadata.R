@@ -348,10 +348,8 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
   # get metadata and other info
   object_metadata <- methods::slot(object, name = assay.type)
   data <- vrData(assay, norm = FALSE)
-  # spatialpoints <- vrSpatialPoints(object)
 
   # add new assay
-  # assay_ids <- stringr::str_extract(spatialpoints, "Assay[0-9]+")
   assay_ids <- vrAssayNames(object)
   assay_ids <- as.numeric(gsub("Assay", "", assay_ids))
   assay_id <- paste0("Assay", max(assay_ids)+1)
