@@ -4,16 +4,12 @@ PKG_CONFIG_NAME="opencv4"
 PKG_CONFIG_NAME_ALT="opencv"
 PKG_DEB_NAME="libopencv-dev"
 PKG_RPM_NAME="opencv-devel"
-PKG_BREW_NAME="opencv"
 PKG_TEST_HEADER="<opencv2/opencv.hpp>"
 PKG_TEST_HEADER_XFEATURES2D="<opencv2/xfeatures2d.hpp>"
 PKG_LIBS="-lopencv_{stitching,superres,videostab,aruco,bgsegm,bioinspired,ccalib,dnn_objdetect,\
 dpm,face,photo,fuzzy,hfs,img_hash,line_descriptor,optflow,reg,rgbd,saliency,stereo,structured_light,\
 phase_unwrapping,surface_matching,tracking,datasets,dnn,plot,xfeatures2d,shape,video,ml,ximgproc,\
 calib3d,features2d,highgui,videoio,flann,xobjdetect,imgcodecs,objdetect,xphoto,imgproc,core}"
-
-# For debugging opencv3 in macos:
-#export PKG_CONFIG_PATH="/usr/local/opt/opencv@3/lib/pkgconfig"
 
 # Use pkg-config if available
 PCVERSION=`pkg-config --version 2>/dev/null`
@@ -39,15 +35,6 @@ if [ "$PKGCONFIG_CFLAGS" ] || [ "$PKGCONFIG_LIBS" ]; then
     PKG_CFLAGS="$PKG_CFLAGS -D_DATA_PREFIX=${PKGCONFIG_PREFIX}"
   fi
 elif [ `uname` = "Darwin" ]; then
-  # test ! "$CI" && brew --version 2>/dev/null
-  # if [ $? -eq 0 ]; then
-  #   BREWDIR=`brew --prefix`
-  #   PKG_CFLAGS="-I$BREWDIR/opt/opencv/include"
-  #   PKG_LIBS="-L$BREWDIR/opt/opencv/lib $PKG_LIBS"
-  # else
-  #   curl -sfL "https://autobrew.github.io/scripts/opencv" > autobrew
-  #   . ./autobrew
-  # fi
   curl -sfL "https://autobrew.github.io/scripts/opencv" > autobrew
     . ./autobrew
 fi
@@ -85,7 +72,6 @@ if [ $? -ne 0 ]; then
   echo "Configuration failed to find $PKG_CONFIG_NAME library. Try installing:"
   echo " * deb: $PKG_DEB_NAME (Debian, Ubuntu, etc)"
   echo " * rpm: $PKG_RPM_NAME (Fedora, CentOS, RHEL)"
-  echo " * brew: $PKG_BREW_NAME (Mac OSX)"
   echo "If $PKG_CONFIG_NAME is already installed, check that 'pkg-config' is in your"
   echo "PATH and PKG_CONFIG_PATH contains a $PKG_CONFIG_NAME.pc file."
   echo "---------------------------[ ERROR MESSAGE ]----------------------------"
@@ -96,7 +82,9 @@ fi
 
 echo "#include $PKG_TEST_HEADER_XFEATURES2D" | ${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS}  ${CXXFLAGS} -xc++ - >/dev/null 2>>configure.log
 if [ $? -ne 0 ]; then
-  echo "Module $PKG_TEST_HEADER_XFEATURES2D has not been found on your system, disabling keypoint detection."
+  echo "Module $PKG_TEST_HEADER_XFEATURES2D has not been found on your system"
+  echo "Make sure to have a $PKG_CONFIG_NAME library installed with the module available"
+  exit 1
 else
   PKG_CFLAGS="$PKG_CFLAGS -DHAVE_XFEATURES2D"
 fi
