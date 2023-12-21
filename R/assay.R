@@ -359,7 +359,6 @@ vrAssayNames.vrAssay <- function(object, ...) {
 #' @method vrAssayNames<- vrAssay
 #'
 #' @importFrom stringr str_replace
-#' @export
 #'
 "vrAssayNames<-.vrAssay" <- function(object, ..., value){
 
@@ -475,9 +474,9 @@ vrCoordinates.vrAssay <- function(object, reg = FALSE, ...) {
 #'
 flipCoordinates.vrAssay <- function(object, ...) {
   imageinfo <- magick::image_info(vrImages(object))
-  coords <- vrCoordinates(object)
+  coords <- vrCoordinates(object, ...)
   coords[,"y"] <- imageinfo$height - coords[,"y"]
-  vrCoordinates(object) <- coords
+  vrCoordinates(object, ...) <- coords
   return(object)
 }
 

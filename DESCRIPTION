@@ -25,6 +25,7 @@ Collate:
     'generics.R'
     'clustering.R'
     'conversion.R'
+    'data.R'
     'deconvolution.R'
     'differentialexpression.R'
     'image.R'
@@ -44,10 +45,13 @@ Suggests:
     SeuratObject,
     DESeq2,
     MuSiC,
-    spacexr, 
-    RBioFormats, 
-    ComplexHeatmap, 
-    xlsx, 
+    spacexr,
+    RBioFormats,
+    ComplexHeatmap,
+    xlsx,
     tiledb,
-    tiledbsc, 
-    vitessceR
+    tiledbsc,
+    vitessceR,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+LazyData: true

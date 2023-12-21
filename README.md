@@ -24,6 +24,11 @@
     </li>
    </ul>
 
+## Citation
+
+VoltRon preprint is now available on [bioRxiv](https://www.biorxiv.org/content/10.1101/2023.12.15.571667v1).
+
+
 ## Staying up-to-date
 
 To ask questions please use VoltRon discussion forum on google groups.
