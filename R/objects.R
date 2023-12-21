@@ -1419,8 +1419,9 @@ vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", dims = 1:30
   return(do.call(rbind, returndata_list))
 }
 
-#' @param type the key name for the embedding
 #' @param assay assay
+#' @param type the key name for the embedding
+#' @param overwrite Whether the existing embedding with name 'type' should be overwritten
 #' @param value new embedding data
 #'
 #' @rdname vrEmbeddings
@@ -1428,7 +1429,11 @@ vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", dims = 1:30
 #'
 #' @export
 #'
-"vrEmbeddings<-.VoltRon" <- function(object, assay = NULL, type = "pca", ..., value) {
+"vrEmbeddings<-.VoltRon" <- function(object, assay = NULL, type = "pca", overwrite = FALSE, ..., value) {
+
+  # check if the embedding exists
+  if(type %in% vrEmbeddingNames(object) && !overwrite)
+    stop("An embedding named '", type, "' already exists in this object. Do overwrite = TRUE for replacing with the existing one.")
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
