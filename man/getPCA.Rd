@@ -7,12 +7,12 @@
 \usage{
 getPCA(object, ...)
 
-\method{getPCA}{VoltRon}(object, assay = NULL, features = NULL, dims = 30, seed = 1)
+\method{getPCA}{VoltRon}(object, assay = NULL, features = NULL, dims = 30, seed = 1, ...)
 }
 \arguments{
 \item{object}{An object}
 
-\item{...}{Arguments passed to other methods}
+\item{...}{additional parameters passed to \code{vrEmbeddings}}
 
 \item{assay}{assay}
 

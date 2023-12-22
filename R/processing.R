@@ -205,6 +205,7 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #' @param features the selected features for PCA reduction
 #' @param dims the number of dimensions extracted from PCA
 #' @param seed seed
+#' @param ... additional parameters passed to \code{vrEmbeddings}
 #'
 #' @rdname getPCA
 #' @method getPCA VoltRon
@@ -214,7 +215,7 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #'
 #' @export
 #'
-getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, seed = 1){
+getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, seed = 1, ...){
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -245,18 +246,8 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
   colnames(pr.data) <- paste0("PC", 1:dims)
   rownames(pr.data) <- colnames(normdata)
 
-  # # update feature matrix
-  # feature_data <- vrFeatureData(object)
-  # if(nrow(feature_data) > 0){
-  #   feature_data <- feature_data[, !grepl("PC[0-9]+", colnames(feature_data))]
-  #   feature_data <- data.frame(feature_data, features = vrFeatures(object))
-  #   feature_data <- feature_data %>% left_join(loading_matrix)
-  #   vrFeatureData(object) <- data.frame(feature_data[,colnames(feature_data)[!colnames(feature_data) %in% "features"]],
-  #                                       row.names = feature_data$features)
-  # }
-
   # set Embeddings
-  vrEmbeddings(object, type = "pca") <- pr.data
+  vrEmbeddings(object, type = "pca", ...) <- pr.data
 
   # return
   return(object)
@@ -267,6 +258,7 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
 #' @param dims the number of dimensions extracted from PCA
 #' @param umap.key the name of the umap embedding, default: umap
 #' @param seed seed
+#' @param ... additional parameters passed to \code{vrEmbeddings}
 #'
 #' @rdname getUMAP
 #' @method getUMAP VoltRon
@@ -275,7 +267,7 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
 #'
 #' @export
 #'
-getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30, umap.key = "umap", seed = 1){
+getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30, umap.key = "umap", seed = 1, ...){
 
   # get data
   if(data.type %in% c("raw", "norm")){
@@ -294,7 +286,7 @@ getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30
   set.seed(seed)
   umap_data <- uwot::umap(data)
   colnames(umap_data) <- c("x", "y")
-  vrEmbeddings(object, type = umap.key) <- umap_data
+  vrEmbeddings(object, type = umap.key, ...) <- umap_data
 
   # return
   return(object)
