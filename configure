@@ -4,7 +4,6 @@ PKG_CONFIG_NAME="opencv4"
 PKG_CONFIG_NAME_ALT="opencv"
 PKG_DEB_NAME="libopencv-dev"
 PKG_RPM_NAME="opencv-devel"
-PKG_BREW_NAME="opencv"
 PKG_TEST_HEADER="<opencv2/opencv.hpp>"
 PKG_TEST_HEADER_XFEATURES2D="<opencv2/xfeatures2d.hpp>"
 PKG_LIBS="-lopencv_{stitching,superres,videostab,aruco,bgsegm,bioinspired,ccalib,dnn_objdetect,\
@@ -73,7 +72,6 @@ if [ $? -ne 0 ]; then
   echo "Configuration failed to find $PKG_CONFIG_NAME library. Try installing:"
   echo " * deb: $PKG_DEB_NAME (Debian, Ubuntu, etc)"
   echo " * rpm: $PKG_RPM_NAME (Fedora, CentOS, RHEL)"
-  echo " * brew: $PKG_BREW_NAME (Mac OSX)"
   echo "If $PKG_CONFIG_NAME is already installed, check that 'pkg-config' is in your"
   echo "PATH and PKG_CONFIG_PATH contains a $PKG_CONFIG_NAME.pc file."
   echo "---------------------------[ ERROR MESSAGE ]----------------------------"
@@ -84,7 +82,9 @@ fi
 
 echo "#include $PKG_TEST_HEADER_XFEATURES2D" | ${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS}  ${CXXFLAGS} -xc++ - >/dev/null 2>>configure.log
 if [ $? -ne 0 ]; then
-  echo "Module $PKG_TEST_HEADER_XFEATURES2D has not been found on your system, disabling keypoint detection."
+  echo "Module $PKG_TEST_HEADER_XFEATURES2D has not been found on your system"
+  echo "Make sure to have an $PKG_CONFIG_NAME library installed with the module available"
+  exit 1
 else
   PKG_CFLAGS="$PKG_CFLAGS -DHAVE_XFEATURES2D"
 fi
