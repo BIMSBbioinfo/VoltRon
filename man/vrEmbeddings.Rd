@@ -19,7 +19,7 @@ vrEmbeddings(object, ...) <- value
 
 \method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", dims = 1:30, ...)
 
-\method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", ...) <- value
+\method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", overwrite = FALSE, ...) <- value
 }
 \arguments{
 \item{object}{An object}
@@ -33,6 +33,8 @@ vrEmbeddings(object, ...) <- value
 \item{value}{new embedding data}
 
 \item{assay}{assay}
+
+\item{overwrite}{Whether the existing embedding with name 'type' should be overwritten}
 }
 \description{
 Get embeddings of spatial points

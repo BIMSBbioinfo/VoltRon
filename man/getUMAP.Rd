@@ -13,13 +13,14 @@ getUMAP(object, ...)
   data.type = "pca",
   dims = 1:30,
   umap.key = "umap",
-  seed = 1
+  seed = 1,
+  ...
 )
 }
 \arguments{
 \item{object}{An object}
 
-\item{...}{Arguments passed to other methods}
+\item{...}{additional parameters passed to \code{vrEmbeddings}}
 
 \item{assay}{assay}
 
