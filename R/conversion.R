@@ -165,10 +165,12 @@ as.Seurat.VoltRon <- function(object, cell.assay = NULL, molecule.assay = NULL, 
   seu <- Seurat::CreateSeuratObject(counts = data, meta.data = metadata, assay = cell.assay)
 
   # add embeddings
-  for(embd in vrEmbeddingNames(object)){
-    embd_data <- vrEmbeddings(object, type = embd)
-    colnames(embd_data) <- paste0(embd, 1:ncol(embd_data))
-    seu[[embd]] <- CreateDimReducObject(embd_data, key = paste0(embd, "_"), assay = DefaultAssay(seu))
+  if(length(vrEmbeddingNames(object)) > 0){
+    for(embd in vrEmbeddingNames(object)){
+      embd_data <- vrEmbeddings(object, type = embd)
+      colnames(embd_data) <- paste0(embd, 1:ncol(embd_data))
+      seu[[embd]] <- CreateDimReducObject(embd_data, key = paste0(embd, "_"), assay = DefaultAssay(seu))
+    }
   }
 
   # get image objects for each assay
