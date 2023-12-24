@@ -377,7 +377,6 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
 
   # set meta data if its empty
   if(is.null(metadata)){
-<<<<<<< HEAD
 
     # set metadata
     vr_metadata <- setVRMetadata(molecule = data.table::data.table(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
