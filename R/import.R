@@ -23,6 +23,7 @@
 #' @importFrom magick image_read image_info
 #' @importFrom utils read.csv
 #' @importFrom data.table fread
+#' @importFrom ids random_id
 #'
 #' @export
 #'
@@ -122,18 +123,27 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
       coords[,"y"] <- range_coords[2] - coords[,"y"]  + range_coords[1]
 
       # metadata
-      metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell_id", "transcript_id", "x_location", "y_location")], with = FALSE]
+      mol_metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell_id", "transcript_id", "x_location", "y_location")], with = FALSE]
+      set.seed(nrow(mol_metadata$id))
+      entity_ID <- paste0(mol_metadata$id, "_", ids::random_id(bytes = 3, use_openssl = FALSE))
+      mol_metadata <- data.table::data.table(id = entity_ID, assay_id = "Assay1", mol_metadata)
+
+      # coord names
+      rownames(coords) <- entity_ID
     }
 
     # create VoltRon object for molecules
-    mol_object <- formVoltRon(data = NULL, metadata = metadata, image = image, coords, main.assay = paste0(assay_name, "_mol"), assay.type = "molecule", ...)
+    # mol_object <- formVoltRon(data = NULL, metadata = metadata, image = image, coords, main.assay = paste0(assay_name, "_mol"), assay.type = "molecule", ...)
+    mol_assay <- formAssay(coords = coords, image = image, type = "molecule")
 
     # merge assays in one section
     message("Merging assays ...")
     sample.metadata <- SampleMetadata(cell_object)
     object <- addAssay(cell_object,
-                       assay = mol_object[["Assay1"]],
-                       metadata = Metadata(mol_object),
+                       # assay = mol_object[["Assay1"]],
+                       # metadata = Metadata(mol_object),
+                       assay = mol_assay,
+                       metadata = mol_metadata,
                        assay_name = paste0(assay_name, "_mol"),
                        sample = sample.metadata["Assay1", "Sample"],
                        layer = sample.metadata["Assay1", "Layer"])

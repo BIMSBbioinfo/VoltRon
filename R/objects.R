@@ -406,7 +406,7 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
 
           # create entity IDs using Assay index, make it colnames
           set.seed(nrow(metadata$id))
-          entityID <- paste0(metadata$id, "_", ids::random_id(bytes = 3))
+          entityID <- paste0(metadata$id, "_", ids::random_id(bytes = 3, use_openssl = FALSE))
           colnames(data) <- entityID
 
           if(nrow(data) > 0){
@@ -456,8 +456,44 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
     stop("There are no coordinates matrix provided!")
   }
 
-  # Segments
-  if(length(segments) > 0) names(segments) <- entityID
+  # create vrAssay
+  # Assay <- methods::new("vrAssay", rawdata = data, normdata = data,
+  #                       coords = coords, coords_reg = coords, segments = segments, segments_reg = segments,
+  #                       image = image, params = params, type = assay.type, name = "Assay1", main_image = names(image)[[1]])
+  Assay <- formAssay(data = data, coords = coords, segments = segments, image = image, params = params, type = assay.type, name = "Assay1")
+  listofAssays <- list(Assay)
+  names(listofAssays) <- main.assay
+
+  # create layers and samples
+  listofLayers <- list(methods::new("vrLayer", assay = listofAssays))
+  names(listofLayers) <- layer_name
+  listofSamples <- list(methods::new("vrSample", layer = listofLayers))
+  names(listofSamples) <- sample_name
+
+  # set sample meta data
+  if(is.null(sample.metadata)){
+    sample.metadata <- setVRSampleMetadata(listofSamples)
+  }
+
+  # set VoltRon class
+  methods::new("VoltRon", samples = listofSamples, metadata = vr_metadata, sample.metadata = sample.metadata, main.assay = main.assay, project = project)
+}
+
+### Assay Methods ####
+
+
+formAssay <- function(data = NULL, coords, segments = NULL, image, params = list(), type = "ROI", name = "Assay1"){
+
+  # get segments
+  if(is.null(segments)){
+    segments <- list()
+  } else {
+    if(length(segments) == length(rownames(coords))){
+      names(segments) <- rownames(coords)
+    } else {
+      stop("Number of segments doesnt match the number of points!")
+    }
+  }
 
   # image
   if(!is.null(image)){
@@ -480,30 +516,18 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
     image <- list(main_image = magick::image_data(magick::image_read(image)))
   }
 
-
-  # create vrAssay
-  Assay <- methods::new("vrAssay", rawdata = data, normdata = data,
-                        coords = coords, coords_reg = coords, segments = segments, segments_reg = segments,
-                        image = image, params = params, type = assay.type, name = "Assay1", main_image = names(image)[[1]])
-  listofAssays <- list(Assay)
-  names(listofAssays) <- main.assay
-
-  # create layers and samples
-  listofLayers <- list(methods::new("vrLayer", assay = listofAssays))
-  names(listofLayers) <- layer_name
-  listofSamples <- list(methods::new("vrSample", layer = listofLayers))
-  names(listofSamples) <- sample_name
-
-  # set sample meta data
-  if(is.null(sample.metadata)){
-    sample.metadata <- setVRSampleMetadata(listofSamples)
+  # get data
+  if(is.null(data)){
+    data <- matrix(nrow = 0, ncol = nrow(coords))
+    colnames(data) <- rownames(coords)
   }
 
-  # set VoltRon class
-  methods::new("VoltRon", samples = listofSamples, metadata = vr_metadata, sample.metadata = sample.metadata, main.assay = main.assay, project = project)
+  # make vrAssay object
+  methods::new("vrAssay", rawdata = data, normdata = data,
+               coords = coords, coords_reg = coords, segments = segments, segments_reg = segments,
+               image = image, params = params, type = type, name = name, main_image = names(image)[[1]])
 }
 
-### Assay Methods ####
 
 #' @rdname vrMainAssay
 #' @method vrMainAssay VoltRon
