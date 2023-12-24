@@ -107,6 +107,8 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
     }
 
     # check group.by
+    if(!group.by %in% colnames(metadata))
+      stop("The column '", group.by, "' was not found in the metadata!")
     levels_group.by <- as.character(unique(metadata[[group.by]][!is.na(metadata[[group.by]])]))
     if(all(!is.na(as.numeric(levels_group.by)))){
       levels_group.by <- sort(as.numeric(levels_group.by))
@@ -168,6 +170,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   segments <- vrSegments(assay)
 
   # plotting features
+  if(!group.by %in% colnames(metadata))
+    stop("The column '", group.by, "' was not found in the metadata!")
   if(inherits(metadata, "data.table")){
     coords[[group.by]] <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
   } else {
@@ -713,7 +717,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
     if(group.by %in% colnames(metadata)){
       coords[[group.by]] <- metadata[,group.by]
     } else {
-      stop("Column ", group.by, " cannot be found in metadata!")
+      stop("The column ", group.by, " was not found in the metadata!")
     }
     g <- g + ggrepel::geom_label_repel(mapping = aes_string(x = "x", y = "y", label = group.by), coords,
                                 box.padding = 0.5, size = font.size, direction = "both", seed = 1)
