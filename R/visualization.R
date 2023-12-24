@@ -88,8 +88,12 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 
     # get assay
     cur_assay <- object[[assy]]
-    assy_id <- paste0(assy,"$")
-    cur_metadata <- metadata[grepl(assy_id, rownames(metadata)),]
+    if(inherits(metadata, 'data.table')){
+      cur_metadata <- metadata[assay_id == assy,]
+    } else {
+      assy_id <- paste0(assy,"$")
+      cur_metadata <- metadata[grepl(assy_id, rownames(metadata)),]
+    }
 
     # get graph
     if(!is.null(graph.name)){
@@ -164,7 +168,11 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   segments <- vrSegments(assay)
 
   # plotting features
-  coords[[group.by]] <- metadata[,group.by]
+  if(inherits(metadata, "data.table")){
+    coords[[group.by]] <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
+  } else {
+    coords[[group.by]] <- metadata[,group.by]
+  }
   if(!is.null(group.ids)){
     if(length(setdiff(group.ids,  coords[[group.by]])) > 0){
       stop("Some groups defined in group.ids does not exist in group.by!")

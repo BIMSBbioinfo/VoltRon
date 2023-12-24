@@ -321,6 +321,8 @@ setMethod(
 #' @importFrom magick image_data image_read image_info
 #' @importFrom methods new
 #' @importFrom data.table data.table
+#' @importFrom rlang %||%
+#' @importFrom ids random_id
 #'
 #' @export
 #'
@@ -378,18 +380,18 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
   if(is.null(metadata)){
 
     # set metadata
-    sr_metadata <- setVRMetadata(molecule = data.table::data.table(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
+    vr_metadata <- setVRMetadata(molecule = data.table::data.table(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
 
     # create entity IDs using Assay index, make it colnames
     entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_Assay1"))
     colnames(data) <- entityID
 
     # create metadata
-    slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, row.names = entityID)
+    slot(vr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, row.names = entityID)
 
   } else {
     if(any(class(metadata) %in% c("data.table", "data.frame", "matrix"))){
-      sr_metadata <- setVRMetadata(molecule = data.table::data.table(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
+      vr_metadata <- setVRMetadata(molecule = data.table::data.table(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
 
       # if metadata is a data.table
       if(inherits(metadata, "data.table")){
@@ -403,14 +405,16 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
           metadata <- subset(metadata, subset = entityID_nopostfix %in% id)
 
           # create entity IDs using Assay index, make it colnames
-          colnames(data) <- metadata$id
+          set.seed(nrow(metadata$id))
+          entityID <- paste0(metadata$id, "_", ids::random_id(bytes = 3))
+          colnames(data) <- entityID
 
           if(nrow(data) > 0){
-            slot(sr_metadata, name = assay.type) <- data.table::data.table(metadata[, "id", with=FALSE], assay_id = "Assay1", Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name,
-                                                                           metadata[, colnames(metadata)[!colnames(metadata) %in% "id"], with=FALSE])
+            slot(vr_metadata, name = assay.type) <- data.table::data.table(id = entityID, assay_id = "Assay1", Count = colSums(data), Assay = main.assay,
+                                                                           Layer = layer_name, Sample = sample_name, metadata)
           } else{
-            slot(sr_metadata, name = assay.type) <- data.table::data.table(metadata[, "id", with=FALSE], assay_id = "Assay1", Assay = main.assay, Layer = layer_name, Sample = sample_name,
-                                                                           metadata[, colnames(metadata)[!colnames(metadata) %in% "id"], with=FALSE])
+            slot(vr_metadata, name = assay.type) <- data.table::data.table(id = entityID, assay_id = "Assay1", Assay = main.assay,
+                                                                           Layer = layer_name, Sample = sample_name, metadata)
           }
         }
 
@@ -431,9 +435,9 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
 
           # create metadata
           if(nrow(data) > 0){
-            slot(sr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
+            slot(vr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
           } else{
-            slot(sr_metadata, name = assay.type) <- data.frame(Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
+            slot(vr_metadata, name = assay.type) <- data.frame(Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
           }
         }
       }
@@ -443,7 +447,7 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
   # Coordinates
   if(!is.null(coords)){
     if(length(colnames(coords)) == 2){
-      rownames(coords) <- metadata$id %||% entityID
+      rownames(coords) <- entityID
       colnames(coords) <- c("x", "y")
     } else {
       stop("The length of colnames of the coordinates matrix should two!")
@@ -453,7 +457,7 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
   }
 
   # Segments
-  if(length(segments) > 0) names(segments) <- metadata$id %||% entityID
+  if(length(segments) > 0) names(segments) <- entityID
 
   # image
   if(!is.null(image)){
@@ -474,7 +478,6 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
     width <- max(ceiling(coords[,1]))
     image <- matrix(rep("#030303ff", height*width), nrow = height, ncol = width)
     image <- list(main_image = magick::image_data(magick::image_read(image)))
-    # image <- list()
   }
 
 
@@ -497,7 +500,7 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
   }
 
   # set VoltRon class
-  methods::new("VoltRon", samples = listofSamples, metadata = sr_metadata, sample.metadata = sample.metadata, main.assay = main.assay, project = project)
+  methods::new("VoltRon", samples = listofSamples, metadata = vr_metadata, sample.metadata = sample.metadata, main.assay = main.assay, project = project)
 }
 
 ### Assay Methods ####
