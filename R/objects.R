@@ -379,7 +379,7 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
   if(is.null(metadata)){
 
     # set metadata
-    vr_metadata <- setVRMetadata(molecule = data.table::data.table(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
+    vr_metadata <- setVRMetadata(molecule = data.table::data.table(), cell = data.frame(), spot = data.frame(), ROI = data.frame(), tile = data.table::data.table())
 
     # create entity IDs using Assay index, make it colnames
     entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_Assay1"))
@@ -390,7 +390,7 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
 
   } else {
     if(any(class(metadata) %in% c("data.table", "data.frame", "matrix"))){
-      vr_metadata <- setVRMetadata(molecule = data.table::data.table(), cell = data.frame(), spot = data.frame(), ROI = data.frame())
+      vr_metadata <- setVRMetadata(molecule = data.table::data.table(), cell = data.frame(), spot = data.frame(), ROI = data.frame(), tile = data.table::data.table())
 
       # if metadata is a data.table
       if(inherits(metadata, "data.table")){

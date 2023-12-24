@@ -22,7 +22,7 @@ vrMetadata <- setClass(
     cell = 'data.frame',
     spot = 'data.frame',
     ROI = 'data.frame',
-    tile = 'data.frame'
+    tile = 'data.table'
   )
 )
 
@@ -174,7 +174,12 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
     cell.metadata <- object@cell[object@cell$Sample %in% samples, ]
     spot.metadata <- object@spot[object@spot$Sample %in% samples, ]
     roi.metadata <- object@ROI[object@ROI$Sample %in% samples, ]
-    tile.metadata <- object@tile[object@tile$Sample %in% samples, ]
+    # tile.metadata <- object@tile[object@tile$Sample %in% samples, ]
+    if(nrow(object@tile) > 0){
+      tile.metadata <- object@tile[Sample %in% samples, ]
+    } else {
+      tile.metadata <- data.table::data.table()
+    }
   } else if(!is.null(assays)){
     assay_names <- unique(lapply(slotToList(object), function(x) {
       if(inherits(x, "data.table")){
@@ -193,7 +198,11 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
       cell.metadata <- object@cell[stringr::str_extract(rownames(object@cell), "Assay[0-9]+") %in% assays, ]
       spot.metadata <- object@spot[stringr::str_extract(rownames(object@spot), "Assay[0-9]+") %in% assays, ]
       roi.metadata <- object@ROI[stringr::str_extract(rownames(object@ROI), "Assay[0-9]+") %in% assays, ]
-      tile.metadata <- object@tile[stringr::str_extract(rownames(object@tile), "Assay[0-9]+") %in% assays, ]
+      if(nrow(object@tile) > 0) {
+        tile.metadata <- object@tile[assay_id %in% assays, ]
+      } else {
+        tile.metadata <- data.table::data.table()
+      }
     } else {
       if(nrow(object@molecule) > 0) {
         mol.metadata <- object@molecule[Assay %in% assays, ]
@@ -203,7 +212,11 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
       cell.metadata <- object@cell[object@cell$Assay %in% assays, ]
       spot.metadata <- object@spot[object@spot$Assay %in% assays, ]
       roi.metadata <- object@ROI[object@ROI$Assay %in% assays, ]
-      tile.metadata <- object@tile[object@tile$Assay %in% assays, ]
+      if(nrow(object@tile) > 0) {
+        tile.metadata <- object@tile[Assay %in% assays, ]
+      } else {
+        tile.metadata <- data.table::data.table()
+      }
     }
   } else if(!is.null(spatialpoints)){
     if(all(spatialpoints %in% vrSpatialPoints(object))){
@@ -215,7 +228,11 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
       cell.metadata <- object@cell[rownames(object@cell) %in% spatialpoints, ]
       spot.metadata <- object@spot[rownames(object@spot) %in% spatialpoints, ]
       roi.metadata <- object@ROI[rownames(object@ROI) %in% spatialpoints, ]
-      tile.metadata <- object@tile[rownames(object@tile) %in% spatialpoints, ]
+      if(nrow(object@tile) > 0){
+        tile.metadata <- object@tile[id %in% spatialpoints, ]
+      } else {
+        tile.metadata <- data.table::data.table()
+      }
     } else {
       stop("Some spatial points are not found in the metadata and the object")
     }
