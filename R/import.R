@@ -784,3 +784,37 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
   # return
   vr <- merge(vr_list[[1]], vr_list[-1])
 }
+
+####
+# Image Data ####
+####
+
+#' importImageData
+#'
+#' import an image as VoltRon object
+#'
+#' @param img an image
+#'
+#' @importFrom magick image_read image_raster
+#'
+importImageData <- function(image, ...){
+
+  # get image
+  if(file.exists(image)){
+    image <- magick::image_read(image)
+  } else {
+    stop(image, " is not found!")
+  }
+
+  # coordinates
+  image_data <- magick::image_raster(image)
+
+  # metadata
+  metadata <- data.frame(tiles = rownames(image_data), row.names = rownames(image_data))
+
+  # coordinates
+  coords <- as.matrix(image_data[,c("x","y")])
+
+  # create voltron object
+  formVoltRon(data = NULL, metadata = metadata, image = image, coords, main.assay = "ImageData", assay.type = "tile", ...)
+}

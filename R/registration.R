@@ -59,16 +59,15 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
 
                       h4("Spatial Data Registration"),
                       fluidRow(
-                        br(),
-                        column(12,shiny::actionButton("register", "Register!")),
-                        br(),
-                        br(),
                         column(12,shiny::checkboxInput("automatictag", "Automated Registration", value = FALSE)),
                         br(),
                         column(12,selectInput("AutoMethod", "Method", choices = c("FLANN", "BRUTE-FORCE"), selected = "FLANN")),
                         br(),
                         column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
                         column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
+                        br(),
+                        column(12,shiny::actionButton("register", "Register!")),
+                        br(),
                         br(),
                         column(12,shiny::actionButton("done", "Done")),
                       ),
@@ -314,6 +313,13 @@ updateSequentialTabPanels <- function(input, output, session, centre, register_i
 #'
 updateParameterPanels <- function(input, output, session){
 
+  # done event
+  shinyjs::hide(id = "done")
+  observeEvent(input$register, {
+    shinyjs::show(id = "done")
+  })
+
+  # automated registration event
   shinyjs::hide(id = "GOOD_MATCH_PERCENT")
   shinyjs::hide(id = "MAX_FEATURES")
   shinyjs::hide(id = "AutoMethod")
@@ -356,7 +362,7 @@ updateParameterPanels <- function(input, output, session){
 #' @param register_ind the indices of query images/spatialdatasets
 #' @param centre the index of the central referance image/spatialdata
 #' @param input input
-#' @param ... additional parameters passed to \code{getRegisteredObject.VoltRon} or \code{getRegisteredObject.Seurat}
+#' @param ... additional parameters passed to \code{getRegisteredObjectListVoltRon} or \code{getRegisteredObject.Seurat}
 #'
 getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, input, ...) {
 
@@ -368,11 +374,6 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
   } else {
     stop("Please provide a VoltRon object")
   }
-    # check if elements are Seurat
-  # } else if(all(sapply(obj_list, class) == "Seurat")) {
-  #   registered_seu <- getRegisteredObjectListSeurat(obj_list, mapping_list, register_ind, centre, ...)
-  #   return(registered_seu)
-  # }
 }
 
 #' getRegisteredObjectListVoltRon
@@ -386,10 +387,11 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
 #' @param input input
 #' @param reg_mode the registration mode, either "auto" or "manual"
 #' @param image_list the list of query/ref images
+#' @param aligned_image_list the list of aligned query/ref images
 #'
 #' @importFrom magick image_info
 #'
-getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centre, input, reg_mode = "manual", image_list = NULL){
+getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centre, input, reg_mode = "manual", image_list = NULL, aligned_image_list = NULL){
 
   # initiate registered VoltRon objects
   ref_ind <- centre
@@ -416,7 +418,13 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
 
       # manual registration
       if(reg_mode == "manual"){
+
+        # get coordinates
         coords <- applyTPSTransform(coords, cur_mapping)
+
+        # get registered image
+        image <- getManualRegisteredImage(image_list, list(cur_mapping), query_ind = i, ref_ind = ref_ind, input)
+        vrImages(registered_sr[[i]][[vrAssayNames(registered_sr[[i]])]], reg = TRUE) <- image
 
       # automated registration
       } else {
@@ -426,7 +434,9 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
         query_image <- transformImage(image_list[[i]], query_extension, input)
 
         # rotate and flipflip with respect to query image
+        coords <- as.data.frame(coords)
         coords <- transformImageKeypoints(image_list[[i]], coords, query_extension, input)$keypoints
+        coords <- as.matrix(coords)
 
         # get image
         info <- magick::image_info(query_image)
@@ -440,11 +450,18 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
         coords[,2] <- info$height - coords[,2]
 
         # rotate and flipflip back with respect to reference image
+        coords <- as.data.frame(coords)
         colnames(coords) <- c('x', 'y')
         coords <- transformKeypoints(ref_image, coords, ref_extension, input)
+        coords <- as.matrix(coords)
+
+        # get image
+        vrImages(registered_sr[[i]][[vrAssayNames(registered_sr[[i]])]], reg = TRUE) <- aligned_image_list[[i]]
       }
     }
+    coords <- as.matrix(coords)
     rownames(coords) <- entities
+    colnames(coords) <- c("x", "y")
     vrCoordinates(registered_sr[[i]], reg = TRUE) <- coords
   }
   return(registered_sr)
@@ -925,19 +942,21 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
       }
 
       # get registered spatial datasets
-      temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre, input)
+      temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre, input, image_list = image_list)
       for(i in 1:length(temp_reg_list))
         registered_spatdata_list[[paste0(i)]] <- temp_reg_list[[i]]
 
       # Plot registered images
       lapply(register_ind, function(i){
         cur_mapping <- mapping_list[[i]]
-        images <- getManualRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
-        # images <- getManualRegisteredImage_complete(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
+        # query_image <- getManualRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
+        # query_image <- magick::image_read(raster::as.raster(images$query))
+        # query_image <- magick::image_read(images$query)
+        # query_image <- getManualRegisteredImage(image_list, cur_mapping, query_ind = i, ref_ind = centre, input)
+        query_image <- vrImages(temp_reg_list[[i]], reg = TRUE)
         output[[paste0("plot_query_reg",i)]] <- renderImage({
-          r2 <- magick::image_read(raster::as.raster(images$query))
           image_view_list <- list(rep(magick::image_resize(image_list[[centre]], geometry = "400x"),5),
-                                  rep(magick::image_resize(r2, geometry = "400x"),5))
+                                  rep(magick::image_resize(query_image, geometry = "400x"),5))
           image_view_list <- image_view_list %>%
             magick::image_join() %>%
             magick::image_write(tempfile(fileext='gif'), format = 'gif')
@@ -955,6 +974,10 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
       })
     }
   })
+}
+
+test_function <- function(query_image){
+  vrImages(query_image)[[1]]
 }
 
 #' computeManualPairwiseTransform
@@ -1008,7 +1031,7 @@ computeManualPairwiseTransform <- function(keypoints_list, query_ind, ref_ind){
 #' @importFrom raster rasterize focal res stack extent
 #' @importFrom terra rast
 #'
-getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, input){
+getManualRegisteredImage_old <- function(images, transmatrix, query_ind, ref_ind, input){
 
   # plot with raster
   ref_image_raster <- as.raster(images[[ref_ind]]) |> as.matrix() |> terra::rast()
@@ -1049,13 +1072,25 @@ getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, in
 #' @param input input
 #'
 #' @importFrom raster rasterize focal res stack extent
-#' @importFrom terra rast
+#' @importFrom terra rast values
+#' @importFrom grDevices rgb
 #'
-getManualRegisteredImage_complete <- function(images, transmatrix, query_ind, ref_ind, input){
+getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, input){
 
   # plot with raster
+  # ref_image_raster <- as.raster(images[[ref_ind]]) |> as.matrix() |> terra::rast()
+  # query_image_raster <- as.raster(images[[query_ind]]) |> as.matrix() |> terra::rast() |> raster::stack()
+
   ref_image_raster <- as.raster(images[[ref_ind]]) |> as.matrix() |> terra::rast()
-  query_image_raster <- as.raster(images[[query_ind]]) |> as.matrix() |> terra::rast() |> raster::stack()
+  query_image_raster <- as.raster(images[[query_ind]]) |> as.matrix() |> terra::rast()
+  if(terra::nlyr(query_image_raster) == 1){
+    query_image_raster <- raster::stack(query_image_raster)
+    query_image_raster <- raster::stack(query_image_raster, query_image_raster, query_image_raster)
+  } else {
+    query_image_raster <- raster::stack(query_image_raster)
+  }
+  # terra::nlyr(query_image_raster) <- 3
+  # query_image_raster <- raster::stack(query_image_raster)
 
   # prepare image
   imageEx <- raster::extent(raster::stack(ref_image_raster))
@@ -1070,37 +1105,38 @@ getManualRegisteredImage_complete <- function(images, transmatrix, query_ind, re
     # query_image_raster_1_t <- Morpho::applyTransform(query_image_raster_1_t, trans)
     query_image_raster_1_t <- applyTPSTransform(query_image_raster_1_t, trans)
   }
-  query_image_raster_2_t <- as.matrix(query_image_raster_2)[,1:2]
-  for(trans in transmatrix){
-    # query_image_raster_1_t <- Morpho::applyTransform(query_image_raster_1_t, trans)
-    query_image_raster_2_t <- applyTPSTransform(query_image_raster_2_t, trans)
-  }
-  query_image_raster_3_t <- as.matrix(query_image_raster_3)[,1:2]
-  for(trans in transmatrix){
-    # query_image_raster_1_t <- Morpho::applyTransform(query_image_raster_1_t, trans)
-    query_image_raster_3_t <- applyTPSTransform(query_image_raster_3_t, trans)
-  }
 
   # finalize image
   r <- raster::raster(nrow = dim(query_image_raster)[1], ncol = dim(query_image_raster)[2], resolution = c(1,1))
   raster::extent(r) <- imageEx
-  # raster::res(r) <- imageRes
+  raster::res(r) <- imageRes
   query_image_raster_1_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_1[,3], r, fun = mean)
   query_image_raster_1_trf <- raster::focal(query_image_raster_1_tr,
                                             w = matrix(1, nrow = 3, ncol = 3),
                                             fun = fill.na, pad = TRUE, na.rm = FALSE)
+  query_image_raster_1_trf <- terra::values(terra::rast(query_image_raster_1_trf, crs = ""))
+  query_image_raster_1_trf[is.nan(query_image_raster_1_trf)] <- 0
   query_image_raster_2_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_2[,3], r, fun = mean)
   query_image_raster_2_trf <- raster::focal(query_image_raster_2_tr,
                                             w = matrix(1, nrow = 3, ncol = 3),
                                             fun = fill.na, pad = TRUE, na.rm = FALSE)
+  query_image_raster_2_trf <- terra::values(terra::rast(query_image_raster_2_trf, crs = ""))
+  query_image_raster_2_trf[is.nan(query_image_raster_2_trf)] <- 0
   query_image_raster_3_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_3[,3], r, fun = mean)
   query_image_raster_3_trf <- raster::focal(query_image_raster_3_tr,
                                             w = matrix(1, nrow = 3, ncol = 3),
                                             fun = fill.na, pad = TRUE, na.rm = FALSE)
-  imageTr <- raster::stack(query_image_raster_1_trf, query_image_raster_2_trf, query_image_raster_3_trf)
-  query_image_raster_1_trf <- terra::rast(imageTr, crs = "")
+  query_image_raster_3_trf <- terra::values(terra::rast(query_image_raster_3_trf, crs = ""))
+  query_image_raster_3_trf[is.nan(query_image_raster_3_trf)] <- 0
 
-  return(list(ref = ref_image_raster, query = query_image_raster_1_trf))
+  # turn RGB to HEX
+  query_image_raster_1_trf <- mapply(function(r,g,b) {
+    rgb(r, g, b, maxColorValue = 255)
+  }, query_image_raster_1_trf, query_image_raster_2_trf, query_image_raster_3_trf, SIMPLIFY = TRUE)
+  query_image_raster_1_trf <- matrix(query_image_raster_1_trf, nrow = nrow(ref_image_raster), ncol = ncol(ref_image_raster), byrow = TRUE)
+  query_image <- magick::image_read(query_image_raster_1_trf)
+
+  return(query_image)
 }
 
 #' computeTPSTransform
@@ -1224,6 +1260,7 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
       # Register keypoints
       mapping_list <- list()
       dest_image_list <- list()
+      overlayed_image_list <- list()
       aligned_image_list <- list()
       alignment_image_list <- list()
       for(i in register_ind){
@@ -1237,15 +1274,18 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
         # destination image
         dest_image_list[[i]] <- results$dest_image
 
-        # save alignment
+        # save aligned images
         aligned_image_list[[i]] <- results$aligned_image
+
+        # save alignment
+        overlayed_image_list[[i]] <- results$overlay_image
 
         # save matches
         alignment_image_list[[i]] <- results$alignment_image
       }
 
       # get registered spatial datasets
-      temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre, input, reg_mode = "auto", image_list)
+      temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre, input, reg_mode = "auto", image_list, aligned_image_list)
       for(i in 1:length(temp_reg_list))
         registered_spatdata_list[[paste0(i)]] <- temp_reg_list[[i]]
 
@@ -1254,7 +1294,7 @@ getAutomatedRegisteration <- function(registered_spatdata_list, spatdata_list, i
         cur_mapping <- mapping_list[[i]]
         output[[paste0("plot_query_reg",i)]] <- renderImage({
           image_view_list <- list(rep(magick::image_resize(dest_image_list[[i]], geometry = "400x"),5),
-                                  rep(magick::image_resize(aligned_image_list[[i]], geometry = "400x"),5))
+                                  rep(magick::image_resize(overlayed_image_list[[i]], geometry = "400x"),5))
           image_view_list <- image_view_list %>%
             magick::image_join() %>%
             magick::image_write(tempfile(fileext='gif'), format = 'gif')
@@ -1326,9 +1366,10 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
     dest_image <- reg$dest_image
     aligned_image <- reg$aligned_image
     alignment_image <- reg$alignment_image
+    overlay_image <- reg$overlay_image
   }
 
-  return(list(mapping = mapping, dest_image = dest_image, aligned_image = aligned_image, alignment_image = alignment_image))
+  return(list(mapping = mapping, dest_image = dest_image, aligned_image = aligned_image, alignment_image = alignment_image, overlay_image = overlay_image))
 }
 
 #' getRcppAutomatedRegistration
@@ -1367,5 +1408,6 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
   return(list(transmat = reg[[1]],
               dest_image = magick::image_read(reg[[2]]),
               aligned_image = magick::image_read(reg[[3]]),
-              alignment_image = magick::image_read(reg[[4]])))
+              alignment_image = magick::image_read(reg[[4]]),
+              overlay_image = magick::image_read(reg[[5]])))
 }
