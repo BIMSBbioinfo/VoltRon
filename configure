@@ -83,7 +83,7 @@ fi
 echo "#include $PKG_TEST_HEADER_XFEATURES2D" | ${CXXCPP} ${CPPFLAGS} ${PKG_CFLAGS}  ${CXXFLAGS} -xc++ - >/dev/null 2>>configure.log
 if [ $? -ne 0 ]; then
   echo "Module $PKG_TEST_HEADER_XFEATURES2D has not been found on your system"
-  echo "Make sure to have a $PKG_CONFIG_NAME library installed with the module available"
+  echo "Make sure to have an $PKG_CONFIG_NAME library installed with the module available"
   exit 1
 else
   PKG_CFLAGS="$PKG_CFLAGS -DHAVE_XFEATURES2D"
