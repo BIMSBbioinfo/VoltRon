@@ -132,16 +132,13 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
       rownames(coords) <- entity_ID
     }
 
-    # create VoltRon object for molecules
-    # mol_object <- formVoltRon(data = NULL, metadata = metadata, image = image, coords, main.assay = paste0(assay_name, "_mol"), assay.type = "molecule", ...)
+    # create VoltRon assay for molecules
     mol_assay <- formAssay(coords = coords, image = image, type = "molecule")
 
     # merge assays in one section
     message("Merging assays ...")
     sample.metadata <- SampleMetadata(cell_object)
     object <- addAssay(cell_object,
-                       # assay = mol_object[["Assay1"]],
-                       # metadata = Metadata(mol_object),
                        assay = mol_assay,
                        metadata = mol_metadata,
                        assay_name = paste0(assay_name, "_mol"),

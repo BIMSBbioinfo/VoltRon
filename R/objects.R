@@ -318,7 +318,6 @@ setMethod(
 #' @param project project name
 #'
 #' @importFrom igraph make_empty_graph V
-#' @importFrom magick image_data image_read image_info
 #' @importFrom methods new
 #' @importFrom data.table data.table
 #' @importFrom rlang %||%
@@ -482,6 +481,23 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
 ### Assay Methods ####
 
 
+#' formAssay
+#'
+#' Create a vrAssay (VoltRon assay) object
+
+#' @param data the count table
+#' @param coords the coordinates of the spatial points
+#' @param segments the segments of the spatial points, optional
+#' @param image the image of the data
+#' @param params additional parameters of the object
+#' @param type the type of the assay (cells, spots, ROIs)
+#' @param name the name of the assay
+#'
+#' @importFrom magick image_data image_read image_info
+#' @importFrom methods new
+#'
+#' @export
+#'
 formAssay <- function(data = NULL, coords, segments = NULL, image, params = list(), type = "ROI", name = "Assay1"){
 
   # get segments
