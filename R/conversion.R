@@ -169,7 +169,7 @@ as.Seurat.VoltRon <- function(object, cell.assay = NULL, molecule.assay = NULL, 
     for(embd in vrEmbeddingNames(object)){
       embd_data <- vrEmbeddings(object, type = embd)
       colnames(embd_data) <- paste0(embd, 1:ncol(embd_data))
-      seu[[embd]] <- CreateDimReducObject(embd_data, key = paste0(embd, "_"), assay = DefaultAssay(seu))
+      seu[[embd]] <- Seurat::CreateDimReducObject(embd_data, key = paste0(embd, "_"), assay = Seurat::DefaultAssay(seu))
     }
   }
 
