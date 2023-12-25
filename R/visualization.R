@@ -1278,7 +1278,10 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NUL
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get data
-  violindata <- vrData(object, assay = assay, norm = norm)
+  if(any(features %in% vrFeatures(object))){
+    selected_features <- features[features %in% vrFeatures(object)]
+    violindata <- vrData(object, features = selected_features, assay = assay, norm = norm)
+  }
 
   # get entity type and metadata
   if(is.null(assay.type)){
@@ -1292,11 +1295,11 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NUL
   } else {
     metadata <- Metadata(object, type = assay.type)
   }
-  metadata <- metadata[colnames(violindata),]
+  # metadata <- metadata[colnames(violindata),]
 
   # get feature data
   datax <- lapply(features, function(x){
-    if(x %in% rownames(violindata)){
+    if(x %in% vrFeatures(object)){
       return(violindata[x,])
     } else if(x %in% colnames(metadata)){
       return(metadata[,x])
@@ -1334,7 +1337,7 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NUL
 
   if(length(features) > 1){
     if(length(gg) < ncol) ncol <- length(gg)
-    gg <- gg + facet_wrap(.~variable, ncol = ncol, nrow = ceiling(length(gg)/ncol))
+    gg <- gg + facet_wrap(.~variable, ncol = ncol, nrow = ceiling(length(gg)/ncol), scales = "free_y")
   } else {
     gg <- gg + labs(title = features)
   }
