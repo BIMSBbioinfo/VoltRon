@@ -203,6 +203,9 @@ resizeImage.vrAssay <- function(object, size){
   # resize segments
   vrSegments(object) <- lapply(vrSegments(object), function(x) {
     x[,c("x", "y")] <- x[,c("x", "y")]*size/sizefactor
+    if(any(colnames(x) %in% c("rx", "ry"))){
+      x[,c("rx", "ry")] <- x[,c("rx", "ry")]*size/sizefactor
+    }
     return(x)
   })
 
