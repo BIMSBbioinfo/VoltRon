@@ -432,8 +432,6 @@ vrSpatialPoints.vrImage <- function(object, ...) {
   return(rownames(vrCoordinates(object)))
 }
 
-#' @param reg TRUE if registered segments are being updated
-#'
 #' @rdname vrCoordinates
 #' @method vrCoordinates vrImage
 #'
@@ -443,6 +441,14 @@ vrCoordinates.vrImage <- function(object) {
     return(object@coords)
 }
 
+#' @rdname vrSegments
+#' @method vrSegments vrImage
+#'
+#' @export
+#'
+vrSegments.vrImage<- function(object) {
+    return(object@segments)
+}
 
 ####
 # Image File Manipulation ####
