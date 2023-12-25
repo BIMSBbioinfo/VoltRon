@@ -20,10 +20,10 @@ setOldClass(Classes = c('bitmap'))
 #' @slot normdata normalized count table
 #' @slot featuredata feature metadata
 #' @slot embeddings list of embeddings
-#' @slot coords spatial coordinates of the assay
-#' @slot coords_reg spatial coordinates of the registered assay
-#' @slot segments spatial coordinates of the segments, if available
-#' @slot segments_reg spatial coordinates of the registered segments, if available
+# #' @slot coords spatial coordinates of the assay
+# #' @slot coords_reg spatial coordinates of the registered assay
+# #' @slot segments spatial coordinates of the segments, if available
+# #' @slot segments_reg spatial coordinates of the registered segments, if available
 #' @slot image image of the spatial assay, bitmap class
 #' @slot params additional parameters used by different assay types
 #' @slot type the type of the assay (cell, spot, ROI)
@@ -40,10 +40,10 @@ vrAssay <- setClass(
     normdata = 'matrix',
     featuredata = 'data.frame',
     embeddings = "list",
-    coords = 'matrix',
-    coords_reg = 'matrix',
-    segments = 'list',
-    segments_reg = 'list',
+    # coords = 'matrix',
+    # coords_reg = 'matrix',
+    # segments = 'list',
+    # segments_reg = 'list',
     image = "list",
     params = "list",
     type = "character",
@@ -111,7 +111,7 @@ formAssay <- function(data = NULL, coords, segments = NULL, image, params = list
 
   # make vrAssay object
   methods::new("vrAssay", rawdata = data, normdata = data,
-               coords = coords, coords_reg = coords, segments = segments, segments_reg = segments,
+               # coords = coords, coords_reg = coords, segments = segments, segments_reg = segments,
                image = image, params = params, type = type, name = name, main_image = main_image)
 }
 
@@ -533,33 +533,67 @@ vrCoordinates.vrAssay <- function(object, main_image = NULL, reg = FALSE) {
 #'
 #' @export
 #'
-"vrCoordinates<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
+"vrCoordinates<-.vrAssay" <- function(object, main_image = NULL, reg = FALSE, ..., value) {
 
-  # get coordinates
-  coords <- vrCoordinates(object, ...)
-
-  # stop if the rownames are not matching
-  if(any(sapply(rownames(values),is.null)))
-    stop("Provided coordinates data does not have cell/spot/ROI names")
-
-  if(!all(rownames(values) %in% rownames(coords)))
-    stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
-
-  # stop if the colnames there are more than two columns
-  if(ncol(value) != 2) {
-    stop("Please make sure that the coordinates matrix have only two columns: for x and y coordinates")
-  } else {
-    colnames(value) <- c("x", "y")
+  # check main image
+  if(is.null(main_image)){
+    main_image <- vrMainImage(object)
   }
 
+  # check registered coordinates
   if(reg){
-    methods::slot(object = object, name = 'coords_reg') <- value
-  } else{
-    methods::slot(object = object, name = 'coords') <- value
+    main_image <- paste0(main_image, "_reg")
   }
+
+  # check coordinates
+  if(!main_image %in% vrImageNames(object)){
+    stop(main_image, " is not among any image in this vrAssay object")
+  }
+
+  vrCoordinates(object@image[[main_image]]) <- value
   return(object)
 }
 
+#' #' @param reg TRUE if registered segments are being updated
+#' #' @param value the new set of 2D coordinates
+#' #'
+#' #' @rdname vrCoordinates
+#' #' @method vrCoordinates<- vrAssay
+#' #'
+#' #' @importFrom methods slot
+#' #'
+#' #' @export
+#' #'
+#' "vrCoordinates<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
+#'
+#'   # get coordinates
+#'   coords <- vrCoordinates(object, ...)
+#'
+#'   # stop if the rownames are not matching
+#'   if(any(sapply(rownames(values),is.null)))
+#'     stop("Provided coordinates data does not have cell/spot/ROI names")
+#'
+#'   if(!all(rownames(values) %in% rownames(coords)))
+#'     stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
+#'
+#'   # stop if the colnames there are more than two columns
+#'   if(ncol(value) != 2) {
+#'     stop("Please make sure that the coordinates matrix have only two columns: for x and y coordinates")
+#'   } else {
+#'     colnames(value) <- c("x", "y")
+#'   }
+#'
+#'   if(reg){
+#'     methods::slot(object = object, name = 'coords_reg') <- value
+#'   } else{
+#'     methods::slot(object = object, name = 'coords') <- value
+#'   }
+#'   return(object)
+#' }
+
+#' @param main_image the key of the image
+#' @param ... additional parameters passed to \code{vrCoordinates}
+#'
 #' @rdname flipCoordinates
 #' @method flipCoordinates vrAssay
 #'
@@ -567,11 +601,11 @@ vrCoordinates.vrAssay <- function(object, main_image = NULL, reg = FALSE) {
 #'
 #' @export
 #'
-flipCoordinates.vrAssay <- function(object, ...) {
-  imageinfo <- magick::image_info(vrImages(object))
-  coords <- vrCoordinates(object, ...)
+flipCoordinates.vrAssay <- function(object, main_image = NULL, ...) {
+  imageinfo <- magick::image_info(vrImages(object, main_image = main_image))
+  coords <- vrCoordinates(object, main_image = main_image, ...)
   coords[,"y"] <- imageinfo$height - coords[,"y"]
-  vrCoordinates(object, ...) <- coords
+  vrCoordinates(object, main_image = main_image, ...) <- coords
   return(object)
 }
 
@@ -634,23 +668,53 @@ vrSegments.vrAssay <- function(object, main_image = NULL, reg = FALSE) {
 #'
 "vrSegments<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
 
-  # get coordinates
-  segts <- vrSegments(object, ...)
-
-  # stop if the names are not matching
-  if(any(sapply(names(values),is.null)))
-    stop("Provided coordinates data does not have cell/spot/ROI names")
-
-  if(!all(names(values) %in% names(segts)))
-    stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
-
-  if(reg){
-    methods::slot(object = object, name = 'segments_reg') <- value
-  } else{
-    methods::slot(object = object, name = 'segments') <- value
+  # check main image
+  if(is.null(main_image)){
+    main_image <- vrMainImage(object)
   }
+
+  # check registered coordinates
+  if(reg){
+    main_image <- paste0(main_image, "_reg")
+  }
+
+  # check coordinates
+  if(!main_image %in% vrImageNames(object)){
+    stop(main_image, " is not among any image in this vrAssay object")
+  }
+
+  vrSegments(object@image[[main_image]]) <- value
   return(object)
 }
+
+#' #' @param reg TRUE if registered segments are being updated
+#' #' @param value the new set of 2D segments for each spatial point
+#' #'
+#' #' @rdname vrSegments
+#' #' @method vrSegments<- vrAssay
+#' #'
+#' #' @importFrom methods slot
+#' #' @export
+#' #'
+#' "vrSegments<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
+#'
+#'   # get coordinates
+#'   segts <- vrSegments(object, ...)
+#'
+#'   # stop if the names are not matching
+#'   if(any(sapply(names(values),is.null)))
+#'     stop("Provided coordinates data does not have cell/spot/ROI names")
+#'
+#'   if(!all(names(values) %in% names(segts)))
+#'     stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
+#'
+#'   if(reg){
+#'     methods::slot(object = object, name = 'segments_reg') <- value
+#'   } else{
+#'     methods::slot(object = object, name = 'segments') <- value
+#'   }
+#'   return(object)
+#' }
 
 #' @param reg TRUE if registered segments are being updated
 #' @param method the method argument passed to \code{base::dist}

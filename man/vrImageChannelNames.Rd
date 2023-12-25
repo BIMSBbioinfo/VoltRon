@@ -9,9 +9,9 @@
 \usage{
 vrImageChannelNames(object, ...)
 
-\method{vrImageChannelNames}{VoltRon}(object)
+\method{vrImageChannelNames}{VoltRon}(object, assay = NULL)
 
-\method{vrImageChannelNames}{vrAssay}(object, main_image)
+\method{vrImageChannelNames}{vrAssay}(object, main_image = NULL)
 
 \method{vrImageChannelNames}{vrImage}(object)
 }
@@ -19,6 +19,8 @@ vrImageChannelNames(object, ...)
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{assay}{assay}
 
 \item{main_image}{the key of the main image}
 }
