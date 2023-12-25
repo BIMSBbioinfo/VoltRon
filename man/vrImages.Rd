@@ -8,6 +8,7 @@
 \alias{vrImages.vrLayer}
 \alias{vrImages.vrAssay}
 \alias{vrImages<-.vrAssay}
+\alias{vrImages.vrImage}
 \title{vrImages}
 \usage{
 vrImages(object, ...)
@@ -23,9 +24,11 @@ vrImages(object, ...) <- value
 \method{vrImages}{vrAssay}(object, main_image = NULL, reg = FALSE, as.raster = FALSE)
 
 \method{vrImages}{vrAssay}(object, main_image = NULL, reg = FALSE, ...) <- value
+
+\method{vrImages}{vrImage}(object, main_channel = NULL, as.raster = FALSE)
 }
 \arguments{
-\item{object}{A vrAssay object}
+\item{object}{A vrImage object}
 
 \item{...}{Arguments passed to other methods}
 
@@ -36,7 +39,17 @@ vrImages(object, ...) <- value
 \item{reg}{TRUE if registered images are assigned}
 
 \item{as.raster}{return as a raster}
+
+\item{main_channel}{the name of the main channel}
 }
 \description{
 Get images of a VoltRon assay
+
+# get main image is main_image is null
+    if(is.null(main_image)) {
+      main_image <- object@main_image
+    }
+}
+\details{
+
 }

@@ -188,40 +188,68 @@ vrImages.vrLayer <- function(object, ...){
 #' @rdname vrImages
 #' @method vrImages vrAssay
 #'
-#' @importFrom magick image_read
-#'
 #' @export
 #'
 vrImages.vrAssay <- function(object, main_image = NULL, reg = FALSE, as.raster = FALSE){
-  if(!is.null(object@image)){
 
-    # get main image is main_image is null
-    if(is.null(main_image)) {
-      main_image <- object@main_image
-    }
-
-    # get registered image
-    if(reg){
-      main_image_query <- paste0(main_image, "_reg")
-      if(main_image_query %in% vrImageNames(object)){
-        main_image <- paste0(main_image, "_reg")
-      }
-    }
-
-    # check if image is here
-    if(main_image %in% vrImageNames(object)){
-      if(as.raster){
-        return(object@image[[main_image]])
-      } else {
-        return(magick::image_read(object@image[[main_image]]))
-      }
-    } else {
-      return(NULL)
-    }
-  } else {
-    return(NULL)
+  # get main image is main_image is null
+  if(is.null(main_image)) {
+    main_image <- object@main_image
   }
+
+  # get registered image
+  if(reg){
+    main_image <- paste0(main_image, "_reg")
+    if(!main_image %in% vrImageNames(object)){
+      stop(main_image, " is not among any image in this vrAssay object")
+    }
+  }
+
+  return(vrImages(object@image[[main_image]]))
 }
+
+#' #' @param object A vrAssay object
+#' #' @param main_image the name of the main image
+#' #' @param reg TRUE if registered images are assigned
+#' #' @param as.raster return as a raster
+#' #'
+#' #' @rdname vrImages
+#' #' @method vrImages vrAssay
+#' #'
+#' #' @importFrom magick image_read
+#' #'
+#' #' @export
+#' #'
+#' vrImages.vrAssay <- function(object, main_image = NULL, reg = FALSE, as.raster = FALSE){
+#'   if(!is.null(object@image)){
+#'
+#'     # get main image is main_image is null
+#'     if(is.null(main_image)) {
+#'       main_image <- object@main_image
+#'     }
+#'
+#'     # get registered image
+#'     if(reg){
+#'       main_image_query <- paste0(main_image, "_reg")
+#'       if(main_image_query %in% vrImageNames(object)){
+#'         main_image <- paste0(main_image, "_reg")
+#'       }
+#'     }
+#'
+#'     # check if image is here
+#'     if(main_image %in% vrImageNames(object)){
+#'       if(as.raster){
+#'         return(object@image[[main_image]])
+#'       } else {
+#'         return(magick::image_read(object@image[[main_image]]))
+#'       }
+#'     } else {
+#'       return(NULL)
+#'     }
+#'   } else {
+#'     return(NULL)
+#'   }
+#' }
 
 #' @param object A vrAssay object
 #' @param main_image the name of the main image
@@ -252,6 +280,29 @@ vrImages.vrAssay <- function(object, main_image = NULL, reg = FALSE, as.raster =
   return(object)
 }
 
+#' @param object A vrImage object
+#' @param main_channel the name of the main channel
+#' @param as.raster return as a raster
+#'
+#' @rdname vrImages
+#' @method vrImages vrImage
+#'
+#' @importFrom magick image_read
+#'
+#' @export
+#'
+vrImages.vrImage <- function(object, main_channel = NULL, as.raster = FALSE){
+
+  if(is.null(main_channel))
+    main_channel <- object@main_channel
+
+  if(as.raster){
+    return(object@image[[main_channel]])
+  } else {
+    return(magick::image_read(object@image[[main_channel]]))
+  }
+}
+
 #' @param assay assay
 #'
 #' @rdname vrImageNames
@@ -276,6 +327,56 @@ vrImageNames.VoltRon <- function(object, assay = NULL){
 #' @export
 #'
 vrImageNames.vrAssay <- function(object){
+  return(names(object@image))
+}
+
+#' @param assay assay
+#'
+#' @rdname vrImageChannelNames
+#' @method vrImageChannelNames VoltRon
+#'
+#' @export
+#'
+vrImageChannelNames.VoltRon <- function(object, assay = NULL){
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get image names
+  image_names <- unlist(lapply(assay_names, function(x) vrMainImage(object[[x]])))
+
+  # get channel names
+  image_channels <- unlist(lapply(assay_names, function(x) paste(vrImageChannelNames(object[[x]]), collapse = ",")))
+
+  # return data
+  main_image_data <- data.frame(Assay = assay_names, Image = image_names, Channels = image_channels)
+
+  # return
+  return(main_image_data)
+}
+
+#' @param main_image the key of the main image
+#'
+#' @rdname vrImageChannelNames
+#' @method vrImageChannelNames vrAssay
+#'
+#' @export
+#'
+vrImageChannelNames.vrAssay <- function(object, main_image = NULL){
+
+  if(is.null(main_image)){
+    main_image <- vrMainImage(object)
+  }
+
+  return(vrImageChannelNames(object@image[[main_image]]))
+}
+
+#' @rdname vrImageChannelNames
+#' @method vrImageChannelNames vrImage
+#'
+#' @export
+#'
+vrImageChannelNames.vrImage <- function(object){
   return(names(object@image))
 }
 

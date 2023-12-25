@@ -493,6 +493,20 @@ vrImageNames <- function(object, ...) {
   UseMethod(generic = 'vrImageNames', object = object)
 }
 
+#' vrImageChannelNames
+#'
+#' Get names of all image channels
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname vrImageChannelNames
+#' @export vrImageChannelNames
+#'
+vrImageChannelNames <- function(object, ...) {
+  UseMethod(generic = 'vrImageChannelNames', object = object)
+}
+
 #' vrMainImage
 #'
 #' Get the main image

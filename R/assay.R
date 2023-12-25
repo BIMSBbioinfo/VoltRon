@@ -475,6 +475,7 @@ vrData.vrAssay <- function(object, features = NULL, norm = FALSE) {
   }
 }
 
+#' @param main_image the key of the image associated with the coordinates
 #' @param reg TRUE if registered segments are being updated
 #'
 #' @rdname vrCoordinates
@@ -482,17 +483,45 @@ vrData.vrAssay <- function(object, features = NULL, norm = FALSE) {
 #'
 #' @export
 #'
-vrCoordinates.vrAssay <- function(object, reg = FALSE, ...) {
-  if(reg){
-    if(nrow(object@coords_reg) < 1) {
-      return(object@coords)
-    } else {
-      return(object@coords_reg)
-    }
-  } else {
-    return(object@coords)
+vrCoordinates.vrAssay <- function(object, main_image = NULL, reg = FALSE) {
+
+  # check main image
+  if(is.null(main_image)){
+    main_image <- vrMainImage(object)
   }
+
+  # check registered coordinates
+  if(reg){
+    main_image <- paste0(main_image, "_reg")
+  }
+
+  # check coordinates
+  if(!main_image %in% vrImageNames(object)){
+    stop(main_image, " is not among any image in this vrAssay object")
+  }
+
+  # return coordinates
+  return(vrCoordinates(object@image[[main_image]]))
 }
+
+#' #' @param reg TRUE if registered segments are being updated
+#' #'
+#' #' @rdname vrCoordinates
+#' #' @method vrCoordinates vrAssay
+#' #'
+#' #' @export
+#' #'
+#' vrCoordinates.vrAssay <- function(object, reg = FALSE, ...) {
+#'   if(reg){
+#'     if(nrow(object@coords_reg) < 1) {
+#'       return(object@coords)
+#'     } else {
+#'       return(object@coords_reg)
+#'     }
+#'   } else {
+#'     return(object@coords)
+#'   }
+#' }
 
 #' @param reg TRUE if registered segments are being updated
 #' @param value the new set of 2D coordinates
@@ -546,6 +575,7 @@ flipCoordinates.vrAssay <- function(object, ...) {
   return(object)
 }
 
+#' @param main_image the key of the image associated with the segments
 #' @param reg TRUE if registered segments are being updated
 #'
 #' @rdname vrSegments
@@ -553,17 +583,45 @@ flipCoordinates.vrAssay <- function(object, ...) {
 #'
 #' @export
 #'
-vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
-  if(reg){
-    if(length(object@segments_reg) < 1) {
-      return(object@segments)
-    } else {
-      return(object@segments_reg)
-    }
-  } else {
-    return(object@segments)
+vrSegments.vrAssay <- function(object, main_image = NULL, reg = FALSE) {
+
+  # check main image
+  if(is.null(main_image)){
+    main_image <- vrMainImage(object)
   }
+
+  # check registered coordinates
+  if(reg){
+    main_image <- paste0(main_image, "_reg")
+  }
+
+  # check coordinates
+  if(!main_image %in% vrImageNames(object)){
+    stop(main_image, " is not among any image in this vrAssay object")
+  }
+
+  # return coordinates
+  return(vrSegments(object@image[[main_image]]))
 }
+
+#' #' @param reg TRUE if registered segments are being updated
+#' #'
+#' #' @rdname vrSegments
+#' #' @method vrSegments vrAssay
+#' #'
+#' #' @export
+#' #'
+#' vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
+#'   if(reg){
+#'     if(length(object@segments_reg) < 1) {
+#'       return(object@segments)
+#'     } else {
+#'       return(object@segments_reg)
+#'     }
+#'   } else {
+#'     return(object@segments)
+#'   }
+#' }
 
 #' @param reg TRUE if registered segments are being updated
 #' @param value the new set of 2D segments for each spatial point
