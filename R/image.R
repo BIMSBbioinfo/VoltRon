@@ -1,4 +1,144 @@
 ####
+# Objects and Classes ####
+####
+
+## vrImage ####
+
+#' The vrImage (VoltRon Image) Class
+#'
+#' @slot coords spatial coordinates of the assay
+#' @slot segments spatial coordinates of the segments, if available
+#' @slot image image of the spatial assay, bitmap class
+#' @slot main_channel the key of the main channel of vrImage object
+#'
+#' @name vrImage-class
+#' @rdname vrImage-class
+#' @exportClass vrImage
+#'
+vrImage <- setClass(
+  Class = 'vrImage',
+  slots = c(
+    coords = 'matrix',
+    segments = 'list',
+    image = "list",
+    main_channel = "character"
+  )
+)
+
+### show ####
+
+setMethod(
+  f = 'show',
+  signature = 'vrImage',
+  definition = function(object) {
+
+    # separate names
+    image_names <- names(object@image)
+    image_id <- seq_along(image_names)
+    image_names_split <- split(image_names, ceiling(image_id/10))
+
+    cat("vrImage (VoltRon Assay) Object \n")
+    text <- "Channels:"
+    for(img in image_names_split){
+      cat(text, paste(img, collapse = ", "), "\n")
+      text <- "         "
+    }
+    return(invisible(x = NULL))
+  }
+)
+
+# Create vrImage Object ####
+
+#' formImage
+#'
+#' Create a vrImage (VoltRon image) object
+#'
+#' @param coords the coordinates of the spatial points
+#' @param segments the segments of the spatial points, optional
+#' @param image the image of the data
+#' @param main_channel the key of the main channel of vrImage object
+#'
+#' @importFrom magick image_data image_read image_info
+#' @importFrom methods new
+#'
+#' @export
+#'
+formImage <- function(coords, segments = NULL, image, main_channel = NULL){
+
+  # get segments
+  if(is.null(segments)){
+    segments <- list()
+  } else {
+    if(length(segments) == length(rownames(coords))){
+      names(segments) <- rownames(coords)
+    } else {
+      stop("Number of segments doesnt match the number of points!")
+    }
+  }
+
+  # check if the image input is a list
+  if(!is.null(image)){
+    if(is.list(image)){
+
+      # enter names if there are no names
+      if(is.null(names(image)))
+        names(image) <- paste("image_", 1:length(image))
+
+      # get image information
+      imageinfo <- sapply(image, function(x) magick::image_info(x)[,c("width", "height")], USE.NAMES = TRUE)
+      flag <- all(apply(imageinfo, 1, function(x) length(unique(x)) == 1))
+
+      #
+      if(!flag){
+        stop("When providing multiple images as channels, make sure that all images have the same dimensionality!")
+      } else {
+        image <- lapply(image, magick::image_data)
+        names(image) <- colnames(imageinfo)
+        if(is.null(main_channel))
+          main_channel <- names(image)[1]
+      }
+    } else {
+      image <- list(magick::image_data(image))
+      if(is.null(main_channel))
+        main_channel <- "channel_1"
+      names(image) <- main_channel
+    }
+  } else {
+    height <- max(ceiling(coords[,2]))
+    width <- max(ceiling(coords[,1]))
+    image <- list(matrix(rep("#030303ff", height*width), nrow = height, ncol = width))
+    if(is.null(main_channel))
+      main_channel <- "channel_1"
+    names(image) <- main_channel
+  }
+
+
+  # # image
+  # if(!is.null(image)){
+  #   if(is.list(image)){
+  #     imageinfo <- sapply(image, function(x) magick::image_info(x)[,c("width", "height")], USE.NAMES = TRUE)
+  #     flag <- all(apply(imageinfo, 1, function(x) length(unique(x)) == 1))
+  #     if(!flag) {
+  #       stop("When providing multiple images, make sure that all images have the same dimensionality!")
+  #     } else {
+  #       image <- lapply(image, magick::image_data)
+  #       names(image) <- colnames(imageinfo)
+  #     }
+  #   } else {
+  #     image <- list(main_channel = magick::image_data(image))
+  #   }
+  # } else {
+  #   height <- max(ceiling(coords[,2]))
+  #   width <- max(ceiling(coords[,1]))
+  #   image <- matrix(rep("#030303ff", height*width), nrow = height, ncol = width)
+  #   image <- list(main_channel = magick::image_data(magick::image_read(image)))
+  # }
+
+  # make vrimage object
+   methods::new("vrImage", coords = coords, segments = segments, image = image, main_channel = main_channel)
+}
+
+####
 # Get Images ####
 ####
 
@@ -137,6 +277,28 @@ vrImageNames.VoltRon <- function(object, assay = NULL){
 #'
 vrImageNames.vrAssay <- function(object){
   return(names(object@image))
+}
+
+#' @param assay assay
+#'
+#' @rdname vrMainImage
+#' @method vrMainImage VoltRon
+#'
+#' @export
+#'
+vrMainImage.VoltRon <- function(object, assay = NULL){
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get assay types
+  image_names <- unique(unlist(lapply(assay_names, function(x) vrMainImage(object[[x]]))))
+
+  # return data
+  main_image_data <- data.frame(assay = assay_names, image = image_names)
+
+  # return
+  return(main_image_data)
 }
 
 #' @rdname vrMainImage

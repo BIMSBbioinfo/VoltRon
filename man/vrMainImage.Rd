@@ -3,6 +3,7 @@
 \name{vrMainImage}
 \alias{vrMainImage}
 \alias{vrMainImage<-}
+\alias{vrMainImage.VoltRon}
 \alias{vrMainImage.vrAssay}
 \alias{vrMainImage<-.vrAssay}
 \title{vrMainImage}
@@ -10,6 +11,8 @@
 vrMainImage(object, ...)
 
 vrMainImage(object, ...) <- value
+
+\method{vrMainImage}{VoltRon}(object, assay = NULL)
 
 \method{vrMainImage}{vrAssay}(object)
 
@@ -21,6 +24,8 @@ vrMainImage(object, ...) <- value
 \item{...}{Arguments passed to other methods}
 
 \item{value}{the name of main image}
+
+\item{assay}{assay}
 }
 \description{
 Get the main image

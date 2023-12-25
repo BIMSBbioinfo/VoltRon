@@ -20,7 +20,7 @@ vrImages(object, ...) <- value
 
 \method{vrImages}{vrLayer}(object, ...)
 
-\method{vrImages}{vrAssay}(object, main_image = NULL, as.raster = FALSE)
+\method{vrImages}{vrAssay}(object, main_image = NULL, reg = FALSE, as.raster = FALSE)
 
 \method{vrImages}{vrAssay}(object, main_image = NULL, reg = FALSE, ...) <- value
 }
@@ -33,9 +33,9 @@ vrImages(object, ...) <- value
 
 \item{main_image}{the name of the main image}
 
-\item{as.raster}{if TRUE, return as raster matrix}
+\item{reg}{TRUE if registered images are assigned}
 
-\item{reg}{TRUE if registered coordinates are assigned}
+\item{as.raster}{return as a raster}
 }
 \description{
 Get images of a VoltRon assay

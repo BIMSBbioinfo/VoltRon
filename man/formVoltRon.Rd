@@ -9,7 +9,7 @@ formVoltRon(
   metadata = NULL,
   image = NULL,
   coords,
-  segments = list(),
+  segments = NULL,
   sample.metadata = NULL,
   main.assay = "Custom_cell",
   assay.type = "cell",

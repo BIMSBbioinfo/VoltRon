@@ -456,9 +456,6 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
   }
 
   # create vrAssay
-  # Assay <- methods::new("vrAssay", rawdata = data, normdata = data,
-  #                       coords = coords, coords_reg = coords, segments = segments, segments_reg = segments,
-  #                       image = image, params = params, type = assay.type, name = "Assay1", main_image = names(image)[[1]])
   Assay <- formAssay(data = data, coords = coords, segments = segments, image = image, params = params, type = assay.type, name = "Assay1")
   listofAssays <- list(Assay)
   names(listofAssays) <- main.assay
@@ -479,71 +476,6 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
 }
 
 ### Assay Methods ####
-
-
-#' formAssay
-#'
-#' Create a vrAssay (VoltRon assay) object
-
-#' @param data the count table
-#' @param coords the coordinates of the spatial points
-#' @param segments the segments of the spatial points, optional
-#' @param image the image of the data
-#' @param params additional parameters of the object
-#' @param type the type of the assay (cells, spots, ROIs)
-#' @param name the name of the assay
-#'
-#' @importFrom magick image_data image_read image_info
-#' @importFrom methods new
-#'
-#' @export
-#'
-formAssay <- function(data = NULL, coords, segments = NULL, image, params = list(), type = "ROI", name = "Assay1"){
-
-  # get segments
-  if(is.null(segments)){
-    segments <- list()
-  } else {
-    if(length(segments) == length(rownames(coords))){
-      names(segments) <- rownames(coords)
-    } else {
-      stop("Number of segments doesnt match the number of points!")
-    }
-  }
-
-  # image
-  if(!is.null(image)){
-    if(is.list(image)){
-      imageinfo <- sapply(image, function(x) magick::image_info(x)[,c("width", "height")], USE.NAMES = TRUE)
-      flag <- all(apply(imageinfo, 1, function(x) length(unique(x)) == 1))
-      if(!flag) {
-        stop("When providing multiple images, make sure that all images have the same dimensionality!")
-      } else {
-        image <- lapply(image, magick::image_data)
-        names(image) <- colnames(imageinfo)
-      }
-    } else {
-      image <- list(main_image = magick::image_data(image))
-    }
-  } else {
-    height <- max(ceiling(coords[,2]))
-    width <- max(ceiling(coords[,1]))
-    image <- matrix(rep("#030303ff", height*width), nrow = height, ncol = width)
-    image <- list(main_image = magick::image_data(magick::image_read(image)))
-  }
-
-  # get data
-  if(is.null(data)){
-    data <- matrix(nrow = 0, ncol = nrow(coords))
-    colnames(data) <- rownames(coords)
-  }
-
-  # make vrAssay object
-  methods::new("vrAssay", rawdata = data, normdata = data,
-               coords = coords, coords_reg = coords, segments = segments, segments_reg = segments,
-               image = image, params = params, type = type, name = name, main_image = names(image)[[1]])
-}
-
 
 #' @rdname vrMainAssay
 #' @method vrMainAssay VoltRon

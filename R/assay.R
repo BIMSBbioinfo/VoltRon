@@ -67,6 +67,54 @@ setMethod(
 # Methods ####
 ####
 
+### Create vrAssay Object ####
+
+#' formAssay
+#'
+#' Create a vrAssay (VoltRon assay) object
+#'
+#' @param data the count table
+#' @param coords the coordinates of the spatial points
+#' @param segments the segments of the spatial points, optional
+#' @param image the image of the data
+#' @param params additional parameters of the object
+#' @param type the type of the assay (cells, spots, ROIs)
+#' @param name the name of the assay
+#'
+#' @importFrom methods new
+#'
+#' @export
+#'
+formAssay <- function(data = NULL, coords, segments = NULL, image, params = list(), type = "ROI", name = "Assay1", main_image = "main_image"){
+
+  # get data
+  if(is.null(data)){
+    data <- matrix(nrow = 0, ncol = nrow(coords))
+    colnames(data) <- rownames(coords)
+  }
+
+  # get segments
+  if(is.null(segments)){
+    segments <- list()
+  } else {
+    if(length(segments) == length(rownames(coords))){
+      names(segments) <- rownames(coords)
+    } else {
+      stop("Number of segments doesnt match the number of points!")
+    }
+  }
+
+  # get image object
+  image <- formImage(coords = coords, segments = NULL, image = image)
+  image <- list(image)
+  names(image) <- main_image
+
+  # make vrAssay object
+  methods::new("vrAssay", rawdata = data, normdata = data,
+               coords = coords, coords_reg = coords, segments = segments, segments_reg = segments,
+               image = image, params = params, type = type, name = name, main_image = main_image)
+}
+
 ### Subset vrAssay objects ####
 
 #' Subsetting vrAssay objects

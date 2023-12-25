@@ -17,7 +17,7 @@ getRegisteredObject(obj_list, mapping_list, register_ind, centre, input, ...)
 
 \item{input}{input}
 
-\item{...}{additional parameters passed to \code{getRegisteredObject.VoltRon} or \code{getRegisteredObject.Seurat}}
+\item{...}{additional parameters passed to \code{getRegisteredObjectListVoltRon} or \code{getRegisteredObject.Seurat}}
 }
 \description{
 Get a registered VoltRon or Seurat object

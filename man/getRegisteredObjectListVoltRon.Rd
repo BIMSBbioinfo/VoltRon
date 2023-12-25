@@ -11,7 +11,8 @@ getRegisteredObjectListVoltRon(
   centre,
   input,
   reg_mode = "manual",
-  image_list = NULL
+  image_list = NULL,
+  aligned_image_list = NULL
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ getRegisteredObjectListVoltRon(
 \item{reg_mode}{the registration mode, either "auto" or "manual"}
 
 \item{image_list}{the list of query/ref images}
+
+\item{aligned_image_list}{the list of aligned query/ref images}
 }
 \description{
 Get registered and merged VoltRon object composed of several Samples
