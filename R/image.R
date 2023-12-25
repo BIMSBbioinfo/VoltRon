@@ -292,10 +292,10 @@ vrMainImage.VoltRon <- function(object, assay = NULL){
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get assay types
-  image_names <- unique(unlist(lapply(assay_names, function(x) vrMainImage(object[[x]]))))
+  image_names <- unlist(lapply(assay_names, function(x) vrMainImage(object[[x]])))
 
   # return data
-  main_image_data <- data.frame(assay = assay_names, image = image_names)
+  main_image_data <- data.frame(Assay = assay_names, Image = image_names)
 
   # return
   return(main_image_data)
@@ -418,6 +418,31 @@ modulateImage.vrAssay <- function(object, brightness = 100, saturation = 100, hu
   # return
   return(object)
 }
+
+####
+# Other Methods ####
+####
+
+#' @rdname vrSpatialPoints
+#' @method vrSpatialPoints vrImage
+#'
+#' @export
+#'
+vrSpatialPoints.vrImage <- function(object, ...) {
+  return(rownames(vrCoordinates(object)))
+}
+
+#' @param reg TRUE if registered segments are being updated
+#'
+#' @rdname vrCoordinates
+#' @method vrCoordinates vrImage
+#'
+#' @export
+#'
+vrCoordinates.vrImage <- function(object) {
+    return(object@coords)
+}
+
 
 ####
 # Image File Manipulation ####

@@ -296,6 +296,8 @@ subsetSegments <- function(segments, image, crop_info){
   segments
 }
 
+### Other Methods ####
+
 #' @rdname vrSpatialPoints
 #' @method vrSpatialPoints vrAssay
 #'
