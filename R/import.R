@@ -811,8 +811,7 @@ importImageData <- function(image, ...){
   image_data <- magick::image_raster(image)
 
   # metadata
-  # metadata <- data.frame(tiles = rownames(image_data), row.names = rownames(image_data))
-  metadata <- data.table(id = rownames(image_data), assay_id = "Assay1")
+  metadata <- data.table(id = rownames(image_data))
 
   # coordinates
   coords <- as.matrix(image_data[,c("x","y")])

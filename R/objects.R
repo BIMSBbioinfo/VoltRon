@@ -327,7 +327,7 @@ setMethod(
 #'
 formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
                              coords,
-                             segments = list(),
+                             segments = NULL,
                              sample.metadata = NULL,
                              main.assay = "Custom_cell", assay.type = "cell", params = list(),
                              sample_name = NULL, layer_name = NULL,
