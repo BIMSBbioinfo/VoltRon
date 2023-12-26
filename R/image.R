@@ -284,13 +284,17 @@ vrImages.vrAssay <- function(object, main_image = NULL, reg = FALSE, main_channe
   if(reg){
     main_image <- paste0(main_image, "_reg")
   }
-  if(inherits(value, "bitmap")){
-    object@image[[main_image]] <- value
-  } else if(inherits(value, "magick-image")){
-    object@image[[main_image]] <- magick::image_data(value)
-  } else {
-    stop("Please provide either a magick-image or bitmap class image object!")
+  if(inherits(value, "vrImage")){
+    object@image <- value
   }
+
+  # if(inherits(value, "bitmap")){
+  #   object@image[[main_image]] <- value
+  # } else if(inherits(value, "magick-image")){
+  #   object@image[[main_image]] <- magick::image_data(value)
+  # } else {
+  #   stop("Please provide either a magick-image or bitmap class image object!")
+  # }
   return(object)
 }
 

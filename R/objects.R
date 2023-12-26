@@ -1345,7 +1345,7 @@ vrCoordinates.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
 
   # check the number of assays in the object
   if(nrow(sample.metadata) > 1)
-    stop("Changing the coordinates of multiple assays are not permitted!")
+    stop("Changing the coordinates of multiple assays in the same time are not permitted!")
 
   # get assay
   cur_assay <- sample.metadata[1,]

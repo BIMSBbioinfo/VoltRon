@@ -398,8 +398,9 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
   registered_sr <- sr
   for(i in register_ind){
 
-    # coordinates
+    # coordinates and segments
     coords <- vrCoordinates(registered_sr[[i]])
+    segments <- vrSegments(registered_sr[[i]])
     entities <- rownames(coords)
 
     # choose image query and ref order
@@ -411,7 +412,7 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
       query_extension = paste0("ref_image",i)
     }
 
-    # mapping
+    # mapping of coordinates, segments and images
     mapping <- mapping_list[[i]]
     for(kk in 1:length(mapping)){
       cur_mapping <- mapping[[kk]]
@@ -419,44 +420,78 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
       # manual registration
       if(reg_mode == "manual"){
 
-        # get coordinates
-        coords <- applyTPSTransform(coords, cur_mapping)
+        # get registered coordinates
+        coords_reg <- applyTPSTransform(coords, cur_mapping)
 
-        # get registered image
+        # get registered segments
+        if(length(segments) > 0){
+          segments_reg <- sapply(segments, function(seg) {
+            applyTPSTransform(seg, cur_mapping)
+          }, USE.NAMES = TRUE)
+        }
+
+        # get registered image (including all channels)
         image <- getManualRegisteredImage(image_list, list(cur_mapping), query_ind = i, ref_ind = ref_ind, input)
-        vrImages(registered_sr[[i]][[vrAssayNames(registered_sr[[i]])]], reg = TRUE) <- image
+
+        # make new image object
+        image_object <- formImage(coords = coords_reg, segments = segments_reg, image = image)
+        vrImages(registered_sr[[i]][[vrAssayNames(registered_sr[[i]])]], reg = TRUE) <- image_object
 
       # automated registration
-      } else {
+      } else if(reg_mode == "auto"){
 
         # images
         ref_image <- transformImage(image_list[[ref_ind]], ref_extension, input)
         query_image <- transformImage(image_list[[i]], query_extension, input)
 
         # rotate and flipflip with respect to query image
-        coords <- as.data.frame(coords)
-        coords <- transformImageKeypoints(image_list[[i]], coords, query_extension, input)$keypoints
-        coords <- as.matrix(coords)
+        coords_reg <- as.data.frame(coords)
+        coords_reg <- transformImageKeypoints(image_list[[i]], coords_reg, query_extension, input)$keypoints
+        coords_reg <- as.matrix(coords_reg)
+        if(length(segments) > 0){
+          segments_reg <- do.call(rbind, segments)
+          segments_reg <- as.data.frame(segments_reg)
+          segments_reg <- transformImageKeypoints(image_list[[i]], segments_reg, query_extension, input)$keypoints
+          segments_reg <- as.matrix(segments_reg)
+        }
 
         # get image
         info <- magick::image_info(query_image)
 
         # warp coordinates
-        coords[,2] <- info$height - coords[,2]
-        coords <- perspectiveTransform(coords, cur_mapping)
+        coords_reg[,2] <- info$height - coords_reg[,2]
+        coords_reg <- perspectiveTransform(coords_reg, cur_mapping)
+        if(length(segments) > 0){
+          segments_reg[,2] <- info$height - segments_reg[,2]
+          segments_reg <- perspectiveTransform(segments_reg, cur_mapping)
+        }
 
         # adjust height
         info <- magick::image_info(ref_image)
-        coords[,2] <- info$height - coords[,2]
+        coords_reg[,2] <- info$height - coords_reg[,2]
+        if(length(segments) > 0){
+          segments_reg[,2] <- info$height - segments_reg[,2]
+        }
 
         # rotate and flipflip back with respect to reference image
-        coords <- as.data.frame(coords)
-        colnames(coords) <- c('x', 'y')
-        coords <- transformKeypoints(ref_image, coords, ref_extension, input)
-        coords <- as.matrix(coords)
+        coords_reg <- as.data.frame(coords_reg)
+        colnames(coords_reg) <- c('x', 'y')
+        coords_reg <- transformKeypoints(ref_image, coords_reg, ref_extension, input)
+        coords_reg <- as.matrix(coords_reg)
+        if(length(segments) > 0){
+          segments_reg <- as.data.frame(segments_reg)
+          colnames(segments_reg) <- c('x', 'y')
+          segments_reg <- transformKeypoints(ref_image, segments_reg, ref_extension, input)
+          segments_reg <- as.matrix(segments_reg)
+        }
+
+        # get image object
+        segments_reg <- split(segments_reg, segments_reg[,1])
+        names(segments_reg) <- names(segments)
+        image_object <- formImage(coords = coords_reg, segments = segments_reg, image = image)
 
         # get image
-        vrImages(registered_sr[[i]][[vrAssayNames(registered_sr[[i]])]], reg = TRUE) <- aligned_image_list[[i]]
+        vrImages(registered_sr[[i]][[vrAssayNames(registered_sr[[i]])]], reg = TRUE) <- image_object
       }
     }
     coords <- as.matrix(coords)
@@ -466,6 +501,97 @@ getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centr
   }
   return(registered_sr)
 }
+
+#' #' getRegisteredObjectListVoltRon
+#' #'
+#' #' Get registered and merged VoltRon object composed of several Samples
+#' #'
+#' #' @param sr a list of VoltRon objects
+#' #' @param mapping_list a list of transformation matrices
+#' #' @param register_ind the indices of query images/spatialdatasets
+#' #' @param centre the index of the central reference image/spatialdata
+#' #' @param input input
+#' #' @param reg_mode the registration mode, either "auto" or "manual"
+#' #' @param image_list the list of query/ref images
+#' #' @param aligned_image_list the list of aligned query/ref images
+#' #'
+#' #' @importFrom magick image_info
+#' #'
+#' getRegisteredObjectListVoltRon <- function(sr, mapping_list, register_ind, centre, input, reg_mode = "manual", image_list = NULL, aligned_image_list = NULL){
+#'
+#'   # initiate registered VoltRon objects
+#'   ref_ind <- centre
+#'   registered_sr <- sr
+#'   for(i in register_ind){
+#'
+#'     # coordinates
+#'     coords <- vrCoordinates(registered_sr[[i]])
+#'     entities <- rownames(coords)
+#'
+#'     # choose image query and ref order
+#'     if(i > ref_ind){
+#'       ref_extension = paste0("ref_image",ref_ind)
+#'       query_extension = paste0("query_image",i)
+#'     } else {
+#'       ref_extension = paste0("query_image",ref_ind)
+#'       query_extension = paste0("ref_image",i)
+#'     }
+#'
+#'     # mapping
+#'     mapping <- mapping_list[[i]]
+#'     for(kk in 1:length(mapping)){
+#'       cur_mapping <- mapping[[kk]]
+#'
+#'       # manual registration
+#'       if(reg_mode == "manual"){
+#'
+#'         # get coordinates
+#'         coords <- applyTPSTransform(coords, cur_mapping)
+#'
+#'         # get registered image
+#'         image <- getManualRegisteredImage(image_list, list(cur_mapping), query_ind = i, ref_ind = ref_ind, input)
+#'         vrImages(registered_sr[[i]][[vrAssayNames(registered_sr[[i]])]], reg = TRUE) <- image
+#'
+#'       # automated registration
+#'       } else {
+#'
+#'         # images
+#'         ref_image <- transformImage(image_list[[ref_ind]], ref_extension, input)
+#'         query_image <- transformImage(image_list[[i]], query_extension, input)
+#'
+#'         # rotate and flipflip with respect to query image
+#'         coords <- as.data.frame(coords)
+#'         coords <- transformImageKeypoints(image_list[[i]], coords, query_extension, input)$keypoints
+#'         coords <- as.matrix(coords)
+#'
+#'         # get image
+#'         info <- magick::image_info(query_image)
+#'
+#'         # warp coordinates
+#'         coords[,2] <- info$height - coords[,2]
+#'         coords <- perspectiveTransform(coords, cur_mapping)
+#'
+#'         # adjust height
+#'         info <- magick::image_info(ref_image)
+#'         coords[,2] <- info$height - coords[,2]
+#'
+#'         # rotate and flipflip back with respect to reference image
+#'         coords <- as.data.frame(coords)
+#'         colnames(coords) <- c('x', 'y')
+#'         coords <- transformKeypoints(ref_image, coords, ref_extension, input)
+#'         coords <- as.matrix(coords)
+#'
+#'         # get image
+#'         vrImages(registered_sr[[i]][[vrAssayNames(registered_sr[[i]])]], reg = TRUE) <- aligned_image_list[[i]]
+#'       }
+#'     }
+#'     coords <- as.matrix(coords)
+#'     rownames(coords) <- entities
+#'     colnames(coords) <- c("x", "y")
+#'     vrCoordinates(registered_sr[[i]], reg = TRUE) <- coords
+#'   }
+#'   return(registered_sr)
+#' }
 
 #' rescaleXeniumCells
 #'
@@ -976,10 +1102,6 @@ getManualRegisteration <- function(registered_spatdata_list, spatdata_list, imag
   })
 }
 
-test_function <- function(query_image){
-  vrImages(query_image)[[1]]
-}
-
 #' computeManualPairwiseTransform
 #'
 #' Computing transformation matrix of manual registration
@@ -1010,57 +1132,14 @@ computeManualPairwiseTransform <- function(keypoints_list, query_ind, ref_ind){
       reference_landmark <- as.matrix(keypoints[["ref"]][,c("x","y")])
       target_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
     }
+
     # compute and get transformation matrix
-    # mapping_list[[kk]] <- Morpho::computeTransform(reference_landmark, target_landmark, type = "tps")
     mapping_list[[kk]] <- computeTPSTransform(reference_landmark, target_landmark)
   }
 
   return(mapping_list)
 }
 
-#' getManualRegisteredImage
-#'
-#' Generating the manually registered images
-#'
-#' @param images the list of images
-#' @param transmatrix the transformation matrix
-#' @param query_ind the index of the query image
-#' @param ref_ind the index of the reference image
-#' @param input input
-#'
-#' @importFrom raster rasterize focal res stack extent
-#' @importFrom terra rast
-#'
-getManualRegisteredImage_old <- function(images, transmatrix, query_ind, ref_ind, input){
-
-  # plot with raster
-  ref_image_raster <- as.raster(images[[ref_ind]]) |> as.matrix() |> terra::rast()
-  query_image_raster <- as.raster(images[[query_ind]]) |> as.matrix() |> terra::rast() |> raster::stack()
-
-  # prepare image
-  imageEx <- raster::extent(raster::stack(ref_image_raster))
-  imageRes <- raster::res(raster::stack(ref_image_raster))
-  query_image_raster_1 <- raster::as.data.frame(query_image_raster[[1]], xy = TRUE)
-
-  # apply transformation as many as it is needed
-  query_image_raster_1_t <- as.matrix(query_image_raster_1)[,1:2]
-  for(trans in transmatrix){
-    # query_image_raster_1_t <- Morpho::applyTransform(query_image_raster_1_t, trans)
-    query_image_raster_1_t <- applyTPSTransform(query_image_raster_1_t, trans)
-  }
-
-  # finalize image
-  r <- raster::raster(nrow = dim(query_image_raster)[1], ncol = dim(query_image_raster)[2], resolution = c(1,1))
-  raster::extent(r) <- imageEx
-  raster::res(r) <- imageRes
-  query_image_raster_1_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_1[,3], r, fun = mean)
-  query_image_raster_1_trf <- raster::focal(query_image_raster_1_tr,
-                                            w = matrix(1, nrow = 3, ncol = 3),
-                                            fun = fill.na, pad = TRUE, na.rm = FALSE)
-  query_image_raster_1_trf <- terra::rast(query_image_raster_1_trf, crs = "")
-
-  return(list(ref = ref_image_raster, query = query_image_raster_1_trf))
-}
 #' getManualRegisteredImage
 #'
 #' Generating the manually registered images
@@ -1132,6 +1211,10 @@ getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, in
 
   return(query_image)
 }
+
+####
+## Thin Plate Spline (TPS) Methods ####
+####
 
 #' computeTPSTransform
 #'
