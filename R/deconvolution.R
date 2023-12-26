@@ -47,11 +47,19 @@ getDeconvolution <- function(object, assay = NULL, features = NULL, sc.object, s
       #                coords = cur_assay@coords[spatialpoints,],
       #                image = cur_assay@image, segments = cur_assay@segments,
       #                type = cur_assay@type, params = cur_assay@params, main_image = "main_image")
+      # new_assay <- formAssay(data = rawdata,
+      #                        coords = vrCoordinates(cur_assay)[spatialpoints,],
+      #                        segments = vrSegments(cur_assay)[spatialpoints],
+      #                        image = vrImages(cur_assay), type = cur_assay@type)
+      # new_assay@image <- sapply(vrImageNames(cur_assay),
+      #                           function(x) subset.vrImage(x, spatialpoints = spatialpoints),
+      #                           USE.NAMES = TRUE)
       new_assay <- formAssay(data = rawdata,
                              coords = vrCoordinates(cur_assay)[spatialpoints,],
                              segments = vrSegments(cur_assay)[spatialpoints],
-                             image = vrImages(cur_assay), type = cur_assay@type)
+                             image = vrImages(cur_assay), type = cur_assay@type, params = cur_assay@params)
       new_assay@image <- cur_assay@image
+      new_assay <- subset(new_assay, spatialpoints = spatialpoints)
       object <- addAssay(object,
                          assay = new_assay,
                          metadata = Metadata(object, assay = assy)[spatialpoints,],
