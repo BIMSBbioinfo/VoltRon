@@ -588,6 +588,35 @@ vrSpatialPoints.vrImage <- function(object, ...) {
   return(rownames(vrCoordinates(object)))
 }
 
+#' @param value new spatial points
+#'
+#' @rdname vrSpatialPoints
+#' @method vrSpatialPoints<- vrImage
+#'
+#' @export
+#'
+"vrSpatialPoints<-.vrImage" <- function(object, ..., value) {
+
+  # coordinates
+  if(length(rownames(object@coords)) != length(value)){
+    stop("The number of spatial points is not matching with the input")
+  } else {
+    rownames(object@coords)  <- value
+  }
+
+  # segments
+  if(length(object@segments) > 0){
+    if(length(names(object@segments)) != length(value)){
+      stop("The number of spatial points is not matching with the input")
+    } else {
+      names(object@segments) <- value
+    }
+  }
+
+  # return
+  return(object)
+}
+
 #' @rdname vrCoordinates
 #' @method vrCoordinates vrImage
 #'
