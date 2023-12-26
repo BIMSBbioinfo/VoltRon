@@ -6,6 +6,7 @@
 \alias{vrCoordinates}
 \alias{vrCoordinates<-}
 \alias{vrCoordinates.vrImage}
+\alias{vrCoordinates<-.vrImage}
 \alias{vrCoordinates.VoltRon}
 \alias{vrCoordinates<-.VoltRon}
 \title{#' @param reg TRUE if registered segments are being updated
@@ -29,13 +30,15 @@ vrCoordinates.vrAssay <- function(object, reg = FALSE, ...) {
 \usage{
 \method{vrCoordinates}{vrAssay}(object, main_image = NULL, reg = FALSE)
 
-\method{vrCoordinates}{vrAssay}(object, reg = FALSE, ...) <- value
+\method{vrCoordinates}{vrAssay}(object, main_image = NULL, reg = FALSE, ...) <- value
 
 vrCoordinates(object, ...)
 
 vrCoordinates(object, ...) <- value
 
 \method{vrCoordinates}{vrImage}(object)
+
+\method{vrCoordinates}{vrImage}(object, ...) <- value
 
 \method{vrCoordinates}{VoltRon}(object, reg = FALSE, assay = NULL, ...)
 

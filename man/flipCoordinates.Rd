@@ -6,7 +6,7 @@
 \alias{flipCoordinates.VoltRon}
 \title{flipCoordinates}
 \usage{
-\method{flipCoordinates}{vrAssay}(object, ...)
+\method{flipCoordinates}{vrAssay}(object, main_image = NULL, ...)
 
 flipCoordinates(object, ...)
 
@@ -14,6 +14,8 @@ flipCoordinates(object, ...)
 }
 \arguments{
 \item{object}{An object}
+
+\item{main_image}{the key of the image}
 
 \item{...}{Arguments passed to other methods}
 }

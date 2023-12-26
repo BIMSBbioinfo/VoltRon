@@ -19,15 +19,7 @@ The vrAssay (VoltRon Assay) Class
 
 \item{\code{embeddings}}{list of embeddings}
 
-\item{\code{coords}}{spatial coordinates of the assay}
-
-\item{\code{coords_reg}}{spatial coordinates of the registered assay}
-
-\item{\code{segments}}{spatial coordinates of the segments, if available}
-
-\item{\code{segments_reg}}{spatial coordinates of the registered segments, if available}
-
-\item{\code{image}}{image of the spatial assay, bitmap class}
+\item{\code{image}}{a list of vrImage objects}
 
 \item{\code{params}}{additional parameters used by different assay types}
 

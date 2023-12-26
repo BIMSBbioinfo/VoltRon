@@ -4,18 +4,25 @@
 \alias{resizeImage}
 \alias{resizeImage.VoltRon}
 \alias{resizeImage.vrAssay}
+\alias{resizeImage.vrImage}
 \title{resizeImage}
 \usage{
 resizeImage(object, ...)
 
 \method{resizeImage}{VoltRon}(object, ...)
 
-\method{resizeImage}{vrAssay}(object, size)
+\method{resizeImage}{vrAssay}(object, main_image = NULL, reg = FALSE, ...)
+
+\method{resizeImage}{vrImage}(object, size)
 }
 \arguments{
 \item{object}{An object}
 
-\item{...}{Arguments passed to other methods}
+\item{...}{arguements passed to \code{vrImages.vrImage}}
+
+\item{main_image}{the name of the main image}
+
+\item{reg}{TRUE if registered images are assigned}
 
 \item{size}{the width of the resized image}
 }

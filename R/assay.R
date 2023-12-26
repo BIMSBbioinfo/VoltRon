@@ -545,43 +545,6 @@ vrCoordinates.vrAssay <- function(object, main_image = NULL, reg = FALSE) {
   return(object)
 }
 
-#' #' @param reg TRUE if registered segments are being updated
-#' #' @param value the new set of 2D coordinates
-#' #'
-#' #' @rdname vrCoordinates
-#' #' @method vrCoordinates<- vrAssay
-#' #'
-#' #' @importFrom methods slot
-#' #'
-#' #' @export
-#' #'
-#' "vrCoordinates<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
-#'
-#'   # get coordinates
-#'   coords <- vrCoordinates(object, ...)
-#'
-#'   # stop if the rownames are not matching
-#'   if(any(sapply(rownames(values),is.null)))
-#'     stop("Provided coordinates data does not have cell/spot/ROI names")
-#'
-#'   if(!all(rownames(values) %in% rownames(coords)))
-#'     stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
-#'
-#'   # stop if the colnames there are more than two columns
-#'   if(ncol(value) != 2) {
-#'     stop("Please make sure that the coordinates matrix have only two columns: for x and y coordinates")
-#'   } else {
-#'     colnames(value) <- c("x", "y")
-#'   }
-#'
-#'   if(reg){
-#'     methods::slot(object = object, name = 'coords_reg') <- value
-#'   } else{
-#'     methods::slot(object = object, name = 'coords') <- value
-#'   }
-#'   return(object)
-#' }
-
 #' @param main_image the key of the image
 #' @param ... additional parameters passed to \code{vrCoordinates}
 #'
@@ -677,35 +640,6 @@ vrSegments.vrAssay <- function(object, main_image = NULL, reg = FALSE) {
   vrSegments(object@image[[main_image]]) <- value
   return(object)
 }
-
-#' #' @param reg TRUE if registered segments are being updated
-#' #' @param value the new set of 2D segments for each spatial point
-#' #'
-#' #' @rdname vrSegments
-#' #' @method vrSegments<- vrAssay
-#' #'
-#' #' @importFrom methods slot
-#' #' @export
-#' #'
-#' "vrSegments<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
-#'
-#'   # get coordinates
-#'   segts <- vrSegments(object, ...)
-#'
-#'   # stop if the names are not matching
-#'   if(any(sapply(names(values),is.null)))
-#'     stop("Provided coordinates data does not have cell/spot/ROI names")
-#'
-#'   if(!all(names(values) %in% names(segts)))
-#'     stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
-#'
-#'   if(reg){
-#'     methods::slot(object = object, name = 'segments_reg') <- value
-#'   } else{
-#'     methods::slot(object = object, name = 'segments') <- value
-#'   }
-#'   return(object)
-#' }
 
 #' @param reg TRUE if registered segments are being updated
 #' @param method the method argument passed to \code{base::dist}

@@ -6,6 +6,7 @@
 \alias{vrSegments}
 \alias{vrSegments<-}
 \alias{vrSegments.vrImage}
+\alias{vrSegments<-.vrImage}
 \alias{vrSegments.VoltRon}
 \alias{vrSegments<-.VoltRon}
 \title{#' @param reg TRUE if registered segments are being updated
@@ -36,6 +37,8 @@ vrSegments(object, ...)
 vrSegments(object, ...) <- value
 
 \method{vrSegments}{vrImage}(object)
+
+\method{vrSegments}{vrImage}(object, ...) <- value
 
 \method{vrSegments}{VoltRon}(object, reg = FALSE, assay = NULL, ...)
 

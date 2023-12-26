@@ -216,49 +216,6 @@ vrImages.vrAssay <- function(object, main_image = NULL, reg = FALSE, main_channe
   return(vrImages(object@image[[main_image]], main_channel = main_channel, ...))
 }
 
-#' #' @param object A vrAssay object
-#' #' @param main_image the name of the main image
-#' #' @param reg TRUE if registered images are assigned
-#' #' @param as.raster return as a raster
-#' #'
-#' #' @rdname vrImages
-#' #' @method vrImages vrAssay
-#' #'
-#' #' @importFrom magick image_read
-#' #'
-#' #' @export
-#' #'
-#' vrImages.vrAssay <- function(object, main_image = NULL, reg = FALSE, as.raster = FALSE){
-#'   if(!is.null(object@image)){
-#'
-#'     # get main image is main_image is null
-#'     if(is.null(main_image)) {
-#'       main_image <- object@main_image
-#'     }
-#'
-#'     # get registered image
-#'     if(reg){
-#'       main_image_query <- paste0(main_image, "_reg")
-#'       if(main_image_query %in% vrImageNames(object)){
-#'         main_image <- paste0(main_image, "_reg")
-#'       }
-#'     }
-#'
-#'     # check if image is here
-#'     if(main_image %in% vrImageNames(object)){
-#'       if(as.raster){
-#'         return(object@image[[main_image]])
-#'       } else {
-#'         return(magick::image_read(object@image[[main_image]]))
-#'       }
-#'     } else {
-#'       return(NULL)
-#'     }
-#'   } else {
-#'     return(NULL)
-#'   }
-#' }
-
 #' @param object A vrAssay object
 #' @param main_image the name of the main image
 #' @param reg TRUE if registered images are assigned
@@ -528,7 +485,7 @@ resizeImage.vrImage <- function(object, size){
   image_names <- vrImageChannelNames(object)
   for(img in image_names){
     img_data <- magick::image_read(object@image[[img]])
-    img_data <- image_resize(img_data, geometry = size)
+    img_data <- magick::image_resize(img_data, geometry = size)
     object@image[[img]] <- magick::image_data(img_data)
   }
 
@@ -550,23 +507,68 @@ modulateImage.VoltRon <- function(object, ...){
   return(object)
 }
 
-#' @param brightness modulation of brightness as percentage of the current value (100 for no change)
-#' @param saturation modulation of saturation as percentage of the current value (100 for no change)
-#' @param hue modulation of hue is an absolute rotation of -180 degrees to +180 degrees from the current position corresponding to an argument range of 0 to 200 (100 for no change)
+#' @param main_image the name of the main image
+#' @param reg TRUE if registered images are assigned
+#' @param main_channel the name of the channel associated with the image
+#' @param ... arguements passed to \code{vrImages.vrImage}
 #'
 #' @rdname modulateImage
 #' @method modulateImage vrAssay
 #'
-#' @importFrom magick image_info image_resize
 #' @export
 #'
-modulateImage.vrAssay <- function(object, brightness = 100, saturation = 100, hue = 100){
+modulateImage.vrAssay <- function(object,  main_image = NULL, reg = FALSE, main_channel = NULL, ...){
+
+  # get main image is main_image is null
+  if(is.null(main_image)) {
+    main_image <- object@main_image
+  }
+
+  # get registered image
+  if(reg){
+    main_image <- paste0(main_image, "_reg")
+  }
+
+  # check main image
+  if(!main_image %in% vrImageNames(object)){
+    stop(main_image, " is not among any image in this vrAssay object")
+  }
+
+  object@image[[main_image]] <- modulateImage(object@image[[main_image]], main_channel = main_channel, ...)
+
+  # return
+  return(object)
+}
+
+#' @param main_channel the name of the channel associated with the vrImage object
+#' @param brightness modulation of brightness as percentage of the current value (100 for no change)
+#' @param saturation modulation of saturation as percentage of the current value (100 for no change)
+#' @param hue modulation of hue is an absolute rotation of -180 degrees to +180 degrees from the current position corresponding to an argument range of 0 to 200 (100 for no change)
+#' @param force if TRUE, all channels will be modulated given no specific channel name
+#'
+#' @rdname modulateImage
+#' @method modulateImage vrImage
+#'
+#' @importFrom magick image_info image_modulate
+#' @export
+#'
+modulateImage.vrImage <- function(object, main_channel = NULL, brightness = 100, saturation = 100, hue = 100, force = FALSE){
+
+  # check main_channels
+  if(is.null(main_channel) && !force){
+    stop("No channel name was specified. \n It is not advised to modulate multiple channels in the same time. \n Please type force = TRUE to allow this behaviour!")
+  }
+
+  # get channel names
+  if(is.null(main_channel)){
+    channels <- vrImageChannelNames(object)
+  }
 
   # modulate image
-  image_names <- vrImageNames(object)
-  for(img in image_names){
-    vrImages(object, main_image = img) <- magick::image_modulate(vrImages(object, main_image = img),
-                                                                 brightness = brightness, saturation = saturation, hue = hue)
+  for(img in channels){
+    img_data <- magick::image_read(object@image[[img]])
+    img_data <- magick::image_modulate(img_data, brightness = brightness, saturation = saturation, hue = hue)
+    object@image[[img]] <- magick::image_data(img_data)
   }
 
   # return

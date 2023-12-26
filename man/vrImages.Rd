@@ -21,7 +21,7 @@ vrImages(object, ...) <- value
 
 \method{vrImages}{vrLayer}(object, ...)
 
-\method{vrImages}{vrAssay}(object, main_image = NULL, reg = FALSE, as.raster = FALSE)
+\method{vrImages}{vrAssay}(object, main_image = NULL, reg = FALSE, main_channel = NULL, ...)
 
 \method{vrImages}{vrAssay}(object, main_image = NULL, reg = FALSE, ...) <- value
 
@@ -30,7 +30,7 @@ vrImages(object, ...) <- value
 \arguments{
 \item{object}{A vrImage object}
 
-\item{...}{Arguments passed to other methods}
+\item{...}{arguements passed to \code{vrImages.vrImage}}
 
 \item{value}{new image}
 
@@ -38,18 +38,10 @@ vrImages(object, ...) <- value
 
 \item{reg}{TRUE if registered images are assigned}
 
-\item{as.raster}{return as a raster}
-
 \item{main_channel}{the name of the main channel}
+
+\item{as.raster}{return as a raster}
 }
 \description{
 Get images of a VoltRon assay
-
-# get main image is main_image is null
-    if(is.null(main_image)) {
-      main_image <- object@main_image
-    }
-}
-\details{
-
 }
