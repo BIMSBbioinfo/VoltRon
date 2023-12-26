@@ -67,7 +67,7 @@ setMethod(
 #'
 #' @param data the count table
 #' @param coords the coordinates of the spatial points
-#' @param segments the segments of the spatial points, optional
+#' @param segments the segments of the spatial points (optional)
 #' @param image the image of the data
 #' @param params additional parameters of the object
 #' @param type the type of the assay (cells, spots, ROIs)
@@ -77,7 +77,7 @@ setMethod(
 #'
 #' @export
 #'
-formAssay <- function(data = NULL, coords, segments = NULL, image, params = list(), type = "ROI", name = "Assay1", main_image = "main_image"){
+formAssay <- function(data = NULL, coords, segments = list(), image, params = list(), type = "ROI", name = "Assay1", main_image = "main_image"){
 
   # get data
   if(is.null(data)){
@@ -85,10 +85,8 @@ formAssay <- function(data = NULL, coords, segments = NULL, image, params = list
     colnames(data) <- rownames(coords)
   }
 
-  # get segments
-  if(is.null(segments)){
-    segments <- list()
-  } else {
+  # segments
+  if(!is.null(segments)){
     if(length(segments) == length(rownames(coords))){
       names(segments) <- rownames(coords)
     } else {
@@ -97,7 +95,7 @@ formAssay <- function(data = NULL, coords, segments = NULL, image, params = list
   }
 
   # get image object
-  image <- formImage(coords = coords, segments = NULL, image = image)
+  image <- formImage(coords = coords, segments = segments, image = image)
   image <- list(image)
   names(image) <- main_image
 

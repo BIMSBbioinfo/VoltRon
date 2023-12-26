@@ -7,7 +7,7 @@
 formAssay(
   data = NULL,
   coords,
-  segments = NULL,
+  segments = list(),
   image,
   params = list(),
   type = "ROI",
@@ -20,7 +20,7 @@ formAssay(
 
 \item{coords}{the coordinates of the spatial points}
 
-\item{segments}{the segments of the spatial points, optional}
+\item{segments}{the segments of the spatial points (optional)}
 
 \item{image}{the image of the data}
 
