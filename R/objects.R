@@ -698,7 +698,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 
   # subseting based on subset argument
   if (!missing(x = subset)) {
-    subset <- enquo(arg = subset)
+    subset <- rlang::enquo(arg = subset)
   }
   if(!missing(subset)){
     metadata <- Metadata(object)

@@ -114,30 +114,79 @@ formImage <- function(coords, segments = NULL, image, main_channel = NULL){
     names(image) <- main_channel
   }
 
-
-  # # image
-  # if(!is.null(image)){
-  #   if(is.list(image)){
-  #     imageinfo <- sapply(image, function(x) magick::image_info(x)[,c("width", "height")], USE.NAMES = TRUE)
-  #     flag <- all(apply(imageinfo, 1, function(x) length(unique(x)) == 1))
-  #     if(!flag) {
-  #       stop("When providing multiple images, make sure that all images have the same dimensionality!")
-  #     } else {
-  #       image <- lapply(image, magick::image_data)
-  #       names(image) <- colnames(imageinfo)
-  #     }
-  #   } else {
-  #     image <- list(main_channel = magick::image_data(image))
-  #   }
-  # } else {
-  #   height <- max(ceiling(coords[,2]))
-  #   width <- max(ceiling(coords[,1]))
-  #   image <- matrix(rep("#030303ff", height*width), nrow = height, ncol = width)
-  #   image <- list(main_channel = magick::image_data(magick::image_read(image)))
-  # }
-
   # make vrimage object
    methods::new("vrImage", coords = coords, segments = segments, image = image, main_channel = main_channel)
+}
+
+### Subset vrImage objects ####
+
+#' Subsetting vrImage objects
+#'
+#' Given a vrImage object, subset the object given one of the attributes.
+#'
+#' @param object A vrImage object
+#' @param spatialpoints the set of spatial points to subset the object
+#' @param image the subseting string passed to \code{magick::image_crop}
+#'
+#' @method subset vrImage
+#'
+#' @importFrom rlang enquo
+#' @importFrom magick image_crop
+#'
+#' @export
+#'
+subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
+
+  if (!missing(x = subset)) {
+    subset <- rlang::enquo(arg = subset)
+  }
+
+  # coords and segments
+  coords <- vrCoordinates(object)
+  segments <- vrSegments(object)
+
+  if(!is.null(spatialpoints)){
+
+    # check if spatial points are here
+    if(length(intersect(spatialpoints, rownames(coords))) == 0)
+      return(NULL)
+
+    # coordinates
+    vrCoordinates(object) <- coords[rownames(coords) %in% spatialpoints,, drop = FALSE]
+
+    # segments
+    if(length(segments) > 0)
+      vrSegments(object) <- segments[names(segments) %in% spatialpoints]
+
+  } else if(!is.null(image)) {
+
+    # get one image
+    vrimage <- vrImages(object)
+
+    # coordinates
+    cropped_coords <- subsetCoordinates(coords, vrimage, image)
+    vrCoordinates(object) <- cropped_coords
+
+    # segments
+    cropped_segments <- segments[rownames(cropped_coords)]
+    if(length(segments) > 0){
+      segments[rownames(cropped_coords)] <- subsetSegments(cropped_segments, vrimage, image)
+      vrSegments(object) <- segments
+    }
+
+    # spatial points
+    object <- subset.vrImage(object, spatialpoints = rownames(cropped_coords))
+
+    # image
+    for(img in vrImageChannelNames(object)){
+      img_data <- magick::image_read(object@image[[img]])
+      img_data <- magick::image_crop(img_data, image)
+      object@image[[img]] <- magick::image_data(img_data)
+    }
+  }
+
+  # set VoltRon class
+  return(object)
 }
 
 ####

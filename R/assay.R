@@ -121,14 +121,14 @@ formAssay <- function(data = NULL, coords, segments = NULL, image, params = list
 #' @method subset vrAssay
 #'
 #' @importFrom rlang enquo
-#' @importFrom magick image_crop
+# #' @importFrom magick image_crop
 #'
 #' @export
 #'
 subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL, image = NULL) {
 
   if (!missing(x = subset)) {
-    subset <- enquo(arg = subset)
+    subset <- rlang::enquo(arg = subset)
   }
 
   # subseting on samples, layers and assays
@@ -150,15 +150,15 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
 
   } else {
 
-    coords <- vrCoordinates(object)
-    coords_reg <- vrCoordinates(object, reg = TRUE)
-    segments <- vrSegments(object)
-    segments_reg <- vrSegments(object, reg = TRUE)
+    # coords <- vrCoordinates(object)
+    # coords_reg <- vrCoordinates(object, reg = TRUE)
+    # segments <- vrSegments(object)
+    # segments_reg <- vrSegments(object, reg = TRUE)
 
     if(!is.null(spatialpoints)){
 
       # check if spatial points are here
-      if(length(intersect(spatialpoints, rownames(coords))) == 0)
+      if(length(intersect(spatialpoints, vrSpatialPoints(object))) == 0)
         return(NULL)
 
       # data
@@ -171,34 +171,50 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
         vrEmbeddings(object, type = embed) <- embedding[rownames(embedding) %in% spatialpoints,]
       }
 
-      # coordinates
-      vrCoordinates(object) <- coords[rownames(coords) %in% spatialpoints,, drop = FALSE]
-      if(nrow(coords_reg) > 0)
-        vrCoordinates(object, reg = TRUE) <- coords_reg[rownames(coords_reg) %in% spatialpoints,, drop = FALSE]
-
-      # segments
-      if(length(segments) > 0)
-        vrSegments(object) <- segments[names(segments) %in% spatialpoints]
-      if(length(segments_reg) > 0)
-        vrSegments(object, reg = TRUE) <- segments_reg[names(segments_reg) %in% spatialpoints]
+      # # coordinates
+      # vrCoordinates(object) <- coords[rownames(coords) %in% spatialpoints,, drop = FALSE]
+      # if(nrow(coords_reg) > 0)
+      #   vrCoordinates(object, reg = TRUE) <- coords_reg[rownames(coords_reg) %in% spatialpoints,, drop = FALSE]
+      #
+      # # segments
+      # if(length(segments) > 0)
+      #   vrSegments(object) <- segments[names(segments) %in% spatialpoints]
+      # if(length(segments_reg) > 0)
+      #   vrSegments(object, reg = TRUE) <- segments_reg[names(segments_reg) %in% spatialpoints]
+      for(img in vrImageNames(object))
+        object@image[[img]] <- subset(object@image[[img]], spatialpoints = spatialpoints)
 
     } else if(!is.null(image)) {
 
-      # coordinates
-      vrimage <- vrImages(object)
-      cropped_coords <- subsetCoordinates(coords, vrimage, image)
-      vrCoordinates(object) <- cropped_coords
-
-      # segments
-      cropped_segments <- segments[rownames(cropped_coords)]
-      if(length(segments) > 0){
-        segments[rownames(cropped_coords)] <- subsetSegments(cropped_segments, vrimage, image)
-        vrSegments(object) <- segments
-      }
+      # # coordinates
+      # vrimage <- vrImages(object)
+      # cropped_coords <- subsetCoordinates(coords, vrimage, image)
+      # vrCoordinates(object) <- cropped_coords
+      #
+      # # segments
+      # cropped_segments <- segments[rownames(cropped_coords)]
+      # if(length(segments) > 0){
+      #   segments[rownames(cropped_coords)] <- subsetSegments(cropped_segments, vrimage, image)
+      #   vrSegments(object) <- segments
+      # }
+      #
+      # # image
+      # object <- subset.vrAssay(object, spatialpoints = rownames(cropped_coords))
+      # vrImages(object) <- magick::image_crop(vrimage, image)
 
       # image
-      object <- subset.vrAssay(object, spatialpoints = rownames(cropped_coords))
-      vrImages(object) <- magick::image_crop(vrimage, image)
+      for(img in vrImageNames(object))
+        object@image[[img]] <- subset.vrImage(object@image[[img]], image = image)
+
+      # data
+      object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
+      object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE]
+
+      # embeddings
+      for(embed in vrEmbeddingNames(object)){
+        embedding <- vrEmbeddings(object, type = embed)
+        vrEmbeddings(object, type = embed) <- embedding[rownames(embedding) %in% spatialpoints,]
+      }
     }
   }
 
@@ -311,7 +327,7 @@ vrSpatialPoints.vrAssay <- function(object, ...) {
 #'
 "vrSpatialPoints<-.vrAssay" <- function(object, ..., value) {
 
-  # coordinates
+  # data
   if(length(vrSpatialPoints(object)) != length(value)){
     stop("The number of spatial points is not matching with the input")
   } else {
@@ -321,7 +337,7 @@ vrSpatialPoints.vrAssay <- function(object, ...) {
     }
   }
 
-  # coord names
+  # images
   for(img_name in vrImageNames(object)){
     vrSpatialPoints(object@image[[img_name]]) <- value
   }
@@ -411,10 +427,6 @@ vrAssayNames.vrAssay <- function(object, ...) {
 
   # change assay names
   vrSpatialPoints(object)  <- stringr::str_replace(vrSpatialPoints(object), assayname, value)
-  # vrSpatialPoints(object) <- gsub(assayname, value, vrSpatialPoints(object))
-
-  # if(!.hasSlot(object, name = "name"))
-  #   object@name <- value
   object@name <- value
 
   # return
@@ -485,25 +497,6 @@ vrCoordinates.vrAssay <- function(object, main_image = NULL, reg = FALSE) {
   # return coordinates
   return(vrCoordinates(object@image[[main_image]]))
 }
-
-#' #' @param reg TRUE if registered segments are being updated
-#' #'
-#' #' @rdname vrCoordinates
-#' #' @method vrCoordinates vrAssay
-#' #'
-#' #' @export
-#' #'
-#' vrCoordinates.vrAssay <- function(object, reg = FALSE, ...) {
-#'   if(reg){
-#'     if(nrow(object@coords_reg) < 1) {
-#'       return(object@coords)
-#'     } else {
-#'       return(object@coords_reg)
-#'     }
-#'   } else {
-#'     return(object@coords)
-#'   }
-#' }
 
 #' @param reg TRUE if registered segments are being updated
 #' @param value the new set of 2D coordinates
