@@ -201,17 +201,16 @@ vrImages.vrAssay <- function(object, main_image = NULL, reg = FALSE, main_channe
   # get main image is main_image is null
   if(is.null(main_image)) {
     main_image <- object@main_image
-  } else {
-    if(!main_image %in% vrImageNames(object))
-      stop(main_image, " is not among any image in this vrAssay object")
   }
 
   # get registered image
   if(reg){
     main_image <- paste0(main_image, "_reg")
-    if(!main_image %in% vrImageNames(object)){
-      stop(main_image, " is not among any image in this vrAssay object")
-    }
+  }
+
+  # check main image
+  if(!main_image %in% vrImageNames(object)){
+    stop(main_image, " is not among any image in this vrAssay object")
   }
 
   return(vrImages(object@image[[main_image]], main_channel = main_channel, ...))
@@ -461,15 +460,47 @@ resizeImage.VoltRon <- function(object, ...){
   return(object)
 }
 
-#' @param size the width of the resized image
+#' @param main_image the name of the main image
+#' @param reg TRUE if registered images are assigned
+#' @param ... arguements passed to \code{vrImages.vrImage}
 #'
 #' @rdname resizeImage
 #' @method resizeImage vrAssay
 #'
-#' @importFrom magick image_info image_resize
 #' @export
 #'
-resizeImage.vrAssay <- function(object, size){
+resizeImage.vrAssay <- function(object, main_image = NULL, reg = FALSE, ...){
+
+  # get main image is main_image is null
+  if(is.null(main_image)) {
+    main_image <- object@main_image
+  }
+
+  # get registered image
+  if(reg){
+    main_image <- paste0(main_image, "_reg")
+  }
+
+  # check main image
+  if(!main_image %in% vrImageNames(object)){
+    stop(main_image, " is not among any image in this vrAssay object")
+  }
+
+  object@image[[main_image]] <- resizeImage(object@image[[main_image]], ...)
+
+  # return
+  return(object)
+}
+
+#' @param size the width of the resized image
+#'
+#' @rdname resizeImage
+#' @method resizeImage vrImage
+#'
+#' @importFrom magick image_info image_resize image_read image_data
+#' @export
+#'
+resizeImage.vrImage <- function(object, size){
 
   # check size
   if(!is.numeric(size))
@@ -494,9 +525,11 @@ resizeImage.vrAssay <- function(object, size){
 
   # resize images
   size <- paste0(size,"x")
-  image_names <- vrImageNames(object)
+  image_names <- vrImageChannelNames(object)
   for(img in image_names){
-    vrImages(object, main_image = img) <- image_resize(vrImages(object, main_image = img), geometry = size)
+    img_data <- magick::image_read(object@image[[img]])
+    img_data <- image_resize(img_data, geometry = size)
+    object@image[[img]] <- magick::image_data(img_data)
   }
 
   # return
@@ -623,7 +656,7 @@ vrSegments.vrImage<- function(object) {
   if(!all(names(values) %in% names(segts)))
     stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
 
-  methods::slot(object = object, name = 'segments') <- valu
+  methods::slot(object = object, name = 'segments') <- value
   return(object)
 }
 

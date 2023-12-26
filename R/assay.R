@@ -20,11 +20,7 @@ setOldClass(Classes = c('bitmap'))
 #' @slot normdata normalized count table
 #' @slot featuredata feature metadata
 #' @slot embeddings list of embeddings
-# #' @slot coords spatial coordinates of the assay
-# #' @slot coords_reg spatial coordinates of the registered assay
-# #' @slot segments spatial coordinates of the segments, if available
-# #' @slot segments_reg spatial coordinates of the registered segments, if available
-#' @slot image image of the spatial assay, bitmap class
+#' @slot image a list of vrImage objects
 #' @slot params additional parameters used by different assay types
 #' @slot type the type of the assay (cell, spot, ROI)
 #' @slot main_image the key of the main image
@@ -40,10 +36,6 @@ vrAssay <- setClass(
     normdata = 'matrix',
     featuredata = 'data.frame',
     embeddings = "list",
-    # coords = 'matrix',
-    # coords_reg = 'matrix',
-    # segments = 'list',
-    # segments_reg = 'list',
     image = "list",
     params = "list",
     type = "character",
@@ -111,7 +103,6 @@ formAssay <- function(data = NULL, coords, segments = NULL, image, params = list
 
   # make vrAssay object
   methods::new("vrAssay", rawdata = data, normdata = data,
-               # coords = coords, coords_reg = coords, segments = segments, segments_reg = segments,
                image = image, params = params, type = type, name = name, main_image = main_image)
 }
 
