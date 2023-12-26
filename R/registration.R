@@ -1078,9 +1078,6 @@ getManualRegisteredImage_old <- function(images, transmatrix, query_ind, ref_ind
 getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, input){
 
   # plot with raster
-  # ref_image_raster <- as.raster(images[[ref_ind]]) |> as.matrix() |> terra::rast()
-  # query_image_raster <- as.raster(images[[query_ind]]) |> as.matrix() |> terra::rast() |> raster::stack()
-
   ref_image_raster <- as.raster(images[[ref_ind]]) |> as.matrix() |> terra::rast()
   query_image_raster <- as.raster(images[[query_ind]]) |> as.matrix() |> terra::rast()
   if(terra::nlyr(query_image_raster) == 1){
@@ -1089,8 +1086,6 @@ getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, in
   } else {
     query_image_raster <- raster::stack(query_image_raster)
   }
-  # terra::nlyr(query_image_raster) <- 3
-  # query_image_raster <- raster::stack(query_image_raster)
 
   # prepare image
   imageEx <- raster::extent(raster::stack(ref_image_raster))
@@ -1102,7 +1097,6 @@ getManualRegisteredImage <- function(images, transmatrix, query_ind, ref_ind, in
   # apply transformation as many as it is needed
   query_image_raster_1_t <- as.matrix(query_image_raster_1)[,1:2]
   for(trans in transmatrix){
-    # query_image_raster_1_t <- Morpho::applyTransform(query_image_raster_1_t, trans)
     query_image_raster_1_t <- applyTPSTransform(query_image_raster_1_t, trans)
   }
 

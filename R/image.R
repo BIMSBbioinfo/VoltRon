@@ -604,7 +604,7 @@ modulateImage.vrAssay <- function(object,  main_image = NULL, reg = FALSE, main_
 modulateImage.vrImage <- function(object, main_channel = NULL, brightness = 100, saturation = 100, hue = 100, force = FALSE){
 
   # check main_channels
-  if(is.null(main_channel) && !force){
+  if(is.null(main_channel) && (length(vrImageChannelNames(object)) > 1 && !force)){
     stop("No channel name was specified. \n It is not advised to modulate multiple channels in the same time. \n Please type force = TRUE to allow this behaviour!")
   }
 

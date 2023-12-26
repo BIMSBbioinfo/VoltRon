@@ -162,7 +162,6 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #' @param inTissue if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
-#' @import hdf5r
 #' @importFrom magick image_read
 #' @importFrom rjson fromJSON
 #' @importFrom utils read.csv
@@ -249,7 +248,7 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
 #'
 #' @param filename the path tp h5 file
 #'
-#' @import hdf5r
+#' @importFrom hdf5r H5File readDataSet
 #' @importFrom Matrix sparseMatrix
 #'
 import10Xh5 <- function(filename){

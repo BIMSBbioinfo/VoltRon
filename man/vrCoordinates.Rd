@@ -9,24 +9,7 @@
 \alias{vrCoordinates<-.vrImage}
 \alias{vrCoordinates.VoltRon}
 \alias{vrCoordinates<-.VoltRon}
-\title{#' @param reg TRUE if registered segments are being updated
-#'
-#' @rdname vrCoordinates
-#' @method vrCoordinates vrAssay
-#'
-#' @export
-#'
-vrCoordinates.vrAssay <- function(object, reg = FALSE, ...) {
-  if(reg){
-    if(nrow(object@coords_reg) < 1) {
-      return(object@coords)
-    } else {
-      return(object@coords_reg)
-    }
-  } else {
-    return(object@coords)
-  }
-}}
+\title{vrCoordinates}
 \usage{
 \method{vrCoordinates}{vrAssay}(object, main_image = NULL, reg = FALSE)
 

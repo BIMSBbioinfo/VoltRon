@@ -150,11 +150,6 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
 
   } else {
 
-    # coords <- vrCoordinates(object)
-    # coords_reg <- vrCoordinates(object, reg = TRUE)
-    # segments <- vrSegments(object)
-    # segments_reg <- vrSegments(object, reg = TRUE)
-
     if(!is.null(spatialpoints)){
 
       # check if spatial points are here
@@ -171,38 +166,13 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
         vrEmbeddings(object, type = embed) <- embedding[rownames(embedding) %in% spatialpoints,]
       }
 
-      # # coordinates
-      # vrCoordinates(object) <- coords[rownames(coords) %in% spatialpoints,, drop = FALSE]
-      # if(nrow(coords_reg) > 0)
-      #   vrCoordinates(object, reg = TRUE) <- coords_reg[rownames(coords_reg) %in% spatialpoints,, drop = FALSE]
-      #
-      # # segments
-      # if(length(segments) > 0)
-      #   vrSegments(object) <- segments[names(segments) %in% spatialpoints]
-      # if(length(segments_reg) > 0)
-      #   vrSegments(object, reg = TRUE) <- segments_reg[names(segments_reg) %in% spatialpoints]
+      # images
       for(img in vrImageNames(object))
-        object@image[[img]] <- subset(object@image[[img]], spatialpoints = spatialpoints)
+        object@image[[img]] <- subset.vrImage(object@image[[img]], spatialpoints = spatialpoints)
 
     } else if(!is.null(image)) {
 
-      # # coordinates
-      # vrimage <- vrImages(object)
-      # cropped_coords <- subsetCoordinates(coords, vrimage, image)
-      # vrCoordinates(object) <- cropped_coords
-      #
-      # # segments
-      # cropped_segments <- segments[rownames(cropped_coords)]
-      # if(length(segments) > 0){
-      #   segments[rownames(cropped_coords)] <- subsetSegments(cropped_segments, vrimage, image)
-      #   vrSegments(object) <- segments
-      # }
-      #
-      # # image
-      # object <- subset.vrAssay(object, spatialpoints = rownames(cropped_coords))
-      # vrImages(object) <- magick::image_crop(vrimage, image)
-
-      # image
+      # images
       for(img in vrImageNames(object))
         object@image[[img]] <- subset.vrImage(object@image[[img]], image = image)
 

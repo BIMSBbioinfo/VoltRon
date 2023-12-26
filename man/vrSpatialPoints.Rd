@@ -7,6 +7,7 @@
 \alias{vrSpatialPoints}
 \alias{vrSpatialPoints<-}
 \alias{vrSpatialPoints.vrImage}
+\alias{vrSpatialPoints<-.vrImage}
 \alias{vrSpatialPoints.vrMetadata}
 \alias{vrSpatialPoints.VoltRon}
 \alias{vrSpatialPoints.vrSample}
@@ -23,6 +24,8 @@ vrSpatialPoints(object, ...) <- value
 
 \method{vrSpatialPoints}{vrImage}(object, ...)
 
+\method{vrSpatialPoints}{vrImage}(object, ...) <- value
+
 \method{vrSpatialPoints}{vrMetadata}(object, assay = NULL)
 
 \method{vrSpatialPoints}{VoltRon}(object, ...)
@@ -36,7 +39,7 @@ vrSpatialPoints(object, ...) <- value
 
 \item{...}{Arguments passed to other methods}
 
-\item{value}{names for spatial points}
+\item{value}{new spatial points}
 
 \item{assay}{the assay name or type}
 }
