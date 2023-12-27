@@ -489,9 +489,6 @@ Rcpp::RawVector warpImage(Rcpp::RawVector ref_image, Rcpp::RawVector query_image
   // Get coordinates as cv::Mat
   cv::Mat hmatrix_mat = numericMatrixToMat(hmatrix);
 
-  cv::imwrite("dest.jpg", imReference);
-  cv::imwrite("source.jpg", im);
-
   // transform coordinates
   Mat imWarp;
   cv::warpPerspective(im, imWarp, hmatrix_mat, imReference.size());
