@@ -2,7 +2,7 @@
 % Please edit documentation in R/registration.R
 \name{getManualRegisteredImage}
 \alias{getManualRegisteredImage}
-\title{}
+\title{getManualRegisteredImage}
 \usage{
 getManualRegisteredImage(query_image, ref_image, transmatrix)
 }
@@ -14,8 +14,5 @@ getManualRegisteredImage(query_image, ref_image, transmatrix)
 \item{transmatrix}{the transformation matrix}
 }
 \description{
-
-}
-\details{
-
+Generating the manually registered images
 }

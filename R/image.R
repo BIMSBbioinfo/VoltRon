@@ -285,7 +285,7 @@ vrImages.vrAssay <- function(object, main_image = NULL, reg = FALSE, main_channe
     main_image <- paste0(main_image, "_reg")
   }
   if(inherits(value, "vrImage")){
-    object@image <- value
+    object@image[[main_image]] <- value
   }
 
   # if(inherits(value, "bitmap")){
