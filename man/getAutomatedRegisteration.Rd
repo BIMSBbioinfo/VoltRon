@@ -5,7 +5,7 @@
 \title{getManualRegisteration}
 \usage{
 getAutomatedRegisteration(
-  registered_spatdata_list,
+  registration_mapping_list,
   spatdata_list,
   image_list,
   centre,
@@ -16,7 +16,7 @@ getAutomatedRegisteration(
 )
 }
 \arguments{
-\item{registered_spatdata_list}{a list of registered Spatial data object of the query images, updated with image registration}
+\item{registration_mapping_list}{a list of mapping matrices used for registering VoltRon objects}
 
 \item{spatdata_list}{a list of Spatial data object of the query images}
 

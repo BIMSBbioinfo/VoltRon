@@ -2,23 +2,39 @@
 % Please edit documentation in R/registration.R
 \name{getRegisteredObject}
 \alias{getRegisteredObject}
-\title{getRegisteredObject}
+\title{}
 \usage{
-getRegisteredObject(obj_list, mapping_list, register_ind, centre, input, ...)
+getRegisteredObject(
+  obj_list,
+  mapping_list,
+  register_ind,
+  centre,
+  input,
+  reg_mode = "manual",
+  image_list = NULL,
+  aligned_image_list = NULL
+)
 }
 \arguments{
-\item{obj_list}{a list of spatial data object}
+\item{obj_list}{a list of VoltRon objects}
 
 \item{mapping_list}{a list of transformation matrices}
 
 \item{register_ind}{the indices of query images/spatialdatasets}
 
-\item{centre}{the index of the central referance image/spatialdata}
+\item{centre}{the index of the central reference image/spatialdata}
 
 \item{input}{input}
 
-\item{...}{additional parameters passed to \code{getRegisteredObjectListVoltRon} or \code{getRegisteredObject.Seurat}}
+\item{reg_mode}{the registration mode, either "auto" or "manual"}
+
+\item{image_list}{the list of query/ref images}
+
+\item{aligned_image_list}{the list of aligned query/ref images}
 }
 \description{
-Get a registered VoltRon or Seurat object
+
+}
+\details{
+
 }

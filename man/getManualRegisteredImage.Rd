@@ -2,21 +2,20 @@
 % Please edit documentation in R/registration.R
 \name{getManualRegisteredImage}
 \alias{getManualRegisteredImage}
-\title{getManualRegisteredImage}
+\title{}
 \usage{
-getManualRegisteredImage(images, transmatrix, query_ind, ref_ind, input)
+getManualRegisteredImage(query_image, ref_image, transmatrix)
 }
 \arguments{
-\item{images}{the list of images}
+\item{query_image}{query image}
+
+\item{ref_image}{reference image}
 
 \item{transmatrix}{the transformation matrix}
-
-\item{query_ind}{the index of the query image}
-
-\item{ref_ind}{the index of the reference image}
-
-\item{input}{input}
 }
 \description{
-Generating the manually registered images
+
+}
+\details{
+
 }

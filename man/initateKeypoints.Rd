@@ -2,7 +2,7 @@
 % Please edit documentation in R/registration.R
 \name{initateKeypoints}
 \alias{initateKeypoints}
-\title{initateKeypoints}
+\title{}
 \usage{
 initateKeypoints(len_images, keypoints_list, input, output, session)
 }
@@ -18,5 +18,16 @@ initateKeypoints(len_images, keypoints_list, input, output, session)
 \item{session}{shiny session}
 }
 \description{
-Initiate shiny reactive values for keypoint dataframes for pairwise reference and query images
+# plot with raster
+  ref_image_raster <- as.raster(images[[ref_ind]]) |> as.matrix() |> terra::rast()
+  query_image_raster <- as.raster(images[[query_ind]]) |> as.matrix() |> terra::rast()
+  if(terra::nlyr(query_image_raster) == 1){
+    query_image_raster <- raster::stack(query_image_raster)
+    query_image_raster <- raster::stack(query_image_raster, query_image_raster, query_image_raster)
+  } else {
+    query_image_raster <- raster::stack(query_image_raster)
+  }
+}
+\details{
+
 }
