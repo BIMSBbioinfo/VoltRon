@@ -85,7 +85,7 @@ test_that("image", {
 
   # get image
   images <- vrImages(visium_data)
-  images <- vrImages(visium_data, main_image = "main_image")
+  images <- vrImages(visium_data, name = "H&E")
 
   # manipulate image
   visium_data_resize <- resizeImage(visium_data, size = 400)
@@ -95,10 +95,10 @@ test_that("image", {
   visium_data[["Assay1"]]@image[["new_image"]] <- vrImages(visium_data_resize)
 
   # get image names
-  expect_equal(vrImageNames(visium_data), c("main_image", "new_image"))
+  expect_equal(vrImageNames(visium_data), c("H&E", "new_image"))
 
   # get main image
-  expect_equal(vrMainImage(visium_data[["Assay1"]]), "main_image")
+  expect_equal(vrMainImage(visium_data[["Assay1"]]), "H&E")
 
   # change main image
   vrMainImage(visium_data[["Assay1"]]) <- "new_image"

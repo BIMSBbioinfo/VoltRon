@@ -252,7 +252,11 @@ vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, .
 
   # get registered image
   if(reg){
-    name <- paste0(name, "_reg")
+    if(!paste0(name, "_reg") %in% vrImageNames(object)){
+      warning("There are no registered images with name ", name, "!")
+    } else {
+      name <- paste0(name, "_reg")
+    }
   }
 
   # check main image
@@ -281,7 +285,11 @@ vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, .
     name <- object@main_image
   }
   if(reg){
-    name <- paste0(name, "_reg")
+    if(!paste0(name, "_reg") %in% vrImageNames(object)){
+      warning("There are no registered images with name ", name, "!")
+    } else {
+      name <- paste0(name, "_reg")
+    }
   }
   if(inherits(value, "vrImage")){
     object@image[[name]] <- value
@@ -545,9 +553,13 @@ resizeImage.vrAssay <- function(object, name = NULL, reg = FALSE, ...){
     name <- object@main_image
   }
 
-  # get registered image
+  # check registered image
   if(reg){
-    name <- paste0(name, "_reg")
+    if(!paste0(name, "_reg") %in% vrImageNames(object)){
+      warning("There are no registered images with name ", name, "!")
+    } else {
+      name <- paste0(name, "_reg")
+    }
   }
 
   # check main image
@@ -638,7 +650,11 @@ modulateImage.vrAssay <- function(object,  name = NULL, reg = FALSE, channel = N
 
   # get registered image
   if(reg){
-    name <- paste0(name, "_reg")
+    if(!paste0(name, "_reg") %in% vrImageNames(object)){
+      warning("There are no registered images with name ", name, "!")
+    } else {
+      name <- paste0(name, "_reg")
+    }
   }
 
   # check main image
