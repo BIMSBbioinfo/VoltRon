@@ -134,7 +134,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
     }
 
     # create VoltRon assay for molecules
-    mol_assay <- formAssay(coords = coords, image = image, type = "molecule")
+    mol_assay <- formAssay(coords = coords, image = image, type = "molecule", main_image = image_name)
 
     # merge assays in one section
     message("Merging assays ...")
@@ -160,6 +160,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #' @param dir.path path to Visium output folder
 #' @param selected_assay selected assay from Visium
 #' @param assay_name the assay name
+#' @param image_name the image name of the Visium assay, Default: H&E
 #' @param inTissue if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
@@ -169,7 +170,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #'
 #' @export
 #'
-importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_name = "Visium", inTissue = TRUE, ...)
+importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_name = "Visium", image_name = "H&E", inTissue = TRUE, ...)
 {
   # raw counts
   listoffiles <- list.files(dir.path)
@@ -236,7 +237,7 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   }
 
   # create VoltRon
-  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", ...)
+  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", image_name = image_name, ...)
 }
 
 ####

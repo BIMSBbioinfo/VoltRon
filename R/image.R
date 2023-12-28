@@ -402,27 +402,6 @@ vrMainImage.vrAssay <- function(object){
   return(object)
 }
 
-#' @rdname vrMainChannel
-#' @method vrMainChannel vrImage
-#'
-#' @export
-#'
-vrMainChannel.vrImage <- function(object){
-  return(object@main_channel)
-}
-
-#' @param value the name of main channel
-#'
-#' @rdname vrMainChannel
-#' @method vrMainChannel<- vrImage
-#'
-#' @export
-#'
-"vrMainChannel<-.vrImage" <- function(object, value){
-  object@main_channel <- value
-  return(object)
-}
-
 #' @param assay assay
 #'
 #' @rdname vrImageNames
@@ -454,6 +433,27 @@ vrImageNames.vrAssay <- function(object){
 ## Channel Methods ####
 ####
 
+#' @rdname vrMainChannel
+#' @method vrMainChannel vrImage
+#'
+#' @export
+#'
+vrMainChannel.vrImage <- function(object){
+  return(object@main_channel)
+}
+
+#' @param value the name of main channel
+#'
+#' @rdname vrMainChannel
+#' @method vrMainChannel<- vrImage
+#'
+#' @export
+#'
+"vrMainChannel<-.vrImage" <- function(object, value){
+  object@main_channel <- value
+  return(object)
+}
+
 #' @param assay assay
 #'
 #' @rdname vrImageChannelNames
@@ -464,7 +464,11 @@ vrImageNames.vrAssay <- function(object){
 vrImageChannelNames.VoltRon <- function(object, assay = NULL){
 
   # get assay names
-  assay_names <- vrAssayNames(object, assay = assay)
+  if(is.null(assay)){
+    assay_names <- vrAssayNames(object, assay = "all")
+  } else {
+    assay_names <- vrAssayNames(object, assay = assay)
+  }
 
   # get image names
   image_names <- unlist(lapply(assay_names, function(x) vrMainImage(object[[x]])))
