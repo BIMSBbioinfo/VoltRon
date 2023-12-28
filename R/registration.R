@@ -372,8 +372,6 @@ updateParameterPanels <- function(input, output, session){
 #' @param image_list the list of query/ref images
 #' @param aligned_image_list the list of aligned query/ref images
 #'
-#' @importFrom magick image_info
-#'
 getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, input, reg_mode = "manual", image_list = NULL, aligned_image_list = NULL){
 
   # initiate registered VoltRon objects
@@ -398,11 +396,7 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
     # register the VoltRon object
     registered_sr[[i]] <- applyPerspectiveTransform(obj_list[[i]],
                                                     mapping = mapping_list[[paste0(i)]],
-                                                    # query_image = image_list[[i]],
                                                     reference_image = image_list[[ref_ind]],
-                                                    # image_list = image_list,
-                                                    # ref_ind = ref_ind,
-                                                    # query_ind = i,
                                                     input = input,
                                                     aligned_image = aligned_image_list[[i]],
                                                     reg_mode = reg_mode,
@@ -413,12 +407,23 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
   return(registered_sr)
 }
 
+#' applyPerspectiveTransform
+#'
+#' Applying a perspective transformation to the VoltRon object
+#'
+#' @param object A VoltRon objects
+#' @param mapping a list of transformation matrices
+#' @param reference_image the reference image
+#' @param input input
+#' @param reg_mode the registration mode, either "auto" or "manual"
+#' @param ref_extension the shiny extension of reference image
+#' @param query_extension the shiny extension of query image
+#'
+#' @importFrom magick image_info
+#'
 applyPerspectiveTransform <- function(object, mapping,
-                                      # image_list, ref_ind, query_ind,
-                                      # query_image,
                                       reference_image,
                                       input,
-                                      aligned_image,
                                       reg_mode,
                                       ref_extension,
                                       query_extension){
@@ -460,8 +465,7 @@ applyPerspectiveTransform <- function(object, mapping,
 
   } else if(reg_mode == "auto"){
 
-    # get the current mapping
-    # cur_mapping <- mapping[[1]] ## CHANGE THIS LATER!!! ####
+    # get the multiplication of all homography matrices
     cur_mapping <- Reduce("%*%", mapping)
 
     # images
@@ -1447,7 +1451,16 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
               overlay_image = magick::image_read(reg[[5]])))
 }
 
-
+#' getRcppWarpImage
+#'
+#' Warping a query image given a homography image
+#'
+#' @param ref_image reference image
+#' @param query_image query image
+#' @param hmatrix the homography matrix
+#'
+#' @importFrom magick image_read image_data
+#'
 getRcppWarpImage <- function(ref_image, query_image, hmatrix){
   ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
   query_image_rast <- magick::image_data(query_image, channels = "rgb")

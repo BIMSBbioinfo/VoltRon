@@ -2,7 +2,7 @@
 % Please edit documentation in R/registration.R
 \name{getRegisteredObject}
 \alias{getRegisteredObject}
-\title{}
+\title{getRegisteredObject}
 \usage{
 getRegisteredObject(
   obj_list,
@@ -33,8 +33,5 @@ getRegisteredObject(
 \item{aligned_image_list}{the list of aligned query/ref images}
 }
 \description{
-
-}
-\details{
-
+Get registered list of VoltRon objects
 }
