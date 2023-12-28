@@ -85,14 +85,14 @@ formAssay <- function(data = NULL, coords, segments = list(), image, params = li
     colnames(data) <- rownames(coords)
   }
 
-  # segments
-  if(!is.null(segments)){
-    if(length(segments) == length(rownames(coords))){
-      names(segments) <- rownames(coords)
-    } else {
-      stop("Number of segments doesnt match the number of points!")
-    }
-  }
+  # # segments
+  # if(!is.null(segments)){
+  #   if(length(segments) == length(rownames(coords))){
+  #     names(segments) <- rownames(coords)
+  #   } else {
+  #     stop("Number of segments doesnt match the number of points!")
+  #   }
+  # }
 
   # get image object
   image <- formImage(coords = coords, segments = segments, image = image)

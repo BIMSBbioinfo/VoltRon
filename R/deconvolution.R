@@ -39,26 +39,16 @@ getDeconvolution <- function(object, assay = NULL, features = NULL, sc.object, s
       # RCTD
       rawdata <- getDeconSingle(object = cur_assay, features = features, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, method = method, ...)
 
-      # Add as new assay
+      # create new assay
       cat("Adding cell type compositions as new assay:", paste(sample.metadata[assy, "Assay"], "decon", sep = "_"), "...\n")
       spatialpoints <- colnames(rawdata)
-      # rawdata <- new("vrAssay",
-      #                rawdata = rawdata, normdata = rawdata,
-      #                coords = cur_assay@coords[spatialpoints,],
-      #                image = cur_assay@image, segments = cur_assay@segments,
-      #                type = cur_assay@type, params = cur_assay@params, main_image = "main_image")
-      # new_assay <- formAssay(data = rawdata,
-      #                        coords = vrCoordinates(cur_assay)[spatialpoints,],
-      #                        segments = vrSegments(cur_assay)[spatialpoints],
-      #                        image = vrImages(cur_assay), type = cur_assay@type)
-      # new_assay@image <- sapply(vrImageNames(cur_assay),
-      #                           function(x) subset.vrImage(x, spatialpoints = spatialpoints),
-      #                           USE.NAMES = TRUE)
       new_assay <- formAssay(data = rawdata,
                              coords = vrCoordinates(cur_assay)[spatialpoints,], segments = vrSegments(cur_assay)[spatialpoints],
                              image = vrImages(cur_assay), type = cur_assay@type, params = cur_assay@params, name = cur_assay@name)
       new_assay@image <- cur_assay@image
       new_assay <- subset(new_assay, spatialpoints = spatialpoints)
+
+      # add the new assay
       object <- addAssay(object,
                          assay = new_assay,
                          metadata = Metadata(object, assay = assy)[spatialpoints,],
