@@ -70,12 +70,13 @@ test_that("coordinates", {
 
   # flip coordinates
   visium_data <- flipCoordinates(visium_data)
-  visium_data <- flipCoordinates(visium_data, reg = TRUE)
+  expect_warning(visium_data <- flipCoordinates(visium_data, reg = TRUE))
 
   # segments
   segments <- vrSegments(visium_data)
-  segments <- vrSegments(visium_data, reg = TRUE)
-  segments <- vrSegments(visium_data, assays = "Assay1", reg = TRUE)
+  expect_warning(segments <- vrSegments(visium_data, reg = TRUE))
+  expect_warning(segments <- vrSegments(visium_data, assays = "Assay1", reg = TRUE))
+
   expect_equal(1,1L)
 })
 

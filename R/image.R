@@ -284,13 +284,11 @@ vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, .
   if(is.null(name)) {
     name <- object@main_image
   }
+
   if(reg){
-    if(!paste0(name, "_reg") %in% vrImageNames(object)){
-      warning("There are no registered images with name ", name, "!")
-    } else {
       name <- paste0(name, "_reg")
-    }
   }
+
   if(inherits(value, "vrImage")){
     object@image[[name]] <- value
   } else {

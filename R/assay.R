@@ -483,11 +483,7 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 
   # check registered coordinates
   if(reg){
-    if(!paste0(image_name, "_reg") %in% vrImageNames(object)){
-      warning("There are no registered images with name ", image_name, "!")
-    } else {
-      image_name <- paste0(image_name, "_reg")
-    }
+    image_name <- paste0(image_name, "_reg")
   }
 
   # check coordinates
@@ -569,11 +565,7 @@ vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 
   # check registered segments
   if(reg){
-    if(!paste0(image_name, "_reg") %in% vrImageNames(object)){
-      warning("There are no registered images with name ", image_name, "!")
-    } else {
-      image_name <- paste0(image_name, "_reg")
-    }
+    image_name <- paste0(image_name, "_reg")
   }
 
   # check coordinates
