@@ -61,16 +61,15 @@ test_that("coordinates", {
 
   # coordinates
   coords <- vrCoordinates(visium_data)
-  coords <- vrCoordinates(visium_data, reg = TRUE)
-  coords <- vrCoordinates(visium_data, assays = "Assay1", reg = TRUE)
+  expect_warning(coords <- vrCoordinates(visium_data, reg = TRUE))
+  expect_warning(coords <- vrCoordinates(visium_data, assays = "Assay1", reg = TRUE))
 
   # update coordinates
   vrCoordinates(visium_data) <- coords*2
-  vrCoordinates(visium_data, reg = TRUE) <- coords*3
+  expect_error(vrCoordinates(visium_data, reg = TRUE) <- coords*3)
 
   # flip coordinates
   visium_data <- flipCoordinates(visium_data)
-  expect_warning(visium_data <- flipCoordinates(visium_data, reg = TRUE))
 
   # segments
   segments <- vrSegments(visium_data)
