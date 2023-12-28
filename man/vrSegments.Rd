@@ -40,14 +40,14 @@ vrSegments(object, ...) <- value
 
 \method{vrSegments}{vrImage}(object, ...) <- value
 
-\method{vrSegments}{VoltRon}(object, reg = FALSE, assay = NULL, ...)
+\method{vrSegments}{VoltRon}(object, assay = NULL, main_image = NULL, reg = FALSE, ...)
 
-\method{vrSegments}{VoltRon}(object, reg = FALSE, ...) <- value
+\method{vrSegments}{VoltRon}(object, main_image = NULL, reg = FALSE, ...) <- value
 }
 \arguments{
 \item{object}{An object}
 
-\item{main_image}{the key of the image associated with the segments}
+\item{main_image}{the key of the image associated with the coordinates}
 
 \item{reg}{TRUE if registered segments are being updated}
 

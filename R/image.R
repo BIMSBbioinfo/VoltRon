@@ -37,7 +37,7 @@ setMethod(
     image_id <- seq_along(image_names)
     image_names_split <- split(image_names, ceiling(image_id/10))
 
-    cat("vrImage (VoltRon Assay) Object \n")
+    cat("vrImage (VoltRon Image) Object \n")
     text <- "Channels:"
     for(img in image_names_split){
       cat(text, paste(img, collapse = ", "), "\n")
@@ -265,6 +265,7 @@ vrImages.vrAssay <- function(object, main_image = NULL, reg = FALSE, main_channe
 
 #' @param object A vrAssay object
 #' @param main_image the name of the main image
+#' @param main_channel the name of the channel associated with the main image
 #' @param reg TRUE if registered images are assigned
 #' @param value new image
 #'
@@ -275,7 +276,7 @@ vrImages.vrAssay <- function(object, main_image = NULL, reg = FALSE, main_channe
 #'
 #' @export
 #'
-"vrImages<-.vrAssay" <- function(object, main_image = NULL, reg = FALSE, ..., value) {
+"vrImages<-.vrAssay" <- function(object, main_image = NULL, main_channel = NULL, reg = FALSE, ..., value) {
   if(is.null(main_image)) {
     main_image <- object@main_image
   }
@@ -284,6 +285,10 @@ vrImages.vrAssay <- function(object, main_image = NULL, reg = FALSE, main_channe
   }
   if(inherits(value, "vrImage")){
     object@image[[main_image]] <- value
+  } else {
+    if(!is.null(main_channel)){
+      vrImages(object@image[[main_image]], main_channel = main_channel) <- value
+    }
   }
 
   # if(inherits(value, "bitmap")){
@@ -321,6 +326,35 @@ vrImages.vrImage <- function(object, main_channel = NULL, as.raster = FALSE){
   } else {
     return(magick::image_read(object@image[[main_channel]]))
   }
+}
+
+#' @param object A vrAssay object
+#' @param main_channel the name of the channel associated with the main image
+#' @param value new image
+#'
+#' @rdname vrImages
+#' @method vrImages<- vrImage
+#'
+#' @importFrom magick image_read
+#'
+#' @export
+#'
+"vrImages<-.vrImage" <- function(object, main_channel = NULL, ..., value){
+
+  if(main_channel %in% vrImageChannelNames(object)){
+    warning("A channel with name '", main_channel, "' already exists in this vrImage object. \n Overwriting ...")
+  }
+
+  if(inherits(value, "bitmap")){
+    object@image[[main_channel]] <- value
+  } else if(inherits(value, "magick-image")){
+    object@image[[main_channel]] <- magick::image_data(value)
+  } else {
+    stop("Please provide either a magick-image or bitmap class image object!")
+  }
+
+  # return
+  object
 }
 
 #' @param assay assay

@@ -23,9 +23,9 @@ vrCoordinates(object, ...) <- value
 
 \method{vrCoordinates}{vrImage}(object, ...) <- value
 
-\method{vrCoordinates}{VoltRon}(object, reg = FALSE, assay = NULL, ...)
+\method{vrCoordinates}{VoltRon}(object, assay = NULL, main_image = NULL, reg = FALSE, ...)
 
-\method{vrCoordinates}{VoltRon}(object, reg = FALSE, ...) <- value
+\method{vrCoordinates}{VoltRon}(object, main_image = NULL, reg = FALSE, ...) <- value
 }
 \arguments{
 \item{object}{An object}

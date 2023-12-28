@@ -4,7 +4,7 @@
 \alias{formImage}
 \title{formImage}
 \usage{
-formImage(coords, segments = NULL, image, main_channel = NULL)
+formImage(coords, segments = list(), image, main_channel = NULL)
 }
 \arguments{
 \item{coords}{the coordinates of the spatial points}
