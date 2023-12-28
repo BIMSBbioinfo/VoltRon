@@ -98,13 +98,10 @@ In addition, VoltRon integrates with spot deconvolution methods such as RCTD to 
       <img width="280" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/spotanalysis.png" class="center">
       <p style = "margin: 3%"> Quality control, analysis and visualization of Cell/Spot datasets </p>
    </td>
-   <td onclick="location.href='conversion.html';"> 
-      <p class ="tutorial"> Converting VoltRon Objects </p>
-      <br>
-      <img width="270" height="200" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversion.png" class="center">
-      <br>
-      <br>
-      <p style = "margin: 3%"> Converting VoltRon objects into Seurat and squidpy (anndata) </strong></p>
+   <td onclick="location.href='pixelanalysis.html';"> 
+      <p class ="tutorial"> Pixels (Image Only) </p>
+      <img width="280" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixelanalysis.png" class="center">
+      <p style = "margin: 3%"> Analysis and visualization of image datasets \n <strong> (Under Development) </strong> </p>
    </td>
   </tr>
 </tbody>
@@ -133,10 +130,20 @@ Here, we provide a group of tutorials to use additional features of the VoltRon 
       <br>
       <p style = "margin: 3%"> Manipulating and configuring VoltRon objects \n <strong> (Under Development) </strong> </p>
    </td>
-   <td> 
+   <td onclick="location.href='importingdata.html';"> 
       <p class ="tutorial"> Importing Spatial Data </p>
       <img width="250" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/technologies.png" class="center">
       <p style = "margin: 3%"> Importing readouts of spatial technologies <br> <strong> (Under Development) </strong> </p>
+   </td>
+  </tr>
+  <tr>
+    <td onclick="location.href='conversion.html';"> 
+      <p class ="tutorial"> Converting VoltRon Objects </p>
+      <br>
+      <img width="270" height="200" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversion.png" class="center">
+      <br>
+      <br>
+      <p style = "margin: 3%"> Converting VoltRon objects into Seurat and squidpy (anndata) </strong></p>
    </td>
   </tr>
 </tbody>

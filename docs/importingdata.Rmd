@@ -1,0 +1,71 @@
+---
+title: "Importing Spatial Data"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+<style>
+.title{
+  display: none;
+}
+body {
+  text-align: justify
+}
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+```{css, echo=FALSE}
+.watch-out {
+  color: black;
+}
+```
+
+```{r setup, include=FALSE}
+# use rmarkdown::render_site(envir = knitr::knit_global())
+knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
+```
+
+<br>
+
+VoltRon includes built-in functions for converting readouts from a large selection of spatial omic instruments into R objects. In this tutorial, we will review each built-in function that is geared towards importing readouts of a specific spatial omic technology. 
+
+# Importing Spatial Datasets
+
+## Xenium
+
+```{r eval = FALSE, class.source="watch-out"}
+library(VoltRon)
+Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1")
+```
+
+```
+VoltRon Object 
+XeniumR1: 
+  Layers: Section1 
+Assays: Xenium(Main) 
+```
+
+</br>
+
+```{r eval = FALSE, class.source="watch-out"}
+library(VoltRon)
+Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1", import_molecules = TRUE)
+```
+
+```
+VoltRon Object 
+XeniumR1: 
+  Layers: Section1 
+Assays: Xenium(Main) Xenium_mol 
+```
+
+</br>

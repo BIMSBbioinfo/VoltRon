@@ -1,5 +1,7 @@
 # Testing functions of manipulating assays ####
 test_that("assay", {
+
+  # get data
   data("visium_data")
 
   # get assay names
@@ -19,6 +21,8 @@ test_that("assay", {
 
 # Testing functions of manipulating samples ####
 test_that("sample", {
+
+  # get data
   data("visium_data")
 
   # get sample metadata
@@ -42,6 +46,8 @@ test_that("sample", {
 
 # Testing functions of manipulating spatialpoints ####
 test_that("spatialpoints", {
+
+  # get data
   data("visium_data")
 
   # get spatial points
@@ -57,6 +63,8 @@ test_that("spatialpoints", {
 
 # Testing functions of manipulating coordinates ####
 test_that("coordinates", {
+
+  # get data
   data("visium_data")
 
   # coordinates
@@ -81,6 +89,8 @@ test_that("coordinates", {
 
 # Testing functions of manipulating images ####
 test_that("image", {
+
+  # get data
   data("visium_data")
 
   # get image
@@ -110,6 +120,8 @@ test_that("image", {
 
 # Testing functions of manipulating images ####
 test_that("embeddings", {
+
+  # get data
   data("visium_data")
 
   # write embedding

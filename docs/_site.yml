@@ -19,12 +19,14 @@ navbar:
           href: roianalysis.html
         - text: "Cell/Spot Analysis"
           href: spotanalysis.html
-        - text: "Converting VoltRon Objects"
-          href: conversion.html
       - text: "Utilities"
         menu:
         - text: "Interactive Utilities"
           href: interactive.html
+        - text: "Importing Spatial Data"
+          href: importingdata.html
+        - text: "Converting VoltRon Objects"
+          href: conversion.html
   right:
     - text: "Contact"
       icon: fa-envelope-o

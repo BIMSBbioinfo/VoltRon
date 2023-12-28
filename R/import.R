@@ -719,6 +719,7 @@ rescaleGeoMxPoints <- function(pts, summary, imageinfo){
 #' @param tiledbURI the path to the tiledb folder
 #' @param assay_name the assay name, default: CosMx
 #' @param image the reference morphology image of the CosMx assay
+#' @param image_name the image name of the CosMx assay, Default: DAPI
 #' @param segment_polygons if TRUE, the ROI polygons are parsed from the OME.TIFF file
 #' @param ome.tiff the OME.TIFF file of the CosMx experiment if exists
 #' @param ... additional parameters passed to \code{formVoltRon}
@@ -730,7 +731,7 @@ rescaleGeoMxPoints <- function(pts, summary, imageinfo){
 #' @export
 #'
 importCosMx <- function(tiledbURI, assay_name = "CosMx",
-                        image = NULL, segment_polygons = FALSE, ome.tiff = NULL, ...)
+                        image = NULL, image_name = "DAPI", segment_polygons = FALSE, ome.tiff = NULL, ...)
 {
   # check tiledb and tiledbsc
   if (!requireNamespace("tiledb", quietly = TRUE))
