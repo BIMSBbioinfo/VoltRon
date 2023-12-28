@@ -398,7 +398,6 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
                                                     mapping = mapping_list[[paste0(i)]],
                                                     reference_image = image_list[[ref_ind]],
                                                     input = input,
-                                                    aligned_image = aligned_image_list[[i]],
                                                     reg_mode = reg_mode,
                                                     ref_extension = ref_extension,
                                                     query_extension = query_extension)
@@ -508,6 +507,8 @@ applyPerspectiveTransform <- function(object, mapping,
 
       segments_reg <- split(segments_reg, segments_reg[,1])
       names(segments_reg) <- names(segments)
+    } else {
+      segments_reg <- segments
     }
 
     # get registered image (including all channels)

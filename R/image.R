@@ -65,12 +65,10 @@ setMethod(
 #'
 #' @export
 #'
-formImage <- function(coords, segments = NULL, image, main_channel = NULL){
+formImage <- function(coords, segments = list(), image, main_channel = NULL){
 
   # get segments
-  if(is.null(segments)){
-    segments <- list()
-  } else {
+  if(length(segments) > 0){
     if(length(segments) == length(rownames(coords))){
       names(segments) <- rownames(coords)
     } else {

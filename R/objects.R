@@ -327,7 +327,7 @@ setMethod(
 #'
 formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
                              coords,
-                             segments = NULL,
+                             segments = list(),
                              sample.metadata = NULL,
                              main.assay = "Custom_cell", assay.type = "cell", params = list(),
                              sample_name = NULL, layer_name = NULL,
@@ -1309,6 +1309,7 @@ vrGraphNames.VoltRon <- function(object, assay = NULL){
 }
 
 #' @param assay assay
+#' @param main_image the key of the image associated with the coordinates
 #' @param reg TRUE if registered segments are being updated
 #'
 #' @rdname vrCoordinates
@@ -1316,7 +1317,7 @@ vrGraphNames.VoltRon <- function(object, assay = NULL){
 #'
 #' @export
 #'
-vrCoordinates.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
+vrCoordinates.VoltRon <- function(object, assay = NULL, main_image = NULL, reg = FALSE, ...) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1324,12 +1325,13 @@ vrCoordinates.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   # get all coordinates
   coords <- NULL
   for(assy in assay_names)
-    coords <- rbind(coords, vrCoordinates(object[[assy]], reg = reg))
+    coords <- rbind(coords, vrCoordinates(object[[assy]], main_image = main_image, reg = reg))
 
   # return image
   return(coords)
 }
 
+#' @param main_image the key of the image associated with the coordinates
 #' @param reg TRUE if registered segments are being updated
 #' @param value the new set of 2D coordinates
 #'
@@ -1338,7 +1340,7 @@ vrCoordinates.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
 #'
 #' @export
 #'
-"vrCoordinates<-.VoltRon" <- function(object, reg = FALSE, ..., value) {
+"vrCoordinates<-.VoltRon" <- function(object, main_image = NULL, reg = FALSE, ..., value) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -1353,7 +1355,7 @@ vrCoordinates.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   vrassay <- vrlayer[[cur_assay$Assay]]
 
   # change coordinates
-  vrCoordinates(vrassay, reg = reg) <- value
+  vrCoordinates(vrassay, main_image = main_image, reg = reg) <- value
   vrlayer[[cur_assay$Assay]] <- vrassay
   object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
 
@@ -1375,6 +1377,7 @@ flipCoordinates.VoltRon <- function(object, ...){
 }
 
 #' @param assay assay
+#' @param main_image the key of the image associated with the coordinates
 #' @param reg TRUE if registered segments are being updated
 #'
 #' @rdname vrSegments
@@ -1382,7 +1385,7 @@ flipCoordinates.VoltRon <- function(object, ...){
 #'
 #' @export
 #'
-vrSegments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
+vrSegments.VoltRon <- function(object, assay = NULL, main_image = NULL, reg = FALSE, ...) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1390,13 +1393,13 @@ vrSegments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   # get all coordinates
   segts <- NULL
   for(assy in assay_names)
-    segts <- c(segts, vrSegments(object[[assy]], reg = reg))
+    segts <- c(segts, vrSegments(object[[assy]], main_image = main_image, reg = reg))
 
   # return image
   return(segts)
 }
 
-#' @param assay assay
+#' @param main_image the key of the image associated with the coordinates
 #' @param reg TRUE if registered segments are being updated
 #' @param value the new set of 2D segments for each spatial point
 #'
@@ -1405,7 +1408,7 @@ vrSegments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
 #'
 #' @export
 #'
-"vrSegments<-.VoltRon" <- function(object, reg = FALSE, ..., value) {
+"vrSegments<-.VoltRon" <- function(object, main_image = NULL, reg = FALSE, ..., value) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -1420,7 +1423,7 @@ vrSegments.VoltRon <- function(object, reg = FALSE, assay = NULL, ...) {
   vrassay <- vrlayer[[cur_assay$Assay]]
 
   # change coordinates
-  vrSegments(vrassay, reg = reg) <- value
+  vrSegments(vrassay, main_image = main_image, reg = reg) <- value
   vrlayer[[cur_assay$Assay]] <- vrassay
   object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
 
