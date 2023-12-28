@@ -4,7 +4,7 @@
 \alias{vrImage_to_zarr}
 \title{Title}
 \usage{
-vrImage_to_zarr(vrimage, out_path, image_id = "main_image")
+vrImage_to_zarr(vrimage, out_path, image_id = "image_1")
 }
 \arguments{
 \item{vrimage}{VoltRon image}

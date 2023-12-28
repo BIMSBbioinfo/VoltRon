@@ -457,7 +457,7 @@ applyPerspectiveTransform <- function(object, mapping,
     # get registered image (including all channels)
     image_reg_list <- sapply(vrImageChannelNames(object[[vrAssayNames(object)]]), function(x) NULL, USE.NAMES = TRUE)
     for(channel_ind in names(image_reg_list)){
-      image_reg_list[[channel_ind]] <- getManualRegisteredImage(vrImages(object, main_channel = channel_ind),
+      image_reg_list[[channel_ind]] <- getManualRegisteredImage(vrImages(object, channel = channel_ind),
                                                                 reference_image,
                                                                 list(cur_mapping))
     }
@@ -517,7 +517,7 @@ applyPerspectiveTransform <- function(object, mapping,
 
       # rotate, flip and flop before warping in C++
       ref_image <- transformImage(reference_image, ref_extension, input)
-      query_image <- transformImage(vrImages(object, main_channel = channel_ind),
+      query_image <- transformImage(vrImages(object, channel = channel_ind),
                                     query_extension, input)
       query_image <- getRcppWarpImage(ref_image, query_image, hmatrix = cur_mapping)
       query_image <- transformImageReverse(query_image, ref_extension, input)

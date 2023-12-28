@@ -12,7 +12,7 @@ formAssay(
   params = list(),
   type = "ROI",
   name = "Assay1",
-  main_image = "main_image"
+  main_image = "image_1"
 )
 }
 \arguments{
@@ -29,6 +29,8 @@ formAssay(
 \item{type}{the type of the assay (cells, spots, ROIs)}
 
 \item{name}{the name of the assay}
+
+\item{main_image}{the name of the main_image}
 }
 \description{
 Create a vrAssay (VoltRon assay) object

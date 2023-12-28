@@ -22,13 +22,13 @@ vrImages(object, ...) <- value
 
 \method{vrImages}{vrLayer}(object, ...)
 
-\method{vrImages}{vrAssay}(object, main_image = NULL, reg = FALSE, main_channel = NULL, ...)
+\method{vrImages}{vrAssay}(object, name = NULL, reg = FALSE, channel = NULL, ...)
 
-\method{vrImages}{vrAssay}(object, main_image = NULL, main_channel = NULL, reg = FALSE, ...) <- value
+\method{vrImages}{vrAssay}(object, name = NULL, channel = NULL, reg = FALSE, ...) <- value
 
-\method{vrImages}{vrImage}(object, main_channel = NULL, as.raster = FALSE)
+\method{vrImages}{vrImage}(object, channel = NULL, as.raster = FALSE)
 
-\method{vrImages}{vrImage}(object, main_channel = NULL, ...) <- value
+\method{vrImages}{vrImage}(object, channel = NULL, ...) <- value
 }
 \arguments{
 \item{object}{A vrAssay object}
@@ -37,11 +37,11 @@ vrImages(object, ...) <- value
 
 \item{value}{new image}
 
-\item{main_image}{the name of the main image}
+\item{name}{the name of the main image}
 
 \item{reg}{TRUE if registered images are assigned}
 
-\item{main_channel}{the name of the channel associated with the main image}
+\item{channel}{the name of the channel associated with the main image}
 
 \item{as.raster}{return as a raster}
 }

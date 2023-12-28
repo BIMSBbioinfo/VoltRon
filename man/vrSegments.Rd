@@ -9,28 +9,11 @@
 \alias{vrSegments<-.vrImage}
 \alias{vrSegments.VoltRon}
 \alias{vrSegments<-.VoltRon}
-\title{#' @param reg TRUE if registered segments are being updated
-#'
-#' @rdname vrSegments
-#' @method vrSegments vrAssay
-#'
-#' @export
-#'
-vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
-  if(reg){
-    if(length(object@segments_reg) < 1) {
-      return(object@segments)
-    } else {
-      return(object@segments_reg)
-    }
-  } else {
-    return(object@segments)
-  }
-}}
+\title{vrSegments}
 \usage{
-\method{vrSegments}{vrAssay}(object, main_image = NULL, reg = FALSE)
+\method{vrSegments}{vrAssay}(object, image_name = NULL, reg = FALSE)
 
-\method{vrSegments}{vrAssay}(object, reg = FALSE, ...) <- value
+\method{vrSegments}{vrAssay}(object, image_name = NULL, reg = FALSE, ...) <- value
 
 vrSegments(object, ...)
 
@@ -40,14 +23,14 @@ vrSegments(object, ...) <- value
 
 \method{vrSegments}{vrImage}(object, ...) <- value
 
-\method{vrSegments}{VoltRon}(object, assay = NULL, main_image = NULL, reg = FALSE, ...)
+\method{vrSegments}{VoltRon}(object, assay = NULL, image_name = NULL, reg = FALSE, ...)
 
-\method{vrSegments}{VoltRon}(object, main_image = NULL, reg = FALSE, ...) <- value
+\method{vrSegments}{VoltRon}(object, image_name = NULL, reg = FALSE, ...) <- value
 }
 \arguments{
 \item{object}{An object}
 
-\item{main_image}{the key of the image associated with the coordinates}
+\item{image_name}{the key of the image associated with the coordinates}
 
 \item{reg}{TRUE if registered segments are being updated}
 

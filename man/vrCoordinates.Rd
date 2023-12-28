@@ -11,9 +11,9 @@
 \alias{vrCoordinates<-.VoltRon}
 \title{vrCoordinates}
 \usage{
-\method{vrCoordinates}{vrAssay}(object, main_image = NULL, reg = FALSE)
+\method{vrCoordinates}{vrAssay}(object, image_name = NULL, reg = FALSE)
 
-\method{vrCoordinates}{vrAssay}(object, main_image = NULL, reg = FALSE, ...) <- value
+\method{vrCoordinates}{vrAssay}(object, image_name = NULL, reg = FALSE, ...) <- value
 
 vrCoordinates(object, ...)
 
@@ -23,14 +23,14 @@ vrCoordinates(object, ...) <- value
 
 \method{vrCoordinates}{vrImage}(object, ...) <- value
 
-\method{vrCoordinates}{VoltRon}(object, assay = NULL, main_image = NULL, reg = FALSE, ...)
+\method{vrCoordinates}{VoltRon}(object, assay = NULL, image_name = NULL, reg = FALSE, ...)
 
-\method{vrCoordinates}{VoltRon}(object, main_image = NULL, reg = FALSE, ...) <- value
+\method{vrCoordinates}{VoltRon}(object, image_name = NULL, reg = FALSE, ...) <- value
 }
 \arguments{
 \item{object}{An object}
 
-\item{main_image}{the key of the image associated with the coordinates}
+\item{image_name}{the key of the image associated with the coordinates}
 
 \item{reg}{TRUE if registered segments are being updated}
 

@@ -274,7 +274,7 @@ as.AnnData.VoltRon <- function(object, file, assay = NULL, image_key = "fov", ty
 #'
 #' @export
 #'
-as.Zarr.VoltRon <- function (object, out_path, image_id = "main_image")
+as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
 {
   # object data
   datax <- vrData(object, norm = FALSE)
@@ -334,7 +334,7 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "main_image")
 #'
 #' @export
 #'
-"as.Zarr.magick-image" <- function (object, out_path, image_id = "main_image")
+"as.Zarr.magick-image" <- function (object, out_path, image_id = "image_1")
 {
   img_arr <- apply(as.matrix(magick::image_raster(object, tidy = FALSE)), c(1, 2), col2rgb)
   proc <- basilisk::basiliskStart(py_env)

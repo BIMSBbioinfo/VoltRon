@@ -72,27 +72,19 @@ setMethod(
 #' @param params additional parameters of the object
 #' @param type the type of the assay (cells, spots, ROIs)
 #' @param name the name of the assay
+#' @param main_image the name of the main_image
 #'
 #' @importFrom methods new
 #'
 #' @export
 #'
-formAssay <- function(data = NULL, coords, segments = list(), image, params = list(), type = "ROI", name = "Assay1", main_image = "main_image"){
+formAssay <- function(data = NULL, coords, segments = list(), image, params = list(), type = "ROI", name = "Assay1", main_image = "image_1"){
 
   # get data
   if(is.null(data)){
     data <- matrix(nrow = 0, ncol = nrow(coords))
     colnames(data) <- rownames(coords)
   }
-
-  # # segments
-  # if(!is.null(segments)){
-  #   if(length(segments) == length(rownames(coords))){
-  #     names(segments) <- rownames(coords)
-  #   } else {
-  #     stop("Number of segments doesnt match the number of points!")
-  #   }
-  # }
 
   # get image object
   image <- formImage(coords = coords, segments = segments, image = image)
@@ -438,7 +430,7 @@ vrData.vrAssay <- function(object, features = NULL, norm = FALSE) {
   }
 }
 
-#' @param main_image the key of the image associated with the coordinates
+#' @param image_name the key of the image associated with the coordinates
 #' @param reg TRUE if registered segments are being updated
 #'
 #' @rdname vrCoordinates
@@ -446,27 +438,28 @@ vrData.vrAssay <- function(object, features = NULL, norm = FALSE) {
 #'
 #' @export
 #'
-vrCoordinates.vrAssay <- function(object, main_image = NULL, reg = FALSE) {
+vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 
   # check main image
-  if(is.null(main_image)){
-    main_image <- vrMainImage(object)
+  if(is.null(image_name)){
+    image_name <- vrMainImage(object)
   }
 
   # check registered coordinates
   if(reg){
-    main_image <- paste0(main_image, "_reg")
+    image_name <- paste0(image_name, "_reg")
   }
 
   # check coordinates
-  if(!main_image %in% vrImageNames(object)){
-    stop(main_image, " is not among any image in this vrAssay object")
+  if(!image_name %in% vrImageNames(object)){
+    stop(image_name, " is not among any image in this vrAssay object")
   }
 
   # return coordinates
-  return(vrCoordinates(object@image[[main_image]]))
+  return(vrCoordinates(object@image[[image_name]]))
 }
 
+#' @param image_name the key of the image associated with the coordinates
 #' @param reg TRUE if registered segments are being updated
 #' @param value the new set of 2D coordinates
 #'
@@ -477,28 +470,28 @@ vrCoordinates.vrAssay <- function(object, main_image = NULL, reg = FALSE) {
 #'
 #' @export
 #'
-"vrCoordinates<-.vrAssay" <- function(object, main_image = NULL, reg = FALSE, ..., value) {
+"vrCoordinates<-.vrAssay" <- function(object, image_name = NULL, reg = FALSE, ..., value) {
 
   # check main image
-  if(is.null(main_image)){
-    main_image <- vrMainImage(object)
+  if(is.null(image_name)){
+    image_name <- vrMainImage(object)
   }
 
   # check registered coordinates
   if(reg){
-    main_image <- paste0(main_image, "_reg")
+    image_name <- paste0(image_name, "_reg")
   }
 
   # check coordinates
-  if(!main_image %in% vrImageNames(object)){
-    stop(main_image, " is not among any image in this vrAssay object")
+  if(!image_name %in% vrImageNames(object)){
+    stop(image_name, " is not among any image in this vrAssay object")
   }
 
-  vrCoordinates(object@image[[main_image]]) <- value
+  vrCoordinates(object@image[[image_name]]) <- value
   return(object)
 }
 
-#' @param main_image the key of the image
+#' @param image_name the key of the image
 #' @param ... additional parameters passed to \code{vrCoordinates}
 #'
 #' @rdname flipCoordinates
@@ -508,15 +501,15 @@ vrCoordinates.vrAssay <- function(object, main_image = NULL, reg = FALSE) {
 #'
 #' @export
 #'
-flipCoordinates.vrAssay <- function(object, main_image = NULL, ...) {
-  imageinfo <- magick::image_info(vrImages(object, main_image = main_image))
-  coords <- vrCoordinates(object, main_image = main_image, ...)
+flipCoordinates.vrAssay <- function(object, image_name = NULL, ...) {
+  imageinfo <- magick::image_info(vrImages(object, name = image_name))
+  coords <- vrCoordinates(object, image_name = image_name, ...)
   coords[,"y"] <- imageinfo$height - coords[,"y"]
-  vrCoordinates(object, main_image = main_image, ...) <- coords
+  vrCoordinates(object, image_name = image_name, ...) <- coords
   return(object)
 }
 
-#' @param main_image the key of the image associated with the segments
+#' @param image_name the key of the image associated with the segments
 #' @param reg TRUE if registered segments are being updated
 #'
 #' @rdname vrSegments
@@ -524,46 +517,28 @@ flipCoordinates.vrAssay <- function(object, main_image = NULL, ...) {
 #'
 #' @export
 #'
-vrSegments.vrAssay <- function(object, main_image = NULL, reg = FALSE) {
+vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 
   # check main image
-  if(is.null(main_image)){
-    main_image <- vrMainImage(object)
+  if(is.null(image_name)){
+    image_name <- vrMainImage(object)
   }
 
   # check registered coordinates
   if(reg){
-    main_image <- paste0(main_image, "_reg")
+    image_name <- paste0(image_name, "_reg")
   }
 
   # check coordinates
-  if(!main_image %in% vrImageNames(object)){
-    stop(main_image, " is not among any image in this vrAssay object")
+  if(!image_name %in% vrImageNames(object)){
+    stop(image_name, " is not among any image in this vrAssay object")
   }
 
   # return coordinates
-  return(vrSegments(object@image[[main_image]]))
+  return(vrSegments(object@image[[image_name]]))
 }
 
-#' #' @param reg TRUE if registered segments are being updated
-#' #'
-#' #' @rdname vrSegments
-#' #' @method vrSegments vrAssay
-#' #'
-#' #' @export
-#' #'
-#' vrSegments.vrAssay <- function(object, reg = FALSE, ...) {
-#'   if(reg){
-#'     if(length(object@segments_reg) < 1) {
-#'       return(object@segments)
-#'     } else {
-#'       return(object@segments_reg)
-#'     }
-#'   } else {
-#'     return(object@segments)
-#'   }
-#' }
-
+#' @param image_name the key of the image associated with the segments
 #' @param reg TRUE if registered segments are being updated
 #' @param value the new set of 2D segments for each spatial point
 #'
@@ -573,24 +548,24 @@ vrSegments.vrAssay <- function(object, main_image = NULL, reg = FALSE) {
 #' @importFrom methods slot
 #' @export
 #'
-"vrSegments<-.vrAssay" <- function(object, reg = FALSE, ..., value) {
+"vrSegments<-.vrAssay" <- function(object, image_name = NULL, reg = FALSE, ..., value) {
 
   # check main image
-  if(is.null(main_image)){
-    main_image <- vrMainImage(object)
+  if(is.null(image_name)){
+    image_name <- vrMainImage(object)
   }
 
   # check registered coordinates
   if(reg){
-    main_image <- paste0(main_image, "_reg")
+    image_name <- paste0(image_name, "_reg")
   }
 
   # check coordinates
-  if(!main_image %in% vrImageNames(object)){
-    stop(main_image, " is not among any image in this vrAssay object")
+  if(!image_name %in% vrImageNames(object)){
+    stop(image_name, " is not among any image in this vrAssay object")
   }
 
-  vrSegments(object@image[[main_image]]) <- value
+  vrSegments(object@image[[image_name]]) <- value
   return(object)
 }
 

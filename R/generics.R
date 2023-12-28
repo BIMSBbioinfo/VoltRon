@@ -535,6 +535,34 @@ vrMainImage <- function(object, ...) {
   UseMethod(generic = 'vrMainImage<-', object = object)
 }
 
+#' vrMainChannel
+#'
+#' Get the main channel name of the image
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname vrMainChannel
+#' @export vrMainChannel
+#'
+vrMainChannel <- function(object, ...) {
+  UseMethod(generic = 'vrMainChannel', object = object)
+}
+
+#' vrMainChannel
+#'
+#' Set the main channel name of the image
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname vrMainChannel
+#' @export vrMainChannel<-
+#'
+"vrMainChannel<-" <- function(object, ..., value) {
+  UseMethod(generic = 'vrMainChannel<-', object = object)
+}
+
 
 #' resizeImage
 #'

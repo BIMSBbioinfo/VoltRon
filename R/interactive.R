@@ -47,7 +47,7 @@ py_env <- basilisk::BasiliskEnvironment(
 #'
 #' @export
 #'
-vrImage_to_zarr <- function (vrimage, out_path, image_id = "main_image")
+vrImage_to_zarr <- function (vrimage, out_path, image_id = "image_1")
 {
   img_arr <- apply(as.matrix(magick::image_raster(vrimage, tidy = FALSE)), c(1, 2), col2rgb)
   proc <- basilisk::basiliskStart(py_env)

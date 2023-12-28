@@ -58,7 +58,7 @@ setMethod(
 #' @param coords the coordinates of the spatial points
 #' @param segments the segments of the spatial points, optional
 #' @param image the image of the data
-#' @param main_channel the key of the main channel of vrImage object
+#' @param channel the key of the main channel of vrImage object
 #'
 #' @importFrom magick image_data image_read image_info
 #' @importFrom methods new
@@ -233,9 +233,9 @@ vrImages.vrLayer <- function(object, ...){
 }
 
 #' @param object A vrAssay object
-#' @param main_image the name of the main image
+#' @param name the name of the main image
 #' @param reg TRUE if registered images are assigned
-#' @param main_channel the name of the main channel
+#' @param channel the name of the main channel
 #' @param ... arguements passed to \code{vrImages.vrImage}
 #'
 #' @rdname vrImages
@@ -243,29 +243,29 @@ vrImages.vrLayer <- function(object, ...){
 #'
 #' @export
 #'
-vrImages.vrAssay <- function(object, main_image = NULL, reg = FALSE, main_channel = NULL, ...){
+vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, ...){
 
-  # get main image is main_image is null
-  if(is.null(main_image)) {
-    main_image <- object@main_image
+  # check image name
+  if(is.null(name)) {
+    name <- object@main_image
   }
 
   # get registered image
   if(reg){
-    main_image <- paste0(main_image, "_reg")
+    name <- paste0(name, "_reg")
   }
 
   # check main image
-  if(!main_image %in% vrImageNames(object)){
-    stop(main_image, " is not among any image in this vrAssay object")
+  if(!name %in% vrImageNames(object)){
+    stop(name, " is not among any image in this vrAssay object")
   }
 
-  return(vrImages(object@image[[main_image]], main_channel = main_channel, ...))
+  return(vrImages(object@image[[name]], channel = channel, ...))
 }
 
 #' @param object A vrAssay object
-#' @param main_image the name of the main image
-#' @param main_channel the name of the channel associated with the main image
+#' @param name the name of the main image
+#' @param channel the name of the channel associated with the main image
 #' @param reg TRUE if registered images are assigned
 #' @param value new image
 #'
@@ -276,33 +276,25 @@ vrImages.vrAssay <- function(object, main_image = NULL, reg = FALSE, main_channe
 #'
 #' @export
 #'
-"vrImages<-.vrAssay" <- function(object, main_image = NULL, main_channel = NULL, reg = FALSE, ..., value) {
-  if(is.null(main_image)) {
-    main_image <- object@main_image
+"vrImages<-.vrAssay" <- function(object, name = NULL, channel = NULL, reg = FALSE, ..., value) {
+  if(is.null(name)) {
+    name <- object@main_image
   }
   if(reg){
-    main_image <- paste0(main_image, "_reg")
+    name <- paste0(name, "_reg")
   }
   if(inherits(value, "vrImage")){
-    object@image[[main_image]] <- value
+    object@image[[name]] <- value
   } else {
-    if(!is.null(main_channel)){
-      vrImages(object@image[[main_image]], main_channel = main_channel) <- value
+    if(!is.null(channel)){
+      vrImages(object@image[[name]], channel = channel) <- value
     }
   }
-
-  # if(inherits(value, "bitmap")){
-  #   object@image[[main_image]] <- value
-  # } else if(inherits(value, "magick-image")){
-  #   object@image[[main_image]] <- magick::image_data(value)
-  # } else {
-  #   stop("Please provide either a magick-image or bitmap class image object!")
-  # }
   return(object)
 }
 
 #' @param object A vrImage object
-#' @param main_channel the name of the main channel
+#' @param channel the name of the main channel
 #' @param as.raster return as a raster
 #'
 #' @rdname vrImages
@@ -312,24 +304,24 @@ vrImages.vrAssay <- function(object, main_image = NULL, reg = FALSE, main_channe
 #'
 #' @export
 #'
-vrImages.vrImage <- function(object, main_channel = NULL, as.raster = FALSE){
+vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE){
 
-  if(is.null(main_channel)){
-    main_channel <- object@main_channel
+  if(is.null(channel)){
+    channel <- object@main_channel
   } else {
-    if(!main_channel %in% vrImageChannelNames(object))
-      stop(main_channel, " is not among any channel in this vrImage object")
+    if(!channel %in% vrImageChannelNames(object))
+      stop(channel, " is not among any channel in this vrImage object")
   }
 
   if(as.raster){
-    return(object@image[[main_channel]])
+    return(object@image[[channel]])
   } else {
-    return(magick::image_read(object@image[[main_channel]]))
+    return(magick::image_read(object@image[[channel]]))
   }
 }
 
 #' @param object A vrAssay object
-#' @param main_channel the name of the channel associated with the main image
+#' @param channel the name of the channel associated with the main image
 #' @param value new image
 #'
 #' @rdname vrImages
@@ -339,16 +331,16 @@ vrImages.vrImage <- function(object, main_channel = NULL, as.raster = FALSE){
 #'
 #' @export
 #'
-"vrImages<-.vrImage" <- function(object, main_channel = NULL, ..., value){
+"vrImages<-.vrImage" <- function(object, channel = NULL, ..., value){
 
-  if(main_channel %in% vrImageChannelNames(object)){
-    warning("A channel with name '", main_channel, "' already exists in this vrImage object. \n Overwriting ...")
+  if(channel %in% vrImageChannelNames(object)){
+    warning("A channel with name '", channel, "' already exists in this vrImage object. \n Overwriting ...")
   }
 
   if(inherits(value, "bitmap")){
-    object@image[[main_channel]] <- value
+    object@image[[channel]] <- value
   } else if(inherits(value, "magick-image")){
-    object@image[[main_channel]] <- magick::image_data(value)
+    object@image[[channel]] <- magick::image_data(value)
   } else {
     stop("Please provide either a magick-image or bitmap class image object!")
   }
@@ -373,10 +365,10 @@ vrMainImage.VoltRon <- function(object, assay = NULL){
   image_names <- unlist(lapply(assay_names, function(x) vrMainImage(object[[x]])))
 
   # return data
-  main_image_data <- data.frame(Assay = assay_names, Image = image_names)
+  image_data <- data.frame(Assay = assay_names, Image = image_names)
 
   # return
-  return(main_image_data)
+  return(image_data)
 }
 
 #' @rdname vrMainImage
@@ -396,7 +388,38 @@ vrMainImage.vrAssay <- function(object){
 #' @export
 #'
 "vrMainImage<-.vrAssay" <- function(object, value){
-  object@main_image <- value
+
+  if(length(value) == 2){
+    channel <- value[2]
+    value <- value[1]
+    object@main_image <- value
+    vrMainChannel(object@image[[value]]) <- channel
+  } else if(length(value) == 1){
+    object@main_image <- value
+  } else {
+    stop("The Main image is set by either: \n    vrMainImage(object) <- c('image name', 'channel name')\n or vrMainImage(object) <- 'image name'")
+  }
+  return(object)
+}
+
+#' @rdname vrMainChannel
+#' @method vrMainChannel vrImage
+#'
+#' @export
+#'
+vrMainChannel.vrImage <- function(object){
+  return(object@main_channel)
+}
+
+#' @param value the name of main channel
+#'
+#' @rdname vrMainChannel
+#' @method vrMainChannel<- vrImage
+#'
+#' @export
+#'
+"vrMainChannel<-.vrImage" <- function(object, value){
+  object@main_channel <- value
   return(object)
 }
 
@@ -450,29 +473,29 @@ vrImageChannelNames.VoltRon <- function(object, assay = NULL){
   image_channels <- unlist(lapply(assay_names, function(x) paste(vrImageChannelNames(object[[x]]), collapse = ",")))
 
   # return data
-  main_image_data <- data.frame(Assay = assay_names, Image = image_names, Channels = image_channels)
+  image_data <- data.frame(Assay = assay_names, Image = image_names, Channels = image_channels)
 
   # return
-  return(main_image_data)
+  return(image_data)
 }
 
-#' @param main_image the key of the main image
+#' @param name the key of the main image
 #'
 #' @rdname vrImageChannelNames
 #' @method vrImageChannelNames vrAssay
 #'
 #' @export
 #'
-vrImageChannelNames.vrAssay <- function(object, main_image = NULL){
+vrImageChannelNames.vrAssay <- function(object, name = NULL){
 
-  if(is.null(main_image)){
-    main_image <- vrMainImage(object)
+  if(is.null(name)){
+    name <- vrMainImage(object)
   } else {
-    if(!main_image %in% vrImageNames(object))
-      stop(main_image, " is not among any image in this vrAssay object")
+    if(!name %in% vrImageNames(object))
+      stop(name, " is not among any image in this vrAssay object")
   }
 
-  return(vrImageChannelNames(object@image[[main_image]]))
+  return(vrImageChannelNames(object@image[[name]]))
 }
 
 #' @rdname vrImageChannelNames
@@ -502,7 +525,7 @@ resizeImage.VoltRon <- function(object, ...){
   return(object)
 }
 
-#' @param main_image the name of the main image
+#' @param name the name of the main image
 #' @param reg TRUE if registered images are assigned
 #' @param ... arguements passed to \code{vrImages.vrImage}
 #'
@@ -511,24 +534,24 @@ resizeImage.VoltRon <- function(object, ...){
 #'
 #' @export
 #'
-resizeImage.vrAssay <- function(object, main_image = NULL, reg = FALSE, ...){
+resizeImage.vrAssay <- function(object, name = NULL, reg = FALSE, ...){
 
   # get main image is main_image is null
-  if(is.null(main_image)) {
-    main_image <- object@main_image
+  if(is.null(name)) {
+    name <- object@main_image
   }
 
   # get registered image
   if(reg){
-    main_image <- paste0(main_image, "_reg")
+    name <- paste0(name, "_reg")
   }
 
   # check main image
-  if(!main_image %in% vrImageNames(object)){
-    stop(main_image, " is not among any image in this vrAssay object")
+  if(!name %in% vrImageNames(object)){
+    stop(name, " is not among any image in this vrAssay object")
   }
 
-  object@image[[main_image]] <- resizeImage(object@image[[main_image]], ...)
+  object@image[[name]] <- resizeImage(object@image[[name]], ...)
 
   # return
   return(object)
@@ -592,9 +615,9 @@ modulateImage.VoltRon <- function(object, ...){
   return(object)
 }
 
-#' @param main_image the name of the main image
+#' @param name the name of the main image
 #' @param reg TRUE if registered images are assigned
-#' @param main_channel the name of the channel associated with the image
+#' @param channel the name of the channel associated with the image
 #' @param ... arguements passed to \code{vrImages.vrImage}
 #'
 #' @rdname modulateImage
@@ -602,30 +625,30 @@ modulateImage.VoltRon <- function(object, ...){
 #'
 #' @export
 #'
-modulateImage.vrAssay <- function(object,  main_image = NULL, reg = FALSE, main_channel = NULL, ...){
+modulateImage.vrAssay <- function(object,  name = NULL, reg = FALSE, channel = NULL, ...){
 
-  # get main image is main_image is null
-  if(is.null(main_image)) {
-    main_image <- object@main_image
+  # check name
+  if(is.null(name)) {
+    name <- object@main_image
   }
 
   # get registered image
   if(reg){
-    main_image <- paste0(main_image, "_reg")
+    name <- paste0(name, "_reg")
   }
 
   # check main image
-  if(!main_image %in% vrImageNames(object)){
-    stop(main_image, " is not among any image in this vrAssay object")
+  if(!name %in% vrImageNames(object)){
+    stop(name, " is not among any image in this vrAssay object")
   }
 
-  object@image[[main_image]] <- modulateImage(object@image[[main_image]], main_channel = main_channel, ...)
+  object@image[[name]] <- modulateImage(object@image[[name]], channel = channel, ...)
 
   # return
   return(object)
 }
 
-#' @param main_channel the name of the channel associated with the vrImage object
+#' @param channel the name of the channel associated with the vrImage object
 #' @param brightness modulation of brightness as percentage of the current value (100 for no change)
 #' @param saturation modulation of saturation as percentage of the current value (100 for no change)
 #' @param hue modulation of hue is an absolute rotation of -180 degrees to +180 degrees from the current position corresponding to an argument range of 0 to 200 (100 for no change)
@@ -637,15 +660,15 @@ modulateImage.vrAssay <- function(object,  main_image = NULL, reg = FALSE, main_
 #' @importFrom magick image_info image_modulate
 #' @export
 #'
-modulateImage.vrImage <- function(object, main_channel = NULL, brightness = 100, saturation = 100, hue = 100, force = FALSE){
+modulateImage.vrImage <- function(object, channel = NULL, brightness = 100, saturation = 100, hue = 100, force = FALSE){
 
   # check main_channels
-  if(is.null(main_channel) && (length(vrImageChannelNames(object)) > 1 && !force)){
+  if(is.null(channel) && (length(vrImageChannelNames(object)) > 1 && !force)){
     stop("No channel name was specified. \n It is not advised to modulate multiple channels in the same time. \n Please type force = TRUE to allow this behaviour!")
   }
 
   # get channel names
-  if(is.null(main_channel)){
+  if(is.null(channel)){
     channels <- vrImageChannelNames(object)
   }
 

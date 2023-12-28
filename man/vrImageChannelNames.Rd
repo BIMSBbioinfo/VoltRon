@@ -11,7 +11,7 @@ vrImageChannelNames(object, ...)
 
 \method{vrImageChannelNames}{VoltRon}(object, assay = NULL)
 
-\method{vrImageChannelNames}{vrAssay}(object, main_image = NULL)
+\method{vrImageChannelNames}{vrAssay}(object, name = NULL)
 
 \method{vrImageChannelNames}{vrImage}(object)
 }
@@ -22,7 +22,7 @@ vrImageChannelNames(object, ...)
 
 \item{assay}{assay}
 
-\item{main_image}{the key of the main image}
+\item{name}{the key of the main image}
 }
 \description{
 Get names of all image channels

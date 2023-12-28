@@ -11,7 +11,7 @@ resizeImage(object, ...)
 
 \method{resizeImage}{VoltRon}(object, ...)
 
-\method{resizeImage}{vrAssay}(object, main_image = NULL, reg = FALSE, ...)
+\method{resizeImage}{vrAssay}(object, name = NULL, reg = FALSE, ...)
 
 \method{resizeImage}{vrImage}(object, size)
 }
@@ -20,7 +20,7 @@ resizeImage(object, ...)
 
 \item{...}{arguements passed to \code{vrImages.vrImage}}
 
-\item{main_image}{the name of the main image}
+\item{name}{the name of the main image}
 
 \item{reg}{TRUE if registered images are assigned}
 

@@ -140,7 +140,7 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
   # create new assay
   images <- list()
   for(img in vrImageNames(to_object)){
-    images[[img]] <- magick::image_data(vrImages(to_object, main_image = img))
+    images[[img]] <- magick::image_data(vrImages(to_object, name = img))
   }
   new_assay <- formAssay(data = aggregate_raw_counts,
                          coords = vrCoordinates(to_object)[colnames(aggregate_raw_counts),],

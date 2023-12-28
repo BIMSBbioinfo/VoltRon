@@ -17,6 +17,7 @@
 #' @param morphology_image the name of the lowred morphology image. Default: morphology_lowres.tif
 #' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)
 #' @param overwrite_resolution if TRUE, the image "file.name" will be generated again although it exists at "dir.path"
+#' @param image_name the image name of the Xenium assay, Default: DAPI
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
@@ -27,7 +28,7 @@
 #'
 #' @export
 #'
-importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, overwrite_resolution = FALSE, import_molecules = FALSE, ...)
+importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, overwrite_resolution = FALSE, image_name = "DAPI", import_molecules = FALSE, ...)
 {
   # cell assay
   message("Creating cell level assay ...")
@@ -95,7 +96,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   }
 
   # create VoltRon object for cells
-  cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, segments = segments, main.assay = assay_name, assay.type = "cell", ...)
+  cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, segments = segments, main.assay = assay_name, assay.type = "cell", image_name = image_name, ...)
 
   # molecule assay
   if(!import_molecules){

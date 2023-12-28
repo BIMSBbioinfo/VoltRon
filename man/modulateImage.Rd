@@ -11,11 +11,11 @@ modulateImage(object, ...)
 
 \method{modulateImage}{VoltRon}(object, ...)
 
-\method{modulateImage}{vrAssay}(object, main_image = NULL, reg = FALSE, main_channel = NULL, ...)
+\method{modulateImage}{vrAssay}(object, name = NULL, reg = FALSE, channel = NULL, ...)
 
 \method{modulateImage}{vrImage}(
   object,
-  main_channel = NULL,
+  channel = NULL,
   brightness = 100,
   saturation = 100,
   hue = 100,
@@ -27,11 +27,11 @@ modulateImage(object, ...)
 
 \item{...}{arguements passed to \code{vrImages.vrImage}}
 
-\item{main_image}{the name of the main image}
+\item{name}{the name of the main image}
 
 \item{reg}{TRUE if registered images are assigned}
 
-\item{main_channel}{the name of the channel associated with the vrImage object}
+\item{channel}{the name of the channel associated with the vrImage object}
 
 \item{brightness}{modulation of brightness as percentage of the current value (100 for no change)}
 
