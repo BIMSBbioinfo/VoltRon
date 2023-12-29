@@ -40,6 +40,41 @@ VoltRon includes built-in functions for converting readouts from a large selecti
 
 # Importing Spatial Datasets
 
+## Visium
+
+```{r eval = FALSE, class.source="watch-out"}
+library(VoltRon)
+Vis_R1 <- importVisium("Visium/", sample_name = "VisiumR1")
+```
+
+```
+VoltRon Object 
+VisiumR1: 
+  Layers: Section1 
+Assays: Visium(Main) 
+```
+
+</br>
+
+```{r eval = FALSE, class.source="watch-out"}
+Vis_R1 <- importVisium("Visium/", sample_name = "VisiumR1", 
+                       assay_name = "Visium_assay", image_name = "H&E_stain")
+SampleMetadata(Vis_R1)
+```
+
+```
+              Assay    Layer   Sample
+Assay1 Visium_assay Section1 VisiumR1
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImageNames(Vis_R1)
+```
+
+```
+[1] "H&E_stain"
+```
+
 ## Xenium
 
 ```{r eval = FALSE, class.source="watch-out"}
@@ -57,8 +92,8 @@ Assays: Xenium(Main)
 </br>
 
 ```{r eval = FALSE, class.source="watch-out"}
-library(VoltRon)
 Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1", import_molecules = TRUE)
+Xen_R1
 ```
 
 ```
@@ -68,4 +103,37 @@ XeniumR1:
 Assays: Xenium(Main) Xenium_mol 
 ```
 
+```{r eval = FALSE, class.source="watch-out"}
+SampleMetadata(Xen_R1)
+```
+
+```
+            Assay    Layer   Sample
+Assay1     Xenium Section1 XeniumR1
+Assay2 Xenium_mol Section1 XeniumR1
+```
+
 </br>
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1", import_molecules = TRUE, 
+                       resolution_level = 4, overwrite_resolution = TRUE)
+vrImages(Xen_R1, assay = "Xenium")
+```
+
+```
+# A tibble: 1 × 7
+  format width height colorspace matte filesize density
+  <chr>  <int>  <int> <chr>      <lgl>    <int> <chr>  
+1 PNG     4427   3222 Gray       FALSE        0 72x72  
+```
+
+</br>
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1", import_molecules = TRUE, 
+                       use_image = FALSE)
+```
+
+</br>
+

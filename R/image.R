@@ -192,6 +192,7 @@ subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
 ####
 
 #' @param object A VoltRon object
+#' @param assay assay
 #' @param ... arguements passed to \code{vrImages.vrSample}
 #'
 #' @rdname vrImages
@@ -199,8 +200,17 @@ subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
 #'
 #' @export
 #'
-vrImages.VoltRon <- function(object, ...){
-  images <- sapply(object@samples, function(samp) vrImages(samp, ...), USE.NAMES = TRUE)
+vrImages.VoltRon <- function(object, assay = NULL, ...){
+
+  # get assay names
+  if(is.null(assay)){
+    assay_names <- vrAssayNames(object, assay = "all")
+  } else {
+    assay_names <- vrAssayNames(object, assay = assay)
+  }
+
+  # get images
+  images <- sapply(assay_names, function(assy) vrImages(object[[assy]], ...), USE.NAMES = TRUE)
   if(length(images) == 1){
     return(images[[1]])
   } else {
@@ -208,29 +218,29 @@ vrImages.VoltRon <- function(object, ...){
   }
 }
 
-#' @param object A vrSample object
-#' @param ... arguements passed to \code{vrImages.vrLayer}
+#' #' @param object A vrSample object
+#' #' @param ... arguements passed to \code{vrImages.vrLayer}
+#' #'
+#' #' @rdname vrImages
+#' #' @method vrImages vrSample
+#' #'
+#' #' @export
+#' #'
+#' vrImages.vrSample <- function(object, ...){
+#'   sapply(object@layer, function(lay) vrImages(lay, ...), USE.NAMES = TRUE)
+#' }
 #'
-#' @rdname vrImages
-#' @method vrImages vrSample
-#'
-#' @export
-#'
-vrImages.vrSample <- function(object, ...){
-  sapply(object@layer, function(lay) vrImages(lay, ...), USE.NAMES = TRUE)
-}
-
-#' @param object A vrLayer object
-#' @param ... arguements passed to \code{vrImages.vrAssay}
-#'
-#' @rdname vrImages
-#' @method vrImages vrLayer
-#'
-#' @export
-#'
-vrImages.vrLayer <- function(object, ...){
-  sapply(object@assay, function(assy) vrImages(assy, ...), USE.NAMES = TRUE)
-}
+#' #' @param object A vrLayer object
+#' #' @param ... arguements passed to \code{vrImages.vrAssay}
+#' #'
+#' #' @rdname vrImages
+#' #' @method vrImages vrLayer
+#' #'
+#' #' @export
+#' #'
+#' vrImages.vrLayer <- function(object, ...){
+#'   sapply(object@assay, function(assy) vrImages(assy, ...), USE.NAMES = TRUE)
+#' }
 
 #' @param object A vrAssay object
 #' @param name the name of the main image

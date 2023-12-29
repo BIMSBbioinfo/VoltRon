@@ -449,6 +449,23 @@ tutorial, we will review each built-in function that is geared towards
 importing readouts of a specific spatial omic technology.</p>
 <div id="importing-spatial-datasets" class="section level1">
 <h1>Importing Spatial Datasets</h1>
+<div id="visium" class="section level2">
+<h2>Visium</h2>
+<pre class="r watch-out"><code>library(VoltRon)
+Vis_R1 &lt;- importVisium(&quot;Visium/&quot;, sample_name = &quot;VisiumR1&quot;)</code></pre>
+<pre><code>VoltRon Object 
+VisiumR1: 
+  Layers: Section1 
+Assays: Visium(Main) </code></pre>
+<p></br></p>
+<pre class="r watch-out"><code>Vis_R1 &lt;- importVisium(&quot;Visium/&quot;, sample_name = &quot;VisiumR1&quot;, 
+                       assay_name = &quot;Visium_assay&quot;, image_name = &quot;H&amp;E_stain&quot;)
+SampleMetadata(Vis_R1)</code></pre>
+<pre><code>              Assay    Layer   Sample
+Assay1 Visium_assay Section1 VisiumR1</code></pre>
+<pre class="r watch-out"><code>vrImageNames(Vis_R1)</code></pre>
+<pre><code>[1] &quot;H&amp;E_stain&quot;</code></pre>
+</div>
 <div id="xenium" class="section level2">
 <h2>Xenium</h2>
 <pre class="r watch-out"><code>library(VoltRon)
@@ -458,12 +475,27 @@ XeniumR1:
   Layers: Section1 
 Assays: Xenium(Main) </code></pre>
 <p></br></p>
-<pre class="r watch-out"><code>library(VoltRon)
-Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;, import_molecules = TRUE)</code></pre>
+<pre class="r watch-out"><code>Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;, import_molecules = TRUE)
+Xen_R1</code></pre>
 <pre><code>VoltRon Object 
 XeniumR1: 
   Layers: Section1 
 Assays: Xenium(Main) Xenium_mol </code></pre>
+<pre class="r watch-out"><code>SampleMetadata(Xen_R1)</code></pre>
+<pre><code>            Assay    Layer   Sample
+Assay1     Xenium Section1 XeniumR1
+Assay2 Xenium_mol Section1 XeniumR1</code></pre>
+<p></br></p>
+<pre class="r watch-out"><code>Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;, import_molecules = TRUE, 
+                       resolution_level = 4, overwrite_resolution = TRUE)
+vrImages(Xen_R1, assay = &quot;Xenium&quot;)</code></pre>
+<pre><code># A tibble: 1 × 7
+  format width height colorspace matte filesize density
+  &lt;chr&gt;  &lt;int&gt;  &lt;int&gt; &lt;chr&gt;      &lt;lgl&gt;    &lt;int&gt; &lt;chr&gt;  
+1 PNG     4427   3222 Gray       FALSE        0 72x72  </code></pre>
+<p></br></p>
+<pre class="r watch-out"><code>Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;, import_molecules = TRUE, 
+                       use_image = FALSE)</code></pre>
 <p></br></p>
 </div>
 </div>
