@@ -799,7 +799,8 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
       # get subcellular data components
       mol_metadata <- cur_subcellular[,colnames(cur_subcellular)[!colnames(cur_subcellular) %in% c("CellId", "cell_id", "x_FOV_px", "y_FOV_px")], with = FALSE]
       set.seed(nrow(mol_metadata))
-      entity_ID <- paste0(1:nrow(mol_metadata), "_", ids::random_id(bytes = 3, use_openssl = FALSE))
+      # entity_ID <- paste0(1:nrow(mol_metadata), "_", ids::random_id(bytes = 3, use_openssl = FALSE))
+      entity_ID <- paste0(rownames(mol_metadata), "_", ids::random_id(bytes = 3, use_openssl = FALSE))
       mol_metadata <- data.table::data.table(id = entity_ID, assay_id = "Assay1", mol_metadata)
 
       # coord names
@@ -822,6 +823,7 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
   }
 
   # return
+  message("Merging slides ...")
   vr <- merge(vr_list[[1]], vr_list[-1])
 }
 

@@ -395,30 +395,40 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
   # metadata
   if(inherits(metadata, "data.table")){
 
-    # get original names
-    entityID_nopostfix <- metadata$id
+    # # get original names
+    # entityID_nopostfix <- metadata$id
 
     if(!is.null(metadata)){
 
-      # check ID names
-      if(length(setdiff(metadata$id, entityID_nopostfix)) > 0){
-        stop("Entity IDs are not matching")
-      } else {
-        metadata <- subset(metadata, subset = entityID_nopostfix %in% id)
-        if(nrow(data) > 0){
-          assay_metadata<- data.table::data.table(metadata[, "id", with=FALSE], assay_id = assay_id, Count = colSums(data),
-                                                                         metadata[, colnames(metadata)[!colnames(metadata) %in% c("id", "assay_id", "Count", "Assay", "Layer", "Sample")], with=FALSE])
-        } else{
-          assay_metadata <- data.table::data.table(metadata[, "id", with=FALSE], assay_id = assay_id,
-                                                                         metadata[, colnames(metadata)[!colnames(metadata) %in% c("id", "assay_id", "Count", "Assay", "Layer", "Sample")], with=FALSE])
-        }
+      if(nrow(data) > 0){
+        assay_metadata<- data.table::data.table(metadata[, "id", with=FALSE], assay_id = assay_id, Count = colSums(data),
+                                                metadata[, colnames(metadata)[!colnames(metadata) %in% c("id", "assay_id", "Count", "Assay", "Layer", "Sample")], with=FALSE],
+                                                Assay = assay_name, Layer = layer, Sample = sample)
+      } else{
+        assay_metadata <- data.table::data.table(metadata[, "id", with=FALSE], assay_id = assay_id,
+                                                 metadata[, colnames(metadata)[!colnames(metadata) %in% c("id", "assay_id", "Count", "Assay", "Layer", "Sample")], with=FALSE],
+                                                 Assay = assay_name, Layer = layer, Sample = sample)
       }
 
-      # complete assay_metadata
-      assay_metadata <- cbind(assay_metadata,
-                                         data.table::data.table(Assay = rep(assay_name, length(entityID_nopostfix)),
-                                                    Layer = rep(layer, length(entityID_nopostfix)),
-                                                    Sample = rep(sample, length(entityID_nopostfix))))
+      # # check ID names
+      # if(length(setdiff(metadata$id, entityID_nopostfix)) > 0){
+      #   stop("Entity IDs are not matching")
+      # } else {
+      #   metadata <- subset(metadata, subset = entityID_nopostfix %in% id)
+      #   if(nrow(data) > 0){
+      #     assay_metadata<- data.table::data.table(metadata[, "id", with=FALSE], assay_id = assay_id, Count = colSums(data),
+      #                                                                    metadata[, colnames(metadata)[!colnames(metadata) %in% c("id", "assay_id", "Count", "Assay", "Layer", "Sample")], with=FALSE])
+      #   } else{
+      #     assay_metadata <- data.table::data.table(metadata[, "id", with=FALSE], assay_id = assay_id,
+      #                                                                    metadata[, colnames(metadata)[!colnames(metadata) %in% c("id", "assay_id", "Count", "Assay", "Layer", "Sample")], with=FALSE])
+      #   }
+      # }
+
+      # # complete assay_metadata
+      # assay_metadata <- cbind(assay_metadata,
+      #                                    data.table::data.table(Assay = rep(assay_name, length(entityID_nopostfix)),
+      #                                               Layer = rep(layer, length(entityID_nopostfix)),
+      #                                               Sample = rep(sample, length(entityID_nopostfix))))
     }
   } else {
 
