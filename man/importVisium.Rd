@@ -8,6 +8,7 @@ importVisium(
   dir.path,
   selected_assay = "Gene Expression",
   assay_name = "Visium",
+  image_name = "H&E",
   inTissue = TRUE,
   ...
 )
@@ -18,6 +19,8 @@ importVisium(
 \item{selected_assay}{selected assay from Visium}
 
 \item{assay_name}{the assay name}
+
+\item{image_name}{the image name of the Visium assay, Default: H&E}
 
 \item{inTissue}{if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)}
 

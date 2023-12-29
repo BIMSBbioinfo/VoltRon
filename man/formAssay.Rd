@@ -8,7 +8,7 @@ formAssay(
   data = NULL,
   coords,
   segments = list(),
-  image,
+  image = NULL,
   params = list(),
   type = "ROI",
   name = "Assay1",

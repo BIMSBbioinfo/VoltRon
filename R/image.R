@@ -65,7 +65,7 @@ setMethod(
 #'
 #' @export
 #'
-formImage <- function(coords, segments = list(), image, main_channel = NULL){
+formImage <- function(coords, segments = list(), image = NULL, main_channel = NULL){
 
   # get segments
   if(length(segments) > 0){

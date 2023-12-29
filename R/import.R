@@ -720,18 +720,17 @@ rescaleGeoMxPoints <- function(pts, summary, imageinfo){
 #' @param assay_name the assay name, default: CosMx
 #' @param image the reference morphology image of the CosMx assay
 #' @param image_name the image name of the CosMx assay, Default: DAPI
-#' @param segment_polygons if TRUE, the ROI polygons are parsed from the OME.TIFF file
 #' @param ome.tiff the OME.TIFF file of the CosMx experiment if exists
+#' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
-#' @importFrom dplyr %>% full_join
-#' @importFrom utils read.csv
-#' @importFrom magick image_info image_read
+#' @importFrom data.table data.table
+#' @importFrom ids random_id
 #'
 #' @export
 #'
 importCosMx <- function(tiledbURI, assay_name = "CosMx",
-                        image = NULL, image_name = "DAPI", segment_polygons = FALSE, ome.tiff = NULL, ...)
+                        image = NULL, image_name = "DAPI", ome.tiff = NULL, import_molecules = FALSE, ...)
 {
   # check tiledb and tiledbsc
   if (!requireNamespace("tiledb", quietly = TRUE))
@@ -744,6 +743,7 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
                             ref = '8157b7d54398b1f957832f37fff0b173d355530e')")
 
   # get tiledb
+  message("Scanning TileDB array for cell data ...")
   tiledb_scdataset <- tiledbsc::SOMACollection$new(uri = tiledbURI, verbose = FALSE)
 
   # raw counts
@@ -758,10 +758,13 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
   colnames(coords) <- c("x","y")
 
   # transcripts
-  subcellular <- tiledb::tiledb_array(
-    tiledb_scdataset$somas$RNA$obsm$members$transcriptCoords$uri,
-    return_as="data.frame")[]
-  subcellular <- subcellular[,c("cell_id", colnames(subcellular)[!colnames(subcellular) %in% "cell_id"])]
+  if(import_molecules){
+    message("Scanning TileDB array for molecule data ...")
+    subcellular <- tiledb::tiledb_array(
+      tiledb_scdataset$somas$RNA$obsm$members$transcriptCoords$uri,
+      return_as="data.table")[]
+    colnames(subcellular)[colnames(subcellular)=="target"] <- "gene"
+  }
 
   # get slides and construct VoltRon objects for each slides
   slides <- unique(metadata$slide_ID_numeric)
@@ -770,17 +773,52 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
   vr_list <- list()
   for(slide in slides){
 
+    # cell assay
+    message("Creating cell level assay for slide ", slide, " ...")
+
     # slide info
     cur_coords <- coords[metadata$slide_ID_numeric == slide,]
     cur_counts <- counts[,rownames(cur_coords)]
     cur_metadata <- metadata[rownames(cur_coords),]
-    cur_subcellular <- subcellular[subcellular$slideID == slide,]
 
-    # create VoltRon
-    vr_object <- formVoltRon(cur_counts, metadata = cur_metadata, image, cur_coords, subcellular = cur_subcellular,
-                             main.assay = assay_name, assay.type = "cell", ...)
-    vr_object$Sample <- paste0("Slide", slide)
-    vr_list <- append(vr_list, vr_object)
+    # create VoltRon object
+    cell_object <- formVoltRon(data = cur_counts, metadata = cur_metadata, image = image, coords = cur_coords, main.assay = assay_name, assay.type = "cell", image_name = image_name, ...)
+    cell_object$Sample <- paste0("Slide", slide)
+
+    # molecule assay
+    if(import_molecules){
+
+      # get slide
+      message("Creating molecule level assay for slide ", slide, " ...")
+      cur_subcellular <- subset(subcellular, slideID == slide)
+
+      # coordinates
+      mol_coords <- as.matrix(cur_subcellular[,c("x_FOV_px", "y_FOV_px")])
+      colnames(mol_coords) <- c("x", "y")
+
+      # get subcellular data components
+      mol_metadata <- cur_subcellular[,colnames(cur_subcellular)[!colnames(cur_subcellular) %in% c("CellId", "cell_id", "x_FOV_px", "y_FOV_px")], with = FALSE]
+      set.seed(nrow(mol_metadata))
+      entity_ID <- paste0(1:nrow(mol_metadata), "_", ids::random_id(bytes = 3, use_openssl = FALSE))
+      mol_metadata <- data.table::data.table(id = entity_ID, assay_id = "Assay1", mol_metadata)
+
+      # coord names
+      rownames(mol_coords) <- entity_ID
+
+      # create VoltRon assay for molecules
+      mol_assay <- formAssay(coords = mol_coords, image = image, type = "molecule", main_image = image_name)
+
+      # merge assays in one section
+      message("Merging assays for slide ", slide, " ...")
+      sample.metadata <- SampleMetadata(cell_object)
+      cell_object <- addAssay(cell_object,
+                              assay = mol_assay,
+                              metadata = mol_metadata,
+                              assay_name = paste0(assay_name, "_mol"),
+                              sample = sample.metadata["Assay1", "Sample"],
+                              layer = sample.metadata["Assay1", "Layer"])
+    }
+    vr_list <- append(vr_list, cell_object)
   }
 
   # return

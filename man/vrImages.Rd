@@ -4,8 +4,6 @@
 \alias{vrImages}
 \alias{vrImages<-}
 \alias{vrImages.VoltRon}
-\alias{vrImages.vrSample}
-\alias{vrImages.vrLayer}
 \alias{vrImages.vrAssay}
 \alias{vrImages<-.vrAssay}
 \alias{vrImages.vrImage}
@@ -16,11 +14,7 @@ vrImages(object, ...)
 
 vrImages(object, ...) <- value
 
-\method{vrImages}{VoltRon}(object, ...)
-
-\method{vrImages}{vrSample}(object, ...)
-
-\method{vrImages}{vrLayer}(object, ...)
+\method{vrImages}{VoltRon}(object, assay = NULL, ...)
 
 \method{vrImages}{vrAssay}(object, name = NULL, reg = FALSE, channel = NULL, ...)
 
@@ -37,6 +31,8 @@ vrImages(object, ...) <- value
 
 \item{value}{new image}
 
+\item{assay}{assay}
+
 \item{name}{the name of the main image}
 
 \item{reg}{TRUE if registered images are assigned}
@@ -47,4 +43,16 @@ vrImages(object, ...) <- value
 }
 \description{
 Get images of a VoltRon assay
+
+#' @param object A vrLayer object
+#' @param ... arguements passed to \code{vrImages.vrAssay}
+#'
+#' @rdname vrImages
+#' @method vrImages vrLayer
+#'
+#' @export
+#'
+vrImages.vrLayer <- function(object, ...){
+  sapply(object@assay, function(assy) vrImages(assy, ...), USE.NAMES = TRUE)
+}
 }

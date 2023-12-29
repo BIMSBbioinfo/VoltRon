@@ -78,7 +78,7 @@ setMethod(
 #'
 #' @export
 #'
-formAssay <- function(data = NULL, coords, segments = list(), image, params = list(), type = "ROI", name = "Assay1", main_image = "image_1"){
+formAssay <- function(data = NULL, coords, segments = list(), image = NULL, params = list(), type = "ROI", name = "Assay1", main_image = "image_1"){
 
   # get data
   if(is.null(data)){

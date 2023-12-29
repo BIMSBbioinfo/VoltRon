@@ -8,7 +8,7 @@ importCosMx(
   tiledbURI,
   assay_name = "CosMx",
   image = NULL,
-  segment_polygons = FALSE,
+  image_name = "DAPI",
   ome.tiff = NULL,
   ...
 )
@@ -20,11 +20,13 @@ importCosMx(
 
 \item{image}{the reference morphology image of the CosMx assay}
 
-\item{segment_polygons}{if TRUE, the ROI polygons are parsed from the OME.TIFF file}
+\item{image_name}{the image name of the CosMx assay, Default: DAPI}
 
 \item{ome.tiff}{the OME.TIFF file of the CosMx experiment if exists}
 
 \item{...}{additional parameters passed to \code{formVoltRon}}
+
+\item{import_molecules}{if TRUE, molecule assay will be created along with cell assay.}
 }
 \description{
 Import CosMx data
