@@ -10,6 +10,7 @@ importCosMx(
   image = NULL,
   image_name = "DAPI",
   ome.tiff = NULL,
+  import_molecules = FALSE,
   ...
 )
 }
@@ -24,9 +25,9 @@ importCosMx(
 
 \item{ome.tiff}{the OME.TIFF file of the CosMx experiment if exists}
 
-\item{...}{additional parameters passed to \code{formVoltRon}}
-
 \item{import_molecules}{if TRUE, molecule assay will be created along with cell assay.}
+
+\item{...}{additional parameters passed to \code{formVoltRon}}
 }
 \description{
 Import CosMx data

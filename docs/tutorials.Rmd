@@ -65,7 +65,7 @@ In addition, VoltRon integrates with spot deconvolution methods such as RCTD to 
    <td onclick="location.href='registration.html';"> 
       <p class ="tutorial"> Spatial Data Alignment </p>
       <img width="250" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration.png" class="center">
-      <p style = "margin: 3%"> Manual and automated alignment of spatial data assays</p>
+      <p style = "margin: 3%"> Automated and manual alignment of spatial data assays</p>
    </td>
    <td onclick="location.href='deconvolution.html';"> 
       <p class ="tutorial"> Niche Clustering </p>
@@ -83,7 +83,7 @@ In addition, VoltRon integrates with spot deconvolution methods such as RCTD to 
 
 ## Downstream Analysis 
 
-**VoltRon** is also capable of end-to-end analysis of diverse set of spatial data types such as ROIs (regions of interest), spots, single cells,  molecules and even images. VoltRon incorporates built-in functions to import readouts of these distinct spatial omic technologies where a similar set of functions can be used to analyze each individual data type.
+**VoltRon** is also capable of end-to-end analysis of diverse set of spatial data types such as **ROIs** (regions of interest), **spots**, **single cells**,  **molecules** and even **images**. VoltRon incorporates built-in functions to import readouts of these distinct spatial omic technologies where a similar set of functions can be used to analyze each individual data type.
 
 <table>
 <tbody>
@@ -112,7 +112,7 @@ In addition, VoltRon integrates with spot deconvolution methods such as RCTD to 
 
 ##  Other Utilities
 
-Here, we provide a group of tutorials to use additional features of the VoltRon objects. VoltRon will be able to convert its objects to a diverse set of objects/datatypes commonly incorporated spatial data analysis (Seurat, SpatialExperiment, Giotto, anndata, SpatialData etc.) 
+Here, we provide a group of tutorials to use additional features of the VoltRon objects. Here we describe a collection of features that VoltRon package utilizes such as interactive analysis and importing spatially aware data from diverse spatial omic technologies. VoltRon will be able to convert its objects to a diverse set of objects/datatypes commonly incorporated spatial data analysis (Seurat, SpatialExperiment, Giotto, anndata, SpatialData etc.) 
 
 <table>
 <tbody>
@@ -120,7 +120,7 @@ Here, we provide a group of tutorials to use additional features of the VoltRon 
    <td onclick="location.href='interactive.html';"> 
       <p class ="tutorial"> Interactive Utilities </p>
       <img width="280" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactiveannotation.png" class="center">
-      <p style = "margin: 3%"> Interactive annotation and visualization <br> <strong> (Under Development) </strong> </p>
+      <p style = "margin: 3%"> Interactive annotation and visualization  <br>  <strong> (Under Development) </strong> </p>
    </td>
    <td onclick="location.href='voltronobjects.html';"> 
       <p class ="tutorial"> Working with VoltRon Objects </p>

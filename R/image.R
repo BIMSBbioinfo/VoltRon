@@ -387,6 +387,28 @@ vrMainImage.VoltRon <- function(object, assay = NULL){
   return(image_data)
 }
 
+#' @param value the name of main image
+#'
+#' @rdname vrMainImage
+#' @method vrMainImage<- VoltRon
+#'
+#' @export
+#'
+"vrMainImage<-.VoltRon" <- function(object, assay = NULL, ..., value){
+
+  if(!is.null(assay)){
+    if(length(assay) == 1){
+      vrMainImage(object[[assay]], ...) <- value
+    } else {
+      stop("You can only set the main image of a single assay")
+    }
+  } else {
+    stop("You should define the assay whose main image you wanna set, by using 'Assay = <assay name>'")
+  }
+
+  return(object)
+}
+
 #' @rdname vrMainImage
 #' @method vrMainImage vrAssay
 #'

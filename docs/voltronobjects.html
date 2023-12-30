@@ -457,7 +457,8 @@ table, th, td {
 <p><br></p>
 <div id="working-with-voltron-objects" class="section level1">
 <h1>Working with VoltRon objects</h1>
-<pre class="r watch-out"><code>data(&quot;visium_data&quot;)</code></pre>
+<pre class="r watch-out"><code>data(&quot;visium_data&quot;)
+data(&quot;melc_data&quot;)</code></pre>
 <p><br></p>
 <div id="sample-metadata" class="section level2">
 <h2>Sample Metadata</h2>
@@ -468,7 +469,7 @@ Assay1 Visium Section1 Anterior1</code></pre>
 </div>
 <div id="metadata" class="section level2">
 <h2>Metadata</h2>
-<pre class="r watch-out"><code>head(Metadata(visium_data))</code></pre>
+<pre class="r watch-out"><code>Metadata(visium_data)</code></pre>
 <pre><code>                          Count  Assay    Layer    Sample
 AAAGGCTCTCGCGCCG-1_Assay1 39690 Visium Section1 Anterior1
 AAATGGCCCGTGCCCT-1_Assay1 33516 Visium Section1 Anterior1
@@ -480,7 +481,7 @@ ACGCGGGCCAAGGACA-1_Assay1 48003 Visium Section1 Anterior1</code></pre>
 </div>
 <div id="coordinates" class="section level2">
 <h2>Coordinates</h2>
-<pre class="r watch-out"><code>head(vrCoordinates(visium_data))</code></pre>
+<pre class="r watch-out"><code>vrCoordinates(visium_data)</code></pre>
 <pre><code>                                 x        y
 AAAGGCTCTCGCGCCG-1_Assay1 271.9105 183.1497
 AAATGGCCCGTGCCCT-1_Assay1 136.8330 220.2237
@@ -488,6 +489,44 @@ AAATTACACGACTCTG-1_Assay1 382.0482 436.6781
 AAGACATACGTGGTTT-1_Assay1 481.5491 102.7539
 ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
 ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120</code></pre>
+<p><br></p>
+</div>
+<div id="images" class="section level2">
+<h2>Images</h2>
+<pre class="r watch-out"><code>vrImageNames(visium_data)</code></pre>
+<pre><code>[1] &quot;H&amp;E&quot;</code></pre>
+<pre class="r watch-out"><code>vrImages(visium_data)</code></pre>
+<p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_HE.png" class="center"></p>
+<p><br></p>
+<pre class="r watch-out"><code>vrImageChannelNames(melc_data)</code></pre>
+<pre><code>   Assay Image  Channels
+1 Assay1  MELC DAPI,CD45</code></pre>
+<pre class="r watch-out"><code>vrImages(melc_data, name = &quot;MELC&quot;, channel = &quot;DAPI&quot;)</code></pre>
+<p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_DAPI.png" class="center"></p>
+<p><br></p>
+<pre class="r watch-out"><code>vrMainImage(melc_data, assay = &quot;Assay1&quot;) &lt;- c(&quot;MELC&quot;, &quot;CD45&quot;)
+vrImages(melc_data)</code></pre>
+<p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_CD45.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="feature-matrix-data" class="section level2">
+<h2>Feature Matrix (Data)</h2>
+<pre class="r watch-out"><code>vrData(visium_data)[3:8,3:5]</code></pre>
+<pre><code>        AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
+Gm19938                         0                         0                         0
+Gm37381                         0                         0                         0
+Rp1                             0                         0                         0
+Sox17                           0                         1                         1
+Gm37587                         0                         0                         0
+Gm37323                         0                         0                         0</code></pre>
+<pre class="r watch-out"><code>vrData(visium_data, norm = TRUE)[3:8,3:5]</code></pre>
+<pre><code>        AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
+Gm19938                         0                 0.0000000                 0.0000000
+Gm37381                         0                 0.0000000                 0.0000000
+Rp1                             0                 0.0000000                 0.0000000
+Sox17                           0                 0.2732722                 0.2164184
+Gm37587                         0                 0.0000000                 0.0000000
+Gm37323                         0                 0.0000000                 0.0000000</code></pre>
 </div>
 </div>
 

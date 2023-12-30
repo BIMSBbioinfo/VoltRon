@@ -45,9 +45,9 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 # Working with VoltRon objects
 
-
 ```{r eval = FALSE, class.source="watch-out"}
 data("visium_data")
+data("melc_data")
 ```
 
 <br>
@@ -68,7 +68,7 @@ Assay1 Visium Section1 Anterior1
 ## Metadata
 
 ```{r eval = FALSE, class.source="watch-out"}
-head(Metadata(visium_data))
+Metadata(visium_data)
 ```
 
 ```
@@ -86,7 +86,7 @@ ACGCGGGCCAAGGACA-1_Assay1 48003 Visium Section1 Anterior1
 ## Coordinates
 
 ```{r eval = FALSE, class.source="watch-out"}
-head(vrCoordinates(visium_data))
+vrCoordinates(visium_data)
 ```
 
 ```
@@ -99,6 +99,8 @@ ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
 ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120
 ```
 
+<br>
+
 ## Images
 
 ```{r eval = FALSE, class.source="watch-out"}
@@ -110,9 +112,65 @@ vrImageNames(visium_data)
 ```
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrImageChannelNames(visium_data)
+vrImages(visium_data)
+```
+
+<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_HE.png" class="center">
+
+<br>
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImageChannelNames(melc_data)
 ```
 
 ```
-[1] "H&E"
+   Assay Image  Channels
+1 Assay1  MELC DAPI,CD45
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImages(melc_data, name = "MELC", channel = "DAPI")
+```
+
+<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_DAPI.png" class="center">
+
+<br>
+
+```{r eval = FALSE, class.source="watch-out"}
+vrMainImage(melc_data, assay = "Assay1") <- c("MELC", "CD45")
+vrImages(melc_data)
+```
+
+<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_CD45.png" class="center">
+
+<br>
+
+## Feature Matrix (Data)
+
+```{r eval = FALSE, class.source="watch-out"}
+vrData(visium_data)[3:8,3:5]
+```
+
+```
+        AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
+Gm19938                         0                         0                         0
+Gm37381                         0                         0                         0
+Rp1                             0                         0                         0
+Sox17                           0                         1                         1
+Gm37587                         0                         0                         0
+Gm37323                         0                         0                         0
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+vrData(visium_data, norm = TRUE)[3:8,3:5]
+```
+
+```
+        AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
+Gm19938                         0                 0.0000000                 0.0000000
+Gm37381                         0                 0.0000000                 0.0000000
+Rp1                             0                 0.0000000                 0.0000000
+Sox17                           0                 0.2732722                 0.2164184
+Gm37587                         0                 0.0000000                 0.0000000
+Gm37323                         0                 0.0000000                 0.0000000
 ```
