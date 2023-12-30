@@ -11,7 +11,7 @@
 
 
 
-<title>Interactive</title>
+<title>Importing Spatial Data</title>
 
 <script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -425,7 +425,7 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Interactive</h1>
+<h1 class="title toc-ignore">Importing Spatial Data</h1>
 
 </div>
 
@@ -442,6 +442,12 @@ body {
   margin-left: auto;
   margin-right: auto;
 }
+table, th, td {
+  border-collapse: collapse;
+  align-self: center;
+  padding-right: 10px;
+  padding-left: 10px;
+}
 </style>
 <style type="text/css">
 .watch-out {
@@ -449,65 +455,39 @@ body {
 }
 </style>
 <p><br></p>
-<div id="interactive-annotation" class="section level1">
-<h1>Interactive Annotation</h1>
-<p><strong>VoltRon</strong> includes interactive applications to select
-and manually label spatial points by drawing polygons.</p>
-<p>As an example, we will use a Spot-based spatial transcriptomic assay,
-specifically the <strong>Mouse Brain Serial Section 1/2</strong>
-datasets, analyzed in the <a href="deconvolution.html">Niche
-Clustering</a> tutorial. You can find the already analyzed data stored
-as a VoltRon object <a
-href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/NicheClustering/Visium&amp;Visium_data_decon_analyzed.rds">here</a></p>
-<pre class="r watch-out"><code>MBrain_Sec &lt;- readRDS(&quot;Visium&amp;Visium_data_decon_analyzed.rds&quot;)</code></pre>
+<div id="working-with-voltron-objects" class="section level1">
+<h1>Working with VoltRon objects</h1>
+<pre class="r watch-out"><code>data(&quot;visium_data&quot;)</code></pre>
 <p><br></p>
-<div id="shiny-app-annotation" class="section level2">
-<h2>Shiny App (Annotation)</h2>
-<p>Now we can start annotating the spatial assay. By passing arguments
-used by the <strong>vrSpatialPlot</strong> function to visualize labels
-(e.g. clusters), we can better select regions within tissue sections for
-annotation.</p>
-<pre class="r watch-out"><code>MBrain_Sec &lt;- annotateSpatialData(MBrain_Sec, group.by = &quot;clusters&quot;, label = &quot;annotation&quot;)</code></pre>
-<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_annotation_example.png" class="center"></p>
+<div id="sample-metadata" class="section level2">
+<h2>Sample Metadata</h2>
+<pre class="r watch-out"><code>SampleMetadata(visium_data)</code></pre>
+<pre><code>        Assay    Layer    Sample
+Assay1 Visium Section1 Anterior1</code></pre>
 <p><br></p>
 </div>
-</div>
-<div id="interactive-visualization" class="section level1">
-<h1>Interactive Visualization</h1>
-<p>In this section, we will transform VoltRon objects of Xenium data
-into zarr arrays, and use them for interactive visualization in <a
-href="http://vitessce.io/">Vitessce</a>. We should first download the
-vitessceR package which incorporates wrapper function to visualize zarr
-arrays interactively in R.</p>
-<pre class="r watch-out"><code>install.packages(&quot;devtools&quot;)
-devtools::install_github(&quot;vitessce/vitessceR&quot;)</code></pre>
-<p>You can find the clustered and annotated Xenium data using VoltRon <a
-href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered_annotated.rds">here</a>.</p>
-<pre class="r watch-out"><code>Xen_data &lt;- readRDS(&quot;Xenium_data_clustered_annotated.rds&quot;)
-SampleMetadata(Xen_data)</code></pre>
-<pre><code>        Assay    Layer   Sample
-Assay1 Xenium Section1 XeniumR1
-Assay2 Xenium Section1 XeniumR2</code></pre>
-<p><br></p>
-<div id="conversion-into-zarr" class="section level2">
-<h2>Conversion into Zarr</h2>
-<p>Now we can convert the VoltRon object into a zarr array using the
-<strong>as.Zarr</strong> function which will create the array in a
-specified location</p>
-<pre class="r watch-out"><code>Xendata_assay &lt;- subset(Xen_data, assays = &quot;Assay1&quot;)
-as.Zarr(Xendata_assay, out_path = &quot;data/xendata_clustered_annotated.zarr&quot;)</code></pre>
+<div id="metadata" class="section level2">
+<h2>Metadata</h2>
+<pre class="r watch-out"><code>head(Metadata(visium_data))</code></pre>
+<pre><code>                          Count  Assay    Layer    Sample
+AAAGGCTCTCGCGCCG-1_Assay1 39690 Visium Section1 Anterior1
+AAATGGCCCGTGCCCT-1_Assay1 33516 Visium Section1 Anterior1
+AAATTACACGACTCTG-1_Assay1 12250 Visium Section1 Anterior1
+AAGACATACGTGGTTT-1_Assay1 31821 Visium Section1 Anterior1
+ACCTACTATAAATCTA-1_Assay1 41387 Visium Section1 Anterior1
+ACGCGGGCCAAGGACA-1_Assay1 48003 Visium Section1 Anterior1</code></pre>
 <p><br></p>
 </div>
-<div id="vitessce-interactive" class="section level2">
-<h2>Vitessce (Interactive)</h2>
-<p>We can use the zarr file directly in the
-<strong>vrSpatialPlot</strong> function to visualize the zarr array
-interactively in Rstudio viewer. The <strong>reduction</strong>
-arguement allows the umap of the Xenium data to be visualized alongside
-with the spatial coordinates of the Xenium cells.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(&quot;data/xendata_clustered_annotated.zarr&quot;, 
-              group.by = &quot;CellType&quot;, reduction = &quot;umap&quot;)</code></pre>
-<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_interactive.png" class="center"></p>
+<div id="coordinates" class="section level2">
+<h2>Coordinates</h2>
+<pre class="r watch-out"><code>head(vrCoordinates(visium_data))</code></pre>
+<pre><code>                                 x        y
+AAAGGCTCTCGCGCCG-1_Assay1 271.9105 183.1497
+AAATGGCCCGTGCCCT-1_Assay1 136.8330 220.2237
+AAATTACACGACTCTG-1_Assay1 382.0482 436.6781
+AAGACATACGTGGTTT-1_Assay1 481.5491 102.7539
+ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
+ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120</code></pre>
 </div>
 </div>
 
@@ -560,7 +540,7 @@ $(document).ready(function ()  {
 
     // establish options
     var options = {
-      selectors: "h1,h2,h3",
+      selectors: "h1,h2,h3,h4",
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {

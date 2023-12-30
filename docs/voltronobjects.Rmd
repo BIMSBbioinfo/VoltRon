@@ -1,0 +1,118 @@
+---
+title: "Importing Spatial Data"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+<style>
+.title{
+  display: none;
+}
+body {
+  text-align: justify
+}
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+table, th, td {
+  border-collapse: collapse;
+  align-self: center;
+  padding-right: 10px;
+  padding-left: 10px;
+}
+</style>
+
+```{css, echo=FALSE}
+.watch-out {
+  color: black;
+}
+```
+
+```{r setup, include=FALSE}
+# use rmarkdown::render_site(envir = knitr::knit_global())
+knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
+```
+
+<br>
+
+
+# Working with VoltRon objects
+
+
+```{r eval = FALSE, class.source="watch-out"}
+data("visium_data")
+```
+
+<br>
+
+## Sample Metadata
+
+```{r eval = FALSE, class.source="watch-out"}
+SampleMetadata(visium_data)
+```
+
+```
+        Assay    Layer    Sample
+Assay1 Visium Section1 Anterior1
+```
+
+<br>
+
+## Metadata
+
+```{r eval = FALSE, class.source="watch-out"}
+head(Metadata(visium_data))
+```
+
+```
+                          Count  Assay    Layer    Sample
+AAAGGCTCTCGCGCCG-1_Assay1 39690 Visium Section1 Anterior1
+AAATGGCCCGTGCCCT-1_Assay1 33516 Visium Section1 Anterior1
+AAATTACACGACTCTG-1_Assay1 12250 Visium Section1 Anterior1
+AAGACATACGTGGTTT-1_Assay1 31821 Visium Section1 Anterior1
+ACCTACTATAAATCTA-1_Assay1 41387 Visium Section1 Anterior1
+ACGCGGGCCAAGGACA-1_Assay1 48003 Visium Section1 Anterior1
+```
+
+<br>
+
+## Coordinates
+
+```{r eval = FALSE, class.source="watch-out"}
+head(vrCoordinates(visium_data))
+```
+
+```
+                                 x        y
+AAAGGCTCTCGCGCCG-1_Assay1 271.9105 183.1497
+AAATGGCCCGTGCCCT-1_Assay1 136.8330 220.2237
+AAATTACACGACTCTG-1_Assay1 382.0482 436.6781
+AAGACATACGTGGTTT-1_Assay1 481.5491 102.7539
+ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
+ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120
+```
+
+## Images
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImageNames(visium_data)
+```
+
+```
+[1] "H&E"
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImageChannelNames(visium_data)
+```
+
+```
+[1] "H&E"
+```

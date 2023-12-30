@@ -1,0 +1,103 @@
+---
+title: "Importing Spatial Data"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+<style>
+.title{
+  display: none;
+}
+body {
+  text-align: justify
+}
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+table, th, td {
+  border-collapse: collapse;
+  align-self: center;
+  padding-right: 10px;
+  padding-left: 10px;
+}
+</style>
+
+```{css, echo=FALSE}
+.watch-out {
+  color: black;
+}
+```
+
+```{r setup, include=FALSE}
+# use rmarkdown::render_site(envir = knitr::knit_global())
+knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
+```
+
+<br>
+
+# Analyzing Image Datasets
+
+VoltRon is a spatial omic analysis platform that allows storing a large amount of spatially resolved datasets. As opposed to datasets with either supracellular (spot-level) or cellular resolutions, one might analyze image datasets and pixels to characterize the morphology of a tissue section. Here, images can also be used to build VoltRon objects where pixels (or tiles) are defined as spatial points, and then can also be used for multiple downstream analysis purposes. 
+
+<br>
+
+## Analysis of H&E images
+
+In this use case, we will analyze the H&E image derived from a tissue section that was first analyzed by The 10x Genomics [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform. Three tissue sections were cut from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. A 5 $\mu$m section was used to generate a single Xenium replicate. 
+
+More information on the Xenium and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the H&E image from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) as well (specifically, import the **Post-Xenium H&E image (TIFF)** data). 
+
+We incorporate **importImageData** to convert an image into a pixel-based spatial dataset. 
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image_lowres.tif",
+                                sample_name = "XeniumR1image", 
+                                image_name = "H&E")
+Xen_R1_image
+```
+
+```
+VoltRon Object 
+XeniumR1image: 
+  Layers: Section1 
+Assays: ImageData(Main) 
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImages(Xen_R1_image)
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE.png" class="center">
+
+</br>
+
+This VoltRon object stores the metadata information and localization of all pixels in the image.
+
+```{r eval = FALSE, class.source="watch-out"}
+head(Metadata(Xen_R1_image))
+```
+
+```
+         id assay_id     Assay    Layer        Sample
+1: 1_4f486d   Assay1 ImageData Section1 XeniumR1image
+2: 2_4f486d   Assay1 ImageData Section1 XeniumR1image
+3: 3_4f486d   Assay1 ImageData Section1 XeniumR1image
+4: 4_4f486d   Assay1 ImageData Section1 XeniumR1image
+5: 5_4f486d   Assay1 ImageData Section1 XeniumR1image 
+6: 6_4f486d   Assay1 ImageData Section1 XeniumR1image 
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+nrow(Metadata(Xen_R1_image))
+```
+
+```
+[1] 2974000
+```
