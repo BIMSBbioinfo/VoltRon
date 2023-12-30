@@ -221,7 +221,7 @@ vrSpatialPlot(Xen_data, group.by = "CellType", pt.size = 0.13, background = "bla
 
 # MELC Data Analysis
 
-VoltRon also provides support for imaging based proteomics assays as well. In this next use case, we analyze cells characterized by **multi-epitope ligand cartography (MELC)** with a panel of 44 parameters. We use the already segmented cells on which expression of **43 protein features** (excluding DAPI) were mapped to these cells. 
+VoltRon also provides support for imaging based proteomics assays. In this next use case, we analyze cells characterized by **multi-epitope ligand cartography (MELC)** with a panel of 44 parameters. We use the already segmented cells on which expression of **43 protein features** (excluding DAPI) were mapped to these cells. 
 
 We use the segmented cells over microscopy images collected from **control** and **COVID-19** lung tissues of donors categorized based on disease durations (**control**, **acute**, **chronic** and **prolonged**). Each image is associated with one of few field of views (FOVs) from a single tissue section of a donor. See [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information. You can download the **IFdata.csv** file and the folder with the **DAPI** images [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/MELC/GSE190732.zip). 
 

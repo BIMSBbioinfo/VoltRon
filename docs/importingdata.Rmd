@@ -59,7 +59,7 @@ VoltRon objects are compatible with readouts of almost all of these technologies
 
 10x Genomics [Visium](https://www.10xgenomics.com/products/spatial-gene-expression) Spatial Gene Expression Platform incorporates in situ arrays (i.e. spots) to capture spatial localization of omic profiles where these spots are of 55 \mu m in diameter and constitute a grid that covers a significant portion of a tissue section placed on the slide of the instrument.
 
-We will use the readouts of **Visium CytAssist** platform that was derived from a single tissue section of a breast cancer sample. More information on the Visium CytAssist data and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **Visium Spatial** data). 
+We will use the readouts of **Visium CytAssist** platform that was derived from a single tissue section of a breast cancer sample. More information on the Visium CytAssist data and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **Visium Spatial** data). 
 
 We use the **importVisium** function to import the Visium readouts and create a VoltRon object. Here, we point to the folder of all the files with **dir.path** argument and also determine the name of this sample (**sample_name**).
 
@@ -113,7 +113,7 @@ vrImageNames(Vis_R1)
 
 The 10x Genomics [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) provides spatial localization of both (i) transcripts from a few hundred number of genes as well as (ii) the single cells with transcriptomic profiles. 
 
-We will use the readouts of a single Xenium platform replicate that was derived from a single tissue section of a breast cancer sample. More information on the Xenium data and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **In Situ Replicate 1** data). 
+We will use the readouts of a single Xenium platform replicate that was derived from a single tissue section of a breast cancer sample. More information on the Xenium data and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **In Situ Replicate 1** data). 
 
 We use the **importXenium** function to import the Xenium readouts and create a VoltRon object. Here, we point to the folder of all the files with **dir.path** argument and also determine the name of this sample (**sample_name**).
 
@@ -281,7 +281,7 @@ The [Nanostring's CosMx Spatial Molecular Imaging](https://nanostring.com/produc
 
 We will use the readouts from two slides of a single CosMx experiment. You can download the data from the [Nanostring website](https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/cosmx-smi-mouse-brain-ffpe-dataset/). 
 
-We use the **importCosMx** function to import the CosMx readouts and create a VoltRon object. Here, we point to the folder of the TileDB array that stores feature matrix as well as the transcript metadata.
+We use the **importCosMx** function to import the CosMx readouts and create a VoltRon object. Here, we point to the folder of the [TileDB](https://tiledb.com/) array that stores feature matrix as well as the transcript metadata.
 
 ```{r eval = FALSE, class.source="watch-out"}
 CosMxR1 <- importCosMx(tiledbURI = "MuBrainDataRelease/")
@@ -296,8 +296,6 @@ Slide2:
 Assays: CosMx(Main) 
 ```
 
-</br>
-
 You can use the **import_molecules** argument to import positions and features of the transcripts along with the single cell profiles.
 
 ```{r eval = FALSE, class.source="watch-out"}
@@ -306,6 +304,154 @@ CosMxR1 <- importCosMx(tiledbURI = "MuBrainDataRelease/", import_molecules = TRU
 
 </br>
   
-## Custom
+## Custom VoltRon objects
+
+VoltRon incorporates the **formVoltRon** function to assemble each component of a spatial omic assay into a VoltRon object. Here: 
+
+* **the feature matrix**: the <em> pxn </em> feature to point matrix for raw counts and omic profiles 
+* **metadata**: the metadata table
+* **image**: An image or a list of images with names associated to channel 
+* **coordinates**: xy-Coordinates of spatial points
+* **segments**: the list of xy-Coordinates of each spatial point
+
+can individually be prepared before executing formVoltRon. 
+
+We will use a single image based proteomic assay to demonstrate building custom VoltRon objects. Specifically, we use cells characterized by **multi-epitope ligand cartography (MELC)** with a panel of 44 parameters. We use the already segmented cells on which expression of **43 protein features** (excluding DAPI) were mapped to these cells. 
+
+VoltRon also provides support for imaging based proteomics assays. In this next use case, we analyze cells characterized by **multi-epitope ligand cartography (MELC)** with a panel of 44 parameters. We use the already segmented cells on which expression of **43 protein features** (excluding DAPI) were mapped to these cells. You can download the files below [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ImportData/Custom_vr_object.zip). 
+
+```{r eval = FALSE, class.source="watch-out"}
+library(magick)
+
+# feature x cell matrix
+intensity_data <- read.table("intensities.tsv", sep = "\t")
+intensity_data <- as.matrix(intensity_data)
+
+# metadata
+metadata <- read.table("metadata.tsv", sep = "\t")
+
+# coordinates
+coordinates <- read.table("coordinates.tsv", sep = "\t")
+coordinates <- as.matrix(coordinates)
+
+# image
+library(magick)
+image <- image_read("DAPI.tif")
+
+# create VoltRon object
+vr_object<- formVoltRon(data = intensity_data,
+                        metadata = metadata,
+                        image = image,
+                        coords = coordinates,
+                        main.assay = "MELC",
+                        assay.type = "cell",
+                        sample_name = "control_case_3",
+                        image_name = "DAPI")
+vr_object
+```
+
+```
+VoltRon Object 
+control_case_3: 
+  Layers: Section1 
+Assays: MELC(Main) 
+```
+
+VoltRon can store multiple images (or channels) associated with a single coordinate system. 
+
+```{r eval = FALSE, class.source="watch-out"}
+library(magick)
+image <- list(DAPI = image_read("DAPI.tif"),
+              CD45 = image_read("CD45.tif"))
+
+vr_object<- formVoltRon(data = intensity_data,
+                        metadata = metadata,
+                        image = image,
+                        coords = coordinates,
+                        main.assay = "MELC",
+                        assay.type = "cell",
+                        sample_name = "control_case_3",
+                        image_name = "MELC")
+```
+
+These channels then can be interrogated and used as background images for spatial plots and spatial feature plots as well.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImageChannelNames(vr_object)
+```
+
+```
+   Assay Image  Channels
+1 Assay1  MELC DAPI,CD45
+```
+
+You can extract each of these channels individually.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImages(vr_object, name = "MELC", channel = "DAPI")
+vrImages(vr_object, name = "MELC", channel = "CD45")
+```
 
 
+<table>
+  <tr>
+    <td><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_DAPI.png" class="center"></td>
+    <td><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_CD45.png" class="center"></td>
+  </tr>
+</table>
+
+</br>
+
+## Image-only VoltRon objects
+
+The **formVoltRon** function can also be used to build VoltRon objects where pixels (or tiles) are defined as spatial points. These information are derived from images only which then can be used for multiple downstream analysis purposes. 
+
+For this we incorporate **importImageData** function and only supply an image object. We will use the H&E image derived from a tissue section that was first analyzed by The 10x Genomics [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform.
+
+More information on the Xenium and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the H&E image from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) as well (specifically, import the **Post-Xenium H&E image (TIFF)** data). 
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image_lowres.tif",
+                                sample_name = "XeniumR1image", 
+                                image_name = "H&E")
+Xen_R1_image
+```
+
+```
+VoltRon Object 
+XeniumR1image: 
+  Layers: Section1 
+Assays: ImageData(Main) 
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImages(Xen_R1_image)
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE.png" class="center">
+
+</br>
+
+This VoltRon object stores the metadata information and localization of all pixels in the image.
+
+```{r eval = FALSE, class.source="watch-out"}
+head(Metadata(Xen_R1_image))
+```
+
+```
+         id assay_id     Assay    Layer        Sample
+1: 1_4f486d   Assay1 ImageData Section1 XeniumR1image
+2: 2_4f486d   Assay1 ImageData Section1 XeniumR1image
+3: 3_4f486d   Assay1 ImageData Section1 XeniumR1image
+4: 4_4f486d   Assay1 ImageData Section1 XeniumR1image
+5: 5_4f486d   Assay1 ImageData Section1 XeniumR1image 
+6: 6_4f486d   Assay1 ImageData Section1 XeniumR1image 
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+nrow(Metadata(Xen_R1_image))
+```
+
+```
+[1] 2974000
+```
