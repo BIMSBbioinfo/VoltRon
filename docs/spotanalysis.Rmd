@@ -37,7 +37,7 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 # Xenium Data Analysis
 
-VoltRon is an end-to-end spatial data analysis package which also supports investigating spatial points in single cell resolution. VoltRon includes essential built-in functions capable of **filtering**, **processing** and **clustering** as well as **visualizing** spatial datasets with a goal of cell type discovery and annotation. 
+VoltRon is an end-to-end spatial omic analysis package which also supports investigating spatial points in single cell resolution. VoltRon includes essential built-in functions capable of **filtering**, **processing** and **clustering** as well as **visualizing** spatial datasets with a goal of cell type discovery and annotation. 
 
 In this use case, we analyse readouts of the experiments conducted on example tissue sections analysed by the [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform. Two tissue sections of 5 $\mu$m tickness are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. More information on the spatial datasets and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
  

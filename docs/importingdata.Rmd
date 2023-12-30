@@ -21,6 +21,12 @@ body {
   margin-left: auto;
   margin-right: auto;
 }
+table, th, td {
+  border-collapse: collapse;
+  align-self: center;
+  padding-right: 10px;
+  padding-left: 10px;
+}
 </style>
 
 ```{css, echo=FALSE}
@@ -36,15 +42,30 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 <br>
 
-VoltRon includes built-in functions for converting readouts from a large selection of spatial omic instruments into R objects. In this tutorial, we will review each built-in function that is geared towards importing readouts of a specific spatial omic technology. 
-
 # Importing Spatial Datasets
+
+VoltRon is an end-to-end spatial omic analysis package that supports a large selection of spatial data resolutions. Currently, there exists a considerable amount of spatial omic technologies that generate datasets whose omic profiles are spatially resolved. 
+
+VoltRon objects are compatible with readouts of almost all of these technologies where we provide a selection of built-in functions to help users constructing VoltRon objects with ease. In this tutorial, we will review these spatial omic instruments and the functions available within the VoltRon package to import their readouts. 
+
+</br>
 
 ## Visium
 
+</br>
+
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/visium_summary.png" class="center">
+<p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;"> <em> Image Credit: The Visium Spatial Gene Expression Slide (https://www.10xgenomics.com/) </em> </p>
+
+10x Genomics [Visium](https://www.10xgenomics.com/products/spatial-gene-expression) Spatial Gene Expression Platform incorporates in situ arrays (i.e. spots) to capture spatial localization of omic profiles where these spots are of 55 \mu m in diameter and constitute a grid that covers a significant portion of a tissue section placed on the slide of the instrument.
+
+We will use the readouts of **Visium CytAssist** platform that was derived from a single tissue section of a breast cancer sample. More information on the Visium CytAssist data and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **Visium Spatial** data). 
+
+We use the **importVisium** function to import the Visium readouts and create a VoltRon object. Here, we point to the folder of all the files with **dir.path** argument and also determine the name of this sample (**sample_name**).
+
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
-Vis_R1 <- importVisium("Visium/", sample_name = "VisiumR1")
+Vis_R1 <- importVisium(dir.path = "Visium/", sample_name = "VisiumR1")
 ```
 
 ```
@@ -56,8 +77,10 @@ Assays: Visium(Main)
 
 </br>
 
+While importing the readouts, we can also determine the name of the assay as well as the name of the image. The **SampleMetadata** function summarizes the entire collection of assays, layers (sections) and samples (tissue blocks) within the R object.
+
 ```{r eval = FALSE, class.source="watch-out"}
-Vis_R1 <- importVisium("Visium/", sample_name = "VisiumR1", 
+Vis_R1 <- importVisium(dir.path = "Visium/", sample_name = "VisiumR1", 
                        assay_name = "Visium_assay", image_name = "H&E_stain")
 SampleMetadata(Vis_R1)
 ```
@@ -67,6 +90,10 @@ SampleMetadata(Vis_R1)
 Assay1 Visium_assay Section1 VisiumR1
 ```
 
+</br>
+
+The current VoltRon object has only one assay associated with a single layer and a tissue block, and the image of this assay is currently the "H&E_stain". 
+
 ```{r eval = FALSE, class.source="watch-out"}
 vrImageNames(Vis_R1)
 ```
@@ -75,7 +102,20 @@ vrImageNames(Vis_R1)
 [1] "H&E_stain"
 ```
 
+<br>
+
 ## Xenium
+
+</br>
+
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/xenium_summary.png" class="center">
+<p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;"> <em> Image Credit: https://www.biorxiv.org/content/10.1101/2022.10.06.510405v2 </em> </p>
+
+The 10x Genomics [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) provides spatial localization of both (i) transcripts from a few hundred number of genes as well as (ii) the single cells with transcriptomic profiles. 
+
+We will use the readouts of a single Xenium platform replicate that was derived from a single tissue section of a breast cancer sample. More information on the Xenium data and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **In Situ Replicate 1** data). 
+
+We use the **importXenium** function to import the Xenium readouts and create a VoltRon object. Here, we point to the folder of all the files with **dir.path** argument and also determine the name of this sample (**sample_name**).
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
@@ -91,6 +131,8 @@ Assays: Xenium(Main)
 
 </br>
 
+You can use the **import_molecules** argument to import positions and features of the transcripts along with the single cell profiles.
+
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1", import_molecules = TRUE)
 Xen_R1
@@ -103,6 +145,8 @@ XeniumR1:
 Assays: Xenium(Main) Xenium_mol 
 ```
 
+The **SampleMetadata** function summarizes the entire collection of assays, layers (sections) and samples (tissue blocks) within the R object. In this case, the function will generate two assays in a single layer where one is a "cell" assay and the other is a "molecule assay". 
+
 ```{r eval = FALSE, class.source="watch-out"}
 SampleMetadata(Xen_R1)
 ```
@@ -114,6 +158,8 @@ Assay2 Xenium_mol Section1 XeniumR1
 ```
 
 </br>
+
+The Xenium in situ platform provides multiple resolution of the same Xenium slide which can be parsed from the OME.TIFF image file of DAPI stained tissue section (e.g. morphology_mip.ome.tif). The **resolution_level** argument determines the resolution of the DAPI image generated from the OME.TIFF file. More information on resolution levels can be found [here](https://kb.10xgenomics.com/hc/en-us/articles/11636252598925-What-are-the-Xenium-image-scale-factors-). 
 
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1", import_molecules = TRUE, 
@@ -130,10 +176,136 @@ vrImages(Xen_R1, assay = "Xenium")
 
 </br>
 
+Users can also decide to ignore OME.TIFF file and images, hence only cells and molecules would be imported. 
+
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1", import_molecules = TRUE, 
                        use_image = FALSE)
 ```
 
 </br>
+
+## GeoMx
+
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/geomx_summary.png" class="center">
+<p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;"> <em> Image Credit: https://www.biochain.com/nanostring-geomx-digital-spatial-profiling/ </em> </p>
+
+The [Nanostring's GeoMx Digital Spatial Profiler](https://nanostring.com/products/geomx-digital-spatial-profiler/geomx-dsp-overview/) is a high-plex spatial profiling technology which produces segmentation-based protein and RNA assays. The instrument allows users to select regions of interest (ROIs) from fluorescent microscopy images that capture the morphological context of the tissue. These are ROIs are then used to generate transcriptomic or proteomic profiles. 
+
+We will import the ROI profiles generated from the GeoMx scan area where COVID-19 lung tissues were fitted into. See [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information on this study.
+
+Here is the usage of **importGeoMx** function and necessary files for this example:
+
+<table>
+  <tr>
+    <th>Argument</th>
+    <th>Description</th>
+    <th>Link</th>
+  </tr>
+  <tr>
+    <td>dcc.path</td>
+    <td>The path to DCC files directory</td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/DCC-20230427.zip">DDC files</a></td>
+  </tr>
+  <tr>
+    <td>pkc.file</td>
+    <td>GeoMx™ DSP configuration file</td>
+    <td><a href="https://nanostring.com/wp-content/uploads/Hs_R_NGS_WTA_v1.0.pkc_.zip">Human RNA Whole Transcriptomic Atlas for NGS</a></td>
+  </tr>
+  <tr>
+    <td>summarySegment</td>
+    <td>Segment summary table (.xls or .csv)</td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/segmentSummary.csv"> ROI Metadata file </a></td>
+  </tr>
+  <tr>
+    <td>image</td>
+    <td>The Morphology Image of the scan area </td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.tif"> Image file </a></td>
+  </tr>
+  <tr>
+    <td>ome.tiff</td>
+    <td>The OME.TIFF Image of the scan area </td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.ome.tiff"> OME.TIFF file </a></td>
+  </tr>
+    <tr>
+    <td></td>
+    <td>The OME.TIFF Image XML file </td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.ome.tiff.xml" download target="_blank"> OME.TIFF (XML) file </a></td>
+  </tr>
+</table>
+
+</br>
+
+```{r eval = FALSE, class.source="watch-out"}
+library(VoltRon)
+GeoMxR1 <- importGeoMx(dcc.path = "DCC-20230427/", 
+                       pkc.file = "Hs_R_NGS_WTA_v1.0.pkc",
+                       summarySegment = "segmentSummary.csv",
+                       image = "Lu1A1B5umtrueexp.tif",
+                       ome.tiff = "Lu1A1B5umtrueexp.ome.tiff",
+                       sample_name = "GeoMxR1")
+```
+
+The OME.TIFF file here provides the ROI coordinates within the embedded XML metadata. We can also incorporate the **RBioFormats** package to extract the XML metadata from the OME.TIFF file. 
+
+```{r eval = FALSE, class.source="watch-out"}
+# fix java parameters
+options(java.parameters = "-Xmx4g")
+library(RBioFormats)
+
+# alternatively you can use RBioFormats to create an xml file
+ome.tiff.xml <- RBioFormats::read.omexml("data/GeoMx/Lu1A1B5umtrueexp.ome.tiff")
+write(ome.tiff.xml, file = "data/GeoMx/Lu1A1B5umtrueexp.ome.tiff.xml")
+```
+
+The **ome.tiff** argument also accepts the path to this XML file.
+
+```{r eval = FALSE, class.source="watch-out"}
+GeoMxR1 <- importGeoMx(dcc.path = "DCC-20230427/",
+                       pkc.file = "Hs_R_NGS_WTA_v1.0.pkc",
+                       summarySegment = "segmentSummary.csv",
+                       image = "Lu1A1B5umtrueexp.tif",
+                       ome.tiff = "Lu1A1B5umtrueexp.ome.tiff.xml",
+                       sample_name = "GeoMxR1")
+```
+
+</br>
+
+## CosMx
+
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cosmx_summary.png" class="center">
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cosmx_summary2.png" class="center">
+<p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;"> <em> Image Credit: https://www.biorxiv.org/content/10.1101/2021.11.03.467020v1.full </em> </p>
+
+The [Nanostring's CosMx Spatial Molecular Imaging](https://nanostring.com/products/cosmx-spatial-molecular-imager/cosmx-smi-single-cell-imaging-de/) platform is a high-plex spatial multiomics technology that captures the spatial localization of both (i) transcripts from thousands of genes as well as (ii) the single cells with transcriptomic and proteomic profiles.
+
+We will use the readouts from two slides of a single CosMx experiment. You can download the data from the [Nanostring website](https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/cosmx-smi-mouse-brain-ffpe-dataset/). 
+
+We use the **importCosMx** function to import the CosMx readouts and create a VoltRon object. Here, we point to the folder of the TileDB array that stores feature matrix as well as the transcript metadata.
+
+```{r eval = FALSE, class.source="watch-out"}
+CosMxR1 <- importCosMx(tiledbURI = "MuBrainDataRelease/")
+```
+
+```
+VoltRon Object 
+Slide1: 
+  Layers: Section1 
+Slide2: 
+  Layers: Section1 
+Assays: CosMx(Main) 
+```
+
+</br>
+
+You can use the **import_molecules** argument to import positions and features of the transcripts along with the single cell profiles.
+
+```{r eval = FALSE, class.source="watch-out"}
+CosMxR1 <- importCosMx(tiledbURI = "MuBrainDataRelease/", import_molecules = TRUE)
+```
+
+</br>
+  
+## Custom
+
 
