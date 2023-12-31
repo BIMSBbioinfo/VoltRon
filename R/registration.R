@@ -57,9 +57,9 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
                     sidebarPanel(
                       tags$style(make_css(list('.well', 'margin', '7%'))),
 
-                      h4("Spatial Data Registration"),
+                      h4("Spatial Data Alignment"),
                       fluidRow(
-                        column(12,shiny::checkboxInput("automatictag", "Automated Registration", value = FALSE)),
+                        column(12,shiny::checkboxInput("automatictag", "Automated", value = FALSE)),
                         br(),
                         column(12,selectInput("AutoMethod", "Method", choices = c("FLANN", "BRUTE-FORCE"), selected = "FLANN")),
                         br(),
