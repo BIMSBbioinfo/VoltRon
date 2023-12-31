@@ -202,6 +202,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     info <- image_info(image)
     g <- g +
       ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
+  } else {
+    info <- NULL
   }
 
   # ROI visualization
@@ -234,7 +236,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   # spot visualization
   } else if(assay@type == "spot"){
     g <- g +
-      coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height)) +
       geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]]) +
       scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
@@ -291,17 +292,26 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
                                 legend.margin = margin(0,0,0,0))
 
   # set up the limits
-  if(assay@type %in% c("spot", "cell")){
+  if(assay@type == "spot"){
     if(crop){
       g <- g +
         coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
     } else {
-      g <- g +
-        coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
+      if(!is.null(info)){
+        g <- g +
+          coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
+      }
     }
   } else {
-    g <- g +
-      xlim(0,info$width) + ylim(0, info$height)
+    if(crop){
+      g <- g +
+        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
+    } else {
+      if(!is.null(info)){
+        g <- g +
+          xlim(0,info$width) + ylim(0, info$height)
+      }
+    }
   }
 
   # background
@@ -597,12 +607,19 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   # add image
   if(is.null(background))
     background <- vrMainImage(assay)
-  image <- vrImages(assay)
-  info <- image_info(image)
+  if(length(background) == 2) {
+    channel <- background[2]
+  } else {
+    channel <- NULL
+  }
+  background <- background[1]
   if(background %in% vrImageNames(assay)){
-    image <- vrImages(assay, name = background)
+    image <- vrImages(assay, name = background, channel = channel)
+    info <- image_info(image)
     g <- g +
       ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
+  } else {
+    info <- NULL
   }
 
   # add points or segments
@@ -715,7 +732,6 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
       theme(panel.background = element_rect(fill = "lightgrey", colour = "lightgrey", size = 0.5, linetype = "solid"))
     warning("background image ", background, " is not found in ", vrAssayNames(assay), "\n")
   }
-
 
   # visualize labels
   if(label){
