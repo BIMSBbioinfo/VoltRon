@@ -107,6 +107,7 @@ BANK1        0   6.082192 0.889 0.037         0      17  BANK1</code></pre></div
 We can now pick top positive markers from each of these clusters prior to visualization.
 
 ```{r class.source="watch-out", eval = FALSE}
+library(dplyr)
 topmarkers <- markers %>%
   group_by(cluster) %>%
   top_n(n = 5, wt = avg_log2FC)

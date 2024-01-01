@@ -248,7 +248,7 @@ as.AnnData.VoltRon <- function(object, file, assay = NULL, image_key = "fov", ty
   metadata$AssayID <- stringr::str_extract(rownames(metadata), "_Assay[0-9]+$")
 
   # coordinates
-  coords <- vrCoordinates(object, assay = assay, reg = TRUE)
+  coords <- vrCoordinates(object, assay = assay)
 
   # create anndata
   adata <- anndata::AnnData(X = t(data), obs = metadata, obsm = list(spatial = coords, spatial_AssayID = coords))
