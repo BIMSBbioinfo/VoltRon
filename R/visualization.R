@@ -701,22 +701,27 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
                                 axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
                                 legend.key.size = unit(title.size, "points"), legend.title = element_text(size=title.size),
                                 legend.margin = margin(0,0,0,0))
+
   # set up the limits
   if(assay@type == "spot"){
     if(crop){
       g <- g +
         coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
     } else {
-      g <- g +
-        coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
+      if(!is.null(info)){
+        g <- g +
+          coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
+      }
     }
   } else {
     if(crop){
       g <- g +
         coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
     } else {
-      g <- g +
-        xlim(0,info$width) + ylim(0, info$height)
+      if(!is.null(info)){
+        g <- g +
+          xlim(0,info$width) + ylim(0, info$height)
+      }
     }
   }
 
