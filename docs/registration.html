@@ -699,10 +699,9 @@ Assay3                 Xenium Section3 10XBlock
 Assay4          Visium_pseudo Section2 10XBlock
 Assay5 Visium_pseudo_CellType Section2 10XBlock</code></pre>
 <p>By visualizing the transferred labels on the Visium spots, we can see
-that DCIS_2 CEACAM6+ cell type is more abundant in this niche which was
-also founds to be triple positive PGR+/ERBB2+/ESR1+ locations.</p>
+abundance of some DCIS and invasive tumor subtypes.</p>
 <pre class="r watch-out"><code>vrSpatialFeaturePlot(VRBlock_new, assay = &quot;Visium_pseudo_CellType&quot;,
-                     features = c(&quot;DCIS_1&quot;,&quot;DCIS_2_CEACAM6+&quot;, &quot;DCIS_3_TACSTD2+&quot;), 
+                     features = c(&quot;IT_1&quot;,&quot;DCIS_2&quot;), 
                      crop = TRUE, alpha = 1, ncol = 3)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_CellType.png" class="center"></p>
 <p><br></p>

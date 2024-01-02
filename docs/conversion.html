@@ -527,7 +527,8 @@ BANK1        0   6.082192 0.889 0.037         0      17  BANK1</code></pre>
 <h3>Visualization</h3>
 <p>We can now pick top positive markers from each of these clusters
 prior to visualization.</p>
-<pre class="r watch-out"><code>topmarkers &lt;- markers %&gt;%
+<pre class="r watch-out"><code>library(dplyr)
+topmarkers &lt;- markers %&gt;%
   group_by(cluster) %&gt;%
   top_n(n = 5, wt = avg_log2FC)</code></pre>
 <p>Here, VoltRon incorporates the unique markers learned by the
