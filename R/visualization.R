@@ -88,8 +88,12 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 
     # get assay
     cur_assay <- object[[assy]]
-    assy_id <- paste0(assy,"$")
-    cur_metadata <- metadata[grepl(assy_id, rownames(metadata)),]
+    if(inherits(metadata, 'data.table')){
+      cur_metadata <- metadata[assay_id == assy,]
+    } else {
+      assy_id <- paste0(assy,"$")
+      cur_metadata <- metadata[grepl(assy_id, rownames(metadata)),]
+    }
 
     # get graph
     if(!is.null(graph.name)){
@@ -103,6 +107,8 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
     }
 
     # check group.by
+    if(!group.by %in% colnames(metadata))
+      stop("The column '", group.by, "' was not found in the metadata!")
     levels_group.by <- as.character(unique(metadata[[group.by]][!is.na(metadata[[group.by]])]))
     if(all(!is.na(as.numeric(levels_group.by)))){
       levels_group.by <- sort(as.numeric(levels_group.by))
@@ -164,7 +170,13 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   segments <- vrSegments(assay)
 
   # plotting features
-  coords[[group.by]] <- metadata[,group.by]
+  if(!group.by %in% colnames(metadata))
+    stop("The column '", group.by, "' was not found in the metadata!")
+  if(inherits(metadata, "data.table")){
+    coords[[group.by]] <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
+  } else {
+    coords[[group.by]] <- metadata[,group.by]
+  }
   if(!is.null(group.ids)){
     if(length(setdiff(group.ids,  coords[[group.by]])) > 0){
       stop("Some groups defined in group.ids does not exist in group.by!")
@@ -179,12 +191,19 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   # add image
   if(is.null(background))
     background <- vrMainImage(assay)
-  image <- vrImages(assay)
-  info <- image_info(image)
+  if(length(background) == 2) {
+    channel <- background[2]
+  } else {
+    channel <- NULL
+  }
+  background <- background[1]
   if(background %in% vrImageNames(assay)){
-    image <- vrImages(assay, main_image = background)
+    image <- vrImages(assay, name = background, channel = channel)
+    info <- image_info(image)
     g <- g +
       ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
+  } else {
+    info <- NULL
   }
 
   # ROI visualization
@@ -217,7 +236,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   # spot visualization
   } else if(assay@type == "spot"){
     g <- g +
-      coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height)) +
       geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]]) +
       scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
@@ -274,17 +292,26 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
                                 legend.margin = margin(0,0,0,0))
 
   # set up the limits
-  if(assay@type %in% c("spot", "cell")){
+  if(assay@type == "spot"){
     if(crop){
       g <- g +
         coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
     } else {
-      g <- g +
-        coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
+      if(!is.null(info)){
+        g <- g +
+          coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
+      }
     }
   } else {
-    g <- g +
-      xlim(0,info$width) + ylim(0, info$height)
+    if(crop){
+      g <- g +
+        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
+    } else {
+      if(!is.null(info)){
+        g <- g +
+          xlim(0,info$width) + ylim(0, info$height)
+      }
+    }
   }
 
   # background
@@ -580,12 +607,19 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   # add image
   if(is.null(background))
     background <- vrMainImage(assay)
-  image <- vrImages(assay)
-  info <- image_info(image)
+  if(length(background) == 2) {
+    channel <- background[2]
+  } else {
+    channel <- NULL
+  }
+  background <- background[1]
   if(background %in% vrImageNames(assay)){
-    image <- vrImages(assay, main_image = background)
+    image <- vrImages(assay, name = background, channel = channel)
+    info <- image_info(image)
     g <- g +
       ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
+  } else {
+    info <- NULL
   }
 
   # add points or segments
@@ -699,13 +733,12 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
     warning("background image ", background, " is not found in ", vrAssayNames(assay), "\n")
   }
 
-
   # visualize labels
   if(label){
     if(group.by %in% colnames(metadata)){
       coords[[group.by]] <- metadata[,group.by]
     } else {
-      stop("Column ", group.by, " cannot be found in metadata!")
+      stop("The column ", group.by, " was not found in the metadata!")
     }
     g <- g + ggrepel::geom_label_repel(mapping = aes_string(x = "x", y = "y", label = group.by), coords,
                                 box.padding = 0.5, size = font.size, direction = "both", seed = 1)
@@ -1266,7 +1299,10 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NUL
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get data
-  violindata <- vrData(object, assay = assay, norm = norm)
+  if(any(features %in% vrFeatures(object))){
+    selected_features <- features[features %in% vrFeatures(object)]
+    violindata <- vrData(object, features = selected_features, assay = assay, norm = norm)
+  }
 
   # get entity type and metadata
   if(is.null(assay.type)){
@@ -1280,11 +1316,11 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NUL
   } else {
     metadata <- Metadata(object, type = assay.type)
   }
-  metadata <- metadata[colnames(violindata),]
+  # metadata <- metadata[colnames(violindata),]
 
   # get feature data
   datax <- lapply(features, function(x){
-    if(x %in% rownames(violindata)){
+    if(x %in% vrFeatures(object)){
       return(violindata[x,])
     } else if(x %in% colnames(metadata)){
       return(metadata[,x])
@@ -1322,7 +1358,7 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NUL
 
   if(length(features) > 1){
     if(length(gg) < ncol) ncol <- length(gg)
-    gg <- gg + facet_wrap(.~variable, ncol = ncol, nrow = ceiling(length(gg)/ncol))
+    gg <- gg + facet_wrap(.~variable, ncol = ncol, nrow = ceiling(length(gg)/ncol), scales = "free_y")
   } else {
     gg <- gg + labs(title = features)
   }

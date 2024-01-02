@@ -8,9 +8,9 @@
 \usage{
 as.Zarr(object, out_path, image_id, ...)
 
-\method{as.Zarr}{VoltRon}(object, out_path, image_id = "main_image")
+\method{as.Zarr}{VoltRon}(object, out_path, image_id = "image_1")
 
-\method{as.Zarr}{`magick-image`}(object, out_path, image_id = "main_image")
+\method{as.Zarr}{`magick-image`}(object, out_path, image_id = "image_1")
 }
 \arguments{
 \item{object}{a VoltRon image}

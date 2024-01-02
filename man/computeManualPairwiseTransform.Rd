@@ -4,9 +4,11 @@
 \alias{computeManualPairwiseTransform}
 \title{computeManualPairwiseTransform}
 \usage{
-computeManualPairwiseTransform(keypoints_list, query_ind, ref_ind)
+computeManualPairwiseTransform(image_list, keypoints_list, query_ind, ref_ind)
 }
 \arguments{
+\item{image_list}{the list of images}
+
 \item{keypoints_list}{the list of keypoint matrices}
 
 \item{query_ind}{the index of the query image}

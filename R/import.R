@@ -17,16 +17,18 @@
 #' @param morphology_image the name of the lowred morphology image. Default: morphology_lowres.tif
 #' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)
 #' @param overwrite_resolution if TRUE, the image "file.name" will be generated again although it exists at "dir.path"
+#' @param image_name the image name of the Xenium assay, Default: DAPI
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
 #' @importFrom utils read.csv
 #' @importFrom data.table fread
+#' @importFrom ids random_id
 #'
 #' @export
 #'
-importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, overwrite_resolution = FALSE, import_molecules = FALSE, ...)
+importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, overwrite_resolution = FALSE, image_name = "DAPI", import_molecules = FALSE, ...)
 {
   # cell assay
   message("Creating cell level assay ...")
@@ -94,7 +96,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   }
 
   # create VoltRon object for cells
-  cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, segments = segments, main.assay = assay_name, assay.type = "cell", ...)
+  cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, segments = segments, main.assay = assay_name, assay.type = "cell", image_name = image_name, ...)
 
   # molecule assay
   if(!import_molecules){
@@ -107,10 +109,11 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
       stop("There are no file named 'transcripts.csv.gz' in the path")
     } else {
       # get subcellur data components
-      subcellular_data <- as.data.frame(data.table::fread(transcripts_file))
-      subcellular_data <- subcellular_data[,c("cell_id", colnames(subcellular_data)[!colnames(subcellular_data) %in% "cell_id"])]
+      subcellular_data <- data.table::fread(transcripts_file)
+      subcellular_data <- subcellular_data[,c("transcript_id", colnames(subcellular_data)[!colnames(subcellular_data) %in% "transcript_id"]), with = FALSE]
+      colnames(subcellular_data)[colnames(subcellular_data)=="transcript_id"] <- "id"
+      colnames(subcellular_data)[colnames(subcellular_data)=="feature_name"] <- "gene"
       subcellular_data <- subcellular_data[subcellular_data$qv >= 20, ]
-      rownames(subcellular_data) <- subcellular_data$transcript_id
 
       # coordinates
       coords <- as.matrix(subcellular_data[,c("x_location", "y_location")])
@@ -121,18 +124,24 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
       coords[,"y"] <- range_coords[2] - coords[,"y"]  + range_coords[1]
 
       # metadata
-      metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell_id", "transcript_id", "x_location", "y_location")]]
+      mol_metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell_id", "transcript_id", "x_location", "y_location")], with = FALSE]
+      set.seed(nrow(mol_metadata$id))
+      entity_ID <- paste0(mol_metadata$id, "_", ids::random_id(bytes = 3, use_openssl = FALSE))
+      mol_metadata <- data.table::data.table(id = entity_ID, assay_id = "Assay1", mol_metadata)
+
+      # coord names
+      rownames(coords) <- entity_ID
     }
 
-    # create VoltRon object for molecules
-    mol_object <- formVoltRon(data = NULL, metadata = metadata, image = image, coords, main.assay = paste0(assay_name, "_mol"), assay.type = "molecule", ...)
+    # create VoltRon assay for molecules
+    mol_assay <- formAssay(coords = coords, image = image, type = "molecule", main_image = image_name)
 
     # merge assays in one section
     message("Merging assays ...")
     sample.metadata <- SampleMetadata(cell_object)
     object <- addAssay(cell_object,
-                       assay = mol_object[["Assay1"]],
-                       metadata = Metadata(mol_object),
+                       assay = mol_assay,
+                       metadata = mol_metadata,
                        assay_name = paste0(assay_name, "_mol"),
                        sample = sample.metadata["Assay1", "Sample"],
                        layer = sample.metadata["Assay1", "Layer"])
@@ -151,17 +160,17 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #' @param dir.path path to Visium output folder
 #' @param selected_assay selected assay from Visium
 #' @param assay_name the assay name
+#' @param image_name the image name of the Visium assay, Default: H&E
 #' @param inTissue if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
-#' @import hdf5r
 #' @importFrom magick image_read
 #' @importFrom rjson fromJSON
 #' @importFrom utils read.csv
 #'
 #' @export
 #'
-importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_name = "Visium", inTissue = TRUE, ...)
+importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_name = "Visium", image_name = "H&E", inTissue = TRUE, ...)
 {
   # raw counts
   listoffiles <- list.files(dir.path)
@@ -228,7 +237,7 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   }
 
   # create VoltRon
-  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", ...)
+  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", image_name = image_name, ...)
 }
 
 ####
@@ -241,7 +250,7 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
 #'
 #' @param filename the path tp h5 file
 #'
-#' @import hdf5r
+#' @importFrom hdf5r H5File readDataSet
 #' @importFrom Matrix sparseMatrix
 #'
 import10Xh5 <- function(filename){
@@ -710,18 +719,18 @@ rescaleGeoMxPoints <- function(pts, summary, imageinfo){
 #' @param tiledbURI the path to the tiledb folder
 #' @param assay_name the assay name, default: CosMx
 #' @param image the reference morphology image of the CosMx assay
-#' @param segment_polygons if TRUE, the ROI polygons are parsed from the OME.TIFF file
+#' @param image_name the image name of the CosMx assay, Default: DAPI
 #' @param ome.tiff the OME.TIFF file of the CosMx experiment if exists
+#' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
-#' @importFrom dplyr %>% full_join
-#' @importFrom utils read.csv
-#' @importFrom magick image_info image_read
+#' @importFrom data.table data.table
+#' @importFrom ids random_id
 #'
 #' @export
 #'
 importCosMx <- function(tiledbURI, assay_name = "CosMx",
-                        image = NULL, segment_polygons = FALSE, ome.tiff = NULL, ...)
+                        image = NULL, image_name = "DAPI", ome.tiff = NULL, import_molecules = FALSE, ...)
 {
   # check tiledb and tiledbsc
   if (!requireNamespace("tiledb", quietly = TRUE))
@@ -734,6 +743,7 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
                             ref = '8157b7d54398b1f957832f37fff0b173d355530e')")
 
   # get tiledb
+  message("Scanning TileDB array for cell data ...")
   tiledb_scdataset <- tiledbsc::SOMACollection$new(uri = tiledbURI, verbose = FALSE)
 
   # raw counts
@@ -748,10 +758,13 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
   colnames(coords) <- c("x","y")
 
   # transcripts
-  subcellular <- tiledb::tiledb_array(
-    tiledb_scdataset$somas$RNA$obsm$members$transcriptCoords$uri,
-    return_as="data.frame")[]
-  subcellular <- subcellular[,c("cell_id", colnames(subcellular)[!colnames(subcellular) %in% "cell_id"])]
+  if(import_molecules){
+    message("Scanning TileDB array for molecule data ...")
+    subcellular <- tiledb::tiledb_array(
+      tiledb_scdataset$somas$RNA$obsm$members$transcriptCoords$uri,
+      return_as="data.table")[]
+    colnames(subcellular)[colnames(subcellular)=="target"] <- "gene"
+  }
 
   # get slides and construct VoltRon objects for each slides
   slides <- unique(metadata$slide_ID_numeric)
@@ -760,19 +773,91 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
   vr_list <- list()
   for(slide in slides){
 
+    # cell assay
+    message("Creating cell level assay for slide ", slide, " ...")
+
     # slide info
     cur_coords <- coords[metadata$slide_ID_numeric == slide,]
     cur_counts <- counts[,rownames(cur_coords)]
     cur_metadata <- metadata[rownames(cur_coords),]
-    cur_subcellular <- subcellular[subcellular$slideID == slide,]
 
-    # create VoltRon
-    vr_object <- formVoltRon(cur_counts, metadata = cur_metadata, image, cur_coords, subcellular = cur_subcellular,
-                             main.assay = assay_name, assay.type = "cell", ...)
-    vr_object$Sample <- paste0("Slide", slide)
-    vr_list <- append(vr_list, vr_object)
+    # create VoltRon object
+    cell_object <- formVoltRon(data = cur_counts, metadata = cur_metadata, image = image, coords = cur_coords, main.assay = assay_name, assay.type = "cell", image_name = image_name, ...)
+    cell_object$Sample <- paste0("Slide", slide)
+
+    # molecule assay
+    if(import_molecules){
+
+      # get slide
+      message("Creating molecule level assay for slide ", slide, " ...")
+      cur_subcellular <- subset(subcellular, slideID == slide)
+
+      # coordinates
+      mol_coords <- as.matrix(cur_subcellular[,c("x_FOV_px", "y_FOV_px")])
+      colnames(mol_coords) <- c("x", "y")
+
+      # get subcellular data components
+      mol_metadata <- cur_subcellular[,colnames(cur_subcellular)[!colnames(cur_subcellular) %in% c("CellId", "cell_id", "x_FOV_px", "y_FOV_px")], with = FALSE]
+      set.seed(nrow(mol_metadata))
+      # entity_ID <- paste0(1:nrow(mol_metadata), "_", ids::random_id(bytes = 3, use_openssl = FALSE))
+      entity_ID <- paste0(rownames(mol_metadata), "_", ids::random_id(bytes = 3, use_openssl = FALSE))
+      mol_metadata <- data.table::data.table(id = entity_ID, assay_id = "Assay1", mol_metadata)
+
+      # coord names
+      rownames(mol_coords) <- entity_ID
+
+      # create VoltRon assay for molecules
+      mol_assay <- formAssay(coords = mol_coords, image = image, type = "molecule", main_image = image_name)
+
+      # merge assays in one section
+      message("Merging assays for slide ", slide, " ...")
+      sample.metadata <- SampleMetadata(cell_object)
+      cell_object <- addAssay(cell_object,
+                              assay = mol_assay,
+                              metadata = mol_metadata,
+                              assay_name = paste0(assay_name, "_mol"),
+                              sample = sample.metadata["Assay1", "Sample"],
+                              layer = sample.metadata["Assay1", "Layer"])
+    }
+    vr_list <- append(vr_list, cell_object)
   }
 
   # return
+  message("Merging slides ...")
   vr <- merge(vr_list[[1]], vr_list[-1])
+}
+
+####
+# Image Data ####
+####
+
+#' importImageData
+#'
+#' import an image as VoltRon object
+#'
+#' @param img an image
+#'
+#' @importFrom magick image_read image_raster
+#' @importFrom data.table data.table
+#'
+importImageData <- function(image, ...){
+
+  # get image
+  if(file.exists(image)){
+    image <- magick::image_read(image)
+  } else {
+    stop(image, " is not found!")
+  }
+
+  # coordinates
+  image_data <- magick::image_raster(image)
+
+  # metadata
+  metadata <- data.table(id = rownames(image_data))
+
+  # coordinates
+  coords <- as.matrix(image_data[,c("x","y")])
+
+  # create voltron object
+  formVoltRon(data = NULL, metadata = metadata, image = image, coords, main.assay = "ImageData", assay.type = "tile", ...)
 }

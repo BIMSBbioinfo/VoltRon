@@ -243,11 +243,11 @@ Assay4          Visium_pseudo Section2 10XBlock
 Assay5 Visium_pseudo_CellType Section2 10XBlock
 ```
 
-By visualizing the transferred labels on the Visium spots, we can see that DCIS_2 CEACAM6+ cell type is more abundant in this niche which was also founds to be triple positive PGR+/ERBB2+/ESR1+ locations.
+By visualizing the transferred labels on the Visium spots, we can see abundance of some DCIS and invasive tumor subtypes. 
 
 ```{r class.source="watch-out", eval = FALSE}
 vrSpatialFeaturePlot(VRBlock_new, assay = "Visium_pseudo_CellType",
-                     features = c("DCIS_1","DCIS_2_CEACAM6+", "DCIS_3_TACSTD2+"), 
+                     features = c("IT_1","DCIS_2"), 
                      crop = TRUE, alpha = 1, ncol = 3)
 ```
 

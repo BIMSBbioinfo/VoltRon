@@ -6,7 +6,7 @@
 \alias{vrAssayTypes.VoltRon}
 \title{Get Assay types}
 \usage{
-\method{vrAssayTypes}{vrAssay}(object, ...)
+\method{vrAssayTypes}{vrAssay}(object)
 
 vrAssayTypes(object, ...)
 

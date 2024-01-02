@@ -4,24 +4,42 @@
 \alias{modulateImage}
 \alias{modulateImage.VoltRon}
 \alias{modulateImage.vrAssay}
+\alias{modulateImage.vrImage}
 \title{modulateImage}
 \usage{
 modulateImage(object, ...)
 
 \method{modulateImage}{VoltRon}(object, ...)
 
-\method{modulateImage}{vrAssay}(object, brightness = 100, saturation = 100, hue = 100)
+\method{modulateImage}{vrAssay}(object, name = NULL, reg = FALSE, channel = NULL, ...)
+
+\method{modulateImage}{vrImage}(
+  object,
+  channel = NULL,
+  brightness = 100,
+  saturation = 100,
+  hue = 100,
+  force = FALSE
+)
 }
 \arguments{
 \item{object}{An object}
 
-\item{...}{Arguments passed to other methods}
+\item{...}{arguements passed to \code{vrImages.vrImage}}
+
+\item{name}{the name of the main image}
+
+\item{reg}{TRUE if registered images are assigned}
+
+\item{channel}{the name of the channel associated with the vrImage object}
 
 \item{brightness}{modulation of brightness as percentage of the current value (100 for no change)}
 
 \item{saturation}{modulation of saturation as percentage of the current value (100 for no change)}
 
 \item{hue}{modulation of hue is an absolute rotation of -180 degrees to +180 degrees from the current position corresponding to an argument range of 0 to 200 (100 for no change)}
+
+\item{force}{if TRUE, all channels will be modulated given no specific channel name}
 }
 \description{
 Modulating Magick images

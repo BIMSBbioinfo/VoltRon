@@ -16,6 +16,7 @@ formVoltRon(
   params = list(),
   sample_name = NULL,
   layer_name = NULL,
+  image_name = NULL,
   project = NULL
 )
 }
@@ -41,6 +42,8 @@ formVoltRon(
 \item{sample_name}{the name of the sample}
 
 \item{layer_name}{the name of the layer}
+
+\item{image_name}{the name/key of the image}
 
 \item{project}{project name}
 }

@@ -493,6 +493,20 @@ vrImageNames <- function(object, ...) {
   UseMethod(generic = 'vrImageNames', object = object)
 }
 
+#' vrImageChannelNames
+#'
+#' Get names of all image channels
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname vrImageChannelNames
+#' @export vrImageChannelNames
+#'
+vrImageChannelNames <- function(object, ...) {
+  UseMethod(generic = 'vrImageChannelNames', object = object)
+}
+
 #' vrMainImage
 #'
 #' Get the main image
@@ -519,6 +533,34 @@ vrMainImage <- function(object, ...) {
 #'
 "vrMainImage<-" <- function(object, ..., value) {
   UseMethod(generic = 'vrMainImage<-', object = object)
+}
+
+#' vrMainChannel
+#'
+#' Get the main channel name of the image
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname vrMainChannel
+#' @export vrMainChannel
+#'
+vrMainChannel <- function(object, ...) {
+  UseMethod(generic = 'vrMainChannel', object = object)
+}
+
+#' vrMainChannel
+#'
+#' Set the main channel name of the image
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname vrMainChannel
+#' @export vrMainChannel<-
+#'
+"vrMainChannel<-" <- function(object, ..., value) {
+  UseMethod(generic = 'vrMainChannel<-', object = object)
 }
 
 

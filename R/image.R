@@ -1,16 +1,216 @@
 ####
-# Get Images ####
+# Objects and Classes ####
+####
+
+## vrImage ####
+
+#' The vrImage (VoltRon Image) Class
+#'
+#' @slot coords spatial coordinates of the assay
+#' @slot segments spatial coordinates of the segments, if available
+#' @slot image image of the spatial assay, bitmap class
+#' @slot main_channel the key of the main channel of vrImage object
+#'
+#' @name vrImage-class
+#' @rdname vrImage-class
+#' @exportClass vrImage
+#'
+vrImage <- setClass(
+  Class = 'vrImage',
+  slots = c(
+    coords = 'matrix',
+    segments = 'list',
+    image = "list",
+    main_channel = "character"
+  )
+)
+
+### show ####
+
+setMethod(
+  f = 'show',
+  signature = 'vrImage',
+  definition = function(object) {
+
+    # separate names
+    image_names <- names(object@image)
+    image_id <- seq_along(image_names)
+    image_names_split <- split(image_names, ceiling(image_id/10))
+
+    cat("vrImage (VoltRon Image) Object \n")
+    text <- "Channels:"
+    for(img in image_names_split){
+      cat(text, paste(img, collapse = ", "), "\n")
+      text <- "         "
+    }
+    return(invisible(x = NULL))
+  }
+)
+
+####
+# Create vrImage Object ####
+####
+
+#' formImage
+#'
+#' Create a vrImage (VoltRon image) object
+#'
+#' @param coords the coordinates of the spatial points
+#' @param segments the segments of the spatial points, optional
+#' @param image the image of the data
+#' @param channel the key of the main channel of vrImage object
+#'
+#' @importFrom magick image_data image_read image_info
+#' @importFrom methods new
+#'
+#' @export
+#'
+formImage <- function(coords, segments = list(), image = NULL, main_channel = NULL){
+
+  # get segments
+  if(length(segments) > 0){
+    if(length(segments) == length(rownames(coords))){
+      names(segments) <- rownames(coords)
+    } else {
+      stop("Number of segments doesnt match the number of points!")
+    }
+  }
+
+  # check if the image input is a list
+  if(!is.null(image)){
+    if(is.list(image)){
+
+      # enter names if there are no names
+      if(is.null(names(image)))
+        names(image) <- paste("image_", 1:length(image))
+
+      # get image information
+      imageinfo <- sapply(image, function(x) magick::image_info(x)[,c("width", "height")], USE.NAMES = TRUE)
+      flag <- all(apply(imageinfo, 1, function(x) length(unique(x)) == 1))
+
+      #
+      if(!flag){
+        stop("When providing multiple images as channels, make sure that all images have the same dimensionality!")
+      } else {
+        image <- lapply(image, magick::image_data)
+        names(image) <- colnames(imageinfo)
+        if(is.null(main_channel))
+          main_channel <- names(image)[1]
+      }
+    } else {
+      image <- list(magick::image_data(image))
+      if(is.null(main_channel))
+        main_channel <- "channel_1"
+      names(image) <- main_channel
+    }
+  } else {
+    height <- max(ceiling(coords[,2]))
+    width <- max(ceiling(coords[,1]))
+    image <- list(matrix(rep("#030303ff", height*width), nrow = height, ncol = width))
+    if(is.null(main_channel))
+      main_channel <- "channel_1"
+    names(image) <- main_channel
+  }
+
+  # make vrimage object
+   methods::new("vrImage", coords = coords, segments = segments, image = image, main_channel = main_channel)
+}
+
+### Subset vrImage objects ####
+
+#' Subsetting vrImage objects
+#'
+#' Given a vrImage object, subset the object given one of the attributes.
+#'
+#' @param object A vrImage object
+#' @param spatialpoints the set of spatial points to subset the object
+#' @param image the subseting string passed to \code{magick::image_crop}
+#'
+#' @method subset vrImage
+#'
+#' @importFrom rlang enquo
+#' @importFrom magick image_crop
+#'
+#' @export
+#'
+subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
+
+  if (!missing(x = subset)) {
+    subset <- rlang::enquo(arg = subset)
+  }
+
+  # coords and segments
+  coords <- vrCoordinates(object)
+  segments <- vrSegments(object)
+
+  if(!is.null(spatialpoints)){
+
+    # check if spatial points are here
+    if(length(intersect(spatialpoints, rownames(coords))) == 0)
+      return(NULL)
+
+    # coordinates
+    vrCoordinates(object) <- coords[rownames(coords) %in% spatialpoints,, drop = FALSE]
+
+    # segments
+    if(length(segments) > 0)
+      vrSegments(object) <- segments[names(segments) %in% spatialpoints]
+
+  } else if(!is.null(image)) {
+
+    # get one image
+    vrimage <- vrImages(object)
+
+    # coordinates
+    cropped_coords <- subsetCoordinates(coords, vrimage, image)
+    vrCoordinates(object) <- cropped_coords
+
+    # segments
+    cropped_segments <- segments[rownames(cropped_coords)]
+    if(length(segments) > 0){
+      segments[rownames(cropped_coords)] <- subsetSegments(cropped_segments, vrimage, image)
+      vrSegments(object) <- segments
+    }
+
+    # spatial points
+    object <- subset.vrImage(object, spatialpoints = rownames(cropped_coords))
+
+    # image
+    for(img in vrImageChannelNames(object)){
+      img_data <- magick::image_read(object@image[[img]])
+      img_data <- magick::image_crop(img_data, image)
+      object@image[[img]] <- magick::image_data(img_data)
+    }
+  }
+
+  # set VoltRon class
+  return(object)
+}
+
+####
+# Methods ####
 ####
 
 #' @param object A VoltRon object
+#' @param assay assay
+#' @param ... arguements passed to \code{vrImages.vrSample}
 #'
 #' @rdname vrImages
 #' @method vrImages VoltRon
 #'
 #' @export
 #'
-vrImages.VoltRon <- function(object, ...){
-  images <- sapply(object@samples, function(samp) vrImages(samp, ...), USE.NAMES = TRUE)
+vrImages.VoltRon <- function(object, assay = NULL, ...){
+
+  # get assay names
+  if(is.null(assay)){
+    assay_names <- vrAssayNames(object, assay = "all")
+  } else {
+    assay_names <- vrAssayNames(object, assay = assay)
+  }
+
+  # get images
+  images <- sapply(assay_names, function(assy) vrImages(object[[assy]], ...), USE.NAMES = TRUE)
   if(length(images) == 1){
     return(images[[1]])
   } else {
@@ -18,61 +218,69 @@ vrImages.VoltRon <- function(object, ...){
   }
 }
 
-#' @param object A vrSample object
+#' #' @param object A vrSample object
+#' #' @param ... arguements passed to \code{vrImages.vrLayer}
+#' #'
+#' #' @rdname vrImages
+#' #' @method vrImages vrSample
+#' #'
+#' #' @export
+#' #'
+#' vrImages.vrSample <- function(object, ...){
+#'   sapply(object@layer, function(lay) vrImages(lay, ...), USE.NAMES = TRUE)
+#' }
 #'
-#' @rdname vrImages
-#' @method vrImages vrSample
-#'
-#' @export
-#'
-vrImages.vrSample <- function(object, ...){
-  sapply(object@layer, function(lay) vrImages(lay, ...), USE.NAMES = TRUE)
-}
-
-#' @param object A vrLayer object
-#'
-#' @rdname vrImages
-#' @method vrImages vrLayer
-#'
-#' @export
-#'
-vrImages.vrLayer <- function(object, ...){
-  sapply(object@assay, function(assy) vrImages(assy, ...), USE.NAMES = TRUE)
-}
+#' #' @param object A vrLayer object
+#' #' @param ... arguements passed to \code{vrImages.vrAssay}
+#' #'
+#' #' @rdname vrImages
+#' #' @method vrImages vrLayer
+#' #'
+#' #' @export
+#' #'
+#' vrImages.vrLayer <- function(object, ...){
+#'   sapply(object@assay, function(assy) vrImages(assy, ...), USE.NAMES = TRUE)
+#' }
 
 #' @param object A vrAssay object
-#' @param main_image the name of the main image
-#' @param as.raster if TRUE, return as raster matrix
+#' @param name the name of the main image
+#' @param reg TRUE if registered images are assigned
+#' @param channel the name of the main channel
+#' @param ... arguements passed to \code{vrImages.vrImage}
 #'
 #' @rdname vrImages
 #' @method vrImages vrAssay
 #'
-#' @importFrom magick image_read
-#'
 #' @export
 #'
-vrImages.vrAssay <- function(object, main_image = NULL, as.raster = FALSE){
-  if(!is.null(object@image)){
-    if(is.null(main_image)) {
-      main_image <- object@main_image
-    }
-    if(main_image %in% vrImageNames(object)){
-      if(as.raster){
-        return(object@image[[main_image]])
-      } else {
-        return(magick::image_read(object@image[[main_image]]))
-      }
-    } else {
-      return(NULL)
-    }
-  } else {
-    return(NULL)
+vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, ...){
+
+  # check image name
+  if(is.null(name)) {
+    name <- object@main_image
   }
+
+  # get registered image
+  if(reg){
+    if(!paste0(name, "_reg") %in% vrImageNames(object)){
+      warning("There are no registered images with name ", name, "!")
+    } else {
+      name <- paste0(name, "_reg")
+    }
+  }
+
+  # check main image
+  if(!name %in% vrImageNames(object)){
+    stop(name, " is not among any image in this vrAssay object")
+  }
+
+  return(vrImages(object@image[[name]], channel = channel, ...))
 }
 
 #' @param object A vrAssay object
-#' @param main_image the name of the main image
-#' @param reg TRUE if registered coordinates are assigned
+#' @param name the name of the main image
+#' @param channel the name of the channel associated with the main image
+#' @param reg TRUE if registered images are assigned
 #' @param value new image
 #'
 #' @rdname vrImages
@@ -82,16 +290,152 @@ vrImages.vrAssay <- function(object, main_image = NULL, as.raster = FALSE){
 #'
 #' @export
 #'
-"vrImages<-.vrAssay" <- function(object, main_image = NULL, reg = FALSE, ..., value) {
-  if(is.null(main_image)) {
-    main_image <- object@main_image
+"vrImages<-.vrAssay" <- function(object, name = NULL, channel = NULL, reg = FALSE, ..., value) {
+  if(is.null(name)) {
+    name <- object@main_image
   }
+
+  if(reg){
+      name <- paste0(name, "_reg")
+  }
+
+  if(inherits(value, "vrImage")){
+    object@image[[name]] <- value
+  } else {
+    if(!is.null(channel)){
+      vrImages(object@image[[name]], channel = channel) <- value
+    }
+  }
+  return(object)
+}
+
+#' @param object A vrImage object
+#' @param channel the name of the main channel
+#' @param as.raster return as a raster
+#'
+#' @rdname vrImages
+#' @method vrImages vrImage
+#'
+#' @importFrom magick image_read
+#'
+#' @export
+#'
+vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE){
+
+  if(is.null(channel)){
+    channel <- object@main_channel
+  } else {
+    if(!channel %in% vrImageChannelNames(object))
+      stop(channel, " is not among any channel in this vrImage object")
+  }
+
+  if(as.raster){
+    return(object@image[[channel]])
+  } else {
+    return(magick::image_read(object@image[[channel]]))
+  }
+}
+
+#' @param object A vrAssay object
+#' @param channel the name of the channel associated with the main image
+#' @param value new image
+#'
+#' @rdname vrImages
+#' @method vrImages<- vrImage
+#'
+#' @importFrom magick image_read
+#'
+#' @export
+#'
+"vrImages<-.vrImage" <- function(object, channel = NULL, ..., value){
+
+  if(channel %in% vrImageChannelNames(object)){
+    warning("A channel with name '", channel, "' already exists in this vrImage object. \n Overwriting ...")
+  }
+
   if(inherits(value, "bitmap")){
-    object@image[[main_image]] <- value
+    object@image[[channel]] <- value
   } else if(inherits(value, "magick-image")){
-    object@image[[main_image]] <- magick::image_data(value)
+    object@image[[channel]] <- magick::image_data(value)
   } else {
     stop("Please provide either a magick-image or bitmap class image object!")
+  }
+
+  # return
+  object
+}
+
+#' @param assay assay
+#'
+#' @rdname vrMainImage
+#' @method vrMainImage VoltRon
+#'
+#' @export
+#'
+vrMainImage.VoltRon <- function(object, assay = NULL){
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get assay types
+  image_names <- unlist(lapply(assay_names, function(x) vrMainImage(object[[x]])))
+
+  # return data
+  image_data <- data.frame(Assay = assay_names, Image = image_names)
+
+  # return
+  return(image_data)
+}
+
+#' @param value the name of main image
+#'
+#' @rdname vrMainImage
+#' @method vrMainImage<- VoltRon
+#'
+#' @export
+#'
+"vrMainImage<-.VoltRon" <- function(object, assay = NULL, ..., value){
+
+  if(!is.null(assay)){
+    if(length(assay) == 1){
+      vrMainImage(object[[assay]], ...) <- value
+    } else {
+      stop("You can only set the main image of a single assay")
+    }
+  } else {
+    stop("You should define the assay whose main image you wanna set, by using 'Assay = <assay name>'")
+  }
+
+  return(object)
+}
+
+#' @rdname vrMainImage
+#' @method vrMainImage vrAssay
+#'
+#' @export
+#'
+vrMainImage.vrAssay <- function(object){
+  return(object@main_image)
+}
+
+#' @param value the name of main image
+#'
+#' @rdname vrMainImage
+#' @method vrMainImage<- vrAssay
+#'
+#' @export
+#'
+"vrMainImage<-.vrAssay" <- function(object, value){
+
+  if(length(value) == 2){
+    channel <- value[2]
+    value <- value[1]
+    object@main_image <- value
+    vrMainChannel(object@image[[value]]) <- channel
+  } else if(length(value) == 1){
+    object@main_image <- value
+  } else {
+    stop("The Main image is set by either: \n    vrMainImage(object) <- c('image name', 'channel name')\n or vrMainImage(object) <- 'image name'")
   }
   return(object)
 }
@@ -123,29 +467,90 @@ vrImageNames.vrAssay <- function(object){
   return(names(object@image))
 }
 
-#' @rdname vrMainImage
-#' @method vrMainImage vrAssay
+####
+## Channel Methods ####
+####
+
+#' @rdname vrMainChannel
+#' @method vrMainChannel vrImage
 #'
 #' @export
 #'
-vrMainImage.vrAssay <- function(object){
-  return(object@main_image)
+vrMainChannel.vrImage <- function(object){
+  return(object@main_channel)
 }
 
-#' @param value the name of main image
+#' @param value the name of main channel
 #'
-#' @rdname vrMainImage
-#' @method vrMainImage<- vrAssay
+#' @rdname vrMainChannel
+#' @method vrMainChannel<- vrImage
 #'
 #' @export
 #'
-"vrMainImage<-.vrAssay" <- function(object, value){
-  object@main_image <- value
+"vrMainChannel<-.vrImage" <- function(object, value){
+  object@main_channel <- value
   return(object)
 }
 
+#' @param assay assay
+#'
+#' @rdname vrImageChannelNames
+#' @method vrImageChannelNames VoltRon
+#'
+#' @export
+#'
+vrImageChannelNames.VoltRon <- function(object, assay = NULL){
+
+  # get assay names
+  if(is.null(assay)){
+    assay_names <- vrAssayNames(object, assay = "all")
+  } else {
+    assay_names <- vrAssayNames(object, assay = assay)
+  }
+
+  # get image names
+  image_names <- unlist(lapply(assay_names, function(x) vrMainImage(object[[x]])))
+
+  # get channel names
+  image_channels <- unlist(lapply(assay_names, function(x) paste(vrImageChannelNames(object[[x]]), collapse = ",")))
+
+  # return data
+  image_data <- data.frame(Assay = assay_names, Image = image_names, Channels = image_channels)
+
+  # return
+  return(image_data)
+}
+
+#' @param name the key of the main image
+#'
+#' @rdname vrImageChannelNames
+#' @method vrImageChannelNames vrAssay
+#'
+#' @export
+#'
+vrImageChannelNames.vrAssay <- function(object, name = NULL){
+
+  if(is.null(name)){
+    name <- vrMainImage(object)
+  } else {
+    if(!name %in% vrImageNames(object))
+      stop(name, " is not among any image in this vrAssay object")
+  }
+
+  return(vrImageChannelNames(object@image[[name]]))
+}
+
+#' @rdname vrImageChannelNames
+#' @method vrImageChannelNames vrImage
+#'
+#' @export
+#'
+vrImageChannelNames.vrImage <- function(object){
+  return(names(object@image))
+}
+
 ####
-# Managing Images ####
+## Managing Images ####
 ####
 
 #' @rdname resizeImage
@@ -162,15 +567,51 @@ resizeImage.VoltRon <- function(object, ...){
   return(object)
 }
 
-#' @param size the width of the resized image
+#' @param name the name of the main image
+#' @param reg TRUE if registered images are assigned
+#' @param ... arguements passed to \code{vrImages.vrImage}
 #'
 #' @rdname resizeImage
 #' @method resizeImage vrAssay
 #'
-#' @importFrom magick image_info image_resize
 #' @export
 #'
-resizeImage.vrAssay <- function(object, size){
+resizeImage.vrAssay <- function(object, name = NULL, reg = FALSE, ...){
+
+  # get main image is main_image is null
+  if(is.null(name)) {
+    name <- object@main_image
+  }
+
+  # check registered image
+  if(reg){
+    if(!paste0(name, "_reg") %in% vrImageNames(object)){
+      warning("There are no registered images with name ", name, "!")
+    } else {
+      name <- paste0(name, "_reg")
+    }
+  }
+
+  # check main image
+  if(!name %in% vrImageNames(object)){
+    stop(name, " is not among any image in this vrAssay object")
+  }
+
+  object@image[[name]] <- resizeImage(object@image[[name]], ...)
+
+  # return
+  return(object)
+}
+
+#' @param size the width of the resized image
+#'
+#' @rdname resizeImage
+#' @method resizeImage vrImage
+#'
+#' @importFrom magick image_info image_resize image_read image_data
+#' @export
+#'
+resizeImage.vrImage <- function(object, size){
 
   # check size
   if(!is.numeric(size))
@@ -185,13 +626,21 @@ resizeImage.vrAssay <- function(object, size){
   vrCoordinates(object) <- (vrCoordinates(object)*size)/sizefactor
 
   # resize segments
-  vrSegments(object) <- lapply(vrSegments(object), function(x) x*size/sizefactor)
+  vrSegments(object) <- lapply(vrSegments(object), function(x) {
+    x[,c("x", "y")] <- x[,c("x", "y")]*size/sizefactor
+    if(any(colnames(x) %in% c("rx", "ry"))){
+      x[,c("rx", "ry")] <- x[,c("rx", "ry")]*size/sizefactor
+    }
+    return(x)
+  })
 
   # resize images
   size <- paste0(size,"x")
-  image_names <- vrImageNames(object)
+  image_names <- vrImageChannelNames(object)
   for(img in image_names){
-    vrImages(object, main_image = img) <- image_resize(vrImages(object, main_image = img), geometry = size)
+    img_data <- magick::image_read(object@image[[img]])
+    img_data <- magick::image_resize(img_data, geometry = size)
+    object@image[[img]] <- magick::image_data(img_data)
   }
 
   # return
@@ -212,26 +661,191 @@ modulateImage.VoltRon <- function(object, ...){
   return(object)
 }
 
-#' @param brightness modulation of brightness as percentage of the current value (100 for no change)
-#' @param saturation modulation of saturation as percentage of the current value (100 for no change)
-#' @param hue modulation of hue is an absolute rotation of -180 degrees to +180 degrees from the current position corresponding to an argument range of 0 to 200 (100 for no change)
+#' @param name the name of the main image
+#' @param reg TRUE if registered images are assigned
+#' @param channel the name of the channel associated with the image
+#' @param ... arguements passed to \code{vrImages.vrImage}
 #'
 #' @rdname modulateImage
 #' @method modulateImage vrAssay
 #'
-#' @importFrom magick image_info image_resize
 #' @export
 #'
-modulateImage.vrAssay <- function(object, brightness = 100, saturation = 100, hue = 100){
+modulateImage.vrAssay <- function(object,  name = NULL, reg = FALSE, channel = NULL, ...){
+
+  # check name
+  if(is.null(name)) {
+    name <- object@main_image
+  }
+
+  # get registered image
+  if(reg){
+    if(!paste0(name, "_reg") %in% vrImageNames(object)){
+      warning("There are no registered images with name ", name, "!")
+    } else {
+      name <- paste0(name, "_reg")
+    }
+  }
+
+  # check main image
+  if(!name %in% vrImageNames(object)){
+    stop(name, " is not among any image in this vrAssay object")
+  }
+
+  object@image[[name]] <- modulateImage(object@image[[name]], channel = channel, ...)
+
+  # return
+  return(object)
+}
+
+#' @param channel the name of the channel associated with the vrImage object
+#' @param brightness modulation of brightness as percentage of the current value (100 for no change)
+#' @param saturation modulation of saturation as percentage of the current value (100 for no change)
+#' @param hue modulation of hue is an absolute rotation of -180 degrees to +180 degrees from the current position corresponding to an argument range of 0 to 200 (100 for no change)
+#' @param force if TRUE, all channels will be modulated given no specific channel name
+#'
+#' @rdname modulateImage
+#' @method modulateImage vrImage
+#'
+#' @importFrom magick image_info image_modulate
+#' @export
+#'
+modulateImage.vrImage <- function(object, channel = NULL, brightness = 100, saturation = 100, hue = 100, force = FALSE){
+
+  # check main_channels
+  if(is.null(channel) && (length(vrImageChannelNames(object)) > 1 && !force)){
+    stop("No channel name was specified. \n It is not advised to modulate multiple channels in the same time. \n Please type force = TRUE to allow this behaviour!")
+  }
+
+  # get channel names
+  if(is.null(channel)){
+    channels <- vrImageChannelNames(object)
+  }
 
   # modulate image
-  image_names <- vrImageNames(object)
-  for(img in image_names){
-    vrImages(object, main_image = img) <- magick::image_modulate(vrImages(object, main_image = img),
-                                                                 brightness = brightness, saturation = saturation, hue = hue)
+  for(img in channels){
+    img_data <- magick::image_read(object@image[[img]])
+    img_data <- magick::image_modulate(img_data, brightness = brightness, saturation = saturation, hue = hue)
+    object@image[[img]] <- magick::image_data(img_data)
   }
 
   # return
+  return(object)
+}
+
+####
+# Other Methods ####
+####
+
+#' @rdname vrSpatialPoints
+#' @method vrSpatialPoints vrImage
+#'
+#' @export
+#'
+vrSpatialPoints.vrImage <- function(object, ...) {
+  return(rownames(vrCoordinates(object)))
+}
+
+#' @param value new spatial points
+#'
+#' @rdname vrSpatialPoints
+#' @method vrSpatialPoints<- vrImage
+#'
+#' @export
+#'
+"vrSpatialPoints<-.vrImage" <- function(object, ..., value) {
+
+  # coordinates
+  if(length(rownames(object@coords)) != length(value)){
+    stop("The number of spatial points is not matching with the input")
+  } else {
+    rownames(object@coords)  <- value
+  }
+
+  # segments
+  if(length(object@segments) > 0){
+    if(length(names(object@segments)) != length(value)){
+      stop("The number of spatial points is not matching with the input")
+    } else {
+      names(object@segments) <- value
+    }
+  }
+
+  # return
+  return(object)
+}
+
+#' @rdname vrCoordinates
+#' @method vrCoordinates vrImage
+#'
+#' @export
+#'
+vrCoordinates.vrImage <- function(object) {
+    return(object@coords)
+}
+
+#' @param value the new set of 2D coordinates
+#'
+#' @rdname vrCoordinates
+#' @method vrCoordinates<- vrImage
+#'
+#' @importFrom methods slot
+#'
+#' @export
+#'
+"vrCoordinates<-.vrImage" <- function(object, ..., value) {
+
+  # get coordinates
+  coords <- vrCoordinates(object, ...)
+
+  # stop if the rownames are not matching
+  if(any(sapply(rownames(values),is.null)))
+    stop("Provided coordinates data does not have cell/spot/ROI names")
+
+  if(!all(rownames(values) %in% rownames(coords)))
+    stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
+
+  # stop if the colnames there are more than two columns
+  if(ncol(value) != 2) {
+    stop("Please make sure that the coordinates matrix have only two columns: for x and y coordinates")
+  } else {
+    colnames(value) <- c("x", "y")
+  }
+
+  methods::slot(object = object, name = 'coords') <- value
+  return(object)
+}
+
+#' @rdname vrSegments
+#' @method vrSegments vrImage
+#'
+#' @export
+#'
+vrSegments.vrImage<- function(object) {
+    return(object@segments)
+}
+
+#' @param value the new set of 2D segments for each spatial point
+#'
+#' @rdname vrSegments
+#' @method vrSegments<- vrImage
+#'
+#' @importFrom methods slot
+#' @export
+#'
+"vrSegments<-.vrImage" <- function(object, ..., value) {
+
+  # get coordinates
+  segts <- vrSegments(object, ...)
+
+  # stop if the names are not matching
+  if(any(sapply(names(values),is.null)))
+    stop("Provided coordinates data does not have cell/spot/ROI names")
+
+  if(!all(names(values) %in% names(segts)))
+    stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
+
+  methods::slot(object = object, name = 'segments') <- value
   return(object)
 }
 
@@ -563,13 +1177,13 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
         })
       })
 
-      ## reset points ####
+      ## Reset points ####
       observeEvent(input$resetpoints, {
         selected_corners() %>%
           dplyr::filter(FALSE) %>% selected_corners()
       })
 
-      ## add box ####
+      ## Add box ####
       observeEvent(input$addbox, {
         if(nrow(selected_corners()) == 2){
 
@@ -611,7 +1225,7 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
         }
       })
 
-      ## select points on the image ####
+      ## Select points ####
       observeEvent(input$choose_corner, {
         if(nrow(selected_corners()) < 2) {
           keypoint <- data.frame(x = input[["choose_corner"]]$x,
@@ -625,7 +1239,7 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
         }
       })
 
-      ## done ####
+      ## Done ####
       observeEvent(input$done, {
         if(nrow(selected_corners_list_image()) > 0){
           subsets <- list()

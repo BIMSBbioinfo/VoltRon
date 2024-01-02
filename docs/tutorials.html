@@ -275,7 +275,7 @@ $(document).ready(function () {
           <a href="spotanalysis.html">Cell/Spot Analysis</a>
         </li>
         <li>
-          <a href="conversion.html">Converting VoltRon Objects</a>
+          <a href="pixelanalysis.html">Pixels (Image Only) Analysis</a>
         </li>
       </ul>
     </li>
@@ -284,6 +284,15 @@ $(document).ready(function () {
       <ul class="dropdown-menu" role="menu">
         <li>
           <a href="interactive.html">Interactive Utilities</a>
+        </li>
+        <li>
+          <a href="importingdata.html">Importing Spatial Data</a>
+        </li>
+        <li>
+          <a href="voltronobjects.html">Working with VoltRon Objects</a>
+        </li>
+        <li>
+          <a href="conversion.html">Converting VoltRon Objects</a>
         </li>
       </ul>
     </li>
@@ -406,7 +415,7 @@ Spatial Data Alignment
 </p>
 <img width="250" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration.png" class="center">
 <p style="margin: 3%">
-Manual and automated alignment of spatial data assays
+Automated and manual alignment of spatial data assays
 </p>
 </td>
 <td onclick="location.href=&#39;deconvolution.html&#39;;">
@@ -428,12 +437,12 @@ Clustering with ROI/spot deconvolution
 <div id="downstream-analysis" class="section level2">
 <h2>Downstream Analysis</h2>
 <p><strong>VoltRon</strong> is also capable of end-to-end analysis of
-diverse set of spatial data types such as ROI (region of interest)
-based, spot-based, cell-based and molecule-based (<strong>under
-development</strong>) assays. VoltRon will be able to convert its
-objects to a diverse set of objects/datatypes commonly incorporated
-spatial data analysis (Seurat, SpatialExperiment, Giotto, anndata,
-SpatialData etc.)</p>
+diverse set of spatial data types such as <strong>ROIs</strong> (regions
+of interest), <strong>spots</strong>, <strong>single cells</strong>,
+<strong>molecules</strong> and even <strong>images</strong>. VoltRon
+incorporates built-in functions to import readouts of these distinct
+spatial omic technologies where a similar set of functions can be used
+to analyze each individual data type.</p>
 <table>
 <tbody>
 <tr>
@@ -455,15 +464,14 @@ Cells/Spots
 Quality control, analysis and visualization of Cell/Spot datasets
 </p>
 </td>
-<td onclick="location.href=&#39;conversion.html&#39;;">
+<td onclick="location.href=&#39;pixelanalysis.html&#39;;">
 <p class="tutorial">
-Converting VoltRon Objects
+Pixels (Image Only)
 </p>
-<br>
-<img width="270" height="200" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversion.png" class="center">
-<br> <br>
+<img width="280" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/tissue_lowres_image_grid.png" class="center">
 <p style="margin: 3%">
-Converting VoltRon objects into Seurat and squidpy (anndata) </strong>
+Analysis and visualization of Image datasets <br> <strong> (Under
+Development) </strong>
 </p>
 </td>
 </tr>
@@ -471,10 +479,15 @@ Converting VoltRon objects into Seurat and squidpy (anndata) </strong>
 </table>
 <p><br> <br></p>
 </div>
-<div id="utilities" class="section level2">
-<h2>Utilities</h2>
+<div id="other-utilities" class="section level2">
+<h2>Other Utilities</h2>
 <p>Here, we provide a group of tutorials to use additional features of
-the VoltRon objects.</p>
+the VoltRon objects. Here we describe a collection of features that
+VoltRon package utilizes such as interactive analysis and importing
+spatially aware data from diverse spatial omic technologies. VoltRon
+will be able to convert its objects to a diverse set of
+objects/datatypes commonly incorporated spatial data analysis (Seurat,
+SpatialExperiment, Giotto, anndata, SpatialData etc.)</p>
 <table>
 <tbody>
 <tr>
@@ -488,26 +501,37 @@ Interactive annotation and visualization <br> <strong> (Under
 Development) </strong>
 </p>
 </td>
-<td>
+<td onclick="location.href=&#39;voltronobjects.html&#39;;">
 <p class="tutorial">
-VoltRon Objects
+Working with VoltRon Objects
 </p>
 <br>
 <img width="280" height="210" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects.png" class="center">
 <br> <br>
 <p style="margin: 3%">
-Manipulating and configuring VoltRon objects <strong> (Under
-Development) </strong>
+Manipulating and configuring VoltRon objects
 </p>
 </td>
-<td>
+<td onclick="location.href=&#39;importingdata.html&#39;;">
 <p class="tutorial">
 Importing Spatial Data
 </p>
 <img width="250" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/technologies.png" class="center">
 <p style="margin: 3%">
-Importing readouts of spatial technologies <br> <strong> (Under
-Development) </strong>
+Importing readouts of spatial technologies <br>
+</p>
+</td>
+</tr>
+<tr>
+<td onclick="location.href=&#39;conversion.html&#39;;">
+<p class="tutorial">
+Converting VoltRon Objects
+</p>
+<br>
+<img width="270" height="200" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversion.png" class="center">
+<br> <br>
+<p style="margin: 3%">
+Converting VoltRon objects into Seurat and Squidpy (anndata) </strong>
 </p>
 </td>
 </tr>

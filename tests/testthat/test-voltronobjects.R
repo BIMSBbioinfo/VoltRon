@@ -1,5 +1,7 @@
 # Testing functions of manipulating assays ####
 test_that("assay", {
+
+  # get data
   data("visium_data")
 
   # get assay names
@@ -19,6 +21,8 @@ test_that("assay", {
 
 # Testing functions of manipulating samples ####
 test_that("sample", {
+
+  # get data
   data("visium_data")
 
   # get sample metadata
@@ -42,11 +46,13 @@ test_that("sample", {
 
 # Testing functions of manipulating spatialpoints ####
 test_that("spatialpoints", {
+
+  # get data
   data("visium_data")
 
   # get spatial points
   print(head(vrSpatialPoints(visium_data)))
-  print(head(vrSpatialPoints(visium_data, assays = "Assay1")))
+  print(head(vrSpatialPoints(visium_data, assay = "Assay1")))
 
   # subset on spatial points
   spatialpoints <- vrSpatialPoints(visium_data)
@@ -57,35 +63,39 @@ test_that("spatialpoints", {
 
 # Testing functions of manipulating coordinates ####
 test_that("coordinates", {
+
+  # get data
   data("visium_data")
 
   # coordinates
   coords <- vrCoordinates(visium_data)
-  coords <- vrCoordinates(visium_data, reg = TRUE)
-  coords <- vrCoordinates(visium_data, assays = "Assay1", reg = TRUE)
+  expect_warning(coords <- vrCoordinates(visium_data, reg = TRUE))
+  expect_warning(coords <- vrCoordinates(visium_data, assays = "Assay1", reg = TRUE))
 
   # update coordinates
   vrCoordinates(visium_data) <- coords*2
-  vrCoordinates(visium_data, reg = TRUE) <- coords*3
+  expect_error(vrCoordinates(visium_data, reg = TRUE) <- coords*3)
 
   # flip coordinates
   visium_data <- flipCoordinates(visium_data)
-  visium_data <- flipCoordinates(visium_data, reg = TRUE)
 
   # segments
   segments <- vrSegments(visium_data)
-  segments <- vrSegments(visium_data, reg = TRUE)
-  segments <- vrSegments(visium_data, assays = "Assay1", reg = TRUE)
+  expect_warning(segments <- vrSegments(visium_data, reg = TRUE))
+  expect_warning(segments <- vrSegments(visium_data, assays = "Assay1", reg = TRUE))
+
   expect_equal(1,1L)
 })
 
 # Testing functions of manipulating images ####
 test_that("image", {
+
+  # get data
   data("visium_data")
 
   # get image
   images <- vrImages(visium_data)
-  images <- vrImages(visium_data, main_image = "main_image")
+  images <- vrImages(visium_data, name = "H&E")
 
   # manipulate image
   visium_data_resize <- resizeImage(visium_data, size = 400)
@@ -95,10 +105,10 @@ test_that("image", {
   visium_data[["Assay1"]]@image[["new_image"]] <- vrImages(visium_data_resize)
 
   # get image names
-  expect_equal(vrImageNames(visium_data), c("main_image", "new_image"))
+  expect_equal(vrImageNames(visium_data), c("H&E", "new_image"))
 
   # get main image
-  expect_equal(vrMainImage(visium_data[["Assay1"]]), "main_image")
+  expect_equal(vrMainImage(visium_data[["Assay1"]]), "H&E")
 
   # change main image
   vrMainImage(visium_data[["Assay1"]]) <- "new_image"
@@ -110,6 +120,8 @@ test_that("image", {
 
 # Testing functions of manipulating images ####
 test_that("embeddings", {
+
+  # get data
   data("visium_data")
 
   # write embedding

@@ -12,6 +12,7 @@ importXenium(
   morphology_image = "morphology_lowres.tif",
   resolution_level = 7,
   overwrite_resolution = FALSE,
+  image_name = "DAPI",
   import_molecules = FALSE,
   ...
 )
@@ -30,6 +31,8 @@ importXenium(
 \item{resolution_level}{the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)}
 
 \item{overwrite_resolution}{if TRUE, the image "file.name" will be generated again although it exists at "dir.path"}
+
+\item{image_name}{the image name of the Xenium assay, Default: DAPI}
 
 \item{import_molecules}{if TRUE, molecule assay will be created along with cell assay.}
 

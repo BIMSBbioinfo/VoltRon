@@ -4,39 +4,55 @@
 \alias{vrImages}
 \alias{vrImages<-}
 \alias{vrImages.VoltRon}
-\alias{vrImages.vrSample}
-\alias{vrImages.vrLayer}
 \alias{vrImages.vrAssay}
 \alias{vrImages<-.vrAssay}
+\alias{vrImages.vrImage}
+\alias{vrImages<-.vrImage}
 \title{vrImages}
 \usage{
 vrImages(object, ...)
 
 vrImages(object, ...) <- value
 
-\method{vrImages}{VoltRon}(object, ...)
+\method{vrImages}{VoltRon}(object, assay = NULL, ...)
 
-\method{vrImages}{vrSample}(object, ...)
+\method{vrImages}{vrAssay}(object, name = NULL, reg = FALSE, channel = NULL, ...)
 
-\method{vrImages}{vrLayer}(object, ...)
+\method{vrImages}{vrAssay}(object, name = NULL, channel = NULL, reg = FALSE, ...) <- value
 
-\method{vrImages}{vrAssay}(object, main_image = NULL, as.raster = FALSE)
+\method{vrImages}{vrImage}(object, channel = NULL, as.raster = FALSE)
 
-\method{vrImages}{vrAssay}(object, main_image = NULL, reg = FALSE, ...) <- value
+\method{vrImages}{vrImage}(object, channel = NULL, ...) <- value
 }
 \arguments{
 \item{object}{A vrAssay object}
 
-\item{...}{Arguments passed to other methods}
+\item{...}{arguements passed to \code{vrImages.vrImage}}
 
 \item{value}{new image}
 
-\item{main_image}{the name of the main image}
+\item{assay}{assay}
 
-\item{as.raster}{if TRUE, return as raster matrix}
+\item{name}{the name of the main image}
 
-\item{reg}{TRUE if registered coordinates are assigned}
+\item{reg}{TRUE if registered images are assigned}
+
+\item{channel}{the name of the channel associated with the main image}
+
+\item{as.raster}{return as a raster}
 }
 \description{
 Get images of a VoltRon assay
+
+#' @param object A vrLayer object
+#' @param ... arguements passed to \code{vrImages.vrAssay}
+#'
+#' @rdname vrImages
+#' @method vrImages vrLayer
+#'
+#' @export
+#'
+vrImages.vrLayer <- function(object, ...){
+  sapply(object@assay, function(assy) vrImages(assy, ...), USE.NAMES = TRUE)
+}
 }
