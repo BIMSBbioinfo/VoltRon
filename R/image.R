@@ -719,11 +719,11 @@ modulateImage.vrImage <- function(object, channel = NULL, brightness = 100, satu
 
   # get channel names
   if(is.null(channel)){
-    channels <- vrImageChannelNames(object)
+    channel <- vrImageChannelNames(object)
   }
 
   # modulate image
-  for(img in channels){
+  for(img in channel){
     img_data <- magick::image_read(object@image[[img]])
     img_data <- magick::image_modulate(img_data, brightness = brightness, saturation = saturation, hue = hue)
     object@image[[img]] <- magick::image_data(img_data)
