@@ -7,7 +7,14 @@
 \usage{
 getSpatialNeighbors(object, ...)
 
-\method{getSpatialNeighbors}{VoltRon}(object, assay = NULL, method = "delaunay", ...)
+\method{getSpatialNeighbors}{VoltRon}(
+  object,
+  assay = NULL,
+  method = "delaunay",
+  radius = 1,
+  graph.key = method,
+  ...
+)
 }
 \arguments{
 \item{object}{An object}
@@ -16,7 +23,11 @@ getSpatialNeighbors(object, ...)
 
 \item{assay}{assay}
 
-\item{method}{the method spatial connectivity}
+\item{method}{the method spatial connectivity: "delaunay", "spatialkNN", "radius"}
+
+\item{radius}{When \code{method = "radius"} selected, determines the radius of a neighborhood ball around each spatial point}
+
+\item{graph.key}{the name of the graph}
 }
 \description{
 get neighbors in an assay given spatial coordinates
