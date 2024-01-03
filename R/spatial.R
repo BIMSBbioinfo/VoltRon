@@ -8,7 +8,9 @@ NULL
 
 # #' @importFrom tripack tri.mesh neighbours
 #' @param assay assay
-#' @param method the method spatial connectivity
+#' @param method the method spatial connectivity: "delaunay", "spatialkNN", "radius"
+#' @param radius When \code{method = "radius"} selected, determines the radius of a neighborhood ball around each spatial point
+#' @param graph.key the name of the graph
 #' @param ... additional parameters passed to \code{FNN:get.knn}
 #'
 #' @rdname getSpatialNeighbors
@@ -17,13 +19,14 @@ NULL
 #' @importFrom interp tri.mesh neighbours
 #' @importFrom igraph add_edges simplify make_empty_graph vertices
 #' @importFrom FNN get.knn
+#' @importFrom stats dist
 #'
 #' @export
 #'
-getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay", ...){
+getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay", radius = 1, graph.key = method, ...){
 
   # get coordinates
-  coords <- vrCoordinates(object, assay = assay, reg = TRUE)
+  coords <- vrCoordinates(object, assay = assay)
 
   # get spatial graph per assay
   assay_names <- vrAssayNames(object, assay = assay)
@@ -33,9 +36,7 @@ getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay
     spatialedges <-
       switch(method,
              delaunay = {
-               # tess <- tripack::tri.mesh(cur_coords[,1], cur_coords[,2])
                tess <- interp::tri.mesh(cur_coords[,1], cur_coords[,2])
-               # nnedges <- tripack::neighbours(tess)
                nnedges <- interp::neighbours(tess)
                nnedges <- mapply(function(x,y) {
                  do.call(c,lapply(y, function(z) c(x,z)))
@@ -44,12 +45,24 @@ getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay
                nnedges <- rownames(cur_coords)[nnedges]
                nnedges
              },
-             NN = {
+             spatialkNN = {
                nnedges <- FNN::get.knn(cur_coords, k = 1)
                nnedges <- cbind(1:nrow(cur_coords), nnedges)
                nnedges <- apply(nnedges, 1, function(x){
                  do.call(c,lapply(x[-1], function(y) return(c(x[1],y))))
                })
+               nnedges <- unlist(nnedges)
+               nnedges <- rownames(cur_coords)[nnedges]
+               nnedges
+             },
+             radius = {
+               distances <- as.matrix(stats::dist(coords, method = "euclidean"))
+               nnedges <- apply(distances, 1, function(x){
+                 which(x < radius)
+               })
+               nnedges <- mapply(function(x,y) {
+                 do.call(c,lapply(y, function(z) c(x,z)))
+               }, 1:length(nnedges), nnedges)
                nnedges <- unlist(nnedges)
                nnedges <- rownames(cur_coords)[nnedges]
                nnedges
@@ -62,7 +75,7 @@ getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay
   graph <- make_empty_graph(directed = FALSE) + vertices(rownames(coords))
   graph <- add_edges(graph, edges = spatialedges)
   graph <- simplify(graph, remove.multiple = TRUE, remove.loops = FALSE)
-  vrGraph(object, assay = assay, graph.type = "delaunay") <- graph
+  vrGraph(object, assay = assay, graph.type = graph.key) <- graph
 
   # return
   return(object)
