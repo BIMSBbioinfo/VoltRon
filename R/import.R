@@ -835,29 +835,32 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
 #'
 #' import an image as VoltRon object
 #'
-#' @param img an image
+#' @param image.path the path to an image file
+#' @param tile.size the size of tiles
 #'
-#' @importFrom magick image_read image_raster
+#' @importFrom magick image_read image_info
 #' @importFrom data.table data.table
 #'
-importImageData <- function(image, ...){
+importImageData <- function(image.path, tile.size = 10, ...){
 
   # get image
-  if(file.exists(image)){
-    image <- magick::image_read(image)
+  if(file.exists(image.path)){
+    image <- magick::image_read(image.path)
   } else {
-    stop(image, " is not found!")
+    stop(image.path, " is not found!")
   }
 
   # coordinates
-  image_data <- magick::image_raster(image)
+  imageinfo <- magick::image_info(image)
+  x_coords <- seq(1, imageinfo$width %/% tile.size)*(tile.size/2)
+  y_coords <- seq(imageinfo$height %/% tile.size, 1)*(tile.size/2)
+  coords <- as.matrix(expand.grid(x_coords, y_coords))
+  colnames(coords) <- c("x", "y")
+  rownames(coords) <- paste0("tile", 1:nrow(coords))
 
   # metadata
-  metadata <- data.table(id = rownames(image_data))
-
-  # coordinates
-  coords <- as.matrix(image_data[,c("x","y")])
+  metadata <- data.table(id = rownames(coords))
 
   # create voltron object
-  formVoltRon(data = NULL, metadata = metadata, image = image, coords, main.assay = "ImageData", assay.type = "tile", ...)
+  formVoltRon(data = NULL, metadata = metadata, image = image, coords, main.assay = "ImageData", assay.type = "tile", params = list(tile.size = tile.size), ...)
 }

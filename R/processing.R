@@ -244,7 +244,7 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
   # get PCA embedding
   set.seed(seed)
   pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
-  loading_matrix <- data.frame(pr.data$rotation, features = features)
+  # loading_matrix <- data.frame(pr.data$rotation, features = features)
   pr.data <- pr.data$x
   colnames(pr.data) <- paste0("PC", 1:dims)
   rownames(pr.data) <- colnames(normdata)

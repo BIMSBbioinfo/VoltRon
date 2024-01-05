@@ -22,8 +22,6 @@ vrData(object, ...)
 \item{...}{Arguments passed to other methods}
 
 \item{assay}{assay}
-
-\item{tile_size}{the size of tiles if an assay is of type tile}
 }
 \description{
 Get data from the main.assay

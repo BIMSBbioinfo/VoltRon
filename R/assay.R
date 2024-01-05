@@ -409,7 +409,7 @@ vrAssayTypes.vrAssay <- function(object) {
 #' @export
 #'
 vrAssayParams.vrAssay <- function(object, param = NULL) {
-  if(is.null(param)){
+  if(!is.null(param)){
     if(param %in% names(object@params)){
       return(object@params[[param]])
     } else {
@@ -420,10 +420,8 @@ vrAssayParams.vrAssay <- function(object, param = NULL) {
   }
 }
 
-
 #' @param features features
 #' @param norm TRUE if normalized data should be returned
-#' @param tile_size the size of tiles if an assay is of type tile
 #' @param ... additonal parameters passed to \code{vrImage}
 #'
 #' @rdname vrData
@@ -473,7 +471,7 @@ vrData.vrAssay <- function(object, features = NULL, norm = FALSE, ...) {
       if(assay.type == "tile") {
         image_data <- as.numeric(vrImages(object, as.raster = TRUE, ...))
         image_data <- image_data[,,1]
-        image_data <- split_into_tiles(image_data, tile_size = object@params[[tile_size]])
+        image_data <- split_into_tiles(image_data, tile_size = vrAssayParams(object, param = "tile.size"))
         image_data <- sapply(image_data, function(x) return(as.vector(x)))
         image_data <- image_data*255
         rownames(image_data) <- 1:nrow(image_data)

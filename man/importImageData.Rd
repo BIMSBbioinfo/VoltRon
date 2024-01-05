@@ -4,10 +4,12 @@
 \alias{importImageData}
 \title{importImageData}
 \usage{
-importImageData(image, ...)
+importImageData(image.path, tile.size = 10, ...)
 }
 \arguments{
-\item{img}{an image}
+\item{image.path}{the path to an image file}
+
+\item{tile.size}{the size of tiles}
 }
 \description{
 import an image as VoltRon object
