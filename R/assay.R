@@ -403,6 +403,24 @@ vrAssayTypes.vrAssay <- function(object) {
   return(object@type)
 }
 
+#' @rdname vrAssayParams
+#' @method vrAssayParams vrAssay
+#'
+#' @export
+#'
+vrAssayParams.vrAssay <- function(object, param = NULL) {
+  if(is.null(param)){
+    if(param %in% names(object@params)){
+      return(object@params[[param]])
+    } else {
+      stop(param, " not found in the param list")
+    }
+  } else {
+    return(object@params)
+  }
+}
+
+
 #' @param features features
 #' @param norm TRUE if normalized data should be returned
 #' @param tile_size the size of tiles if an assay is of type tile

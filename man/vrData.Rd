@@ -6,7 +6,7 @@
 \alias{vrData.VoltRon}
 \title{vrData}
 \usage{
-\method{vrData}{vrAssay}(object, features = NULL, norm = FALSE)
+\method{vrData}{vrAssay}(object, features = NULL, norm = FALSE, ...)
 
 vrData(object, ...)
 
@@ -22,6 +22,8 @@ vrData(object, ...)
 \item{...}{Arguments passed to other methods}
 
 \item{assay}{assay}
+
+\item{tile_size}{the size of tiles if an assay is of type tile}
 }
 \description{
 Get data from the main.assay
