@@ -56,7 +56,7 @@ getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay
                nnedges
              },
              radius = {
-               distances <- as.matrix(stats::dist(coords, method = "euclidean"))
+               distances <- as.matrix(stats::dist(cur_coords, method = "euclidean"))
                nnedges <- apply(distances, 1, function(x){
                  which(x < radius)
                })
