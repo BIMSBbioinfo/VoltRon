@@ -104,12 +104,14 @@ formImage <- function(coords, segments = list(), image = NULL, main_channel = NU
       names(image) <- main_channel
     }
   } else {
-    height <- max(ceiling(coords[,2]))
-    width <- max(ceiling(coords[,1]))
-    image <- list(matrix(rep("#030303ff", height*width), nrow = height, ncol = width))
-    if(is.null(main_channel))
-      main_channel <- "channel_1"
-    names(image) <- main_channel
+    # height <- max(ceiling(coords[,2]))
+    # width <- max(ceiling(coords[,1]))
+    # image <- list(matrix(rep("#030303ff", height*width), nrow = height, ncol = width))
+    # if(is.null(main_channel))
+    #   main_channel <- "channel_1"
+    # names(image) <- main_channel
+    image <- list()
+    main_channel <- ""
   }
 
   # make vrimage object
@@ -329,10 +331,15 @@ vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE){
       stop(channel, " is not among any channel in this vrImage object")
   }
 
-  if(as.raster){
-    return(object@image[[channel]])
-  } else {
-    return(magick::image_read(object@image[[channel]]))
+  if(length(object@image) > 0){
+    if(as.raster){
+      return(object@image[[channel]])
+    } else {
+      return(magick::image_read(object@image[[channel]]))
+    }
+  } else{
+    warning("No image was found!")
+    return(NULL)
   }
 }
 
@@ -546,7 +553,11 @@ vrImageChannelNames.vrAssay <- function(object, name = NULL){
 #' @export
 #'
 vrImageChannelNames.vrImage <- function(object){
-  return(names(object@image))
+  if(is.null(names(object@image))){
+    return("No Channels or Images found!")
+  } else{
+    return(names(object@image))
+  }
 }
 
 ####

@@ -179,7 +179,10 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   }
   if(!is.null(group.ids)){
     if(length(setdiff(group.ids,  coords[[group.by]])) > 0){
-      stop("Some groups defined in group.ids does not exist in group.by!")
+      warning("Some groups defined in group.ids does not exist in group.by!")
+      coords <- coords[coords[[group.by]] %in% group.ids,]
+    } else if(length(setdiff(group.ids,  coords[[group.by]])) > 0){
+      stop("None of the groups defined in group.ids exist in group.by!")
     } else {
       coords <- coords[coords[[group.by]] %in% group.ids,]
     }
@@ -199,9 +202,13 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   background <- background[1]
   if(background %in% vrImageNames(assay)){
     image <- vrImages(assay, name = background, channel = channel)
-    info <- image_info(image)
-    g <- g +
-      ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
+    if(!is.null(image)){
+      info <- image_info(image)
+      g <- g +
+        ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
+    } else {
+      info <- NULL
+    }
   } else {
     info <- NULL
   }
@@ -615,9 +622,13 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   background <- background[1]
   if(background %in% vrImageNames(assay)){
     image <- vrImages(assay, name = background, channel = channel)
-    info <- image_info(image)
-    g <- g +
-      ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
+    if(!is.null(image)){
+      info <- image_info(image)
+      g <- g +
+        ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
+    } else {
+      info <- NULL
+    }
   } else {
     info <- NULL
   }

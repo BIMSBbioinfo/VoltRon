@@ -6,7 +6,7 @@
 \alias{vrData.VoltRon}
 \title{vrData}
 \usage{
-\method{vrData}{vrAssay}(object, features = NULL, norm = FALSE)
+\method{vrData}{vrAssay}(object, features = NULL, norm = FALSE, ...)
 
 vrData(object, ...)
 

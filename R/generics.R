@@ -94,6 +94,49 @@ vrAssayNames <- function(object, ...) {
   UseMethod(generic = 'vrAssayNames<-', object = object)
 }
 
+#' Get Assay types
+#'
+#' Given a VoltRon object, give types of assays of some type, or of the main assay.
+#' Here, an assay type is of either cell, spot or ROI.
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname vrAssayTypes
+#' @export vrAssayTypes
+#'
+vrAssayTypes <- function(object, ...) {
+  UseMethod(generic = 'vrAssayTypes', object = object)
+}
+
+#' Get Assay types
+#'
+#' Given a VoltRon object, if there are any, get a list of parameters of the assay(s)
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname vrAssayParams
+#' @export vrAssayParams
+#'
+vrAssayParams <- function(object, ...) {
+  UseMethod(generic = 'vrAssayParams', object = object)
+}
+
+#' Main Assay
+#'
+#' Get and set the main assay
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname vrMainAssay
+#' @export vrMainAssay
+#'
+vrMainAssay <- function(object, ...) {
+  UseMethod(generic = 'vrMainAssay', object = object)
+}
+
 #' Get Embedding names
 #'
 #' Given a VoltRon object, give names of embeddings
@@ -120,35 +163,6 @@ vrEmbeddingNames <- function(object, ...) {
 #'
 changeSampleNames <- function(object, ...) {
   UseMethod(generic = 'changeSampleNames', object = object)
-}
-
-#' Get Assay types
-#'
-#' Given a VoltRon object, give types of assays of some type, or of the main assay.
-#' Here, an assay type is of either cell, spot or ROI.
-#'
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#'
-#' @rdname vrAssayTypes
-#' @export vrAssayTypes
-#'
-vrAssayTypes <- function(object, ...) {
-  UseMethod(generic = 'vrAssayTypes', object = object)
-}
-
-#' Main Assay
-#'
-#' Get and set the main assay
-#'
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#'
-#' @rdname vrMainAssay
-#' @export vrMainAssay
-#'
-vrMainAssay <- function(object, ...) {
-  UseMethod(generic = 'vrMainAssay', object = object)
 }
 
 #' @param object An object

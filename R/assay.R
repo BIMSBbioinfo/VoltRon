@@ -403,29 +403,83 @@ vrAssayTypes.vrAssay <- function(object) {
   return(object@type)
 }
 
+#' @rdname vrAssayParams
+#' @method vrAssayParams vrAssay
+#'
+#' @export
+#'
+vrAssayParams.vrAssay <- function(object, param = NULL) {
+  if(!is.null(param)){
+    if(param %in% names(object@params)){
+      return(object@params[[param]])
+    } else {
+      stop(param, " not found in the param list")
+    }
+  } else {
+    return(object@params)
+  }
+}
+
 #' @param features features
 #' @param norm TRUE if normalized data should be returned
+#' @param ... additonal parameters passed to \code{vrImage}
 #'
 #' @rdname vrData
 #' @method vrData vrAssay
 #'
+#' @importFrom magick image_raster
+#'
 #' @export
 #'
-vrData.vrAssay <- function(object, features = NULL, norm = FALSE) {
-  if(!is.null(features)){
-    if(!all(features %in% vrFeatures(object))){
-      stop("Some features are not available in the assay!")
-    }
-    if(norm){
-      return(object@normdata[features,,drop = FALSE])
+vrData.vrAssay <- function(object, features = NULL, norm = FALSE, ...) {
+
+  # get assay types
+  assay.type <- vrAssayTypes(object)
+
+  # for ROIs, cells and spots
+  if(assay.type %in% c("ROI", "cell", "spot")){
+
+    # check if there are features
+    if(!is.null(features)){
+      if(!all(features %in% vrFeatures(object))){
+        stop("Some features are not available in the assay!")
+      }
+      if(norm){
+        return(object@normdata[features,,drop = FALSE])
+      } else {
+        return(object@rawdata[features,,drop = FALSE])
+      }
+
+    # if there are no features requested, return the data
     } else {
-      return(object@rawdata[features,,drop = FALSE])
+      if(norm){
+        return(object@normdata)
+      } else {
+        return(object@rawdata)
+      }
     }
+
+  # for tiles and molecules
   } else {
-    if(norm){
-      return(object@normdata)
-    } else {
-      return(object@rawdata)
+
+    # check if features are requested
+    if(!is.null(features)){
+      stop("No features are available for tile and molecule assays!")
+    } else{
+
+      # for tile only
+      if(assay.type == "tile") {
+        image_data <- as.numeric(vrImages(object, as.raster = TRUE, ...))
+        image_data <- image_data[,,1]
+        image_data <- split_into_tiles(image_data, tile_size = vrAssayParams(object, param = "tile.size"))
+        image_data <- sapply(image_data, function(x) return(as.vector(x)))
+        image_data <- image_data*255
+        rownames(image_data) <- 1:nrow(image_data)
+        return(image_data)
+      # for molecules only
+      } else if(assay.type == "molecule"){
+        stop("No data matrices are available for molecule assays!")
+      }
     }
   }
 }

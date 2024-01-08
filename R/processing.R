@@ -221,19 +221,22 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get shared features and subset
-  if(is.null(features)){
-    features <- getVariableFeatures(object, assay = assay)
-  }
-  object_subset <- subset(object, features = features)
+  if(length(vrFeatures(object, assay = assay)) > 0) {
+    if(is.null(features))
+      features <- getVariableFeatures(object, assay = assay)
+    object_subset <- subset(object, features = features)
 
-  # adjust extraction features length
-  if(dims > length(features)){
-    message("Requested more PC dimensions than existing features: dims = length(features) now!")
-    dims <- length(features)
+    # adjust extraction features length
+    if(dims > length(features)){
+      message("Requested more PC dimensions than existing features: dims = length(features) now!")
+      dims <- length(features)
+    }
+  } else {
+    object_subset <- object
   }
 
   # get data
-  normdata <- vrData(object_subset, norm = TRUE)
+  normdata <- vrData(object_subset, assay = assay, norm = TRUE)
 
   # scale data before PCA
   scale.data <- apply(normdata, 1, scale)
@@ -241,7 +244,7 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
   # get PCA embedding
   set.seed(seed)
   pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
-  loading_matrix <- data.frame(pr.data$rotation, features = features)
+  # loading_matrix <- data.frame(pr.data$rotation, features = features)
   pr.data <- pr.data$x
   colnames(pr.data) <- paste0("PC", 1:dims)
   rownames(pr.data) <- colnames(normdata)
@@ -290,4 +293,40 @@ getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30
 
   # return
   return(object)
+}
+
+####
+# Image Processing ####
+####
+
+split_into_tiles <- function(image_data, tile_size = 10) {
+  n_rows <- nrow(image_data)
+  n_cols <- ncol(image_data)
+
+  # Calculate the number of tiles in rows and columns
+  n_row_tiles <- n_rows %/% tile_size
+  n_col_tiles <- n_cols %/% tile_size
+
+  # Initialize an empty list to store tiles
+  tiles <- list()
+
+  # Loop through the image data matrix to extract tiles
+  for (i in 1:n_row_tiles) {
+    for (j in 1:n_col_tiles) {
+      # Calculate the indices for the current tile
+      start_row <- (i - 1) * tile_size + 1
+      end_row <- i * tile_size
+      start_col <- (j - 1) * tile_size + 1
+      end_col <- j * tile_size
+
+      # Extract the current tile from the image data matrix
+      tile <- image_data[start_row:end_row, start_col:end_col]
+
+      # Store the tile in the list
+      tiles[[length(tiles) + 1]] <- tile
+    }
+  }
+
+  # Return the list of tiles
+  return(tiles)
 }
