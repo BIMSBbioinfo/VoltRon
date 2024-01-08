@@ -214,7 +214,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   }
 
   # ROI visualization
-  if(assay@type == "ROI"){
+  if(vrAssayTypes(assay) == "ROI"){
     polygon_data <- NULL
     circle_data <- NULL
     for(i in 1:length(segments)){
@@ -241,14 +241,14 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       guides(fill = guide_legend(title = group.by))
 
   # spot visualization
-  } else if(assay@type == "spot"){
+  } else if(vrAssayTypes(assay) == "spot"){
     g <- g +
       geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]]) +
       scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
 
   # cell visualization
-  } else if(assay@type == "cell") {
+  } else if(vrAssayTypes(assay) == "cell") {
 
       if(plot.segments){
 
@@ -279,7 +279,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
             geom_segment(data = graph.df, mapping = aes(x=from.x,xend = to.x, y=from.y,yend = to.y), alpha = 0.5, color = ifelse(background == "black", "grey", "black"))
         }
       }
-  } else if(assay@type == "molecule") {
+  } else if(vrAssayTypes(assay) == "molecule") {
 
     # coords <- coords[coords[[group.by]] %in% transcripts, ]
     g <- g +
@@ -287,7 +287,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
 
   } else {
-    stop("Only ROIs, spots and cells can be visualized with vrSpatialPlot!")
+    stop("Only ROIs, spots, cells can be visualized with vrSpatialPlot!")
   }
 
   # more visualization parameters
@@ -299,7 +299,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
                                 legend.margin = margin(0,0,0,0))
 
   # set up the limits
-  if(assay@type == "spot"){
+  if(vrAssayTypes(assay) == "spot"){
     if(crop){
       g <- g +
         coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
@@ -635,7 +635,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 
   # add points or segments
   segments <- vrSegments(assay)
-  if(assay@type == "ROI" && !is.null(segments)){
+  if(vrAssayTypes(assay) == "ROI" && !is.null(segments)){
     polygon_data <- NULL
     circle_data <- NULL
     for(i in 1:length(segments)){
@@ -661,13 +661,13 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
       scale_fill_gradientn(name = legend_title,
                            colors=c("dodgerblue2", "white", "yellow3"),
                            values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
-  } else if(assay@type == "spot"){
+  } else if(vrAssayTypes(assay) == "spot"){
     g <- g +
       geom_spot(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, alpha = alpha, spot.radius = assay@params[["spot.radius"]]) +
       scale_fill_gradientn(name = legend_title,
                              colors=c("dodgerblue3", "yellow", "red"),
                              values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
-  } else if(assay@type == "cell"){
+  } else if(vrAssayTypes(assay) == "cell"){
 
     if(plot.segments){
 
@@ -714,7 +714,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
                                 legend.margin = margin(0,0,0,0))
 
   # set up the limits
-  if(assay@type == "spot"){
+  if(vrAssayTypes(assay) == "spot"){
     if(crop){
       g <- g +
         coord_fixed(xlim = range(coords$x), ylim = range(coords$y))

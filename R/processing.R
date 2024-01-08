@@ -221,7 +221,10 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get shared features and subset
-  if(length(vrFeatures(object, assay = assay)) > 0) {
+  assay_features <- vrFeatures(object, assay = assay)
+
+  # if there are features of a VoltRon object, then get variable features too
+  if(length(assay_features) > 0) {
     if(is.null(features))
       features <- getVariableFeatures(object, assay = assay)
     object_subset <- subset(object, features = features)
@@ -231,6 +234,8 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
       message("Requested more PC dimensions than existing features: dims = length(features) now!")
       dims <- length(features)
     }
+
+  # if there are no features in VoltRon object, return the assay as itself
   } else {
     object_subset <- object
   }
