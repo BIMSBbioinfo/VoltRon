@@ -308,15 +308,17 @@ vrSpatialPoints.vrAssay <- function(object, ...) {
   embed_names <- names(embeddings)
   if(length(embed_names) > 0){
     for(type in embed_names){
-      if(nrow(embeddings[[type]]) > 0 ){
+      if(nrow(embeddings[[type]]) > 0){
         if(nrow(embeddings[[type]]) != length(value)){
           stop("The number of spatial points is not matching with the input")
         } else {
           rownames(embeddings[[type]]) <- value
         }
+        object@embeddings[[type]] <- embeddings[[type]]
       }
     }
   }
+
 
   # return
   return(object)

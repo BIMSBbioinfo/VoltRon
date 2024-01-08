@@ -10,6 +10,7 @@
 #' @rdname as.VoltRon
 #' @method as.VoltRon Seurat
 #'
+#' @importFrom stringr str_replace str_extract
 #' @export
 #'
 as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name = NULL, ...){
@@ -23,6 +24,14 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
 
   # metadata
   metadata <- object@meta.data
+
+  # embeddings
+  if(length(object@reductions) > 0){
+    embeddings_flag <- TRUE
+    embedding_list <- sapply(Elena.merged@reductions, Seurat::Embeddings, USE.NAMES = TRUE)
+  } else {
+    embeddings_flag <- FALSE
+  }
 
   # image
   voltron_list <- list()
@@ -56,6 +65,18 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
       assay.type <- "cell"
       assay_name <- "FOV"
       voltron_list[[fn]] <- formVoltRon(data = cur_rawdata, metadata = cur_metadata, coords = coords, main.assay = assay_name, params = params, assay.type = assay.type, sample_name = fn, ...)
+
+      # embeddings
+      spatialpoints <- vrSpatialPoints(voltron_list[[fn]])
+      spatialpoints_nopostfix <- stringr::str_replace(spatialpoints, "_Assay[0-9]+$", "")
+      spatialpoints_assay <- stringr::str_extract(spatialpoints, "Assay[0-9]+$")
+      if(embeddings_flag){
+        for(embed_name in names(embedding_list)){
+          embedding_sp <- embedding_list[[embed_name]][spatialpoints_nopostfix[spatialpoints_assay == vrAssayNames(voltron_list[[fn]])],]
+          rownames(embedding_sp) <- spatialpoints
+          vrEmbeddings(voltron_list[[fn]], type = embed_name) <- embedding_sp
+        }
+      }
     }
 
     # merge object
