@@ -1028,7 +1028,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, a
     # add points or segments
     # datax <- datax[sample(1:nrow(datax)),]
     g <- g +
-      geom_point(mapping = aes(x = x, y = y, color = score), datax, shape = 16, size = pt.size) +
+      geom_point(mapping = aes(x = x, y = y, color = score), dplyr::arrange(datax,score), shape = 16, size = pt.size) +
       scale_color_gradientn(name = legend_title[[feat]],
                             colors=c("lightgrey", "blue"),
                             values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
