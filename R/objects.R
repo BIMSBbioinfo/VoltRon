@@ -1051,17 +1051,18 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
     type <- unique(vrAssayTypes(object, assay = assay))
   }
 
-  if(type %in% slotNames(object@metadata)){
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
 
-    # sample metadata
-    sample.metadata <- SampleMetadata(object)
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
 
-    # get assay names
-    assay_names <- vrAssayNames(object, assay = assay)
+  # get metadata
+  metadata <- slot(object@metadata, name = type)
+  # cur_metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assay_names, ]
 
-    # get metadata
-    metadata <- slot(object@metadata, name = type)
-    # cur_metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assay_names, ]
+  # if(type %in% slotNames(object@metadata)){
+  if(type %in% c("ROI", "cell", "spot")){
 
     # replace the metadata (or some part of it) with the new value
     if(length(setdiff(rownames(values), rownames(metadata))) == 0){
@@ -1087,6 +1088,40 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
 
       # replace data
       metadata[rownames(value), ] <- value
+      slot(object@metadata, name = type) <- metadata
+
+    } else {
+      stop("Some rows of new data frame are not available in the metadata")
+    }
+
+  } else if(type %in% c("tile", "molecule")){
+
+    # replace the metadata (or some part of it) with the new value
+    if(length(setdiff(value$id, metadata$id)) == 0){
+
+      # check columns of the new table
+      new_columns <- setdiff(colnames(value), colnames(metadata))
+
+      # current metadata shouldnt have columns that value doesnt have
+      if(length(setdiff(colnames(metadata), colnames(value))) > 0)
+        stop("Some columns of new data frame are not available in the metadata")
+
+      # if new columns appear, update the column names of the metadata'
+      if(length(new_columns) > 0){
+        value <- value[,colnames(value)[colnames(value) %in% c(colnames(metadata), new_columns)], with = FALSE]
+        # value <- value[,c(colnames(metadata), new_columns), with = FALSE]
+        for(cur_col in new_columns){
+          if(is.numeric(value[[cur_col]])){
+            metadata[[cur_col]] <- NA
+          } else {
+            metadata[[cur_col]] <- ""
+          }
+        }
+      }
+
+      # replace data
+      # metadata[id %in% value$id, names(metadata):=value]
+      metadata <- value
       slot(object@metadata, name = type) <- metadata
 
     } else {
@@ -1236,8 +1271,9 @@ vrGraph.VoltRon <- function(object, assay = NULL, graph.type = "kNN", ...) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
-  assay_pattern <- paste0(assay_names, "$", collapse = "|")
-  node_names <- vrSpatialPoints(object)[grepl(assay_pattern, vrSpatialPoints(object))]
+  # assay_pattern <- paste0(assay_names, "$", collapse = "|")
+  # node_names <- vrSpatialPoints(object)[grepl(assay_pattern, vrSpatialPoints(object))]
+  node_names <- vrSpatialPoints(object, assay = assay_names)
 
   # check if there exists graphs
   if(length(names(object@graph)) == 0)
@@ -1476,7 +1512,11 @@ vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", dims = 1:30
   # set embeddings
   for(assy in assay_names){
     assayobject <- object[[assy]]
-    vrEmbeddings(assayobject, type = type) <- value[grepl(paste0(assy, "$"), rownames(value)),]
+    if(vrAssayTypes(assayobject) %in% c("ROI", "cell", "spot")){
+      vrEmbeddings(assayobject, type = type) <- value[grepl(paste0(assy, "$"), rownames(value)),]
+    } else {
+      vrEmbeddings(assayobject, type = type) <- value[vrSpatialPoints(assayobject),]
+    }
     object[[assy]] <- assayobject
   }
 

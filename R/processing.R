@@ -253,6 +253,7 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
   pr.data <- pr.data$x
   colnames(pr.data) <- paste0("PC", 1:dims)
   rownames(pr.data) <- colnames(normdata)
+  # rownames(pr.data) <- vrSpatialPoints(object_subset, assay = assay)
 
   # set Embeddings
   vrEmbeddings(object, type = "pca", ...) <- pr.data

@@ -109,10 +109,15 @@ getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters"
 
   # metadata
   metadata <- Metadata(object)
-  metadata_clusters <- rep(NA, nrow(metadata))
-  metadata[[label]] <- metadata_clusters
   entities <- vrSpatialPoints(object_subset)
-  metadata[entities,][[label]] <- clusters
+  if(inherits(metadata, "data.table")){
+    metadata[[label]] <- as.numeric(NA)
+    metadata[[label]][metadata$id %in% entities] <- clusters
+  } else {
+    metadata_clusters <- NA
+    metadata[[label]] <- metadata_clusters
+    metadata[entities,][[label]] <- clusters
+  }
   Metadata(object) <- metadata
 
   # return

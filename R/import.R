@@ -850,10 +850,16 @@ importImageData <- function(image.path, tile.size = 10, ...){
     stop(image.path, " is not found!")
   }
 
-  # coordinates
+  # image info
   imageinfo <- magick::image_info(image)
-  x_coords <- seq(1, imageinfo$width %/% tile.size)*(tile.size/2)
-  y_coords <- seq(imageinfo$height %/% tile.size, 1)*(tile.size/2)
+
+  # coordinates
+  even_odd_corretion <- (!tile.size%%2)*(0.5)
+  # x_coords <- seq((tile.size/2) + even_odd_corretion, length.out = imageinfo$width %/% tile.size)
+  # y_coords <- seq(imageinfo$height %/% tile.size, 1)*(tile.size/2)
+  x_coords <- seq((tile.size/2) + even_odd_corretion, imageinfo$width, tile.size)[1:(imageinfo$width %/% tile.size)]
+  y_coords <- seq((tile.size/2) + even_odd_corretion, imageinfo$height, tile.size)[1:(imageinfo$height %/% tile.size)]
+  y_coords <- rev(y_coords)
   coords <- as.matrix(expand.grid(x_coords, y_coords))
   colnames(coords) <- c("x", "y")
   rownames(coords) <- paste0("tile", 1:nrow(coords))

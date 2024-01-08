@@ -248,7 +248,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
 
   # cell visualization
-  } else if(vrAssayTypes(assay) == "cell") {
+  } else if(vrAssayTypes(assay) %in% c("cell", "tile")) {
 
       if(plot.segments){
 
@@ -667,7 +667,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
       scale_fill_gradientn(name = legend_title,
                              colors=c("dodgerblue3", "yellow", "red"),
                              values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
-  } else if(vrAssayTypes(assay) == "cell"){
+  } else if(vrAssayTypes(assay) %in% c("cell", "tile")) {
 
     if(plot.segments){
 
@@ -883,14 +883,23 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", assa
 
   # grep assays from metadata
   assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
-  metadata <- metadata[grepl(assy_id, rownames(metadata)),]
+  if(inherits(metadata, "data.table")){
+    metadata <- subset(metadata, subset = assay_id %in% assay_names)
+  } else {
+    assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
+    metadata <- metadata[grepl(assy_id, rownames(metadata)),]
+  }
 
   # plotting features
   datax <- data.frame(vrEmbeddings(object, assay = assay_names, type = embedding))
   datax <- datax[,1:2]
   colnames(datax) <- c("x", "y")
   if(group.by %in% colnames(metadata)){
-    datax[[group.by]] <- as.factor(metadata[,group.by])
+    if(inherits(metadata, "data.table")){
+      datax[[group.by]] <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
+    } else {
+      datax[[group.by]] <- as.factor(metadata[,group.by])
+    }
   } else {
     stop("Column ", group.by, " cannot be found in metadata!")
   }

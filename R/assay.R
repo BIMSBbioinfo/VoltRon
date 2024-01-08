@@ -477,6 +477,7 @@ vrData.vrAssay <- function(object, features = NULL, norm = FALSE, ...) {
         image_data <- sapply(image_data, function(x) return(as.vector(x)))
         image_data <- image_data*255
         rownames(image_data) <- 1:nrow(image_data)
+        colnames(image_data) <- vrSpatialPoints(object)
         return(image_data)
       # for molecules only
       } else if(assay.type == "molecule"){
