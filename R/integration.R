@@ -77,7 +77,8 @@ transferData <- function(object, from = NULL, to = NULL, features = NULL, new_as
 getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, features = NULL) {
 
   # get the spot radius of Visium spots
-  Vis_spotradius <- to_object@params$spot.radius
+  # Vis_spotradius <- to_object@params$spot.radius
+  Vis_spotradius <- vrAssayParams(to_object, param = "spot.radius")
 
   # get cell and spot coordinates
   cat("Cell to Spot Distances \n")

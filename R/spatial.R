@@ -23,7 +23,7 @@ NULL
 #'
 #' @export
 #'
-getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay", radius = 1, graph.key = method, ...){
+getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay", radius = numeric(0), graph.key = method, ...){
 
   # get coordinates
   coords <- vrCoordinates(object, assay = assay)
@@ -56,9 +56,13 @@ getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay
                nnedges
              },
              radius = {
+               if(length(radius) == 0){
+                 spot.radius <- vrAssayParams(object[[assy]], param = "nearestpost.distance")
+                 radius <- ifelse(is.null(spot.radius), 1, spot.radius)
+               }
                distances <- as.matrix(stats::dist(cur_coords, method = "euclidean"))
                nnedges <- apply(distances, 1, function(x){
-                 which(x < radius)
+                 which(x < radius & x > .Machine$double.eps)
                })
                nnedges <- mapply(function(x,y) {
                  do.call(c,lapply(y, function(z) c(x,z)))

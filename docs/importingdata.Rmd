@@ -104,6 +104,14 @@ vrImageNames(Vis_R1)
 
 <br>
 
+Although by default the **importVisium** function selects the low resolution image, you can select the higher resolution one using **resolution_level="hires"**
+
+```{r eval = FALSE, class.source="watch-out"}
+Vis_R1 <- importVisium(dir.path = "Visium/", sample_name = "VisiumR1", resolution_level="hires")
+```
+
+<br>
+
 ## Xenium
 
 </br>

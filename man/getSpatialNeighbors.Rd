@@ -11,7 +11,7 @@ getSpatialNeighbors(object, ...)
   object,
   assay = NULL,
   method = "delaunay",
-  radius = 1,
+  radius = numeric(0),
   graph.key = method,
   ...
 )

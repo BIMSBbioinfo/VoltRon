@@ -162,6 +162,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #' @param assay_name the assay name
 #' @param image_name the image name of the Visium assay, Default: H&E
 #' @param inTissue if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)
+#' @param resolution_level the level of resolution of Visium image: "lowres" (default) or "hires"
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
 #' @importFrom magick image_read
@@ -170,7 +171,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #'
 #' @export
 #'
-importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_name = "Visium", image_name = "H&E", inTissue = TRUE, ...)
+importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_name = "Visium", image_name = "H&E", inTissue = TRUE, resolution_level = "lowres", ...)
 {
   # raw counts
   listoffiles <- list.files(dir.path)
@@ -187,8 +188,12 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
     stop("There are no files named 'filtered_feature_bc_matrix.h5' in the path")
   }
 
+  # resolution
+  if(!resolution_level %in% c("lowres","hires"))
+    stop("resolution_level should be either 'lowres' or 'hires'!")
+
   # image
-  image_file <- paste0(dir.path, "/spatial/tissue_lowres_image.png")
+  image_file <- paste0(dir.path, paste0("/spatial/tissue_", resolution_level, "_image.png"))
   if(file.exists(image_file)){
     image <-  magick::image_read(image_file)
     info <- image_info(image)
@@ -226,10 +231,14 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   scale_file <- paste0(dir.path, "/spatial/scalefactors_json.json")
   if(file.exists(scale_file)){
     scalefactors <- rjson::fromJSON(file = scale_file)
-    scales <- scalefactors$tissue_lowres_scalef
+    # scales <- scalefactors$tissue_lowres_scalef
+    scales <- scalefactors[[paste0("tissue_", resolution_level, "_scalef")]]
     # spot.radius is the half of the diameter, but we visualize by a factor of 1.5 larger
     # params <- list(spot.radius = scalefactors$spot_diameter_fullres*scalefactors$tissue_lowres_scalef*1.5)
-    params <- list(spot.radius = scalefactors$spot_diameter_fullres*scalefactors$tissue_lowres_scalef*2)
+    params <- list(
+      nearestpost.distance = 200*scales, # distance to nearest spot
+      spot.radius = scalefactors$spot_diameter_fullres*scales,
+      vis.spot.radius = scalefactors$spot_diameter_fullres*scales*2)
     coords <- coords*scales
     coords[,2] <- info$height - coords[,2]
   } else {

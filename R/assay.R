@@ -415,7 +415,8 @@ vrAssayParams.vrAssay <- function(object, param = NULL) {
     if(param %in% names(object@params)){
       return(object@params[[param]])
     } else {
-      stop(param, " not found in the param list")
+      warning(param, " not found in the param list")
+      return(NULL)
     }
   } else {
     return(object@params)
