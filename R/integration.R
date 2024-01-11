@@ -22,13 +22,19 @@ transferData <- function(object, from = NULL, to = NULL, features = NULL, new_as
   if(length(unique(samples)) > 1)
     stop("Selected assays have to be within the same sample block!")
 
-  # get assays
-  to_object <- object[[to]]
+  # get from assay
   from_object <- object[[from]]
   from_metadata <- Metadata(object, assay = from, type = vrAssayTypes(from_object))
-  from_metadata <- from_metadata[grepl(paste0(from, "$"), rownames(from_metadata)),]
+  # if(inherits(from_metadata, "data.table")){
+  #   from_metadata <- subset(from_metadata, id %in% )
+  # } else {
+  #   from_metadata <- from_metadata[grepl(paste0(from, "$"), rownames(from_metadata)),]
+  # }
+
+  # get to assay
+  to_object <- object[[to]]
   to_metadata <- Metadata(object, assay = to, type = vrAssayTypes(to_object))
-  to_metadata <- to_metadata[grepl(paste0(to, "$"), rownames(to_metadata)),]
+  # to_metadata <- to_metadata[grepl(paste0(to, "$"), rownames(to_metadata)),]
 
   # get assay types
   to_object_type <- vrAssayTypes(to_object)
@@ -38,6 +44,10 @@ transferData <- function(object, from = NULL, to = NULL, features = NULL, new_as
   if(to_object_type == "spot"){
     if(from_object_type == "cell"){
       new_assay <- getSpotsFromCells(from_object, from_metadata, to_object, features = features)
+    }
+  } else if(to_object_type == "cell"){
+    if(from_object_type == "tile"){
+      new_assay <- getCellsFromTiles(from_object, from_metadata, to_object, features = features)
     }
   }
 
@@ -139,10 +149,51 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
   aggregate_raw_counts[is.na(aggregate_raw_counts)] <- 0
 
   # create new assay
-  images <- list()
-  for(img in vrImageNames(to_object)){
-    images[[img]] <- magick::image_data(vrImages(to_object, name = img))
-  }
+  # images <- list()
+  # for(img in vrImageNames(to_object)){
+  #   images[[img]] <- magick::image_data(vrImages(to_object, name = img))
+  # }
+  new_assay <- formAssay(data = aggregate_raw_counts,
+                         coords = vrCoordinates(to_object)[colnames(aggregate_raw_counts),],
+                         image = vrImages(to_object),
+                         type = vrAssayTypes(to_object),
+                         main_image = to_object@main_image,
+                         params = to_object@params)
+  new_assay@image <- to_object@image
+  new_assay <- subset(new_assay, spatialpoints = colnames(aggregate_raw_counts))
+
+  # return
+  return(new_assay)
+}
+
+getCellsFromTiles <- function(from_object, from_metadata = NULL, to_object, features = NULL, k = 5) {
+
+  # get cell and spot coordinates
+  cat("Tile to Cell Distances \n")
+  coords_cells <- vrCoordinates(to_object)
+  coords_tiles <- vrCoordinates(from_object, reg = TRUE)
+
+  # get distances from cells to spots
+  # tile_to_cell <- FNN::get.knnx(coords_cells, coords_tiles, k = 1)
+  tile_to_cell <- FNN::get.knnx(coords_tiles, coords_cells, k = k)
+  tile_to_cell_nnid <- data.frame(id = rownames(coords_cells), tile_to_cell$nn.index)
+  tile_to_cell_nnid <- reshape2::melt(tile_to_cell_nnid, id.vars = "id")
+  tile_id <- vrSpatialPoints(from_object)[tile_to_cell_nnid$value]
+  tile_to_cell_nnid <- tile_to_cell_nnid$id
+
+  # get data
+  raw_counts <- vrData(from_object, norm = FALSE)
+  raw_counts <- raw_counts[,tile_id]
+
+  # pool cell counts to Spots
+  cat("Aggregating tile profiles in cells \n")
+  aggregate_raw_counts <- stats::aggregate(t(as.matrix(raw_counts)), list(tile_to_cell_nnid), mean)
+  aggregate_raw_counts <- data.frame(barcodes = vrSpatialPoints(to_object)) %>% dplyr::right_join(aggregate_raw_counts, by = c("barcodes" = "Group.1"))
+  rownames(aggregate_raw_counts) <- aggregate_raw_counts$barcodes
+  aggregate_raw_counts <- t(aggregate_raw_counts[,-1])
+  aggregate_raw_counts[is.na(aggregate_raw_counts)] <- 0
+
+  # create new assay
   new_assay <- formAssay(data = aggregate_raw_counts,
                          coords = vrCoordinates(to_object)[colnames(aggregate_raw_counts),],
                          image = vrImages(to_object),

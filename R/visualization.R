@@ -514,7 +514,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
 
       # get assay
       cur_assay <- object[[assy]]
-      cur_metadata <- metadata[grepl(assy, rownames(metadata)),]
+      cur_metadata <- metadata[grepl(paste0(assy, "$"), rownames(metadata)),]
 
       # get graph
       if(!is.null(graph.name)){

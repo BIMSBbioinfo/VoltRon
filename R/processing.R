@@ -228,6 +228,7 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
     if(is.null(features))
       features <- getVariableFeatures(object, assay = assay)
     object_subset <- subset(object, features = features)
+    vrMainAssay(object_subset) <- vrMainAssay(object)
 
     # adjust extraction features length
     if(dims > length(features)){
