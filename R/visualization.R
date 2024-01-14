@@ -184,6 +184,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     } else if(length(setdiff(group.ids,  coords[[group.by]])) > 0){
       stop("None of the groups defined in group.ids exist in group.by!")
     } else {
+      segments <- segments[coords[[group.by]] %in% group.ids]
       coords <- coords[coords[[group.by]] %in% group.ids,]
     }
   }

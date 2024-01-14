@@ -25,16 +25,10 @@ transferData <- function(object, from = NULL, to = NULL, features = NULL, new_as
   # get from assay
   from_object <- object[[from]]
   from_metadata <- Metadata(object, assay = from, type = vrAssayTypes(from_object))
-  # if(inherits(from_metadata, "data.table")){
-  #   from_metadata <- subset(from_metadata, id %in% )
-  # } else {
-  #   from_metadata <- from_metadata[grepl(paste0(from, "$"), rownames(from_metadata)),]
-  # }
 
   # get to assay
   to_object <- object[[to]]
   to_metadata <- Metadata(object, assay = to, type = vrAssayTypes(to_object))
-  # to_metadata <- to_metadata[grepl(paste0(to, "$"), rownames(to_metadata)),]
 
   # get assay types
   to_object_type <- vrAssayTypes(to_object)
@@ -205,4 +199,86 @@ getCellsFromTiles <- function(from_object, from_metadata = NULL, to_object, feat
 
   # return
   return(new_assay)
+}
+
+####
+# Embedding ####
+####
+
+getJointPCA <- function(object, assay.1 = NULL, assay.2 = NULL, dims = 30, seed = 1, ...){
+
+  # get assay names
+  assay <- assay.1
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # if there are features of a VoltRon object, then get variable features too
+  assay_features <- vrFeatures(object, assay = assay)
+  if(length(assay_features) > 0) {
+    features <- getVariableFeatures(object, assay = assay)
+    vrMainAssay(object) <- object@sample.metadata[assay, "Assay"]
+    object_subset <- subset(object, features = features)
+    vrMainAssay(object_subset) <- vrMainAssay(object)
+    if(dims > length(features)){
+      message("Requested more PC dimensions than existing features: dims = length(features) now!")
+      dims <- length(features)
+    }
+  } else {
+    object_subset <- object
+  }
+
+  # get PCA embedding
+  set.seed(seed)
+  normdata.1 <- vrData(object_subset, assay = assay, norm = TRUE)
+  scale.data <- apply(normdata.1, 1, scale)
+  pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+  pr.data.1 <- pr.data$x
+  colnames(pr.data.1) <- paste0("PC", 1:dims)
+  rownames(pr.data.1) <- colnames(normdata.1)
+  normdata.1 <- normdata.1/(pr.data$sdev[1]^2)
+
+  # get assay names
+  assay <- assay.2
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # if there are features of a VoltRon object, then get variable features too
+  assay_features <- vrFeatures(object, assay = assay)
+  if(length(assay_features) > 0) {
+    features <- getVariableFeatures(object, assay = assay)
+    vrMainAssay(object) <- object@sample.metadata[assay, "Assay"]
+    object_subset <- subset(object, features = features)
+    vrMainAssay(object_subset) <- vrMainAssay(object)
+    if(dims > length(features)){
+      message("Requested more PC dimensions than existing features: dims = length(features) now!")
+      dims <- length(features)
+    }
+  } else {
+    object_subset <- object
+  }
+
+  # get PCA embedding
+  set.seed(seed)
+  normdata.2 <- vrData(object_subset, assay = assay, norm = TRUE)
+  scale.data <- apply(normdata.2, 1, scale)
+  pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+  pr.data.2 <- pr.data$x
+  colnames(pr.data.2) <- paste0("PC", 1:dims)
+  rownames(pr.data.2) <- colnames(normdata.2)
+  normdata.2 <- normdata.2/(pr.data$sdev[1]^2)
+
+  # get joint PCA
+  normdata <- rbind(normdata.1, normdata.2)
+  scale.data <- apply(normdata, 1, scale)
+  pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+  prsdev <- pr.data$sdev
+  pr.data <- pr.data$x
+  colnames(pr.data) <- paste0("PC", 1:dims)
+  rownames(pr.data) <- colnames(normdata)
+  normdata <- normdata/(prsdev[1]^2)
+
+  # set Embeddings
+  vrEmbeddings(object, type = "pca_joint", assay = assay.1, ...) <- pr.data
+  vrEmbeddings(object, type = "pca_joint", assay = assay.2, ...) <- pr.data
+
+  # return
+  return(object)
 }

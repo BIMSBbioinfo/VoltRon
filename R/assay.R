@@ -473,7 +473,8 @@ vrData.vrAssay <- function(object, features = NULL, norm = FALSE, ...) {
       # for tile only
       if(assay.type == "tile") {
         image_data <- as.numeric(vrImages(object, as.raster = TRUE, ...))
-        image_data <- image_data[,,1]
+        # image_data <- image_data[,,1]
+        image_data <- (0.299 * image_data[,,1] + 0.587 * image_data[,,2] + 0.114 * image_data[,,3])
         image_data <- split_into_tiles(image_data, tile_size = vrAssayParams(object, param = "tile.size"))
         image_data <- sapply(image_data, function(x) return(as.vector(x)))
         image_data <- image_data*255
