@@ -204,6 +204,7 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #' @param assay assay
 #' @param features the selected features for PCA reduction
 #' @param dims the number of dimensions extracted from PCA
+#' @param overwrite Whether the existing embedding with name 'type' should be overwritten in \code{vrEmbeddings}
 #' @param seed seed
 #' @param ... additional parameters passed to \code{vrEmbeddings}
 #'
@@ -215,7 +216,7 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #'
 #' @export
 #'
-getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, seed = 1, ...){
+getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, overwrite = FALSE, seed = 1, ...){
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -267,6 +268,7 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
 #' @param data.type the type of data used to calculate UMAP from: "pca" (default), "raw" or "norm"
 #' @param dims the number of dimensions extracted from PCA
 #' @param umap.key the name of the umap embedding, default: umap
+#' @param overwrite Whether the existing embedding with name 'type' should be overwritten in \code{vrEmbeddings}
 #' @param seed seed
 #' @param ... additional parameters passed to \code{vrEmbeddings}
 #'
@@ -277,7 +279,7 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
 #'
 #' @export
 #'
-getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30, umap.key = "umap", seed = 1, ...){
+getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30, umap.key = "umap", overwrite = FALSE, seed = 1, ...){
 
   # get data
   if(data.type %in% c("raw", "norm")){
