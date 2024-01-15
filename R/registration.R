@@ -447,10 +447,13 @@ applyPerspectiveTransform <- function(object, mapping,
       if(length(segments) > 0){
         segments_reg <- do.call(rbind, segments)
         segments_reg <- as.matrix(segments_reg)
+        # segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- apply(segments_reg[,colnames(segments_reg) %in% c("x", "y")], 2, as.numeric)
         segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTPSTransform(segments_reg[,colnames(segments_reg) %in% c("x", "y")], cur_mapping)
         segments_reg <- as.data.frame(segments_reg)
         segments_reg <- split(segments_reg, segments_reg[,1])
         names(segments_reg) <- names(segments)
+      } else {
+        segments_reg <- segments
       }
     }
 
@@ -1253,6 +1256,7 @@ CreateL <- function(matrix,lambda=1e-8) {
 applyTPSTransform <- function(x,trafo) {
   # .fx(trafo$refmat,x,trafo$coeff,threads=threads)
   # .fx <- function(refmat,M,coefs,time=TRUE,threads=1) {
+  x <- apply(x, 2, as.numeric)
   x <- cbind(1,x)
   splM <- .Call("tpsfx",trafo$refmat,  x, t(trafo$coeff))
   return(splM)

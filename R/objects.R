@@ -1227,13 +1227,15 @@ vrFeatureData.VoltRon <- function(object, assay = NULL, ...) {
 }
 
 #' @param assay assay
+#' @param norm TRUE if normalized data should be returned
+#' @param ... additional parameters passed to \code{vrData.vrAssay}
 #'
 #' @rdname vrData
 #' @method vrData VoltRon
 #'
 #' @export
 #'
-vrData.VoltRon <- function(object, assay = NULL, ...) {
+vrData.VoltRon <- function(object, assay = NULL, norm = FALSE, ...) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1241,7 +1243,7 @@ vrData.VoltRon <- function(object, assay = NULL, ...) {
   # get all coordinates
   data <- NULL
   for(i in 1:length(assay_names)){
-    cur_data <- vrData(object[[assay_names[i]]], ...)
+    cur_data <- vrData(object[[assay_names[i]]], norm = norm, ...)
     cur_data <- data.frame(cur_data, feature.ID = rownames(cur_data), check.names = FALSE)
     if(i == 1){
       data <- cur_data

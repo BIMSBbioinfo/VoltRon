@@ -258,7 +258,7 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, ove
   # rownames(pr.data) <- vrSpatialPoints(object_subset, assay = assay)
 
   # set Embeddings
-  vrEmbeddings(object, type = "pca", ...) <- pr.data
+  vrEmbeddings(object, type = "pca", overwrite = overwrite, ...) <- pr.data
 
   # return
   return(object)
@@ -298,7 +298,7 @@ getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30
   set.seed(seed)
   umap_data <- uwot::umap(data)
   colnames(umap_data) <- c("x", "y")
-  vrEmbeddings(object, type = umap.key, ...) <- umap_data
+  vrEmbeddings(object, type = umap.key, overwrite = overwrite, ...) <- umap_data
 
   # return
   return(object)
