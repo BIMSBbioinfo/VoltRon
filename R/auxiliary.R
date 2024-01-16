@@ -235,7 +235,8 @@ jaccard_similarity <- function(mat) {
 #' @param file Character sting. If a file name is provided then the css code will be printed into that file. If the argument is NULL (default) then a string will be returned.
 #'
 #' @importFrom htmltools HTML
-#' @export
+#'
+#' @noRd
 #'
 make_css <- function (..., file = NULL)
 {

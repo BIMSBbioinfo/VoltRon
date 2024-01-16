@@ -613,6 +613,7 @@ vrAssayTypes.VoltRon <- function(object, assay = NULL){
 #' @importFrom dplyr n_distinct %>% distinct select mutate group_by
 #' @importFrom methods new
 #'
+#' @noRd
 changeSampleNames.VoltRon <- function(object, samples = NULL){
 
   # sample metadata
@@ -819,6 +820,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 #'
 #' @importFrom igraph subgraph V
 #'
+#' @noRd
 subset_graphs <- function(object, metadata){
 
   # graph names
@@ -917,6 +919,7 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
 #'
 #' @importFrom igraph disjoint_union
 #'
+#' @noRd
 merge_graphs <- function(object, object_list){
 
   # combine all elements
@@ -956,6 +959,7 @@ merge_graphs <- function(object, object_list){
 #' @importFrom igraph V
 #' @importFrom stringr str_extract
 #'
+#' @noRd
 updateGraphAssay <- function(object1, object2){
 
 

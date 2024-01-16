@@ -13,6 +13,7 @@ getUMAP(object, ...)
   data.type = "pca",
   dims = 1:30,
   umap.key = "umap",
+  overwrite = FALSE,
   seed = 1,
   ...
 )
@@ -29,6 +30,8 @@ getUMAP(object, ...)
 \item{dims}{the number of dimensions extracted from PCA}
 
 \item{umap.key}{the name of the umap embedding, default: umap}
+
+\item{overwrite}{Whether the existing embedding with name 'type' should be overwritten in \code{vrEmbeddings}}
 
 \item{seed}{seed}
 }

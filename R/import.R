@@ -262,6 +262,8 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
 #' @importFrom hdf5r H5File readDataSet
 #' @importFrom Matrix sparseMatrix
 #'
+#' @noRd
+#'
 import10Xh5 <- function(filename){
 
   # check file
@@ -437,6 +439,7 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
 #' @importFrom rjson fromJSON
 #' @importFrom S4Vectors metadata DataFrame
 #'
+#' @noRd
 readPKC <- function (file, default_pkc_vers = NULL)
 {
   pkc_json_list <- lapply(file, function(pkc_file) {
@@ -544,6 +547,7 @@ readPKC <- function (file, default_pkc_vers = NULL)
 #'
 #' @param file A character string containing the path to the DCC file.
 #'
+#' @noRd
 readDCC <- function(file)
 {
   lines <- trimws(readLines(file))
@@ -641,6 +645,7 @@ readDCC <- function(file)
 #'
 #' @importFrom XML xmlToList
 #'
+#' @noRd
 importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
   # check file
@@ -704,6 +709,7 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 #' @param summary segmentation summary data frame
 #' @param imageinfo image information
 #'
+#' @noRd
 rescaleGeoMxPoints <- function(pts, summary, imageinfo){
 
   xRatio = imageinfo$width/summary$Scan.Width[1]

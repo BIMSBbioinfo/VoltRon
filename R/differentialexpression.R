@@ -55,6 +55,7 @@ getDiffExp <- function(object, assay = NULL, group.by, group.base = NULL, covari
 #' @importFrom stats as.formula
 #' @importFrom S4Vectors DataFrame
 #'
+#' @noRd
 getDiffExpDESeq2 <- function(data, metadata, group.by, group.base = NULL, covariates){
 
   if (!requireNamespace('DESeq2'))

@@ -9,6 +9,8 @@
 #' @importFrom basilisk BasiliskEnvironment
 #'
 #' @keywords internal
+#'
+#' @noRd
 py_env <- basilisk::BasiliskEnvironment(
   envname="VoltRon_basilisk_env",
   pkgname="VoltRon",

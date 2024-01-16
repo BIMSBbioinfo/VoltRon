@@ -308,6 +308,14 @@ getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30
 # Image Processing ####
 ####
 
+#' split_into_tiles
+#'
+#' split image raster data into tiles
+#'
+#' @param image_data image raster data
+#' @param tile_size tile size
+#'
+#' @noRd
 split_into_tiles <- function(image_data, tile_size = 10) {
   n_rows <- nrow(image_data)
   n_cols <- ncol(image_data)

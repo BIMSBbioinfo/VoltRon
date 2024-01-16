@@ -253,7 +253,7 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
 #' @param samples the set of samples to subset the object
 #' @param assays the set of assays to subset the object
 #'
-#' @export
+#' @noRd
 #'
 subset_sampleMetadata <- function(metadata, samples = NULL, assays = NULL) {
 
@@ -332,7 +332,7 @@ merge.vrMetadata <- function(object, object_list) {
 #'
 #' @param metadata_list a list of sample metadata of a VoltRon object
 #'
-#' @export
+#' @noRd
 #'
 merge_sampleMetadata <- function(metadata_list) {
 
@@ -477,6 +477,7 @@ vrAssayNames.vrMetadata <- function(object){
 #' @importFrom stringr str_extract
 #' @importFrom methods new
 #'
+#' @noRd
 updateMetadataAssay <- function(object1, object2){
 
   # get assay types
@@ -558,6 +559,7 @@ updateMetadataAssay <- function(object1, object2){
 #'
 #' @importFrom methods slot slot<-
 #'
+#' @noRd
 changeSampleNames.vrMetadata <- function(object, sample_metadata_table){
 
   # get old and new samples
@@ -603,6 +605,8 @@ changeSampleNames.vrMetadata <- function(object, sample_metadata_table){
 #' @param tile tile data frame
 #'
 #' @importFrom methods new
+#'
+#' @noRd
 setVRMetadata <- function(molecule, cell, spot, ROI, tile){
   methods::new("vrMetadata", molecule = molecule, cell = cell, spot = spot, ROI = ROI, tile = tile)
 }
@@ -611,6 +615,7 @@ setVRMetadata <- function(molecule, cell, spot, ROI, tile){
 #'
 #' @param samples a list of vrSample object
 #'
+#' @noRd
 setVRSampleMetadata <- function(samples){
 
   # imput missing sample names

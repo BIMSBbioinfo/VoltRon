@@ -161,6 +161,8 @@ vrEmbeddingNames <- function(object, ...) {
 #' @rdname changeSampleNames
 #' @export changeSampleNames
 #'
+#' @noRd
+#'
 changeSampleNames <- function(object, ...) {
   UseMethod(generic = 'changeSampleNames', object = object)
 }

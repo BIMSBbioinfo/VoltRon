@@ -769,14 +769,11 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 ## Spatial Auxiliary ####
 ####
 
-#' Spatial Auxiliary function
-#'
-#' @name SpatialAuxiliary
-#'
 #' @import ggplot2
 #' @importFrom grid pointsGrob unit gpar
 #' @importFrom rlang list2
 #'
+#' @noRd
 NULL
 
 geom_spot <- function (mapping = NULL, data = NULL, stat = "identity", position = "identity",

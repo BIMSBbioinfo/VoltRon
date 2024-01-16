@@ -176,6 +176,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
 #' @param len_images the number of query images
 #' @param type Either reference (ref) or query (query) image
 #'
+#' @noRd
 getImageTabPanels <- function(len_images, type){
 
   # get panel label
@@ -207,6 +208,7 @@ getImageTabPanels <- function(len_images, type){
 #' @param centre center image index
 #' @param register_ind query image indices
 #'
+#' @noRd
 getAlignmentTabPanel <- function(len_images, centre, register_ind){
 
   # tab panels
@@ -228,6 +230,7 @@ getAlignmentTabPanel <- function(len_images, centre, register_ind){
 #'
 #' @return tabsetpanel
 #'
+#' @noRd
 getRegisteredImageTabPanels <- function(len_images, centre, register_ind){
 
   # tab panels
@@ -254,6 +257,7 @@ getRegisteredImageTabPanels <- function(len_images, centre, register_ind){
 #' @param centre center image index
 #' @param register_ind query image indices
 #'
+#' @noRd
 updateSequentialTabPanels <- function(input, output, session, centre, register_ind){
 
   # number of panels
@@ -317,6 +321,7 @@ updateSequentialTabPanels <- function(input, output, session, centre, register_i
 #' @param output output
 #' @param session session
 #'
+#' @noRd
 updateParameterPanels <- function(input, output, session){
 
   # done event
@@ -372,6 +377,7 @@ updateParameterPanels <- function(input, output, session){
 #' @param image_list the list of query/ref images
 #' @param aligned_image_list the list of aligned query/ref images
 #'
+#' @noRd
 getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, input, reg_mode = "manual", image_list = NULL, aligned_image_list = NULL){
 
   # initiate registered VoltRon objects
@@ -420,6 +426,7 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
 #'
 #' @importFrom magick image_info
 #'
+#' @noRd
 applyPerspectiveTransform <- function(object, mapping,
                                       reference_image,
                                       input,
@@ -548,6 +555,7 @@ applyPerspectiveTransform <- function(object, mapping,
 #' @importFrom terra rast values
 #' @importFrom grDevices rgb
 #'
+#' @noRd
 getManualRegisteredImage <- function(query_image, ref_image, transmatrix){
 
   # get image as raster
@@ -622,6 +630,7 @@ getManualRegisteredImage <- function(query_image, ref_image, transmatrix){
 #'
 #' @importFrom dplyr tibble
 #'
+#' @noRd
 initateKeypoints <- function(len_images, keypoints_list, input, output, session){
 
   # initiate keypoints
@@ -652,6 +661,7 @@ initateKeypoints <- function(len_images, keypoints_list, input, output, session)
 #' @param output shiny output
 #' @param session shiny session
 #'
+#' @noRd
 manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, input, output, session){
 
   # get image types
@@ -717,6 +727,7 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, inpu
 #'
 #' @importFrom magick image_negate image_rotate image_flip image_flop image_info
 #'
+#' @noRd
 transformImageKeypoints <- function(image, keypoints, extension, input, session){
 
   if(is.null(keypoints))
@@ -769,6 +780,7 @@ transformImageKeypoints <- function(image, keypoints, extension, input, session)
 #'
 #' @importFrom magick image_flip image_flop image_rotate
 #'
+#' @noRd
 transformKeypoints <- function(image, keypoints, extension, input){
 
   # get unrotated image info
@@ -809,6 +821,7 @@ transformKeypoints <- function(image, keypoints, extension, input){
 #' @param rotated_origin center of the rotated image
 #' @param rotated_limits limits of the rotated image
 #'
+#' @noRd
 rotateKeypoint <- function(keypoints, angle, origin, limits, rotated_origin, rotated_limits){
 
   # if there are no points, return
@@ -845,6 +858,7 @@ rotateKeypoint <- function(keypoints, angle, origin, limits, rotated_origin, rot
 #' @param image_limits limits of the images
 #' @param flipflop a flip or flop action as string
 #'
+#' @noRd
 flipflopKeypoint <- function(keypoints, image_limits, flipflop){
 
   if(nrow(keypoints) == 0)
@@ -866,6 +880,7 @@ flipflopKeypoint <- function(keypoints, image_limits, flipflop){
 #' @param image magick image
 #' @param keypoints keypoints to draw on image
 #'
+#' @noRd
 imageKeypoint <- function(image, keypoints){
 
   if(is.null(keypoints))
@@ -894,6 +909,7 @@ imageKeypoint <- function(image, keypoints){
 #'
 #' @importFrom magick image_ggplot
 #'
+#' @noRd
 getImageOutput <- function(image_list, keypoints_list = NULL, centre, input, output, session){
 
   # get image types
@@ -930,6 +946,7 @@ getImageOutput <- function(image_list, keypoints_list = NULL, centre, input, out
 #'
 #' @importFrom magick image_flip image_flop image_rotate
 #'
+#' @noRd
 transformImage <- function(image, extension, input){
 
   # rotate image and keypoints
@@ -958,6 +975,7 @@ transformImage <- function(image, extension, input){
 #'
 #' @importFrom magick image_flip image_flop image_rotate
 #'
+#' @noRd
 transformImageReverse <- function(image, extension, input){
 
   # flip flop image and keypoints
@@ -983,6 +1001,7 @@ transformImageReverse <- function(image, extension, input){
 #' @param image_list magick image
 #' @param input shiny input
 #'
+#' @noRd
 transformImageQueryList <- function(image_list, input){
 
   # length of images
@@ -1015,6 +1034,7 @@ transformImageQueryList <- function(image_list, input){
 #' @param output shiny output
 #' @param session shiny session
 #'
+#' @noRd
 initiateMappings <- function(len_images, input, output, session){
 
   # initiate matrices
@@ -1044,6 +1064,7 @@ initiateMappings <- function(len_images, input, output, session){
 #' @importFrom magick image_write image_join image_read image_resize
 #' @importFrom htmltools HTML
 #'
+#' @noRd
 getManualRegisteration <- function(registration_mapping_list, spatdata_list, image_list, keypoints_list,
                                    centre, register_ind, input, output, session){
 
@@ -1131,6 +1152,8 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
 #' @param query_ind the index of the query image
 #' @param ref_ind the index of the reference image
 #'
+#' @noRd
+#'
 computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind, ref_ind){
 
   # determine the number of transformation to map from query to the reference
@@ -1185,6 +1208,7 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
 #' @param x fix landmarks from a k x m matrix
 #' @param y moving landmarks from a k x m matrix
 #'
+#' @noRd
 computeTPSTransform <- function(x, y)
 {
   xrows <- rowSums(x)
@@ -1228,6 +1252,7 @@ computeTPSTransform <- function(x, y)
 #'
 #' @importFrom Matrix forceSymmetric
 #'
+#' @noRd
 CreateL <- function(matrix,lambda=1e-8) {
   out <- list()
   k <- nrow(matrix)
@@ -1252,6 +1277,8 @@ CreateL <- function(matrix,lambda=1e-8) {
 #'
 #' @param x matrix
 #' @param trafo 4x4 transformation matrix or an object of class "tpsCoeff"
+#'
+#' @noRd
 #'
 applyTPSTransform <- function(x,trafo) {
   # .fx(trafo$refmat,x,trafo$coeff,threads=threads)
@@ -1285,6 +1312,7 @@ applyTPSTransform <- function(x,trafo) {
 #' @importFrom ggplot2 ggplot coord_fixed annotation_raster annotation_custom
 #' @importFrom htmltools HTML
 #'
+#' @noRd
 getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, image_list, centre, register_ind,
                                       input, output, session){
 
@@ -1375,6 +1403,8 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
 #' @param ref_ind the index of the reference image
 #' @param input input
 #'
+#' @noRd
+#'
 computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, input){
 
   # determine the number of transformation to map from query to the reference
@@ -1433,6 +1463,8 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
 #' @param method the automated registration method, either FLANN or BRUTE-FORCE
 #'
 #' @importFrom magick image_read image_data
+#'
+#' @noRd
 #'
 getRcppAutomatedRegistration <- function(ref_image, query_image,
                                          GOOD_MATCH_PERCENT = 0.15, MAX_FEATURES = 500,
