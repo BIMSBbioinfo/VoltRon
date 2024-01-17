@@ -327,8 +327,10 @@ vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE){
   if(is.null(channel)){
     channel <- object@main_channel
   } else {
-    if(!channel %in% vrImageChannelNames(object))
-      stop(channel, " is not among any channel in this vrImage object")
+    if(!channel %in% vrImageChannelNames(object)){
+      warning("'", channel, "' is not among any channel in this vrImage object, using '", object@main_channel, "' channel instead")
+      channel <- object@main_channel
+    }
   }
 
   if(length(object@image) > 0){
