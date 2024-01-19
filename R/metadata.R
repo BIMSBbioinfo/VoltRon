@@ -133,13 +133,31 @@ vrSpatialPoints.vrMetadata <- function(object, assay = NULL) {
   #               rownames(object@cell),
   #               rownames(object@spot),
   #               rownames(object@ROI))
+
+  # # get assay names if there arent
+  # if(!is.null(assay)){
+  #   assay_names <- vrAssayNames(object, assay = assay)
+  # } else {
+  #   assay_names <- NULL
+  # }
+
+  # get spatial points
   points <- unlist(lapply(slotNames(object), function(x) {
     if(x %in% c("cell", "spot", "ROI")){
-      rownames(slot(object, name = x))
+      sp <- rownames(slot(object, name = x))
+      if(!is.null(assay))
+        sp <- sp[grepl(paste(paste0(assay, "$"), collapse = "|"), sp)]
+      return(sp)
     } else {
-      slot(object, name = x)[["id"]]
+      mdata <- slot(object, name = x)
+      if(nrow(mdata) > 0){
+        sp_data <- subset(slot(object, name = x), subset = assay_id %in% assay)
+        return(sp_data[["id"]])
+      }
     }
   }))
+
+  # return points
   return(points)
 }
 

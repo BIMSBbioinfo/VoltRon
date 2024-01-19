@@ -16,8 +16,9 @@ NULL
 #' @rdname getSpatialNeighbors
 #' @method getSpatialNeighbors VoltRon
 #'
-#' @importFrom interp tri.mesh neighbours
+# #' @importFrom interp tri.mesh neighbours
 #' @importFrom igraph add_edges simplify make_empty_graph vertices
+#' @importFrom RCDT delaunay
 #' @importFrom FNN get.knn
 #' @importFrom stats dist
 #'
@@ -36,12 +37,14 @@ getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay
     spatialedges <-
       switch(method,
              delaunay = {
-               tess <- interp::tri.mesh(cur_coords[,1], cur_coords[,2])
-               nnedges <- interp::neighbours(tess)
-               nnedges <- mapply(function(x,y) {
-                 do.call(c,lapply(y, function(z) c(x,z)))
-               }, 1:length(nnedges), nnedges)
-               nnedges <- unlist(nnedges)
+               # tess <- interp::tri.mesh(cur_coords[,1], cur_coords[,2])
+               # nnedges <- interp::neighbours(tess)
+               # nnedges <- mapply(function(x,y) {
+               #  do.call(c,lapply(y, function(z) c(x,z)))
+               # }, 1:length(nnedges), nnedges)
+               # nnedges <- unlist(nnedges)
+               nnedges <- RCDT::delaunay(cur_coords)
+               nnedges <- as.vector(t(nnedges$edges[,1:2]))
                nnedges <- rownames(cur_coords)[nnedges]
                nnedges
              },

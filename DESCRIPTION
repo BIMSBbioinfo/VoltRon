@@ -13,7 +13,7 @@ RoxygenNote: 7.3.0
 biocViews:
 Imports: methods, S4Vectors, EBImage, FNN, Matrix, XML, dplyr, ggforce, 
          ggplot2, ggpubr, ggrepel, hdf5r, htmltools, igraph, irlba, rjson, magick, raster, 
-         reshape2, rlang, scales, shiny, shinyjs, stringr, terra, uwot, data.table, interp, 
+         reshape2, rlang, scales, shiny, shinyjs, stringr, terra, uwot, data.table, RCDT, 
          fastDummies, anndata, basilisk, reticulate, sp, ids
 LinkingTo: Rcpp, RcppArmadillo (>= 0.4)
 Collate: 
