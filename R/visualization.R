@@ -334,15 +334,14 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   #     theme(panel.background = element_rect(fill = "lightgrey", colour = "lightgrey", size = 0.5, linetype = "solid"))
   #   warning("background image ", background, " is not found in ", vrAssayNames(assay), "\n")
   # }
-  if(is.null(info)){
+  if(any(background %in% c("white","black"))){
     g <- g +
-      theme(panel.background = element_rect(fill = "lightgrey", colour = "lightgrey", size = 0.5, linetype = "solid"))
-    # warning("background image is not found in ", vrAssayNames(assay), "\n")
-  } else {
-    if(any(background %in% c("white","black"))){
+      theme(panel.background = element_rect(fill = background, colour = background, size = 0.5, linetype = "solid"))
+  } else{
+    if(is.null(info)){
       g <- g +
-        theme(panel.background = element_rect(fill = background, colour = background, size = 0.5, linetype = "solid"))
-    } else {
+        theme(panel.background = element_rect(fill = "lightgrey", colour = "lightgrey", size = 0.5, linetype = "solid"))
+    } else{
       g <- g +
         theme(panel.background = element_blank())
     }
@@ -762,15 +761,14 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   #     theme(panel.background = element_rect(fill = "lightgrey", colour = "lightgrey", size = 0.5, linetype = "solid"))
   #   warning("background image ", background, " is not found in ", vrAssayNames(assay), "\n")
   # }
-  if(is.null(info)){
+  if(any(background %in% c("white","black"))){
     g <- g +
-      theme(panel.background = element_rect(fill = "lightgrey", colour = "lightgrey", size = 0.5, linetype = "solid"))
-    # warning("background image is not found in ", vrAssayNames(assay), "\n")
-  } else {
-    if(any(background %in% c("white","black"))){
+      theme(panel.background = element_rect(fill = background, colour = background, size = 0.5, linetype = "solid"))
+  } else{
+    if(is.null(info)){
       g <- g +
-        theme(panel.background = element_rect(fill = background, colour = background, size = 0.5, linetype = "solid"))
-    } else {
+        theme(panel.background = element_rect(fill = "lightgrey", colour = "lightgrey", size = 0.5, linetype = "solid"))
+    } else{
       g <- g +
         theme(panel.background = element_blank())
     }
