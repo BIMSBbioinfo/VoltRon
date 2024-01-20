@@ -37,7 +37,7 @@ getProfileNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca",
     }
   }
 
-  # find neighborhood
+  # find profile neighbors
   nnedges <- FNN::get.knn(nndata, k = k + 1)
   nnedges <-
     switch(method,

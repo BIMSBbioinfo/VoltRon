@@ -811,36 +811,6 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
                graph = graph_list, main.assay = main.assay, project = project)
 }
 
-#' subset_graphs
-#'
-#' Given a VoltRon object and a vrMetadata, subset the graph
-#'
-#' @param object a VoltRon Object
-#' @param metadata a vrMetadata Object
-#'
-#' @importFrom igraph subgraph V
-#'
-#' @noRd
-subset_graphs <- function(object, metadata){
-
-  # graph names
-  graphnames <- vrGraphNames(object)
-
-  # for all graphs
-  if(!is.null(graphnames)){
-    graph_list <- object@graph
-    for(g in vrGraphNames(object)){
-      cur_graph <- graph_list[[g]]
-      cur_graph<- igraph::subgraph(cur_graph, igraph::V(cur_graph)[names(igraph::V(cur_graph)) %in% vrSpatialPoints(metadata)])
-      graph_list[[g]] <- cur_graph
-    }
-  } else {
-    graph_list <- list()
-  }
-
-  return(graph_list)
-}
-
 #' Merging VoltRon objects
 #'
 #' Given a VoltRon object, and a list of VoltRon objects, merge all.
@@ -910,93 +880,182 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   object
 }
 
-#' merge_graphs
+#' @rdname vrSpatialPoints
+#' @method vrSpatialPoints VoltRon
 #'
-#' Given a VoltRon object, and a list of VoltRon objects, merge their graphs.
+#' @export
 #'
-#' @param object a VoltRon Object
-#' @param object_list a list of VoltRon objects
-#'
-#' @importFrom igraph disjoint_union
-#'
-#' @noRd
-merge_graphs <- function(object, object_list){
-
-  # combine all elements
-  if(!is.list(object_list))
-    object_list <- list(object_list)
-  if(inherits(object, "VoltRon")){
-    object_list <- c(object, object_list)
-  } else {
-    object_list <- c(list(object), object_list)
-  }
-
-  # choose objects
-  obj1 <- object_list[[1]]
-  obj2 <- object_list[[2]]
-
-  # initial combination
-  if(length(object_list) > 2){
-    combined_graph <- merge_graphs(obj1, obj2)
-    for(i in 3:(length(object_list))){
-      combined_graph <- merge_graphs(combined_graph, object_list[[i]])
-    }
-  } else {
-    updateobjects <- updateGraphAssay(obj1, obj2)
-    obj1 <- updateobjects$object1
-    obj2 <- updateobjects$object2
-    combined_graph <- igraph::disjoint_union(obj1, obj2)
-  }
-
-  return(combined_graph)
+vrSpatialPoints.VoltRon <- function(object, ...) {
+  return(vrSpatialPoints(object@metadata, ...))
 }
 
-#' updateGraphAssay
+#' @param assay assay
 #'
-#' @param object1 VoltRon object
-#' @param object2 VoltRon object
+#' @rdname vrFeatures
+#' @method vrFeatures VoltRon
 #'
-#' @importFrom igraph V
-#' @importFrom stringr str_extract
+#' @export
 #'
-#' @noRd
-updateGraphAssay <- function(object1, object2){
+vrFeatures.VoltRon <- function(object, assay = NULL, ...) {
 
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
 
-  if(inherits(object1, "VoltRon"))
-    object1 <- vrGraph(object1, assay = "all")
-  if(inherits(object2, "VoltRon"))
-    object2 <- vrGraph(object2, assay = "all")
+  # get all features
+  features <- NULL
+  for(assy in assay_names)
+    features <- c(features, vrFeatures(object[[assy]]))
 
-  # get assay types
-  assaytype <- unique(stringr::str_extract(igraph::V(object1)$name, "Assay[0-9]+$"))
-  assaytype <- assaytype[order(nchar(assaytype), assaytype)]
+  return(unique(features))
+}
 
-  # replace assay names
-  replacement <- paste0("Assay", 1:length(assaytype))
-  vertex_names <- igraph::V(object1)$name
-  temp <- vertex_names
-  for(i in 1:length(assaytype))
-    temp[grepl(paste0(assaytype[i],"$"), vertex_names)] <- gsub(paste0(assaytype[i],"$"), replacement[i],
-                                                                vertex_names[grepl(paste0(assaytype[i],"$"), vertex_names)])
-  igraph::V(object1)$name <- temp
+#' @param assay assay
+#'
+#' @rdname vrFeatureData
+#' @method vrFeatureData VoltRon
+#'
+#' @export
+#'
+vrFeatureData.VoltRon <- function(object, assay = NULL, ...) {
 
-  # get assay types
-  assaytype <- unique(stringr::str_extract(igraph::V(object2)$name, "Assay[0-9]+$"))
-  assaytype <- assaytype[order(nchar(assaytype), assaytype)]
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
 
-  # replace assay names
-  replacement <- paste0("Assay", (length(replacement)+1):(length(replacement) + length(assaytype)))
-  vertex_names <- igraph::V(object2)$name
-  temp <- vertex_names
-  for(i in 1:length(assaytype))
-    temp[grepl(paste0(assaytype[i],"$"), vertex_names)] <- gsub(paste0(assaytype[i],"$"), replacement[i],
-                                                                vertex_names[grepl(paste0(assaytype[i],"$"), vertex_names)])
-  igraph::V(object2)$name <- temp
+  # get all features
+  features <- vrFeatureData(object[[assay_names[1]]], ...)
 
   # return
-  return(list(object1 = object1, object2 = object2))
+  return(features)
 }
+
+#' @param assay assay
+#' @param value new Feature Data
+#'
+#' @rdname vrFeatureData
+#' @method vrFeatureData<- VoltRon
+#'
+#' @export
+#'
+"vrFeatureData<-.VoltRon" <- function(object, assay = NULL, ..., value) {
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # set embeddings
+  for(assy in assay_names)
+    vrFeatureData(object[[assy]]) <- value
+
+  return(object)
+}
+
+#' @param assay assay
+#' @param norm TRUE if normalized data should be returned
+#' @param ... additional parameters passed to \code{vrData.vrAssay}
+#'
+#' @rdname vrData
+#' @method vrData VoltRon
+#'
+#' @export
+#'
+vrData.VoltRon <- function(object, assay = NULL, norm = FALSE, ...) {
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get all coordinates
+  data <- NULL
+  for(i in 1:length(assay_names)){
+    cur_data <- vrData(object[[assay_names[i]]], norm = norm, ...)
+    cur_data <- data.frame(cur_data, feature.ID = rownames(cur_data), check.names = FALSE)
+    if(i == 1){
+      data <- cur_data
+    } else {
+      data <- merge(data, cur_data, by = "feature.ID", all = TRUE)
+    }
+  }
+  rownames(data) <- data$feature.ID
+  data <- data[,!colnames(data) %in% "feature.ID"]
+  data[is.na(data)] <- 0
+  data <- as.matrix(data)
+  colnames(data) <- gsub("\\.","-", colnames(data))
+
+  return(data)
+}
+
+#' @param assay assay
+#' @param dims the set of dimensions of the embedding data
+#' @param type the key name for the embedding, i.e. "pca" or "umap"
+#'
+#' @rdname vrEmbeddings
+#' @method vrEmbeddings VoltRon
+#'
+#' @export
+#'
+vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", dims = 1:30, ...) {
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get all coordinates
+  returndata_list <- list()
+  for(i in 1:length(assay_names))
+    returndata_list[[i]] <- vrEmbeddings(object[[assay_names[i]]], type = type, dims = dims, ...)
+
+  return(do.call(rbind, returndata_list))
+}
+
+#' @param assay assay
+#' @param type the key name for the embedding
+#' @param overwrite Whether the existing embedding with name 'type' should be overwritten
+#' @param value new embedding data
+#'
+#' @rdname vrEmbeddings
+#' @method vrEmbeddings<- VoltRon
+#'
+#' @export
+#'
+"vrEmbeddings<-.VoltRon" <- function(object, assay = NULL, type = "pca", overwrite = FALSE, ..., value) {
+
+  # check if the embedding exists
+  if(type %in% vrEmbeddingNames(object) && !overwrite)
+    stop("An embedding named '", type, "' already exists in this object. Do overwrite = TRUE for replacing with the existing one.")
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # set embeddings
+  for(assy in assay_names){
+    assayobject <- object[[assy]]
+    if(vrAssayTypes(assayobject) %in% c("ROI", "cell", "spot")){
+      vrEmbeddings(assayobject, type = type) <- value[grepl(paste0(assy, "$"), rownames(value)),]
+    } else {
+      vrEmbeddings(assayobject, type = type) <- value[vrSpatialPoints(assayobject),]
+    }
+    object[[assy]] <- assayobject
+  }
+
+  return(object)
+}
+
+#' @param assay assay
+#'
+#' @rdname vrEmbeddingNames
+#' @method vrEmbeddingNames VoltRon
+#'
+#' @export
+#'
+vrEmbeddingNames.VoltRon <- function(object, assay = NULL){
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # get assay types
+  embed_names <- unique(unlist(lapply(assay_names, function(x) vrEmbeddingNames(object[[x]]))))
+
+  return(embed_names)
+}
+
+#### Metadata ####
 
 #' @param assay assay
 #' @param type the assay type: ROI, spot or cell, or all for the entire metadata object
@@ -1162,195 +1221,7 @@ SampleMetadata.VoltRon <- function(object, ...) {
   object@sample.metadata
 }
 
-#' @rdname vrSpatialPoints
-#' @method vrSpatialPoints VoltRon
-#'
-#' @export
-#'
-vrSpatialPoints.VoltRon <- function(object, ...) {
-  return(vrSpatialPoints(object@metadata, ...))
-}
-
-#' @param assay assay
-#'
-#' @rdname vrFeatures
-#' @method vrFeatures VoltRon
-#'
-#' @export
-#'
-vrFeatures.VoltRon <- function(object, assay = NULL, ...) {
-
-  # get assay names
-  assay_names <- vrAssayNames(object, assay = assay)
-
-  # get all features
-  features <- NULL
-  for(assy in assay_names)
-    features <- c(features, vrFeatures(object[[assy]]))
-
-  return(unique(features))
-}
-
-#' @param assay assay
-#'
-#' @rdname vrFeatureData
-#' @method vrFeatureData VoltRon
-#'
-#' @export
-#'
-vrFeatureData.VoltRon <- function(object, assay = NULL, ...) {
-
-  # get assay names
-  assay_names <- vrAssayNames(object, assay = assay)
-
-  # get all features
-  features <- vrFeatureData(object[[assay_names[1]]], ...)
-
-  # return
-  return(features)
-}
-
-#' @param assay assay
-#' @param value new Feature Data
-#'
-#' @rdname vrFeatureData
-#' @method vrFeatureData<- VoltRon
-#'
-#' @export
-#'
-"vrFeatureData<-.VoltRon" <- function(object, assay = NULL, ..., value) {
-
-  # get assay names
-  assay_names <- vrAssayNames(object, assay = assay)
-
-  # set embeddings
-  for(assy in assay_names)
-    vrFeatureData(object[[assy]]) <- value
-
-  return(object)
-}
-
-#' @param assay assay
-#' @param norm TRUE if normalized data should be returned
-#' @param ... additional parameters passed to \code{vrData.vrAssay}
-#'
-#' @rdname vrData
-#' @method vrData VoltRon
-#'
-#' @export
-#'
-vrData.VoltRon <- function(object, assay = NULL, norm = FALSE, ...) {
-
-  # get assay names
-  assay_names <- vrAssayNames(object, assay = assay)
-
-  # get all coordinates
-  data <- NULL
-  for(i in 1:length(assay_names)){
-    cur_data <- vrData(object[[assay_names[i]]], norm = norm, ...)
-    cur_data <- data.frame(cur_data, feature.ID = rownames(cur_data), check.names = FALSE)
-    if(i == 1){
-      data <- cur_data
-    } else {
-      data <- merge(data, cur_data, by = "feature.ID", all = TRUE)
-    }
-  }
-  rownames(data) <- data$feature.ID
-  data <- data[,!colnames(data) %in% "feature.ID"]
-  data[is.na(data)] <- 0
-  data <- as.matrix(data)
-  colnames(data) <- gsub("\\.","-", colnames(data))
-
-  return(data)
-}
-
-#' @param assay assay
-#' @param graph.type the type of the graph, either custom or given by \code{getProfileNeighbors} or \code{getSpatialNeighbors} functions
-#'
-#' @rdname vrGraph
-#' @method vrGraph VoltRon
-#'
-#' @importFrom igraph induced_subgraph
-#' @export
-#'
-vrGraph.VoltRon <- function(object, assay = NULL, graph.type = "kNN", ...) {
-
-  # get assay names
-  assay_names <- vrAssayNames(object, assay = assay)
-  # assay_pattern <- paste0(assay_names, "$", collapse = "|")
-  # node_names <- vrSpatialPoints(object)[grepl(assay_pattern, vrSpatialPoints(object))]
-  node_names <- vrSpatialPoints(object, assay = assay_names)
-
-  # check if there exists graphs
-  if(length(names(object@graph)) == 0)
-    stop("There are no graphs in this VoltRon object!")
-
-  # check graph type
-  if(!graph.type %in% names(object@graph))
-    stop("The graph name '", graph.type, "' can't be found in this VoltRon object!")
-
-  # return graph
-  if(length(object@graph[[graph.type]]) > 0){
-    returngraph <- igraph::induced_subgraph(object@graph[[graph.type]], node_names)
-    return(returngraph)
-  } else {
-    warning("This VoltRon object does not have any graphs yet!")
-    return(NULL)
-  }
-}
-
-#' @param assay assay
-#' @param value new Feature Data
-#'
-#' @rdname vrGraph
-#' @method vrGraph<- VoltRon
-#'
-#' @export
-#'
-"vrGraph<-.VoltRon" <- function(object, assay = NULL, graph.type = "kNN", ..., value) {
-
-  # check value
-  if(!inherits(value, "igraph"))
-    stop("The 'value' should be of an igraph class!")
-
-  # all vertices
-  spobject <- vrSpatialPoints(object)
-
-  # check if there exists graphs
-  graph <- object@graph
-  if(length(names(object@graph)) == 0 || !graph.type %in% names(object@graph)){
-    graph[[graph.type]] <- make_empty_graph(directed = FALSE) + vertices(spobject)
-  }
-
-  # vertices
-  new_vert <- V(value)$name
-
-  # edges
-  subg_inv <- igraph::induced_subgraph(graph[[graph.type]], spobject[!spobject%in%new_vert])
-  graph[[graph.type]] <- igraph::disjoint_union(value, subg_inv)
-
-  # update object
-  object@graph <- graph
-
-  # return
-  return(object)
-}
-
-#' @param assay assay
-#'
-#' @rdname vrGraphNames
-#' @method vrGraphNames VoltRon
-#'
-#' @export
-#'
-vrGraphNames.VoltRon <- function(object, assay = NULL){
-  # if(length(names(object@graph)) == 0){
-  #   return
-  # } else {
-  #   return(names(object@graph))
-  # }
-  return(names(object@graph))
-}
+#### Spatial ####
 
 #' @param assay assay
 #' @param image_name the key of the image associated with the coordinates
@@ -1474,75 +1345,281 @@ vrSegments.VoltRon <- function(object, assay = NULL, image_name = NULL, reg = FA
   return(object)
 }
 
+#### Graphs ####
+
 #' @param assay assay
-#' @param dims the set of dimensions of the embedding data
-#' @param type the key name for the embedding, i.e. "pca" or "umap"
+#' @param graph.type the type of the graph, either custom or given by \code{getProfileNeighbors} or \code{getSpatialNeighbors} functions
 #'
-#' @rdname vrEmbeddings
-#' @method vrEmbeddings VoltRon
+#' @rdname vrGraph
+#' @method vrGraph VoltRon
 #'
+#' @importFrom igraph induced_subgraph
 #' @export
 #'
-vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", dims = 1:30, ...) {
+vrGraph.VoltRon <- function(object, assay = NULL, graph.type = "kNN", ...) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
+  # assay_pattern <- paste0(assay_names, "$", collapse = "|")
+  # node_names <- vrSpatialPoints(object)[grepl(assay_pattern, vrSpatialPoints(object))]
+  node_names <- vrSpatialPoints(object, assay = assay_names)
 
-  # get all coordinates
-  returndata_list <- list()
-  for(i in 1:length(assay_names))
-    returndata_list[[i]] <- vrEmbeddings(object[[assay_names[i]]], type = type, dims = dims, ...)
+  # check if there exists graphs
+  if(length(names(object@graph)) == 0)
+    stop("There are no graphs in this VoltRon object!")
 
-  return(do.call(rbind, returndata_list))
+  # check graph type
+  if(!graph.type %in% names(object@graph))
+    stop("The graph name '", graph.type, "' can't be found in this VoltRon object!")
+
+  # return graph
+  if(length(object@graph[[graph.type]]) > 0){
+    returngraph <- igraph::induced_subgraph(object@graph[[graph.type]], node_names)
+    return(returngraph)
+  } else {
+    warning("This VoltRon object does not have any graphs yet!")
+    return(NULL)
+  }
 }
 
 #' @param assay assay
-#' @param type the key name for the embedding
-#' @param overwrite Whether the existing embedding with name 'type' should be overwritten
-#' @param value new embedding data
+#' @param value new Feature Data
 #'
-#' @rdname vrEmbeddings
-#' @method vrEmbeddings<- VoltRon
+#' @rdname vrGraph
+#' @method vrGraph<- VoltRon
 #'
 #' @export
 #'
-"vrEmbeddings<-.VoltRon" <- function(object, assay = NULL, type = "pca", overwrite = FALSE, ..., value) {
+"vrGraph<-.VoltRon" <- function(object, assay = NULL, graph.type = "kNN", ..., value) {
 
-  # check if the embedding exists
-  if(type %in% vrEmbeddingNames(object) && !overwrite)
-    stop("An embedding named '", type, "' already exists in this object. Do overwrite = TRUE for replacing with the existing one.")
+  # check value
+  if(!inherits(value, "igraph"))
+    stop("The 'value' should be of an igraph class!")
 
-  # get assay names
-  assay_names <- vrAssayNames(object, assay = assay)
+  # all vertices
+  spobject <- vrSpatialPoints(object)
 
-  # set embeddings
-  for(assy in assay_names){
-    assayobject <- object[[assy]]
-    if(vrAssayTypes(assayobject) %in% c("ROI", "cell", "spot")){
-      vrEmbeddings(assayobject, type = type) <- value[grepl(paste0(assy, "$"), rownames(value)),]
-    } else {
-      vrEmbeddings(assayobject, type = type) <- value[vrSpatialPoints(assayobject),]
-    }
-    object[[assy]] <- assayobject
+  # check if there exists graphs
+  graph <- object@graph
+  if(length(names(object@graph)) == 0 || !graph.type %in% names(object@graph)){
+    graph[[graph.type]] <- make_empty_graph(directed = FALSE) + vertices(spobject)
   }
 
+  # vertices
+  new_vert <- V(value)$name
+
+  # edges
+  subg_inv <- igraph::induced_subgraph(graph[[graph.type]], spobject[!spobject%in%new_vert])
+  graph[[graph.type]] <- igraph::disjoint_union(value, subg_inv)
+
+  # update object
+  object@graph <- graph
+
+  # return
   return(object)
 }
 
 #' @param assay assay
 #'
-#' @rdname vrEmbeddingNames
-#' @method vrEmbeddingNames VoltRon
+#' @rdname vrGraphNames
+#' @method vrGraphNames VoltRon
 #'
 #' @export
 #'
-vrEmbeddingNames.VoltRon <- function(object, assay = NULL){
+vrGraphNames.VoltRon <- function(object, assay = NULL){
+  return(names(object@graph))
+}
 
-  # get assay names
-  assay_names <- vrAssayNames(object, assay = assay)
+#' subset_graphs
+#'
+#' Given a VoltRon object and a vrMetadata, subset the graph
+#'
+#' @param object a VoltRon Object
+#' @param metadata a vrMetadata Object
+#'
+#' @importFrom igraph subgraph V
+#'
+#' @noRd
+subset_graphs <- function(object, metadata){
+
+  # graph names
+  graphnames <- vrGraphNames(object)
+
+  # for all graphs
+  if(!is.null(graphnames)){
+    graph_list <- object@graph
+    for(g in vrGraphNames(object)){
+      cur_graph <- graph_list[[g]]
+      cur_graph<- igraph::subgraph(cur_graph, igraph::V(cur_graph)[names(igraph::V(cur_graph)) %in% vrSpatialPoints(metadata)])
+      graph_list[[g]] <- cur_graph
+    }
+  } else {
+    graph_list <- list()
+  }
+
+  return(graph_list)
+}
+
+#' merge_graphs
+#'
+#' Given a VoltRon object, and a list of VoltRon objects, merge their graphs.
+#'
+#' @param object a VoltRon Object
+#' @param object_list a list of VoltRon objects
+#'
+#' @importFrom igraph disjoint_union
+#'
+#' @noRd
+merge_graphs <- function(object, object_list){
+
+  # combine all elements
+  if(!is.list(object_list))
+    object_list <- list(object_list)
+  if(inherits(object, "VoltRon")){
+    object_list <- c(object, object_list)
+  } else {
+    object_list <- c(list(object), object_list)
+  }
+
+  # choose objects
+  obj1 <- object_list[[1]]
+  obj2 <- object_list[[2]]
+
+  # initial combination
+  if(length(object_list) > 2){
+    combined_graph <- merge_graphs(obj1, obj2)
+    for(i in 3:(length(object_list))){
+      combined_graph <- merge_graphs(combined_graph, object_list[[i]])
+    }
+  } else {
+    updateobjects <- updateGraphAssay(obj1, obj2)
+    obj1 <- updateobjects$object1
+    obj2 <- updateobjects$object2
+    combined_graph <- igraph::disjoint_union(obj1, obj2)
+  }
+
+  return(combined_graph)
+}
+
+#' updateGraphAssay
+#'
+#' @param object1 VoltRon object
+#' @param object2 VoltRon object
+#'
+#' @importFrom igraph V
+#' @importFrom stringr str_extract
+#'
+#' @noRd
+updateGraphAssay <- function(object1, object2){
+
+  if(inherits(object1, "VoltRon"))
+    object1 <- vrGraph(object1, assay = "all")
+  if(inherits(object2, "VoltRon"))
+    object2 <- vrGraph(object2, assay = "all")
 
   # get assay types
-  embed_names <- unique(unlist(lapply(assay_names, function(x) vrEmbeddingNames(object[[x]]))))
+  assaytype <- unique(stringr::str_extract(igraph::V(object1)$name, "Assay[0-9]+$"))
+  assaytype <- assaytype[order(nchar(assaytype), assaytype)]
 
-  return(embed_names)
+  # replace assay names
+  replacement <- paste0("Assay", 1:length(assaytype))
+  vertex_names <- igraph::V(object1)$name
+  temp <- vertex_names
+  for(i in 1:length(assaytype))
+    temp[grepl(paste0(assaytype[i],"$"), vertex_names)] <- gsub(paste0(assaytype[i],"$"), replacement[i],
+                                                                vertex_names[grepl(paste0(assaytype[i],"$"), vertex_names)])
+  igraph::V(object1)$name <- temp
+
+  # get assay types
+  assaytype <- unique(stringr::str_extract(igraph::V(object2)$name, "Assay[0-9]+$"))
+  assaytype <- assaytype[order(nchar(assaytype), assaytype)]
+
+  # replace assay names
+  replacement <- paste0("Assay", (length(replacement)+1):(length(replacement) + length(assaytype)))
+  vertex_names <- igraph::V(object2)$name
+  temp <- vertex_names
+  for(i in 1:length(assaytype))
+    temp[grepl(paste0(assaytype[i],"$"), vertex_names)] <- gsub(paste0(assaytype[i],"$"), replacement[i],
+                                                                vertex_names[grepl(paste0(assaytype[i],"$"), vertex_names)])
+  igraph::V(object2)$name <- temp
+
+  # return
+  return(list(object1 = object1, object2 = object2))
 }
+
+#' combineGraphs
+#'
+#' Combining the edges of multiple graphs
+#'
+#' @param object a VoltRon Object
+#' @param graph.types a vector of graph names
+#' @param weights the weights for edges of each graph.
+#' @param graph.key the name of the combined graph
+#'
+#' @importFrom igraph union
+#'
+#' @export
+combineGraphs <- function(object, graph.names = NULL, graph.weights = NULL, graph.key = "combined"){
+
+  if(!inherits(object, "VoltRon"))
+    stop("Object must be of VoltRon class!")
+
+  if(length(graph.names) == 0)
+    stop("Please provide graph names")
+
+  if(any(!graph.names %in% vrGraphNames(object))){
+    graph.names <- setdiff(graph.names, vrGraphNames(object))
+    stop("The following graphs are not included in the VoltRon object: ",
+         paste(graph.names, sep = ",", collapse = TRUE))
+  }
+
+  # check weights
+  if(is.null(graph.weights)){
+    graph.weights <- rep(0.5, length(graph.names))
+  }
+  if(length(graph.weights) != length(graph.names)){
+    stop("The weights should be of the length of graph names")
+  }
+  if(any(!is.numeric(graph.weights))){
+    stop("Weights should be numeric")
+  }
+  if(sum(graph.weights) != 1){
+    stop("Weights should sum up to 1!")
+  }
+  names(graph.weights) <- graph.names
+
+  # collect graphs
+  allmat <- NULL
+  # gr_list <- list()
+  for(gr in graph.names){
+    # gr_list[[gr]] <- vrGraph(object, graph.type = gr)
+    # weights <- E(gr_list[[gr]])$weight
+    # if(is.null(weights)){
+    #   E(gr_list[[gr]])$weight <- graph.weights[gr]
+    # } else {
+    #   E(gr_list[[gr]])$weight <- weights*graph.weights[gr]
+    # }
+    cur_graph <- vrGraph(object, graph.type = gr)
+    if("weight" %in% edge_attr_names(cur_graph)){
+      adjmat <- igraph::as_adjacency_matrix(cur_graph, attr = "weight")
+    } else {
+      adjmat <- igraph::as_adjacency_matrix(cur_graph)
+    }
+    adjmat <- adjmat*graph.weights[gr]
+    if(is.null(allmat)){
+      allmat <- adjmat
+    } else {
+      allmat <- allmat + adjmat
+    }
+  }
+
+  # union of graphs
+  # combined_gr <- igraph::union(gr_list[[1]], gr_list[-1])
+  # combined_gr <- simplify(combined_gr, edge.attr.comb=list(weight="sum"))
+  # vrGraph(object, graph.type = graph.key) <- combined_gr
+  vrGraph(object, graph.type = graph.key) <- igraph::graph_from_adjacency_matrix(allmat, mode = "undirected", weighted = TRUE, diag = FALSE)
+
+  # return
+  return(object)
+}
+
