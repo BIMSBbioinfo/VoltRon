@@ -173,7 +173,7 @@ annotateSpatialData <- function(object, label, assay = NULL, ...) {
         if(length(selected_corners_list()) > 0){
           for (i in 1:length(selected_corners_list())){
             cur_corners <- selected_corners_list()[[i]]
-            if(is.null(input[[paste0("sample",i)]])){
+            if(is.null(input[[paste0("region",i)]])){
               cur_corners <- data.frame(x = mean(cur_corners[,1]), y = max(cur_corners[,2]), region = paste("Region ", i))
             } else {
               cur_corners <- data.frame(x = mean(cur_corners[,1]), y = max(cur_corners[,2]), region = input[[paste0("region",i)]])
