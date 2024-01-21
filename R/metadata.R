@@ -237,7 +237,7 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
       }
     }
   } else if(!is.null(spatialpoints)){
-    if(all(spatialpoints %in% vrSpatialPoints(object))){
+    # if(all(spatialpoints %in% vrSpatialPoints(object))){
       if(nrow(object@molecule) > 0){
         mol.metadata <- object@molecule[id %in% spatialpoints, ]
       } else {
@@ -251,9 +251,9 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
       } else {
         tile.metadata <- data.table::data.table()
       }
-    } else {
-      stop("Some spatial points are not found in the metadata and the object")
-    }
+    # } else {
+    #   stop("Some spatial points are not found in the metadata and the object")
+    # }
   } else {
     stop(paste0("No assay or sample name was provided!"))
   }

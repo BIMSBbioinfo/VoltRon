@@ -700,7 +700,7 @@ addConnectivity <- function(object, connectivity, sample, layer){
   connectivity <- as.vector(t(as.matrix(connectivity)))
 
   # add edges
-  curlayer@connectivity <- igraph::add_edges(curlayer@connectivity, edges = connectivity)
+  object[[sample, layer]]@connectivity <- igraph::add_edges(curlayer@connectivity, edges = connectivity)
 
   # return
   return(object)
@@ -812,8 +812,10 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
     if(inherits(image, "character")){
 
       # check if there are only one image and one assay
-      if(nrow(sample.metadata) > 1){
-        stop("Subseting on images can only be performed on VoltRon objects with a single assay")
+      # if(nrow(sample.metadata) > 1){
+      numlayers <- paste0(sample.metadata$Layer, sample.metadata$Sample)
+      if(length(unique(numlayers)) > 1){
+        stop("Subseting on images can only be performed on VoltRon objects with a single layer")
       } else {
         samples <- unique(sample.metadata$Sample)
         listofSamples <- sapply(object@samples[samples], function(samp) {
