@@ -198,7 +198,7 @@ annotateSpatialData <- function(object, label, assay = NULL, ...) {
         # collect labels
         selected_label_list <- sapply(1:length(selected_polygon_list), function(i) input[[paste0("region",i)]])
 
-        # annotate spatial points
+        ### annotate spatial points ####
         spatialpoints <- rownames(metadata)
         new_label <- rep("undefined", length(spatialpoints))
         names(new_label) <- spatialpoints
@@ -212,6 +212,24 @@ annotateSpatialData <- function(object, label, assay = NULL, ...) {
         # place annotation to metadata
         metadata[[label]] <- new_label
         Metadata(object, assays = sample_metadata[assay, "Assay"]) <- metadata
+
+        ## add polygons as segments ####
+        segments <- selected_polygon_list
+        names(segments) <- selected_label_list
+        coords <- t(sapply(segments, function(seg){
+          apply(seg, 2, mean)
+        }, simplify = TRUE))
+        new_assay <- formAssay(coords = coords, segments = segments,
+                               type = "ROI",
+                               image = vrImages(object, assay = assay),
+                               main_image = vrMainImage(object[[assay]]),
+                               name = assay)
+        object <- addAssay.VoltRon(object,
+                                   assay = new_assay,
+                                   metadata = data.frame(check.rows = FALSE, row.names = rownames(coords)),
+                                   assay_name = "ROIannotation",
+                                   sample = sample_metadata[assay, "Sample"],
+                                   layer = sample_metadata[assay, "Layer"])
 
         # stop app and return
         stopApp(object)
