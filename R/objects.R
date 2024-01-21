@@ -7,11 +7,6 @@ NULL
 # VoltRon classes ####
 ####
 
-## Auxiliary ####
-
-# Set magick-image as an S4 class
-setOldClass(Classes = c('igraph'))
-
 ## VoltRon ####
 
 #' The VoltRon Class
@@ -318,7 +313,7 @@ setMethod(
 #' @param image_name the name/key of the image
 #' @param project project name
 #'
-#' @importFrom igraph make_empty_graph V
+#' @importFrom igraph make_empty_graph V vertices
 #' @importFrom methods new
 #' @importFrom data.table data.table
 #' @importFrom rlang %||%
@@ -463,7 +458,9 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
   names(listofAssays) <- main.assay
 
   # create layers and samples
-  listofLayers <- list(methods::new("vrLayer", assay = listofAssays))
+  listofLayers <- list(methods::new("vrLayer",
+                                    assay = listofAssays,
+                                    connectivity = igraph::make_empty_graph(directed = FALSE) + igraph::vertices(entityID)))
   names(listofLayers) <- layer_name
   listofSamples <- list(methods::new("vrSample", layer = listofLayers))
   names(listofSamples) <- sample_name
@@ -509,16 +506,18 @@ vrMainAssay.VoltRon <- function(object, ...) {
 #' @param assay assay
 #' @param metadata a predefined metadata
 #' @param assay_name assay name
+#' @param connectivity a metadata of edges representing connected spatial points across assays
 #' @param sample sample name
 #' @param layer layer name
 #'
 #' @rdname addAssay
 #' @method addAssay VoltRon
 #'
-#' @importFrom igraph union V
+#' @importFrom igraph make_empty_graph add_edges vertices
+#'
 #' @export
 #'
-addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample = "Sample1", layer = "Section1"){
+addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, connectitivity = NULL, sample = "Sample1", layer = "Section1"){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -535,13 +534,21 @@ addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample 
                               assay = assay, assay_name = assay_name,
                               sample = sample, layer = layer)
 
-  # update sample and layer
-  assay_list <- object[[sample, layer]]@assay
+  # get sample and layer
+  curlayer <- object[[sample, layer]]
+  assay_list <- curlayer@assay
+
+  # change assay name and add to the layer
   vrAssayNames(assay) <- assay_id
   new_assay_list <- list(assay)
   names(new_assay_list) <- assay_name
   assay_list <- c(assay_list, new_assay_list)
   object[[sample, layer]]@assay <- assay_list
+
+  # add connectivities of assay to the layer
+  g_assay <- igraph::make_empty_graph(directed = FALSE) + igraph::vertices(vrSpatialPoints(assay))
+  g_layer <- curlayer@connectivity + g_assay
+  object[[sample, layer]]@connectivity <- g_layer
 
   # return
   return(object)
@@ -671,6 +678,33 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
   return(object)
 }
 
+#' configureConnectivity
+#'
+#' add connectivity information to the assays of the same layer
+#'
+#' @param assay assay
+#' @param metadata a predefined metadata
+#' @param assay_name assay name
+#' @param connectivity a metadata of edges representing connected spatial points across assays
+#' @param sample sample name
+#' @param layer layer name
+#'
+#' @importFrom igraph add_edges
+#'
+addConnectivity <- function(object, connectivity, sample, layer){
+
+  # get sample and layer
+  curlayer <- object[[sample, layer]]
+
+  # make edges from connectivity matrix
+  connectivity <- as.vector(t(as.matrix(connectivity)))
+
+  # add edges
+  curlayer@connectivity <- igraph::add_edges(curlayer@connectivity, edges = connectivity)
+
+  # return
+  return(object)
+}
 
 ### Object Methods ####
 

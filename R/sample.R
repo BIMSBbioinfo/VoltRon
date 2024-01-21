@@ -2,6 +2,11 @@
 # Objects and Classes ####
 ####
 
+## Auxiliary ####
+
+# Set classes
+setOldClass(Classes = c('igraph'))
+
 ## vrSample ####
 
 #' The vrSample (VoltRon Sample) Class
@@ -67,7 +72,8 @@ setMethod(
 vrLayer <- setClass(
   Class = 'vrLayer',
   slots = c(
-    assay = 'list'
+    assay = 'list',
+    connectivity = 'igraph'
   )
 )
 

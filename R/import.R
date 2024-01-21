@@ -129,6 +129,12 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
       entity_ID <- paste0(mol_metadata$id, "_", ids::random_id(bytes = 3, use_openssl = FALSE))
       mol_metadata <- data.table::data.table(id = entity_ID, assay_id = "Assay1", mol_metadata)
 
+      # connectivity
+      connectivity <- data.table::data.table(transcript_id = entity_ID, cell_id = subcellular_data[["cell_id"]])
+      connectivity <- subset(connectivity, cell_id != -1)
+      connectivity[["cell_id"]] <- vrSpatialPoints(cell_object)[connectivity[["cell_id"]]]
+      print(connectivity)
+
       # coord names
       rownames(coords) <- entity_ID
     }
@@ -145,6 +151,14 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
                        assay_name = paste0(assay_name, "_mol"),
                        sample = sample.metadata["Assay1", "Sample"],
                        layer = sample.metadata["Assay1", "Layer"])
+
+    # add connectivity of spatial points across assays
+    object <- addConnectivity(object,
+                              connectivity = connectivity,
+                              sample = sample.metadata["Assay1", "Sample"],
+                              layer = sample.metadata["Assay1", "Layer"])
+
+    # return
     return(object)
   }
 }
