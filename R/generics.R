@@ -639,6 +639,20 @@ modulateImage <- function(object, ...) {
   UseMethod(generic = 'modulateImage', object = object)
 }
 
+#' combineChannels
+#'
+#' Combining channels into novel channels of the same image
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#'
+#' @rdname combineChannels
+#' @export combineChannels
+#'
+combineChannels <- function(object, ...) {
+  UseMethod(generic = 'combineChannels', object = object)
+}
 
 ####
 # Conversion ####

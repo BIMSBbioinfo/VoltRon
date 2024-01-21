@@ -356,7 +356,7 @@ vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE){
 #'
 #' @export
 #'
-"vrImages<-.vrImage" <- function(object, channel = NULL, ..., value){
+"vrImages<-.vrImage" <- function(object, channel = NULL, value){
 
   if(channel %in% vrImageChannelNames(object)){
     warning("A channel with name '", channel, "' already exists in this vrImage object. \n Overwriting ...")
@@ -582,7 +582,7 @@ resizeImage.VoltRon <- function(object, ...){
 
 #' @param name the name of the main image
 #' @param reg TRUE if registered images are assigned
-#' @param ... arguements passed to \code{vrImages.vrImage}
+#' @param ... arguements passed to \code{resizeImage.vrImage}
 #'
 #' @rdname resizeImage
 #' @method resizeImage vrAssay
@@ -677,7 +677,7 @@ modulateImage.VoltRon <- function(object, ...){
 #' @param name the name of the main image
 #' @param reg TRUE if registered images are assigned
 #' @param channel the name of the channel associated with the image
-#' @param ... arguements passed to \code{vrImages.vrImage}
+#' @param ... arguements passed to \code{modulateImage.vrImage}
 #'
 #' @rdname modulateImage
 #' @method modulateImage vrAssay
@@ -741,6 +741,118 @@ modulateImage.vrImage <- function(object, channel = NULL, brightness = 100, satu
     img_data <- magick::image_modulate(img_data, brightness = brightness, saturation = saturation, hue = hue)
     object@image[[img]] <- magick::image_data(img_data)
   }
+
+  # return
+  return(object)
+}
+
+#' @rdname combineChannels
+#' @method combineChannels VoltRon
+#'
+#' @export
+#'
+combineChannels.VoltRon <- function(object, ...){
+  sample.metadata <- SampleMetadata(object)
+  assay_names <- rownames(sample.metadata)
+  for(assy in assay_names){
+    object[[assy]] <- combineChannels(object[[assy]], ...)
+  }
+  return(object)
+}
+
+#' @param name the name of the main image
+#' @param reg TRUE if registered images are assigned
+#' @param ... arguements passed to \code{combineChannels.vrImage}
+#'
+#' @rdname combineChannels
+#' @method combineChannels vrAssay
+#'
+#' @export
+#'
+combineChannels.vrAssay <- function(object,  name = NULL, reg = FALSE, ...){
+
+  # check name
+  if(is.null(name)) {
+    name <- object@main_image
+  }
+
+  # get registered image
+  if(reg){
+    if(!paste0(name, "_reg") %in% vrImageNames(object)){
+      warning("There are no registered images with name ", name, "!")
+    } else {
+      name <- paste0(name, "_reg")
+    }
+  }
+
+  # check main image
+  if(!name %in% vrImageNames(object)){
+    stop(name, " is not among any image in this vrAssay object")
+  }
+
+  object@image[[name]] <- combineChannels(object@image[[name]], ...)
+
+  # return
+  return(object)
+}
+
+#' @param channels the list of channels
+#' @param colors the colors associated with each channel
+#' @param channel_key the name of the new channel name
+#'
+#' @rdname combineChannels
+#' @method combineChannels vrImage
+#'
+#' @importFrom magick image_read image_data image_composite
+#' @importFrom grDevices col2rgb
+#' @importFrom raster as.raster
+#'
+#' @export
+#'
+combineChannels.vrImage <- function(object, channels = NULL, colors = NULL, channel_key = "combined"){
+
+  # check channel names
+  if(is.null(channels)){
+    stop("No channel names were given")
+  } else {
+    if(any(!channels %in% vrImageChannelNames(object))){
+      warning("Some channel names do not match with the existing channels.")
+    }
+  }
+
+  # check colors
+  if(is.null(colors)){
+    stop("No colors were given")
+  }
+  if(length(colors) != length(channels)){
+    stop("The length of colors do not match with the length of channels.")
+  }
+
+  # configure channel and color names
+  colors <- colors[channels %in% vrImageChannelNames(object)]
+  channels <- channels[channels %in% vrImageChannelNames(object)]
+  names(colors) <- channels
+
+  # get images and colorize
+  channel_list <- list()
+  composite_image <- NULL
+  for(img in channels){
+    channel_img <- vrImages(object, channel = img)
+    color_rgb <-  grDevices::col2rgb(colors[img])[,1]
+    imagedata <- as.numeric(magick::image_data(channel_img, channels = "rgb"))
+    imagedata[,,1] <- imagedata[,,1] * (color_rgb[1]/255)
+    imagedata[,,2] <- imagedata[,,2] * (color_rgb[2]/255)
+    imagedata[,,3] <- imagedata[,,3] * (color_rgb[3]/255)
+    channel_img <- magick::image_read(raster::as.raster(imagedata))
+    if(is.null(composite_image)){
+      composite_image <- channel_img
+    } else{
+      composite_image <- magick::image_composite(channel_img, composite_image, operator = "Plus")
+    }
+  }
+
+  # combine channels
+  vrImages(object, channel = channel_key) <- composite_image
 
   # return
   return(object)

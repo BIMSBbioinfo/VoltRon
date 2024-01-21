@@ -18,7 +18,7 @@ resizeImage(object, ...)
 \arguments{
 \item{object}{An object}
 
-\item{...}{arguements passed to \code{vrImages.vrImage}}
+\item{...}{arguements passed to \code{resizeImage.vrImage}}
 
 \item{name}{the name of the main image}
 
