@@ -242,7 +242,7 @@ as.Seurat.VoltRon <- function(object, cell.assay = NULL, molecule.assay = NULL, 
 as.AnnData.VoltRon <- function(object, file, assay = NULL, image_key = "fov", type = c("image", "spatial")){
 
   # check Seurat package
-  if(!requireNamespace('Seurat'))
+  if(!requireNamespace('anndata'))
     stop("Please install Seurat package for using Seurat objects")
 
   # check the number of assays
