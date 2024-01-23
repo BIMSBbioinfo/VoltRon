@@ -691,6 +691,7 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
 #'
 #' @importFrom igraph add_edges
 #'
+#' @noRd
 addConnectivity <- function(object, connectivity, sample, layer){
 
   # get sample and layer
@@ -774,7 +775,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 
     # subset for assays
     sample.metadata <- subset_sampleMetadata(sample.metadata, assays = assays)
-    metadata <- subset.vrMetadata(object@metadata, assays = assays)
+    metadata <- subset.vrMetadata(Metadata(object, type = "all"), assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subset.vrSample(samp, assays = assays)
@@ -783,26 +784,30 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
   # subsetting on entity names
   } else if(!is.null(spatialpoints)) {
 
-    metadata <- subset.vrMetadata(object@metadata, spatialpoints = spatialpoints)
-    assays <- unique(stringr::str_extract(vrSpatialPoints(metadata), "Assay[0-9]+"))
+    metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
+    # assays <- unique(stringr::str_extract(vrSpatialPoints(metadata), "Assay[0-9]+"))
+    assays <- vrAssayNames(metadata)
     sample.metadata <- subset_sampleMetadata(sample.metadata, assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subset.vrSample(samp, spatialpoints = spatialpoints)
     }, USE.NAMES = TRUE)
+    spatialpoints <-  do.call(c, lapply(listofSamples, vrSpatialPoints.vrSample))
+    metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
 
   # subsetting on features
   } else if(!is.null(features)){
     assay_names <- vrAssayNames(object)
     for(assy in assay_names){
-      cur_assay <- sample.metadata[assy,]
-      vrlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
-      vrassay <- vrlayer[[cur_assay$Assay]]
-      vrassay <- subset.vrAssay(vrassay, features = features)
-      vrlayer[[cur_assay$Assay]] <- vrassay
-      object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
+      # cur_assay <- sample.metadata[assy,]
+      # vrlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
+      # vrassay <- vrlayer[[cur_assay$Assay]]
+      # vrassay <- subset.vrAssay(vrassay, features = features)
+      # vrlayer[[cur_assay$Assay]] <- vrassay
+      # object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
+      object[[assy]] <- subset.vrAssay(object[[assy]], features = features)
     }
-    metadata <- object@metadata
+    metadata <- Metadata(object, type = "all")
     listofSamples <- object@samples
 
   # subsetting on image
@@ -822,7 +827,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
           subset.vrSample(samp, image = image)
         }, USE.NAMES = TRUE)
         spatialpoints <-  do.call(c, lapply(listofSamples, vrSpatialPoints.vrSample))
-        metadata <- subset.vrMetadata(object@metadata, spatialpoints = spatialpoints)
+        metadata <- subset.vrMetadata( Metadata(object, type = "all"), spatialpoints = spatialpoints)
       }
     } else {
       stop("Please provide a character based subsetting notation, see magick::image_crop documentation")
@@ -1102,12 +1107,26 @@ vrEmbeddingNames.VoltRon <- function(object, assay = NULL){
 #' @export
 #'
 Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
-  if(is.null(type)){
-    type <- unique(vrAssayTypes(object, assay = assay))
-  } else{
-    if(type == "all")
+
+  # check type
+  if(!is.null(type)){
+    if(type == "all"){
       return(object@metadata)
+    } else {
+      if(!is.null(assay)){
+        stop("Please specify either assay or type, not both!")
+      }
+      if(type %in% slotNames(object@metadata)){
+        return(slot(object@metadata, name = type))
+      }
+    }
+  } else{
+    type <- unique(vrAssayTypes(object, assay = assay))
+    if(length(type) > 1)
+      stop("Select only metadata with a single assay type!")
   }
+
+  # get assay metadata from matching type
   if(type %in% slotNames(object@metadata)){
 
     # sample metadata
@@ -1125,9 +1144,49 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
     }
     return(metadata)
   } else {
-    stop("Please provide one of three assay types: 'ROI', 'cell', 'spot' and 'molecules'.")
+    stop("Please provide one of five assay types: 'ROI', 'cell', 'spot', 'molecule' or 'tile'.")
   }
 }
+
+#' #' @param assay assay
+#' #' @param type the assay type: ROI, spot or cell, or all for the entire metadata object
+#' #'
+#' #' @rdname Metadata
+#' #' @method Metadata VoltRon
+#' #'
+#' #' @export
+#' #'
+#' Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
+#'
+#'   # check type
+#'   if(is.null(type)){
+#'     type <- unique(vrAssayTypes(object, assay = assay))
+#'   } else{
+#'     if(type == "all")
+#'       return(object@metadata)
+#'   }
+#'
+#'   # get assay metadata from matching type
+#'   if(type %in% slotNames(object@metadata)){
+#'
+#'     # sample metadata
+#'     sample.metadata <- SampleMetadata(object)
+#'
+#'     # get assay names
+#'     assay_names <- vrAssayNames(object, assay = assay)
+#'
+#'     # get metadata
+#'     metadata <- slot(object@metadata, name = type)
+#'     if(inherits(metadata, "data.table")){
+#'       metadata <- subset(metadata, assay_id %in% assay_names)
+#'     } else {
+#'       metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assay_names, ]
+#'     }
+#'     return(metadata)
+#'   } else {
+#'     stop("Please provide one of five assay types: 'ROI', 'cell', 'spot', 'molecule' or 'tile'.")
+#'   }
+#' }
 
 #' @param type the assay type: ROI, spot or cell
 #' @param assay assay

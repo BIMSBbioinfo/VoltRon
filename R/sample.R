@@ -259,6 +259,7 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
       return(NULL)
     }
   } else if(!is.null(spatialpoints)){
+    spatialpoints <- getConnectedSpatialPoints(object, spatialpoints)
     object@assay <- sapply(object@assay, function(assy) {
       subset.vrAssay(assy, spatialpoints = spatialpoints)
     }, USE.NAMES = TRUE, simplify = TRUE)
@@ -290,4 +291,9 @@ vrSpatialPoints.vrLayer <- function(object, ...) {
     vrSpatialPoints(assy)
   })
   do.call(c, spatialpoints)
+}
+
+getConnectedSpatialPoints <- function(object, spatialpoints = NULL){
+  spatialpoints <- intersect(spatialpoints, igraph::V(object@connectivity)$name)
+  return(names(unlist(igraph::neighborhood(object@connectivity, nodes = spatialpoints))))
 }

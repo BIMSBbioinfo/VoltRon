@@ -18,7 +18,6 @@ NULL
 #' @param plot.segments plot segments instead of points
 #' @param group.ids a subset of categories defined with in the grouping label \code{group.by}
 #' @param assay the assay name
-#' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
 #' @param graph.name if not NULL, the spatial graph is with name \code{graph.name} is visualized as well
 #' @param reduction Used by \code{vrSpatialPlotInteractive}, to visualize an embedding alongside with the spatial plot.
 #' @param ncol column wise number of plots, for \code{ggarrange}
@@ -66,16 +65,17 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get entity type and metadata
-  if(is.null(assay.type)){
-    assay_types <- vrAssayTypes(object, assay = assay)
-    if(length(unique(assay_types)) == 1){
-      metadata <- Metadata(object, type = unique(assay_types))
-    } else {
-      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
-    }
-  } else {
-    metadata <- Metadata(object, type = assay.type)
-  }
+  # if(is.null(assay.type)){
+  #   assay_types <- vrAssayTypes(object, assay = assay)
+  #   if(length(unique(assay_types)) == 1){
+  #     metadata <- Metadata(object, type = unique(assay_types))
+  #   } else {
+  #     stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+  #   }
+  # } else {
+  #   metadata <- Metadata(object, type = assay.type)
+  # }
+  metadata <- Metadata(object, assay = assay)
 
   # configure titles
   plot_title <- as.list(apply(sample.metadata[assay_names,], 1, function(x) paste(x["Sample"], x["Layer"], sep = ", ")))
@@ -424,7 +424,6 @@ vrSpatialPlotInteractive <- function(zarr.file, group.by = "Sample", plot.segmen
 #' @param norm if TRUE, the normalized data is used
 #' @param log if TRUE, data features (excluding metadata features) will be log transformed
 #' @param assay the assay name
-#' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
 #' @param graph.name if not NULL, the spatial graph is with name \code{graph.name} is visualized as well
 #' @param ncol column wise number of plots, for \code{ggarrange}
 #' @param nrow row wise number of plots, for \code{ggarrange}
@@ -460,17 +459,18 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get entity type and metadata
-  if(is.null(assay.type)){
-    assay_types <- vrAssayTypes(object, assay = assay)
-    if(length(unique(assay_types)) == 1){
-      assay.type <- unique(assay_types)
-      metadata <- Metadata(object, type = assay.type)
-    } else {
-      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
-    }
-  } else {
-    metadata <- Metadata(object, type = assay.type)
-  }
+  # get entity type and metadata
+  # if(is.null(assay.type)){
+  #   assay_types <- vrAssayTypes(object, assay = assay)
+  #   if(length(unique(assay_types)) == 1){
+  #     metadata <- Metadata(object, type = unique(assay_types))
+  #   } else {
+  #     stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+  #   }
+  # } else {
+  #   metadata <- Metadata(object, type = assay.type)
+  # }
+  metadata <- Metadata(object, assay = assay)
 
   # # check features and download data if necessary
   # if(any(features %in% vrFeatures(object, assay = assay_names))){
@@ -864,7 +864,6 @@ GeomSpot <- ggplot2::ggproto("GeomSpot",
 #' @param embedding the embedding type, i.e. pca, umap etc.
 #' @param group.by a grouping label for the spatial entities
 #' @param assay the assay name
-#' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
 #' @param ncol column wise number of plots, for \code{ggarrange}
 #' @param nrow row wise number of plots, for \code{ggarrange}
 #' @param font.size font size of labels, if label is TRUE
@@ -892,16 +891,18 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", assa
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get entity type and metadata
-  if(is.null(assay.type)){
-    assay_types <- vrAssayTypes(object, assay = assay)
-    if(length(unique(assay_types)) == 1){
-      metadata <- Metadata(object, type = unique(assay_types))
-    } else {
-      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
-    }
-  } else {
-    metadata <- Metadata(object, type = assay.type)
-  }
+  # get entity type and metadata
+  # if(is.null(assay.type)){
+  #   assay_types <- vrAssayTypes(object, assay = assay)
+  #   if(length(unique(assay_types)) == 1){
+  #     metadata <- Metadata(object, type = unique(assay_types))
+  #   } else {
+  #     stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+  #   }
+  # } else {
+  #   metadata <- Metadata(object, type = assay.type)
+  # }
+  metadata <- Metadata(object, assay = assay)
 
   # grep assays from metadata
   assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
@@ -966,7 +967,6 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", assa
 #' @param embedding the embedding type, i.e. pca, umap etc.
 #' @param features a set of features, either from the rows of rawdata, normdata or columns of the metadata
 #' @param assay the assay name
-#' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
 #' @param ncol column wise number of plots, for \code{ggarrange}
 #' @param nrow row wise number of plots, for \code{ggarrange}
 #' @param font.size font sizes
@@ -997,17 +997,17 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, a
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get entity type and metadata
-  if(is.null(assay.type)){
-    assay_types <- vrAssayTypes(object, assay = assay)
-    if(length(unique(assay_types)) == 1){
-      assay.type <- unique(assay_types)
-      metadata <- Metadata(object, type = assay.type)
-    } else {
-      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
-    }
-  } else {
-    metadata <- Metadata(object, type = assay.type)
-  }
+  # if(is.null(assay.type)){
+  #   assay_types <- vrAssayTypes(object, assay = assay)
+  #   if(length(unique(assay_types)) == 1){
+  #     metadata <- Metadata(object, type = unique(assay_types))
+  #   } else {
+  #     stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+  #   }
+  # } else {
+  #   metadata <- Metadata(object, type = assay.type)
+  # }
+  metadata <- Metadata(object, assay = assay)
 
   # get data
   data_features <- features[features %in% vrFeatures(object)]
@@ -1101,7 +1101,6 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, a
 #' @param feature.2 second feature
 #' @param norm if TRUE, the normalize data will be used
 #' @param assay assay name
-#' @param assay.type assay type
 #' @param pt.size point size
 #' @param font.size font size
 #' @param group.by a column from metadata to label points
@@ -1138,17 +1137,18 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get entity type and metadata
-  if(is.null(assay.type)){
-    assay_types <- vrAssayTypes(object, assay = assay)
-    if(length(unique(assay_types)) == 1){
-      assay.type <- unique(assay_types)
-      metadata <- Metadata(object, type = assay.type)
-    } else {
-      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
-    }
-  } else {
-    metadata <- Metadata(object, type = assay.type)
-  }
+  # get entity type and metadata
+  # if(is.null(assay.type)){
+  #   assay_types <- vrAssayTypes(object, assay = assay)
+  #   if(length(unique(assay_types)) == 1){
+  #     metadata <- Metadata(object, type = unique(assay_types))
+  #   } else {
+  #     stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+  #   }
+  # } else {
+  #   metadata <- Metadata(object, type = assay.type)
+  # }
+  metadata <- Metadata(object, assay = assay)
 
   # get data
   data_feature <- sapply(c(feature.1, feature.2), function(feat){
@@ -1190,7 +1190,6 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 #'
 #' @param object VoltRon object
 #' @param assay assay name
-#' @param assay.type assay type
 #' @param features a set of features to be visualized
 #' @param group.by a column from metadata to seperate columns of the heatmap
 #' @param norm if TRUE, the normalized data is used
@@ -1246,17 +1245,18 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
   heatmapdata <- heatmapdata[features, ]
 
   # get entity type and metadata
-  if(is.null(assay.type)){
-    assay_types <- vrAssayTypes(object, assay = assay)
-    if(length(unique(assay_types)) == 1){
-      assay.type <- unique(assay_types)
-      metadata <- Metadata(object, type = assay.type)
-    } else {
-      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
-    }
-  } else {
-    metadata <- Metadata(object, type = assay.type)
-  }
+  # get entity type and metadata
+  # if(is.null(assay.type)){
+  #   assay_types <- vrAssayTypes(object, assay = assay)
+  #   if(length(unique(assay_types)) == 1){
+  #     metadata <- Metadata(object, type = unique(assay_types))
+  #   } else {
+  #     stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+  #   }
+  # } else {
+  #   metadata <- Metadata(object, type = assay.type)
+  # }
+  metadata <- Metadata(object, assay = assay)
   metadata <- metadata[colnames(heatmapdata),]
 
   # scaling, optional
@@ -1316,7 +1316,6 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
 #' @param object A VoltRon object
 #' @param features a set of features to be visualized
 #' @param assay assay name
-#' @param assay.type assay type
 #' @param group.by a column from metadata to seperate columns of the heatmap
 #' @param norm if TRUE, the normalized data is used
 #' @param points if TRUE, measures are visualized as points as well.
@@ -1352,18 +1351,18 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NUL
   }
 
   # get entity type and metadata
-  if(is.null(assay.type)){
-    assay_types <- vrAssayTypes(object, assay = assay)
-    if(length(unique(assay_types)) == 1){
-      assay.type <- unique(assay_types)
-      metadata <- Metadata(object, type = assay.type)
-    } else {
-      stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
-    }
-  } else {
-    metadata <- Metadata(object, type = assay.type)
-  }
-  # metadata <- metadata[colnames(violindata),]
+  # get entity type and metadata
+  # if(is.null(assay.type)){
+  #   assay_types <- vrAssayTypes(object, assay = assay)
+  #   if(length(unique(assay_types)) == 1){
+  #     metadata <- Metadata(object, type = unique(assay_types))
+  #   } else {
+  #     stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
+  #   }
+  # } else {
+  #   metadata <- Metadata(object, type = assay.type)
+  # }
+  metadata <- Metadata(object, assay = assay)
 
   # get feature data
   datax <- lapply(features, function(x){
@@ -1462,7 +1461,8 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
   if(unique(assay_types) %in% c("spot","cell")){
     stop("vrBarPlot can only be used for ROI assays")
   } else {
-    metadata <- Metadata(object, assay = assay, type = "ROI")
+    # metadata <- Metadata(object, assay = assay, type = "ROI")
+    metadata <- Metadata(object, type = "ROI")
     assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
     metadata <- metadata[grepl(assy_id, rownames(metadata)),]
   }
@@ -1595,7 +1595,8 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL, split.by = NU
   if(unique(assay_types) %in% c("spot","cell")){
     stop("vrProportionPlot can only be used for ROI assays")
   } else {
-    metadata <- Metadata(object, assay = assay, type = "ROI")
+    # metadata <- Metadata(object, assay = assay, type = "ROI")
+    metadata <- Metadata(object, type = "ROI")
     assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
     metadata <- metadata[grepl(assy_id, rownames(metadata)),]
   }
