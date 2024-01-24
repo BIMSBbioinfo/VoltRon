@@ -239,7 +239,7 @@ as.Seurat.VoltRon <- function(object, cell.assay = NULL, molecule.assay = NULL, 
 #'
 #' @export
 #'
-as.AnnData.VoltRon <- function(object, file, assay = NULL, image_key = "fov", type = c("image", "spatial")){
+as.AnnData.VoltRon <- function(object, file, assay = NULL, image_key = "fov", type = c("image", "spatial"), flip_coordinates = FALSE){
 
   # check Seurat package
   if(!requireNamespace('anndata'))
@@ -267,6 +267,11 @@ as.AnnData.VoltRon <- function(object, file, assay = NULL, image_key = "fov", ty
   # metadata
   metadata <- Metadata(object, assay = assay)
   metadata$AssayID <- stringr::str_extract(rownames(metadata), "_Assay[0-9]+$")
+
+  # flip coordinates
+  if(flip_coordinates){
+    object <- flipCoordinates(object, assay = assay)
+  }
 
   # coordinates
   coords <- vrCoordinates(object, assay = assay)
