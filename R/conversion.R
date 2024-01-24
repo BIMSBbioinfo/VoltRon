@@ -230,6 +230,7 @@ as.Seurat.VoltRon <- function(object, cell.assay = NULL, molecule.assay = NULL, 
 #' @param file the name of the h5ad file
 #' @param image_key the name (or prefix) of the image(s)
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
+#' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped
 #'
 #' @rdname as.AnnData
 #' @method as.AnnData VoltRon
@@ -239,10 +240,10 @@ as.Seurat.VoltRon <- function(object, cell.assay = NULL, molecule.assay = NULL, 
 #'
 #' @export
 #'
-as.AnnData.VoltRon <- function(object, file, assay = NULL, image_key = "fov", type = c("image", "spatial")){
+as.AnnData.VoltRon <- function(object, file, assay = NULL, image_key = "fov", type = c("image", "spatial"), flip_coordinates = FALSE){
 
   # check Seurat package
-  if(!requireNamespace('Seurat'))
+  if(!requireNamespace('anndata'))
     stop("Please install Seurat package for using Seurat objects")
 
   # check the number of assays
@@ -267,6 +268,11 @@ as.AnnData.VoltRon <- function(object, file, assay = NULL, image_key = "fov", ty
   # metadata
   metadata <- Metadata(object, assay = assay)
   metadata$AssayID <- stringr::str_extract(rownames(metadata), "_Assay[0-9]+$")
+
+  # flip coordinates
+  if(flip_coordinates){
+    object <- flipCoordinates(object, assay = assay)
+  }
 
   # coordinates
   coords <- vrCoordinates(object, assay = assay)
