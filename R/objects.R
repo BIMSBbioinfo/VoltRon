@@ -787,13 +787,14 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
     metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
     # assays <- unique(stringr::str_extract(vrSpatialPoints(metadata), "Assay[0-9]+"))
     assays <- vrAssayNames(metadata)
-    sample.metadata <- subset_sampleMetadata(sample.metadata, assays = assays)
-    samples <- unique(sample.metadata$Sample)
+    cur_sample.metadata <- subset_sampleMetadata(sample.metadata, assays = assays)
+    samples <- unique(cur_sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subset.vrSample(samp, spatialpoints = spatialpoints)
     }, USE.NAMES = TRUE)
     spatialpoints <-  do.call(c, lapply(listofSamples, vrSpatialPoints.vrSample))
     metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
+    sample.metadata <- subset_sampleMetadata(sample.metadata, assays = vrAssayNames.vrMetadata(metadata))
 
   # subsetting on features
   } else if(!is.null(features)){
