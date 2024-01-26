@@ -1282,9 +1282,12 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, reg =
 #'
 #' @export
 #'
-flipCoordinates.VoltRon <- function(object, ...){
-  sample.metadata <- SampleMetadata(object)
-  assay_names <- rownames(sample.metadata)
+flipCoordinates.VoltRon <- function(object, assay = NULL, ...){
+
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
+  # flip coordinates
   for(assy in assay_names){
     object[[assy]] <- flipCoordinates(object[[assy]], ...)
   }
