@@ -175,6 +175,7 @@ vrSpatialPoints.vrMetadata <- function(object, assay = NULL) {
 #'
 #' @importFrom rlang enquo
 #' @importFrom stringr str_extract
+#' @importFrom data.table setkey
 #'
 subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spatialpoints = NULL) {
 
@@ -240,7 +241,7 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
     # if(all(spatialpoints %in% vrSpatialPoints(object))){
       if(nrow(object@molecule) > 0){
         # mol.metadata <- object@molecule[id %in% spatialpoints, ]
-        setkey(object@molecule, id)
+        data.table::setkey(object@molecule, id)
         mol.metadata <- object@molecule[J(spatialpoints), nomatch=0L]
       } else {
         mol.metadata <- data.table::data.table()
