@@ -675,6 +675,48 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
   object@samples <- new_listofSamples
   object@metadata <- metadata
 
+  # return
+  return(object)
+}
+
+#' changeAssayNames.VoltRon
+#'
+#' Change the sample names of the VoltRon object and reorient layers if needed
+#'
+#' @rdname changeAssayNames
+#' @method changeAssayNames VoltRon
+#'
+#' @param object a VoltRon object
+#' @param assays a set of assay names
+#'
+#' @noRd
+changeAssayNames.VoltRon <- function(object, assays = NULL){
+
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+
+  # check the length of the new assay names
+  if(nrow(sample.metadata) != length(assays))
+    stop("The set of new assay names should be of the number of assays in the VoltRon object.")
+
+  # check the uniqueness of the assay names
+  if(length(unique(assays)) != length(assays))
+    stop("Each new assay name should be unique")
+
+  # attach new names of sample.metadata
+  sample.metadata$NewAssayNames <- assays
+
+  # change assay names in layers
+  samples <- unique(sample.metadata$Sample)
+  for(samp in samples){
+    Xen_R1[[samp]] <- changeAssayNames(Xen_R1[[samp]], sample.metadata = sample.metadata[sample.metadata$Sample == samp])
+  }
+
+  # change assay names of the vrAssays
+  for(assy in assays)
+    vrAssayNames(object[[assy]]) <- assy
+
+  # return
   return(object)
 }
 
@@ -910,9 +952,10 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   # set VoltRon class
   object <- methods::new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, main.assay = main.assay, project = project)
 
-  # change assay names and sample names
-  for(assy in rownames(sample.metadata))
-    vrAssayNames(object[[assy]]) <- assy
+  # # change assay names and sample names
+  # for(assy in rownames(sample.metadata))
+  #   vrAssayNames(object[[assy]]) <- assy
+  object <- changeAssayNames(object, assays = rownames(sample.metadata))
 
   # change sample names
   if(!is.null(samples))

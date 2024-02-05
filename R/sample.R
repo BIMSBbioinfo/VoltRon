@@ -64,6 +64,7 @@ setMethod(
 #' The vrLayer (VoltRon Layer) Class
 #'
 #' @slot assay A list of assays (vrAssay)
+#' @slot connectivity the connectivity graph
 #'
 #' @name vrLayer-class
 #' @rdname vrLayer-class
@@ -136,7 +137,7 @@ setMethod(
 # Methods ####
 ####
 
-### Merge vrSample object ####
+### vrSample Methods ####
 
 #' Merging vrSample objects
 #'
@@ -159,8 +160,6 @@ merge.vrSample <- function(object, object_list, samples = NULL){
   # set VoltRon class
   return(object_list)
 }
-
-### Subset vrSample object ####
 
 #' Subsetting vrSample objects
 #'
@@ -208,8 +207,6 @@ subset.vrSample <- function(object, subset, assays = NULL, spatialpoints = NULL,
   }
 }
 
-### Get Spatial Points of vrSample ####
-
 #' @rdname vrSpatialPoints
 #' @method vrSpatialPoints vrSample
 #'
@@ -224,7 +221,35 @@ vrSpatialPoints.vrSample <- function(object, ...) {
   do.call(c, spatialpoints)
 }
 
-### Subset vrLayer objects ####
+#' changeAssayNames.vrSample
+#'
+#' Change the assay names of assays within a vrSample object
+#'
+#' @rdname changeAssayNames
+#' @method changeAssayNames vrSample
+#'
+#' @param object a vrSample object
+#' @param sample.metadata the sample metadata with NewAssayNames column which includes the new assay names
+#'
+#' @noRd
+changeAssayNames.vrSample <- function(object, sample.metadata = NULL){
+
+  if(is.null(sample.metadata))
+    stop("Please provide a sample.metadata")
+
+  if(!"NewAssayNames" %in% columns(sample.metadata))
+    stop("Please provide a sample.metadata with NewAssayNames column which includes the new assay names")
+
+  # change the assay names of the layers
+  layer_names <- names(object@layer)
+  for(lyr in layer_names)
+    object[[lyr]] <- changeAssayNames(object[[lyr]], sample.metadata = sample.metadata[sample.metadata$Layer == lyr])
+
+  # return
+  return(object)
+}
+
+### vrLayer Methods ####
 
 #' Subsetting vrLayer objects
 #'
@@ -297,3 +322,45 @@ getConnectedSpatialPoints <- function(object, spatialpoints = NULL){
   spatialpoints <- intersect(spatialpoints, igraph::V(object@connectivity)$name)
   return(names(unlist(igraph::neighborhood(object@connectivity, nodes = spatialpoints))))
 }
+
+#' #' changeAssayNames.vrLayer
+#' #'
+#' #' Change the assay names of assays within a vrSample object
+#' #'
+#' #' @rdname changeAssayNames
+#' #' @method changeAssayNames vrLayer
+#' #'
+#' #' @param object a vrLayer object
+#' #' @param sample.metadata the sample metadata with NewAssayNames column which includes the new assay names
+#' #'
+#' #' @importFrom igraph V
+#' #'
+#' #' @noRd
+#' changeAssayNames.vrLayer <- function(object, sample.metadata = NULL){
+#'
+#'   if(is.null(sample.metadata))
+#'     stop("Please provide a sample.metadata")
+#'
+#'   if(!"NewAssayNames" %in% columns(sample.metadata))
+#'     stop("Please provide a sample.metadata with NewAssayNames column which includes the new assay names")
+#'
+#'   # change the assay names of the connetivity graph
+#'   spatialpoints <- V(object@connectivity)$name
+#'   old_assay_names <- rownames(sample.metadata)
+#'   new_assay_names <- sample.metadata$NewAssayNames
+#'   temp <- spatialpoints
+#'   for(i in 1:length(old_assay_names)){
+#'     ind <- grepl(paste0(old_assay_names[i],"$"), spatialpoints)
+#'     temp[ind] <- gsub(paste0(old_assay_names[i],"$"), new_assay_names[i], spatialpoints[ind])
+#'   }
+#'   V(object@connectivity)$name <- temp
+#'
+#'   # change the assay names of vrAssays
+#'   assay_names <- names(object@assay)
+#'   for(assy in assay_names)
+#'     vrAssayNames(object[[assy]]) <- rownames(sample.metadata[sample.metadata$Assay == assy])
+#'
+#'   # return
+#'   return(object)
+#' }
+

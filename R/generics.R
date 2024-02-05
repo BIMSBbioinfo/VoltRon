@@ -104,6 +104,22 @@ changeSampleNames <- function(object, ...) {
   UseMethod(generic = 'changeSampleNames', object = object)
 }
 
+#' changeAssayNames
+#'
+#' change assay names of VoltRon or other objects
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname changeAssayNames
+#' @export changeAssayNames
+#'
+#' @noRd
+#'
+changeAssayNames <- function(object, ...) {
+  UseMethod(generic = 'changeAssayNames', object = object)
+}
+
 ####
 # Assay ####
 ####
