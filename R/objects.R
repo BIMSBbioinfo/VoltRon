@@ -709,12 +709,12 @@ changeAssayNames.VoltRon <- function(object, assays = NULL){
   # change assay names in layers
   samples <- unique(sample.metadata$Sample)
   for(samp in samples){
-    Xen_R1[[samp]] <- changeAssayNames(Xen_R1[[samp]], sample.metadata = sample.metadata[sample.metadata$Sample == samp])
+    object[[samp]] <- changeAssayNames(object[[samp]], sample.metadata = sample.metadata[sample.metadata$Sample == samp,])
   }
 
-  # change assay names of the vrAssays
-  for(assy in assays)
-    vrAssayNames(object[[assy]]) <- assy
+  # # change assay names of the vrAssays
+  # for(assy in assays)
+  #   vrAssayNames(object[[assy]]) <- assy
 
   # return
   return(object)
@@ -955,6 +955,8 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   # # change assay names and sample names
   # for(assy in rownames(sample.metadata))
   #   vrAssayNames(object[[assy]]) <- assy
+
+  # change assay names and sample names
   object <- changeAssayNames(object, assays = rownames(sample.metadata))
 
   # change sample names
