@@ -12,7 +12,8 @@ as.AnnData(object, ...)
   file,
   assay = NULL,
   image_key = "fov",
-  type = c("image", "spatial")
+  type = c("image", "spatial"),
+  flip_coordinates = FALSE
 )
 }
 \arguments{

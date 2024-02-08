@@ -312,6 +312,7 @@ setMethod(
 #' @param layer_name the name of the layer
 #' @param image_name the name/key of the image
 #' @param project project name
+#' @param ... additional parameters passed to \code{formAssay}
 #'
 #' @importFrom igraph make_empty_graph V vertices
 #' @importFrom methods new
@@ -327,7 +328,7 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
                              sample.metadata = NULL,
                              main.assay = "Custom_cell", assay.type = "cell", params = list(),
                              sample_name = NULL, layer_name = NULL, image_name = NULL,
-                             project = NULL){
+                             project = NULL, ...){
 
   # set project name
   if(is.null(project))
@@ -453,7 +454,7 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
   }
 
   # create vrAssay
-  Assay <- formAssay(data = data, coords = coords, segments = segments, image = image, params = params, type = assay.type, name = "Assay1", main_image = image_name)
+  Assay <- formAssay(data = data, coords = coords, segments = segments, image = image, params = params, type = assay.type, name = "Assay1", main_image = image_name, ...)
   listofAssays <- list(Assay)
   names(listofAssays) <- main.assay
 
@@ -1189,46 +1190,6 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
     stop("Please provide one of five assay types: 'ROI', 'cell', 'spot', 'molecule' or 'tile'.")
   }
 }
-
-#' #' @param assay assay
-#' #' @param type the assay type: ROI, spot or cell, or all for the entire metadata object
-#' #'
-#' #' @rdname Metadata
-#' #' @method Metadata VoltRon
-#' #'
-#' #' @export
-#' #'
-#' Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
-#'
-#'   # check type
-#'   if(is.null(type)){
-#'     type <- unique(vrAssayTypes(object, assay = assay))
-#'   } else{
-#'     if(type == "all")
-#'       return(object@metadata)
-#'   }
-#'
-#'   # get assay metadata from matching type
-#'   if(type %in% slotNames(object@metadata)){
-#'
-#'     # sample metadata
-#'     sample.metadata <- SampleMetadata(object)
-#'
-#'     # get assay names
-#'     assay_names <- vrAssayNames(object, assay = assay)
-#'
-#'     # get metadata
-#'     metadata <- slot(object@metadata, name = type)
-#'     if(inherits(metadata, "data.table")){
-#'       metadata <- subset(metadata, assay_id %in% assay_names)
-#'     } else {
-#'       metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assay_names, ]
-#'     }
-#'     return(metadata)
-#'   } else {
-#'     stop("Please provide one of five assay types: 'ROI', 'cell', 'spot', 'molecule' or 'tile'.")
-#'   }
-#' }
 
 #' @param type the assay type: ROI, spot or cell
 #' @param assay assay

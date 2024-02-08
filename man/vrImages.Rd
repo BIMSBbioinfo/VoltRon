@@ -22,7 +22,7 @@ vrImages(object, ...) <- value
 
 \method{vrImages}{vrImage}(object, channel = NULL, as.raster = FALSE)
 
-\method{vrImages}{vrImage}(object, channel = NULL, ...) <- value
+\method{vrImages}{vrImage}(object, channel = NULL) <- value
 }
 \arguments{
 \item{object}{A vrAssay object}
@@ -43,16 +43,4 @@ vrImages(object, ...) <- value
 }
 \description{
 Get images of a VoltRon assay
-
-#' @param object A vrLayer object
-#' @param ... arguements passed to \code{vrImages.vrAssay}
-#'
-#' @rdname vrImages
-#' @method vrImages vrLayer
-#'
-#' @export
-#'
-vrImages.vrLayer <- function(object, ...){
-  sapply(object@assay, function(assy) vrImages(assy, ...), USE.NAMES = TRUE)
-}
 }

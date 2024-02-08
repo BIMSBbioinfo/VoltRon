@@ -9,7 +9,6 @@ vrEmbeddingPlot(
   embedding = "pca",
   group.by = "Sample",
   assay = NULL,
-  assay.type = NULL,
   ncol = 2,
   nrow = NULL,
   font.size = 5,
@@ -27,8 +26,6 @@ vrEmbeddingPlot(
 \item{group.by}{a grouping label for the spatial entities}
 
 \item{assay}{the assay name}
-
-\item{assay.type}{the assay type name: 'cell', 'spot' or 'ROI'}
 
 \item{ncol}{column wise number of plots, for \code{ggarrange}}
 

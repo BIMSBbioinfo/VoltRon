@@ -12,7 +12,8 @@ importXenium(
   morphology_image = "morphology_lowres.tif",
   resolution_level = 7,
   overwrite_resolution = FALSE,
-  image_name = "DAPI",
+  image_name = "main",
+  channel_name = "DAPI",
   import_molecules = FALSE,
   ...
 )

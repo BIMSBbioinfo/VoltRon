@@ -12,5 +12,7 @@ The vrLayer (VoltRon Layer) Class
 
 \describe{
 \item{\code{assay}}{A list of assays (vrAssay)}
+
+\item{\code{connectivity}}{the connectivity graph}
 }}
 

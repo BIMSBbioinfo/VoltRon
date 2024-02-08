@@ -28,7 +28,7 @@
 #'
 #' @export
 #'
-importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, overwrite_resolution = FALSE, image_name = "DAPI", import_molecules = FALSE, ...)
+importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, overwrite_resolution = FALSE, image_name = "main", channel_name = "DAPI", import_molecules = FALSE, ...)
 {
   # cell assay
   message("Creating cell level assay ...")
@@ -96,7 +96,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   }
 
   # create VoltRon object for cells
-  cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, segments = segments, main.assay = assay_name, assay.type = "cell", image_name = image_name, ...)
+  cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, segments = segments, main.assay = assay_name, assay.type = "cell", image_name = image_name, main_channel = channel_name, ...)
 
   # molecule assay
   if(!import_molecules){
@@ -139,7 +139,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
     }
 
     # create VoltRon assay for molecules
-    mol_assay <- formAssay(coords = coords, image = image, type = "molecule", main_image = image_name)
+    mol_assay <- formAssay(coords = coords, image = image, type = "molecule", main_image = image_name, main_channel = channel_name)
 
     # merge assays in one section
     message("Merging assays ...")

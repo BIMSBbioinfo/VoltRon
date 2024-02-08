@@ -10,7 +10,6 @@ vrScatterPlot(
   feature.2,
   norm = TRUE,
   assay = NULL,
-  assay.type = NULL,
   pt.size = 2,
   font.size = 2,
   group.by = "label",
@@ -28,8 +27,6 @@ vrScatterPlot(
 \item{norm}{if TRUE, the normalize data will be used}
 
 \item{assay}{assay name}
-
-\item{assay.type}{assay type}
 
 \item{pt.size}{point size}
 

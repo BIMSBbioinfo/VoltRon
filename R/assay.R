@@ -73,12 +73,13 @@ setMethod(
 #' @param type the type of the assay (cells, spots, ROIs)
 #' @param name the name of the assay
 #' @param main_image the name of the main_image
+#' @param ... additional arguements passed to \code{formImage}
 #'
 #' @importFrom methods new
 #'
 #' @export
 #'
-formAssay <- function(data = NULL, coords, segments = list(), image = NULL, params = list(), type = "ROI", name = "Assay1", main_image = "image_1"){
+formAssay <- function(data = NULL, coords, segments = list(), image = NULL, params = list(), type = "ROI", name = "Assay1", main_image = "image_1", ...){
 
   # get data
   if(is.null(data)){
@@ -87,7 +88,7 @@ formAssay <- function(data = NULL, coords, segments = list(), image = NULL, para
   }
 
   # get image object
-  image <- formImage(coords = coords, segments = segments, image = image)
+  image <- formImage(coords = coords, segments = segments, image = image, ...)
   image <- list(image)
   names(image) <- main_image
 

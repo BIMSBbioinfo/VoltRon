@@ -12,7 +12,6 @@ vrSpatialFeaturePlot(
   norm = TRUE,
   log = FALSE,
   assay = NULL,
-  assay.type = NULL,
   graph.name = NULL,
   ncol = 2,
   nrow = NULL,
@@ -43,8 +42,6 @@ vrSpatialFeaturePlot(
 \item{log}{if TRUE, data features (excluding metadata features) will be log transformed}
 
 \item{assay}{the assay name}
-
-\item{assay.type}{the assay type name: 'cell', 'spot' or 'ROI'}
 
 \item{graph.name}{if not NULL, the spatial graph is with name \code{graph.name} is visualized as well}
 

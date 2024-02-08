@@ -10,7 +10,7 @@
 
 flipCoordinates(object, ...)
 
-\method{flipCoordinates}{VoltRon}(object, ...)
+\method{flipCoordinates}{VoltRon}(object, assay = NULL, ...)
 }
 \arguments{
 \item{object}{An object}

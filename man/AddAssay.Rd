@@ -22,6 +22,7 @@ addAssay(object, ...)
   assay,
   metadata = NULL,
   assay_name,
+  connectitivity = NULL,
   sample = "Sample1",
   layer = "Section1"
 )
@@ -40,6 +41,8 @@ addAssay(object, ...)
 \item{sample}{sample name}
 
 \item{layer}{layer name}
+
+\item{connectivity}{a metadata of edges representing connected spatial points across assays}
 }
 \description{
 add assay to the object

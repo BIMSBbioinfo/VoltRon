@@ -17,7 +17,8 @@ formVoltRon(
   sample_name = NULL,
   layer_name = NULL,
   image_name = NULL,
-  project = NULL
+  project = NULL,
+  ...
 )
 }
 \arguments{
@@ -46,6 +47,8 @@ formVoltRon(
 \item{image_name}{the name/key of the image}
 
 \item{project}{project name}
+
+\item{...}{additional parameters passed to \code{formAssay}}
 }
 \description{
 Create a VoltRon object

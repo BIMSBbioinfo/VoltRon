@@ -220,30 +220,6 @@ vrImages.VoltRon <- function(object, assay = NULL, ...){
   }
 }
 
-#' #' @param object A vrSample object
-#' #' @param ... arguements passed to \code{vrImages.vrLayer}
-#' #'
-#' #' @rdname vrImages
-#' #' @method vrImages vrSample
-#' #'
-#' #' @export
-#' #'
-#' vrImages.vrSample <- function(object, ...){
-#'   sapply(object@layer, function(lay) vrImages(lay, ...), USE.NAMES = TRUE)
-#' }
-#'
-#' #' @param object A vrLayer object
-#' #' @param ... arguements passed to \code{vrImages.vrAssay}
-#' #'
-#' #' @rdname vrImages
-#' #' @method vrImages vrLayer
-#' #'
-#' #' @export
-#' #'
-#' vrImages.vrLayer <- function(object, ...){
-#'   sapply(object@assay, function(assy) vrImages(assy, ...), USE.NAMES = TRUE)
-#' }
-
 #' @param object A vrAssay object
 #' @param name the name of the main image
 #' @param reg TRUE if registered images are assigned
