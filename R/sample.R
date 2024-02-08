@@ -377,8 +377,6 @@ changeAssayNames.vrLayer <- function(object, sample.metadata = NULL){
   old_assay_names <- sapply(object@assay, vrAssayNames)
   new_assay_names <- sample.metadata$NewAssayNames
   cur_spatialpoints <- spatialpoints
-  print(new_assay_names)
-  print(old_assay_names)
   for(i in 1:length(old_assay_names)){
     if(old_assay_names[i]!=new_assay_names[i]){
       ind <- grepl(paste0(old_assay_names[i],"$"), spatialpoints)

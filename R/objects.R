@@ -712,10 +712,6 @@ changeAssayNames.VoltRon <- function(object, assays = NULL){
     object[[samp]] <- changeAssayNames(object[[samp]], sample.metadata = sample.metadata[sample.metadata$Sample == samp,])
   }
 
-  # # change assay names of the vrAssays
-  # for(assy in assays)
-  #   vrAssayNames(object[[assy]]) <- assy
-
   # return
   return(object)
 }

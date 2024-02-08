@@ -40,7 +40,7 @@ NULL
 #'
 #' @export
 #'
-vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, assay = NULL, assay.type = NULL, graph.name = NULL,
+vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, assay = NULL, graph.name = NULL,
                           reduction = "umap", ncol = 2, nrow = NULL,
                           font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, label = FALSE, background = NULL, reg = FALSE,
                           crop = FALSE, legend.pt.size = 2, legend.loc = "right", common.legend = TRUE, collapse = TRUE) {
@@ -444,7 +444,7 @@ vrSpatialPlotInteractive <- function(zarr.file, group.by = "Sample", plot.segmen
 #'
 #' @export
 #'
-vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segments = FALSE, norm = TRUE, log = FALSE, assay = NULL, assay.type = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
+vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segments = FALSE, norm = TRUE, log = FALSE, assay = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
                          font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, background = NULL, reg = FALSE,
                          crop = FALSE, common.legend = FALSE, collapse = TRUE) {
 
@@ -877,7 +877,7 @@ GeomSpot <- ggplot2::ggproto("GeomSpot",
 #'
 #' @export
 #'
-vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
+vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", assay = NULL, ncol = 2, nrow = NULL,
                             font.size = 5, pt.size = 1, label = FALSE, common.legend = TRUE, collapse = TRUE) {
 
   # check object
@@ -979,7 +979,7 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", assa
 #'
 #' @export
 #'
-vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
+vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, assay = NULL, ncol = 2, nrow = NULL,
                                    font.size = 2, pt.size = 1, keep.scale = "feature", common.legend = TRUE, collapse = TRUE) {
 
   # check object
@@ -1112,7 +1112,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, a
 #'
 #' @export
 #'
-vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NULL, assay.type = NULL,
+vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NULL,
                                pt.size = 2, font.size = 2, group.by = "label", label = FALSE, trend = FALSE){
 
   # check object
@@ -1209,7 +1209,7 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 #'
 #' @export
 #'
-vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NULL, group.by = "clusters",
+vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clusters",
                           norm = TRUE, scaled = TRUE, show_row_names = NULL, cluster_rows = TRUE, show_heatmap_legend = FALSE,
                           outlier.quantile = 0.99, highlight.some = FALSE, n_highlight = 30, font.size = 13.2, seed = 1, ...){
 
@@ -1328,7 +1328,7 @@ vrHeatmapPlot <- function(object, assay = NULL, assay.type = NULL, features = NU
 #'
 #' @export
 #'
-vrViolinPlot <- function(object, features = NULL, assay = NULL, assay.type = NULL, group.by = "Sample", norm = TRUE, points = TRUE, ncol = 2, nrow = NULL, ...){
+vrViolinPlot <- function(object, features = NULL, assay = NULL, group.by = "Sample", norm = TRUE, points = TRUE, ncol = 2, nrow = NULL, ...){
 
   # check object
   if(!inherits(object, "VoltRon"))
