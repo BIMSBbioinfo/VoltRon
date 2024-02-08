@@ -40,12 +40,15 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
   }
 
   # get images from the list of objects
-  orig_image_query_list <- unlist(lapply(spatdata_list, vrImages))
+  # orig_image_query_list <- unlist(lapply(spatdata_list, vrImages))
+  orig_image_query_list <- unlist(lapply(spatdata_list, function(spat){
+    vrImages(spat, assay = vrAssayNames(spat))
+  }))
 
   ## UI and Server ####
 
   # get the ui and server
-  if (interactive()){
+  if(interactive()){
     # ui <- tagList(
     ui <- fluidPage(
       # use javascript extensions for Shiny
@@ -400,13 +403,18 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
     }
 
     # register the VoltRon object
-    registered_sr[[i]] <- applyPerspectiveTransform(obj_list[[i]],
-                                                    mapping = mapping_list[[paste0(i)]],
-                                                    reference_image = image_list[[ref_ind]],
-                                                    input = input,
-                                                    reg_mode = reg_mode,
-                                                    ref_extension = ref_extension,
-                                                    query_extension = query_extension)
+    for(assy in vrAssayNames(obj_list[[i]], assay = "all")){
+      print(assy)
+      obj_list[[i]] <- applyPerspectiveTransform(obj_list[[i]],
+                                                 assay = assy,
+                                                 mapping = mapping_list[[paste0(i)]],
+                                                 reference_image = image_list[[ref_ind]],
+                                                 input = input,
+                                                 reg_mode = reg_mode,
+                                                 ref_extension = ref_extension,
+                                                 query_extension = query_extension)
+    }
+    registered_sr[[i]] <- obj_list[[i]]
 
   }
   return(registered_sr)
@@ -427,16 +435,22 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
 #' @importFrom magick image_info
 #'
 #' @noRd
-applyPerspectiveTransform <- function(object, mapping,
+applyPerspectiveTransform <- function(object,
+                                      assay = NULL,
+                                      mapping,
                                       reference_image,
                                       input,
                                       reg_mode,
                                       ref_extension,
                                       query_extension){
 
+  # check assay
+  if(is.null(assay))
+    assay <- vrAssayNames(object)
+
   # get coordinates, segments and spatial points
-  coords <- vrCoordinates(object)
-  segments <- vrSegments(object)
+  coords <- vrCoordinates(object, assay = assay)
+  segments <- vrSegments(object, assay = assay)
 
   if(reg_mode == "manual"){
 
@@ -454,7 +468,6 @@ applyPerspectiveTransform <- function(object, mapping,
       if(length(segments) > 0){
         segments_reg <- do.call(rbind, segments)
         segments_reg <- as.matrix(segments_reg)
-        # segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- apply(segments_reg[,colnames(segments_reg) %in% c("x", "y")], 2, as.numeric)
         segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTPSTransform(segments_reg[,colnames(segments_reg) %in% c("x", "y")], cur_mapping)
         segments_reg <- as.data.frame(segments_reg)
         segments_reg <- split(segments_reg, segments_reg[,1])
@@ -465,7 +478,7 @@ applyPerspectiveTransform <- function(object, mapping,
     }
 
     # get registered image (including all channels)
-    image_reg_list <- sapply(vrImageChannelNames(object[[vrAssayNames(object)]]), function(x) NULL, USE.NAMES = TRUE)
+    image_reg_list <- sapply(vrImageChannelNames(object[[assay]]), function(x) NULL, USE.NAMES = TRUE)
     for(channel_ind in names(image_reg_list)){
       image_reg_list[[channel_ind]] <- getManualRegisteredImage(vrImages(object, channel = channel_ind),
                                                                 reference_image,
@@ -479,7 +492,7 @@ applyPerspectiveTransform <- function(object, mapping,
 
     # images
     ref_image <- transformImage(reference_image, ref_extension, input)
-    query_image <- transformImage(vrImages(object),
+    query_image <- transformImage(vrImages(object, assay = assay),
                                   query_extension, input)
 
     # image info
@@ -522,12 +535,12 @@ applyPerspectiveTransform <- function(object, mapping,
     }
 
     # get registered image (including all channels)
-    image_reg_list <- sapply(vrImageChannelNames(object[[vrAssayNames(object)]]), function(x) NULL, USE.NAMES = TRUE)
+    image_reg_list <- sapply(vrImageChannelNames(object[[assay]]), function(x) NULL, USE.NAMES = TRUE)
     for(channel_ind in names(image_reg_list)){
 
       # rotate, flip and flop before warping in C++
       ref_image <- transformImage(reference_image, ref_extension, input)
-      query_image <- transformImage(vrImages(object, channel = channel_ind),
+      query_image <- transformImage(vrImages(object, assay = assay, channel = channel_ind),
                                     query_extension, input)
       query_image <- getRcppWarpImage(ref_image, query_image, hmatrix = cur_mapping)
       query_image <- transformImageReverse(query_image, ref_extension, input)
@@ -537,7 +550,7 @@ applyPerspectiveTransform <- function(object, mapping,
   }
 
   # make new image object
-  vrImages(object[[vrAssayNames(object)]], reg = TRUE) <- formImage(coords = coords_reg, segments = segments_reg, image = image_reg_list)
+  vrImages(object[[assay]], reg = TRUE) <- formImage(coords = coords_reg, segments = segments_reg, image = image_reg_list)
 
   # return object
   return(object)
