@@ -145,6 +145,20 @@ vrImages(melc_data)
 
 <br>
 
+```{r eval = FALSE, class.source="watch-out"}
+melc_data <- combineChannels(melc_data, 
+                             channels = c("DAPI", "CD45"), colors = c("grey", "green"), 
+                             channel_key = "combined")
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImageChannelNames(melc_data)
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImages(melc_data, channel = "combined")
+```
+
 ## Feature Matrix (Data)
 
 ```{r eval = FALSE, class.source="watch-out"}
