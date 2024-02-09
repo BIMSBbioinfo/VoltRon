@@ -20,7 +20,8 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
     stop("Please install Seurat package for using Seurat objects")
 
   # raw counts
-  rawdata <- as.matrix(object[[Seurat::DefaultAssay(object)]]@counts)
+  # rawdata <- as.matrix(object[[Seurat::DefaultAssay(object)]]@counts)
+  rawdata <- SeuratObject::LayerData(object, assay = Seurat::DefaultAssay(object), layer = "counts")
 
   # metadata
   metadata <- object@meta.data
@@ -28,7 +29,7 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
   # embeddings
   if(length(object@reductions) > 0){
     embeddings_flag <- TRUE
-    embedding_list <- sapply(Elena.merged@reductions, Seurat::Embeddings, USE.NAMES = TRUE)
+    embedding_list <- sapply(object@reductions, Seurat::Embeddings, USE.NAMES = TRUE)
   } else {
     embeddings_flag <- FALSE
   }
@@ -50,7 +51,7 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
       cells <- Seurat::Cells(spatialobject)
 
       # count
-      cur_rawdata <- rawdata[,cells]
+      cur_rawdata <- as.matrix(rawdata[,cells])
 
       # metadata
       cur_metadata <- metadata[cells,]

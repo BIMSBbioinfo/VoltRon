@@ -159,6 +159,8 @@ vrImageChannelNames(melc_data)
 vrImages(melc_data, channel = "combined")
 ```
 
+<br>
+
 ## Feature Matrix (Data)
 
 ```{r eval = FALSE, class.source="watch-out"}

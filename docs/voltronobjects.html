@@ -508,6 +508,12 @@ ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120</code></pre>
 vrImages(melc_data)</code></pre>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_CD45.png" class="center"></p>
 <p><br></p>
+<pre class="r watch-out"><code>melc_data &lt;- combineChannels(melc_data, 
+                             channels = c(&quot;DAPI&quot;, &quot;CD45&quot;), colors = c(&quot;grey&quot;, &quot;green&quot;), 
+                             channel_key = &quot;combined&quot;)</code></pre>
+<pre class="r watch-out"><code>vrImageChannelNames(melc_data)</code></pre>
+<pre class="r watch-out"><code>vrImages(melc_data, channel = &quot;combined&quot;)</code></pre>
+<p><br></p>
 </div>
 <div id="feature-matrix-data" class="section level2">
 <h2>Feature Matrix (Data)</h2>
