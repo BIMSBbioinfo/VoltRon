@@ -390,7 +390,16 @@ vrAssayNames.vrAssay <- function(object, ...) {
   assayname <- vrAssayNames(object)
 
   # change assay names
-  vrSpatialPoints(object)  <- stringr::str_replace(vrSpatialPoints(object), assayname, value)
+  spatialpoints <- stringr::str_replace(vrSpatialPoints(object), assayname, value)
+
+  # add assay name if missing
+  if(vrAssayTypes(object) %in% c("ROI", "cell", "spot")){
+    ind <- !grepl("Assay[0-9]+$", spatialpoints)
+    spatialpoints[ind] <- stringr::str_replace(spatialpoints[ind], "$", paste0("_", value))
+  }
+
+  # replace spatial point names
+  vrSpatialPoints(object) <- spatialpoints
   object@name <- value
 
   # return

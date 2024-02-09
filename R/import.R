@@ -17,7 +17,8 @@
 #' @param morphology_image the name of the lowred morphology image. Default: morphology_lowres.tif
 #' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)
 #' @param overwrite_resolution if TRUE, the image "file.name" will be generated again although it exists at "dir.path"
-#' @param image_name the image name of the Xenium assay, Default: DAPI
+#' @param image_name the image name of the Xenium assay, Default: main
+#' @param channel_name the channel name of the image of the Xenium assay, Default: DAPI
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
@@ -440,8 +441,18 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
   rownames(rawdata) <- rawdata$RTS_ID
   rawdata <- rawdata[,!colnames(rawdata) %in% "RTS_ID"]
 
-  # get genes
-  NegProbes <- pkcdata$RTS_ID[pkcdata$Target == "NegProbe-WTX"]
+  # get negative probes and targets
+  # NegProbes <- pkcdata$RTS_ID[pkcdata$Target == "NegProbe-WTX"]
+  NegProbes <- pkcdata$RTS_ID[grepl("NegProbe", pkcdata$Target)]
+
+  # negative probes
+  rawdata_neg <- rawdata[rownames(rawdata) %in% NegProbes, ]
+  rownames(rawdata_neg) <- paste0(rownames(rawdata_neg), "_",
+                                  pkcdata$Target[match(rownames(rawdata_neg), pkcdata$RTS_ID)])
+  print(rownames(rawdata_neg))
+  rawdata_neg <- as.matrix(rawdata_neg)
+
+  # other probes
   rawdata <- rawdata[!rownames(rawdata) %in% NegProbes, ]
   rownames(rawdata) <- pkcdata$Target[match(rownames(rawdata), pkcdata$RTS_ID)]
   rawdata <- as.matrix(rawdata)
@@ -495,8 +506,32 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
     segments <- segments[rownames(coords)]
   }
 
-  # create VoltRon
-  formVoltRon(rawdata, metadata = segmentsummary, image, coords, segments, main.assay = assay_name, assay.type = "ROI", ...)
+  # create VoltRon for non-negative probes
+  object <- formVoltRon(rawdata, metadata = segmentsummary, image, coords, segments, main.assay = assay_name, assay.type = "ROI", ...)
+
+  # add negative probe assay
+  new_assay <- formAssay(data = rawdata_neg,
+                         coords = coords, segments = segments,
+                         image = image, type = "ROI")
+  new_assay@image <- object[["Assay1"]]@image
+  sample.metadata <- SampleMetadata(object)
+  object <- addAssay(object,
+                     assay = new_assay,
+                     metadata = Metadata(object),
+                     assay_name = paste(sample.metadata["Assay1", "Assay"], "NegProbe", sep = "_"),
+                     sample = sample.metadata["Assay1", "Sample"],
+                     layer = sample.metadata["Assay1", "Layer"])
+
+  # add connectivity of spatial points across assays
+  connectivity <- cbind(vrSpatialPoints(object, assay = assay_name),
+                        vrSpatialPoints(object, assay = paste(assay_name, "NegProbe", sep = "_")))
+  object <- addConnectivity(object,
+                            connectivity = connectivity,
+                            sample = sample.metadata["Assay1", "Sample"],
+                            layer = sample.metadata["Assay1", "Layer"])
+
+  # return
+  return(object)
 }
 
 #' readPKC

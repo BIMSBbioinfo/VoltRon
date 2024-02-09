@@ -507,7 +507,6 @@ vrMainAssay.VoltRon <- function(object, ...) {
 #' @param assay assay
 #' @param metadata a predefined metadata
 #' @param assay_name assay name
-#' @param connectivity a metadata of edges representing connected spatial points across assays
 #' @param sample sample name
 #' @param layer layer name
 #'
@@ -518,7 +517,7 @@ vrMainAssay.VoltRon <- function(object, ...) {
 #'
 #' @export
 #'
-addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, connectitivity = NULL, sample = "Sample1", layer = "Section1"){
+addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample = "Sample1", layer = "Section1"){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -547,7 +546,7 @@ addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, connect
   object[[sample, layer]]@assay <- assay_list
 
   # add connectivities of assay to the layer
-  g_assay <- igraph::make_empty_graph(directed = FALSE) + igraph::vertices(vrSpatialPoints(assay))
+  g_assay <- igraph::make_empty_graph(directed = FALSE) + igraph::vertices(vrSpatialPoints(object, assay = assay_id))
   g_layer <- curlayer@connectivity + g_assay
   object[[sample, layer]]@connectivity <- g_layer
 
@@ -969,8 +968,13 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
 #'
 #' @export
 #'
-vrSpatialPoints.VoltRon <- function(object, ...) {
-  return(vrSpatialPoints(object@metadata, ...))
+vrSpatialPoints.VoltRon <- function(object, assay = NULL, ...) {
+
+  # get assays
+  assay <- vrAssayNames(object, assay = assay)
+
+  # return
+  return(vrSpatialPoints(object@metadata, assay = assay))
 }
 
 #' @param assay assay
