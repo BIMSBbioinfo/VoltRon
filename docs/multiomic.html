@@ -457,55 +457,11 @@ table, th, td {
 <p><br></p>
 <div id="spatial-multi-omic-integration" class="section level1">
 <h1>Spatial Multi-omic Integration</h1>
-<p>VoltRon is a spatial omic analysis platform that allows storing a
-large amount of spatially resolved datasets. As opposed to datasets with
-either supracellular (spot-level) or cellular resolutions, one might
-analyze image datasets and pixels to characterize the morphology of a
-tissue section. Here, images can also be used to build VoltRon objects
-where pixels (or tiles) are defined as spatial points, and then can also
-be used for multiple downstream analysis purposes.</p>
-<p><br></p>
-<div id="analysis-of-he-images" class="section level2">
-<h2>Analysis of H&amp;E images</h2>
-<p>In this use case, we will analyze the H&amp;E image derived from a
-tissue section that was first analyzed by The 10x Genomics <a
-href="https://www.10xgenomics.com/platforms/xenium">Xenium In Situ</a>
-platform. Three tissue sections were cut from a single formalin-fixed,
-paraffin-embedded (FFPE) breast cancer tissue block. A 5 <span
-class="math inline">\(\mu\)</span>m section was used to generate a
-single Xenium replicate.</p>
-<p>More information on the Xenium and the study can be also be found on
-the <a
-href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">BioArxiv
-preprint</a>. You can download the H&amp;E image from the <a
-href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
-Genomics website</a> as well (specifically, import the
-<strong>Post-Xenium H&amp;E image (TIFF)</strong> data).</p>
-<p>We incorporate <strong>importImageData</strong> to convert an image
-into a pixel-based spatial dataset.</p>
+<div id="gene-expression-image-features" class="section level2">
+<h2>Gene Expression + Image Features</h2>
 <pre class="r watch-out"><code>Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image_lowres.tif&quot;,
                                 sample_name = &quot;XeniumR1image&quot;, 
-                                image_name = &quot;H&amp;E&quot;)
-Xen_R1_image</code></pre>
-<pre><code>VoltRon Object 
-XeniumR1image: 
-  Layers: Section1 
-Assays: ImageData(Main) </code></pre>
-<pre class="r watch-out"><code>vrImages(Xen_R1_image)</code></pre>
-<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE.png" class="center"></p>
-<p></br></p>
-<p>This VoltRon object stores the metadata information and localization
-of all pixels in the image.</p>
-<pre class="r watch-out"><code>head(Metadata(Xen_R1_image))</code></pre>
-<pre><code>         id assay_id     Assay    Layer        Sample
-1: 1_4f486d   Assay1 ImageData Section1 XeniumR1image
-2: 2_4f486d   Assay1 ImageData Section1 XeniumR1image
-3: 3_4f486d   Assay1 ImageData Section1 XeniumR1image
-4: 4_4f486d   Assay1 ImageData Section1 XeniumR1image
-5: 5_4f486d   Assay1 ImageData Section1 XeniumR1image 
-6: 6_4f486d   Assay1 ImageData Section1 XeniumR1image </code></pre>
-<pre class="r watch-out"><code>nrow(Metadata(Xen_R1_image))</code></pre>
-<pre><code>[1] 2974000</code></pre>
+                                image_name = &quot;H&amp;E&quot;)</code></pre>
 </div>
 </div>
 
