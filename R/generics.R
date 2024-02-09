@@ -278,19 +278,6 @@ normalizeData <- function(object, ...) {
   UseMethod(generic = 'normalizeData', object = object)
 }
 
-#' vrDistances
-#'
-#' Get distances between spatial points using coordinates
-#'
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#'
-#' @rdname vrDistances
-#' @export vrDistances
-#'
-vrDistances <- function(object, ...) {
-  UseMethod(generic = 'vrDistances', object = object)
-}
 ####
 # Embedding ####
 ####

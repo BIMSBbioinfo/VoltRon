@@ -28,7 +28,7 @@ vrSpatialPoints(object, ...) <- value
 
 \method{vrSpatialPoints}{vrMetadata}(object, assay = NULL)
 
-\method{vrSpatialPoints}{VoltRon}(object, ...)
+\method{vrSpatialPoints}{VoltRon}(object, assay = NULL, ...)
 
 \method{vrSpatialPoints}{vrSample}(object, ...)
 

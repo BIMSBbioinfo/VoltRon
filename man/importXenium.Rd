@@ -33,7 +33,9 @@ importXenium(
 
 \item{overwrite_resolution}{if TRUE, the image "file.name" will be generated again although it exists at "dir.path"}
 
-\item{image_name}{the image name of the Xenium assay, Default: DAPI}
+\item{image_name}{the image name of the Xenium assay, Default: main}
+
+\item{channel_name}{the channel name of the image of the Xenium assay, Default: DAPI}
 
 \item{import_molecules}{if TRUE, molecule assay will be created along with cell assay.}
 

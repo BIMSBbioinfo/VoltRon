@@ -646,20 +646,6 @@ vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
   return(object)
 }
 
-#' @param reg TRUE if registered segments are being updated
-#' @param method the method argument passed to \code{base::dist}
-#'
-#' @rdname vrDistances
-#' @method vrDistances vrAssay
-#'
-#' @importFrom stats dist
-#' @export
-#'
-vrDistances.vrAssay <- function(object, reg = FALSE, method = "euclidean", ...) {
-  coords <- vrCoordinates(object, reg = reg, ...)
-  return(as.matrix(stats::dist(coords, method = method)))
-}
-
 #' @param type the key name for the embedding
 #' @param dims the set of dimensions of the embedding data
 #'
