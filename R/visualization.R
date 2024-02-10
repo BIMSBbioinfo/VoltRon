@@ -164,10 +164,47 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
                                 font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, plot_title = NULL, background = NULL,
                                 reg = FALSE, crop = FALSE, legend.pt.size = 2){
 
-  # data
+  # plot
+  g <- ggplot()
+
+  # add image
+  if(is.null(background))
+    background <- vrMainImage(assay)
+  if(length(background) == 2) {
+    channel <- background[2]
+  } else {
+    channel <- NULL
+  }
+  background <- background[1]
+  if(background %in% vrImageNames(assay)){
+    image <- vrImages(assay, name = background, channel = channel)
+    if(!is.null(image)){
+      info <- image_info(image)
+      if(info$width > 1000){
+        image <- magick::image_resize(image, geometry = "1000x")
+        scale_factors <- info$width/1000
+        info <- magick::image_info(image)
+      } else {
+        scale_factors <- 1
+      }
+      g <- g +
+        ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
+    } else {
+      info <- NULL
+    }
+  } else {
+    info <- NULL
+  }
+
+  # coords
   coords <- as.data.frame(vrCoordinates(assay, reg = reg))
-  normdata <- vrData(assay, norm = TRUE)
+  coords <- coords/scale_factors
+
+  # segments
   segments <- vrSegments(assay)
+
+  # data
+  normdata <- vrData(assay, norm = TRUE)
 
   # plotting features
   if(!group.by %in% colnames(metadata))
@@ -189,32 +226,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     }
   }
 
-  # plot
-  g <- ggplot()
-
-  # add image
-  if(is.null(background))
-    background <- vrMainImage(assay)
-  if(length(background) == 2) {
-    channel <- background[2]
-  } else {
-    channel <- NULL
-  }
-  background <- background[1]
-  if(background %in% vrImageNames(assay)){
-    image <- vrImages(assay, name = background, channel = channel)
-    if(!is.null(image)){
-      info <- image_info(image)
-      g <- g +
-        ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
-    } else {
-      info <- NULL
-    }
-  } else {
-    info <- NULL
-  }
-
-  # ROI visualization
+  # visualize based on points type
   if(vrAssayTypes(assay) == "ROI"){
     polygon_data <- NULL
     circle_data <- NULL
@@ -222,9 +234,11 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       cur_data <- as.data.frame(cbind(segments[[i]], names(segments)[i], coords[[group.by]][i]))
       if(nrow(segments[[i]]) > 1){
         colnames(cur_data) <- c("x", "y", "segment", "group.by")
+        cur_data[,c("x", "y")] <- cur_data[,c("x", "y")]/scale_factors
         polygon_data <- as.data.frame(rbind(polygon_data, cur_data))
       } else {
         colnames(cur_data) <- c("x", "y", "rx", "ry", "segment", "group.by")
+        cur_data[,c("x", "y","rx", "ry")] <- cur_data[,c("x", "y","rx", "ry")]/scale_factors
         circle_data <- as.data.frame(rbind(circle_data,  cur_data))
       }
     }
@@ -257,6 +271,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
           stop("No Segments are available in this assay!")
         } else {
           polygon_data <- do.call(rbind,segments)
+          polygon_data <- polygon_data/scale_factors
           len_segments <- sapply(segments, nrow, simplify = TRUE)
           polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), group.by = rep(coords[[group.by]], len_segments))
           g <- g +
@@ -570,7 +585,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
 
 #' vrSpatialFeaturePlotSingle
 #'
-#' A single Spatial Feature plot of VoltRon objects
+#' A single Spatial Feature plot of VoltRon object
 #'
 #' @param assay vrAssay object
 #' @param metadata the metadata associated with the assay
@@ -602,8 +617,46 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
                                font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL,
                                legend_title = NULL, background = NULL, reg = FALSE, crop = FALSE){
 
-  # data
+  # plot
+  g <- ggplot()
+
+  # add image
+  if(is.null(background))
+    background <- vrMainImage(assay)
+  if(length(background) == 2) {
+    channel <- background[2]
+  } else {
+    channel <- NULL
+  }
+  background <- background[1]
+  if(background %in% vrImageNames(assay)){
+    image <- vrImages(assay, name = background, channel = channel)
+    if(!is.null(image)){
+      info <- image_info(image)
+      if(info$width > 1000){
+        image <- magick::image_resize(image, geometry = "1000x")
+        scale_factors <- info$width/1000
+        info <- magick::image_info(image)
+      } else {
+        scale_factors <- 1
+      }
+      g <- g +
+        ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
+    } else {
+      info <- NULL
+    }
+  } else {
+    info <- NULL
+  }
+
+  # coords
   coords <- as.data.frame(vrCoordinates(assay, reg = reg))
+  coords <- coords/scale_factors
+
+  # segments
+  segments <- vrSegments(assay)
+
+  # data
   data_features <- feature[feature %in% vrFeatures(assay)]
   if(length(data_features) > 0){
     normdata <- vrData(assay, features = feature, norm = norm)
@@ -621,33 +674,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   # get image information and plotting features
   midpoint <- sum(limits)/2
 
-  # plot
-  g <- ggplot()
-
-  # add image
-  if(is.null(background))
-    background <- vrMainImage(assay)
-  if(length(background) == 2) {
-    channel <- background[2]
-  } else {
-    channel <- NULL
-  }
-  background <- background[1]
-  if(background %in% vrImageNames(assay)){
-    image <- vrImages(assay, name = background, channel = channel)
-    if(!is.null(image)){
-      info <- image_info(image)
-      g <- g +
-        ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
-    } else {
-      info <- NULL
-    }
-  } else {
-    info <- NULL
-  }
-
-  # add points or segments
-  segments <- vrSegments(assay)
+  # visualize based on spatial points type
   if(vrAssayTypes(assay) == "ROI" && !is.null(segments)){
     polygon_data <- NULL
     circle_data <- NULL
@@ -655,9 +682,11 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
       cur_data <- as.data.frame(cbind(segments[[i]], names(segments)[i], coords$score[i]))
       if(nrow(segments[[i]]) > 1){
         colnames(cur_data) <- c("x", "y", "segment", "score")
+        cur_data[,c("x", "y")] <- cur_data[,c("x", "y")]/scale_factors
         polygon_data <- as.data.frame(rbind(polygon_data, cur_data))
       } else {
         colnames(cur_data) <- c("x", "y", "rx", "ry", "segment", "score")
+        cur_data[,c("x", "y","rx", "ry")] <- cur_data[,c("x", "y","rx", "ry")]/scale_factors
         circle_data <- as.data.frame(rbind(circle_data,  cur_data))
       }
     }
@@ -688,6 +717,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
         stop("No Segments are available in this assay!")
       } else {
         polygon_data <- do.call(rbind,segments)
+        polygon_data <- polygon_data/scale_factors
         len_segments <- sapply(segments, nrow, simplify = TRUE)
         polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), score = rep(coords$score, len_segments))
         g <- g +
