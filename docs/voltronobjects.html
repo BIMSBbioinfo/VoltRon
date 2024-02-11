@@ -457,11 +457,20 @@ table, th, td {
 <p><br></p>
 <div id="working-with-voltron-objects" class="section level1">
 <h1>Working with VoltRon objects</h1>
+<p>In this tutorial, we will cover some of the fundemantel built-in
+functions of VoltRon to manage data, images and spatial information of
+assays.</p>
 <pre class="r watch-out"><code>data(&quot;visium_data&quot;)
 data(&quot;melc_data&quot;)</code></pre>
 <p><br></p>
 <div id="sample-metadata" class="section level2">
 <h2>Sample Metadata</h2>
+<p>The sample metadata is a summarized data frame which provides
+informations on assays, layers and sample (tissue blocks) included in
+the VoltRon object. You can use the <strong>SampleMetadata</strong>
+function to call this table. The row names are the unique assay IDs,
+following assay types (e.g. Visium), layer name and Sample (typicall
+tissue block with multiple layers and assays).</p>
 <pre class="r watch-out"><code>SampleMetadata(visium_data)</code></pre>
 <pre><code>        Assay    Layer    Sample
 Assay1 Visium Section1 Anterior1</code></pre>
@@ -469,6 +478,8 @@ Assay1 Visium Section1 Anterior1</code></pre>
 </div>
 <div id="metadata" class="section level2">
 <h2>Metadata</h2>
+<p>The <strong>Metadata</strong> function calls the metadata table of
+the main assay type (see <a href="#assays">vrMainAssay</a>).</p>
 <pre class="r watch-out"><code>Metadata(visium_data)</code></pre>
 <pre><code>                          Count  Assay    Layer    Sample
 AAAGGCTCTCGCGCCG-1_Assay1 39690 Visium Section1 Anterior1
@@ -478,9 +489,42 @@ AAGACATACGTGGTTT-1_Assay1 31821 Visium Section1 Anterior1
 ACCTACTATAAATCTA-1_Assay1 41387 Visium Section1 Anterior1
 ACGCGGGCCAAGGACA-1_Assay1 48003 Visium Section1 Anterior1</code></pre>
 <p><br></p>
+<p>You can also specify the assay ID or the assay type to call metadata
+of a subset of spatial points.</p>
+<pre class="r watch-out"><code>Metadata(visium_data, assay = &quot;Visium&quot;)
+Metadata(visium_data, assay = &quot;Assay1&quot;)</code></pre>
+<pre><code>                          Count  Assay    Layer    Sample
+AAAGGCTCTCGCGCCG-1_Assay1 39690 Visium Section1 Anterior1
+AAATGGCCCGTGCCCT-1_Assay1 33516 Visium Section1 Anterior1
+AAATTACACGACTCTG-1_Assay1 12250 Visium Section1 Anterior1
+AAGACATACGTGGTTT-1_Assay1 31821 Visium Section1 Anterior1
+ACCTACTATAAATCTA-1_Assay1 41387 Visium Section1 Anterior1
+ACGCGGGCCAAGGACA-1_Assay1 48003 Visium Section1 Anterior1</code></pre>
+<p><br></p>
+<p>The <strong>type</strong> argument returns all spatial points of a
+given spatial point type (ROI, spot, cell, molecule or tile).</p>
+<pre class="r watch-out"><code>Metadata(visium_data, type = &quot;spot&quot;)</code></pre>
+<pre><code>                          Count  Assay    Layer    Sample
+AAAGGCTCTCGCGCCG-1_Assay1 39690 Visium Section1 Anterior1
+AAATGGCCCGTGCCCT-1_Assay1 33516 Visium Section1 Anterior1
+AAATTACACGACTCTG-1_Assay1 12250 Visium Section1 Anterior1
+AAGACATACGTGGTTT-1_Assay1 31821 Visium Section1 Anterior1
+ACCTACTATAAATCTA-1_Assay1 41387 Visium Section1 Anterior1
+ACGCGGGCCAAGGACA-1_Assay1 48003 Visium Section1 Anterior1</code></pre>
+<p><br></p>
+<p>If the type argument is specified as <strong>all</strong>. Then this
+would return the VoltRon Metadata Object (vrMetadata)</p>
+<pre class="r watch-out"><code>Metadata(visium_data, type = &quot;all&quot;)</code></pre>
+<pre><code>VoltRon Metadata Object 
+This object includes: 
+   100 spots</code></pre>
+<p><br></p>
 </div>
-<div id="coordinates" class="section level2">
-<h2>Coordinates</h2>
+<div id="coordinates-and-segments" class="section level2">
+<h2>Coordinates and Segments</h2>
+<p>The <strong>vrCoordinates</strong> function is used to call the
+centroids of spots, cells and all other spatial points types with
+VoltRon objects.</p>
 <pre class="r watch-out"><code>vrCoordinates(visium_data)</code></pre>
 <pre><code>                                 x        y
 AAAGGCTCTCGCGCCG-1_Assay1 271.9105 183.1497
@@ -490,11 +534,96 @@ AAGACATACGTGGTTT-1_Assay1 481.5491 102.7539
 ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
 ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120</code></pre>
 <p><br></p>
+<p>You can also specify the assay ID or the assay type to call
+coordinates of a subset of spatial points.</p>
+<pre class="r watch-out"><code>vrCoordinates(visium_data, assay = &quot;Visium&quot;)
+vrCoordinates(visium_data, assay = &quot;Assay1&quot;)</code></pre>
+<pre><code>                                 x        y
+AAAGGCTCTCGCGCCG-1_Assay1 271.9105 183.1497
+AAATGGCCCGTGCCCT-1_Assay1 136.8330 220.2237
+AAATTACACGACTCTG-1_Assay1 382.0482 436.6781
+AAGACATACGTGGTTT-1_Assay1 481.5491 102.7539
+ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
+ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120</code></pre>
+<p><br></p>
+<p>Each assay a VoltRon object may incorporate indefinite number of
+coordinate systems. One can look for these coordinate systems using the
+<strong>vrMainImage</strong> function, and select one of systems to call
+coordinates (see <a href="#image">vrMainImage</a>)</p>
+<pre class="r watch-out"><code>vrCoordinates(visium_data, image_name = &quot;H&amp;E&quot;)</code></pre>
+<pre><code>                                 x        y
+AAAGGCTCTCGCGCCG-1_Assay1 271.9105 183.1497
+AAATGGCCCGTGCCCT-1_Assay1 136.8330 220.2237
+AAATTACACGACTCTG-1_Assay1 382.0482 436.6781
+AAGACATACGTGGTTT-1_Assay1 481.5491 102.7539
+ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
+ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120</code></pre>
+<p>The <strong>reg</strong> option in the <strong>vrCoordinates</strong>
+function looks for a registered version of the main coordinate system
+and returns its coordinates (if there is any).</p>
+<pre class="r watch-out"><code>vrCoordinates(visium_data, image_name = &quot;H&amp;E&quot;, reg = TRUE)</code></pre>
+<pre><code>                                 x        y
+AAAGGCTCTCGCGCCG-1_Assay1 271.9105 183.1497
+AAATGGCCCGTGCCCT-1_Assay1 136.8330 220.2237
+AAATTACACGACTCTG-1_Assay1 382.0482 436.6781
+AAGACATACGTGGTTT-1_Assay1 481.5491 102.7539
+ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
+ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120</code></pre>
+<p><br></p>
+<p>The arguements of the <strong>vrSegments</strong> functions are
+idential to vrCoordinates and return a list of polygon corners
+associated with the coordinate system of the coordinates.</p>
+<pre class="r watch-out"><code>vrSegments(xenium_data)
+vrSegments(visium_data, assay = &quot;Visium&quot;)
+vrSegments(visium_data, assay = &quot;Assay1&quot;)
+vrSegments(visium_data, image_name = &quot;H&amp;E&quot;)
+vrSegments(visium_data, image_name = &quot;H&amp;E&quot;, reg = TRUE)</code></pre>
+<pre><code>$`77197_Assay1`
+# A tibble: 13 × 3
+   cell_id     x     y
+     &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;
+ 1   77197  490.  379.
+ 2   77197  487   378.
+ 3   77197  486.  373.
+ 4   77197  485.  366.
+ 5   77197  492.  364.
+ 6   77197  496.  360.
+ 7   77197  504.  354.
+ 8   77197  505.  354.
+ 9   77197  505   356.
+10   77197  500.  366.
+11   77197  492.  374.
+12   77197  490.  379.
+13   77197  490.  379.
+
+$`77200_Assay1`
+# A tibble: 13 × 3
+   cell_id     x     y
+     &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;
+ 1   77200  493.  383.
+ 2   77200  490.  380.
+ 3   77200  491.  376.
+ 4   77200  493.  374.
+ 5   77200  500.  366.
+ 6   77200  505   356.
+ 7   77200  510.  361.
+ 8   77200  510.  366.
+ 9   77200  509.  369.
+10   77200  505.  372.
+11   77200  502.  376.
+12   77200  498   379.
+13   77200  493.  383.</code></pre>
+<p><br></p>
 </div>
-<div id="images" class="section level2">
+<div id="image" class="section level2">
 <h2>Images</h2>
 <pre class="r watch-out"><code>vrImageNames(visium_data)</code></pre>
 <pre><code>[1] &quot;H&amp;E&quot;</code></pre>
+<p><br></p>
+<pre class="r watch-out"><code>vrMainImage(visium_data)</code></pre>
+<pre><code>   Assay Image
+1 Assay1   H&amp;E</code></pre>
+<p><br></p>
 <pre class="r watch-out"><code>vrImages(visium_data)</code></pre>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_HE.png" class="center"></p>
 <p><br></p>
@@ -533,6 +662,40 @@ Rp1                             0                 0.0000000                 0.00
 Sox17                           0                 0.2732722                 0.2164184
 Gm37587                         0                 0.0000000                 0.0000000
 Gm37323                         0                 0.0000000                 0.0000000</code></pre>
+<p><br></p>
+</div>
+<div id="assays" class="section level2">
+<h2>Assays</h2>
+<p>The default (or main) assay of the VoltRon object is typically shown
+when printed (next to the assay name says “main” in paranthesis)</p>
+<pre class="r watch-out"><code>melc_data</code></pre>
+<pre><code>VoltRon Object 
+control_case_3: 
+  Layers: Section1 
+Assays: MELC(Main) </code></pre>
+<p><br></p>
+<p>You can also call/get the name of the default (or main) using the
+<strong>vrMainAssay</strong> function</p>
+<pre class="r watch-out"><code>vrMainAssay(melc_data)</code></pre>
+<pre><code>[1] &quot;MELC&quot;</code></pre>
+<p><br></p>
+<p>You can also set the main assay yourself, but only the assay types
+given in the <strong>Assay</strong> column of
+<strong>SampleMetadata(object)</strong>.</p>
+<pre class="r watch-out"><code>SampleMetadata(melc_data)</code></pre>
+<pre><code>       Assay    Layer         Sample
+Assay1  MELC Section1 control_case_3</code></pre>
+<pre class="r watch-out"><code>vrMainAssay(melc_data) &lt;- &quot;MELC&quot;</code></pre>
+<p><br></p>
+<p>You can also get the assay IDs associated with the main assay using
+<strong>vrAssayNames</strong> function.</p>
+<pre class="r watch-out"><code>vrAssayNames(melc_data)</code></pre>
+<pre><code>[1] &quot;Assay1&quot;</code></pre>
+<p><br></p>
+<p>The assay type can be provided with the <strong>assay</strong>
+arguement to get type specific assay IDs</p>
+<pre class="r watch-out"><code>vrAssayNames(melc_data, assay = &quot;MELC&quot;)</code></pre>
+<pre><code>[1] &quot;Assay1&quot;</code></pre>
 </div>
 </div>
 

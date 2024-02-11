@@ -43,8 +43,6 @@ getDeconvolution <- function(object, assay = NULL, features = NULL, sc.object, s
       cur_assay <- object[[assy]]
 
       # RCTD
-      # rawdata <- getDeconSingle(object = cur_assay, features = features, sc.object = sc.object, sc.assay = sc.assay,
-      #                           sc.cluster = sc.cluster, method = method, ...)
       rawdata <- getDeconSingle(object = cur_assay, features = features, reference = reference, method = method, ...)
 
       # create new assay
@@ -215,17 +213,6 @@ getRCTD <- function(object, features = NULL, reference, ...){
   spatialnUMI <- colSums(spatialcounts)
   spatialdata <- spacexr::SpatialRNA(coords, spatialcounts, spatialnUMI)
 
-  # create single cell reference
-  # cat("Configuring Single Cell Assay (reference) ...\n")
-  # sccounts <- Seurat::GetAssayData(sc.object[[sc.assay]], slot = "counts")
-  # sccounts <- as.matrix(apply(sccounts,2,ceiling))
-  # rownames(sccounts) <- rownames(sc.object[[sc.assay]])
-  # cell_types <- as.factor(sc.object@meta.data[[sc.cluster]])
-  # names(cell_types) <- colnames(sc.object)
-  # sc.nUMI <- colSums(sccounts)
-  # names(sc.nUMI) <- colnames(sc.object)
-  # reference <- spacexr::Reference(sccounts, cell_types, sc.nUMI)
-
   # Run RCTD
   myRCTD <- spacexr::create.RCTD(spatialdata, reference, ...)
   cat("Calculating Cell Type Compositions of spots with RCTD ...\n")
@@ -299,18 +286,7 @@ getMuSiC <- function(object, features = NULL, reference, sc.samples = NULL){
     features <- vrFeatures(object)
   }
 
-  # Single cell data
-  # cat("Configuring Single Cell Assay (reference) ...\n")
-  # if(inherits(sc.object, "SingleCellExperiment")){
-  #   scRNAseq <- sc.object
-  # } else if(inherits(sc.object, "Seurat")){
-  #   sccounts <- Seurat::GetAssayData(sc.object[[sc.assay]], slot = "counts")
-  #   sccounts <- as.matrix(apply(sccounts,2,ceiling))
-  #   rownames(sccounts) <- rownames(sc.object[[sc.assay]])
-  #   scRNAseq <- Seurat::as.SingleCellExperiment(Seurat::CreateSeuratObject(sccounts, meta.data = sc.object@meta.data))
-  # } else{
-  #   stop("'sc.object' should either be of a Seurat or SingleCellExperiment class!")
-  # }
+  # Single cell reference data
   reference <- reference[rownames(reference) %in% features,]
 
   # data

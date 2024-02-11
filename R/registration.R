@@ -404,7 +404,6 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
 
     # register the VoltRon object
     for(assy in vrAssayNames(obj_list[[i]], assay = "all")){
-      print(assy)
       obj_list[[i]] <- applyPerspectiveTransform(obj_list[[i]],
                                                  assay = assy,
                                                  mapping = mapping_list[[paste0(i)]],
