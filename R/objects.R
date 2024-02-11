@@ -656,7 +656,8 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
     }
     cur_sample.metadata$comb <- paste(cur_sample.metadata$Sample, cur_sample.metadata$Layer, sep = "_")
     cur_sample.metadata$NewLayer <- paste0("Section", as.numeric(factor(cur_sample.metadata$comb, levels = unique(cur_sample.metadata$comb))))
-    names(listofLayers) <- cur_sample.metadata$NewLayer
+    # names(listofLayers) <- cur_sample.metadata$NewLayer
+    names(listofLayers) <- unique(cur_sample.metadata$NewLayer) ## CHANGE THIS LATER IF NEEDED ####
     listofSamples <- list(methods::new("vrSample", layer = listofLayers))
     names(listofSamples) <- cur_sample
     new_listofSamples <- c(new_listofSamples, listofSamples)

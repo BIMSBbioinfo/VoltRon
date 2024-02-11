@@ -449,7 +449,6 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
   rawdata_neg <- rawdata[rownames(rawdata) %in% NegProbes, ]
   rownames(rawdata_neg) <- paste0(rownames(rawdata_neg), "_",
                                   pkcdata$Target[match(rownames(rawdata_neg), pkcdata$RTS_ID)])
-  print(rownames(rawdata_neg))
   rawdata_neg <- as.matrix(rawdata_neg)
 
   # other probes

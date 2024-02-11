@@ -66,5 +66,5 @@ vrSpatialFeaturePlotSingle(
 \item{crop}{whether to crop an image of a spot assay}
 }
 \description{
-A single Spatial Feature plot of VoltRon objects
+A single Spatial Feature plot of VoltRon object
 }
