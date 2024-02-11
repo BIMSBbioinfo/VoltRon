@@ -45,16 +45,111 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 # Working with VoltRon objects
 
-In this tutorial, we will cover some of the fundemantel built-in functions of VoltRon to manage data, images and spatial information of assays.
+In this tutorial, we will cover some of the fundemantel built-in functions of VoltRon to manage data, images and spatial information of assays. Here is the list of example datasets included in the Package.
 
 ```{r eval = FALSE, class.source="watch-out"}
 data("visium_data")
 data("melc_data")
+data("xenium_data")
 ```
 
 <br>
 
-## Sample Metadata
+## Subsetting VoltRon objects
+
+### sample/assay 
+
+VoltRon object can be subsetted in a variety of ways using assay names, sample names, spatial point names, features (e.g. gene), image coordinates (crop boxes or bounding boxes) as well as interactively.
+
+```{r eval = FALSE, class.source="watch-out"}
+visium_data <- subset(visium_data, samples = "Anterior1")
+visium_data <- subset(visium_data, assays = "Assay1")
+```
+
+```
+VoltRon Object 
+Anterior1: 
+  Layers: Section1 
+Assays: Visium(Main) 
+```
+
+<br>
+
+### spatial points
+
+You can use a list of spatial points (typically using **vrSpatialPoints** function, see [vrSpatialPoints](#spatialpoints)) 
+
+```{r eval = FALSE, class.source="watch-out"}
+selected_points <- vrSpatialPoints(visium_data)
+selected_points[1:20]
+```
+
+```
+  [1] "AAAGGCTCTCGCGCCG-1_Assay1" "AAATGGCCCGTGCCCT-1_Assay1" "AAATTACACGACTCTG-1_Assay1" 
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+visium_data <- subset(visium_data, spatialpoints = selected_points[1:20])
+```
+
+```
+VoltRon Object 
+Anterior1: 
+  Layers: Section1 
+Assays: Visium(Main) 
+```
+
+<br>
+
+### features
+
+You can select a few number of features and subset the features given this list. However, it would only subset the main assay (see [vrMainAssay](#assays))
+
+```{r eval = FALSE, class.source="watch-out"}
+selected_features <- vrFeatures(visium_data)
+selected_features[1:20]
+```
+
+```
+ [1] "Xkr4"          "Gm1992"        "Gm19938"       "Gm37381"       "Rp1"           "Sox17"         "Gm37587"       "Gm37323"       "Mrpl15"        "Lypla1"       
+[11] "Tcea1"         "Rgs20"         "Gm16041"       "Atp6v1h"       "Oprk1"         "Npbwr1"        "Rb1cc1"        "4732440D04Rik" "Alkal1"        "St18"
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+visium_data <- subset(visium_data, features = selected_features[1:20])
+vrFeatures(visium_data)
+```
+
+```
+ [1] "Xkr4"          "Gm1992"        "Gm19938"       "Gm37381"       "Rp1"           "Sox17"         "Gm37587"       "Gm37323"       "Mrpl15"        "Lypla1"       
+[11] "Tcea1"         "Rgs20"         "Gm16041"       "Atp6v1h"       "Oprk1"         "Npbwr1"        "Rb1cc1"        "4732440D04Rik" "Alkal1"        "St18"
+```
+
+<br>
+
+### Interactive subsetting
+
+VoltRon allows interactively subsetting spatial data. Using the arguement **interactive = TRUE**, a mini Shiny app is triggered where users can select a bounding box to crop the spatial data.
+
+```{r eval = FALSE, class.source="watch-out"}
+visium_data_subset <- subset(visium_data, interactive = TRUE)
+visium_data_subset
+```
+
+```
+VoltRon Object 
+Anterior1_subset: 
+  Layers: Section1 
+Assays: Visium(Main) 
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImages(visium_data_subset)
+```
+
+<br>
+
+## Sample Metadata {#samplemetadata}
 
 The sample metadata is a summarized data frame which provides informations on assays, layers and sample (tissue blocks) included in the VoltRon object. You can use the **SampleMetadata** function to call this table. The row names are the unique assay IDs, following assay types (e.g. Visium), layer name and Sample (typicall tissue block with multiple layers and assays).
 
@@ -136,6 +231,33 @@ Metadata(visium_data, type = "all")
 VoltRon Metadata Object 
 This object includes: 
    100 spots
+```
+
+<br>
+
+## Spatial Points {#spatialpoints}
+
+In a VoltRon object, spatial points are spatially defined entities with coordinates, segments which are of any of five assay types (ROI, spot, cell, molecule and tile).
+
+The **vrSpatialPoints** function return the IDs of these entities for further downstream operations, such as subsetting etc.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPoints(visium_data)
+```
+
+```
+  [1] "AAAGGCTCTCGCGCCG-1_Assay1" "AAATGGCCCGTGCCCT-1_Assay1" "AAATTACACGACTCTG-1_Assay1" 
+```
+
+You can also specify the assay ID or the assay type to call metadata of a subset of spatial points.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPoints(visium_data, assay = "Visium")
+vrSpatialPoints(visium_data, assay = "Assay1")
+```
+
+```
+  [1] "AAAGGCTCTCGCGCCG-1_Assay1" "AAATGGCCCGTGCCCT-1_Assay1" "AAATTACACGACTCTG-1_Assay1" 
 ```
 
 <br>
@@ -265,6 +387,8 @@ $`77200_Assay1`
 
 ## Images {#image}
 
+In a VoltRon object, each image has a unique ID which is also associated with a coordinate system. The names of these images (or systems) can be called using the **vrImageNames** function.
+
 ```{r eval = FALSE, class.source="watch-out"}
 vrImageNames(visium_data)
 ```
@@ -273,7 +397,20 @@ vrImageNames(visium_data)
 [1] "H&E"
 ```
 
+You can also specify the assay ID or the assay type to call image names of a subset assays or any assay type (see [Sample Metadata](#samplemetadata))
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImageNames(visium_data, assay = "Visium")
+vrImageNames(visium_data, assay = "Assay1")
+```
+
+```
+[1] "H&E"
+```
+
 <br>
+
+If you wanna see the list of all images/systems associated with all assays of the main assay type, you can call the **vrMainImage** function.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrMainImage(visium_data)
@@ -284,24 +421,46 @@ vrMainImage(visium_data)
 1 Assay1   H&E
 ```
 
+You can also specify the assay ID or the assay type to call image names of a subset assays or any assay type (see [Sample Metadata](#samplemetadata))
+
+```{r eval = FALSE, class.source="watch-out"}
+vrMainImage(visium_data, assay = "Visium")
+vrMainImage(visium_data, assay = "Assay1")
+```
+
+```
+   Assay Image
+1 Assay1   H&E
+```
+
 <br>
+
+In VoltRon, images can be called specifically, or return as a list. The return image is of a magick image object (see [magick](https://cran.r-project.org/web/packages/magick/vignettes/intro.html) package)
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrImages(visium_data)
+vrImages(visium_data, assay = "Visium")
+vrImages(visium_data, assay = "Assay1")
 ```
 
 <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_HE.png" class="center">
 
 <br>
 
+Each image object (vrImage) in VoltRon object can also include a indefinite number of channels which you can get (or request) a list of for further use.
+
 ```{r eval = FALSE, class.source="watch-out"}
 vrImageChannelNames(melc_data)
+vrImageChannelNames(melc_data, assay = "MELC")
+vrImageChannelNames(melc_data, assay = "Assay1")
 ```
 
 ```
    Assay Image  Channels
 1 Assay1  MELC DAPI,CD45
 ```
+
+Once you know the name of a specific channel, you can the image of a specific channel by providing the name and the associated channel.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrImages(melc_data, name = "MELC", channel = "DAPI")
@@ -310,6 +469,8 @@ vrImages(melc_data, name = "MELC", channel = "DAPI")
 <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_DAPI.png" class="center">
 
 <br>
+
+You can set up the main channel as well as the main image name for later use.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrMainImage(melc_data, assay = "Assay1") <- c("MELC", "CD45")
@@ -320,14 +481,25 @@ vrImages(melc_data)
 
 <br>
 
+### Combining image channels
+
+VoltRon even allows manipulation of channel images if you also provide an associate list of colors.
+
 ```{r eval = FALSE, class.source="watch-out"}
 melc_data <- combineChannels(melc_data, 
                              channels = c("DAPI", "CD45"), colors = c("grey", "green"), 
                              channel_key = "combined")
 ```
 
+These new images can be stored as new channels within the same image object, and called later again
+
 ```{r eval = FALSE, class.source="watch-out"}
 vrImageChannelNames(melc_data)
+```
+
+```
+   Assay Image           Channels
+1 Assay1  MELC DAPI,CD45,combined
 ```
 
 ```{r eval = FALSE, class.source="watch-out"}
@@ -435,3 +607,4 @@ vrAssayNames(melc_data, assay = "MELC")
 ```
 [1] "Assay1"
 ```
+

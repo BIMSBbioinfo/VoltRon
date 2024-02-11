@@ -459,11 +459,74 @@ table, th, td {
 <h1>Working with VoltRon objects</h1>
 <p>In this tutorial, we will cover some of the fundemantel built-in
 functions of VoltRon to manage data, images and spatial information of
-assays.</p>
+assays. Here is the list of example datasets included in the
+Package.</p>
 <pre class="r watch-out"><code>data(&quot;visium_data&quot;)
-data(&quot;melc_data&quot;)</code></pre>
+data(&quot;melc_data&quot;)
+data(&quot;xenium_data&quot;)</code></pre>
 <p><br></p>
-<div id="sample-metadata" class="section level2">
+<div id="subsetting-voltron-objects" class="section level2">
+<h2>Subsetting VoltRon objects</h2>
+<div id="sampleassay" class="section level3">
+<h3>sample/assay</h3>
+<p>VoltRon object can be subsetted in a variety of ways using assay
+names, sample names, spatial point names, features (e.g. gene), image
+coordinates (crop boxes or bounding boxes) as well as interactively.</p>
+<pre class="r watch-out"><code>visium_data &lt;- subset(visium_data, samples = &quot;Anterior1&quot;)
+visium_data &lt;- subset(visium_data, assays = &quot;Assay1&quot;)</code></pre>
+<pre><code>VoltRon Object 
+Anterior1: 
+  Layers: Section1 
+Assays: Visium(Main) </code></pre>
+<p><br></p>
+</div>
+<div id="spatial-points" class="section level3">
+<h3>spatial points</h3>
+<p>You can use a list of spatial points (typically using
+<strong>vrSpatialPoints</strong> function, see <a
+href="#spatialpoints">vrSpatialPoints</a>)</p>
+<pre class="r watch-out"><code>selected_points &lt;- vrSpatialPoints(visium_data)
+selected_points[1:20]</code></pre>
+<pre><code>  [1] &quot;AAAGGCTCTCGCGCCG-1_Assay1&quot; &quot;AAATGGCCCGTGCCCT-1_Assay1&quot; &quot;AAATTACACGACTCTG-1_Assay1&quot; </code></pre>
+<pre class="r watch-out"><code>visium_data &lt;- subset(visium_data, spatialpoints = selected_points[1:20])</code></pre>
+<pre><code>VoltRon Object 
+Anterior1: 
+  Layers: Section1 
+Assays: Visium(Main) </code></pre>
+<p><br></p>
+</div>
+<div id="features" class="section level3">
+<h3>features</h3>
+<p>You can select a few number of features and subset the features given
+this list. However, it would only subset the main assay (see <a
+href="#assays">vrMainAssay</a>)</p>
+<pre class="r watch-out"><code>selected_features &lt;- vrFeatures(visium_data)
+selected_features[1:20]</code></pre>
+<pre><code> [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;       &quot;Mrpl15&quot;        &quot;Lypla1&quot;       
+[11] &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;        &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
+<pre class="r watch-out"><code>visium_data &lt;- subset(visium_data, features = selected_features[1:20])
+vrFeatures(visium_data)</code></pre>
+<pre><code> [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;       &quot;Mrpl15&quot;        &quot;Lypla1&quot;       
+[11] &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;        &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
+<p><br></p>
+</div>
+<div id="interactive-subsetting" class="section level3">
+<h3>Interactive subsetting</h3>
+<p>VoltRon allows interactively subsetting spatial data. Using the
+arguement <strong>interactive = TRUE</strong>, a mini Shiny app is
+triggered where users can select a bounding box to crop the spatial
+data.</p>
+<pre class="r watch-out"><code>visium_data_subset &lt;- subset(visium_data, interactive = TRUE)
+visium_data_subset</code></pre>
+<pre><code>VoltRon Object 
+Anterior1_subset: 
+  Layers: Section1 
+Assays: Visium(Main) </code></pre>
+<pre class="r watch-out"><code>vrImages(visium_data_subset)</code></pre>
+<p><br></p>
+</div>
+</div>
+<div id="samplemetadata" class="section level2">
 <h2>Sample Metadata</h2>
 <p>The sample metadata is a summarized data frame which provides
 informations on assays, layers and sample (tissue blocks) included in
@@ -518,6 +581,22 @@ would return the VoltRon Metadata Object (vrMetadata)</p>
 <pre><code>VoltRon Metadata Object 
 This object includes: 
    100 spots</code></pre>
+<p><br></p>
+</div>
+<div id="spatialpoints" class="section level2">
+<h2>Spatial Points</h2>
+<p>In a VoltRon object, spatial points are spatially defined entities
+with coordinates, segments which are of any of five assay types (ROI,
+spot, cell, molecule and tile).</p>
+<p>The <strong>vrSpatialPoints</strong> function return the IDs of these
+entities for further downstream operations, such as subsetting etc.</p>
+<pre class="r watch-out"><code>vrSpatialPoints(visium_data)</code></pre>
+<pre><code>  [1] &quot;AAAGGCTCTCGCGCCG-1_Assay1&quot; &quot;AAATGGCCCGTGCCCT-1_Assay1&quot; &quot;AAATTACACGACTCTG-1_Assay1&quot; </code></pre>
+<p>You can also specify the assay ID or the assay type to call metadata
+of a subset of spatial points.</p>
+<pre class="r watch-out"><code>vrSpatialPoints(visium_data, assay = &quot;Visium&quot;)
+vrSpatialPoints(visium_data, assay = &quot;Assay1&quot;)</code></pre>
+<pre><code>  [1] &quot;AAAGGCTCTCGCGCCG-1_Assay1&quot; &quot;AAATGGCCCGTGCCCT-1_Assay1&quot; &quot;AAATTACACGACTCTG-1_Assay1&quot; </code></pre>
 <p><br></p>
 </div>
 <div id="coordinates-and-segments" class="section level2">
@@ -617,32 +696,76 @@ $`77200_Assay1`
 </div>
 <div id="image" class="section level2">
 <h2>Images</h2>
+<p>In a VoltRon object, each image has a unique ID which is also
+associated with a coordinate system. The names of these images (or
+systems) can be called using the <strong>vrImageNames</strong>
+function.</p>
 <pre class="r watch-out"><code>vrImageNames(visium_data)</code></pre>
 <pre><code>[1] &quot;H&amp;E&quot;</code></pre>
+<p>You can also specify the assay ID or the assay type to call image
+names of a subset assays or any assay type (see <a
+href="#samplemetadata">Sample Metadata</a>)</p>
+<pre class="r watch-out"><code>vrImageNames(visium_data, assay = &quot;Visium&quot;)
+vrImageNames(visium_data, assay = &quot;Assay1&quot;)</code></pre>
+<pre><code>[1] &quot;H&amp;E&quot;</code></pre>
 <p><br></p>
+<p>If you wanna see the list of all images/systems associated with all
+assays of the main assay type, you can call the
+<strong>vrMainImage</strong> function.</p>
 <pre class="r watch-out"><code>vrMainImage(visium_data)</code></pre>
 <pre><code>   Assay Image
 1 Assay1   H&amp;E</code></pre>
+<p>You can also specify the assay ID or the assay type to call image
+names of a subset assays or any assay type (see <a
+href="#samplemetadata">Sample Metadata</a>)</p>
+<pre class="r watch-out"><code>vrMainImage(visium_data, assay = &quot;Visium&quot;)
+vrMainImage(visium_data, assay = &quot;Assay1&quot;)</code></pre>
+<pre><code>   Assay Image
+1 Assay1   H&amp;E</code></pre>
 <p><br></p>
-<pre class="r watch-out"><code>vrImages(visium_data)</code></pre>
+<p>In VoltRon, images can be called specifically, or return as a list.
+The return image is of a magick image object (see <a
+href="https://cran.r-project.org/web/packages/magick/vignettes/intro.html">magick</a>
+package)</p>
+<pre class="r watch-out"><code>vrImages(visium_data)
+vrImages(visium_data, assay = &quot;Visium&quot;)
+vrImages(visium_data, assay = &quot;Assay1&quot;)</code></pre>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_HE.png" class="center"></p>
 <p><br></p>
-<pre class="r watch-out"><code>vrImageChannelNames(melc_data)</code></pre>
+<p>Each image object (vrImage) in VoltRon object can also include a
+indefinite number of channels which you can get (or request) a list of
+for further use.</p>
+<pre class="r watch-out"><code>vrImageChannelNames(melc_data)
+vrImageChannelNames(melc_data, assay = &quot;MELC&quot;)
+vrImageChannelNames(melc_data, assay = &quot;Assay1&quot;)</code></pre>
 <pre><code>   Assay Image  Channels
 1 Assay1  MELC DAPI,CD45</code></pre>
+<p>Once you know the name of a specific channel, you can the image of a
+specific channel by providing the name and the associated channel.</p>
 <pre class="r watch-out"><code>vrImages(melc_data, name = &quot;MELC&quot;, channel = &quot;DAPI&quot;)</code></pre>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_DAPI.png" class="center"></p>
 <p><br></p>
+<p>You can set up the main channel as well as the main image name for
+later use.</p>
 <pre class="r watch-out"><code>vrMainImage(melc_data, assay = &quot;Assay1&quot;) &lt;- c(&quot;MELC&quot;, &quot;CD45&quot;)
 vrImages(melc_data)</code></pre>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_CD45.png" class="center"></p>
 <p><br></p>
+<div id="combining-image-channels" class="section level3">
+<h3>Combining image channels</h3>
+<p>VoltRon even allows manipulation of channel images if you also
+provide an associate list of colors.</p>
 <pre class="r watch-out"><code>melc_data &lt;- combineChannels(melc_data, 
                              channels = c(&quot;DAPI&quot;, &quot;CD45&quot;), colors = c(&quot;grey&quot;, &quot;green&quot;), 
                              channel_key = &quot;combined&quot;)</code></pre>
+<p>These new images can be stored as new channels within the same image
+object, and called later again</p>
 <pre class="r watch-out"><code>vrImageChannelNames(melc_data)</code></pre>
+<pre><code>   Assay Image           Channels
+1 Assay1  MELC DAPI,CD45,combined</code></pre>
 <pre class="r watch-out"><code>vrImages(melc_data, channel = &quot;combined&quot;)</code></pre>
 <p><br></p>
+</div>
 </div>
 <div id="feature-matrix-data" class="section level2">
 <h2>Feature Matrix (Data)</h2>
