@@ -22,7 +22,7 @@ vrImages(object, ...) <- value
 
 \method{vrImages}{vrImage}(object, channel = NULL, as.raster = FALSE)
 
-\method{vrImages}{vrImage}(object, channel = NULL, ...) <- value
+\method{vrImages}{vrImage}(object, channel = NULL) <- value
 }
 \arguments{
 \item{object}{A vrAssay object}

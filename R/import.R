@@ -856,6 +856,8 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
 #' @importFrom magick image_read image_info
 #' @importFrom data.table data.table
 #'
+#' @export
+#'
 importImageData <- function(image.path, tile.size = 10, ...){
 
   # get image
