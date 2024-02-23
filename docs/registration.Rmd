@@ -6,7 +6,7 @@ output:
     toc_depth: 4
     toc_float:
       collapsed: false
-      smooth_scroll: false
+      smooth_scroll: true
 ---
 
 <style>
@@ -295,11 +295,13 @@ vrImages(Xen_R1_image)
 
 We can use the **registerSpatialData** function to warp/align images across multiple VoltRon objects and define these aligned images additional channels of existing coordinate systems of assays in one of these VoltRon objects. 
 
-First we align the H&E image to the DAPI image of the Xenium replicate.
+First we align the H&E image to the DAPI image of the Xenium replicate. Similar to the first use case, we need to negate the DAPI image and change the alignment of the image to match it with the H&E image.
 
 ```{r eval = FALSE, class.source="watch-out"}
 xen_reg <- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))
 ```
+
+<img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE_function.png" class="center">
 
 <br>
 
@@ -315,6 +317,10 @@ Now we can call the registered H&E image of the Xenium data or later put the ali
 ```{r eval = FALSE, class.source="watch-out"}
 vrImages(Xen_R1, name = "DAPI", channel = "H&E")
 ```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE.png" class="center">
+
+<br>
 
 ## Alignment of Visium and Visium
 

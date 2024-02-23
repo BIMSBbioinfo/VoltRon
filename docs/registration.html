@@ -748,8 +748,11 @@ warp/align images across multiple VoltRon objects and define these
 aligned images additional channels of existing coordinate systems of
 assays in one of these VoltRon objects.</p>
 <p>First we align the H&amp;E image to the DAPI image of the Xenium
-replicate.</p>
+replicate. Similar to the first use case, we need to negate the DAPI
+image and change the alignment of the image to match it with the H&amp;E
+image.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))</code></pre>
+<p><img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE_function.png" class="center"></p>
 <p><br></p>
 <p>Now we create a new channel for the existing coordinate system of the
 Xenium data. Here, the key of the registered H&amp;E image will be
@@ -765,6 +768,8 @@ later put the aligned H&amp;E when calling
 <strong>vrSpatialPlot</strong> or
 <strong>vrSpatialFeaturePlot</strong>.</p>
 <pre class="r watch-out"><code>vrImages(Xen_R1, name = &quot;DAPI&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE.png" class="center"></p>
+<p><br></p>
 </div>
 </div>
 <div id="alignment-of-visium-and-visium" class="section level2">
@@ -901,7 +906,7 @@ $(document).ready(function ()  {
       scrollTo: 0
     };
     options.showAndHide = false;
-    options.smoothScroll = false;
+    options.smoothScroll = true;
 
     // tocify
     var toc = $("#TOC").tocify(options).data("toc-tocify");
