@@ -255,7 +255,68 @@ vrSpatialFeaturePlot(VRBlock_new, assay = "Visium_pseudo_CellType",
 
 <br>
 
-## Alignment of DLPFC Visium
+## Alignment of Xenium and H&E
+
+In this use case, we will align **immunofluorescence (IF)** of the **Xenium In Situ** platform to an **H&E images** generated from the same sections as the Xenium. VoltRon provides built-in utilities to import images as spatial datasets where **tiles** are the spatial points. We will import both Xenium and H&E images into two separate VoltRon objects and overlay H&E images. 
+
+You can download the Xenium readout and the H&E image of the same tissue section from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import **In Situ Replicate 1** and **Supplemental: Post-Xenium H&E image (TIFF)**). 
+
+```{r eval = FALSE, class.source="watch-out"}
+library(VoltRon)
+
+# import Xenium 
+Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1")
+
+# import H&E image and built a VoltRon object
+Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image_highres.tif",
+                                sample_name = "XeniumR1image",
+                                image_name = "H&E", stack.id = 1)
+Xen_R1_image
+```
+
+```
+VoltRon Object 
+XeniumR1image: 
+  Layers: Section1 
+Assays: ImageData(Main) 
+```
+
+Lets take a look at the image of the Xen_R1_image object
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImages(Xen_R1_image)
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE.png" class="center">
+
+<br>
+
+### Automated Image Alignment
+
+We can use the **registerSpatialData** function to warp/align images across multiple VoltRon objects and define these aligned images additional channels of existing coordinate systems of assays in one of these VoltRon objects. 
+
+First we align the H&E image to the DAPI image of the Xenium replicate.
+
+```{r eval = FALSE, class.source="watch-out"}
+xen_reg <- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))
+```
+
+<br>
+
+Now we create a new channel for the existing coordinate system of the Xenium data. Here, the key of the registered H&E image will be **H&E_reg**. We choose the destination of the registered image which is the first Assay of the Xenium data (i.e. **Assay1**). The original DAPI coordinate system, and we give a name for the new image/channel which is **H&E**.
+
+```{r eval = FALSE, class.source="watch-out"}
+Xenium_reg <- xen_reg$registered_spat[[2]]
+vrImages(Xen_R1[["Assay1"]], name = "DAPI", channel = "H&E") <- vrImages(Xenium_reg, name = "H&E_reg")
+```
+
+Now we can call the registered H&E image of the Xenium data or later put the aligned H&E when calling **vrSpatialPlot** or **vrSpatialFeaturePlot**.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImages(Xen_R1, name = "DAPI", channel = "H&E")
+```
+
+## Alignment of Visium and Visium
 
 In the next use case, we will align **H&E images** associated with Visium data generated from tissue block sections of **adult humans with postmortem dorsolateral prefrontal cortex (DLPFC)**. Two pairs of adjacent sections was obtained from the tissue block of the third donor. Each pair are composed of two 10 $\mu$m serial tissue sections, and pairs are located 300 $\mu$m apart from each other. Hence, we align each pair individually. The datasets can be downloaded from [here](https://research.libd.org/spatialLIBD/). 
 
