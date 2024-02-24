@@ -1110,11 +1110,6 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
         aligned_image_list[[i]] <- results$aligned_image
       }
 
-      # # get registered spatial datasets
-      # temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre, input, image_list = image_list)
-      # for(i in 1:length(temp_reg_list))
-      #   registered_spatdata_list[[paste0(i)]] <- temp_reg_list[[i]]
-
       # Plot registered images
       lapply(register_ind, function(i){
         output[[paste0("plot_query_reg",i)]] <- renderImage({
