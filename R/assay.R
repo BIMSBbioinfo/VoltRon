@@ -7,10 +7,11 @@ NULL
 
 ## Auxiliary ####
 
-# Set magick-image as an S4 class
+# Set old classes
 setOldClass(Classes = c('magick-image'))
 setOldClass(Classes = c('raster'))
 setOldClass(Classes = c('bitmap'))
+setClassUnion("data_matrix", members = c("matrix", "dgTMatrix"))
 
 ## vrAssay ####
 
@@ -32,8 +33,10 @@ setOldClass(Classes = c('bitmap'))
 vrAssay <- setClass(
   Class = 'vrAssay',
   slots = c(
-    rawdata = 'matrix',
-    normdata = 'matrix',
+    # rawdata = 'matrix',
+    # normdata = 'matrix',
+    rawdata = 'data_matrix',
+    normdata = 'data_matrix',
     featuredata = 'data.frame',
     embeddings = "list",
     image = "list",
