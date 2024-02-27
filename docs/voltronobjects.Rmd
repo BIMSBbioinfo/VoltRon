@@ -132,8 +132,8 @@ vrFeatures(visium_data)
 VoltRon allows interactively subsetting spatial data. Using the arguement **interactive = TRUE**, a mini Shiny app is triggered where users can select a bounding box to crop the spatial data.
 
 ```{r eval = FALSE, class.source="watch-out"}
-visium_data_subset <- subset(visium_data, interactive = TRUE)
-visium_data_subset
+visium_data_subset_info <- subset(visium_data, interactive = TRUE)
+visium_data_subset <- visium_data_subset_info$subsets[[1]]
 ```
 
 ```

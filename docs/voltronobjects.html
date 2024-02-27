@@ -516,8 +516,8 @@ vrFeatures(visium_data)</code></pre>
 arguement <strong>interactive = TRUE</strong>, a mini Shiny app is
 triggered where users can select a bounding box to crop the spatial
 data.</p>
-<pre class="r watch-out"><code>visium_data_subset &lt;- subset(visium_data, interactive = TRUE)
-visium_data_subset</code></pre>
+<pre class="r watch-out"><code>visium_data_subset_info &lt;- subset(visium_data, interactive = TRUE)
+visium_data_subset &lt;- visium_data_subset_info$subsets[[1]]</code></pre>
 <pre><code>VoltRon Object 
 Anterior1_subset: 
   Layers: Section1 
