@@ -1,4 +1,5 @@
 #' @include zzz.R
+#' @importClassesFrom Matrix dgCMatrix
 NULL
 
 ####
@@ -8,9 +9,9 @@ NULL
 ## Auxiliary ####
 
 # Set old classes
-setOldClass(Classes = c('magick-image'))
-setOldClass(Classes = c('raster'))
-setOldClass(Classes = c('bitmap'))
+# setOldClass(Classes = c('magick-image'))
+# setOldClass(Classes = c('raster'))
+# setOldClass(Classes = c('bitmap'))
 setClassUnion("data_matrix", members = c("matrix", "dgCMatrix"))
 
 ## vrAssay ####

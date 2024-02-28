@@ -820,6 +820,63 @@ Assays: Visium(Main) </code></pre>
 <p><br></p>
 </div>
 </div>
+<div id="visualization" class="section level2">
+<h2>Visualization</h2>
+<p>VoltRon provides visualization utilities for both spatial and
+embedding level visualizations</p>
+<div id="spatial" class="section level3">
+<h3>Spatial</h3>
+<p><strong>vrSpatialPlot</strong> is the main function for visualize
+labels and identities of cells. This information is parsed from the
+Metadata of the main assay (see <a href="#assays">vrMainAssay</a>). The
+users can also specify the assay.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(xenium_data, group.by = &quot;Sample&quot;)</code></pre>
+<p><br></p>
+<p>You can also visualize the segments of spatial points and even get
+the segments transparent</p>
+<pre class="r watch-out"><code>vrSpatialPlot(xenium_data, group.by = &quot;Sample&quot;, plot.segments = TRUE, alpha = 0.6)</code></pre>
+<p><br></p>
+<p>The background information can be set to either a “white” or “black”
+background.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(xenium_data, group.by = &quot;Sample&quot;, plot.segments = TRUE, 
+              background = &quot;white&quot;)</code></pre>
+<p><br></p>
+<p>In cases where there are multiple coordinate systems, you can get the
+background set to the name of the image (or coordinate system). You can
+get the name of these images from <a href="#image">vrImageNames</a>.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(xenium_data, group.by = &quot;Sample&quot;, plot.segments = TRUE, 
+              background = c(&quot;main&quot;))</code></pre>
+<p><br></p>
+<p>In cases where there are multiple coordinate systems and channel
+exists in the object, you can set background arguement as a vector of 2,
+first is the name of the image (coordinate system) and the other would
+be channel. You can get the name of these images and channels from <a
+href="#image">vrImageNames</a> and <a
+href="#image">vrImageChannelNames</a>.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(xenium_data, group.by = &quot;Sample&quot;, plot.segments = TRUE, 
+              background = c(&quot;main&quot;, &quot;DAPI&quot;))</code></pre>
+<p><br></p>
+<p>If the visualized assay is of a type “spot”, you can crop the image
+to encapsulate the smallest subset that include all spots.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(visium_data, group.by = &quot;Sample&quot;, crop = TRUE)</code></pre>
+<p>For all variations of <strong>vrSpatialPlot</strong> functions above,
+you can specifiy the assay names or assay class.</p>
+<p><br></p>
+<pre class="r watch-out"><code>vrSpatialPlot(visium_data, assay = &quot;Visium&quot;, plot.segments = TRUE, ...)
+vrSpatialPlot(visium_data, assay = &quot;Assay1&quot;, plot.segments = TRUE, ...)</code></pre>
+<p><br></p>
+<p>The <strong>vrSpatialFeaturePlot</strong> functions the same way as
+vrSpatialPlot but requires extra arguements such as
+<strong>features</strong> for selecting features, <strong>norm</strong>
+for normalized expression (default), and <strong>log</strong> for log
+transformed counts.</p>
+<pre class="r watch-out"><code>vrSpatialFeaturePlot(visium_data, features = &quot;Stat1&quot;, norm = TRUE, log = TRUE)</code></pre>
+<p><br></p>
+</div>
+<div id="embedding" class="section level3">
+<h3>Embedding</h3>
+</div>
+</div>
 </div>
 
 
