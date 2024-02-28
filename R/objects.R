@@ -1034,9 +1034,9 @@ vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", dims = 1:30
   for(assy in assay_names){
     assayobject <- object[[assy]]
     if(vrAssayTypes(assayobject) %in% c("ROI", "cell", "spot")){
-      vrEmbeddings(assayobject, type = type) <- value[grepl(paste0(assy, "$"), rownames(value)),]
+      vrEmbeddings(assayobject, type = type) <- value[grepl(paste0(assy, "$"), rownames(value)),, drop = FALSE]
     } else {
-      vrEmbeddings(assayobject, type = type) <- value[vrSpatialPoints(assayobject),]
+      vrEmbeddings(assayobject, type = type) <- value[vrSpatialPoints(assayobject),, drop = FALSE]
     }
     object[[assy]] <- assayobject
   }
