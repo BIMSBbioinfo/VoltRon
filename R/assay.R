@@ -11,7 +11,7 @@ NULL
 setOldClass(Classes = c('magick-image'))
 setOldClass(Classes = c('raster'))
 setOldClass(Classes = c('bitmap'))
-setClassUnion("data_matrix", members = c("matrix", "dgTMatrix"))
+setClassUnion("data_matrix", members = c("matrix", "dgCMatrix"))
 
 ## vrAssay ####
 
@@ -156,7 +156,7 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
       # embeddings
       for(embed in vrEmbeddingNames(object)){
         embedding <- vrEmbeddings(object, type = embed)
-        vrEmbeddings(object, type = embed) <- embedding[rownames(embedding) %in% spatialpoints,]
+        vrEmbeddings(object, type = embed) <- embedding[rownames(embedding) %in% spatialpoints,, drop = FALSE]
       }
 
       # images
@@ -177,7 +177,7 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
       # embeddings
       for(embed in vrEmbeddingNames(object)){
         embedding <- vrEmbeddings(object, type = embed)
-        vrEmbeddings(object, type = embed) <- embedding[rownames(embedding) %in% spatialpoints,]
+        vrEmbeddings(object, type = embed) <- embedding[rownames(embedding) %in% spatialpoints,, drop = FALSE]
       }
     }
   }
@@ -675,7 +675,7 @@ vrEmbeddings.vrAssay <- function(object, type = "pca", dims = 1:30) {
     if(max(dims) > ncol(embedding)){
       dims <- 1:ncol(embedding)
     }
-    return(embedding[,dims])
+    return(embedding[,dims, drop = FALSE])
   }
 }
 
