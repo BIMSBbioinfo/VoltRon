@@ -465,67 +465,6 @@ Package.</p>
 data(&quot;melc_data&quot;)
 data(&quot;xenium_data&quot;)</code></pre>
 <p><br></p>
-<div id="subsetting-voltron-objects" class="section level2">
-<h2>Subsetting VoltRon objects</h2>
-<div id="sampleassay" class="section level3">
-<h3>sample/assay</h3>
-<p>VoltRon object can be subsetted in a variety of ways using assay
-names, sample names, spatial point names, features (e.g. gene), image
-coordinates (crop boxes or bounding boxes) as well as interactively.</p>
-<pre class="r watch-out"><code>visium_data &lt;- subset(visium_data, samples = &quot;Anterior1&quot;)
-visium_data &lt;- subset(visium_data, assays = &quot;Assay1&quot;)</code></pre>
-<pre><code>VoltRon Object 
-Anterior1: 
-  Layers: Section1 
-Assays: Visium(Main) </code></pre>
-<p><br></p>
-</div>
-<div id="spatial-points" class="section level3">
-<h3>spatial points</h3>
-<p>You can use a list of spatial points (typically using
-<strong>vrSpatialPoints</strong> function, see <a
-href="#spatialpoints">vrSpatialPoints</a>)</p>
-<pre class="r watch-out"><code>selected_points &lt;- vrSpatialPoints(visium_data)
-selected_points[1:20]</code></pre>
-<pre><code>  [1] &quot;AAAGGCTCTCGCGCCG-1_Assay1&quot; &quot;AAATGGCCCGTGCCCT-1_Assay1&quot; &quot;AAATTACACGACTCTG-1_Assay1&quot; </code></pre>
-<pre class="r watch-out"><code>visium_data &lt;- subset(visium_data, spatialpoints = selected_points[1:20])</code></pre>
-<pre><code>VoltRon Object 
-Anterior1: 
-  Layers: Section1 
-Assays: Visium(Main) </code></pre>
-<p><br></p>
-</div>
-<div id="features" class="section level3">
-<h3>features</h3>
-<p>You can select a few number of features and subset the features given
-this list. However, it would only subset the main assay (see <a
-href="#assays">vrMainAssay</a>)</p>
-<pre class="r watch-out"><code>selected_features &lt;- vrFeatures(visium_data)
-selected_features[1:20]</code></pre>
-<pre><code> [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;       &quot;Mrpl15&quot;        &quot;Lypla1&quot;       
-[11] &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;        &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
-<pre class="r watch-out"><code>visium_data &lt;- subset(visium_data, features = selected_features[1:20])
-vrFeatures(visium_data)</code></pre>
-<pre><code> [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;       &quot;Mrpl15&quot;        &quot;Lypla1&quot;       
-[11] &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;        &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
-<p><br></p>
-</div>
-<div id="interactive-subsetting" class="section level3">
-<h3>Interactive subsetting</h3>
-<p>VoltRon allows interactively subsetting spatial data. Using the
-arguement <strong>interactive = TRUE</strong>, a mini Shiny app is
-triggered where users can select a bounding box to crop the spatial
-data.</p>
-<pre class="r watch-out"><code>visium_data_subset_info &lt;- subset(visium_data, interactive = TRUE)
-visium_data_subset &lt;- visium_data_subset_info$subsets[[1]]</code></pre>
-<pre><code>VoltRon Object 
-Anterior1_subset: 
-  Layers: Section1 
-Assays: Visium(Main) </code></pre>
-<pre class="r watch-out"><code>vrImages(visium_data_subset)</code></pre>
-<p><br></p>
-</div>
-</div>
 <div id="samplemetadata" class="section level2">
 <h2>Sample Metadata</h2>
 <p>The sample metadata is a summarized data frame which provides
@@ -694,6 +633,59 @@ $`77200_Assay1`
 13   77200  493.  383.</code></pre>
 <p><br></p>
 </div>
+<div id="feature-matrix-data" class="section level2">
+<h2>Feature Matrix (Data)</h2>
+<pre class="r watch-out"><code>vrData(visium_data)[3:8,3:5]</code></pre>
+<pre><code>        AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
+Gm19938                         0                         0                         0
+Gm37381                         0                         0                         0
+Rp1                             0                         0                         0
+Sox17                           0                         1                         1
+Gm37587                         0                         0                         0
+Gm37323                         0                         0                         0</code></pre>
+<pre class="r watch-out"><code>vrData(visium_data, norm = TRUE)[3:8,3:5]</code></pre>
+<pre><code>        AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
+Gm19938                         0                 0.0000000                 0.0000000
+Gm37381                         0                 0.0000000                 0.0000000
+Rp1                             0                 0.0000000                 0.0000000
+Sox17                           0                 0.2732722                 0.2164184
+Gm37587                         0                 0.0000000                 0.0000000
+Gm37323                         0                 0.0000000                 0.0000000</code></pre>
+<p><br></p>
+</div>
+<div id="assays" class="section level2">
+<h2>Assays</h2>
+<p>The default (or main) assay of the VoltRon object is typically shown
+when printed (next to the assay name says “main” in paranthesis)</p>
+<pre class="r watch-out"><code>melc_data</code></pre>
+<pre><code>VoltRon Object 
+control_case_3: 
+  Layers: Section1 
+Assays: MELC(Main) </code></pre>
+<p><br></p>
+<p>You can also call/get the name of the default (or main) using the
+<strong>vrMainAssay</strong> function</p>
+<pre class="r watch-out"><code>vrMainAssay(melc_data)</code></pre>
+<pre><code>[1] &quot;MELC&quot;</code></pre>
+<p><br></p>
+<p>You can also set the main assay yourself, but only the assay types
+given in the <strong>Assay</strong> column of
+<strong>SampleMetadata(object)</strong>.</p>
+<pre class="r watch-out"><code>SampleMetadata(melc_data)</code></pre>
+<pre><code>       Assay    Layer         Sample
+Assay1  MELC Section1 control_case_3</code></pre>
+<pre class="r watch-out"><code>vrMainAssay(melc_data) &lt;- &quot;MELC&quot;</code></pre>
+<p><br></p>
+<p>You can also get the assay IDs associated with the main assay using
+<strong>vrAssayNames</strong> function.</p>
+<pre class="r watch-out"><code>vrAssayNames(melc_data)</code></pre>
+<pre><code>[1] &quot;Assay1&quot;</code></pre>
+<p><br></p>
+<p>The assay type can be provided with the <strong>assay</strong>
+arguement to get type specific assay IDs</p>
+<pre class="r watch-out"><code>vrAssayNames(melc_data, assay = &quot;MELC&quot;)</code></pre>
+<pre><code>[1] &quot;Assay1&quot;</code></pre>
+</div>
 <div id="image" class="section level2">
 <h2>Images</h2>
 <p>In a VoltRon object, each image has a unique ID which is also
@@ -767,58 +759,66 @@ object, and called later again</p>
 <p><br></p>
 </div>
 </div>
-<div id="feature-matrix-data" class="section level2">
-<h2>Feature Matrix (Data)</h2>
-<pre class="r watch-out"><code>vrData(visium_data)[3:8,3:5]</code></pre>
-<pre><code>        AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
-Gm19938                         0                         0                         0
-Gm37381                         0                         0                         0
-Rp1                             0                         0                         0
-Sox17                           0                         1                         1
-Gm37587                         0                         0                         0
-Gm37323                         0                         0                         0</code></pre>
-<pre class="r watch-out"><code>vrData(visium_data, norm = TRUE)[3:8,3:5]</code></pre>
-<pre><code>        AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
-Gm19938                         0                 0.0000000                 0.0000000
-Gm37381                         0                 0.0000000                 0.0000000
-Rp1                             0                 0.0000000                 0.0000000
-Sox17                           0                 0.2732722                 0.2164184
-Gm37587                         0                 0.0000000                 0.0000000
-Gm37323                         0                 0.0000000                 0.0000000</code></pre>
+<div id="subsetting-voltron-objects" class="section level2">
+<h2>Subsetting VoltRon objects</h2>
+<div id="sampleassay" class="section level3">
+<h3>sample/assay</h3>
+<p>VoltRon object can be subsetted in a variety of ways using assay
+names, sample names, spatial point names, features (e.g. gene), image
+coordinates (crop boxes or bounding boxes) as well as interactively.</p>
+<pre class="r watch-out"><code>visium_data &lt;- subset(visium_data, samples = &quot;Anterior1&quot;)
+visium_data &lt;- subset(visium_data, assays = &quot;Assay1&quot;)</code></pre>
+<pre><code>VoltRon Object 
+Anterior1: 
+  Layers: Section1 
+Assays: Visium(Main) </code></pre>
 <p><br></p>
 </div>
-<div id="assays" class="section level2">
-<h2>Assays</h2>
-<p>The default (or main) assay of the VoltRon object is typically shown
-when printed (next to the assay name says “main” in paranthesis)</p>
-<pre class="r watch-out"><code>melc_data</code></pre>
+<div id="spatial-points" class="section level3">
+<h3>spatial points</h3>
+<p>You can use a list of spatial points (typically using
+<strong>vrSpatialPoints</strong> function, see <a
+href="#spatialpoints">vrSpatialPoints</a>)</p>
+<pre class="r watch-out"><code>selected_points &lt;- vrSpatialPoints(visium_data)
+selected_points[1:20]</code></pre>
+<pre><code>  [1] &quot;AAAGGCTCTCGCGCCG-1_Assay1&quot; &quot;AAATGGCCCGTGCCCT-1_Assay1&quot; &quot;AAATTACACGACTCTG-1_Assay1&quot; </code></pre>
+<pre class="r watch-out"><code>visium_data &lt;- subset(visium_data, spatialpoints = selected_points[1:20])</code></pre>
 <pre><code>VoltRon Object 
-control_case_3: 
+Anterior1: 
   Layers: Section1 
-Assays: MELC(Main) </code></pre>
+Assays: Visium(Main) </code></pre>
 <p><br></p>
-<p>You can also call/get the name of the default (or main) using the
-<strong>vrMainAssay</strong> function</p>
-<pre class="r watch-out"><code>vrMainAssay(melc_data)</code></pre>
-<pre><code>[1] &quot;MELC&quot;</code></pre>
+</div>
+<div id="features" class="section level3">
+<h3>features</h3>
+<p>You can select a few number of features and subset the features given
+this list. However, it would only subset the main assay (see <a
+href="#assays">vrMainAssay</a>)</p>
+<pre class="r watch-out"><code>selected_features &lt;- vrFeatures(visium_data)
+selected_features[1:20]</code></pre>
+<pre><code> [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;       &quot;Mrpl15&quot;        &quot;Lypla1&quot;       
+[11] &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;        &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
+<pre class="r watch-out"><code>visium_data &lt;- subset(visium_data, features = selected_features[1:20])
+vrFeatures(visium_data)</code></pre>
+<pre><code> [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;       &quot;Mrpl15&quot;        &quot;Lypla1&quot;       
+[11] &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;        &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
 <p><br></p>
-<p>You can also set the main assay yourself, but only the assay types
-given in the <strong>Assay</strong> column of
-<strong>SampleMetadata(object)</strong>.</p>
-<pre class="r watch-out"><code>SampleMetadata(melc_data)</code></pre>
-<pre><code>       Assay    Layer         Sample
-Assay1  MELC Section1 control_case_3</code></pre>
-<pre class="r watch-out"><code>vrMainAssay(melc_data) &lt;- &quot;MELC&quot;</code></pre>
+</div>
+<div id="interactive-subsetting" class="section level3">
+<h3>Interactive subsetting</h3>
+<p>VoltRon allows interactively subsetting spatial data. Using the
+arguement <strong>interactive = TRUE</strong>, a mini Shiny app is
+triggered where users can select a bounding box to crop the spatial
+data.</p>
+<pre class="r watch-out"><code>visium_data_subset_info &lt;- subset(visium_data, interactive = TRUE)
+visium_data_subset &lt;- visium_data_subset_info$subsets[[1]]</code></pre>
+<pre><code>VoltRon Object 
+Anterior1_subset: 
+  Layers: Section1 
+Assays: Visium(Main) </code></pre>
+<pre class="r watch-out"><code>vrImages(visium_data_subset)</code></pre>
 <p><br></p>
-<p>You can also get the assay IDs associated with the main assay using
-<strong>vrAssayNames</strong> function.</p>
-<pre class="r watch-out"><code>vrAssayNames(melc_data)</code></pre>
-<pre><code>[1] &quot;Assay1&quot;</code></pre>
-<p><br></p>
-<p>The assay type can be provided with the <strong>assay</strong>
-arguement to get type specific assay IDs</p>
-<pre class="r watch-out"><code>vrAssayNames(melc_data, assay = &quot;MELC&quot;)</code></pre>
-<pre><code>[1] &quot;Assay1&quot;</code></pre>
+</div>
 </div>
 </div>
 
