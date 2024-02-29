@@ -619,7 +619,7 @@ VoltRon provides visualization utilities for both spatial and embedding level vi
 **vrSpatialPlot** is the main function for visualize labels and identities of cells. This information is parsed from the Metadata of the main assay (see [vrMainAssay](#assays)). The users can also specify the assay.
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(xenium_data, group.by = "Sample")
+vrSpatialPlot(xenium_data, group.by = "clusters")
 ```
 
 <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_sp.png" class="center">
@@ -629,7 +629,7 @@ vrSpatialPlot(xenium_data, group.by = "Sample")
 You can also visualize the segments of spatial points and even get the segments transparent
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(xenium_data, group.by = "Sample", plot.segments = TRUE, alpha = 0.6)
+vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE, alpha = 0.6)
 ```
 
 <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spsegment.png" class="center">
@@ -639,7 +639,7 @@ vrSpatialPlot(xenium_data, group.by = "Sample", plot.segments = TRUE, alpha = 0.
 The background information can be set to either a "white" or "black" background.
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(xenium_data, group.by = "Sample", plot.segments = TRUE, 
+vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE, 
               background = "white")
 ```
 
@@ -653,9 +653,9 @@ If also want to select a channel from the same coordinate system, you can set ba
 
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(xenium_data, group.by = "Sample", plot.segments = TRUE,
+vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE,
               background = c("main"))
-vrSpatialPlot(xenium_data, group.by = "Sample", plot.segments = TRUE,
+vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE,
               background = c("main", "DAPI"))
 ```
 
@@ -664,7 +664,7 @@ vrSpatialPlot(xenium_data, group.by = "Sample", plot.segments = TRUE,
 If the visualized assay is of a type "spot", you can crop the image to encapsulate the smallest subset that include all spots.
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(visium_data, group.by = "Sample", crop = TRUE)
+vrSpatialPlot(visium_data, group.by = "clusters", crop = TRUE)
 ```
 
 <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spcrop.png" class="center">
@@ -682,7 +682,7 @@ vrSpatialFeaturePlot(visium_data, features = "Stat1", norm = TRUE, log = TRUE)
 
 <br>
 
-For all variations of **vrSpatialPlot** functions above, you can specifiy the assay names or assay class.
+For all variations of **vrSpatialPlot** and **vrSpatialFeaturePlot** functions above, you can specifiy the assay names or assay class.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrSpatialPlot(visium_data, assay = "Visium", plot.segments = TRUE)
@@ -694,3 +694,33 @@ vrSpatialFeaturePlot(visium_data, assay = "Assay1", features = "Count")
 <br>
 
 ### Embedding
+
+Dimensional reduction and embedding features are also possible for the VoltRon objects.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrEmbeddingPlot(xenium_data, embedding = "umap", group.by = "clusters", label = T)
+```
+
+<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_embed.png" class="center">
+
+<br>
+
+The **vrEmbeddingFeaturePlot** functions the same way as vrEmbeddingPlot but requires extra arguements such as **features** for selecting features, **norm** for normalized expression (default), and **log** for log transformed counts.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrEmbeddingFeaturePlot(xenium_data, embedding = "umap", features = "Count")
+vrEmbeddingFeaturePlot(xenium_data, embedding = "umap", features = "KRT5", norm = FALSE)
+```
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_embedfeature.png" class="center">
+
+<br>
+
+For all variations of **vrEmbeddingPlot** and **vrEmbeddingFeaturePlot** functions above, you can specifiy the assay names or assay class.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrEmbeddingPlot(xenium_data, assay = "Xenium", embedding = "umap")
+vrEmbeddingPlot(xenium_data, assay = "Assay1", embedding = "umap")
+vrEmbeddingFeaturePlot(xenium_data, assay = "Xenium", embedding = "umap", features = "Count")
+vrEmbeddingFeaturePlot(xenium_data, assay = "Assay1", embedding = "umap", features = "Count")
+```

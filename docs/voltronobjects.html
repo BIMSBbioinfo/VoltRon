@@ -830,17 +830,17 @@ embedding level visualizations.</p>
 labels and identities of cells. This information is parsed from the
 Metadata of the main assay (see <a href="#assays">vrMainAssay</a>). The
 users can also specify the assay.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(xenium_data, group.by = &quot;Sample&quot;)</code></pre>
+<pre class="r watch-out"><code>vrSpatialPlot(xenium_data, group.by = &quot;clusters&quot;)</code></pre>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_sp.png" class="center"></p>
 <p><br></p>
 <p>You can also visualize the segments of spatial points and even get
 the segments transparent</p>
-<pre class="r watch-out"><code>vrSpatialPlot(xenium_data, group.by = &quot;Sample&quot;, plot.segments = TRUE, alpha = 0.6)</code></pre>
+<pre class="r watch-out"><code>vrSpatialPlot(xenium_data, group.by = &quot;clusters&quot;, plot.segments = TRUE, alpha = 0.6)</code></pre>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spsegment.png" class="center"></p>
 <p><br></p>
 <p>The background information can be set to either a “white” or “black”
 background.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(xenium_data, group.by = &quot;Sample&quot;, plot.segments = TRUE, 
+<pre class="r watch-out"><code>vrSpatialPlot(xenium_data, group.by = &quot;clusters&quot;, plot.segments = TRUE, 
               background = &quot;white&quot;)</code></pre>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spback.png" class="center"></p>
 <p><br></p>
@@ -852,14 +852,14 @@ can set background arguement as a vector of 2 where first is the name of
 the image (coordinate system) and the other would be channel name. You
 can get the name of these channels from [<a
 href="#image">vrImageChannelNames</a>.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(xenium_data, group.by = &quot;Sample&quot;, plot.segments = TRUE,
+<pre class="r watch-out"><code>vrSpatialPlot(xenium_data, group.by = &quot;clusters&quot;, plot.segments = TRUE,
               background = c(&quot;main&quot;))
-vrSpatialPlot(xenium_data, group.by = &quot;Sample&quot;, plot.segments = TRUE,
+vrSpatialPlot(xenium_data, group.by = &quot;clusters&quot;, plot.segments = TRUE,
               background = c(&quot;main&quot;, &quot;DAPI&quot;))</code></pre>
 <p><br></p>
 <p>If the visualized assay is of a type “spot”, you can crop the image
 to encapsulate the smallest subset that include all spots.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(visium_data, group.by = &quot;Sample&quot;, crop = TRUE)</code></pre>
+<pre class="r watch-out"><code>vrSpatialPlot(visium_data, group.by = &quot;clusters&quot;, crop = TRUE)</code></pre>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spcrop.png" class="center"></p>
 <p><br></p>
 <p>The <strong>vrSpatialFeaturePlot</strong> functions the same way as
@@ -871,8 +871,9 @@ transformed counts.</p>
 vrSpatialFeaturePlot(visium_data, features = &quot;Stat1&quot;, norm = TRUE, log = TRUE)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spfeature.png" class="center"></p>
 <p><br></p>
-<p>For all variations of <strong>vrSpatialPlot</strong> functions above,
-you can specifiy the assay names or assay class.</p>
+<p>For all variations of <strong>vrSpatialPlot</strong> and
+<strong>vrSpatialFeaturePlot</strong> functions above, you can specifiy
+the assay names or assay class.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(visium_data, assay = &quot;Visium&quot;, plot.segments = TRUE)
 vrSpatialPlot(visium_data, assay = &quot;Assay1&quot;, plot.segments = TRUE)
 vrSpatialFeaturePlot(visium_data, assay = &quot;Visium&quot;, features = &quot;Count&quot;)
@@ -881,6 +882,27 @@ vrSpatialFeaturePlot(visium_data, assay = &quot;Assay1&quot;, features = &quot;C
 </div>
 <div id="embedding" class="section level3">
 <h3>Embedding</h3>
+<p>Dimensional reduction and embedding features are also possible for
+the VoltRon objects.</p>
+<pre class="r watch-out"><code>vrEmbeddingPlot(xenium_data, embedding = &quot;umap&quot;, group.by = &quot;clusters&quot;, label = T)</code></pre>
+<p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_embed.png" class="center"></p>
+<p><br></p>
+<p>The <strong>vrEmbeddingFeaturePlot</strong> functions the same way as
+vrEmbeddingPlot but requires extra arguements such as
+<strong>features</strong> for selecting features, <strong>norm</strong>
+for normalized expression (default), and <strong>log</strong> for log
+transformed counts.</p>
+<pre class="r watch-out"><code>vrEmbeddingFeaturePlot(xenium_data, embedding = &quot;umap&quot;, features = &quot;Count&quot;)
+vrEmbeddingFeaturePlot(xenium_data, embedding = &quot;umap&quot;, features = &quot;KRT5&quot;, norm = FALSE)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_embedfeature.png" class="center"></p>
+<p><br></p>
+<p>For all variations of <strong>vrEmbeddingPlot</strong> and
+<strong>vrEmbeddingFeaturePlot</strong> functions above, you can
+specifiy the assay names or assay class.</p>
+<pre class="r watch-out"><code>vrEmbeddingPlot(xenium_data, assay = &quot;Xenium&quot;, embedding = &quot;umap&quot;)
+vrEmbeddingPlot(xenium_data, assay = &quot;Assay1&quot;, embedding = &quot;umap&quot;)
+vrEmbeddingFeaturePlot(xenium_data, assay = &quot;Xenium&quot;, embedding = &quot;umap&quot;, features = &quot;Count&quot;)
+vrEmbeddingFeaturePlot(xenium_data, assay = &quot;Assay1&quot;, embedding = &quot;umap&quot;, features = &quot;Count&quot;)</code></pre>
 </div>
 </div>
 </div>

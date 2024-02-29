@@ -965,6 +965,8 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", assa
 #' @param object VoltRon object
 #' @param embedding the embedding type, i.e. pca, umap etc.
 #' @param features a set of features, either from the rows of rawdata, normdata or columns of the metadata
+#' @param norm if TRUE, the normalized data is used
+#' @param log if TRUE, data features (excluding metadata features) will be log transformed
 #' @param assay the assay name
 #' @param assay.type the assay type name: 'cell', 'spot' or 'ROI'
 #' @param ncol column wise number of plots, for \code{ggarrange}
@@ -979,7 +981,7 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", assa
 #'
 #' @export
 #'
-vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
+vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, norm = TRUE, log = FALSE, assay = NULL, assay.type = NULL, ncol = 2, nrow = NULL,
                                    font.size = 2, pt.size = 1, keep.scale = "feature", common.legend = TRUE, collapse = TRUE) {
 
   # check object
@@ -1012,7 +1014,9 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, a
   # get data
   data_features <- features[features %in% vrFeatures(object)]
   if(length(data_features) > 0){
-    normdata <- vrData(object, features = data_features, assay = assay_names, norm = TRUE)
+    normdata <- vrData(object, features = data_features, assay = assay_names, norm = norm)
+    if(log)
+      normdata <- log(normdata)
   }
 
   # get embedding
