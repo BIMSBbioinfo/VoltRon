@@ -170,6 +170,74 @@ vrSpatialPoints(visium_data, assay = "Assay1")
 
 <br>
 
+## Assays {#assays}
+
+The default (or main) assay of the VoltRon object is typically shown when printed (next to the assay name says "main" in paranthesis)
+
+```{r eval = FALSE, class.source="watch-out"}
+melc_data
+```
+
+```
+VoltRon Object 
+control_case_3: 
+  Layers: Section1 
+Assays: MELC(Main) 
+```
+
+<br>
+
+You can also call/get the name of the default (or main) using the **vrMainAssay** function
+
+```{r eval = FALSE, class.source="watch-out"}
+vrMainAssay(melc_data)
+```
+
+```
+[1] "MELC"
+```
+
+<br>
+
+You can also set the main assay yourself, but only the assay types given in the **Assay** column of **SampleMetadata(object)**.
+
+```{r eval = FALSE, class.source="watch-out"}
+SampleMetadata(melc_data)
+```
+
+```
+       Assay    Layer         Sample
+Assay1  MELC Section1 control_case_3
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+vrMainAssay(melc_data) <- "MELC"
+```
+
+<br>
+
+You can also get the assay IDs associated with the main assay using **vrAssayNames** function. 
+
+```{r eval = FALSE, class.source="watch-out"}
+vrAssayNames(melc_data)
+```
+
+```
+[1] "Assay1"
+```
+
+<br>
+
+The assay type can be provided with the **assay** arguement to get type specific assay IDs
+
+```{r eval = FALSE, class.source="watch-out"}
+vrAssayNames(melc_data, assay = "MELC")
+```
+
+```
+[1] "Assay1"
+```
+
 ## Coordinates and Segments
 
 The **vrCoordinates** function is used to call the centroids of spots, cells and all other spatial points types with VoltRon objects. 
@@ -293,106 +361,6 @@ $`77200_Assay1`
 
 <br>
 
-## Feature Matrix (Data)
-
-```{r eval = FALSE, class.source="watch-out"}
-vrData(visium_data)[3:8,3:5]
-```
-
-```
-        AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
-Gm19938                         0                         0                         0
-Gm37381                         0                         0                         0
-Rp1                             0                         0                         0
-Sox17                           0                         1                         1
-Gm37587                         0                         0                         0
-Gm37323                         0                         0                         0
-```
-
-```{r eval = FALSE, class.source="watch-out"}
-vrData(visium_data, norm = TRUE)[3:8,3:5]
-```
-
-```
-        AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
-Gm19938                         0                 0.0000000                 0.0000000
-Gm37381                         0                 0.0000000                 0.0000000
-Rp1                             0                 0.0000000                 0.0000000
-Sox17                           0                 0.2732722                 0.2164184
-Gm37587                         0                 0.0000000                 0.0000000
-Gm37323                         0                 0.0000000                 0.0000000
-```
-
-<br>
-
-## Assays {#assays}
-
-The default (or main) assay of the VoltRon object is typically shown when printed (next to the assay name says "main" in paranthesis)
-
-```{r eval = FALSE, class.source="watch-out"}
-melc_data
-```
-
-```
-VoltRon Object 
-control_case_3: 
-  Layers: Section1 
-Assays: MELC(Main) 
-```
-
-<br>
-
-You can also call/get the name of the default (or main) using the **vrMainAssay** function
-
-```{r eval = FALSE, class.source="watch-out"}
-vrMainAssay(melc_data)
-```
-
-```
-[1] "MELC"
-```
-
-<br>
-
-You can also set the main assay yourself, but only the assay types given in the **Assay** column of **SampleMetadata(object)**.
-
-```{r eval = FALSE, class.source="watch-out"}
-SampleMetadata(melc_data)
-```
-
-```
-       Assay    Layer         Sample
-Assay1  MELC Section1 control_case_3
-```
-
-```{r eval = FALSE, class.source="watch-out"}
-vrMainAssay(melc_data) <- "MELC"
-```
-
-<br>
-
-You can also get the assay IDs associated with the main assay using **vrAssayNames** function. 
-
-```{r eval = FALSE, class.source="watch-out"}
-vrAssayNames(melc_data)
-```
-
-```
-[1] "Assay1"
-```
-
-<br>
-
-The assay type can be provided with the **assay** arguement to get type specific assay IDs
-
-```{r eval = FALSE, class.source="watch-out"}
-vrAssayNames(melc_data, assay = "MELC")
-```
-
-```
-[1] "Assay1"
-```
-
 ## Images {#image}
 
 In a VoltRon object, each image has a unique ID which is also associated with a coordinate system. The names of these images (or systems) can be called using the **vrImageNames** function.
@@ -515,6 +483,101 @@ vrImages(melc_data, channel = "combined")
 ```
 
 <br>
+
+## Feature Matrix (Data)
+
+```{r eval = FALSE, class.source="watch-out"}
+vrData(visium_data)[3:8,3:5]
+```
+
+```
+        AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
+Gm19938                         0                         0                         0
+Gm37381                         0                         0                         0
+Rp1                             0                         0                         0
+Sox17                           0                         1                         1
+Gm37587                         0                         0                         0
+Gm37323                         0                         0                         0
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+vrData(visium_data, norm = TRUE)[3:8,3:5]
+```
+
+```
+        AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
+Gm19938                         0                 0.0000000                 0.0000000
+Gm37381                         0                 0.0000000                 0.0000000
+Rp1                             0                 0.0000000                 0.0000000
+Sox17                           0                 0.2732722                 0.2164184
+Gm37587                         0                 0.0000000                 0.0000000
+Gm37323                         0                 0.0000000                 0.0000000
+```
+
+<br>
+
+## Embeddings {#embedding}
+
+You can parse and even set individual embedding elements in a VoltRon object.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrEmbeddingNames(xenium_data)
+```
+
+```
+[1] "pca"  "umap"
+```
+
+You can use these names of get the associated embedding dataset from the object. 
+
+```{r eval = FALSE, class.source="watch-out"}
+vrEmbeddings(xenium_data, type = "umap")
+```
+
+```
+                   x         y
+171_Assay1 -7.253258 0.3016544
+180_Assay1  5.242596 4.3041073
+182_Assay1  3.705179 4.8671747
+185_Assay1  5.239327 4.2822548
+197_Assay1 -4.665270 2.8520897
+206_Assay1 -1.887516 4.0298878
+```
+
+<br>
+
+You can also set and create new embedding elements in the voltron object. In this case, you have to make sure that the row names should match with the targeted spatial points.
+
+```{r eval = FALSE, class.source="watch-out"}
+new_umap_data <- vrEmbeddings(xenium_data, type = "umap")
+vrEmbeddings(xenium_data, type = "new_umap") <- new_umap_data*2
+```
+
+Now we can observe changes to the new embedding data. 
+
+```{r eval = FALSE, class.source="watch-out"}
+vrEmbeddings(xenium_data, type = "new_umap")
+```
+
+```
+                    x         y
+171_Assay1 -14.506517 0.6033088
+180_Assay1  10.485192 8.6082145
+182_Assay1   7.410358 9.7343494
+185_Assay1  10.478653 8.5645096
+197_Assay1  -9.330539 5.7041794
+206_Assay1  -3.775032 8.0597755
+[1] "pca"      "umap"     "new_umap"
+```
+
+<br>
+
+You can choose invidiual assay names or assay classes.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrEmbeddings(xenium_data, type = "umap", assay = "Xenium")
+vrEmbeddings(xenium_data, type = "pca", assay = "Assay1")
+```
 
 ## Subsetting VoltRon objects
 

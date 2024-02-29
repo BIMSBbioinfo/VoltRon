@@ -538,6 +538,39 @@ vrSpatialPoints(visium_data, assay = &quot;Assay1&quot;)</code></pre>
 <pre><code>  [1] &quot;AAAGGCTCTCGCGCCG-1_Assay1&quot; &quot;AAATGGCCCGTGCCCT-1_Assay1&quot; &quot;AAATTACACGACTCTG-1_Assay1&quot; </code></pre>
 <p><br></p>
 </div>
+<div id="assays" class="section level2">
+<h2>Assays</h2>
+<p>The default (or main) assay of the VoltRon object is typically shown
+when printed (next to the assay name says “main” in paranthesis)</p>
+<pre class="r watch-out"><code>melc_data</code></pre>
+<pre><code>VoltRon Object 
+control_case_3: 
+  Layers: Section1 
+Assays: MELC(Main) </code></pre>
+<p><br></p>
+<p>You can also call/get the name of the default (or main) using the
+<strong>vrMainAssay</strong> function</p>
+<pre class="r watch-out"><code>vrMainAssay(melc_data)</code></pre>
+<pre><code>[1] &quot;MELC&quot;</code></pre>
+<p><br></p>
+<p>You can also set the main assay yourself, but only the assay types
+given in the <strong>Assay</strong> column of
+<strong>SampleMetadata(object)</strong>.</p>
+<pre class="r watch-out"><code>SampleMetadata(melc_data)</code></pre>
+<pre><code>       Assay    Layer         Sample
+Assay1  MELC Section1 control_case_3</code></pre>
+<pre class="r watch-out"><code>vrMainAssay(melc_data) &lt;- &quot;MELC&quot;</code></pre>
+<p><br></p>
+<p>You can also get the assay IDs associated with the main assay using
+<strong>vrAssayNames</strong> function.</p>
+<pre class="r watch-out"><code>vrAssayNames(melc_data)</code></pre>
+<pre><code>[1] &quot;Assay1&quot;</code></pre>
+<p><br></p>
+<p>The assay type can be provided with the <strong>assay</strong>
+arguement to get type specific assay IDs</p>
+<pre class="r watch-out"><code>vrAssayNames(melc_data, assay = &quot;MELC&quot;)</code></pre>
+<pre><code>[1] &quot;Assay1&quot;</code></pre>
+</div>
 <div id="coordinates-and-segments" class="section level2">
 <h2>Coordinates and Segments</h2>
 <p>The <strong>vrCoordinates</strong> function is used to call the
@@ -633,59 +666,6 @@ $`77200_Assay1`
 13   77200  493.  383.</code></pre>
 <p><br></p>
 </div>
-<div id="feature-matrix-data" class="section level2">
-<h2>Feature Matrix (Data)</h2>
-<pre class="r watch-out"><code>vrData(visium_data)[3:8,3:5]</code></pre>
-<pre><code>        AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
-Gm19938                         0                         0                         0
-Gm37381                         0                         0                         0
-Rp1                             0                         0                         0
-Sox17                           0                         1                         1
-Gm37587                         0                         0                         0
-Gm37323                         0                         0                         0</code></pre>
-<pre class="r watch-out"><code>vrData(visium_data, norm = TRUE)[3:8,3:5]</code></pre>
-<pre><code>        AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
-Gm19938                         0                 0.0000000                 0.0000000
-Gm37381                         0                 0.0000000                 0.0000000
-Rp1                             0                 0.0000000                 0.0000000
-Sox17                           0                 0.2732722                 0.2164184
-Gm37587                         0                 0.0000000                 0.0000000
-Gm37323                         0                 0.0000000                 0.0000000</code></pre>
-<p><br></p>
-</div>
-<div id="assays" class="section level2">
-<h2>Assays</h2>
-<p>The default (or main) assay of the VoltRon object is typically shown
-when printed (next to the assay name says “main” in paranthesis)</p>
-<pre class="r watch-out"><code>melc_data</code></pre>
-<pre><code>VoltRon Object 
-control_case_3: 
-  Layers: Section1 
-Assays: MELC(Main) </code></pre>
-<p><br></p>
-<p>You can also call/get the name of the default (or main) using the
-<strong>vrMainAssay</strong> function</p>
-<pre class="r watch-out"><code>vrMainAssay(melc_data)</code></pre>
-<pre><code>[1] &quot;MELC&quot;</code></pre>
-<p><br></p>
-<p>You can also set the main assay yourself, but only the assay types
-given in the <strong>Assay</strong> column of
-<strong>SampleMetadata(object)</strong>.</p>
-<pre class="r watch-out"><code>SampleMetadata(melc_data)</code></pre>
-<pre><code>       Assay    Layer         Sample
-Assay1  MELC Section1 control_case_3</code></pre>
-<pre class="r watch-out"><code>vrMainAssay(melc_data) &lt;- &quot;MELC&quot;</code></pre>
-<p><br></p>
-<p>You can also get the assay IDs associated with the main assay using
-<strong>vrAssayNames</strong> function.</p>
-<pre class="r watch-out"><code>vrAssayNames(melc_data)</code></pre>
-<pre><code>[1] &quot;Assay1&quot;</code></pre>
-<p><br></p>
-<p>The assay type can be provided with the <strong>assay</strong>
-arguement to get type specific assay IDs</p>
-<pre class="r watch-out"><code>vrAssayNames(melc_data, assay = &quot;MELC&quot;)</code></pre>
-<pre><code>[1] &quot;Assay1&quot;</code></pre>
-</div>
 <div id="image" class="section level2">
 <h2>Images</h2>
 <p>In a VoltRon object, each image has a unique ID which is also
@@ -758,6 +738,62 @@ object, and called later again</p>
 <pre class="r watch-out"><code>vrImages(melc_data, channel = &quot;combined&quot;)</code></pre>
 <p><br></p>
 </div>
+</div>
+<div id="feature-matrix-data" class="section level2">
+<h2>Feature Matrix (Data)</h2>
+<pre class="r watch-out"><code>vrData(visium_data)[3:8,3:5]</code></pre>
+<pre><code>        AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
+Gm19938                         0                         0                         0
+Gm37381                         0                         0                         0
+Rp1                             0                         0                         0
+Sox17                           0                         1                         1
+Gm37587                         0                         0                         0
+Gm37323                         0                         0                         0</code></pre>
+<pre class="r watch-out"><code>vrData(visium_data, norm = TRUE)[3:8,3:5]</code></pre>
+<pre><code>        AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
+Gm19938                         0                 0.0000000                 0.0000000
+Gm37381                         0                 0.0000000                 0.0000000
+Rp1                             0                 0.0000000                 0.0000000
+Sox17                           0                 0.2732722                 0.2164184
+Gm37587                         0                 0.0000000                 0.0000000
+Gm37323                         0                 0.0000000                 0.0000000</code></pre>
+<p><br></p>
+</div>
+<div id="embedding" class="section level2">
+<h2>Embeddings</h2>
+<p>You can parse and even set individual embedding elements in a VoltRon
+object.</p>
+<pre class="r watch-out"><code>vrEmbeddingNames(xenium_data)</code></pre>
+<pre><code>[1] &quot;pca&quot;  &quot;umap&quot;</code></pre>
+<p>You can use these names of get the associated embedding dataset from
+the object.</p>
+<pre class="r watch-out"><code>vrEmbeddings(xenium_data, type = &quot;umap&quot;)</code></pre>
+<pre><code>                   x         y
+171_Assay1 -7.253258 0.3016544
+180_Assay1  5.242596 4.3041073
+182_Assay1  3.705179 4.8671747
+185_Assay1  5.239327 4.2822548
+197_Assay1 -4.665270 2.8520897
+206_Assay1 -1.887516 4.0298878</code></pre>
+<p><br></p>
+<p>You can also set and create new embedding elements in the voltron
+object. In this case, you have to make sure that the row names should
+match with the targeted spatial points.</p>
+<pre class="r watch-out"><code>new_umap_data &lt;- vrEmbeddings(xenium_data, type = &quot;umap&quot;)
+vrEmbeddings(xenium_data, type = &quot;new_umap&quot;) &lt;- new_umap_data*2</code></pre>
+<p>Now we can observe changes to the new embedding data.</p>
+<pre class="r watch-out"><code>vrEmbeddings(xenium_data, type = &quot;new_umap&quot;)</code></pre>
+<pre><code>                    x         y
+171_Assay1 -14.506517 0.6033088
+180_Assay1  10.485192 8.6082145
+182_Assay1   7.410358 9.7343494
+185_Assay1  10.478653 8.5645096
+197_Assay1  -9.330539 5.7041794
+206_Assay1  -3.775032 8.0597755
+[1] &quot;pca&quot;      &quot;umap&quot;     &quot;new_umap&quot;</code></pre>
+<p>You can choose invidiual assay names or assay classes.</p>
+<pre class="r watch-out"><code>vrEmbeddings(xenium_data, type = &quot;umap&quot;, assay = &quot;Xenium&quot;)
+vrEmbeddings(xenium_data, type = &quot;pca&quot;, assay = &quot;Assay1&quot;)</code></pre>
 </div>
 <div id="subsetting-voltron-objects" class="section level2">
 <h2>Subsetting VoltRon objects</h2>
@@ -880,7 +916,7 @@ vrSpatialFeaturePlot(visium_data, assay = &quot;Visium&quot;, features = &quot;C
 vrSpatialFeaturePlot(visium_data, assay = &quot;Assay1&quot;, features = &quot;Count&quot;)</code></pre>
 <p><br></p>
 </div>
-<div id="embedding" class="section level3">
+<div id="embedding-1" class="section level3">
 <h3>Embedding</h3>
 <p>Dimensional reduction and embedding features are also possible for
 the VoltRon objects.</p>
