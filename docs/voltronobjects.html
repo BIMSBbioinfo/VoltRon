@@ -791,6 +791,7 @@ vrEmbeddings(xenium_data, type = &quot;new_umap&quot;) &lt;- new_umap_data*2</co
 197_Assay1  -9.330539 5.7041794
 206_Assay1  -3.775032 8.0597755
 [1] &quot;pca&quot;      &quot;umap&quot;     &quot;new_umap&quot;</code></pre>
+<p><br></p>
 <p>You can choose invidiual assay names or assay classes.</p>
 <pre class="r watch-out"><code>vrEmbeddings(xenium_data, type = &quot;umap&quot;, assay = &quot;Xenium&quot;)
 vrEmbeddings(xenium_data, type = &quot;pca&quot;, assay = &quot;Assay1&quot;)</code></pre>
@@ -860,8 +861,8 @@ Assays: Visium(Main) </code></pre>
 <h2>Visualization</h2>
 <p>VoltRon provides visualization utilities for both spatial and
 embedding level visualizations.</p>
-<div id="spatial" class="section level3">
-<h3>Spatial</h3>
+<div id="spatial-plots" class="section level3">
+<h3>Spatial Plots</h3>
 <p><strong>vrSpatialPlot</strong> is the main function for visualize
 labels and identities of cells. This information is parsed from the
 Metadata of the main assay (see <a href="#assays">vrMainAssay</a>). The
@@ -916,8 +917,8 @@ vrSpatialFeaturePlot(visium_data, assay = &quot;Visium&quot;, features = &quot;C
 vrSpatialFeaturePlot(visium_data, assay = &quot;Assay1&quot;, features = &quot;Count&quot;)</code></pre>
 <p><br></p>
 </div>
-<div id="embedding-1" class="section level3">
-<h3>Embedding</h3>
+<div id="embedding-plots" class="section level3">
+<h3>Embedding Plots</h3>
 <p>Dimensional reduction and embedding features are also possible for
 the VoltRon objects.</p>
 <pre class="r watch-out"><code>vrEmbeddingPlot(xenium_data, embedding = &quot;umap&quot;, group.by = &quot;clusters&quot;, label = T)</code></pre>

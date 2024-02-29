@@ -1443,7 +1443,7 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
 
 #' getRcppAutomatedRegistration
 #'
-#' Automated registration with Rcpp
+#' Automated registration workflos with Rcpp
 #'
 #' @param ref_image reference image
 #' @param query_image query image
@@ -1459,7 +1459,6 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
 #'
 #' @importFrom magick image_read image_data
 #'
-#' @noRd
 #'
 getRcppAutomatedRegistration <- function(ref_image, query_image,
                                          GOOD_MATCH_PERCENT = 0.15, MAX_FEATURES = 500,

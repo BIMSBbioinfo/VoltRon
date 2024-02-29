@@ -677,7 +677,7 @@ vrImages(visium_data_subset)
 
 VoltRon provides visualization utilities for both spatial and embedding level visualizations.
 
-### Spatial 
+### Spatial Plots
 
 **vrSpatialPlot** is the main function for visualize labels and identities of cells. This information is parsed from the Metadata of the main assay (see [vrMainAssay](#assays)). The users can also specify the assay.
 
@@ -756,7 +756,7 @@ vrSpatialFeaturePlot(visium_data, assay = "Assay1", features = "Count")
 
 <br>
 
-### Embedding
+### Embedding Plots
 
 Dimensional reduction and embedding features are also possible for the VoltRon objects.
 
