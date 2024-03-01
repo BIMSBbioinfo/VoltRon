@@ -20,7 +20,7 @@
 #' @export
 #'
 #' @return a vector of annotations
-annotateSpatialData <- function(object, label, assay = NULL, ...) {
+annotateSpatialData <- function(object, label = "annotation", assay = NULL, ...) {
 
   if(!inherits(object, "VoltRon"))
     stop("Please provide a VoltRon object!")
@@ -38,6 +38,12 @@ annotateSpatialData <- function(object, label, assay = NULL, ...) {
   # metadata and coordinates
   metadata <- Metadata(object, assay = sample_metadata[assay, "Assay"])
   coords <- vrCoordinates(object, assay = assay)
+
+  # set label names
+  if(label %in% colnames(metadata)){
+    unique_names <- make.unique(c(colnames(metadata)[grepl(paste0("^", label), colnames(metadata))], label))
+    label <- unique_names[length(unique_names)]
+  }
 
   # get image
   g <- vrSpatialPlot(object, assay = assay, ...) + labs(title = "")
