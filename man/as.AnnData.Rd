@@ -28,6 +28,8 @@ as.AnnData(object, ...)
 \item{image_key}{the name (or prefix) of the image(s)}
 
 \item{type}{the spatial data type of Seurat object: "image" or "spatial"}
+
+\item{flip_coordinates}{if TRUE, the spatial coordinates (including segments) will be flipped}
 }
 \description{
 Generic methods for conversion into a AnnData object

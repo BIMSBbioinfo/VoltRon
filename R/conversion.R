@@ -231,6 +231,7 @@ as.Seurat.VoltRon <- function(object, cell.assay = NULL, molecule.assay = NULL, 
 #' @param file the name of the h5ad file
 #' @param image_key the name (or prefix) of the image(s)
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
+#' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped
 #'
 #' @rdname as.AnnData
 #' @method as.AnnData VoltRon

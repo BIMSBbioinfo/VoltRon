@@ -319,6 +319,7 @@ setMethod(
 #' @importFrom data.table data.table
 #' @importFrom rlang %||%
 #' @importFrom ids random_id
+#' @importFrom Matrix colSums
 #'
 #' @export
 #'
@@ -384,7 +385,7 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
     colnames(data) <- entityID
 
     # create metadata
-    slot(vr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, row.names = entityID)
+    slot(vr_metadata, name = assay.type) <- data.frame(Count = Matrix::colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, row.names = entityID)
 
   } else {
     if(any(class(metadata) %in% c("data.table", "data.frame", "matrix"))){
@@ -407,7 +408,7 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
           colnames(data) <- entityID
 
           if(nrow(data) > 0){
-            slot(vr_metadata, name = assay.type) <- data.table::data.table(id = entityID, assay_id = "Assay1", Count = colSums(data), Assay = main.assay,
+            slot(vr_metadata, name = assay.type) <- data.table::data.table(id = entityID, assay_id = "Assay1", Count = Matrix::colSums(data), Assay = main.assay,
                                                                            Layer = layer_name, Sample = sample_name, metadata)
           } else{
             slot(vr_metadata, name = assay.type) <- data.table::data.table(id = entityID, assay_id = "Assay1", Assay = main.assay,
@@ -432,7 +433,7 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
 
           # create metadata
           if(nrow(data) > 0){
-            slot(vr_metadata, name = assay.type) <- data.frame(Count = colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
+            slot(vr_metadata, name = assay.type) <- data.frame(Count = Matrix::colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
           } else{
             slot(vr_metadata, name = assay.type) <- data.frame(Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
           }
@@ -443,6 +444,12 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
 
   # Coordinates
   if(!is.null(coords)){
+    if(inherits(coords, "data.frame")){
+      coords <- as.matrix(coords)
+    }
+    if(!inherits(coords, "matrix")){
+      stop("Coordinates table should either of a matrix or data.frame class!")
+    }
     if(length(colnames(coords)) == 2){
       rownames(coords) <- entityID
       colnames(coords) <- c("x", "y")
@@ -1116,9 +1123,9 @@ vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", dims = 1:30
   for(assy in assay_names){
     assayobject <- object[[assy]]
     if(vrAssayTypes(assayobject) %in% c("ROI", "cell", "spot")){
-      vrEmbeddings(assayobject, type = type) <- value[grepl(paste0(assy, "$"), rownames(value)),]
+      vrEmbeddings(assayobject, type = type) <- value[grepl(paste0(assy, "$"), rownames(value)),, drop = FALSE]
     } else {
-      vrEmbeddings(assayobject, type = type) <- value[vrSpatialPoints(assayobject),]
+      vrEmbeddings(assayobject, type = type) <- value[vrSpatialPoints(assayobject),, drop = FALSE]
     }
     object[[assy]] <- assayobject
   }
@@ -1390,6 +1397,7 @@ flipCoordinates.VoltRon <- function(object, assay = NULL, ...){
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
 
+  # flip coordinates
   for(assy in assay_names){
     object[[assy]] <- flipCoordinates(object[[assy]], ...)
   }

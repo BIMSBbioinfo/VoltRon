@@ -1037,36 +1037,49 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #'
 #' import an image as VoltRon object
 #'
-#' @param image.path the path to an image file
+#' @param image the path to an image file
 #' @param tile.size the size of tiles
+#' @param stack.id the id of the stack when the magick image composed of multiple layers
+#' @param ... additional parameters passed to \code{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
 #' @importFrom data.table data.table
 #'
-importImageData <- function(image.path, tile.size = 10, ...){
+#' @export
+#'
+importImageData <- function(image, tile.size = 10, stack.id = 1, ...){
 
   # get image
-  if(inherits(image.path, "magick-image")){
-    image <- image.path
-  } else if(inherits(image.path, "character")){
-    if(file.exists(image.path)){
-      image <- magick::image_read(image.path)
-    } else {
-      stop(image.path, " is not found!")
+  if(!inherits(image, "magick-image")){
+    if(!is.character(image)){
+      stop("image should either be a magick-image object or a file.path")
+    } else{
+      if(file.exists(image)){
+        image <- magick::image_read(image)
+      } else {
+        stop(image, " is not found!")
+      }
     }
-  } else{
-    stop("image.path should either be a path or magick image object")
+  }
+
+  # get image layer from stacked magick images
+  if(length(image) > 1){
+    if(stack.id > length(image)){
+      stop("The stack.id should be an integer between 1 and ", length(image))
+    } else {
+      image <- image[stack.id]
+    }
   }
 
   # image info
   imageinfo <- magick::image_info(image)
 
   # coordinates
-  even_odd_corretion <- (!tile.size%%2)*(0.5)
-  # x_coords <- seq((tile.size/2) + even_odd_corretion, length.out = imageinfo$width %/% tile.size)
+  even_odd_correction <- (!tile.size%%2)*(0.5)
+  # x_coords <- seq((tile.size/2) + even_odd_correction, length.out = imageinfo$width %/% tile.size)
   # y_coords <- seq(imageinfo$height %/% tile.size, 1)*(tile.size/2)
-  x_coords <- seq((tile.size/2) + even_odd_corretion, imageinfo$width, tile.size)[1:(imageinfo$width %/% tile.size)]
-  y_coords <- seq((tile.size/2) + even_odd_corretion, imageinfo$height, tile.size)[1:(imageinfo$height %/% tile.size)]
+  x_coords <- seq((tile.size/2) + even_odd_correction, imageinfo$width, tile.size)[1:(imageinfo$width %/% tile.size)]
+  y_coords <- seq((tile.size/2) + even_odd_correction, imageinfo$height, tile.size)[1:(imageinfo$height %/% tile.size)]
   y_coords <- rev(y_coords)
   coords <- as.matrix(expand.grid(x_coords, y_coords))
   colnames(coords) <- c("x", "y")

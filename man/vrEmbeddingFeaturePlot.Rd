@@ -8,6 +8,8 @@ vrEmbeddingFeaturePlot(
   object,
   embedding = "pca",
   features = NULL,
+  norm = TRUE,
+  log = FALSE,
   assay = NULL,
   ncol = 2,
   nrow = NULL,
@@ -24,6 +26,10 @@ vrEmbeddingFeaturePlot(
 \item{embedding}{the embedding type, i.e. pca, umap etc.}
 
 \item{features}{a set of features, either from the rows of rawdata, normdata or columns of the metadata}
+
+\item{norm}{if TRUE, the normalized data is used}
+
+\item{log}{if TRUE, data features (excluding metadata features) will be log transformed}
 
 \item{assay}{the assay name}
 

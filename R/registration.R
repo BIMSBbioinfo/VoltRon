@@ -1122,11 +1122,6 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
         aligned_image_list[[i]] <- results$aligned_image
       }
 
-      # # get registered spatial datasets
-      # temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre, input, image_list = image_list)
-      # for(i in 1:length(temp_reg_list))
-      #   registered_spatdata_list[[paste0(i)]] <- temp_reg_list[[i]]
-
       # Plot registered images
       lapply(register_ind, function(i){
         output[[paste0("plot_query_reg",i)]] <- renderImage({
@@ -1460,7 +1455,7 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
 
 #' getRcppAutomatedRegistration
 #'
-#' Automated registration with Rcpp
+#' Automated registration workflos with Rcpp
 #'
 #' @param ref_image reference image
 #' @param query_image query image
@@ -1476,7 +1471,6 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
 #'
 #' @importFrom magick image_read image_data
 #'
-#' @noRd
 #'
 getRcppAutomatedRegistration <- function(ref_image, query_image,
                                          GOOD_MATCH_PERCENT = 0.15, MAX_FEATURES = 500,

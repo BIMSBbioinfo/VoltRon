@@ -396,6 +396,7 @@ merge_sampleMetadata <- function(metadata_list) {
 #' @importFrom methods slot slot<-
 #' @importFrom stringr str_replace
 #' @importFrom data.table data.table
+#' @importFrom Matrix colSums
 #'
 #' @export
 #'
@@ -419,7 +420,7 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
     if(!is.null(metadata)){
 
       if(nrow(data) > 0){
-        assay_metadata<- data.table::data.table(metadata[, "id", with=FALSE], assay_id = assay_id, Count = colSums(data),
+        assay_metadata<- data.table::data.table(metadata[, "id", with=FALSE], assay_id = assay_id, Count = Matrix::colSums(data),
                                                 metadata[, colnames(metadata)[!colnames(metadata) %in% c("id", "assay_id", "Count", "Assay", "Layer", "Sample")], with=FALSE],
                                                 Assay = assay_name, Layer = layer, Sample = sample)
       } else{
@@ -436,7 +437,7 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
     entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_", assay_id))
 
     if(nrow(data) > 0){
-      assay_metadata <- data.frame(Count = colSums(data))
+      assay_metadata <- data.frame(Count = Matrix::colSums(data))
     } else {
       assay_metadata <- NULL
     }
