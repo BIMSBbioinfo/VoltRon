@@ -652,15 +652,27 @@ subset function to call the mini Shiny app, and select bounding boxes of
 each newly created subset. <strong>Please continue until all eight
 sections are selected and subsetted</strong>.</p>
 <pre class="r watch-out"><code>GeoMxR1_subset &lt;- subset(GeoMxR1, interactive = TRUE)</code></pre>
+<p><img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactivesubset.gif" class="center"></p>
 <p>We can now merge the list of subsets, or samples, each associated
 with one of eight sections. You can provide a list of names for the
 newly subsetted samples.</p>
 <pre class="r watch-out"><code>GeoMxR1_subset_list &lt;- GeoMxR1_subset$subsets
-samples &lt;- c(&quot;prolonged case 4&quot;, &quot;acute case 3&quot;, &quot;control case 2&quot;, 
-             &quot;acute case 1&quot;, &quot;acute case 2&quot;, &quot;prolonged case 5&quot;, 
-             &quot;prolonged case 3&quot;, &quot;control case 1&quot;)
-GeoMxR1 &lt;- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1], samples = samples)</code></pre>
-<p><img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactivesubset.gif" class="center"></p>
+GeoMxR1 &lt;- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1])
+GeoMxR1</code></pre>
+<pre><code>VoltRon Object 
+prolonged case 4: 
+  Layers: Section1 
+acute case 3: 
+  Layers: Section1 
+control case 2: 
+  Layers: Section1 
+acute case 1: 
+  Layers: Section1 
+acute case 2: 
+  Layers: Section1 
+... 
+There are 8 samples in total 
+Assays: GeoMx(Main) GeoMx_NegProbe </code></pre>
 <p><br></p>
 <p>You may also save the selected image subsets and reproduce the
 interactive subsetting operation for later use.</p>

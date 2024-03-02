@@ -176,17 +176,32 @@ VoltRon provides **a mini Shiny app** for subsetting spatial points of a VoltRon
 GeoMxR1_subset <- subset(GeoMxR1, interactive = TRUE)
 ```
 
+<img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactivesubset.gif" class="center">
+
 We can now merge the list of subsets, or samples, each associated with one of eight sections. You can provide a list of names for the newly subsetted samples. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 GeoMxR1_subset_list <- GeoMxR1_subset$subsets
-samples <- c("prolonged case 4", "acute case 3", "control case 2", 
-             "acute case 1", "acute case 2", "prolonged case 5", 
-             "prolonged case 3", "control case 1")
-GeoMxR1 <- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1], samples = samples)
+GeoMxR1 <- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1])
+GeoMxR1
 ```
 
-<img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactivesubset.gif" class="center">
+```
+VoltRon Object 
+prolonged case 4: 
+  Layers: Section1 
+acute case 3: 
+  Layers: Section1 
+control case 2: 
+  Layers: Section1 
+acute case 1: 
+  Layers: Section1 
+acute case 2: 
+  Layers: Section1 
+... 
+There are 8 samples in total 
+Assays: GeoMx(Main) GeoMx_NegProbe 
+```
 
 <br>
 

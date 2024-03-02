@@ -61,6 +61,13 @@ getDeconvolution <- function(object, assay = NULL, features = NULL, sc.object, s
                          assay_name = paste(sample.metadata[assy, "Assay"], "decon", sep = "_"),
                          sample = sample.metadata[assy, "Sample"],
                          layer = sample.metadata[assy, "Layer"])
+
+      # add connectivity of spatial points across assays
+      connectivity <- cbind(vrSpatialPoints, spatialpoints)
+      object <- addConnectivity(object,
+                                connectivity = connectivity,
+                                sample = sample.metadata["Assay1", "Sample"],
+                                layer = sample.metadata["Assay1", "Layer"])
     }
   }
 

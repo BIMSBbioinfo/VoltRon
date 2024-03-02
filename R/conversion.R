@@ -49,17 +49,21 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
 
       # cells
       cells <- Seurat::Cells(spatialobject)
+      cells_nopostfix <- gsub("_Assay[0-9]+$", "", cells)
 
       # count
       cur_rawdata <- as.matrix(rawdata[,cells])
+      colnames(cur_rawdata) <- cells_nopostfix
 
       # metadata
       cur_metadata <- metadata[cells,]
+      rownames(cur_metadata) <- cells_nopostfix
 
       # coords
       coords <- as.matrix(Seurat::GetTissueCoordinates(spatialobject))[,1:2]
       coords <- apply(coords, 2, as.numeric)
       colnames(coords) <- c("x", "y")
+      rownames(coords) <- cells_nopostfix
 
       # from voltron
       params <- list()
@@ -73,9 +77,11 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
       spatialpoints_assay <- stringr::str_extract(spatialpoints, "Assay[0-9]+$")
       if(embeddings_flag){
         for(embed_name in names(embedding_list)){
-          embedding_sp <- embedding_list[[embed_name]][spatialpoints_nopostfix[spatialpoints_assay == vrAssayNames(voltron_list[[fn]])],]
-          rownames(embedding_sp) <- spatialpoints
-          vrEmbeddings(voltron_list[[fn]], type = embed_name) <- embedding_sp
+          cur_embedding <- embedding_list[[embed_name]][cells,]
+          rownames(cur_embedding) <- spatialpoints
+          # embedding_sp <- embedding_list[[embed_name]][spatialpoints_nopostfix[spatialpoints_assay == vrAssayNames(voltron_list[[fn]])],]
+          # rownames(embedding_sp) <- spatialpoints
+          vrEmbeddings(voltron_list[[fn]], type = embed_name) <- cur_embedding
         }
       }
     }
