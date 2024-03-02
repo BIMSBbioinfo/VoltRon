@@ -65,16 +65,6 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get entity type and metadata
-  # if(is.null(assay.type)){
-  #   assay_types <- vrAssayTypes(object, assay = assay)
-  #   if(length(unique(assay_types)) == 1){
-  #     metadata <- Metadata(object, type = unique(assay_types))
-  #   } else {
-  #     stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
-  #   }
-  # } else {
-  #   metadata <- Metadata(object, type = assay.type)
-  # }
   metadata <- Metadata(object, assay = assay)
 
   # configure titles
@@ -166,6 +156,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 
   # plot
   g <- ggplot()
+  scale_factors <- 1
 
   # add image
   if(is.null(background))
@@ -184,8 +175,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         image <- magick::image_resize(image, geometry = "1000x")
         scale_factors <- info$width/1000
         info <- magick::image_info(image)
-      } else {
-        scale_factors <- 1
       }
       g <- g +
         ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
@@ -474,27 +463,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get entity type and metadata
-  # get entity type and metadata
-  # if(is.null(assay.type)){
-  #   assay_types <- vrAssayTypes(object, assay = assay)
-  #   if(length(unique(assay_types)) == 1){
-  #     metadata <- Metadata(object, type = unique(assay_types))
-  #   } else {
-  #     stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
-  #   }
-  # } else {
-  #   metadata <- Metadata(object, type = assay.type)
-  # }
   metadata <- Metadata(object, assay = assay)
-
-  # # check features and download data if necessary
-  # if(any(features %in% vrFeatures(object, assay = assay_names))){
-  #   overlapping_features <- features[features %in% vrFeatures(object)]
-  #   data <- vrData(object, assay = assay, features = features, norm = norm)
-  #   if(log)
-  #     data <- log(data)
-  # }
-
 
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
@@ -619,6 +588,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 
   # plot
   g <- ggplot()
+  scale_factors <- 1
 
   # add image
   if(is.null(background))
@@ -637,8 +607,6 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
         image <- magick::image_resize(image, geometry = "1000x")
         scale_factors <- info$width/1000
         info <- magick::image_info(image)
-      } else {
-        scale_factors <- 1
       }
       g <- g +
         ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
@@ -921,17 +889,6 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", assa
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get entity type and metadata
-  # get entity type and metadata
-  # if(is.null(assay.type)){
-  #   assay_types <- vrAssayTypes(object, assay = assay)
-  #   if(length(unique(assay_types)) == 1){
-  #     metadata <- Metadata(object, type = unique(assay_types))
-  #   } else {
-  #     stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
-  #   }
-  # } else {
-  #   metadata <- Metadata(object, type = assay.type)
-  # }
   metadata <- Metadata(object, assay = assay)
 
   # grep assays from metadata
@@ -1029,16 +986,6 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get entity type and metadata
-  # if(is.null(assay.type)){
-  #   assay_types <- vrAssayTypes(object, assay = assay)
-  #   if(length(unique(assay_types)) == 1){
-  #     metadata <- Metadata(object, type = unique(assay_types))
-  #   } else {
-  #     stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
-  #   }
-  # } else {
-  #   metadata <- Metadata(object, type = assay.type)
-  # }
   metadata <- Metadata(object, assay = assay)
 
   # get data
