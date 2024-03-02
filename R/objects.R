@@ -838,7 +838,8 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subset.vrSample(samp, spatialpoints = spatialpoints)
     }, USE.NAMES = TRUE)
-    spatialpoints <-  do.call(c, lapply(listofSamples, vrSpatialPoints.vrSample))
+    # spatialpoints <-  do.call(c, lapply(listofSamples, vrSpatialPoints.vrSample))
+    spatialpoints <-  unlist(sapply(listofSamples, vrSpatialPoints.vrSample, simplify = TRUE))
     metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
     sample.metadata <- subset_sampleMetadata(sample.metadata, assays = vrAssayNames.vrMetadata(metadata))
 
@@ -846,12 +847,6 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
   } else if(!is.null(features)){
     assay_names <- vrAssayNames(object)
     for(assy in assay_names){
-      # cur_assay <- sample.metadata[assy,]
-      # vrlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
-      # vrassay <- vrlayer[[cur_assay$Assay]]
-      # vrassay <- subset.vrAssay(vrassay, features = features)
-      # vrlayer[[cur_assay$Assay]] <- vrassay
-      # object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
       object[[assy]] <- subset.vrAssay(object[[assy]], features = features)
     }
     metadata <- Metadata(object, type = "all")

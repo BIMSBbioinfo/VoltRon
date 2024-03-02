@@ -243,10 +243,10 @@ subset.vrSample <- function(object, subset, assays = NULL, spatialpoints = NULL,
 vrSpatialPoints.vrSample <- function(object, ...) {
 
   layers <- object@layer
-  spatialpoints <- lapply(layers, function(lay) {
+  spatialpoints <- unlist(sapply(layers, function(lay) {
     vrSpatialPoints(lay)
-  })
-  do.call(c, spatialpoints)
+  }, simplify = TRUE))
+  spatialpoints
 }
 
 #' changeAssayNames.vrSample
@@ -313,6 +313,7 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
     }
   } else if(!is.null(spatialpoints)){
     spatialpoints <- getConnectedSpatialPoints(object, spatialpoints)
+    object@connectivity <- subset.Connectivity(object@connectivity, spatialpoints)
     object@assay <- sapply(object@assay, function(assy) {
       subset.vrAssay(assy, spatialpoints = spatialpoints)
     }, USE.NAMES = TRUE, simplify = TRUE)
@@ -340,10 +341,14 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
 #'
 vrSpatialPoints.vrLayer <- function(object, ...) {
   assays <- object@assay
-  spatialpoints <- lapply(assays, function(assy) {
+  spatialpoints <- unlist(sapply(assays, function(assy) {
     vrSpatialPoints(assy)
-  })
-  do.call(c, spatialpoints)
+  }, simplify = TRUE))
+  spatialpoints
+}
+
+subset.Connectivity <- function(object, spatialpoints = NULL){
+  return(igraph::induced_subgraph(object, spatialpoints))
 }
 
 getConnectedSpatialPoints <- function(object, spatialpoints = NULL){
