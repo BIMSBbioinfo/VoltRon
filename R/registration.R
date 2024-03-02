@@ -850,11 +850,16 @@ rotateKeypoint <- function(keypoints, angle, origin, limits, rotated_origin, rot
   rotation_mat <- matrix(c(c, s, -s, c), nrow = 2, byrow = F)
 
   # rotate point
-  points <- t(apply(points, 1, function(x) return(x - origin)))
-  points <- t(apply(points, 1, function(x) return(x/limits)))
+  # points <- t(apply(points, 1, function(x) return(x - origin)))
+  # points <- t(apply(points, 1, function(x) return(x/limits)))
+  # rotated_points <- t(rotation_mat %*% t(points))
+  # rotated_points <- t(apply(rotated_points, 1, function(x) return(x*rotated_limits)))
+  # rotated_points <- t(apply(rotated_points, 1, function(x) return(x + rotated_origin)))
+  points <- points - matrix(rep(origin, nrow(points)), nrow = nrow(points), byrow = T)
+  points <- points * matrix(rep(1/limits, nrow(points)), nrow = nrow(points), byrow = T)
   rotated_points <- t(rotation_mat %*% t(points))
-  rotated_points <- t(apply(rotated_points, 1, function(x) return(x*rotated_limits)))
-  rotated_points <- t(apply(rotated_points, 1, function(x) return(x + rotated_origin)))
+  rotated_points <- rotated_points * matrix(rep(rotated_limits, nrow(points)), nrow = nrow(rotated_points), byrow = T)
+  rotated_points <- rotated_points + matrix(rep(rotated_origin, nrow(points)), nrow = nrow(rotated_points), byrow = T)
 
   # put rotated points back to keypoints
   keypoints[,c("x","y")] <- rotated_points
@@ -1359,11 +1364,6 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
         # save matches
         alignment_image_list[[i]] <- results$alignment_image
       }
-
-      # # get registered spatial datasets
-      # temp_reg_list <- getRegisteredObject(spatdata_list, mapping_list, register_ind, centre, input, reg_mode = "auto", image_list, aligned_image_list)
-      # for(i in 1:length(temp_reg_list))
-      #   registered_spatdata_list[[paste0(i)]] <- temp_reg_list[[i]]
 
       # Plot registered images
       lapply(register_ind, function(i){
