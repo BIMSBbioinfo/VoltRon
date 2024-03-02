@@ -290,6 +290,7 @@ changeAssayNames.vrSample <- function(object, sample.metadata = NULL){
 #' @param image the subseting string passed to \code{magick::image_crop}
 #'
 #' @method subset vrLayer
+#' @method methods slotNames
 #'
 #' @importFrom rlang enquo
 #'
@@ -301,6 +302,7 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
 
   # subseting on samples, layers and assays
   if(!is.null(assays)){
+
     # get assay names of all assays
     assay_names <- sapply(object@assay, vrAssayNames)
     if(any(assays %in% assay_names)) {
@@ -311,9 +313,16 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
     } else {
       return(NULL)
     }
+
   } else if(!is.null(spatialpoints)){
+
+    # get points connected to queried spatialpoints
     spatialpoints <- getConnectedSpatialPoints(object, spatialpoints)
-    object@connectivity <- subset.Connectivity(object@connectivity, spatialpoints)
+    if("connectivity" %in% slotNames(object)){
+      object@connectivity <- subset.Connectivity(object@connectivity, spatialpoints)
+    }
+
+    # subset assays
     object@assay <- sapply(object@assay, function(assy) {
       subset.vrAssay(assy, spatialpoints = spatialpoints)
     }, USE.NAMES = TRUE, simplify = TRUE)
