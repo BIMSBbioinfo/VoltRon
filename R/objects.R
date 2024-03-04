@@ -1481,7 +1481,7 @@ vrGraph.VoltRon <- function(object, assay = NULL, graph.type = "kNN", ...) {
     stop("The graph name '", graph.type, "' can't be found in this VoltRon object!")
 
   # return graph
-  if(length(object@graph[[graph.type]]) > 0){
+  if(length(vrGraphNames(object)) > 0){
     returngraph <- igraph::induced_subgraph(object@graph[[graph.type]], node_names)
     return(returngraph)
   } else {
@@ -1553,12 +1553,15 @@ subset_graphs <- function(object, metadata){
   # graph names
   graphnames <- vrGraphNames(object)
 
+  # get spatialpoints
+  spatialpoints <- vrSpatialPoints(metadata, assay = vrAssayNames(object))
+
   # for all graphs
   if(!is.null(graphnames)){
     graph_list <- object@graph
     for(g in vrGraphNames(object)){
       cur_graph <- graph_list[[g]]
-      cur_graph<- igraph::subgraph(cur_graph, igraph::V(cur_graph)[names(igraph::V(cur_graph)) %in% vrSpatialPoints(metadata)])
+      cur_graph<- igraph::subgraph(cur_graph, igraph::V(cur_graph)[names(igraph::V(cur_graph)) %in% spatialpoints])
       graph_list[[g]] <- cur_graph
     }
   } else {
