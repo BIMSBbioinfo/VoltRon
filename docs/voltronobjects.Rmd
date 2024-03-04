@@ -363,6 +363,10 @@ $`77200_Assay1`
 
 ## Images {#image}
 
+Below we review some of the essential built-in functions to manipulate and manage images of a VoltRon object. 
+
+### Image and channel names
+
 In a VoltRon object, each image has a unique ID which is also associated with a coordinate system. The names of these images (or systems) can be called using the **vrImageNames** function.
 
 ```{r eval = FALSE, class.source="watch-out"}
@@ -385,6 +389,23 @@ vrImageNames(visium_data, assay = "Assay1")
 ```
 
 <br>
+
+Each image object (vrImage) in VoltRon object can also include a indefinite number of channels which you can get (or request) a list of for further use.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImageChannelNames(melc_data)
+vrImageChannelNames(melc_data, assay = "MELC")
+vrImageChannelNames(melc_data, assay = "Assay1")
+```
+
+```
+   Assay Image  Channels
+1 Assay1  MELC DAPI,CD45
+```
+
+<br>
+
+### Default images
 
 If you wanna see the list of all images/systems associated with all assays of the main assay type, you can call the **vrMainImage** function.
 
@@ -411,6 +432,8 @@ vrMainImage(visium_data, assay = "Assay1")
 
 <br>
 
+### Get and set images
+
 In VoltRon, images can be called specifically, or return as a list. The return image is of a magick image object (see [magick](https://cran.r-project.org/web/packages/magick/vignettes/intro.html) package)
 
 ```{r eval = FALSE, class.source="watch-out"}
@@ -422,19 +445,6 @@ vrImages(visium_data, assay = "Assay1")
 <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_HE.png" class="center">
 
 <br>
-
-Each image object (vrImage) in VoltRon object can also include a indefinite number of channels which you can get (or request) a list of for further use.
-
-```{r eval = FALSE, class.source="watch-out"}
-vrImageChannelNames(melc_data)
-vrImageChannelNames(melc_data, assay = "MELC")
-vrImageChannelNames(melc_data, assay = "Assay1")
-```
-
-```
-   Assay Image  Channels
-1 Assay1  MELC DAPI,CD45
-```
 
 Once you know the name of a specific channel, you can the image of a specific channel by providing the name and the associated channel.
 
@@ -454,6 +464,14 @@ vrImages(melc_data)
 ```
 
 <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_CD45.png" class="center">
+
+<br>
+
+You can also resize the images as they are being returned. This is usually used for visualization purposes and helps speeding up visualization for large images. This is accomplished with **scale.perc** arguement.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImages(melc_data, scale.perc = 25)
+```
 
 <br>
 

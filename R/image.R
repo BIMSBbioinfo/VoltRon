@@ -203,7 +203,7 @@ subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
 #'
 #' @export
 #'
-vrImages.VoltRon <- function(object, assay = NULL, scale.perc = 1, ...){
+vrImages.VoltRon <- function(object, assay = NULL, scale.perc = 100, ...){
 
   # get assay names
   if(is.null(assay)){
@@ -233,7 +233,7 @@ vrImages.VoltRon <- function(object, assay = NULL, scale.perc = 1, ...){
 #'
 #' @export
 #'
-vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, scale.perc = 1, ...){
+vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, scale.perc = 100, ...){
 
   # check image name
   if(is.null(name)) {
@@ -301,7 +301,7 @@ vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, s
 #'
 #' @export
 #'
-vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE, scale.perc = 1){
+vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE, scale.perc = 100){
 
   # check channels
   if(is.null(channel)){
@@ -317,8 +317,8 @@ vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE, scale.pe
   if(!is.numeric(scale.perc)){
     stop("scale.perc should be between 0 and 1")
   }
-  if(scale.perc <= 0 || scale.perc > 1){
-    stop("scale.perc should be between 0 and 1")
+  if(scale.perc <= 0 || scale.perc > 100){
+    stop("scale.perc should be between 0 and 100")
   }
 
   # return image
@@ -335,8 +335,8 @@ vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE, scale.pe
       img <- magick::image_read(img)
 
       # scale image if needed
-      if(scale.perc < 1){
-        img <- image_resize(img, geometry = magick::geometry_size_percent(scale.perc * 100))
+      if(scale.perc < 100){
+        img <- image_resize(img, geometry = magick::geometry_size_percent(scale.perc))
       }
 
       # return regular image
