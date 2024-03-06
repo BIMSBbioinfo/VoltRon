@@ -260,7 +260,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
           len_segments <- sapply(segments, nrow, simplify = TRUE)
           polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), group.by = rep(coords[[group.by]], len_segments))
           g <- g +
-            geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha)
+            geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha) +
+            guides(fill = guide_legend(title = group.by))
         }
       } else {
 
