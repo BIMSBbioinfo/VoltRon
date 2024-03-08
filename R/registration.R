@@ -954,11 +954,12 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, centre,
 
 #' getImageOutput
 #'
-#' Shiny outputs for a set of magick images with keypoints
+#' get information on images
 #'
 #' @param image_list a list of magick images
 #'
-#' @importFrom magick info
+#' @importFrom magick image_info
+#'
 #' @noRd
 getImageInfo <- function(image_list){
   lapply(image_list, function(x){
