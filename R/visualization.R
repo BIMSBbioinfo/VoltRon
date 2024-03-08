@@ -177,32 +177,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
                                 font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, plot_title = NULL, background = NULL,
                                 reg = FALSE, crop = FALSE, legend.pt.size = 2){
 
-  # data
-  coords <- as.data.frame(vrCoordinates(assay, reg = reg))
-  normdata <- vrData(assay, norm = TRUE)
-  segments <- vrSegments(assay)
-
-  # plotting features
-  if(!group.by %in% colnames(metadata))
-    stop("The column '", group.by, "' was not found in the metadata!")
-  if(inherits(metadata, "data.table")){
-    coords[[group.by]] <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
-  } else {
-    coords[[group.by]] <- metadata[,group.by]
-  }
-
-  if(!is.null(group.ids)){
-    if(length(setdiff(group.ids,  coords[[group.by]])) > 0){
-      # warning("Some groups defined in group.ids does not exist in group.by!")
-      coords <- coords[coords[[group.by]] %in% group.ids,]
-    } else if(length(setdiff(group.ids,  coords[[group.by]])) > 0){
-      stop("None of the groups defined in group.ids exist in group.by!")
-    } else {
-      segments <- segments[coords[[group.by]] %in% group.ids]
-      coords <- coords[coords[[group.by]] %in% group.ids,]
-    }
-  }
-
   # plot
   g <- ggplot()
 
@@ -224,8 +198,36 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     } else {
       info <- NULL
     }
+    image_name <- background
   } else {
     info <- NULL
+    image_name <- vrMainImage(assay)
+  }
+
+  # data
+  coords <- as.data.frame(vrCoordinates(assay, image_name = image_name))
+  normdata <- vrData(assay, norm = TRUE)
+  segments <- vrSegments(assay, image_name = image_name)
+
+  # plotting features
+  if(!group.by %in% colnames(metadata))
+    stop("The column '", group.by, "' was not found in the metadata!")
+  if(inherits(metadata, "data.table")){
+    coords[[group.by]] <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
+  } else {
+    coords[[group.by]] <- metadata[,group.by]
+  }
+
+  if(!is.null(group.ids)){
+    if(length(setdiff(group.ids,  coords[[group.by]])) > 0){
+      # warning("Some groups defined in group.ids does not exist in group.by!")
+      coords <- coords[coords[[group.by]] %in% group.ids,]
+    } else if(length(setdiff(group.ids,  coords[[group.by]])) > 0){
+      stop("None of the groups defined in group.ids exist in group.by!")
+    } else {
+      segments <- segments[coords[[group.by]] %in% group.ids]
+      coords <- coords[coords[[group.by]] %in% group.ids,]
+    }
   }
 
   # ROI visualization
@@ -345,17 +347,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   }
 
   # background
-  # if(any(background %in% c("white","black"))){
-  #   g <- g +
-  #     theme(panel.background = element_rect(fill = background, colour = background, size = 0.5, linetype = "solid"))
-  # } else if(background %in% vrImageNames(assay)){
-  #   g <- g +
-  #     theme(panel.background = element_blank())
-  # } else {
-  #   g <- g +
-  #     theme(panel.background = element_rect(fill = "lightgrey", colour = "lightgrey", size = 0.5, linetype = "solid"))
-  #   warning("background image ", background, " is not found in ", vrAssayNames(assay), "\n")
-  # }
   if(any(background %in% c("white","black"))){
     g <- g +
       theme(panel.background = element_rect(fill = background, colour = background, size = 0.5, linetype = "solid"))
@@ -494,15 +485,6 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
     metadata <- Metadata(object, type = assay.type)
   }
 
-  # # check features and download data if necessary
-  # if(any(features %in% vrFeatures(object, assay = assay_names))){
-  #   overlapping_features <- features[features %in% vrFeatures(object)]
-  #   data <- vrData(object, assay = assay, features = features, norm = norm)
-  #   if(log)
-  #     data <- log(data)
-  # }
-
-
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
     range_feat <- Map(function(assy){
@@ -624,25 +606,6 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
                                font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL,
                                legend_title = NULL, background = NULL, reg = FALSE, crop = FALSE){
 
-  # data
-  coords <- as.data.frame(vrCoordinates(assay, reg = reg))
-  data_features <- feature[feature %in% vrFeatures(assay)]
-  if(length(data_features) > 0){
-    normdata <- vrData(assay, features = feature, norm = norm)
-    if(log)
-      normdata <- log(normdata)
-  }
-
-  # get data
-  if(feature %in% data_features){
-    coords$score <- normdata[feature,]
-  } else {
-    coords$score <- metadata[,feature]
-  }
-
-  # get image information and plotting features
-  midpoint <- sum(limits)/2
-
   # plot
   g <- ggplot()
 
@@ -664,12 +627,33 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
     } else {
       info <- NULL
     }
+    image_name <- background
   } else {
     info <- NULL
+    image_name <- vrMainImage(assay)
   }
 
+  # data
+  coords <- as.data.frame(vrCoordinates(assay, image_name = image_name))
+  data_features <- feature[feature %in% vrFeatures(assay)]
+  if(length(data_features) > 0){
+    normdata <- vrData(assay, features = feature, norm = norm)
+    if(log)
+      normdata <- log(normdata)
+  }
+
+  # get data
+  if(feature %in% data_features){
+    coords$score <- normdata[feature,]
+  } else {
+    coords$score <- metadata[,feature]
+  }
+
+  # get image information and plotting features
+  midpoint <- sum(limits)/2
+
   # add points or segments
-  segments <- vrSegments(assay)
+  segments <- vrSegments(assay, image_name = image_name)
   if(vrAssayTypes(assay) == "ROI" && !is.null(segments)){
     polygon_data <- NULL
     circle_data <- NULL
