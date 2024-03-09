@@ -132,8 +132,12 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 
       # connectivity
       connectivity <- data.table::data.table(transcript_id = entity_ID, cell_id = subcellular_data[["cell_id"]])
-      connectivity <- subset(connectivity, cell_id != -1)
-      connectivity[["cell_id"]] <- vrSpatialPoints(cell_object)[connectivity[["cell_id"]]]
+      if(is.numeric(connectivity$cell_id)){
+        connectivity <- subset(connectivity, cell_id != -1)
+        connectivity[["cell_id"]] <- vrSpatialPoints(cell_object)[connectivity[["cell_id"]]]
+      } else {
+        connectivity <- subset(connectivity, cell_id != "UNASSIGNED")
+      }
 
       # coord names
       rownames(coords) <- entity_ID
