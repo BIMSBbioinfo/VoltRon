@@ -34,7 +34,7 @@ setMethod(
   definition = function(object) {
     cat("VoltRon Metadata Object \n")
     cat("This object includes: \n")
-    lapply(slotNames(object), function(x){
+    lapply(methods::slotNames(object), function(x){
       if(nrow(slot(object, name = x))){
         cat("  ", nrow(slot(object, name = x)), paste0(x, "s"), "\n")
       }
@@ -127,6 +127,8 @@ setMethod(
 #' @rdname vrSpatialPoints
 #' @method vrSpatialPoints vrMetadata
 #'
+#' @importFrom methods slotNames
+#'
 vrSpatialPoints.vrMetadata <- function(object, assay = NULL) {
 
   # points <- c(rownames(object@molecule),
@@ -142,7 +144,7 @@ vrSpatialPoints.vrMetadata <- function(object, assay = NULL) {
   # }
 
   # get spatial points
-  points <- unlist(lapply(slotNames(object), function(x) {
+  points <- unlist(lapply(methods::slotNames(object), function(x) {
     if(x %in% c("cell", "spot", "ROI")){
       sp <- rownames(slot(object, name = x))
       if(!is.null(assay))
@@ -471,13 +473,14 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
 #' @rdname vrAssayNames
 #' @method vrAssayNames vrMetadata
 #'
+#' @importFrom methods slotNames
 #' @export
 #'
 vrAssayNames.vrMetadata <- function(object){
 
   # get assay names from metadata
   assay_names <- NULL
-  for(sl in slotNames(object)){
+  for(sl in methods::slotNames(object)){
     cur_metadata <- slot(object, name = sl)
     if(sl %in% c("molecule", "tile")){
       cur_names <- cur_metadata$assay_id
@@ -579,7 +582,7 @@ updateMetadataAssay <- function(object1, object2){
 #' @param object A VoltRon object
 #' @param sample_metadata_table the sample metadata with old and new layers and samples passed from \code{changeSampleNames.VoltRon}
 #'
-#' @importFrom methods slot slot<-
+#' @importFrom methods slot slot<- slotNames
 #'
 #' @noRd
 changeSampleNames.vrMetadata <- function(object, sample_metadata_table){
@@ -590,7 +593,7 @@ changeSampleNames.vrMetadata <- function(object, sample_metadata_table){
 
   # check all types in the vrMetadata object
   new_object <- object
-  all_types <- slotNames(object)
+  all_types <- methods::slotNames(object)
   for(type in all_types){
     metadata <- methods::slot(object, name = type)
     new_metadata <-  methods::slot(new_object, name = type)

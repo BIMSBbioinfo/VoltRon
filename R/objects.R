@@ -1154,6 +1154,7 @@ vrEmbeddingNames.VoltRon <- function(object, assay = NULL){
 #' @rdname Metadata
 #' @method Metadata VoltRon
 #'
+#' @importFrom methods slotNames
 #' @export
 #'
 Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
@@ -1166,7 +1167,7 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
       if(!is.null(assay)){
         stop("Please specify either assay or type, not both!")
       }
-      if(type %in% slotNames(object@metadata)){
+      if(type %in% methods::slotNames(object@metadata)){
         return(slot(object@metadata, name = type))
       }
     }
@@ -1177,7 +1178,7 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
   }
 
   # get assay metadata from matching type
-  if(type %in% slotNames(object@metadata)){
+  if(type %in% methods::slotNames(object@metadata)){
 
     # sample metadata
     sample.metadata <- SampleMetadata(object)

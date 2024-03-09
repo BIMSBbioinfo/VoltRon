@@ -290,7 +290,6 @@ changeAssayNames.vrSample <- function(object, sample.metadata = NULL){
 #' @param image the subseting string passed to \code{magick::image_crop}
 #'
 #' @method subset vrLayer
-#' @method methods slotNames
 #'
 #' @importFrom rlang enquo
 #'
@@ -317,8 +316,9 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
   } else if(!is.null(spatialpoints)){
 
     # get points connected to queried spatialpoints
-    spatialpoints <- getConnectedSpatialPoints(object, spatialpoints)
-    if("connectivity" %in% slotNames(object)){
+    catch_connect <- try(slot(object, name = "connectivity"), silent = TRUE)
+    if(!is(catch_connect, 'try-error') && !is(catch_connect,'error')){
+      spatialpoints <- getConnectedSpatialPoints(object, spatialpoints)
       object@connectivity <- subset.Connectivity(object@connectivity, spatialpoints)
     }
 
@@ -356,10 +356,30 @@ vrSpatialPoints.vrLayer <- function(object, ...) {
   spatialpoints
 }
 
+#' subset.Connectivity
+#'
+#' Subsetting the connectivity graph of vrLayer using spatial points
+#'
+#' @param object the connectivity graph of the vrLayer
+#' @param spatialpoints the set of spatial points
+#'
+#' @importFrom igraph induced_subgraph
+#'
+#' @noRd
 subset.Connectivity <- function(object, spatialpoints = NULL){
   return(igraph::induced_subgraph(object, spatialpoints))
 }
 
+#' getConnectedSpatialPoints
+#'
+#' get spatial points connected to other spatial points in the connectivity graph of vrLayer
+#'
+#' @param object the connectivity graph of the vrLayer
+#' @param spatialpoints the set of spatial points
+#'
+#' @importFrom igraph neighborhood V
+#'
+#' @noRd
 getConnectedSpatialPoints <- function(object, spatialpoints = NULL){
   spatialpoints <- intersect(spatialpoints, igraph::V(object@connectivity)$name)
   return(names(unlist(igraph::neighborhood(object@connectivity, nodes = spatialpoints))))
@@ -386,18 +406,21 @@ changeAssayNames.vrLayer <- function(object, sample.metadata = NULL){
   if(!"NewAssayNames" %in% colnames(sample.metadata))
     stop("Please provide a sample.metadata with NewAssayNames column which includes the new assay names")
 
-  # change the assay names of the connetivity graph
-  spatialpoints <- igraph::V(object@connectivity)$name
-  old_assay_names <- sapply(object@assay, vrAssayNames)
-  new_assay_names <- sample.metadata$NewAssayNames
-  cur_spatialpoints <- spatialpoints
-  for(i in 1:length(old_assay_names)){
-    if(old_assay_names[i]!=new_assay_names[i]){
-      ind <- grepl(paste0(old_assay_names[i],"$"), spatialpoints)
-      cur_spatialpoints[ind] <- gsub(paste0(old_assay_names[i],"$"), new_assay_names[i], spatialpoints[ind])
+  # change the assay names of the connectivity graph if exists
+  catch_connect <- try(slot(object, name = "connectivity"), silent = TRUE)
+  if(!is(catch_connect, 'try-error') && !is(catch_connect,'error')){
+    spatialpoints <- igraph::V(object@connectivity)$name
+    old_assay_names <- sapply(object@assay, vrAssayNames)
+    new_assay_names <- sample.metadata$NewAssayNames
+    cur_spatialpoints <- spatialpoints
+    for(i in 1:length(old_assay_names)){
+      if(old_assay_names[i]!=new_assay_names[i]){
+        ind <- grepl(paste0(old_assay_names[i],"$"), spatialpoints)
+        cur_spatialpoints[ind] <- gsub(paste0(old_assay_names[i],"$"), new_assay_names[i], spatialpoints[ind])
+      }
     }
+    igraph::V(object@connectivity)$name <- cur_spatialpoints
   }
-  igraph::V(object@connectivity)$name <- cur_spatialpoints
 
   # change the assay names of vrAssays
   assay_names <- names(object@assay)

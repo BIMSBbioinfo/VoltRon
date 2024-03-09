@@ -179,7 +179,7 @@ fill.na <- function(x, i = 5) {
 #' @param FUN function
 #' @param ... arguments passed to \code{FUN}
 #'
-#' @importFrom methods slot
+#' @importFrom methods slot slotNames
 #'
 slotApply <- function(x,FUN,...){
   cl <- class(x)
