@@ -122,6 +122,9 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
       updateParameterPanels(input, output, session)
       updateSequentialTabPanels(input, output, session, centre, register_ind)
 
+      ### get image info ####
+      orig_image_query_info_list <- getImageInfo(orig_image_query_list)
+
       ### Transform images ####
       trans_image_query_list <- transformImageQueryList(orig_image_query_list, input)
 
@@ -140,7 +143,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
       observe({
 
         # output the list of query images
-        getImageOutput(orig_image_query_list, xyTable_list, centre, input, output, session)
+        getImageOutput(orig_image_query_list, orig_image_query_info_list, xyTable_list, centre, input, output, session)
 
       })
 
@@ -193,6 +196,10 @@ getImageTabPanels <- function(len_images, type){
                column(4, selectInput(paste0("rotate_", type, "_image",i), "Rotate (ClockWise):", choices = c(0,90,180,270), selected = 0)),
                column(4, selectInput(paste0("flipflop_", type, "_image",i), "Transform:", choices = c("None", "Flip", "Flop"), selected = "None")),
                column(4, selectInput(paste0("negate_", type, "_image",i), "Negate Image:", choices = c("No", "Yes"), selected = "No"))
+             ),
+             fluidRow(
+               column(4, sliderInput(paste0("scale_", type, "_image",i), "Scale Parameter", min = 0, max = 1,  value = 1)),
+               textOutput(paste0("scaleinfo_", type, "_image",i))
              ),
              fluidRow(imageOutput(paste0("plot_", type, i), click = paste0("click_plot_", type, i))),
              br(),
@@ -918,6 +925,7 @@ imageKeypoint <- function(image, keypoints){
 #' Shiny outputs for a set of magick images with keypoints
 #'
 #' @param image_list a list of magick images
+#' @param info_list a list of magick image info on width and height
 #' @param keypoints_list a list of data frames, each having a set of keypoints
 #' @param centre the center image index
 #' @param input shiny input
@@ -927,7 +935,7 @@ imageKeypoint <- function(image, keypoints){
 #' @importFrom magick image_ggplot
 #'
 #' @noRd
-getImageOutput <- function(image_list, keypoints_list = NULL, centre, input, output, session){
+getImageOutput <- function(image_list, info_list, keypoints_list = NULL, centre, input, output, session){
 
   # get image types
   image_types <- c("ref","query")
@@ -938,6 +946,8 @@ getImageOutput <- function(image_list, keypoints_list = NULL, centre, input, out
   # output query images
   lapply(1:len_images, function(i){
     lapply(image_types, function(type){
+
+      # image output
       output[[paste0("plot_", type, i)]] <- renderPlot({
 
         # select keypoints
@@ -949,7 +959,29 @@ getImageOutput <- function(image_list, keypoints_list = NULL, centre, input, out
         img <- imageKeypoint(magick::image_ggplot(img$image), img$keypoints)
         return(img)
       })
+
+      #
+      output[[paste0("scaleinfo_", type, "_image", i)]] <- renderText({
+        cur_info <- info_list[[i]] * input[[paste0("scale_", type, "_image", i)]]
+        paste(cur_info, collapse = "x")
+      })
     })
+  })
+}
+
+#' getImageOutput
+#'
+#' get information on images
+#'
+#' @param image_list a list of magick images
+#'
+#' @importFrom magick image_info
+#'
+#' @noRd
+getImageInfo <- function(image_list){
+  lapply(image_list, function(x){
+    imginfo <- magick::image_info(x)
+    c(imginfo$width, imginfo$height)
   })
 }
 
@@ -1434,6 +1466,16 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
       ref_label = "query"
       query_label = "ref"
     }
+
+    # scale parameters
+    query_scale <- input[[paste0("scale_", query_label, "_image", cur_map[1])]]
+    ref_scale <- input[[paste0("scale_", ref_label, "_image", cur_map[2])]]
+
+    # scale images
+    aligned_image <- magick::image_resize(aligned_image, geometry = magick::geometry_size_percent(100*query_scale))
+    ref_image <- magick::image_resize(ref_image, geometry = magick::geometry_size_percent(100*ref_scale))
+
+    # register images with OpenCV
     reg <- getRcppAutomatedRegistration(ref_image = ref_image, query_image = aligned_image,
                                         GOOD_MATCH_PERCENT = as.numeric(input$GOOD_MATCH_PERCENT), MAX_FEATURES = as.numeric(input$MAX_FEATURES),
                                         invert_query = input[[paste0("negate_", query_label, "_image", cur_map[1])]] == "Yes",
@@ -1443,7 +1485,13 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
                                         rotate_query = input[[paste0("rotate_", query_label, "_image", cur_map[1])]],
                                         rotate_ref = input[[paste0("rotate_", ref_label, "_image", cur_map[2])]],
                                         method = input$AutoMethod)
-    mapping[[kk]] <- reg$transmat
+
+    # update transformation matrix
+    transmat <- solve(diag(c(ref_scale,ref_scale,1))) %*% reg$transmat %*% diag(c(query_scale,query_scale,1))
+
+    # return images and transformation matrix
+    # mapping[[kk]] <- reg$transmat
+    mapping[[kk]] <- transmat
     dest_image <- reg$dest_image
     aligned_image <- reg$aligned_image
     alignment_image <- reg$alignment_image

@@ -71,6 +71,11 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
   plot_title <- as.list(apply(sample.metadata[assay_names,], 1, function(x) paste(x["Sample"], x["Layer"], sep = ", ")))
   names(plot_title) <- assay_names
 
+  # adjust group.ids
+  if(is.null(group.ids)){
+    group.ids <- unique(metadata[[group.by]])
+  }
+
   # for each assay
   i <- 1
   gg <- list()
@@ -104,6 +109,14 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
       levels_group.by <- sort(as.numeric(levels_group.by))
     }
     cur_metadata[[group.by]] <- factor(cur_metadata[[group.by]], levels = levels_group.by)
+
+    # check group.id
+    levels_group.ids <- as.character(group.ids)
+    if(all(!is.na(as.numeric(levels_group.ids)))){
+      levels_group.ids <- sort(as.numeric(levels_group.ids))
+    }
+    # group.ids <- levels(factor(group.ids, levels = levels_group.ids))
+    group.ids <- factor(group.ids, levels = levels_group.ids)
 
     # visualize
     p_title <- plot_title[[assy]]
@@ -181,8 +194,36 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     } else {
       info <- NULL
     }
+    image_name <- background
   } else {
     info <- NULL
+    image_name <- vrMainImage(assay)
+  }
+
+  # data
+  coords <- as.data.frame(vrCoordinates(assay, image_name = image_name, reg = reg))
+  normdata <- vrData(assay, norm = TRUE)
+  segments <- vrSegments(assay, image_name = image_name)
+
+  # plotting features
+  if(!group.by %in% colnames(metadata))
+    stop("The column '", group.by, "' was not found in the metadata!")
+  if(inherits(metadata, "data.table")){
+    coords[[group.by]] <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
+  } else {
+    coords[[group.by]] <- metadata[,group.by]
+  }
+
+  if(!is.null(group.ids)){
+    if(length(setdiff(group.ids,  coords[[group.by]])) > 0){
+      # warning("Some groups defined in group.ids does not exist in group.by!")
+      coords <- coords[coords[[group.by]] %in% group.ids,]
+    } else if(length(setdiff(group.ids,  coords[[group.by]])) > 0){
+      stop("None of the groups defined in group.ids exist in group.by!")
+    } else {
+      segments <- segments[coords[[group.by]] %in% group.ids]
+      coords <- coords[coords[[group.by]] %in% group.ids,]
+    }
   }
 
   # coords
@@ -241,14 +282,16 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
                                   fill = group.by, group = segment), data = circle_data, lwd = 0, alpha = alpha)
     }
     g <- g +
-      scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+      # scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+      scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
       guides(fill = guide_legend(title = group.by))
 
   # spot visualization
   } else if(vrAssayTypes(assay) == "spot"){
     g <- g +
       geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, spot.radius = vrAssayParams(assay, param = "vis.spot.radius")) +
-      scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+      # scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+      scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
 
   # cell visualization
@@ -264,13 +307,17 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
           len_segments <- sapply(segments, nrow, simplify = TRUE)
           polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), group.by = rep(coords[[group.by]], len_segments))
           g <- g +
-            geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha)
+            geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha) +
+            scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+            guides(fill = guide_legend(title = group.by))
         }
       } else {
 
         # add points
         g <- g +
           geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
+          scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+          scale_color_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
           guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
 
         # add if a graph exists
@@ -289,6 +336,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     # coords <- coords[coords[[group.by]] %in% transcripts, ]
     g <- g +
       geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
+      scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+      scale_color_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
       guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
 
   } else {
@@ -327,17 +376,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   }
 
   # background
-  # if(any(background %in% c("white","black"))){
-  #   g <- g +
-  #     theme(panel.background = element_rect(fill = background, colour = background, size = 0.5, linetype = "solid"))
-  # } else if(background %in% vrImageNames(assay)){
-  #   g <- g +
-  #     theme(panel.background = element_blank())
-  # } else {
-  #   g <- g +
-  #     theme(panel.background = element_rect(fill = "lightgrey", colour = "lightgrey", size = 0.5, linetype = "solid"))
-  #   warning("background image ", background, " is not found in ", vrAssayNames(assay), "\n")
-  # }
   if(any(background %in% c("white","black"))){
     g <- g +
       theme(panel.background = element_rect(fill = background, colour = background, size = 0.5, linetype = "solid"))
@@ -613,18 +651,14 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
     } else {
       info <- NULL
     }
+    image_name <- background
   } else {
     info <- NULL
+    image_name <- vrMainImage(assay)
   }
 
-  # coords
-  coords <- as.data.frame(vrCoordinates(assay, reg = reg))
-  coords <- coords/scale_factors
-
-  # segments
-  segments <- vrSegments(assay)
-
   # data
+  coords <- as.data.frame(vrCoordinates(assay, image_name = image_name, reg = reg))
   data_features <- feature[feature %in% vrFeatures(assay)]
   if(length(data_features) > 0){
     normdata <- vrData(assay, features = feature, norm = norm)
@@ -642,7 +676,8 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   # get image information and plotting features
   midpoint <- sum(limits)/2
 
-  # visualize based on spatial points type
+  # add points or segments
+  segments <- vrSegments(assay, image_name = image_name)
   if(vrAssayTypes(assay) == "ROI" && !is.null(segments)){
     polygon_data <- NULL
     circle_data <- NULL

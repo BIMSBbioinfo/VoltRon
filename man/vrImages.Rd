@@ -14,13 +14,20 @@ vrImages(object, ...)
 
 vrImages(object, ...) <- value
 
-\method{vrImages}{VoltRon}(object, assay = NULL, ...)
+\method{vrImages}{VoltRon}(object, assay = NULL, scale.perc = 100, ...)
 
-\method{vrImages}{vrAssay}(object, name = NULL, reg = FALSE, channel = NULL, ...)
+\method{vrImages}{vrAssay}(
+  object,
+  name = NULL,
+  reg = FALSE,
+  channel = NULL,
+  scale.perc = 100,
+  ...
+)
 
 \method{vrImages}{vrAssay}(object, name = NULL, channel = NULL, reg = FALSE, ...) <- value
 
-\method{vrImages}{vrImage}(object, channel = NULL, as.raster = FALSE)
+\method{vrImages}{vrImage}(object, channel = NULL, as.raster = FALSE, scale.perc = 100)
 
 \method{vrImages}{vrImage}(object, channel = NULL) <- value
 }
@@ -32,6 +39,8 @@ vrImages(object, ...) <- value
 \item{value}{new image}
 
 \item{assay}{assay}
+
+\item{scale.perc}{scale percentage if lower resolution image needed}
 
 \item{name}{the name of the main image}
 
