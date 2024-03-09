@@ -487,7 +487,7 @@ vrData.vrAssay <- function(object, features = NULL, norm = FALSE, ...) {
         return(image_data)
       # for molecules only
       } else if(assay.type == "molecule"){
-        stop("No data matrices are available for molecule assays!")
+        return(matrix(nrow = 0, ncol = 0))
       }
     }
   }
