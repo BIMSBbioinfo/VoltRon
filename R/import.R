@@ -125,12 +125,16 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 
       # metadata
       mol_metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell_id", "transcript_id", "x_location", "y_location")], with = FALSE]
+
+      # entity_ID <- paste0(mol_metadata$id, "_", ids::random_id(bytes = 3, use_openssl = FALSE))
+      # mol_metadata <- data.table::data.table(id = entity_ID, assay_id = "Assay1", mol_metadata)
       set.seed(nrow(mol_metadata$id))
-      entity_ID <- paste0(mol_metadata$id, "_", ids::random_id(bytes = 3, use_openssl = FALSE))
-      mol_metadata <- data.table::data.table(id = entity_ID, assay_id = "Assay1", mol_metadata)
+      mol_metadata$postfix <- paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))
+      mol_metadata$assay_id <- "Assay1"
+      mol_metadata[, id:=do.call(paste0,.SD), .SDcols=c("id", "postfix")]
 
       # coord names
-      rownames(coords) <- entity_ID
+      rownames(coords) <- mol_metadata$id
     }
 
     # create VoltRon assay for molecules
