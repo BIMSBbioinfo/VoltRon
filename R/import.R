@@ -126,44 +126,49 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 
       # metadata
       mol_metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell_id", "transcript_id", "x_location", "y_location")], with = FALSE]
+
       set.seed(nrow(mol_metadata$id))
-      entity_ID <- paste0(mol_metadata$id, "_", ids::random_id(bytes = 3, use_openssl = FALSE))
-      mol_metadata <- data.table::data.table(id = entity_ID, assay_id = "Assay1", mol_metadata)
+      mol_metadata$postfix <- paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))
+      mol_metadata$assay_id <- "Assay1"
+      mol_metadata[, id:=do.call(paste0,.SD), .SDcols=c("id", "postfix")]
+
+      # coord names
+      rownames(coords) <- mol_metadata$id
+
+      # create VoltRon assay for molecules
+      mol_assay <- formAssay(coords = coords, image = image, type = "molecule", main_image = image_name, main_channel = channel_name)
+
+      # merge assays in one section
+      message("Merging assays ...")
+      sample.metadata <- SampleMetadata(cell_object)
+      object <- addAssay(cell_object,
+                         assay = mol_assay,
+                         metadata = mol_metadata,
+                         assay_name = paste0(assay_name, "_mol"),
+                         sample = sample.metadata["Assay1", "Sample"],
+                         layer = sample.metadata["Assay1", "Layer"])
 
       # connectivity
-      connectivity <- data.table::data.table(transcript_id = entity_ID, cell_id = subcellular_data[["cell_id"]])
+      connectivity <- data.table::data.table(transcript_id = mol_metadata$id, cell_id = subcellular_data[["cell_id"]])
       if(is.numeric(connectivity$cell_id)){
         connectivity <- subset(connectivity, cell_id != -1)
         connectivity[["cell_id"]] <- vrSpatialPoints(cell_object)[connectivity[["cell_id"]]]
       } else {
         connectivity <- subset(connectivity, cell_id != "UNASSIGNED")
       }
+      connectivity$cell_assay_id <- "_Assay1"
+      connectivity[, cell_id:=do.call(paste0,.SD), .SDcols=c("cell_id", "cell_assay_id")]
+      connectivity$cell_assay_id <- NULL
 
-      # coord names
-      rownames(coords) <- entity_ID
+      # add connectivity of spatial points across assays
+      object <- addConnectivity(object,
+                                connectivity = connectivity,
+                                sample = sample.metadata["Assay1", "Sample"],
+                                layer = sample.metadata["Assay1", "Layer"])
+
+      # return
+      return(object)
     }
-
-    # create VoltRon assay for molecules
-    mol_assay <- formAssay(coords = coords, image = image, type = "molecule", main_image = image_name, main_channel = channel_name)
-
-    # merge assays in one section
-    message("Merging assays ...")
-    sample.metadata <- SampleMetadata(cell_object)
-    object <- addAssay(cell_object,
-                       assay = mol_assay,
-                       metadata = mol_metadata,
-                       assay_name = paste0(assay_name, "_mol"),
-                       sample = sample.metadata["Assay1", "Sample"],
-                       layer = sample.metadata["Assay1", "Layer"])
-
-    # add connectivity of spatial points across assays
-    object <- addConnectivity(object,
-                              connectivity = connectivity,
-                              sample = sample.metadata["Assay1", "Sample"],
-                              layer = sample.metadata["Assay1", "Layer"])
-
-    # return
-    return(object)
   }
 }
 
