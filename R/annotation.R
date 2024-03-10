@@ -225,7 +225,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
         metadata[[label]] <- new_label
         Metadata(object, assays = sample_metadata[assay, "Assay"]) <- metadata
 
-        ## add polygons as segments ####
+        ## add polygons to a new assay ####
         segments <- selected_polygon_list
         names(segments) <- selected_label_list
         coords <- t(sapply(segments, function(seg){
