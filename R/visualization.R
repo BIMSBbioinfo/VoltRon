@@ -202,8 +202,9 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 
   # data
   coords <- as.data.frame(vrCoordinates(assay, image_name = image_name, reg = reg))
-  normdata <- vrData(assay, norm = TRUE)
+  coords <- coords/scale_factors
   segments <- vrSegments(assay, image_name = image_name)
+  normdata <- vrData(assay, norm = TRUE)
 
   # plotting features
   if(!group.by %in% colnames(metadata))
@@ -225,16 +226,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       coords <- coords[coords[[group.by]] %in% group.ids,]
     }
   }
-
-  # coords
-  coords <- as.data.frame(vrCoordinates(assay, reg = reg))
-  coords <- coords/scale_factors
-
-  # segments
-  segments <- vrSegments(assay)
-
-  # data
-  normdata <- vrData(assay, norm = TRUE)
 
   # plotting features
   if(!group.by %in% colnames(metadata))
@@ -303,7 +294,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
           stop("No Segments are available in this assay!")
         } else {
           polygon_data <- do.call(rbind,segments)
-          polygon_data <- polygon_data/scale_factors
+          polygon_data[,c("x", "y")] <- polygon_data[,c("x", "y")]/scale_factors
           len_segments <- sapply(segments, nrow, simplify = TRUE)
           polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), group.by = rep(coords[[group.by]], len_segments))
           g <- g +
@@ -659,6 +650,8 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 
   # data
   coords <- as.data.frame(vrCoordinates(assay, image_name = image_name, reg = reg))
+  coords <- coords/scale_factors
+  segments <- vrSegments(assay, image_name = image_name)
   data_features <- feature[feature %in% vrFeatures(assay)]
   if(length(data_features) > 0){
     normdata <- vrData(assay, features = feature, norm = norm)
@@ -677,7 +670,6 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   midpoint <- sum(limits)/2
 
   # add points or segments
-  segments <- vrSegments(assay, image_name = image_name)
   if(vrAssayTypes(assay) == "ROI" && !is.null(segments)){
     polygon_data <- NULL
     circle_data <- NULL
@@ -720,7 +712,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
         stop("No Segments are available in this assay!")
       } else {
         polygon_data <- do.call(rbind,segments)
-        polygon_data <- polygon_data/scale_factors
+        polygon_data[,c("x", "y")] <- polygon_data[,c("x", "y")]/scale_factors
         len_segments <- sapply(segments, nrow, simplify = TRUE)
         polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), score = rep(coords$score, len_segments))
         g <- g +
