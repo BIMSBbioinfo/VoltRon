@@ -264,3 +264,14 @@ make_css <- function (..., file = NULL)
     invisible(NULL)
   }
 }
+
+#' Generate a random safe port number
+#'
+#' This function generates a random port allowed by shiny::runApp.
+#' @noRd
+random_port <- function() {
+  all_ports <- 3000:8000
+  unsafe_ports <- c(3659, 4045, 5060, 5061, 6000, 6566, 6665:6669, 6697)
+  safe_ports <- setdiff(all_ports, unsafe_ports)
+  sample(safe_ports, size = 1)
+}

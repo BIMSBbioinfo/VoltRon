@@ -1,5 +1,303 @@
 ####
-# Basilisk Environment ####
+# Spatial Interactive Plot (VoltRon) ####
+####
+
+####
+### Background Job (under development) ####
+####
+
+#' #' vrSpatialPlotBackgroundJob
+#' #'
+#' #' Run an interactive spatial plot as a background job and show it in the viewer pane.
+#' #' Adapted from \code{gptstudio} package
+#' #'
+#' #' @importFrom rstudioapi verifyAvailable hasFun
+#' #'
+#' #' @inheritParams shiny::runApp
+#' #'
+#' vrSpatialPlotBackgroundJob <- function(host = getOption("shiny.host", "127.0.0.1"), plot = NULL) {
+#'   rstudioapi::verifyAvailable()
+#'   stopifnot(rstudioapi::hasFun("viewer"))
+#'
+#'   port <- random_port()
+#'   app_dir <- create_tmp_app_dir()
+#'   gg_temp <<- plot
+#'
+#'   runBackgroundJob(appDir = app_dir, job_name = "Interactive Spatial Plot", host, port)
+#'
+#'   if (.Platform$OS.type == "unix") Sys.sleep(1.5)
+#'
+#'   open_bg_shinyapp(host, port)
+#' }
+#'
+#' #' runBackgroundJob
+#' #'
+#' #' This function runs an R Shiny app as a background job using the specified
+#' #' directory, name, host, and port.
+#' #'
+#' #' @param job_name The name of the background job to be created
+#' #'
+#' #' @importFrom rstudioapi jobRunScript hasFun
+#' #' @importFrom cli cli_alert_success
+#' #' @importFrom glue glue
+#' #' @noRd
+#' #' @inheritParams shiny::runApp
+#' #'
+#' runBackgroundJob <- function(appDir = ".", job_name, host, port) {
+#'   job_script <- createBackgroundJobScript(
+#'     appDir = appDir,
+#'     port = port,
+#'     host = host
+#'   )
+#'   rstudioapi::jobRunScript(job_script, name = job_name)
+#'   cli::cli_alert_success(
+#'     glue::glue("{job_name} initialized as background job in RStudio")
+#'   )
+#' }
+#'
+#' #' Create a temporary job script
+#' #'
+#' #' This function creates a temporary R script file that runs the Shiny
+#' #' application from the specified directory with the specified port and host.
+#' #'
+#' #' @importFrom glue glue
+#' #' @noRd
+#' #' @inheritParams shiny::runApp
+#' #'
+#' createBackgroundJobScript <- function(appDir, port, host) {
+#'   script_file <- tempfile(fileext = ".R")
+#'
+#'   line <-
+#'     glue::glue(
+#'       "shiny::runApp(appDir = '{appDir}', port = {port}, host = '{host}')"
+#'     )
+#'
+#'   file_con <- file(script_file)
+#'   writeLines(line, con = script_file)
+#'   close(file_con)
+#'   return(script_file)
+#' }
+#'
+#' create_tmp_app_dir <- function() {
+#'   dir <- tempdir()
+#'
+#'   if (.Platform$OS.type == "windows") {
+#'     dir <- gsub(pattern = "[\\]", replacement = "/", x = dir)
+#'   }
+#'
+#'   app_file <- create_tmp_app_file()
+#'   file.copy(from = app_file, to = file.path(dir, "app.R"), overwrite = TRUE)
+#'   return(dir)
+#' }
+#'
+#' #' @importFrom glue glue
+#' #' @importFrom utils capture.output
+#' #' @noRd
+#' create_tmp_app_file <- function() {
+#'   script_file <- tempfile(fileext = ".R")
+#'
+#'   line_ui <- glue::glue(
+#'     "ui <- VoltRon:::mod_app_ui('app')"
+#'   )
+#'   line_server <- glue::glue(
+#'     "server <- function(input, output, session) {
+#'       VoltRon:::mod_app_server('app')
+#'     }",
+#'     .open = "{{",
+#'     .close = "}}"
+#'   )
+#'   line_run_app <- glue::glue("shiny::shinyApp(ui, server)")
+#'
+#'   file_con <- file(script_file)
+#'
+#'   writeLines(
+#'     text = c(line_ui, line_server, line_run_app),
+#'     sep = "\n\n",
+#'     con = script_file
+#'   )
+#'
+#'   close(file_con)
+#'   return(script_file)
+#' }
+#'
+#' #' Open browser to local Shiny app
+#' #'
+#' #' This function takes in the host and port of a local Shiny app and opens the
+#' #' app in the default browser.
+#' #'
+#' #' @param host A character string representing the IP address or domain name of
+#' #'   the server where the Shiny app is hosted.
+#' #' @param port An integer representing the port number on which the Shiny app is
+#' #'   hosted.
+#' #'
+#' #' @importFrom glue glue
+#' #' @importFrom cli cli_inform
+#' #' @importFrom rstudioapi viewer
+#' #' @noRd
+#' open_bg_shinyapp <- function(host, port) {
+#'   url <- glue::glue("http://{host}:{port}")
+#'   translated_url <- rstudioapi::translateLocalUrl(url, absolute = TRUE)
+#'
+#'   if (host %in% c("127.0.0.1")) {
+#'     cli::cli_inform(c(
+#'       "i" = "Showing app in 'Viewer' pane",
+#'       "i" = "Run {.run rstudioapi::viewer(\"{url}\")} to see it"
+#'     ))
+#'   } else {
+#'     cli::cli_alert_info("Showing app in browser window")
+#'   }
+#'
+#'   rstudioapi::viewer(translated_url)
+#' }
+
+####
+## Background Shiny App ####
+####
+
+#' vrSpatialPlotInteractive
+#'
+#' @inheritParams shiny::runApp
+#' @importFrom rstudioapi viewer
+#' @export
+#'
+#' @return This function has no return value.
+#'
+vrSpatialPlotInteractive <- function(host = getOption("shiny.host", "127.0.0.1"),
+                                     port = getOption("shiny.port"), plot = NULL){
+  shinyjs::useShinyjs()
+
+  ui <- mod_app_ui("app")
+
+  server <- function(input, output, session) {
+    mod_app_server("app", plot_g = plot)
+    session$onSessionEnded(function() {
+      stopApp()
+    })
+  }
+
+  shiny::shinyApp(ui, server, options = list(host = host, port = port, launch.browser = rstudioapi::viewer),
+                  onStart = function() {
+                    cat("Doing application setup\n")
+                    onStop(function() {
+                      cat("Doing application cleanup\n")
+                    })
+                  })
+
+}
+
+#' App UI
+#'
+#' @param id id of the module
+#' @inheritParams vrSpatialPlotInteractive
+#'
+#' @import htmltools
+#' @import shiny
+#' @import bslib
+#' @importFrom waiter use_waiter
+#'
+#' @export
+#'
+mod_app_ui <- function(id, plot_g = NULL) {
+  ns <- NS(id)
+  plotOutput(ns("image_plot"),
+             height = "1000px",
+             dblclick = ns("plot_dblclick"),
+             brush = brushOpts(
+               id = ns("plot_brush"), fill = "green",
+               resetOnNew = TRUE
+             ))
+}
+
+#' App Server
+#'
+#' @param id id of the module
+#' @inheritParams vrSpatialPlotInteractive
+#'
+#' @export
+#'
+mod_app_server <- function(id, plot_g = NULL) {
+  moduleServer(id, function(input, output, session) {
+
+    ranges <- reactiveValues(x = plot_g$coordinates$limits$x, y = plot_g$coordinates$limits$y)
+    observeEvent(input$plot_dblclick, {
+      brush <- input$plot_brush
+      if (!is.null(brush)) {
+        ranges$x <- c(brush$xmin, brush$xmax)
+        ranges$y <- c(brush$ymin, brush$ymax)
+      } else {
+        ranges$x <- plot_g$coordinates$limits$x
+        ranges$y <- plot_g$coordinates$limits$y
+      }
+    })
+
+    # image output
+    output$image_plot <- renderPlot({
+      plot_g +
+        coord_equal(xlim = ranges$x, ylim = ranges$y, ratio = 1)
+    })
+  })
+}
+
+####
+# Spatial Interactive Plot (Vitessce) ####
+####
+
+#' vrSpatialPlotInteractive
+#'
+#' Interactive Plotting identification of spatially resolved cells, spots, and ROI on associated images from multiple assays in a VoltRon object.
+#'
+#' @param zarr.file The zarr file of a VoltRon object
+#' @param group.by a grouping label for the spatial entities
+#' @param plot.segments plot segments instead of points
+#' @param group.ids a subset of categories defined with in the grouping label \code{group.by}
+#' @param assay the assay name
+#' @param reduction The name of the reduction to visualize an embedding alongside with the spatial plot.
+#' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
+#' @param reg if TRUE, the registered coordinates will be used
+#' @param crop whether to crop an image of a spot assay
+#'
+vrSpatialPlotVitessce <- function(zarr.file, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, assay = NULL, reduction = "umap",
+                                  background = NULL, reg = FALSE, crop = FALSE) {
+
+  # check package
+  if (!requireNamespace('vitessceR'))
+    stop("Please install vitessceR package for using interactive visualization")
+
+  # get embedding
+  if(is.null(reduction)){
+    obs_embedding_paths <- c("obsm/spatial")
+  } else {
+    obs_embedding_paths <- c(paste0("obsm/", reduction), "obsm/spatial")
+  }
+
+  w <- vitessceR::AnnDataWrapper$new(
+    adata_path=zarr.file,
+    obs_set_paths = c(paste0("obs/", group.by)),
+    obs_set_names = c(group.by),
+    obs_locations_path = "obsm/spatial",
+    obs_embedding_paths=obs_embedding_paths
+  )
+  vc <- vitessceR::VitessceConfig$new(schema_version = "1.0.15", name = "MBrain")
+  dataset <- vc$add_dataset("My dataset")$add_object(w)
+  spatial <- vc$add_view(dataset, vitessceR::Component$SCATTERPLOT, mapping = "spatial")
+  cell_sets <- vc$add_view(dataset, vitessceR::Component$OBS_SETS)
+
+  if(is.null(reduction)){
+    vc$layout(
+      vitessceR::hconcat(spatial, cell_sets)
+    )
+  } else {
+    umap <- vc$add_view(dataset, vitessceR::Component$SCATTERPLOT, mapping = reduction)
+    vc$layout(
+      vitessceR::hconcat(spatial, vitessceR::vconcat(umap, cell_sets))
+    )
+  }
+
+  vc$widget(theme = "light")
+}
+
+####
+## Basilisk Environment ####
 ####
 
 #' The Python Basilisk environment
@@ -33,7 +331,7 @@ py_env <- basilisk::BasiliskEnvironment(
 )
 
 ####
-# Conversion into Zarr for Vitessce ####
+## Conversion into Zarr for Vitessce ####
 ####
 
 #' Title
