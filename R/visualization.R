@@ -76,7 +76,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
                           cell.shape = cell.shape, alpha = alpha, label = label, background = background, reg = reg,
                           crop = crop, legend.pt.size = legend.pt.size, legend.loc = legend.loc, common.legend = common.legend, collapse = collapse,
                           interactive = FALSE)
-      return(vrSpatialPlotInteractive(plot = gg))
+      return(vrSpatialPlotInteractive(plot_g = gg))
     }
   }
 

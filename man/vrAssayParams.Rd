@@ -12,6 +12,8 @@ vrAssayParams(object, ...)
 \arguments{
 \item{object}{An object}
 
+\item{param}{the parameter value to return}
+
 \item{...}{Arguments passed to other methods}
 }
 \description{

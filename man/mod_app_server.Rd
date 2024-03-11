@@ -8,6 +8,8 @@ mod_app_server(id, plot_g = NULL)
 }
 \arguments{
 \item{id}{id of the module}
+
+\item{plot_g}{the ggplot plot}
 }
 \description{
 App Server

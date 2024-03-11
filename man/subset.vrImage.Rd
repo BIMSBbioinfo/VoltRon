@@ -9,6 +9,8 @@
 \arguments{
 \item{object}{A vrImage object}
 
+\item{subset}{Logical statement for subsetting}
+
 \item{spatialpoints}{the set of spatial points to subset the object}
 
 \item{image}{the subseting string passed to \code{magick::image_crop}}

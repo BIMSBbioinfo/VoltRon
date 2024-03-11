@@ -10,7 +10,7 @@
 #' @param label the name of the new metadata feature (annotation) of selected spatial points
 #' @param assay a reference spatial data set, used only if \code{object_list} is \code{NULL}
 #' @param use.image if TRUE, use only the image
-#' @param name the name of the main image
+#' @param image_name the name of the main image
 #' @param channel the name of the main channel
 #' @param ... additional parameters passed to \code{vrSpatialPlot}.
 #'

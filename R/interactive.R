@@ -3,173 +3,28 @@
 ####
 
 ####
-### Background Job (under development) ####
-####
-
-#' #' vrSpatialPlotBackgroundJob
-#' #'
-#' #' Run an interactive spatial plot as a background job and show it in the viewer pane.
-#' #' Adapted from \code{gptstudio} package
-#' #'
-#' #' @importFrom rstudioapi verifyAvailable hasFun
-#' #'
-#' #' @inheritParams shiny::runApp
-#' #'
-#' vrSpatialPlotBackgroundJob <- function(host = getOption("shiny.host", "127.0.0.1"), plot = NULL) {
-#'   rstudioapi::verifyAvailable()
-#'   stopifnot(rstudioapi::hasFun("viewer"))
-#'
-#'   port <- random_port()
-#'   app_dir <- create_tmp_app_dir()
-#'   gg_temp <<- plot
-#'
-#'   runBackgroundJob(appDir = app_dir, job_name = "Interactive Spatial Plot", host, port)
-#'
-#'   if (.Platform$OS.type == "unix") Sys.sleep(1.5)
-#'
-#'   open_bg_shinyapp(host, port)
-#' }
-#'
-#' #' runBackgroundJob
-#' #'
-#' #' This function runs an R Shiny app as a background job using the specified
-#' #' directory, name, host, and port.
-#' #'
-#' #' @param job_name The name of the background job to be created
-#' #'
-#' #' @importFrom rstudioapi jobRunScript hasFun
-#' #' @importFrom cli cli_alert_success
-#' #' @importFrom glue glue
-#' #' @noRd
-#' #' @inheritParams shiny::runApp
-#' #'
-#' runBackgroundJob <- function(appDir = ".", job_name, host, port) {
-#'   job_script <- createBackgroundJobScript(
-#'     appDir = appDir,
-#'     port = port,
-#'     host = host
-#'   )
-#'   rstudioapi::jobRunScript(job_script, name = job_name)
-#'   cli::cli_alert_success(
-#'     glue::glue("{job_name} initialized as background job in RStudio")
-#'   )
-#' }
-#'
-#' #' Create a temporary job script
-#' #'
-#' #' This function creates a temporary R script file that runs the Shiny
-#' #' application from the specified directory with the specified port and host.
-#' #'
-#' #' @importFrom glue glue
-#' #' @noRd
-#' #' @inheritParams shiny::runApp
-#' #'
-#' createBackgroundJobScript <- function(appDir, port, host) {
-#'   script_file <- tempfile(fileext = ".R")
-#'
-#'   line <-
-#'     glue::glue(
-#'       "shiny::runApp(appDir = '{appDir}', port = {port}, host = '{host}')"
-#'     )
-#'
-#'   file_con <- file(script_file)
-#'   writeLines(line, con = script_file)
-#'   close(file_con)
-#'   return(script_file)
-#' }
-#'
-#' create_tmp_app_dir <- function() {
-#'   dir <- tempdir()
-#'
-#'   if (.Platform$OS.type == "windows") {
-#'     dir <- gsub(pattern = "[\\]", replacement = "/", x = dir)
-#'   }
-#'
-#'   app_file <- create_tmp_app_file()
-#'   file.copy(from = app_file, to = file.path(dir, "app.R"), overwrite = TRUE)
-#'   return(dir)
-#' }
-#'
-#' #' @importFrom glue glue
-#' #' @importFrom utils capture.output
-#' #' @noRd
-#' create_tmp_app_file <- function() {
-#'   script_file <- tempfile(fileext = ".R")
-#'
-#'   line_ui <- glue::glue(
-#'     "ui <- VoltRon:::mod_app_ui('app')"
-#'   )
-#'   line_server <- glue::glue(
-#'     "server <- function(input, output, session) {
-#'       VoltRon:::mod_app_server('app')
-#'     }",
-#'     .open = "{{",
-#'     .close = "}}"
-#'   )
-#'   line_run_app <- glue::glue("shiny::shinyApp(ui, server)")
-#'
-#'   file_con <- file(script_file)
-#'
-#'   writeLines(
-#'     text = c(line_ui, line_server, line_run_app),
-#'     sep = "\n\n",
-#'     con = script_file
-#'   )
-#'
-#'   close(file_con)
-#'   return(script_file)
-#' }
-#'
-#' #' Open browser to local Shiny app
-#' #'
-#' #' This function takes in the host and port of a local Shiny app and opens the
-#' #' app in the default browser.
-#' #'
-#' #' @param host A character string representing the IP address or domain name of
-#' #'   the server where the Shiny app is hosted.
-#' #' @param port An integer representing the port number on which the Shiny app is
-#' #'   hosted.
-#' #'
-#' #' @importFrom glue glue
-#' #' @importFrom cli cli_inform
-#' #' @importFrom rstudioapi viewer
-#' #' @noRd
-#' open_bg_shinyapp <- function(host, port) {
-#'   url <- glue::glue("http://{host}:{port}")
-#'   translated_url <- rstudioapi::translateLocalUrl(url, absolute = TRUE)
-#'
-#'   if (host %in% c("127.0.0.1")) {
-#'     cli::cli_inform(c(
-#'       "i" = "Showing app in 'Viewer' pane",
-#'       "i" = "Run {.run rstudioapi::viewer(\"{url}\")} to see it"
-#'     ))
-#'   } else {
-#'     cli::cli_alert_info("Showing app in browser window")
-#'   }
-#'
-#'   rstudioapi::viewer(translated_url)
-#' }
-
-####
 ## Background Shiny App ####
 ####
 
 #' vrSpatialPlotInteractive
 #'
+#'
 #' @inheritParams shiny::runApp
+#' @param plot_g the ggplot plot
 #' @importFrom rstudioapi viewer
+#'
 #' @export
 #'
 #' @return This function has no return value.
 #'
 vrSpatialPlotInteractive <- function(host = getOption("shiny.host", "127.0.0.1"),
-                                     port = getOption("shiny.port"), plot = NULL){
+                                     port = getOption("shiny.port"), plot_g = NULL){
   shinyjs::useShinyjs()
 
   ui <- mod_app_ui("app")
 
   server <- function(input, output, session) {
-    mod_app_server("app", plot_g = plot)
+    mod_app_server("app", plot_g = plot_g)
     session$onSessionEnded(function() {
       stopApp()
     })
@@ -188,16 +43,12 @@ vrSpatialPlotInteractive <- function(host = getOption("shiny.host", "127.0.0.1")
 #' App UI
 #'
 #' @param id id of the module
+#'
 #' @inheritParams vrSpatialPlotInteractive
 #'
-#' @import htmltools
 #' @import shiny
-#' @import bslib
-#' @importFrom waiter use_waiter
 #'
-#' @export
-#'
-mod_app_ui <- function(id, plot_g = NULL) {
+mod_app_ui <- function(id) {
   ns <- NS(id)
   plotOutput(ns("image_plot"),
              height = "1000px",
@@ -211,9 +62,9 @@ mod_app_ui <- function(id, plot_g = NULL) {
 #' App Server
 #'
 #' @param id id of the module
-#' @inheritParams vrSpatialPlotInteractive
+#' @param plot_g the ggplot plot
 #'
-#' @export
+#' @inheritParams vrSpatialPlotInteractive
 #'
 mod_app_server <- function(id, plot_g = NULL) {
   moduleServer(id, function(input, output, session) {

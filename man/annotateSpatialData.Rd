@@ -23,11 +23,11 @@ annotateSpatialData(
 
 \item{use.image}{if TRUE, use only the image}
 
+\item{image_name}{the name of the main image}
+
 \item{channel}{the name of the main channel}
 
 \item{...}{additional parameters passed to \code{vrSpatialPlot}.}
-
-\item{name}{the name of the main image}
 }
 \value{
 a vector of annotations

@@ -85,8 +85,8 @@ getDeconSingle <- function(object, features = features, sc.object, sc.assay = "R
       cat("Running RCTD for spot deconvolution ...\n")
       rawdata <- getRCTD(object = object, features = features, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
     } else if(method == "SPOTlight") {
-      cat("Running SPOTlight for spot deconvolution ...\n")
-      rawdata <- getSPOTlight(object = object, features = features, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
+      # cat("Running SPOTlight for spot deconvolution ...\n")
+      # rawdata <- getSPOTlight(object = object, features = features, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
     } else {
       stop("The selected method is not provided for spot deconvolution. Switching to RCTD")
       rawdata <- getRCTD(object = object, features = features, sc.object = sc.object, sc.assay = sc.assay, sc.cluster = sc.cluster, ...)
@@ -155,42 +155,6 @@ getRCTD <- function(object, features = NULL, sc.object, sc.assay = "RNA", sc.clu
   # return
   return(norm_weights)
 }
-
-# getSPOTlight <- function(object, features = NULL, sc.object, sc.assay = "RNA", sc.cluster = "seurat_clusters", ...){
-#
-#   if (!requireNamespace('spacexr'))
-#     stop("Please install spacexr package to use the RCTD algorithm")
-#   if (!requireNamespace('Seurat'))
-#     stop("Please install Seurat package for using Seurat objects")
-#
-#   # create spatial data
-#   cat("Configuring Spatial Assay ...\n")
-#   spatialcounts <- vrData(object, norm = FALSE)
-#   coords <- as.data.frame(vrCoordinates(object))
-#   spatialnUMI <- colSums(spatialcounts)
-#   spatialdata <- spacexr::SpatialRNA(coords, spatialcounts, spatialnUMI)
-#
-#   # create single cell reference
-#   cat("Configuring Single Cell Assay (reference) ...\n")
-#   sccounts <- Seurat::GetAssayData(sc.object[[sc.assay]], slot = "counts")
-#   sccounts <- as.matrix(apply(sccounts,2,ceiling))
-#   rownames(sccounts) <- rownames(sc.object[[sc.assay]])
-#   cell_types <- as.factor(sc.object@meta.data[[sc.cluster]])
-#   names(cell_types) <- colnames(sc.object)
-#   sc.nUMI <- colSums(sccounts)
-#   names(sc.nUMI) <- colnames(sc.object)
-#   reference <- spacexr::Reference(sccounts, cell_types, sc.nUMI)
-#
-#   # Run RCTD
-#   myRCTD <- spacexr::create.RCTD(spatialdata, reference, ...)
-#   cat("Calculating Cell Type Compositions of spots with RCTD ...\n")
-#   myRCTD <- quiet(spacexr::run.RCTD(myRCTD, doublet_mode = 'doublet'))
-#   results <- as.matrix(myRCTD@results$weights)
-#   norm_weights <- t(sweep(results, 1, rowSums(results), "/"))
-#
-#   # return
-#   return(norm_weights)
-# }
 
 #' getMuSiC
 #'

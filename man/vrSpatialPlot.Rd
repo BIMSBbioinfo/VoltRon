@@ -26,7 +26,8 @@ vrSpatialPlot(
   legend.pt.size = 2,
   legend.loc = "right",
   common.legend = TRUE,
-  collapse = TRUE
+  collapse = TRUE,
+  interactive = TRUE
 )
 }
 \arguments{
@@ -73,6 +74,8 @@ vrSpatialPlot(
 \item{common.legend}{whether to use a common legend for all plots}
 
 \item{collapse}{whether to combine all ggplots}
+
+\item{interactive}{if TRUE, run interactive plot}
 }
 \description{
 Plotting identification of spatially resolved cells, spots, and ROI on associated images from multiple assays in a VoltRon object.

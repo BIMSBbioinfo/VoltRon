@@ -28,7 +28,7 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
   # embeddings
   if(length(object@reductions) > 0){
     embeddings_flag <- TRUE
-    embedding_list <- sapply(Elena.merged@reductions, Seurat::Embeddings, USE.NAMES = TRUE)
+    embedding_list <- sapply(object@reductions, Seurat::Embeddings, USE.NAMES = TRUE)
   } else {
     embeddings_flag <- FALSE
   }

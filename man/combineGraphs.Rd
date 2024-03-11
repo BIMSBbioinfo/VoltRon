@@ -14,11 +14,11 @@ combineGraphs(
 \arguments{
 \item{object}{a VoltRon Object}
 
+\item{graph.names}{a vector of graph names}
+
+\item{graph.weights}{the weights for edges of each graph.}
+
 \item{graph.key}{the name of the combined graph}
-
-\item{graph.types}{a vector of graph names}
-
-\item{weights}{the weights for edges of each graph.}
 }
 \description{
 Combining the edges of multiple graphs

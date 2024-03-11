@@ -7,7 +7,7 @@
 vrSpatialPlotInteractive(
   host = getOption("shiny.host", "127.0.0.1"),
   port = getOption("shiny.port"),
-  plot = NULL
+  plot_g = NULL
 )
 }
 \arguments{
@@ -22,6 +22,8 @@ use a random port between 3000:8000, excluding ports that are blocked
 by Google Chrome for being considered unsafe: 3659, 4045, 5060,
 5061, 6000, 6566, 6665:6669 and 6697. Up to twenty random
 ports will be tried.}
+
+\item{plot_g}{the ggplot plot}
 }
 \value{
 This function has no return value.

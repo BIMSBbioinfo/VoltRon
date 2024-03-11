@@ -4,7 +4,7 @@
 \alias{mod_app_ui}
 \title{App UI}
 \usage{
-mod_app_ui(id, plot_g = NULL)
+mod_app_ui(id)
 }
 \arguments{
 \item{id}{id of the module}
