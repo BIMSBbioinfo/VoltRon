@@ -45,7 +45,7 @@ NULL
 vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, assay = NULL, assay.type = NULL, graph.name = NULL,
                           reduction = "umap", ncol = 2, nrow = NULL,
                           font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, label = FALSE, background = NULL, reg = FALSE,
-                          crop = FALSE, legend.pt.size = 2, legend.loc = "right", common.legend = TRUE, collapse = TRUE, interactive = TRUE) {
+                          crop = FALSE, legend.pt.size = 2, legend.loc = "right", common.legend = TRUE, collapse = TRUE, interactive = FALSE) {
 
   # check object for zarr
   if(is.character(object)){
@@ -71,7 +71,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
     if(length(assay_names) > 1){
       stop("Only one assay can be visualized with interactive plot")
     } else{
-      gg <- vrSpatialPlot(object, group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, assay = assay, assay.type = assay.type,
+      gg <- vrSpatialPlot(object, group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, assay = assay,
                           graph.name = graph.name, reduction = reduction, ncol = ncol, nrow = nrow, font.size = font.size, pt.size = pt.size,
                           cell.shape = cell.shape, alpha = alpha, label = label, background = background, reg = reg,
                           crop = crop, legend.pt.size = legend.pt.size, legend.loc = legend.loc, common.legend = common.legend, collapse = collapse,
