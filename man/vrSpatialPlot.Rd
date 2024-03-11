@@ -27,7 +27,7 @@ vrSpatialPlot(
   legend.loc = "right",
   common.legend = TRUE,
   collapse = TRUE,
-  interactive = TRUE
+  interactive = FALSE
 )
 }
 \arguments{

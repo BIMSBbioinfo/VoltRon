@@ -18,6 +18,8 @@ flipCoordinates(object, ...)
 \item{image_name}{the key of the image}
 
 \item{...}{Arguments passed to other methods}
+
+\item{assay}{assay}
 }
 \description{
 Flip the coordinates of the spatial points in the y axis direction
