@@ -6,7 +6,8 @@
 
 #' The vrMetadata (VoltRon Metadata) Class
 #'
-#' @slot molecule the metadata data frame of molecules
+#' @slot tile the metadata data table of tiles
+#' @slot molecule the metadata data table of molecules
 #' @slot cell the metadata data frame of cells
 #' @slot spot the metadata data frame of spot
 #' @slot ROI the metadata data frame of ROI

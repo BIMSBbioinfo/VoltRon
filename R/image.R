@@ -58,7 +58,7 @@ setMethod(
 #' @param coords the coordinates of the spatial points
 #' @param segments the segments of the spatial points, optional
 #' @param image the image of the data
-#' @param channel the key of the main channel of vrImage object
+#' @param main_channel the key of the main channel of vrImage object
 #'
 #' @importFrom magick image_data image_read image_info
 #' @importFrom methods new
@@ -125,6 +125,7 @@ formImage <- function(coords, segments = list(), image = NULL, main_channel = NU
 #' Given a vrImage object, subset the object given one of the attributes.
 #'
 #' @param object A vrImage object
+#' @param subset Logical statement for subsetting
 #' @param spatialpoints the set of spatial points to subset the object
 #' @param image the subseting string passed to \code{magick::image_crop}
 #'

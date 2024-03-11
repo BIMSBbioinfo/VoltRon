@@ -10,8 +10,9 @@
 #' @param label the name of the new metadata feature (annotation) of selected spatial points
 #' @param assay a reference spatial data set, used only if \code{object_list} is \code{NULL}
 #' @param use.image if TRUE, use only the image
-#' @param group.by a parameter of \code{vrSpatialPlot}
-#' @param ... additional parameters passed to \code{vrImage}.
+#' @param image_name the name of the main image
+#' @param channel the name of the main channel
+#' @param ... additional parameters passed to \code{vrSpatialPlot}.
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs show hide
@@ -22,7 +23,7 @@
 #' @export
 #'
 #' @return a vector of annotations
-annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.image = FALSE, group.by = "Sample", ...) {
+annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.image = FALSE, image_name = NULL, channel = NULL, ...) {
 
   if(!inherits(object, "VoltRon"))
     stop("Please provide a VoltRon object!")
@@ -47,11 +48,16 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
     label <- unique_names[length(unique_names)]
   }
 
+  # get image name and channel
+  if(is.null(image_name)){
+    image_name <- vrMainImage(object[[assay]])
+  }
+
   # get image
   if(use.image){
-    g <- magick::image_ggplot(vrImages(object, ...)) + labs(title = "")
+    g <- magick::image_ggplot(vrImages(object, assay = assay, name = image_name, channel = channel)) + labs(title = "")
   } else{
-    g <- vrSpatialPlot(object, assay = assay, group.by = group.by) + labs(title = "")
+    g <- vrSpatialPlot(object, assay = assay, background = c(image_name, channel), ...) + labs(title = "")
   }
 
   ## UI and Server ####

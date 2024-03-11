@@ -9,7 +9,8 @@ annotateSpatialData(
   label = "annotation",
   assay = NULL,
   use.image = FALSE,
-  group.by = "Sample",
+  image_name = NULL,
+  channel = NULL,
   ...
 )
 }
@@ -22,9 +23,11 @@ annotateSpatialData(
 
 \item{use.image}{if TRUE, use only the image}
 
-\item{group.by}{a parameter of \code{vrSpatialPlot}}
+\item{image_name}{the name of the main image}
 
-\item{...}{additional parameters passed to \code{vrImage}.}
+\item{channel}{the name of the main channel}
+
+\item{...}{additional parameters passed to \code{vrSpatialPlot}.}
 }
 \value{
 a vector of annotations

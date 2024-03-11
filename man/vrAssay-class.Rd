@@ -23,7 +23,9 @@ The vrAssay (VoltRon Assay) Class
 
 \item{\code{params}}{additional parameters used by different assay types}
 
-\item{\code{type}}{the type of the assay (cell, spot, ROI)}
+\item{\code{type}}{the type of the assay (tile, molecule, cell, spot, ROI)}
+
+\item{\code{name}}{the assay name}
 
 \item{\code{main_image}}{the key of the main image}
 }}

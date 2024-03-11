@@ -31,9 +31,11 @@ NULL
 #' @param reg if TRUE, the registered coordinates will be used
 #' @param crop whether to crop an image of a spot assay
 #' @param legend.pt.size the size of points at the legend
+#' @param scale.image should the image be scaled down to a low resolution (width: 1000px)
 #' @param legend.loc the location of the legend, default is "right"
 #' @param common.legend whether to use a common legend for all plots
 #' @param collapse whether to combine all ggplots
+#' @param interactive if TRUE, run interactive plot
 #'
 #' @import ggplot2
 #' @importFrom ggpubr ggarrange
@@ -43,13 +45,13 @@ NULL
 vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, assay = NULL, graph.name = NULL,
                           reduction = "umap", ncol = 2, nrow = NULL,
                           font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, label = FALSE, background = NULL, reg = FALSE,
-                          crop = FALSE, legend.pt.size = 2, legend.loc = "right", common.legend = TRUE, collapse = TRUE) {
+                          crop = FALSE, legend.pt.size = 2, scale.image = TRUE, legend.loc = "right", common.legend = TRUE, collapse = TRUE, interactive = FALSE) {
 
   # check object for zarr
   if(is.character(object)){
     if(grepl(".zarr$", object)){
 
-      return(vrSpatialPlotInteractive(zarr.file = object, group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, assay = assay,
+      return(vrSpatialPlotVitessce(zarr.file = object, group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, assay = assay,
                                       reduction = reduction, background = background, reg = reg,  crop = crop))
     }
   }
@@ -63,6 +65,20 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
+
+  # interactive plotting
+  if(interactive){
+    if(length(assay_names) > 1){
+      stop("Only one assay can be visualized with interactive plot")
+    } else{
+      gg <- vrSpatialPlot(object, group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, assay = assay,
+                          graph.name = graph.name, reduction = reduction, ncol = ncol, nrow = nrow, font.size = font.size, pt.size = pt.size,
+                          cell.shape = cell.shape, alpha = alpha, label = label, background = background, reg = reg,
+                          crop = crop, legend.pt.size = legend.pt.size, scale.image = FALSE, legend.loc = legend.loc, common.legend = common.legend, collapse = collapse,
+                          interactive = FALSE)
+      return(vrSpatialPlotInteractive(plot_g = gg))
+    }
+  }
 
   # get entity type and metadata
   metadata <- Metadata(object, assay = assay)
@@ -123,7 +139,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
     gg[[i]] <- vrSpatialPlotSingle(assay = cur_assay, metadata = cur_metadata,
                                    group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, graph = graph, font.size = font.size, pt.size = pt.size,
                                    alpha = alpha, cell.shape = cell.shape, plot_title = p_title, background = background, reg = reg,
-                                   crop = crop, legend.pt.size = legend.pt.size)
+                                   crop = crop, legend.pt.size = legend.pt.size, scale.image = scale.image)
     i <- i + 1
   }
 
@@ -159,13 +175,14 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 #' @param reg if TRUE, the registered coordinates will be used
 #' @param crop whether to crop an image of a spot assay
 #' @param legend.pt.size the size of points at the legend
+#' @param scale.image should the image be scaled down to a low resolution (width: 1000px)
 #'
 #' @import ggplot2
 #' @importFrom igraph get.data.frame
 #'
 vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, graph = NULL,
                                 font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, plot_title = NULL, background = NULL,
-                                reg = FALSE, crop = FALSE, legend.pt.size = 2){
+                                reg = FALSE, crop = FALSE, legend.pt.size = 2, scale.image = TRUE){
 
   # plot
   g <- ggplot()
@@ -184,7 +201,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     image <- vrImages(assay, name = background, channel = channel)
     if(!is.null(image)){
       info <- image_info(image)
-      if(info$width > 1000){
+      if(info$width > 1000 && scale.image){
         image <- magick::image_resize(image, geometry = "1000x")
         scale_factors <- info$width/1000
         info <- magick::image_info(image)
@@ -382,64 +399,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 
   # return data
   return(g)
-}
-
-####
-## Spatial Interactive Plot ####
-####
-
-#' vrSpatialPlotInteractive
-#'
-#' Interactive Plotting identification of spatially resolved cells, spots, and ROI on associated images from multiple assays in a VoltRon object.
-#'
-#' @param zarr.file The zarr file of a VoltRon object
-#' @param group.by a grouping label for the spatial entities
-#' @param plot.segments plot segments instead of points
-#' @param group.ids a subset of categories defined with in the grouping label \code{group.by}
-#' @param assay the assay name
-#' @param reduction The name of the reduction to visualize an embedding alongside with the spatial plot.
-#' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
-#' @param reg if TRUE, the registered coordinates will be used
-#' @param crop whether to crop an image of a spot assay
-#'
-vrSpatialPlotInteractive <- function(zarr.file, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, assay = NULL, reduction = "umap",
-                                     background = NULL, reg = FALSE, crop = FALSE) {
-
-  # check package
-  if (!requireNamespace('vitessceR'))
-    stop("Please install vitessceR package for using interactive visualization")
-
-  # get embedding
-  if(is.null(reduction)){
-    obs_embedding_paths <- c("obsm/spatial")
-  } else {
-    obs_embedding_paths <- c(paste0("obsm/", reduction), "obsm/spatial")
-  }
-
-  w <- vitessceR::AnnDataWrapper$new(
-    adata_path=zarr.file,
-    obs_set_paths = c(paste0("obs/", group.by)),
-    obs_set_names = c(group.by),
-    obs_locations_path = "obsm/spatial",
-    obs_embedding_paths=obs_embedding_paths
-  )
-  vc <- vitessceR::VitessceConfig$new(schema_version = "1.0.15", name = "MBrain")
-  dataset <- vc$add_dataset("My dataset")$add_object(w)
-  spatial <- vc$add_view(dataset, vitessceR::Component$SCATTERPLOT, mapping = "spatial")
-  cell_sets <- vc$add_view(dataset, vitessceR::Component$OBS_SETS)
-
-  if(is.null(reduction)){
-    vc$layout(
-      vitessceR::hconcat(spatial, cell_sets)
-    )
-  } else {
-    umap <- vc$add_view(dataset, vitessceR::Component$SCATTERPLOT, mapping = reduction)
-    vc$layout(
-      vitessceR::hconcat(spatial, vitessceR::vconcat(umap, cell_sets))
-    )
-  }
-
-  vc$widget(theme = "light")
 }
 
 ####

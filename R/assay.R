@@ -24,7 +24,8 @@ setClassUnion("data_matrix", members = c("matrix", "dgCMatrix"))
 #' @slot embeddings list of embeddings
 #' @slot image a list of vrImage objects
 #' @slot params additional parameters used by different assay types
-#' @slot type the type of the assay (cell, spot, ROI)
+#' @slot type the type of the assay (tile, molecule, cell, spot, ROI)
+#' @slot name the assay name
 #' @slot main_image the key of the main image
 #'
 #' @name vrAssay-class
@@ -419,6 +420,8 @@ vrAssayTypes.vrAssay <- function(object) {
   return(object@type)
 }
 
+#' @param param the parameter value to return
+#'
 #' @rdname vrAssayParams
 #' @method vrAssayParams vrAssay
 #'

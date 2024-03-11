@@ -1,5 +1,154 @@
 ####
-# Basilisk Environment ####
+# Spatial Interactive Plot (VoltRon) ####
+####
+
+####
+## Background Shiny App ####
+####
+
+#' vrSpatialPlotInteractive
+#'
+#'
+#' @inheritParams shiny::runApp
+#' @param plot_g the ggplot plot
+#' @importFrom rstudioapi viewer
+#'
+#' @export
+#'
+#' @return This function has no return value.
+#'
+vrSpatialPlotInteractive <- function(host = getOption("shiny.host", "127.0.0.1"),
+                                     port = getOption("shiny.port"), plot_g = NULL){
+  shinyjs::useShinyjs()
+
+  ui <- mod_app_ui("app")
+
+  server <- function(input, output, session) {
+    mod_app_server("app", plot_g = plot_g)
+    session$onSessionEnded(function() {
+      stopApp()
+    })
+  }
+
+  shiny::shinyApp(ui, server, options = list(host = host, port = port, launch.browser = rstudioapi::viewer),
+                  onStart = function() {
+                    cat("Doing application setup\n")
+                    onStop(function() {
+                      cat("Doing application cleanup\n")
+                    })
+                  })
+
+}
+
+#' App UI
+#'
+#' @param id id of the module
+#'
+#' @inheritParams vrSpatialPlotInteractive
+#'
+#' @import shiny
+#'
+mod_app_ui <- function(id) {
+  ns <- NS(id)
+  plotOutput(ns("image_plot"),
+             height = "1000px",
+             dblclick = ns("plot_dblclick"),
+             brush = brushOpts(
+               id = ns("plot_brush"), fill = "green",
+               resetOnNew = TRUE
+             ))
+}
+
+#' App Server
+#'
+#' @param id id of the module
+#' @param plot_g the ggplot plot
+#'
+#' @inheritParams vrSpatialPlotInteractive
+#'
+mod_app_server <- function(id, plot_g = NULL) {
+  moduleServer(id, function(input, output, session) {
+
+    ranges <- reactiveValues(x = plot_g$coordinates$limits$x, y = plot_g$coordinates$limits$y)
+    observeEvent(input$plot_dblclick, {
+      brush <- input$plot_brush
+      if (!is.null(brush)) {
+        ranges$x <- c(brush$xmin, brush$xmax)
+        ranges$y <- c(brush$ymin, brush$ymax)
+      } else {
+        ranges$x <- plot_g$coordinates$limits$x
+        ranges$y <- plot_g$coordinates$limits$y
+      }
+    })
+
+    # image output
+    output$image_plot <- renderPlot({
+      plot_g +
+        coord_equal(xlim = ranges$x, ylim = ranges$y, ratio = 1)
+    })
+  })
+}
+
+####
+# Spatial Interactive Plot (Vitessce) ####
+####
+
+#' vrSpatialPlotInteractive
+#'
+#' Interactive Plotting identification of spatially resolved cells, spots, and ROI on associated images from multiple assays in a VoltRon object.
+#'
+#' @param zarr.file The zarr file of a VoltRon object
+#' @param group.by a grouping label for the spatial entities
+#' @param plot.segments plot segments instead of points
+#' @param group.ids a subset of categories defined with in the grouping label \code{group.by}
+#' @param assay the assay name
+#' @param reduction The name of the reduction to visualize an embedding alongside with the spatial plot.
+#' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
+#' @param reg if TRUE, the registered coordinates will be used
+#' @param crop whether to crop an image of a spot assay
+#'
+vrSpatialPlotVitessce <- function(zarr.file, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, assay = NULL, reduction = "umap",
+                                  background = NULL, reg = FALSE, crop = FALSE) {
+
+  # check package
+  if (!requireNamespace('vitessceR'))
+    stop("Please install vitessceR package for using interactive visualization")
+
+  # get embedding
+  if(is.null(reduction)){
+    obs_embedding_paths <- c("obsm/spatial")
+  } else {
+    obs_embedding_paths <- c(paste0("obsm/", reduction), "obsm/spatial")
+  }
+
+  w <- vitessceR::AnnDataWrapper$new(
+    adata_path=zarr.file,
+    obs_set_paths = c(paste0("obs/", group.by)),
+    obs_set_names = c(group.by),
+    obs_locations_path = "obsm/spatial",
+    obs_embedding_paths=obs_embedding_paths
+  )
+  vc <- vitessceR::VitessceConfig$new(schema_version = "1.0.15", name = "MBrain")
+  dataset <- vc$add_dataset("My dataset")$add_object(w)
+  spatial <- vc$add_view(dataset, vitessceR::Component$SCATTERPLOT, mapping = "spatial")
+  cell_sets <- vc$add_view(dataset, vitessceR::Component$OBS_SETS)
+
+  if(is.null(reduction)){
+    vc$layout(
+      vitessceR::hconcat(spatial, cell_sets)
+    )
+  } else {
+    umap <- vc$add_view(dataset, vitessceR::Component$SCATTERPLOT, mapping = reduction)
+    vc$layout(
+      vitessceR::hconcat(spatial, vitessceR::vconcat(umap, cell_sets))
+    )
+  }
+
+  vc$widget(theme = "light")
+}
+
+####
+## Basilisk Environment ####
 ####
 
 #' The Python Basilisk environment
@@ -33,7 +182,7 @@ py_env <- basilisk::BasiliskEnvironment(
 )
 
 ####
-# Conversion into Zarr for Vitessce ####
+## Conversion into Zarr for Vitessce ####
 ####
 
 #' Title

@@ -1664,11 +1664,11 @@ updateGraphAssay <- function(object1, object2){
 #' Combining the edges of multiple graphs
 #'
 #' @param object a VoltRon Object
-#' @param graph.types a vector of graph names
-#' @param weights the weights for edges of each graph.
+#' @param graph.names a vector of graph names
+#' @param graph.weights the weights for edges of each graph.
 #' @param graph.key the name of the combined graph
 #'
-#' @importFrom igraph union
+#' @importFrom igraph union edge_attr_names as_adjacency_matrix graph_from_adjacency_matrix
 #'
 #' @export
 combineGraphs <- function(object, graph.names = NULL, graph.weights = NULL, graph.key = "combined"){
@@ -1712,7 +1712,7 @@ combineGraphs <- function(object, graph.names = NULL, graph.weights = NULL, grap
     #   E(gr_list[[gr]])$weight <- weights*graph.weights[gr]
     # }
     cur_graph <- vrGraph(object, graph.type = gr)
-    if("weight" %in% edge_attr_names(cur_graph)){
+    if("weight" %in% igraph::edge_attr_names(cur_graph)){
       adjmat <- igraph::as_adjacency_matrix(cur_graph, attr = "weight")
     } else {
       adjmat <- igraph::as_adjacency_matrix(cur_graph)
