@@ -8,6 +8,7 @@ importVisium(
   dir.path,
   selected_assay = "Gene Expression",
   assay_name = "Visium",
+  sample_name = NULL,
   image_name = "H&E",
   inTissue = TRUE,
   resolution_level = "lowres",
@@ -28,6 +29,8 @@ importVisium(
 \item{resolution_level}{the level of resolution of Visium image: "lowres" (default) or "hires"}
 
 \item{...}{additional parameters passed to \code{formVoltRon}}
+
+\item{sample}{the name of the sample}
 }
 \description{
 Importing Visium data

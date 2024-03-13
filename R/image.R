@@ -484,6 +484,36 @@ vrImageNames.vrAssay <- function(object){
 ## Channel Methods ####
 ####
 
+#' @param name the name of the main image
+#'
+#' @rdname vrMainChannel
+#' @method vrMainChannel vrAssay
+#'
+#' @export
+#'
+vrMainChannel.vrAssay <- function(object, name = NULL){
+  if(is.null(name)){
+    name <- vrMainImage(object)
+  }
+  return(vrMainChannel(object@image[[name]]))
+}
+
+#' @param name the name of the main image
+#' @param value the name of main channel
+#'
+#' @rdname vrMainChannel
+#' @method vrMainChannel<- vrAssay
+#'
+#' @export
+#'
+"vrMainChannel<-.vrAssay" <- function(object, name = NULL, value){
+  if(is.null(name)){
+    name <- vrMainImage(object)
+  }
+  vrMainChannel(object@image[[name]]) <- value
+  return(object)
+}
+
 #' @rdname vrMainChannel
 #' @method vrMainChannel vrImage
 #'
