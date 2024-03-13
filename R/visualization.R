@@ -221,7 +221,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   coords <- as.data.frame(vrCoordinates(assay, image_name = image_name, reg = reg))
   coords <- coords/scale_factors
   segments <- vrSegments(assay, image_name = image_name)
-  normdata <- vrData(assay, norm = TRUE)
 
   # plotting features
   if(!group.by %in% colnames(metadata))
