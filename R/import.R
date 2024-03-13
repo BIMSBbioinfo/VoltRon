@@ -155,10 +155,10 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
         connectivity[["cell_id"]] <- vrSpatialPoints(cell_object)[connectivity[["cell_id"]]]
       } else {
         connectivity <- subset(connectivity, cell_id != "UNASSIGNED")
+        connectivity$cell_assay_id <- "_Assay1"
+        connectivity[, cell_id:=do.call(paste0,.SD), .SDcols=c("cell_id", "cell_assay_id")]
+        connectivity$cell_assay_id <- NULL
       }
-      connectivity$cell_assay_id <- "_Assay1"
-      connectivity[, cell_id:=do.call(paste0,.SD), .SDcols=c("cell_id", "cell_assay_id")]
-      connectivity$cell_assay_id <- NULL
 
       # add connectivity of spatial points across assays
       object <- addConnectivity(object,
