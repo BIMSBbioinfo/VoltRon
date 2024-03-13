@@ -19,7 +19,8 @@ vrSpatialPlotSingle(
   background = NULL,
   reg = FALSE,
   crop = FALSE,
-  legend.pt.size = 2
+  legend.pt.size = 2,
+  scale.image = TRUE
 )
 }
 \arguments{
@@ -52,6 +53,8 @@ vrSpatialPlotSingle(
 \item{crop}{whether to crop an image of a spot assay}
 
 \item{legend.pt.size}{the size of points at the legend}
+
+\item{scale.image}{should the image be scaled down to a low resolution (width: 1000px)}
 }
 \description{
 Plotting a single assay from a VoltRon object. We plot the identification of spatially resolved cells, spots, and ROI on associated images.

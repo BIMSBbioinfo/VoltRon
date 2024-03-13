@@ -618,6 +618,27 @@ changeSampleNames.vrMetadata <- function(object, sample_metadata_table){
   return(new_object)
 }
 
+### Sample Methods ####
+
+#' @rdname vrSampleNames
+#' @method vrSampleNames vrMetadata
+#'
+#' @importFrom methods slotNames
+#' @export
+#'
+vrSampleNames.vrMetadata <- function(object){
+
+  # get assay names from metadata
+  sample_names <- NULL
+  for(sl in methods::slotNames(object)){
+    cur_metadata <- slot(object, name = sl)
+    sample_names <- c(sample_names, unique(cur_metadata$Sample))
+  }
+
+  # return
+  sample_names
+}
+
 ####
 # Functions ####
 ####

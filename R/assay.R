@@ -149,20 +149,27 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
     if(!is.null(spatialpoints)){
 
       # check if spatial points are here
-      if(length(intersect(spatialpoints, vrSpatialPoints(object))) == 0)
+      spatialpoints <- intersect(spatialpoints, vrSpatialPoints(object))
+      # if(length(intersect(spatialpoints, vrSpatialPoints(object))) == 0){
+      #   return(NULL)
+      # }
+      if(length(spatialpoints) == 0){
         return(NULL)
+      }
 
       # data
-      object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
-      object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE]
+      # object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
+      # object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE]
+      object@rawdata  <- object@rawdata[,spatialpoints, drop = FALSE]
+      object@normdata  <- object@normdata[,spatialpoints, drop = FALSE]
 
       # embeddings
       for(embed in vrEmbeddingNames(object)){
         embedding <- vrEmbeddings(object, type = embed)
-        vrEmbeddings(object, type = embed) <- embedding[rownames(embedding) %in% spatialpoints,, drop = FALSE]
+        vrEmbeddings(object, type = embed) <- embedding[spatialpoints,, drop = FALSE]
       }
 
-      # images
+      # image
       for(img in vrImageNames(object))
         object@image[[img]] <- subset.vrImage(object@image[[img]], spatialpoints = spatialpoints)
 

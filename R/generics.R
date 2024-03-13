@@ -218,6 +218,24 @@ vrMainAssay <- function(object, ...) {
 }
 
 ####
+# Sample ####
+####
+
+#' Get Sample names
+#'
+#' Given a VoltRon object, give names of samples
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname vrSampleNames
+#' @export vrSampleNames
+#'
+vrSampleNames <- function(object, ...) {
+  UseMethod(generic = 'vrSampleNames', object = object)
+}
+
+####
 # Metadata ####
 ####
 

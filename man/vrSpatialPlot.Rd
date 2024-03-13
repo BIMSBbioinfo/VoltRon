@@ -23,6 +23,7 @@ vrSpatialPlot(
   reg = FALSE,
   crop = FALSE,
   legend.pt.size = 2,
+  scale.image = TRUE,
   legend.loc = "right",
   common.legend = TRUE,
   collapse = TRUE,
@@ -65,6 +66,8 @@ vrSpatialPlot(
 \item{crop}{whether to crop an image of a spot assay}
 
 \item{legend.pt.size}{the size of points at the legend}
+
+\item{scale.image}{should the image be scaled down to a low resolution (width: 1000px)}
 
 \item{legend.loc}{the location of the legend, default is "right"}
 

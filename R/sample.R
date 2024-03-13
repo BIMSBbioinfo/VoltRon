@@ -241,12 +241,14 @@ subset.vrSample <- function(object, subset, assays = NULL, spatialpoints = NULL,
 #' @export
 #'
 vrSpatialPoints.vrSample <- function(object, ...) {
-
-  layers <- object@layer
-  spatialpoints <- unlist(sapply(layers, function(lay) {
+  # layers <- object@layer
+  # spatialpoints <- unlist(sapply(layers, function(lay) {
+  #   vrSpatialPoints(lay)
+  # }, simplify = TRUE))
+  # spatialpoints
+  do.call("c", lapply(object@layer, function(lay) {
     vrSpatialPoints(lay)
-  }, simplify = TRUE))
-  spatialpoints
+  }))
 }
 
 #' changeAssayNames.vrSample
@@ -326,6 +328,7 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
     object@assay <- sapply(object@assay, function(assy) {
       subset.vrAssay(assy, spatialpoints = spatialpoints)
     }, USE.NAMES = TRUE, simplify = TRUE)
+
   } else if(!is.null(image)){
     object@assay <- sapply(object@assay, function(assy) {
       subset.vrAssay(assy, image = image)
@@ -349,11 +352,14 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
 #' @export
 #'
 vrSpatialPoints.vrLayer <- function(object, ...) {
-  assays <- object@assay
-  spatialpoints <- unlist(sapply(assays, function(assy) {
-    vrSpatialPoints(assy)
-  }, simplify = TRUE))
-  spatialpoints
+  # assays <- object@assay
+  # spatialpoints <- unlist(sapply(assays, function(assy) {
+  #   vrSpatialPoints(assy)
+  # }, simplify = TRUE))
+  # spatialpoints
+  do.call("c", lapply(object@assay, function(assy) {
+      vrSpatialPoints(assy)
+  }))
 }
 
 #' subset.Connectivity

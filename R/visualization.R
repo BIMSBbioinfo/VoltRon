@@ -230,36 +230,15 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   } else {
     coords[[group.by]] <- metadata[,group.by]
   }
-
-  if(!is.null(group.ids)){
-    if(length(setdiff(group.ids,  coords[[group.by]])) > 0){
-      # warning("Some groups defined in group.ids does not exist in group.by!")
-      coords <- coords[coords[[group.by]] %in% group.ids,]
-    } else if(length(setdiff(group.ids,  coords[[group.by]])) > 0){
-      stop("None of the groups defined in group.ids exist in group.by!")
-    } else {
-      segments <- segments[coords[[group.by]] %in% group.ids]
-      coords <- coords[coords[[group.by]] %in% group.ids,]
-    }
-  }
-
-  # plotting features
-  if(!group.by %in% colnames(metadata))
-    stop("The column '", group.by, "' was not found in the metadata!")
-  if(inherits(metadata, "data.table")){
-    coords[[group.by]] <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
-  } else {
-    coords[[group.by]] <- metadata[,group.by]
-  }
   if(!is.null(group.ids)){
     if(length(setdiff(group.ids,  coords[[group.by]])) > 0){
       warning("Some groups defined in group.ids does not exist in group.by!")
-      coords <- coords[coords[[group.by]] %in% group.ids,]
-    } else if(length(setdiff(group.ids,  coords[[group.by]])) > 0){
+      coords <- droplevels(coords[coords[[group.by]] %in% group.ids,])
+    } else if(length(setdiff(group.ids,  coords[[group.by]])) == length(group.ids)){
       stop("None of the groups defined in group.ids exist in group.by!")
     } else {
       segments <- segments[coords[[group.by]] %in% group.ids]
-      coords <- coords[coords[[group.by]] %in% group.ids,]
+      coords <- droplevels(coords[coords[[group.by]] %in% group.ids,])
     }
   }
 

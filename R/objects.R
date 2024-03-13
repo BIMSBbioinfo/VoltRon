@@ -792,7 +792,6 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
     } else {
       stop("Column '", name, "' is not found in the metadata")
     }
-    spatialpoints <- rownames(metadata)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
     object <- subset(object, spatialpoints = spatialpoints)
     return(object)
   }
@@ -831,15 +830,19 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
   } else if(!is.null(spatialpoints)) {
 
     metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
+    samples <- vrSampleNames(metadata)
     # assays <- unique(stringr::str_extract(vrSpatialPoints(metadata), "Assay[0-9]+"))
-    assays <- vrAssayNames(metadata)
-    cur_sample.metadata <- subset_sampleMetadata(sample.metadata, assays = assays)
-    samples <- unique(cur_sample.metadata$Sample)
+    # assays <- vrAssayNames(metadata)
+    # cur_sample.metadata <- subset_sampleMetadata(sample.metadata, assays = assays)
+    # samples <- unique(cur_sample.metadata$Sample)
+
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subset.vrSample(samp, spatialpoints = spatialpoints)
     }, USE.NAMES = TRUE)
-    # spatialpoints <-  do.call(c, lapply(listofSamples, vrSpatialPoints.vrSample))
-    spatialpoints <-  unlist(sapply(listofSamples, vrSpatialPoints.vrSample, simplify = TRUE))
+
+    # spatialpoints <-  unlist(sapply(listofSamples, vrSpatialPoints.vrSample, simplify = TRUE))
+    spatialpoints <-  do.call("c", lapply(listofSamples, vrSpatialPoints.vrSample))
+
     metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
     sample.metadata <- subset_sampleMetadata(sample.metadata, assays = vrAssayNames.vrMetadata(metadata))
 

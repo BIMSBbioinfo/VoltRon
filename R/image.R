@@ -149,15 +149,23 @@ subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
   if(!is.null(spatialpoints)){
 
     # check if spatial points are here
-    if(length(intersect(spatialpoints, rownames(coords))) == 0)
+    spatialpoints <- intersect(spatialpoints, rownames(coords))
+    # if(length(intersect(spatialpoints, rownames(coords))) == 0){
+    #   return(NULL)
+    # }
+    if(length(spatialpoints) == 0){
       return(NULL)
+    }
 
     # coordinates
-    vrCoordinates(object) <- coords[rownames(coords) %in% spatialpoints,, drop = FALSE]
+    # vrCoordinates(object) <- coords[rownames(coords) %in% spatialpoints,, drop = FALSE]
+    vrCoordinates(object) <- coords[spatialpoints,, drop = FALSE]
 
     # segments
+    # if(length(segments) > 0)
+    #   vrSegments(object) <- segments[names(segments) %in% spatialpoints]
     if(length(segments) > 0)
-      vrSegments(object) <- segments[names(segments) %in% spatialpoints]
+      vrSegments(object) <- segments[spatialpoints]
 
   } else if(!is.null(image)) {
 
