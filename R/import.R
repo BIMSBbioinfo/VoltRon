@@ -13,6 +13,7 @@
 #' @param dir.path path to Xenium output folder
 #' @param selected_assay selected assay from Xenium
 #' @param assay_name the assay name of the SR object
+#' @param sample_name the name of the sample
 #' @param use_image if TRUE, the DAPI image will be used.
 #' @param morphology_image the name of the lowred morphology image. Default: morphology_lowres.tif
 #' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)
@@ -29,7 +30,7 @@
 #'
 #' @export
 #'
-importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, overwrite_resolution = FALSE, image_name = "main", channel_name = "DAPI", import_molecules = FALSE, ...)
+importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", sample_name = NULL, use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, overwrite_resolution = FALSE, image_name = "main", channel_name = "DAPI", import_molecules = FALSE, ...)
 {
   # cell assay
   message("Creating cell level assay ...")
@@ -97,7 +98,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   }
 
   # create VoltRon object for cells
-  cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, segments = segments, main.assay = assay_name, assay.type = "cell", image_name = image_name, main_channel = channel_name, ...)
+  cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, segments = segments, main.assay = assay_name, assay.type = "cell", image_name = image_name, main_channel = channel_name, sample_name = sample_name, ...)
 
   # molecule assay
   if(!import_molecules){
@@ -240,6 +241,7 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
 #' @param dir.path path to Visium output folder
 #' @param selected_assay selected assay from Visium
 #' @param assay_name the assay name
+#' @param sample the name of the sample
 #' @param image_name the image name of the Visium assay, Default: H&E
 #' @param inTissue if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)
 #' @param resolution_level the level of resolution of Visium image: "lowres" (default) or "hires"
@@ -251,7 +253,7 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
 #'
 #' @export
 #'
-importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_name = "Visium", image_name = "H&E", inTissue = TRUE, resolution_level = "lowres", ...)
+importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_name = "Visium", sample_name = NULL, image_name = "H&E", inTissue = TRUE, resolution_level = "lowres", ...)
 {
   # raw counts
   listoffiles <- list.files(dir.path)
@@ -326,7 +328,7 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   }
 
   # create VoltRon
-  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", image_name = image_name, ...)
+  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", image_name = image_name, sample_name = sample_name, ...)
 }
 
 ####
@@ -398,6 +400,7 @@ import10Xh5 <- function(filename){
 #' @param image the reference morphology image of the GeoMx assay
 #' @param segment_polygons if TRUE, the ROI polygons are parsed from the OME.TIFF file
 #' @param ome.tiff the OME.TIFF file of the GeoMx experiment if exists
+#' @param resolution_level the level of resolution within GeoMx OME-TIFF image, Default: 3
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
 #' @importFrom dplyr %>% full_join
@@ -407,7 +410,7 @@ import10Xh5 <- function(filename){
 #' @export
 #'
 importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetName, assay_name = "GeoMx",
-                        image = NULL, segment_polygons = FALSE, ome.tiff = NULL, ...)
+                        image = NULL, segment_polygons = FALSE, ome.tiff = NULL, resolution_level = 3, ...)
 {
   # Get pkc file
   if(file.exists(pkc.file)){
@@ -509,8 +512,14 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
   # get ROI segments (polygons)
   segments <- list()
   if(!is.null(ome.tiff)){
+
+    # get segments
     segments <- importGeoMxSegments(ome.tiff, segmentsummary, geomx_image_info)
     segments <- segments[rownames(coords)]
+
+    # parse channels if ome.tiff is given
+    channels <- importGeoMxChannels(ome.tiff, segmentsummary, geomx_image_info, resolution_level = resolution_level)
+    image <- c(list(scanimage = image), channels)
   }
 
   # create VoltRon for non-negative probes
@@ -781,9 +790,6 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
   # get ROIs
   ROIs <- omexml[which(names(omexml) == "ROI")]
 
-  # Y-axis height
-  sizeY <- as.numeric(omexml$Image$Pixels$.attrs['SizeY'])
-
   # get masks for each ROI
   mask_lists <- list()
   for(i in 1:length(ROIs)){
@@ -816,7 +822,7 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
 #' rescaleGeoMxROIs
 #'
-#' Rescale GeoMx point (center or polygon corners of ROI) coordinates for image registration
+#' Rescale GeoMx point (center or polygon corners of ROI) coordinates
 #'
 #' @param pts coordinates of the cells from the Xenium assays
 #' @param summary segmentation summary data frame
@@ -834,6 +840,91 @@ rescaleGeoMxPoints <- function(pts, summary, imageinfo){
 
   # return
   return(pts)
+}
+
+#' importGeoMxChannels
+#'
+#' Rescale GeoMx channels with respect to the scan image
+#'
+#' @param ome.tiff the OME.TIFF file of the GeoMx Experiment
+#' @param summary segmentation summary data frame
+#' @param imageinfo image information
+#' @param resolution_level the resolution level (1-7) of the image parsed from the OME.TIFF file
+#'
+#' @param RBioFormats read.image
+#' @param EBImage as.Image
+#' @param grDevices as.raster
+#' @param magick image_read
+#'
+#' @noRd
+importGeoMxChannels <- function(ome.tiff, summary, imageinfo, resolution_level){
+
+  # check file
+  if(file.exists(ome.tiff)){
+    options(java.parameters = "-Xmx4g")
+    if(grepl(".ome.tiff$|.ome.tif$", ome.tiff)){
+      if (!requireNamespace('RBioFormats'))
+        stop("Please install RBioFormats package extract xml from the ome.tiff file!")
+      omexml <- RBioFormats::read.omexml(ome.tiff)
+      omexml <- XML::xmlToList(omexml, simplify = TRUE)
+    } else {
+      warning("ome.tiff format not found!")
+      return(NULL)
+    }
+  } else {
+    stop("There are no files named ", ome.tiff," in the path")
+  }
+
+  # get all channels
+  ome.tiff <- RBioFormats::read.image(ome.tiff, resolution = resolution_level)
+
+  # get frame information
+  nframes <- ome.tiff@metadata$coreMetadata$imageCount
+  frames <- EBImage::getFrames(ome.tiff)
+  frames <- lapply(EBImage::getFrames(ome.tiff), function(x){
+    img <- magick::image_read(grDevices::as.raster(EBImage::as.Image(x)))
+    rescaleGeoMxImage(img, summary, imageinfo, resolution = resolution_level)
+  })
+
+  # get channel names
+  omexml <- omexml$StructuredAnnotations[seq(from = 1, by = 2, length.out = nframes)]
+  channel_names <- lapply(omexml, function(x){
+    x$Value$ChannelInfo$BiologicalTarget
+  })
+  names(frames) <- channel_names
+
+  # return frames
+  return(frames)
+}
+
+#' rescaleGeoMxImage
+#'
+#' Rescale GeoMx channels with respect to the scan image
+#'
+#' @param img coordinates of the cells from the Xenium assays
+#' @param summary segmentation summary data frame
+#' @param imageinfo image information
+#' @param resolution_level the resolution level (1-7) of the image parsed from the OME.TIFF file
+#'
+#' @param magick image_crop
+#'
+#' @noRd
+rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level){
+
+  # adjust offset and scan size to the resolution level
+  offset.x <- summary$Scan.Offset.X[1]/(2*(resolution_level-1))
+  offset.y <- summary$Scan.Offset.Y[1]/(2*(resolution_level-1))
+  scan.width <- summary$Scan.Width[1]/(2*(resolution_level-1))
+  scan.height <- summary$Scan.Height[1]/(2*(resolution_level-1))
+
+  # crop image given adjusted offsets
+  new_img <- magick::image_crop(img, geometry = paste0(scan.width, "x", scan.height, "+", offset.x, "+", offset.y))
+
+  # resize image
+  new_img <- magick::image_resize(new_img, geometry = paste0(imageinfo$width, "x", imageinfo$height))
+
+  # return
+  return(new_img)
 }
 
 ####

@@ -13,6 +13,7 @@ importGeoMx(
   image = NULL,
   segment_polygons = FALSE,
   ome.tiff = NULL,
+  resolution_level = 3,
   ...
 )
 }
@@ -32,6 +33,8 @@ importGeoMx(
 \item{segment_polygons}{if TRUE, the ROI polygons are parsed from the OME.TIFF file}
 
 \item{ome.tiff}{the OME.TIFF file of the GeoMx experiment if exists}
+
+\item{resolution_level}{the level of resolution within GeoMx OME-TIFF image, Default: 3}
 
 \item{...}{additional parameters passed to \code{formVoltRon}}
 }

@@ -8,6 +8,7 @@ importXenium(
   dir.path,
   selected_assay = "Gene Expression",
   assay_name = "Xenium",
+  sample_name = NULL,
   use_image = TRUE,
   morphology_image = "morphology_lowres.tif",
   resolution_level = 7,
@@ -24,6 +25,8 @@ importXenium(
 \item{selected_assay}{selected assay from Xenium}
 
 \item{assay_name}{the assay name of the SR object}
+
+\item{sample_name}{the name of the sample}
 
 \item{use_image}{if TRUE, the DAPI image will be used.}
 

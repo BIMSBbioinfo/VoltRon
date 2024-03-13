@@ -69,7 +69,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
   # interactive plotting
   if(interactive){
     if(length(assay_names) > 1){
-      stop("Only one assay can be visualized with interactive plot")
+      stop("Only one assay can be visualized with the interactive plot")
     } else{
       gg <- vrSpatialPlot(object, group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, assay = assay,
                           graph.name = graph.name, reduction = reduction, ncol = ncol, nrow = nrow, font.size = font.size, pt.size = pt.size,

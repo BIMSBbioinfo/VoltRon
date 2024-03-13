@@ -1383,6 +1383,8 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, reg =
   return(object)
 }
 
+#' @param assay assay
+#'
 #' @rdname flipCoordinates
 #' @method flipCoordinates VoltRon
 #'
