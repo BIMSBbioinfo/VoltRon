@@ -9,6 +9,7 @@ vrSpatialPlot(
   group.by = "Sample",
   plot.segments = FALSE,
   group.ids = NULL,
+  n.tile = 0,
   assay = NULL,
   graph.name = NULL,
   reduction = "umap",
@@ -38,6 +39,8 @@ vrSpatialPlot(
 \item{plot.segments}{plot segments instead of points}
 
 \item{group.ids}{a subset of categories defined with in the grouping label \code{group.by}}
+
+\item{n.tile}{should points be aggregated into tiles before visualization (see \code{geom_tile}). Applicable only for cells and molecules}
 
 \item{assay}{the assay name}
 

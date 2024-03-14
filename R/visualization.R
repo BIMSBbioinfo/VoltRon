@@ -17,6 +17,7 @@ NULL
 #' @param group.by a grouping label for the spatial entities
 #' @param plot.segments plot segments instead of points
 #' @param group.ids a subset of categories defined with in the grouping label \code{group.by}
+#' @param n.tile should points be aggregated into tiles before visualization (see \code{geom_tile}). Applicable only for cells and molecules
 #' @param assay the assay name
 #' @param graph.name if not NULL, the spatial graph is with name \code{graph.name} is visualized as well
 #' @param reduction Used by \code{vrSpatialPlotInteractive}, to visualize an embedding alongside with the spatial plot.
@@ -42,7 +43,7 @@ NULL
 #'
 #' @export
 #'
-vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, assay = NULL, graph.name = NULL,
+vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, n.tile = 0, assay = NULL, graph.name = NULL,
                           reduction = "umap", ncol = 2, nrow = NULL,
                           font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, label = FALSE, background = NULL, reg = FALSE,
                           crop = FALSE, legend.pt.size = 2, scale.image = TRUE, legend.loc = "right", common.legend = TRUE, collapse = TRUE, interactive = FALSE) {
@@ -71,7 +72,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
     if(length(assay_names) > 1){
       stop("Only one assay can be visualized with the interactive plot")
     } else{
-      gg <- vrSpatialPlot(object, group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, assay = assay,
+      gg <- vrSpatialPlot(object, group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, n.tile = n.tile, assay = assay,
                           graph.name = graph.name, reduction = reduction, ncol = ncol, nrow = nrow, font.size = font.size, pt.size = pt.size,
                           cell.shape = cell.shape, alpha = alpha, label = label, background = background, reg = reg,
                           crop = crop, legend.pt.size = legend.pt.size, scale.image = FALSE, legend.loc = legend.loc, common.legend = common.legend, collapse = collapse,
@@ -137,7 +138,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
     # visualize
     p_title <- plot_title[[assy]]
     gg[[i]] <- vrSpatialPlotSingle(assay = cur_assay, metadata = cur_metadata,
-                                   group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, graph = graph, font.size = font.size, pt.size = pt.size,
+                                   group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, n.tile = n.tile, graph = graph, font.size = font.size, pt.size = pt.size,
                                    alpha = alpha, cell.shape = cell.shape, plot_title = p_title, background = background, reg = reg,
                                    crop = crop, legend.pt.size = legend.pt.size, scale.image = scale.image)
     i <- i + 1
@@ -165,6 +166,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 #' @param group.by a grouping label for the spatial entities
 #' @param plot.segments plot segments instead of points
 #' @param group.ids a subset of categories defined with in the grouping label \code{group.by}
+#' @param n.tile should points be aggregated into tiles before visualization (see \code{geom_tile}). Applicable only for cells and molecules
 #' @param graph if not NULL, the graph is added to the plot
 #' @param font.size font sizes
 #' @param pt.size point size
@@ -180,7 +182,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 #' @import ggplot2
 #' @importFrom igraph get.data.frame
 #'
-vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, graph = NULL,
+vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, n.tile = 0, graph = NULL,
                                 font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, plot_title = NULL, background = NULL,
                                 reg = FALSE, crop = FALSE, legend.pt.size = 2, scale.image = TRUE){
 
@@ -300,10 +302,17 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       } else {
 
         # add points
+        if(n.tile == 0){
+          g <- g +
+            geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
+            scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+            scale_color_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+              guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
+        } else {
+          g <- vrSpatialPlotSingleTiling(g = g, data = coords, n.tile = n.tile, alpha = alpha)
+        }
+
         g <- g +
-          geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
-          scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
-          scale_color_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
           guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
 
         # add if a graph exists
@@ -320,11 +329,15 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   } else if(vrAssayTypes(assay) == "molecule") {
 
     # coords <- coords[coords[[group.by]] %in% transcripts, ]
-    g <- g +
-      geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
-      scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
-      scale_color_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
-      guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
+    if(n.tile == 0){
+      g <- g +
+        geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
+        scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+        scale_color_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+        guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
+    } else {
+      g <- vrSpatialPlotSingleTiling(g = g, data = coords, n.tile = n.tile, alpha = alpha)
+    }
 
   } else {
     stop("Only ROIs, spots, cells can be visualized with vrSpatialPlot!")
@@ -377,6 +390,46 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 
   # return data
   return(g)
+}
+
+#' vrSpatialPlotSingleTiling
+#'
+#' Plotting a tiled version of the vrSpatialPlot
+#'
+#' @param g the ggplot figure
+#' @param assay vrAssay object
+#' @param metadata the metadata associated with the assay
+#' @param group.by a grouping label for the spatial entities
+#' @param plot.segments plot segments instead of points
+#' @param group.ids a subset of categories defined with in the grouping label \code{group.by}
+#' @param n.tile should points be aggregated into tiles before visualization (see \code{geom_tile}). Applicable only for cells and molecules
+#' @param graph if not NULL, the graph is added to the plot
+#' @param font.size font sizes
+#' @param pt.size point size
+#' @param cell.shape the shape of the points representing cells, see \code{help(geom_point)}
+#' @param alpha alpha level for cells/spots/ROIs
+#' @param plot_title the title of the single plot
+#' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
+#' @param reg if TRUE, the registered coordinates will be used
+#' @param crop whether to crop an image of a spot assay
+#' @param legend.pt.size the size of points at the legend
+#' @param scale.image should the image be scaled down to a low resolution (width: 1000px)
+#'
+#' @import ggplot2
+#'
+vrSpatialPlotSingleTiling <- function(g, data, n.tile, alpha = 1){
+
+  gplot <- g + geom_hex(data = data, mapping = aes(x = x, y = y), bins = n.tile, alpha = alpha)
+  hex_count_data <- ggplot_build(gplot)$data[[2]]
+  midpoint <- max(hex_count_data$count)/2
+  g <- g +
+    geom_hex(data = data, mapping = aes(x = x, y = y), bins = n.tile, alpha = 0.6) +
+    scale_fill_gradientn(name = "Count",
+                         colors=c("dodgerblue2", "white", "yellow3"),
+                         values=scales::rescale(c(0, midpoint, max(hex_count_data$count))), limits = c(0, max(hex_count_data$count)))
+
+  # return
+  g
 }
 
 ####
