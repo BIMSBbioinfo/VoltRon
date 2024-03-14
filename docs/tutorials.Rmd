@@ -102,10 +102,23 @@ In addition, VoltRon integrates with spot deconvolution methods such as RCTD to 
       <img width="280" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/spotanalysis.png" class="center">
       <p style = "margin: 3%"> Quality control, analysis and visualization of Cell/Spot datasets </p>
    </td>
-   <td onclick="location.href='pixelanalysis.html';"> 
+      <td onclick="location.href='moleculeanalysis.html';"> 
+      <p class ="tutorial"> Molecules </p>
+      <br>
+      <img width="280" height="230" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize.png" class="center">
+      <br>
+      <p style = "margin: 3%"> Analysis and visualization of Molecule datasets <br> <strong> (Under Development) </strong> </p>
+   </td>
+  </tr>
+  <tr>
+     <td onclick="location.href='pixelanalysis.html';"> 
       <p class ="tutorial"> Pixels (Image Only) </p>
       <img width="280" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/tissue_lowres_image_grid.png" class="center">
       <p style = "margin: 3%"> Analysis and visualization of Image datasets <br> <strong> (Under Development) </strong> </p>
+   </td>
+   <td>
+   </td>
+   <td>
    </td>
   </tr>
 </tbody>

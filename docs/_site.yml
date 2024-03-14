@@ -19,6 +19,8 @@ navbar:
           href: roianalysis.html
         - text: "Cell/Spot Analysis"
           href: spotanalysis.html
+        - text: "Molecule Analysis"
+          href: moleculeanalysis.html
         - text: "Pixels (Image Only) Analysis"
           href: pixelanalysis.html
       - text: "Utilities"
