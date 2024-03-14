@@ -954,10 +954,6 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   # set VoltRon class
   object <- methods::new("VoltRon", samples = listofSamples, metadata = metadata, sample.metadata = sample.metadata, main.assay = main.assay, project = project)
 
-  # # change assay names and sample names
-  # for(assy in rownames(sample.metadata))
-  #   vrAssayNames(object[[assy]]) <- assy
-
   # change assay names and sample names
   object <- changeAssayNames(object, assays = rownames(sample.metadata))
 

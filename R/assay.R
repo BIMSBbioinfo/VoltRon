@@ -189,6 +189,10 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
         embedding <- vrEmbeddings(object, type = embed)
         vrEmbeddings(object, type = embed) <- embedding[rownames(embedding) %in% spatialpoints,, drop = FALSE]
       }
+    } else {
+
+      # else return empty
+      return(NULL)
     }
   }
 
