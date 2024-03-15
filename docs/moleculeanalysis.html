@@ -500,21 +500,6 @@ data, we can inspect both Xenium images. We use the
 images of all VoltRon objects. Observe that the DAPI image of the second
 Xenium replicate is dim, hence we might need to increase the
 brightness.</p>
-<pre class="r watch-out"><code>vrImages(Xen_R1)
-vrImages(Xen_R2)</code></pre>
-<table>
-<tbody>
-<tr style="vertical-align: center">
-<td style="width:50%; vertical-align: center">
-<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/xeniumr1.png" class="center">
-</td>
-<td style="width:50%; vertical-align: center">
-<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/xeniumr2.png" class="center">
-</td>
-</tr>
-</tbody>
-</table>
-<p><br></p>
 </div>
 <div id="spatial-visualization" class="section level2">
 <h2>Spatial Visualization</h2>
@@ -528,7 +513,7 @@ and visualize the localization of these transcripts. Here we subset a
 ductal carcinoma niche, and visualize visualize mRNAs of
 <strong>(i)</strong> ACTA2, a marker for smooth muscle cell actin, and
 <strong>(ii)</strong> TCF7, an early exhausted t cell marker.</p>
-<pre class="r watch-out"><code>Xen_R1_subsetinfo &lt;- subset(Xen_R1_assay, interactive = TRUE)
+<pre class="r watch-out"><code>Xen_R1_subsetinfo &lt;- subset(Xen_R1, interactive = TRUE)
 Xen_R1_subset &lt;- Xen_R1_subsetinfo$subsets[[1]]
 vrSpatialPlot(Xen_R1_subset, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;,
               group.id = c(&quot;ACTA2&quot;, &quot;KRT15&quot;, &quot;TACSTD2&quot;, &quot;CEACAM6&quot;), pt.size = 0.2, legend.pt.size = 5)</code></pre>
