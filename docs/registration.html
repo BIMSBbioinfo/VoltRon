@@ -357,6 +357,9 @@ div.tocify {
           <a href="spotanalysis.html">Cell/Spot Analysis</a>
         </li>
         <li>
+          <a href="moleculeanalysis.html">Molecule Analysis</a>
+        </li>
+        <li>
           <a href="pixelanalysis.html">Pixels (Image Only) Analysis</a>
         </li>
       </ul>
@@ -708,8 +711,72 @@ abundance of some DCIS and invasive tumor subtypes.</p>
 </div>
 </div>
 </div>
-<div id="alignment-of-dlpfc-visium" class="section level2">
-<h2>Alignment of DLPFC Visium</h2>
+<div id="alignment-of-xenium-and-he" class="section level2">
+<h2>Alignment of Xenium and H&amp;E</h2>
+<p>In this use case, we will align <strong>immunofluorescence
+(IF)</strong> of the <strong>Xenium In Situ</strong> platform to an
+<strong>H&amp;E images</strong> generated from the same sections as the
+Xenium. VoltRon provides built-in utilities to import images as spatial
+datasets where <strong>tiles</strong> are the spatial points. We will
+import both Xenium and H&amp;E images into two separate VoltRon objects
+and overlay H&amp;E images.</p>
+<p>You can download the Xenium readout and the H&amp;E image of the same
+tissue section from the <a
+href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
+Genomics website</a> (specifically, import <strong>In Situ Replicate
+1</strong> and <strong>Supplemental: Post-Xenium H&amp;E image
+(TIFF)</strong>).</p>
+<pre class="r watch-out"><code>library(VoltRon)
+
+# import Xenium 
+Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
+
+# import H&amp;E image and built a VoltRon object
+Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image_highres.tif&quot;,
+                                sample_name = &quot;XeniumR1image&quot;,
+                                image_name = &quot;H&amp;E&quot;, stack.id = 1)
+Xen_R1_image</code></pre>
+<pre><code>VoltRon Object 
+XeniumR1image: 
+  Layers: Section1 
+Assays: ImageData(Main) </code></pre>
+<p>Lets take a look at the image of the Xen_R1_image object</p>
+<pre class="r watch-out"><code>vrImages(Xen_R1_image)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE.png" class="center"></p>
+<p><br></p>
+<div id="automated-image-alignment-1" class="section level3">
+<h3>Automated Image Alignment</h3>
+<p>We can use the <strong>registerSpatialData</strong> function to
+warp/align images across multiple VoltRon objects and define these
+aligned images additional channels of existing coordinate systems of
+assays in one of these VoltRon objects.</p>
+<p>First we align the H&amp;E image to the DAPI image of the Xenium
+replicate. Similar to the first use case, we need to negate the DAPI
+image and change the alignment of the image to match it with the H&amp;E
+image.</p>
+<pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))</code></pre>
+<p><img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE_function.png" class="center"></p>
+<p><br></p>
+<p>Now we create a new channel for the existing coordinate system of the
+Xenium data. Here, the key of the registered H&amp;E image will be
+<strong>H&amp;E_reg</strong>. We choose the destination of the
+registered image which is the first Assay of the Xenium data
+(i.e. <strong>Assay1</strong>). The original DAPI coordinate system, and
+we give a name for the new image/channel which is
+<strong>H&amp;E</strong>.</p>
+<pre class="r watch-out"><code>Xenium_reg &lt;- xen_reg$registered_spat[[2]]
+vrImages(Xen_R1[[&quot;Assay1&quot;]], name = &quot;DAPI&quot;, channel = &quot;H&amp;E&quot;) &lt;- vrImages(Xenium_reg, name = &quot;H&amp;E_reg&quot;)</code></pre>
+<p>Now we can call the registered H&amp;E image of the Xenium data or
+later put the aligned H&amp;E when calling
+<strong>vrSpatialPlot</strong> or
+<strong>vrSpatialFeaturePlot</strong>.</p>
+<pre class="r watch-out"><code>vrImages(Xen_R1, name = &quot;DAPI&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE.png" class="center"></p>
+<p><br></p>
+</div>
+</div>
+<div id="alignment-of-visium-and-visium" class="section level2">
+<h2>Alignment of Visium and Visium</h2>
 <p>In the next use case, we will align <strong>H&amp;E images</strong>
 associated with Visium data generated from tissue block sections of
 <strong>adult humans with postmortem dorsolateral prefrontal cortex
@@ -726,7 +793,7 @@ DLPFC_2 &lt;- importVisium(&quot;DLPFC/151674&quot;, sample_name = &quot;DLPFC_2
 DLPFC_3 &lt;- importVisium(&quot;DLPFC/151675&quot;, sample_name = &quot;DLPFC_3&quot;)
 DLPFC_4 &lt;- importVisium(&quot;DLPFC/151676&quot;, sample_name = &quot;DLPFC_4&quot;)</code></pre>
 <p><br></p>
-<div id="automated-image-alignment-1" class="section level3">
+<div id="automated-image-alignment-2" class="section level3">
 <h3>Automated Image Alignment</h3>
 <p>We will again use the registerSpatialData function to
 <strong>automatically register two Visium assays (two H&amp;E
@@ -842,7 +909,7 @@ $(document).ready(function ()  {
       scrollTo: 0
     };
     options.showAndHide = false;
-    options.smoothScroll = false;
+    options.smoothScroll = true;
 
     // tocify
     var toc = $("#TOC").tocify(options).data("toc-tocify");

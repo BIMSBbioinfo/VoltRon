@@ -1,0 +1,96 @@
+---
+title: "Molecule Analysis"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 4
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+<style>
+.title{
+  display: none;
+}
+body {
+  text-align: justify
+}
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+table, th, td {
+  border-collapse: collapse;
+  align-self: center;
+  padding-right: 10px;
+  padding-left: 10px;
+}
+</style>
+
+```{css, echo=FALSE}
+.watch-out {
+  color: black;
+}
+```
+
+```{r setup, include=FALSE}
+# use rmarkdown::render_site(envir = knitr::knit_global())
+knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
+```
+
+<br>
+
+# Xenium Data Analysis
+
+VoltRon is an end-to-end spatial omic analysis package which also supports investigating spatial points in sub-cellular resolution, including those that are based on Fluorescence in situ hybrizrization where one can spatially locate each individual molecule that are hybridrized. 
+
+In this use case, we analyse readouts of the experiments conducted on example tissue sections analysed by the [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform. Two tissue sections of 5 $\mu$m tickness are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. More information on the spatial datasets and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
+ 
+You can import these readouts from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import **In Situ Replicate 1/2**). Alternatively, you can **download a zipped collection of Xenium readouts** from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip). 
+
+<br>
+
+## Building VoltRon objects
+
+VoltRon includes built-in functions for converting readouts of Xenium experiments into VoltRon objects. The **importXenium** function locates all readout documents under the output folder of the Xenium experiment, and forms a VoltRon object. In this case, the Xenium data includes two assays (in the same layer) where one is the cell segmentation based cell profile data and the other is the pure molecule assay where the identity (gene of origin) of RNA molecules are given.
+
+```{r eval = FALSE, class.source="watch-out"}
+library(VoltRon)
+Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1", import_molecules = TRUE)
+Xen_R1
+```
+
+```
+VoltRon Object 
+XeniumR1: 
+  Layers: Section1 
+Assays: Xenium(Main) Xenium_mol 
+```
+
+<br>
+
+## Spatial Visualization
+
+With **vrSpatialPlot**, we can visualize Xenium experiments in subcellular context. We first visualize mRNAs of ACTA2, a marker for smooth muscle cell actin, and other markers found in the breast cancer tissue sample. We can interactively select a subset of interest within the tissue section and visualize the localization of these transcripts. Here we subset a ductal carcinoma niche, and visualize mRNAs of four genes. 
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_R1_subsetinfo <- subset(Xen_R1, interactive = TRUE)
+Xen_R1_subset <- Xen_R1_subsetinfo$subsets[[1]]
+vrSpatialPlot(Xen_R1_subset, assay = "Xenium_mol", group.by = "gene",
+              group.id = c("ACTA2", "KRT15", "TACSTD2", "CEACAM6"), pt.size = 0.2, legend.pt.size = 5)
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize.png" class="center">
+
+<br>
+
+We can use the **n.tile** arguement to divide the count of selected group.ids (e.g. genes here) into hexagonal bins. We will use this arguement to divide the x and y-axis into 100 tiles and aggregate transcript counts from select **group.id**
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPlot(Xen_R1_subset, assay = "Xenium_mol", group.by = "gene", group.id = "ACTA2",
+              legend.pt.size = 5, n.tile = 100, background = "black")
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize_bins.png" class="center">

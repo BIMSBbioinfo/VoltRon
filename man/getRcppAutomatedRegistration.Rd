@@ -42,5 +42,5 @@ getRcppAutomatedRegistration(
 \item{method}{the automated registration method, either FLANN or BRUTE-FORCE}
 }
 \description{
-Automated registration with Rcpp
+Automated registration workflos with Rcpp
 }

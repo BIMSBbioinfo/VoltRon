@@ -179,7 +179,7 @@ fill.na <- function(x, i = 5) {
 #' @param FUN function
 #' @param ... arguments passed to \code{FUN}
 #'
-#' @importFrom methods slot
+#' @importFrom methods slot slotNames
 #'
 slotApply <- function(x,FUN,...){
   cl <- class(x)
@@ -235,7 +235,8 @@ jaccard_similarity <- function(mat) {
 #' @param file Character sting. If a file name is provided then the css code will be printed into that file. If the argument is NULL (default) then a string will be returned.
 #'
 #' @importFrom htmltools HTML
-#' @export
+#'
+#' @noRd
 #'
 make_css <- function (..., file = NULL)
 {
@@ -262,4 +263,15 @@ make_css <- function (..., file = NULL)
     cat(css_string, file = file)
     invisible(NULL)
   }
+}
+
+#' Generate a random safe port number
+#'
+#' This function generates a random port allowed by shiny::runApp.
+#' @noRd
+random_port <- function() {
+  all_ports <- 3000:8000
+  unsafe_ports <- c(3659, 4045, 5060, 5061, 6000, 6566, 6665:6669, 6697)
+  safe_ports <- setdiff(all_ports, unsafe_ports)
+  sample(safe_ports, size = 1)
 }

@@ -3,6 +3,8 @@
 \name{vrMainChannel}
 \alias{vrMainChannel}
 \alias{vrMainChannel<-}
+\alias{vrMainChannel.vrAssay}
+\alias{vrMainChannel<-.vrAssay}
 \alias{vrMainChannel.vrImage}
 \alias{vrMainChannel<-.vrImage}
 \title{vrMainChannel}
@@ -10,6 +12,10 @@
 vrMainChannel(object, ...)
 
 vrMainChannel(object, ...) <- value
+
+\method{vrMainChannel}{vrAssay}(object, name = NULL)
+
+\method{vrMainChannel}{vrAssay}(object, name = NULL) <- value
 
 \method{vrMainChannel}{vrImage}(object)
 
@@ -21,6 +27,8 @@ vrMainChannel(object, ...) <- value
 \item{...}{Arguments passed to other methods}
 
 \item{value}{the name of main channel}
+
+\item{name}{the name of the main image}
 }
 \description{
 Get the main channel name of the image

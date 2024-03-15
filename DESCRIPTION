@@ -9,12 +9,12 @@ Description: VoltRon is a novel spatial omic analysis toolbox for multi-omics in
 License: MIT + file LICENSE
 SystemRequirements: OpenCV 4.7 (or higher): libopencv-dev (Debian, Ubuntu) or opencv-devel (Fedora)
 Encoding: UTF-8
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 biocViews:
 Imports: methods, S4Vectors, EBImage, FNN, Matrix, XML, dplyr, ggforce, 
          ggplot2, ggpubr, ggrepel, hdf5r, htmltools, igraph, irlba, rjson, magick, raster, 
-         reshape2, rlang, scales, shiny, shinyjs, stringr, terra, uwot, data.table, interp, 
-         fastDummies, anndata, basilisk, reticulate, sp, ids
+         reshape2, rlang, scales, shiny, shinyjs, stringr, terra, uwot, data.table, RCDT, 
+         fastDummies, anndata, basilisk, reticulate, sp, ids, rstudioapi
 LinkingTo: Rcpp, RcppArmadillo (>= 0.4)
 Collate: 
     'RcppExports.R'

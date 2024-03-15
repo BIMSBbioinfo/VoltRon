@@ -16,14 +16,15 @@ NULL
 #' @rdname getSpatialNeighbors
 #' @method getSpatialNeighbors VoltRon
 #'
-#' @importFrom interp tri.mesh neighbours
+# #' @importFrom interp tri.mesh neighbours
 #' @importFrom igraph add_edges simplify make_empty_graph vertices
+#' @importFrom RCDT delaunay
 #' @importFrom FNN get.knn
 #' @importFrom stats dist
 #'
 #' @export
 #'
-getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay", radius = 1, graph.key = method, ...){
+getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay", radius = numeric(0), graph.key = method, ...){
 
   # get coordinates
   coords <- vrCoordinates(object, assay = assay)
@@ -36,12 +37,14 @@ getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay
     spatialedges <-
       switch(method,
              delaunay = {
-               tess <- interp::tri.mesh(cur_coords[,1], cur_coords[,2])
-               nnedges <- interp::neighbours(tess)
-               nnedges <- mapply(function(x,y) {
-                 do.call(c,lapply(y, function(z) c(x,z)))
-               }, 1:length(nnedges), nnedges)
-               nnedges <- unlist(nnedges)
+               # tess <- interp::tri.mesh(cur_coords[,1], cur_coords[,2])
+               # nnedges <- interp::neighbours(tess)
+               # nnedges <- mapply(function(x,y) {
+               #  do.call(c,lapply(y, function(z) c(x,z)))
+               # }, 1:length(nnedges), nnedges)
+               # nnedges <- unlist(nnedges)
+               nnedges <- RCDT::delaunay(cur_coords)
+               nnedges <- as.vector(t(nnedges$edges[,1:2]))
                nnedges <- rownames(cur_coords)[nnedges]
                nnedges
              },
@@ -56,9 +59,13 @@ getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay
                nnedges
              },
              radius = {
+               if(length(radius) == 0){
+                 spot.radius <- vrAssayParams(object[[assy]], param = "nearestpost.distance")
+                 radius <- ifelse(is.null(spot.radius), 1, spot.radius)
+               }
                distances <- as.matrix(stats::dist(cur_coords, method = "euclidean"))
                nnedges <- apply(distances, 1, function(x){
-                 which(x < radius)
+                 which(x < radius & x > .Machine$double.eps)
                })
                nnedges <- mapply(function(x,y) {
                  do.call(c,lapply(y, function(z) c(x,z)))

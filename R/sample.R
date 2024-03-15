@@ -2,6 +2,11 @@
 # Objects and Classes ####
 ####
 
+## Auxiliary ####
+
+# Set classes
+setOldClass(Classes = c('igraph'))
+
 ## vrSample ####
 
 #' The vrSample (VoltRon Sample) Class
@@ -54,11 +59,40 @@ setMethod(
   }
 )
 
+#' @importFrom methods slot
+#'
+setMethod(
+  f = '[[<-',
+  signature = c('vrSample'),
+  definition = function(x, i, j, ..., value){
+
+    # check if value if vrLayer
+    if(!inherits(value, "vrLayer")){
+      stop("The provided object is not of class vrLayer")
+    }
+
+    # sample names
+    layer_names <- names(methods::slot(x, "layer"))
+
+    # check query sample name
+    if(!i %in% layer_names){
+      stop("There are no layers named ", i, " in this sample")
+    }
+
+    # change layer
+    x@layer[[i]] <- value
+
+    # return
+    return(x)
+  }
+)
+
 ## vrLayer ####
 
 #' The vrLayer (VoltRon Layer) Class
 #'
 #' @slot assay A list of assays (vrAssay)
+#' @slot connectivity the connectivity graph
 #'
 #' @name vrLayer-class
 #' @rdname vrLayer-class
@@ -67,7 +101,8 @@ setMethod(
 vrLayer <- setClass(
   Class = 'vrLayer',
   slots = c(
-    assay = 'list'
+    assay = 'list',
+    connectivity = 'igraph'
   )
 )
 
@@ -130,7 +165,7 @@ setMethod(
 # Methods ####
 ####
 
-### Merge vrSample object ####
+### vrSample Methods ####
 
 #' Merging vrSample objects
 #'
@@ -153,8 +188,6 @@ merge.vrSample <- function(object, object_list, samples = NULL){
   # set VoltRon class
   return(object_list)
 }
-
-### Subset vrSample object ####
 
 #' Subsetting vrSample objects
 #'
@@ -202,23 +235,51 @@ subset.vrSample <- function(object, subset, assays = NULL, spatialpoints = NULL,
   }
 }
 
-### Get Spatial Points of vrSample ####
-
 #' @rdname vrSpatialPoints
 #' @method vrSpatialPoints vrSample
 #'
 #' @export
 #'
 vrSpatialPoints.vrSample <- function(object, ...) {
-
-  layers <- object@layer
-  spatialpoints <- lapply(layers, function(lay) {
+  # layers <- object@layer
+  # spatialpoints <- unlist(sapply(layers, function(lay) {
+  #   vrSpatialPoints(lay)
+  # }, simplify = TRUE))
+  # spatialpoints
+  do.call("c", lapply(object@layer, function(lay) {
     vrSpatialPoints(lay)
-  })
-  do.call(c, spatialpoints)
+  }))
 }
 
-### Subset vrLayer objects ####
+#' changeAssayNames.vrSample
+#'
+#' Change the assay names of assays within a vrSample object
+#'
+#' @rdname changeAssayNames
+#' @method changeAssayNames vrSample
+#'
+#' @param object a vrSample object
+#' @param sample.metadata the sample metadata with NewAssayNames column which includes the new assay names
+#'
+#' @noRd
+changeAssayNames.vrSample <- function(object, sample.metadata = NULL){
+
+  if(is.null(sample.metadata))
+    stop("Please provide a sample.metadata")
+
+  if(!"NewAssayNames" %in% colnames(sample.metadata))
+    stop("Please provide a sample.metadata with NewAssayNames column which includes the new assay names")
+
+  # change the assay names of the layers
+  layer_names <- names(object@layer)
+  for(lyr in layer_names)
+    object[[lyr]] <- changeAssayNames(object[[lyr]], sample.metadata = sample.metadata[sample.metadata$Layer == lyr,])
+
+  # return
+  return(object)
+}
+
+### vrLayer Methods ####
 
 #' Subsetting vrLayer objects
 #'
@@ -242,6 +303,7 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
 
   # subseting on samples, layers and assays
   if(!is.null(assays)){
+
     # get assay names of all assays
     assay_names <- sapply(object@assay, vrAssayNames)
     if(any(assays %in% assay_names)) {
@@ -252,10 +314,23 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
     } else {
       return(NULL)
     }
+
   } else if(!is.null(spatialpoints)){
+
+    # get points connected to queried spatialpoints
+    catch_connect <- try(slot(object, name = "connectivity"), silent = TRUE)
+    if(!is(catch_connect, 'try-error') && !is(catch_connect,'error')){
+      if(igraph::vcount(object@connectivity) > 0){
+        spatialpoints <- getConnectedSpatialPoints(object, spatialpoints)
+        object@connectivity <- subset.Connectivity(object@connectivity, spatialpoints)
+      }
+    }
+
+    # subset assays
     object@assay <- sapply(object@assay, function(assy) {
       subset.vrAssay(assy, spatialpoints = spatialpoints)
     }, USE.NAMES = TRUE, simplify = TRUE)
+
   } else if(!is.null(image)){
     object@assay <- sapply(object@assay, function(assy) {
       subset.vrAssay(assy, image = image)
@@ -279,9 +354,94 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
 #' @export
 #'
 vrSpatialPoints.vrLayer <- function(object, ...) {
-  assays <- object@assay
-  spatialpoints <- lapply(assays, function(assy) {
-    vrSpatialPoints(assy)
-  })
-  do.call(c, spatialpoints)
+  # assays <- object@assay
+  # spatialpoints <- unlist(sapply(assays, function(assy) {
+  #   vrSpatialPoints(assy)
+  # }, simplify = TRUE))
+  # spatialpoints
+  do.call("c", lapply(object@assay, function(assy) {
+      vrSpatialPoints(assy)
+  }))
 }
+
+#' subset.Connectivity
+#'
+#' Subsetting the connectivity graph of vrLayer using spatial points
+#'
+#' @param object the connectivity graph of the vrLayer
+#' @param spatialpoints the set of spatial points
+#'
+#' @importFrom igraph induced_subgraph
+#'
+#' @noRd
+subset.Connectivity <- function(object, spatialpoints = NULL){
+  return(igraph::induced_subgraph(object, spatialpoints))
+}
+
+#' getConnectedSpatialPoints
+#'
+#' get spatial points connected to other spatial points in the connectivity graph of vrLayer
+#'
+#' @param object the connectivity graph of the vrLayer
+#' @param spatialpoints the set of spatial points
+#'
+#' @importFrom igraph neighborhood V vcount
+#'
+#' @noRd
+getConnectedSpatialPoints <- function(object, spatialpoints = NULL){
+  if(igraph::vcount(object@connectivity) > 0){
+    spatialpoints <- intersect(spatialpoints, igraph::V(object@connectivity)$name)
+    return(names(unlist(igraph::neighborhood(object@connectivity, nodes = spatialpoints))))
+  } else {
+    return(spatialpoints)
+  }
+}
+
+#' changeAssayNames.vrLayer
+#'
+#' Change the assay names of assays within a vrSample object
+#'
+#' @rdname changeAssayNames
+#' @method changeAssayNames vrLayer
+#'
+#' @param object a vrLayer object
+#' @param sample.metadata the sample metadata with NewAssayNames column which includes the new assay names
+#'
+#' @importFrom igraph V V<- vcount
+#'
+#' @noRd
+changeAssayNames.vrLayer <- function(object, sample.metadata = NULL){
+
+  if(is.null(sample.metadata))
+    stop("Please provide a sample.metadata")
+
+  if(!"NewAssayNames" %in% colnames(sample.metadata))
+    stop("Please provide a sample.metadata with NewAssayNames column which includes the new assay names")
+
+  # change the assay names of the connectivity graph if exists
+  catch_connect <- try(slot(object, name = "connectivity"), silent = TRUE)
+  if(!is(catch_connect, 'try-error') && !is(catch_connect,'error')){
+    if(igraph::vcount(object@connectivity) > 0){
+      spatialpoints <- igraph::V(object@connectivity)$name
+      old_assay_names <- sapply(object@assay, vrAssayNames)
+      new_assay_names <- sample.metadata$NewAssayNames
+      cur_spatialpoints <- spatialpoints
+      for(i in 1:length(old_assay_names)){
+        if(old_assay_names[i]!=new_assay_names[i]){
+          ind <- grepl(paste0(old_assay_names[i],"$"), spatialpoints)
+          cur_spatialpoints[ind] <- gsub(paste0(old_assay_names[i],"$"), new_assay_names[i], spatialpoints[ind])
+        }
+      }
+      igraph::V(object@connectivity)$name <- cur_spatialpoints
+    }
+  }
+
+  # change the assay names of vrAssays
+  assay_names <- names(object@assay)
+  for(assy in assay_names)
+    vrAssayNames(object[[assy]]) <- rownames(sample.metadata[sample.metadata$Assay == assy,])
+
+  # return
+  return(object)
+}
+

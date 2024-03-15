@@ -357,6 +357,9 @@ div.tocify {
           <a href="spotanalysis.html">Cell/Spot Analysis</a>
         </li>
         <li>
+          <a href="moleculeanalysis.html">Molecule Analysis</a>
+        </li>
+        <li>
           <a href="pixelanalysis.html">Pixels (Image Only) Analysis</a>
         </li>
       </ul>
@@ -519,6 +522,11 @@ single layer and a tissue block, and the image of this assay is
 currently the “H&amp;E_stain”.</p>
 <pre class="r watch-out"><code>vrImageNames(Vis_R1)</code></pre>
 <pre><code>[1] &quot;H&amp;E_stain&quot;</code></pre>
+<p><br></p>
+<p>Although by default the <strong>importVisium</strong> function
+selects the low resolution image, you can select the higher resolution
+one using <strong>resolution_level=“hires”</strong></p>
+<pre class="r watch-out"><code>Vis_R1 &lt;- importVisium(dir.path = &quot;Visium/&quot;, sample_name = &quot;VisiumR1&quot;, resolution_level=&quot;hires&quot;)</code></pre>
 <p><br></p>
 </div>
 <div id="xenium" class="section level2">

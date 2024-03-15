@@ -7,7 +7,15 @@
 \usage{
 getPCA(object, ...)
 
-\method{getPCA}{VoltRon}(object, assay = NULL, features = NULL, dims = 30, seed = 1, ...)
+\method{getPCA}{VoltRon}(
+  object,
+  assay = NULL,
+  features = NULL,
+  dims = 30,
+  overwrite = FALSE,
+  seed = 1,
+  ...
+)
 }
 \arguments{
 \item{object}{An object}
@@ -19,6 +27,8 @@ getPCA(object, ...)
 \item{features}{the selected features for PCA reduction}
 
 \item{dims}{the number of dimensions extracted from PCA}
+
+\item{overwrite}{Whether the existing embedding with name 'type' should be overwritten in \code{vrEmbeddings}}
 
 \item{seed}{seed}
 }

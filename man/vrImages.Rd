@@ -14,15 +14,22 @@ vrImages(object, ...)
 
 vrImages(object, ...) <- value
 
-\method{vrImages}{VoltRon}(object, assay = NULL, ...)
+\method{vrImages}{VoltRon}(object, assay = NULL, scale.perc = 100, ...)
 
-\method{vrImages}{vrAssay}(object, name = NULL, reg = FALSE, channel = NULL, ...)
+\method{vrImages}{vrAssay}(
+  object,
+  name = NULL,
+  reg = FALSE,
+  channel = NULL,
+  scale.perc = 100,
+  ...
+)
 
 \method{vrImages}{vrAssay}(object, name = NULL, channel = NULL, reg = FALSE, ...) <- value
 
-\method{vrImages}{vrImage}(object, channel = NULL, as.raster = FALSE)
+\method{vrImages}{vrImage}(object, channel = NULL, as.raster = FALSE, scale.perc = 100)
 
-\method{vrImages}{vrImage}(object, channel = NULL, ...) <- value
+\method{vrImages}{vrImage}(object, channel = NULL) <- value
 }
 \arguments{
 \item{object}{A vrAssay object}
@@ -32,6 +39,8 @@ vrImages(object, ...) <- value
 \item{value}{new image}
 
 \item{assay}{assay}
+
+\item{scale.perc}{scale percentage if lower resolution image needed}
 
 \item{name}{the name of the main image}
 
@@ -43,16 +52,4 @@ vrImages(object, ...) <- value
 }
 \description{
 Get images of a VoltRon assay
-
-#' @param object A vrLayer object
-#' @param ... arguements passed to \code{vrImages.vrAssay}
-#'
-#' @rdname vrImages
-#' @method vrImages vrLayer
-#'
-#' @export
-#'
-vrImages.vrLayer <- function(object, ...){
-  sapply(object@assay, function(assy) vrImages(assy, ...), USE.NAMES = TRUE)
-}
 }

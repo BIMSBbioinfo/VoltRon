@@ -8,8 +8,9 @@ vrEmbeddingFeaturePlot(
   object,
   embedding = "pca",
   features = NULL,
+  norm = TRUE,
+  log = FALSE,
   assay = NULL,
-  assay.type = NULL,
   ncol = 2,
   nrow = NULL,
   font.size = 2,
@@ -26,9 +27,11 @@ vrEmbeddingFeaturePlot(
 
 \item{features}{a set of features, either from the rows of rawdata, normdata or columns of the metadata}
 
-\item{assay}{the assay name}
+\item{norm}{if TRUE, the normalized data is used}
 
-\item{assay.type}{the assay type name: 'cell', 'spot' or 'ROI'}
+\item{log}{if TRUE, data features (excluding metadata features) will be log transformed}
+
+\item{assay}{the assay name}
 
 \item{ncol}{column wise number of plots, for \code{ggarrange}}
 

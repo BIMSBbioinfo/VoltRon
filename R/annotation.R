@@ -9,7 +9,10 @@
 #' @param object a list of VoltRon (or Seurat) objects
 #' @param label the name of the new metadata feature (annotation) of selected spatial points
 #' @param assay a reference spatial data set, used only if \code{object_list} is \code{NULL}
-#' @param ... additional parameters passed to \code{vrSpatialPlot}
+#' @param use.image if TRUE, use only the image
+#' @param image_name the name of the main image
+#' @param channel the name of the main channel
+#' @param ... additional parameters passed to \code{vrSpatialPlot}.
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs show hide
@@ -20,7 +23,7 @@
 #' @export
 #'
 #' @return a vector of annotations
-annotateSpatialData <- function(object, label, assay = NULL, ...) {
+annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.image = FALSE, image_name = NULL, channel = NULL, ...) {
 
   if(!inherits(object, "VoltRon"))
     stop("Please provide a VoltRon object!")
@@ -39,8 +42,23 @@ annotateSpatialData <- function(object, label, assay = NULL, ...) {
   metadata <- Metadata(object, assay = sample_metadata[assay, "Assay"])
   coords <- vrCoordinates(object, assay = assay)
 
+  # set label names
+  if(label %in% colnames(metadata)){
+    unique_names <- make.unique(c(colnames(metadata)[grepl(paste0("^", label), colnames(metadata))], label))
+    label <- unique_names[length(unique_names)]
+  }
+
+  # get image name and channel
+  if(is.null(image_name)){
+    image_name <- vrMainImage(object[[assay]])
+  }
+
   # get image
-  g <- vrSpatialPlot(object, assay = assay, ...) + labs(title = "")
+  if(use.image){
+    g <- magick::image_ggplot(vrImages(object, assay = assay, name = image_name, channel = channel)) + labs(title = "")
+  } else{
+    g <- vrSpatialPlot(object, assay = assay, background = c(image_name, channel), ...) + labs(title = "")
+  }
 
   ## UI and Server ####
 
@@ -50,7 +68,28 @@ annotateSpatialData <- function(object, label, assay = NULL, ...) {
       sidebarLayout(position = "left",
 
         sidebarPanel(
+
+          # margin settings
           tags$style(make_css(list('.well', 'margin', '7%'))),
+
+          # # specific settings for dealing with simultaneous click and brush events
+          # # https://jokergoo.github.io/2021/02/20/differentiate-brush-and-click-event-in-shiny/
+          tags$script(HTML("
+            $('#plot').mousedown(function(e) {
+                var parentOffset = $(this).offset();
+                var relX = e.pageX - parentOffset.left;
+                var relY = e.pageY - parentOffset.top;
+                Shiny.setInputValue('x1', relX);
+                Shiny.setInputValue('y1', relY);
+            }).mouseup(function(e) {
+                var parentOffset = $(this).offset();
+                var relX = e.pageX - parentOffset.left;
+                var relY = e.pageY - parentOffset.top;
+                Shiny.setInputValue('x2', relX);
+                Shiny.setInputValue('y2', relY);
+                Shiny.setInputValue('action', Math.random());
+            });
+          ")),
 
           # Interface
           fluidRow(
@@ -85,7 +124,15 @@ annotateSpatialData <- function(object, label, assay = NULL, ...) {
         ),
         mainPanel(
           shinyjs::useShinyjs(),
-          plotOutput("image_plot", click = "plot_click", height = "1000px"),
+          plotOutput("image_plot",
+                     height = "1000px",
+                     hover = "plot_hover",
+                     click = "plot_click",
+                     dblclick = "plot_dblclick",
+                     brush = brushOpts(
+                       id = "plot_brush", fill = "green",
+                       resetOnNew = TRUE
+                     )),
           width = 8
         )
       )
@@ -96,16 +143,32 @@ annotateSpatialData <- function(object, label, assay = NULL, ...) {
       # Initialize data frame to store points
       selected_corners <- reactiveVal(data.frame(x = numeric(0), y = numeric(0)))
       selected_corners_list <- reactiveVal(list())
+      ranges <- reactiveValues(x = g$coordinates$limits$x, y = g$coordinates$limits$y)
 
-      # point click event
+      ## point double click event and zoom ####
+      observeEvent(input$plot_dblclick, {
+        brush <- input$plot_brush
+        if (!is.null(brush)) {
+          ranges$x <- c(brush$xmin, brush$xmax)
+          ranges$y <- c(brush$ymin, brush$ymax)
+        } else {
+          ranges$x <- g$coordinates$limits$x
+          ranges$y <- g$coordinates$limits$y
+        }
+      })
+
+      ## point click event ####
       observeEvent(input$plot_click, {
-        click <- input$plot_click
-        x <- click$x
-        y <- click$y
+        brush <- input$plot_brush
+        if (is.null(brush)) {
+          click <- input$plot_click
+          x <- click$x
+          y <- click$y
 
-        # Append new point to the data frame
-        new_point <- data.frame(x = x, y = y)
-        selected_corners(rbind(selected_corners(), new_point))
+          # Append new point to the data frame
+          new_point <- data.frame(x = x, y = y)
+          selected_corners(rbind(selected_corners(), new_point))
+        }
       })
 
       # reset and remove buttons
@@ -149,6 +212,7 @@ annotateSpatialData <- function(object, label, assay = NULL, ...) {
         }
       })
 
+      ## image output ####
       output$image_plot <- renderPlot({
 
         # visualize already selected polygons
@@ -162,7 +226,9 @@ annotateSpatialData <- function(object, label, assay = NULL, ...) {
 
         # add currently selected points
         g <- g +
-          ggplot2::geom_point(aes(x = x, y = y), data = selected_corners(), color = "red", shape = 16)
+          ggplot2::geom_point(aes(x = x, y = y), data = selected_corners(), color = "red", shape = 16) +
+          # coord_cartesian(xlim = ranges$x, ylim = ranges$y, expand = FALSE) +
+          coord_equal(xlim = ranges$x, ylim = ranges$y, ratio = 1)
 
         # add label to currently selected points
         datax_label_ind <- length(selected_corners_list()) + 1
@@ -173,7 +239,7 @@ annotateSpatialData <- function(object, label, assay = NULL, ...) {
         if(length(selected_corners_list()) > 0){
           for (i in 1:length(selected_corners_list())){
             cur_corners <- selected_corners_list()[[i]]
-            if(is.null(input[[paste0("sample",i)]])){
+            if(is.null(input[[paste0("region",i)]])){
               cur_corners <- data.frame(x = mean(cur_corners[,1]), y = max(cur_corners[,2]), region = paste("Region ", i))
             } else {
               cur_corners <- data.frame(x = mean(cur_corners[,1]), y = max(cur_corners[,2]), region = input[[paste0("region",i)]])
@@ -198,7 +264,7 @@ annotateSpatialData <- function(object, label, assay = NULL, ...) {
         # collect labels
         selected_label_list <- sapply(1:length(selected_polygon_list), function(i) input[[paste0("region",i)]])
 
-        # annotate spatial points
+        ### annotate spatial points ####
         spatialpoints <- rownames(metadata)
         new_label <- rep("undefined", length(spatialpoints))
         names(new_label) <- spatialpoints
@@ -212,6 +278,24 @@ annotateSpatialData <- function(object, label, assay = NULL, ...) {
         # place annotation to metadata
         metadata[[label]] <- new_label
         Metadata(object, assays = sample_metadata[assay, "Assay"]) <- metadata
+
+        ## add polygons to a new assay ####
+        segments <- selected_polygon_list
+        names(segments) <- selected_label_list
+        coords <- t(sapply(segments, function(seg){
+          apply(seg, 2, mean)
+        }, simplify = TRUE))
+        new_assay <- formAssay(coords = coords, segments = segments,
+                               type = "ROI",
+                               image = vrImages(object, assay = assay),
+                               main_image = vrMainImage(object[[assay]]),
+                               name = assay)
+        object <- addAssay.VoltRon(object,
+                                   assay = new_assay,
+                                   metadata = data.frame(check.rows = FALSE, row.names = rownames(coords)),
+                                   assay_name = "ROIannotation",
+                                   sample = sample_metadata[assay, "Sample"],
+                                   layer = sample_metadata[assay, "Layer"])
 
         # stop app and return
         stopApp(object)

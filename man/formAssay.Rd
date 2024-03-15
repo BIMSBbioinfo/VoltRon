@@ -12,7 +12,8 @@ formAssay(
   params = list(),
   type = "ROI",
   name = "Assay1",
-  main_image = "image_1"
+  main_image = "image_1",
+  ...
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ formAssay(
 \item{name}{the name of the assay}
 
 \item{main_image}{the name of the main_image}
+
+\item{...}{additional arguements passed to \code{formImage}}
 }
 \description{
 Create a vrAssay (VoltRon assay) object

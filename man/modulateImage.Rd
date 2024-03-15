@@ -25,7 +25,7 @@ modulateImage(object, ...)
 \arguments{
 \item{object}{An object}
 
-\item{...}{arguements passed to \code{vrImages.vrImage}}
+\item{...}{arguements passed to \code{modulateImage.vrImage}}
 
 \item{name}{the name of the main image}
 

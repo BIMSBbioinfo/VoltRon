@@ -13,11 +13,13 @@
 #' @param dir.path path to Xenium output folder
 #' @param selected_assay selected assay from Xenium
 #' @param assay_name the assay name of the SR object
+#' @param sample_name the name of the sample
 #' @param use_image if TRUE, the DAPI image will be used.
 #' @param morphology_image the name of the lowred morphology image. Default: morphology_lowres.tif
 #' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)
 #' @param overwrite_resolution if TRUE, the image "file.name" will be generated again although it exists at "dir.path"
-#' @param image_name the image name of the Xenium assay, Default: DAPI
+#' @param image_name the image name of the Xenium assay, Default: main
+#' @param channel_name the channel name of the image of the Xenium assay, Default: DAPI
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
@@ -28,7 +30,7 @@
 #'
 #' @export
 #'
-importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, overwrite_resolution = FALSE, image_name = "DAPI", import_molecules = FALSE, ...)
+importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", sample_name = NULL, use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, overwrite_resolution = FALSE, image_name = "main", channel_name = "DAPI", import_molecules = FALSE, ...)
 {
   # cell assay
   message("Creating cell level assay ...")
@@ -96,7 +98,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   }
 
   # create VoltRon object for cells
-  cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, segments = segments, main.assay = assay_name, assay.type = "cell", image_name = image_name, ...)
+  cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, segments = segments, main.assay = assay_name, assay.type = "cell", image_name = image_name, main_channel = channel_name, sample_name = sample_name, ...)
 
   # molecule assay
   if(!import_molecules){
@@ -126,27 +128,106 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
       # metadata
       mol_metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell_id", "transcript_id", "x_location", "y_location")], with = FALSE]
       set.seed(nrow(mol_metadata$id))
-      entity_ID <- paste0(mol_metadata$id, "_", ids::random_id(bytes = 3, use_openssl = FALSE))
-      mol_metadata <- data.table::data.table(id = entity_ID, assay_id = "Assay1", mol_metadata)
+      mol_metadata$postfix <- paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))
+      mol_metadata$assay_id <- "Assay1"
+      mol_metadata[, id:=do.call(paste0,.SD), .SDcols=c("id", "postfix")]
 
       # coord names
-      rownames(coords) <- entity_ID
+      rownames(coords) <- mol_metadata$id
+
+      # create VoltRon assay for molecules
+      mol_assay <- formAssay(coords = coords, image = image, type = "molecule", main_image = image_name, main_channel = channel_name)
+
+      # merge assays in one section
+      message("Merging assays ...")
+      sample.metadata <- SampleMetadata(cell_object)
+      object <- addAssay(cell_object,
+                         assay = mol_assay,
+                         metadata = mol_metadata,
+                         assay_name = paste0(assay_name, "_mol"),
+                         sample = sample.metadata["Assay1", "Sample"],
+                         layer = sample.metadata["Assay1", "Layer"])
+
+      # connectivity
+      connectivity <- data.table::data.table(transcript_id = mol_metadata$id, cell_id = subcellular_data[["cell_id"]])
+      if(is.numeric(connectivity$cell_id)){
+        connectivity <- subset(connectivity, cell_id != -1)
+        connectivity[["cell_id"]] <- vrSpatialPoints(cell_object)[connectivity[["cell_id"]]]
+      } else {
+        connectivity <- subset(connectivity, cell_id != "UNASSIGNED")
+        connectivity$cell_assay_id <- "_Assay1"
+        connectivity[, cell_id:=do.call(paste0,.SD), .SDcols=c("cell_id", "cell_assay_id")]
+        connectivity$cell_assay_id <- NULL
+      }
+
+      # add connectivity of spatial points across assays
+      object <- addConnectivity(object,
+                                connectivity = connectivity,
+                                sample = sample.metadata["Assay1", "Sample"],
+                                layer = sample.metadata["Assay1", "Layer"])
+
+      # return
+      return(object)
+    }
+  }
+}
+
+#' generateXeniumImage
+#'
+#' Generate a low resolution DAPI image of the Xenium experiment
+#'
+#' @param dir.path Xenium output folder
+#' @param increase.contrast increase the contrast of the image before writing
+#' @param resolution_level the level of resolution within Xenium OME-TIFF image. Default: 7 (553x402)
+#' @param overwrite_resolution if TRUE, the image "file.name" will be generated again although it exists at "dir.path"
+#' @param output.path The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.
+#' @param file.name the name of the lowred morphology image. Default: morphology_lowres.tif
+#' @param ... additional parameters passed to the \code{EBImage::writeImage} function
+#'
+#' @importFrom EBImage writeImage
+#'
+#' @details
+#' The Xenium morphology_mip.ome.tif file that is found under the outs folder comes is an hyperstack of different resolutions of the DAPI image.
+#' \code{generateXeniumImage} allows extracting only one of these layers by specifying the \code{resolution} parameter (Default: 7 for 553x402) among 1 to 8.
+#' Lower incides of resolutions have higher higher resolutions, e.g. 1 for 35416x25778. Note that you may need to allocate larger memory of Java to import
+#' higher resolution images.
+#'
+#' @export
+#'
+generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_level = 7, overwrite_resolution = FALSE, output.path = NULL, file.name = "morphology_lowres.tif", ...) {
+
+  # file path to either Xenium output folder or specified folder
+  file.path <- paste0(dir.path, "/", file.name)
+  output.file <- paste0(output.path, "/", file.name)
+
+  # check if the file exists in either Xenium output folder, or the specified location
+  if((file.exists(file.path) | file.exists(paste0(output.file))) & !overwrite_resolution){
+    message(paste0(file.name, " already exists!"))
+  } else {
+    message("Loading morphology_mip.ome.tif \n")
+    if (!requireNamespace('RBioFormats'))
+      stop("Please install RBioFormats package to read the ome.tiff file!")
+    morphology_image_lowres <- RBioFormats::read.image(paste0(dir.path, "/morphology_mip.ome.tif"), resolution = resolution_level)
+
+    # pick a resolution level
+    image_info <- morphology_image_lowres@metadata$coreMetadata
+    message(paste0("Image Resolution (X:", image_info$sizeX, " Y:", image_info$sizeY, ") \n"))
+
+    # increase contrast using EBImage
+    if(increase.contrast) {
+      message("Increasing Contrast \n")
+      morphology_image_lowres <- (morphology_image_lowres/max(morphology_image_lowres))
     }
 
-    # create VoltRon assay for molecules
-    mol_assay <- formAssay(coords = coords, image = image, type = "molecule", main_image = image_name)
-
-    # merge assays in one section
-    message("Merging assays ...")
-    sample.metadata <- SampleMetadata(cell_object)
-    object <- addAssay(cell_object,
-                       assay = mol_assay,
-                       metadata = mol_metadata,
-                       assay_name = paste0(assay_name, "_mol"),
-                       sample = sample.metadata["Assay1", "Sample"],
-                       layer = sample.metadata["Assay1", "Layer"])
-    return(object)
+    # write to the same folder
+    message("Writing Tiff File")
+    if(is.null(output.path)){
+      EBImage::writeImage(morphology_image_lowres, file = file.path, ...)
+    } else {
+      EBImage::writeImage(morphology_image_lowres, file = output.file, ...)
+    }
   }
+  invisible()
 }
 
 ####
@@ -160,8 +241,10 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #' @param dir.path path to Visium output folder
 #' @param selected_assay selected assay from Visium
 #' @param assay_name the assay name
+#' @param sample the name of the sample
 #' @param image_name the image name of the Visium assay, Default: H&E
 #' @param inTissue if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)
+#' @param resolution_level the level of resolution of Visium image: "lowres" (default) or "hires"
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
 #' @importFrom magick image_read
@@ -170,7 +253,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #'
 #' @export
 #'
-importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_name = "Visium", image_name = "H&E", inTissue = TRUE, ...)
+importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_name = "Visium", sample_name = NULL, image_name = "H&E", inTissue = TRUE, resolution_level = "lowres", ...)
 {
   # raw counts
   listoffiles <- list.files(dir.path)
@@ -187,8 +270,12 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
     stop("There are no files named 'filtered_feature_bc_matrix.h5' in the path")
   }
 
+  # resolution
+  if(!resolution_level %in% c("lowres","hires"))
+    stop("resolution_level should be either 'lowres' or 'hires'!")
+
   # image
-  image_file <- paste0(dir.path, "/spatial/tissue_lowres_image.png")
+  image_file <- paste0(dir.path, paste0("/spatial/tissue_", resolution_level, "_image.png"))
   if(file.exists(image_file)){
     image <-  magick::image_read(image_file)
     info <- image_info(image)
@@ -226,10 +313,14 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   scale_file <- paste0(dir.path, "/spatial/scalefactors_json.json")
   if(file.exists(scale_file)){
     scalefactors <- rjson::fromJSON(file = scale_file)
-    scales <- scalefactors$tissue_lowres_scalef
+    # scales <- scalefactors$tissue_lowres_scalef
+    scales <- scalefactors[[paste0("tissue_", resolution_level, "_scalef")]]
     # spot.radius is the half of the diameter, but we visualize by a factor of 1.5 larger
     # params <- list(spot.radius = scalefactors$spot_diameter_fullres*scalefactors$tissue_lowres_scalef*1.5)
-    params <- list(spot.radius = scalefactors$spot_diameter_fullres*scalefactors$tissue_lowres_scalef*2)
+    params <- list(
+      nearestpost.distance = 200*scales, # distance to nearest spot
+      spot.radius = scalefactors$spot_diameter_fullres*scales,
+      vis.spot.radius = scalefactors$spot_diameter_fullres*scales*2)
     coords <- coords*scales
     coords[,2] <- info$height - coords[,2]
   } else {
@@ -237,7 +328,7 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   }
 
   # create VoltRon
-  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", image_name = image_name, ...)
+  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", image_name = image_name, sample_name = sample_name, ...)
 }
 
 ####
@@ -252,6 +343,8 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
 #'
 #' @importFrom hdf5r H5File readDataSet
 #' @importFrom Matrix sparseMatrix
+#'
+#' @noRd
 #'
 import10Xh5 <- function(filename){
 
@@ -307,6 +400,7 @@ import10Xh5 <- function(filename){
 #' @param image the reference morphology image of the GeoMx assay
 #' @param segment_polygons if TRUE, the ROI polygons are parsed from the OME.TIFF file
 #' @param ome.tiff the OME.TIFF file of the GeoMx experiment if exists
+#' @param resolution_level the level of resolution within GeoMx OME-TIFF image, Default: 3
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
 #' @importFrom dplyr %>% full_join
@@ -316,7 +410,7 @@ import10Xh5 <- function(filename){
 #' @export
 #'
 importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetName, assay_name = "GeoMx",
-                        image = NULL, segment_polygons = FALSE, ome.tiff = NULL, ...)
+                        image = NULL, segment_polygons = FALSE, ome.tiff = NULL, resolution_level = 3, ...)
 {
   # Get pkc file
   if(file.exists(pkc.file)){
@@ -358,8 +452,17 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
   rownames(rawdata) <- rawdata$RTS_ID
   rawdata <- rawdata[,!colnames(rawdata) %in% "RTS_ID"]
 
-  # get genes
-  NegProbes <- pkcdata$RTS_ID[pkcdata$Target == "NegProbe-WTX"]
+  # get negative probes and targets
+  # NegProbes <- pkcdata$RTS_ID[pkcdata$Target == "NegProbe-WTX"]
+  NegProbes <- pkcdata$RTS_ID[grepl("NegProbe", pkcdata$Target)]
+
+  # negative probes
+  rawdata_neg <- rawdata[rownames(rawdata) %in% NegProbes, ]
+  rownames(rawdata_neg) <- paste0(rownames(rawdata_neg), "_",
+                                  pkcdata$Target[match(rownames(rawdata_neg), pkcdata$RTS_ID)])
+  rawdata_neg <- as.matrix(rawdata_neg)
+
+  # other probes
   rawdata <- rawdata[!rownames(rawdata) %in% NegProbes, ]
   rownames(rawdata) <- pkcdata$Target[match(rownames(rawdata), pkcdata$RTS_ID)]
   rawdata <- as.matrix(rawdata)
@@ -409,12 +512,42 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
   # get ROI segments (polygons)
   segments <- list()
   if(!is.null(ome.tiff)){
+
+    # get segments
     segments <- importGeoMxSegments(ome.tiff, segmentsummary, geomx_image_info)
     segments <- segments[rownames(coords)]
+
+    # parse channels if ome.tiff is given
+    channels <- importGeoMxChannels(ome.tiff, segmentsummary, geomx_image_info, resolution_level = resolution_level)
+    image <- c(list(scanimage = image), channels)
   }
 
-  # create VoltRon
-  formVoltRon(rawdata, metadata = segmentsummary, image, coords, segments, main.assay = assay_name, assay.type = "ROI", ...)
+  # create VoltRon for non-negative probes
+  object <- formVoltRon(rawdata, metadata = segmentsummary, image, coords, segments, main.assay = assay_name, assay.type = "ROI", ...)
+
+  # add negative probe assay
+  new_assay <- formAssay(data = rawdata_neg,
+                         coords = coords, segments = segments,
+                         image = image, type = "ROI")
+  new_assay@image <- object[["Assay1"]]@image
+  sample.metadata <- SampleMetadata(object)
+  object <- addAssay(object,
+                     assay = new_assay,
+                     metadata = Metadata(object),
+                     assay_name = paste(sample.metadata["Assay1", "Assay"], "NegProbe", sep = "_"),
+                     sample = sample.metadata["Assay1", "Sample"],
+                     layer = sample.metadata["Assay1", "Layer"])
+
+  # add connectivity of spatial points across assays
+  connectivity <- cbind(vrSpatialPoints(object, assay = assay_name),
+                        vrSpatialPoints(object, assay = paste(assay_name, "NegProbe", sep = "_")))
+  object <- addConnectivity(object,
+                            connectivity = connectivity,
+                            sample = sample.metadata["Assay1", "Sample"],
+                            layer = sample.metadata["Assay1", "Layer"])
+
+  # return
+  return(object)
 }
 
 #' readPKC
@@ -428,6 +561,7 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
 #' @importFrom rjson fromJSON
 #' @importFrom S4Vectors metadata DataFrame
 #'
+#' @noRd
 readPKC <- function (file, default_pkc_vers = NULL)
 {
   pkc_json_list <- lapply(file, function(pkc_file) {
@@ -535,6 +669,7 @@ readPKC <- function (file, default_pkc_vers = NULL)
 #'
 #' @param file A character string containing the path to the DCC file.
 #'
+#' @noRd
 readDCC <- function(file)
 {
   lines <- trimws(readLines(file))
@@ -632,6 +767,7 @@ readDCC <- function(file)
 #'
 #' @importFrom XML xmlToList
 #'
+#' @noRd
 importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
   # check file
@@ -653,9 +789,6 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
   # get ROIs
   ROIs <- omexml[which(names(omexml) == "ROI")]
-
-  # Y-axis height
-  sizeY <- as.numeric(omexml$Image$Pixels$.attrs['SizeY'])
 
   # get masks for each ROI
   mask_lists <- list()
@@ -689,12 +822,13 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
 #' rescaleGeoMxROIs
 #'
-#' Rescale GeoMx point (center or polygon corners of ROI) coordinates for image registration
+#' Rescale GeoMx point (center or polygon corners of ROI) coordinates
 #'
 #' @param pts coordinates of the cells from the Xenium assays
 #' @param summary segmentation summary data frame
 #' @param imageinfo image information
 #'
+#' @noRd
 rescaleGeoMxPoints <- function(pts, summary, imageinfo){
 
   xRatio = imageinfo$width/summary$Scan.Width[1]
@@ -706,6 +840,91 @@ rescaleGeoMxPoints <- function(pts, summary, imageinfo){
 
   # return
   return(pts)
+}
+
+#' importGeoMxChannels
+#'
+#' Rescale GeoMx channels with respect to the scan image
+#'
+#' @param ome.tiff the OME.TIFF file of the GeoMx Experiment
+#' @param summary segmentation summary data frame
+#' @param imageinfo image information
+#' @param resolution_level the resolution level (1-7) of the image parsed from the OME.TIFF file
+#'
+#' @param RBioFormats read.image
+#' @param EBImage as.Image
+#' @param grDevices as.raster
+#' @param magick image_read
+#'
+#' @noRd
+importGeoMxChannels <- function(ome.tiff, summary, imageinfo, resolution_level){
+
+  # check file
+  if(file.exists(ome.tiff)){
+    options(java.parameters = "-Xmx4g")
+    if(grepl(".ome.tiff$|.ome.tif$", ome.tiff)){
+      if (!requireNamespace('RBioFormats'))
+        stop("Please install RBioFormats package extract xml from the ome.tiff file!")
+      omexml <- RBioFormats::read.omexml(ome.tiff)
+      omexml <- XML::xmlToList(omexml, simplify = TRUE)
+    } else {
+      warning("ome.tiff format not found!")
+      return(NULL)
+    }
+  } else {
+    stop("There are no files named ", ome.tiff," in the path")
+  }
+
+  # get all channels
+  ome.tiff <- RBioFormats::read.image(ome.tiff, resolution = resolution_level)
+
+  # get frame information
+  nframes <- ome.tiff@metadata$coreMetadata$imageCount
+  frames <- EBImage::getFrames(ome.tiff)
+  frames <- lapply(EBImage::getFrames(ome.tiff), function(x){
+    img <- magick::image_read(grDevices::as.raster(EBImage::as.Image(x)))
+    rescaleGeoMxImage(img, summary, imageinfo, resolution = resolution_level)
+  })
+
+  # get channel names
+  omexml <- omexml$StructuredAnnotations[seq(from = 1, by = 2, length.out = nframes)]
+  channel_names <- lapply(omexml, function(x){
+    x$Value$ChannelInfo$BiologicalTarget
+  })
+  names(frames) <- channel_names
+
+  # return frames
+  return(frames)
+}
+
+#' rescaleGeoMxImage
+#'
+#' Rescale GeoMx channels with respect to the scan image
+#'
+#' @param img coordinates of the cells from the Xenium assays
+#' @param summary segmentation summary data frame
+#' @param imageinfo image information
+#' @param resolution_level the resolution level (1-7) of the image parsed from the OME.TIFF file
+#'
+#' @param magick image_crop
+#'
+#' @noRd
+rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level){
+
+  # adjust offset and scan size to the resolution level
+  offset.x <- summary$Scan.Offset.X[1]/(2*(resolution_level-1))
+  offset.y <- summary$Scan.Offset.Y[1]/(2*(resolution_level-1))
+  scan.width <- summary$Scan.Width[1]/(2*(resolution_level-1))
+  scan.height <- summary$Scan.Height[1]/(2*(resolution_level-1))
+
+  # crop image given adjusted offsets
+  new_img <- magick::image_crop(img, geometry = paste0(scan.width, "x", scan.height, "+", offset.x, "+", offset.y))
+
+  # resize image
+  new_img <- magick::image_resize(new_img, geometry = paste0(imageinfo$width, "x", imageinfo$height))
+
+  # return
+  return(new_img)
 }
 
 ####
@@ -827,6 +1046,88 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
   vr <- merge(vr_list[[1]], vr_list[-1])
 }
 
+#' generateCosMxImage
+#'
+#' Generates a low resolution Morphology image of the CosMx experiment
+#'
+#' @param dir.path CosMx output folder
+#' @param increase.contrast increase the contrast of the image before writing
+#' @param output.path The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.
+#' @param ... additional parameters passed to the EBImage::writeImage function
+#'
+#' @importFrom magick image_read image_contrast
+#' @importFrom EBImage writeImage
+#' @importFrom reshape2 acast
+#'
+#' @export
+#'
+generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path = NULL, ...) {
+
+  # file path to either Xenium output folder or specified folder
+  file.path <- paste0(dir.path, "/CellComposite_lowres.tif")
+  output.file <- paste0(output.path, "/CellComposite_lowres.tif")
+
+  # check if the file exists in either Xenium output folder, or the specified location
+  if(file.exists(file.path) | file.exists(paste0(output.file))){
+    cat("CellComposite_lowres.tif already exists! \n")
+    return(NULL)
+  }
+
+  # FOV positions of CosMx
+  list_of_files <- list.files(dir.path)
+  fov_positions_path <- paste0(dir.path, "/", list_of_files[grepl("fov_positions_file.csv$",list_of_files)][1])
+  fov_positions <- read.csv(fov_positions_path)
+
+  # manipulate fov positions matrix
+  cat("Getting FOV Positions \n")
+  relative_fov_positions <- fov_positions
+  x_min <- min(relative_fov_positions$x_global_px)
+  y_min <- min(relative_fov_positions$y_global_px)
+  x_gap <- diff(unique(fov_positions$x_global_px))[1]
+  y_gap <- diff(unique(fov_positions$y_global_px))[1]
+  relative_fov_positions[,c("x_global_px","y_global_px")] <- t(apply(relative_fov_positions[,c("x_global_px","y_global_px")], 1, function(cell){
+    c((cell[1]-x_min)/x_gap,(cell[2]-y_min)/y_gap)
+  }))
+  relative_fov_positions <- relative_fov_positions[order(relative_fov_positions$y_global_px, decreasing = TRUE),]
+
+  # Combine Images of the FOV grid
+  cat("Loading FOV tif files \n")
+  image.dir.path <- paste0(dir.path,"/CellComposite/")
+  morphology_image_data <- NULL
+  for(i in relative_fov_positions$fov){
+    image_path <- paste0(image.dir.path, "CellComposite_F", str_pad(as.character(i), 3, pad = 0), ".jpg")
+    image_data <- magick::image_read(image_path) %>% magick::image_resize("x500") %>% magick::image_raster()
+    if(is.null(morphology_image_data))
+      dim_image <- apply(image_data[,1:2], 2, max)
+    scale_dim <- relative_fov_positions[i,2:3]*dim_image
+    image_data[,1:2] <- image_data[,1:2] +
+      rep(1, nrow(image_data)) %o% as.matrix(scale_dim)[1,]
+    morphology_image_data <- rbind(morphology_image_data, image_data)
+  }
+  morphology_image_data_array <- reshape2::acast(morphology_image_data, y ~ x)
+  morphology_image <- magick::image_read(morphology_image_data_array) %>% magick::image_resize("x800")
+
+  # pick a resolution level
+  morphology_image_info <- image_info(morphology_image)
+  cat(paste0("Image Resolution (X:", morphology_image_info$width, " Y:", morphology_image_info$height, ") \n"))
+
+  # increase contrast using EBImage
+  if(increase.contrast) {
+    cat("Increasing Contrast \n")
+    morphology_image <- magick::image_contrast(morphology_image, sharpen = 1)
+  }
+
+  # write to the same folder
+  cat("Writing Tiff File \n")
+  if(is.null(output.path)){
+    EBImage::writeImage(magick::as_EBImage(morphology_image), file = file.path, ...)
+  } else {
+    EBImage::writeImage(magick::as_EBImage(morphology_image), file = output.file, ...)
+  }
+
+  return(NULL)
+}
+
 ####
 # Image Data ####
 ####
@@ -835,25 +1136,50 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
 #'
 #' import an image as VoltRon object
 #'
-#' @param image.path the path to an image file
+#' @param image the path to an image file
 #' @param tile.size the size of tiles
+#' @param stack.id the id of the stack when the magick image composed of multiple layers
+#' @param ... additional parameters passed to \code{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
 #' @importFrom data.table data.table
 #'
-importImageData <- function(image.path, tile.size = 10, ...){
+#' @export
+#'
+importImageData <- function(image, tile.size = 10, stack.id = 1, ...){
 
   # get image
-  if(file.exists(image.path)){
-    image <- magick::image_read(image.path)
-  } else {
-    stop(image.path, " is not found!")
+  if(!inherits(image, "magick-image")){
+    if(!is.character(image)){
+      stop("image should either be a magick-image object or a file.path")
+    } else{
+      if(file.exists(image)){
+        image <- magick::image_read(image)
+      } else {
+        stop(image, " is not found!")
+      }
+    }
   }
 
-  # coordinates
+  # get image layer from stacked magick images
+  if(length(image) > 1){
+    if(stack.id > length(image)){
+      stop("The stack.id should be an integer between 1 and ", length(image))
+    } else {
+      image <- image[stack.id]
+    }
+  }
+
+  # image info
   imageinfo <- magick::image_info(image)
-  x_coords <- seq(1, imageinfo$width %/% tile.size)*(tile.size/2)
-  y_coords <- seq(imageinfo$height %/% tile.size, 1)*(tile.size/2)
+
+  # coordinates
+  even_odd_correction <- (!tile.size%%2)*(0.5)
+  # x_coords <- seq((tile.size/2) + even_odd_correction, length.out = imageinfo$width %/% tile.size)
+  # y_coords <- seq(imageinfo$height %/% tile.size, 1)*(tile.size/2)
+  x_coords <- seq((tile.size/2) + even_odd_correction, imageinfo$width, tile.size)[1:(imageinfo$width %/% tile.size)]
+  y_coords <- seq((tile.size/2) + even_odd_correction, imageinfo$height, tile.size)[1:(imageinfo$height %/% tile.size)]
+  y_coords <- rev(y_coords)
   coords <- as.matrix(expand.grid(x_coords, y_coords))
   colnames(coords) <- c("x", "y")
   rownames(coords) <- paste0("tile", 1:nrow(coords))

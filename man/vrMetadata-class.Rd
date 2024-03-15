@@ -11,7 +11,9 @@ The vrMetadata (VoltRon Metadata) Class
 \section{Slots}{
 
 \describe{
-\item{\code{molecule}}{the metadata data frame of molecules}
+\item{\code{tile}}{the metadata data table of tiles}
+
+\item{\code{molecule}}{the metadata data table of molecules}
 
 \item{\code{cell}}{the metadata data frame of cells}
 

@@ -204,6 +204,7 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #' @param assay assay
 #' @param features the selected features for PCA reduction
 #' @param dims the number of dimensions extracted from PCA
+#' @param overwrite Whether the existing embedding with name 'type' should be overwritten in \code{vrEmbeddings}
 #' @param seed seed
 #' @param ... additional parameters passed to \code{vrEmbeddings}
 #'
@@ -215,22 +216,28 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #'
 #' @export
 #'
-getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, seed = 1, ...){
+getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, overwrite = FALSE, seed = 1, ...){
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get shared features and subset
-  if(length(vrFeatures(object, assay = assay)) > 0) {
+  assay_features <- vrFeatures(object, assay = assay)
+
+  # if there are features of a VoltRon object, then get variable features too
+  if(length(assay_features) > 0) {
     if(is.null(features))
       features <- getVariableFeatures(object, assay = assay)
     object_subset <- subset(object, features = features)
+    vrMainAssay(object_subset) <- vrMainAssay(object)
 
     # adjust extraction features length
     if(dims > length(features)){
       message("Requested more PC dimensions than existing features: dims = length(features) now!")
       dims <- length(features)
     }
+
+  # if there are no features in VoltRon object, return the assay as itself
   } else {
     object_subset <- object
   }
@@ -248,9 +255,10 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
   pr.data <- pr.data$x
   colnames(pr.data) <- paste0("PC", 1:dims)
   rownames(pr.data) <- colnames(normdata)
+  # rownames(pr.data) <- vrSpatialPoints(object_subset, assay = assay)
 
   # set Embeddings
-  vrEmbeddings(object, type = "pca", ...) <- pr.data
+  vrEmbeddings(object, type = "pca", overwrite = overwrite, ...) <- pr.data
 
   # return
   return(object)
@@ -260,6 +268,7 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
 #' @param data.type the type of data used to calculate UMAP from: "pca" (default), "raw" or "norm"
 #' @param dims the number of dimensions extracted from PCA
 #' @param umap.key the name of the umap embedding, default: umap
+#' @param overwrite Whether the existing embedding with name 'type' should be overwritten in \code{vrEmbeddings}
 #' @param seed seed
 #' @param ... additional parameters passed to \code{vrEmbeddings}
 #'
@@ -270,7 +279,7 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, see
 #'
 #' @export
 #'
-getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30, umap.key = "umap", seed = 1, ...){
+getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30, umap.key = "umap", overwrite = FALSE, seed = 1, ...){
 
   # get data
   if(data.type %in% c("raw", "norm")){
@@ -289,7 +298,7 @@ getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30
   set.seed(seed)
   umap_data <- uwot::umap(data)
   colnames(umap_data) <- c("x", "y")
-  vrEmbeddings(object, type = umap.key, ...) <- umap_data
+  vrEmbeddings(object, type = umap.key, overwrite = overwrite, ...) <- umap_data
 
   # return
   return(object)
@@ -299,6 +308,14 @@ getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30
 # Image Processing ####
 ####
 
+#' split_into_tiles
+#'
+#' split image raster data into tiles
+#'
+#' @param image_data image raster data
+#' @param tile_size tile size
+#'
+#' @noRd
 split_into_tiles <- function(image_data, tile_size = 10) {
   n_rows <- nrow(image_data)
   n_cols <- ncol(image_data)

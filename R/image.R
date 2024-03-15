@@ -58,7 +58,7 @@ setMethod(
 #' @param coords the coordinates of the spatial points
 #' @param segments the segments of the spatial points, optional
 #' @param image the image of the data
-#' @param channel the key of the main channel of vrImage object
+#' @param main_channel the key of the main channel of vrImage object
 #'
 #' @importFrom magick image_data image_read image_info
 #' @importFrom methods new
@@ -125,6 +125,7 @@ formImage <- function(coords, segments = list(), image = NULL, main_channel = NU
 #' Given a vrImage object, subset the object given one of the attributes.
 #'
 #' @param object A vrImage object
+#' @param subset Logical statement for subsetting
 #' @param spatialpoints the set of spatial points to subset the object
 #' @param image the subseting string passed to \code{magick::image_crop}
 #'
@@ -148,15 +149,23 @@ subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
   if(!is.null(spatialpoints)){
 
     # check if spatial points are here
-    if(length(intersect(spatialpoints, rownames(coords))) == 0)
+    spatialpoints <- intersect(spatialpoints, rownames(coords))
+    # if(length(intersect(spatialpoints, rownames(coords))) == 0){
+    #   return(NULL)
+    # }
+    if(length(spatialpoints) == 0){
       return(NULL)
+    }
 
     # coordinates
-    vrCoordinates(object) <- coords[rownames(coords) %in% spatialpoints,, drop = FALSE]
+    # vrCoordinates(object) <- coords[rownames(coords) %in% spatialpoints,, drop = FALSE]
+    vrCoordinates(object) <- coords[spatialpoints,, drop = FALSE]
 
     # segments
+    # if(length(segments) > 0)
+    #   vrSegments(object) <- segments[names(segments) %in% spatialpoints]
     if(length(segments) > 0)
-      vrSegments(object) <- segments[names(segments) %in% spatialpoints]
+      vrSegments(object) <- segments[spatialpoints]
 
   } else if(!is.null(image)) {
 
@@ -195,6 +204,7 @@ subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
 
 #' @param object A VoltRon object
 #' @param assay assay
+#' @param scale.perc scale percentage if lower resolution image needed
 #' @param ... arguements passed to \code{vrImages.vrSample}
 #'
 #' @rdname vrImages
@@ -202,7 +212,7 @@ subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
 #'
 #' @export
 #'
-vrImages.VoltRon <- function(object, assay = NULL, ...){
+vrImages.VoltRon <- function(object, assay = NULL, scale.perc = 100, ...){
 
   # get assay names
   if(is.null(assay)){
@@ -212,7 +222,7 @@ vrImages.VoltRon <- function(object, assay = NULL, ...){
   }
 
   # get images
-  images <- sapply(assay_names, function(assy) vrImages(object[[assy]], ...), USE.NAMES = TRUE)
+  images <- sapply(assay_names, function(assy) vrImages(object[[assy]], scale.perc = scale.perc, ...), USE.NAMES = TRUE)
   if(length(images) == 1){
     return(images[[1]])
   } else {
@@ -220,34 +230,11 @@ vrImages.VoltRon <- function(object, assay = NULL, ...){
   }
 }
 
-#' #' @param object A vrSample object
-#' #' @param ... arguements passed to \code{vrImages.vrLayer}
-#' #'
-#' #' @rdname vrImages
-#' #' @method vrImages vrSample
-#' #'
-#' #' @export
-#' #'
-#' vrImages.vrSample <- function(object, ...){
-#'   sapply(object@layer, function(lay) vrImages(lay, ...), USE.NAMES = TRUE)
-#' }
-#'
-#' #' @param object A vrLayer object
-#' #' @param ... arguements passed to \code{vrImages.vrAssay}
-#' #'
-#' #' @rdname vrImages
-#' #' @method vrImages vrLayer
-#' #'
-#' #' @export
-#' #'
-#' vrImages.vrLayer <- function(object, ...){
-#'   sapply(object@assay, function(assy) vrImages(assy, ...), USE.NAMES = TRUE)
-#' }
-
 #' @param object A vrAssay object
 #' @param name the name of the main image
 #' @param reg TRUE if registered images are assigned
 #' @param channel the name of the main channel
+#' @param scale.perc scale percentage if lower resolution image needed
 #' @param ... arguements passed to \code{vrImages.vrImage}
 #'
 #' @rdname vrImages
@@ -255,7 +242,7 @@ vrImages.VoltRon <- function(object, assay = NULL, ...){
 #'
 #' @export
 #'
-vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, ...){
+vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, scale.perc = 100, ...){
 
   # check image name
   if(is.null(name)) {
@@ -276,7 +263,7 @@ vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, .
     stop(name, " is not among any image in this vrAssay object")
   }
 
-  return(vrImages(object@image[[name]], channel = channel, ...))
+  return(vrImages(object@image[[name]], channel = channel, scale.perc = scale.perc, ...))
 }
 
 #' @param object A vrAssay object
@@ -314,28 +301,55 @@ vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, .
 #' @param object A vrImage object
 #' @param channel the name of the main channel
 #' @param as.raster return as a raster
+#' @param scale.perc scale percentage if lower resolution image needed
 #'
 #' @rdname vrImages
 #' @method vrImages vrImage
 #'
-#' @importFrom magick image_read
+#' @importFrom magick image_read geometry_size_percent
 #'
 #' @export
 #'
-vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE){
+vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE, scale.perc = 100){
 
+  # check channels
   if(is.null(channel)){
     channel <- object@main_channel
   } else {
-    if(!channel %in% vrImageChannelNames(object))
-      stop(channel, " is not among any channel in this vrImage object")
+    if(!channel %in% vrImageChannelNames(object)){
+      warning("'", channel, "' is not among any channel in this vrImage object!")
+      return(NULL)
+    }
   }
 
-  if(length(object@image) > 0){
+  # correct image scale
+  if(!is.numeric(scale.perc)){
+    stop("scale.perc should be between 0 and 1")
+  }
+  if(scale.perc <= 0 || scale.perc > 100){
+    stop("scale.perc should be between 0 and 100")
+  }
+
+  # return image
+  if(length(vrImageChannelNames(object)) > 0){
+    img <- object@image[[channel]]
     if(as.raster){
-      return(object@image[[channel]])
+
+      # return raster image format
+      return(img)
+
     } else {
-      return(magick::image_read(object@image[[channel]]))
+
+      # read image
+      img <- magick::image_read(img)
+
+      # scale image if needed
+      if(scale.perc < 100){
+        img <- image_resize(img, geometry = magick::geometry_size_percent(scale.perc))
+      }
+
+      # return regular image
+      return(img)
     }
   } else{
     warning("No image was found!")
@@ -354,7 +368,7 @@ vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE){
 #'
 #' @export
 #'
-"vrImages<-.vrImage" <- function(object, channel = NULL, ..., value){
+"vrImages<-.vrImage" <- function(object, channel = NULL, value){
 
   if(channel %in% vrImageChannelNames(object)){
     warning("A channel with name '", channel, "' already exists in this vrImage object. \n Overwriting ...")
@@ -478,6 +492,36 @@ vrImageNames.vrAssay <- function(object){
 ## Channel Methods ####
 ####
 
+#' @param name the name of the main image
+#'
+#' @rdname vrMainChannel
+#' @method vrMainChannel vrAssay
+#'
+#' @export
+#'
+vrMainChannel.vrAssay <- function(object, name = NULL){
+  if(is.null(name)){
+    name <- vrMainImage(object)
+  }
+  return(vrMainChannel(object@image[[name]]))
+}
+
+#' @param name the name of the main image
+#' @param value the name of main channel
+#'
+#' @rdname vrMainChannel
+#' @method vrMainChannel<- vrAssay
+#'
+#' @export
+#'
+"vrMainChannel<-.vrAssay" <- function(object, name = NULL, value){
+  if(is.null(name)){
+    name <- vrMainImage(object)
+  }
+  vrMainChannel(object@image[[name]]) <- value
+  return(object)
+}
+
 #' @rdname vrMainChannel
 #' @method vrMainChannel vrImage
 #'
@@ -580,7 +624,7 @@ resizeImage.VoltRon <- function(object, ...){
 
 #' @param name the name of the main image
 #' @param reg TRUE if registered images are assigned
-#' @param ... arguements passed to \code{vrImages.vrImage}
+#' @param ... arguements passed to \code{resizeImage.vrImage}
 #'
 #' @rdname resizeImage
 #' @method resizeImage vrAssay
@@ -675,7 +719,7 @@ modulateImage.VoltRon <- function(object, ...){
 #' @param name the name of the main image
 #' @param reg TRUE if registered images are assigned
 #' @param channel the name of the channel associated with the image
-#' @param ... arguements passed to \code{vrImages.vrImage}
+#' @param ... arguements passed to \code{modulateImage.vrImage}
 #'
 #' @rdname modulateImage
 #' @method modulateImage vrAssay
@@ -739,6 +783,118 @@ modulateImage.vrImage <- function(object, channel = NULL, brightness = 100, satu
     img_data <- magick::image_modulate(img_data, brightness = brightness, saturation = saturation, hue = hue)
     object@image[[img]] <- magick::image_data(img_data)
   }
+
+  # return
+  return(object)
+}
+
+#' @rdname combineChannels
+#' @method combineChannels VoltRon
+#'
+#' @export
+#'
+combineChannels.VoltRon <- function(object, ...){
+  sample.metadata <- SampleMetadata(object)
+  assay_names <- rownames(sample.metadata)
+  for(assy in assay_names){
+    object[[assy]] <- combineChannels(object[[assy]], ...)
+  }
+  return(object)
+}
+
+#' @param name the name of the main image
+#' @param reg TRUE if registered images are assigned
+#' @param ... arguements passed to \code{combineChannels.vrImage}
+#'
+#' @rdname combineChannels
+#' @method combineChannels vrAssay
+#'
+#' @export
+#'
+combineChannels.vrAssay <- function(object,  name = NULL, reg = FALSE, ...){
+
+  # check name
+  if(is.null(name)) {
+    name <- object@main_image
+  }
+
+  # get registered image
+  if(reg){
+    if(!paste0(name, "_reg") %in% vrImageNames(object)){
+      warning("There are no registered images with name ", name, "!")
+    } else {
+      name <- paste0(name, "_reg")
+    }
+  }
+
+  # check main image
+  if(!name %in% vrImageNames(object)){
+    stop(name, " is not among any image in this vrAssay object")
+  }
+
+  object@image[[name]] <- combineChannels(object@image[[name]], ...)
+
+  # return
+  return(object)
+}
+
+#' @param channels the list of channels
+#' @param colors the colors associated with each channel
+#' @param channel_key the name of the new channel name
+#'
+#' @rdname combineChannels
+#' @method combineChannels vrImage
+#'
+#' @importFrom magick image_read image_data image_composite
+#' @importFrom grDevices col2rgb
+#' @importFrom raster as.raster
+#'
+#' @export
+#'
+combineChannels.vrImage <- function(object, channels = NULL, colors = NULL, channel_key = "combined"){
+
+  # check channel names
+  if(is.null(channels)){
+    stop("No channel names were given")
+  } else {
+    if(any(!channels %in% vrImageChannelNames(object))){
+      warning("Some channel names do not match with the existing channels.")
+    }
+  }
+
+  # check colors
+  if(is.null(colors)){
+    stop("No colors were given")
+  }
+  if(length(colors) != length(channels)){
+    stop("The length of colors do not match with the length of channels.")
+  }
+
+  # configure channel and color names
+  colors <- colors[channels %in% vrImageChannelNames(object)]
+  channels <- channels[channels %in% vrImageChannelNames(object)]
+  names(colors) <- channels
+
+  # get images and colorize
+  channel_list <- list()
+  composite_image <- NULL
+  for(img in channels){
+    channel_img <- vrImages(object, channel = img)
+    color_rgb <-  grDevices::col2rgb(colors[img])[,1]
+    imagedata <- as.numeric(magick::image_data(channel_img, channels = "rgb"))
+    imagedata[,,1] <- imagedata[,,1] * (color_rgb[1]/255)
+    imagedata[,,2] <- imagedata[,,2] * (color_rgb[2]/255)
+    imagedata[,,3] <- imagedata[,,3] * (color_rgb[3]/255)
+    channel_img <- magick::image_read(raster::as.raster(imagedata))
+    if(is.null(composite_image)){
+      composite_image <- channel_img
+    } else{
+      composite_image <- magick::image_composite(channel_img, composite_image, operator = "Plus")
+    }
+  }
+
+  # combine channels
+  vrImages(object, channel = channel_key) <- composite_image
 
   # return
   return(object)
@@ -858,150 +1014,6 @@ vrSegments.vrImage<- function(object) {
 
   methods::slot(object = object, name = 'segments') <- value
   return(object)
-}
-
-####
-# Image File Manipulation ####
-####
-
-#' generateXeniumImage
-#'
-#' Generate a low resolution DAPI image of the Xenium experiment
-#'
-#' @param dir.path Xenium output folder
-#' @param increase.contrast increase the contrast of the image before writing
-#' @param resolution_level the level of resolution within Xenium OME-TIFF image. Default: 7 (553x402)
-#' @param overwrite_resolution if TRUE, the image "file.name" will be generated again although it exists at "dir.path"
-#' @param output.path The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.
-#' @param file.name the name of the lowred morphology image. Default: morphology_lowres.tif
-#' @param ... additional parameters passed to the \code{EBImage::writeImage} function
-#'
-#' @importFrom EBImage writeImage
-#'
-#' @details
-#' The Xenium morphology_mip.ome.tif file that is found under the outs folder comes is an hyperstack of different resolutions of the DAPI image.
-#' \code{generateXeniumImage} allows extracting only one of these layers by specifying the \code{resolution} parameter (Default: 7 for 553x402) among 1 to 8.
-#' Lower incides of resolutions have higher higher resolutions, e.g. 1 for 35416x25778. Note that you may need to allocate larger memory of Java to import
-#' higher resolution images.
-#'
-#' @export
-#'
-generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_level = 7, overwrite_resolution = FALSE, output.path = NULL, file.name = "morphology_lowres.tif", ...) {
-
-  # file path to either Xenium output folder or specified folder
-  file.path <- paste0(dir.path, "/", file.name)
-  output.file <- paste0(output.path, "/", file.name)
-
-  # check if the file exists in either Xenium output folder, or the specified location
-  if((file.exists(file.path) | file.exists(paste0(output.file))) & !overwrite_resolution){
-    message(paste0(file.name, " already exists!"))
-  } else {
-    message("Loading morphology_mip.ome.tif \n")
-    if (!requireNamespace('RBioFormats'))
-      stop("Please install RBioFormats package to read the ome.tiff file!")
-    morphology_image_lowres <- RBioFormats::read.image(paste0(dir.path, "/morphology_mip.ome.tif"), resolution = resolution_level)
-
-    # pick a resolution level
-    image_info <- morphology_image_lowres@metadata$coreMetadata
-    message(paste0("Image Resolution (X:", image_info$sizeX, " Y:", image_info$sizeY, ") \n"))
-
-    # increase contrast using EBImage
-    if(increase.contrast) {
-      message("Increasing Contrast \n")
-      morphology_image_lowres <- (morphology_image_lowres/max(morphology_image_lowres))
-    }
-
-    # write to the same folder
-    message("Writing Tiff File")
-    if(is.null(output.path)){
-      EBImage::writeImage(morphology_image_lowres, file = file.path, ...)
-    } else {
-      EBImage::writeImage(morphology_image_lowres, file = output.file, ...)
-    }
-  }
-  invisible()
-}
-
-#' generateCosMxImage
-#'
-#' Generates a low resolution Morphology image of the CosMx experiment
-#'
-#' @param dir.path CosMx output folder
-#' @param increase.contrast increase the contrast of the image before writing
-#' @param output.path The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.
-#' @param ... additional parameters passed to the EBImage::writeImage function
-#'
-#' @importFrom magick image_read image_contrast
-#' @importFrom EBImage writeImage
-#' @importFrom reshape2 acast
-#'
-#' @export
-#'
-generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path = NULL, ...) {
-
-  # file path to either Xenium output folder or specified folder
-  file.path <- paste0(dir.path, "/CellComposite_lowres.tif")
-  output.file <- paste0(output.path, "/CellComposite_lowres.tif")
-
-  # check if the file exists in either Xenium output folder, or the specified location
-  if(file.exists(file.path) | file.exists(paste0(output.file))){
-    cat("CellComposite_lowres.tif already exists! \n")
-    return(NULL)
-  }
-
-  # FOV positions of CosMx
-  list_of_files <- list.files(dir.path)
-  fov_positions_path <- paste0(dir.path, "/", list_of_files[grepl("fov_positions_file.csv$",list_of_files)][1])
-  fov_positions <- read.csv(fov_positions_path)
-
-  # manipulate fov positions matrix
-  cat("Getting FOV Positions \n")
-  relative_fov_positions <- fov_positions
-  x_min <- min(relative_fov_positions$x_global_px)
-  y_min <- min(relative_fov_positions$y_global_px)
-  x_gap <- diff(unique(fov_positions$x_global_px))[1]
-  y_gap <- diff(unique(fov_positions$y_global_px))[1]
-  relative_fov_positions[,c("x_global_px","y_global_px")] <- t(apply(relative_fov_positions[,c("x_global_px","y_global_px")], 1, function(cell){
-    c((cell[1]-x_min)/x_gap,(cell[2]-y_min)/y_gap)
-  }))
-  relative_fov_positions <- relative_fov_positions[order(relative_fov_positions$y_global_px, decreasing = TRUE),]
-
-  # Combine Images of the FOV grid
-  cat("Loading FOV tif files \n")
-  image.dir.path <- paste0(dir.path,"/CellComposite/")
-  morphology_image_data <- NULL
-  for(i in relative_fov_positions$fov){
-    image_path <- paste0(image.dir.path, "CellComposite_F", str_pad(as.character(i), 3, pad = 0), ".jpg")
-    image_data <- magick::image_read(image_path) %>% magick::image_resize("x500") %>% magick::image_raster()
-    if(is.null(morphology_image_data))
-      dim_image <- apply(image_data[,1:2], 2, max)
-    scale_dim <- relative_fov_positions[i,2:3]*dim_image
-    image_data[,1:2] <- image_data[,1:2] +
-      rep(1, nrow(image_data)) %o% as.matrix(scale_dim)[1,]
-    morphology_image_data <- rbind(morphology_image_data, image_data)
-  }
-  morphology_image_data_array <- reshape2::acast(morphology_image_data, y ~ x)
-  morphology_image <- magick::image_read(morphology_image_data_array) %>% magick::image_resize("x800")
-
-  # pick a resolution level
-  morphology_image_info <- image_info(morphology_image)
-  cat(paste0("Image Resolution (X:", morphology_image_info$width, " Y:", morphology_image_info$height, ") \n"))
-
-  # increase contrast using EBImage
-  if(increase.contrast) {
-    cat("Increasing Contrast \n")
-    morphology_image <- magick::image_contrast(morphology_image, sharpen = 1)
-  }
-
-  # write to the same folder
-  cat("Writing Tiff File \n")
-  if(is.null(output.path)){
-    EBImage::writeImage(magick::as_EBImage(morphology_image), file = file.path, ...)
-  } else {
-    EBImage::writeImage(magick::as_EBImage(morphology_image), file = output.file, ...)
-  }
-
-  return(NULL)
 }
 
 ####

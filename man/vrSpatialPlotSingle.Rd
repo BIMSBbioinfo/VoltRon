@@ -10,6 +10,7 @@ vrSpatialPlotSingle(
   group.by = "Sample",
   plot.segments = FALSE,
   group.ids = NULL,
+  n.tile = 0,
   graph = NULL,
   font.size = 2,
   pt.size = 2,
@@ -19,7 +20,8 @@ vrSpatialPlotSingle(
   background = NULL,
   reg = FALSE,
   crop = FALSE,
-  legend.pt.size = 2
+  legend.pt.size = 2,
+  scale.image = TRUE
 )
 }
 \arguments{
@@ -32,6 +34,8 @@ vrSpatialPlotSingle(
 \item{plot.segments}{plot segments instead of points}
 
 \item{group.ids}{a subset of categories defined with in the grouping label \code{group.by}}
+
+\item{n.tile}{should points be aggregated into tiles before visualization (see \code{geom_tile}). Applicable only for cells and molecules}
 
 \item{graph}{if not NULL, the graph is added to the plot}
 
@@ -52,6 +56,8 @@ vrSpatialPlotSingle(
 \item{crop}{whether to crop an image of a spot assay}
 
 \item{legend.pt.size}{the size of points at the legend}
+
+\item{scale.image}{should the image be scaled down to a low resolution (width: 1000px)}
 }
 \description{
 Plotting a single assay from a VoltRon object. We plot the identification of spatially resolved cells, spots, and ROI on associated images.

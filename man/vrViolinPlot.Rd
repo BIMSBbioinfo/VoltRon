@@ -8,7 +8,6 @@ vrViolinPlot(
   object,
   features = NULL,
   assay = NULL,
-  assay.type = NULL,
   group.by = "Sample",
   norm = TRUE,
   points = TRUE,
@@ -23,8 +22,6 @@ vrViolinPlot(
 \item{features}{a set of features to be visualized}
 
 \item{assay}{assay name}
-
-\item{assay.type}{assay type}
 
 \item{group.by}{a column from metadata to seperate columns of the heatmap}
 

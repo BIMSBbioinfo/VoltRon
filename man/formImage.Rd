@@ -13,7 +13,7 @@ formImage(coords, segments = list(), image = NULL, main_channel = NULL)
 
 \item{image}{the image of the data}
 
-\item{channel}{the key of the main channel of vrImage object}
+\item{main_channel}{the key of the main channel of vrImage object}
 }
 \description{
 Create a vrImage (VoltRon image) object

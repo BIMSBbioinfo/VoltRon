@@ -9,8 +9,8 @@ vrSpatialPlot(
   group.by = "Sample",
   plot.segments = FALSE,
   group.ids = NULL,
+  n.tile = 0,
   assay = NULL,
-  assay.type = NULL,
   graph.name = NULL,
   reduction = "umap",
   ncol = 2,
@@ -24,9 +24,11 @@ vrSpatialPlot(
   reg = FALSE,
   crop = FALSE,
   legend.pt.size = 2,
+  scale.image = TRUE,
   legend.loc = "right",
   common.legend = TRUE,
-  collapse = TRUE
+  collapse = TRUE,
+  interactive = FALSE
 )
 }
 \arguments{
@@ -38,9 +40,9 @@ vrSpatialPlot(
 
 \item{group.ids}{a subset of categories defined with in the grouping label \code{group.by}}
 
-\item{assay}{the assay name}
+\item{n.tile}{should points be aggregated into tiles before visualization (see \code{geom_tile}). Applicable only for cells and molecules}
 
-\item{assay.type}{the assay type name: 'cell', 'spot' or 'ROI'}
+\item{assay}{the assay name}
 
 \item{graph.name}{if not NULL, the spatial graph is with name \code{graph.name} is visualized as well}
 
@@ -68,11 +70,15 @@ vrSpatialPlot(
 
 \item{legend.pt.size}{the size of points at the legend}
 
+\item{scale.image}{should the image be scaled down to a low resolution (width: 1000px)}
+
 \item{legend.loc}{the location of the legend, default is "right"}
 
 \item{common.legend}{whether to use a common legend for all plots}
 
 \item{collapse}{whether to combine all ggplots}
+
+\item{interactive}{if TRUE, run interactive plot}
 }
 \description{
 Plotting identification of spatially resolved cells, spots, and ROI on associated images from multiple assays in a VoltRon object.

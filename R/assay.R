@@ -1,4 +1,5 @@
 #' @include zzz.R
+#' @importClassesFrom Matrix dgCMatrix
 NULL
 
 ####
@@ -7,10 +8,11 @@ NULL
 
 ## Auxiliary ####
 
-# Set magick-image as an S4 class
-setOldClass(Classes = c('magick-image'))
-setOldClass(Classes = c('raster'))
-setOldClass(Classes = c('bitmap'))
+# Set old classes
+# setOldClass(Classes = c('magick-image'))
+# setOldClass(Classes = c('raster'))
+# setOldClass(Classes = c('bitmap'))
+setClassUnion("data_matrix", members = c("matrix", "dgCMatrix"))
 
 ## vrAssay ####
 
@@ -22,7 +24,8 @@ setOldClass(Classes = c('bitmap'))
 #' @slot embeddings list of embeddings
 #' @slot image a list of vrImage objects
 #' @slot params additional parameters used by different assay types
-#' @slot type the type of the assay (cell, spot, ROI)
+#' @slot type the type of the assay (tile, molecule, cell, spot, ROI)
+#' @slot name the assay name
 #' @slot main_image the key of the main image
 #'
 #' @name vrAssay-class
@@ -32,8 +35,10 @@ setOldClass(Classes = c('bitmap'))
 vrAssay <- setClass(
   Class = 'vrAssay',
   slots = c(
-    rawdata = 'matrix',
-    normdata = 'matrix',
+    # rawdata = 'matrix',
+    # normdata = 'matrix',
+    rawdata = 'data_matrix',
+    normdata = 'data_matrix',
     featuredata = 'data.frame',
     embeddings = "list",
     image = "list",
@@ -73,12 +78,13 @@ setMethod(
 #' @param type the type of the assay (cells, spots, ROIs)
 #' @param name the name of the assay
 #' @param main_image the name of the main_image
+#' @param ... additional arguements passed to \code{formImage}
 #'
 #' @importFrom methods new
 #'
 #' @export
 #'
-formAssay <- function(data = NULL, coords, segments = list(), image = NULL, params = list(), type = "ROI", name = "Assay1", main_image = "image_1"){
+formAssay <- function(data = NULL, coords, segments = list(), image = NULL, params = list(), type = "ROI", name = "Assay1", main_image = "image_1", ...){
 
   # get data
   if(is.null(data)){
@@ -87,7 +93,7 @@ formAssay <- function(data = NULL, coords, segments = list(), image = NULL, para
   }
 
   # get image object
-  image <- formImage(coords = coords, segments = segments, image = image)
+  image <- formImage(coords = coords, segments = segments, image = image, ...)
   image <- list(image)
   names(image) <- main_image
 
@@ -143,20 +149,27 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
     if(!is.null(spatialpoints)){
 
       # check if spatial points are here
-      if(length(intersect(spatialpoints, vrSpatialPoints(object))) == 0)
+      spatialpoints <- intersect(spatialpoints, vrSpatialPoints(object))
+      # if(length(intersect(spatialpoints, vrSpatialPoints(object))) == 0){
+      #   return(NULL)
+      # }
+      if(length(spatialpoints) == 0){
         return(NULL)
+      }
 
       # data
-      object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
-      object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE]
+      # object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
+      # object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE]
+      object@rawdata  <- object@rawdata[,spatialpoints, drop = FALSE]
+      object@normdata  <- object@normdata[,spatialpoints, drop = FALSE]
 
       # embeddings
       for(embed in vrEmbeddingNames(object)){
         embedding <- vrEmbeddings(object, type = embed)
-        vrEmbeddings(object, type = embed) <- embedding[rownames(embedding) %in% spatialpoints,]
+        vrEmbeddings(object, type = embed) <- embedding[spatialpoints,, drop = FALSE]
       }
 
-      # images
+      # image
       for(img in vrImageNames(object))
         object@image[[img]] <- subset.vrImage(object@image[[img]], spatialpoints = spatialpoints)
 
@@ -174,8 +187,12 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
       # embeddings
       for(embed in vrEmbeddingNames(object)){
         embedding <- vrEmbeddings(object, type = embed)
-        vrEmbeddings(object, type = embed) <- embedding[rownames(embedding) %in% spatialpoints,]
+        vrEmbeddings(object, type = embed) <- embedding[rownames(embedding) %in% spatialpoints,, drop = FALSE]
       }
+    } else {
+
+      # else return empty
+      return(NULL)
     }
   }
 
@@ -308,15 +325,17 @@ vrSpatialPoints.vrAssay <- function(object, ...) {
   embed_names <- names(embeddings)
   if(length(embed_names) > 0){
     for(type in embed_names){
-      if(nrow(embeddings[[type]]) > 0 ){
+      if(nrow(embeddings[[type]]) > 0){
         if(nrow(embeddings[[type]]) != length(value)){
           stop("The number of spatial points is not matching with the input")
         } else {
           rownames(embeddings[[type]]) <- value
         }
+        object@embeddings[[type]] <- embeddings[[type]]
       }
     }
   }
+
 
   # return
   return(object)
@@ -387,7 +406,16 @@ vrAssayNames.vrAssay <- function(object, ...) {
   assayname <- vrAssayNames(object)
 
   # change assay names
-  vrSpatialPoints(object)  <- stringr::str_replace(vrSpatialPoints(object), assayname, value)
+  spatialpoints <- stringr::str_replace(vrSpatialPoints(object), assayname, value)
+
+  # add assay name if missing
+  if(vrAssayTypes(object) %in% c("ROI", "cell", "spot")){
+    ind <- !grepl("Assay[0-9]+$", spatialpoints)
+    spatialpoints[ind] <- stringr::str_replace(spatialpoints[ind], "$", paste0("_", value))
+  }
+
+  # replace spatial point names
+  vrSpatialPoints(object) <- spatialpoints
   object@name <- value
 
   # return
@@ -403,6 +431,8 @@ vrAssayTypes.vrAssay <- function(object) {
   return(object@type)
 }
 
+#' @param param the parameter value to return
+#'
 #' @rdname vrAssayParams
 #' @method vrAssayParams vrAssay
 #'
@@ -413,7 +443,8 @@ vrAssayParams.vrAssay <- function(object, param = NULL) {
     if(param %in% names(object@params)){
       return(object@params[[param]])
     } else {
-      stop(param, " not found in the param list")
+      warning(param, " not found in the param list")
+      return(NULL)
     }
   } else {
     return(object@params)
@@ -470,15 +501,17 @@ vrData.vrAssay <- function(object, features = NULL, norm = FALSE, ...) {
       # for tile only
       if(assay.type == "tile") {
         image_data <- as.numeric(vrImages(object, as.raster = TRUE, ...))
-        image_data <- image_data[,,1]
+        # image_data <- image_data[,,1]
+        image_data <- (0.299 * image_data[,,1] + 0.587 * image_data[,,2] + 0.114 * image_data[,,3])
         image_data <- split_into_tiles(image_data, tile_size = vrAssayParams(object, param = "tile.size"))
         image_data <- sapply(image_data, function(x) return(as.vector(x)))
         image_data <- image_data*255
-        rownames(image_data) <- 1:nrow(image_data)
+        rownames(image_data) <- paste0("pixel", 1:nrow(image_data))
+        colnames(image_data) <- vrSpatialPoints(object)
         return(image_data)
       # for molecules only
       } else if(assay.type == "molecule"){
-        stop("No data matrices are available for molecule assays!")
+        return(matrix(nrow = 0, ncol = 0))
       }
     }
   }
@@ -631,20 +664,6 @@ vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
   return(object)
 }
 
-#' @param reg TRUE if registered segments are being updated
-#' @param method the method argument passed to \code{base::dist}
-#'
-#' @rdname vrDistances
-#' @method vrDistances vrAssay
-#'
-#' @importFrom stats dist
-#' @export
-#'
-vrDistances.vrAssay <- function(object, reg = FALSE, method = "euclidean", ...) {
-  coords <- vrCoordinates(object, reg = reg, ...)
-  return(as.matrix(stats::dist(coords, method = method)))
-}
-
 #' @param type the key name for the embedding
 #' @param dims the set of dimensions of the embedding data
 #'
@@ -667,7 +686,7 @@ vrEmbeddings.vrAssay <- function(object, type = "pca", dims = 1:30) {
     if(max(dims) > ncol(embedding)){
       dims <- 1:ncol(embedding)
     }
-    return(embedding[,dims])
+    return(embedding[,dims, drop = FALSE])
   }
 }
 

@@ -108,11 +108,10 @@ With **vrSpatialPlot**, we can visualize Xenium experiments in both cellular and
 We can interactively select a subset of interest within the tissue section and visualize the localization of these transcripts. Here we subset a ductal carcinoma niche, and visualize visualize mRNAs of **(i)** ACTA2, a marker for smooth muscle cell actin, and **(ii)** TCF7, an early exhausted t cell marker.
 
 ```{r eval = FALSE, class.source="watch-out"}
-Xen_R1_assay <- subset(Xen_R1, assays = "Assay2")
-Xen_R1_subsetinfo <- subset(Xen_R1_assay, interactive = TRUE)
+Xen_R1_subsetinfo <- subset(Xen_R1, interactive = TRUE)
 Xen_R1_subset <- Xen_R1_subsetinfo$subsets[[1]]
-vrSpatialPlot(Xen_R1_subset, group.by = "feature_name", 
-              group.id = c("ACTA2", "KRT15", "TACSTD2", "CEACAM6"), pt.size = 0.2)
+vrSpatialPlot(Xen_R1_subset, assay = "Xenium_mol", group.by = "gene",
+              group.id = c("ACTA2", "KRT15", "TACSTD2", "CEACAM6"), pt.size = 0.2, legend.pt.size = 5)
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize.png" class="center">

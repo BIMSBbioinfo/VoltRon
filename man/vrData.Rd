@@ -10,7 +10,7 @@
 
 vrData(object, ...)
 
-\method{vrData}{VoltRon}(object, assay = NULL, ...)
+\method{vrData}{VoltRon}(object, assay = NULL, norm = FALSE, ...)
 }
 \arguments{
 \item{object}{An object}
@@ -19,7 +19,7 @@ vrData(object, ...)
 
 \item{norm}{TRUE if normalized data should be returned}
 
-\item{...}{Arguments passed to other methods}
+\item{...}{additional parameters passed to \code{vrData.vrAssay}}
 
 \item{assay}{assay}
 }

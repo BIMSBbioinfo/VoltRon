@@ -7,7 +7,6 @@
 vrHeatmapPlot(
   object,
   assay = NULL,
-  assay.type = NULL,
   features = NULL,
   group.by = "clusters",
   norm = TRUE,
@@ -27,8 +26,6 @@ vrHeatmapPlot(
 \item{object}{VoltRon object}
 
 \item{assay}{assay name}
-
-\item{assay.type}{assay type}
 
 \item{features}{a set of features to be visualized}
 

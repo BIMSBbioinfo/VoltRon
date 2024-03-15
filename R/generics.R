@@ -2,58 +2,127 @@
 #'
 NULL
 
-#' Normalize Data
+####
+# General ####
+####
+
+#' vrFeatures
 #'
-#' Normalize the count data present in a given assay.
+#' Get features from the main.assay
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @rdname normalizeData
-#' @export
+#' @rdname vrFeatures
+#' @export vrFeatures
 #'
-normalizeData <- function(object, ...) {
-  UseMethod(generic = 'normalizeData', object = object)
+vrFeatures <- function(object, ...) {
+  UseMethod(generic = 'vrFeatures', object = object)
 }
 
-#' Metadata
+#' Feature Data
 #'
-#' Get the metadata
+#' Get and set feature data from the main.assay
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @rdname Metadata
-#' @export Metadata
+#' @rdname vrFeatureData
+#' @export vrFeatureData
 #'
-Metadata <- function(object, ...) {
-  UseMethod(generic = 'Metadata', object = object)
+vrFeatureData <- function(object, ...) {
+  UseMethod(generic = 'vrFeatureData', object = object)
 }
 
 #' @param object An object
 #' @param ... Arguments passed to other methods
-#' @param value metadata
+#' @param value feature data
 #'
-#' @rdname Metadata
-#' @export Metadata<-
+#' @rdname vrFeatureData
+#' @export vrFeatureData<-
 #'
-"Metadata<-" <- function(object, ..., value) {
-  UseMethod(generic = 'Metadata<-', object = object)
+"vrFeatureData<-" <- function(object, ..., value) {
+  UseMethod(generic = 'vrFeatureData<-', object = object)
 }
 
-#' SampleMetadata
+#' Get spatially variable feature
 #'
-#' Get the sample metadata
+#' get spatially variable features in an assay
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @rdname SampleMetadata
-#' @export SampleMetadata
+#' @rdname getFeatures
+#' @export getFeatures
 #'
-SampleMetadata <- function(object, ...) {
-  UseMethod(generic = 'SampleMetadata', object = object)
+getFeatures <- function(object, ...) {
+  UseMethod(generic = 'getFeatures', object = object)
 }
+
+#' vrData
+#'
+#' Get data from the main.assay
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname vrData
+#' @export vrData
+#'
+vrData <- function(object, ...) {
+  UseMethod(generic = 'vrData', object = object)
+}
+
+
+#' Get profile specific neighbors
+#'
+#' get neighbors in an assay given omic profiles
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname getProfileNeighbors
+#' @export getProfileNeighbors
+#'
+getProfileNeighbors <- function(object, ...) {
+  UseMethod(generic = 'getProfileNeighbors', object = object)
+}
+
+#' changeSampleNames
+#'
+#' change sample names of VoltRon or other objects
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname changeSampleNames
+#' @export changeSampleNames
+#'
+#' @noRd
+#'
+changeSampleNames <- function(object, ...) {
+  UseMethod(generic = 'changeSampleNames', object = object)
+}
+
+#' changeAssayNames
+#'
+#' change assay names of VoltRon or other objects
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname changeAssayNames
+#' @export changeAssayNames
+#'
+#' @noRd
+#'
+changeAssayNames <- function(object, ...) {
+  UseMethod(generic = 'changeAssayNames', object = object)
+}
+
+####
+# Assay ####
+####
 
 #' Add Assay
 #'
@@ -137,6 +206,100 @@ vrMainAssay <- function(object, ...) {
   UseMethod(generic = 'vrMainAssay', object = object)
 }
 
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#' @param value assay name
+#'
+#' @rdname vrMainAssay
+#' @export vrMainAssay<-
+#'
+"vrMainAssay<-" <- function(object, ..., value) {
+  UseMethod(generic = 'vrMainAssay<-', object = object)
+}
+
+####
+# Sample ####
+####
+
+#' Get Sample names
+#'
+#' Given a VoltRon object, give names of samples
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname vrSampleNames
+#' @export vrSampleNames
+#'
+vrSampleNames <- function(object, ...) {
+  UseMethod(generic = 'vrSampleNames', object = object)
+}
+
+####
+# Metadata ####
+####
+
+#' Metadata
+#'
+#' Get the metadata
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname Metadata
+#' @export Metadata
+#'
+Metadata <- function(object, ...) {
+  UseMethod(generic = 'Metadata', object = object)
+}
+
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#' @param value metadata
+#'
+#' @rdname Metadata
+#' @export Metadata<-
+#'
+"Metadata<-" <- function(object, ..., value) {
+  UseMethod(generic = 'Metadata<-', object = object)
+}
+
+#' SampleMetadata
+#'
+#' Get the sample metadata
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname SampleMetadata
+#' @export SampleMetadata
+#'
+SampleMetadata <- function(object, ...) {
+  UseMethod(generic = 'SampleMetadata', object = object)
+}
+
+####
+# Processing ####
+####
+
+#' Normalize Data
+#'
+#' Normalize the count data present in a given assay.
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname normalizeData
+#' @export
+#'
+normalizeData <- function(object, ...) {
+  UseMethod(generic = 'normalizeData', object = object)
+}
+
+####
+# Embedding ####
+####
+
 #' Get Embedding names
 #'
 #' Given a VoltRon object, give names of embeddings
@@ -151,30 +314,62 @@ vrEmbeddingNames <- function(object, ...) {
   UseMethod(generic = 'vrEmbeddingNames', object = object)
 }
 
-#' changeSampleNames
+#' vrEmbeddings
 #'
-#' change sample names of VoltRon or other objects
+#' Get embeddings of spatial points
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @rdname changeSampleNames
-#' @export changeSampleNames
+#' @rdname vrEmbeddings
+#' @export vrEmbeddings
 #'
-changeSampleNames <- function(object, ...) {
-  UseMethod(generic = 'changeSampleNames', object = object)
+vrEmbeddings <- function(object, ...) {
+  UseMethod(generic = 'vrEmbeddings', object = object)
 }
 
 #' @param object An object
 #' @param ... Arguments passed to other methods
-#' @param value assay name
+#' @param value embeddings
 #'
-#' @rdname vrMainAssay
-#' @export vrMainAssay<-
+#' @rdname vrEmbeddings
+#' @export vrEmbeddings<-
 #'
-"vrMainAssay<-" <- function(object, ..., value) {
-  UseMethod(generic = 'vrMainAssay<-', object = object)
+"vrEmbeddings<-" <- function(object, ..., value) {
+  UseMethod(generic = 'vrEmbeddings<-', object = object)
 }
+
+#' getPCA
+#'
+#' calculate getPCA of the VoltRon objects
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname getPCA
+#' @export getPCA
+#'
+getPCA <- function(object, ...) {
+  UseMethod(generic = 'getPCA', object = object)
+}
+
+#' getUMAP
+#'
+#' calculate getUMAP of the VoltRon objects
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#' @rdname getUMAP
+#' @export getUMAP
+#'
+getUMAP <- function(object, ...) {
+  UseMethod(generic = 'getUMAP', object = object)
+}
+
+####
+# Spatial ####
+####
 
 #' vrSpatialPoints
 #'
@@ -201,113 +396,6 @@ vrSpatialPoints <- function(object, ...) {
   UseMethod(generic = 'vrSpatialPoints<-', object = object)
 }
 
-#' vrFeatures
-#'
-#' Get features from the main.assay
-#'
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#'
-#' @rdname vrFeatures
-#' @export vrFeatures
-#'
-vrFeatures <- function(object, ...) {
-  UseMethod(generic = 'vrFeatures', object = object)
-}
-
-#' Feature Data
-#'
-#' Get and set feature data from the main.assay
-#'
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#'
-#' @rdname vrFeatureData
-#' @export vrFeatureData
-#'
-vrFeatureData <- function(object, ...) {
-  UseMethod(generic = 'vrFeatureData', object = object)
-}
-
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#' @param value feature data
-#'
-#' @rdname vrFeatureData
-#' @export vrFeatureData<-
-#'
-"vrFeatureData<-" <- function(object, ..., value) {
-  UseMethod(generic = 'vrFeatureData<-', object = object)
-}
-
-#' vrData
-#'
-#' Get data from the main.assay
-#'
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#'
-#' @rdname vrData
-#' @export vrData
-#'
-vrData <- function(object, ...) {
-  UseMethod(generic = 'vrData', object = object)
-}
-
-#' vrGraph
-#'
-#' Get graph from the main.assay
-#'
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#'
-#' @rdname vrGraph
-#' @export vrGraph
-#'
-vrGraph <- function(object, ...) {
-  UseMethod(generic = 'vrGraph', object = object)
-}
-
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#' @param value an igraph object
-#'
-#' @rdname vrGraph
-#' @export vrGraph<-
-#'
-"vrGraph<-" <- function(object, ..., value) {
-  UseMethod(generic = 'vrGraph<-', object = object)
-}
-
-#' vrGraphNames
-#'
-#' Get names of all graphs
-#'
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#'
-#' @rdname vrGraphNames
-#' @export vrGraphNames
-#'
-vrGraphNames <- function(object, ...) {
-  UseMethod(generic = 'vrGraphNames', object = object)
-}
-
-
-#' Get profile specific neighbors
-#'
-#' get neighbors in an assay given omic profiles
-#'
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#'
-#' @rdname getProfileNeighbors
-#' @export getProfileNeighbors
-#'
-getProfileNeighbors <- function(object, ...) {
-  UseMethod(generic = 'getProfileNeighbors', object = object)
-}
-
 #' Get spatial neighbors
 #'
 #' get neighbors in an assay given spatial coordinates
@@ -321,21 +409,6 @@ getProfileNeighbors <- function(object, ...) {
 getSpatialNeighbors <- function(object, ...) {
   UseMethod(generic = 'getSpatialNeighbors', object = object)
 }
-
-#' Get spatially variable feature
-#'
-#' get spatially variable features in an assay
-#'
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#'
-#' @rdname getFeatures
-#' @export getFeatures
-#'
-getFeatures <- function(object, ...) {
-  UseMethod(generic = 'getFeatures', object = object)
-}
-
 
 #' vrCoordinates
 #'
@@ -401,72 +474,52 @@ vrSegments <- function(object, ...) {
   UseMethod(generic = 'vrSegments<-', object = object)
 }
 
-#' vrDistances
-#'
-#' Get distances between spatial points using coordinates
-#'
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#'
-#' @rdname vrDistances
-#' @export vrDistances
-#'
-vrDistances <- function(object, ...) {
-  UseMethod(generic = 'vrDistances', object = object)
-}
+####
+# Graph ####
+####
 
-#' vrEmbeddings
+#' vrGraph
 #'
-#' Get embeddings of spatial points
+#' Get graph from the main.assay
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @rdname vrEmbeddings
-#' @export vrEmbeddings
+#' @rdname vrGraph
+#' @export vrGraph
 #'
-vrEmbeddings <- function(object, ...) {
-  UseMethod(generic = 'vrEmbeddings', object = object)
+vrGraph <- function(object, ...) {
+  UseMethod(generic = 'vrGraph', object = object)
 }
 
 #' @param object An object
 #' @param ... Arguments passed to other methods
-#' @param value embeddings
+#' @param value an igraph object
 #'
-#' @rdname vrEmbeddings
-#' @export vrEmbeddings<-
+#' @rdname vrGraph
+#' @export vrGraph<-
 #'
-"vrEmbeddings<-" <- function(object, ..., value) {
-  UseMethod(generic = 'vrEmbeddings<-', object = object)
+"vrGraph<-" <- function(object, ..., value) {
+  UseMethod(generic = 'vrGraph<-', object = object)
 }
 
-#' getPCA
+#' vrGraphNames
 #'
-#' calculate getPCA of the VoltRon objects
+#' Get names of all graphs
 #'
 #' @param object An object
 #' @param ... Arguments passed to other methods
 #'
-#' @rdname getPCA
-#' @export getPCA
+#' @rdname vrGraphNames
+#' @export vrGraphNames
 #'
-getPCA <- function(object, ...) {
-  UseMethod(generic = 'getPCA', object = object)
+vrGraphNames <- function(object, ...) {
+  UseMethod(generic = 'vrGraphNames', object = object)
 }
 
-#' getUMAP
-#'
-#' calculate getUMAP of the VoltRon objects
-#'
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#'
-#' @rdname getUMAP
-#' @export getUMAP
-#'
-getUMAP <- function(object, ...) {
-  UseMethod(generic = 'getUMAP', object = object)
-}
+####
+# Image ####
+####
 
 #' vrImages
 #'
@@ -606,6 +659,25 @@ resizeImage <- function(object, ...) {
 modulateImage <- function(object, ...) {
   UseMethod(generic = 'modulateImage', object = object)
 }
+
+#' combineChannels
+#'
+#' Combining channels into novel channels of the same image
+#'
+#' @param object An object
+#' @param ... Arguments passed to other methods
+#'
+#'
+#' @rdname combineChannels
+#' @export combineChannels
+#'
+combineChannels <- function(object, ...) {
+  UseMethod(generic = 'combineChannels', object = object)
+}
+
+####
+# Conversion ####
+####
 
 #' as.Seurat
 #'

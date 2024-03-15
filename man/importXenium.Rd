@@ -8,11 +8,13 @@ importXenium(
   dir.path,
   selected_assay = "Gene Expression",
   assay_name = "Xenium",
+  sample_name = NULL,
   use_image = TRUE,
   morphology_image = "morphology_lowres.tif",
   resolution_level = 7,
   overwrite_resolution = FALSE,
-  image_name = "DAPI",
+  image_name = "main",
+  channel_name = "DAPI",
   import_molecules = FALSE,
   ...
 )
@@ -24,6 +26,8 @@ importXenium(
 
 \item{assay_name}{the assay name of the SR object}
 
+\item{sample_name}{the name of the sample}
+
 \item{use_image}{if TRUE, the DAPI image will be used.}
 
 \item{morphology_image}{the name of the lowred morphology image. Default: morphology_lowres.tif}
@@ -32,7 +36,9 @@ importXenium(
 
 \item{overwrite_resolution}{if TRUE, the image "file.name" will be generated again although it exists at "dir.path"}
 
-\item{image_name}{the image name of the Xenium assay, Default: DAPI}
+\item{image_name}{the image name of the Xenium assay, Default: main}
+
+\item{channel_name}{the channel name of the image of the Xenium assay, Default: DAPI}
 
 \item{import_molecules}{if TRUE, molecule assay will be created along with cell assay.}
 

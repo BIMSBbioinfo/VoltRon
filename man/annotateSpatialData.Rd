@@ -4,7 +4,15 @@
 \alias{annotateSpatialData}
 \title{annotateSpatialData}
 \usage{
-annotateSpatialData(object, label, assay = NULL, ...)
+annotateSpatialData(
+  object,
+  label = "annotation",
+  assay = NULL,
+  use.image = FALSE,
+  image_name = NULL,
+  channel = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{a list of VoltRon (or Seurat) objects}
@@ -13,7 +21,13 @@ annotateSpatialData(object, label, assay = NULL, ...)
 
 \item{assay}{a reference spatial data set, used only if \code{object_list} is \code{NULL}}
 
-\item{...}{additional parameters passed to \code{vrSpatialPlot}}
+\item{use.image}{if TRUE, use only the image}
+
+\item{image_name}{the name of the main image}
+
+\item{channel}{the name of the main channel}
+
+\item{...}{additional parameters passed to \code{vrSpatialPlot}.}
 }
 \value{
 a vector of annotations

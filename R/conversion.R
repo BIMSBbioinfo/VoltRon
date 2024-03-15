@@ -10,6 +10,7 @@
 #' @rdname as.VoltRon
 #' @method as.VoltRon Seurat
 #'
+#' @importFrom stringr str_replace str_extract
 #' @export
 #'
 as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name = NULL, ...){
@@ -19,10 +20,19 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
     stop("Please install Seurat package for using Seurat objects")
 
   # raw counts
-  rawdata <- as.matrix(object[[Seurat::DefaultAssay(object)]]@counts)
+  # rawdata <- as.matrix(object[[Seurat::DefaultAssay(object)]]@counts)
+  rawdata <- SeuratObject::LayerData(object, assay = Seurat::DefaultAssay(object), layer = "counts")
 
   # metadata
   metadata <- object@meta.data
+
+  # embeddings
+  if(length(object@reductions) > 0){
+    embeddings_flag <- TRUE
+    embedding_list <- sapply(object@reductions, Seurat::Embeddings, USE.NAMES = TRUE)
+  } else {
+    embeddings_flag <- FALSE
+  }
 
   # image
   voltron_list <- list()
@@ -39,23 +49,41 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
 
       # cells
       cells <- Seurat::Cells(spatialobject)
+      cells_nopostfix <- gsub("_Assay[0-9]+$", "", cells)
 
       # count
-      cur_rawdata <- rawdata[,cells]
+      cur_rawdata <- as.matrix(rawdata[,cells])
+      colnames(cur_rawdata) <- cells_nopostfix
 
       # metadata
       cur_metadata <- metadata[cells,]
+      rownames(cur_metadata) <- cells_nopostfix
 
       # coords
       coords <- as.matrix(Seurat::GetTissueCoordinates(spatialobject))[,1:2]
       coords <- apply(coords, 2, as.numeric)
       colnames(coords) <- c("x", "y")
+      rownames(coords) <- cells_nopostfix
 
       # from voltron
       params <- list()
       assay.type <- "cell"
       assay_name <- "FOV"
       voltron_list[[fn]] <- formVoltRon(data = cur_rawdata, metadata = cur_metadata, coords = coords, main.assay = assay_name, params = params, assay.type = assay.type, sample_name = fn, ...)
+
+      # embeddings
+      spatialpoints <- vrSpatialPoints(voltron_list[[fn]])
+      spatialpoints_nopostfix <- stringr::str_replace(spatialpoints, "_Assay[0-9]+$", "")
+      spatialpoints_assay <- stringr::str_extract(spatialpoints, "Assay[0-9]+$")
+      if(embeddings_flag){
+        for(embed_name in names(embedding_list)){
+          cur_embedding <- embedding_list[[embed_name]][cells,]
+          rownames(cur_embedding) <- spatialpoints
+          # embedding_sp <- embedding_list[[embed_name]][spatialpoints_nopostfix[spatialpoints_assay == vrAssayNames(voltron_list[[fn]])],]
+          # rownames(embedding_sp) <- spatialpoints
+          vrEmbeddings(voltron_list[[fn]], type = embed_name) <- cur_embedding
+        }
+      }
     }
 
     # merge object
@@ -209,6 +237,7 @@ as.Seurat.VoltRon <- function(object, cell.assay = NULL, molecule.assay = NULL, 
 #' @param file the name of the h5ad file
 #' @param image_key the name (or prefix) of the image(s)
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
+#' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped
 #'
 #' @rdname as.AnnData
 #' @method as.AnnData VoltRon
@@ -218,10 +247,10 @@ as.Seurat.VoltRon <- function(object, cell.assay = NULL, molecule.assay = NULL, 
 #'
 #' @export
 #'
-as.AnnData.VoltRon <- function(object, file, assay = NULL, image_key = "fov", type = c("image", "spatial")){
+as.AnnData.VoltRon <- function(object, file, assay = NULL, image_key = "fov", type = c("image", "spatial"), flip_coordinates = FALSE){
 
   # check Seurat package
-  if(!requireNamespace('Seurat'))
+  if(!requireNamespace('anndata'))
     stop("Please install Seurat package for using Seurat objects")
 
   # check the number of assays
@@ -246,6 +275,11 @@ as.AnnData.VoltRon <- function(object, file, assay = NULL, image_key = "fov", ty
   # metadata
   metadata <- Metadata(object, assay = assay)
   metadata$AssayID <- stringr::str_extract(rownames(metadata), "_Assay[0-9]+$")
+
+  # flip coordinates
+  if(flip_coordinates){
+    object <- flipCoordinates(object, assay = assay)
+  }
 
   # coordinates
   coords <- vrCoordinates(object, assay = assay)
