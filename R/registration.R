@@ -1151,9 +1151,9 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
         # get a sequential mapping between a query and reference image
         results <- computeManualPairwiseTransform(image_list, keypoints_list, query_ind = i, ref_ind = centre)
 
-        # save transformation matrix
-        # mapping_list[[i]] <- results$mapping
-        # registration_mapping_list[[paste0(i)]] <- results$mapping
+        # save transformation mapping
+        mapping_list[[i]] <- results$mapping
+        registration_mapping_list[[paste0(i)]] <- results$mapping
 
         # save matches
         aligned_image_list[[i]] <- results$aligned_image
@@ -1232,10 +1232,11 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
     }
 
     # get registered image (including all channels)
-    aligned_image <- getRcppManualRegistration(aligned_image, ref_image, target_landmark, reference_landmark)
+    results <- getRcppManualRegistration(aligned_image, ref_image, target_landmark, reference_landmark)
   }
 
-  return(list(aligned_image = aligned_image))
+  return(list(aligned_image = results$aligned_image, mapping = list(reference = reference_landmark,
+                                                            query = target_landmark)))
 }
 
 #' getRcppManualRegistration
@@ -1245,6 +1246,8 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
 getRcppManualRegistration <- function(query_image, ref_image, query_landmark, reference_landmark) {
   ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
   query_image_rast <- magick::image_data(query_image, channels = "rgb")
+  reference_landmark[,2] <- dim(ref_image_rast)[3] - reference_landmark[,2]
+  query_landmark[,2] <- dim(query_image_rast)[3] - query_landmark[,2]
   reg <- manual_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
                                         reference_landmark = reference_landmark, query_landmark = query_landmark,
                                         width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
