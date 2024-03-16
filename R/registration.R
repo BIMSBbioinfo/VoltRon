@@ -491,7 +491,7 @@ applyPerspectiveTransform <- function(object,
     # get registered image (including all channels)
     image_reg_list <- sapply(vrImageChannelNames(object[[assay]]), function(x) NULL, USE.NAMES = TRUE)
     for(channel_ind in names(image_reg_list)){
-      results <- getRcppManualRegistration(vrImages(object, channel = channel_ind), reference_image, mapping$query, mapping$reference)
+      results <- getRcppManualRegistration(vrImages(object, assay = assay, channel = channel_ind), reference_image, mapping$query, mapping$reference)
       image_reg_list[[channel_ind]] <- results$aligned_image
     }
 
