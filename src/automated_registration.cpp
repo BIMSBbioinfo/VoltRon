@@ -2,12 +2,14 @@
 #include <opencv2/opencv.hpp>
 #include "opencv2/xfeatures2d.hpp"
 #include "opencv2/features2d.hpp"
+#include "opencv2/shape/shape_transformer.hpp"
 
 using namespace Rcpp;
 using namespace std;
 using namespace cv;
 using namespace cv::xfeatures2d;
 
+// Function to convert a RawVector for magick images to a cv::Mat object
 cv::Mat imageToMat(Rcpp::RawVector image_data, int width, int height) {
 
   // Create cv::Mat object
@@ -411,6 +413,32 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
 }
 
+void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark)
+{
+
+  // seed
+  cv::setRNGSeed(0);
+
+  // Get landmarks as Point2f
+  std::vector<cv::Point2f> query_mat = numericMatrixToPoint2f(query_landmark);
+  std::vector<cv::Point2f> ref_mat = numericMatrixToPoint2f(reference_landmark);
+
+  // get matches
+  std::vector<cv::DMatch> matches;
+  for (unsigned int i = 0; i < ref_mat.size(); i++)
+    matches.push_back(cv::DMatch(i, i, 0));
+
+  // calculate transformation
+  // auto tps = cv::createThinPlateSplineShapeTransformer();
+  Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
+  tps->estimateTransformation(query_mat, ref_mat, matches);
+
+  // transform image
+  // cv::imwrite("input.png", im1);
+  tps->warpImage(im1, im1Reg);
+  cv::imwrite("warpresult.png", im1Reg);
+}
+
 // [[Rcpp::export]]
 Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image,
                                              const int width1, const int height1,
@@ -443,8 +471,6 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   }
   if(strcmp(method.get_cstring(), "BRUTE-FORCE") == 0){
     cout << "BruteForce-Hamming - descriptor matching" << endl;
-    // alignImagesBRUTE(im, imReference, imReg, imOverlay, imMatches, h, GOOD_MATCH_PERCENT, MAX_FEATURES, invert_query, invert_ref,
-    //                  flipflop_query.get_cstring(), flipflop_ref.get_cstring(), rotate_query.get_cstring(), rotate_ref.get_cstring());
     alignImagesBRUTE(im, imReference, imReg, imOverlay, imMatches, h, GOOD_MATCH_PERCENT, MAX_FEATURES);
   }
 
@@ -495,4 +521,33 @@ Rcpp::RawVector warpImage(Rcpp::RawVector ref_image, Rcpp::RawVector query_image
 
   // return
   return matToImage(imWarp.clone());;
+}
+
+// [[Rcpp::export]]
+Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image,
+                                          Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark,
+                                          const int width1, const int height1,
+                                          const int width2, const int height2)
+{
+  // define return data, 1 = transformation matrix, 2 = aligned image
+  Rcpp::List out(1);
+
+  // Read reference image
+  cv::Mat imReference = imageToMat(ref_image, width1, height1);
+
+  // Read image to be aligned
+  cv::Mat im = imageToMat(query_image, width2, height2);
+
+  // Registered image will be stored in imReg.
+  // The estimated homography will be stored in h.
+  // The matching illustration of both images with be given in imMatches.
+  Mat imOverlay, imReg, h, imMatches;
+
+  // Align images
+  cout << "Thin Plate Spline - Manual Matcher" << endl;
+  alignImagesTPS(im, imReference, imReg, query_landmark, reference_landmark);
+
+  // return transformation matrix, destinated image, registered image, and keypoint matching image
+  out[0] = matToImage(imReg.clone());
+  return out;
 }

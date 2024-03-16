@@ -1153,7 +1153,7 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
 
         # save transformation matrix
         # mapping_list[[i]] <- results$mapping
-        registration_mapping_list[[paste0(i)]] <- results$mapping
+        # registration_mapping_list[[paste0(i)]] <- results$mapping
 
         # save matches
         aligned_image_list[[i]] <- results$aligned_image
@@ -1199,6 +1199,71 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
 #' @noRd
 #'
 computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind, ref_ind){
+
+  # determine the number of transformation to map from query to the reference
+  indices <- query_ind:ref_ind
+  mapping <- rep(indices,c(1,rep(2,length(indices)-2),1))
+  mapping <- matrix(mapping,ncol=2,byrow=TRUE)
+
+  # reference and target landmarks/keypoints
+  mapping_list <- list()
+  aligned_image <- image_list[[query_ind]]
+  for(kk in 1:nrow(mapping)){
+    cur_map <- mapping[kk,]
+    ref_image <- image_list[[cur_map[2]]]
+    if(which.min(cur_map) == 1){
+      key_ind <- paste0(cur_map[1], "-", cur_map[2])
+      keypoints <- keypoints_list[[key_ind]]
+      target_landmark <- as.matrix(keypoints[["ref"]][,c("x","y")])
+      reference_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
+    } else {
+      key_ind <- paste0(cur_map[2], "-", cur_map[1])
+      keypoints <- keypoints_list[[key_ind]]
+      reference_landmark <- as.matrix(keypoints[["ref"]][,c("x","y")])
+      target_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
+    }
+
+    if(which.max(cur_map) == 1){
+      ref_label = "ref"
+      query_label = "query"
+    } else {
+      ref_label = "query"
+      query_label = "ref"
+    }
+
+    # get registered image (including all channels)
+    aligned_image <- getRcppManualRegistration(aligned_image, ref_image, target_landmark, reference_landmark)
+  }
+
+  return(list(aligned_image = aligned_image))
+}
+
+#' getRcppManualRegistration
+#'
+#' Manual registration workflow with Rcpp
+#'
+getRcppManualRegistration <- function(query_image, ref_image, query_landmark, reference_landmark) {
+  ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
+  query_image_rast <- magick::image_data(query_image, channels = "rgb")
+  reg <- manual_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
+                                        reference_landmark = reference_landmark, query_landmark = query_landmark,
+                                        width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
+                                        width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3])
+  return(list(aligned_image = magick::image_read(reg[[1]])))
+}
+
+#' computeManualPairwiseTransform_old
+#'
+#' Computing transformation matrix of manual registration
+#'
+#' @param image_list the list of images
+#' @param keypoints_list the list of keypoint matrices
+#' @param query_ind the index of the query image
+#' @param ref_ind the index of the reference image
+#'
+#' @noRd
+#'
+computeManualPairwiseTransform_old <- function(image_list, keypoints_list, query_ind, ref_ind){
 
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -1325,13 +1390,10 @@ CreateL <- function(matrix,lambda=1e-8) {
 #' @noRd
 #'
 applyTPSTransform <- function(x,trafo) {
-  # .fx(trafo$refmat,x,trafo$coeff,threads=threads)
-  # .fx <- function(refmat,M,coefs,time=TRUE,threads=1) {
   x <- apply(x, 2, as.numeric)
   x <- cbind(1,x)
   splM <- .Call("tpsfx",trafo$refmat,  x, t(trafo$coeff))
   return(splM)
-
 }
 
 ####
