@@ -83,6 +83,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// applyTransform
+Rcpp::NumericMatrix applyTransform(Rcpp::NumericMatrix coords, Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark);
+RcppExport SEXP _VoltRon_applyTransform(SEXP coordsSEXP, SEXP reference_landmarkSEXP, SEXP query_landmarkSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type coords(coordsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type reference_landmark(reference_landmarkSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type query_landmark(query_landmarkSEXP);
+    rcpp_result_gen = Rcpp::wrap(applyTransform(coords, reference_landmark, query_landmark));
+    return rcpp_result_gen;
+END_RCPP
+}
 // calculateMoransI
 double calculateMoransI(NumericMatrix data, NumericMatrix datadist, double sumW);
 RcppExport SEXP _VoltRon_calculateMoransI(SEXP dataSEXP, SEXP datadistSEXP, SEXP sumWSEXP) {
@@ -138,6 +151,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_VoltRon_perspectiveTransform", (DL_FUNC) &_VoltRon_perspectiveTransform, 2},
     {"_VoltRon_warpImage", (DL_FUNC) &_VoltRon_warpImage, 7},
     {"_VoltRon_manual_registeration_rawvector", (DL_FUNC) &_VoltRon_manual_registeration_rawvector, 8},
+    {"_VoltRon_applyTransform", (DL_FUNC) &_VoltRon_applyTransform, 3},
     {"_VoltRon_calculateMoransI", (DL_FUNC) &_VoltRon_calculateMoransI, 3},
     {"_VoltRon_build_snn_rank", (DL_FUNC) &_VoltRon_build_snn_rank, 1},
     {"_VoltRon_build_snn_number", (DL_FUNC) &_VoltRon_build_snn_number, 1},

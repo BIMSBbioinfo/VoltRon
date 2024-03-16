@@ -17,6 +17,10 @@ manual_registeration_rawvector <- function(ref_image, query_image, reference_lan
     .Call('_VoltRon_manual_registeration_rawvector', PACKAGE = 'VoltRon', ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2)
 }
 
+applyTransform <- function(coords, reference_landmark, query_landmark) {
+    .Call('_VoltRon_applyTransform', PACKAGE = 'VoltRon', coords, reference_landmark, query_landmark)
+}
+
 calculateMoransI <- function(data, datadist, sumW) {
     .Call('_VoltRon_calculateMoransI', PACKAGE = 'VoltRon', data, datadist, sumW)
 }

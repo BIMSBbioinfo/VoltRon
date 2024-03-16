@@ -460,35 +460,39 @@ applyPerspectiveTransform <- function(object,
 
   if(reg_mode == "manual"){
 
-    # mapping of coordinates and segments
-    for(kk in 1:length(mapping)){
+    # images
+    ref_image <- reference_image
+    query_image <- vrImages(object, assay = assay)
 
-      # get the current mapping
-      cur_mapping <- mapping[[kk]]
+    # image info
+    query_info <- magick::image_info(query_image)
+    ref_info <- magick::image_info(ref_image)
 
-      # get registered coordinates
-      coords_reg <- applyTPSTransform(coords, cur_mapping)
-      rownames(coords_reg) <- rownames(coords)
+    # get registered coordinates
+    coords_reg <- coords
+    coords_reg[,2] <- query_info$height - coords_reg[,2]
+    coords_reg <- applyTransform(coords, mapping$reference, mapping$query)
+    # coords_reg[,2] <- ref_info$height - coords_reg[,2]
+    rownames(coords_reg) <- rownames(coords)
 
-      # get registered segments
-      if(length(segments) > 0){
-        segments_reg <- do.call(rbind, segments)
-        segments_reg <- as.matrix(segments_reg)
-        segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTPSTransform(segments_reg[,colnames(segments_reg) %in% c("x", "y")], cur_mapping)
-        segments_reg <- as.data.frame(segments_reg)
-        segments_reg <- split(segments_reg, segments_reg[,1])
-        names(segments_reg) <- names(segments)
-      } else {
-        segments_reg <- segments
-      }
+    # get registered segments
+    if(length(segments) > 0){
+      segments_reg <- do.call(rbind, segments)
+      segments_reg <- as.matrix(segments_reg)
+      # segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTPSTransform(segments_reg[,colnames(segments_reg) %in% c("x", "y")], cur_mapping)
+      segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTransform(segments_reg[,colnames(segments_reg) %in% c("x", "y")], mapping$reference, mapping$query)
+      segments_reg <- as.data.frame(segments_reg)
+      segments_reg <- split(segments_reg, segments_reg[,1])
+      names(segments_reg) <- names(segments)
+    } else {
+      segments_reg <- segments
     }
 
     # get registered image (including all channels)
     image_reg_list <- sapply(vrImageChannelNames(object[[assay]]), function(x) NULL, USE.NAMES = TRUE)
     for(channel_ind in names(image_reg_list)){
-      image_reg_list[[channel_ind]] <- getManualRegisteredImage(vrImages(object, channel = channel_ind),
-                                                                reference_image,
-                                                                list(cur_mapping))
+      results <- getRcppManualRegistration(vrImages(object, channel = channel_ind), reference_image, mapping$query, mapping$reference)
+      image_reg_list[[channel_ind]] <- results$aligned_image
     }
 
   } else if(reg_mode == "auto"){
@@ -560,77 +564,6 @@ applyPerspectiveTransform <- function(object,
 
   # return object
   return(object)
-}
-
-#' getManualRegisteredImage
-#'
-#' Generating the manually registered images
-#'
-#' @param query_image query image
-#' @param ref_image reference image
-#' @param transmatrix the transformation matrix
-#'
-#' @importFrom raster rasterize focal res stack extent
-#' @importFrom terra rast values
-#' @importFrom grDevices rgb
-#'
-#' @noRd
-getManualRegisteredImage <- function(query_image, ref_image, transmatrix){
-
-  # get image as raster
-  ref_image_raster <- as.raster(ref_image) |> as.matrix() |> terra::rast()
-  query_image_raster <- as.raster(query_image) |> as.matrix() |> terra::rast()
-  if(terra::nlyr(query_image_raster) == 1){
-    query_image_raster <- raster::stack(query_image_raster)
-    query_image_raster <- raster::stack(query_image_raster, query_image_raster, query_image_raster)
-  } else {
-    query_image_raster <- raster::stack(query_image_raster)
-  }
-
-  # prepare image
-  imageEx <- raster::extent(raster::stack(ref_image_raster))
-  imageRes <- raster::res(raster::stack(ref_image_raster))
-  query_image_raster_1 <- raster::as.data.frame(query_image_raster[[1]], xy = TRUE)
-  query_image_raster_2 <- raster::as.data.frame(query_image_raster[[2]], xy = TRUE)
-  query_image_raster_3 <- raster::as.data.frame(query_image_raster[[3]], xy = TRUE)
-
-  # apply transformation as many as it is needed
-  query_image_raster_1_t <- as.matrix(query_image_raster_1)[,1:2]
-  for(trans in transmatrix){
-    query_image_raster_1_t <- applyTPSTransform(query_image_raster_1_t, trans)
-  }
-
-  # finalize image
-  r <- raster::raster(nrow = dim(query_image_raster)[1], ncol = dim(query_image_raster)[2], resolution = c(1,1))
-  raster::extent(r) <- imageEx
-  raster::res(r) <- imageRes
-  query_image_raster_1_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_1[,3], r, fun = mean)
-  query_image_raster_1_trf <- raster::focal(query_image_raster_1_tr,
-                                            w = matrix(1, nrow = 3, ncol = 3),
-                                            fun = fill.na, pad = TRUE, na.rm = FALSE)
-  query_image_raster_1_trf <- terra::values(terra::rast(query_image_raster_1_trf, crs = ""))
-  query_image_raster_1_trf[is.nan(query_image_raster_1_trf)] <- 0
-  query_image_raster_2_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_2[,3], r, fun = mean)
-  query_image_raster_2_trf <- raster::focal(query_image_raster_2_tr,
-                                            w = matrix(1, nrow = 3, ncol = 3),
-                                            fun = fill.na, pad = TRUE, na.rm = FALSE)
-  query_image_raster_2_trf <- terra::values(terra::rast(query_image_raster_2_trf, crs = ""))
-  query_image_raster_2_trf[is.nan(query_image_raster_2_trf)] <- 0
-  query_image_raster_3_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_3[,3], r, fun = mean)
-  query_image_raster_3_trf <- raster::focal(query_image_raster_3_tr,
-                                            w = matrix(1, nrow = 3, ncol = 3),
-                                            fun = fill.na, pad = TRUE, na.rm = FALSE)
-  query_image_raster_3_trf <- terra::values(terra::rast(query_image_raster_3_trf, crs = ""))
-  query_image_raster_3_trf[is.nan(query_image_raster_3_trf)] <- 0
-
-  # turn RGB to HEX
-  query_image_raster_1_trf <- mapply(function(r,g,b) {
-    rgb(r, g, b, maxColorValue = 255)
-  }, query_image_raster_1_trf, query_image_raster_2_trf, query_image_raster_3_trf, SIMPLIFY = TRUE)
-  query_image_raster_1_trf <- matrix(query_image_raster_1_trf, nrow = nrow(ref_image_raster), ncol = ncol(ref_image_raster), byrow = TRUE)
-  query_image <- magick::image_read(query_image_raster_1_trf)
-
-  return(query_image)
 }
 
 ####
@@ -1152,7 +1085,6 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
         results <- computeManualPairwiseTransform(image_list, keypoints_list, query_ind = i, ref_ind = centre)
 
         # save transformation mapping
-        mapping_list[[i]] <- results$mapping
         registration_mapping_list[[paste0(i)]] <- results$mapping
 
         # save matches
@@ -1255,6 +1187,10 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
   return(list(aligned_image = magick::image_read(reg[[1]])))
 }
 
+####
+## Old Thin Plate Spline (TPS) Methods ####
+####
+
 #' computeManualPairwiseTransform_old
 #'
 #' Computing transformation matrix of manual registration
@@ -1308,10 +1244,6 @@ computeManualPairwiseTransform_old <- function(image_list, keypoints_list, query
 
   return(list(mapping = mapping_list, aligned_image = aligned_image))
 }
-
-####
-## Thin Plate Spline (TPS) Methods ####
-####
 
 #' computeTPSTransform
 #'
@@ -1383,7 +1315,7 @@ CreateL <- function(matrix,lambda=1e-8) {
   return(L)
 }
 
-#' applyTPSTransform
+#' applyTPSTransform_old
 #'
 #' apply affine transformation to data, adapted from \code{Morpho} package.
 #'
@@ -1392,11 +1324,82 @@ CreateL <- function(matrix,lambda=1e-8) {
 #'
 #' @noRd
 #'
-applyTPSTransform <- function(x,trafo) {
+applyTPSTransform_old <- function(x,trafo) {
   x <- apply(x, 2, as.numeric)
   x <- cbind(1,x)
   splM <- .Call("tpsfx",trafo$refmat,  x, t(trafo$coeff))
   return(splM)
+}
+
+#' getManualRegisteredImage
+#'
+#' Generating the manually registered images
+#'
+#' @param query_image query image
+#' @param ref_image reference image
+#' @param transmatrix the transformation matrix
+#'
+#' @importFrom raster rasterize focal res stack extent
+#' @importFrom terra rast values
+#' @importFrom grDevices rgb
+#'
+#' @noRd
+getManualRegisteredImage <- function(query_image, ref_image, transmatrix){
+
+  # get image as raster
+  ref_image_raster <- as.raster(ref_image) |> as.matrix() |> terra::rast()
+  query_image_raster <- as.raster(query_image) |> as.matrix() |> terra::rast()
+  if(terra::nlyr(query_image_raster) == 1){
+    query_image_raster <- raster::stack(query_image_raster)
+    query_image_raster <- raster::stack(query_image_raster, query_image_raster, query_image_raster)
+  } else {
+    query_image_raster <- raster::stack(query_image_raster)
+  }
+
+  # prepare image
+  imageEx <- raster::extent(raster::stack(ref_image_raster))
+  imageRes <- raster::res(raster::stack(ref_image_raster))
+  query_image_raster_1 <- raster::as.data.frame(query_image_raster[[1]], xy = TRUE)
+  query_image_raster_2 <- raster::as.data.frame(query_image_raster[[2]], xy = TRUE)
+  query_image_raster_3 <- raster::as.data.frame(query_image_raster[[3]], xy = TRUE)
+
+  # apply transformation as many as it is needed
+  query_image_raster_1_t <- as.matrix(query_image_raster_1)[,1:2]
+  for(trans in transmatrix){
+    query_image_raster_1_t <- applyTPSTransform(query_image_raster_1_t, trans)
+  }
+
+  # finalize image
+  r <- raster::raster(nrow = dim(query_image_raster)[1], ncol = dim(query_image_raster)[2], resolution = c(1,1))
+  raster::extent(r) <- imageEx
+  raster::res(r) <- imageRes
+  query_image_raster_1_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_1[,3], r, fun = mean)
+  query_image_raster_1_trf <- raster::focal(query_image_raster_1_tr,
+                                            w = matrix(1, nrow = 3, ncol = 3),
+                                            fun = fill.na, pad = TRUE, na.rm = FALSE)
+  query_image_raster_1_trf <- terra::values(terra::rast(query_image_raster_1_trf, crs = ""))
+  query_image_raster_1_trf[is.nan(query_image_raster_1_trf)] <- 0
+  query_image_raster_2_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_2[,3], r, fun = mean)
+  query_image_raster_2_trf <- raster::focal(query_image_raster_2_tr,
+                                            w = matrix(1, nrow = 3, ncol = 3),
+                                            fun = fill.na, pad = TRUE, na.rm = FALSE)
+  query_image_raster_2_trf <- terra::values(terra::rast(query_image_raster_2_trf, crs = ""))
+  query_image_raster_2_trf[is.nan(query_image_raster_2_trf)] <- 0
+  query_image_raster_3_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_3[,3], r, fun = mean)
+  query_image_raster_3_trf <- raster::focal(query_image_raster_3_tr,
+                                            w = matrix(1, nrow = 3, ncol = 3),
+                                            fun = fill.na, pad = TRUE, na.rm = FALSE)
+  query_image_raster_3_trf <- terra::values(terra::rast(query_image_raster_3_trf, crs = ""))
+  query_image_raster_3_trf[is.nan(query_image_raster_3_trf)] <- 0
+
+  # turn RGB to HEX
+  query_image_raster_1_trf <- mapply(function(r,g,b) {
+    rgb(r, g, b, maxColorValue = 255)
+  }, query_image_raster_1_trf, query_image_raster_2_trf, query_image_raster_3_trf, SIMPLIFY = TRUE)
+  query_image_raster_1_trf <- matrix(query_image_raster_1_trf, nrow = nrow(ref_image_raster), ncol = ncol(ref_image_raster), byrow = TRUE)
+  query_image <- magick::image_read(query_image_raster_1_trf)
+
+  return(query_image)
 }
 
 ####
@@ -1446,7 +1449,6 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
         results <- computeAutomatedPairwiseTransform(image_list, query_ind = i, ref_ind = centre, input)
 
         # save transformation matrix
-        # mapping_list[[i]] <- results$mapping
         registration_mapping_list[[paste0(i)]] <- results$mapping
 
         # destination image
