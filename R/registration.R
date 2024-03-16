@@ -460,26 +460,26 @@ applyPerspectiveTransform <- function(object,
 
   if(reg_mode == "manual"){
 
-    # images
-    ref_image <- reference_image
-    query_image <- vrImages(object, assay = assay)
-
-    # image info
-    query_info <- magick::image_info(query_image)
-    ref_info <- magick::image_info(ref_image)
+    # # images
+    # ref_image <- reference_image
+    # query_image <- vrImages(object, assay = assay)
+    #
+    # # image info
+    # query_info <- magick::image_info(query_image)
+    # ref_info <- magick::image_info(ref_image)
 
     # get registered coordinates
-    coords_reg <- coords
-    coords_reg[,2] <- query_info$height - coords_reg[,2]
+    # coords_reg <- coords
+    # coords_reg[,2] <- query_info$height - coords_reg[,2]
     coords_reg <- applyTransform(coords, mapping$reference, mapping$query)
     # coords_reg[,2] <- ref_info$height - coords_reg[,2]
     rownames(coords_reg) <- rownames(coords)
+    colnames(coords_reg) <- colnames(coords)
 
     # get registered segments
     if(length(segments) > 0){
       segments_reg <- do.call(rbind, segments)
       segments_reg <- as.matrix(segments_reg)
-      # segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTPSTransform(segments_reg[,colnames(segments_reg) %in% c("x", "y")], cur_mapping)
       segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTransform(segments_reg[,colnames(segments_reg) %in% c("x", "y")], mapping$reference, mapping$query)
       segments_reg <- as.data.frame(segments_reg)
       segments_reg <- split(segments_reg, segments_reg[,1])
