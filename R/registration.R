@@ -1026,9 +1026,9 @@ initiateZoomOptions <- function(info_list, input, output, session){
   do.call("reactiveValues", zoom_list)
 }
 
-#' manageKeypoints
+#' manageImageZoomOptions
 #'
-#' A list of shiny observe events for tables and auxiliary operations for pairwise reference and query image
+#' A list of shiny observe events for handling zoom options of image outputs
 #'
 #' @param centre center image index
 #' @param register_ind query image indices

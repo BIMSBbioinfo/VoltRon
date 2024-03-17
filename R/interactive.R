@@ -13,16 +13,15 @@
 #' @param plot_g the ggplot plot
 #' @importFrom rstudioapi viewer
 #'
-#' @export
-#'
-#' @return This function has no return value.
-#'
+#' @noRd
 vrSpatialPlotInteractive <- function(host = getOption("shiny.host", "127.0.0.1"),
                                      port = getOption("shiny.port"), plot_g = NULL){
   shinyjs::useShinyjs()
 
+  # UI
   ui <- mod_app_ui("app")
 
+  # Server
   server <- function(input, output, session) {
     mod_app_server("app", plot_g = plot_g)
     session$onSessionEnded(function() {
@@ -30,6 +29,7 @@ vrSpatialPlotInteractive <- function(host = getOption("shiny.host", "127.0.0.1")
     })
   }
 
+  # Start Shiny Application
   shiny::shinyApp(ui, server, options = list(host = host, port = port, launch.browser = rstudioapi::viewer),
                   onStart = function() {
                     cat("Doing application setup\n")
@@ -44,10 +44,9 @@ vrSpatialPlotInteractive <- function(host = getOption("shiny.host", "127.0.0.1")
 #'
 #' @param id id of the module
 #'
-#' @inheritParams vrSpatialPlotInteractive
-#'
 #' @import shiny
 #'
+#' @noRd
 mod_app_ui <- function(id) {
   ns <- NS(id)
   plotOutput(ns("image_plot"),
@@ -64,8 +63,9 @@ mod_app_ui <- function(id) {
 #' @param id id of the module
 #' @param plot_g the ggplot plot
 #'
-#' @inheritParams vrSpatialPlotInteractive
+#' @import ggplot2
 #'
+#' @noRd
 mod_app_server <- function(id, plot_g = NULL) {
   moduleServer(id, function(input, output, session) {
 
@@ -84,7 +84,7 @@ mod_app_server <- function(id, plot_g = NULL) {
     # image output
     output$image_plot <- renderPlot({
       plot_g +
-        coord_equal(xlim = ranges$x, ylim = ranges$y, ratio = 1)
+        ggplot2::coord_equal(xlim = ranges$x, ylim = ranges$y, ratio = 1)
     })
   })
 }
@@ -107,6 +107,7 @@ mod_app_server <- function(id, plot_g = NULL) {
 #' @param reg if TRUE, the registered coordinates will be used
 #' @param crop whether to crop an image of a spot assay
 #'
+#' @noRd
 vrSpatialPlotVitessce <- function(zarr.file, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, assay = NULL, reduction = "umap",
                                   background = NULL, reg = FALSE, crop = FALSE) {
 

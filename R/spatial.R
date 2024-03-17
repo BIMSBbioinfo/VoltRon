@@ -148,6 +148,7 @@ vrNeighbourhoodEnrichment <- function(object, assay = NULL, group.by = NULL, gra
 #' @importFrom dplyr group_by bind_rows filter summarize mutate n
 #' @importFrom igraph neighborhood
 #'
+#' @noRd
 vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type = "delaunay", num.sim = 1000, seed = 1) {
 
   # set the seed

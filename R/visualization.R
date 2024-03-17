@@ -182,6 +182,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 #' @import ggplot2
 #' @importFrom igraph get.data.frame
 #'
+#' @noRd
 vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, n.tile = 0, graph = NULL,
                                 font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, plot_title = NULL, background = NULL,
                                 reg = FALSE, crop = FALSE, legend.pt.size = 2, scale.image = TRUE){
@@ -417,6 +418,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #'
 #' @import ggplot2
 #'
+#' @noRd
 vrSpatialPlotSingleTiling <- function(g, data, n.tile, alpha = 1){
 
   gplot <- g + geom_hex(data = data, mapping = aes(x = x, y = y), bins = n.tile, alpha = alpha)
@@ -602,6 +604,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
 #' @importFrom igraph get.data.frame
 #' @importFrom dplyr arrange
 #'
+#' @noRd
 vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments = FALSE, graph = NULL, limits, group.by = "label", norm = TRUE, log = FALSE,
                                font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL,
                                legend_title = NULL, background = NULL, reg = FALSE, crop = FALSE){
