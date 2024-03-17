@@ -612,7 +612,7 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVe
   // Registered image will be stored in imReg.
   // The estimated homography will be stored in h.
   // The matching illustration of both images with be given in imMatches.
-  Mat imOverlay, imReg, h, imMatches;
+  Mat imReg;
 
   // Align images
   cout << "Thin Plate Spline - Manual Matcher" << endl;
@@ -646,7 +646,6 @@ Rcpp::NumericMatrix applyTransform(Rcpp::NumericMatrix coords, Rcpp::NumericMatr
     matches.push_back(cv::DMatch(i, i, 0));
 
   // calculate transformation
-  // auto tps = cv::createThinPlateSplineShapeTransformer();
   Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
   tps->estimateTransformation(query_mat, ref_mat, matches);
 
