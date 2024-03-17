@@ -966,10 +966,10 @@ vrCoordinates.vrImage <- function(object) {
   coords <- vrCoordinates(object, ...)
 
   # stop if the rownames are not matching
-  if(any(sapply(rownames(values),is.null)))
+  if(any(sapply(rownames(value),is.null)))
     stop("Provided coordinates data does not have cell/spot/ROI names")
 
-  if(!all(rownames(values) %in% rownames(coords)))
+  if(!all(rownames(value) %in% rownames(coords)))
     stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
 
   # stop if the colnames there are more than two columns
@@ -1006,10 +1006,10 @@ vrSegments.vrImage<- function(object) {
   segts <- vrSegments(object, ...)
 
   # stop if the names are not matching
-  if(any(sapply(names(values),is.null)))
+  if(any(sapply(names(value),is.null)))
     stop("Provided coordinates data does not have cell/spot/ROI names")
 
-  if(!all(names(values) %in% names(segts)))
+  if(!all(names(value) %in% names(segts)))
     stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
 
   methods::slot(object = object, name = 'segments') <- value
