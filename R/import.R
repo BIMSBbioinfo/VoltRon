@@ -241,7 +241,7 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
 #' @param dir.path path to Visium output folder
 #' @param selected_assay selected assay from Visium
 #' @param assay_name the assay name
-#' @param sample the name of the sample
+#' @param sample_name the name of the sample
 #' @param image_name the image name of the Visium assay, Default: H&E
 #' @param inTissue if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)
 #' @param resolution_level the level of resolution of Visium image: "lowres" (default) or "hires"
@@ -883,7 +883,7 @@ importGeoMxChannels <- function(ome.tiff, summary, imageinfo, resolution_level){
   frames <- EBImage::getFrames(ome.tiff)
   frames <- lapply(EBImage::getFrames(ome.tiff), function(x){
     img <- magick::image_read(grDevices::as.raster(EBImage::as.Image(x)))
-    rescaleGeoMxImage(img, summary, imageinfo, resolution = resolution_level)
+    rescaleGeoMxImage(img, summary, imageinfo, resolution_level = resolution_level)
   })
 
   # get channel names

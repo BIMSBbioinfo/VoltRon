@@ -847,7 +847,6 @@ combineChannels.vrAssay <- function(object,  name = NULL, reg = FALSE, ...){
 #'
 #' @importFrom magick image_read image_data image_composite
 #' @importFrom grDevices col2rgb
-#' @importFrom raster as.raster
 #'
 #' @export
 #'
@@ -885,7 +884,8 @@ combineChannels.vrImage <- function(object, channels = NULL, colors = NULL, chan
     imagedata[,,1] <- imagedata[,,1] * (color_rgb[1]/255)
     imagedata[,,2] <- imagedata[,,2] * (color_rgb[2]/255)
     imagedata[,,3] <- imagedata[,,3] * (color_rgb[3]/255)
-    channel_img <- magick::image_read(raster::as.raster(imagedata))
+    # channel_img <- magick::image_read(raster::as.raster(imagedata))
+    channel_img <- magick::image_read(imagedata)
     if(is.null(composite_image)){
       composite_image <- channel_img
     } else{

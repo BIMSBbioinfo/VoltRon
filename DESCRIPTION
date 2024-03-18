@@ -12,9 +12,9 @@ Encoding: UTF-8
 RoxygenNote: 7.3.1
 biocViews:
 Imports: methods, S4Vectors, EBImage, FNN, Matrix, XML, dplyr, ggforce, 
-         ggplot2, ggpubr, ggrepel, hdf5r, htmltools, igraph, irlba, rjson, magick, raster, 
+         ggplot2, ggpubr, ggrepel, hdf5r, htmltools, igraph, irlba, rjson, magick, 
          reshape2, rlang, scales, shiny, shinyjs, stringr, uwot, data.table, RCDT, 
-         fastDummies, anndata, basilisk, reticulate, sp, ids, waiter
+         anndata, basilisk, reticulate, sp, ids, waiter, rstudioapi
 LinkingTo: Rcpp, RcppArmadillo (>= 0.4)
 Collate: 
     'RcppExports.R'

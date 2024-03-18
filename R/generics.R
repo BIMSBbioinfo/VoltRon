@@ -143,12 +143,12 @@ addAssay <- function(object, ...) {
 #' Given a VoltRon object, give names of assays of some type, or main assay.
 #'
 #' @param object An object
-#' @param ... Arguments passed to other methods
+#' @param assay assay
 #'
 #' @rdname vrAssayNames
 #' @export vrAssayNames
 #'
-vrAssayNames <- function(object, ...) {
+vrAssayNames <- function(object, assay = NULL) {
   UseMethod(generic = 'vrAssayNames', object = object)
 }
 

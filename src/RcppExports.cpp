@@ -143,9 +143,6 @@ BEGIN_RCPP
 END_RCPP
 }
 
-RcppExport SEXP createL(void *, void *);
-RcppExport SEXP tpsfx(void *, void *, void *);
-
 static const R_CallMethodDef CallEntries[] = {
     {"_VoltRon_automated_registeration_rawvector", (DL_FUNC) &_VoltRon_automated_registeration_rawvector, 15},
     {"_VoltRon_perspectiveTransform", (DL_FUNC) &_VoltRon_perspectiveTransform, 2},
@@ -156,8 +153,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_VoltRon_build_snn_rank", (DL_FUNC) &_VoltRon_build_snn_rank, 1},
     {"_VoltRon_build_snn_number", (DL_FUNC) &_VoltRon_build_snn_number, 1},
     {"_VoltRon_replacePatternInRcppVectorWrapper", (DL_FUNC) &_VoltRon_replacePatternInRcppVectorWrapper, 3},
-    {"createL", (DL_FUNC) &createL, 2},
-    {"tpsfx",   (DL_FUNC) &tpsfx,   3},
     {NULL, NULL, 0}
 };
 

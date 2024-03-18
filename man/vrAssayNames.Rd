@@ -10,11 +10,11 @@
 \alias{vrAssayNames.VoltRon}
 \title{Get Assay names}
 \usage{
-\method{vrAssayNames}{vrAssay}(object, ...)
+\method{vrAssayNames}{vrAssay}(object)
 
 \method{vrAssayNames}{vrAssay}(object, ...) <- value
 
-vrAssayNames(object, ...)
+vrAssayNames(object, assay = NULL)
 
 vrAssayNames(object, ...) <- value
 
