@@ -229,10 +229,9 @@ stopQuietly <- function(...) {
 #' @param ... css style definitions. Each object you provide must be a list of three elements. The first element will be a vector of the selectors to be styled (e.g. table, th, an id or html class). If the first element is a vector of length greater than one then the selectors will be comma separated in the css. The second element will be a vector of the css definitions and the third element will a vector of the values of those definitions.
 #' @param file Character sting. If a file name is provided then the css code will be printed into that file. If the argument is NULL (default) then a string will be returned.
 #'
-#' @importFrom htmltools HTML
+#' @importFrom shiny HTML
 #'
 #' @noRd
-#'
 make_css <- function (..., file = NULL)
 {
   css_defs <- list(...)
@@ -250,7 +249,8 @@ make_css <- function (..., file = NULL)
     to_be_styled <- paste(x[[1]], collapse = ",\n")
     paste0(to_be_styled, " {\n  ", style, "\n}\n")
   }, FUN.VALUE = character(1))
-  css_string <- htmltools::HTML(paste(all_css, collapse = "\n"))
+  # css_string <- htmltools::HTML(paste(all_css, collapse = "\n"))
+  css_string <- shiny::HTML(paste(all_css, collapse = "\n"))
   if (is.null(file)) {
     css_string
   }

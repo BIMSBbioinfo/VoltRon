@@ -148,7 +148,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
   if(collapse){
     if(length(assay_names) > 1){
       if(length(gg) < ncol) ncol <- length(gg)
-      return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = legend.loc))
+      return(ggpubr::ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = legend.loc))
     } else {
       return(gg[[1]])
     }
@@ -559,13 +559,13 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
   if(collapse){
     # return a list of plots or a single one
     if(length(features) > 1 && length(assay_names) > 1){
-      return(ggarrange(plotlist = gg, ncol = length(features), nrow = length(assay_names)))
+      return(ggpubr::ggarrange(plotlist = gg, ncol = length(features), nrow = length(assay_names)))
     } else if(length(features) > 1 && length(assay_names) == 1){
       if(length(gg) < ncol) ncol <- length(gg)
-      return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol)))
+      return(ggpubr::ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol)))
     } else if(length(features) == 1 && length(assay_names) > 1){
       if(length(gg) < ncol) ncol <- length(gg)
-      return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = "right"))
+      return(ggpubr::ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = "right"))
     } else {
       return(gg[[1]])
     }
@@ -1081,7 +1081,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
     # return a list of plots or a single one
     if(length(features) > 1){
       if(length(gg) < ncol) ncol <- length(gg)
-      return(ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol)))
+      return(ggpubr::ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol)))
     } else {
       return(gg[[1]])
     }

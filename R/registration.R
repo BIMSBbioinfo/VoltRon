@@ -92,12 +92,15 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
                         br(),
                         column(12,shiny::actionButton("register", "Register!")),
                         br(),
-                        br(),
-                        column(12,shiny::actionButton("done", "Done")),
                       ),
                       br(),
                       fluidRow(
                         column(12,shiny::htmlOutput("summary"))
+                      ),
+                      br(),
+                      fluidRow(
+                        column(12,shiny::actionButton("done", "Done")),
+                        br()
                       ),
 
                       # panel options
@@ -1195,7 +1198,6 @@ initiateMappings <- function(len_images, input, output, session){
 #' @import ggplot2
 #' @importFrom raster as.raster
 #' @importFrom magick image_write image_join image_read image_resize
-#' @importFrom htmltools HTML
 #'
 #' @noRd
 getManualRegisteration <- function(registration_mapping_list, spatdata_list, image_list, keypoints_list,
@@ -1275,7 +1277,7 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
         str2 <- paste0("# of Images: ", length(image_list))
         str3 <- paste0("# of Registrations: ", len_register)
         all_str <- c(str1, str2, str3)
-        htmltools::HTML(paste(all_str, collapse = '<br/>'))
+        shiny::HTML(paste(all_str, collapse = '<br/>'))
       })
     }
   })
@@ -1591,7 +1593,6 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
 #' @importFrom magick image_info image_ggplot image_write image_join image_resize
 #' @importFrom grid rasterGrob
 #' @importFrom ggplot2 ggplot coord_fixed annotation_raster annotation_custom
-#' @importFrom htmltools HTML
 #' @importFrom waiter waiter_show waiter_hide spin_ring
 #'
 #' @noRd
@@ -1675,7 +1676,7 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
         str2 <- paste0("# of Images: ", length(image_list))
         str3 <- paste0("# of Registrations: ", len_register)
         all_str <- c(str1, str2, str3)
-        htmltools::HTML(paste(all_str, collapse = '<br/>'))
+        shiny::HTML(paste(all_str, collapse = '<br/>'))
       })
     }
   })

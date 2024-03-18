@@ -765,8 +765,6 @@ readDCC <- function(file)
 #' @param summary segmentation summary data frame
 #' @param imageinfo image information
 #'
-#' @importFrom XML xmlToList
-#'
 #' @noRd
 importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
@@ -775,7 +773,9 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
     options(java.parameters = "-Xmx4g")
     if(grepl(".ome.tiff$|.ome.tif$", ome.tiff)){
       if (!requireNamespace('RBioFormats'))
-        stop("Please install RBioFormats package extract xml from the ome.tiff file!")
+        stop("Please install RBioFormats package to extract xml from the ome.tiff file!")
+      if (!requireNamespace('XML'))
+        stop("Please install XML package to extract xml from the ome.tiff file!")
       omexml <- RBioFormats::read.omexml(ome.tiff)
     } else if(grepl(".xml$", ome.tiff)){
       omexml <- XML::xmlParse(file = ome.tiff)
@@ -864,7 +864,9 @@ importGeoMxChannels <- function(ome.tiff, summary, imageinfo, resolution_level){
     options(java.parameters = "-Xmx4g")
     if(grepl(".ome.tiff$|.ome.tif$", ome.tiff)){
       if (!requireNamespace('RBioFormats'))
-        stop("Please install RBioFormats package extract xml from the ome.tiff file!")
+        stop("Please install RBioFormats package to extract xml from the ome.tiff file!")
+      if (!requireNamespace('XML'))
+        stop("Please install XML package to extract xml from the ome.tiff file!")
       omexml <- RBioFormats::read.omexml(ome.tiff)
       omexml <- XML::xmlToList(omexml, simplify = TRUE)
     } else {

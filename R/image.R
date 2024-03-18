@@ -1032,7 +1032,6 @@ vrSegments.vrImage<- function(object) {
 #' @importFrom shinyjs useShinyjs
 #' @importFrom magick image_scale image_info image_ggplot
 #' @importFrom ggplot2 geom_rect
-#' @importFrom htmltools HTML
 #' @importFrom dplyr filter add_row tibble
 #' @importFrom ggrepel geom_label_repel
 #'
