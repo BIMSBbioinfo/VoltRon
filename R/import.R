@@ -241,7 +241,7 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
 #' @param dir.path path to Visium output folder
 #' @param selected_assay selected assay from Visium
 #' @param assay_name the assay name
-#' @param sample the name of the sample
+#' @param sample_name the name of the sample
 #' @param image_name the image name of the Visium assay, Default: H&E
 #' @param inTissue if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)
 #' @param resolution_level the level of resolution of Visium image: "lowres" (default) or "hires"
@@ -765,8 +765,6 @@ readDCC <- function(file)
 #' @param summary segmentation summary data frame
 #' @param imageinfo image information
 #'
-#' @importFrom XML xmlToList
-#'
 #' @noRd
 importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
@@ -775,7 +773,9 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
     options(java.parameters = "-Xmx4g")
     if(grepl(".ome.tiff$|.ome.tif$", ome.tiff)){
       if (!requireNamespace('RBioFormats'))
-        stop("Please install RBioFormats package extract xml from the ome.tiff file!")
+        stop("Please install RBioFormats package to extract xml from the ome.tiff file!")
+      if (!requireNamespace('XML'))
+        stop("Please install XML package to extract xml from the ome.tiff file!")
       omexml <- RBioFormats::read.omexml(ome.tiff)
     } else if(grepl(".xml$", ome.tiff)){
       omexml <- XML::xmlParse(file = ome.tiff)
@@ -864,7 +864,9 @@ importGeoMxChannels <- function(ome.tiff, summary, imageinfo, resolution_level){
     options(java.parameters = "-Xmx4g")
     if(grepl(".ome.tiff$|.ome.tif$", ome.tiff)){
       if (!requireNamespace('RBioFormats'))
-        stop("Please install RBioFormats package extract xml from the ome.tiff file!")
+        stop("Please install RBioFormats package to extract xml from the ome.tiff file!")
+      if (!requireNamespace('XML'))
+        stop("Please install XML package to extract xml from the ome.tiff file!")
       omexml <- RBioFormats::read.omexml(ome.tiff)
       omexml <- XML::xmlToList(omexml, simplify = TRUE)
     } else {
@@ -883,7 +885,7 @@ importGeoMxChannels <- function(ome.tiff, summary, imageinfo, resolution_level){
   frames <- EBImage::getFrames(ome.tiff)
   frames <- lapply(EBImage::getFrames(ome.tiff), function(x){
     img <- magick::image_read(grDevices::as.raster(EBImage::as.Image(x)))
-    rescaleGeoMxImage(img, summary, imageinfo, resolution = resolution_level)
+    rescaleGeoMxImage(img, summary, imageinfo, resolution_level = resolution_level)
   })
 
   # get channel names

@@ -294,6 +294,7 @@ changeAssayNames.vrSample <- function(object, sample.metadata = NULL){
 #' @method subset vrLayer
 #'
 #' @importFrom rlang enquo
+#' @importFrom methods is
 #'
 subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, image = NULL) {
 
@@ -319,7 +320,7 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
 
     # get points connected to queried spatialpoints
     catch_connect <- try(slot(object, name = "connectivity"), silent = TRUE)
-    if(!is(catch_connect, 'try-error') && !is(catch_connect,'error')){
+    if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
       if(igraph::vcount(object@connectivity) > 0){
         spatialpoints <- getConnectedSpatialPoints(object, spatialpoints)
         object@connectivity <- subset.Connectivity(object@connectivity, spatialpoints)
@@ -408,6 +409,7 @@ getConnectedSpatialPoints <- function(object, spatialpoints = NULL){
 #' @param sample.metadata the sample metadata with NewAssayNames column which includes the new assay names
 #'
 #' @importFrom igraph V V<- vcount
+#' @importFrom methods is
 #'
 #' @noRd
 changeAssayNames.vrLayer <- function(object, sample.metadata = NULL){
@@ -420,7 +422,7 @@ changeAssayNames.vrLayer <- function(object, sample.metadata = NULL){
 
   # change the assay names of the connectivity graph if exists
   catch_connect <- try(slot(object, name = "connectivity"), silent = TRUE)
-  if(!is(catch_connect, 'try-error') && !is(catch_connect,'error')){
+  if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
     if(igraph::vcount(object@connectivity) > 0){
       spatialpoints <- igraph::V(object@connectivity)$name
       old_assay_names <- sapply(object@assay, vrAssayNames)

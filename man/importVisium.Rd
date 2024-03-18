@@ -22,6 +22,8 @@ importVisium(
 
 \item{assay_name}{the assay name}
 
+\item{sample_name}{the name of the sample}
+
 \item{image_name}{the image name of the Visium assay, Default: H&E}
 
 \item{inTissue}{if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)}
@@ -29,8 +31,6 @@ importVisium(
 \item{resolution_level}{the level of resolution of Visium image: "lowres" (default) or "hires"}
 
 \item{...}{additional parameters passed to \code{formVoltRon}}
-
-\item{sample}{the name of the sample}
 }
 \description{
 Importing Visium data

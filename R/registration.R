@@ -14,6 +14,7 @@
 #' @import shiny
 #' @importFrom shinyjs useShinyjs show hide
 #' @importFrom stats median
+#' @importFrom waiter useWaiter
 #'
 #' @export
 #'
@@ -52,6 +53,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     # ui <- tagList(
     ui <- fluidPage(
       # use javascript extensions for Shiny
+      waiter::useWaiter(),
       shinyjs::useShinyjs(),
 
       sidebarLayout(position = "left",
@@ -59,6 +61,25 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
                     # Side bar
                     sidebarPanel(
                       tags$style(make_css(list('.well', 'margin', '7%'))),
+
+                      # # specific settings for dealing with simultaneous click and brush events
+                      # # https://jokergoo.github.io/2021/02/20/differentiate-brush-and-click-event-in-shiny/
+                      tags$script(HTML("
+                        $('#plot').mousedown(function(e) {
+                            var parentOffset = $(this).offset();
+                            var relX = e.pageX - parentOffset.left;
+                            var relY = e.pageY - parentOffset.top;
+                            Shiny.setInputValue('x1', relX);
+                            Shiny.setInputValue('y1', relY);
+                        }).mouseup(function(e) {
+                            var parentOffset = $(this).offset();
+                            var relX = e.pageX - parentOffset.left;
+                            var relY = e.pageY - parentOffset.top;
+                            Shiny.setInputValue('x2', relX);
+                            Shiny.setInputValue('y2', relY);
+                            Shiny.setInputValue('action', Math.random());
+                        });
+                      ")),
 
                       h4("Spatial Data Alignment"),
                       fluidRow(
@@ -71,12 +92,15 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
                         br(),
                         column(12,shiny::actionButton("register", "Register!")),
                         br(),
-                        br(),
-                        column(12,shiny::actionButton("done", "Done")),
                       ),
                       br(),
                       fluidRow(
                         column(12,shiny::htmlOutput("summary"))
+                      ),
+                      br(),
+                      fluidRow(
+                        column(12,shiny::actionButton("done", "Done")),
+                        br()
                       ),
 
                       # panel options
@@ -119,31 +143,33 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     server <- function(input, output, session) {
 
       ## Manage interface ####
-      updateParameterPanels(input, output, session)
+      updateParameterPanels(length(orig_image_query_list), input, output, session)
       updateSequentialTabPanels(input, output, session, centre, register_ind)
 
-      ### get image info ####
+      ## get image and zoom info ####
       orig_image_query_info_list <- getImageInfo(orig_image_query_list)
+      zoom_list <- initiateZoomOptions(orig_image_query_info_list)
+      manageImageZoomOptions(centre, register_ind, zoom_list, orig_image_query_info_list, input, output, session)
 
-      ### Transform images ####
+      ## Transform images ####
       trans_image_query_list <- transformImageQueryList(orig_image_query_list, input)
 
-      ### Manage reference and query keypoints ####
+      ## Manage reference and query keypoints ####
       xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
       manageKeypoints(centre, register_ind, xyTable_list, trans_image_query_list, input, output, session)
 
-      ### Image registration ####
+      ## Image registration ####
       registration_mapping_list <- initiateMappings(length(spatdata_list))
       getManualRegisteration(registration_mapping_list, spatdata_list, orig_image_query_list, xyTable_list,
                              centre, register_ind, input, output, session)
       getAutomatedRegisteration(registration_mapping_list, spatdata_list, orig_image_query_list,
                                 centre, register_ind, input, output, session)
 
-      ### Main observable ####
+      ## Main observable ####
       observe({
 
         # output the list of query images
-        getImageOutput(orig_image_query_list, orig_image_query_info_list, xyTable_list, centre, input, output, session)
+        getImageOutput(orig_image_query_list, orig_image_query_info_list, xyTable_list, zoom_list, centre, input, output, session)
 
       })
 
@@ -201,7 +227,10 @@ getImageTabPanels <- function(len_images, type){
                column(4, sliderInput(paste0("scale_", type, "_image",i), "Scale Parameter", min = 0, max = 1,  value = 1)),
                textOutput(paste0("scaleinfo_", type, "_image",i))
              ),
-             fluidRow(imageOutput(paste0("plot_", type, i), click = paste0("click_plot_", type, i))),
+             fluidRow(imageOutput(paste0("plot_", type, i),
+                                  click = paste0("click_plot_", type, i),
+                                  dblclick = paste0("dblclick_plot_", type, i),
+                                  brush = brushOpts(paste0("brush_plot_", type, i), fill = "green", resetOnNew = TRUE))),
              br(),
              fluidRow(
                shiny::actionButton(paste0("remove_", type, i), "Remove Point")
@@ -327,12 +356,13 @@ updateSequentialTabPanels <- function(input, output, session, centre, register_i
 #'
 #' A function for managing which parameter panels or input boxes to appear on UI
 #'
+#' @param len_images the length of images
 #' @param input input
 #' @param output output
 #' @param session session
 #'
 #' @noRd
-updateParameterPanels <- function(input, output, session){
+updateParameterPanels <- function(len_images, input, output, session){
 
   # done event
   shinyjs::hide(id = "done")
@@ -345,17 +375,46 @@ updateParameterPanels <- function(input, output, session){
   shinyjs::hide(id = "MAX_FEATURES")
   shinyjs::hide(id = "AutoMethod")
 
+  # hide scale parameters
+  for(i in 1:len_images){
+    shinyjs::hide(id = paste0("scale_ref_image",i))
+    shinyjs::hide(id = paste0("scale_query_image",i))
+    shinyjs::hide(id = paste0("scaleinfo_ref_image",i))
+    shinyjs::hide(id = paste0("scaleinfo_query_image",i))
+  }
+
   observeEvent(input$automatictag, {
     if(input$automatictag){
       shinyjs::show(id = "AutoMethod")
+
+      # show automatic registration parameters of BRUTE-FORCE
       if(input$AutoMethod == "BRUTE-FORCE"){
         shinyjs::show(id = "GOOD_MATCH_PERCENT")
         shinyjs::show(id = "MAX_FEATURES")
       }
+
+      # show scale parameters
+      for(i in 1:len_images){
+        shinyjs::show(id = paste0("scale_ref_image",i))
+        shinyjs::show(id = paste0("scale_query_image",i))
+        shinyjs::show(id = paste0("scaleinfo_ref_image",i))
+        shinyjs::show(id = paste0("scaleinfo_query_image",i))
+      }
+
     } else {
       shinyjs::hide(id = "AutoMethod")
+
+      # hide automatic registration parameters of BRUTE-FORCE
       shinyjs::hide(id = "GOOD_MATCH_PERCENT")
       shinyjs::hide(id = "MAX_FEATURES")
+
+      # hide scale parameters
+      for(i in 1:len_images){
+        shinyjs::hide(id = paste0("scale_ref_image",i))
+        shinyjs::hide(id = paste0("scale_query_image",i))
+        shinyjs::hide(id = paste0("scaleinfo_ref_image",i))
+        shinyjs::hide(id = paste0("scaleinfo_query_image",i))
+      }
     }
   })
 
@@ -397,6 +456,10 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
   # the original reference object
   registered_sr[[ref_ind]] <- obj_list[[ref_ind]]
 
+  # waiter start
+  withProgress(message = 'Register Coordinates (and Segments)', value = 0, {
+  waiter::waiter_show(html = waiter::spin_ring(), color = paste0("rgba(128,128,128,", 0.15, ")"))
+
   # register all assays
   for(i in register_ind){
 
@@ -411,6 +474,11 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
 
     # register the VoltRon object
     for(assy in vrAssayNames(obj_list[[i]], assay = "all")){
+
+      # Increment the progress bar, and update the detail text.
+      incProgress(1/length(register_ind), detail = paste("Register", assy, "of Layer", i, sep = " "))
+
+      # register assay
       obj_list[[i]] <- applyPerspectiveTransform(obj_list[[i]],
                                                  assay = assy,
                                                  mapping = mapping_list[[paste0(i)]],
@@ -419,10 +487,16 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
                                                  reg_mode = reg_mode,
                                                  ref_extension = ref_extension,
                                                  query_extension = query_extension)
+
     }
     registered_sr[[i]] <- obj_list[[i]]
 
   }
+
+  # waiter end
+  waiter::waiter_hide()
+
+  })
   return(registered_sr)
 }
 
@@ -460,35 +534,39 @@ applyPerspectiveTransform <- function(object,
 
   if(reg_mode == "manual"){
 
-    # mapping of coordinates and segments
-    for(kk in 1:length(mapping)){
+    # # images
+    # ref_image <- reference_image
+    # query_image <- vrImages(object, assay = assay)
+    #
+    # # image info
+    # query_info <- magick::image_info(query_image)
+    # ref_info <- magick::image_info(ref_image)
 
-      # get the current mapping
-      cur_mapping <- mapping[[kk]]
+    # get registered coordinates
+    # coords_reg <- coords
+    # coords_reg[,2] <- query_info$height - coords_reg[,2]
+    coords_reg <- applyTransform(coords, mapping$reference, mapping$query)
+    # coords_reg[,2] <- ref_info$height - coords_reg[,2]
+    rownames(coords_reg) <- rownames(coords)
+    colnames(coords_reg) <- colnames(coords)
 
-      # get registered coordinates
-      coords_reg <- applyTPSTransform(coords, cur_mapping)
-      rownames(coords_reg) <- rownames(coords)
-
-      # get registered segments
-      if(length(segments) > 0){
-        segments_reg <- do.call(rbind, segments)
-        segments_reg <- as.matrix(segments_reg)
-        segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTPSTransform(segments_reg[,colnames(segments_reg) %in% c("x", "y")], cur_mapping)
-        segments_reg <- as.data.frame(segments_reg)
-        segments_reg <- split(segments_reg, segments_reg[,1])
-        names(segments_reg) <- names(segments)
-      } else {
-        segments_reg <- segments
-      }
+    # get registered segments
+    if(length(segments) > 0){
+      segments_reg <- do.call(rbind, segments)
+      segments_reg <- as.matrix(segments_reg)
+      segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTransform(segments_reg[,colnames(segments_reg) %in% c("x", "y")], mapping$reference, mapping$query)
+      segments_reg <- as.data.frame(segments_reg)
+      segments_reg <- split(segments_reg, segments_reg[,1])
+      names(segments_reg) <- names(segments)
+    } else {
+      segments_reg <- segments
     }
 
     # get registered image (including all channels)
     image_reg_list <- sapply(vrImageChannelNames(object[[assay]]), function(x) NULL, USE.NAMES = TRUE)
     for(channel_ind in names(image_reg_list)){
-      image_reg_list[[channel_ind]] <- getManualRegisteredImage(vrImages(object, channel = channel_ind),
-                                                                reference_image,
-                                                                list(cur_mapping))
+      results <- getRcppManualRegistration(vrImages(object, assay = assay, channel = channel_ind), reference_image, mapping$query, mapping$reference)
+      image_reg_list[[channel_ind]] <- results$aligned_image
     }
 
   } else if(reg_mode == "auto"){
@@ -562,77 +640,6 @@ applyPerspectiveTransform <- function(object,
   return(object)
 }
 
-#' getManualRegisteredImage
-#'
-#' Generating the manually registered images
-#'
-#' @param query_image query image
-#' @param ref_image reference image
-#' @param transmatrix the transformation matrix
-#'
-#' @importFrom raster rasterize focal res stack extent
-#' @importFrom terra rast values
-#' @importFrom grDevices rgb
-#'
-#' @noRd
-getManualRegisteredImage <- function(query_image, ref_image, transmatrix){
-
-  # get image as raster
-  ref_image_raster <- as.raster(ref_image) |> as.matrix() |> terra::rast()
-  query_image_raster <- as.raster(query_image) |> as.matrix() |> terra::rast()
-  if(terra::nlyr(query_image_raster) == 1){
-    query_image_raster <- raster::stack(query_image_raster)
-    query_image_raster <- raster::stack(query_image_raster, query_image_raster, query_image_raster)
-  } else {
-    query_image_raster <- raster::stack(query_image_raster)
-  }
-
-  # prepare image
-  imageEx <- raster::extent(raster::stack(ref_image_raster))
-  imageRes <- raster::res(raster::stack(ref_image_raster))
-  query_image_raster_1 <- raster::as.data.frame(query_image_raster[[1]], xy = TRUE)
-  query_image_raster_2 <- raster::as.data.frame(query_image_raster[[2]], xy = TRUE)
-  query_image_raster_3 <- raster::as.data.frame(query_image_raster[[3]], xy = TRUE)
-
-  # apply transformation as many as it is needed
-  query_image_raster_1_t <- as.matrix(query_image_raster_1)[,1:2]
-  for(trans in transmatrix){
-    query_image_raster_1_t <- applyTPSTransform(query_image_raster_1_t, trans)
-  }
-
-  # finalize image
-  r <- raster::raster(nrow = dim(query_image_raster)[1], ncol = dim(query_image_raster)[2], resolution = c(1,1))
-  raster::extent(r) <- imageEx
-  raster::res(r) <- imageRes
-  query_image_raster_1_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_1[,3], r, fun = mean)
-  query_image_raster_1_trf <- raster::focal(query_image_raster_1_tr,
-                                            w = matrix(1, nrow = 3, ncol = 3),
-                                            fun = fill.na, pad = TRUE, na.rm = FALSE)
-  query_image_raster_1_trf <- terra::values(terra::rast(query_image_raster_1_trf, crs = ""))
-  query_image_raster_1_trf[is.nan(query_image_raster_1_trf)] <- 0
-  query_image_raster_2_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_2[,3], r, fun = mean)
-  query_image_raster_2_trf <- raster::focal(query_image_raster_2_tr,
-                                            w = matrix(1, nrow = 3, ncol = 3),
-                                            fun = fill.na, pad = TRUE, na.rm = FALSE)
-  query_image_raster_2_trf <- terra::values(terra::rast(query_image_raster_2_trf, crs = ""))
-  query_image_raster_2_trf[is.nan(query_image_raster_2_trf)] <- 0
-  query_image_raster_3_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_3[,3], r, fun = mean)
-  query_image_raster_3_trf <- raster::focal(query_image_raster_3_tr,
-                                            w = matrix(1, nrow = 3, ncol = 3),
-                                            fun = fill.na, pad = TRUE, na.rm = FALSE)
-  query_image_raster_3_trf <- terra::values(terra::rast(query_image_raster_3_trf, crs = ""))
-  query_image_raster_3_trf[is.nan(query_image_raster_3_trf)] <- 0
-
-  # turn RGB to HEX
-  query_image_raster_1_trf <- mapply(function(r,g,b) {
-    rgb(r, g, b, maxColorValue = 255)
-  }, query_image_raster_1_trf, query_image_raster_2_trf, query_image_raster_3_trf, SIMPLIFY = TRUE)
-  query_image_raster_1_trf <- matrix(query_image_raster_1_trf, nrow = nrow(ref_image_raster), ncol = ncol(ref_image_raster), byrow = TRUE)
-  query_image <- magick::image_read(query_image_raster_1_trf)
-
-  return(query_image)
-}
-
 ####
 # Managing Keypoints ####
 ####
@@ -696,25 +703,31 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, inpu
       # listen to click operations for reference/query plots
       observeEvent(input[[paste0("click_plot_", type ,i)]], {
 
-        # insert keypoint to associated table
-        ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
+        # get brush information
+        brush <- input[[paste0("brush_plot_", type ,i)]]
+        if (is.null(brush)) {
 
-        # get and transform keypoints
-        keypoint <- data.frame(x = input[[paste0("click_plot_",type,i)]]$x,
-                               y = input[[paste0("click_plot_",type,i)]]$y)
-        if(is.reactive(image_list[[ref_ind]])){
-          image <- image_list[[ref_ind]]()
-        } else {
-          image <- image_list[[ref_ind]]
+          # insert keypoint to associated table
+          ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
+
+          # get and transform keypoints
+          keypoint <- data.frame(x = input[[paste0("click_plot_",type,i)]]$x,
+                                 y = input[[paste0("click_plot_",type,i)]]$y)
+          if(is.reactive(image_list[[ref_ind]])){
+            image <- image_list[[ref_ind]]()
+          } else {
+            image <- image_list[[ref_ind]]
+          }
+          image <- image[[type]]
+          keypoint <- transformKeypoints(image, keypoint, paste0(type, "_image",i), input)
+
+          # insert keypoint to associated table
+          temp <- xyTable_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]]
+          temp <- temp %>%
+            add_row(KeyPoint = nrow(temp)+1, x = keypoint$x, y = keypoint$y)
+          xyTable_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]] <- temp
+
         }
-        image <- image[[type]]
-        keypoint <- transformKeypoints(image, keypoint, paste0(type, "_image",i), input)
-
-        # insert keypoint to associated table
-        temp <- xyTable_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]]
-        temp <- temp %>%
-          add_row(KeyPoint = nrow(temp)+1, x = keypoint$x, y = keypoint$y)
-        xyTable_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]] <- temp
       })
     })
   })
@@ -927,6 +940,7 @@ imageKeypoint <- function(image, keypoints){
 #' @param image_list a list of magick images
 #' @param info_list a list of magick image info on width and height
 #' @param keypoints_list a list of data frames, each having a set of keypoints
+#' @param zoom_list a list of x,y ranges of query and ref images
 #' @param centre the center image index
 #' @param input shiny input
 #' @param output shiny output
@@ -935,7 +949,7 @@ imageKeypoint <- function(image, keypoints){
 #' @importFrom magick image_ggplot
 #'
 #' @noRd
-getImageOutput <- function(image_list, info_list, keypoints_list = NULL, centre, input, output, session){
+getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_list, centre, input, output, session){
 
   # get image types
   image_types <- c("ref","query")
@@ -956,15 +970,17 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, centre,
 
         # transform image and keypoints
         img <- transformImageKeypoints(image_list[[i]], keypoints, paste0(type, "_image",i), input, session)
-        img <- imageKeypoint(magick::image_ggplot(img$image), img$keypoints)
+        img <- imageKeypoint(magick::image_ggplot(img$image), img$keypoints) +
+          coord_equal(xlim = zoom_list[[paste0(i)]][[type]]$x, ylim = zoom_list[[paste0(i)]][[type]]$y, ratio = 1)
         return(img)
       })
 
-      #
+      # update info
       output[[paste0("scaleinfo_", type, "_image", i)]] <- renderText({
         cur_info <- info_list[[i]] * input[[paste0("scale_", type, "_image", i)]]
         paste(cur_info, collapse = "x")
       })
+
     })
   })
 }
@@ -982,6 +998,77 @@ getImageInfo <- function(image_list){
   lapply(image_list, function(x){
     imginfo <- magick::image_info(x)
     c(imginfo$width, imginfo$height)
+  })
+}
+
+#' initiateZoomOptions
+#'
+#' Initiate shiny reactive values for capturing zoom/brush limits
+#'
+#' @param info_list the list of image information
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#'
+#' @noRd
+initiateZoomOptions <- function(info_list, input, output, session){
+
+  # length of images
+  len_images <- length(info_list)
+
+  # initiate zoom options list
+  zoom_list <- lapply(1:len_images, function(i) {
+    list(ref = list(x = c(0, info_list[[i]][1]), y = c(0, info_list[[i]][2])),
+         query = list(x = c(0, info_list[[i]][1]), y = c(0, info_list[[i]][2])))
+  })
+
+  # set names for keypoints
+  names(zoom_list) <- paste0(1:len_images)
+
+  # return keypoints as reactive values
+  do.call("reactiveValues", zoom_list)
+}
+
+#' manageImageZoomOptions
+#'
+#' A list of shiny observe events for handling zoom options of image outputs
+#'
+#' @param centre center image index
+#' @param register_ind query image indices
+#' @param zoom_list a list of x,y ranges of query and ref images
+#' @param info_list the list of image information
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#'
+#' @noRd
+manageImageZoomOptions <- function(centre, register_ind, zoom_list, info_list, input, output, session){
+
+  # get image types
+  image_types <- c("ref","query")
+
+  # get the length of tables
+  len_tables <- length(zoom_list)
+
+  # set click operations for reference and query points
+  lapply(1:len_tables, function(i){
+    lapply(image_types, function(type){
+
+      # listen to click operations for reference/query plots
+      observeEvent(input[[paste0("dblclick_plot_", type ,i)]], {
+
+        # get brush information
+        brush <- input[[paste0("brush_plot_", type ,i)]]
+        if (!is.null(brush)) {
+          zoom_list[[paste0(i)]][[type]]$x <- c(brush$xmin, brush$xmax)
+          zoom_list[[paste0(i)]][[type]]$y <- c(brush$ymin, brush$ymax)
+        } else {
+          zoom_list[[paste0(i)]][[type]]$x <- c(0, info_list[[i]][1])
+          zoom_list[[paste0(i)]][[type]]$y <- c(0, info_list[[i]][2])
+        }
+
+      })
+    })
   })
 }
 
@@ -1076,7 +1163,7 @@ transformImageQueryList <- function(image_list, input){
 
 #' initiateMappings
 #'
-#' Initiate shiny reactive values for registeration matrices
+#' Initiate shiny reactive values for registration matrices
 #'
 #' @param len_images the number of query images
 #' @param input shiny input
@@ -1096,7 +1183,7 @@ initiateMappings <- function(len_images, input, output, session){
 
 #' getManualRegisteration
 #'
-#' Manual registeration of images using manually entered keypoints
+#' Manual registration of images using manually entered keypoints
 #'
 #' @param registration_mapping_list a list of mapping matrices used for registering VoltRon objects
 #' @param spatdata_list a list of Spatial data object of the query images
@@ -1111,7 +1198,6 @@ initiateMappings <- function(len_images, input, output, session){
 #' @import ggplot2
 #' @importFrom raster as.raster
 #' @importFrom magick image_write image_join image_read image_resize
-#' @importFrom htmltools HTML
 #'
 #' @noRd
 getManualRegisteration <- function(registration_mapping_list, spatdata_list, image_list, keypoints_list,
@@ -1125,6 +1211,10 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
 
     # Manual Registration
     if(!input$automatictag){
+
+      # waiter start
+      withProgress(message = paste0('Manual Registration (TPS)'), value = 0, {
+      waiter::waiter_show(html = waiter::spin_ring(), color = paste0("rgba(128,128,128,", 0.15, ")"))
 
       # Check keypoints
       keypoints_check_flag <- sapply(keypoints_list, function(key_list){
@@ -1148,16 +1238,22 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
       aligned_image_list <- list()
       for(i in register_ind){
 
+        # Increment the progress bar, and update the detail text.
+        incProgress(1/length(register_ind), detail = paste("Registering Image", i, sep = " "))
+
         # get a sequential mapping between a query and reference image
         results <- computeManualPairwiseTransform(image_list, keypoints_list, query_ind = i, ref_ind = centre)
 
-        # save transformation matrix
-        # mapping_list[[i]] <- results$mapping
+        # save transformation mapping
         registration_mapping_list[[paste0(i)]] <- results$mapping
 
         # save matches
         aligned_image_list[[i]] <- results$aligned_image
       }
+
+      # waiter end
+      waiter::waiter_hide()
+      })
 
       # Plot registered images
       lapply(register_ind, function(i){
@@ -1181,7 +1277,7 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
         str2 <- paste0("# of Images: ", length(image_list))
         str3 <- paste0("# of Registrations: ", len_register)
         all_str <- c(str1, str2, str3)
-        htmltools::HTML(paste(all_str, collapse = '<br/>'))
+        shiny::HTML(paste(all_str, collapse = '<br/>'))
       })
     }
   })
@@ -1231,108 +1327,251 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
       query_label = "ref"
     }
 
-    # compute and get transformation matrix
-    mapping_list[[kk]] <- computeTPSTransform(reference_landmark, target_landmark)
-
     # get registered image (including all channels)
-    aligned_image <- getManualRegisteredImage(aligned_image, ref_image, list(mapping_list[[kk]]))
+    results <- getRcppManualRegistration(aligned_image, ref_image, target_landmark, reference_landmark)
   }
 
-  return(list(mapping = mapping_list, aligned_image = aligned_image))
+  return(list(aligned_image = results$aligned_image, mapping = list(reference = reference_landmark,
+                                                            query = target_landmark)))
+}
+
+#' getRcppManualRegistration
+#'
+#' Manual registration workflow with Rcpp
+#'
+#' @param query_image query image
+#' @param ref_image reference image
+#' @param query_landmark query landmark points
+#' @param reference_landmark refernece landmark points
+#'
+#' @importFrom magick image_read image_data
+#'
+getRcppManualRegistration <- function(query_image, ref_image, query_landmark, reference_landmark) {
+  ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
+  query_image_rast <- magick::image_data(query_image, channels = "rgb")
+  reference_landmark[,2] <- dim(ref_image_rast)[3] - reference_landmark[,2]
+  query_landmark[,2] <- dim(query_image_rast)[3] - query_landmark[,2]
+  reg <- manual_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
+                                        reference_landmark = reference_landmark, query_landmark = query_landmark,
+                                        width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
+                                        width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3])
+  return(list(aligned_image = magick::image_read(reg[[1]])))
 }
 
 ####
-## Thin Plate Spline (TPS) Methods ####
+## Old Thin Plate Spline (TPS) Methods ####
 ####
 
-#' computeTPSTransform
+#' #' computeManualPairwiseTransform_old
+#' #'
+#' #' Computing transformation matrix of manual registration
+#' #'
+#' #' @param image_list the list of images
+#' #' @param keypoints_list the list of keypoint matrices
+#' #' @param query_ind the index of the query image
+#' #' @param ref_ind the index of the reference image
+#' #'
+#' #' @noRd
+#' #'
+#' computeManualPairwiseTransform_old <- function(image_list, keypoints_list, query_ind, ref_ind){
 #'
-#' calculate an affine transformation matrix, adapted from \code{Morpho} package.
+#'   # determine the number of transformation to map from query to the reference
+#'   indices <- query_ind:ref_ind
+#'   mapping <- rep(indices,c(1,rep(2,length(indices)-2),1))
+#'   mapping <- matrix(mapping,ncol=2,byrow=TRUE)
 #'
-#' @param x fix landmarks from a k x m matrix
-#' @param y moving landmarks from a k x m matrix
+#'   # reference and target landmarks/keypoints
+#'   mapping_list <- list()
+#'   aligned_image <- image_list[[query_ind]]
+#'   for(kk in 1:nrow(mapping)){
+#'     cur_map <- mapping[kk,]
+#'     ref_image <- image_list[[cur_map[2]]]
+#'     if(which.min(cur_map) == 1){
+#'       key_ind <- paste0(cur_map[1], "-", cur_map[2])
+#'       keypoints <- keypoints_list[[key_ind]]
+#'       target_landmark <- as.matrix(keypoints[["ref"]][,c("x","y")])
+#'       reference_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
+#'     } else {
+#'       key_ind <- paste0(cur_map[2], "-", cur_map[1])
+#'       keypoints <- keypoints_list[[key_ind]]
+#'       reference_landmark <- as.matrix(keypoints[["ref"]][,c("x","y")])
+#'       target_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
+#'     }
 #'
-#' @noRd
-computeTPSTransform <- function(x, y)
-{
-  xrows <- rowSums(x)
-  yrows <- rowSums(y)
-  xbad <- which(as.logical(is.na(xrows) + is.nan(xrows)))
-  ybad <- which(as.logical(is.na(yrows) + is.nan(yrows)))
-  bad <- unique(c(xbad, ybad))
-  if (length(bad)) {
-    message("some landmarks are missing and ignored for calculating the transform")
-    x <- x[-bad, , drop = FALSE]
-    y <- y[-bad, , drop = FALSE]
-  }
-  m <- ncol(y)
-  L <- CreateL(y, lambda = 1e-08)
-  m2 <- rbind(x, matrix(0, m + 1, m))
-  coeff <- try(as.matrix(base::solve(L, m2, tol = 1e-20)),
-               silent = TRUE)
-  if (inherits(coeff, "try-error"))
-    coeff <- try(as.matrix(Matrix::solve(L, m2)))
-  trafo <- list(refmat = y, tarmat = x, coeff = coeff)
-  return(trafo)
-}
-
-#' Create Matrices necessary for Thin-Plate Spline
+#'     if(which.max(cur_map) == 1){
+#'       ref_label = "ref"
+#'       query_label = "query"
+#'     } else {
+#'       ref_label = "query"
+#'       query_label = "ref"
+#'     }
 #'
-#' Create (Bending Engergy) Matrices necessary for Thin-Plate Spline, and sliding of Semilandmarks, adapted from \code{Morpho} package.
+#'     # compute and get transformation matrix
+#'     mapping_list[[kk]] <- computeTPSTransform(reference_landmark, target_landmark)
 #'
-#' @param matrix k x 3 or k x 2 matrix containing landmark coordinates.
-#' @param lambda numeric: regularization factor
+#'     # get registered image (including all channels)
+#'     aligned_image <- getManualRegisteredImage(aligned_image, ref_image, list(mapping_list[[kk]]))
+#'   }
 #'
-#' @return {Matrix L as specified in Bookstein (1989)}
-#' @note This function is not intended to be called directly - except for playing around to grasp the mechansims of the Thin-Plate Spline.
+#'   return(list(mapping = mapping_list, aligned_image = aligned_image))
+#' }
 #'
-#' @references Gunz, P., P. Mitteroecker, and F. L. Bookstein. 2005. Semilandmarks in Three Dimensions, in Modern Morphometrics in Physical
-#' Anthropology. Edited by D. E. Slice, pp. 73-98. New York: Kluwer
-#' Academic/Plenum Publishers.
+#' #' computeTPSTransform
+#' #'
+#' #' calculate an affine transformation matrix, adapted from \code{Morpho} package.
+#' #'
+#' #' @param x fix landmarks from a k x m matrix
+#' #' @param y moving landmarks from a k x m matrix
+#' #'
+#' #' @noRd
+#' computeTPSTransform <- function(x, y)
+#' {
+#'   xrows <- rowSums(x)
+#'   yrows <- rowSums(y)
+#'   xbad <- which(as.logical(is.na(xrows) + is.nan(xrows)))
+#'   ybad <- which(as.logical(is.na(yrows) + is.nan(yrows)))
+#'   bad <- unique(c(xbad, ybad))
+#'   if (length(bad)) {
+#'     message("some landmarks are missing and ignored for calculating the transform")
+#'     x <- x[-bad, , drop = FALSE]
+#'     y <- y[-bad, , drop = FALSE]
+#'   }
+#'   m <- ncol(y)
+#'   L <- CreateL(y, lambda = 1e-08)
+#'   m2 <- rbind(x, matrix(0, m + 1, m))
+#'   coeff <- try(as.matrix(base::solve(L, m2, tol = 1e-20)),
+#'                silent = TRUE)
+#'   if (inherits(coeff, "try-error"))
+#'     coeff <- try(as.matrix(Matrix::solve(L, m2)))
+#'   trafo <- list(refmat = y, tarmat = x, coeff = coeff)
+#'   return(trafo)
+#' }
 #'
-#' Bookstein FL. 1989. Principal Warps: Thin-plate splines and the
-#' decomposition of deformations. IEEE Transactions on pattern analysis and
-#' machine intelligence 11(6).
+#' #' Create Matrices necessary for Thin-Plate Spline
+#' #'
+#' #' Create (Bending Engergy) Matrices necessary for Thin-Plate Spline, and sliding of Semilandmarks, adapted from \code{Morpho} package.
+#' #'
+#' #' @param matrix k x 3 or k x 2 matrix containing landmark coordinates.
+#' #' @param lambda numeric: regularization factor
+#' #'
+#' #' @return {Matrix L as specified in Bookstein (1989)}
+#' #' @note This function is not intended to be called directly - except for playing around to grasp the mechansims of the Thin-Plate Spline.
+#' #'
+#' #' @references Gunz, P., P. Mitteroecker, and F. L. Bookstein. 2005. Semilandmarks in Three Dimensions, in Modern Morphometrics in Physical
+#' #' Anthropology. Edited by D. E. Slice, pp. 73-98. New York: Kluwer
+#' #' Academic/Plenum Publishers.
+#' #'
+#' #' Bookstein FL. 1989. Principal Warps: Thin-plate splines and the
+#' #' decomposition of deformations. IEEE Transactions on pattern analysis and
+#' #' machine intelligence 11(6).
+#' #'
+#' #' @importFrom Matrix forceSymmetric
+#' #'
+#' #' @noRd
+#' CreateL <- function(matrix,lambda=1e-8) {
+#'   out <- list()
+#'   k <- nrow(matrix)
+#'   m <- ncol(matrix)
+#'   Q <- cbind(1,matrix)
+#'   if (!is.matrix(matrix) || !is.numeric(matrix))
+#'     stop("matrix must be a numeric matrix")
+#'   K <- .Call("createL",matrix,1)
+#'   L <- matrix(0,k+m+1,k+m+1)
+#'   if (lambda !=0 )
+#'     diag(K) <- lambda
+#'   L[1:k,1:k] <- K
+#'   L[(k+1):(k+m+1),1:k] <- t(Q)
+#'   L[1:k,(k+1):(k+m+1)] <- Q
+#'   L <- Matrix::forceSymmetric(L)
+#'   return(L)
+#' }
 #'
-#' @importFrom Matrix forceSymmetric
+#' #' applyTPSTransform_old
+#' #'
+#' #' apply affine transformation to data, adapted from \code{Morpho} package.
+#' #'
+#' #' @param x matrix
+#' #' @param trafo 4x4 transformation matrix or an object of class "tpsCoeff"
+#' #'
+#' #' @noRd
+#' #'
+#' applyTPSTransform_old <- function(x,trafo) {
+#'   x <- apply(x, 2, as.numeric)
+#'   x <- cbind(1,x)
+#'   splM <- .Call("tpsfx",trafo$refmat,  x, t(trafo$coeff))
+#'   return(splM)
+#' }
 #'
-#' @noRd
-CreateL <- function(matrix,lambda=1e-8) {
-  out <- list()
-  k <- nrow(matrix)
-  m <- ncol(matrix)
-  Q <- cbind(1,matrix)
-  if (!is.matrix(matrix) || !is.numeric(matrix))
-    stop("matrix must be a numeric matrix")
-  K <- .Call("createL",matrix,1)
-  L <- matrix(0,k+m+1,k+m+1)
-  if (lambda !=0 )
-    diag(K) <- lambda
-  L[1:k,1:k] <- K
-  L[(k+1):(k+m+1),1:k] <- t(Q)
-  L[1:k,(k+1):(k+m+1)] <- Q
-  L <- Matrix::forceSymmetric(L)
-  return(L)
-}
-
-#' applyTPSTransform
+#' #' getManualRegisteredImage
+#' #'
+#' #' Generating the manually registered images
+#' #'
+#' #' @param query_image query image
+#' #' @param ref_image reference image
+#' #' @param transmatrix the transformation matrix
+#' #'
+#' #' @importFrom raster rasterize focal res stack extent
+#' #' @importFrom terra rast values
+#' #' @importFrom grDevices rgb
+#' #'
+#' #' @noRd
+#' getManualRegisteredImage <- function(query_image, ref_image, transmatrix){
 #'
-#' apply affine transformation to data, adapted from \code{Morpho} package.
+#'   # get image as raster
+#'   ref_image_raster <- as.raster(ref_image) |> as.matrix() |> terra::rast()
+#'   query_image_raster <- as.raster(query_image) |> as.matrix() |> terra::rast()
+#'   if(terra::nlyr(query_image_raster) == 1){
+#'     query_image_raster <- raster::stack(query_image_raster)
+#'     query_image_raster <- raster::stack(query_image_raster, query_image_raster, query_image_raster)
+#'   } else {
+#'     query_image_raster <- raster::stack(query_image_raster)
+#'   }
 #'
-#' @param x matrix
-#' @param trafo 4x4 transformation matrix or an object of class "tpsCoeff"
+#'   # prepare image
+#'   imageEx <- raster::extent(raster::stack(ref_image_raster))
+#'   imageRes <- raster::res(raster::stack(ref_image_raster))
+#'   query_image_raster_1 <- raster::as.data.frame(query_image_raster[[1]], xy = TRUE)
+#'   query_image_raster_2 <- raster::as.data.frame(query_image_raster[[2]], xy = TRUE)
+#'   query_image_raster_3 <- raster::as.data.frame(query_image_raster[[3]], xy = TRUE)
 #'
-#' @noRd
+#'   # apply transformation as many as it is needed
+#'   query_image_raster_1_t <- as.matrix(query_image_raster_1)[,1:2]
+#'   for(trans in transmatrix){
+#'     query_image_raster_1_t <- applyTPSTransform(query_image_raster_1_t, trans)
+#'   }
 #'
-applyTPSTransform <- function(x,trafo) {
-  # .fx(trafo$refmat,x,trafo$coeff,threads=threads)
-  # .fx <- function(refmat,M,coefs,time=TRUE,threads=1) {
-  x <- apply(x, 2, as.numeric)
-  x <- cbind(1,x)
-  splM <- .Call("tpsfx",trafo$refmat,  x, t(trafo$coeff))
-  return(splM)
-
-}
+#'   # finalize image
+#'   r <- raster::raster(nrow = dim(query_image_raster)[1], ncol = dim(query_image_raster)[2], resolution = c(1,1))
+#'   raster::extent(r) <- imageEx
+#'   raster::res(r) <- imageRes
+#'   query_image_raster_1_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_1[,3], r, fun = mean)
+#'   query_image_raster_1_trf <- raster::focal(query_image_raster_1_tr,
+#'                                             w = matrix(1, nrow = 3, ncol = 3),
+#'                                             fun = fill.na, pad = TRUE, na.rm = FALSE)
+#'   query_image_raster_1_trf <- terra::values(terra::rast(query_image_raster_1_trf, crs = ""))
+#'   query_image_raster_1_trf[is.nan(query_image_raster_1_trf)] <- 0
+#'   query_image_raster_2_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_2[,3], r, fun = mean)
+#'   query_image_raster_2_trf <- raster::focal(query_image_raster_2_tr,
+#'                                             w = matrix(1, nrow = 3, ncol = 3),
+#'                                             fun = fill.na, pad = TRUE, na.rm = FALSE)
+#'   query_image_raster_2_trf <- terra::values(terra::rast(query_image_raster_2_trf, crs = ""))
+#'   query_image_raster_2_trf[is.nan(query_image_raster_2_trf)] <- 0
+#'   query_image_raster_3_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_3[,3], r, fun = mean)
+#'   query_image_raster_3_trf <- raster::focal(query_image_raster_3_tr,
+#'                                             w = matrix(1, nrow = 3, ncol = 3),
+#'                                             fun = fill.na, pad = TRUE, na.rm = FALSE)
+#'   query_image_raster_3_trf <- terra::values(terra::rast(query_image_raster_3_trf, crs = ""))
+#'   query_image_raster_3_trf[is.nan(query_image_raster_3_trf)] <- 0
+#'
+#'   # turn RGB to HEX
+#'   query_image_raster_1_trf <- mapply(function(r,g,b) {
+#'     rgb(r, g, b, maxColorValue = 255)
+#'   }, query_image_raster_1_trf, query_image_raster_2_trf, query_image_raster_3_trf, SIMPLIFY = TRUE)
+#'   query_image_raster_1_trf <- matrix(query_image_raster_1_trf, nrow = nrow(ref_image_raster), ncol = ncol(ref_image_raster), byrow = TRUE)
+#'   query_image <- magick::image_read(query_image_raster_1_trf)
+#'
+#'   return(query_image)
+#' }
 
 ####
 # Automated Image Registration ####
@@ -1354,7 +1593,7 @@ applyTPSTransform <- function(x,trafo) {
 #' @importFrom magick image_info image_ggplot image_write image_join image_resize
 #' @importFrom grid rasterGrob
 #' @importFrom ggplot2 ggplot coord_fixed annotation_raster annotation_custom
-#' @importFrom htmltools HTML
+#' @importFrom waiter waiter_show waiter_hide spin_ring
 #'
 #' @noRd
 getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, image_list, centre, register_ind,
@@ -1369,6 +1608,10 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
     # Automated registration
     if(input$automatictag){
 
+      # waiter start
+      withProgress(message = paste0('Automated Registration (', input$AutoMethod,')'), value = 0, {
+      waiter::waiter_show(html = waiter::spin_ring(), color = paste0("rgba(128,128,128,", 0.15, ")"))
+
       # Register keypoints
       mapping_list <- list()
       dest_image_list <- list()
@@ -1377,11 +1620,13 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
       alignment_image_list <- list()
       for(i in register_ind){
 
+        # Increment the progress bar, and update the detail text.
+        incProgress(1/length(register_ind), detail = paste("Registering Image", i, sep = " "))
+
         # get a sequential mapping between a query and reference image
         results <- computeAutomatedPairwiseTransform(image_list, query_ind = i, ref_ind = centre, input)
 
         # save transformation matrix
-        # mapping_list[[i]] <- results$mapping
         registration_mapping_list[[paste0(i)]] <- results$mapping
 
         # destination image
@@ -1396,6 +1641,10 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
         # save matches
         alignment_image_list[[i]] <- results$alignment_image
       }
+
+      # waiter end
+      waiter::waiter_hide()
+      })
 
       # Plot registered images
       lapply(register_ind, function(i){
@@ -1427,7 +1676,7 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
         str2 <- paste0("# of Images: ", length(image_list))
         str3 <- paste0("# of Registrations: ", len_register)
         all_str <- c(str1, str2, str3)
-        htmltools::HTML(paste(all_str, collapse = '<br/>'))
+        shiny::HTML(paste(all_str, collapse = '<br/>'))
       })
     }
   })

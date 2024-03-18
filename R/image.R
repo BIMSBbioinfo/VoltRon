@@ -847,7 +847,6 @@ combineChannels.vrAssay <- function(object,  name = NULL, reg = FALSE, ...){
 #'
 #' @importFrom magick image_read image_data image_composite
 #' @importFrom grDevices col2rgb
-#' @importFrom raster as.raster
 #'
 #' @export
 #'
@@ -885,7 +884,8 @@ combineChannels.vrImage <- function(object, channels = NULL, colors = NULL, chan
     imagedata[,,1] <- imagedata[,,1] * (color_rgb[1]/255)
     imagedata[,,2] <- imagedata[,,2] * (color_rgb[2]/255)
     imagedata[,,3] <- imagedata[,,3] * (color_rgb[3]/255)
-    channel_img <- magick::image_read(raster::as.raster(imagedata))
+    # channel_img <- magick::image_read(raster::as.raster(imagedata))
+    channel_img <- magick::image_read(imagedata)
     if(is.null(composite_image)){
       composite_image <- channel_img
     } else{
@@ -966,10 +966,10 @@ vrCoordinates.vrImage <- function(object) {
   coords <- vrCoordinates(object, ...)
 
   # stop if the rownames are not matching
-  if(any(sapply(rownames(values),is.null)))
+  if(any(sapply(rownames(value),is.null)))
     stop("Provided coordinates data does not have cell/spot/ROI names")
 
-  if(!all(rownames(values) %in% rownames(coords)))
+  if(!all(rownames(value) %in% rownames(coords)))
     stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
 
   # stop if the colnames there are more than two columns
@@ -1006,10 +1006,10 @@ vrSegments.vrImage<- function(object) {
   segts <- vrSegments(object, ...)
 
   # stop if the names are not matching
-  if(any(sapply(names(values),is.null)))
+  if(any(sapply(names(value),is.null)))
     stop("Provided coordinates data does not have cell/spot/ROI names")
 
-  if(!all(names(values) %in% names(segts)))
+  if(!all(names(value) %in% names(segts)))
     stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
 
   methods::slot(object = object, name = 'segments') <- value
@@ -1032,7 +1032,6 @@ vrSegments.vrImage<- function(object) {
 #' @importFrom shinyjs useShinyjs
 #' @importFrom magick image_scale image_info image_ggplot
 #' @importFrom ggplot2 geom_rect
-#' @importFrom htmltools HTML
 #' @importFrom dplyr filter add_row tibble
 #' @importFrom ggrepel geom_label_repel
 #'

@@ -376,7 +376,7 @@ vrFeatureData.vrAssay <- function(object, ...) {
 #'
 #' @export
 #'
-vrAssayNames.vrAssay <- function(object, ...) {
+vrAssayNames.vrAssay <- function(object) {
 
   if(.hasSlot(object, name = "name")){
     if(grep("Assay", object@name)){

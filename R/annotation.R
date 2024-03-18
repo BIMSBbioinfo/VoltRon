@@ -126,7 +126,6 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
           shinyjs::useShinyjs(),
           plotOutput("image_plot",
                      height = "1000px",
-                     hover = "plot_hover",
                      click = "plot_click",
                      dblclick = "plot_dblclick",
                      brush = brushOpts(

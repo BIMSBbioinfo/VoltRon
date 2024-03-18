@@ -2,12 +2,15 @@
 #include <opencv2/opencv.hpp>
 #include "opencv2/xfeatures2d.hpp"
 #include "opencv2/features2d.hpp"
+#include "opencv2/shape/shape_transformer.hpp"
+#include <opencv2/imgproc.hpp>
 
 using namespace Rcpp;
 using namespace std;
 using namespace cv;
 using namespace cv::xfeatures2d;
 
+// Function to convert a RawVector for magick images to a cv::Mat object
 cv::Mat imageToMat(Rcpp::RawVector image_data, int width, int height) {
 
   // Create cv::Mat object
@@ -74,18 +77,42 @@ Rcpp::NumericMatrix point2fToNumericMatrix(std::vector<cv::Point2f> points) {
   return mat;
 }
 
-// void computeSiftTiles(Mat image, std::vector<KeyPoint> &keypoints, Mat &descriptors, const int tile_size_tuple[2], const int tile_overlap, Ptr<Feature2D> sift){
-//
-//   // image shape
-//   int height = image.rows;
-//   int width = image.cols;
-//
-//   // Extend the image so that it can be divided into equal size tiles
-//   float h_extend = ((height - 1) / (tile_size_tuple[1] - tile_overlap) + 1) * (tile_size_tuple[1] - tile_overlap) + tile_overlap;
-//   float w_extend = ((width - 1) / (tile_size_tuple[0] - tile_overlap) + 1) * (tile_size_tuple[0] - tile_overlap) + tile_overlap;
-//   cv::Mat image_extended = cv::Mat::zeros(height, width, image.type());
-//
-// }
+// Function to convert a cv::Point2f object to a cv::Mat
+std::vector<cv::Point2f> matToPoint2f(cv::Mat mat) {
+  std::vector<cv::Point2f> points;
+
+  // Assuming the matrix has 2 columns (x and y coordinates)
+  if (mat.cols != 2) {
+    cerr << "Input matrix must have exactly 2 columns for x and y coordinates." << endl;
+    return points;
+  }
+
+  // Iterate over the rows of the matrix
+  for (int i = 0; i < mat.rows; ++i) {
+    // Extract x and y coordinates from the matrix
+    float x = mat.at<float>(i, 0);
+    float y = mat.at<float>(i, 1);
+
+    // Create Point2f object and add it to the vector
+    points.push_back(Point2f(x, y));
+  }
+
+  return points;
+}
+
+cv::Mat point2fToMat(std::vector<cv::Point2f> points) {
+  cv::Mat mat(points.size(), 2, CV_32F);
+
+  // Iterate over the vector of Point2f
+  for (size_t i = 0; i < points.size(); ++i) {
+
+    // Assign x and y coordinates to the matrix
+    mat.at<float>(i, 0) = points[i].x;
+    mat.at<float>(i, 1) = points[i].y;
+  }
+
+  return mat;
+}
 
 void getGoodMatches(std::vector<std::vector<DMatch>> matches, std::vector<DMatch> &good_matches, const float lowe_ratio = 0.8)
 {
@@ -411,6 +438,78 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
 }
 
+// void alignImagesTPS2(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark)
+// {
+//
+//   // seed
+//   cv::setRNGSeed(0);
+//   RNG rng(12345);
+//   Scalar value;
+//
+//   // Get landmarks as Point2f
+//   std::vector<cv::Point2f> query_mat = numericMatrixToPoint2f(query_landmark);
+//   std::vector<cv::Point2f> ref_mat = numericMatrixToPoint2f(reference_landmark);
+//
+//   // get matches
+//   std::vector<cv::DMatch> matches;
+//   for (unsigned int i = 0; i < ref_mat.size(); i++)
+//     matches.push_back(cv::DMatch(i, i, 0));
+//
+//   // calculate transformation
+//   // auto tps = cv::createThinPlateSplineShapeTransformer();
+//   Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
+//   tps->estimateTransformation(query_mat, ref_mat, matches);
+//   cv::imwrite("input.png", im1);
+//
+//   // apply transformation
+//   std::vector<cv::Point2f> im1_points = matToPoint2f(im1);
+//   cout << "sourcePoints = " << endl << " " << im1_points << endl << endl;
+//   std::vector<cv::Point2f> im1_points_trans;
+//   tps->applyTransformation(im1_points, im1_points);
+//   cv::Mat im1Reg2 = point2fToMat(im1_points);
+//   cv::imwrite("warpresult.png", im1Reg2);
+// }
+
+void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark)
+{
+
+  // seed
+  cv::setRNGSeed(0);
+  RNG rng(12345);
+  Scalar value;
+
+  // Get landmarks as Point2f
+  std::vector<cv::Point2f> query_mat = numericMatrixToPoint2f(query_landmark);
+  std::vector<cv::Point2f> ref_mat = numericMatrixToPoint2f(reference_landmark);
+
+  // get matches
+  std::vector<cv::DMatch> matches;
+  for (unsigned int i = 0; i < ref_mat.size(); i++)
+    matches.push_back(cv::DMatch(i, i, 0));
+
+  // calculate transformation
+  // auto tps = cv::createThinPlateSplineShapeTransformer();
+  Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
+  tps->estimateTransformation(ref_mat, query_mat, matches);
+
+  // determine extension limits for both images
+  int y_max = max(im1.rows, im2.rows);
+  int x_max = max(im1.cols, im2.cols);
+
+  // extend images
+  cv::copyMakeBorder(im1, im1, 0.0, (int) (y_max - im1.rows), 0.0, (x_max - im1.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+  // cv::copyMakeBorder(im2, im2_extended, 0.0, (int) (y_max - im2.rows), 0.0, (x_max - im2.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+
+  // transform image
+  // tps->warpImage(im1, im1Reg,  cv::INTER_LINEAR, cv::WARP_FILL_OUTLIERS);
+  tps->warpImage(im1, im1Reg);
+
+  // resize image
+  // cv::resize(im1Reg, im1Reg, im2.size());
+  cv::Mat im1Reg_cropped  = im1Reg(cv::Range(0,im2.size().height), cv::Range(0,im2.size().width));
+  im1Reg = im1Reg_cropped.clone();
+}
+
 // [[Rcpp::export]]
 Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image,
                                              const int width1, const int height1,
@@ -443,8 +542,6 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   }
   if(strcmp(method.get_cstring(), "BRUTE-FORCE") == 0){
     cout << "BruteForce-Hamming - descriptor matching" << endl;
-    // alignImagesBRUTE(im, imReference, imReg, imOverlay, imMatches, h, GOOD_MATCH_PERCENT, MAX_FEATURES, invert_query, invert_ref,
-    //                  flipflop_query.get_cstring(), flipflop_ref.get_cstring(), rotate_query.get_cstring(), rotate_ref.get_cstring());
     alignImagesBRUTE(im, imReference, imReg, imOverlay, imMatches, h, GOOD_MATCH_PERCENT, MAX_FEATURES);
   }
 
@@ -495,4 +592,69 @@ Rcpp::RawVector warpImage(Rcpp::RawVector ref_image, Rcpp::RawVector query_image
 
   // return
   return matToImage(imWarp.clone());;
+}
+
+// [[Rcpp::export]]
+Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image,
+                                          Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark,
+                                          const int width1, const int height1,
+                                          const int width2, const int height2)
+{
+  // define return data, 1 = transformation matrix, 2 = aligned image
+  Rcpp::List out(1);
+
+  // Read reference image
+  cv::Mat imReference = imageToMat(ref_image, width1, height1);
+
+  // Read image to be aligned
+  cv::Mat im = imageToMat(query_image, width2, height2);
+
+  // Registered image will be stored in imReg.
+  // The estimated homography will be stored in h.
+  // The matching illustration of both images with be given in imMatches.
+  Mat imReg;
+
+  // Align images
+  cout << "Thin Plate Spline - Manual Matcher" << endl;
+  // alignImagesTPS(im, imReference, imReg, query_landmark, reference_landmark);
+  alignImagesTPS(im, imReference, imReg, query_landmark, reference_landmark);
+
+  // return transformation matrix, destinated image, registered image, and keypoint matching image
+  out[0] = matToImage(imReg.clone());
+  return out;
+}
+
+// [[Rcpp::export]]
+Rcpp::NumericMatrix applyTransform(Rcpp::NumericMatrix coords, Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark)
+{
+  // Get coordinates as Point2f
+  std::vector<cv::Point2f> coords_mat = numericMatrixToPoint2f(coords);
+  std::vector<cv::Point2f> coords_reg;
+
+  // seed
+  cv::setRNGSeed(0);
+  RNG rng(12345);
+  Scalar value;
+
+  // Get landmarks as Point2f
+  std::vector<cv::Point2f> query_mat = numericMatrixToPoint2f(query_landmark);
+  std::vector<cv::Point2f> ref_mat = numericMatrixToPoint2f(reference_landmark);
+
+  // get matches
+  std::vector<cv::DMatch> matches;
+  for (unsigned int i = 0; i < ref_mat.size(); i++)
+    matches.push_back(cv::DMatch(i, i, 0));
+
+  // calculate transformation
+  Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
+  tps->estimateTransformation(query_mat, ref_mat, matches);
+
+  // apply transformation to coordinates
+  tps->applyTransformation(coords_mat, coords_reg);
+
+  // return registered coordinates as numeric matrix
+  Rcpp::NumericMatrix coords_regToMat = point2fToNumericMatrix(coords_reg);
+
+  // return
+  return coords_regToMat;
 }

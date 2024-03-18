@@ -1233,7 +1233,7 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
   if(type %in% c("ROI", "cell", "spot")){
 
     # replace the metadata (or some part of it) with the new value
-    if(length(setdiff(rownames(values), rownames(metadata))) == 0){
+    if(length(setdiff(rownames(value), rownames(metadata))) == 0){
 
       # check columns of the new table
       new_columns <- setdiff(colnames(value), colnames(metadata))
