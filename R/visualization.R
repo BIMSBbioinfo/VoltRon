@@ -88,11 +88,6 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
   plot_title <- as.list(apply(sample.metadata[assay_names,], 1, function(x) paste(x["Sample"], x["Layer"], sep = ", ")))
   names(plot_title) <- assay_names
 
-  # adjust group.ids
-  if(is.null(group.ids)){
-    group.ids <- unique(metadata[[group.by]])
-  }
-
   # for each assay
   i <- 1
   gg <- list()
@@ -126,6 +121,11 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
       levels_group.by <- sort(as.numeric(levels_group.by))
     }
     cur_metadata[[group.by]] <- factor(cur_metadata[[group.by]], levels = levels_group.by)
+
+    # adjust group.ids
+    if(is.null(group.ids)){
+      group.ids <- unique(metadata[[group.by]])
+    }
 
     # check group.id
     levels_group.ids <- as.character(group.ids)
@@ -245,6 +245,9 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     }
   }
 
+  # change levels of groups
+  coords[[group.by]] <- factor(coords[[group.by]], levels = group.ids)
+
   # visualize based on points type
   if(vrAssayTypes(assay) == "ROI"){
     polygon_data <- NULL
@@ -341,7 +344,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     }
 
   } else {
-    stop("Only ROIs, spots, cells can be visualized with vrSpatialPlot!")
+    stop("Only ROIs, spots, cells, molecules and tiles can be visualized with vrSpatialPlot!")
   }
 
   # more visualization parameters
