@@ -275,7 +275,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     }
     g <- g +
       # scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
-      scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+      scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
       guides(fill = guide_legend(title = group.by))
 
   # spot visualization
@@ -283,7 +283,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     g <- g +
       geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, spot.radius = vrAssayParams(assay, param = "vis.spot.radius")) +
       # scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
-      scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+      scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
 
   # cell visualization
@@ -298,20 +298,29 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
           polygon_data[,c("x", "y")] <- polygon_data[,c("x", "y")]/scale_factors
           len_segments <- sapply(segments, nrow, simplify = TRUE)
           polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), group.by = rep(coords[[group.by]], len_segments))
+          # g <- g +
+          #   geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha) +
+          #   scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+          #   guides(fill = guide_legend(title = group.by))
           g <- g +
             geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha) +
-            scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+            scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
             guides(fill = guide_legend(title = group.by))
         }
       } else {
 
         # add points
         if(n.tile == 0){
+          # g <- g +
+          #   geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
+          #   scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+          #   scale_color_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+          #     guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
           g <- g +
             geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
-            scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
-            scale_color_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
-              guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
+            scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+            scale_color_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+            guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
         } else {
           g <- vrSpatialPlotSingleTiling(g = g, data = coords, n.tile = n.tile, alpha = alpha)
         }
@@ -336,8 +345,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     if(n.tile == 0){
       g <- g +
         geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
-        scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
-        scale_color_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+        scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+        scale_color_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
         guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
     } else {
       g <- vrSpatialPlotSingleTiling(g = g, data = coords, n.tile = n.tile, alpha = alpha)
