@@ -263,15 +263,21 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
         # collect labels
         selected_label_list <- sapply(1:length(selected_polygon_list), function(i) input[[paste0("region",i)]])
 
+        # temp_func(metadata, coords, selected_polygon_list, selected_label_list)
+
         ### annotate spatial points ####
-        spatialpoints <- rownames(metadata)
+        if(inherits(metadata, "data.table")){
+          spatialpoints <- metadata$id
+        } else {
+          spatialpoints <- rownames(metadata)
+        }
         new_label <- rep("undefined", length(spatialpoints))
         names(new_label) <- spatialpoints
         result_list <- list()
         for(i in 1:length(selected_polygon_list)){
           cur_poly <- selected_polygon_list[[i]]
           in.list <- sp::point.in.polygon(coords[,1], coords[,2], cur_poly[,1], cur_poly[,2])
-          new_label[rownames(coords)[!!in.list]] <- selected_label_list[i]
+          new_label[rownames(coords)[!in.list]] <- selected_label_list[i]
         }
 
         # place annotation to metadata
@@ -279,10 +285,14 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
         Metadata(object, assays = sample_metadata[assay, "Assay"]) <- metadata
 
         ## add polygons to a new assay ####
-        segments <- selected_polygon_list
-        names(segments) <- selected_label_list
+        # segments <- selected_polygon_list
+        # names(segments) <- selected_label_list
+        segments <- list()
+        for(i in 1:length(selected_label_list)){
+          segments[[selected_label_list[i]]] <- data.frame(id = selected_label_list[i], selected_polygon_list[[i]])
+        }
         coords <- t(sapply(segments, function(seg){
-          apply(seg, 2, mean)
+          apply(seg[,c("x", "y")], 2, mean)
         }, simplify = TRUE))
         new_assay <- formAssay(coords = coords, segments = segments,
                                type = "ROI",
@@ -302,5 +312,18 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
     }
 
     shiny::runApp(shiny::shinyApp(ui, server))
+  }
+}
+
+temp_func <- function(metadata, coords, selected_polygon_list, selected_label_list){
+  ### annotate spatial points ####
+  spatialpoints <- rownames(metadata)
+  new_label <- rep("undefined", length(spatialpoints))
+  names(new_label) <- spatialpoints
+  result_list <- list()
+  for(i in 1:length(selected_polygon_list)){
+    cur_poly <- selected_polygon_list[[i]]
+    in.list <- sp::point.in.polygon(coords[,1], coords[,2], cur_poly[,1], cur_poly[,2])
+    new_label[rownames(coords)[!in.list]] <- selected_label_list[i]
   }
 }

@@ -235,7 +235,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   }
   if(!is.null(group.ids)){
     if(length(setdiff(group.ids,  coords[[group.by]])) > 0){
-      warning("Some groups defined in group.ids does not exist in group.by!")
+      # warning("Some groups defined in group.ids does not exist in group.by!")
       coords <- droplevels(coords[coords[[group.by]] %in% group.ids,])
     } else if(length(setdiff(group.ids,  coords[[group.by]])) == length(group.ids)){
       stop("None of the groups defined in group.ids exist in group.by!")
@@ -275,7 +275,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     }
     g <- g +
       # scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
-      scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+      scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
       guides(fill = guide_legend(title = group.by))
 
   # spot visualization
@@ -283,7 +283,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     g <- g +
       geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, spot.radius = vrAssayParams(assay, param = "vis.spot.radius")) +
       # scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
-      scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+      scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
 
   # cell visualization
@@ -298,20 +298,29 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
           polygon_data[,c("x", "y")] <- polygon_data[,c("x", "y")]/scale_factors
           len_segments <- sapply(segments, nrow, simplify = TRUE)
           polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), group.by = rep(coords[[group.by]], len_segments))
+          # g <- g +
+          #   geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha) +
+          #   scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+          #   guides(fill = guide_legend(title = group.by))
           g <- g +
             geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha) +
-            scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+            scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
             guides(fill = guide_legend(title = group.by))
         }
       } else {
 
         # add points
         if(n.tile == 0){
+          # g <- g +
+          #   geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
+          #   scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+          #   scale_color_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+          #     guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
           g <- g +
             geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
-            scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
-            scale_color_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
-              guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
+            scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+            scale_color_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+            guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
         } else {
           g <- vrSpatialPlotSingleTiling(g = g, data = coords, n.tile = n.tile, alpha = alpha)
         }
@@ -336,8 +345,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     if(n.tile == 0){
       g <- g +
         geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
-        scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
-        scale_color_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
+        scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+        scale_color_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
         guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
     } else {
       g <- vrSpatialPlotSingleTiling(g = g, data = coords, n.tile = n.tile, alpha = alpha)
@@ -401,41 +410,27 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #' Plotting a tiled version of the vrSpatialPlot
 #'
 #' @param g the ggplot figure
-#' @param assay vrAssay object
-#' @param metadata the metadata associated with the assay
-#' @param group.by a grouping label for the spatial entities
-#' @param plot.segments plot segments instead of points
-#' @param group.ids a subset of categories defined with in the grouping label \code{group.by}
+#' @param data the data frame with coordinates and group identities
 #' @param n.tile should points be aggregated into tiles before visualization (see \code{geom_tile}). Applicable only for cells and molecules
-#' @param graph if not NULL, the graph is added to the plot
-#' @param font.size font sizes
-#' @param pt.size point size
-#' @param cell.shape the shape of the points representing cells, see \code{help(geom_point)}
 #' @param alpha alpha level for cells/spots/ROIs
-#' @param plot_title the title of the single plot
-#' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
-#' @param reg if TRUE, the registered coordinates will be used
-#' @param crop whether to crop an image of a spot assay
-#' @param legend.pt.size the size of points at the legend
-#' @param scale.image should the image be scaled down to a low resolution (width: 1000px)
 #'
 #' @import ggplot2
 #'
 #' @noRd
 vrSpatialPlotSingleTiling <- function(g, data, n.tile, alpha = 1){
 
-  gplot <- g + geom_hex(data = data, mapping = aes(x = x, y = y), bins = n.tile, alpha = alpha)
+  # gplot <- g + geom_hex(data = data, mapping = aes(x = x, y = y), bins = n.tile, alpha = alpha)
+  gplot <- g + stat_bin_2d(mapping = aes(x = x, y = y), data = data, bins = n.tile, drop = FALSE, alpha = alpha)
   hex_count_data <- ggplot_build(gplot)$data
   hex_count_data <- hex_count_data[[length(hex_count_data)]]
   midpoint <- max(hex_count_data$count)/2
-  g <- g +
-    geom_hex(data = data, mapping = aes(x = x, y = y), bins = n.tile, alpha = 0.6) +
+  gplot <- gplot +
     scale_fill_gradientn(name = "Count",
                          colors=c("dodgerblue2", "white", "yellow3"),
                          values=scales::rescale(c(0, midpoint, max(hex_count_data$count))), limits = c(0, max(hex_count_data$count)))
 
   # return
-  g
+  gplot
 }
 
 ####
