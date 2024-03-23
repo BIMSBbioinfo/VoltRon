@@ -271,8 +271,6 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
         } else {
           spatialpoints <- rownames(metadata)
         }
-        # spatialpoints <- ifelse(inherits(metadata, "data.table"), metadata$id, rownames(metadata))
-        print(head(spatialpoints))
         new_label <- rep("undefined", length(spatialpoints))
         names(new_label) <- spatialpoints
         result_list <- list()
@@ -283,17 +281,18 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
         }
 
         # place annotation to metadata
-        print(dim(metadata))
-        print(length(new_label))
         metadata[[label]] <- new_label
-        # print(new_label)
         Metadata(object, assays = sample_metadata[assay, "Assay"]) <- metadata
 
         ## add polygons to a new assay ####
-        segments <- selected_polygon_list
-        names(segments) <- selected_label_list
+        # segments <- selected_polygon_list
+        # names(segments) <- selected_label_list
+        segments <- list()
+        for(i in 1:length(selected_label_list)){
+          segments[[selected_label_list[i]]] <- data.frame(id = selected_label_list[i], selected_polygon_list[[i]])
+        }
         coords <- t(sapply(segments, function(seg){
-          apply(seg, 2, mean)
+          apply(seg[,c("x", "y")], 2, mean)
         }, simplify = TRUE))
         new_assay <- formAssay(coords = coords, segments = segments,
                                type = "ROI",
