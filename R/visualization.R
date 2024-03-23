@@ -410,41 +410,27 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #' Plotting a tiled version of the vrSpatialPlot
 #'
 #' @param g the ggplot figure
-#' @param assay vrAssay object
-#' @param metadata the metadata associated with the assay
-#' @param group.by a grouping label for the spatial entities
-#' @param plot.segments plot segments instead of points
-#' @param group.ids a subset of categories defined with in the grouping label \code{group.by}
+#' @param data the data frame with coordinates and group identities
 #' @param n.tile should points be aggregated into tiles before visualization (see \code{geom_tile}). Applicable only for cells and molecules
-#' @param graph if not NULL, the graph is added to the plot
-#' @param font.size font sizes
-#' @param pt.size point size
-#' @param cell.shape the shape of the points representing cells, see \code{help(geom_point)}
 #' @param alpha alpha level for cells/spots/ROIs
-#' @param plot_title the title of the single plot
-#' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
-#' @param reg if TRUE, the registered coordinates will be used
-#' @param crop whether to crop an image of a spot assay
-#' @param legend.pt.size the size of points at the legend
-#' @param scale.image should the image be scaled down to a low resolution (width: 1000px)
 #'
 #' @import ggplot2
 #'
 #' @noRd
 vrSpatialPlotSingleTiling <- function(g, data, n.tile, alpha = 1){
 
-  gplot <- g + geom_hex(data = data, mapping = aes(x = x, y = y), bins = n.tile, alpha = alpha)
+  # gplot <- g + geom_hex(data = data, mapping = aes(x = x, y = y), bins = n.tile, alpha = alpha)
+  gplot <- g + stat_bin_2d(mapping = aes(x = x, y = y), data = data, bins = n.tile, drop = FALSE, alpha = alpha)
   hex_count_data <- ggplot_build(gplot)$data
   hex_count_data <- hex_count_data[[length(hex_count_data)]]
   midpoint <- max(hex_count_data$count)/2
-  g <- g +
-    geom_hex(data = data, mapping = aes(x = x, y = y), bins = n.tile, alpha = 0.6) +
+  gplot <- gplot +
     scale_fill_gradientn(name = "Count",
                          colors=c("dodgerblue2", "white", "yellow3"),
                          values=scales::rescale(c(0, midpoint, max(hex_count_data$count))), limits = c(0, max(hex_count_data$count)))
 
   # return
-  g
+  gplot
 }
 
 ####
