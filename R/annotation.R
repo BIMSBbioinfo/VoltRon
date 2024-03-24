@@ -289,7 +289,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
         # names(segments) <- selected_label_list
         segments <- list()
         for(i in 1:length(selected_label_list)){
-          segments[[selected_label_list[i]]] <- data.frame(id = selected_label_list[i], selected_polygon_list[[i]])
+          segments[[selected_label_list[i]]] <- data.frame(id = i, selected_polygon_list[[i]])
         }
         coords <- t(sapply(segments, function(seg){
           apply(seg[,c("x", "y")], 2, mean)
