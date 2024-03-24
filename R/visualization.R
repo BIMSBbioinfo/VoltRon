@@ -247,6 +247,29 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 
   # change levels of groups
   coords[[group.by]] <- factor(coords[[group.by]], levels = group.ids)
+  
+  # set up the limits
+  if(vrAssayTypes(assay) == "spot"){
+    if(crop){
+      g <- g +
+        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
+    } else {
+      if(!is.null(info)){
+        g <- g +
+          coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
+      }
+    }
+  } else {
+    if(crop){
+      g <- g +
+        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
+    } else {
+      if(!is.null(info)){
+        g <- g +
+          xlim(0,info$width) + ylim(0, info$height)
+      }
+    }
+  }
 
   # visualize based on points type
   if(vrAssayTypes(assay) == "ROI"){
@@ -274,7 +297,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
                                   fill = group.by, group = segment), data = circle_data, lwd = 0, alpha = alpha)
     }
     g <- g +
-      # scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
       scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
       guides(fill = guide_legend(title = group.by))
 
@@ -282,7 +304,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   } else if(vrAssayTypes(assay) == "spot"){
     g <- g +
       geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, spot.radius = vrAssayParams(assay, param = "vis.spot.radius")) +
-      # scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
       scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
 
@@ -298,10 +319,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
           polygon_data[,c("x", "y")] <- polygon_data[,c("x", "y")]/scale_factors
           len_segments <- sapply(segments, nrow, simplify = TRUE)
           polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), group.by = rep(coords[[group.by]], len_segments))
-          # g <- g +
-          #   geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha) +
-          #   scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
-          #   guides(fill = guide_legend(title = group.by))
           g <- g +
             geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha) +
             scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
@@ -311,11 +328,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 
         # add points
         if(n.tile == 0){
-          # g <- g +
-          #   geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
-          #   scale_fill_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
-          #   scale_color_manual(values = scales::hue_pal()(length(levels(group.ids))), labels = levels(group.ids), drop = FALSE) +
-          #     guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
           g <- g +
             geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
             scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
@@ -341,7 +353,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       }
   } else if(vrAssayTypes(assay) == "molecule") {
 
-    # coords <- coords[coords[[group.by]] %in% transcripts, ]
     if(n.tile == 0){
       g <- g +
         geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
@@ -349,6 +360,10 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         scale_color_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
         guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
     } else {
+      # coords_orig <- as.data.frame(vrCoordinates(assay, image_name = image_name, reg = reg))
+      # coords_orig <- coords_orig/scale_factors
+      # coords_orig[[group.by]] <- NA
+      # coords_orig[rownames(coords), group.by] <- coords[[group.by]]
       g <- vrSpatialPlotSingleTiling(g = g, data = coords, n.tile = n.tile, alpha = alpha)
     }
 
@@ -364,28 +379,28 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
                                 axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
                                 legend.margin = margin(0,0,0,0))
 
-  # set up the limits
-  if(vrAssayTypes(assay) == "spot"){
-    if(crop){
-      g <- g +
-        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
-    } else {
-      if(!is.null(info)){
-        g <- g +
-          coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
-      }
-    }
-  } else {
-    if(crop){
-      g <- g +
-        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
-    } else {
-      if(!is.null(info)){
-        g <- g +
-          xlim(0,info$width) + ylim(0, info$height)
-      }
-    }
-  }
+  # # set up the limits
+  # if(vrAssayTypes(assay) == "spot"){
+  #   if(crop){
+  #     g <- g +
+  #       coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
+  #   } else {
+  #     if(!is.null(info)){
+  #       g <- g +
+  #         coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
+  #     }
+  #   }
+  # } else {
+  #   if(crop){
+  #     g <- g +
+  #       coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
+  #   } else {
+  #     if(!is.null(info)){
+  #       g <- g +
+  #         xlim(0,info$width) + ylim(0, info$height)
+  #     }
+  #   }
+  # }
 
   # background
   if(any(background %in% c("white","black"))){

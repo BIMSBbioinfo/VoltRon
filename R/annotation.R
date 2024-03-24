@@ -277,7 +277,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
         for(i in 1:length(selected_polygon_list)){
           cur_poly <- selected_polygon_list[[i]]
           in.list <- sp::point.in.polygon(coords[,1], coords[,2], cur_poly[,1], cur_poly[,2])
-          new_label[rownames(coords)[!in.list]] <- selected_label_list[i]
+          new_label[rownames(coords)[!!in.list]] <- selected_label_list[i]
         }
 
         # place annotation to metadata
