@@ -276,12 +276,15 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     polygon_data <- NULL
     circle_data <- NULL
     for(i in 1:length(segments)){
-      cur_data <- as.data.frame(cbind(segments[[i]][,c("x","y")], names(segments)[i], coords[[group.by]][i]))
       if(nrow(segments[[i]]) > 1){
+        cur_segment <- segments[[i]][,c("x","y")]
+        cur_data <- as.data.frame(cbind(cur_segment, names(segments)[i], coords[[group.by]][i]))
         colnames(cur_data) <- c("x", "y", "segment", "group.by")
         cur_data[,c("x", "y")] <- cur_data[,c("x", "y")]/scale_factors
         polygon_data <- as.data.frame(rbind(polygon_data, cur_data))
       } else {
+        cur_segment <- segments[[i]][,c("x","y", "rx", "ry")]
+        cur_data <- as.data.frame(cbind(cur_segment, names(segments)[i], coords[[group.by]][i]))
         colnames(cur_data) <- c("x", "y", "rx", "ry", "segment", "group.by")
         cur_data[,c("x", "y","rx", "ry")] <- cur_data[,c("x", "y","rx", "ry")]/scale_factors
         circle_data <- as.data.frame(rbind(circle_data,  cur_data))
