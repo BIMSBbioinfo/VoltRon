@@ -41,11 +41,24 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
   }
 
   # get images from the list of objects
-  # orig_image_query_list <- unlist(lapply(spatdata_list, vrImages))
-  orig_image_query_list <- unlist(lapply(spatdata_list, function(spat){
-    vrImages(spat, assay = vrAssayNames(spat))
-  }))
-
+  # orig_image_query_list <- unlist(lapply(spatdata_list, function(spat){
+  #   vrImages(spat, assay = vrAssayNames(spat))
+  # }))
+  orig_image_query_list_full <- lapply(spatdata_list, function(spat){
+    assayname <- vrAssayNames(spat)
+    channel_names <- vrImageChannelNames(spat[[assayname]])
+    sapply(channel_names, function(chan){
+      vrImages(spat, assay = assayname, channel = chan)
+    }, USE.NAMES = TRUE)
+  })
+  orig_image_query_list <- lapply(orig_image_query_list_full, function(spat_img) {
+    return(spat_img[[1]])
+  })
+  orig_image_channelname_list <- lapply(spatdata_list, function(spat){
+    assayname <- vrAssayNames(spat)
+    vrImageChannelNames(spat[[assayname]])
+  })
+  
   ## UI and Server ####
 
   # get the ui and server
@@ -114,7 +127,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
                       column(6,
 
                              # Reference Images
-                             getImageTabPanels(length(orig_image_query_list), type = "ref"),
+                             getImageTabPanels(length(orig_image_query_list), orig_image_channelname_list, type = "ref"),
 
                              br(),
 
@@ -126,7 +139,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
                       column(6,
 
                              # Query Images
-                             getImageTabPanels(length(orig_image_query_list), type = "query"),
+                             getImageTabPanels(length(orig_image_query_list), orig_image_channelname_list, type = "query"),
 
                              br(),
 
@@ -162,15 +175,18 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
       registration_mapping_list <- initiateMappings(length(spatdata_list))
       getManualRegisteration(registration_mapping_list, spatdata_list, orig_image_query_list, xyTable_list,
                              centre, register_ind, input, output, session)
-      getAutomatedRegisteration(registration_mapping_list, spatdata_list, orig_image_query_list,
+      # getAutomatedRegisteration(registration_mapping_list, spatdata_list, orig_image_query_list, orig_image_channelname_list,
+      #                           centre, register_ind, input, output, session)
+      getAutomatedRegisteration(registration_mapping_list, spatdata_list, orig_image_query_list_full, orig_image_channelname_list,
                                 centre, register_ind, input, output, session)
 
       ## Main observable ####
       observe({
 
         # output the list of query images
-        getImageOutput(orig_image_query_list, orig_image_query_info_list, xyTable_list, zoom_list, centre, input, output, session)
-
+        # getImageOutput(orig_image_query_list, orig_image_query_info_list, xyTable_list, zoom_list, centre, input, output, session)
+        getImageOutput(orig_image_query_list_full, orig_image_query_info_list, xyTable_list, zoom_list, centre, input, output, session)
+        
       })
 
       ## Return values for the shiny app ####
@@ -206,16 +222,17 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
 #' The UI for a set of reference/query spatial slides
 #'
 #' @param len_images the number of query images
+#' @param channel_names the list of channel names for each image
 #' @param type Either reference (ref) or query (query) image
 #'
 #' @noRd
-getImageTabPanels <- function(len_images, type){
+getImageTabPanels <- function(len_images, channel_names, type){
 
   # get panel label
   label <- ifelse(type == "ref", "Ref. ", "Query ")
 
   # call panels
-  do.call(tabsetPanel, c(id=paste0('image_tab_panel_',type),lapply(1:len_images, function(i) {
+  do.call(tabsetPanel, c(id=paste0('image_tab_panel_',type), lapply(1:len_images, function(i) {
     tabPanel(paste0(label,i),
              br(),
              fluidRow(
@@ -224,6 +241,7 @@ getImageTabPanels <- function(len_images, type){
                column(4, selectInput(paste0("negate_", type, "_image",i), "Negate Image:", choices = c("No", "Yes"), selected = "No"))
              ),
              fluidRow(
+               column(4, selectInput(paste0("channel_", type, "_image",i), "Channel:", choices = channel_names[[i]])),
                column(4, sliderInput(paste0("scale_", type, "_image",i), "Scale Parameter", min = 0, max = 1,  value = 1)),
                textOutput(paste0("scaleinfo_", type, "_image",i))
              ),
@@ -534,19 +552,8 @@ applyPerspectiveTransform <- function(object,
 
   if(reg_mode == "manual"){
 
-    # # images
-    # ref_image <- reference_image
-    # query_image <- vrImages(object, assay = assay)
-    #
-    # # image info
-    # query_info <- magick::image_info(query_image)
-    # ref_info <- magick::image_info(ref_image)
-
     # get registered coordinates
-    # coords_reg <- coords
-    # coords_reg[,2] <- query_info$height - coords_reg[,2]
     coords_reg <- applyTransform(coords, mapping$reference, mapping$query)
-    # coords_reg[,2] <- ref_info$height - coords_reg[,2]
     rownames(coords_reg) <- rownames(coords)
     colnames(coords_reg) <- colnames(coords)
 
@@ -969,7 +976,9 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
         keypoints <- keypoints_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]]
 
         # transform image and keypoints
-        img <- transformImageKeypoints(image_list[[i]], keypoints, paste0(type, "_image",i), input, session)
+        # img <- transformImageKeypoints(image_list[[i]], keypoints, paste0(type, "_image",i), input, session)
+        img <- image_list[[i]][[input[[paste0("channel_", type, "_image", i)]]]]
+        img <- transformImageKeypoints(img, keypoints, paste0(type, "_image",i), input, session)
         img <- imageKeypoint(magick::image_ggplot(img$image), img$keypoints) +
           coord_equal(xlim = zoom_list[[paste0(i)]][[type]]$x, ylim = zoom_list[[paste0(i)]][[type]]$y, ratio = 1)
         return(img)
@@ -1584,6 +1593,7 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
 #' @param registration_mapping_list a list of mapping matrices used for registering VoltRon objects
 #' @param spatdata_list a list of Spatial data object of the query images
 #' @param image_list the list of query images
+#' @param channel_names the list of channel names for each image
 #' @param centre center image index
 #' @param register_ind query image indices
 #' @param input shiny input
@@ -1596,7 +1606,7 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
 #' @importFrom waiter waiter_show waiter_hide spin_ring
 #'
 #' @noRd
-getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, image_list, centre, register_ind,
+getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, image_list, channel_names, centre, register_ind,
                                       input, output, session){
 
   # the number of registrations
@@ -1624,7 +1634,7 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
         incProgress(1/length(register_ind), detail = paste("Registering Image", i, sep = " "))
 
         # get a sequential mapping between a query and reference image
-        results <- computeAutomatedPairwiseTransform(image_list, query_ind = i, ref_ind = centre, input)
+        results <- computeAutomatedPairwiseTransform(image_list, channel_names, query_ind = i, ref_ind = centre, input)
 
         # save transformation matrix
         registration_mapping_list[[paste0(i)]] <- results$mapping
@@ -1687,13 +1697,14 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
 #' Computing the registration matrix necessary for automated registration
 #'
 #' @param image_list the list of images
+#' @param channel_names the list of channel names for each image
 #' @param query_ind the index of the query image
 #' @param ref_ind the index of the reference image
 #' @param input input
 #'
 #' @noRd
 #'
-computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, input){
+computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_ind, ref_ind, input){
 
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -1716,6 +1727,10 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
       query_label = "ref"
     }
 
+    # get channels 
+    aligned_image <- aligned_image[[input[[paste0("channel_", query_label, "_image", cur_map[1])]]]]
+    ref_image <- ref_image[[input[[paste0("channel_", ref_label, "_image", cur_map[2])]]]]
+    
     # scale parameters
     query_scale <- input[[paste0("scale_", query_label, "_image", cur_map[1])]]
     ref_scale <- input[[paste0("scale_", ref_label, "_image", cur_map[2])]]
