@@ -1754,7 +1754,6 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
     transmat <- solve(diag(c(ref_scale,ref_scale,1))) %*% reg$transmat %*% diag(c(query_scale,query_scale,1))
 
     # return images and transformation matrix
-    # mapping[[kk]] <- reg$transmat
     mapping[[kk]] <- transmat
     dest_image <- reg$dest_image
     aligned_image <- reg$aligned_image
