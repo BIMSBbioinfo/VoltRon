@@ -9,6 +9,7 @@ vrSpatialPlot(
   group.by = "Sample",
   plot.segments = FALSE,
   group.ids = NULL,
+  colors = NULL,
   n.tile = 0,
   assay = NULL,
   graph.name = NULL,
@@ -39,6 +40,8 @@ vrSpatialPlot(
 \item{plot.segments}{plot segments instead of points}
 
 \item{group.ids}{a subset of categories defined with in the grouping label \code{group.by}}
+
+\item{colors}{the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by}
 
 \item{n.tile}{should points be aggregated into tiles before visualization (see \code{geom_tile}). Applicable only for cells and molecules}
 
