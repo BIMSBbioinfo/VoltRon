@@ -3,6 +3,7 @@
 \name{as.AnnData}
 \alias{as.AnnData}
 \alias{as.AnnData.VoltRon}
+\alias{as.SpatialData.VoltRon}
 \title{as.AnnData}
 \usage{
 as.AnnData(object, ...)
@@ -11,7 +12,14 @@ as.AnnData(object, ...)
   object,
   file,
   assay = NULL,
-  image_key = "fov",
+  type = c("image", "spatial"),
+  flip_coordinates = FALSE
+)
+
+\method{as.AnnData}{VoltRon}(
+  object,
+  file,
+  assay = NULL,
   type = c("image", "spatial"),
   flip_coordinates = FALSE
 )
@@ -24,8 +32,6 @@ as.AnnData(object, ...)
 \item{file}{the name of the h5ad file}
 
 \item{assay}{the name(type) of the assay to be converted}
-
-\item{image_key}{the name (or prefix) of the image(s)}
 
 \item{type}{the spatial data type of Seurat object: "image" or "spatial"}
 

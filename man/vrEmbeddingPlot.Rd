@@ -8,6 +8,8 @@ vrEmbeddingPlot(
   object,
   embedding = "pca",
   group.by = "Sample",
+  group.ids = NULL,
+  colors = NULL,
   assay = NULL,
   ncol = 2,
   nrow = NULL,
@@ -24,6 +26,10 @@ vrEmbeddingPlot(
 \item{embedding}{the embedding type, i.e. pca, umap etc.}
 
 \item{group.by}{a grouping label for the spatial entities}
+
+\item{group.ids}{a subset of categories defined with in the grouping label \code{group.by}}
+
+\item{colors}{the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by}
 
 \item{assay}{the assay name}
 

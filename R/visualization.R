@@ -17,6 +17,7 @@ NULL
 #' @param group.by a grouping label for the spatial entities
 #' @param plot.segments plot segments instead of points
 #' @param group.ids a subset of categories defined with in the grouping label \code{group.by}
+#' @param colors the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by
 #' @param n.tile should points be aggregated into tiles before visualization (see \code{geom_tile}). Applicable only for cells and molecules
 #' @param assay the assay name
 #' @param graph.name if not NULL, the spatial graph is with name \code{graph.name} is visualized as well
@@ -40,10 +41,11 @@ NULL
 #'
 #' @import ggplot2
 #' @importFrom ggpubr ggarrange
+#' @importFrom scales hue_pal
 #'
 #' @export
 #'
-vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, n.tile = 0, assay = NULL, graph.name = NULL,
+vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, assay = NULL, graph.name = NULL,
                           reduction = "umap", ncol = 2, nrow = NULL,
                           font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, label = FALSE, background = NULL, reg = FALSE,
                           crop = FALSE, legend.pt.size = 2, scale.image = TRUE, legend.loc = "right", common.legend = TRUE, collapse = TRUE, interactive = FALSE) {
@@ -88,6 +90,33 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
   plot_title <- as.list(apply(sample.metadata[assay_names,], 1, function(x) paste(x["Sample"], x["Layer"], sep = ", ")))
   names(plot_title) <- assay_names
 
+  # adjust group.ids
+  if(is.null(group.ids)){
+    group.ids <- unique(metadata[[group.by]])
+  }
+
+  # check group.id
+  levels_group.ids <- as.character(group.ids)
+  if(all(!is.na(as.numeric(levels_group.ids)))){
+    levels_group.ids <- sort(as.numeric(levels_group.ids))
+  }
+  # group.ids <- levels(factor(group.ids, levels = levels_group.ids))
+  group.ids <- factor(group.ids, levels = levels_group.ids)
+
+  # check colors
+  if(!is.null(colors)){
+    if(length(colors) != length(levels_group.ids)){
+      stop("Please provide colors whose length is equal to group.ids (if specified) or unique elements of group.by")
+    }
+    if(is.null(names(colors))){
+      stop("Name of each color has to be specified given as names(colors)")
+    }
+  } else{
+    colors <- scales::hue_pal()(length(group.ids))
+    names(colors) <- group.ids
+  }
+
+
   # for each assay
   i <- 1
   gg <- list()
@@ -122,23 +151,10 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
     }
     cur_metadata[[group.by]] <- factor(cur_metadata[[group.by]], levels = levels_group.by)
 
-    # adjust group.ids
-    if(is.null(group.ids)){
-      group.ids <- unique(metadata[[group.by]])
-    }
-
-    # check group.id
-    levels_group.ids <- as.character(group.ids)
-    if(all(!is.na(as.numeric(levels_group.ids)))){
-      levels_group.ids <- sort(as.numeric(levels_group.ids))
-    }
-    # group.ids <- levels(factor(group.ids, levels = levels_group.ids))
-    group.ids <- factor(group.ids, levels = levels_group.ids)
-
     # visualize
     p_title <- plot_title[[assy]]
     gg[[i]] <- vrSpatialPlotSingle(assay = cur_assay, metadata = cur_metadata,
-                                   group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, n.tile = n.tile, graph = graph, font.size = font.size, pt.size = pt.size,
+                                   group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, colors = colors, n.tile = n.tile, graph = graph, font.size = font.size, pt.size = pt.size,
                                    alpha = alpha, cell.shape = cell.shape, plot_title = p_title, background = background, reg = reg,
                                    crop = crop, legend.pt.size = legend.pt.size, scale.image = scale.image)
     i <- i + 1
@@ -166,6 +182,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 #' @param group.by a grouping label for the spatial entities
 #' @param plot.segments plot segments instead of points
 #' @param group.ids a subset of categories defined with in the grouping label \code{group.by}
+#' @param colors the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by
 #' @param n.tile should points be aggregated into tiles before visualization (see \code{geom_tile}). Applicable only for cells and molecules
 #' @param graph if not NULL, the graph is added to the plot
 #' @param font.size font sizes
@@ -183,7 +200,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 #' @importFrom igraph get.data.frame
 #'
 #' @noRd
-vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, n.tile = 0, graph = NULL,
+vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, graph = NULL,
                                 font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, plot_title = NULL, background = NULL,
                                 reg = FALSE, crop = FALSE, legend.pt.size = 2, scale.image = TRUE){
 
@@ -300,14 +317,16 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
                                   fill = group.by, group = segment), data = circle_data, lwd = 0, alpha = alpha)
     }
     g <- g +
-      scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+      scale_fill_manual(values = colors, labels = names(colors), drop = FALSE) +
+      # scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
       guides(fill = guide_legend(title = group.by))
 
   # spot visualization
   } else if(vrAssayTypes(assay) == "spot"){
     g <- g +
       geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, spot.radius = vrAssayParams(assay, param = "vis.spot.radius")) +
-      scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+      scale_fill_manual(values = colors, labels = names(colors), drop = FALSE) +
+      # scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
 
   # cell visualization
@@ -324,7 +343,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
           polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), group.by = rep(coords[[group.by]], len_segments))
           g <- g +
             geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha) +
-            scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+            # scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+            scale_fill_manual(values = colors, labels = names(colors), drop = FALSE) +
             guides(fill = guide_legend(title = group.by))
         }
       } else {
@@ -333,8 +353,10 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         if(n.tile == 0){
           g <- g +
             geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
-            scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
-            scale_color_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+            scale_fill_manual(values = colors, labels = names(colors), drop = FALSE) +
+            scale_color_manual(values = colors, labels = names(colors), drop = FALSE) +
+            # scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+            # scale_color_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
             guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
         } else {
           g <- vrSpatialPlotSingleTiling(g = g, data = coords, n.tile = n.tile, alpha = alpha)
@@ -359,8 +381,10 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     if(n.tile == 0){
       g <- g +
         geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
-        scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
-        scale_color_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+        scale_fill_manual(values = colors, labels = names(colors), drop = FALSE) +
+        scale_color_manual(values = colors, labels = names(colors), drop = FALSE) +
+        # scale_fill_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
+        # scale_color_manual(values = scales::hue_pal()(length(levels(coords[[group.by]]))), labels = levels(coords[[group.by]]), drop = FALSE) +
         guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
     } else {
       # coords_orig <- as.data.frame(vrCoordinates(assay, image_name = image_name, reg = reg))
@@ -898,6 +922,8 @@ GeomSpot <- ggplot2::ggproto("GeomSpot",
 #' @param object VoltRon object
 #' @param embedding the embedding type, i.e. pca, umap etc.
 #' @param group.by a grouping label for the spatial entities
+#' @param group.ids a subset of categories defined with in the grouping label \code{group.by}
+#' @param colors the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by
 #' @param assay the assay name
 #' @param ncol column wise number of plots, for \code{ggarrange}
 #' @param nrow row wise number of plots, for \code{ggarrange}
@@ -912,8 +938,8 @@ GeomSpot <- ggplot2::ggproto("GeomSpot",
 #'
 #' @export
 #'
-vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", assay = NULL, ncol = 2, nrow = NULL,
-                            font.size = 5, pt.size = 1, label = FALSE, common.legend = TRUE, collapse = TRUE) {
+vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", group.ids = NULL, colors = NULL, assay = NULL,
+                            ncol = 2, nrow = NULL, font.size = 5, pt.size = 1, label = FALSE, common.legend = TRUE, collapse = TRUE) {
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -937,6 +963,31 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", assa
     metadata <- metadata[grepl(assy_id, rownames(metadata)),]
   }
 
+  # adjust group.ids
+  if(is.null(group.ids)){
+    group.ids <- unique(metadata[[group.by]])
+  }
+
+  # check group.id
+  levels_group.ids <- as.character(group.ids)
+  if(all(!is.na(as.numeric(levels_group.ids)))){
+    levels_group.ids <- sort(as.numeric(levels_group.ids))
+  }
+  group.ids <- factor(group.ids, levels = levels_group.ids)
+
+  # check colors
+  if(!is.null(colors)){
+    if(length(colors) != length(levels_group.ids)){
+      stop("Please provide colors whose length is equal to group.ids (if specified) or unique elements of group.by")
+    }
+    if(is.null(names(colors))){
+      stop("Name of each color has to be specified given as names(colors)")
+    }
+  } else{
+    colors <- scales::hue_pal()(length(group.ids))
+    names(colors) <- group.ids
+  }
+
   # plotting features
   datax <- data.frame(vrEmbeddings(object, assay = assay_names, type = embedding))
   datax <- datax[,1:2]
@@ -951,12 +1002,17 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", assa
     stop("Column ", group.by, " cannot be found in metadata!")
   }
 
+  # subset group.by using group.id
+  datax <- droplevels(datax[datax[[group.by]] %in% group.ids,])
+  datax[[group.by]] <- factor(datax[[group.by]], levels = group.ids)
+
   # plot
   g <- ggplot()
 
   # add points or segments
   g <- g +
     geom_point(mapping = aes_string(x = "x", y = "y", color = group.by), datax, shape = 16, size = pt.size) +
+    scale_color_manual(values = colors, labels = names(colors), drop = FALSE) +
     guides(color = guide_legend(override.aes=list(size = 2)))
 
   # more visualization parameters
