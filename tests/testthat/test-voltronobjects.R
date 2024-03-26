@@ -118,7 +118,7 @@ test_that("image", {
   expect_equal(1,1L)
 })
 
-# Testing functions of manipulating images ####
+# Testing functions of manipulating embeddings ####
 test_that("embeddings", {
 
   # get data
@@ -153,3 +153,42 @@ test_that("importimagedata", {
   # return
   expect_equal(1,1L)
 })
+
+# Testing functions of plots ####
+test_that("plots", {
+
+  # get data
+  data("visium_data")
+  data("xenium_data")
+
+  # get custom colors
+  colors <- scales::hue_pal()(length(unique(xenium_data$clusters)))
+  names(colors) <- unique(xenium_data$clusters)
+
+  # embedding plot
+  vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", label = T)
+  vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", group.ids = c(1,3,4), label = T)
+  vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", colors = colors, label = T)
+  vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", group.ids = c(1,3,4), colors = colors[c(1,3,4)], label = T)
+
+  # spatial plot
+  vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE)
+  vrSpatialPlot(xenium_data, group.by = "clusters", group.ids = c(1,3,4), plot.segments = TRUE)
+  vrSpatialPlot(xenium_data, group.by = "clusters", colors = colors, plot.segments = TRUE)
+  vrSpatialPlot(xenium_data, group.by = "clusters", colors = colors, plot.segments = TRUE)
+  vrSpatialPlot(xenium_data, group.by = "clusters", group.ids = c(1,3,4), colors = colors[c(1,3,4)], plot.segments = TRUE)
+
+  # spatial plot without segmentation
+  vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = FALSE)
+
+  # spatial plot of visium
+  vrSpatialPlot(visium_data)
+
+  # spatial plot of melc data
+  vrSpatialPlot(melc_data, group.by = "Clusters")
+  expect_error(vrSpatialPlot(melc_data, group.by = "Clusters_new"))
+
+  # return
+  expect_equal(1,1L)
+})
+
