@@ -58,6 +58,7 @@ transferData <- function(object, from = NULL, to = NULL, features = NULL, new_as
 #' @param features The set of data or metadata features that are transfered. Only one metadata feature can be transfered at a time.
 #' @param new_assay_name the name of the new assay created from the source assay defined in \code{from}.
 #'
+#' @noRd
 transferFeatureData <- function(object, from = NULL, to = NULL, features = NULL, new_assay_name = NULL){
 
   # get assays and metadata
@@ -106,7 +107,7 @@ transferFeatureData <- function(object, from = NULL, to = NULL, features = NULL,
 #' @param to The ID of the target assay where data is transfered to
 #' @param features The set of data or metadata features that are transfered. Only one metadata feature can be transfered at a time.
 #'
-#'
+#' @noRd
 transferLabels <- function(object, from = NULL, to = NULL, features = NULL){
   
   # get assays and metadata
@@ -147,7 +148,6 @@ transferLabels <- function(object, from = NULL, to = NULL, features = NULL){
 #' @importFrom stats aggregate
 #' @importFrom FNN get.knnx
 #' @importFrom magick image_data
-#' @importFrom fastDummies dummy_cols
 #'
 #' @noRd
 #'
@@ -195,7 +195,7 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
       } else if(length(metadata_features) == 1) {
         raw_counts <- from_metadata[,metadata_features, drop = FALSE]
         rownames_raw_counts <- rownames(raw_counts)
-        raw_counts <- fastDummies::dummy_cols(raw_counts, remove_first_dummy = FALSE)
+        raw_counts <- dummy_cols(raw_counts, remove_first_dummy = FALSE)
         raw_counts <- raw_counts[,-1]
         raw_counts <- t(raw_counts)
         colnames(raw_counts) <- rownames_raw_counts

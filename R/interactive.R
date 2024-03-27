@@ -197,8 +197,7 @@ py_env <- basilisk::BasiliskEnvironment(
 #' @importFrom magick image_raster
 #' @importFrom grDevices col2rgb
 #'
-#' @export
-#'
+#' @noRd
 vrImage_to_zarr <- function (vrimage, out_path, image_id = "image_1")
 {
   img_arr <- apply(as.matrix(magick::image_raster(vrimage, tidy = FALSE)), c(1, 2), col2rgb)

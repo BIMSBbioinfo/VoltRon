@@ -1355,6 +1355,7 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
 #'
 #' @importFrom magick image_read image_data
 #'
+#' @export
 getRcppManualRegistration <- function(query_image, ref_image, query_landmark, reference_landmark) {
   ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
   query_image_rast <- magick::image_data(query_image, channels = "rgb")
@@ -1782,7 +1783,7 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
 #'
 #' @importFrom magick image_read image_data
 #'
-#'
+#' @export
 getRcppAutomatedRegistration <- function(ref_image, query_image,
                                          GOOD_MATCH_PERCENT = 0.15, MAX_FEATURES = 500,
                                          invert_query = FALSE, invert_ref = FALSE,
@@ -1814,7 +1815,8 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
 #' @param hmatrix the homography matrix
 #'
 #' @importFrom magick image_read image_data
-#'
+#' 
+#' @export
 getRcppWarpImage <- function(ref_image, query_image, hmatrix){
   ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
   query_image_rast <- magick::image_data(query_image, channels = "rgb")
