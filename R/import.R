@@ -770,7 +770,6 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
   # check file
   if(file.exists(ome.tiff)){
-    options(java.parameters = "-Xmx4g")
     if(grepl(".ome.tiff$|.ome.tif$", ome.tiff)){
       if (!requireNamespace('RBioFormats'))
         stop("Please install RBioFormats package to extract xml from the ome.tiff file!")
@@ -861,7 +860,6 @@ importGeoMxChannels <- function(ome.tiff, summary, imageinfo, resolution_level){
 
   # check file
   if(file.exists(ome.tiff)){
-    options(java.parameters = "-Xmx4g")
     if(grepl(".ome.tiff$|.ome.tif$", ome.tiff)){
       if (!requireNamespace('RBioFormats'))
         stop("Please install RBioFormats package to extract xml from the ome.tiff file!")
@@ -883,7 +881,7 @@ importGeoMxChannels <- function(ome.tiff, summary, imageinfo, resolution_level){
   # get frame information
   nframes <- ome.tiff@metadata$coreMetadata$imageCount
   frames <- EBImage::getFrames(ome.tiff)
-  frames <- lapply(EBImage::getFrames(ome.tiff), function(x){
+  frames <- lapply(frames, function(x){
     img <- magick::image_read(grDevices::as.raster(EBImage::as.Image(x)))
     rescaleGeoMxImage(img, summary, imageinfo, resolution_level = resolution_level)
   })
