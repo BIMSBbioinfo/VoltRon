@@ -1190,3 +1190,51 @@ importImageData <- function(image, tile.size = 10, stack.id = 1, ...){
   # create voltron object
   formVoltRon(data = NULL, metadata = metadata, image = image, coords, main.assay = "ImageData", assay.type = "tile", params = list(tile.size = tile.size), ...)
 }
+
+
+#' generateSegmentsFromGeoJSON
+#' 
+#' The function to import segments from a json data
+#'
+#' @param geojson.file 
+#'
+#' @importFrom rjson fromJSON
+#' @importFrom dplyr tibble
+#' 
+#' @export
+#'
+generateSegmentsFromGeoJSON <- function(geojson.file){
+  
+  # get segments
+  if(inherits(geojson.file, "character")){
+    if(file.exists(geojson.file)){
+      segments <- rjson::fromJSON(file = geojson.file)
+    } else {
+      stop("geojson.file doesn't exist!")
+    }
+  } else {
+    stop("geojson.file should be the path to the GeoJSON file!")
+  }
+  
+  # parse polygons as segments/ROIs
+  segments <- lapply(segments, function(x){
+    type <- x$geometry$type
+    poly <- x$geometry$coordinates
+    if(grepl("Polygon", type)){
+      poly <- as.data.frame(matrix(unlist(poly[[1]]), ncol = 2, byrow = TRUE))
+    }
+    colnames(poly) <- c("x", "y")
+    tibble(poly)
+  })
+  
+  # attach names to segments
+  segments <- mapply(function(x, sgt){
+    dplyr::tibble(data.frame(id = x, sgt))
+  }, 1:length(segments), segments, SIMPLIFY = FALSE)
+  
+  # generate ROI names
+  names(segments) <- paste0("ROI", 1:length(segments))
+
+  # return
+  return(segments)
+}

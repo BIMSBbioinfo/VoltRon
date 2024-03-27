@@ -593,10 +593,27 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 #' @export
 #'
 flipCoordinates.vrAssay <- function(object, image_name = NULL, ...) {
+  
+  # get image info
   imageinfo <- magick::image_info(vrImages(object, name = image_name))
+  
+  # flip coordinates
   coords <- vrCoordinates(object, image_name = image_name, ...)
   coords[,"y"] <- imageinfo$height - coords[,"y"]
   vrCoordinates(object, image_name = image_name, ...) <- coords
+  
+  # flip segments
+  segments <- vrSegments(object, image_name = image_name, ...)
+  if(length(segments) > 0){
+    name_segments <- names(segments)
+    segments <- do.call("rbind", segments)
+    segments[,"y"] <- imageinfo$height - segments[,"y"]
+    segments <- split(segments, segments[,1])
+    names(segments) <- name_segments
+    vrSegments(object, image_name = image_name, ...) <- segments
+  }
+  
+  # return
   return(object)
 }
 

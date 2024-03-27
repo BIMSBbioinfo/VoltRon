@@ -327,7 +327,7 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
                              coords,
                              segments = list(),
                              sample.metadata = NULL,
-                             main.assay = "Custom_cell", assay.type = "cell", params = list(),
+                             main.assay = NULL, assay.type = "cell", params = list(),
                              sample_name = NULL, layer_name = NULL, image_name = NULL,
                              project = NULL, ...){
 
@@ -336,6 +336,8 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
     project <- "VoltRon"
 
   # layer and sample names
+  if(is.null(main.assay))
+    main.assay <- paste0("Custom_", assay.type)
   layer_name <- ifelse(is.null(layer_name), "Section1", layer_name)
   if(main.assay == layer_name)
       stop(paste0("'", layer_name, "' cannot be a layer name, since main assay is named '", main.assay, "'."))
@@ -457,7 +459,7 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
       stop("The length of colnames of the coordinates matrix should two!")
     }
   } else {
-    stop("There are no coordinates matrix provided!")
+    stop("There are no coordinate matrix provided!")
   }
 
   # create vrAssay
