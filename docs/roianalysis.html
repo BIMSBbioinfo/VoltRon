@@ -901,8 +901,8 @@ vrBarPlot(GeoMxR1_decon_subset, features = c(&quot;stromal&quot;, &quot;macropha
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap_fibrotic.png" class="center"></p>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_barplot_prop_fibrotic.png" class="center"></p>
 </div>
-<div id="validation-with-he-images" class="section level2">
-<h2>Validation with H&amp;E images</h2>
+<div id="he-image-integration" class="section level2">
+<h2>H&amp;E Image Integration</h2>
 <p>Questions may arise when these ROI that are initially annotated as
 fibrotic regions may in fact be fibrotic. VoltRon provides advanced
 image registration workflows which we can use to H&amp;E images of from
@@ -912,9 +912,9 @@ using the <strong>importImageData</strong> function. This will import
 the H&amp;E image as a standalone VoltRon object. For more information
 on image-based VoltRon objects, see <a
 href="pixelanalysis.html">here</a>.</p>
-<pre class="r watch-out"><code>vrHEimage &lt;- importImageData(&quot;data/GeoMx/HE/prolonged_case4_HE.tif&quot;, image_name = &quot;H&amp;E&quot;)
+<pre class="r watch-out"><code>vrHEimage &lt;- importImageData(&quot;data/GeoMx/HE/prolonged_case4_HE.png&quot;, image_name = &quot;H&amp;E&quot;)
 vrImages(vrHEimage, scale.perc = 40)</code></pre>
-<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/prolonged_case4_small.png" class="center"></p>
+<p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/prolonged_case4_HE.png" class="center"></p>
 <p><br></p>
 <p>We can now register the GeoMx slide with the newly imported H&amp;E
 based VoltRon object. Since two images are associated with TMA sections
@@ -925,6 +925,7 @@ image for manual landmark selection. For more information on both manual
 and automated registration of VoltRon objects, see <a
 href="registration.html">here</a>.</p>
 <pre class="r watch-out"><code>GeoMxReg &lt;- registerSpatialData(reference_spatdata = GeoMxR1_subset, query_spatdata = vrHEimage)</code></pre>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_manualregistration.png" class="center"></p>
 <p>The result of the registration is a list of registered VoltRon
 objects which we can use for parsing the registered image as well. In
 this case, the second element of the resulting list would be the
