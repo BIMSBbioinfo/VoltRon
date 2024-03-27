@@ -11,7 +11,7 @@ formVoltRon(
   coords,
   segments = list(),
   sample.metadata = NULL,
-  main.assay = "Custom_cell",
+  main.assay = NULL,
   assay.type = "cell",
   params = list(),
   sample_name = NULL,

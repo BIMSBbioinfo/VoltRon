@@ -1139,7 +1139,7 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #' @param image the path to an image file
 #' @param tile.size the size of tiles
 #' @param stack.id the id of the stack when the magick image composed of multiple layers
-#' @param segments Either a list of segments or a GeoJSON file.
+#' @param segments Either a list of segments or a GeoJSON file. This will result in a second assay in the VoltRon object to be created
 #' @param ... additional parameters passed to \code{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
