@@ -175,9 +175,12 @@ test_that("plots", {
   vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE)
   vrSpatialPlot(xenium_data, group.by = "clusters", group.ids = c(1,3,4), plot.segments = TRUE)
   vrSpatialPlot(xenium_data, group.by = "clusters", colors = colors, plot.segments = TRUE)
-  vrSpatialPlot(xenium_data, group.by = "clusters", colors = colors, plot.segments = TRUE)
   vrSpatialPlot(xenium_data, group.by = "clusters", group.ids = c(1,3,4), colors = colors[c(1,3,4)], plot.segments = TRUE)
-
+  vrSpatialPlot(xenium_data, group.by = "clusters", background = "black")
+  vrSpatialPlot(xenium_data, group.by = "clusters", background = "white")
+  vrSpatialPlot(xenium_data, group.by = "clusters", background = "main")
+  expect_warning(vrSpatialPlot(xenium_data, group.by = "clusters", background = c("main", "DAPI2")))
+  
   # spatial plot without segmentation
   vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = FALSE)
 

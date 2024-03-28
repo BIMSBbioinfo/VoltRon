@@ -962,6 +962,11 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
     metadata <- metadata[grepl(assy_id, rownames(metadata)),]
   }
 
+  # check group.by 
+  if(!group.by %in% colnames(metadata)){
+    stop("Column ", group.by, " is not found in metadata!")
+  }
+  
   # adjust group.ids
   if(is.null(group.ids)){
     group.ids <- unique(metadata[[group.by]])

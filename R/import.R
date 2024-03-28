@@ -1239,7 +1239,6 @@ importImageData <- function(image, tile.size = 10, stack.id = 1, segments = NULL
 #' @importFrom dplyr tibble
 #' 
 #' @export
-#'
 generateSegmentsFromGeoJSON <- function(geojson.file){
   
   # get segments
@@ -1272,6 +1271,42 @@ generateSegmentsFromGeoJSON <- function(geojson.file){
   # generate ROI names
   names(segments) <- paste0("ROI", 1:length(segments))
 
+  # return
+  return(segments)
+}
+
+#' generateSegmentsFromGeoJSON
+#' 
+#' The function to import segments from a json data
+#'
+#' @param segments the segments, typically from \code{vrSegments(object)}.
+#' @param geojson.file the GeoJSON file, typically to be used by QuPath software.
+#'
+#' @importFrom rjson fromJSON
+#' @importFrom dplyr tibble
+#' 
+#' @export
+generateGeoJSONFromSegments <- function(segments, geojson.file){
+  
+  # get segments
+  if(!inherits(geojson.file, "character")){
+    stop("geojson.file should be the path to the GeoJSON file!")
+  } 
+  
+  # reshape segments
+  segments <- mapply(function(id, sgt){
+    poly <- as.list(data.frame(t(as.matrix(sgt[,c("x", "y")]))))
+    names(poly) <- NULL
+    init <- geojsonR::TO_GeoJson$new()
+    geometry <- init$Polygon(list(poly), stringify = FALSE)
+    feature <- list(id = id, geometry = geometry, properties = list(objectType = "annotation"))
+    feature
+  }, names(segments), segments, SIMPLIFY = FALSE, USE.NAMES = FALSE)
+
+  # save as json
+  segments <- rjson::toJSON(segments)
+  write(segments, file = geojson.file)
+  
   # return
   return(segments)
 }
