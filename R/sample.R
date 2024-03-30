@@ -235,6 +235,8 @@ subset.vrSample <- function(object, subset, assays = NULL, spatialpoints = NULL,
   }
 }
 
+#' @param ... arguments passed to other methods
+#' 
 #' @rdname vrSpatialPoints
 #' @method vrSpatialPoints vrSample
 #'
@@ -255,11 +257,9 @@ vrSpatialPoints.vrSample <- function(object, ...) {
 #'
 #' Change the assay names of assays within a vrSample object
 #'
-#' @rdname changeAssayNames
-#' @method changeAssayNames vrSample
-#'
-#' @param object a vrSample object
 #' @param sample.metadata the sample metadata with NewAssayNames column which includes the new assay names
+#' 
+#' @rdname changeAssayNames
 #'
 #' @noRd
 changeAssayNames.vrSample <- function(object, sample.metadata = NULL){
@@ -403,10 +403,6 @@ getConnectedSpatialPoints <- function(object, spatialpoints = NULL){
 #' Change the assay names of assays within a vrSample object
 #'
 #' @rdname changeAssayNames
-#' @method changeAssayNames vrLayer
-#'
-#' @param object a vrLayer object
-#' @param sample.metadata the sample metadata with NewAssayNames column which includes the new assay names
 #'
 #' @importFrom igraph V V<- vcount
 #' @importFrom methods is

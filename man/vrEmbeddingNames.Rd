@@ -8,17 +8,15 @@
 \usage{
 \method{vrEmbeddingNames}{vrAssay}(object)
 
-vrEmbeddingNames(object, ...)
+vrEmbeddingNames(object, assay = NULL)
 
 \method{vrEmbeddingNames}{VoltRon}(object, assay = NULL)
 }
 \arguments{
-\item{object}{An object}
+\item{object}{a VoltRon or vrAssay object}
 
-\item{...}{Arguments passed to other methods}
-
-\item{assay}{assay}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 }
 \description{
-Given a VoltRon object, give names of embeddings
+Given a VoltRon or vrAssay object, give names of embeddings
 }

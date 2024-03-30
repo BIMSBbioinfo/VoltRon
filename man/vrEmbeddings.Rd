@@ -11,31 +11,31 @@
 \usage{
 \method{vrEmbeddings}{vrAssay}(object, type = "pca", dims = 1:30)
 
-\method{vrEmbeddings}{vrAssay}(object, type = "pca", ...) <- value
+\method{vrEmbeddings}{vrAssay}(object, type = "pca") <- value
 
-vrEmbeddings(object, ...)
+vrEmbeddings(object, assay = NULL, type = "pca", dims = 1:30)
 
-vrEmbeddings(object, ...) <- value
+vrEmbeddings(object, assay = NULL, type = "pca", overwrite = FALSE) <- value
 
-\method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", dims = 1:30, ...)
+\method{vrEmbeddings}{VoltRon}(object, assay = NULL, ...)
 
-\method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", overwrite = FALSE, ...) <- value
+\method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", overwrite = FALSE) <- value
 }
 \arguments{
-\item{object}{An object}
+\item{object}{a VoltRon or vrAssay object}
 
 \item{type}{the key name for the embedding}
 
 \item{dims}{the set of dimensions of the embedding data}
 
-\item{...}{Arguments passed to other methods}
-
 \item{value}{new embedding data}
 
-\item{assay}{assay}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{overwrite}{Whether the existing embedding with name 'type' should be overwritten}
+
+\item{...}{arguments passed to other methods}
 }
 \description{
-Get embeddings of spatial points
+Given a VoltRon or vrAssay object, get embeddings of spatial points
 }

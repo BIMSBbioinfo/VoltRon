@@ -10,7 +10,7 @@ as.VoltRon(object, ...)
 \method{as.VoltRon}{Seurat}(object, type = c("image", "spatial"), assay_name = NULL, ...)
 }
 \arguments{
-\item{object}{A Seurat object}
+\item{object}{a Seurat object}
 
 \item{...}{Additional parameter passed to \code{formVoltRon}}
 

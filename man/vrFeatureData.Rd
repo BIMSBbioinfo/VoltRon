@@ -28,7 +28,7 @@ vrFeatureData(object, ...) <- value
 
 \item{value}{new Feature Data}
 
-\item{assay}{assay}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 }
 \description{
 Get and set feature data from the main.assay

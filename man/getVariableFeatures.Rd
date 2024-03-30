@@ -7,9 +7,9 @@
 getVariableFeatures(object, assay = NULL, n = 3000, ...)
 }
 \arguments{
-\item{object}{A Voltron Object}
+\item{object}{a Voltron Object}
 
-\item{assay}{assay}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{n}{the number of features}
 

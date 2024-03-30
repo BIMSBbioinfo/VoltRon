@@ -19,7 +19,7 @@ NULL
 #' @param group.ids a subset of categories defined with in the grouping label \code{group.by}
 #' @param colors the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by
 #' @param n.tile should points be aggregated into tiles before visualization (see \code{geom_tile}). Applicable only for cells and molecules
-#' @param assay the assay name
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param graph.name if not NULL, the spatial graph is with name \code{graph.name} is visualized as well
 #' @param reduction Used by \code{vrSpatialPlotInteractive}, to visualize an embedding alongside with the spatial plot.
 #' @param ncol column wise number of plots, for \code{ggarrange}
@@ -53,8 +53,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
   if(is.character(object)){
     if(grepl(".zarr$", object)){
 
-      return(vrSpatialPlotVitessce(zarr.file = object, group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, assay = assay,
-                                      reduction = reduction, background = background, reg = reg,  crop = crop))
+      return(vrSpatialPlotVitessce(zarr.file = object, group.by = group.by, reduction = reduction))
     }
   }
 
@@ -488,7 +487,7 @@ vrSpatialPlotSingleTiling <- function(g, data, n.tile, alpha = 1){
 #' @param plot.segments plot segments instead of points
 #' @param norm if TRUE, the normalized data is used
 #' @param log if TRUE, data features (excluding metadata features) will be log transformed
-#' @param assay the assay name
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param graph.name if not NULL, the spatial graph is with name \code{graph.name} is visualized as well
 #' @param ncol column wise number of plots, for \code{ggarrange}
 #' @param nrow row wise number of plots, for \code{ggarrange}
@@ -923,7 +922,7 @@ GeomSpot <- ggplot2::ggproto("GeomSpot",
 #' @param group.by a grouping label for the spatial entities
 #' @param group.ids a subset of categories defined with in the grouping label \code{group.by}
 #' @param colors the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by
-#' @param assay the assay name
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param ncol column wise number of plots, for \code{ggarrange}
 #' @param nrow row wise number of plots, for \code{ggarrange}
 #' @param font.size font size of labels, if label is TRUE
@@ -1052,7 +1051,7 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
 #' @param features a set of features, either from the rows of rawdata, normdata or columns of the metadata
 #' @param norm if TRUE, the normalized data is used
 #' @param log if TRUE, data features (excluding metadata features) will be log transformed
-#' @param assay the assay name
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param ncol column wise number of plots, for \code{ggarrange}
 #' @param nrow row wise number of plots, for \code{ggarrange}
 #' @param font.size font sizes
@@ -1178,7 +1177,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
 #' @param feature.1 first feature
 #' @param feature.2 second feature
 #' @param norm if TRUE, the normalize data will be used
-#' @param assay assay name
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param pt.size point size
 #' @param font.size font size
 #' @param group.by a column from metadata to label points
@@ -1267,7 +1266,7 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 #' HeatmapPlot
 #'
 #' @param object VoltRon object
-#' @param assay assay name
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param features a set of features to be visualized
 #' @param group.by a column from metadata to seperate columns of the heatmap
 #' @param norm if TRUE, the normalized data is used
@@ -1393,7 +1392,7 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
 #'
 #' @param object A VoltRon object
 #' @param features a set of features to be visualized
-#' @param assay assay name
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param group.by a column from metadata to seperate columns of the heatmap
 #' @param norm if TRUE, the normalized data is used
 #' @param points if TRUE, measures are visualized as points as well.
@@ -1498,7 +1497,7 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, group.by = "Samp
 #'
 #' @param object A VoltRon object
 #' @param features a set of features to be visualized
-#' @param assay assay name
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param x.label labels of the x axis
 #' @param group.by a column from metadata to seperate columns of the heatmap
 #' @param split.by the column to split the barplots by
@@ -1639,8 +1638,8 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 
 #' vrPercentagePlot
 #'
-#' @param object A VoltRon object
-#' @param assay assay name
+#' @param object a VoltRon object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param x.label labels of the x axis
 #' @param split.by the column to split the barplots by
 #' @param split.method either facet_grid or facet_wrap, not affected if \code{split.by} is \code{NULL}

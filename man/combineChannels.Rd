@@ -7,9 +7,17 @@
 \alias{combineChannels.vrImage}
 \title{combineChannels}
 \usage{
-combineChannels(object, ...)
+combineChannels(
+  object,
+  assay = NULL,
+  name = NULL,
+  reg = FALSE,
+  channels = NULL,
+  colors = NULL,
+  channel_key = "combined"
+)
 
-\method{combineChannels}{VoltRon}(object, ...)
+\method{combineChannels}{VoltRon}(object, assay = NULL, ...)
 
 \method{combineChannels}{vrAssay}(object, name = NULL, reg = FALSE, ...)
 
@@ -21,19 +29,21 @@ combineChannels(object, ...)
 )
 }
 \arguments{
-\item{object}{An object}
+\item{object}{A VoltRon, vrAssay or vrImage object}
 
-\item{...}{arguements passed to \code{combineChannels.vrImage}}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
-\item{name}{the name of the main image}
+\item{name}{the name of the image}
 
-\item{reg}{TRUE if registered images are assigned}
+\item{reg}{TRUE if registered coordinates of the main image (\code{vrMainImage}) is requested}
 
-\item{channels}{the list of channels}
+\item{channels}{the name of the channel associated with the image}
 
 \item{colors}{the colors associated with each channel}
 
 \item{channel_key}{the name of the new channel name}
+
+\item{...}{arguements passed to other methods}
 }
 \description{
 Combining channels into novel channels of the same image

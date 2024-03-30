@@ -16,7 +16,7 @@ getDiffExp(
 \arguments{
 \item{object}{a VoltRon object}
 
-\item{assay}{assay}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{group.by}{the categorical variable from metadata to get differentially expressed features across}
 

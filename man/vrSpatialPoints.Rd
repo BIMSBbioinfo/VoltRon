@@ -14,13 +14,13 @@
 \alias{vrSpatialPoints.vrLayer}
 \title{vrSpatialPoints}
 \usage{
-\method{vrSpatialPoints}{vrAssay}(object, ...)
+\method{vrSpatialPoints}{vrAssay}(object)
 
-\method{vrSpatialPoints}{vrAssay}(object, ...) <- value
+\method{vrSpatialPoints}{vrAssay}(object) <- value
 
-vrSpatialPoints(object, ...)
+vrSpatialPoints(object, assay = NULL)
 
-vrSpatialPoints(object, ...) <- value
+vrSpatialPoints(object) <- value
 
 \method{vrSpatialPoints}{vrImage}(object, ...)
 
@@ -37,12 +37,12 @@ vrSpatialPoints(object, ...) <- value
 \arguments{
 \item{object}{An object}
 
-\item{...}{Arguments passed to other methods}
-
 \item{value}{new spatial points}
 
-\item{assay}{the assay name or type}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
+
+\item{...}{arguments passed to other methods}
 }
 \description{
-Get and set spatial entities (cells, spots, ROI)
+Get and set spatial entities (tile, molecules, cells, spots and ROI).
 }

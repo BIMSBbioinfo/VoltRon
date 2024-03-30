@@ -13,33 +13,31 @@
 \usage{
 \method{vrSegments}{vrAssay}(object, image_name = NULL, reg = FALSE)
 
-\method{vrSegments}{vrAssay}(object, image_name = NULL, reg = FALSE, ...) <- value
+\method{vrSegments}{vrAssay}(object, image_name = NULL, reg = FALSE) <- value
 
-vrSegments(object, ...)
+vrSegments(object, assay = NULL, image_name = NULL, reg = FALSE)
 
-vrSegments(object, ...) <- value
+vrSegments(object, image_name = NULL, reg = FALSE) <- value
 
 \method{vrSegments}{vrImage}(object)
 
-\method{vrSegments}{vrImage}(object, ...) <- value
+\method{vrSegments}{vrImage}(object) <- value
 
-\method{vrSegments}{VoltRon}(object, assay = NULL, image_name = NULL, reg = FALSE, ...)
+\method{vrSegments}{VoltRon}(object, assay = NULL, image_name = NULL, reg = FALSE)
 
-\method{vrSegments}{VoltRon}(object, image_name = NULL, reg = FALSE, ...) <- value
+\method{vrSegments}{VoltRon}(object, image_name = NULL, reg = FALSE) <- value
 }
 \arguments{
-\item{object}{An object}
+\item{object}{a VoltRon, vrAssay or vrImage object}
 
 \item{image_name}{the key of the image associated with the coordinates}
 
-\item{reg}{TRUE if registered segments are being updated}
+\item{reg}{TRUE if registered coordinates of the main image (\code{vrMainImage}) is requested}
 
-\item{...}{Arguments passed to other methods}
+\item{value}{new segment coordinates of spatial points}
 
-\item{value}{the new set of 2D segments for each spatial point}
-
-\item{assay}{assay}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 }
 \description{
-Get and set the segments of spatian points of the main assay
+Given a VoltRon, vrAssay or vrImage object, get and set the segment coordinates of assays and coordinate systems
 }

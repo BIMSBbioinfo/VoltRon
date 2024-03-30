@@ -7,7 +7,7 @@
 #' Calculate deconvolution of spatial spots and ROIs
 #'
 #' @param object a VoltRon object
-#' @param assay assay
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param features features
 #' @param sc.object Seurat Object
 #' @param sc.assay assay of the Seurat Object used for the single cell data reference
@@ -235,7 +235,7 @@ getRCTD <- function(object, features = NULL, reference, ...){
 #'
 #' Calculate MuSiC deconvolution for ROIs
 #'
-#' @param object A vrAssay object
+#' @param object a vrAssay object
 #' @param features features
 #' @param reference the single cell deconvolution reference, see \code{getDeconReference}
 #' @param sc.samples metadata column in Seurat that provides the samples in the single cell data

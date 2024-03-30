@@ -15,11 +15,11 @@ annotateSpatialData(
 )
 }
 \arguments{
-\item{object}{a list of VoltRon (or Seurat) objects}
+\item{object}{a VoltRon object}
 
-\item{label}{the name of the new metadata feature (annotation) of selected spatial points}
+\item{label}{the name of the new metadata column (default: annotation) of selected spatial points}
 
-\item{assay}{a reference spatial data set, used only if \code{object_list} is \code{NULL}}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{use.image}{if TRUE, use only the image}
 
@@ -29,9 +29,13 @@ annotateSpatialData(
 
 \item{...}{additional parameters passed to \code{vrSpatialPlot}.}
 }
-\value{
-a vector of annotations
-}
 \description{
 A mini shiny app to for annotating spatial points
+}
+\examples{
+# Annotate based on images
+visium_data <- annotateSpatialData(visium_data, use.image = TRUE)
+
+# Annotate based on spatial plot
+xenium_data <- annotateSpatialData(xenium_data, group.by = "clusters")
 }

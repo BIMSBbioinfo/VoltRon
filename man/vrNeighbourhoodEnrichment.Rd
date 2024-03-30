@@ -16,7 +16,7 @@ vrNeighbourhoodEnrichment(
 \arguments{
 \item{object}{a VoltRon object}
 
-\item{assay}{assay}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{group.by}{a column from metadata to seperate spatial points}
 

@@ -31,7 +31,7 @@ as.AnnData(object, ...)
 
 \item{file}{the name of the h5ad file}
 
-\item{assay}{the name(type) of the assay to be converted}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{type}{the spatial data type of Seurat object: "image" or "spatial"}
 

@@ -45,7 +45,7 @@ vrSpatialPlot(
 
 \item{n.tile}{should points be aggregated into tiles before visualization (see \code{geom_tile}). Applicable only for cells and molecules}
 
-\item{assay}{the assay name}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{graph.name}{if not NULL, the spatial graph is with name \code{graph.name} is visualized as well}
 

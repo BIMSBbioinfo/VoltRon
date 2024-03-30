@@ -41,7 +41,7 @@ vrSpatialFeaturePlot(
 
 \item{log}{if TRUE, data features (excluding metadata features) will be log transformed}
 
-\item{assay}{the assay name}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{graph.name}{if not NULL, the spatial graph is with name \code{graph.name} is visualized as well}
 

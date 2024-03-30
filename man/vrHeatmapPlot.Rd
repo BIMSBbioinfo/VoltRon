@@ -25,7 +25,7 @@ vrHeatmapPlot(
 \arguments{
 \item{object}{VoltRon object}
 
-\item{assay}{assay name}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{features}{a set of features to be visualized}
 

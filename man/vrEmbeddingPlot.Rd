@@ -31,7 +31,7 @@ vrEmbeddingPlot(
 
 \item{colors}{the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by}
 
-\item{assay}{the assay name}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{ncol}{column wise number of plots, for \code{ggarrange}}
 

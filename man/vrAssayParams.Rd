@@ -17,5 +17,5 @@ vrAssayParams(object, ...)
 \item{...}{Arguments passed to other methods}
 }
 \description{
-Given a VoltRon object, if there are any, get a list of parameters of the assay(s)
+Given a vrAssay object, if there are any, get a list of parameters of the assay(s)
 }

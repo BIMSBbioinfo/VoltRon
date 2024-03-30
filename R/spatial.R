@@ -6,17 +6,17 @@ NULL
 # Spatial Neighbor graphs ####
 ####
 
-# #' @importFrom tripack tri.mesh neighbours
-#' @param assay assay
+#' Get spatial neighbors
+#'
+#' get neighbors in an assay given spatial coordinates
+#'
+#' @param object An object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param method the method spatial connectivity: "delaunay", "spatialkNN", "radius"
 #' @param radius When \code{method = "radius"} selected, determines the radius of a neighborhood ball around each spatial point
 #' @param graph.key the name of the graph
 #' @param ... additional parameters passed to \code{FNN:get.knn}
 #'
-#' @rdname getSpatialNeighbors
-#' @method getSpatialNeighbors VoltRon
-#'
-# #' @importFrom interp tri.mesh neighbours
 #' @importFrom igraph add_edges simplify make_empty_graph vertices
 #' @importFrom RCDT delaunay
 #' @importFrom FNN get.knn
@@ -24,7 +24,7 @@ NULL
 #'
 #' @export
 #'
-getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay", radius = numeric(0), graph.key = method, ...){
+getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", radius = numeric(0), graph.key = method, ...){
 
   # get coordinates
   coords <- vrCoordinates(object, assay = assay)
@@ -82,7 +82,7 @@ getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay
   graph <- make_empty_graph(directed = FALSE) + vertices(rownames(coords))
   graph <- add_edges(graph, edges = spatialedges)
   graph <- simplify(graph, remove.multiple = TRUE, remove.loops = FALSE)
-  vrGraph(object, assay = assay, graph.type = graph.key) <- graph
+  vrGraph(object, graph.type = graph.key) <- graph
 
   # return
   return(object)
@@ -97,7 +97,7 @@ getSpatialNeighbors.VoltRon <- function(object, assay = NULL, method = "delaunay
 #' Conduct Neighborhood enrichment test for pairs of clusters for all assays
 #'
 #' @param object a VoltRon object
-#' @param assay assay
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param group.by a column from metadata to seperate spatial points
 #' @param graph.type the type of graph to determine spatial neighborhood
 #' @param num.sim the number of simulations

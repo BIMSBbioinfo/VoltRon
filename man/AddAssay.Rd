@@ -33,7 +33,7 @@ addAssay(object, ...)
 
 \item{metadata}{a predefined metadata}
 
-\item{assay}{assay}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{assay_name}{assay name}
 

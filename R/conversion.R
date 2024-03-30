@@ -2,7 +2,7 @@
 # Seurat ####
 ####
 
-#' @param object A Seurat object
+#' @param object a Seurat object
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
 #' @param assay_name the assay name
 #' @param ... Additional parameter passed to \code{formVoltRon}
@@ -233,7 +233,7 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
   }
 }
 
-#' @param assay the name(type) of the assay to be converted
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param file the name of the h5ad file
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
 #' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped
@@ -313,6 +313,11 @@ as.AnnData.VoltRon <- function(object, file, assay = NULL, type = c("image", "sp
 #'
 as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
 {
+  
+  # check packages
+  if(!requireNamespace('DelayedArray'))
+    stop("Please install DelayedArray package for using DelayedArray functions")
+  
   # object data
   datax <- vrData(object, norm = FALSE)
   metadata <- Metadata(object)
@@ -406,7 +411,7 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
 # SpatialData (Zarr) ####
 ####
 
-#' @param assay the name(type) of the assay to be converted
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param file the name of the h5ad file
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
 #' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped

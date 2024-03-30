@@ -19,7 +19,7 @@ flipCoordinates(object, ...)
 
 \item{...}{Arguments passed to other methods}
 
-\item{assay}{assay}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 }
 \description{
 Flip the coordinates of the spatial points in the y axis direction

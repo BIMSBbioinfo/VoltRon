@@ -70,7 +70,7 @@ test_that("coordinates", {
   # coordinates
   coords <- vrCoordinates(visium_data)
   expect_warning(coords <- vrCoordinates(visium_data, reg = TRUE))
-  expect_warning(coords <- vrCoordinates(visium_data, assays = "Assay1", reg = TRUE))
+  expect_warning(coords <- vrCoordinates(visium_data, assay = "Assay1", reg = TRUE))
 
   # update coordinates
   vrCoordinates(visium_data) <- coords*2
@@ -82,7 +82,7 @@ test_that("coordinates", {
   # segments
   segments <- vrSegments(visium_data)
   expect_warning(segments <- vrSegments(visium_data, reg = TRUE))
-  expect_warning(segments <- vrSegments(visium_data, assays = "Assay1", reg = TRUE))
+  expect_warning(segments <- vrSegments(visium_data, assay = "Assay1", reg = TRUE))
 
   expect_equal(1,1L)
 })

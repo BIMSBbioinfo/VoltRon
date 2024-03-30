@@ -123,7 +123,7 @@ setMethod(
 # Methods ####
 ####
 
-#' @param assay the assay name or type
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #'
 #' @rdname vrSpatialPoints
 #' @method vrSpatialPoints vrMetadata
@@ -171,7 +171,7 @@ vrSpatialPoints.vrMetadata <- function(object, assay = NULL) {
 #' @param object a vrMetadata object
 #' @param subset the subset statement
 #' @param samples the set of samples to subset the object
-#' @param assays the set of assays to subset the object
+#' @param assays assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param spatialpoints the set of spatial points to subset the object
 #'
 #' @method subset vrMetadata
@@ -275,7 +275,7 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
 #'
 #' @param metadata sample metadata of a VoltRon object
 #' @param samples the set of samples to subset the object
-#' @param assays the set of assays to subset the object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #'
 #' @noRd
 #'
@@ -386,7 +386,7 @@ merge_sampleMetadata <- function(metadata_list) {
 
 ### Assay Methods ####
 
-#' @param assay assay
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param metadata a predefined metadata
 #' @param assay_name assay name
 #' @param sample sample name
@@ -577,11 +577,10 @@ updateMetadataAssay <- function(object1, object2){
 #' Change the sample names of the vrMetadata object and reorient layers if needed
 #' This functions requires the new and old sample and layer names passed from \code{changeSampleNames.VoltRon}
 #'
+#' @param sample_metadata_table the sample metadata with old and new layers and samples passed from \code{changeSampleNames.VoltRon}
+#' 
 #' @rdname changeSampleNames
 #' @method changeSampleNames vrMetadata
-#'
-#' @param object A VoltRon object
-#' @param sample_metadata_table the sample metadata with old and new layers and samples passed from \code{changeSampleNames.VoltRon}
 #'
 #' @importFrom methods slot slot<- slotNames
 #'

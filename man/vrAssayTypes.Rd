@@ -17,9 +17,9 @@ vrAssayTypes(object, ...)
 
 \item{...}{Arguments passed to other methods}
 
-\item{assay}{assay}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 }
 \description{
-Given a VoltRon object, give types of assays of some type, or of the main assay.
-Here, an assay type is of either cell, spot or ROI.
+Given a VoltRon or vrAssay object, get types of assays. 
+Here, an assay type is of either tile, molecule, cell, spot or ROI.
 }

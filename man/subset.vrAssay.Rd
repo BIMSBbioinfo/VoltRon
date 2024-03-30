@@ -7,7 +7,7 @@
 \method{subset}{vrAssay}(object, subset, spatialpoints = NULL, features = NULL, image = NULL)
 }
 \arguments{
-\item{object}{A vrAssay object}
+\item{object}{a vrAssay object}
 
 \item{subset}{Logical statement for subsetting}
 

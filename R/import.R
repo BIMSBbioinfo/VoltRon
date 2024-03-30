@@ -1260,7 +1260,7 @@ generateSegmentsFromGeoJSON <- function(geojson.file){
       poly <- as.data.frame(matrix(unlist(poly[[1]]), ncol = 2, byrow = TRUE))
     }
     colnames(poly) <- c("x", "y")
-    tibble(poly)
+    dplyr::tibble(poly)
   })
   
   # attach names to segments
@@ -1283,10 +1283,12 @@ generateSegmentsFromGeoJSON <- function(geojson.file){
 #' @param geojson.file the GeoJSON file, typically to be used by QuPath software.
 #'
 #' @importFrom rjson fromJSON
-#' @importFrom dplyr tibble
 #' 
 #' @export
 generateGeoJSONFromSegments <- function(segments, geojson.file){
+  
+  if(!requireNamespace('geojsonR'))
+    stop("Please install geojsonR package for using geojsonR functions")
   
   # get segments
   if(!inherits(geojson.file, "character")){

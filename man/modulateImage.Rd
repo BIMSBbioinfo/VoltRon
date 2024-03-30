@@ -7,11 +7,21 @@
 \alias{modulateImage.vrImage}
 \title{modulateImage}
 \usage{
-modulateImage(object, ...)
+modulateImage(
+  object,
+  assay = NULL,
+  name = NULL,
+  reg = FALSE,
+  channel = NULL,
+  brightness = 100,
+  saturation = 100,
+  hue = 100,
+  force = FALSE
+)
 
-\method{modulateImage}{VoltRon}(object, ...)
+\method{modulateImage}{VoltRon}(object, assay = NULL, ...)
 
-\method{modulateImage}{vrAssay}(object, name = NULL, reg = FALSE, channel = NULL, ...)
+\method{modulateImage}{vrAssay}(object, name = NULL, reg = FALSE, ...)
 
 \method{modulateImage}{vrImage}(
   object,
@@ -23,15 +33,15 @@ modulateImage(object, ...)
 )
 }
 \arguments{
-\item{object}{An object}
+\item{object}{A VoltRon, vrAssay or vrImage object}
 
-\item{...}{arguements passed to \code{modulateImage.vrImage}}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
-\item{name}{the name of the main image}
+\item{name}{the name of the image}
 
-\item{reg}{TRUE if registered images are assigned}
+\item{reg}{TRUE if registered coordinates of the main image (\code{vrMainImage}) is requested}
 
-\item{channel}{the name of the channel associated with the vrImage object}
+\item{channel}{the name of the channel associated with the image}
 
 \item{brightness}{modulation of brightness as percentage of the current value (100 for no change)}
 
@@ -40,6 +50,8 @@ modulateImage(object, ...)
 \item{hue}{modulation of hue is an absolute rotation of -180 degrees to +180 degrees from the current position corresponding to an argument range of 0 to 200 (100 for no change)}
 
 \item{force}{if TRUE, all channels will be modulated given no specific channel name}
+
+\item{...}{arguements passed to other methods}
 }
 \description{
 Modulating Magick images

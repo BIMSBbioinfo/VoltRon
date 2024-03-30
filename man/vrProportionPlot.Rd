@@ -16,9 +16,9 @@ vrProportionPlot(
 )
 }
 \arguments{
-\item{object}{A VoltRon object}
+\item{object}{a VoltRon object}
 
-\item{assay}{assay name}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{x.label}{labels of the x axis}
 

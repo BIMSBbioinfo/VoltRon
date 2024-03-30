@@ -9,26 +9,24 @@
 \alias{vrMainImage<-.vrAssay}
 \title{vrMainImage}
 \usage{
-vrMainImage(object, ...)
+vrMainImage(object, assay = NULL)
 
-vrMainImage(object, ...) <- value
+vrMainImage(object) <- value
 
 \method{vrMainImage}{VoltRon}(object, assay = NULL)
 
-\method{vrMainImage}{VoltRon}(object, assay = NULL, ...) <- value
+\method{vrMainImage}{VoltRon}(object, assay = NULL) <- value
 
 \method{vrMainImage}{vrAssay}(object)
 
 \method{vrMainImage}{vrAssay}(object) <- value
 }
 \arguments{
-\item{object}{An object}
+\item{object}{A VoltRon or vrAssay object}
 
-\item{...}{Arguments passed to other methods}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{value}{the name of main image}
-
-\item{assay}{assay}
 }
 \description{
 Get the main image

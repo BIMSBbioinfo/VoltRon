@@ -15,5 +15,5 @@ vrSampleNames(object, ...)
 \item{...}{Arguments passed to other methods}
 }
 \description{
-Given a VoltRon object, give names of samples
+Given a vrMetadata object, give names of samples
 }

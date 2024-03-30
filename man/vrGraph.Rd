@@ -7,25 +7,23 @@
 \alias{vrGraph<-.VoltRon}
 \title{vrGraph}
 \usage{
-vrGraph(object, ...)
+vrGraph(object, assay = NULL, graph.type = "kNN")
 
-vrGraph(object, ...) <- value
+vrGraph(object, graph.type = "kNN") <- value
 
-\method{vrGraph}{VoltRon}(object, assay = NULL, graph.type = "kNN", ...)
+\method{vrGraph}{VoltRon}(object, assay = NULL, graph.type = "kNN")
 
-\method{vrGraph}{VoltRon}(object, assay = NULL, graph.type = "kNN", ...) <- value
+\method{vrGraph}{VoltRon}(object, graph.type = "kNN") <- value
 }
 \arguments{
-\item{object}{An object}
+\item{object}{A VoltRon object}
 
-\item{...}{Arguments passed to other methods}
-
-\item{value}{new Feature Data}
-
-\item{assay}{assay}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{graph.type}{the type of the graph, either custom or given by \code{getProfileNeighbors} or \code{getSpatialNeighbors} functions}
+
+\item{value}{new graph}
 }
 \description{
-Get graph from the main.assay
+Get graph of a VoltRon object
 }

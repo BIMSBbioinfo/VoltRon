@@ -23,7 +23,7 @@ vrBarPlot(
 
 \item{features}{a set of features to be visualized}
 
-\item{assay}{assay name}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{x.label}{labels of the x axis}
 

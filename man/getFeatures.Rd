@@ -17,7 +17,7 @@ getFeatures(object, ...)
 
 \item{...}{Arguments passed to other methods}
 
-\item{assay}{assay}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{max.count}{max count (maximum across spatial points) for low count filtering}
 

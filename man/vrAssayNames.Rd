@@ -29,8 +29,8 @@ vrAssayNames(object, ...) <- value
 
 \item{value}{assay name}
 
-\item{assay}{assay}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 }
 \description{
-Given a VoltRon object, give names of assays of some type, or main assay.
+Given a VoltRon, vrMetadata or vrAssay object, get/set names of assays.
 }

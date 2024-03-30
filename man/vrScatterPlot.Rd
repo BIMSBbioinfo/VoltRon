@@ -26,7 +26,7 @@ vrScatterPlot(
 
 \item{norm}{if TRUE, the normalize data will be used}
 
-\item{assay}{assay name}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{pt.size}{point size}
 

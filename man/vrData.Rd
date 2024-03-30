@@ -21,7 +21,7 @@ vrData(object, ...)
 
 \item{...}{additional parameters passed to \code{vrData.vrAssay}}
 
-\item{assay}{assay}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 }
 \description{
 Get data from the main.assay

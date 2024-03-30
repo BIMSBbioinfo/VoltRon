@@ -23,5 +23,5 @@ vrMainAssay(object, ...) <- value
 \item{value}{new assay name}
 }
 \description{
-Get and set the main assay
+Get and set the main assay of a VoltRon object
 }

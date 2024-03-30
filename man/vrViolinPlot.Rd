@@ -21,7 +21,7 @@ vrViolinPlot(
 
 \item{features}{a set of features to be visualized}
 
-\item{assay}{assay name}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{group.by}{a column from metadata to seperate columns of the heatmap}
 

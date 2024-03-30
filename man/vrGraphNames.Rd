@@ -5,16 +5,14 @@
 \alias{vrGraphNames.VoltRon}
 \title{vrGraphNames}
 \usage{
-vrGraphNames(object, ...)
+vrGraphNames(object, assay = NULL)
 
 \method{vrGraphNames}{VoltRon}(object, assay = NULL)
 }
 \arguments{
-\item{object}{An object}
+\item{object}{a VoltRon object}
 
-\item{...}{Arguments passed to other methods}
-
-\item{assay}{assay}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 }
 \description{
 Get names of all graphs

@@ -6,7 +6,14 @@
 \alias{normalizeData.vrAssay}
 \title{Normalize Data}
 \usage{
-normalizeData(object, ...)
+normalizeData(
+  object,
+  assay = NULL,
+  method = "LogNorm",
+  desiredQuantile = 0.9,
+  scale = 0.2,
+  sizefactor = 10000
+)
 
 \method{normalizeData}{VoltRon}(object, assay = NULL, ...)
 
@@ -19,20 +26,20 @@ normalizeData(object, ...)
 )
 }
 \arguments{
-\item{object}{An object}
+\item{object}{a VoltRon or vrAssay object}
 
-\item{...}{Arguments passed to other methods}
-
-\item{assay}{assay}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{method}{the normalization method: "LogNorm", "Q3Norm", "LogQ3Norm" or "CLR"}
 
-\item{desiredQuantile}{the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}}
+\item{desiredQuantile}{the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}.}
 
 \item{scale}{the scale parameter for the hyperbolic arcsine transformation}
 
 \item{sizefactor}{size factor if \code{method} is selected as \code{LogNorm}}
+
+\item{...}{additional parameters passed to \code{normalizeData.vrAssay}}
 }
 \description{
-Normalize the count data present in a given assay.
+Given a VoltRon or vrAssay object, normalize the raw count data.
 }

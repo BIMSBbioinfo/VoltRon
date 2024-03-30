@@ -13,7 +13,7 @@
 
 \item{samples}{the set of samples to subset the object}
 
-\item{assays}{the set of assays to subset the object}
+\item{assays}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
 
 \item{spatialpoints}{the set of spatial points to subset the object}
 }
