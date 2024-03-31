@@ -21,21 +21,22 @@ vrEmbeddingPlot(
 )
 }
 \arguments{
-\item{object}{VoltRon object}
+\item{object}{a VoltRon object}
 
 \item{embedding}{the embedding type, i.e. pca, umap etc.}
 
-\item{group.by}{a grouping label for the spatial entities}
+\item{group.by}{a column of metadata from \link{Metadata} used as grouping label for the spatial entities}
 
-\item{group.ids}{a subset of categories defined with in the grouping label \code{group.by}}
+\item{group.ids}{a subset of categories defined in metadata column from \code{group.by}}
 
 \item{colors}{the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{ncol}{column wise number of plots, for \code{ggarrange}}
+\item{ncol}{column wise number of plots, for \link{ggarrange}}
 
-\item{nrow}{row wise number of plots, for \code{ggarrange}}
+\item{nrow}{row wise number of plots, for \link{ggarrange}}
 
 \item{font.size}{font size of labels, if label is TRUE}
 
@@ -43,7 +44,7 @@ vrEmbeddingPlot(
 
 \item{label}{if TRUE, the labels of the ROI assays will be visualized}
 
-\item{common.legend}{whether to use a common legend for all plots}
+\item{common.legend}{whether to use a common legend for all plots, see \link{ggarrange}}
 
 \item{collapse}{whether to combine all ggplots}
 }

@@ -15,7 +15,8 @@ vrAssayTypes(object, assay = NULL)
 \arguments{
 \item{object}{a VoltRon or vrAssay object}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 }
 \description{
 Given a VoltRon or vrAssay object, get types of assays. 

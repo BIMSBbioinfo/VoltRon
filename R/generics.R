@@ -8,7 +8,7 @@ NULL
 
 #' vrFeatures
 #'
-#' Get features names
+#' Get names of the features.
 #'
 #' @param object a VoltRon or vrAssay object
 #'
@@ -41,9 +41,9 @@ vrFeatureData <- function(object, assay = NULL) {
   UseMethod(generic = 'vrFeatureData<-', object = object)
 }
 
-#' Get spatially variable feature
+#' getFeatures
 #'
-#' Get spatially variable features in an assay
+#' Get variable features of assays
 #'
 #' @param object a VoltRon or vrAssay object
 #'
@@ -56,7 +56,7 @@ getFeatures <- function(object, assay = NULL, max.count = 1, n = 3000) {
 
 #' vrData
 #'
-#' Get data from the main.assay
+#' Get data of assays
 #'
 #' @param object a VoltRon or vrAssay object
 #'
@@ -101,7 +101,7 @@ changeAssayNames <- function(object, ...) {
 
 #' Add Assay
 #'
-#' add assay to the object
+#' add a new assay (vrAssay object) to a VoltRon object
 #'
 #' @param object a VoltRon object
 #' @param assay a vrAssay object
@@ -191,7 +191,7 @@ Metadata <- function(object, assay = NULL, type = NULL) {
 #' 
 #' @rdname Metadata
 #' @export Metadata<-
-#'
+#' @noRd
 "Metadata<-" <- function(object, assay = NULL, type = NULL, value) {
   UseMethod(generic = 'Metadata<-', object = object)
 }
@@ -333,7 +333,7 @@ vrSegments <- function(object, assay = NULL, image_name = NULL, reg = FALSE) {
 
 #' flipCoordinates
 #'
-#' Flip the coordinates of the spatial points in the y axis direction
+#' Flip the coordinates of spatial points in the y axis direction. 
 #'
 #' @param object a VoltRon, vrAssay or vrImage object
 #'
@@ -352,7 +352,7 @@ flipCoordinates <- function(object, assay = NULL, image_name = NULL, ...) {
 #'
 #' Get images of VoltRon objects
 #'
-#' @param object A VoltRon, vrAssay or vrImage object
+#' @param object a VoltRon, vrAssay or vrImage object
 #'
 #' @rdname vrImages
 #' @export vrImages
@@ -374,7 +374,7 @@ vrImages <- function(object, assay = NULL, name = NULL, reg = FALSE, channel = N
 #'
 #' Get names of all images
 #'
-#' @param object A VoltRon or vrAssay object
+#' @param object a VoltRon or vrAssay object
 #'
 #' @rdname vrImageNames
 #' @export vrImageNames
@@ -387,7 +387,7 @@ vrImageNames <- function(object, assay = NULL) {
 #'
 #' Get names of all image channels
 #'
-#' @param object A VoltRon, vrAssay or vrImage object
+#' @param object a VoltRon, vrAssay or vrImage object
 #'
 #' @rdname vrImageChannelNames
 #' @export vrImageChannelNames
@@ -400,7 +400,7 @@ vrImageChannelNames <- function(object, assay = NULL, name = NULL) {
 #'
 #' Get the main image
 #'
-#' @param object A VoltRon or vrAssay object
+#' @param object a VoltRon or vrAssay object
 #'
 #' @rdname vrMainImage
 #' @export vrMainImage
@@ -449,7 +449,7 @@ vrMainChannel <- function(object, name = NULL) {
 #'
 #' Resizing Magick images
 #'
-#' @param object A VoltRon, vrAssay or vrImage object
+#' @param object a VoltRon, vrAssay or vrImage object
 #'
 #' @rdname resizeImage
 #' @export resizeImage
@@ -462,7 +462,7 @@ resizeImage <- function(object, assay = NULL, name = NULL, reg = FALSE, size) {
 #'
 #' Modulating Magick images
 #'
-#' @param object A VoltRon, vrAssay or vrImage object
+#' @param object a VoltRon, vrAssay or vrImage object
 #'
 #' @rdname modulateImage
 #' @export modulateImage
@@ -476,7 +476,7 @@ modulateImage <- function(object, assay = NULL, name = NULL, reg = FALSE, channe
 #'
 #' Combining channels into novel channels of the same image
 #'
-#' @param object A VoltRon, vrAssay or vrImage object
+#' @param object a VoltRon, vrAssay or vrImage object
 #'
 #' @rdname combineChannels
 #' @export combineChannels

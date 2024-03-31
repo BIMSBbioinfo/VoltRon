@@ -8,7 +8,8 @@
 #'
 #' @param object a VoltRon object
 #' @param label the name of the new metadata column (default: annotation) annotating spatial points by selected polygons
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param use.image if TRUE, use only the image
 #' @param image_name the name/key of the image
 #' @param channel the name of the main channel

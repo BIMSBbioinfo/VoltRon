@@ -27,5 +27,5 @@ addAssay(
 \item{layer}{layer name}
 }
 \description{
-add assay to the object
+add a new assay (vrAssay object) to a VoltRon object
 }

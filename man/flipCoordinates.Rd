@@ -15,12 +15,13 @@ flipCoordinates(object, assay = NULL, image_name = NULL, ...)
 \arguments{
 \item{object}{a VoltRon, vrAssay or vrImage object}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{image_name}{the name/key of the image}
 
-\item{...}{additional parameters passed to \code{vrCoordinates} and \code{vrSegments}}
+\item{...}{additional parameters passed to \link{vrCoordinates} and \link{vrSegments}}
 }
 \description{
-Flip the coordinates of the spatial points in the y axis direction
+Flip the coordinates of spatial points in the y axis direction.
 }

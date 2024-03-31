@@ -33,7 +33,7 @@
 
 \item{i, value}{Depends on the usage
 \describe{
- \item{\code{$}, \code{$<-}}{Name (\code{i}) of a single metadata column from the main assay, see \code{vrMainAssay}}
+ \item{\code{$}, \code{$<-}}{Name (\code{i}) of a single metadata column from the main assay, see \link{vrMainAssay}}
  \item{\code{[[}, \code{[[<-}}{
    If only \code{i} is given, either a vrSample object or a vrAssay for \code{i} (and \code{value}) being name of the sample or assay.
    If both \code{i} and \code{j} are given, vrLayer with layer name \code{j} (and \code{value}) of vrSample with same name \code{i}.

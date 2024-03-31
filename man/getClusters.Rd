@@ -18,7 +18,8 @@ getClusters(
 
 \item{resolution}{the resolution parameter for leiden clustering}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{label}{the name for the newly created clustering column in the metadata}
 

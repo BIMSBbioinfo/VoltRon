@@ -33,51 +33,54 @@ vrSpatialPlot(
 )
 }
 \arguments{
-\item{object}{VoltRon object}
+\item{object}{a VoltRon object}
 
-\item{group.by}{a grouping label for the spatial entities}
+\item{group.by}{a column of metadata from \link{Metadata} used as grouping label for the spatial entities}
 
-\item{plot.segments}{plot segments instead of points}
+\item{plot.segments}{plot segments from \link{vrSegments} instead of points}
 
-\item{group.ids}{a subset of categories defined with in the grouping label \code{group.by}}
+\item{group.ids}{a subset of categories defined in metadata column from \code{group.by}}
 
 \item{colors}{the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by}
 
-\item{n.tile}{should points be aggregated into tiles before visualization (see \code{geom_tile}). Applicable only for cells and molecules}
+\item{n.tile}{should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{graph.name}{if not NULL, the spatial graph is with name \code{graph.name} is visualized as well}
+\item{graph.name}{if not NULL, the spatial graph is with name \code{graph.name} is visualized as well, see \link{vrGraphNames}}
 
-\item{reduction}{Used by \code{vrSpatialPlotInteractive}, to visualize an embedding alongside with the spatial plot.}
+\item{reduction}{used by \code{vrSpatialPlotVitessce} to visualize an embedding alongside with the spatial plot.}
 
-\item{ncol}{column wise number of plots, for \code{ggarrange}}
+\item{ncol}{column wise number of plots, for \link{ggarrange}}
 
-\item{nrow}{row wise number of plots, for \code{ggarrange}}
+\item{nrow}{row wise number of plots, for \link{ggarrange}}
 
-\item{font.size}{font sizes}
+\item{font.size}{font size}
 
 \item{pt.size}{point size}
 
-\item{cell.shape}{the shape of the points representing cells, see \code{help(geom_point)}}
+\item{cell.shape}{the shape of the points representing cells, see \link{geom_point}}
 
-\item{alpha}{alpha level for cells/spots/ROIs}
+\item{alpha}{alpha level of colors of visualized points and segments}
 
 \item{label}{if TRUE, the labels of the ROI assays will be visualized}
 
-\item{background}{the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)}
+\item{background}{the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
+and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainImage}) 
+and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.}
 
-\item{reg}{if TRUE, the registered coordinates will be used}
+\item{reg}{TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested}
 
-\item{crop}{whether to crop an image of a spot assay}
+\item{crop}{whether to crop an image of a spot assay to the extend of spots}
 
 \item{legend.pt.size}{the size of points at the legend}
 
-\item{scale.image}{should the image be scaled down to a low resolution (width: 1000px)}
+\item{scale.image}{if TRUE, background image will be scaled down to a low resolution (width: 1000px)}
 
 \item{legend.loc}{the location of the legend, default is "right"}
 
-\item{common.legend}{whether to use a common legend for all plots}
+\item{common.legend}{whether to use a common legend for all plots, see \link{ggarrange}}
 
 \item{collapse}{whether to combine all ggplots}
 

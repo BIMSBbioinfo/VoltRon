@@ -241,7 +241,8 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
 #' Converting a VoltRon object into a AnnData (.h5ad) object
 #'
 #' @param object a VoltRon object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param file the name of the h5ad file
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
 #' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped
@@ -410,7 +411,8 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
 #' Converting a VoltRon object into a SpatialData (.zarr) object
 #'
 #' @param object a VoltRon object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param file the name of the h5ad file
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
 #' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped

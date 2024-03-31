@@ -21,13 +21,14 @@ vrBarPlot(
 \arguments{
 \item{object}{A VoltRon object}
 
-\item{features}{a set of features to be visualized}
+\item{features}{a set of features to be visualized, either from \link{vrFeatures} of raw or normalized data or columns of the \link{Metadata}.}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{x.label}{labels of the x axis}
 
-\item{group.by}{a column from metadata to seperate columns of the heatmap}
+\item{group.by}{a column of metadata from \link{Metadata} used as grouping label for the spatial entities}
 
 \item{split.by}{the column to split the barplots by}
 
@@ -35,9 +36,9 @@ vrBarPlot(
 
 \item{log}{if TRUE, data features (excluding metadata features) will be log transformed}
 
-\item{ncol}{column wise number of plots, for \code{ggarrange}}
+\item{ncol}{column wise number of plots, for \link{ggarrange}}
 
-\item{nrow}{row wise number of plots, for \code{ggarrange}}
+\item{nrow}{row wise number of plots, for \link{ggarrange}}
 
 \item{...}{additional parameters passed to \code{getVariableFeatures}}
 }

@@ -88,7 +88,7 @@ setMethod(
 #' @param x A VoltRon object
 #' @param i,value Depends on the usage
 #' \describe{
-#'  \item{\code{$}, \code{$<-}}{Name (\code{i}) of a single metadata column from the main assay, see \code{vrMainAssay}}
+#'  \item{\code{$}, \code{$<-}}{Name (\code{i}) of a single metadata column from the main assay, see \link{vrMainAssay}}
 #'  \item{\code{[[}, \code{[[<-}}{
 #'    If only \code{i} is given, either a vrSample object or a vrAssay for \code{i} (and \code{value}) being name of the sample or assay.
 #'    If both \code{i} and \code{j} are given, vrLayer with layer name \code{j} (and \code{value}) of vrSample with same name \code{i}.
@@ -300,11 +300,11 @@ setMethod(
 #' Create a VoltRon object
 #'
 #' @param data the feature matrix of spatialpoints
-#' @param metadata a metadata object of class \code{vrMetadata}
+#' @param metadata a metadata object of class \link{vrMetadata}
 #' @param image a singelton or list of images as magick-image objects
 #' @param coords the coordinates of the spatial points
 #' @param segments the list of segments each associated with a spatial point
-#' @param sample.metadata a data frame of the sample metadata, see \code{SampleMetadata(object)}
+#' @param sample.metadata a data frame of the sample metadata, see \link{SampleMetadata}
 #' @param main.assay the name of the main assay
 #' @param assay.type the type of the assay (tile, molecule, cell, spot or ROI)
 #' @param params additional parameters
@@ -312,7 +312,7 @@ setMethod(
 #' @param layer_name the name of the layer
 #' @param image_name the name/key of the image
 #' @param project project name
-#' @param ... additional parameters passed to \code{formAssay}
+#' @param ... additional parameters passed to \link{formAssay}
 #'
 #' @importFrom igraph make_empty_graph V vertices
 #' @importFrom methods new
@@ -560,7 +560,8 @@ addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample 
   return(object)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #'
 #' @rdname vrAssayNames
 #' @order 2
@@ -593,7 +594,8 @@ vrAssayNames.VoltRon <- function(object, assay = NULL){
   return(assay_names)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' 
 #' @rdname vrAssayTypes
 #' @order 2
@@ -723,7 +725,8 @@ changeAssayNames.VoltRon <- function(object, assays = NULL){
 #'
 #' add connectivity information to the assays of the same layer
 #'
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param metadata a predefined metadata
 #' @param assay_name assay name
 #' @param connectivity a metadata of edges representing connected spatial points across assays
@@ -754,13 +757,13 @@ addConnectivity <- function(object, connectivity, sample, layer){
 #'
 #' Given a VoltRon object, subset the object given one of the attributes
 #'
-#' @param object A vrAssay object
+#' @param object a vrAssay object
 #' @param subset Logical statement for subsetting
 #' @param samples the set of samples to subset the object
 #' @param assays the set of assays to subset the object
 #' @param spatialpoints the set of spatial points to subset the object
 #' @param features the set of features to subset the object
-#' @param image the subseting string passed to \code{magick::image_crop}
+#' @param image the subseting string passed to \link{magick::image_crop}
 #' @param interactive TRUE if interactive subsetting on the image is demanded
 #' @param use_points if \code{interactive} is \code{TRUE}, use spatial points instead of the reference image
 #'
@@ -999,7 +1002,8 @@ vrSpatialPoints.VoltRon <- function(object, assay = NULL) {
   return(vrSpatialPoints(object@metadata, assay = assay))
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #'
 #' @rdname vrFeatures
 #' @order 2
@@ -1017,7 +1021,8 @@ vrFeatures.VoltRon <- function(object, assay = NULL) {
   return(unique(features))
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #'
 #' @rdname vrFeatureData
 #' @order 2
@@ -1049,8 +1054,9 @@ vrFeatureData.VoltRon <- function(object, assay = NULL) {
   return(object)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
-#' @param ... additonal parameters passed to other methods and \code{vrImage}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param ... additional parameters passed to other methods and \link{vrImages}
 #'
 #' @rdname vrData
 #' @order 2
@@ -1081,7 +1087,8 @@ vrData.VoltRon <- function(object, assay = NULL, ...) {
   return(data)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param ... arguments passed to other methods
 #'
 #' @rdname vrEmbeddings
@@ -1101,7 +1108,8 @@ vrEmbeddings.VoltRon <- function(object, assay = NULL, ...) {
   return(do.call(rbind, returndata_list))
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param type the key name for the embedding
 #' @param overwrite Whether the existing embedding with name 'type' should be overwritten
 #'
@@ -1133,7 +1141,8 @@ vrEmbeddings.VoltRon <- function(object, assay = NULL, ...) {
   return(object)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #'
 #' @rdname vrEmbeddingNames
 #' @order 2
@@ -1152,7 +1161,8 @@ vrEmbeddingNames.VoltRon <- function(object, assay = NULL){
 
 #### Metadata ####
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param type the assay type: ROI, spot or cell, or all for the entire metadata object
 #'
 #' @rdname Metadata
@@ -1208,7 +1218,7 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
 #'
 #' @export
 #'
-"Metadata<-.VoltRon" <- function(object, type = NULL, assay = NULL, value) {
+"Metadata<-.VoltRon" <- function(object, assay = NULL, type = NULL, value) {
 
   if(!is.data.frame(value))
     stop("The new or updated metadata has to be a data frame")
@@ -1308,19 +1318,19 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
 #'
 #' Get the sample metadata of a VoltRon object
 #'
-#' @param object An object
-#' @param ... Arguments passed to other methods
+#' @param object a VoltRon object
 #'
 #' @export
-SampleMetadata <- function(object, ...) {
+SampleMetadata <- function(object) {
   object@sample.metadata
 }
 
 #### Spatial ####
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param image_name the name/key of the image associated with the coordinates
-#' @param reg TRUE if registered coordinates of the main image (\code{vrMainImage}) is requested
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
 #'
 #' @rdname vrCoordinates
 #' @order 2
@@ -1366,9 +1376,10 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, reg =
   return(object)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param image_name the name/key of the image associated with the coordinates
-#' @param reg TRUE if registered coordinates of the main image (\code{vrMainImage}) is requested
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
 #'
 #' @rdname vrSegments
 #' @order 2
@@ -1412,9 +1423,10 @@ vrSegments.VoltRon <- function(object, assay = NULL, image_name = NULL, reg = FA
   return(object)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param image_name the name/key of the image
-#' @param ... additional parameters passed to \code{vrCoordinates} and \code{vrSegments}
+#' @param ... additional parameters passed to \link{vrCoordinates} and \link{vrSegments}
 #' 
 #' @rdname flipCoordinates
 #' @order 2
@@ -1438,9 +1450,10 @@ flipCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, ...
 #'
 #' Get graph of a VoltRon object
 #'
-#' @param object A VoltRon object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
-#' @param graph.type the type of the graph, either custom or given by \code{getProfileNeighbors} or \code{getSpatialNeighbors} functions
+#' @param object a VoltRon object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param graph.type the type of the graph, either custom or given by \link{getProfileNeighbors} or \link{getSpatialNeighbors} functions
 #'
 #' @rdname vrGraph
 #'
@@ -1510,7 +1523,8 @@ vrGraph <- function(object, assay = NULL, graph.type = "kNN") {
 #' Get names of all graphs
 #'
 #' @param object a VoltRon object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #'
 #' @rdname vrGraphNames
 #'

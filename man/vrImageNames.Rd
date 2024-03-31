@@ -15,7 +15,8 @@ vrImageNames(object, assay = NULL)
 \arguments{
 \item{object}{A VoltRon or vrAssay object}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 }
 \description{
 Get names of all images

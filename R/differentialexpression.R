@@ -7,7 +7,8 @@
 #' Get differential expression with DESeq2
 #'
 #' @param object a VoltRon object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param group.by the categorical variable from metadata to get differentially expressed features across
 #' @param group.base Optional, the base category in \code{group.by} which is used as control group
 #' @param covariates the covariate variable for the design formula

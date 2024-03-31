@@ -27,11 +27,12 @@ vrSegments(object, assay = NULL, image_name = NULL, reg = FALSE)
 \arguments{
 \item{object}{a VoltRon, vrAssay or vrImage object}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{image_name}{the name/key of the image associated with the coordinates}
 
-\item{reg}{TRUE if registered coordinates of the main image (\code{vrMainImage}) is requested}
+\item{reg}{TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested}
 }
 \description{
 Given a VoltRon, vrAssay or vrImage object, get and set the segment coordinates of assays and coordinate systems

@@ -26,13 +26,14 @@ vrScatterPlot(
 
 \item{norm}{if TRUE, the normalize data will be used}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{pt.size}{point size}
 
 \item{font.size}{font size}
 
-\item{group.by}{a column from metadata to label points}
+\item{group.by}{a column of metadata from \link{Metadata} used as grouping label for the spatial entities}
 
 \item{label}{whether labels are visualized or not}
 

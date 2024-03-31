@@ -34,7 +34,8 @@ vrSpatialPoints(object, assay = NULL)
 \arguments{
 \item{object}{a VoltRon, vrSample, vrLayer, vrAssay or vrImage object}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{...}{arguments passed to other methods}
 

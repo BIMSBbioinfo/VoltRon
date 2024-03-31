@@ -21,7 +21,8 @@ vrEmbeddings(object, assay = NULL, type = "pca", dims = 1:30)
 \arguments{
 \item{object}{a VoltRon or vrAssay object}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{type}{the key name for the embedding}
 

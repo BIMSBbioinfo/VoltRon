@@ -4,12 +4,10 @@
 \alias{SampleMetadata}
 \title{SampleMetadata}
 \usage{
-SampleMetadata(object, ...)
+SampleMetadata(object)
 }
 \arguments{
 \item{object}{An object}
-
-\item{...}{Arguments passed to other methods}
 }
 \description{
 Get the sample metadata of a VoltRon object

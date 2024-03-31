@@ -12,9 +12,10 @@ vrGraph(object, graph.type = "kNN") <- value
 \arguments{
 \item{object}{A VoltRon object}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{graph.type}{the type of the graph, either custom or given by \code{getProfileNeighbors} or \code{getSpatialNeighbors} functions}
+\item{graph.type}{the type of the graph, either custom or given by \link{getProfileNeighbors} or \link{getSpatialNeighbors} functions}
 
 \item{value}{new graph}
 }

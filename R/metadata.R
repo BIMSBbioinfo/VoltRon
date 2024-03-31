@@ -123,7 +123,8 @@ setMethod(
 # Methods ####
 ####
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #'
 #' @rdname vrSpatialPoints
 #' @order 3
@@ -259,7 +260,8 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
 #'
 #' @param metadata sample metadata of a VoltRon object
 #' @param samples the set of samples to subset the object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #'
 #' @noRd
 #'

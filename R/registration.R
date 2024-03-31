@@ -522,7 +522,7 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
 #'
 #' Applying a perspective transformation to the VoltRon object
 #'
-#' @param object A VoltRon objects
+#' @param object a VoltRon objects
 #' @param mapping a list of transformation matrices
 #' @param reference_image the reference image
 #' @param input input

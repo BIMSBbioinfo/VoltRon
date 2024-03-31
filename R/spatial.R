@@ -10,8 +10,9 @@ NULL
 #'
 #' get neighbors in an assay given spatial coordinates
 #'
-#' @param object An object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param object a VoltRon object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param method the method spatial connectivity: "delaunay", "spatialkNN", "radius"
 #' @param radius When \code{method = "radius"} selected, determines the radius of a neighborhood ball around each spatial point
 #' @param graph.key the name of the graph
@@ -97,7 +98,8 @@ getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", radiu
 #' Conduct Neighborhood enrichment test for pairs of clusters for all assays
 #'
 #' @param object a VoltRon object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param group.by a column from metadata to seperate spatial points
 #' @param graph.type the type of graph to determine spatial neighborhood
 #' @param num.sim the number of simulations

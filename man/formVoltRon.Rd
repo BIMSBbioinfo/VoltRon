@@ -24,7 +24,7 @@ formVoltRon(
 \arguments{
 \item{data}{the feature matrix of spatialpoints}
 
-\item{metadata}{a metadata object of class \code{vrMetadata}}
+\item{metadata}{a metadata object of class \link{vrMetadata}}
 
 \item{image}{a singelton or list of images as magick-image objects}
 
@@ -32,7 +32,7 @@ formVoltRon(
 
 \item{segments}{the list of segments each associated with a spatial point}
 
-\item{sample.metadata}{a data frame of the sample metadata, see \code{SampleMetadata(object)}}
+\item{sample.metadata}{a data frame of the sample metadata, see \link{SampleMetadata}}
 
 \item{main.assay}{the name of the main assay}
 
@@ -48,7 +48,7 @@ formVoltRon(
 
 \item{project}{project name}
 
-\item{...}{additional parameters passed to \code{formAssay}}
+\item{...}{additional parameters passed to \link{formAssay}}
 }
 \description{
 Create a VoltRon object

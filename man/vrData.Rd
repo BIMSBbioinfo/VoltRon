@@ -15,14 +15,15 @@ vrData(object, assay = NULL, features = NULL, norm = FALSE)
 \arguments{
 \item{object}{a VoltRon or vrAssay object}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{features}{the set of features}
 
 \item{norm}{TRUE if normalized data should be returned}
 
-\item{...}{additonal parameters passed to other methods and \code{vrImage}}
+\item{...}{additional parameters passed to other methods and \link{vrImages}}
 }
 \description{
-Get data from the main.assay
+Get data of assays
 }

@@ -7,13 +7,12 @@
 #' transfer data across assays
 #'
 #' @param object a VoltRon object
-#' @param from The ID of assay whose data transfer to the second assay
+#' @param from The ID of assay whose data transfered to the second assay
 #' @param to The ID of the target assay where data is transfered to
-#' @param features The set of data or metadata features that are transfered. Only one metadata feature can be transfered at a time.
-#' @param new_assay_name the name of the new assay created from the source assay defined in \code{from}.
+#' @param features The set of data or metadata features that are transferred. Only one metadata feature can be transfered at a time.
+#' @param new_assay_name the name of the new assay created from the source assay defined in \code{from} argument.
 #'
 #' @export
-#'
 transferData <- function(object, from = NULL, to = NULL, features = NULL, new_assay_name = NULL){
 
   # assay list

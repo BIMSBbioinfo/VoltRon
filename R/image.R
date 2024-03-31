@@ -203,7 +203,8 @@ subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
 # Methods ####
 ####
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param ... arguements passed to other methods
 #'
 #' @rdname vrImages
@@ -360,7 +361,8 @@ vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE, scale.pe
   object
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #'
 #' @rdname vrMainImage
 #' @order 2
@@ -425,7 +427,8 @@ vrMainImage.vrAssay <- function(object){
   return(object)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #'
 #' @rdname vrImageNames
 #'
@@ -495,7 +498,8 @@ vrMainChannel.vrImage <- function(object){
   return(object)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #'
 #' @rdname vrImageChannelNames
 #'
@@ -554,7 +558,8 @@ vrImageChannelNames.vrImage <- function(object){
 ## Managing Images ####
 ####
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param ... arguements passed to other methods
 #'
 #' @rdname resizeImage
@@ -647,7 +652,8 @@ resizeImage.vrImage <- function(object, size){
   return(object)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param ... arguements passed to other methods
 #'
 #' @rdname modulateImage
@@ -735,7 +741,8 @@ modulateImage.vrImage <- function(object, channel = NULL, brightness = 100, satu
   return(object)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param ... arguements passed to other methods
 #'
 #' @rdname combineChannels
