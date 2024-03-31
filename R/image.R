@@ -127,7 +127,7 @@ formImage <- function(coords, segments = list(), image = NULL, main_channel = NU
 #' @param object A vrImage object
 #' @param subset Logical statement for subsetting
 #' @param spatialpoints the set of spatial points to subset the object
-#' @param image the subseting string passed to \code{magick::image_crop}
+#' @param image the subseting string passed to \link{magick::image_crop}
 #'
 #' @method subset vrImage
 #' @order 5
@@ -229,7 +229,7 @@ vrImages.VoltRon <- function(object, assay = NULL, ...){
 }
 
 #' @param name the name of the main image
-#' @param reg TRUE if registered coordinates of the main image (\code{vrMainImage}) is requested
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
 #' @param channel the name of the channel associated with the image
 #'
 #' @rdname vrImages
@@ -578,7 +578,7 @@ resizeImage.VoltRon <- function(object, assay = NULL, ...){
 }
 
 #' @param name the name of the image
-#' @param reg TRUE if registered coordinates of the main image (\code{vrMainImage}) is requested
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
 #'
 #' @rdname resizeImage
 #'
@@ -672,7 +672,7 @@ modulateImage.VoltRon <- function(object, assay = NULL, ...){
 }
 
 #' @param name the name of the image
-#' @param reg TRUE if registered coordinates of the main image (\code{vrMainImage}) is requested
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
 #'
 #' @rdname modulateImage
 #' @method modulateImage vrAssay
@@ -761,7 +761,7 @@ combineChannels.VoltRon <- function(object, assay = NULL, ...){
 }
 
 #' @param name the name of the image
-#' @param reg TRUE if registered coordinates of the main image (\code{vrMainImage}) is requested
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
 #'
 #' @rdname combineChannels
 #'

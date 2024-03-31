@@ -5,7 +5,7 @@
 #' @param object a Seurat object
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
 #' @param assay_name the assay name
-#' @param ... Additional parameter passed to \code{formVoltRon}
+#' @param ... Additional parameter passed to \link{formVoltRon}
 #'
 #' @rdname as.VoltRon
 #' @method as.VoltRon Seurat
@@ -199,7 +199,7 @@ as.Seurat <- function(object, cell.assay = NULL, molecule.assay = NULL, image_ke
 #'
 #' @param file h5ad file
 #' @param AssayID the ID assays in the h5ad file
-#' @param ... additional parameters passed to \code{formVoltRon}
+#' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom anndata AnnData read_h5ad
 #'

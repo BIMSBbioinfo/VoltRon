@@ -39,7 +39,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{sizefactor}{size factor if \code{method} is selected as \code{LogNorm}}
 
-\item{...}{additional parameters passed to \code{normalizeData.vrAssay}}
+\item{...}{additional parameters passed to \link{normalizeData.vrAssay}}
 }
 \description{
 Given a VoltRon or vrAssay object, normalize the raw count data.

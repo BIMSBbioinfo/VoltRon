@@ -29,14 +29,14 @@ combineChannels(
 )
 }
 \arguments{
-\item{object}{A VoltRon, vrAssay or vrImage object}
+\item{object}{a VoltRon, vrAssay or vrImage object}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{name}{the name of the image}
 
-\item{reg}{TRUE if registered coordinates of the main image (\code{vrMainImage}) is requested}
+\item{reg}{TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested}
 
 \item{channels}{the name of the channel associated with the image}
 

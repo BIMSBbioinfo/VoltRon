@@ -33,7 +33,7 @@ importVisium(
 
 \item{resolution_level}{the level of resolution of Visium image: "lowres" (default) or "hires"}
 
-\item{...}{additional parameters passed to \code{formVoltRon}}
+\item{...}{additional parameters passed to \link{formVoltRon}}
 }
 \description{
 Importing Visium data

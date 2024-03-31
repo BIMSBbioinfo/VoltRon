@@ -18,7 +18,7 @@
 )
 }
 \arguments{
-\item{object}{A vrAssay object}
+\item{object}{a vrAssay object}
 
 \item{subset}{Logical statement for subsetting}
 

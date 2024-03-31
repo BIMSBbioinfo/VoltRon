@@ -28,7 +28,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{channel}{the name of the main channel}
 
-\item{...}{additional parameters passed to \code{vrSpatialPlot}.}
+\item{...}{additional parameters passed to \link{vrSpatialPlot}.}
 }
 \description{
 A mini shiny app to for annotating spatial points

@@ -16,7 +16,7 @@ vrImageChannelNames(object, assay = NULL, name = NULL)
 \method{vrImageChannelNames}{vrImage}(object)
 }
 \arguments{
-\item{object}{A VoltRon, vrAssay or vrImage object}
+\item{object}{a VoltRon, vrAssay or vrImage object}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}

@@ -24,11 +24,11 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{dims}{the number of dimensions extracted from PCA}
 
-\item{overwrite}{Whether the existing embedding with name 'type' should be overwritten in \code{vrEmbeddings}}
+\item{overwrite}{Whether the existing embedding with name 'type' should be overwritten in \link{vrEmbeddings}}
 
 \item{seed}{seed}
 
-\item{...}{additional parameters passed to \code{vrEmbeddings}}
+\item{...}{additional parameters passed to \link{vrEmbeddings}}
 }
 \description{
 calculate PCA of the VoltRon objects

@@ -8,7 +8,7 @@ NULL
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param ... additional parameters passed to \code{normalizeData.vrAssay}
+#' @param ... additional parameters passed to \link{normalizeData.vrAssay}
 #'
 #' @rdname normalizeData
 #' @method normalizeData VoltRon
@@ -146,7 +146,7 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
 }
 
 
-#' getSharedFeatures
+#' getVariableFeatures
 #'
 #' get shared variable features across multiple assays
 #'
@@ -154,7 +154,7 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param n the number of features
-#' @param ... additional arguements passed to \code{vrFeatureData}
+#' @param ... additional arguements passed to \link{vrFeatureData}
 #'
 #' @importFrom dplyr full_join
 #' @importFrom utils head
@@ -210,9 +210,9 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param features the selected features for PCA reduction
 #' @param dims the number of dimensions extracted from PCA
-#' @param overwrite Whether the existing embedding with name 'type' should be overwritten in \code{vrEmbeddings}
+#' @param overwrite Whether the existing embedding with name 'type' should be overwritten in \link{vrEmbeddings}
 #' @param seed seed
-#' @param ... additional parameters passed to \code{vrEmbeddings}
+#' @param ... additional parameters passed to \link{vrEmbeddings}
 #'
 #' @importFrom irlba irlba
 #' @importFrom dplyr left_join
@@ -277,9 +277,9 @@ getPCA <- function(object, assay = NULL, features = NULL, dims = 30, overwrite =
 #' @param data.type the type of data used to calculate UMAP from: "pca" (default), "raw" or "norm"
 #' @param dims the number of dimensions extracted from PCA
 #' @param umap.key the name of the umap embedding, default: umap
-#' @param overwrite Whether the existing embedding with name 'type' should be overwritten in \code{vrEmbeddings}
+#' @param overwrite Whether the existing embedding with name 'type' should be overwritten in \link{vrEmbeddings}
 #' @param seed seed
-#' @param ... additional parameters passed to \code{vrEmbeddings}
+#' @param ... additional parameters passed to \link{vrEmbeddings}
 #'
 #' @importFrom uwot umap
 #'

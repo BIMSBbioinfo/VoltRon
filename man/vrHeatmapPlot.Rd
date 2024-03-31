@@ -50,9 +50,9 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{font.size}{font size}
 
-\item{seed}{the seed for \code{set.seed}}
+\item{seed}{the seed for \link{set.seed}}
 
-\item{...}{additional parameters passed to \code{getVariableFeatures}}
+\item{...}{additional parameters passed to \link{getVariableFeatures}}
 }
 \description{
 HeatmapPlot

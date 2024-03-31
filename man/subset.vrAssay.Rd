@@ -15,7 +15,7 @@
 
 \item{features}{the set of features to subset the object}
 
-\item{image}{the subseting string passed to \code{magick::image_crop}}
+\item{image}{the subseting string passed to \link{magick::image_crop}}
 }
 \description{
 Given a vrAssay object, subset the object given one of the attributes

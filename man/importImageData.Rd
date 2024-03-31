@@ -15,7 +15,7 @@ importImageData(image, tile.size = 10, stack.id = 1, segments = NULL, ...)
 
 \item{segments}{Either a list of segments or a GeoJSON file. This will result in a second assay in the VoltRon object to be created}
 
-\item{...}{additional parameters passed to \code{formVoltRon}}
+\item{...}{additional parameters passed to \link{formVoltRon}}
 }
 \description{
 import an image as VoltRon object

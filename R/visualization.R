@@ -1279,17 +1279,6 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
   heatmapdata <- heatmapdata[features, ]
 
   # get entity type and metadata
-  # get entity type and metadata
-  # if(is.null(assay.type)){
-  #   assay_types <- vrAssayTypes(object, assay = assay)
-  #   if(length(unique(assay_types)) == 1){
-  #     metadata <- Metadata(object, type = unique(assay_types))
-  #   } else {
-  #     stop("Please select assay.type as 'cell', 'spot' or 'ROI'")
-  #   }
-  # } else {
-  #   metadata <- Metadata(object, type = assay.type)
-  # }
   metadata <- Metadata(object, assay = assay)
   metadata <- metadata[colnames(heatmapdata),]
 
@@ -1356,14 +1345,14 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
 #' @param points if TRUE, measures are visualized as points as well.
 #' @param ncol column wise number of plots, for \link{ggarrange}
 #' @param nrow row wise number of plots, for \link{ggarrange}
-#' @param ... additional parameters passed to \code{getVariableFeatures}
 #'
 #' @import ggplot2
 #' @importFrom reshape2 melt
 #'
 #' @export
 #'
-vrViolinPlot <- function(object, features = NULL, assay = NULL, group.by = "Sample", norm = TRUE, points = TRUE, ncol = 2, nrow = NULL, ...){
+vrViolinPlot <- function(object, features = NULL, assay = NULL, group.by = "Sample", 
+                         norm = TRUE, points = TRUE, ncol = 2, nrow = NULL){
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -1453,14 +1442,14 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, group.by = "Samp
 #' @param log if TRUE, data features (excluding metadata features) will be log transformed
 #' @param ncol column wise number of plots, for \link{ggarrange}
 #' @param nrow row wise number of plots, for \link{ggarrange}
-#' @param ... additional parameters passed to \code{getVariableFeatures}
 #'
 #' @import ggplot2
 #' @importFrom reshape2 melt
 #'
 #' @export
 #'
-vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, group.by = "Sample", split.by = NULL, norm = TRUE, log = FALSE, ncol = 2, nrow = NULL, ...){
+vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, group.by = "Sample", 
+                      split.by = NULL, norm = TRUE, log = FALSE, ncol = 2, nrow = NULL){
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -1573,7 +1562,6 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
       guides(fill = guide_legend(title = group.by))
 
     if(length(features) > 1){
-      # gg <- gg + facet_grid(variable~split.by, scales = "free_x", space = "free")
       gg <- gg + facet_grid(variable~split.by, scales = "free", space = "free_x")
       return(gg)
     } else {
@@ -1594,14 +1582,14 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 #' @param split.method either facet_grid or facet_wrap, not affected if \code{split.by} is \code{NULL}
 #' @param ncol column wise number of plots, for \link{ggarrange}
 #' @param nrow row wise number of plots, for \link{ggarrange}
-#' @param ... additional parameters passed to \code{getVariableFeatures}
 #'
 #' @import ggplot2
 #' @importFrom reshape2 melt
 #'
 #' @export
 #'
-vrProportionPlot <- function(object, assay = NULL, x.label = NULL, split.by = NULL, split.method = "facet_wrap", ncol = 2, nrow = NULL, ...){
+vrProportionPlot <- function(object, assay = NULL, x.label = NULL, 
+                             split.by = NULL, split.method = "facet_wrap", ncol = 2, nrow = NULL){
 
   # check object
   if(!inherits(object, "VoltRon"))

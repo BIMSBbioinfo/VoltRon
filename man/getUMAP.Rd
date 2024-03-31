@@ -27,11 +27,11 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{umap.key}{the name of the umap embedding, default: umap}
 
-\item{overwrite}{Whether the existing embedding with name 'type' should be overwritten in \code{vrEmbeddings}}
+\item{overwrite}{Whether the existing embedding with name 'type' should be overwritten in \link{vrEmbeddings}}
 
 \item{seed}{seed}
 
-\item{...}{additional parameters passed to \code{vrEmbeddings}}
+\item{...}{additional parameters passed to \link{vrEmbeddings}}
 }
 \description{
 calculate UMAP of the VoltRon objects

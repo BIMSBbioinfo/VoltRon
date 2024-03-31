@@ -31,8 +31,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{method}{Deconvolution method, RCTD (spot), SPOTlight (spot), MuSiC (ROI)}
 
-\item{...}{additional parameters passed to \code{getDeconSingle}}
+\item{...}{additional parameters passed to method specific functions, e.g. RCTD, MuSiC.}
 }
 \description{
-Calculate deconvolution of spatial spots and ROIs
+Calculate deconvolution of spots and ROIs
 }

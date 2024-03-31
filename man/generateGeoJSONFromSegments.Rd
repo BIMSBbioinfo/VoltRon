@@ -7,7 +7,7 @@
 generateGeoJSONFromSegments(segments, geojson.file)
 }
 \arguments{
-\item{segments}{the segments, typically from \code{vrSegments(object)}.}
+\item{segments}{the segments, typically from \link{vrSegments}.}
 
 \item{geojson.file}{the GeoJSON file, typically to be used by QuPath software.}
 }

@@ -16,12 +16,12 @@
 #' @param sample_name the name of the sample
 #' @param use_image if TRUE, the DAPI image will be used.
 #' @param morphology_image the name of the lowred morphology image. Default: morphology_lowres.tif
-#' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)
+#' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \link{generateXeniumImage}. Default: 7 (553x402)
 #' @param overwrite_resolution if TRUE, the image "file.name" will be generated again although it exists at "dir.path"
 #' @param image_name the image name of the Xenium assay, Default: main
 #' @param channel_name the channel name of the image of the Xenium assay, Default: DAPI
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
-#' @param ... additional parameters passed to \code{formVoltRon}
+#' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
 #' @importFrom utils read.csv
@@ -182,13 +182,13 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #' @param overwrite_resolution if TRUE, the image "file.name" will be generated again although it exists at "dir.path"
 #' @param output.path The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.
 #' @param file.name the name of the lowred morphology image. Default: morphology_lowres.tif
-#' @param ... additional parameters passed to the \code{EBImage::writeImage} function
+#' @param ... additional parameters passed to the \link{EBImage::writeImage} function
 #'
 #' @importFrom EBImage writeImage
 #'
 #' @details
 #' The Xenium morphology_mip.ome.tif file that is found under the outs folder comes is an hyperstack of different resolutions of the DAPI image.
-#' \code{generateXeniumImage} allows extracting only one of these layers by specifying the \code{resolution} parameter (Default: 7 for 553x402) among 1 to 8.
+#' \link{generateXeniumImage} allows extracting only one of these layers by specifying the \code{resolution} parameter (Default: 7 for 553x402) among 1 to 8.
 #' Lower incides of resolutions have higher higher resolutions, e.g. 1 for 35416x25778. Note that you may need to allocate larger memory of Java to import
 #' higher resolution images.
 #'
@@ -246,7 +246,7 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
 #' @param channel_name the channel name of the image of the Visium assay, Default: H&E
 #' @param inTissue if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)
 #' @param resolution_level the level of resolution of Visium image: "lowres" (default) or "hires"
-#' @param ... additional parameters passed to \code{formVoltRon}
+#' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom magick image_read
 #' @importFrom rjson fromJSON
@@ -401,7 +401,7 @@ import10Xh5 <- function(filename){
 #' @param segment_polygons if TRUE, the ROI polygons are parsed from the OME.TIFF file
 #' @param ome.tiff the OME.TIFF file of the GeoMx experiment if exists
 #' @param resolution_level the level of resolution within GeoMx OME-TIFF image, Default: 3
-#' @param ... additional parameters passed to \code{formVoltRon}
+#' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom dplyr %>% full_join
 #' @importFrom utils read.csv
@@ -941,7 +941,7 @@ rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level){
 #' @param image_name the image name of the CosMx assay, Default: main
 #' @param ome.tiff the OME.TIFF file of the CosMx experiment if exists
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
-#' @param ... additional parameters passed to \code{formVoltRon}
+#' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom data.table data.table
 #' @importFrom ids random_id
@@ -1140,7 +1140,7 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #' @param tile.size the size of tiles
 #' @param stack.id the id of the stack when the magick image composed of multiple layers
 #' @param segments Either a list of segments or a GeoJSON file. This will result in a second assay in the VoltRon object to be created
-#' @param ... additional parameters passed to \code{formVoltRon}
+#' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
 #' @importFrom data.table data.table
@@ -1279,7 +1279,7 @@ generateSegmentsFromGeoJSON <- function(geojson.file){
 #' 
 #' The function to import segments from a json data
 #'
-#' @param segments the segments, typically from \code{vrSegments(object)}.
+#' @param segments the segments, typically from \link{vrSegments}.
 #' @param geojson.file the GeoJSON file, typically to be used by QuPath software.
 #'
 #' @importFrom rjson fromJSON

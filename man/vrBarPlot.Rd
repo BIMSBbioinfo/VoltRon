@@ -14,12 +14,11 @@ vrBarPlot(
   norm = TRUE,
   log = FALSE,
   ncol = 2,
-  nrow = NULL,
-  ...
+  nrow = NULL
 )
 }
 \arguments{
-\item{object}{A VoltRon object}
+\item{object}{a VoltRon object}
 
 \item{features}{a set of features to be visualized, either from \link{vrFeatures} of raw or normalized data or columns of the \link{Metadata}.}
 
@@ -39,8 +38,6 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{ncol}{column wise number of plots, for \link{ggarrange}}
 
 \item{nrow}{row wise number of plots, for \link{ggarrange}}
-
-\item{...}{additional parameters passed to \code{getVariableFeatures}}
 }
 \description{
 vrBarPlot

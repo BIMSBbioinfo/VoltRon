@@ -10,7 +10,7 @@ vrGraph(object, assay = NULL, graph.type = "kNN")
 vrGraph(object, graph.type = "kNN") <- value
 }
 \arguments{
-\item{object}{A VoltRon object}
+\item{object}{a VoltRon object}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}

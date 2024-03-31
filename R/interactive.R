@@ -8,7 +8,6 @@
 
 #' vrSpatialPlotInteractive
 #'
-#'
 #' @inheritParams shiny::runApp
 #' @param plot_g the ggplot plot
 #' @importFrom rstudioapi viewer
@@ -179,7 +178,7 @@ py_env <- basilisk::BasiliskEnvironment(
 ## Conversion into Zarr for Vitessce ####
 ####
 
-#' Title
+#' vrImage_to_zarr
 #'
 #' @param vrimage VoltRon image
 #' @param out_path output path to ome.zarr

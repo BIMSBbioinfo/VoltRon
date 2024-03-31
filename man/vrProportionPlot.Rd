@@ -11,8 +11,7 @@ vrProportionPlot(
   split.by = NULL,
   split.method = "facet_wrap",
   ncol = 2,
-  nrow = NULL,
-  ...
+  nrow = NULL
 )
 }
 \arguments{
@@ -30,8 +29,6 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{ncol}{column wise number of plots, for \link{ggarrange}}
 
 \item{nrow}{row wise number of plots, for \link{ggarrange}}
-
-\item{...}{additional parameters passed to \code{getVariableFeatures}}
 }
 \description{
 vrPercentagePlot

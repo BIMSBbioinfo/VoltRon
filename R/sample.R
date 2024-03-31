@@ -197,7 +197,7 @@ merge.vrSample <- function(object, object_list, samples = NULL){
 #' @param subset the subset statement
 #' @param assays the set of assays to subset the object
 #' @param spatialpoints the set of spatial points to subset the object
-#' @param image the subseting string passed to \code{magick::image_crop}
+#' @param image the subseting string passed to \link{magick::image_crop}
 #'
 #' @method subset vrSample
 #' @order 6
@@ -288,7 +288,7 @@ changeAssayNames.vrSample <- function(object, sample.metadata = NULL){
 #' @param subset the subset statement
 #' @param assays the set of assays to subset the object
 #' @param spatialpoints the set of spatial points to subset the object
-#' @param image the subseting string passed to \code{magick::image_crop}
+#' @param image the subseting string passed to \link{magick::image_crop}
 #'
 #' @method subset vrLayer
 #' @order 7

@@ -7,7 +7,7 @@
 SampleMetadata(object)
 }
 \arguments{
-\item{object}{An object}
+\item{object}{a VoltRon object}
 }
 \description{
 Get the sample metadata of a VoltRon object

@@ -13,7 +13,7 @@
 #' @param use.image if TRUE, use only the image
 #' @param image_name the name/key of the image
 #' @param channel the name of the main channel
-#' @param ... additional parameters passed to \code{vrSpatialPlot}.
+#' @param ... additional parameters passed to \link{vrSpatialPlot}.
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs show hide

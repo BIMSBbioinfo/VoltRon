@@ -12,7 +12,7 @@ as.VoltRon(object, ...)
 \arguments{
 \item{object}{a Seurat object}
 
-\item{...}{Additional parameter passed to \code{formVoltRon}}
+\item{...}{Additional parameter passed to \link{formVoltRon}}
 
 \item{type}{the spatial data type of Seurat object: "image" or "spatial"}
 

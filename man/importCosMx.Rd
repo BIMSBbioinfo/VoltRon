@@ -27,7 +27,7 @@ importCosMx(
 
 \item{import_molecules}{if TRUE, molecule assay will be created along with cell assay.}
 
-\item{...}{additional parameters passed to \code{formVoltRon}}
+\item{...}{additional parameters passed to \link{formVoltRon}}
 }
 \description{
 Import CosMx data

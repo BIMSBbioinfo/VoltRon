@@ -73,7 +73,7 @@ setMethod(
 #' @param type the type of the assay (tile, molecule, cell, spot or ROI)
 #' @param name the name of the assay
 #' @param main_image the name of the main_image
-#' @param ... additional arguements passed to \code{formImage}
+#' @param ... additional arguements passed to \link{formImage}
 #'
 #' @importFrom methods new
 #'
@@ -107,7 +107,7 @@ formAssay <- function(data = NULL, coords, segments = list(), image = NULL, para
 #' @param subset Logical statement for subsetting
 #' @param spatialpoints the set of spatial points to subset the object
 #' @param features the set of features to subset the object
-#' @param image the subseting string passed to \code{magick::image_crop}
+#' @param image the subseting string passed to \link{magick::image_crop}
 #'
 #' @method subset vrAssay
 #' @order 4
@@ -195,7 +195,7 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
 #'
 #' @param coords the coordinates of the spatial points
 #' @param image the magick image associated with the coordinates
-#' @param crop_info the subseting string passed to \code{magick::image_crop}
+#' @param crop_info the subseting string passed to \link{magick::image_crop}
 #'
 subsetCoordinates <- function(coords, image, crop_info){
 
@@ -244,7 +244,7 @@ subsetCoordinates <- function(coords, image, crop_info){
 #'
 #' @param segments the list of segments each associated with a spatial point
 #' @param image the magick image associated with the coordinates
-#' @param crop_info the subseting string passed to \code{magick::image_crop}
+#' @param crop_info the subseting string passed to \link{magick::image_crop}
 #'
 subsetSegments <- function(segments, image, crop_info){
 
@@ -252,7 +252,6 @@ subsetSegments <- function(segments, image, crop_info){
   if(length(segments) < 200) {
     for(i in 1:length(segments)){
       segments[[i]][,c("x","y")] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
-      # segments[[i]] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
     }
   } else {
     segment_names <- rep(names(segments), sapply(segments, nrow, simplify = TRUE))

@@ -33,7 +33,7 @@ formAssay(
 
 \item{main_image}{the name of the main_image}
 
-\item{...}{additional arguements passed to \code{formImage}}
+\item{...}{additional arguements passed to \link{formImage}}
 }
 \description{
 Create a vrAssay (VoltRon assay) object

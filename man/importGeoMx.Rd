@@ -36,7 +36,7 @@ importGeoMx(
 
 \item{resolution_level}{the level of resolution within GeoMx OME-TIFF image, Default: 3}
 
-\item{...}{additional parameters passed to \code{formVoltRon}}
+\item{...}{additional parameters passed to \link{formVoltRon}}
 }
 \description{
 Import GeoMx data
