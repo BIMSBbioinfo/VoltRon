@@ -9,7 +9,7 @@
 #' @param object_list a list of VoltRon (or Seurat) objects
 #' @param reference_spatdata a reference spatial data set, used only if \code{object_list} is \code{NULL}
 #' @param query_spatdata a query spatial data set, used only if \code{object_list} is \code{NULL}
-#' @param keypoints keypoints tables for each registration
+#' @param keypoints a list of tables, each points to matching keypoints from registered images.
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs show hide
@@ -17,7 +17,6 @@
 #' @importFrom waiter useWaiter
 #'
 #' @export
-#'
 registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL) {
 
   ## Importing images ####
