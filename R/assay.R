@@ -65,12 +65,12 @@ setMethod(
 #'
 #' Create a vrAssay (VoltRon assay) object
 #'
-#' @param data the count table
+#' @param data the feature matrix of spatialpoints
 #' @param coords the coordinates of the spatial points
-#' @param segments the segments of the spatial points (optional)
-#' @param image the image of the data
+#' @param segments the list of segments each associated with a spatial point (optional)
+#' @param image a singelton or list of images as magick-image objects
 #' @param params additional parameters of the object
-#' @param type the type of the assay (cells, spots, ROIs)
+#' @param type the type of the assay (tile, molecule, cell, spot or ROI)
 #' @param name the name of the assay
 #' @param main_image the name of the main_image
 #' @param ... additional arguements passed to \code{formImage}
@@ -110,12 +110,11 @@ formAssay <- function(data = NULL, coords, segments = list(), image = NULL, para
 #' @param image the subseting string passed to \code{magick::image_crop}
 #'
 #' @method subset vrAssay
+#' @order 4
 #'
 #' @importFrom rlang enquo
-# #' @importFrom magick image_crop
 #'
 #' @export
-#'
 subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL, image = NULL) {
 
   if (!missing(x = subset)) {
@@ -145,16 +144,11 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
 
       # check if spatial points are here
       spatialpoints <- intersect(spatialpoints, vrSpatialPoints(object))
-      # if(length(intersect(spatialpoints, vrSpatialPoints(object))) == 0){
-      #   return(NULL)
-      # }
       if(length(spatialpoints) == 0){
         return(NULL)
       }
 
       # data
-      # object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
-      # object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE]
       object@rawdata  <- object@rawdata[,spatialpoints, drop = FALSE]
       object@normdata  <- object@normdata[,spatialpoints, drop = FALSE]
 
@@ -199,7 +193,7 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
 #'
 #' subsetting coordinates given cropping parameters of a magick image objects
 #'
-#' @param coords coordinates
+#' @param coords the coordinates of the spatial points
 #' @param image the magick image associated with the coordinates
 #' @param crop_info the subseting string passed to \code{magick::image_crop}
 #'
@@ -248,7 +242,7 @@ subsetCoordinates <- function(coords, image, crop_info){
 #'
 #' subsetting segments given cropping parameters of a magick image objects
 #'
-#' @param segments a list of coordinates for each segment
+#' @param segments the list of segments each associated with a spatial point
 #' @param image the magick image associated with the coordinates
 #' @param crop_info the subseting string passed to \code{magick::image_crop}
 #'
@@ -279,10 +273,9 @@ subsetSegments <- function(segments, image, crop_info){
 ### Other Methods ####
 
 #' @rdname vrSpatialPoints
-#' @method vrSpatialPoints vrAssay
-#'
+#' @order 4
+#' 
 #' @export
-#'
 vrSpatialPoints.vrAssay <- function(object) {
   if(ncol(object@rawdata) > 0){
     return(colnames(object@rawdata))
@@ -292,10 +285,8 @@ vrSpatialPoints.vrAssay <- function(object) {
 }
 
 #' @rdname vrSpatialPoints
-#' @method vrSpatialPoints<- vrAssay
-#'
+#' @order 8
 #' @export
-#'
 "vrSpatialPoints<-.vrAssay" <- function(object, value) {
 
   # data
@@ -335,40 +326,30 @@ vrSpatialPoints.vrAssay <- function(object) {
 }
 
 #' @rdname vrFeatures
-#' @method vrFeatures vrAssay
-#'
+#' @order 3
 #' @export
-#'
-vrFeatures.vrAssay <- function(object, ...) {
+vrFeatures.vrAssay <- function(object) {
   return(rownames(object@rawdata))
 }
 
 #' @rdname vrFeatureData
-#' @method vrFeatureData vrAssay
-#'
+#' @order 3
 #' @export
-#'
-vrFeatureData.vrAssay <- function(object, ...) {
+vrFeatureData.vrAssay <- function(object) {
   return(object@featuredata)
 }
 
-#' @param value new feature data
-#'
 #' @rdname vrFeatureData
-#' @method vrFeatureData<- vrAssay
-#'
+#' @order 5
 #' @export
-#'
-"vrFeatureData<-.vrAssay" <- function(object, ..., value) {
+"vrFeatureData<-.vrAssay" <- function(object, value) {
   object@featuredata <- value
   return(object)
 }
 
 #' @rdname vrAssayNames
-#' @method vrAssayNames vrAssay
-#'
+#' @order 4
 #' @export
-#'
 vrAssayNames.vrAssay <- function(object) {
 
   if(.hasSlot(object, name = "name")){
@@ -386,14 +367,10 @@ vrAssayNames.vrAssay <- function(object) {
   }
 }
 
-#' @param value the new postfix name of the assay
-#'
 #' @rdname vrAssayNames
-#' @method vrAssayNames<- vrAssay
-#'
+#' @order 5
 #' @importFrom stringr str_replace
-#'
-"vrAssayNames<-.vrAssay" <- function(object, ..., value){
+"vrAssayNames<-.vrAssay" <- function(object, value){
 
   # get original assay name
   assayname <- vrAssayNames(object)
@@ -416,22 +393,23 @@ vrAssayNames.vrAssay <- function(object) {
 }
 
 #' @rdname vrAssayTypes
-#' @method vrAssayTypes vrAssay
-#'
+#' @order 3
 #' @export
-#'
 vrAssayTypes.vrAssay <- function(object) {
   return(object@type)
 }
 
+#' Get assay parameters
+#'
+#' Given a vrAssay object, if there are any, get a list of parameters of the assay(s)
+#'
+#' @param object a vrAssay object
 #' @param param the parameter value to return
 #'
 #' @rdname vrAssayParams
-#' @method vrAssayParams vrAssay
 #'
 #' @export
-#'
-vrAssayParams.vrAssay <- function(object, param = NULL) {
+vrAssayParams <- function(object, param = NULL) {
   if(!is.null(param)){
     if(param %in% names(object@params)){
       return(object@params[[param]])
@@ -444,12 +422,11 @@ vrAssayParams.vrAssay <- function(object, param = NULL) {
   }
 }
 
-#' @param features features
+#' @param features the set of features
 #' @param norm TRUE if normalized data should be returned
-#' @param ... additonal parameters passed to \code{vrImage}
-#'
+#' 
 #' @rdname vrData
-#' @method vrData vrAssay
+#' @order 3
 #'
 #' @importFrom magick image_raster
 #'
@@ -511,7 +488,7 @@ vrData.vrAssay <- function(object, features = NULL, norm = FALSE, ...) {
 }
 
 #' @rdname vrCoordinates
-#'
+#' @order 3
 #' @export
 #'
 vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
@@ -540,11 +517,10 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 }
 
 #' @rdname vrCoordinates
-#'
+#' @order 5
 #' @importFrom methods slot
 #'
 #' @export
-#'
 "vrCoordinates<-.vrAssay" <- function(object, image_name = NULL, reg = FALSE, value) {
 
   # check main image
@@ -566,11 +542,8 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
   return(object)
 }
 
-#' @param image_name the key of the image
-#' @param ... additional parameters passed to \code{vrCoordinates}
-#'
 #' @rdname flipCoordinates
-#' @method flipCoordinates vrAssay
+#' @order 3
 #'
 #' @importFrom magick image_info
 #'
@@ -602,7 +575,7 @@ flipCoordinates.vrAssay <- function(object, image_name = NULL, ...) {
 }
 
 #' @rdname vrSegments
-#'
+#' @order 3
 #' @export
 vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 
@@ -630,7 +603,7 @@ vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 }
 
 #' @rdname vrSegments
-#'
+#' @order 6
 #' @importFrom methods slot
 #' @export
 "vrSegments<-.vrAssay" <- function(object, image_name = NULL, reg = FALSE, value) {

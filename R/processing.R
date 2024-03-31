@@ -89,12 +89,11 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
 ####
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
-#'
+#' @param ... arguements passed to other methods
+#' 
 #' @rdname getFeatures
-#' @method getFeatures VoltRon
 #'
 #' @export
-#'
 getFeatures.VoltRon <- function(object, assay = NULL, ...){
 
   # get assay names
@@ -109,11 +108,10 @@ getFeatures.VoltRon <- function(object, assay = NULL, ...){
   return(object)
 }
 
-#' @param max.count max count (maximum across spatial points) for low count filtering
-#' @param n the number of features
+#' @param max.count maximum count (across spatial points) for low count filtering
+#' @param n the top number of variable features 
 #'
 #' @rdname getFeatures
-#' @method getFeatures vrAssay
 #'
 #' @importFrom stats loess predict var
 #'

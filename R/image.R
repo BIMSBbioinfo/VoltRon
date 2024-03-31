@@ -56,8 +56,8 @@ setMethod(
 #' Create a vrImage (VoltRon image) object
 #'
 #' @param coords the coordinates of the spatial points
-#' @param segments the segments of the spatial points, optional
-#' @param image the image of the data
+#' @param segments the list of segments each associated with a spatial point
+#' @param image a singelton or list of images as magick-image objects
 #' @param main_channel the key of the main channel of vrImage object
 #'
 #' @importFrom magick image_data image_read image_info
@@ -130,6 +130,7 @@ formImage <- function(coords, segments = list(), image = NULL, main_channel = NU
 #' @param image the subseting string passed to \code{magick::image_crop}
 #'
 #' @method subset vrImage
+#' @order 5
 #'
 #' @importFrom rlang enquo
 #' @importFrom magick image_crop
@@ -206,7 +207,7 @@ subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
 #' @param ... arguements passed to other methods
 #'
 #' @rdname vrImages
-#'
+#' @order 2
 #' @export
 vrImages.VoltRon <- function(object, assay = NULL, ...){
 
@@ -231,7 +232,7 @@ vrImages.VoltRon <- function(object, assay = NULL, ...){
 #' @param channel the name of the channel associated with the image
 #'
 #' @rdname vrImages
-#'
+#' @order 3
 #' @export
 vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, ...){
 
@@ -260,7 +261,7 @@ vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, .
 #' @rdname vrImages
 #'
 #' @importFrom magick image_data
-#'
+#' @order 5
 #' @export
 "vrImages<-.vrAssay" <- function(object, name = NULL, channel = NULL, reg = FALSE, value) {
   if(is.null(name)) {
@@ -285,7 +286,7 @@ vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, .
 #' @param scale.perc scale percentage if lower resolution image needed
 #'
 #' @rdname vrImages
-#'
+#' @order 4
 #' @importFrom magick image_read geometry_size_percent
 #'
 #' @export
@@ -339,7 +340,7 @@ vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE, scale.pe
 #' @rdname vrImages
 #'
 #' @importFrom magick image_read
-#'
+#' @order 6
 #' @export
 "vrImages<-.vrImage" <- function(object, channel = NULL, value){
 
@@ -362,7 +363,7 @@ vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE, scale.pe
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #'
 #' @rdname vrMainImage
-#'
+#' @order 2
 #' @export
 vrMainImage.VoltRon <- function(object, assay = NULL){
 
@@ -382,7 +383,7 @@ vrMainImage.VoltRon <- function(object, assay = NULL){
 #' @param value the name of main image
 #'
 #' @rdname vrMainImage
-#'
+#' @order 4
 #' @export
 "vrMainImage<-.VoltRon" <- function(object, assay = NULL, value){
 
@@ -400,14 +401,14 @@ vrMainImage.VoltRon <- function(object, assay = NULL){
 }
 
 #' @rdname vrMainImage
-#'
+#' @order 3
 #' @export
 vrMainImage.vrAssay <- function(object){
   return(object@main_image)
 }
 
 #' @rdname vrMainImage
-#'
+#' @order 5
 #' @export
 "vrMainImage<-.vrAssay" <- function(object, value){
 
@@ -454,7 +455,7 @@ vrImageNames.vrAssay <- function(object){
 #' @param name the name of the image
 #'
 #' @rdname vrMainChannel
-#'
+#' @order 2
 #' @export
 vrMainChannel.vrAssay <- function(object, name = NULL){
   if(is.null(name)){
@@ -466,7 +467,7 @@ vrMainChannel.vrAssay <- function(object, name = NULL){
 #' @param value the name of main channel
 #'
 #' @rdname vrMainChannel
-#'
+#' @order 4
 #' @export
 "vrMainChannel<-.vrAssay" <- function(object, name = NULL, value){
   if(is.null(name)){
@@ -477,7 +478,7 @@ vrMainChannel.vrAssay <- function(object, name = NULL){
 }
 
 #' @rdname vrMainChannel
-#'
+#' @order 3
 #' @export
 vrMainChannel.vrImage <- function(object){
   return(object@main_channel)
@@ -487,7 +488,7 @@ vrMainChannel.vrImage <- function(object){
 #'
 #' @rdname vrMainChannel
 #' @method vrMainChannel<- vrImage
-#'
+#' @order 5
 #' @export
 "vrMainChannel<-.vrImage" <- function(object, value){
   object@main_channel <- value
@@ -849,21 +850,18 @@ combineChannels.vrImage <- function(object, channels = NULL, colors = NULL, chan
 ####
 
 #' @rdname vrSpatialPoints
-#' @method vrSpatialPoints vrImage
+#' @order 4
 #'
 #' @export
-#'
-vrSpatialPoints.vrImage <- function(object, ...) {
+vrSpatialPoints.vrImage <- function(object) {
   return(rownames(vrCoordinates(object)))
 }
 
 #' @param value new spatial points
 #'
 #' @rdname vrSpatialPoints
-#' @method vrSpatialPoints<- vrImage
-#'
+#' @order 9
 #' @export
-#'
 "vrSpatialPoints<-.vrImage" <- function(object, ..., value) {
 
   # coordinates
@@ -887,14 +885,14 @@ vrSpatialPoints.vrImage <- function(object, ...) {
 }
 
 #' @rdname vrCoordinates
-#'
+#' @order 3
 #' @export
 vrCoordinates.vrImage <- function(object) {
     return(object@coords)
 }
 
 #' @rdname vrCoordinates
-#'
+#' @order 6
 #' @importFrom methods slot
 #'
 #' @export
@@ -922,14 +920,14 @@ vrCoordinates.vrImage <- function(object) {
 }
 
 #' @rdname vrSegments
-#'
+#' @order 4
 #' @export
 vrSegments.vrImage<- function(object) {
     return(object@segments)
 }
 
 #' @rdname vrSegments
-#'
+#' @order 7
 #' @importFrom methods slot
 #' @export
 "vrSegments<-.vrImage" <- function(object, value) {

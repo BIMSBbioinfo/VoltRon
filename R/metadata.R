@@ -126,23 +126,12 @@ setMethod(
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #'
 #' @rdname vrSpatialPoints
-#' @method vrSpatialPoints vrMetadata
+#' @order 3
 #'
 #' @importFrom methods slotNames
 #'
+#' @export
 vrSpatialPoints.vrMetadata <- function(object, assay = NULL) {
-
-  # points <- c(rownames(object@molecule),
-  #               rownames(object@cell),
-  #               rownames(object@spot),
-  #               rownames(object@ROI))
-
-  # # get assay names if there arent
-  # if(!is.null(assay)){
-  #   assay_names <- vrAssayNames(object, assay = assay)
-  # } else {
-  #   assay_names <- NULL
-  # }
 
   # get spatial points
   points <- unlist(lapply(methods::slotNames(object), function(x) {
@@ -175,6 +164,7 @@ vrSpatialPoints.vrMetadata <- function(object, assay = NULL) {
 #' @param spatialpoints the set of spatial points to subset the object
 #'
 #' @method subset vrMetadata
+#' @order 3
 #'
 #' @importFrom rlang enquo
 #' @importFrom stringr str_extract
@@ -386,12 +376,6 @@ merge_sampleMetadata <- function(metadata_list) {
 
 ### Assay Methods ####
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
-#' @param metadata a predefined metadata
-#' @param assay_name assay name
-#' @param sample sample name
-#' @param layer layer name
-#'
 #' @rdname addAssay
 #' @method addAssay vrMetadata
 #'
@@ -402,7 +386,7 @@ merge_sampleMetadata <- function(metadata_list) {
 #' @importFrom Matrix colSums
 #'
 #' @export
-#'
+#' @noRd
 addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, sample = "Sample1", layer = "Section1"){
 
   # assay info
@@ -472,11 +456,9 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
 }
 
 #' @rdname vrAssayNames
-#' @method vrAssayNames vrMetadata
-#'
+#' @order 3
 #' @importFrom methods slotNames
 #' @export
-#'
 vrAssayNames.vrMetadata <- function(object){
 
   # get assay names from metadata

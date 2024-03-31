@@ -2,11 +2,10 @@
 % Please edit documentation in R/generics.R, R/image.R
 \name{vrImages}
 \alias{vrImages}
-\alias{vrImages<-}
 \alias{vrImages.VoltRon}
 \alias{vrImages.vrAssay}
-\alias{vrImages<-.vrAssay}
 \alias{vrImages.vrImage}
+\alias{vrImages<-.vrAssay}
 \alias{vrImages<-.vrImage}
 \title{vrImages}
 \usage{
@@ -20,15 +19,13 @@ vrImages(
   scale.perc = 100
 )
 
-vrImages(object, name = NULL, reg = FALSE, channel = NULL) <- value
-
 \method{vrImages}{VoltRon}(object, assay = NULL, ...)
 
 \method{vrImages}{vrAssay}(object, name = NULL, reg = FALSE, channel = NULL, ...)
 
-\method{vrImages}{vrAssay}(object, name = NULL, channel = NULL, reg = FALSE) <- value
-
 \method{vrImages}{vrImage}(object, channel = NULL, as.raster = FALSE, scale.perc = 100)
+
+\method{vrImages}{vrAssay}(object, name = NULL, channel = NULL, reg = FALSE) <- value
 
 \method{vrImages}{vrImage}(object, channel = NULL) <- value
 }
@@ -46,8 +43,6 @@ vrImages(object, name = NULL, reg = FALSE, channel = NULL) <- value
 \item{as.raster}{return as raster}
 
 \item{scale.perc}{scale percentage if lower resolution image needed}
-
-\item{value}{new image}
 
 \item{...}{arguements passed to other methods}
 }

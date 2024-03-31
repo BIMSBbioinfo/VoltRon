@@ -299,15 +299,15 @@ setMethod(
 #'
 #' Create a VoltRon object
 #'
-#' @param data the count table
+#' @param data the feature matrix of spatialpoints
 #' @param metadata a metadata object of class \code{vrMetadata}
-#' @param image the image of the data
+#' @param image a singelton or list of images as magick-image objects
 #' @param coords the coordinates of the spatial points
-#' @param segments the segments of the spatial points, optional
-#' @param sample.metadata a data frame of the sample metadata
-#' @param main.assay the name of the main assay of the object
-#' @param assay.type the type of the assay (cells, spots, ROIs)
-#' @param params additional parameters of the object
+#' @param segments the list of segments each associated with a spatial point
+#' @param sample.metadata a data frame of the sample metadata, see \code{SampleMetadata(object)}
+#' @param main.assay the name of the main assay
+#' @param assay.type the type of the assay (tile, molecule, cell, spot or ROI)
+#' @param params additional parameters
 #' @param sample_name the name of the sample
 #' @param layer_name the name of the layer
 #' @param image_name the name/key of the image
@@ -486,23 +486,25 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
 
 ### Assay Methods ####
 
+#' Main Assay
+#'
+#' Get and set the main assay of a VoltRon object
+#'
+#' @param object a VoltRon object
 #' @rdname vrMainAssay
-#' @method vrMainAssay VoltRon
 #'
 #' @export
 #'
-vrMainAssay.VoltRon <- function(object, ...) {
+vrMainAssay <- function(object) {
   object@main.assay
 }
 
 #' @param value new assay name
 #'
 #' @rdname vrMainAssay
-#' @method vrMainAssay<- VoltRon
 #'
 #' @export
-#'
-"vrMainAssay<-.VoltRon" <- function(object, ..., value) {
+"vrMainAssay<-" <- function(object, value) {
   sample.metadata <- SampleMetadata(object)
   assay_names <- unique(sample.metadata$Assay)
   if(!value %in% assay_names){
@@ -513,19 +515,14 @@ vrMainAssay.VoltRon <- function(object, ...) {
   return(object)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
-#' @param metadata a predefined metadata
-#' @param assay_name assay name
-#' @param sample sample name
-#' @param layer layer name
-#'
+
 #' @rdname addAssay
 #' @method addAssay VoltRon
 #'
 #' @importFrom igraph make_empty_graph add_edges vertices
 #'
 #' @export
-#'
+#' @noRd
 addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample = "Sample1", layer = "Section1"){
 
   # sample metadata
@@ -566,10 +563,9 @@ addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #'
 #' @rdname vrAssayNames
-#' @method vrAssayNames VoltRon
-#'
+#' @order 2
 #' @export
-#'
+#' 
 vrAssayNames.VoltRon <- function(object, assay = NULL){
 
   # sample metadata
@@ -598,12 +594,11 @@ vrAssayNames.VoltRon <- function(object, assay = NULL){
 }
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
-#'
+#' 
 #' @rdname vrAssayTypes
-#' @method vrAssayTypes VoltRon
+#' @order 2
 #'
 #' @export
-#'
 vrAssayTypes.VoltRon <- function(object, assay = NULL){
 
   # get assay names
@@ -770,6 +765,7 @@ addConnectivity <- function(object, connectivity, sample, layer){
 #' @param use_points if \code{interactive} is \code{TRUE}, use spatial points instead of the reference image
 #'
 #' @rdname subset
+#' @aliases subset
 #' @method subset VoltRon
 #'
 #' @importFrom rlang enquo eval_tidy quo_get_expr quo_text
@@ -778,6 +774,26 @@ addConnectivity <- function(object, connectivity, sample, layer){
 #'
 #' @export
 #'
+#' @examples
+#' # example data
+#' data("visium_data")
+#' 
+#' # subset based on assay
+#' subset(visium_data, assays = "Assay1")
+#' subset(visium_data, assays = "Visium")
+#' 
+#' # subset based on samples
+#' subset(visium_data, samples = "Anterior1")
+#' 
+#' # subset based on assay
+#' subset(visium_data, spatialpoints = c("GTTATATTATCTCCCT-1_Assay1", "GTTTGGGTTTCGCCCG-1_Assay1"))
+#' 
+#' # subset based on features
+#' subset(visium_data, features = c("Map3k19", "Rab3gap1"))
+#' 
+#' # interactive subsetting
+#' visium_subset_data <- subset(visium_data, interactive = TRUE)
+#' visium_subset <- visium_subset_data$subsets[[1]]
 subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatialpoints = NULL, features = NULL, image = NULL, interactive = FALSE, use_points = FALSE) {
 
   # subseting based on subset argument
@@ -889,7 +905,8 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
   project <- object@project
 
   # subset graphs
-  graph_list <- subset_graphs(object, metadata)
+  graph_list <- subset_graphs(object, 
+                              spatialpoints = vrSpatialPoints(metadata, assay = vrAssayNames(object)))
 
   # set VoltRon class
   methods::new("VoltRon",
@@ -904,8 +921,10 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 #' @param object a VoltRon Object
 #' @param object_list a list of VoltRon objects
 #' @param samples a single sample name or multiple sample names of the same size as the given VoltRon objects
-#' @param main.assay name of the assay
+#' @param main.assay the name of the main assay
 #'
+#' @rdname merge
+#' @aliases merge
 #' @method merge VoltRon
 #' @importFrom methods new
 #'
@@ -967,10 +986,11 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
 
 #' @rdname vrSpatialPoints
 #' @method vrSpatialPoints VoltRon
-#'
+#' @order 2
+#' 
 #' @export
 #'
-vrSpatialPoints.VoltRon <- function(object, assay = NULL, ...) {
+vrSpatialPoints.VoltRon <- function(object, assay = NULL) {
 
   # get assays
   assay <- vrAssayNames(object, assay = assay)
@@ -982,11 +1002,9 @@ vrSpatialPoints.VoltRon <- function(object, assay = NULL, ...) {
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #'
 #' @rdname vrFeatures
-#' @method vrFeatures VoltRon
-#'
+#' @order 2
 #' @export
-#'
-vrFeatures.VoltRon <- function(object, assay = NULL, ...) {
+vrFeatures.VoltRon <- function(object, assay = NULL) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1002,31 +1020,24 @@ vrFeatures.VoltRon <- function(object, assay = NULL, ...) {
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #'
 #' @rdname vrFeatureData
-#' @method vrFeatureData VoltRon
-#'
+#' @order 2
 #' @export
-#'
-vrFeatureData.VoltRon <- function(object, assay = NULL, ...) {
+vrFeatureData.VoltRon <- function(object, assay = NULL) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get all features
-  features <- vrFeatureData(object[[assay_names[1]]], ...)
+  features <- vrFeatureData(object[[assay_names[1]]])
 
   # return
   return(features)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
-#' @param value new Feature Data
-#'
 #' @rdname vrFeatureData
-#' @method vrFeatureData<- VoltRon
-#'
+#' @order 4
 #' @export
-#'
-"vrFeatureData<-.VoltRon" <- function(object, assay = NULL, ..., value) {
+"vrFeatureData<-.VoltRon" <- function(object, assay = NULL, value) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1039,15 +1050,13 @@ vrFeatureData.VoltRon <- function(object, assay = NULL, ...) {
 }
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
-#' @param norm TRUE if normalized data should be returned
-#' @param ... additional parameters passed to \code{vrData.vrAssay}
+#' @param ... additonal parameters passed to other methods and \code{vrImage}
 #'
 #' @rdname vrData
-#' @method vrData VoltRon
+#' @order 2
 #'
 #' @export
-#'
-vrData.VoltRon <- function(object, assay = NULL, norm = FALSE, ...) {
+vrData.VoltRon <- function(object, assay = NULL, ...) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1055,7 +1064,7 @@ vrData.VoltRon <- function(object, assay = NULL, norm = FALSE, ...) {
   # get all coordinates
   data <- NULL
   for(i in 1:length(assay_names)){
-    cur_data <- vrData(object[[assay_names[i]]], norm = norm, ...)
+    cur_data <- vrData(object[[assay_names[i]]], ...)
     cur_data <- data.frame(cur_data, feature.ID = rownames(cur_data), check.names = FALSE)
     if(i == 1){
       data <- cur_data
@@ -1312,11 +1321,11 @@ SampleMetadata <- function(object, ...) {
 #### Spatial ####
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
-#' @param image_name the key of the image associated with the coordinates
+#' @param image_name the name/key of the image associated with the coordinates
 #' @param reg TRUE if registered coordinates of the main image (\code{vrMainImage}) is requested
 #'
 #' @rdname vrCoordinates
-#'
+#' @order 2
 #' @export
 #'
 vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, reg = FALSE) {
@@ -1334,7 +1343,7 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, reg =
 }
 
 #' @rdname vrCoordinates
-#'
+#' @order 4
 #' @export
 #'
 "vrCoordinates<-.VoltRon" <- function(object, image_name = NULL, reg = FALSE, value) {
@@ -1360,30 +1369,11 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, reg =
 }
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
-#'
-#' @rdname flipCoordinates
-#' @method flipCoordinates VoltRon
-#'
-#' @export
-#'
-flipCoordinates.VoltRon <- function(object, assay = NULL, ...){
-
-  # get assay names
-  assay_names <- vrAssayNames(object, assay = assay)
-
-  # flip coordinates
-  for(assy in assay_names){
-    object[[assy]] <- flipCoordinates(object[[assy]], ...)
-  }
-  return(object)
-}
-
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
-#' @param image_name the key of the image associated with the coordinates
+#' @param image_name the name/key of the image associated with the coordinates
 #' @param reg TRUE if registered coordinates of the main image (\code{vrMainImage}) is requested
 #'
 #' @rdname vrSegments
-#'
+#' @order 2
 #' @export
 vrSegments.VoltRon <- function(object, assay = NULL, image_name = NULL, reg = FALSE) {
 
@@ -1400,7 +1390,7 @@ vrSegments.VoltRon <- function(object, assay = NULL, image_name = NULL, reg = FA
 }
 
 #' @rdname vrSegments
-#'
+#' @order 5
 #' @export
 "vrSegments<-.VoltRon" <- function(object, image_name = NULL, reg = FALSE, value) {
 
@@ -1424,8 +1414,33 @@ vrSegments.VoltRon <- function(object, assay = NULL, image_name = NULL, reg = FA
   return(object)
 }
 
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param image_name the name/key of the image
+#' @param ... additional parameters passed to \code{vrCoordinates} and \code{vrSegments}
+#' 
+#' @rdname flipCoordinates
+#' @order 2
+#'
+#' @export
+flipCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, ...){
+  
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  
+  # flip coordinates
+  for(assy in assay_names){
+    object[[assy]] <- flipCoordinates(object[[assy]], image_name = image_name, ...)
+  }
+  return(object)
+}
+
 #### Graphs ####
 
+#' vrGraph
+#'
+#' Get graph of a VoltRon object
+#'
+#' @param object A VoltRon object
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param graph.type the type of the graph, either custom or given by \code{getProfileNeighbors} or \code{getSpatialNeighbors} functions
 #'
@@ -1433,7 +1448,7 @@ vrSegments.VoltRon <- function(object, assay = NULL, image_name = NULL, reg = FA
 #'
 #' @importFrom igraph induced_subgraph
 #' @export
-vrGraph.VoltRon <- function(object, assay = NULL, graph.type = "kNN") {
+vrGraph <- function(object, assay = NULL, graph.type = "kNN") {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1457,11 +1472,13 @@ vrGraph.VoltRon <- function(object, assay = NULL, graph.type = "kNN") {
   }
 }
 
+#' @param value new graph
+#' 
 #' @rdname vrGraph
 #'
 #' @importFrom igraph disjoint_union induced_subgraph
 #' @export
-"vrGraph<-.VoltRon" <- function(object, graph.type = "kNN", value) {
+"vrGraph<-" <- function(object, graph.type = "kNN", value) {
 
   # check value
   if(!inherits(value, "igraph"))
@@ -1490,12 +1507,17 @@ vrGraph.VoltRon <- function(object, assay = NULL, graph.type = "kNN") {
   return(object)
 }
 
+#' vrGraphNames
+#'
+#' Get names of all graphs
+#'
+#' @param object a VoltRon object
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #'
 #' @rdname vrGraphNames
 #'
 #' @export
-vrGraphNames.VoltRon <- function(object, assay = NULL){
+vrGraphNames <- function(object, assay = NULL){
   return(names(object@graph))
 }
 
@@ -1504,18 +1526,18 @@ vrGraphNames.VoltRon <- function(object, assay = NULL){
 #' Given a VoltRon object and a vrMetadata, subset the graph
 #'
 #' @param object a VoltRon Object
-#' @param metadata a vrMetadata Object
+#' @param spatialpoints a set of spatial points
 #'
 #' @importFrom igraph subgraph V
 #'
 #' @noRd
-subset_graphs <- function(object, metadata){
+subset_graphs <- function(object, spatialpoints){
 
   # graph names
   graphnames <- vrGraphNames(object)
 
-  # get spatialpoints
-  spatialpoints <- vrSpatialPoints(metadata, assay = vrAssayNames(object))
+  # # get spatialpoints
+  # spatialpoints <- vrSpatialPoints(metadata, assay = vrAssayNames(object))
 
   # for all graphs
   if(!is.null(graphnames)){

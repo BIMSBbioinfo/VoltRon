@@ -200,6 +200,7 @@ merge.vrSample <- function(object, object_list, samples = NULL){
 #' @param image the subseting string passed to \code{magick::image_crop}
 #'
 #' @method subset vrSample
+#' @order 6
 #'
 #' @importFrom rlang enquo
 #'
@@ -238,10 +239,8 @@ subset.vrSample <- function(object, subset, assays = NULL, spatialpoints = NULL,
 #' @param ... arguments passed to other methods
 #' 
 #' @rdname vrSpatialPoints
-#' @method vrSpatialPoints vrSample
-#'
+#' @order 5
 #' @export
-#'
 vrSpatialPoints.vrSample <- function(object, ...) {
   # layers <- object@layer
   # spatialpoints <- unlist(sapply(layers, function(lay) {
@@ -292,6 +291,7 @@ changeAssayNames.vrSample <- function(object, sample.metadata = NULL){
 #' @param image the subseting string passed to \code{magick::image_crop}
 #'
 #' @method subset vrLayer
+#' @order 7
 #'
 #' @importFrom rlang enquo
 #' @importFrom methods is
@@ -350,10 +350,8 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
 }
 
 #' @rdname vrSpatialPoints
-#' @method vrSpatialPoints vrLayer
-#'
+#' @order 6
 #' @export
-#'
 vrSpatialPoints.vrLayer <- function(object, ...) {
   # assays <- object@assay
   # spatialpoints <- unlist(sapply(assays, function(assy) {

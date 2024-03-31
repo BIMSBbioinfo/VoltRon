@@ -7,10 +7,10 @@
 #' A mini shiny app to for annotating spatial points
 #'
 #' @param object a VoltRon object
-#' @param label the name of the new metadata column (default: annotation) of selected spatial points
+#' @param label the name of the new metadata column (default: annotation) annotating spatial points by selected polygons
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param use.image if TRUE, use only the image
-#' @param image_name the name of the main image
+#' @param image_name the name/key of the image
 #' @param channel the name of the main channel
 #' @param ... additional parameters passed to \code{vrSpatialPlot}.
 #'

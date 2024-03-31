@@ -7,7 +7,7 @@
 subsetSegments(segments, image, crop_info)
 }
 \arguments{
-\item{segments}{a list of coordinates for each segment}
+\item{segments}{the list of segments each associated with a spatial point}
 
 \item{image}{the magick image associated with the coordinates}
 

@@ -2,22 +2,19 @@
 % Please edit documentation in R/generics.R, R/image.R
 \name{vrMainImage}
 \alias{vrMainImage}
-\alias{vrMainImage<-}
 \alias{vrMainImage.VoltRon}
-\alias{vrMainImage<-.VoltRon}
 \alias{vrMainImage.vrAssay}
+\alias{vrMainImage<-.VoltRon}
 \alias{vrMainImage<-.vrAssay}
 \title{vrMainImage}
 \usage{
 vrMainImage(object, assay = NULL)
 
-vrMainImage(object) <- value
-
 \method{vrMainImage}{VoltRon}(object, assay = NULL)
 
-\method{vrMainImage}{VoltRon}(object, assay = NULL) <- value
-
 \method{vrMainImage}{vrAssay}(object)
+
+\method{vrMainImage}{VoltRon}(object, assay = NULL) <- value
 
 \method{vrMainImage}{vrAssay}(object) <- value
 }
@@ -30,6 +27,4 @@ vrMainImage(object) <- value
 }
 \description{
 Get the main image
-
-Set the main image
 }

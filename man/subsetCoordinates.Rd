@@ -7,7 +7,7 @@
 subsetCoordinates(coords, image, crop_info)
 }
 \arguments{
-\item{coords}{coordinates}
+\item{coords}{the coordinates of the spatial points}
 
 \item{image}{the magick image associated with the coordinates}
 

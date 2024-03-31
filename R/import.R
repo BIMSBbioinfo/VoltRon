@@ -242,7 +242,8 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
 #' @param selected_assay selected assay from Visium
 #' @param assay_name the assay name
 #' @param sample_name the name of the sample
-#' @param image_name the image name of the Visium assay, Default: H&E
+#' @param image_name the image name of the Visium assay, Default: main
+#' @param channel_name the channel name of the image of the Visium assay, Default: H&E
 #' @param inTissue if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)
 #' @param resolution_level the level of resolution of Visium image: "lowres" (default) or "hires"
 #' @param ... additional parameters passed to \code{formVoltRon}
@@ -253,7 +254,7 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
 #'
 #' @export
 #'
-importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_name = "Visium", sample_name = NULL, image_name = "H&E", inTissue = TRUE, resolution_level = "lowres", ...)
+importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_name = "Visium", sample_name = NULL, image_name = "main", channel_name = "H&E", inTissue = TRUE, resolution_level = "lowres", ...)
 {
   # raw counts
   listoffiles <- list.files(dir.path)
@@ -298,7 +299,7 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   } else {
     stop("There are no files named 'tissue_positions.csv' in the path")
   }
-  # coords$pxl_row_in_fullres <- max(coords$pxl_row_in_fullres) - coords$pxl_row_in_fullres + min(coords$pxl_row_in_fullres)
+
   if(inTissue){
     coords <- coords[coords$in_tissue==1,]
     rawdata <- rawdata[,colnames(rawdata) %in% coords$barcode]
@@ -313,7 +314,6 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   scale_file <- paste0(dir.path, "/spatial/scalefactors_json.json")
   if(file.exists(scale_file)){
     scalefactors <- rjson::fromJSON(file = scale_file)
-    # scales <- scalefactors$tissue_lowres_scalef
     scales <- scalefactors[[paste0("tissue_", resolution_level, "_scalef")]]
     # spot.radius is the half of the diameter, but we visualize by a factor of 1.5 larger
     # params <- list(spot.radius = scalefactors$spot_diameter_fullres*scalefactors$tissue_lowres_scalef*1.5)
@@ -328,7 +328,7 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   }
 
   # create VoltRon
-  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", image_name = image_name, sample_name = sample_name, ...)
+  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", image_name = image_name, main_channel = channe_name, sample_name = sample_name, ...)
 }
 
 ####
@@ -938,7 +938,7 @@ rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level){
 #' @param tiledbURI the path to the tiledb folder
 #' @param assay_name the assay name, default: CosMx
 #' @param image the reference morphology image of the CosMx assay
-#' @param image_name the image name of the CosMx assay, Default: DAPI
+#' @param image_name the image name of the CosMx assay, Default: main
 #' @param ome.tiff the OME.TIFF file of the CosMx experiment if exists
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
 #' @param ... additional parameters passed to \code{formVoltRon}
@@ -949,7 +949,7 @@ rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level){
 #' @export
 #'
 importCosMx <- function(tiledbURI, assay_name = "CosMx",
-                        image = NULL, image_name = "DAPI", ome.tiff = NULL, import_molecules = FALSE, ...)
+                        image = NULL, image_name = "main", ome.tiff = NULL, import_molecules = FALSE, ...)
 {
   # check tiledb and tiledbsc
   if (!requireNamespace("tiledb", quietly = TRUE))

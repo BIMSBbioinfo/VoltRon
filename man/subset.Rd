@@ -2,6 +2,7 @@
 % Please edit documentation in R/objects.R
 \name{subset.VoltRon}
 \alias{subset.VoltRon}
+\alias{subset}
 \title{Subsetting VoltRon objects}
 \usage{
 \method{subset}{VoltRon}(
@@ -37,4 +38,25 @@
 }
 \description{
 Given a VoltRon object, subset the object given one of the attributes
+}
+\examples{
+# example data
+data("visium_data")
+
+# subset based on assay
+subset(visium_data, assays = "Assay1")
+subset(visium_data, assays = "Visium")
+
+# subset based on samples
+subset(visium_data, samples = "Anterior1")
+
+# subset based on assay
+subset(visium_data, spatialpoints = c("GTTATATTATCTCCCT-1_Assay1", "GTTTGGGTTTCGCCCG-1_Assay1"))
+
+# subset based on features
+subset(visium_data, features = c("Map3k19", "Rab3gap1"))
+
+# interactive subsetting
+visium_subset_data <- subset(visium_data, interactive = TRUE)
+visium_subset <- visium_subset_data$subsets[[1]]
 }
