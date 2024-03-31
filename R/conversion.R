@@ -97,6 +97,11 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
   return(vrobject)
 }
 
+#' as.Seurat
+#'
+#' Converting a VoltRon object into a Seurat object
+#'
+#' @param object a VoltRon object
 #' @param cell.assay the name(type) of the cell assay to be converted
 #' @param molecule.assay the name(type) of the molecule assay to be added to the cell assay in Seurat object
 #' @param image_key the name (or prefix) of the image(s)
@@ -104,14 +109,12 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
 #' @param reg if TRUE, registered coordinates will be used
 #'
 #' @rdname as.Seurat
-#' @method as.Seurat VoltRon
 #'
 #' @importFrom dplyr bind_cols
 #' @importFrom stringr str_replace
 #'
 #' @export
-#'
-as.Seurat.VoltRon <- function(object, cell.assay = NULL, molecule.assay = NULL, image_key = "fov", type = c("image", "spatial"), reg = FALSE){
+as.Seurat <- function(object, cell.assay = NULL, molecule.assay = NULL, image_key = "fov", type = c("image", "spatial"), reg = FALSE){
   
   # sample metadata
   sample_metadata <- SampleMetadata(object)
@@ -233,20 +236,23 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
   }
 }
 
+#' as.AnnData
+#'
+#' Converting a VoltRon object into a AnnData (.h5ad) object
+#'
+#' @param object a VoltRon object
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param file the name of the h5ad file
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
 #' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped
 #'
 #' @rdname as.AnnData
-#' @method as.AnnData VoltRon
 #'
 #' @importFrom anndata AnnData write_h5ad
 #' @importFrom stringr str_extract
 #'
 #' @export
-#'
-as.AnnData.VoltRon <- function(object, file, assay = NULL, type = c("image", "spatial"), flip_coordinates = FALSE){
+as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"), flip_coordinates = FALSE){
 
   # check Seurat package
   if(!requireNamespace('anndata'))
@@ -297,12 +303,7 @@ as.AnnData.VoltRon <- function(object, file, assay = NULL, type = c("image", "sp
 # AnnData (Zarr) ####
 ####
 
-#' @param object VoltRon image
-#' @param out_path output path to ome.zarr
-#' @param image_id image name
-#'
 #' @rdname as.Zarr
-#' @method as.Zarr VoltRon
 #'
 #' @importFrom basilisk basiliskStart basiliskStop basiliskRun
 #' @importFrom reticulate import
@@ -310,7 +311,6 @@ as.AnnData.VoltRon <- function(object, file, assay = NULL, type = c("image", "sp
 #' @importFrom grDevices col2rgb
 #'
 #' @export
-#'
 as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
 {
   
@@ -362,12 +362,7 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
   return(success)
 }
 
-#' @param object a VoltRon image
-#' @param out_path output path to ome.zarr
-#' @param image_id image name
-#'
 #' @rdname as.Zarr
-#' @method as.Zarr magick-image
 #'
 #' @importFrom basilisk basiliskStart basiliskStop basiliskRun
 #' @importFrom reticulate import
@@ -375,7 +370,6 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
 #' @importFrom grDevices col2rgb
 #'
 #' @export
-#'
 "as.Zarr.magick-image" <- function (object, out_path, image_id = "image_1")
 {
   img_arr <- apply(as.matrix(magick::image_raster(object, tidy = FALSE)), c(1, 2), col2rgb)
@@ -411,20 +405,24 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
 # SpatialData (Zarr) ####
 ####
 
+#' as.SpatialData
+#'
+#' Converting a VoltRon object into a SpatialData (.zarr) object
+#'
+#' @param object a VoltRon object
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param file the name of the h5ad file
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
 #' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped
 #'
-#' @rdname as.AnnData
-#' @method as.AnnData VoltRon
+#' @rdname as.SpatialData
 #'
 #' @importFrom anndata AnnData write_h5ad
 #' @importFrom stringr str_extract
 #'
 #' @export
 #'
-as.SpatialData.VoltRon <- function(object, file, assay = NULL, type = c("image", "spatial"), flip_coordinates = FALSE){
+as.SpatialData <- function(object, file, assay = NULL, type = c("image", "spatial"), flip_coordinates = FALSE){
   
   # check Seurat package
   if(!requireNamespace('anndata'))

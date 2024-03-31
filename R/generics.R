@@ -226,7 +226,7 @@ normalizeData <- function(object, assay = NULL, method = "LogNorm", desiredQuant
 #'
 #' @rdname vrEmbeddingNames
 #' @export vrEmbeddingNames
-#'
+#' @order 1
 vrEmbeddingNames <- function(object, assay = NULL) {
   UseMethod(generic = 'vrEmbeddingNames', object = object)
 }
@@ -239,7 +239,7 @@ vrEmbeddingNames <- function(object, assay = NULL) {
 #'
 #' @rdname vrEmbeddings
 #' @export vrEmbeddings
-#'
+#' @order 1
 vrEmbeddings <- function(object, assay = NULL, type = "pca", dims = 1:30) {
   UseMethod(generic = 'vrEmbeddings', object = object)
 }
@@ -248,7 +248,7 @@ vrEmbeddings <- function(object, assay = NULL, type = "pca", dims = 1:30) {
 #'
 #' @rdname vrEmbeddings
 #' @export vrEmbeddings<-
-#'
+#' @noRd
 "vrEmbeddings<-" <- function(object, assay = NULL, type = "pca", overwrite = FALSE, value) {
   UseMethod(generic = 'vrEmbeddings<-', object = object)
 }
@@ -490,75 +490,30 @@ combineChannels <- function(object, assay = NULL, name = NULL, reg = FALSE, chan
 # Conversion ####
 ####
 
-#' as.Seurat
-#'
-#' Generic methods for conversion into a Seurat object
-#'
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#'
-#' @rdname as.Seurat
-#' @export as.Seurat
-#'
-as.Seurat <- function(object, ...) {
-  UseMethod(generic = 'as.Seurat', object = object)
-}
-
-#' as.AnnData
-#'
-#' Generic methods for conversion into a AnnData object
-#'
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#'
-#' @rdname as.AnnData
-#' @export as.AnnData
-#'
-as.AnnData <- function(object, ...) {
-  UseMethod(generic = 'as.AnnData', object = object)
-}
-
-#' as.Zarr
-#'
-#' Generic methods for conversion into a Seurat object
-#'
-#' @param object An object
-#' @param out_path output path to ome.zarr
-#' @param image_id image name
-#' @param ... Arguments passed to other methods
-#'
-#' @rdname as.Zarr
-#' @export as.Zarr
-#'
-as.Zarr <- function(object, out_path, image_id, ...) {
-  UseMethod(generic = 'as.Zarr', object = object)
-}
-
-
-#' as.Giotto
-#'
-#' Generic methods for conversion into a Giotto object
-#'
-#' @param object An object
-#' @param ... Arguments passed to other methods
-#'
-#' @rdname as.Giotto
-#' @export as.Giotto
-#'
-as.Giotto <- function(object, ...) {
-  UseMethod(generic = 'as.Giotto', object = object)
-}
-
 #' as.VoltRon
 #'
 #' Generic methods for conversion into a VoltRon object
 #'
-#' @param object An object
+#' @param object a VoltRon object
 #' @param ... Arguments passed to other methods
 #'
 #' @rdname as.VoltRon
 #' @export as.VoltRon
-#'
 as.VoltRon <- function(object, ...) {
   UseMethod(generic = 'as.VoltRon', object = object)
+}
+
+#' as.Zarr
+#'
+#' Generic methods to save VoltRon or magick-image objects as zarr files
+#'
+#' @param object a VoltRon or magick-image object
+#' @param out_path output path to zarr file
+#' @param image_id image name
+#'
+#' @rdname as.Zarr
+#' @export as.Zarr
+#'
+as.Zarr <- function(object, ...) {
+  UseMethod(generic = 'as.Zarr', object = object)
 }

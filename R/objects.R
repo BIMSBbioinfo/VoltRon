@@ -1085,10 +1085,9 @@ vrData.VoltRon <- function(object, assay = NULL, ...) {
 #' @param ... arguments passed to other methods
 #'
 #' @rdname vrEmbeddings
-#' @method vrEmbeddings VoltRon
+#' @order 2
 #'
 #' @export
-#'
 vrEmbeddings.VoltRon <- function(object, assay = NULL, ...) {
 
   # get assay names
@@ -1107,7 +1106,7 @@ vrEmbeddings.VoltRon <- function(object, assay = NULL, ...) {
 #' @param overwrite Whether the existing embedding with name 'type' should be overwritten
 #'
 #' @rdname vrEmbeddings
-#' @method vrEmbeddings<- VoltRon
+#' @order 4
 #'
 #' @export
 #'
@@ -1137,10 +1136,9 @@ vrEmbeddings.VoltRon <- function(object, assay = NULL, ...) {
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #'
 #' @rdname vrEmbeddingNames
-#' @method vrEmbeddingNames VoltRon
+#' @order 2
 #'
 #' @export
-#'
 vrEmbeddingNames.VoltRon <- function(object, assay = NULL){
 
   # get assay names

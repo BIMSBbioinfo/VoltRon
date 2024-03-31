@@ -631,7 +631,7 @@ vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 #' @param dims the set of dimensions of the embedding data
 #'
 #' @rdname vrEmbeddings
-#'
+#' @order 3
 #' @export
 #'
 vrEmbeddings.vrAssay <- function(object, type = "pca", dims = 1:30) {
@@ -653,7 +653,7 @@ vrEmbeddings.vrAssay <- function(object, type = "pca", dims = 1:30) {
 }
 
 #' @rdname vrEmbeddings
-#'
+#' @order 4
 #' @export
 "vrEmbeddings<-.vrAssay" <- function(object, type = "pca", value) {
   object@embeddings[[type]] <- value
@@ -661,10 +661,9 @@ vrEmbeddings.vrAssay <- function(object, type = "pca", dims = 1:30) {
 }
 
 #' @rdname vrEmbeddingNames
-#' @method vrEmbeddingNames vrAssay
+#' @order 3
 #'
 #' @export
-#'
 vrEmbeddingNames.vrAssay <- function(object){
   return(names(object@embeddings))
 }
