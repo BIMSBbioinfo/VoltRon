@@ -9,7 +9,8 @@
 #' @param object a VoltRon object
 #' @param from the name or class of assay whose data transfered to the second assay
 #' @param to the name or class of target assay where data is transfered to
-#' @param features the set of features from \link{vrFeatures} or metadata columns from \link{Metadata} that are transferred. Only one metadata feature can be transfered at a time.
+#' @param features the set of features from \link{vrFeatures} or metadata columns from \link{Metadata} that are transferred. 
+#' Only one metadata feature can be transfered at a time.
 #' @param new_assay_name the name of the new assay created from the source assay defined in \code{from} argument.
 #'
 #' @export
