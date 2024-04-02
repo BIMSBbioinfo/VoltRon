@@ -15,11 +15,12 @@ transferData(
 \arguments{
 \item{object}{a VoltRon object}
 
-\item{from}{The ID of assay whose data transfered to the second assay}
+\item{from}{the name or class of assay whose data transfered to the second assay}
 
-\item{to}{The ID of the target assay where data is transfered to}
+\item{to}{the name or class of target assay where data is transfered to}
 
-\item{features}{The set of data or metadata features that are transferred. Only one metadata feature can be transfered at a time.}
+\item{features}{the set of features from \link{vrFeatures} or metadata columns from \link{Metadata} that are transferred. 
+Only one metadata feature can be transfered at a time.}
 
 \item{new_assay_name}{the name of the new assay created from the source assay defined in \code{from} argument.}
 }
