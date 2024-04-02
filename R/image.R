@@ -340,7 +340,7 @@ vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, .
       name <- paste0(name, "_reg")
   }
 
-  if(inherits(value, "vrImage")){
+  if(inherits(value, "vrImage") | inherits(value, "vrSpatial")){
     object@image[[name]] <- value
   } else {
     if(!is.null(channel)){

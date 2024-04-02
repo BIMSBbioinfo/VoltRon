@@ -990,11 +990,9 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
 }
 
 #' @rdname vrSpatialPoints
-#' @method vrSpatialPoints VoltRon
 #' @order 2
 #' 
 #' @export
-#'
 vrSpatialPoints.VoltRon <- function(object, assay = NULL) {
 
   # get assays

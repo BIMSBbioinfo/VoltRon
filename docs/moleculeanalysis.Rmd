@@ -42,7 +42,7 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 <br>
 
-# Xenium Data Analysis
+# Xenium Breast Cancer Data
 
 VoltRon is an end-to-end spatial omic analysis package which also supports investigating spatial points in sub-cellular resolution, including those that are based on Fluorescence in situ hybrizrization where one can spatially locate each individual molecule that are hybridrized. 
 
@@ -86,7 +86,7 @@ vrSpatialPlot(Xen_R1_subset, assay = "Xenium_mol", group.by = "gene",
 
 <br>
 
-We can use the **n.tile** arguement to divide the count of selected group.ids (e.g. genes here) into hexagonal bins. We will use this arguement to divide the x and y-axis into 100 tiles and aggregate transcript counts from select **group.id**
+We can use the **n.tile** argument to divide the count of selected group.ids (e.g. genes here) into hexagonal bins. We will use this arguement to divide the x and y-axis into 100 tiles and aggregate transcript counts from select **group.id**
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrSpatialPlot(Xen_R1_subset, assay = "Xenium_mol", group.by = "gene", group.id = "ACTA2",
@@ -94,3 +94,136 @@ vrSpatialPlot(Xen_R1_subset, assay = "Xenium_mol", group.by = "gene", group.id =
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize_bins.png" class="center">
+
+<br>
+
+# Xenium COVID-19 Data
+
+VoltRon is capable of analyzing molecule-level subcellular datasets independent of single cells, and specifically those that may also found outside of these cells. To demonstrate how VoltRon investigates extra-cellular molecules, we will make use of another Xenium in situ dataset where custom Xenium probes designed to hybridize distinct open reading frames of SARS-COV-2 virus molecules. These subcellular entities which then can be detected both within and outside of cells which allows to understand proliferation mechanics of the virus across the tissue.
+
+In this use case, we analyse readouts of **eight tissue micro array (TMA) tissue sections** that were fitted into the scan area of a slide loaded on a Xenium in situ instrument. These sections were cut from **control and COVID-19 lung tissues** of donors categorized based on disease durations (acute and prolonged). See [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information.
+
+<br>
+
+## Single Cells and Molecules
+
+Let us first analyze the Xenium data in single cell level and also visualize molecular data.
+
+<br>
+
+## Automated H&E Registration
+
+VoltRon can analyze and also integrate information from distinct spatial data types such as images, annotations (as regions of interests, i.e. ROIs) and molecules independently. Using such advanced utilities, we can make use of histological information and generate new metadata level information for molecule datasets.
+
+We will first import both histological images and manual annotations using the **importImageData** function which accepts both images to generate tile/pixel level datasets but also allows one to import either a list of segments or [GeoJSON](https://geojson.org/) objects for create ROI-level datasets as separate assays in a single VoltRon layer. The .geojson file was generated using [QuPath](https://qupath.github.io/) on the same section H&E image of one Xenium section with the acute COVID-19 case. We also have to flip the coordinates of ROI annotations also for they were directly imported from QuPath which incorporates a reverse coordinate system on the y-axis.
+
+Once imported, the resulting VoltRon object will have two assays in a single layer, one for tile dataset of the H&E image and the other for ROI based annotations of again the same image.
+
+```{r eval = FALSE, class.source="watch-out"}
+# get image
+imgdata <- importImageData("acutecase3_HE.jpg", 
+                           segments = "data/Xenium/acutecase3_membrane.geojson", 
+                           sample_name = "acute case 1 (HE)")
+imgdata <- flipCoordinates(imgdata, assay = "ROIAnnotation")
+imgdata
+```
+
+```
+VoltRon Object 
+acute case 1 (HE): 
+  Layers: Section1 
+Assays: ImageData(Main) ROIAnnotation 
+```
+
+By visualizing these annotations interactively, we can see that the ROIs point to the hyaline membranes. Here, we likely find extra-cellular SARS-COV-2 molecules mostly outside of any single cell.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPlot(imgdata, assay = "ROIAnnotation", group.by = "Sample", 
+              alpha = 0.7, interactive = TRUE)
+```
+
+<img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_Covid_HE_zoom.png" class="center">
+
+<br>
+
+We now register the H&E image and annotations to the DAPI image of Xenium section using the **registerSpatialData** function. See [Spatial Data Alignment](registration.html) tutorial for more information. In their original 
+
+```{r eval = FALSE, class.source="watch-out"}
+vr2_subset <- modulateImage(vr2_subset, brightness = 300, channel = "DAPI")
+xen_reg <- registerSpatialData(object_list = list(vr2_subset, imgdata))
+imgdata_reg <- xen_reg$registered_spat[[2]]
+```
+
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_HE_registration.png" class="center">
+
+<br>
+
+Once registered, we can isolate the registered H&E data and use it further analysis. We can transfer images and their channels across assays of one or multiple VoltRon objects. Here, we save the registered image of the H&E data as an additional channel of Xenium section of the acuse case 1 sample with molecule data.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImages(vr2_merged[["Assay8"]], name = "main", channel = "H&E") <- vrImages(imgdata_reg, assay = "Assay1", name = "image_1_reg")
+```
+
+<br>
+
+You can also add the VoltRon object of H&E data as an additional assay of the Xenium section such that one layer includes cell, molecules, ROI Annotations and images in the same time. Specifically, we add the ROI annotation to the Xenium VoltRon object using the **addAssay** function where we choose the destination sample/block and the layer of the assay. 
+
+```{r eval = FALSE, class.source="watch-out"}
+vr2_merged <- addAssay(vr2_merged,
+                       assay = imgdata_reg[["Assay2"]],
+                       metadata = Metadata(imgdata_reg, assay = "ROIAnnotation"),
+                       assay_name = "ROIAnnotation",
+                       sample = "acute case 1", layer = "Section1")
+vr2_merged
+```
+
+```
+VoltRon Object 
+prolonged case 4: 
+  Layers: Section1 
+acute case 3: 
+  Layers: Section1 
+control case 2: 
+  Layers: Section1 
+acute case 1: 
+  Layers: Section1 
+acute case 2: 
+  Layers: Section1 
+... 
+There are 8 samples in total 
+Assays: Xenium(Main) Xenium_mol ROIAnnotation 
+```
+
+<br>
+
+Now we can transfer ROI annotations as additional metadata features of the molecule assay. We will refer the new metadata column as "Region" which will indicate if the molecule is within any annotated ROI in the same layer.
+
+```{r eval = FALSE, class.source="watch-out"}
+# make a new metadata column for ROIAnnotation assay using names
+vrMainAssay(vr2_merged) <- "ROIAnnotation"
+vr2_merged$Region <- vrSpatialPoints(vr2_merged)
+
+# set the spatial coordinate system of ROI Annotations assay
+vrMainImage(vr2_merged[["Assay17"]]) <- "image_1_reg"
+
+# transfer ROI annotations to molecules
+vr2_merged <- transferData(object = vr2_merged, from = "Assay17", to = "Assay8", features = "Region")
+
+# Metadata of molecules
+Metadata(vr2_merged, assay = "Xenium_mol")
+```
+
+<div><pre><code style="font-size: 11px;">                            id assay_id overlaps_nucleus   gene       qv      Assay    Layer       Sample    Region
+                        &lt;char&gt;   &lt;char&gt;            &lt;int&gt; &lt;char&gt;    &lt;num&gt;     &lt;char&gt;   &lt;char&gt;       &lt;char&gt;    &lt;char&gt;
+     1: 281651070371256_cb791e   Assay8                0   ENAH 40.00000 Xenium_mol Section1 acute case 1 undefined
+     2: 281651070371258_cb791e   Assay8                1  CD274 40.00000 Xenium_mol Section1 acute case 1 undefined
+     3: 281651070372515_cb791e   Assay8                0  CD163 40.00000 Xenium_mol Section1 acute case 1 undefined
+     4: 281651070374059_cb791e   Assay8                1   CTSL 33.97290 Xenium_mol Section1 acute case 1 undefined
+     5: 281651070374411_cb791e   Assay8                0    C1S 40.00000 Xenium_mol Section1 acute case 1 undefined
+    ---                                                                                                            
+785787: 281874408669584_cb791e   Assay8                0  SFRP2 40.00000 Xenium_mol Section1 acute case 1 undefined
+785788: 281874408671410_cb791e   Assay8                0   S2_N 40.00000 Xenium_mol Section1 acute case 1 undefined
+785789: 281874408672438_cb791e   Assay8                0 S100A8 40.00000 Xenium_mol Section1 acute case 1 undefined
+785790: 281874408673446_cb791e   Assay8                0  TIMP1 29.86642 Xenium_mol Section1 acute case 1 undefined
+785791: 281874408673882_cb791e   Assay8                0   S2_N 40.00000 Xenium_mol Section1 acute case 1 undefined</code></pre></div>
+<br>
