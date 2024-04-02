@@ -7,11 +7,11 @@
 subsetCoordinates(coords, image, crop_info)
 }
 \arguments{
-\item{coords}{coordinates}
+\item{coords}{the coordinates of the spatial points}
 
 \item{image}{the magick image associated with the coordinates}
 
-\item{crop_info}{the subseting string passed to \code{magick::image_crop}}
+\item{crop_info}{the subseting string passed to \link{magick::image_crop}}
 }
 \description{
 subsetting coordinates given cropping parameters of a magick image objects

@@ -11,7 +11,7 @@ convertAnnDataToVoltRon(file, AssayID = NULL, ...)
 
 \item{AssayID}{the ID assays in the h5ad file}
 
-\item{...}{additional parameters passed to \code{formVoltRon}}
+\item{...}{additional parameters passed to \link{formVoltRon}}
 }
 \description{
 converting AnnData h5ad files to VoltRon objects

@@ -6,7 +6,9 @@ NULL
 # Normalization ####
 ####
 
-#' @param assay assay
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param ... additional parameters passed to \link{normalizeData.vrAssay}
 #'
 #' @rdname normalizeData
 #' @method normalizeData VoltRon
@@ -27,9 +29,8 @@ normalizeData.VoltRon <- function(object, assay = NULL, ...) {
   return(object)
 }
 
-#' @param assay assay
 #' @param method the normalization method: "LogNorm", "Q3Norm", "LogQ3Norm" or "CLR"
-#' @param desiredQuantile the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}
+#' @param desiredQuantile the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}.
 #' @param scale the scale parameter for the hyperbolic arcsine transformation
 #' @param sizefactor size factor if \code{method} is selected as \code{LogNorm}
 #'
@@ -39,7 +40,6 @@ normalizeData.VoltRon <- function(object, assay = NULL, ...) {
 #' @importFrom stats quantile
 #'
 #' @export
-#'
 normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2, sizefactor = 10000) {
 
   # size factor
@@ -89,13 +89,13 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
 # Features ####
 ####
 
-#' @param assay assay
-#'
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param ... arguements passed to other methods
+#' 
 #' @rdname getFeatures
-#' @method getFeatures VoltRon
 #'
 #' @export
-#'
 getFeatures.VoltRon <- function(object, assay = NULL, ...){
 
   # get assay names
@@ -110,11 +110,10 @@ getFeatures.VoltRon <- function(object, assay = NULL, ...){
   return(object)
 }
 
-#' @param max.count max count (maximum across spatial points) for low count filtering
-#' @param n the number of features
+#' @param max.count maximum count (across spatial points) for low count filtering
+#' @param n the top number of variable features 
 #'
 #' @rdname getFeatures
-#' @method getFeatures vrAssay
 #'
 #' @importFrom stats loess predict var
 #'
@@ -147,14 +146,15 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
 }
 
 
-#' getSharedFeatures
+#' getVariableFeatures
 #'
 #' get shared variable features across multiple assays
 #'
-#' @param object A Voltron Object
-#' @param assay assay
+#' @param object a Voltron Object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param n the number of features
-#' @param ... additional arguements passed to \code{vrFeatureData}
+#' @param ... additional arguements passed to \link{vrFeatureData}
 #'
 #' @importFrom dplyr full_join
 #' @importFrom utils head
@@ -201,22 +201,25 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 # vrEmbeddings ####
 ####
 
-#' @param assay assay
+#' getPCA
+#'
+#' calculate PCA of the VoltRon objects
+#'
+#' @param object a VoltRon object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param features the selected features for PCA reduction
 #' @param dims the number of dimensions extracted from PCA
-#' @param overwrite Whether the existing embedding with name 'type' should be overwritten in \code{vrEmbeddings}
+#' @param overwrite Whether the existing embedding with name 'type' should be overwritten in \link{vrEmbeddings}
 #' @param seed seed
-#' @param ... additional parameters passed to \code{vrEmbeddings}
-#'
-#' @rdname getPCA
-#' @method getPCA VoltRon
+#' @param ... additional parameters passed to \link{vrEmbeddings}
 #'
 #' @importFrom irlba irlba
 #' @importFrom dplyr left_join
 #'
 #' @export
 #'
-getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, overwrite = FALSE, seed = 1, ...){
+getPCA <- function(object, assay = NULL, features = NULL, dims = 30, overwrite = FALSE, seed = 1, ...){
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -264,22 +267,25 @@ getPCA.VoltRon <- function(object, assay = NULL, features = NULL, dims = 30, ove
   return(object)
 }
 
-#' @param assay assay
+#' getUMAP
+#'
+#' calculate UMAP of the VoltRon objects
+#'
+#' @param object a VoltRon object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param data.type the type of data used to calculate UMAP from: "pca" (default), "raw" or "norm"
 #' @param dims the number of dimensions extracted from PCA
 #' @param umap.key the name of the umap embedding, default: umap
-#' @param overwrite Whether the existing embedding with name 'type' should be overwritten in \code{vrEmbeddings}
+#' @param overwrite Whether the existing embedding with name 'type' should be overwritten in \link{vrEmbeddings}
 #' @param seed seed
-#' @param ... additional parameters passed to \code{vrEmbeddings}
-#'
-#' @rdname getUMAP
-#' @method getUMAP VoltRon
+#' @param ... additional parameters passed to \link{vrEmbeddings}
 #'
 #' @importFrom uwot umap
 #'
 #' @export
 #'
-getUMAP.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30, umap.key = "umap", overwrite = FALSE, seed = 1, ...){
+getUMAP <- function(object, assay = NULL, data.type = "pca", dims = 1:30, umap.key = "umap", overwrite = FALSE, seed = 1, ...){
 
   # get data
   if(data.type %in% c("raw", "norm")){

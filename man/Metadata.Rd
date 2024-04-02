@@ -2,30 +2,26 @@
 % Please edit documentation in R/generics.R, R/objects.R
 \name{Metadata}
 \alias{Metadata}
-\alias{Metadata<-}
 \alias{Metadata.VoltRon}
 \alias{Metadata<-.VoltRon}
 \title{Metadata}
 \usage{
-Metadata(object, ...)
-
-Metadata(object, ...) <- value
+Metadata(object, assay = NULL, type = NULL)
 
 \method{Metadata}{VoltRon}(object, assay = NULL, type = NULL)
 
-\method{Metadata}{VoltRon}(object, type = NULL, assay = NULL, ...) <- value
+\method{Metadata}{VoltRon}(object, assay = NULL, type = NULL) <- value
 }
 \arguments{
-\item{object}{An object}
+\item{object}{a VoltRon object}
 
-\item{...}{Arguments passed to other methods}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
+
+\item{type}{the assay type: ROI, spot or cell, or all for the entire metadata object}
 
 \item{value}{new metadata}
-
-\item{assay}{assay}
-
-\item{type}{the assay type: ROI, spot or cell}
 }
 \description{
-Get the metadata
+Get the metadata of a VoltRon object.
 }

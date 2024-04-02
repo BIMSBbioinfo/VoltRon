@@ -52,23 +52,5 @@ created dummy columns.
 Quickly create dummy (binary) columns from character and
 factor type columns in the inputted data (and numeric columns if specified.)
 This function is useful for statistical analysis when you want binary
-columns rather than character columns.
+columns rather than character columns. Adapted from the \code{fastDummies} package (https://jacobkap.github.io/fastDummies/)
 }
-\details{
-Adapted from the \code{fastDummies} package
-}
-\examples{
-crime <- data.frame(city = c("SF", "SF", "NYC"),
-    year = c(1990, 2000, 1990),
-    crime = 1:3)
-dummy_cols(crime)
-# Include year column
-dummy_cols(crime, select_columns = c("city", "year"))
-# Remove first dummy for each pair of dummy columns made
-dummy_cols(crime, select_columns = c("city", "year"),
-    remove_first_dummy = TRUE)
-}
-\seealso{
-\code{\link{dummy_rows}} For creating dummy rows
-}
-\concept{dummy functions}

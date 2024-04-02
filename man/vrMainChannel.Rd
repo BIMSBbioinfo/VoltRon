@@ -2,36 +2,29 @@
 % Please edit documentation in R/generics.R, R/image.R
 \name{vrMainChannel}
 \alias{vrMainChannel}
-\alias{vrMainChannel<-}
 \alias{vrMainChannel.vrAssay}
-\alias{vrMainChannel<-.vrAssay}
 \alias{vrMainChannel.vrImage}
+\alias{vrMainChannel<-.vrAssay}
 \alias{vrMainChannel<-.vrImage}
 \title{vrMainChannel}
 \usage{
-vrMainChannel(object, ...)
-
-vrMainChannel(object, ...) <- value
+vrMainChannel(object, name = NULL)
 
 \method{vrMainChannel}{vrAssay}(object, name = NULL)
 
-\method{vrMainChannel}{vrAssay}(object, name = NULL) <- value
-
 \method{vrMainChannel}{vrImage}(object)
+
+\method{vrMainChannel}{vrAssay}(object, name = NULL) <- value
 
 \method{vrMainChannel}{vrImage}(object) <- value
 }
 \arguments{
-\item{object}{An object}
+\item{object}{a vrAssay or vrImage object}
 
-\item{...}{Arguments passed to other methods}
+\item{name}{the name of the image}
 
 \item{value}{the name of main channel}
-
-\item{name}{the name of the main image}
 }
 \description{
-Get the main channel name of the image
-
-Set the main channel name of the image
+Get and set the main channel name of the image
 }

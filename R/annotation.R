@@ -6,13 +6,14 @@
 #'
 #' A mini shiny app to for annotating spatial points
 #'
-#' @param object a list of VoltRon (or Seurat) objects
-#' @param label the name of the new metadata feature (annotation) of selected spatial points
-#' @param assay a reference spatial data set, used only if \code{object_list} is \code{NULL}
+#' @param object a VoltRon object
+#' @param label the name of the new metadata column (default: annotation) annotating spatial points by selected polygons
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param use.image if TRUE, use only the image
-#' @param image_name the name of the main image
+#' @param image_name the name/key of the image
 #' @param channel the name of the main channel
-#' @param ... additional parameters passed to \code{vrSpatialPlot}.
+#' @param ... additional parameters passed to \link{vrSpatialPlot}.
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs show hide
@@ -21,8 +22,13 @@
 #' @import ggplot2
 #'
 #' @export
-#'
-#' @return a vector of annotations
+#' 
+#' @examples
+#' # Annotate based on images
+#' visium_data <- annotateSpatialData(visium_data, use.image = TRUE)
+#' 
+#' # Annotate based on spatial plot
+#' xenium_data <- annotateSpatialData(xenium_data, group.by = "clusters")
 annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.image = FALSE, image_name = NULL, channel = NULL, ...) {
 
   if(!inherits(object, "VoltRon"))
@@ -264,7 +270,11 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
         selected_label_list <- sapply(1:length(selected_polygon_list), function(i) input[[paste0("region",i)]])
 
         ### annotate spatial points ####
-        spatialpoints <- rownames(metadata)
+        if(inherits(metadata, "data.table")){
+          spatialpoints <- metadata$id
+        } else {
+          spatialpoints <- rownames(metadata)
+        }
         new_label <- rep("undefined", length(spatialpoints))
         names(new_label) <- spatialpoints
         result_list <- list()
@@ -276,13 +286,15 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
 
         # place annotation to metadata
         metadata[[label]] <- new_label
-        Metadata(object, assays = sample_metadata[assay, "Assay"]) <- metadata
+        Metadata(object, assay = sample_metadata[assay, "Assay"]) <- metadata
 
         ## add polygons to a new assay ####
-        segments <- selected_polygon_list
-        names(segments) <- selected_label_list
+        segments <- list()
+        for(i in 1:length(selected_label_list)){
+          segments[[selected_label_list[i]]] <- data.frame(id = i, selected_polygon_list[[i]])
+        }
         coords <- t(sapply(segments, function(seg){
-          apply(seg, 2, mean)
+          apply(seg[,c("x", "y")], 2, mean)
         }, simplify = TRUE))
         new_assay <- formAssay(coords = coords, segments = segments,
                                type = "ROI",

@@ -123,26 +123,16 @@ setMethod(
 # Methods ####
 ####
 
-#' @param assay the assay name or type
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #'
 #' @rdname vrSpatialPoints
-#' @method vrSpatialPoints vrMetadata
+#' @order 3
 #'
 #' @importFrom methods slotNames
 #'
+#' @export
 vrSpatialPoints.vrMetadata <- function(object, assay = NULL) {
-
-  # points <- c(rownames(object@molecule),
-  #               rownames(object@cell),
-  #               rownames(object@spot),
-  #               rownames(object@ROI))
-
-  # # get assay names if there arent
-  # if(!is.null(assay)){
-  #   assay_names <- vrAssayNames(object, assay = assay)
-  # } else {
-  #   assay_names <- NULL
-  # }
 
   # get spatial points
   points <- unlist(lapply(methods::slotNames(object), function(x) {
@@ -171,10 +161,11 @@ vrSpatialPoints.vrMetadata <- function(object, assay = NULL) {
 #' @param object a vrMetadata object
 #' @param subset the subset statement
 #' @param samples the set of samples to subset the object
-#' @param assays the set of assays to subset the object
+#' @param assays assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param spatialpoints the set of spatial points to subset the object
 #'
 #' @method subset vrMetadata
+#' @order 3
 #'
 #' @importFrom rlang enquo
 #' @importFrom stringr str_extract
@@ -196,7 +187,6 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
     cell.metadata <- object@cell[object@cell$Sample %in% samples, ]
     spot.metadata <- object@spot[object@spot$Sample %in% samples, ]
     roi.metadata <- object@ROI[object@ROI$Sample %in% samples, ]
-    # tile.metadata <- object@tile[object@tile$Sample %in% samples, ]
     if(nrow(object@tile) > 0){
       tile.metadata <- object@tile[Sample %in% samples, ]
     } else {
@@ -241,9 +231,7 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
       }
     }
   } else if(!is.null(spatialpoints)){
-    # if(all(spatialpoints %in% vrSpatialPoints(object))){
       if(nrow(object@molecule) > 0){
-        # mol.metadata <- object@molecule[id %in% spatialpoints, ]
         data.table::setkey(object@molecule, id)
         mol.metadata <- object@molecule[J(spatialpoints), nomatch=0L]
       } else {
@@ -257,9 +245,6 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
       } else {
         tile.metadata <- data.table::data.table()
       }
-    # } else {
-    #   stop("Some spatial points are not found in the metadata and the object")
-    # }
   } else {
     stop(paste0("No assay or sample name was provided!"))
   }
@@ -275,7 +260,8 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
 #'
 #' @param metadata sample metadata of a VoltRon object
 #' @param samples the set of samples to subset the object
-#' @param assays the set of assays to subset the object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #'
 #' @noRd
 #'
@@ -386,12 +372,6 @@ merge_sampleMetadata <- function(metadata_list) {
 
 ### Assay Methods ####
 
-#' @param assay assay
-#' @param metadata a predefined metadata
-#' @param assay_name assay name
-#' @param sample sample name
-#' @param layer layer name
-#'
 #' @rdname addAssay
 #' @method addAssay vrMetadata
 #'
@@ -402,7 +382,7 @@ merge_sampleMetadata <- function(metadata_list) {
 #' @importFrom Matrix colSums
 #'
 #' @export
-#'
+#' @noRd
 addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, sample = "Sample1", layer = "Section1"){
 
   # assay info
@@ -472,11 +452,9 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
 }
 
 #' @rdname vrAssayNames
-#' @method vrAssayNames vrMetadata
-#'
+#' @order 3
 #' @importFrom methods slotNames
 #' @export
-#'
 vrAssayNames.vrMetadata <- function(object){
 
   # get assay names from metadata
@@ -577,11 +555,10 @@ updateMetadataAssay <- function(object1, object2){
 #' Change the sample names of the vrMetadata object and reorient layers if needed
 #' This functions requires the new and old sample and layer names passed from \code{changeSampleNames.VoltRon}
 #'
+#' @param sample_metadata_table the sample metadata with old and new layers and samples passed from \code{changeSampleNames.VoltRon}
+#' 
 #' @rdname changeSampleNames
 #' @method changeSampleNames vrMetadata
-#'
-#' @param object A VoltRon object
-#' @param sample_metadata_table the sample metadata with old and new layers and samples passed from \code{changeSampleNames.VoltRon}
 #'
 #' @importFrom methods slot slot<- slotNames
 #'

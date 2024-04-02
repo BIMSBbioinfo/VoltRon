@@ -16,12 +16,12 @@
 #' @param sample_name the name of the sample
 #' @param use_image if TRUE, the DAPI image will be used.
 #' @param morphology_image the name of the lowred morphology image. Default: morphology_lowres.tif
-#' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \code{generateXeniumImage}. Default: 7 (553x402)
+#' @param resolution_level the level of resolution within Xenium OME-TIFF image, see \link{generateXeniumImage}. Default: 7 (553x402)
 #' @param overwrite_resolution if TRUE, the image "file.name" will be generated again although it exists at "dir.path"
 #' @param image_name the image name of the Xenium assay, Default: main
 #' @param channel_name the channel name of the image of the Xenium assay, Default: DAPI
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
-#' @param ... additional parameters passed to \code{formVoltRon}
+#' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
 #' @importFrom utils read.csv
@@ -182,13 +182,13 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #' @param overwrite_resolution if TRUE, the image "file.name" will be generated again although it exists at "dir.path"
 #' @param output.path The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.
 #' @param file.name the name of the lowred morphology image. Default: morphology_lowres.tif
-#' @param ... additional parameters passed to the \code{EBImage::writeImage} function
+#' @param ... additional parameters passed to the \link{EBImage::writeImage} function
 #'
 #' @importFrom EBImage writeImage
 #'
 #' @details
 #' The Xenium morphology_mip.ome.tif file that is found under the outs folder comes is an hyperstack of different resolutions of the DAPI image.
-#' \code{generateXeniumImage} allows extracting only one of these layers by specifying the \code{resolution} parameter (Default: 7 for 553x402) among 1 to 8.
+#' \link{generateXeniumImage} allows extracting only one of these layers by specifying the \code{resolution} parameter (Default: 7 for 553x402) among 1 to 8.
 #' Lower incides of resolutions have higher higher resolutions, e.g. 1 for 35416x25778. Note that you may need to allocate larger memory of Java to import
 #' higher resolution images.
 #'
@@ -242,10 +242,11 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
 #' @param selected_assay selected assay from Visium
 #' @param assay_name the assay name
 #' @param sample_name the name of the sample
-#' @param image_name the image name of the Visium assay, Default: H&E
+#' @param image_name the image name of the Visium assay, Default: main
+#' @param channel_name the channel name of the image of the Visium assay, Default: H&E
 #' @param inTissue if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)
 #' @param resolution_level the level of resolution of Visium image: "lowres" (default) or "hires"
-#' @param ... additional parameters passed to \code{formVoltRon}
+#' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom magick image_read
 #' @importFrom rjson fromJSON
@@ -253,7 +254,7 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
 #'
 #' @export
 #'
-importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_name = "Visium", sample_name = NULL, image_name = "H&E", inTissue = TRUE, resolution_level = "lowres", ...)
+importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_name = "Visium", sample_name = NULL, image_name = "main", channel_name = "H&E", inTissue = TRUE, resolution_level = "lowres", ...)
 {
   # raw counts
   listoffiles <- list.files(dir.path)
@@ -298,7 +299,7 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   } else {
     stop("There are no files named 'tissue_positions.csv' in the path")
   }
-  # coords$pxl_row_in_fullres <- max(coords$pxl_row_in_fullres) - coords$pxl_row_in_fullres + min(coords$pxl_row_in_fullres)
+
   if(inTissue){
     coords <- coords[coords$in_tissue==1,]
     rawdata <- rawdata[,colnames(rawdata) %in% coords$barcode]
@@ -313,7 +314,6 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   scale_file <- paste0(dir.path, "/spatial/scalefactors_json.json")
   if(file.exists(scale_file)){
     scalefactors <- rjson::fromJSON(file = scale_file)
-    # scales <- scalefactors$tissue_lowres_scalef
     scales <- scalefactors[[paste0("tissue_", resolution_level, "_scalef")]]
     # spot.radius is the half of the diameter, but we visualize by a factor of 1.5 larger
     # params <- list(spot.radius = scalefactors$spot_diameter_fullres*scalefactors$tissue_lowres_scalef*1.5)
@@ -328,7 +328,7 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   }
 
   # create VoltRon
-  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", image_name = image_name, sample_name = sample_name, ...)
+  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", image_name = image_name, main_channel = channe_name, sample_name = sample_name, ...)
 }
 
 ####
@@ -401,7 +401,7 @@ import10Xh5 <- function(filename){
 #' @param segment_polygons if TRUE, the ROI polygons are parsed from the OME.TIFF file
 #' @param ome.tiff the OME.TIFF file of the GeoMx experiment if exists
 #' @param resolution_level the level of resolution within GeoMx OME-TIFF image, Default: 3
-#' @param ... additional parameters passed to \code{formVoltRon}
+#' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom dplyr %>% full_join
 #' @importFrom utils read.csv
@@ -770,7 +770,6 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
   # check file
   if(file.exists(ome.tiff)){
-    options(java.parameters = "-Xmx4g")
     if(grepl(".ome.tiff$|.ome.tif$", ome.tiff)){
       if (!requireNamespace('RBioFormats'))
         stop("Please install RBioFormats package to extract xml from the ome.tiff file!")
@@ -861,7 +860,6 @@ importGeoMxChannels <- function(ome.tiff, summary, imageinfo, resolution_level){
 
   # check file
   if(file.exists(ome.tiff)){
-    options(java.parameters = "-Xmx4g")
     if(grepl(".ome.tiff$|.ome.tif$", ome.tiff)){
       if (!requireNamespace('RBioFormats'))
         stop("Please install RBioFormats package to extract xml from the ome.tiff file!")
@@ -883,7 +881,7 @@ importGeoMxChannels <- function(ome.tiff, summary, imageinfo, resolution_level){
   # get frame information
   nframes <- ome.tiff@metadata$coreMetadata$imageCount
   frames <- EBImage::getFrames(ome.tiff)
-  frames <- lapply(EBImage::getFrames(ome.tiff), function(x){
+  frames <- lapply(frames, function(x){
     img <- magick::image_read(grDevices::as.raster(EBImage::as.Image(x)))
     rescaleGeoMxImage(img, summary, imageinfo, resolution_level = resolution_level)
   })
@@ -940,10 +938,10 @@ rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level){
 #' @param tiledbURI the path to the tiledb folder
 #' @param assay_name the assay name, default: CosMx
 #' @param image the reference morphology image of the CosMx assay
-#' @param image_name the image name of the CosMx assay, Default: DAPI
+#' @param image_name the image name of the CosMx assay, Default: main
 #' @param ome.tiff the OME.TIFF file of the CosMx experiment if exists
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
-#' @param ... additional parameters passed to \code{formVoltRon}
+#' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom data.table data.table
 #' @importFrom ids random_id
@@ -951,7 +949,7 @@ rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level){
 #' @export
 #'
 importCosMx <- function(tiledbURI, assay_name = "CosMx",
-                        image = NULL, image_name = "DAPI", ome.tiff = NULL, import_molecules = FALSE, ...)
+                        image = NULL, image_name = "main", ome.tiff = NULL, import_molecules = FALSE, ...)
 {
   # check tiledb and tiledbsc
   if (!requireNamespace("tiledb", quietly = TRUE))
@@ -1141,14 +1139,15 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #' @param image the path to an image file
 #' @param tile.size the size of tiles
 #' @param stack.id the id of the stack when the magick image composed of multiple layers
-#' @param ... additional parameters passed to \code{formVoltRon}
+#' @param segments Either a list of segments or a GeoJSON file. This will result in a second assay in the VoltRon object to be created
+#' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
 #' @importFrom data.table data.table
 #'
 #' @export
 #'
-importImageData <- function(image, tile.size = 10, stack.id = 1, ...){
+importImageData <- function(image, tile.size = 10, stack.id = 1, segments = NULL, ...){
 
   # get image
   if(!inherits(image, "magick-image")){
@@ -1189,6 +1188,127 @@ importImageData <- function(image, tile.size = 10, stack.id = 1, ...){
   # metadata
   metadata <- data.table(id = rownames(coords))
 
-  # create voltron object
-  formVoltRon(data = NULL, metadata = metadata, image = image, coords, main.assay = "ImageData", assay.type = "tile", params = list(tile.size = tile.size), ...)
+  # create voltron object with tiles
+  object <- formVoltRon(data = NULL, metadata = metadata, image = image, coords, main.assay = "ImageData", assay.type = "tile", params = list(tile.size = tile.size), ...)
+  
+  # check if segments are defined
+  if(is.null(segments)){
+    return(object)
+  } else {
+    
+    # check if segments are paths
+    if(inherits(segments, "character")){
+      if(grepl(".geojson$", segments)){
+        segments <- generateSegmentsFromGeoJSON(geojson.file = segments)
+      } else {
+        stop("Only lists or GeoJSON files are accepted as segments input!")
+      }
+    }
+    
+    # make coordinates out of segments
+    coords <- t(sapply(segments, function(dat){
+      apply(dat[,c("x", "y")], 2, mean)
+    }))
+    rownames(coords) <- names(segments)
+    
+    # make segment assay
+    assay <- formAssay(coords = coords, segments = segments, image = image, type = "ROI") 
+    
+    # add segments as assay
+    sample_metadata <- SampleMetadata(object)
+    object <- addAssay(object,
+                       assay = assay,
+                       metadata = data.frame(row.names = paste0(names(segments), "_Assay2")),
+                       assay_name = "ROIAnnotation",
+                       sample = sample_metadata$Sample, 
+                       layer = sample_metadata$Layer)
+    
+    # return
+    return(object)
+  }
+}
+
+
+#' generateSegmentsFromGeoJSON
+#' 
+#' The function to import segments from a json data
+#'
+#' @param geojson.file the GeoJSON file, typically generated by QuPath software
+#'
+#' @importFrom rjson fromJSON
+#' @importFrom dplyr tibble
+#' 
+#' @export
+generateSegmentsFromGeoJSON <- function(geojson.file){
+  
+  # get segments
+  if(inherits(geojson.file, "character")){
+    if(file.exists(geojson.file)){
+      segments <- rjson::fromJSON(file = geojson.file)
+    } else {
+      stop("geojson.file doesn't exist!")
+    }
+  } else {
+    stop("geojson.file should be the path to the GeoJSON file!")
+  }
+  
+  # parse polygons as segments/ROIs
+  segments <- lapply(segments, function(x){
+    type <- x$geometry$type
+    poly <- x$geometry$coordinates
+    if(grepl("Polygon", type)){
+      poly <- as.data.frame(matrix(unlist(poly[[1]]), ncol = 2, byrow = TRUE))
+    }
+    colnames(poly) <- c("x", "y")
+    dplyr::tibble(poly)
+  })
+  
+  # attach names to segments
+  segments <- mapply(function(x, sgt){
+    dplyr::tibble(data.frame(id = x, sgt))
+  }, 1:length(segments), segments, SIMPLIFY = FALSE)
+  
+  # generate ROI names
+  names(segments) <- paste0("ROI", 1:length(segments))
+
+  # return
+  return(segments)
+}
+
+#' generateSegmentsFromGeoJSON
+#' 
+#' The function to import segments from a json data
+#'
+#' @param segments the segments, typically from \link{vrSegments}.
+#' @param geojson.file the GeoJSON file, typically to be used by QuPath software.
+#'
+#' @importFrom rjson fromJSON
+#' 
+#' @export
+generateGeoJSONFromSegments <- function(segments, geojson.file){
+  
+  if(!requireNamespace('geojsonR'))
+    stop("Please install geojsonR package for using geojsonR functions")
+  
+  # get segments
+  if(!inherits(geojson.file, "character")){
+    stop("geojson.file should be the path to the GeoJSON file!")
+  } 
+  
+  # reshape segments
+  segments <- mapply(function(id, sgt){
+    poly <- as.list(data.frame(t(as.matrix(sgt[,c("x", "y")]))))
+    names(poly) <- NULL
+    init <- geojsonR::TO_GeoJson$new()
+    geometry <- init$Polygon(list(poly), stringify = FALSE)
+    feature <- list(id = id, geometry = geometry, properties = list(objectType = "annotation"))
+    feature
+  }, names(segments), segments, SIMPLIFY = FALSE, USE.NAMES = FALSE)
+
+  # save as json
+  segments <- rjson::toJSON(segments)
+  write(segments, file = geojson.file)
+  
+  # return
+  return(segments)
 }

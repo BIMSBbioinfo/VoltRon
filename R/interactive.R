@@ -8,7 +8,6 @@
 
 #' vrSpatialPlotInteractive
 #'
-#'
 #' @inheritParams shiny::runApp
 #' @param plot_g the ggplot plot
 #' @importFrom rstudioapi viewer
@@ -99,17 +98,10 @@ mod_app_server <- function(id, plot_g = NULL) {
 #'
 #' @param zarr.file The zarr file of a VoltRon object
 #' @param group.by a grouping label for the spatial entities
-#' @param plot.segments plot segments instead of points
-#' @param group.ids a subset of categories defined with in the grouping label \code{group.by}
-#' @param assay the assay name
 #' @param reduction The name of the reduction to visualize an embedding alongside with the spatial plot.
-#' @param background the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)
-#' @param reg if TRUE, the registered coordinates will be used
-#' @param crop whether to crop an image of a spot assay
 #'
 #' @noRd
-vrSpatialPlotVitessce <- function(zarr.file, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, assay = NULL, reduction = "umap",
-                                  background = NULL, reg = FALSE, crop = FALSE) {
+vrSpatialPlotVitessce <- function(zarr.file, group.by = "Sample", reduction = "umap") {
 
   # check package
   if (!requireNamespace('vitessceR'))
@@ -186,7 +178,7 @@ py_env <- basilisk::BasiliskEnvironment(
 ## Conversion into Zarr for Vitessce ####
 ####
 
-#' Title
+#' vrImage_to_zarr
 #'
 #' @param vrimage VoltRon image
 #' @param out_path output path to ome.zarr
@@ -197,8 +189,7 @@ py_env <- basilisk::BasiliskEnvironment(
 #' @importFrom magick image_raster
 #' @importFrom grDevices col2rgb
 #'
-#' @export
-#'
+#' @noRd
 vrImage_to_zarr <- function (vrimage, out_path, image_id = "image_1")
 {
   img_arr <- apply(as.matrix(magick::image_raster(vrimage, tidy = FALSE)), c(1, 2), col2rgb)
@@ -227,52 +218,5 @@ vrImage_to_zarr <- function (vrimage, out_path, image_id = "image_1")
                                                                  obj_list(label = "b", color = "0000FF", window = default_window))))
     return(TRUE)
   }, img_arr = img_arr, image_id = image_id, out_path = out_path)
-  return(success)
-}
-
-vr_to_anndata_zarr <- function (object, out_path)
-{
-  # object data
-  datax <- vrData(object, norm = FALSE)
-  metadata <- Metadata(object)
-  # feature.metadata <- vrFeatureData(object)
-
-  # obsm
-  obsm <- list()
-  coords <- vrCoordinates(object)
-  obsm[["spatial"]] <- t(as.matrix(coords))
-  if (length(vrEmbeddingNames(object)) > 0) {
-    for (embed_name in vrEmbeddingNames(object)) {
-      embedding <- vrEmbeddings(object, type = embed_name)
-      obsm[[embed_name]] <- t(as.matrix(embedding))
-    }
-  }
-
-  proc <- basilisk::basiliskStart(py_env)
-  on.exit(basilisk::basiliskStop(proc))
-  success <- basilisk::basiliskRun(proc, function(datax, metadata, obsm, out_path) {
-    anndata <- reticulate::import("anndata")
-    zarr <- reticulate::import("zarr")
-    make_numpy_friendly <- function(x, transpose = TRUE) {
-      if (transpose) {
-        x <- Matrix::t(x)
-      }
-      if (DelayedArray::is_sparse(x)) {
-        methods::as(x, "dgCMatrix")
-      }
-      else {
-        as.matrix(x)
-      }
-    }
-    X <- make_numpy_friendly(datax)
-    adata <- anndata$AnnData(X = X, obs = metadata)
-    # adata <- anndata$AnnData(X = X, obs = metadata, var = feature.metadata)
-    if (length(obsm) > 0) {
-      obsm <- lapply(obsm, make_numpy_friendly)
-      adata$obsm <- obsm
-    }
-    adata$write_zarr(out_path)
-    return(TRUE)
-  }, datax = datax, metadata = metadata, obsm = obsm, out_path = out_path)
   return(success)
 }

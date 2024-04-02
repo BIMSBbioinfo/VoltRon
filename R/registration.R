@@ -9,7 +9,7 @@
 #' @param object_list a list of VoltRon (or Seurat) objects
 #' @param reference_spatdata a reference spatial data set, used only if \code{object_list} is \code{NULL}
 #' @param query_spatdata a query spatial data set, used only if \code{object_list} is \code{NULL}
-#' @param keypoints keypoints tables for each registration
+#' @param keypoints a list of tables, each points to matching keypoints from registered images.
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs show hide
@@ -17,7 +17,6 @@
 #' @importFrom waiter useWaiter
 #'
 #' @export
-#'
 registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL) {
 
   ## Importing images ####
@@ -41,11 +40,24 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
   }
 
   # get images from the list of objects
-  # orig_image_query_list <- unlist(lapply(spatdata_list, vrImages))
-  orig_image_query_list <- unlist(lapply(spatdata_list, function(spat){
-    vrImages(spat, assay = vrAssayNames(spat))
-  }))
-
+  # orig_image_query_list <- unlist(lapply(spatdata_list, function(spat){
+  #   vrImages(spat, assay = vrAssayNames(spat))
+  # }))
+  orig_image_query_list_full <- lapply(spatdata_list, function(spat){
+    assayname <- vrAssayNames(spat)
+    channel_names <- vrImageChannelNames(spat[[assayname]])
+    sapply(channel_names, function(chan){
+      vrImages(spat, assay = assayname, channel = chan)
+    }, USE.NAMES = TRUE)
+  })
+  orig_image_query_list <- lapply(orig_image_query_list_full, function(spat_img) {
+    return(spat_img[[1]])
+  })
+  orig_image_channelname_list <- lapply(spatdata_list, function(spat){
+    assayname <- vrAssayNames(spat)
+    vrImageChannelNames(spat[[assayname]])
+  })
+  
   ## UI and Server ####
 
   # get the ui and server
@@ -114,7 +126,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
                       column(6,
 
                              # Reference Images
-                             getImageTabPanels(length(orig_image_query_list), type = "ref"),
+                             getImageTabPanels(length(orig_image_query_list), orig_image_channelname_list, type = "ref"),
 
                              br(),
 
@@ -126,7 +138,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
                       column(6,
 
                              # Query Images
-                             getImageTabPanels(length(orig_image_query_list), type = "query"),
+                             getImageTabPanels(length(orig_image_query_list), orig_image_channelname_list, type = "query"),
 
                              br(),
 
@@ -162,15 +174,18 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
       registration_mapping_list <- initiateMappings(length(spatdata_list))
       getManualRegisteration(registration_mapping_list, spatdata_list, orig_image_query_list, xyTable_list,
                              centre, register_ind, input, output, session)
-      getAutomatedRegisteration(registration_mapping_list, spatdata_list, orig_image_query_list,
+      # getAutomatedRegisteration(registration_mapping_list, spatdata_list, orig_image_query_list, orig_image_channelname_list,
+      #                           centre, register_ind, input, output, session)
+      getAutomatedRegisteration(registration_mapping_list, spatdata_list, orig_image_query_list_full, orig_image_channelname_list,
                                 centre, register_ind, input, output, session)
 
       ## Main observable ####
       observe({
 
         # output the list of query images
-        getImageOutput(orig_image_query_list, orig_image_query_info_list, xyTable_list, zoom_list, centre, input, output, session)
-
+        # getImageOutput(orig_image_query_list, orig_image_query_info_list, xyTable_list, zoom_list, centre, input, output, session)
+        getImageOutput(orig_image_query_list_full, orig_image_query_info_list, xyTable_list, zoom_list, centre, input, output, session)
+        
       })
 
       ## Return values for the shiny app ####
@@ -206,16 +221,17 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
 #' The UI for a set of reference/query spatial slides
 #'
 #' @param len_images the number of query images
+#' @param channel_names the list of channel names for each image
 #' @param type Either reference (ref) or query (query) image
 #'
 #' @noRd
-getImageTabPanels <- function(len_images, type){
+getImageTabPanels <- function(len_images, channel_names, type){
 
   # get panel label
   label <- ifelse(type == "ref", "Ref. ", "Query ")
 
   # call panels
-  do.call(tabsetPanel, c(id=paste0('image_tab_panel_',type),lapply(1:len_images, function(i) {
+  do.call(tabsetPanel, c(id=paste0('image_tab_panel_',type), lapply(1:len_images, function(i) {
     tabPanel(paste0(label,i),
              br(),
              fluidRow(
@@ -224,6 +240,7 @@ getImageTabPanels <- function(len_images, type){
                column(4, selectInput(paste0("negate_", type, "_image",i), "Negate Image:", choices = c("No", "Yes"), selected = "No"))
              ),
              fluidRow(
+               column(4, selectInput(paste0("channel_", type, "_image",i), "Channel:", choices = channel_names[[i]])),
                column(4, sliderInput(paste0("scale_", type, "_image",i), "Scale Parameter", min = 0, max = 1,  value = 1)),
                textOutput(paste0("scaleinfo_", type, "_image",i))
              ),
@@ -504,7 +521,7 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
 #'
 #' Applying a perspective transformation to the VoltRon object
 #'
-#' @param object A VoltRon objects
+#' @param object a VoltRon objects
 #' @param mapping a list of transformation matrices
 #' @param reference_image the reference image
 #' @param input input
@@ -534,19 +551,8 @@ applyPerspectiveTransform <- function(object,
 
   if(reg_mode == "manual"){
 
-    # # images
-    # ref_image <- reference_image
-    # query_image <- vrImages(object, assay = assay)
-    #
-    # # image info
-    # query_info <- magick::image_info(query_image)
-    # ref_info <- magick::image_info(ref_image)
-
     # get registered coordinates
-    # coords_reg <- coords
-    # coords_reg[,2] <- query_info$height - coords_reg[,2]
     coords_reg <- applyTransform(coords, mapping$reference, mapping$query)
-    # coords_reg[,2] <- ref_info$height - coords_reg[,2]
     rownames(coords_reg) <- rownames(coords)
     colnames(coords_reg) <- colnames(coords)
 
@@ -969,7 +975,9 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
         keypoints <- keypoints_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]]
 
         # transform image and keypoints
-        img <- transformImageKeypoints(image_list[[i]], keypoints, paste0(type, "_image",i), input, session)
+        # img <- transformImageKeypoints(image_list[[i]], keypoints, paste0(type, "_image",i), input, session)
+        img <- image_list[[i]][[input[[paste0("channel_", type, "_image", i)]]]]
+        img <- transformImageKeypoints(img, keypoints, paste0(type, "_image",i), input, session)
         img <- imageKeypoint(magick::image_ggplot(img$image), img$keypoints) +
           coord_equal(xlim = zoom_list[[paste0(i)]][[type]]$x, ylim = zoom_list[[paste0(i)]][[type]]$y, ratio = 1)
         return(img)
@@ -1196,7 +1204,6 @@ initiateMappings <- function(len_images, input, output, session){
 #' @param session shiny session
 #'
 #' @import ggplot2
-#' @importFrom raster as.raster
 #' @importFrom magick image_write image_join image_read image_resize
 #'
 #' @noRd
@@ -1346,6 +1353,7 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
 #'
 #' @importFrom magick image_read image_data
 #'
+#' @export
 getRcppManualRegistration <- function(query_image, ref_image, query_landmark, reference_landmark) {
   ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
   query_image_rast <- magick::image_data(query_image, channels = "rgb")
@@ -1359,221 +1367,6 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
 }
 
 ####
-## Old Thin Plate Spline (TPS) Methods ####
-####
-
-#' #' computeManualPairwiseTransform_old
-#' #'
-#' #' Computing transformation matrix of manual registration
-#' #'
-#' #' @param image_list the list of images
-#' #' @param keypoints_list the list of keypoint matrices
-#' #' @param query_ind the index of the query image
-#' #' @param ref_ind the index of the reference image
-#' #'
-#' #' @noRd
-#' #'
-#' computeManualPairwiseTransform_old <- function(image_list, keypoints_list, query_ind, ref_ind){
-#'
-#'   # determine the number of transformation to map from query to the reference
-#'   indices <- query_ind:ref_ind
-#'   mapping <- rep(indices,c(1,rep(2,length(indices)-2),1))
-#'   mapping <- matrix(mapping,ncol=2,byrow=TRUE)
-#'
-#'   # reference and target landmarks/keypoints
-#'   mapping_list <- list()
-#'   aligned_image <- image_list[[query_ind]]
-#'   for(kk in 1:nrow(mapping)){
-#'     cur_map <- mapping[kk,]
-#'     ref_image <- image_list[[cur_map[2]]]
-#'     if(which.min(cur_map) == 1){
-#'       key_ind <- paste0(cur_map[1], "-", cur_map[2])
-#'       keypoints <- keypoints_list[[key_ind]]
-#'       target_landmark <- as.matrix(keypoints[["ref"]][,c("x","y")])
-#'       reference_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
-#'     } else {
-#'       key_ind <- paste0(cur_map[2], "-", cur_map[1])
-#'       keypoints <- keypoints_list[[key_ind]]
-#'       reference_landmark <- as.matrix(keypoints[["ref"]][,c("x","y")])
-#'       target_landmark <- as.matrix(keypoints[["query"]][,c("x","y")])
-#'     }
-#'
-#'     if(which.max(cur_map) == 1){
-#'       ref_label = "ref"
-#'       query_label = "query"
-#'     } else {
-#'       ref_label = "query"
-#'       query_label = "ref"
-#'     }
-#'
-#'     # compute and get transformation matrix
-#'     mapping_list[[kk]] <- computeTPSTransform(reference_landmark, target_landmark)
-#'
-#'     # get registered image (including all channels)
-#'     aligned_image <- getManualRegisteredImage(aligned_image, ref_image, list(mapping_list[[kk]]))
-#'   }
-#'
-#'   return(list(mapping = mapping_list, aligned_image = aligned_image))
-#' }
-#'
-#' #' computeTPSTransform
-#' #'
-#' #' calculate an affine transformation matrix, adapted from \code{Morpho} package.
-#' #'
-#' #' @param x fix landmarks from a k x m matrix
-#' #' @param y moving landmarks from a k x m matrix
-#' #'
-#' #' @noRd
-#' computeTPSTransform <- function(x, y)
-#' {
-#'   xrows <- rowSums(x)
-#'   yrows <- rowSums(y)
-#'   xbad <- which(as.logical(is.na(xrows) + is.nan(xrows)))
-#'   ybad <- which(as.logical(is.na(yrows) + is.nan(yrows)))
-#'   bad <- unique(c(xbad, ybad))
-#'   if (length(bad)) {
-#'     message("some landmarks are missing and ignored for calculating the transform")
-#'     x <- x[-bad, , drop = FALSE]
-#'     y <- y[-bad, , drop = FALSE]
-#'   }
-#'   m <- ncol(y)
-#'   L <- CreateL(y, lambda = 1e-08)
-#'   m2 <- rbind(x, matrix(0, m + 1, m))
-#'   coeff <- try(as.matrix(base::solve(L, m2, tol = 1e-20)),
-#'                silent = TRUE)
-#'   if (inherits(coeff, "try-error"))
-#'     coeff <- try(as.matrix(Matrix::solve(L, m2)))
-#'   trafo <- list(refmat = y, tarmat = x, coeff = coeff)
-#'   return(trafo)
-#' }
-#'
-#' #' Create Matrices necessary for Thin-Plate Spline
-#' #'
-#' #' Create (Bending Engergy) Matrices necessary for Thin-Plate Spline, and sliding of Semilandmarks, adapted from \code{Morpho} package.
-#' #'
-#' #' @param matrix k x 3 or k x 2 matrix containing landmark coordinates.
-#' #' @param lambda numeric: regularization factor
-#' #'
-#' #' @return {Matrix L as specified in Bookstein (1989)}
-#' #' @note This function is not intended to be called directly - except for playing around to grasp the mechansims of the Thin-Plate Spline.
-#' #'
-#' #' @references Gunz, P., P. Mitteroecker, and F. L. Bookstein. 2005. Semilandmarks in Three Dimensions, in Modern Morphometrics in Physical
-#' #' Anthropology. Edited by D. E. Slice, pp. 73-98. New York: Kluwer
-#' #' Academic/Plenum Publishers.
-#' #'
-#' #' Bookstein FL. 1989. Principal Warps: Thin-plate splines and the
-#' #' decomposition of deformations. IEEE Transactions on pattern analysis and
-#' #' machine intelligence 11(6).
-#' #'
-#' #' @importFrom Matrix forceSymmetric
-#' #'
-#' #' @noRd
-#' CreateL <- function(matrix,lambda=1e-8) {
-#'   out <- list()
-#'   k <- nrow(matrix)
-#'   m <- ncol(matrix)
-#'   Q <- cbind(1,matrix)
-#'   if (!is.matrix(matrix) || !is.numeric(matrix))
-#'     stop("matrix must be a numeric matrix")
-#'   K <- .Call("createL",matrix,1)
-#'   L <- matrix(0,k+m+1,k+m+1)
-#'   if (lambda !=0 )
-#'     diag(K) <- lambda
-#'   L[1:k,1:k] <- K
-#'   L[(k+1):(k+m+1),1:k] <- t(Q)
-#'   L[1:k,(k+1):(k+m+1)] <- Q
-#'   L <- Matrix::forceSymmetric(L)
-#'   return(L)
-#' }
-#'
-#' #' applyTPSTransform_old
-#' #'
-#' #' apply affine transformation to data, adapted from \code{Morpho} package.
-#' #'
-#' #' @param x matrix
-#' #' @param trafo 4x4 transformation matrix or an object of class "tpsCoeff"
-#' #'
-#' #' @noRd
-#' #'
-#' applyTPSTransform_old <- function(x,trafo) {
-#'   x <- apply(x, 2, as.numeric)
-#'   x <- cbind(1,x)
-#'   splM <- .Call("tpsfx",trafo$refmat,  x, t(trafo$coeff))
-#'   return(splM)
-#' }
-#'
-#' #' getManualRegisteredImage
-#' #'
-#' #' Generating the manually registered images
-#' #'
-#' #' @param query_image query image
-#' #' @param ref_image reference image
-#' #' @param transmatrix the transformation matrix
-#' #'
-#' #' @importFrom raster rasterize focal res stack extent
-#' #' @importFrom terra rast values
-#' #' @importFrom grDevices rgb
-#' #'
-#' #' @noRd
-#' getManualRegisteredImage <- function(query_image, ref_image, transmatrix){
-#'
-#'   # get image as raster
-#'   ref_image_raster <- as.raster(ref_image) |> as.matrix() |> terra::rast()
-#'   query_image_raster <- as.raster(query_image) |> as.matrix() |> terra::rast()
-#'   if(terra::nlyr(query_image_raster) == 1){
-#'     query_image_raster <- raster::stack(query_image_raster)
-#'     query_image_raster <- raster::stack(query_image_raster, query_image_raster, query_image_raster)
-#'   } else {
-#'     query_image_raster <- raster::stack(query_image_raster)
-#'   }
-#'
-#'   # prepare image
-#'   imageEx <- raster::extent(raster::stack(ref_image_raster))
-#'   imageRes <- raster::res(raster::stack(ref_image_raster))
-#'   query_image_raster_1 <- raster::as.data.frame(query_image_raster[[1]], xy = TRUE)
-#'   query_image_raster_2 <- raster::as.data.frame(query_image_raster[[2]], xy = TRUE)
-#'   query_image_raster_3 <- raster::as.data.frame(query_image_raster[[3]], xy = TRUE)
-#'
-#'   # apply transformation as many as it is needed
-#'   query_image_raster_1_t <- as.matrix(query_image_raster_1)[,1:2]
-#'   for(trans in transmatrix){
-#'     query_image_raster_1_t <- applyTPSTransform(query_image_raster_1_t, trans)
-#'   }
-#'
-#'   # finalize image
-#'   r <- raster::raster(nrow = dim(query_image_raster)[1], ncol = dim(query_image_raster)[2], resolution = c(1,1))
-#'   raster::extent(r) <- imageEx
-#'   raster::res(r) <- imageRes
-#'   query_image_raster_1_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_1[,3], r, fun = mean)
-#'   query_image_raster_1_trf <- raster::focal(query_image_raster_1_tr,
-#'                                             w = matrix(1, nrow = 3, ncol = 3),
-#'                                             fun = fill.na, pad = TRUE, na.rm = FALSE)
-#'   query_image_raster_1_trf <- terra::values(terra::rast(query_image_raster_1_trf, crs = ""))
-#'   query_image_raster_1_trf[is.nan(query_image_raster_1_trf)] <- 0
-#'   query_image_raster_2_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_2[,3], r, fun = mean)
-#'   query_image_raster_2_trf <- raster::focal(query_image_raster_2_tr,
-#'                                             w = matrix(1, nrow = 3, ncol = 3),
-#'                                             fun = fill.na, pad = TRUE, na.rm = FALSE)
-#'   query_image_raster_2_trf <- terra::values(terra::rast(query_image_raster_2_trf, crs = ""))
-#'   query_image_raster_2_trf[is.nan(query_image_raster_2_trf)] <- 0
-#'   query_image_raster_3_tr <- raster::rasterize(query_image_raster_1_t, field = query_image_raster_3[,3], r, fun = mean)
-#'   query_image_raster_3_trf <- raster::focal(query_image_raster_3_tr,
-#'                                             w = matrix(1, nrow = 3, ncol = 3),
-#'                                             fun = fill.na, pad = TRUE, na.rm = FALSE)
-#'   query_image_raster_3_trf <- terra::values(terra::rast(query_image_raster_3_trf, crs = ""))
-#'   query_image_raster_3_trf[is.nan(query_image_raster_3_trf)] <- 0
-#'
-#'   # turn RGB to HEX
-#'   query_image_raster_1_trf <- mapply(function(r,g,b) {
-#'     rgb(r, g, b, maxColorValue = 255)
-#'   }, query_image_raster_1_trf, query_image_raster_2_trf, query_image_raster_3_trf, SIMPLIFY = TRUE)
-#'   query_image_raster_1_trf <- matrix(query_image_raster_1_trf, nrow = nrow(ref_image_raster), ncol = ncol(ref_image_raster), byrow = TRUE)
-#'   query_image <- magick::image_read(query_image_raster_1_trf)
-#'
-#'   return(query_image)
-#' }
-
-####
 # Automated Image Registration ####
 ####
 
@@ -1584,6 +1377,7 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
 #' @param registration_mapping_list a list of mapping matrices used for registering VoltRon objects
 #' @param spatdata_list a list of Spatial data object of the query images
 #' @param image_list the list of query images
+#' @param channel_names the list of channel names for each image
 #' @param centre center image index
 #' @param register_ind query image indices
 #' @param input shiny input
@@ -1596,7 +1390,7 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
 #' @importFrom waiter waiter_show waiter_hide spin_ring
 #'
 #' @noRd
-getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, image_list, centre, register_ind,
+getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, image_list, channel_names, centre, register_ind,
                                       input, output, session){
 
   # the number of registrations
@@ -1624,7 +1418,7 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
         incProgress(1/length(register_ind), detail = paste("Registering Image", i, sep = " "))
 
         # get a sequential mapping between a query and reference image
-        results <- computeAutomatedPairwiseTransform(image_list, query_ind = i, ref_ind = centre, input)
+        results <- computeAutomatedPairwiseTransform(image_list, channel_names, query_ind = i, ref_ind = centre, input)
 
         # save transformation matrix
         registration_mapping_list[[paste0(i)]] <- results$mapping
@@ -1687,13 +1481,14 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
 #' Computing the registration matrix necessary for automated registration
 #'
 #' @param image_list the list of images
+#' @param channel_names the list of channel names for each image
 #' @param query_ind the index of the query image
 #' @param ref_ind the index of the reference image
 #' @param input input
 #'
 #' @noRd
 #'
-computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, input){
+computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_ind, ref_ind, input){
 
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -1716,6 +1511,10 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
       query_label = "ref"
     }
 
+    # get channels 
+    aligned_image <- aligned_image[[input[[paste0("channel_", query_label, "_image", cur_map[1])]]]]
+    ref_image <- ref_image[[input[[paste0("channel_", ref_label, "_image", cur_map[2])]]]]
+    
     # scale parameters
     query_scale <- input[[paste0("scale_", query_label, "_image", cur_map[1])]]
     ref_scale <- input[[paste0("scale_", ref_label, "_image", cur_map[2])]]
@@ -1739,7 +1538,6 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
     transmat <- solve(diag(c(ref_scale,ref_scale,1))) %*% reg$transmat %*% diag(c(query_scale,query_scale,1))
 
     # return images and transformation matrix
-    # mapping[[kk]] <- reg$transmat
     mapping[[kk]] <- transmat
     dest_image <- reg$dest_image
     aligned_image <- reg$aligned_image
@@ -1768,7 +1566,7 @@ computeAutomatedPairwiseTransform <- function(image_list, query_ind, ref_ind, in
 #'
 #' @importFrom magick image_read image_data
 #'
-#'
+#' @export
 getRcppAutomatedRegistration <- function(ref_image, query_image,
                                          GOOD_MATCH_PERCENT = 0.15, MAX_FEATURES = 500,
                                          invert_query = FALSE, invert_ref = FALSE,
@@ -1800,7 +1598,8 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
 #' @param hmatrix the homography matrix
 #'
 #' @importFrom magick image_read image_data
-#'
+#' 
+#' @export
 getRcppWarpImage <- function(ref_image, query_image, hmatrix){
   ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
   query_image_rast <- magick::image_data(query_image, channels = "rgb")

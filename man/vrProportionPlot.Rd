@@ -11,14 +11,14 @@ vrProportionPlot(
   split.by = NULL,
   split.method = "facet_wrap",
   ncol = 2,
-  nrow = NULL,
-  ...
+  nrow = NULL
 )
 }
 \arguments{
-\item{object}{A VoltRon object}
+\item{object}{a VoltRon object}
 
-\item{assay}{assay name}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{x.label}{labels of the x axis}
 
@@ -26,11 +26,9 @@ vrProportionPlot(
 
 \item{split.method}{either facet_grid or facet_wrap, not affected if \code{split.by} is \code{NULL}}
 
-\item{ncol}{column wise number of plots, for \code{ggarrange}}
+\item{ncol}{column wise number of plots, for \link{ggarrange}}
 
-\item{nrow}{row wise number of plots, for \code{ggarrange}}
-
-\item{...}{additional parameters passed to \code{getVariableFeatures}}
+\item{nrow}{row wise number of plots, for \link{ggarrange}}
 }
 \description{
 vrPercentagePlot

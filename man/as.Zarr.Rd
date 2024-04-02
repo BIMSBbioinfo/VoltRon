@@ -6,21 +6,19 @@
 \alias{as.Zarr.magick-image}
 \title{as.Zarr}
 \usage{
-as.Zarr(object, out_path, image_id, ...)
+as.Zarr(object, ...)
 
 \method{as.Zarr}{VoltRon}(object, out_path, image_id = "image_1")
 
 \method{as.Zarr}{`magick-image`}(object, out_path, image_id = "image_1")
 }
 \arguments{
-\item{object}{a VoltRon image}
+\item{object}{a VoltRon or magick-image object}
 
-\item{out_path}{output path to ome.zarr}
+\item{out_path}{output path to zarr file}
 
 \item{image_id}{image name}
-
-\item{...}{Arguments passed to other methods}
 }
 \description{
-Generic methods for conversion into a Seurat object
+Generic methods to save VoltRon or magick-image objects as zarr files
 }

@@ -4,25 +4,26 @@
 \alias{getFeatures}
 \alias{getFeatures.VoltRon}
 \alias{getFeatures.vrAssay}
-\title{Get spatially variable feature}
+\title{getFeatures}
 \usage{
-getFeatures(object, ...)
+getFeatures(object, assay = NULL, max.count = 1, n = 3000)
 
 \method{getFeatures}{VoltRon}(object, assay = NULL, ...)
 
 \method{getFeatures}{vrAssay}(object, max.count = 1, n = 3000)
 }
 \arguments{
-\item{object}{An object}
+\item{object}{a VoltRon or vrAssay object}
 
-\item{...}{Arguments passed to other methods}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{assay}{assay}
+\item{max.count}{maximum count (across spatial points) for low count filtering}
 
-\item{max.count}{max count (maximum across spatial points) for low count filtering}
+\item{n}{the top number of variable features}
 
-\item{n}{the number of features}
+\item{...}{arguements passed to other methods}
 }
 \description{
-get spatially variable features in an assay
+Get variable features of assays
 }

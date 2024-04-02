@@ -5,15 +5,13 @@
 \alias{vrSampleNames.vrMetadata}
 \title{Get Sample names}
 \usage{
-vrSampleNames(object, ...)
+vrSampleNames(object)
 
 \method{vrSampleNames}{vrMetadata}(object)
 }
 \arguments{
-\item{object}{An object}
-
-\item{...}{Arguments passed to other methods}
+\item{object}{a vrMetadata object}
 }
 \description{
-Given a VoltRon object, give names of samples
+Given a vrMetadata object, give names of samples
 }

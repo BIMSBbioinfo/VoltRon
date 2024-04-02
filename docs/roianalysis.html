@@ -901,6 +901,52 @@ vrBarPlot(GeoMxR1_decon_subset, features = c(&quot;stromal&quot;, &quot;macropha
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap_fibrotic.png" class="center"></p>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_barplot_prop_fibrotic.png" class="center"></p>
 </div>
+<div id="he-image-integration" class="section level2">
+<h2>H&amp;E Image Integration</h2>
+<p>Questions may arise when these ROI that are initially annotated as
+fibrotic regions may in fact be fibrotic. VoltRon provides advanced
+image registration workflows which we can use to H&amp;E images of from
+the same TMA blocks where GeoMx slides were established.</p>
+<p>We first import the H&amp;E image of the prolonged case 4 TMA section
+using the <strong>importImageData</strong> function. This will import
+the H&amp;E image as a standalone VoltRon object. For more information
+on image-based VoltRon objects, see <a
+href="pixelanalysis.html">here</a>.</p>
+<pre class="r watch-out"><code>vrHEimage &lt;- importImageData(&quot;data/GeoMx/HE/prolonged_case4_HE.png&quot;, image_name = &quot;H&amp;E&quot;)
+vrImages(vrHEimage, scale.perc = 40)</code></pre>
+<p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/prolonged_case4_HE.png" class="center"></p>
+<p><br></p>
+<p>We can now register the GeoMx slide with the newly imported H&amp;E
+based VoltRon object. Since two images are associated with TMA sections
+that are not adjacent, we have to rely on the localization of vessels
+visible in both images for alignment. VoltRon allows manipulating
+multiple channels of an image object two choose the best background
+image for manual landmark selection. For more information on both manual
+and automated registration of VoltRon objects, see <a
+href="registration.html">here</a>.</p>
+<pre class="r watch-out"><code>GeoMxReg &lt;- registerSpatialData(reference_spatdata = GeoMxR1_subset, query_spatdata = vrHEimage)</code></pre>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_manualregistration.png" class="center"></p>
+<p>The result of the registration is a list of registered VoltRon
+objects which we can use for parsing the registered image as well. In
+this case, the second element of the resulting list would be the
+registered H&amp;E based VoltRon object. We can also exchange images
+where the H&amp;E image now is registered to the perspective as the
+GeoMx channels, and can be defined as a new channel in the original
+GeoMx object.</p>
+<pre class="r watch-out"><code>vrHEimage_reg &lt;- geomx_reg$registered_spat[[2]]
+vrImages(GeoMxR1_subset[[&quot;Assay1&quot;]], name = &quot;image_1&quot;, channel = &quot;H&amp;E&quot;) &lt;- vrImages(vrHEimage_reg, name = &quot;H&amp;E_reg&quot;)</code></pre>
+<p>We can now visualize the ROIs and their annotations where the
+registered H&amp;E visible in the background. We define the image key
+<strong>image_1</strong> and the channel name
+<strong>H&amp;E</strong>.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(GeoMxR1_subset, group.by = &quot;ROI.type&quot;, alpha = 0.7, background = c(&quot;image_1&quot;, &quot;H&amp;E&quot;))</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_spatialplot_withHE.png" class="center"></p>
+<p>Interactive Visualization can also be used to zoom in to ROIs and
+investigate the pathology associated with GeoMx ROIs labeled as
+fibrotic.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(GeoMxR1_subset, group.by = &quot;ROI.type&quot;, alpha = 0.7, background = c(&quot;image_1&quot;, &quot;H&amp;E&quot;), interactive = TRUE)</code></pre>
+<p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_spatialplot_withHE_interactive.png" class="center"></p>
+</div>
 </div>
 
 

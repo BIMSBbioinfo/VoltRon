@@ -18,7 +18,7 @@ registerSpatialData(
 
 \item{query_spatdata}{a query spatial data set, used only if \code{object_list} is \code{NULL}}
 
-\item{keypoints}{keypoints tables for each registration}
+\item{keypoints}{a list of tables, each points to matching keypoints from registered images.}
 }
 \description{
 A mini shiny app to for registering images and spatial coordinates of multiple consequtive spatial datasets

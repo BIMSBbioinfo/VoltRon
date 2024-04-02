@@ -2,54 +2,51 @@
 % Please edit documentation in R/generics.R, R/image.R
 \name{vrImages}
 \alias{vrImages}
-\alias{vrImages<-}
 \alias{vrImages.VoltRon}
 \alias{vrImages.vrAssay}
-\alias{vrImages<-.vrAssay}
 \alias{vrImages.vrImage}
+\alias{vrImages<-.vrAssay}
 \alias{vrImages<-.vrImage}
 \title{vrImages}
 \usage{
-vrImages(object, ...)
-
-vrImages(object, ...) <- value
-
-\method{vrImages}{VoltRon}(object, assay = NULL, scale.perc = 100, ...)
-
-\method{vrImages}{vrAssay}(
+vrImages(
   object,
+  assay = NULL,
   name = NULL,
   reg = FALSE,
   channel = NULL,
-  scale.perc = 100,
-  ...
+  as.raster = FALSE,
+  scale.perc = 100
 )
 
-\method{vrImages}{vrAssay}(object, name = NULL, channel = NULL, reg = FALSE, ...) <- value
+\method{vrImages}{VoltRon}(object, assay = NULL, ...)
+
+\method{vrImages}{vrAssay}(object, name = NULL, reg = FALSE, channel = NULL, ...)
 
 \method{vrImages}{vrImage}(object, channel = NULL, as.raster = FALSE, scale.perc = 100)
+
+\method{vrImages}{vrAssay}(object, name = NULL, channel = NULL, reg = FALSE) <- value
 
 \method{vrImages}{vrImage}(object, channel = NULL) <- value
 }
 \arguments{
-\item{object}{A vrAssay object}
+\item{object}{a VoltRon, vrAssay or vrImage object}
 
-\item{...}{arguements passed to \code{vrImages.vrImage}}
-
-\item{value}{new image}
-
-\item{assay}{assay}
-
-\item{scale.perc}{scale percentage if lower resolution image needed}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{name}{the name of the main image}
 
-\item{reg}{TRUE if registered images are assigned}
+\item{reg}{TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested}
 
-\item{channel}{the name of the channel associated with the main image}
+\item{channel}{the name of the channel associated with the image}
 
-\item{as.raster}{return as a raster}
+\item{as.raster}{return as raster}
+
+\item{scale.perc}{scale percentage if lower resolution image needed}
+
+\item{...}{arguements passed to other methods}
 }
 \description{
-Get images of a VoltRon assay
+Get images of VoltRon objects
 }

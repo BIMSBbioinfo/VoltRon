@@ -21,29 +21,30 @@ vrEmbeddingFeaturePlot(
 )
 }
 \arguments{
-\item{object}{VoltRon object}
+\item{object}{a VoltRon object}
 
 \item{embedding}{the embedding type, i.e. pca, umap etc.}
 
-\item{features}{a set of features, either from the rows of rawdata, normdata or columns of the metadata}
+\item{features}{a set of features to be visualized, either from \link{vrFeatures} of raw or normalized data or columns of the \link{Metadata}.}
 
 \item{norm}{if TRUE, the normalized data is used}
 
 \item{log}{if TRUE, data features (excluding metadata features) will be log transformed}
 
-\item{assay}{the assay name}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{ncol}{column wise number of plots, for \code{ggarrange}}
+\item{ncol}{column wise number of plots, for \link{ggarrange}}
 
-\item{nrow}{row wise number of plots, for \code{ggarrange}}
+\item{nrow}{row wise number of plots, for \link{ggarrange}}
 
-\item{font.size}{font sizes}
+\item{font.size}{font size}
 
 \item{pt.size}{point size}
 
 \item{keep.scale}{whether unify all scales for all features or not}
 
-\item{common.legend}{whether to use a common legend for all plots}
+\item{common.legend}{whether to use a common legend for all plots, see \link{ggarrange}}
 
 \item{collapse}{whether to combine all ggplots}
 }

@@ -6,18 +6,17 @@
 \alias{vrImageNames.vrAssay}
 \title{vrImageNames}
 \usage{
-vrImageNames(object, ...)
+vrImageNames(object, assay = NULL)
 
 \method{vrImageNames}{VoltRon}(object, assay = NULL)
 
 \method{vrImageNames}{vrAssay}(object)
 }
 \arguments{
-\item{object}{An object}
+\item{object}{a VoltRon or vrAssay object}
 
-\item{...}{Arguments passed to other methods}
-
-\item{assay}{assay}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 }
 \description{
 Get names of all images

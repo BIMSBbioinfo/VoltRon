@@ -29,45 +29,48 @@ vrSpatialFeaturePlot(
 )
 }
 \arguments{
-\item{object}{VoltRon object}
+\item{object}{a VoltRon object}
 
-\item{features}{a set of features, either from the rows of rawdata, normdata or columns of the metadata}
+\item{features}{a set of features to be visualized, either from \link{vrFeatures} of raw or normalized data or columns of the \link{Metadata}.}
 
-\item{group.by}{a grouping label for the spatial entities}
+\item{group.by}{a column of metadata from \link{Metadata} used as grouping label for the spatial entities}
 
-\item{plot.segments}{plot segments instead of points}
+\item{plot.segments}{plot segments from \link{vrSegments} instead of points}
 
 \item{norm}{if TRUE, the normalized data is used}
 
 \item{log}{if TRUE, data features (excluding metadata features) will be log transformed}
 
-\item{assay}{the assay name}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{graph.name}{if not NULL, the spatial graph is with name \code{graph.name} is visualized as well}
+\item{graph.name}{if not NULL, the spatial graph is with name \code{graph.name} is visualized as well, see \link{vrGraphNames}}
 
-\item{ncol}{column wise number of plots, for \code{ggarrange}}
+\item{ncol}{column wise number of plots, for \link{ggarrange}}
 
-\item{nrow}{row wise number of plots, for \code{ggarrange}}
+\item{nrow}{row wise number of plots, for \link{ggarrange}}
 
-\item{font.size}{font sizes}
+\item{font.size}{font size}
 
 \item{pt.size}{point size}
 
 \item{title.size}{title size of legend and plot}
 
-\item{alpha}{alpha level for cells/spots/ROIs}
+\item{alpha}{alpha level of colors of visualized points and segments}
 
 \item{keep.scale}{whether unify all scales for all features or not}
 
 \item{label}{if TRUE, labels of ROIs will be visualized too}
 
-\item{background}{the background of the plot, either "image" for overlaying the image of the assay, or "black" or "white" background (suitable for IF based assays)}
+\item{background}{the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
+and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainImage}) 
+and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.}
 
-\item{reg}{if TRUE, the registered coordinates will be used}
+\item{reg}{TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested}
 
-\item{crop}{whether to crop an image of a spot assay}
+\item{crop}{whether to crop an image of a spot assay to the extend of spots}
 
-\item{common.legend}{whether to use a common legend for all plots}
+\item{common.legend}{whether to use a common legend for all plots, see \link{ggarrange}}
 
 \item{collapse}{whether to combine all ggplots}
 }

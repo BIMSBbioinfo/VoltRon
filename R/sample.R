@@ -197,9 +197,10 @@ merge.vrSample <- function(object, object_list, samples = NULL){
 #' @param subset the subset statement
 #' @param assays the set of assays to subset the object
 #' @param spatialpoints the set of spatial points to subset the object
-#' @param image the subseting string passed to \code{magick::image_crop}
+#' @param image the subseting string passed to \link{magick::image_crop}
 #'
 #' @method subset vrSample
+#' @order 6
 #'
 #' @importFrom rlang enquo
 #'
@@ -235,11 +236,11 @@ subset.vrSample <- function(object, subset, assays = NULL, spatialpoints = NULL,
   }
 }
 
+#' @param ... arguments passed to other methods
+#' 
 #' @rdname vrSpatialPoints
-#' @method vrSpatialPoints vrSample
-#'
+#' @order 5
 #' @export
-#'
 vrSpatialPoints.vrSample <- function(object, ...) {
   # layers <- object@layer
   # spatialpoints <- unlist(sapply(layers, function(lay) {
@@ -255,11 +256,9 @@ vrSpatialPoints.vrSample <- function(object, ...) {
 #'
 #' Change the assay names of assays within a vrSample object
 #'
-#' @rdname changeAssayNames
-#' @method changeAssayNames vrSample
-#'
-#' @param object a vrSample object
 #' @param sample.metadata the sample metadata with NewAssayNames column which includes the new assay names
+#' 
+#' @rdname changeAssayNames
 #'
 #' @noRd
 changeAssayNames.vrSample <- function(object, sample.metadata = NULL){
@@ -289,9 +288,10 @@ changeAssayNames.vrSample <- function(object, sample.metadata = NULL){
 #' @param subset the subset statement
 #' @param assays the set of assays to subset the object
 #' @param spatialpoints the set of spatial points to subset the object
-#' @param image the subseting string passed to \code{magick::image_crop}
+#' @param image the subseting string passed to \link{magick::image_crop}
 #'
 #' @method subset vrLayer
+#' @order 7
 #'
 #' @importFrom rlang enquo
 #' @importFrom methods is
@@ -350,10 +350,8 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
 }
 
 #' @rdname vrSpatialPoints
-#' @method vrSpatialPoints vrLayer
-#'
+#' @order 6
 #' @export
-#'
 vrSpatialPoints.vrLayer <- function(object, ...) {
   # assays <- object@assay
   # spatialpoints <- unlist(sapply(assays, function(assy) {
@@ -403,10 +401,6 @@ getConnectedSpatialPoints <- function(object, spatialpoints = NULL){
 #' Change the assay names of assays within a vrSample object
 #'
 #' @rdname changeAssayNames
-#' @method changeAssayNames vrLayer
-#'
-#' @param object a vrLayer object
-#' @param sample.metadata the sample metadata with NewAssayNames column which includes the new assay names
 #'
 #' @importFrom igraph V V<- vcount
 #' @importFrom methods is

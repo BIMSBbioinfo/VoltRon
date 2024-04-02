@@ -70,7 +70,7 @@ test_that("coordinates", {
   # coordinates
   coords <- vrCoordinates(visium_data)
   expect_warning(coords <- vrCoordinates(visium_data, reg = TRUE))
-  expect_warning(coords <- vrCoordinates(visium_data, assays = "Assay1", reg = TRUE))
+  expect_warning(coords <- vrCoordinates(visium_data, assay = "Assay1", reg = TRUE))
 
   # update coordinates
   vrCoordinates(visium_data) <- coords*2
@@ -82,7 +82,7 @@ test_that("coordinates", {
   # segments
   segments <- vrSegments(visium_data)
   expect_warning(segments <- vrSegments(visium_data, reg = TRUE))
-  expect_warning(segments <- vrSegments(visium_data, assays = "Assay1", reg = TRUE))
+  expect_warning(segments <- vrSegments(visium_data, assay = "Assay1", reg = TRUE))
 
   expect_equal(1,1L)
 })
@@ -118,7 +118,7 @@ test_that("image", {
   expect_equal(1,1L)
 })
 
-# Testing functions of manipulating images ####
+# Testing functions of manipulating embeddings ####
 test_that("embeddings", {
 
   # get data
@@ -153,3 +153,72 @@ test_that("importimagedata", {
   # return
   expect_equal(1,1L)
 })
+
+# Testing functions of plots ####
+test_that("plots", {
+
+  # get data
+  data("visium_data")
+  data("xenium_data")
+
+  # get custom colors
+  colors <- scales::hue_pal()(length(unique(xenium_data$clusters)))
+  names(colors) <- unique(xenium_data$clusters)
+
+  # embedding plot
+  vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", label = T)
+  vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", group.ids = c(1,3,4), label = T)
+  vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", colors = colors, label = T)
+  vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", group.ids = c(1,3,4), colors = colors[c(1,3,4)], label = T)
+
+  # spatial plot
+  vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE)
+  vrSpatialPlot(xenium_data, group.by = "clusters", group.ids = c(1,3,4), plot.segments = TRUE)
+  vrSpatialPlot(xenium_data, group.by = "clusters", colors = colors, plot.segments = TRUE)
+  vrSpatialPlot(xenium_data, group.by = "clusters", group.ids = c(1,3,4), colors = colors[c(1,3,4)], plot.segments = TRUE)
+  vrSpatialPlot(xenium_data, group.by = "clusters", background = "black")
+  vrSpatialPlot(xenium_data, group.by = "clusters", background = "white")
+  vrSpatialPlot(xenium_data, group.by = "clusters", background = "main")
+  expect_warning(vrSpatialPlot(xenium_data, group.by = "clusters", background = c("main", "DAPI2")))
+  
+  # spatial plot without segmentation
+  vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = FALSE)
+
+  # spatial plot of visium
+  vrSpatialPlot(visium_data)
+
+  # spatial plot of melc data
+  vrSpatialPlot(melc_data, group.by = "Clusters")
+  expect_error(vrSpatialPlot(melc_data, group.by = "Clusters_new"))
+
+  # return
+  expect_equal(1,1L)
+})
+
+# Testing functions of subsetting ####
+test_that("subset", {
+  
+  # get data
+  data("visium_data")
+
+  # subset based on assay
+  subset(visium_data, assays = "Assay1")
+  subset(visium_data, assays = "Visium")
+  expect_error(subset(visium_data, assays = "Visium2"))
+  
+  # subset based on samples
+  subset(visium_data, samples = "Anterior1")
+  expect_error(subset(visium_data, samples = "Anterior2"))
+  
+  # subset based on assay
+  subset(visium_data, spatialpoints = c("GTTATATTATCTCCCT-1_Assay1", "GTTTGGGTTTCGCCCG-1_Assay1"))
+  expect_error(subset(visium_data, spatialpoints = c("point")))
+  
+  # subset based on features
+  subset(visium_data, features = c("Map3k19", "Rab3gap1"))
+  expect_error(subset(visium_data, features = c("feature")))
+  
+  # return
+  expect_equal(1,1L)
+})
+

@@ -77,6 +77,26 @@ Rcpp::NumericMatrix point2fToNumericMatrix(std::vector<cv::Point2f> points) {
   return mat;
 }
 
+// Function to convert a cv::Keypoint object to a std::vector<double>
+std::vector<double> KeyPointToDoubleVector(std::vector<cv::KeyPoint> points) {
+  int n = points.size();
+  std::vector<double> vec(n);
+  for (int i = 0; i < n; i++) {
+    vec[i] = (double) points[i].pt.x;
+  }
+  return vec;
+}
+
+// Function to convert a cv::Point2f object to a std::vector<double>
+std::vector<double> Point2fToDoubleVector(std::vector<cv::Point2f> points) {
+  int n = points.size();
+  std::vector<double> vec(n);
+  for (int i = 0; i < n; i++) {
+    vec[i] = (double) points[i].x;
+  }
+  return vec;
+}
+
 // Function to convert a cv::Point2f object to a cv::Mat
 std::vector<cv::Point2f> matToPoint2f(cv::Mat mat) {
   std::vector<cv::Point2f> points;
@@ -114,17 +134,7 @@ cv::Mat point2fToMat(std::vector<cv::Point2f> points) {
   return mat;
 }
 
-void getGoodMatches(std::vector<std::vector<DMatch>> matches, std::vector<DMatch> &good_matches, const float lowe_ratio = 0.8)
-{
-  for (size_t i = 0; i < matches.size(); i++)
-  {
-    if (matches[i][0].distance < lowe_ratio * matches[i][1].distance)
-    {
-      good_matches.push_back(matches[i][0]);
-    }
-  }
-}
-
+// process images before keypoint detection
 cv::Mat preprocessImage(Mat &im, const bool invert, const char* flipflop, const char* rotate)
 {
   // normalize
@@ -162,6 +172,7 @@ cv::Mat preprocessImage(Mat &im, const bool invert, const char* flipflop, const 
   return imProcess;
 }
 
+// revert the processing on registrated images using the reference image
 cv::Mat reversepreprocessImage(Mat &im, const char* flipflop, const char* rotate)
 {
 
@@ -187,6 +198,7 @@ cv::Mat reversepreprocessImage(Mat &im, const char* flipflop, const char* rotate
   return imRotate;
 }
 
+// align images with BRUTE FORCE algorithm (old)
 void alignImagesBRUTE_old(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imMatches, Mat &h, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES,
                       const bool invert_query, const bool invert_ref,
                       const char* flipflop_query, const char* flipflop_ref,
@@ -277,6 +289,138 @@ void alignImagesBRUTE_old(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat 
   cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
 }
 
+// calculate standard deviation of a vector
+double cppSD(std::vector<cv::KeyPoint> points)
+{
+  std::vector<double> inVec = KeyPointToDoubleVector(points);
+  int n = inVec.size();
+  double sum = std::accumulate(inVec.begin(), inVec.end(), 0.0);
+  double mean = sum / inVec.size();
+
+  for(std::vector<double>::iterator iter = inVec.begin();
+      iter != inVec.end(); ++iter){
+    double temp;
+    temp= (*iter - mean)*(*iter - mean);
+    *iter = temp;
+  }
+
+  double sd = std::accumulate(inVec.begin(), inVec.end(), 0.0);
+  return std::sqrt( sd / (n-1) );
+}
+
+double cppSD(std::vector<cv::Point2f> points)
+{
+  std::vector<double> inVec = Point2fToDoubleVector(points);
+  int n = inVec.size();
+  double sum = std::accumulate(inVec.begin(), inVec.end(), 0.0);
+  double mean = sum / inVec.size();
+  
+  for(std::vector<double>::iterator iter = inVec.begin();
+      iter != inVec.end(); ++iter){
+    double temp;
+    temp= (*iter - mean)*(*iter - mean);
+    *iter = temp;
+  }
+  
+  double sd = std::accumulate(inVec.begin(), inVec.end(), 0.0);
+  return std::sqrt( sd / (n-1) );
+}
+
+
+// check if keypoints are degenerate
+std::string check_degenerate(std::vector<cv::KeyPoint> keypoints1, std::vector<cv::KeyPoint> keypoints2) {
+
+  // get sd
+  double keypoints1_sd = cppSD(keypoints1);
+  double keypoints2_sd = cppSD(keypoints2);
+  
+  // get warning message
+  std::string message;
+  if(keypoints1_sd < 1.0 | keypoints2_sd < 1.0){
+    message = "degenarate";
+    cout << "WARNING: points may be in a degenerate configuration." << endl;
+  } else {
+    message = "not degenarate";
+  }
+
+  return message;
+}
+
+// // check transformation of points
+// std::string check_transformation_by_pts_mean_sqrt(std::vector<cv::KeyPoint> keypoints1, std::vector<cv::KeyPoint> keypoints2, Mat &h, Mat &mask){
+//   
+//   // perspective transformation of query keypoints
+//   std::vector<cv::Point2f> keypoints1_reg;
+//   cv::perspectiveTransform(keypoints1, keypoints1_reg, h);
+//   
+// }
+
+// check distribution of registered points
+std::string check_transformation_by_point_distribution(Mat &im, Mat &h){
+
+  // get image shape
+  int height = im.rows;
+  int width = im.cols;
+  int height_interval = (double) height/50.0;
+  int width_interval = (double) width/50.0;
+  
+  // perspective transformation of grid points
+  std::vector<cv::Point2f> gridpoints;
+  for (double i = 0.0; i <= height; i += height_interval) {
+    for (double j = 0.0; j <= width; j += width_interval) {
+      gridpoints.push_back(cv::Point2f(j,i));
+    }
+  }
+  
+  // register grid points
+  std::vector<cv::Point2f> gridpoints_reg;
+  cv::perspectiveTransform(gridpoints, gridpoints_reg, h);
+
+  // Compute the standard deviation of the transformed points
+  double gridpoints_reg_sd = cppSD(gridpoints_reg);
+
+  // get warning message
+  std::string message;
+  if(gridpoints_reg_sd < 1.0 | gridpoints_reg_sd > max(height, width)){
+    message = "large distribution";
+    cout << "WARNING: Transformation may be poor - transformed points grid seem to be concentrated!" << endl;
+  } else {
+    message = "small distribution";
+  }
+
+  return message;
+}
+
+
+// do overall checks on keypoints and images
+std::string check_transformation_metrics(std::vector<cv::KeyPoint> keypoints1, std::vector<cv::KeyPoint> keypoints2, Mat &im1, Mat &im2, Mat &h, Mat &mask) {
+  
+  // check keypoint standard deviation
+  std::string degenerate;
+  degenerate = check_degenerate(keypoints1, keypoints2);
+  
+  // //  check transformation
+  // std::string transformation;
+  // transformation = check_transformation_by_pts_mean_sqrt(keypoints1, keypoints2, h, mask);
+  
+  //  check distribution
+  std::string distribution;
+  distribution = check_transformation_by_point_distribution(im2, h);
+    
+  return degenerate;
+}
+
+// get good matching keypoints
+void getGoodMatches(std::vector<std::vector<DMatch>> matches, std::vector<DMatch> &good_matches, const float lowe_ratio = 0.8)
+{
+  for (size_t i = 0; i < matches.size(); i++) {
+    if (matches[i][0].distance < lowe_ratio * matches[i][1].distance) {
+      good_matches.push_back(matches[i][0]);
+    }
+  }
+}
+
+// align images with BRUTE FORCE algorithm
 void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imMatches, Mat &h, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
 {
   // Convert images to grayscale
@@ -351,6 +495,7 @@ void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   // cv::imwrite("source.jpg", im1Overlay);
 }
 
+// align images with FLANN algorithm
 void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imMatches, Mat &h,
                  const bool invert_query, const bool invert_ref,
                  const char* flipflop_query, const char* flipflop_ref,
@@ -403,12 +548,13 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   }
 
   // Find homography
-  h = findHomography(points1, points2, RANSAC, 5);
+  cv::Mat mask;
+  h = findHomography(points1, points2, RANSAC, 5, mask);
   cout << "DONE: calculated homography matrix" << endl;
 
   // Draw top matches and good ones only
   std::vector<cv::DMatch> top_matches;
-  std::vector<KeyPoint> keypoints1_best, keypoints2_best;
+  std::vector<cv::KeyPoint> keypoints1_best, keypoints2_best;
   for( size_t i = 0; i < good_matches.size(); i++ )
   {
     keypoints1_best.push_back(keypoints1[good_matches[i].queryIdx]);
@@ -416,6 +562,9 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
     top_matches.push_back(cv::DMatch(static_cast<int>(i), static_cast<int>(i), 0));
   }
   drawMatches(im1Proc, keypoints1_best, im2Proc, keypoints2_best, top_matches, imMatches);
+
+  // check keypoints
+  std::string is_faulty = check_transformation_metrics(keypoints1_best, keypoints2_best, im1, im2, h, mask);
 
   // Use homography to warp image
   Mat im1Warp, im1NormalWarp;
@@ -438,38 +587,7 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
 }
 
-// void alignImagesTPS2(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark)
-// {
-//
-//   // seed
-//   cv::setRNGSeed(0);
-//   RNG rng(12345);
-//   Scalar value;
-//
-//   // Get landmarks as Point2f
-//   std::vector<cv::Point2f> query_mat = numericMatrixToPoint2f(query_landmark);
-//   std::vector<cv::Point2f> ref_mat = numericMatrixToPoint2f(reference_landmark);
-//
-//   // get matches
-//   std::vector<cv::DMatch> matches;
-//   for (unsigned int i = 0; i < ref_mat.size(); i++)
-//     matches.push_back(cv::DMatch(i, i, 0));
-//
-//   // calculate transformation
-//   // auto tps = cv::createThinPlateSplineShapeTransformer();
-//   Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
-//   tps->estimateTransformation(query_mat, ref_mat, matches);
-//   cv::imwrite("input.png", im1);
-//
-//   // apply transformation
-//   std::vector<cv::Point2f> im1_points = matToPoint2f(im1);
-//   cout << "sourcePoints = " << endl << " " << im1_points << endl << endl;
-//   std::vector<cv::Point2f> im1_points_trans;
-//   tps->applyTransformation(im1_points, im1_points);
-//   cv::Mat im1Reg2 = point2fToMat(im1_points);
-//   cv::imwrite("warpresult.png", im1Reg2);
-// }
-
+// align images with TPS algorithm
 void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark)
 {
 

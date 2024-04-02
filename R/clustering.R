@@ -6,23 +6,26 @@ NULL
 # Nearest Neighbor graphs ####
 ####
 
-#' @param assay assay
+#' Get profile specific neighbors
+#'
+#' Get neighbors of spatial points
+#'
+#' @param object a VoltRon object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param data.type the type of embedding used for neighborhood calculation, e.g. raw counts (raw), normalized counts (norm), PCA embeddings (pca), UMAP embeddings (umap) etc.
 #' @param dims the set of dimensions of the embedding data
 #' @param k number of neighbors for kNN
 #' @param method the method used for graph construction, SNN or kNN
 #' @param graph.key the name of the graph
-#' @param ... additional parameters passed to \code{FNN:get.knn}
-#'
-#' @rdname getProfileNeighbors
-#' @method getProfileNeighbors VoltRon
+#' @param ... additional parameters passed to \link{FNN::get.knn}
 #'
 #' @importFrom igraph add_edges simplify make_empty_graph vertices E<- E
 #' @importFrom FNN get.knn
 #'
 #' @export
 #'
-getProfileNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca", dims = 1:30, k = 10, method = "kNN", graph.key = method, ...){
+getProfileNeighbors <- function(object, assay = NULL, data.type = "pca", dims = 1:30, k = 10, method = "kNN", graph.key = method, ...){
 
   # get data
   if(data.type %in% c("raw", "norm")){
@@ -64,7 +67,7 @@ getProfileNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca",
   if(!is.null(weights))
     igraph::E(graph)$weight <- weights
   graph <- simplify(graph, remove.multiple = TRUE, remove.loops = FALSE)
-  vrGraph(object, assay = assay, graph.type = graph.key) <- graph
+  vrGraph(object, graph.type = graph.key) <- graph
 
   # return
   return(object)
@@ -78,9 +81,10 @@ getProfileNeighbors.VoltRon <- function(object, assay = NULL, data.type = "pca",
 #'
 #' Get clustering of the VoltRon object
 #'
-#' @param object A VoltRon object
+#' @param object a VoltRon object
 #' @param resolution the resolution parameter for leiden clustering
-#' @param assay assay
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param label the name for the newly created clustering column in the metadata
 #' @param graph the graph type to be used
 #' @param seed seed

@@ -267,9 +267,6 @@ make_css <- function (..., file = NULL)
 #' This function is useful for statistical analysis when you want binary
 #' columns rather than character columns. Adapted from the \code{fastDummies} package (https://jacobkap.github.io/fastDummies/)
 #'
-#' @family dummy functions
-#' @seealso \code{\link{dummy_rows}} For creating dummy rows
-#'
 #' @param .data
 #' An object with the data set you want to make dummy columns from.
 #' @param select_columns
@@ -306,16 +303,6 @@ make_css <- function (..., file = NULL)
 #' @importFrom data.table as.data.table is.data.table chmatch alloc.col set
 #' @importFrom stringr str_sort str_order
 #'
-#' @examples
-#' crime <- data.frame(city = c("SF", "SF", "NYC"),
-#'     year = c(1990, 2000, 1990),
-#'     crime = 1:3)
-#' dummy_cols(crime)
-#' # Include year column
-#' dummy_cols(crime, select_columns = c("city", "year"))
-#' # Remove first dummy for each pair of dummy columns made
-#' dummy_cols(crime, select_columns = c("city", "year"),
-#'     remove_first_dummy = TRUE)
 dummy_cols <- function(.data, select_columns = NULL, remove_first_dummy = FALSE,
           remove_most_frequent_dummy = FALSE, ignore_na = FALSE, split = NULL,
           remove_selected_columns = FALSE, omit_colname_prefix = FALSE)
@@ -448,10 +435,12 @@ dummy_cols <- function(.data, select_columns = NULL, remove_first_dummy = FALSE,
   return(.data)
 }
 
+#' @importFrom data.table is.data.table
+#' @noRd
 check_type <- function(.data) {
   if (data.table::is.data.table(.data)) {
     data_type <- "is_data_table"
-  } else if (tibble::is_tibble(.data)) {
+  } else if (inherits(.data, "tbl_df")) {
     data_type <- "is_tibble"
   } else {
     data_type <- "is_data_frame"
@@ -460,11 +449,13 @@ check_type <- function(.data) {
   return(data_type)
 }
 
+#' @importFrom dplyr as_tibble
+#' @noRd
 fix_data_type <- function(.data, data_type) {
   if (data_type == "is_data_frame") {
     .data <- as.data.frame(.data, stringsAsFactors = FALSE)
   } else if (data_type == "is_tibble") {
-    .data <- tibble::as_tibble(.data)
+    .data <- dplyr::as_tibble(.data)
   }
 
   return(.data)

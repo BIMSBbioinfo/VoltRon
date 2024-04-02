@@ -9,9 +9,6 @@ NULL
 ## Auxiliary ####
 
 # Set old classes
-# setOldClass(Classes = c('magick-image'))
-# setOldClass(Classes = c('raster'))
-# setOldClass(Classes = c('bitmap'))
 setClassUnion("data_matrix", members = c("matrix", "dgCMatrix"))
 
 ## vrAssay ####
@@ -35,8 +32,6 @@ setClassUnion("data_matrix", members = c("matrix", "dgCMatrix"))
 vrAssay <- setClass(
   Class = 'vrAssay',
   slots = c(
-    # rawdata = 'matrix',
-    # normdata = 'matrix',
     rawdata = 'data_matrix',
     normdata = 'data_matrix',
     featuredata = 'data.frame',
@@ -70,15 +65,15 @@ setMethod(
 #'
 #' Create a vrAssay (VoltRon assay) object
 #'
-#' @param data the count table
+#' @param data the feature matrix of spatialpoints
 #' @param coords the coordinates of the spatial points
-#' @param segments the segments of the spatial points (optional)
-#' @param image the image of the data
+#' @param segments the list of segments each associated with a spatial point (optional)
+#' @param image a singelton or list of images as magick-image objects
 #' @param params additional parameters of the object
-#' @param type the type of the assay (cells, spots, ROIs)
+#' @param type the type of the assay (tile, molecule, cell, spot or ROI)
 #' @param name the name of the assay
 #' @param main_image the name of the main_image
-#' @param ... additional arguements passed to \code{formImage}
+#' @param ... additional arguements passed to \link{formImage}
 #'
 #' @importFrom methods new
 #'
@@ -108,19 +103,18 @@ formAssay <- function(data = NULL, coords, segments = list(), image = NULL, para
 #'
 #' Given a vrAssay object, subset the object given one of the attributes
 #'
-#' @param object A vrAssay object
+#' @param object a vrAssay object
 #' @param subset Logical statement for subsetting
 #' @param spatialpoints the set of spatial points to subset the object
 #' @param features the set of features to subset the object
-#' @param image the subseting string passed to \code{magick::image_crop}
+#' @param image the subseting string passed to \link{magick::image_crop}
 #'
 #' @method subset vrAssay
+#' @order 4
 #'
 #' @importFrom rlang enquo
-# #' @importFrom magick image_crop
 #'
 #' @export
-#'
 subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL, image = NULL) {
 
   if (!missing(x = subset)) {
@@ -150,16 +144,11 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
 
       # check if spatial points are here
       spatialpoints <- intersect(spatialpoints, vrSpatialPoints(object))
-      # if(length(intersect(spatialpoints, vrSpatialPoints(object))) == 0){
-      #   return(NULL)
-      # }
       if(length(spatialpoints) == 0){
         return(NULL)
       }
 
       # data
-      # object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
-      # object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE]
       object@rawdata  <- object@rawdata[,spatialpoints, drop = FALSE]
       object@normdata  <- object@normdata[,spatialpoints, drop = FALSE]
 
@@ -204,9 +193,9 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
 #'
 #' subsetting coordinates given cropping parameters of a magick image objects
 #'
-#' @param coords coordinates
+#' @param coords the coordinates of the spatial points
 #' @param image the magick image associated with the coordinates
-#' @param crop_info the subseting string passed to \code{magick::image_crop}
+#' @param crop_info the subseting string passed to \link{magick::image_crop}
 #'
 subsetCoordinates <- function(coords, image, crop_info){
 
@@ -253,9 +242,9 @@ subsetCoordinates <- function(coords, image, crop_info){
 #'
 #' subsetting segments given cropping parameters of a magick image objects
 #'
-#' @param segments a list of coordinates for each segment
+#' @param segments the list of segments each associated with a spatial point
 #' @param image the magick image associated with the coordinates
-#' @param crop_info the subseting string passed to \code{magick::image_crop}
+#' @param crop_info the subseting string passed to \link{magick::image_crop}
 #'
 subsetSegments <- function(segments, image, crop_info){
 
@@ -263,7 +252,6 @@ subsetSegments <- function(segments, image, crop_info){
   if(length(segments) < 200) {
     for(i in 1:length(segments)){
       segments[[i]][,c("x","y")] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
-      # segments[[i]] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
     }
   } else {
     segment_names <- rep(names(segments), sapply(segments, nrow, simplify = TRUE))
@@ -284,11 +272,10 @@ subsetSegments <- function(segments, image, crop_info){
 ### Other Methods ####
 
 #' @rdname vrSpatialPoints
-#' @method vrSpatialPoints vrAssay
-#'
+#' @order 4
+#' 
 #' @export
-#'
-vrSpatialPoints.vrAssay <- function(object, ...) {
+vrSpatialPoints.vrAssay <- function(object) {
   if(ncol(object@rawdata) > 0){
     return(colnames(object@rawdata))
   } else {
@@ -296,14 +283,10 @@ vrSpatialPoints.vrAssay <- function(object, ...) {
   }
 }
 
-#' @param value new spatial points
-#'
 #' @rdname vrSpatialPoints
-#' @method vrSpatialPoints<- vrAssay
-#'
+#' @order 8
 #' @export
-#'
-"vrSpatialPoints<-.vrAssay" <- function(object, ..., value) {
+"vrSpatialPoints<-.vrAssay" <- function(object, value) {
 
   # data
   if(length(vrSpatialPoints(object)) != length(value)){
@@ -342,40 +325,30 @@ vrSpatialPoints.vrAssay <- function(object, ...) {
 }
 
 #' @rdname vrFeatures
-#' @method vrFeatures vrAssay
-#'
+#' @order 3
 #' @export
-#'
-vrFeatures.vrAssay <- function(object, ...) {
+vrFeatures.vrAssay <- function(object) {
   return(rownames(object@rawdata))
 }
 
 #' @rdname vrFeatureData
-#' @method vrFeatureData vrAssay
-#'
+#' @order 3
 #' @export
-#'
-vrFeatureData.vrAssay <- function(object, ...) {
+vrFeatureData.vrAssay <- function(object) {
   return(object@featuredata)
 }
 
-#' @param value new feature data
-#'
 #' @rdname vrFeatureData
-#' @method vrFeatureData<- vrAssay
-#'
+#' @order 5
 #' @export
-#'
-"vrFeatureData<-.vrAssay" <- function(object, ..., value) {
+"vrFeatureData<-.vrAssay" <- function(object, value) {
   object@featuredata <- value
   return(object)
 }
 
 #' @rdname vrAssayNames
-#' @method vrAssayNames vrAssay
-#'
+#' @order 4
 #' @export
-#'
 vrAssayNames.vrAssay <- function(object) {
 
   if(.hasSlot(object, name = "name")){
@@ -393,14 +366,10 @@ vrAssayNames.vrAssay <- function(object) {
   }
 }
 
-#' @param value the new postfix name of the assay
-#'
 #' @rdname vrAssayNames
-#' @method vrAssayNames<- vrAssay
-#'
+#' @order 5
 #' @importFrom stringr str_replace
-#'
-"vrAssayNames<-.vrAssay" <- function(object, ..., value){
+"vrAssayNames<-.vrAssay" <- function(object, value){
 
   # get original assay name
   assayname <- vrAssayNames(object)
@@ -423,22 +392,23 @@ vrAssayNames.vrAssay <- function(object) {
 }
 
 #' @rdname vrAssayTypes
-#' @method vrAssayTypes vrAssay
-#'
+#' @order 3
 #' @export
-#'
 vrAssayTypes.vrAssay <- function(object) {
   return(object@type)
 }
 
+#' Get assay parameters
+#'
+#' Given a vrAssay object, if there are any, get a list of parameters of the assay(s)
+#'
+#' @param object a vrAssay object
 #' @param param the parameter value to return
 #'
 #' @rdname vrAssayParams
-#' @method vrAssayParams vrAssay
 #'
 #' @export
-#'
-vrAssayParams.vrAssay <- function(object, param = NULL) {
+vrAssayParams <- function(object, param = NULL) {
   if(!is.null(param)){
     if(param %in% names(object@params)){
       return(object@params[[param]])
@@ -451,12 +421,11 @@ vrAssayParams.vrAssay <- function(object, param = NULL) {
   }
 }
 
-#' @param features features
+#' @param features the set of features
 #' @param norm TRUE if normalized data should be returned
-#' @param ... additonal parameters passed to \code{vrImage}
-#'
+#' 
 #' @rdname vrData
-#' @method vrData vrAssay
+#' @order 3
 #'
 #' @importFrom magick image_raster
 #'
@@ -517,12 +486,8 @@ vrData.vrAssay <- function(object, features = NULL, norm = FALSE, ...) {
   }
 }
 
-#' @param image_name the key of the image associated with the coordinates
-#' @param reg TRUE if registered segments are being updated
-#'
 #' @rdname vrCoordinates
-#' @method vrCoordinates vrAssay
-#'
+#' @order 3
 #' @export
 #'
 vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
@@ -550,18 +515,12 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
   return(vrCoordinates(object@image[[image_name]]))
 }
 
-#' @param image_name the key of the image associated with the coordinates
-#' @param reg TRUE if registered segments are being updated
-#' @param value the new set of 2D coordinates
-#'
 #' @rdname vrCoordinates
-#' @method vrCoordinates<- vrAssay
-#'
+#' @order 5
 #' @importFrom methods slot
 #'
 #' @export
-#'
-"vrCoordinates<-.vrAssay" <- function(object, image_name = NULL, reg = FALSE, ..., value) {
+"vrCoordinates<-.vrAssay" <- function(object, image_name = NULL, reg = FALSE, value) {
 
   # check main image
   if(is.null(image_name)){
@@ -582,32 +541,41 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
   return(object)
 }
 
-#' @param image_name the key of the image
-#' @param ... additional parameters passed to \code{vrCoordinates}
-#'
 #' @rdname flipCoordinates
-#' @method flipCoordinates vrAssay
+#' @order 3
 #'
 #' @importFrom magick image_info
 #'
 #' @export
 #'
 flipCoordinates.vrAssay <- function(object, image_name = NULL, ...) {
+  
+  # get image info
   imageinfo <- magick::image_info(vrImages(object, name = image_name))
+  
+  # flip coordinates
   coords <- vrCoordinates(object, image_name = image_name, ...)
   coords[,"y"] <- imageinfo$height - coords[,"y"]
   vrCoordinates(object, image_name = image_name, ...) <- coords
+  
+  # flip segments
+  segments <- vrSegments(object, image_name = image_name, ...)
+  if(length(segments) > 0){
+    name_segments <- names(segments)
+    segments <- do.call("rbind", segments)
+    segments[,"y"] <- imageinfo$height - segments[,"y"]
+    segments <- split(segments, segments[,1])
+    names(segments) <- name_segments
+    vrSegments(object, image_name = image_name, ...) <- segments
+  }
+  
+  # return
   return(object)
 }
 
-#' @param image_name the key of the image associated with the segments
-#' @param reg TRUE if registered segments are being updated
-#'
 #' @rdname vrSegments
-#' @method vrSegments vrAssay
-#'
+#' @order 3
 #' @export
-#'
 vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 
   # check main image
@@ -633,17 +601,11 @@ vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
   return(vrSegments(object@image[[image_name]]))
 }
 
-#' @param image_name the key of the image associated with the segments
-#' @param reg TRUE if registered segments are being updated
-#' @param value the new set of 2D segments for each spatial point
-#'
 #' @rdname vrSegments
-#' @method vrSegments<- vrAssay
-#'
+#' @order 6
 #' @importFrom methods slot
 #' @export
-#'
-"vrSegments<-.vrAssay" <- function(object, image_name = NULL, reg = FALSE, ..., value) {
+"vrSegments<-.vrAssay" <- function(object, image_name = NULL, reg = FALSE, value) {
 
   # check main image
   if(is.null(image_name)){
@@ -664,12 +626,11 @@ vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
   return(object)
 }
 
-#' @param type the key name for the embedding
+#' @param type the key name for the embedding, i.e. "pca" or "umap"
 #' @param dims the set of dimensions of the embedding data
 #'
 #' @rdname vrEmbeddings
-#' @method vrEmbeddings vrAssay
-#'
+#' @order 3
 #' @export
 #'
 vrEmbeddings.vrAssay <- function(object, type = "pca", dims = 1:30) {
@@ -690,24 +651,18 @@ vrEmbeddings.vrAssay <- function(object, type = "pca", dims = 1:30) {
   }
 }
 
-#' @param type the key name for the embedding
-#' @param value new embedding data
-#'
 #' @rdname vrEmbeddings
-#' @method vrEmbeddings<- vrAssay
-#'
+#' @order 4
 #' @export
-#'
-"vrEmbeddings<-.vrAssay" <- function(object, type = "pca", ..., value) {
+"vrEmbeddings<-.vrAssay" <- function(object, type = "pca", value) {
   object@embeddings[[type]] <- value
   return(object)
 }
 
 #' @rdname vrEmbeddingNames
-#' @method vrEmbeddingNames vrAssay
+#' @order 3
 #'
 #' @export
-#'
 vrEmbeddingNames.vrAssay <- function(object){
   return(names(object@embeddings))
 }

@@ -11,7 +11,7 @@ formVoltRon(
   coords,
   segments = list(),
   sample.metadata = NULL,
-  main.assay = "Custom_cell",
+  main.assay = NULL,
   assay.type = "cell",
   params = list(),
   sample_name = NULL,
@@ -22,23 +22,23 @@ formVoltRon(
 )
 }
 \arguments{
-\item{data}{the count table}
+\item{data}{the feature matrix of spatialpoints}
 
-\item{metadata}{a metadata object of class \code{vrMetadata}}
+\item{metadata}{a metadata object of class \link{vrMetadata}}
 
-\item{image}{the image of the data}
+\item{image}{a singelton or list of images as magick-image objects}
 
 \item{coords}{the coordinates of the spatial points}
 
-\item{segments}{the segments of the spatial points, optional}
+\item{segments}{the list of segments each associated with a spatial point}
 
-\item{sample.metadata}{a data frame of the sample metadata}
+\item{sample.metadata}{a data frame of the sample metadata, see \link{SampleMetadata}}
 
-\item{main.assay}{the name of the main assay of the object}
+\item{main.assay}{the name of the main assay}
 
-\item{assay.type}{the type of the assay (cells, spots, ROIs)}
+\item{assay.type}{the type of the assay (tile, molecule, cell, spot or ROI)}
 
-\item{params}{additional parameters of the object}
+\item{params}{additional parameters}
 
 \item{sample_name}{the name of the sample}
 
@@ -48,7 +48,7 @@ formVoltRon(
 
 \item{project}{project name}
 
-\item{...}{additional parameters passed to \code{formAssay}}
+\item{...}{additional parameters passed to \link{formAssay}}
 }
 \description{
 Create a VoltRon object

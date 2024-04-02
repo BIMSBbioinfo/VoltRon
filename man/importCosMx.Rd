@@ -8,7 +8,7 @@ importCosMx(
   tiledbURI,
   assay_name = "CosMx",
   image = NULL,
-  image_name = "DAPI",
+  image_name = "main",
   ome.tiff = NULL,
   import_molecules = FALSE,
   ...
@@ -21,13 +21,13 @@ importCosMx(
 
 \item{image}{the reference morphology image of the CosMx assay}
 
-\item{image_name}{the image name of the CosMx assay, Default: DAPI}
+\item{image_name}{the image name of the CosMx assay, Default: main}
 
 \item{ome.tiff}{the OME.TIFF file of the CosMx experiment if exists}
 
 \item{import_molecules}{if TRUE, molecule assay will be created along with cell assay.}
 
-\item{...}{additional parameters passed to \code{formVoltRon}}
+\item{...}{additional parameters passed to \link{formVoltRon}}
 }
 \description{
 Import CosMx data

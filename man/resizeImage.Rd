@@ -7,24 +7,27 @@
 \alias{resizeImage.vrImage}
 \title{resizeImage}
 \usage{
-resizeImage(object, ...)
+resizeImage(object, assay = NULL, name = NULL, reg = FALSE, size)
 
-\method{resizeImage}{VoltRon}(object, ...)
+\method{resizeImage}{VoltRon}(object, assay = NULL, ...)
 
 \method{resizeImage}{vrAssay}(object, name = NULL, reg = FALSE, ...)
 
 \method{resizeImage}{vrImage}(object, size)
 }
 \arguments{
-\item{object}{An object}
+\item{object}{a VoltRon, vrAssay or vrImage object}
 
-\item{...}{arguements passed to \code{resizeImage.vrImage}}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{name}{the name of the main image}
+\item{name}{the name of the image}
 
-\item{reg}{TRUE if registered images are assigned}
+\item{reg}{TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested}
 
 \item{size}{the width of the resized image}
+
+\item{...}{arguements passed to other methods}
 }
 \description{
 Resizing Magick images

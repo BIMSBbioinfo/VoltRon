@@ -7,29 +7,64 @@
 #' transfer data across assays
 #'
 #' @param object a VoltRon object
+#' @param from the name or class of assay whose data transfered to the second assay
+#' @param to the name or class of target assay where data is transfered to
+#' @param features the set of features from \link{vrFeatures} or metadata columns from \link{Metadata} that are transferred. 
+#' Only one metadata feature can be transfered at a time.
+#' @param new_assay_name the name of the new assay created from the source assay defined in \code{from} argument.
+#'
+#' @export
+transferData <- function(object, from = NULL, to = NULL, features = NULL, new_assay_name = NULL){
+
+  # assay list
+  assaytypes <- c("ROI", "spot", "cell", "molecule", "tile")
+  
+  # get Assay IDs from Names and IDs
+  from <- vrAssayNames(object, assay = from)
+  to <- vrAssayNames(object, assay = to)
+  
+  # check assay names
+  if(length(from) > 1 | length(to) > 1){
+    stop("For now, label transfer can only be accomplished across two assays")
+  }
+  
+  # check if assays are in the same block
+  sample.metadata <- SampleMetadata(object)
+  from_assayclass <- sample.metadata[from, "Assay"]
+  to_assayclass <- sample.metadata[to, "Assay"]
+  samples <- sample.metadata[c(from, to), "Sample"]
+  
+  if(length(unique(samples)) > 1)
+    stop("Selected assays have to be within the same sample block!")
+  
+  # get assay types
+  to_object_type <- vrAssayTypes(object[[to]])
+  from_object_type <- vrAssayTypes(object[[from]])
+  
+  if(which(assaytypes == to_object_type) > which(assaytypes == from_object_type)){
+    return(transferLabels(object = object, from = from, to = to, features = features))
+  } else {
+    return(transferFeatureData(object = object, from = from, to = to, features = features, new_assay_name = new_assay_name))
+  }
+}
+
+#' transferFeatureData
+#'
+#' transfer feature data across assays
+#'
+#' @param object a VoltRon object
 #' @param from The ID of assay whose data transfer to the second assay
 #' @param to The ID of the target assay where data is transfered to
 #' @param features The set of data or metadata features that are transfered. Only one metadata feature can be transfered at a time.
 #' @param new_assay_name the name of the new assay created from the source assay defined in \code{from}.
 #'
-#' @export
-#'
-transferData <- function(object, from = NULL, to = NULL, features = NULL, new_assay_name = NULL){
+#' @noRd
+transferFeatureData <- function(object, from = NULL, to = NULL, features = NULL, new_assay_name = NULL){
 
-  # check if assays are in the same block
-  samples <- SampleMetadata(object)[c(from, to), "Sample"]
-
-  if(length(unique(samples)) > 1)
-    stop("Selected assays have to be within the same sample block!")
-
-  # get from assay
+  # get assays and metadata
   from_object <- object[[from]]
-  # from_metadata <- Metadata(object, assay = from, type = vrAssayTypes(from_object))
   from_metadata <- Metadata(object, assay = from)
-
-  # get to assay
   to_object <- object[[to]]
-  # to_metadata <- Metadata(object, assay = to, type = vrAssayTypes(to_object))
   to_metadata <- Metadata(object, assay = to)
 
   # get assay types
@@ -45,7 +80,7 @@ transferData <- function(object, from = NULL, to = NULL, features = NULL, new_as
     if(from_object_type == "tile"){
       new_assay <- getCellsFromTiles(from_object, from_metadata, to_object, features = features)
     }
-  }
+  } 
 
   # add new assay
   if(is.null(new_assay_name)){
@@ -59,6 +94,42 @@ transferData <- function(object, from = NULL, to = NULL, features = NULL, new_as
                      sample = SampleMetadata(object)[to, "Sample"],
                      layer = SampleMetadata(object)[to, "Layer"])
 
+  # return
+  object
+}
+
+#' transferLabels
+#'
+#' transfer labels across assays
+#'
+#' @param object a VoltRon object
+#' @param from The ID of assay whose data transfer to the second assay
+#' @param to The ID of the target assay where data is transfered to
+#' @param features The set of data or metadata features that are transfered. Only one metadata feature can be transfered at a time.
+#'
+#' @noRd
+transferLabels <- function(object, from = NULL, to = NULL, features = NULL){
+  
+  # get assays and metadata
+  from_object <- object[[from]]
+  from_metadata <- Metadata(object, assay = from)
+  to_object <- object[[to]]
+  to_metadata <- Metadata(object, assay = to)
+  
+  # get assay types
+  to_object_type <- vrAssayTypes(to_object)
+  from_object_type <- vrAssayTypes(from_object)
+  
+  # get transfer data type
+  if(from_object_type == "ROI" & to_object_type != "ROI"){
+    
+    # transfer labels
+    transferedLabelsMetadata <- transferLabelsFromROI(from_object, from_metadata, to_object, to_metadata, features = features)
+    
+    # transfer labels
+    Metadata(object, assay = to) <- transferedLabelsMetadata
+  }
+    
   # return
   object
 }
@@ -77,7 +148,6 @@ transferData <- function(object, from = NULL, to = NULL, features = NULL, new_as
 #' @importFrom stats aggregate
 #' @importFrom FNN get.knnx
 #' @importFrom magick image_data
-#' @importFrom fastDummies dummy_cols
 #'
 #' @noRd
 #'
@@ -125,7 +195,7 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
       } else if(length(metadata_features) == 1) {
         raw_counts <- from_metadata[,metadata_features, drop = FALSE]
         rownames_raw_counts <- rownames(raw_counts)
-        raw_counts <- fastDummies::dummy_cols(raw_counts, remove_first_dummy = FALSE)
+        raw_counts <- dummy_cols(raw_counts, remove_first_dummy = FALSE)
         raw_counts <- raw_counts[,-1]
         raw_counts <- t(raw_counts)
         colnames(raw_counts) <- rownames_raw_counts
@@ -202,6 +272,42 @@ getCellsFromTiles <- function(from_object, from_metadata = NULL, to_object, feat
 
   # return
   return(new_assay)
+}
+
+transferLabelsFromROI <- function(from_object, from_metadata = NULL, to_object, to_metadata = NULL, features = NULL) {
+  
+  # get ROI and other coordinates
+  segments_roi <- vrSegments(from_object)
+  coords <- vrCoordinates(to_object)
+  spatialpoints <- rownames(coords)
+  
+  # check if all features are in from_metadata
+  if(!all(features %in% colnames(from_metadata))){
+    stop("Some features are not found in the ROI metadata!")
+  }
+  
+  # annotate points in the to object
+  for(feat in features){
+    
+    # get from metadata labels
+    feat_labels <- from_metadata[,feat]
+    
+    # get to metadata
+    new_label <- rep("undefined", length(spatialpoints))
+    names(new_label) <- spatialpoints
+    
+    for(i in 1:length(segments_roi)){
+      cur_poly <- segments_roi[[i]][,c("x","y")]
+      in.list <- sp::point.in.polygon(coords[,1], coords[,2], cur_poly[,1], cur_poly[,2])
+      new_label[rownames(coords)[!!in.list]] <- feat_labels[i]
+    }
+    
+    to_metadata[[feat]] <- new_label
+  }
+
+  
+  # return label
+  return(to_metadata)
 }
 
 ####

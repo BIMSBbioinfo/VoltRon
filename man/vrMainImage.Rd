@@ -2,36 +2,30 @@
 % Please edit documentation in R/generics.R, R/image.R
 \name{vrMainImage}
 \alias{vrMainImage}
-\alias{vrMainImage<-}
 \alias{vrMainImage.VoltRon}
-\alias{vrMainImage<-.VoltRon}
 \alias{vrMainImage.vrAssay}
+\alias{vrMainImage<-.VoltRon}
 \alias{vrMainImage<-.vrAssay}
 \title{vrMainImage}
 \usage{
-vrMainImage(object, ...)
-
-vrMainImage(object, ...) <- value
+vrMainImage(object, assay = NULL)
 
 \method{vrMainImage}{VoltRon}(object, assay = NULL)
 
-\method{vrMainImage}{VoltRon}(object, assay = NULL, ...) <- value
-
 \method{vrMainImage}{vrAssay}(object)
+
+\method{vrMainImage}{VoltRon}(object, assay = NULL) <- value
 
 \method{vrMainImage}{vrAssay}(object) <- value
 }
 \arguments{
-\item{object}{An object}
+\item{object}{a VoltRon or vrAssay object}
 
-\item{...}{Arguments passed to other methods}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{value}{the name of main image}
-
-\item{assay}{assay}
 }
 \description{
 Get the main image
-
-Set the main image
 }

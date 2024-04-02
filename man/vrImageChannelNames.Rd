@@ -7,7 +7,7 @@
 \alias{vrImageChannelNames.vrImage}
 \title{vrImageChannelNames}
 \usage{
-vrImageChannelNames(object, ...)
+vrImageChannelNames(object, assay = NULL, name = NULL)
 
 \method{vrImageChannelNames}{VoltRon}(object, assay = NULL)
 
@@ -16,13 +16,12 @@ vrImageChannelNames(object, ...)
 \method{vrImageChannelNames}{vrImage}(object)
 }
 \arguments{
-\item{object}{An object}
+\item{object}{a VoltRon, vrAssay or vrImage object}
 
-\item{...}{Arguments passed to other methods}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{assay}{assay}
-
-\item{name}{the key of the main image}
+\item{name}{the key of the image}
 }
 \description{
 Get names of all image channels

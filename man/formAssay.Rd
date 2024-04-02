@@ -17,23 +17,23 @@ formAssay(
 )
 }
 \arguments{
-\item{data}{the count table}
+\item{data}{the feature matrix of spatialpoints}
 
 \item{coords}{the coordinates of the spatial points}
 
-\item{segments}{the segments of the spatial points (optional)}
+\item{segments}{the list of segments each associated with a spatial point (optional)}
 
-\item{image}{the image of the data}
+\item{image}{a singelton or list of images as magick-image objects}
 
 \item{params}{additional parameters of the object}
 
-\item{type}{the type of the assay (cells, spots, ROIs)}
+\item{type}{the type of the assay (tile, molecule, cell, spot or ROI)}
 
 \item{name}{the name of the assay}
 
 \item{main_image}{the name of the main_image}
 
-\item{...}{additional arguements passed to \code{formImage}}
+\item{...}{additional arguements passed to \link{formImage}}
 }
 \description{
 Create a vrAssay (VoltRon assay) object

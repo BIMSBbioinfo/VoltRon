@@ -7,11 +7,11 @@
 subsetSegments(segments, image, crop_info)
 }
 \arguments{
-\item{segments}{a list of coordinates for each segment}
+\item{segments}{the list of segments each associated with a spatial point}
 
 \item{image}{the magick image associated with the coordinates}
 
-\item{crop_info}{the subseting string passed to \code{magick::image_crop}}
+\item{crop_info}{the subseting string passed to \link{magick::image_crop}}
 }
 \description{
 subsetting segments given cropping parameters of a magick image objects

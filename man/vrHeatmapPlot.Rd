@@ -23,13 +23,14 @@ vrHeatmapPlot(
 )
 }
 \arguments{
-\item{object}{VoltRon object}
+\item{object}{a VoltRon object}
 
-\item{assay}{assay name}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{features}{a set of features to be visualized}
+\item{features}{a set of features to be visualized from \link{vrFeatures} of raw or normalized data.}
 
-\item{group.by}{a column from metadata to seperate columns of the heatmap}
+\item{group.by}{a column of metadata from \link{Metadata} used as grouping label for the spatial entities}
 
 \item{norm}{if TRUE, the normalized data is used}
 
@@ -43,15 +44,15 @@ vrHeatmapPlot(
 
 \item{outlier.quantile}{quantile for detecting outliers whose values are set to the quantile, change to lower values to adjust large number of outliers, default: 0.99}
 
-\item{highlight.some}{if TRUE, some rows will be showed at random, reproducible by \code{seed} arguement}
+\item{highlight.some}{if TRUE, some rows will be showed at random, reproducible by \code{seed} argument}
 
-\item{n_highlight}{the number of shown row labels, if \code{show_row_names} is TRUE}
+\item{n_highlight}{the number of row labels shown, if \code{show_row_names} is TRUE}
 
 \item{font.size}{font size}
 
-\item{seed}{the seed for \code{set.seed}}
+\item{seed}{the seed for \link{set.seed}}
 
-\item{...}{additional parameters passed to \code{getVariableFeatures}}
+\item{...}{additional parameters passed to \link{getVariableFeatures}}
 }
 \description{
 HeatmapPlot

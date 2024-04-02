@@ -9,9 +9,9 @@ formImage(coords, segments = list(), image = NULL, main_channel = NULL)
 \arguments{
 \item{coords}{the coordinates of the spatial points}
 
-\item{segments}{the segments of the spatial points, optional}
+\item{segments}{the list of segments each associated with a spatial point}
 
-\item{image}{the image of the data}
+\item{image}{a singelton or list of images as magick-image objects}
 
 \item{main_channel}{the key of the main channel of vrImage object}
 }
