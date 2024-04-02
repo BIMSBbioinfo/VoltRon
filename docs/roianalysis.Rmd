@@ -44,7 +44,7 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 VoltRon is capable of analyzing readouts from distinct spatial technologies including **segmentation (ROI)-based transciptomics assays** that capture large polygonic regions on tissue sections. VoltRon recognizes such readouts including ones from commercially available tools and allows users to implement a workflow similar to ones conducted on bulk RNA-Seq datasets. In this tutorial, we will analyze morphological images and gene expression profiles provided by the readouts of the [Nanostring's GeoMx Digital Spatial Profiler](https://nanostring.com/products/geomx-digital-spatial-profiler/geomx-dsp-overview/) platform, a high-plex spatial profiling technology which produces segmentation-based protein and RNA assays. 
 
-In this use case, **eight tissue sections** were fitted into the scan area of the slide loaded on the GeoMx DSP instrument. These sections were cut from **control and COVID-19 lung tissues** of donors categorized based on disease durations (acute and prolonged). See [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information.  
+In this use case, **eight tissue micro array (TMA) tissue sections** were fitted into the scan area of the slide loaded on the GeoMx DSP instrument. These sections were cut from **control and COVID-19 lung tissues** of donors categorized based on disease durations (acute and prolonged). See [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information.  
 
 You can download these tutorial files from here:
 

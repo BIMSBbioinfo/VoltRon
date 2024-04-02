@@ -5,6 +5,7 @@
 \alias{modulateImage.VoltRon}
 \alias{modulateImage.vrAssay}
 \alias{modulateImage.vrImage}
+\alias{modulateImage.vrSpatial}
 \title{modulateImage}
 \usage{
 modulateImage(
@@ -31,6 +32,8 @@ modulateImage(
   hue = 100,
   force = FALSE
 )
+
+\method{modulateImage}{vrSpatial}(object, ...)
 }
 \arguments{
 \item{object}{a VoltRon, vrAssay or vrImage object}

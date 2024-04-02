@@ -244,7 +244,7 @@ setMethod(
         stop("There are no samples named ", i, " in this object")
       }
     } else {
-      if(!inherits(value, "vrSample")) {
+      if(!inherits(value, "vrSample") & !inherits(value, "vrBlock")  ) {
         stop("The provided object is not of class vrSample")
       }
       x@samples[[i]] <- value
@@ -472,7 +472,8 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
                                     assay = listofAssays,
                                     connectivity = igraph::make_empty_graph(directed = FALSE) + igraph::vertices(entityID)))
   names(listofLayers) <- layer_name
-  listofSamples <- list(methods::new("vrSample", layer = listofLayers))
+  # listofSamples <- list(methods::new("vrSample", layer = listofLayers))
+  listofSamples <- list(methods::new("vrBlock", layer = listofLayers))
   names(listofSamples) <- sample_name
 
   # set sample meta data
@@ -662,7 +663,8 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
     cur_sample.metadata$NewLayer <- paste0("Section", as.numeric(factor(cur_sample.metadata$comb, levels = unique(cur_sample.metadata$comb))))
     # names(listofLayers) <- cur_sample.metadata$NewLayer
     names(listofLayers) <- unique(cur_sample.metadata$NewLayer) ## CHANGE THIS LATER IF NEEDED ####
-    listofSamples <- list(methods::new("vrSample", layer = listofLayers))
+    # listofSamples <- list(methods::new("vrSample", layer = listofLayers))
+    listofSamples <- list(methods::new("vrBlock", layer = listofLayers))
     names(listofSamples) <- cur_sample
     new_listofSamples <- c(new_listofSamples, listofSamples)
     new_sample.metadata <- rbind(new_sample.metadata, cur_sample.metadata)
@@ -959,7 +961,7 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   metadata <- merge(metadata_list[[1]], metadata_list[-1])
 
   # combine samples and rename layers
-  message("Merging samples and layers ...")
+  message("Merging blocks and layers ...")
   listofSamples <- NULL
   for(i in 1:length(object_list)){
     cur_object <- object_list[[i]]@samples
@@ -988,11 +990,9 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
 }
 
 #' @rdname vrSpatialPoints
-#' @method vrSpatialPoints VoltRon
 #' @order 2
 #' 
 #' @export
-#'
 vrSpatialPoints.VoltRon <- function(object, assay = NULL) {
 
   # get assays

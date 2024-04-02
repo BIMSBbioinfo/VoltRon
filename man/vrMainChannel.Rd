@@ -4,8 +4,10 @@
 \alias{vrMainChannel}
 \alias{vrMainChannel.vrAssay}
 \alias{vrMainChannel.vrImage}
+\alias{vrMainChannel.vrSpatial}
 \alias{vrMainChannel<-.vrAssay}
 \alias{vrMainChannel<-.vrImage}
+\alias{vrMainChannel<-.vrSpatial}
 \title{vrMainChannel}
 \usage{
 vrMainChannel(object, name = NULL)
@@ -14,9 +16,13 @@ vrMainChannel(object, name = NULL)
 
 \method{vrMainChannel}{vrImage}(object)
 
+\method{vrMainChannel}{vrSpatial}(object)
+
 \method{vrMainChannel}{vrAssay}(object, name = NULL) <- value
 
 \method{vrMainChannel}{vrImage}(object) <- value
+
+\method{vrMainChannel}{vrSpatial}(object) <- value
 }
 \arguments{
 \item{object}{a vrAssay or vrImage object}

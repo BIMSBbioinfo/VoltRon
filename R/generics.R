@@ -514,6 +514,6 @@ as.VoltRon <- function(object, ...) {
 #' @rdname as.Zarr
 #' @export as.Zarr
 #'
-as.Zarr <- function(object, ...) {
+as.Zarr <- function(object, out_path, image_id) {
   UseMethod(generic = 'as.Zarr', object = object)
 }

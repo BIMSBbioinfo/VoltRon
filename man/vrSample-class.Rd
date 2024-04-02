@@ -7,10 +7,14 @@
 \title{The vrSample (VoltRon Sample) Class}
 \description{
 The vrSample (VoltRon Sample) Class
+
+The vrSample (VoltRon Sample) Class
 }
 \section{Slots}{
 
 \describe{
+\item{\code{layer}}{A list of layers (vrLayer)}
+
 \item{\code{layer}}{A list of layers (vrLayer)}
 }}
 

@@ -30,7 +30,7 @@ setMethod(
   f = 'show',
   signature = 'vrSample',
   definition = function(object) {
-    cat(class(x = object), "(VoltRon Sample) Object \n")
+    cat(class(x = object), "(VoltRon Block) Object \n")
     layers <- names(unlist(object@layer))
     cat("Layer(s):", paste(layers, collapse = " "), "\n")
     return(invisible(x = NULL))
@@ -82,6 +82,86 @@ setMethod(
     # change layer
     x@layer[[i]] <- value
 
+    # return
+    return(x)
+  }
+)
+
+## vrBlock ####
+
+#' The vrSample (VoltRon Sample) Class
+#'
+#' @slot layer A list of layers (vrLayer)
+#'
+#' @name vrSample-class
+#' @rdname vrSample-class
+#' @exportClass vrSample
+#'
+vrSample <- setClass(
+  Class = 'vrBlock',
+  slots = c(
+    layer = 'list'
+  )
+)
+
+### show ####
+
+setMethod(
+  f = 'show',
+  signature = 'vrBlock',
+  definition = function(object) {
+    cat(class(x = object), "(VoltRon Block) Object \n")
+    layers <- names(unlist(object@layer))
+    cat("Layer(s):", paste(layers, collapse = " "), "\n")
+    return(invisible(x = NULL))
+  }
+)
+
+### subset ####
+
+#' @importFrom methods slot
+#'
+setMethod(
+  f = '[[',
+  signature = 'vrBlock',
+  definition = function(x, i, j){
+    
+    # sample names
+    layer_names <- names(methods::slot(x, "layer"))
+    
+    # check query sample name
+    if(!i %in% layer_names){
+      stop("There are no layers named ", i, " in this sample")
+    }
+    
+    # return samples
+    return(x@layer[[i]])
+  }
+)
+
+#' @importFrom methods slot
+#'
+setMethod(
+  f = '[[<-',
+  signature = c('vrBlock'),
+  definition = function(x, i, j, ..., value){
+    
+    # check if value if vrLayer
+    if(!inherits(value, "vrLayer")){
+      stop("The provided object is not of class vrLayer")
+    }
+    
+    # sample names
+    layer_names <- names(methods::slot(x, "layer"))
+    
+    # check query sample name
+    if(!i %in% layer_names){
+      stop("There are no layers named ", i, " in this sample")
+    }
+    
+    # change layer
+    x@layer[[i]] <- value
+    
     # return
     return(x)
   }
@@ -189,6 +269,15 @@ merge.vrSample <- function(object, object_list, samples = NULL){
   return(object_list)
 }
 
+#' Merging vrBlock objects
+#'
+#' Given a vrBlock object, and a list of vrSample objects, merge all.
+#'
+#' @method merge vrBlock
+merge.vrBlock <- function(object, ...){
+  merge.vrSample(object, ...)
+}
+
 #' Subsetting vrSample objects
 #'
 #' Given a vrSample object, subset the object given one of the attributes
@@ -236,6 +325,17 @@ subset.vrSample <- function(object, subset, assays = NULL, spatialpoints = NULL,
   }
 }
 
+#' Subsetting vrBlock objects
+#'
+#' Given a vrBlock object, subset the object given one of the attributes
+#'
+#' @method subset vrBlock
+#' @order 6
+#'
+subset.vrBlock <- function(object, ...){
+  subset.vrSample(object, ...)
+}
+
 #' @param ... arguments passed to other methods
 #' 
 #' @rdname vrSpatialPoints
@@ -252,6 +352,15 @@ vrSpatialPoints.vrSample <- function(object, ...) {
   }))
 }
 
+#' @param ... arguments passed to other methods
+#' 
+#' @rdname vrSpatialPoints
+#' @order 5
+#' @export
+vrSpatialPoints.vrBlock <- function(object, ...) {
+  vrSpatialPoints.vrSample(object, ...)
+}
+
 #' changeAssayNames.vrSample
 #'
 #' Change the assay names of assays within a vrSample object
@@ -260,7 +369,7 @@ vrSpatialPoints.vrSample <- function(object, ...) {
 #' 
 #' @rdname changeAssayNames
 #'
-#' @noRd
+#' @export
 changeAssayNames.vrSample <- function(object, sample.metadata = NULL){
 
   if(is.null(sample.metadata))
@@ -275,6 +384,18 @@ changeAssayNames.vrSample <- function(object, sample.metadata = NULL){
     object[[lyr]] <- changeAssayNames(object[[lyr]], sample.metadata = sample.metadata[sample.metadata$Layer == lyr,])
 
   # return
+  return(object)
+}
+
+#' changeAssayNames.vrBlock
+#'
+#' Change the assay names of assays within a vrBlock object
+#' 
+#' @rdname changeAssayNames
+#'
+#' @export
+changeAssayNames.vrBlock <- function(object, ...) {
+  object <- changeAssayNames.vrSample(object, ...)
   return(object)
 }
 
