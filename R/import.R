@@ -182,7 +182,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #' @param overwrite_resolution if TRUE, the image "file.name" will be generated again although it exists at "dir.path"
 #' @param output.path The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.
 #' @param file.name the name of the lowred morphology image. Default: morphology_lowres.tif
-#' @param ... additional parameters passed to the \link{EBImage::writeImage} function
+#' @param ... additional parameters passed to the \link{writeImage} function
 #'
 #' @importFrom EBImage writeImage
 #'
