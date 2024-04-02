@@ -5,6 +5,7 @@
 \alias{resizeImage.VoltRon}
 \alias{resizeImage.vrAssay}
 \alias{resizeImage.vrImage}
+\alias{resizeImage.vrSpatial}
 \title{resizeImage}
 \usage{
 resizeImage(object, assay = NULL, name = NULL, reg = FALSE, size)
@@ -14,6 +15,8 @@ resizeImage(object, assay = NULL, name = NULL, reg = FALSE, size)
 \method{resizeImage}{vrAssay}(object, name = NULL, reg = FALSE, ...)
 
 \method{resizeImage}{vrImage}(object, size)
+
+\method{resizeImage}{vrSpatial}(object, ...)
 }
 \arguments{
 \item{object}{a VoltRon, vrAssay or vrImage object}

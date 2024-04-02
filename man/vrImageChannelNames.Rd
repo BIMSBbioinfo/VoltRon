@@ -5,6 +5,7 @@
 \alias{vrImageChannelNames.VoltRon}
 \alias{vrImageChannelNames.vrAssay}
 \alias{vrImageChannelNames.vrImage}
+\alias{vrImageChannelNames.vrSpatial}
 \title{vrImageChannelNames}
 \usage{
 vrImageChannelNames(object, assay = NULL, name = NULL)
@@ -14,6 +15,8 @@ vrImageChannelNames(object, assay = NULL, name = NULL)
 \method{vrImageChannelNames}{vrAssay}(object, name = NULL)
 
 \method{vrImageChannelNames}{vrImage}(object)
+
+\method{vrImageChannelNames}{vrSpatial}(object)
 }
 \arguments{
 \item{object}{a VoltRon, vrAssay or vrImage object}

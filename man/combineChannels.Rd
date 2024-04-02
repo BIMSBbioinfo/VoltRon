@@ -5,6 +5,7 @@
 \alias{combineChannels.VoltRon}
 \alias{combineChannels.vrAssay}
 \alias{combineChannels.vrImage}
+\alias{combineChannels.vrSpatial}
 \title{combineChannels}
 \usage{
 combineChannels(
@@ -27,6 +28,8 @@ combineChannels(
   colors = NULL,
   channel_key = "combined"
 )
+
+\method{combineChannels}{vrSpatial}(object, ...)
 }
 \arguments{
 \item{object}{a VoltRon, vrAssay or vrImage object}

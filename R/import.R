@@ -328,7 +328,7 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   }
 
   # create VoltRon
-  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", image_name = image_name, main_channel = channe_name, sample_name = sample_name, ...)
+  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", image_name = image_name, main_channel = channel_name, sample_name = sample_name, ...)
 }
 
 ####

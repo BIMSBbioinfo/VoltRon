@@ -5,8 +5,10 @@
 \alias{vrImages.VoltRon}
 \alias{vrImages.vrAssay}
 \alias{vrImages.vrImage}
+\alias{vrImages.vrSpatial}
 \alias{vrImages<-.vrAssay}
 \alias{vrImages<-.vrImage}
+\alias{vrImages<-.vrSpatial}
 \title{vrImages}
 \usage{
 vrImages(
@@ -25,9 +27,13 @@ vrImages(
 
 \method{vrImages}{vrImage}(object, channel = NULL, as.raster = FALSE, scale.perc = 100)
 
+\method{vrImages}{vrSpatial}(object, ...)
+
 \method{vrImages}{vrAssay}(object, name = NULL, channel = NULL, reg = FALSE) <- value
 
 \method{vrImages}{vrImage}(object, channel = NULL) <- value
+
+\method{vrImages}{vrSpatial}(object, channel = NULL) <- value
 }
 \arguments{
 \item{object}{a VoltRon, vrAssay or vrImage object}

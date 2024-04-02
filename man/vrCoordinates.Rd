@@ -5,9 +5,11 @@
 \alias{vrCoordinates.VoltRon}
 \alias{vrCoordinates.vrAssay}
 \alias{vrCoordinates.vrImage}
+\alias{vrCoordinates.vrSpatial}
 \alias{vrCoordinates<-.VoltRon}
 \alias{vrCoordinates<-.vrAssay}
 \alias{vrCoordinates<-.vrImage}
+\alias{vrCoordinates<-.vrSpatial}
 \title{vrCoordinates}
 \usage{
 vrCoordinates(object, assay = NULL, image_name = NULL, reg = FALSE)
@@ -18,11 +20,15 @@ vrCoordinates(object, assay = NULL, image_name = NULL, reg = FALSE)
 
 \method{vrCoordinates}{vrImage}(object)
 
+\method{vrCoordinates}{vrSpatial}(object)
+
 \method{vrCoordinates}{VoltRon}(object, image_name = NULL, reg = FALSE) <- value
 
 \method{vrCoordinates}{vrAssay}(object, image_name = NULL, reg = FALSE) <- value
 
 \method{vrCoordinates}{vrImage}(object) <- value
+
+\method{vrCoordinates}{vrSpatial}(object) <- value
 }
 \arguments{
 \item{object}{a VoltRon, vrAssay or vrImage object}

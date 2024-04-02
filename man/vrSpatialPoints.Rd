@@ -7,10 +7,13 @@
 \alias{vrSpatialPoints.vrMetadata}
 \alias{vrSpatialPoints.vrAssay}
 \alias{vrSpatialPoints.vrImage}
+\alias{vrSpatialPoints.vrSpatial}
 \alias{vrSpatialPoints.vrSample}
+\alias{vrSpatialPoints.vrBlock}
 \alias{vrSpatialPoints.vrLayer}
 \alias{vrSpatialPoints<-.vrAssay}
 \alias{vrSpatialPoints<-.vrImage}
+\alias{vrSpatialPoints<-.vrSpatial}
 \title{vrSpatialPoints}
 \usage{
 vrSpatialPoints(object, assay = NULL)
@@ -23,13 +26,19 @@ vrSpatialPoints(object, assay = NULL)
 
 \method{vrSpatialPoints}{vrImage}(object)
 
+\method{vrSpatialPoints}{vrSpatial}(object)
+
 \method{vrSpatialPoints}{vrSample}(object, ...)
+
+\method{vrSpatialPoints}{vrBlock}(object, ...)
 
 \method{vrSpatialPoints}{vrLayer}(object, ...)
 
 \method{vrSpatialPoints}{vrAssay}(object) <- value
 
 \method{vrSpatialPoints}{vrImage}(object, ...) <- value
+
+\method{vrSpatialPoints}{vrSpatial}(object, ...) <- value
 }
 \arguments{
 \item{object}{a VoltRon, vrSample, vrLayer, vrAssay or vrImage object}

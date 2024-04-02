@@ -5,9 +5,11 @@
 \alias{vrSegments.VoltRon}
 \alias{vrSegments.vrAssay}
 \alias{vrSegments.vrImage}
+\alias{vrSegments.vrSpatial}
 \alias{vrSegments<-.VoltRon}
 \alias{vrSegments<-.vrAssay}
 \alias{vrSegments<-.vrImage}
+\alias{vrSegments<-.vrSpatial}
 \title{vrSegments}
 \usage{
 vrSegments(object, assay = NULL, image_name = NULL, reg = FALSE)
@@ -18,11 +20,15 @@ vrSegments(object, assay = NULL, image_name = NULL, reg = FALSE)
 
 \method{vrSegments}{vrImage}(object)
 
+\method{vrSegments}{vrSpatial}(object)
+
 \method{vrSegments}{VoltRon}(object, image_name = NULL, reg = FALSE) <- value
 
 \method{vrSegments}{vrAssay}(object, image_name = NULL, reg = FALSE) <- value
 
 \method{vrSegments}{vrImage}(object) <- value
+
+\method{vrSegments}{vrSpatial}(object) <- value
 }
 \arguments{
 \item{object}{a VoltRon, vrAssay or vrImage object}
