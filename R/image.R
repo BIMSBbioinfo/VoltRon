@@ -173,7 +173,7 @@ formImage <- function(coords, segments = list(), image = NULL, main_channel = NU
 #' @param object A vrImage object
 #' @param subset Logical statement for subsetting
 #' @param spatialpoints the set of spatial points to subset the object
-#' @param image the subseting string passed to \link{magick::image_crop}
+#' @param image the subseting string passed to \link{image_crop}
 #'
 #' @method subset vrImage
 #' @order 5
@@ -252,7 +252,7 @@ subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
 #' @param object A vrSpatial object
 #' @param subset Logical statement for subsetting
 #' @param spatialpoints the set of spatial points to subset the object
-#' @param image the subseting string passed to \link{magick::image_crop}
+#' @param image the subseting string passed to \link{image_crop}
 #'
 #' @method subset vrSpatial
 #' @order 5
@@ -326,6 +326,8 @@ vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, .
   return(vrImages(object@image[[name]], channel = channel, ...))
 }
 
+#' @param value new image
+#' 
 #' @rdname vrImages
 #'
 #' @importFrom magick image_data

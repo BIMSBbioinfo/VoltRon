@@ -4,7 +4,14 @@
 \alias{merge.vrBlock}
 \title{Merging vrBlock objects}
 \usage{
-\method{merge}{vrBlock}(object, ...)
+\method{merge}{vrBlock}(object, object_list, samples = NULL)
+}
+\arguments{
+\item{object}{a vrSample object}
+
+\item{object_list}{a list of vrSample objects}
+
+\item{samples}{the sample names}
 }
 \description{
 Given a vrBlock object, and a list of vrSample objects, merge all.

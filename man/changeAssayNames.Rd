@@ -7,7 +7,7 @@
 \usage{
 \method{changeAssayNames}{vrSample}(object, sample.metadata = NULL)
 
-\method{changeAssayNames}{vrBlock}(object, ...)
+\method{changeAssayNames}{vrBlock}(object, sample.metadata = NULL)
 }
 \arguments{
 \item{sample.metadata}{the sample metadata with NewAssayNames column which includes the new assay names}

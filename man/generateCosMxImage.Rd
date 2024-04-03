@@ -13,7 +13,7 @@ generateCosMxImage(dir.path, increase.contrast = TRUE, output.path = NULL, ...)
 
 \item{output.path}{The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.}
 
-\item{...}{additional parameters passed to the EBImage::writeImage function}
+\item{...}{additional parameters passed to the \link{writeImage} function}
 }
 \description{
 Generates a low resolution Morphology image of the CosMx experiment

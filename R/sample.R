@@ -272,10 +272,14 @@ merge.vrSample <- function(object, object_list, samples = NULL){
 #' Merging vrBlock objects
 #'
 #' Given a vrBlock object, and a list of vrSample objects, merge all.
-#'
+#' 
+#' @param object a vrSample object
+#' @param object_list a list of vrSample objects
+#' @param samples the sample names
+#' 
 #' @method merge vrBlock
-merge.vrBlock <- function(object, ...){
-  merge.vrSample(object, ...)
+merge.vrBlock <- function(object, object_list, samples = NULL){
+  merge.vrSample(object, object_list = object_list, samples = samples)
 }
 
 #' Subsetting vrSample objects
@@ -286,7 +290,7 @@ merge.vrBlock <- function(object, ...){
 #' @param subset the subset statement
 #' @param assays the set of assays to subset the object
 #' @param spatialpoints the set of spatial points to subset the object
-#' @param image the subseting string passed to \link{magick::image_crop}
+#' @param image the subseting string passed to \link{image_crop}
 #'
 #' @method subset vrSample
 #' @order 6
@@ -328,12 +332,18 @@ subset.vrSample <- function(object, subset, assays = NULL, spatialpoints = NULL,
 #' Subsetting vrBlock objects
 #'
 #' Given a vrBlock object, subset the object given one of the attributes
+#' 
+#' @param object a vrSample object
+#' @param subset the subset statement
+#' @param assays the set of assays to subset the object
+#' @param spatialpoints the set of spatial points to subset the object
+#' @param image the subseting string passed to \link{image_crop}
 #'
 #' @method subset vrBlock
 #' @order 6
 #'
-subset.vrBlock <- function(object, ...){
-  subset.vrSample(object, ...)
+subset.vrBlock <- function(object, subset, assays = NULL, spatialpoints = NULL, image = NULL){
+  subset.vrSample(object, subset = subset, assays = assays, spatialpoints = spatialpoints, image = image)
 }
 
 #' @param ... arguments passed to other methods
@@ -391,11 +401,13 @@ changeAssayNames.vrSample <- function(object, sample.metadata = NULL){
 #'
 #' Change the assay names of assays within a vrBlock object
 #' 
+#' @param sample.metadata the sample metadata with NewAssayNames column which includes the new assay names
+#' 
 #' @rdname changeAssayNames
 #'
 #' @export
-changeAssayNames.vrBlock <- function(object, ...) {
-  object <- changeAssayNames.vrSample(object, ...)
+changeAssayNames.vrBlock <- function(object, sample.metadata = NULL) {
+  object <- changeAssayNames.vrSample(object, sample.metadata = sample.metadata)
   return(object)
 }
 
@@ -409,7 +421,7 @@ changeAssayNames.vrBlock <- function(object, ...) {
 #' @param subset the subset statement
 #' @param assays the set of assays to subset the object
 #' @param spatialpoints the set of spatial points to subset the object
-#' @param image the subseting string passed to \link{magick::image_crop}
+#' @param image the subseting string passed to \link{image_crop}
 #'
 #' @method subset vrLayer
 #' @order 7

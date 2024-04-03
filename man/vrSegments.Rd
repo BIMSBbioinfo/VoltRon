@@ -39,6 +39,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{image_name}{the name/key of the image associated with the coordinates}
 
 \item{reg}{TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested}
+
+\item{value}{new segment coordinates of spatial points}
 }
 \description{
 Given a VoltRon, vrAssay or vrImage object, get and set the segment coordinates of assays and coordinate systems

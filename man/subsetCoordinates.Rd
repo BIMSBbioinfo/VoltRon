@@ -11,7 +11,7 @@ subsetCoordinates(coords, image, crop_info)
 
 \item{image}{the magick image associated with the coordinates}
 
-\item{crop_info}{the subseting string passed to \link{magick::image_crop}}
+\item{crop_info}{the subseting string passed to \link{image_crop}}
 }
 \description{
 subsetting coordinates given cropping parameters of a magick image objects
