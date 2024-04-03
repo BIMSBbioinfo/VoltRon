@@ -23,6 +23,8 @@ vrFeatureData(object, assay = NULL)
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
+
+\item{value}{new feature metadata}
 }
 \description{
 Get and set feature data from the main.assay

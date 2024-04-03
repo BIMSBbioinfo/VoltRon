@@ -52,6 +52,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{scale.perc}{scale percentage if lower resolution image needed}
 
 \item{...}{arguements passed to other methods}
+
+\item{value}{new image}
 }
 \description{
 Get images of VoltRon objects

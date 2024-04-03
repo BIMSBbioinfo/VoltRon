@@ -1053,7 +1053,7 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
 #' @param dir.path CosMx output folder
 #' @param increase.contrast increase the contrast of the image before writing
 #' @param output.path The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.
-#' @param ... additional parameters passed to the EBImage::writeImage function
+#' @param ... additional parameters passed to the \link{writeImage} function
 #'
 #' @importFrom magick image_read image_contrast
 #' @importFrom EBImage writeImage

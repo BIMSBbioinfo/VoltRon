@@ -18,7 +18,7 @@ NULL
 #' @param k number of neighbors for kNN
 #' @param method the method used for graph construction, SNN or kNN
 #' @param graph.key the name of the graph
-#' @param ... additional parameters passed to \link{FNN::get.knn}
+#' @param ... additional parameters passed to \link{get.knn}
 #'
 #' @importFrom igraph add_edges simplify make_empty_graph vertices E<- E
 #' @importFrom FNN get.knn

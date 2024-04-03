@@ -32,8 +32,6 @@ vrFeatureData <- function(object, assay = NULL) {
   UseMethod(generic = 'vrFeatureData', object = object)
 }
 
-#' @param value new feature data
-#'
 #' @rdname vrFeatureData
 #' @export vrFeatureData<-
 #' @noRd
@@ -130,8 +128,6 @@ vrAssayNames <- function(object, assay = NULL) {
   UseMethod(generic = 'vrAssayNames', object = object)
 }
 
-#' @param value assay name
-#'
 #' @rdname vrAssayNames
 #' @export vrAssayNames<-
 #' @noRd
@@ -300,8 +296,6 @@ vrCoordinates <- function(object, assay = NULL, image_name = NULL, reg = FALSE) 
   UseMethod(generic = 'vrCoordinates', object = object)
 }
 
-#' @param value new coordinates of spatial points
-#'
 #' @rdname vrCoordinates
 #' @export vrCoordinates<-
 #' @noRd
@@ -322,8 +316,6 @@ vrSegments <- function(object, assay = NULL, image_name = NULL, reg = FALSE) {
   UseMethod(generic = 'vrSegments', object = object)
 }
 
-#' @param value new segment coordinates of spatial points
-#'
 #' @rdname vrSegments
 #' @export vrSegments<-
 #' @noRd
@@ -361,8 +353,6 @@ vrImages <- function(object, assay = NULL, name = NULL, reg = FALSE, channel = N
   UseMethod(generic = 'vrImages', object = object)
 }
 
-#' @param value new image
-#'
 #' @rdname vrImages
 #' @export vrImages<-
 #' @noRd

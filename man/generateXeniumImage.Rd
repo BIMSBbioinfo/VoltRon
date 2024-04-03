@@ -27,7 +27,7 @@ generateXeniumImage(
 
 \item{file.name}{the name of the lowred morphology image. Default: morphology_lowres.tif}
 
-\item{...}{additional parameters passed to the \link{EBImage::writeImage} function}
+\item{...}{additional parameters passed to the \link{writeImage} function}
 }
 \description{
 Generate a low resolution DAPI image of the Xenium experiment

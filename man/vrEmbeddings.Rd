@@ -30,6 +30,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{...}{arguments passed to other methods}
 
+\item{value}{new embedding data}
+
 \item{overwrite}{Whether the existing embedding with name 'type' should be overwritten}
 }
 \description{

@@ -765,7 +765,7 @@ addConnectivity <- function(object, connectivity, sample, layer){
 #' @param assays the set of assays to subset the object
 #' @param spatialpoints the set of spatial points to subset the object
 #' @param features the set of features to subset the object
-#' @param image the subseting string passed to \link{magick::image_crop}
+#' @param image the subseting string passed to \link{image_crop}
 #' @param interactive TRUE if interactive subsetting on the image is demanded
 #' @param use_points if \code{interactive} is \code{TRUE}, use spatial points instead of the reference image
 #'
@@ -1039,6 +1039,8 @@ vrFeatureData.VoltRon <- function(object, assay = NULL) {
   return(features)
 }
 
+#' @param value new feature metadata
+#' 
 #' @rdname vrFeatureData
 #' @order 4
 #' @export
@@ -1112,6 +1114,7 @@ vrEmbeddings.VoltRon <- function(object, assay = NULL, ...) {
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param type the key name for the embedding
 #' @param overwrite Whether the existing embedding with name 'type' should be overwritten
+#' @param value new embedding data
 #'
 #' @rdname vrEmbeddings
 #' @order 4
@@ -1350,6 +1353,8 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, reg =
   return(coords)
 }
 
+#' @param value new coordinates of spatial points
+#' 
 #' @rdname vrCoordinates
 #' @order 4
 #' @export
@@ -1398,6 +1403,8 @@ vrSegments.VoltRon <- function(object, assay = NULL, image_name = NULL, reg = FA
   return(segts)
 }
 
+#' @param value new segment coordinates of spatial points
+#' 
 #' @rdname vrSegments
 #' @order 5
 #' @export

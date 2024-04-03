@@ -6,7 +6,7 @@
 \alias{as.Zarr.magick-image}
 \title{as.Zarr}
 \usage{
-as.Zarr(object, ...)
+as.Zarr(object, out_path, image_id)
 
 \method{as.Zarr}{VoltRon}(object, out_path, image_id = "image_1")
 

@@ -24,6 +24,8 @@ vrAssayNames(object, assay = NULL)
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
+
+\item{value}{assay name}
 }
 \description{
 Given a VoltRon, vrMetadata or vrAssay object, get/set names of assays.
