@@ -976,7 +976,7 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
     if(inherits(metadata, "data.table")){
       datax[[group.by]] <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
     } else {
-      datax[[group.by]] <- as.factor(metadata[,group.by])
+      datax[[group.by]] <- as.factor(metadata[rownames(datax),group.by])
     }
   } else {
     stop("Column ", group.by, " cannot be found in metadata!")

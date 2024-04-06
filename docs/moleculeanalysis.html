@@ -592,9 +592,9 @@ SARS-COV-2 molecules mostly outside of any single cell.</p>
 <p>We now register the H&amp;E image and annotations to the DAPI image
 of Xenium section using the <strong>registerSpatialData</strong>
 function. See <a href="registration.html">Spatial Data Alignment</a>
-tutorial for more information. In their original</p>
-<pre class="r watch-out"><code>vr2_subset &lt;- modulateImage(vr2_subset, brightness = 300, channel = &quot;DAPI&quot;)
-xen_reg &lt;- registerSpatialData(object_list = list(vr2_subset, imgdata))
+tutorial for more information.</p>
+<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- modulateImage(vr2_merged_acute1, brightness = 300, channel = &quot;DAPI&quot;)
+xen_reg &lt;- registerSpatialData(object_list = list(vr2_merged_acute1, imgdata))
 imgdata_reg &lt;- xen_reg$registered_spat[[2]]</code></pre>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_HE_registration.png" class="center"></p>
 <p><br></p>
@@ -603,7 +603,7 @@ it further analysis. We can transfer images and their channels across
 assays of one or multiple VoltRon objects. Here, we save the registered
 image of the H&amp;E data as an additional channel of Xenium section of
 the acuse case 1 sample with molecule data.</p>
-<pre class="r watch-out"><code>vrImages(vr2_merged[[&quot;Assay8&quot;]], name = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- vrImages(imgdata_reg, assay = &quot;Assay1&quot;, name = &quot;image_1_reg&quot;)</code></pre>
+<pre class="r watch-out"><code>vrImages(vr2_merged_acute1[[&quot;Assay8&quot;]], name = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- vrImages(imgdata_reg, assay = &quot;Assay1&quot;, name = &quot;image_1_reg&quot;)</code></pre>
 <p><br></p>
 <p>You can also add the VoltRon object of H&amp;E data as an additional
 assay of the Xenium section such that one layer includes cell,
@@ -611,43 +611,33 @@ molecules, ROI Annotations and images in the same time. Specifically, we
 add the ROI annotation to the Xenium VoltRon object using the
 <strong>addAssay</strong> function where we choose the destination
 sample/block and the layer of the assay.</p>
-<pre class="r watch-out"><code>vr2_merged &lt;- addAssay(vr2_merged,
-                       assay = imgdata_reg[[&quot;Assay2&quot;]],
-                       metadata = Metadata(imgdata_reg, assay = &quot;ROIAnnotation&quot;),
-                       assay_name = &quot;ROIAnnotation&quot;,
-                       sample = &quot;acute case 1&quot;, layer = &quot;Section1&quot;)
-vr2_merged</code></pre>
+<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- addAssay(vr2_merged_acute1,
+                              assay = imgdata_reg[[&quot;Assay2&quot;]],
+                              metadata = Metadata(imgdata_reg, assay = &quot;ROIAnnotation&quot;),
+                              assay_name = &quot;ROIAnnotation&quot;,
+                              sample = &quot;acute case 1&quot;, layer = &quot;Section1&quot;)
+vr2_merged_acute1</code></pre>
 <pre><code>VoltRon Object 
-prolonged case 4: 
-  Layers: Section1 
-acute case 3: 
-  Layers: Section1 
-control case 2: 
-  Layers: Section1 
 acute case 1: 
   Layers: Section1 
-acute case 2: 
-  Layers: Section1 
-... 
-There are 8 samples in total 
-Assays: Xenium(Main) Xenium_mol ROIAnnotation </code></pre>
+Assays: ROIAnnotation(Main) Xenium_mol Xenium </code></pre>
 <p><br></p>
 <p>Now we can transfer ROI annotations as additional metadata features
 of the molecule assay. We will refer the new metadata column as “Region”
 which will indicate if the molecule is within any annotated ROI in the
 same layer.</p>
 <pre class="r watch-out"><code># make a new metadata column for ROIAnnotation assay using names
-vrMainAssay(vr2_merged) &lt;- &quot;ROIAnnotation&quot;
-vr2_merged$Region &lt;- vrSpatialPoints(vr2_merged)
+vrMainAssay(vr2_merged_acute1) &lt;- &quot;ROIAnnotation&quot;
+vr2_merged_acute1$Region &lt;- vrSpatialPoints(vr2_merged_acute1)
 
 # set the spatial coordinate system of ROI Annotations assay
-vrMainImage(vr2_merged[[&quot;Assay17&quot;]]) &lt;- &quot;image_1_reg&quot;
+vrMainSpatial(vr2_merged_acute1[[&quot;Assay9&quot;]]) &lt;- &quot;image_1_reg&quot;
 
 # transfer ROI annotations to molecules
-vr2_merged &lt;- transferData(object = vr2_merged, from = &quot;Assay17&quot;, to = &quot;Assay8&quot;, features = &quot;Region&quot;)
+vr2_merged_acute1 &lt;- transferData(object = vr2_merged_acute1, from = &quot;Assay9&quot;, to = &quot;Assay8&quot;, features = &quot;Region&quot;)
 
 # Metadata of molecules
-Metadata(vr2_merged, assay = &quot;Xenium_mol&quot;)</code></pre>
+Metadata(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;)</code></pre>
 <div>
 <pre><code style="font-size: 11px;">                            id assay_id overlaps_nucleus   gene       qv      Assay    Layer       Sample    Region
                         &lt;char&gt;   &lt;char&gt;            &lt;int&gt; &lt;char&gt;    &lt;num&gt;     &lt;char&gt;   &lt;char&gt;       &lt;char&gt;    &lt;char&gt;

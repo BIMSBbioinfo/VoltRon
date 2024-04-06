@@ -107,9 +107,31 @@ In this use case, we analyse readouts of **eight tissue micro array (TMA) tissue
 
 ## Single Cells and Molecules
 
-Let us first analyze the Xenium data in single cell level and also visualize molecular data.
+Across these eight TMA section, we investigate a section of acute case which is originated from a lung with extreme number of detected open reading frames of virus molecules. For convenience, we load a VoltRon object where cells are already annotated. 
+
+```{r eval = FALSE, class.source="watch-out"}
+vr2_merged_acute1 <- readRDS(file = "data/Xenium/acutecase1_annotated.rds")
+vrEmbeddingPlot(vr2_merged_acute1, assay = "Xenium", embedding = "umap", 
+                group.by = "CellType", label = TRUE)
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_vrembeddingplot.png" class="center">
 
 <br>
+
+We incorporate two open reading frames (ORFs), named **S2_N** **S2_orf1ab**, which represent unreplicated and replicated virus molecules, respectively. We can visualize again tile the count of these virus expressions by specifically selecting these two ORFs.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPlot(vr2_merged_acute1, assay = "Xenium_mol", group.by = "gene", 
+              group.ids = c("S2_N", "S2_orf1ab"), n.tile = 300)
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus.png" class="center">
+
+<br>
+
+
+In the following sections, we will integrate manually annotated H&E images to 
 
 ## Automated H&E Registration
 
@@ -146,11 +168,11 @@ vrSpatialPlot(imgdata, assay = "ROIAnnotation", group.by = "Sample",
 
 <br>
 
-We now register the H&E image and annotations to the DAPI image of Xenium section using the **registerSpatialData** function. See [Spatial Data Alignment](registration.html) tutorial for more information. In their original 
+We now register the H&E image and annotations to the DAPI image of Xenium section using the **registerSpatialData** function. See [Spatial Data Alignment](registration.html) tutorial for more information. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-vr2_subset <- modulateImage(vr2_subset, brightness = 300, channel = "DAPI")
-xen_reg <- registerSpatialData(object_list = list(vr2_subset, imgdata))
+vr2_merged_acute1 <- modulateImage(vr2_merged_acute1, brightness = 300, channel = "DAPI")
+xen_reg <- registerSpatialData(object_list = list(vr2_merged_acute1, imgdata))
 imgdata_reg <- xen_reg$registered_spat[[2]]
 ```
 
@@ -161,7 +183,7 @@ imgdata_reg <- xen_reg$registered_spat[[2]]
 Once registered, we can isolate the registered H&E data and use it further analysis. We can transfer images and their channels across assays of one or multiple VoltRon objects. Here, we save the registered image of the H&E data as an additional channel of Xenium section of the acuse case 1 sample with molecule data.
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrImages(vr2_merged[["Assay8"]], name = "main", channel = "H&E") <- vrImages(imgdata_reg, assay = "Assay1", name = "image_1_reg")
+vrImages(vr2_merged_acute1[["Assay8"]], name = "main", channel = "H&E") <- vrImages(imgdata_reg, assay = "Assay1", name = "image_1_reg")
 ```
 
 <br>
@@ -169,29 +191,19 @@ vrImages(vr2_merged[["Assay8"]], name = "main", channel = "H&E") <- vrImages(img
 You can also add the VoltRon object of H&E data as an additional assay of the Xenium section such that one layer includes cell, molecules, ROI Annotations and images in the same time. Specifically, we add the ROI annotation to the Xenium VoltRon object using the **addAssay** function where we choose the destination sample/block and the layer of the assay. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-vr2_merged <- addAssay(vr2_merged,
-                       assay = imgdata_reg[["Assay2"]],
-                       metadata = Metadata(imgdata_reg, assay = "ROIAnnotation"),
-                       assay_name = "ROIAnnotation",
-                       sample = "acute case 1", layer = "Section1")
-vr2_merged
+vr2_merged_acute1 <- addAssay(vr2_merged_acute1,
+                              assay = imgdata_reg[["Assay2"]],
+                              metadata = Metadata(imgdata_reg, assay = "ROIAnnotation"),
+                              assay_name = "ROIAnnotation",
+                              sample = "acute case 1", layer = "Section1")
+vr2_merged_acute1
 ```
 
 ```
 VoltRon Object 
-prolonged case 4: 
-  Layers: Section1 
-acute case 3: 
-  Layers: Section1 
-control case 2: 
-  Layers: Section1 
 acute case 1: 
   Layers: Section1 
-acute case 2: 
-  Layers: Section1 
-... 
-There are 8 samples in total 
-Assays: Xenium(Main) Xenium_mol ROIAnnotation 
+Assays: ROIAnnotation(Main) Xenium_mol Xenium 
 ```
 
 <br>
@@ -200,17 +212,17 @@ Now we can transfer ROI annotations as additional metadata features of the molec
 
 ```{r eval = FALSE, class.source="watch-out"}
 # make a new metadata column for ROIAnnotation assay using names
-vrMainAssay(vr2_merged) <- "ROIAnnotation"
-vr2_merged$Region <- vrSpatialPoints(vr2_merged)
+vrMainAssay(vr2_merged_acute1) <- "ROIAnnotation"
+vr2_merged_acute1$Region <- vrSpatialPoints(vr2_merged_acute1)
 
 # set the spatial coordinate system of ROI Annotations assay
-vrMainImage(vr2_merged[["Assay17"]]) <- "image_1_reg"
+vrMainSpatial(vr2_merged_acute1[["Assay9"]]) <- "image_1_reg"
 
 # transfer ROI annotations to molecules
-vr2_merged <- transferData(object = vr2_merged, from = "Assay17", to = "Assay8", features = "Region")
+vr2_merged_acute1 <- transferData(object = vr2_merged_acute1, from = "Assay9", to = "Assay8", features = "Region")
 
 # Metadata of molecules
-Metadata(vr2_merged, assay = "Xenium_mol")
+Metadata(vr2_merged_acute1, assay = "Xenium_mol")
 ```
 
 <div><pre><code style="font-size: 11px;">                            id assay_id overlaps_nucleus   gene       qv      Assay    Layer       Sample    Region
