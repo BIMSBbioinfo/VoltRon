@@ -495,8 +495,12 @@ vrData.vrAssay <- function(object, features = NULL, norm = FALSE, ...) {
 #' @order 3
 #' @export
 #'
-vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
+vrCoordinates.vrAssay <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE) {
 
+  # get spatial name
+  if(!is.null(spatial_name)) 
+    image_name <- spatial_name
+  
   # check main image
   if(is.null(image_name)){
     # image_name <- vrMainImage(object)
@@ -528,8 +532,12 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 #' @importFrom methods slot
 #'
 #' @export
-"vrCoordinates<-.vrAssay" <- function(object, image_name = NULL, reg = FALSE, value) {
+"vrCoordinates<-.vrAssay" <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
 
+  # get spatial name
+  if(!is.null(spatial_name)) 
+    image_name <- spatial_name
+  
   # check main image
   if(is.null(image_name)){
     # image_name <- vrMainImage(object)
@@ -558,7 +566,11 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 #'
 #' @export
 #'
-flipCoordinates.vrAssay <- function(object, image_name = NULL, ...) {
+flipCoordinates.vrAssay <- function(object, image_name = NULL, spatial_name = NULL, ...) {
+  
+  # get spatial name
+  if(!is.null(spatial_name)) 
+    image_name <- spatial_name
   
   # get image info
   imageinfo <- magick::image_info(vrImages(object, name = image_name))
@@ -586,8 +598,12 @@ flipCoordinates.vrAssay <- function(object, image_name = NULL, ...) {
 #' @rdname vrSegments
 #' @order 3
 #' @export
-vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
+vrSegments.vrAssay <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE) {
 
+  # get spatial name
+  if(!is.null(spatial_name)) 
+    image_name <- spatial_name
+  
   # check main image
   if(is.null(image_name)){
     # image_name <- vrMainImage(object)
@@ -618,8 +634,12 @@ vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 #' @order 6
 #' @importFrom methods slot
 #' @export
-"vrSegments<-.vrAssay" <- function(object, image_name = NULL, reg = FALSE, value) {
+"vrSegments<-.vrAssay" <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
 
+  # get spatial name
+  if(!is.null(spatial_name)) 
+    image_name <- spatial_name
+  
   # check main image
   if(is.null(image_name)){
     # image_name <- vrMainImage(object)

@@ -56,7 +56,8 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
 
   # get image name and channel
   if(is.null(image_name)){
-    image_name <- vrMainImage(object[[assay]])
+    # image_name <- vrMainImage(object[[assay]])
+    image_name <- vrMainSpatial(object[[assay]])
   }
 
   # get image
@@ -299,7 +300,8 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
         new_assay <- formAssay(coords = coords, segments = segments,
                                type = "ROI",
                                image = vrImages(object, assay = assay),
-                               main_image = vrMainImage(object[[assay]]),
+                               # main_image = vrMainImage(object[[assay]]),
+                               main_image = vrMainSpatial(object[[assay]]),
                                name = assay)
         object <- addAssay.VoltRon(object,
                                    assay = new_assay,

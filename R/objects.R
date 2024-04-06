@@ -1332,18 +1332,23 @@ SampleMetadata <- function(object) {
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param image_name the name/key of the image associated with the coordinates
+#' @param image_name (deprecated) the name/key of the image associated with the coordinates
+#' @param spatial_name the name/key of the spatial system associated with the coordinates
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
 #'
 #' @rdname vrCoordinates
 #' @order 2
 #' @export
 #'
-vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, reg = FALSE) {
+vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL, reg = FALSE) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
 
+  # get spatial name
+  if(!is.null(spatial_name)) 
+    image_name <- spatial_name
+  
   # get all coordinates
   coords <- NULL
   for(assy in assay_names)
@@ -1359,7 +1364,7 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, reg =
 #' @order 4
 #' @export
 #'
-"vrCoordinates<-.VoltRon" <- function(object, image_name = NULL, reg = FALSE, value) {
+"vrCoordinates<-.VoltRon" <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -1373,8 +1378,13 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, reg =
   vrlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
   vrassay <- vrlayer[[cur_assay$Assay]]
 
+  # get spatial name
+  if(!is.null(spatial_name)) 
+    image_name <- spatial_name
+  
   # change coordinates
-  vrCoordinates(vrassay, image_name = image_name, reg = reg) <- value
+  # vrCoordinates(vrassay, image_name = image_name, reg = reg) <- value
+  vrCoordinates(vrassay, spatial_name = image_name, reg = reg) <- value
   vrlayer[[cur_assay$Assay]] <- vrassay
   object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
 
@@ -1383,21 +1393,27 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, reg =
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param image_name the name/key of the image associated with the coordinates
+#' @param image_name (deprecated) the name/key of the image associated with the coordinates
+#' @param spatial_name the name/key of the spatial system associated with the coordinates
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
 #'
 #' @rdname vrSegments
 #' @order 2
 #' @export
-vrSegments.VoltRon <- function(object, assay = NULL, image_name = NULL, reg = FALSE) {
+vrSegments.VoltRon <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL, reg = FALSE) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
 
+  # get spatial name
+  if(!is.null(spatial_name)) 
+    image_name <- spatial_name
+  
   # get all coordinates
   segts <- NULL
   for(assy in assay_names)
-    segts <- c(segts, vrSegments(object[[assy]], image_name = image_name, reg = reg))
+    segts <- c(segts, vrSegments(object[[assy]], spatial_name = image_name, reg = reg))
+    # segts <- c(segts, vrSegments(object[[assy]], image_name = image_name, reg = reg))
 
   # return image
   return(segts)
@@ -1408,7 +1424,7 @@ vrSegments.VoltRon <- function(object, assay = NULL, image_name = NULL, reg = FA
 #' @rdname vrSegments
 #' @order 5
 #' @export
-"vrSegments<-.VoltRon" <- function(object, image_name = NULL, reg = FALSE, value) {
+"vrSegments<-.VoltRon" <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -1422,8 +1438,13 @@ vrSegments.VoltRon <- function(object, assay = NULL, image_name = NULL, reg = FA
   vrlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
   vrassay <- vrlayer[[cur_assay$Assay]]
 
+  # get spatial name
+  if(!is.null(spatial_name)) 
+    image_name <- spatial_name
+  
   # change coordinates
-  vrSegments(vrassay, image_name = image_name, reg = reg) <- value
+  # vrSegments(vrassay, image_name = image_name, reg = reg) <- value
+  vrSegments(vrassay, spatial_name = image_name, reg = reg) <- value
   vrlayer[[cur_assay$Assay]] <- vrassay
   object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
 
@@ -1432,21 +1453,27 @@ vrSegments.VoltRon <- function(object, assay = NULL, image_name = NULL, reg = FA
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param image_name the name/key of the image
+#' @param image_name (deprecated) the name/key of the image
+#' @param spatial_name the name/key of the spatial system associated with the coordinates
 #' @param ... additional parameters passed to \link{vrCoordinates} and \link{vrSegments}
 #' 
 #' @rdname flipCoordinates
 #' @order 2
 #'
 #' @export
-flipCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, ...){
+flipCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL, ...){
   
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
   
+  # get spatial name
+  if(!is.null(spatial_name)) 
+    image_name <- spatial_name
+  
   # flip coordinates
   for(assy in assay_names){
-    object[[assy]] <- flipCoordinates(object[[assy]], image_name = image_name, ...)
+    object[[assy]] <- flipCoordinates(object[[assy]], spatial_name = image_name, ...)
+    # object[[assy]] <- flipCoordinates(object[[assy]], image_name = image_name, ...)
   }
   return(object)
 }

@@ -295,7 +295,7 @@ vrImages.VoltRon <- function(object, assay = NULL, ...){
   }
 }
 
-#' @param name the name of the main image
+#' @param name the name of the main spatial system
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param channel the name of the channel associated with the image
 #'

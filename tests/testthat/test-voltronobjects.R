@@ -69,6 +69,8 @@ test_that("coordinates", {
 
   # coordinates
   coords <- vrCoordinates(visium_data)
+  coords <- vrCoordinates(visium_data, image_name = "main")
+  coords <- vrCoordinates(visium_data, spatial_name = "main")
   expect_warning(coords <- vrCoordinates(visium_data, reg = TRUE))
   expect_warning(coords <- vrCoordinates(visium_data, assay = "Assay1", reg = TRUE))
 

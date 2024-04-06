@@ -6,11 +6,23 @@
 \alias{flipCoordinates.vrAssay}
 \title{flipCoordinates}
 \usage{
-flipCoordinates(object, assay = NULL, image_name = NULL, ...)
+flipCoordinates(
+  object,
+  assay = NULL,
+  spatial_name = NULL,
+  image_name = NULL,
+  ...
+)
 
-\method{flipCoordinates}{VoltRon}(object, assay = NULL, image_name = NULL, ...)
+\method{flipCoordinates}{VoltRon}(
+  object,
+  assay = NULL,
+  image_name = NULL,
+  spatial_name = NULL,
+  ...
+)
 
-\method{flipCoordinates}{vrAssay}(object, image_name = NULL, ...)
+\method{flipCoordinates}{vrAssay}(object, image_name = NULL, spatial_name = NULL, ...)
 }
 \arguments{
 \item{object}{a VoltRon, vrAssay or vrImage object}
@@ -18,7 +30,9 @@ flipCoordinates(object, assay = NULL, image_name = NULL, ...)
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{image_name}{the name/key of the image}
+\item{spatial_name}{the name/key of the spatial system associated with the coordinates}
+
+\item{image_name}{(deprecated) the name/key of the image}
 
 \item{...}{additional parameters passed to \link{vrCoordinates} and \link{vrSegments}}
 }

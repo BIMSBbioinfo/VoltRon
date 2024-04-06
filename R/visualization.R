@@ -236,17 +236,20 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     } else {
       info <- NULL
     }
-    image_name <- background
+    # image_name <- background
+    spatial_name <- background
   } else {
     info <- NULL
     # image_name <- vrMainImage(assay)
-    image_name <- vrMainSpatial(assay)
+    spatial_name <- vrMainSpatial(assay)
   }
 
   # data
-  coords <- as.data.frame(vrCoordinates(assay, image_name = image_name, reg = reg))
+  # coords <- as.data.frame(vrCoordinates(assay, image_name = image_name, reg = reg))
+  coords <- as.data.frame(vrCoordinates(assay, spatial_name = spatial_name, reg = reg))
   coords <- coords/scale_factors
-  segments <- vrSegments(assay, image_name = image_name)
+  # segments <- vrSegments(assay, image_name = image_name)
+  segments <- vrSegments(assay, spatial_name = spatial_name)
 
   # plotting features
   if(!group.by %in% colnames(metadata))
@@ -654,17 +657,20 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
     } else {
       info <- NULL
     }
-    image_name <- background
+    # image_name <- background
+    spatial_name <- background
   } else {
     info <- NULL
-    image_name <- vrMainSpatial(assay)
+    spatial_name <- vrMainSpatial(assay)
     # image_name <- vrMainImage(assay)
   }
 
   # data
-  coords <- as.data.frame(vrCoordinates(assay, image_name = image_name, reg = reg))
+  # coords <- as.data.frame(vrCoordinates(assay, image_name = image_name, reg = reg))
+  coords <- as.data.frame(vrCoordinates(assay, spatial_name = spatial_name, reg = reg))
   coords <- coords/scale_factors
-  segments <- vrSegments(assay, image_name = image_name)
+  # segments <- vrSegments(assay, image_name = image_name)
+  segments <- vrSegments(assay, spatial_name = spatial_name)
   data_features <- feature[feature %in% vrFeatures(assay)]
   if(length(data_features) > 0){
     normdata <- vrData(assay, features = feature, norm = norm)

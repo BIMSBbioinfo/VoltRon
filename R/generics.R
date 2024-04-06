@@ -292,14 +292,14 @@ vrSpatialPoints <- function(object, assay = NULL) {
 #' @export vrCoordinates
 #' @order 1
 #'
-vrCoordinates <- function(object, assay = NULL, image_name = NULL, reg = FALSE) {
+vrCoordinates <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL, reg = FALSE) {
   UseMethod(generic = 'vrCoordinates', object = object)
 }
 
 #' @rdname vrCoordinates
 #' @export vrCoordinates<-
 #' @noRd
-"vrCoordinates<-" <- function(object, image_name = NULL, reg = FALSE, value) {
+"vrCoordinates<-" <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
   UseMethod(generic = 'vrCoordinates<-', object = object)
 }
 
@@ -312,14 +312,14 @@ vrCoordinates <- function(object, assay = NULL, image_name = NULL, reg = FALSE) 
 #' @rdname vrSegments
 #' @export vrSegments
 #' @order 1
-vrSegments <- function(object, assay = NULL, image_name = NULL, reg = FALSE) {
+vrSegments <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL,  reg = FALSE) {
   UseMethod(generic = 'vrSegments', object = object)
 }
 
 #' @rdname vrSegments
 #' @export vrSegments<-
 #' @noRd
-"vrSegments<-" <- function(object, image_name = NULL, reg = FALSE, value) {
+"vrSegments<-" <- function(object, image_name = NULL, spatial_name = NULL,  reg = FALSE, value) {
   UseMethod(generic = 'vrSegments<-', object = object)
 }
 
@@ -332,7 +332,7 @@ vrSegments <- function(object, assay = NULL, image_name = NULL, reg = FALSE) {
 #' @rdname flipCoordinates
 #' @export flipCoordinates
 #' @order 1
-flipCoordinates <- function(object, assay = NULL, image_name = NULL, ...) {
+flipCoordinates <- function(object, assay = NULL, spatial_name = NULL, image_name = NULL, ...) {
   UseMethod(generic = 'flipCoordinates', object = object)
 }
 

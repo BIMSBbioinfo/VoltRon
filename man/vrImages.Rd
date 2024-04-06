@@ -41,7 +41,7 @@ vrImages(
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{name}{the name of the main image}
+\item{name}{the name of the main spatial system}
 
 \item{reg}{TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested}
 
