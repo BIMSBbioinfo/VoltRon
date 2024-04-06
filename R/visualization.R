@@ -31,9 +31,9 @@ NULL
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param label if TRUE, the labels of the ROI assays will be visualized
 #' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
-#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainImage}) 
+#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
-#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
 #' @param legend.pt.size the size of points at the legend
 #' @param scale.image if TRUE, background image will be scaled down to a low resolution (width: 1000px)
@@ -192,9 +192,9 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param plot_title the title of the single plot
 #' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
-#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainImage}) 
+#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
-#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
 #' @param legend.pt.size the size of points at the legend
 #' @param scale.image if TRUE, background image will be scaled down to a low resolution (width: 1000px)
@@ -213,14 +213,16 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 
   # add image
   if(is.null(background))
-    background <- vrMainImage(assay)
+    background <- vrMainSpatial(assay)
+    # background <- vrMainImage(assay)
   if(length(background) == 2) {
     channel <- background[2]
   } else {
     channel <- NULL
   }
   background <- background[1]
-  if(background %in% vrImageNames(assay)){
+  # if(background %in% vrImageNames(assay)){
+  if(background %in% vrSpatialNames(assay)){ 
     image <- vrImages(assay, name = background, channel = channel)
     if(!is.null(image)){
       info <- image_info(image)
@@ -237,7 +239,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     image_name <- background
   } else {
     info <- NULL
-    image_name <- vrMainImage(assay)
+    # image_name <- vrMainImage(assay)
+    image_name <- vrMainSpatial(assay)
   }
 
   # data
@@ -469,9 +472,9 @@ vrSpatialPlotSingleTiling <- function(g, data, n.tile, alpha = 1){
 #' @param keep.scale whether unify all scales for all features or not
 #' @param label if TRUE, labels of ROIs will be visualized too
 #' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
-#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainImage}) 
+#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
-#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
 #' @param common.legend whether to use a common legend for all plots, see \link{ggarrange}
 #' @param collapse whether to combine all ggplots
@@ -606,9 +609,9 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
 #' @param plot_title the main title of the single plot
 #' @param legend_title the legend title of the single plot
 #' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
-#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainImage}) 
+#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
-#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
 #'
 #' @import ggplot2
@@ -628,14 +631,16 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 
   # add image
   if(is.null(background))
-    background <- vrMainImage(assay)
+    background <- vrMainSpatial(assay)
+    # background <- vrMainImage(assay)
   if(length(background) == 2) {
     channel <- background[2]
   } else {
     channel <- NULL
   }
   background <- background[1]
-  if(background %in% vrImageNames(assay)){
+  # if(background %in% vrImageNames(assay)){
+  if(background %in% vrSpatialNames(assay)){
     image <- vrImages(assay, name = background, channel = channel)
     if(!is.null(image)){
       info <- image_info(image)
@@ -652,7 +657,8 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
     image_name <- background
   } else {
     info <- NULL
-    image_name <- vrMainImage(assay)
+    image_name <- vrMainSpatial(assay)
+    # image_name <- vrMainImage(assay)
   }
 
   # data

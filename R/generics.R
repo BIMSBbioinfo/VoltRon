@@ -373,6 +373,19 @@ vrImageNames <- function(object, assay = NULL) {
   UseMethod(generic = 'vrImageNames', object = object)
 }
 
+#' vrSpatialNames
+#'
+#' Get names of all spatial systems
+#'
+#' @param object a VoltRon or vrAssay object
+#'
+#' @rdname vrSpatialNames
+#' @export vrSpatialNames
+#' 
+vrSpatialNames <- function(object, assay = NULL) {
+  UseMethod(generic = 'vrSpatialNames', object = object)
+}
+
 #' vrImageChannelNames
 #'
 #' Get names of all image channels
@@ -399,6 +412,19 @@ vrMainImage <- function(object, assay = NULL) {
   UseMethod(generic = 'vrMainImage', object = object)
 }
 
+#' vrMainSpatial
+#'
+#' Get the main spatial system name
+#'
+#' @param object a VoltRon or vrAssay object
+#'
+#' @rdname vrMainSpatial
+#' @export vrMainSpatial
+#' @order 1
+vrMainSpatial <- function(object, assay = NULL) {
+  UseMethod(generic = 'vrMainSpatial', object = object)
+}
+
 #' vrMainImage
 #'
 #' Set the main image
@@ -410,6 +436,19 @@ vrMainImage <- function(object, assay = NULL) {
 #' @noRd
 "vrMainImage<-" <- function(object, value) {
   UseMethod(generic = 'vrMainImage<-', object = object)
+}
+
+#' vrMainSpatial
+#'
+#' Set the main image
+#'
+#' @param value the name of main image
+#'
+#' @rdname vrMainSpatial
+#' @export vrMainSpatial<-
+#' @noRd
+"vrMainSpatial<-" <- function(object, value) {
+  UseMethod(generic = 'vrMainSpatial<-', object = object)
 }
 
 #' vrMainChannel

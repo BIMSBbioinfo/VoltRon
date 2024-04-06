@@ -112,10 +112,13 @@ test_that("image", {
 
   # get main image
   expect_equal(vrMainImage(visium_data[["Assay1"]]), "main")
-
+  expect_equal(vrMainSpatial(visium_data[["Assay1"]]), "main")
+  
   # change main image
   vrMainImage(visium_data[["Assay1"]]) <- "new_image"
+  vrMainSpatial(visium_data[["Assay1"]]) <- "new_image"
   expect_equal(vrMainImage(visium_data[["Assay1"]]), "new_image")
+  expect_equal(vrMainSpatial(visium_data[["Assay1"]]), "new_image")
 
   # return
   expect_equal(1,1L)

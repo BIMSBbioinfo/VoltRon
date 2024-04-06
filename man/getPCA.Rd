@@ -9,6 +9,7 @@ getPCA(
   assay = NULL,
   features = NULL,
   dims = 30,
+  type = "pca",
   overwrite = FALSE,
   seed = 1,
   ...
@@ -24,11 +25,11 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{dims}{the number of dimensions extracted from PCA}
 
+\item{type}{the key name for the embedding, default: pca}
+
 \item{overwrite}{Whether the existing embedding with name 'type' should be overwritten in \link{vrEmbeddings}}
 
 \item{seed}{seed}
-
-\item{...}{additional parameters passed to \link{vrEmbeddings}}
 }
 \description{
 calculate PCA of the VoltRon objects

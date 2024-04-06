@@ -159,13 +159,15 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
       }
 
       # image
-      for(img in vrImageNames(object))
+      # for(img in vrImageNames(object))
+      for(img in vrSpatialNames(object))
         object@image[[img]] <- subset.vrImage(object@image[[img]], spatialpoints = spatialpoints)
 
     } else if(!is.null(image)) {
 
       # images
-      for(img in vrImageNames(object))
+      # for(img in vrImageNames(object))
+      for(img in vrSpatialNames(object))
         object@image[[img]] <- subset.vrImage(object@image[[img]], image = image)
       spatialpoints <- rownames(vrCoordinates(object@image[[img]]))
 
@@ -299,8 +301,9 @@ vrSpatialPoints.vrAssay <- function(object) {
   }
 
   # images
-  for(img_name in vrImageNames(object)){
-    vrSpatialPoints(object@image[[img_name]]) <- value
+  # for(img in vrImageNames(object))
+  for(img in vrSpatialNames(object)){
+    vrSpatialPoints(object@image[[img]]) <- value
   }
 
   # embeddings
@@ -496,12 +499,14 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 
   # check main image
   if(is.null(image_name)){
-    image_name <- vrMainImage(object)
+    # image_name <- vrMainImage(object)
+    image_name <- vrMainSpatial(object)
   }
 
   # check registered coordinates
   if(reg){
-    if(!paste0(image_name, "_reg") %in% vrImageNames(object)){
+    # if(!paste0(image_name, "_reg") %in% vrImageNames(object)){
+    if(!paste0(image_name, "_reg") %in% vrSpatialNames(object)){
       warning("There are no registered images with name ", image_name, "!")
     } else {
       image_name <- paste0(image_name, "_reg")
@@ -509,7 +514,8 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
   }
 
   # check coordinates
-  if(!image_name %in% vrImageNames(object)){
+  # if(!image_name %in% vrImageNames(object)){
+  if(!image_name %in% vrSpatialNames(object)){
     stop(image_name, " is not among any image in this vrAssay object")
   }
 
@@ -526,7 +532,8 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 
   # check main image
   if(is.null(image_name)){
-    image_name <- vrMainImage(object)
+    # image_name <- vrMainImage(object)
+    image_name <- vrMainSpatial(object)
   }
 
   # check registered coordinates
@@ -535,7 +542,8 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
   }
 
   # check coordinates
-  if(!image_name %in% vrImageNames(object)){
+  # if(!image_name %in% vrImageNames(object)){
+  if(!image_name %in% vrSpatialNames(object)){
     stop(image_name, " is not among any image in this vrAssay object")
   }
 
@@ -582,12 +590,14 @@ vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 
   # check main image
   if(is.null(image_name)){
-    image_name <- vrMainImage(object)
+    # image_name <- vrMainImage(object)
+    image_name <- vrMainSpatial(object)
   }
 
   # check registered segments
   if(reg){
-    if(!paste0(image_name, "_reg") %in% vrImageNames(object)){
+    # if(!paste0(image_name, "_reg") %in% vrImageNames(object)){
+    if(!paste0(image_name, "_reg") %in% vrSpatialNames(object)){
       warning("There are no registered images with name ", image_name, "!")
     } else {
       image_name <- paste0(image_name, "_reg")
@@ -595,7 +605,8 @@ vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
   }
 
   # check coordinates
-  if(!image_name %in% vrImageNames(object)){
+  # if(!image_name %in% vrImageNames(object)){
+  if(!image_name %in% vrSpatialNames(object)){
     stop(image_name, " is not among any image in this vrAssay object")
   }
 
@@ -611,7 +622,8 @@ vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 
   # check main image
   if(is.null(image_name)){
-    image_name <- vrMainImage(object)
+    # image_name <- vrMainImage(object)
+    image_name <- vrMainSpatial(object)
   }
 
   # check registered segments
@@ -620,7 +632,8 @@ vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
   }
 
   # check coordinates
-  if(!image_name %in% vrImageNames(object)){
+  # if(!image_name %in% vrImageNames(object)){
+  if(!image_name %in% vrSpatialNames(object)){
     stop(image_name, " is not among any image in this vrAssay object")
   }
 
