@@ -511,7 +511,7 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, spatial_name = NULL
   if(reg){
     # if(!paste0(image_name, "_reg") %in% vrImageNames(object)){
     if(!paste0(image_name, "_reg") %in% vrSpatialNames(object)){
-      warning("There are no registered images with name ", image_name, "!")
+      warning("There are no registered spatial systems with name ", image_name, "!")
     } else {
       image_name <- paste0(image_name, "_reg")
     }
@@ -520,7 +520,7 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, spatial_name = NULL
   # check coordinates
   # if(!image_name %in% vrImageNames(object)){
   if(!image_name %in% vrSpatialNames(object)){
-    stop(image_name, " is not among any image in this vrAssay object")
+    stop(image_name, " is not among any spatial system in this vrAssay object")
   }
 
   # return coordinates
@@ -552,7 +552,7 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, spatial_name = NULL
   # check coordinates
   # if(!image_name %in% vrImageNames(object)){
   if(!image_name %in% vrSpatialNames(object)){
-    stop(image_name, " is not among any image in this vrAssay object")
+    stop(image_name, " is not among any spatial system in this vrAssay object")
   }
 
   vrCoordinates(object@image[[image_name]]) <- value
@@ -614,7 +614,7 @@ vrSegments.vrAssay <- function(object, image_name = NULL, spatial_name = NULL, r
   if(reg){
     # if(!paste0(image_name, "_reg") %in% vrImageNames(object)){
     if(!paste0(image_name, "_reg") %in% vrSpatialNames(object)){
-      warning("There are no registered images with name ", image_name, "!")
+      warning("There are no registered spatial systems with name ", image_name, "!")
     } else {
       image_name <- paste0(image_name, "_reg")
     }
@@ -623,7 +623,7 @@ vrSegments.vrAssay <- function(object, image_name = NULL, spatial_name = NULL, r
   # check coordinates
   # if(!image_name %in% vrImageNames(object)){
   if(!image_name %in% vrSpatialNames(object)){
-    stop(image_name, " is not among any image in this vrAssay object")
+    stop(image_name, " is not among any spatial system in this vrAssay object")
   }
 
   # return coordinates
@@ -654,7 +654,7 @@ vrSegments.vrAssay <- function(object, image_name = NULL, spatial_name = NULL, r
   # check coordinates
   # if(!image_name %in% vrImageNames(object)){
   if(!image_name %in% vrSpatialNames(object)){
-    stop(image_name, " is not among any image in this vrAssay object")
+    stop(image_name, " is not among any spatial system in this vrAssay object")
   }
 
   vrSegments(object@image[[image_name]]) <- value
