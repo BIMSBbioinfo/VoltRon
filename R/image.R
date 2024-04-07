@@ -592,7 +592,7 @@ vrMainSpatial.vrAssay <- function(object){
 }
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays
 #'
 #' @rdname vrImageNames
 #'
@@ -602,7 +602,15 @@ vrImageNames.VoltRon <- function(object, assay = NULL){
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
 
-  # get assay types
+  # if assay = all, give a summary
+  if(!is.null(assay)){
+    if(assay == "all"){
+      spatial_names <- unlist(lapply(assay_names, function(x) paste(vrSpatialNames(object[[x]]), collapse = ",")))
+      spatial_names <- data.frame(Assay = assay_names, Spatial = spatial_names)
+      return(spatial_names)
+    }
+  }
+  
   # image_names <- unique(unlist(lapply(assay_names, function(x) vrImageNames(object[[x]]))))
   spatial_names <- unique(unlist(lapply(assay_names, function(x) vrSpatialNames(object[[x]]))))
   

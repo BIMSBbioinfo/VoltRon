@@ -130,8 +130,20 @@ vrSpatialPlot(vr2_merged_acute1, assay = "Xenium_mol", group.by = "gene",
 
 <br>
 
+We can even zoom into specific locations at the tissue to investigate virus particles more closely by droping the **n.tile** argument and calling interactive visualization.
 
-In the following sections, we will integrate manually annotated H&E images to 
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPlot(vr2_merged_acute1, assay = "Xenium_mol", group.by = "gene", 
+              group.ids = c("S2_N", "S2_orf1ab"), interactive = TRUE, pt.size = 0.1)
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecules_visualize_virus_zoom.png" class="center">
+
+<br>
+
+In the following sections, we will integrate pathological images and annotations with Xenium datasets to further understand the spatial localization of virus ORF types over the tissue.  
+
+<br>
 
 ## Automated H&E Registration
 

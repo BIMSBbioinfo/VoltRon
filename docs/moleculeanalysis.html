@@ -547,8 +547,34 @@ for more information.</p>
 <p><br></p>
 <div id="single-cells-and-molecules" class="section level2">
 <h2>Single Cells and Molecules</h2>
-<p>Let us first analyze the Xenium data in single cell level and also
-visualize molecular data.</p>
+<p>Across these eight TMA section, we investigate a section of acute
+case which is originated from a lung with extreme number of detected
+open reading frames of virus molecules. For convenience, we load a
+VoltRon object where cells are already annotated.</p>
+<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- readRDS(file = &quot;data/Xenium/acutecase1_annotated.rds&quot;)
+vrEmbeddingPlot(vr2_merged_acute1, assay = &quot;Xenium&quot;, embedding = &quot;umap&quot;, 
+                group.by = &quot;CellType&quot;, label = TRUE)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_vrembeddingplot.png" class="center"></p>
+<p><br></p>
+<p>We incorporate two open reading frames (ORFs), named
+<strong>S2_N</strong> <strong>S2_orf1ab</strong>, which represent
+unreplicated and replicated virus molecules, respectively. We can
+visualize again tile the count of these virus expressions by
+specifically selecting these two ORFs.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;, 
+              group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), n.tile = 300)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus.png" class="center"></p>
+<p><br></p>
+<p>We can even zoom into specific locations at the tissue to investigate
+virus particles more closely by droping the <strong>n.tile</strong>
+argument and calling interactive visualization.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;, 
+              group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), interactive = TRUE, pt.size = 0.1)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecules_visualize_virus_zoom.png" class="center"></p>
+<p><br></p>
+<p>In the following sections, we will integrate pathological images and
+annotations with Xenium datasets to further understand the spatial
+localization of virus ORF types over the tissue.</p>
 <p><br></p>
 </div>
 <div id="automated-he-registration" class="section level2">
