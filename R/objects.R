@@ -553,9 +553,12 @@ addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample 
   object[[sample, layer]]@assay <- assay_list
 
   # add connectivities of assay to the layer
-  g_assay <- igraph::make_empty_graph(directed = FALSE) + igraph::vertices(vrSpatialPoints(object, assay = assay_id))
-  g_layer <- curlayer@connectivity + g_assay
-  object[[sample, layer]]@connectivity <- g_layer
+  catch_connect <- try(slot(object, name = "connectivity"), silent = TRUE)
+  if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
+    g_assay <- igraph::make_empty_graph(directed = FALSE) + igraph::vertices(vrSpatialPoints(object, assay = assay_id))
+    g_layer <- curlayer@connectivity + g_assay
+    object[[sample, layer]]@connectivity <- g_layer 
+  }
 
   # return
   return(object)
