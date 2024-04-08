@@ -207,13 +207,23 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
         n <- counter$n
         if (n > 0) {
           lapply(seq_len(n), function(i) {
-            if(is.null(input[[paste0("region",i)]])){
-              column(12,textInput(inputId = paste0("region", i),
-                                  label = paste0("Region ", i), value = paste0("Region ", i)))
-            } else {
-              column(12,textInput(inputId = paste0("region", i),
-                                  label = paste0("Region ", i), value = input[[paste0("region",i)]]))
-            }
+            # if(is.null(input[[paste0("region",i)]])){
+            #   column(12,textInput(inputId = paste0("region", i),
+            #                       label = paste0("Region ", i), value = paste0("Region ", i)))
+            # } else {
+            #   column(12,textInput(inputId = paste0("region", i),
+            #                       label = paste0("Region ", i), value = input[[paste0("region",i)]]))
+            # }
+            
+            # if(input[[paste0("region",i)]] == ""){
+            #   column(12,textInput(inputId = paste0("region", i),
+            #                       label = paste0("Region ", i), value = paste0("Region ", i)))
+            # } else {
+            #   column(12,textInput(inputId = paste0("region", i),
+            #                       label = paste0("Region ", i), value = input[[paste0("region",i)]]))
+            # }
+            column(12,textInput(inputId = paste0("region", i),
+                                label = paste0("Region ", i), value = input[[paste0("region",i)]]))
           })
         }
       })
@@ -266,52 +276,62 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
 
         # selected list
         selected_polygon_list <- selected_corners_list()
-
+        
         # collect labels
         selected_label_list <- sapply(1:length(selected_polygon_list), function(i) input[[paste0("region",i)]])
-
-        ### annotate spatial points ####
-        if(inherits(metadata, "data.table")){
-          spatialpoints <- metadata$id
+        
+        if(length(selected_corners_list()) == 0){
+          
+          showNotification("You have not annotated the data yet!")
+          
+        } else if(any(selected_label_list == "")) {
+          
+          showNotification("Some regions have blank annotations (empty labels!)")
+          
         } else {
-          spatialpoints <- rownames(metadata)
+          
+          ### annotate spatial points ####
+          if(inherits(metadata, "data.table")){
+            spatialpoints <- metadata$id
+          } else {
+            spatialpoints <- rownames(metadata)
+          }
+          new_label <- rep("undefined", length(spatialpoints))
+          names(new_label) <- spatialpoints
+          result_list <- list()
+          for(i in 1:length(selected_polygon_list)){
+            cur_poly <- selected_polygon_list[[i]]
+            in.list <- sp::point.in.polygon(coords[,1], coords[,2], cur_poly[,1], cur_poly[,2])
+            new_label[rownames(coords)[!!in.list]] <- selected_label_list[i]
+          }
+          
+          # place annotation to metadata
+          metadata[[label]] <- new_label
+          Metadata(object, assay = sample_metadata[assay, "Assay"]) <- metadata
+          
+          ## add polygons to a new assay ####
+          segments <- list()
+          for(i in 1:length(selected_label_list)){
+            segments[[selected_label_list[i]]] <- data.frame(id = i, selected_polygon_list[[i]])
+          }
+          coords <- t(sapply(segments, function(seg){
+            apply(seg[,c("x", "y")], 2, mean)
+          }, simplify = TRUE))
+          new_assay <- formAssay(coords = coords, segments = segments,
+                                 type = "ROI",
+                                 image = vrImages(object, assay = assay),
+                                 main_image = vrMainImage(object[[assay]]),
+                                 name = assay)
+          object <- addAssay.VoltRon(object,
+                                     assay = new_assay,
+                                     metadata = data.frame(check.rows = FALSE, row.names = rownames(coords)),
+                                     assay_name = "ROIannotation",
+                                     sample = sample_metadata[assay, "Sample"],
+                                     layer = sample_metadata[assay, "Layer"])
+          
+          # stop app and return
+          stopApp(object)
         }
-        new_label <- rep("undefined", length(spatialpoints))
-        names(new_label) <- spatialpoints
-        result_list <- list()
-        for(i in 1:length(selected_polygon_list)){
-          cur_poly <- selected_polygon_list[[i]]
-          in.list <- sp::point.in.polygon(coords[,1], coords[,2], cur_poly[,1], cur_poly[,2])
-          new_label[rownames(coords)[!!in.list]] <- selected_label_list[i]
-        }
-
-        # place annotation to metadata
-        metadata[[label]] <- new_label
-        Metadata(object, assay = sample_metadata[assay, "Assay"]) <- metadata
-
-        ## add polygons to a new assay ####
-        segments <- list()
-        for(i in 1:length(selected_label_list)){
-          segments[[selected_label_list[i]]] <- data.frame(id = i, selected_polygon_list[[i]])
-        }
-        coords <- t(sapply(segments, function(seg){
-          apply(seg[,c("x", "y")], 2, mean)
-        }, simplify = TRUE))
-        new_assay <- formAssay(coords = coords, segments = segments,
-                               type = "ROI",
-                               image = vrImages(object, assay = assay),
-                               # main_image = vrMainImage(object[[assay]]),
-                               main_image = vrMainSpatial(object[[assay]]),
-                               name = assay)
-        object <- addAssay.VoltRon(object,
-                                   assay = new_assay,
-                                   metadata = data.frame(check.rows = FALSE, row.names = rownames(coords)),
-                                   assay_name = "ROIannotation",
-                                   sample = sample_metadata[assay, "Sample"],
-                                   layer = sample_metadata[assay, "Layer"])
-
-        # stop app and return
-        stopApp(object)
       })
     }
 
