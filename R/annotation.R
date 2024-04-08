@@ -63,7 +63,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
   if(use.image){
     g <- magick::image_ggplot(vrImages(object, assay = assay, name = image_name, channel = channel)) + labs(title = "")
   } else{
-    g <- vrSpatialPlot(object, assay = assay, background = c(image_name, channel), ...) + labs(title = "")
+    g <- vrSpatialPlot(object, assay = assay, background = c(image_name, channel), scale.image = FALSE, ...) + labs(title = "")
   }
 
   ## UI and Server ####
@@ -254,11 +254,12 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
         if(length(selected_corners_list()) > 0){
           for (i in 1:length(selected_corners_list())){
             cur_corners <- selected_corners_list()[[i]]
-            if(is.null(input[[paste0("region",i)]])){
-              cur_corners <- data.frame(x = mean(cur_corners[,1]), y = max(cur_corners[,2]), region = paste("Region ", i))
-            } else {
-              cur_corners <- data.frame(x = mean(cur_corners[,1]), y = max(cur_corners[,2]), region = input[[paste0("region",i)]])
-            }
+            cur_corners <- data.frame(x = mean(cur_corners[,1]), y = max(cur_corners[,2]), region = paste("Region ", i))
+            # if(is.null(input[[paste0("region",i)]])){
+            #   cur_corners <- data.frame(x = mean(cur_corners[,1]), y = max(cur_corners[,2]), region = paste("Region ", i))
+            # } else {
+            #   cur_corners <- data.frame(x = mean(cur_corners[,1]), y = max(cur_corners[,2]), region = input[[paste0("region",i)]])
+            # }
             g <- g +
               ggrepel::geom_label_repel(mapping = aes(x = x, y = y, label = region), data = cur_corners,
                                         size = 5, direction = "y", nudge_y = 6, box.padding = 0, label.padding = 1, seed = 1, color = "red")
