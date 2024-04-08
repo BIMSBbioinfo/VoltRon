@@ -468,7 +468,7 @@ vrImages.vrSpatial <- function(object, ...){
 }
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays.
 #'
 #' @rdname vrMainImage
 #' @order 2
@@ -478,6 +478,15 @@ vrMainImage.VoltRon <- function(object, assay = NULL){
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
 
+  # if assay = all, give a summary
+  if(!is.null(assay)){
+    if(assay == "all"){
+      spatial_names <- unlist(lapply(rownames(SampleMetadata(object)), function(x) paste(vrMainSpatial(object[[x]]), collapse = ",")))
+      spatial_names <- data.frame(Assay = assay_names, Spatial = spatial_names)
+      return(spatial_names)
+    }
+  }
+  
   # get assay types
   # image_names <- unlist(lapply(assay_names, function(x) vrMainImage(object[[x]])))
   spatial_names <- unlist(lapply(assay_names, function(x) vrMainSpatial(object[[x]])))
@@ -1321,12 +1330,14 @@ vrSegments.vrSpatial<- function(object) {
 #'
 demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
 {
-  # get images
-  images <- vrImages(object)
-
   # check if there are only one assay in the object
-  if(nrow(SampleMetadata(object)) > 1)
+  sample.metadata <- SampleMetadata(object)
+  
+  if(length(unique(sample.metadata$Layer)) > 1)
     stop("You can only subset a VoltRon assay with one image")
+  
+  # get images
+  images <- vrImages(object, assay = vrAssayNames(object))
 
   # scale
   imageinfo <- magick::image_info(images)

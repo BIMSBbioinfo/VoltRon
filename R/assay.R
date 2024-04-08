@@ -167,8 +167,14 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
 
       # images
       # for(img in vrImageNames(object))
-      for(img in vrSpatialNames(object))
-        object@image[[img]] <- subset.vrImage(object@image[[img]], image = image)
+      # for(img in vrSpatialNames(object))
+        # object@image[[img]] <- subset.vrImage(object@image[[img]], image = image)
+      # spatialpoints <- rownames(vrCoordinates(object@image[[img]]))
+      
+      # subset only the main image of an
+      img <- vrMainSpatial(object)
+      object@image <- object@image[img]
+      object@image[[img]] <- subset.vrImage(object@image[[img]], image = image)
       spatialpoints <- rownames(vrCoordinates(object@image[[img]]))
 
       # data
