@@ -210,16 +210,16 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param features the selected features for PCA reduction
 #' @param dims the number of dimensions extracted from PCA
+#' @param type the key name for the embedding, default: pca
 #' @param overwrite Whether the existing embedding with name 'type' should be overwritten in \link{vrEmbeddings}
 #' @param seed seed
-#' @param ... additional parameters passed to \link{vrEmbeddings}
 #'
 #' @importFrom irlba irlba
 #' @importFrom dplyr left_join
 #'
 #' @export
 #'
-getPCA <- function(object, assay = NULL, features = NULL, dims = 30, overwrite = FALSE, seed = 1, ...){
+getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca", overwrite = FALSE, seed = 1, ...){
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -261,7 +261,7 @@ getPCA <- function(object, assay = NULL, features = NULL, dims = 30, overwrite =
   # rownames(pr.data) <- vrSpatialPoints(object_subset, assay = assay)
 
   # set Embeddings
-  vrEmbeddings(object, type = "pca", overwrite = overwrite, ...) <- pr.data
+  vrEmbeddings(object, assay = assay, type = type, overwrite = overwrite) <- pr.data
 
   # return
   return(object)
@@ -279,7 +279,6 @@ getPCA <- function(object, assay = NULL, features = NULL, dims = 30, overwrite =
 #' @param umap.key the name of the umap embedding, default: umap
 #' @param overwrite Whether the existing embedding with name 'type' should be overwritten in \link{vrEmbeddings}
 #' @param seed seed
-#' @param ... additional parameters passed to \link{vrEmbeddings}
 #'
 #' @importFrom uwot umap
 #'
@@ -304,7 +303,7 @@ getUMAP <- function(object, assay = NULL, data.type = "pca", dims = 1:30, umap.k
   set.seed(seed)
   umap_data <- uwot::umap(data)
   colnames(umap_data) <- c("x", "y")
-  vrEmbeddings(object, type = umap.key, overwrite = overwrite, ...) <- umap_data
+  vrEmbeddings(object, assay = assay, type = umap.key, overwrite = overwrite) <- umap_data
 
   # return
   return(object)

@@ -430,7 +430,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #' @noRd
 vrSpatialPlotSingleTiling <- function(g, data, n.tile, alpha = 1){
 
-  gplot <- g + stat_bin_2d(mapping = aes(x = x, y = y), data = data, bins = n.tile, drop = FALSE, alpha = alpha)
+  # gplot <- g + stat_bin_2d(mapping = aes(x = x, y = y), data = data, bins = n.tile, drop = FALSE, alpha = alpha)
+  gplot <- g + stat_bin_2d(mapping = aes(x = x, y = y), data = data, bins = n.tile, drop = TRUE, alpha = alpha)
   hex_count_data <- ggplot_build(gplot)$data
   hex_count_data <- hex_count_data[[length(hex_count_data)]]
   midpoint <- max(hex_count_data$count)/2
