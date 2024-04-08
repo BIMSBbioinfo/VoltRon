@@ -302,12 +302,8 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
           result_list <- list()
           for(i in 1:length(selected_polygon_list)){
             cur_poly <- selected_polygon_list[[i]]
-            temp(coords,cur_poly)
             in.list <- sp::point.in.polygon(coords[,1], coords[,2], cur_poly[,1], cur_poly[,2])
             new_label[rownames(coords)[!!in.list]] <- selected_label_list[i]
-            print(table(in.list))
-            print(selected_polygon_list[[i]])
-            print(apply(coords,2,range))
           }
           
           # place annotation to metadata
@@ -342,13 +338,5 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
 
     shiny::runApp(shiny::shinyApp(ui, server))
   }
-}
-
-temp <- function(coords,cur_poly){
-  print(1)
-  print(1)
-  print(1)
-  print(1)
-  sp::point.in.polygon(coords[,1], coords[,2], cur_poly[,1], cur_poly[,2])
 }
   

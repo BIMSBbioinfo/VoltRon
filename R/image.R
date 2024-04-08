@@ -1564,7 +1564,6 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
 
           # collect labels
           sample_names <- sapply(1:length(box_list$box), function(i) input[[paste0("sample",i)]])
-          print(sample_names)
 
           for(i in 1:length(box_list$box)){
             temp <- subset(object, image = box_list$box[i])
@@ -1582,3 +1581,11 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
   }
 }
 
+# temp <- function(){
+#   
+#   for(i in 1:length(box_list$box)){
+#     temp <- subset(object, image = box_list$box[i])
+#     temp$Sample <- sample_names[i]
+#     subsets[[sample_names[i]]] <- temp
+#   }
+# }

@@ -719,11 +719,11 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
     for(i in 1:length(segments)){
       cur_data <- as.data.frame(cbind(segments[[i]], names(segments)[i], coords$score[i]))
       if(nrow(segments[[i]]) > 1){
-        colnames(cur_data) <- c("x", "y", "segment", "score")
+        colnames(cur_data) <- c("id", "x", "y", "segment", "score")
         cur_data[,c("x", "y")] <- cur_data[,c("x", "y")]/scale_factors
         polygon_data <- as.data.frame(rbind(polygon_data, cur_data))
       } else {
-        colnames(cur_data) <- c("x", "y", "rx", "ry", "segment", "score")
+        colnames(cur_data) <- c("id", "x", "y", "rx", "ry", "segment", "score")
         cur_data[,c("x", "y","rx", "ry")] <- cur_data[,c("x", "y","rx", "ry")]/scale_factors
         circle_data <- as.data.frame(rbind(circle_data,  cur_data))
       }

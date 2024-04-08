@@ -254,26 +254,30 @@ subsetCoordinates <- function(coords, image, crop_info){
 #' @param image the magick image associated with the coordinates
 #' @param crop_info the subseting string passed to \link{image_crop}
 #'
+#' @importFrom dplyr function
 subsetSegments <- function(segments, image, crop_info){
 
   # change strategy based on the length of segments
-  if(length(segments) < 200) {
-    for(i in 1:length(segments)){
-      segments[[i]][,c("x","y")] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
-    }
-  } else {
-    segment_names <- rep(names(segments), sapply(segments, nrow, simplify = TRUE))
-    segments <- do.call(rbind,segments)
-    rownames(segments) <- 1:nrow(segments)
-    segments <- data.frame(segments, row_id = rownames(segments))
-    cropped_segments <- subsetCoordinates(segments[,c("x","y")], image, crop_info)
-    cropped_segments <- data.frame(cropped_segments, cell_id = segments[rownames(cropped_segments),]$cell_id, row_id = rownames(cropped_segments))
-    cropped_segments <- cropped_segments %>% right_join(segments[,c("cell_id", "row_id")], by = c("row_id" = "row_id"))
-    cropped_segments <- cropped_segments[,c("cell_id.y", "x", "y")]
-    colnames(cropped_segments) <- c("cell_id", "x", "y")
-    segments <- cropped_segments %>% dplyr::group_split(cell_id)
-  }
-
+  # if(length(segments) < 200) {
+  #   for(i in 1:length(segments)){
+  #     segments[[i]][,c("x","y")] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
+  #   }
+  # } else {
+    # segment_names <- rep(names(segments), sapply(segments, nrow, simplify = TRUE))
+  segment_names <- names(segments)
+  segments <- do.call(rbind,segments)
+  rownames(segments) <- 1:nrow(segments)
+  segments <- data.frame(segments, row_id = rownames(segments))
+  cropped_segments <- subsetCoordinates(segments[,c("x","y")], image, crop_info)
+  cropped_segments <- data.frame(cropped_segments, id = segments[rownames(cropped_segments),1], row_id = rownames(cropped_segments))
+  cropped_segments <- cropped_segments %>% right_join(segments[,c(colnames(segments)[1], "row_id")], by = c("row_id" = "row_id"))
+  cropped_segments <- cropped_segments[,c(colnames(cropped_segments)[which(grepl(colnames(segments)[1], colnames(cropped_segments)))[1]], "x", "y")]
+  colnames(cropped_segments) <- c("id", "x", "y")
+  # segments <- cropped_segments %>% dplyr::group_split({{colnames(segments)[1]}})
+  segments <- split(cropped_segments, cropped_segments[,1])
+  names(segments) <- segment_names
+  # }
+  
   segments
 }
 
@@ -300,7 +304,8 @@ vrSpatialPoints.vrAssay <- function(object) {
   if(length(vrSpatialPoints(object)) != length(value)){
     stop("The number of spatial points is not matching with the input")
   } else {
-    if(nrow(object@rawdata) > 0){
+    # if(nrow(object@rawdata) > 0){
+    if(ncol(object@rawdata) > 0){
       colnames(object@rawdata) <- value
       colnames(object@normdata) <- value
     }
