@@ -50,7 +50,8 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 
   # image
   if(use_image){
-    suppressMessages(generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level, overwrite_resolution = overwrite_resolution))
+    # suppressMessages(generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level, overwrite_resolution = overwrite_resolution))
+    generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level, overwrite_resolution = overwrite_resolution)
     image_file <- paste0(dir.path, "/", morphology_image)
     if(file.exists(image_file)){
       image <-  image_read(image_file)
@@ -195,32 +196,39 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #' @export
 #'
 generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_level = 7, overwrite_resolution = FALSE, output.path = NULL, file.name = "morphology_lowres.tif", ...) {
-
+  
   # file path to either Xenium output folder or specified folder
   file.path <- paste0(dir.path, "/", file.name)
   output.file <- paste0(output.path, "/", file.name)
-
+  
   # check if the file exists in either Xenium output folder, or the specified location
   if((file.exists(file.path) | file.exists(paste0(output.file))) & !overwrite_resolution){
     message(paste0(file.name, " already exists!"))
   } else {
-    message("Loading morphology_mip.ome.tif \n")
     if (!requireNamespace('RBioFormats'))
       stop("Please install RBioFormats package to read the ome.tiff file!")
-    morphology_image_lowres <- RBioFormats::read.image(paste0(dir.path, "/morphology_mip.ome.tif"), resolution = resolution_level)
-
+    if(dir.exists(paste0(dir.path, "/morphology_focus"))){
+      message("Loading morphology_focus_0000.ome.tif ...")
+      morphology_image_lowres <- RBioFormats::read.image(paste0(dir.path, "/morphology_focus/morphology_focus_0000.ome.tif"),
+                                                         resolution = resolution_level,
+                                                         subset=list(C=1))
+    } else if(file.exists(paste0(dir.path, "/morphology_mip.ome.tif"))) {
+      message("Loading morphology_mip.ome.tif ...")
+      morphology_image_lowres <- RBioFormats::read.image(paste0(dir.path, "/morphology_mip.ome.tif"), resolution = resolution_level)
+    }
+    
     # pick a resolution level
     image_info <- morphology_image_lowres@metadata$coreMetadata
-    message(paste0("Image Resolution (X:", image_info$sizeX, " Y:", image_info$sizeY, ") \n"))
-
+    message(paste0("  Image Resolution (X:", image_info$sizeX, " Y:", image_info$sizeY, ") ..."))
+    
     # increase contrast using EBImage
     if(increase.contrast) {
-      message("Increasing Contrast \n")
+      message("  Increasing Contrast ...")
       morphology_image_lowres <- (morphology_image_lowres/max(morphology_image_lowres))
     }
-
+    
     # write to the same folder
-    message("Writing Tiff File")
+    message("  Writing Tiff File ...")
     if(is.null(output.path)){
       EBImage::writeImage(morphology_image_lowres, file = file.path, ...)
     } else {
