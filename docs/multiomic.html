@@ -491,8 +491,18 @@ vrEmbeddingPlot(vr2_merged_acute1, assay = &quot;Xenium&quot;, embedding = &quot
                 group.by = &quot;CellType&quot;, label = TRUE)
 vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;,
               plot.segments = TRUE)</code></pre>
-<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_vrembeddingplot.png" class="center"></p>
-<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_celltype.png" class="center"></p>
+<table>
+<tbody>
+<tr style="vertical-align: center">
+<td style="width:45%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_vrembeddingplot.png" class="center">
+</td>
+<td style="width:55%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_celltype.png" class="center">
+</td>
+</tr>
+</tbody>
+</table>
 <p><br></p>
 <p>We incorporate two open reading frames (ORFs), named
 <strong>S2_N</strong> and <strong>S2_orf1ab</strong>, which represent
@@ -632,19 +642,90 @@ head(table(vr2_merged_acute1$Region))</code></pre>
 <p>Now we will grab these annotations from molecule metadata and
 calculate the ratio of N to orf1ab frequency of SARS-COV-2 particles
 across all annotated molecules.</p>
-<pre class="r watch-out"><code>s2_summary &lt;- Metadata(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;) %&gt;%
+<pre class="r watch-out"><code>s2_summary_hyaline &lt;- 
+  Metadata(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;) %&gt;%
   filter(gene %in% c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), 
          Region != &quot;undefined&quot;) %&gt;% 
   summarise(S2_N = sum(gene == &quot;S2_N&quot;), 
             S2_orf1ab = sum(gene == &quot;S2_orf1ab&quot;), 
-            ratio = sum(gene == &quot;S2_N&quot;)/sum(gene == &quot;S2_orf1ab&quot;))
-s2_summary</code></pre>
-<pre><code>   S2_N S2_orf1ab    ratio
-1 50977     33532 1.520249</code></pre>
+            ratio = sum(gene == &quot;S2_N&quot;)/sum(gene == &quot;S2_orf1ab&quot;)) %&gt;% 
+  as.matrix()
+s2_summary_hyaline</code></pre>
+<pre><code>      S2_N S2_orf1ab    ratio
+[1,] 50977     33532 1.520249</code></pre>
 <p><br></p>
 </div>
 <div id="manual-annotation" class="section level2">
 <h2>Manual Annotation</h2>
+<p>To compare the proportion of <strong>S2_N</strong> and
+<strong>S2_orf1ab</strong> molecules in hyaline membranes with tissue
+sites of possible infection. We focus on another tissue niche where a
+large accumulation of cells with high <strong>S2_N</strong> and
+<strong>S2_orf1ab</strong> counts.</p>
+<p>By visualizing and zooming on a spatial plot with annotated cells, we
+can detect a site of cells with high infection which are also
+accompanied by a group of T cells.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1_infected, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;, 
+              group.ids = c(&quot;S2++ cells&quot;, &quot;T cells&quot;), plot.segments = TRUE, 
+              alpha = 0.6, background = c(&quot;main&quot;, &quot;H&amp;E&quot;), interactive = TRUE)</code></pre>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_spatialplot_infected.png" class="center"></p>
+<p><br></p>
+<p>Now we use the <strong>annotateSpatialData</strong> function to
+create an additional annotation of Xenium molecules directly. By
+selecting this region of infection we can directly annotate the
+‘Xenium_mol’ assay and the metadata of molecules. We use the H&amp;E
+image as the background again, and generate a new molecule-level
+metadata column called “Infected”.</p>
+<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- annotateSpatialData(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
+                                         label = &quot;Infected&quot;, use.image = TRUE, 
+                                         channel = &quot;H&amp;E&quot;)</code></pre>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_annotation_infected.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="comparison-of-annotations" class="section level2">
+<h2>Comparison of Annotations</h2>
+<p>By using the newly annotated infection-associated virus molecules, we
+can do a comparison of infected regions versus the hyaline membranes.
+We</p>
+<pre class="r watch-out"><code>s2_summary_infected &lt;- 
+  Metadata(vr2_merged_acute1_infected, assay = &quot;Xenium_mol&quot;) %&gt;%
+  filter(gene %in% c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), 
+         Infected != &quot;undefined&quot;) %&gt;% 
+  summarise(S2_N = sum(gene == &quot;S2_N&quot;), 
+            S2_orf1ab = sum(gene == &quot;S2_orf1ab&quot;), 
+            ratio = sum(gene == &quot;S2_N&quot;)/sum(gene == &quot;S2_orf1ab&quot;)) %&gt;% 
+  as.matrix()
+s2_summary_infected</code></pre>
+<pre><code>     S2_N S2_orf1ab    ratio
+[1,] 6376      2372 2.688027</code></pre>
+<p>Comparison of both the ratio between the infected region and the
+hyaline membranes show a considerable difference of the population of
+<strong>S2_N</strong> and <strong>S2_orf1ab</strong> molecules.</p>
+<pre class="r watch-out"><code>S2_table &lt;- matrix(c(s2_summary_hyaline[,1:2], 
+                     s2_summary_infected[,1:2]), 
+                   dimnames = list(Region = c(&quot;Hyaline&quot;, &quot;Infected&quot;), 
+                                   S2 = c(&quot;N&quot;, &quot;orf1ab&quot;)),
+                   ncol = 2,  byrow = TRUE)
+S2_table</code></pre>
+<pre><code>          S2
+Region     N     orf1ab
+  Hyaline  50977 33532 
+  Infected 6</code></pre>
+<p>A quick test of independance on this contingency table show a
+significant difference of ratios across Hyaline and Infected
+regions.</p>
+<pre class="r watch-out"><code>fisher.test(S2_table, alternative = &quot;two.sided&quot;)</code></pre>
+<pre><code>
+    Fisher&#39;s Exact Test for Count Data
+
+data:  S2_table
+p-value &lt; 2.2e-16
+alternative hypothesis: true odds ratio is not equal to 1
+95 percent confidence interval:
+ 0.5382305 0.5941683
+sample estimates:
+odds ratio 
+ 0.5655696 </code></pre>
 </div>
 </div>
 

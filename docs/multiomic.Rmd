@@ -62,9 +62,14 @@ vrSpatialPlot(vr2_merged_acute1, assay = "Xenium", group.by = "CellType",
               plot.segments = TRUE)
 ```
 
-<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_vrembeddingplot.png" class="center">
-
-<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_celltype.png" class="center">
+<table>
+<tbody>
+  <tr style = "vertical-align: center">
+  <td style = "width:45%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_vrembeddingplot.png" class="center"></td>
+  <td style = "width:55%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_celltype.png" class="center"></td>
+  </tr>
+</tbody>
+</table>
 
 <br>
 
@@ -221,22 +226,108 @@ head(table(vr2_merged_acute1$Region))
 Now we will grab these annotations from molecule metadata and calculate the ratio of N to orf1ab frequency of SARS-COV-2 particles across all annotated molecules.
 
 ```{r eval = FALSE, class.source="watch-out"}
-s2_summary <- Metadata(vr2_merged_acute1, assay = "Xenium_mol") %>%
+s2_summary_hyaline <- 
+  Metadata(vr2_merged_acute1, assay = "Xenium_mol") %>%
   filter(gene %in% c("S2_N", "S2_orf1ab"), 
          Region != "undefined") %>% 
   summarise(S2_N = sum(gene == "S2_N"), 
             S2_orf1ab = sum(gene == "S2_orf1ab"), 
-            ratio = sum(gene == "S2_N")/sum(gene == "S2_orf1ab"))
-s2_summary
+            ratio = sum(gene == "S2_N")/sum(gene == "S2_orf1ab")) %>% 
+  as.matrix()
+s2_summary_hyaline
 ```
 
 ```
-   S2_N S2_orf1ab    ratio
-1 50977     33532 1.520249
+      S2_N S2_orf1ab    ratio
+[1,] 50977     33532 1.520249
 ```
 
 <br>
 
 ## Manual Annotation
 
+To compare the proportion of **S2_N** and **S2_orf1ab** molecules in hyaline membranes with tissue sites of possible infection. We focus on another tissue niche where a large accumulation of cells with high **S2_N** and **S2_orf1ab** counts. 
+
+By visualizing and zooming on a spatial plot with annotated cells, we can detect a site of cells with high infection which are also accompanied by a group of T cells.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPlot(vr2_merged_acute1_infected, assay = "Xenium", group.by = "CellType", 
+              group.ids = c("S2++ cells", "T cells"), plot.segments = TRUE, 
+              alpha = 0.6, background = c("main", "H&E"), interactive = TRUE)
+```
+
+<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_spatialplot_infected.png" class="center">
+
+<br>
+
+Now we use the **annotateSpatialData** function to create an additional annotation of Xenium molecules directly. By selecting this region of infection we can directly annotate the 'Xenium_mol' assay and the metadata of molecules. We use the H&E image as the background again, and generate a new molecule-level metadata column called "Infected".
+
+```{r eval = FALSE, class.source="watch-out"}
+vr2_merged_acute1 <- annotateSpatialData(vr2_merged_acute1, assay = "Xenium_mol", 
+                                         label = "Infected", use.image = TRUE, 
+                                         channel = "H&E")
+```
+
+<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_annotation_infected.png" class="center">
+
+<br>
+
+## Comparison of Annotations
+
+By using the newly annotated infection-associated virus molecules, we can do a comparison of infected regions versus the hyaline membranes. We 
+
+```{r eval = FALSE, class.source="watch-out"}
+s2_summary_infected <- 
+  Metadata(vr2_merged_acute1_infected, assay = "Xenium_mol") %>%
+  filter(gene %in% c("S2_N", "S2_orf1ab"), 
+         Infected != "undefined") %>% 
+  summarise(S2_N = sum(gene == "S2_N"), 
+            S2_orf1ab = sum(gene == "S2_orf1ab"), 
+            ratio = sum(gene == "S2_N")/sum(gene == "S2_orf1ab")) %>% 
+  as.matrix()
+s2_summary_infected
+```
+
+```
+     S2_N S2_orf1ab    ratio
+[1,] 6376      2372 2.688027
+```
+
+Comparison of both the ratio between the infected region and the hyaline membranes show a considerable difference of the population of **S2_N** and **S2_orf1ab** molecules.
+
+```{r eval = FALSE, class.source="watch-out"}
+S2_table <- matrix(c(s2_summary_hyaline[,1:2], 
+                     s2_summary_infected[,1:2]), 
+                   dimnames = list(Region = c("Hyaline", "Infected"), 
+                                   S2 = c("N", "orf1ab")),
+                   ncol = 2,  byrow = TRUE)
+S2_table
+```
+
+```
+          S2
+Region     N     orf1ab
+  Hyaline  50977 33532 
+  Infected 6
+```
+
+A quick test of independance on this contingency table show a significant difference of ratios across Hyaline and Infected regions.
+
+```{r eval = FALSE, class.source="watch-out"}
+fisher.test(S2_table, alternative = "two.sided")
+```
+
+```
+
+	Fisher's Exact Test for Count Data
+
+data:  S2_table
+p-value < 2.2e-16
+alternative hypothesis: true odds ratio is not equal to 1
+95 percent confidence interval:
+ 0.5382305 0.5941683
+sample estimates:
+odds ratio 
+ 0.5655696 
+```
 
