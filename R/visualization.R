@@ -901,8 +901,8 @@ GeomSpot <- ggplot2::ggproto("GeomSpot",
 #' @param colors the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param ncol column wise number of plots, for \link{ggarrange}
-#' @param nrow row wise number of plots, for \link{ggarrange}
+#' @param ncol column wise number of plots, for \link{facet_wrap}
+#' @param nrow row wise number of plots, for \link{facet_wrap}
 #' @param font.size font size of labels, if label is TRUE
 #' @param pt.size point size
 #' @param label if TRUE, the labels of the ROI assays will be visualized
@@ -914,7 +914,7 @@ GeomSpot <- ggplot2::ggproto("GeomSpot",
 #'
 #' @export
 #'
-vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", group.ids = NULL, colors = NULL, assay = NULL,
+vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", group.ids = NULL, split.by = NULL, colors = NULL, assay = NULL,
                             ncol = 2, nrow = NULL, font.size = 5, pt.size = 1, label = FALSE, common.legend = TRUE, collapse = TRUE) {
 
   # check object
@@ -982,10 +982,23 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
   } else {
     stop("Column ", group.by, " cannot be found in metadata!")
   }
-
+  
   # subset group.by using group.id
   datax <- droplevels(datax[datax[[group.by]] %in% group.ids,])
   datax[[group.by]] <- factor(datax[[group.by]], levels = group.ids)
+  
+  # get split.by
+  if(!is.null(split.by)){
+    if(split.by %in% colnames(metadata)){
+      if(inherits(metadata, "data.table")){
+        datax[[split.by]] <- metadata[,get(names(metadata)[which(colnames(metadata) == split.by)])]
+      } else {
+        datax[[split.by]] <- as.factor(metadata[rownames(datax),split.by])
+      }
+    } else {
+      stop("Column ", split.by, " cannot be found in metadata!")
+    } 
+  }
 
   # plot
   g <- ggplot()
@@ -1010,6 +1023,16 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
     colnames(datax_group) <- c(group.by, "x", "y")
     g <- g +
       geom_text(mapping = aes_string(x = "x", y = "y", label = group.by), datax_group, size = font.size)
+  }
+  
+  # splitting
+  if(!is.null(split.by)){
+    if(is.null(nrow)){
+      unique_split <- unique(datax[[split.by]])
+      nrow <- ceiling(length(unique_split)/ncol)
+    }
+    g <- g + 
+      facet_wrap(as.formula(paste("~", split.by)), nrow = nrow, ncol = ncol)
   }
 
   # return data

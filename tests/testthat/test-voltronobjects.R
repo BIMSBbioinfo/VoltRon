@@ -178,6 +178,9 @@ test_that("plots", {
   vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", group.ids = c(1,3,4), label = T)
   vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", colors = colors, label = T)
   vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", group.ids = c(1,3,4), colors = colors[c(1,3,4)], label = T)
+  vrEmbeddingPlot(xenium_data, group.by = "clusters", ncol = 3, split.by = "clusters")
+  vrEmbeddingPlot(xenium_data, group.by = "clusters", ncol = 3, split.by = "Sample")
+  expect_error(vrEmbeddingPlot(xenium_data, group.by = "clusters", ncol = 3, split.by = "art"))
 
   # spatial plot
   vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE)
