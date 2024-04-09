@@ -11,8 +11,7 @@ getUMAP(
   dims = 1:30,
   umap.key = "umap",
   overwrite = FALSE,
-  seed = 1,
-  ...
+  seed = 1
 )
 }
 \arguments{

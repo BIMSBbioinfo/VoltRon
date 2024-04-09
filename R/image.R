@@ -262,8 +262,8 @@ subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
 #'
 #' @export
 #'
-subset.vrSpatial <- function(object, ...){
-  subset.vrImage(object, ...)
+subset.vrSpatial <- function(object, subset, spatialpoints = NULL, image = NULL){
+  subset.vrImage(object, subset = subset, spatialpoints = spatialpoints, image = image)
 }
 
 ####

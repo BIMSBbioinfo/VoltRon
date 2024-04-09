@@ -254,7 +254,6 @@ subsetCoordinates <- function(coords, image, crop_info){
 #' @param image the magick image associated with the coordinates
 #' @param crop_info the subseting string passed to \link{image_crop}
 #'
-#' @importFrom dplyr function
 subsetSegments <- function(segments, image, crop_info){
 
   # change strategy based on the length of segments

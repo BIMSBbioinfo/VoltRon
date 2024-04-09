@@ -11,8 +11,7 @@ getPCA(
   dims = 30,
   type = "pca",
   overwrite = FALSE,
-  seed = 1,
-  ...
+  seed = 1
 )
 }
 \arguments{

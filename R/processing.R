@@ -219,7 +219,7 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #'
 #' @export
 #'
-getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca", overwrite = FALSE, seed = 1, ...){
+getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca", overwrite = FALSE, seed = 1){
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -284,7 +284,7 @@ getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca
 #'
 #' @export
 #'
-getUMAP <- function(object, assay = NULL, data.type = "pca", dims = 1:30, umap.key = "umap", overwrite = FALSE, seed = 1, ...){
+getUMAP <- function(object, assay = NULL, data.type = "pca", dims = 1:30, umap.key = "umap", overwrite = FALSE, seed = 1){
 
   # get data
   if(data.type %in% c("raw", "norm")){
