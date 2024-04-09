@@ -4,7 +4,7 @@
 \alias{subset.vrSpatial}
 \title{Subsetting vrSpatial objects}
 \usage{
-\method{subset}{vrSpatial}(object, ...)
+\method{subset}{vrSpatial}(object, subset, spatialpoints = NULL, image = NULL)
 }
 \arguments{
 \item{object}{A vrSpatial object}

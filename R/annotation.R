@@ -56,7 +56,8 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
 
   # get image name and channel
   if(is.null(image_name)){
-    image_name <- vrMainImage(object[[assay]])
+    # image_name <- vrMainImage(object[[assay]])
+    image_name <- vrMainSpatial(object[[assay]])
   }
 
   # get image
@@ -338,3 +339,4 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
     shiny::runApp(shiny::shinyApp(ui, server))
   }
 }
+  

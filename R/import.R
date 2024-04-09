@@ -1140,6 +1140,7 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #' @param tile.size the size of tiles
 #' @param stack.id the id of the stack when the magick image composed of multiple layers
 #' @param segments Either a list of segments or a GeoJSON file. This will result in a second assay in the VoltRon object to be created
+#' @param image_name the image name of the Image assay, Default: main
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
@@ -1147,7 +1148,7 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #'
 #' @export
 #'
-importImageData <- function(image, tile.size = 10, stack.id = 1, segments = NULL, ...){
+importImageData <- function(image, tile.size = 10, stack.id = 1, segments = NULL, image_name = "main", ...){
 
   # get image
   if(!inherits(image, "magick-image")){
@@ -1189,7 +1190,7 @@ importImageData <- function(image, tile.size = 10, stack.id = 1, segments = NULL
   metadata <- data.table(id = rownames(coords))
 
   # create voltron object with tiles
-  object <- formVoltRon(data = NULL, metadata = metadata, image = image, coords, main.assay = "ImageData", assay.type = "tile", params = list(tile.size = tile.size), ...)
+  object <- formVoltRon(data = NULL, metadata = metadata, image = image, coords, main.assay = "ImageData", assay.type = "tile", params = list(tile.size = tile.size), image_name = image_name, ...)
   
   # check if segments are defined
   if(is.null(segments)){
@@ -1212,7 +1213,7 @@ importImageData <- function(image, tile.size = 10, stack.id = 1, segments = NULL
     rownames(coords) <- names(segments)
     
     # make segment assay
-    assay <- formAssay(coords = coords, segments = segments, image = image, type = "ROI") 
+    assay <- formAssay(coords = coords, segments = segments, image = image, type = "ROI", main_image = image_name) 
     
     # add segments as assay
     sample_metadata <- SampleMetadata(object)

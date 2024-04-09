@@ -4,7 +4,14 @@
 \alias{importImageData}
 \title{importImageData}
 \usage{
-importImageData(image, tile.size = 10, stack.id = 1, segments = NULL, ...)
+importImageData(
+  image,
+  tile.size = 10,
+  stack.id = 1,
+  segments = NULL,
+  image_name = "main",
+  ...
+)
 }
 \arguments{
 \item{image}{the path to an image file}
@@ -14,6 +21,8 @@ importImageData(image, tile.size = 10, stack.id = 1, segments = NULL, ...)
 \item{stack.id}{the id of the stack when the magick image composed of multiple layers}
 
 \item{segments}{Either a list of segments or a GeoJSON file. This will result in a second assay in the VoltRon object to be created}
+
+\item{image_name}{the image name of the Image assay, Default: main}
 
 \item{...}{additional parameters passed to \link{formVoltRon}}
 }

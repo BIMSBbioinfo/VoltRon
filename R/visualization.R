@@ -31,9 +31,9 @@ NULL
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param label if TRUE, the labels of the ROI assays will be visualized
 #' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
-#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainImage}) 
+#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
-#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
 #' @param legend.pt.size the size of points at the legend
 #' @param scale.image if TRUE, background image will be scaled down to a low resolution (width: 1000px)
@@ -192,9 +192,9 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param plot_title the title of the single plot
 #' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
-#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainImage}) 
+#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
-#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
 #' @param legend.pt.size the size of points at the legend
 #' @param scale.image if TRUE, background image will be scaled down to a low resolution (width: 1000px)
@@ -213,14 +213,16 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 
   # add image
   if(is.null(background))
-    background <- vrMainImage(assay)
+    background <- vrMainSpatial(assay)
+    # background <- vrMainImage(assay)
   if(length(background) == 2) {
     channel <- background[2]
   } else {
     channel <- NULL
   }
   background <- background[1]
-  if(background %in% vrImageNames(assay)){
+  # if(background %in% vrImageNames(assay)){
+  if(background %in% vrSpatialNames(assay)){ 
     image <- vrImages(assay, name = background, channel = channel)
     if(!is.null(image)){
       info <- image_info(image)
@@ -234,16 +236,20 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     } else {
       info <- NULL
     }
-    image_name <- background
+    # image_name <- background
+    spatial_name <- background
   } else {
     info <- NULL
-    image_name <- vrMainImage(assay)
+    # image_name <- vrMainImage(assay)
+    spatial_name <- vrMainSpatial(assay)
   }
 
   # data
-  coords <- as.data.frame(vrCoordinates(assay, image_name = image_name, reg = reg))
+  # coords <- as.data.frame(vrCoordinates(assay, image_name = image_name, reg = reg))
+  coords <- as.data.frame(vrCoordinates(assay, spatial_name = spatial_name, reg = reg))
   coords <- coords/scale_factors
-  segments <- vrSegments(assay, image_name = image_name)
+  # segments <- vrSegments(assay, image_name = image_name)
+  segments <- vrSegments(assay, spatial_name = spatial_name)
 
   # plotting features
   if(!group.by %in% colnames(metadata))
@@ -470,9 +476,9 @@ vrSpatialPlotSingleTiling <- function(g, data, n.tile, alpha = 1){
 #' @param keep.scale whether unify all scales for all features or not
 #' @param label if TRUE, labels of ROIs will be visualized too
 #' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
-#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainImage}) 
+#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
-#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
 #' @param common.legend whether to use a common legend for all plots, see \link{ggarrange}
 #' @param collapse whether to combine all ggplots
@@ -607,9 +613,9 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
 #' @param plot_title the main title of the single plot
 #' @param legend_title the legend title of the single plot
 #' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
-#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainImage}) 
+#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
-#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
 #'
 #' @import ggplot2
@@ -629,14 +635,16 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 
   # add image
   if(is.null(background))
-    background <- vrMainImage(assay)
+    background <- vrMainSpatial(assay)
+    # background <- vrMainImage(assay)
   if(length(background) == 2) {
     channel <- background[2]
   } else {
     channel <- NULL
   }
   background <- background[1]
-  if(background %in% vrImageNames(assay)){
+  # if(background %in% vrImageNames(assay)){
+  if(background %in% vrSpatialNames(assay)){
     image <- vrImages(assay, name = background, channel = channel)
     if(!is.null(image)){
       info <- image_info(image)
@@ -650,16 +658,20 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
     } else {
       info <- NULL
     }
-    image_name <- background
+    # image_name <- background
+    spatial_name <- background
   } else {
     info <- NULL
-    image_name <- vrMainImage(assay)
+    spatial_name <- vrMainSpatial(assay)
+    # image_name <- vrMainImage(assay)
   }
 
   # data
-  coords <- as.data.frame(vrCoordinates(assay, image_name = image_name, reg = reg))
+  # coords <- as.data.frame(vrCoordinates(assay, image_name = image_name, reg = reg))
+  coords <- as.data.frame(vrCoordinates(assay, spatial_name = spatial_name, reg = reg))
   coords <- coords/scale_factors
-  segments <- vrSegments(assay, image_name = image_name)
+  # segments <- vrSegments(assay, image_name = image_name)
+  segments <- vrSegments(assay, spatial_name = spatial_name)
   data_features <- feature[feature %in% vrFeatures(assay)]
   if(length(data_features) > 0){
     normdata <- vrData(assay, features = feature, norm = norm)
@@ -707,11 +719,11 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
     for(i in 1:length(segments)){
       cur_data <- as.data.frame(cbind(segments[[i]], names(segments)[i], coords$score[i]))
       if(nrow(segments[[i]]) > 1){
-        colnames(cur_data) <- c("x", "y", "segment", "score")
+        colnames(cur_data) <- c("id", "x", "y", "segment", "score")
         cur_data[,c("x", "y")] <- cur_data[,c("x", "y")]/scale_factors
         polygon_data <- as.data.frame(rbind(polygon_data, cur_data))
       } else {
-        colnames(cur_data) <- c("x", "y", "rx", "ry", "segment", "score")
+        colnames(cur_data) <- c("id", "x", "y", "rx", "ry", "segment", "score")
         cur_data[,c("x", "y","rx", "ry")] <- cur_data[,c("x", "y","rx", "ry")]/scale_factors
         circle_data <- as.data.frame(rbind(circle_data,  cur_data))
       }
@@ -965,7 +977,7 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
     if(inherits(metadata, "data.table")){
       datax[[group.by]] <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
     } else {
-      datax[[group.by]] <- as.factor(metadata[,group.by])
+      datax[[group.by]] <- as.factor(metadata[rownames(datax),group.by])
     }
   } else {
     stop("Column ", group.by, " cannot be found in metadata!")

@@ -69,6 +69,8 @@ test_that("coordinates", {
 
   # coordinates
   coords <- vrCoordinates(visium_data)
+  coords <- vrCoordinates(visium_data, image_name = "main")
+  coords <- vrCoordinates(visium_data, spatial_name = "main")
   expect_warning(coords <- vrCoordinates(visium_data, reg = TRUE))
   expect_warning(coords <- vrCoordinates(visium_data, assay = "Assay1", reg = TRUE))
 
@@ -112,10 +114,13 @@ test_that("image", {
 
   # get main image
   expect_equal(vrMainImage(visium_data[["Assay1"]]), "main")
-
+  expect_equal(vrMainSpatial(visium_data[["Assay1"]]), "main")
+  
   # change main image
   vrMainImage(visium_data[["Assay1"]]) <- "new_image"
+  vrMainSpatial(visium_data[["Assay1"]]) <- "new_image"
   expect_equal(vrMainImage(visium_data[["Assay1"]]), "new_image")
+  expect_equal(vrMainSpatial(visium_data[["Assay1"]]), "new_image")
 
   # return
   expect_equal(1,1L)

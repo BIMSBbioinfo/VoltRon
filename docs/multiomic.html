@@ -343,6 +343,9 @@ div.tocify {
           <a href="registration.html">Spatial Data Alignment</a>
         </li>
         <li>
+          <a href="multiomic.html">Multi-omic Integration</a>
+        </li>
+        <li>
           <a href="deconvolution.html">Niche Clustering</a>
         </li>
       </ul>
@@ -458,13 +461,271 @@ table, th, td {
 }
 </style>
 <p><br></p>
-<div id="spatial-multi-omic-integration" class="section level1">
-<h1>Spatial Multi-omic Integration</h1>
-<div id="gene-expression-image-features" class="section level2">
-<h2>Gene Expression + Image Features</h2>
-<pre class="r watch-out"><code>Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image_lowres.tif&quot;,
-                                sample_name = &quot;XeniumR1image&quot;, 
-                                image_name = &quot;H&amp;E&quot;)</code></pre>
+<div id="label-transfer-via-registration" class="section level1">
+<h1>Label Transfer via Registration</h1>
+<p>VoltRon is capable of analyzing molecule-level subcellular datasets
+independent of single cells, and specifically those that may also found
+outside of these cells. To demonstrate how VoltRon investigates
+extra-cellular molecules, we will make use of another Xenium in situ
+dataset where custom Xenium probes designed to hybridize distinct open
+reading frames of SARS-COV-2 virus molecules. These subcellular entities
+which then can be detected both within and outside of cells which allows
+to understand proliferation mechanics of the virus across the
+tissue.</p>
+<p>In this use case, we analyse readouts of <strong>eight tissue micro
+array (TMA) tissue sections</strong> that were fitted into the scan area
+of a slide loaded on a Xenium in situ instrument. These sections were
+cut from <strong>control and COVID-19 lung tissues</strong> of donors
+categorized based on disease durations (acute and prolonged). See <a
+href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732">GSE190732</a>
+for more information.</p>
+<p><br></p>
+<div id="single-cells-and-molecules" class="section level2">
+<h2>Single Cells and Molecules</h2>
+<p>Across these eight TMA section, we investigate a section of acute
+case which is originated from a lung with extreme number of detected
+open reading frames of virus molecules. For convenience, we load a
+VoltRon object where cells are already annotated.</p>
+<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- readRDS(file = &quot;data/Xenium/acutecase1_annotated.rds&quot;)
+vrEmbeddingPlot(vr2_merged_acute1, assay = &quot;Xenium&quot;, embedding = &quot;umap&quot;, 
+                group.by = &quot;CellType&quot;, label = TRUE)
+vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;,
+              plot.segments = TRUE)</code></pre>
+<table>
+<tbody>
+<tr style="vertical-align: center">
+<td style="width:45%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_vrembeddingplot.png" class="center">
+</td>
+<td style="width:55%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_celltype.png" class="center">
+</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>We incorporate two open reading frames (ORFs), named
+<strong>S2_N</strong> and <strong>S2_orf1ab</strong>, which represent
+unreplicated and replicated virus molecules, respectively. We can
+visualize again tile the count of these virus expressions by
+specifically selecting these two ORFs.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;, 
+              group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), n.tile = 300)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus.png" class="center"></p>
+<p><br></p>
+<p>We can even zoom into specific locations at the tissue to investigate
+virus particles more closely by droping the <strong>n.tile</strong>
+argument and calling interactive visualization.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;, 
+              group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), interactive = TRUE, pt.size = 0.1)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecules_visualize_virus_zoom.png" class="center"></p>
+<p><br></p>
+<p>In the following sections, we will integrate pathological images and
+annotations with Xenium datasets to further understand the spatial
+localization of virus ORF types over the tissue.</p>
+<p><br></p>
+</div>
+<div id="automated-he-registration" class="section level2">
+<h2>Automated H&amp;E Registration</h2>
+<p>VoltRon can analyze and also integrate information from distinct
+spatial data types such as images, annotations (as regions of interests,
+i.e. ROIs) and molecules independently. Using such advanced utilities,
+we can make use of histological information and generate new metadata
+level information for molecule datasets.</p>
+<p>We will first import both histological images and manual annotations
+using the <strong>importImageData</strong> function which accepts both
+images to generate tile/pixel level datasets but also allows one to
+import either a list of segments or <a
+href="https://geojson.org/">GeoJSON</a> objects for create ROI-level
+datasets as separate assays in a single VoltRon layer. The .geojson file
+was generated using <a href="https://qupath.github.io/">QuPath</a> on
+the same section H&amp;E image of one Xenium section with the acute
+COVID-19 case. We also have to flip the coordinates of ROI annotations
+also for they were directly imported from QuPath which incorporates a
+reverse coordinate system on the y-axis.</p>
+<p>Once imported, the resulting VoltRon object will have two assays in a
+single layer, one for tile dataset of the H&amp;E image and the other
+for ROI based annotations of again the same image.</p>
+<pre class="r watch-out"><code># get image
+imgdata &lt;- importImageData(&quot;acutecase3_HE.jpg&quot;, 
+                           segments = &quot;data/Xenium/acutecase3_membrane.geojson&quot;, 
+                           sample_name = &quot;acute case 1 (HE)&quot;)
+imgdata &lt;- flipCoordinates(imgdata, assay = &quot;ROIAnnotation&quot;)
+imgdata</code></pre>
+<pre><code>VoltRon Object 
+acute case 1 (HE): 
+  Layers: Section1 
+Assays: ImageData(Main) ROIAnnotation </code></pre>
+<p>By visualizing these annotations interactively, we can see that the
+ROIs point to the hyaline membranes. Here, we likely find extra-cellular
+SARS-COV-2 molecules mostly outside of any single cell.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(imgdata, assay = &quot;ROIAnnotation&quot;, group.by = &quot;Sample&quot;, 
+              alpha = 0.7, interactive = TRUE)</code></pre>
+<p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_Covid_HE_zoom.png" class="center"></p>
+<p><br></p>
+<p>We now register the H&amp;E image and annotations to the DAPI image
+of Xenium section using the <strong>registerSpatialData</strong>
+function. See <a href="registration.html">Spatial Data Alignment</a>
+tutorial for more information.</p>
+<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- modulateImage(vr2_merged_acute1, brightness = 300, channel = &quot;DAPI&quot;)
+xen_reg &lt;- registerSpatialData(object_list = list(vr2_merged_acute1, imgdata))
+imgdata_reg &lt;- xen_reg$registered_spat[[2]]</code></pre>
+<p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_HE_registration.png" class="center"></p>
+<p><br></p>
+<p>Once registered, we can isolate the registered H&amp;E data and use
+it further analysis. We can transfer images and their channels across
+assays of one or multiple VoltRon objects. Here, we save the registered
+image of the H&amp;E data as an additional channel of Xenium section of
+the acuse case 1 sample with molecule data.</p>
+<pre class="r watch-out"><code>vrImages(vr2_merged_acute1[[&quot;Assay8&quot;]], name = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- 
+  vrImages(imgdata_reg, assay = &quot;Assay1&quot;, name = &quot;image_1_reg&quot;)</code></pre>
+<p><br></p>
+<p>You can also add the VoltRon object of H&amp;E data as an additional
+assay of the Xenium section such that one layer includes cell,
+molecules, ROI Annotations and images in the same time. Specifically, we
+add the ROI annotation to the Xenium VoltRon object using the
+<strong>addAssay</strong> function where we choose the destination
+sample/block and the layer of the assay.</p>
+<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- addAssay(vr2_merged_acute1,
+                              assay = imgdata_reg[[&quot;Assay2&quot;]],
+                              metadata = Metadata(imgdata_reg, assay = &quot;ROIAnnotation&quot;),
+                              assay_name = &quot;ROIAnnotation&quot;,
+                              sample = &quot;acute case 1&quot;, layer = &quot;Section1&quot;)
+vr2_merged_acute1</code></pre>
+<pre><code>VoltRon Object 
+acute case 1: 
+  Layers: Section1 
+Assays: ROIAnnotation(Main) Xenium_mol Xenium </code></pre>
+<p><br></p>
+</div>
+<div id="label-transfer" class="section level2">
+<h2>Label transfer</h2>
+<p>Now we can transfer ROI annotations as additional metadata features
+of the molecule assay. We will refer the new metadata column as “Region”
+which will indicate if the molecule is within any annotated ROI in the
+same layer.</p>
+<pre class="r watch-out"><code># make a new metadata column for ROIAnnotation assay using names
+vrMainAssay(vr2_merged_acute1) &lt;- &quot;ROIAnnotation&quot;
+vr2_merged_acute1$Region &lt;- vrSpatialPoints(vr2_merged_acute1)
+
+# set the spatial coordinate system of ROI Annotations assay
+vrMainSpatial(vr2_merged_acute1[[&quot;Assay9&quot;]]) &lt;- &quot;image_1_reg&quot;
+
+# transfer ROI annotations to molecules
+vr2_merged_acute1 &lt;- transferData(object = vr2_merged_acute1, from = &quot;Assay9&quot;, to = &quot;Assay8&quot;, features = &quot;Region&quot;)
+
+# Metadata of molecules
+Metadata(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;)</code></pre>
+<div>
+<pre><code style="font-size: 11px;">                            id assay_id overlaps_nucleus   gene       qv      Assay    Layer       Sample    Region
+                        &lt;char&gt;   &lt;char&gt;            &lt;int&gt; &lt;char&gt;    &lt;num&gt;     &lt;char&gt;   &lt;char&gt;       &lt;char&gt;    &lt;char&gt;
+     1: 281651070371256_cb791e   Assay8                0   ENAH 40.00000 Xenium_mol Section1 acute case 1 undefined
+     2: 281651070371258_cb791e   Assay8                1  CD274 40.00000 Xenium_mol Section1 acute case 1 undefined
+     3: 281651070372515_cb791e   Assay8                0  CD163 40.00000 Xenium_mol Section1 acute case 1 undefined
+     4: 281651070374059_cb791e   Assay8                1   CTSL 33.97290 Xenium_mol Section1 acute case 1 undefined
+     5: 281651070374411_cb791e   Assay8                0    C1S 40.00000 Xenium_mol Section1 acute case 1 undefined
+    ---                                                                                                            
+785787: 281874408669584_cb791e   Assay8                0  SFRP2 40.00000 Xenium_mol Section1 acute case 1 undefined
+785788: 281874408671410_cb791e   Assay8                0   S2_N 40.00000 Xenium_mol Section1 acute case 1 undefined
+785789: 281874408672438_cb791e   Assay8                0 S100A8 40.00000 Xenium_mol Section1 acute case 1 undefined
+785790: 281874408673446_cb791e   Assay8                0  TIMP1 29.86642 Xenium_mol Section1 acute case 1 undefined
+785791: 281874408673882_cb791e   Assay8                0   S2_N 40.00000 Xenium_mol Section1 acute case 1 undefined</code></pre>
+</div>
+<p><br></p>
+<p>This annotations can be accessed from the default molecule level
+metadata of the VoltRon object.</p>
+<pre class="r watch-out"><code>vrMainAssay(vr2_merged_acute1) &lt;- &quot;Xenium_mol&quot;
+head(table(vr2_merged_acute1$Region))</code></pre>
+<pre><code>  ROI1_Assay9  ROI10_Assay9 ROI100_Assay9 ROI101_Assay9 ROI102_Assay9 ROI103_Assay9 
+          583           624           784           357           215           200 </code></pre>
+<p><br></p>
+<p>Now we will grab these annotations from molecule metadata and
+calculate the ratio of N to orf1ab frequency of SARS-COV-2 particles
+across all annotated molecules.</p>
+<pre class="r watch-out"><code>s2_summary_hyaline &lt;- 
+  Metadata(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;) %&gt;%
+  filter(gene %in% c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), 
+         Region != &quot;undefined&quot;) %&gt;% 
+  summarise(S2_N = sum(gene == &quot;S2_N&quot;), 
+            S2_orf1ab = sum(gene == &quot;S2_orf1ab&quot;), 
+            ratio = sum(gene == &quot;S2_N&quot;)/sum(gene == &quot;S2_orf1ab&quot;)) %&gt;% 
+  as.matrix()
+s2_summary_hyaline</code></pre>
+<pre><code>      S2_N S2_orf1ab    ratio
+[1,] 50977     33532 1.520249</code></pre>
+<p><br></p>
+</div>
+<div id="manual-annotation" class="section level2">
+<h2>Manual Annotation</h2>
+<p>To compare the proportion of <strong>S2_N</strong> and
+<strong>S2_orf1ab</strong> molecules in hyaline membranes with tissue
+sites of possible infection. We focus on another tissue niche where a
+large accumulation of cells with high <strong>S2_N</strong> and
+<strong>S2_orf1ab</strong> counts.</p>
+<p>By visualizing and zooming on a spatial plot with annotated cells, we
+can detect a site of cells with high infection which are also
+accompanied by a group of T cells.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1_infected, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;, 
+              group.ids = c(&quot;S2++ cells&quot;, &quot;T cells&quot;), plot.segments = TRUE, 
+              alpha = 0.6, background = c(&quot;main&quot;, &quot;H&amp;E&quot;), interactive = TRUE)</code></pre>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_spatialplot_infected.png" class="center"></p>
+<p><br></p>
+<p>Now we use the <strong>annotateSpatialData</strong> function to
+create an additional annotation of Xenium molecules directly. By
+selecting this region of infection we can directly annotate the
+‘Xenium_mol’ assay and the metadata of molecules. We use the H&amp;E
+image as the background again, and generate a new molecule-level
+metadata column called “Infected”.</p>
+<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- annotateSpatialData(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
+                                         label = &quot;Infected&quot;, use.image = TRUE, 
+                                         channel = &quot;H&amp;E&quot;)</code></pre>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_annotation_infected.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="comparison-of-annotations" class="section level2">
+<h2>Comparison of Annotations</h2>
+<p>By using the newly annotated infection-associated virus molecules, we
+can do a comparison of infected regions versus the hyaline membranes.
+We</p>
+<pre class="r watch-out"><code>s2_summary_infected &lt;- 
+  Metadata(vr2_merged_acute1_infected, assay = &quot;Xenium_mol&quot;) %&gt;%
+  filter(gene %in% c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), 
+         Infected != &quot;undefined&quot;) %&gt;% 
+  summarise(S2_N = sum(gene == &quot;S2_N&quot;), 
+            S2_orf1ab = sum(gene == &quot;S2_orf1ab&quot;), 
+            ratio = sum(gene == &quot;S2_N&quot;)/sum(gene == &quot;S2_orf1ab&quot;)) %&gt;% 
+  as.matrix()
+s2_summary_infected</code></pre>
+<pre><code>     S2_N S2_orf1ab    ratio
+[1,] 6376      2372 2.688027</code></pre>
+<p>Comparison of both the ratio between the infected region and the
+hyaline membranes show a considerable difference of the population of
+<strong>S2_N</strong> and <strong>S2_orf1ab</strong> molecules.</p>
+<pre class="r watch-out"><code>S2_table &lt;- matrix(c(s2_summary_hyaline[,1:2], 
+                     s2_summary_infected[,1:2]), 
+                   dimnames = list(Region = c(&quot;Hyaline&quot;, &quot;Infected&quot;), 
+                                   S2 = c(&quot;N&quot;, &quot;orf1ab&quot;)),
+                   ncol = 2,  byrow = TRUE)
+S2_table</code></pre>
+<pre><code>          S2
+Region     N     orf1ab
+  Hyaline  50977 33532 
+  Infected 6</code></pre>
+<p>A quick test of independance on this contingency table show a
+significant difference of ratios across Hyaline and Infected
+regions.</p>
+<pre class="r watch-out"><code>fisher.test(S2_table, alternative = &quot;two.sided&quot;)</code></pre>
+<pre><code>
+    Fisher&#39;s Exact Test for Count Data
+
+data:  S2_table
+p-value &lt; 2.2e-16
+alternative hypothesis: true odds ratio is not equal to 1
+95 percent confidence interval:
+ 0.5382305 0.5941683
+sample estimates:
+odds ratio 
+ 0.5655696 </code></pre>
 </div>
 </div>
 
