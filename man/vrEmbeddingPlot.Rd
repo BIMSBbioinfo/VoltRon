@@ -9,6 +9,7 @@ vrEmbeddingPlot(
   embedding = "pca",
   group.by = "Sample",
   group.ids = NULL,
+  split.by = NULL,
   colors = NULL,
   assay = NULL,
   ncol = 2,
@@ -29,14 +30,16 @@ vrEmbeddingPlot(
 
 \item{group.ids}{a subset of categories defined in metadata column from \code{group.by}}
 
+\item{split.by}{a column of metadata from \link{Metadata} used as splitting spatial entities into ggplot panels, see \link{facet_wrap}}
+
 \item{colors}{the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{ncol}{column wise number of plots, for \link{ggarrange}}
+\item{ncol}{column wise number of plots, for \link{facet_wrap}}
 
-\item{nrow}{row wise number of plots, for \link{ggarrange}}
+\item{nrow}{row wise number of plots, for \link{facet_wrap}}
 
 \item{font.size}{font size of labels, if label is TRUE}
 

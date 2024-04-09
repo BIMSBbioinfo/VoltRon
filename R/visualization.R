@@ -898,6 +898,7 @@ GeomSpot <- ggplot2::ggproto("GeomSpot",
 #' @param embedding the embedding type, i.e. pca, umap etc.
 #' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
 #' @param group.ids a subset of categories defined in metadata column from \code{group.by}
+#' @param split.by a column of metadata from \link{Metadata} used as splitting spatial entities into ggplot panels, see \link{facet_wrap}
 #' @param colors the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
