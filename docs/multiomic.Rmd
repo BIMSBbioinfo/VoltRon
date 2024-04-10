@@ -274,7 +274,7 @@ vr2_merged_acute1 <- annotateSpatialData(vr2_merged_acute1, assay = "Xenium_mol"
 
 ## Comparison of Annotations
 
-By using the newly annotated infection-associated virus molecules, we can do a comparison of infected regions versus the hyaline membranes. We 
+By using the newly annotated infection-associated virus molecules, we can do a comparison of infected regions versus the hyaline membranes. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 s2_summary_infected <- 
