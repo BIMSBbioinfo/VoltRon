@@ -308,7 +308,7 @@ S2_table
           S2
 Region     N     orf1ab
   Hyaline  50977 33532 
-  Infected 6
+  Infected 6376  2372
 ```
 
 A quick test of independance on this contingency table show a significant difference of ratios across Hyaline and Infected regions.
