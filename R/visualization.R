@@ -167,10 +167,10 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
       if(length(gg) < ncol) ncol <- length(gg)
       return(ggpubr::ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = legend.loc))
     } else {
-      return(gg[[1]])
+      return(gg[[1]] + theme(legend.position=legend.loc))
     }
   } else {
-    gg
+    gg + theme(legend.position=legend.loc)
   }
 }
 
@@ -481,6 +481,7 @@ vrSpatialPlotSingleTiling <- function(g, data, n.tile, alpha = 1){
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
 #' @param common.legend whether to use a common legend for all plots, see \link{ggarrange}
+#' @param legend.loc the location of the legend, default is "right"
 #' @param collapse whether to combine all ggplots
 #'
 #' @import ggplot2
@@ -490,7 +491,7 @@ vrSpatialPlotSingleTiling <- function(g, data, n.tile, alpha = 1){
 #'
 vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segments = FALSE, norm = TRUE, log = FALSE, assay = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
                          font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, background = NULL, reg = FALSE,
-                         crop = FALSE, common.legend = FALSE, collapse = TRUE) {
+                         crop = FALSE, common.legend = FALSE, legend.loc = "right", collapse = TRUE) {
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -583,12 +584,12 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
       return(ggpubr::ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol)))
     } else if(length(features) == 1 && length(assay_names) > 1){
       if(length(gg) < ncol) ncol <- length(gg)
-      return(ggpubr::ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = "right"))
+      return(ggpubr::ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = legend.loc))
     } else {
-      return(gg[[1]])
+      return(gg[[1]] + + theme(legend.position=legend.loc))
     }
   } else {
-    return(gg)
+    return(gg + + theme(legend.position=legend.loc))
   }
 }
 

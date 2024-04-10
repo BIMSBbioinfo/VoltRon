@@ -25,6 +25,7 @@ vrSpatialFeaturePlot(
   reg = FALSE,
   crop = FALSE,
   common.legend = FALSE,
+  legend.loc = "right",
   collapse = TRUE
 )
 }
@@ -71,6 +72,8 @@ and main channel (\link{vrMainChannel}) will be in the background. Otherwise the
 \item{crop}{whether to crop an image of a spot assay to the extend of spots}
 
 \item{common.legend}{whether to use a common legend for all plots, see \link{ggarrange}}
+
+\item{legend.loc}{the location of the legend, default is "right"}
 
 \item{collapse}{whether to combine all ggplots}
 }
