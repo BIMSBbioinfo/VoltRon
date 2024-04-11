@@ -555,14 +555,29 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   // Draw top matches and good ones only
   std::vector<cv::DMatch> top_matches;
   std::vector<cv::KeyPoint> keypoints1_best, keypoints2_best;
-  for( size_t i = 0; i < good_matches.size(); i++ )
+  for(size_t i = 0; i < good_matches.size(); i++ )
   {
     keypoints1_best.push_back(keypoints1[good_matches[i].queryIdx]);
     keypoints2_best.push_back(keypoints2[good_matches[i].trainIdx]);
     top_matches.push_back(cv::DMatch(static_cast<int>(i), static_cast<int>(i), 0));
   }
   drawMatches(im1Proc, keypoints1_best, im2Proc, keypoints2_best, top_matches, imMatches);
-
+  
+  // Visualize matches, use for demonstration purposes
+  // std::vector<cv::DMatch> top_matches_vis;
+  // std::vector<cv::KeyPoint> keypoints1_best_vis, keypoints2_best_vis;
+  // for(size_t i = 0; i < good_matches.size(); i++)
+  // {
+  //   keypoints1_best_vis.push_back(keypoints1[good_matches[i].queryIdx]);
+  //   keypoints2_best_vis.push_back(keypoints2[good_matches[i].trainIdx]);
+  //   top_matches_vis.push_back(cv::DMatch(static_cast<int>(i), static_cast<int>(i), 0));
+  // }
+  // Mat im1Proc_vis, im2Proc_vis, im1NormalProc_vis, imMatches_vis;
+  // im1Proc_vis = preprocessImage(im1, invert_query, flipflop_query, rotate_query);
+  // im2Proc_vis = preprocessImage(im2, invert_ref, flipflop_ref, rotate_ref);
+  // drawMatches(im1Proc_vis, keypoints1_best, im2Proc_vis, keypoints2_best, top_matches, imMatches_vis);
+  // cv::imwrite("matches.jpg", imMatches_vis);
+  
   // check keypoints
   std::string is_faulty = check_transformation_metrics(keypoints1_best, keypoints2_best, im1, im2, h, mask);
 
