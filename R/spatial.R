@@ -126,7 +126,8 @@ vrNeighbourhoodEnrichment <- function(object, assay = NULL, group.by = NULL, gra
   neigh_results <- list()
   for(assy in assay_names){
     message("Testing Neighborhood Enrichment of '", group.by ,"' for '", assy, "'")
-    object_subset <- subset(object, spatialpoints = vrSpatialPoints(object)[grepl(paste0(assy,"$"), vrSpatialPoints(object))])
+    # object_subset <- subset(object, spatialpoints = vrSpatialPoints(object)[grepl(paste0(assy,"$"), vrSpatialPoints(object))])
+    object_subset <- subset(object, assays = assy)
     neigh_results[[assy]] <- vrNeighbourhoodEnrichmentSingle(object_subset, group.by = group.by, graph.type = graph.type,
                                                              num.sim = num.sim, seed = seed)
     neigh_results[[assy]] <- data.frame(neigh_results[[assy]], AssayID = assy, SampleMetadata(object_subset))
