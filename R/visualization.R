@@ -884,6 +884,68 @@ GeomSpot <- ggplot2::ggproto("GeomSpot",
 )
 
 ####
+## Spatial Neighborhood Plot ####
+####
+
+#' vrNeighbourhoodEnrichmentPlot
+#' 
+#' Plotting results of \link{vrNeighbourhoodEnrichment}
+#'
+#' @param results The results from \link{vrNeighbourhoodEnrichment}
+#' @param type the type of spatial test. Either "assoc" for association test or "segreg" for segregation test
+#'
+#' @export
+#'
+vrNeighbourhoodEnrichmentPlot <- function(results, type = c("assoc", "segreg")){
+  
+  # get type
+  if(length(type) > 1)
+    type <- "assoc"
+  
+  # make vis matrices
+  results$p_adj <- ifelse(results$value > 0, results$p_assoc, results$p_segreg)
+  results$cell1 <- results$from_value
+  results$cell2 <- results$to_value
+  entities <- unique(c(results$cell1,results$cell2))
+  mat <- matrix(nrow = length(entities), ncol = length(entities))
+  rownames(mat) <- colnames(mat) <- entities
+  mat_padj <- mat
+  for(i in 1:nrow(results)){
+    mat_padj[which(results$cell1[i]==entities), which(results$cell2[i]==entities)] <- 
+      mat_padj[which(results$cell2[i]==entities), which(results$cell1[i]==entities)] <- ifelse(type == "assoc", results$p_assoc_adj[i], results$p_segreg_adj[i])
+    mat[which(results$cell1[i]==entities), which(results$cell2[i]==entities)] <- 
+      mat[which(results$cell2[i]==entities), which(results$cell1[i]==entities)] <- ifelse(type == "assoc", results$value[i], -1*results$value[i])
+  }
+  
+  # color fun
+  limits <- c(0,round(quantile(mat[mat > 0], probs = 0.99),2)) 
+  enrich_col_fun = circlize::colorRamp2(limits, c("white", "red"))
+  
+  # make heatmap
+  ht <- ComplexHeatmap::Heatmap(mat_padj, 
+                                cluster_rows = TRUE, show_row_dend = FALSE, 
+                                cluster_columns = TRUE, show_column_dend = TRUE, 
+                                column_names_rot = 45,
+                                col = enrich_col_fun,
+                                heatmap_legend_param = list(
+                                  at = limits,
+                                  title = "Score"), 
+                                cell_fun = function(j, i, x, y, width, height, fill) {
+                                  grid::grid.rect(x = x, y = y, width = width, height = height,
+                                                  gp = gpar(col = "black", fill = "gray75"))
+                                  grid::grid.circle(x = x, y = y, r = (1-mat_padj[i, j])/2 * (min(grid::unit.c(width, height))*0.90), 
+                                                    gp = gpar(fill = enrich_col_fun(mat[i, j]), col = NA))
+                                })
+
+  # extra heatmap legend
+  lgd <- ComplexHeatmap::Legend(labels = c("1.00", "0.75", "0.50", "0.25"), title = "p.adj", type = "points", pch = 16, 
+                                size = unit(1:5, 'mm'), direction = 'vertical', legend_gp = gpar(col = "black"), background = 'white')
+  
+  # draw heatmap
+  ComplexHeatmap::draw(ht, annotation_legend_list = lgd)
+}
+
+####
 # Embeddings plots ####
 ####
 
