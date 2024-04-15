@@ -934,7 +934,7 @@ vrNeighbourhoodEnrichmentPlot <- function(results, type = c("assoc", "segreg")){
                                   grid::grid.rect(x = x, y = y, width = width, height = height,
                                                   gp = gpar(col = "black", fill = "gray75"))
                                   grid::grid.circle(x = x, y = y, r = (1-mat_padj[i, j])/2 * (min(grid::unit.c(width, height))*0.90), 
-                                                    gp = gpar(fill = enrich_col_fun(mat[i, j]), col = NA))
+                                                    gp = gpar(fill = enrich_col_fun(mat[i, j]), col = "black"))
                                 })
 
   # extra heatmap legend
