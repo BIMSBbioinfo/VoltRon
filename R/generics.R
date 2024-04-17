@@ -201,7 +201,13 @@ Metadata <- function(object, assay = NULL, type = NULL) {
 #' Given a VoltRon or vrAssay object, normalize the raw count data.
 #'
 #' @param object a VoltRon or vrAssay object
-#'
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param method the normalization method: "LogNorm", "Q3Norm", "LogQ3Norm" or "CLR"
+#' @param desiredQuantile the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}.
+#' @param scale the scale parameter for the hyperbolic arcsine transformation
+#' @param sizefactor size factor if \code{method} is selected as \code{LogNorm}
+#' 
 #' @rdname normalizeData
 #' @export normalizeData
 #'
@@ -232,7 +238,12 @@ vrEmbeddingNames <- function(object, assay = NULL) {
 #' Given a VoltRon or vrAssay object, get embeddings of spatial points
 #'
 #' @param object a VoltRon or vrAssay object
-#'
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param type the key name for the embedding, i.e. "pca" or "umap"
+#' @param dims the set of dimensions of the embedding data
+#' @param ... arguments passed to other methods
+#' 
 #' @rdname vrEmbeddings
 #' @export vrEmbeddings
 #' @order 1

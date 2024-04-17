@@ -155,7 +155,7 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
       # embeddings
       for(embed in vrEmbeddingNames(object)){
         embedding <- vrEmbeddings(object, type = embed)
-        vrEmbeddings(object, type = embed) <- embedding[spatialpoints,, drop = FALSE]
+        vrEmbeddings(object, type = embed) <- embedding[spatialpoints[spatialpoints %in% rownames(embedding)],, drop = FALSE]
       }
 
       # image
