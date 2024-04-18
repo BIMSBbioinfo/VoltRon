@@ -436,8 +436,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #' @noRd
 vrSpatialPlotSingleTiling <- function(g, data, n.tile, alpha = 1){
 
-  print(dim(data))
-  print(summary(data[,1:2]))
   # gplot <- g + stat_bin_2d(mapping = aes(x = x, y = y), data = data, bins = n.tile, drop = FALSE, alpha = alpha)
   gplot <- g + stat_bin_2d(mapping = aes(x = x, y = y), data = data, bins = n.tile, drop = TRUE, alpha = alpha)
   hex_count_data <- ggplot_build(gplot)$data
@@ -1444,7 +1442,7 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
 #' @param norm if TRUE, the normalized data is used
-#' @param points if TRUE, measures are visualized as points as well.
+#' @param plot.points if TRUE, measures are visualized as points as well.
 #' @param ncol column wise number of plots, for \link{ggarrange}
 #' @param nrow row wise number of plots, for \link{ggarrange}
 #'
@@ -1454,7 +1452,7 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
 #' @export
 #'
 vrViolinPlot <- function(object, features = NULL, assay = NULL, group.by = "Sample", 
-                         norm = TRUE, points = TRUE, ncol = 2, nrow = NULL){
+                         norm = TRUE, plot.points = TRUE, ncol = 2, nrow = NULL){
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -1502,20 +1500,23 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, group.by = "Samp
                       assay_title = assay_title,
                       spatialpoints = rownames(metadata))
   ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("group.by", "assay_title", "spatialpoints"))
-  gg <- ggplot(ggplotdatax, aes(x = group.by, y = value, color = group.by)) +
-    geom_violin()
 
   # visualize points on violin
-  if(points){
-    gg <- gg +
-      geom_point(size = 0.5, position = position_jitter())
+  if(plot.points){
+    gg <- ggplot(ggplotdatax, aes(x = group.by, y = value, color = group.by)) + 
+      geom_violin() + 
+      geom_point(size = 0.5, position = position_jitter()) + 
+      guides(fill = guide_legend(show = FALSE), color = guide_legend(title = group.by, override.aes=list(size = 2)))
+  } else {
+    gg <- ggplot(ggplotdatax, aes(x = group.by, y = value, color = group.by, fill = group.by)) + 
+      geom_violin() +
+      guides(color = guide_legend(title = group.by, override.aes=list(size = 2)), fill = guide_legend(title = group.by, override.aes=list(size = 2)))
   }
-
-  # theme
-  gg <- gg +
+  
+  # theme 
+  gg <- gg + 
     theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
-    ylab("") + xlab(group.by) +
-    guides(fill = guide_legend(show = FALSE), color = guide_legend(title = group.by, override.aes=list(size = 2)))
+    ylab("") + xlab(group.by)
 
   if(length(features) > 1){
     if(length(gg) < ncol) ncol <- length(gg)

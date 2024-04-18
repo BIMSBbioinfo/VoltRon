@@ -181,21 +181,7 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
     neighbors_graph_data_list[[i]] <- data.frame(neighbors_graph_data, from_value = grp_sim[,i-1][neighbors_graph_data[,1]], to_value = grp_sim[,i-1][neighbors_graph_data[,2]], type = paste0("sim", i))
   neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data_list)
 
-  # conduct randomized test
   # `%notin%` <- Negate(`%in%`)
-  # neigh_results <- neighbors_graph_data %>%
-  #   dplyr::group_by(from_value, to_value, type) %>%
-  #   dplyr::summarize(mean_value = dplyr::n()) %>%
-  #   dplyr::group_by(from_value, to_value) %>%
-  #   dplyr::mutate(assoc_test = mean_value > ifelse("obs" %in% type, mean_value[type == "obs"], 0),
-  #                 segreg_test = mean_value < ifelse("obs" %in% type, mean_value[type == "obs"], 0)) %>%
-  #   dplyr::filter(type != "obs") %>%
-  #   dplyr::group_by(from_value, to_value) %>%
-  #   dplyr::summarize(p_assoc = mean(assoc_test), p_segreg = mean(segreg_test)) %>%
-  #   dplyr::mutate(p_assoc_adj = p.adjust(p_assoc, method = "fdr"),
-  #                 p_segreg_adj = p.adjust(p_segreg, method = "fdr"))
-
-  `%notin%` <- Negate(`%in%`)
   neigh_results <- neighbors_graph_data %>%
     dplyr::group_by(from_value, to_value, type) %>%
     dplyr::summarize(mean_value = dplyr::n()) %>%
