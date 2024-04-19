@@ -10,7 +10,8 @@ vrViolinPlot(
   assay = NULL,
   group.by = "Sample",
   norm = TRUE,
-  points = TRUE,
+  pt.size = 0.5,
+  plot.points = TRUE,
   ncol = 2,
   nrow = NULL
 )
@@ -27,7 +28,9 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{norm}{if TRUE, the normalized data is used}
 
-\item{points}{if TRUE, measures are visualized as points as well.}
+\item{pt.size}{point size}
+
+\item{plot.points}{if TRUE, measures are visualized as points as well.}
 
 \item{ncol}{column wise number of plots, for \link{ggarrange}}
 

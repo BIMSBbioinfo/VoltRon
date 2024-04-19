@@ -1442,6 +1442,7 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
 #' @param norm if TRUE, the normalized data is used
+#' @param pt.size point size 
 #' @param plot.points if TRUE, measures are visualized as points as well.
 #' @param ncol column wise number of plots, for \link{ggarrange}
 #' @param nrow row wise number of plots, for \link{ggarrange}
@@ -1452,7 +1453,7 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
 #' @export
 #'
 vrViolinPlot <- function(object, features = NULL, assay = NULL, group.by = "Sample", 
-                         norm = TRUE, plot.points = TRUE, ncol = 2, nrow = NULL){
+                         norm = TRUE, pt.size = 0.5, plot.points = TRUE, ncol = 2, nrow = NULL){
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -1505,7 +1506,7 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, group.by = "Samp
   if(plot.points){
     gg <- ggplot(ggplotdatax, aes(x = group.by, y = value, color = group.by)) + 
       geom_violin() + 
-      geom_point(size = 0.5, position = position_jitter()) + 
+      geom_point(size = pt.size, position = position_jitter()) + 
       guides(fill = guide_legend(show = FALSE), color = guide_legend(title = group.by, override.aes=list(size = 2)))
   } else {
     gg <- ggplot(ggplotdatax, aes(x = group.by, y = value, color = group.by, fill = group.by)) + 

@@ -181,7 +181,6 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
     neighbors_graph_data_list[[i]] <- data.frame(neighbors_graph_data, from_value = grp_sim[,i-1][neighbors_graph_data[,1]], to_value = grp_sim[,i-1][neighbors_graph_data[,2]], type = paste0("sim", i))
   neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data_list)
 
-  # `%notin%` <- Negate(`%in%`)
   neigh_results <- neighbors_graph_data %>%
     dplyr::group_by(from_value, to_value, type) %>%
     dplyr::summarize(mean_value = dplyr::n()) %>%
@@ -190,13 +189,12 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
                   segreg_test = mean_value < ifelse("obs" %in% type, mean_value[type == "obs"], 0)) %>%
     dplyr::mutate(majortype = ifelse(type == "obs", "obs", "sim")) %>% 
     dplyr::group_by(from_value, to_value) %>%
-    dplyr::mutate(value = log(mean_value[majortype == "obs"]/mean(mean_value[majortype == "sim"]))) %>% 
+    dplyr::mutate(value = ifelse(sum(majortype == "obs") > 0, log(mean_value[majortype == "obs"]/mean(mean_value[majortype == "sim"])), 0)) %>% 
     dplyr::filter(type != "obs") %>%
     dplyr::group_by(from_value, to_value) %>%
     dplyr::summarize(p_assoc = mean(assoc_test), p_segreg = mean(segreg_test), value = value[1]) %>%
     dplyr::mutate(p_assoc_adj = p.adjust(p_assoc, method = "fdr"),
                   p_segreg_adj = p.adjust(p_segreg, method = "fdr"))
-  
   
   # number of samples
   grp_table <- table(grp)
