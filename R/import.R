@@ -810,6 +810,7 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
       coords <- as.data.frame(t(coords))
       colnames(coords) <- c("x", "y")
       coords <- rescaleGeoMxPoints(coords, summary, imageinfo)
+      coords <- data.frame(id = cur_ROI$Union$Label[["Text"]], coords)
       mask_lists[[cur_ROI$Union$Label[["Text"]]]] <- data.frame(coords)
 
     # if the shape is an ellipse
@@ -820,6 +821,7 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
       coords[,c("x", "y")] <- rescaleGeoMxPoints(coords[,c("x", "y")], summary, imageinfo)
       coords$rx <- coords$rx * imageinfo$width/summary$Scan.Width[1]
       coords$ry <- coords$ry * imageinfo$height/summary$Scan.Height[1]
+      coords <- data.frame(id = cur_ROI$Union$Label[["Text"]], coords)
       mask_lists[[cur_ROI$Union$Label[["Text"]]]] <- coords
     }
   }

@@ -254,30 +254,40 @@ subsetCoordinates <- function(coords, image, crop_info){
 #' @param image the magick image associated with the coordinates
 #' @param crop_info the subseting string passed to \link{image_crop}
 #'
+#' @importFrom dplyr bind_rows
 subsetSegments <- function(segments, image, crop_info){
 
-  # change strategy based on the length of segments
-  # if(length(segments) < 200) {
-  #   for(i in 1:length(segments)){
-  #     segments[[i]][,c("x","y")] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
-  #   }
-  # } else {
-    # segment_names <- rep(names(segments), sapply(segments, nrow, simplify = TRUE))
+  # get segments
   segment_names <- names(segments)
-  segments <- do.call(rbind,segments)
+  segments <- do.call(dplyr::bind_rows, segments)
   rownames(segments) <- 1:nrow(segments)
   segments <- data.frame(segments, row_id = rownames(segments))
+  
+  # subset
   cropped_segments <- subsetCoordinates(segments[,c("x","y")], image, crop_info)
+  if(any(colnames(segments) %in% c("rx", "ry"))){
+    cropped_segments_extra <- segments[rownames(cropped_segments), c("rx", "ry")]
+    cropped_segments <- cbind(cropped_segments, cropped_segments_extra)
+  }
   cropped_segments <- data.frame(cropped_segments, id = segments[rownames(cropped_segments),1], row_id = rownames(cropped_segments))
   cropped_segments <- cropped_segments %>% right_join(segments[,c(colnames(segments)[1], "row_id")], by = c("row_id" = "row_id"))
-  cropped_segments <- cropped_segments[,c(colnames(cropped_segments)[which(grepl(colnames(segments)[1], colnames(cropped_segments)))[1]], "x", "y")]
-  colnames(cropped_segments) <- c("id", "x", "y")
-  # segments <- cropped_segments %>% dplyr::group_split({{colnames(segments)[1]}})
+  if(any(colnames(segments) %in% c("rx", "ry"))){
+    cropped_segments <- cropped_segments[,c(colnames(cropped_segments)[which(grepl(colnames(segments)[1], colnames(cropped_segments)))[1]], "x", "y", "rx", "ry")]
+    colnames(cropped_segments) <- c("id", "x", "y", "rx", "ry")
+    
+  } else {
+    cropped_segments <- cropped_segments[,c(colnames(cropped_segments)[which(grepl(colnames(segments)[1], colnames(cropped_segments)))[1]], "x", "y")]
+    colnames(cropped_segments) <- c("id", "x", "y")
+  }
+  # split back to segments
   segments <- split(cropped_segments, cropped_segments[,1])
+  segments <- lapply(segments, function(df){
+    df[,colSums(is.na(df))<nrow(df), drop = FALSE]
+  })
   names(segments) <- segment_names
-  # }
   
-  segments
+  # return
+  return(segments)
 }
 
 ### Other Methods ####
