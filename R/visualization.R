@@ -326,14 +326,14 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
                                   fill = group.by, group = segment), data = circle_data, lwd = 0, alpha = alpha)
     }
     g <- g +
-      scale_fill_manual(values = colors, labels = names(colors), drop = FALSE) +
+      scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
       guides(fill = guide_legend(title = group.by))
 
   # spot visualization
   } else if(vrAssayTypes(assay) == "spot"){
     g <- g +
       geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, spot.radius = vrAssayParams(assay, param = "vis.spot.radius")) +
-      scale_fill_manual(values = colors, labels = names(colors), drop = FALSE) +
+      scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
 
   # cell visualization
@@ -350,7 +350,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
           polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), group.by = rep(coords[[group.by]], len_segments))
           g <- g +
             geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha) +
-            scale_fill_manual(values = colors, labels = names(colors), drop = FALSE) +
+            scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
             guides(fill = guide_legend(title = group.by))
         }
       } else {
@@ -359,8 +359,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         if(n.tile == 0){
           g <- g +
             geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
-            scale_fill_manual(values = colors, labels = names(colors), drop = FALSE) +
-            scale_color_manual(values = colors, labels = names(colors), drop = FALSE) +
+            scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
+            scale_color_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
             guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
         } else {
           g <- vrSpatialPlotSingleTiling(g = g, data = coords, n.tile = n.tile, alpha = alpha)
@@ -385,8 +385,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     if(n.tile == 0){
       g <- g +
         geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
-        scale_fill_manual(values = colors, labels = names(colors), drop = FALSE) +
-        scale_color_manual(values = colors, labels = names(colors), drop = FALSE) +
+        scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
+        scale_color_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
         guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
     } else {
       g <- vrSpatialPlotSingleTiling(g = g, data = coords, n.tile = n.tile, alpha = alpha)
@@ -1070,7 +1070,7 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
   # add points or segments
   g <- g +
     geom_point(mapping = aes_string(x = "x", y = "y", color = group.by), datax, shape = 16, size = pt.size) +
-    scale_color_manual(values = colors, labels = names(colors), drop = FALSE) +
+    scale_color_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
     guides(color = guide_legend(override.aes=list(size = 2)))
 
   # more visualization parameters
