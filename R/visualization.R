@@ -326,7 +326,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
                                   fill = group.by, group = segment), data = circle_data, lwd = 0, alpha = alpha)
     }
     g <- g +
-      scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
+      scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors), 
+                        guide = guide_legend(override.aes = list(alpha = 1))) +
       guides(fill = guide_legend(title = group.by))
 
   # spot visualization
