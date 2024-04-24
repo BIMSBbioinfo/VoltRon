@@ -32,7 +32,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{spatial_name}{the name/key of the spatial system associated with the coordinates}
 
-\item{image_name}{(deprecated) the name/key of the image}
+\item{image_name}{(deprecated, use \code{spatial_name}) the name/key of the image}
 
 \item{...}{additional parameters passed to \link{vrCoordinates} and \link{vrSegments}}
 }

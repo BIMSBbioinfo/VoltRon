@@ -55,6 +55,7 @@ Suggests:
     vitessceR,
     testthat (>= 3.0.0),
     geojsonR,
-    DelayedArray
+    DelayedArray,
+    circlize
 Config/testthat/edition: 3
 LazyData: true

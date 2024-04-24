@@ -446,16 +446,12 @@ vrAssayParams <- function(object, param = NULL) {
   }
 }
 
-#' @param features the set of features
-#' @param norm TRUE if normalized data should be returned
-#' 
 #' @rdname vrData
 #' @order 3
 #'
 #' @importFrom magick image_raster
 #'
 #' @export
-#'
 vrData.vrAssay <- function(object, features = NULL, norm = FALSE, ...) {
 
   # get assay types
@@ -681,9 +677,6 @@ vrSegments.vrAssay <- function(object, image_name = NULL, spatial_name = NULL, r
   return(object)
 }
 
-#' @param type the key name for the embedding, i.e. "pca" or "umap"
-#' @param dims the set of dimensions of the embedding data
-#'
 #' @rdname vrEmbeddings
 #' @order 3
 #' @export

@@ -10,13 +10,13 @@
 \usage{
 resizeImage(object, assay = NULL, name = NULL, reg = FALSE, size)
 
-\method{resizeImage}{VoltRon}(object, assay = NULL, ...)
+\method{resizeImage}{VoltRon}(object, assay = NULL, name = NULL, reg = FALSE, size = NULL)
 
-\method{resizeImage}{vrAssay}(object, name = NULL, reg = FALSE, ...)
+\method{resizeImage}{vrAssay}(object, name = NULL, reg = FALSE, size = NULL)
 
-\method{resizeImage}{vrImage}(object, size)
+\method{resizeImage}{vrImage}(object, size = NULL)
 
-\method{resizeImage}{vrSpatial}(object, ...)
+\method{resizeImage}{vrSpatial}(object, size = NULL)
 }
 \arguments{
 \item{object}{a VoltRon, vrAssay or vrImage object}
@@ -29,8 +29,6 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{reg}{TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested}
 
 \item{size}{the width of the resized image}
-
-\item{...}{arguements passed to other methods}
 }
 \description{
 Resizing Magick images

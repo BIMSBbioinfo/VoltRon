@@ -8,7 +8,7 @@
 \usage{
 vrData(object, assay = NULL, features = NULL, norm = FALSE)
 
-\method{vrData}{VoltRon}(object, assay = NULL, ...)
+\method{vrData}{VoltRon}(object, assay = NULL, features = NULL, norm = FALSE, ...)
 
 \method{vrData}{vrAssay}(object, features = NULL, norm = FALSE, ...)
 }

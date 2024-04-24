@@ -899,6 +899,10 @@ GeomSpot <- ggplot2::ggproto("GeomSpot",
 #'
 vrNeighbourhoodEnrichmentPlot <- function(results, type = c("assoc", "segreg")){
   
+  # check Seurat package
+  if(!requireNamespace('circlize'))
+    stop("Please install circlize package for coloring the Heatmap")
+  
   # get type
   if(length(type) > 1)
     type <- "assoc"

@@ -36,9 +36,9 @@ vrSpatialPoints(object, assay = NULL)
 
 \method{vrSpatialPoints}{vrAssay}(object) <- value
 
-\method{vrSpatialPoints}{vrImage}(object, ...) <- value
+\method{vrSpatialPoints}{vrImage}(object) <- value
 
-\method{vrSpatialPoints}{vrSpatial}(object, ...) <- value
+\method{vrSpatialPoints}{vrSpatial}(object) <- value
 }
 \arguments{
 \item{object}{a VoltRon, vrSample, vrLayer, vrAssay or vrImage object}

@@ -1061,13 +1061,15 @@ vrFeatureData.VoltRon <- function(object, assay = NULL) {
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param features the set of features
+#' @param norm TRUE if normalized data should be returned
 #' @param ... additional parameters passed to other methods and \link{vrImages}
 #'
 #' @rdname vrData
 #' @order 2
 #'
 #' @export
-vrData.VoltRon <- function(object, assay = NULL, ...) {
+vrData.VoltRon <- function(object, assay = NULL, features = NULL, norm = FALSE, ...) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1075,7 +1077,7 @@ vrData.VoltRon <- function(object, assay = NULL, ...) {
   # get all coordinates
   data <- NULL
   for(i in 1:length(assay_names)){
-    cur_data <- vrData(object[[assay_names[i]]], ...)
+    cur_data <- vrData(object[[assay_names[i]]], features = features, norm = norm, ...)
     cur_data <- data.frame(cur_data, feature.ID = rownames(cur_data), check.names = FALSE)
     if(i == 1){
       data <- cur_data
@@ -1092,15 +1094,11 @@ vrData.VoltRon <- function(object, assay = NULL, ...) {
   return(data)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param ... arguments passed to other methods
-#'
 #' @rdname vrEmbeddings
 #' @order 2
 #'
 #' @export
-vrEmbeddings.VoltRon <- function(object, assay = NULL, ...) {
+vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", dims = 1:30) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1108,7 +1106,7 @@ vrEmbeddings.VoltRon <- function(object, assay = NULL, ...) {
   # get all coordinates
   returndata_list <- list()
   for(i in 1:length(assay_names))
-    returndata_list[[i]] <- vrEmbeddings(object[[assay_names[i]]], ...)
+    returndata_list[[i]] <- vrEmbeddings(object[[assay_names[i]]], type = type, dims = dims)
 
   return(do.call(rbind, returndata_list))
 }
@@ -1170,7 +1168,7 @@ vrEmbeddingNames.VoltRon <- function(object, assay = NULL){
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param type the assay type: ROI, spot or cell, or all for the entire metadata object
-#'
+#' 
 #' @rdname Metadata
 #'
 #' @importFrom methods slotNames
@@ -1335,7 +1333,7 @@ SampleMetadata <- function(object) {
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param image_name (deprecated) the name/key of the image associated with the coordinates
+#' @param image_name (deprecated, use \code{spatial_name}) the name/key of the image associated with the coordinates
 #' @param spatial_name the name/key of the spatial system associated with the coordinates
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
 #'
@@ -1396,7 +1394,7 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, spati
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param image_name (deprecated) the name/key of the image associated with the coordinates
+#' @param image_name (deprecated, use \code{spatial_name}) the name/key of the image associated with the coordinates
 #' @param spatial_name the name/key of the spatial system associated with the coordinates
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
 #'
@@ -1456,7 +1454,7 @@ vrSegments.VoltRon <- function(object, assay = NULL, image_name = NULL, spatial_
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param image_name (deprecated) the name/key of the image
+#' @param image_name (deprecated, use \code{spatial_name}) the name/key of the image
 #' @param spatial_name the name/key of the spatial system associated with the coordinates
 #' @param ... additional parameters passed to \link{vrCoordinates} and \link{vrSegments}
 #' 

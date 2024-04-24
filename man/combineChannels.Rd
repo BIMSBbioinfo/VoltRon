@@ -18,9 +18,24 @@ combineChannels(
   channel_key = "combined"
 )
 
-\method{combineChannels}{VoltRon}(object, assay = NULL, ...)
+\method{combineChannels}{VoltRon}(
+  object,
+  assay = NULL,
+  name = NULL,
+  reg = FALSE,
+  channels = NULL,
+  colors = NULL,
+  channel_key = "combined"
+)
 
-\method{combineChannels}{vrAssay}(object, name = NULL, reg = FALSE, ...)
+\method{combineChannels}{vrAssay}(
+  object,
+  name = NULL,
+  reg = FALSE,
+  channels = NULL,
+  colors = NULL,
+  channel_key = "combined"
+)
 
 \method{combineChannels}{vrImage}(
   object,
@@ -29,7 +44,12 @@ combineChannels(
   channel_key = "combined"
 )
 
-\method{combineChannels}{vrSpatial}(object, ...)
+\method{combineChannels}{vrSpatial}(
+  object,
+  channels = NULL,
+  colors = NULL,
+  channel_key = "combined"
+)
 }
 \arguments{
 \item{object}{a VoltRon, vrAssay or vrImage object}
@@ -46,8 +66,6 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{colors}{the colors associated with each channel}
 
 \item{channel_key}{the name of the new channel name}
-
-\item{...}{arguements passed to other methods}
 }
 \description{
 Combining channels into novel channels of the same image

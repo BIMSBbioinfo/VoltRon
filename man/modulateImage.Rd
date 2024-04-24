@@ -20,9 +20,28 @@ modulateImage(
   force = FALSE
 )
 
-\method{modulateImage}{VoltRon}(object, assay = NULL, ...)
+\method{modulateImage}{VoltRon}(
+  object,
+  assay = NULL,
+  name = NULL,
+  reg = FALSE,
+  channel = NULL,
+  brightness = 100,
+  saturation = 100,
+  hue = 100,
+  force = FALSE
+)
 
-\method{modulateImage}{vrAssay}(object, name = NULL, reg = FALSE, ...)
+\method{modulateImage}{vrAssay}(
+  object,
+  name = NULL,
+  reg = FALSE,
+  channel = NULL,
+  brightness = 100,
+  saturation = 100,
+  hue = 100,
+  force = FALSE
+)
 
 \method{modulateImage}{vrImage}(
   object,
@@ -33,7 +52,14 @@ modulateImage(
   force = FALSE
 )
 
-\method{modulateImage}{vrSpatial}(object, ...)
+\method{modulateImage}{vrSpatial}(
+  object,
+  channel = NULL,
+  brightness = 100,
+  saturation = 100,
+  hue = 100,
+  force = FALSE
+)
 }
 \arguments{
 \item{object}{a VoltRon, vrAssay or vrImage object}
@@ -54,8 +80,6 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{hue}{modulation of hue is an absolute rotation of -180 degrees to +180 degrees from the current position corresponding to an argument range of 0 to 200 (100 for no change)}
 
 \item{force}{if TRUE, all channels will be modulated given no specific channel name}
-
-\item{...}{arguements passed to other methods}
 }
 \description{
 Modulating Magick images

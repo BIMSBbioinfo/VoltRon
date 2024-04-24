@@ -44,6 +44,10 @@ vrFeatureData <- function(object, assay = NULL) {
 #' Get variable features of assays
 #'
 #' @param object a VoltRon or vrAssay object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param max.count maximum count (across spatial points) for low count filtering
+#' @param n the top number of variable features 
 #'
 #' @rdname getFeatures
 #' @export getFeatures
@@ -242,7 +246,6 @@ vrEmbeddingNames <- function(object, assay = NULL) {
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param type the key name for the embedding, i.e. "pca" or "umap"
 #' @param dims the set of dimensions of the embedding data
-#' @param ... arguments passed to other methods
 #' 
 #' @rdname vrEmbeddings
 #' @export vrEmbeddings
