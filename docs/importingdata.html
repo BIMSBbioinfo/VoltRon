@@ -892,7 +892,7 @@ preprint</a>. You can download the H&amp;E image from the <a
 href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
 Genomics website</a> as well (specifically, import the
 <strong>Post-Xenium H&amp;E image (TIFF)</strong> data).</p>
-<pre class="r watch-out"><code>Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image_lowres.tif&quot;,
+<pre class="r watch-out"><code>Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
                                 sample_name = &quot;XeniumR1image&quot;, 
                                 image_name = &quot;H&amp;E&quot;)
 Xen_R1_image</code></pre>
@@ -903,18 +903,6 @@ Assays: ImageData(Main) </code></pre>
 <pre class="r watch-out"><code>vrImages(Xen_R1_image)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE.png" class="center"></p>
 <p></br></p>
-<p>This VoltRon object stores the metadata information and localization
-of all pixels in the image.</p>
-<pre class="r watch-out"><code>head(Metadata(Xen_R1_image))</code></pre>
-<pre><code>         id assay_id     Assay    Layer        Sample
-1: 1_4f486d   Assay1 ImageData Section1 XeniumR1image
-2: 2_4f486d   Assay1 ImageData Section1 XeniumR1image
-3: 3_4f486d   Assay1 ImageData Section1 XeniumR1image
-4: 4_4f486d   Assay1 ImageData Section1 XeniumR1image
-5: 5_4f486d   Assay1 ImageData Section1 XeniumR1image 
-6: 6_4f486d   Assay1 ImageData Section1 XeniumR1image </code></pre>
-<pre class="r watch-out"><code>nrow(Metadata(Xen_R1_image))</code></pre>
-<pre><code>[1] 2974000</code></pre>
 </div>
 </div>
 

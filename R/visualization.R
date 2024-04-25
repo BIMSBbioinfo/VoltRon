@@ -587,10 +587,10 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
       if(length(gg) < ncol) ncol <- length(gg)
       return(ggpubr::ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = legend.loc))
     } else {
-      return(gg[[1]] + + theme(legend.position=legend.loc))
+      return(gg[[1]] + theme(legend.position=legend.loc))
     }
   } else {
-    return(gg + + theme(legend.position=legend.loc))
+    return(gg + theme(legend.position=legend.loc))
   }
 }
 

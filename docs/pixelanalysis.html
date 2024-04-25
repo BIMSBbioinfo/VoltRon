@@ -489,7 +489,7 @@ Genomics website</a> as well (specifically, import the
 <strong>Post-Xenium H&amp;E image (TIFF)</strong> data).</p>
 <p>We incorporate <strong>importImageData</strong> to convert an image
 into a pixel-based spatial dataset.</p>
-<pre class="r watch-out"><code>Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image_lowres.tif&quot;,
+<pre class="r watch-out"><code>Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
                                 sample_name = &quot;XeniumR1image&quot;, 
                                 image_name = &quot;H&amp;E&quot;)
 Xen_R1_image</code></pre>
@@ -497,21 +497,22 @@ Xen_R1_image</code></pre>
 XeniumR1image: 
   Layers: Section1 
 Assays: ImageData(Main) </code></pre>
-<pre class="r watch-out"><code>vrImages(Xen_R1_image)</code></pre>
+<pre class="r watch-out"><code>vrImages(Xen_R1_image, scale.perc = 2)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE.png" class="center"></p>
 <p></br></p>
 <p>This VoltRon object stores the metadata information and localization
 of all pixels in the image.</p>
 <pre class="r watch-out"><code>head(Metadata(Xen_R1_image))</code></pre>
-<pre><code>         id assay_id     Assay    Layer        Sample
-1: 1_4f486d   Assay1 ImageData Section1 XeniumR1image
-2: 2_4f486d   Assay1 ImageData Section1 XeniumR1image
-3: 3_4f486d   Assay1 ImageData Section1 XeniumR1image
-4: 4_4f486d   Assay1 ImageData Section1 XeniumR1image
-5: 5_4f486d   Assay1 ImageData Section1 XeniumR1image 
-6: 6_4f486d   Assay1 ImageData Section1 XeniumR1image </code></pre>
+<pre><code>             id assay_id     Assay    Layer        Sample     id
+         &lt;char&gt;   &lt;char&gt;    &lt;char&gt;   &lt;char&gt;        &lt;char&gt; &lt;char&gt;
+1: tile1_3adf0a   Assay1 ImageData Section1 XeniumR1image  tile1
+2: tile2_3adf0a   Assay1 ImageData Section1 XeniumR1image  tile2
+3: tile3_3adf0a   Assay1 ImageData Section1 XeniumR1image  tile3
+4: tile4_3adf0a   Assay1 ImageData Section1 XeniumR1image  tile4
+5: tile5_3adf0a   Assay1 ImageData Section1 XeniumR1image  tile5
+6: tile6_3adf0a   Assay1 ImageData Section1 XeniumR1image  tile6</code></pre>
 <pre class="r watch-out"><code>nrow(Metadata(Xen_R1_image))</code></pre>
-<pre><code>[1] 2974000</code></pre>
+<pre><code>[1] 5656658</code></pre>
 </div>
 </div>
 

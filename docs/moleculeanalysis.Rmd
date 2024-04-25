@@ -76,8 +76,8 @@ Assays: Xenium(Main) Xenium_mol
 With **vrSpatialPlot**, we can visualize Xenium experiments in subcellular context. We first visualize mRNAs of ACTA2, a marker for smooth muscle cell actin, and other markers found in the breast cancer tissue sample. We can interactively select a subset of interest within the tissue section and visualize the localization of these transcripts. Here we subset a ductal carcinoma niche, and visualize mRNAs of four genes. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-Xen_R1_subsetinfo <- subset(Xen_R1, interactive = TRUE)
-Xen_R1_subset <- Xen_R1_subsetinfo$subsets[[1]]
+Xen_R1_subset <- subset(Xen_R1, interactive = TRUE)
+Xen_R1_subset <- Xen_R1_subset$subsets[[1]]
 vrSpatialPlot(Xen_R1_subset, assay = "Xenium_mol", group.by = "gene",
               group.id = c("ACTA2", "KRT15", "TACSTD2", "CEACAM6"), pt.size = 0.2, legend.pt.size = 5)
 ```

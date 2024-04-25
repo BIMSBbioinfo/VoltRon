@@ -513,8 +513,8 @@ breast cancer tissue sample. We can interactively select a subset of
 interest within the tissue section and visualize the localization of
 these transcripts. Here we subset a ductal carcinoma niche, and
 visualize mRNAs of four genes.</p>
-<pre class="r watch-out"><code>Xen_R1_subsetinfo &lt;- subset(Xen_R1, interactive = TRUE)
-Xen_R1_subset &lt;- Xen_R1_subsetinfo$subsets[[1]]
+<pre class="r watch-out"><code>Xen_R1_subset &lt;- subset(Xen_R1, interactive = TRUE)
+Xen_R1_subset &lt;- Xen_R1_subset$subsets[[1]]
 vrSpatialPlot(Xen_R1_subset, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;,
               group.id = c(&quot;ACTA2&quot;, &quot;KRT15&quot;, &quot;TACSTD2&quot;, &quot;CEACAM6&quot;), pt.size = 0.2, legend.pt.size = 5)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize.png" class="center"></p>

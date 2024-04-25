@@ -57,7 +57,7 @@ More information on the Xenium and the study can be also be found on the [BioArx
 We incorporate **importImageData** to convert an image into a pixel-based spatial dataset. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image_lowres.tif",
+Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif",
                                 sample_name = "XeniumR1image", 
                                 image_name = "H&E")
 Xen_R1_image
@@ -71,7 +71,7 @@ Assays: ImageData(Main)
 ```
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrImages(Xen_R1_image)
+vrImages(Xen_R1_image, scale.perc = 2)
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE.png" class="center">
@@ -85,13 +85,14 @@ head(Metadata(Xen_R1_image))
 ```
 
 ```
-         id assay_id     Assay    Layer        Sample
-1: 1_4f486d   Assay1 ImageData Section1 XeniumR1image
-2: 2_4f486d   Assay1 ImageData Section1 XeniumR1image
-3: 3_4f486d   Assay1 ImageData Section1 XeniumR1image
-4: 4_4f486d   Assay1 ImageData Section1 XeniumR1image
-5: 5_4f486d   Assay1 ImageData Section1 XeniumR1image 
-6: 6_4f486d   Assay1 ImageData Section1 XeniumR1image 
+             id assay_id     Assay    Layer        Sample     id
+         <char>   <char>    <char>   <char>        <char> <char>
+1: tile1_3adf0a   Assay1 ImageData Section1 XeniumR1image  tile1
+2: tile2_3adf0a   Assay1 ImageData Section1 XeniumR1image  tile2
+3: tile3_3adf0a   Assay1 ImageData Section1 XeniumR1image  tile3
+4: tile4_3adf0a   Assay1 ImageData Section1 XeniumR1image  tile4
+5: tile5_3adf0a   Assay1 ImageData Section1 XeniumR1image  tile5
+6: tile6_3adf0a   Assay1 ImageData Section1 XeniumR1image  tile6
 ```
 
 ```{r eval = FALSE, class.source="watch-out"}
@@ -99,5 +100,5 @@ nrow(Metadata(Xen_R1_image))
 ```
 
 ```
-[1] 2974000
+[1] 5656658
 ```

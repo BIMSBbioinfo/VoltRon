@@ -96,36 +96,11 @@ You can also specify the assay ID or the assay type to call metadata of a subset
 Metadata(visium_data, assay = "Visium")
 Metadata(visium_data, assay = "Assay1")
 ```
-
-```
-                          Count  Assay    Layer    Sample
-AAAGGCTCTCGCGCCG-1_Assay1 39690 Visium Section1 Anterior1
-AAATGGCCCGTGCCCT-1_Assay1 33516 Visium Section1 Anterior1
-AAATTACACGACTCTG-1_Assay1 12250 Visium Section1 Anterior1
-AAGACATACGTGGTTT-1_Assay1 31821 Visium Section1 Anterior1
-ACCTACTATAAATCTA-1_Assay1 41387 Visium Section1 Anterior1
-ACGCGGGCCAAGGACA-1_Assay1 48003 Visium Section1 Anterior1
-```
-
-<br>
-
 The **type** argument returns all spatial points of a given spatial point type (ROI, spot, cell, molecule or tile).
 
 ```{r eval = FALSE, class.source="watch-out"}
 Metadata(visium_data, type = "spot")
 ```
-
-```
-                          Count  Assay    Layer    Sample
-AAAGGCTCTCGCGCCG-1_Assay1 39690 Visium Section1 Anterior1
-AAATGGCCCGTGCCCT-1_Assay1 33516 Visium Section1 Anterior1
-AAATTACACGACTCTG-1_Assay1 12250 Visium Section1 Anterior1
-AAGACATACGTGGTTT-1_Assay1 31821 Visium Section1 Anterior1
-ACCTACTATAAATCTA-1_Assay1 41387 Visium Section1 Anterior1
-ACGCGGGCCAAGGACA-1_Assay1 48003 Visium Section1 Anterior1
-```
-
-<br>
 
 If the type argument is specified as **all**. Then this would return the VoltRon Metadata Object (vrMetadata)
 
@@ -263,32 +238,10 @@ vrCoordinates(visium_data, assay = "Visium")
 vrCoordinates(visium_data, assay = "Assay1")
 ```
 
-```
-                                 x        y
-AAAGGCTCTCGCGCCG-1_Assay1 271.9105 183.1497
-AAATGGCCCGTGCCCT-1_Assay1 136.8330 220.2237
-AAATTACACGACTCTG-1_Assay1 382.0482 436.6781
-AAGACATACGTGGTTT-1_Assay1 481.5491 102.7539
-ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
-ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120
-```
-
-<br>
-
 Each assay a VoltRon object may incorporate indefinite number of coordinate systems. One can look for these coordinate systems using the **vrMainSpatial** function, and select one of systems to call coordinates (see [vrMainSpatial](#image))
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrCoordinates(visium_data, spatial_name = "main")
-```
-
-```
-                                 x        y
-AAAGGCTCTCGCGCCG-1_Assay1 271.9105 183.1497
-AAATGGCCCGTGCCCT-1_Assay1 136.8330 220.2237
-AAATTACACGACTCTG-1_Assay1 382.0482 436.6781
-AAGACATACGTGGTTT-1_Assay1 481.5491 102.7539
-ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
-ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120
 ```
 
 The **reg** option in the **vrCoordinates** function looks for a registered version of the main coordinate system and returns its coordinates (if there is any).
@@ -306,7 +259,7 @@ AAGACATACGTGGTTT-1_Assay1 481.5491 102.7539
 ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
 ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120
 Warning message:
-In vrCoordinates.vrAssay(object[[assy]], image_name = image_name,  :
+In vrCoordinates.vrAssay(object[[assy]], spatial_name = spatial_name,  :
   There are no registered spatial systems with name main!
 ```
 
@@ -316,7 +269,7 @@ The arguements of the **vrSegments** functions are idential to vrCoordinates and
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrSegments(xenium_data)
-vrSegments(xenium_data, assay = "Visium")
+vrSegments(xenium_data, assay = "Xenium")
 vrSegments(xenium_data, assay = "Assay1")
 vrSegments(xenium_data, spatial_name = "main")
 vrSegments(xenium_data, spatial_name = "main", reg = TRUE)
@@ -748,7 +701,7 @@ vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE,
 If the visualized assay is of a type "spot", you can crop the image to encapsulate the smallest subset that include all spots.
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(visium_data, group.by = "clusters", crop = TRUE)
+vrSpatialPlot(visium_data, group.by = "Sample", crop = TRUE)
 ```
 
 <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spcrop.png" class="center">

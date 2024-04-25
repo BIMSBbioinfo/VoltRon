@@ -501,25 +501,9 @@ ACGCGGGCCAAGGACA-1_Assay1 48003 Visium Section1 Anterior1</code></pre>
 of a subset of spatial points.</p>
 <pre class="r watch-out"><code>Metadata(visium_data, assay = &quot;Visium&quot;)
 Metadata(visium_data, assay = &quot;Assay1&quot;)</code></pre>
-<pre><code>                          Count  Assay    Layer    Sample
-AAAGGCTCTCGCGCCG-1_Assay1 39690 Visium Section1 Anterior1
-AAATGGCCCGTGCCCT-1_Assay1 33516 Visium Section1 Anterior1
-AAATTACACGACTCTG-1_Assay1 12250 Visium Section1 Anterior1
-AAGACATACGTGGTTT-1_Assay1 31821 Visium Section1 Anterior1
-ACCTACTATAAATCTA-1_Assay1 41387 Visium Section1 Anterior1
-ACGCGGGCCAAGGACA-1_Assay1 48003 Visium Section1 Anterior1</code></pre>
-<p><br></p>
 <p>The <strong>type</strong> argument returns all spatial points of a
 given spatial point type (ROI, spot, cell, molecule or tile).</p>
 <pre class="r watch-out"><code>Metadata(visium_data, type = &quot;spot&quot;)</code></pre>
-<pre><code>                          Count  Assay    Layer    Sample
-AAAGGCTCTCGCGCCG-1_Assay1 39690 Visium Section1 Anterior1
-AAATGGCCCGTGCCCT-1_Assay1 33516 Visium Section1 Anterior1
-AAATTACACGACTCTG-1_Assay1 12250 Visium Section1 Anterior1
-AAGACATACGTGGTTT-1_Assay1 31821 Visium Section1 Anterior1
-ACCTACTATAAATCTA-1_Assay1 41387 Visium Section1 Anterior1
-ACGCGGGCCAAGGACA-1_Assay1 48003 Visium Section1 Anterior1</code></pre>
-<p><br></p>
 <p>If the type argument is specified as <strong>all</strong>. Then this
 would return the VoltRon Metadata Object (vrMetadata)</p>
 <pre class="r watch-out"><code>Metadata(visium_data, type = &quot;all&quot;)</code></pre>
@@ -595,26 +579,11 @@ ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120</code></pre>
 coordinates of a subset of spatial points.</p>
 <pre class="r watch-out"><code>vrCoordinates(visium_data, assay = &quot;Visium&quot;)
 vrCoordinates(visium_data, assay = &quot;Assay1&quot;)</code></pre>
-<pre><code>                                 x        y
-AAAGGCTCTCGCGCCG-1_Assay1 271.9105 183.1497
-AAATGGCCCGTGCCCT-1_Assay1 136.8330 220.2237
-AAATTACACGACTCTG-1_Assay1 382.0482 436.6781
-AAGACATACGTGGTTT-1_Assay1 481.5491 102.7539
-ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
-ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120</code></pre>
-<p><br></p>
 <p>Each assay a VoltRon object may incorporate indefinite number of
 coordinate systems. One can look for these coordinate systems using the
 <strong>vrMainSpatial</strong> function, and select one of systems to
 call coordinates (see <a href="#image">vrMainSpatial</a>)</p>
 <pre class="r watch-out"><code>vrCoordinates(visium_data, spatial_name = &quot;main&quot;)</code></pre>
-<pre><code>                                 x        y
-AAAGGCTCTCGCGCCG-1_Assay1 271.9105 183.1497
-AAATGGCCCGTGCCCT-1_Assay1 136.8330 220.2237
-AAATTACACGACTCTG-1_Assay1 382.0482 436.6781
-AAGACATACGTGGTTT-1_Assay1 481.5491 102.7539
-ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
-ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120</code></pre>
 <p>The <strong>reg</strong> option in the <strong>vrCoordinates</strong>
 function looks for a registered version of the main coordinate system
 and returns its coordinates (if there is any).</p>
@@ -627,14 +596,14 @@ AAGACATACGTGGTTT-1_Assay1 481.5491 102.7539
 ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
 ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120
 Warning message:
-In vrCoordinates.vrAssay(object[[assy]], image_name = image_name,  :
+In vrCoordinates.vrAssay(object[[assy]], spatial_name = spatial_name,  :
   There are no registered spatial systems with name main!</code></pre>
 <p><br></p>
 <p>The arguements of the <strong>vrSegments</strong> functions are
 idential to vrCoordinates and return a list of polygon corners
 associated with the coordinate system of the coordinates.</p>
 <pre class="r watch-out"><code>vrSegments(xenium_data)
-vrSegments(xenium_data, assay = &quot;Visium&quot;)
+vrSegments(xenium_data, assay = &quot;Xenium&quot;)
 vrSegments(xenium_data, assay = &quot;Assay1&quot;)
 vrSegments(xenium_data, spatial_name = &quot;main&quot;)
 vrSegments(xenium_data, spatial_name = &quot;main&quot;, reg = TRUE)</code></pre>

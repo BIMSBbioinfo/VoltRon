@@ -202,6 +202,11 @@ test_that("plots", {
   vrSpatialPlot(melc_data, group.by = "Clusters")
   expect_error(vrSpatialPlot(melc_data, group.by = "Clusters_new"))
 
+  # feature plots
+  vrSpatialFeaturePlot(visium_data, features = "Count")
+  vrSpatialFeaturePlot(visium_data, features = "Stat1", norm = TRUE, log = TRUE)
+  expect_error(vrSpatialFeaturePlot(visium_data, features = "Count_new"))
+  
   # return
   expect_equal(1,1L)
 })

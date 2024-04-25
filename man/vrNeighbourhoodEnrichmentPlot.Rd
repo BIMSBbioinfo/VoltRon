@@ -4,7 +4,11 @@
 \alias{vrNeighbourhoodEnrichmentPlot}
 \title{vrNeighbourhoodEnrichmentPlot}
 \usage{
-vrNeighbourhoodEnrichmentPlot(results, type = c("assoc", "segreg"))
+vrNeighbourhoodEnrichmentPlot(
+  results,
+  assay = NULL,
+  type = c("assoc", "segreg")
+)
 }
 \arguments{
 \item{results}{The results from \link{vrNeighbourhoodEnrichment}}
