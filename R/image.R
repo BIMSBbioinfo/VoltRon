@@ -1332,7 +1332,7 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
   sample.metadata <- SampleMetadata(object)
   
   if(length(unique(sample.metadata$Layer)) > 1)
-    stop("You can only subset a VoltRon assay with one image")
+    stop("You can only subset a single VoltRon layer at a time")
   
   # get images
   images <- vrImages(object, assay = vrAssayNames(object))

@@ -897,11 +897,21 @@ GeomSpot <- ggplot2::ggproto("GeomSpot",
 #'
 #' @export
 #'
-vrNeighbourhoodEnrichmentPlot <- function(results, type = c("assoc", "segreg")){
+vrNeighbourhoodEnrichmentPlot <- function(results, assay = NULL, type = c("assoc", "segreg")){
   
   # check Seurat package
   if(!requireNamespace('circlize'))
     stop("Please install circlize package for coloring the Heatmap")
+  
+  # get assay names
+  if(!is.null(assay)){
+    if(length(assay) > 1){
+      stop("Spatial enrichment plots of only one Assay can be visualized at a time")
+    }
+  } else {
+    stop("assay should be defined, e.g. assay == 'Assay1'")
+  }
+  results <- results[results$AssayID == assay,]
   
   # get type
   if(length(type) > 1)

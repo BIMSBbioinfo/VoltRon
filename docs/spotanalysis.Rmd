@@ -423,3 +423,8 @@ Assay1.6 CD163+ macs    epithelia 0.9320000 0.03600000      0.9980   0.09762866 
 
 <br>
 
+```{r eval = FALSE, class.source="watch-out", fig.align='center'}
+vrNeighbourhoodEnrichmentPlot(neighborhood_results, assay = "Assay1", type = "assoc")
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_neighenrichment.png" class="center">
