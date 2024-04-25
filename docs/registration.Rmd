@@ -383,6 +383,3 @@ Assays: Visium(Main)
 <br>
 Aligning spots along the z dimension allows us to cluster these spots using both the gene expression similarities and spatial adjacency (both along the x-y direction and in the z direction). We first generate a spatial neighborhood graph and use this graph along with the gene expression neighborhood graph **(under development)**.
 
-
-
-
