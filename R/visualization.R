@@ -893,6 +893,7 @@ GeomSpot <- ggplot2::ggproto("GeomSpot",
 #' Plotting results of \link{vrNeighbourhoodEnrichment}
 #'
 #' @param results The results from \link{vrNeighbourhoodEnrichment}
+#' @param assay assay name (exp: Assay1), see \link{SampleMetadata}.
 #' @param type the type of spatial test. Either "assoc" for association test or "segreg" for segregation test
 #'
 #' @export

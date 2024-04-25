@@ -13,6 +13,8 @@ vrNeighbourhoodEnrichmentPlot(
 \arguments{
 \item{results}{The results from \link{vrNeighbourhoodEnrichment}}
 
+\item{assay}{assay name (exp: Assay1), see \link{SampleMetadata}.}
+
 \item{type}{the type of spatial test. Either "assoc" for association test or "segreg" for segregation test}
 }
 \description{
