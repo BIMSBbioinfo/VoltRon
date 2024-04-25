@@ -486,7 +486,7 @@ for more information.</p>
 case which is originated from a lung with extreme number of detected
 open reading frames of virus molecules. For convenience, we load a
 VoltRon object where cells are already annotated.</p>
-<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- readRDS(file = &quot;data/Xenium/acutecase1_annotated.rds&quot;)
+<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- readRDS(file = &quot;acutecase1_annotated.rds&quot;)
 vrEmbeddingPlot(vr2_merged_acute1, assay = &quot;Xenium&quot;, embedding = &quot;umap&quot;, 
                 group.by = &quot;CellType&quot;, label = TRUE)
 vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;,
@@ -547,8 +547,8 @@ reverse coordinate system on the y-axis.</p>
 single layer, one for tile dataset of the H&amp;E image and the other
 for ROI based annotations of again the same image.</p>
 <pre class="r watch-out"><code># get image
-imgdata &lt;- importImageData(&quot;acutecase3_HE.jpg&quot;, 
-                           segments = &quot;data/Xenium/acutecase3_membrane.geojson&quot;, 
+imgdata &lt;- importImageData(&quot;acutecase1_HE.jpg&quot;, 
+                           segments = &quot;acutecase1_membrane.geojson&quot;, 
                            sample_name = &quot;acute case 1 (HE)&quot;)
 imgdata &lt;- flipCoordinates(imgdata, assay = &quot;ROIAnnotation&quot;)
 imgdata</code></pre>
@@ -568,8 +568,7 @@ of Xenium section using the <strong>registerSpatialData</strong>
 function. See <a href="registration.html">Spatial Data Alignment</a>
 tutorial for more information.</p>
 <pre class="r watch-out"><code>vr2_merged_acute1 &lt;- modulateImage(vr2_merged_acute1, brightness = 300, channel = &quot;DAPI&quot;)
-xen_reg &lt;- registerSpatialData(object_list = list(vr2_merged_acute1, imgdata))
-imgdata_reg &lt;- xen_reg$registered_spat[[2]]</code></pre>
+xen_reg &lt;- registerSpatialData(object_list = list(vr2_merged_acute1, imgdata))</code></pre>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_HE_registration.png" class="center"></p>
 <p><br></p>
 <p>Once registered, we can isolate the registered H&amp;E data and use
@@ -577,8 +576,11 @@ it further analysis. We can transfer images and their channels across
 assays of one or multiple VoltRon objects. Here, we save the registered
 image of the H&amp;E data as an additional channel of Xenium section of
 the acuse case 1 sample with molecule data.</p>
-<pre class="r watch-out"><code>vrImages(vr2_merged_acute1[[&quot;Assay8&quot;]], name = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- 
-  vrImages(imgdata_reg, assay = &quot;Assay1&quot;, name = &quot;image_1_reg&quot;)</code></pre>
+<pre class="r watch-out"><code>imgdata_reg &lt;- xen_reg$registered_spat[[2]]
+vrImages(vr2_merged_acute1[[&quot;Assay7&quot;]], name = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- 
+  vrImages(imgdata_reg, assay = &quot;Assay1&quot;, name = &quot;main_reg&quot;)
+vrImages(vr2_merged_acute1[[&quot;Assay8&quot;]], name = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- 
+  vrImages(imgdata_reg, assay = &quot;Assay1&quot;, name = &quot;main_reg&quot;)</code></pre>
 <p><br></p>
 <p>You can also add the VoltRon object of H&amp;E data as an additional
 assay of the Xenium section such that one layer includes cell,
@@ -609,7 +611,7 @@ vrMainAssay(vr2_merged_acute1) &lt;- &quot;ROIAnnotation&quot;
 vr2_merged_acute1$Region &lt;- vrSpatialPoints(vr2_merged_acute1)
 
 # set the spatial coordinate system of ROI Annotations assay
-vrMainSpatial(vr2_merged_acute1[[&quot;Assay9&quot;]]) &lt;- &quot;image_1_reg&quot;
+vrMainSpatial(vr2_merged_acute1[[&quot;Assay9&quot;]]) &lt;- &quot;main_reg&quot;
 
 # transfer ROI annotations to molecules
 vr2_merged_acute1 &lt;- transferData(object = vr2_merged_acute1, from = &quot;Assay9&quot;, to = &quot;Assay8&quot;, features = &quot;Region&quot;)
@@ -665,8 +667,8 @@ large accumulation of cells with high <strong>S2_N</strong> and
 <p>By visualizing and zooming on a spatial plot with annotated cells, we
 can detect a site of cells with high infection which are also
 accompanied by a group of T cells.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1_infected, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;, 
-              group.ids = c(&quot;S2++ cells&quot;, &quot;T cells&quot;), plot.segments = TRUE, 
+<pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;, 
+              group.ids = c(&quot;S2 cells&quot;, &quot;T cells&quot;), plot.segments = TRUE, 
               alpha = 0.6, background = c(&quot;main&quot;, &quot;H&amp;E&quot;), interactive = TRUE)</code></pre>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_spatialplot_infected.png" class="center"></p>
 <p><br></p>
@@ -688,7 +690,7 @@ metadata column called “Infected”.</p>
 can do a comparison of infected regions versus the hyaline
 membranes.</p>
 <pre class="r watch-out"><code>s2_summary_infected &lt;- 
-  Metadata(vr2_merged_acute1_infected, assay = &quot;Xenium_mol&quot;) %&gt;%
+  Metadata(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;) %&gt;%
   filter(gene %in% c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), 
          Infected != &quot;undefined&quot;) %&gt;% 
   summarise(S2_N = sum(gene == &quot;S2_N&quot;), 

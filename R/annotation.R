@@ -326,7 +326,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
           object <- addAssay.VoltRon(object,
                                      assay = new_assay,
                                      metadata = data.frame(check.rows = FALSE, row.names = rownames(coords)),
-                                     assay_name = "ROIannotation",
+                                     assay_name = "ROIAnnotation",
                                      sample = sample_metadata[assay, "Sample"],
                                      layer = sample_metadata[assay, "Layer"])
           
