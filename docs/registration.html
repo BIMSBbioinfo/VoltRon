@@ -735,9 +735,9 @@ Genomics website</a> (specifically, import <strong>In Situ Replicate
 Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
 
 # import H&amp;E image and built a VoltRon object
-Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image_highres.tif&quot;,
+Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
                                 sample_name = &quot;XeniumR1image&quot;,
-                                image_name = &quot;H&amp;E&quot;, stack.id = 1)
+                                image_name = &quot;H&amp;E&quot;)
 Xen_R1_image</code></pre>
 <pre><code>VoltRon Object 
 XeniumR1image: 
@@ -756,7 +756,8 @@ assays in one of these VoltRon objects.</p>
 <p>First we align the H&amp;E image to the DAPI image of the Xenium
 replicate. Similar to the first use case, we need to negate the DAPI
 image and change the alignment of the image to match it with the H&amp;E
-image.</p>
+image. We can also adjust the resolution of the H&amp;E image to
+9103.71x6768.63.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))</code></pre>
 <p><img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE_function.png" class="center"></p>
 <p><br></p>
@@ -767,13 +768,13 @@ registered image which is the first Assay of the Xenium data
 (i.e. <strong>Assay1</strong>). The original DAPI coordinate system, and
 we give a name for the new image/channel which is
 <strong>H&amp;E</strong>.</p>
-<pre class="r watch-out"><code>Xenium_reg &lt;- xen_reg$registered_spat[[2]]
-vrImages(Xen_R1[[&quot;Assay1&quot;]], name = &quot;DAPI&quot;, channel = &quot;H&amp;E&quot;) &lt;- vrImages(Xenium_reg, name = &quot;H&amp;E_reg&quot;)</code></pre>
+<pre class="r watch-out"><code>Xen_R1_image_reg &lt;- xen_reg$registered_spat[[2]]
+vrImages(Xen_R1[[&quot;Assay1&quot;]], name = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- vrImages(Xen_R1_image_reg, name = &quot;H&amp;E_reg&quot;)</code></pre>
 <p>Now we can call the registered H&amp;E image of the Xenium data or
 later put the aligned H&amp;E when calling
 <strong>vrSpatialPlot</strong> or
 <strong>vrSpatialFeaturePlot</strong>.</p>
-<pre class="r watch-out"><code>vrImages(Xen_R1, name = &quot;DAPI&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
+<pre class="r watch-out"><code>vrImages(Xen_R1, name = &quot;main&quot;, channel = &quot;H&amp;E&quot;, scale.perc = 5)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE.png" class="center"></p>
 <p><br></p>
 </div>
@@ -841,9 +842,9 @@ aligned separately.</p>
 SRBlock &lt;- merge(merge_list[[1]], merge_list[-1], samples = &quot;DLPFC_Block&quot;)
 SRBlock</code></pre>
 <pre><code>VoltRon Object 
-10XBlock: 
-  Layers: Section1 Section2 
-Assays: Visium (Main) </code></pre>
+DLPFC_Block: 
+  Layers: Section1 Section2 Section3 Section4 
+Assays: Visium(Main) </code></pre>
 <p><br> Aligning spots along the z dimension allows us to cluster these
 spots using both the gene expression similarities and spatial adjacency
 (both along the x-y direction and in the z direction). We first generate
