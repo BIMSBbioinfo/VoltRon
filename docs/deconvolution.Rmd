@@ -53,14 +53,10 @@ We will now import each of four samples separately and merge them into one VoltR
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
-Ant_Sec1 <- importVisium("../data/10X_Visium_Mouse_Brain/Sagittal_Anterior/Section1/", 
-                         sample_name = "Anterior1")
-Ant_Sec2 <- importVisium("../data/10X_Visium_Mouse_Brain/Sagittal_Anterior/Section2/", 
-                         sample_name = "Anterior2")
-Pos_Sec1 <- importVisium("../data/10X_Visium_Mouse_Brain/Sagittal_Posterior/Section1/", 
-                         sample_name = "Posterior1")
-Pos_Sec2 <- importVisium("../data/10X_Visium_Mouse_Brain/Sagittal_Posterior/Section2/", 
-                         sample_name = "Posterior2")
+Ant_Sec1 <- importVisium("Sagittal_Anterior/Section1/", sample_name = "Anterior1")
+Ant_Sec2 <- importVisium("Sagittal_Anterior/Section2/", sample_name = "Anterior2")
+Pos_Sec1 <- importVisium("Sagittal_Posterior/Section1/", sample_name = "Posterior1")
+Pos_Sec2 <- importVisium("Sagittal_Posterior/Section2/", sample_name = "Posterior2")
 
 # merge datasets
 MBrain_Sec_list <- list(Ant_Sec1, Ant_Sec2, Pos_Sec1, Pos_Sec2)
@@ -126,8 +122,7 @@ In order to integrate the scRNA data and the Visium data sets within the VoltRon
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(spacexr)
-MBrain_Sec <- getDeconvolution(MBrain_Sec, sc.object = allen_reference, 
-                               sc.cluster = "subclass", max_cores = 6)
+MBrain_Sec <- getDeconvolution(MBrain_Sec, sc.object = allen_reference, sc.cluster = "subclass", max_cores = 6)
 MBrain_Sec
 ```
 
@@ -191,7 +186,7 @@ vrEmbeddingPlot(MBrain_Sec, embedding = "umap", group.by = "Sample")
 Using normalized cell type abundances, we can now generate k-nearest neighbor graphs and cluster the graph using leiden method.  
 
 ```{r eval = FALSE, class.source="watch-out"}
-MBrain_Sec <- getNeighbors(MBrain_Sec, assay = "Visium_decon", data.type = "norm", method = "SNN")
+MBrain_Sec <- getProfileNeighbors(MBrain_Sec, assay = "Visium_decon", data.type = "norm", method = "SNN")
 MBrain_Sec <- getClusters(MBrain_Sec, resolution = 0.6, graph = "SNN")
 ```
 

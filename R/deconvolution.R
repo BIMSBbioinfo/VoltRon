@@ -106,7 +106,7 @@ getDeconReference <- function(sc.object, sc.assay = "RNA", sc.cluster = "seurat_
 
       cat("Configuring Single Cell Assay (reference) ...\n")
       sccounts <- Seurat::GetAssayData(sc.object[[sc.assay]], slot = "counts")
-      sccounts <- as.matrix(apply(sccounts,2,ceiling))
+      # sccounts <- as.matrix(apply(sccounts,2,ceiling))
       rownames(sccounts) <- rownames(sc.object[[sc.assay]])
       cell_types <- as.factor(sc.object@meta.data[[sc.cluster]])
       names(cell_types) <- colnames(sc.object)

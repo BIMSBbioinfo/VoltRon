@@ -491,14 +491,10 @@ into one VoltRon object. There are four sections in total given two
 serial anterior and serial posterior sections, hence we have <strong>two
 tissue blocks each having two layers</strong>.</p>
 <pre class="r watch-out"><code>library(VoltRon)
-Ant_Sec1 &lt;- importVisium(&quot;../data/10X_Visium_Mouse_Brain/Sagittal_Anterior/Section1/&quot;, 
-                         sample_name = &quot;Anterior1&quot;)
-Ant_Sec2 &lt;- importVisium(&quot;../data/10X_Visium_Mouse_Brain/Sagittal_Anterior/Section2/&quot;, 
-                         sample_name = &quot;Anterior2&quot;)
-Pos_Sec1 &lt;- importVisium(&quot;../data/10X_Visium_Mouse_Brain/Sagittal_Posterior/Section1/&quot;, 
-                         sample_name = &quot;Posterior1&quot;)
-Pos_Sec2 &lt;- importVisium(&quot;../data/10X_Visium_Mouse_Brain/Sagittal_Posterior/Section2/&quot;, 
-                         sample_name = &quot;Posterior2&quot;)
+Ant_Sec1 &lt;- importVisium(&quot;Sagittal_Anterior/Section1/&quot;, sample_name = &quot;Anterior1&quot;)
+Ant_Sec2 &lt;- importVisium(&quot;Sagittal_Anterior/Section2/&quot;, sample_name = &quot;Anterior2&quot;)
+Pos_Sec1 &lt;- importVisium(&quot;Sagittal_Posterior/Section1/&quot;, sample_name = &quot;Posterior1&quot;)
+Pos_Sec2 &lt;- importVisium(&quot;Sagittal_Posterior/Section2/&quot;, sample_name = &quot;Posterior2&quot;)
 
 # merge datasets
 MBrain_Sec_list &lt;- list(Ant_Sec1, Ant_Sec2, Pos_Sec1, Pos_Sec2)
@@ -562,8 +558,7 @@ href="https://github.com/dmcable/spacexr">spacexr</a> package. For all
 layers with a Visium data, an additional assay within the same layer
 with **_decon** postfix will be created.</p>
 <pre class="r watch-out"><code>library(spacexr)
-MBrain_Sec &lt;- getDeconvolution(MBrain_Sec, sc.object = allen_reference, 
-                               sc.cluster = &quot;subclass&quot;, max_cores = 6)
+MBrain_Sec &lt;- getDeconvolution(MBrain_Sec, sc.object = allen_reference, sc.cluster = &quot;subclass&quot;, max_cores = 6)
 MBrain_Sec</code></pre>
 <pre><code>VoltRon Object 
 Anterior: 
@@ -615,7 +610,7 @@ vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;Sampl
 <p><br></p>
 <p>Using normalized cell type abundances, we can now generate k-nearest
 neighbor graphs and cluster the graph using leiden method.</p>
-<pre class="r watch-out"><code>MBrain_Sec &lt;- getNeighbors(MBrain_Sec, assay = &quot;Visium_decon&quot;, data.type = &quot;norm&quot;, method = &quot;SNN&quot;)
+<pre class="r watch-out"><code>MBrain_Sec &lt;- getProfileNeighbors(MBrain_Sec, assay = &quot;Visium_decon&quot;, data.type = &quot;norm&quot;, method = &quot;SNN&quot;)
 MBrain_Sec &lt;- getClusters(MBrain_Sec, resolution = 0.6, graph = &quot;SNN&quot;)</code></pre>
 <p><br></p>
 </div>
