@@ -476,7 +476,10 @@ tissue.</p>
 array (TMA) tissue sections</strong> that were fitted into the scan area
 of a slide loaded on a Xenium in situ instrument. These sections were
 cut from <strong>control and COVID-19 lung tissues</strong> of donors
-categorized based on disease durations (acute and prolonged). See <a
+categorized based on disease durations (acute and prolonged). You can
+download the standard Xenium output folder <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Xenium_SARSCOV2.zip">here</a>.</p>
+<p>For more information on the TMA blocks, see <a
 href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732">GSE190732</a>
 for more information.</p>
 <p><br></p>
@@ -485,9 +488,14 @@ for more information.</p>
 <p>Across these eight TMA section, we investigate a section of acute
 case which is originated from a lung with extreme number of detected
 open reading frames of virus molecules. For convenience, we load a
-VoltRon object where cells are already annotated.</p>
-<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- readRDS(file = &quot;acutecase1_annotated.rds&quot;)
-vrEmbeddingPlot(vr2_merged_acute1, assay = &quot;Xenium&quot;, embedding = &quot;umap&quot;, 
+VoltRon object where cells are already annotated. You can also find the
+RDS file <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/acutecase1_annotated.rds">here</a>.</p>
+<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- readRDS(file = &quot;acutecase1_annotated.rds&quot;)</code></pre>
+<p><br></p>
+<p>Lets visualize both the UMAP and Spatial plot of the annotated
+cells.</p>
+<pre class="r watch-out"><code>vrEmbeddingPlot(vr2_merged_acute1, assay = &quot;Xenium&quot;, embedding = &quot;umap&quot;, 
                 group.by = &quot;CellType&quot;, label = TRUE)
 vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;,
               plot.segments = TRUE)</code></pre>
@@ -566,7 +574,9 @@ SARS-COV-2 molecules mostly outside of any single cell.</p>
 <p>We now register the H&amp;E image and annotations to the DAPI image
 of Xenium section using the <strong>registerSpatialData</strong>
 function. See <a href="registration.html">Spatial Data Alignment</a>
-tutorial for more information.</p>
+tutorial for more information. We select FLANN automated registration
+mode, negate the DAPI image of the Xenium slide, turn 90 degrees to the
+left and set the scale parameter of both images to width = 1859.</p>
 <pre class="r watch-out"><code>vr2_merged_acute1 &lt;- modulateImage(vr2_merged_acute1, brightness = 300, channel = &quot;DAPI&quot;)
 xen_reg &lt;- registerSpatialData(object_list = list(vr2_merged_acute1, imgdata))</code></pre>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_HE_registration.png" class="center"></p>
@@ -668,7 +678,7 @@ large accumulation of cells with high <strong>S2_N</strong> and
 can detect a site of cells with high infection which are also
 accompanied by a group of T cells.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;, 
-              group.ids = c(&quot;S2 cells&quot;, &quot;T cells&quot;), plot.segments = TRUE, 
+              group.ids = c(&quot;H.I. Cells&quot;, &quot;T cells&quot;), plot.segments = TRUE, 
               alpha = 0.6, background = c(&quot;main&quot;, &quot;H&amp;E&quot;), interactive = TRUE)</code></pre>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_spatialplot_infected.png" class="center"></p>
 <p><br></p>
