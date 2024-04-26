@@ -1139,6 +1139,32 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 }
 
 ####
+# Spatial Genomics ####
+####
+
+####
+## GenePs ####
+####
+
+#' importGenePS
+#'
+#' Importing GenePS data
+#' @param dir.path path to Xenium output folder
+#' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
+#' 
+#' @importFrom magick image_read image_info
+#' @importFrom utils read.csv
+#' @importFrom data.table fread
+#' @importFrom ids random_id
+#'
+#' @export
+#'
+importGenePS <- function (dir.path, import.molecules = FALSE)
+{
+  
+}
+  
+####
 # Image Data ####
 ####
 
