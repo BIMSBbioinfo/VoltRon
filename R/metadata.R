@@ -232,8 +232,10 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
     }
   } else if(!is.null(spatialpoints)){
       if(nrow(object@molecule) > 0){
-        data.table::setkey(object@molecule, id)
-        mol.metadata <- object@molecule[J(spatialpoints), nomatch=0L]
+        mol.metadata <- data.table::copy(object@molecule)
+        data.table::setkey(mol.metadata, "id")
+        mol.metadata <- mol.metadata[J(spatialpoints), nomatch=0L]
+        object@molecule <- data.table::copy(mol.metadata)
       } else {
         mol.metadata <- data.table::data.table()
       }

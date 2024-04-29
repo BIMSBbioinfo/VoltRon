@@ -21,13 +21,28 @@ vrImages(
   scale.perc = 100
 )
 
-\method{vrImages}{VoltRon}(object, assay = NULL, ...)
+\method{vrImages}{VoltRon}(
+  object,
+  assay = NULL,
+  name = NULL,
+  reg = FALSE,
+  channel = NULL,
+  as.raster = FALSE,
+  scale.perc = 100
+)
 
-\method{vrImages}{vrAssay}(object, name = NULL, reg = FALSE, channel = NULL, ...)
+\method{vrImages}{vrAssay}(
+  object,
+  name = NULL,
+  reg = FALSE,
+  channel = NULL,
+  as.raster = FALSE,
+  scale.perc = 100
+)
 
 \method{vrImages}{vrImage}(object, channel = NULL, as.raster = FALSE, scale.perc = 100)
 
-\method{vrImages}{vrSpatial}(object, ...)
+\method{vrImages}{vrSpatial}(object, channel = NULL, as.raster = FALSE, scale.perc = 100)
 
 \method{vrImages}{vrAssay}(object, name = NULL, channel = NULL, reg = FALSE) <- value
 
@@ -41,17 +56,15 @@ vrImages(
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{name}{the name of the main image}
+\item{name}{the name of the main spatial system}
 
-\item{reg}{TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested}
+\item{reg}{TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested}
 
 \item{channel}{the name of the channel associated with the image}
 
 \item{as.raster}{return as raster}
 
 \item{scale.perc}{scale percentage if lower resolution image needed}
-
-\item{...}{arguements passed to other methods}
 
 \item{value}{new image}
 }

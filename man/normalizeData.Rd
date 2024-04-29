@@ -15,7 +15,14 @@ normalizeData(
   sizefactor = 10000
 )
 
-\method{normalizeData}{VoltRon}(object, assay = NULL, ...)
+\method{normalizeData}{VoltRon}(
+  object,
+  assay = NULL,
+  method = "LogNorm",
+  desiredQuantile = 0.9,
+  scale = 0.2,
+  sizefactor = 10000
+)
 
 \method{normalizeData}{vrAssay}(
   object,
@@ -38,8 +45,6 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{scale}{the scale parameter for the hyperbolic arcsine transformation}
 
 \item{sizefactor}{size factor if \code{method} is selected as \code{LogNorm}}
-
-\item{...}{additional parameters passed to \link{normalizeData.vrAssay}}
 }
 \description{
 Given a VoltRon or vrAssay object, normalize the raw count data.

@@ -69,6 +69,8 @@ test_that("coordinates", {
 
   # coordinates
   coords <- vrCoordinates(visium_data)
+  coords <- vrCoordinates(visium_data, image_name = "main")
+  coords <- vrCoordinates(visium_data, spatial_name = "main")
   expect_warning(coords <- vrCoordinates(visium_data, reg = TRUE))
   expect_warning(coords <- vrCoordinates(visium_data, assay = "Assay1", reg = TRUE))
 
@@ -112,10 +114,13 @@ test_that("image", {
 
   # get main image
   expect_equal(vrMainImage(visium_data[["Assay1"]]), "main")
-
+  expect_equal(vrMainSpatial(visium_data[["Assay1"]]), "main")
+  
   # change main image
   vrMainImage(visium_data[["Assay1"]]) <- "new_image"
+  vrMainSpatial(visium_data[["Assay1"]]) <- "new_image"
   expect_equal(vrMainImage(visium_data[["Assay1"]]), "new_image")
+  expect_equal(vrMainSpatial(visium_data[["Assay1"]]), "new_image")
 
   # return
   expect_equal(1,1L)
@@ -173,6 +178,9 @@ test_that("plots", {
   vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", group.ids = c(1,3,4), label = T)
   vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", colors = colors, label = T)
   vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", group.ids = c(1,3,4), colors = colors[c(1,3,4)], label = T)
+  vrEmbeddingPlot(xenium_data, group.by = "clusters", ncol = 3, split.by = "clusters")
+  vrEmbeddingPlot(xenium_data, group.by = "clusters", ncol = 3, split.by = "Sample")
+  expect_error(vrEmbeddingPlot(xenium_data, group.by = "clusters", ncol = 3, split.by = "art"))
 
   # spatial plot
   vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE)
@@ -194,6 +202,11 @@ test_that("plots", {
   vrSpatialPlot(melc_data, group.by = "Clusters")
   expect_error(vrSpatialPlot(melc_data, group.by = "Clusters_new"))
 
+  # feature plots
+  vrSpatialFeaturePlot(visium_data, features = "Count")
+  vrSpatialFeaturePlot(visium_data, features = "Stat1", norm = TRUE, log = TRUE)
+  expect_error(vrSpatialFeaturePlot(visium_data, features = "Count_new"))
+  
   # return
   expect_equal(1,1L)
 })

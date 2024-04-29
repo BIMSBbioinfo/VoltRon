@@ -10,7 +10,7 @@
 \usage{
 vrEmbeddings(object, assay = NULL, type = "pca", dims = 1:30)
 
-\method{vrEmbeddings}{VoltRon}(object, assay = NULL, ...)
+\method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", dims = 1:30)
 
 \method{vrEmbeddings}{vrAssay}(object, type = "pca", dims = 1:30)
 
@@ -27,8 +27,6 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{type}{the key name for the embedding}
 
 \item{dims}{the set of dimensions of the embedding data}
-
-\item{...}{arguments passed to other methods}
 
 \item{value}{new embedding data}
 

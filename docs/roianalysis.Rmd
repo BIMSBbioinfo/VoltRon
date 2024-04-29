@@ -127,7 +127,7 @@ GeoMxR1$CountPerNuclei <- GeoMxR1$Count/GeoMxR1$Nuclei.count
 vrBarPlot(GeoMxR1, 
           features = c("Count", "Nuclei.count", 
                        "Sequencing.saturation", "CountPerNuclei"),
-          x.label = "ROI.name", group.by = "ROI.type", ncol = 3) + 
+          x.label = "ROI.name", group.by = "ROI.type", ncol = 2) + 
   theme(axis.text.x = element_text(size = 5))
 ```
 
@@ -167,7 +167,7 @@ Spatially informed genomic technologies heavily depend on image manipulation as 
 
 ```{r eval = FALSE, class.source="watch-out"}
 # resizing the image
-GeoMxR1 <- resizeImage(GeoMxR1, size = 4000)
+# GeoMxR1 <- resizeImage(GeoMxR1, size = 4000)
 ```
 
 VoltRon provides **a mini Shiny app** for subsetting spatial points of a VoltRon object by using the image as a reference. This app is particularly useful when multiple tissue sections were fitted to a scan area of a slide, such as the one from GeoMx DSP instrument. We use **interactive = TRUE** option in the subset function to call the mini Shiny app, and select bounding boxes of each newly created subset. **Please continue until all eight sections are selected and subsetted**. 
@@ -364,7 +364,7 @@ A2M    466.4328       4.925236 0.4542682 10.842133 2.173435e-27 3.774636e-24    
 
 ## ROI Deconvolution
 
-VoltRon supports multiple bulk RNA deconvolution algorithms to analyze the cellular composition of both ROIs and spots. In order to integrate the scRNA data and the GeoMx data sets within the VoltRon objects, we will use the [MuSiC](https://xuranw.github.io/MuSiC/articles/MuSiC.html) package. We will use a human lung scRNA dataset as reference, which is found here ([GSE198864](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GSE198864_lung.rds)). 
+VoltRon supports multiple bulk RNA deconvolution algorithms to analyze the cellular composition of both ROIs and spots. In order to integrate the scRNA data and the GeoMx data sets within the VoltRon objects, we will use the [MuSiC](https://xuranw.github.io/MuSiC/articles/MuSiC.html) package. We will use a human lung scRNA dataset (GSE198864) as reference, which is found [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GSE198864_lung.rds). 
 
 ```{r eval = FALSE, class.source="watch-out"}
 set.seed(1)
@@ -425,11 +425,11 @@ spatialpoints <- vrSpatialPoints(GeoMxR1)[GeoMxR1$ROI.type == "fibrotic"]
 GeoMxR1_subset <- subset(GeoMxR1, spatialpoints = spatialpoints)
 
 # Proportion plot
-vrProportionPlot(GeoMxR1_decon_subset, x.label = "ROI.name", split.method = "facet_grid", 
+vrProportionPlot(GeoMxR1_subset, x.label = "ROI.name", split.method = "facet_grid", 
                  split.by = "Sample")
 
 # barplot 
-vrBarPlot(GeoMxR1_decon_subset, features = c("stromal", "macrophages"), group.by = "Sample",
+vrBarPlot(GeoMxR1_subset, features = c("stromal", "macrophages"), group.by = "Sample",
           x.label = "ROI.name", split.by = "Sample")
 ```
 
@@ -441,10 +441,12 @@ vrBarPlot(GeoMxR1_decon_subset, features = c("stromal", "macrophages"), group.by
 
 Questions may arise when these ROI that are initially annotated as fibrotic regions may in fact be fibrotic. VoltRon provides advanced image registration workflows which we can use to H&E images of from the same TMA blocks where GeoMx slides were established.
 
-We first import the H&E image of the prolonged case 4 TMA section using the **importImageData** function. This will import the H&E image as a standalone VoltRon object. For more information on image-based VoltRon objects, see [here](pixelanalysis.html).
+We first import the H&E image of the prolonged case 4 TMA section using the **importImageData** function. This will import the H&E image as a standalone VoltRon object. For more information on image-based VoltRon objects, see the [Downstream analysis of Pixels](pixelanalysis.html) section.
+
+We will use the H&E image of TMA section taken from the same block as the Prolonged case 4. You can download the image from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/prolonged_case4_HE.tif).
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrHEimage <- importImageData("data/GeoMx/HE/prolonged_case4_HE.png", image_name = "H&E")
+vrHEimage <- importImageData("prolonged_case4_HE.tif", image_name = "H&E")
 vrImages(vrHEimage, scale.perc = 40)
 ```
 
@@ -455,6 +457,7 @@ vrImages(vrHEimage, scale.perc = 40)
 We can now register the GeoMx slide with the newly imported H&E based VoltRon object. Since two images are associated with TMA sections that are not adjacent, we have to rely on the localization of vessels visible in both images for alignment. VoltRon allows manipulating multiple channels of an image object two choose the best background image for manual landmark selection. For more information on both manual and automated registration of VoltRon objects, see [here](registration.html).
 
 ```{r eval = FALSE, class.source="watch-out"}
+GeoMxR1_subset <- subset(GeoMxR1, sample = c("prolonged case 4"))
 GeoMxReg <- registerSpatialData(reference_spatdata = GeoMxR1_subset, query_spatdata = vrHEimage)
 ```
 
@@ -464,7 +467,7 @@ GeoMxReg <- registerSpatialData(reference_spatdata = GeoMxR1_subset, query_spatd
 The result of the registration is a list of registered VoltRon objects which we can use for parsing the registered image as well. In this case, the second element of the resulting list would be the registered H&E based VoltRon object. We can also exchange images where the H&E image now is registered to the perspective as the GeoMx channels, and can be defined as a new channel in the original GeoMx object.
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrHEimage_reg <- geomx_reg$registered_spat[[2]]
+vrHEimage_reg <- GeoMxReg$registered_spat[[2]]
 vrImages(GeoMxR1_subset[["Assay1"]], name = "image_1", channel = "H&E") <- vrImages(vrHEimage_reg, name = "H&E_reg")
 ```
 

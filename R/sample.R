@@ -379,7 +379,7 @@ vrSpatialPoints.vrBlock <- function(object, ...) {
 #' 
 #' @rdname changeAssayNames
 #'
-#' @export
+#' @noRd
 changeAssayNames.vrSample <- function(object, sample.metadata = NULL){
 
   if(is.null(sample.metadata))
@@ -405,7 +405,7 @@ changeAssayNames.vrSample <- function(object, sample.metadata = NULL){
 #' 
 #' @rdname changeAssayNames
 #'
-#' @export
+#' @noRd
 changeAssayNames.vrBlock <- function(object, sample.metadata = NULL) {
   object <- changeAssayNames.vrSample(object, sample.metadata = sample.metadata)
   return(object)

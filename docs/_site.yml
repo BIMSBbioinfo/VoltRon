@@ -11,6 +11,8 @@ navbar:
         menu:
         - text: "Spatial Data Alignment"
           href: registration.html
+        - text: "Multi-omic Integration"
+          href: multiomic.html
         - text: "Niche Clustering"
           href: deconvolution.html
       - text: "Downstream Analysis"

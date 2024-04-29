@@ -343,6 +343,9 @@ div.tocify {
           <a href="registration.html">Spatial Data Alignment</a>
         </li>
         <li>
+          <a href="multiomic.html">Multi-omic Integration</a>
+        </li>
+        <li>
           <a href="deconvolution.html">Niche Clustering</a>
         </li>
       </ul>
@@ -472,11 +475,11 @@ href="https://nanostring.com/products/geomx-digital-spatial-profiler/geomx-dsp-o
 GeoMx Digital Spatial Profiler</a> platform, a high-plex spatial
 profiling technology which produces segmentation-based protein and RNA
 assays.</p>
-<p>In this use case, <strong>eight tissue sections</strong> were fitted
-into the scan area of the slide loaded on the GeoMx DSP instrument.
-These sections were cut from <strong>control and COVID-19 lung
-tissues</strong> of donors categorized based on disease durations (acute
-and prolonged). See <a
+<p>In this use case, <strong>eight tissue micro array (TMA) tissue
+sections</strong> were fitted into the scan area of the slide loaded on
+the GeoMx DSP instrument. These sections were cut from <strong>control
+and COVID-19 lung tissues</strong> of donors categorized based on
+disease durations (acute and prolonged). See <a
 href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732">GSE190732</a>
 for more information.</p>
 <p>You can download these tutorial files from here:</p>
@@ -606,7 +609,7 @@ counts per nuclei also have low sequencing saturation.</p>
 vrBarPlot(GeoMxR1, 
           features = c(&quot;Count&quot;, &quot;Nuclei.count&quot;, 
                        &quot;Sequencing.saturation&quot;, &quot;CountPerNuclei&quot;),
-          x.label = &quot;ROI.name&quot;, group.by = &quot;ROI.type&quot;, ncol = 3) + 
+          x.label = &quot;ROI.name&quot;, group.by = &quot;ROI.type&quot;, ncol = 2) + 
   theme(axis.text.x = element_text(size = 5))</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_barplot2.png" class="center"></p>
 <p><br></p>
@@ -645,7 +648,7 @@ can interactively choose subsets of images. However, we first resize the
 morphology image by providing the width of the new image (thus height
 will be reduced to preserve the aspect ratio).</p>
 <pre class="r watch-out"><code># resizing the image
-GeoMxR1 &lt;- resizeImage(GeoMxR1, size = 4000)</code></pre>
+# GeoMxR1 &lt;- resizeImage(GeoMxR1, size = 4000)</code></pre>
 <p>VoltRon provides <strong>a mini Shiny app</strong> for subsetting
 spatial points of a VoltRon object by using the image as a reference.
 This app is particularly useful when multiple tissue sections were
@@ -831,9 +834,9 @@ analyze the cellular composition of both ROIs and spots. In order to
 integrate the scRNA data and the GeoMx data sets within the VoltRon
 objects, we will use the <a
 href="https://xuranw.github.io/MuSiC/articles/MuSiC.html">MuSiC</a>
-package. We will use a human lung scRNA dataset as reference, which is
-found here (<a
-href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GSE198864_lung.rds">GSE198864</a>).</p>
+package. We will use a human lung scRNA dataset (GSE198864) as
+reference, which is found <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GSE198864_lung.rds">here</a>.</p>
 <pre class="r watch-out"><code>set.seed(1)
 library(Seurat)
 library(SingleCellExperiment)
@@ -892,11 +895,11 @@ spatialpoints &lt;- vrSpatialPoints(GeoMxR1)[GeoMxR1$ROI.type == &quot;fibrotic&
 GeoMxR1_subset &lt;- subset(GeoMxR1, spatialpoints = spatialpoints)
 
 # Proportion plot
-vrProportionPlot(GeoMxR1_decon_subset, x.label = &quot;ROI.name&quot;, split.method = &quot;facet_grid&quot;, 
+vrProportionPlot(GeoMxR1_subset, x.label = &quot;ROI.name&quot;, split.method = &quot;facet_grid&quot;, 
                  split.by = &quot;Sample&quot;)
 
 # barplot 
-vrBarPlot(GeoMxR1_decon_subset, features = c(&quot;stromal&quot;, &quot;macrophages&quot;), group.by = &quot;Sample&quot;,
+vrBarPlot(GeoMxR1_subset, features = c(&quot;stromal&quot;, &quot;macrophages&quot;), group.by = &quot;Sample&quot;,
           x.label = &quot;ROI.name&quot;, split.by = &quot;Sample&quot;)</code></pre>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap_fibrotic.png" class="center"></p>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_barplot_prop_fibrotic.png" class="center"></p>
@@ -910,9 +913,12 @@ the same TMA blocks where GeoMx slides were established.</p>
 <p>We first import the H&amp;E image of the prolonged case 4 TMA section
 using the <strong>importImageData</strong> function. This will import
 the H&amp;E image as a standalone VoltRon object. For more information
-on image-based VoltRon objects, see <a
-href="pixelanalysis.html">here</a>.</p>
-<pre class="r watch-out"><code>vrHEimage &lt;- importImageData(&quot;data/GeoMx/HE/prolonged_case4_HE.png&quot;, image_name = &quot;H&amp;E&quot;)
+on image-based VoltRon objects, see the <a
+href="pixelanalysis.html">Downstream analysis of Pixels</a> section.</p>
+<p>We will use the H&amp;E image of TMA section taken from the same
+block as the Prolonged case 4. You can download the image from <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/prolonged_case4_HE.tif">here</a>.</p>
+<pre class="r watch-out"><code>vrHEimage &lt;- importImageData(&quot;prolonged_case4_HE.tif&quot;, image_name = &quot;H&amp;E&quot;)
 vrImages(vrHEimage, scale.perc = 40)</code></pre>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/prolonged_case4_HE.png" class="center"></p>
 <p><br></p>
@@ -924,7 +930,8 @@ multiple channels of an image object two choose the best background
 image for manual landmark selection. For more information on both manual
 and automated registration of VoltRon objects, see <a
 href="registration.html">here</a>.</p>
-<pre class="r watch-out"><code>GeoMxReg &lt;- registerSpatialData(reference_spatdata = GeoMxR1_subset, query_spatdata = vrHEimage)</code></pre>
+<pre class="r watch-out"><code>GeoMxR1_subset &lt;- subset(GeoMxR1, sample = c(&quot;prolonged case 4&quot;))
+GeoMxReg &lt;- registerSpatialData(reference_spatdata = GeoMxR1_subset, query_spatdata = vrHEimage)</code></pre>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_manualregistration.png" class="center"></p>
 <p>The result of the registration is a list of registered VoltRon
 objects which we can use for parsing the registered image as well. In
@@ -933,7 +940,7 @@ registered H&amp;E based VoltRon object. We can also exchange images
 where the H&amp;E image now is registered to the perspective as the
 GeoMx channels, and can be defined as a new channel in the original
 GeoMx object.</p>
-<pre class="r watch-out"><code>vrHEimage_reg &lt;- geomx_reg$registered_spat[[2]]
+<pre class="r watch-out"><code>vrHEimage_reg &lt;- GeoMxReg$registered_spat[[2]]
 vrImages(GeoMxR1_subset[[&quot;Assay1&quot;]], name = &quot;image_1&quot;, channel = &quot;H&amp;E&quot;) &lt;- vrImages(vrHEimage_reg, name = &quot;H&amp;E_reg&quot;)</code></pre>
 <p>We can now visualize the ROIs and their annotations where the
 registered H&amp;E visible in the background. We define the image key

@@ -37,7 +37,7 @@ double calculateMoransI(NumericMatrix data, NumericMatrix datadist, double sumW)
       }
     }
     moranI = (2.0*numerator)/denominator;
-    std::cout << "Pi: " << i << std::endl;
+    // std::cout << "Pi: " << i << std::endl;
   }
 
   // return

@@ -67,11 +67,10 @@ In addition, VoltRon integrates with spot deconvolution methods such as RCTD to 
       <img width="250" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration.png" class="center">
       <p style = "margin: 3%"> Automated and manual alignment of spatial data assays</p>
    </td>
-   <!--  <td onclick="location.href='multiomic.html';"> -->
-   <td>
+   <td onclick="location.href='multiomic.html';">
       <p class ="tutorial"> Multi-omic Integration </p>
-      <img width="250" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration.png" class="center">
-      <p style = "margin: 3%"> Integrating data modalities across or within tissue sections <strong> (under development) </strong></p>
+      <img width="250" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic.png" class="center">
+      <p style = "margin: 3%"> Integrating data modalities within or across tissue sections </p>
    </td>
    <td onclick="location.href='deconvolution.html';"> 
       <p class ="tutorial"> Niche Clustering </p>

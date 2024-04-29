@@ -103,7 +103,7 @@ std::vector<cv::Point2f> matToPoint2f(cv::Mat mat) {
 
   // Assuming the matrix has 2 columns (x and y coordinates)
   if (mat.cols != 2) {
-    cerr << "Input matrix must have exactly 2 columns for x and y coordinates." << endl;
+    // cerr << "Input matrix must have exactly 2 columns for x and y coordinates." << endl;
     return points;
   }
 
@@ -163,7 +163,7 @@ cv::Mat preprocessImage(Mat &im, const bool invert, const char* flipflop, const 
   Mat imProcess;
   if(invert) {
     cv::bitwise_not(imFlipFlop, imProcess);
-    cout << "Image is inverted!" << endl;
+    // cout << "Image is inverted!" << endl;
   } else {
     imProcess = imFlipFlop;
   }
@@ -226,13 +226,13 @@ void alignImagesBRUTE_old(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat 
   Ptr<Feature2D> orb = ORB::create(MAX_FEATURES);
   orb->detectAndCompute(im1Proc, Mat(), keypoints1, descriptors1);
   orb->detectAndCompute(im2Proc, Mat(), keypoints2, descriptors2);
-  cout << "DONE: orb based key-points detection and descriptors computation" << endl;
+  // cout << "DONE: orb based key-points detection and descriptors computation" << endl;
 
   // Match features.
   std::vector<DMatch> matches;
   Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
   matcher->match(descriptors1, descriptors2, matches, Mat());
-  cout << "DONE: BruteForce-Hamming - descriptor matching" << endl;
+  // cout << "DONE: BruteForce-Hamming - descriptor matching" << endl;
 
   // Sort matches by score
   std::sort(matches.begin(), matches.end());
@@ -240,7 +240,7 @@ void alignImagesBRUTE_old(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat 
   // Remove not so good matches
   const int numGoodMatches = matches.size() * GOOD_MATCH_PERCENT;
   matches.erase(matches.begin()+numGoodMatches, matches.end());
-  cout << "DONE: get good matches by distance thresholding" << endl;
+  // cout << "DONE: get good matches by distance thresholding" << endl;
 
   // Extract location of good matches
   std::vector<Point2f> points1, points2;
@@ -252,7 +252,7 @@ void alignImagesBRUTE_old(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat 
 
   // Find homography
   h = findHomography(points1, points2, RANSAC);
-  cout << "DONE: calculated homography matrix" << endl;
+  // cout << "DONE: calculated homography matrix" << endl;
 
   // Extract location of good matches in terms of keypoints
   std::vector<KeyPoint> keypoints1_best, keypoints2_best;
@@ -273,7 +273,7 @@ void alignImagesBRUTE_old(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat 
   warpPerspective(im1Proc, im1Warp, h, im2Proc.size());
   warpPerspective(im1NormalProc, im1NormalWarp, h, im2Proc.size());
   im1Reg = reversepreprocessImage(im1NormalWarp, flipflop_ref, rotate_ref);
-  cout << "DONE: warped query image" << endl;
+  // cout << "DONE: warped query image" << endl;
 
   // // overlay image
   // Mat im1ColorMap;
@@ -338,7 +338,7 @@ std::string check_degenerate(std::vector<cv::KeyPoint> keypoints1, std::vector<c
   std::string message;
   if(keypoints1_sd < 1.0 | keypoints2_sd < 1.0){
     message = "degenarate";
-    cout << "WARNING: points may be in a degenerate configuration." << endl;
+    // cout << "WARNING: points may be in a degenerate configuration." << endl;
   } else {
     message = "not degenarate";
   }
@@ -383,7 +383,7 @@ std::string check_transformation_by_point_distribution(Mat &im, Mat &h){
   std::string message;
   if(gridpoints_reg_sd < 1.0 | gridpoints_reg_sd > max(height, width)){
     message = "large distribution";
-    cout << "WARNING: Transformation may be poor - transformed points grid seem to be concentrated!" << endl;
+    // cout << "WARNING: Transformation may be poor - transformed points grid seem to be concentrated!" << endl;
   } else {
     message = "small distribution";
   }
@@ -436,13 +436,13 @@ void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   Ptr<Feature2D> orb = ORB::create(MAX_FEATURES);
   orb->detectAndCompute(im1Gray, Mat(), keypoints1, descriptors1);
   orb->detectAndCompute(im2Gray, Mat(), keypoints2, descriptors2);
-  cout << "DONE: orb based key-points detection and descriptors computation" << endl;
+  // cout << "DONE: orb based key-points detection and descriptors computation" << endl;
 
   // Match features.
   std::vector<DMatch> matches;
   Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
   matcher->match(descriptors1, descriptors2, matches, Mat());
-  cout << "DONE: BruteForce-Hamming - descriptor matching" << endl;
+  // cout << "DONE: BruteForce-Hamming - descriptor matching" << endl;
 
   // Sort matches by score
   std::sort(matches.begin(), matches.end());
@@ -450,7 +450,7 @@ void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   // Remove not so good matches
   const int numGoodMatches = matches.size() * GOOD_MATCH_PERCENT;
   matches.erase(matches.begin()+numGoodMatches, matches.end());
-  cout << "DONE: get good matches by distance thresholding" << endl;
+  // cout << "DONE: get good matches by distance thresholding" << endl;
 
   // Extract location of good matches
   std::vector<Point2f> points1, points2;
@@ -462,7 +462,7 @@ void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
 
   // Find homography
   h = findHomography(points1, points2, RANSAC);
-  cout << "DONE: calculated homography matrix" << endl;
+  // cout << "DONE: calculated homography matrix" << endl;
 
   // Extract location of good matches in terms of keypoints
   std::vector<KeyPoint> keypoints1_best, keypoints2_best;
@@ -482,7 +482,7 @@ void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   warpPerspective(im1, im1Reg, h, im2.size());
   warpPerspective(im1, im1Overlay, h, im2.size());
   // im1Reg = im1Overlay;
-  cout << "DONE: warped query image" << endl;
+  // cout << "DONE: warped query image" << endl;
 
   // change color map
   // Mat im1Combine;
@@ -524,20 +524,20 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   Ptr<Feature2D> sift = cv::SIFT::create();
   sift->detectAndCompute(im1Proc, Mat(), keypoints1, descriptors1);
   sift->detectAndCompute(im2Proc, Mat(), keypoints2, descriptors2);
-  cout << "DONE: sift based key-points detection and descriptors computation" << endl;
+  // cout << "DONE: sift based key-points detection and descriptors computation" << endl;
 
   // Match features using FLANN matching
   std::vector<std::vector<DMatch>> matches;
   cv::FlannBasedMatcher custom_matcher = cv::FlannBasedMatcher(cv::makePtr<cv::flann::KDTreeIndexParams>(5), cv::makePtr<cv::flann::SearchParams>(50, 0, TRUE));
   cv::Ptr<cv::FlannBasedMatcher> matcher = custom_matcher.create();
   matcher->knnMatch(descriptors1, descriptors2, matches, 2);
-  cout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
+  // cout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
 
   // Find good matches
   // goodMatches = get_good_matches(matches)
   std::vector<DMatch> good_matches;
   getGoodMatches(matches, good_matches);
-  cout << "DONE: get good matches by distance thresholding" << endl;
+  // cout << "DONE: get good matches by distance thresholding" << endl;
 
   // Extract location of good matches
   std::vector<Point2f> points1, points2;
@@ -550,19 +550,34 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   // Find homography
   cv::Mat mask;
   h = findHomography(points1, points2, RANSAC, 5, mask);
-  cout << "DONE: calculated homography matrix" << endl;
+  // cout << "DONE: calculated homography matrix" << endl;
 
   // Draw top matches and good ones only
   std::vector<cv::DMatch> top_matches;
   std::vector<cv::KeyPoint> keypoints1_best, keypoints2_best;
-  for( size_t i = 0; i < good_matches.size(); i++ )
+  for(size_t i = 0; i < good_matches.size(); i++ )
   {
     keypoints1_best.push_back(keypoints1[good_matches[i].queryIdx]);
     keypoints2_best.push_back(keypoints2[good_matches[i].trainIdx]);
     top_matches.push_back(cv::DMatch(static_cast<int>(i), static_cast<int>(i), 0));
   }
   drawMatches(im1Proc, keypoints1_best, im2Proc, keypoints2_best, top_matches, imMatches);
-
+  
+  // Visualize matches, use for demonstration purposes
+  // std::vector<cv::DMatch> top_matches_vis;
+  // std::vector<cv::KeyPoint> keypoints1_best_vis, keypoints2_best_vis;
+  // for(size_t i = 0; i < good_matches.size(); i++)
+  // {
+  //   keypoints1_best_vis.push_back(keypoints1[good_matches[i].queryIdx]);
+  //   keypoints2_best_vis.push_back(keypoints2[good_matches[i].trainIdx]);
+  //   top_matches_vis.push_back(cv::DMatch(static_cast<int>(i), static_cast<int>(i), 0));
+  // }
+  // Mat im1Proc_vis, im2Proc_vis, im1NormalProc_vis, imMatches_vis;
+  // im1Proc_vis = preprocessImage(im1, invert_query, flipflop_query, rotate_query);
+  // im2Proc_vis = preprocessImage(im2, invert_ref, flipflop_ref, rotate_ref);
+  // drawMatches(im1Proc_vis, keypoints1_best, im2Proc_vis, keypoints2_best, top_matches, imMatches_vis);
+  // cv::imwrite("matches.jpg", imMatches_vis);
+  
   // check keypoints
   std::string is_faulty = check_transformation_metrics(keypoints1_best, keypoints2_best, im1, im2, h, mask);
 
@@ -571,7 +586,7 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   warpPerspective(im1Proc, im1Warp, h, im2Proc.size());
   warpPerspective(im1NormalProc, im1NormalWarp, h, im2Proc.size());
   im1Reg = reversepreprocessImage(im1NormalWarp, flipflop_ref, rotate_ref);
-  cout << "DONE: warped query image" << endl;
+  // cout << "DONE: warped query image" << endl;
 
   // // overlay image
   // Mat im1ColorMap;
@@ -654,12 +669,12 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
 
   // Align images
   if(strcmp(method.get_cstring(), "FLANN") == 0){
-    cout << "Fast Library for Approximate Nearest Neighbors (FLANN) - descriptor matching" << endl;
+    // cout << "Fast Library for Approximate Nearest Neighbors (FLANN) - descriptor matching" << endl;
     alignImagesFLANN(im, imReference, imReg, imOverlay, imMatches, h, invert_query, invert_ref,
                      flipflop_query.get_cstring(), flipflop_ref.get_cstring(), rotate_query.get_cstring(), rotate_ref.get_cstring());
   }
   if(strcmp(method.get_cstring(), "BRUTE-FORCE") == 0){
-    cout << "BruteForce-Hamming - descriptor matching" << endl;
+    // cout << "BruteForce-Hamming - descriptor matching" << endl;
     alignImagesBRUTE(im, imReference, imReg, imOverlay, imMatches, h, GOOD_MATCH_PERCENT, MAX_FEATURES);
   }
 
@@ -733,7 +748,7 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVe
   Mat imReg;
 
   // Align images
-  cout << "Thin Plate Spline - Manual Matcher" << endl;
+  // cout << "Thin Plate Spline - Manual Matcher" << endl;
   // alignImagesTPS(im, imReference, imReg, query_landmark, reference_landmark);
   alignImagesTPS(im, imReference, imReg, query_landmark, reference_landmark);
 

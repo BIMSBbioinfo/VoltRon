@@ -155,18 +155,26 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
       # embeddings
       for(embed in vrEmbeddingNames(object)){
         embedding <- vrEmbeddings(object, type = embed)
-        vrEmbeddings(object, type = embed) <- embedding[spatialpoints,, drop = FALSE]
+        vrEmbeddings(object, type = embed) <- embedding[spatialpoints[spatialpoints %in% rownames(embedding)],, drop = FALSE]
       }
 
       # image
-      for(img in vrImageNames(object))
+      # for(img in vrImageNames(object))
+      for(img in vrSpatialNames(object))
         object@image[[img]] <- subset.vrImage(object@image[[img]], spatialpoints = spatialpoints)
 
     } else if(!is.null(image)) {
 
       # images
-      for(img in vrImageNames(object))
-        object@image[[img]] <- subset.vrImage(object@image[[img]], image = image)
+      # for(img in vrImageNames(object))
+      # for(img in vrSpatialNames(object))
+        # object@image[[img]] <- subset.vrImage(object@image[[img]], image = image)
+      # spatialpoints <- rownames(vrCoordinates(object@image[[img]]))
+      
+      # subset only the main image of an
+      img <- vrMainSpatial(object)
+      object@image <- object@image[img]
+      object@image[[img]] <- subset.vrImage(object@image[[img]], image = image)
       spatialpoints <- rownames(vrCoordinates(object@image[[img]]))
 
       # data
@@ -246,27 +254,40 @@ subsetCoordinates <- function(coords, image, crop_info){
 #' @param image the magick image associated with the coordinates
 #' @param crop_info the subseting string passed to \link{image_crop}
 #'
+#' @importFrom dplyr bind_rows
 subsetSegments <- function(segments, image, crop_info){
 
-  # change strategy based on the length of segments
-  if(length(segments) < 200) {
-    for(i in 1:length(segments)){
-      segments[[i]][,c("x","y")] <- subsetCoordinates(segments[[i]][,c("x","y")], image, crop_info)
-    }
-  } else {
-    segment_names <- rep(names(segments), sapply(segments, nrow, simplify = TRUE))
-    segments <- do.call(rbind,segments)
-    rownames(segments) <- 1:nrow(segments)
-    segments <- data.frame(segments, row_id = rownames(segments))
-    cropped_segments <- subsetCoordinates(segments[,c("x","y")], image, crop_info)
-    cropped_segments <- data.frame(cropped_segments, cell_id = segments[rownames(cropped_segments),]$cell_id, row_id = rownames(cropped_segments))
-    cropped_segments <- cropped_segments %>% right_join(segments[,c("cell_id", "row_id")], by = c("row_id" = "row_id"))
-    cropped_segments <- cropped_segments[,c("cell_id.y", "x", "y")]
-    colnames(cropped_segments) <- c("cell_id", "x", "y")
-    segments <- cropped_segments %>% dplyr::group_split(cell_id)
+  # get segments
+  segment_names <- names(segments)
+  segments <- do.call(dplyr::bind_rows, segments)
+  rownames(segments) <- 1:nrow(segments)
+  segments <- data.frame(segments, row_id = rownames(segments))
+  
+  # subset
+  cropped_segments <- subsetCoordinates(segments[,c("x","y")], image, crop_info)
+  if(any(colnames(segments) %in% c("rx", "ry"))){
+    cropped_segments_extra <- segments[rownames(cropped_segments), c("rx", "ry")]
+    cropped_segments <- cbind(cropped_segments, cropped_segments_extra)
   }
-
-  segments
+  cropped_segments <- data.frame(cropped_segments, id = segments[rownames(cropped_segments),1], row_id = rownames(cropped_segments))
+  cropped_segments <- cropped_segments %>% right_join(segments[,c(colnames(segments)[1], "row_id")], by = c("row_id" = "row_id"))
+  if(any(colnames(segments) %in% c("rx", "ry"))){
+    cropped_segments <- cropped_segments[,c(colnames(cropped_segments)[which(grepl(colnames(segments)[1], colnames(cropped_segments)))[1]], "x", "y", "rx", "ry")]
+    colnames(cropped_segments) <- c("id", "x", "y", "rx", "ry")
+    
+  } else {
+    cropped_segments <- cropped_segments[,c(colnames(cropped_segments)[which(grepl(colnames(segments)[1], colnames(cropped_segments)))[1]], "x", "y")]
+    colnames(cropped_segments) <- c("id", "x", "y")
+  }
+  # split back to segments
+  segments <- split(cropped_segments, cropped_segments[,1])
+  segments <- lapply(segments, function(df){
+    df[,colSums(is.na(df))<nrow(df), drop = FALSE]
+  })
+  names(segments) <- segment_names
+  
+  # return
+  return(segments)
 }
 
 ### Other Methods ####
@@ -292,15 +313,17 @@ vrSpatialPoints.vrAssay <- function(object) {
   if(length(vrSpatialPoints(object)) != length(value)){
     stop("The number of spatial points is not matching with the input")
   } else {
-    if(nrow(object@rawdata) > 0){
+    # if(nrow(object@rawdata) > 0){
+    if(ncol(object@rawdata) > 0){
       colnames(object@rawdata) <- value
       colnames(object@normdata) <- value
     }
   }
 
   # images
-  for(img_name in vrImageNames(object)){
-    vrSpatialPoints(object@image[[img_name]]) <- value
+  # for(img in vrImageNames(object))
+  for(img in vrSpatialNames(object)){
+    vrSpatialPoints(object@image[[img]]) <- value
   }
 
   # embeddings
@@ -423,16 +446,12 @@ vrAssayParams <- function(object, param = NULL) {
   }
 }
 
-#' @param features the set of features
-#' @param norm TRUE if normalized data should be returned
-#' 
 #' @rdname vrData
 #' @order 3
 #'
 #' @importFrom magick image_raster
 #'
 #' @export
-#'
 vrData.vrAssay <- function(object, features = NULL, norm = FALSE, ...) {
 
   # get assay types
@@ -492,25 +511,32 @@ vrData.vrAssay <- function(object, features = NULL, norm = FALSE, ...) {
 #' @order 3
 #' @export
 #'
-vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
+vrCoordinates.vrAssay <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE) {
 
+  # get spatial name
+  if(!is.null(spatial_name)) 
+    image_name <- spatial_name
+  
   # check main image
   if(is.null(image_name)){
-    image_name <- vrMainImage(object)
+    # image_name <- vrMainImage(object)
+    image_name <- vrMainSpatial(object)
   }
 
   # check registered coordinates
   if(reg){
-    if(!paste0(image_name, "_reg") %in% vrImageNames(object)){
-      warning("There are no registered images with name ", image_name, "!")
+    # if(!paste0(image_name, "_reg") %in% vrImageNames(object)){
+    if(!paste0(image_name, "_reg") %in% vrSpatialNames(object)){
+      warning("There are no registered spatial systems with name ", image_name, "!")
     } else {
       image_name <- paste0(image_name, "_reg")
     }
   }
 
   # check coordinates
-  if(!image_name %in% vrImageNames(object)){
-    stop(image_name, " is not among any image in this vrAssay object")
+  # if(!image_name %in% vrImageNames(object)){
+  if(!image_name %in% vrSpatialNames(object)){
+    stop(image_name, " is not among any spatial system in this vrAssay object")
   }
 
   # return coordinates
@@ -522,11 +548,16 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 #' @importFrom methods slot
 #'
 #' @export
-"vrCoordinates<-.vrAssay" <- function(object, image_name = NULL, reg = FALSE, value) {
+"vrCoordinates<-.vrAssay" <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
 
+  # get spatial name
+  if(!is.null(spatial_name)) 
+    image_name <- spatial_name
+  
   # check main image
   if(is.null(image_name)){
-    image_name <- vrMainImage(object)
+    # image_name <- vrMainImage(object)
+    image_name <- vrMainSpatial(object)
   }
 
   # check registered coordinates
@@ -535,8 +566,9 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
   }
 
   # check coordinates
-  if(!image_name %in% vrImageNames(object)){
-    stop(image_name, " is not among any image in this vrAssay object")
+  # if(!image_name %in% vrImageNames(object)){
+  if(!image_name %in% vrSpatialNames(object)){
+    stop(image_name, " is not among any spatial system in this vrAssay object")
   }
 
   vrCoordinates(object@image[[image_name]]) <- value
@@ -550,7 +582,11 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 #'
 #' @export
 #'
-flipCoordinates.vrAssay <- function(object, image_name = NULL, ...) {
+flipCoordinates.vrAssay <- function(object, image_name = NULL, spatial_name = NULL, ...) {
+  
+  # get spatial name
+  if(!is.null(spatial_name)) 
+    image_name <- spatial_name
   
   # get image info
   imageinfo <- magick::image_info(vrImages(object, name = image_name))
@@ -578,25 +614,32 @@ flipCoordinates.vrAssay <- function(object, image_name = NULL, ...) {
 #' @rdname vrSegments
 #' @order 3
 #' @export
-vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
+vrSegments.vrAssay <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE) {
 
+  # get spatial name
+  if(!is.null(spatial_name)) 
+    image_name <- spatial_name
+  
   # check main image
   if(is.null(image_name)){
-    image_name <- vrMainImage(object)
+    # image_name <- vrMainImage(object)
+    image_name <- vrMainSpatial(object)
   }
 
   # check registered segments
   if(reg){
-    if(!paste0(image_name, "_reg") %in% vrImageNames(object)){
-      warning("There are no registered images with name ", image_name, "!")
+    # if(!paste0(image_name, "_reg") %in% vrImageNames(object)){
+    if(!paste0(image_name, "_reg") %in% vrSpatialNames(object)){
+      warning("There are no registered spatial systems with name ", image_name, "!")
     } else {
       image_name <- paste0(image_name, "_reg")
     }
   }
 
   # check coordinates
-  if(!image_name %in% vrImageNames(object)){
-    stop(image_name, " is not among any image in this vrAssay object")
+  # if(!image_name %in% vrImageNames(object)){
+  if(!image_name %in% vrSpatialNames(object)){
+    stop(image_name, " is not among any spatial system in this vrAssay object")
   }
 
   # return coordinates
@@ -607,11 +650,16 @@ vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
 #' @order 6
 #' @importFrom methods slot
 #' @export
-"vrSegments<-.vrAssay" <- function(object, image_name = NULL, reg = FALSE, value) {
+"vrSegments<-.vrAssay" <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
 
+  # get spatial name
+  if(!is.null(spatial_name)) 
+    image_name <- spatial_name
+  
   # check main image
   if(is.null(image_name)){
-    image_name <- vrMainImage(object)
+    # image_name <- vrMainImage(object)
+    image_name <- vrMainSpatial(object)
   }
 
   # check registered segments
@@ -620,17 +668,15 @@ vrSegments.vrAssay <- function(object, image_name = NULL, reg = FALSE) {
   }
 
   # check coordinates
-  if(!image_name %in% vrImageNames(object)){
-    stop(image_name, " is not among any image in this vrAssay object")
+  # if(!image_name %in% vrImageNames(object)){
+  if(!image_name %in% vrSpatialNames(object)){
+    stop(image_name, " is not among any spatial system in this vrAssay object")
   }
 
   vrSegments(object@image[[image_name]]) <- value
   return(object)
 }
 
-#' @param type the key name for the embedding, i.e. "pca" or "umap"
-#' @param dims the set of dimensions of the embedding data
-#'
 #' @rdname vrEmbeddings
 #' @order 3
 #' @export

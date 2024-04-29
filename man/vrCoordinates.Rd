@@ -12,19 +12,31 @@
 \alias{vrCoordinates<-.vrSpatial}
 \title{vrCoordinates}
 \usage{
-vrCoordinates(object, assay = NULL, image_name = NULL, reg = FALSE)
+vrCoordinates(
+  object,
+  assay = NULL,
+  image_name = NULL,
+  spatial_name = NULL,
+  reg = FALSE
+)
 
-\method{vrCoordinates}{VoltRon}(object, assay = NULL, image_name = NULL, reg = FALSE)
+\method{vrCoordinates}{VoltRon}(
+  object,
+  assay = NULL,
+  image_name = NULL,
+  spatial_name = NULL,
+  reg = FALSE
+)
 
-\method{vrCoordinates}{vrAssay}(object, image_name = NULL, reg = FALSE)
+\method{vrCoordinates}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE)
 
 \method{vrCoordinates}{vrImage}(object)
 
 \method{vrCoordinates}{vrSpatial}(object)
 
-\method{vrCoordinates}{VoltRon}(object, image_name = NULL, reg = FALSE) <- value
+\method{vrCoordinates}{VoltRon}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
 
-\method{vrCoordinates}{vrAssay}(object, image_name = NULL, reg = FALSE) <- value
+\method{vrCoordinates}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
 
 \method{vrCoordinates}{vrImage}(object) <- value
 
@@ -36,7 +48,9 @@ vrCoordinates(object, assay = NULL, image_name = NULL, reg = FALSE)
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{image_name}{the name/key of the image associated with the coordinates}
+\item{image_name}{(deprecated, use \code{spatial_name}) the name/key of the image associated with the coordinates}
+
+\item{spatial_name}{the name/key of the spatial system associated with the coordinates}
 
 \item{reg}{TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested}
 

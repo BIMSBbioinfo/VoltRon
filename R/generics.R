@@ -44,6 +44,10 @@ vrFeatureData <- function(object, assay = NULL) {
 #' Get variable features of assays
 #'
 #' @param object a VoltRon or vrAssay object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param max.count maximum count (across spatial points) for low count filtering
+#' @param n the top number of variable features 
 #'
 #' @rdname getFeatures
 #' @export getFeatures
@@ -201,7 +205,13 @@ Metadata <- function(object, assay = NULL, type = NULL) {
 #' Given a VoltRon or vrAssay object, normalize the raw count data.
 #'
 #' @param object a VoltRon or vrAssay object
-#'
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param method the normalization method: "LogNorm", "Q3Norm", "LogQ3Norm" or "CLR"
+#' @param desiredQuantile the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}.
+#' @param scale the scale parameter for the hyperbolic arcsine transformation
+#' @param sizefactor size factor if \code{method} is selected as \code{LogNorm}
+#' 
 #' @rdname normalizeData
 #' @export normalizeData
 #'
@@ -232,7 +242,11 @@ vrEmbeddingNames <- function(object, assay = NULL) {
 #' Given a VoltRon or vrAssay object, get embeddings of spatial points
 #'
 #' @param object a VoltRon or vrAssay object
-#'
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param type the key name for the embedding, i.e. "pca" or "umap"
+#' @param dims the set of dimensions of the embedding data
+#' 
 #' @rdname vrEmbeddings
 #' @export vrEmbeddings
 #' @order 1
@@ -292,14 +306,14 @@ vrSpatialPoints <- function(object, assay = NULL) {
 #' @export vrCoordinates
 #' @order 1
 #'
-vrCoordinates <- function(object, assay = NULL, image_name = NULL, reg = FALSE) {
+vrCoordinates <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL, reg = FALSE) {
   UseMethod(generic = 'vrCoordinates', object = object)
 }
 
 #' @rdname vrCoordinates
 #' @export vrCoordinates<-
 #' @noRd
-"vrCoordinates<-" <- function(object, image_name = NULL, reg = FALSE, value) {
+"vrCoordinates<-" <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
   UseMethod(generic = 'vrCoordinates<-', object = object)
 }
 
@@ -312,14 +326,14 @@ vrCoordinates <- function(object, assay = NULL, image_name = NULL, reg = FALSE) 
 #' @rdname vrSegments
 #' @export vrSegments
 #' @order 1
-vrSegments <- function(object, assay = NULL, image_name = NULL, reg = FALSE) {
+vrSegments <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL,  reg = FALSE) {
   UseMethod(generic = 'vrSegments', object = object)
 }
 
 #' @rdname vrSegments
 #' @export vrSegments<-
 #' @noRd
-"vrSegments<-" <- function(object, image_name = NULL, reg = FALSE, value) {
+"vrSegments<-" <- function(object, image_name = NULL, spatial_name = NULL,  reg = FALSE, value) {
   UseMethod(generic = 'vrSegments<-', object = object)
 }
 
@@ -332,7 +346,7 @@ vrSegments <- function(object, assay = NULL, image_name = NULL, reg = FALSE) {
 #' @rdname flipCoordinates
 #' @export flipCoordinates
 #' @order 1
-flipCoordinates <- function(object, assay = NULL, image_name = NULL, ...) {
+flipCoordinates <- function(object, assay = NULL, spatial_name = NULL, image_name = NULL, ...) {
   UseMethod(generic = 'flipCoordinates', object = object)
 }
 
@@ -373,6 +387,19 @@ vrImageNames <- function(object, assay = NULL) {
   UseMethod(generic = 'vrImageNames', object = object)
 }
 
+#' vrSpatialNames
+#'
+#' Get names of all spatial systems
+#'
+#' @param object a VoltRon or vrAssay object
+#'
+#' @rdname vrSpatialNames
+#' @export vrSpatialNames
+#' 
+vrSpatialNames <- function(object, assay = NULL) {
+  UseMethod(generic = 'vrSpatialNames', object = object)
+}
+
 #' vrImageChannelNames
 #'
 #' Get names of all image channels
@@ -399,6 +426,19 @@ vrMainImage <- function(object, assay = NULL) {
   UseMethod(generic = 'vrMainImage', object = object)
 }
 
+#' vrMainSpatial
+#'
+#' Get the main spatial system name
+#'
+#' @param object a VoltRon or vrAssay object
+#'
+#' @rdname vrMainSpatial
+#' @export vrMainSpatial
+#' @order 1
+vrMainSpatial <- function(object, assay = NULL) {
+  UseMethod(generic = 'vrMainSpatial', object = object)
+}
+
 #' vrMainImage
 #'
 #' Set the main image
@@ -408,8 +448,21 @@ vrMainImage <- function(object, assay = NULL) {
 #' @rdname vrMainImage
 #' @export vrMainImage<-
 #' @noRd
-"vrMainImage<-" <- function(object, value) {
+"vrMainImage<-" <- function(object, assay = NULL, value) {
   UseMethod(generic = 'vrMainImage<-', object = object)
+}
+
+#' vrMainSpatial
+#'
+#' Set the main image
+#'
+#' @param value the name of main image
+#'
+#' @rdname vrMainSpatial
+#' @export vrMainSpatial<-
+#' @noRd
+"vrMainSpatial<-" <- function(object, assay = NULL, value) {
+  UseMethod(generic = 'vrMainSpatial<-', object = object)
 }
 
 #' vrMainChannel

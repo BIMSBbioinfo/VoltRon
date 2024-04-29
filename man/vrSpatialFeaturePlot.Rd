@@ -25,6 +25,7 @@ vrSpatialFeaturePlot(
   reg = FALSE,
   crop = FALSE,
   common.legend = FALSE,
+  legend.loc = "right",
   collapse = TRUE
 )
 }
@@ -63,14 +64,16 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{label}{if TRUE, labels of ROIs will be visualized too}
 
 \item{background}{the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
-and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainImage}) 
+and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
 and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.}
 
-\item{reg}{TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested}
+\item{reg}{TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested}
 
 \item{crop}{whether to crop an image of a spot assay to the extend of spots}
 
 \item{common.legend}{whether to use a common legend for all plots, see \link{ggarrange}}
+
+\item{legend.loc}{the location of the legend, default is "right"}
 
 \item{collapse}{whether to combine all ggplots}
 }

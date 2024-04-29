@@ -262,8 +262,8 @@ subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
 #'
 #' @export
 #'
-subset.vrSpatial <- function(object, ...){
-  subset.vrImage(object, ...)
+subset.vrSpatial <- function(object, subset, spatialpoints = NULL, image = NULL){
+  subset.vrImage(object, subset = subset, spatialpoints = spatialpoints, image = image)
 }
 
 ####
@@ -272,12 +272,16 @@ subset.vrSpatial <- function(object, ...){
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param ... arguements passed to other methods
+#' @param name the name of the main spatial system
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
+#' @param channel the name of the channel associated with the image
+#' @param as.raster return as raster
+#' @param scale.perc scale percentage if lower resolution image needed
 #'
 #' @rdname vrImages
 #' @order 2
 #' @export
-vrImages.VoltRon <- function(object, assay = NULL, ...){
+vrImages.VoltRon <- function(object, assay = NULL, name = NULL, reg = FALSE, channel = NULL, as.raster = FALSE, scale.perc = 100){
 
   # get assay names
   if(is.null(assay)){
@@ -287,7 +291,12 @@ vrImages.VoltRon <- function(object, assay = NULL, ...){
   }
 
   # get images
-  images <- sapply(assay_names, function(assy) vrImages(object[[assy]], ...), USE.NAMES = TRUE)
+  images <- sapply(assay_names, function(assy) vrImages(object[[assy]], 
+                                                        name = name, 
+                                                        reg = reg, 
+                                                        channel = channel,
+                                                        as.raster = as.raster, 
+                                                        scale.perc = scale.perc), USE.NAMES = TRUE)
   if(length(images) == 1){
     return(images[[1]])
   } else {
@@ -295,14 +304,10 @@ vrImages.VoltRon <- function(object, assay = NULL, ...){
   }
 }
 
-#' @param name the name of the main image
-#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
-#' @param channel the name of the channel associated with the image
-#'
 #' @rdname vrImages
 #' @order 3
 #' @export
-vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, ...){
+vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, as.raster = FALSE, scale.perc = 100){
 
   # check image name
   if(is.null(name)) {
@@ -311,7 +316,8 @@ vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, .
 
   # get registered image
   if(reg){
-    if(!paste0(name, "_reg") %in% vrImageNames(object)){
+    # if(!paste0(name, "_reg") %in% vrImageNames(object)){
+    if(!paste0(name, "_reg") %in% vrSpatialNames(object)){
       warning("There are no registered images with name ", name, "!")
     } else {
       name <- paste0(name, "_reg")
@@ -319,11 +325,12 @@ vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, .
   }
 
   # check main image
-  if(!name %in% vrImageNames(object)){
+  # if(!name %in% vrImageNames(object)){
+  if(!name %in% vrSpatialNames(object)){
     stop(name, " is not among any image in this vrAssay object")
   }
 
-  return(vrImages(object@image[[name]], channel = channel, ...))
+  return(vrImages(object@image[[name]], channel = channel, as.raster = as.raster, scale.perc = scale.perc))
 }
 
 #' @param value new image
@@ -352,9 +359,6 @@ vrImages.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL, .
   return(object)
 }
 
-#' @param as.raster return as raster
-#' @param scale.perc scale percentage if lower resolution image needed
-#'
 #' @rdname vrImages
 #' @order 4
 #' @importFrom magick image_read geometry_size_percent
@@ -407,16 +411,13 @@ vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE, scale.pe
   }
 }
 
-#' @param as.raster return as raster
-#' @param scale.perc scale percentage if lower resolution image needed
-#'
 #' @rdname vrImages
 #' @order 4
 #' @importFrom magick image_read geometry_size_percent
 #'
 #' @export
-vrImages.vrSpatial <- function(object, ...){
-  vrImages.vrImage(object, ...)
+vrImages.vrSpatial <- function(object, channel = NULL, as.raster = FALSE, scale.perc = 100){
+  vrImages.vrImage(object, channel = channel, as.raster = as.raster, scale.perc = scale.perc)
 }
 
 #' @rdname vrImages
@@ -466,7 +467,7 @@ vrImages.vrSpatial <- function(object, ...){
 }
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays.
 #'
 #' @rdname vrMainImage
 #' @order 2
@@ -476,14 +477,35 @@ vrMainImage.VoltRon <- function(object, assay = NULL){
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
 
+  # if assay = all, give a summary
+  if(!is.null(assay)){
+    if(assay == "all"){
+      spatial_names <- unlist(lapply(rownames(SampleMetadata(object)), function(x) paste(vrMainSpatial(object[[x]]), collapse = ",")))
+      spatial_names <- data.frame(Assay = assay_names, Spatial = spatial_names)
+      return(spatial_names)
+    }
+  }
+  
   # get assay types
-  image_names <- unlist(lapply(assay_names, function(x) vrMainImage(object[[x]])))
+  # image_names <- unlist(lapply(assay_names, function(x) vrMainImage(object[[x]])))
+  spatial_names <- unlist(lapply(assay_names, function(x) vrMainSpatial(object[[x]])))
 
   # return data
-  image_data <- data.frame(Assay = assay_names, Image = image_names)
+  # image_data <- data.frame(Assay = assay_names, Image = image_names)
+  spatial_data <- data.frame(Assay = assay_names, Spatial = spatial_names)
 
   # return
-  return(image_data)
+  return(spatial_data)
+}
+
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#'
+#' @rdname vrMainSpatial
+#' @order 2
+#' @export
+vrMainSpatial.VoltRon <- function(object, assay = NULL){
+  vrMainImage.VoltRon(object, assay = assay)
 }
 
 #' @param value the name of main image
@@ -495,7 +517,8 @@ vrMainImage.VoltRon <- function(object, assay = NULL){
 
   if(!is.null(assay)){
     if(length(assay) == 1){
-      vrMainImage(object[[assay]]) <- value
+      # vrMainImage(object[[assay]]) <- value
+      vrMainSpatial(object[[assay]]) <- value
     } else {
       stop("You can only set the main image of a single assay")
     }
@@ -506,11 +529,38 @@ vrMainImage.VoltRon <- function(object, assay = NULL){
   return(object)
 }
 
+#' @param value the name of main image
+#'
+#' @rdname vrMainSpatial
+#' @order 4
+#' @export
+"vrMainSpatial<-.VoltRon" <- function(object, assay = NULL, value){
+  
+  if(!is.null(assay)){
+    if(length(assay) == 1){
+      vrMainSpatial(object[[assay]]) <- value
+    } else {
+      stop("You can only set the main spatial system of a single assay")
+    }
+  } else {
+    stop("You should define the assay whose main spatial system you wanna set, by using 'Assay = <assay name>'")
+  }
+  
+  return(object)
+}
+
 #' @rdname vrMainImage
 #' @order 3
 #' @export
 vrMainImage.vrAssay <- function(object){
   return(object@main_image)
+}
+
+#' @rdname vrMainSpatial
+#' @order 3
+#' @export
+vrMainSpatial.vrAssay <- function(object){
+  vrMainImage.vrAssay(object)
 }
 
 #' @rdname vrMainImage
@@ -531,8 +581,26 @@ vrMainImage.vrAssay <- function(object){
   return(object)
 }
 
+#' @rdname vrMainSpatial
+#' @order 5
+#' @export
+"vrMainSpatial<-.vrAssay" <- function(object, value){
+  
+  if(length(value) == 2){
+    channel <- value[2]
+    value <- value[1]
+    object@main_image <- value
+    vrMainChannel(object@image[[value]]) <- channel
+  } else if(length(value) == 1){
+    object@main_image <- value
+  } else {
+    stop("The Main image is set by either: \n    vrMainSpatial(object) <- c('image name', 'channel name')\n or vrMainSpatial(object) <- 'image name'")
+  }
+  return(object)
+}
+
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays
 #'
 #' @rdname vrImageNames
 #'
@@ -542,10 +610,29 @@ vrImageNames.VoltRon <- function(object, assay = NULL){
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
 
-  # get assay types
-  image_names <- unique(unlist(lapply(assay_names, function(x) vrImageNames(object[[x]]))))
+  # if assay = all, give a summary
+  if(!is.null(assay)){
+    if(assay == "all"){
+      spatial_names <- unlist(lapply(assay_names, function(x) paste(vrSpatialNames(object[[x]]), collapse = ",")))
+      spatial_names <- data.frame(Assay = assay_names, Spatial = spatial_names)
+      return(spatial_names)
+    }
+  }
+  
+  # image_names <- unique(unlist(lapply(assay_names, function(x) vrImageNames(object[[x]]))))
+  spatial_names <- unique(unlist(lapply(assay_names, function(x) vrSpatialNames(object[[x]]))))
+  
+  return(spatial_names)
+}
 
-  return(image_names)
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#'
+#' @rdname vrSpatialNames
+#'
+#' @export
+vrSpatialNames.VoltRon <- function(object, assay = NULL){
+  vrImageNames.VoltRon(object, assay = assay)
 }
 
 #' @rdname vrImageNames
@@ -553,6 +640,13 @@ vrImageNames.VoltRon <- function(object, assay = NULL){
 #' @export
 vrImageNames.vrAssay <- function(object){
   return(names(object@image))
+}
+
+#' @rdname vrSpatialNames
+#'
+#' @export
+vrSpatialNames.vrAssay <- function(object){
+  vrImageNames.vrAssay(object)
 }
 
 ####
@@ -566,7 +660,8 @@ vrImageNames.vrAssay <- function(object){
 #' @export
 vrMainChannel.vrAssay <- function(object, name = NULL){
   if(is.null(name)){
-    name <- vrMainImage(object)
+    # name <- vrMainImage(object)
+    name <- vrMainSpatial(object)
   }
   return(vrMainChannel(object@image[[name]]))
 }
@@ -578,7 +673,8 @@ vrMainChannel.vrAssay <- function(object, name = NULL){
 #' @export
 "vrMainChannel<-.vrAssay" <- function(object, name = NULL, value){
   if(is.null(name)){
-    name <- vrMainImage(object)
+    # name <- vrMainImage(object)
+    name <- vrMainSpatial(object)
   }
   vrMainChannel(object@image[[name]]) <- value
   return(object)
@@ -636,13 +732,14 @@ vrImageChannelNames.VoltRon <- function(object, assay = NULL){
   }
 
   # get image names
-  image_names <- unlist(lapply(assay_names, function(x) vrMainImage(object[[x]])))
+  # image_names <- unlist(lapply(assay_names, function(x) vrMainImage(object[[x]])))
+  spatial_names <- unlist(lapply(assay_names, function(x) vrMainSpatial(object[[x]])))
 
   # get channel names
   image_channels <- unlist(lapply(assay_names, function(x) paste(vrImageChannelNames(object[[x]]), collapse = ",")))
 
   # return data
-  image_data <- data.frame(Assay = assay_names, Image = image_names, Channels = image_channels)
+  image_data <- data.frame(Assay = assay_names, Spatial = spatial_names, Channels = image_channels)
 
   # return
   return(image_data)
@@ -656,9 +753,12 @@ vrImageChannelNames.VoltRon <- function(object, assay = NULL){
 vrImageChannelNames.vrAssay <- function(object, name = NULL){
 
   if(is.null(name)){
-    name <- vrMainImage(object)
+    # name <- vrMainImage(object)
+    name <- vrMainSpatial(object)
   } else {
-    if(!name %in% vrImageNames(object))
+    # if(!name %in% vrImageNames(object))
+    #   stop(name, " is not among any image in this vrAssay object")
+    if(!name %in% vrSpatialNames(object))
       stop(name, " is not among any image in this vrAssay object")
   }
 
@@ -689,30 +789,29 @@ vrImageChannelNames.vrSpatial <- function(object){
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param ... arguements passed to other methods
+#' @param name the name of the image
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
+#' @param size the width of the resized image
 #'
 #' @rdname resizeImage
 #'
 #' @export
-resizeImage.VoltRon <- function(object, assay = NULL, ...){
+resizeImage.VoltRon <- function(object, assay = NULL, name = NULL, reg = FALSE, size = NULL){
   
   # sample.metadata <- SampleMetadata(object)
   # assay_names <- rownames(sample.metadata)
   assay_names <- vrAssayNames(object, assay = assay)
   
   for(assy in assay_names){
-    object[[assy]] <- resizeImage(object[[assy]], ...)
+    object[[assy]] <- resizeImage(object[[assy]], name = name, reg = reg, size = size)
   }
   return(object)
 }
 
-#' @param name the name of the image
-#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
-#'
 #' @rdname resizeImage
 #'
 #' @export
-resizeImage.vrAssay <- function(object, name = NULL, reg = FALSE, ...){
+resizeImage.vrAssay <- function(object, name = NULL, reg = FALSE, size = NULL){
 
   # get main image is main_image is null
   if(is.null(name)) {
@@ -721,7 +820,8 @@ resizeImage.vrAssay <- function(object, name = NULL, reg = FALSE, ...){
 
   # check registered image
   if(reg){
-    if(!paste0(name, "_reg") %in% vrImageNames(object)){
+    # if(!paste0(name, "_reg") %in% vrImageNames(object)){
+    if(!paste0(name, "_reg") %in% vrSpatialNames(object)){
       warning("There are no registered images with name ", name, "!")
     } else {
       name <- paste0(name, "_reg")
@@ -729,25 +829,29 @@ resizeImage.vrAssay <- function(object, name = NULL, reg = FALSE, ...){
   }
 
   # check main image
-  if(!name %in% vrImageNames(object)){
+  # if(!name %in% vrImageNames(object)){
+  if(!name %in% vrSpatialNames(object)){
     stop(name, " is not among any image in this vrAssay object")
   }
 
-  object@image[[name]] <- resizeImage(object@image[[name]], ...)
+  object@image[[name]] <- resizeImage(object@image[[name]], size = size)
 
   # return
   return(object)
 }
 
-#' @param size the width of the resized image
-#'
 #' @rdname resizeImage
 #'
 #' @importFrom magick image_info image_resize image_read image_data
 #' @export
-resizeImage.vrImage <- function(object, size){
+resizeImage.vrImage <- function(object, size = NULL){
 
+  # sizefactor
+  sizefactor <- image_info(vrImages(object))$width
+  
   # check size
+  if(is.null(size))
+    size = sizefactor
   if(!is.numeric(size))
     stop("width size should be numeric")
   if(!all.equal(size, as.integer(size)) & size > 0)
@@ -756,7 +860,6 @@ resizeImage.vrImage <- function(object, size){
     stop("width size cannot be less than 100px")
 
   # resize coordinates
-  sizefactor <- image_info(vrImages(object))$width
   vrCoordinates(object) <- (vrCoordinates(object)*size)/sizefactor
 
   # resize segments
@@ -781,42 +884,46 @@ resizeImage.vrImage <- function(object, size){
   return(object)
 }
 
-#' @param size the width of the resized image
-#'
 #' @rdname resizeImage
 #'
 #' @importFrom magick image_info image_resize image_read image_data
 #' @export
-resizeImage.vrSpatial <- function(object, ...) {
-  resizeImage.vrImage(object, ...)
+resizeImage.vrSpatial <- function(object, size = NULL) {
+  resizeImage.vrImage(object, size = size)
 }
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param ... arguements passed to other methods
+#' @param name the name of the image
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
+#' @param channel the name of the channel associated with the image
+#' @param brightness modulation of brightness as percentage of the current value (100 for no change)
+#' @param saturation modulation of saturation as percentage of the current value (100 for no change)
+#' @param hue modulation of hue is an absolute rotation of -180 degrees to +180 degrees from the current position corresponding to an argument range of 0 to 200 (100 for no change)
+#' @param force if TRUE, all channels will be modulated given no specific channel name
 #'
 #' @rdname modulateImage
 #'
 #' @export
-modulateImage.VoltRon <- function(object, assay = NULL, ...){
+modulateImage.VoltRon <- function(object, assay = NULL, name = NULL, reg = FALSE, channel = NULL, 
+                                  brightness = 100, saturation = 100, hue = 100, force = FALSE){
   
   # sample.metadata <- SampleMetadata(object)
   # assay_names <- rownames(sample.metadata)
   assay_names <- vrAssayNames(object, assay = assay)
   
   for(assy in assay_names){
-    object[[assy]] <- modulateImage(object[[assy]], ...)
+    object[[assy]] <- modulateImage(object[[assy]], name = name, reg = reg, channel = channel, brightness = brightness, 
+                                    saturation = saturation, hue = hue, force = force)
   }
   return(object)
 }
 
-#' @param name the name of the image
-#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
-#'
 #' @rdname modulateImage
 #'
 #' @export
-modulateImage.vrAssay <- function(object,  name = NULL, reg = FALSE, ...){
+modulateImage.vrAssay <- function(object,  name = NULL, reg = FALSE, channel = NULL, 
+                                  brightness = 100, saturation = 100, hue = 100, force = FALSE){
 
   # check name
   if(is.null(name)) {
@@ -825,7 +932,8 @@ modulateImage.vrAssay <- function(object,  name = NULL, reg = FALSE, ...){
 
   # get registered image
   if(reg){
-    if(!paste0(name, "_reg") %in% vrImageNames(object)){
+    # if(!paste0(name, "_reg") %in% vrImageNames(object)){
+    if(!paste0(name, "_reg") %in% vrSpatialNames(object)){
       warning("There are no registered images with name ", name, "!")
     } else {
       name <- paste0(name, "_reg")
@@ -833,22 +941,18 @@ modulateImage.vrAssay <- function(object,  name = NULL, reg = FALSE, ...){
   }
 
   # check main image
-  if(!name %in% vrImageNames(object)){
+  # if(!name %in% vrImageNames(object)){
+  if(!name %in% vrSpatialNames(object)){
     stop(name, " is not among any image in this vrAssay object")
   }
 
-  object@image[[name]] <- modulateImage(object@image[[name]], ...)
+  object@image[[name]] <- modulateImage(object@image[[name]], channel = channel, brightness = brightness, 
+                                        saturation = saturation, hue = hue, force = force)
 
   # return
   return(object)
 }
 
-#' @param channel the name of the channel associated with the image
-#' @param brightness modulation of brightness as percentage of the current value (100 for no change)
-#' @param saturation modulation of saturation as percentage of the current value (100 for no change)
-#' @param hue modulation of hue is an absolute rotation of -180 degrees to +180 degrees from the current position corresponding to an argument range of 0 to 200 (100 for no change)
-#' @param force if TRUE, all channels will be modulated given no specific channel name
-#'
 #' @rdname modulateImage
 #'
 #' @importFrom magick image_info image_modulate
@@ -882,36 +986,39 @@ modulateImage.vrImage <- function(object, channel = NULL, brightness = 100, satu
 #' @importFrom magick image_info image_modulate
 #' @export
 #'
-modulateImage.vrSpatial <- function(object, ...){
-  modulateImage.vrImage(object, ...)
+modulateImage.vrSpatial <- function(object, channel = NULL, brightness = 100, saturation = 100, hue = 100, force = FALSE){
+  modulateImage.vrImage(object, channel = channel, brightness = brightness, saturation = saturation, hue = hue, force = force)
 }
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param ... arguements passed to other methods
+#' @param name the name of the image
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
+#' @param channels the name of the channel associated with the image
+#' @param colors the colors associated with each channel
+#' @param channel_key the name of the new channel name
 #'
 #' @rdname combineChannels
 #'
 #' @export
-combineChannels.VoltRon <- function(object, assay = NULL, ...){
+combineChannels.VoltRon <- function(object, assay = NULL, name = NULL, reg = FALSE, 
+                                    channels = NULL, colors = NULL, channel_key = "combined"){
 
   # sample.metadata <- SampleMetadata(object)
   # assay_names <- rownames(sample.metadata)
   assay_names <- vrAssayNames(object, assay = assay)
   
   for(assy in assay_names){
-    object[[assy]] <- combineChannels(object[[assy]], ...)
+    object[[assy]] <- combineChannels(object[[assy]], name = name, reg = reg, 
+                                      channels = channels, colors = colors, channel_key = channel_key)
   }
   return(object)
 }
 
-#' @param name the name of the image
-#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
-#'
 #' @rdname combineChannels
 #'
 #' @export
-combineChannels.vrAssay <- function(object,  name = NULL, reg = FALSE, ...){
+combineChannels.vrAssay <- function(object,  name = NULL, reg = FALSE, channels = NULL, colors = NULL, channel_key = "combined"){
 
   # check name
   if(is.null(name)) {
@@ -920,7 +1027,8 @@ combineChannels.vrAssay <- function(object,  name = NULL, reg = FALSE, ...){
 
   # get registered image
   if(reg){
-    if(!paste0(name, "_reg") %in% vrImageNames(object)){
+    # if(!paste0(name, "_reg") %in% vrImageNames(object)){
+    if(!paste0(name, "_reg") %in% vrSpatialNames(object)){
       warning("There are no registered images with name ", name, "!")
     } else {
       name <- paste0(name, "_reg")
@@ -928,20 +1036,17 @@ combineChannels.vrAssay <- function(object,  name = NULL, reg = FALSE, ...){
   }
 
   # check main image
-  if(!name %in% vrImageNames(object)){
+  # if(!name %in% vrImageNames(object)){
+  if(!name %in% vrSpatialNames(object)){
     stop(name, " is not among any image in this vrAssay object")
   }
 
-  object@image[[name]] <- combineChannels(object@image[[name]], ...)
+  object@image[[name]] <- combineChannels(object@image[[name]], channels = channels, colors = colors, channel_key = channel_key)
 
   # return
   return(object)
 }
 
-#' @param channels the name of the channel associated with the image
-#' @param colors the colors associated with each channel
-#' @param channel_key the name of the new channel name
-#'
 #' @rdname combineChannels
 #'
 #' @importFrom magick image_read image_data image_composite
@@ -1000,8 +1105,8 @@ combineChannels.vrImage <- function(object, channels = NULL, colors = NULL, chan
 #' @rdname combineChannels
 #'
 #' @export
-combineChannels.vrSpatial <- function(object, ...){
-  combineChannels.vrImage(object, ...)
+combineChannels.vrSpatial <- function(object, channels = NULL, colors = NULL, channel_key = "combined"){
+  combineChannels.vrImage(object, channels = channels, colors = colors, channel_key = channel_key)
 }
 
 ####
@@ -1029,7 +1134,7 @@ vrSpatialPoints.vrSpatial <- function(object) {
 #' @rdname vrSpatialPoints
 #' @order 9
 #' @export
-"vrSpatialPoints<-.vrImage" <- function(object, ..., value) {
+"vrSpatialPoints<-.vrImage" <- function(object, value) {
 
   # coordinates
   if(length(rownames(object@coords)) != length(value)){
@@ -1056,7 +1161,7 @@ vrSpatialPoints.vrSpatial <- function(object) {
 #' @rdname vrSpatialPoints
 #' @order 9
 #' @export
-"vrSpatialPoints<-.vrSpatial" <- function(object, ..., value) {
+"vrSpatialPoints<-.vrSpatial" <- function(object, value) {
   
   # coordinates
   if(length(rownames(object@coords)) != length(value)){
@@ -1223,12 +1328,14 @@ vrSegments.vrSpatial<- function(object) {
 #'
 demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
 {
-  # get images
-  images <- vrImages(object)
-
   # check if there are only one assay in the object
-  if(nrow(SampleMetadata(object)) > 1)
-    stop("You can only subset a VoltRon assay with one image")
+  sample.metadata <- SampleMetadata(object)
+  
+  if(length(unique(sample.metadata$Layer)) > 1)
+    stop("You can only subset a single VoltRon layer at a time")
+  
+  # get images
+  images <- vrImages(object, assay = vrAssayNames(object))
 
   # scale
   imageinfo <- magick::image_info(images)
@@ -1455,7 +1562,6 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
 
           # collect labels
           sample_names <- sapply(1:length(box_list$box), function(i) input[[paste0("sample",i)]])
-          print(sample_names)
 
           for(i in 1:length(box_list$box)){
             temp <- subset(object, image = box_list$box[i])
@@ -1472,4 +1578,3 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
     shiny::runApp(shiny::shinyApp(ui, server))
   }
 }
-

@@ -96,36 +96,11 @@ You can also specify the assay ID or the assay type to call metadata of a subset
 Metadata(visium_data, assay = "Visium")
 Metadata(visium_data, assay = "Assay1")
 ```
-
-```
-                          Count  Assay    Layer    Sample
-AAAGGCTCTCGCGCCG-1_Assay1 39690 Visium Section1 Anterior1
-AAATGGCCCGTGCCCT-1_Assay1 33516 Visium Section1 Anterior1
-AAATTACACGACTCTG-1_Assay1 12250 Visium Section1 Anterior1
-AAGACATACGTGGTTT-1_Assay1 31821 Visium Section1 Anterior1
-ACCTACTATAAATCTA-1_Assay1 41387 Visium Section1 Anterior1
-ACGCGGGCCAAGGACA-1_Assay1 48003 Visium Section1 Anterior1
-```
-
-<br>
-
 The **type** argument returns all spatial points of a given spatial point type (ROI, spot, cell, molecule or tile).
 
 ```{r eval = FALSE, class.source="watch-out"}
 Metadata(visium_data, type = "spot")
 ```
-
-```
-                          Count  Assay    Layer    Sample
-AAAGGCTCTCGCGCCG-1_Assay1 39690 Visium Section1 Anterior1
-AAATGGCCCGTGCCCT-1_Assay1 33516 Visium Section1 Anterior1
-AAATTACACGACTCTG-1_Assay1 12250 Visium Section1 Anterior1
-AAGACATACGTGGTTT-1_Assay1 31821 Visium Section1 Anterior1
-ACCTACTATAAATCTA-1_Assay1 41387 Visium Section1 Anterior1
-ACGCGGGCCAAGGACA-1_Assay1 48003 Visium Section1 Anterior1
-```
-
-<br>
 
 If the type argument is specified as **all**. Then this would return the VoltRon Metadata Object (vrMetadata)
 
@@ -263,38 +238,16 @@ vrCoordinates(visium_data, assay = "Visium")
 vrCoordinates(visium_data, assay = "Assay1")
 ```
 
-```
-                                 x        y
-AAAGGCTCTCGCGCCG-1_Assay1 271.9105 183.1497
-AAATGGCCCGTGCCCT-1_Assay1 136.8330 220.2237
-AAATTACACGACTCTG-1_Assay1 382.0482 436.6781
-AAGACATACGTGGTTT-1_Assay1 481.5491 102.7539
-ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
-ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120
-```
-
-<br>
-
-Each assay a VoltRon object may incorporate indefinite number of coordinate systems. One can look for these coordinate systems using the **vrMainImage** function, and select one of systems to call coordinates (see [vrMainImage](#image))
+Each assay a VoltRon object may incorporate indefinite number of coordinate systems. One can look for these coordinate systems using the **vrMainSpatial** function, and select one of systems to call coordinates (see [vrMainSpatial](#image))
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrCoordinates(visium_data, image_name = "H&E")
-```
-
-```
-                                 x        y
-AAAGGCTCTCGCGCCG-1_Assay1 271.9105 183.1497
-AAATGGCCCGTGCCCT-1_Assay1 136.8330 220.2237
-AAATTACACGACTCTG-1_Assay1 382.0482 436.6781
-AAGACATACGTGGTTT-1_Assay1 481.5491 102.7539
-ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
-ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120
+vrCoordinates(visium_data, spatial_name = "main")
 ```
 
 The **reg** option in the **vrCoordinates** function looks for a registered version of the main coordinate system and returns its coordinates (if there is any).
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrCoordinates(visium_data, image_name = "H&E", reg = TRUE)
+vrCoordinates(visium_data, spatial_name = "main", reg = TRUE)
 ```
 
 ```
@@ -305,6 +258,9 @@ AAATTACACGACTCTG-1_Assay1 382.0482 436.6781
 AAGACATACGTGGTTT-1_Assay1 481.5491 102.7539
 ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
 ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120
+Warning message:
+In vrCoordinates.vrAssay(object[[assy]], spatial_name = spatial_name,  :
+  There are no registered spatial systems with name main!
 ```
 
 <br>
@@ -313,10 +269,10 @@ The arguements of the **vrSegments** functions are idential to vrCoordinates and
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrSegments(xenium_data)
-vrSegments(visium_data, assay = "Visium")
-vrSegments(visium_data, assay = "Assay1")
-vrSegments(visium_data, image_name = "H&E")
-vrSegments(visium_data, image_name = "H&E", reg = TRUE)
+vrSegments(xenium_data, assay = "Xenium")
+vrSegments(xenium_data, assay = "Assay1")
+vrSegments(xenium_data, spatial_name = "main")
+vrSegments(xenium_data, spatial_name = "main", reg = TRUE)
 ```
 
 ```
@@ -359,36 +315,38 @@ $`77200_Assay1`
 
 <br>
 
-## Images {#image}
+## Images and Spatial Systems {#image}
 
 Below we review some of the essential built-in functions to manipulate and manage images of a VoltRon object. 
 
-### Image and channel names
+### Spatial system names
 
-In a VoltRon object, each image has a unique ID which is also associated with a coordinate system. The names of these images (or systems) can be called using the **vrImageNames** function.
+In a VoltRon object, each image has a unique ID which is also associated with a coordinate (or spatial) system. The names of these spatial systems can be called using the **vrSpatialNames** function.
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrImageNames(visium_data)
+vrSpatialNames(visium_data)
 ```
 
 ```
-[1] "H&E"
+[1] "main"
 ```
 
 You can also specify the assay ID or the assay type to call image names of a subset assays or any assay type (see [Sample Metadata](#samplemetadata))
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrImageNames(visium_data, assay = "Visium")
-vrImageNames(visium_data, assay = "Assay1")
+vrSpatialNames(visium_data, assay = "Visium")
+vrSpatialNames(visium_data, assay = "Assay1")
 ```
 
 ```
-[1] "H&E"
+[1] "main"
 ```
 
 <br>
 
-Each image object (vrImage) in VoltRon object can also include a indefinite number of channels which you can get (or request) a list of for further use.
+### Channel names
+
+Each spatial system object (vrSpatial) in VoltRon object can also include a indefinite number of channels which you can get (or request) a list of for further use.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrImageChannelNames(melc_data)
@@ -397,35 +355,35 @@ vrImageChannelNames(melc_data, assay = "Assay1")
 ```
 
 ```
-   Assay Image  Channels
-1 Assay1  MELC DAPI,CD45
+   Assay Spatial  Channels
+1 Assay1    MELC DAPI,CD45
 ```
 
 <br>
 
-### Default images
+### Default spatial systems
 
-If you wanna see the list of all images/systems associated with all assays of the main assay type, you can call the **vrMainImage** function.
-
-```{r eval = FALSE, class.source="watch-out"}
-vrMainImage(visium_data)
-```
-
-```
-   Assay Image
-1 Assay1   H&E
-```
-
-You can also specify the assay ID or the assay type to call image names of a subset assays or any assay type (see [Sample Metadata](#samplemetadata))
+If you wanna see the list of all spatial systems associated with all assays of the main assay type, you can call the **vrMainSpatial** function.
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrMainImage(visium_data, assay = "Visium")
-vrMainImage(visium_data, assay = "Assay1")
+vrMainSpatial(visium_data)
 ```
 
 ```
-   Assay Image
-1 Assay1   H&E
+   Assay Spatial
+1 Assay1    main
+```
+
+You can also specify the assay ID or the assay type to call spatial system names of a subset assays or any assay type (see [Sample Metadata](#samplemetadata))
+
+```{r eval = FALSE, class.source="watch-out"}
+vrMainSpatial(visium_data, assay = "Visium")
+vrMainSpatial(visium_data, assay = "Assay1")
+```
+
+```
+   Assay Spatial
+1 Assay1    main
 ```
 
 <br>
@@ -454,10 +412,10 @@ vrImages(melc_data, name = "MELC", channel = "DAPI")
 
 <br>
 
-You can set up the main channel as well as the main image name for later use.
+You can set up the main channel as well as the main spatial system name for later use.
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrMainImage(melc_data, assay = "Assay1") <- c("MELC", "CD45")
+vrMainSpatial(melc_data, assay = "Assay1") <- c("MELC", "CD45")
 vrImages(melc_data)
 ```
 
@@ -490,8 +448,8 @@ vrImageChannelNames(melc_data)
 ```
 
 ```
-   Assay Image           Channels
-1 Assay1  MELC DAPI,CD45,combined
+   Assay Spatial           Channels
+1 Assay1    MELC DAPI,CD45,combined
 ```
 
 ```{r eval = FALSE, class.source="watch-out"}
@@ -726,9 +684,9 @@ vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE,
 
 <br>
 
-In cases where there are multiple coordinate systems, you can get the background set to the name of the image (or coordinate system). You can get the name of these images from [vrImageNames](#image). 
+In cases where there are multiple coordinate systems, you can get the background set to the name of the image (or coordinate system). You can get the name of these images from [vrSpatialNames](#image). 
 
-If also want to select a channel from the same coordinate system, you can set background arguement as a vector of 2 where first is the name of the image (coordinate system) and the other would be channel name. You can get the name of these channels from [[vrImageChannelNames](#image).
+If also want to select a channel from the same coordinate system, you can set background arguement as a vector of 2 where first is the name of the image (coordinate system) and the other would be channel name. You can get the name of these channels from [vrImageChannelNames](#image).
 
 
 ```{r eval = FALSE, class.source="watch-out"}
@@ -743,7 +701,7 @@ vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE,
 If the visualized assay is of a type "spot", you can crop the image to encapsulate the smallest subset that include all spots.
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(visium_data, group.by = "clusters", crop = TRUE)
+vrSpatialPlot(visium_data, group.by = "Sample", crop = TRUE)
 ```
 
 <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spcrop.png" class="center">

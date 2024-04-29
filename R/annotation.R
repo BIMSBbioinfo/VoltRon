@@ -56,7 +56,8 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
 
   # get image name and channel
   if(is.null(image_name)){
-    image_name <- vrMainImage(object[[assay]])
+    # image_name <- vrMainImage(object[[assay]])
+    image_name <- vrMainSpatial(object[[assay]])
   }
 
   # get image
@@ -325,7 +326,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
           object <- addAssay.VoltRon(object,
                                      assay = new_assay,
                                      metadata = data.frame(check.rows = FALSE, row.names = rownames(coords)),
-                                     assay_name = "ROIannotation",
+                                     assay_name = "ROIAnnotation",
                                      sample = sample_metadata[assay, "Sample"],
                                      layer = sample_metadata[assay, "Layer"])
           
@@ -338,3 +339,4 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
     shiny::runApp(shiny::shinyApp(ui, server))
   }
 }
+  

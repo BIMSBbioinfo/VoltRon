@@ -50,7 +50,8 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 
   # image
   if(use_image){
-    suppressMessages(generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level, overwrite_resolution = overwrite_resolution))
+    # suppressMessages(generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level, overwrite_resolution = overwrite_resolution))
+    generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level, overwrite_resolution = overwrite_resolution)
     image_file <- paste0(dir.path, "/", morphology_image)
     if(file.exists(image_file)){
       image <-  image_read(image_file)
@@ -195,32 +196,39 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #' @export
 #'
 generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_level = 7, overwrite_resolution = FALSE, output.path = NULL, file.name = "morphology_lowres.tif", ...) {
-
+  
   # file path to either Xenium output folder or specified folder
   file.path <- paste0(dir.path, "/", file.name)
   output.file <- paste0(output.path, "/", file.name)
-
+  
   # check if the file exists in either Xenium output folder, or the specified location
   if((file.exists(file.path) | file.exists(paste0(output.file))) & !overwrite_resolution){
     message(paste0(file.name, " already exists!"))
   } else {
-    message("Loading morphology_mip.ome.tif \n")
     if (!requireNamespace('RBioFormats'))
       stop("Please install RBioFormats package to read the ome.tiff file!")
-    morphology_image_lowres <- RBioFormats::read.image(paste0(dir.path, "/morphology_mip.ome.tif"), resolution = resolution_level)
-
+    if(dir.exists(paste0(dir.path, "/morphology_focus"))){
+      message("Loading morphology_focus_0000.ome.tif ...")
+      morphology_image_lowres <- RBioFormats::read.image(paste0(dir.path, "/morphology_focus/morphology_focus_0000.ome.tif"),
+                                                         resolution = resolution_level,
+                                                         subset=list(C=1))
+    } else if(file.exists(paste0(dir.path, "/morphology_mip.ome.tif"))) {
+      message("Loading morphology_mip.ome.tif ...")
+      morphology_image_lowres <- RBioFormats::read.image(paste0(dir.path, "/morphology_mip.ome.tif"), resolution = resolution_level)
+    }
+    
     # pick a resolution level
     image_info <- morphology_image_lowres@metadata$coreMetadata
-    message(paste0("Image Resolution (X:", image_info$sizeX, " Y:", image_info$sizeY, ") \n"))
-
+    message(paste0("  Image Resolution (X:", image_info$sizeX, " Y:", image_info$sizeY, ") ..."))
+    
     # increase contrast using EBImage
     if(increase.contrast) {
-      message("Increasing Contrast \n")
+      message("  Increasing Contrast ...")
       morphology_image_lowres <- (morphology_image_lowres/max(morphology_image_lowres))
     }
-
+    
     # write to the same folder
-    message("Writing Tiff File")
+    message("  Writing Tiff File ...")
     if(is.null(output.path)){
       EBImage::writeImage(morphology_image_lowres, file = file.path, ...)
     } else {
@@ -802,6 +810,7 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
       coords <- as.data.frame(t(coords))
       colnames(coords) <- c("x", "y")
       coords <- rescaleGeoMxPoints(coords, summary, imageinfo)
+      coords <- data.frame(id = cur_ROI$Union$Label[["Text"]], coords)
       mask_lists[[cur_ROI$Union$Label[["Text"]]]] <- data.frame(coords)
 
     # if the shape is an ellipse
@@ -812,6 +821,7 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
       coords[,c("x", "y")] <- rescaleGeoMxPoints(coords[,c("x", "y")], summary, imageinfo)
       coords$rx <- coords$rx * imageinfo$width/summary$Scan.Width[1]
       coords$ry <- coords$ry * imageinfo$height/summary$Scan.Height[1]
+      coords <- data.frame(id = cur_ROI$Union$Label[["Text"]], coords)
       mask_lists[[cur_ROI$Union$Label[["Text"]]]] <- coords
     }
   }
@@ -1140,6 +1150,7 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #' @param tile.size the size of tiles
 #' @param stack.id the id of the stack when the magick image composed of multiple layers
 #' @param segments Either a list of segments or a GeoJSON file. This will result in a second assay in the VoltRon object to be created
+#' @param image_name the image name of the Image assay, Default: main
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
@@ -1147,7 +1158,7 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #'
 #' @export
 #'
-importImageData <- function(image, tile.size = 10, stack.id = 1, segments = NULL, ...){
+importImageData <- function(image, tile.size = 10, stack.id = 1, segments = NULL, image_name = "main", ...){
 
   # get image
   if(!inherits(image, "magick-image")){
@@ -1189,7 +1200,7 @@ importImageData <- function(image, tile.size = 10, stack.id = 1, segments = NULL
   metadata <- data.table(id = rownames(coords))
 
   # create voltron object with tiles
-  object <- formVoltRon(data = NULL, metadata = metadata, image = image, coords, main.assay = "ImageData", assay.type = "tile", params = list(tile.size = tile.size), ...)
+  object <- formVoltRon(data = NULL, metadata = metadata, image = image, coords, main.assay = "ImageData", assay.type = "tile", params = list(tile.size = tile.size), image_name = image_name, ...)
   
   # check if segments are defined
   if(is.null(segments)){
@@ -1212,7 +1223,7 @@ importImageData <- function(image, tile.size = 10, stack.id = 1, segments = NULL
     rownames(coords) <- names(segments)
     
     # make segment assay
-    assay <- formAssay(coords = coords, segments = segments, image = image, type = "ROI") 
+    assay <- formAssay(coords = coords, segments = segments, image = image, type = "ROI", main_image = image_name) 
     
     # add segments as assay
     sample_metadata <- SampleMetadata(object)

@@ -8,7 +8,7 @@
 \usage{
 getFeatures(object, assay = NULL, max.count = 1, n = 3000)
 
-\method{getFeatures}{VoltRon}(object, assay = NULL, ...)
+\method{getFeatures}{VoltRon}(object, assay = NULL, max.count = 1, n = 3000)
 
 \method{getFeatures}{vrAssay}(object, max.count = 1, n = 3000)
 }
@@ -21,8 +21,6 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{max.count}{maximum count (across spatial points) for low count filtering}
 
 \item{n}{the top number of variable features}
-
-\item{...}{arguements passed to other methods}
 }
 \description{
 Get variable features of assays

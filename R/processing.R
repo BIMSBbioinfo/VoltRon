@@ -6,15 +6,11 @@ NULL
 # Normalization ####
 ####
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param ... additional parameters passed to \link{normalizeData.vrAssay}
-#'
 #' @rdname normalizeData
 #' @method normalizeData VoltRon
 #'
 #' @export
-normalizeData.VoltRon <- function(object, assay = NULL, ...) {
+normalizeData.VoltRon <- function(object, assay = NULL, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2, sizefactor = 10000) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -22,18 +18,13 @@ normalizeData.VoltRon <- function(object, assay = NULL, ...) {
   # normalize assays
   for(assy in assay_names){
     cur_assay <- object[[assy]]
-    object[[assy]] <- normalizeData(cur_assay, ...)
+    object[[assy]] <- normalizeData(cur_assay, method = method, desiredQuantile = desiredQuantile, scale = scale, sizefactor = sizefactor)
   }
 
   # return
   return(object)
 }
 
-#' @param method the normalization method: "LogNorm", "Q3Norm", "LogQ3Norm" or "CLR"
-#' @param desiredQuantile the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}.
-#' @param scale the scale parameter for the hyperbolic arcsine transformation
-#' @param sizefactor size factor if \code{method} is selected as \code{LogNorm}
-#'
 #' @rdname normalizeData
 #' @method normalizeData vrAssay
 #'
@@ -89,30 +80,23 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
 # Features ####
 ####
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param ... arguements passed to other methods
-#' 
 #' @rdname getFeatures
 #'
 #' @export
-getFeatures.VoltRon <- function(object, assay = NULL, ...){
+getFeatures.VoltRon <- function(object, assay = NULL, max.count = 1, n = 3000){
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get features for all coordinates
   for(assy in assay_names){
-    object[[assy]] <- getFeatures(object[[assy]], ...)
+    object[[assy]] <- getFeatures(object[[assy]], max.count = max.count, n = n)
   }
 
   # return
   return(object)
 }
 
-#' @param max.count maximum count (across spatial points) for low count filtering
-#' @param n the top number of variable features 
-#'
 #' @rdname getFeatures
 #'
 #' @importFrom stats loess predict var
@@ -219,7 +203,7 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #'
 #' @export
 #'
-getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca", overwrite = FALSE, seed = 1, ...){
+getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca", overwrite = FALSE, seed = 1){
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -284,7 +268,7 @@ getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca
 #'
 #' @export
 #'
-getUMAP <- function(object, assay = NULL, data.type = "pca", dims = 1:30, umap.key = "umap", overwrite = FALSE, seed = 1, ...){
+getUMAP <- function(object, assay = NULL, data.type = "pca", dims = 1:30, umap.key = "umap", overwrite = FALSE, seed = 1){
 
   # get data
   if(data.type %in% c("raw", "norm")){
