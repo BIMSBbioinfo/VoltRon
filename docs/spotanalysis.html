@@ -555,9 +555,14 @@ The behaviour of <strong>vrSpatialFeaturePlot</strong> (and most
 plotting functions in VoltRon) depend on the number of assays associated
 with the assay type (e.g. Xenium is both cell and subcellular type).
 Here, we have two assays, and we visualize two features, hence the
-resulting plot would include four panels.</p>
+resulting plot would include four panels. Prior to spatial
+visualization, we can normalize the counts to correct for count depth of
+cells by <strong>(i)</strong> dividing counts with total counts in each
+cell, <strong>(ii)</strong> multiply with some constant (default:
+10000), and followed by <strong>(iii)</strong> log transformation of the
+counts.</p>
 <!-- We can either use the original main image as a background, which is the default behaviour of both vrSpatialFeaturePlot and vrSpatialPlot functions, or select either "black" or "white" backgrounds (e.g. **background = "white"**) as an additional arguement in both functions.  -->
-<pre class="r watch-out"><code>Xen_data &lt;- normalizeData(Xen_data)
+<pre class="r watch-out"><code>Xen_data &lt;- normalizeData(Xen_data, sizefactor = 1000)
 vrSpatialFeaturePlot(Xen_data, features = c(&quot;ACTA2&quot;, &quot;TCF7&quot;), alpha = 1, pt.size = 0.7)</code></pre>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatialfeature_xenium.png" class="center"></p>
 </div>
@@ -569,12 +574,6 @@ total counts of cells would make it challenging for phenotyping and
 clustering these cells. Hence, we remove such cells from the VoltRon
 objects.</p>
 <pre class="r watch-out"><code>Xen_data &lt;- subset(Xen_data, Count &gt; 5)</code></pre>
-<p>Later, we can move on to normalizing the counts to correct for count
-depth of cells by <strong>(i)</strong> dividing counts with total counts
-in each cell, <strong>(ii)</strong> multiply with some constant
-(default: 10000), and followed by <strong>(iii)</strong> log
-transformation of the counts.</p>
-<pre class="r watch-out"><code>Xen_data &lt;- normalizeData(Xen_data)</code></pre>
 <p>VoltRon is capable of reducing dimensionality of datasets using both
 PCA and UMAP which we gonna use to build profile-specific neighborhood
 graphs and partition the data into cell types.</p>
@@ -624,10 +623,11 @@ the <a href="conversion.html">Converting VoltRon Objects</a>.</p>
 <strong>Clusters</strong> column, called <strong>CellType</strong>, we
 can insert this new metadata column directly to the object.</p>
 <pre class="r watch-out"><code>clusters &lt;- factor(Xen_data$Clusters, levels = sort(unique(Xen_data$Clusters)))
-levels(clusters) &lt;- c(&quot;DCIS_1&quot;, &quot;DCIS_2&quot;, &quot;IT_1&quot;, &quot;ACTA2_myoepithelial&quot;, &quot;IT_2&quot;, &quot;IT_2&quot;,
-                      &quot;Macrophages&quot;, &quot;Adipocytes&quot;, &quot;CD8_TCells&quot;, &quot;CD4_TCells&quot;, 
-                      &quot;KRT15_myoepithelial&quot;, &quot;EndothelialCells&quot;, &quot;IT_4_LILRA4+&quot;, &quot;StromalCells&quot;, 
-                      &quot;PLD4+_LILRA4+_CD4+_Cells&quot;, &quot;MastCells&quot;, &quot;MyelomaCells&quot;, &quot;BCells&quot;)
+levels(clusters) &lt;- c(&quot;DCIS_1&quot;, &quot;DCIS_2&quot;, &quot;IT_1&quot;, &quot;Macrophages&quot;, &quot;Adipocytes&quot;,
+                      &quot;CD4_TCells&quot;, &quot;CD8_TCells&quot;, &quot;IT_2&quot;, &quot;StromalCells&quot;, &quot;IT_3&quot;,
+                      &quot;EndothelialCells&quot;, &quot;ACTA2_myoepithelial&quot;, &quot;ACTA2_myoepithelial&quot;, 
+                      &quot;DCIS_3&quot;, &quot;MastCells&quot;, &quot;MyelomaCells&quot;, &quot;BCells&quot;, 
+                      &quot;StromalCells&quot;, &quot;PLD4+_LILRA4+_CD4+_Cells&quot;, &quot;KRT15_myoepithelial&quot;)
 Xen_data$CellType &lt;- as.character(clusters)</code></pre>
 <p><strong>vrSpatialPlot</strong> function can visualize multiple types
 of metadata columns, and users can change the location of the legends as

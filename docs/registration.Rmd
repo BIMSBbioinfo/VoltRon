@@ -246,7 +246,7 @@ Assay5 Visium_pseudo_CellType Section2 10XBlock
 By visualizing the transferred labels on the Visium spots, we can see abundance of some DCIS and invasive tumor subtypes. 
 
 ```{r class.source="watch-out", eval = FALSE}
-vrSpatialFeaturePlot(VRBlock_new, assay = "Visium_pseudo_CellType",
+vrSpatialFeaturePlot(VRBlock, assay = "Visium_pseudo_CellType",
                      features = c("IT_1","DCIS_2"), 
                      crop = TRUE, alpha = 1, ncol = 3)
 ```
