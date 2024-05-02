@@ -64,17 +64,17 @@ In addition, VoltRon integrates with spot deconvolution methods such as RCTD to 
   <tr>
    <td onclick="location.href='registration.html';"> 
       <p class ="tutorial"> Spatial Data Alignment </p>
-      <img width="250" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration.png" class="center">
+      <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration.png" class="center">
       <p style = "margin: 3%"> Automated and manual alignment of spatial data assays</p>
    </td>
    <td onclick="location.href='multiomic.html';">
       <p class ="tutorial"> Multi-omic Integration </p>
-      <img width="250" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic.png" class="center">
+      <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic.png" class="center">
       <p style = "margin: 3%"> Integrating data modalities within or across tissue sections </p>
    </td>
    <td onclick="location.href='deconvolution.html';"> 
       <p class ="tutorial"> Niche Clustering </p>
-      <img width="250" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/deconvolution.png" class="center">
+      <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/deconvolution.png" class="center">
       <p style = "margin: 3%"> Clustering with ROI/spot deconvolution</p>
    </td>
   </tr>
@@ -93,18 +93,18 @@ In addition, VoltRon integrates with spot deconvolution methods such as RCTD to 
   <tr>
    <td onclick="location.href='roianalysis.html';"> 
       <p class ="tutorial"> Region of Interests (ROIs) </p>
-      <img width="280" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/GeoMx.png" class="center">
+      <img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/GeoMx.png" class="center">
       <p style = "margin: 3%"> Quality control, analysis and visualization of ROI segments </p>
    </td>
    <td onclick="location.href='spotanalysis.html';"> 
       <p class ="tutorial"> Cells/Spots </p>
-      <img width="280" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/spotanalysis.png" class="center">
+      <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/spotanalysis.png" class="center">
       <p style = "margin: 3%"> Quality control, analysis and visualization of Cell/Spot datasets </p>
    </td>
       <td onclick="location.href='moleculeanalysis.html';"> 
       <p class ="tutorial"> Molecules </p>
       <br>
-      <img width="280" height="230" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize.png" class="center">
+      <img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize.png" class="center">
       <br>
       <p style = "margin: 3%"> Analysis and visualization of Molecule datasets <br> <strong> (Under Development) </strong> </p>
    </td>
@@ -112,7 +112,7 @@ In addition, VoltRon integrates with spot deconvolution methods such as RCTD to 
   <tr>
      <td onclick="location.href='pixelanalysis.html';"> 
       <p class ="tutorial"> Pixels (Image Only) </p>
-      <img width="280" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/tissue_lowres_image_grid.png" class="center">
+      <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/tissue_lowres_image_grid.png" class="center">
       <p style = "margin: 3%"> Analysis and visualization of Image datasets <br> <strong> (Under Development) </strong> </p>
    </td>
    <td>
@@ -135,20 +135,20 @@ Here, we provide a group of tutorials to use additional features of the VoltRon 
   <tr>
    <td onclick="location.href='interactive.html';"> 
       <p class ="tutorial"> Interactive Utilities </p>
-      <img width="280" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactiveannotation.png" class="center">
+      <img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactiveannotation.png" class="center">
       <p style = "margin: 3%"> Interactive annotation and visualization  <br>  <strong> (Under Development) </strong> </p>
    </td>
    <td onclick="location.href='voltronobjects.html';"> 
       <p class ="tutorial"> Working with VoltRon Objects </p>
       <br>
-      <img width="280" height="210" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects.png" class="center">
+      <img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects.png" class="center">
       <br>
       <br>
       <p style = "margin: 3%"> Manipulating and configuring VoltRon objects </p>
    </td>
    <td onclick="location.href='importingdata.html';"> 
       <p class ="tutorial"> Importing Spatial Data </p>
-      <img width="250" height="250" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/technologies.png" class="center">
+      <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/technologies.png" class="center">
       <p style = "margin: 3%"> Importing readouts of spatial technologies <br> </p>
    </td>
   </tr>
@@ -156,7 +156,7 @@ Here, we provide a group of tutorials to use additional features of the VoltRon 
     <td onclick="location.href='conversion.html';"> 
       <p class ="tutorial"> Converting VoltRon Objects </p>
       <br>
-      <img width="270" height="200" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversion.png" class="center">
+      <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversion.png" class="center">
       <br>
       <br>
       <p style = "margin: 3%"> Converting VoltRon objects into Seurat and Squidpy (anndata) </strong></p>
