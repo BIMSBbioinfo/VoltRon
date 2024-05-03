@@ -116,12 +116,12 @@ vrSpatialPlot(Xen_R1_subset, assay = "Xenium_mol", group.by = "gene",
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize.png" class="center">
 
-We can also visualize count data of cells in the Xenium replicates. The behaviour of **vrSpatialFeaturePlot** (and most plotting functions in VoltRon) depend on the number of assays associated with the assay type (e.g. Xenium is both cell and subcellular type). Here, we have two assays, and we visualize two features, hence the resulting plot would include four panels.
+We can also visualize count data of cells in the Xenium replicates. The behaviour of **vrSpatialFeaturePlot** (and most plotting functions in VoltRon) depend on the number of assays associated with the assay type (e.g. Xenium is both cell and subcellular type). Here, we have two assays, and we visualize two features, hence the resulting plot would include four panels. Prior to spatial visualization, we can normalize the counts to correct for count depth of cells by **(i)** dividing counts with total counts in each cell, **(ii)** multiply with some constant (default: 10000), and followed by **(iii)** log transformation of the counts.  
 
 <!-- We can either use the original main image as a background, which is the default behaviour of both vrSpatialFeaturePlot and vrSpatialPlot functions, or select either "black" or "white" backgrounds (e.g. **background = "white"**) as an additional arguement in both functions.  -->
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-Xen_data <- normalizeData(Xen_data)
+Xen_data <- normalizeData(Xen_data, sizefactor = 1000)
 vrSpatialFeaturePlot(Xen_data, features = c("ACTA2", "TCF7"), alpha = 1, pt.size = 0.7)
 ```
 
@@ -133,12 +133,6 @@ Some number of cells in both Xenium replicates might have extremely low counts. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_data <- subset(Xen_data, Count > 5)
-```
-
-Later, we can move on to normalizing the counts to correct for count depth of cells by **(i)** dividing counts with total counts in each cell, **(ii)** multiply with some constant (default: 10000), and followed by **(iii)** log transformation of the counts.  
-
-```{r eval = FALSE, class.source="watch-out"}
-Xen_data <- normalizeData(Xen_data)
 ```
 
 VoltRon is capable of reducing dimensionality of datasets using both PCA and UMAP which we gonna use to build profile-specific neighborhood graphs and partition the data into cell types. 
@@ -200,10 +194,11 @@ Let us create a new metadata feature from the **Clusters** column, called **Cell
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 clusters <- factor(Xen_data$Clusters, levels = sort(unique(Xen_data$Clusters)))
-levels(clusters) <- c("DCIS_1", "DCIS_2", "IT_1", "ACTA2_myoepithelial", "IT_2", "IT_2",
-                      "Macrophages", "Adipocytes", "CD8_TCells", "CD4_TCells", 
-                      "KRT15_myoepithelial", "EndothelialCells", "IT_4_LILRA4+", "StromalCells", 
-                      "PLD4+_LILRA4+_CD4+_Cells", "MastCells", "MyelomaCells", "BCells")
+levels(clusters) <- c("DCIS_1", "DCIS_2", "IT_1", "Macrophages", "Adipocytes",
+                      "CD4_TCells", "CD8_TCells", "IT_2", "StromalCells", "IT_3",
+                      "EndothelialCells", "ACTA2_myoepithelial", "ACTA2_myoepithelial", 
+                      "DCIS_3", "MastCells", "MyelomaCells", "BCells", 
+                      "StromalCells", "PLD4+_LILRA4+_CD4+_Cells", "KRT15_myoepithelial")
 Xen_data$CellType <- as.character(clusters)
 ```
 

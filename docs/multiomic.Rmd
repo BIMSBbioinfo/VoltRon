@@ -46,16 +46,25 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 VoltRon is capable of analyzing molecule-level subcellular datasets independent of single cells, and specifically those that may also found outside of these cells. To demonstrate how VoltRon investigates extra-cellular molecules, we will make use of another Xenium in situ dataset where custom Xenium probes designed to hybridize distinct open reading frames of SARS-COV-2 virus molecules. These subcellular entities which then can be detected both within and outside of cells which allows to understand proliferation mechanics of the virus across the tissue.
 
-In this use case, we analyse readouts of **eight tissue micro array (TMA) tissue sections** that were fitted into the scan area of a slide loaded on a Xenium in situ instrument. These sections were cut from **control and COVID-19 lung tissues** of donors categorized based on disease durations (acute and prolonged). See [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information.
+In this use case, we analyse readouts of **eight tissue micro array (TMA) tissue sections** that were fitted into the scan area of a slide loaded on a Xenium in situ instrument. These sections were cut from **control and COVID-19 lung tissues** of donors categorized based on disease durations (acute and prolonged). You can download the standard Xenium output folder [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Xenium_SARSCOV2.zip).  
+
+For more information on the TMA blocks, see [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information. 
 
 <br>
 
 ## Single Cells and Molecules
 
-Across these eight TMA section, we investigate a section of acute case which is originated from a lung with extreme number of detected open reading frames of virus molecules. For convenience, we load a VoltRon object where cells are already annotated. 
+Across these eight TMA section, we investigate a section of acute case which is originated from a lung with extreme number of detected open reading frames of virus molecules. For convenience, we load a VoltRon object where cells are already annotated. You can also find the RDS file  [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/acutecase1_annotated.rds).
 
 ```{r eval = FALSE, class.source="watch-out"}
 vr2_merged_acute1 <- readRDS(file = "acutecase1_annotated.rds")
+```
+
+<br>
+
+Lets visualize both the UMAP and Spatial plot of the annotated cells.
+
+```{r eval = FALSE, class.source="watch-out"}
 vrEmbeddingPlot(vr2_merged_acute1, assay = "Xenium", embedding = "umap", 
                 group.by = "CellType", label = TRUE)
 vrSpatialPlot(vr2_merged_acute1, assay = "Xenium", group.by = "CellType",
@@ -134,7 +143,7 @@ vrSpatialPlot(imgdata, assay = "ROIAnnotation", group.by = "Sample",
 
 <br>
 
-We now register the H&E image and annotations to the DAPI image of Xenium section using the **registerSpatialData** function. See [Spatial Data Alignment](registration.html) tutorial for more information. 
+We now register the H&E image and annotations to the DAPI image of Xenium section using the **registerSpatialData** function. See [Spatial Data Alignment](registration.html) tutorial for more information. We select FLANN automated registration mode, negate the DAPI image of the Xenium slide, turn 90 degrees to the left and set the scale parameter of both images to width = 1859.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vr2_merged_acute1 <- modulateImage(vr2_merged_acute1, brightness = 300, channel = "DAPI")
@@ -254,7 +263,7 @@ By visualizing and zooming on a spatial plot with annotated cells, we can detect
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrSpatialPlot(vr2_merged_acute1, assay = "Xenium", group.by = "CellType", 
-              group.ids = c("S2 cells", "T cells"), plot.segments = TRUE, 
+              group.ids = c("H.I. Cells", "T cells"), plot.segments = TRUE, 
               alpha = 0.6, background = c("main", "H&E"), interactive = TRUE)
 ```
 

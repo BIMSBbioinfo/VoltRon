@@ -204,7 +204,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 #'
 #' @noRd
 vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, graph = NULL,
-                                font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, plot_title = NULL, background = NULL,
+                                font.size = 2, pt.size = 2, cell.shape = 16, alpha = 1, plot_title = NULL, background = NULL,
                                 reg = FALSE, crop = FALSE, legend.pt.size = 2, scale.image = TRUE){
 
   # plot
@@ -472,6 +472,7 @@ vrSpatialPlotSingleTiling <- function(g, data, n.tile, alpha = 1){
 #' @param nrow row wise number of plots, for \link{ggarrange}
 #' @param font.size font size
 #' @param pt.size point size
+#' @param cell.shape the shape of the points representing cells, see \link{geom_point}
 #' @param title.size title size of legend and plot
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param keep.scale whether unify all scales for all features or not
@@ -491,7 +492,7 @@ vrSpatialPlotSingleTiling <- function(g, data, n.tile, alpha = 1){
 #' @export
 #'
 vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segments = FALSE, norm = TRUE, log = FALSE, assay = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
-                         font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, background = NULL, reg = FALSE,
+                         font.size = 2, pt.size = 2, cell.shape = 16, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, background = NULL, reg = FALSE,
                          crop = FALSE, common.legend = FALSE, legend.loc = "right", collapse = TRUE) {
 
   # check object
@@ -570,7 +571,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
       p_title <- plot_title[[assy]]
       l_title <- legend_title[[feat]]
       gg[[i]] <- vrSpatialFeaturePlotSingle(assay = cur_assay, metadata = cur_metadata, feature = feat, plot.segments = plot.segments, graph = graph, limits = limits[[feat]][[assy]],
-                              group.by = group.by, norm = norm, log = log, font.size = font.size, pt.size = pt.size, title.size = title.size, alpha = alpha,
+                              group.by = group.by, norm = norm, log = log, font.size = font.size, pt.size = pt.size, title.size = title.size, alpha = alpha, cell.shape = cell.shape,
                               label = label, plot_title = p_title, legend_title = l_title, background = background, reg = reg, crop = crop)
       i <- i + 1
     }
@@ -609,6 +610,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
 #' @param log if TRUE, data features (excluding metadata features) will be log transformed
 #' @param font.size font sizes
 #' @param pt.size point size
+#' @param cell.shape the shape of the points representing cells, see \link{geom_point}
 #' @param title.size title size of legend and plot
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param label if TRUE, labels of ROIs will be visualized too
@@ -628,7 +630,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
 #'
 #' @noRd
 vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments = FALSE, graph = NULL, limits, group.by = "label", norm = TRUE, log = FALSE,
-                               font.size = 2, pt.size = 2, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL,
+                               font.size = 2, pt.size = 2, cell.shape = 16, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL,
                                legend_title = NULL, background = NULL, reg = FALSE, crop = FALSE){
 
   # plot
@@ -769,11 +771,15 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
                              values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
     } else {
       g <- g +
-        geom_point(mapping = aes(x = x, y = y, colour = score), dplyr::arrange(coords,score), shape = 16, size = rel(pt.size), alpha = alpha) +
+        geom_point(mapping = aes(x = x, y = y, fill = score, color = score), dplyr::arrange(coords,score), shape = cell.shape, size = rel(pt.size), alpha = alpha) +
         scale_colour_gradientn(name = legend_title,
-                               colors=c("dodgerblue2", "white", "yellow3"),
-                               values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
-
+                               colors=c("dodgerblue2", "white", "yellow3"), 
+                               values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits, aesthetics = c("fill", "colour")) 
+        # scale_fill_gradientn(name = legend_title,
+        #                       colors=c("dodgerblue3", "white", "yellow3"), aesthetics = c("")
+        #                       values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits, ) + 
+        # guides(color = guide_legend(show = FALSE))
+      
       # add if a graph exists
       if(!is.null(graph)){
         graph.df <- igraph::get.data.frame(graph)
