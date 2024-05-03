@@ -1139,6 +1139,163 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 }
 
 ####
+# Spatial Genomics ####
+####
+
+####
+## GenePs ####
+####
+
+#' importGenePS
+#'
+#' Importing GenePS data
+#' 
+#' @param dir.path path to Xenium output folder
+#' @param assay_name the assay name of the SR object
+#' @param sample_name the name of the sample
+#' @param use_image if TRUE, the DAPI image will be used.
+#' @param resolution_level the level of resolution within TIFF image. Default: 7 (971x638)
+#' @param image_name the image name of the Xenium assay, Default: main
+#' @param channel_name the channel name of the image of the Xenium assay, Default: DAPI
+#' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
+#' @param ... additional parameters passed to \link{formVoltRon}
+#' 
+#' @importFrom magick image_read image_info
+#' @importFrom utils read.csv
+#' @importFrom data.table fread
+#' @importFrom ids random_id
+#' @importFrom grDevices as.raster
+#' @importFrom EBImage as.Image
+#'
+#' @export
+#'
+importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, use_image = TRUE, 
+                          resolution_level = 7, image_name = "main", channel_name = "DAPI", import_molecules = FALSE, ...)
+{
+  # cell assay
+  message("Creating cell level assay ...")
+  
+  # raw counts
+  DataOutputfiles <- list.files(paste0(dir.path, "DataOutput/"))
+  datafile <- DataOutputfiles[grepl("_cellxgene.csv", DataOutputfiles)]
+  if(length(datafile) > 0){
+    rawdata <- utils::read.csv(file = paste0(dir.path, "DataOutput/", datafile), row.names = NULL)
+    rawdata <- rawdata[,colnames(rawdata)[!colnames(rawdata) %in% "X"]]
+    rawdata <- t(rawdata)
+  } else {
+    stop("There are no files ending with '_cellxgene.csv' in the path")
+  }
+  
+  # image
+  if(use_image){
+    
+    # check RBioFormats
+    if (!requireNamespace('RBioFormats'))
+      stop("Please install RBioFormats package to extract xml from the ome.tiff file!")
+    
+    # check image
+    image_file <- paste0(dir.path, "/images/DAPI.tiff")
+    if(file.exists(image_file)){
+      image <- RBioFormats::read.image(paste0(dir.path, "images/DAPI.tiff"), resolution = resolution_level)
+      image <- EBImage::as.Image(image)
+      image <- grDevices::as.raster(image)
+      image <- magick::image_read(image)
+    } else {
+      stop("There are no image files in the path")
+    }
+    # scale the xenium image instructed by 10x Genomics help page
+    scaleparam <- ceiling(2^(resolution_level-1))
+  } else {
+    image <- NULL
+  }
+  
+  # coordinates
+  coordsfile <- DataOutputfiles[grepl("_cellcoordinate.csv", DataOutputfiles)]
+  if(length(coordsfile) > 0){
+    coords <- utils::read.csv(file = paste0(dir.path, "DataOutput/", coordsfile))
+    coords <- as.matrix(coords[,c("center_x", "center_y")])
+    colnames(coords) <- c("x", "y")
+    if(use_image) {
+      coords <- coords/scaleparam
+      imageinfo <- unlist(magick::image_info(image)[c("height")])
+      range_coords <- c(0,imageinfo)
+    } else {
+      range_coords <- range(coords[,2])
+    }
+    coords[,2] <- range_coords[2] - coords[,2] + range_coords[1]
+  } else {
+    stop("There are no files ending with '_cellcoordinate.csv' in the path")
+  }
+  
+  # create VoltRon object for cells
+  cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, main.assay = assay_name, assay.type = "cell", image_name = image_name, main_channel = channel_name, sample_name = sample_name, ...)
+  
+  # add molecules
+  if(!import_molecules){
+    return(cell_object)
+  } else {
+    message("Creating molecule level assay ...")
+    # transcripts
+    transcripts_file <- DataOutputfiles[grepl("_transcriptlocation.csv", DataOutputfiles)]
+    if(length(transcripts_file) == 0){
+      stop("There are no files ending with '_transcriptlocation.csv' in the path")
+    } else {
+      
+      # get subcellur data components
+      subcellular_data <- data.table::fread(paste0(dir.path, "DataOutput/", transcripts_file))
+      subcellular_data$id <- 1:nrow(subcellular_data)
+      subcellular_data <- subcellular_data[,c("id", colnames(subcellular_data)[!colnames(subcellular_data) %in% "id"]), with = FALSE]
+      colnames(subcellular_data)[colnames(subcellular_data)=="name"] <- "gene"
+      
+      # coordinates
+      coords <- as.matrix(transcripts[,c("x", "y")])
+      colnames(coords) <- c("x", "y")
+      if(use_image){
+        coords <- coords/scaleparam
+      }
+      coords[,"y"] <- range_coords[2] - coords[,"y"]  + range_coords[1]
+      
+      # metadata
+      mol_metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell", "x", "y")], with = FALSE]
+      set.seed(nrow(mol_metadata$id))
+      mol_metadata$postfix <- paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))
+      mol_metadata$assay_id <- "Assay1"
+      mol_metadata[, id:=do.call(paste0,.SD), .SDcols=c("id", "postfix")]
+      
+      # coord names
+      rownames(coords) <- mol_metadata$id
+
+      # create VoltRon assay for molecules
+      mol_assay <- formAssay(coords = coords, image = image, type = "molecule", main_image = image_name, main_channel = channel_name)
+      
+      # merge assays in one section
+      message("Merging assays ...")
+      sample.metadata <- SampleMetadata(cell_object)
+      object <- addAssay(cell_object,
+                         assay = mol_assay,
+                         metadata = mol_metadata,
+                         assay_name = paste0(assay_name, "_mol"),
+                         sample = sample.metadata["Assay1", "Sample"],
+                         layer = sample.metadata["Assay1", "Layer"])
+      
+      # connectivity
+      connectivity <- data.table::data.table(transcript_id = mol_metadata$id, cell_id = subcellular_data[["cell"]])
+      connectivity <- subset(connectivity, cell_id != 0)
+      connectivity[["cell_id"]] <- vrSpatialPoints(cell_object)[connectivity[["cell_id"]]]
+      
+      # add connectivity of spatial points across assays
+      object <- addConnectivity(object,
+                                connectivity = connectivity,
+                                sample = sample.metadata["Assay1", "Sample"],
+                                layer = sample.metadata["Assay1", "Layer"])
+      
+      # return
+      return(object)
+    }
+  }
+}
+  
+####
 # Image Data ####
 ####
 

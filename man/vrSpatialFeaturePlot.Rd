@@ -17,6 +17,7 @@ vrSpatialFeaturePlot(
   nrow = NULL,
   font.size = 2,
   pt.size = 2,
+  cell.shape = 16,
   title.size = 10,
   alpha = 0.6,
   keep.scale = "feature",
@@ -54,6 +55,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{font.size}{font size}
 
 \item{pt.size}{point size}
+
+\item{cell.shape}{the shape of the points representing cells, see \link{geom_point}}
 
 \item{title.size}{title size of legend and plot}
 

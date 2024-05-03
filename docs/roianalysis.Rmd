@@ -239,8 +239,8 @@ The function **vrSpatialFeaturePlot** detects the number of assays within each V
 
 ```{r eval = FALSE, class.source="watch-out"}
 GeoMxR1_subset <- subset(GeoMxR1, sample = c("prolonged case 4","prolonged case 5"))
-vrSpatialFeaturePlot(GeoMxR1_subset, features = c("COL1A1", "C1S"), group.by = "ROI.name", log = FALSE,
-                     label = TRUE, keep.scale = "feature", title.size = 15)
+vrSpatialFeaturePlot(GeoMxR1_subset, features = c("COL1A1", "C1S"), group.by = "ROI.name", 
+                     log = TRUE, label = TRUE, keep.scale = "feature", title.size = 15)
 ```
 
 <img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_featureplot.png" class="center">

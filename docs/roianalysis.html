@@ -13,7 +13,7 @@
 
 <title>ROI Analysis</title>
 
-<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.26/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -713,8 +713,8 @@ across ROIs of two prolonged covid cases. One may observe that the
 fibrotic regions of prolonged case 5 have considerably more COL1A1 and
 C1S compared to prolonged case 4.</p>
 <pre class="r watch-out"><code>GeoMxR1_subset &lt;- subset(GeoMxR1, sample = c(&quot;prolonged case 4&quot;,&quot;prolonged case 5&quot;))
-vrSpatialFeaturePlot(GeoMxR1_subset, features = c(&quot;COL1A1&quot;, &quot;C1S&quot;), group.by = &quot;ROI.name&quot;, log = FALSE,
-                     label = TRUE, keep.scale = &quot;feature&quot;, title.size = 15)</code></pre>
+vrSpatialFeaturePlot(GeoMxR1_subset, features = c(&quot;COL1A1&quot;, &quot;C1S&quot;), group.by = &quot;ROI.name&quot;, 
+                     log = TRUE, label = TRUE, keep.scale = &quot;feature&quot;, title.size = 15)</code></pre>
 <p><img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_featureplot.png" class="center"></p>
 <p><br></p>
 </div>
