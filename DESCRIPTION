@@ -14,7 +14,7 @@ biocViews:
 Imports: methods, S4Vectors, EBImage, FNN, Matrix, dplyr, ggforce, 
          ggplot2, ggpubr, ggrepel, hdf5r, igraph, irlba, rjson, magick, 
          reshape2, rlang, scales, shiny, shinyjs, stringr, uwot, data.table, 
-         RCDT, anndata, basilisk, reticulate, sp, ids, waiter, rstudioapi
+         RCDT, basilisk, reticulate, sp, ids, waiter, rstudioapi
 LinkingTo: Rcpp, RcppArmadillo (>= 0.4)
 Collate: 
     'RcppExports.R'
@@ -56,6 +56,8 @@ Suggests:
     testthat (>= 3.0.0),
     geojsonR,
     DelayedArray,
-    circlize
+    circlize,
+    anndataR,
+    anndata
 Config/testthat/edition: 3
 LazyData: true
