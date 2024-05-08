@@ -255,11 +255,6 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
 #' @export
 as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"), flip_coordinates = FALSE){
 
-  # check AnnDataR or AnnData packages
-  if (!requireNamespace("anndataR") && !requireNamespace("anndata")) {
-    stop("Please install anndataR (preferred) or anndata package for converting VoltRon objects to Anndata objects")
-  }
-
   # check the number of assays
   if(is.null(assay)){
     if(length(unique(SampleMetadata(object)[["Assay"]])) > 1){
@@ -305,6 +300,8 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
     
     # create anndata file
     anndata::write_h5ad(adata, filename = file)
+  } else {
+    stop("Please install anndataR (preferred) or anndata package for converting VoltRon objects to Anndata objects")
   }
 
   # return
