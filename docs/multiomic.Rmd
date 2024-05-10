@@ -188,8 +188,6 @@ Assays: ROIAnnotation(Main) Xenium_mol Xenium
 
 ## Interactive Visualization
 
-You can also add the VoltRon object of H&E data as an additional assay of the Xenium section such that one layer includes cell, molecules, ROI Annotations and images in the same time. Specifically, we add the ROI annotation to the Xenium VoltRon object using the **addAssay** function where we choose the destination sample/block and the layer of the assay. 
-
 Once the H&E image is registered and transfered to the Xenium data, we can convert the VoltRon object into an Anndata object (h5ad file) and use [TissUUmaps](https://tissuumaps.github.io/) tool for interactive visualization.
 
 ```{r eval = FALSE, class.source="watch-out"}
