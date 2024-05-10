@@ -186,6 +186,31 @@ Assays: ROIAnnotation(Main) Xenium_mol Xenium
 
 <br>
 
+## Interactive Visualization
+
+You can also add the VoltRon object of H&E data as an additional assay of the Xenium section such that one layer includes cell, molecules, ROI Annotations and images in the same time. Specifically, we add the ROI annotation to the Xenium VoltRon object using the **addAssay** function where we choose the destination sample/block and the layer of the assay. 
+
+Once the H&E image is registered and transfered to the Xenium data, we can convert the VoltRon object into an Anndata object (h5ad file) and use [TissUUmaps](https://tissuumaps.github.io/) tool for interactive visualization.
+
+```{r eval = FALSE, class.source="watch-out"}
+# convert VoltRon object to h5ad
+as.AnnData(vr2_merged_acute1, assay = "Xenium", file = "vr2_merged_acute1.h5ad", 
+           flip_coordinates = TRUE)
+
+# export the registered H&E image
+library(magick)
+img <- vrImages(vr2_merged_acute1, assay = "Assay7", name = "main", channel = "H&E")
+image_write(image = img, path = "vr2_merged_acute1_H&E.png", format = "png")
+```
+
+<br>
+
+To run TissUUmaps please follow installation instructions [here](https://tissuumaps.github.io/installation/), then you can simply drag and drop both the h5ad file and png file to the application.
+
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_interactivevisualization.png" class="center">
+
+<br>
+
 ## Label transfer
 
 Now we can transfer ROI annotations as additional metadata features of the molecule assay. We will refer the new metadata column as "Region" which will indicate if the molecule is within any annotated ROI in the same layer.

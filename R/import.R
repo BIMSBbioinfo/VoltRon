@@ -1196,7 +1196,7 @@ importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, u
     # check image
     image_file <- paste0(dir.path, "/images/DAPI.tiff")
     if(file.exists(image_file)){
-      image <- RBioFormats::read.image(paste0(dir.path, "images/DAPI.tiff"), resolution = resolution_level)
+      image <- RBioFormats::read.image(image_file, resolution = resolution_level)
       image <- EBImage::as.Image(image)
       image <- grDevices::as.raster(image)
       image <- magick::image_read(image)

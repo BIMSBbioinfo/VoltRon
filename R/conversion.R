@@ -207,6 +207,10 @@ as.Seurat <- function(object, cell.assay = NULL, molecule.assay = NULL, image_ke
 #'
 convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
   
+  # check Seurat package
+  if(!requireNamespace('anndata'))
+    stop("Please install anndata package")
+  
   # read anndata
   adata <- anndata::read_h5ad(file)
   
@@ -436,7 +440,7 @@ as.SpatialData <- function(object, file, assay = NULL, type = c("image", "spatia
   
   # check Seurat package
   if(!requireNamespace('anndata'))
-    stop("Please install Seurat package for using Seurat objects")
+    stop("Please install anndata package")
   
   # check the number of assays
   if(is.null(assay)){
