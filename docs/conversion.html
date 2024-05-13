@@ -570,6 +570,27 @@ Assay2 Xenium_mol Section1 XeniumR1</code></pre>
 <p><br></p>
 </div>
 </div>
+<div id="spatialexperiment" class="section level2">
+<h2>SpatialExperiment</h2>
+<p>VoltRon can also convert objects in <a
+href="https://www.bioconductor.org/packages/release/bioc/html/SpatialExperiment.html">SpatialExperiment</a>
+objects. We are going to use the Xenium data clustered using VoltRon <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered.rds">here</a>.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- readRDS(&quot;Xenium_data_clustered.rds&quot;)
+SampleMetadata(Xen_data)</code></pre>
+<p>We use the <strong>as.SpatialExperiment</strong> function to convert
+spatial assays of VoltRon into SpatialExperiment objects. Please check
+the <a
+href="https://www.bioconductor.org/packages/release/bioc/vignettes/SpatialExperiment/inst/doc/SpatialExperiment.html">Introduction
+to the SpatialExperiment class</a> tutorial for more information.</p>
+<pre class="r watch-out"><code>spe &lt;- as.SpatialExperiment(Xen_data, assay = &quot;Xenium&quot;)</code></pre>
+<p>Here we can parse the image and visualize.</p>
+<pre class="r watch-out"><code>img &lt;- imgRaster(spe, 
+                 sample_id = &quot;Assay1&quot;, 
+                 image_id = &quot;main&quot;)
+plot(img)</code></pre>
+<p><br></p>
+</div>
 <div id="squidpy-anndata" class="section level2">
 <h2>Squidpy (Anndata)</h2>
 <p>A true ecosystem friendly computational platform should support data

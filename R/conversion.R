@@ -125,10 +125,10 @@ as.Seurat <- function(object, cell.assay = NULL, molecule.assay = NULL, image_ke
   
   # check the number of assays
   if(is.null(cell.assay)){
-    if(length(unique(sample.metadata[["Assay"]])) > 1){
+    if(length(unique(sample_metadata[["Assay"]])) > 1){
       stop("You can only convert a single VoltRon assay into a Seurat object!")
     } else {
-      cell.assay <- sample.metadata[["Assay"]]
+      cell.assay <- sample_metadata[["Assay"]]
     }
   } else {
     vrMainAssay(object) <- cell.assay
@@ -412,6 +412,90 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
     return(TRUE)
   }, img_arr = img_arr, image_id = image_id, out_path = out_path)
   return(success)
+}
+
+####
+# SpatialExperiment ####
+####
+
+#' as.SpatialExperiment
+#'
+#' Converting a VoltRon object into a SpatialExperiment object
+#'
+#' @param object a VoltRon object
+#' @param assay the name of the assay to be converted
+#' @param reg if TRUE, registered coordinates will be used
+#'
+#' @rdname as.SpatialExperiment
+#'
+#' @importFrom dplyr bind_cols
+#' @importFrom stringr str_replace str_extract
+#' @importFrom magick image_write
+#'
+#' @export
+as.SpatialExperiment <- function(object, assay = NULL, reg = FALSE){
+  
+  # sample metadata
+  sample_metadata <- SampleMetadata(object)
+  
+  # check Seurat package
+  if(!requireNamespace('SpatialExperiment'))
+    stop("Please install SpatialExperiment package!")
+  
+  # check the number of assays
+  if(is.null(assay)){
+    if(length(unique(sample_metadata[["Assay"]])) > 1){
+      stop("You can only convert a single VoltRon assay into a Seurat object!")
+    } else {
+      assay <- sample_metadata[["Assay"]]
+    }
+  } else {
+    vrMainAssay(object) <- assay
+  }
+  
+  # check the number of assays
+  if(unique(vrAssayTypes(object, assay = assay)) %in% c("spot","ROI")) {
+    stop("Conversion of Spot or ROI assays into SpatialExperiment is not yet permitted!")
+  }
+  
+  # data
+  rowdata <- vrData(object, assay = assay, norm = FALSE)
+  
+  # metadata
+  metadata <- Metadata(object, assay = assay)
+  assays <- stringr::str_extract(rownames(metadata), pattern = "_Assay[0-9]+$")
+  assays <- gsub("^_", "", assays)
+  
+  # coordinates
+  coords <- vrCoordinates(object, assay = assay, reg = reg)
+  
+  # Seurat object
+  spe <- SpatialExperiment::SpatialExperiment(assay=rowdata,
+                                              colData=metadata,
+                                              sample_id=assays,
+                                              spatialCoords=coords)
+  
+  # get image objects for each assay
+  for(assy in vrAssayNames(object)){
+    assay_object <- object[[assy]]
+    if(vrAssayTypes(assay_object) == "cell"){
+      img <- vrImages(assay_object)
+      imgfile <- tempfile(fileext='.png')
+      magick::image_write(image = img, path = imgfile, format = 'png')
+      spe <- addImg(spe,
+                    sample_id = vrAssayNames(assay_object),
+                    image_id = "main",
+                    imageSource = imgfile,
+                    scaleFactor = NA_real_,
+                    load = TRUE)
+      file.remove(imgfile)
+    } else {
+      stop("Currently VoltRon does only support converting cell type spatial data sets into SpatialExperiment objects!")
+    }
+  }
+  
+  # return
+  spe
 }
 
 ####

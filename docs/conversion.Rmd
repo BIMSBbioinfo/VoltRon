@@ -161,6 +161,32 @@ ImageDimPlot(Xen_R1_seu, fov = "fovAssay1", molecules = "PGR", group.by = "orig.
 
 <br>
 
+## SpatialExperiment
+
+VoltRon can also convert objects in [SpatialExperiment](https://www.bioconductor.org/packages/release/bioc/html/SpatialExperiment.html) objects. We are going to use the Xenium data clustered using VoltRon [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered.rds).
+
+```{r class.source="watch-out", eval = FALSE}
+Xen_data <- readRDS("Xenium_data_clustered.rds")
+SampleMetadata(Xen_data)
+```
+
+We use the **as.SpatialExperiment** function to convert spatial assays of VoltRon into SpatialExperiment objects. Please check the [Introduction to the SpatialExperiment class](https://www.bioconductor.org/packages/release/bioc/vignettes/SpatialExperiment/inst/doc/SpatialExperiment.html) tutorial for more information. 
+
+```{r class.source="watch-out", eval = FALSE}
+spe <- as.SpatialExperiment(Xen_data, assay = "Xenium")
+```
+
+Here we can parse the image and visualize.
+
+```{r class.source="watch-out", eval = FALSE}
+img <- imgRaster(spe, 
+                 sample_id = "Assay1", 
+                 image_id = "main")
+plot(img)
+```
+
+<br>
+
 ## Squidpy (Anndata)
 
 A true ecosystem friendly computational platform should support data types across multiple computing environments. By allowing users to convert VoltRon objects into annotated data matrix formats such as [anndata](https://github.com/scverse/anndata), we can use built-in spatial data analysis methods available on [squidpy](https://squidpy.readthedocs.io/en/stable/).
