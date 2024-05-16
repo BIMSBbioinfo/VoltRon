@@ -326,7 +326,7 @@ can individually be prepared before executing formVoltRon.
 
 We will use a single image based proteomic assay to demonstrate building custom VoltRon objects. Specifically, we use cells characterized by **multi-epitope ligand cartography (MELC)** with a panel of 44 parameters. We use the already segmented cells on which expression of **43 protein features** (excluding DAPI) were mapped to these cells. 
 
-VoltRon also provides support for imaging based proteomics assays. In this next use case, we analyze cells characterized by **multi-epitope ligand cartography (MELC)** with a panel of 44 parameters. We use the already segmented cells on which expression of **43 protein features** (excluding DAPI) were mapped to these cells. You can download the files below [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ImportData/Custom_vr_object.zip). 
+VoltRon also provides support for imaging based proteomics assays. In this next use case, we analyze cells characterized by **multi-epitope ligand cartography (MELC)** with a panel of 44 parameters. We use the already segmented cells on which expression of **43 protein features** (excluding DAPI) were mapped to these cells. You can download the files below [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ImportData/custom_vr_object.zip). 
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(magick)

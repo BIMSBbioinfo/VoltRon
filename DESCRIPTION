@@ -40,6 +40,7 @@ Collate:
     'spatial.R'
     'visualization.R'
 Suggests:
+    SpatialExperiment,
     SingleCellExperiment,
     Seurat,
     SeuratObject,
