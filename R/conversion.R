@@ -201,8 +201,6 @@ as.Seurat <- function(object, cell.assay = NULL, molecule.assay = NULL, image_ke
 #' @param AssayID the ID assays in the h5ad file
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
-#' @importFrom anndata AnnData read_h5ad
-#'
 #' @export
 #'
 convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
@@ -598,7 +596,6 @@ as.SpatialExperiment <- function(object, assay = NULL, reg = FALSE){
 #'
 #' @rdname as.SpatialData
 #'
-#' @importFrom anndata AnnData write_h5ad
 #' @importFrom stringr str_extract
 #'
 #' @export
