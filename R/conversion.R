@@ -251,7 +251,6 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
 #'
 #' @rdname as.AnnData
 #'
-#' @importFrom anndata AnnData write_h5ad
 #' @importFrom stringr str_extract
 #'
 #' @export
