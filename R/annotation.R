@@ -297,6 +297,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
           } else {
             spatialpoints <- rownames(metadata)
           }
+
           new_label <- rep("undefined", length(spatialpoints))
           names(new_label) <- spatialpoints
           result_list <- list()
@@ -339,4 +340,3 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, use.
     shiny::runApp(shiny::shinyApp(ui, server))
   }
 }
-  
