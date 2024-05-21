@@ -362,12 +362,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 
         # add points
         if(n.tile == 0){
-          # 
-          # ### TEMP
-          # coords <- rbind(coords, coords[nrow(coords),])
-          # coords[nrow(coords),c("x", "y")] <- apply(coords[,c("x", "y")],2,max)*200
-          # coords[[group.by]][nrow(coords)] <- "Cyp46a1+"
-          # ####
           
           g <- g +
             geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
