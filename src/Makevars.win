@@ -1,20 +1,14 @@
-VERSION = 4.8.1
-RWINLIB = ../windows/opencv-$(VERSION)
+RWINLIB = ../windows/opencv
 PKG_CPPFLAGS = -I$(RWINLIB)/include/opencv4 -DHAVE_XFEATURES2D
-TARGET = lib$(subst gcc,,$(COMPILED_BY))$(R_ARCH)
+OLDLIBDIR = lib${subst gcc,,${COMPILED_BY}}${R_ARCH}
 
 PKG_LIBS = \
-  $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) \
-	-L$(RWINLIB)/$(TARGET) \
-	-L$(RWINLIB)/lib$(R_ARCH) \
-	-lopencv_ml481 -lopencv_objdetect481 -lopencv_photo481 -lopencv_stitching481 -lopencv_shape481\
+	-L$(RWINLIB)/$(OLDLIBDIR) \
+	-L$(RWINLIB)/lib \
+	-lopencv_ml481 -lopencv_objdetect481 -lopencv_photo481 -lopencv_stitching481 -lopencv_shape481 -lopencv_wechat_qrcode481 -lopencv_dnn481 \
 	-lopencv_video481 -lopencv_calib3d481 -lopencv_xfeatures2d481 -lopencv_features2d481 -lopencv_highgui481 -lopencv_flann481 \
-	-lopencv_videoio481 -lopencv_imgcodecs481 -lopencv_imgproc481 -lopencv_core481 -llibopenjp2 -lquirc -ltbb \
-	-ljpeg -lwebp -lpng -lz -ltiff \
-	-lcomctl32 -lgdi32 -lole32 -lsetupapi -lws2_32 -lavifil32 -lavicap32 -lwinmm -lmsvfw32 \
-	-lopengl32 -lglu32 -lcomdlg32 -lOleAut32 -luuid
-
-CXX_STD=CXX11
+	-lopencv_videoio481 -lopencv_imgcodecs481 -lopencv_imgproc481 -lopencv_core481 -llibopenjp2 -lquirc \
+	-ljpeg -lwebp -lsharpyuv -lpng -lz -ltiff -lpthread -lgdi32 -lole32 -lopengl32 -lcomdlg32 -lOleAut32 -luuid
 
 all: clean winlibs
 
