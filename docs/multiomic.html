@@ -13,7 +13,7 @@
 
 <title>Multi-omics</title>
 
-<script src="site_libs/header-attrs-2.26/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.27/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -553,7 +553,9 @@ also for they were directly imported from QuPath which incorporates a
 reverse coordinate system on the y-axis.</p>
 <p>Once imported, the resulting VoltRon object will have two assays in a
 single layer, one for tile dataset of the H&amp;E image and the other
-for ROI based annotations of again the same image.</p>
+for ROI based annotations of again the same image. You can download the
+H&amp;E image from <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/acutecase1_HE.jpg">here</a>.</p>
 <pre class="r watch-out"><code># get image
 imgdata &lt;- importImageData(&quot;acutecase1_HE.jpg&quot;, 
                            segments = &quot;acutecase1_membrane.geojson&quot;, 

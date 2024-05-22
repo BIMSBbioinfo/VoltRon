@@ -170,7 +170,10 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
       return(gg[[1]] + theme(legend.position=legend.loc))
     }
   } else {
-    gg + theme(legend.position=legend.loc)
+    for(i in 1:length(assay_names)){
+      gg[[i]] <- gg[[i]] + theme(legend.position=legend.loc)
+    }
+    return(gg)
   }
 }
 
@@ -259,6 +262,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   } else {
     coords[[group.by]] <- metadata[,group.by]
   }
+  
   if(!is.null(group.ids)){
     if(length(setdiff(group.ids,  coords[[group.by]])) > 0){
       # warning("Some groups defined in group.ids does not exist in group.by!")
@@ -358,6 +362,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 
         # add points
         if(n.tile == 0){
+          
           g <- g +
             geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
             scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
@@ -591,7 +596,10 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
       return(gg[[1]] + theme(legend.position=legend.loc))
     }
   } else {
-    return(gg + theme(legend.position=legend.loc))
+    for(i in 1:(length(features)*length(assay_names))){
+      gg[[i]] <- gg[[i]] + theme(legend.position=legend.loc)
+    }
+    return(gg)
   }
 }
 
