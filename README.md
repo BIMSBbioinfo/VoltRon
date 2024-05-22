@@ -74,6 +74,8 @@ if (!require("devtools", quietly = TRUE))
 devtools::install_github("BIMSBbioinfo/VoltRon")
 ```
 
+Depending on the number of required dependencies, installation may be completed under a minute or may take a few minutes. 
+
 On **Windows** and **MacOS**, OpenCV will be downloaded automatically upon installation. However, [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html) may be required to be downloaded too, hence this may take some time!
 
 On **Ubuntu** we provide a set of instructions that may help users to build OpenCV with necessary headers [here](inst/extdata/install_ubuntu.md).
