@@ -24,11 +24,6 @@
     </li>
    </ul>
 
-## Citation
-
-VoltRon preprint is now available on [bioRxiv](https://www.biorxiv.org/content/10.1101/2023.12.15.571667v1).
-
-
 ## Staying up-to-date
 
 To ask questions please use VoltRon discussion forum on google groups.
@@ -86,4 +81,11 @@ On **Fedora** you may need [`opencv-devel`](https://src.fedoraproject.org/rpms/o
 yum install opencv-devel
 ```
 
+## Tutorials
+
+Please see the [Explore](https://artur-man.github.io/VoltRon/tutorials.html) section in the VoltRon website for tutorials, example scripts and analysis found in the [preprint](https://www.biorxiv.org/content/10.1101/2023.12.15.571667v1).  
+
+## References
+
+Manukyan, A., Bahry, E., Wyler, E., Becher, E., Pascual-Reguant, A., Plumbom, I., ... & Akalin, A. (2023). [VoltRon: A Spatial Omics Analysis Platform for Multi-Resolution and Multi-omics Integration using Image Registration](https://www.biorxiv.org/content/10.1101/2023.12.15.571667v1). bioRxiv, 2023-12.
 
