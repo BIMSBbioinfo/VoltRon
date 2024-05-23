@@ -24,11 +24,6 @@
     </li>
    </ul>
 
-## Citation
-
-VoltRon preprint is now available on [bioRxiv](https://www.biorxiv.org/content/10.1101/2023.12.15.571667v1).
-
-
 ## Staying up-to-date
 
 To ask questions please use VoltRon discussion forum on google groups.
@@ -74,6 +69,8 @@ if (!require("devtools", quietly = TRUE))
 devtools::install_github("BIMSBbioinfo/VoltRon")
 ```
 
+Depending on the number of required dependencies, installation may be completed under a minute or may take a few minutes. 
+
 On **Windows** and **MacOS**, OpenCV will be downloaded automatically upon installation. However, [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html) may be required to be downloaded too, hence this may take some time!
 
 On **Ubuntu** we provide a set of instructions that may help users to build OpenCV with necessary headers [here](inst/extdata/install_ubuntu.md).
@@ -84,4 +81,11 @@ On **Fedora** you may need [`opencv-devel`](https://src.fedoraproject.org/rpms/o
 yum install opencv-devel
 ```
 
+## Tutorials
+
+Please see the [Explore](https://artur-man.github.io/VoltRon/tutorials.html) section in the VoltRon website for tutorials, example scripts and analysis found in the [preprint](https://www.biorxiv.org/content/10.1101/2023.12.15.571667v1). Tutorials include links for accessing necessary data to run scripts across all tutorials. 
+
+## References
+
+Manukyan, A., Bahry, E., Wyler, E., Becher, E., Pascual-Reguant, A., Plumbom, I., ... & Akalin, A. (2023). [VoltRon: A Spatial Omics Analysis Platform for Multi-Resolution and Multi-omics Integration using Image Registration](https://www.biorxiv.org/content/10.1101/2023.12.15.571667v1). bioRxiv, 2023-12.
 
