@@ -652,9 +652,9 @@ sc.pp.log1p(adata)</code></pre>
 available in squidpy to visualize the spatial localization of cell types
 of both Xenium replicates.</p>
 <pre class="python watch-out"><code>fig, ax = plt.subplots(1, 2, figsize=(10, 7))
-sq.pl.spatial_scatter(adata, library_key = &quot;AssayID&quot;, library_id = &quot;_Assay1&quot;, 
+sq.pl.spatial_scatter(adata, library_key = &quot;library_id&quot;, library_id = &quot;_Assay1&quot;, 
                       color=[&quot;CellType&quot;], shape=None, size=1, img = False, ax=ax[0])
-sq.pl.spatial_scatter(adata, library_key = &quot;AssayID&quot;, library_id = &quot;_Assay2&quot;, 
+sq.pl.spatial_scatter(adata, library_key = &quot;library_id&quot;, library_id = &quot;_Assay2&quot;, 
                       color=[&quot;CellType&quot;], shape=None, size=1, img = False, ax=ax[1])
 plt.show(ax)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_anndata_spatial_scatter.png" class="center"></p>
@@ -669,9 +669,9 @@ The spatial graph and distances will be stored under
 <pre class="python watch-out"><code>sq.gr.spatial_neighbors(adata, coord_type=&quot;generic&quot;, delaunay=True)
 adata</code></pre>
 <pre><code>AnnData object with n_obs × n_vars = 283298 × 313
-    obs: &#39;Count&#39;, &#39;Assay&#39;, &#39;Layer&#39;, &#39;Sample&#39;, &#39;Clusters&#39;, &#39;CellType&#39;, &#39;AssayID&#39;
+    obs: &#39;Count&#39;, &#39;Assay&#39;, &#39;Layer&#39;, &#39;Sample&#39;, &#39;Clusters&#39;, &#39;CellType&#39;, &#39;library_id&#39;
     uns: &#39;log1p&#39;, &#39;spatial_neighbors&#39;
-    obsm: &#39;spatial&#39;, &#39;spatial_AssayID&#39;
+    obsm: &#39;spatial&#39;
     layers: &#39;counts&#39;
     obsp: &#39;spatial_connectivities&#39;, &#39;spatial_distances&#39;</code></pre>
 <p>We can now conduct the permutation test for neighborhood enrichment
@@ -680,7 +680,7 @@ across cell type pairs.</p>
 <pre class="python watch-out"><code>fig, ax = plt.subplots(1, 2, figsize=(13, 7))
 sq.pl.nhood_enrichment(adata, cluster_key=&quot;CellType&quot;, figsize=(8, 8), 
                        title=&quot;Neighborhood enrichment adata&quot;, ax=ax[0])
-sq.pl.spatial_scatter(adata, color=&quot;CellType&quot;, library_key = &quot;AssayID&quot;, 
+sq.pl.spatial_scatter(adata, color=&quot;CellType&quot;, library_key = &quot;library_id&quot;, 
                       library_id = &quot;_Assay1&quot;, shape=None, size=2, ax=ax[1])
 plt.show(ax)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_anndata_neighborhood.png" class="center"></p>
