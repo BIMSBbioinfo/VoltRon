@@ -1299,6 +1299,10 @@ importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, u
 # BGI Genomics ####
 ####
 
+####
+## STOmics ####
+####
+
 #' importSTOmics
 #'
 #' Importing STOmics (Stereo-Seq) data
