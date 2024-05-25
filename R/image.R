@@ -385,7 +385,8 @@ vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE, scale.pe
   }
 
   # return image
-  if(length(vrImageChannelNames(object)) > 0){
+  if(channel!=""){
+  # if(length(vrImageChannelNames(object)) > 0){
     img <- object@image[[channel]]
     if(as.raster){
 

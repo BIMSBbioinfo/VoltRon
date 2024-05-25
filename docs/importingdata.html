@@ -780,6 +780,48 @@ profiles.</p>
 <pre class="r watch-out"><code>CosMxR1 &lt;- importCosMx(tiledbURI = &quot;MuBrainDataRelease/&quot;, import_molecules = TRUE)</code></pre>
 <p></br></p>
 </div>
+<div id="stomics" class="section level2">
+<h2>STOmics</h2>
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/stomics_summary.png" class="center">
+<p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;">
+<em> Image Credit: <a href="https://bgi-australia.com.au/stomics"
+class="uri">https://bgi-australia.com.au/stomics</a> </em>
+</p>
+<p>We use the <strong>importSTOmics</strong> function to import the
+STOmics readouts and create a VoltRon object. Here, we point to the
+folder an h5ad file generated using the
+<strong>stereo.io.stereo_to_anndata</strong> method of <a
+href="https://stereopy.readthedocs.io/en/latest/Tutorials/Format_Conversion.html">stereopy</a>.
+For more information, visit <a
+href="https://stereopy.readthedocs.io/">https://stereopy.readthedocs.io/</a>.</p>
+<pre class="r watch-out"><code>vrdata &lt;- importSTOmics(h5ad.path = &quot;sample.h5ad&quot;)</code></pre>
+<pre><code>VoltRon Object 
+Sample1: 
+  Layers: Section1 
+Assays: STOmics(Main) </code></pre>
+<p></br></p>
+</div>
+<div id="geneps" class="section level2">
+<h2>GenePS</h2>
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/geneps_summary.png" class="center">
+<p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;">
+<em> Image Credit: <a href="https://spatialgenomics.com/applications/"
+class="uri">https://spatialgenomics.com/applications/</a> </em>
+</p>
+<p>We use the <strong>importGenePS</strong> function to import the
+GenePS (<a href="https://spatialgenomics.com/product/">Spatial
+Genomics</a>) readouts and create a VoltRon object. You can use the
+<strong>import_molecules</strong> argument to import positions and
+features of the transcripts along with the single cell profiles. The
+<strong>resolution_level</strong> argument determines the resolution of
+the DAPI image generated from the TIFF file.</p>
+<pre class="r watch-out"><code>vrdata &lt;- importGenePS(dir.path = &quot;out/&quot;, import_molecules = TRUE, resolution_level = 7)</code></pre>
+<pre><code>VoltRon Object 
+Sample1: 
+  Layers: Section1 
+Assays: GenePS(Main) GenePS_mol</code></pre>
+<p></br></p>
+</div>
 <div id="custom-voltron-objects" class="section level2">
 <h2>Custom VoltRon objects</h2>
 <p>VoltRon incorporates the <strong>formVoltRon</strong> function to
