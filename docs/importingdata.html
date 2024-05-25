@@ -787,13 +787,29 @@ profiles.</p>
 <em> Image Credit: <a href="https://bgi-australia.com.au/stomics"
 class="uri">https://bgi-australia.com.au/stomics</a> </em>
 </p>
+<p>Before importing the STOmics data to VoltRon, we first convert
+STOmics readouts to an h5ad file using the <strong>stereopy</strong>
+Python module. For more information, visit <a
+href="https://stereopy.readthedocs.io/en/latest/Tutorials/Format_Conversion.html">https://stereopy.readthedocs.io/</a>.
+See <a
+href="https://stereopy.readthedocs.io/en/latest/content/00_Installation.html">here</a>
+for instructions on how to install <strong>stereopy</strong>.</p>
+<pre class="python watch-out"><code>import stereo as st
+import warnings
+warnings.filterwarnings(&#39;ignore&#39;)
+
+# read the GEF file
+data_path = &#39;./SS200000135TL_D1.tissue.gef&#39;
+data = st.io.read_gef(file_path=data_path, bin_size=50)
+data.tl.raw_checkpoint()
+
+# remember to set flavor as scanpy
+adata = st.io.stereo_to_anndata(data, flavor=&#39;scanpy&#39;, output=&#39;sample.h5ad&#39;)</code></pre>
+<p><br></p>
 <p>We use the <strong>importSTOmics</strong> function to import the
 STOmics readouts and create a VoltRon object. Here, we point to the
 folder an h5ad file generated using the
-<strong>stereo.io.stereo_to_anndata</strong> method of <a
-href="https://stereopy.readthedocs.io/en/latest/Tutorials/Format_Conversion.html">stereopy</a>.
-For more information, visit <a
-href="https://stereopy.readthedocs.io/">https://stereopy.readthedocs.io/</a>.</p>
+<strong>stereo.io.stereo_to_anndata</strong> method previously.</p>
 <pre class="r watch-out"><code>vrdata &lt;- importSTOmics(h5ad.path = &quot;sample.h5ad&quot;)</code></pre>
 <pre><code>VoltRon Object 
 Sample1: 
