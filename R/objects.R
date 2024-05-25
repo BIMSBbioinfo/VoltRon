@@ -452,7 +452,7 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
     if(!inherits(coords, "matrix")){
       stop("Coordinates table should either of a matrix or data.frame class!")
     }
-    if(length(colnames(coords)) == 2){
+    if(ncol(coords) == 2){
       rownames(coords) <- entityID
       colnames(coords) <- c("x", "y")
     } else {
