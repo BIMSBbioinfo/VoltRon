@@ -165,9 +165,11 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
   }
 
   # get geometric mean of ranks, i.e. rank product statistic
+  rownames_ranks <- ranks$gene
   ranks <- ranks[,!colnames(ranks) %in% "gene", drop = FALSE]
   ranks <- apply(ranks, 1, function(x) exp(mean(log(x))))
-  names(ranks) <- rownames(feature_data)
+  # names(ranks) <- rownames(feature_data)
+  names(ranks) <- rownames_ranks
   ranks <- ranks[ranks != 0]
 
   # get selected features

@@ -10,8 +10,6 @@ importSTOmics(
   sample_name = NULL,
   image_name = "main",
   channel_name = "H&E",
-  inTissue = TRUE,
-  resolution_level = "lowres",
   ...
 )
 }
