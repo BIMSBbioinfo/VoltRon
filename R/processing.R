@@ -47,9 +47,10 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
 
   # normalization method
   if(method == "LogNorm"){
-    depth <- matrix(rep(coldepth, nrow(rawdata)), byrow = T, nrow = nrow(rawdata))
-    normdata <- (rawdata/depth)*sizefactor
-    normdata <- log(normdata + 1)
+    # depth <- matrix(rep(coldepth, nrow(rawdata)), byrow = T, nrow = nrow(rawdata))
+    # normdata <- (rawdata/depth)*sizefactor
+    normdata <- sweep(rawdata, 2L, coldepth, FUN = "/")
+    normdata <- log(normdata*sizefactor + 1)
   } else if(method == "Q3Norm") {
     rawdata[rawdata==0] <- 1
     qs <- apply(rawdata, 2, function(x) stats::quantile(x, desiredQuantile))
