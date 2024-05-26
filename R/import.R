@@ -1314,9 +1314,10 @@ importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, u
 #' @param channel_name the channel name of the image of the Visium assay, Default: H&E
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
+#' @importFrom methods as
 #' @export
 #'
-importSTOmics <- function(h5ad.path, assay_name = "STOmics", sample_name = NULL, image_name = "main", channel_name = "H&E", inTissue = TRUE, resolution_level = "lowres", ...)
+importSTOmics <- function(h5ad.path, assay_name = "STOmics", sample_name = NULL, image_name = "main", channel_name = "H&E", ...)
 {
   # check Seurat package
   if(!requireNamespace('anndataR'))
@@ -1333,7 +1334,7 @@ importSTOmics <- function(h5ad.path, assay_name = "STOmics", sample_name = NULL,
   rawdata <- Matrix::t(stdata$X)
   rownames(rawdata) <- var_names
   colnames(rawdata) <- obs_names
-  rawdata <- as(rawdata, 'CsparseMatrix')
+  rawdata <- methods::as(rawdata, 'CsparseMatrix')
   
   # metadata
   metadata <- stdata$obs

@@ -248,10 +248,98 @@ VoltRon maps metadata features on the spatial images, multiple features can be p
 vrSpatialFeaturePlot(MBrain_Sec, features = "Count", crop = TRUE, alpha = 1, ncol = 2)
 ```
 
-<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_first_plot.png" class="center">
+<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_firstplot.png" class="center">
 
 <br>
 
+## Feature Selection
+
+VoltRon captures the nearly full transcriptome of the Visium data which then can be filtered from a list of features ranked by their variance and importance. We use the **variance stabilization transformation (vst)** on each individual assay using the **getFeatures** function and combine these ranked list to capture features important for all assay of the Visium data later with **getVariableFeatures** function.
+
+```{r eval = FALSE, class.source="watch-out"}
+head(vrFeatures(MBrain_Sec))
+```
+
+```
+[1] "Xkr4"    "Gm1992"  "Gm19938" "Gm37381" "Rp1"     "Sox17"  
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+length(vrFeatures(MBrain_Sec))
+```
+
+```
+[1] 33502
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+MBrain_Sec <- normalizeData(MBrain_Sec)
+MBrain_Sec <- getFeatures(MBrain_Sec, n = 3000)
+head(vrFeatureData(MBrain_Sec))
+```
+
+```
+                mean          var    adj_var  rank
+Xkr4    0.0248608534 0.0249941807 0.02800216 14114
+Gm1992  0.0000000000 0.0000000000 0.00000000     0
+Gm19938 0.0285714286 0.0322197476 0.03224908 13889
+Gm37381 0.0000000000 0.0000000000 0.00000000     0
+Rp1     0.0003710575 0.0003710575 0.00000000     0
+Sox17   0.1907235622 0.2219629135 0.23715920 10304
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+selected_features <- getVariableFeatures(MBrain_Sec)
+head(selected_features, 20)
+```
+
+```
+[1] "Bc1"     "mt-Co1"  "mt-Co3"  "mt-Atp6" "mt-Co2"  "mt-Cytb" "mt-Nd4"  "mt-Nd1"  "mt-Nd2"  
+[2] "Fth1"    "Hbb-bs"  "Cst3"    "Gapdh"   "Tmsb4x"  "Mbp"     "Rplp1"   "Ttr"     "Ppia"    
+[3] "Ckb"     "mt-Nd3" 
+```
+
+## Embedding
+
+Now we can learn and visualize PCA and UMAP embeddings on this smaller number of selected features
+
+```{r eval = FALSE, class.source="watch-out"}
+MBrain_Sec <- getPCA(MBrain_Sec, features = selected_features, dims = 30)
+MBrain_Sec <- getUMAP(MBrain_Sec, dims = 1:30)
+vrEmbeddingPlot(MBrain_Sec, embedding = "umap")
+```
+
+<img width="65%" height="65%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_umap.png" class="center">
+
+<br>
+
+## Clustering
+
+```{r eval = FALSE, class.source="watch-out"}
+MBrain_Sec <- getProfileNeighbors(MBrain_Sec, dims = 1:30, k = 10, method = "SNN")
+MBrain_Sec <- getClusters(MBrain_Sec, resolution = 0.5, label = "Clusters", graph = "SNN")
+vrEmbeddingPlot(MBrain_Sec, embedding = "umap", group.by = "Clusters")
+```
+
+<img width="65%" height="65%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_umap_clusters.png" class="center">
+
+<br>
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPlot(MBrain_Sec, assay = "Assay1", group.by = "Clusters")
+vrSpatialPlot(MBrain_Sec, assay = "Assay2", group.by = "Clusters")
+```
+
+<table>
+<tbody>
+  <tr style = "vertical-align: center">
+  <td style = "width:50%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters1.png" class="center"></td>
+  <td style = "width:50%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters2.png" class="center"></td>
+  </tr>
+</tbody>
+</table>
+
+<br>
 
 # MELC Data Analysis
 
