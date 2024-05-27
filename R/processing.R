@@ -101,6 +101,7 @@ getFeatures.VoltRon <- function(object, assay = NULL, max.count = 1, n = 3000){
 #' @rdname getFeatures
 #'
 #' @importFrom stats loess predict var
+#' @importFrom Matrix rowMeans
 #'
 #' @export
 getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
@@ -112,10 +113,10 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
 
   # eliminate genes with low counts
   keep.genes <- which(apply(rawdata,1,max) > max.count)
-  rawdata_subset <- rawdata[keep.genes,]
 
   # vst estimation
-  vst_data <- data.frame(mean = rowMeans(rawdata), var = apply(rawdata, 1, stats::var))
+  # vst_data <- data.frame(mean = rowMeans(rawdata), var = apply(rawdata, 1, stats::var))
+  vst_data <- data.frame(mean = Matrix::rowMeans(rawdata), var = apply(rawdata, 1, stats::var))
   loess_data <- vst_data[keep.genes,]
   loess_results <- stats::loess(var~mean, loess_data, span = 0.3)
   vst_data$adj_var <- 0
