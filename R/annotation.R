@@ -134,6 +134,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
             column(6,shiny::selectInput("region_type", label = "Region Type", choices = c("Polygon", "Circle"), selected = "Polygon")),
             column(6,sliderInput("alpha", "Transparency", min = 0, max = 1, value = 0.2)),
             br(),
+            # getRegionAnnotators(segments, segment_names),
             uiOutput("textbox_ui"),
             br(),
             br()
@@ -226,32 +227,36 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
             counter$n <- c(counter$n, counter$max + 1) 
           }
           counter$max <- max(counter$n)
+        } else {
+          showNotification("You must selected at least 4 points!")
         }
       })
     
       ## Region Annotators ####
 
       # counter for regions
-      output$textbox_ui <- renderUI({ textboxes() })
-      textboxes <- reactive({
-        if(length(counter$n) > 0){
-          if(length(segment_names) > 0){
-            res <- lapply(counter$n, function(i) {
-              column(12,
-                     textInputwithButton(textinputId = paste0("region", i), label = paste0("Region ", i), 
-                                         buttoninputId = paste0("region_button", i), value = segment_names[i]))
-            })
-            segment_names <- NULL
-          } else{
-            res <- lapply(counter$n, function(i) {
+      if(length(segment_names)){
+        output$textbox_ui <- renderUI({
+          lapply(counter$n, function(i) {
+            column(12,
+                   textInputwithButton(textinputId = paste0("region", i), label = paste0("Region ", i),
+                                       buttoninputId = paste0("region_button", i), value = segment_names[i]))
+          })
+        })
+        segment_names <- NULL
+      } else {
+        output$textbox_ui <- renderUI({textboxes()})
+        textboxes <- reactive({
+          if(length(counter$n) > 0){
+            lapply(counter$n, function(i) {
               column(12,
                      textInputwithButton(textinputId = paste0("region", i), label = paste0("Region ", i), 
                                          buttoninputId = paste0("region_button", i), value = input[[paste0("region", i)]]))
             })
           }
-        }
-        res
-      })
+        })
+      }
+      
       
       # remove region annotators when clicked on the button
       observe({
@@ -259,15 +264,11 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
           for (i in counter$n){
             observeEvent(input[[paste0("region_button", i)]], {
 
-                # if the button exists
-                if(i %in% counter$n){
-                  
-                  # remove one point
-                  selected_corners_list(selected_corners_list()[-which(counter$n == i)])
-                  
-                  # remove one button
-                  counter$n <- setdiff(counter$n, i)
-                }
+              # remove one point
+              selected_corners_list(selected_corners_list()[-which(counter$n == i)])
+              
+              # remove one button
+              counter$n <- setdiff(counter$n, i)
               
             })
           }
@@ -423,25 +424,3 @@ shinyInputLabel <- function(inputId, label=NULL) {
              `for` = inputId
   )
 }
-
-# lapply(seq_len(n), function(i) {
-#   column(12,
-#          
-#          shiny::splitLayout(cellWidths = c("60%", "40%"), 
-#                             # textInput("name", label = "Enter the name", value = ""), 
-#                             # bsButton("q1", label = "click me", icon = icon("question"), style = "info", size = "extra-small")
-#                             tags$input(inputId = paste0("region", i),
-#                                        label = paste0("Region ", i), value = input[[paste0("region",i)]]),
-#                             # textInput(inputId = paste0("region", i),
-#                             #           label = paste0("Region ", i), value = input[[paste0("region",i)]]),
-#                             div(
-#                               # shiny::actionButton(inputId = paste0("region_button", i), 
-#                               #                     label = "temp"),
-#                               tags$button(inputId = paste0("region_button", i), list("temp")))
-#                             
-#          ),
-#          
-#          # textInput(inputId = paste0("region", i),
-#          #              label = paste0("Region ", i), value = input[[paste0("region",i)]])
-#   )
-# })
