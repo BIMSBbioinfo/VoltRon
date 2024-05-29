@@ -285,14 +285,14 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
     # create anndata
     # adata <- anndataR::AnnData(obs_names = rownames(metadata), var_names = rownames(data), X = t(data), obs = metadata, obsm = list(spatial = coords, 
     #                                                                                                                           spatial_AssayID = coords))
-    # adata <- anndataR::AnnData(obs_names = rownames(metadata), 
-    #                            var_names = rownames(data), 
-    #                            X = t(data), 
+    adata <- anndataR::AnnData(obs_names = rownames(metadata),
+                               var_names = rownames(data),
+                               X = t(data),
+                               obs = metadata,
+                               obsm = list(spatial = coords))
+    # adata <- anndataR::AnnData(X = t(data), 
     #                            obs = metadata, 
     #                            obsm = list(spatial = coords))
-    adata <- anndataR::AnnData(X = t(data), 
-                               obs = metadata, 
-                               obsm = list(spatial = coords))
     
     # create anndata file
     anndataR::write_h5ad(adata, path = file)
