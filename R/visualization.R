@@ -340,6 +340,10 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, spot.radius = vrAssayParams(assay, param = "vis.spot.radius")) +
       scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
+    # g <- g +
+    #   geom_spot(mapping = aes_string(x = "x", y = "y", color = group.by), coords, shape = 19, alpha = alpha, spot.radius = vrAssayParams(assay, param = "vis.spot.radius")) +
+    #   scale_color_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
+    #   guides(color = guide_legend(override.aes=list(shape = 19, size = 4, lwd = 0.1)))
 
   # cell visualization
   } else if(vrAssayTypes(assay) %in% c("cell", "tile")) {
