@@ -281,7 +281,17 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   # coordinates
   coords <- vrCoordinates(object, assay = assay)
   
-  if(requireNamespace('anndataR', quietly = TRUE)) {
+  if (requireNamespace('anndata', quietly = TRUE)) {
+    message('Currently using anndata package. Recommended to use anndataR, which does not depend on python!')
+    # create anndata
+    # adata <- anndata::AnnData(X = t(data), obs = metadata, obsm = list(spatial = coords, spatial_AssayID = coords))
+    adata <- anndata::AnnData(X = t(data),
+                              obs = metadata,
+                              obsm = list(spatial = coords))
+
+    # create anndata file
+    anndata::write_h5ad(adata, filename = file)
+  } else if(requireNamespace('anndataR', quietly = TRUE)) {
     # create anndata
     # adata <- anndataR::AnnData(obs_names = rownames(metadata), var_names = rownames(data), X = t(data), obs = metadata, obsm = list(spatial = coords, 
     #                                                                                                                           spatial_AssayID = coords))
@@ -296,19 +306,10 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
     
     # create anndata file
     anndataR::write_h5ad(adata, path = file)
-  } else if (requireNamespace('anndata', quietly = TRUE)) {
-    print('Currently using anndata package. Recommended to use anndataR, which does not depend on python!')
-    # create anndata
-    # adata <- anndata::AnnData(X = t(data), obs = metadata, obsm = list(spatial = coords, spatial_AssayID = coords))
-    adata <- anndata::AnnData(X = t(data), 
-                              obs = metadata, 
-                              obsm = list(spatial = coords))
-    
-    # create anndata file
-    anndata::write_h5ad(adata, filename = file)
   } else {
     stop("Please install anndataR (preferred) or anndata package for converting VoltRon objects to Anndata objects")
   }
+  
 
   # return
   NULL
