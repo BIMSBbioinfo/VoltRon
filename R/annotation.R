@@ -134,7 +134,6 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
             column(6,shiny::selectInput("region_type", label = "Region Type", choices = c("Polygon", "Circle"), selected = "Polygon")),
             column(6,sliderInput("alpha", "Transparency", min = 0, max = 1, value = 0.2)),
             br(),
-            # getRegionAnnotators(segments, segment_names),
             uiOutput("textbox_ui"),
             br(),
             br()
@@ -165,14 +164,10 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
 
       # initialize annotation segments 
       selected_corners_list <- reactiveVal(segments)
-      counter <- reactiveValues(n = if(length(segments) > 0) seq_len(length(segments)) else c(), 
-                                max = if(length(segments) > 0) length(segments) else NULL)
-      
-      # Initialize data frame to store points
       selected_corners <- reactiveVal(data.frame(x = numeric(0), y = numeric(0)))
       ranges <- reactiveValues(x = g$coordinates$limits$x, y = g$coordinates$limits$y)
 
-      ## point double click event and zoom ####
+      ## Point click, double click event and zoom ####
       observeEvent(input$plot_dblclick, {
         brush <- input$plot_brush
         if (!is.null(brush)) {
@@ -183,8 +178,6 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
           ranges$y <- g$coordinates$limits$y
         }
       })
-
-      ## point click event ####
       observeEvent(input$plot_click, {
         brush <- input$plot_brush
         if (is.null(brush)) {
@@ -198,7 +191,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
         }
       })
 
-      ## point buttons ####
+      ## Point buttons ####
       
       # reset corners
       observeEvent(input$reset_btn, {
@@ -209,69 +202,57 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
       observeEvent(input$rmvlast_btn, {
         selected_corners(selected_corners()[-nrow(selected_corners()),])
       })
-
+    
+      ## Region Annotators ####
+      
+      # initial points
+      counter <- reactiveValues(n = if(length(segments) > 0) seq_len(length(segments)) else numeric(0))
+      segment_names_reac <- reactiveVal(segment_names)
+      
       # add region
       observeEvent(input$addregion_btn, {
         if(nrow(selected_corners()) > 3){
-
+          
           # add to region list
           selected_corners_list(c(selected_corners_list(), list(selected_corners())))
-
+          
+          # get labels 
+          segment_names_reac(c(sapply(counter$n, function(i){isolate(input[[paste0("region", i)]])}),""))
+          
           # remove selected points
           selected_corners(data.frame(x = numeric(0), y = numeric(0)))
-
+          
           # Track input boxes to render
-          if(is.null(counter$max)){
-            counter$n <- 1
-          } else {
-            counter$n <- c(counter$n, counter$max + 1) 
-          }
-          counter$max <- max(counter$n)
+          new_id <- if (length(counter$n) == 0) 1 else max(counter$n) + 1
+          counter$n <- c(counter$n, new_id)
+          
         } else {
           showNotification("You must selected at least 4 points!")
         }
       })
-    
-      ## Region Annotators ####
-
-      # counter for regions
-      if(length(segment_names)){
-        output$textbox_ui <- renderUI({
-          lapply(counter$n, function(i) {
-            column(12,
-                   textInputwithButton(textinputId = paste0("region", i), label = paste0("Region ", i),
-                                       buttoninputId = paste0("region_button", i), value = segment_names[i]))
-          })
-        })
-        segment_names <- NULL
-      } else {
-        output$textbox_ui <- renderUI({textboxes()})
-        textboxes <- reactive({
-          if(length(counter$n) > 0){
-            lapply(counter$n, function(i) {
-              column(12,
-                     textInputwithButton(textinputId = paste0("region", i), label = paste0("Region ", i), 
-                                         buttoninputId = paste0("region_button", i), value = input[[paste0("region", i)]]))
-            })
-          }
-        })
-      }
       
+      output$textbox_ui <- renderUI({
+        lapply(counter$n, function(i) {
+          column(12,
+                 textInputwithButton(textinputId = paste0("region", i), label = paste0("Region ", i),
+                                     buttoninputId = paste0("region_button", i), value = segment_names_reac()[i]))
+                 
+        })
+      })
       
       # remove region annotators when clicked on the button
       observe({
-        if(length(counter$n) > 0){
-          for (i in counter$n){
-            observeEvent(input[[paste0("region_button", i)]], {
-
-              # remove one point
-              selected_corners_list(selected_corners_list()[-which(counter$n == i)])
-              
-              # remove one button
-              counter$n <- setdiff(counter$n, i)
-              
-            })
-          }
+        for (i in counter$n){
+          observeEvent(input[[paste0("region_button", i)]], {
+            
+            # remove one point
+            selected_corners_list(selected_corners_list()[!(counter$n == i)])
+            segment_names_reac(segment_names_reac()[!(counter$n == i)])
+            
+            # remove one button
+            counter$n <- counter$n[counter$n != i]
+            
+          })
         }
       })
 
@@ -424,3 +405,27 @@ shinyInputLabel <- function(inputId, label=NULL) {
              `for` = inputId
   )
 }
+
+# counter for regions
+# if(length(segment_names) > 0){
+#   output$textbox_ui <- renderUI({
+#     lapply(counter$n, function(i) {
+#       column(12,
+#              textInputwithButton(textinputId = paste0("region", i), label = paste0("Region ", i),
+#                                  buttoninputId = paste0("region_button", i), value = segment_names_reac$segt[i]))
+#     })
+#   })
+#   segment_names <- NULL
+# } else {
+#   output$textbox_ui <- renderUI({textboxes()})
+#   textboxes <- reactive({
+#     if(length(counter$n) > 0){
+#       lapply(counter$n, function(i) {
+#         column(12,
+#                textInputwithButton(textinputId = paste0("region", i), label = paste0("Region ", i), 
+#                                    buttoninputId = paste0("region_button", i), value = input[[paste0("region", i)]]))
+#       })
+#     }
+#   })
+# }
+# 
