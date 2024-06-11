@@ -114,7 +114,7 @@ VoltRon can analyze and also integrate information from distinct spatial data ty
 
 We will first import both histological images and manual annotations using the **importImageData** function which accepts both images to generate tile/pixel level datasets but also allows one to import either a list of segments or [GeoJSON](https://geojson.org/) objects for create ROI-level datasets as separate assays in a single VoltRon layer. The .geojson file was generated using [QuPath](https://qupath.github.io/) on the same section H&E image of one Xenium section with the acute COVID-19 case. We also have to flip the coordinates of ROI annotations also for they were directly imported from QuPath which incorporates a reverse coordinate system on the y-axis.
 
-Once imported, the resulting VoltRon object will have two assays in a single layer, one for tile dataset of the H&E image and the other for ROI based annotations of again the same image. You can download the H&E image from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/acutecase1_HE.jpg).
+Once imported, the resulting VoltRon object will have two assays in a single layer, one for tile dataset of the H&E image and the other for ROI based annotations of again the same image. You can download the H&E image from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/acutecase1_HE.jpg), and download the json file from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/acutecase1_membrane.geojson).
 
 ```{r eval = FALSE, class.source="watch-out"}
 # get image
