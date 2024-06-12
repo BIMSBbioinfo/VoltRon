@@ -1,66 +1,34 @@
-####
-# Main Shiny App ####
-####
-
-#' annotateSpatialData
-#'
-#' A mini shiny app to for annotating spatial points
-#'
-#' @param object a VoltRon object
-#' @param label the name of the new metadata column (default: annotation) annotating spatial points by selected polygons
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param annotation_assay name of the annotation assay ()
-#' @param use.image if TRUE, use only the image
-#' @param image_name the name/key of the image
-#' @param channel the name of the main channel
-#' @param ... additional parameters passed to \link{vrSpatialPlot}.
-#'
-#' @import shiny
-#' @importFrom shinyjs useShinyjs show hide
-#' @importFrom stats median
-#' @importFrom sp point.in.polygon
-#' @import ggplot2
-#'
-#' @export
-#' 
-#' @examples
-#' # Annotate based on images
-#' visium_data <- annotateSpatialData(visium_data, use.image = TRUE)
-#' 
-#' # Annotate based on spatial plot
-#' xenium_data <- annotateSpatialData(xenium_data, group.by = "clusters")
-annotateSpatialData <- function(object, label = "annotation", assay = NULL, annotation_assay = "ROIAnnotation", use.image = FALSE, image_name = NULL, channel = NULL, ...) {
-
+annotateSpatialData2 <- function(object, label = "annotation", assay = NULL, annotation_assay = "ROIAnnotation", use.image = FALSE, image_name = NULL, channel = NULL, ...) {
+  
   if(!inherits(object, "VoltRon"))
     stop("Please provide a VoltRon object!")
-
+  
   ## Importing images ####
-
+  
   # sample metadata
   sample_metadata <- SampleMetadata(object)
-
+  
   # get assay names, and always get a single assay
   assay_names <- vrAssayNames(object, assay = assay)
   if(length(assay_names) > 0)
     assay <- assay_names[1]
-
+  
   # metadata and coordinates
   metadata <- Metadata(object, assay = sample_metadata[assay, "Assay"])
   coords <- vrCoordinates(object, assay = assay)
-
+  
   # set label names
   if(label %in% colnames(metadata)){
     unique_names <- make.unique(c(colnames(metadata)[grepl(paste0("^", label), colnames(metadata))], label))
     label <- unique_names[length(unique_names)]
   }
-
+  
   # get image name and channel
   if(is.null(image_name)){
     # image_name <- vrMainImage(object[[assay]])
     image_name <- vrMainSpatial(object[[assay]])
   }
-
+  
   # get image
   if(use.image){
     g <- magick::image_ggplot(vrImages(object, assay = assay, name = image_name, channel = channel)) + labs(title = "")
@@ -87,22 +55,46 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
       segment_names <- c()
     }
   }
-
+  
   ## UI and Server ####
-
-  # get the ui and server
-  if (interactive()){
+  
+  # Define UI for the application
+  if(interactive()){
+    
+    # ui <- fluidPage(
+    #   # Application title
+    #   titlePanel("Dynamic Textboxes with Add and Remove Buttons"),
+    #   
+    #   # Sidebar layout with input and output definitions
+    #   sidebarLayout(
+    #     # Sidebar panel for inputs
+    #     sidebarPanel(
+    #       # Button to add a new textbox
+    #       actionButton("addTextbox", "Add Textbox"),
+    #       br(), br(),
+    #       # Dynamically create textboxes with remove buttons
+    #       uiOutput("textboxesUI")
+    #     ),
+    #     
+    #     # Main panel for displaying outputs
+    #     mainPanel(
+    #       h3("Textboxes"),
+    #       verbatimTextOutput("textboxesValues")
+    #     )
+    #   )
+    # )
+    
     ui <- fluidPage(
       sidebarLayout(position = "left",
-
-        sidebarPanel(
-
-          # margin settings
-          tags$style(make_css(list('.well', 'margin', '7%'))),
-
-          # # specific settings for dealing with simultaneous click and brush events
-          # # https://jokergoo.github.io/2021/02/20/differentiate-brush-and-click-event-in-shiny/
-          tags$script(HTML("
+                    
+                    sidebarPanel(
+                      
+                      # margin settings
+                      tags$style(make_css(list('.well', 'margin', '7%'))),
+                      
+                      # # specific settings for dealing with simultaneous click and brush events
+                      # # https://jokergoo.github.io/2021/02/20/differentiate-brush-and-click-event-in-shiny/
+                      tags$script(HTML("
             $('#plot').mousedown(function(e) {
                 var parentOffset = $(this).offset();
                 var relX = e.pageX - parentOffset.left;
@@ -118,58 +110,59 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
                 Shiny.setInputValue('action', Math.random());
             });
           ")),
-
-          # Interface
-          fluidRow(
-            column(12,h4("Annotation Interface")),
-            column(12,shiny::actionButton("reset_btn",     "Reset Points     ")),
-            column(12,shiny::actionButton("rmvlast_btn",   "Remove Last Point")),
-            column(12,shiny::actionButton("addregion_btn", "Add Region       ")),
-          ),
-          br(),
-          
-          # Subsets
-          fluidRow(
-            column(12,h4("Selected Regions")),
-            column(6,shiny::selectInput("region_type", label = "Region Type", choices = c("Polygon", "Circle"), selected = "Polygon")),
-            column(6,sliderInput("alpha", "Transparency", min = 0, max = 1, value = 0.2)),
-            br(),
-            uiOutput("textbox_ui"),
-            br(),
-            br()
-          ),
-
-          # Subsets
-          fluidRow(
-            column(12,shiny::actionButton("done", "Done"))
-          ),
-          width = 4
-        ),
-        mainPanel(
-          shinyjs::useShinyjs(),
-          plotOutput("image_plot",
-                     height = "1000px",
-                     click = "plot_click",
-                     dblclick = "plot_dblclick",
-                     brush = brushOpts(
-                       id = "plot_brush", fill = "green",
-                       resetOnNew = TRUE
-                     )),
-          width = 8
-        )
+                      
+                      # Interface
+                      fluidRow(
+                        column(12,h4("Annotation Interface")),
+                        column(12,shiny::actionButton("reset_btn",     "Reset Points     ")),
+                        column(12,shiny::actionButton("rmvlast_btn",   "Remove Last Point")),
+                        column(12,shiny::actionButton("addregion_btn", "Add Region       ")),
+                      ),
+                      br(),
+                      
+                      # Subsets
+                      fluidRow(
+                        column(12,h4("Selected Regions")),
+                        column(6,shiny::selectInput("region_type", label = "Region Type", choices = c("Polygon", "Circle"), selected = "Polygon")),
+                        column(6,sliderInput("alpha", "Transparency", min = 0, max = 1, value = 0.2)),
+                        br(),
+                        uiOutput("textbox_ui"),
+                        br(),
+                        br()
+                      ),
+                      
+                      # Subsets
+                      fluidRow(
+                        column(12,shiny::actionButton("done", "Done"))
+                      ),
+                      width = 4
+                    ),
+                    mainPanel(
+                      shinyjs::useShinyjs(),
+                      plotOutput("image_plot",
+                                 height = "1000px",
+                                 click = "plot_click",
+                                 dblclick = "plot_dblclick",
+                                 brush = brushOpts(
+                                   id = "plot_brush", fill = "green",
+                                   resetOnNew = TRUE
+                                 )),
+                      width = 8
+                    )
       )
     )
-
-    server <- function(input, output) {
-
+    
+    # Define server logic required to create, add, and remove textboxes
+    server <- function(input, output, session) {
+      
       # initialize annotation segments 
       selected_corners_list <- reactiveVal(segments)
       selected_corners <- reactiveVal(data.frame(x = numeric(0), y = numeric(0)))
       ranges <- reactiveValues(x = g$coordinates$limits$x, y = g$coordinates$limits$y)
-
+      
       ## Point click, double click event and zoom ####
       observeEvent(input$plot_dblclick, {
-        brush <- input$plot_brush
+        brush <- isolate(input$plot_brush)
         if (!is.null(brush)) {
           ranges$x <- c(brush$xmin, brush$xmax)
           ranges$y <- c(brush$ymin, brush$ymax)
@@ -179,18 +172,18 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
         }
       })
       observeEvent(input$plot_click, {
-        brush <- input$plot_brush
+        brush <- isolate(input$plot_brush)
         if (is.null(brush)) {
           click <- input$plot_click
           x <- click$x
           y <- click$y
-
+          
           # Append new point to the data frame
           new_point <- data.frame(x = x, y = y)
           selected_corners(rbind(selected_corners(), new_point))
         }
       })
-
+      
       ## Point buttons ####
       
       # reset corners
@@ -202,63 +195,95 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
       observeEvent(input$rmvlast_btn, {
         selected_corners(selected_corners()[-nrow(selected_corners()),])
       })
-    
+      
       ## Region Annotators ####
       
-      # initial points
-      counter <- reactiveValues(n = if(length(segments) > 0) seq_len(length(segments)) else numeric(0))
-      segment_names_reac <- reactiveVal(segment_names)
+      # length of segments
+      n <- length(segments)
       
-      # add region
+      ### Text Box Management ####
+      
+      # Reactive value to store the number of textboxes
+      textboxes <- reactiveVal(if (n > 0) 1:n else numeric(0))
+
+      # Initialize textbox values if n > 0
+      if (n > 0) {
+        # print(segment_names)
+        segment_names <- as.list(segment_names)
+        names(segment_names) <- paste0("region", 1:n)
+        textbox_values <- do.call("reactiveValues", segment_names)
+      } else {
+        textbox_values <- reactiveValues()
+      }
+      
+      # Dynamically generate UI for textboxes and remove buttons
+      output$textbox_ui <- renderUI({
+        lapply(textboxes(), function(i) {
+          column(12,
+                 textInputwithButton(textinputId = paste0("region", i), label = paste0("Region ", i),
+                                     buttoninputId = paste0("remove", i), value = isolate(textbox_values[[paste0("region", i)]]), 
+                                     onclick = sprintf('Shiny.setInputValue("remove", %d)', i))
+                 
+          )
+        })
+      })
+      
+      # Observe changes in each textbox to update their values
+      observe({
+        lapply(textboxes(), function(i) {
+          observeEvent(input[[paste0("region", i)]], {
+            textbox_values[[paste0("region", i)]] <- isolate(input[[paste0("region", i)]])
+          }, ignoreNULL = FALSE)
+        })
+      })
+      
+      ### Remove a Region ####
+      
+      # Observe event to remove textbox when the button is clicked
+      observeEvent(input$remove, {
+
+        # remove one point
+        selected_corners_list(selected_corners_list()[!(textboxes() == as.numeric(isolate(input$remove)))])
+
+        # Update the reactive value to remove the textbox
+        textboxes(setdiff(textboxes(), as.numeric(isolate(input$remove))))
+        
+        # Remove the value from textbox_values
+        textbox_values[[paste0("region", i)]] <- NULL
+        
+      }, ignoreInit = TRUE)
+      
+      ### Add a Region ####
+      
+      # Observe event to add a new textbox
       observeEvent(input$addregion_btn, {
+        
         if(nrow(selected_corners()) > 3){
-          
           # add to region list
           selected_corners_list(c(selected_corners_list(), list(selected_corners())))
-          
-          # get labels 
-          segment_names_reac(c(sapply(counter$n, function(i){isolate(input[[paste0("region", i)]])}),""))
           
           # remove selected points
           selected_corners(data.frame(x = numeric(0), y = numeric(0)))
           
-          # Track input boxes to render
-          new_id <- if (length(counter$n) == 0) 1 else max(counter$n) + 1
-          counter$n <- c(counter$n, new_id)
-          
+          # add buttons
+          new_id <- if (length(textboxes()) == 0) 1 else max(textboxes()) + 1
+          textboxes(c(textboxes(), new_id))
+          textbox_values[[paste0("region", new_id)]] <- ""
         } else {
           showNotification("You must selected at least 4 points!")
         }
       })
       
-      output$textbox_ui <- renderUI({
-        lapply(counter$n, function(i) {
-          column(12,
-                 textInputwithButton(textinputId = paste0("region", i), label = paste0("Region ", i),
-                                     buttoninputId = paste0("region_button", i), value = segment_names_reac()[i]))
-                 
-        })
-      })
       
-      # remove region annotators when clicked on the button
-      observe({
-        for (i in counter$n){
-          observeEvent(input[[paste0("region_button", i)]], {
-            
-            # remove one point
-            selected_corners_list(selected_corners_list()[!(counter$n == i)])
-            segment_names_reac(segment_names_reac()[!(counter$n == i)])
-            
-            # remove one button
-            counter$n <- counter$n[counter$n != i]
-            
-          })
-        }
-      })
-
+      # # Output the values of the textboxes
+      # output$textboxesValues <- renderPrint({
+      #   sapply(textboxes(), function(i) input[[paste0("region", i)]])
+      # })
+      
       ## image output ####
+      
       output$image_plot <- renderPlot({
-
+        
         # visualize already selected polygons
         if(length(selected_corners_list()) > 0){
           for (i in 1:length(selected_corners_list())){
@@ -267,29 +292,29 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
               ggplot2::geom_polygon(aes(x = x, y = y, group = "region"), data = cur_corners, alpha = input$alpha, color = "red")
           }
         }
-
+        
         # add currently selected points
         g <- g +
           ggplot2::geom_point(aes(x = x, y = y), data = selected_corners(), color = "red", shape = 16) +
           coord_equal(xlim = ranges$x, ylim = ranges$y, ratio = 1)
-
+        
         # add label to currently selected points
         datax_label_ind <- length(selected_corners_list()) + 1
         g <- g +
           ggplot2::geom_polygon(aes(x = x, y = y), data = selected_corners(), alpha = input$alpha, color = "red")
-
+        
         # put labels of the already selected polygons
         if(length(selected_corners_list()) > 0){
           for (i in 1:length(selected_corners_list())){
             cur_corners <- selected_corners_list()[[i]]
-            cur_corners <- data.frame(x = mean(cur_corners[,1]), y = max(cur_corners[,2]), region = paste("Region ", counter$n[i]))
+            cur_corners <- data.frame(x = mean(cur_corners[,1]), y = max(cur_corners[,2]), region = paste("Region ", textboxes()[i]))
             g <- g +
               ggrepel::geom_label_repel(mapping = aes(x = x, y = y, label = region), data = cur_corners,
                                         size = 5, direction = "y", nudge_y = 6, box.padding = 0, label.padding = 1, seed = 1, color = "red")
-
+            
           }
         }
-
+        
         # return graph
         g
       })
@@ -303,7 +328,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
         }
       })
       observeEvent(input$done, {
-
+        
         # selected list
         selected_polygon_list <- selected_corners_list()
         
@@ -315,14 +340,14 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
         } else if(any(selected_label_list == "")) {
           showNotification("Some regions have blank annotations (empty labels!)")
         } else {
-      
+          
           ### annotate spatial points ####
           if(inherits(metadata, "data.table")){
             spatialpoints <- metadata$id
           } else {
             spatialpoints <- rownames(metadata)
           }
-
+          
           new_label <- rep("undefined", length(spatialpoints))
           names(new_label) <- spatialpoints
           result_list <- list()
@@ -360,73 +385,10 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
           stopApp(object)
         }
       })
+      
     }
-
+    
+    # Run the application
     shiny::runApp(shiny::shinyApp(ui, server))
   }
 }
-
-#' internal Text input with button
-#' 
-#' Reproduced since it is not exported in the Shiny namespace.
-#' 
-#' @importFrom htmltools css tags validateCssUnit
-#' 
-#' @keywords internal
-textInputwithButton <- function (textinputId, label, buttoninputId, value = "", width = NULL, placeholder = NULL, ...) 
-{
-  textvalue <- restoreInput(id = textinputId, default = value)
-  buttonvalue <- restoreInput(id = buttoninputId, default = NULL)
-  div(class = "form-group shiny-input-container", 
-      style =  htmltools::css(width = htmltools::validateCssUnit(width), display = "inline-block"),
-      shinyInputLabel(textinputId, label), 
-      htmltools::tags$input(id = textinputId, 
-                            style = htmltools::css(width = "80%", float = "left"),
-                            type = "text", class = "shiny-input-text form-control", 
-                            value = textvalue, placeholder = placeholder),
-      htmltools::tags$button(id = buttoninputId, 
-                             style = htmltools::css(width = "20%", float = "left"),
-                             type = "button", class = "btn btn-default action-button", 
-                             `data-val` = buttonvalue, disabled = NULL, list(shiny::icon("trash")), ...)
-      )
-}
-
-#' Shiny's internal \code{shinyInputLabel} function
-#' 
-#' Reproduced since it is not exported in the Shiny namespace.
-#' 
-#' @importFrom htmltools css tags validateCssUnit
-#' 
-#' @keywords internal
-shinyInputLabel <- function(inputId, label=NULL) {
-  htmltools::tags$label(label,
-             class = "control-label",
-             class = if (is.null(label)) "shiny-label-null",
-             `for` = inputId
-  )
-}
-
-# counter for regions
-# if(length(segment_names) > 0){
-#   output$textbox_ui <- renderUI({
-#     lapply(counter$n, function(i) {
-#       column(12,
-#              textInputwithButton(textinputId = paste0("region", i), label = paste0("Region ", i),
-#                                  buttoninputId = paste0("region_button", i), value = segment_names_reac$segt[i]))
-#     })
-#   })
-#   segment_names <- NULL
-# } else {
-#   output$textbox_ui <- renderUI({textboxes()})
-#   textboxes <- reactive({
-#     if(length(counter$n) > 0){
-#       lapply(counter$n, function(i) {
-#         column(12,
-#                textInputwithButton(textinputId = paste0("region", i), label = paste0("Region ", i), 
-#                                    buttoninputId = paste0("region_button", i), value = input[[paste0("region", i)]]))
-#       })
-#     }
-#   })
-# }
-# 
-
