@@ -1,4 +1,33 @@
-annotateSpatialData2 <- function(object, label = "annotation", assay = NULL, annotation_assay = "ROIAnnotation", use.image = FALSE, image_name = NULL, channel = NULL, ...) {
+#' annotateSpatialData
+#'
+#' A mini shiny app to for annotating spatial points
+#'
+#' @param object a VoltRon object
+#' @param label the name of the new metadata column (default: annotation) annotating spatial points by selected polygons
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param annotation_assay name of the annotation assay ()
+#' @param use.image if TRUE, use only the image
+#' @param image_name the name/key of the image
+#' @param channel the name of the main channel
+#' @param ... additional parameters passed to \link{vrSpatialPlot}.
+#'
+#' @import shiny
+#' @importFrom shinyjs useShinyjs show hide
+#' @importFrom stats median
+#' @importFrom sp point.in.polygon
+#' @import ggplot2
+#' @importFrom ggforce geom_ellipse
+#'
+#' @export
+#' 
+#' @examples
+#' # Annotate based on images
+#' visium_data <- annotateSpatialData(visium_data, use.image = TRUE)
+#' 
+#' # Annotate based on spatial plot
+#' xenium_data <- annotateSpatialData(xenium_data, group.by = "clusters")
+annotateSpatialData <- function(object, label = "annotation", assay = NULL, annotation_assay = "ROIAnnotation", use.image = FALSE, image_name = NULL, channel = NULL, ...) {
   
   if(!inherits(object, "VoltRon"))
     stop("Please provide a VoltRon object!")
@@ -60,30 +89,6 @@ annotateSpatialData2 <- function(object, label = "annotation", assay = NULL, ann
   
   # Define UI for the application
   if(interactive()){
-    
-    # ui <- fluidPage(
-    #   # Application title
-    #   titlePanel("Dynamic Textboxes with Add and Remove Buttons"),
-    #   
-    #   # Sidebar layout with input and output definitions
-    #   sidebarLayout(
-    #     # Sidebar panel for inputs
-    #     sidebarPanel(
-    #       # Button to add a new textbox
-    #       actionButton("addTextbox", "Add Textbox"),
-    #       br(), br(),
-    #       # Dynamically create textboxes with remove buttons
-    #       uiOutput("textboxesUI")
-    #     ),
-    #     
-    #     # Main panel for displaying outputs
-    #     mainPanel(
-    #       h3("Textboxes"),
-    #       verbatimTextOutput("textboxesValues")
-    #     )
-    #   )
-    # )
-    
     ui <- fluidPage(
       sidebarLayout(position = "left",
                     
@@ -180,6 +185,15 @@ annotateSpatialData2 <- function(object, label = "annotation", assay = NULL, ann
           
           # Append new point to the data frame
           new_point <- data.frame(x = x, y = y)
+          
+          # if a circle, dont allow more than two points
+          if(isolate(input$region_type == "Circle")){
+            if(nrow(selected_corners()) == 2){
+              selected_corners(data.frame(x = numeric(0), y = numeric(0)))
+            }
+          }
+          
+          # add new point
           selected_corners(rbind(selected_corners(), new_point))
         }
       })
@@ -206,7 +220,7 @@ annotateSpatialData2 <- function(object, label = "annotation", assay = NULL, ann
       # Reactive value to store the number of textboxes
       textboxes <- reactiveVal(if (n > 0) 1:n else numeric(0))
 
-      # Initialize textbox values if n > 0
+      # Initialize textbox values if n > 0, get already existing segments
       if (n > 0) {
         # print(segment_names)
         segment_names <- as.list(segment_names)
@@ -258,19 +272,44 @@ annotateSpatialData2 <- function(object, label = "annotation", assay = NULL, ann
       # Observe event to add a new textbox
       observeEvent(input$addregion_btn, {
         
-        if(nrow(selected_corners()) > 3){
-          # add to region list
-          selected_corners_list(c(selected_corners_list(), list(selected_corners())))
-          
-          # remove selected points
-          selected_corners(data.frame(x = numeric(0), y = numeric(0)))
-          
-          # add buttons
-          new_id <- if (length(textboxes()) == 0) 1 else max(textboxes()) + 1
-          textboxes(c(textboxes(), new_id))
-          textbox_values[[paste0("region", new_id)]] <- ""
-        } else {
-          showNotification("You must selected at least 4 points!")
+        # Polygon selection
+        if(isolate(input$region_type == "Polygon")){
+          if(nrow(selected_corners()) > 3){
+            # add to region list
+            selected_corners_list(c(selected_corners_list(), list(selected_corners())))
+            
+            # remove selected points
+            selected_corners(data.frame(x = numeric(0), y = numeric(0)))
+            
+            # add buttons
+            new_id <- if (length(textboxes()) == 0) 1 else max(textboxes()) + 1
+            textboxes(c(textboxes(), new_id))
+            textbox_values[[paste0("region", new_id)]] <- ""
+          } else {
+            showNotification("You must selected at least 4 points for each polygon!")
+          }
+        } 
+        
+        # Circle selection
+        if(isolate(input$region_type == "Circle")){
+          if(nrow(selected_corners()) == 2){
+            
+            # add to region list
+            circle <- makeCircleData(selected_corners())
+            print(selected_corners_list())
+            selected_corners_list(c(selected_corners_list(), list(circle)))
+            print(selected_corners_list())
+            
+            # remove selected points
+            selected_corners(data.frame(x = numeric(0), y = numeric(0)))
+            
+            # add buttons
+            new_id <- if (length(textboxes()) == 0) 1 else max(textboxes()) + 1
+            textboxes(c(textboxes(), new_id))
+            textbox_values[[paste0("region", new_id)]] <- ""
+          } else {
+            showNotification("You must selected only 2 points for each circle!")
+          }
         }
       })
       
@@ -288,30 +327,54 @@ annotateSpatialData2 <- function(object, label = "annotation", assay = NULL, ann
         if(length(selected_corners_list()) > 0){
           for (i in 1:length(selected_corners_list())){
             cur_corners <- selected_corners_list()[[i]]
-            g <- g +
-              ggplot2::geom_polygon(aes(x = x, y = y, group = "region"), data = cur_corners, alpha = input$alpha, color = "red")
+            
+            if(ncol(cur_corners) == 2){
+              g <- g +
+                ggplot2::geom_polygon(aes(x = x, y = y, group = "region"), data = cur_corners, alpha = input$alpha, color = "red") 
+            } else {
+              circle <- makeCircleData(selected_corners())
+              g <- g +
+                ggforce::geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0), data = circle, alpha = input$alpha, color = "red", fill = "red")
+            }
           }
         }
         
         # add currently selected points
         g <- g +
           ggplot2::geom_point(aes(x = x, y = y), data = selected_corners(), color = "red", shape = 16) +
-          coord_equal(xlim = ranges$x, ylim = ranges$y, ratio = 1)
+          coord_equal(xlim = ranges$x, ylim = ranges$y, ratio = 1) 
         
         # add label to currently selected points
-        datax_label_ind <- length(selected_corners_list()) + 1
-        g <- g +
-          ggplot2::geom_polygon(aes(x = x, y = y), data = selected_corners(), alpha = input$alpha, color = "red")
+        if(isolate(input$region_type == "Polygon")){
+          g <- g +
+            ggplot2::geom_polygon(aes(x = x, y = y), data = selected_corners(), alpha = input$alpha, color = "red")
+        } else {
+          if(nrow(selected_corners()) == 2){
+            circle <- makeCircleData(selected_corners())
+            g <- g +
+              ggforce::geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0), data = circle, alpha = input$alpha, color = "red", fill = "red") +
+              coord_equal(xlim = ranges$x, ylim = ranges$y, ratio = 1)
+          }
+        }
         
         # put labels of the already selected polygons
         if(length(selected_corners_list()) > 0){
           for (i in 1:length(selected_corners_list())){
             cur_corners <- selected_corners_list()[[i]]
-            cur_corners <- data.frame(x = mean(cur_corners[,1]), y = max(cur_corners[,2]), region = paste("Region ", textboxes()[i]))
+            
+            # create label data
+            if(ncol(cur_corners) == 2){
+              cur_corners <- data.frame(x = mean(cur_corners[,1]), y = max(cur_corners[,2]), region = paste("Region ", textboxes()[i]))
+            } else {
+              circle <- makeCircleData(selected_corners())
+              cur_corners <- data.frame(x = circle[,1], y = circle[,2] + circle[,3], region = paste("Region ", textboxes()[i]))
+            }
+            
+            # add label
             g <- g +
               ggrepel::geom_label_repel(mapping = aes(x = x, y = y, label = region), data = cur_corners,
-                                        size = 5, direction = "y", nudge_y = 6, box.padding = 0, label.padding = 1, seed = 1, color = "red")
-            
+                                        size = 5, direction = "y", nudge_y = 6, box.padding = 0, label.padding = 1, seed = 1, color = "red") 
+
           }
         }
         
@@ -391,4 +454,14 @@ annotateSpatialData2 <- function(object, label = "annotation", assay = NULL, ann
     # Run the application
     shiny::runApp(shiny::shinyApp(ui, server))
   }
+}
+
+makeCircleData <- function(selected_corners) {
+  radius <- sqrt((selected_corners[1,1] - selected_corners[2,1])^2 + (selected_corners[1,2] - selected_corners[2,2])^2)
+  
+  circle <- data.frame(x = selected_corners[1,1],
+                       y = selected_corners[1,2],
+                       rx = radius,
+                       ry = radius)
+  circle
 }

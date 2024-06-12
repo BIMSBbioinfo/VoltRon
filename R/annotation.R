@@ -2,7 +2,7 @@
 # Main Shiny App ####
 ####
 
-#' annotateSpatialData
+#' annotateSpatialData_old
 #'
 #' A mini shiny app to for annotating spatial points
 #'
@@ -21,6 +21,7 @@
 #' @importFrom stats median
 #' @importFrom sp point.in.polygon
 #' @import ggplot2
+#' @importFrom ggforce geom_ellipse
 #'
 #' @export
 #' 
@@ -30,7 +31,7 @@
 #' 
 #' # Annotate based on spatial plot
 #' xenium_data <- annotateSpatialData(xenium_data, group.by = "clusters")
-annotateSpatialData <- function(object, label = "annotation", assay = NULL, annotation_assay = "ROIAnnotation", use.image = FALSE, image_name = NULL, channel = NULL, ...) {
+annotateSpatialData_old <- function(object, label = "annotation", assay = NULL, annotation_assay = "ROIAnnotation", use.image = FALSE, image_name = NULL, channel = NULL, ...) {
 
   if(!inherits(object, "VoltRon"))
     stop("Please provide a VoltRon object!")
@@ -405,28 +406,3 @@ shinyInputLabel <- function(inputId, label=NULL) {
              `for` = inputId
   )
 }
-
-# counter for regions
-# if(length(segment_names) > 0){
-#   output$textbox_ui <- renderUI({
-#     lapply(counter$n, function(i) {
-#       column(12,
-#              textInputwithButton(textinputId = paste0("region", i), label = paste0("Region ", i),
-#                                  buttoninputId = paste0("region_button", i), value = segment_names_reac$segt[i]))
-#     })
-#   })
-#   segment_names <- NULL
-# } else {
-#   output$textbox_ui <- renderUI({textboxes()})
-#   textboxes <- reactive({
-#     if(length(counter$n) > 0){
-#       lapply(counter$n, function(i) {
-#         column(12,
-#                textInputwithButton(textinputId = paste0("region", i), label = paste0("Region ", i), 
-#                                    buttoninputId = paste0("region_button", i), value = input[[paste0("region", i)]]))
-#       })
-#     }
-#   })
-# }
-# 
-
