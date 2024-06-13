@@ -10,7 +10,8 @@ textInputwithButton(
   buttoninputId,
   value = "",
   width = NULL,
-  placeholder = NULL
+  placeholder = NULL,
+  ...
 )
 }
 \description{

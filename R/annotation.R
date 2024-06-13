@@ -463,7 +463,8 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
 #' 
 #' Reproduced since it is not exported in the Shiny namespace.
 #' 
-#' @importFrom htmltools css tags validateCssUnit
+#' @importFrom shiny tags validateCssUnit
+#' @importFrom htmltools css
 #' 
 #' @keywords internal
 textInputwithButton <- function (textinputId, label, buttoninputId, value = "", width = NULL, placeholder = NULL, ...) 
@@ -471,13 +472,13 @@ textInputwithButton <- function (textinputId, label, buttoninputId, value = "", 
   textvalue <- restoreInput(id = textinputId, default = value)
   buttonvalue <- restoreInput(id = buttoninputId, default = NULL)
   div(class = "form-group shiny-input-container", 
-      style =  htmltools::css(width = htmltools::validateCssUnit(width), display = "inline-block"),
+      style =  htmltools::css(width = shiny::validateCssUnit(width), display = "inline-block"),
       shinyInputLabel(textinputId, label), 
-      htmltools::tags$input(id = textinputId, 
+      shiny::tags$input(id = textinputId, 
                             style = htmltools::css(width = "80%", float = "left"),
                             type = "text", class = "shiny-input-text form-control", 
                             value = textvalue, placeholder = placeholder),
-      htmltools::tags$button(id = buttoninputId, 
+      shiny::tags$button(id = buttoninputId, 
                              style = htmltools::css(width = "20%", float = "left"),
                              type = "button", class = "btn btn-default action-button", 
                              `data-val` = buttonvalue, disabled = NULL, list(shiny::icon("trash")), ...)
@@ -488,11 +489,11 @@ textInputwithButton <- function (textinputId, label, buttoninputId, value = "", 
 #' 
 #' Reproduced since it is not exported in the Shiny namespace.
 #' 
-#' @importFrom htmltools css tags validateCssUnit
+#' @importFrom shiny tags
 #' 
 #' @keywords internal
 shinyInputLabel <- function(inputId, label=NULL) {
-  htmltools::tags$label(label,
+  shiny::tags$label(label,
              class = "control-label",
              class = if (is.null(label)) "shiny-label-null",
              `for` = inputId
@@ -545,8 +546,6 @@ point.in.circle <- function(x,y,circle.x, circle.y, radius) {
 #' @importFrom sp point.in.polygon
 #' @import ggplot2
 #' @importFrom ggforce geom_ellipse
-#'
-#' @export
 #' 
 #' @examples
 #' # Annotate based on images
@@ -554,6 +553,8 @@ point.in.circle <- function(x,y,circle.x, circle.y, radius) {
 #' 
 #' # Annotate based on spatial plot
 #' xenium_data <- annotateSpatialData(xenium_data, group.by = "clusters")
+#' 
+#' @keywords internal
 annotateSpatialData_old <- function(object, label = "annotation", assay = NULL, annotation_assay = "ROIAnnotation", use.image = FALSE, image_name = NULL, channel = NULL, ...) {
   
   if(!inherits(object, "VoltRon"))

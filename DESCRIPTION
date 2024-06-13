@@ -14,7 +14,7 @@ biocViews:
 Imports: methods, S4Vectors, EBImage, FNN, Matrix, dplyr, ggforce, 
          ggplot2, ggpubr, ggrepel, hdf5r, igraph, irlba, rjson, magick, 
          reshape2, rlang, scales, shiny, shinyjs, stringr, uwot, data.table, 
-         RCDT, basilisk, reticulate, sp, ids, waiter, rstudioapi
+         RCDT, basilisk, reticulate, sp, ids, waiter, rstudioapi, htmltools
 LinkingTo: Rcpp, RcppArmadillo (>= 0.4)
 Collate: 
     'RcppExports.R'
