@@ -300,6 +300,9 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
                                X = t(data),
                                obs = metadata,
                                obsm = list(spatial = coords))
+    # adata <- anndataR::AnnData(X = t(data), 
+    #                            obs = metadata, 
+    #                            obsm = list(spatial = coords))
     
     # create anndata file
     anndataR::write_h5ad(adata, path = file)
