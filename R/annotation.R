@@ -69,7 +69,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
     g <- vrSpatialPlot(object, assay = assay, background = c(image_name, channel), scale.image = FALSE, ...) + labs(title = "")
   }
   
-  # get segmentations (if exists)
+  # get segmentations (if exists) from the same layer
   if(!is.null(annotation_assay)){
     layer_metadata <- sample_metadata[,sample_metadata$Layer == sample_metadata[assay, "Layer"] & sample_metadata$Sample == sample_metadata[assay, "Sample"]]
     if(annotation_assay %in% layer_metadata$Assay){
