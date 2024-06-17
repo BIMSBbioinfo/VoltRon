@@ -86,6 +86,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   segments_file <- paste0(dir.path, "/cell_boundaries.csv.gz")
   if(file.exists(segments_file)){
     segments <- as.data.frame(data.table::fread(segments_file))
+    segments <- segments[,c("cell_id", "vertex_x", "vertex_y")]
     colnames(segments) <- c("cell_id", "x", "y")
     if(use_image){
       segments[,c("x","y")] <- segments[,c("x","y")]/scaleparam
