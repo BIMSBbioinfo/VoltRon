@@ -255,10 +255,10 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
 #' @importFrom stringr str_extract
 #'
 #' @export
-as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"), flip_coordinates = FALSE, method = c("anndataR", "anndata")) {
+as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"), flip_coordinates = FALSE, method = "anndata") {
   
   # Ensuring method is one of the allowed values
-  method <- match.arg(method)
+  # method <- match.arg(method)
   
   # Check the number of assays
   if (is.null(assay)) {
