@@ -245,9 +245,9 @@ We use the **squidpy.pl.spatial_scatter** functions available in squidpy to visu
 
 ```{python class.source="watch-out", eval = FALSE}
 fig, ax = plt.subplots(1, 2, figsize=(10, 7))
-sq.pl.spatial_scatter(adata, library_key = "AssayID", library_id = "_Assay1", 
+sq.pl.spatial_scatter(adata, library_key = "library_id", library_id = "_Assay1", 
                       color=["CellType"], shape=None, size=1, img = False, ax=ax[0])
-sq.pl.spatial_scatter(adata, library_key = "AssayID", library_id = "_Assay2", 
+sq.pl.spatial_scatter(adata, library_key = "library_id", library_id = "_Assay2", 
                       color=["CellType"], shape=None, size=1, img = False, ax=ax[1])
 plt.show(ax)
 ```
@@ -267,9 +267,9 @@ adata
 
 ```
 AnnData object with n_obs × n_vars = 283298 × 313
-    obs: 'Count', 'Assay', 'Layer', 'Sample', 'Clusters', 'CellType', 'AssayID'
+    obs: 'Count', 'Assay', 'Layer', 'Sample', 'Clusters', 'CellType', 'library_id'
     uns: 'log1p', 'spatial_neighbors'
-    obsm: 'spatial', 'spatial_AssayID'
+    obsm: 'spatial'
     layers: 'counts'
     obsp: 'spatial_connectivities', 'spatial_distances'
 ```
@@ -284,7 +284,7 @@ sq.gr.nhood_enrichment(adata, cluster_key="CellType")
 fig, ax = plt.subplots(1, 2, figsize=(13, 7))
 sq.pl.nhood_enrichment(adata, cluster_key="CellType", figsize=(8, 8), 
                        title="Neighborhood enrichment adata", ax=ax[0])
-sq.pl.spatial_scatter(adata, color="CellType", library_key = "AssayID", 
+sq.pl.spatial_scatter(adata, color="CellType", library_key = "library_id", 
                       library_id = "_Assay1", shape=None, size=2, ax=ax[1])
 plt.show(ax)
 ```

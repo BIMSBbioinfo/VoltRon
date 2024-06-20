@@ -47,9 +47,10 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
 
   # normalization method
   if(method == "LogNorm"){
-    depth <- matrix(rep(coldepth, nrow(rawdata)), byrow = T, nrow = nrow(rawdata))
-    normdata <- (rawdata/depth)*sizefactor
-    normdata <- log(normdata + 1)
+    # depth <- matrix(rep(coldepth, nrow(rawdata)), byrow = T, nrow = nrow(rawdata))
+    # normdata <- (rawdata/depth)*sizefactor
+    normdata <- sweep(rawdata, 2L, coldepth, FUN = "/")
+    normdata <- log(normdata*sizefactor + 1)
   } else if(method == "Q3Norm") {
     rawdata[rawdata==0] <- 1
     qs <- apply(rawdata, 2, function(x) stats::quantile(x, desiredQuantile))
@@ -100,6 +101,7 @@ getFeatures.VoltRon <- function(object, assay = NULL, max.count = 1, n = 3000){
 #' @rdname getFeatures
 #'
 #' @importFrom stats loess predict var
+#' @importFrom Matrix rowMeans
 #'
 #' @export
 getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
@@ -111,10 +113,10 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
 
   # eliminate genes with low counts
   keep.genes <- which(apply(rawdata,1,max) > max.count)
-  rawdata_subset <- rawdata[keep.genes,]
 
   # vst estimation
-  vst_data <- data.frame(mean = rowMeans(rawdata), var = apply(rawdata, 1, stats::var))
+  # vst_data <- data.frame(mean = rowMeans(rawdata), var = apply(rawdata, 1, stats::var))
+  vst_data <- data.frame(mean = Matrix::rowMeans(rawdata), var = apply(rawdata, 1, stats::var))
   loess_data <- vst_data[keep.genes,]
   loess_results <- stats::loess(var~mean, loess_data, span = 0.3)
   vst_data$adj_var <- 0
@@ -165,9 +167,11 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
   }
 
   # get geometric mean of ranks, i.e. rank product statistic
+  rownames_ranks <- ranks$gene
   ranks <- ranks[,!colnames(ranks) %in% "gene", drop = FALSE]
   ranks <- apply(ranks, 1, function(x) exp(mean(log(x))))
-  names(ranks) <- rownames(feature_data)
+  # names(ranks) <- rownames(feature_data)
+  names(ranks) <- rownames_ranks
   ranks <- ranks[ranks != 0]
 
   # get selected features

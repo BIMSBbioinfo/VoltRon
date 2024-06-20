@@ -316,6 +316,7 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   NULL
 }
 
+
 ####
 # AnnData (Zarr) ####
 ####
@@ -436,7 +437,7 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
 #' @importFrom stringr str_replace str_extract
 #' @importFrom magick image_write
 #'
-# #' @export
+#' @export
 as.Giotto <- function(object, assay = NULL, reg = FALSE){
   
   # sample metadata

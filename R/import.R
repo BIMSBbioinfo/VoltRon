@@ -86,6 +86,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   segments_file <- paste0(dir.path, "/cell_boundaries.csv.gz")
   if(file.exists(segments_file)){
     segments <- as.data.frame(data.table::fread(segments_file))
+    segments <- segments[,c("cell_id", "vertex_x", "vertex_y")]
     colnames(segments) <- c("cell_id", "x", "y")
     if(use_image){
       segments[,c("x","y")] <- segments[,c("x","y")]/scaleparam
@@ -1295,6 +1296,65 @@ importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, u
   }
 }
   
+####
+# BGI Genomics ####
+####
+
+####
+## STOmics ####
+####
+
+#' importSTOmics
+#'
+#' Importing STOmics (Stereo-Seq) data
+#'
+#' @param h5ad.path path to h5ad file of STOmics output
+#' @param assay_name the assay name
+#' @param sample_name the name of the sample
+#' @param image_name the image name of the Visium assay, Default: main
+#' @param channel_name the channel name of the image of the Visium assay, Default: H&E
+#' @param ... additional parameters passed to \link{formVoltRon}
+#'
+#' @importFrom methods as
+#' @export
+#'
+importSTOmics <- function(h5ad.path, assay_name = "STOmics", sample_name = NULL, image_name = "main", channel_name = "H&E", ...)
+{
+  # check Seurat package
+  if(!requireNamespace('anndataR'))
+    stop("Please install anndataR package")
+  
+  # get h5ad data
+  stdata <- anndataR::read_h5ad(h5ad.path)
+  
+  # observation and feature names
+  obs_names <- stdata$obs_names
+  var_names <- stdata$var_names
+  
+  # raw counts
+  rawdata <- Matrix::t(stdata$X)
+  rownames(rawdata) <- var_names
+  colnames(rawdata) <- obs_names
+  rawdata <- methods::as(rawdata, 'CsparseMatrix')
+  
+  # metadata
+  metadata <- stdata$obs
+  rownames(metadata) <- obs_names
+  
+  # coordinates
+  coords <- stdata$obsm$spatial
+  rownames(coords) <- obs_names
+  
+  # scale coordinates
+  binsize <- stdata$uns$bin_size
+  params <- list(
+    spot.radius = 0.5 + (binsize-1),
+    vis.spot.radius = 0.5 + (binsize-1))
+  
+  # create VoltRon
+  formVoltRon(rawdata, metadata = metadata, coords = coords, main.assay = assay_name, params = params, assay.type = "spot", image_name = image_name, main_channel = channel_name, sample_name = sample_name, ...)
+}
+
 ####
 # Image Data ####
 ####
