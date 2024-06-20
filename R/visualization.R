@@ -337,13 +337,19 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   # spot visualization
   } else if(vrAssayTypes(assay) == "spot"){
     g <- g +
-      geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, spot.radius = vrAssayParams(assay, param = "vis.spot.radius")) +
+      geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, 
+                spot.radius = vrAssayParams(assay, param = "vis.spot.radius")/scale_factors) +
       scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
     # g <- g +
     #   geom_spot(mapping = aes_string(x = "x", y = "y", color = group.by), coords, shape = 19, alpha = alpha, spot.radius = vrAssayParams(assay, param = "vis.spot.radius")) +
     #   scale_color_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
     #   guides(color = guide_legend(override.aes=list(shape = 19, size = 4, lwd = 0.1)))
+    
+    # add if a graph exists
+    if(!is.null(graph)){
+      g <- g + addGraph(graph, coords, background)
+    }
 
   # cell visualization
   } else if(vrAssayTypes(assay) %in% c("cell", "tile")) {
@@ -381,14 +387,9 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 
         # add if a graph exists
         if(!is.null(graph)){
-          graph.df <- igraph::get.data.frame(graph)
-          graph.df$from.x <- coords$x[match(graph.df$from, rownames(coords))]
-          graph.df$from.y <- coords$y[match(graph.df$from, rownames(coords))]
-          graph.df$to.x <- coords$x[match(graph.df$to, rownames(coords))]
-          graph.df$to.y <- coords$y[match(graph.df$to, rownames(coords))]
-          g <- g +
-            geom_segment(data = graph.df, mapping = aes(x=from.x,xend = to.x, y=from.y,yend = to.y), alpha = 0.5, color = ifelse(background == "black", "grey", "black"))
+          g <- g + addGraph(graph, coords, background)
         }
+        
       }
   } else if(vrAssayTypes(assay) == "molecule") {
 
@@ -491,6 +492,7 @@ vrSpatialPlotSingleTiling <- function(g, data, n.tile, alpha = 1){
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
+#' @param scale.image if TRUE, background image will be scaled down to a low resolution (width: 1000px)
 #' @param common.legend whether to use a common legend for all plots, see \link{ggarrange}
 #' @param legend.loc the location of the legend, default is "right"
 #' @param collapse whether to combine all ggplots
@@ -502,7 +504,7 @@ vrSpatialPlotSingleTiling <- function(g, data, n.tile, alpha = 1){
 #'
 vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segments = FALSE, norm = TRUE, log = FALSE, assay = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
                          font.size = 2, pt.size = 2, cell.shape = 16, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, background = NULL, reg = FALSE,
-                         crop = FALSE, common.legend = FALSE, legend.loc = "right", collapse = TRUE) {
+                         crop = FALSE, scale.image = TRUE, common.legend = FALSE, legend.loc = "right", collapse = TRUE) {
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -633,6 +635,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
+#' @param scale.image if TRUE, background image will be scaled down to a low resolution (width: 1000px)
 #'
 #' @import ggplot2
 #' @importFrom ggrepel geom_label_repel
@@ -643,7 +646,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
 #' @noRd
 vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments = FALSE, graph = NULL, limits, group.by = "label", norm = TRUE, log = FALSE,
                                font.size = 2, pt.size = 2, cell.shape = 16, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL,
-                               legend_title = NULL, background = NULL, reg = FALSE, crop = FALSE){
+                               legend_title = NULL, background = NULL, reg = FALSE, crop = FALSE, scale.image = TRUE){
 
   # plot
   g <- ggplot()
@@ -664,7 +667,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
     image <- vrImages(assay, name = background, channel = channel)
     if(!is.null(image)){
       info <- image_info(image)
-      if(info$width > 1000){
+      if(info$width > 1000 && scale.image){
         image <- magick::image_resize(image, geometry = "1000x")
         scale_factors <- info$width/1000
         info <- magick::image_info(image)
@@ -759,7 +762,8 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
                            values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
   } else if(vrAssayTypes(assay) == "spot"){
     g <- g +
-      geom_spot(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, alpha = alpha, spot.radius = vrAssayParams(assay, param = "vis.spot.radius")) +
+      geom_spot(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, alpha = alpha, 
+                spot.radius = vrAssayParams(assay, param = "vis.spot.radius")/scale_factors) +
       scale_fill_gradientn(name = legend_title,
                              colors=c("dodgerblue3", "yellow", "red"),
                              values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
@@ -901,6 +905,28 @@ GeomSpot <- ggplot2::ggproto("GeomSpot",
 
                       draw_key = draw_key_point
 )
+
+#' addGraph
+#'
+#' add graph to a spatial plot
+#' 
+#' @param coords coordinates data
+#' @param graph if not NULL, the graph is added to the plot
+#' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
+#'
+#' @import ggplot2
+#'
+#' @noRd
+addGraph <- function(graph, coords, background){
+  graph.df <- igraph::get.data.frame(graph)
+  graph.df$from.x <- coords$x[match(graph.df$from, rownames(coords))]
+  graph.df$from.y <- coords$y[match(graph.df$from, rownames(coords))]
+  graph.df$to.x <- coords$x[match(graph.df$to, rownames(coords))]
+  graph.df$to.y <- coords$y[match(graph.df$to, rownames(coords))]
+  geom_segment(data = graph.df, mapping = aes(x=from.x,xend = to.x, y=from.y,yend = to.y), 
+               alpha = 0.5, color = ifelse(background == "black", "grey", "black"))
+  
+}
 
 ####
 ## Spatial Neighborhood Plot ####
