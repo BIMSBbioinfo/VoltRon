@@ -37,3 +37,7 @@ replacePatternInRcppVectorWrapper <- function(textVector, pattern, replacement) 
     .Call('_VoltRon_replacePatternInRcppVectorWrapper', PACKAGE = 'VoltRon', textVector, pattern, replacement)
 }
 
+replaceNaMatrix <- function(mat, replace) {
+    .Call('_VoltRon_replaceNaMatrix', PACKAGE = 'VoltRon', mat, replace)
+}
+

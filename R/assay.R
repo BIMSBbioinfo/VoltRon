@@ -1,5 +1,5 @@
 #' @include zzz.R
-#' @importClassesFrom Matrix dgCMatrix
+#' @importClassesFrom Matrix dgCMatrix dgRMatrix dgeMatrix
 NULL
 
 ####

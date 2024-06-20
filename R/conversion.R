@@ -486,7 +486,7 @@ as.Giotto <- function(object, assay = NULL, reg = FALSE){
   #     img <- vrImages(assay_object)
   #     imgfile <- tempfile(fileext='.png')
   #     magick::image_write(image = img, path = imgfile, format = 'png')
-  #     spe <- addImg(spe,
+  #     spe <- Giotto::addImg(spe,
   #                   sample_id = vrAssayNames(assay_object),
   #                   image_id = "main",
   #                   imageSource = imgfile,
