@@ -25,6 +25,7 @@ vrSpatialFeaturePlot(
   background = NULL,
   reg = FALSE,
   crop = FALSE,
+  scale.image = TRUE,
   common.legend = FALSE,
   legend.loc = "right",
   collapse = TRUE
@@ -73,6 +74,8 @@ and main channel (\link{vrMainChannel}) will be in the background. Otherwise the
 \item{reg}{TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested}
 
 \item{crop}{whether to crop an image of a spot assay to the extend of spots}
+
+\item{scale.image}{if TRUE, background image will be scaled down to a low resolution (width: 1000px)}
 
 \item{common.legend}{whether to use a common legend for all plots, see \link{ggarrange}}
 
