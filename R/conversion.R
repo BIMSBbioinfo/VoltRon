@@ -248,72 +248,74 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
 #' @param file the name of the h5ad file
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
 #' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped
+#' @param method the method to use for conversion: "anndataR" or "anndata"
 #'
 #' @rdname as.AnnData
 #'
 #' @importFrom stringr str_extract
 #'
 #' @export
-as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"), flip_coordinates = FALSE){
-
-  # check the number of assays
-  if(is.null(assay))
-    assay <- vrMainAssay(object)
-
-  # check the number of assays
-  if(unique(vrAssayTypes(object, assay = assay)) %in% c("spot","ROI")) {
+as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"), flip_coordinates = FALSE, method = "anndata") {
+  
+  # Ensuring method is one of the allowed values
+  # method <- match.arg(method)
+  
+  # Check the number of assays
+  if (is.null(assay)) {
+    if (length(unique(SampleMetadata(object)[["Assay"]])) > 1) {
+      stop("You can only convert a single VoltRon assay into a Seurat object!")
+    } else {
+      assay <- SampleMetadata(object)[["Assay"]]
+    }
+  } else {
+    vrMainAssay(object) <- assay
+  }
+  
+  # Check the number of assays
+  if (unique(vrAssayTypes(object, assay = assay)) %in% c("spot", "ROI")) {
     stop("Conversion of Spot or ROI assays into Seurat is not permitted!")
   }
-
-  # data
-  data <- vrData(object, assay = assay, norm = FALSE)
-
-  # metadata
-  metadata <- Metadata(object, assay = assay)
-  # metadata$AssayID <- stringr::str_extract(rownames(metadata), "_Assay[0-9]+$")
-  metadata$library_id <- stringr::str_extract(rownames(metadata), "_Assay[0-9]+$")
   
-  # flip coordinates
-  if(flip_coordinates){
+  # Data
+  data <- vrData(object, assay = assay, norm = FALSE)
+  
+  # Metadata
+  metadata <- Metadata(object, assay = assay)
+  metadata$AssayID <- stringr::str_extract(rownames(metadata), "_Assay[0-9]+$")
+  
+  # Flip coordinates
+  if (flip_coordinates) {
     object <- flipCoordinates(object, assay = assay)
   }
-
-  # coordinates
+  
+  # Coordinates
   coords <- vrCoordinates(object, assay = assay)
   
-  if (requireNamespace('anndata', quietly = TRUE)) {
-    message('Currently using anndata package. Recommended to use anndataR, which does not depend on python!')
-    # create anndata
-    # adata <- anndata::AnnData(X = t(data), obs = metadata, obsm = list(spatial = coords, spatial_AssayID = coords))
-    adata <- anndata::AnnData(X = t(data),
-                              obs = metadata,
-                              obsm = list(spatial = coords))
-
-    # create anndata file
-    anndata::write_h5ad(adata, filename = file)
-  } else if(requireNamespace('anndataR', quietly = TRUE)) {
-    # create anndata
-    # adata <- anndataR::AnnData(obs_names = rownames(metadata), var_names = rownames(data), X = t(data), obs = metadata, obsm = list(spatial = coords, 
-    #                                                                                                                           spatial_AssayID = coords))
-    adata <- anndataR::AnnData(obs_names = rownames(metadata),
-                               var_names = rownames(data),
-                               X = t(data),
-                               obs = metadata,
-                               obsm = list(spatial = coords))
-    # adata <- anndataR::AnnData(X = t(data), 
-    #                            obs = metadata, 
-    #                            obsm = list(spatial = coords))
-    
-    # create anndata file
+  # Check and use the specified method
+  if (method == "anndataR") {
+    if (!requireNamespace('anndataR', quietly = TRUE)) {
+      stop("The anndataR package is not installed. Please install it or choose the 'anndata' method.")
+    }
+    # Create anndata using anndataR
+    adata <- anndataR::AnnData(obs_names = rownames(metadata), var_names = rownames(data), X = t(data), obs = metadata, obsm = list(spatial = coords, spatial_AssayID = coords))
+    # Write to h5ad file using anndataR
     anndataR::write_h5ad(adata, path = file)
+  } else if (method == "anndata") {
+    if (!requireNamespace('anndata', quietly = TRUE)) {
+      stop("The anndata package is not installed. Please install it or choose the 'anndataR' method.")
+    }
+    # Create anndata using anndata
+    adata <- anndata::AnnData(X = t(data), obs = metadata, obsm = list(spatial = coords, spatial_AssayID = coords))
+    # Write to h5ad file using anndata
+    anndata::write_h5ad(adata, filename = file)
   } else {
-    stop("Please install anndataR (preferred) or anndata package for converting VoltRon objects to Anndata objects")
+    stop("Invalid method selected. Please choose either 'anndataR' or 'anndata'.")
   }
   
-
-  # return
+  # Return
   NULL
 }
+
 
 ####
 # AnnData (Zarr) ####
