@@ -198,6 +198,9 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #'
 generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_level = 7, overwrite_resolution = FALSE, output.path = NULL, file.name = "morphology_lowres.tif", ...) {
   
+  if (!requireNamespace('RBioFormats'))
+    stop("Please install RBioFormats package to read the ome.tiff file!")
+  
   # file path to either Xenium output folder or specified folder
   file.path <- paste0(dir.path, "/", file.name)
   output.file <- paste0(output.path, "/", file.name)

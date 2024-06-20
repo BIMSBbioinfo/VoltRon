@@ -1067,6 +1067,8 @@ vrFeatureData.VoltRon <- function(object, assay = NULL) {
 #'
 #' @rdname vrData
 #' @order 2
+#' 
+#' @importFrom dplyr full_join mutate_all coalesce
 #'
 #' @export
 vrData.VoltRon <- function(object, assay = NULL, features = NULL, norm = FALSE, ...) {
@@ -1082,13 +1084,14 @@ vrData.VoltRon <- function(object, assay = NULL, features = NULL, norm = FALSE, 
     if(i == 1){
       data <- cur_data
     } else {
-      data <- merge(data, cur_data, by = "feature.ID", all = TRUE)
+      # data <- merge(data, cur_data, by = "feature.ID", all = TRUE)
+      data <- dplyr::full_join(data, cur_data, by = "feature.ID")
     }
   }
   rownames(data) <- data$feature.ID
   data <- data[,!colnames(data) %in% "feature.ID"]
-  data[is.na(data)] <- 0
   data <- as.matrix(data)
+  data <- replaceNaMatrix(data, 0)
   colnames(data) <- gsub("\\.","-", colnames(data))
 
   return(data)
