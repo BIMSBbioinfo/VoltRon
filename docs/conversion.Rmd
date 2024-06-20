@@ -64,9 +64,11 @@ We use the **as.Seurat** function to convert spatial assays of VoltRon into Seur
 
 Please check the [Analysis of Image-based Spatial Data in Seurat](https://satijalab.org/seurat/articles/seurat5_spatial_vignette_2) tutorial for more information on analyzing FOV-based spatial data sets with Seurat. 
 
+note: Use VoltRon::as.Seurat to avoid conflict with Seurat package's as.Seurat function
+
 
 ```{r class.source="watch-out", eval = FALSE}
-Xen_data_seu <- as.Seurat(Xen_data, cell.assay = "Xenium", type = "image")
+Xen_data_seu <- VoltRon::as.Seurat(Xen_data, cell.assay = "Xenium", type = "image")
 Xen_data_seu <- NormalizeData(Xen_data_seu)
 Xen_data_seu
 ```
