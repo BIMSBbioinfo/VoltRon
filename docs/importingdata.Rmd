@@ -370,6 +370,80 @@ Assays: GenePS(Main) GenePS_mol
 
 </br>
 
+## ST data
+
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/stdata_summary.png" class="center">
+<p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;"> <em> Image Credit: Ståhl, et. al (2016). Visualization and analysis of gene expression in tissue sections by spatial transcriptomics. Science, 353(6294), 78-82. </em> </p>
+
+We demonstrate importing the original Spatial Transcriptomics (ST) datasets by formulating custom spot-level spatial transcriptomics datasets. We will use the **formVoltRon** function directly. We use the example provided by the [https://doi.org/10.5281/zenodo.4751624](https://doi.org/10.5281/zenodo.4751624). For more information you can also check the paper [here](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8516894/). 
+
+We first import and manipulate count matrices and spot coordinates from the provided output files. Here we only demonstrate building a custom spot-level VoltRon object for the section "A1", however the remaining sections can be imported using the same method.
+
+```{r eval = FALSE, class.source="watch-out"}
+# count matrix
+raw.data <- read.table("A1.tsv", header = TRUE, sep = "\t")
+spatialentities <- raw.data$X
+raw.data <- raw.data[,-1]
+raw.data <- t(as.matrix(raw.data))
+
+# coords 
+coords <- read.table("A1_selection.tsv", header = TRUE, sep = "\t")
+rownames(coords) <- paste(coords$x, coords$y, sep = "x")
+coords <- coords[entities,]
+coords <- coords[,c("pixel_x", "pixel_y")]
+colnames(coords) <- c("x", "y")
+```
+
+The image can be imported using the **magick** package. 
+
+```{r eval = FALSE, class.source="watch-out"}
+library(magick)
+img <- magick::image_read("HE/A1.jpg")
+img_info <- magick::image_info(img)
+```
+
+Before we form the VoltRon object, we should define the parameters for spot-level datasets. Here, we provide 
+
+* the radius of a spot in the physical space (i.e. **spot.radius**)
+* the radius of a spot for visualization (i.e. **vis.spot.radius**)
+* The distance to the nearest spot, to be used for spatial neighborhood calculation (i.e. **nearestpost.distance**)
+
+The scaling parameter (scale_param) is required to overlay localization and distances of spots to the coordinate system of the imported image. Here, 
+
+* the width of a ST slide is of 6200$\mu$m, 
+* the diameter of a spot is 100$\mu$m (hence a radius of 50$\mu$m) and 
+* the center-to-center distance between two spots is 200$\mu$m. 
+* Each spot has at most 8 neighboring spots including vertically, horizontally and diagonally adjacent spots. 
+
+```{r eval = FALSE, class.source="watch-out"}
+scale_param <- img_info$width/6200
+params <- list(
+  spot.radius = 50*(scale_param),
+  vis.spot.radius = 100*(scale_param),
+  nearestpost.distance = (200*sqrt(2) + 50)*scale_param
+)
+```
+
+Now we can combine all components into a VoltRon object. We should also flip the coordinates of spots vertically after creating the object.
+
+```{r eval = FALSE, class.source="watch-out"}
+# make voltron object
+stdata <- formVoltRon(data = datax, image = img, coords = coords, assay.type = "spot", 
+                      params = params, sample_name = "A1")
+stdata <- flipCoordinates(stdata)
+```
+
+We can now visualize spots and the adjacency between these spots simultaneously.
+
+```{r eval = FALSE, class.source="watch-out"}
+stdata <- getSpatialNeighbors(stdata, method = "radius")
+vrSpatialPlot(stdata, graph.name = "radius", crop = T)
+```
+
+<img width="75%" height="75%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/stdata_summary_plot.png" class="center">
+
+<br>
+
 ## Custom VoltRon objects
 
 VoltRon incorporates the **formVoltRon** function to assemble each component of a spatial omic assay into a VoltRon object. Here: 
