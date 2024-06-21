@@ -500,7 +500,9 @@ VoltRon object.</p>
 href="https://satijalab.org/seurat/articles/seurat5_spatial_vignette_2">Analysis
 of Image-based Spatial Data in Seurat</a> tutorial for more information
 on analyzing FOV-based spatial data sets with Seurat.</p>
-<pre class="r watch-out"><code>Xen_data_seu &lt;- as.Seurat(Xen_data, cell.assay = &quot;Xenium&quot;, type = &quot;image&quot;)
+<p>note: Use VoltRon::as.Seurat to avoid conflict with Seurat package’s
+as.Seurat function</p>
+<pre class="r watch-out"><code>Xen_data_seu &lt;- VoltRon::as.Seurat(Xen_data, cell.assay = &quot;Xenium&quot;, type = &quot;image&quot;)
 Xen_data_seu &lt;- NormalizeData(Xen_data_seu)
 Xen_data_seu</code></pre>
 <pre><code>An object of class Seurat 
