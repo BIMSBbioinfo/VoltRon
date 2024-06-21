@@ -142,6 +142,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// replaceNaMatrix
+Rcpp::NumericMatrix replaceNaMatrix(Rcpp::NumericMatrix mat, int replace);
+RcppExport SEXP _VoltRon_replaceNaMatrix(SEXP matSEXP, SEXP replaceSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type mat(matSEXP);
+    Rcpp::traits::input_parameter< int >::type replace(replaceSEXP);
+    rcpp_result_gen = Rcpp::wrap(replaceNaMatrix(mat, replace));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_VoltRon_automated_registeration_rawvector", (DL_FUNC) &_VoltRon_automated_registeration_rawvector, 15},
@@ -153,6 +164,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_VoltRon_build_snn_rank", (DL_FUNC) &_VoltRon_build_snn_rank, 1},
     {"_VoltRon_build_snn_number", (DL_FUNC) &_VoltRon_build_snn_number, 1},
     {"_VoltRon_replacePatternInRcppVectorWrapper", (DL_FUNC) &_VoltRon_replacePatternInRcppVectorWrapper, 3},
+    {"_VoltRon_replaceNaMatrix", (DL_FUNC) &_VoltRon_replaceNaMatrix, 2},
     {NULL, NULL, 0}
 };
 

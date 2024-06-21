@@ -9,7 +9,8 @@ as.AnnData(
   file,
   assay = NULL,
   type = c("image", "spatial"),
-  flip_coordinates = FALSE
+  flip_coordinates = FALSE,
+  method = "anndata"
 )
 }
 \arguments{
@@ -23,6 +24,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{type}{the spatial data type of Seurat object: "image" or "spatial"}
 
 \item{flip_coordinates}{if TRUE, the spatial coordinates (including segments) will be flipped}
+
+\item{method}{the method to use for conversion: "anndataR" or "anndata"}
 }
 \description{
 Converting a VoltRon object into a AnnData (.h5ad) object
