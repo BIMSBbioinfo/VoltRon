@@ -68,6 +68,7 @@ note: Use VoltRon::as.Seurat to avoid conflict with Seurat package's as.Seurat f
 
 
 ```{r class.source="watch-out", eval = FALSE}
+library(Seurat)
 Xen_data_seu <- VoltRon::as.Seurat(Xen_data, cell.assay = "Xenium", type = "image")
 Xen_data_seu <- NormalizeData(Xen_data_seu)
 Xen_data_seu
@@ -175,6 +176,7 @@ SampleMetadata(Xen_data)
 We use the **as.SpatialExperiment** function to convert spatial assays of VoltRon into SpatialExperiment objects. Please check the [Introduction to the SpatialExperiment class](https://www.bioconductor.org/packages/release/bioc/vignettes/SpatialExperiment/inst/doc/SpatialExperiment.html) tutorial for more information. 
 
 ```{r class.source="watch-out", eval = FALSE}
+library(SpatialExperiment)
 spe <- as.SpatialExperiment(Xen_data, assay = "Xenium")
 ```
 
