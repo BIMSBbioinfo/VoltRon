@@ -492,8 +492,8 @@ as.Giotto <- function(object, assay = NULL, reg = FALSE){
   }
   
   # check the number of assays
-  if(unique(vrAssayTypes(object, assay = assay)) %in% c("spot","ROI")) {
-    stop("Conversion of Spot or ROI assays into Giotto is not yet permitted!")
+  if(!unique(vrAssayTypes(object, assay = assay)) %in% c("cell")) {
+    stop("Conversion of assay types other than cells into Giotto is not yet permitted!")
   }
   
   # data
@@ -501,6 +501,7 @@ as.Giotto <- function(object, assay = NULL, reg = FALSE){
   
   # metadata
   metadata <- Metadata(object, assay = assay)
+  metadata$cell_ID <- rownames(metadata)
   assays <- stringr::str_extract(rownames(metadata), pattern = "_Assay[0-9]+$")
   assays <- gsub("^_", "", assays)
   
@@ -512,24 +513,19 @@ as.Giotto <- function(object, assay = NULL, reg = FALSE){
                                     spatial_locs = coords, 
                                     cell_metadata = metadata)
   
-  # # get image objects for each assay
-  # for(assy in vrAssayNames(object)){
-  #   assay_object <- object[[assy]]
-  #   if(vrAssayTypes(assay_object) == "cell"){
-  #     img <- vrImages(assay_object)
-  #     imgfile <- tempfile(fileext='.png')
-  #     magick::image_write(image = img, path = imgfile, format = 'png')
-  #     spe <- Giotto::addImg(spe,
-  #                   sample_id = vrAssayNames(assay_object),
-  #                   image_id = "main",
-  #                   imageSource = imgfile,
-  #                   scaleFactor = NA_real_,
-  #                   load = TRUE)
-  #     file.remove(imgfile)
-  #   } else {
-  #     stop("Currently VoltRon does only support converting cell type spatial data sets into SpatialExperiment objects!")
-  #   }
-  # }
+  # get image objects for each assay
+  for(assy in vrAssayNames(object)){
+    assay_object <- object[[assy]]
+    if(vrAssayTypes(assay_object) == "cell"){
+      img <- vrImages(assay_object)
+      gio_img <- Giotto::createGiottoImage(gio, 
+                                   spat_unit = "cell", 
+                                   mg_object = img)
+      gio <- Giotto::addGiottoImage(gio, images = list(gio_img), spat_loc_name = "cell")
+    } else {
+      stop("Currently VoltRon does only support converting cell type spatial data sets into SpatialExperiment objects!")
+    }
+  }
   
   # return
   gio
@@ -603,12 +599,12 @@ as.SpatialExperiment <- function(object, assay = NULL, reg = FALSE){
       img <- vrImages(assay_object)
       imgfile <- tempfile(fileext='.png')
       magick::image_write(image = img, path = imgfile, format = 'png')
-      spe <- addImg(spe,
-                    sample_id = vrAssayNames(assay_object),
-                    image_id = "main",
-                    imageSource = imgfile,
-                    scaleFactor = NA_real_,
-                    load = TRUE)
+      spe <- SpatialExperiment::addImg(spe,
+                                       sample_id = vrAssayNames(assay_object),
+                                       image_id = "main",
+                                       imageSource = imgfile,
+                                       scaleFactor = NA_real_,
+                                       load = TRUE)
       file.remove(imgfile)
     } else {
       stop("Currently VoltRon does only support converting cell type spatial data sets into SpatialExperiment objects!")

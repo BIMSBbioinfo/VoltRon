@@ -145,6 +145,7 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
 #' @importFrom dplyr full_join
 #' @importFrom utils head
 #'
+#' @export
 getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 
   # get assay names
