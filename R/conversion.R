@@ -316,7 +316,6 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   NULL
 }
 
-
 ####
 # AnnData (Zarr) ####
 ####
