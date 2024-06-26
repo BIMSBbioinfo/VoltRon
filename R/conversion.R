@@ -249,13 +249,21 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
 #' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped
 #' @param method the method to use for conversion: "anndataR" or "anndata"
-#'
+#' @param ... additional parameters passed to \link{vrImages}.
+#' 
+#' @details
+#' This function converts data from a VoltRon object into an AnnData object (.h5ad file). It extracts assay data,
+#' spatial coordinates, and optionally flips coordinates. Images associated with the assay can be included in the 
+#' resulting AnnData file, with additional customization parameters like channel, scale.perc.
+#' 
 #' @rdname as.AnnData
 #'
 #' @importFrom stringr str_extract
-#'
+#' @importFrom magick image_data
 #' @export
-as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"), flip_coordinates = FALSE, method = "anndata") {
+#'
+as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"), flip_coordinates = FALSE, method = "anndata", 
+                       ...) {
   
   # Ensuring method is one of the allowed values
   # method <- match.arg(method)
@@ -263,7 +271,7 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   # Check the number of assays
   if (is.null(assay)) {
     if (length(unique(SampleMetadata(object)[["Assay"]])) > 1) {
-      stop("You can only convert a single VoltRon assay into a Seurat object!")
+      stop("You can only convert a single VoltRon assay into a Anndata object!")
     } else {
       assay <- SampleMetadata(object)[["Assay"]]
     }
@@ -273,7 +281,7 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   
   # Check the number of assays
   if (unique(vrAssayTypes(object, assay = assay)) %in% c("spot", "ROI")) {
-    stop("Conversion of Spot or ROI assays into Seurat is not permitted!")
+    stop("Conversion of Spot or ROI assays into Anndata is not permitted!")
   }
   
   # Data
@@ -281,7 +289,8 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   
   # Metadata
   metadata <- Metadata(object, assay = assay)
-  metadata$AssayID <- stringr::str_extract(rownames(metadata), "_Assay[0-9]+$")
+  metadata[["library_id"]] <- stringr::str_extract(rownames(metadata), "_Assay[0-9]+$")
+  metadata[["library_id"]] <- gsub("^_", "", metadata[["library_id"]])
   
   # Flip coordinates
   if (flip_coordinates) {
@@ -291,13 +300,30 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   # Coordinates
   coords <- vrCoordinates(object, assay = assay)
   
+  # Segments
+  segments <- vrSegments(object, assay = assay)
+  
+  # Images
+  images_mgk <- vrImages(object, assay = assay, ...)
+  if(!is.list(images_mgk)){
+    images_mgk <- list(images_mgk)
+    names(images_mgk) <- vrAssayNames(object, assay = assay)  
+  }
+  image_data_list <- lapply(images_mgk, function(img) {
+    list(images = list(hires = as.numeric(magick::image_data(img, channels = "rgb"))),
+         scalefactors = list(tissue_hires_scalef = 1, spot_diameter_fullres = 0.5))
+  })
+  
   # Check and use the specified method
   if (method == "anndataR") {
     if (!requireNamespace('anndataR', quietly = TRUE)) {
       stop("The anndataR package is not installed. Please install it or choose the 'anndata' method.")
     }
     # Create anndata using anndataR
-    adata <- anndataR::AnnData(obs_names = rownames(metadata), var_names = rownames(data), X = t(data), obs = metadata, obsm = list(spatial = coords, spatial_AssayID = coords))
+    adata <- anndataR::AnnData(obs_names = rownames(metadata), var_names = rownames(data), 
+                               X = t(data), obs = metadata, obsm = list(spatial = coords, spatial_AssayID = coords))
+    # Include image data in anndata uns
+    adata$uns$spatial <- image_data_list
     # Write to h5ad file using anndataR
     anndataR::write_h5ad(adata, path = file)
   } else if (method == "anndata") {
@@ -305,7 +331,13 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
       stop("The anndata package is not installed. Please install it or choose the 'anndataR' method.")
     }
     # Create anndata using anndata
-    adata <- anndata::AnnData(X = t(data), obs = metadata, obsm = list(spatial = coords, spatial_AssayID = coords))
+    # adata <- anndata::AnnData(X = t(data), obs = metadata, 
+    #                           obsm = list(spatial = coords, spatial_AssayID = coords, spatial_segments = segments), 
+    #                           uns = list(spatial = image_data_list))
+    adata <- anndata::AnnData(X = t(data), obs = metadata, 
+                              obsm = list(spatial = coords, spatial_AssayID = coords), 
+                              uns = list(spatial = image_data_list))
+    
     # Write to h5ad file using anndata
     anndata::write_h5ad(adata, filename = file)
   } else {
@@ -314,7 +346,8 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   
   # Return
   NULL
-}
+} 
+
 
 
 ####
