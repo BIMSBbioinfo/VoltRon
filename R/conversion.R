@@ -248,11 +248,11 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
 #' @param file the name of the h5ad file
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
 #' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped
-#' @param method the method to use for conversion: "anndataR" or "anndata"
+#' @param method the package to use for conversion: "anndataR" or "anndata"
 #' @param ... additional parameters passed to \link{vrImages}.
 #' 
 #' @details
-#' This function converts data from a VoltRon object into an AnnData object (.h5ad file). It extracts assay data,
+#' This function converts a VoltRon object into an AnnData object (.h5ad file). It extracts assay data,
 #' spatial coordinates, and optionally flips coordinates. Images associated with the assay can be included in the 
 #' resulting AnnData file, with additional customization parameters like channel, scale.perc.
 #' 
