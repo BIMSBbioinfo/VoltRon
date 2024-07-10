@@ -643,6 +643,61 @@ void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::NumericMatrix query_l
   im1Reg = im1Reg_cropped.clone();
 }
 
+// align images with affine transformation with TPS algorithm
+void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark)
+{
+  
+  // seed
+  cv::setRNGSeed(0);
+  RNG rng(12345);
+  Scalar value;
+  
+  // Get landmarks as Point2f
+  std::vector<cv::Point2f> query_mat = numericMatrixToPoint2f(query_landmark);
+  std::vector<cv::Point2f> ref_mat = numericMatrixToPoint2f(reference_landmark);
+  
+  // get matches
+  std::vector<cv::DMatch> matches;
+  for (unsigned int i = 0; i < ref_mat.size(); i++)
+    matches.push_back(cv::DMatch(i, i, 0));
+  
+  // calculate homography transformation
+  Mat im1Affine, h;
+  h = estimateAffine2D(query_mat, ref_mat);
+  std::cout << h.size() << "\n";
+  std::cout << h << "\n";
+  h = findHomography(query_mat, ref_mat);
+  std::cout << h.size() << "\n";
+  std::cout << h << "\n";
+  cv::warpPerspective(im1, im1Affine, h, im2.size());
+  // cv::warpAffine(im1, im1Affine, h, im2.size());
+  std::vector<cv::Point2f> query_reg;
+  cv::perspectiveTransform(query_mat, query_reg, h);
+  
+  // calculate TPS transformation
+  // auto tps = cv::createThinPlateSplineShapeTransformer();
+  Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
+  tps->estimateTransformation(ref_mat, query_reg, matches);
+  
+  // determine extension limits for both images
+  int y_max = max(im1.rows, im2.rows);
+  int x_max = max(im1.cols, im2.cols);
+
+  // extend images
+  cv::copyMakeBorder(im1, im1, 0.0, (int) (y_max - im1.rows), 0.0, (x_max - im1.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+  // cv::copyMakeBorder(im2, im2_extended, 0.0, (int) (y_max - im2.rows), 0.0, (x_max - im2.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+  
+  // transform image
+  // tps->warpImage(im1, im1Reg,  cv::INTER_LINEAR, cv::WARP_FILL_OUTLIERS);
+  tps->warpImage(im1Affine, im1Reg);
+  
+  // resize image
+  // cv::resize(im1Reg, im1Reg, im2.size());
+  cv::Mat im1Reg_cropped  = im1Reg(cv::Range(0,im2.size().height), cv::Range(0,im2.size().width));
+  im1Reg = im1Reg_cropped.clone();
+}
+
+
 // [[Rcpp::export]]
 Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image,
                                              const int width1, const int height1,
@@ -750,7 +805,7 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVe
   // Align images
   // cout << "Thin Plate Spline - Manual Matcher" << endl;
   // alignImagesTPS(im, imReference, imReg, query_landmark, reference_landmark);
-  alignImagesTPS(im, imReference, imReg, query_landmark, reference_landmark);
+  alignImagesAffineTPS(im, imReference, imReg, query_landmark, reference_landmark);
 
   // return transformation matrix, destinated image, registered image, and keypoint matching image
   out[0] = matToImage(imReg.clone());
