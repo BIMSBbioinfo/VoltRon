@@ -260,6 +260,9 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
 #'
 #' @importFrom stringr str_extract
 #' @importFrom magick image_data
+#' @import tidyr
+#' @import dplyr
+#' @import purrr
 #' @export
 #'
 as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"), flip_coordinates = FALSE, method = "anndata", 
@@ -301,7 +304,25 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   coords <- vrCoordinates(object, assay = assay)
   
   # Segments
-  segments <- vrSegments(object, assay = assay)
+  vr_segments_extract <- vrSegments(object, assay = assay)
+  vr_segments_output <- vr_segments_extract %>% 
+    map(~ .x %>% fill(x, y, .direction = "down"))
+  
+  #vr_Segments_output <- vr_segments_extract %>% map(~ filter(.x, !(is.na(x) & is.na(y))))
+  
+  max_vertices <- max(sapply(vr_segments_output, nrow))
+  num_cells <- length(vr_segments_output)
+  segmentations_array <- array(NA, dim = c(num_cells, max_vertices, 2))
+  
+  cell_ids <- names(vr_segments_output)
+  for (i in seq_along(cell_ids)) {
+    seg <- vr_segments_output[[i]]
+    segmentations_array[i, 1:nrow(seg), ] <- as.matrix(seg[, c("x", "y")])
+  }
+  
+  # removing rows with any NA values
+  #rows_with_na <- apply(segmentations_array, 1, function(row) any(is.na(row[, 1]) | is.na(row[, 2])))
+  #segmentations_array_clean <- segmentations_array[!rows_with_na, , , drop = FALSE]
   
   # Images
   images_mgk <- vrImages(object, assay = assay, ...)
@@ -335,8 +356,9 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
     #                           obsm = list(spatial = coords, spatial_AssayID = coords, spatial_segments = segments), 
     #                           uns = list(spatial = image_data_list))
     adata <- anndata::AnnData(X = t(data), obs = metadata, 
-                              obsm = list(spatial = coords, spatial_AssayID = coords), 
+                              obsm = list(spatial = coords, spatial_AssayID = coords, segmentations = segmentations_array), 
                               uns = list(spatial = image_data_list))
+    
     
     # Write to h5ad file using anndata
     anndata::write_h5ad(adata, filename = file)
@@ -346,7 +368,7 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   
   # Return
   NULL
-} 
+}  
 
 
 
@@ -677,8 +699,8 @@ as.SpatialData <- function(object, file, assay = NULL, type = c("image", "spatia
   adata <- anndata::AnnData(X = t(data), obs = metadata, obsm = list(spatial = coords, spatial_AssayID = coords))
   
   # create anndata file
-  anndata::write_h5ad(adata, filename = file)
-  
+  anndata::write_h5ad(adata, store = file)
+
   # return
   NULL
 }
