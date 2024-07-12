@@ -1510,27 +1510,29 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
           # record corners
           selected_corners_list(c(selected_corners_list(), list(corners)))
 
-          # adjust corners
-          corners <- corners*scale_factor
-          corners <- apply(corners,2,ceiling)
-
           # Track the number of input boxes to render
           counter$n <- counter$n + 1
-
-          # fix for limits
-          corners[1,1] <- ifelse(corners[1,1] < 0, 0, corners[1,1])
-          corners[1,1] <- ifelse(corners[1,1] > imageinfo$width, imageinfo$width, corners[1,1])
-          corners[2,1] <- ifelse(corners[2,1] < 0, 0, corners[2,1])
-          corners[2,1] <- ifelse(corners[2,1] > imageinfo$width, imageinfo$width, corners[2,1])
-          corners[1,2] <- ifelse(corners[1,2] < 0, 0, corners[1,2])
-          corners[1,2] <- ifelse(corners[1,2] > imageinfo$height, imageinfo$height, corners[1,2])
-          corners[2,2] <- ifelse(corners[2,2] < 0, 0, corners[2,2])
-          corners[2,2] <- ifelse(corners[2,2] > imageinfo$height, imageinfo$height, corners[2,2])
-
-          # get crop info
-          corners <- paste0(abs(corners[2,1]-corners[1,1]), "x",
-                            abs(corners[2,2]-corners[1,2]), "+",
-                            min(corners[,1]), "+", imageinfo$height - max(corners[,2]))
+          
+          # adjust corners
+          corners <- corners*scale_factor
+          corners <- FromBoxToCrop(corners, imageinfo)
+          
+          # corners <- apply(corners,2,ceiling)
+          # 
+          # # fix for limits
+          # corners[1,1] <- ifelse(corners[1,1] < 0, 0, corners[1,1])
+          # corners[1,1] <- ifelse(corners[1,1] > imageinfo$width, imageinfo$width, corners[1,1])
+          # corners[2,1] <- ifelse(corners[2,1] < 0, 0, corners[2,1])
+          # corners[2,1] <- ifelse(corners[2,1] > imageinfo$width, imageinfo$width, corners[2,1])
+          # corners[1,2] <- ifelse(corners[1,2] < 0, 0, corners[1,2])
+          # corners[1,2] <- ifelse(corners[1,2] > imageinfo$height, imageinfo$height, corners[1,2])
+          # corners[2,2] <- ifelse(corners[2,2] < 0, 0, corners[2,2])
+          # corners[2,2] <- ifelse(corners[2,2] > imageinfo$height, imageinfo$height, corners[2,2])
+          # 
+          # # get crop info
+          # corners <- paste0(abs(corners[2,1]-corners[1,1]), "x",
+          #                   abs(corners[2,2]-corners[1,2]), "+",
+          #                   min(corners[,1]), "+", imageinfo$height - max(corners[,2]))
 
           # add to box list
           selected_corners_list_image() %>%
@@ -1578,4 +1580,36 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
 
     shiny::runApp(shiny::shinyApp(ui, server))
   }
+}
+
+
+#' FromBoxToCrop
+#'
+#' get magick crop information from a dataframe of box corners
+#'
+#' @param corners topleft and bottomright coordinates of bounding box
+#' @param imageinfo info of the image
+#' 
+#' @noRd
+FromBoxToCrop <- function(corners, imageinfo){
+  
+  corners <- apply(corners,2,ceiling)
+  
+  # fix for limits
+  corners[1,1] <- ifelse(corners[1,1] < 0, 0, corners[1,1])
+  corners[1,1] <- ifelse(corners[1,1] > imageinfo$width, imageinfo$width, corners[1,1])
+  corners[2,1] <- ifelse(corners[2,1] < 0, 0, corners[2,1])
+  corners[2,1] <- ifelse(corners[2,1] > imageinfo$width, imageinfo$width, corners[2,1])
+  corners[1,2] <- ifelse(corners[1,2] < 0, 0, corners[1,2])
+  corners[1,2] <- ifelse(corners[1,2] > imageinfo$height, imageinfo$height, corners[1,2])
+  corners[2,2] <- ifelse(corners[2,2] < 0, 0, corners[2,2])
+  corners[2,2] <- ifelse(corners[2,2] > imageinfo$height, imageinfo$height, corners[2,2])
+  
+  # get crop info
+  corners <- paste0(abs(corners[2,1]-corners[1,1]), "x",
+                    abs(corners[2,2]-corners[1,2]), "+",
+                    min(corners[,1]), "+", imageinfo$height - max(corners[,2]))
+  
+  # corners 
+  return(corners)
 }
