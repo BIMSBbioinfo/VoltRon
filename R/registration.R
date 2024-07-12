@@ -727,6 +727,9 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, info
             keypoint <- keypoint*width/800
           }
           
+          # correct for zoom information
+          keypoint <- keypoint + limits[1,]
+          
           # correct for flipflop and rotate
           if(is.reactive(image_list[[ref_ind]])){
             image <- image_list[[ref_ind]]()
@@ -735,9 +738,6 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, info
           }
           image <- image[[type]]
           keypoint <- transformKeypoints(image, keypoint, paste0(type, "_image",i), input)
-          
-          # correct for zoom information
-          keypoint <- keypoint + limits[1,]
 
           # insert keypoint to associated table
           temp <- xyTable_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]]
@@ -1002,7 +1002,6 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
         imgzoom <- imageZoom(img_trans$image, zoom_info = img_temp$keypoints)
         if(!is.null(img_trans$keypoints)){
           if(nrow(img_trans$keypoints) > 0){
-            # temp_function(first = img_trans, second = limits)
             temp <- as.matrix(img_trans$keypoints[,c("x","y")])
             temp <- temp - matrix(unlist(rep(limits[1,], nrow(img_trans$keypoints))), nrow = nrow(img_trans$keypoints), byrow = T)
             img_trans$keypoints[,c("x","y")] <- temp
@@ -1034,13 +1033,6 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
     })
   })
 }
-
-# temp_function <- function(first, second){
-#   print(1)
-#   print(1)
-#   temp <- as.matrix(first$keypoints[,c("x","y")])
-#   temp <- temp - matrix(unlist(rep(second[1,], nrow(first$keypoints)), nrow = nrow(first$keypoints), byrow = T)
-# }
 
 #' getImageOutput
 #'
