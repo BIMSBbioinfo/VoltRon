@@ -812,7 +812,11 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
     metadata <- Metadata(object)
     name <- strsplit(rlang::quo_text(subset), split = " ")[[1]][1]
     if(name %in% colnames(metadata)){
-      spatialpoints <- rownames(metadata)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
+      if(inherits(metadata, "data.table")){
+        spatialpoints <- metadata$id[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
+      } else {
+        spatialpoints <- rownames(metadata)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
+      }
     } else {
       stop("Column '", name, "' is not found in the metadata")
     }

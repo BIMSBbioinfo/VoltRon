@@ -13,7 +13,7 @@ output:
   display: none;
 }
 body {
-  text-align: justify
+  text-align: justify   
 }
 .center {
   display: block;
