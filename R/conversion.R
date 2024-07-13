@@ -304,19 +304,19 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   coords <- vrCoordinates(object, assay = assay)
   
   # Segments
-  vr_segments_extract <- vrSegments(object, assay = assay)
-  vr_segments_output <- vr_segments_extract %>% 
+  segments <- vrSegments(object, assay = assay)
+  segments <- segments %>% 
     map(~ .x %>% fill(x, y, .direction = "down"))
   
-  #vr_Segments_output <- vr_segments_extract %>% map(~ filter(.x, !(is.na(x) & is.na(y))))
+  #segments <- segments %>% map(~ filter(.x, !(is.na(x) & is.na(y))))
   
-  max_vertices <- max(sapply(vr_segments_output, nrow))
-  num_cells <- length(vr_segments_output)
+  max_vertices <- max(sapply(segments, nrow))
+  num_cells <- length(segments)
   segmentations_array <- array(NA, dim = c(num_cells, max_vertices, 2))
   
-  cell_ids <- names(vr_segments_output)
+  cell_ids <- names(segments)
   for (i in seq_along(cell_ids)) {
-    seg <- vr_segments_output[[i]]
+    seg <- segments[[i]]
     segmentations_array[i, 1:nrow(seg), ] <- as.matrix(seg[, c("x", "y")])
   }
   
