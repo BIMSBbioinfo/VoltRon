@@ -90,27 +90,29 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
                         });
                       ")),
 
-                      h4("Spatial Data Alignment"),
-                      fluidRow(
-                        column(12,shiny::checkboxInput("automatictag", "Automated", value = FALSE)),
-                        br(),
-                        column(12,selectInput("AutoMethod", "Method", choices = c("FLANN", "BRUTE-FORCE"), selected = "FLANN")),
-                        br(),
-                        column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
-                        column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
-                        br(),
-                        column(12,shiny::actionButton("register", "Register!")),
-                        br(),
-                      ),
-                      br(),
-                      fluidRow(
-                        column(12,shiny::htmlOutput("summary"))
-                      ),
-                      br(),
-                      fluidRow(
-                        column(12,shiny::actionButton("done", "Done")),
-                        br()
-                      ),
+                      getSideBar(),
+                      
+                      # h4("Spatial Data Alignment"),
+                      # fluidRow(
+                      #   column(12,shiny::checkboxInput("automatictag", "Automated", value = FALSE)),
+                      #   br(),
+                      #   column(12,selectInput("AutoMethod", "Method", choices = c("FLANN", "BRUTE-FORCE"), selected = "FLANN")),
+                      #   br(),
+                      #   column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
+                      #   column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
+                      #   br(),
+                      #   column(12,shiny::actionButton("register", "Register!")),
+                      #   br(),
+                      # ),
+                      # br(),
+                      # fluidRow(
+                      #   column(12,shiny::htmlOutput("summary"))
+                      # ),
+                      # br(),
+                      # fluidRow(
+                      #   column(12,shiny::actionButton("done", "Done")),
+                      #   br()
+                      # ),
 
                       # panel options
                       width = 3,
@@ -211,6 +213,45 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
 ####
 # User Interface ####
 ####
+
+#' getSideBar
+#'
+#' The UI for the app side bar
+#'
+#' @import shiny
+#' 
+#' @noRd
+getSideBar <- function(len_images, channel_names, type){
+  list(
+    h4("Spatial Data Alignment"),
+    fluidRow(
+      column(12,shiny::checkboxInput("automatictag", "Automated", value = FALSE)),
+      br(),
+      column(12,selectInput("AutoMethod", "Method", choices = c("FLANN", "BRUTE-FORCE"), selected = "FLANN")),
+      br(),
+      column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
+      column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
+      br(),
+      column(12,shiny::actionButton("register", "Register!")),
+      br(),
+    ),
+    br(),
+    fluidRow(
+      column(12,shiny::htmlOutput("summary"))
+    ),
+    br(),
+    fluidRow(
+      column(12,shiny::actionButton("done", "Done")),
+      br()
+    ),
+    br(),
+    h4("How to use"),
+    p(style="font-size: 12px;", strong("Single-L-click:"), "Select point"),
+    p(style="font-size: 12px;", strong("Single-L-hold-drag:"), "Select area"),
+    p(style="font-size: 12px;", strong("Double-L-click (selected area):"), "Zoom in"),
+    p(style="font-size: 12px;", strong("Double-L-click (no area):"), "Zoom out")
+  )
+}
 
 #' getImageTabPanels
 #'
@@ -1160,7 +1201,6 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
         cur_info <- info_list[[i]] * input[[paste0("scale_", type, "_image", i)]]
         paste(cur_info, collapse = "x")
       })
-
     })
   })
 }
