@@ -40,9 +40,6 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
   }
 
   # get images from the list of objects
-  # orig_image_query_list <- unlist(lapply(spatdata_list, function(spat){
-  #   vrImages(spat, assay = vrAssayNames(spat))
-  # }))
   orig_image_query_list_full <- lapply(spatdata_list, function(spat){
     assayname <- vrAssayNames(spat)
     channel_names <- vrImageChannelNames(spat[[assayname]])
@@ -164,7 +161,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
       ## get image and zoom info ####
       orig_image_query_info_list <- getImageInfo(orig_image_query_list)
       zoom_list <- initiateZoomOptions(orig_image_query_info_list)
-      manageImageZoomOptions(centre, register_ind, zoom_list, trans_image_query_list, orig_image_query_info_list, input, output, session)
+      manageImageZoomOptions(centre, register_ind, zoom_list, trans_image_query_list, orig_image_query_list, orig_image_query_info_list, input, output, session)
 
       ## Manage reference and query keypoints ####
       xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
@@ -947,51 +944,6 @@ imageKeypoint <- function(image, keypoints){
 }
 
 ####
-# Managing Image Limits ####
-####
-
-#' transformLimits
-#'
-#' Apply transformations to limits of an image
-#'
-#' @param image magick image
-#' @param limits limits of an image
-#' @param extension name extension for the shiny input parameter
-#' @param input shiny input
-#'
-#' @importFrom magick image_rotate
-#'
-#' @noRd
-transformLimits <- function(image, keypoints, extension, input){
-  
-  # get unrotated image info
-  image_limits <- unlist(image_info(image)[1,c("width", "height")])
-  image_origin <- image_limits/2
-  
-  # flip flop image and keypoints
-  input_flipflop <- input[[paste0("flipflop_", extension)]]
-  if(input_flipflop == "Flip"){
-    image <- magick::image_flip(image)
-  } else if(input_flipflop == "Flop"){
-    image <- magick::image_flop(image)
-  }
-  keypoints <- flipflopKeypoint(keypoints, image_limits, input_flipflop)
-  
-  # rotate image (reverse) and keypoints
-  input_rotate <- 360 - as.numeric(input[[paste0("rotate_", extension)]])
-  image <- magick::image_rotate(image, input_rotate)
-  
-  # get rotated image info
-  rotated_image_limits <- unlist(image_info(image)[1,c("width", "height")])
-  rotated_image_origin <- rotated_image_limits/2
-  
-  # rotate keypoints
-  keypoints <- rotateKeypoint(keypoints, input_rotate, image_origin, image_limits, rotated_image_origin, rotated_image_limits)
-  
-  return(keypoints)
-}
-
-####
 # Managing Zoom Options ####
 ####
 
@@ -1055,14 +1007,15 @@ initiateZoomOptions <- function(info_list, input, output, session){
 #' @param centre center image index
 #' @param register_ind query image indices
 #' @param zoom_list a list of x,y ranges of query and ref images
-#' @param image_list a lost of magick image
+#' @param image_trans_list a list of transformed magick image
+#' @param image_list a list of transformed magick image
 #' @param info_list the list of image information
 #' @param input shiny input
 #' @param output shiny output
 #' @param session shiny session
 #'
 #' @noRd
-manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_list, info_list, input, output, session){
+manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_trans_list, image_list, info_list, input, output, session){
   
   # get image types
   image_types <- c("ref","query")
@@ -1082,62 +1035,40 @@ manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_list, 
         limits <- cbind(zoom_list[[paste0(i)]][[type]]$x, zoom_list[[paste0(i)]][[type]]$y)
         if (!is.null(brush)) {
           
-          # insert keypoint to associated table
-          ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
-          
-          # get image info
-          if(is.reactive(image_list[[ref_ind]])){
-            image <- image_list[[ref_ind]]()
-          } else {
-            image <- image_list[[ref_ind]]
-          }
-          image <- image[[type]]
-          
           # get brush variables
           brush_mat <- data.frame(x = c(brush$xmin, brush$xmax), 
                                   y = c(brush$ymin, brush$ymax))
+
+          # get image info
+          image <- image_list[[i]]
           
-          # if width is large, then correct the brush event for the downsize effect
-          # also adjust for transformations on limits of the image
-          print("round")
+          # get the transformed limits first, and calculate width
           print(limits)
           limits_trans <- data.frame(x = limits[,1], y = limits[,2])
-          limits_trans <- transformKeypoints(image, limits_trans, paste0(type, "_image",i), input)
-          print(limits_trans)
-          limits_trans <- data.frame(x = range(limits_trans[,1]), y = range(limits_trans[,2]))
-          print(limits_trans)
+          limits_trans <- transformImageKeypoints(image, limits_trans, paste0(type, "_image",i), input)
+          image_trans <- limits_trans$image
+          limits_trans <- data.frame(x = range(limits_trans$keypoints[,1]), y = range(limits_trans$keypoints[,2]))
           width <- limits_trans[2,1]-limits_trans[1,1]
-          print(width)
+          print(limits_trans)
+          
+          # if width is large, then correct the brush event for the downsize effect
           if(width > 800){
             brush_mat <- brush_mat*width/800
           }
 
-          # correct for zoom
-          # brush_mat[,1] <- brush_mat[,1] + limits_trans[1,1]
-          # brush_mat[,2] <- brush_mat[,2] + limits_trans[1,2]
-          
-          # # correct for flipflop and rotate
-          brush_mat <- transformKeypoints(image, as.data.frame(brush_mat), paste0(type, "_image",i), input)
+          # correct brush for the zoom effect
+          brush_mat[,1] <- brush_mat[,1] + limits_trans[1,1]
+          brush_mat[,2] <- brush_mat[,2] + limits_trans[1,2]
+
+          # correct for flipflop and rotate using the transformed image from above
+          brush_mat <- transformKeypoints(image_trans, as.data.frame(brush_mat), paste0(type, "_image",i), input)
           brush_mat <- data.frame(x = range(brush_mat[,1]), y = range(brush_mat[,2]))
           brush_mat <- as.matrix(brush_mat)
 
           # make new zoom information
-          # print("before")
-          # print(zoom_list[[paste0(i)]][[type]]$x)
-          # zoom_list[[paste0(i)]][[type]]$x <- brush_mat[,1] + limits[1,1]
-          # zoom_list[[paste0(i)]][[type]]$y <- brush_mat[,2] + limits[1,2]
           zoom_list[[paste0(i)]][[type]]$x <- brush_mat[,1]
           zoom_list[[paste0(i)]][[type]]$y <- brush_mat[,2]
-          # print("after")
-          # print(zoom_list[[paste0(i)]][[type]]$x)
-          
-          # if(width > 800){
-          #   zoom_list[[paste0(i)]][[type]]$x <- c(brush$xmin, brush$xmax)*width/800 + limits[1,1]
-          #   zoom_list[[paste0(i)]][[type]]$y <- c(brush$ymin, brush$ymax)*width/800 + limits[1,2]
-          # } else {
-          #   zoom_list[[paste0(i)]][[type]]$x <- c(brush$xmin, brush$xmax) + limits[1,1]
-          #   zoom_list[[paste0(i)]][[type]]$y <- c(brush$ymin, brush$ymax) + limits[1,2]
-          # }
+        
         } else {
           zoom_list[[paste0(i)]][[type]]$x <- c(0, info_list[[i]][1])
           zoom_list[[paste0(i)]][[type]]$y <- c(0, info_list[[i]][2])
@@ -1193,6 +1124,7 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
         # zoom images and keypoints
         limits <- as.data.frame(zoom_list[[paste0(i)]][[type]])
         img_limits <- transformImageKeypoints(img, limits, paste0(type, "_image",i), input, session)
+        # img_limits$keypoints <- data.frame(x = range(img_limits$keypoints[,1]), y = rev(range(img_limits$keypoints[,2])))
         img_limits$keypoints <- data.frame(x = range(img_limits$keypoints[,1]), y = range(img_limits$keypoints[,2]))
         imgzoom <- imageZoom(img_trans$image, zoom_info = img_limits$keypoints)
         if(!is.null(img_trans$keypoints)){
@@ -1206,7 +1138,7 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
         img_trans$image <- image_crop(img_trans$image, geometry = imgzoom)
         
         # lower resolution
-        width <- limits[2,1]-limits[1,1]
+        width <- img_limits$keypoints[2,1]-img_limits$keypoints[1,1]
         if(width > 800){
           img_trans$keypoints[,c("x","y")] <- img_trans$keypoints[,c("x","y")]*(800/width)
           img_trans$image <- magick::image_resize(img_trans$image, geometry = "800x")
