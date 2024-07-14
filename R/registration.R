@@ -161,12 +161,14 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
       ## get image and zoom info ####
       orig_image_query_info_list <- getImageInfo(orig_image_query_list)
       zoom_list <- initiateZoomOptions(orig_image_query_info_list)
-      manageImageZoomOptions(centre, register_ind, zoom_list, trans_image_query_list, orig_image_query_list, orig_image_query_info_list, input, output, session)
-
+      # manageImageZoomOptions(centre, register_ind, zoom_list, trans_image_query_list, orig_image_query_list, orig_image_query_info_list, input, output, session)
+      manageImageZoomOptions(centre, register_ind, zoom_list, orig_image_query_list, orig_image_query_info_list, input, output, session)
+      
       ## Manage reference and query keypoints ####
       xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
-      manageKeypoints(centre, register_ind, xyTable_list, trans_image_query_list, orig_image_query_info_list, zoom_list, input, output, session)
-
+      # manageKeypoints(centre, register_ind, xyTable_list, trans_image_query_list, orig_image_query_info_list, zoom_list, input, output, session)
+      manageKeypoints(centre, register_ind, xyTable_list, orig_image_query_list, orig_image_query_info_list, zoom_list, input, output, session)
+      
       ## Image registration ####
       registration_mapping_list <- initiateMappings(length(spatdata_list))
       getManualRegisteration(registration_mapping_list, spatdata_list, orig_image_query_list, xyTable_list,
@@ -708,15 +710,21 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, info
         # get brush information
         brush <- input[[paste0("brush_plot_", type ,i)]]
         limits <- cbind(zoom_list[[paste0(i)]][[type]]$x, zoom_list[[paste0(i)]][[type]]$y)
-        width <- limits[2,1]-limits[1,1]
         if (is.null(brush)) {
 
-          # insert keypoint to associated table
-          ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
+          # get image
+          image <- image_list[[i]]
 
           # get and transform keypoints
           keypoint <- data.frame(x = input[[paste0("click_plot_",type,i)]]$x,
                                  y = input[[paste0("click_plot_",type,i)]]$y)
+          
+          # get the transformed zoom info first and calculate width, then record transformed image
+          limits_trans <- data.frame(x = limits[,1], y = limits[,2])
+          limits_trans <- transformImageKeypoints(image, limits_trans, paste0(type, "_image",i), input)
+          image_trans <- limits_trans$image
+          limits_trans <- data.frame(x = range(limits_trans$keypoints[,1]), y = range(limits_trans$keypoints[,2]))
+          width <- limits_trans[2,1]-limits_trans[1,1]
           
           # correct for scaling, scale factor = 800
           if(width > 800){
@@ -724,16 +732,13 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, info
           }
           
           # correct for zoom information
-          keypoint <- keypoint + limits[1,]
+          keypoint <- keypoint + limits_trans[1,]
           
           # correct for flipflop and rotate
-          if(is.reactive(image_list[[ref_ind]])){
-            image <- image_list[[ref_ind]]()
-          } else {
-            image <- image_list[[ref_ind]]
-          }
-          image <- image[[type]]
-          keypoint <- transformKeypoints(image, keypoint, paste0(type, "_image",i), input)
+          keypoint <- transformKeypoints(image_trans, keypoint, paste0(type, "_image",i), input)
+          
+          # insert keypoint to associated table
+          ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
           
           # insert keypoint to associated table
           temp <- xyTable_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]]
@@ -1007,7 +1012,6 @@ initiateZoomOptions <- function(info_list, input, output, session){
 #' @param centre center image index
 #' @param register_ind query image indices
 #' @param zoom_list a list of x,y ranges of query and ref images
-#' @param image_trans_list a list of transformed magick image
 #' @param image_list a list of transformed magick image
 #' @param info_list the list of image information
 #' @param input shiny input
@@ -1015,7 +1019,8 @@ initiateZoomOptions <- function(info_list, input, output, session){
 #' @param session shiny session
 #'
 #' @noRd
-manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_trans_list, image_list, info_list, input, output, session){
+manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_list, info_list, input, output, session){
+# manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_trans_list, image_list, info_list, input, output, session){
   
   # get image types
   image_types <- c("ref","query")
@@ -1039,18 +1044,16 @@ manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_trans_
           brush_mat <- data.frame(x = c(brush$xmin, brush$xmax), 
                                   y = c(brush$ymin, brush$ymax))
 
-          # get image info
+          # get image
           image <- image_list[[i]]
           
-          # get the transformed limits first, and calculate width
-          print(limits)
+          # get the transformed limits first and calculate width, then record transformed image
           limits_trans <- data.frame(x = limits[,1], y = limits[,2])
           limits_trans <- transformImageKeypoints(image, limits_trans, paste0(type, "_image",i), input)
           image_trans <- limits_trans$image
           limits_trans <- data.frame(x = range(limits_trans$keypoints[,1]), y = range(limits_trans$keypoints[,2]))
           width <- limits_trans[2,1]-limits_trans[1,1]
-          print(limits_trans)
-          
+
           # if width is large, then correct the brush event for the downsize effect
           if(width > 800){
             brush_mat <- brush_mat*width/800
