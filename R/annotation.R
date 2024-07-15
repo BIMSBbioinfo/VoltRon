@@ -122,28 +122,39 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
                       
                       # Interface
                       fluidRow(
-                        column(12,h4("Annotation Interface")),
+                        column(12,h4("Spatial Annotation")),
                         column(12,shiny::actionButton("reset_btn",     "Reset Points     ")),
                         column(12,shiny::actionButton("rmvlast_btn",   "Remove Last Point")),
                         column(12,shiny::actionButton("addregion_btn", "Add Region       ")),
                       ),
                       br(),
                       
+                      fluidRow(
+                        column(6,shiny::selectInput("region_type", label = "Region Type", choices = c("Polygon", "Circle"), selected = "Polygon")),
+                        column(6,sliderInput("alpha", "Transparency", min = 0, max = 1, value = 0.2)),
+                      ),
+
+                      # instructions
+                      h4("How to use"),
+                      p(style="font-size: 12px;", strong("Single-L-click"), " to select polygon or circle points"),
+                      p(style="font-size: 12px;", strong("Add Region"), " to set points as a new region"),
+                      p(style="font-size: 12px;", strong("Circles"), " require only 2 points"),
+                      p(style="font-size: 12px;", strong("Polygons"), " require at least 3 points"),
+                      br(),
+                      
                       # Subsets
                       fluidRow(
                         column(12,h4("Selected Regions")),
-                        column(6,shiny::selectInput("region_type", label = "Region Type", choices = c("Polygon", "Circle"), selected = "Polygon")),
-                        column(6,sliderInput("alpha", "Transparency", min = 0, max = 1, value = 0.2)),
                         br(),
                         uiOutput("textbox_ui"),
-                        br(),
-                        br()
+                        br()  
                       ),
                       
                       # Subsets
                       fluidRow(
                         column(12,shiny::actionButton("done", "Done"))
                       ),
+                      
                       width = 4
                     ),
                     mainPanel(
