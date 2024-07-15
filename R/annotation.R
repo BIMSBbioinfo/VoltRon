@@ -237,7 +237,6 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
       
       # Initialize textbox values if n > 0, get already existing segments
       if (n > 0) {
-        # print(segment_names)
         segment_names <- as.list(segment_names)
         names(segment_names) <- paste0("region", 1:n)
         textbox_values <- do.call("reactiveValues", segment_names)
