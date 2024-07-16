@@ -304,6 +304,7 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   coords <- vrCoordinates(object, assay = assay)
   
   # Segments
+<<<<<<< HEAD
   # Function to fill NA values with preceding values
   fill_na_with_preceding <- function(x) {
     if (all(is.na(x))) return(x)
@@ -338,6 +339,22 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   # Replace NA values with preceding values in the final 3D array
   for (k in 1:2) {
     segmentations_array[,,k] <- t(apply(segmentations_array[,,k], 1, fill_na_with_preceding))
+=======
+  segments <- vrSegments(object, assay = assay)
+  segments <- segments %>% 
+    map(~ .x %>% fill(x, y, .direction = "down"))
+  
+  #segments <- segments %>% map(~ filter(.x, !(is.na(x) & is.na(y))))
+  
+  max_vertices <- max(sapply(segments, nrow))
+  num_cells <- length(segments)
+  segmentations_array <- array(NA, dim = c(num_cells, max_vertices, 2))
+  
+  cell_ids <- names(segments)
+  for (i in seq_along(cell_ids)) {
+    seg <- segments[[i]]
+    segmentations_array[i, 1:nrow(seg), ] <- as.matrix(seg[, c("x", "y")])
+>>>>>>> 1e37305d82cfd591e16c01d732831d83ea2c9b6a
   }
   
   
