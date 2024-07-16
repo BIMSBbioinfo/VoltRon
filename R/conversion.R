@@ -260,6 +260,9 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
 #'
 #' @importFrom stringr str_extract
 #' @importFrom magick image_data
+#' @import tidyr
+#' @import dplyr
+#' @import purrr
 #' @export
 #'
 as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"), flip_coordinates = FALSE, method = "anndata", 
@@ -301,7 +304,32 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   coords <- vrCoordinates(object, assay = assay)
   
   # Segments
+  fill_na_with_preceding <- function(x) {
+    if (all(is.na(x))) return(x)
+    for (i in 2:length(x)) {
+      if (is.na(x[i])) {
+        x[i] <- x[i - 1]
+      }
+    }
+    return(x)
+  }
   segments <- vrSegments(object, assay = assay)
+  max_vertices <- max(sapply(segments, nrow))
+  num_cells <- length(segments)
+  segmentations_array <- array(NA, dim = c(num_cells, max_vertices, 2))
+  cell_ids <- names(segments)
+  for (i in seq_along(cell_ids)) {
+    seg <- segments[[i]]
+    seg_matrix <- as.matrix(seg[, c("x", "y")])
+    nrow_diff <- max_vertices - nrow(seg_matrix)
+    if (nrow_diff > 0) {
+      seg_matrix <- rbind(seg_matrix, matrix(NA, nrow = nrow_diff, ncol = 2))
+    }
+    segmentations_array[i, , ] <- seg_matrix
+  }
+  for (k in 1:2) {
+    segmentations_array[,,k] <- t(apply(segmentations_array[,,k], 1, fill_na_with_preceding))
+  }
   
   # Images
   images_mgk <- vrImages(object, assay = assay, ...)
@@ -314,14 +342,17 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
          scalefactors = list(tissue_hires_scalef = 1, spot_diameter_fullres = 0.5))
   })
   
-  # Check and use the specified method
+  # Check and use a package for saving h5ad
   if (method == "anndataR") {
     if (!requireNamespace('anndataR', quietly = TRUE)) {
       stop("The anndataR package is not installed. Please install it or choose the 'anndata' method.")
     }
+    
     # Create anndata using anndataR
     adata <- anndataR::AnnData(obs_names = rownames(metadata), var_names = rownames(data), 
-                               X = t(data), obs = metadata, obsm = list(spatial = coords, spatial_AssayID = coords))
+                               X = t(data), obs = metadata, 
+                               obsm = list(spatial = coords, spatial_AssayID = coords, , segmentations = segmentations_array),
+                               uns = list(spatial = image_data_list))
     # Include image data in anndata uns
     adata$uns$spatial <- image_data_list
     # Write to h5ad file using anndataR
@@ -330,23 +361,19 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
     if (!requireNamespace('anndata', quietly = TRUE)) {
       stop("The anndata package is not installed. Please install it or choose the 'anndataR' method.")
     }
+    
     # Create anndata using anndata
-    # adata <- anndata::AnnData(X = t(data), obs = metadata, 
-    #                           obsm = list(spatial = coords, spatial_AssayID = coords, spatial_segments = segments), 
-    #                           uns = list(spatial = image_data_list))
     adata <- anndata::AnnData(X = t(data), obs = metadata, 
-                              obsm = list(spatial = coords, spatial_AssayID = coords), 
+                              obsm = list(spatial = coords, spatial_AssayID = coords, segmentations = segmentations_array), 
                               uns = list(spatial = image_data_list))
+    
     
     # Write to h5ad file using anndata
     anndata::write_h5ad(adata, filename = file)
   } else {
     stop("Invalid method selected. Please choose either 'anndataR' or 'anndata'.")
   }
-  
-  # Return
-  NULL
-} 
+}  
 
 
 ####
@@ -676,8 +703,8 @@ as.SpatialData <- function(object, file, assay = NULL, type = c("image", "spatia
   adata <- anndata::AnnData(X = t(data), obs = metadata, obsm = list(spatial = coords, spatial_AssayID = coords))
   
   # create anndata file
-  anndata::write_h5ad(adata, filename = file)
-  
+  anndata::write_h5ad(adata, store = file)
+
   # return
   NULL
 }
