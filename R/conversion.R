@@ -304,25 +304,42 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   coords <- vrCoordinates(object, assay = assay)
   
   # Segments
-  vr_segments_extract <- vrSegments(object, assay = assay)
-  vr_segments_output <- vr_segments_extract %>% 
-    map(~ .x %>% fill(x, y, .direction = "down"))
-  
-  #vr_Segments_output <- vr_segments_extract %>% map(~ filter(.x, !(is.na(x) & is.na(y))))
-  
-  max_vertices <- max(sapply(vr_segments_output, nrow))
-  num_cells <- length(vr_segments_output)
-  segmentations_array <- array(NA, dim = c(num_cells, max_vertices, 2))
-  
-  cell_ids <- names(vr_segments_output)
-  for (i in seq_along(cell_ids)) {
-    seg <- vr_segments_output[[i]]
-    segmentations_array[i, 1:nrow(seg), ] <- as.matrix(seg[, c("x", "y")])
+  # Function to fill NA values with preceding values
+  fill_na_with_preceding <- function(x) {
+    if (all(is.na(x))) return(x)
+    for (i in 2:length(x)) {
+      if (is.na(x[i])) {
+        x[i] <- x[i - 1]
+      }
+    }
+    return(x)
   }
   
-  # removing rows with any NA values
-  #rows_with_na <- apply(segmentations_array, 1, function(row) any(is.na(row[, 1]) | is.na(row[, 2])))
-  #segmentations_array_clean <- segmentations_array[!rows_with_na, , , drop = FALSE]
+  #extration
+  vr_segments_extract <- vrSegments(object, assay = assay)
+  
+  #blank array
+  max_vertices <- max(sapply(vr_segments_extract, nrow))
+  num_cells <- length(vr_segments_extract)
+  segmentations_array <- array(NA, dim = c(num_cells, max_vertices, 2))
+  
+  #fill array
+  cell_ids <- names(vr_segments_extract)
+  for (i in seq_along(cell_ids)) {
+    seg <- vr_segments_extract[[i]]
+    seg_matrix <- as.matrix(seg[, c("x", "y")])
+    nrow_diff <- max_vertices - nrow(seg_matrix)
+    if (nrow_diff > 0) {
+      seg_matrix <- rbind(seg_matrix, matrix(NA, nrow = nrow_diff, ncol = 2))
+    }
+    segmentations_array[i, , ] <- seg_matrix
+  }
+  
+  # Replace NA values with preceding values in the final 3D array
+  for (k in 1:2) {
+    segmentations_array[,,k] <- t(apply(segmentations_array[,,k], 1, fill_na_with_preceding))
+  }
+  
   
   # Images
   images_mgk <- vrImages(object, assay = assay, ...)
