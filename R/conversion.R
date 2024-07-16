@@ -304,8 +304,6 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   coords <- vrCoordinates(object, assay = assay)
   
   # Segments
-<<<<<<< HEAD
-  # Function to fill NA values with preceding values
   fill_na_with_preceding <- function(x) {
     if (all(is.na(x))) return(x)
     for (i in 2:length(x)) {
@@ -315,19 +313,13 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
     }
     return(x)
   }
-  
-  #extration
-  vr_segments_extract <- vrSegments(object, assay = assay)
-  
-  #blank array
-  max_vertices <- max(sapply(vr_segments_extract, nrow))
-  num_cells <- length(vr_segments_extract)
+  segments <- vrSegments(object, assay = assay)
+  max_vertices <- max(sapply(segments, nrow))
+  num_cells <- length(segments)
   segmentations_array <- array(NA, dim = c(num_cells, max_vertices, 2))
-  
-  #fill array
-  cell_ids <- names(vr_segments_extract)
+  cell_ids <- names(segments)
   for (i in seq_along(cell_ids)) {
-    seg <- vr_segments_extract[[i]]
+    seg <- segments[[i]]
     seg_matrix <- as.matrix(seg[, c("x", "y")])
     nrow_diff <- max_vertices - nrow(seg_matrix)
     if (nrow_diff > 0) {
@@ -335,28 +327,9 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
     }
     segmentations_array[i, , ] <- seg_matrix
   }
-  
-  # Replace NA values with preceding values in the final 3D array
   for (k in 1:2) {
     segmentations_array[,,k] <- t(apply(segmentations_array[,,k], 1, fill_na_with_preceding))
-=======
-  segments <- vrSegments(object, assay = assay)
-  segments <- segments %>% 
-    map(~ .x %>% fill(x, y, .direction = "down"))
-  
-  #segments <- segments %>% map(~ filter(.x, !(is.na(x) & is.na(y))))
-  
-  max_vertices <- max(sapply(segments, nrow))
-  num_cells <- length(segments)
-  segmentations_array <- array(NA, dim = c(num_cells, max_vertices, 2))
-  
-  cell_ids <- names(segments)
-  for (i in seq_along(cell_ids)) {
-    seg <- segments[[i]]
-    segmentations_array[i, 1:nrow(seg), ] <- as.matrix(seg[, c("x", "y")])
->>>>>>> 1e37305d82cfd591e16c01d732831d83ea2c9b6a
   }
-  
   
   # Images
   images_mgk <- vrImages(object, assay = assay, ...)
@@ -369,14 +342,17 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
          scalefactors = list(tissue_hires_scalef = 1, spot_diameter_fullres = 0.5))
   })
   
-  # Check and use the specified method
+  # Check and use a package for saving h5ad
   if (method == "anndataR") {
     if (!requireNamespace('anndataR', quietly = TRUE)) {
       stop("The anndataR package is not installed. Please install it or choose the 'anndata' method.")
     }
+    
     # Create anndata using anndataR
     adata <- anndataR::AnnData(obs_names = rownames(metadata), var_names = rownames(data), 
-                               X = t(data), obs = metadata, obsm = list(spatial = coords, spatial_AssayID = coords))
+                               X = t(data), obs = metadata, 
+                               obsm = list(spatial = coords, spatial_AssayID = coords, , segmentations = segmentations_array),
+                               uns = list(spatial = image_data_list))
     # Include image data in anndata uns
     adata$uns$spatial <- image_data_list
     # Write to h5ad file using anndataR
@@ -385,10 +361,8 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
     if (!requireNamespace('anndata', quietly = TRUE)) {
       stop("The anndata package is not installed. Please install it or choose the 'anndataR' method.")
     }
+    
     # Create anndata using anndata
-    # adata <- anndata::AnnData(X = t(data), obs = metadata, 
-    #                           obsm = list(spatial = coords, spatial_AssayID = coords, spatial_segments = segments), 
-    #                           uns = list(spatial = image_data_list))
     adata <- anndata::AnnData(X = t(data), obs = metadata, 
                               obsm = list(spatial = coords, spatial_AssayID = coords, segmentations = segmentations_array), 
                               uns = list(spatial = image_data_list))
@@ -399,9 +373,6 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   } else {
     stop("Invalid method selected. Please choose either 'anndataR' or 'anndata'.")
   }
-  
-  # Return
-  NULL
 }  
 
 
