@@ -538,6 +538,7 @@ combineChannels <- function(object, assay = NULL, name = NULL, reg = FALSE, chan
 #' Generic methods for conversion into a VoltRon object
 #'
 #' @param object a VoltRon object
+#' @param assay
 #' @param ... Arguments passed to other methods
 #'
 #' @rdname as.VoltRon
@@ -551,6 +552,8 @@ as.VoltRon <- function(object, ...) {
 #' Generic methods to save VoltRon or magick-image objects as zarr files
 #'
 #' @param object a VoltRon or magick-image object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param out_path output path to zarr file
 #' @param image_id image name
 #'

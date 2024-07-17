@@ -49,26 +49,82 @@ MBrain_Sec <- readRDS("Visium&Visium_data_decon_analyzed.rds")
 
 ## Shiny App (Annotation)
 
-Now we can start annotating the spatial assay. By passing arguments used by the **vrSpatialPlot** function to visualize labels (e.g. clusters), we can better select regions within tissue sections for annotation.  
+Now we can start annotating the spatial assay. By passing arguments used by the **vrSpatialPlot** function to visualize labels (e.g. clusters), we can better select regions within tissue sections for annotation. 
 
 ```{r class.source="watch-out", eval = FALSE}
-MBrain_Sec <- annotateSpatialData(MBrain_Sec, group.by = "clusters", label = "annotation")
+MBrain_Sec <- annotateSpatialData(MBrain_Sec, assay = "Assay5", 
+                                  group.by = "clusters", label = "annotation")
 ```
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_annotation_example.png" class="center">
 
 <br>
 
-# Interactive Visualization
- 
-In this section, we will transform VoltRon objects of Xenium data into zarr arrays, and use them for interactive visualization in [Vitessce](http://vitessce.io/). We should first download the vitessceR package which incorporates wrapper function to visualize zarr arrays interactively in R.
+Here, **annotateSpatialData** function not only labels spots with within regions of interests (ROIs) selected by the user, but also records these regions in ROI assays within the same layer of the annotated Visium assay. The new assay type will be given the name **ROIAnnotations** if otherwise not specified using the **annotation_assay** arguement in the function.
 
 ```{r class.source="watch-out", eval = FALSE}
-install.packages("devtools")
-devtools::install_github("vitessce/vitessceR")
+MBrain_Sec 
 ```
 
-You can find the clustered and annotated Xenium data using VoltRon [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered_annotated.rds). 
+```
+VoltRon Object 
+Anterior: 
+  Layers: Section1 Section2 
+Posterior: 
+  Layers: Section1 Section2 
+Assays: Visium_decon(Main) Visium ROIAnnotation 
+```
+
+```{r class.source="watch-out", eval = FALSE}
+MBrain_Sec@sample.metadata 
+```
+
+```
+> MBrain_Sec@sample.metadata
+               Assay    Layer    Sample
+Assay1        Visium Section1  Anterior
+Assay2        Visium Section2  Anterior
+Assay3        Visium Section1 Posterior
+Assay4        Visium Section2 Posterior
+Assay5  Visium_decon Section1  Anterior
+Assay6  Visium_decon Section2  Anterior
+Assay7  Visium_decon Section1 Posterior
+Assay8  Visium_decon Section2 Posterior
+Assay9 ROIAnnotation Section1  Anterior
+```
+
+The new annotations are available in the metadata of the spot assay (default assay in this object) and can be visualized if wanted.
+
+```{r class.source="watch-out", eval = FALSE}
+head(Metadata(MBrain_Sec))
+```
+
+```
+                          Count        Assay    Layer   Sample clusters annotation
+AAACAAGTATCTCCCA-1_Assay5     1 Visium_decon Section1 Anterior        1   Region 3
+AAACACCAATAACTGC-1_Assay5     1 Visium_decon Section1 Anterior        3  undefined
+AAACAGAGCGACTCCT-1_Assay5     1 Visium_decon Section1 Anterior        4  undefined
+AAACAGCTTTCAGAAG-1_Assay5     1 Visium_decon Section1 Anterior        5   Region 1
+AAACAGGGTCTATATT-1_Assay5     1 Visium_decon Section1 Anterior        5   Region 1
+AAACATGGTGAGAGGA-1_Assay5     1 Visium_decon Section1 Anterior        3  undefined
+```
+
+```{r class.source="watch-out", eval = FALSE}
+vrSpatialPlot(MBrain_Sec, assay = "Assay5", group.by = "annotation")
+```
+
+<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_annotation_example_plot.png" class="center">
+
+<br>
+
+# Interactive Visualization
+
+VoltRon incorporates utilities 
+
+* **(i)** to convert VoltRon objects into other spatial data objects and files that could be used platforms, and 
+* **(ii)** to incorporate wrapper functions to call methods from package that achieves interactive visualization
+
+We will use the clustered and annotated Xenium data using VoltRon [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered_annotated.rds). 
 
 ```{r class.source="watch-out", eval = FALSE}
 Xen_data <- readRDS("Xenium_data_clustered_annotated.rds")
@@ -76,16 +132,29 @@ SampleMetadata(Xen_data)
 ```
 
 ```
-        Assay    Layer   Sample
-Assay1 Xenium Section1 XeniumR1
-Assay2 Xenium Section1 XeniumR2
+            Assay    Layer   Sample
+Assay2 Xenium_mol Section1 XeniumR1
+Assay4 Xenium_mol Section1 XeniumR2
+Assay1     Xenium Section1 XeniumR1
+Assay3     Xenium Section1 XeniumR2
 ```
 
 <br>
 
-## Conversion into Zarr
+## Vitessce 
 
-Now we can convert the VoltRon object into a zarr array using the **as.Zarr** function which will create the array in a specified location
+We will transform VoltRon objects of Xenium data into zarr arrays, and use them for interactive visualization in [Vitessce](http://vitessce.io/). We should first download the vitessceR package which incorporates wrapper function to visualize zarr arrays interactively in R.
+
+```{r class.source="watch-out", eval = FALSE}
+if (!require("devtools", quietly = TRUE))
+    install.packages("devtools")
+if (!require("vitessceR", quietly = TRUE))
+    devtools::install_github("Artur-man/vitessceR")
+```
+
+### Conversion into Zarr
+
+Now we can convert the VoltRon object into a zarr array using the **as.Zarr** function which will create the array in the specified location
 
 ```{r class.source="watch-out", eval = FALSE}
 Xendata_assay <- subset(Xen_data, assays = "Assay1")
@@ -94,7 +163,7 @@ as.Zarr(Xendata_assay, out_path = "data/xendata_clustered_annotated.zarr")
 
 <br>
 
-## Vitessce (Interactive)
+### Running Vitessce
 
 We can use the zarr file directly in the **vrSpatialPlot** function to visualize the zarr array interactively in Rstudio viewer. The **reduction** arguement allows the umap of the Xenium data to be visualized alongside with the spatial coordinates of the Xenium cells.
 
@@ -104,6 +173,11 @@ vrSpatialPlot("data/xendata_clustered_annotated.zarr",
 ```
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_interactive.png" class="center">
+
+## TissUUmaps
+
+
+## VoltRon
 
 
 

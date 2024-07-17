@@ -473,21 +473,60 @@ href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/NicheClustering/Visiu
 used by the <strong>vrSpatialPlot</strong> function to visualize labels
 (e.g. clusters), we can better select regions within tissue sections for
 annotation.</p>
-<pre class="r watch-out"><code>MBrain_Sec &lt;- annotateSpatialData(MBrain_Sec, group.by = &quot;clusters&quot;, label = &quot;annotation&quot;)</code></pre>
+<pre class="r watch-out"><code>MBrain_Sec &lt;- annotateSpatialData(MBrain_Sec, assay = &quot;Assay5&quot;, 
+                                  group.by = &quot;clusters&quot;, label = &quot;annotation&quot;)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_annotation_example.png" class="center"></p>
+<p><br></p>
+<p>Here, <strong>annotateSpatialData</strong> function not only labels
+spots with within regions of interests (ROIs) selected by the user, but
+also records these regions in ROI assays within the same layer of the
+annotated Visium assay. The new assay type will be given the name
+<strong>ROIAnnotations</strong> if otherwise not specified using the
+<strong>annotation_assay</strong> arguement in the function.</p>
+<pre class="r watch-out"><code>MBrain_Sec </code></pre>
+<pre><code>VoltRon Object 
+Anterior: 
+  Layers: Section1 Section2 
+Posterior: 
+  Layers: Section1 Section2 
+Assays: Visium_decon(Main) Visium ROIAnnotation </code></pre>
+<pre class="r watch-out"><code>MBrain_Sec@sample.metadata </code></pre>
+<pre><code>&gt; MBrain_Sec@sample.metadata
+               Assay    Layer    Sample
+Assay1        Visium Section1  Anterior
+Assay2        Visium Section2  Anterior
+Assay3        Visium Section1 Posterior
+Assay4        Visium Section2 Posterior
+Assay5  Visium_decon Section1  Anterior
+Assay6  Visium_decon Section2  Anterior
+Assay7  Visium_decon Section1 Posterior
+Assay8  Visium_decon Section2 Posterior
+Assay9 ROIAnnotation Section1  Anterior</code></pre>
+<p>The new annotations are available in the metadata of the spot assay
+(default assay in this object) and can be visualized if wanted.</p>
+<pre class="r watch-out"><code>head(Metadata(MBrain_Sec))</code></pre>
+<pre><code>                          Count        Assay    Layer   Sample clusters annotation
+AAACAAGTATCTCCCA-1_Assay5     1 Visium_decon Section1 Anterior        1   Region 3
+AAACACCAATAACTGC-1_Assay5     1 Visium_decon Section1 Anterior        3  undefined
+AAACAGAGCGACTCCT-1_Assay5     1 Visium_decon Section1 Anterior        4  undefined
+AAACAGCTTTCAGAAG-1_Assay5     1 Visium_decon Section1 Anterior        5   Region 1
+AAACAGGGTCTATATT-1_Assay5     1 Visium_decon Section1 Anterior        5   Region 1
+AAACATGGTGAGAGGA-1_Assay5     1 Visium_decon Section1 Anterior        3  undefined</code></pre>
+<pre class="r watch-out"><code>vrSpatialPlot(MBrain_Sec, assay = &quot;Assay5&quot;, group.by = &quot;annotation&quot;)</code></pre>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_annotation_example_plot.png" class="center"></p>
 <p><br></p>
 </div>
 </div>
 <div id="interactive-visualization" class="section level1">
 <h1>Interactive Visualization</h1>
-<p>In this section, we will transform VoltRon objects of Xenium data
-into zarr arrays, and use them for interactive visualization in <a
-href="http://vitessce.io/">Vitessce</a>. We should first download the
-vitessceR package which incorporates wrapper function to visualize zarr
-arrays interactively in R.</p>
-<pre class="r watch-out"><code>install.packages(&quot;devtools&quot;)
-devtools::install_github(&quot;vitessce/vitessceR&quot;)</code></pre>
-<p>You can find the clustered and annotated Xenium data using VoltRon <a
+<p>VoltRon incorporates utilities</p>
+<ul>
+<li><strong>(i)</strong> to convert VoltRon objects into other spatial
+data objects and files that could be used platforms, and</li>
+<li><strong>(ii)</strong> to incorporate wrapper functions to call
+methods from package that achieves interactive visualization</li>
+</ul>
+<p>We will use the clustered and annotated Xenium data using VoltRon <a
 href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered_annotated.rds">here</a>.</p>
 <pre class="r watch-out"><code>Xen_data &lt;- readRDS(&quot;Xenium_data_clustered_annotated.rds&quot;)
 SampleMetadata(Xen_data)</code></pre>
@@ -495,17 +534,28 @@ SampleMetadata(Xen_data)</code></pre>
 Assay1 Xenium Section1 XeniumR1
 Assay2 Xenium Section1 XeniumR2</code></pre>
 <p><br></p>
-<div id="conversion-into-zarr" class="section level2">
-<h2>Conversion into Zarr</h2>
+<div id="vitessce" class="section level2">
+<h2>Vitessce</h2>
+<p>We will transform VoltRon objects of Xenium data into zarr arrays,
+and use them for interactive visualization in <a
+href="http://vitessce.io/">Vitessce</a>. We should first download the
+vitessceR package which incorporates wrapper function to visualize zarr
+arrays interactively in R.</p>
+<pre class="r watch-out"><code>if (!require(&quot;devtools&quot;, quietly = TRUE))
+    install.packages(&quot;devtools&quot;)
+if (!require(&quot;vitessceR&quot;, quietly = TRUE))
+    devtools::install_github(&quot;Artur-man/vitessceR&quot;)</code></pre>
+<div id="conversion-into-zarr" class="section level3">
+<h3>Conversion into Zarr</h3>
 <p>Now we can convert the VoltRon object into a zarr array using the
-<strong>as.Zarr</strong> function which will create the array in a
+<strong>as.Zarr</strong> function which will create the array in the
 specified location</p>
 <pre class="r watch-out"><code>Xendata_assay &lt;- subset(Xen_data, assays = &quot;Assay1&quot;)
 as.Zarr(Xendata_assay, out_path = &quot;data/xendata_clustered_annotated.zarr&quot;)</code></pre>
 <p><br></p>
 </div>
-<div id="vitessce-interactive" class="section level2">
-<h2>Vitessce (Interactive)</h2>
+<div id="running-vitessce" class="section level3">
+<h3>Running Vitessce</h3>
 <p>We can use the zarr file directly in the
 <strong>vrSpatialPlot</strong> function to visualize the zarr array
 interactively in Rstudio viewer. The <strong>reduction</strong>
@@ -514,6 +564,13 @@ with the spatial coordinates of the Xenium cells.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(&quot;data/xendata_clustered_annotated.zarr&quot;, 
               group.by = &quot;CellType&quot;, reduction = &quot;umap&quot;)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_interactive.png" class="center"></p>
+</div>
+</div>
+<div id="tissuumaps" class="section level2">
+<h2>TissUUmaps</h2>
+</div>
+<div id="voltron" class="section level2">
+<h2>VoltRon</h2>
 </div>
 </div>
 

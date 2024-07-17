@@ -201,7 +201,7 @@ Anndata objects wrapped on h5ad files are commonly used by the [scverse](https:/
 
 ```{r class.source="watch-out", eval = FALSE}
 Xen_data <- readRDS("Xenium_data_clustered_annotated.rds")
-as.AnnData(Xen_data, file = "Xen_adata_annotated.h5ad")
+as.AnnData(Xen_data, assay = "Xenium", file = "Xen_adata_annotated.h5ad")
 ```
 
 <br>

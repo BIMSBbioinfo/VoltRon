@@ -71,7 +71,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
   
   # get segmentations (if exists) from the same layer
   if(!is.null(annotation_assay)){
-    layer_metadata <- sample_metadata[,sample_metadata$Layer == sample_metadata[assay, "Layer"] & sample_metadata$Sample == sample_metadata[assay, "Sample"]]
+    layer_metadata <- sample_metadata[sample_metadata$Layer == sample_metadata[assay, "Layer"] & sample_metadata$Sample == sample_metadata[assay, "Sample"],]
     if(annotation_assay %in% layer_metadata$Assay){
       
       # get segments

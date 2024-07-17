@@ -245,10 +245,10 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
 #' @param object a VoltRon object
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param file the name of the h5ad file
-#' @param type the spatial data type of Seurat object: "image" or "spatial"
-#' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped
-#' @param method the package to use for conversion: "anndataR" or "anndata"
+#' @param file the name of the h5ad file.
+#' @param type the spatial data type of Seurat object: "image" or "spatial".
+#' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped.
+#' @param method the package to use for conversion: "anndataR" or "anndata".
 #' @param ... additional parameters passed to \link{vrImages}.
 #' 
 #' @details
@@ -260,16 +260,14 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
 #'
 #' @importFrom stringr str_extract
 #' @importFrom magick image_data
-#' @import tidyr
-#' @import dplyr
-#' @import purrr
+#' 
 #' @export
-#'
-as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"), flip_coordinates = FALSE, method = "anndata", 
-                       ...) {
+as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"), flip_coordinates = FALSE, 
+                       method = "anndata", ...) {
   
-  # Ensuring method is one of the allowed values
-  # method <- match.arg(method)
+  # either save the file or return the anndata
+  # if(is.null(file) && !return.anndata)
+  #   stop("Either the file should point to an h5ad file or return.anndata (TRUE/FALSE) should be defined!")
   
   # Check the number of assays
   if (is.null(assay)) {
@@ -294,6 +292,14 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   metadata <- Metadata(object, assay = assay)
   metadata[["library_id"]] <- stringr::str_extract(rownames(metadata), "_Assay[0-9]+$")
   metadata[["library_id"]] <- gsub("^_", "", metadata[["library_id"]])
+  
+  # Embeddings
+  obsm <- list()
+  if (length(vrEmbeddingNames(object, assay = assay)) > 0) {
+    for (embed_name in vrEmbeddingNames(object, assay = assay)) {
+      obsm[[embed_name]] <- vrEmbeddings(object, assay = assay, type = embed_name)
+    }
+  }
   
   # Flip coordinates
   if (flip_coordinates) {
@@ -330,7 +336,7 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   for (k in 1:2) {
     segmentations_array[,,k] <- t(apply(segmentations_array[,,k], 1, fill_na_with_preceding))
   }
-  
+
   # Images
   images_mgk <- vrImages(object, assay = assay, ...)
   if(!is.list(images_mgk)){
@@ -342,39 +348,78 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
          scalefactors = list(tissue_hires_scalef = 1, spot_diameter_fullres = 0.5))
   })
   
-  # Check and use a package for saving h5ad
-  if (method == "anndataR") {
-    if (!requireNamespace('anndataR', quietly = TRUE)) {
-      stop("The anndataR package is not installed. Please install it or choose the 'anndata' method.")
+  # save as zarr
+  if(grepl(".zarr[/]?$", file)){
+    
+    # check packages
+    if(!requireNamespace('DelayedArray'))
+      stop("Please install DelayedArray package for using DelayedArray functions")
+    
+    # run basilisk to call zarr methods
+    proc <- basilisk::basiliskStart(py_env)
+    on.exit(basilisk::basiliskStop(proc))
+    success <- basilisk::basiliskRun(proc, function(data, metadata, obsm, coords, segments, image_list, file) {
+      anndata <- reticulate::import("anndata")
+      zarr <- reticulate::import("zarr")
+      make_numpy_friendly <- function(x) {
+        if (DelayedArray::is_sparse(x)) {
+          methods::as(x, "dgCMatrix")
+        }
+        else {
+          as.matrix(x)
+        }
+      }
+      X <- make_numpy_friendly(t(data))
+      obsm <- c(obsm, list(spatial = coords, spatial_AssayID = coords, segmentation = segmentations_array))
+      adata <- anndata$AnnData(X = X, obs = metadata, 
+                               obsm = obsm, uns = list(spatial = image_data_list))
+      
+      adata$write_zarr(file)
+      return(TRUE)
+    }, data = data, metadata = metadata, obsm = obsm, coords = coords, segments = segmentations_array, image_list = image_data_list, file = file)
+    
+    return(success)
+    
+  # save as h5ad
+  } else if(grepl(".h5ad$", file)) {
+    
+    # Check and use a package for saving h5ad
+    if (method == "anndataR") {
+      if (!requireNamespace('anndataR', quietly = TRUE)) {
+        stop("The anndataR package is not installed. Please install it or choose the 'anndata' method.")
+      }
+      
+      # Create anndata using anndataR
+      adata <- anndataR::AnnData(obs_names = rownames(metadata), var_names = rownames(data), 
+                                 X = t(data), obs = metadata, 
+                                 obsm = list(spatial = coords, spatial_AssayID = coords, segmentation = segmentations_array),
+                                 uns = list(spatial = image_data_list))
+      
+      # Write to h5ad file using anndataR
+      anndataR::write_h5ad(adata, path = file)
+      
+    } else if (method == "anndata") {
+      if (!requireNamespace('anndata', quietly = TRUE)) {
+        stop("The anndata package is not installed. Please install it or choose the 'anndataR' method.")
+      }
+      
+      # Create anndata using anndata
+      adata <- anndata::AnnData(X = t(data), obs = metadata, 
+                                obsm = list(spatial = coords, spatial_AssayID = coords, segmentation = segmentations_array),
+                                uns = list(spatial = image_data_list))
+      
+      
+      # Write to h5ad file using anndata
+      anndata::write_h5ad(adata, filename = file)
+      
+    } else {
+      stop("Invalid method selected. Please choose either 'anndataR' or 'anndata'.")
     }
     
-    # Create anndata using anndataR
-    adata <- anndataR::AnnData(obs_names = rownames(metadata), var_names = rownames(data), 
-                               X = t(data), obs = metadata, 
-                               obsm = list(spatial = coords, spatial_AssayID = coords, , segmentations = segmentations_array),
-                               uns = list(spatial = image_data_list))
-    # Include image data in anndata uns
-    adata$uns$spatial <- image_data_list
-    # Write to h5ad file using anndataR
-    anndataR::write_h5ad(adata, path = file)
-  } else if (method == "anndata") {
-    if (!requireNamespace('anndata', quietly = TRUE)) {
-      stop("The anndata package is not installed. Please install it or choose the 'anndataR' method.")
-    }
-    
-    # Create anndata using anndata
-    adata <- anndata::AnnData(X = t(data), obs = metadata, 
-                              obsm = list(spatial = coords, spatial_AssayID = coords, segmentations = segmentations_array), 
-                              uns = list(spatial = image_data_list))
-    
-    
-    # Write to h5ad file using anndata
-    anndata::write_h5ad(adata, filename = file)
   } else {
-    stop("Invalid method selected. Please choose either 'anndataR' or 'anndata'.")
+    stop("the 'file' should have .h5ad, .zarr or .zarr/ extension")
   }
 }  
-
 
 ####
 # AnnData (Zarr) ####
@@ -399,7 +444,7 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
   datax <- vrData(object, norm = FALSE)
   metadata <- Metadata(object)
   # feature.metadata <- vrFeatureData(object)
-
+  
   # obsm
   obsm <- list()
   coords <- vrCoordinates(object)
@@ -410,7 +455,7 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
       obsm[[embed_name]] <- t(as.matrix(embedding))
     }
   }
-
+  
   proc <- basilisk::basiliskStart(py_env)
   on.exit(basilisk::basiliskStop(proc))
   success <- basilisk::basiliskRun(proc, function(datax, metadata, obsm, out_path) {
