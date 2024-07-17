@@ -276,9 +276,12 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
     } else {
       assay <- SampleMetadata(object)[["Assay"]]
     }
-  } else {
-    vrMainAssay(object) <- assay
   }
+  # } else {
+  #   # vrMainAssay(object) <- assay
+  #   assay <- vrAssayNames(object)
+  # }
+  assay <- vrAssayNames(object, assay = assay)
   
   # Check the number of assays
   if (unique(vrAssayTypes(object, assay = assay)) %in% c("spot", "ROI")) {
@@ -417,7 +420,7 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
     }
     
   } else {
-    stop("the 'file' should have .h5ad, .zarr or .zarr/ extension")
+    stop("the 'file' should have an .h5ad, .zarr or .zarr/ extension")
   }
 }  
 

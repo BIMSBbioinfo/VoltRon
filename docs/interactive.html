@@ -458,8 +458,8 @@ body {
 <div id="interactive-annotation" class="section level1">
 <h1>Interactive Annotation</h1>
 <p><strong>VoltRon</strong> includes interactive applications to select
-and manually label spatial points by drawing polygons.</p>
-<p>As an example, we will use a Spot-based spatial transcriptomic assay,
+and manually label spatial points by drawing polygons and circles. As an
+example, we will use a Spot-based spatial transcriptomic assay,
 specifically the <strong>Mouse Brain Serial Section 1/2</strong>
 datasets, analyzed in the <a href="deconvolution.html">Niche
 Clustering</a> tutorial. You can find the already analyzed data stored
@@ -467,15 +467,13 @@ as a VoltRon object <a
 href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/NicheClustering/Visium&amp;Visium_data_decon_analyzed.rds">here</a></p>
 <pre class="r watch-out"><code>MBrain_Sec &lt;- readRDS(&quot;Visium&amp;Visium_data_decon_analyzed.rds&quot;)</code></pre>
 <p><br></p>
-<div id="shiny-app-annotation" class="section level2">
-<h2>Shiny App (Annotation)</h2>
-<p>Now we can start annotating the spatial assay. By passing arguments
-used by the <strong>vrSpatialPlot</strong> function to visualize labels
+<p>We can start annotating the spatial assay. By passing arguments used
+by the <strong>vrSpatialPlot</strong> function to visualize labels
 (e.g. clusters), we can better select regions within tissue sections for
 annotation.</p>
 <pre class="r watch-out"><code>MBrain_Sec &lt;- annotateSpatialData(MBrain_Sec, assay = &quot;Assay5&quot;, 
                                   group.by = &quot;clusters&quot;, label = &quot;annotation&quot;)</code></pre>
-<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_annotation_example.png" class="center"></p>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_annotation.png" class="center"></p>
 <p><br></p>
 <p>Here, <strong>annotateSpatialData</strong> function not only labels
 spots with within regions of interests (ROIs) selected by the user, but
@@ -513,9 +511,8 @@ AAACAGCTTTCAGAAG-1_Assay5     1 Visium_decon Section1 Anterior        5   Region
 AAACAGGGTCTATATT-1_Assay5     1 Visium_decon Section1 Anterior        5   Region 1
 AAACATGGTGAGAGGA-1_Assay5     1 Visium_decon Section1 Anterior        3  undefined</code></pre>
 <pre class="r watch-out"><code>vrSpatialPlot(MBrain_Sec, assay = &quot;Assay5&quot;, group.by = &quot;annotation&quot;)</code></pre>
-<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_annotation_example_plot.png" class="center"></p>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_annotation_plot.png" class="center"></p>
 <p><br></p>
-</div>
 </div>
 <div id="interactive-visualization" class="section level1">
 <h1>Interactive Visualization</h1>
@@ -526,13 +523,25 @@ data objects and files that could be used platforms, and</li>
 <li><strong>(ii)</strong> to incorporate wrapper functions to call
 methods from package that achieves interactive visualization</li>
 </ul>
-<p>We will use the clustered and annotated Xenium data using VoltRon <a
-href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered_annotated.rds">here</a>.</p>
-<pre class="r watch-out"><code>Xen_data &lt;- readRDS(&quot;Xenium_data_clustered_annotated.rds&quot;)
-SampleMetadata(Xen_data)</code></pre>
-<pre><code>        Assay    Layer   Sample
-Assay1 Xenium Section1 XeniumR1
-Assay2 Xenium Section1 XeniumR2</code></pre>
+<!--
+We will use the clustered and annotated Xenium data using VoltRon [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered_annotated.rds). 
+
+
+```{.r .watch-out}
+Xen_data <- readRDS("Xenium_data_clustered_annotated.rds")
+SampleMetadata(Xen_data)
+```
+
+```
+            Assay    Layer   Sample
+Assay2 Xenium_mol Section1 XeniumR1
+Assay4 Xenium_mol Section1 XeniumR2
+Assay1     Xenium Section1 XeniumR1
+Assay3     Xenium Section1 XeniumR2
+```
+
+<br>
+-->
 <p><br></p>
 <div id="vitessce" class="section level2">
 <h2>Vitessce</h2>
@@ -545,32 +554,49 @@ arrays interactively in R.</p>
     install.packages(&quot;devtools&quot;)
 if (!require(&quot;vitessceR&quot;, quietly = TRUE))
     devtools::install_github(&quot;Artur-man/vitessceR&quot;)</code></pre>
-<div id="conversion-into-zarr" class="section level3">
-<h3>Conversion into Zarr</h3>
-<p>Now we can convert the VoltRon object into a zarr array using the
-<strong>as.Zarr</strong> function which will create the array in the
-specified location</p>
-<pre class="r watch-out"><code>Xendata_assay &lt;- subset(Xen_data, assays = &quot;Assay1&quot;)
-as.Zarr(Xendata_assay, out_path = &quot;data/xendata_clustered_annotated.zarr&quot;)</code></pre>
+<p>We can convert the VoltRon object into an anndata object and save it
+as a a zarr array using the <strong>as.AnnData</strong> function which
+will create the array in the specified location.</p>
+<pre class="r watch-out"><code>as.AnnData(xenium_data, file = &quot;xenium_data.zarr&quot;, assay = &quot;Xenium&quot;)</code></pre>
 <p><br></p>
-</div>
-<div id="running-vitessce" class="section level3">
-<h3>Running Vitessce</h3>
 <p>We can use the zarr file directly in the
 <strong>vrSpatialPlot</strong> function to visualize the zarr array
 interactively in Rstudio viewer. The <strong>reduction</strong>
 arguement allows the umap of the Xenium data to be visualized alongside
-with the spatial coordinates of the Xenium cells.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(&quot;data/xendata_clustered_annotated.zarr&quot;, 
-              group.by = &quot;CellType&quot;, reduction = &quot;umap&quot;)</code></pre>
-<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_interactive.png" class="center"></p>
-</div>
+with the spatial coordinates of the Xenium cells (thus associated cell
+segmentations).</p>
+<pre class="r watch-out"><code>vrSpatialPlot(&quot;xenium_data.zarr&quot;, group.by = &quot;clusters&quot;, reduction = &quot;umap&quot;)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_vitessce.png" class="center"></p>
+<p><br></p>
 </div>
 <div id="tissuumaps" class="section level2">
 <h2>TissUUmaps</h2>
+<p>To use <strong>TissUUmaps</strong> for interactive investigation of
+your spatial omic data, we first need to convert the VoltRon object into
+an anndata object. However, this time we save the anndata object as an
+h5ad array using again the <strong>as.AnnData</strong> function which
+will create the array in the specified location. We use the
+<strong>flip_coordinates=TRUE</strong> argument to flip the coordinates
+of cells vertically, hence match it with the top to bottom system of the
+background DAPI image.</p>
+<pre class="r watch-out"><code>as.AnnData(xenium_data, file = &quot;xenium_data.h5ad&quot;, assay = &quot;Xenium&quot;, flip_coordinates = TRUE)</code></pre>
+<p><br></p>
+<p>To use <strong>TissUUmaps</strong>, you can follow the instructions
+<a href="https://tissuumaps.github.io/installation/">here</a>. Once
+installed and executed, simply drag and drop the h5ad file to the main
+panel of the application</p>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_tissuumaps.png" class="center"></p>
+<p><br></p>
 </div>
 <div id="voltron" class="section level2">
 <h2>VoltRon</h2>
+<p>You can also use the built-in Shiny-based interactive visualizers of
+the VoltRon package by calling <strong>interactive=TRUE</strong>. You
+can zoom in by drawing a box on the plot and double-clicking in the
+selected area.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(xenium_data, group.by = &quot;clusters&quot;, plot.segments = TRUE, interactive = TRUE)</code></pre>
+<p><img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_voltron.png" class="center"></p>
+<p><br></p>
 </div>
 </div>
 
