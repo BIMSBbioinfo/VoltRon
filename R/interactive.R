@@ -178,7 +178,8 @@ py_env <- basilisk::BasiliskEnvironment(
     "scipy==1.*",
     "sqlite==3.*",
     "zarr==2.*",
-    "numcodecs==0.*"
+    "numcodecs==0.*",
+    ""
   ),
   pip=c(
     "ome-zarr==0.2.1"

@@ -527,6 +527,55 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
 }
 
 ####
+# OME.TIFF ####
+####
+
+#' as.Zarr
+#'
+#' Generic methods to save VoltRon or magick-image objects as zarr files
+#'
+#' @param object a VoltRon or magick-image object
+#' @param out_path output path to zarr file
+#' @param image_id image name
+#' @importFrom basilisk basiliskStart basiliskStop basiliskRun
+#' @importFrom reticulate import
+#' @importFrom magick image_raster
+#' @importFrom grDevices col2rgb
+#'
+#' @export
+as.OmeTiff <- function (object, out_path, image_id = "image_1"){
+  
+  # get image and transpose the array
+  img_arr <- apply(as.matrix(magick::image_raster(object, tidy = FALSE)), c(1, 2), col2rgb)
+  img_arr <- aperm(img_arr, c(2,3,1))
+  
+  # run basilisk
+  proc <- basilisk::basiliskStart(py_env)
+  on.exit(basilisk::basiliskStop(proc))
+  success <- basilisk::basiliskRun(proc, function(img_arr, image_id, out_path, e) {
+    
+    # get image data
+    e <- new.env()
+    options("reticulate.engine.environment" = e)
+    img_arr <- reticulate::r_to_py(img_arr)
+    assign("img_arr_py", img_arr, envir = e)
+
+    # save ome.tiff
+    reticulate::py_run_string(
+      paste0("import numpy as np
+import tifffile
+tifimage = r.img_arr_py.astype('uint8')
+# tifimage = np.random.randint(0, 255, (32, 32, 3), 'uint8')
+np.savetxt('data.csv', tifimage[:,:,0], delimiter=',')
+with tifffile.TiffWriter('", out_path, "') as tif: tif.write(tifimage, photometric='rgb')"
+      ))
+    
+    return(TRUE)
+  }, img_arr = img_arr, image_id = image_id, out_path = out_path, e = e)
+  return(success)
+}
+
+####
 # Giotto ####
 ####
 
