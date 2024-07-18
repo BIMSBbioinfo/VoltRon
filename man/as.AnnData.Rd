@@ -11,6 +11,7 @@ as.AnnData(
   type = c("image", "spatial"),
   flip_coordinates = FALSE,
   method = "anndata",
+  create.ometiff = FALSE,
   ...
 )
 }
@@ -27,6 +28,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{flip_coordinates}{if TRUE, the spatial coordinates (including segments) will be flipped.}
 
 \item{method}{the package to use for conversion: "anndataR" or "anndata".}
+
+\item{create.ometiff}{should an ometiff file be generated of default image of the object}
 
 \item{...}{additional parameters passed to \link{vrImages}.}
 }
