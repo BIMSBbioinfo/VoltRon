@@ -55,7 +55,6 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
   # check object for zarr
   if(is.character(object)){
     if(grepl(".zarr$", object)){
-
       return(vrSpatialPlotVitessce(zarr.file = object, group.by = group.by, reduction = reduction))
     }
   }

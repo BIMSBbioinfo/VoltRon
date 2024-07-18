@@ -101,12 +101,16 @@ mod_app_server <- function(id, plot_g = NULL) {
 #' @param reduction The name of the reduction to visualize an embedding alongside with the spatial plot.
 #'
 #' @noRd
-vrSpatialPlotVitessce <- function(zarr.file, group.by = "Sample", reduction = "umap") {
+vrSpatialPlotVitessce <- function(zarr.file, group.by = "Sample", reduction = NULL) {
 
   # check package
   if (!requireNamespace('vitessceR'))
     stop("Please install vitessceR package for using interactive visualization")
 
+  # check file
+  if(!dir.exists(zarr.file))
+    stop(paste0(zarr.file, " is not found at the specified location!"))
+  
   # get embedding
   if(is.null(reduction)){
     obs_embedding_paths <- c("obsm/spatial")
@@ -119,12 +123,19 @@ vrSpatialPlotVitessce <- function(zarr.file, group.by = "Sample", reduction = "u
     obs_set_paths = c(paste0("obs/", group.by)),
     obs_set_names = c(group.by),
     obs_locations_path = "obsm/spatial",
-    obs_embedding_paths=obs_embedding_paths
+    obs_segmentations_path = "obsm/segmentation",
+    obs_embedding_paths = obs_embedding_paths
   )
+  
   vc <- vitessceR::VitessceConfig$new(schema_version = "1.0.15", name = "MBrain")
   dataset <- vc$add_dataset("My dataset")$add_object(w)
-  spatial <- vc$add_view(dataset, vitessceR::Component$SCATTERPLOT, mapping = "spatial")
+  spatial <- vc$add_view(dataset, vitessceR::Component$SPATIAL)
+  # spatial <- vc$add_view(dataset, vitessceR::Component$SCATTERPLOT, mapping = "spatial")
   cell_sets <- vc$add_view(dataset, vitessceR::Component$OBS_SETS)
+  spatial_segmentation_layer_value <- list(opacity = 1, radius = 0, visible = TRUE, stroked = FALSE)
+  vc$link_views(views = c(spatial),
+                c_types = c(vitessceR::CoordinationType$SPATIAL_ZOOM, "spatialSegmentationLayer"),
+                c_values = c(0, spatial_segmentation_layer_value))
 
   if(is.null(reduction)){
     vc$layout(

@@ -10,23 +10,31 @@ as.AnnData(
   assay = NULL,
   type = c("image", "spatial"),
   flip_coordinates = FALSE,
-  method = "anndata"
+  method = "anndata",
+  ...
 )
 }
 \arguments{
 \item{object}{a VoltRon object}
 
-\item{file}{the name of the h5ad file}
+\item{file}{the name of the h5ad file.}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{type}{the spatial data type of Seurat object: "image" or "spatial"}
+\item{type}{the spatial data type of Seurat object: "image" or "spatial".}
 
-\item{flip_coordinates}{if TRUE, the spatial coordinates (including segments) will be flipped}
+\item{flip_coordinates}{if TRUE, the spatial coordinates (including segments) will be flipped.}
 
-\item{method}{the method to use for conversion: "anndataR" or "anndata"}
+\item{method}{the package to use for conversion: "anndataR" or "anndata".}
+
+\item{...}{additional parameters passed to \link{vrImages}.}
 }
 \description{
 Converting a VoltRon object into a AnnData (.h5ad) object
+}
+\details{
+This function converts a VoltRon object into an AnnData object (.h5ad file). It extracts assay data,
+spatial coordinates, and optionally flips coordinates. Images associated with the assay can be included in the 
+resulting AnnData file, with additional customization parameters like channel, scale.perc.
 }

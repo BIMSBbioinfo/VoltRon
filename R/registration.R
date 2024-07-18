@@ -40,9 +40,6 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
   }
 
   # get images from the list of objects
-  # orig_image_query_list <- unlist(lapply(spatdata_list, function(spat){
-  #   vrImages(spat, assay = vrAssayNames(spat))
-  # }))
   orig_image_query_list_full <- lapply(spatdata_list, function(spat){
     assayname <- vrAssayNames(spat)
     channel_names <- vrImageChannelNames(spat[[assayname]])
@@ -93,27 +90,29 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
                         });
                       ")),
 
-                      h4("Spatial Data Alignment"),
-                      fluidRow(
-                        column(12,shiny::checkboxInput("automatictag", "Automated", value = FALSE)),
-                        br(),
-                        column(12,selectInput("AutoMethod", "Method", choices = c("FLANN", "BRUTE-FORCE"), selected = "FLANN")),
-                        br(),
-                        column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
-                        column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
-                        br(),
-                        column(12,shiny::actionButton("register", "Register!")),
-                        br(),
-                      ),
-                      br(),
-                      fluidRow(
-                        column(12,shiny::htmlOutput("summary"))
-                      ),
-                      br(),
-                      fluidRow(
-                        column(12,shiny::actionButton("done", "Done")),
-                        br()
-                      ),
+                      getSideBar(),
+                      
+                      # h4("Spatial Data Alignment"),
+                      # fluidRow(
+                      #   column(12,shiny::checkboxInput("automatictag", "Automated", value = FALSE)),
+                      #   br(),
+                      #   column(12,selectInput("AutoMethod", "Method", choices = c("FLANN", "BRUTE-FORCE"), selected = "FLANN")),
+                      #   br(),
+                      #   column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
+                      #   column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
+                      #   br(),
+                      #   column(12,shiny::actionButton("register", "Register!")),
+                      #   br(),
+                      # ),
+                      # br(),
+                      # fluidRow(
+                      #   column(12,shiny::htmlOutput("summary"))
+                      # ),
+                      # br(),
+                      # fluidRow(
+                      #   column(12,shiny::actionButton("done", "Done")),
+                      #   br()
+                      # ),
 
                       # panel options
                       width = 3,
@@ -158,24 +157,24 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
       updateParameterPanels(length(orig_image_query_list), input, output, session)
       updateSequentialTabPanels(input, output, session, centre, register_ind)
 
+      ## Transform images ####
+      trans_image_query_list <- transformImageQueryList(orig_image_query_list, input)
+      
       ## get image and zoom info ####
       orig_image_query_info_list <- getImageInfo(orig_image_query_list)
       zoom_list <- initiateZoomOptions(orig_image_query_info_list)
-      manageImageZoomOptions(centre, register_ind, zoom_list, orig_image_query_info_list, input, output, session)
-
-      ## Transform images ####
-      trans_image_query_list <- transformImageQueryList(orig_image_query_list, input)
-
+      # manageImageZoomOptions(centre, register_ind, zoom_list, trans_image_query_list, orig_image_query_list, orig_image_query_info_list, input, output, session)
+      manageImageZoomOptions(centre, register_ind, zoom_list, orig_image_query_list, orig_image_query_info_list, input, output, session)
+      
       ## Manage reference and query keypoints ####
       xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
-      manageKeypoints(centre, register_ind, xyTable_list, trans_image_query_list, input, output, session)
-
+      # manageKeypoints(centre, register_ind, xyTable_list, trans_image_query_list, orig_image_query_info_list, zoom_list, input, output, session)
+      manageKeypoints(centre, register_ind, xyTable_list, orig_image_query_list, orig_image_query_info_list, zoom_list, input, output, session)
+      
       ## Image registration ####
       registration_mapping_list <- initiateMappings(length(spatdata_list))
       getManualRegisteration(registration_mapping_list, spatdata_list, orig_image_query_list, xyTable_list,
                              centre, register_ind, input, output, session)
-      # getAutomatedRegisteration(registration_mapping_list, spatdata_list, orig_image_query_list, orig_image_channelname_list,
-      #                           centre, register_ind, input, output, session)
       getAutomatedRegisteration(registration_mapping_list, spatdata_list, orig_image_query_list_full, orig_image_channelname_list,
                                 centre, register_ind, input, output, session)
 
@@ -183,7 +182,6 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
       observe({
 
         # output the list of query images
-        # getImageOutput(orig_image_query_list, orig_image_query_info_list, xyTable_list, zoom_list, centre, input, output, session)
         getImageOutput(orig_image_query_list_full, orig_image_query_info_list, xyTable_list, zoom_list, centre, input, output, session)
         
       })
@@ -215,6 +213,45 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
 ####
 # User Interface ####
 ####
+
+#' getSideBar
+#'
+#' The UI for the app side bar
+#'
+#' @import shiny
+#' 
+#' @noRd
+getSideBar <- function(len_images, channel_names, type){
+  list(
+    h4("Spatial Data Alignment"),
+    fluidRow(
+      column(12,shiny::checkboxInput("automatictag", "Automated", value = FALSE)),
+      br(),
+      column(12,selectInput("AutoMethod", "Method", choices = c("FLANN", "BRUTE-FORCE"), selected = "FLANN")),
+      br(),
+      column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
+      column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
+      br(),
+      column(12,shiny::actionButton("register", "Register!")),
+      br(),
+    ),
+    br(),
+    fluidRow(
+      column(12,shiny::htmlOutput("summary"))
+    ),
+    br(),
+    fluidRow(
+      column(12,shiny::actionButton("done", "Done")),
+      br()
+    ),
+    br(),
+    h4("How to use"),
+    p(style="font-size: 12px;", strong("Single-L-click:"), "Select point"),
+    p(style="font-size: 12px;", strong("Single-L-hold-drag:"), "Select area"),
+    p(style="font-size: 12px;", strong("Double-L-click (selected area):"), "Zoom in"),
+    p(style="font-size: 12px;", strong("Double-L-click (no area):"), "Zoom out")
+  )
+}
 
 #' getImageTabPanels
 #'
@@ -689,12 +726,14 @@ initateKeypoints <- function(len_images, keypoints_list, input, output, session)
 #' @param register_ind query image indices
 #' @param xyTable_list a list of keypoints x,y coordinates for each magick image
 #' @param image_list a lost of magick image
+#' @param info_list a list of magick image info on width and height
+#' @param zoom_list a list of x,y ranges of query and ref images
 #' @param input shiny input
 #' @param output shiny output
 #' @param session shiny session
 #'
 #' @noRd
-manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, input, output, session){
+manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, info_list, zoom_list, input, output, session){
 
   # get image types
   image_types <- c("ref","query")
@@ -711,22 +750,37 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, inpu
 
         # get brush information
         brush <- input[[paste0("brush_plot_", type ,i)]]
+        limits <- cbind(zoom_list[[paste0(i)]][[type]]$x, zoom_list[[paste0(i)]][[type]]$y)
         if (is.null(brush)) {
 
-          # insert keypoint to associated table
-          ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
+          # get image
+          image <- image_list[[i]]
 
           # get and transform keypoints
           keypoint <- data.frame(x = input[[paste0("click_plot_",type,i)]]$x,
                                  y = input[[paste0("click_plot_",type,i)]]$y)
-          if(is.reactive(image_list[[ref_ind]])){
-            image <- image_list[[ref_ind]]()
-          } else {
-            image <- image_list[[ref_ind]]
+          
+          # get the transformed zoom info first and calculate width, then record transformed image
+          limits_trans <- data.frame(x = limits[,1], y = limits[,2])
+          limits_trans <- transformImageKeypoints(image, limits_trans, paste0(type, "_image",i), input)
+          image_trans <- limits_trans$image
+          limits_trans <- data.frame(x = range(limits_trans$keypoints[,1]), y = range(limits_trans$keypoints[,2]))
+          width <- limits_trans[2,1]-limits_trans[1,1]
+          
+          # correct for scaling, scale factor = 800
+          if(width > 800){
+            keypoint <- keypoint*width/800
           }
-          image <- image[[type]]
-          keypoint <- transformKeypoints(image, keypoint, paste0(type, "_image",i), input)
-
+          
+          # correct for zoom information
+          keypoint <- keypoint + limits_trans[1,]
+          
+          # correct for flipflop and rotate
+          keypoint <- transformKeypoints(image_trans, keypoint, paste0(type, "_image",i), input)
+          
+          # insert keypoint to associated table
+          ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
+          
           # insert keypoint to associated table
           temp <- xyTable_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]]
           temp <- temp %>%
@@ -936,6 +990,139 @@ imageKeypoint <- function(image, keypoints){
 }
 
 ####
+# Managing Zoom Options ####
+####
+
+#' imageZoom
+#'
+#' zoom image
+#'
+#' @param image magick image
+#' @param zoom_info zoom info to draw on image
+#'
+#' @importFrom magick image_info
+#' 
+#' @noRd
+imageZoom <- function(image, zoom_info = NULL){
+  
+  if(is.null(zoom_info))
+    return(image)
+  
+  # get image info
+  imageinfo <- magick::image_info(image)
+  
+  # get info of zoom
+  zoom_info <- FromBoxToCrop(as.data.frame(zoom_info), imageinfo)
+  
+  # return
+  return(zoom_info)
+}
+
+#' initiateZoomOptions
+#'
+#' Initiate shiny reactive values for capturing zoom/brush limits
+#'
+#' @param info_list the list of image information
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#'
+#' @noRd
+initiateZoomOptions <- function(info_list, input, output, session){
+  
+  # length of images
+  len_images <- length(info_list)
+  
+  # initiate zoom options list
+  zoom_list <- lapply(1:len_images, function(i) {
+    list(ref = list(x = c(0, info_list[[i]][1]), y = c(0, info_list[[i]][2])),
+         query = list(x = c(0, info_list[[i]][1]), y = c(0, info_list[[i]][2])))
+  })
+  
+  # set names for keypoints
+  names(zoom_list) <- paste0(1:len_images)
+  
+  # return keypoints as reactive values
+  do.call("reactiveValues", zoom_list)
+}
+
+#' manageImageZoomOptions
+#'
+#' A list of shiny observe events for handling zoom options of image outputs
+#'
+#' @param centre center image index
+#' @param register_ind query image indices
+#' @param zoom_list a list of x,y ranges of query and ref images
+#' @param image_list a list of transformed magick image
+#' @param info_list the list of image information
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#'
+#' @noRd
+manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_list, info_list, input, output, session){
+# manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_trans_list, image_list, info_list, input, output, session){
+  
+  # get image types
+  image_types <- c("ref","query")
+  
+  # get the length of tables
+  len_tables <- length(zoom_list)
+  
+  # set click operations for reference and query points
+  lapply(1:len_tables, function(i){
+    lapply(image_types, function(type){
+      
+      # listen to click operations for reference/query plots
+      observeEvent(input[[paste0("dblclick_plot_", type ,i)]], {
+        
+        # get brush information
+        brush <- input[[paste0("brush_plot_", type ,i)]]
+        limits <- cbind(zoom_list[[paste0(i)]][[type]]$x, zoom_list[[paste0(i)]][[type]]$y)
+        if (!is.null(brush)) {
+          
+          # get brush variables
+          brush_mat <- data.frame(x = c(brush$xmin, brush$xmax), 
+                                  y = c(brush$ymin, brush$ymax))
+
+          # get image
+          image <- image_list[[i]]
+          
+          # get the transformed limits first and calculate width, then record transformed image
+          limits_trans <- data.frame(x = limits[,1], y = limits[,2])
+          limits_trans <- transformImageKeypoints(image, limits_trans, paste0(type, "_image",i), input)
+          image_trans <- limits_trans$image
+          limits_trans <- data.frame(x = range(limits_trans$keypoints[,1]), y = range(limits_trans$keypoints[,2]))
+          width <- limits_trans[2,1]-limits_trans[1,1]
+
+          # if width is large, then correct the brush event for the downsize effect
+          if(width > 800){
+            brush_mat <- brush_mat*width/800
+          }
+
+          # correct brush for the zoom effect
+          brush_mat[,1] <- brush_mat[,1] + limits_trans[1,1]
+          brush_mat[,2] <- brush_mat[,2] + limits_trans[1,2]
+
+          # correct for flipflop and rotate using the transformed image from above
+          brush_mat <- transformKeypoints(image_trans, as.data.frame(brush_mat), paste0(type, "_image",i), input)
+          brush_mat <- data.frame(x = range(brush_mat[,1]), y = range(brush_mat[,2]))
+          brush_mat <- as.matrix(brush_mat)
+
+          # make new zoom information
+          zoom_list[[paste0(i)]][[type]]$x <- brush_mat[,1]
+          zoom_list[[paste0(i)]][[type]]$y <- brush_mat[,2]
+        
+        } else {
+          zoom_list[[paste0(i)]][[type]]$x <- c(0, info_list[[i]][1])
+          zoom_list[[paste0(i)]][[type]]$y <- c(0, info_list[[i]][2])
+        }
+      })
+    })
+  })
+}
+
+####
 # Managing Images ####
 ####
 
@@ -952,7 +1139,7 @@ imageKeypoint <- function(image, keypoints){
 #' @param output shiny output
 #' @param session shiny session
 #'
-#' @importFrom magick image_ggplot
+#' @importFrom magick image_ggplot image_resize image_crop geometry_size_percent
 #'
 #' @noRd
 getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_list, centre, input, output, session){
@@ -973,13 +1160,39 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
         # select keypoints
         ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
         keypoints <- keypoints_list[[paste0(ref_ind, "-", ref_ind+1)]][[type]]
-
+        
         # transform image and keypoints
-        # img <- transformImageKeypoints(image_list[[i]], keypoints, paste0(type, "_image",i), input, session)
         img <- image_list[[i]][[input[[paste0("channel_", type, "_image", i)]]]]
-        img <- transformImageKeypoints(img, keypoints, paste0(type, "_image",i), input, session)
-        img <- imageKeypoint(magick::image_ggplot(img$image), img$keypoints) +
-          coord_equal(xlim = zoom_list[[paste0(i)]][[type]]$x, ylim = zoom_list[[paste0(i)]][[type]]$y, ratio = 1)
+        img_trans <- transformImageKeypoints(img, keypoints, paste0(type, "_image",i), input, session)
+        
+        # zoom images and keypoints
+        limits <- as.data.frame(zoom_list[[paste0(i)]][[type]])
+        img_limits <- transformImageKeypoints(img, limits, paste0(type, "_image",i), input, session)
+        # img_limits$keypoints <- data.frame(x = range(img_limits$keypoints[,1]), y = rev(range(img_limits$keypoints[,2])))
+        img_limits$keypoints <- data.frame(x = range(img_limits$keypoints[,1]), y = range(img_limits$keypoints[,2]))
+        imgzoom <- imageZoom(img_trans$image, zoom_info = img_limits$keypoints)
+        if(!is.null(img_trans$keypoints)){
+          if(nrow(img_trans$keypoints) > 0){
+            temp <- as.matrix(img_trans$keypoints[,c("x","y")])
+            # temp <- temp - matrix(unlist(rep(limits[1,], nrow(img_trans$keypoints))), nrow = nrow(img_trans$keypoints), byrow = T)
+            temp <- temp - matrix(unlist(rep(img_limits$keypoints[1,], nrow(img_trans$keypoints))), nrow = nrow(img_trans$keypoints), byrow = T)
+            img_trans$keypoints[,c("x","y")] <- temp
+          }
+        }
+        img_trans$image <- image_crop(img_trans$image, geometry = imgzoom)
+        
+        # lower resolution
+        width <- img_limits$keypoints[2,1]-img_limits$keypoints[1,1]
+        if(width > 800){
+          img_trans$keypoints[,c("x","y")] <- img_trans$keypoints[,c("x","y")]*(800/width)
+          img_trans$image <- magick::image_resize(img_trans$image, geometry = "800x")
+        }
+        
+        # visualize
+        imgggplot <- magick::image_ggplot(img_trans$image)
+        img <- imageKeypoint(imgggplot, img_trans$keypoints)
+        
+        # return
         return(img)
       })
 
@@ -988,7 +1201,6 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
         cur_info <- info_list[[i]] * input[[paste0("scale_", type, "_image", i)]]
         paste(cur_info, collapse = "x")
       })
-
     })
   })
 }
@@ -1006,77 +1218,6 @@ getImageInfo <- function(image_list){
   lapply(image_list, function(x){
     imginfo <- magick::image_info(x)
     c(imginfo$width, imginfo$height)
-  })
-}
-
-#' initiateZoomOptions
-#'
-#' Initiate shiny reactive values for capturing zoom/brush limits
-#'
-#' @param info_list the list of image information
-#' @param input shiny input
-#' @param output shiny output
-#' @param session shiny session
-#'
-#' @noRd
-initiateZoomOptions <- function(info_list, input, output, session){
-
-  # length of images
-  len_images <- length(info_list)
-
-  # initiate zoom options list
-  zoom_list <- lapply(1:len_images, function(i) {
-    list(ref = list(x = c(0, info_list[[i]][1]), y = c(0, info_list[[i]][2])),
-         query = list(x = c(0, info_list[[i]][1]), y = c(0, info_list[[i]][2])))
-  })
-
-  # set names for keypoints
-  names(zoom_list) <- paste0(1:len_images)
-
-  # return keypoints as reactive values
-  do.call("reactiveValues", zoom_list)
-}
-
-#' manageImageZoomOptions
-#'
-#' A list of shiny observe events for handling zoom options of image outputs
-#'
-#' @param centre center image index
-#' @param register_ind query image indices
-#' @param zoom_list a list of x,y ranges of query and ref images
-#' @param info_list the list of image information
-#' @param input shiny input
-#' @param output shiny output
-#' @param session shiny session
-#'
-#' @noRd
-manageImageZoomOptions <- function(centre, register_ind, zoom_list, info_list, input, output, session){
-
-  # get image types
-  image_types <- c("ref","query")
-
-  # get the length of tables
-  len_tables <- length(zoom_list)
-
-  # set click operations for reference and query points
-  lapply(1:len_tables, function(i){
-    lapply(image_types, function(type){
-
-      # listen to click operations for reference/query plots
-      observeEvent(input[[paste0("dblclick_plot_", type ,i)]], {
-
-        # get brush information
-        brush <- input[[paste0("brush_plot_", type ,i)]]
-        if (!is.null(brush)) {
-          zoom_list[[paste0(i)]][[type]]$x <- c(brush$xmin, brush$xmax)
-          zoom_list[[paste0(i)]][[type]]$y <- c(brush$ymin, brush$ymax)
-        } else {
-          zoom_list[[paste0(i)]][[type]]$x <- c(0, info_list[[i]][1])
-          zoom_list[[paste0(i)]][[type]]$y <- c(0, info_list[[i]][2])
-        }
-
-      })
-    })
   })
 }
 
