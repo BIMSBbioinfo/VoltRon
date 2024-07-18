@@ -249,6 +249,7 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
 #' @param type the spatial data type of Seurat object: "image" or "spatial".
 #' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped.
 #' @param method the package to use for conversion: "anndataR" or "anndata".
+#' @param create.ometiff should an ometiff file be generated of default image of the object
 #' @param ... additional parameters passed to \link{vrImages}.
 #' 
 #' @details
@@ -263,11 +264,7 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
 #' 
 #' @export
 as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"), flip_coordinates = FALSE, 
-                       method = "anndata", ...) {
-  
-  # either save the file or return the anndata
-  # if(is.null(file) && !return.anndata)
-  #   stop("Either the file should point to an h5ad file or return.anndata (TRUE/FALSE) should be defined!")
+                       method = "anndata", create.ometiff = FALSE, ...) {
   
   # Check the number of assays
   if (is.null(assay)) {
@@ -277,10 +274,6 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
       assay <- SampleMetadata(object)[["Assay"]]
     }
   }
-  # } else {
-  #   # vrMainAssay(object) <- assay
-  #   assay <- vrAssayNames(object)
-  # }
   assay <- vrAssayNames(object, assay = assay)
   
   # Check the number of assays
@@ -380,6 +373,11 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
       adata$write_zarr(file)
       return(TRUE)
     }, data = data, metadata = metadata, obsm = obsm, coords = coords, segments = segmentations_array, image_list = image_data_list, file = file)
+    
+    if(create.ometiff){
+      success2 <- as.OmeTiff(images_mgk[[1]], out_path = gsub("zarr[/]?$", "ome.tiff", file)) 
+      success <- success & success2
+    } 
     
     return(success)
     
@@ -521,6 +519,58 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
                                                  channels = list(obj_list(label = "r", color = "FF0000", window = default_window),
                                                                  obj_list(label = "g", color = "00FF00", window = default_window),
                                                                  obj_list(label = "b", color = "0000FF", window = default_window))))
+    return(TRUE)
+  }, img_arr = img_arr, image_id = image_id, out_path = out_path)
+  return(success)
+}
+
+####
+# OME.TIFF ####
+####
+
+#' as.OmeTiff
+#'
+#' Converting VoltRon (magick) images to ome.tiff
+#'
+#' @param object a magick-image object
+#' @param out_path output path to ome.tiff file
+#' @param image_id image name
+#' 
+#' @importFrom basilisk basiliskStart basiliskStop basiliskRun
+#' @importFrom reticulate import
+#' @importFrom magick image_raster
+#' @importFrom grDevices col2rgb
+#'
+#' @export
+as.OmeTiff <- function (object, out_path, image_id = "image_1"){
+  
+  # get image and transpose the array
+  img_arr <- apply(as.matrix(magick::image_raster(object, tidy = FALSE)), c(1, 2), col2rgb)
+  img_arr <- aperm(img_arr, c(2,3,1))
+  
+  # run basilisk
+  proc <- basilisk::basiliskStart(py_env)
+  on.exit(basilisk::basiliskStop(proc))
+  success <- basilisk::basiliskRun(proc, function(img_arr, image_id, out_path, e) {
+    
+    # set up environment
+    e <- new.env()
+    options("reticulate.engine.environment" = e)
+    
+    # get image data to python environment
+    img_arr <- reticulate::r_to_py(img_arr)
+    assign("img_arr_py", img_arr, envir = e)
+
+    # save ome.tiff
+    reticulate::py_run_string(
+      paste0("import numpy as np
+import tifffile
+tifimage = r.img_arr_py.astype('uint8')
+# tifimage = np.random.randint(0, 255, (32, 32, 3), 'uint8')
+np.savetxt('data.csv', tifimage[:,:,0], delimiter=',')
+with tifffile.TiffWriter('", out_path, "') as tif: tif.write(tifimage, photometric='rgb')"
+      ))
+    
     return(TRUE)
   }, img_arr = img_arr, image_id = image_id, out_path = out_path)
   return(success)

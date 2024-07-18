@@ -13,7 +13,7 @@ vrSpatialPlot(
   n.tile = 0,
   assay = NULL,
   graph.name = NULL,
-  reduction = "umap",
+  reduction = NULL,
   ncol = 2,
   nrow = NULL,
   font.size = 2,

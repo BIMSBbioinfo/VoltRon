@@ -152,10 +152,12 @@ if (!require("vitessceR", quietly = TRUE))
     devtools::install_github("Artur-man/vitessceR")
 ```
 
-We can convert the VoltRon object into an anndata object and save it as a a zarr array using the **as.AnnData** function which will create the array in the specified location.
+We can convert the VoltRon object into an anndata object and save it as a a zarr array using the **as.AnnData** function which will create the array in the specified location. We use the **flip_coordinates=TRUE** argument to flip the coordinates of cells vertically, hence match it with the top to bottom system of the background DAPI image. Also, we can save an OMETIFF file of the DAPI image using **create.ometiff** arguement to be used by vitessce later
 
 ```{r class.source="watch-out", eval = FALSE}
-as.AnnData(xenium_data, file = "xenium_data.zarr", assay = "Xenium")
+xenium_data <- 
+as.AnnData(xenium_data, file = "xenium_data.zarr", assay = "Xenium", 
+           flip_coordinates = TRUE, create.ometiff = TRUE)
 ```
 
 <br>
@@ -166,7 +168,13 @@ We can use the zarr file directly in the **vrSpatialPlot** function to visualize
 vrSpatialPlot("xenium_data.zarr", group.by = "clusters", reduction = "umap")
 ```
 
-<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_vitessce.png" class="center">
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_vitessce.png" class="center">
+
+<br>
+
+The vitessce application in the viewer pane allows visualizing background DAPI image and segmentations simultaneously while allowing users to zoom in and control the pane for advanced visualization. 
+
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_vitessce_zoom.png" class="center">
 
 <br>
 
