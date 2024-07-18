@@ -17,16 +17,16 @@ as.AnnData(
 \arguments{
 \item{object}{a VoltRon object}
 
-\item{file}{the name of the h5ad file}
+\item{file}{the name of the h5ad file.}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{type}{the spatial data type of Seurat object: "image" or "spatial"}
+\item{type}{the spatial data type of Seurat object: "image" or "spatial".}
 
-\item{flip_coordinates}{if TRUE, the spatial coordinates (including segments) will be flipped}
+\item{flip_coordinates}{if TRUE, the spatial coordinates (including segments) will be flipped.}
 
-\item{method}{the package to use for conversion: "anndataR" or "anndata"}
+\item{method}{the package to use for conversion: "anndataR" or "anndata".}
 
 \item{...}{additional parameters passed to \link{vrImages}.}
 }
