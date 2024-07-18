@@ -107,6 +107,10 @@ vrSpatialPlotVitessce <- function(zarr.file, group.by = "Sample", reduction = NU
   if (!requireNamespace('vitessceR'))
     stop("Please install vitessceR package for using interactive visualization")
 
+  # check file
+  if(!dir.exists(zarr.file))
+    stop(paste0(zarr.file, " is not found at the specified location!"))
+  
   # get embedding
   if(is.null(reduction)){
     obs_embedding_paths <- c("obsm/spatial")
