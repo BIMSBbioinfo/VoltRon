@@ -49,13 +49,12 @@ NULL
 #' @export
 #'
 vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, assay = NULL, graph.name = NULL,
-                          reduction = "umap", ncol = 2, nrow = NULL, font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, label = FALSE, background = NULL, reg = FALSE,
+                          reduction = NULL, ncol = 2, nrow = NULL, font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, label = FALSE, background = NULL, reg = FALSE,
                           crop = FALSE, legend.pt.size = 2, scale.image = TRUE, legend.loc = "right", common.legend = TRUE, collapse = TRUE, interactive = FALSE) {
 
   # check object for zarr
   if(is.character(object)){
     if(grepl(".zarr$", object)){
-
       return(vrSpatialPlotVitessce(zarr.file = object, group.by = group.by, reduction = reduction))
     }
   }

@@ -622,12 +622,11 @@ file) and use <a href="https://tissuumaps.github.io/">TissUUmaps</a>
 tool for interactive visualization.</p>
 <pre class="r watch-out"><code># convert VoltRon object to h5ad
 as.AnnData(vr2_merged_acute1, assay = &quot;Xenium&quot;, file = &quot;vr2_merged_acute1.h5ad&quot;, 
-           flip_coordinates = TRUE)
-
-# export the registered H&amp;E image
-library(magick)
-img &lt;- vrImages(vr2_merged_acute1, assay = &quot;Assay7&quot;, name = &quot;main&quot;, channel = &quot;H&amp;E&quot;)
-image_write(image = img, path = &quot;vr2_merged_acute1_H&amp;E.png&quot;, format = &quot;png&quot;)</code></pre>
+           flip_coordinates = TRUE, name = &quot;main&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
+<!-- # export the registered H&E image -->
+<!-- library(magick) -->
+<!-- img <- vrImages(vr2_merged_acute1, assay = "Assay7", name = "main", channel = "H&E") -->
+<!-- image_write(image = img, path = "vr2_merged_acute1_H&E.png", format = "png") -->
 <p><br></p>
 <p>To run TissUUmaps please follow installation instructions <a
 href="https://tissuumaps.github.io/installation/">here</a>, then you can
