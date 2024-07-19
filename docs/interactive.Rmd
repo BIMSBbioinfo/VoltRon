@@ -152,12 +152,11 @@ if (!require("vitessceR", quietly = TRUE))
     devtools::install_github("Artur-man/vitessceR")
 ```
 
-We can convert the VoltRon object into an anndata object and save it as a a zarr array using the **as.AnnData** function which will create the array in the specified location. We use the **flip_coordinates=TRUE** argument to flip the coordinates of cells vertically, hence match it with the top to bottom system of the background DAPI image. Also, we can save an OMETIFF file of the DAPI image using **create.ometiff** arguement to be used by vitessce later
+We can convert the VoltRon object into an anndata object and save it as a a zarr array using the **as.AnnData** function which will create the array in the specified location. We use the **flip_coordinates=TRUE** argument to flip the coordinates of cells vertically, hence match it with the top to bottom system of the background DAPI image. Also, we can save an OMETIFF file of the DAPI image using **create.ometiff** arguement to be used by vitessceR later.
 
 ```{r class.source="watch-out", eval = FALSE}
-xenium_data <- 
-as.AnnData(xenium_data, file = "xenium_data.zarr", assay = "Xenium", 
-           flip_coordinates = TRUE, create.ometiff = TRUE)
+xenium_data <- as.AnnData(xenium_data, file = "xenium_data.zarr", assay = "Xenium", 
+                          flip_coordinates = TRUE, create.ometiff = TRUE)
 ```
 
 <br>

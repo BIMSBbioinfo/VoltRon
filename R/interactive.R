@@ -195,7 +195,7 @@ py_env <- basilisk::BasiliskEnvironment(
     "sqlite==3.*",
     "zarr==2.*",
     "numcodecs==0.*",
-    ""
+    "tifffile==2024.2.12"
   ),
   pip=c(
     "ome-zarr==0.2.1"
