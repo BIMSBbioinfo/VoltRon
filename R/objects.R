@@ -184,7 +184,6 @@ NULL
 #' @docType methods
 #'
 #' @export
-#'
 setMethod(
   f = '[[',
   signature = c('VoltRon', "character", "missing"),
@@ -452,7 +451,7 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
     if(!inherits(coords, "matrix")){
       stop("Coordinates table should either of a matrix or data.frame class!")
     }
-    if(length(colnames(coords)) == 2){
+    if(ncol(coords) == 2){
       rownames(coords) <- entityID
       colnames(coords) <- c("x", "y")
     } else {
@@ -812,7 +811,11 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
     metadata <- Metadata(object)
     name <- strsplit(rlang::quo_text(subset), split = " ")[[1]][1]
     if(name %in% colnames(metadata)){
-      spatialpoints <- rownames(metadata)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
+      if(inherits(metadata, "data.table")){
+        spatialpoints <- metadata$id[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
+      } else {
+        spatialpoints <- rownames(metadata)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
+      }
     } else {
       stop("Column '", name, "' is not found in the metadata")
     }
@@ -1067,6 +1070,8 @@ vrFeatureData.VoltRon <- function(object, assay = NULL) {
 #'
 #' @rdname vrData
 #' @order 2
+#' 
+#' @importFrom dplyr full_join mutate_all coalesce
 #'
 #' @export
 vrData.VoltRon <- function(object, assay = NULL, features = NULL, norm = FALSE, ...) {
@@ -1082,13 +1087,14 @@ vrData.VoltRon <- function(object, assay = NULL, features = NULL, norm = FALSE, 
     if(i == 1){
       data <- cur_data
     } else {
-      data <- merge(data, cur_data, by = "feature.ID", all = TRUE)
+      # data <- merge(data, cur_data, by = "feature.ID", all = TRUE)
+      data <- dplyr::full_join(data, cur_data, by = "feature.ID")
     }
   }
   rownames(data) <- data$feature.ID
   data <- data[,!colnames(data) %in% "feature.ID"]
-  data[is.na(data)] <- 0
   data <- as.matrix(data)
+  data <- replaceNaMatrix(data, 0)
   colnames(data) <- gsub("\\.","-", colnames(data))
 
   return(data)
@@ -1221,7 +1227,6 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
 #' @method Metadata<- VoltRon
 #'
 #' @export
-#'
 "Metadata<-.VoltRon" <- function(object, assay = NULL, type = NULL, value) {
 
   if(!is.data.frame(value))
@@ -1364,7 +1369,6 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, spati
 #' @rdname vrCoordinates
 #' @order 4
 #' @export
-#'
 "vrCoordinates<-.VoltRon" <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
 
   # sample metadata

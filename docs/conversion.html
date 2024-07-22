@@ -441,7 +441,7 @@ div.tocify {
   display: none;
 }
 body {
-  text-align: justify
+  text-align: justify   
 }
 .center {
   display: block;
@@ -500,7 +500,10 @@ VoltRon object.</p>
 href="https://satijalab.org/seurat/articles/seurat5_spatial_vignette_2">Analysis
 of Image-based Spatial Data in Seurat</a> tutorial for more information
 on analyzing FOV-based spatial data sets with Seurat.</p>
-<pre class="r watch-out"><code>Xen_data_seu &lt;- as.Seurat(Xen_data, cell.assay = &quot;Xenium&quot;, type = &quot;image&quot;)
+<p>note: Use VoltRon::as.Seurat to avoid conflict with Seurat package’s
+as.Seurat function</p>
+<pre class="r watch-out"><code>library(Seurat)
+Xen_data_seu &lt;- VoltRon::as.Seurat(Xen_data, cell.assay = &quot;Xenium&quot;, type = &quot;image&quot;)
 Xen_data_seu &lt;- NormalizeData(Xen_data_seu)
 Xen_data_seu</code></pre>
 <pre><code>An object of class Seurat 
@@ -583,7 +586,8 @@ spatial assays of VoltRon into SpatialExperiment objects. Please check
 the <a
 href="https://www.bioconductor.org/packages/release/bioc/vignettes/SpatialExperiment/inst/doc/SpatialExperiment.html">Introduction
 to the SpatialExperiment class</a> tutorial for more information.</p>
-<pre class="r watch-out"><code>spe &lt;- as.SpatialExperiment(Xen_data, assay = &quot;Xenium&quot;)</code></pre>
+<pre class="r watch-out"><code>library(SpatialExperiment)
+spe &lt;- as.SpatialExperiment(Xen_data, assay = &quot;Xenium&quot;)</code></pre>
 <p>Here we can parse the image and visualize.</p>
 <pre class="r watch-out"><code>img &lt;- imgRaster(spe, 
                  sample_id = &quot;Assay1&quot;, 
@@ -591,8 +595,8 @@ to the SpatialExperiment class</a> tutorial for more information.</p>
 plot(img)</code></pre>
 <p><br></p>
 </div>
-<div id="squidpy-anndata" class="section level2">
-<h2>Squidpy (Anndata)</h2>
+<div id="squidpy-anndata-h5ad" class="section level2">
+<h2>Squidpy (Anndata, h5ad)</h2>
 <p>A true ecosystem friendly computational platform should support data
 types across multiple computing environments. By allowing users to
 convert VoltRon objects into annotated data matrix formats such as <a
@@ -609,7 +613,7 @@ maintained and distributed by a large community effort. Both squidpy and
 <a href="https://scanpy.readthedocs.io/en/stable/">scanpy</a> are
 currently available on scverse.</p>
 <pre class="r watch-out"><code>Xen_data &lt;- readRDS(&quot;Xenium_data_clustered_annotated.rds&quot;)
-as.AnnData(Xen_data, file = &quot;Xen_adata_annotated.h5ad&quot;)</code></pre>
+as.AnnData(Xen_data, assay = &quot;Xenium&quot;, file = &quot;Xen_adata_annotated.h5ad&quot;)</code></pre>
 <p><br></p>
 <div id="configure-squidpy-scverse" class="section level3">
 <h3>Configure Squidpy (scverse)</h3>
@@ -652,9 +656,9 @@ sc.pp.log1p(adata)</code></pre>
 available in squidpy to visualize the spatial localization of cell types
 of both Xenium replicates.</p>
 <pre class="python watch-out"><code>fig, ax = plt.subplots(1, 2, figsize=(10, 7))
-sq.pl.spatial_scatter(adata, library_key = &quot;AssayID&quot;, library_id = &quot;_Assay1&quot;, 
+sq.pl.spatial_scatter(adata, library_key = &quot;library_id&quot;, library_id = &quot;Assay1&quot;, 
                       color=[&quot;CellType&quot;], shape=None, size=1, img = False, ax=ax[0])
-sq.pl.spatial_scatter(adata, library_key = &quot;AssayID&quot;, library_id = &quot;_Assay2&quot;, 
+sq.pl.spatial_scatter(adata, library_key = &quot;library_id&quot;, library_id = &quot;Assay3&quot;, 
                       color=[&quot;CellType&quot;], shape=None, size=1, img = False, ax=ax[1])
 plt.show(ax)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_anndata_spatial_scatter.png" class="center"></p>
@@ -669,9 +673,9 @@ The spatial graph and distances will be stored under
 <pre class="python watch-out"><code>sq.gr.spatial_neighbors(adata, coord_type=&quot;generic&quot;, delaunay=True)
 adata</code></pre>
 <pre><code>AnnData object with n_obs × n_vars = 283298 × 313
-    obs: &#39;Count&#39;, &#39;Assay&#39;, &#39;Layer&#39;, &#39;Sample&#39;, &#39;Clusters&#39;, &#39;CellType&#39;, &#39;AssayID&#39;
+    obs: &#39;Count&#39;, &#39;Assay&#39;, &#39;Layer&#39;, &#39;Sample&#39;, &#39;Clusters&#39;, &#39;CellType&#39;, &#39;library_id&#39;
     uns: &#39;log1p&#39;, &#39;spatial_neighbors&#39;
-    obsm: &#39;spatial&#39;, &#39;spatial_AssayID&#39;
+    obsm: &#39;spatial&#39;
     layers: &#39;counts&#39;
     obsp: &#39;spatial_connectivities&#39;, &#39;spatial_distances&#39;</code></pre>
 <p>We can now conduct the permutation test for neighborhood enrichment
@@ -680,15 +684,15 @@ across cell type pairs.</p>
 <pre class="python watch-out"><code>fig, ax = plt.subplots(1, 2, figsize=(13, 7))
 sq.pl.nhood_enrichment(adata, cluster_key=&quot;CellType&quot;, figsize=(8, 8), 
                        title=&quot;Neighborhood enrichment adata&quot;, ax=ax[0])
-sq.pl.spatial_scatter(adata, color=&quot;CellType&quot;, library_key = &quot;AssayID&quot;, 
-                      library_id = &quot;_Assay1&quot;, shape=None, size=2, ax=ax[1])
+sq.pl.spatial_scatter(adata, color=&quot;CellType&quot;, library_key = &quot;library_id&quot;, 
+                      library_id = &quot;Assay1&quot;, shape=None, size=2, ax=ax[1])
 plt.show(ax)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_anndata_neighborhood.png" class="center"></p>
 <p><br></p>
 </div>
 </div>
-<div id="zarr" class="section level2">
-<h2>Zarr</h2>
+<div id="vitessce-anndata-zarr" class="section level2">
+<h2>Vitessce (Anndata, zarr)</h2>
 <p>In this section, we will transform VoltRon objects of Xenium data
 into zarr arrays, and use them for interactive visualization in <a
 href="http://vitessce.io/">Vitessce</a>. We should first download the
@@ -705,22 +709,22 @@ SampleMetadata(Xen_data)</code></pre>
 Assay1 Xenium Section1 XeniumR1
 Assay2 Xenium Section1 XeniumR2</code></pre>
 <p><br></p>
-<div id="interactive-visualization-vitessce" class="section level3">
-<h3>Interactive Visualization (Vitessce)</h3>
+<div id="interactive-visualization" class="section level3">
+<h3>Interactive Visualization</h3>
 <p>Now we can convert the VoltRon object into a zarr array using the
 <strong>as.Zarr</strong> function which will create the array in a
-specified location</p>
-<pre class="r watch-out"><code>Xendata_assay &lt;- subset(Xen_data, assays = &quot;Assay1&quot;)
-as.Zarr(Xendata_assay, out_path = &quot;data/xendata_clustered_annotated.zarr&quot;)</code></pre>
-<p><br></p>
+specified location.</p>
+<pre class="r watch-out"><code>as.AnnData(Xen_data, assays = &quot;Assay1&quot;, 
+           file = &quot;xendata_clustered_annotated.zarr&quot;, flip_coordinates = TRUE)</code></pre>
 <p>We can use the zarr file directly in the
 <strong>vrSpatialPlot</strong> function to visualize the zarr array
 interactively in Rstudio viewer. The <strong>reduction</strong>
 arguement allows the umap of the Xenium data to be visualized alongside
 with the spatial coordinates of the Xenium cells.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(&quot;data/xendata_clustered_annotated.zarr&quot;, 
-              group.by = &quot;CellType&quot;, reduction = &quot;umap&quot;)</code></pre>
-<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_interactive.png" class="center"></p>
+<pre class="r watch-out"><code>vrSpatialPlot(&quot;xendata_clustered_annotated.zarr&quot;, group.by = &quot;CellType&quot;, reduction = &quot;umap&quot;)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_interactive.png" class="center">
+<br>
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/conversions_interactive_zoom.png" class="center"></p>
 </div>
 </div>
 </div>

@@ -780,6 +780,145 @@ profiles.</p>
 <pre class="r watch-out"><code>CosMxR1 &lt;- importCosMx(tiledbURI = &quot;MuBrainDataRelease/&quot;, import_molecules = TRUE)</code></pre>
 <p></br></p>
 </div>
+<div id="stomics" class="section level2">
+<h2>STOmics</h2>
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/stomics_summary.png" class="center">
+<p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;">
+<em> Image Credit: <a href="https://bgi-australia.com.au/stomics"
+class="uri">https://bgi-australia.com.au/stomics</a> </em>
+</p>
+<p>Before importing the STOmics data to VoltRon, we first convert
+STOmics readouts to an h5ad file using the <strong>stereopy</strong>
+Python module. For more information, visit <a
+href="https://stereopy.readthedocs.io/en/latest/Tutorials/Format_Conversion.html">https://stereopy.readthedocs.io/</a>.
+See <a
+href="https://stereopy.readthedocs.io/en/latest/content/00_Installation.html">here</a>
+for instructions on how to install <strong>stereopy</strong>.</p>
+<pre class="python watch-out"><code>import stereo as st
+import warnings
+warnings.filterwarnings(&#39;ignore&#39;)
+
+# read the GEF file
+data_path = &#39;./SS200000135TL_D1.tissue.gef&#39;
+data = st.io.read_gef(file_path=data_path, bin_size=50)
+data.tl.raw_checkpoint()
+
+# remember to set flavor as scanpy
+adata = st.io.stereo_to_anndata(data, flavor=&#39;scanpy&#39;, output=&#39;sample.h5ad&#39;)</code></pre>
+<p><br></p>
+<p>We use the <strong>importSTOmics</strong> function to import the
+STOmics readouts and create a VoltRon object. Here, we point to the
+folder an h5ad file generated using the
+<strong>stereo.io.stereo_to_anndata</strong> method previously.</p>
+<pre class="r watch-out"><code>vrdata &lt;- importSTOmics(h5ad.path = &quot;sample.h5ad&quot;)</code></pre>
+<pre><code>VoltRon Object 
+Sample1: 
+  Layers: Section1 
+Assays: STOmics(Main) </code></pre>
+<p></br></p>
+</div>
+<div id="geneps" class="section level2">
+<h2>GenePS</h2>
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/geneps_summary.png" class="center">
+<p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;">
+<em> Image Credit: <a href="https://spatialgenomics.com/applications/"
+class="uri">https://spatialgenomics.com/applications/</a> </em>
+</p>
+<p>We use the <strong>importGenePS</strong> function to import the
+GenePS (<a href="https://spatialgenomics.com/product/">Spatial
+Genomics</a>) readouts and create a VoltRon object. You can use the
+<strong>import_molecules</strong> argument to import positions and
+features of the transcripts along with the single cell profiles. The
+<strong>resolution_level</strong> argument determines the resolution of
+the DAPI image generated from the TIFF file.</p>
+<pre class="r watch-out"><code>vrdata &lt;- importGenePS(dir.path = &quot;out/&quot;, import_molecules = TRUE, resolution_level = 7)</code></pre>
+<pre><code>VoltRon Object 
+Sample1: 
+  Layers: Section1 
+Assays: GenePS(Main) GenePS_mol</code></pre>
+<p></br></p>
+</div>
+<div id="st-data" class="section level2">
+<h2>ST data</h2>
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/stdata_summary.png" class="center">
+<p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;">
+<em> Image Credit: Ståhl, et. al (2016). Visualization and analysis of
+gene expression in tissue sections by spatial transcriptomics. Science,
+353(6294), 78-82. </em>
+</p>
+<p>We demonstrate importing the original Spatial Transcriptomics (ST)
+datasets by formulating custom spot-level spatial transcriptomics
+datasets. We will use the <strong>formVoltRon</strong> function
+directly. We use the example provided by the <a
+href="https://doi.org/10.5281/zenodo.4751624">https://doi.org/10.5281/zenodo.4751624</a>.
+For more information you can also check the paper <a
+href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8516894/">here</a>.</p>
+<p>We first import and manipulate count matrices and spot coordinates
+from the provided output files. Here we only demonstrate building a
+custom spot-level VoltRon object for the section “A1”, however the
+remaining sections can be imported using the same method.</p>
+<pre class="r watch-out"><code># count matrix
+raw.data &lt;- read.table(&quot;A1.tsv&quot;, header = TRUE, sep = &quot;\t&quot;)
+spatialentities &lt;- raw.data$X
+raw.data &lt;- raw.data[,-1]
+raw.data &lt;- t(as.matrix(raw.data))
+
+# coords 
+coords &lt;- read.table(&quot;A1_selection.tsv&quot;, header = TRUE, sep = &quot;\t&quot;)
+rownames(coords) &lt;- paste(coords$x, coords$y, sep = &quot;x&quot;)
+coords &lt;- coords[entities,]
+coords &lt;- coords[,c(&quot;pixel_x&quot;, &quot;pixel_y&quot;)]
+colnames(coords) &lt;- c(&quot;x&quot;, &quot;y&quot;)</code></pre>
+<p>The image can be imported using the <strong>magick</strong>
+package.</p>
+<pre class="r watch-out"><code>library(magick)
+img &lt;- magick::image_read(&quot;HE/A1.jpg&quot;)
+img_info &lt;- magick::image_info(img)</code></pre>
+<p>Before we form the VoltRon object, we should define the parameters
+for spot-level datasets. Here, we provide</p>
+<ul>
+<li>the radius of a spot in the physical space
+(i.e. <strong>spot.radius</strong>)</li>
+<li>the radius of a spot for visualization
+(i.e. <strong>vis.spot.radius</strong>)</li>
+<li>The distance to the nearest spot, to be used for spatial
+neighborhood calculation
+(i.e. <strong>nearestpost.distance</strong>)</li>
+</ul>
+<p>The scaling parameter (scale_param) is required to overlay
+localization and distances of spots to the coordinate system of the
+imported image. Here,</p>
+<ul>
+<li>the width of a ST slide is of 6200<span
+class="math inline">\(\mu\)</span>m,</li>
+<li>the diameter of a spot is 100<span
+class="math inline">\(\mu\)</span>m (hence a radius of 50<span
+class="math inline">\(\mu\)</span>m) and</li>
+<li>the center-to-center distance between two spots is 200<span
+class="math inline">\(\mu\)</span>m.</li>
+<li>Each spot has at most 8 neighboring spots including vertically,
+horizontally and diagonally adjacent spots.</li>
+</ul>
+<pre class="r watch-out"><code>scale_param &lt;- img_info$width/6200
+params &lt;- list(
+  spot.radius = 50*(scale_param),
+  vis.spot.radius = 100*(scale_param),
+  nearestpost.distance = (200*sqrt(2) + 50)*scale_param
+)</code></pre>
+<p>Now we can combine all components into a VoltRon object. We should
+also flip the coordinates of spots vertically after creating the
+object.</p>
+<pre class="r watch-out"><code># make voltron object
+stdata &lt;- formVoltRon(data = datax, image = img, coords = coords, assay.type = &quot;spot&quot;, 
+                      params = params, sample_name = &quot;A1&quot;)
+stdata &lt;- flipCoordinates(stdata)</code></pre>
+<p>We can now visualize spots and the adjacency between these spots
+simultaneously.</p>
+<pre class="r watch-out"><code>stdata &lt;- getSpatialNeighbors(stdata, method = &quot;radius&quot;)
+vrSpatialPlot(stdata, graph.name = &quot;radius&quot;, crop = T)</code></pre>
+<p><img width="75%" height="75%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/stdata_summary_plot.png" class="center"></p>
+<p><br></p>
+</div>
 <div id="custom-voltron-objects" class="section level2">
 <h2>Custom VoltRon objects</h2>
 <p>VoltRon incorporates the <strong>formVoltRon</strong> function to

@@ -8,6 +8,7 @@ annotateSpatialData(
   object,
   label = "annotation",
   assay = NULL,
+  annotation_assay = "ROIAnnotation",
   use.image = FALSE,
   image_name = NULL,
   channel = NULL,
@@ -21,6 +22,8 @@ annotateSpatialData(
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
+
+\item{annotation_assay}{name of the annotation assay ()}
 
 \item{use.image}{if TRUE, use only the image}
 

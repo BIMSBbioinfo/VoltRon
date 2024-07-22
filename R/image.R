@@ -385,7 +385,8 @@ vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE, scale.pe
   }
 
   # return image
-  if(length(vrImageChannelNames(object)) > 0){
+  if(channel!=""){
+  # if(length(vrImageChannelNames(object)) > 0){
     img <- object@image[[channel]]
     if(as.raster){
 
@@ -1345,6 +1346,8 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
 
   # get the ui and server
   if (interactive()){
+    
+    # UI ####
     ui <- fluidPage(
 
       # use javascript extensions for Shiny
@@ -1359,30 +1362,37 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
 
                       # Interface
                       fluidRow(
-                        column(12,h4("Subsetting Interface"))
+                        column(12,h4("Interactive Subsetting"))
                       ),
 
                       # Buttons
                       fluidRow(
-                        column(12,shiny::actionButton("resetpoints", "Reset Points")),
+                        column(12,shiny::actionButton("resetpoints", "Remove Box")),
                         br(),
                         column(12,shiny::actionButton("addbox", "Add Box")),
                         br()
                       ),
+                      
+                      # instructions
+                      h4("How to use"),
+                      p(style="font-size: 12px;", strong("Single-L-hold-drag:"), "Select area"),
+                      p(style="font-size: 12px;", strong("Add Box"), " to set a new subset"),
+                      p(style="font-size: 12px;", strong("Remove Box"), " to reset the box"),
+                      br(),
 
                       # Subsets
                       fluidRow(
-                        column(12,h4("Selected Sections")),
-                        column(12, uiOutput("textbox_ui")),
+                        column(12,h4("Selected Subsets")),
+                        uiOutput("textbox_ui"),
                         br()
                       ),
 
                       # Subsets
                       fluidRow(
-                        column(12,h4("Finished Selecting?")),
-                        column(12,shiny::actionButton("done", "Yes!"))
+                        column(12,shiny::actionButton("done", "Done"))
                       ),
                       br(),
+                      
                       # panel options
                       width = 3,
                     ),
@@ -1393,7 +1403,12 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
                       br(),
                       br(),
                       fluidRow(
-                        imageOutput("cropped_image", click = "choose_corner", height = "1000px")
+                        plotOutput("cropped_image",
+                                   height = "1000px",
+                                   brush = brushOpts(
+                                     id = "plot_brush", fill = "green",
+                                     resetOnNew = TRUE
+                                   )),
                       ),
 
                       # panel options
@@ -1402,10 +1417,10 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
       )
     )
 
+    # Server ####
     server <- function(input, output, session) {
 
-      # selected corners
-      selected_corners <- reactiveVal(dplyr::tibble(x = numeric(), y = numeric()))
+      ## Importing images and variables ####
 
       # selected corner list
       selected_corners_list_image <- reactiveVal(dplyr::tibble(box = character()))
@@ -1425,30 +1440,98 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
         pl <- magick::image_ggplot(images)
       }
 
-      # counter for boxes
-      counter <- reactiveValues(n = 0)
-      output$textbox_ui <- renderUI({ textboxes() })
-      textboxes <- reactive({
-        n <- counter$n
-        if (n > 0) {
-          lapply(seq_len(n), function(i) {
-            if(is.null(input[[paste0("sample",i)]])){
-              column(12,textInput(inputId = paste0("sample", i),
-                                  label = paste0("Sample ", i), value = paste0("Sample ", i)))
-            } else {
-              column(12,textInput(inputId = paste0("sample", i),
-                                  label = paste0("Sample ", i), value = input[[paste0("sample",i)]]))
-            }
-          })
+      ## Region Annotators ####
+      
+      ### Text Box Management ####
+      
+      # Reactive value to store the number of textboxes
+      textboxes <- reactiveVal(numeric(0))
+      
+      # Initialize textbox values if n > 0, get already existing segments
+      textbox_values <- reactiveValues()
+      
+      # Dynamically generate UI for textboxes and remove buttons
+      output$textbox_ui <- renderUI({
+        lapply(textboxes(), function(i) {
+          column(12,
+                 textInputwithButton(textinputId = paste0("sample", i), label = paste0("Subset ", i),
+                                     buttoninputId = paste0("remove", i), value = isolate(textbox_values[[paste0("sample", i)]]), 
+                                     onclick = sprintf('Shiny.setInputValue("remove", %d)', i))
+          )
+        })
+      })
+      
+      # Observe changes in each textbox to update their values
+      observe({
+        lapply(textboxes(), function(i) {
+          observeEvent(input[[paste0("sample", i)]], {
+            textbox_values[[paste0("sample", i)]] <- isolate(input[[paste0("sample", i)]])
+          }, ignoreNULL = FALSE)
+        })
+      })
+
+      ### Reset box ####
+      observeEvent(input$resetpoints, {
+        session$resetBrush("plot_brush")
+      })
+
+      ### Remove box ####
+      
+      # Observe event to remove textbox when the button is clicked
+      observeEvent(input$remove, {
+        
+        # remove one point
+        selected_corners_list(selected_corners_list()[!(textboxes() == as.numeric(isolate(input$remove)))])
+        
+        # Update the reactive value to remove the textbox
+        textboxes(setdiff(textboxes(), as.numeric(isolate(input$remove))))
+        
+        # Remove the value from textbox_values
+        textbox_values[[paste0("sample", as.numeric(input$remove))]] <- NULL
+        
+      }, ignoreInit = TRUE)
+      
+      ### Add box ####
+      observeEvent(input$addbox, {
+        
+        # get corners
+        brush <- input$plot_brush
+        
+        # add a box if brush is active
+        if(!is.null(brush)){
+          
+          # corners 
+          corners <- data.frame(x = c(brush$xmin, brush$xmax), 
+                                y = c(brush$ymax, brush$ymin))
+      
+          # record corners
+          selected_corners_list(c(selected_corners_list(), list(corners)))
+          
+          # adjust corners
+          corners <- corners*scale_factor
+          corners <- FromBoxToCrop(corners, imageinfo)
+          
+          # add to box list
+          selected_corners_list_image() %>%
+            dplyr::add_row(box = corners) %>%
+            selected_corners_list_image()
+          
+          # reset box
+          session$resetBrush("plot_brush")
+          
+          # add buttons
+          new_id <- if (length(textboxes()) == 0) 1 else max(textboxes()) + 1
+          textboxes(c(textboxes(), new_id))
+          textbox_values[[paste0("sample", new_id)]] <- ""
         }
       })
 
-      ### Main observable ####
+      ## Main observable ####
       observe({
-
+        
         # output image
         output[["cropped_image"]] <- renderPlot({
-
+          
           # visualize already selected boxes
           if(length(selected_corners_list()) > 0){
             for (i in 1:length(selected_corners_list())){
@@ -1457,104 +1540,40 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
                 corners <- as.data.frame(rbind(cbind(corners[1,1], corners[1:2,2]), cbind(corners[2,1], corners[2:1,2])))
                 colnames(corners) <- c("x", "y")
                 pl <- pl + ggplot2::geom_polygon(aes(x = x, y = y), data = corners, alpha = 0.3, fill = "green", color = "black")
-
+                
               }
             }
           }
-
-          # add currently selected points
-          if(nrow(selected_corners()) > 1){
-            corners <- apply(as.matrix(selected_corners()),2,as.numeric)
-            corners <- as.data.frame(rbind(cbind(corners[1,1], corners[1:2,2]), cbind(corners[2,1], corners[2:1,2])))
-            colnames(corners) <- c("x", "y")
-            pl <- pl + ggplot2::geom_polygon(aes(x = x, y = y), data = corners, alpha = 0.3, fill = "green", color = "black")
-          }
-
+          
           # put labels of the already selected polygons
           if(length(selected_corners_list()) > 0){
             for (i in 1:length(selected_corners_list())){
               corners <- selected_corners_list()[[i]]
               corners <- as.data.frame(rbind(cbind(corners[1,1], corners[1:2,2]), cbind(corners[2,1], corners[2:1,2])))
-              if(is.null(input[[paste0("sample",i)]])){
-                corners <- data.frame(x = mean(corners[,1]), y = max(corners[,2]), sample = paste0("Sample ",i))
-              } else {
-                corners <- data.frame(x = mean(corners[,1]), y = max(corners[,2]), sample = input[[paste0("sample",i)]])
-              }
+              corners <- data.frame(x = mean(corners[,1]), y = max(corners[,2]), sample = paste("Subset ", isolate(textboxes()[i])))
               pl <- pl +
                 ggrepel::geom_label_repel(mapping = aes(x = x, y = y, label = sample), data = corners,
                                           size = 5, direction = "y", nudge_y = 6, box.padding = 0, label.padding = 1, seed = 1, color = "red")
-
             }
           }
-
+          
           # return graph
           pl
         })
       })
-
-      ## Reset points ####
-      observeEvent(input$resetpoints, {
-        selected_corners() %>%
-          dplyr::filter(FALSE) %>% selected_corners()
-      })
-
-      ## Add box ####
-      observeEvent(input$addbox, {
-        if(nrow(selected_corners()) == 2){
-
-          # get corners
-          next_ind <- length(selected_corners_list()) + 1
-          corners <- selected_corners()
-
-          # record corners
-          selected_corners_list(c(selected_corners_list(), list(corners)))
-
-          # adjust corners
-          corners <- corners*scale_factor
-          corners <- apply(corners,2,ceiling)
-
-          # Track the number of input boxes to render
-          counter$n <- counter$n + 1
-
-          # fix for limits
-          corners[1,1] <- ifelse(corners[1,1] < 0, 0, corners[1,1])
-          corners[1,1] <- ifelse(corners[1,1] > imageinfo$width, imageinfo$width, corners[1,1])
-          corners[2,1] <- ifelse(corners[2,1] < 0, 0, corners[2,1])
-          corners[2,1] <- ifelse(corners[2,1] > imageinfo$width, imageinfo$width, corners[2,1])
-          corners[1,2] <- ifelse(corners[1,2] < 0, 0, corners[1,2])
-          corners[1,2] <- ifelse(corners[1,2] > imageinfo$height, imageinfo$height, corners[1,2])
-          corners[2,2] <- ifelse(corners[2,2] < 0, 0, corners[2,2])
-          corners[2,2] <- ifelse(corners[2,2] > imageinfo$height, imageinfo$height, corners[2,2])
-
-          # get crop info
-          corners <- paste0(abs(corners[2,1]-corners[1,1]), "x",
-                            abs(corners[2,2]-corners[1,2]), "+",
-                            min(corners[,1]), "+", imageinfo$height - max(corners[,2]))
-
-          # add to box list
-          selected_corners_list_image() %>%
-            dplyr::add_row(box = corners) %>%
-            selected_corners_list_image()
-          selected_corners() %>%
-            dplyr::filter(FALSE) %>% selected_corners()
-        }
-      })
-
-      ## Select points ####
-      observeEvent(input$choose_corner, {
-        if(nrow(selected_corners()) < 2) {
-          keypoint <- data.frame(x = input[["choose_corner"]]$x,
-                                 y = input[["choose_corner"]]$y)
-          selected_corners() %>%
-            dplyr::add_row(x = keypoint$x, y = keypoint$y) %>%
-            selected_corners()
-        } else {
-          selected_corners() %>%
-            dplyr::filter(FALSE) %>% selected_corners()
-        }
-      })
-
+      
       ## Done ####
+      
+      # show "Done" if a region is selected already
+      observe({
+        if(nrow(selected_corners_list_image()) > 0){
+          shinyjs::show(id = "done")
+        } else {
+          shinyjs::hide(id = "done")
+        }
+      })
+      
+      # observe for done and return the list of objects
       observeEvent(input$done, {
         if(nrow(selected_corners_list_image()) > 0){
           subsets <- list()
@@ -1562,13 +1581,19 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
 
           # collect labels
           sample_names <- sapply(1:length(box_list$box), function(i) input[[paste0("sample",i)]])
-
-          for(i in 1:length(box_list$box)){
-            temp <- subset(object, image = box_list$box[i])
-            temp$Sample <- sample_names[i]
-            subsets[[sample_names[i]]] <- temp
+          
+          # check if sample names are present
+          if(any(sample_names == "")) {
+            showNotification("Some subsets have blank (empty!) sample names.")
+          } else{
+            for(i in 1:length(box_list$box)){
+              temp <- subset(object, image = box_list$box[i])
+              temp$Sample <- sample_names[i]
+              subsets[[sample_names[i]]] <- temp
+            }
+            stopApp(list(subsets = subsets, subset_info_list = box_list))
           }
-          stopApp(list(subsets = subsets, subset_info_list = box_list))
+            
         } else {
           showNotification("You have not selected a subset yet!")
         }
@@ -1578,3 +1603,36 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
     shiny::runApp(shiny::shinyApp(ui, server))
   }
 }
+
+
+#' FromBoxToCrop
+#'
+#' get magick crop information from a dataframe of box corners
+#'
+#' @param corners topleft and bottomright coordinates of bounding box
+#' @param imageinfo info of the image
+#' 
+#' @noRd
+FromBoxToCrop <- function(corners, imageinfo){
+  
+  corners <- apply(corners,2,ceiling)
+  
+  # fix for limits
+  corners[1,1] <- ifelse(corners[1,1] < 0, 0, corners[1,1])
+  corners[1,1] <- ifelse(corners[1,1] > imageinfo$width, imageinfo$width, corners[1,1])
+  corners[2,1] <- ifelse(corners[2,1] < 0, 0, corners[2,1])
+  corners[2,1] <- ifelse(corners[2,1] > imageinfo$width, imageinfo$width, corners[2,1])
+  corners[1,2] <- ifelse(corners[1,2] < 0, 0, corners[1,2])
+  corners[1,2] <- ifelse(corners[1,2] > imageinfo$height, imageinfo$height, corners[1,2])
+  corners[2,2] <- ifelse(corners[2,2] < 0, 0, corners[2,2])
+  corners[2,2] <- ifelse(corners[2,2] > imageinfo$height, imageinfo$height, corners[2,2])
+  
+  # get crop info
+  corners <- paste0(abs(corners[2,1]-corners[1,1]), "x",
+                    abs(corners[2,2]-corners[1,2]), "+",
+                    min(corners[,1]), "+", imageinfo$height - max(corners[,2]))
+  
+  # corners 
+  return(corners)
+}
+

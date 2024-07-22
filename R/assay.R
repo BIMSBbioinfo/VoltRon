@@ -1,5 +1,5 @@
 #' @include zzz.R
-#' @importClassesFrom Matrix dgCMatrix
+#' @importClassesFrom Matrix dgCMatrix dgRMatrix dgeMatrix
 NULL
 
 ####
@@ -9,7 +9,8 @@ NULL
 ## Auxiliary ####
 
 # Set old classes
-setClassUnion("data_matrix", members = c("matrix", "dgCMatrix"))
+# setClassUnion("data_matrix", members = c("matrix", "dgCMatrix"))
+setClassUnion("data_matrix", members = c("matrix", "dgCMatrix", "dgRMatrix", "dgeMatrix"))
 
 ## vrAssay ####
 
@@ -309,6 +310,9 @@ vrSpatialPoints.vrAssay <- function(object) {
 #' @export
 "vrSpatialPoints<-.vrAssay" <- function(object, value) {
 
+  # spatial points 
+  spatialpoints <- vrSpatialPoints(object)
+    
   # data
   if(length(vrSpatialPoints(object)) != length(value)){
     stop("The number of spatial points is not matching with the input")
@@ -332,11 +336,12 @@ vrSpatialPoints.vrAssay <- function(object) {
   if(length(embed_names) > 0){
     for(type in embed_names){
       if(nrow(embeddings[[type]]) > 0){
-        if(nrow(embeddings[[type]]) != length(value)){
-          stop("The number of spatial points is not matching with the input")
-        } else {
-          rownames(embeddings[[type]]) <- value
-        }
+        # if(nrow(embeddings[[type]]) != length(value)){
+        #   stop("The number of spatial points is not matching with the input")
+        # } else {
+        #   rownames(embeddings[[type]]) <- value
+        # }
+        rownames(embeddings[[type]]) <- value[match(rownames(embeddings[[type]]), spatialpoints)]
         object@embeddings[[type]] <- embeddings[[type]]
       }
     }

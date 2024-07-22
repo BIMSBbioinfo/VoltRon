@@ -101,12 +101,16 @@ mod_app_server <- function(id, plot_g = NULL) {
 #' @param reduction The name of the reduction to visualize an embedding alongside with the spatial plot.
 #'
 #' @noRd
-vrSpatialPlotVitessce <- function(zarr.file, group.by = "Sample", reduction = "umap") {
+vrSpatialPlotVitessce <- function(zarr.file, group.by = "Sample", reduction = NULL) {
 
   # check package
   if (!requireNamespace('vitessceR'))
     stop("Please install vitessceR package for using interactive visualization")
 
+  # check file
+  if(!dir.exists(zarr.file))
+    stop(paste0(zarr.file, " is not found at the specified location!"))
+  
   # get embedding
   if(is.null(reduction)){
     obs_embedding_paths <- c("obsm/spatial")
@@ -114,26 +118,49 @@ vrSpatialPlotVitessce <- function(zarr.file, group.by = "Sample", reduction = "u
     obs_embedding_paths <- c(paste0("obsm/", reduction), "obsm/spatial")
   }
 
-  w <- vitessceR::AnnDataWrapper$new(
+  # initiate vitessceR
+  vc <- vitessceR::VitessceConfig$new(schema_version = "1.0.15", name = "MBrain")
+  dataset <- vc$add_dataset("My dataset")
+  
+  # add ome tiff if exists
+  ometiff.file <- gsub("zarr[/]?$", "ome.tiff", zarr.file)
+  if(file.exists(ometiff.file)){
+    w_img <- vitessceR::MultiImageWrapper$new(
+      image_wrappers = list(
+        vitessceR::OmeTiffWrapper$new(name="Test1", img_path=ometiff.file)
+      )
+    )
+    dataset <- dataset$add_object(w_img)
+  } 
+  
+  # add anndata
+  w_data <- vitessceR::AnnDataWrapper$new(
     adata_path=zarr.file,
     obs_set_paths = c(paste0("obs/", group.by)),
     obs_set_names = c(group.by),
     obs_locations_path = "obsm/spatial",
-    obs_embedding_paths=obs_embedding_paths
+    obs_segmentations_path = "obsm/segmentation",
+    obs_embedding_paths = obs_embedding_paths
   )
-  vc <- vitessceR::VitessceConfig$new(schema_version = "1.0.15", name = "MBrain")
-  dataset <- vc$add_dataset("My dataset")$add_object(w)
-  spatial <- vc$add_view(dataset, vitessceR::Component$SCATTERPLOT, mapping = "spatial")
+  dataset <- dataset$add_object(w_data)
+
+  # set up vitessce pane  
+  spatial <- vc$add_view(dataset, vitessceR::Component$SPATIAL)
   cell_sets <- vc$add_view(dataset, vitessceR::Component$OBS_SETS)
+  spatial_segmentation_layer_value <- list(opacity = 1, radius = 0, visible = TRUE, stroked = FALSE)
+  spatial_layers <- vc$add_view(dataset, vitessceR::Component$LAYER_CONTROLLER)
 
   if(is.null(reduction)){
     vc$layout(
-      vitessceR::hconcat(spatial, cell_sets)
+      vitessceR::hconcat(spatial, 
+                         vitessceR::hconcat(cell_sets, spatial_layers))
     )
   } else {
     umap <- vc$add_view(dataset, vitessceR::Component$SCATTERPLOT, mapping = reduction)
     vc$layout(
-      vitessceR::hconcat(spatial, vitessceR::vconcat(umap, cell_sets))
+      vitessceR::hconcat(spatial, 
+                         vitessceR::vconcat(umap, 
+                                            vitessceR::hconcat(cell_sets, spatial_layers)))
     )
   }
 
@@ -167,7 +194,8 @@ py_env <- basilisk::BasiliskEnvironment(
     "scipy==1.*",
     "sqlite==3.*",
     "zarr==2.*",
-    "numcodecs==0.*"
+    "numcodecs==0.*",
+    "tifffile==2024.2.12"
   ),
   pip=c(
     "ome-zarr==0.2.1"

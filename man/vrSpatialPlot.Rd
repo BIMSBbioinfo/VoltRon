@@ -13,7 +13,7 @@ vrSpatialPlot(
   n.tile = 0,
   assay = NULL,
   graph.name = NULL,
-  reduction = "umap",
+  reduction = NULL,
   ncol = 2,
   nrow = NULL,
   font.size = 2,
@@ -25,6 +25,7 @@ vrSpatialPlot(
   reg = FALSE,
   crop = FALSE,
   legend.pt.size = 2,
+  legend.text.size = 14,
   scale.image = TRUE,
   legend.loc = "right",
   common.legend = TRUE,
@@ -75,6 +76,8 @@ and main channel (\link{vrMainChannel}) will be in the background. Otherwise the
 \item{crop}{whether to crop an image of a spot assay to the extend of spots}
 
 \item{legend.pt.size}{the size of points at the legend}
+
+\item{legend.text.size}{the size of the text at the legend}
 
 \item{scale.image}{if TRUE, background image will be scaled down to a low resolution (width: 1000px)}
 
