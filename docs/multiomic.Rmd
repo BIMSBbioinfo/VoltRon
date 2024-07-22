@@ -193,13 +193,13 @@ Once the H&E image is registered and transfered to the Xenium data, we can conve
 ```{r eval = FALSE, class.source="watch-out"}
 # convert VoltRon object to h5ad
 as.AnnData(vr2_merged_acute1, assay = "Xenium", file = "vr2_merged_acute1.h5ad", 
-           flip_coordinates = TRUE)
-
-# export the registered H&E image
-library(magick)
-img <- vrImages(vr2_merged_acute1, assay = "Assay7", name = "main", channel = "H&E")
-image_write(image = img, path = "vr2_merged_acute1_H&E.png", format = "png")
+           flip_coordinates = TRUE, name = "main", channel = "H&E")
 ```
+
+<!-- # export the registered H&E image -->
+<!-- library(magick) -->
+<!-- img <- vrImages(vr2_merged_acute1, assay = "Assay7", name = "main", channel = "H&E") -->
+<!-- image_write(image = img, path = "vr2_merged_acute1_H&E.png", format = "png") -->
 
 <br>
 

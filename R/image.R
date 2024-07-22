@@ -1454,11 +1454,9 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
       output$textbox_ui <- renderUI({
         lapply(textboxes(), function(i) {
           column(12,
-                 textInputwithButton(textinputId = paste0("sample", i), label = paste0("Sample ", i),
+                 textInputwithButton(textinputId = paste0("sample", i), label = paste0("Subset ", i),
                                      buttoninputId = paste0("remove", i), value = isolate(textbox_values[[paste0("sample", i)]]), 
                                      onclick = sprintf('Shiny.setInputValue("remove", %d)', i))
-                 # textInputwithButton(textinputId = paste0("sample", i), label = paste0("Sample ", i),
-                 #                     buttoninputId = paste0("sample_button", i), value = input[[paste0("sample",i)]])
           )
         })
       })
@@ -1552,7 +1550,7 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
             for (i in 1:length(selected_corners_list())){
               corners <- selected_corners_list()[[i]]
               corners <- as.data.frame(rbind(cbind(corners[1,1], corners[1:2,2]), cbind(corners[2,1], corners[2:1,2])))
-              corners <- data.frame(x = mean(corners[,1]), y = max(corners[,2]), sample = paste("Sample ", isolate(textboxes()[i])))
+              corners <- data.frame(x = mean(corners[,1]), y = max(corners[,2]), sample = paste("Subset ", isolate(textboxes()[i])))
               pl <- pl +
                 ggrepel::geom_label_repel(mapping = aes(x = x, y = y, label = sample), data = corners,
                                           size = 5, direction = "y", nudge_y = 6, box.padding = 0, label.padding = 1, seed = 1, color = "red")

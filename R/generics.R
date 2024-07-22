@@ -76,7 +76,6 @@ vrData <- function(object, assay = NULL, features = NULL, norm = FALSE) {
 #' @param object a VoltRon or vrMetadata object
 #'
 #' @rdname changeSampleNames
-#' @export changeSampleNames
 #'
 #' @noRd
 changeSampleNames <- function(object, samples = NULL, sample_metadata_table) {
@@ -90,7 +89,6 @@ changeSampleNames <- function(object, samples = NULL, sample_metadata_table) {
 #' @param object a VoltRon, vrSample or vrLayer object
 #'
 #' @rdname changeAssayNames
-#' @export changeAssayNames
 #'
 #' @noRd
 changeAssayNames <- function(object, ...) {
@@ -182,7 +180,6 @@ vrSampleNames <- function(object) {
 #'
 #' @rdname Metadata
 #' @export Metadata
-#'
 Metadata <- function(object, assay = NULL, type = NULL) {
   UseMethod(generic = 'Metadata', object = object)
 }
@@ -190,7 +187,6 @@ Metadata <- function(object, assay = NULL, type = NULL) {
 #' @param value new metadata
 #' 
 #' @rdname Metadata
-#' @export Metadata<-
 #' @noRd
 "Metadata<-" <- function(object, assay = NULL, type = NULL, value) {
   UseMethod(generic = 'Metadata<-', object = object)
