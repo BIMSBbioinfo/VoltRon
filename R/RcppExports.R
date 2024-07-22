@@ -13,8 +13,8 @@ warpImage <- function(ref_image, query_image, hmatrix, width1, height1, width2, 
     .Call('_VoltRon_warpImage', PACKAGE = 'VoltRon', ref_image, query_image, hmatrix, width1, height1, width2, height2)
 }
 
-manual_registeration_rawvector <- function(ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2) {
-    .Call('_VoltRon_manual_registeration_rawvector', PACKAGE = 'VoltRon', ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2)
+manual_registeration_rawvector <- function(ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2, method) {
+    .Call('_VoltRon_manual_registeration_rawvector', PACKAGE = 'VoltRon', ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2, method)
 }
 
 applyTransform <- function(coords, reference_landmark, query_landmark) {

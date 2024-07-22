@@ -229,6 +229,8 @@ getSideBar <- function(len_images, channel_names, type){
       br(),
       column(12,selectInput("AutoMethod", "Method", choices = c("FLANN", "BRUTE-FORCE"), selected = "FLANN")),
       br(),
+      column(12,selectInput("ManualMethod", "Method", choices = c("TPS", "Homography+TPS"), selected = "FLANN")),
+      br(),
       column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
       column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
       br(),
@@ -428,6 +430,7 @@ updateParameterPanels <- function(len_images, input, output, session){
   shinyjs::hide(id = "GOOD_MATCH_PERCENT")
   shinyjs::hide(id = "MAX_FEATURES")
   shinyjs::hide(id = "AutoMethod")
+  shinyjs::hide(id = "ManualMethod")
 
   # hide scale parameters
   for(i in 1:len_images){
@@ -440,6 +443,7 @@ updateParameterPanels <- function(len_images, input, output, session){
   observeEvent(input$automatictag, {
     if(input$automatictag){
       shinyjs::show(id = "AutoMethod")
+      shinyjs::hide(id = "ManualMethod")
 
       # show automatic registration parameters of BRUTE-FORCE
       if(input$AutoMethod == "BRUTE-FORCE"){
@@ -457,6 +461,7 @@ updateParameterPanels <- function(len_images, input, output, session){
 
     } else {
       shinyjs::hide(id = "AutoMethod")
+      shinyjs::show(id = "ManualMethod")
 
       # hide automatic registration parameters of BRUTE-FORCE
       shinyjs::hide(id = "GOOD_MATCH_PERCENT")
@@ -608,7 +613,9 @@ applyPerspectiveTransform <- function(object,
     # get registered image (including all channels)
     image_reg_list <- sapply(vrImageChannelNames(object[[assay]]), function(x) NULL, USE.NAMES = TRUE)
     for(channel_ind in names(image_reg_list)){
-      results <- getRcppManualRegistration(vrImages(object, assay = assay, channel = channel_ind), reference_image, mapping$query, mapping$reference)
+      results <- getRcppManualRegistration(vrImages(object, assay = assay, channel = channel_ind), reference_image, 
+                                           mapping$query, mapping$reference, 
+                                           method =  input$ManualMethod)
       image_reg_list[[channel_ind]] <- results$aligned_image
     }
 
@@ -1390,7 +1397,7 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
         incProgress(1/length(register_ind), detail = paste("Registering Image", i, sep = " "))
 
         # get a sequential mapping between a query and reference image
-        results <- computeManualPairwiseTransform(image_list, keypoints_list, query_ind = i, ref_ind = centre)
+        results <- computeManualPairwiseTransform(image_list, keypoints_list, query_ind = i, ref_ind = centre, input = input)
 
         # save transformation mapping
         registration_mapping_list[[paste0(i)]] <- results$mapping
@@ -1439,10 +1446,10 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
 #' @param keypoints_list the list of keypoint matrices
 #' @param query_ind the index of the query image
 #' @param ref_ind the index of the reference image
+#' @param input input
 #'
 #' @noRd
-#'
-computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind, ref_ind){
+computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind, ref_ind, input){
 
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -1476,7 +1483,8 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
     }
 
     # get registered image (including all channels)
-    results <- getRcppManualRegistration(aligned_image, ref_image, target_landmark, reference_landmark)
+    results <- getRcppManualRegistration(aligned_image, ref_image, target_landmark, reference_landmark, 
+                                         method = input$ManualMethod)
   }
 
   return(list(aligned_image = results$aligned_image, mapping = list(reference = reference_landmark,
@@ -1491,11 +1499,13 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
 #' @param ref_image reference image
 #' @param query_landmark query landmark points
 #' @param reference_landmark refernece landmark points
+#' @param method the automated registration method, either TPS or Homography+TPS
 #'
 #' @importFrom magick image_read image_data
 #'
 #' @export
-getRcppManualRegistration <- function(query_image, ref_image, query_landmark, reference_landmark) {
+getRcppManualRegistration <- function(query_image, ref_image, query_landmark, reference_landmark, 
+                                      method = "TPS") {
   ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
   query_image_rast <- magick::image_data(query_image, channels = "rgb")
   reference_landmark[,2] <- dim(ref_image_rast)[3] - reference_landmark[,2]
@@ -1503,7 +1513,8 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
   reg <- manual_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
                                         reference_landmark = reference_landmark, query_landmark = query_landmark,
                                         width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
-                                        width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3])
+                                        width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3], 
+                                        method = method)
   return(list(aligned_image = magick::image_read(reg[[1]])))
 }
 
@@ -1628,7 +1639,6 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
 #' @param input input
 #'
 #' @noRd
-#'
 computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_ind, ref_ind, input){
 
   # determine the number of transformation to map from query to the reference

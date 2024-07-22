@@ -786,7 +786,8 @@ Rcpp::RawVector warpImage(Rcpp::RawVector ref_image, Rcpp::RawVector query_image
 Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image,
                                           Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark,
                                           const int width1, const int height1,
-                                          const int width2, const int height2)
+                                          const int width2, const int height2,
+                                          Rcpp::String method)
 {
   // define return data, 1 = transformation matrix, 2 = aligned image
   Rcpp::List out(1);
@@ -806,6 +807,16 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVe
   // cout << "Thin Plate Spline - Manual Matcher" << endl;
   // alignImagesTPS(im, imReference, imReg, query_landmark, reference_landmark);
   alignImagesAffineTPS(im, imReference, imReg, query_landmark, reference_landmark);
+  
+  // Align images
+  if(strcmp(method.get_cstring(), "TPS") == 0){
+    // cout << "Fast Library for Approximate Nearest Neighbors (FLANN) - descriptor matching" << endl;
+    alignImagesTPS(im, imReference, imReg, query_landmark, reference_landmark);
+  }
+  if(strcmp(method.get_cstring(), "Homography+TPS") == 0){
+    // cout << "BruteForce-Hamming - descriptor matching" << endl;
+    alignImagesAffineTPS(im, imReference, imReg, query_landmark, reference_landmark);
+  }
 
   // return transformation matrix, destinated image, registered image, and keypoint matching image
   out[0] = matToImage(imReg.clone());
