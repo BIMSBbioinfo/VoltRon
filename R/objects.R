@@ -184,7 +184,6 @@ NULL
 #' @docType methods
 #'
 #' @export
-#'
 setMethod(
   f = '[[',
   signature = c('VoltRon', "character", "missing"),
@@ -1228,7 +1227,6 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
 #' @method Metadata<- VoltRon
 #'
 #' @export
-#'
 "Metadata<-.VoltRon" <- function(object, assay = NULL, type = NULL, value) {
 
   if(!is.data.frame(value))
@@ -1371,7 +1369,6 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, spati
 #' @rdname vrCoordinates
 #' @order 4
 #' @export
-#'
 "vrCoordinates<-.VoltRon" <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
 
   # sample metadata

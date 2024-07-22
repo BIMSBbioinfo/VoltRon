@@ -40,7 +40,7 @@ setMethod(
 ### subset ####
 
 #' @importFrom methods slot
-#'
+#' @noRd
 setMethod(
   f = '[[',
   signature = 'vrSample',
@@ -60,7 +60,7 @@ setMethod(
 )
 
 #' @importFrom methods slot
-#'
+#' @noRd
 setMethod(
   f = '[[<-',
   signature = c('vrSample'),
@@ -120,7 +120,7 @@ setMethod(
 ### subset ####
 
 #' @importFrom methods slot
-#'
+#' @noRd
 setMethod(
   f = '[[',
   signature = 'vrBlock',
@@ -140,7 +140,7 @@ setMethod(
 )
 
 #' @importFrom methods slot
-#'
+#' @noRd
 setMethod(
   f = '[[<-',
   signature = c('vrBlock'),
@@ -177,7 +177,7 @@ setMethod(
 #' @name vrLayer-class
 #' @rdname vrLayer-class
 #' @exportClass vrLayer
-#'
+#' 
 vrLayer <- setClass(
   Class = 'vrLayer',
   slots = c(
@@ -203,7 +203,7 @@ setMethod(
 ### subset of assays ####
 
 #' @importFrom methods slot
-#'
+#' @noRd
 setMethod(
   f = '[[',
   signature = c('vrLayer', "character"),
@@ -222,7 +222,7 @@ setMethod(
 )
 
 #' @importFrom methods slot
-#'
+#' @noRd
 setMethod(
   f = '[[<-',
   signature = c('vrLayer', "character"),
@@ -256,7 +256,6 @@ setMethod(
 #' @param samples the sample names
 #'
 #' @method merge vrSample
-#'
 merge.vrSample <- function(object, object_list, samples = NULL){
 
   # combine all elements
