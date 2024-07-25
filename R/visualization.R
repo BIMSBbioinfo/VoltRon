@@ -1253,9 +1253,11 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
 
     # get data
     if(feat %in% vrFeatures(object)){
-      datax$score <- normdata[feat,]
+      # datax$score <- normdata[feat,]
+      datax$score <- normdata[feat, rownames(datax)]
     } else {
-      datax$score <- metadata[,feat]
+      # datax$score <- metadata[,feat]
+      datax$score <- metadata[rownames(datax),feat]
     }
 
     # get image information and plotting features
