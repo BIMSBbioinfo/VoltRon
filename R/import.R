@@ -1359,6 +1359,72 @@ importSTOmics <- function(h5ad.path, assay_name = "STOmics", sample_name = NULL,
 }
 
 ####
+# OpenST ####
+####
+
+#' importOpenST
+#'
+#' Importing OpenST data
+#'
+#' @param h5ad.path path to h5ad file of STOmics output
+#' @param assay_name the assay name
+#' @param sample_name the name of the sample
+#' @param image_name the image name of the Visium assay, Default: main
+#' @param channel_name the channel name of the image of the Visium assay, Default: H&E
+#' @param ... additional parameters passed to \link{formVoltRon}
+#'
+#' @importFrom methods as
+#' @export
+#'
+importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, image_name = "main", channel_name = "H&E", ...)
+{
+  # check Seurat package
+  if(!requireNamespace('anndataR'))
+    stop("Please install anndataR package")
+  
+  # get h5ad data
+  stdata <- anndataR::read_h5ad(h5ad.path)
+  
+  # observation and feature names
+  obs_names <- stdata$obs_names
+  var_names <- stdata$var_names
+  
+  # raw counts
+  rawdata <- Matrix::t(stdata$X)
+  rownames(rawdata) <- var_names
+  colnames(rawdata) <- obs_names
+  rawdata <- methods::as(rawdata, 'CsparseMatrix')
+  
+  # metadata
+  metadata <- stdata$obs
+  rownames(metadata) <- obs_names
+  
+  # coordinates
+  coords <- stdata$obsm$spatial_3d_aligned
+  rownames(coords) <- obs_names
+  
+  # get individual sections as voltron data
+  sections <- unique(metadata$n_section)
+  sections <- sections[order(sections)]
+  vr_data_list <- list()
+  for(i in 1:length(sections)){
+    print(sections[i])
+    ind <- metadata$n_section == sections[i]
+    spatialpoints <- rownames(metadata[metadata$n_section == sections[i],])
+    cur_data <- Matrix::t(datax[spatialpoints,])
+    cur_metadata <- metadata[spatialpoints,]
+    cur_coords <- coords[ind,c(1,2)]
+    rownames(cur_coords) <- spatialpoints
+    vr_data_list[[i]] <- formVoltRon(data = cur_data, metadata = cur_metadata, coords = cur_coords, 
+                                     main.assay = assay_name, sample_name = paste0("Section", sections[i]),
+                                     image_name = image_name, main_channel = channel_name)
+  }
+  
+  # create VoltRon
+  merge(vr_data_list[[1]], vr_data_list[-1], samples = ifelse(is.null(sample_name), "Sample", sample_name))
+}
+
+####
 # Akoya ####
 ####
 
