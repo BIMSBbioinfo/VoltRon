@@ -1375,7 +1375,6 @@ importSTOmics <- function(h5ad.path, assay_name = "STOmics", sample_name = NULL,
 #'
 #' @importFrom methods as
 #' @export
-#'
 importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, image_name = "main", channel_name = "H&E", ...)
 {
   # check Seurat package
