@@ -193,7 +193,7 @@ Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1", import_molecu
 
 </br>
 
-## GeoMx (nanoString)
+## GeoMx (NanoString)
 
 <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/geomx_summary.png" class="center">
 <p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;"> <em> Image Credit: https://www.biochain.com/nanostring-geomx-digital-spatial-profiling/ </em> </p>
@@ -279,7 +279,7 @@ GeoMxR1 <- importGeoMx(dcc.path = "DCC-20230427/",
 
 </br>
 
-## CosMx (nanoString)
+## CosMx (NanoString)
 
 <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cosmx_summary.png" class="center">
 <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cosmx_summary2.png" class="center">
@@ -412,6 +412,30 @@ VoltRon Object
 MLN_3D: 
   Layers: Section1 Section2 Section3 Section4 Section5 Section6 Section7 Section8 Section9 Section10 Section11 Section12 Section13 Section14 Section15 Section16 Section17 Section18 Section19 
 Assays: OpenST(Main) 
+```
+
+</br>
+
+## DBIT-Seq
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/dbitseq_summary.jpg" class="center">
+<p style="margin-left:3.4cm; margin-top:0.2cm; font-size:80%;"> <em> Image Credit: https://www.cell.com/cell/fulltext/S0092-8674(20)31390-8 </em> </p>
+
+We use the **importDBITSeq** function to import the OpenST [https://www.cell.com/cell/fulltext/S0092-8674(20)31390-8](https://www.cell.com/cell/fulltext/S0092-8674(20)31390-8) readouts and create a VoltRon object. The default path to the rna count matrix is accompanied by the path to the protein count matrix, which is optional. The **size** parameter here determines the size of each square pixel on the DBIT-Seq slide (default is 10$\mu$m).
+
+We use the example with developing eye field in a E10 mouse embryo using 10-μm microfluidic (sample id: 0719cL for RNA, and 0719aL for Protein) channels that is deposited to NCBI/GEO ([GSE137986](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE137986)). 
+
+```{r eval = FALSE, class.source="watch-out"}
+vr_dbit <- importDBITSeq(path.rna = "GSM4189615_0719cL.tsv", 
+                         path.prot = "GSM4202309_0719aL.tsv", 
+                         size = 10, sample_name = "E10_Eye_2", image_name = "main")
+```
+
+```
+VoltRon Object 
+E10_Eye_2: 
+  Layers: Section1 
+Assays: DBIT-Seq-RNA(Main) DBIT-Seq-Prot 
 ```
 
 </br>
