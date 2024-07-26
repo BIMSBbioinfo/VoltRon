@@ -421,7 +421,7 @@ Assays: OpenST(Main)
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/dbitseq_summary.jpg" class="center">
 <p style="margin-left:3.4cm; margin-top:0.2cm; font-size:80%;"> <em> Image Credit: https://www.cell.com/cell/fulltext/S0092-8674(20)31390-8 </em> </p>
 
-We use the **importDBITSeq** function to import the OpenST [https://www.cell.com/cell/fulltext/S0092-8674(20)31390-8](https://www.cell.com/cell/fulltext/S0092-8674(20)31390-8) readouts and create a VoltRon object. The default path to the rna count matrix is accompanied by the path to the protein count matrix, which is optional. The **size** parameter here determines the size of each square pixel on the DBIT-Seq slide (default is 10$\mu$m).
+We use the **importDBITSeq** function to import the DBIT-Seq [https://www.cell.com/cell/fulltext/S0092-8674(20)31390-8](https://www.cell.com/cell/fulltext/S0092-8674(20)31390-8) readouts and create a VoltRon object. The default path to the rna count matrix is accompanied by the path to the protein count matrix, which is optional. The **size** parameter here determines the size of each square pixel on the DBIT-Seq slide (default is 10$\mu$m).
 
 We use the example with developing eye field in a E10 mouse embryo using 10-μm microfluidic (sample id: 0719cL for RNA, and 0719aL for Protein) channels that is deposited to NCBI/GEO ([GSE137986](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE137986)). 
 
