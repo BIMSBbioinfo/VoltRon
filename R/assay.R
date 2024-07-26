@@ -593,12 +593,21 @@ flipCoordinates.vrAssay <- function(object, image_name = NULL, spatial_name = NU
   if(!is.null(spatial_name)) 
     image_name <- spatial_name
   
+  # get coordinates
+  coords <- vrCoordinates(object, image_name = image_name, ...)
+  
   # get image info
-  imageinfo <- magick::image_info(vrImages(object, name = image_name))
+  # imageinfo <- magick::image_info(vrImages(object, name = image_name))
+  image <- vrImages(object, name = image_name)
+  if(!is.null(image)){
+    imageinfo <- magick::image_info(vrImages(object, name = image_name))
+    height <- imageinfo$height
+  } else{
+    height <- max(coords[,"y"])
+  }
   
   # flip coordinates
-  coords <- vrCoordinates(object, image_name = image_name, ...)
-  coords[,"y"] <- imageinfo$height - coords[,"y"]
+  coords[,"y"] <- height - coords[,"y"]
   vrCoordinates(object, image_name = image_name, ...) <- coords
   
   # flip segments
@@ -606,7 +615,7 @@ flipCoordinates.vrAssay <- function(object, image_name = NULL, spatial_name = NU
   if(length(segments) > 0){
     name_segments <- names(segments)
     segments <- do.call("rbind", segments)
-    segments[,"y"] <- imageinfo$height - segments[,"y"]
+    segments[,"y"] <- height - segments[,"y"]
     segments <- split(segments, segments[,1])
     names(segments) <- name_segments
     vrSegments(object, image_name = image_name, ...) <- segments
