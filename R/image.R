@@ -1244,11 +1244,20 @@ vrCoordinates.vrSpatial <- function(object) {
     stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
   
   # stop if the colnames there are more than two columns
-  if(ncol(value) != 2) {
-    stop("Please make sure that the coordinates matrix have only two columns: for x and y coordinates")
+  if(ncol(value) == 2){
+    value <- cbind(value, 0)
+    colnames(value) <- c("x", "y", "z")
+  } else if(ncol(value) == 3){
+    colnames(value) <- c("x", "y", "z")
   } else {
-    colnames(value) <- c("x", "y")
+    stop("Please make sure that the coordinates matrix have only two or three columns: for x and y coordinates")
   }
+
+  # if(ncol(value) != 2) {
+  #   stop("Please make sure that the coordinates matrix have only two columns: for x and y coordinates")
+  # } else {
+  #   colnames(value) <- c("x", "y")
+  # }
   
   methods::slot(object = object, name = 'coords') <- value
   return(object)

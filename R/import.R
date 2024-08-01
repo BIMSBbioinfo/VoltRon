@@ -120,15 +120,17 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
       subcellular_data <- subcellular_data[subcellular_data$qv >= 20, ]
 
       # coordinates
-      coords <- as.matrix(subcellular_data[,c("x_location", "y_location")])
-      colnames(coords) <- c("x", "y")
+      # colnames_loc <- c("x_location", "y_location")
+      colnames_loc <- c("x_location", "y_location", "z_location")
+      coords <- as.matrix(subcellular_data[,c("x_location", "y_location", "z_location")])
+      colnames(coords) <- c("x", "y", "z")
       if(use_image){
-        coords <- coords/scaleparam
+        coords[c("x", "y")] <- coords[c("x", "y")]/scaleparam
       }
       coords[,"y"] <- range_coords[2] - coords[,"y"]  + range_coords[1]
 
       # metadata
-      mol_metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell_id", "transcript_id", "x_location", "y_location")], with = FALSE]
+      mol_metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell_id", "transcript_id", colnames_loc)], with = FALSE]
       set.seed(nrow(mol_metadata$id))
       mol_metadata$postfix <- paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))
       mol_metadata$assay_id <- "Assay1"
@@ -968,12 +970,10 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
   # check tiledb and tiledbsc
   if (!requireNamespace("tiledb", quietly = TRUE))
     stop("Please install the tiledb package: \n
-         remotes::install_github('TileDB-Inc/TileDB-R', force = TRUE,
-                            ref = '0.17.0')")
+         remotes::install_github('TileDB-Inc/TileDB-R', force = TRUE, ref = '0.17.0')")
   if (!requireNamespace("tiledbsc", quietly = TRUE))
     stop("Please install the tiledbsc package: \n
-         remotes::install_github('tiledb-inc/tiledbsc', force = TRUE,
-                            ref = '8157b7d54398b1f957832f37fff0b173d355530e')")
+         remotes::install_github('tiledb-inc/tiledbsc', force = TRUE, ref = '8157b7d54398b1f957832f37fff0b173d355530e')")
 
   # get tiledb
   message("Scanning TileDB array for cell data ...")
@@ -1032,12 +1032,15 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
       # get subcellular data components
       mol_metadata <- cur_subcellular[,colnames(cur_subcellular)[!colnames(cur_subcellular) %in% c("CellId", "cell_id", "x_FOV_px", "y_FOV_px")], with = FALSE]
       set.seed(nrow(mol_metadata))
-      # entity_ID <- paste0(1:nrow(mol_metadata), "_", ids::random_id(bytes = 3, use_openssl = FALSE))
-      entity_ID <- paste0(rownames(mol_metadata), "_", ids::random_id(bytes = 3, use_openssl = FALSE))
-      mol_metadata <- data.table::data.table(id = entity_ID, assay_id = "Assay1", mol_metadata)
-
+      #entity_ID <- paste0(rownames(mol_metadata), "_", ids::random_id(bytes = 3, use_openssl = FALSE))
+      # mol_metadata <- data.table::data.table(id = entity_ID, assay_id = "Assay1", mol_metadata)
+      mol_metadata$id <- rownames(mol_metadata)
+      mol_metadata$postfix <- paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))
+      mol_metadata$assay_id <- "Assay1"
+      mol_metadata[, id:=do.call(paste0,.SD), .SDcols=c("id", "postfix")]
+      
       # coord names
-      rownames(mol_coords) <- entity_ID
+      rownames(mol_coords) <- mol_metadata$id
 
       # create VoltRon assay for molecules
       mol_assay <- formAssay(coords = mol_coords, image = image, type = "molecule", main_image = image_name)

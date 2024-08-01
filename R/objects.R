@@ -452,11 +452,14 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
       stop("Coordinates table should either of a matrix or data.frame class!")
     }
     if(ncol(coords) == 2){
+      coords <- cbind(coords,0)
+    } else if(ncol(coords) == 3){
       rownames(coords) <- entityID
-      colnames(coords) <- c("x", "y")
     } else {
-      stop("The length of colnames of the coordinates matrix should two!")
+      stop("The length of colnames of the coordinates matrix should be either two or three!")
     }
+    rownames(coords) <- entityID
+    colnames(coords) <- c("x", "y", "z")
   } else {
     stop("There are no coordinate matrix provided!")
   }
