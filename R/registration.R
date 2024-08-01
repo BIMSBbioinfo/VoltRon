@@ -589,7 +589,8 @@ applyPerspectiveTransform <- function(object,
   if(reg_mode == "manual"){
 
     # get registered coordinates
-    coords_reg <- applyTransform(coords, mapping$reference, mapping$query)
+    coords_reg <- coords
+    coords_reg[,c("x", "y")] <- applyTransform(coords[,c("x", "y")], mapping$reference, mapping$query)
     rownames(coords_reg) <- rownames(coords)
     colnames(coords_reg) <- colnames(coords)
 
@@ -628,7 +629,7 @@ applyPerspectiveTransform <- function(object,
 
     # get registered coordinates
     coords_reg <- as.data.frame(coords)
-    coords_reg <- transformImageKeypoints(query_image, coords_reg, query_extension, input)$keypoints
+    coords_reg <- transformImageKeypoints(query_image, coords_reg[,c("x","y")], query_extension, input)$keypoints
 
     coords_reg[,2] <- query_info$height - coords_reg[,2]
     coords_reg <- as.matrix(coords_reg)
@@ -636,10 +637,14 @@ applyPerspectiveTransform <- function(object,
     coords_reg <- as.data.frame(coords_reg)
     coords_reg[,2] <- ref_info$height - coords_reg[,2]
 
-    colnames(coords_reg) <- c('x', 'y')
+    colnames(coords_reg) <- c("x", "y")
     coords_reg <- transformKeypoints(ref_image, coords_reg, ref_extension, input)
     coords_reg <- as.matrix(coords_reg)
     rownames(coords_reg) <- rownames(coords)
+    
+    # fix 3rd dimension 
+    coords[,c("x", "y")] <- coords_reg[,c("x", "y")]
+    coords_reg <- coords
 
     # get registered segments
     if(length(segments) > 0){

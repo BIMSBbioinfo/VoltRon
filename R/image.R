@@ -112,6 +112,21 @@ setMethod(
 #'
 formImage <- function(coords, segments = list(), image = NULL, main_channel = NULL){
 
+  # get coordinates
+  if(inherits(coords, "data.frame")){
+    coords <- as.matrix(coords)
+  }
+  if(!inherits(coords, "matrix")){
+    stop("Coordinates table should either of a matrix or data.frame class!")
+  }
+  if(ncol(coords) == 2){
+    coords <- cbind(coords,0)
+    colnames(coords) <- c("x", "y", "z")
+  }
+  if(!ncol(coords) %in% c(2,3)){
+    stop("The length of colnames of the coordinates matrix should be either two or three!")
+  } 
+
   # get segments
   if(length(segments) > 0){
     if(length(segments) == length(rownames(coords))){
@@ -149,12 +164,6 @@ formImage <- function(coords, segments = list(), image = NULL, main_channel = NU
       names(image) <- main_channel
     }
   } else {
-    # height <- max(ceiling(coords[,2]))
-    # width <- max(ceiling(coords[,1]))
-    # image <- list(matrix(rep("#030303ff", height*width), nrow = height, ncol = width))
-    # if(is.null(main_channel))
-    #   main_channel <- "channel_1"
-    # names(image) <- main_channel
     image <- list()
     main_channel <- ""
   }
