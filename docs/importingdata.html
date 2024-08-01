@@ -473,8 +473,8 @@ users constructing VoltRon objects with ease. In this tutorial, we will
 review these spatial omic instruments and the functions available within
 the VoltRon package to import their readouts.</p>
 <p></br></p>
-<div id="visium" class="section level2">
-<h2>Visium</h2>
+<div id="visium-10x-genomics" class="section level2">
+<h2>Visium (10x Genomics)</h2>
 <p></br></p>
 <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/visium_summary.png" class="center">
 <p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;">
@@ -532,8 +532,8 @@ one using <strong>resolution_level=“hires”</strong></p>
 <pre class="r watch-out"><code>Vis_R1 &lt;- importVisium(dir.path = &quot;Visium/&quot;, sample_name = &quot;VisiumR1&quot;, resolution_level=&quot;hires&quot;)</code></pre>
 <p><br></p>
 </div>
-<div id="xenium" class="section level2">
-<h2>Xenium</h2>
+<div id="xenium-10x-genomics" class="section level2">
+<h2>Xenium (10x Genomics)</h2>
 <p></br></p>
 <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/xenium_summary.png" class="center">
 <p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;">
@@ -607,8 +607,8 @@ cells and molecules would be imported.</p>
                        use_image = FALSE)</code></pre>
 <p></br></p>
 </div>
-<div id="geomx" class="section level2">
-<h2>GeoMx</h2>
+<div id="geomx-nanostring" class="section level2">
+<h2>GeoMx (NanoString)</h2>
 <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/geomx_summary.png" class="center">
 <p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;">
 <em> Image Credit: <a
@@ -743,8 +743,8 @@ XML file.</p>
                        sample_name = &quot;GeoMxR1&quot;)</code></pre>
 <p></br></p>
 </div>
-<div id="cosmx" class="section level2">
-<h2>CosMx</h2>
+<div id="cosmx-nanostring" class="section level2">
+<h2>CosMx (NanoString)</h2>
 <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cosmx_summary.png" class="center">
 <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cosmx_summary2.png" class="center">
 <p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;">
@@ -780,8 +780,8 @@ profiles.</p>
 <pre class="r watch-out"><code>CosMxR1 &lt;- importCosMx(tiledbURI = &quot;MuBrainDataRelease/&quot;, import_molecules = TRUE)</code></pre>
 <p></br></p>
 </div>
-<div id="stomics" class="section level2">
-<h2>STOmics</h2>
+<div id="stomics-mgi" class="section level2">
+<h2>STOmics (MGI)</h2>
 <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/stomics_summary.png" class="center">
 <p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;">
 <em> Image Credit: <a href="https://bgi-australia.com.au/stomics"
@@ -817,8 +817,8 @@ Sample1:
 Assays: STOmics(Main) </code></pre>
 <p></br></p>
 </div>
-<div id="geneps" class="section level2">
-<h2>GenePS</h2>
+<div id="geneps-spatial-genomics" class="section level2">
+<h2>GenePS (Spatial Genomics)</h2>
 <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/geneps_summary.png" class="center">
 <p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;">
 <em> Image Credit: <a href="https://spatialgenomics.com/applications/"
@@ -836,6 +836,96 @@ the DAPI image generated from the TIFF file.</p>
 Sample1: 
   Layers: Section1 
 Assays: GenePS(Main) GenePS_mol</code></pre>
+<p></br></p>
+</div>
+<div id="phenocycler-akoya" class="section level2">
+<h2>PhenoCycler (Akoya)</h2>
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/phenocycler_summary.png" class="center">
+<p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;">
+<em> Image Credit: <a
+href="https://tep.cancer.illinois.edu/phenocycler-fusion-system/"
+class="uri">https://tep.cancer.illinois.edu/phenocycler-fusion-system/</a>
+</em>
+</p>
+<p>We use the <strong>importPhenoCycler</strong> function to import the
+PhenoCycler (<a href="https://www.akoyabio.com/">Akoya Biosciences</a>)
+readouts and create a VoltRon object. The function supports multiple
+readouts types depending on how the readouts were generated, this is
+controlled by the <strong>type</strong> arguement. For more information
+on all arguements of the function, see
+<strong>help(importPhenoCycler)</strong>.</p>
+<p>We used the Human FFPE tonsil tissue example with 83000 cells which
+could be found <a
+href="https://akoya.app.box.com/s/lqaz1eyefni57sfynveh03e9sdy4aeuk">here</a>.
+You have to download the contents and <strong>dir.path</strong>
+arguement should be set to the location of the
+<strong>Example-dataset-for-MAV</strong> folder.</p>
+<pre class="r watch-out"><code>vr_pheno &lt;- importPhenoCycler(dir.path = &quot;Example-dataset-for-MAV/&quot;, type = &quot;processor&quot;, 
+                              sample_name = &quot;Tonsil18AB&quot;)</code></pre>
+<pre><code>VoltRon Object 
+Tonsil18AB: 
+  Layers: Section1 
+Assays: PhenoCycler(Main) </code></pre>
+<p></br></p>
+</div>
+<div id="openst" class="section level2">
+<h2>OpenST</h2>
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/openst_summary.jpg" class="center">
+<p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;">
+<em> Image Credit: <a
+href="https://www.cell.com/cell/fulltext/S0092-8674(24)00636-6"
+class="uri">https://www.cell.com/cell/fulltext/S0092-8674(24)00636-6</a>
+</em>
+</p>
+<p>We use the <strong>importOpenST</strong> function to import the
+OpenST <a
+href="https://rajewsky-lab.github.io/openst/latest/">https://rajewsky-lab.github.io/openst/latest/</a>
+readouts and create a VoltRon object. The function will parse each
+section from the output h5ad file, define it as an independent assay in
+a single layer where these layers are ordered in a single tissue
+block.</p>
+<p>We use the metastatic lymph node example that is deposited to
+NCBI/GEO (<a
+href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE251926">GSE251926</a>).
+Please use the
+<strong>GSE251926_metastatic_lymph_node_3d.h5ad.gz</strong> file and
+unzip it to use the importOpenST function below.</p>
+<pre class="r watch-out"><code>vr_openst &lt;- importOpenST(h5ad.path = &quot;GSE251926_metastatic_lymph_node_3d.h5ad&quot;, 
+                          sample_name = &quot;MLN_3D&quot;)</code></pre>
+<pre><code>VoltRon Object 
+MLN_3D: 
+  Layers: Section1 Section2 Section3 Section4 Section5 Section6 Section7 Section8 Section9 Section10 Section11 Section12 Section13 Section14 Section15 Section16 Section17 Section18 Section19 
+Assays: OpenST(Main) </code></pre>
+<p></br></p>
+</div>
+<div id="dbit-seq" class="section level2">
+<h2>DBIT-Seq</h2>
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/dbitseq_summary.jpg" class="center">
+<p style="margin-left:3.4cm; margin-top:0.2cm; font-size:80%;">
+<em> Image Credit: <a
+href="https://www.cell.com/cell/fulltext/S0092-8674(20)31390-8"
+class="uri">https://www.cell.com/cell/fulltext/S0092-8674(20)31390-8</a>
+</em>
+</p>
+<p>We use the <strong>importDBITSeq</strong> function to import the
+DBIT-Seq <a
+href="https://www.cell.com/cell/fulltext/S0092-8674(20)31390-8">https://www.cell.com/cell/fulltext/S0092-8674(20)31390-8</a>
+readouts and create a VoltRon object. The default path to the rna count
+matrix is accompanied by the path to the protein count matrix, which is
+optional. The <strong>size</strong> parameter here determines the size
+of each square pixel on the DBIT-Seq slide (default is 10<span
+class="math inline">\(\mu\)</span>m).</p>
+<p>We use the example with developing eye field in a E10 mouse embryo
+using 10-μm microfluidic (sample id: 0719cL for RNA, and 0719aL for
+Protein) channels that is deposited to NCBI/GEO (<a
+href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE137986">GSE137986</a>).</p>
+<pre class="r watch-out"><code>vr_dbit &lt;- importDBITSeq(path.rna = &quot;GSM4189615_0719cL.tsv&quot;, 
+                         path.prot = &quot;GSM4202309_0719aL.tsv&quot;, 
+                         size = 10, sample_name = &quot;E10_Eye_2&quot;, image_name = &quot;main&quot;)</code></pre>
+<pre><code>VoltRon Object 
+E10_Eye_2: 
+  Layers: Section1 
+Assays: DBIT-Seq-RNA(Main) DBIT-Seq-Prot </code></pre>
 <p></br></p>
 </div>
 <div id="st-data" class="section level2">

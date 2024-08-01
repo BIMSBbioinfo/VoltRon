@@ -36,6 +36,7 @@ NULL
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
 #' @param legend.pt.size the size of points at the legend
+#' @param legend.text.size the size of the text at the legend
 #' @param scale.image if TRUE, background image will be scaled down to a low resolution (width: 1000px)
 #' @param legend.loc the location of the legend, default is "right"
 #' @param common.legend whether to use a common legend for all plots, see \link{ggarrange}
@@ -50,7 +51,7 @@ NULL
 #'
 vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, assay = NULL, graph.name = NULL,
                           reduction = NULL, ncol = 2, nrow = NULL, font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, label = FALSE, background = NULL, reg = FALSE,
-                          crop = FALSE, legend.pt.size = 2, scale.image = TRUE, legend.loc = "right", common.legend = TRUE, collapse = TRUE, interactive = FALSE) {
+                          crop = FALSE, legend.pt.size = 2, legend.text.size = 14, scale.image = TRUE, legend.loc = "right", common.legend = TRUE, collapse = TRUE, interactive = FALSE) {
 
   # check object for zarr
   if(is.character(object)){
@@ -77,7 +78,8 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
       gg <- vrSpatialPlot(object, group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, colors = colors, n.tile = n.tile, assay = assay,
                           graph.name = graph.name, reduction = reduction, ncol = ncol, nrow = nrow, font.size = font.size, pt.size = pt.size,
                           cell.shape = cell.shape, alpha = alpha, label = label, background = background, reg = reg,
-                          crop = crop, legend.pt.size = legend.pt.size, scale.image = FALSE, legend.loc = legend.loc, common.legend = common.legend, collapse = collapse,
+                          crop = crop, legend.pt.size = legend.pt.size, legend.text.size = legend.text.size, scale.image = FALSE, 
+                          legend.loc = legend.loc, common.legend = common.legend, collapse = collapse,
                           interactive = FALSE)
       return(vrSpatialPlotInteractive(plot_g = gg))
     }
@@ -156,7 +158,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
     gg[[i]] <- vrSpatialPlotSingle(assay = cur_assay, metadata = cur_metadata,
                                    group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, colors = colors, n.tile = n.tile, graph = graph, font.size = font.size, pt.size = pt.size,
                                    alpha = alpha, cell.shape = cell.shape, plot_title = p_title, background = background, reg = reg,
-                                   crop = crop, legend.pt.size = legend.pt.size, scale.image = scale.image)
+                                   crop = crop, legend.pt.size = legend.pt.size, legend.text.size = legend.text.size, scale.image = scale.image)
     i <- i + 1
   }
 
@@ -199,6 +201,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
 #' @param legend.pt.size the size of points at the legend
+#' @param legend.text.size the size of the text at the legend
 #' @param scale.image if TRUE, background image will be scaled down to a low resolution (width: 1000px)
 #'
 #' @import ggplot2
@@ -207,7 +210,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 #' @noRd
 vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, graph = NULL,
                                 font.size = 2, pt.size = 2, cell.shape = 16, alpha = 1, plot_title = NULL, background = NULL,
-                                reg = FALSE, crop = FALSE, legend.pt.size = 2, scale.image = TRUE){
+                                reg = FALSE, crop = FALSE, legend.pt.size = 2, legend.text.size = 14, scale.image = TRUE){
 
   # plot
   g <- ggplot()
@@ -376,13 +379,15 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
             geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
             scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
             scale_color_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
-            guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
+            guides(color = guide_legend(override.aes=list(size = legend.pt.size))) + 
+            theme(legend.text=element_text(size=legend.text.size), legend.title=element_text(size=legend.text.size))
         } else {
           g <- vrSpatialPlotSingleTiling(g = g, data = coords, n.tile = n.tile, alpha = alpha)
         }
 
-        g <- g +
-          guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
+        # g <- g +
+        #   guides(color = guide_legend(override.aes=list(size = legend.pt.size))) + 
+        #   theme(legend.text=element_text(size=legend.text.size))
 
         # add if a graph exists
         if(!is.null(graph)){
@@ -397,7 +402,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) +
         scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
         scale_color_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
-        guides(color = guide_legend(override.aes=list(size = legend.pt.size)))
+        guides(color = guide_legend(override.aes=list(size = legend.pt.size))) + 
+        theme(legend.text=element_text(size=legend.text.size), legend.title=element_text(size=legend.text.size))
     } else {
       g <- vrSpatialPlotSingleTiling(g = g, data = coords, n.tile = n.tile, alpha = alpha)
     }
@@ -408,7 +414,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 
   # more visualization parameters
   g <- g +
-    ggtitle(plot_title) + theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,0,0)),
+    ggtitle(plot_title) + theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,0,0), size = legend.text.size),
                                 panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
                                 axis.line=element_blank(),axis.text.x=element_blank(), axis.text.y=element_blank(),
                                 axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
@@ -1247,9 +1253,11 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
 
     # get data
     if(feat %in% vrFeatures(object)){
-      datax$score <- normdata[feat,]
+      # datax$score <- normdata[feat,]
+      datax$score <- normdata[feat, rownames(datax)]
     } else {
-      datax$score <- metadata[,feat]
+      # datax$score <- metadata[,feat]
+      datax$score <- metadata[rownames(datax),feat]
     }
 
     # get image information and plotting features
