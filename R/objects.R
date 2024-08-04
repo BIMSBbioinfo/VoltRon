@@ -434,9 +434,11 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
 
           # create metadata
           if(nrow(data) > 0){
-            slot(vr_metadata, name = assay.type) <- data.frame(Count = Matrix::colSums(data), Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
+            slot(vr_metadata, name = assay.type) <- data.frame(Count = Matrix::colSums(data), Assay = main.assay, Layer = layer_name, 
+                                                               Sample = sample_name, metadata, row.names = entityID)
           } else{
-            slot(vr_metadata, name = assay.type) <- data.frame(Assay = main.assay, Layer = layer_name, Sample = sample_name, metadata, row.names = entityID)
+            slot(vr_metadata, name = assay.type) <- data.frame(Assay = main.assay, Layer = layer_name, 
+                                                               Sample = sample_name, metadata, row.names = entityID)
           }
         }
       }
@@ -465,17 +467,26 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
   }
 
   # create vrAssay
-  Assay <- formAssay(data = data, coords = coords, segments = segments, image = image, params = params, type = assay.type, name = "Assay1", main_image = image_name, ...)
+  Assay <- formAssay(data = data, coords = coords, segments = segments, image = image, params = params, 
+                     type = assay.type, name = "Assay1", main_image = image_name, ...)
   listofAssays <- list(Assay)
   names(listofAssays) <- main.assay
 
-  # create layers and samples
+  # create layers
   listofLayers <- list(methods::new("vrLayer",
                                     assay = listofAssays,
                                     connectivity = igraph::make_empty_graph(directed = FALSE) + igraph::vertices(entityID)))
   names(listofLayers) <- layer_name
-  # listofSamples <- list(methods::new("vrSample", layer = listofLayers))
-  listofSamples <- list(methods::new("vrBlock", layer = listofLayers))
+  
+  # create samples
+  # listofSamples <- list(methods::new("vrSample", 
+  #                                    layer = listofLayers))
+  listofSamples <- list(methods::new("vrBlock", 
+                                     layer = listofLayers, 
+                                     adjacency = matrix(0, nrow = 1, ncol = 1, 
+                                                        dimnames = list("Section1", "Section1")), 
+                                     distance = matrix(0, nrow = 1, ncol = 1, 
+                                                       dimnames = list("Section1", "Section1"))))
   names(listofSamples) <- sample_name
 
   # set sample meta data
@@ -668,8 +679,20 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
     cur_sample.metadata$NewLayer <- paste0("Section", as.numeric(factor(cur_sample.metadata$comb, levels = unique(cur_sample.metadata$comb))))
     # names(listofLayers) <- cur_sample.metadata$NewLayer
     names(listofLayers) <- unique(cur_sample.metadata$NewLayer) ## CHANGE THIS LATER IF NEEDED ####
+    
+    # make layer adjacency and get distance
+    adjacency <- matrix(0, nrow = length(listofLayers), ncol = length(listofLayers),
+                  dimnames = list(names(listofLayers), names(listofLayers)))
+    diag(adjacency) <- 1
+    distance <- matrix(NA, nrow = length(listofLayers), ncol = length(listofLayers),
+                       dimnames = list(names(listofLayers), names(listofLayers)))
+    diag(distance) <- 0
+    
+    # make new block
     # listofSamples <- list(methods::new("vrSample", layer = listofLayers))
-    listofSamples <- list(methods::new("vrBlock", layer = listofLayers))
+    # listofSamples <- list(methods::new("vrBlock", layer = listofLayers))
+    listofSamples <- list(methods::new("vrBlock", 
+                                       layer = listofLayers, adjacency = adjacency, distance = distance))
     names(listofSamples) <- cur_sample
     new_listofSamples <- c(new_listofSamples, listofSamples)
     new_sample.metadata <- rbind(new_sample.metadata, cur_sample.metadata)

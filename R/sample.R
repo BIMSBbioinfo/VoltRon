@@ -12,6 +12,8 @@ setOldClass(Classes = c('igraph'))
 #' The vrSample (VoltRon Sample) Class
 #'
 #' @slot layer A list of layers (vrLayer)
+#' @slot adjacent a matrix of adjacency across layers of a vrSample object
+#' @slot distance a matrix of distances across layers of a vrSample object
 #'
 #' @name vrSample-class
 #' @rdname vrSample-class
@@ -20,7 +22,9 @@ setOldClass(Classes = c('igraph'))
 vrSample <- setClass(
   Class = 'vrSample',
   slots = c(
-    layer = 'list'
+    layer = 'list',
+    adjacency = 'matrix', 
+    distance = 'matrix'
   )
 )
 
@@ -92,6 +96,8 @@ setMethod(
 #' The vrSample (VoltRon Sample) Class
 #'
 #' @slot layer A list of layers (vrLayer)
+#' @slot adjacent a matrix of adjacency across layers of a vrSample object
+#' @slot distance a matrix of distances across layers of a vrSample object
 #'
 #' @name vrSample-class
 #' @rdname vrSample-class
@@ -100,7 +106,9 @@ setMethod(
 vrSample <- setClass(
   Class = 'vrBlock',
   slots = c(
-    layer = 'list'
+    layer = 'list',
+    adjacency = 'matrix', 
+    distance = 'matrix'
   )
 )
 
@@ -319,9 +327,20 @@ subset.vrSample <- function(object, subset, assays = NULL, spatialpoints = NULL,
   }
 
   # remove NULL assays
-  object@layer <- object@layer[which(sapply(object@layer, function(x) !is.null(x)))]
-
+  ind <- which(sapply(object@layer, function(x) !is.null(x)))
+  object@layer <- object@layer[ind]
+  
+  # check if there are layers
   if(length(object@layer) > 0){
+    
+    # get updated adjaceny and distance
+    catch_connect <- try(slot(object, name = "adjacency"), silent = TRUE)
+    if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
+      object@distance <- object@distance[ind, ind]
+      object@adjacency <- object@adjacency[ind, ind]
+    }
+    
+    # return object
     return(object)
   } else {
     return(NULL)
