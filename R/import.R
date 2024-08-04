@@ -1733,7 +1733,7 @@ importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, i
   for(i in 1:length(sections)){
     ind <- metadata$n_section == sections[i]
     spatialpoints <- rownames(metadata[metadata$n_section == sections[i],])
-    cur_data <- Matrix::t(rawdata[spatialpoints,])
+    cur_data <- rawdata[,spatialpoints]
     cur_metadata <- metadata[spatialpoints,]
     cur_coords <- coords[ind,c(1,2)]
     rownames(cur_coords) <- spatialpoints
