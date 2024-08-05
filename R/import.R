@@ -1331,7 +1331,7 @@ importSTOmics <- function(h5ad.path, assay_name = "STOmics", sample_name = NULL,
     stop("Please install anndataR package")
   
   # get h5ad data
-  stdata <- anndataR::read_h5ad(h5ad.path)
+  stdata <- anndataR::read_h5ad(h5ad.path, to = "HDF5AnnData")
   
   # observation and feature names
   obs_names <- stdata$obs_names
@@ -1705,7 +1705,7 @@ importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, i
     stop("Please install anndataR package")
   
   # get h5ad data
-  stdata <- anndataR::read_h5ad(h5ad.path)
+  stdata <- anndataR::read_h5ad(h5ad.path, to = "HDF5AnnData")
   
   # observation and feature names
   obs_names <- stdata$obs_names
