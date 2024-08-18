@@ -336,8 +336,8 @@ subset.vrSample <- function(object, subset, assays = NULL, spatialpoints = NULL,
     # get updated adjaceny and distance
     catch_connect <- try(slot(object, name = "adjacency"), silent = TRUE)
     if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
-      object@distance <- object@distance[ind, ind]
-      object@adjacency <- object@adjacency[ind, ind]
+      object@distance <- object@distance[ind, ind, drop = FALSE]
+      object@adjacency <- object@adjacency[ind, ind, drop = FALSE]
     }
     
     # return object
