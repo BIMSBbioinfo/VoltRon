@@ -158,6 +158,42 @@ rownames(.dccMetadata[["protocolData"]])[rownames(.dccMetadata[["protocolData"]]
   is.numeric(x) && !anyNA(x) && min(x) > 0
 }
 
+
+####
+# Basilisk Environment ####
+####
+
+#' The Python Basilisk environment
+#'
+#' Defines a conda environment via Basilisk, which is used to convert R objects to Zarr stores.
+#'
+#' @importFrom basilisk BasiliskEnvironment
+#'
+#' @keywords internal
+#'
+#' @noRd
+py_env <- basilisk::BasiliskEnvironment(
+  envname="VoltRon_basilisk_env",
+  pkgname="VoltRon",
+  packages=c(
+    "numpy==1.*",
+    "pandas==1.*",
+    "anndata==0.7.*",
+    "h5py==3.*",
+    "hdf5==1.*",
+    "natsort==7.*",
+    "packaging==20.*",
+    "scipy==1.*",
+    "sqlite==3.*",
+    "zarr==2.*",
+    "numcodecs==0.*",
+    "tifffile==2024.2.12"
+  ),
+  pip=c(
+    "ome-zarr==0.2.1"
+  )
+)
+
 ####
 # Other Auxiliary tools ####
 ####
