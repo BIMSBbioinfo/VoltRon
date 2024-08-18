@@ -1724,9 +1724,11 @@ importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, i
   # coordinates
   coords <- stdata$obsm$spatial_3d_aligned
   rownames(coords) <- obs_names
+  zlocation <- unique(coords[,3])
   
   # get individual sections as voltron data
   sections <- unique(metadata$n_section)
+  zlocation <- zlocation[order(sections)]
   sections <- sections[order(sections)]
   vr_data_list <- list()
   message("Creating Layers ...")
@@ -1743,7 +1745,14 @@ importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, i
   }
   
   # create VoltRon
-  merge(vr_data_list[[1]], vr_data_list[-1], samples = ifelse(is.null(sample_name), "Sample", sample_name))
+  sample_name <- ifelse(is.null(sample_name), "Sample", sample_name)
+  vr_data <- merge(vr_data_list[[1]], vr_data_list[-1], samples = sample_name)
+  
+  # get zlocations of the vrBlock
+  vr_data[[sample_name]]@zlocation[names(vr_data[[sample_name]]@zlocation)] <- zlocation
+  
+  # return
+  vr_data
 }
 
 ####

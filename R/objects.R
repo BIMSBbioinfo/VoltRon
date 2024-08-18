@@ -479,14 +479,15 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
   names(listofLayers) <- layer_name
   
   # create samples
-  # listofSamples <- list(methods::new("vrSample", 
-  #                                    layer = listofLayers))
+  # listofSamples <- list(methods::new("vrBlock", 
+  #                                    layer = listofLayers, 
+  #                                    adjacency = matrix(0, nrow = 1, ncol = 1, 
+  #                                                       dimnames = list("Section1", "Section1")), 
+  #                                    distance = matrix(0, nrow = 1, ncol = 1, 
+  #                                                      dimnames = list("Section1", "Section1"))))
   listofSamples <- list(methods::new("vrBlock", 
                                      layer = listofLayers, 
-                                     adjacency = matrix(0, nrow = 1, ncol = 1, 
-                                                        dimnames = list("Section1", "Section1")), 
-                                     distance = matrix(0, nrow = 1, ncol = 1, 
-                                                       dimnames = list("Section1", "Section1"))))
+                                     zlocation = c("Section1" = 0)))
   names(listofSamples) <- sample_name
 
   # set sample meta data
@@ -681,18 +682,20 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
     names(listofLayers) <- unique(cur_sample.metadata$NewLayer) ## CHANGE THIS LATER IF NEEDED ####
     
     # make layer adjacency and get distance
-    adjacency <- matrix(0, nrow = length(listofLayers), ncol = length(listofLayers),
-                  dimnames = list(names(listofLayers), names(listofLayers)))
-    diag(adjacency) <- 1
-    distance <- matrix(NA, nrow = length(listofLayers), ncol = length(listofLayers),
-                       dimnames = list(names(listofLayers), names(listofLayers)))
-    diag(distance) <- 0
+    # adjacency <- matrix(0, nrow = length(listofLayers), ncol = length(listofLayers),
+    #               dimnames = list(names(listofLayers), names(listofLayers)))
+    # diag(adjacency) <- 1
+    # distance <- matrix(NA, nrow = length(listofLayers), ncol = length(listofLayers),
+    #                    dimnames = list(names(listofLayers), names(listofLayers)))
+    # diag(distance) <- 0
+    zlocation <- rep(0,length(listofLayers))
+    names(zlocation) <- names(listofLayers)
     
     # make new block
-    # listofSamples <- list(methods::new("vrSample", layer = listofLayers))
-    # listofSamples <- list(methods::new("vrBlock", layer = listofLayers))
-    listofSamples <- list(methods::new("vrBlock", 
-                                       layer = listofLayers, adjacency = adjacency, distance = distance))
+    # listofSamples <- list(methods::new("vrBlock", 
+    #                                    layer = listofLayers, adjacency = adjacency, distance = distance))
+    listofSamples <- list(methods::new("vrBlock",
+                                       layer = listofLayers, zlocation = zlocation))
     names(listofSamples) <- cur_sample
     new_listofSamples <- c(new_listofSamples, listofSamples)
     new_sample.metadata <- rbind(new_sample.metadata, cur_sample.metadata)
@@ -884,16 +887,11 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 
     metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
     samples <- vrSampleNames(metadata)
-    # assays <- unique(stringr::str_extract(vrSpatialPoints(metadata), "Assay[0-9]+"))
-    # assays <- vrAssayNames(metadata)
-    # cur_sample.metadata <- subset_sampleMetadata(sample.metadata, assays = assays)
-    # samples <- unique(cur_sample.metadata$Sample)
 
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subset.vrSample(samp, spatialpoints = spatialpoints)
     }, USE.NAMES = TRUE)
 
-    # spatialpoints <-  unlist(sapply(listofSamples, vrSpatialPoints.vrSample, simplify = TRUE))
     spatialpoints <-  do.call("c", lapply(listofSamples, vrSpatialPoints.vrSample))
 
     metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
