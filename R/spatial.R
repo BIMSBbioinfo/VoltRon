@@ -16,6 +16,7 @@ NULL
 #' @param method the method spatial connectivity: "delaunay", "spatialkNN", "radius"
 #' @param radius When \code{method = "radius"} selected, determines the radius of a neighborhood ball around each spatial point
 #' @param graph.key the name of the graph
+#' @param block.wise if the distances should be calculated for blocks
 #' @param ... additional parameters passed to \link{get.knn}
 #'
 #' @importFrom igraph add_edges simplify make_empty_graph vertices
@@ -24,26 +25,27 @@ NULL
 #' @importFrom stats dist
 #'
 #' @export
-#'
-getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", radius = numeric(0), graph.key = method, ...){
+getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", radius = numeric(0), 
+                                graph.key = method, ...){
 
   # get coordinates
-  coords <- vrCoordinates(object, assay = assay)
+  # coords <- vrCoordinates(object, assay = assay)
+  spatialpoints <- vrSpatialPoints(object, assay = assay)
 
   # get spatial graph per assay
   assay_names <- vrAssayNames(object, assay = assay)
+  
+  # get assay connectivity 
+  assay_names <- getBlockConnectivity(object, assay = assay_names)
+  
+  # get spatial edges
   spatialedges_list <- list()
   for(assy in assay_names){
-    cur_coords <- coords[grepl(paste0(assy, "$"), rownames(coords)), ]
+    # cur_coords <- coords[grepl(paste0(assy, "$"), rownames(coords)), ]
+    cur_coords <- vrCoordinates(object, assay = assy)
     spatialedges <-
       switch(method,
              delaunay = {
-               # tess <- interp::tri.mesh(cur_coords[,1], cur_coords[,2])
-               # nnedges <- interp::neighbours(tess)
-               # nnedges <- mapply(function(x,y) {
-               #  do.call(c,lapply(y, function(z) c(x,z)))
-               # }, 1:length(nnedges), nnedges)
-               # nnedges <- unlist(nnedges)
                nnedges <- RCDT::delaunay(cur_coords)
                nnedges <- as.vector(t(nnedges$edges[,1:2]))
                nnedges <- rownames(cur_coords)[nnedges]
@@ -80,7 +82,7 @@ getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", radiu
   spatialedges <- unlist(spatialedges_list)
 
   # make graph and add edges
-  graph <- make_empty_graph(directed = FALSE) + vertices(rownames(coords))
+  graph <- make_empty_graph(directed = FALSE) + vertices(spatialpoints)
   graph <- add_edges(graph, edges = spatialedges)
   graph <- simplify(graph, remove.multiple = TRUE, remove.loops = FALSE)
   vrGraph(object, graph.type = graph.key) <- graph

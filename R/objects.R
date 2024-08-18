@@ -479,15 +479,13 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
   names(listofLayers) <- layer_name
   
   # create samples
-  # listofSamples <- list(methods::new("vrBlock", 
-  #                                    layer = listofLayers, 
-  #                                    adjacency = matrix(0, nrow = 1, ncol = 1, 
-  #                                                       dimnames = list("Section1", "Section1")), 
-  #                                    distance = matrix(0, nrow = 1, ncol = 1, 
-  #                                                      dimnames = list("Section1", "Section1"))))
   listofSamples <- list(methods::new("vrBlock", 
                                      layer = listofLayers, 
-                                     zlocation = c("Section1" = 0)))
+                                     zlocation = c("Section1" = 0),
+                                     adjacency = matrix(0, nrow = 1, ncol = 1,
+                                                        dimnames = list("Section1", "Section1"))))
+                        
+
   names(listofSamples) <- sample_name
 
   # set sample meta data
@@ -682,9 +680,9 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
     names(listofLayers) <- unique(cur_sample.metadata$NewLayer) ## CHANGE THIS LATER IF NEEDED ####
     
     # make layer adjacency and get distance
-    # adjacency <- matrix(0, nrow = length(listofLayers), ncol = length(listofLayers),
-    #               dimnames = list(names(listofLayers), names(listofLayers)))
-    # diag(adjacency) <- 1
+    adjacency <- matrix(0, nrow = length(listofLayers), ncol = length(listofLayers),
+                  dimnames = list(names(listofLayers), names(listofLayers)))
+    diag(adjacency) <- 1
     # distance <- matrix(NA, nrow = length(listofLayers), ncol = length(listofLayers),
     #                    dimnames = list(names(listofLayers), names(listofLayers)))
     # diag(distance) <- 0
@@ -695,7 +693,7 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
     # listofSamples <- list(methods::new("vrBlock", 
     #                                    layer = listofLayers, adjacency = adjacency, distance = distance))
     listofSamples <- list(methods::new("vrBlock",
-                                       layer = listofLayers, zlocation = zlocation))
+                                       layer = listofLayers, zlocation = zlocation, adjacency = adjacency))
     names(listofSamples) <- cur_sample
     new_listofSamples <- c(new_listofSamples, listofSamples)
     new_sample.metadata <- rbind(new_sample.metadata, cur_sample.metadata)
@@ -754,14 +752,11 @@ changeAssayNames.VoltRon <- function(object, assays = NULL){
   return(object)
 }
 
-#' configureConnectivity
+#' addLayerConnectivity
 #'
-#' add connectivity information to the assays of the same layer
+#' add connectivity information to the assays (vrAssay) of the same layer (vrLayer)
 #'
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param metadata a predefined metadata
-#' @param assay_name assay name
+#' @param object a VoltRon object
 #' @param connectivity a metadata of edges representing connected spatial points across assays
 #' @param sample sample name
 #' @param layer layer name
@@ -769,7 +764,7 @@ changeAssayNames.VoltRon <- function(object, assays = NULL){
 #' @importFrom igraph add_edges
 #'
 #' @noRd
-addConnectivity <- function(object, connectivity, sample, layer){
+addLayerConnectivity <- function(object, connectivity, sample, layer){
 
   # get sample and layer
   curlayer <- object[[sample, layer]]
@@ -782,6 +777,81 @@ addConnectivity <- function(object, connectivity, sample, layer){
 
   # return
   return(object)
+}
+
+### Layer Methods ####
+
+#' addBlockConnectivity
+#'
+#' add connectivity information to the layers (vrLayer) of the same block (Block)
+#'
+#' @param object a VoltRon object
+#' @param connectivity a metadata of edges representing connected layers within a block
+#' @param zlocation 
+#' @param sample sample name
+#'
+#' @noRd
+addBlockConnectivity <- function(object, connectivity, zlocation = NULL, sample){
+  
+  # get sample and layer
+  cursample <- object[[sample]]
+  
+  # update z location/coordinates
+  if(!is.null(zlocation)){
+    cursample@zlocation[names(cursample@zlocation)] <- zlocation
+  }
+  
+  # update adjacency
+  adjacency <- cursample@adjacency
+  for(i in 1:nrow(connectivity)){
+    adjacency[connectivity[i,1], connectivity[i,2]] <- 
+      adjacency[connectivity[i,2], connectivity[i,1]] <- 1
+  }
+  cursample@adjacency <- adjacency
+  
+  # return sample
+  object[[sample]] <- cursample
+  
+  # return
+  return(object)
+}
+
+#' getBlockConnectivity
+#'
+#' get connected assays
+#'
+#' @param object a VoltRon object
+#' @param connectivity a metadata of edges representing connected layers within a block
+#' @param zlocation 
+#' @param sample sample name
+#'
+#' @importFrom igraph components graph_from_adjacency_matrix
+#' 
+#' @noRd
+getBlockConnectivity <- function(object, assay){
+  
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  
+  # get samples
+  sample_metadata <- SampleMetadata(object)
+  samples <- unique(sample_metadata[assay_names, "Sample"])
+  
+  # get list of connected assays
+  assay_list <- list()
+  for(samp in samples){
+    cur_sample_metadata <- sample_metadata[sample_metadata$Sample == samp,]
+    cur_assaynames <- assay_names[assay_names %in% rownames(cur_sample_metadata)]
+    cur_sections <- cur_sample_metadata[cur_assaynames, "Layer"]
+    adjacency <- object[[samp]]@adjacency
+    adjacency <- adjacency[match(cur_sections,rownames(adjacency)), match(cur_sections,rownames(adjacency))]
+    colnames(adjacency) <- rownames(adjacency) <- cur_assaynames
+    components <- igraph::components(igraph::graph_from_adjacency_matrix(adjacency))
+    assay_list <- c(assay_list, split(names(components$membership), components$membership))
+  }
+  
+  # return list
+  assay_list
 }
 
 ### Object Methods ####

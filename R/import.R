@@ -165,7 +165,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
       }
 
       # add connectivity of spatial points across assays
-      object <- addConnectivity(object,
+      object <- addLayerConnectivity(object,
                                 connectivity = connectivity,
                                 sample = sample.metadata["Assay1", "Sample"],
                                 layer = sample.metadata["Assay1", "Layer"])
@@ -555,7 +555,7 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
   # add connectivity of spatial points across assays
   connectivity <- cbind(vrSpatialPoints(object, assay = assay_name),
                         vrSpatialPoints(object, assay = paste(assay_name, "NegProbe", sep = "_")))
-  object <- addConnectivity(object,
+  object <- addLayerConnectivity(object,
                             connectivity = connectivity,
                             sample = sample.metadata["Assay1", "Sample"],
                             layer = sample.metadata["Assay1", "Layer"])
@@ -1291,7 +1291,7 @@ importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, u
       connectivity[["cell_id"]] <- vrSpatialPoints(cell_object)[connectivity[["cell_id"]]]
       
       # add connectivity of spatial points across assays
-      object <- addConnectivity(object,
+      object <- addLayerConnectivity(object,
                                 connectivity = connectivity,
                                 sample = sample.metadata["Assay1", "Sample"],
                                 layer = sample.metadata["Assay1", "Layer"])
@@ -1697,6 +1697,8 @@ importPhenoCycler <- function(dir.path, assay_name = "PhenoCycler", sample_name 
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom methods as
+#' @importFrom reshape2 melt
+#' 
 #' @export
 importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, image_name = "main", channel_name = "H&E", ...)
 {
@@ -1729,6 +1731,7 @@ importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, i
   # get individual sections as voltron data
   sections <- unique(metadata$n_section)
   zlocation <- zlocation[order(sections)]
+  connectivity <- reshape2::melt(matrix(rep(1, length(sections)^2), nrow = length(sections)))[,1:2]
   sections <- sections[order(sections)]
   vr_data_list <- list()
   message("Creating Layers ...")
@@ -1748,8 +1751,8 @@ importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, i
   sample_name <- ifelse(is.null(sample_name), "Sample", sample_name)
   vr_data <- merge(vr_data_list[[1]], vr_data_list[-1], samples = sample_name)
   
-  # get zlocations of the vrBlock
-  vr_data[[sample_name]]@zlocation[names(vr_data[[sample_name]]@zlocation)] <- zlocation
+  # set zlocations and adjacency of layer in the vrBlock
+  vr_data <- addBlockConnectivity(vr_data, connectivity = connectivity, zlocation = zlocation, sample = sample_name)
   
   # return
   vr_data
@@ -1758,7 +1761,7 @@ importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, i
 ####
 ## DBIT-Seq ####
 ####
-
+ 
 #' importDBITSeq
 #'
 #' Importing DBIT-Seq data
@@ -1822,7 +1825,7 @@ importDBITSeq <- function(path.rna, path.prot = NULL, size = 10, assay_name = "D
     # add connectivity of spatial points across assays
     connectivity <- cbind(vrSpatialPoints(object, assay = "Assay1"),
                           vrSpatialPoints(object, assay = "Assay2"))
-    object <- addConnectivity(object,
+    object <- addLayerConnectivity(object,
                               connectivity = connectivity,
                               sample = sample.metadata["Assay1", "Sample"],
                               layer = sample.metadata["Assay1", "Layer"])

@@ -13,6 +13,7 @@ setOldClass(Classes = c('igraph'))
 #'
 #' @slot layer A list of layers (vrLayer)
 #' @slot zlocation a vector of z coordinates of layers
+#' @slot adjacency an adjacency matrix of connected layers within a block
 #'
 #' @name vrSample-class
 #' @rdname vrSample-class
@@ -22,7 +23,8 @@ vrSample <- setClass(
   Class = 'vrSample',
   slots = c(
     layer = 'list',
-    zlocation = 'numeric'
+    zlocation = 'numeric',
+    adjacency = "matrix"
   )
 )
 
@@ -95,6 +97,7 @@ setMethod(
 #'
 #' @slot layer A list of layers (vrLayer)
 #' @slot zlocation a vector of z coordinates of layers
+#' @slot adjacency an adjacency matrix of connected layers within a block
 #'
 #' @name vrBlock-class
 #' @rdname vrBlock-class
@@ -104,7 +107,8 @@ vrBlock <- setClass(
   Class = 'vrBlock',
   slots = c(
     layer = 'list',
-    zlocation = 'numeric'
+    zlocation = 'numeric', 
+    adjacency = "matrix"
   )
 )
 
@@ -333,6 +337,7 @@ subset.vrSample <- function(object, subset, assays = NULL, spatialpoints = NULL,
     catch_connect <- try(slot(object, name = "zlocation"), silent = TRUE)
     if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
       object@zlocation <- object@zlocation[ind]
+      object@adjacency <- object@adjacency[ind, ind, drop = FALSE]
     }
     
     # return object
@@ -527,7 +532,7 @@ subset.Connectivity <- function(object, spatialpoints = NULL){
 #'
 #' get spatial points connected to other spatial points in the connectivity graph of vrLayer
 #'
-#' @param object the connectivity graph of the vrLayer
+#' @param object A vrLayer object
 #' @param spatialpoints the set of spatial points
 #'
 #' @importFrom igraph neighborhood V vcount

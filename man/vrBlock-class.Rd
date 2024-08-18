@@ -14,5 +14,7 @@ The vrBlock (VoltRon Block) Class
 \item{\code{layer}}{A list of layers (vrLayer)}
 
 \item{\code{zlocation}}{a vector of z coordinates of layers}
+
+\item{\code{adjacency}}{an adjacency matrix of connected layers within a block}
 }}
 
