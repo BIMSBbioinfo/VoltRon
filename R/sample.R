@@ -91,16 +91,16 @@ setMethod(
 
 ## vrBlock ####
 
-#' The vrSample (VoltRon Sample) Class
+#' The vrBlock (VoltRon Block) Class
 #'
 #' @slot layer A list of layers (vrLayer)
 #' @slot zlocation a vector of z coordinates of layers
 #'
-#' @name vrSample-class
-#' @rdname vrSample-class
-#' @exportClass vrSample
+#' @name vrBlock-class
+#' @rdname vrBlock-class
+#' @exportClass vrBlock
 #'
-vrSample <- setClass(
+vrBlock <- setClass(
   Class = 'vrBlock',
   slots = c(
     layer = 'list',
@@ -330,7 +330,7 @@ subset.vrSample <- function(object, subset, assays = NULL, spatialpoints = NULL,
   if(length(object@layer) > 0){
     
     # get updated adjaceny and distance
-    catch_connect <- try(slot(object, name = "adjacency"), silent = TRUE)
+    catch_connect <- try(slot(object, name = "zlocation"), silent = TRUE)
     if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
       object@zlocation <- object@zlocation[ind]
     }

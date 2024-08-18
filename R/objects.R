@@ -1374,6 +1374,9 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, spati
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
+  
+  # get sample metadata
+  sample_metadata <- SampleMetadata(object)
 
   # get spatial name
   if(!is.null(spatial_name)) 
@@ -1381,8 +1384,21 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, spati
   
   # get all coordinates
   coords <- NULL
-  for(assy in assay_names)
-    coords <- rbind(coords, vrCoordinates(object[[assy]], image_name = image_name, reg = reg))
+  # for(assy in assay_names)
+  #   coords <- rbind(coords, vrCoordinates(object[[assy]], image_name = image_name, reg = reg))
+  for(assy in assay_names){
+    
+    # get coordinates
+    cur_coords <- vrCoordinates(object[[assy]], image_name = image_name, reg = reg)
+    
+    # update zlocation
+    sample_name <- sample_metadata[assy, "Sample"]
+    zlocation <- object[[sample_name]]@zlocation 
+    cur_coords[,"z"] <- rep(zlocation[sample_metadata[assy, "Layer"]], nrow(cur_coords))
+    
+    # merge coordinates
+    coords <- rbind(coords, cur_coords)
+  }
 
   # return image
   return(coords)
