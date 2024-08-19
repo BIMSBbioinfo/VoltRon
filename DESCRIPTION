@@ -11,7 +11,7 @@ SystemRequirements: OpenCV 4.7 (or higher): libopencv-dev (Debian, Ubuntu) or op
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 biocViews:
-Imports: methods, S4Vectors, EBImage, FNN, Matrix, dplyr, ggforce, 
+Imports: methods, S4Vectors, EBImage, FNN, RANN, Matrix, dplyr, ggforce, 
          ggplot2, ggpubr, ggrepel, hdf5r, igraph, irlba, rjson, magick, 
          reshape2, rlang, scales, shiny, shinyjs, stringr, uwot, data.table, 
          RCDT, basilisk, reticulate, sp, ids, waiter, rstudioapi, htmltools

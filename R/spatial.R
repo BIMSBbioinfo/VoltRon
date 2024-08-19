@@ -22,10 +22,12 @@ NULL
 #' @importFrom igraph add_edges simplify make_empty_graph vertices
 #' @importFrom RCDT delaunay
 #' @importFrom FNN get.knn
+#' @importFrom RANN nn2
+#' @importFrom reshape2 melt
 #' @importFrom stats dist
 #'
 #' @export
-getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", radius = numeric(0), 
+getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", k = 10, radius = numeric(0), 
                                 graph.key = method, ...){
 
   # get coordinates
@@ -52,12 +54,17 @@ getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", radiu
                nnedges
              },
              spatialkNN = {
-               nnedges <- FNN::get.knn(cur_coords, k = 1)
-               nnedges <- cbind(1:nrow(cur_coords), nnedges)
-               nnedges <- apply(nnedges, 1, function(x){
-                 do.call(c,lapply(x[-1], function(y) return(c(x[1],y))))
-               })
-               nnedges <- unlist(nnedges)
+               # nnedges <- FNN::get.knn(cur_coords, k = 1)
+               nnedges <- RANN::nn2(cur_coords, k = k + 1)
+               nnedges <- nnedges$nn.idx
+               # nnedges <- cbind(1:nrow(cur_coords), nnedges)
+               # nnedges <- apply(nnedges, 1, function(x){
+               #   do.call(c,lapply(x[-1], function(y) return(c(x[1],y))))
+               # })
+               # nnedges <- unlist(nnedges)
+               nnedges <- reshape2::melt(data.frame(nnedges), id.vars = "X1")
+               nnedges <- subset(nnedges[,c("X1", "value")], value != 0)
+               nnedges <- as.vector(t(as.matrix(nnedges)))
                nnedges <- rownames(cur_coords)[nnedges]
                nnedges
              },
@@ -66,18 +73,19 @@ getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", radiu
                  spot.radius <- vrAssayParams(object[[assy]], param = "nearestpost.distance")
                  radius <- ifelse(is.null(spot.radius), 1, spot.radius)
                }
-               distances <- as.matrix(stats::dist(cur_coords, method = "euclidean"))
-               nnedges <- apply(distances, 1, function(x){
-                 which(x < radius & x > .Machine$double.eps)
-               })
-               nnedges <- mapply(function(x,y) {
-                 do.call(c,lapply(y, function(z) c(x,z)))
-               }, 1:length(nnedges), nnedges)
-               nnedges <- unlist(nnedges)
+               # distances <- as.matrix(stats::dist(cur_coords, method = "euclidean"))
+               # nnedges <- apply(distances, 1, function(x){
+               #   which(x < radius & x > .Machine$double.eps)
+               # })
+               nnedges <- RANN::nn2(cur_coords, searchtype = "radius", radius = radius, k = min(300, sqrt(nrow(cur_coords))/2))
+               nnedges <- nnedges$nn.idx
+               nnedges <- reshape2::melt(data.frame(nnedges), id.vars = "X1")
+               nnedges <- subset(nnedges[,c("X1", "value")], value != 0)
+               nnedges <- as.vector(t(as.matrix(nnedges)))
                nnedges <- rownames(cur_coords)[nnedges]
                nnedges
              })
-    spatialedges_list[[assy]] <- spatialedges
+    spatialedges_list <- c(spatialedges_list, list(spatialedges))
   }
   spatialedges <- unlist(spatialedges_list)
 

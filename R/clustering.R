@@ -13,10 +13,10 @@ NULL
 #' @param object a VoltRon object
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param method the method used for graph construction, SNN or kNN
+#' @param k number of neighbors for kNN
 #' @param data.type the type of embedding used for neighborhood calculation, e.g. raw counts (raw), normalized counts (norm), PCA embeddings (pca), UMAP embeddings (umap) etc.
 #' @param dims the set of dimensions of the embedding data
-#' @param k number of neighbors for kNN
-#' @param method the method used for graph construction, SNN or kNN
 #' @param graph.key the name of the graph
 #' @param ... additional parameters passed to \link{get.knn}
 #'
@@ -25,7 +25,7 @@ NULL
 #'
 #' @export
 #'
-getProfileNeighbors <- function(object, assay = NULL, data.type = "pca", dims = 1:30, k = 10, method = "kNN", graph.key = method, ...){
+getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, data.type = "pca", dims = 1:30, graph.key = method, ...){
 
   # get data
   if(data.type %in% c("raw", "norm")){

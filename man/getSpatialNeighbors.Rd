@@ -8,6 +8,7 @@ getSpatialNeighbors(
   object,
   assay = NULL,
   method = "delaunay",
+  k = 10,
   radius = numeric(0),
   graph.key = method,
   ...

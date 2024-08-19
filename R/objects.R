@@ -53,7 +53,14 @@ setMethod(
     for(samp in sample_names[1:show_length]){
       cat(samp, ": \n", sep = "")
       layers <- unique(sample.metadata$Layer[sample.metadata$Sample == samp])
-      cat("  Layers:", paste(layers, collapse = " "), "\n")
+      # cat("  Layers:", paste(layers, collapse = " "), "\n")
+      layers <- split(layers, ceiling(seq_along(layers)/5))
+      cat("  Layers:", paste(layers[[1]], collapse = " "), "\n")
+      if(length(layers) > 1){
+        for(i in 2:length(layers)){
+          cat("         ", paste(layers[[i]], collapse = " "), "\n")
+        } 
+      }
     }
 
     # get assay names
