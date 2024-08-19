@@ -16,7 +16,6 @@ NULL
 #' @param method the method spatial connectivity: "delaunay", "spatialkNN", "radius"
 #' @param radius When \code{method = "radius"} selected, determines the radius of a neighborhood ball around each spatial point
 #' @param graph.key the name of the graph
-#' @param block.wise if the distances should be calculated for blocks
 #' @param ... additional parameters passed to \link{get.knn}
 #'
 #' @importFrom igraph add_edges simplify make_empty_graph vertices
