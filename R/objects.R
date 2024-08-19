@@ -1169,6 +1169,58 @@ vrEmbeddingNames.VoltRon <- function(object, assay = NULL){
   return(embed_names)
 }
 
+#### Feature ####
+
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays.
+#'
+#' @rdname vrMainFeatureType
+#' @order 2
+#' @export
+vrMainFeatureType.VoltRon <- function(object, assay = NULL){
+  
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  
+  # if assay = all, give a summary
+  if(!is.null(assay)){
+    if(assay == "all"){
+      featuretype_names <- unlist(lapply(rownames(SampleMetadata(object)), function(x) paste(vrMainFeatureType(object[[x]]), collapse = ",")))
+      featuretype_names <- data.frame(Assay = assay_names, Feature = featuretype_names)
+      return(featuretype_names)
+    }
+  }
+  
+  # get assay types
+  featuretype_names <- unlist(lapply(assay_names, function(x) vrMainFeatureType(object[[x]])))
+  
+  # return data
+  featuretype_data <- data.frame(Assay = assay_names, Feature = featuretype_names)
+  
+  # return
+  return(featuretype_data)
+}
+
+#' @param value the name of main feature set
+#'
+#' @rdname vrMainFeatureType
+#' @order 4
+#' @export
+"vrMainFeatureType<-.VoltRon" <- function(object, assay = NULL, value){
+  
+  if(!is.null(assay)){
+    if(length(assay) == 1){
+      vrMainFeatureType(object[[assay]]) <- value
+    } else {
+      stop("You can only set the main feature type of a single assay")
+    }
+  } else {
+    stop("You should define the assay whose main feature type you wanna set, by using 'Assay = <assay name>'")
+  }
+  
+  return(object)
+}
+
 #### Metadata ####
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 

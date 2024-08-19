@@ -16,6 +16,7 @@ setClassUnion("data_matrix", members = c("matrix", "dgCMatrix", "dgRMatrix", "dg
 
 #' The vrAssay (VoltRon Assay) Class
 #'
+#' @slot data the table of counts
 #' @slot rawdata raw count table
 #' @slot normdata normalized count table
 #' @slot featuredata feature metadata
@@ -25,6 +26,7 @@ setClassUnion("data_matrix", members = c("matrix", "dgCMatrix", "dgRMatrix", "dg
 #' @slot type the type of the assay (tile, molecule, cell, spot, ROI)
 #' @slot name the assay name
 #' @slot main_image the key of the main image
+#' @slot main_featureset the key of the main feature set
 #'
 #' @name vrAssay-class
 #' @rdname vrAssay-class
@@ -33,6 +35,7 @@ setClassUnion("data_matrix", members = c("matrix", "dgCMatrix", "dgRMatrix", "dg
 vrAssay <- setClass(
   Class = 'vrAssay',
   slots = c(
+    data = "list",
     rawdata = 'data_matrix',
     normdata = 'data_matrix',
     featuredata = 'data.frame',
@@ -41,7 +44,8 @@ vrAssay <- setClass(
     params = "list",
     type = "character",
     name = "character",
-    main_image = "character"
+    main_image = "character",
+    main_featureset = "character"
   )
 )
 
@@ -74,13 +78,15 @@ setMethod(
 #' @param type the type of the assay (tile, molecule, cell, spot or ROI)
 #' @param name the name of the assay
 #' @param main_image the name of the main_image
+#' @param main_featureset the name of the main_featureset
 #' @param ... additional arguements passed to \link{formImage}
 #'
 #' @importFrom methods new
 #'
 #' @export
 #'
-formAssay <- function(data = NULL, coords, segments = list(), image = NULL, params = list(), type = "ROI", name = "Assay1", main_image = "image_1", ...){
+formAssay <- function(data = NULL, coords, segments = list(), image = NULL, params = list(), type = "ROI", name = "Assay1", 
+                      main_image = "image_1", main_featureset = "main", ...){
 
   # get data
   if(is.null(data)){
@@ -94,8 +100,14 @@ formAssay <- function(data = NULL, coords, segments = list(), image = NULL, para
   names(image) <- main_image
 
   # make vrAssay object
-  methods::new("vrAssay", rawdata = data, normdata = data,
-               image = image, params = params, type = type, name = name, main_image = main_image)
+  # methods::new("vrAssay", 
+  #              rawdata = data, normdata = data,
+  #              image = image, params = params, type = type, name = name, main_image = main_image)
+  methods::new("vrAssay", 
+               data = list(main = data, main_norm = data), 
+               rawdata = data, normdata = data,
+               image = image, params = params, type = type, name = name, 
+               main_image = main_image, main_featureset = main_featureset)
 }
 
 ### Subset vrAssay objects ####
@@ -727,4 +739,24 @@ vrEmbeddings.vrAssay <- function(object, type = "pca", dims = 1:30) {
 #' @export
 vrEmbeddingNames.vrAssay <- function(object){
   return(names(object@embeddings))
+}
+
+#' @rdname vrMainFeatureType
+#' @order 3
+#' @export
+vrMainFeatureType.vrAssay <- function(object){
+  return(object@main_featureset)
+}
+
+#' @rdname vrMainFeatureType
+#' @order 5
+#' @export
+"vrMainFeatureType<-.vrAssay" <- function(object, value){
+  
+  if(value %in% names(object@data)){
+    object@main_featureset <- value
+  } else {
+    stop("the feature type '", value, "' is not found in the assay!") 
+  }
+  return(object)
 }

@@ -260,6 +260,36 @@ vrEmbeddings <- function(object, assay = NULL, type = "pca", dims = 1:30) {
 }
 
 ####
+# Feature ####
+####
+
+#' vrMainFeatureType
+#'
+#' Get the main feature type
+#'
+#' @param object a VoltRon or vrAssay object
+#'
+#' @rdname vrMainFeatureType
+#' @export vrMainFeatureType
+#' @order 1
+vrMainFeatureType <- function(object, assay = NULL) {
+  UseMethod(generic = 'vrMainFeatureType', object = object)
+}
+
+#' vrMainFeatureType
+#'
+#' Set the main image
+#'
+#' @param value the name of main image
+#'
+#' @rdname vrMainFeatureType
+#' @export vrMainFeatureType<-
+#' @noRd
+"vrMainFeatureType<-" <- function(object, assay = NULL, value) {
+  UseMethod(generic = 'vrMainFeatureType<-', object = object)
+}
+
+####
 # Spatial ####
 ####
 
