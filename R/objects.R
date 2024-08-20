@@ -70,6 +70,13 @@ setMethod(
     unique_assays <- unique_assays[c(which(unique_assays == main.assay),which(unique_assays != main.assay))]
     unique_assays[1] <- paste0(unique_assays[1], "(Main)")
     cat("Assays:", paste(unique_assays, collapse = " "), "\n")
+    
+    # print features
+    main.feat <- vrMainFeatureType(object)
+    unique_features <- vrFeatureTypeNames(object)
+    unique_features <- unique_features[c(which(unique_features == main.feat),which(unique_features != main.feat))]
+    unique_features[1] <- paste0(unique_features[1], "(Main)")
+    cat("Features:", paste(unique_features, collapse = " "), "\n")
 
     # return invisible
     return(invisible(x = NULL))
@@ -1219,6 +1226,31 @@ vrMainFeatureType.VoltRon <- function(object, assay = NULL){
   }
   
   return(object)
+}
+
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays
+#'
+#' @rdname vrFeatureTypeNames
+#'
+#' @export
+vrFeatureTypeNames.VoltRon <- function(object, assay = NULL){
+  
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  
+  # if assay = all, give a summary
+  if(!is.null(assay)){
+    if(assay == "all"){
+      feature_names <- unlist(lapply(assay_names, function(x) paste(vrFeatureTypeNames(object[[x]]), collapse = ",")))
+      feature_names <- data.frame(Assay = assay_names, Feature = feature_names)
+      return(feature_names)
+    }
+  }
+  
+  feature_names <- unique(unlist(lapply(assay_names, function(x) vrFeatureTypeNames(object[[x]]))))
+  
+  return(feature_names)
 }
 
 #### Metadata ####

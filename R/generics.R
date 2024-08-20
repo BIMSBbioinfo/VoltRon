@@ -289,6 +289,19 @@ vrMainFeatureType <- function(object, assay = NULL) {
   UseMethod(generic = 'vrMainFeatureType<-', object = object)
 }
 
+#' vrFeatureTypeNames
+#'
+#' Get the names of the feature types
+#'
+#' @param object a VoltRon or vrAssay object
+#'
+#' @rdname vrFeatureTypeNames
+#' @export vrFeatureTypeNames
+#' @order 1
+vrFeatureTypeNames <- function(object, assay = NULL) {
+  UseMethod(generic = 'vrFeatureTypeNames', object = object)
+}
+
 ####
 # Spatial ####
 ####

@@ -898,3 +898,10 @@ vrMainFeatureType.vrAssay <- function(object){
   }
   return(object)
 }
+
+#' @rdname vrFeatureTypeNames
+#'
+#' @export
+vrFeatureTypeNames.vrAssay <- function(object){
+  return(names(object@data))
+}

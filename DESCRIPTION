@@ -25,7 +25,6 @@ Collate:
     'generics.R'
     'clustering.R'
     'conversion.R'
-    'data.R'
     'deconvolution.R'
     'differentialexpression.R'
     'image.R'
