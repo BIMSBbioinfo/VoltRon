@@ -1242,14 +1242,18 @@ vrMainFeatureType.VoltRon <- function(object, assay = NULL){
 #' @export
 "vrMainFeatureType<-.VoltRon" <- function(object, assay = NULL, value){
   
-  if(!is.null(assay)){
-    if(length(assay) == 1){
-      vrMainFeatureType(object[[assay]]) <- value
-    } else {
-      stop("You can only set the main feature type of a single assay")
-    }
+  # sample metadata
+  sample_metadata <- SampleMetadata(object)
+  
+  # assays 
+  assay_names <- vrAssayNames(object, assay = assay)
+  unique_assays <- unique(sample_metadata[assay_names, "Assay"])
+  if(length(unique_assays) > 1){
+    stop("You can only set the main feature type of a single assay type")
   } else {
-    stop("You should define the assay whose main feature type you wanna set, by using 'Assay = <assay name>'")
+    for(assy in assay_names){
+      vrMainFeatureType(object[[assy]]) <- value
+    }
   }
   
   return(object)
