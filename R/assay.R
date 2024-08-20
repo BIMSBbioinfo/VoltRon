@@ -336,14 +336,17 @@ subsetData <- function(object, spatialpoints = NULL, features = NULL){
     catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
     catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
     if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
-      
-      main_feat <- vrMainFeatureType(object)
-      object@data[[main_feat]] <- object@data[[main_feat]][rownames(object@data[[main_feat]]) %in% features,, drop = FALSE]
-      object@data[[paste0(main_feat, "_norm")]] <- object@data[[paste0(main_feat, "_norm")]][rownames(object@data[[paste0(main_feat, "_norm")]]) %in% features,, drop = FALSE]
-      
-    } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
-      object@rawdata <- object@rawdata[rownames(object@rawdata) %in% features,, drop = FALSE]
-      object@normdata <- object@normdata[rownames(object@normdata) %in% features,, drop = FALSE]
+      for(nm in vrFeatureTypeNames(object)){
+        object@data[[nm]] <- object@data[[nm]][rownames(object@data[[nm]]) %in% features,, drop = FALSE]
+        object@data[[paste0(nm, "_norm")]] <- object@data[[paste0(nm, "_norm")]][rownames(object@data[[paste0(nm, "_norm")]]) %in% features,, drop = FALSE]
+      }
+    } 
+    
+    if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
+      if(nrow(object@rawdata) > 0){
+        object@rawdata <- object@rawdata[rownames(object@rawdata) %in% features,, drop = FALSE]
+        object@normdata <- object@normdata[rownames(object@normdata) %in% features,, drop = FALSE] 
+      }
     }
   }
   
@@ -354,14 +357,16 @@ subsetData <- function(object, spatialpoints = NULL, features = NULL){
     catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
     catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
     if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
-      
-      main_feat <- vrMainFeatureType(object)
-      object@data[[main_feat]] <- object@data[[main_feat]][,colnames(object@data[[main_feat]]) %in% spatialpoints, drop = FALSE]
-      object@data[[paste0(main_feat, "_norm")]] <- object@data[[paste0(main_feat, "_norm")]][,colnames(object@data[[paste0(main_feat, "_norm")]]) %in% spatialpoints, drop = FALSE]
-      
-    } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
-      object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
-      object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE]
+      for(nm in vrFeatureTypeNames(object)){
+        object@data[[nm]] <- object@data[[nm]][,colnames(object@data[[nm]]) %in% spatialpoints, drop = FALSE]
+        object@data[[paste0(nm, "_norm")]] <- object@data[[paste0(nm, "_norm")]][,colnames(object@data[[paste0(nm, "_norm")]]) %in% spatialpoints, drop = FALSE]
+      }
+    } 
+    if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
+      if(nrow(object@rawdata) > 0){
+        object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
+        object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE] 
+      }
     }
   }
   
@@ -410,11 +415,13 @@ updateData <- function(object, value){
     }
   } 
   if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
-    colnames(object@rawdata) <- value
-    colnames(object@normdata) <- value
+    if(ncol(object@rawdata) > 0){
+      colnames(object@rawdata) <- value
+      colnames(object@normdata) <- value 
+    }
   }
   
-  return(data)
+  return(object)
 }
 
 ### Feature Methods ####
@@ -519,7 +526,7 @@ vrSpatialPoints.vrAssay <- function(object) {
     stop("The number of spatial points is not matching with the input")
   } else {
     # if(ncol(object@rawdata) > 0){
-    if(ncol(getdata) > 0){
+    if(ncol(getData(object)) > 0){
       # colnames(object@rawdata) <- value
       # colnames(object@normdata) <- value
       object <- updateData(object, value)

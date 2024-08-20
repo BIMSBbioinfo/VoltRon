@@ -46,21 +46,21 @@ getDeconvolution <- function(object, assay = NULL, features = NULL, sc.object, s
       rawdata <- getDeconSingle(object = cur_assay, features = features, reference = reference, method = method, ...)
 
       # create new assay
-      cat("Adding cell type compositions as new assay:", paste(sample.metadata[assy, "Assay"], "decon", sep = "_"), "...\n")
-      spatialpoints <- colnames(rawdata)
-      new_assay <- formAssay(data = rawdata,
-                             coords = vrCoordinates(cur_assay)[spatialpoints,], segments = vrSegments(cur_assay)[spatialpoints],
-                             image = vrImages(cur_assay), type = cur_assay@type, params = cur_assay@params, name = cur_assay@name, main_image = cur_assay@main_image)
-      new_assay@image <- cur_assay@image
-      new_assay <- subset(new_assay, spatialpoints = spatialpoints)
-
-      # add the new assay
-      object <- addAssay(object,
-                         assay = new_assay,
-                         metadata = Metadata(object, assay = assy)[spatialpoints,],
-                         assay_name = paste(sample.metadata[assy, "Assay"], "decon", sep = "_"),
-                         sample = sample.metadata[assy, "Sample"],
-                         layer = sample.metadata[assy, "Layer"])
+      # cat("Adding cell type compositions as new assay:", paste(sample.metadata[assy, "Assay"], "decon", sep = "_"), "...\n")
+      # spatialpoints <- colnames(rawdata)
+      # new_assay <- formAssay(data = rawdata,
+      #                        coords = vrCoordinates(cur_assay)[spatialpoints,], segments = vrSegments(cur_assay)[spatialpoints],
+      #                        image = vrImages(cur_assay), type = cur_assay@type, params = cur_assay@params, name = cur_assay@name, main_image = cur_assay@main_image)
+      # new_assay@image <- cur_assay@image
+      # new_assay <- subset(new_assay, spatialpoints = spatialpoints)
+      # 
+      # # add the new assay
+      # object <- addAssay(object,
+      #                    assay = new_assay,
+      #                    metadata = Metadata(object, assay = assy)[spatialpoints,],
+      #                    assay_name = paste(sample.metadata[assy, "Assay"], "decon", sep = "_"),
+      #                    sample = sample.metadata[assy, "Sample"],
+      #                    layer = sample.metadata[assy, "Layer"])
 
       # add connectivity of spatial points across assays
       # connectivity <- cbind(vrSpatialPoints, spatialpoints)
@@ -68,6 +68,9 @@ getDeconvolution <- function(object, assay = NULL, features = NULL, sc.object, s
       #                           connectivity = connectivity,
       #                           sample = sample.metadata["Assay1", "Sample"],
       #                           layer = sample.metadata["Assay1", "Layer"])
+      
+      # add cell type mixtures as new featureset
+      object <- addFeature(object, assay = assy, data = rawdata, feature_name = "Decon")
     }
   }
 
