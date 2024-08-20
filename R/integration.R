@@ -266,17 +266,18 @@ getCellsFromTiles <- function(from_object, from_metadata = NULL, to_object, feat
   aggregate_raw_counts[is.na(aggregate_raw_counts)] <- 0
 
   # create new assay
-  new_assay <- formAssay(data = aggregate_raw_counts,
-                         coords = vrCoordinates(to_object)[colnames(aggregate_raw_counts),],
-                         image = vrImages(to_object),
-                         type = vrAssayTypes(to_object),
-                         main_image = to_object@main_image,
-                         params = to_object@params)
-  new_assay@image <- to_object@image
-  new_assay <- subset(new_assay, spatialpoints = colnames(aggregate_raw_counts))
+  # new_assay <- formAssay(data = aggregate_raw_counts,
+  #                        coords = vrCoordinates(to_object)[colnames(aggregate_raw_counts),],
+  #                        image = vrImages(to_object),
+  #                        type = vrAssayTypes(to_object),
+  #                        main_image = to_object@main_image,
+  #                        params = to_object@params)
+  # new_assay@image <- to_object@image
+  # new_assay <- subset(new_assay, spatialpoints = colnames(aggregate_raw_counts))
 
   # return
-  return(new_assay)
+  # return(new_assay)
+  return(aggregate_raw_counts)
 }
 
 transferLabelsFromROI <- function(from_object, from_metadata = NULL, to_object, to_metadata = NULL, features = NULL) {
