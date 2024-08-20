@@ -83,16 +83,20 @@ transferFeatureData <- function(object, from = NULL, to = NULL, features = NULL,
   } 
 
   # add new assay
+  # if(is.null(new_assay_name)){
+  #   new_assay_name <- paste(SampleMetadata(object)[to, "Assay"], "pseudo", sep = "_")
+  # }
+  # cat("Adding cell type compositions as new assay:", new_assay_name, "\n")
+  # object <- addAssay(object,
+  #                    assay = new_assay,
+  #                    metadata = to_metadata[vrSpatialPoints(new_assay),],
+  #                    assay_name = new_assay_name,
+  #                    sample = SampleMetadata(object)[to, "Sample"],
+  #                    layer = SampleMetadata(object)[to, "Layer"])
   if(is.null(new_assay_name)){
-    new_assay_name <- paste(SampleMetadata(object)[to, "Assay"], "pseudo", sep = "_")
+    new_assay_name <- paste(vrMainFeatureType(object, assay = from)$Feature, "pseudo", sep = "_")
   }
-  cat("Adding cell type compositions as new assay:", new_assay_name, "\n")
-  object <- addAssay(object,
-                     assay = new_assay,
-                     metadata = to_metadata[vrSpatialPoints(new_assay),],
-                     assay_name = new_assay_name,
-                     sample = SampleMetadata(object)[to, "Sample"],
-                     layer = SampleMetadata(object)[to, "Layer"])
+  object <- addFeature(object, assay = to, data = new_assay, feature_name = new_assay_name)
 
   # return
   object
@@ -220,17 +224,18 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
   # for(img in vrImageNames(to_object)){
   #   images[[img]] <- magick::image_data(vrImages(to_object, name = img))
   # }
-  new_assay <- formAssay(data = aggregate_raw_counts,
-                         coords = vrCoordinates(to_object)[colnames(aggregate_raw_counts),],
-                         image = vrImages(to_object),
-                         type = vrAssayTypes(to_object),
-                         main_image = to_object@main_image,
-                         params = to_object@params)
-  new_assay@image <- to_object@image
-  new_assay <- subset(new_assay, spatialpoints = colnames(aggregate_raw_counts))
+  # new_assay <- formAssay(data = aggregate_raw_counts,
+  #                        coords = vrCoordinates(to_object)[colnames(aggregate_raw_counts),],
+  #                        image = vrImages(to_object),
+  #                        type = vrAssayTypes(to_object),
+  #                        main_image = to_object@main_image,
+  #                        params = to_object@params)
+  # new_assay@image <- to_object@image
+  # new_assay <- subset(new_assay, spatialpoints = colnames(aggregate_raw_counts))
 
   # return
-  return(new_assay)
+  # return(new_assay)
+  return(aggregate_raw_counts)
 }
 
 getCellsFromTiles <- function(from_object, from_metadata = NULL, to_object, features = NULL, k = 5) {

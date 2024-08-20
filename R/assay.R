@@ -473,16 +473,16 @@ addFeature.vrAssay <- function(object, data, feature_name){
     stop(paste0("Feature type '", feature_name, "' already exists in the assay."))
   }
   
-  # check spatial points
-  spatialpoints <- vrSpatialPoints(object)
-  if(length(vrSpatialPoints(object)) != ncol(data)){
-    stop("The number of spatial points is not matching with number of points in the input data")
-  } 
-  
   # check spatial point names in the object
   colnames_data <- colnames(data)
   colnames_data <- stringr::str_remove(colnames_data, pattern = "_Assay[0-9]+$")
   colnames(data) <- paste0(colnames_data, "_", vrAssayNames(object))
+  
+  # check spatial points
+  spatialpoints <- vrSpatialPoints(object)
+  if(length(setdiff(colnames(data), vrSpatialPoints(object))) > 0){
+    stop("The number of spatial points is not matching with number of points in the input data")
+  } 
 
   # add new features
   feature_list_name <- names(object@data)
