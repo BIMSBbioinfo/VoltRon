@@ -100,7 +100,9 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   }
 
   # create VoltRon object for cells
-  cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, segments = segments, main.assay = assay_name, assay.type = "cell", image_name = image_name, main_channel = channel_name, sample_name = sample_name, ...)
+  cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, segments = segments, main.assay = assay_name, 
+                             assay.type = "cell", image_name = image_name, main_channel = channel_name, sample_name = sample_name, 
+                             feature_name = ifelse(selected_assay == "Gene Expression", "RNA", "main"), ...)
 
   # molecule assay
   if(!import_molecules){
@@ -340,7 +342,9 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   }
 
   # create VoltRon
-  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", image_name = image_name, main_channel = channel_name, sample_name = sample_name, ...)
+  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", 
+              image_name = image_name, main_channel = channel_name, sample_name = sample_name, 
+              feature_name = ifelse(selected_assay == "Gene Expression", "RNA", "main"), ...)
 }
 
 ####
@@ -535,28 +539,32 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
   }
 
   # create VoltRon for non-negative probes
-  object <- formVoltRon(rawdata, metadata = segmentsummary, image, coords, segments, main.assay = assay_name, assay.type = "ROI", ...)
+  object <- formVoltRon(rawdata, metadata = segmentsummary, image, coords, segments, main.assay = assay_name, assay.type = "ROI", 
+                        feature_name = "RNA", ...)
 
-  # add negative probe assay
-  new_assay <- formAssay(data = rawdata_neg,
-                         coords = coords, segments = segments,
-                         image = image, type = "ROI")
-  new_assay@image <- object[["Assay1"]]@image
-  sample.metadata <- SampleMetadata(object)
-  object <- addAssay(object,
-                     assay = new_assay,
-                     metadata = Metadata(object),
-                     assay_name = paste(sample.metadata["Assay1", "Assay"], "NegProbe", sep = "_"),
-                     sample = sample.metadata["Assay1", "Sample"],
-                     layer = sample.metadata["Assay1", "Layer"])
-
-  # add connectivity of spatial points across assays
-  connectivity <- cbind(vrSpatialPoints(object, assay = assay_name),
-                        vrSpatialPoints(object, assay = paste(assay_name, "NegProbe", sep = "_")))
-  object <- addConnectivity(object,
-                            connectivity = connectivity,
-                            sample = sample.metadata["Assay1", "Sample"],
-                            layer = sample.metadata["Assay1", "Layer"])
+  # # add negative probe assay
+  # new_assay <- formAssay(data = rawdata_neg,
+  #                        coords = coords, segments = segments,
+  #                        image = image, type = "ROI")
+  # new_assay@image <- object[["Assay1"]]@image
+  # sample.metadata <- SampleMetadata(object)
+  # object <- addAssay(object,
+  #                    assay = new_assay,
+  #                    metadata = Metadata(object),
+  #                    assay_name = paste(sample.metadata["Assay1", "Assay"], "NegProbe", sep = "_"),
+  #                    sample = sample.metadata["Assay1", "Sample"],
+  #                    layer = sample.metadata["Assay1", "Layer"])
+  # 
+  # # add connectivity of spatial points across assays
+  # connectivity <- cbind(vrSpatialPoints(object, assay = assay_name),
+  #                       vrSpatialPoints(object, assay = paste(assay_name, "NegProbe", sep = "_")))
+  # object <- addConnectivity(object,
+  #                           connectivity = connectivity,
+  #                           sample = sample.metadata["Assay1", "Sample"],
+  #                           layer = sample.metadata["Assay1", "Layer"])
+  
+  # add negative probe assay as new feature set
+  object <- addFeature(object, assay = assay_name, data = rawdata_neg, feature_name = "NegProbe")
 
   # return
   return(object)
@@ -1015,7 +1023,8 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
     cur_metadata <- metadata[rownames(cur_coords),]
 
     # create VoltRon object
-    cell_object <- formVoltRon(data = cur_counts, metadata = cur_metadata, image = image, coords = cur_coords, main.assay = assay_name, assay.type = "cell", image_name = image_name, ...)
+    cell_object <- formVoltRon(data = cur_counts, metadata = cur_metadata, image = image, coords = cur_coords, 
+                               main.assay = assay_name, assay.type = "cell", image_name = image_name, main_featureset = "RNA", ...)
     cell_object$Sample <- paste0("Slide", slide)
 
     # molecule assay
@@ -1232,7 +1241,9 @@ importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, u
   }
   
   # create VoltRon object for cells
-  cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, main.assay = assay_name, assay.type = "cell", image_name = image_name, main_channel = channel_name, sample_name = sample_name, ...)
+  cell_object <- formVoltRon(rawdata, metadata = NULL, image = image, coords, main.assay = assay_name, 
+                             assay.type = "cell", image_name = image_name, main_channel = channel_name, sample_name = sample_name, 
+                             feature_name = "RNA", ...)
   
   # add molecules
   if(!import_molecules){
@@ -1355,7 +1366,8 @@ importSTOmics <- function(h5ad.path, assay_name = "STOmics", sample_name = NULL,
     vis.spot.radius = 0.5 + (binsize-1))
   
   # create VoltRon
-  formVoltRon(rawdata, metadata = metadata, coords = coords, main.assay = assay_name, params = params, assay.type = "spot", image_name = image_name, main_channel = channel_name, sample_name = sample_name, ...)
+  formVoltRon(rawdata, metadata = metadata, coords = coords, main.assay = assay_name, params = params, assay.type = "spot", 
+              image_name = image_name, main_channel = channel_name, sample_name = sample_name, feature_name = "RNA", ...)
 }
 
 ####
@@ -1365,6 +1377,91 @@ importSTOmics <- function(h5ad.path, assay_name = "STOmics", sample_name = NULL,
 ####
 ## PhenoCycler ####
 ####
+
+#' importPhenoCycler
+#'
+#' Importing PhenoCycler data
+#' 
+#' @param dir.path path to PhenoCycler output folder
+#' @param assay_name the assay name of the SR object
+#' @param sample_name the name of the sample
+#' @param image_name the image name of the Xenium assay, Default: main
+#' @param type Specify which type matrix is being provided.
+#' \itemize{
+#'  \item \dQuote{\code{processor}}: matrix generated by CODEX Processor
+#'  \item \dQuote{\code{inform}}: matrix generated by inForm
+#'  \item \dQuote{\code{qupath}}: matrix generated by QuPath
+#' }
+#' @param filter A pattern to filter features by; pass \code{NA} to skip feature filtering
+#' @param inform.quant When \code{type} is \dQuote{\code{inform}}, the quantification level to read in 
+#' @param ... additional parameters passed to \link{formVoltRon} 
+#' 
+#' @importFrom magick image_info image_read
+#'
+#' @export
+importPhenoCycler <- function(dir.path, assay_name = "PhenoCycler", sample_name = NULL, image_name = "main", 
+                              type = c('inform', 'processor', 'qupath'), filter = 'DAPI|Blank|Empty', inform.quant = c('mean', 'total', 'min', 'max', 'std'), ...){
+  
+  # raw counts, metadata and coordinates 
+  listoffiles <- list.files(paste0(dir.path, "/processed/segm/segm-1/fcs/compensated/"), full.names = TRUE)
+  datafile <- listoffiles[grepl("_compensated.csv$", listoffiles)][1]
+  if(file.exists(datafile)){
+    rawdata <- readPhenoCyclerMat(filename = datafile, type = type, filter = filter, inform.quant = inform.quant)
+  } else {
+    stop("There are no files named ending with '_compensated.csv' in the processed/segm/segm-1/fcs/compensated/ subfolder")
+  }
+  
+  # cell id 
+  cellid <- paste0("cell", colnames(rawdata$matrix))
+  
+  # coordinates
+  coords <- rawdata$centroids[,c("x", "y")]
+  rownames(coords) <- cellid
+  coords <- as.matrix(coords)
+  
+  # metadata
+  metadata <- rawdata$metadata
+  rownames(metadata) <- cellid
+  
+  # data
+  rawdata <- rawdata$matrix
+  colnames(rawdata) <- cellid
+  rownames(rawdata) <- gsub("(\t|\r|\n)", "", rownames(rawdata))
+  
+  # images 
+  image_dir <- paste0(dir.path, "/processed/stitched/reg001/")
+  list_files <- list.files(image_dir)
+  if(!dir.exists(image_dir)){
+    message("There are no images of channels!")
+    image_list <- NULL
+  } else {
+    if(!any(grepl(".tif$", list_files))){
+      stop("The folder doesnt have any images associated with channels!")
+    } else{
+      image_channel_names <- sapply(list_files, function(x) {
+        name <- strsplit(x, split = "_")[[1]]
+        name <- gsub(".tif$", "", name[length(name)])
+        name <- make.unique(name)
+        return(name)
+      })
+      image_channel_names <- c(image_channel_names[grepl("DAPI", image_channel_names)][1], 
+                               image_channel_names[image_channel_names %in% rownames(rawdata)])
+      list_files <- names(image_channel_names)
+      image_list <- lapply(list_files, function(x){
+        magick::image_read(paste0(image_dir, "/", x))
+      })
+      names(image_list) <- image_channel_names   
+      coords[,2] <- magick::image_info(image_list[[1]])$height - coords[,2]
+    }
+  }
+  
+  # voltron object
+  object <- formVoltRon(data = rawdata, metadata = metadata, image = image_list, coords = coords, assay.type = "cell", 
+                        sample_name = sample_name, main.assay = assay_name, image_name = image_name, feature_name = "RNA", ...)
+  
+  # return
+  object
+}
 
 #' readPhenoCyclerMat
 #' 
@@ -1590,90 +1687,6 @@ readPhenoCyclerMat <- function(
   return(outs)
 }
 
-
-#' Title
-#'
-#' @param dir.path path to PhenoCycler output folder
-#' @param assay_name the assay name of the SR object
-#' @param sample_name the name of the sample
-#' @param image_name the image name of the Xenium assay, Default: main
-#' @param type Specify which type matrix is being provided.
-#' \itemize{
-#'  \item \dQuote{\code{processor}}: matrix generated by CODEX Processor
-#'  \item \dQuote{\code{inform}}: matrix generated by inForm
-#'  \item \dQuote{\code{qupath}}: matrix generated by QuPath
-#' }
-#' @param filter A pattern to filter features by; pass \code{NA} to skip feature filtering
-#' @param inform.quant When \code{type} is \dQuote{\code{inform}}, the quantification level to read in 
-#' @param ... additional parameters passed to \link{formVoltRon} 
-#' 
-#' @importFrom magick image_info image_read
-#'
-#' @export
-importPhenoCycler <- function(dir.path, assay_name = "PhenoCycler", sample_name = NULL, image_name = "main", 
-                              type = c('inform', 'processor', 'qupath'), filter = 'DAPI|Blank|Empty', inform.quant = c('mean', 'total', 'min', 'max', 'std'), ...){
-  
-  # raw counts, metadata and coordinates 
-  listoffiles <- list.files(paste0(dir.path, "/processed/segm/segm-1/fcs/compensated/"), full.names = TRUE)
-  datafile <- listoffiles[grepl("_compensated.csv$", listoffiles)][1]
-  if(file.exists(datafile)){
-    rawdata <- readPhenoCyclerMat(filename = datafile, type = type, filter = filter, inform.quant = inform.quant)
-  } else {
-    stop("There are no files named ending with '_compensated.csv' in the processed/segm/segm-1/fcs/compensated/ subfolder")
-  }
-  
-  # cell id 
-  cellid <- paste0("cell", colnames(rawdata$matrix))
-  
-  # coordinates
-  coords <- rawdata$centroids[,c("x", "y")]
-  rownames(coords) <- cellid
-  coords <- as.matrix(coords)
-  
-  # metadata
-  metadata <- rawdata$metadata
-  rownames(metadata) <- cellid
-  
-  # data
-  rawdata <- rawdata$matrix
-  colnames(rawdata) <- cellid
-  rownames(rawdata) <- gsub("(\t|\r|\n)", "", rownames(rawdata))
-  
-  # images 
-  image_dir <- paste0(dir.path, "/processed/stitched/reg001/")
-  list_files <- list.files(image_dir)
-  if(!dir.exists(image_dir)){
-    message("There are no images of channels!")
-    image_list <- NULL
-  } else {
-    if(!any(grepl(".tif$", list_files))){
-      stop("The folder doesnt have any images associated with channels!")
-    } else{
-      image_channel_names <- sapply(list_files, function(x) {
-        name <- strsplit(x, split = "_")[[1]]
-        name <- gsub(".tif$", "", name[length(name)])
-        name <- make.unique(name)
-        return(name)
-      })
-      image_channel_names <- c(image_channel_names[grepl("DAPI", image_channel_names)][1], 
-                               image_channel_names[image_channel_names %in% rownames(rawdata)])
-      list_files <- names(image_channel_names)
-      image_list <- lapply(list_files, function(x){
-        magick::image_read(paste0(image_dir, "/", x))
-      })
-      names(image_list) <- image_channel_names   
-      coords[,2] <- magick::image_info(image_list[[1]])$height - coords[,2]
-    }
-  }
-  
-  # voltron object
-  object <- formVoltRon(data = rawdata, metadata = metadata, image = image_list, coords = coords, assay.type = "cell", 
-                        sample_name = sample_name, main.assay = assay_name, image_name = image_name, ...)
-  
-  # return
-  object
-}
-
 ####
 # Non-Commercial ####
 ####
@@ -1736,7 +1749,7 @@ importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, i
     rownames(cur_coords) <- spatialpoints
     vr_data_list[[i]] <- formVoltRon(data = cur_data, metadata = cur_metadata, coords = cur_coords, 
                                      main.assay = assay_name, sample_name = paste0("Section", sections[i]),
-                                     image_name = image_name, main_channel = channel_name)
+                                     image_name = image_name, main_channel = channel_name, feature_name = "RNA", ...)
   }
   
   # create VoltRon
@@ -1787,33 +1800,36 @@ importDBITSeq <- function(path.rna, path.prot = NULL, size = 10, assay_name = "D
   
   # make voltron object
   object <- formVoltRon(data = rnadata, coords = coords, image = NULL, assay.type = "spot", params = params, image_name = "main", 
-                        main.assay = paste0(assay_name, "-RNA"), sample_name = sample_name, ...)
+                        main.assay = assay_name, sample_name = sample_name, feature_name = "RNA", ...)
   
   # add protein assay
   if(!is.null(path.prot)){
    
-    # create protein assay
-    new_assay <- formAssay(data = protdata,
-                           coords = coords,
-                           type = "spot")
-    new_assay@image <- object[["Assay1"]]@image
-    sample.metadata <- SampleMetadata(object)
+    # # create protein assay
+    # new_assay <- formAssay(data = protdata,
+    #                        coords = coords,
+    #                        type = "spot")
+    # new_assay@image <- object[["Assay1"]]@image
+    # sample.metadata <- SampleMetadata(object)
     
-    # add new assay
-    object <- addAssay(object,
-                       assay = new_assay,
-                       metadata = Metadata(object),
-                       assay_name = paste(assay_name, "Prot", sep = "-"),
-                       sample = sample.metadata["Assay1", "Sample"],
-                       layer = sample.metadata["Assay1", "Layer"])
+    # # add new assay
+    # object <- addAssay(object,
+    #                    assay = new_assay,
+    #                    metadata = Metadata(object),
+    #                    assay_name = paste(assay_name, "Prot", sep = "-"),
+    #                    sample = sample.metadata["Assay1", "Sample"],
+    #                    layer = sample.metadata["Assay1", "Layer"])
+    # 
+    # # add connectivity of spatial points across assays
+    # connectivity <- cbind(vrSpatialPoints(object, assay = "Assay1"),
+    #                       vrSpatialPoints(object, assay = "Assay2"))
+    # object <- addConnectivity(object,
+    #                           connectivity = connectivity,
+    #                           sample = sample.metadata["Assay1", "Sample"],
+    #                           layer = sample.metadata["Assay1", "Layer"])
     
-    # add connectivity of spatial points across assays
-    connectivity <- cbind(vrSpatialPoints(object, assay = "Assay1"),
-                          vrSpatialPoints(object, assay = "Assay2"))
-    object <- addConnectivity(object,
-                              connectivity = connectivity,
-                              sample = sample.metadata["Assay1", "Sample"],
-                              layer = sample.metadata["Assay1", "Layer"])
+    # add negative probe assay as new feature set
+    object <- addFeature(object, assay = assay_name, data = protdata, feature_name = "Protein")
     
   }
   

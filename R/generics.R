@@ -263,6 +263,19 @@ vrEmbeddings <- function(object, assay = NULL, type = "pca", dims = 1:30) {
 # Feature ####
 ####
 
+#' addFeature
+#'
+#' add a new feature set to a vrAssay (or VoltRon) object
+#'
+#' @param object a VoltRon or vrAssay object
+#'
+#' @rdname addFeature
+#' @export addFeature
+#' @order 1
+addFeature <- function(object, assay = NULL, data, feature_name) {
+  UseMethod(generic = 'addFeature', object = object)
+}
+
 #' vrMainFeatureType
 #'
 #' Get the main feature type

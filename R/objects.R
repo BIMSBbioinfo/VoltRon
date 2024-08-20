@@ -72,7 +72,7 @@ setMethod(
     cat("Assays:", paste(unique_assays, collapse = " "), "\n")
     
     # print features
-    main.feat <- vrMainFeatureType(object)
+    main.feat <- unique(vrMainFeatureType(object)$Feature)
     unique_features <- vrFeatureTypeNames(object)
     unique_features <- unique_features[c(which(unique_features == main.feat),which(unique_features != main.feat))]
     unique_features[1] <- paste0(unique_features[1], "(Main)")
@@ -317,6 +317,7 @@ setMethod(
 #' @param sample_name the name of the sample
 #' @param layer_name the name of the layer
 #' @param image_name the name/key of the image
+#' @param feature_name the name/key of the feature set
 #' @param project project name
 #' @param ... additional parameters passed to \link{formAssay}
 #'
@@ -334,7 +335,7 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
                              segments = list(),
                              sample.metadata = NULL,
                              main.assay = NULL, assay.type = "cell", params = list(),
-                             sample_name = NULL, layer_name = NULL, image_name = NULL,
+                             sample_name = NULL, layer_name = NULL, image_name = NULL, feature_name = NULL,
                              project = NULL, ...){
 
   # set project name
@@ -469,7 +470,8 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
   }
 
   # create vrAssay
-  Assay <- formAssay(data = data, coords = coords, segments = segments, image = image, params = params, type = assay.type, name = "Assay1", main_image = image_name, ...)
+  Assay <- formAssay(data = data, coords = coords, segments = segments, image = image, params = params, 
+                     type = assay.type, name = "Assay1", main_image = image_name, main_featureset = feature_name, ...)
   listofAssays <- list(Assay)
   names(listofAssays) <- main.assay
 
@@ -1177,6 +1179,31 @@ vrEmbeddingNames.VoltRon <- function(object, assay = NULL){
 }
 
 #### Feature ####
+
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays.
+#'
+#' @rdname addFeature
+#' @method addFeature VoltRon
+#' 
+#' @importFrom stringr str_replace
+#' 
+#' @export
+#' @noRd
+addFeature.VoltRon <- function(object, assay = NULL, data, feature_name){
+  
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  if(length(assay_names) > 1){
+    stop("You cannot add new features to multiple assays at once!")
+  }
+  
+  # add assay
+  object[[assay_names]] <- addFeature(object[[assay_names]], data = data, feature_name = feature_name)
+  
+  # return
+  return(object)
+}
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays.

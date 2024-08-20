@@ -116,9 +116,10 @@ formAssay <- function(data = NULL, coords, segments = list(), image = NULL, para
   # methods::new("vrAssay", 
   #              rawdata = data, normdata = data,
   #              image = image, params = params, type = type, name = name, main_image = main_image)
+  data_list <- list(main = data, main_norm = data)
+  names(data_list) <- c(main_featureset, paste0(main_featureset, "_norm"))
   methods::new("vrAssay", 
-               data = list(main = data, main_norm = data), 
-               rawdata = data, normdata = data,
+               data = data_list, rawdata = data, normdata = data,
                image = image, params = params, type = type, name = name, 
                main_image = main_image, main_featureset = main_featureset)
 }
@@ -403,9 +404,10 @@ updateData <- function(object, value){
   catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
   catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
   if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
-    main_feat <- vrMainFeatureType(object)
-    colnames(object@data[[main_feat]]) <- value
-    colnames(object@data[[paste0(main_feat, "_norm")]]) <- value
+    for(nm in vrFeatureTypeNames(object)){
+      colnames(object@data[[nm]]) <- value
+      colnames(object@data[[paste0(nm, "_norm")]]) <- value
+    }
   } 
   if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
     colnames(object@rawdata) <- value
@@ -414,6 +416,77 @@ updateData <- function(object, value){
   
   return(data)
 }
+
+### Feature Methods ####
+
+
+#' @rdname vrMainFeatureType
+#' @order 3
+#' @export
+vrMainFeatureType.vrAssay <- function(object){
+  return(object@main_featureset)
+}
+
+#' @rdname vrMainFeatureType
+#' @order 5
+#' @export
+"vrMainFeatureType<-.vrAssay" <- function(object, value){
+  if(value %in% names(object@data)){
+    object@main_featureset <- value
+  } else {
+    stop("the feature type '", value, "' is not found in the assay!") 
+  }
+  return(object)
+}
+
+#' @rdname vrFeatureTypeNames
+#'
+#' @export
+vrFeatureTypeNames.vrAssay <- function(object){
+  names_data <- names(object@data)
+  return(names_data[!grepl("_norm$", names_data)])
+  # return(names(object@data))
+}
+
+#' @param data new data matrix for new feature set
+#' @param feature_name the name of the new feature set
+#' 
+#' @rdname addFeature
+#' @method addFeature vrAssay
+#' 
+#' @importFrom stringr str_remove
+#' 
+#' @export
+#' @noRd
+addFeature.vrAssay <- function(object, data, feature_name){
+  
+  # get feature name
+  featuresets <- vrFeatureTypeNames(object)
+  if(feature_name %in% featuresets){
+    stop(paste0("Feature type '", feature_name, "' already exists in the assay."))
+  }
+  
+  # check spatial points
+  spatialpoints <- vrSpatialPoints(object)
+  if(length(vrSpatialPoints(object)) != ncol(data)){
+    stop("The number of spatial points is not matching with number of points in the input data")
+  } 
+  
+  # check spatial point names in the object
+  colnames_data <- colnames(data)
+  colnames_data <- stringr::str_remove(colnames_data, pattern = "_Assay[0-9]+$")
+  colnames(data) <- paste0(colnames_data, "_", vrAssayNames(object))
+
+  # add new features
+  feature_list_name <- names(object@data)
+  feature_list_name <- c(feature_list_name, feature_name, paste0(feature_name, "_norm"))
+  object@data <- c(object@data, list(data,data))
+  names(object@data) <- feature_list_name
+  
+  # return
+  return(object)
+}
+
 
 ### Other Methods ####
 
@@ -878,30 +951,4 @@ vrEmbeddings.vrAssay <- function(object, type = "pca", dims = 1:30) {
 #' @export
 vrEmbeddingNames.vrAssay <- function(object){
   return(names(object@embeddings))
-}
-
-#' @rdname vrMainFeatureType
-#' @order 3
-#' @export
-vrMainFeatureType.vrAssay <- function(object){
-  return(object@main_featureset)
-}
-
-#' @rdname vrMainFeatureType
-#' @order 5
-#' @export
-"vrMainFeatureType<-.vrAssay" <- function(object, value){
-  if(value %in% names(object@data)){
-    object@main_featureset <- value
-  } else {
-    stop("the feature type '", value, "' is not found in the assay!") 
-  }
-  return(object)
-}
-
-#' @rdname vrFeatureTypeNames
-#'
-#' @export
-vrFeatureTypeNames.vrAssay <- function(object){
-  return(names(object@data))
 }
