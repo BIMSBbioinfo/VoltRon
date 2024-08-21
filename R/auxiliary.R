@@ -576,7 +576,7 @@ standardize_property_names <- function(x) {
 }
 
 #' @importFrom grDevices hcl
-hue_pal <- function (n) 
+hue_pal <- function(n, h = c(0, 360) + 15, c = 100, l = 65, h.start = 0, direction = 1) 
 {
   if (n == 0) {
     cli::cli_abort("Must request at least one colour from a hue palette.")
@@ -597,4 +597,8 @@ hue_pal <- function (n)
   else {
     pal
   }
+}
+
+rescale_numeric <- function(x, to = c(0, 1), from = range(x, na.rm = TRUE, finite = TRUE), ...) {
+  (x - from[1]) / diff(from) * diff(to) + to[1]
 }

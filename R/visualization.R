@@ -462,7 +462,7 @@ vrSpatialPlotSingleTiling <- function(g, data, n.tile, alpha = 1){
   gplot <- gplot +
     scale_fill_gradientn(name = "Count",
                          colors=c("dodgerblue2", "white", "yellow3"),
-                         values=scales::rescale(c(0, midpoint, max(hex_count_data$count))), limits = c(0, max(hex_count_data$count)))
+                         values=rescale_numeric(c(0, midpoint, max(hex_count_data$count))), limits = c(0, max(hex_count_data$count)))
 
   # return
   gplot
@@ -767,14 +767,14 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
     g <- g +
       scale_fill_gradientn(name = legend_title,
                            colors=c("dodgerblue2", "white", "yellow3"),
-                           values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
+                           values=rescale_numeric(c(limits[1], midpoint, limits[2])), limits = limits)
   } else if(vrAssayTypes(assay) == "spot"){
     g <- g +
       geom_spot(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, alpha = alpha, 
                 spot.radius = vrAssayParams(assay, param = "vis.spot.radius")/scale_factors) +
       scale_fill_gradientn(name = legend_title,
                              colors=c("dodgerblue3", "yellow", "red"),
-                             values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
+                             values=rescale_numeric(c(limits[1], midpoint, limits[2])), limits = limits)
   } else if(vrAssayTypes(assay) %in% c("cell", "tile")) {
 
     if(plot.segments){
@@ -792,16 +792,16 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
       g <- g +
         scale_fill_gradientn(name = legend_title,
                              colors=c("dodgerblue2", "white", "yellow3"),
-                             values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits)
+                             values=rescale_numeric(c(limits[1], midpoint, limits[2])), limits = limits)
     } else {
       g <- g +
         geom_point(mapping = aes(x = x, y = y, fill = score, color = score), dplyr::arrange(coords,score), shape = cell.shape, size = rel(pt.size), alpha = alpha) +
         scale_colour_gradientn(name = legend_title,
                                colors=c("dodgerblue2", "white", "yellow3"), 
-                               values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits, aesthetics = c("fill", "colour")) 
+                               values=rescale_numeric(c(limits[1], midpoint, limits[2])), limits = limits, aesthetics = c("fill", "colour")) 
         # scale_fill_gradientn(name = legend_title,
         #                       colors=c("dodgerblue3", "white", "yellow3"), aesthetics = c("")
-        #                       values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits, ) + 
+        #                       values=rescale_numeric(c(limits[1], midpoint, limits[2])), limits = limits, ) + 
         # guides(color = guide_legend(show = FALSE))
       
       # add if a graph exists
@@ -1275,7 +1275,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
       geom_point(mapping = aes(x = x, y = y, color = score), dplyr::arrange(datax,score), shape = 16, size = pt.size) +
       scale_color_gradientn(name = legend_title[[feat]],
                             colors=c("lightgrey", "blue"),
-                            values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
+                            values=rescale_numeric(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
 
     # more visualization parameters
     g <- g +
