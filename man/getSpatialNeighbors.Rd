@@ -27,8 +27,6 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{graph.key}{the name of the graph}
 
 \item{...}{additional parameters passed to \link{get.knn}}
-
-\item{block.wise}{if the distances should be calculated for blocks}
 }
 \description{
 get neighbors in an assay given spatial coordinates

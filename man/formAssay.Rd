@@ -13,7 +13,7 @@ formAssay(
   type = "ROI",
   name = "Assay1",
   main_image = "image_1",
-  main_featureset = "main",
+  main_featureset = NULL,
   ...
 )
 }
