@@ -11,10 +11,10 @@ SystemRequirements: OpenCV 4.7 (or higher): libopencv-dev (Debian, Ubuntu) or op
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 biocViews:
-Imports: methods, S4Vectors, EBImage, FNN, RANN, Matrix, dplyr, ggforce, 
-         ggplot2, ggpubr, ggrepel, hdf5r, igraph, irlba, rjson, magick, 
+Imports: methods, S4Vectors, EBImage, FNN, RANN, Matrix, dplyr, ggplot2, 
+         ggpubr, ggrepel, hdf5r, igraph, irlba, rjson, magick, ids, sp,
          reshape2, rlang, scales, shiny, shinyjs, stringr, uwot, data.table, 
-         RCDT, basilisk, reticulate, sp, ids, waiter, rstudioapi, htmltools
+         RCDT, basilisk, reticulate
 LinkingTo: Rcpp, RcppArmadillo (>= 0.4)
 Collate: 
     'RcppExports.R'
@@ -58,7 +58,8 @@ Suggests:
     DelayedArray,
     circlize,
     anndataR,
-    anndata
+    anndata,
+    ggforce
 Config/testthat/edition: 3
 LazyData: true
 LazyDataCompression: gzip

@@ -327,6 +327,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha)
     }
     if(!is.null(circle_data)){
+      if(!requireNamespace('ggforce'))
+        stop("Please install ggforce package!")
       g <- g +
         ggforce::geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0,
                                   fill = group.by, group = segment), data = circle_data, lwd = 0, alpha = alpha)
@@ -644,7 +646,6 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
 #'
 #' @import ggplot2
 #' @importFrom ggrepel geom_label_repel
-#' @importFrom ggforce geom_ellipse
 #' @importFrom igraph get.data.frame
 #' @importFrom dplyr arrange
 #'
@@ -757,6 +758,8 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
         geom_polygon(aes(x = x, y = y, fill = score, group = segment), data = polygon_data, alpha = alpha)
     }
     if(!is.null(circle_data)){
+      if(!requireNamespace('ggforce'))
+        stop("Please install ggforce package!")
       g <- g +
         ggforce::geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0,
                          fill = score, group = segment), data = circle_data, lwd = 0, alpha = alpha)

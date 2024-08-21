@@ -285,7 +285,6 @@ make_css <- function (..., file = NULL)
     to_be_styled <- paste(x[[1]], collapse = ",\n")
     paste0(to_be_styled, " {\n  ", style, "\n}\n")
   }, FUN.VALUE = character(1))
-  # css_string <- htmltools::HTML(paste(all_css, collapse = "\n"))
   css_string <- shiny::HTML(paste(all_css, collapse = "\n"))
   if (is.null(file)) {
     css_string
@@ -495,4 +494,83 @@ fix_data_type <- function(.data, data_type) {
   }
 
   return(.data)
+}
+
+#' CSS string helper
+#'
+#' Convenience function for building CSS style declarations (i.e. the string
+#' that goes into a style attribute, or the parts that go inside curly braces in
+#' a full stylesheet).
+#'
+#' CSS uses `'-'` (minus) as a separator character in property names, but
+#' this is an inconvenient character to use in an R function argument name.
+#' Instead, you can use `'.'` (period) and/or `'_'` (underscore) as
+#' separator characters. For example, `css(font.size = "12px")` yields
+#' `"font-size:12px;"`.
+#'
+#' To mark a property as `!important`, add a `'!'` character to the end
+#' of the property name. (Since `'!'` is not normally a character that can be
+#' used in an identifier in R, you'll need to put the name in double quotes or
+#' backticks.)
+#'
+#' Argument values will be converted to strings using
+#' `paste(collapse = " ")`. Any property with a value of `NULL` or
+#' `""` (after paste) will be dropped.
+#'
+#' @param ... Named style properties, where the name is the property name and
+#'   the argument is the property value. See Details for conversion rules.
+#' @param collapse_ (Note that the parameter name has a trailing underscore
+#'   character.) Character to use to collapse properties into a single string;
+#'   likely `""` (the default) for style attributes, and either `"\n"`
+#'   or `NULL` for style blocks.
+#'
+#' @examples
+#' padding <- 6
+#' css(
+#'   font.family = "Helvetica, sans-serif",
+#'   margin = paste0(c(10, 20, 10, 20), "px"),
+#'   "padding!" = if (!is.null(padding)) padding
+#' )
+#'
+#' @importFrom rlang dots_list
+#' 
+#' @noRd
+css <- function(..., collapse_ = "") {
+  props <- rlang::dots_list(...)
+  if (length(props) == 0) {
+    return(NULL)
+  }
+  
+  if (is.null(names(props)) || any(names(props) == "")) {
+    stop("cssList expects all arguments to be named")
+  }
+  
+  # Necessary to make factors show up as level names, not numbers
+  props[] <- lapply(props, paste, collapse = " ")
+  
+  # Drop null args
+  props <- props[!sapply(props, empty)]
+  if (length(props) == 0) {
+    return(NULL)
+  }
+  
+  # Translate camelCase, snake_case, and dot.case to kebab-case
+  # For standard CSS properties only, not CSS variables
+  is_css_var <- grepl("^--", names(props))
+  names(props)[!is_css_var] <- standardize_property_names(names(props)[!is_css_var])
+  
+  # Create "!important" suffix for each property whose name ends with !, then
+  # remove the ! from the property name
+  important <- ifelse(grepl("!$", names(props), perl = TRUE), " !important", "")
+  names(props) <- sub("!$", "", names(props), perl = TRUE)
+  
+  paste0(names(props), ":", props, important, ";", collapse = collapse_)
+}
+
+standardize_property_names <- function(x) {
+  # camelCase to kebab-case
+  x <- gsub("([A-Z])", "-\\1", x)
+  x <- tolower(x)
+  # snake_case and dot.case to kebab-case
+  gsub("[._]", "-", x)
 }

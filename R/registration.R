@@ -14,7 +14,6 @@
 #' @import shiny
 #' @importFrom shinyjs useShinyjs show hide
 #' @importFrom stats median
-#' @importFrom waiter useWaiter
 #'
 #' @export
 registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL) {
@@ -62,7 +61,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     # ui <- tagList(
     ui <- fluidPage(
       # use javascript extensions for Shiny
-      waiter::useWaiter(),
+      # waiter::useWaiter(),
       shinyjs::useShinyjs(),
 
       sidebarLayout(position = "left",
@@ -512,7 +511,7 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
 
   # waiter start
   withProgress(message = 'Register Coordinates (and Segments)', value = 0, {
-  waiter::waiter_show(html = waiter::spin_ring(), color = paste0("rgba(128,128,128,", 0.15, ")"))
+  # waiter::waiter_show(html = waiter::spin_ring(), color = paste0("rgba(128,128,128,", 0.15, ")"))
 
   # register all assays
   for(i in register_ind){
@@ -548,7 +547,7 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
   }
 
   # waiter end
-  waiter::waiter_hide()
+  # waiter::waiter_hide()
 
   })
   return(registered_sr)
@@ -1367,7 +1366,7 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
 
       # waiter start
       withProgress(message = paste0('Manual Registration (TPS)'), value = 0, {
-      waiter::waiter_show(html = waiter::spin_ring(), color = paste0("rgba(128,128,128,", 0.15, ")"))
+      # waiter::waiter_show(html = waiter::spin_ring(), color = paste0("rgba(128,128,128,", 0.15, ")"))
 
       # Check keypoints
       keypoints_check_flag <- sapply(keypoints_list, function(key_list){
@@ -1405,7 +1404,7 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
       }
 
       # waiter end
-      waiter::waiter_hide()
+      # waiter::waiter_hide()
       })
 
       # Plot registered images
@@ -1533,7 +1532,6 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
 #' @importFrom magick image_info image_ggplot image_write image_join image_resize
 #' @importFrom grid rasterGrob
 #' @importFrom ggplot2 ggplot coord_fixed annotation_raster annotation_custom
-#' @importFrom waiter waiter_show waiter_hide spin_ring
 #'
 #' @noRd
 getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, image_list, channel_names, centre, register_ind,
@@ -1550,7 +1548,7 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
 
       # waiter start
       withProgress(message = paste0('Automated Registration (', input$AutoMethod,')'), value = 0, {
-      waiter::waiter_show(html = waiter::spin_ring(), color = paste0("rgba(128,128,128,", 0.15, ")"))
+      # waiter::waiter_show(html = waiter::spin_ring(), color = paste0("rgba(128,128,128,", 0.15, ")"))
 
       # Register keypoints
       mapping_list <- list()
@@ -1583,7 +1581,7 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
       }
 
       # waiter end
-      waiter::waiter_hide()
+      # waiter::waiter_hide()
       })
 
       # Plot registered images

@@ -21,7 +21,6 @@
 #' @importFrom stats median
 #' @importFrom sp point.in.polygon
 #' @import ggplot2
-#' @importFrom ggforce geom_ellipse
 #'
 #' @export
 #' 
@@ -343,6 +342,8 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
               g <- g +
                 ggplot2::geom_polygon(aes(x = x, y = y, group = "region"), data = cur_corners, alpha = input$alpha, color = "red") 
             } else {
+              if(!requireNamespace('ggforce'))
+                stop("Please install ggforce package!")
               g <- g +
                 ggforce::geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0), data = cur_corners, alpha = input$alpha, color = "red", fill = "red")
             }
@@ -360,6 +361,8 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
             ggplot2::geom_polygon(aes(x = x, y = y), data = selected_corners(), alpha = input$alpha, color = "red")
         } else {
           if(nrow(selected_corners()) == 2){
+            if(!requireNamespace('ggforce'))
+              stop("Please install ggforce package!")
             circle <- makeCircleData(selected_corners())
             g <- g +
               ggforce::geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0), data = circle, alpha = input$alpha, color = "red", fill = "red") +
@@ -474,7 +477,6 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
 #' Reproduced since it is not exported in the Shiny namespace.
 #' 
 #' @importFrom shiny tags validateCssUnit
-#' @importFrom htmltools css
 #' 
 #' @keywords internal
 textInputwithButton <- function (textinputId, label, buttoninputId, value = "", width = NULL, placeholder = NULL, ...) 
@@ -482,14 +484,14 @@ textInputwithButton <- function (textinputId, label, buttoninputId, value = "", 
   textvalue <- restoreInput(id = textinputId, default = value)
   buttonvalue <- restoreInput(id = buttoninputId, default = NULL)
   div(class = "form-group shiny-input-container", 
-      style =  htmltools::css(width = shiny::validateCssUnit(width), display = "inline-block"),
+      style =  css(width = shiny::validateCssUnit(width), display = "inline-block"),
       shinyInputLabel(textinputId, label), 
       shiny::tags$input(id = textinputId, 
-                            style = htmltools::css(width = "80%", float = "left"),
+                            style = css(width = "80%", float = "left"),
                             type = "text", class = "shiny-input-text form-control", 
                             value = textvalue, placeholder = placeholder),
       shiny::tags$button(id = buttoninputId, 
-                             style = htmltools::css(width = "20%", float = "left"),
+                             style = css(width = "20%", float = "left"),
                              type = "button", class = "btn btn-default action-button", 
                              `data-val` = buttonvalue, disabled = NULL, list(shiny::icon("trash")), ...)
       )

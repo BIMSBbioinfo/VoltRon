@@ -10,11 +10,16 @@
 #'
 #' @inheritParams shiny::runApp
 #' @param plot_g the ggplot plot
-#' @importFrom rstudioapi viewer
 #'
 #' @noRd
 vrSpatialPlotInteractive <- function(host = getOption("shiny.host", "127.0.0.1"),
                                      port = getOption("shiny.port"), plot_g = NULL){
+  
+  # check rstudioapi
+  if(!requireNamespace('rstudioapi'))
+    stop("Please install rstudioapi package for interactive visualization!")
+  
+  # use shiny js
   shinyjs::useShinyjs()
 
   # UI
