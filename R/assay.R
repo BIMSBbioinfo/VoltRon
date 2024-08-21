@@ -99,7 +99,7 @@ setMethod(
 #' @export
 #'
 formAssay <- function(data = NULL, coords, segments = list(), image = NULL, params = list(), type = "ROI", name = "Assay1", 
-                      main_image = "image_1", main_featureset = "main", ...){
+                      main_image = "image_1", main_featureset = NULL, ...){
 
   # get data
   if(is.null(data)){
@@ -112,6 +112,10 @@ formAssay <- function(data = NULL, coords, segments = list(), image = NULL, para
   image <- list(image)
   names(image) <- main_image
 
+  # check feature
+  if(is.null(main_featureset))
+    main_featureset <- "main"
+  
   # make vrAssay object
   # methods::new("vrAssay", 
   #              rawdata = data, normdata = data,
