@@ -17,6 +17,7 @@ formVoltRon(
   sample_name = NULL,
   layer_name = NULL,
   image_name = NULL,
+  feature_name = NULL,
   project = NULL,
   ...
 )
@@ -45,6 +46,8 @@ formVoltRon(
 \item{layer_name}{the name of the layer}
 
 \item{image_name}{the name/key of the image}
+
+\item{feature_name}{the name/key of the feature set}
 
 \item{project}{project name}
 
