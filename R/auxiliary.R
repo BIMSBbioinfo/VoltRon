@@ -574,3 +574,27 @@ standardize_property_names <- function(x) {
   # snake_case and dot.case to kebab-case
   gsub("[._]", "-", x)
 }
+
+#' @importFrom grDevices hcl
+hue_pal <- function (n) 
+{
+  if (n == 0) {
+    cli::cli_abort("Must request at least one colour from a hue palette.")
+  }
+  if ((diff(h)%%360) < 1) {
+    h[2] <- h[2] - 360/n
+  }
+  hues <- seq(h[1], h[2], length.out = n)
+  hues <- (hues + h.start)%%360
+  hcl <- cbind(hues, c, l)
+  # pal <- farver::encode_colour(hcl, from = "hcl")
+  pal <- apply(hcl, 1, function(x){
+    grDevices::hcl(x[1], x[2], x[3])
+  })
+  if (direction == -1) {
+    rev(pal)
+  }
+  else {
+    pal
+  }
+}

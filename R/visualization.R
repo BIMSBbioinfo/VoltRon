@@ -114,7 +114,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
       stop("Name of each color has to be specified given as names(colors)")
     }
   } else{
-    colors <- scales::hue_pal()(length(group.ids))
+    colors <- hue_pal(length(group.ids))
     names(colors) <- group.ids
   }
 
@@ -1097,7 +1097,7 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
       stop("Name of each color has to be specified given as names(colors)")
     }
   } else{
-    colors <- scales::hue_pal()(length(group.ids))
+    colors <- hue_pal(length(group.ids))
     names(colors) <- group.ids
   }
 
@@ -1419,7 +1419,9 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
 
   if (!requireNamespace('ComplexHeatmap'))
     stop("Please install ComplexHeatmap package to use the Heatmap function")
-
+  if (!requireNamespace('viridisLite'))
+    stop("Please install viridisLite package to use the Heatmap function")
+  
   # check object
   if(!inherits(object, "VoltRon"))
     stop("Please provide a VoltRon object!")
@@ -1497,7 +1499,8 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
                           show_heatmap_legend = show_heatmap_legend,
                           heatmap_legend_param = list(title = legend_title, at = legend_at, labels = legend_label),
                           right_annotation = ha,
-                          col = scales::viridis_pal()(100))
+                          col = viridisLite::viridis(100))
+                          # col = scales::viridis_pal()(100))
 }
 
 ####
