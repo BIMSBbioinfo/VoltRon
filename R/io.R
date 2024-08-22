@@ -22,52 +22,46 @@ saveVoltRonInDisk <- function (object, assay = NULL, dir = "my_h5_se", prefix = 
     replace_dir(dir, replace)
   }
   rds_path <- file.path(dir, paste0(prefix, "se.rds"))
-  
-  if(format == "hdf5"){
-    h5_path <- file.path(dir, paste0(prefix, "assays.h5"))
-    if (prefix != "") 
-      check_and_delete_files(rds_path, h5_path, replace)
-    .write_HDF5VoltRon(object, assay = assay, rds_path = rds_path, h5_path = h5_path, 
-                        chunkdim = chunkdim, level = level, as.sparse = as.sparse, 
-                        verbose = verbose)
-  } else if(format == "zarr"){
-    zarr_path <- file.path(dir, paste0(prefix, "assays.zarr"))
-    if (prefix != "") 
-      check_and_delete_files(rds_path, zarr_path, replace)
-    .write_ZARRVoltRon(object, rds_path = rds_path, h5_path = zarr_path, 
+  indisk_path <- file.path(dir, paste0(prefix, "assays.", ifelse(format == "hdf5", "h5", "zarr")))
+  if (prefix != "") 
+    check_and_delete_files(rds_path, indisk_path, replace)
+  .write_VoltRonInDisk(object, assay = assay, format = format, rds_path = rds_path, indisk_path = indisk_path, 
                        chunkdim = chunkdim, level = level, as.sparse = as.sparse, 
                        verbose = verbose)
-  } else {
-    stop("'format' should be either 'hdf5' or 'zarr'")
-  }
 }
 
-####
-# HDF5 Support ####
-####
-
-.write_HDF5VoltRon <- function(object, assay = NULL, rds_path, h5_path, chunkdim=NULL, level=NULL, as.sparse=NA, verbose=FALSE)
+.write_VoltRonInDisk <- function(object, assay = NULL, format, rds_path, indisk_path, chunkdim=NULL, level=NULL, as.sparse=NA, verbose=FALSE)
 {
   if (!is(object, "VoltRon"))
     stop("'object' must be a VoltRon object")
   
   if (!isSingleString(rds_path) || rds_path == "")
     stop("'rds_path' must be a a non-empty string ",
-              "specifying the path to the RDS file ",
-              "where to write the ", class(object), " object")
+         "specifying the path to the RDS file ",
+         "where to write the ", class(object), " object")
   
-  if (!isSingleString(h5_path) || h5_path == "")
-    stop("'h5_path' must be a a non-empty string ",
-              "specifying the path to the HDF5 file ",
-              "where to write the assays of the ", class(object), " object")
+  if (!isSingleString(indisk_path) || indisk_path == "")
+    stop("'indisk_path' must be a a non-empty string ",
+         "specifying the path to the HDF5 file ",
+         "where to write the assays of the ", class(object), " object")
   
   if (!isTRUEorFALSE(verbose))
     stop("'verbose' must be TRUE or FALSE")
   
-  object <- write_h5_samples(object, assay = assay, h5_path, chunkdim, level, as.sparse, verbose)
+  if(format == "hdf5"){
+    object <- write_h5_samples(object, assay = assay, h5_path = indisk_path, chunkdim, level, as.sparse, verbose)
+  } else if(format == "zarr"){
+    object <- write_zarr_samples(object, assay = assay, zarr_path = indisk_path, chunkdim, level, as.sparse, verbose)
+  } else {
+    stop("'format' should be either 'hdf5' or 'zarr'")
+  }
   # .serialize_HDF5VoltRon(x, rds_path, verbose)
   invisible(object)
 }
+
+####
+# HDF5 Support ####
+####
 
 write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
                              as.sparse, verbose)
@@ -86,6 +80,7 @@ write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
   
   # open h5
   # file.h5 <- hdf5r::H5File$new(h5_path, mode="w")
+  cat(paste0("HDF5 file: ", h5_path, "\n"))
   rhdf5::h5createFile(h5_path)
   
   # iterate over assays
@@ -99,12 +94,11 @@ write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
     rhdf5::h5createGroup(h5_path, group = assy)
     
     # get data and write
-    message("Start writing ", assy, " data to HDF5 file:", h5_path, "\n")
+    cat(paste0("  Writing '", assy, "' data \n"))
     a <- vrData(assay_object)
     a <- HDF5Array::writeHDF5Array(a, 
                                    h5_path, 
                                    name = paste0(assy, "/data"),
-                                   # name = ""
                                    chunkdim=chunkdim, 
                                    level=level,
                                    as.sparse=as.sparse,
@@ -149,6 +143,7 @@ writeHDF5ArrayInImage <- function(object,
       
       # open group for spatial system
       # file.h5$create_group(paste0(name, "/", spat))
+      cat(paste0("  Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"' \n"))
       rhdf5::h5createGroup(h5_path, group = paste0(name, "/", spat))
       
       # get image and write to h5
@@ -172,13 +167,66 @@ writeHDF5ArrayInImage <- function(object,
 # ZARR Support ####
 ####
 
-.write_ZARRVoltRon <- function(object, rds_path,
-                               h5_path,
-                               chunkdim=NULL, 
-                               level=NULL,
-                               as.sparse=NA,
-                               verbose=FALSE){
-  return(object)
+write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
+                             as.sparse, verbose)
+{
+  # check packages
+  if(!requireNamespace('DelayedArray'))
+    stop("Please install DelayedArray package!")
+  if(!requireNamespace('pizzarr'))
+    stop("Please install pizzarr package!")
+  
+  # sample metadata
+  sample_metadata <- SampleMetadata(object)
+  
+  # assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  
+  # open h5
+  cat(paste0("ZARR array: ", zarr_path, "\n"))
+  zarr.array <- pizzarr::zarr_open(store = zarr_path)
+  
+  # iterate over assays
+  for (assy in assay_names) {
+    
+    # get assay object
+    assay_object <- object[[assy]]
+    
+    # create assay group in h5
+    zarr.array$create_group(assy)
+    
+    # get data and write
+    cat(paste0("  Writing '", assy, "' data \n"))
+    a <- vrData(assay_object)
+    # a <- HDF5Array::writeHDF5Array(a, 
+    #                                h5_path, 
+    #                                name = paste0(assy, "/data"),
+    #                                chunkdim=chunkdim, 
+    #                                level=level,
+    #                                as.sparse=as.sparse,
+    #                                with.dimnames=FALSE,
+    #                                verbose=verbose)
+    zarr.array$create_dataset(name = paste0(assy, "/data"),
+                              data = a, 
+                              shape=dim(a))
+    # assay_object@rawdata <- a  
+    # assay_object@normdata <- a
+    
+    # # get image data and write
+    # assay_object <- writeHDF5ArrayInImage(object = assay_object, 
+    #                                       h5_path,
+    #                                       name = assy,
+    #                                       chunkdim=chunkdim, 
+    #                                       level=level,
+    #                                       as.sparse=as.sparse,
+    #                                       with.dimnames=FALSE,
+    #                                       verbose=verbose)
+    
+    # write assay back
+    object[[assy]] <- assay_object
+    
+  }
+  object
 }
 
 ####
