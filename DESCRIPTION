@@ -25,13 +25,13 @@ Collate:
     'generics.R'
     'clustering.R'
     'conversion.R'
-    'data.R'
     'deconvolution.R'
     'differentialexpression.R'
     'image.R'
     'import.R'
     'integration.R'
     'interactive.R'
+    'io.R'
     'metadata.R'
     'objects.R'
     'processing.R'
@@ -59,7 +59,9 @@ Suggests:
     DelayedArray,
     circlize,
     anndataR,
-    anndata
+    anndata,
+    HDF5Array,
+    rhdf5 
 Config/testthat/edition: 3
 LazyData: true
 LazyDataCompression: gzip
