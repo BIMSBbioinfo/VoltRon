@@ -1282,7 +1282,9 @@ vrEmbeddingNames.VoltRon <- function(object, assay = NULL){
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays.
-#'
+#' @param data new data matrix for new feature set
+#' @param feature_name the name of the new feature set
+#' 
 #' @rdname addFeature
 #' @method addFeature VoltRon
 #' 

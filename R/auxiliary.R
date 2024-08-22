@@ -567,6 +567,10 @@ css <- function(..., collapse_ = "") {
   paste0(names(props), ":", props, important, ";", collapse = collapse_)
 }
 
+empty <- function(x) {
+  length(x) == 0 || (is.character(x) && !any(nzchar(x)))
+}
+
 standardize_property_names <- function(x) {
   # camelCase to kebab-case
   x <- gsub("([A-Z])", "-\\1", x)

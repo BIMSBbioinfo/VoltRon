@@ -14,6 +14,7 @@ NULL
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param method the method spatial connectivity: "delaunay", "spatialkNN", "radius"
+#' @param k number of neighbors for kNN
 #' @param radius When \code{method = "radius"} selected, determines the radius of a neighborhood ball around each spatial point
 #' @param graph.key the name of the graph
 #' @param ... additional parameters passed to \link{get.knn}

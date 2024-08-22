@@ -459,9 +459,6 @@ vrFeatureTypeNames.vrAssay <- function(object){
   # return(names(object@data))
 }
 
-#' @param data new data matrix for new feature set
-#' @param feature_name the name of the new feature set
-#' 
 #' @rdname addFeature
 #' @method addFeature vrAssay
 #' 
