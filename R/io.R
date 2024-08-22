@@ -3,7 +3,7 @@
 ####
 
 saveVoltRonInDisk <- function (object, assay = NULL, dir = "my_h5_se", prefix = "", format = "hdf5", replace = FALSE, 
-                             chunkdim = NULL, level = NULL, as.sparse = NA, verbose = FALSE) 
+                             chunkdim = NULL, level = NULL, as.sparse = NA, save.rds = FALSE, verbose = FALSE) 
 {
   if (!is(object, "VoltRon")) 
     stop("'object' must be a VoltRon object")
@@ -17,17 +17,23 @@ saveVoltRonInDisk <- function (object, assay = NULL, dir = "my_h5_se", prefix = 
     stop("'replace' must be TRUE or FALSE")
   if (!dir.exists(dir)) {
     create_dir(dir)
-  }
-  else if (prefix == "") {
+  } else if (prefix == "") {
     replace_dir(dir, replace)
   }
-  rds_path <- file.path(dir, paste0(prefix, "se.rds"))
+  
+  # in disk 
   indisk_path <- file.path(dir, paste0(prefix, "assays.", ifelse(format == "hdf5", "h5", "zarr")))
   if (prefix != "") 
     check_and_delete_files(rds_path, indisk_path, replace)
   .write_VoltRonInDisk(object, assay = assay, format = format, rds_path = rds_path, indisk_path = indisk_path, 
                        chunkdim = chunkdim, level = level, as.sparse = as.sparse, 
                        verbose = verbose)
+  
+  # rds file
+  if(save.rds){
+    rds_path <- file.path(dir, paste0(prefix, "se.rds"))
+    # .serialize_VoltRonObject(x, rds_path, verbose)
+  }
 }
 
 .write_VoltRonInDisk <- function(object, assay = NULL, format, rds_path, indisk_path, chunkdim=NULL, level=NULL, as.sparse=NA, verbose=FALSE)
@@ -55,7 +61,6 @@ saveVoltRonInDisk <- function (object, assay = NULL, dir = "my_h5_se", prefix = 
   } else {
     stop("'format' should be either 'hdf5' or 'zarr'")
   }
-  # .serialize_HDF5VoltRon(x, rds_path, verbose)
   invisible(object)
 }
 
@@ -187,7 +192,7 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
   zarr.array <- pizzarr::zarr_open(store = zarr_path)
   
   # iterate over assays
-  for (assy in assay_names) {
+  for(assy in assay_names){
     
     # get assay object
     assay_object <- object[[assy]]
@@ -213,7 +218,7 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
     # assay_object@normdata <- a
     
     # # get image data and write
-    # assay_object <- writeHDF5ArrayInImage(object = assay_object, 
+    # assay_object <- writeZARRArrayInImage(object = assay_object, 
     #                                       h5_path,
     #                                       name = assy,
     #                                       chunkdim=chunkdim, 
