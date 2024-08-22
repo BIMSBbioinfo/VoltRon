@@ -305,21 +305,25 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
         
         # Circle selection
         if(isolate(input$region_type == "Circle")){
-          if(nrow(selected_corners()) == 2){
-            
-            # add to region list
-            circle <- makeCircleData(selected_corners())
-            selected_corners_list(c(selected_corners_list(), list(circle)))
-            
-            # remove selected points
-            selected_corners(data.frame(x = numeric(0), y = numeric(0)))
-            
-            # add buttons
-            new_id <- if (length(textboxes()) == 0) 1 else max(textboxes()) + 1
-            textboxes(c(textboxes(), new_id))
-            textbox_values[[paste0("region", new_id)]] <- ""
+          if(!requireNamespace('ggforce')){
+            showNotification("Error: please install ggforce package for drawing circles!")
           } else {
-            showNotification("You must selected only 2 points for each circle!")
+            if(nrow(selected_corners()) == 2){
+              
+              # add to region list
+              circle <- makeCircleData(selected_corners())
+              selected_corners_list(c(selected_corners_list(), list(circle)))
+              
+              # remove selected points
+              selected_corners(data.frame(x = numeric(0), y = numeric(0)))
+              
+              # add buttons
+              new_id <- if (length(textboxes()) == 0) 1 else max(textboxes()) + 1
+              textboxes(c(textboxes(), new_id))
+              textbox_values[[paste0("region", new_id)]] <- ""
+            } else {
+              showNotification("You must selected only 2 points for each circle!")
+            } 
           }
         }
       })
@@ -342,8 +346,6 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
               g <- g +
                 ggplot2::geom_polygon(aes(x = x, y = y, group = "region"), data = cur_corners, alpha = input$alpha, color = "red") 
             } else {
-              if(!requireNamespace('ggforce'))
-                stop("Please install ggforce package!")
               g <- g +
                 ggforce::geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0), data = cur_corners, alpha = input$alpha, color = "red", fill = "red")
             }
@@ -361,8 +363,6 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
             ggplot2::geom_polygon(aes(x = x, y = y), data = selected_corners(), alpha = input$alpha, color = "red")
         } else {
           if(nrow(selected_corners()) == 2){
-            if(!requireNamespace('ggforce'))
-              stop("Please install ggforce package!")
             circle <- makeCircleData(selected_corners())
             g <- g +
               ggforce::geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0), data = circle, alpha = input$alpha, color = "red", fill = "red") +

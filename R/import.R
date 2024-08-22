@@ -579,9 +579,7 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
 #' @param file A character string containing the path to the PKC file.
 #' @param default_pkc_vers Optional list of pkc file names to use as default if more than one pkc version of each module is provided.
 #'
-#' @importFrom utils capture.output
 #' @importFrom rjson fromJSON
-#' @importFrom S4Vectors metadata DataFrame
 #'
 #' @noRd
 readPKC <- function (file, default_pkc_vers = NULL)
@@ -652,7 +650,8 @@ readPKC <- function (file, default_pkc_vers = NULL)
   rtsid_lookup_df <- generate_pkc_lookup(pkc_json_list)
   rtsid_lookup_df$Negative <- grepl("Negative", rtsid_lookup_df$CodeClass)
   rtsid_lookup_df$RTS_ID <- gsub("RNA", "RTS00", rtsid_lookup_df[["RTS_ID"]])
-  rtsid_lookup_df <- S4Vectors::DataFrame(rtsid_lookup_df)
+  # rtsid_lookup_df <- S4Vectors::DataFrame(rtsid_lookup_df)
+  rtsid_lookup_df <- data.table::data.table(rtsid_lookup_df)
   if (length(multi_mods) > 0) {
     for (mod in names(use_pkc_names)) {
       mod_vers <- names(header[["PKCModule"]])[header[["PKCModule"]] ==
@@ -664,8 +663,9 @@ readPKC <- function (file, default_pkc_vers = NULL)
       if (length(remove_rts) > 0) {
         warning("The following probes were removed from analysis",
                 " as they were not found in all PKC module versions used.\n",
-                paste(utils::capture.output(print(subset(rtsid_lookup_df,
-                                                  subset = RTS_ID %in% remove_rts))), collapse = "\n"))
+                # paste(utils::capture.output(print(subset(rtsid_lookup_df,
+                #                                   subset = RTS_ID %in% remove_rts))), collapse = "\n")
+                )
         rtsid_lookup_df <- subset(rtsid_lookup_df, subset = !RTS_ID %in%
                                     remove_rts)
       }
@@ -681,7 +681,7 @@ readPKC <- function (file, default_pkc_vers = NULL)
       })
     }
   }
-  S4Vectors::metadata(rtsid_lookup_df) <- header
+  # S4Vectors::metadata(rtsid_lookup_df) <- header
   return(rtsid_lookup_df)
 }
 
