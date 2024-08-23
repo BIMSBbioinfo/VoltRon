@@ -176,8 +176,8 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
                              as.sparse, verbose)
 {
   # check packages
-  if(!requireNamespace('DelayedArray'))
-    stop("Please install DelayedArray package!")
+  if(!requireNamespace('ZarrArray'))
+    stop("Please install ZarrArray package!")
   if(!requireNamespace('pizzarr'))
     stop("Please install pizzarr package!")
   
@@ -203,19 +203,16 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
     # get data and write
     cat(paste0("  Writing '", assy, "' data \n"))
     a <- vrData(assay_object)
-    # a <- HDF5Array::writeHDF5Array(a, 
-    #                                h5_path, 
-    #                                name = paste0(assy, "/data"),
-    #                                chunkdim=chunkdim, 
-    #                                level=level,
-    #                                as.sparse=as.sparse,
-    #                                with.dimnames=FALSE,
-    #                                verbose=verbose)
-    zarr.array$create_dataset(name = paste0(assy, "/data"),
-                              data = a, 
-                              shape=dim(a))
-    # assay_object@rawdata <- a  
-    # assay_object@normdata <- a
+    a <- ZarrArray::writeZarrArray(a,
+                                   h5_path,
+                                   name = paste0(assy, "/data"),
+                                   chunkdim=chunkdim,
+                                   level=level,
+                                   as.sparse=as.sparse,
+                                   with.dimnames=FALSE,
+                                   verbose=verbose)
+    assay_object@rawdata <- a
+    assay_object@normdata <- a
     
     # # get image data and write
     # assay_object <- writeZARRArrayInImage(object = assay_object, 
