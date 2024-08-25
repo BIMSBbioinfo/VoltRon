@@ -25,13 +25,13 @@ saveVoltRonInDisk <- function (object, assay = NULL, dir = "my_h5_se", prefix = 
   indisk_path <- file.path(dir, paste0(prefix, "assays.", ifelse(format == "hdf5", "h5", "zarr")))
   if (prefix != "") 
     check_and_delete_files(rds_path, indisk_path, replace)
+  rds_path <- file.path(dir, paste0(prefix, "se.rds"))
   .write_VoltRonInDisk(object, assay = assay, format = format, rds_path = rds_path, indisk_path = indisk_path, 
                        chunkdim = chunkdim, level = level, as.sparse = as.sparse, 
                        verbose = verbose)
   
   # rds file
   if(save.rds){
-    rds_path <- file.path(dir, paste0(prefix, "se.rds"))
     # .serialize_VoltRonObject(x, rds_path, verbose)
   }
 }
