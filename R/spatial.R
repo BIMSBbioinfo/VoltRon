@@ -166,7 +166,9 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
   graph <- vrGraph(object, graph.type = graph.type)
   neighbors_graph <- igraph::neighborhood(graph)
   neighbors_graph_data <- lapply(neighbors_graph, function(x) {
-    cbind(x$name[1],x$name[-1])
+    # cbind(x$name[1],x$name[-1])
+    cbind(x$name[1],x$name)[-1,]
+    # if(dat)
   })
   neighbors_graph_data <- do.call(rbind, neighbors_graph_data)
   colnames(neighbors_graph_data) <- c("from", "to")
@@ -180,6 +182,11 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
   for(i in 2:(ncol(grp_sim)+1))
     neighbors_graph_data_list[[i]] <- data.frame(neighbors_graph_data, from_value = grp_sim[,i-1][neighbors_graph_data[,1]], to_value = grp_sim[,i-1][neighbors_graph_data[,2]], type = paste0("sim", i))
   neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data_list)
+  
+  # get adjacency for observed and simulated pairs
+  # grp_sim_data <- 
+  # neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data)
+  
 
   neigh_results <- neighbors_graph_data %>%
     dplyr::group_by(from_value, to_value, type) %>%
