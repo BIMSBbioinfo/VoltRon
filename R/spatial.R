@@ -159,8 +159,12 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
 
   # main object
   metadata <- Metadata(object)
-  grp <- metadata[[group.by]]
-  names(grp) <- rownames(metadata)
+  if(group.by %in% colnames(metadata)){
+    grp <- metadata[[group.by]]
+    names(grp) <- rownames(metadata) 
+  } else {
+    stop("'", group.by, "' is not available in metadata!")
+  }
 
   # get graph and neighborhood
   graph <- vrGraph(object, graph.type = graph.type)
