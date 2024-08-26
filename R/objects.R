@@ -79,11 +79,14 @@ setMethod(
     cat("Assays:", paste(unique_assays, collapse = " "), "\n")
     
     # print features
-    main.feat <- unique(vrMainFeatureType(object)$Feature)
-    unique_features <- vrFeatureTypeNames(object)
-    unique_features <- unique_features[c(which(unique_features == main.feat),which(unique_features != main.feat))]
-    unique_features[1] <- paste0(unique_features[1], "(Main)")
-    cat("Features:", paste(unique_features, collapse = " "), "\n")
+    main.feat <- vrMainFeatureType(object)
+    if(!is.null(main.feat)){
+      main.feat <- unique(vrMainFeatureType(object)$Feature)
+      unique_features <- vrFeatureTypeNames(object)
+      unique_features <- unique_features[c(which(unique_features == main.feat),which(unique_features != main.feat))]
+      unique_features[1] <- paste0(unique_features[1], "(Main)")
+      cat("Features:", paste(unique_features, collapse = " "), "\n") 
+    }
 
     # return invisible
     return(invisible(x = NULL))
@@ -858,11 +861,17 @@ getBlockConnectivity <- function(object, assay){
     cur_sample_metadata <- sample_metadata[sample_metadata$Sample == samp,]
     cur_assaynames <- assay_names[assay_names %in% rownames(cur_sample_metadata)]
     cur_sections <- cur_sample_metadata[cur_assaynames, "Layer"]
-    adjacency <- object[[samp]]@adjacency
-    adjacency <- adjacency[match(cur_sections,rownames(adjacency)), match(cur_sections,rownames(adjacency))]
-    colnames(adjacency) <- rownames(adjacency) <- cur_assaynames
-    components <- igraph::components(igraph::graph_from_adjacency_matrix(adjacency))
-    assay_list <- c(assay_list, split(names(components$membership), components$membership))
+    
+    catch_connect <- try(slot(curlayer, name = "adjacency"), silent = TRUE)
+    if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
+      adjacency <- object[[samp]]@adjacency
+      adjacency <- adjacency[match(cur_sections,rownames(adjacency)), match(cur_sections,rownames(adjacency))]
+      colnames(adjacency) <- rownames(adjacency) <- cur_assaynames
+      components <- igraph::components(igraph::graph_from_adjacency_matrix(adjacency))
+      assay_list <- c(assay_list, split(names(components$membership), components$membership))
+    } else {
+      assay_list <- c(assay_list, cur_assaynames)
+    }
   }
   
   # return list
@@ -1331,10 +1340,12 @@ vrMainFeatureType.VoltRon <- function(object, assay = NULL){
   featuretype_names <- unlist(lapply(assay_names, function(x) vrMainFeatureType(object[[x]])))
   
   # return data
-  featuretype_data <- data.frame(Assay = assay_names, Feature = featuretype_names)
-  
-  # return
-  return(featuretype_data)
+  if(!is.null(featuretype_names)){
+    featuretype_data <- data.frame(Assay = assay_names, Feature = featuretype_names)
+    return(featuretype_data)
+  } else {
+    return(NULL)
+  }
 }
 
 #' @param value the name of main feature set
@@ -1586,8 +1597,12 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, spati
     
     # update zlocation
     sample_name <- sample_metadata[assy, "Sample"]
-    zlocation <- object[[sample_name]]@zlocation 
-    cur_coords[,"z"] <- rep(zlocation[sample_metadata[assy, "Layer"]], nrow(cur_coords))
+    
+    catch_connect <- try(slot(object, name = "zlocation"), silent = TRUE)
+    if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
+      zlocation <- object[[sample_name]]@zlocation 
+      cur_coords[,"z"] <- rep(zlocation[sample_metadata[assy, "Layer"]], nrow(cur_coords)) 
+    }
     
     # merge coordinates
     coords <- rbind(coords, cur_coords)

@@ -435,9 +435,14 @@ updateData <- function(object, value){
 #' @order 3
 #' @export
 vrMainFeatureType.vrAssay <- function(object){
-  return(object@main_featureset)
+  catch_connect <- try(slot(object, name = "main_featureset"), silent = TRUE)
+  if(!is(catch_connect, 'try-error') && !methods::is(catch_connect1,'error')){
+    return(object@main_featureset)
+  } else {
+    return(NULL)
+  }
 }
-
+  
 #' @rdname vrMainFeatureType
 #' @order 5
 #' @export

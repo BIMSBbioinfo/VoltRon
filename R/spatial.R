@@ -63,7 +63,7 @@ getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", k = 1
                # })
                # nnedges <- unlist(nnedges)
                nnedges <- reshape2::melt(data.frame(nnedges), id.vars = "X1")
-               nnedges <- subset(nnedges[,c("X1", "value")], value != 0)
+               nnedges <- subset(nnedges[,c("X1", "value")], value != 0 & X1 != 0)
                nnedges <- as.vector(t(as.matrix(nnedges)))
                nnedges <- rownames(cur_coords)[nnedges]
                nnedges
@@ -80,7 +80,7 @@ getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", k = 1
                nnedges <- RANN::nn2(cur_coords, searchtype = "radius", radius = radius, k = min(300, sqrt(nrow(cur_coords))/2))
                nnedges <- nnedges$nn.idx
                nnedges <- reshape2::melt(data.frame(nnedges), id.vars = "X1")
-               nnedges <- subset(nnedges[,c("X1", "value")], value != 0)
+               nnedges <- subset(nnedges[,c("X1", "value")], value != 0 & X1 != 0)
                nnedges <- as.vector(t(as.matrix(nnedges)))
                nnedges <- rownames(cur_coords)[nnedges]
                nnedges
