@@ -163,10 +163,10 @@ vrNeighbourhoodEnrichment <- function(object, assay = NULL, group.by = NULL, gra
 #'
 #' @noRd
 vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type = "delaunay", num.sim = 1000, seed = 1) {
-
+  
   # set the seed
   set.seed(seed)
-
+  
   # main object
   metadata <- Metadata(object)
   if(group.by %in% colnames(metadata)){
@@ -175,26 +175,32 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
   } else {
     stop("'", group.by, "' is not available in metadata!")
   }
-
+  
   # get graph and neighborhood
   graph <- vrGraph(object, graph.type = graph.type)
   neighbors_graph <- igraph::neighborhood(graph)
   neighbors_graph_data <- lapply(neighbors_graph, function(x) {
-    cbind(x$name[1],x$name[-1])
+    # cbind(x$name[1],x$name[-1])
+    cbind(x$name[1],x$name)[-1,]
+    # if(dat)
   })
   neighbors_graph_data <- do.call(rbind, neighbors_graph_data)
   colnames(neighbors_graph_data) <- c("from", "to")
-
+  
   # get simulations
   grp_sim <- sapply(1:1000, function(x) sample(grp))
   rownames(grp_sim) <- names(grp)
-
+  
   # get adjacency for observed and simulated pairs
   neighbors_graph_data_list <- list(data.frame(neighbors_graph_data, from_value = grp[neighbors_graph_data[,1]], to_value = grp[neighbors_graph_data[,2]], type = "obs"))
   for(i in 2:(ncol(grp_sim)+1))
     neighbors_graph_data_list[[i]] <- data.frame(neighbors_graph_data, from_value = grp_sim[,i-1][neighbors_graph_data[,1]], to_value = grp_sim[,i-1][neighbors_graph_data[,2]], type = paste0("sim", i))
-  neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data_list)
+  neighbors_graph_data2 <- dplyr::bind_rows(neighbors_graph_data_list)
 
+  # get adjacency for observed and simulated pairs
+  # grp_sim_data <- 
+  # neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data)
+  
   neigh_results <- neighbors_graph_data %>%
     dplyr::group_by(from_value, to_value, type) %>%
     dplyr::summarize(mean_value = dplyr::n()) %>%
@@ -214,7 +220,7 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
   grp_table <- table(grp)
   neigh_results$n_from <- grp_table[neigh_results$from_value]
   neigh_results$n_to <- grp_table[neigh_results$to_value]
-
+  
   # return
   neigh_results
 }
