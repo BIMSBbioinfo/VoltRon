@@ -121,6 +121,9 @@ configure_shiny_options <- function(shiny.options){
       launch.browser <- rstudioapi::viewer
     } 
   }
+  if(all(c("port","host") %in% names(shiny.options))){
+    launch.browser <- TRUE
+  } 
   return(list(host = host, port = port, launch.browser = launch.browser))
 }
 
