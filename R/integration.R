@@ -160,7 +160,7 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
   # get cell and spot coordinates
   cat("Cell to Spot Distances \n")
   coords_spots <- vrCoordinates(to_object)
-  coords_cells <- vrCoordinates(from_object, reg = TRUE)
+  coords_cells <- vrCoordinates(from_object)
 
   # get distances from cells to spots
   # alldist <- flexclust::dist2(coords_cells, coords_spots)
@@ -238,7 +238,7 @@ getCellsFromTiles <- function(from_object, from_metadata = NULL, to_object, feat
   # get cell and spot coordinates
   cat("Tile to Cell Distances \n")
   coords_cells <- vrCoordinates(to_object)
-  coords_tiles <- vrCoordinates(from_object, reg = TRUE)
+  coords_tiles <- vrCoordinates(from_object)
 
   # get distances from cells to spots
   # tile_to_cell <- FNN::get.knnx(coords_cells, coords_tiles, k = 1)
