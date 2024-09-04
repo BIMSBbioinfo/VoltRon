@@ -223,8 +223,7 @@ getRCTD <- function(object, features = NULL, reference, ...){
   # Run RCTD
   myRCTD <- spacexr::create.RCTD(spatialdata, reference, ...)
   cat("Calculating Cell Type Compositions of spots with RCTD ...\n")
-  # myRCTD <- quiet(spacexr::run.RCTD(myRCTD, doublet_mode = 'full'))
-  myRCTD <- spacexr::run.RCTD(myRCTD, doublet_mode = 'full')
+  myRCTD <- quiet(spacexr::run.RCTD(myRCTD, doublet_mode = 'full'))
   results <- as.matrix(myRCTD@results$weights)
   norm_weights <- t(sweep(results, 1, rowSums(results), "/"))
 
