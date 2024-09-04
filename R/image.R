@@ -668,7 +668,7 @@ vrImageNames.VoltRon <- function(object, assay = NULL){
     if(assay == "all"){
       spatial_names <- unlist(lapply(assay_names, function(x) paste(vrSpatialNames(object[[x]]), collapse = ",")))
       main_spatial_names <- unlist(lapply(assay_names, function(x) vrMainSpatial(object[[x]])))
-      spatial_names <- data.frame(Assay = assay_names, Spatial = spatial_names, Selected = main_spatial_names)
+      spatial_names <- data.frame(Assay = assay_names, Spatial = spatial_names, Main = main_spatial_names)
       return(spatial_names)
     }
   }
