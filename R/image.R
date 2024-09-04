@@ -537,16 +537,26 @@ vrMainSpatial.VoltRon <- function(object, assay = NULL){
 #' @export
 "vrMainSpatial<-.VoltRon" <- function(object, assay = NULL, value){
   
-  if(!is.null(assay)){
-    if(length(assay) == 1){
-      vrMainSpatial(object[[assay]]) <- value
-    } else {
-      stop("You can only set the main spatial system of a single assay")
-    }
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  
+  # check for assay number
+  if(length(assay_names) == 1){
+    vrMainSpatial(object[[assay_names]]) <- value
   } else {
-    stop("You should define the assay whose main spatial system you wanna set, by using 'Assay = <assay name>'")
+    stop("You can only set the main spatial system of a single assay")
   }
   
+  # if(!is.null(assay)){
+  #   if(length(assay_names) == 1){
+  #     vrMainSpatial(object[[assay]]) <- value
+  #   } else {
+  #     stop("You can only set the main spatial system of a single assay")
+  #   }
+  # } else {
+  #   stop("You should define the assay whose main spatial system you wanna set, by using 'Assay = <assay name>'")
+  # }
+  # 
   return(object)
 }
 
@@ -569,16 +579,31 @@ vrMainSpatial.vrAssay <- function(object){
 #' @export
 "vrMainImage<-.vrAssay" <- function(object, value){
 
-  if(length(value) == 2){
-    channel <- value[2]
-    value <- value[1]
-    object@main_image <- value
-    vrMainChannel(object@image[[value]]) <- channel
-  } else if(length(value) == 1){
-    object@main_image <- value
+  if(length(value) > 0){
+    
+    # get channel name if exists in the value
+    if(length(value) == 2){
+      channel <- value[2]
+      value <- value[1]
+    } else {
+      channel <- NULL
+    }
+    
+    # set main spatial/image
+    if(value %in% vrSpatialNames(object)){
+      object@main_image <- value
+    } else {
+      stop("'",value,"' is not a spatial coordinate system")
+    }
+
+    # set channel
+    if(!is.null(channel))
+      vrMainChannel(object@image[[value]]) <- channel
+    
   } else {
     stop("The Main image is set by either: \n    vrMainImage(object) <- c('image name', 'channel name')\n or vrMainImage(object) <- 'image name'")
   }
+  
   return(object)
 }
 
@@ -587,16 +612,43 @@ vrMainSpatial.vrAssay <- function(object){
 #' @export
 "vrMainSpatial<-.vrAssay" <- function(object, value){
   
-  if(length(value) == 2){
-    channel <- value[2]
-    value <- value[1]
-    object@main_image <- value
-    vrMainChannel(object@image[[value]]) <- channel
-  } else if(length(value) == 1){
-    object@main_image <- value
+  if(length(value) > 0){
+    
+    # get channel name if exists in the value
+    if(length(value) == 2){
+      channel <- value[2]
+      value <- value[1]
+    } else {
+      channel <- NULL
+    }
+    
+    # set main spatial/image
+    if(value %in% vrSpatialNames(object)){
+      object@main_image <- value
+    } else {
+      stop("'",value,"' is not a spatial coordinate system")
+    }
+    
+    # set channel
+    if(!is.null(channel))
+      vrMainChannel(object@image[[value]]) <- channel
+    
   } else {
-    stop("The Main image is set by either: \n    vrMainSpatial(object) <- c('image name', 'channel name')\n or vrMainSpatial(object) <- 'image name'")
+    stop("The Main image is set by either: \n    vrMainImage(object) <- c('image name', 'channel name')\n or vrMainImage(object) <- 'image name'")
   }
+  
+  
+  # if(length(value) == 2){
+  #   channel <- value[2]
+  #   value <- value[1]
+  #   object@main_image <- value
+  #   vrMainChannel(object@image[[value]]) <- channel
+  # } else if(length(value) == 1){
+  #   object@main_image <- value
+  # } else {
+  #   stop("The Main image is set by either: \n    vrMainSpatial(object) <- c('image name', 'channel name')\n or vrMainSpatial(object) <- 'image name'")
+  # }
+  
   return(object)
 }
 
@@ -703,7 +755,13 @@ vrMainChannel.vrSpatial <- function(object){
 #' @order 5
 #' @export
 "vrMainChannel<-.vrImage" <- function(object, value){
-  object@main_channel <- value
+  
+  if(value %in% vrImageChannelNames(object)){
+    object@main_channel <- value
+  } else {
+    stop("'",value,"' is not a channel name")
+  }
+  # object@main_channel <- value
   return(object)
 }
 
@@ -714,7 +772,13 @@ vrMainChannel.vrSpatial <- function(object){
 #' @order 5
 #' @export
 "vrMainChannel<-.vrSpatial" <- function(object, value){
-  object@main_channel <- value
+
+  if(value %in% vrImageChannelNames(object)){
+    object@main_channel <- value
+  } else {
+    stop("'",value,"' is not a channel name")
+  }
+  # object@main_channel <- value
   return(object)
 }
 

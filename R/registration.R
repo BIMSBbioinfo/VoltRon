@@ -678,6 +678,9 @@ applyPerspectiveTransform <- function(object,
 
   # make new image object
   vrImages(object[[assay]], reg = TRUE) <- formImage(coords = coords_reg, segments = segments_reg, image = image_reg_list)
+  
+  # set up the spatial coordinate name 
+  vrMainSpatial(object[[assay]])
 
   # return object
   return(object)
