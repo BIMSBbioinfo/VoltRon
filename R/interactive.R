@@ -10,7 +10,7 @@
 #'
 #' @inheritParams shiny::runApp
 #' @param plot_g the ggplot plot
-#' @param shiny.options a list of shiny options (browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
+#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
 #' 
 #' @importFrom rstudioapi viewer
 #'
@@ -97,20 +97,12 @@ mod_app_server <- function(id, plot_g = NULL) {
 
 #' configure_shiny_options
 #'
-#' @param shiny.options a list of shiny options (browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
+#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
 #'
 #' @noRd
 configure_shiny_options <- function(shiny.options){
-  if("host" %in% names(shiny.options)){
-    host <- shiny.options[["host"]]
-  } else {
-    host <- getOption("shiny.host", "0.0.0.0")
-  }
-  if("port" %in% names(shiny.options)){
-    port <- shiny.options[["port"]]
-  } else {
-    port <- getOption("shiny.port")
-  }
+  
+  # launch.browser
   if("launch.browser" %in% names(shiny.options)){
     launch.browser <- shiny.options[["launch.browser"]]
   } else {
@@ -121,9 +113,20 @@ configure_shiny_options <- function(shiny.options){
       launch.browser <- rstudioapi::viewer
     } 
   }
-  if(all(c("port","host") %in% names(shiny.options))){
+  
+  # host and port
+  # if "port" is entered, parse "host" (or use default) but ignore "launch.browser"
+  if("host" %in% names(shiny.options)){
+    host <- shiny.options[["host"]]
+  } else {
+    host <- getOption("shiny.host", "0.0.0.0")
+  }
+  if("port" %in% names(shiny.options)){
+    port <- shiny.options[["port"]]
     launch.browser <- TRUE
-  } 
+  } else {
+    port <- getOption("shiny.port")
+  }
   return(list(host = host, port = port, launch.browser = launch.browser))
 }
 

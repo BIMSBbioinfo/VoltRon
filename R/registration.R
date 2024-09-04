@@ -10,7 +10,7 @@
 #' @param reference_spatdata a reference spatial data set, used only if \code{object_list} is \code{NULL}
 #' @param query_spatdata a query spatial data set, used only if \code{object_list} is \code{NULL}
 #' @param keypoints a list of tables, each points to matching keypoints from registered images.
-#' @param shiny.options a list of shiny options (browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
+#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs show hide

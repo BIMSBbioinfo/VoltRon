@@ -770,7 +770,7 @@ addConnectivity <- function(object, connectivity, sample, layer){
 #' @param image the subseting string passed to \link{image_crop}
 #' @param interactive TRUE if interactive subsetting on the image is demanded
 #' @param use_points if \code{interactive} is \code{TRUE}, use spatial points instead of the reference image
-#' @param shiny.options a list of shiny options (browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
+#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
 #' 
 #' @rdname subset
 #' @aliases subset
