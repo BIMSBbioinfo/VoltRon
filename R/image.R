@@ -1384,6 +1384,7 @@ vrSegments.vrSpatial<- function(object) {
 #' @param object a VoltRon object
 #' @param scale_width the initial width of the object image
 #' @param use_points use spatial points instead of the reference image
+#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs
@@ -1392,7 +1393,7 @@ vrSegments.vrSpatial<- function(object) {
 #' @importFrom dplyr filter add_row tibble
 #' @importFrom ggrepel geom_label_repel
 #'
-demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
+demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE, shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive())))
 {
   # check if there are only one assay in the object
   sample.metadata <- SampleMetadata(object)
@@ -1665,7 +1666,11 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE)
       })
     }
 
-    shiny::runApp(shiny::shinyApp(ui, server))
+    # configure options
+    shiny.options <- configure_shiny_options(shiny.options)
+    
+    # run app
+    shiny::runApp(shiny::shinyApp(ui, server), port = shiny.options[["port"]], host = shiny.options[["port"]], launch.browser = shiny.options[["launch.browser"]])
   }
 }
 

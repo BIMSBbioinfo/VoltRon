@@ -12,6 +12,7 @@
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param annotation_assay name of the annotation assay ()
 #' @param use.image if TRUE, use only the image
+#' @param shiny.options a list of shiny options (browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
 #' @param image_name the name/key of the image
 #' @param channel the name of the main channel
 #' @param ... additional parameters passed to \link{vrSpatialPlot}.
@@ -31,7 +32,8 @@
 #' 
 #' # Annotate based on spatial plot
 #' xenium_data <- annotateSpatialData(xenium_data, group.by = "clusters")
-annotateSpatialData <- function(object, label = "annotation", assay = NULL, annotation_assay = "ROIAnnotation", use.image = FALSE, image_name = NULL, channel = NULL, ...) {
+annotateSpatialData <- function(object, label = "annotation", assay = NULL, annotation_assay = "ROIAnnotation", use.image = FALSE, 
+                                shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive())), image_name = NULL, channel = NULL, ...) {
   
   if(!inherits(object, "VoltRon"))
     stop("Please provide a VoltRon object!")
@@ -464,8 +466,11 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
       
     }
     
-    # Run the application
-    shiny::runApp(shiny::shinyApp(ui, server))
+    # configure options
+    shiny.options <- configure_shiny_options(shiny.options)
+    
+    # run app
+    shiny::runApp(shiny::shinyApp(ui, server), port = shiny.options[["port"]], host = shiny.options[["port"]], launch.browser = shiny.options[["launch.browser"]])
   }
 }
 

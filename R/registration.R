@@ -10,6 +10,7 @@
 #' @param reference_spatdata a reference spatial data set, used only if \code{object_list} is \code{NULL}
 #' @param query_spatdata a query spatial data set, used only if \code{object_list} is \code{NULL}
 #' @param keypoints a list of tables, each points to matching keypoints from registered images.
+#' @param shiny.options a list of shiny options (browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs show hide
@@ -17,7 +18,8 @@
 #' @importFrom waiter useWaiter
 #'
 #' @export
-registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL) {
+registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL, 
+                                shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive()))) {
 
   ## Importing images ####
 
@@ -206,7 +208,12 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
       })
     }
 
-    shiny::runApp(shiny::shinyApp(ui, server))
+    # configure options
+    shiny.options <- configure_shiny_options(shiny.options)
+    
+    # run app
+    shiny::runApp(shiny::shinyApp(ui, server), port = shiny.options[["port"]], host = shiny.options[["port"]], launch.browser = shiny.options[["launch.browser"]])
+    # shiny::runApp(shiny::shinyApp(ui, server))
   }
 }
 

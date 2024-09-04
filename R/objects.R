@@ -770,7 +770,8 @@ addConnectivity <- function(object, connectivity, sample, layer){
 #' @param image the subseting string passed to \link{image_crop}
 #' @param interactive TRUE if interactive subsetting on the image is demanded
 #' @param use_points if \code{interactive} is \code{TRUE}, use spatial points instead of the reference image
-#'
+#' @param shiny.options a list of shiny options (browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
+#' 
 #' @rdname subset
 #' @aliases subset
 #' @method subset VoltRon
@@ -801,7 +802,8 @@ addConnectivity <- function(object, connectivity, sample, layer){
 #' # interactive subsetting
 #' visium_subset_data <- subset(visium_data, interactive = TRUE)
 #' visium_subset <- visium_subset_data$subsets[[1]]
-subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatialpoints = NULL, features = NULL, image = NULL, interactive = FALSE, use_points = FALSE) {
+subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatialpoints = NULL, features = NULL, image = NULL, interactive = FALSE, use_points = FALSE, 
+                           shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive()))) {
 
   # subseting based on subset argument
   if (!missing(x = subset)) {
@@ -905,7 +907,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
       stop("Please provide a character based subsetting notation, see magick::image_crop documentation")
     }
   } else if(interactive){
-    results <- demuxVoltRon(object, use_points = use_points)
+    results <- demuxVoltRon(object, use_points = use_points, shiny.options = shiny.options)
     return(results)
   }
 
