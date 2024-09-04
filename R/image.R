@@ -1411,274 +1411,272 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE, shiny.op
   images <- magick::image_scale(images, scale_width_char)
 
   # get the ui and server
-  if (interactive()){
+  
+  # UI ####
+  ui <- fluidPage(
     
-    # UI ####
-    ui <- fluidPage(
-
-      # use javascript extensions for Shiny
-      shinyjs::useShinyjs(),
-
-      # sidebar
-      sidebarLayout(position = "left",
-
-                    # Side bar
-                    sidebarPanel(
-                      tags$style(make_css(list('.well', 'margin', '7%'))),
-
-                      # Interface
-                      fluidRow(
-                        column(12,h4("Interactive Subsetting"))
-                      ),
-
-                      # Buttons
-                      fluidRow(
-                        column(12,shiny::actionButton("resetpoints", "Remove Box")),
-                        br(),
-                        column(12,shiny::actionButton("addbox", "Add Box")),
-                        br()
-                      ),
-                      
-                      # instructions
-                      h4("How to use"),
-                      p(style="font-size: 12px;", strong("Single-L-hold-drag:"), "Select area"),
-                      p(style="font-size: 12px;", strong("Add Box"), " to set a new subset"),
-                      p(style="font-size: 12px;", strong("Remove Box"), " to reset the box"),
-                      br(),
-
-                      # Subsets
-                      fluidRow(
-                        column(12,h4("Selected Subsets")),
-                        uiOutput("textbox_ui"),
-                        br()
-                      ),
-
-                      # Subsets
-                      fluidRow(
-                        column(12,shiny::actionButton("done", "Done"))
-                      ),
-                      br(),
-                      
-                      # panel options
-                      width = 3,
+    # use javascript extensions for Shiny
+    shinyjs::useShinyjs(),
+    
+    # sidebar
+    sidebarLayout(position = "left",
+                  
+                  # Side bar
+                  sidebarPanel(
+                    tags$style(make_css(list('.well', 'margin', '7%'))),
+                    
+                    # Interface
+                    fluidRow(
+                      column(12,h4("Interactive Subsetting"))
                     ),
-
-                    mainPanel(
-
-                      # main image
+                    
+                    # Buttons
+                    fluidRow(
+                      column(12,shiny::actionButton("resetpoints", "Remove Box")),
                       br(),
-                      br(),
-                      fluidRow(
-                        plotOutput("cropped_image",
-                                   height = "1000px",
-                                   brush = brushOpts(
-                                     id = "plot_brush", fill = "green",
-                                     resetOnNew = TRUE
-                                   )),
-                      ),
-
-                      # panel options
-                      width = 9
-                    )
-      )
+                      column(12,shiny::actionButton("addbox", "Add Box")),
+                      br()
+                    ),
+                    
+                    # instructions
+                    h4("How to use"),
+                    p(style="font-size: 12px;", strong("Single-L-hold-drag:"), "Select area"),
+                    p(style="font-size: 12px;", strong("Add Box"), " to set a new subset"),
+                    p(style="font-size: 12px;", strong("Remove Box"), " to reset the box"),
+                    br(),
+                    
+                    # Subsets
+                    fluidRow(
+                      column(12,h4("Selected Subsets")),
+                      uiOutput("textbox_ui"),
+                      br()
+                    ),
+                    
+                    # Subsets
+                    fluidRow(
+                      column(12,shiny::actionButton("done", "Done"))
+                    ),
+                    br(),
+                    
+                    # panel options
+                    width = 3,
+                  ),
+                  
+                  mainPanel(
+                    
+                    # main image
+                    br(),
+                    br(),
+                    fluidRow(
+                      plotOutput("cropped_image",
+                                 height = "1000px",
+                                 brush = brushOpts(
+                                   id = "plot_brush", fill = "green",
+                                   resetOnNew = TRUE
+                                 )),
+                    ),
+                    
+                    # panel options
+                    width = 9
+                  )
     )
-
-    # Server ####
-    server <- function(input, output, session) {
-
-      ## Importing images and variables ####
-
-      # selected corner list
-      selected_corners_list_image <- reactiveVal(dplyr::tibble(box = character()))
-      selected_corners_list <- reactiveVal(list())
-
-      # the image
-      if(use_points){
-        object_small <- resizeImage(object, size = scale_width)
-        image_info_small <- magick::image_info(vrImages(object_small))
-        coords <- as.data.frame(vrCoordinates(object_small, reg = FALSE))
-        pl <- ggplot() + geom_point(aes_string(x = "x", y = "y"), coords, size = 1.5, color = "black") +
-          theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
-                axis.line=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
-                legend.margin = margin(0,0,0,0), plot.margin = unit( c(0,0,0,0),"in")) +
-          coord_fixed()
-      } else {
-        pl <- magick::image_ggplot(images)
-      }
-
-      ## Region Annotators ####
-      
-      ### Text Box Management ####
-      
-      # Reactive value to store the number of textboxes
-      textboxes <- reactiveVal(numeric(0))
-      
-      # Initialize textbox values if n > 0, get already existing segments
-      textbox_values <- reactiveValues()
-      
-      # Dynamically generate UI for textboxes and remove buttons
-      output$textbox_ui <- renderUI({
-        lapply(textboxes(), function(i) {
-          column(12,
-                 textInputwithButton(textinputId = paste0("sample", i), label = paste0("Subset ", i),
-                                     buttoninputId = paste0("remove", i), value = isolate(textbox_values[[paste0("sample", i)]]), 
-                                     onclick = sprintf('Shiny.setInputValue("remove", %d)', i))
-          )
-        })
-      })
-      
-      # Observe changes in each textbox to update their values
-      observe({
-        lapply(textboxes(), function(i) {
-          observeEvent(input[[paste0("sample", i)]], {
-            textbox_values[[paste0("sample", i)]] <- isolate(input[[paste0("sample", i)]])
-          }, ignoreNULL = FALSE)
-        })
-      })
-
-      ### Reset box ####
-      observeEvent(input$resetpoints, {
-        session$resetBrush("plot_brush")
-      })
-
-      ### Remove box ####
-      
-      # Observe event to remove textbox when the button is clicked
-      observeEvent(input$remove, {
-        
-        # remove one point
-        selected_corners_list(selected_corners_list()[!(textboxes() == as.numeric(isolate(input$remove)))])
-        
-        # Update the reactive value to remove the textbox
-        textboxes(setdiff(textboxes(), as.numeric(isolate(input$remove))))
-        
-        # Remove the value from textbox_values
-        textbox_values[[paste0("sample", as.numeric(input$remove))]] <- NULL
-        
-      }, ignoreInit = TRUE)
-      
-      ### Add box ####
-      observeEvent(input$addbox, {
-        
-        # get corners
-        brush <- input$plot_brush
-        
-        # add a box if brush is active
-        if(!is.null(brush)){
-          
-          # corners 
-          corners <- data.frame(x = c(brush$xmin, brush$xmax), 
-                                y = c(brush$ymax, brush$ymin))
-      
-          # record corners
-          selected_corners_list(c(selected_corners_list(), list(corners)))
-          
-          # adjust corners
-          corners <- corners*scale_factor
-          corners <- FromBoxToCrop(corners, imageinfo)
-          
-          # add to box list
-          selected_corners_list_image() %>%
-            dplyr::add_row(box = corners) %>%
-            selected_corners_list_image()
-          
-          # reset box
-          session$resetBrush("plot_brush")
-          
-          # add buttons
-          new_id <- if (length(textboxes()) == 0) 1 else max(textboxes()) + 1
-          textboxes(c(textboxes(), new_id))
-          textbox_values[[paste0("sample", new_id)]] <- ""
-        }
-      })
-
-      ## Main observable ####
-      observe({
-        
-        # output image
-        output[["cropped_image"]] <- renderPlot({
-          
-          # visualize already selected boxes
-          if(length(selected_corners_list()) > 0){
-            for (i in 1:length(selected_corners_list())){
-              corners <- apply(as.matrix(selected_corners_list()[[i]]),2,as.numeric)
-              if(nrow(corners) > 1){
-                corners <- as.data.frame(rbind(cbind(corners[1,1], corners[1:2,2]), cbind(corners[2,1], corners[2:1,2])))
-                colnames(corners) <- c("x", "y")
-                pl <- pl + ggplot2::geom_polygon(aes(x = x, y = y), data = corners, alpha = 0.3, fill = "green", color = "black")
-                
-              }
-            }
-          }
-          
-          # put labels of the already selected polygons
-          if(length(selected_corners_list()) > 0){
-            for (i in 1:length(selected_corners_list())){
-              corners <- selected_corners_list()[[i]]
-              corners <- as.data.frame(rbind(cbind(corners[1,1], corners[1:2,2]), cbind(corners[2,1], corners[2:1,2])))
-              corners <- data.frame(x = mean(corners[,1]), y = max(corners[,2]), sample = paste("Subset ", isolate(textboxes()[i])))
-              pl <- pl +
-                ggrepel::geom_label_repel(mapping = aes(x = x, y = y, label = sample), data = corners,
-                                          size = 5, direction = "y", nudge_y = 6, box.padding = 0, label.padding = 1, seed = 1, color = "red")
-            }
-          }
-          
-          # return graph
-          pl
-        })
-      })
-      
-      ## Done ####
-      
-      # show "Done" if a region is selected already
-      observe({
-        if(nrow(selected_corners_list_image()) > 0){
-          shinyjs::show(id = "done")
-        } else {
-          shinyjs::hide(id = "done")
-        }
-      })
-      
-      # observe for done and return the list of objects
-      observeEvent(input$done, {
-        if(nrow(selected_corners_list_image()) > 0){
-          subsets <- list()
-          box_list <- selected_corners_list_image()
-
-          # collect labels
-          sample_names <- sapply(1:length(box_list$box), function(i) input[[paste0("sample",i)]])
-          
-          # check if sample names are present
-          if(any(sample_names == "")) {
-            showNotification("Some subsets have blank (empty!) sample names.")
-          } else{
-            for(i in 1:length(box_list$box)){
-              temp <- subset(object, image = box_list$box[i])
-              temp$Sample <- sample_names[i]
-              subsets[[sample_names[i]]] <- temp
-            }
-            stopApp(list(subsets = subsets, subset_info_list = box_list))
-          }
-            
-        } else {
-          showNotification("You have not selected a subset yet!")
-        }
-      })
-    }
-
-    # configure options
-    shiny.options <- configure_shiny_options(shiny.options)
+  )
+  
+  # Server ####
+  server <- function(input, output, session) {
     
-    # run app
-    # shiny::runApp(shiny::shinyApp(ui, server), port = shiny.options[["port"]], host = shiny.options[["host"]], launch.browser = shiny.options[["launch.browser"]])
-    shiny::shinyApp(ui, server, options = list(host = shiny.options[["host"]], port = shiny.options[["port"]], launch.browser = shiny.options[["launch.browser"]]),
-                    onStart = function() {
-                      cat("Doing application setup\n")
-                      onStop(function() {
-                        cat("Doing application cleanup\n")
-                      })
-                    })
+    ## Importing images and variables ####
+    
+    # selected corner list
+    selected_corners_list_image <- reactiveVal(dplyr::tibble(box = character()))
+    selected_corners_list <- reactiveVal(list())
+    
+    # the image
+    if(use_points){
+      object_small <- resizeImage(object, size = scale_width)
+      image_info_small <- magick::image_info(vrImages(object_small))
+      coords <- as.data.frame(vrCoordinates(object_small, reg = FALSE))
+      pl <- ggplot() + geom_point(aes_string(x = "x", y = "y"), coords, size = 1.5, color = "black") +
+        theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+              axis.line=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
+              legend.margin = margin(0,0,0,0), plot.margin = unit( c(0,0,0,0),"in")) +
+        coord_fixed()
+    } else {
+      pl <- magick::image_ggplot(images)
+    }
+    
+    ## Region Annotators ####
+    
+    ### Text Box Management ####
+    
+    # Reactive value to store the number of textboxes
+    textboxes <- reactiveVal(numeric(0))
+    
+    # Initialize textbox values if n > 0, get already existing segments
+    textbox_values <- reactiveValues()
+    
+    # Dynamically generate UI for textboxes and remove buttons
+    output$textbox_ui <- renderUI({
+      lapply(textboxes(), function(i) {
+        column(12,
+               textInputwithButton(textinputId = paste0("sample", i), label = paste0("Subset ", i),
+                                   buttoninputId = paste0("remove", i), value = isolate(textbox_values[[paste0("sample", i)]]), 
+                                   onclick = sprintf('Shiny.setInputValue("remove", %d)', i))
+        )
+      })
+    })
+    
+    # Observe changes in each textbox to update their values
+    observe({
+      lapply(textboxes(), function(i) {
+        observeEvent(input[[paste0("sample", i)]], {
+          textbox_values[[paste0("sample", i)]] <- isolate(input[[paste0("sample", i)]])
+        }, ignoreNULL = FALSE)
+      })
+    })
+    
+    ### Reset box ####
+    observeEvent(input$resetpoints, {
+      session$resetBrush("plot_brush")
+    })
+    
+    ### Remove box ####
+    
+    # Observe event to remove textbox when the button is clicked
+    observeEvent(input$remove, {
+      
+      # remove one point
+      selected_corners_list(selected_corners_list()[!(textboxes() == as.numeric(isolate(input$remove)))])
+      
+      # Update the reactive value to remove the textbox
+      textboxes(setdiff(textboxes(), as.numeric(isolate(input$remove))))
+      
+      # Remove the value from textbox_values
+      textbox_values[[paste0("sample", as.numeric(input$remove))]] <- NULL
+      
+    }, ignoreInit = TRUE)
+    
+    ### Add box ####
+    observeEvent(input$addbox, {
+      
+      # get corners
+      brush <- input$plot_brush
+      
+      # add a box if brush is active
+      if(!is.null(brush)){
+        
+        # corners 
+        corners <- data.frame(x = c(brush$xmin, brush$xmax), 
+                              y = c(brush$ymax, brush$ymin))
+        
+        # record corners
+        selected_corners_list(c(selected_corners_list(), list(corners)))
+        
+        # adjust corners
+        corners <- corners*scale_factor
+        corners <- FromBoxToCrop(corners, imageinfo)
+        
+        # add to box list
+        selected_corners_list_image() %>%
+          dplyr::add_row(box = corners) %>%
+          selected_corners_list_image()
+        
+        # reset box
+        session$resetBrush("plot_brush")
+        
+        # add buttons
+        new_id <- if (length(textboxes()) == 0) 1 else max(textboxes()) + 1
+        textboxes(c(textboxes(), new_id))
+        textbox_values[[paste0("sample", new_id)]] <- ""
+      }
+    })
+    
+    ## Main observable ####
+    observe({
+      
+      # output image
+      output[["cropped_image"]] <- renderPlot({
+        
+        # visualize already selected boxes
+        if(length(selected_corners_list()) > 0){
+          for (i in 1:length(selected_corners_list())){
+            corners <- apply(as.matrix(selected_corners_list()[[i]]),2,as.numeric)
+            if(nrow(corners) > 1){
+              corners <- as.data.frame(rbind(cbind(corners[1,1], corners[1:2,2]), cbind(corners[2,1], corners[2:1,2])))
+              colnames(corners) <- c("x", "y")
+              pl <- pl + ggplot2::geom_polygon(aes(x = x, y = y), data = corners, alpha = 0.3, fill = "green", color = "black")
+              
+            }
+          }
+        }
+        
+        # put labels of the already selected polygons
+        if(length(selected_corners_list()) > 0){
+          for (i in 1:length(selected_corners_list())){
+            corners <- selected_corners_list()[[i]]
+            corners <- as.data.frame(rbind(cbind(corners[1,1], corners[1:2,2]), cbind(corners[2,1], corners[2:1,2])))
+            corners <- data.frame(x = mean(corners[,1]), y = max(corners[,2]), sample = paste("Subset ", isolate(textboxes()[i])))
+            pl <- pl +
+              ggrepel::geom_label_repel(mapping = aes(x = x, y = y, label = sample), data = corners,
+                                        size = 5, direction = "y", nudge_y = 6, box.padding = 0, label.padding = 1, seed = 1, color = "red")
+          }
+        }
+        
+        # return graph
+        pl
+      })
+    })
+    
+    ## Done ####
+    
+    # show "Done" if a region is selected already
+    observe({
+      if(nrow(selected_corners_list_image()) > 0){
+        shinyjs::show(id = "done")
+      } else {
+        shinyjs::hide(id = "done")
+      }
+    })
+    
+    # observe for done and return the list of objects
+    observeEvent(input$done, {
+      if(nrow(selected_corners_list_image()) > 0){
+        subsets <- list()
+        box_list <- selected_corners_list_image()
+        
+        # collect labels
+        sample_names <- sapply(1:length(box_list$box), function(i) input[[paste0("sample",i)]])
+        
+        # check if sample names are present
+        if(any(sample_names == "")) {
+          showNotification("Some subsets have blank (empty!) sample names.")
+        } else{
+          for(i in 1:length(box_list$box)){
+            temp <- subset(object, image = box_list$box[i])
+            temp$Sample <- sample_names[i]
+            subsets[[sample_names[i]]] <- temp
+          }
+          stopApp(list(subsets = subsets, subset_info_list = box_list))
+        }
+        
+      } else {
+        showNotification("You have not selected a subset yet!")
+      }
+    })
   }
+  
+  # configure options
+  shiny.options <- configure_shiny_options(shiny.options)
+  
+  # run app
+  # shiny::runApp(shiny::shinyApp(ui, server), port = shiny.options[["port"]], host = shiny.options[["host"]], launch.browser = shiny.options[["launch.browser"]])
+  shiny::shinyApp(ui, server, options = list(host = shiny.options[["host"]], port = shiny.options[["port"]], launch.browser = shiny.options[["launch.browser"]]),
+                  onStart = function() {
+                    cat("Doing application setup\n")
+                    onStop(function() {
+                      cat("Doing application cleanup\n")
+                    })
+                  })
 }
 
 
