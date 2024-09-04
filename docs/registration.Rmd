@@ -152,7 +152,18 @@ VRBlock
 Assays: Xenium(Main) Visium
 ```
 
-<br>
+Here, we can quickly check the change in spatial coordinate systems in the new tissue block. The `registerSpatialData` function syncronizes the coordinate systems of all VoltRon objects in the list before merging. Both Xenium sections have now two coordinate system where the registered system **main_reg** is the default one.
+
+```{r class.source="watch-out", eval = FALSE}
+vrSpatialNames(VRBlock, assay = "all")
+```
+
+```
+   Assay       Spatial     Main
+1 Assay1 main,main_reg main_reg
+2 Assay2          main     main
+3 Assay3 main,main_reg main_reg
+```
 
 ### Data/Label Transfer Across Layers
 

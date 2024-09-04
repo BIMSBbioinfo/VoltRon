@@ -13,7 +13,7 @@
 
 <title>Image Registration</title>
 
-<script src="site_libs/header-attrs-2.27/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.28/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -612,7 +612,17 @@ VRBlock</code></pre>
 <pre><code>10XBlock: 
   Layers: Section1 Section2 Section3 
 Assays: Xenium(Main) Visium</code></pre>
-<p><br></p>
+<p>Here, we can quickly check the change in spatial coordinate systems
+in the new tissue block. The <code>registerSpatialData</code> function
+syncronizes the coordinate systems of all VoltRon objects in the list
+before merging. Both Xenium sections have now two coordinate system
+where the registered system <strong>main_reg</strong> is the default
+one.</p>
+<pre class="r watch-out"><code>vrSpatialNames(VRBlock, assay = &quot;all&quot;)</code></pre>
+<pre><code>   Assay       Spatial     Main
+1 Assay1 main,main_reg main_reg
+2 Assay2          main     main
+3 Assay3 main,main_reg main_reg</code></pre>
 </div>
 <div id="datalabel-transfer-across-layers" class="section level3">
 <h3>Data/Label Transfer Across Layers</h3>
