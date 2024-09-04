@@ -104,7 +104,7 @@ configure_shiny_options <- function(shiny.options){
   if("host" %in% names(shiny.options)){
     host <- shiny.options[["host"]]
   } else {
-    host <- getOption("shiny.host", "127.0.0.1")
+    host <- getOption("shiny.host", "0.0.0.0")
   }
   if("port" %in% names(shiny.options)){
     port <- shiny.options[["port"]]
