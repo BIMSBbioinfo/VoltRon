@@ -189,8 +189,7 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
   
   # get adjacency for observed and simulated pairs
   # grp_sim_data <- 
-  # neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data)
-  
+  # neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data
 
   neigh_results <- neighbors_graph_data %>%
     dplyr::group_by(from_value, to_value, type) %>%
