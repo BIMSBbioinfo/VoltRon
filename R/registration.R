@@ -10,13 +10,15 @@
 #' @param reference_spatdata a reference spatial data set, used only if \code{object_list} is \code{NULL}
 #' @param query_spatdata a query spatial data set, used only if \code{object_list} is \code{NULL}
 #' @param keypoints a list of tables, each points to matching keypoints from registered images.
+#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs show hide
 #' @importFrom stats median
 #'
 #' @export
-registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL) {
+registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL, 
+                                shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive()))) {
 
   ## Importing images ####
 
@@ -55,24 +57,20 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
   })
   
   ## UI and Server ####
-
-  # get the ui and server
-  if(interactive()){
-    # ui <- tagList(
-    ui <- fluidPage(
-      # use javascript extensions for Shiny
-      # waiter::useWaiter(),
-      shinyjs::useShinyjs(),
-
-      sidebarLayout(position = "left",
-
-                    # Side bar
-                    sidebarPanel(
-                      tags$style(make_css(list('.well', 'margin', '7%'))),
-
-                      # # specific settings for dealing with simultaneous click and brush events
-                      # # https://jokergoo.github.io/2021/02/20/differentiate-brush-and-click-event-in-shiny/
-                      tags$script(HTML("
+  ui <- fluidPage(
+    # use javascript extensions for Shiny
+    waiter::useWaiter(),
+    shinyjs::useShinyjs(),
+    
+    sidebarLayout(position = "left",
+                  
+                  # Side bar
+                  sidebarPanel(
+                    tags$style(make_css(list('.well', 'margin', '7%'))),
+                    
+                    # # specific settings for dealing with simultaneous click and brush events
+                    # # https://jokergoo.github.io/2021/02/20/differentiate-brush-and-click-event-in-shiny/
+                    tags$script(HTML("
                         $('#plot').mousedown(function(e) {
                             var parentOffset = $(this).offset();
                             var relX = e.pageX - parentOffset.left;
@@ -88,125 +86,113 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
                             Shiny.setInputValue('action', Math.random());
                         });
                       ")),
-
-                      getSideBar(),
-                      
-                      # h4("Spatial Data Alignment"),
-                      # fluidRow(
-                      #   column(12,shiny::checkboxInput("automatictag", "Automated", value = FALSE)),
-                      #   br(),
-                      #   column(12,selectInput("AutoMethod", "Method", choices = c("FLANN", "BRUTE-FORCE"), selected = "FLANN")),
-                      #   br(),
-                      #   column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
-                      #   column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
-                      #   br(),
-                      #   column(12,shiny::actionButton("register", "Register!")),
-                      #   br(),
-                      # ),
-                      # br(),
-                      # fluidRow(
-                      #   column(12,shiny::htmlOutput("summary"))
-                      # ),
-                      # br(),
-                      # fluidRow(
-                      #   column(12,shiny::actionButton("done", "Done")),
-                      #   br()
-                      # ),
-
-                      # panel options
-                      width = 3,
+                    
+                    getSideBar(),
+                    
+                    # panel options
+                    width = 3,
+                  ),
+                  
+                  mainPanel(
+                    
+                    # Interface for the reference image
+                    br(),
+                    column(6,
+                           
+                           # Reference Images
+                           getImageTabPanels(length(orig_image_query_list), orig_image_channelname_list, type = "ref"),
+                           
+                           br(),
+                           
+                           # Matching Alignment
+                           getAlignmentTabPanel(length(orig_image_query_list), centre, register_ind),
                     ),
-
-                    mainPanel(
-
-                      # Interface for the reference image
-                      br(),
-                      column(6,
-
-                             # Reference Images
-                             getImageTabPanels(length(orig_image_query_list), orig_image_channelname_list, type = "ref"),
-
-                             br(),
-
-                             # Matching Alignment
-                             getAlignmentTabPanel(length(orig_image_query_list), centre, register_ind),
-                      ),
-
-                      # Interface for the query images
-                      column(6,
-
-                             # Query Images
-                             getImageTabPanels(length(orig_image_query_list), orig_image_channelname_list, type = "query"),
-
-                             br(),
-
-                             # Registered Query Images
-                             getRegisteredImageTabPanels(length(orig_image_query_list), centre, register_ind)
-                      ),
-
-                      # panel options
-                      width = 9
-                    )
-      )
+                    
+                    # Interface for the query images
+                    column(6,
+                           
+                           # Query Images
+                           getImageTabPanels(length(orig_image_query_list), orig_image_channelname_list, type = "query"),
+                           
+                           br(),
+                           
+                           # Registered Query Images
+                           getRegisteredImageTabPanels(length(orig_image_query_list), centre, register_ind)
+                    ),
+                    
+                    # panel options
+                    width = 9
+                  )
     )
-
-    server <- function(input, output, session) {
-
-      ## Manage interface ####
-      updateParameterPanels(length(orig_image_query_list), input, output, session)
-      updateSequentialTabPanels(input, output, session, centre, register_ind)
-
-      ## Transform images ####
-      trans_image_query_list <- transformImageQueryList(orig_image_query_list, input)
+  )
+  
+  server <- function(input, output, session) {
+    
+    ## Manage interface ####
+    updateParameterPanels(length(orig_image_query_list), input, output, session)
+    updateSequentialTabPanels(input, output, session, centre, register_ind)
+    
+    ## Transform images ####
+    trans_image_query_list <- transformImageQueryList(orig_image_query_list, input)
+    
+    ## get image and zoom info ####
+    orig_image_query_info_list <- getImageInfo(orig_image_query_list)
+    zoom_list <- initiateZoomOptions(orig_image_query_info_list)
+    # manageImageZoomOptions(centre, register_ind, zoom_list, trans_image_query_list, orig_image_query_list, orig_image_query_info_list, input, output, session)
+    manageImageZoomOptions(centre, register_ind, zoom_list, orig_image_query_list, orig_image_query_info_list, input, output, session)
+    
+    ## Manage reference and query keypoints ####
+    xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
+    # manageKeypoints(centre, register_ind, xyTable_list, trans_image_query_list, orig_image_query_info_list, zoom_list, input, output, session)
+    manageKeypoints(centre, register_ind, xyTable_list, orig_image_query_list, orig_image_query_info_list, zoom_list, input, output, session)
+    
+    ## Image registration ####
+    registration_mapping_list <- initiateMappings(length(spatdata_list))
+    getManualRegisteration(registration_mapping_list, spatdata_list, orig_image_query_list, xyTable_list,
+                           centre, register_ind, input, output, session)
+    getAutomatedRegisteration(registration_mapping_list, spatdata_list, orig_image_query_list_full, orig_image_channelname_list,
+                              centre, register_ind, input, output, session)
+    
+    ## Main observable ####
+    observe({
       
-      ## get image and zoom info ####
-      orig_image_query_info_list <- getImageInfo(orig_image_query_list)
-      zoom_list <- initiateZoomOptions(orig_image_query_info_list)
-      # manageImageZoomOptions(centre, register_ind, zoom_list, trans_image_query_list, orig_image_query_list, orig_image_query_info_list, input, output, session)
-      manageImageZoomOptions(centre, register_ind, zoom_list, orig_image_query_list, orig_image_query_info_list, input, output, session)
+      # output the list of query images
+      getImageOutput(orig_image_query_list_full, orig_image_query_info_list, xyTable_list, zoom_list, centre, input, output, session)
       
-      ## Manage reference and query keypoints ####
-      xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
-      # manageKeypoints(centre, register_ind, xyTable_list, trans_image_query_list, orig_image_query_info_list, zoom_list, input, output, session)
-      manageKeypoints(centre, register_ind, xyTable_list, orig_image_query_list, orig_image_query_info_list, zoom_list, input, output, session)
+    })
+    
+    ## Return values for the shiny app ####
+    observeEvent(input$done, {
       
-      ## Image registration ####
-      registration_mapping_list <- initiateMappings(length(spatdata_list))
-      getManualRegisteration(registration_mapping_list, spatdata_list, orig_image_query_list, xyTable_list,
-                             centre, register_ind, input, output, session)
-      getAutomatedRegisteration(registration_mapping_list, spatdata_list, orig_image_query_list_full, orig_image_channelname_list,
-                                centre, register_ind, input, output, session)
-
-      ## Main observable ####
-      observe({
-
-        # output the list of query images
-        getImageOutput(orig_image_query_list_full, orig_image_query_info_list, xyTable_list, zoom_list, centre, input, output, session)
-        
-      })
-
-      ## Return values for the shiny app ####
-      observeEvent(input$done, {
-
-        # keypoints
-        keypoints <- reactiveValuesToList(xyTable_list)
-
-        # get keypoints and registered spatial datasets
-        stopApp(
-          list(keypoints = keypoints,
-               registered_spat = getRegisteredObject(spatdata_list,
-                                                     registration_mapping_list,
-                                                     register_ind,
-                                                     centre,
-                                                     input,
-                                                     reg_mode = ifelse(input$automatictag, "auto", "manual"),
-                                                     image_list = orig_image_query_list))
-          )
-      })
-    }
-
-    shiny::runApp(shiny::shinyApp(ui, server))
+      # keypoints
+      keypoints <- reactiveValuesToList(xyTable_list)
+      
+      # get keypoints and registered spatial datasets
+      stopApp(
+        list(keypoints = keypoints,
+             registered_spat = getRegisteredObject(spatdata_list,
+                                                   registration_mapping_list,
+                                                   register_ind,
+                                                   centre,
+                                                   input,
+                                                   reg_mode = ifelse(input$automatictag, "auto", "manual"),
+                                                   image_list = orig_image_query_list))
+      )
+    })
   }
+  
+  # configure options
+  shiny.options <- configure_shiny_options(shiny.options)
+  
+  # run app
+  # shiny::runApp(shiny::shinyApp(ui, server), port = shiny.options[["port"]], host = shiny.options[["host"]], launch.browser = shiny.options[["launch.browser"]])
+  shiny::shinyApp(ui, server, options = list(host = shiny.options[["host"]], port = shiny.options[["port"]], launch.browser = shiny.options[["launch.browser"]]),
+                  onStart = function() {
+                    cat("Doing application setup\n")
+                    onStop(function() {
+                      cat("Doing application cleanup\n")
+                    })
+                  })
 }
 
 ####
@@ -682,6 +668,9 @@ applyPerspectiveTransform <- function(object,
 
   # make new image object
   vrImages(object[[assay]], reg = TRUE) <- formImage(coords = coords_reg, segments = segments_reg, image = image_reg_list)
+  
+  # set up the spatial coordinate name 
+  vrMainSpatial(object[[assay]]) <- paste0(vrMainSpatial(object[[assay]]), "_reg")
 
   # return object
   return(object)

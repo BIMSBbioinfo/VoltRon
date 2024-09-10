@@ -175,7 +175,7 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
   } else {
     stop("'", group.by, "' is not available in metadata!")
   }
-  
+
   # get graph and neighborhood
   graph <- vrGraph(object, graph.type = graph.type)
   neighbors_graph <- igraph::neighborhood(graph)
@@ -195,7 +195,7 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
   neighbors_graph_data_list <- list(data.frame(neighbors_graph_data, from_value = grp[neighbors_graph_data[,1]], to_value = grp[neighbors_graph_data[,2]], type = "obs"))
   for(i in 2:(ncol(grp_sim)+1))
     neighbors_graph_data_list[[i]] <- data.frame(neighbors_graph_data, from_value = grp_sim[,i-1][neighbors_graph_data[,1]], to_value = grp_sim[,i-1][neighbors_graph_data[,2]], type = paste0("sim", i))
-  neighbors_graph_data2 <- dplyr::bind_rows(neighbors_graph_data_list)
+  neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data_list)
 
   # get adjacency for observed and simulated pairs
   # grp_sim_data <- 

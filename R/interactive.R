@@ -10,16 +10,15 @@
 #'
 #' @inheritParams shiny::runApp
 #' @param plot_g the ggplot plot
+#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
+#' 
+#' @importFrom rstudioapi viewer
 #'
 #' @noRd
-vrSpatialPlotInteractive <- function(host = getOption("shiny.host", "127.0.0.1"),
-                                     port = getOption("shiny.port"), plot_g = NULL){
+vrSpatialPlotInteractive <- function(plot_g = NULL, 
+                                     shiny.options = list()){
   
-  # check rstudioapi
-  if(!requireNamespace('rstudioapi'))
-    stop("Please install rstudioapi package for interactive visualization!")
-  
-  # use shiny js
+  # js for Shiny
   shinyjs::useShinyjs()
 
   # UI
@@ -33,8 +32,11 @@ vrSpatialPlotInteractive <- function(host = getOption("shiny.host", "127.0.0.1")
     })
   }
 
+  # get shiny options
+  shiny.options = configure_shiny_options(shiny.options)
+  
   # Start Shiny Application
-  shiny::shinyApp(ui, server, options = list(host = host, port = port, launch.browser = rstudioapi::viewer),
+  shiny::shinyApp(ui, server, options = list(host = shiny.options[["host"]], port = shiny.options[["port"]], launch.browser = shiny.options[["launch.browser"]]),
                   onStart = function() {
                     cat("Doing application setup\n")
                     onStop(function() {
@@ -91,6 +93,41 @@ mod_app_server <- function(id, plot_g = NULL) {
         ggplot2::coord_equal(xlim = ranges$x, ylim = ranges$y, ratio = 1)
     })
   })
+}
+
+#' configure_shiny_options
+#'
+#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
+#'
+#' @noRd
+configure_shiny_options <- function(shiny.options){
+  
+  # launch.browser
+  if("launch.browser" %in% names(shiny.options)){
+    launch.browser <- shiny.options[["launch.browser"]]
+  } else {
+    launch.browser <- "RStudio"
+  }
+  if(!is.function(launch.browser)){
+    if(launch.browser == "RStudio"){
+      launch.browser <- rstudioapi::viewer
+    } 
+  }
+  
+  # host and port
+  # if "port" is entered, parse "host" (or use default) but ignore "launch.browser"
+  if("host" %in% names(shiny.options)){
+    host <- shiny.options[["host"]]
+  } else {
+    host <- getOption("shiny.host", "0.0.0.0")
+  }
+  if("port" %in% names(shiny.options)){
+    port <- shiny.options[["port"]]
+    launch.browser <- TRUE
+  } else {
+    port <- getOption("shiny.port")
+  }
+  return(list(host = host, port = port, launch.browser = launch.browser))
 }
 
 ####

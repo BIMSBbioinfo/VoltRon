@@ -42,6 +42,7 @@ NULL
 #' @param common.legend whether to use a common legend for all plots, see \link{ggarrange}
 #' @param collapse whether to combine all ggplots
 #' @param interactive if TRUE, run interactive plot
+#' @param shiny.options a list of shiny options (browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
 #'
 #' @import ggplot2
 #' @importFrom ggpubr ggarrange
@@ -49,7 +50,8 @@ NULL
 #' @export
 vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, assay = NULL, graph.name = NULL,
                           reduction = NULL, ncol = 2, nrow = NULL, font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, label = FALSE, background = NULL, reg = FALSE,
-                          crop = FALSE, legend.pt.size = 2, legend.text.size = 14, scale.image = TRUE, legend.loc = "right", common.legend = TRUE, collapse = TRUE, interactive = FALSE) {
+                          crop = FALSE, legend.pt.size = 2, legend.text.size = 14, scale.image = TRUE, legend.loc = "right", common.legend = TRUE, collapse = TRUE, interactive = FALSE, 
+                          shiny.options = list()) {
 
   # check object for zarr
   if(is.character(object)){
@@ -79,7 +81,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
                           crop = crop, legend.pt.size = legend.pt.size, legend.text.size = legend.text.size, scale.image = FALSE, 
                           legend.loc = legend.loc, common.legend = common.legend, collapse = collapse,
                           interactive = FALSE)
-      return(vrSpatialPlotInteractive(plot_g = gg))
+      return(vrSpatialPlotInteractive(plot_g = gg, shiny.options = shiny.options))
     }
   }
 
