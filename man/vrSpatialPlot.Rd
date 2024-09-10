@@ -30,7 +30,8 @@ vrSpatialPlot(
   legend.loc = "right",
   common.legend = TRUE,
   collapse = TRUE,
-  interactive = FALSE
+  interactive = FALSE,
+  shiny.options = list()
 )
 }
 \arguments{
@@ -88,6 +89,8 @@ and main channel (\link{vrMainChannel}) will be in the background. Otherwise the
 \item{collapse}{whether to combine all ggplots}
 
 \item{interactive}{if TRUE, run interactive plot}
+
+\item{shiny.options}{a list of shiny options (browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}}
 }
 \description{
 Plotting identification of spatially resolved cells, spots, and ROI on associated images from multiple assays in a VoltRon object.
