@@ -470,7 +470,7 @@ vrImages.vrSpatial <- function(object, channel = NULL, as.raster = FALSE, scale.
     object@image[[channel]] <- value
   } else if(inherits(value, "magick-image")){
     object@image[[channel]] <- magick::image_data(value)
-  } else if(inherits(value, "HDF5Array")){
+  } else if(inherits(value, "Array")){
     object@image[[channel]] <- value
   } else {
     stop("Please provide either a magick-image or bitmap class image object!")
