@@ -2,8 +2,8 @@
 # InDisk Methods ####
 ####
 
-saveVoltRonInDisk <- function (object, assay = NULL, dir = "my_h5_se", prefix = "", format = "hdf5", replace = FALSE, 
-                             chunkdim = NULL, level = NULL, as.sparse = NA, save.rds = FALSE, verbose = FALSE) 
+saveVoltRonInDisk <- function (object, assay = NULL, dir = "my_h5_se", prefix = "", format = c("hdf5", "zarr"), replace = FALSE, 
+                             chunkdim = NULL, level = NULL, as.sparse = NA, verbose = FALSE) 
 {
   if (!is(object, "VoltRon")) 
     stop("'object' must be a VoltRon object")
@@ -21,7 +21,7 @@ saveVoltRonInDisk <- function (object, assay = NULL, dir = "my_h5_se", prefix = 
     replace_dir(dir, replace)
   }
   
-  # in disk 
+  # in disk (h5 or zarr)
   indisk_path <- file.path(dir, paste0(prefix, "assays.", ifelse(format == "hdf5", "h5", "zarr")))
   if (prefix != "") 
     check_and_delete_files(rds_path, indisk_path, replace)
@@ -31,9 +31,7 @@ saveVoltRonInDisk <- function (object, assay = NULL, dir = "my_h5_se", prefix = 
                        verbose = verbose)
   
   # rds file
-  if(save.rds){
-    # .serialize_VoltRonObject(x, rds_path, verbose)
-  }
+  # .serialize_VoltRonObject(x, rds_path, verbose)
 }
 
 .write_VoltRonInDisk <- function(object, assay = NULL, format, rds_path, indisk_path, chunkdim=NULL, level=NULL, as.sparse=NA, verbose=FALSE)
@@ -204,21 +202,23 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
     cat(paste0("  Writing '", assy, "' data \n"))
     a <- vrData(assay_object)
     a <- ZarrArray::writeZarrArray(a,
-                                   h5_path,
+                                   zarr_path,
                                    name = paste0(assy, "/data"),
                                    chunkdim=chunkdim,
                                    level=level,
                                    as.sparse=as.sparse,
-                                   with.dimnames=FALSE,
+                                   # with.dimnames=FALSE,
+                                   with.dimnames = TRUE,
                                    verbose=verbose)
     assay_object@rawdata <- a
     assay_object@normdata <- a
     
+    # TODO: image zarr conversion does not work for bitmap arrays now
     # # get image data and write
-    # assay_object <- writeZARRArrayInImage(object = assay_object, 
-    #                                       h5_path,
+    # assay_object <- writeZarrArrayInImage(object = assay_object,
+    #                                       zarr_path,
     #                                       name = assy,
-    #                                       chunkdim=chunkdim, 
+    #                                       chunkdim=chunkdim,
     #                                       level=level,
     #                                       as.sparse=as.sparse,
     #                                       with.dimnames=FALSE,
@@ -229,6 +229,45 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
     
   }
   object
+}
+
+writeZarrArrayInImage <- function(object, 
+                                  zarr_path,
+                                  name = assy,
+                                  chunkdim=chunkdim, 
+                                  level=level,
+                                  as.sparse=as.sparse,
+                                  with.dimnames=FALSE,
+                                  verbose=verbose){
+  
+  # for each spatial system
+  spatial_names <- vrSpatialNames(object)
+  for(spat in spatial_names){
+    
+    # for each channel
+    channels <- vrImageChannelNames(object, name = spat)
+    for(ch in channels){
+      
+      # open group for spatial system
+      cat(paste0("  Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"' \n"))
+      zarr.array <- pizzarr::zarr_open(store = zarr_path)
+      zarr.array$create_group(paste0(name, "/", spat))
+      
+      # get image and write to h5
+      img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
+      img <- ZarrArray::writeZarrArray(img, 
+                                       zarr_path, 
+                                       name = paste0(name, "/", spat, "/", ch),
+                                       chunkdim=chunkdim, 
+                                       level=level,
+                                       as.sparse=as.sparse,
+                                       with.dimnames=FALSE,
+                                       verbose=verbose)
+      vrImages(object, name = spat, channel = ch) <- img 
+    } 
+  }
+  
+  return(object)
 }
 
 ####
