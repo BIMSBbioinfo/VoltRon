@@ -10,7 +10,8 @@ NULL
 
 # Set old classes
 # setClassUnion("data_matrix", members = c("matrix", "dgCMatrix"))
-setClassUnion("data_matrix", members = c("matrix", "dgCMatrix", "dgRMatrix", "dgeMatrix"))
+# setClassUnion("data_matrix", members = c("matrix", "dgCMatrix", "dgRMatrix", "dgeMatrix", "HDF5Matrix"))
+setClassUnion("data_matrix", members = c("matrix", "dgCMatrix", "dgRMatrix", "dgeMatrix", "DelayedArray"))
 
 ## vrAssay ####
 
