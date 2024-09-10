@@ -214,15 +214,15 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
     assay_object@normdata <- a
     
     # TODO: image zarr conversion does not work for bitmap arrays now
-    # # get image data and write
-    # assay_object <- writeZarrArrayInImage(object = assay_object,
-    #                                       zarr_path,
-    #                                       name = assy,
-    #                                       chunkdim=chunkdim,
-    #                                       level=level,
-    #                                       as.sparse=as.sparse,
-    #                                       with.dimnames=FALSE,
-    #                                       verbose=verbose)
+    # get image data and write
+    assay_object <- writeZarrArrayInImage(object = assay_object,
+                                          zarr_path,
+                                          name = assy, 
+                                          chunkdim=chunkdim, 
+                                          level=level,
+                                          as.sparse=as.sparse,
+                                          with.dimnames=FALSE,
+                                          verbose=verbose)
     
     # write assay back
     object[[assy]] <- assay_object
@@ -255,11 +255,16 @@ writeZarrArrayInImage <- function(object,
       
       # get image and write to h5
       img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
+      
+      # zarr needs the image to be written integer format
+      if(inherits(img, "bitmap")){
+        img <- aperm(as.integer(img), c(3,2,1))
+      }
       img <- ZarrArray::writeZarrArray(img, 
                                        zarr_path, 
                                        name = paste0(name, "/", spat, "/", ch),
                                        chunkdim=chunkdim, 
-                                       level=level,
+                                       level=level, 
                                        as.sparse=as.sparse,
                                        with.dimnames=FALSE,
                                        verbose=verbose)

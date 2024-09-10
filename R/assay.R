@@ -437,7 +437,7 @@ updateData <- function(object, value){
 #' @export
 vrMainFeatureType.vrAssay <- function(object){
   catch_connect <- try(slot(object, name = "main_featureset"), silent = TRUE)
-  if(!is(catch_connect, 'try-error') && !methods::is(catch_connect1,'error')){
+  if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
     return(object@main_featureset)
   } else {
     return(NULL)
