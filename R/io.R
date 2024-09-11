@@ -2,7 +2,75 @@
 # InDisk Methods ####
 ####
 
-saveVoltRonInDisk <- function (object, assay = NULL, dir = "my_h5_se", prefix = "", format = c("hdf5", "zarr"), replace = FALSE, 
+.serialize_VoltRonObject <- function(object, rds_path, verbose)
+{
+  # assay_names 
+  assay_names <- vrAssayNames(object, assay = "all")
+  
+  # update all assays
+  for(assy in assay_names)
+    object[[assy]] <- shorten_assay_links(object[[assy]])
+  
+  # verbose and save rds
+  if (verbose)
+    message("Serialize ", class(object), " object to ",
+            ifelse(file.exists(rds_path), "existing ", ""),
+            "RDS file:\n  ", rds_path)
+  saveRDS(object, file=rds_path)
+}
+
+
+shorten_assay_links <- function(object)
+{
+  object@rawdata <- modify_seeds(object@rawdata,
+                                 function(x) {
+                                   x@filepath <- basename(x@filepath)
+                                   x
+                                 })
+  object@normdata <- modify_seeds(object@normdata,
+                                  function(x) {
+                                    x@filepath <- basename(x@filepath)
+                                    x
+                                  })
+  object <- shorten_assay_links_images(object)
+}
+
+shorten_assay_links_images <- function(object){
+  
+  # for each spatial system
+  spatial_names <- vrSpatialNames(object)
+  for(spat in spatial_names){
+    
+    # for each channel
+    channels <- vrImageChannelNames(object, name = spat)
+    for(ch in channels){
+      
+      img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
+      img <- modify_seeds(img,
+                          function(x) {
+                            x@filepath <- basename(x@filepath)
+                            x
+                          })
+      vrImages(object, name = spat, channel = ch) <- img 
+    } 
+  }
+}
+
+modify_seeds <- function (x, FUN, ...) 
+{
+  if (is(x, "DelayedUnaryOp")) {
+    x@seed <- modify_seeds(x@seed, FUN, ...)
+  }
+  else if (is(x, "DelayedNaryOp")) {
+    x@seeds <- lapply(x@seeds, modify_seeds, FUN, ...)
+  }
+  else {
+    x <- FUN(x, ...)
+  }
+  x
+}
+
+saveVoltRonInDisk <- function (object, assay = NULL, dir = "my_se", prefix = "", format = c("hdf5", "zarr"), replace = FALSE, 
                              chunkdim = NULL, level = NULL, as.sparse = NA, verbose = FALSE) 
 {
   if (!is(object, "VoltRon")) 
@@ -26,12 +94,12 @@ saveVoltRonInDisk <- function (object, assay = NULL, dir = "my_h5_se", prefix = 
   if (prefix != "") 
     check_and_delete_files(rds_path, indisk_path, replace)
   rds_path <- file.path(dir, paste0(prefix, "se.rds"))
-  .write_VoltRonInDisk(object, assay = assay, format = format, rds_path = rds_path, indisk_path = indisk_path, 
+  object <- .write_VoltRonInDisk(object, assay = assay, format = format, rds_path = rds_path, indisk_path = indisk_path, 
                        chunkdim = chunkdim, level = level, as.sparse = as.sparse, 
                        verbose = verbose)
   
   # rds file
-  # .serialize_VoltRonObject(x, rds_path, verbose)
+  .serialize_VoltRonObject(object, rds_path, verbose = verbose)
 }
 
 .write_VoltRonInDisk <- function(object, assay = NULL, format, rds_path, indisk_path, chunkdim=NULL, level=NULL, as.sparse=NA, verbose=FALSE)
@@ -63,7 +131,7 @@ saveVoltRonInDisk <- function (object, assay = NULL, dir = "my_h5_se", prefix = 
 }
 
 ####
-# HDF5 Support ####
+## HDF5 Support ####
 ####
 
 write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
@@ -167,7 +235,7 @@ writeHDF5ArrayInImage <- function(object,
 }
 
 ####
-# ZARR Support ####
+## ZARR Support ####
 ####
 
 write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
