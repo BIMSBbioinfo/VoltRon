@@ -696,19 +696,36 @@ void alignImagesFLANNTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &
     // mask dimension
     // cout << mask.dims << endl;
     
+    // Filtered points (inliers) based on the mask
+    std::vector<cv::Point2f> filtered_points1;
+    std::vector<cv::Point2f> filtered_points2;
+    
+    for (int i = 0; i < mask.rows; i++) {
+      if (mask.at<uchar>(i)) {
+        filtered_points1.push_back(points1[i]);
+        filtered_points2.push_back(points2[i]);
+      }
+    }
+    
+    // Print the number of points before and after filtering
+    std::cout << "Number of points in points1: " << points1.size() << std::endl;
+    std::cout << "Number of points in filtered_points1 (inliers): " << filtered_points1.size() << std::endl;
+    std::cout << "Number of points in points2: " << points2.size() << std::endl;
+    std::cout << "Number of points in filtered_points2 (inliers): " << filtered_points2.size() << std::endl;
+    
     // transform query
-    std::vector<cv::Point2f> points1_reg;
-    cv::perspectiveTransform(points1, points1_reg, h);
+    std::vector<cv::Point2f> filtered_points1_reg;
+    cv::perspectiveTransform(filtered_points1, filtered_points1_reg, h);
     
     // get TPS matches
     std::vector<cv::DMatch> matches;
-    for (unsigned int i = 0; i < points2.size(); i++)
+    for (unsigned int i = 0; i < filtered_points2.size(); i++)
       matches.push_back(cv::DMatch(i, i, 0));
     
     // calculate TPS transformation
     Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
-    tps->estimateTransformation(points2, points1_reg, matches);
-    
+    tps->estimateTransformation(filtered_points2, filtered_points1_reg, matches);
+
     // determine extension limits for both images
     int y_max = max(im1Proc.rows, im2Proc.rows);
     int x_max = max(im1Proc.cols, im2Proc.cols);
@@ -720,7 +737,7 @@ void alignImagesFLANNTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &
     // transform image
     tps->warpImage(im1Warp, im1Reg_Warp_nonrigid);
     tps->warpImage(im1NormalWarp, im1Reg_NormalWarp_nonrigid);
-    cv::imwrite("imreg_nonrigid.jpg", im1Reg_Warp_nonrigid);
+    cv::imwrite("imreg_nonrigid.jpg", im1Reg_NormalWarp_nonrigid);
     
     // extend images
     cv::copyMakeBorder(im1Proc, im1Proc, 0.0, (int) (y_max - im1Proc.rows), 0.0, (x_max - im1Proc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
