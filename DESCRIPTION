@@ -59,7 +59,7 @@ Suggests:
     circlize,
     anndataR,
     anndata,
-    ggforce
+    ggforce,
     HDF5Array,
     rhdf5,
     pizzarr,
