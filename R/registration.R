@@ -90,29 +90,8 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
                         });
                       ")),
 
+                      # side bar for configuration
                       getSideBar(),
-                      
-                      # h4("Spatial Data Alignment"),
-                      # fluidRow(
-                      #   column(12,shiny::checkboxInput("automatictag", "Automated", value = FALSE)),
-                      #   br(),
-                      #   column(12,selectInput("AutoMethod", "Method", choices = c("FLANN", "BRUTE-FORCE"), selected = "FLANN")),
-                      #   br(),
-                      #   column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
-                      #   column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
-                      #   br(),
-                      #   column(12,shiny::actionButton("register", "Register!")),
-                      #   br(),
-                      # ),
-                      # br(),
-                      # fluidRow(
-                      #   column(12,shiny::htmlOutput("summary"))
-                      # ),
-                      # br(),
-                      # fluidRow(
-                      #   column(12,shiny::actionButton("done", "Done")),
-                      #   br()
-                      # ),
 
                       # panel options
                       width = 3,
@@ -227,7 +206,7 @@ getSideBar <- function(len_images, channel_names, type){
     fluidRow(
       column(12,shiny::checkboxInput("automatictag", "Automated", value = FALSE)),
       br(),
-      column(12,selectInput("AutoMethod", "Method", choices = c("FLANN", "BRUTE-FORCE"), selected = "FLANN")),
+      column(12,selectInput("AutoMethod", "Method", choices = c("FLANN", "FLANN+TPS", "BRUTE-FORCE"), selected = "FLANN")),
       br(),
       column(12,selectInput("ManualMethod", "Method", choices = c("TPS", "Homography+TPS"), selected = "FLANN")),
       br(),
@@ -478,7 +457,8 @@ updateParameterPanels <- function(len_images, input, output, session){
   })
 
   observeEvent(input$AutoMethod, {
-    if(input$AutoMethod == "FLANN"){
+    # if(input$AutoMethod == "FLANN"){
+    if(grepl("FLANN", input$AutoMethod)){
       shinyjs::hide(id = "GOOD_MATCH_PERCENT")
       shinyjs::hide(id = "MAX_FEATURES")
     } else {

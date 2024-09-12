@@ -602,6 +602,149 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
 }
 
+// align images with FLANN algorithm
+void alignImagesFLANNTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imMatches, Mat &h,
+                      const bool invert_query, const bool invert_ref,
+                      const char* flipflop_query, const char* flipflop_ref,
+                      const char* rotate_query, const char* rotate_ref)
+{
+  
+  // seed
+  cv::setRNGSeed(0);
+  
+  // Convert images to grayscale
+  Mat im1Gray, im2Gray;
+  cvtColor(im1, im1Gray, cv::COLOR_BGR2GRAY);
+  cvtColor(im2, im2Gray, cv::COLOR_BGR2GRAY);
+  
+  // Process images
+  Mat im1Proc, im2Proc, im1NormalProc;
+  im1Proc = preprocessImage(im1Gray, invert_query, flipflop_query, rotate_query);
+  im1NormalProc = preprocessImage(im1, FALSE, flipflop_query, rotate_query);
+  im2Proc = preprocessImage(im2Gray, invert_ref, flipflop_ref, rotate_ref);
+  
+  // Variables to store keypoints and descriptors
+  std::vector<KeyPoint> keypoints1, keypoints2;
+  Mat descriptors1, descriptors2;
+  
+  // Detect SIFT features
+  Ptr<Feature2D> sift = cv::SIFT::create();
+  sift->detectAndCompute(im1Proc, Mat(), keypoints1, descriptors1);
+  sift->detectAndCompute(im2Proc, Mat(), keypoints2, descriptors2);
+  // cout << "DONE: sift based key-points detection and descriptors computation" << endl;
+  
+  // Match features using FLANN matching
+  std::vector<std::vector<DMatch>> matches;
+  cv::FlannBasedMatcher custom_matcher = cv::FlannBasedMatcher(cv::makePtr<cv::flann::KDTreeIndexParams>(5), cv::makePtr<cv::flann::SearchParams>(50, 0, TRUE));
+  cv::Ptr<cv::FlannBasedMatcher> matcher = custom_matcher.create();
+  matcher->knnMatch(descriptors1, descriptors2, matches, 2);
+  // cout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
+  
+  // Find good matches
+  std::vector<DMatch> good_matches;
+  getGoodMatches(matches, good_matches);
+  // cout << "DONE: get good matches by distance thresholding" << endl;
+  
+  // Extract location of good matches
+  std::vector<Point2f> points1, points2;
+  for( size_t i = 0; i < good_matches.size(); i++ )
+  {
+    points1.push_back(keypoints1[good_matches[i].queryIdx].pt);
+    points2.push_back(keypoints2[good_matches[i].trainIdx].pt);
+  }
+  
+  // Find homography
+  cv::Mat mask;
+  h = findHomography(points1, points2, RANSAC, 5, mask);
+  // cout << "DONE: calculated homography matrix" << endl;
+
+  // Use homography to warp image
+  Mat im1Warp, im1NormalWarp;
+  warpPerspective(im1Proc, im1Warp, h, im2Proc.size());
+  warpPerspective(im1NormalProc, im1NormalWarp, h, im2Proc.size());
+  cv::imwrite("im.jpg", im1Proc);
+  cv::imwrite("imreg.jpg", im1Warp);
+  // im1Reg = reversepreprocessImage(im1NormalWarp, flipflop_ref, rotate_ref);
+  // cout << "DONE: warped query image" << endl;
+  
+  // Draw top matches and good ones only
+  std::vector<cv::DMatch> top_matches;
+  std::vector<cv::KeyPoint> keypoints1_best, keypoints2_best;
+  for(size_t i = 0; i < good_matches.size(); i++ )
+  {
+    keypoints1_best.push_back(keypoints1[good_matches[i].queryIdx]);
+    keypoints2_best.push_back(keypoints2[good_matches[i].trainIdx]);
+    top_matches.push_back(cv::DMatch(static_cast<int>(i), static_cast<int>(i), 0));
+  }
+  drawMatches(im1Proc, keypoints1_best, im2Proc, keypoints2_best, top_matches, imMatches);
+  
+  // check keypoints
+  std::string is_faulty = check_transformation_metrics(keypoints1_best, keypoints2_best, im1, im2, h, mask);
+  
+  // continue with TPS or do FLANN only
+  Mat im1Reg_Warp_nonrigid;
+  Mat im1Reg_NormalWarp_nonrigid;
+  if(is_faulty == "degenerate"){
+    
+    // set warp to FLANN only
+    im1Reg_Warp_nonrigid = im1Warp;
+    im1Reg_NormalWarp_nonrigid = im1NormalWarp;
+    
+  // if FLANN succeeds   
+  } else {
+    
+    // mask dimension
+    // cout << mask.dims << endl;
+    
+    // transform query
+    std::vector<cv::Point2f> points1_reg;
+    cv::perspectiveTransform(points1, points1_reg, h);
+    
+    // get TPS matches
+    std::vector<cv::DMatch> matches;
+    for (unsigned int i = 0; i < points2.size(); i++)
+      matches.push_back(cv::DMatch(i, i, 0));
+    
+    // calculate TPS transformation
+    Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
+    tps->estimateTransformation(points2, points1_reg, matches);
+    
+    // determine extension limits for both images
+    int y_max = max(im1Proc.rows, im2Proc.rows);
+    int x_max = max(im1Proc.cols, im2Proc.cols);
+    cout << im1Proc.rows << endl;
+    cout << im1Proc.cols << endl;
+    cout << im2Proc.rows << endl;
+    cout << im2Proc.cols << endl;
+    
+    // transform image
+    tps->warpImage(im1Warp, im1Reg_Warp_nonrigid);
+    tps->warpImage(im1NormalWarp, im1Reg_NormalWarp_nonrigid);
+    cv::imwrite("imreg_nonrigid.jpg", im1Reg_Warp_nonrigid);
+    
+    // extend images
+    cv::copyMakeBorder(im1Proc, im1Proc, 0.0, (int) (y_max - im1Proc.rows), 0.0, (x_max - im1Proc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    
+    // resize image
+    cv::Mat im1Reg_NormalWarp_nonrigid_cropped  = im1Reg_NormalWarp_nonrigid(cv::Range(0,im2.size().height), cv::Range(0,im2.size().width));
+    im1Reg_NormalWarp_nonrigid = im1Reg_NormalWarp_nonrigid_cropped.clone();
+    
+    cv::Mat im1Reg_Warp_nonrigid_cropped  = im1Reg_Warp_nonrigid(cv::Range(0,im2.size().height), cv::Range(0,im2.size().width));
+    im1Reg_Warp_nonrigid = im1Reg_Warp_nonrigid_cropped.clone();
+  }
+  
+  // change color map
+  Mat im1Combine;
+  cv::addWeighted(im2Proc, 0.7, im1Warp, 0.3, 0, im1Combine);
+
+  // Reverse process
+  im1Reg = reversepreprocessImage(im1Reg_NormalWarp_nonrigid, flipflop_ref, rotate_ref);
+  
+  // return as rgb
+  cvtColor(im1Combine, im1Overlay, cv::COLOR_GRAY2BGR);
+  cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
+}
+
 // align images with TPS algorithm
 void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark)
 {
@@ -663,9 +806,9 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::NumericMatrix q
   
   // calculate homography transformation
   Mat im1Affine, h;
-  h = estimateAffine2D(query_mat, ref_mat);
-  std::cout << h.size() << "\n";
-  std::cout << h << "\n";
+  // h = estimateAffine2D(query_mat, ref_mat);
+  // std::cout << h.size() << "\n";
+  // std::cout << h << "\n";
   h = findHomography(query_mat, ref_mat);
   std::cout << h.size() << "\n";
   std::cout << h << "\n";
@@ -726,6 +869,11 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   if(strcmp(method.get_cstring(), "FLANN") == 0){
     // cout << "Fast Library for Approximate Nearest Neighbors (FLANN) - descriptor matching" << endl;
     alignImagesFLANN(im, imReference, imReg, imOverlay, imMatches, h, invert_query, invert_ref,
+                     flipflop_query.get_cstring(), flipflop_ref.get_cstring(), rotate_query.get_cstring(), rotate_ref.get_cstring());
+  }
+  if(strcmp(method.get_cstring(), "FLANN+TPS") == 0){
+    // cout << "Fast Library for Approximate Nearest Neighbors (FLANN) - descriptor matching" << endl;
+    alignImagesFLANNTPS(im, imReference, imReg, imOverlay, imMatches, h, invert_query, invert_ref,
                      flipflop_query.get_cstring(), flipflop_ref.get_cstring(), rotate_query.get_cstring(), rotate_ref.get_cstring());
   }
   if(strcmp(method.get_cstring(), "BRUTE-FORCE") == 0){
