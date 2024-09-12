@@ -4,7 +4,12 @@
 \alias{demuxVoltRon}
 \title{demuxVoltRon}
 \usage{
-demuxVoltRon(object, scale_width = 800, use_points = FALSE)
+demuxVoltRon(
+  object,
+  scale_width = 800,
+  use_points = FALSE,
+  shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive()))
+)
 }
 \arguments{
 \item{object}{a VoltRon object}
@@ -12,6 +17,8 @@ demuxVoltRon(object, scale_width = 800, use_points = FALSE)
 \item{scale_width}{the initial width of the object image}
 
 \item{use_points}{use spatial points instead of the reference image}
+
+\item{shiny.options}{a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}}
 }
 \description{
 Subsetting/demultiplexing of the VoltRon Object using interactive shiny app

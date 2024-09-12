@@ -10,11 +10,15 @@
 #'
 #' @inheritParams shiny::runApp
 #' @param plot_g the ggplot plot
+#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
+#' 
 #' @importFrom rstudioapi viewer
 #'
 #' @noRd
-vrSpatialPlotInteractive <- function(host = getOption("shiny.host", "127.0.0.1"),
-                                     port = getOption("shiny.port"), plot_g = NULL){
+vrSpatialPlotInteractive <- function(plot_g = NULL, 
+                                     shiny.options = list()){
+  
+  # js for Shiny
   shinyjs::useShinyjs()
 
   # UI
@@ -28,8 +32,11 @@ vrSpatialPlotInteractive <- function(host = getOption("shiny.host", "127.0.0.1")
     })
   }
 
+  # get shiny options
+  shiny.options = configure_shiny_options(shiny.options)
+  
   # Start Shiny Application
-  shiny::shinyApp(ui, server, options = list(host = host, port = port, launch.browser = rstudioapi::viewer),
+  shiny::shinyApp(ui, server, options = list(host = shiny.options[["host"]], port = shiny.options[["port"]], launch.browser = shiny.options[["launch.browser"]]),
                   onStart = function() {
                     cat("Doing application setup\n")
                     onStop(function() {
@@ -86,6 +93,41 @@ mod_app_server <- function(id, plot_g = NULL) {
         ggplot2::coord_equal(xlim = ranges$x, ylim = ranges$y, ratio = 1)
     })
   })
+}
+
+#' configure_shiny_options
+#'
+#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
+#'
+#' @noRd
+configure_shiny_options <- function(shiny.options){
+  
+  # launch.browser
+  if("launch.browser" %in% names(shiny.options)){
+    launch.browser <- shiny.options[["launch.browser"]]
+  } else {
+    launch.browser <- "RStudio"
+  }
+  if(!is.function(launch.browser)){
+    if(launch.browser == "RStudio"){
+      launch.browser <- rstudioapi::viewer
+    } 
+  }
+  
+  # host and port
+  # if "port" is entered, parse "host" (or use default) but ignore "launch.browser"
+  if("host" %in% names(shiny.options)){
+    host <- shiny.options[["host"]]
+  } else {
+    host <- getOption("shiny.host", "0.0.0.0")
+  }
+  if("port" %in% names(shiny.options)){
+    port <- shiny.options[["port"]]
+    launch.browser <- TRUE
+  } else {
+    port <- getOption("shiny.port")
+  }
+  return(list(host = host, port = port, launch.browser = launch.browser))
 }
 
 ####
@@ -165,86 +207,4 @@ vrSpatialPlotVitessce <- function(zarr.file, group.by = "Sample", reduction = NU
   }
 
   vc$widget(theme = "light")
-}
-
-####
-## Basilisk Environment ####
-####
-
-#' The Python Basilisk environment
-#'
-#' Defines a conda environment via Basilisk, which is used to convert R objects to Zarr stores.
-#'
-#' @importFrom basilisk BasiliskEnvironment
-#'
-#' @keywords internal
-#'
-#' @noRd
-py_env <- basilisk::BasiliskEnvironment(
-  envname="VoltRon_basilisk_env",
-  pkgname="VoltRon",
-  packages=c(
-    "numpy==1.*",
-    "pandas==1.*",
-    "anndata==0.7.*",
-    "h5py==3.*",
-    "hdf5==1.*",
-    "natsort==7.*",
-    "packaging==20.*",
-    "scipy==1.*",
-    "sqlite==3.*",
-    "zarr==2.*",
-    "numcodecs==0.*",
-    "tifffile==2024.2.12"
-  ),
-  pip=c(
-    "ome-zarr==0.2.1"
-  )
-)
-
-####
-## Conversion into Zarr for Vitessce ####
-####
-
-#' vrImage_to_zarr
-#'
-#' @param vrimage VoltRon image
-#' @param out_path output path to ome.zarr
-#' @param image_id image name
-#'
-#' @importFrom basilisk basiliskStart basiliskStop basiliskRun
-#' @importFrom reticulate import
-#' @importFrom magick image_raster
-#' @importFrom grDevices col2rgb
-#'
-#' @noRd
-vrImage_to_zarr <- function (vrimage, out_path, image_id = "image_1")
-{
-  img_arr <- apply(as.matrix(magick::image_raster(vrimage, tidy = FALSE)), c(1, 2), col2rgb)
-  proc <- basilisk::basiliskStart(py_env)
-  on.exit(basilisk::basiliskStop(proc))
-  success <- basilisk::basiliskRun(proc, function(img_arr, image_id, out_path) {
-    zarr <- reticulate::import("zarr")
-    ome_zarr <- reticulate::import("ome_zarr")
-    z_root <- zarr$open_group(out_path, mode = "w")
-    obj_list <- function(...) {
-      retval <- stats::setNames(list(), character(0))
-      param_list <- list(...)
-      for (key in names(param_list)) {
-        retval[[key]] = param_list[[key]]
-      }
-      retval
-    }
-    default_window <- obj_list(start = 0, min = 0, max = 255, end = 255)
-    ome_zarr$writer$write_image(image = img_arr,
-                                group = z_root,
-                                axes = "cyx",
-                                omero = obj_list(name = image_id, version = "0.3",
-                                                 rdefs = obj_list(),
-                                                 channels = list(obj_list(label = "r", color = "FF0000", window = default_window),
-                                                                 obj_list(label = "g", color = "00FF00", window = default_window),
-                                                                 obj_list(label = "b", color = "0000FF", window = default_window))))
-    return(TRUE)
-  }, img_arr = img_arr, image_id = image_id, out_path = out_path)
-  return(success)
 }
