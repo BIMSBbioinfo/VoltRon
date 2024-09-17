@@ -662,8 +662,6 @@ void alignImagesFLANNTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &
   Mat im1Warp, im1NormalWarp;
   warpPerspective(im1Proc, im1Warp, h, im2Proc.size());
   warpPerspective(im1NormalProc, im1NormalWarp, h, im2Proc.size());
-  cv::imwrite("im.jpg", im1Proc);
-  cv::imwrite("imreg.jpg", im1Warp);
   // im1Reg = reversepreprocessImage(im1NormalWarp, flipflop_ref, rotate_ref);
   // cout << "DONE: warped query image" << endl;
   
@@ -700,23 +698,27 @@ void alignImagesFLANNTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &
     std::vector<cv::Point2f> filtered_points1;
     std::vector<cv::Point2f> filtered_points2;
     
+    // std::cout << points1 << "\n";
+    // std::cout << points2 << "\n";
     for (int i = 0; i < mask.rows; i++) {
       if (mask.at<uchar>(i)) {
         filtered_points1.push_back(points1[i]);
         filtered_points2.push_back(points2[i]);
       }
     }
+    // std::cout << filtered_points1 << "\n";
+    // std::cout << filtered_points2 << "\n";
     
     // Print the number of points before and after filtering
-    std::cout << "Number of points in points1: " << points1.size() << std::endl;
-    std::cout << "Number of points in filtered_points1 (inliers): " << filtered_points1.size() << std::endl;
-    std::cout << "Number of points in points2: " << points2.size() << std::endl;
-    std::cout << "Number of points in filtered_points2 (inliers): " << filtered_points2.size() << std::endl;
+    // std::cout << "Number of points in points1: " << points1.size() << std::endl;
+    // std::cout << "Number of points in filtered_points1 (inliers): " << filtered_points1.size() << std::endl;
+    // std::cout << "Number of points in points2: " << points2.size() << std::endl;
+    // std::cout << "Number of points in filtered_points2 (inliers): " << filtered_points2.size() << std::endl;
     
     // transform query
     std::vector<cv::Point2f> filtered_points1_reg;
     cv::perspectiveTransform(filtered_points1, filtered_points1_reg, h);
-    
+
     // get TPS matches
     std::vector<cv::DMatch> matches;
     for (unsigned int i = 0; i < filtered_points2.size(); i++)
@@ -729,18 +731,46 @@ void alignImagesFLANNTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &
     // determine extension limits for both images
     int y_max = max(im1Proc.rows, im2Proc.rows);
     int x_max = max(im1Proc.cols, im2Proc.cols);
-    cout << im1Proc.rows << endl;
-    cout << im1Proc.cols << endl;
-    cout << im2Proc.rows << endl;
-    cout << im2Proc.cols << endl;
+    // cout << im1Proc.rows << endl;
+    // cout << im1Proc.cols << endl;
+    // cout << im2Proc.rows << endl;
+    // cout << im2Proc.cols << endl;
     
     // transform image
     tps->warpImage(im1Warp, im1Reg_Warp_nonrigid);
     tps->warpImage(im1NormalWarp, im1Reg_NormalWarp_nonrigid);
-    cv::imwrite("imreg_nonrigid.jpg", im1Reg_NormalWarp_nonrigid);
+    
+    // print images
+    cv::imwrite("im.jpg", im1Proc);
+    cv::imwrite("im_normal.jpg", im1NormalProc);
+    cv::imwrite("imreg_warp.jpg", im1Warp);
+    cv::imwrite("imreg_normal.jpg", im1NormalWarp);
+    cv::imwrite("imreg_nonrigid_warp.jpg", im1Reg_Warp_nonrigid);
+    cv::imwrite("imreg_nonrigid_normal.jpg", im1Reg_NormalWarp_nonrigid);
     
     // extend images
-    cv::copyMakeBorder(im1Proc, im1Proc, 0.0, (int) (y_max - im1Proc.rows), 0.0, (x_max - im1Proc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    // cv::copyMakeBorder(im1Proc, im1Proc, 0.0, (int) (y_max - im1Proc.rows), 0.0, (x_max - im1Proc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    
+    // check transformation of registering points DELETE THIS LATER
+    std::vector<cv::DMatch> matches2;
+    std::vector<cv::Point2f> filtered_points1_reg2;
+    std::vector<cv::Point2f> filtered_points1_reg_temp;
+    std::vector<cv::Point2f> filtered_points2_temp;
+    for (unsigned int i = 0; i < 6; i++){
+      matches2.push_back(cv::DMatch(i, i, 0));
+      filtered_points1_reg_temp.push_back(filtered_points1_reg[i]);
+      filtered_points2_temp.push_back(filtered_points2[i]);
+    }
+    // tps->estimateTransformation(filtered_points1_reg, filtered_points2, matches);
+    Ptr<ThinPlateSplineShapeTransformer> tps2 = cv::createThinPlateSplineShapeTransformer(0);
+    tps2->estimateTransformation(filtered_points2_temp, filtered_points1_reg_temp, matches2);
+    tps2->applyTransformation(filtered_points1_reg_temp, filtered_points1_reg2);
+    std::cout << "filtered_points2" << "\n";
+    std::cout << filtered_points2_temp << "\n";
+    std::cout << "filtered_points1_reg" << "\n";
+    std::cout << filtered_points1_reg_temp << "\n";
+    std::cout << "filtered_points1_reg2" << "\n";
+    std::cout << filtered_points1_reg2 << "\n";
     
     // resize image
     cv::Mat im1Reg_NormalWarp_nonrigid_cropped  = im1Reg_NormalWarp_nonrigid(cv::Range(0,im2.size().height), cv::Range(0,im2.size().width));
@@ -824,11 +854,9 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::NumericMatrix q
   // calculate homography transformation
   Mat im1Affine, h;
   // h = estimateAffine2D(query_mat, ref_mat);
+  h = findHomography(query_mat, ref_mat);
   // std::cout << h.size() << "\n";
   // std::cout << h << "\n";
-  h = findHomography(query_mat, ref_mat);
-  std::cout << h.size() << "\n";
-  std::cout << h << "\n";
   cv::warpPerspective(im1, im1Affine, h, im2.size());
   // cv::warpAffine(im1, im1Affine, h, im2.size());
   std::vector<cv::Point2f> query_reg;
@@ -839,12 +867,26 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::NumericMatrix q
   Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
   tps->estimateTransformation(ref_mat, query_reg, matches);
   
+  // check transformation of registering points DELETE THIS LATER
+  std::vector<cv::Point2f> query_reg2;
+  // tps->estimateTransformation(filtered_points1_reg, filtered_points2, matches);
+  Ptr<ThinPlateSplineShapeTransformer> tps2 = cv::createThinPlateSplineShapeTransformer(0);
+  tps2->estimateTransformation(query_reg, ref_mat, matches);
+  tps2->applyTransformation(query_reg, query_reg2);
+  std::cout << "ref_mat" << "\n";
+  std::cout << ref_mat << "\n";
+  std::cout << "query_reg" << "\n";
+  std::cout << query_reg << "\n";
+  std::cout << "query_reg2" << "\n";
+  std::cout << query_reg2 << "\n";
+  // DELETE THIS LATER
+  
   // determine extension limits for both images
   int y_max = max(im1.rows, im2.rows);
   int x_max = max(im1.cols, im2.cols);
 
   // extend images
-  cv::copyMakeBorder(im1, im1, 0.0, (int) (y_max - im1.rows), 0.0, (x_max - im1.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+  // cv::copyMakeBorder(im1, im1, 0.0, (int) (y_max - im1.rows), 0.0, (x_max - im1.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
   // cv::copyMakeBorder(im2, im2_extended, 0.0, (int) (y_max - im2.rows), 0.0, (x_max - im2.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
   
   // transform image
