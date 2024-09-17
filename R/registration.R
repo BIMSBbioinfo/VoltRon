@@ -217,9 +217,13 @@ getSideBar <- function(len_images, channel_names, type){
     fluidRow(
       column(12,shiny::checkboxInput("automatictag", "Automated", value = FALSE)),
       br(),
-      column(12,selectInput("AutoMethod", "Method", choices = c("FLANN", "FLANN+TPS", "BRUTE-FORCE"), selected = "FLANN")),
+      column(12,selectInput("Method", "Method", 
+                            choices = c("Homography", "Non-Rigid", "Homography + Non-Rigid"), 
+                            selected = "Homography")),
       br(),
-      column(12,selectInput("ManualMethod", "Method", choices = c("TPS", "Homography+TPS"), selected = "FLANN")),
+      column(12,selectInput("Matcher", "Matcher", 
+                            choices = c("FLANN", "BRUTE-FORCE"), 
+                            selected = "FLANN")),
       br(),
       column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
       column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
@@ -416,11 +420,9 @@ updateParameterPanels <- function(len_images, input, output, session){
     shinyjs::show(id = "done")
   })
 
-  # automated registration event
+  # registration panels/buttons
   shinyjs::hide(id = "GOOD_MATCH_PERCENT")
   shinyjs::hide(id = "MAX_FEATURES")
-  shinyjs::hide(id = "AutoMethod")
-  shinyjs::hide(id = "ManualMethod")
 
   # hide scale parameters
   for(i in 1:len_images){
@@ -432,13 +434,19 @@ updateParameterPanels <- function(len_images, input, output, session){
 
   observeEvent(input$automatictag, {
     if(input$automatictag){
-      shinyjs::show(id = "AutoMethod")
-      shinyjs::hide(id = "ManualMethod")
+      
+      # Method and Matcher
+      updateSelectInput(session, "Method", choices = c("Homography", "Homography + Non-Rigid"), selected = "Homography")
+      shinyjs::show(id = "Matcher")
 
       # show automatic registration parameters of BRUTE-FORCE
-      if(input$AutoMethod == "BRUTE-FORCE"){
+      if(input$Matcher == "BRUTE-FORCE"){
         shinyjs::show(id = "GOOD_MATCH_PERCENT")
         shinyjs::show(id = "MAX_FEATURES")
+      } 
+      if(input$Matcher == "FLANN"){
+        shinyjs::hide(id = "GOOD_MATCH_PERCENT")
+        shinyjs::hide(id = "MAX_FEATURES")
       }
 
       # show scale parameters
@@ -450,12 +458,16 @@ updateParameterPanels <- function(len_images, input, output, session){
       }
 
     } else {
-      shinyjs::hide(id = "AutoMethod")
-      shinyjs::show(id = "ManualMethod")
+      
+      # Method and Matcher
+      updateSelectInput(session, "Method", choices = c("Non-Rigid", "Homography + Non-Rigid"), selected = "Non-Rigid")
+      shinyjs::hide(id = "Matcher")
 
       # hide automatic registration parameters of BRUTE-FORCE
-      shinyjs::hide(id = "GOOD_MATCH_PERCENT")
-      shinyjs::hide(id = "MAX_FEATURES")
+      if(input$Matcher == "FLANN"){
+        shinyjs::hide(id = "GOOD_MATCH_PERCENT")
+        shinyjs::hide(id = "MAX_FEATURES")
+      }
 
       # hide scale parameters
       for(i in 1:len_images){
@@ -467,14 +479,31 @@ updateParameterPanels <- function(len_images, input, output, session){
     }
   })
 
-  observeEvent(input$AutoMethod, {
-    # if(input$AutoMethod == "FLANN"){
-    if(grepl("FLANN", input$AutoMethod)){
+  observeEvent(input$Method, {
+    if(grepl("FLANN", input$Matcher)){
       shinyjs::hide(id = "GOOD_MATCH_PERCENT")
       shinyjs::hide(id = "MAX_FEATURES")
     } else {
       shinyjs::show(id = "GOOD_MATCH_PERCENT")
       shinyjs::show(id = "MAX_FEATURES")
+      if(grepl("Non-Rigid", input$Method)){
+        updateSelectInput(session, "Method", selected = "Homography") 
+        showNotification("Brute-Force Matching can't be used with Non-Rigid Registration\n")
+      }
+    }
+  })
+  
+  observeEvent(input$Matcher, {
+    if(grepl("FLANN", input$Matcher)){
+      shinyjs::hide(id = "GOOD_MATCH_PERCENT")
+      shinyjs::hide(id = "MAX_FEATURES")
+    } else {
+      shinyjs::show(id = "GOOD_MATCH_PERCENT")
+      shinyjs::show(id = "MAX_FEATURES")
+      if(grepl("Non-Rigid", input$Method)){
+        updateSelectInput(session, "Method", selected = "Homography") 
+        showNotification("Brute-Force Matching can't be used with Non-Rigid Registration\n")
+      }
     }
   })
 }
@@ -1478,7 +1507,7 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
 
     # get registered image (including all channels)
     results <- getRcppManualRegistration(aligned_image, ref_image, target_landmark, reference_landmark, 
-                                         method = input$ManualMethod)
+                                         method = input$Method)
   }
 
   return(list(aligned_image = results$aligned_image, mapping = list(reference = reference_landmark,
@@ -1549,7 +1578,7 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
     if(input$automatictag){
 
       # waiter start
-      withProgress(message = paste0('Automated Registration (', input$AutoMethod,')'), value = 0, {
+      withProgress(message = paste0('Automated Registration (', input$Method,')'), value = 0, {
       waiter::waiter_show(html = waiter::spin_ring(), color = paste0("rgba(128,128,128,", 0.15, ")"))
 
       # Register keypoints
@@ -1677,12 +1706,12 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
                                         flipflop_ref = input[[paste0("flipflop_", ref_label, "_image", cur_map[2])]],
                                         rotate_query = input[[paste0("rotate_", query_label, "_image", cur_map[1])]],
                                         rotate_ref = input[[paste0("rotate_", ref_label, "_image", cur_map[2])]],
-                                        method = input$AutoMethod)
+                                        matcher = input$Matcher, method = input$Method)
 
     # update transformation matrix
     transmat <- solve(diag(c(ref_scale,ref_scale,1))) %*% reg$transmat %*% diag(c(query_scale,query_scale,1))
 
-    # return images and transformation matrix
+    # return transformation matrix and images
     mapping[[kk]] <- transmat
     dest_image <- reg$dest_image
     aligned_image <- reg$aligned_image
@@ -1690,7 +1719,11 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
     overlay_image <- reg$overlay_image
   }
 
-  return(list(mapping = mapping, dest_image = dest_image, aligned_image = aligned_image, alignment_image = alignment_image, overlay_image = overlay_image))
+  return(list(mapping = mapping, 
+              dest_image = dest_image, 
+              aligned_image = aligned_image, 
+              alignment_image = alignment_image, 
+              overlay_image = overlay_image))
 }
 
 #' getRcppAutomatedRegistration
@@ -1707,7 +1740,8 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
 #' @param flipflop_ref flip or flop the reference image
 #' @param rotate_query rotation of query image
 #' @param rotate_ref rotation of reference image
-#' @param method the automated registration method, either FLANN or BRUTE-FORCE
+#' @param matcher the matching method for landmarks/keypoints FLANN or BRUTE-FORCE
+#' @param method the automated registration method, Homography or Homography+TPS
 #'
 #' @importFrom magick image_read image_data
 #'
@@ -1716,7 +1750,8 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
                                          GOOD_MATCH_PERCENT = 0.15, MAX_FEATURES = 500,
                                          invert_query = FALSE, invert_ref = FALSE,
                                          flipflop_query = "None", flipflop_ref = "None",
-                                         rotate_query = "0", rotate_ref = "0", method = "FLANN") {
+                                         rotate_query = "0", rotate_ref = "0", 
+                                         matcher = "FLANN", method = "Homography") {
   ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
   query_image_rast <- magick::image_data(query_image, channels = "rgb")
   reg <- automated_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
@@ -1726,7 +1761,7 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
                                            invert_query = invert_query, invert_ref = invert_ref,
                                            flipflop_query = flipflop_query, flipflop_ref = flipflop_ref,
                                            rotate_query = rotate_query, rotate_ref = rotate_ref,
-                                           method = method)
+                                           matcher = matcher, method = method)
   return(list(transmat = reg[[1]],
               dest_image = magick::image_read(reg[[2]]),
               aligned_image = magick::image_read(reg[[3]]),
