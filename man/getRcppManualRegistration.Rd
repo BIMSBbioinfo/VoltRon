@@ -8,7 +8,8 @@ getRcppManualRegistration(
   query_image,
   ref_image,
   query_landmark,
-  reference_landmark
+  reference_landmark,
+  method = "TPS"
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ getRcppManualRegistration(
 \item{query_landmark}{query landmark points}
 
 \item{reference_landmark}{refernece landmark points}
+
+\item{method}{the automated registration method, either TPS or Homography+TPS}
 }
 \description{
 Manual registration workflow with Rcpp
