@@ -12,15 +12,14 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // applyTransform
-Rcpp::NumericMatrix applyTransform(Rcpp::NumericMatrix coords, Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark);
-RcppExport SEXP _VoltRon_applyTransform(SEXP coordsSEXP, SEXP reference_landmarkSEXP, SEXP query_landmarkSEXP) {
+Rcpp::NumericMatrix applyTransform(Rcpp::NumericMatrix coords, Rcpp::List mapping);
+RcppExport SEXP _VoltRon_applyTransform(SEXP coordsSEXP, SEXP mappingSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type reference_landmark(reference_landmarkSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type query_landmark(query_landmarkSEXP);
-    rcpp_result_gen = Rcpp::wrap(applyTransform(coords, reference_landmark, query_landmark));
+    Rcpp::traits::input_parameter< Rcpp::List >::type mapping(mappingSEXP);
+    rcpp_result_gen = Rcpp::wrap(applyTransform(coords, mapping));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -50,6 +49,40 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type width2(width2SEXP);
     Rcpp::traits::input_parameter< const int >::type height2(height2SEXP);
     rcpp_result_gen = Rcpp::wrap(warpImage(ref_image, query_image, hmatrix, width1, height1, width2, height2));
+    return rcpp_result_gen;
+END_RCPP
+}
+// warpImageAuto
+Rcpp::RawVector warpImageAuto(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, Rcpp::List mapping, const int width1, const int height1, const int width2, const int height2);
+RcppExport SEXP _VoltRon_warpImageAuto(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP mappingSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::RawVector >::type ref_image(ref_imageSEXP);
+    Rcpp::traits::input_parameter< Rcpp::RawVector >::type query_image(query_imageSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type mapping(mappingSEXP);
+    Rcpp::traits::input_parameter< const int >::type width1(width1SEXP);
+    Rcpp::traits::input_parameter< const int >::type height1(height1SEXP);
+    Rcpp::traits::input_parameter< const int >::type width2(width2SEXP);
+    Rcpp::traits::input_parameter< const int >::type height2(height2SEXP);
+    rcpp_result_gen = Rcpp::wrap(warpImageAuto(ref_image, query_image, mapping, width1, height1, width2, height2));
+    return rcpp_result_gen;
+END_RCPP
+}
+// warpImageManual
+Rcpp::RawVector warpImageManual(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, Rcpp::List mapping, const int width1, const int height1, const int width2, const int height2);
+RcppExport SEXP _VoltRon_warpImageManual(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP mappingSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::RawVector >::type ref_image(ref_imageSEXP);
+    Rcpp::traits::input_parameter< Rcpp::RawVector >::type query_image(query_imageSEXP);
+    Rcpp::traits::input_parameter< Rcpp::List >::type mapping(mappingSEXP);
+    Rcpp::traits::input_parameter< const int >::type width1(width1SEXP);
+    Rcpp::traits::input_parameter< const int >::type height1(height1SEXP);
+    Rcpp::traits::input_parameter< const int >::type width2(width2SEXP);
+    Rcpp::traits::input_parameter< const int >::type height2(height2SEXP);
+    rcpp_result_gen = Rcpp::wrap(warpImageManual(ref_image, query_image, mapping, width1, height1, width2, height2));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -157,9 +190,11 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_VoltRon_applyTransform", (DL_FUNC) &_VoltRon_applyTransform, 3},
+    {"_VoltRon_applyTransform", (DL_FUNC) &_VoltRon_applyTransform, 2},
     {"_VoltRon_perspectiveTransform", (DL_FUNC) &_VoltRon_perspectiveTransform, 2},
     {"_VoltRon_warpImage", (DL_FUNC) &_VoltRon_warpImage, 7},
+    {"_VoltRon_warpImageAuto", (DL_FUNC) &_VoltRon_warpImageAuto, 7},
+    {"_VoltRon_warpImageManual", (DL_FUNC) &_VoltRon_warpImageManual, 7},
     {"_VoltRon_automated_registeration_rawvector", (DL_FUNC) &_VoltRon_automated_registeration_rawvector, 16},
     {"_VoltRon_manual_registeration_rawvector", (DL_FUNC) &_VoltRon_manual_registeration_rawvector, 9},
     {"_VoltRon_calculateMoransI", (DL_FUNC) &_VoltRon_calculateMoransI, 3},

@@ -552,10 +552,11 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
 }
 
 // align images with FLANN algorithm
-void alignImagesFLANNTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imMatches, Mat &h,
-                      const bool invert_query, const bool invert_ref,
-                      const char* flipflop_query, const char* flipflop_ref,
-                      const char* rotate_query, const char* rotate_ref)
+void alignImagesFLANNTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, 
+                         Mat &imMatches, Mat &h, Rcpp::List &keypoints,
+                         const bool invert_query, const bool invert_ref,
+                         const char* flipflop_query, const char* flipflop_ref,
+                         const char* rotate_query, const char* rotate_ref)
 {
   
   // seed
@@ -671,6 +672,10 @@ void alignImagesFLANNTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &
     Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
     tps->estimateTransformation(filtered_points2, filtered_points1_reg, matches);
     
+    // save keypoints 
+    keypoints[0] = point2fToNumericMatrix(filtered_points2);
+    keypoints[1] = point2fToNumericMatrix(filtered_points1_reg); 
+    
     // determine extension limits for both images
     int y_max = max(im1Warp.rows, im2.rows);
     int x_max = max(im1Warp.cols, im2.cols);
@@ -678,8 +683,7 @@ void alignImagesFLANNTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &
     // extend images
     cv::copyMakeBorder(im1Warp, im1Warp, 0.0, (int) (y_max - im1Warp.rows), 0.0, (x_max - im1Warp.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
     cv::copyMakeBorder(im1NormalWarp, im1NormalWarp, 0.0, (int) (y_max - im1NormalWarp.rows), 0.0, (x_max - im1NormalWarp.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
-    // cv::copyMakeBorder(im2, im2_extended, 0.0, (int) (y_max - im2.rows), 0.0, (x_max - im2.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
-    
+
     // transform image
     Mat im1Reg_Warp_nonrigid;
     Mat im1Reg_NormalWarp_nonrigid;
@@ -696,8 +700,7 @@ void alignImagesFLANNTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &
     // change color map
     Mat im1Combine;
     cv::addWeighted(im2Proc, 0.7, im1Reg_Warp_nonrigid, 0.3, 0, im1Combine);
-    cv::imwrite("imgcombine.jpg", im1Combine);
-    
+
     // Reverse process
     im1Reg = reversepreprocessImage(im1Reg_NormalWarp_nonrigid, flipflop_ref, rotate_ref);
     
@@ -708,7 +711,8 @@ void alignImagesFLANNTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &
 }
 
 // align images with TPS algorithm
-void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark)
+void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::List &keypoints, 
+                    Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark)
 {
 
   // seed
@@ -730,6 +734,10 @@ void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::NumericMatrix query_l
   Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
   tps->estimateTransformation(ref_mat, query_mat, matches);
 
+  // save keypoints 
+  keypoints[0] = point2fToNumericMatrix(ref_mat);
+  keypoints[1] = point2fToNumericMatrix(query_mat); 
+  
   // determine extension limits for both images
   int y_max = max(im1.rows, im2.rows);
   int x_max = max(im1.cols, im2.cols);
@@ -746,7 +754,8 @@ void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::NumericMatrix query_l
 }
 
 // align images with affine transformation with TPS algorithm
-void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark)
+void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &keypoints,
+                          Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark)
 {
   
   // seed
@@ -764,7 +773,7 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::NumericMatrix q
     matches.push_back(cv::DMatch(i, i, 0));
   
   // calculate homography transformation
-  Mat im1Affine, h;
+  Mat im1Affine;
   // h = estimateAffine2D(query_mat, ref_mat);
   h = findHomography(query_mat, ref_mat);
   // std::cout << h.size() << "\n";
@@ -778,6 +787,10 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::NumericMatrix q
   // auto tps = cv::createThinPlateSplineShapeTransformer();
   Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
   tps->estimateTransformation(ref_mat, query_reg, matches);
+  
+  // save keypoints 
+  keypoints[0] = point2fToNumericMatrix(ref_mat);
+  keypoints[1] = point2fToNumericMatrix(query_reg); 
   
   // determine extension limits for both images
   int y_max = max(im1Affine.rows, im2.rows);
@@ -797,7 +810,7 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::NumericMatrix q
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix applyTransform(Rcpp::NumericMatrix coords, Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark)
+Rcpp::NumericMatrix applyTransform(Rcpp::NumericMatrix coords, Rcpp::List mapping)
 {
   // Get coordinates as Point2f
   std::vector<cv::Point2f> coords_mat = numericMatrixToPoint2f(coords);
@@ -808,21 +821,41 @@ Rcpp::NumericMatrix applyTransform(Rcpp::NumericMatrix coords, Rcpp::NumericMatr
   RNG rng(12345);
   Scalar value;
   
-  // Get landmarks as Point2f
-  std::vector<cv::Point2f> query_mat = numericMatrixToPoint2f(query_landmark);
-  std::vector<cv::Point2f> ref_mat = numericMatrixToPoint2f(reference_landmark);
+  // Get transformation matrix
+  cv::Mat h = numericMatrixToMat(mapping[0]);
+  if(h.cols > 0){
+    
+    // transform coordinates
+    cv::perspectiveTransform(coords_mat, coords_reg, h);
+    coords_mat = coords_reg;
+    
+  } 
   
-  // get matches
-  std::vector<cv::DMatch> matches;
-  for (unsigned int i = 0; i < ref_mat.size(); i++)
-    matches.push_back(cv::DMatch(i, i, 0));
-  
-  // calculate transformation
-  Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
-  tps->estimateTransformation(query_mat, ref_mat, matches);
-  
-  // apply transformation to coordinates
-  tps->applyTransformation(coords_mat, coords_reg);
+  // non-rigid warping
+  cv::Mat imReg;
+  if(mapping[1] != R_NilValue){
+    
+    // Get landmarks as Point2f 
+    Rcpp::List keypoints = mapping[1];
+    std::vector<cv::Point2f> ref_mat = numericMatrixToPoint2f(keypoints[0]);
+    std::vector<cv::Point2f> query_mat = numericMatrixToPoint2f(keypoints[1]);
+    
+    // get matches
+    std::vector<cv::DMatch> matches;
+    for (unsigned int i = 0; i < ref_mat.size(); i++)
+      matches.push_back(cv::DMatch(i, i, 0));
+    
+    // calculate transformation
+    Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
+    tps->estimateTransformation(query_mat, ref_mat, matches);
+    
+    // apply transformation to coordinates
+    tps->applyTransformation(coords_mat, coords_reg);
+    
+  } else {
+    
+    coords_reg = coords_mat;
+  }
   
   // return registered coordinates as numeric matrix
   Rcpp::NumericMatrix coords_regToMat = point2fToNumericMatrix(coords_reg);
@@ -872,6 +905,124 @@ Rcpp::RawVector warpImage(Rcpp::RawVector ref_image, Rcpp::RawVector query_image
 }
 
 // [[Rcpp::export]]
+Rcpp::RawVector warpImageAuto(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, 
+                                Rcpp::List mapping,
+                                const int width1, const int height1,
+                                const int width2, const int height2)
+{
+  // Get transformation matrix
+  cv::Mat h = numericMatrixToMat(mapping[0]);
+  
+  // Read reference image
+  cv::Mat imReference = imageToMat(ref_image, width1, height1);
+  
+  // Read image to be aligned
+  cv::Mat im = imageToMat(query_image, width2, height2);
+  
+  // transform coordinates
+  Mat imWarp;
+  cv::warpPerspective(im, imWarp, h, imReference.size()); 
+  
+  // non-rigid warping
+  cv::Mat imReg;
+  if(mapping[1] != R_NilValue){
+    
+    // get landmarks
+    Rcpp::List keypoints = mapping[1];
+    std::vector<cv::Point2f> ref_mat = numericMatrixToPoint2f(keypoints[0]);
+    std::vector<cv::Point2f> query_mat = numericMatrixToPoint2f(keypoints[1]);
+    
+    // get matches
+    std::vector<cv::DMatch> matches;
+    for (unsigned int i = 0; i < ref_mat.size(); i++)
+      matches.push_back(cv::DMatch(i, i, 0));
+    
+    // calculate transformation
+    Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
+    tps->estimateTransformation(ref_mat, query_mat, matches);
+    
+    // determine extension limits for both images
+    int y_max = max(imWarp.rows, imReference.rows);
+    int x_max = max(imWarp.cols, imReference.cols);
+    
+    // extend images
+    cv::copyMakeBorder(imWarp, imWarp, 0.0, (int) (y_max - imWarp.rows), 0.0, (x_max - imWarp.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    
+    // transform image
+    tps->warpImage(imWarp, imReg);
+    
+    // resize image
+    // cv::resize(im1Reg, im1Reg, im2.size());
+    cv::Mat imReg_cropped  = imReg(cv::Range(0,imReference.size().height), cv::Range(0,imReference.size().width));
+    imReg = imReg_cropped.clone();
+    
+  } else {
+    
+    // pass registered object
+    imReg = imWarp;
+  }
+  
+  // return
+  return matToImage(imReg);
+}
+
+
+// [[Rcpp::export]]
+Rcpp::RawVector warpImageManual(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, 
+                                Rcpp::List mapping,
+                                const int width1, const int height1,
+                                const int width2, const int height2)
+{
+  // Get landmarks as Point2f and transformation matrix
+  cv::Mat h = numericMatrixToMat(mapping[0]);
+  Rcpp::List keypoints = mapping[1];
+  std::vector<cv::Point2f> ref_mat = numericMatrixToPoint2f(keypoints[0]);
+  std::vector<cv::Point2f> query_mat = numericMatrixToPoint2f(keypoints[1]);
+  
+  // Read reference image
+  cv::Mat imReference = imageToMat(ref_image, width1, height1);
+  
+  // Read image to be aligned
+  cv::Mat im = imageToMat(query_image, width2, height2);
+  
+  // transform coordinates
+  Mat imWarp;
+  if(h.cols > 0){
+    cv::warpPerspective(im, imWarp, h, imReference.size()); 
+  } else {
+    imWarp = im;
+  }
+  
+  // get matches
+  std::vector<cv::DMatch> matches;
+  for (unsigned int i = 0; i < ref_mat.size(); i++)
+    matches.push_back(cv::DMatch(i, i, 0));
+  
+  // calculate transformation
+  Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
+  tps->estimateTransformation(ref_mat, query_mat, matches);
+  
+  // determine extension limits for both images
+  int y_max = max(imWarp.rows, imReference.rows);
+  int x_max = max(imWarp.cols, imReference.cols);
+  
+  // extend images
+  cv::copyMakeBorder(imWarp, imWarp, 0.0, (int) (y_max - imWarp.rows), 0.0, (x_max - imWarp.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+  
+  // transform image
+  cv::Mat imReg;
+  tps->warpImage(imWarp, imReg);
+  
+  // resize image
+  // cv::resize(im1Reg, im1Reg, im2.size());
+  cv::Mat imReg_cropped  = imReg(cv::Range(0,imReference.size().height), cv::Range(0,imReference.size().width));
+  imReg = imReg_cropped.clone();
+  
+  // return
+  return matToImage(imReg);;
+}
+
+// [[Rcpp::export]]
 Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image,
                                              const int width1, const int height1,
                                              const int width2, const int height2,
@@ -883,6 +1034,8 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
 {
   // Return data
   Rcpp::List out(5);
+  Rcpp::List out_trans(2);
+  Rcpp::List keypoints(2);
   Mat imOverlay, imReg, h, imMatches;
   
   // Read reference image
@@ -894,7 +1047,8 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   // Homography (with FLANN) + Non-rigid (TPS)
   if(strcmp(matcher.get_cstring(), "FLANN") == 0 & strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0){
     alignImagesFLANNTPS(im, imReference, imReg, imOverlay, imMatches, 
-                        h, invert_query, invert_ref,
+                        h, keypoints, 
+                        invert_query, invert_ref,
                         flipflop_query.get_cstring(), flipflop_ref.get_cstring(), 
                         rotate_query.get_cstring(), rotate_ref.get_cstring());
   }
@@ -913,8 +1067,10 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
                      h, GOOD_MATCH_PERCENT, MAX_FEATURES);
   }
 
-  // transformation matrix
-  out[0] = matToNumericMatrix(h.clone());
+  // transformation matrix, can be either a matrix, set of keypoints or both
+  out_trans[0] = matToNumericMatrix(h.clone());
+  out_trans[1] = keypoints;
+  out[0] = out_trans;
   
   // destination image, registered image, keypoint matching image
   out[1] = matToImage(imReference.clone());
@@ -928,6 +1084,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   // overlay image
   out[4] = matToImage(imOverlay.clone());
   
+  // return
   return out;
 }
 
@@ -939,8 +1096,10 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVe
                                           Rcpp::String method)
 {
   // Return data
-  Mat imReg;
-  Rcpp::List out(1);
+  Rcpp::List out(2);
+  Rcpp::List out_trans(2);
+  Rcpp::List keypoints(2);
+  Mat imReg, h;
   
   // Read reference image
   cv::Mat imReference = imageToMat(ref_image, width1, height1);
@@ -952,17 +1111,24 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVe
   // Homography + Non-rigid (TPS)
   if(strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0){
     alignImagesAffineTPS(im, imReference, imReg, 
+                         h, keypoints,
                          query_landmark, reference_landmark);
   }
   
   // Non-rigid (TPS) only
   if(strcmp(method.get_cstring(), "Non-Rigid") == 0){
     alignImagesTPS(im, imReference, imReg, 
+                   keypoints, 
                    query_landmark, reference_landmark);
   }
 
-  // registered image
-  out[0] = matToImage(imReg.clone());
+  // transformation matrix, can be either a matrix, set of keypoints or both
+  out_trans[0] = matToNumericMatrix(h.clone());
+  out_trans[1] = keypoints;
+  out[0] = out_trans;
   
+  // registered image
+  out[1] = matToImage(imReg.clone());
+
   return out;
 }
