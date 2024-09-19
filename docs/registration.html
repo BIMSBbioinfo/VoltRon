@@ -554,11 +554,12 @@ single list as an input where the order of VoltRon objects in the list
 should be the same as the <strong>order of serial sections</strong>.</p>
 <p>We will make use of the <strong>registerSpatialData</strong> function
 to <strong>automatically register two Xenium assays onto the Visium
-assay</strong>. The Visium CytAssist image would be taken as the image
-of reference, and hence all other images (or spatial datasets) are to be
-aligned to the Visium data. Then, registerSpatialData will return a list
-of VoltRon objects whose assays include both the original and registered
-versions of spatial coordinates. The shiny app will provide <strong>two
+assay</strong>. The Visium CytAssist image (or the <strong>image on the
+center</strong> of the list) would be taken as the image of reference,
+and hence all other images (or spatial datasets) are to be aligned to
+the Visium data. Then, registerSpatialData will return a list of VoltRon
+objects whose assays include both the original and registered versions
+of spatial coordinates. The shiny app will provide <strong>two
 images</strong> for this task:</p>
 <ul>
 <li>An image that shows the matched points across two images, and</li>
@@ -576,6 +577,11 @@ vertically) and negating these images. We always negate DAPI images to
 align them onto H&amp;E images.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration_FLANN.gif" class="center"></p>
+<p>In case there are only two images, <strong>the first image will be
+taken as the image of reference</strong>. Hence, in order to align the
+first Xenium Replicate to the Visium dataset, we can create a list of
+two VoltRon objects as given below.</p>
+<pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Vis, Xen_R2))</code></pre>
 <p><br></p>
 </div>
 <div id="manual-image-alignment" class="section level3">
@@ -585,7 +591,8 @@ morphology, we need an alternative alignment strategy if automated
 registration may fail. VoltRon allows <strong>manually choosing
 keypoints (or landmarks)</strong> on images that are locations on the
 tissue with structural/morphological similarity. Similar to the
-automated mode, the users will be able to observe the quality of the
+automated mode, <strong>the image on the center</strong> will be taken
+as reference and the users will be able to observe the quality of the
 registration and remove/reselect keypoints as they see fit.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration.gif" class="center"></p>
@@ -595,6 +602,11 @@ find a presaved set of keypoints <a
 href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/keypoints.rds">here</a>.</p>
 <pre class="r watch-out"><code>keypoints &lt;- xen_reg$keypoints
 xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), keypoints = keypoints)</code></pre>
+<p>In case there are only two images, <strong>the first image will be
+taken as the image of reference</strong>. Hence, in order to align the
+first Xenium Replicate to the Visium dataset. We can create a list of
+two VoltRon objects as given below.</p>
+<pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Vis, Xen_R2))</code></pre>
 <p><br></p>
 </div>
 <div id="combine-voltron-object" class="section level3">
