@@ -40,9 +40,11 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 A mini shiny app to for annotating spatial points
 }
 \examples{
+\dontrun{
 # Annotate based on images
 visium_data <- annotateSpatialData(visium_data, use.image = TRUE)
 
 # Annotate based on spatial plot
 xenium_data <- annotateSpatialData(xenium_data, group.by = "clusters")
+}
 }

@@ -800,8 +800,10 @@ addConnectivity <- function(object, connectivity, sample, layer){
 #' subset(visium_data, features = c("Map3k19", "Rab3gap1"))
 #' 
 #' # interactive subsetting
+#' \dontrun{
 #' visium_subset_data <- subset(visium_data, interactive = TRUE)
 #' visium_subset <- visium_subset_data$subsets[[1]]
+#' }
 subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatialpoints = NULL, features = NULL, image = NULL, interactive = FALSE, use_points = FALSE, 
                            shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive()))) {
 

@@ -60,6 +60,8 @@ subset(visium_data, spatialpoints = c("GTTATATTATCTCCCT-1_Assay1", "GTTTGGGTTTCG
 subset(visium_data, features = c("Map3k19", "Rab3gap1"))
 
 # interactive subsetting
+\dontrun{
 visium_subset_data <- subset(visium_data, interactive = TRUE)
 visium_subset <- visium_subset_data$subsets[[1]]
+}
 }
