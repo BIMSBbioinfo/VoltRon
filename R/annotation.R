@@ -27,11 +27,13 @@
 #' @export
 #' 
 #' @examples
+#' \dontrun{
 #' # Annotate based on images
 #' visium_data <- annotateSpatialData(visium_data, use.image = TRUE)
 #' 
 #' # Annotate based on spatial plot
 #' xenium_data <- annotateSpatialData(xenium_data, group.by = "clusters")
+#' }
 annotateSpatialData <- function(object, label = "annotation", assay = NULL, annotation_assay = "ROIAnnotation", use.image = FALSE, 
                                 shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive())), image_name = NULL, channel = NULL, ...) {
   
