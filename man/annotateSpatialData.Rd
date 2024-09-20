@@ -10,6 +10,7 @@ annotateSpatialData(
   assay = NULL,
   annotation_assay = "ROIAnnotation",
   use.image = FALSE,
+  shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive())),
   image_name = NULL,
   channel = NULL,
   ...
@@ -27,6 +28,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{use.image}{if TRUE, use only the image}
 
+\item{shiny.options}{a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}}
+
 \item{image_name}{the name/key of the image}
 
 \item{channel}{the name of the main channel}
@@ -37,9 +40,11 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 A mini shiny app to for annotating spatial points
 }
 \examples{
+\dontrun{
 # Annotate based on images
 visium_data <- annotateSpatialData(visium_data, use.image = TRUE)
 
 # Annotate based on spatial plot
 xenium_data <- annotateSpatialData(xenium_data, group.by = "clusters")
+}
 }

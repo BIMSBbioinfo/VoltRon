@@ -103,7 +103,7 @@ vrImages(Xen_R2)
 
 In order to achieve data transfer and integration across these two modalities, we need to first make sure that spatial coordinates of these three datasets are perfectly aligned. To this end, we will make use of the **registerSpatialData** function which calls a **shiny app** embedded into VoltRon. The function takes a single list as an input where the order of VoltRon objects in the list should be the same as the **order of serial sections**. 
 
-We will make use of the **registerSpatialData** function to **automatically register two Xenium assays onto the Visium assay**. The Visium CytAssist image would be taken as the image of reference, and hence all other images (or spatial datasets) are to be aligned to the Visium data. Then, registerSpatialData will return a list of VoltRon objects whose assays include both the original and registered versions of spatial coordinates. The shiny app will provide **two images** for this task: 
+We will make use of the **registerSpatialData** function to **automatically register two Xenium assays onto the Visium assay**. The Visium CytAssist image (or the **image on the center** of the list) would be taken as the image of reference, and hence all other images (or spatial datasets) are to be aligned to the Visium data. Then, registerSpatialData will return a list of VoltRon objects whose assays include both the original and registered versions of spatial coordinates. The shiny app will provide **two images** for this task: 
 
 * An image that shows the matched points across two images, and 
 * A slideshow with of the reference and registered images that demonstrates the alignment accuracy. 
@@ -116,11 +116,17 @@ xen_reg <- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration_FLANN.gif" class="center">
 
+In case there are only two images, **the first image will be taken as the image of reference**. Hence, in order to align the first Xenium Replicate to the Visium dataset, we can create a list of two VoltRon objects as given below. 
+
+```{r class.source="watch-out", eval = FALSE} 
+xen_reg <- registerSpatialData(object_list = list(Vis, Xen_R2))
+```
+
 <br>
 
 ### Manual Image Alignment
 
-Given the diverse types of tissue sections and their complex morphology, we need an alternative alignment strategy if automated registration may fail. VoltRon allows **manually choosing keypoints (or landmarks)** on images that are locations on the tissue with structural/morphological similarity. Similar to the automated mode, the users will be able to observe the quality of the registration and remove/reselect keypoints as they see fit. 
+Given the diverse types of tissue sections and their complex morphology, we need an alternative alignment strategy if automated registration may fail. VoltRon allows **manually choosing keypoints (or landmarks)** on images that are locations on the tissue with structural/morphological similarity. Similar to the automated mode, **the image on the center** will be taken as reference and the users will be able to observe the quality of the registration and remove/reselect keypoints as they see fit. 
 
 ```{r class.source="watch-out", eval = FALSE} 
 xen_reg <- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))
@@ -133,6 +139,12 @@ You can save and use the same keypoints later, and reproduce the manual alignmen
 ```{r class.source="watch-out", eval = FALSE} 
 keypoints <- xen_reg$keypoints
 xen_reg <- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), keypoints = keypoints)
+```
+
+In case there are only two images, **the first image will be taken as the image of reference**. Hence, in order to align the first Xenium Replicate to the Visium dataset. We can create a list of two VoltRon objects as given below. 
+
+```{r class.source="watch-out", eval = FALSE} 
+xen_reg <- registerSpatialData(object_list = list(Vis, Xen_R2))
 ```
 
 <br>
@@ -152,7 +164,18 @@ VRBlock
 Assays: Xenium(Main) Visium
 ```
 
-<br>
+Here, we can quickly check the change in spatial coordinate systems in the new tissue block. The `registerSpatialData` function syncronizes the coordinate systems of all VoltRon objects in the list before merging. Both Xenium sections have now two coordinate system where the registered system **main_reg** is the default one.
+
+```{r class.source="watch-out", eval = FALSE}
+vrSpatialNames(VRBlock, assay = "all")
+```
+
+```
+   Assay       Spatial     Main
+1 Assay1 main,main_reg main_reg
+2 Assay2          main     main
+3 Assay3 main,main_reg main_reg
+```
 
 ### Data/Label Transfer Across Layers
 

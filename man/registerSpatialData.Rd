@@ -8,7 +8,8 @@ registerSpatialData(
   object_list = NULL,
   reference_spatdata = NULL,
   query_spatdata = NULL,
-  keypoints = NULL
+  keypoints = NULL,
+  shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive()))
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ registerSpatialData(
 \item{query_spatdata}{a query spatial data set, used only if \code{object_list} is \code{NULL}}
 
 \item{keypoints}{a list of tables, each points to matching keypoints from registered images.}
+
+\item{shiny.options}{a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}}
 }
 \description{
 A mini shiny app to for registering images and spatial coordinates of multiple consequtive spatial datasets

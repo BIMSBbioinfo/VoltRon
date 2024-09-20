@@ -14,7 +14,8 @@
   features = NULL,
   image = NULL,
   interactive = FALSE,
-  use_points = FALSE
+  use_points = FALSE,
+  shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive()))
 )
 }
 \arguments{
@@ -35,6 +36,8 @@
 \item{interactive}{TRUE if interactive subsetting on the image is demanded}
 
 \item{use_points}{if \code{interactive} is \code{TRUE}, use spatial points instead of the reference image}
+
+\item{shiny.options}{a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}}
 }
 \description{
 Given a VoltRon object, subset the object given one of the attributes
@@ -57,6 +60,8 @@ subset(visium_data, spatialpoints = c("GTTATATTATCTCCCT-1_Assay1", "GTTTGGGTTTCG
 subset(visium_data, features = c("Map3k19", "Rab3gap1"))
 
 # interactive subsetting
+\dontrun{
 visium_subset_data <- subset(visium_data, interactive = TRUE)
 visium_subset <- visium_subset_data$subsets[[1]]
+}
 }
