@@ -613,6 +613,10 @@ applyPerspectiveTransform <- function(object,
 
   if(reg_mode == "manual"){
 
+    # get the multiplication of all homography matrices
+    # cur_mapping <- Reduce("%*%", mapping)
+    mapping <- manageMapping(mapping)
+    
     # get registered coordinates
     coords_reg <- applyTransform(coords, mapping)
     rownames(coords_reg) <- rownames(coords)
@@ -633,12 +637,9 @@ applyPerspectiveTransform <- function(object,
     # get registered image (including all channels)
     image_reg_list <- sapply(vrImageChannelNames(object[[assay]]), function(x) NULL, USE.NAMES = TRUE)
     for(channel_ind in names(image_reg_list)){
-      # results <- getRcppManualRegistration(vrImages(object, assay = assay, channel = channel_ind), reference_image, 
-      #                                      mapping$query, mapping$reference, 
-      #                                      method = input$Method)
       warped_image <- getRcppWarpImageManual(ref_image = reference_image, 
                                              query_image = vrImages(object, assay = assay, channel = channel_ind), 
-                                             mapping = mapping)
+                                             mapping = mapping[[1]])
       image_reg_list[[channel_ind]] <- warped_image
     }
 
@@ -646,7 +647,7 @@ applyPerspectiveTransform <- function(object,
 
     # get the multiplication of all homography matrices
     # cur_mapping <- Reduce("%*%", mapping)
-    cur_mapping <- mapping[[1]]
+    mapping <- manageMapping(mapping)
     
     # images
     ref_image <- transformImage(reference_image, ref_extension, input)
@@ -663,8 +664,7 @@ applyPerspectiveTransform <- function(object,
 
     coords_reg[,2] <- query_info$height - coords_reg[,2]
     coords_reg <- as.matrix(coords_reg)
-    # coords_reg <- perspectiveTransform(coords_reg, cur_mapping)
-    coords_reg <- applyTransform(coords_reg, cur_mapping)
+    coords_reg <- applyTransform(coords_reg, mapping)
     coords_reg <- as.data.frame(coords_reg)
     coords_reg[,2] <- ref_info$height - coords_reg[,2]
 
@@ -681,8 +681,7 @@ applyPerspectiveTransform <- function(object,
 
       segments_reg[,colnames(segments_reg) %in% c("y")] <- query_info$height - segments_reg[,colnames(segments_reg) %in% c("y")]
       segments_reg <- as.matrix(segments_reg)
-      # segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- perspectiveTransform(segments_reg[,colnames(segments_reg) %in% c("x", "y")], cur_mapping)
-      segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTransform(segments_reg[,colnames(segments_reg) %in% c("x", "y")], cur_mapping)
+      segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTransform(segments_reg[,colnames(segments_reg) %in% c("x", "y")], mapping)
       segments_reg <- as.data.frame(segments_reg)
       segments_reg[,colnames(segments_reg) %in% c("y")]  <- ref_info$height - segments_reg[,colnames(segments_reg) %in% c("y")]
 
@@ -702,8 +701,7 @@ applyPerspectiveTransform <- function(object,
       ref_image <- transformImage(reference_image, ref_extension, input)
       query_image <- transformImage(vrImages(object, assay = assay, channel = channel_ind),
                                     query_extension, input)
-      # query_image <- getRcppWarpImage(ref_image, query_image, hmatrix = cur_mapping)
-      query_image <- getRcppWarpImageAuto(ref_image, query_image, mapping = cur_mapping)
+      query_image <- getRcppWarpImageAuto(ref_image, query_image, mapping = mapping[[1]])
       query_image <- transformImageReverse(query_image, ref_extension, input)
 
       image_reg_list[[channel_ind]] <- query_image
@@ -720,6 +718,31 @@ applyPerspectiveTransform <- function(object,
   return(object)
 }
 
+####
+# Managing Mappings ####
+####
+
+manageMapping <- function(mappings){
+  
+  # check if all transformations are homography
+  allHomography <- all(lapply(mappings, function(map){
+    nrow(map[[1]] > 0) && is.null(map[[2]])
+  }))
+  
+  # change the mapping
+  new_mappings <- list()
+  if(allHomography){
+    mappings <- lapply(mappings, function(map) map[[1]])
+    new_mappings[[1]] <- Reduce("%*%", mappings)
+    new_mappings[[2]] <- NULL
+  } else {
+    new_mappings <- mappings
+  }
+    
+  # return
+  return(new_mappings)
+}
+  
 ####
 # Managing Keypoints ####
 ####
@@ -1483,14 +1506,14 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
 
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
-  mapping <- rep(indices,c(1,rep(2,length(indices)-2),1))
-  mapping <- matrix(mapping,ncol=2,byrow=TRUE)
+  mapping_mat <- rep(indices,c(1,rep(2,length(indices)-2),1))
+  mapping_mat <- matrix(mapping_mat,ncol=2,byrow=TRUE)
 
   # reference and target landmarks/keypoints
-  mapping_list <- list()
+  mapping <- list()
   aligned_image <- image_list[[query_ind]]
-  for(kk in 1:nrow(mapping)){
-    cur_map <- mapping[kk,]
+  for(kk in 1:nrow(mapping_mat)){
+    cur_map <- mapping_mat[kk,]
     ref_image <- image_list[[cur_map[2]]]
     if(which.min(cur_map) == 1){
       key_ind <- paste0(cur_map[1], "-", cur_map[2])
@@ -1513,14 +1536,18 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
     }
 
     # get registered image (including all channels)
-    results <- getRcppManualRegistration(aligned_image, ref_image, target_landmark, reference_landmark, 
+    reg <- getRcppManualRegistration(aligned_image, ref_image, target_landmark, reference_landmark, 
                                          method = input$Method)
+    
+    # return transformation matrix and images
+    mapping[[kk]] <- list(reg$transmat[[1]], 
+                          list(reference = reg$transmat[[2]][[1]],
+                               query = reg$transmat[[2]][[2]]))
+    aligned_image <- reg$aligned_image
   }
 
-  return(list(aligned_image = results$aligned_image, 
-              mapping = list(results$transmat[[1]], 
-                             list(reference = results$transmat[[2]][[1]],
-                             query = results$transmat[[2]][[2]]))))
+  return(list(mapping = mapping, 
+              aligned_image = aligned_image))
 }
 
 #' getRcppManualRegistration
@@ -1741,11 +1768,10 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
                                         matcher = input$Matcher, method = input$Method)
 
     # update transformation matrix
-    # transmat <- solve(diag(c(ref_scale,ref_scale,1))) %*% reg$transmat %*% diag(c(query_scale,query_scale,1))
-    transmat <- reg$transmat
+    reg[[1]][[1]] <- solve(diag(c(ref_scale,ref_scale,1))) %*% reg[[1]][[1]] %*% diag(c(query_scale,query_scale,1))
 
     # return transformation matrix and images
-    mapping[[kk]] <- transmat
+    mapping[[kk]] <- reg[[1]]
     dest_image <- reg$dest_image
     aligned_image <- reg$aligned_image
     alignment_image <- reg$alignment_image

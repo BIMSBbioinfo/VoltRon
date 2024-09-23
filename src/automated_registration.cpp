@@ -814,94 +814,67 @@ Rcpp::NumericMatrix applyTransform(Rcpp::NumericMatrix coords, Rcpp::List mappin
 {
   // Get coordinates as Point2f
   std::vector<cv::Point2f> coords_mat = numericMatrixToPoint2f(coords);
-  std::vector<cv::Point2f> coords_reg;
+  std::vector<cv::Point2f> coords_temp;
   
   // seed
   cv::setRNGSeed(0);
   RNG rng(12345);
   Scalar value;
   
-  // Get transformation matrix
-  cv::Mat h = numericMatrixToMat(mapping[0]);
-  if(h.cols > 0){
-    
-    // transform coordinates
-    cv::perspectiveTransform(coords_mat, coords_reg, h);
-    coords_mat = coords_reg;
-    
-  } 
+  // list 
+  int n = mapping.size();
   
-  // non-rigid warping
-  cv::Mat imReg;
-  if(mapping[1] != R_NilValue){
+  // iterate over the list 
+  for(int i=0; i<n; i++) {
     
-    // Get landmarks as Point2f 
-    Rcpp::List keypoints = mapping[1];
-    std::vector<cv::Point2f> ref_mat = numericMatrixToPoint2f(keypoints[0]);
-    std::vector<cv::Point2f> query_mat = numericMatrixToPoint2f(keypoints[1]);
+    // get the current mapping
+    Rcpp::List cur_mapping = mapping[i];
     
-    // get matches
-    std::vector<cv::DMatch> matches;
-    for (unsigned int i = 0; i < ref_mat.size(); i++)
-      matches.push_back(cv::DMatch(i, i, 0));
+    // Get transformation matrix
+    cv::Mat h = numericMatrixToMat(cur_mapping[0]);
+    if(h.cols > 0){
+      
+      // transform coordinates
+      cv::perspectiveTransform(coords_mat, coords_temp, h);
+      coords_mat = coords_temp;
+      
+    } 
     
-    // calculate transformation
-    Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
-    tps->estimateTransformation(query_mat, ref_mat, matches);
+    // non-rigid warping
+    cv::Mat imReg;
+    if(cur_mapping[1] != R_NilValue){
+      
+      // Get landmarks as Point2f 
+      Rcpp::List keypoints = cur_mapping[1];
+      std::vector<cv::Point2f> ref_mat = numericMatrixToPoint2f(keypoints[0]);
+      std::vector<cv::Point2f> query_mat = numericMatrixToPoint2f(keypoints[1]);
+      
+      // get matches
+      std::vector<cv::DMatch> matches;
+      for (unsigned int i = 0; i < ref_mat.size(); i++)
+        matches.push_back(cv::DMatch(i, i, 0));
+      
+      // calculate transformation
+      Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
+      tps->estimateTransformation(query_mat, ref_mat, matches);
+      
+      // apply transformation to coordinates
+      tps->applyTransformation(coords_mat, coords_temp);
+      
+    } else {
+      
+      coords_temp = coords_mat;
+    }
     
-    // apply transformation to coordinates
-    tps->applyTransformation(coords_mat, coords_reg);
-    
-  } else {
-    
-    coords_reg = coords_mat;
+    // set initial coordinates and registered one
+    coords_mat = coords_temp;
   }
   
   // return registered coordinates as numeric matrix
-  Rcpp::NumericMatrix coords_regToMat = point2fToNumericMatrix(coords_reg);
+  Rcpp::NumericMatrix coords_regToMat = point2fToNumericMatrix(coords_mat);
   
   // return
   return coords_regToMat;
-}
-
-// [[Rcpp::export]]
-Rcpp::NumericMatrix perspectiveTransform(Rcpp::NumericMatrix coords, Rcpp::NumericMatrix hmatrix)
-{
-  // Get coordinates as cv::Mat
-  std::vector<cv::Point2f> coords_mat = numericMatrixToPoint2f(coords);
-  std::vector<cv::Point2f> coords_reg;
-  cv::Mat hmatrix_mat = numericMatrixToMat(hmatrix);
-  
-  // transform coordinates
-  cv::perspectiveTransform(coords_mat, coords_reg, hmatrix_mat);
-  
-  // return transformation matrix and alignment images
-  Rcpp::NumericMatrix coords_regToMat = point2fToNumericMatrix(coords_reg);
-  
-  // return
-  return coords_regToMat;
-}
-
-// [[Rcpp::export]]
-Rcpp::RawVector warpImage(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, Rcpp::NumericMatrix hmatrix,
-                          const int width1, const int height1,
-                          const int width2, const int height2)
-{
-  // Read reference image
-  cv::Mat imReference = imageToMat(ref_image, width1, height1);
-  
-  // Read image to be aligned
-  cv::Mat im = imageToMat(query_image, width2, height2);
-  
-  // Get coordinates as cv::Mat
-  cv::Mat hmatrix_mat = numericMatrixToMat(hmatrix);
-  
-  // transform coordinates
-  Mat imWarp;
-  cv::warpPerspective(im, imWarp, hmatrix_mat, imReference.size());
-  
-  // return
-  return matToImage(imWarp.clone());;
 }
 
 // [[Rcpp::export]]

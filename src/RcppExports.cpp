@@ -23,35 +23,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// perspectiveTransform
-Rcpp::NumericMatrix perspectiveTransform(Rcpp::NumericMatrix coords, Rcpp::NumericMatrix hmatrix);
-RcppExport SEXP _VoltRon_perspectiveTransform(SEXP coordsSEXP, SEXP hmatrixSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type coords(coordsSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type hmatrix(hmatrixSEXP);
-    rcpp_result_gen = Rcpp::wrap(perspectiveTransform(coords, hmatrix));
-    return rcpp_result_gen;
-END_RCPP
-}
-// warpImage
-Rcpp::RawVector warpImage(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, Rcpp::NumericMatrix hmatrix, const int width1, const int height1, const int width2, const int height2);
-RcppExport SEXP _VoltRon_warpImage(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP hmatrixSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::RawVector >::type ref_image(ref_imageSEXP);
-    Rcpp::traits::input_parameter< Rcpp::RawVector >::type query_image(query_imageSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type hmatrix(hmatrixSEXP);
-    Rcpp::traits::input_parameter< const int >::type width1(width1SEXP);
-    Rcpp::traits::input_parameter< const int >::type height1(height1SEXP);
-    Rcpp::traits::input_parameter< const int >::type width2(width2SEXP);
-    Rcpp::traits::input_parameter< const int >::type height2(height2SEXP);
-    rcpp_result_gen = Rcpp::wrap(warpImage(ref_image, query_image, hmatrix, width1, height1, width2, height2));
-    return rcpp_result_gen;
-END_RCPP
-}
 // warpImageAuto
 Rcpp::RawVector warpImageAuto(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, Rcpp::List mapping, const int width1, const int height1, const int width2, const int height2);
 RcppExport SEXP _VoltRon_warpImageAuto(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP mappingSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP) {
@@ -191,8 +162,6 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_VoltRon_applyTransform", (DL_FUNC) &_VoltRon_applyTransform, 2},
-    {"_VoltRon_perspectiveTransform", (DL_FUNC) &_VoltRon_perspectiveTransform, 2},
-    {"_VoltRon_warpImage", (DL_FUNC) &_VoltRon_warpImage, 7},
     {"_VoltRon_warpImageAuto", (DL_FUNC) &_VoltRon_warpImageAuto, 7},
     {"_VoltRon_warpImageManual", (DL_FUNC) &_VoltRon_warpImageManual, 7},
     {"_VoltRon_automated_registeration_rawvector", (DL_FUNC) &_VoltRon_automated_registeration_rawvector, 16},

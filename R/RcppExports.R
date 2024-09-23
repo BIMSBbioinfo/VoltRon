@@ -5,14 +5,6 @@ applyTransform <- function(coords, mapping) {
     .Call('_VoltRon_applyTransform', PACKAGE = 'VoltRon', coords, mapping)
 }
 
-perspectiveTransform <- function(coords, hmatrix) {
-    .Call('_VoltRon_perspectiveTransform', PACKAGE = 'VoltRon', coords, hmatrix)
-}
-
-warpImage <- function(ref_image, query_image, hmatrix, width1, height1, width2, height2) {
-    .Call('_VoltRon_warpImage', PACKAGE = 'VoltRon', ref_image, query_image, hmatrix, width1, height1, width2, height2)
-}
-
 warpImageAuto <- function(ref_image, query_image, mapping, width1, height1, width2, height2) {
     .Call('_VoltRon_warpImageAuto', PACKAGE = 'VoltRon', ref_image, query_image, mapping, width1, height1, width2, height2)
 }
