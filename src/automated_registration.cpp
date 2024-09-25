@@ -841,7 +841,6 @@ Rcpp::NumericMatrix applyTransform(Rcpp::NumericMatrix coords, Rcpp::List mappin
     } 
     
     // non-rigid warping
-    cv::Mat imReg;
     if(cur_mapping[1] != R_NilValue){
       
       // Get landmarks as Point2f 
@@ -876,6 +875,84 @@ Rcpp::NumericMatrix applyTransform(Rcpp::NumericMatrix coords, Rcpp::List mappin
   // return
   return coords_regToMat;
 }
+
+// [[Rcpp::export]]
+Rcpp::RawVector warpImage(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, 
+                              Rcpp::List mapping,
+                              const int width1, const int height1,
+                              const int width2, const int height2)
+{
+  // Read reference image
+  cv::Mat imReference = imageToMat(ref_image, width1, height1);
+  
+  // Read image to be aligned
+  cv::Mat im = imageToMat(query_image, width2, height2);
+  cv::Mat im_temp;
+  
+  // list 
+  int n = mapping.size();
+  
+  // iterate over the list 
+  for(int i=0; i<n; i++) {
+    
+    // get the current mapping
+    Rcpp::List cur_mapping = mapping[i];
+      
+    // Get transformation matrix
+    cv::Mat h = numericMatrixToMat(cur_mapping[0]);
+    if(h.cols > 0){
+      
+      // transform coordinates
+      cv::warpPerspective(im, im_temp, h, imReference.size()); 
+      im = im_temp;
+      
+    } 
+    
+    // non-rigid warping
+    if(cur_mapping[1] != R_NilValue){
+      
+      // get landmarks
+      Rcpp::List keypoints = cur_mapping[1];
+      std::vector<cv::Point2f> ref_mat = numericMatrixToPoint2f(keypoints[0]);
+      std::vector<cv::Point2f> query_mat = numericMatrixToPoint2f(keypoints[1]);
+      
+      // get matches
+      std::vector<cv::DMatch> matches;
+      for (unsigned int i = 0; i < ref_mat.size(); i++)
+        matches.push_back(cv::DMatch(i, i, 0));
+      
+      // calculate transformation
+      Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
+      tps->estimateTransformation(ref_mat, query_mat, matches);
+      
+      // determine extension limits for both images
+      int y_max = max(im.rows, imReference.rows);
+      int x_max = max(im.cols, imReference.cols);
+      
+      // extend images
+      cv::copyMakeBorder(im, im, 0.0, (int) (y_max - im.rows), 0.0, (x_max - im.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+      
+      // transform image
+      tps->warpImage(im, im_temp);
+      
+      // resize image
+      // cv::resize(im1Reg, im1Reg, im2.size());
+      cv::Mat im_temp_cropped  = im_temp(cv::Range(0,imReference.size().height), cv::Range(0,imReference.size().width));
+      im_temp = im_temp_cropped.clone();
+      
+    } else {
+      
+      // pass registered object
+      im_temp = im;
+    }
+    
+    im = im_temp;
+  }
+  
+  // return
+  return matToImage(im);
+} 
+
 
 // [[Rcpp::export]]
 Rcpp::RawVector warpImageAuto(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, 

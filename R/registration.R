@@ -637,9 +637,9 @@ applyPerspectiveTransform <- function(object,
     # get registered image (including all channels)
     image_reg_list <- sapply(vrImageChannelNames(object[[assay]]), function(x) NULL, USE.NAMES = TRUE)
     for(channel_ind in names(image_reg_list)){
-      warped_image <- getRcppWarpImageManual(ref_image = reference_image, 
-                                             query_image = vrImages(object, assay = assay, channel = channel_ind), 
-                                             mapping = mapping[[1]])
+      warped_image <- getRcppWarpImage(ref_image = reference_image,
+                                       query_image = vrImages(object, assay = assay, channel = channel_ind),
+                                       mapping = mapping)
       image_reg_list[[channel_ind]] <- warped_image
     }
 
@@ -701,7 +701,7 @@ applyPerspectiveTransform <- function(object,
       ref_image <- transformImage(reference_image, ref_extension, input)
       query_image <- transformImage(vrImages(object, assay = assay, channel = channel_ind),
                                     query_extension, input)
-      query_image <- getRcppWarpImageAuto(ref_image, query_image, mapping = mapping[[1]])
+      query_image <- getRcppWarpImage(ref_image, query_image, mapping = mapping)
       query_image <- transformImageReverse(query_image, ref_extension, input)
 
       image_reg_list[[channel_ind]] <- query_image
@@ -1369,6 +1369,29 @@ transformImageQueryList <- function(image_list, input){
   return(trans_query_list)
 }
 
+#' getRcppWarpImage
+#'
+#' Warping a query image given a homography image
+#'
+#' @param ref_image reference image
+#' @param query_image query image
+#' @param hmatrix the homography matrix
+#'
+#' @importFrom magick image_read image_data
+#' 
+#' @export
+getRcppWarpImage <- function(ref_image, query_image, mapping){
+  ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
+  query_image_rast <- magick::image_data(query_image, channels = "rgb")
+  query_image <- warpImage(ref_image = ref_image_rast, 
+                           query_image = query_image_rast, 
+                           mapping = mapping,
+                           width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
+                           width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3])
+  magick::image_read(query_image)
+}
+
+
 ####
 # Manual Image Registration ####
 ####
@@ -1579,28 +1602,6 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
                                         method = method)
   return(list(transmat = reg[[1]], 
               aligned_image = magick::image_read(reg[[2]])))
-}
-
-#' getRcppWarpImageManual
-#'
-#' Warping a query image given a homography image
-#'
-#' @param ref_image reference image
-#' @param query_image query image
-#' @param hmatrix the homography matrix
-#'
-#' @importFrom magick image_read image_data
-#' 
-#' @export
-getRcppWarpImageManual <- function(ref_image, query_image, mapping){
-  ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
-  query_image_rast <- magick::image_data(query_image, channels = "rgb")
-  query_image <- warpImageManual(ref_image = ref_image_rast, 
-                           query_image = query_image_rast, 
-                           mapping = mapping,
-                           width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
-                           width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3])
-  magick::image_read(query_image)
 }
 
 ####
@@ -1835,27 +1836,4 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
               aligned_image = magick::image_read(reg[[3]]),
               alignment_image = magick::image_read(reg[[4]]),
               overlay_image = magick::image_read(reg[[5]])))
-}
-
-#' getRcppWarpImageAuto
-#'
-#' Warping a query image given a homography image
-#'
-#' @param ref_image reference image
-#' @param query_image query image
-#' @param mapping the list of mappings
-#'
-#' @importFrom magick image_read image_data
-#' 
-#' @export
-getRcppWarpImageAuto <- function(ref_image, query_image, mapping){
-  ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
-  query_image_rast <- magick::image_data(query_image, channels = "rgb")
-  # query_image <- warpImage(ref_image = ref_image_rast, query_image = query_image_rast, hmatrix = hmatrix,
-  #           width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
-  #           width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3])
-  query_image <- warpImageAuto(ref_image = ref_image_rast, query_image = query_image_rast, mapping = mapping,
-            width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
-            width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3])
-  magick::image_read(query_image)
 }

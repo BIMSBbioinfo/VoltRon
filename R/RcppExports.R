@@ -5,6 +5,10 @@ applyTransform <- function(coords, mapping) {
     .Call('_VoltRon_applyTransform', PACKAGE = 'VoltRon', coords, mapping)
 }
 
+warpImage <- function(ref_image, query_image, mapping, width1, height1, width2, height2) {
+    .Call('_VoltRon_warpImage', PACKAGE = 'VoltRon', ref_image, query_image, mapping, width1, height1, width2, height2)
+}
+
 warpImageAuto <- function(ref_image, query_image, mapping, width1, height1, width2, height2) {
     .Call('_VoltRon_warpImageAuto', PACKAGE = 'VoltRon', ref_image, query_image, mapping, width1, height1, width2, height2)
 }
