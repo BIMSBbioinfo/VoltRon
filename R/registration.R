@@ -733,11 +733,14 @@ manageMapping <- function(mappings){
   new_mappings <- list()
   if(allHomography){
     mappings <- lapply(mappings, function(map) map[[1]])
-    new_mappings[[1]] <- Reduce("%*%", mappings)
-    new_mappings[[2]] <- NULL
+    new_mappings <- list(
+      list(Reduce("%*%", mappings),
+           NULL)
+    )
   } else {
     new_mappings <- mappings
   }
+  
     
   # return
   return(new_mappings)
