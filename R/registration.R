@@ -725,9 +725,9 @@ applyPerspectiveTransform <- function(object,
 manageMapping <- function(mappings){
   
   # check if all transformations are homography
-  allHomography <- all(lapply(mappings, function(map){
+  allHomography <- suppressWarnings(all(lapply(mappings, function(map){
     nrow(map[[1]] > 0) && is.null(map[[2]])
-  }))
+  })))
   
   # change the mapping
   new_mappings <- list()
@@ -1432,6 +1432,7 @@ initiateMappings <- function(len_images, input, output, session){
 #'
 #' @import ggplot2
 #' @importFrom magick image_write image_join image_read image_resize
+#' @importFrom shiny reactiveValuesToList
 #'
 #' @noRd
 getManualRegisteration <- function(registration_mapping_list, spatdata_list, image_list, keypoints_list,
@@ -1443,6 +1444,9 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
   # Registration events
   observeEvent(input$register, {
 
+    # get key points as list
+    keypoints_list <- shiny::reactiveValuesToList(keypoints_list)
+    
     # Manual Registration
     if(!input$automatictag){
 
