@@ -1641,6 +1641,9 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
   # Registration events
   observeEvent(input$register, {
 
+    # get key points as list
+    keypoints_list <- shiny::reactiveValuesToList(keypoints_list)
+    
     # Automated registration
     if(input$automatictag){
 
