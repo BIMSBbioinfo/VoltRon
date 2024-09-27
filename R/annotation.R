@@ -467,14 +467,15 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
   shiny.options <- configure_shiny_options(shiny.options)
   
   # run app
-  # shiny::runApp(shiny::shinyApp(ui, server), port = shiny.options[["port"]], host = shiny.options[["host"]], launch.browser = shiny.options[["launch.browser"]])
-  shiny::shinyApp(ui, server, options = list(host = shiny.options[["host"]], port = shiny.options[["port"]], launch.browser = shiny.options[["launch.browser"]]),
-                  onStart = function() {
-                    cat("Doing application setup\n")
-                    onStop(function() {
-                      cat("Doing application cleanup\n")
+  shiny::runApp(
+    shiny::shinyApp(ui, server, options = list(host = shiny.options[["host"]], port = shiny.options[["port"]], launch.browser = shiny.options[["launch.browser"]]),
+                    onStart = function() {
+                      cat("Doing application setup\n")
+                      onStop(function() {
+                        cat("Doing application cleanup\n")
+                      })
                     })
-                  })
+  )
 }
 
 #' internal Text input with button

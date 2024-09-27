@@ -4,7 +4,7 @@
 \alias{getRcppWarpImage}
 \title{getRcppWarpImage}
 \usage{
-getRcppWarpImage(ref_image, query_image, hmatrix)
+getRcppWarpImage(ref_image, query_image, mapping)
 }
 \arguments{
 \item{ref_image}{reference image}

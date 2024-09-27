@@ -85,8 +85,9 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
                             Shiny.setInputValue('y2', relY);
                             Shiny.setInputValue('action', Math.random());
                         });
-                      ")),
+                    ")),
                     
+                    # side bar for configuration
                     getSideBar(),
                     
                     # panel options
@@ -185,14 +186,15 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
   shiny.options <- configure_shiny_options(shiny.options)
   
   # run app
-  # shiny::runApp(shiny::shinyApp(ui, server), port = shiny.options[["port"]], host = shiny.options[["host"]], launch.browser = shiny.options[["launch.browser"]])
-  shiny::shinyApp(ui, server, options = list(host = shiny.options[["host"]], port = shiny.options[["port"]], launch.browser = shiny.options[["launch.browser"]]),
-                  onStart = function() {
-                    cat("Doing application setup\n")
-                    onStop(function() {
-                      cat("Doing application cleanup\n")
+  shiny::runApp(
+    shiny::shinyApp(ui, server, options = list(host = shiny.options[["host"]], port = shiny.options[["port"]], launch.browser = shiny.options[["launch.browser"]]),
+                    onStart = function() {
+                      cat("Doing application setup\n")
+                      onStop(function() {
+                        cat("Doing application cleanup\n")
+                      })
                     })
-                  })
+  )
 }
 
 ####
@@ -212,7 +214,13 @@ getSideBar <- function(len_images, channel_names, type){
     fluidRow(
       column(12,shiny::checkboxInput("automatictag", "Automated", value = FALSE)),
       br(),
-      column(12,selectInput("AutoMethod", "Method", choices = c("FLANN", "BRUTE-FORCE"), selected = "FLANN")),
+      column(12,selectInput("Method", "Method", 
+                            choices = c("Homography", "Non-Rigid", "Homography + Non-Rigid"), 
+                            selected = "Homography")),
+      br(),
+      column(12,selectInput("Matcher", "Matcher", 
+                            choices = c("FLANN", "BRUTE-FORCE"), 
+                            selected = "FLANN")),
       br(),
       column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
       column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
@@ -409,10 +417,9 @@ updateParameterPanels <- function(len_images, input, output, session){
     shinyjs::show(id = "done")
   })
 
-  # automated registration event
+  # registration panels/buttons
   shinyjs::hide(id = "GOOD_MATCH_PERCENT")
   shinyjs::hide(id = "MAX_FEATURES")
-  shinyjs::hide(id = "AutoMethod")
 
   # hide scale parameters
   for(i in 1:len_images){
@@ -424,12 +431,19 @@ updateParameterPanels <- function(len_images, input, output, session){
 
   observeEvent(input$automatictag, {
     if(input$automatictag){
-      shinyjs::show(id = "AutoMethod")
+      
+      # Method and Matcher
+      updateSelectInput(session, "Method", choices = c("Homography", "Homography + Non-Rigid"), selected = "Homography")
+      shinyjs::show(id = "Matcher")
 
       # show automatic registration parameters of BRUTE-FORCE
-      if(input$AutoMethod == "BRUTE-FORCE"){
+      if(input$Matcher == "BRUTE-FORCE"){
         shinyjs::show(id = "GOOD_MATCH_PERCENT")
         shinyjs::show(id = "MAX_FEATURES")
+      } 
+      if(input$Matcher == "FLANN"){
+        shinyjs::hide(id = "GOOD_MATCH_PERCENT")
+        shinyjs::hide(id = "MAX_FEATURES")
       }
 
       # show scale parameters
@@ -441,11 +455,16 @@ updateParameterPanels <- function(len_images, input, output, session){
       }
 
     } else {
-      shinyjs::hide(id = "AutoMethod")
+      
+      # Method and Matcher
+      updateSelectInput(session, "Method", choices = c("Non-Rigid", "Homography + Non-Rigid"), selected = "Non-Rigid")
+      shinyjs::hide(id = "Matcher")
 
       # hide automatic registration parameters of BRUTE-FORCE
-      shinyjs::hide(id = "GOOD_MATCH_PERCENT")
-      shinyjs::hide(id = "MAX_FEATURES")
+      if(input$Matcher == "FLANN"){
+        shinyjs::hide(id = "GOOD_MATCH_PERCENT")
+        shinyjs::hide(id = "MAX_FEATURES")
+      }
 
       # hide scale parameters
       for(i in 1:len_images){
@@ -457,13 +476,31 @@ updateParameterPanels <- function(len_images, input, output, session){
     }
   })
 
-  observeEvent(input$AutoMethod, {
-    if(input$AutoMethod == "FLANN"){
+  observeEvent(input$Method, {
+    if(grepl("FLANN", input$Matcher)){
       shinyjs::hide(id = "GOOD_MATCH_PERCENT")
       shinyjs::hide(id = "MAX_FEATURES")
     } else {
       shinyjs::show(id = "GOOD_MATCH_PERCENT")
       shinyjs::show(id = "MAX_FEATURES")
+      if(grepl("Non-Rigid", input$Method)){
+        updateSelectInput(session, "Method", selected = "Homography") 
+        showNotification("Brute-Force Matching can't be used with Non-Rigid Registration\n")
+      }
+    }
+  })
+  
+  observeEvent(input$Matcher, {
+    if(grepl("FLANN", input$Matcher)){
+      shinyjs::hide(id = "GOOD_MATCH_PERCENT")
+      shinyjs::hide(id = "MAX_FEATURES")
+    } else {
+      shinyjs::show(id = "GOOD_MATCH_PERCENT")
+      shinyjs::show(id = "MAX_FEATURES")
+      if(grepl("Non-Rigid", input$Method)){
+        updateSelectInput(session, "Method", selected = "Homography") 
+        showNotification("Brute-Force Matching can't be used with Non-Rigid Registration\n")
+      }
     }
   })
 }
@@ -573,9 +610,13 @@ applyPerspectiveTransform <- function(object,
 
   if(reg_mode == "manual"){
 
+    # get the multiplication of all homography matrices
+    # cur_mapping <- Reduce("%*%", mapping)
+    mapping <- manageMapping(mapping)
+    
     # get registered coordinates
     coords_reg <- coords
-    coords_reg[,c("x", "y")] <- applyTransform(coords[,c("x", "y")], mapping$reference, mapping$query)
+    coords_reg[,c("x", "y")] <- applyTransform(coords[,c("x", "y")], mapping)
     rownames(coords_reg) <- rownames(coords)
     colnames(coords_reg) <- colnames(coords)
 
@@ -583,7 +624,7 @@ applyPerspectiveTransform <- function(object,
     if(length(segments) > 0){
       segments_reg <- do.call(rbind, segments)
       segments_reg <- as.matrix(segments_reg)
-      segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTransform(segments_reg[,colnames(segments_reg) %in% c("x", "y")], mapping$reference, mapping$query)
+      segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTransform(segments_reg[,colnames(segments_reg) %in% c("x", "y")], mapping)
       segments_reg <- as.data.frame(segments_reg)
       segments_reg <- split(segments_reg, segments_reg[,1])
       names(segments_reg) <- names(segments)
@@ -594,15 +635,18 @@ applyPerspectiveTransform <- function(object,
     # get registered image (including all channels)
     image_reg_list <- sapply(vrImageChannelNames(object[[assay]]), function(x) NULL, USE.NAMES = TRUE)
     for(channel_ind in names(image_reg_list)){
-      results <- getRcppManualRegistration(vrImages(object, assay = assay, channel = channel_ind), reference_image, mapping$query, mapping$reference)
-      image_reg_list[[channel_ind]] <- results$aligned_image
+      warped_image <- getRcppWarpImage(ref_image = reference_image,
+                                       query_image = vrImages(object, assay = assay, channel = channel_ind),
+                                       mapping = mapping)
+      image_reg_list[[channel_ind]] <- warped_image
     }
 
   } else if(reg_mode == "auto"){
 
     # get the multiplication of all homography matrices
-    cur_mapping <- Reduce("%*%", mapping)
-
+    # cur_mapping <- Reduce("%*%", mapping)
+    mapping <- manageMapping(mapping)
+    
     # images
     ref_image <- transformImage(reference_image, ref_extension, input)
     query_image <- transformImage(vrImages(object, assay = assay),
@@ -618,7 +662,7 @@ applyPerspectiveTransform <- function(object,
 
     coords_reg[,2] <- query_info$height - coords_reg[,2]
     coords_reg <- as.matrix(coords_reg)
-    coords_reg <- perspectiveTransform(coords_reg, cur_mapping)
+    coords_reg <- applyTransform(coords_reg, mapping)
     coords_reg <- as.data.frame(coords_reg)
     coords_reg[,2] <- ref_info$height - coords_reg[,2]
 
@@ -639,7 +683,7 @@ applyPerspectiveTransform <- function(object,
 
       segments_reg[,colnames(segments_reg) %in% c("y")] <- query_info$height - segments_reg[,colnames(segments_reg) %in% c("y")]
       segments_reg <- as.matrix(segments_reg)
-      segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- perspectiveTransform(segments_reg[,colnames(segments_reg) %in% c("x", "y")], cur_mapping)
+      segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTransform(segments_reg[,colnames(segments_reg) %in% c("x", "y")], mapping)
       segments_reg <- as.data.frame(segments_reg)
       segments_reg[,colnames(segments_reg) %in% c("y")]  <- ref_info$height - segments_reg[,colnames(segments_reg) %in% c("y")]
 
@@ -659,7 +703,7 @@ applyPerspectiveTransform <- function(object,
       ref_image <- transformImage(reference_image, ref_extension, input)
       query_image <- transformImage(vrImages(object, assay = assay, channel = channel_ind),
                                     query_extension, input)
-      query_image <- getRcppWarpImage(ref_image, query_image, hmatrix = cur_mapping)
+      query_image <- getRcppWarpImage(ref_image, query_image, mapping = mapping)
       query_image <- transformImageReverse(query_image, ref_extension, input)
 
       image_reg_list[[channel_ind]] <- query_image
@@ -676,6 +720,34 @@ applyPerspectiveTransform <- function(object,
   return(object)
 }
 
+####
+# Managing Mappings ####
+####
+
+manageMapping <- function(mappings){
+  
+  # check if all transformations are homography
+  allHomography <- suppressWarnings(all(lapply(mappings, function(map){
+    nrow(map[[1]] > 0) && is.null(map[[2]])
+  })))
+  
+  # change the mapping
+  new_mappings <- list()
+  if(allHomography){
+    mappings <- lapply(mappings, function(map) map[[1]])
+    new_mappings <- list(
+      list(Reduce("%*%", mappings),
+           NULL)
+    )
+  } else {
+    new_mappings <- mappings
+  }
+  
+    
+  # return
+  return(new_mappings)
+}
+  
 ####
 # Managing Keypoints ####
 ####
@@ -1299,6 +1371,29 @@ transformImageQueryList <- function(image_list, input){
   return(trans_query_list)
 }
 
+#' getRcppWarpImage
+#'
+#' Warping a query image given a homography image
+#'
+#' @param ref_image reference image
+#' @param query_image query image
+#' @param hmatrix the homography matrix
+#'
+#' @importFrom magick image_read image_data
+#' 
+#' @export
+getRcppWarpImage <- function(ref_image, query_image, mapping){
+  ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
+  query_image_rast <- magick::image_data(query_image, channels = "rgb")
+  query_image <- warpImage(ref_image = ref_image_rast, 
+                           query_image = query_image_rast, 
+                           mapping = mapping,
+                           width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
+                           width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3])
+  magick::image_read(query_image)
+}
+
+
 ####
 # Manual Image Registration ####
 ####
@@ -1339,6 +1434,7 @@ initiateMappings <- function(len_images, input, output, session){
 #'
 #' @import ggplot2
 #' @importFrom magick image_write image_join image_read image_resize
+#' @importFrom shiny reactiveValuesToList
 #'
 #' @noRd
 getManualRegisteration <- function(registration_mapping_list, spatdata_list, image_list, keypoints_list,
@@ -1350,6 +1446,9 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
   # Registration events
   observeEvent(input$register, {
 
+    # get key points as list
+    keypoints_list <- shiny::reactiveValuesToList(keypoints_list)
+    
     # Manual Registration
     if(!input$automatictag){
 
@@ -1383,7 +1482,7 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
         incProgress(1/length(register_ind), detail = paste("Registering Image", i, sep = " "))
 
         # get a sequential mapping between a query and reference image
-        results <- computeManualPairwiseTransform(image_list, keypoints_list, query_ind = i, ref_ind = centre)
+        results <- computeManualPairwiseTransform(image_list, keypoints_list, query_ind = i, ref_ind = centre, input = input)
 
         # save transformation mapping
         registration_mapping_list[[paste0(i)]] <- results$mapping
@@ -1432,21 +1531,21 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
 #' @param keypoints_list the list of keypoint matrices
 #' @param query_ind the index of the query image
 #' @param ref_ind the index of the reference image
+#' @param input input
 #'
 #' @noRd
-#'
-computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind, ref_ind){
+computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind, ref_ind, input){
 
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
-  mapping <- rep(indices,c(1,rep(2,length(indices)-2),1))
-  mapping <- matrix(mapping,ncol=2,byrow=TRUE)
+  mapping_mat <- rep(indices,c(1,rep(2,length(indices)-2),1))
+  mapping_mat <- matrix(mapping_mat,ncol=2,byrow=TRUE)
 
   # reference and target landmarks/keypoints
-  mapping_list <- list()
+  mapping <- list()
   aligned_image <- image_list[[query_ind]]
-  for(kk in 1:nrow(mapping)){
-    cur_map <- mapping[kk,]
+  for(kk in 1:nrow(mapping_mat)){
+    cur_map <- mapping_mat[kk,]
     ref_image <- image_list[[cur_map[2]]]
     if(which.min(cur_map) == 1){
       key_ind <- paste0(cur_map[1], "-", cur_map[2])
@@ -1469,11 +1568,18 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
     }
 
     # get registered image (including all channels)
-    results <- getRcppManualRegistration(aligned_image, ref_image, target_landmark, reference_landmark)
+    reg <- getRcppManualRegistration(aligned_image, ref_image, target_landmark, reference_landmark, 
+                                         method = input$Method)
+    
+    # return transformation matrix and images
+    mapping[[kk]] <- list(reg$transmat[[1]], 
+                          list(reference = reg$transmat[[2]][[1]],
+                               query = reg$transmat[[2]][[2]]))
+    aligned_image <- reg$aligned_image
   }
 
-  return(list(aligned_image = results$aligned_image, mapping = list(reference = reference_landmark,
-                                                            query = target_landmark)))
+  return(list(mapping = mapping, 
+              aligned_image = aligned_image))
 }
 
 #' getRcppManualRegistration
@@ -1484,11 +1590,13 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
 #' @param ref_image reference image
 #' @param query_landmark query landmark points
 #' @param reference_landmark refernece landmark points
+#' @param method the automated registration method, either TPS or Homography+TPS
 #'
 #' @importFrom magick image_read image_data
 #'
 #' @export
-getRcppManualRegistration <- function(query_image, ref_image, query_landmark, reference_landmark) {
+getRcppManualRegistration <- function(query_image, ref_image, query_landmark, reference_landmark, 
+                                      method = "TPS") {
   ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
   query_image_rast <- magick::image_data(query_image, channels = "rgb")
   reference_landmark[,2] <- dim(ref_image_rast)[3] - reference_landmark[,2]
@@ -1496,8 +1604,10 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
   reg <- manual_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
                                         reference_landmark = reference_landmark, query_landmark = query_landmark,
                                         width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
-                                        width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3])
-  return(list(aligned_image = magick::image_read(reg[[1]])))
+                                        width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3], 
+                                        method = method)
+  return(list(transmat = reg[[1]], 
+              aligned_image = magick::image_read(reg[[2]])))
 }
 
 ####
@@ -1532,6 +1642,9 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
   # Registration events
   observeEvent(input$register, {
 
+    # get key points as list
+    keypoints_list <- shiny::reactiveValuesToList(keypoints_list)
+    
     # Automated registration
     if(input$automatictag){
 
@@ -1620,7 +1733,6 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
 #' @param input input
 #'
 #' @noRd
-#'
 computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_ind, ref_ind, input){
 
   # determine the number of transformation to map from query to the reference
@@ -1665,20 +1777,24 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
                                         flipflop_ref = input[[paste0("flipflop_", ref_label, "_image", cur_map[2])]],
                                         rotate_query = input[[paste0("rotate_", query_label, "_image", cur_map[1])]],
                                         rotate_ref = input[[paste0("rotate_", ref_label, "_image", cur_map[2])]],
-                                        method = input$AutoMethod)
+                                        matcher = input$Matcher, method = input$Method)
 
     # update transformation matrix
-    transmat <- solve(diag(c(ref_scale,ref_scale,1))) %*% reg$transmat %*% diag(c(query_scale,query_scale,1))
+    reg[[1]][[1]] <- solve(diag(c(ref_scale,ref_scale,1))) %*% reg[[1]][[1]] %*% diag(c(query_scale,query_scale,1))
 
-    # return images and transformation matrix
-    mapping[[kk]] <- transmat
+    # return transformation matrix and images
+    mapping[[kk]] <- reg[[1]]
     dest_image <- reg$dest_image
     aligned_image <- reg$aligned_image
     alignment_image <- reg$alignment_image
     overlay_image <- reg$overlay_image
   }
 
-  return(list(mapping = mapping, dest_image = dest_image, aligned_image = aligned_image, alignment_image = alignment_image, overlay_image = overlay_image))
+  return(list(mapping = mapping, 
+              dest_image = dest_image, 
+              aligned_image = aligned_image, 
+              alignment_image = alignment_image, 
+              overlay_image = overlay_image))
 }
 
 #' getRcppAutomatedRegistration
@@ -1695,7 +1811,8 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
 #' @param flipflop_ref flip or flop the reference image
 #' @param rotate_query rotation of query image
 #' @param rotate_ref rotation of reference image
-#' @param method the automated registration method, either FLANN or BRUTE-FORCE
+#' @param matcher the matching method for landmarks/keypoints FLANN or BRUTE-FORCE
+#' @param method the automated registration method, Homography or Homography+TPS
 #'
 #' @importFrom magick image_read image_data
 #'
@@ -1704,7 +1821,8 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
                                          GOOD_MATCH_PERCENT = 0.15, MAX_FEATURES = 500,
                                          invert_query = FALSE, invert_ref = FALSE,
                                          flipflop_query = "None", flipflop_ref = "None",
-                                         rotate_query = "0", rotate_ref = "0", method = "FLANN") {
+                                         rotate_query = "0", rotate_ref = "0", 
+                                         matcher = "FLANN", method = "Homography") {
   ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
   query_image_rast <- magick::image_data(query_image, channels = "rgb")
   reg <- automated_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
@@ -1714,30 +1832,16 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
                                            invert_query = invert_query, invert_ref = invert_ref,
                                            flipflop_query = flipflop_query, flipflop_ref = flipflop_ref,
                                            rotate_query = rotate_query, rotate_ref = rotate_ref,
-                                           method = method)
+                                           matcher = matcher, method = method)
+  
+  # check for null keypoints
+  if(all(lapply(reg[[1]][[2]], is.null))){
+    reg[[1]] <- list(reg[[1]][[1]], NULL)
+  }
+  
   return(list(transmat = reg[[1]],
               dest_image = magick::image_read(reg[[2]]),
               aligned_image = magick::image_read(reg[[3]]),
               alignment_image = magick::image_read(reg[[4]]),
               overlay_image = magick::image_read(reg[[5]])))
-}
-
-#' getRcppWarpImage
-#'
-#' Warping a query image given a homography image
-#'
-#' @param ref_image reference image
-#' @param query_image query image
-#' @param hmatrix the homography matrix
-#'
-#' @importFrom magick image_read image_data
-#' 
-#' @export
-getRcppWarpImage <- function(ref_image, query_image, hmatrix){
-  ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
-  query_image_rast <- magick::image_data(query_image, channels = "rgb")
-  query_image <- warpImage(ref_image = ref_image_rast, query_image = query_image_rast, hmatrix = hmatrix,
-            width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
-            width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3])
-  magick::image_read(query_image)
 }
