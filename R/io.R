@@ -22,17 +22,49 @@
 
 shorten_assay_links <- function(object)
 {
-  object@rawdata <- modify_seeds(object@rawdata,
-                                 function(x) {
-                                   x@filepath <- basename(x@filepath)
-                                   x
-                                 })
-  object@normdata <- modify_seeds(object@normdata,
-                                  function(x) {
-                                    x@filepath <- basename(x@filepath)
-                                    x
-                                  })
+  # data
+  
+  # check if there is a data or rawdata slot in assay object
+  catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
+  catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
+  
+  # get data with a specific feature
+  if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
+    
+    feature_types <- vrFeatureTypeNames(object)
+    for(feat in feature_types){
+      
+      object@data[[feat]] <- modify_seeds(object@data[[feat]],
+                                     function(x) {
+                                       x@filepath <- basename(x@filepath)
+                                       x
+                                     })
+      object@data[[paste0(feat, "_norm")]] <- modify_seeds(object@data[[paste0(feat, "_norm")]],
+                                      function(x) {
+                                        x@filepath <- basename(x@filepath)
+                                        x
+                                      })  
+      
+    }
+    
+  } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
+    object@rawdata <- modify_seeds(object@rawdata,
+                                   function(x) {
+                                     x@filepath <- basename(x@filepath)
+                                     x
+                                   })
+    object@normdata <- modify_seeds(object@normdata,
+                                    function(x) {
+                                      x@filepath <- basename(x@filepath)
+                                      x
+                                    })  
+  }
+  
+  # images
   object <- shorten_assay_links_images(object)
+  
+  # return
+  object
 }
 
 shorten_assay_links_images <- function(object){
@@ -169,17 +201,25 @@ write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
     
     # get data and write
     cat(paste0("  Writing '", assy, "' data \n"))
-    a <- vrData(assay_object)
-    a <- HDF5Array::writeHDF5Array(a, 
-                                   h5_path, 
-                                   name = paste0(assy, "/data"),
-                                   chunkdim=chunkdim, 
-                                   level=level,
-                                   as.sparse=as.sparse,
-                                   with.dimnames=FALSE,
-                                   verbose=verbose)
-    assay_object@rawdata <- a  
-    assay_object@normdata <- a
+    # a <- vrData(assay_object)
+    # a <- HDF5Array::writeHDF5Array(a, 
+    #                                h5_path, 
+    #                                name = paste0(assy, "/data"),
+    #                                chunkdim=chunkdim, 
+    #                                level=level,
+    #                                as.sparse=as.sparse,
+    #                                with.dimnames=TRUE,
+    #                                verbose=verbose)
+    # assay_object@rawdata <- a  
+    # assay_object@normdata <- a
+    assay_object <- writeHDF5ArrayInVrData(object = assay_object, 
+                                           h5_path,
+                                           name = assy,
+                                           chunkdim=chunkdim, 
+                                           level=level,
+                                           as.sparse=as.sparse,
+                                           with.dimnames=FALSE,
+                                           verbose=verbose)
     
     # get image data and write
     assay_object <- writeHDF5ArrayInImage(object = assay_object, 
@@ -198,14 +238,90 @@ write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
   object
 }
 
+writeHDF5ArrayInVrData <- function(object, 
+                                   h5_path,
+                                   name,
+                                   chunkdim, 
+                                   level,
+                                   as.sparse,
+                                   with.dimnames=FALSE,
+                                   verbose){
+ 
+  # check if there is a data or rawdata slot in assay object
+  catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
+  catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
+  
+  # get data with a specific feature
+  if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
+    
+    feature_types <- vrFeatureTypeNames(object)
+    for(feat in feature_types){
+      
+      # raw data
+      a <- vrData(object, feat_type = feat, norm = FALSE)
+      a <- HDF5Array::writeHDF5Array(a, 
+                                     h5_path, 
+                                     name = paste0(name, "/", feat),
+                                     chunkdim=chunkdim, 
+                                     level=level,
+                                     as.sparse=as.sparse,
+                                     with.dimnames=TRUE,
+                                     verbose=verbose)
+      object@data[[feat]] <- a  
+      
+      # normalized data
+      a <- vrData(object, feat_type = feat, norm = TRUE)
+      a <- HDF5Array::writeHDF5Array(a, 
+                                     h5_path, 
+                                     name = paste0(name, "/", feat, "_norm"),
+                                     chunkdim=chunkdim, 
+                                     level=level,
+                                     as.sparse=as.sparse,
+                                     with.dimnames=TRUE,
+                                     verbose=verbose)
+      object@data[[paste0(feat, "_norm")]] <- a  
+      
+    }
+    
+  } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
+    
+    # raw data
+    a <- vrData(object, norm = FALSE)
+    a <- HDF5Array::writeHDF5Array(a, 
+                                   h5_path, 
+                                   name = paste0(assy, "/rawdata"),
+                                   chunkdim=chunkdim, 
+                                   level=level,
+                                   as.sparse=as.sparse,
+                                   with.dimnames=TRUE,
+                                   verbose=verbose)
+    object@rawdata <- a  
+    
+    # normalized data
+    a <- vrData(object, norm = TRUE)
+    a <- HDF5Array::writeHDF5Array(a, 
+                                   h5_path, 
+                                   name = paste0(assy, "/normdata"),
+                                   chunkdim=chunkdim, 
+                                   level=level,
+                                   as.sparse=as.sparse,
+                                   with.dimnames=TRUE,
+                                   verbose=verbose)
+    object@normdata <- a
+    
+  }
+
+  return(object)
+}
+
 writeHDF5ArrayInImage <- function(object, 
                                   h5_path,
-                                  name = assy,
-                                  chunkdim=chunkdim, 
+                                  name,
+                                  chunkdim, 
                                   level=level,
-                                  as.sparse=as.sparse,
-                                  with.dimnames=FALSE,
-                                  verbose=verbose){
+                                  as.sparse,
+                                  with.dimnames,
+                                  verbose){
 
   # for each spatial system
   spatial_names <- vrSpatialNames(object)
@@ -271,18 +387,14 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
     
     # get data and write
     cat(paste0("  Writing '", assy, "' data \n"))
-    a <- vrData(assay_object)
-    a <- ZarrArray::writeZarrArray(a,
-                                   zarr_path,
-                                   name = paste0(assy, "/data"),
-                                   chunkdim=chunkdim,
-                                   level=level,
-                                   as.sparse=as.sparse,
-                                   # with.dimnames=FALSE,
-                                   with.dimnames = TRUE,
-                                   verbose=verbose)
-    assay_object@rawdata <- a
-    assay_object@normdata <- a
+    assay_object <- writeZarrArrayInVrData(object = assay_object, 
+                                           zarr_path,
+                                           name = assy,
+                                           chunkdim=chunkdim, 
+                                           level=level,
+                                           as.sparse=as.sparse,
+                                           with.dimnames=FALSE,
+                                           verbose=verbose)
     
     # TODO: image zarr conversion does not work for bitmap arrays now
     # get image data and write
@@ -300,6 +412,82 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
     
   }
   object
+}
+
+writeZarrArrayInVrData <- function(object, 
+                                   zarr_path,
+                                   name,
+                                   chunkdim, 
+                                   level,
+                                   as.sparse,
+                                   with.dimnames=FALSE,
+                                   verbose){
+  
+  # check if there is a data or rawdata slot in assay object
+  catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
+  catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
+  
+  # get data with a specific feature
+  if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
+    
+    feature_types <- vrFeatureTypeNames(object)
+    for(feat in feature_types){
+      
+      # raw data
+      a <- vrData(object, feat_type = feat, norm = FALSE)
+      a <- ZarrArray::writeZarrArray(a, 
+                                     zarr_path, 
+                                     name = paste0(name, "/", feat),
+                                     chunkdim=chunkdim, 
+                                     level=level,
+                                     as.sparse=as.sparse,
+                                     with.dimnames=TRUE,
+                                     verbose=verbose)
+      object@data[[feat]] <- a  
+      
+      # normalized data
+      a <- vrData(object, feat_type = feat, norm = TRUE)
+      a <- ZarrArray::writeZarrArray(a, 
+                                     zarr_path, 
+                                     name = paste0(name, "/", feat, "_norm"),
+                                     chunkdim=chunkdim, 
+                                     level=level,
+                                     as.sparse=as.sparse,
+                                     with.dimnames=TRUE,
+                                     verbose=verbose)
+      object@data[[paste0(feat, "_norm")]] <- a  
+      
+    }
+    
+  } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
+    
+    # raw data
+    a <- vrData(object, norm = FALSE)
+    a <- ZarrArray::writeZarrArray(a, 
+                                   zarr_path, 
+                                   name = paste0(assy, "/rawdata"),
+                                   chunkdim=chunkdim, 
+                                   level=level,
+                                   as.sparse=as.sparse,
+                                   with.dimnames=TRUE,
+                                   verbose=verbose)
+    object@rawdata <- a  
+    
+    # normalized data
+    a <- vrData(object, norm = TRUE)
+    a <- ZarrArray::writeZarrArray(a, 
+                                   zarr_path, 
+                                   name = paste0(assy, "/normdata"),
+                                   chunkdim=chunkdim, 
+                                   level=level,
+                                   as.sparse=as.sparse,
+                                   with.dimnames=TRUE,
+                                   verbose=verbose)
+    object@normdata <- a
+    
+  }
+  
+  return(object)
 }
 
 writeZarrArrayInImage <- function(object, 

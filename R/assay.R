@@ -669,7 +669,7 @@ vrAssayParams <- function(object, param = NULL) {
 #' @importFrom magick image_raster
 #'
 #' @export
-vrData.vrAssay <- function(object, features = NULL, norm = FALSE, ...) {
+vrData.vrAssay <- function(object, features = NULL, feat_type = NULL, norm = FALSE, ...) {
 
   # get assay types
   assay.type <- vrAssayTypes(object)
@@ -689,11 +689,12 @@ vrData.vrAssay <- function(object, features = NULL, norm = FALSE, ...) {
       
       # get data with a specific feature
       if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
-        main_feat <- vrMainFeatureType(object)
+        if(is.null(feat_type))
+          feat_type <- vrMainFeatureType(object)
         if(norm){
-          return(object@data[[paste0(main_feat, "_norm")]][features,,drop = FALSE])
+          return(object@data[[paste0(feat_type, "_norm")]][features,,drop = FALSE])
         } else {
-          return(object@data[[main_feat]][features,,drop = FALSE])
+          return(object@data[[feat_type]][features,,drop = FALSE])
         }
       } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
         if(norm){
@@ -708,11 +709,12 @@ vrData.vrAssay <- function(object, features = NULL, norm = FALSE, ...) {
       
       # get data
       if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
-        main_feat <- vrMainFeatureType(object)
+        if(is.null(feat_type))
+          feat_type <- vrMainFeatureType(object)
         if(norm){
-          return(object@data[[paste0(main_feat, "_norm")]])
+          return(object@data[[paste0(feat_type, "_norm")]])
         } else {
-          return(object@data[[main_feat]])
+          return(object@data[[feat_type]])
         }
       } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
         if(norm){

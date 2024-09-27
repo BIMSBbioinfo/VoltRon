@@ -65,7 +65,7 @@ getFeatures <- function(object, assay = NULL, max.count = 1, n = 3000) {
 #' @rdname vrData
 #' @export vrData
 #' @order 1
-vrData <- function(object, assay = NULL, features = NULL, norm = FALSE) {
+vrData <- function(object, assay = NULL, features = NULL, feat_type = NULL, norm = FALSE) {
   UseMethod(generic = 'vrData', object = object)
 }
 

@@ -1185,6 +1185,7 @@ vrFeatureData.VoltRon <- function(object, assay = NULL) {
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param features the set of features
+#' @param feat_type the feature set type 
 #' @param norm TRUE if normalized data should be returned
 #' @param ... additional parameters passed to other methods and \link{vrImages}
 #'
@@ -1194,7 +1195,7 @@ vrFeatureData.VoltRon <- function(object, assay = NULL) {
 #' @importFrom dplyr full_join mutate_all coalesce
 #'
 #' @export
-vrData.VoltRon <- function(object, assay = NULL, features = NULL, norm = FALSE, ...) {
+vrData.VoltRon <- function(object, assay = NULL, features = NULL, feat_type = NULL, norm = FALSE, ...) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1202,7 +1203,7 @@ vrData.VoltRon <- function(object, assay = NULL, features = NULL, norm = FALSE, 
   # get all coordinates
   data <- NULL
   for(i in 1:length(assay_names)){
-    cur_data <- vrData(object[[assay_names[i]]], features = features, norm = norm, ...)
+    cur_data <- vrData(object[[assay_names[i]]], features = features, feat_type = feat_type, norm = norm, ...)
     cur_data <- data.frame(cur_data, feature.ID = rownames(cur_data), check.names = FALSE)
     if(i == 1){
       data <- cur_data
