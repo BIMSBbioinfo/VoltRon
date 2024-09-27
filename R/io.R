@@ -100,6 +100,9 @@ saveVoltRonInDisk <- function (object, assay = NULL, dir = "my_se", prefix = "",
   
   # rds file
   .serialize_VoltRonObject(object, rds_path, verbose = verbose)
+  
+  # return
+  object
 }
 
 .write_VoltRonInDisk <- function(object, assay = NULL, format, rds_path, indisk_path, chunkdim=NULL, level=NULL, as.sparse=NA, verbose=FALSE)
