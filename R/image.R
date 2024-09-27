@@ -405,10 +405,12 @@ vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE, scale.pe
 
     } else {
 
-      # # get image as array if is a DelayedArray
-      # if(inherits(img, "DelayedArray"))
-      #   img <- as.array(img)
-      
+      # get image as array if is a DelayedArray
+      if(inherits(img, "DelayedArray")){
+        img <- as.array(img@seed)
+        img <- array(as.raw(img), dim = dim(img))
+      }
+
       # read image
       img <- magick::image_read(img)
 
