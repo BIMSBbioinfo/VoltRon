@@ -1641,9 +1641,6 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
 
   # Registration events
   observeEvent(input$register, {
-
-    # get key points as list
-    keypoints_list <- shiny::reactiveValuesToList(keypoints_list)
     
     # Automated registration
     if(input$automatictag){
@@ -1835,7 +1832,7 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
                                            matcher = matcher, method = method)
   
   # check for null keypoints
-  if(all(lapply(reg[[1]][[2]], is.null))){
+  if(suppressWarnings(all(lapply(reg[[1]][[2]], is.null)))){
     reg[[1]] <- list(reg[[1]][[1]], NULL)
   }
   
