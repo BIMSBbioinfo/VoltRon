@@ -395,7 +395,8 @@ vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE, scale.pe
 
   # return image
   if(channel!=""){
-  # if(length(vrImageChannelNames(object)) > 0){
+    
+    # get image
     img <- object@image[[channel]]
     if(as.raster){
 
@@ -404,6 +405,10 @@ vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE, scale.pe
 
     } else {
 
+      # # get image as array if is a DelayedArray
+      # if(inherits(img, "DelayedArray"))
+      #   img <- as.array(img)
+      
       # read image
       img <- magick::image_read(img)
 
