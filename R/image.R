@@ -244,9 +244,18 @@ subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
 
     # image
     for(img in vrImageChannelNames(object)){
-      img_data <- magick::image_read(object@image[[img]])
-      img_data <- magick::image_crop(img_data, image)
-      object@image[[img]] <- magick::image_data(img_data)
+      
+      # check if the image is either ondisk or inmemory
+      img_data <- object@image[[img]]
+      if(inherits(img_data, "DelayedArray")){
+        crop_info_int <- as.integer(strsplit(image, split = "[x|+]")[[1]])
+        img_data <- img_data[,crop_info_int[3]:(crop_info_int[3]+crop_info_int[1]), crop_info_int[4]:(crop_info_int[4]+crop_info_int[2])]
+        object@image[[img]] <- img_data
+      } else {
+        img_data <- magick::image_read(img_data)
+        img_data <- magick::image_crop(img_data, image)
+        object@image[[img]] <- magick::image_data(img_data) 
+      }
     }
   }
 
@@ -405,7 +414,7 @@ vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE, scale.pe
 
     } else {
 
-      # get image as array if is a DelayedArray
+      # get image as array if image is stored as a DelayedArray
       if(inherits(img, "DelayedArray")){
         img <- as.array(img@seed)
         img <- array(as.raw(img), dim = dim(img))

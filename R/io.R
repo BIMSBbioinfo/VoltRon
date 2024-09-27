@@ -201,24 +201,13 @@ write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
     
     # get data and write
     cat(paste0("  Writing '", assy, "' data \n"))
-    # a <- vrData(assay_object)
-    # a <- HDF5Array::writeHDF5Array(a, 
-    #                                h5_path, 
-    #                                name = paste0(assy, "/data"),
-    #                                chunkdim=chunkdim, 
-    #                                level=level,
-    #                                as.sparse=as.sparse,
-    #                                with.dimnames=TRUE,
-    #                                verbose=verbose)
-    # assay_object@rawdata <- a  
-    # assay_object@normdata <- a
     assay_object <- writeHDF5ArrayInVrData(object = assay_object, 
                                            h5_path,
                                            name = assy,
                                            chunkdim=chunkdim, 
                                            level=level,
                                            as.sparse=as.sparse,
-                                           with.dimnames=FALSE,
+                                           with.dimnames=TRUE,
                                            verbose=verbose)
     
     # get image data and write
@@ -265,7 +254,7 @@ writeHDF5ArrayInVrData <- function(object,
                                      chunkdim=chunkdim, 
                                      level=level,
                                      as.sparse=as.sparse,
-                                     with.dimnames=TRUE,
+                                     with.dimnames=with.dimnames,
                                      verbose=verbose)
       object@data[[feat]] <- a  
       
@@ -277,7 +266,7 @@ writeHDF5ArrayInVrData <- function(object,
                                      chunkdim=chunkdim, 
                                      level=level,
                                      as.sparse=as.sparse,
-                                     with.dimnames=TRUE,
+                                     with.dimnames=with.dimnames,
                                      verbose=verbose)
       object@data[[paste0(feat, "_norm")]] <- a  
       
@@ -289,7 +278,7 @@ writeHDF5ArrayInVrData <- function(object,
     a <- vrData(object, norm = FALSE)
     a <- HDF5Array::writeHDF5Array(a, 
                                    h5_path, 
-                                   name = paste0(assy, "/rawdata"),
+                                   name = paste0(name, "/rawdata"),
                                    chunkdim=chunkdim, 
                                    level=level,
                                    as.sparse=as.sparse,
@@ -301,7 +290,7 @@ writeHDF5ArrayInVrData <- function(object,
     a <- vrData(object, norm = TRUE)
     a <- HDF5Array::writeHDF5Array(a, 
                                    h5_path, 
-                                   name = paste0(assy, "/normdata"),
+                                   name = paste0(name, "/normdata"),
                                    chunkdim=chunkdim, 
                                    level=level,
                                    as.sparse=as.sparse,
@@ -393,7 +382,7 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
                                            chunkdim=chunkdim, 
                                            level=level,
                                            as.sparse=as.sparse,
-                                           with.dimnames=FALSE,
+                                           with.dimnames=TRUE,
                                            verbose=verbose)
     
     # TODO: image zarr conversion does not work for bitmap arrays now
@@ -441,7 +430,7 @@ writeZarrArrayInVrData <- function(object,
                                      chunkdim=chunkdim, 
                                      level=level,
                                      as.sparse=as.sparse,
-                                     with.dimnames=TRUE,
+                                     with.dimnames=with.dimnames,
                                      verbose=verbose)
       object@data[[feat]] <- a  
       
@@ -453,7 +442,7 @@ writeZarrArrayInVrData <- function(object,
                                      chunkdim=chunkdim, 
                                      level=level,
                                      as.sparse=as.sparse,
-                                     with.dimnames=TRUE,
+                                     with.dimnames=with.dimnames,
                                      verbose=verbose)
       object@data[[paste0(feat, "_norm")]] <- a  
       
@@ -465,7 +454,7 @@ writeZarrArrayInVrData <- function(object,
     a <- vrData(object, norm = FALSE)
     a <- ZarrArray::writeZarrArray(a, 
                                    zarr_path, 
-                                   name = paste0(assy, "/rawdata"),
+                                   name = paste0(name, "/rawdata"),
                                    chunkdim=chunkdim, 
                                    level=level,
                                    as.sparse=as.sparse,
@@ -477,7 +466,7 @@ writeZarrArrayInVrData <- function(object,
     a <- vrData(object, norm = TRUE)
     a <- ZarrArray::writeZarrArray(a, 
                                    zarr_path, 
-                                   name = paste0(assy, "/normdata"),
+                                   name = paste0(name, "/normdata"),
                                    chunkdim=chunkdim, 
                                    level=level,
                                    as.sparse=as.sparse,

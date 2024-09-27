@@ -139,12 +139,10 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     ## get image and zoom info ####
     orig_image_query_info_list <- getImageInfo(orig_image_query_list)
     zoom_list <- initiateZoomOptions(orig_image_query_info_list)
-    # manageImageZoomOptions(centre, register_ind, zoom_list, trans_image_query_list, orig_image_query_list, orig_image_query_info_list, input, output, session)
     manageImageZoomOptions(centre, register_ind, zoom_list, orig_image_query_list, orig_image_query_info_list, input, output, session)
     
     ## Manage reference and query keypoints ####
     xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
-    # manageKeypoints(centre, register_ind, xyTable_list, trans_image_query_list, orig_image_query_info_list, zoom_list, input, output, session)
     manageKeypoints(centre, register_ind, xyTable_list, orig_image_query_list, orig_image_query_info_list, zoom_list, input, output, session)
     
     ## Image registration ####
