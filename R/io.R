@@ -1,5 +1,5 @@
 ####
-# InDisk Methods ####
+# ondisk Methods ####
 ####
 
 .serialize_VoltRonObject <- function(object, rds_path, verbose)
@@ -102,42 +102,70 @@ modify_seeds <- function (x, FUN, ...)
   x
 }
 
-saveVoltRonInDisk <- function (object, assay = NULL, dir = "my_se", prefix = "", format = c("hdf5", "zarr"), replace = FALSE, 
-                             chunkdim = NULL, level = NULL, as.sparse = NA, verbose = FALSE) 
+saveVoltRon <- function (object, 
+                         assay = NULL,
+                         format = c("InMemoryAnnData", "HDF5VoltRon", "ZarrVoltRon"), 
+                         output = "my_se", 
+                         prefix = "", 
+                         replace = FALSE, 
+                         chunkdim = NULL, 
+                         level = NULL, 
+                         as.sparse = NA, 
+                         verbose = FALSE) 
 {
   if (!is(object, "VoltRon")) 
     stop("'object' must be a VoltRon object")
-  if (!isSingleString(dir)) 
-    stop("'dir' must be a single string specifying the path ", 
+  if (!isSingleString(output)) 
+    stop("'output' must be a single string specifying the path ", 
               "to the directory where to save the ", class(object), 
               " object (the directory will be created if needed)")
   if (!isSingleString(prefix)) 
     stop("'prefix' must be a single string")
   if (!isTRUEorFALSE(replace)) 
     stop("'replace' must be TRUE or FALSE")
-  if (!dir.exists(dir)) {
-    create_dir(dir)
+  if (!dir.exists(output)) {
+    create_dir(output)
   } else if (prefix == "") {
-    replace_dir(dir, replace)
+    replace_dir(output, replace)
   }
   
-  # in disk (h5 or zarr)
-  indisk_path <- file.path(dir, paste0(prefix, "assays.", ifelse(format == "hdf5", "h5", "zarr")))
-  if (prefix != "") 
-    check_and_delete_files(rds_path, indisk_path, replace)
-  rds_path <- file.path(dir, paste0(prefix, "se.rds"))
-  object <- .write_VoltRonInDisk(object, assay = assay, format = format, rds_path = rds_path, indisk_path = indisk_path, 
-                       chunkdim = chunkdim, level = level, as.sparse = as.sparse, 
-                       verbose = verbose)
+  # determine format
+  switch(format,
+         InMemoryAnnData = {
+           rds_path <- paste0(output, "_", paste0(prefix, "se.rds"))
+         }, 
+         HDF5VoltRon = {
+           ondisk_path <- file.path(output, paste0(prefix, "assays.h5"))
+           rds_path <- file.path(output, paste0(prefix, "se.rds"))
+         }, 
+         ZarrVoltRon = {
+           ondisk_path <- file.path(output, paste0(prefix, "assays.zarr"))
+           rds_path <- file.path(output, paste0(prefix, "se.rds"))
+         }
+  )
   
-  # rds file
-  .serialize_VoltRonObject(object, rds_path, verbose = verbose)
+  # save VoltRon
+  if(format != "InMemoryAnnData"){
+   
+    # write on disk
+    if (prefix != "") 
+      check_and_delete_files(rds_path, ondisk_path, replace)
+    object <- .write_VoltRon(object, assay = assay, format = format, rds_path = rds_path, ondisk_path = ondisk_path, 
+                             chunkdim = chunkdim, level = level, as.sparse = as.sparse, 
+                             verbose = verbose)
+    
+    # serialize rds file
+    .serialize_VoltRonObject(object, rds_path, verbose = verbose)
+    
+  } else {
+    saveRDS(object, file = rds_path)
+  }
   
   # return
   object
 }
 
-.write_VoltRonInDisk <- function(object, assay = NULL, format, rds_path, indisk_path, chunkdim=NULL, level=NULL, as.sparse=NA, verbose=FALSE)
+.write_VoltRon <- function(object, assay = NULL, format, rds_path, ondisk_path, chunkdim=NULL, level=NULL, as.sparse=NA, verbose=FALSE)
 {
   if (!is(object, "VoltRon"))
     stop("'object' must be a VoltRon object")
@@ -147,20 +175,20 @@ saveVoltRonInDisk <- function (object, assay = NULL, dir = "my_se", prefix = "",
          "specifying the path to the RDS file ",
          "where to write the ", class(object), " object")
   
-  if (!isSingleString(indisk_path) || indisk_path == "")
-    stop("'indisk_path' must be a a non-empty string ",
+  if (!isSingleString(ondisk_path) || ondisk_path == "")
+    stop("'ondisk_path' must be a a non-empty string ",
          "specifying the path to the HDF5 file ",
          "where to write the assays of the ", class(object), " object")
   
   if (!isTRUEorFALSE(verbose))
     stop("'verbose' must be TRUE or FALSE")
   
-  if(format == "hdf5"){
-    object <- write_h5_samples(object, assay = assay, h5_path = indisk_path, chunkdim, level, as.sparse, verbose)
-  } else if(format == "zarr"){
-    object <- write_zarr_samples(object, assay = assay, zarr_path = indisk_path, chunkdim, level, as.sparse, verbose)
+  if(format == "HDF5VoltRon"){
+    object <- write_h5_samples(object, assay = assay, h5_path = ondisk_path, chunkdim, level, as.sparse, verbose)
+  } else if(format == "ZarrVoltRon"){
+    object <- write_zarr_samples(object, assay = assay, zarr_path = ondisk_path, chunkdim, level, as.sparse, verbose)
   } else {
-    stop("'format' should be either 'hdf5' or 'zarr'")
+    stop("'format' should be either 'HDF5VoltRon' or 'ZarrVoltRon'")
   }
   invisible(object)
 }
