@@ -1,4 +1,71 @@
 ####
+# Main ####
+####
+
+saveVoltRon <- function (object, 
+                         assay = NULL,
+                         format = c("InMemoryVoltRon", "HDF5VoltRon", "ZarrVoltRon"), 
+                         output = "my_se", 
+                         prefix = "", 
+                         replace = FALSE, 
+                         chunkdim = NULL, 
+                         level = NULL, 
+                         as.sparse = NA, 
+                         verbose = FALSE) 
+{
+  if (!is(object, "VoltRon")) 
+    stop("'object' must be a VoltRon object")
+  if (!isSingleString(output)) 
+    stop("'output' must be a single string specifying the path ", 
+         "to the directory where to save the ", class(object), 
+         " object (the directory will be created if needed)")
+  if (!isSingleString(prefix)) 
+    stop("'prefix' must be a single string")
+  if (!isTRUEorFALSE(replace)) 
+    stop("'replace' must be TRUE or FALSE")
+  if (!dir.exists(output)) {
+    create_dir(output)
+  } else if (prefix == "") {
+    replace_dir(output, replace)
+  }
+  
+  # determine format
+  switch(format,
+         InMemoryVoltRon = {
+           rds_path <- paste0(output, "_", paste0(prefix, "se.rds"))
+         }, 
+         HDF5VoltRon = {
+           ondisk_path <- file.path(output, paste0(prefix, "assays.h5"))
+           rds_path <- file.path(output, paste0(prefix, "se.rds"))
+         }, 
+         ZarrVoltRon = {
+           ondisk_path <- file.path(output, paste0(prefix, "assays.zarr"))
+           rds_path <- file.path(output, paste0(prefix, "se.rds"))
+         }
+  )
+  
+  # save VoltRon
+  if(format != "InMemoryVoltRon"){
+    
+    # write on disk
+    if (prefix != "") 
+      check_and_delete_files(rds_path, ondisk_path, replace)
+    object <- .write_VoltRon(object, assay = assay, format = format, rds_path = rds_path, ondisk_path = ondisk_path, 
+                             chunkdim = chunkdim, level = level, as.sparse = as.sparse, 
+                             verbose = verbose)
+    
+    # serialize rds file
+    .serialize_VoltRonObject(object, rds_path, verbose = verbose)
+    
+  } else {
+    saveRDS(object, file = rds_path)
+  }
+  
+  # return
+  object
+}
+
+####
 # ondisk Methods ####
 ####
 
@@ -100,69 +167,6 @@ modify_seeds <- function (x, FUN, ...)
     x <- FUN(x, ...)
   }
   x
-}
-
-saveVoltRon <- function (object, 
-                         assay = NULL,
-                         format = c("InMemoryAnnData", "HDF5VoltRon", "ZarrVoltRon"), 
-                         output = "my_se", 
-                         prefix = "", 
-                         replace = FALSE, 
-                         chunkdim = NULL, 
-                         level = NULL, 
-                         as.sparse = NA, 
-                         verbose = FALSE) 
-{
-  if (!is(object, "VoltRon")) 
-    stop("'object' must be a VoltRon object")
-  if (!isSingleString(output)) 
-    stop("'output' must be a single string specifying the path ", 
-              "to the directory where to save the ", class(object), 
-              " object (the directory will be created if needed)")
-  if (!isSingleString(prefix)) 
-    stop("'prefix' must be a single string")
-  if (!isTRUEorFALSE(replace)) 
-    stop("'replace' must be TRUE or FALSE")
-  if (!dir.exists(output)) {
-    create_dir(output)
-  } else if (prefix == "") {
-    replace_dir(output, replace)
-  }
-  
-  # determine format
-  switch(format,
-         InMemoryAnnData = {
-           rds_path <- paste0(output, "_", paste0(prefix, "se.rds"))
-         }, 
-         HDF5VoltRon = {
-           ondisk_path <- file.path(output, paste0(prefix, "assays.h5"))
-           rds_path <- file.path(output, paste0(prefix, "se.rds"))
-         }, 
-         ZarrVoltRon = {
-           ondisk_path <- file.path(output, paste0(prefix, "assays.zarr"))
-           rds_path <- file.path(output, paste0(prefix, "se.rds"))
-         }
-  )
-  
-  # save VoltRon
-  if(format != "InMemoryAnnData"){
-   
-    # write on disk
-    if (prefix != "") 
-      check_and_delete_files(rds_path, ondisk_path, replace)
-    object <- .write_VoltRon(object, assay = assay, format = format, rds_path = rds_path, ondisk_path = ondisk_path, 
-                             chunkdim = chunkdim, level = level, as.sparse = as.sparse, 
-                             verbose = verbose)
-    
-    # serialize rds file
-    .serialize_VoltRonObject(object, rds_path, verbose = verbose)
-    
-  } else {
-    saveRDS(object, file = rds_path)
-  }
-  
-  # return
-  object
 }
 
 .write_VoltRon <- function(object, assay = NULL, format, rds_path, ondisk_path, chunkdim=NULL, level=NULL, as.sparse=NA, verbose=FALSE)
