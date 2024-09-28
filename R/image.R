@@ -249,7 +249,7 @@ subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
       img_data <- object@image[[img]]
       if(inherits(img_data, "DelayedArray")){
         crop_info_int <- as.integer(strsplit(image, split = "[x|+]")[[1]])
-        img_data <- img_data[,crop_info_int[3]:(crop_info_int[3]+crop_info_int[1]), crop_info_int[4]:(crop_info_int[4]+crop_info_int[2])]
+        img_data <- img_data[,crop_info_int[3]:(crop_info_int[3]+crop_info_int[1]), crop_info_int[4]:(crop_info_int[4]+crop_info_int[2]), drop = FALSE]
         object@image[[img]] <- img_data
       } else {
         img_data <- magick::image_read(img_data)
