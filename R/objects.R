@@ -341,12 +341,12 @@ setMethod(
 #' @export
 #'
 formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
-                             coords,
-                             segments = list(),
-                             sample.metadata = NULL,
-                             main.assay = NULL, assay.type = "cell", params = list(),
-                             sample_name = NULL, layer_name = NULL, image_name = NULL, feature_name = NULL,
-                             project = NULL, ...){
+                        coords,
+                        segments = list(),
+                        sample.metadata = NULL,
+                        main.assay = NULL, assay.type = "cell", params = list(),
+                        sample_name = NULL, layer_name = NULL, image_name = NULL, feature_name = NULL,
+                        project = NULL, ...){
 
   # set project name
   if(is.null(project))

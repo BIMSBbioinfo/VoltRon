@@ -18,8 +18,6 @@ setClassUnion("data_matrix", members = c("matrix", "dgCMatrix", "dgRMatrix", "dg
 #' The vrAssay (VoltRon Assay) Class
 #'
 #' @slot data the table of counts
-#' @slot rawdata raw count table
-#' @slot normdata normalized count table
 #' @slot featuredata feature metadata
 #' @slot embeddings list of embeddings
 #' @slot image a list of vrImage objects
@@ -37,8 +35,8 @@ vrAssay <- setClass(
   Class = 'vrAssay',
   slots = c(
     data = "list",
-    rawdata = 'data_matrix',
-    normdata = 'data_matrix',
+    # rawdata = 'data_matrix',
+    # normdata = 'data_matrix',
     featuredata = 'data.frame',
     embeddings = "list",
     image = "list",
@@ -124,7 +122,7 @@ formAssay <- function(data = NULL, coords, segments = list(), image = NULL, para
   data_list <- list(main = data, main_norm = data)
   names(data_list) <- c(main_featureset, paste0(main_featureset, "_norm"))
   methods::new("vrAssay", 
-               data = data_list, rawdata = data, normdata = data,
+               data = data_list,
                image = image, params = params, type = type, name = name, 
                main_image = main_image, main_featureset = main_featureset)
 }
