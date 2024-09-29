@@ -657,8 +657,10 @@ applyPerspectiveTransform <- function(object,
                                   query_extension, input)
 
     # image info
-    query_info <- magick::image_info(query_image)
-    ref_info <- magick::image_info(ref_image)
+    # query_info <- magick::image_info(query_image)
+    # ref_info <- magick::image_info(ref_image)
+    query_info <- getImageInfo(query_image)
+    ref_info <- getImageInfo(ref_image)
 
     # get registered coordinates
     coords_reg <- as.data.frame(coords)
@@ -901,15 +903,18 @@ transformImageKeypoints <- function(image, keypoints, extension, input, session)
   }
 
   # get unrotated image info
-  image_limits <- unlist(magick::image_info(image)[1,c("width", "height")])
+  # image_limits <- unlist(magick::image_info(image)[1,c("width", "height")])
+  image_limits <- unlist(getImageInfo(image)[1,c("width", "height")])
   image_origin <- image_limits/2
 
   # rotate image and keypoints
   input_rotate <- as.numeric(input[[paste0("rotate_", extension)]])
-  image <- magick::image_rotate(image, input_rotate)
+  # image <- magick::image_rotate(image, input_rotate)
+  image <- rotateImage(image, input_rotate)
 
   # get rotated image info
-  rotated_image_limits <- unlist(magick::image_info(image)[1,c("width", "height")])
+  # rotated_image_limits <- unlist(magick::image_info(image)[1,c("width", "height")])
+  rotated_image_limits <- unlist(getImageInfo(image)[1,c("width", "height")])
   rotated_image_origin <- rotated_image_limits/2
 
   # rotate keypoints
@@ -959,7 +964,8 @@ transformKeypoints <- function(image, keypoints, extension, input){
 
   # rotate image (reverse) and keypoints
   input_rotate <- 360 - as.numeric(input[[paste0("rotate_", extension)]])
-  image <- magick::image_rotate(image, input_rotate)
+  # image <- magick::image_rotate(image, input_rotate)
+  image <- rotateImage(image, input_rotate)
 
   # get rotated image info
   rotated_image_limits <- unlist(image_info(image)[1,c("width", "height")])
@@ -1078,7 +1084,8 @@ imageZoom <- function(image, zoom_info = NULL){
     return(image)
   
   # get image info
-  imageinfo <- magick::image_info(image)
+  # imageinfo <- magick::image_info(image)
+  imageinfo <- getImageInfo(image)
   
   # get info of zoom
   zoom_info <- FromBoxToCrop(as.data.frame(zoom_info), imageinfo)
@@ -1248,7 +1255,8 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
             img_trans$keypoints[,c("x","y")] <- temp
           }
         }
-        img_trans$image <- image_crop(img_trans$image, geometry = imgzoom)
+        print(imgzoom)
+        img_trans$image <- magick::image_crop(img_trans$image, geometry = imgzoom)
         
         # lower resolution
         width <- img_limits$keypoints[2,1]-img_limits$keypoints[1,1]
@@ -1293,7 +1301,7 @@ getImageInfoList <- function(image_list){
 #'
 #' get information on images
 #'
-#' @param image_list a magick image or DelayedArray object
+#' @param image a magick image or DelayedArray object
 #'
 #' @importFrom magick image_info
 #'
@@ -1306,7 +1314,35 @@ getImageInfo <- function(image){
     dim_image <- dim(image)
     imginfo <- list(width = dim_image[2], height = dim_image[3])
   }
-  c(imginfo$width, imginfo$height)
+  as.data.frame(imginfo)
+}
+
+#' rotateImage
+#'
+#' rotate images
+#'
+#' @param image a magick image or DelayedArray object
+#'
+#' @importFrom magick image_info
+#'
+#' @noRd
+rotateImage <- function(image, degrees){
+  
+  if(inherits(image, "magick-image")){
+    image <- magick::image_rotate(image, degrees = degrees)
+  } else if(inherits(image, "DelayedArray")){
+    if(degrees %in% c(90, 270))
+      image <- aperm(image, perm = c(1,3,2))
+    dim_img <- dim(image)
+    if(degrees == 90){
+      image <- image[,dim_img[2]:1, drop = FALSE]
+    } else if(degrees == 180){
+      image <- image[,dim_img[2]:1,dim_img[3]:1, drop = FALSE]
+    } else if(degrees == 270){
+      image <- image[,,dim_img[3]:1, drop = FALSE]
+    }
+  }
+  image
 }
 
 #' transformImage
@@ -1324,8 +1360,9 @@ transformImage <- function(image, extension, input){
 
   # rotate image and keypoints
   input_rotate <- as.numeric(input[[paste0("rotate_", extension)]])
-  image <- magick::image_rotate(image, input_rotate)
-
+  # image <- magick::image_rotate(image, input_rotate)
+  image <- rotateImage(image, input_rotate)
+  
   # flip flop image and keypoints
   input_flipflop <- input[[paste0("flipflop_", extension)]]
   if(input_flipflop == "Flip"){
@@ -1361,7 +1398,8 @@ transformImageReverse <- function(image, extension, input){
 
   # rotate image and keypoints
   input_rotate <- 360 - as.numeric(input[[paste0("rotate_", extension)]])
-  image <- magick::image_rotate(image, input_rotate)
+  # image <- magick::image_rotate(image, input_rotate)
+  image <- rotateImage(image, input_rotate)
 
   # return image
   image
