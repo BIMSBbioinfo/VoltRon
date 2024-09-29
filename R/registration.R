@@ -1429,8 +1429,8 @@ cropImage <- function(image, geometry){
     image <- magick::image_crop(image, geometry = geometry)
   } else if(inherits(image, "DelayedArray")){
     imageinfo <- getImageInfo(image)
-    glist <- strsplit(geometry, split = "[x|+]")[[1]]
-    image <- image[,glist[3]:glist[1], glist[4]:glist[2], drop = FALSE]
+    crop_info_int <- as.integer(strsplit(geometry, split = "[x|+]")[[1]])
+    image <- image[,crop_info_int[3]:(crop_info_int[3]+crop_info_int[1]), crop_info_int[4]:(crop_info_int[4]+crop_info_int[2]), drop = FALSE]
   }
   image
 }
