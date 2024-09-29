@@ -953,7 +953,8 @@ transformImageKeypoints <- function(image, keypoints, extension, input, session)
 transformKeypoints <- function(image, keypoints, extension, input){
 
   # get unrotated image info
-  image_limits <- unlist(image_info(image)[1,c("width", "height")])
+  # image_limits <- unlist(image_info(image)[1,c("width", "height")])
+  image_limits <- unlist(getImageInfo(image)[1,c("width", "height")])
   image_origin <- image_limits/2
 
   # flip flop image and keypoints
@@ -973,7 +974,8 @@ transformKeypoints <- function(image, keypoints, extension, input){
   image <- rotateImage(image, input_rotate)
 
   # get rotated image info
-  rotated_image_limits <- unlist(image_info(image)[1,c("width", "height")])
+  # rotated_image_limits <- unlist(image_info(image)[1,c("width", "height")])
+  rotated_image_limits <- unlist(getImageInfo(image)[1,c("width", "height")])
   rotated_image_origin <- rotated_image_limits/2
 
   # rotate keypoints
@@ -1142,8 +1144,7 @@ initiateZoomOptions <- function(info_list, input, output, session){
 #'
 #' @noRd
 manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_list, info_list, input, output, session){
-# manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_trans_list, image_list, info_list, input, output, session){
-  
+
   # get image types
   image_types <- c("ref","query")
   
@@ -1165,7 +1166,7 @@ manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_list, 
           # get brush variables
           brush_mat <- data.frame(x = c(brush$xmin, brush$xmax), 
                                   y = c(brush$ymin, brush$ymax))
-
+          
           # get image
           image <- image_list[[i]]
           
@@ -1175,6 +1176,7 @@ manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_list, 
           image_trans <- limits_trans$image
           limits_trans <- data.frame(x = range(limits_trans$keypoints[,1]), y = range(limits_trans$keypoints[,2]))
           width <- limits_trans[2,1]-limits_trans[1,1]
+          
 
           # if width is large, then correct the brush event for the downsize effect
           if(width > 800){
@@ -1272,10 +1274,10 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
         # visualize
         # imgggplot <- magick::image_ggplot(img_trans$image)
         img_ggplot <- plotImage(img_trans$image)
-        img <- imageKeypoint(img_ggplot, img_trans$keypoints)
+        img_ggplot <- imageKeypoint(img_ggplot, img_trans$keypoints)
         
         # return
-        return(img)
+        return(img_ggplot)
       })
 
       # update info
