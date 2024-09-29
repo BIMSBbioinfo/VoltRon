@@ -839,9 +839,9 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, info
           width <- limits_trans[2,1]-limits_trans[1,1]
           
           # correct for scaling, scale factor = 800
-          if(width > 800){
-            keypoint <- keypoint*width/800
-          }
+          # if(width > 800){
+          #   keypoint <- keypoint*width/800
+          # }
           
           # correct for zoom information
           keypoint <- keypoint + limits_trans[1,]
@@ -1179,9 +1179,9 @@ manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_list, 
           
 
           # if width is large, then correct the brush event for the downsize effect
-          if(width > 800){
-            brush_mat <- brush_mat*width/800
-          }
+          # if(width > 800){
+          #   brush_mat <- brush_mat*width/800
+          # }
 
           # correct brush for the zoom effect
           brush_mat[,1] <- brush_mat[,1] + limits_trans[1,1]
