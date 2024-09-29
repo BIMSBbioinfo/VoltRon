@@ -6,7 +6,6 @@ saveVoltRon <- function (object,
                          assay = NULL,
                          format = c("InMemoryVoltRon", "HDF5VoltRon", "ZarrVoltRon"), 
                          output = "my_se", 
-                         prefix = "", 
                          replace = FALSE, 
                          chunkdim = NULL, 
                          level = NULL, 
@@ -17,15 +16,13 @@ saveVoltRon <- function (object,
   if (!is(object, "VoltRon")) 
     stop("'object' must be a VoltRon object")
   
-  # check output and other related arguments
+  # check output
   if (!isSingleString(output)) 
     stop("'output' must be a single string specifying the path ", 
          "to the directory where to save the ", class(object), 
          " object (the directory will be created if needed)")
-  if (!isSingleString(prefix)) 
-    stop("'prefix' must be a single string")
   
-  # check if the object was previously saved to ondisk
+  # check if the object was previously saved on disk
   paths <- .get_unique_links(object)
   paths <- paths[paths != "try-error"]
   if(length(paths) > 1){
@@ -33,8 +30,8 @@ saveVoltRon <- function (object,
   } else if(length(paths) == 1){
     message("There are existing paths in the object, using those instead of the provided 'ondisk_path'")
     format <- ifelse(grepl(".zarr$", paths), "ZarrVoltRon", "HDF5VoltRon")
-    ondisk_path <- paths
     output <- base::dirname(paths)
+    replace <- FALSE
   } else {
     if(length(format) > 1){
       message("No paths are found in the object, and no format is chosen, saving as rds only!")
@@ -50,25 +47,22 @@ saveVoltRon <- function (object,
       stop("'replace' must be TRUE or FALSE")
     if (!dir.exists(output)) {
       create_dir(output)
-    } else if (prefix == "") {
-      replace_dir(output, replace)
+    } else if(replace){
+      replace_dir(output) 
     }
     
     # determine format
     switch(format,
            HDF5VoltRon = {
-             ondisk_path <- file.path(output, paste0(prefix, "assays.h5"))
-             rds_path <- file.path(output, paste0(prefix, "se.rds"))
+             ondisk_path <- file.path(output, "assays.h5")
            }, 
            ZarrVoltRon = {
-             ondisk_path <- file.path(output, paste0(prefix, "assays.zarr"))
-             rds_path <- file.path(output, paste0(prefix, "se.rds"))
-           }
-    )
+             ondisk_path <- file.path(output, "assays.zarr")
+           })
+    rds_path <- file.path(output, "se.rds")
+    
     
     # write on disk
-    if (prefix != "") 
-      check_and_delete_files(rds_path, ondisk_path, replace)
     object <- .write_VoltRon(object, assay = assay, format = format, rds_path = rds_path, ondisk_path = ondisk_path, 
                              chunkdim = chunkdim, level = level, as.sparse = as.sparse, 
                              verbose = verbose)
@@ -614,10 +608,7 @@ create_dir <- function (dir){
     stop("cannot create directory \"", dir, "\"")
 }
 
-replace_dir <- function(dir, replace){
-  if (!replace) 
-    stop("Directory \"", dir, "\" already exists. ", 
-         "Use 'replace=TRUE' to replace it. ", "Its content will be lost!")
+replace_dir <- function(dir){
   if (unlink(dir, recursive = TRUE) != 0L) 
     stop("failed to delete directory \"", dir, "\"")
   if (!suppressWarnings(dir.create(dir))) 
