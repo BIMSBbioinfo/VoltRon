@@ -48,7 +48,6 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     sapply(channel_names, function(chan){
       # vrImages(spat, assay = assayname, channel = chan)
       img <- vrImages(spat[[assayname]], channel = chan, as.raster = TRUE)
-      print(img)
       if(!inherits(img, "DelayedArray")){
         img <- magick::image_read(img)
       }
@@ -900,7 +899,8 @@ transformImageKeypoints <- function(image, keypoints, extension, input, session)
   # negate image
   input_negate <- input[[paste0("negate_", extension)]]
   if(input_negate == "Yes"){
-    image <- magick::image_negate(image)
+    # image <- magick::image_negate(image)
+    image <- negateImage(image)
   }
 
   # get unrotated image info
@@ -924,9 +924,11 @@ transformImageKeypoints <- function(image, keypoints, extension, input, session)
   # flip flop image and keypoints
   input_flipflop <- input[[paste0("flipflop_", extension)]]
   if(input_flipflop == "Flip"){
-    image <- magick::image_flip(image)
+    # image <- magick::image_flip(image)
+    image <- flipImage(image)
   } else if(input_flipflop == "Flop"){
-    image <- magick::image_flop(image)
+    # image <- magick::image_flop(image)
+    image <- flopImage(image)
   }
 
   # flipflop keypoints
@@ -957,9 +959,11 @@ transformKeypoints <- function(image, keypoints, extension, input){
   # flip flop image and keypoints
   input_flipflop <- input[[paste0("flipflop_", extension)]]
   if(input_flipflop == "Flip"){
-    image <- magick::image_flip(image)
+    # image <- magick::image_flip(image)
+    image <- flipImage(image)
   } else if(input_flipflop == "Flop"){
-    image <- magick::image_flop(image)
+    # image <- magick::image_flop(image)
+    image <- flopImage(image)
   }
   keypoints <- flipflopKeypoint(keypoints, image_limits, input_flipflop)
 
@@ -1333,16 +1337,76 @@ rotateImage <- function(image, degrees){
   if(inherits(image, "magick-image")){
     image <- magick::image_rotate(image, degrees = degrees)
   } else if(inherits(image, "DelayedArray")){
-    if(degrees %in% c(90, 270))
-      image <- aperm(image, perm = c(1,3,2))
+    if(degrees %in% c(90, 270)){
+      image <- aperm(image, perm = c(1,3,2)) 
+    }
     dim_img <- dim(image)
     if(degrees == 90){
-      image <- image[,dim_img[2]:1, drop = FALSE]
+      image <- image[ , dim_img[2]:1, , drop = FALSE]
     } else if(degrees == 180){
-      image <- image[,dim_img[2]:1,dim_img[3]:1, drop = FALSE]
+      image <- image[ , dim_img[2]:1, dim_img[3]:1, drop = FALSE]
     } else if(degrees == 270){
-      image <- image[,,dim_img[3]:1, drop = FALSE]
+      image <- image[ , , dim_img[3]:1, drop = FALSE]
     }
+  }
+  image
+}
+
+#' negateImage
+#'
+#' negate images
+#'
+#' @param image a magick image or DelayedArray object
+#' 
+#' @importFrom magick image_negate
+#'
+#' @noRd
+negateImage <- function(image){
+  
+  if(inherits(image, "magick-image")){
+    image <- magick::image_negate(image)
+  } else if(inherits(image, "DelayedArray")){
+    image <- 255 - image
+  }
+  image
+}
+
+#' flipImage
+#'
+#' flip images
+#'
+#' @param image a magick image or DelayedArray object
+#' 
+#' @importFrom magick image_negate
+#'
+#' @noRd
+flipImage <- function(image){
+  
+  if(inherits(image, "magick-image")){
+    image <- magick::image_flip(image)
+  } else if(inherits(image, "DelayedArray")){
+    dim_img <- dim(image)
+    image <- image[ , , dim_img[3]:1, drop = FALSE]
+  }
+  image
+}
+
+#' flopImage
+#'
+#' flop images
+#'
+#' @param image a magick image or DelayedArray object
+#' 
+#' @importFrom magick image_negate
+#'
+#' @noRd
+flopImage <- function(image){
+  
+  if(inherits(image, "magick-image")){
+    image <- magick::image_flop(image)
+  } else if(inherits(image, "DelayedArray")){
+    dim_img <- dim(image)
+    image <- image[ , dim_img[2]:1, , drop = FALSE]
   }
   image
 }
@@ -1390,9 +1454,11 @@ transformImage <- function(image, extension, input){
   # flip flop image and keypoints
   input_flipflop <- input[[paste0("flipflop_", extension)]]
   if(input_flipflop == "Flip"){
-    image <- magick::image_flip(image)
+    # image <- magick::image_flip(image)
+    image <- flipImage(image)
   } else if(input_flipflop == "Flop"){
-    image <- magick::image_flop(image)
+    # image <- magick::image_flop(image)
+    image <- flopImage(image)
   }
 
   # return image
@@ -1415,9 +1481,11 @@ transformImageReverse <- function(image, extension, input){
   # flip flop image and keypoints
   input_flipflop <- input[[paste0("flipflop_", extension)]]
   if(input_flipflop == "Flip"){
-    image <- magick::image_flip(image)
+    # image <- magick::image_flip(image)
+    image <- flipImage(image)
   } else if(input_flipflop == "Flop"){
-    image <- magick::image_flop(image)
+    # image <- magick::image_flop(image)
+    image <- flopImage(image)
   }
 
   # rotate image and keypoints

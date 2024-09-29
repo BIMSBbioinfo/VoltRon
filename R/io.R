@@ -381,6 +381,11 @@ writeHDF5ArrayInImage <- function(object,
       
       # get image and write to h5
       img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
+      
+      # hdf5 needs the image to be written integer format (we do this to be concordant to zarr format)
+      if(inherits(img, "bitmap")){
+        img <- aperm(as.integer(img), c(3,2,1))
+      }
       if(!inherits(img, "DelayedArray")){
         img <- HDF5Array::writeHDF5Array(img, 
                                          h5_path, 
