@@ -13,39 +13,58 @@ saveVoltRon <- function (object,
                          as.sparse = NA, 
                          verbose = FALSE) 
 {
+  # check object
   if (!is(object, "VoltRon")) 
     stop("'object' must be a VoltRon object")
+  
+  # check output and other related arguments
   if (!isSingleString(output)) 
     stop("'output' must be a single string specifying the path ", 
          "to the directory where to save the ", class(object), 
          " object (the directory will be created if needed)")
   if (!isSingleString(prefix)) 
     stop("'prefix' must be a single string")
-  if (!isTRUEorFALSE(replace)) 
-    stop("'replace' must be TRUE or FALSE")
-  if (!dir.exists(output)) {
-    create_dir(output)
-  } else if (prefix == "") {
-    replace_dir(output, replace)
+  
+  # check if the object was previously saved to ondisk
+  paths <- .get_unique_links(object)
+  paths <- paths[paths != "try-error"]
+  if(length(paths) > 1){
+    stop("There are multiple paths that this VoltRon object is saved to, cannot write!")
+  } else if(length(paths) == 1){
+    message("There are existing paths in the object, using those instead of the provided 'ondisk_path'")
+    format <- ifelse(grepl(".zarr$", paths), "ZarrVoltRon", "HDF5VoltRon")
+    ondisk_path <- paths
+    output <- base::dirname(paths)
+  } else {
+    if(length(format) > 1){
+      message("No paths are found in the object, and no format is chosen, saving as rds only!")
+      format <- "InMemoryVoltRon"
+    }
   }
   
-  # determine format
-  switch(format,
-         InMemoryVoltRon = {
-           rds_path <- paste0(output, "_", paste0(prefix, "se.rds"))
-         }, 
-         HDF5VoltRon = {
-           ondisk_path <- file.path(output, paste0(prefix, "assays.h5"))
-           rds_path <- file.path(output, paste0(prefix, "se.rds"))
-         }, 
-         ZarrVoltRon = {
-           ondisk_path <- file.path(output, paste0(prefix, "assays.zarr"))
-           rds_path <- file.path(output, paste0(prefix, "se.rds"))
-         }
-  )
-  
-  # save VoltRon
+  # save VoltRon on disk
   if(format != "InMemoryVoltRon"){
+    
+    # create or replace output folder
+    if (!isTRUEorFALSE(replace)) 
+      stop("'replace' must be TRUE or FALSE")
+    if (!dir.exists(output)) {
+      create_dir(output)
+    } else if (prefix == "") {
+      replace_dir(output, replace)
+    }
+    
+    # determine format
+    switch(format,
+           HDF5VoltRon = {
+             ondisk_path <- file.path(output, paste0(prefix, "assays.h5"))
+             rds_path <- file.path(output, paste0(prefix, "se.rds"))
+           }, 
+           ZarrVoltRon = {
+             ondisk_path <- file.path(output, paste0(prefix, "assays.zarr"))
+             rds_path <- file.path(output, paste0(prefix, "se.rds"))
+           }
+    )
     
     # write on disk
     if (prefix != "") 
@@ -57,7 +76,9 @@ saveVoltRon <- function (object,
     # serialize rds file
     .serialize_VoltRonObject(object, rds_path, verbose = verbose)
     
+  # save VoltRon on memory
   } else {
+    rds_path <- paste0(output, "_", paste0(prefix, "se.rds"))
     saveRDS(object, file = rds_path)
   }
   
@@ -85,7 +106,6 @@ saveVoltRon <- function (object,
             "RDS file:\n  ", rds_path)
   saveRDS(object, file=rds_path)
 }
-
 
 shorten_assay_links <- function(object)
 {
@@ -171,19 +191,19 @@ modify_seeds <- function (x, FUN, ...)
 
 .write_VoltRon <- function(object, assay = NULL, format, rds_path, ondisk_path, chunkdim=NULL, level=NULL, as.sparse=NA, verbose=FALSE)
 {
+  # check object
   if (!is(object, "VoltRon"))
     stop("'object' must be a VoltRon object")
   
+  # check output and other related arguments
   if (!isSingleString(rds_path) || rds_path == "")
     stop("'rds_path' must be a a non-empty string ",
          "specifying the path to the RDS file ",
          "where to write the ", class(object), " object")
-  
   if (!isSingleString(ondisk_path) || ondisk_path == "")
     stop("'ondisk_path' must be a a non-empty string ",
          "specifying the path to the HDF5 file ",
          "where to write the assays of the ", class(object), " object")
-  
   if (!isTRUEorFALSE(verbose))
     stop("'verbose' must be TRUE or FALSE")
   
@@ -280,27 +300,31 @@ writeHDF5ArrayInVrData <- function(object,
       
       # raw data
       a <- vrData(object, feat_type = feat, norm = FALSE)
-      a <- HDF5Array::writeHDF5Array(a, 
-                                     h5_path, 
-                                     name = paste0(name, "/", feat),
-                                     chunkdim=chunkdim, 
-                                     level=level,
-                                     as.sparse=as.sparse,
-                                     with.dimnames=with.dimnames,
-                                     verbose=verbose)
-      object@data[[feat]] <- a  
+      if(!inherits(a, "DelayedArray")){
+        a <- HDF5Array::writeHDF5Array(a, 
+                                       h5_path, 
+                                       name = paste0(name, "/", feat),
+                                       chunkdim=chunkdim, 
+                                       level=level,
+                                       as.sparse=as.sparse,
+                                       with.dimnames=with.dimnames,
+                                       verbose=verbose)
+        object@data[[feat]] <- a   
+      }
       
       # normalized data
       a <- vrData(object, feat_type = feat, norm = TRUE)
-      a <- HDF5Array::writeHDF5Array(a, 
-                                     h5_path, 
-                                     name = paste0(name, "/", feat, "_norm"),
-                                     chunkdim=chunkdim, 
-                                     level=level,
-                                     as.sparse=as.sparse,
-                                     with.dimnames=with.dimnames,
-                                     verbose=verbose)
-      object@data[[paste0(feat, "_norm")]] <- a  
+      if(!inherits(a, "DelayedArray")){
+        a <- HDF5Array::writeHDF5Array(a, 
+                                       h5_path, 
+                                       name = paste0(name, "/", feat, "_norm"),
+                                       chunkdim=chunkdim, 
+                                       level=level,
+                                       as.sparse=as.sparse,
+                                       with.dimnames=with.dimnames,
+                                       verbose=verbose)
+        object@data[[paste0(feat, "_norm")]] <- a  
+      }
       
     }
     
@@ -308,27 +332,31 @@ writeHDF5ArrayInVrData <- function(object,
     
     # raw data
     a <- vrData(object, norm = FALSE)
-    a <- HDF5Array::writeHDF5Array(a, 
-                                   h5_path, 
-                                   name = paste0(name, "/rawdata"),
-                                   chunkdim=chunkdim, 
-                                   level=level,
-                                   as.sparse=as.sparse,
-                                   with.dimnames=TRUE,
-                                   verbose=verbose)
-    object@rawdata <- a  
+    if(!inherits(a, "DelayedArray")){
+      a <- HDF5Array::writeHDF5Array(a, 
+                                     h5_path, 
+                                     name = paste0(name, "/rawdata"),
+                                     chunkdim=chunkdim, 
+                                     level=level,
+                                     as.sparse=as.sparse,
+                                     with.dimnames=TRUE,
+                                     verbose=verbose)
+      object@rawdata <- a 
+    }
     
     # normalized data
     a <- vrData(object, norm = TRUE)
-    a <- HDF5Array::writeHDF5Array(a, 
-                                   h5_path, 
-                                   name = paste0(name, "/normdata"),
-                                   chunkdim=chunkdim, 
-                                   level=level,
-                                   as.sparse=as.sparse,
-                                   with.dimnames=TRUE,
-                                   verbose=verbose)
-    object@normdata <- a
+    if(!inherits(a, "DelayedArray")){
+      a <- HDF5Array::writeHDF5Array(a, 
+                                     h5_path, 
+                                     name = paste0(name, "/normdata"),
+                                     chunkdim=chunkdim, 
+                                     level=level,
+                                     as.sparse=as.sparse,
+                                     with.dimnames=TRUE,
+                                     verbose=verbose)
+      object@normdata <- a
+    }
     
   }
 
@@ -359,15 +387,17 @@ writeHDF5ArrayInImage <- function(object,
       
       # get image and write to h5
       img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
-      img <- HDF5Array::writeHDF5Array(img, 
-                                       h5_path, 
-                                       name = paste0(name, "/", spat, "/", ch),
-                                       chunkdim=chunkdim, 
-                                       level=level,
-                                       as.sparse=as.sparse,
-                                       with.dimnames=FALSE,
-                                       verbose=verbose)
-      vrImages(object, name = spat, channel = ch) <- img 
+      if(!inherits(img, "DelayedArray")){
+        img <- HDF5Array::writeHDF5Array(img, 
+                                         h5_path, 
+                                         name = paste0(name, "/", spat, "/", ch),
+                                         chunkdim=chunkdim, 
+                                         level=level,
+                                         as.sparse=as.sparse,
+                                         with.dimnames=FALSE,
+                                         verbose=verbose)
+        vrImages(object, name = spat, channel = ch) <- img 
+      }
     } 
   }
   
@@ -456,55 +486,62 @@ writeZarrArrayInVrData <- function(object,
       
       # raw data
       a <- vrData(object, feat_type = feat, norm = FALSE)
-      a <- ZarrArray::writeZarrArray(a, 
-                                     zarr_path, 
-                                     name = paste0(name, "/", feat),
-                                     chunkdim=chunkdim, 
-                                     level=level,
-                                     as.sparse=as.sparse,
-                                     with.dimnames=with.dimnames,
-                                     verbose=verbose)
-      object@data[[feat]] <- a  
+      if(!inherits(a, "DelayedArray")){
+        a <- ZarrArray::writeZarrArray(a, 
+                                       zarr_path, 
+                                       name = paste0(name, "/", feat),
+                                       chunkdim=chunkdim, 
+                                       level=level,
+                                       as.sparse=as.sparse,
+                                       with.dimnames=with.dimnames,
+                                       verbose=verbose)
+        object@data[[feat]] <- a   
+      }
       
       # normalized data
       a <- vrData(object, feat_type = feat, norm = TRUE)
-      a <- ZarrArray::writeZarrArray(a, 
-                                     zarr_path, 
-                                     name = paste0(name, "/", feat, "_norm"),
-                                     chunkdim=chunkdim, 
-                                     level=level,
-                                     as.sparse=as.sparse,
-                                     with.dimnames=with.dimnames,
-                                     verbose=verbose)
-      object@data[[paste0(feat, "_norm")]] <- a  
-      
+      if(!inherits(a, "DelayedArray")){
+        a <- ZarrArray::writeZarrArray(a, 
+                                       zarr_path, 
+                                       name = paste0(name, "/", feat, "_norm"),
+                                       chunkdim=chunkdim, 
+                                       level=level,
+                                       as.sparse=as.sparse,
+                                       with.dimnames=with.dimnames,
+                                       verbose=verbose)
+        object@data[[paste0(feat, "_norm")]] <- a  
+      }
     }
     
   } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
     
     # raw data
     a <- vrData(object, norm = FALSE)
-    a <- ZarrArray::writeZarrArray(a, 
-                                   zarr_path, 
-                                   name = paste0(name, "/rawdata"),
-                                   chunkdim=chunkdim, 
-                                   level=level,
-                                   as.sparse=as.sparse,
-                                   with.dimnames=TRUE,
-                                   verbose=verbose)
-    object@rawdata <- a  
+    if(!inherits(a, "DelayedArray")){
+      a <- ZarrArray::writeZarrArray(a, 
+                                     zarr_path, 
+                                     name = paste0(name, "/rawdata"),
+                                     chunkdim=chunkdim, 
+                                     level=level,
+                                     as.sparse=as.sparse,
+                                     with.dimnames=TRUE,
+                                     verbose=verbose)
+      object@rawdata <- a   
+    }
     
     # normalized data
     a <- vrData(object, norm = TRUE)
-    a <- ZarrArray::writeZarrArray(a, 
-                                   zarr_path, 
-                                   name = paste0(name, "/normdata"),
-                                   chunkdim=chunkdim, 
-                                   level=level,
-                                   as.sparse=as.sparse,
-                                   with.dimnames=TRUE,
-                                   verbose=verbose)
-    object@normdata <- a
+    if(!inherits(a, "DelayedArray")){
+      a <- ZarrArray::writeZarrArray(a, 
+                                     zarr_path, 
+                                     name = paste0(name, "/normdata"),
+                                     chunkdim=chunkdim, 
+                                     level=level,
+                                     as.sparse=as.sparse,
+                                     with.dimnames=TRUE,
+                                     verbose=verbose)
+      object@normdata <- a 
+    }
     
   }
   
@@ -540,15 +577,17 @@ writeZarrArrayInImage <- function(object,
       if(inherits(img, "bitmap")){
         img <- aperm(as.integer(img), c(3,2,1))
       }
-      img <- ZarrArray::writeZarrArray(img, 
-                                       zarr_path, 
-                                       name = paste0(name, "/", spat, "/", ch),
-                                       chunkdim=chunkdim, 
-                                       level=level, 
-                                       as.sparse=as.sparse,
-                                       with.dimnames=FALSE,
-                                       verbose=verbose)
-      vrImages(object, name = spat, channel = ch) <- img 
+      if(!inherits(img, "DelayedArray")){
+        img <- ZarrArray::writeZarrArray(img, 
+                                         zarr_path, 
+                                         name = paste0(name, "/", spat, "/", ch),
+                                         chunkdim=chunkdim, 
+                                         level=level, 
+                                         as.sparse=as.sparse,
+                                         with.dimnames=FALSE,
+                                         verbose=verbose)
+        vrImages(object, name = spat, channel = ch) <- img 
+      }
     } 
   }
   
@@ -600,4 +639,73 @@ check_and_delete_files <- function (rds_path, h5_path, replace)
     stop("failed to delete file \"", rds_path, "\"")
   if (unlink(h5_path, recursive = TRUE) != 0L) 
     stop("failed to delete file \"", h5_path, "\"")
+}
+
+.get_unique_links <- function(object, assay = NULL)
+{
+  # assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  
+  # iterate over assays
+  all_links <- NULL
+  for(assy in assay_names){
+    
+    # get data and image links
+    all_links <- c(all_links, .get_unique_data_links(object[[assy]]))
+    all_links <- c(all_links, .get_unique_data_links(object[[assy]]))
+                           
+  }
+  
+  # return
+  unique(all_links)
+}
+
+.get_unique_data_links <- function(object){
+  
+  # check if there is a data or rawdata slot in assay object
+  catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
+  catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
+  
+  # get data with a specific feature
+  all_links <- NULL
+  if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
+    
+    feature_types <- vrFeatureTypeNames(object)
+    for(feat in feature_types){
+      cur_path <- try(path(vrData(object, feat_type = feat, norm = FALSE)), silent = TRUE)
+      all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
+      cur_path <- try(path(vrData(object, feat_type = feat, norm = TRUE)), silent = TRUE)
+      all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
+    }
+  } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
+    cur_path <- try(path(vrData(object, norm = FALSE), silent = TRUE))
+    all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
+    cur_path <- try(path(vrData(object, norm = TRUE), silent = TRUE))
+    all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
+    
+  }
+  
+  # return
+  return(all_links)
+}
+
+.get_unique_image_links <- function(object){
+ 
+  # links
+  all_links <- NULL
+  
+  # for each spatial system
+  spatial_names <- vrSpatialNames(object)
+  for(spat in spatial_names){
+    
+    # for each channel
+    channels <- vrImageChannelNames(object, name = spat)
+    for(ch in channels){
+      cur_path <- try(path(vrImages(object, name = spat, channel = ch, as.raster = TRUE), silent = TRUE))
+      all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
+    }
+  }
+  
+  # return
+  return(all_links)
 }

@@ -1303,7 +1303,6 @@ vrEmbeddingNames.VoltRon <- function(object, assay = NULL){
 #' @importFrom stringr str_replace
 #' 
 #' @export
-#' @noRd
 addFeature.VoltRon <- function(object, assay = NULL, data, feature_name){
   
   # get assay names
