@@ -606,3 +606,26 @@ hue_pal <- function(n, h = c(0, 360) + 15, c = 100, l = 65, h.start = 0, directi
 rescale_numeric <- function(x, to = c(0, 1), from = range(x, na.rm = TRUE, finite = TRUE), ...) {
   (x - from[1]) / diff(from) * diff(to) + to[1]
 }
+
+as.raster_array <- function (x, max = 1, ...) 
+{
+  if (!is.numeric(x)) {
+    if (is.raw(x)) {
+      storage.mode(x) <- "integer"
+      max <- 255L
+    }
+    else stop("a raster array must be numeric")
+  }
+  if (length(d <- dim(x)) != 3L) 
+    stop("a raster array must have exactly 3 dimensions")
+  r <- array(if (d[3L] == 3L) 
+    rgb(t(x[, , 1L]), t(x[, , 2L]), t(x[, , 3L]), maxColorValue = max)
+    else if (d[3L] == 4L) 
+      rgb(t(x[, , 1L]), t(x[, , 2L]), t(x[, , 3L]), t(x[, , 4L]), maxColorValue = max)
+    else if (d[3L] == 1L) 
+      rgb(t(x[, , 1L]), t(x[, , 1L]), t(x[, , 1L]), maxColorValue = max)
+    else stop("a raster array must have exactly 1, 3 or 4 planes"), 
+    dim = d[1:2])
+  class(r) <- "raster"
+  r
+}

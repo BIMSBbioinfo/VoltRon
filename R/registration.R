@@ -1364,7 +1364,7 @@ cropImage <- function(image, geometry){
   } else if(inherits(image, "DelayedArray")){
     imageinfo <- getImageInfo(image)
     glist <- strsplit(geometry, split = "[x|+]")[[1]]
-    image <- image[,glist[3]:glist[1], glist[4]:glist[2]]
+    image <- image[,glist[3]:glist[1], glist[4]:glist[2], drop = FALSE]
   }
   image
 }
@@ -1497,7 +1497,7 @@ plotImage <- function(image){
     imgggplot <- magick::image_ggplot(image)
   } else if(inherits(image, "DelayedArray")){
     img_array <- as.array(image@seed)
-    img_raster <- as.raster(aperm(img_array, perm = c(3,2,1)), max = 255)
+    img_raster <- as.raster_array(aperm(img_array, perm = c(3,2,1)), max = 255)
     info <- list(width = dim(img_raster)[2], height = dim(img_raster)[1])
     imgggplot <- ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x", "y")) + 
       ggplot2::geom_blank() + 
