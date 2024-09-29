@@ -47,7 +47,8 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     channel_names <- vrImageChannelNames(spat[[assayname]])
     sapply(channel_names, function(chan){
       # vrImages(spat, assay = assayname, channel = chan)
-      img <- vrImages(spat, assay = assayname, channel = chan, as.raster = TRUE)
+      img <- vrImages(spat[[assayname]], channel = chan, as.raster = TRUE)
+      print(img)
       if(!inherits(img, "DelayedArray")){
         img <- magick::image_read(img)
       }
@@ -1244,30 +1245,30 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
         # zoom images and keypoints
         limits <- as.data.frame(zoom_list[[paste0(i)]][[type]])
         img_limits <- transformImageKeypoints(img, limits, paste0(type, "_image",i), input, session)
-        # img_limits$keypoints <- data.frame(x = range(img_limits$keypoints[,1]), y = rev(range(img_limits$keypoints[,2])))
         img_limits$keypoints <- data.frame(x = range(img_limits$keypoints[,1]), y = range(img_limits$keypoints[,2]))
         imgzoom <- imageZoom(img_trans$image, zoom_info = img_limits$keypoints)
         if(!is.null(img_trans$keypoints)){
           if(nrow(img_trans$keypoints) > 0){
             temp <- as.matrix(img_trans$keypoints[,c("x","y")])
-            # temp <- temp - matrix(unlist(rep(limits[1,], nrow(img_trans$keypoints))), nrow = nrow(img_trans$keypoints), byrow = T)
             temp <- temp - matrix(unlist(rep(img_limits$keypoints[1,], nrow(img_trans$keypoints))), nrow = nrow(img_trans$keypoints), byrow = T)
             img_trans$keypoints[,c("x","y")] <- temp
           }
         }
-        print(imgzoom)
-        img_trans$image <- magick::image_crop(img_trans$image, geometry = imgzoom)
+        
+        # img_trans$image <- magick::image_crop(img_trans$image, geometry = imgzoom)
+        img_trans$image <- cropImage(img_trans$image, geometry = imgzoom)
         
         # lower resolution
-        width <- img_limits$keypoints[2,1]-img_limits$keypoints[1,1]
-        if(width > 800){
-          img_trans$keypoints[,c("x","y")] <- img_trans$keypoints[,c("x","y")]*(800/width)
-          img_trans$image <- magick::image_resize(img_trans$image, geometry = "800x")
-        }
+        # width <- img_limits$keypoints[2,1]-img_limits$keypoints[1,1]
+        # if(width > 800){
+        #   img_trans$keypoints[,c("x","y")] <- img_trans$keypoints[,c("x","y")]*(800/width)
+        #   img_trans$image <- magick::image_resize(img_trans$image, geometry = "800x")
+        # }
         
         # visualize
-        imgggplot <- magick::image_ggplot(img_trans$image)
-        img <- imageKeypoint(imgggplot, img_trans$keypoints)
+        # imgggplot <- magick::image_ggplot(img_trans$image)
+        img_ggplot <- plotImage(img_trans$image)
+        img <- imageKeypoint(img_ggplot, img_trans$keypoints)
         
         # return
         return(img)
@@ -1309,7 +1310,7 @@ getImageInfoList <- function(image_list){
 getImageInfo <- function(image){
   
   if(inherits(image, "magick-image")){
-    imginfo <- magick::image_info(x)
+    imginfo <- magick::image_info(image)
   } else if(inherits(image, "DelayedArray")){
     dim_image <- dim(image)
     imginfo <- list(width = dim_image[2], height = dim_image[3])
@@ -1322,8 +1323,9 @@ getImageInfo <- function(image){
 #' rotate images
 #'
 #' @param image a magick image or DelayedArray object
+#' @param degrees value between 0 and 360 for how many degrees to rotate
 #'
-#' @importFrom magick image_info
+#' @importFrom magick image_rotate
 #'
 #' @noRd
 rotateImage <- function(image, degrees){
@@ -1341,6 +1343,28 @@ rotateImage <- function(image, degrees){
     } else if(degrees == 270){
       image <- image[,,dim_img[3]:1, drop = FALSE]
     }
+  }
+  image
+}
+
+#' cropImage
+#'
+#' crop images
+#'
+#' @param image a magick image or DelayedArray object
+#' @param geometry a geometry string specifying area (for cropping) or size (for resizing).
+#' 
+#' @importFrom magick image_crop
+#'
+#' @noRd
+cropImage <- function(image, geometry){
+  
+  if(inherits(image, "magick-image")){
+    image <- magick::image_crop(image, geometry = geometry)
+  } else if(inherits(image, "DelayedArray")){
+    imageinfo <- getImageInfo(image)
+    glist <- strsplit(geometry, split = "[x|+]")[[1]]
+    image <- image[,glist[3]:glist[1], glist[4]:glist[2]]
   }
   image
 }
@@ -1454,6 +1478,37 @@ getRcppWarpImage <- function(ref_image, query_image, mapping){
   magick::image_read(query_image)
 }
 
+####
+# Managing Plots ####
+####
+
+#' plotImage
+#'
+#' plot image
+#'
+#' @param image a magick image or DelayedArray object
+#' 
+#' @importFrom magick image_ggplot
+#'
+#' @noRd
+plotImage <- function(image){
+  
+  if(inherits(image, "magick-image")){
+    imgggplot <- magick::image_ggplot(image)
+  } else if(inherits(image, "DelayedArray")){
+    img_array <- as.array(image@seed)
+    img_raster <- as.raster(aperm(img_array, perm = c(3,2,1)), max = 255)
+    info <- list(width = dim(img_raster)[2], height = dim(img_raster)[1])
+    imgggplot <- ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x", "y")) + 
+      ggplot2::geom_blank() + 
+      ggplot2::theme_void() + 
+      ggplot2::coord_fixed(expand = FALSE, 
+                           xlim = c(0, info$width), 
+                           ylim = c(0, info$height)) + 
+      ggplot2::annotation_raster(img_raster, 0, info$width, info$height, 0, interpolate = FALSE)
+  }
+  imgggplot
+}
 
 ####
 # Manual Image Registration ####
