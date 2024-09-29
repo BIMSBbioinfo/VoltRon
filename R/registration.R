@@ -15,6 +15,7 @@
 #' @import shiny
 #' @importFrom shinyjs useShinyjs show hide
 #' @importFrom stats median
+#' @importFrom magick image_read
 #'
 #' @export
 registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL, 
@@ -45,7 +46,12 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     assayname <- vrAssayNames(spat)
     channel_names <- vrImageChannelNames(spat[[assayname]])
     sapply(channel_names, function(chan){
-      vrImages(spat, assay = assayname, channel = chan)
+      # vrImages(spat, assay = assayname, channel = chan)
+      img <- vrImages(spat, assay = assayname, channel = chan, as.raster = TRUE)
+      if(!inherits(img, "DelayedArray")){
+        img <- magick::image_read(img)
+      }
+      img
     }, USE.NAMES = TRUE)
   })
   orig_image_query_list <- lapply(orig_image_query_list_full, function(spat_img) {
@@ -137,7 +143,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     trans_image_query_list <- transformImageQueryList(orig_image_query_list, input)
     
     ## get image and zoom info ####
-    orig_image_query_info_list <- getImageInfo(orig_image_query_list)
+    orig_image_query_info_list <- getImageInfoList(orig_image_query_list)
     zoom_list <- initiateZoomOptions(orig_image_query_info_list)
     manageImageZoomOptions(centre, register_ind, zoom_list, orig_image_query_list, orig_image_query_info_list, input, output, session)
     
@@ -1268,20 +1274,39 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
   })
 }
 
-#' getImageOutput
+#' getImageInfoList
+#'
+#' get information on list of images
+#'
+#' @param image_list a list of magick images or DelayedArray objects
+#'
+#' @noRd
+getImageInfoList <- function(image_list){
+  lapply(image_list, function(x){
+    # imginfo <- magick::image_info(x)
+    imginfo <- getImageInfo(x)
+    c(imginfo$width, imginfo$height)
+  })
+}
+
+#' getImageInfo
 #'
 #' get information on images
 #'
-#' @param image_list a list of magick images
+#' @param image_list a magick image or DelayedArray object
 #'
 #' @importFrom magick image_info
 #'
 #' @noRd
-getImageInfo <- function(image_list){
-  lapply(image_list, function(x){
+getImageInfo <- function(image){
+  
+  if(inherits(image, "magick-image")){
     imginfo <- magick::image_info(x)
-    c(imginfo$width, imginfo$height)
-  })
+  } else if(inherits(image, "DelayedArray")){
+    dim_image <- dim(image)
+    imginfo <- list(width = dim_image[2], height = dim_image[3])
+  }
+  c(imginfo$width, imginfo$height)
 }
 
 #' transformImage
