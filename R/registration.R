@@ -48,7 +48,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     sapply(channel_names, function(chan){
       # vrImages(spat, assay = assayname, channel = chan)
       img <- vrImages(spat[[assayname]], channel = chan, as.raster = TRUE)
-      if(!inherits(img, "DelayedArray")){
+      if(!inherits(img, "Image_Array")){
         img <- magick::image_read(img)
       }
       img
@@ -1317,9 +1317,10 @@ getImageInfo <- function(image){
   
   if(inherits(image, "magick-image")){
     imginfo <- magick::image_info(image)
-  } else if(inherits(image, "DelayedArray")){
-    dim_image <- dim(image)
-    imginfo <- list(width = dim_image[2], height = dim_image[3])
+  } else if(inherits(image, "Image_Array")){
+    # dim_image <- dim(image)
+    # imginfo <- list(width = dim_image[2], height = dim_image[3])
+    imginfo <- ImageArray::getImageInfo(image)
   }
   as.data.frame(imginfo)
 }
@@ -1338,18 +1339,8 @@ rotateImage <- function(image, degrees){
   
   if(inherits(image, "magick-image")){
     image <- magick::image_rotate(image, degrees = degrees)
-  } else if(inherits(image, "DelayedArray")){
-    if(degrees %in% c(90, 270)){
-      image <- aperm(image, perm = c(1,3,2)) 
-    }
-    dim_img <- dim(image)
-    if(degrees == 90){
-      image <- image[ , dim_img[2]:1, , drop = FALSE]
-    } else if(degrees == 180){
-      image <- image[ , dim_img[2]:1, dim_img[3]:1, drop = FALSE]
-    } else if(degrees == 270){
-      image <- image[ , , dim_img[3]:1, drop = FALSE]
-    }
+  } else if(inherits(image, "Image_Array")){
+    image <- ImageArray::rotate(image, degrees)
   }
   image
 }
@@ -1367,8 +1358,9 @@ negateImage <- function(image){
   
   if(inherits(image, "magick-image")){
     image <- magick::image_negate(image)
-  } else if(inherits(image, "DelayedArray")){
-    image <- 255 - image
+  } else if(inherits(image, "Image_Array")){
+    # image <- 255 - image
+    image <- ImageArray::negate(image)
   }
   image
 }
@@ -1386,9 +1378,10 @@ flipImage <- function(image){
   
   if(inherits(image, "magick-image")){
     image <- magick::image_flip(image)
-  } else if(inherits(image, "DelayedArray")){
-    dim_img <- dim(image)
-    image <- image[ , , dim_img[3]:1, drop = FALSE]
+  } else if(inherits(image, "Image_Array")){
+    # dim_img <- dim(image)
+    # image <- image[ , , dim_img[3]:1, drop = FALSE]
+    image <- ImageArray::flip(image)
   }
   image
 }
@@ -1406,9 +1399,10 @@ flopImage <- function(image){
   
   if(inherits(image, "magick-image")){
     image <- magick::image_flop(image)
-  } else if(inherits(image, "DelayedArray")){
-    dim_img <- dim(image)
-    image <- image[ , dim_img[2]:1, , drop = FALSE]
+  } else if(inherits(image, "Image_Array")){
+    # dim_img <- dim(image)
+    # image <- image[ , dim_img[2]:1, , drop = FALSE]
+    image <- ImageArray::flop(image)
   }
   image
 }
@@ -1427,10 +1421,10 @@ cropImage <- function(image, geometry){
   
   if(inherits(image, "magick-image")){
     image <- magick::image_crop(image, geometry = geometry)
-  } else if(inherits(image, "DelayedArray")){
-    imageinfo <- getImageInfo(image)
+  } else if(inherits(image, "Image_Array")){
     crop_info_int <- as.integer(strsplit(geometry, split = "[x|+]")[[1]])
-    image <- image[,crop_info_int[3]:(crop_info_int[3]+crop_info_int[1]), crop_info_int[4]:(crop_info_int[4]+crop_info_int[2]), drop = FALSE]
+    # image <- image[,crop_info_int[3]:(crop_info_int[3]+crop_info_int[1]), crop_info_int[4]:(crop_info_int[4]+crop_info_int[2]), drop = FALSE]
+    image <- ImageArray::crop(image, ind = list(crop_info_int[3]:(crop_info_int[3]+crop_info_int[1]), crop_info_int[4]:(crop_info_int[4]+crop_info_int[2])))
   }
   image
 }
@@ -1565,8 +1559,8 @@ plotImage <- function(image){
   
   if(inherits(image, "magick-image")){
     imgggplot <- magick::image_ggplot(image)
-  } else if(inherits(image, "DelayedArray")){
-    img_array <- as.array(image@seed)
+  } else if(inherits(image, "Image_Array")){
+    img_array <- as.array(image[[1]]@seed)
     img_raster <- as.raster_array(aperm(img_array, perm = c(3,2,1)), max = 255)
     info <- list(width = dim(img_raster)[2], height = dim(img_raster)[1])
     imgggplot <- ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x", "y")) + 
