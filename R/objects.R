@@ -1060,7 +1060,6 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 #' @importFrom methods new
 #'
 #' @export
-#'
 merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL) {
 
   # combine all elements

@@ -61,7 +61,7 @@ Suggests:
     anndata,
     ggforce,
     HDF5Array,
-    rhdf5,
+    hdf5r,
     pizzarr,
     ZarrArray
 Config/testthat/edition: 3
