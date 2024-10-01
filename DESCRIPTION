@@ -60,10 +60,11 @@ Suggests:
     anndataR,
     anndata,
     ggforce,
-    HDF5Array,
     hdf5r,
+    HDF5Array,
     pizzarr,
-    ZarrArray
+    ZarrArray,
+    ImageArray
 Config/testthat/edition: 3
 LazyData: true
 LazyDataCompression: gzip
