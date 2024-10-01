@@ -161,7 +161,7 @@ shorten_assay_links_images <- function(object){
       img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
       img <- modify_seeds(img,
                           function(x) {
-                            x@filepath <- basename(x@filepath)
+                            ImageArray::filepath(x) <- basename(ImageArray::filepath(x))
                             x
                           })
       vrImages(object, name = spat, channel = ch) <- img 
@@ -223,6 +223,8 @@ write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
     stop("Please install HDF5Array package!")
   if(!requireNamespace('rhdf5'))
     stop("Please install rhdf5 package!")
+  if(!requireNamespace('ImageArray'))
+    stop("Please install ImageArray package!")
   
   # sample metadata
   sample_metadata <- SampleMetadata(object)
@@ -382,19 +384,17 @@ writeHDF5ArrayInImage <- function(object,
       # get image and write to h5
       img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
       
-      # hdf5 needs the image to be written integer format (we do this to be concordant to zarr format)
-      if(inherits(img, "bitmap")){
-        img <- aperm(as.integer(img), c(3,2,1))
-      }
+      # write image
       if(!inherits(img, "DelayedArray")){
-        img <- HDF5Array::writeHDF5Array(img, 
-                                         h5_path, 
-                                         name = paste0(name, "/", spat, "/", ch),
-                                         chunkdim=chunkdim, 
-                                         level=level,
-                                         as.sparse=as.sparse,
-                                         with.dimnames=FALSE,
-                                         verbose=verbose)
+        img <- ImageArray::writeImageArray(img,
+                                           output = gsub(".h5$", "", h5_path),
+                                           name = paste0(name, "/", spat, "/", ch), 
+                                           format = "HDF5ImageArray", 
+                                           replace = FALSE, 
+                                           chunkdim=chunkdim,
+                                           level=level,
+                                           as.sparse=as.sparse,
+                                           verbose=verbose)
         vrImages(object, name = spat, channel = ch) <- img 
       }
     } 
@@ -415,6 +415,8 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
     stop("Please install ZarrArray package!")
   if(!requireNamespace('pizzarr'))
     stop("Please install pizzarr package!")
+  if(!requireNamespace('ImageArray'))
+    stop("Please install ImageArray package!")
   
   # sample metadata
   sample_metadata <- SampleMetadata(object)
@@ -572,19 +574,17 @@ writeZarrArrayInImage <- function(object,
       # get image and write to h5
       img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
       
-      # zarr needs the image to be written integer format
-      if(inherits(img, "bitmap")){
-        img <- aperm(as.integer(img), c(3,2,1))
-      }
+      # write image
       if(!inherits(img, "DelayedArray")){
-        img <- ZarrArray::writeZarrArray(img, 
-                                         zarr_path, 
-                                         name = paste0(name, "/", spat, "/", ch),
-                                         chunkdim=chunkdim, 
-                                         level=level, 
-                                         as.sparse=as.sparse,
-                                         with.dimnames=FALSE,
-                                         verbose=verbose)
+        img <- ImageArray::writeImageArray(img,
+                                           output = gsub(".zarr$", "", zarr_path),
+                                           name = paste0(name, "/", spat, "/", ch), 
+                                           format = "ZarrImageArray", 
+                                           replace = FALSE, 
+                                           chunkdim=chunkdim,
+                                           level=level,
+                                           as.sparse=as.sparse,
+                                           verbose=verbose)
         vrImages(object, name = spat, channel = ch) <- img 
       }
     } 
