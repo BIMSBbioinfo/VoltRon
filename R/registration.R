@@ -1273,7 +1273,7 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
         
         # visualize
         # imgggplot <- magick::image_ggplot(img_trans$image)
-        img_ggplot <- plotImage(img_trans$image)
+        img_ggplot <- plotImage(img_trans$image, max.pixel.size = 800)
         img_ggplot <- imageKeypoint(img_ggplot, img_trans$keypoints)
         
         # return
@@ -1287,6 +1287,36 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
       })
     })
   })
+}
+
+#' plotImage
+#'
+#' plot image
+#'
+#' @param image a magick image or DelayedArray object
+#' 
+#' @importFrom magick image_ggplot
+#'
+#' @noRd
+plotImage <- function(image, max.pixel.size = NULL){
+  
+  if(inherits(image, "magick-image")){
+    imgggplot <- magick::image_ggplot(image)
+  } else if(inherits(image, "Image_Array")){
+    # img_array <- as.array(image[[1]]@seed)
+    img_array <- as.array(image, max.pixel.size = max.pixel.size)
+    # print(dim(img_array))
+    img_raster <- as.raster_array(aperm(img_array, perm = c(3,2,1)), max = 255)
+    info <- list(width = dim(img_raster)[2], height = dim(img_raster)[1])
+    imgggplot <- ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x", "y")) + 
+      ggplot2::geom_blank() + 
+      ggplot2::theme_void() + 
+      ggplot2::coord_fixed(expand = FALSE, 
+                           xlim = c(0, info$width), 
+                           ylim = c(0, info$height)) + 
+      ggplot2::annotation_raster(img_raster, 0, info$width, info$height, 0, interpolate = FALSE)
+  }
+  imgggplot
 }
 
 #' getImageInfoList
@@ -1540,38 +1570,6 @@ getRcppWarpImage <- function(ref_image, query_image, mapping){
                            width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
                            width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3])
   magick::image_read(query_image)
-}
-
-####
-# Managing Plots ####
-####
-
-#' plotImage
-#'
-#' plot image
-#'
-#' @param image a magick image or DelayedArray object
-#' 
-#' @importFrom magick image_ggplot
-#'
-#' @noRd
-plotImage <- function(image){
-  
-  if(inherits(image, "magick-image")){
-    imgggplot <- magick::image_ggplot(image)
-  } else if(inherits(image, "Image_Array")){
-    img_array <- as.array(image[[1]]@seed)
-    img_raster <- as.raster_array(aperm(img_array, perm = c(3,2,1)), max = 255)
-    info <- list(width = dim(img_raster)[2], height = dim(img_raster)[1])
-    imgggplot <- ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x", "y")) + 
-      ggplot2::geom_blank() + 
-      ggplot2::theme_void() + 
-      ggplot2::coord_fixed(expand = FALSE, 
-                           xlim = c(0, info$width), 
-                           ylim = c(0, info$height)) + 
-      ggplot2::annotation_raster(img_raster, 0, info$width, info$height, 0, interpolate = FALSE)
-  }
-  imgggplot
 }
 
 ####
