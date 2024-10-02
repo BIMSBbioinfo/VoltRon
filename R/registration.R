@@ -837,11 +837,23 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, info
           image_trans <- limits_trans$image
           limits_trans <- data.frame(x = range(limits_trans$keypoints[,1]), y = range(limits_trans$keypoints[,2]))
           width <- limits_trans[2,1]-limits_trans[1,1]
-          
-          # correct for scaling, scale factor = 800
-          # if(width > 800){
-          #   keypoint <- keypoint*width/800
-          # }
+
+          # correct for scaling, scale factor = 1000
+          if(width > 1000){
+            if(inherits(image_trans, "Image_Array")){
+              n.series <- ImageArray::len(image_trans)
+              cur_width <- width
+              for(ii in 2:n.series){
+                cur_width <- width/(2^(ii-2))
+                if(cur_width <= 1000){
+                  break
+                }
+              }
+              keypoint <- keypoint*width/ceiling(cur_width)
+            } else {
+              keypoint <- keypoint*width/1000 
+            }
+          }
           
           # correct for zoom information
           keypoint <- keypoint + limits_trans[1,]
@@ -1166,6 +1178,10 @@ manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_list, 
           # get brush variables
           brush_mat <- data.frame(x = c(brush$xmin, brush$xmax), 
                                   y = c(brush$ymin, brush$ymax))
+          print("#####")
+          print("new_points")
+          print("#####")
+          # print(brush_mat)
           
           # get image
           image <- image_list[[i]]
@@ -1176,21 +1192,35 @@ manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_list, 
           image_trans <- limits_trans$image
           limits_trans <- data.frame(x = range(limits_trans$keypoints[,1]), y = range(limits_trans$keypoints[,2]))
           width <- limits_trans[2,1]-limits_trans[1,1]
-          
 
           # if width is large, then correct the brush event for the downsize effect
-          # if(width > 800){
-          #   brush_mat <- brush_mat*width/800
-          # }
+          if(width > 1000){
+            if(inherits(image_trans, "Image_Array")){
+              n.series <- ImageArray::len(image_trans)
+              cur_width <- width
+              for(ii in 2:n.series){
+                cur_width <- width/(2^(ii-2))
+                if(cur_width <= 1000){
+                  break
+                }
+              }
+              brush_mat <- brush_mat*width/ceiling(cur_width)
+            } else {
+              brush_mat <- brush_mat*width/1000
+            }
+          }
+          # print(brush_mat)
 
           # correct brush for the zoom effect
           brush_mat[,1] <- brush_mat[,1] + limits_trans[1,1]
           brush_mat[,2] <- brush_mat[,2] + limits_trans[1,2]
-
+          # print(brush_mat)
+          
           # correct for flipflop and rotate using the transformed image from above
           brush_mat <- transformKeypoints(image_trans, as.data.frame(brush_mat), paste0(type, "_image",i), input)
           brush_mat <- data.frame(x = range(brush_mat[,1]), y = range(brush_mat[,2]))
           brush_mat <- as.matrix(brush_mat)
+          # print(brush_mat)
 
           # make new zoom information
           zoom_list[[paste0(i)]][[type]]$x <- brush_mat[,1]
@@ -1265,15 +1295,31 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
         img_trans$image <- cropImage(img_trans$image, geometry = imgzoom)
         
         # lower resolution
-        # width <- img_limits$keypoints[2,1]-img_limits$keypoints[1,1]
-        # if(width > 800){
-        #   img_trans$keypoints[,c("x","y")] <- img_trans$keypoints[,c("x","y")]*(800/width)
-        #   img_trans$image <- magick::image_resize(img_trans$image, geometry = "800x")
-        # }
+        width <- img_limits$keypoints[2,1]-img_limits$keypoints[1,1]
+        if(width > 1000){
+          
+          # scale keypoints
+          if(inherits(img_trans$image, "Image_Array")){
+            n.series <- ImageArray::len(img_trans$image)
+            cur_width <- width
+            for(ii in 2:n.series){
+              cur_width <- width/(2^(ii-2))
+              if(cur_width <= 1000){
+                break
+              }
+            }
+            img_trans$keypoints[,c("x","y")] <- img_trans$keypoints[,c("x","y")]*(cur_width/width)
+          } else {
+            img_trans$keypoints[,c("x","y")] <- img_trans$keypoints[,c("x","y")]*(1000/width)
+          }
+          # img_trans$image <- magick::image_resize(img_trans$image, geometry = "1000")
+        }
         
+
+
         # visualize
         # imgggplot <- magick::image_ggplot(img_trans$image)
-        img_ggplot <- plotImage(img_trans$image, max.pixel.size = 800)
+        img_ggplot <- plotImage(img_trans$image, max.pixel.size = 1000)
         img_ggplot <- imageKeypoint(img_ggplot, img_trans$keypoints)
         
         # return
@@ -1305,6 +1351,7 @@ plotImage <- function(image, max.pixel.size = NULL){
   } else if(inherits(image, "Image_Array")){
     # img_array <- as.array(image[[1]]@seed)
     img_array <- as.array(image, max.pixel.size = max.pixel.size)
+    # print(dim(img_array))
     # print(dim(img_array))
     img_raster <- as.raster_array(aperm(img_array, perm = c(3,2,1)), max = 255)
     info <- list(width = dim(img_raster)[2], height = dim(img_raster)[1])
