@@ -278,7 +278,7 @@ getImageTabPanels <- function(len_images, channel_names, type){
                column(4, sliderInput(paste0("scale_", type, "_image",i), "Scale Parameter", min = 0, max = 1,  value = 1)),
                textOutput(paste0("scaleinfo_", type, "_image",i))
              ),
-             fluidRow(imageOutput(paste0("plot_", type, i),
+             fluidRow(imageOutput(paste0("plot_", type, i), 
                                   click = paste0("click_plot_", type, i),
                                   dblclick = paste0("dblclick_plot_", type, i),
                                   brush = brushOpts(paste0("brush_plot_", type, i), fill = "green", resetOnNew = TRUE))),
