@@ -639,8 +639,13 @@ applyPerspectiveTransform <- function(object,
     # get registered image (including all channels)
     image_reg_list <- sapply(vrImageChannelNames(object[[assay]]), function(x) NULL, USE.NAMES = TRUE)
     for(channel_ind in names(image_reg_list)){
+      query_image <- vrImages(object[[assay]], channel = channel_ind, as.raster = TRUE)
+      if(!inherits(query_image, "Image_Array")){
+        query_image <- magick::image_read(query_image)
+      }
       warped_image <- getRcppWarpImage(ref_image = reference_image,
-                                       query_image = vrImages(object, assay = assay, channel = channel_ind),
+                                       # query_image = vrImages(object, assay = assay, channel = channel_ind),
+                                       query_image = query_image,
                                        mapping = mapping)
       image_reg_list[[channel_ind]] <- warped_image
     }
@@ -1356,10 +1361,12 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
 plotImage <- function(image, max.pixel.size = NULL){
   
   if(inherits(image, "magick-image")){
-    image <- magick::image_resize(image, geometry = as.character(max.pixel.size))
+    imageinfo <- getImageInfo(image)
+    if(max(imageinfo$width, imageinfo$height) > max.pixel.size){
+      image <- magick::image_resize(image, geometry = as.character(max.pixel.size))
+    }
     imgggplot <- magick::image_ggplot(image)
   } else if(inherits(image, "Image_Array")){
-    # img_array <- as.array(image[[1]]@seed)
     img_array <- as.array(image, max.pixel.size = max.pixel.size)
     img_raster <- as.raster_array(aperm(img_array, perm = c(3,2,1)), max = 255)
     info <- list(width = dim(img_raster)[2], height = dim(img_raster)[1])
@@ -1526,15 +1533,21 @@ cropImage <- function(image, geometry){
 #' @noRd
 resize_Image <- function(image, geometry){
   
+  # get image info
+  image_info_large <- getImageInfo(image)
+  
   if(inherits(image, "magick-image")){
     image <- magick::image_resize(image, geometry = geometry)
   } else if(inherits(image, "Image_Array")){
     
     # get scale factor 
-    scale_factor <- as.numeric(gsub("%$", "", geometry))/100
-    
+    if(grepl("%$", geometry)){
+      scale_factor <- as.numeric(gsub("%$", "", geometry))/100
+    } else if(grepl("x$", geometry)){
+      scale_factor <- (as.numeric(gsub("x$", "", geometry))/image_info_large$width)
+    }
+
     # get scaled array 
-    image_info_large <- getImageInfo(image)
     scaled_image_info <- ceiling(image_info_large*scale_factor)
     image <- as.array(image, min.pixel.size = max(scaled_image_info))
     
@@ -1781,8 +1794,10 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
         output[[paste0("plot_query_reg",i)]] <- renderImage({
 
           # get image list
-          image_view_list <- list(rep(magick::image_resize(image_list[[centre]], geometry = "400x"),5),
-                                  rep(magick::image_resize(aligned_image_list[[i]], geometry = "400x"),5))
+          # image_view_list <- list(rep(magick::image_resize(image_list[[centre]], geometry = "400x"),5),
+          #                         rep(magick::image_resize(aligned_image_list[[i]], geometry = "400x"),5))
+          image_view_list <- list(rep(resize_Image(image_list[[centre]], geometry = "400x"),5),
+                                  rep(resize_Image(aligned_image_list[[i]], geometry = "400x"),5))
 
           # make slide show
           image_view_list <- image_view_list %>%
@@ -1878,14 +1893,33 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
 #' @export
 getRcppManualRegistration <- function(query_image, ref_image, query_landmark, reference_landmark, 
                                       method = "TPS") {
-  ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
-  query_image_rast <- magick::image_data(query_image, channels = "rgb")
-  reference_landmark[,2] <- dim(ref_image_rast)[3] - reference_landmark[,2]
-  query_landmark[,2] <- dim(query_image_rast)[3] - query_landmark[,2]
-  reg <- manual_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
+  
+  
+  # ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
+  # query_image_rast <- magick::image_data(query_image, channels = "rgb")
+  
+  # ref image
+  if(inherits(ref_image, "Image_Array")){
+    ref_image <- as.array(ref_image)
+    ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
+  } else {
+    ref_image <- magick::image_data(ref_image, channels = "rgb")
+  }
+  
+  # query image
+  if(inherits(query_image, "Image_Array")){
+    query_image <- as.array(query_image)
+    query_image <- array(as.raw(query_image), dim = dim(query_image))
+  } else {
+    query_image <- magick::image_data(query_image, channels = "rgb")
+  }
+  
+  reference_landmark[,2] <- dim(ref_image)[3] - reference_landmark[,2]
+  query_landmark[,2] <- dim(query_image)[3] - query_landmark[,2]
+  reg <- manual_registeration_rawvector(ref_image = ref_image, query_image = query_image,
                                         reference_landmark = reference_landmark, query_landmark = query_landmark,
-                                        width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
-                                        width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3], 
+                                        width1 = dim(ref_image)[2], height1 = dim(ref_image)[3],
+                                        width2 = dim(query_image)[2], height2 = dim(query_image)[3], 
                                         method = method)
   return(list(transmat = reg[[1]], 
               aligned_image = magick::image_read(reg[[2]])))
