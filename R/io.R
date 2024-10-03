@@ -1,5 +1,5 @@
 ####
-# Main ####
+# save ####
 ####
 
 saveVoltRon <- function (object, 
@@ -78,6 +78,32 @@ saveVoltRon <- function (object,
   
   # return
   object
+}
+
+####
+# load ####
+####
+
+loadVoltRon <- function(dir="my_se")
+{
+  # check dir
+  if (!isSingleString(dir))
+    stop(wmsg("'dir' must be a single string specifying the path ",
+              "to the directory containing ", .THE_EXPECTED_STUFF))
+  if (!dir.exists(dir)) {
+    if (file.exists(dir))
+      stop(wmsg("\"", dir, "\" is a file, not a directory"))
+    stop(wmsg("directory \"", dir, "\" not found"))
+  }
+  
+  # get rds path
+  rds_path <- file.path(dir, paste0("se.rds"))
+  
+  # load h5/zarr store
+  ans <- try(.read_VoltRon(rds_path), silent=TRUE)
+  if (inherits(ans, "try-error"))
+    stop_if_bad_dir(dir, prefix = "")
+  ans
 }
 
 ####
@@ -167,6 +193,9 @@ shorten_assay_links_images <- function(object){
       vrImages(object, name = spat, channel = ch) <- img 
     } 
   }
+  
+  # return
+  object
 }
 
 modify_seeds <- function (x, FUN, ...) 
@@ -209,6 +238,30 @@ modify_seeds <- function (x, FUN, ...)
     stop("'format' should be either 'HDF5VoltRon' or 'ZarrVoltRon'")
   }
   invisible(object)
+}
+
+.read_VoltRon <- function(rds_path)
+{
+  # check rds file
+  if (!file.exists(rds_path))
+    stop(wmsg("file not found: ", rds_path))
+  if (dir.exists(rds_path))
+    stop(wmsg("'", rds_path, "' is a directory, not a file"))
+  
+  # check VoltRon object
+  ans <- readRDS(rds_path)
+  if (!is(ans, "VoltRon"))
+    stop(wmsg("the object serialized in \"", rds_path, "\" is not ",
+              "a VoltRon object"))
+  
+  # get dir name
+  dir <- dirname(rds_path)
+  
+  # restore assay links
+  ans@assays <- restore_absolute_assay2h5_links(ans@assays, dir)
+  
+  # 
+  ans
 }
 
 ####
@@ -704,4 +757,24 @@ check_and_delete_files <- function (rds_path, h5_path, replace)
   
   # return
   return(all_links)
+}
+
+stop_if_bad_dir <- function(dir, prefix = "")
+{
+  .THE_EXPECTED_STUFF <- c(
+    "an HDF5-based SummarizedExperiment object ",
+    "previously saved with saveHDF5SummarizedExperiment",
+    "()"
+  )
+  if (prefix == "") {
+    msg <- c("directory \"", dir, "\" does not seem to contain ",
+             .THE_EXPECTED_STUFF)
+  } else {
+    msg <- c("Directory \"", dir, "\" does not seem to contain ",
+             head(.THE_EXPECTED_STUFF, n=-1L),
+             "(..., prefix=\"", prefix, "\"). ",
+             "Make sure you're using the same 'prefix' ",
+             "that was used when the object was saved.")
+  }
+  stop(wmsg(msg))
 }
