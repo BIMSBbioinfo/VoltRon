@@ -103,6 +103,10 @@ mod_app_server <- function(id, plot_g = NULL) {
 #' @noRd
 configure_shiny_options <- function(shiny.options){
   
+  # check package
+  if (!requireNamespace('rstudioapi'))
+    stop("Please install rstudioapi package to use RStudio for interactive visualization")
+  
   # launch.browser
   if("launch.browser" %in% names(shiny.options)){
     launch.browser <- shiny.options[["launch.browser"]]

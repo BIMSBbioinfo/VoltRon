@@ -13,10 +13,6 @@ The vrAssay (VoltRon Assay) Class
 \describe{
 \item{\code{data}}{the table of counts}
 
-\item{\code{rawdata}}{raw count table}
-
-\item{\code{normdata}}{normalized count table}
-
 \item{\code{featuredata}}{feature metadata}
 
 \item{\code{embeddings}}{list of embeddings}

@@ -6,11 +6,18 @@
 \alias{vrData.vrAssay}
 \title{vrData}
 \usage{
-vrData(object, assay = NULL, features = NULL, norm = FALSE)
+vrData(object, assay = NULL, features = NULL, feat_type = NULL, norm = FALSE)
 
-\method{vrData}{VoltRon}(object, assay = NULL, features = NULL, norm = FALSE, ...)
+\method{vrData}{VoltRon}(
+  object,
+  assay = NULL,
+  features = NULL,
+  feat_type = NULL,
+  norm = FALSE,
+  ...
+)
 
-\method{vrData}{vrAssay}(object, features = NULL, norm = FALSE, ...)
+\method{vrData}{vrAssay}(object, features = NULL, feat_type = NULL, norm = FALSE, ...)
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object}
@@ -19,6 +26,8 @@ vrData(object, assay = NULL, features = NULL, norm = FALSE)
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{features}{the set of features}
+
+\item{feat_type}{the feature set type}
 
 \item{norm}{TRUE if normalized data should be returned}
 

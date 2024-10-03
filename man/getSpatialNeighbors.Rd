@@ -22,6 +22,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{method}{the method spatial connectivity: "delaunay", "spatialkNN", "radius"}
 
+\item{k}{number of neighbors for kNN}
+
 \item{radius}{When \code{method = "radius"} selected, determines the radius of a neighborhood ball around each spatial point}
 
 \item{graph.key}{the name of the graph}
