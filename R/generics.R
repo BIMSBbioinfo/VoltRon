@@ -207,12 +207,12 @@ Metadata <- function(object, assay = NULL, type = NULL) {
 #' @param desiredQuantile the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}.
 #' @param scale the scale parameter for the hyperbolic arcsine transformation
 #' @param sizefactor size factor if \code{method} is selected as \code{LogNorm}
+#' @param feat_type the feature set type
 #' 
 #' @rdname normalizeData
 #' @export normalizeData
-#'
 normalizeData <- function(object, assay = NULL, method = "LogNorm", desiredQuantile = 0.9, 
-                          scale = 0.2, sizefactor = 10000) {
+                          scale = 0.2, sizefactor = 10000, feat_type = NULL) {
   UseMethod(generic = 'normalizeData', object = object)
 }
 

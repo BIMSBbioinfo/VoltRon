@@ -10,7 +10,7 @@ NULL
 #' @method normalizeData VoltRon
 #'
 #' @export
-normalizeData.VoltRon <- function(object, assay = NULL, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2, sizefactor = 10000) {
+normalizeData.VoltRon <- function(object, assay = NULL, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2, sizefactor = 10000, feat_type = NULL) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -18,7 +18,7 @@ normalizeData.VoltRon <- function(object, assay = NULL, method = "LogNorm", desi
   # normalize assays
   for(assy in assay_names){
     cur_assay <- object[[assy]]
-    object[[assy]] <- normalizeData(cur_assay, method = method, desiredQuantile = desiredQuantile, scale = scale, sizefactor = sizefactor)
+    object[[assy]] <- normalizeData(cur_assay, method = method, desiredQuantile = desiredQuantile, scale = scale, sizefactor = sizefactor, feat_type = feat_type)
   }
 
   # return
@@ -31,7 +31,7 @@ normalizeData.VoltRon <- function(object, assay = NULL, method = "LogNorm", desi
 #' @importFrom stats quantile
 #'
 #' @export
-normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2, sizefactor = 10000) {
+normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2, sizefactor = 10000, feat_type = NULL) {
 
   # size factor
   rawdata <- vrData(object)
@@ -71,7 +71,15 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
   }
 
   # get normalized data
-  object@normdata <- normdata
+  catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
+  catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
+  if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
+    if(is.null(feat_type))
+      feat_type <- vrMainFeatureType(object)
+    object@data[[paste0(feat_type, "_norm")]] <- normdata
+  } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
+    object@normdata <- normdata
+  }
 
   # return
   return(object)

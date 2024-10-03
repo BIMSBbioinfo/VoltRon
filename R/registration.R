@@ -1656,7 +1656,7 @@ transformImageQueryList <- function(image_list, input){
 #'
 #' @param ref_image reference image
 #' @param query_image query image
-#' @param hmatrix the homography matrix
+#' @param mapping a list of the homography matrices and TPS keypoints 
 #'
 #' @importFrom magick image_read image_data
 #' 
