@@ -653,8 +653,12 @@ applyPerspectiveTransform <- function(object,
     
     # images
     ref_image <- transformImage(reference_image, ref_extension, input)
-    query_image <- transformImage(vrImages(object, assay = assay),
-                                  query_extension, input)
+    # query_image <- transformImage(vrImages(object, assay = assay), query_extension, input)
+    query_image <- vrImages(object[[assay]], as.raster = TRUE)
+    if(!inherits(query_image, "Image_Array")){
+      query_image <- magick::image_read(query_image)
+    }
+    query_image <- transformImage(query_image, query_extension, input)
 
     # image info
     # query_info <- magick::image_info(query_image)
@@ -707,8 +711,13 @@ applyPerspectiveTransform <- function(object,
 
       # rotate, flip and flop before warping in C++
       ref_image <- transformImage(reference_image, ref_extension, input)
-      query_image <- transformImage(vrImages(object, assay = assay, channel = channel_ind),
-                                    query_extension, input)
+      # query_image <- transformImage(vrImages(object, assay = assay, channel = channel_ind),
+      #                               query_extension, input)
+      query_image <- vrImages(object[[assay]], channel = channel_ind, as.raster = TRUE)
+      if(!inherits(query_image, "Image_Array")){
+        query_image <- magick::image_read(query_image)
+      }
+      query_image <- transformImage(query_image, query_extension, input)
       query_image <- getRcppWarpImage(ref_image, query_image, mapping = mapping)
       query_image <- transformImageReverse(query_image, ref_extension, input)
 
