@@ -1649,13 +1649,29 @@ transformImageQueryList <- function(image_list, input){
 #' 
 #' @export
 getRcppWarpImage <- function(ref_image, query_image, mapping){
-  ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
-  query_image_rast <- magick::image_data(query_image, channels = "rgb")
-  query_image <- warpImage(ref_image = ref_image_rast, 
-                           query_image = query_image_rast, 
+  
+  # ref image
+  if(inherits(ref_image, "Image_Array")){
+    ref_image <- as.array(ref_image)
+    ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
+  } else {
+    ref_image <- magick::image_data(ref_image, channels = "rgb")
+  }
+  
+  # query image
+  if(inherits(query_image, "Image_Array")){
+    query_image <- as.array(query_image)
+    query_image <- array(as.raw(query_image), dim = dim(query_image))
+  } else {
+    query_image <- magick::image_data(query_image, channels = "rgb")
+  }
+  
+  # warp image
+  query_image <- warpImage(ref_image = ref_image, 
+                           query_image = query_image, 
                            mapping = mapping,
-                           width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
-                           width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3])
+                           width1 = dim(ref_image)[2], height1 = dim(ref_image)[3],
+                           width2 = dim(query_image)[2], height2 = dim(query_image)[3])
   magick::image_read(query_image)
 }
 
