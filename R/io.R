@@ -86,14 +86,17 @@ saveVoltRon <- function (object,
 
 loadVoltRon <- function(dir="my_se")
 {
+  if(!requireNamespace('DelayedArray'))
+    stop("Please install DelayedArray package!")
+  
   # check dir
   if (!isSingleString(dir))
-    stop(wmsg("'dir' must be a single string specifying the path ",
+    stop(paste0("'dir' must be a single string specifying the path ",
               "to the directory containing ", .THE_EXPECTED_STUFF))
   if (!dir.exists(dir)) {
     if (file.exists(dir))
-      stop(wmsg("\"", dir, "\" is a file, not a directory"))
-    stop(wmsg("directory \"", dir, "\" not found"))
+      stop(paste0("\"", dir, "\" is a file, not a directory"))
+    stop(paste0("directory \"", dir, "\" not found"))
   }
   
   # get rds path
@@ -126,6 +129,80 @@ loadVoltRon <- function(dir="my_se")
             "RDS file:\n  ", rds_path)
   saveRDS(object, file=rds_path)
 }
+
+modify_seeds <- function (x, FUN, ...) 
+{
+  if (is(x, "DelayedUnaryOp")) {
+    x@seed <- modify_seeds(x@seed, FUN, ...)
+  }
+  else if (is(x, "DelayedNaryOp")) {
+    x@seeds <- lapply(x@seeds, modify_seeds, FUN, ...)
+  }
+  else {
+    x <- FUN(x, ...)
+  }
+  x
+}
+
+.write_VoltRon <- function(object, assay = NULL, format, rds_path, ondisk_path, chunkdim=NULL, level=NULL, as.sparse=NA, verbose=FALSE)
+{
+  # check object
+  if (!is(object, "VoltRon"))
+    stop("'object' must be a VoltRon object")
+  
+  # check output and other related arguments
+  if (!isSingleString(rds_path) || rds_path == "")
+    stop("'rds_path' must be a a non-empty string ",
+         "specifying the path to the RDS file ",
+         "where to write the ", class(object), " object")
+  if (!isSingleString(ondisk_path) || ondisk_path == "")
+    stop("'ondisk_path' must be a a non-empty string ",
+         "specifying the path to the HDF5 file ",
+         "where to write the assays of the ", class(object), " object")
+  if (!isTRUEorFALSE(verbose))
+    stop("'verbose' must be TRUE or FALSE")
+  
+  if(format == "HDF5VoltRon"){
+    object <- write_h5_samples(object, assay = assay, h5_path = ondisk_path, chunkdim, level, as.sparse, verbose)
+  } else if(format == "ZarrVoltRon"){
+    object <- write_zarr_samples(object, assay = assay, zarr_path = ondisk_path, chunkdim, level, as.sparse, verbose)
+  } else {
+    stop("'format' should be either 'HDF5VoltRon' or 'ZarrVoltRon'")
+  }
+  invisible(object)
+}
+
+.read_VoltRon <- function(rds_path)
+{
+  # check rds file
+  if (!file.exists(rds_path))
+    stop(paste0("file not found: ", rds_path))
+  if (dir.exists(rds_path))
+    stop(paste0("'", rds_path, "' is a directory, not a file"))
+  
+  # check VoltRon object
+  object <- readRDS(rds_path)
+  if (!is(object, "VoltRon"))
+    stop(paste0("the object serialized in \"", rds_path, "\" is not ",
+                "a VoltRon object"))
+  
+  # get dir name
+  dir <- dirname(rds_path)
+  
+  # assay_names 
+  assay_names <- vrAssayNames(object, assay = "all")
+  
+  # restore assay links
+  for(assy in assay_names)
+    object[[assy]] <- restore_absolute_assay_links(object[[assy]], dir)
+  
+  # return object
+  object
+}
+
+####
+## shorten links ####
+####
 
 shorten_assay_links <- function(object)
 {
@@ -195,73 +272,121 @@ shorten_assay_links_images <- function(object){
   }
   
   # return
+  return(object)
+}
+
+####
+## restore links ####
+####
+
+restore_absolute_assay_links <- function(object, dir){
+  
+  # check if there is a data or rawdata slot in assay object
+  catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
+  catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
+  
+  # get data with a specific feature
+  if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
+    
+    feature_types <- vrFeatureTypeNames(object)
+    for(feat in feature_types){
+      
+      object@data[[feat]] <- modify_seeds(object@data[[feat]],
+                                          function(x) {
+                                            restore_absolute_links(x, dir)
+                                          })
+      object@data[[paste0(feat, "_norm")]] <- modify_seeds(object@data[[paste0(feat, "_norm")]],
+                                                           function(x) {
+                                                             restore_absolute_links(x, dir)
+                                                           })  
+      
+    }
+    
+  } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
+    object@rawdata <- modify_seeds(object@rawdata,
+                                   function(x) {
+                                     restore_absolute_links(x, dir)
+                                     x
+                                   })
+    object@normdata <- modify_seeds(object@normdata,
+                                    function(x) {
+                                      restore_absolute_links(x, dir)
+                                    })  
+  }
+  
+  # images
+  object <- restore_absolute_assay_links_images(object, dir)
+  
+  # return
   object
 }
 
-modify_seeds <- function (x, FUN, ...) 
-{
-  if (is(x, "DelayedUnaryOp")) {
-    x@seed <- modify_seeds(x@seed, FUN, ...)
+restore_absolute_assay_links_images <- function(object, dir){
+  
+  # for each spatial system
+  spatial_names <- vrSpatialNames(object)
+  for(spat in spatial_names){
+    
+    # for each channel
+    channels <- vrImageChannelNames(object, name = spat)
+    for(ch in channels){
+      
+      img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
+      img <- modify_seeds(img,
+                          function(x) {
+                            ImageArray::filepath(x) <- restore_absolute_links_images(ImageArray::filepath(x), dir)
+                            x
+                          })
+      vrImages(object, name = spat, channel = ch) <- img 
+    } 
   }
-  else if (is(x, "DelayedNaryOp")) {
-    x@seeds <- lapply(x@seeds, modify_seeds, FUN, ...)
-  }
-  else {
-    x <- FUN(x, ...)
-  }
+  
+  # return
+  return(object)
+}
+
+restore_absolute_links <- function(x, dir){
+  x@filepath <- basename(x@filepath)
+
+  # check object
+  if (!is(x, "Array"))
+    stop(wmsg(what, " is not DelayedArray"))
+  
+  # get path
+  file_path <- file.path(dir, x@filepath)
+  
+  ## file_path_as_absolute() will fail if the file does
+  ## not exist.
+  if (!file.exists(file_path))
+    stop(wmsg(what, " points to an HDF5 file ",
+              "that does not exist: ", file_path))
+  x@filepath <- file_path_as_absolute(file_path)
+  
+  # validate
+  msg <- validate_absolute_path(x@filepath, paste0("'filepath' slot of ", what))
+  if (!isTRUE(msg))
+    stop(paste0(msg))
   x
 }
 
-.write_VoltRon <- function(object, assay = NULL, format, rds_path, ondisk_path, chunkdim=NULL, level=NULL, as.sparse=NA, verbose=FALSE)
-{
-  # check object
-  if (!is(object, "VoltRon"))
-    stop("'object' must be a VoltRon object")
+restore_absolute_links_images <- function(file_path, dir){
+  file_path <- basename(file_path)
   
-  # check output and other related arguments
-  if (!isSingleString(rds_path) || rds_path == "")
-    stop("'rds_path' must be a a non-empty string ",
-         "specifying the path to the RDS file ",
-         "where to write the ", class(object), " object")
-  if (!isSingleString(ondisk_path) || ondisk_path == "")
-    stop("'ondisk_path' must be a a non-empty string ",
-         "specifying the path to the HDF5 file ",
-         "where to write the assays of the ", class(object), " object")
-  if (!isTRUEorFALSE(verbose))
-    stop("'verbose' must be TRUE or FALSE")
+  # get path
+  file_path <- file.path(dir, file_path)
   
-  if(format == "HDF5VoltRon"){
-    object <- write_h5_samples(object, assay = assay, h5_path = ondisk_path, chunkdim, level, as.sparse, verbose)
-  } else if(format == "ZarrVoltRon"){
-    object <- write_zarr_samples(object, assay = assay, zarr_path = ondisk_path, chunkdim, level, as.sparse, verbose)
-  } else {
-    stop("'format' should be either 'HDF5VoltRon' or 'ZarrVoltRon'")
-  }
-  invisible(object)
-}
-
-.read_VoltRon <- function(rds_path)
-{
-  # check rds file
-  if (!file.exists(rds_path))
-    stop(wmsg("file not found: ", rds_path))
-  if (dir.exists(rds_path))
-    stop(wmsg("'", rds_path, "' is a directory, not a file"))
+  ## file_path_as_absolute() will fail if the file does
+  ## not exist.
+  if (!file.exists(file_path))
+    stop(wmsg(what, " points to an HDF5 file ",
+              "that does not exist: ", file_path))
+  file_path <- file_path_as_absolute(file_path)
   
-  # check VoltRon object
-  ans <- readRDS(rds_path)
-  if (!is(ans, "VoltRon"))
-    stop(wmsg("the object serialized in \"", rds_path, "\" is not ",
-              "a VoltRon object"))
-  
-  # get dir name
-  dir <- dirname(rds_path)
-  
-  # restore assay links
-  ans@assays <- restore_absolute_assay2h5_links(ans@assays, dir)
-  
-  # 
-  ans
+  # validate
+  msg <- validate_absolute_path(file_path, paste0("'filepath' slot of ", what))
+  if (!isTRUE(msg))
+    stop(paste0(msg))
+  file_path
 }
 
 ####
@@ -762,8 +887,8 @@ check_and_delete_files <- function (rds_path, h5_path, replace)
 stop_if_bad_dir <- function(dir, prefix = "")
 {
   .THE_EXPECTED_STUFF <- c(
-    "an HDF5-based SummarizedExperiment object ",
-    "previously saved with saveHDF5SummarizedExperiment",
+    "an OnDisk based VoltRon object ",
+    "previously saved with saveVoltRon",
     "()"
   )
   if (prefix == "") {
@@ -776,5 +901,31 @@ stop_if_bad_dir <- function(dir, prefix = "")
              "Make sure you're using the same 'prefix' ",
              "that was used when the object was saved.")
   }
-  stop(wmsg(msg))
+  stop(paste0(msg))
+}
+
+file_path_as_absolute <- function (x) 
+{
+  if (length(x) != 1L) 
+    stop("'x' must be a single character string")
+  if (!file.exists(epath <- path.expand(x))) 
+    stop(gettextf("file '%s' does not exist", x), domain = NA)
+  normalizePath(epath, "/", TRUE)
+}
+
+validate_absolute_path <- function(path, what="'path'")
+{
+  if (!(isSingleString(path) && nzchar(path)))
+    return(paste0(what, " must be a single non-empty string"))
+  ## Check that 'path' points to an HDF5 file that is accessible.
+  if (!file.exists(path))
+    return(paste0(what, " (\"", path, "\") must be the path to ",
+                  "an existing HDF5 file"))
+  if (dir.exists(path))
+    return(paste0(what, " (\"", path, "\") must be the path to ",
+                  "an HDF5 file, not a directory"))
+  if (path != file_path_as_absolute(path))
+    return(paste0(what, " (\"", path, "\") must be the absolute ",
+                  "canonical path the HDF5 file"))
+  TRUE
 }
