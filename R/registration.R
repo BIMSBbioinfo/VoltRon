@@ -1505,6 +1505,38 @@ cropImage <- function(image, geometry){
   image
 }
 
+#' resizeImage
+#'
+#' resize images
+#'
+#' @param image a magick image or DelayedArray object
+#' @param geometry a geometry string specifying area (for cropping) or size (for resizing).
+#' 
+#' @importFrom magick image_resize image_info image_read geometry_size_percent
+#'
+#' @noRd
+resize_Image <- function(image, geometry){
+  
+  if(inherits(image, "magick-image")){
+    image <- magick::image_resize(image, geometry = geometry)
+  } else if(inherits(image, "Image_Array")){
+    
+    # get scale factor 
+    scale_factor <- as.numeric(gsub("%$", "", geometry))/100
+    
+    # get scaled array 
+    image_info_large <- getImageInfo(image)
+    scaled_image_info <- ceiling(image_info_large*scale_factor)
+    image <- as.array(image, min.pixel.size = max(scaled_image_info))
+    
+    # convert to magick image
+    image <- magick::image_read(array(as.raw(image), dim = dim(image)))
+    image_info <- magick::image_info(image)
+    image <- magick::image_resize(image, geometry = geometry_size_percent(100*scaled_image_info[1]/image_info$width))
+  }
+  image
+}
+
 #' transformImage
 #'
 #' Apply given transformations to a magick image
@@ -1963,7 +1995,7 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
 
   # reference and target landmarks/keypoints
   mapping <- list()
-  aligned_image <- image_list[[query_ind]]
+  query_image <- image_list[[query_ind]]
   for(kk in 1:nrow(mapping_mat)){
     cur_map <- mapping_mat[kk,]
     ref_image <- image_list[[cur_map[2]]]
@@ -1978,7 +2010,7 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
     }
 
     # get channels 
-    aligned_image <- aligned_image[[input[[paste0("channel_", query_label, "_image", cur_map[1])]]]]
+    query_image <- query_image[[input[[paste0("channel_", query_label, "_image", cur_map[1])]]]]
     ref_image <- ref_image[[input[[paste0("channel_", ref_label, "_image", cur_map[2])]]]]
     
     # scale parameters
@@ -1986,11 +2018,13 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
     ref_scale <- input[[paste0("scale_", ref_label, "_image", cur_map[2])]]
 
     # scale images
-    aligned_image <- magick::image_resize(aligned_image, geometry = magick::geometry_size_percent(100*query_scale))
-    ref_image <- magick::image_resize(ref_image, geometry = magick::geometry_size_percent(100*ref_scale))
+    # query_image <- magick::image_resize(query_image, geometry = magick::geometry_size_percent(100*query_scale))
+    # ref_image <- magick::image_resize(ref_image, geometry = magick::geometry_size_percent(100*ref_scale))
+    query_image <- resize_Image(query_image, geometry = magick::geometry_size_percent(100*query_scale))
+    ref_image <- resize_Image(ref_image, geometry = magick::geometry_size_percent(100*ref_scale))
 
     # register images with OpenCV
-    reg <- getRcppAutomatedRegistration(ref_image = ref_image, query_image = aligned_image,
+    reg <- getRcppAutomatedRegistration(ref_image = ref_image, query_image = query_image,
                                         GOOD_MATCH_PERCENT = as.numeric(input$GOOD_MATCH_PERCENT), MAX_FEATURES = as.numeric(input$MAX_FEATURES),
                                         invert_query = input[[paste0("negate_", query_label, "_image", cur_map[1])]] == "Yes",
                                         invert_ref = input[[paste0("negate_", ref_label, "_image", cur_map[2])]] == "Yes",
