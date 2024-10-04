@@ -205,7 +205,7 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
       }
     }
   }
-  raw_counts <- raw_counts[,cell_to_spot_id]
+  raw_counts <- raw_counts[,cell_to_spot_id, drop = FALSE]
 
   # pool cell counts to Spots
   cat("Aggregating cell profiles in spots \n")
