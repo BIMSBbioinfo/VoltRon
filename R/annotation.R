@@ -11,7 +11,7 @@
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param annotation_assay name of the annotation assay ()
-#' @param use.image if TRUE, use only the image
+#' @param use.image.only if TRUE, use only the image
 #' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
 #' @param image_name the name/key of the image
 #' @param channel the name of the main channel
@@ -27,11 +27,11 @@
 #' 
 #' @examples
 #' # Annotate based on images
-#' visium_data <- annotateSpatialData(visium_data, use.image = TRUE)
+#' visium_data <- annotateSpatialData(visium_data, use.image.only = TRUE)
 #' 
 #' # Annotate based on spatial plot
 #' xenium_data <- annotateSpatialData(xenium_data, group.by = "clusters")
-annotateSpatialData <- function(object, label = "annotation", assay = NULL, annotation_assay = "ROIAnnotation", use.image = FALSE, 
+annotateSpatialData <- function(object, label = "annotation", assay = NULL, annotation_assay = "ROIAnnotation", use.image.only = FALSE, 
                                 shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive())), image_name = NULL, channel = NULL, ...) {
   
   if(!inherits(object, "VoltRon"))
@@ -63,15 +63,18 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
   }
   
   # get image
-  if(use.image){
-    # g <- magick::image_ggplot(vrImages(object, assay = assay, name = image_name, channel = channel)) + labs(title = "")
-    img <- vrImages(object, assay = assay, name = image_name, channel = channel, as.raster = TRUE)
-    if(!inherits(img, "Image_Array")){
-      img <- magick::image_read(img)
-    }
-    g <- plotImage(img) + labs(title = "")
-  } else{
-    g <- vrSpatialPlot(object, assay = assay, background = c(image_name, channel), scale.image = FALSE, ...) + labs(title = "")
+  max.pixel.size <- 1200
+  img <- vrImages(object[[assay]], name = image_name, channel = channel, as.raster = TRUE)
+  if(!inherits(img, "Image_Array")){
+    img <- magick::image_read(img)
+  }
+  imginfo <- getImageInfo(img)
+  # g <- plotImage(img) + labs(title = "")
+  
+  if(!use.image.only){
+    # get spatial plot
+    g_spatial <- vrSpatialPlot(object, assay = assay, background = c(image_name, channel), scale.image = FALSE, ...)
+    g_spatial <- g_spatial$layers[[2]]
   }
   
   # get segmentations (if exists) from the same layer
@@ -182,17 +185,24 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
     # initialize annotation segments 
     selected_corners_list <- reactiveVal(segments)
     selected_corners <- reactiveVal(data.frame(x = numeric(0), y = numeric(0)))
-    ranges <- reactiveValues(x = g$coordinates$limits$x, y = g$coordinates$limits$y)
-    
+
     ## Point click, double click event and zoom ####
+    # ranges <- reactiveValues(x = g$coordinates$limits$x, y = g$coordinates$limits$y)
+    ranges <- reactiveValues(x = c(0, imginfo$width), y = c(0, imginfo$height))
+    # ranges <- reactiveValues(x = c(0, max.pixel.size), 
+    #                          y = c(0, ceiling(imginfo$height*(max.pixel.size/imginfo$width))))
     observeEvent(input$plot_dblclick, {
       brush <- isolate(input$plot_brush)
       if (!is.null(brush)) {
         ranges$x <- c(brush$xmin, brush$xmax)
         ranges$y <- c(brush$ymin, brush$ymax)
       } else {
-        ranges$x <- g$coordinates$limits$x
-        ranges$y <- g$coordinates$limits$y
+        # ranges$x <- g$coordinates$limits$x
+        # ranges$y <- g$coordinates$limits$y
+        ranges$x <- c(0, imginfo$width)
+        ranges$y <- c(0, imginfo$height)
+        # ranges$x <- c(0, max.pixel.size)
+        # ranges$y <- c(0, ceiling(imginfo$height*(max.pixel.size/imginfo$width)))
       }
     })
     observeEvent(input$plot_click, {
@@ -329,15 +339,15 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
       }
     })
     
-    
-    # # Output the values of the textboxes
-    # output$textboxesValues <- renderPrint({
-    #   sapply(textboxes(), function(i) input[[paste0("region", i)]])
-    # })
-    
     ## image output ####
     
     output$image_plot <- renderPlot({
+      
+      # get image and plot
+      g <- plotImage(img, max.pixel.size = NULL) + labs(title = "")
+      if(!use.image.only){
+        g <- g + g_spatial 
+      }
       
       # visualize already selected polygons
       if(length(selected_corners_list()) > 0){
@@ -366,7 +376,8 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
         if(nrow(selected_corners()) == 2){
           circle <- makeCircleData(selected_corners())
           g <- g +
-            ggforce::geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0), data = circle, alpha = input$alpha, color = "red", fill = "red") +
+            ggforce::geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0), 
+                                  data = circle, alpha = input$alpha, color = "red", fill = "red") +
             coord_equal(xlim = ranges$x, ylim = ranges$y, ratio = 1)
         }
       }
@@ -482,6 +493,10 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
   )
 }
 
+####
+# Shiny Utilities ####
+####
+
 #' internal Text input with button
 #' 
 #' Reproduced since it is not exported in the Shiny namespace.
@@ -521,6 +536,10 @@ shinyInputLabel <- function(inputId, label=NULL) {
              `for` = inputId
   )
 }
+
+####
+# Auxiliary ####
+####
 
 #' makeCircleData
 #' 

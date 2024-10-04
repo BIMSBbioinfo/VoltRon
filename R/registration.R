@@ -1362,8 +1362,10 @@ plotImage <- function(image, max.pixel.size = NULL){
   
   if(inherits(image, "magick-image")){
     imageinfo <- getImageInfo(image)
-    if(max(imageinfo$width, imageinfo$height) > max.pixel.size){
-      image <- magick::image_resize(image, geometry = as.character(max.pixel.size))
+    if(!is.null(max.pixel.size)){
+      if(max(imageinfo$width, imageinfo$height) > max.pixel.size){
+        image <- magick::image_resize(image, geometry = as.character(max.pixel.size))
+      } 
     }
     imgggplot <- magick::image_ggplot(image)
   } else if(inherits(image, "Image_Array")){

@@ -4,3 +4,4 @@ rm -Rf .depsrm -Rf .deps
 rm -Rf .deps
 rm -Rf .deps
 rm -Rf .deps
+rm -Rf .deps
