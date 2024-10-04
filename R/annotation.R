@@ -59,13 +59,17 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
   
   # get image name and channel
   if(is.null(image_name)){
-    # image_name <- vrMainImage(object[[assay]])
     image_name <- vrMainSpatial(object[[assay]])
   }
   
   # get image
   if(use.image){
-    g <- magick::image_ggplot(vrImages(object, assay = assay, name = image_name, channel = channel)) + labs(title = "")
+    # g <- magick::image_ggplot(vrImages(object, assay = assay, name = image_name, channel = channel)) + labs(title = "")
+    img <- vrImages(object, assay = assay, name = image_name, channel = channel, as.raster = TRUE)
+    if(!inherits(img, "Image_Array")){
+      img <- magick::image_read(img)
+    }
+    g <- plotImage(img) + labs(title = "")
   } else{
     g <- vrSpatialPlot(object, assay = assay, background = c(image_name, channel), scale.image = FALSE, ...) + labs(title = "")
   }

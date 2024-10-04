@@ -206,6 +206,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 #'
 #' @import ggplot2
 #' @importFrom igraph get.data.frame
+#' @importFrom magick image_info image_read
 #'
 #' @noRd
 vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, graph = NULL,
@@ -228,13 +229,22 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   background <- background[1]
   # if(background %in% vrImageNames(assay)){
   if(background %in% vrSpatialNames(assay)){ 
-    image <- vrImages(assay, name = background, channel = channel)
+    
+    # get image
+    image <- vrImages(assay, name = background, channel = channel, as.raster = TRUE)
+    if(!inherits(image, "Image_Array")){
+      image <- magick::image_read(image)
+    }
+    
     if(!is.null(image)){
-      info <- image_info(image)
+      # info <- magick::image_info(image)
+      info <- getImageInfo(image)
       if(info$width > 1000 && scale.image){
-        image <- magick::image_resize(image, geometry = "1000x")
+        # image <- magick::image_resize(image, geometry = "1000x")
+        image <- resize_Image(image, geometry = "1000x")
         scale_factors <- info$width/1000
-        info <- magick::image_info(image)
+        # info <- magick::image_info(image)
+        info <- getImageInfo(image)
       }
       g <- g +
         ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
@@ -670,13 +680,22 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   background <- background[1]
   # if(background %in% vrImageNames(assay)){
   if(background %in% vrSpatialNames(assay)){
-    image <- vrImages(assay, name = background, channel = channel)
+    
+    # get image
+    image <- vrImages(assay, name = background, channel = channel, as.raster = TRUE)
+    if(!inherits(image, "Image_Array")){
+      image <- magick::image_read(image)
+    }
+    
     if(!is.null(image)){
-      info <- image_info(image)
+      # info <- magick::image_info(image)
+      info <- getImageInfo(image)
       if(info$width > 1000 && scale.image){
-        image <- magick::image_resize(image, geometry = "1000x")
+        # image <- magick::image_resize(image, geometry = "1000x")
+        image <- resize_Image(image, geometry = "1000x")
         scale_factors <- info$width/1000
-        info <- magick::image_info(image)
+        # info <- magick::image_info(image)
+        info <- getImageInfo(image)
       }
       g <- g +
         ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
