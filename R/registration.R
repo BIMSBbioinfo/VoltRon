@@ -1369,8 +1369,6 @@ plotImage <- function(image, max.pixel.size = NULL){
     }
     imgggplot <- magick::image_ggplot(image)
   } else if(inherits(image, "Image_Array")){
-    # img_array <- as.array(image, max.pixel.size = max.pixel.size)
-    # img_raster <- as.raster_array(aperm(img_array, perm = c(3,2,1)), max = 255)]
     img_raster <- as.raster(image, max.pixel.size = max.pixel.size)
     info <- list(width = dim(img_raster)[2], height = dim(img_raster)[1])
     imgggplot <- ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x", "y")) + 
@@ -1518,7 +1516,6 @@ cropImage <- function(image, geometry){
     image <- magick::image_crop(image, geometry = geometry)
   } else if(inherits(image, "Image_Array")){
     crop_info_int <- as.integer(strsplit(geometry, split = "[x|+]")[[1]])
-    # image <- image[,crop_info_int[3]:(crop_info_int[3]+crop_info_int[1]), crop_info_int[4]:(crop_info_int[4]+crop_info_int[2]), drop = FALSE]
     image <- ImageArray::crop(image, ind = list(crop_info_int[3]:(crop_info_int[3]+crop_info_int[1]), crop_info_int[4]:(crop_info_int[4]+crop_info_int[2])))
   }
   image
