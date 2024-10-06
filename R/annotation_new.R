@@ -70,6 +70,7 @@ annotateSpatialData_new <- function(object, label = "annotation", assay = NULL, 
   # set label names
   sample_metadata <- SampleMetadata(object)
   metadata <- Metadata(object, assay = sample_metadata[assay, "Assay"])
+  coords <- vrCoordinates(object, assay = assay)
   if(label %in% colnames(metadata)){
     unique_names <- make.unique(c(colnames(metadata)[grepl(paste0("^", label), colnames(metadata))], label))
     label <- unique_names[length(unique_names)]
@@ -144,7 +145,7 @@ annotateSpatialData_new <- function(object, label = "annotation", assay = NULL, 
                     p(style="font-size: 12px;", strong("Single-L-click"), " to select polygon or circle points"),
                     p(style="font-size: 12px;", strong("Add Region"), " to set points as a new region"),
                     p(style="font-size: 12px;", strong("Circles"), " require only 2 points"),
-                    p(style="font-size: 12px;", strong("Polygons"), " require at least 3 points"),
+                    p(style="font-size: 12px;", strong("Polygons"), " require at least 4 points"),
                     br(),
                     
                     # Subsets
@@ -405,6 +406,10 @@ annotateSpatialData_new <- function(object, label = "annotation", assay = NULL, 
         coords <- t(sapply(segments, function(seg){
           apply(seg[,c("x", "y")], 2, mean)
         }, simplify = TRUE))
+        # img <- vrImages(object[[assay]], name = image_name, channel = channel, as.raster = TRUE)
+        # if(!inherits(img, "Image_Array")){
+        #   img <- magick::image_read(img)
+        # }
         new_assay <- formAssay(coords = coords, segments = segments,
                                type = "ROI",
                                image = vrImages(object, assay = assay),

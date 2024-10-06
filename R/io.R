@@ -563,7 +563,7 @@ writeHDF5ArrayInImage <- function(object,
       img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
       
       # write image
-      if(!inherits(img, "DelayedArray")){
+      if(!inherits(img, "Image_Array")){
         img <- ImageArray::writeImageArray(img,
                                            output = gsub(".h5$", "", h5_path),
                                            name = paste0(name, "/", spat, "/", ch), 
@@ -753,7 +753,7 @@ writeZarrArrayInImage <- function(object,
       img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
       
       # write image
-      if(!inherits(img, "DelayedArray")){
+      if(!inherits(img, "Image_Array")){
         img <- ImageArray::writeImageArray(img,
                                            output = gsub(".zarr$", "", zarr_path),
                                            name = paste0(name, "/", spat, "/", ch), 

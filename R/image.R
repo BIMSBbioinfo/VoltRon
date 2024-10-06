@@ -409,8 +409,9 @@ vrImages.vrImage <- function(object, channel = NULL, as.raster = FALSE, scale.pe
     } else {
 
       # get image as array if image is stored as a DelayedArray
-      if(inherits(img, "DelayedArray")){
-        img <- as.array(img@seed)
+      if(inherits(img, "Image_Array")){
+        # img <- as.array(img@seed)
+        img <- as.array(img)
         img <- array(as.raw(img), dim = dim(img))
       }
 
