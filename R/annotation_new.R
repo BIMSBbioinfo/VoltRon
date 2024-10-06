@@ -201,8 +201,6 @@ annotateSpatialData_new <- function(object, label = "annotation", assay = NULL, 
     output$image_plot <- renderPlot({
       
       # get image and plot
-      # img <- ImageArray::crop(img, ind = list(ranges$x,
-      #                                         sort(imginfo$height - ranges$y, decreasing = FALSE)))
       zoom_info <- FromBoxToCrop(cbind(ranges$x, ranges$y), imageinfo = imginfo)
       img <- cropImage(img, zoom_info)
       g <- plotImage(img, max.pixel.size = max.pixel.size) + labs(title = "")
@@ -242,14 +240,15 @@ manageImageBrushOptions <- function(image, ranges, max.pixel.size, input, output
       # get brush
       brush_mat <- data.frame(x = c(brush$xmin, brush$xmax), 
                               y = c(brush$ymin, brush$ymax))
-
-      # if width is large, then correct the brush event for the downsize effect
+      
+      # if width is large, then correct the brush event for the downsize (scaling) effect
       limits <- data.frame(x = ranges$x, y = ranges$y)
       width <- limits[2,1]-limits[1,1]
       height <- limits[2,2]-limits[1,2]
+      print(paste("width:", width, "height:", height, sep = " "))
       if(max(height,width) > max.pixel.size){
-        if(inherits(img, "Image_Array")){
-          n.series <- ImageArray::len(img)
+        if(inherits(image, "Image_Array")){
+          n.series <- ImageArray::len(image)
           cur_width <- width
           cur_height <- height
           for(ii in 2:n.series){
@@ -268,10 +267,10 @@ manageImageBrushOptions <- function(image, ranges, max.pixel.size, input, output
       # correct brush for the zoom effect
       brush_mat[,1] <- brush_mat[,1] + limits[1,1]
       brush_mat[,2] <- brush_mat[,2] + limits[1,2]
-      # brush_mat[1,1] <- floor(brush_mat[1,1])
-      # brush_mat[1,2] <- floor(brush_mat[1,2])
-      # brush_mat[2,1] <- ceiling(brush_mat[2,1])
-      # brush_mat[2,2] <- ceiling(brush_mat[2,2])
+      brush_mat[1,1] <- floor(brush_mat[1,1])
+      brush_mat[1,2] <- floor(brush_mat[1,2])
+      brush_mat[2,1] <- ceiling(brush_mat[2,1])
+      brush_mat[2,2] <- ceiling(brush_mat[2,2])
 
       # update ranges
       ranges$x <- brush_mat[,1]
