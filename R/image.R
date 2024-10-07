@@ -241,9 +241,9 @@ subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
       
       # check if the image is either ondisk or inmemory
       img_data <- object@image[[img]]
-      if(inherits(img_data, "DelayedArray")){
+      if(inherits(img_data, "Image_Array")){
         crop_info_int <- as.integer(strsplit(image, split = "[x|+]")[[1]])
-        img_data <- img_data[,crop_info_int[3]:(crop_info_int[3]+crop_info_int[1]), crop_info_int[4]:(crop_info_int[4]+crop_info_int[2]), drop = FALSE]
+        img_data <- ImageArray::crop(img_data, ind = list(crop_info_int[3]:(crop_info_int[3]+crop_info_int[1]), crop_info_int[4]:(crop_info_int[4]+crop_info_int[2])))
         object@image[[img]] <- img_data
       } else {
         img_data <- magick::image_read(img_data)
@@ -1440,10 +1440,6 @@ demuxVoltRon <- function(object, max.pixel.size = 1200, use.points.only = FALSE,
   if(!inherits(images, "Image_Array")){
     images <- magick::image_read(images)
   }
-
-  # scale
-  # scale_width_char <- paste0(max.pixel.size, "x")
-  # images <- magick::image_scale(images, scale_width_char)
   
   # scale 
   imageinfo <- getImageInfo(images)
@@ -1684,7 +1680,7 @@ demuxVoltRon <- function(object, max.pixel.size = 1200, use.points.only = FALSE,
         
         # collect labels
         sample_names <- sapply(1:length(box_list$box), function(i) input[[paste0("sample",i)]])
-        
+
         # check if sample names are present
         if(any(sample_names == "")) {
           showNotification("Some subsets have blank (empty!) sample names.")
