@@ -12,7 +12,7 @@ Encoding: UTF-8
 RoxygenNote: 7.3.2
 biocViews:
 Imports: methods, S4Arrays, grDevices, data.table, EBImage, FNN, RANN, Matrix, dplyr, ggplot2,
-         ggrepel, hdf5r, igraph, irlba, rjson, magick, ids, sp, reshape2, rlang, 
+         ggrepel, igraph, irlba, rjson, magick, ids, sp, reshape2, rlang, 
          ggpubr, shiny, shinyjs, stringr, uwot, RCDT, basilisk, reticulate
 LinkingTo: Rcpp, RcppArmadillo (>= 0.4)
 Collate: 
