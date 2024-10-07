@@ -299,8 +299,8 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
       img <- cropImage(img, zoom_info)
       g <- plotImage(img, max.pixel.size = max.pixel.size) + labs(title = "")
       if(!use.image.only){
-        # g_spatial <- g_spatial + coord_equal(xlim = ranges$x, ylim = ranges$y, ratio = 1)
-        g <- g + g_spatial 
+        g_spatial_clone <- cloneLayer(g_spatial)
+        g <- g + transformSpatialLayer(g_spatial_clone, ranges)
       }
       
       # visualize currently selected corners ####
@@ -406,10 +406,6 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
         coords <- t(sapply(segments, function(seg){
           apply(seg[,c("x", "y")], 2, mean)
         }, simplify = TRUE))
-        # img <- vrImages(object[[assay]], name = image_name, channel = channel, as.raster = TRUE)
-        # if(!inherits(img, "Image_Array")){
-        #   img <- magick::image_read(img)
-        # }
         new_assay <- formAssay(coords = coords, segments = segments,
                                type = "ROI",
                                image = vrImages(object, assay = assay),
@@ -611,6 +607,23 @@ transformSelectedCorners <- function(selected_corners, image, ranges, max.pixel.
   
   # return
   selected_corners
+}
+
+transformSpatialLayer <- function(g_spatial, ranges){
+  
+  # correct for zoom
+  ind <- (g_spatial$data$x > ranges$x[1] & g_spatial$data$x < ranges$x[2]) & (g_spatial$data$y > ranges$y[1] & g_spatial$data$y < ranges$y[2])
+  g_spatial$data <- g_spatial$data[ind,]
+  
+  # is.na
+  g_spatial$data <- na.omit(g_spatial$data)
+  
+  # correct for offset
+  g_spatial$data$x <- g_spatial$data$x - min(g_spatial$data$x)
+  g_spatial$data$y <- g_spatial$data$y - min(g_spatial$data$y)
+  
+  # return
+  g_spatial
 }
 
 ####

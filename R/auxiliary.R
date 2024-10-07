@@ -629,3 +629,428 @@ as.raster_array <- function (x, max = 1, ...)
   class(r) <- "raster"
   r
 }
+
+
+####
+## ggedit tools ####
+## See https://github.com/yonicd/ggedit/tree/master/R
+####
+
+#' @title ggplot2 layer proto extraction
+#' @description Extract geom, stat and position protos from a ggplot2 layer
+#' @param l ggproto
+#' @return data.frame
+proto_features <- function(l) {
+  a <- sapply(c("position", "geom", "stat"), function(x) {
+    class(l[[x]])[1]
+  })
+  
+  data.frame(t(a), stringsAsFactors = FALSE)
+}
+
+# forked from https://github.com/yihui/knitr/blob/master/R/defaults.R
+#' @importFrom stats setNames
+new_defaults <- function(value = list()) {
+  defaults <- value
+  
+  get <- function(name, default = FALSE, drop = TRUE, regex=FALSE, ...) {
+    if (default) defaults <- value # this is only a local version
+    if (missing(name)) {
+      defaults
+    } else {
+      if (drop && length(name) == 1) {
+        if (regex) {
+          name_grep <- grep(name, names(defaults), value = TRUE, ...)
+          stats::setNames(defaults[name_grep], name_grep)
+        } else {
+          defaults[[name]]
+        }
+      } else {
+        stats::setNames(defaults[name], name)
+      }
+    }
+  }
+  
+  set <- function(...) {
+    dots <- list(...)
+    if (length(dots) == 0) return()
+    if (is.null(names(dots)) && length(dots) == 1 && is.list(dots[[1]])) {
+      if (length(dots <- dots[[1]]) == 0) {
+        return()
+      }
+    }
+    defaults <<- merge(dots)
+    invisible(NULL)
+  }
+  
+  merge <- function(values) merge_list(defaults, values)
+  
+  restore <- function(target = value) defaults <<- target
+  
+  append <- function(...) {
+    dots <- list(...)
+    if (length(dots) == 0) return()
+    if (is.null(names(dots)) && length(dots) == 1 && is.list(dots[[1]])) {
+      if (length(dots <- dots[[1]]) == 0) {
+        return()
+      }
+    }
+    dots <- sapply(names(dots), function(x) dots[[x]] <- c(defaults[[x]], dots[[x]]), simplify = FALSE)
+    defaults <<- merge(dots)
+    invisible(NULL)
+  }
+  
+  list(get = get, set = set, append = append, merge = merge, restore = restore)
+}
+
+#' @title Creates an independent copy of a ggplot layer object
+#' @description Creates copies of ggplot layers from within ggplot objects that
+#' are independent of the parent object.
+#' @details ggplot objects are comprimsed of layer objects. Once compiled they
+#' are part of the plot object environment and if they are changed internally
+#' regardless of where they are in the (ie different environment) it will change
+#' the original plot. This function allows to create replicates of the plot layers
+#' and edit them independent of the original plot. When setting verbose to TRUE
+#' function returns the ggplot2 call as a string to paste in regular ggplot script
+#' to generate the layer.
+#' @param l ggplot2 object layer
+#' @param verbose toggle to control if the output is ggproto object (verbose==FALSE,default) or string of layer call (verbose==TRUE)
+#' @param showDefaults toggle to control if the verbose output shows all the input arguments passed to the proto object (if verbose==FALSE then ignored)
+#' @return ggproto or string object (conditional on verbose)
+#' @examples
+#' p <- ggplot2::ggplot(iris,ggplot2::aes(x =Sepal.Length,y=Sepal.Width))
+#'
+#' p <- p + 
+#' ggplot2::geom_point(ggplot2::aes(colour='Species')) + 
+#' ggplot2::geom_line()
+#'
+#' p$layers[[1]]
+#'
+#' newLayer <- cloneLayer(l=p$layers[[1]])
+#' 
+#' (v <- cloneLayer(l=p$layers[[1]],verbose=TRUE))
+#'
+#' eval(parse(text=v))
+#'
+#' @importFrom utils capture.output
+#' @importFrom rlang sym '!!'
+cloneLayer <- function (l, verbose = FALSE, showDefaults = TRUE) 
+{
+  geom_opts <- ggedit_opts$get("session_geoms")
+  parent.layer <- dplyr::left_join(proto_features(l), dplyr::filter(geom_opts, 
+                                                                    !grepl("^stat", !!rlang::sym("fn"))), by = c("position", 
+                                                                                                                 "geom", "stat"))
+  if (is.na(parent.layer$fn)) 
+    parent.layer$fn <- paste0(tolower(strsplit(parent.layer$stat, 
+                                               "(?<=Stat)", perl = TRUE)[[1]]), collapse = "_")
+  layer.names <- c("mapping", "data", "geom", "position", "stat", 
+                   "show.legend", "inherit.aes", "aes_params", "geom_params", 
+                   "stat_params")
+  x <- sapply(layer.names, function(y) {
+    b <- l[[y]]
+    if ("waiver" %in% class(b)) 
+      b <- NULL
+    if (y == "geom") 
+      b <- eval(parse(text = parent.layer$geom))
+    if (y == "position") 
+      b <- gsub(y, "", tolower(class(b)[1]))
+    if (y == "stat") 
+      b <- eval(parse(text = parent.layer$stat))
+    b
+  })
+  x$params <- append(x$stat_params, x$geom_params)
+  x$params <- append(x$params, x$aes_params)
+  x$params <- x$params[!duplicated(names(x$params))]
+  x$geom_params <- x$aes_params <- x$stat_params <- NULL
+  if (verbose) {
+    nm <- names(x)
+    nm <- nm[!sapply(x, typeof) %in% c("environment", "closure", 
+                                       "list")]
+    geom_aes <- list(geom = parent.layer$fn, mapping = sapply(names(x$mapping), 
+                                                              build_map, y = x$mapping), params = sapply(names(x$params), 
+                                                                                                         build_map, y = x$params), layer = sapply(rev(nm), 
+                                                                                                                                                  build_map, y = x[rev(nm)]), data = paste0("data = ", 
+                                                                                                                                                                                            paste0(capture.output(dput(x$data)), collapse = "\n")))
+    strRet <- sprintf("%s(mapping=aes(%s),%s,%s)", paste0(geom_aes$geom, 
+                                                          collapse = ","), paste0(geom_aes$mapping, collapse = ","), 
+                      paste0(geom_aes$params, collapse = ","), paste0(geom_aes$layer, 
+                                                                      collapse = ","))
+    if (!showDefaults) {
+      geom_proto <- cloneProto(eval(parse(text = paste0(geom_aes$geom, 
+                                                        "()"))))
+      geom_diff <- sapply(names(geom_aes)[-1], function(x) geom_aes[[x]][!geom_aes[[x]] %in% 
+                                                                           geom_proto[[x]]])
+      strRet <- sprintf("%s(aes(%s),%s,%s,%s)", paste0(geom_aes$geom, 
+                                                       collapse = ","), paste0(geom_diff$mapping, collapse = ","), 
+                        paste0(geom_diff$params, collapse = ","), paste0(geom_diff$layer, 
+                                                                         collapse = ","), geom_aes$data)
+    }
+    strRet <- gsub("aes()", "", strRet, fixed = T)
+    strRet <- gsub("[,]{2,}", ",", strRet)
+    strRet <- gsub("data=NULL", "", strRet)
+    strRet <- gsub(",)", ")", strRet)
+    strRet <- gsub("\\(,", "(", strRet)
+    strRet
+  }
+  else {
+    do.call(layer, x)
+  }
+}
+
+#' @import dplyr
+#' @importFrom rlang sym '!!'
+#' @importFrom scales col2hcl
+cloneProto <- function(l) {
+  
+  geom_opts <- ggedit_opts$get("session_geoms")
+  
+  parent.layer <- proto_features(l)  |> 
+    dplyr::left_join(
+      geom_opts  |>  dplyr::filter(!grepl("^stat", !!rlang::sym('fn'))),
+      by = c("position", "geom", "stat")
+    )
+  
+  if (is.na(parent.layer$fn)) {
+    parent.layer$fn <- paste0(tolower(strsplit(parent.layer$stat, "(?<=Stat)", perl = TRUE)[[1]]), collapse = "_")
+  }
+  
+  layer.names <- c("mapping", "data", "geom", "position", "stat", "show.legend", "inherit.aes", "aes_params", "geom_params", "stat_params")
+  
+  x <- sapply(layer.names, function(y) {
+    b <- l[[y]]
+    
+    if ("waiver" %in% class(b)) {
+      b = NULL
+    }
+    
+    if (y == "geom") {
+      b <- eval(parse(text = parent.layer$geom))
+    }
+    
+    if (y == "position") {
+      b <- gsub(y, "", tolower(class(b)[1]))
+    }
+    
+    if (y == "stat") {
+      b <- eval(parse(text = parent.layer$stat))
+    }
+    
+    b
+  })
+  
+  x$params <- append(x$stat_params, x$geom_params)
+  x$params <- append(x$params, x$aes_params)
+  x$params <- x$params[!duplicated(names(x$params))]
+  
+  x$geom_params <- x$aes_params <- x$stat_params <- NULL
+  
+  fn <- parent.layer$fn
+  
+  g <- paste0(fn, "()")
+  g <- eval(parse(text = g))
+  nm <- names(x)
+  
+  nm <- nm[!sapply(x, typeof) %in% c("environment", "closure", "list")]
+  
+  geom_aes <- list(
+    geom = fn,
+    mapping = sapply(names(x$mapping), build_map,y = x$mapping),
+    params = sapply(names(x$params), build_map, y = x$params),
+    layer = sapply(rev(nm), build_map, y = x[rev(nm)])
+  )
+  
+  nDF <- cbind(names(g$geom$default_aes), paste(g$geom$default_aes))
+  nDF[grep("colour|fill|color", nDF[, 1]), 2] <- paste0("'", scales::col2hcl(nDF[grep("colour|fill|color", nDF[, 1]), 2], alpha = NULL), "'")
+  
+  geom_aes$default <- paste0(apply(nDF, 1, function(x) paste0(x, collapse = "=")))
+  
+  geom_aes
+}
+
+#' @title Default and current ggedit options
+#'
+#' @description Options for functions in the ggedit package. When running R code, the object \code{ggedit_opts}
+#' (default options) is not modified by chunk headers (local chunk options are
+#' merged with default options), whereas \code{ggedit_opts_current} (current options)
+#' changes with different chunk headers and it always reflects the options for
+#' the current chunk.
+#'
+#' Normally we set up the global options once in the first code chunk in a
+#' document using \code{ggedit_opts$set()}, so that all \emph{latter} chunks will
+#' use these options. Note the global options set in one chunk will not affect
+#' the options in this chunk itself, and that is why we often need to set global
+#' options in a separate chunk.
+#' 
+#' @note \code{ggedit_opts_current} is read-only in the sense that it does nothing if
+#'   you call \code{ggedit_opts_current$set()}; you can only query the options via
+#'   \code{ggedit_opts_current$get()}.
+#' @rdname ggeditOpts
+#' @examples ggedit_opts$get('themeDefaultClass')
+ggedit_opts <- new_defaults(list(
+  fontDefaults = c(
+    "sans",
+    "Canonical",
+    "mono",
+    "Courier",
+    "Helvetica",
+    "serif",
+    "Times",
+    "AvantGarde",
+    "Bookman",
+    "Helvetica-Narrow",
+    "NewCenturySchoolbook",
+    "Palatino",
+    "URWGothic",
+    "URWBookman",
+    "NimbusMon",
+    "URWHelvetica",
+    "NimbusSan",
+    "NimbusSanCond",
+    "CenturySch",
+    "URWPalladio",
+    "URWTimes",
+    "NimbusRom"
+  ),
+  slideDefaults = list(
+    alpha = c(min = 0, max = 1),
+    size = c(min = 0, max = 10),
+    shape = c(min = 1, max = 25),
+    stroke = c(min = 0, max = 10),
+    weight = c(min = 0, max = 10),
+    linetype = c(min = 1, max = 5),
+    width = c(min = 0, max = 1),
+    angle = c(min = 0, max = 360),
+    hjust = c(min = -10, max = 10),
+    vjust = c(min = -10, max = 10),
+    stroke = c(min = 0, max = 10),
+    lineheight = c(min = 0, max = 10),
+    linewidth = c(min = 0, max = 5),
+    fontface = c(min = 1, max = 4),
+    rel_min_height = c(min = 0, max = 1),
+    scale = c(min = 0, max = 100)
+  ),
+  themeTips = list(
+    element_rect = list(
+      fill = "fill colour",
+      colour = "border colour",
+      size = "border size (in pts)",
+      linetype = paste0(
+        paste(
+          seq(0, 6),
+          c(
+            "blank", "solid", "dashed", "dotted", "dotdash",
+            "longdash", "twodash"
+          ), sep = ": "
+        ),
+        collapse = ", "
+      )
+    ),
+    element_line = list(
+      colour = "line colour",
+      size = "numeric (in pts) or \n relative to global size rel(numeric)",
+      linetype = paste0(
+        paste(
+          seq(0, 6),
+          c(
+            "blank", "solid", "dashed", "dotted", "dotdash",
+            "longdash", "twodash"
+          ), sep = ": "
+        ),
+        collapse = ", "
+      ),
+      lineend = c("butt(default),round,square")
+    ),
+    element_text = list(
+      family = shiny::HTML('<a href="http://www.cookbook-r.com/Graphs/Fonts/" target="_blank">font family</a>'),
+      face = 'font face ("plain", "italic", "bold", "bold.italic")',
+      colour = "text colour",
+      size = "text size (in pts)",
+      hjust = "horizontal justification (in [0, 1])",
+      vjust = "vertical justification (in [0, 1])",
+      angle = "angle (in [0, 360])",
+      lineheight = "numeric line height"
+    ),
+    justification = list(justification = 'anchor point for positioning legend inside plot <br/> "center" or two-element numeric vector'),
+    position = list(position = 'the position of legends. <br/> "left", "right", "bottom", "top", or two-element numeric vector')
+  ),
+  
+  ThemeDefaultClass =
+    data.frame(
+      item = c("angle", "background", "caption", "colour", "face", "family", "fill", "grid.major", "grid.minor", "hjust", "justification", "key", "key.size", "line", "lineheight", "linetype", "margin", "ontop", "position", "size", "subtitle", "switch.pad.grid", "switch.pad.wrap", "text", "text.x", "text.y", "ticks", "ticks.length", "title", "title.x", "title.y", "vjust", "placement"),
+      class = c("numeric", "character", "character", "character", "character", "character", "character", "character", "character", "numeric", "character", "character", "character", "character", "numeric", "numeric", "numeric", "character", "character", "numeric", "character", "character", "character", "character", "character", "character", "numeric", "numeric", "character", "character", "character", "numeric", "character"), stringsAsFactors = FALSE
+    ),
+  session_geoms = 
+    data.frame(
+      fn = c("annotation_custom", "annotation_logticks", 
+             "annotation_map", "annotation_raster", "geom_abline", "geom_area", 
+             "geom_bar", "geom_bin2d", "geom_blank", "geom_boxplot", "geom_col", 
+             "geom_contour", "geom_count", "geom_crossbar", "geom_curve", 
+             "geom_density", "geom_density_2d", "geom_density2d", "geom_dotplot", 
+             "geom_errorbar", "geom_errorbarh", "geom_freqpoly", "geom_hex", 
+             "geom_histogram", "geom_hline", "geom_jitter", "geom_label", 
+             "geom_line", "geom_linerange", "geom_map", "geom_path", "geom_point", 
+             "geom_pointrange", "geom_polygon", "geom_qq", "geom_qq_line", 
+             "geom_quantile", "geom_raster", "geom_rect", "geom_ribbon", "geom_rug", 
+             "geom_segment", "geom_sf", "geom_smooth", "geom_spoke", "geom_step", 
+             "geom_text", "geom_tile", "geom_violin", "geom_vline", "stat_bin", 
+             "stat_bin_2d", "stat_bin_hex", "stat_bin2d", "stat_binhex", "stat_boxplot", 
+             "stat_contour", "stat_count", "stat_density", "stat_density_2d", 
+             "stat_density2d", "stat_ecdf", "stat_ellipse", "stat_function", 
+             "stat_identity", "stat_qq", "stat_qq_line", "stat_quantile", 
+             "stat_sf", "stat_smooth", "stat_sum", "stat_summary", "stat_summary_2d", 
+             "stat_summary_bin", "stat_summary_hex", "stat_unique", "stat_ydensity"),
+      geom = c("GeomCustomAnn", "GeomLogticks", "GeomAnnotationMap", 
+               "GeomRasterAnn", "GeomAbline", "GeomArea", "GeomBar", "GeomTile", 
+               "GeomBlank", "GeomBoxplot", "GeomCol", "GeomContour", "GeomPoint", 
+               "GeomCrossbar", "GeomCurve", "GeomDensity", "GeomDensity2d", 
+               "GeomDensity2d", "GeomDotplot", "GeomErrorbar", "GeomErrorbarh", 
+               "GeomPath", "GeomHex", "GeomBar", "GeomHline", "GeomPoint", "GeomLabel", 
+               "GeomLine", "GeomLinerange", "GeomMap", "GeomPath", "GeomPoint", 
+               "GeomPointrange", "GeomPolygon", "GeomPoint", "GeomPath", "GeomQuantile", 
+               "GeomRaster", "GeomRect", "GeomRibbon", "GeomRug", "GeomSegment", 
+               "GeomSf", "GeomSmooth", "GeomSpoke", "GeomStep", "GeomText", 
+               "GeomTile", "GeomViolin", "GeomVline", "GeomBar", "GeomTile", 
+               "GeomHex", "GeomTile", "GeomHex", "GeomBoxplot", "GeomContour", 
+               "GeomBar", "GeomArea", "GeomDensity2d", "GeomDensity2d", "GeomStep", 
+               "GeomPath", "GeomPath", "GeomPoint", "GeomPoint", "GeomPath", 
+               "GeomQuantile", "GeomRect", "GeomSmooth", "GeomPoint", "GeomPointrange", 
+               "GeomTile", "GeomPointrange", "GeomHex", "GeomPoint", "GeomViolin"), 
+      position = c("PositionIdentity", "PositionIdentity", "PositionIdentity", 
+                   "PositionIdentity", "PositionIdentity", "PositionStack", "PositionStack", 
+                   "PositionIdentity", "PositionIdentity", "PositionDodge2", "PositionStack", 
+                   "PositionIdentity", "PositionIdentity", "PositionIdentity", "PositionIdentity", 
+                   "PositionIdentity", "PositionIdentity", "PositionIdentity", "PositionIdentity", 
+                   "PositionIdentity", "PositionIdentity", "PositionIdentity", "PositionIdentity", 
+                   "PositionStack", "PositionIdentity", "PositionJitter", "PositionIdentity", 
+                   "PositionIdentity", "PositionIdentity", "PositionIdentity", "PositionIdentity", 
+                   "PositionIdentity", "PositionIdentity", "PositionIdentity", "PositionIdentity", 
+                   "PositionIdentity", "PositionIdentity", "PositionIdentity", "PositionIdentity", 
+                   "PositionIdentity", "PositionIdentity", "PositionIdentity", "PositionIdentity", 
+                   "PositionIdentity", "PositionIdentity", "PositionIdentity", "PositionIdentity", 
+                   "PositionIdentity", "PositionDodge", "PositionIdentity", "PositionStack", 
+                   "PositionIdentity", "PositionIdentity", "PositionIdentity", "PositionIdentity", 
+                   "PositionDodge2", "PositionIdentity", "PositionStack", "PositionStack", 
+                   "PositionIdentity", "PositionIdentity", "PositionIdentity", "PositionIdentity", 
+                   "PositionIdentity", "PositionIdentity", "PositionIdentity", "PositionIdentity", 
+                   "PositionIdentity", "PositionIdentity", "PositionIdentity", "PositionIdentity", 
+                   "PositionIdentity", "PositionIdentity", "PositionIdentity", "PositionIdentity", 
+                   "PositionIdentity", "PositionDodge"), 
+      stat = c("StatIdentity", "StatIdentity", "StatIdentity", "StatIdentity", "StatIdentity", 
+               "StatIdentity", "StatCount", "StatBin2d", "StatIdentity", "StatBoxplot", 
+               "StatIdentity", "StatContour", "StatSum", "StatIdentity", "StatIdentity", 
+               "StatDensity", "StatDensity2d", "StatDensity2d", "StatBindot", 
+               "StatIdentity", "StatIdentity", "StatBin", "StatBinhex", "StatBin", 
+               "StatIdentity", "StatIdentity", "StatIdentity", "StatIdentity", 
+               "StatIdentity", "StatIdentity", "StatIdentity", "StatIdentity", 
+               "StatIdentity", "StatIdentity", "StatQq", "StatQqLine", "StatQuantile", 
+               "StatIdentity", "StatIdentity", "StatIdentity", "StatIdentity", 
+               "StatIdentity", "StatSf", "StatSmooth", "StatIdentity", "StatIdentity", 
+               "StatIdentity", "StatIdentity", "StatYdensity", "StatIdentity", 
+               "StatBin", "StatBin2d", "StatBinhex", "StatBin2d", "StatBinhex", 
+               "StatBoxplot", "StatContour", "StatCount", "StatDensity", "StatDensity2d", 
+               "StatDensity2d", "StatEcdf", "StatEllipse", "StatFunction", "StatIdentity", 
+               "StatQq", "StatQqLine", "StatQuantile", "StatSf", "StatSmooth", 
+               "StatSum", "StatSummary", "StatSummary2d", "StatSummaryBin", 
+               "StatSummaryHex", "StatUnique", "StatYdensity"), 
+      pkg = rep("ggplot2",  77),stringsAsFactors = FALSE)
+))
