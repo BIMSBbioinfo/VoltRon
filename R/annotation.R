@@ -300,7 +300,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
       g <- plotImage(img, max.pixel.size = max.pixel.size) + labs(title = "")
       if(!use.image.only){
         g_spatial_clone <- cloneLayer(g_spatial)
-        g <- g + transformSpatialLayer(g_spatial_clone, ranges)
+        g <- g + transformSpatialLayer(g_spatial_clone, img, ranges, max.pixel.size)
       }
       
       # visualize currently selected corners ####
@@ -609,7 +609,7 @@ transformSelectedCorners <- function(selected_corners, image, ranges, max.pixel.
   selected_corners
 }
 
-transformSpatialLayer <- function(g_spatial, ranges){
+transformSpatialLayer <- function(g_spatial, image, ranges, max.pixel.size){
   
   # correct for zoom
   ind <- (g_spatial$data$x > ranges$x[1] & g_spatial$data$x < ranges$x[2]) & (g_spatial$data$y > ranges$y[1] & g_spatial$data$y < ranges$y[2])
@@ -618,7 +618,31 @@ transformSpatialLayer <- function(g_spatial, ranges){
   # is.na
   g_spatial$data <- na.omit(g_spatial$data)
   
-  # correct for offset
+  # correct for zoom effect
+  limits <- data.frame(x = ranges$x, y = ranges$y)
+  width <- limits[2,1]-limits[1,1]
+  height <- limits[2,2]-limits[1,2]
+  if(max(height,width) > max.pixel.size){
+    if(inherits(image, "Image_Array")){
+      n.series <- ImageArray::len(image)
+      cur_width <- width
+      cur_height <- height
+      for(ii in 2:n.series){
+        cur_width <- width/(2^(ii-1))
+        cur_height <- height/(2^(ii-1))
+        if(max(cur_height, cur_width) <= max.pixel.size){
+          break
+        }
+      }
+      g_spatial$data$x <- g_spatial$data$x*ceiling(cur_width)/width
+      g_spatial$data$y <- g_spatial$data$y*ceiling(cur_width)/width
+    } else {
+      g_spatial$data$x <- g_spatial$data$x*max.pixel.size/width
+      g_spatial$data$y <- g_spatial$data$y*max.pixel.size/width
+    }
+  }
+  
+  # correct for offset effect
   g_spatial$data$x <- g_spatial$data$x - min(g_spatial$data$x)
   g_spatial$data$y <- g_spatial$data$y - min(g_spatial$data$y)
   
