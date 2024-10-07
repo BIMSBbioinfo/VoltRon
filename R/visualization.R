@@ -232,7 +232,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     
     # get image
     image <- vrImages(assay, name = background, channel = channel, as.raster = TRUE)
-    if(!inherits(image, "Image_Array")){
+    if(!is.null(image) & !inherits(image, "Image_Array")){
       image <- magick::image_read(image)
     }
     

@@ -799,9 +799,8 @@ cloneLayer <- function (l, verbose = FALSE, showDefaults = TRUE)
   }
 }
 
-#' @importFrom dplyr |> left_join filter
+#' @import dplyr 
 #' @importFrom rlang sym '!!'
-#' @importFrom scales col2hcl
 #' @noRd
 cloneProto <- function(l) {
   
@@ -863,7 +862,8 @@ cloneProto <- function(l) {
   )
   
   nDF <- cbind(names(g$geom$default_aes), paste(g$geom$default_aes))
-  nDF[grep("colour|fill|color", nDF[, 1]), 2] <- paste0("'", scales::col2hcl(nDF[grep("colour|fill|color", nDF[, 1]), 2], alpha = NULL), "'")
+  # nDF[grep("colour|fill|color", nDF[, 1]), 2] <- paste0("'", scales::col2hcl(nDF[grep("colour|fill|color", nDF[, 1]), 2], alpha = NULL), "'")
+  nDF[grep("colour|fill|color", nDF[, 1]), 2] <- paste0("'", col2hcl(nDF[grep("colour|fill|color", nDF[, 1]), 2], alpha = NULL), "'")
   
   geom_aes$default <- paste0(apply(nDF, 1, function(x) paste0(x, collapse = "=")))
   
@@ -1057,3 +1057,39 @@ ggedit_opts <- new_defaults(list(
                "StatSummaryHex", "StatUnique", "StatYdensity"), 
       pkg = rep("ggplot2",  77),stringsAsFactors = FALSE)
 ))
+
+# Function to convert color to HCL and adjust components
+#' @importFrom grDevices col2rgb rgb2hsv hcl rgb
+col2hcl <- function(colour, h = NULL, c = NULL, l = NULL, alpha = NULL) {
+  # Convert color to RGB
+  rgb_col <- grDevices::col2rgb(colour) / 255
+  
+  # Convert RGB to HSV
+  hsv_col <- grDevices::rgb2hsv(rgb_col)
+  
+  # Convert HSV to HCL
+  hue <- hsv_col[1] * 360  # Convert hue to degrees (0-360)
+  chroma <- hsv_col[2] * 100  # Chroma is similar to saturation
+  luminance <- hsv_col[3] * 100  # Luminance is related to value
+  
+  # Allow user to override H, C, or L values
+  if (!is.null(h)) hue <- h
+  if (!is.null(c)) chroma <- c
+  if (!is.null(l)) luminance <- l
+  
+  # Create the HCL color with potentially modified components
+  hcl_col <- grDevices::hcl(h = hue, c = chroma, l = luminance)
+  
+  # Convert HCL back to RGB to apply alpha
+  rgb_col_with_alpha <- grDevices::col2rgb(hcl_col) / 255
+  
+  # Add alpha transparency if provided
+  if (!is.null(alpha)) {
+    rgba_col <- grDevices::rgb(rgb_col_with_alpha[1], rgb_col_with_alpha[2], rgb_col_with_alpha[3], alpha = alpha)
+  } else {
+    rgba_col <- grDevices::rgb(rgb_col_with_alpha[1], rgb_col_with_alpha[2], rgb_col_with_alpha[3])
+  }
+  
+  # Return the final RGBA color
+  return(rgba_col)
+}
