@@ -259,16 +259,18 @@ shorten_assay_links_images <- function(object){
     
     # for each channel
     channels <- vrImageChannelNames(object, name = spat)
-    for(ch in channels){
-      
-      img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
-      img <- modify_seeds(img,
-                          function(x) {
-                            ImageArray::filepath(x) <- basename(ImageArray::filepath(x))
-                            x
-                          })
-      vrImages(object, name = spat, channel = ch) <- img 
-    } 
+    if(!grepl("No Channels", channels)){
+      for(ch in channels){
+        
+        img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
+        img <- modify_seeds(img,
+                            function(x) {
+                              ImageArray::filepath(x) <- basename(ImageArray::filepath(x))
+                              x
+                            })
+        vrImages(object, name = spat, channel = ch) <- img 
+      }
+    }
   }
   
   # return
@@ -329,16 +331,18 @@ restore_absolute_assay_links_images <- function(object, dir){
     
     # for each channel
     channels <- vrImageChannelNames(object, name = spat)
-    for(ch in channels){
-      
-      img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
-      img <- modify_seeds(img,
-                          function(x) {
-                            ImageArray::filepath(x) <- restore_absolute_links_images(ImageArray::filepath(x), dir)
-                            x
-                          })
-      vrImages(object, name = spat, channel = ch) <- img 
-    } 
+    if(!grepl("No Channels", channels)){
+      for(ch in channels){
+        
+        img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
+        img <- modify_seeds(img,
+                            function(x) {
+                              ImageArray::filepath(x) <- restore_absolute_links_images(ImageArray::filepath(x), dir)
+                              x
+                            })
+        vrImages(object, name = spat, channel = ch) <- img 
+      } 
+    }
   }
   
   # return
@@ -552,30 +556,32 @@ writeHDF5ArrayInImage <- function(object,
 
     # for each channel
     channels <- vrImageChannelNames(object, name = spat)
-    for(ch in channels){
-      
-      # open group for spatial system
-      # file.h5$create_group(paste0(name, "/", spat))
-      cat(paste0("  Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"' \n"))
-      rhdf5::h5createGroup(h5_path, group = paste0(name, "/", spat))
-      
-      # get image and write to h5
-      img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
-      
-      # write image
-      if(!inherits(img, "Image_Array")){
-        img <- ImageArray::writeImageArray(img,
-                                           output = gsub(".h5$", "", h5_path),
-                                           name = paste0(name, "/", spat, "/", ch), 
-                                           format = "HDF5ImageArray", 
-                                           replace = FALSE, 
-                                           chunkdim=chunkdim,
-                                           level=level,
-                                           as.sparse=as.sparse,
-                                           verbose=verbose)
-        vrImages(object, name = spat, channel = ch) <- img 
-      }
-    } 
+    if(!grepl("No Channels", channels)){
+      for(ch in channels){
+        
+        # open group for spatial system
+        # file.h5$create_group(paste0(name, "/", spat))
+        cat(paste0("  Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"' \n"))
+        rhdf5::h5createGroup(h5_path, group = paste0(name, "/", spat))
+        
+        # get image and write to h5
+        img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
+        
+        # write image
+        if(!inherits(img, "Image_Array")){
+          img <- ImageArray::writeImageArray(img,
+                                             output = gsub(".h5$", "", h5_path),
+                                             name = paste0(name, "/", spat, "/", ch), 
+                                             format = "HDF5ImageArray", 
+                                             replace = FALSE, 
+                                             chunkdim=chunkdim,
+                                             level=level,
+                                             as.sparse=as.sparse,
+                                             verbose=verbose)
+          vrImages(object, name = spat, channel = ch) <- img 
+        }
+      } 
+    }
   }
   
   return(object)
@@ -742,30 +748,32 @@ writeZarrArrayInImage <- function(object,
     
     # for each channel
     channels <- vrImageChannelNames(object, name = spat)
-    for(ch in channels){
-      
-      # open group for spatial system
-      cat(paste0("  Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"' \n"))
-      zarr.array <- pizzarr::zarr_open(store = zarr_path)
-      zarr.array$create_group(paste0(name, "/", spat))
-      
-      # get image and write to h5
-      img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
-      
-      # write image
-      if(!inherits(img, "Image_Array")){
-        img <- ImageArray::writeImageArray(img,
-                                           output = gsub(".zarr$", "", zarr_path),
-                                           name = paste0(name, "/", spat, "/", ch), 
-                                           format = "ZarrImageArray", 
-                                           replace = FALSE, 
-                                           chunkdim=chunkdim,
-                                           level=level,
-                                           as.sparse=as.sparse,
-                                           verbose=verbose)
-        vrImages(object, name = spat, channel = ch) <- img 
-      }
-    } 
+    if(!grepl("No Channels", channels)){
+      for(ch in channels){
+        
+        # open group for spatial system
+        cat(paste0("  Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"' \n"))
+        zarr.array <- pizzarr::zarr_open(store = zarr_path)
+        zarr.array$create_group(paste0(name, "/", spat))
+        
+        # get image and write to h5
+        img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
+        
+        # write image
+        if(!inherits(img, "Image_Array")){
+          img <- ImageArray::writeImageArray(img,
+                                             output = gsub(".zarr$", "", zarr_path),
+                                             name = paste0(name, "/", spat, "/", ch), 
+                                             format = "ZarrImageArray", 
+                                             replace = FALSE, 
+                                             chunkdim=chunkdim,
+                                             level=level,
+                                             as.sparse=as.sparse,
+                                             verbose=verbose)
+          vrImages(object, name = spat, channel = ch) <- img 
+        }
+      } 
+    }
   }
   
   return(object)
