@@ -6,17 +6,17 @@
 \usage{
 demuxVoltRon(
   object,
-  scale_width = 800,
-  use_points = FALSE,
+  max.pixel.size = 1200,
+  use.points.only = FALSE,
   shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive()))
 )
 }
 \arguments{
 \item{object}{a VoltRon object}
 
-\item{scale_width}{the initial width of the object image}
+\item{max.pixel.size}{the initial width of the object image}
 
-\item{use_points}{use spatial points instead of the reference image}
+\item{use.points.only}{use spatial points instead of the reference image}
 
 \item{shiny.options}{a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}}
 }
