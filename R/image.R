@@ -1415,8 +1415,8 @@ vrSegments.vrSpatial<- function(object) {
 #' Subsetting/demultiplexing of the VoltRon Object using interactive shiny app
 #'
 #' @param object a VoltRon object
-#' @param scale_width the initial width of the object image
-#' @param use_points use spatial points instead of the reference image
+#' @param max.pixel.size the initial width of the object image
+#' @param use.points.only use spatial points instead of the reference image
 #' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
 #'
 #' @import shiny
@@ -1426,7 +1426,7 @@ vrSegments.vrSpatial<- function(object) {
 #' @importFrom dplyr filter add_row tibble
 #' @importFrom ggrepel geom_label_repel
 #'
-demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE, shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive())))
+demuxVoltRon <- function(object, max.pixel.size = 1200, use.points.only = FALSE, shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive())))
 {
   # check if there are only one assay in the object
   sample.metadata <- SampleMetadata(object)
@@ -1434,14 +1434,33 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE, shiny.op
   if(length(unique(sample.metadata$Layer)) > 1)
     stop("You can only subset a single VoltRon layer at a time")
   
-  # get images
-  images <- vrImages(object, assay = vrAssayNames(object))
+  # get image
+  # images <- vrImages(object, assay = vrAssayNames(object))
+  images <- vrImages(object[[vrAssayNames(object)]], as.raster = TRUE)
+  if(!inherits(images, "Image_Array")){
+    images <- magick::image_read(images)
+  }
 
   # scale
-  imageinfo <- magick::image_info(images)
-  scale_factor <- imageinfo$width/scale_width
-  scale_width_char <- paste0(scale_width, "x")
-  images <- magick::image_scale(images, scale_width_char)
+  # scale_width_char <- paste0(max.pixel.size, "x")
+  # images <- magick::image_scale(images, scale_width_char)
+  
+  # scale 
+  imageinfo <- getImageInfo(images)
+  scale_factor <- imageinfo$width/max.pixel.size
+  if(use.points.only){
+    object_small <- resizeImage(object, size = max.pixel.size)
+    image_info_small <- magick::image_info(vrImages(object_small))
+    coords <- as.data.frame(vrCoordinates(object_small, reg = FALSE))
+    pl <- ggplot() + geom_point(aes_string(x = "x", y = "y"), coords, size = 1.5, color = "black") +
+      theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+            axis.line=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
+            legend.margin = margin(0,0,0,0), plot.margin = unit( c(0,0,0,0),"in")) +
+      coord_fixed()
+  } else {
+    # pl <- magick::image_ggplot(images)
+    pl <- plotImage(images, max.pixel.size = max.pixel.size)
+  }
 
   # get the ui and server
   
@@ -1523,20 +1542,6 @@ demuxVoltRon <- function(object, scale_width = 800, use_points = FALSE, shiny.op
     # selected corner list
     selected_corners_list_image <- reactiveVal(dplyr::tibble(box = character()))
     selected_corners_list <- reactiveVal(list())
-    
-    # the image
-    if(use_points){
-      object_small <- resizeImage(object, size = scale_width)
-      image_info_small <- magick::image_info(vrImages(object_small))
-      coords <- as.data.frame(vrCoordinates(object_small, reg = FALSE))
-      pl <- ggplot() + geom_point(aes_string(x = "x", y = "y"), coords, size = 1.5, color = "black") +
-        theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
-              axis.line=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
-              legend.margin = margin(0,0,0,0), plot.margin = unit( c(0,0,0,0),"in")) +
-        coord_fixed()
-    } else {
-      pl <- magick::image_ggplot(images)
-    }
     
     ## Region Annotators ####
     
