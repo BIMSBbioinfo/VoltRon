@@ -2,6 +2,21 @@
 # save ####
 ####
 
+#' saveVoltRon
+#'
+#' save VoltRon object in memory or on disk
+#' 
+#' @param object a VoltRon object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' @param format the format the object should be written: InMemoryVoltRon (rds only), HDF5VoltRon (h5), or ZarrVoltRon (zarr).
+#' @param output When saving, the directory will be created if it doesn't already exist. If the directory already exists and no prefix is specified and replace is set to TRUE, then it's replaced with an empty directory.
+#' @param replace When no prefix is specified, should a pre-existing directory be replaced with a new empty one? The content of the pre-existing directory will be lost!
+#' @param chunkdim The dimensions of the chunks to use for writing the assay data to disk.
+#' @param level The compression level to use for writing the assay data to disk.
+#' @param as.sparse as.sparse
+#' @param verbose verbose
+#'
+#' @export
 saveVoltRon <- function (object, 
                          assay = NULL,
                          format = c("InMemoryVoltRon", "HDF5VoltRon", "ZarrVoltRon"), 
@@ -84,6 +99,14 @@ saveVoltRon <- function (object,
 # load ####
 ####
 
+
+#' loadVoltRon
+#'
+#' load VoltRon object from memory or disk
+#' 
+#' @param dir the directory that VoltRon object is found.
+#'
+#' @export
 loadVoltRon <- function(dir="my_se")
 {
   if(!requireNamespace('DelayedArray'))
@@ -113,6 +136,13 @@ loadVoltRon <- function(dir="my_se")
 # ondisk Methods ####
 ####
 
+#' .serialize_VoltRonObject
+#'
+#' @param object a VoltRon object
+#' @param rds_path the path to rds
+#' @param verbose verbose
+#'
+#' @noRd
 .serialize_VoltRonObject <- function(object, rds_path, verbose)
 {
   # assay_names 
@@ -130,6 +160,9 @@ loadVoltRon <- function(dir="my_se")
   saveRDS(object, file=rds_path)
 }
 
+#' modify_seeds
+#'
+#' @noRd
 modify_seeds <- function (x, FUN, ...) 
 {
   if (is(x, "DelayedUnaryOp")) {
@@ -144,6 +177,9 @@ modify_seeds <- function (x, FUN, ...)
   x
 }
 
+#' .write_VoltRon
+#'
+#' @noRd
 .write_VoltRon <- function(object, assay = NULL, format, rds_path, ondisk_path, chunkdim=NULL, level=NULL, as.sparse=NA, verbose=FALSE)
 {
   # check object
@@ -172,6 +208,9 @@ modify_seeds <- function (x, FUN, ...)
   invisible(object)
 }
 
+#' .read_VoltRon
+#'
+#' @noRd
 .read_VoltRon <- function(rds_path)
 {
   # check rds file
@@ -204,6 +243,9 @@ modify_seeds <- function (x, FUN, ...)
 ## shorten links ####
 ####
 
+#' shorten_assay_links
+#'
+#' @noRd
 shorten_assay_links <- function(object)
 {
   # data
@@ -251,6 +293,9 @@ shorten_assay_links <- function(object)
   object
 }
 
+#' shorten_assay_links_images
+#'
+#' @noRd
 shorten_assay_links_images <- function(object){
   
   # for each spatial system
@@ -281,6 +326,9 @@ shorten_assay_links_images <- function(object){
 ## restore links ####
 ####
 
+#' restore_absolute_assay_links
+#'
+#' @noRd
 restore_absolute_assay_links <- function(object, dir){
   
   # check if there is a data or rawdata slot in assay object
@@ -323,6 +371,9 @@ restore_absolute_assay_links <- function(object, dir){
   object
 }
 
+#' restore_absolute_assay_links_images
+#'
+#' @noRd
 restore_absolute_assay_links_images <- function(object, dir){
   
   # for each spatial system
@@ -349,6 +400,9 @@ restore_absolute_assay_links_images <- function(object, dir){
   return(object)
 }
 
+#' restore_absolute_links
+#'
+#' @noRd
 restore_absolute_links <- function(x, dir){
   x@filepath <- basename(x@filepath)
 
@@ -373,6 +427,9 @@ restore_absolute_links <- function(x, dir){
   x
 }
 
+#' restore_absolute_links_images
+#'
+#' @noRd
 restore_absolute_links_images <- function(file_path, dir){
   file_path <- basename(file_path)
   
@@ -397,6 +454,9 @@ restore_absolute_links_images <- function(file_path, dir){
 ## HDF5 Support ####
 ####
 
+#' write_h5_samples
+#'
+#' @noRd
 write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
                              as.sparse, verbose)
 {
@@ -457,6 +517,9 @@ write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
   object
 }
 
+#' writeHDF5ArrayInVrData
+#'
+#' @noRd
 writeHDF5ArrayInVrData <- function(object, 
                                    h5_path,
                                    name,
@@ -541,6 +604,9 @@ writeHDF5ArrayInVrData <- function(object,
   return(object)
 }
 
+#' writeHDF5ArrayInImage
+#'
+#' @noRd
 writeHDF5ArrayInImage <- function(object, 
                                   h5_path,
                                   name,
@@ -591,6 +657,9 @@ writeHDF5ArrayInImage <- function(object,
 ## ZARR Support ####
 ####
 
+#' write_zarr_samples
+#'
+#' @noRd
 write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
                              as.sparse, verbose)
 {
@@ -650,6 +719,9 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
   object
 }
 
+#' writeZarrArrayInVrData
+#'
+#' @noRd
 writeZarrArrayInVrData <- function(object, 
                                    zarr_path,
                                    name,
@@ -733,6 +805,9 @@ writeZarrArrayInVrData <- function(object,
   return(object)
 }
 
+#' writeZarrArrayInImage
+#'
+#' @noRd
 writeZarrArrayInImage <- function(object, 
                                   zarr_path,
                                   name = assy,
@@ -783,14 +858,23 @@ writeZarrArrayInImage <- function(object,
 # Auxiliary ####
 ####
 
+#' isTRUEorFALSE
+#'
+#' @noRd
 isTRUEorFALSE <- function (x) {
   is.logical(x) && length(x) == 1L && !is.na(x)
 }
 
+#' isSingleString
+#'
+#' @noRd
 isSingleString <- function (x) {
   is.character(x) && length(x) == 1L && !is.na(x)
 }
 
+#' create_dir
+#'
+#' @noRd
 create_dir <- function (dir){
   if (file.exists(dir)) 
     stop("\"", dir, "\" already exists and is a file, ", 
@@ -799,6 +883,9 @@ create_dir <- function (dir){
     stop("cannot create directory \"", dir, "\"")
 }
 
+#' replace_dir
+#'
+#' @noRd
 replace_dir <- function(dir){
   if (unlink(dir, recursive = TRUE) != 0L) 
     stop("failed to delete directory \"", dir, "\"")
@@ -806,6 +893,9 @@ replace_dir <- function(dir){
     stop("cannot create directory \"", dir, "\"")
 }
 
+#' check_and_delete_files
+#'
+#' @noRd
 check_and_delete_files <- function (rds_path, h5_path, replace) 
 {
   if (dir.exists(rds_path) || dir.exists(h5_path)) 
@@ -823,6 +913,9 @@ check_and_delete_files <- function (rds_path, h5_path, replace)
     stop("failed to delete file \"", h5_path, "\"")
 }
 
+#' .get_unique_links
+#'
+#' @noRd
 .get_unique_links <- function(object, assay = NULL)
 {
   # assay names
@@ -842,6 +935,9 @@ check_and_delete_files <- function (rds_path, h5_path, replace)
   unique(all_links)
 }
 
+#' .get_unique_data_links
+#'
+#' @noRd
 .get_unique_data_links <- function(object){
   
   # check if there is a data or rawdata slot in assay object
@@ -871,6 +967,9 @@ check_and_delete_files <- function (rds_path, h5_path, replace)
   return(all_links)
 }
 
+#' .get_unique_image_links
+#'
+#' @noRd
 .get_unique_image_links <- function(object){
  
   # links
@@ -892,6 +991,9 @@ check_and_delete_files <- function (rds_path, h5_path, replace)
   return(all_links)
 }
 
+#' stop_if_bad_dir
+#'
+#' @noRd
 stop_if_bad_dir <- function(dir, prefix = "")
 {
   .THE_EXPECTED_STUFF <- c(
@@ -912,6 +1014,9 @@ stop_if_bad_dir <- function(dir, prefix = "")
   stop(paste0(msg))
 }
 
+#' file_path_as_absolute
+#'
+#' @noRd
 file_path_as_absolute <- function (x) 
 {
   if (length(x) != 1L) 
@@ -921,6 +1026,9 @@ file_path_as_absolute <- function (x)
   normalizePath(epath, "/", TRUE)
 }
 
+#' validate_absolute_path
+#'
+#' @noRd
 validate_absolute_path <- function(path, what="'path'")
 {
   if (!(isSingleString(path) && nzchar(path)))

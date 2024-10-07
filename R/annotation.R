@@ -26,11 +26,13 @@
 #' @export
 #' 
 #' @examples
+#' \dontrun{
 #' # Annotate based on images
 #' visium_data <- annotateSpatialData(visium_data, use.image.only = TRUE)
 #' 
 #' # Annotate based on spatial plot
 #' xenium_data <- annotateSpatialData(xenium_data, group.by = "clusters")
+#' }
 annotateSpatialData <- function(object, label = "annotation", assay = NULL, annotation_assay = "ROIAnnotation", use.image.only = FALSE, 
                                 shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive())), 
                                 image_name = NULL, channel = NULL, ...) {
@@ -748,11 +750,13 @@ point.in.circle <- function(x,y,circle.x, circle.y, radius) {
 #' @export
 #' 
 #' @examples
+#' \dontrun{
 #' # Annotate based on images
 #' visium_data <- annotateSpatialData_old(visium_data, use.image.only = TRUE)
 #' 
 #' # Annotate based on spatial plot
 #' xenium_data <- annotateSpatialData_old(xenium_data, group.by = "clusters")
+#' }
 annotateSpatialData_old <- function(object, label = "annotation", assay = NULL, annotation_assay = "ROIAnnotation", use.image.only = FALSE, 
                                 shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive())), image_name = NULL, channel = NULL, ...) {
   

@@ -639,7 +639,7 @@ as.raster_array <- function (x, max = 1, ...)
 #' @title ggplot2 layer proto extraction
 #' @description Extract geom, stat and position protos from a ggplot2 layer
 #' @param l ggproto
-#' @return data.frame
+#' @noRd
 proto_features <- function(l) {
   a <- sapply(c("position", "geom", "stat"), function(x) {
     class(l[[x]])[1]
@@ -650,6 +650,7 @@ proto_features <- function(l) {
 
 # forked from https://github.com/yihui/knitr/blob/master/R/defaults.R
 #' @importFrom stats setNames
+#' @noRd
 new_defaults <- function(value = list()) {
   defaults <- value
   
@@ -734,6 +735,7 @@ new_defaults <- function(value = list()) {
 #'
 #' @importFrom utils capture.output
 #' @importFrom rlang sym '!!'
+#' @noRd
 cloneLayer <- function (l, verbose = FALSE, showDefaults = TRUE) 
 {
   geom_opts <- ggedit_opts$get("session_geoms")
@@ -797,9 +799,10 @@ cloneLayer <- function (l, verbose = FALSE, showDefaults = TRUE)
   }
 }
 
-#' @import dplyr
+#' @importFrom dplyr |> left_join filter
 #' @importFrom rlang sym '!!'
 #' @importFrom scales col2hcl
+#' @noRd
 cloneProto <- function(l) {
   
   geom_opts <- ggedit_opts$get("session_geoms")
@@ -885,7 +888,7 @@ cloneProto <- function(l) {
 #'   you call \code{ggedit_opts_current$set()}; you can only query the options via
 #'   \code{ggedit_opts_current$get()}.
 #' @rdname ggeditOpts
-#' @examples ggedit_opts$get('themeDefaultClass')
+#' @noRd
 ggedit_opts <- new_defaults(list(
   fontDefaults = c(
     "sans",
