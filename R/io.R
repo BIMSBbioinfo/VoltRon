@@ -262,13 +262,15 @@ shorten_assay_links <- function(object)
       
       object@data[[feat]] <- modify_seeds(object@data[[feat]],
                                      function(x) {
-                                       x@filepath <- basename(x@filepath)
-                                       x
+                                       # x@filepath <- basename(x@filepath)
+                                       # x
+                                       shorten_assay_links_data(x)
                                      })
       object@data[[paste0(feat, "_norm")]] <- modify_seeds(object@data[[paste0(feat, "_norm")]],
                                       function(x) {
-                                        x@filepath <- basename(x@filepath)
-                                        x
+                                        # x@filepath <- basename(x@filepath)
+                                        # x
+                                        shorten_assay_links_data(x)
                                       })  
       
     }
@@ -276,13 +278,15 @@ shorten_assay_links <- function(object)
   } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
     object@rawdata <- modify_seeds(object@rawdata,
                                    function(x) {
-                                     x@filepath <- basename(x@filepath)
-                                     x
+                                     # x@filepath <- basename(x@filepath)
+                                     # x
+                                     shorten_assay_links_data(x)
                                    })
     object@normdata <- modify_seeds(object@normdata,
                                     function(x) {
-                                      x@filepath <- basename(x@filepath)
-                                      x
+                                      # x@filepath <- basename(x@filepath)
+                                      # x
+                                      shorten_assay_links_data(x)
                                     })  
   }
   
@@ -320,6 +324,16 @@ shorten_assay_links_images <- function(object){
   
   # return
   return(object)
+}
+
+shorten_assay_links_data <- function(object){
+  if(inherits(object, "DelayedArray")){
+    object@filepath <- basename(object@filepath)
+    return(object)
+  } else if(inherits(object, "IterableMatrix")){
+    object@path <- basename(object@path)
+    return(object)
+  }
 }
 
 ####
@@ -404,26 +418,41 @@ restore_absolute_assay_links_images <- function(object, dir){
 #'
 #' @noRd
 restore_absolute_links <- function(x, dir){
-  x@filepath <- basename(x@filepath)
+  if(inherits(x, "DelayedArray")){
+    x@filepath <- basename(x@filepath)
+  } else if(inherits(x, "IterableMatrix")){
+    x@path <- basename(x@path)
+  }
 
   # check object
-  if (!is(x, "Array"))
+  if (!is(x, c("Array")) && !is(x, c("IterableMatrix")))
     stop(wmsg(what, " is not DelayedArray"))
   
   # get path
-  file_path <- file.path(dir, x@filepath)
-  
+  if(inherits(x, "DelayedArray")){
+    file_path <- file.path(dir, x@filepath)
+  } else if(inherits(x, "IterableMatrix")){
+    file_path <- file.path(dir, x@path)
+  }
+
   ## file_path_as_absolute() will fail if the file does
   ## not exist.
   if (!file.exists(file_path))
     stop(wmsg(what, " points to an HDF5 file ",
               "that does not exist: ", file_path))
-  x@filepath <- file_path_as_absolute(file_path)
-  
+  if(inherits(x, "DelayedArray")){
+    x@filepath <- file_path_as_absolute(file_path)
+    msg <- validate_absolute_path(x@filepath, paste0("'filepath' slot of ", what))
+  } else if(inherits(x, "IterableMatrix")){
+    x@path <- file_path_as_absolute(file_path)
+    msg <- validate_absolute_path(x@path, paste0("'filepath' slot of ", what))
+  }
+
   # validate
-  msg <- validate_absolute_path(x@filepath, paste0("'filepath' slot of ", what))
   if (!isTRUE(msg))
     stop(paste0(msg))
+  
+  # return
   x
 }
 
@@ -541,29 +570,34 @@ writeHDF5ArrayInVrData <- function(object,
       
       # raw data
       a <- vrData(object, feat_type = feat, norm = FALSE)
-      if(!inherits(a, "DelayedArray")){
-        a <- HDF5Array::writeHDF5Array(a, 
-                                       h5_path, 
-                                       name = paste0(name, "/", feat),
-                                       chunkdim=chunkdim, 
-                                       level=level,
-                                       as.sparse=as.sparse,
-                                       with.dimnames=with.dimnames,
-                                       verbose=verbose)
+      if(!inherits(a, c("DelayedArray", "IterableMatrix"))){
+        # a <- HDF5Array::writeHDF5Array(a, 
+        #                                h5_path, 
+        #                                name = paste0(name, "/", feat),
+        #                                chunkdim=chunkdim, 
+        #                                level=level,
+        #                                as.sparse=as.sparse,
+        #                                with.dimnames=with.dimnames,
+        #                                verbose=verbose)
+        if(!inherits(a, "dgCMatrix"))
+          a <- as(a, "dgCMatrix")
+        a <- BPCells::write_matrix_hdf5(a, 
+                                        path = h5_path, 
+                                        group = paste0(name, "/", feat))
+                                        # chunk_size = chunkdim)
         object@data[[feat]] <- a   
+        
       }
       
       # normalized data
       a <- vrData(object, feat_type = feat, norm = TRUE)
-      if(!inherits(a, "DelayedArray")){
-        a <- HDF5Array::writeHDF5Array(a, 
-                                       h5_path, 
-                                       name = paste0(name, "/", feat, "_norm"),
-                                       chunkdim=chunkdim, 
-                                       level=level,
-                                       as.sparse=as.sparse,
-                                       with.dimnames=with.dimnames,
-                                       verbose=verbose)
+      if(!inherits(a, c("DelayedArray", "IterableMatrix"))){
+        if(!inherits(a, "dgCMatrix"))
+          a <- as(a, "dgCMatrix")
+        a <- BPCells::write_matrix_hdf5(a, 
+                                        path = h5_path, 
+                                        group = paste0(name, "/", feat, "_norm"))
+                                        # chunk_size = chunkdim)
         object@data[[paste0(feat, "_norm")]] <- a  
       }
       

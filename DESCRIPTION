@@ -62,10 +62,8 @@ Suggests:
     anndata,
     DelayedArray,
     hdf5r,
-    HDF5Array,
-    pizzarr,
-    ZarrArray,
-    ImageArray
+    ImageArray,
+    BPCells
 Config/testthat/edition: 3
 LazyData: true
 LazyDataCompression: gzip
