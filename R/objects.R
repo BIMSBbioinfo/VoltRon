@@ -1205,21 +1205,52 @@ vrData.VoltRon <- function(object, assay = NULL, features = NULL, feat_type = NU
   data <- NULL
   for(i in 1:length(assay_names)){
     cur_data <- vrData(object[[assay_names[i]]], features = features, feat_type = feat_type, norm = norm, ...)
-    cur_data <- data.frame(cur_data, feature.ID = rownames(cur_data), check.names = FALSE)
+    if(inherits(cur_data, c("data.frame", "Matrix"))){
+      cur_data <- data.frame(cur_data, feature.ID = rownames(cur_data), check.names = FALSE) 
+    } 
     if(i == 1){
       data <- cur_data
     } else {
-      # data <- merge(data, cur_data, by = "feature.ID", all = TRUE)
-      data <- dplyr::full_join(data, cur_data, by = "feature.ID")
+      # data <- dplyr::full_join(data, cur_data, by = "feature.ID")
+      data <- merge_data(data, cur_data, by = "feature.ID")
     }
   }
-  rownames(data) <- data$feature.ID
-  data <- data[,!colnames(data) %in% "feature.ID"]
-  data <- as.matrix(data)
-  data <- replaceNaMatrix(data, 0)
-  colnames(data) <- gsub("\\.","-", colnames(data))
+  if("feature.ID" %in% colnames(data)){
+    rownames(data) <- data$feature.ID
+    data <- data[,!colnames(data) %in% "feature.ID"] 
+    data <- as.matrix(data)
+    data <- replaceNaMatrix(data, 0)
+    colnames(data) <- gsub("\\.","-", colnames(data))
+  }
 
   return(data)
+}
+
+merge_data <- function(data1, data2, by = "feature.ID"){
+  if(inherits(data1, c("data.frame", "Matrix"))){
+    
+    # merge
+    data1 <- dplyr::full_join(data1, data2, by = "feature.ID")
+    
+  } else if(inherits(data1, c("IterableMatrix"))) {
+    rownames_all <- unique(c(rownames(data1), rownames(data2)))
+    
+    # first data
+    m <- Matrix(nrow = length(rownames_all) - length(rownames(data1)), ncol = ncol(data1), data = 0, sparse = TRUE)
+    data1_new <- rbind(data1, m)
+    rownames(data1_new) <- c(rownames(data1), setdiff(rownames_all, rownames(data1)))
+    data1_new <- data1_new[rownames_all,]
+    
+    # second data
+    m <- Matrix(nrow = length(rownames_all) - length(rownames(data2)), ncol = ncol(data2), data = 0, sparse = TRUE)
+    data2_new <- rbind(data2, m)
+    rownames(data2_new) <- c(rownames(data2), setdiff(rownames_all, rownames(data2)))
+    data2_new <- data2_new[rownames_all,]
+   
+    # merge 
+    data1 <- cbind(data1_new, data2_new)
+  }
+  return(data1)
 }
 
 #' @rdname vrEmbeddings

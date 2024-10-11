@@ -331,7 +331,11 @@ shorten_assay_links_data <- function(object){
     object@filepath <- basename(object@filepath)
     return(object)
   } else if(inherits(object, "IterableMatrix")){
-    object@path <- basename(object@path)
+    if(path %in% slotNames(object)){
+      object@path <- basename(object@path) 
+    } else {
+      
+    }
     return(object)
   }
 }
@@ -961,7 +965,7 @@ check_and_delete_files <- function (rds_path, h5_path, replace)
     
     # get data and image links
     all_links <- c(all_links, .get_unique_data_links(object[[assy]]))
-    all_links <- c(all_links, .get_unique_data_links(object[[assy]]))
+    all_links <- c(all_links, .get_unique_image_links(object[[assy]]))
                            
   }
   
@@ -984,15 +988,15 @@ check_and_delete_files <- function (rds_path, h5_path, replace)
     
     feature_types <- vrFeatureTypeNames(object)
     for(feat in feature_types){
-      cur_path <- try(path(vrData(object, feat_type = feat, norm = FALSE)), silent = TRUE)
+      cur_path <- try(getPath(vrData(object, feat_type = feat, norm = FALSE)), silent = TRUE)
       all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
-      cur_path <- try(path(vrData(object, feat_type = feat, norm = TRUE)), silent = TRUE)
+      cur_path <- try(getPath(vrData(object, feat_type = feat, norm = TRUE)), silent = TRUE)
       all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
     }
   } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
-    cur_path <- try(path(vrData(object, norm = FALSE), silent = TRUE))
+    cur_path <- try(getPath(vrData(object, norm = FALSE), silent = TRUE))
     all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
-    cur_path <- try(path(vrData(object, norm = TRUE), silent = TRUE))
+    cur_path <- try(getPath(vrData(object, norm = TRUE), silent = TRUE))
     all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
     
   }
@@ -1023,6 +1027,14 @@ check_and_delete_files <- function (rds_path, h5_path, replace)
   
   # return
   return(all_links)
+}
+
+getPath <- function(object){
+  if(inherits(object, "DelayedArray")){
+    return(DelayedArray::path(object))
+  } else if(inherits(object, "IterableMatrix")){
+    return(object@path)
+  }
 }
 
 #' stop_if_bad_dir
