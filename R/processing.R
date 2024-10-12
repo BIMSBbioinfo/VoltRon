@@ -156,7 +156,8 @@ getVstData <- function(rawdata){
       stop("You have to install BPCells!")
     mean_data <- BPCells::rowMeans(rawdata)
     var_data <- BPCells::rowSums(rawdata^2)
-    var_data <- (var_data - mean_data^2/nrow(rawdata))/(nrow(rawdata)-1) 
+    var_data <- (var_data - mean_data^2/nrow(rawdata))/(nrow(rawdata)-1)
+    # var_data <- BPCells::matrix_stats(rawdata, row_stats="variance")
   } else {
     mean_data <- Matrix::rowMeans(rawdata)
     var_data <- apply(rawdata, 1, stats::var)
@@ -282,17 +283,22 @@ getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca
   # get data
   normdata <- vrData(object_subset, assay = assay, norm = TRUE)
 
-  # scale data before PCA
-  scale.data <- apply(normdata, 1, scale)
-
   # get PCA embedding
   set.seed(seed)
-  pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
-  # loading_matrix <- data.frame(pr.data$rotation, features = features)
-  pr.data <- pr.data$x
+  if(inherits(normdata, "IterableMatrix")){
+    if(!requireNamespace("BPCells"))
+      stop("You have to install BPCells!")
+    svd <- BPCells::svds(normdata, k=dims)
+    pr.data <- BPCells::multiply_cols(svd$v, svd$d)
+  } else {
+    scale.data <- apply(normdata, 1, scale)
+    pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+    pr.data <- pr.data$x 
+  }
+  
+  # change colnames
   colnames(pr.data) <- paste0("PC", 1:dims)
   rownames(pr.data) <- colnames(normdata)
-  # rownames(pr.data) <- vrSpatialPoints(object_subset, assay = assay)
 
   # set Embeddings
   vrEmbeddings(object, assay = assay, type = type, overwrite = overwrite) <- pr.data

@@ -18,6 +18,7 @@ NULL
 #' @param data.type the type of embedding used for neighborhood calculation, e.g. raw counts (raw), normalized counts (norm), PCA embeddings (pca), UMAP embeddings (umap) etc.
 #' @param dims the set of dimensions of the embedding data
 #' @param graph.key the name of the graph
+#' @param knn.method the method/package to calculate kNN graph, either "RcppAnnoy" or "FNN"
 #' @param ... additional parameters passed to \link{get.knn}
 #'
 #' @importFrom igraph add_edges simplify make_empty_graph vertices E<- E
@@ -25,7 +26,7 @@ NULL
 #'
 #' @export
 #'
-getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, data.type = "pca", dims = 1:30, graph.key = method, ...){
+getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, data.type = "pca", dims = 1:30, graph.key = method, knn.method = "RcppAnnoy", ...){
 
   # get data
   if(data.type %in% c("raw", "norm")){
@@ -41,7 +42,12 @@ getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, da
   }
 
   # find profile neighbors
-  nnedges <- FNN::get.knn(nndata, k = k + 1)
+  if(knn.method == "FNN"){
+    nnedges <- FNN::get.knn(nndata, k = k + 1)
+  } else {
+    nnedges <- knn_annoy(nndata, k = k + 1)
+    names(nnedges) <- c("nn.index", "nn.dist")
+  }
   nnedges <-
     switch(method,
            SNN = {
@@ -71,6 +77,38 @@ getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, da
 
   # return
   return(object)
+}
+
+#' knn_annoy
+#' 
+#' knn engine employed by RcppAnnoy package, adapted from \link{BPCells} package.
+#' 
+#' @rdname knn
+#' 
+#' @details **knn_annoy**: Use RcppAnnoy as knn engine
+#' 
+#' @param k number of neighbors for kNN
+#' @param n_trees Number of trees during index build time. More trees gives higher accuracy
+#' @param search_k Number of nodes to inspect during the query, or -1 for default value. Higher number gives higher accuracy
+#' 
+#' @importFrom RcppAnnoy AnnoyEuclidean
+knn_annoy <- function(data, query = data, k = 10, n_trees = 50, search_k = -1) {
+  annoy <- new(RcppAnnoy::AnnoyEuclidean, ncol(data))
+  for (i in seq_len(nrow(data))) {
+    annoy$addItem(i - 1, data[i, ])
+  }
+  annoy$build(n_trees)
+  
+  idx <- matrix(nrow = nrow(query), ncol = k)
+  dist <- matrix(nrow = nrow(query), ncol = k)
+  rownames(idx) <- rownames(query)
+  rownames(dist) <- rownames(query)
+  for (i in seq_len(nrow(query))) {
+    res <- annoy$getNNsByVectorList(query[i, ], k, search_k, include_distances = TRUE)
+    idx[i, ] <- res$item + 1
+    dist[i, ] <- res$dist
+  }
+  list(idx = idx, dist = dist)
 }
 
 ####

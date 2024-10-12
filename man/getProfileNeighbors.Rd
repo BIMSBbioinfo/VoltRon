@@ -12,6 +12,7 @@ getProfileNeighbors(
   data.type = "pca",
   dims = 1:30,
   graph.key = method,
+  knn.method = "RcppAnnoy",
   ...
 )
 }
@@ -30,6 +31,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{dims}{the set of dimensions of the embedding data}
 
 \item{graph.key}{the name of the graph}
+
+\item{knn.method}{the method/package to calculate kNN graph, either "RcppAnnoy" or "FNN"}
 
 \item{...}{additional parameters passed to \link{get.knn}}
 }
