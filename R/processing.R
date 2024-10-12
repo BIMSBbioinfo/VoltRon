@@ -34,7 +34,7 @@ normalizeData.VoltRon <- function(object, assay = NULL, method = "LogNorm", desi
 normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2, sizefactor = 10000, feat_type = NULL) {
 
   # size factor
-  rawdata <- vrData(object)
+  rawdata <- vrData(object, feat_type = feat_type, norm = FALSE)
   coldepth <- colSums(rawdata)
 
   if(!is.numeric(desiredQuantile)){
@@ -47,10 +47,7 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
 
   # normalization method
   if(method == "LogNorm"){
-    # depth <- matrix(rep(coldepth, nrow(rawdata)), byrow = T, nrow = nrow(rawdata))
-    # normdata <- (rawdata/depth)*sizefactor
-    normdata <- sweep(rawdata, 2L, coldepth, FUN = "/")
-    normdata <- log(normdata*sizefactor + 1)
+    normdata <- LogNorm(rawdata, coldepth, sizefactor)
   } else if(method == "Q3Norm") {
     rawdata[rawdata==0] <- 1
     qs <- apply(rawdata, 2, function(x) stats::quantile(x, desiredQuantile))
@@ -83,6 +80,19 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
 
   # return
   return(object)
+}
+
+LogNorm <- function(rawdata, coldepth, sizefactor){
+  if(inherits(rawdata, "IterableMatrix")){
+    if(!requireNamespace("BPCells"))
+      stop("You have to install BPCells!")
+    normdata <- BPCells::t(BPCells::t(rawdata)/coldepth)
+    normdata <- BPCells::log1p_slow(normdata*sizefactor)
+  } else {
+    normdata <- sweep(rawdata, 2L, coldepth, FUN = "/")
+    normdata <- log(normdata*sizefactor + 1)
+  }
+  return(normdata)
 }
 
 ####
