@@ -208,281 +208,6 @@ modify_seeds <- function (x, FUN, ...)
   invisible(object)
 }
 
-#' .read_VoltRon
-#'
-#' @noRd
-.read_VoltRon <- function(rds_path)
-{
-  # check rds file
-  if (!file.exists(rds_path))
-    stop(paste0("file not found: ", rds_path))
-  if (dir.exists(rds_path))
-    stop(paste0("'", rds_path, "' is a directory, not a file"))
-  
-  # check VoltRon object
-  object <- readRDS(rds_path)
-  if (!is(object, "VoltRon"))
-    stop(paste0("the object serialized in \"", rds_path, "\" is not ",
-                "a VoltRon object"))
-  
-  # get dir name
-  dir <- dirname(rds_path)
-  
-  # assay_names 
-  assay_names <- vrAssayNames(object, assay = "all")
-  
-  # restore assay links
-  for(assy in assay_names)
-    object[[assy]] <- restore_absolute_assay_links(object[[assy]], dir)
-  
-  # return object
-  object
-}
-
-####
-## shorten links ####
-####
-
-#' shorten_assay_links
-#'
-#' @noRd
-shorten_assay_links <- function(object)
-{
-  # data
-  
-  # check if there is a data or rawdata slot in assay object
-  catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
-  catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
-  
-  # get data with a specific feature
-  if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
-    
-    feature_types <- vrFeatureTypeNames(object)
-    for(feat in feature_types){
-      
-      object@data[[feat]] <- modify_seeds(object@data[[feat]],
-                                     function(x) {
-                                       # x@filepath <- basename(x@filepath)
-                                       # x
-                                       shorten_assay_links_data(x)
-                                     })
-      object@data[[paste0(feat, "_norm")]] <- modify_seeds(object@data[[paste0(feat, "_norm")]],
-                                      function(x) {
-                                        # x@filepath <- basename(x@filepath)
-                                        # x
-                                        shorten_assay_links_data(x)
-                                      })  
-      
-    }
-    
-  } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
-    object@rawdata <- modify_seeds(object@rawdata,
-                                   function(x) {
-                                     # x@filepath <- basename(x@filepath)
-                                     # x
-                                     shorten_assay_links_data(x)
-                                   })
-    object@normdata <- modify_seeds(object@normdata,
-                                    function(x) {
-                                      # x@filepath <- basename(x@filepath)
-                                      # x
-                                      shorten_assay_links_data(x)
-                                    })  
-  }
-  
-  # images
-  object <- shorten_assay_links_images(object)
-  
-  # return
-  object
-}
-
-#' shorten_assay_links_images
-#'
-#' @noRd
-shorten_assay_links_images <- function(object){
-  
-  # for each spatial system
-  spatial_names <- vrSpatialNames(object)
-  for(spat in spatial_names){
-    
-    # for each channel
-    channels <- vrImageChannelNames(object, name = spat)
-    if(!grepl("No Channels", channels)){
-      for(ch in channels){
-        
-        img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
-        img <- modify_seeds(img,
-                            function(x) {
-                              ImageArray::filepath(x) <- basename(ImageArray::filepath(x))
-                              x
-                            })
-        vrImages(object, name = spat, channel = ch) <- img 
-      }
-    }
-  }
-  
-  # return
-  return(object)
-}
-
-shorten_assay_links_data <- function(object){
-  if(inherits(object, "DelayedArray")){
-    object@filepath <- basename(object@filepath)
-    return(object)
-  } else if(inherits(object, "IterableMatrix")){
-    if(path %in% slotNames(object)){
-      object@path <- basename(object@path) 
-    } else {
-      
-    }
-    return(object)
-  }
-}
-
-####
-## restore links ####
-####
-
-#' restore_absolute_assay_links
-#'
-#' @noRd
-restore_absolute_assay_links <- function(object, dir){
-  
-  # check if there is a data or rawdata slot in assay object
-  catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
-  catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
-  
-  # get data with a specific feature
-  if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
-    
-    feature_types <- vrFeatureTypeNames(object)
-    for(feat in feature_types){
-      
-      object@data[[feat]] <- modify_seeds(object@data[[feat]],
-                                          function(x) {
-                                            restore_absolute_links(x, dir)
-                                          })
-      object@data[[paste0(feat, "_norm")]] <- modify_seeds(object@data[[paste0(feat, "_norm")]],
-                                                           function(x) {
-                                                             restore_absolute_links(x, dir)
-                                                           })  
-      
-    }
-    
-  } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
-    object@rawdata <- modify_seeds(object@rawdata,
-                                   function(x) {
-                                     restore_absolute_links(x, dir)
-                                     x
-                                   })
-    object@normdata <- modify_seeds(object@normdata,
-                                    function(x) {
-                                      restore_absolute_links(x, dir)
-                                    })  
-  }
-  
-  # images
-  object <- restore_absolute_assay_links_images(object, dir)
-  
-  # return
-  object
-}
-
-#' restore_absolute_assay_links_images
-#'
-#' @noRd
-restore_absolute_assay_links_images <- function(object, dir){
-  
-  # for each spatial system
-  spatial_names <- vrSpatialNames(object)
-  for(spat in spatial_names){
-    
-    # for each channel
-    channels <- vrImageChannelNames(object, name = spat)
-    if(!grepl("No Channels", channels)){
-      for(ch in channels){
-        
-        img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
-        img <- modify_seeds(img,
-                            function(x) {
-                              ImageArray::filepath(x) <- restore_absolute_links_images(ImageArray::filepath(x), dir)
-                              x
-                            })
-        vrImages(object, name = spat, channel = ch) <- img 
-      } 
-    }
-  }
-  
-  # return
-  return(object)
-}
-
-#' restore_absolute_links
-#'
-#' @noRd
-restore_absolute_links <- function(x, dir){
-  if(inherits(x, "DelayedArray")){
-    x@filepath <- basename(x@filepath)
-  } else if(inherits(x, "IterableMatrix")){
-    x@path <- basename(x@path)
-  }
-
-  # check object
-  if (!is(x, c("Array")) && !is(x, c("IterableMatrix")))
-    stop(wmsg(what, " is not DelayedArray"))
-  
-  # get path
-  if(inherits(x, "DelayedArray")){
-    file_path <- file.path(dir, x@filepath)
-  } else if(inherits(x, "IterableMatrix")){
-    file_path <- file.path(dir, x@path)
-  }
-
-  ## file_path_as_absolute() will fail if the file does
-  ## not exist.
-  if (!file.exists(file_path))
-    stop(wmsg(what, " points to an HDF5 file ",
-              "that does not exist: ", file_path))
-  if(inherits(x, "DelayedArray")){
-    x@filepath <- file_path_as_absolute(file_path)
-    msg <- validate_absolute_path(x@filepath, paste0("'filepath' slot of ", what))
-  } else if(inherits(x, "IterableMatrix")){
-    x@path <- file_path_as_absolute(file_path)
-    msg <- validate_absolute_path(x@path, paste0("'filepath' slot of ", what))
-  }
-
-  # validate
-  if (!isTRUE(msg))
-    stop(paste0(msg))
-  
-  # return
-  x
-}
-
-#' restore_absolute_links_images
-#'
-#' @noRd
-restore_absolute_links_images <- function(file_path, dir){
-  file_path <- basename(file_path)
-  
-  # get path
-  file_path <- file.path(dir, file_path)
-  
-  ## file_path_as_absolute() will fail if the file does
-  ## not exist.
-  if (!file.exists(file_path))
-    stop(wmsg(what, " points to an HDF5 file ",
-              "that does not exist: ", file_path))
-  file_path <- file_path_as_absolute(file_path)
-  
-  # validate
-  msg <- validate_absolute_path(file_path, paste0("'filepath' slot of ", what))
-  if (!isTRUE(msg))
-    stop(paste0(msg))
-  file_path
-}
-
 ####
 ## HDF5 Support ####
 ####
@@ -508,7 +233,6 @@ write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
   assay_names <- vrAssayNames(object, assay = assay)
   
   # open h5
-  # file.h5 <- hdf5r::H5File$new(h5_path, mode="w")
   cat(paste0("HDF5 file: ", h5_path, "\n"))
   rhdf5::h5createFile(h5_path)
   
@@ -519,7 +243,6 @@ write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
     assay_object <- object[[assy]]
     
     # create assay group in h5
-    # file.h5$create_group(assy)
     rhdf5::h5createGroup(h5_path, group = assy)
     
     # get data and write
@@ -561,7 +284,7 @@ writeHDF5ArrayInVrData <- function(object,
                                    as.sparse,
                                    with.dimnames=FALSE,
                                    verbose){
- 
+  
   # check if there is a data or rawdata slot in assay object
   catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
   catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
@@ -588,7 +311,7 @@ writeHDF5ArrayInVrData <- function(object,
         a <- BPCells::write_matrix_hdf5(a, 
                                         path = h5_path, 
                                         group = paste0(name, "/", feat))
-                                        # chunk_size = chunkdim)
+        # chunk_size = chunkdim)
         object@data[[feat]] <- a   
         
       }
@@ -601,7 +324,7 @@ writeHDF5ArrayInVrData <- function(object,
         a <- BPCells::write_matrix_hdf5(a, 
                                         path = h5_path, 
                                         group = paste0(name, "/", feat, "_norm"))
-                                        # chunk_size = chunkdim)
+        # chunk_size = chunkdim)
         object@data[[paste0(feat, "_norm")]] <- a  
       }
       
@@ -638,7 +361,7 @@ writeHDF5ArrayInVrData <- function(object,
     }
     
   }
-
+  
   return(object)
 }
 
@@ -653,11 +376,11 @@ writeHDF5ArrayInImage <- function(object,
                                   as.sparse,
                                   with.dimnames,
                                   verbose){
-
+  
   # for each spatial system
   spatial_names <- vrSpatialNames(object)
   for(spat in spatial_names){
-
+    
     # for each channel
     channels <- vrImageChannelNames(object, name = spat)
     if(!grepl("No Channels", channels)){
@@ -699,7 +422,7 @@ writeHDF5ArrayInImage <- function(object,
 #'
 #' @noRd
 write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
-                             as.sparse, verbose)
+                               as.sparse, verbose)
 {
   # check packages
   if(!requireNamespace('ZarrArray'))
@@ -892,6 +615,393 @@ writeZarrArrayInImage <- function(object,
   return(object)
 }
 
+#' .read_VoltRon
+#'
+#' @noRd
+.read_VoltRon <- function(rds_path)
+{
+  # check rds file
+  if (!file.exists(rds_path))
+    stop(paste0("file not found: ", rds_path))
+  if (dir.exists(rds_path))
+    stop(paste0("'", rds_path, "' is a directory, not a file"))
+  
+  # check VoltRon object
+  object <- readRDS(rds_path)
+  if (!is(object, "VoltRon"))
+    stop(paste0("the object serialized in \"", rds_path, "\" is not ",
+                "a VoltRon object"))
+  
+  # get dir name
+  dir <- dirname(rds_path)
+  
+  # assay_names 
+  assay_names <- vrAssayNames(object, assay = "all")
+  
+  # restore assay links
+  for(assy in assay_names)
+    object[[assy]] <- restore_absolute_assay_links(object[[assy]], dir)
+  
+  # return object
+  object
+}
+
+####
+## get links ####
+####
+
+#' .get_unique_links
+#'
+#' @noRd
+.get_unique_links <- function(object, assay = NULL)
+{
+  # assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  
+  # iterate over assays
+  all_links <- NULL
+  for(assy in assay_names){
+    
+    # get data and image links
+    all_links <- c(all_links, .get_unique_data_links(object[[assy]]))
+    all_links <- c(all_links, .get_unique_image_links(object[[assy]]))
+    
+  }
+  
+  # return
+  unique(all_links)
+}
+
+#' .get_unique_data_links
+#'
+#' @noRd
+.get_unique_data_links <- function(object){
+  
+  # check if there is a data or rawdata slot in assay object
+  catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
+  catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
+  
+  # get data with a specific feature
+  all_links <- NULL
+  if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
+    
+    feature_types <- vrFeatureTypeNames(object)
+    for(feat in feature_types){
+      cur_path <- try(getPath(vrData(object, feat_type = feat, norm = FALSE)), silent = TRUE)
+      all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
+      cur_path <- try(getPath(vrData(object, feat_type = feat, norm = TRUE)), silent = TRUE)
+      all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
+    }
+  } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
+    cur_path <- try(getPath(vrData(object, norm = FALSE), silent = TRUE))
+    all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
+    cur_path <- try(getPath(vrData(object, norm = TRUE), silent = TRUE))
+    all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
+    
+  }
+  
+  # return
+  return(all_links)
+}
+
+#' .get_unique_image_links
+#'
+#' @noRd
+.get_unique_image_links <- function(object){
+  
+  # links
+  all_links <- NULL
+  
+  # for each spatial system
+  spatial_names <- vrSpatialNames(object)
+  for(spat in spatial_names){
+    
+    # for each channel
+    channels <- vrImageChannelNames(object, name = spat)
+    for(ch in channels){
+      cur_path <- try(DelayedArray::path(vrImages(object, name = spat, channel = ch, as.raster = TRUE)), silent = TRUE)
+      all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
+    }
+  }
+  
+  # return
+  return(all_links)
+}
+
+getPath <- function(object){
+  if(inherits(object, "DelayedArray")){
+    return(DelayedArray::path(object))
+  } else if(inherits(object, "IterableMatrix")){
+    return(getIterableMatrixPath(object))
+  } else {
+    stop()
+  }
+}
+
+getIterableMatrixPath <- function(object){
+  if(!inherits(object, "IterableMatrix")){
+    stop("object should be an object of IterableMatrix")
+  }
+  slot_names <- slotNames(object)
+  if("path" %in% slot_names){
+    return(object@path)
+  } else if("matrix" %in% slot_names){
+    return(getIterableMatrixPath(object@matrix))
+  } else if("matrix_list" %in% slot_names){
+    return(unlist(lapply(object@matrix_list, getIterableMatrixPath)))
+  }
+}
+
+####
+## shorten links ####
+####
+
+#' shorten_assay_links
+#'
+#' @noRd
+shorten_assay_links <- function(object)
+{
+  # data
+  
+  # check if there is a data or rawdata slot in assay object
+  catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
+  catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
+  
+  # get data with a specific feature
+  if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
+    
+    feature_types <- vrFeatureTypeNames(object)
+    for(feat in feature_types){
+      
+      object@data[[feat]] <- modify_seeds(object@data[[feat]],
+                                     function(x) {
+                                       shorten_assay_links_data(x)
+                                     })
+      object@data[[paste0(feat, "_norm")]] <- modify_seeds(object@data[[paste0(feat, "_norm")]],
+                                      function(x) {
+                                        shorten_assay_links_data(x)
+                                      })  
+      
+    }
+    
+  } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
+    object@rawdata <- modify_seeds(object@rawdata,
+                                   function(x) {
+                                     shorten_assay_links_data(x)
+                                   })
+    object@normdata <- modify_seeds(object@normdata,
+                                    function(x) {
+                                      shorten_assay_links_data(x)
+                                    })  
+  }
+  
+  # images
+  object <- shorten_assay_links_images(object)
+  
+  # return
+  object
+}
+
+#' shorten_assay_links_images
+#'
+#' @noRd
+shorten_assay_links_images <- function(object){
+  
+  # for each spatial system
+  spatial_names <- vrSpatialNames(object)
+  for(spat in spatial_names){
+    
+    # for each channel
+    channels <- vrImageChannelNames(object, name = spat)
+    if(!grepl("No Channels", channels)){
+      for(ch in channels){
+        
+        img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
+        img <- modify_seeds(img,
+                            function(x) {
+                              ImageArray::filepath(x) <- basename(ImageArray::filepath(x))
+                              x
+                            })
+        vrImages(object, name = spat, channel = ch) <- img 
+      }
+    }
+  }
+  
+  # return
+  return(object)
+}
+
+shorten_assay_links_data <- function(object){
+  if(inherits(object, "DelayedArray")){
+    object@filepath <- basename(object@filepath)
+  } else if(inherits(object, "IterableMatrix")){
+    object <- shorten_assay_links_bpcells(object)
+  }
+  return(object)
+}
+
+shorten_assay_links_bpcells <- function(object){
+  if(!inherits(object, "IterableMatrix")){
+    stop("object should be an object of IterableMatrix")
+  }
+  slot_names <- slotNames(object)
+  if("path" %in% slot_names){
+    object@path <- basename(object@path)
+  } else if("matrix" %in% slot_names){
+    object@matrix <- shorten_assay_links_bpcells(object@matrix)
+  } else if("matrix_list" %in% slot_names){
+    object_list <- object@matrix_list
+    for(i in 1:length(object_list))
+      object_list[[i]] <- shorten_assay_links_bpcells(object_list[[i]])
+  }
+  return(object)
+}
+
+####
+## restore links ####
+####
+
+#' restore_absolute_assay_links
+#'
+#' @noRd
+restore_absolute_assay_links <- function(object, dir){
+  
+  # check if there is a data or rawdata slot in assay object
+  catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
+  catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
+  
+  # get data with a specific feature
+  if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
+    
+    feature_types <- vrFeatureTypeNames(object)
+    for(feat in feature_types){
+      
+      object@data[[feat]] <- modify_seeds(object@data[[feat]],
+                                          function(x) {
+                                            restore_absolute_links(x, dir)
+                                          })
+      object@data[[paste0(feat, "_norm")]] <- modify_seeds(object@data[[paste0(feat, "_norm")]],
+                                                           function(x) {
+                                                             restore_absolute_links(x, dir)
+                                                           })  
+      
+    }
+    
+  } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
+    object@rawdata <- modify_seeds(object@rawdata,
+                                   function(x) {
+                                     restore_absolute_links(x, dir)
+                                     x
+                                   })
+    object@normdata <- modify_seeds(object@normdata,
+                                    function(x) {
+                                      restore_absolute_links(x, dir)
+                                    })  
+  }
+  
+  # images
+  object <- restore_absolute_assay_links_images(object, dir)
+  
+  # return
+  object
+}
+
+#' restore_absolute_assay_links_images
+#'
+#' @noRd
+restore_absolute_assay_links_images <- function(object, dir){
+  
+  # for each spatial system
+  spatial_names <- vrSpatialNames(object)
+  for(spat in spatial_names){
+    
+    # for each channel
+    channels <- vrImageChannelNames(object, name = spat)
+    if(!grepl("No Channels", channels)){
+      for(ch in channels){
+        
+        img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
+        img <- modify_seeds(img,
+                            function(x) {
+                              ImageArray::filepath(x) <- restore_absolute_links_images(ImageArray::filepath(x), dir)
+                              x
+                            })
+        vrImages(object, name = spat, channel = ch) <- img 
+      } 
+    }
+  }
+  
+  # return
+  return(object)
+}
+
+#' restore_absolute_links
+#'
+#' @noRd
+restore_absolute_links <- function(x, dir){
+  if(inherits(x, "DelayedArray")){
+    x@filepath <- basename(x@filepath)
+  } else if(inherits(x, "IterableMatrix")){
+    x@path <- basename(x@path)
+  }
+
+  # check object
+  if (!is(x, c("Array")) && !is(x, c("IterableMatrix")))
+    stop(wmsg(what, " is not DelayedArray"))
+  
+  # get path
+  if(inherits(x, "DelayedArray")){
+    file_path <- file.path(dir, x@filepath)
+  } else if(inherits(x, "IterableMatrix")){
+    file_path <- file.path(dir, x@path)
+  }
+
+  ## file_path_as_absolute() will fail if the file does
+  ## not exist.
+  if (!file.exists(file_path))
+    stop(wmsg(what, " points to an HDF5 file ",
+              "that does not exist: ", file_path))
+  if(inherits(x, "DelayedArray")){
+    x@filepath <- file_path_as_absolute(file_path)
+    msg <- validate_absolute_path(x@filepath, paste0("'filepath' slot of ", what))
+  } else if(inherits(x, "IterableMatrix")){
+    x@path <- file_path_as_absolute(file_path)
+    msg <- validate_absolute_path(x@path, paste0("'filepath' slot of ", what))
+  }
+
+  # validate
+  if (!isTRUE(msg))
+    stop(paste0(msg))
+  
+  # return
+  x
+}
+
+#' restore_absolute_links_images
+#'
+#' @noRd
+restore_absolute_links_images <- function(file_path, dir){
+  file_path <- basename(file_path)
+  
+  # get path
+  file_path <- file.path(dir, file_path)
+  
+  ## file_path_as_absolute() will fail if the file does
+  ## not exist.
+  if (!file.exists(file_path))
+    stop(wmsg(what, " points to an HDF5 file ",
+              "that does not exist: ", file_path))
+  file_path <- file_path_as_absolute(file_path)
+  
+  # validate
+  msg <- validate_absolute_path(file_path, paste0("'filepath' slot of ", what))
+  if (!isTRUE(msg))
+    stop(paste0(msg))
+  file_path
+}
+
+
+
 ####
 # Auxiliary ####
 ####
@@ -949,92 +1059,6 @@ check_and_delete_files <- function (rds_path, h5_path, replace)
     stop("failed to delete file \"", rds_path, "\"")
   if (unlink(h5_path, recursive = TRUE) != 0L) 
     stop("failed to delete file \"", h5_path, "\"")
-}
-
-#' .get_unique_links
-#'
-#' @noRd
-.get_unique_links <- function(object, assay = NULL)
-{
-  # assay names
-  assay_names <- vrAssayNames(object, assay = assay)
-  
-  # iterate over assays
-  all_links <- NULL
-  for(assy in assay_names){
-    
-    # get data and image links
-    all_links <- c(all_links, .get_unique_data_links(object[[assy]]))
-    all_links <- c(all_links, .get_unique_image_links(object[[assy]]))
-                           
-  }
-  
-  # return
-  unique(all_links)
-}
-
-#' .get_unique_data_links
-#'
-#' @noRd
-.get_unique_data_links <- function(object){
-  
-  # check if there is a data or rawdata slot in assay object
-  catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
-  catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
-  
-  # get data with a specific feature
-  all_links <- NULL
-  if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
-    
-    feature_types <- vrFeatureTypeNames(object)
-    for(feat in feature_types){
-      cur_path <- try(getPath(vrData(object, feat_type = feat, norm = FALSE)), silent = TRUE)
-      all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
-      cur_path <- try(getPath(vrData(object, feat_type = feat, norm = TRUE)), silent = TRUE)
-      all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
-    }
-  } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
-    cur_path <- try(getPath(vrData(object, norm = FALSE), silent = TRUE))
-    all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
-    cur_path <- try(getPath(vrData(object, norm = TRUE), silent = TRUE))
-    all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
-    
-  }
-  
-  # return
-  return(all_links)
-}
-
-#' .get_unique_image_links
-#'
-#' @noRd
-.get_unique_image_links <- function(object){
- 
-  # links
-  all_links <- NULL
-  
-  # for each spatial system
-  spatial_names <- vrSpatialNames(object)
-  for(spat in spatial_names){
-    
-    # for each channel
-    channels <- vrImageChannelNames(object, name = spat)
-    for(ch in channels){
-      cur_path <- try(path(vrImages(object, name = spat, channel = ch, as.raster = TRUE), silent = TRUE))
-      all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
-    }
-  }
-  
-  # return
-  return(all_links)
-}
-
-getPath <- function(object){
-  if(inherits(object, "DelayedArray")){
-    return(DelayedArray::path(object))
-  } else if(inherits(object, "IterableMatrix")){
-    return(object@path)
-  }
 }
 
 #' stop_if_bad_dir
