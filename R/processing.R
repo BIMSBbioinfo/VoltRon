@@ -130,11 +130,12 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
   features <- vrFeatures(object)
 
   # eliminate genes with low counts
-  keep.genes <- which(apply(rawdata,1,max) > max.count)
+  # keep.genes <- which(apply(rawdata,1,max) > max.count)
+  keep.genes <- getMaxCount(rawdata, max.count)
 
   # vst estimation
-  # vst_data <- data.frame(mean = rowMeans(rawdata), var = apply(rawdata, 1, stats::var))
-  vst_data <- data.frame(mean = Matrix::rowMeans(rawdata), var = apply(rawdata, 1, stats::var))
+  # vst_data <- data.frame(mean = Matrix::rowMeans(rawdata), var = apply(rawdata, 1, stats::var))
+  vst_data <- getVstData(rawdata)
   loess_data <- vst_data[keep.genes,]
   loess_results <- stats::loess(var~mean, loess_data, span = 0.3)
   vst_data$adj_var <- 0
@@ -149,6 +150,32 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
   return(object)
 }
 
+getVstData <- function(rawdata){
+  if(inherits(rawdata, "IterableMatrix")){
+    if(!requireNamespace("BPCells"))
+      stop("You have to install BPCells!")
+    mean_data <- BPCells::rowMeans(rawdata)
+    var_data <- BPCells::rowSums(rawdata^2)
+    var_data <- (var_data - mean_data^2/nrow(rawdata))/(nrow(rawdata)-1) 
+  } else {
+    mean_data <- Matrix::rowMeans(rawdata)
+    var_data <- apply(rawdata, 1, stats::var)
+  }
+  vst_data <- data.frame(mean = mean_data, var = var_data)
+  return(vst_data)
+}
+
+getMaxCount <- function(rawdata, max.count){
+  if(inherits(rawdata, "IterableMatrix")){
+    if(!requireNamespace("BPCells"))
+      stop("You have to install BPCells!")
+    rawdata <- rawdata > max.count
+    keep.genes <- which(BPCells::rowSums(rawdata) > 0)
+  } else {
+    keep.genes <- which(apply(rawdata,1,max) > max.count)
+  }
+  return(keep.genes)
+}
 
 #' getVariableFeatures
 #'
