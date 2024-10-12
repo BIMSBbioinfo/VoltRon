@@ -22,10 +22,8 @@ NULL
 #' @param ... additional parameters passed to \link{get.knn}
 #'
 #' @importFrom igraph add_edges simplify make_empty_graph vertices E<- E
-#' @importFrom FNN get.knn
 #'
 #' @export
-#'
 getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, data.type = "pca", dims = 1:30, graph.key = method, knn.method = "RcppAnnoy", ...){
 
   # get data
@@ -42,9 +40,12 @@ getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, da
   }
 
   # find profile neighbors
-  # nnedges <- FNN::get.knn(nndata, k = k + 1)
-  nnedges <- knn_annoy(nndata, k = k + 1)
-  names(nnedges) <- c("nn.index", "nn.dist")
+  if(knn.method == "FNN"){
+    nnedges <- FNN::get.knn(nndata, k = k + 1)
+  } else {
+    nnedges <- knn_annoy(nndata, k = k + 1)
+    names(nnedges) <- c("nn.index", "nn.dist")
+  }
   nnedges <-
     switch(method,
            SNN = {

@@ -250,10 +250,8 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #' @param seed seed
 #'
 #' @importFrom irlba irlba
-#' @importFrom dplyr left_join
 #'
 #' @export
-#'
 getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca", overwrite = FALSE, seed = 1){
 
   # get assay names
