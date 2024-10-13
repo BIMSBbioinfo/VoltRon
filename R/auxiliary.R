@@ -684,7 +684,7 @@ new_defaults <- function(value = list()) {
     invisible(NULL)
   }
   
-  merge <- function(values) merge_list(defaults, values)
+  # merge <- function(values) merge_list(defaults, values)
   
   restore <- function(target = value) defaults <<- target
   
@@ -1092,4 +1092,87 @@ col2hcl <- function(colour, h = NULL, c = NULL, l = NULL, alpha = NULL) {
   
   # Return the final RGBA color
   return(rgba_col)
+}
+
+#' @importFrom stats as.formula
+#' @importFrom rlang quo_name
+#' @noRd
+build_map <- function(item,y) {
+  
+  y <- y[[item]]
+  
+  if (inherits(y,'quosure')){
+    return(sprintf('%s = %s',item,rlang::quo_name(y)))
+  }
+  
+  if (inherits(y,'character')){
+    return(sprintf("%s = '%s'",item,y))
+  }
+  
+  if (inherits(y, "formula")){
+    return(sprintf("formula=stats::as.formula('%s')",
+                   paste0(as.character(y)[-1], collapse = "~")))
+  }
+  
+  
+  if (inherits(y,'NULL')) {
+    return(sprintf('%s = NULL',item))
+  }
+  
+  
+  if (inherits(y, c("function", "call", "ggproto"))) {
+    return(sprintf("%s = %s",
+                   item,
+                   paste(capture.output(
+                     dput(y)),
+                     collapse = "\n")
+    ))
+  }
+  
+  if (inherits(y, c("data.frame"))) {
+    return(paste0("=", paste(capture.output(dput(y)), collapse = "\n")))
+  }
+  
+
+  return(sprintf('%s = %s',item, y))
+  
+}
+
+#' @noRd
+capture.output <- function (..., file = NULL, append = FALSE, type = c("output", "message"), split = FALSE) 
+{
+  type <- match.arg(type)
+  rval <- NULL
+  closeit <- TRUE
+  if (is.null(file)) 
+    file <- textConnection("rval", "w", local = TRUE)
+  else if (is.character(file)) 
+    file <- file(file, if (append) 
+      "a"
+      else "w")
+  else if (inherits(file, "connection")) {
+    if (!isOpen(file)) 
+      open(file, if (append) 
+        "a"
+        else "w")
+    else closeit <- FALSE
+  }
+  else stop("'file' must be NULL, a character string or a connection")
+  sink(file, type = type, split = split)
+  on.exit({
+    sink(type = type, split = split)
+    if (closeit) close(file)
+  })
+  for (i in seq_len(...length())) {
+    out <- withVisible(...elt(i))
+    if (out$visible) 
+      print(out$value)
+  }
+  on.exit()
+  sink(type = type, split = split)
+  if (closeit) 
+    close(file)
+  if (is.null(rval)) 
+    invisible(NULL)
+  else rval
 }

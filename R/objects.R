@@ -862,7 +862,7 @@ getBlockConnectivity <- function(object, assay){
     cur_assaynames <- assay_names[assay_names %in% rownames(cur_sample_metadata)]
     cur_sections <- cur_sample_metadata[cur_assaynames, "Layer"]
     
-    catch_connect <- try(slot(curlayer, name = "adjacency"), silent = TRUE)
+    catch_connect <- try(slot(object[[samp]], name = "adjacency"), silent = TRUE)
     if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
       adjacency <- object[[samp]]@adjacency
       adjacency <- adjacency[match(cur_sections,rownames(adjacency)), match(cur_sections,rownames(adjacency))]
@@ -1226,6 +1226,7 @@ vrData.VoltRon <- function(object, assay = NULL, features = NULL, feat_type = NU
   return(data)
 }
 
+#' @importFrom Matrix Matrix
 merge_data <- function(data1, data2, by = "feature.ID"){
   if(inherits(data1, c("data.frame", "Matrix"))){
     
@@ -1236,13 +1237,13 @@ merge_data <- function(data1, data2, by = "feature.ID"){
     rownames_all <- unique(c(rownames(data1), rownames(data2)))
     
     # first data
-    m <- Matrix(nrow = length(rownames_all) - length(rownames(data1)), ncol = ncol(data1), data = 0, sparse = TRUE)
+    m <- Matrix::Matrix(nrow = length(rownames_all) - length(rownames(data1)), ncol = ncol(data1), data = 0, sparse = TRUE)
     data1_new <- rbind(data1, m)
     rownames(data1_new) <- c(rownames(data1), setdiff(rownames_all, rownames(data1)))
     data1_new <- data1_new[rownames_all,]
     
     # second data
-    m <- Matrix(nrow = length(rownames_all) - length(rownames(data2)), ncol = ncol(data2), data = 0, sparse = TRUE)
+    m <- Matrix::Matrix(nrow = length(rownames_all) - length(rownames(data2)), ncol = ncol(data2), data = 0, sparse = TRUE)
     data2_new <- rbind(data2, m)
     rownames(data2_new) <- c(rownames(data2), setdiff(rownames_all, rownames(data2)))
     data2_new <- data2_new[rownames_all,]

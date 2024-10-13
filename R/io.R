@@ -87,7 +87,7 @@ saveVoltRon <- function (object,
     
   # save VoltRon on memory
   } else {
-    rds_path <- paste0(output, "_", paste0(prefix, "se.rds"))
+    rds_path <- paste0(output, "_", paste0("se.rds"))
     saveRDS(object, file = rds_path)
   }
   
@@ -115,7 +115,7 @@ loadVoltRon <- function(dir="my_se")
   # check dir
   if (!isSingleString(dir))
     stop(paste0("'dir' must be a single string specifying the path ",
-              "to the directory containing ", .THE_EXPECTED_STUFF))
+              "to the directory containing an rds and/or .h5/.zarr file!"))
   if (!dir.exists(dir)) {
     if (file.exists(dir))
       stop(paste0("\"", dir, "\" is a file, not a directory"))
@@ -372,7 +372,7 @@ writeHDF5ArrayInImage <- function(object,
                                   h5_path,
                                   name,
                                   chunkdim, 
-                                  level=level,
+                                  level,
                                   as.sparse,
                                   with.dimnames,
                                   verbose){
@@ -571,10 +571,10 @@ writeZarrArrayInVrData <- function(object,
 #' @noRd
 writeZarrArrayInImage <- function(object, 
                                   zarr_path,
-                                  name = assy,
-                                  chunkdim=chunkdim, 
-                                  level=level,
-                                  as.sparse=as.sparse,
+                                  name ,
+                                  chunkdim, 
+                                  level,
+                                  as.sparse,
                                   with.dimnames=FALSE,
                                   verbose=verbose){
   
@@ -693,9 +693,9 @@ writeZarrArrayInImage <- function(object,
       all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
     }
   } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
-    cur_path <- try(getPath(vrData(object, norm = FALSE), silent = TRUE))
+    cur_path <- try(getPath(vrData(object, norm = FALSE)), silent = TRUE)
     all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
-    cur_path <- try(getPath(vrData(object, norm = TRUE), silent = TRUE))
+    cur_path <- try(getPath(vrData(object, norm = TRUE)), silent = TRUE)
     all_links <- c(all_links, ifelse(is(cur_path, "try-error"), "try-error", cur_path))
     
   }
@@ -947,7 +947,7 @@ restore_absolute_links <- function(x, dir){
 
   # check object
   if (!is(x, c("Array")) && !is(x, c("IterableMatrix")))
-    stop(wmsg(what, " is not DelayedArray"))
+    stop(message("object is not DelayedArray"))
   
   # get path
   if(inherits(x, "DelayedArray")){
@@ -959,14 +959,14 @@ restore_absolute_links <- function(x, dir){
   ## file_path_as_absolute() will fail if the file does
   ## not exist.
   if (!file.exists(file_path))
-    stop(wmsg(what, " points to an HDF5 file ",
+    stop(message("Object points to an HDF5 file ",
               "that does not exist: ", file_path))
   if(inherits(x, "DelayedArray")){
     x@filepath <- file_path_as_absolute(file_path)
-    msg <- validate_absolute_path(x@filepath, paste0("'filepath' slot of ", what))
+    msg <- validate_absolute_path(x@filepath, paste0("'filepath' slot of Object"))
   } else if(inherits(x, "IterableMatrix")){
     x@path <- file_path_as_absolute(file_path)
-    msg <- validate_absolute_path(x@path, paste0("'filepath' slot of ", what))
+    msg <- validate_absolute_path(x@path, paste0("'filepath' slot of Object"))
   }
 
   # validate
@@ -989,12 +989,11 @@ restore_absolute_links_images <- function(file_path, dir){
   ## file_path_as_absolute() will fail if the file does
   ## not exist.
   if (!file.exists(file_path))
-    stop(wmsg(what, " points to an HDF5 file ",
-              "that does not exist: ", file_path))
+    stop(message("file_path doesnt exist"))
   file_path <- file_path_as_absolute(file_path)
   
   # validate
-  msg <- validate_absolute_path(file_path, paste0("'filepath' slot of ", what))
+  msg <- validate_absolute_path(file_path, paste0("'filepath' slot of object"))
   if (!isTRUE(msg))
     stop(paste0(msg))
   file_path

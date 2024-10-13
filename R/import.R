@@ -359,13 +359,16 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
 #'
 #' @param filename the path tp h5 file
 #'
-#' @importFrom hdf5r H5File readDataSet
 #' @importFrom Matrix sparseMatrix
 #'
 #' @noRd
-#'
 import10Xh5 <- function(filename){
 
+  # check package
+  if(!requireNamespace("hdf5r")){
+    stop("You have to install the hdf5r package!")
+  }
+  
   # check file
   if(file.exists(filename)){
     input.file <- hdf5r::H5File$new(filename = filename, mode = "r")

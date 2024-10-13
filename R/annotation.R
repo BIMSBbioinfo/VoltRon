@@ -611,6 +611,7 @@ transformSelectedCorners <- function(selected_corners, image, ranges, max.pixel.
   selected_corners
 }
 
+#' @importFrom stats na.omit
 transformSpatialLayer <- function(g_spatial, image, ranges, max.pixel.size){
   
   # correct for zoom
@@ -618,7 +619,7 @@ transformSpatialLayer <- function(g_spatial, image, ranges, max.pixel.size){
   g_spatial$data <- g_spatial$data[ind,]
   
   # is.na
-  g_spatial$data <- na.omit(g_spatial$data)
+  g_spatial$data <- stats::na.omit(g_spatial$data)
   
   # correct for zoom effect
   limits <- data.frame(x = ranges$x, y = ranges$y)

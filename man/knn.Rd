@@ -7,6 +7,10 @@
 knn_annoy(data, query = data, k = 10, n_trees = 50, search_k = -1)
 }
 \arguments{
+\item{data}{data}
+
+\item{query}{query data (Default: data)}
+
 \item{k}{number of neighbors for kNN}
 
 \item{n_trees}{Number of trees during index build time. More trees gives higher accuracy}
@@ -14,7 +18,7 @@ knn_annoy(data, query = data, k = 10, n_trees = 50, search_k = -1)
 \item{search_k}{Number of nodes to inspect during the query, or -1 for default value. Higher number gives higher accuracy}
 }
 \description{
-knn engine employed by RcppAnnoy package, adapted from \link{BPCells} package.
+knn engine employed by RcppAnnoy package, adapted from \code{BPCells} package.
 }
 \details{
 **knn_annoy**: Use RcppAnnoy as knn engine

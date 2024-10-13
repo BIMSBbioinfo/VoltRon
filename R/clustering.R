@@ -79,12 +79,14 @@ getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, da
 
 #' knn_annoy
 #' 
-#' knn engine employed by RcppAnnoy package, adapted from \link{BPCells} package.
+#' knn engine employed by RcppAnnoy package, adapted from \code{BPCells} package.
 #' 
 #' @rdname knn
 #' 
 #' @details **knn_annoy**: Use RcppAnnoy as knn engine
 #' 
+#' @param data data
+#' @param query query data (Default: data)
 #' @param k number of neighbors for kNN
 #' @param n_trees Number of trees during index build time. More trees gives higher accuracy
 #' @param search_k Number of nodes to inspect during the query, or -1 for default value. Higher number gives higher accuracy
