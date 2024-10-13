@@ -224,6 +224,7 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
                          coords = vrCoordinates(to_object)[colnames(aggregate_raw_counts),],
                          image = vrImages(to_object),
                          type = vrAssayTypes(to_object),
+                         name = vrAssayNames(to_object),
                          main_image = to_object@main_image,
                          params = to_object@params)
   new_assay@image <- to_object@image
@@ -265,6 +266,7 @@ getCellsFromTiles <- function(from_object, from_metadata = NULL, to_object, feat
                          coords = vrCoordinates(to_object)[colnames(aggregate_raw_counts),],
                          image = vrImages(to_object),
                          type = vrAssayTypes(to_object),
+                         name = vrAssayNames(to_object),
                          main_image = to_object@main_image,
                          params = to_object@params)
   new_assay@image <- to_object@image

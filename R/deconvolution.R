@@ -49,8 +49,13 @@ getDeconvolution <- function(object, assay = NULL, features = NULL, sc.object, s
       cat("Adding cell type compositions as new assay:", paste(sample.metadata[assy, "Assay"], "decon", sep = "_"), "...\n")
       spatialpoints <- colnames(rawdata)
       new_assay <- formAssay(data = rawdata,
-                             coords = vrCoordinates(cur_assay)[spatialpoints,], segments = vrSegments(cur_assay)[spatialpoints],
-                             image = vrImages(cur_assay), type = cur_assay@type, params = cur_assay@params, name = cur_assay@name, main_image = cur_assay@main_image)
+                             coords = vrCoordinates(cur_assay)[spatialpoints,], 
+                             segments = vrSegments(cur_assay)[spatialpoints],
+                             image = vrImages(cur_assay), 
+                             type = cur_assay@type, 
+                             params = cur_assay@params, 
+                             name = cur_assay@name, 
+                             main_image = cur_assay@main_image)
       new_assay@image <- cur_assay@image
       new_assay <- subset(new_assay, spatialpoints = spatialpoints)
 
