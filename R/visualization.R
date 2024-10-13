@@ -1218,7 +1218,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
   metadata <- Metadata(object, assay = assay)
 
   # get data
-  data_features <- features[features %in% vrFeatures(object)]
+  data_features <- features[features %in% vrFeatures(object, assay = assay)]
   if(length(data_features) > 0){
     normdata <- vrData(object, features = data_features, assay = assay_names, norm = norm)
     if(log)
@@ -1232,7 +1232,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
 
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
-    if(feat %in% vrFeatures(object)){
+    if(feat %in% vrFeatures(object, assay = assay)){
       return(range(normdata[feat, ]))
     } else {
       if(feat %in% colnames(metadata)){
@@ -1254,7 +1254,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
   for(feat in features){
 
     # get data
-    if(feat %in% vrFeatures(object)){
+    if(feat %in% vrFeatures(object, assay = assay)){
       # datax$score <- normdata[feat,]
       datax$score <- normdata[feat, rownames(datax)]
     } else {
@@ -1431,14 +1431,14 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
 
   # features
   if(is.null(features)){
-    if(nrow(vrFeatureData(object)) > 0){
+    if(nrow(vrFeatureData(object, assay = assay)) > 0){
       features <- getVariableFeatures(object, assay = assay, ...)
     } else {
       features <- vrFeatures(object, assay = assay)
     }
   } else {
-    nonmatching_features <- setdiff(features, vrFeatures(object))
-    features <- features[features %in% vrFeatures(object)]
+    nonmatching_features <- setdiff(features, vrFeatures(object, assay = assay))
+    features <- features[features %in% vrFeatures(object, assay = assay)]
     if(length(features) == 0){
       stop("None of the provided features are found in the assay")
     }
@@ -1535,21 +1535,18 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, group.by = "Samp
   # sample metadata
   sample.metadata <- SampleMetadata(object)
 
-  # get assay names
-  assay_names <- vrAssayNames(object, assay = assay)
-
+  # get entity type and metadata
+  metadata <- Metadata(object, assay = assay)
+  
   # get data
-  if(any(features %in% vrFeatures(object))){
-    selected_features <- features[features %in% vrFeatures(object)]
+  if(any(features %in% vrFeatures(object, assay = assay))){
+    selected_features <- features[features %in% vrFeatures(object, assay = assay)]
     violindata <- vrData(object, features = selected_features, assay = assay, norm = norm)
   }
 
-  # get entity type and metadata
-  metadata <- Metadata(object, assay = assay)
-
   # get feature data
   datax <- lapply(features, function(x){
-    if(x %in% vrFeatures(object)){
+    if(x %in% vrFeatures(object, assay = assay)){
       return(violindata[x,])
     } else if(x %in% colnames(metadata)){
       return(metadata[,x])
