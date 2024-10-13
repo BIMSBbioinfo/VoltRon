@@ -200,7 +200,10 @@ setMethod(
       assay_names <- rownames(sample.metadata)
       if(i %in% assay_names){
         cur_assay <- sample.metadata[i,]
-        return(x@samples[[cur_assay$Sample]]@layer[[cur_assay$Layer]]@assay[[cur_assay$Assay]])
+        assay_list <- x@samples[[cur_assay$Sample]]@layer[[cur_assay$Layer]]@assay
+        assay_names <- sapply(assay_list, vrAssayNames)
+        return(assay_list[[which(assay_names == rownames(cur_assay))]])
+        # return(x@samples[[cur_assay$Sample]]@layer[[cur_assay$Layer]]@assay[[cur_assay$Assay]])
       } else {
         stop("There are no samples or assays named ", i, " in this object")
       }
@@ -210,6 +213,10 @@ setMethod(
     }
   }
 )
+
+temp <- function(x, cur_assay){
+  return(x@samples[[cur_assay$Sample]]@layer[[cur_assay$Layer]]@assay[[cur_assay$Assay]])
+}
 
 #' @describeIn VoltRon-methods Overwriting vrAssay or vrSample objects from \code{VoltRon} objects
 #'
