@@ -55,7 +55,12 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
   # get image
   img <- vrImages(object[[assay]], name = image_name, channel = channel, as.raster = TRUE)
   if(!inherits(img, "Image_Array")){
-    img <- magick::image_read(img)
+    if(!requireNamespace("ImageArray")){
+      message("Please install ImageArray package to speed up visualization")
+      img <- magick::image_read(img)
+    } else{
+      img <- ImageArray::createImageArray(img)
+    }
   }
   if(!use.image.only){
     # get spatial plot
@@ -297,13 +302,19 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
     output$image_plot <- renderPlot({
       
       ## get image ####
+      start <- proc.time()
       zoom_info <- FromBoxToCrop(cbind(ranges$x, ranges$y), imageinfo = imginfo)
+      print(proc.time() - start)
+      start <- proc.time()
       img <- cropImage(img, zoom_info)
+      print(proc.time() - start)
+      start <- proc.time()
       g <- plotImage(img, max.pixel.size = max.pixel.size) + labs(title = "")
       if(!use.image.only){
         g_spatial_clone <- cloneLayer(g_spatial)
         g <- g + transformSpatialLayer(g_spatial_clone, img, ranges, max.pixel.size)
       }
+      print(proc.time() - start)
       
       # visualize currently selected corners ####
       transformed_corners <- transformSelectedCorners(selected_corners(), img, ranges, max.pixel.size)
@@ -515,7 +526,7 @@ manageSelectedCorners <- function(selected_corners, image, ranges, max.pixel.siz
       width <- limits[2,1]-limits[1,1]
       height <- limits[2,2]-limits[1,2]
       if(max(height,width) > max.pixel.size){
-        if(inherits(image, "Image_Array")){
+        if(inherits(image, c("Image_Array"))){
           n.series <- ImageArray::len(image)
           cur_width <- width
           cur_height <- height
@@ -531,11 +542,11 @@ manageSelectedCorners <- function(selected_corners, image, ranges, max.pixel.siz
           pts <- pts*width/max.pixel.size
         }
       }
-      
+    
       # correct for offset effect
       pts[1] <- pts[1] + limits[1,1]
       pts[2] <- pts[2] + limits[1,2]
-
+      
       # Append new point to the data frame
       new_point <- data.frame(x = pts[1], y = pts[2])
       
@@ -796,10 +807,9 @@ annotateSpatialData_old <- function(object, label = "annotation", assay = NULL, 
     img <- magick::image_read(img)
   }
   imginfo <- getImageInfo(img)
-  # g <- plotImage(img) + labs(title = "")
-  
+
+  # get spatial plot
   if(!use.image.only){
-    # get spatial plot
     g_spatial <- vrSpatialPlot(object, assay = assay, background = c(image_name, channel), scale.image = FALSE, ...)
     g_spatial <- g_spatial$layers[[2]]
   }
