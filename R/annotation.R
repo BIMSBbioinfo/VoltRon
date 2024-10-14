@@ -302,20 +302,14 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
     output$image_plot <- renderPlot({
       
       ## get image ####
-      start <- proc.time()
       zoom_info <- FromBoxToCrop(cbind(ranges$x, ranges$y), imageinfo = imginfo)
-      print(proc.time() - start)
-      start <- proc.time()
       img <- cropImage(img, zoom_info)
-      print(proc.time() - start)
-      start <- proc.time()
       g <- plotImage(img, max.pixel.size = max.pixel.size) + labs(title = "")
       if(!use.image.only){
         g_spatial_clone <- cloneLayer(g_spatial)
         g <- g + transformSpatialLayer(g_spatial_clone, img, ranges, max.pixel.size)
       }
-      print(proc.time() - start)
-      
+
       # visualize currently selected corners ####
       transformed_corners <- transformSelectedCorners(selected_corners(), img, ranges, max.pixel.size)
       if(nrow(transformed_corners) > 0){
