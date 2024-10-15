@@ -40,7 +40,7 @@ NULL
 #' @param scale.image if TRUE, background image will be scaled down to a low resolution (width: 1000px)
 #' @param legend.loc the location of the legend, default is "right"
 #' @param common.legend whether to use a common legend for all plots, see \link{ggarrange}
-#' @param collapse whether to combine all ggplots
+#' @param collapse.plots whether to combine all ggplots
 #' @param interactive if TRUE, run interactive plot
 #' @param shiny.options a list of shiny options (browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
 #'
@@ -52,7 +52,7 @@ NULL
 #'
 vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, assay = NULL, graph.name = NULL,
                           reduction = NULL, ncol = 2, nrow = NULL, font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, label = FALSE, background = NULL, reg = FALSE,
-                          crop = FALSE, legend.pt.size = 2, legend.text.size = 14, scale.image = TRUE, legend.loc = "right", common.legend = TRUE, collapse = TRUE, interactive = FALSE, 
+                          crop = FALSE, legend.pt.size = 2, legend.text.size = 14, scale.image = TRUE, legend.loc = "right", common.legend = TRUE, collapse.plots = TRUE, interactive = FALSE, 
                           shiny.options = list()) {
 
   # check object for zarr
@@ -81,7 +81,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
                           graph.name = graph.name, reduction = reduction, ncol = ncol, nrow = nrow, font.size = font.size, pt.size = pt.size,
                           cell.shape = cell.shape, alpha = alpha, label = label, background = background, reg = reg,
                           crop = crop, legend.pt.size = legend.pt.size, legend.text.size = legend.text.size, scale.image = FALSE, 
-                          legend.loc = legend.loc, common.legend = common.legend, collapse = collapse,
+                          legend.loc = legend.loc, common.legend = common.legend, collapse.plots = collapse.plots,
                           interactive = FALSE)
       return(vrSpatialPlotInteractive(plot_g = gg, shiny.options = shiny.options))
     }
@@ -165,7 +165,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
   }
 
   # return a list of plots or a single one
-  if(collapse){
+  if(collapse.plots){
     if(length(assay_names) > 1){
       if(length(gg) < ncol) ncol <- length(gg)
       return(ggpubr::ggarrange(plotlist = gg, ncol = ncol, nrow = ceiling(length(gg)/ncol), common.legend = common.legend, legend = legend.loc))
@@ -469,7 +469,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #' @param scale.image if TRUE, background image will be scaled down to a low resolution (width: 1000px)
 #' @param common.legend whether to use a common legend for all plots, see \link{ggarrange}
 #' @param legend.loc the location of the legend, default is "right"
-#' @param collapse whether to combine all ggplots
+#' @param collapse.plots whether to combine all ggplots
 #'
 #' @import ggplot2
 #' @importFrom ggpubr ggarrange
@@ -478,7 +478,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #'
 vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segments = FALSE, n.tile = 0, norm = TRUE, log = FALSE, assay = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
                          font.size = 2, pt.size = 2, cell.shape = 16, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, background = NULL, reg = FALSE,
-                         crop = FALSE, scale.image = TRUE, common.legend = FALSE, legend.loc = "right", collapse = TRUE) {
+                         crop = FALSE, scale.image = TRUE, common.legend = FALSE, legend.loc = "right", collapse.plots = TRUE) {
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -562,7 +562,7 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
     }
   }
 
-  if(collapse){
+  if(collapse.plots){
     # return a list of plots or a single one
     if(length(features) > 1 && length(assay_names) > 1){
       return(ggpubr::ggarrange(plotlist = gg, ncol = length(features), nrow = length(assay_names)))
@@ -1013,7 +1013,7 @@ vrNeighbourhoodEnrichmentPlot <- function(results, assay = NULL, type = c("assoc
 #' @param pt.size point size
 #' @param label if TRUE, the labels of the ROI assays will be visualized
 #' @param common.legend whether to use a common legend for all plots, see \link{ggarrange}
-#' @param collapse whether to combine all ggplots
+#' @param collapse.plots whether to combine all ggplots
 #'
 #' @import ggplot2
 #' @importFrom stats aggregate
@@ -1021,7 +1021,7 @@ vrNeighbourhoodEnrichmentPlot <- function(results, assay = NULL, type = c("assoc
 #' @export
 #'
 vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", group.ids = NULL, split.by = NULL, colors = NULL, n.tile = 0, assay = NULL,
-                            ncol = 2, nrow = NULL, font.size = 5, pt.size = 1, label = FALSE, common.legend = TRUE, collapse = TRUE) {
+                            ncol = 2, nrow = NULL, font.size = 5, pt.size = 1, label = FALSE, common.legend = TRUE, collapse.plots = TRUE) {
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -1174,14 +1174,14 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
 #' @param pt.size point size
 #' @param keep.scale whether unify all scales for all features or not
 #' @param common.legend whether to use a common legend for all plots, see \link{ggarrange}
-#' @param collapse whether to combine all ggplots
+#' @param collapse.plots whether to combine all ggplots
 #'
 #' @import ggplot2
 #'
 #' @export
 #'
 vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n.tile = 0, norm = TRUE, log = FALSE, assay = NULL, ncol = 2, nrow = NULL,
-                                   font.size = 2, pt.size = 1, keep.scale = "feature", common.legend = TRUE, collapse = TRUE) {
+                                   font.size = 2, pt.size = 1, keep.scale = "feature", common.legend = TRUE, collapse.plots = TRUE) {
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -1251,14 +1251,12 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
     # plot
     g <- ggplot()
 
-    # # add points or segments
+    # add points, rasterize if requested or needed
     # g <- g +
     #   geom_point(mapping = aes(x = x, y = y, color = score), dplyr::arrange(datax,score), shape = 16, size = pt.size) +
     #   scale_color_gradientn(name = legend_title[[feat]],
     #                         colors=c("lightgrey", "blue"),
     #                         values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
-
-    # add points, rasterize if requested or needed
     if(n.tile > 0 || nrow(datax) > 1000){
       if(n.tile == 0)
         n.tile <- 1000
@@ -1282,7 +1280,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
     i <- i + 1
   }
 
-  if(collapse){
+  if(collapse.plots){
     # return a list of plots or a single one
     if(length(features) > 1){
       if(length(gg) < ncol) ncol <- length(gg)
