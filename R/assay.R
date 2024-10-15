@@ -35,8 +35,8 @@ vrAssay <- setClass(
   Class = 'vrAssay',
   slots = c(
     data = "list",
-    # rawdata = 'data_matrix',
-    # normdata = 'data_matrix',
+    rawdata = 'data_matrix',
+    normdata = 'data_matrix',
     featuredata = 'data.frame',
     embeddings = "list",
     image = "list",
@@ -122,6 +122,7 @@ formAssay <- function(data = NULL, coords, segments = list(), image = NULL, para
   data_list <- list(main = data, main_norm = data)
   names(data_list) <- c(main_featureset, paste0(main_featureset, "_norm"))
   methods::new("vrAssay", 
+               rawdata = data, normdata = data,
                data = data_list,
                image = image, params = params, type = type, name = name, 
                main_image = main_image, main_featureset = main_featureset)

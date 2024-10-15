@@ -80,7 +80,11 @@ transferFeatureData <- function(object, from = NULL, to = NULL, features = NULL,
     if(from_object_type == "tile"){
       new_assay <- getCellsFromTiles(from_object, from_metadata, to_object, features = features)
     }
-  } 
+  } else if(to_object_type == "ROI"){
+    if(from_object_type == "cell"){
+      new_assay <- getROIsFromCells(from_object, from_metadata, to_object, features = features)
+    }
+  }
 
   # add new assay
   # if(is.null(new_assay_name)){
@@ -233,6 +237,105 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
   # new_assay@image <- to_object@image
   # new_assay <- subset(new_assay, spatialpoints = colnames(aggregate_raw_counts))
 
+  # return
+  # return(new_assay)
+  return(aggregate_raw_counts)
+}
+
+#' getROIsFromCells
+#'
+#' Generate Psuedo counts per ROIs and insert to as a separate image assay to the Visium object
+#'
+#' @param from_object The vrAssay object whose data transfer to the second assay
+#' @param from_metadata the metadata associated with \code{from_object}
+#' @param to_object The ID of the target vrAssay object where data is transfered to
+#' @param features the name of the metadata feature to transfer, if NULL, the rawdata will be transfered
+#'
+#' @importFrom dplyr %>% right_join
+#' @importFrom stats aggregate
+#' @importFrom FNN get.knnx
+#' @importFrom magick image_data
+#'
+#' @noRd
+#'
+getROIsFromCells <- function(from_object, from_metadata = NULL, to_object, features = NULL) {
+
+  # get cell and spot coordinates
+  cat("Cell to Spot Distances \n")
+  segments_rois <- vrSegments(to_object)
+  coords_cells <- vrCoordinates(from_object)
+  
+  # find associated spot for each cell
+  cat("Find associated ROIs for each cell \n")
+  cell_to_roi_id <- NULL
+  cell_to_roi_labelid <- NULL
+  names_segments_rois <- names(segments_rois)
+  for(i in 1:length(segments_rois)){
+    cur_segt <- segments_rois[[i]]
+    if(ncol(cur_segt) > 3){
+      in.list <- point.in.circle(coords_cells[,1], coords_cells[,2], cur_segt$x, cur_segt$y, cur_segt$rx)
+    } else {
+      in.list <- sp::point.in.polygon(coords_cells[,1], coords_cells[,2], cur_segt$x, cur_segt$y)
+    }
+    in.list.cells <- rownames(coords_cells)[!!in.list]
+    cell_to_roi_id <- c(cell_to_roi_id, in.list.cells)
+    cell_to_roi_labelid <- c(cell_to_roi_labelid, rep(names_segments_rois[i], length(in.list.cells)))
+  }
+  
+  # get data
+  if(is.null(features)){
+    raw_counts <- vrData(from_object, norm = FALSE)
+  } else {
+    data_features <- features[features %in% vrFeatures(from_object)]
+    metadata_features <- features[features %in% colnames(from_metadata)]
+    if(length(data_features) > 0){
+      if(length(metadata_features) > 0){
+        stop("Data and metadata features cannot be transfered in the same time!")
+      } else {
+        raw_counts <- vrData(from_object, norm = FALSE)
+        raw_counts <- raw_counts[features,]
+        message("There are ", length(setdiff(features, data_features)), " unknown features!")
+      }
+    } else {
+      if(length(metadata_features) > 1){
+        stop("Only one metadata column can be transfered at a time")
+      } else if(length(metadata_features) == 1) {
+        raw_counts <- from_metadata[,metadata_features, drop = FALSE]
+        rownames_raw_counts <- rownames(raw_counts)
+        raw_counts <- dummy_cols(raw_counts, remove_first_dummy = FALSE)
+        raw_counts <- raw_counts[,-1]
+        raw_counts <- t(raw_counts)
+        colnames(raw_counts) <- rownames_raw_counts
+        rownames(raw_counts) <- gsub(paste0("^", metadata_features, "_"), "", rownames(raw_counts))
+      } else {
+        stop("Features cannot be found in data and metadata!")
+      }
+    }
+  }
+  raw_counts <- raw_counts[,cell_to_roi_id, drop = FALSE]
+  
+  # pool cell counts to Spots
+  cat("Aggregating cell profiles in spots \n")
+  aggregate_raw_counts <- stats::aggregate(t(as.matrix(raw_counts)), list(cell_to_roi_labelid), sum)
+  aggregate_raw_counts <- data.frame(barcodes = vrSpatialPoints(to_object)) %>% dplyr::right_join(aggregate_raw_counts, by = c("barcodes" = "Group.1"))
+  rownames(aggregate_raw_counts) <- aggregate_raw_counts$barcodes
+  aggregate_raw_counts <- t(aggregate_raw_counts[,-1])
+  aggregate_raw_counts[is.na(aggregate_raw_counts)] <- 0
+  
+  # create new assay
+  # images <- list()
+  # for(img in vrImageNames(to_object)){
+  #   images[[img]] <- magick::image_data(vrImages(to_object, name = img))
+  # }
+  # new_assay <- formAssay(data = aggregate_raw_counts,
+  #                        coords = vrCoordinates(to_object)[colnames(aggregate_raw_counts),],
+  #                        image = vrImages(to_object),
+  #                        type = vrAssayTypes(to_object),
+  #                        main_image = to_object@main_image,
+  #                        params = to_object@params)
+  # new_assay@image <- to_object@image
+  # new_assay <- subset(new_assay, spatialpoints = colnames(aggregate_raw_counts))
+  
   # return
   # return(new_assay)
   return(aggregate_raw_counts)

@@ -485,7 +485,8 @@ formVoltRon <- function(data = NULL, metadata = NULL, image = NULL,
   }
 
   # create vrAssay
-  Assay <- formAssay(data = data, coords = coords, segments = segments, image = image, params = params, 
+  Assay <- formAssay(data = data, 
+                     coords = coords, segments = segments, image = image, params = params, 
                      type = assay.type, name = "Assay1", main_image = image_name, main_featureset = feature_name, ...)
   listofAssays <- list(Assay)
   names(listofAssays) <- main.assay
