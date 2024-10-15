@@ -440,7 +440,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #'
 #' @param g the ggplot figure
 #' @param data the data frame with coordinates and group identities
-#' @param group.by group.by
+#' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
 #' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
 #' @param alpha alpha level of colors of visualized points and segments
 #'
@@ -448,19 +448,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #'
 #' @noRd
 vrSpatialPlotSingleTiling <- function(g, data, group.by, n.tile, alpha = 1){
-
-  # gplot <- g + stat_bin_2d(mapping = aes(x = x, y = y), data = data, bins = n.tile, drop = FALSE, alpha = alpha)
-  gplot <- g + stat_bin_2d(mapping = aes_string(x = "x", y = "y", fill = group.by), data = data, bins = n.tile, drop = TRUE, alpha = alpha)
-  # hex_count_data <- ggplot_build(gplot)$data
-  # hex_count_data <- hex_count_data[[length(hex_count_data)]]
-  # midpoint <- max(hex_count_data$count)/2
-  # gplot <- gplot +
-  #   scale_fill_gradientn(name = "Count",
-  #                        colors=c("dodgerblue2", "white", "yellow3"),
-  #                        values=scales::rescale(c(0, midpoint, max(hex_count_data$count))), limits = c(0, max(hex_count_data$count)))
-
-  # return
-  gplot
+  g + stat_bin_2d(mapping = aes_string(x = "x", y = "y", fill = group.by), data = data, bins = n.tile, drop = TRUE, alpha = alpha)
 }
 
 ####
@@ -795,7 +783,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
       if(n.tile > 0 || nrow(coords) > 1000){
         if(n.tile == 0)
           n.tile <- 1000
-        g <- vrSpatialFeaturePlotSingleTiling(g = g, data = coords, n.tile = n.tile, alpha = alpha)
+        g <- vrSpatialFeaturePlotSingleTiling(g = g, data = coords, legend_title = legend_title, n.tile = n.tile, alpha = alpha)
       } else {
         g <- g +
           geom_point(mapping = aes(x = x, y = y, fill = score, color = score), dplyr::arrange(coords, score), shape = cell.shape, size = rel(pt.size), alpha = alpha) +
@@ -863,32 +851,27 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 #'
 #' @param g the ggplot figure
 #' @param data the data frame with coordinates and group identities
+#' @param legend_title the legend title of the single plot 
 #' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
 #' @param alpha alpha level of colors of visualized points and segments
 #'
 #' @import ggplot2
 #'
 #' @noRd
-vrSpatialFeaturePlotSingleTiling <- function(g, data, n.tile, alpha = 1){
-  
-  gplot <- g + stat_bin_2d(mapping = aes(x = x, y = y, fill = score, color = score), data = data, bins = n.tile, drop = TRUE, alpha = alpha)
+vrSpatialFeaturePlotSingleTiling <- function(g, data, legend_title, n.tile, alpha = 1){
+
+  # get summary per title  
+  gplot <- g + stat_summary_2d(mapping = aes(x = x, y = y, z = score), fun = mean, data = data, geom = "tile", bins = n.tile, drop = TRUE, alpha = alpha)
   hex_count_data <- ggplot_build(gplot)$data
   hex_count_data <- hex_count_data[[length(hex_count_data)]]
-  midpoint <- max(hex_count_data$count)/2
+  midpoint <- max(hex_count_data$value)/2
   gplot <- gplot +
-    scale_fill_gradientn(name = "Count",
+    scale_fill_gradientn(name = legend_title,
                          colors=c("dodgerblue2", "white", "yellow3"),
-                         values=scales::rescale(c(0, midpoint, max(hex_count_data$count))), limits = c(0, max(hex_count_data$count)))
+                         values=scales::rescale(c(0, midpoint, max(hex_count_data$value))), limits = c(0, max(hex_count_data$value)))
   
   # return
   gplot
-  
-  # g <- g +
-  #   geom_point(mapping = aes(x = x, y = y, fill = score, color = score), dplyr::arrange(coords, score), shape = cell.shape, size = rel(pt.size), alpha = alpha) +
-  #   scale_colour_gradientn(name = legend_title,
-  #                          colors=c("dodgerblue2", "white", "yellow3"), 
-  #                          values=scales::rescale(c(limits[1], midpoint, limits[2])), limits = limits, aesthetics = c("fill", "colour")) 
-  
 }
 
 ####

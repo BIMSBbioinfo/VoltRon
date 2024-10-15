@@ -9,6 +9,7 @@ vrSpatialFeaturePlot(
   features,
   group.by = "label",
   plot.segments = FALSE,
+  n.tile = 0,
   norm = TRUE,
   log = FALSE,
   assay = NULL,
@@ -39,6 +40,8 @@ vrSpatialFeaturePlot(
 \item{group.by}{a column of metadata from \link{Metadata} used as grouping label for the spatial entities}
 
 \item{plot.segments}{plot segments from \link{vrSegments} instead of points}
+
+\item{n.tile}{should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules}
 
 \item{norm}{if TRUE, the normalized data is used}
 

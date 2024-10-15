@@ -66,3 +66,24 @@ test_that("missing_embedding_values", {
   # return
   expect_equal(1,1L)
 })
+
+# Testing plotting functions
+test_that("rasterization", {
+  
+  # get data
+  data("xenium_data")
+  
+  # spatial plot
+  vrSpatialPlot(xenium_data, group.by = "clusters", background = "black", n.tile = 100)
+  vrSpatialPlot(xenium_data, group.by = "clusters", background = "black", n.tile = 1)
+  vrSpatialPlot(xenium_data, group.by = "clusters", background = "black", n.tile = 10)
+  expect_warning(vrSpatialPlot(xenium_data, group.by = "clusters", background = c("main", "DAPI2")))
+  
+  # feature plots
+  vrSpatialFeaturePlot(xenium_data, features = "Count", n.tile = 20)
+  vrSpatialFeaturePlot(xenium_data, features = "KRT14", norm = TRUE, log = TRUE, n.tile = 10)
+  expect_error(vrSpatialFeaturePlot(xenium_data, features = "Count_new"))
+  
+  # return
+  expect_equal(1,1L)
+})
