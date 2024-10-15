@@ -368,7 +368,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         if(n.tile > 0 || nrow(coords) > 1000){
           if(n.tile == 0)
             n.tile <- 1000
-          g <- vrSpatialPlotSingleTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha)
+          g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha)
         } else {
           g <- g +
             geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) 
@@ -393,7 +393,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     if(n.tile > 0 || nrow(coords) > 1000){
       if(n.tile == 0)
         n.tile <- 1000
-      g <- vrSpatialPlotSingleTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha)
+      g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha)
     } else {
       g <- g +
         geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha)
@@ -432,23 +432,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 
   # return data
   return(g)
-}
-
-#' vrSpatialPlotSingleTiling
-#'
-#' Plotting a tiled version of the vrSpatialPlot
-#'
-#' @param g the ggplot figure
-#' @param data the data frame with coordinates and group identities
-#' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
-#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
-#' @param alpha alpha level of colors of visualized points and segments
-#'
-#' @import ggplot2
-#'
-#' @noRd
-vrSpatialPlotSingleTiling <- function(g, data, group.by, n.tile, alpha = 1){
-  g + stat_bin_2d(mapping = aes_string(x = "x", y = "y", fill = group.by), data = data, bins = n.tile, drop = TRUE, alpha = alpha)
 }
 
 ####
@@ -783,7 +766,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
       if(n.tile > 0 || nrow(coords) > 1000){
         if(n.tile == 0)
           n.tile <- 1000
-        g <- vrSpatialFeaturePlotSingleTiling(g = g, data = coords, legend_title = legend_title, n.tile = n.tile, alpha = alpha)
+        g <- vrFeaturePlotTiling(g = g, data = coords, legend_title = legend_title, n.tile = n.tile, alpha = alpha, type = "spatial")
       } else {
         g <- g +
           geom_point(mapping = aes(x = x, y = y, fill = score, color = score), dplyr::arrange(coords, score), shape = cell.shape, size = rel(pt.size), alpha = alpha) +
@@ -843,35 +826,6 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 
   # return data
   return(g)
-}
-
-#' vrSpatialPlotSingleTiling
-#'
-#' Plotting a tiled version of the vrSpatialPlot
-#'
-#' @param g the ggplot figure
-#' @param data the data frame with coordinates and group identities
-#' @param legend_title the legend title of the single plot 
-#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
-#' @param alpha alpha level of colors of visualized points and segments
-#'
-#' @import ggplot2
-#'
-#' @noRd
-vrSpatialFeaturePlotSingleTiling <- function(g, data, legend_title, n.tile, alpha = 1){
-
-  # get summary per title  
-  gplot <- g + stat_summary_2d(mapping = aes(x = x, y = y, z = score), fun = mean, data = data, geom = "tile", bins = n.tile, drop = TRUE, alpha = alpha)
-  hex_count_data <- ggplot_build(gplot)$data
-  hex_count_data <- hex_count_data[[length(hex_count_data)]]
-  midpoint <- max(hex_count_data$value)/2
-  gplot <- gplot +
-    scale_fill_gradientn(name = legend_title,
-                         colors=c("dodgerblue2", "white", "yellow3"),
-                         values=scales::rescale(c(0, midpoint, max(hex_count_data$value))), limits = c(0, max(hex_count_data$value)))
-  
-  # return
-  gplot
 }
 
 ####
@@ -1050,6 +1004,7 @@ vrNeighbourhoodEnrichmentPlot <- function(results, assay = NULL, type = c("assoc
 #' @param group.ids a subset of categories defined in metadata column from \code{group.by}
 #' @param split.by a column of metadata from \link{Metadata} used as splitting spatial entities into ggplot panels, see \link{facet_wrap}
 #' @param colors the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by
+#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param ncol column wise number of plots, for \link{facet_wrap}
@@ -1065,7 +1020,7 @@ vrNeighbourhoodEnrichmentPlot <- function(results, assay = NULL, type = c("assoc
 #'
 #' @export
 #'
-vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", group.ids = NULL, split.by = NULL, colors = NULL, assay = NULL,
+vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", group.ids = NULL, split.by = NULL, colors = NULL, n.tile = 0, assay = NULL,
                             ncol = 2, nrow = NULL, font.size = 5, pt.size = 1, label = FALSE, common.legend = TRUE, collapse = TRUE) {
 
   # check object
@@ -1154,9 +1109,16 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
   # plot
   g <- ggplot()
 
-  # add points or segments
+  # add points, rasterize if requested or needed
+  if(n.tile > 0 || nrow(datax) > 1000){
+    if(n.tile == 0)
+      n.tile <- 1000
+    g <- vrGroupPlotTiling(g = g, data = datax, group.by = group.by, n.tile = n.tile)
+  } else {
+    g <- g +
+      geom_point(mapping = aes_string(x = "x", y = "y", color = group.by), datax, shape = 16, size = pt.size)
+  }
   g <- g +
-    geom_point(mapping = aes_string(x = "x", y = "y", color = group.by), datax, shape = 16, size = pt.size) +
     scale_color_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
     guides(color = guide_legend(override.aes=list(size = 2)))
 
@@ -1201,6 +1163,7 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
 #' @param object a VoltRon object
 #' @param embedding the embedding type, i.e. pca, umap etc.
 #' @param features a set of features to be visualized, either from \link{vrFeatures} of raw or normalized data or columns of the \link{Metadata}.
+#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
 #' @param norm if TRUE, the normalized data is used
 #' @param log if TRUE, data features (excluding metadata features) will be log transformed
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
@@ -1217,7 +1180,7 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
 #'
 #' @export
 #'
-vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, norm = TRUE, log = FALSE, assay = NULL, ncol = 2, nrow = NULL,
+vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n.tile = 0, norm = TRUE, log = FALSE, assay = NULL, ncol = 2, nrow = NULL,
                                    font.size = 2, pt.size = 1, keep.scale = "feature", common.legend = TRUE, collapse = TRUE) {
 
   # check object
@@ -1288,14 +1251,26 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
     # plot
     g <- ggplot()
 
-    # add points or segments
-    # datax <- datax[sample(1:nrow(datax)),]
-    g <- g +
-      geom_point(mapping = aes(x = x, y = y, color = score), dplyr::arrange(datax,score), shape = 16, size = pt.size) +
-      scale_color_gradientn(name = legend_title[[feat]],
-                            colors=c("lightgrey", "blue"),
-                            values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
+    # # add points or segments
+    # g <- g +
+    #   geom_point(mapping = aes(x = x, y = y, color = score), dplyr::arrange(datax,score), shape = 16, size = pt.size) +
+    #   scale_color_gradientn(name = legend_title[[feat]],
+    #                         colors=c("lightgrey", "blue"),
+    #                         values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
 
+    # add points, rasterize if requested or needed
+    if(n.tile > 0 || nrow(datax) > 1000){
+      if(n.tile == 0)
+        n.tile <- 1000
+      g <- vrFeaturePlotTiling(g = g, data = datax, legend_title = legend_title[[feat]], n.tile = n.tile, type = "embedding", limits = limits[[feat]])
+    } else {
+      g <- g +
+        geom_point(mapping = aes(x = x, y = y, color = score), dplyr::arrange(datax,score), shape = 16, size = pt.size) + 
+        scale_color_gradientn(name = legend_title[[feat]],
+                              colors=c("lightgrey", "blue"),
+                              values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
+    }
+    
     # more visualization parameters
     g <- g +
       theme_classic() +
@@ -1870,3 +1845,68 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
   }
   return(gg)
 }
+
+####
+# Rasterization ####
+####
+
+#' vrGroupPlotTiling
+#'
+#' Plotting a tiled version of the vrEmbeddingPlot and vrSpatialPlot
+#'
+#' @param g the ggplot figure
+#' @param data the data frame with coordinates and group identities
+#' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
+#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param alpha alpha level of colors of visualized points and segments
+#'
+#' @import ggplot2
+#'
+#' @noRd
+vrGroupPlotTiling <- function(g, data, group.by, n.tile, alpha = 1){
+  g + stat_bin_2d(mapping = aes_string(x = "x", y = "y", fill = group.by), data = data, bins = n.tile, drop = TRUE, alpha = alpha)
+}
+
+#' vrFeaturePlotTiling
+#'
+#' Plotting a tiled version of the vrEmbeddingFeaturePlot and vrSpatialFeaturePlot
+#'
+#' @param g the ggplot figure
+#' @param data the data frame with coordinates and group identities
+#' @param legend_title the legend title of the single plot 
+#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param alpha alpha level of colors of visualized points and segments
+#' @param type embedding or spatial, changes the color scheme
+#'
+#' @import ggplot2
+#'
+#' @noRd
+vrFeaturePlotTiling <- function(g, data, legend_title, n.tile, alpha = 1, limits = NULL, type = "embedding"){
+  
+  # get summary per title  
+  gplot <- g + stat_summary_2d(mapping = aes(x = x, y = y, z = score), fun = mean, data = data, geom = "tile", bins = n.tile, drop = TRUE, alpha = alpha)
+  
+  # check if limits are defined, typically coming from vrEmbeddingFeaturePlot
+  if(is.null(limits)){
+    hex_count_data <- ggplot_build(gplot)$data
+    hex_count_data <- hex_count_data[[length(hex_count_data)]]
+    midpoint <- max(hex_count_data$value)/2
+  }
+  
+  # color scheme for either spatial or embedding feature plot
+  if(type == "spatial"){
+    gplot <- gplot +
+      scale_fill_gradientn(name = legend_title,
+                           colors=c("dodgerblue2", "white", "yellow3"),
+                           values=scales::rescale(c(0, midpoint, max(hex_count_data$value))), limits = c(0, max(hex_count_data$value))) 
+  } else{
+    gplot <- gplot +
+      scale_fill_gradientn(name = legend_title,
+                            colors=c("lightgrey", "blue"),
+                            values=scales::rescale(c(limits[1], limits[2])), limits = limits)
+  }
+  
+  # return
+  gplot
+}
+

@@ -11,6 +11,7 @@ vrEmbeddingPlot(
   group.ids = NULL,
   split.by = NULL,
   colors = NULL,
+  n.tile = 0,
   assay = NULL,
   ncol = 2,
   nrow = NULL,
@@ -33,6 +34,8 @@ vrEmbeddingPlot(
 \item{split.by}{a column of metadata from \link{Metadata} used as splitting spatial entities into ggplot panels, see \link{facet_wrap}}
 
 \item{colors}{the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by}
+
+\item{n.tile}{should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}

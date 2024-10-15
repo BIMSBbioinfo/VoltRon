@@ -8,6 +8,7 @@ vrEmbeddingFeaturePlot(
   object,
   embedding = "pca",
   features = NULL,
+  n.tile = 0,
   norm = TRUE,
   log = FALSE,
   assay = NULL,
@@ -26,6 +27,8 @@ vrEmbeddingFeaturePlot(
 \item{embedding}{the embedding type, i.e. pca, umap etc.}
 
 \item{features}{a set of features to be visualized, either from \link{vrFeatures} of raw or normalized data or columns of the \link{Metadata}.}
+
+\item{n.tile}{should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules}
 
 \item{norm}{if TRUE, the normalized data is used}
 

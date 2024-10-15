@@ -84,6 +84,12 @@ test_that("rasterization", {
   vrSpatialFeaturePlot(xenium_data, features = "KRT14", norm = TRUE, log = TRUE, n.tile = 10)
   expect_error(vrSpatialFeaturePlot(xenium_data, features = "Count_new"))
   
+  # embedding plots
+  vrEmbeddingPlot(xenium_data, n.tile = 1200, group.by = "clusters")
+  vrEmbeddingFeaturePlot(xenium_data, n.tile = 1200, features = c("ACTA2", "TACSTD2"))
+  vrEmbeddingPlot(xenium_data, n.tile = 2, group.by = "clusters")
+  vrEmbeddingFeaturePlot(xenium_data, n.tile = 10, features = c("ACTA2"))
+  
   # return
   expect_equal(1,1L)
 })
