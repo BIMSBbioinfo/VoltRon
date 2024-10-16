@@ -55,7 +55,9 @@ getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", k = 1
              },
              spatialkNN = {
                # nnedges <- FNN::get.knn(cur_coords, k = 1)
-               nnedges <- RANN::nn2(cur_coords, k = k + 1)
+               # nnedges <- RANN::nn2(cur_coords, k = k + 1)
+               nnedges <- knn_annoy(nndata, k = k + 1)
+               names(nnedges) <- c("nn.index", "nn.dist")
                nnedges <- nnedges$nn.idx
                # nnedges <- cbind(1:nrow(cur_coords), nnedges)
                # nnedges <- apply(nnedges, 1, function(x){
@@ -78,6 +80,8 @@ getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", k = 1
                #   which(x < radius & x > .Machine$double.eps)
                # })
                nnedges <- RANN::nn2(cur_coords, searchtype = "radius", radius = radius, k = min(300, sqrt(nrow(cur_coords))/2))
+               # nnedges <- knn_annoy(nndata, k = k + 1)
+               # names(nnedges) <- c("nn.index", "nn.dist")
                nnedges <- nnedges$nn.idx
                nnedges <- reshape2::melt(data.frame(nnedges), id.vars = "X1")
                nnedges <- subset(nnedges[,c("X1", "value")], value != 0 & X1 != 0)
