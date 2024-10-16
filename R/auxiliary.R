@@ -1179,3 +1179,8 @@ capture.output <- function (..., file = NULL, append = FALSE, type = c("output",
     invisible(NULL)
   else rval
 }
+
+avgHexColor <- function(colors, ctrlcolor){
+  colors <- lapply(colors, col2rgb)
+  rgb(t(Reduce(`+`, colors)/length(colors)), maxColorValue=255)
+}

@@ -764,7 +764,7 @@ point.in.circle <- function(x,y,circle.x, circle.y, radius) {
 #' xenium_data <- annotateSpatialData_old(xenium_data, group.by = "clusters")
 #' }
 annotateSpatialData_old <- function(object, label = "annotation", assay = NULL, annotation_assay = "ROIAnnotation", use.image.only = FALSE, 
-                                shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive())), image_name = NULL, channel = NULL, ...) {
+                                    shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive())), image_name = NULL, channel = NULL, ...) {
   
   if(!inherits(object, "VoltRon"))
     stop("Please provide a VoltRon object!")

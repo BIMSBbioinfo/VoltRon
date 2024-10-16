@@ -213,7 +213,7 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
       }
     }
   }
-  raw_counts <- raw_counts[,cell_to_spot_id]
+  raw_counts <- raw_counts[,cell_to_spot_id, drop = FALSE]
 
   # pool cell counts to Spots
   cat("Aggregating cell profiles in spots \n")
@@ -260,8 +260,8 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
 #'
 getROIsFromCells <- function(from_object, from_metadata = NULL, to_object, features = NULL) {
 
-  # get cell and spot coordinates
-  cat("Cell to Spot Distances \n")
+  # get cell and ROIs coordinates
+  cat("Cell to ROI Distances \n")
   segments_rois <- vrSegments(to_object)
   coords_cells <- vrCoordinates(from_object)
   
