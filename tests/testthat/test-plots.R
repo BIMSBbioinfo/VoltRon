@@ -17,6 +17,9 @@ test_that("plots", {
   vrEmbeddingPlot(xenium_data, group.by = "clusters", ncol = 3, split.by = "clusters")
   vrEmbeddingPlot(xenium_data, group.by = "clusters", ncol = 3, split.by = "Sample")
   expect_error(vrEmbeddingPlot(xenium_data, group.by = "clusters", ncol = 3, split.by = "art"))
+  
+  # embedding feature plot
+  vrEmbeddingFeaturePlot(xenium_data, features = c("ACTA2", "TACSTD2"), embedding = "umap", combine.features = TRUE)
 
   # spatial plot
   vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE)
@@ -62,6 +65,35 @@ test_that("missing_embedding_values", {
   expect_error(vrEmbeddingFeaturePlot(xenium_data, embedding = "new_umap", features = "Counts"))
   vrEmbeddingFeaturePlot(xenium_data, embedding = "new_umap", features = "REXO4")
   expect_error(vrEmbeddingFeaturePlot(xenium_data, embedding = "new_umap", features = "REXO4s"))
+  
+  # return
+  expect_equal(1,1L)
+})
+
+# Testing plotting functions
+test_that("rasterization", {
+  
+  # get data
+  data("xenium_data")
+  
+  # spatial plot
+  vrSpatialPlot(xenium_data, group.by = "clusters", background = "black", n.tile = 100)
+  vrSpatialPlot(xenium_data, group.by = "clusters", background = "black", n.tile = 1)
+  vrSpatialPlot(xenium_data, group.by = "clusters", background = "black", n.tile = 10)
+  expect_warning(vrSpatialPlot(xenium_data, group.by = "clusters", background = c("main", "DAPI2")))
+  
+  # feature plots
+  vrSpatialFeaturePlot(xenium_data, features = "Count", n.tile = 20)
+  vrSpatialFeaturePlot(xenium_data, features = "KRT14", norm = TRUE, log = TRUE, n.tile = 10)
+  expect_error(vrSpatialFeaturePlot(xenium_data, features = "Count_new"))
+  
+  # embedding plots
+  vrEmbeddingPlot(xenium_data, n.tile = 1200, group.by = "clusters")
+  vrEmbeddingFeaturePlot(xenium_data, n.tile = 1200, features = c("ACTA2", "TACSTD2"))
+  vrEmbeddingFeaturePlot(xenium_data, n.tile = 100, features = c("ACTA2", "TACSTD2"), embedding = "umap", combine.features = TRUE)
+  vrEmbeddingFeaturePlot(xenium_data, n.tile = 2, features = c("ACTA2", "TACSTD2"), embedding = "umap", combine.features = TRUE)
+  vrEmbeddingPlot(xenium_data, n.tile = 2, group.by = "clusters")
+  vrEmbeddingFeaturePlot(xenium_data, n.tile = 10, features = c("ACTA2"))
   
   # return
   expect_equal(1,1L)

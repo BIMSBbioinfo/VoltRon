@@ -496,3 +496,8 @@ fix_data_type <- function(.data, data_type) {
 
   return(.data)
 }
+
+avgHexColor <- function(colors, ctrlcolor){
+  colors <- lapply(colors, col2rgb)
+  rgb(t(Reduce(`+`, colors)/length(colors)), maxColorValue=255)
+}

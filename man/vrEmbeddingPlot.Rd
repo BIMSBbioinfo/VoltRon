@@ -11,6 +11,7 @@ vrEmbeddingPlot(
   group.ids = NULL,
   split.by = NULL,
   colors = NULL,
+  n.tile = 0,
   assay = NULL,
   ncol = 2,
   nrow = NULL,
@@ -18,7 +19,7 @@ vrEmbeddingPlot(
   pt.size = 1,
   label = FALSE,
   common.legend = TRUE,
-  collapse = TRUE
+  collapse.plots = TRUE
 )
 }
 \arguments{
@@ -33,6 +34,8 @@ vrEmbeddingPlot(
 \item{split.by}{a column of metadata from \link{Metadata} used as splitting spatial entities into ggplot panels, see \link{facet_wrap}}
 
 \item{colors}{the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by}
+
+\item{n.tile}{should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
@@ -49,7 +52,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{common.legend}{whether to use a common legend for all plots, see \link{ggarrange}}
 
-\item{collapse}{whether to combine all ggplots}
+\item{collapse.plots}{whether to combine all ggplots}
 }
 \description{
 Plotting embeddings of cells and spots on associated images from multiple assays in a VoltRon object.
