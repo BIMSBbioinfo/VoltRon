@@ -346,7 +346,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   } else if(vrAssayTypes(assay) == "spot"){
     g <- g +
       geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, 
-                spot.radius = vrAssayParams(assay, param = "vis.spot.radius")/scale_factors) +
+                spot.radius = vrAssayParams(assay, param = "vis.spot.radius")/scale_factors, 
+                spot.type = vrAssayParams(assay, param = "spot.type")) +
       scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
     
@@ -752,7 +753,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   } else if(vrAssayTypes(assay) == "spot"){
     g <- g +
       geom_spot(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, alpha = alpha, 
-                spot.radius = vrAssayParams(assay, param = "vis.spot.radius")/scale_factors) +
+                spot.radius = vrAssayParams(assay, param = "vis.spot.radius")/scale_factors, spot.type = vrAssayParams(assay, param = "spot.type")) +
       scale_fill_gradientn(name = legend_title,
                              colors=c("dodgerblue3", "yellow", "red"),
                              values=rescale_numeric(c(limits[1], midpoint, limits[2])), limits = limits)
@@ -870,11 +871,17 @@ GeomSpot <- ggplot2::ggproto("GeomSpot",
                         size = 1.5,
                         fill = NA,
                         spot.radius = 1,
-                        alpha = NA, stroke = 0.5
+                        spot.type = "circle",
+                        alpha = NA, 
+                        stroke = 0.5
                       ),
                       draw_panel = function(self, data, panel_params, coord, na.rm = FALSE) {
                         if (is.character(data$shape)) {
                           data$shape <- translate_shape_string(data$shape)
+                        }
+                        if(all(data$spot.type == "square")){
+                          data$shape <- 15
+                          data$spot.radius <- data$spot.radius/2
                         }
                         coords <- coord$transform(data, panel_params)
                         stroke_size <- coords$stroke
