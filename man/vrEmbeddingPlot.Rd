@@ -19,7 +19,7 @@ vrEmbeddingPlot(
   pt.size = 1,
   label = FALSE,
   common.legend = TRUE,
-  collapse = TRUE
+  collapse.plots = TRUE
 )
 }
 \arguments{
@@ -52,7 +52,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{common.legend}{whether to use a common legend for all plots, see \link{ggarrange}}
 
-\item{collapse}{whether to combine all ggplots}
+\item{collapse.plots}{whether to combine all ggplots}
 }
 \description{
 Plotting embeddings of cells and spots on associated images from multiple assays in a VoltRon object.

@@ -18,7 +18,8 @@ vrEmbeddingFeaturePlot(
   pt.size = 1,
   keep.scale = "feature",
   common.legend = TRUE,
-  collapse = TRUE
+  collapse.plots = TRUE,
+  combine.features = FALSE
 )
 }
 \arguments{
@@ -49,7 +50,9 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{common.legend}{whether to use a common legend for all plots, see \link{ggarrange}}
 
-\item{collapse}{whether to combine all ggplots}
+\item{collapse.plots}{whether to combine all ggplots}
+
+\item{combine.features}{whether to combine all features in one plot}
 }
 \description{
 Plotting features of spatially resolved cells and spots on embeddings from multiple assays in a VoltRon object.

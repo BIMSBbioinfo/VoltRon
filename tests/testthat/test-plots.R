@@ -17,6 +17,9 @@ test_that("plots", {
   vrEmbeddingPlot(xenium_data, group.by = "clusters", ncol = 3, split.by = "clusters")
   vrEmbeddingPlot(xenium_data, group.by = "clusters", ncol = 3, split.by = "Sample")
   expect_error(vrEmbeddingPlot(xenium_data, group.by = "clusters", ncol = 3, split.by = "art"))
+  
+  # embedding feature plot
+  vrEmbeddingFeaturePlot(xenium_data, features = c("ACTA2", "TACSTD2"), embedding = "umap", combine.features = TRUE)
 
   # spatial plot
   vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE)
@@ -87,6 +90,8 @@ test_that("rasterization", {
   # embedding plots
   vrEmbeddingPlot(xenium_data, n.tile = 1200, group.by = "clusters")
   vrEmbeddingFeaturePlot(xenium_data, n.tile = 1200, features = c("ACTA2", "TACSTD2"))
+  vrEmbeddingFeaturePlot(xenium_data, n.tile = 100, features = c("ACTA2", "TACSTD2"), embedding = "umap", combine.features = TRUE)
+  vrEmbeddingFeaturePlot(xenium_data, n.tile = 2, features = c("ACTA2", "TACSTD2"), embedding = "umap", combine.features = TRUE)
   vrEmbeddingPlot(xenium_data, n.tile = 2, group.by = "clusters")
   vrEmbeddingFeaturePlot(xenium_data, n.tile = 10, features = c("ACTA2"))
   

@@ -630,14 +630,12 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   # add image
   if(is.null(background))
     background <- vrMainSpatial(assay)
-    # background <- vrMainImage(assay)
   if(length(background) == 2) {
     channel <- background[2]
   } else {
     channel <- NULL
   }
   background <- background[1]
-  # if(background %in% vrImageNames(assay)){
   if(background %in% vrSpatialNames(assay)){
     image <- vrImages(assay, name = background, channel = channel)
     if(!is.null(image)){
@@ -652,19 +650,15 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
     } else {
       info <- NULL
     }
-    # image_name <- background
     spatial_name <- background
   } else {
     info <- NULL
     spatial_name <- vrMainSpatial(assay)
-    # image_name <- vrMainImage(assay)
   }
 
   # data
-  # coords <- as.data.frame(vrCoordinates(assay, image_name = image_name, reg = reg))
   coords <- as.data.frame(vrCoordinates(assay, spatial_name = spatial_name, reg = reg))
   coords <- coords/scale_factors
-  # segments <- vrSegments(assay, image_name = image_name)
   segments <- vrSegments(assay, spatial_name = spatial_name)
   data_features <- feature[feature %in% vrFeatures(assay)]
   if(length(data_features) > 0){
@@ -1173,7 +1167,8 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
 #' @param collapse.plots whether to combine all ggplots
 #'
 #' @import ggplot2
-#'
+#' @importFrom dplyr arrange desc
+#' 
 #' @export
 vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n.tile = 0, norm = TRUE, log = FALSE, assay = NULL, ncol = 2, nrow = NULL,
                                    font.size = 2, pt.size = 1, keep.scale = "feature", common.legend = TRUE, collapse.plots = TRUE, combine.features = FALSE) {
@@ -1251,7 +1246,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
       g <- ggplot()
       
       # add points, rasterize if requested or needed
-      if(n.tile > 0 || nrow(datax) > 3000){
+      if(n.tile > 0 || nrow(datax) > 100000){
         if(n.tile == 0)
           n.tile <- 1000
         g <- g +
@@ -1278,7 +1273,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
       g <- ggplot()
       
       # add points, rasterize if requested or needed
-      if(n.tile > 0 || nrow(datax) > 3000){
+      if(n.tile > 0 || nrow(datax) > 100000){
         if(n.tile == 0)
           n.tile <- 1000
         g <- vrFeaturePlotTiling(g = g, data = datax, legend_title = legend_title[[feat]], n.tile = n.tile, type = "embedding", limits = limits[[feat]])
@@ -1299,9 +1294,13 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
     i <- i + 1 
   }
 
+  # collapse plots
   if(collapse.plots){
+    
     # return a list of plots or a single one
     if(length(features) > 1){
+      
+      # combine features
       if(combine.features){
 
         # ggplot 
@@ -1316,9 +1315,9 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
             geom_tile(data = as.data.frame(all_data), aes(x = x, y = y, fill = fill)) +
             scale_fill_identity()
         } else {
-          all_data <- all_data %>% group_by(x,y) %>% summarize(color = colour[which.max(value)])
+          all_data <- all_data %>% group_by(x,y) %>% summarize(color = colour[which.max(value)], value = value[which.max(value)])
           g.combined <- g.combined +
-            geom_point(data = as.data.frame(all_data), aes(x = x, y = y, color = color)) + 
+            geom_point(mapping = aes(x = x, y = y, color = color), data = as.data.frame(dplyr::arrange(all_data, dplyr::desc(value))), ) + 
             scale_color_identity()
         }
       
@@ -1956,7 +1955,7 @@ vrFeaturePlotTiling <- function(g, data, legend_title, n.tile, alpha = 1, limits
 
 #' @param n number of colors
 #'
-#' @import scales brewer_pal
+#' @importFrom scales brewer_pal
 #'
 #' @noRd
 get_rasterization_colors <- function(n){

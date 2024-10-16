@@ -29,7 +29,7 @@ vrSpatialFeaturePlot(
   scale.image = TRUE,
   common.legend = FALSE,
   legend.loc = "right",
-  collapse = TRUE
+  collapse.plots = TRUE
 )
 }
 \arguments{
@@ -84,7 +84,7 @@ and main channel (\link{vrMainChannel}) will be in the background. Otherwise the
 
 \item{legend.loc}{the location of the legend, default is "right"}
 
-\item{collapse}{whether to combine all ggplots}
+\item{collapse.plots}{whether to combine all ggplots}
 }
 \description{
 Plotting single/multiple features of spatially resolved cells, spots, and ROI on associated images from multiple assays in a VoltRon object.
