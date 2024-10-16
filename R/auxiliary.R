@@ -630,6 +630,9 @@ as.raster_array <- function (x, max = 1, ...)
   r
 }
 
+avgHexColor <- function(colors){
+  rgb(t(Reduce(`+`, lapply(colors, col2rgb))/3), maxColorValue=255)
+}
 
 ####
 ## ggedit tools ####
