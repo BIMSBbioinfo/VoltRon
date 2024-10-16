@@ -423,7 +423,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   } else{
     if(is.null(info)){
       g <- g +
-        theme(panel.background = element_rect(fill = "lightgrey", colour = "lightgrey", size = 0.5, linetype = "solid"))
+        theme(panel.background = element_rect(fill = "grey97", colour = "grey97", size = 0.5, linetype = "solid"))
     } else{
       g <- g +
         theme(panel.background = element_blank())
@@ -806,7 +806,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   } else{
     if(is.null(info)){
       g <- g +
-        theme(panel.background = element_rect(fill = "lightgrey", colour = "lightgrey", size = 0.5, linetype = "solid"))
+        theme(panel.background = element_rect(fill = "grey97", colour = "grey97", size = 0.5, linetype = "solid"))
     } else{
       g <- g +
         theme(panel.background = element_blank())
@@ -1123,12 +1123,7 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
     guides(color = guide_legend(override.aes=list(size = 2)))
 
   # more visualization parameters
-  g <- g +
-    theme_classic() +
-    theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,0,0)),
-          panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
-          legend.margin = margin(0,0,0,0), panel.background = element_blank()) +
-    xlab(paste0(toupper(embedding), "_1")) + ylab(paste0(toupper(embedding), "_2"))
+  g <- g + addEmbeddingPlotStyle(embedding)
 
   # labels
   if(label){
@@ -1235,8 +1230,8 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
   i <- 1
   gg <- list()
   g <- ggplot()
-  colors <- scales::hue_pal()(length(features))
-  colors <- c("blue", "red")
+  all_data <- NULL
+  colors <- get_rasterization_colors(length(features))
   for(feat in features){
 
     # get data
@@ -1256,22 +1251,24 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
       g <- ggplot()
       
       # add points, rasterize if requested or needed
-      if(n.tile > 0 || nrow(datax) > 1000){
+      if(n.tile > 0 || nrow(datax) > 3000){
         if(n.tile == 0)
           n.tile <- 1000
-        # g <- g +
-        #   stat_bin_2d(mapping = aes(x = "x", y = "y", fill = score), data = datax, bins = n.tile, drop = TRUE)
         g <- g +
           stat_summary_2d(mapping = aes(x = x, y = y, z = score), fun = mean, data = datax, geom = "tile", bins = n.tile, drop = TRUE) +
           scale_fill_gradientn(name = legend_title[[feat]],
-                                colors=c("lightgrey", colors[i]),
+                                colors=c("grey97", colors[i]),
                                 values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
+        all_data <- rbind(all_data,
+                          layer_data(g))
       } else {
         g <- g +
           geom_point(mapping = aes(x = x, y = y, color = score), dplyr::arrange(datax,score), shape = 16, size = pt.size) + 
           scale_color_gradientn(name = legend_title[[feat]],
-                                colors=c("lightgrey", colors[i]),
+                                colors=c("grey97", colors[i]),
                                 values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
+        all_data <- rbind(all_data,
+                          data.frame(layer_data(g), value = datax$score))
       }
       
     # make individual plots
@@ -1281,7 +1278,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
       g <- ggplot()
       
       # add points, rasterize if requested or needed
-      if(n.tile > 0 || nrow(datax) > 1000){
+      if(n.tile > 0 || nrow(datax) > 3000){
         if(n.tile == 0)
           n.tile <- 1000
         g <- vrFeaturePlotTiling(g = g, data = datax, legend_title = legend_title[[feat]], n.tile = n.tile, type = "embedding", limits = limits[[feat]])
@@ -1289,18 +1286,15 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
         g <- g +
           geom_point(mapping = aes(x = x, y = y, color = score), dplyr::arrange(datax,score), shape = 16, size = pt.size) + 
           scale_color_gradientn(name = legend_title[[feat]],
-                                colors=c("lightgrey", "blue"),
+                                colors=c("grey97", "blue"),
                                 values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
       }
     }
     
     # more visualization parameters
-    g <- g +
-      theme_classic() +
-      theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,0,0)),
-            panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
-            legend.margin = margin(0,0,0,0), panel.background = element_blank()) +
-      xlab(paste0(toupper(embedding), "_1")) + ylab(paste0(toupper(embedding), "_2"))
+    g <- g + addEmbeddingPlotStyle(embedding)
+
+    # add graph to list
     gg[[i]] <- g
     i <- i + 1 
   }
@@ -1309,19 +1303,29 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
     # return a list of plots or a single one
     if(length(features) > 1){
       if(combine.features){
-        
+
+        # ggplot 
         g.combined <- ggplot()
-        for(i in 1:length(gg)){
-          g.combined <- g.combined + geom_tile(data = layer_data(gg[[i]]), aes(x = x, y = y, fill = fill))
-          # g.combined <- g.combined + geom_point(data = layer_data(gg[[i]]), aes(x = x, y = y, fill = fill))
+        
+        # tiling or not
+        if(n.tile > 0 || nrow(datax) > 3000){
+          if(n.tile == 0)
+            n.tile <- 1000
+          all_data <- all_data %>% group_by(x,y) %>% summarize(fill = fill[which.max(value)])
+          g.combined <- g.combined +
+            geom_tile(data = as.data.frame(all_data), aes(x = x, y = y, fill = fill)) +
+            scale_fill_identity()
+        } else {
+          all_data <- all_data %>% group_by(x,y) %>% summarize(color = colour[which.max(value)])
+          g.combined <- g.combined +
+            geom_point(data = as.data.frame(all_data), aes(x = x, y = y, color = color)) + 
+            scale_color_identity()
         }
-        g.combined <- g.combined + 
-          scale_fill_identity() +
-          theme_classic() +
-          theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,0,0)),
-                panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
-                legend.margin = margin(0,0,0,0), panel.background = element_blank()) +
-          xlab(paste0(toupper(embedding), "_1")) + ylab(paste0(toupper(embedding), "_2"))
+      
+        # style  
+        g.combined <- g.combined + addEmbeddingPlotStyle(embedding)
+        
+        # return
         return(g.combined)
       } else {
         if(length(gg) < ncol) ncol <- length(gg)
@@ -1935,14 +1939,14 @@ vrFeaturePlotTiling <- function(g, data, legend_title, n.tile, alpha = 1, limits
   
   # color scheme for either spatial or embedding feature plot
   if(type == "spatial"){
-    # gplot <- gplot +
-    #   scale_fill_gradientn(name = legend_title,
-    #                        colors=c("dodgerblue2", "white", "yellow3"),
-    #                        values=scales::rescale(c(0, midpoint, max(hex_count_data$value))), limits = c(0, max(hex_count_data$value)))
+    gplot <- gplot +
+      scale_fill_gradientn(name = legend_title,
+                           colors=c("dodgerblue2", "white", "yellow3"),
+                           values=scales::rescale(c(0, midpoint, max(hex_count_data$value))), limits = c(0, max(hex_count_data$value)))
   } else{
     gplot <- gplot +
       scale_fill_gradientn(name = legend_title,
-                           colors=c("lightgrey", "blue"),
+                           colors=c("grey97", "blue"),
                            values=scales::rescale(c(limits[1], limits[2])), limits = limits)
   }
   
@@ -1950,3 +1954,26 @@ vrFeaturePlotTiling <- function(g, data, legend_title, n.tile, alpha = 1, limits
   gplot
 }
 
+#' @param n number of colors
+#'
+#' @import scales brewer_pal
+#'
+#' @noRd
+get_rasterization_colors <- function(n){
+  colors <- c("darkblue",'darkred', "yellow2", "darkgreen", "darkorange", 'darkmagenta', "brown")
+  colors[1:n]
+}
+
+####
+# Plotting style 
+####
+
+addEmbeddingPlotStyle <- function(embedding){
+  suppressWarnings(
+    theme_classic() +
+      theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,0,0)),
+            panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+            legend.margin = margin(0,0,0,0), panel.background = element_blank()) +
+      xlab(paste0(toupper(embedding), "_1")) + ylab(paste0(toupper(embedding), "_2"))  
+  )
+}
