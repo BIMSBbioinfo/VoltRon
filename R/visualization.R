@@ -238,10 +238,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       # info <- magick::image_info(image)
       info <- getImageInfo(image)
       if(info$width > 1000 && scale.image){
-        # image <- magick::image_resize(image, geometry = "1000x")
         image <- resize_Image(image, geometry = "1000x")
         scale_factors <- info$width/1000
-        # info <- magick::image_info(image)
         info <- getImageInfo(image)
       }
       g <- g +
@@ -344,17 +342,42 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 
   # spot visualization
   } else if(vrAssayTypes(assay) == "spot"){
-    g <- g +
-      geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, 
-                spot.radius = vrAssayParams(assay, param = "vis.spot.radius")/scale_factors, 
-                spot.type = vrAssayParams(assay, param = "spot.type")) +
+    
+    # rasterize if requested or needed
+    if(n.tile > 0 || nrow(coords) > 50000){
+      if(n.tile == 0)
+        n.tile <- 1000
+      g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha)
+    } else {
+      spot.type <- vrAssayParams(assay, param = "spot.type")
+      spot.type <- ifelse(is.null(spot.type), "circle", spot.type)
+      g <- g +
+        geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, 
+                  spot.radius = vrAssayParams(assay, param = "vis.spot.radius")/scale_factors, 
+                  spot.type = spot.type)
+      
+      # add if a graph exists
+      if(!is.null(graph)){
+        g <- g + addGraph(graph, coords, background)
+      }
+    }
+    
+    # style, color and text
+    g <- g + 
       scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
     
-    # add if a graph exists
-    if(!is.null(graph)){
-      g <- g + addGraph(graph, coords, background)
-    }
+    # g <- g +
+    #   geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, 
+    #             spot.radius = vrAssayParams(assay, param = "vis.spot.radius")/scale_factors, 
+    #             spot.type = vrAssayParams(assay, param = "spot.type")) +
+    #   scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
+    #   guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
+    # 
+    # # add if a graph exists
+    # if(!is.null(graph)){
+    #   g <- g + addGraph(graph, coords, background)
+    # }
 
   # cell visualization
   } else if(vrAssayTypes(assay) %in% c("cell", "tile")) {
@@ -376,7 +399,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       } else {
         
         # rasterize if requested or needed
-        if(n.tile > 0 || nrow(coords) > 1000){
+        if(n.tile > 0 || nrow(coords) > 50000){
           if(n.tile == 0)
             n.tile <- 1000
           g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha)
@@ -751,12 +774,33 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
                            colors=c("dodgerblue2", "white", "yellow3"),
                            values=rescale_numeric(c(limits[1], midpoint, limits[2])), limits = limits)
   } else if(vrAssayTypes(assay) == "spot"){
-    g <- g +
-      geom_spot(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, alpha = alpha, 
-                spot.radius = vrAssayParams(assay, param = "vis.spot.radius")/scale_factors, spot.type = vrAssayParams(assay, param = "spot.type")) +
-      scale_fill_gradientn(name = legend_title,
+    
+    # rasterize if requested or needed
+    if(n.tile > 0 || nrow(coords) > 50000){
+      if(n.tile == 0)
+        n.tile <- 1000
+      g <- vrFeaturePlotTiling(g = g, data = coords, legend_title = legend_title, n.tile = n.tile, alpha = alpha, type = "spatial")
+    } else {
+      spot.type <- vrAssayParams(assay, param = "spot.type")
+      spot.type <- ifelse(is.null(spot.type), "circle", spot.type)
+      g <- g +
+        geom_spot(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, alpha = alpha, 
+                  spot.radius = vrAssayParams(assay, param = "vis.spot.radius")/scale_factors, 
+                  spot.type = spot.type) +
+        scale_fill_gradientn(name = legend_title,
                              colors=c("dodgerblue3", "yellow", "red"),
                              values=rescale_numeric(c(limits[1], midpoint, limits[2])), limits = limits)
+    }
+
+    # spot.type <- vrAssayParams(assay, param = "spot.type")
+    # spot.type <- ifelse(is.null(spot.type), "circle", spot.type)
+    # g <- g +
+    #   geom_spot(mapping = aes(x = x, y = y, fill = score), coords, shape = 21, alpha = alpha, 
+    #             spot.radius = vrAssayParams(assay, param = "vis.spot.radius")/scale_factors, 
+    #             spot.type = spot.type) +
+    #   scale_fill_gradientn(name = legend_title,
+    #                          colors=c("dodgerblue3", "yellow", "red"),
+    #                          values=rescale_numeric(c(limits[1], midpoint, limits[2])), limits = limits)
   } else if(vrAssayTypes(assay) %in% c("cell", "tile")) {
 
     if(plot.segments){
@@ -854,13 +898,26 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 #' @noRd
 NULL
 
+#' geom_spot
+#' 
+#' @import ggplot2
+#' @importFrom grid pointsGrob unit gpar
+#' @importFrom rlang list2
+#'
+#' @noRd
 geom_spot <- function (mapping = NULL, data = NULL, stat = "identity", position = "identity",
                            ..., na.rm = FALSE, show.legend = NA, inherit.aes = TRUE) {
-  layer(data = data, mapping = mapping, stat = stat, geom = GeomSpot,
-        position = position, show.legend = show.legend, inherit.aes = inherit.aes,
-        params = rlang::list2(na.rm = na.rm, ...))
+  ggplot2::layer(data = data, mapping = mapping, stat = stat, geom = GeomSpot,
+                 position = position, show.legend = show.legend, inherit.aes = inherit.aes,
+                 params = rlang::list2(na.rm = na.rm, ...))
 }
 
+#' GeomSpot (ggproto class)
+#' 
+#' @import ggplot2
+#' @importFrom grid pointsGrob unit gpar
+#'
+#' @noRd
 GeomSpot <- ggplot2::ggproto("GeomSpot",
                       Geom,
                       required_aes = c("x", "y"),
@@ -879,9 +936,11 @@ GeomSpot <- ggplot2::ggproto("GeomSpot",
                         if (is.character(data$shape)) {
                           data$shape <- translate_shape_string(data$shape)
                         }
-                        if(all(data$spot.type == "square")){
-                          data$shape <- 15
-                          data$spot.radius <- data$spot.radius/2
+                        if(!is.null(data$spot.type)){
+                          if(all(data$spot.type == "square")){
+                            data$shape <- 15
+                            data$spot.radius <- data$spot.radius/2
+                          }
                         }
                         coords <- coord$transform(data, panel_params)
                         stroke_size <- coords$stroke
