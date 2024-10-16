@@ -53,6 +53,7 @@ Suggests:
     xlsx,
     tiledb,
     tiledbsc,
+    arrow,
     vitessceR,
     testthat (>= 3.0.0),
     geojsonR,

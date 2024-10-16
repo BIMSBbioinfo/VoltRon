@@ -264,7 +264,7 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
 #' @param resolution_level the level of resolution of Visium image: "lowres" (default) or "hires"
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
-#' @importFrom magick image_read
+#' @importFrom magick image_read image_info
 #' @importFrom rjson fromJSON
 #' @importFrom utils read.csv
 #'
@@ -331,8 +331,6 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   if(file.exists(scale_file)){
     scalefactors <- rjson::fromJSON(file = scale_file)
     scales <- scalefactors[[paste0("tissue_", resolution_level, "_scalef")]]
-    # spot.radius is the half of the diameter, but we visualize by a factor of 1.5 larger
-    # params <- list(spot.radius = scalefactors$spot_diameter_fullres*scalefactors$tissue_lowres_scalef*1.5)
     params <- list(
       nearestpost.distance = 200*scales, # distance to nearest spot
       spot.radius = scalefactors$spot_diameter_fullres*scales,
@@ -343,6 +341,103 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
     stop("There are no files named 'scalefactors_json.json' in the path")
   }
 
+  # create VoltRon
+  formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", 
+              image_name = image_name, main_channel = channel_name, sample_name = sample_name, 
+              feature_name = ifelse(selected_assay == "Gene Expression", "RNA", "main"), ...)
+}
+
+#' importVisiumHD
+#'
+#' Importing VisiumHD data
+#'
+#' @param dir.path path to Visium output folder
+#' @param bin.size bin size of the VisiumHD output (Exp: "2", "8" and "16")
+#' @param selected_assay selected assay from Visium
+#' @param assay_name the assay name
+#' @param sample_name the name of the sample
+#' @param image_name the image name of the Visium assay, Default: main
+#' @param channel_name the channel name of the image of the Visium assay, Default: H&E
+#' @param inTissue if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)
+#' @param resolution_level the level of resolution of Visium image: "lowres" (default) or "hires"
+#' @param ... additional parameters passed to \link{formVoltRon}
+#'
+#' @importFrom magick image_read image_info
+#' @importFrom rjson fromJSON
+#' @importFrom utils read.csv
+#'
+#' @export
+#'
+importVisiumHD <- function(dir.path, bin.size = "8", selected_assay = "Gene Expression", assay_name = "VisiumHD", sample_name = NULL, image_name = "main", channel_name = "H&E", inTissue = TRUE, resolution_level = "lowres", ...){
+  
+  # raw counts
+  bin.size <- formatC(as.numeric(bin.size), width = 3, format = "d", flag = "0")
+  dir.path <- paste0(dir.path, "binned_outputs/square_", bin.size, "um/")
+  listoffiles <- list.files(dir.path)
+  datafile <- listoffiles[grepl("filtered_feature_bc_matrix.h5", listoffiles)][1]
+  datafile <- paste0(dir.path, "/", datafile)
+  if(file.exists(datafile)){
+    rawdata <- import10Xh5(filename = datafile)
+    if(any(names(rawdata) %in% selected_assay)){
+      rawdata <- as(rawdata[[selected_assay]], "CsparseMatrix")
+    } else {
+      stop("There are no assays called ", selected_assay, " in the h5 file!")
+    }
+  } else {
+    stop("There are no files named 'filtered_feature_bc_matrix.h5' in the path")
+  }
+  
+  # resolution
+  if(!resolution_level %in% c("lowres","hires"))
+    stop("resolution_level should be either 'lowres' or 'hires'!")
+  
+  # image
+  image_file <- paste0(dir.path, paste0("/spatial/tissue_", resolution_level, "_image.png"))
+  if(file.exists(image_file)){
+    image <-  magick::image_read(image_file)
+    info <- magick::image_info(image)
+  } else {
+    stop("There are no spatial image files in the path")
+  }
+  
+  # coordinates
+  if(!requireNamespace("arrow"))
+    stop("Please install arrow package to import VisiumHD!")
+  coords_file <- list.files(paste0(dir.path, "/spatial/"), full.names = TRUE)
+  coords_file <- coords_file[grepl("tissue_positions",coords_file)]
+  if(length(coords_file) == 1){
+    coords <- data.table::as.data.table(arrow::read_parquet(coords_file, as_data_frame = FALSE))
+  } else if(length(coords_file) > 1) {
+    stop("There are more than 1 position files in the path")
+  } else {
+    stop("There are no files named 'tissue_positions.parquet' in the path")
+  }
+  if(inTissue){
+    coords <- subset(coords, in_tissue == 1)
+    rawdata <- rawdata[,colnames(rawdata) %in% coords$barcode]
+  }
+  coords <- coords[match(colnames(rawdata), coords$barcode),]
+  spotID <- coords$barcode
+  coords <- as.matrix(coords[,c("pxl_col_in_fullres", "pxl_row_in_fullres")], )
+  colnames(coords) <- c("x", "y")
+  rownames(coords) <- spotID
+  
+  # scale coordinates
+  scale_file <- paste0(dir.path, "/spatial/scalefactors_json.json")
+  if(file.exists(scale_file)){
+    scalefactors <- rjson::fromJSON(file = scale_file)
+    scales <- scalefactors[[paste0("tissue_", resolution_level, "_scalef")]]
+    params <- list(
+      nearestpost.distance = scalefactors$spot_diameter_fullres*scales*(3/sqrt(2)),
+      spot.radius = scalefactors$spot_diameter_fullres*scales,
+      vis.spot.radius = scalefactors$spot_diameter_fullres*scales,
+      spot.type = "square")
+    coords <- coords*scales
+    coords[,2] <- info$height - coords[,2]
+  } else {
+    stop("There are no files named 'scalefactors_json.json' in the path")
+  }
+  
   # create VoltRon
   formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", 
               image_name = image_name, main_channel = channel_name, sample_name = sample_name, 
