@@ -865,7 +865,6 @@ cloneProto <- function(l) {
   )
   
   nDF <- cbind(names(g$geom$default_aes), paste(g$geom$default_aes))
-  # nDF[grep("colour|fill|color", nDF[, 1]), 2] <- paste0("'", scales::col2hcl(nDF[grep("colour|fill|color", nDF[, 1]), 2], alpha = NULL), "'")
   nDF[grep("colour|fill|color", nDF[, 1]), 2] <- paste0("'", col2hcl(nDF[grep("colour|fill|color", nDF[, 1]), 2], alpha = NULL), "'")
   
   geom_aes$default <- paste0(apply(nDF, 1, function(x) paste0(x, collapse = "=")))

@@ -79,8 +79,7 @@ saveVoltRon <- function (object,
     
     # write on disk
     object <- .write_VoltRon(object, assay = assay, format = format, rds_path = rds_path, ondisk_path = ondisk_path, 
-                             chunkdim = chunkdim, level = level, as.sparse = as.sparse, 
-                             verbose = verbose)
+                             chunkdim = chunkdim, level = level, as.sparse = as.sparse, verbose = verbose)
     
     # serialize rds file
     .serialize_VoltRonObject(object, rds_path, verbose = verbose)
