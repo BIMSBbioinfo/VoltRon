@@ -2054,8 +2054,6 @@ vrFeaturePlotTiling <- function(g, data, legend_title, n.tile, alpha = 1, limits
 
 #' @param n number of colors
 #'
-#' @importFrom scales brewer_pal
-#'
 #' @noRd
 get_rasterization_colors <- function(n){
   colors <- c("darkblue",'darkred', "yellow2", "darkgreen", "darkorange", 'darkmagenta', "brown")

@@ -17,6 +17,8 @@ setClassUnion("data_matrix", members = c("matrix", "dgCMatrix", "dgRMatrix", "dg
 
 #' The vrAssay (VoltRon Assay) Class
 #'
+#' @slot rawdata raw data
+#' @slot normdata normalized data
 #' @slot data the table of counts
 #' @slot featuredata feature metadata
 #' @slot embeddings list of embeddings
