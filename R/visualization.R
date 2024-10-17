@@ -365,7 +365,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       } else {
         
         # rasterize if requested or needed
-        if(n.tile > 0 || nrow(coords) > 1000){
+        if(n.tile > 0 || nrow(coords) > 50000){
           if(n.tile == 0)
             n.tile <- 1000
           g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha)
@@ -390,7 +390,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   } else if(vrAssayTypes(assay) == "molecule") {
     
     # rasterize if requested or needed
-    if(n.tile > 0 || nrow(coords) > 1000){
+    if(n.tile > 0 || nrow(coords) > 50000){
       if(n.tile == 0)
         n.tile <- 1000
       g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha)
@@ -1104,7 +1104,7 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
   g <- ggplot()
 
   # add points, rasterize if requested or needed
-  if(n.tile > 0 || nrow(datax) > 1000){
+  if(n.tile > 0 || nrow(datax) > 50000){
     if(n.tile == 0)
       n.tile <- 1000
     g <- vrGroupPlotTiling(g = g, data = datax, group.by = group.by, n.tile = n.tile)
@@ -1246,7 +1246,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
       g <- ggplot()
       
       # add points, rasterize if requested or needed
-      if(n.tile > 0 || nrow(datax) > 100000){
+      if(n.tile > 0 || nrow(datax) > 50000){
         if(n.tile == 0)
           n.tile <- 1000
         g <- g +
@@ -1255,15 +1255,15 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
                                 colors=c("grey97", colors[i]),
                                 values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
         all_data <- rbind(all_data,
-                          layer_data(g))
+                          data.frame(layer_data(g), color_group = colors[i]))
       } else {
         g <- g +
-          geom_point(mapping = aes(x = x, y = y, color = score), dplyr::arrange(datax,score), shape = 16, size = pt.size) + 
+          geom_point(mapping = aes(x = x, y = y, color = score), datax, shape = 16, size = pt.size) + 
           scale_color_gradientn(name = legend_title[[feat]],
                                 colors=c("grey97", colors[i]),
                                 values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
         all_data <- rbind(all_data,
-                          data.frame(layer_data(g), value = datax$score))
+                          data.frame(layer_data(g), value = datax$score, color_group = colors[i]))
       }
       
     # make individual plots
@@ -1273,7 +1273,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
       g <- ggplot()
       
       # add points, rasterize if requested or needed
-      if(n.tile > 0 || nrow(datax) > 100000){
+      if(n.tile > 0 || nrow(datax) > 50000){
         if(n.tile == 0)
           n.tile <- 1000
         g <- vrFeaturePlotTiling(g = g, data = datax, legend_title = legend_title[[feat]], n.tile = n.tile, type = "embedding", limits = limits[[feat]])
@@ -1307,22 +1307,35 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
         g.combined <- ggplot()
         
         # tiling or not
-        if(n.tile > 0 || nrow(datax) > 3000){
+        if(n.tile > 0 || nrow(datax) > 50000){
           if(n.tile == 0)
             n.tile <- 1000
-          all_data <- all_data %>% group_by(x,y) %>% summarize(fill = fill[which.max(value)])
+          all_data <- all_data %>% group_by(x,y) %>% 
+            summarize(fill = fill[which.max(value)], 
+                      group = color_group[which.max(value)], 
+                      value = value[which.max(value)])
+          key_table <- all_data[,c("fill", "group", "value")] %>% 
+            dplyr::group_by(group) %>% 
+            dplyr::summarise(fill = fill[which.max(value)], value = max(value))
           g.combined <- g.combined +
-            geom_tile(data = as.data.frame(all_data), aes(x = x, y = y, fill = fill)) +
-            scale_fill_identity()
+            ggplot2::geom_tile(data = as.data.frame(all_data), aes(x = x, y = y, fill = fill)) +
+            ggplot2::scale_fill_identity("", labels = features, breaks = key_table$fill, guide = "legend")
         } else {
-          all_data <- all_data %>% group_by(x,y) %>% summarize(color = colour[which.max(value)], value = value[which.max(value)])
+          all_data <- all_data %>% group_by(x,y) %>% 
+            dplyr::summarise(color = colour[which.max(value)], 
+                             group = color_group[which.max(value)],
+                             value = value[which.max(value)])
+          key_table <- all_data[,c("color", "group", "value")] %>%
+            dplyr::group_by(group) %>% 
+            dplyr::summarise(color = color[which.max(value)], value = max(value))
           g.combined <- g.combined +
-            geom_point(mapping = aes(x = x, y = y, color = color), data = as.data.frame(dplyr::arrange(all_data, dplyr::desc(value))), ) + 
-            scale_color_identity()
+            ggplot2::geom_point(data = as.data.frame(all_data), aes(x = x, y = y, color = color)) + 
+            ggplot2::scale_color_identity("", labels = features, breaks = key_table$color, guide = "legend")
         }
-      
+        
         # style  
-        g.combined <- g.combined + addEmbeddingPlotStyle(embedding)
+        g.combined <- g.combined + addEmbeddingPlotStyle(embedding) +
+          xlab(paste0(toupper(embedding), "_1")) + ylab(paste0(toupper(embedding), "_2"))
         
         # return
         return(g.combined)
@@ -1969,10 +1982,10 @@ get_rasterization_colors <- function(n){
 
 addEmbeddingPlotStyle <- function(embedding){
   suppressWarnings(
-    theme_classic() +
+    theme_classic() + 
+      xlab(paste0(toupper(embedding), "_1")) + ylab(paste0(toupper(embedding), "_2")) + 
       theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,0,0)),
             panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
-            legend.margin = margin(0,0,0,0), panel.background = element_blank()) +
-      xlab(paste0(toupper(embedding), "_1")) + ylab(paste0(toupper(embedding), "_2"))  
+            legend.margin = margin(0,0,0,0), panel.background = element_blank())
   )
 }
