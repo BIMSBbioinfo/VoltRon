@@ -1,0 +1,44 @@
+---
+title: "ondisk"
+output: 
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+<style>
+.title{
+  display: none;
+}
+body {
+  text-align: justify
+}
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+```{css, echo=FALSE}
+.watch-out {
+  color: black;
+}
+```
+
+```{r setup, include=FALSE}
+# use rmarkdown::render_site(envir = knitr::knit_global())
+knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
+```
+
+<br>
+
+# OnDisk Storage
+
+**VoltRon** includes interactive applications to select and manually label spatial points by drawing polygons and circles. As an example, we will use a Spot-based spatial transcriptomic assay, specifically the **Mouse Brain Serial Section 1/2** datasets, analyzed in the [Niche Clustering](deconvolution.html) tutorial. You can find the already analyzed data stored as a VoltRon object [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/NicheClustering/Visium&Visium_data_decon_analyzed.rds)
+
+```{r class.source="watch-out", eval = FALSE}
+MBrain_Sec <- readRDS("Visium&Visium_data_decon_analyzed.rds")
+```
