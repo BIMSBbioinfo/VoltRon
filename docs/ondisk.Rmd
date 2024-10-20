@@ -35,10 +35,50 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 <br>
 
-# OnDisk Storage
+# Import VisiumHD Data
 
-**VoltRon** includes interactive applications to select and manually label spatial points by drawing polygons and circles. As an example, we will use a Spot-based spatial transcriptomic assay, specifically the **Mouse Brain Serial Section 1/2** datasets, analyzed in the [Niche Clustering](deconvolution.html) tutorial. You can find the already analyzed data stored as a VoltRon object [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/NicheClustering/Visium&Visium_data_decon_analyzed.rds)
+We first have to download some packages that are necessary to import datasets from `.parquet` and `.h5` files from the VisiumHD data.
 
 ```{r class.source="watch-out", eval = FALSE}
-MBrain_Sec <- readRDS("Visium&Visium_data_decon_analyzed.rds")
+library(arrow)
+library(hdf5r)
+```
+
+We use the `importVisiumHD` function to start analyzing the data
+
+```{r class.source="watch-out", eval = FALSE}
+hddata <- importVisiumHD(dir.path = "VisiumHD/outs/", bin.size = "8", resolution_level = "hires")
+```
+
+# OnDisk storage
+
+We use `BPCells` and `ImageArray` functions to accelerate operations of feature matrices and images.
+
+```{r class.source="watch-out", eval = FALSE}
+library(BPCells)
+library(ImageArray)
+hddata <- saveVoltRon(hddata, format = "HDF5VoltRon", output = "data/OnDisk/VisiumHD")
+```
+
+If you want you can load the VoltRon object from the same container.
+
+```{r class.source="watch-out", eval = FALSE}
+hddata <- loadVoltRon("data/OnDisk/VisiumHD/")
+```
+
+Processing of the data is quick.
+
+```{r class.source="watch-out", eval = FALSE}
+hddata <- subset(hddata, Count > 10)
+hddata <- normalizeData(hddata, sizefactor = 10000)
+hddata <- getFeatures(hddata, n = 3000)
+selected_features <- getVariableFeatures(hddata)
+hddata <- getPCA(hddata, features = selected_features, dims = 30)
+hddata <- getUMAP(hddata, dims = 1:30)```
+```
+
+Visualization
+
+```{r class.source="watch-out", eval = FALSE}
+vrSpatialFeaturePlot(hddata, features = "Nrgn")
 ```
