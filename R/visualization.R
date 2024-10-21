@@ -535,18 +535,21 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
         data <- vrData(object[[assy]], features = feat, norm = norm)
         if(log)
           data <- log(data)
-        return(range(data, na.rm = TRUE, finite = TRUE))
+        # return(range(data, na.rm = TRUE, finite = TRUE))
+        return(getRange(data, na.rm = TRUE, finite = TRUE))
       } else {
         metadata <- Metadata(object, assay = assy)
         if(feat %in% colnames(metadata)){
-          return(range(metadata[,feat], na.rm = TRUE, finite = TRUE))
+          # return(range(metadata[,feat], na.rm = TRUE, finite = TRUE))
+          return(getRange(metadata[,feat], na.rm = TRUE, finite = TRUE))
         } else {
           stop("Feature '", feat, "' cannot be found in data or metadata!")
         }
       }
     }, assay_names)
     if(keep.scale == "all"){
-      range_feat_all <- c(do.call(min, range_feat), do.call(max, range_feat))
+      # range_feat_all <- c(do.call(min, range_feat), do.call(max, range_feat))
+      range_feat_all <- c(do.call(getMin, range_feat), do.call(getMax, range_feat))
       range_feat <- Map(function(assy) return(range_feat_all), assay_names)
     }
     if(!keep.scale %in% c("all", "feature")){
@@ -711,7 +714,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 
   # get data
   if(feature %in% data_features){
-    coords$score <- normdata[feature,]
+    coords$score <- as.matrix(normdata[feature,])[1,]
   } else {
     coords$score <- metadata[,feature]
   }
@@ -1292,10 +1295,12 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
     if(feat %in% vrFeatures(object, assay = assay)){
-      return(range(normdata[feat, ]))
+      # return(range(normdata[feat, ]))
+      return(getRange(normdata[feat, ]))
     } else {
       if(feat %in% colnames(metadata)){
-        return(range(metadata[,feat]))
+        # return(range(metadata[,feat]))
+        return(getRange(metadata[, feat]))
       } else {
         stop("Feature '", feat, "' cannot be found in data or metadata!")
       }
@@ -1317,7 +1322,11 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
 
     # get data
     if(feat %in% vrFeatures(object, assay = assay)){
-      datax$score <- normdata[feat, rownames(datax)]
+      if(inherits(normdata, "IterableMatrix")){
+        datax$score <- as.matrix(normdata[feat, rownames(datax)])[1,]
+      } else {
+        datax$score <- normdata[feat, rownames(datax)]
+      }
     } else {
       datax$score <- metadata[rownames(datax),feat]
     }

@@ -1,4 +1,27 @@
 ####
+# Matrix Operations ####
+####
+
+getMin <- function(data, ...){
+  if(inherits(data, "IterableMatrix")){
+    data <- as(data, "dgCMatrix")
+  } 
+  return(min(data, ...))
+}
+
+getMax <- function(data, ...){
+  if(inherits(data, "IterableMatrix")){
+    data <- as(data, "dgCMatrix")
+  } 
+  return(max(data, ...))
+}
+
+getRange <- function(data, ...){
+  return(c(getMin(data, ...), getMax(data, ...)))
+}
+
+
+####
 # Nanostring Auxiliary tools ####
 ####
 

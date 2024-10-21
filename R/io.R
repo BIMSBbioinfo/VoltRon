@@ -941,7 +941,8 @@ restore_absolute_links <- function(x, dir){
   if(inherits(x, "DelayedArray")){
     x@filepath <- basename(x@filepath)
   } else if(inherits(x, "IterableMatrix")){
-    x@path <- basename(x@path)
+    # x@path <- basename(x@path)
+    x <- updateIterableMatrixPath(x, basename)
   }
 
   # check object
@@ -952,7 +953,7 @@ restore_absolute_links <- function(x, dir){
   if(inherits(x, "DelayedArray")){
     file_path <- file.path(dir, x@filepath)
   } else if(inherits(x, "IterableMatrix")){
-    file_path <- file.path(dir, x@path)
+    file_path <- file.path(dir, getIterableMatrixPath(x))
   }
 
   ## file_path_as_absolute() will fail if the file does
@@ -964,8 +965,8 @@ restore_absolute_links <- function(x, dir){
     x@filepath <- file_path_as_absolute(file_path)
     msg <- validate_absolute_path(x@filepath, paste0("'filepath' slot of Object"))
   } else if(inherits(x, "IterableMatrix")){
-    x@path <- file_path_as_absolute(file_path)
-    msg <- validate_absolute_path(x@path, paste0("'filepath' slot of Object"))
+    x <- updateIterableMatrixPath(x, file_path_as_absolute(file_path))
+    msg <- validate_absolute_path(getIterableMatrixPath(x), paste0("'filepath' slot of Object"))
   }
 
   # validate
@@ -998,7 +999,28 @@ restore_absolute_links_images <- function(file_path, dir){
   file_path
 }
 
-
+updateIterableMatrixPath <- function(object, FUN, ...){
+  if(!inherits(object, "IterableMatrix")){
+    stop("object should be an object of IterableMatrix")
+  }
+  slot_names <- slotNames(object)
+  if("path" %in% slot_names){
+    if(is.function(FUN)){
+      object@path <- FUN(object@path, ...)
+    } else {
+      object@path <- FUN
+    }
+  } else if("matrix" %in% slot_names){
+    object@matrix <- updateIterableMatrixPath(object@matrix, FUN, ...)
+  } else if("matrix_list" %in% slot_names){
+    object_list <- object@matrix_list
+    for(i in 1:length(object_list)){
+      object_list[[i]] <- updateIterableMatrixPath(object_list[[i]], FUN, ...)
+    }
+    object@matrix_list <- object_list
+  }
+  return(object)
+}
 
 ####
 # Auxiliary ####

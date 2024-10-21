@@ -35,7 +35,7 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 <br>
 
-# Import VisiumHD Data
+## Import VisiumHD Data
 
 We first have to download some packages that are necessary to import datasets from `.parquet` and `.h5` files from the VisiumHD data.
 
@@ -47,16 +47,32 @@ library(hdf5r)
 We use the `importVisiumHD` function to start analyzing the data
 
 ```{r class.source="watch-out", eval = FALSE}
-hddata <- importVisiumHD(dir.path = "VisiumHD/outs/", bin.size = "8", resolution_level = "hires")
+hddata <- importVisiumHD(dir.path = "VisiumHD/outs/", 
+                         bin.size = "8", 
+                         resolution_level = "hires")
 ```
 
-# OnDisk storage
+<br>
+
+## OnDisk storage
 
 We use `BPCells` and `ImageArray` functions to accelerate operations of feature matrices and images.
 
 ```{r class.source="watch-out", eval = FALSE}
 library(BPCells)
 library(ImageArray)
+```
+
+You can download these package from
+
+```{r class.source="watch-out", eval = FALSE}
+devtools::install_github("bnprks/BPCells/r")
+devtools::install_github("BIMSBbioinfo/ImageArray")
+```
+
+We can now save the VoltRon object to disk.
+
+```{r class.source="watch-out", eval = FALSE}
 hddata <- saveVoltRon(hddata, format = "HDF5VoltRon", output = "data/OnDisk/VisiumHD")
 ```
 
@@ -74,7 +90,8 @@ hddata <- normalizeData(hddata, sizefactor = 10000)
 hddata <- getFeatures(hddata, n = 3000)
 selected_features <- getVariableFeatures(hddata)
 hddata <- getPCA(hddata, features = selected_features, dims = 30)
-hddata <- getUMAP(hddata, dims = 1:30)```
+hddata <- getUMAP(hddata, dims = 1:30)
+# hddata <- saveVoltRon(hddata, format = "HDF5VoltRon", output = "data/OnDisk/VisiumHD")
 ```
 
 Visualization
