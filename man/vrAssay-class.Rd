@@ -11,6 +11,10 @@ The vrAssay (VoltRon Assay) Class
 \section{Slots}{
 
 \describe{
+\item{\code{rawdata}}{raw data}
+
+\item{\code{normdata}}{normalized data}
+
 \item{\code{data}}{the table of counts}
 
 \item{\code{featuredata}}{feature metadata}
