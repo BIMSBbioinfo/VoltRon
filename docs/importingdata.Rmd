@@ -65,6 +65,8 @@ We use the **importVisium** function to import the Visium readouts and create a 
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
+install.packages("hdf5r")
+library(hdf5r)
 Vis_R1 <- importVisium(dir.path = "Visium/", sample_name = "VisiumR1")
 ```
 
@@ -112,6 +114,41 @@ Vis_R1 <- importVisium(dir.path = "Visium/", sample_name = "VisiumR1", resolutio
 
 <br>
 
+## VisiumHD (10x Genomics)
+
+</br>
+
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/visiumhd_summary.png" class="center">
+<p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;"> <em> https://www.10xgenomics.com/products/visium-hd-spatial-gene-expression </em> </p>
+
+10x Genomics [VisiumHD](https://www.10xgenomics.com/products/visium-hd-spatial-gene-expression) Spatial Gene Expression Platform contains two 6.5 x 6.5 mm Capture Areas with a continuous lawn of oligonucleotides arrayed in millions of 2 x 2 µm barcoded squares without gaps, achieving single cell–scale spatial resolution. The data is output at 2 µm, as well as multiple bin sizes. The 8 x 8 µm bin is the recommended starting point for visualization and analysis.
+
+We will use the readouts of **Visium CytAssist** platform that was derived from a single tissue section of a breast cancer sample. More information on the Visium CytAssist data and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **Visium Spatial** data). 
+
+We use the **importVisium** function to import the Visium readouts and create a VoltRon object. Here, we point to the folder of all the files with **dir.path** argument and also determine the name of this sample (**sample_name**). 
+
+```{r eval = FALSE, class.source="watch-out"}
+library(VoltRon)
+install.packages(c("arrow", "hdf5r"))
+library(arrow)
+library(hdf5r)
+hddata <- importVisium(dir.path = "VisiumHD/outs/", 
+                       sample_name = "VisiumHD")
+```
+
+<br>
+
+The VisiumHD readouts provide multiple bin sizes which are aggregated versions of the original 2$\mu$m $x$ 2$\mu$m capture spots. The default bin sizes are **(i)** 2$\mu$m $x$ 2$\mu$m, **(ii)** 8$\mu$m $x$ 8$\mu$m and **(iii)** 16$\mu$m $x$ 16$\mu$m. Although by default the **importVisium** function selects the low resolution image, you can select the higher resolution one using **resolution_level="hires"**.
+
+```{r eval = FALSE, class.source="watch-out"}
+hddata <- importVisium(dir.path = "VisiumHD/outs/", 
+                       bin.size = "16", 
+                       resolution_level = "hires", 
+                       sample_name = "VisiumHD")
+```
+
+<br>
+
 ## Xenium (10x Genomics)
 
 </br>
@@ -127,6 +164,8 @@ We use the **importXenium** function to import the Xenium readouts and create a 
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
+install.packages("hdf5r")
+library(hdf5r)
 Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1")
 ```
 

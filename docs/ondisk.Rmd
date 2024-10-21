@@ -37,14 +37,17 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 ## Import VisiumHD Data
 
-We first have to download some packages that are necessary to import datasets from `.parquet` and `.h5` files from the VisiumHD data.
+We first have to download some packages that are necessary to import datasets from `.parquet` and `.h5` files provided by the VisiumHD readouts.
 
 ```{r class.source="watch-out", eval = FALSE}
+install.packages(c("arrow", "hdf5r"))
 library(arrow)
 library(hdf5r)
 ```
 
-We use the `importVisiumHD` function to start analyzing the data
+We use the **importVisiumHD** function to start analyzing the data. The data has 393401 spots which we will use OnDisk-backed methods to efficiently manipulate, analyze and visualize these spots.
+
+The VisiumHD readouts provide multiple bin sizes which are aggregated versions of the original 2$\mu$m $x$ 2$\mu$m capture spots. The default bin sizes are **(i)** 2$\mu$m $x$ 2$\mu$m, **(ii)** 8$\mu$m $x$ 8$\mu$m and **(iii)** 16$\mu$m $x$ 16$\mu$m.
 
 ```{r class.source="watch-out", eval = FALSE}
 hddata <- importVisiumHD(dir.path = "VisiumHD/outs/", 
@@ -54,35 +57,34 @@ hddata <- importVisiumHD(dir.path = "VisiumHD/outs/",
 
 <br>
 
-## OnDisk storage
+## Saving/Loading VoltRon Objects
 
-We use `BPCells` and `ImageArray` functions to accelerate operations of feature matrices and images.
-
-```{r class.source="watch-out", eval = FALSE}
-library(BPCells)
-library(ImageArray)
-```
-
-You can download these package from
+We use **BPCells** and **ImageArray** packages to accelerate operations of feature matrices and images. Here **BPCells** allows users access and operate on large feature matrices or clustering/spatial analysis, while **ImageArray** provides [pyramids images](https://en.wikipedia.org/wiki/Pyramid_(image_processing)) to allow fast access to large microscopy images. You can download these package from GitHub using **devtools**.
 
 ```{r class.source="watch-out", eval = FALSE}
 devtools::install_github("bnprks/BPCells/r")
 devtools::install_github("BIMSBbioinfo/ImageArray")
+library(BPCells)
+library(ImageArray)
 ```
 
-We can now save the VoltRon object to disk.
+We can now save the VoltRon object to disk, large matrices and images will be written to either **hdf5** or **zarr** files depending on the **format** arguement, and the rest of the R object would be written to an `.rds` file, both under the designated **output**.
 
 ```{r class.source="watch-out", eval = FALSE}
 hddata <- saveVoltRon(hddata, format = "HDF5VoltRon", output = "data/OnDisk/VisiumHD")
 ```
 
-If you want you can load the VoltRon object from the same container.
+If you want you can load the VoltRon object from the same path as you have saved.
 
 ```{r class.source="watch-out", eval = FALSE}
 hddata <- loadVoltRon("data/OnDisk/VisiumHD/")
 ```
 
-Processing of the data is quick.
+<br>
+
+## OnDisk Analysis
+
+The **BPCells** package provides fast methods to achieve operations common to single cell analysis such as filtering, normalization and dimensionality reduction. Here we have an example of single-cell like clustering of VisiumHD bins which is efficiently clustered.
 
 ```{r class.source="watch-out", eval = FALSE}
 hddata <- subset(hddata, Count > 10)
@@ -94,8 +96,18 @@ hddata <- getUMAP(hddata, dims = 1:30)
 # hddata <- saveVoltRon(hddata, format = "HDF5VoltRon", output = "data/OnDisk/VisiumHD")
 ```
 
-Visualization
+We can now visualized genes over embedding or spatial plots.
 
 ```{r class.source="watch-out", eval = FALSE}
+vrEmbeddingFeaturePlot(hddata, features = "Nrgn", embedding = "umap")
 vrSpatialFeaturePlot(hddata, features = "Nrgn")
 ```
+  
+<table>
+<tbody>
+  <tr style = "vertical-align: center">
+  <td style = "width:50%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/ondisk_embeddingfeature.png" class="center"></td>
+  <td style = "width:55%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/ondisk_spatialfeature.png" class="center"></td>
+  </tr>
+</tbody>
+</table>

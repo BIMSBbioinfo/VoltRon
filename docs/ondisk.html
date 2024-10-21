@@ -461,36 +461,85 @@ body {
 <div id="import-visiumhd-data" class="section level2">
 <h2>Import VisiumHD Data</h2>
 <p>We first have to download some packages that are necessary to import
-datasets from <code>.parquet</code> and <code>.h5</code> files from the
-VisiumHD data.</p>
-<pre class="r watch-out"><code>library(arrow)
+datasets from <code>.parquet</code> and <code>.h5</code> files provided
+by the VisiumHD readouts.</p>
+<pre class="r watch-out"><code>install.packages(c(&quot;arrow&quot;, &quot;hdf5r&quot;))
+library(arrow)
 library(hdf5r)</code></pre>
-<p>We use the <code>importVisiumHD</code> function to start analyzing
-the data</p>
+<p>We use the <strong>importVisiumHD</strong> function to start
+analyzing the data. The VisiumHD readouts provide multiple bin sizes
+which are aggregated versions of the original 2<span
+class="math inline">\(\mu\)</span>m <span
+class="math inline">\(x\)</span> 2<span
+class="math inline">\(\mu\)</span>m capture spots. The default bin sizes
+are <strong>(i)</strong> 2<span class="math inline">\(\mu\)</span>m
+<span class="math inline">\(x\)</span> 2<span
+class="math inline">\(\mu\)</span>m, <strong>(ii)</strong> 8<span
+class="math inline">\(\mu\)</span>m <span
+class="math inline">\(x\)</span> 8<span
+class="math inline">\(\mu\)</span>m and <strong>(iii)</strong> 16<span
+class="math inline">\(\mu\)</span>m <span
+class="math inline">\(x\)</span> 16<span
+class="math inline">\(\mu\)</span>m.</p>
 <pre class="r watch-out"><code>hddata &lt;- importVisiumHD(dir.path = &quot;VisiumHD/outs/&quot;, 
                          bin.size = &quot;8&quot;, 
                          resolution_level = &quot;hires&quot;)</code></pre>
 <p><br></p>
 </div>
-<div id="ondisk-storage" class="section level2">
-<h2>OnDisk storage</h2>
-<p>We use <code>BPCells</code> and <code>ImageArray</code> functions to
-accelerate operations of feature matrices and images.</p>
-<pre class="r watch-out"><code>library(BPCells)
-library(ImageArray)
-hddata &lt;- saveVoltRon(hddata, format = &quot;HDF5VoltRon&quot;, output = &quot;data/OnDisk/VisiumHD&quot;)</code></pre>
-<p>If you want you can load the VoltRon object from the same
-container.</p>
+<div id="savingloading-voltron-objects" class="section level2">
+<h2>Saving/Loading VoltRon Objects</h2>
+<p>We use <strong>BPCells</strong> and <strong>ImageArray</strong>
+packages to accelerate operations of feature matrices and images. Here
+<strong>BPCells</strong> allows users access and operate on large
+feature matrices or clustering/spatial analysis, while
+<strong>ImageArray</strong> provides <a
+href="https://en.wikipedia.org/wiki/Pyramid_(image_processing)">pyramids
+images</a> to allow fast access to large microscopy images. You can
+download these package from GitHub using <strong>devtools</strong>.</p>
+<pre class="r watch-out"><code>devtools::install_github(&quot;bnprks/BPCells/r&quot;)
+devtools::install_github(&quot;BIMSBbioinfo/ImageArray&quot;)
+library(BPCells)
+library(ImageArray)</code></pre>
+<p>We can now save the VoltRon object to disk, large matrices and images
+will be written to either <strong>hdf5</strong> or <strong>zarr</strong>
+files depending on the <strong>format</strong> arguement, and the rest
+of the R object would be written to an <code>.rds</code> file, both
+under the designated <strong>output</strong>.</p>
+<pre class="r watch-out"><code>hddata &lt;- saveVoltRon(hddata, format = &quot;HDF5VoltRon&quot;, output = &quot;data/OnDisk/VisiumHD&quot;)</code></pre>
+<p>If you want you can load the VoltRon object from the same path as you
+have saved.</p>
 <pre class="r watch-out"><code>hddata &lt;- loadVoltRon(&quot;data/OnDisk/VisiumHD/&quot;)</code></pre>
-<p>Processing of the data is quick.</p>
+<p><br></p>
+</div>
+<div id="ondisk-analysis" class="section level2">
+<h2>OnDisk Analysis</h2>
+<p>The <strong>BPCells</strong> package provides fast methods to achieve
+operations common to single cell analysis such as filtering,
+normalization and dimensionality reduction. Here we have an example of
+single-cell like clustering of VisiumHD bins which is efficiently
+clustered.</p>
 <pre class="r watch-out"><code>hddata &lt;- subset(hddata, Count &gt; 10)
 hddata &lt;- normalizeData(hddata, sizefactor = 10000)
 hddata &lt;- getFeatures(hddata, n = 3000)
 selected_features &lt;- getVariableFeatures(hddata)
 hddata &lt;- getPCA(hddata, features = selected_features, dims = 30)
-hddata &lt;- getUMAP(hddata, dims = 1:30)</code></pre>
-<p>Visualization</p>
-<pre class="r watch-out"><code>vrSpatialFeaturePlot(hddata, features = &quot;Nrgn&quot;)</code></pre>
+hddata &lt;- getUMAP(hddata, dims = 1:30)
+# hddata &lt;- saveVoltRon(hddata, format = &quot;HDF5VoltRon&quot;, output = &quot;data/OnDisk/VisiumHD&quot;)</code></pre>
+<p>We can now visualized genes over embedding or spatial plots.</p>
+<pre class="r watch-out"><code>vrEmbeddingFeaturePlot(hddata, features = &quot;Nrgn&quot;, embedding = &quot;umap&quot;)
+vrSpatialFeaturePlot(hddata, features = &quot;Nrgn&quot;)</code></pre>
+<table>
+<tbody>
+<tr style="vertical-align: center">
+<td style="width:50%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/ondisk_embeddingfeature.png" class="center">
+</td>
+<td style="width:55%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/ondisk_spatialfeature.png" class="center">
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 
 
