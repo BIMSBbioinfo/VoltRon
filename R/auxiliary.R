@@ -547,14 +547,6 @@ fix_data_type <- function(.data, data_type) {
 #'   likely `""` (the default) for style attributes, and either `"\n"`
 #'   or `NULL` for style blocks.
 #'
-#' @examples
-#' padding <- 6
-#' css(
-#'   font.family = "Helvetica, sans-serif",
-#'   margin = paste0(c(10, 20, 10, 20), "px"),
-#'   "padding!" = if (!is.null(padding)) padding
-#' )
-#'
 #' @importFrom rlang dots_list
 #' 
 #' @noRd
@@ -744,20 +736,6 @@ new_defaults <- function(value = list()) {
 #' @param verbose toggle to control if the output is ggproto object (verbose==FALSE,default) or string of layer call (verbose==TRUE)
 #' @param showDefaults toggle to control if the verbose output shows all the input arguments passed to the proto object (if verbose==FALSE then ignored)
 #' @return ggproto or string object (conditional on verbose)
-#' @examples
-#' p <- ggplot2::ggplot(iris,ggplot2::aes(x =Sepal.Length,y=Sepal.Width))
-#'
-#' p <- p + 
-#' ggplot2::geom_point(ggplot2::aes(colour='Species')) + 
-#' ggplot2::geom_line()
-#'
-#' p$layers[[1]]
-#'
-#' newLayer <- cloneLayer(l=p$layers[[1]])
-#' 
-#' (v <- cloneLayer(l=p$layers[[1]],verbose=TRUE))
-#'
-#' eval(parse(text=v))
 #'
 #' @importFrom utils capture.output
 #' @importFrom rlang sym '!!'
