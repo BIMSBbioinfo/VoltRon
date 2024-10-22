@@ -1954,7 +1954,8 @@ vrFeaturePlotTiling <- function(g, data, legend_title, n.tile, alpha = 1, limits
     gplot <- gplot +
       scale_fill_gradientn(name = legend_title,
                            colors=c("dodgerblue2", "white", "yellow3"),
-                           values=scales::rescale(c(0, midpoint, max(hex_count_data$value))), limits = c(0, max(hex_count_data$value)))
+                           values=scales::rescale(c(min(hex_count_data$value), midpoint, max(hex_count_data$value))), 
+                           limits = c(min(hex_count_data$value), max(hex_count_data$value)))
   } else{
     gplot <- gplot +
       scale_fill_gradientn(name = legend_title,
