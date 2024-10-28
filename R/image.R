@@ -1702,12 +1702,36 @@ FromBoxToCrop <- function(corners, imageinfo){
   corners[1,2] <- ifelse(corners[1,2] > imageinfo$height, imageinfo$height, corners[1,2])
   corners[2,2] <- ifelse(corners[2,2] < 0, 0, corners[2,2])
   corners[2,2] <- ifelse(corners[2,2] > imageinfo$height, imageinfo$height, corners[2,2])
-  
+
   # get crop info
   corners <- paste0(abs(corners[2,1]-corners[1,1]), "x",
                     abs(corners[2,2]-corners[1,2]), "+",
                     min(corners[,1]), "+", imageinfo$height - max(corners[,2]))
+
+  # corners 
+  return(corners)
+}
+
+#' FromSegmentToCrop
+#'
+#' get magick crop information from coordinates of a segment
+#'
+#' @param segment coordinates of a segment
+#' @param imageinfo info of the image
+#' 
+#' @export
+FromSegmentToCrop <- function(segment, imageinfo){
   
+  # make box from segment coordinates
+  corners <- matrix(c(0,0,0,0), nrow = 2, ncol = 2)
+  corners[1,1] <- min(segment[,1])
+  corners[2,1] <- max(segment[,1])
+  corners[1,2] <- max(segment[,2])
+  corners[2,2] <- min(segment[,2])
+
+  # get crop from box
+  corners <- FromBoxToCrop(corners, imageinfo)
+
   # corners 
   return(corners)
 }
