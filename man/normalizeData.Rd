@@ -4,6 +4,7 @@
 \alias{normalizeData}
 \alias{normalizeData.VoltRon}
 \alias{normalizeData.vrAssay}
+\alias{normalizeData.vrAssayV2}
 \title{Normalize Data}
 \usage{
 normalizeData(
@@ -27,6 +28,15 @@ normalizeData(
 )
 
 \method{normalizeData}{vrAssay}(
+  object,
+  method = "LogNorm",
+  desiredQuantile = 0.9,
+  scale = 0.2,
+  sizefactor = 10000,
+  feat_type = NULL
+)
+
+\method{normalizeData}{vrAssayV2}(
   object,
   method = "LogNorm",
   desiredQuantile = 0.9,

@@ -19,6 +19,7 @@ formVoltRon(
   image_name = NULL,
   feature_name = NULL,
   project = NULL,
+  version = "v2",
   ...
 )
 }
@@ -52,6 +53,8 @@ formVoltRon(
 \item{project}{project name}
 
 \item{...}{additional parameters passed to \link{formAssay}}
+
+\item{assay_version}{the VoltRon object version}
 }
 \description{
 Create a VoltRon object

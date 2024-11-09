@@ -480,12 +480,20 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
 
     # subset assays
     object@assay <- sapply(object@assay, function(assy) {
-      subset.vrAssay(assy, spatialpoints = spatialpoints)
+      if(inherits(assy, "vrAssay")){
+        return(subset.vrAssay(assy, spatialpoints = spatialpoints))
+      } else {
+        return(subset.vrAssayV2(assy, spatialpoints = spatialpoints))
+      }
     }, USE.NAMES = TRUE, simplify = TRUE)
-
+    
   } else if(!is.null(image)){
     object@assay <- sapply(object@assay, function(assy) {
-      subset.vrAssay(assy, image = image)
+      if(inherits(assy, "vrAssay")){
+        return(subset.vrAssay(assy, image = image))
+      } else {
+        return(subset.vrAssayV2(assy, image = image))
+      }
     }, USE.NAMES = TRUE, simplify = TRUE)
   }
 

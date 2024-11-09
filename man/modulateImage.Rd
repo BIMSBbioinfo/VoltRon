@@ -4,6 +4,7 @@
 \alias{modulateImage}
 \alias{modulateImage.VoltRon}
 \alias{modulateImage.vrAssay}
+\alias{modulateImage.vrAssayV2}
 \alias{modulateImage.vrImage}
 \alias{modulateImage.vrSpatial}
 \title{modulateImage}
@@ -33,6 +34,17 @@ modulateImage(
 )
 
 \method{modulateImage}{vrAssay}(
+  object,
+  name = NULL,
+  reg = FALSE,
+  channel = NULL,
+  brightness = 100,
+  saturation = 100,
+  hue = 100,
+  force = FALSE
+)
+
+\method{modulateImage}{vrAssayV2}(
   object,
   name = NULL,
   reg = FALSE,

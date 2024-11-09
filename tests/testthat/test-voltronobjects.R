@@ -8,7 +8,7 @@ test_that("assay", {
   expect_equal(vrAssayNames(visium_data), "Assay1")
 
   # get assay object
-  print(visium_data[["Assay1"]])
+  visium_data[["Assay1"]]
 
   # subset on assay name
   visium_data_sub <- subset(visium_data, assays = "Assay1")
@@ -26,7 +26,7 @@ test_that("sample", {
   data("visium_data")
 
   # get sample metadata
-  print(SampleMetadata(visium_data))
+  SampleMetadata(visium_data)
 
   # change sample name
   visium_data$Sample <- "Test_Sample_Name"
@@ -43,3 +43,27 @@ test_that("sample", {
 
   expect_equal(1,1L)
 })
+
+# Testing functions of manipulating samples ####
+test_that("merge objects", {
+  
+  # get data
+  data("xenium_data")
+  data("visium_data")
+  data("melc_data")
+  
+  # merge two of same types
+  xenium_data2 <- xenium_data
+  xenium_data2$Sample <- "XeniumR2"
+  merged_data <- merge(xenium_data, xenium_data2)
+  
+  # merge two of different types
+  merged_data <- merge(xenium_data, visium_data)
+  
+  # merge multiple
+  merge_list <- list(xenium_data, visium_data, melc_data)
+  merged_data <- merge(merge_list[[1]], merge_list[-1])
+  
+  expect_equal(1,1L)
+})
+

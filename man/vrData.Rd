@@ -4,6 +4,7 @@
 \alias{vrData}
 \alias{vrData.VoltRon}
 \alias{vrData.vrAssay}
+\alias{vrData.vrAssayV2}
 \title{vrData}
 \usage{
 vrData(object, assay = NULL, features = NULL, feat_type = NULL, norm = FALSE)
@@ -18,6 +19,8 @@ vrData(object, assay = NULL, features = NULL, feat_type = NULL, norm = FALSE)
 )
 
 \method{vrData}{vrAssay}(object, features = NULL, feat_type = NULL, norm = FALSE, ...)
+
+\method{vrData}{vrAssayV2}(object, features = NULL, feat_type = NULL, norm = FALSE, ...)
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object}

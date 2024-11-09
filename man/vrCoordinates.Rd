@@ -4,10 +4,12 @@
 \alias{vrCoordinates}
 \alias{vrCoordinates.VoltRon}
 \alias{vrCoordinates.vrAssay}
+\alias{vrCoordinates.vrAssayV2}
 \alias{vrCoordinates.vrImage}
 \alias{vrCoordinates.vrSpatial}
 \alias{vrCoordinates<-.VoltRon}
 \alias{vrCoordinates<-.vrAssay}
+\alias{vrCoordinates<-.vrAssayV2}
 \alias{vrCoordinates<-.vrImage}
 \alias{vrCoordinates<-.vrSpatial}
 \title{vrCoordinates}
@@ -30,6 +32,10 @@ vrCoordinates(
 
 \method{vrCoordinates}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE)
 
+\method{vrCoordinates}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, reg = FALSE)
+
+\method{vrCoordinates}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, reg = FALSE)
+
 \method{vrCoordinates}{vrImage}(object)
 
 \method{vrCoordinates}{vrSpatial}(object)
@@ -37,6 +43,8 @@ vrCoordinates(
 \method{vrCoordinates}{VoltRon}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
 
 \method{vrCoordinates}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
+
+\method{vrCoordinates}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
 
 \method{vrCoordinates}{vrImage}(object) <- value
 

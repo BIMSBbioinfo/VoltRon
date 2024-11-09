@@ -4,6 +4,7 @@
 \alias{vrEmbeddingNames}
 \alias{vrEmbeddingNames.VoltRon}
 \alias{vrEmbeddingNames.vrAssay}
+\alias{vrEmbeddingNames.vrAssayV2}
 \title{Get Embedding names}
 \usage{
 vrEmbeddingNames(object, assay = NULL)
@@ -11,6 +12,8 @@ vrEmbeddingNames(object, assay = NULL)
 \method{vrEmbeddingNames}{VoltRon}(object, assay = NULL)
 
 \method{vrEmbeddingNames}{vrAssay}(object)
+
+\method{vrEmbeddingNames}{vrAssayV2}(object)
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object}

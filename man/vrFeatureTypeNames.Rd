@@ -2,11 +2,14 @@
 % Please edit documentation in R/generics.R, R/assay.R, R/objects.R
 \name{vrFeatureTypeNames}
 \alias{vrFeatureTypeNames}
+\alias{vrFeatureTypeNames.vrAssayV2}
 \alias{vrFeatureTypeNames.vrAssay}
 \alias{vrFeatureTypeNames.VoltRon}
 \title{vrFeatureTypeNames}
 \usage{
 vrFeatureTypeNames(object, assay = NULL)
+
+\method{vrFeatureTypeNames}{vrAssayV2}(object)
 
 \method{vrFeatureTypeNames}{vrAssay}(object)
 

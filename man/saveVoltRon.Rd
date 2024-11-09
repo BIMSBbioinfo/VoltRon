@@ -8,7 +8,7 @@ saveVoltRon(
   object,
   assay = NULL,
   format = c("InMemoryVoltRon", "HDF5VoltRon", "ZarrVoltRon"),
-  output = "my_se",
+  output = NULL,
   replace = FALSE,
   chunkdim = NULL,
   level = NULL,

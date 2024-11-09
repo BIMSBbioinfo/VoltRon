@@ -4,10 +4,12 @@
 \alias{vrSegments}
 \alias{vrSegments.VoltRon}
 \alias{vrSegments.vrAssay}
+\alias{vrSegments.vrAssayV2}
 \alias{vrSegments.vrImage}
 \alias{vrSegments.vrSpatial}
 \alias{vrSegments<-.VoltRon}
 \alias{vrSegments<-.vrAssay}
+\alias{vrSegments<-.vrAssayV2}
 \alias{vrSegments<-.vrImage}
 \alias{vrSegments<-.vrSpatial}
 \title{vrSegments}
@@ -30,6 +32,8 @@ vrSegments(
 
 \method{vrSegments}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE)
 
+\method{vrSegments}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, reg = FALSE)
+
 \method{vrSegments}{vrImage}(object)
 
 \method{vrSegments}{vrSpatial}(object)
@@ -37,6 +41,8 @@ vrSegments(
 \method{vrSegments}{VoltRon}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
 
 \method{vrSegments}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
+
+\method{vrSegments}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
 
 \method{vrSegments}{vrImage}(object) <- value
 

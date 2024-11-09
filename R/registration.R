@@ -619,7 +619,7 @@ applyPerspectiveTransform <- function(object,
     mapping <- manageMapping(mapping)
     
     # get registered coordinates
-    coords_reg <- coords
+    coords_reg <- as.matrix(as(coords, "dgCMatrix"))
     coords_reg[,c("x", "y")] <- applyTransform(coords[,c("x", "y")], mapping)
     rownames(coords_reg) <- rownames(coords)
     colnames(coords_reg) <- colnames(coords)
@@ -627,9 +627,6 @@ applyPerspectiveTransform <- function(object,
     # get registered segments
     if(length(segments) > 0){
       segments_reg <- do.call(rbind, segments)
-      # segments_reg <- as.matrix(segments_reg)
-      # segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTransform(segments_reg[,colnames(segments_reg) %in% c("x", "y")], mapping$reference, mapping$query)
-      # segments_reg <- as.data.frame(segments_reg) 
       segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTransform(as.matrix(segments_reg[,colnames(segments_reg) %in% c("x", "y")]), mapping)
       segments_reg <- split(segments_reg, segments_reg[,1])
       names(segments_reg) <- names(segments)
@@ -645,7 +642,6 @@ applyPerspectiveTransform <- function(object,
         query_image <- magick::image_read(query_image)
       }
       warped_image <- getRcppWarpImage(ref_image = reference_image,
-                                       # query_image = vrImages(object, assay = assay, channel = channel_ind),
                                        query_image = query_image,
                                        mapping = mapping)
       image_reg_list[[channel_ind]] <- warped_image
@@ -654,12 +650,10 @@ applyPerspectiveTransform <- function(object,
   } else if(reg_mode == "auto"){
 
     # get the multiplication of all homography matrices
-    # cur_mapping <- Reduce("%*%", mapping)
     mapping <- manageMapping(mapping)
     
     # images
     ref_image <- transformImage(reference_image, ref_extension, input)
-    # query_image <- transformImage(vrImages(object, assay = assay), query_extension, input)
     query_image <- vrImages(object[[assay]], as.raster = TRUE)
     if(!inherits(query_image, "Image_Array")){
       query_image <- magick::image_read(query_image)
@@ -667,13 +661,11 @@ applyPerspectiveTransform <- function(object,
     query_image <- transformImage(query_image, query_extension, input)
 
     # image info
-    # query_info <- magick::image_info(query_image)
-    # ref_info <- magick::image_info(ref_image)
     query_info <- getImageInfo(query_image)
     ref_info <- getImageInfo(ref_image)
 
     # get registered coordinates
-    coords_reg <- as.data.frame(coords)
+    coords_reg <- as.data.frame(as.matrix(as(coords, "dgCMatrix")))
     coords_reg <- transformImageKeypoints(query_image, coords_reg[,c("x","y")], query_extension, input)$keypoints
 
     coords_reg[,2] <- query_info$height - coords_reg[,2]
@@ -696,17 +688,10 @@ applyPerspectiveTransform <- function(object,
       segments_reg <- do.call(rbind, segments)
       segments_reg <- as.data.frame(segments_reg)
       segments_reg <- transformImageKeypoints(query_image, segments_reg, query_extension, input)$keypoints
-
       segments_reg[,colnames(segments_reg) %in% c("y")] <- query_info$height - segments_reg[,colnames(segments_reg) %in% c("y")]
-      # segments_reg <- as.matrix(segments_reg)
-      # segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- perspectiveTransform(segments_reg[,colnames(segments_reg) %in% c("x", "y")], cur_mapping)
-      # segments_reg <- as.data.frame(segments_reg)
       segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTransform(as.matrix(segments_reg[,colnames(segments_reg) %in% c("x", "y")]), mapping)
-
       segments_reg[,colnames(segments_reg) %in% c("y")]  <- ref_info$height - segments_reg[,colnames(segments_reg) %in% c("y")]
-
       segments_reg <- transformKeypoints(ref_image, segments_reg, ref_extension, input)
-
       segments_reg <- split(segments_reg, segments_reg[,1])
       names(segments_reg) <- names(segments)
     } else {
@@ -719,8 +704,6 @@ applyPerspectiveTransform <- function(object,
 
       # rotate, flip and flop before warping in C++
       ref_image <- transformImage(reference_image, ref_extension, input)
-      # query_image <- transformImage(vrImages(object, assay = assay, channel = channel_ind),
-      #                               query_extension, input)
       query_image <- vrImages(object[[assay]], channel = channel_ind, as.raster = TRUE)
       if(!inherits(query_image, "Image_Array")){
         query_image <- magick::image_read(query_image)
@@ -931,22 +914,18 @@ transformImageKeypoints <- function(image, keypoints, extension, input, session)
   # negate image
   input_negate <- input[[paste0("negate_", extension)]]
   if(input_negate == "Yes"){
-    # image <- magick::image_negate(image)
     image <- negateImage(image)
   }
 
   # get unrotated image info
-  # image_limits <- unlist(magick::image_info(image)[1,c("width", "height")])
   image_limits <- unlist(getImageInfo(image)[1,c("width", "height")])
   image_origin <- image_limits/2
 
   # rotate image and keypoints
   input_rotate <- as.numeric(input[[paste0("rotate_", extension)]])
-  # image <- magick::image_rotate(image, input_rotate)
   image <- rotateImage(image, input_rotate)
 
   # get rotated image info
-  # rotated_image_limits <- unlist(magick::image_info(image)[1,c("width", "height")])
   rotated_image_limits <- unlist(getImageInfo(image)[1,c("width", "height")])
   rotated_image_origin <- rotated_image_limits/2
 
@@ -985,28 +964,23 @@ transformImageKeypoints <- function(image, keypoints, extension, input, session)
 transformKeypoints <- function(image, keypoints, extension, input){
 
   # get unrotated image info
-  # image_limits <- unlist(image_info(image)[1,c("width", "height")])
   image_limits <- unlist(getImageInfo(image)[1,c("width", "height")])
   image_origin <- image_limits/2
 
   # flip flop image and keypoints
   input_flipflop <- input[[paste0("flipflop_", extension)]]
   if(input_flipflop == "Flip"){
-    # image <- magick::image_flip(image)
     image <- flipImage(image)
   } else if(input_flipflop == "Flop"){
-    # image <- magick::image_flop(image)
     image <- flopImage(image)
   }
   keypoints <- flipflopKeypoint(keypoints, image_limits, input_flipflop)
 
   # rotate image (reverse) and keypoints
   input_rotate <- 360 - as.numeric(input[[paste0("rotate_", extension)]])
-  # image <- magick::image_rotate(image, input_rotate)
   image <- rotateImage(image, input_rotate)
 
   # get rotated image info
-  # rotated_image_limits <- unlist(image_info(image)[1,c("width", "height")])
   rotated_image_limits <- unlist(getImageInfo(image)[1,c("width", "height")])
   rotated_image_origin <- rotated_image_limits/2
 
@@ -1044,11 +1018,6 @@ rotateKeypoint <- function(keypoints, angle, origin, limits, rotated_origin, rot
   rotation_mat <- matrix(c(c, s, -s, c), nrow = 2, byrow = F)
 
   # rotate point
-  # points <- t(apply(points, 1, function(x) return(x - origin)))
-  # points <- t(apply(points, 1, function(x) return(x/limits)))
-  # rotated_points <- t(rotation_mat %*% t(points))
-  # rotated_points <- t(apply(rotated_points, 1, function(x) return(x*rotated_limits)))
-  # rotated_points <- t(apply(rotated_points, 1, function(x) return(x + rotated_origin)))
   points <- points - matrix(rep(origin, nrow(points)), nrow = nrow(points), byrow = T)
   points <- points * matrix(rep(1/limits, nrow(points)), nrow = nrow(points), byrow = T)
   rotated_points <- t(rotation_mat %*% t(points))
@@ -1123,7 +1092,6 @@ imageZoom <- function(image, zoom_info = NULL){
     return(image)
   
   # get image info
-  # imageinfo <- magick::image_info(image)
   imageinfo <- getImageInfo(image)
   
   # get info of zoom
@@ -1335,7 +1303,6 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
 
 
         # visualize
-        # imgggplot <- magick::image_ggplot(img_trans$image)
         img_ggplot <- plotImage(img_trans$image, max.pixel.size = 1000)
         img_ggplot <- imageKeypoint(img_ggplot, img_trans$keypoints)
         
@@ -1394,7 +1361,6 @@ plotImage <- function(image, max.pixel.size = NULL){
 #' @noRd
 getImageInfoList <- function(image_list){
   lapply(image_list, function(x){
-    # imginfo <- magick::image_info(x)
     imginfo <- getImageInfo(x)
     c(imginfo$width, imginfo$height)
   })
@@ -1414,8 +1380,6 @@ getImageInfo <- function(image){
   if(inherits(image, "magick-image")){
     imginfo <- magick::image_info(image)
   } else if(inherits(image, "Image_Array")){
-    # dim_image <- dim(image)
-    # imginfo <- list(width = dim_image[2], height = dim_image[3])
     imginfo <- ImageArray::getImageInfo(image)
   }
   as.data.frame(imginfo)
@@ -1455,7 +1419,6 @@ negateImage <- function(image){
   if(inherits(image, "magick-image")){
     image <- magick::image_negate(image)
   } else if(inherits(image, "Image_Array")){
-    # image <- 255 - image
     image <- ImageArray::negate(image)
   }
   image
@@ -1475,8 +1438,6 @@ flipImage <- function(image){
   if(inherits(image, "magick-image")){
     image <- magick::image_flip(image)
   } else if(inherits(image, "Image_Array")){
-    # dim_img <- dim(image)
-    # image <- image[ , , dim_img[3]:1, drop = FALSE]
     image <- ImageArray::flip(image)
   }
   image
@@ -1496,8 +1457,6 @@ flopImage <- function(image){
   if(inherits(image, "magick-image")){
     image <- magick::image_flop(image)
   } else if(inherits(image, "Image_Array")){
-    # dim_img <- dim(image)
-    # image <- image[ , dim_img[2]:1, , drop = FALSE]
     image <- ImageArray::flop(image)
   }
   image
@@ -1577,16 +1536,13 @@ transformImage <- function(image, extension, input){
 
   # rotate image and keypoints
   input_rotate <- as.numeric(input[[paste0("rotate_", extension)]])
-  # image <- magick::image_rotate(image, input_rotate)
   image <- rotateImage(image, input_rotate)
   
   # flip flop image and keypoints
   input_flipflop <- input[[paste0("flipflop_", extension)]]
   if(input_flipflop == "Flip"){
-    # image <- magick::image_flip(image)
     image <- flipImage(image)
   } else if(input_flipflop == "Flop"){
-    # image <- magick::image_flop(image)
     image <- flopImage(image)
   }
 
@@ -1610,16 +1566,13 @@ transformImageReverse <- function(image, extension, input){
   # flip flop image and keypoints
   input_flipflop <- input[[paste0("flipflop_", extension)]]
   if(input_flipflop == "Flip"){
-    # image <- magick::image_flip(image)
     image <- flipImage(image)
   } else if(input_flipflop == "Flop"){
-    # image <- magick::image_flop(image)
     image <- flopImage(image)
   }
 
   # rotate image and keypoints
   input_rotate <- 360 - as.numeric(input[[paste0("rotate_", extension)]])
-  # image <- magick::image_rotate(image, input_rotate)
   image <- rotateImage(image, input_rotate)
 
   # return image
@@ -1797,8 +1750,6 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
         output[[paste0("plot_query_reg",i)]] <- renderImage({
 
           # get image list
-          # image_view_list <- list(rep(magick::image_resize(image_list[[centre]], geometry = "400x"),5),
-          #                         rep(magick::image_resize(aligned_image_list[[i]], geometry = "400x"),5))
           image_view_list <- list(rep(resize_Image(image_list[[centre]], geometry = "400x"),5),
                                   rep(resize_Image(aligned_image_list[[i]], geometry = "400x"),5))
 
@@ -1896,10 +1847,6 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
 #' @export
 getRcppManualRegistration <- function(query_image, ref_image, query_landmark, reference_landmark, 
                                       method = "TPS") {
-  
-  
-  # ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
-  # query_image_rast <- magick::image_data(query_image, channels = "rgb")
   
   # ref image
   if(inherits(ref_image, "Image_Array")){
@@ -2080,8 +2027,6 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
     ref_scale <- input[[paste0("scale_", ref_label, "_image", cur_map[2])]]
 
     # scale images
-    # query_image <- magick::image_resize(query_image, geometry = magick::geometry_size_percent(100*query_scale))
-    # ref_image <- magick::image_resize(ref_image, geometry = magick::geometry_size_percent(100*ref_scale))
     query_image <- resize_Image(query_image, geometry = magick::geometry_size_percent(100*query_scale))
     ref_image <- resize_Image(ref_image, geometry = magick::geometry_size_percent(100*ref_scale))
 

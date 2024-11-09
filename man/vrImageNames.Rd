@@ -4,6 +4,7 @@
 \alias{vrImageNames}
 \alias{vrImageNames.VoltRon}
 \alias{vrImageNames.vrAssay}
+\alias{vrImageNames.vrAssayV2}
 \title{vrImageNames}
 \usage{
 vrImageNames(object, assay = NULL)
@@ -11,6 +12,8 @@ vrImageNames(object, assay = NULL)
 \method{vrImageNames}{VoltRon}(object, assay = NULL)
 
 \method{vrImageNames}{vrAssay}(object)
+
+\method{vrImageNames}{vrAssayV2}(object)
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object}

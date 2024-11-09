@@ -3,8 +3,10 @@
 \name{vrMainFeatureType}
 \alias{vrMainFeatureType}
 \alias{vrMainFeatureType.VoltRon}
+\alias{vrMainFeatureType.vrAssayV2}
 \alias{vrMainFeatureType.vrAssay}
 \alias{vrMainFeatureType<-.VoltRon}
+\alias{vrMainFeatureType<-.vrAssayV2}
 \alias{vrMainFeatureType<-.vrAssay}
 \title{vrMainFeatureType}
 \usage{
@@ -12,9 +14,13 @@ vrMainFeatureType(object, assay = NULL)
 
 \method{vrMainFeatureType}{VoltRon}(object, assay = NULL)
 
+\method{vrMainFeatureType}{vrAssayV2}(object)
+
 \method{vrMainFeatureType}{vrAssay}(object)
 
 \method{vrMainFeatureType}{VoltRon}(object, assay = NULL) <- value
+
+\method{vrMainFeatureType}{vrAssayV2}(object) <- value
 
 \method{vrMainFeatureType}{vrAssay}(object) <- value
 }

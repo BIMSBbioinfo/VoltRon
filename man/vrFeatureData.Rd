@@ -4,25 +4,33 @@
 \alias{vrFeatureData}
 \alias{vrFeatureData.VoltRon}
 \alias{vrFeatureData.vrAssay}
+\alias{vrFeatureData.vrAssayV2}
 \alias{vrFeatureData<-.VoltRon}
 \alias{vrFeatureData<-.vrAssay}
+\alias{vrFeatureData<-.vrAssayV2}
 \title{Feature Data}
 \usage{
-vrFeatureData(object, assay = NULL)
+vrFeatureData(object, assay = NULL, feat_type = NULL)
 
-\method{vrFeatureData}{VoltRon}(object, assay = NULL)
+\method{vrFeatureData}{VoltRon}(object, assay = NULL, feat_type = NULL)
 
 \method{vrFeatureData}{vrAssay}(object)
+
+\method{vrFeatureData}{vrAssayV2}(object, feat_type = NULL)
 
 \method{vrFeatureData}{VoltRon}(object, assay = NULL) <- value
 
 \method{vrFeatureData}{vrAssay}(object) <- value
+
+\method{vrFeatureData}{vrAssayV2}(object, feat_type = NULL) <- value
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
+
+\item{feat_type}{the feature set type}
 
 \item{value}{new feature metadata}
 }

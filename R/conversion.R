@@ -444,8 +444,7 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
   # object data
   datax <- vrData(object, norm = FALSE)
   metadata <- Metadata(object)
-  # feature.metadata <- vrFeatureData(object)
-  
+
   # obsm
   obsm <- list()
   coords <- vrCoordinates(object)

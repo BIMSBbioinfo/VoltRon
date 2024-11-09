@@ -82,6 +82,14 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
   return(object)
 }
 
+#' @rdname normalizeData
+#' @method normalizeData vrAssayV2
+#'
+#' @importFrom stats quantile
+#'
+#' @export
+normalizeData.vrAssayV2 <- normalizeData.vrAssay
+
 LogNorm <- function(rawdata, coldepth, sizefactor){
   if(inherits(rawdata, "IterableMatrix")){
     if(!requireNamespace("BPCells"))
@@ -150,6 +158,14 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
   return(object)
 }
 
+#' @rdname getFeatures
+#'
+#' @importFrom stats loess predict var
+#' @importFrom Matrix rowMeans
+#'
+#' @export
+getFeatures.vrAssayV2 <- getFeatures.vrAssay
+
 getVstData <- function(rawdata){
   if(inherits(rawdata, "IterableMatrix")){
     if(!requireNamespace("BPCells"))
@@ -201,8 +217,11 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
   ranks <- NULL
   for(assy in assay_names){
     feature_data <- vrFeatureData(object[[assy]], ...)
-    if(nrow(feature_data) > 0){
-      feature_data$gene <- rownames(feature_data)
+    # if(nrow(feature_data) > 0){
+    if(!is.null(feature_data)) {
+      if(nrow(feature_data) > 0){
+        feature_data$gene <- rownames(feature_data)
+      }
     } else {
       feature_data <- data.frame(gene = vrFeatures(object[[assy]]), rank = NA)
     }

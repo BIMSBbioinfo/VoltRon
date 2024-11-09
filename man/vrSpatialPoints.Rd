@@ -6,12 +6,14 @@
 \alias{vrSpatialPoints.VoltRon}
 \alias{vrSpatialPoints.vrMetadata}
 \alias{vrSpatialPoints.vrAssay}
+\alias{vrSpatialPoints.vrAssayV2}
 \alias{vrSpatialPoints.vrImage}
 \alias{vrSpatialPoints.vrSpatial}
 \alias{vrSpatialPoints.vrSample}
 \alias{vrSpatialPoints.vrBlock}
 \alias{vrSpatialPoints.vrLayer}
 \alias{vrSpatialPoints<-.vrAssay}
+\alias{vrSpatialPoints<-.vrAssayV2}
 \alias{vrSpatialPoints<-.vrImage}
 \alias{vrSpatialPoints<-.vrSpatial}
 \title{vrSpatialPoints}
@@ -24,6 +26,8 @@ vrSpatialPoints(object, assay = NULL)
 
 \method{vrSpatialPoints}{vrAssay}(object)
 
+\method{vrSpatialPoints}{vrAssayV2}(object)
+
 \method{vrSpatialPoints}{vrImage}(object)
 
 \method{vrSpatialPoints}{vrSpatial}(object)
@@ -35,6 +39,8 @@ vrSpatialPoints(object, assay = NULL)
 \method{vrSpatialPoints}{vrLayer}(object, ...)
 
 \method{vrSpatialPoints}{vrAssay}(object) <- value
+
+\method{vrSpatialPoints}{vrAssayV2}(object) <- value
 
 \method{vrSpatialPoints}{vrImage}(object) <- value
 

@@ -87,13 +87,13 @@ hddata <- loadVoltRon("data/OnDisk/VisiumHD/")
 The **BPCells** package provides fast methods to achieve operations common to single cell analysis such as filtering, normalization and dimensionality reduction. Here we have an example of single-cell like clustering of VisiumHD bins which is efficiently clustered.
 
 ```{r class.source="watch-out", eval = FALSE}
-hddata <- subset(hddata, Count > 10)
+spatialpoints <- vrSpatialPoints(hddata)[as.vector(Metadata(hddata)$Count > 10)]
+hddata <- subset(hddata, spatialpoints = spatialpoints)
 hddata <- normalizeData(hddata, sizefactor = 10000)
 hddata <- getFeatures(hddata, n = 3000)
 selected_features <- getVariableFeatures(hddata)
 hddata <- getPCA(hddata, features = selected_features, dims = 30)
 hddata <- getUMAP(hddata, dims = 1:30)
-# hddata <- saveVoltRon(hddata, format = "HDF5VoltRon", output = "data/OnDisk/VisiumHD")
 ```
 
 We can now visualized genes over embedding or spatial plots.

@@ -122,7 +122,6 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
       subcellular_data <- subcellular_data[subcellular_data$qv >= 20, ]
 
       # coordinates
-      # coords <- as.matrix(subcellular_data[,c("x_location", "y_location")])
       coords <- as.matrix(subcellular_data[,c("x_location", "y_location", "z_location")])
       colnames(coords) <- c("x", "y", "z")
       if(use_image){
@@ -334,7 +333,8 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
     params <- list(
       nearestpost.distance = 200*scales, # distance to nearest spot
       spot.radius = scalefactors$spot_diameter_fullres*scales,
-      vis.spot.radius = scalefactors$spot_diameter_fullres*scales*2)
+      vis.spot.radius = scalefactors$spot_diameter_fullres*scales*2,
+      spot.type = "circle")
     coords <- coords*scales
     coords[,2] <- info$height - coords[,2]
   } else {
@@ -2009,7 +2009,7 @@ importImageData <- function(image, tile.size = 10, stack.id = 1, segments = NULL
   rownames(coords) <- paste0("tile", 1:nrow(coords))
 
   # metadata
-  metadata <- data.table(id = rownames(coords))
+  metadata <- data.table::data.table(id = rownames(coords))
 
   # create voltron object with tiles
   object <- formVoltRon(data = NULL, metadata = metadata, image = image, coords, main.assay = "ImageData", assay.type = "tile", params = list(tile.size = tile.size), image_name = image_name, ...)

@@ -28,7 +28,7 @@ vrFeatures <- function(object, assay = NULL) {
 #' @rdname vrFeatureData
 #' @export vrFeatureData
 #' @order 1
-vrFeatureData <- function(object, assay = NULL) {
+vrFeatureData <- function(object, assay = NULL, feat_type = NULL) {
   UseMethod(generic = 'vrFeatureData', object = object)
 }
 

@@ -13,7 +13,7 @@
 
 <title>ondisk</title>
 
-<script src="site_libs/header-attrs-2.28/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -467,10 +467,12 @@ by the VisiumHD readouts.</p>
 library(arrow)
 library(hdf5r)</code></pre>
 <p>We use the <strong>importVisiumHD</strong> function to start
-analyzing the data. The VisiumHD readouts provide multiple bin sizes
-which are aggregated versions of the original 2<span
-class="math inline">\(\mu\)</span>m <span
-class="math inline">\(x\)</span> 2<span
+analyzing the data. The data has 393401 spots which we will use
+OnDisk-backed methods to efficiently manipulate, analyze and visualize
+these spots.</p>
+<p>The VisiumHD readouts provide multiple bin sizes which are aggregated
+versions of the original 2<span class="math inline">\(\mu\)</span>m
+<span class="math inline">\(x\)</span> 2<span
 class="math inline">\(\mu\)</span>m capture spots. The default bin sizes
 are <strong>(i)</strong> 2<span class="math inline">\(\mu\)</span>m
 <span class="math inline">\(x\)</span> 2<span
@@ -518,13 +520,13 @@ operations common to single cell analysis such as filtering,
 normalization and dimensionality reduction. Here we have an example of
 single-cell like clustering of VisiumHD bins which is efficiently
 clustered.</p>
-<pre class="r watch-out"><code>hddata &lt;- subset(hddata, Count &gt; 10)
+<pre class="r watch-out"><code>spatialpoints &lt;- vrSpatialPoints(hddata)[as.vector(Metadata(hddata)$Count &gt; 10)]
+hddata &lt;- subset(hddata, spatialpoints = spatialpoints)
 hddata &lt;- normalizeData(hddata, sizefactor = 10000)
 hddata &lt;- getFeatures(hddata, n = 3000)
 selected_features &lt;- getVariableFeatures(hddata)
 hddata &lt;- getPCA(hddata, features = selected_features, dims = 30)
-hddata &lt;- getUMAP(hddata, dims = 1:30)
-# hddata &lt;- saveVoltRon(hddata, format = &quot;HDF5VoltRon&quot;, output = &quot;data/OnDisk/VisiumHD&quot;)</code></pre>
+hddata &lt;- getUMAP(hddata, dims = 1:30)</code></pre>
 <p>We can now visualized genes over embedding or spatial plots.</p>
 <pre class="r watch-out"><code>vrEmbeddingFeaturePlot(hddata, features = &quot;Nrgn&quot;, embedding = &quot;umap&quot;)
 vrSpatialFeaturePlot(hddata, features = &quot;Nrgn&quot;)</code></pre>

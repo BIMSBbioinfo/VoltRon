@@ -56,7 +56,7 @@ getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", k = 1
              spatialkNN = {
                # nnedges <- FNN::get.knn(cur_coords, k = 1)
                # nnedges <- RANN::nn2(cur_coords, k = k + 1)
-               nnedges <- knn_annoy(nndata, k = k + 1)
+               nnedges <- knn_annoy(cur_coords, k = k + 1)
                names(nnedges) <- c("nn.index", "nn.dist")
                nnedges <- nnedges$nn.idx
                # nnedges <- cbind(1:nrow(cur_coords), nnedges)
