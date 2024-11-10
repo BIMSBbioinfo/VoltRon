@@ -501,3 +501,13 @@ avgHexColor <- function(colors, ctrlcolor){
   colors <- lapply(colors, col2rgb)
   rgb(t(Reduce(`+`, colors)/length(colors)), maxColorValue=255)
 }
+
+fill_na_with_preceding <- function(x) {
+  if (all(is.na(x))) return(x)
+  for (i in 2:length(x)) {
+    if (is.na(x[i])) {
+      x[i] <- x[i - 1]
+    }
+  }
+  return(x)
+}
