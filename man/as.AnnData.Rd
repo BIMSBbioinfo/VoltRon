@@ -8,7 +8,6 @@ as.AnnData(
   object,
   file,
   assay = NULL,
-  type = c("image", "spatial"),
   flip_coordinates = FALSE,
   method = "anndata",
   create.ometiff = FALSE,
@@ -22,8 +21,6 @@ as.AnnData(
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
-
-\item{type}{the spatial data type of Seurat object: "image" or "spatial".}
 
 \item{flip_coordinates}{if TRUE, the spatial coordinates (including segments) will be flipped.}
 
