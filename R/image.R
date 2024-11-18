@@ -293,6 +293,23 @@ subset.vrSpatial <- function(object, subset, spatialpoints = NULL, image = NULL)
 # Methods ####
 ####
 
+#' #' @param object the image component of the vrImage object
+#' #' @param name the name of channel or image
+#' #'
+#' #' @noRd
+#' getImage <- function(object, name){
+#'   
+#'   img <- object@image[[name]]
+#'   if(inherits(img, "magick-image")){
+#'     img <- magick::image_read(img)
+#'   } else if(inherits(img, "Image_Array")){
+#'     img <- magick::image_read(magick::image_data(img))
+#'   } else {
+#'     stop("Please provide either a magick-image or bitmap class image object!")
+#'   }
+#'   return(img)
+#' }
+
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param name the name of the main spatial system
@@ -746,18 +763,6 @@ vrMainSpatial.vrAssayV2 <- vrMainSpatial.vrAssay
     stop("The Main image is set by either: \n    vrMainImage(object) <- c('image name', 'channel name')\n or vrMainImage(object) <- 'image name'")
   }
   
-  
-  # if(length(value) == 2){
-  #   channel <- value[2]
-  #   value <- value[1]
-  #   object@main_image <- value
-  #   vrMainChannel(object@image[[value]]) <- channel
-  # } else if(length(value) == 1){
-  #   object@main_image <- value
-  # } else {
-  #   stop("The Main image is set by either: \n    vrMainSpatial(object) <- c('image name', 'channel name')\n or vrMainSpatial(object) <- 'image name'")
-  # }
-  
   return(object)
 }
 
@@ -790,18 +795,6 @@ vrMainSpatial.vrAssayV2 <- vrMainSpatial.vrAssay
   } else {
     stop("The Main image is set by either: \n    vrMainImage(object) <- c('image name', 'channel name')\n or vrMainImage(object) <- 'image name'")
   }
-  
-  
-  # if(length(value) == 2){
-  #   channel <- value[2]
-  #   value <- value[1]
-  #   object@main_image <- value
-  #   vrMainChannel(object@image[[value]]) <- channel
-  # } else if(length(value) == 1){
-  #   object@main_image <- value
-  # } else {
-  #   stop("The Main image is set by either: \n    vrMainSpatial(object) <- c('image name', 'channel name')\n or vrMainSpatial(object) <- 'image name'")
-  # }
   
   return(object)
 }
@@ -878,7 +871,6 @@ vrSpatialNames.vrAssayV2 <- vrSpatialNames.vrAssay
 #' @export
 vrMainChannel.vrAssay <- function(object, name = NULL){
   if(is.null(name)){
-    # name <- vrMainImage(object)
     name <- vrMainSpatial(object)
   }
   return(vrMainChannel(object@image[[name]]))
@@ -898,7 +890,6 @@ vrMainChannel.vrAssayV2 <- vrMainChannel.vrAssay
 #' @export
 "vrMainChannel<-.vrAssay" <- function(object, name = NULL, value){
   if(is.null(name)){
-    # name <- vrMainImage(object)
     name <- vrMainSpatial(object)
   }
   vrMainChannel(object@image[[name]]) <- value
@@ -912,7 +903,6 @@ vrMainChannel.vrAssayV2 <- vrMainChannel.vrAssay
 #' @export
 "vrMainChannel<-.vrAssayV2" <- function(object, name = NULL, value){
   if(is.null(name)){
-    # name <- vrMainImage(object)
     name <- vrMainSpatial(object)
   }
   vrMainChannel(object@image[[name]]) <- value
@@ -1004,11 +994,8 @@ vrImageChannelNames.VoltRon <- function(object, assay = NULL){
 vrImageChannelNames.vrAssay <- function(object, name = NULL){
 
   if(is.null(name)){
-    # name <- vrMainImage(object)
     name <- vrMainSpatial(object)
   } else {
-    # if(!name %in% vrImageNames(object))
-    #   stop(name, " is not among any image in this vrAssay object")
     if(!name %in% vrSpatialNames(object))
       stop(name, " is not among any image in this vrAssay object")
   }
@@ -1056,8 +1043,6 @@ vrImageChannelNames.vrSpatial <- function(object){
 #' @export
 resizeImage.VoltRon <- function(object, assay = NULL, name = NULL, reg = FALSE, size = NULL){
   
-  # sample.metadata <- SampleMetadata(object)
-  # assay_names <- rownames(sample.metadata)
   assay_names <- vrAssayNames(object, assay = assay)
   
   for(assy in assay_names){
@@ -1078,7 +1063,6 @@ resizeImage.vrAssay <- function(object, name = NULL, reg = FALSE, size = NULL){
 
   # check registered image
   if(reg){
-    # if(!paste0(name, "_reg") %in% vrImageNames(object)){
     if(!paste0(name, "_reg") %in% vrSpatialNames(object)){
       warning("There are no registered images with name ", name, "!")
     } else {
@@ -1087,7 +1071,6 @@ resizeImage.vrAssay <- function(object, name = NULL, reg = FALSE, size = NULL){
   }
 
   # check main image
-  # if(!name %in% vrImageNames(object)){
   if(!name %in% vrSpatialNames(object)){
     stop(name, " is not among any image in this vrAssay object")
   }
@@ -1138,9 +1121,14 @@ resizeImage.vrImage <- function(object, size = NULL){
   size <- paste0(size,"x")
   image_names <- vrImageChannelNames(object)
   for(img in image_names){
-    img_data <- magick::image_read(object@image[[img]])
-    img_data <- magick::image_resize(img_data, geometry = size)
-    object@image[[img]] <- magick::image_data(img_data)
+    img_data <- object@image[[img]]
+    if(inherits(img_data, "Image_Array")){
+      stop("Currently modulateImage only works on in-memory images!")
+    } else {
+      img_data <- magick::image_read(img_data)
+      img_data <- magick::image_resize(img_data, geometry = size)
+      object@image[[img]] <- magick::image_data(img_data) 
+    }
   }
 
   # return
@@ -1171,8 +1159,6 @@ resizeImage.vrSpatial <- function(object, size = NULL) {
 modulateImage.VoltRon <- function(object, assay = NULL, name = NULL, reg = FALSE, channel = NULL, 
                                   brightness = 100, saturation = 100, hue = 100, force = FALSE){
   
-  # sample.metadata <- SampleMetadata(object)
-  # assay_names <- rownames(sample.metadata)
   assay_names <- vrAssayNames(object, assay = assay)
   
   for(assy in assay_names){
@@ -1195,7 +1181,6 @@ modulateImage.vrAssay <- function(object,  name = NULL, reg = FALSE, channel = N
 
   # get registered image
   if(reg){
-    # if(!paste0(name, "_reg") %in% vrImageNames(object)){
     if(!paste0(name, "_reg") %in% vrSpatialNames(object)){
       warning("There are no registered images with name ", name, "!")
     } else {
@@ -1204,7 +1189,6 @@ modulateImage.vrAssay <- function(object,  name = NULL, reg = FALSE, channel = N
   }
 
   # check main image
-  # if(!name %in% vrImageNames(object)){
   if(!name %in% vrSpatialNames(object)){
     stop(name, " is not among any image in this vrAssay object")
   }
@@ -1240,9 +1224,15 @@ modulateImage.vrImage <- function(object, channel = NULL, brightness = 100, satu
 
   # modulate image
   for(img in channel){
-    img_data <- magick::image_read(object@image[[img]])
-    img_data <- magick::image_modulate(img_data, brightness = brightness, saturation = saturation, hue = hue)
-    object@image[[img]] <- magick::image_data(img_data)
+    img_data <- object@image[[img]]
+    if(inherits(img_data, "Image_Array")){
+      stop("Currently modulateImage only works on in-memory images!")
+    } else {
+      img_data <- magick::image_read(img_data)
+      # img_data <- getImage(object, name = img)
+      img_data <- magick::image_modulate(img_data, brightness = brightness, saturation = saturation, hue = hue)
+      object@image[[img]] <- magick::image_data(img_data) 
+    }
   }
 
   # return
@@ -1272,8 +1262,6 @@ modulateImage.vrSpatial <- function(object, channel = NULL, brightness = 100, sa
 combineChannels.VoltRon <- function(object, assay = NULL, name = NULL, reg = FALSE, 
                                     channels = NULL, colors = NULL, channel_key = "combined"){
 
-  # sample.metadata <- SampleMetadata(object)
-  # assay_names <- rownames(sample.metadata)
   assay_names <- vrAssayNames(object, assay = assay)
   
   for(assy in assay_names){
@@ -1295,7 +1283,6 @@ combineChannels.vrAssay <- function(object,  name = NULL, reg = FALSE, channels 
 
   # get registered image
   if(reg){
-    # if(!paste0(name, "_reg") %in% vrImageNames(object)){
     if(!paste0(name, "_reg") %in% vrSpatialNames(object)){
       warning("There are no registered images with name ", name, "!")
     } else {
@@ -1304,7 +1291,6 @@ combineChannels.vrAssay <- function(object,  name = NULL, reg = FALSE, channels 
   }
 
   # check main image
-  # if(!name %in% vrImageNames(object)){
   if(!name %in% vrSpatialNames(object)){
     stop(name, " is not among any image in this vrAssay object")
   }

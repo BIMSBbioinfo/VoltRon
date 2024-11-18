@@ -2,3 +2,5 @@
 rm -f src/Makevars configure.log autobrew
 rm -Rf .deps
 rm -Rf .deps
+rm -Rf .deps
+rm -Rf .deps

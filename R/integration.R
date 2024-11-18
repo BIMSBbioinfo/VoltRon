@@ -86,17 +86,7 @@ transferFeatureData <- function(object, from = NULL, to = NULL, features = NULL,
     }
   }
 
-  # add new assay
-  # if(is.null(new_assay_name)){
-  #   new_assay_name <- paste(SampleMetadata(object)[to, "Assay"], "pseudo", sep = "_")
-  # }
-  # cat("Adding cell type compositions as new assay:", new_assay_name, "\n")
-  # object <- addAssay(object,
-  #                    assay = new_assay,
-  #                    metadata = to_metadata[vrSpatialPoints(new_assay),],
-  #                    assay_name = new_assay_name,
-  #                    sample = SampleMetadata(object)[to, "Sample"],
-  #                    layer = SampleMetadata(object)[to, "Layer"])
+  # add new feature set
   if(is.null(new_assay_name)){
     new_assay_name <- paste(vrMainFeatureType(object, assay = from)$Feature, "pseudo", sep = "_")
   }

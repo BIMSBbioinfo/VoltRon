@@ -499,15 +499,6 @@ subsetData <- function(object, spatialpoints = NULL, features = NULL){
 #' @noRd
 getData <- function(object){
   
-  # # check if there is a data or rawdata slot in assay object
-  # catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
-  # catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
-  # if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
-  #   data <- object@data[[vrMainFeatureType(object)]]
-  # } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
-  #   data <- object@rawdata
-  # }
-  
   if(inherits(object, "vrAssay")){
     data <- object@rawdata
   } else {
@@ -526,22 +517,6 @@ getData <- function(object){
 #'
 #' @noRd
 updateData <- function(object, value){
-  
-  # # check if there is a data or rawdata slot in assay object
-  # catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
-  # catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
-  # if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
-  #   for(nm in vrFeatureTypeNames(object)){
-  #     colnames(object@data[[nm]]) <- value
-  #     colnames(object@data[[paste0(nm, "_norm")]]) <- value
-  #   }
-  # } 
-  # if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
-  #   if(ncol(object@rawdata) > 0){
-  #     colnames(object@rawdata) <- value
-  #     colnames(object@normdata) <- value 
-  #   }
-  # }
   
   if(inherits(object, "vrAssay")){
     if(ncol(object@rawdata) > 0){
@@ -566,12 +541,7 @@ updateData <- function(object, value){
 #' @order 3
 #' @export
 vrMainFeatureType.vrAssayV2 <- function(object){
-  # catch_connect <- try(slot(object, name = "main_featureset"), silent = TRUE)
-  # if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
-  #   return(object@main_featureset)
-  # } else {
-  #   return(NULL)
-  # }
+
   if(inherits(object, "vrAssayV2")){
     return(object@main_featureset)
   } else {
@@ -661,12 +631,6 @@ addFeature.vrAssayV2 <- function(object, data, feature_name){
 #' 
 #' @export
 vrSpatialPoints.vrAssay <- function(object) {
-  # data <- getData(object)
-  # if(ncol(data > 0)){
-  #   return(colnames(data))
-  # } else {
-  #   return(rownames(vrCoordinates(object)))
-  # }
   return(rownames(vrCoordinates(object)))
 }
 
@@ -690,14 +654,11 @@ vrSpatialPoints.vrAssayV2 <- vrSpatialPoints.vrAssay
   } else {
     # if(ncol(object@rawdata) > 0){
     if(ncol(getData(object)) > 0){
-      # colnames(object@rawdata) <- value
-      # colnames(object@normdata) <- value
       object <- updateData(object, value)
     }
   }
 
   # images
-  # for(img in vrImageNames(object))
   for(img in vrSpatialNames(object)){
     vrSpatialPoints(object@image[[img]]) <- value
   }
@@ -731,16 +692,12 @@ vrSpatialPoints.vrAssayV2 <- vrSpatialPoints.vrAssay
   if(length(vrSpatialPoints(object)) != length(value)){
     stop("The number of spatial points is not matching with the input")
   } else {
-    # if(ncol(object@rawdata) > 0){
     if(ncol(getData(object)) > 0){
-      # colnames(object@rawdata) <- value
-      # colnames(object@normdata) <- value
       object <- updateData(object, value)
     }
   }
   
   # images
-  # for(img in vrImageNames(object))
   for(img in vrSpatialNames(object)){
     vrSpatialPoints(object@image[[img]]) <- value
   }
@@ -935,10 +892,6 @@ vrData.vrAssay <- function(object, features = NULL, feat_type = NULL, norm = FAL
 
   # get assay types
   assay.type <- vrAssayTypes(object)
-
-  # # check if there is a data or rawdata slot in assay object
-  # catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
-  # catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
   
   # for ROIs, cells and spots
   if(assay.type %in% c("ROI", "cell", "spot")){
@@ -948,23 +901,6 @@ vrData.vrAssay <- function(object, features = NULL, feat_type = NULL, norm = FAL
       if(!all(features %in% vrFeatures(object))){
         stop("Some features are not available in the assay!")
       }
-      
-      # # get data with a specific feature
-      # if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
-      #   if(is.null(feat_type))
-      #     feat_type <- vrMainFeatureType(object)
-      #   if(norm){
-      #     return(object@data[[paste0(feat_type, "_norm")]][features,,drop = FALSE])
-      #   } else {
-      #     return(object@data[[feat_type]][features,,drop = FALSE])
-      #   }
-      # } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
-      #   if(norm){
-      #     return(object@normdata[features,,drop = FALSE])
-      #   } else {
-      #     return(object@rawdata[features,,drop = FALSE])
-      #   }
-      # }
       
       if(inherits(object, "vrAssay")){
         if(norm){
@@ -984,23 +920,6 @@ vrData.vrAssay <- function(object, features = NULL, feat_type = NULL, norm = FAL
 
     # if there are no features requested, return the data
     } else {
-      
-      # # get data
-      # if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
-      #   if(is.null(feat_type))
-      #     feat_type <- vrMainFeatureType(object)
-      #   if(norm){
-      #     return(object@data[[paste0(feat_type, "_norm")]])
-      #   } else {
-      #     return(object@data[[feat_type]])
-      #   }
-      # } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
-      #   if(norm){
-      #     return(object@normdata)
-      #   } else {
-      #     return(object@rawdata)
-      #   }
-      # }
       
       if(inherits(object, "vrAssay")){
         if(norm){
@@ -1029,15 +948,23 @@ vrData.vrAssay <- function(object, features = NULL, feat_type = NULL, norm = FAL
 
       # for tile only
       if(assay.type == "tile") {
-        image_data <- as.numeric(vrImages(object, as.raster = TRUE, ...))
-        # image_data <- image_data[,,1]
-        image_data <- (0.299 * image_data[,,1] + 0.587 * image_data[,,2] + 0.114 * image_data[,,3])
-        image_data <- split_into_tiles(image_data, tile_size = vrAssayParams(object, param = "tile.size"))
-        image_data <- sapply(image_data, function(x) return(as.vector(x)))
-        image_data <- image_data*255
-        rownames(image_data) <- paste0("pixel", 1:nrow(image_data))
-        colnames(image_data) <- vrSpatialPoints(object)
-        return(image_data)
+
+        if(inherits(object, "vrAssay")){
+          if(norm){
+            return(object@normdata)
+          } else {
+            return(object@rawdata)
+          }
+        } else {
+          if(is.null(feat_type))
+            feat_type <- vrMainFeatureType(object)
+          if(norm){
+            return(object@data[[paste0(feat_type, "_norm")]])
+          } else {
+            return(object@data[[feat_type]])
+          }
+        }
+        
       # for molecules only
       } else if(assay.type == "molecule"){
         return(matrix(nrow = 0, ncol = 0))
@@ -1051,6 +978,44 @@ vrData.vrAssay <- function(object, features = NULL, feat_type = NULL, norm = FAL
 #'
 #' @export
 vrData.vrAssayV2 <- vrData.vrAssay
+
+#' @param name the name of the main spatial system
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
+#' @param channel the name of the channel associated with the image
+#' 
+#' @rdname generateTileData
+#' @order 3
+#'
+#' @export
+generateTileData.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL) {
+  
+  if(vrAssayTypes(object) != "tile"){
+    stop("generateTileData can only be used for tile-based assays")
+  } else {
+    image_data <- as.numeric(vrImages(object, name = spatial_name, reg = reg, channel = channel, as.raster = TRUE))
+    image_data <- (0.299 * image_data[,,1] + 0.587 * image_data[,,2] + 0.114 * image_data[,,3])
+    image_data <- split_into_tiles(image_data, tile_size = vrAssayParams(object, param = "tile.size"))
+    image_data <- sapply(image_data, function(x) return(as.vector(x)))
+    image_data <- image_data*255
+    rownames(image_data) <- paste0("pixel", 1:nrow(image_data))
+    colnames(image_data) <- vrSpatialPoints(object)
+    feat_type <- vrMainFeatureType(object)
+    
+    if(inherits(object, "vrAssay")){
+      object@rawdata <- object@normdata <- image_data
+    } else{
+      object@data[[feat_type]] <- image_data
+      object@data[[paste0(feat_type, "_norm")]] <- image_data
+    }
+  }
+  return(object)
+}
+
+#' @rdname generateTileData
+#' @order 3
+#'
+#' @export
+generateTileData.vrAssayV2 <- generateTileData.vrAssay
 
 #' @rdname vrCoordinates
 #' @order 3
@@ -1104,7 +1069,6 @@ vrCoordinates.vrAssayV2 <- vrCoordinates.vrAssay
   
   # check main image
   if(is.null(image_name)){
-    # image_name <- vrMainImage(object)
     image_name <- vrMainSpatial(object)
   }
 
@@ -1114,7 +1078,6 @@ vrCoordinates.vrAssayV2 <- vrCoordinates.vrAssay
   }
 
   # check coordinates
-  # if(!image_name %in% vrImageNames(object)){
   if(!image_name %in% vrSpatialNames(object)){
     stop(image_name, " is not among any spatial system in this vrAssay object")
   }
@@ -1175,7 +1138,6 @@ flipCoordinates.vrAssay <- function(object, image_name = NULL, spatial_name = NU
   coords <- vrCoordinates(object, image_name = image_name, ...)
   
   # get image info
-  # imageinfo <- magick::image_info(vrImages(object, name = image_name))
   image <- vrImages(object, name = image_name)
   if(!is.null(image)){
     imageinfo <- magick::image_info(vrImages(object, name = image_name))
@@ -1226,7 +1188,6 @@ vrSegments.vrAssay <- function(object, image_name = NULL, spatial_name = NULL, r
 
   # check registered segments
   if(reg){
-    # if(!paste0(image_name, "_reg") %in% vrImageNames(object)){
     if(!paste0(image_name, "_reg") %in% vrSpatialNames(object)){
       warning("There are no registered spatial systems with name ", image_name, "!")
     } else {
@@ -1235,7 +1196,6 @@ vrSegments.vrAssay <- function(object, image_name = NULL, spatial_name = NULL, r
   }
 
   # check coordinates
-  # if(!image_name %in% vrImageNames(object)){
   if(!image_name %in% vrSpatialNames(object)){
     stop(image_name, " is not among any spatial system in this vrAssay object")
   }

@@ -507,14 +507,14 @@ will be written to either <strong>hdf5</strong> or <strong>zarr</strong>
 files depending on the <strong>format</strong> arguement, and the rest
 of the R object would be written to an <code>.rds</code> file, both
 under the designated <strong>output</strong>.</p>
-<pre class="r watch-out"><code>hddata &lt;- saveVoltRon(hddata, format = &quot;HDF5VoltRon&quot;, output = &quot;data/OnDisk/VisiumHD&quot;)</code></pre>
+<pre class="r watch-out"><code>hddata &lt;- saveVoltRon(hddata, format = &quot;HDF5VoltRon&quot;, output = &quot;data/VisiumHD&quot;)</code></pre>
 <p>If you want you can load the VoltRon object from the same path as you
 have saved.</p>
-<pre class="r watch-out"><code>hddata &lt;- loadVoltRon(&quot;data/OnDisk/VisiumHD/&quot;)</code></pre>
+<pre class="r watch-out"><code>hddata &lt;- loadVoltRon(&quot;data/VisiumHD/&quot;)</code></pre>
 <p><br></p>
 </div>
-<div id="ondisk-analysis" class="section level2">
-<h2>OnDisk Analysis</h2>
+<div id="cellspot-analysis" class="section level2">
+<h2>Cell/Spot Analysis</h2>
 <p>The <strong>BPCells</strong> package provides fast methods to achieve
 operations common to single cell analysis such as filtering,
 normalization and dimensionality reduction. Here we have an example of
@@ -542,6 +542,67 @@ vrSpatialFeaturePlot(hddata, features = &quot;Nrgn&quot;)</code></pre>
 </tr>
 </tbody>
 </table>
+<p><br></p>
+</div>
+<div id="spatial-data-alignment" class="section level2">
+<h2>Spatial Data Alignment</h2>
+<p>The image registration workflow in the <a
+href="registration.html">Spatial Data Alignment</a> tutorial can also be
+conducted using disk-backed methods of the VoltRon package.</p>
+<pre class="r watch-out"><code>library(VoltRon)
+Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;, resolution_level = 3)
+Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
+                                sample_name = &quot;XeniumR1image&quot;,
+                                image_name = &quot;H&amp;E&quot;)</code></pre>
+<p><br></p>
+<p>We can save both Xenium and H&amp;E (image) datasets to disk before
+using the mini Shiny app for registration</p>
+<pre class="r watch-out"><code>Xen_R1_disk &lt;- saveVoltRon(Xen_R1, 
+                           format = &quot;HDF5VoltRon&quot;, 
+                           output = &quot;data/Xen_R1_h5&quot;, replace = TRUE)
+Xen_R1_image_disk &lt;- saveVoltRon(Xen_R1_image,
+                                 format = &quot;HDF5VoltRon&quot;, 
+                                 output = &quot;data/Xen_R1_image_h5&quot;, replace = TRUE)</code></pre>
+<p><br></p>
+<p>These disk-based datasets can then be loaded from the disk
+easily.</p>
+<pre class="r watch-out"><code>Xen_R1_disk &lt;- loadVoltRon(&quot;../data/OnDisk/Xen_R1_h5/&quot;)
+Xen_R1_image_disk &lt;- loadVoltRon(&quot;../data/OnDisk/Xen_R1_image_h5/&quot;)</code></pre>
+<p><br></p>
+<p>VoltRon stores large images as pyramids to increase interactive
+visualization efficiency. This storage strategy allows shiny apps to
+zoom in to tissue niches in a speedy fashion. VoltRon incorporates
+<code>Image_Array</code> objects (<a
+href="https://github.com/BIMSBbioinfo/ImageArray"
+class="uri">https://github.com/BIMSBbioinfo/ImageArray</a>) to define
+these pyramids.</p>
+<pre class="r watch-out"><code>vrImages(Xen_R1_image_disk, as.raster = TRUE)</code></pre>
+<pre><code>Image_Array Object 
+Series 1 of size (3,27587,20511) 
+Series 2 of size (3,13794,10256) 
+Series 3 of size (3,6897,5128) 
+Series 4 of size (3,3449,2564) 
+Series 5 of size (3,1725,1282) 
+Series 6 of size (3,863,641) 
+Series 7 of size (3,432,321) </code></pre>
+<p><br></p>
+<p>We can now visualize and align the Xenium and H&amp;E objects.</p>
+<pre class="r watch-out"><code># Align spatial data
+xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1_disk, Xen_R1_image_disk))</code></pre>
+<div>
+<p><video width="100%" height="100%" controls autoplay>
+<source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/video_temp.mov" type="video/mp4">
+Your browser does not support the video tag. </video></p>
+</div>
+<p><br></p>
+<pre class="r watch-out"><code># transfer aligned H&amp;E to Xenium data
+Xenium_reg &lt;- xen_reg$registered_spat[[2]]
+vrImages(Xen_R1_disk[[&quot;Assay1&quot;]], name = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- vrImages(Xenium_reg, name = &quot;H&amp;E_reg&quot;)
+
+# visualize
+vrImages(Xen_R1_disk, channel = &quot;H&amp;E&quot;, scale.perc = 10)</code></pre>
+<p><br></p>
+<p><img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/ondisk_alignedHE.png" class="center"></p>
 </div>
 
 

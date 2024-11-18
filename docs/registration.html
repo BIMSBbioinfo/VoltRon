@@ -638,6 +638,7 @@ one.</p>
 1 Assay1 main,main_reg main_reg
 2 Assay2          main     main
 3 Assay3 main,main_reg main_reg</code></pre>
+<p><br></p>
 </div>
 <div id="datalabel-transfer-across-layers" class="section level3">
 <h3>Data/Label Transfer Across Layers</h3>
@@ -672,18 +673,19 @@ each cell in the source Xenium assay will be aggregated into spots in a
 newly create pseudo Visium assay. The new assay with aggregated counts
 will be named <strong>Visium_pseudo</strong>.</p>
 <pre class="r watch-out"><code>VRBlock &lt;- transferData(VRBlock, from = &quot;Assay1&quot;, to = &quot;Assay2&quot;)</code></pre>
-<p>VoltRon supports multiple assays within each layer. Now, Section 2
-includes two spot-type assays:</p>
+<p>VoltRon supports multiple feature type within each assay. Now, the
+Visium assay includes two spot-type features:</p>
 <ul>
-<li>the original Visium spot assay,</li>
-<li>a pseudo Visium assay with aggregated Xenium raw counts.</li>
+<li>the original Visium spot feature counts,</li>
+<li>a pseudo Visium feature count matrix with aggregated Xenium raw
+counts.</li>
 </ul>
-<pre class="r watch-out"><code>SampleMetadata(VRBlock)</code></pre>
-<pre><code>               Assay    Layer   Sample
-Assay1        Xenium Section1 10XBlock
-Assay2        Visium Section2 10XBlock
-Assay3        Xenium Section3 10XBlock
-Assay4 Visium_pseudo Section2 10XBlock</code></pre>
+<pre class="r watch-out"><code>VRBlock</code></pre>
+<pre><code>VoltRon Object 
+10XBlock: 
+  Layers: Section1 Section2 Section3 
+Assays: Visium(Main) Xenium 
+Features: RNA_pseudo(Main) RNA </code></pre>
 <p>We can now visualize both the original and aggregated counts of a
 gene, such as ERBB2 and ESR1 that marks ductal carcinoma in situ (DCIS)
 regions, to validate the correlation of gene signatures across adjacent
@@ -691,9 +693,11 @@ tissue sections, and to validate the accuracy of the automated image
 alignment. Here, PGR is also expressed at a small DCIS region found on
 adipocyte niche of the tissue.</p>
 <pre class="r watch-out"><code>library(patchwork)
-g1 &lt;- vrSpatialFeaturePlot(VRBlock, assay = &quot;Visium&quot;, 
+vrMainFeatureType(VRBlock_new, assay = &quot;Visium&quot;) &lt;- &quot;RNA&quot;
+g1 &lt;- vrSpatialFeaturePlot(VRBlock,  
                            features = c(&quot;ERBB2&quot;, &quot;ESR1&quot;, &quot;PGR&quot;), crop = FALSE, 
                            norm = FALSE, ncol = 3)
+vrMainFeatureType(VRBlock_new, assay = &quot;Visium&quot;) &lt;- &quot;RNA_pseudo&quot;
 g2 &lt;- vrSpatialFeaturePlot(VRBlock, assay = &quot;Visium_pseudo&quot;, 
                            features = c(&quot;ERBB2&quot;, &quot;ESR1&quot;, &quot;PGR&quot;), crop = FALSE, 
                            norm = FALSE, ncol = 3)

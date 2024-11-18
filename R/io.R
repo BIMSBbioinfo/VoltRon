@@ -527,7 +527,7 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
   sample_metadata <- SampleMetadata(object)
   
   # create zarr
-  cat(paste0("ZARR array: ", zarr_path, "\n"))
+  cat(paste0("Zarr store: ", zarr_path, "\n"))
   zarr.array <- pizzarr::zarr_open(store = zarr_path)
   
   # create metadata
@@ -1211,7 +1211,9 @@ restore_absolute_assay_links_images <- function(object, dir){
                               ImageArray::filepath(x) <- restore_absolute_links_images(ImageArray::filepath(x), dir)
                               x
                             })
-        vrImages(object, name = spat, channel = ch) <- img 
+        suppressWarnings({
+          vrImages(object, name = spat, channel = ch) <- img 
+        })
       } 
     }
   }

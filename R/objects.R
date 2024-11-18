@@ -1190,7 +1190,6 @@ vrData.VoltRon <- function(object, assay = NULL, features = NULL, feat_type = NU
     if(i == 1){
       data <- cur_data
     } else {
-      # data <- dplyr::full_join(data, cur_data, by = "feature.ID")
       data <- merge_data(data, cur_data, by = "feature.ID")
     }
   }
@@ -1231,6 +1230,29 @@ merge_data <- function(data1, data2, by = "feature.ID"){
     data1 <- cbind(data1_new, data2_new)
   }
   return(data1)
+}
+
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param ... additional parameters passed to \link{generateTileData.vrAssay}
+#' 
+#' @rdname generateTileData
+#' @order 2
+#'
+#' @export
+generateTileData.VoltRon <- function(object, assay = NULL, ...) {
+  
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  
+  # check if assay types are all tiles
+  assay_types <- vrAssayTypes(object, assay = assay)
+  if(!all(assay_types == "tile"))
+    stop("generateTileData can only be used for tile-based assays")
+  
+  # get tile data for all assays
+  for(assy in assay_names)
+    object[[assy]] <- generateTileData(object[[assy]], ...)
 }
 
 #' @rdname vrEmbeddings

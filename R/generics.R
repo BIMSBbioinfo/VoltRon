@@ -69,6 +69,19 @@ vrData <- function(object, assay = NULL, features = NULL, feat_type = NULL, norm
   UseMethod(generic = 'vrData', object = object)
 }
 
+#' generateTileData
+#'
+#' Generating data matrices for tile-based VoltRon objects from images
+#'
+#' @param object a VoltRon or vrAssay object
+#'
+#' @rdname generateTileData
+#' @export generateTileData
+#' @order 1
+generateTileData <- function(object, assay = NULL, name = NULL, reg = FALSE, channel = NULL) {
+  UseMethod(generic = 'generateTileData', object = object)
+}
+
 #' changeSampleNames
 #'
 #' change sample names of VoltRon or other objects

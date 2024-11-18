@@ -71,18 +71,18 @@ library(ImageArray)
 We can now save the VoltRon object to disk, large matrices and images will be written to either **hdf5** or **zarr** files depending on the **format** arguement, and the rest of the R object would be written to an `.rds` file, both under the designated **output**.
 
 ```{r class.source="watch-out", eval = FALSE}
-hddata <- saveVoltRon(hddata, format = "HDF5VoltRon", output = "data/OnDisk/VisiumHD")
+hddata <- saveVoltRon(hddata, format = "HDF5VoltRon", output = "data/VisiumHD")
 ```
 
 If you want you can load the VoltRon object from the same path as you have saved.
 
 ```{r class.source="watch-out", eval = FALSE}
-hddata <- loadVoltRon("data/OnDisk/VisiumHD/")
+hddata <- loadVoltRon("data/VisiumHD/")
 ```
 
 <br>
 
-## OnDisk Analysis
+## Cell/Spot Analysis
 
 The **BPCells** package provides fast methods to achieve operations common to single cell analysis such as filtering, normalization and dimensionality reduction. Here we have an example of single-cell like clustering of VisiumHD bins which is efficiently clustered.
 
@@ -111,3 +111,89 @@ vrSpatialFeaturePlot(hddata, features = "Nrgn")
   </tr>
 </tbody>
 </table>
+
+<br>
+
+## Spatial Data Alignment
+
+The image registration workflow in the [Spatial Data Alignment](registration.html) tutorial can also be conducted using disk-backed methods of the VoltRon package. 
+
+```{r class.source="watch-out", eval = FALSE}
+library(VoltRon)
+Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1", resolution_level = 3)
+Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif",
+                                sample_name = "XeniumR1image",
+                                image_name = "H&E")
+```
+
+<br>
+
+We can save both Xenium and H&E (image) datasets to disk before using the mini Shiny app for registration
+
+```{r class.source="watch-out", eval = FALSE}
+Xen_R1_disk <- saveVoltRon(Xen_R1, 
+                           format = "HDF5VoltRon", 
+                           output = "data/Xen_R1_h5", replace = TRUE)
+Xen_R1_image_disk <- saveVoltRon(Xen_R1_image,
+                                 format = "HDF5VoltRon", 
+                                 output = "data/Xen_R1_image_h5", replace = TRUE)
+```
+
+<br>
+
+These disk-based datasets can then be loaded from the disk easily. 
+
+```{r class.source="watch-out", eval = FALSE}
+Xen_R1_disk <- loadVoltRon("../data/OnDisk/Xen_R1_h5/")
+Xen_R1_image_disk <- loadVoltRon("../data/OnDisk/Xen_R1_image_h5/")
+```
+
+<br>
+
+VoltRon stores large images as pyramids to increase interactive visualization efficiency. This storage strategy allows shiny apps to zoom in to tissue niches in a speedy fashion. VoltRon incorporates `Image_Array` objects (https://github.com/BIMSBbioinfo/ImageArray) to define these pyramids. 
+
+```{r class.source="watch-out", eval = FALSE}
+vrImages(Xen_R1_image_disk, as.raster = TRUE)
+```
+
+```
+Image_Array Object 
+Series 1 of size (3,27587,20511) 
+Series 2 of size (3,13794,10256) 
+Series 3 of size (3,6897,5128) 
+Series 4 of size (3,3449,2564) 
+Series 5 of size (3,1725,1282) 
+Series 6 of size (3,863,641) 
+Series 7 of size (3,432,321) 
+```
+
+<br>
+
+We can now visualize and align the Xenium and H&E objects. 
+
+```{r class.source="watch-out", eval = FALSE}
+# Align spatial data
+xen_reg <- registerSpatialData(object_list = list(Xen_R1_disk, Xen_R1_image_disk))
+```
+
+<div>
+  <video width="100%" height="100%" controls autoplay>
+    <source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/video_temp.mov" type="video/mp4">
+  Your browser does not support the video tag.
+  </video>
+</div>
+
+<br>
+
+```{r class.source="watch-out", eval = FALSE}
+# transfer aligned H&E to Xenium data
+Xenium_reg <- xen_reg$registered_spat[[2]]
+vrImages(Xen_R1_disk[["Assay1"]], name = "main", channel = "H&E") <- vrImages(Xenium_reg, name = "H&E_reg")
+
+# visualize
+vrImages(Xen_R1_disk, channel = "H&E", scale.perc = 10)
+```
+
+<br>
+
+<img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/ondisk_alignedHE.png" class="center">

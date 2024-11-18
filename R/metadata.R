@@ -915,21 +915,26 @@ setVRMetadata <- function(metadata, data, entityID, main.assay, assay.type, samp
           entityID <- paste0(metadata$id, "_", ids::random_id(bytes = 3, use_openssl = FALSE))
 
           if(nrow(data) > 0){
-            vr_metadata[[assay.type]] <-
-              data.table::data.table(id = entityID,
-                                     assay_id = "Assay1",
-                                     Count = Matrix::colSums(data),
-                                     Assay = main.assay,
-                                     Layer = layer_name,
-                                     Sample = sample_name,
-                                     metadata)
+            suppressWarnings({
+              vr_metadata[[assay.type]] <-
+                data.table::data.table(id = entityID,
+                                       assay_id = "Assay1",
+                                       Count = Matrix::colSums(data),
+                                       Assay = main.assay,
+                                       Layer = layer_name,
+                                       Sample = sample_name,
+                                       metadata[,-"id"])
+            })
           } else{
-            vr_metadata[[assay.type]] <-
-              data.table::data.table(id = entityID,
-                                     assay_id = "Assay1",
-                                     Assay = main.assay,
-                                     Layer = layer_name,
-                                     Sample = sample_name, metadata)
+            suppressWarnings({
+              vr_metadata[[assay.type]] <-
+                  data.table::data.table(id = entityID,
+                                         assay_id = "Assay1",
+                                         Assay = main.assay,
+                                         Layer = layer_name,
+                                         Sample = sample_name, 
+                                         metadata[,-"id"])
+            })
           }
         }
 

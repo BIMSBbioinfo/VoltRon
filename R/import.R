@@ -1999,8 +1999,6 @@ importImageData <- function(image, tile.size = 10, stack.id = 1, segments = NULL
 
   # coordinates
   even_odd_correction <- (!tile.size%%2)*(0.5)
-  # x_coords <- seq((tile.size/2) + even_odd_correction, length.out = imageinfo$width %/% tile.size)
-  # y_coords <- seq(imageinfo$height %/% tile.size, 1)*(tile.size/2)
   x_coords <- seq((tile.size/2) + even_odd_correction, imageinfo$width, tile.size)[1:(imageinfo$width %/% tile.size)]
   y_coords <- seq((tile.size/2) + even_odd_correction, imageinfo$height, tile.size)[1:(imageinfo$height %/% tile.size)]
   y_coords <- rev(y_coords)

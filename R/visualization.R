@@ -730,7 +730,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   
   # merge matrices
   coords <- as.matrix(coords)
-  coords <- data.frame(coords, cur_score)
+  coords <- data.frame(coords, cur_score[rownames(coords)])
   colnames(coords)[length(colnames(coords))] <- "score"
 
   # get image information and plotting features

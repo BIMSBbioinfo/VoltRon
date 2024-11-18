@@ -177,6 +177,8 @@ vrSpatialNames(VRBlock, assay = "all")
 3 Assay3 main,main_reg main_reg
 ```
 
+<br>
+
 ### Data/Label Transfer Across Layers
 
 The combined VoltRon object of Visium and Xenium datasets can be used to transfer information across layers and assays. This is accomplished by aggregating and summarizing, for example, gene counts of cells from the Xenium assay aligned to Visium spots. Either labels or cell types can be summarized to generate: 
@@ -207,30 +209,32 @@ The **transferData** function detects the types of both the **source (from)** an
 VRBlock <- transferData(VRBlock, from = "Assay1", to = "Assay2")
 ```
 
-VoltRon supports multiple assays within each layer. Now, Section 2 includes two spot-type assays:
+VoltRon supports multiple feature type within each assay. Now, the Visium assay includes two spot-type features:
 
-* the original Visium spot assay,
-* a pseudo Visium assay with aggregated Xenium raw counts.
+* the original Visium spot feature counts,
+* a pseudo Visium feature count matrix with aggregated Xenium raw counts.
 
 ```{r class.source="watch-out", eval = FALSE}
-SampleMetadata(VRBlock)
+VRBlock
 ```
 
 ```
-               Assay    Layer   Sample
-Assay1        Xenium Section1 10XBlock
-Assay2        Visium Section2 10XBlock
-Assay3        Xenium Section3 10XBlock
-Assay4 Visium_pseudo Section2 10XBlock
+VoltRon Object 
+10XBlock: 
+  Layers: Section1 Section2 Section3 
+Assays: Visium(Main) Xenium 
+Features: RNA_pseudo(Main) RNA 
 ```
 
 We can now visualize both the original and aggregated counts of a gene, such as ERBB2 and ESR1 that marks ductal carcinoma in situ (DCIS) regions, to validate the correlation of gene signatures across adjacent tissue sections, and to validate the accuracy of the automated image alignment. Here, PGR is also expressed at a small DCIS region found on adipocyte niche of the tissue. 
 
 ```{r class.source="watch-out", eval = FALSE}
 library(patchwork)
-g1 <- vrSpatialFeaturePlot(VRBlock, assay = "Visium", 
+vrMainFeatureType(VRBlock_new, assay = "Visium") <- "RNA"
+g1 <- vrSpatialFeaturePlot(VRBlock,  
                            features = c("ERBB2", "ESR1", "PGR"), crop = FALSE, 
                            norm = FALSE, ncol = 3)
+vrMainFeatureType(VRBlock_new, assay = "Visium") <- "RNA_pseudo"
 g2 <- vrSpatialFeaturePlot(VRBlock, assay = "Visium_pseudo", 
                            features = c("ERBB2", "ESR1", "PGR"), crop = FALSE, 
                            norm = FALSE, ncol = 3)
