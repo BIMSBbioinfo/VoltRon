@@ -7,8 +7,10 @@
 vrSpatialFeaturePlot(
   object,
   features,
+  combine.features = FALSE,
   group.by = "label",
   plot.segments = FALSE,
+  n.tile = 0,
   norm = TRUE,
   log = FALSE,
   assay = NULL,
@@ -28,7 +30,7 @@ vrSpatialFeaturePlot(
   scale.image = TRUE,
   common.legend = FALSE,
   legend.loc = "right",
-  collapse = TRUE
+  collapse.plots = TRUE
 )
 }
 \arguments{
@@ -36,9 +38,13 @@ vrSpatialFeaturePlot(
 
 \item{features}{a set of features to be visualized, either from \link{vrFeatures} of raw or normalized data or columns of the \link{Metadata}.}
 
+\item{combine.features}{whether to combine all features in one plot}
+
 \item{group.by}{a column of metadata from \link{Metadata} used as grouping label for the spatial entities}
 
 \item{plot.segments}{plot segments from \link{vrSegments} instead of points}
+
+\item{n.tile}{should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules}
 
 \item{norm}{if TRUE, the normalized data is used}
 
@@ -81,7 +87,7 @@ and main channel (\link{vrMainChannel}) will be in the background. Otherwise the
 
 \item{legend.loc}{the location of the legend, default is "right"}
 
-\item{collapse}{whether to combine all ggplots}
+\item{collapse.plots}{whether to combine all ggplots}
 }
 \description{
 Plotting single/multiple features of spatially resolved cells, spots, and ROI on associated images from multiple assays in a VoltRon object.

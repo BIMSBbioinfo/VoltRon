@@ -29,7 +29,7 @@ vrSpatialPlot(
   scale.image = TRUE,
   legend.loc = "right",
   common.legend = TRUE,
-  collapse = TRUE,
+  collapse.plots = TRUE,
   interactive = FALSE,
   shiny.options = list()
 )
@@ -86,7 +86,7 @@ and main channel (\link{vrMainChannel}) will be in the background. Otherwise the
 
 \item{common.legend}{whether to use a common legend for all plots, see \link{ggarrange}}
 
-\item{collapse}{whether to combine all ggplots}
+\item{collapse.plots}{whether to combine all ggplots}
 
 \item{interactive}{if TRUE, run interactive plot}
 

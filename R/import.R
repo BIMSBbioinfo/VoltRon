@@ -1935,10 +1935,14 @@ importImageData <- function(image, tile.size = 10, stack.id = 1, segments = NULL
 #' @export
 generateSegmentsFromGeoJSON <- function(geojson.file){
   
+  # if(!requireNamespace('geojsonR'))
+  #   stop("Please install geojsonR package for using geojsonR functions")
+  
   # get segments
   if(inherits(geojson.file, "character")){
     if(file.exists(geojson.file)){
       segments <- rjson::fromJSON(file = geojson.file)
+      # segments <- geojsonR::FROM_GeoJson(geojson.file)
     } else {
       stop("geojson.file doesn't exist!")
     }
