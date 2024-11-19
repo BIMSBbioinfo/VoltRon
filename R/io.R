@@ -39,10 +39,12 @@ saveVoltRon <- function (object,
     }
     replace <- TRUE
   } else if(length(paths) == 1){
-    message("There are existing paths in the object, using those instead of the provided 'ondisk_path'")
-    format <- ifelse(grepl(".zarr$", paths), "ZarrVoltRon", "HDF5VoltRon")
-    output <- base::dirname(paths)
-    replace <- FALSE
+    if(is.null(output)){
+      message("Object has existing paths and 'output' is not specified, using those instead of the provided 'ondisk_path'")
+      format <- ifelse(grepl(".zarr$", paths), "ZarrVoltRon", "HDF5VoltRon")
+      output <- base::dirname(paths)
+      replace <- FALSE    
+    }
   } else {
     if(length(format) > 1){
       message("No paths are found in the object, and no format is chosen, saving as rds only!")

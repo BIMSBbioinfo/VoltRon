@@ -740,9 +740,11 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
       cur_score <- as.matrix(normdata[feature,])[1,]
     } else {
       cur_score <- normdata[feature,]
+      names(cur_score) <- colnames(normdata)
     }
   } else {
     cur_score <- metadata[,feature]
+    names(cur_score) <- rownames(metadata)
   }
   
   # merge matrices
