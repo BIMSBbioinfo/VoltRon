@@ -1703,7 +1703,7 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
     if(!input$automatictag){
 
       # waiter start
-      withProgress(message = paste0('Manual Registration (TPS)'), value = 0, {
+      withProgress(message = paste0('Manual Registration (', input$Method, ')'), value = 0, {
       # waiter::waiter_show(html = waiter::spin_ring(), color = paste0("rgba(128,128,128,", 0.15, ")"))
 
       # Check keypoints
@@ -1911,7 +1911,7 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
     if(input$automatictag){
 
       # waiter start
-      withProgress(message = paste0('Automated Registration (', input$AutoMethod,')'), value = 0, {
+      withProgress(message = paste0('Automated Registration (', input$Method,')'), value = 0, {
       # waiter::waiter_show(html = waiter::spin_ring(), color = paste0("rgba(128,128,128,", 0.15, ")"))
 
       # Register keypoints

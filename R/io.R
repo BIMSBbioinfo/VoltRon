@@ -212,6 +212,40 @@ modify_seeds <- function (x, FUN, ...)
   invisible(object)
 }
 
+#' .read_VoltRon
+#'
+#' @noRd
+.read_VoltRon <- function(rds_path)
+{
+  # check rds file
+  if (!file.exists(rds_path))
+    stop(paste0("file not found: ", rds_path))
+  if (dir.exists(rds_path))
+    stop(paste0("'", rds_path, "' is a directory, not a file"))
+  
+  # check VoltRon object
+  object <- readRDS(rds_path)
+  if (!is(object, "VoltRon"))
+    stop(paste0("the object serialized in \"", rds_path, "\" is not ",
+                "a VoltRon object"))
+  
+  # get dir name
+  dir <- dirname(rds_path)
+  
+  # assay_names 
+  assay_names <- vrAssayNames(object, assay = "all")
+  
+  # restore metadata links 
+  object@metadata <- restore_absolute_metadata_links(Metadata(object, type = "all"), dir)
+  
+  # restore assay links
+  for(assy in assay_names)
+    object[[assy]] <- restore_absolute_assay_links(object[[assy]], dir)
+  
+  # return object
+  object
+}
+
 ####
 ## HDF5 Support ####
 ####
@@ -252,7 +286,6 @@ write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
     rhdf5::h5createGroup(h5_path, group = assy)
     
     # get data and write
-    cat(paste0("  Writing '", assy, "' data \n"))
     assay_object <- writeHDF5ArrayInVrData(object = assay_object, 
                                            h5_path,
                                            name = assy,
@@ -310,7 +343,7 @@ writeHDF5ArrayInMetadata <- function(object,
       if(nrow(meta.data) > 0){
         meta.data_list <- list()
         rhdf5::h5createGroup(h5_path, group = paste0(name, "/", sn))
-        cat(paste0("  Writing ", sn, " Metadata \n"))
+        cat(paste0("Writing ", sn, " Metadata \n"))
         
         # write rownames first if they exist, and there is no id column
         if(!is.null(rownames(meta.data)) && !("id" %in% colnames(meta.data))){
@@ -384,6 +417,7 @@ writeHDF5ArrayInVrData <- function(object,
       if(!inherits(a, c("DelayedArray", "IterableMatrix")) || replace){
         if(!inherits(a, "dgCMatrix"))
           a <- as(a, "dgCMatrix")
+        cat(paste0("Writing '", vrAssayNames(object), "' data \n"))
         a <- BPCells::write_matrix_hdf5(a, 
                                         path = h5_path, 
                                         group = paste0(name, "/", feat), 
@@ -398,6 +432,7 @@ writeHDF5ArrayInVrData <- function(object,
       if(!inherits(a, c("DelayedArray", "IterableMatrix")) || replace){
         if(!inherits(a, "dgCMatrix"))
           a <- as(a, "dgCMatrix")
+        cat(paste0("Writing '", vrAssayNames(object), "' normalized data \n"))
         a <- BPCells::write_matrix_hdf5(a, 
                                         path = h5_path, 
                                         group = paste0(name, "/", feat, "_norm"), 
@@ -415,6 +450,7 @@ writeHDF5ArrayInVrData <- function(object,
     if(!inherits(a, "DelayedArray") || replace){
       if(!inherits(a, "dgCMatrix"))
         a <- as(a, "dgCMatrix")
+      cat(paste0("Writing '", vrAssayNames(object), "' data \n"))
       a <- BPCells::write_matrix_hdf5(a, 
                                       path = h5_path, 
                                       group = paste0(name, "/rawdata"), 
@@ -427,6 +463,7 @@ writeHDF5ArrayInVrData <- function(object,
     if(!inherits(a, "DelayedArray") || replace){
       if(!inherits(a, "dgCMatrix"))
         a <- as(a, "dgCMatrix")
+      cat(paste0("Writing '", vrAssayNames(object), "' normalized data \n"))
       a <- BPCells::write_matrix_hdf5(a, 
                                       path = h5_path, 
                                       group = paste0(name, "/normdata"), 
@@ -464,11 +501,11 @@ writeHDF5ArrayInImage <- function(object,
     rhdf5::h5createGroup(h5_path, group = paste0(name, "/", spat))
     
     # write coordinates 
-    cat(paste0("  Writing '", name, "' coordinates \n"))
     coords <- vrCoordinates(object, spatial_name = spat)
-    if(!inherits(a, c("DelayedArray", "IterableMatrix")) || replace){
+    if(!inherits(coords, c("DelayedArray", "IterableMatrix")) || replace){
       if(!inherits(coords, "dgCMatrix"))
         coords <- as(coords, "dgCMatrix")
+      cat(paste0("Writing '", name, "' coordinates \n"))
       coords <- BPCells::write_matrix_hdf5(coords, 
                                            path = h5_path, 
                                            group = paste0(name, "/", spat, "/coords"), 
@@ -479,17 +516,15 @@ writeHDF5ArrayInImage <- function(object,
     
     # for each channel
     channels <- vrImageChannelNames(object, name = spat)
-    if(!grepl("No Channels", channels)){
+    if(!all(grepl("No Channels", channels))){
       for(ch in channels){
-        
-        # open group for spatial system
-        cat(paste0("  Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"' \n"))
         
         # get image and write to h5
         img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
         
         # write image
         if(!inherits(img, "Image_Array") || replace){
+          cat(paste0("Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"' \n"))
           img <- ImageArray::writeImageArray(img,
                                              output = gsub(".h5$", "", h5_path),
                                              name = paste0(name, "/", spat, "/", ch), 
@@ -553,7 +588,6 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
     zarr.array$create_group(assy)
     
     # get data and write
-    cat(paste0("  Writing '", assy, "' data \n"))
     assay_object <- writeZarrArrayInVrData(object = assay_object, 
                                            zarr_path,
                                            name = assy,
@@ -564,7 +598,6 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
                                            verbose=verbose,
                                            replace=replace)
     
-    # TODO: image zarr conversion does not work for bitmap arrays now
     # get image data and write
     assay_object <- writeZarrArrayInImage(object = assay_object,
                                           zarr_path,
@@ -612,7 +645,7 @@ writeZarrArrayInMetadata <- function(object,
       if(nrow(meta.data) > 0){
         meta.data_list <- list()
         zarr.array <- pizzarr::zarr_open(store = zarr_path)
-        cat(paste0("  Writing ", sn, " Metadata \n"))
+        cat(paste0("Writing ", sn, " Metadata \n"))
         zarr.array$create_group(paste0(name, "/", sn))
         
         # write rownames first if they exist, and there is no id column
@@ -685,6 +718,7 @@ writeZarrArrayInVrData <- function(object,
       # raw data
       a <- vrData(object, feat_type = feat, norm = FALSE)
       if(!inherits(a, "DelayedArray") || replace){
+        cat(paste0("Writing '", vrAssayNames(object), "' data \n"))
         a <- ZarrArray::writeZarrArray(a, 
                                        zarr_path, 
                                        name = paste0(name, "/", feat),
@@ -699,6 +733,7 @@ writeZarrArrayInVrData <- function(object,
       # normalized data
       a <- vrData(object, feat_type = feat, norm = TRUE)
       if(!inherits(a, "DelayedArray") || replace){
+        cat(paste0("Writing '", vrAssayNames(object), "' normalized data \n"))
         a <- ZarrArray::writeZarrArray(a, 
                                        zarr_path, 
                                        name = paste0(name, "/", feat, "_norm"),
@@ -716,6 +751,7 @@ writeZarrArrayInVrData <- function(object,
     # raw data
     a <- vrData(object, norm = FALSE)
     if(!inherits(a, "DelayedArray") || replace){
+      cat(paste0("Writing '", vrAssayNames(object), "' data \n"))
       a <- ZarrArray::writeZarrArray(a, 
                                      zarr_path, 
                                      name = paste0(name, "/rawdata"),
@@ -730,6 +766,7 @@ writeZarrArrayInVrData <- function(object,
     # normalized data
     a <- vrData(object, norm = TRUE)
     if(!inherits(a, "DelayedArray") || replace){
+      cat(paste0("Writing '", vrAssayNames(object), "' normalized data \n"))
       a <- ZarrArray::writeZarrArray(a, 
                                      zarr_path, 
                                      name = paste0(name, "/normdata"),
@@ -767,35 +804,36 @@ writeZarrArrayInImage <- function(object,
   spatial_names <- vrSpatialNames(object)
   for(spat in spatial_names){
     
+    # open group for spatial system
+    zarr.array <- pizzarr::zarr_open(store = zarr_path)
+    zarr.array$create_group(paste0(name, "/", spat))
+    
+    # write coordinates 
+    coords <- vrCoordinates(object, spatial_name = spat)
+    if(!inherits(coords, c("DelayedArray", "IterableMatrix")) || replace){
+      cat(paste0("Writing '", name, "' coordinates \n"))
+      coords <- ZarrArray::writeZarrArray(coords, 
+                                          zarr_path, 
+                                          name = paste0(name, "/", spat, "/coords"),
+                                          chunkdim=chunkdim, 
+                                          level=level,
+                                          as.sparse=as.sparse,
+                                          with.dimnames=TRUE,
+                                          verbose=verbose)
+      vrCoordinates(object, spatial_name = spat) <- coords
+    }
+    
     # for each channel
     channels <- vrImageChannelNames(object, name = spat)
-    if(!grepl("No Channels", channels)){
+    if(!all(grepl("No Channels", channels))){
       for(ch in channels){
-        
-        # open group for spatial system
-        cat(paste0("  Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"' \n"))
-        zarr.array <- pizzarr::zarr_open(store = zarr_path)
-        zarr.array$create_group(paste0(name, "/", spat))
-        
-        # write coordinates 
-        coords <- vrCoordinates(object, spatial_name = spat)
-        if(!inherits(a, c("DelayedArray", "IterableMatrix")) || replace){
-          coords <- ZarrArray::writeZarrArray(coords, 
-                                              zarr_path, 
-                                              name = paste0(name, "/", spat, "/coords"),
-                                              chunkdim=chunkdim, 
-                                              level=level,
-                                              as.sparse=as.sparse,
-                                              with.dimnames=TRUE,
-                                              verbose=verbose)
-          vrCoordinates(object, spatial_name = spat) <- coords
-        }
         
         # get image and write to h5
         img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
         
         # write image
         if(!inherits(img, "Image_Array") || replace){
+          cat(paste0("Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"' \n"))
           img <- ImageArray::writeImageArray(img,
                                              output = gsub(".zarr$", "", zarr_path),
                                              name = paste0(name, "/", spat, "/", ch), 
@@ -814,40 +852,6 @@ writeZarrArrayInImage <- function(object,
   }
   
   return(object)
-}
-
-#' .read_VoltRon
-#'
-#' @noRd
-.read_VoltRon <- function(rds_path)
-{
-  # check rds file
-  if (!file.exists(rds_path))
-    stop(paste0("file not found: ", rds_path))
-  if (dir.exists(rds_path))
-    stop(paste0("'", rds_path, "' is a directory, not a file"))
-  
-  # check VoltRon object
-  object <- readRDS(rds_path)
-  if (!is(object, "VoltRon"))
-    stop(paste0("the object serialized in \"", rds_path, "\" is not ",
-                "a VoltRon object"))
-  
-  # get dir name
-  dir <- dirname(rds_path)
-  
-  # assay_names 
-  assay_names <- vrAssayNames(object, assay = "all")
-  
-  # restore metadata links 
-  object@metadata <- restore_absolute_metadata_links(Metadata(object, type = "all"), dir)
-  
-  # restore assay links
-  for(assy in assay_names)
-    object[[assy]] <- restore_absolute_assay_links(object[[assy]], dir)
-  
-  # return object
-  object
 }
 
 ####
@@ -1073,7 +1077,7 @@ shorten_assay_links_images <- function(object){
     
     # for each channel
     channels <- vrImageChannelNames(object, name = spat)
-    if(!grepl("No Channels", channels)){
+    if(!all(grepl("No Channels", channels))){
       for(ch in channels){
         
         img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
@@ -1202,7 +1206,7 @@ restore_absolute_assay_links_images <- function(object, dir){
     
     # for each channel
     channels <- vrImageChannelNames(object, name = spat)
-    if(!grepl("No Channels", channels)){
+    if(!all(grepl("No Channels", channels))){
       for(ch in channels){
         
         img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
