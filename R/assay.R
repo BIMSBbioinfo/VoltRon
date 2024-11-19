@@ -420,23 +420,6 @@ subsetData <- function(object, spatialpoints = NULL, features = NULL){
   # features
   if(!is.null(features)){
     
-    # # check if there is a data or rawdata slot in assay object
-    # catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
-    # catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
-    # if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
-    #   for(nm in vrFeatureTypeNames(object)){
-    #     object@data[[nm]] <- object@data[[nm]][rownames(object@data[[nm]]) %in% features,, drop = FALSE]
-    #     object@data[[paste0(nm, "_norm")]] <- object@data[[paste0(nm, "_norm")]][rownames(object@data[[paste0(nm, "_norm")]]) %in% features,, drop = FALSE]
-    #   }
-    # } 
-    # 
-    # if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
-    #   if(nrow(object@rawdata) > 0){
-    #     object@rawdata <- object@rawdata[rownames(object@rawdata) %in% features,, drop = FALSE]
-    #     object@normdata <- object@normdata[rownames(object@normdata) %in% features,, drop = FALSE] 
-    #   }
-    # }
-    
     if(inherits(object, "vrAssay")){
       if(nrow(object@rawdata) > 0){
         object@rawdata <- object@rawdata[rownames(object@rawdata) %in% features,, drop = FALSE]
@@ -455,30 +438,16 @@ subsetData <- function(object, spatialpoints = NULL, features = NULL){
   # spatialpoints
   if(!is.null(spatialpoints)){
     
-    # # check if there is a data or rawdata slot in assay object
-    # catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
-    # catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
-    # if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
-    #   for(nm in vrFeatureTypeNames(object)){
-    #     object@data[[nm]] <- object@data[[nm]][,colnames(object@data[[nm]]) %in% spatialpoints, drop = FALSE]
-    #     object@data[[paste0(nm, "_norm")]] <- object@data[[paste0(nm, "_norm")]][,colnames(object@data[[paste0(nm, "_norm")]]) %in% spatialpoints, drop = FALSE]
-    #   }
-    # } 
-    # if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
-    #   if(nrow(object@rawdata) > 0){
-    #     object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
-    #     object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE] 
-    #   }
-    # }
-    
     if(inherits(object, "vrAssay")){
-      if(nrow(object@rawdata) > 0){
+      # if(nrow(object@rawdata) > 0){
+      if(ncol(object@rawdata) > 0){
         object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
         object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE]
       }
     } else {
       for(nm in vrFeatureTypeNames(object)){
-        if(nrow(object@data[[nm]]) > 0){
+        # if(nrow(object@data[[nm]]) > 0){
+        if(ncol(object@data[[nm]]) > 0){
           object@data[[nm]] <- object@data[[nm]][,colnames(object@data[[nm]]) %in% spatialpoints, drop = FALSE]
           object@data[[paste0(nm, "_norm")]] <- object@data[[paste0(nm, "_norm")]][,colnames(object@data[[paste0(nm, "_norm")]]) %in% spatialpoints, drop = FALSE]
         }

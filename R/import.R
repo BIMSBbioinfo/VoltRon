@@ -641,27 +641,6 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
   # create VoltRon for non-negative probes
   object <- formVoltRon(rawdata, metadata = segmentsummary, image, coords, segments, main.assay = assay_name, assay.type = "ROI", 
                         feature_name = "RNA", ...)
-
-  # # add negative probe assay
-  # new_assay <- formAssay(data = rawdata_neg,
-  #                        coords = coords, segments = segments,
-  #                        image = image, type = "ROI")
-  # new_assay@image <- object[["Assay1"]]@image
-  # sample.metadata <- SampleMetadata(object)
-  # object <- addAssay(object,
-  #                    assay = new_assay,
-  #                    metadata = Metadata(object),
-  #                    assay_name = paste(sample.metadata["Assay1", "Assay"], "NegProbe", sep = "_"),
-  #                    sample = sample.metadata["Assay1", "Sample"],
-  #                    layer = sample.metadata["Assay1", "Layer"])
-  # 
-  # # add connectivity of spatial points across assays
-  # connectivity <- cbind(vrSpatialPoints(object, assay = assay_name),
-  #                       vrSpatialPoints(object, assay = paste(assay_name, "NegProbe", sep = "_")))
-  # object <- addConnectivity(object,
-  #                           connectivity = connectivity,
-  #                           sample = sample.metadata["Assay1", "Sample"],
-  #                           layer = sample.metadata["Assay1", "Layer"])
   
   # add negative probe assay as new feature set
   object <- addFeature(object, assay = assay_name, data = rawdata_neg, feature_name = "NegProbe")
