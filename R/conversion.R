@@ -246,7 +246,6 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param file the name of the h5ad file.
-#' @param type the spatial data type of Seurat object: "image" or "spatial".
 #' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped.
 #' @param method the package to use for conversion: "anndataR" or "anndata".
 #' @param create.ometiff should an ometiff file be generated of default image of the object
@@ -263,8 +262,13 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
 #' @importFrom magick image_data
 #' 
 #' @export
-as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"), flip_coordinates = FALSE, 
-                       method = "anndata", create.ometiff = FALSE, ...) {
+as.AnnData <- function(object, 
+                       file, 
+                       assay = NULL, 
+                       flip_coordinates = FALSE, 
+                       method = "anndata", 
+                       create.ometiff = FALSE, 
+                       ...) {
   
   # Check the number of assays
   if (is.null(assay)) {
@@ -277,8 +281,8 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   assay <- vrAssayNames(object, assay = assay)
   
   # Check the number of assays
-  if (unique(vrAssayTypes(object, assay = assay)) %in% c("spot", "ROI")) {
-    stop("Conversion of Spot or ROI assays into Anndata is not permitted!")
+  if (unique(vrAssayTypes(object, assay = assay)) %in% c("ROI", "tile")) {
+    stop("Conversion of tile or ROI assays into Anndata is not permitted!")
   }
   
   # Data
@@ -306,31 +310,26 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
   coords <- vrCoordinates(object, assay = assay)
   
   # Segments
-  fill_na_with_preceding <- function(x) {
-    if (all(is.na(x))) return(x)
-    for (i in 2:length(x)) {
-      if (is.na(x[i])) {
-        x[i] <- x[i - 1]
-      }
-    }
-    return(x)
-  }
   segments <- vrSegments(object, assay = assay)
-  max_vertices <- max(sapply(segments, nrow))
-  num_cells <- length(segments)
-  segmentations_array <- array(NA, dim = c(num_cells, max_vertices, 2))
-  cell_ids <- names(segments)
-  for (i in seq_along(cell_ids)) {
-    seg <- segments[[i]]
-    seg_matrix <- as.matrix(seg[, c("x", "y")])
-    nrow_diff <- max_vertices - nrow(seg_matrix)
-    if (nrow_diff > 0) {
-      seg_matrix <- rbind(seg_matrix, matrix(NA, nrow = nrow_diff, ncol = 2))
+  if(length(segments) > 0){
+    max_vertices <- max(sapply(segments, nrow))
+    num_cells <- length(segments)
+    segmentations_array <- array(NA, dim = c(num_cells, max_vertices, 2))
+    cell_ids <- names(segments)
+    for (i in seq_along(cell_ids)) {
+      seg <- segments[[i]]
+      seg_matrix <- as.matrix(seg[, c("x", "y")])
+      nrow_diff <- max_vertices - nrow(seg_matrix)
+      if (nrow_diff > 0) {
+        seg_matrix <- rbind(seg_matrix, matrix(NA, nrow = nrow_diff, ncol = 2))
+      }
+      segmentations_array[i, , ] <- seg_matrix
     }
-    segmentations_array[i, , ] <- seg_matrix
-  }
-  for (k in 1:2) {
-    segmentations_array[,,k] <- t(apply(segmentations_array[,,k], 1, fill_na_with_preceding))
+    for (k in 1:2) {
+      segmentations_array[,,k] <- t(apply(segmentations_array[,,k], 1, fill_na_with_preceding))
+    } 
+  } else {
+    segmentations_array <- array(dim = nrow(coords))
   }
 
   # Images
@@ -366,9 +365,13 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
         }
       }
       X <- make_numpy_friendly(t(data))
-      obsm <- c(obsm, list(spatial = coords, spatial_AssayID = coords, segmentation = segmentations_array))
-      adata <- anndata$AnnData(X = X, obs = metadata, 
-                               obsm = obsm, uns = list(spatial = image_data_list))
+      obsm <- c(obsm, list(spatial = coords, 
+                           spatial_AssayID = coords, 
+                           segmentation = segmentations_array))
+      adata <- anndata$AnnData(X = X, 
+                               obs = metadata, 
+                               obsm = obsm, 
+                               uns = list(spatial = image_data_list))
       
       adata$write_zarr(file)
       return(TRUE)
@@ -391,9 +394,13 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
       }
       
       # Create anndata using anndataR
-      adata <- anndataR::AnnData(obs_names = rownames(metadata), var_names = rownames(data), 
-                                 X = t(data), obs = metadata, 
-                                 obsm = list(spatial = coords, spatial_AssayID = coords, segmentation = segmentations_array),
+      adata <- anndataR::AnnData(obs_names = rownames(metadata), 
+                                 var_names = rownames(data), 
+                                 X = t(data), 
+                                 obs = metadata, 
+                                 obsm = list(spatial = coords, 
+                                             spatial_AssayID = coords, 
+                                             segmentation = segmentations_array),
                                  uns = list(spatial = image_data_list))
       
       # Write to h5ad file using anndataR
@@ -405,8 +412,11 @@ as.AnnData <- function(object, file, assay = NULL, type = c("image", "spatial"),
       }
       
       # Create anndata using anndata
-      adata <- anndata::AnnData(X = t(data), obs = metadata, 
-                                obsm = list(spatial = coords, spatial_AssayID = coords, segmentation = segmentations_array),
+      adata <- anndata::AnnData(X = t(data), 
+                                obs = metadata, 
+                                obsm = list(spatial = coords, 
+                                            spatial_AssayID = coords, 
+                                            segmentation = segmentations_array),
                                 uns = list(spatial = image_data_list))
       
       
@@ -785,72 +795,4 @@ as.SpatialExperiment <- function(object, assay = NULL, reg = FALSE){
   
   # return
   spe
-}
-
-####
-# SpatialData (Zarr) ####
-####
-
-#' as.SpatialData
-#'
-#' Converting a VoltRon object into a SpatialData (.zarr) object
-#'
-#' @param object a VoltRon object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param file the name of the h5ad file
-#' @param type the spatial data type of Seurat object: "image" or "spatial"
-#' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped
-#'
-#' @rdname as.SpatialData
-#'
-#' @importFrom stringr str_extract
-#'
-#' @export
-#'
-as.SpatialData <- function(object, file, assay = NULL, type = c("image", "spatial"), flip_coordinates = FALSE){
-  
-  # check Seurat package
-  if(!requireNamespace('anndata'))
-    stop("Please install anndata package")
-  
-  # check the number of assays
-  if(is.null(assay)){
-    if(length(unique(SampleMetadata(object)[["Assay"]])) > 1){
-      stop("You can only convert a single VoltRon assay into a Seurat object!")
-    } else {
-      assay <- SampleMetadata(object)[["Assay"]]
-    }
-  } else {
-    vrMainAssay(object) <- assay
-  }
-  
-  # check the number of assays
-  if(unique(vrAssayTypes(object, assay = assay)) %in% c("spot","ROI")) {
-    stop("Conversion of Spot or ROI assays into Seurat is not permitted!")
-  }
-  
-  # data
-  data <- vrData(object, assay = assay, norm = FALSE)
-  
-  # metadata
-  metadata <- Metadata(object, assay = assay)
-  metadata$AssayID <- stringr::str_extract(rownames(metadata), "_Assay[0-9]+$")
-  
-  # flip coordinates
-  if(flip_coordinates){
-    object <- flipCoordinates(object, assay = assay)
-  }
-  
-  # coordinates
-  coords <- vrCoordinates(object, assay = assay)
-  
-  # create anndata
-  adata <- anndata::AnnData(X = t(data), obs = metadata, obsm = list(spatial = coords, spatial_AssayID = coords))
-  
-  # create anndata file
-  anndata::write_h5ad(adata, store = file)
-
-  # return
-  NULL
 }

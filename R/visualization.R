@@ -484,6 +484,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #'
 #' @param object a VoltRon object
 #' @param features a set of features to be visualized, either from \link{vrFeatures} of raw or normalized data or columns of the \link{Metadata}.
+#' @param combine.features whether to combine all features in one plot
 #' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
 #' @param plot.segments plot segments from \link{vrSegments} instead of points
 #' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
@@ -516,7 +517,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #'
 #' @export
 #'
-vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segments = FALSE, n.tile = 0, norm = TRUE, log = FALSE, assay = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
+vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, group.by = "label", plot.segments = FALSE, n.tile = 0, norm = TRUE, log = FALSE, assay = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
                          font.size = 2, pt.size = 2, cell.shape = 16, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, background = NULL, reg = FALSE,
                          crop = FALSE, scale.image = TRUE, common.legend = FALSE, legend.loc = "right", collapse.plots = TRUE) {
 
@@ -570,36 +571,52 @@ vrSpatialFeaturePlot <- function(object, features, group.by = "label", plot.segm
   plot_title <- assay_title
   legend_title <- feature_title
 
-  # for each feature
+  # for each assay
   i <- 1
   gg <- list()
   for(assy in assay_names){
 
-    # for each assay
-    for(feat in features){
-
-      # get assay
-      cur_assay <- object[[assy]]
-      cur_metadata <- metadata[grepl(paste0(assy, "$"), rownames(metadata)),]
-
-      # get graph
-      if(!is.null(graph.name)){
-        if(graph.name %in% vrGraphNames(object)){
-          graph <- vrGraph(object, assay = assy, graph.type = graph.name)
-        } else {
-          stop("the graph with named '", graph.name, "' was not found in the graph list!")
-        }
+    # get assay
+    cur_assay <- object[[assy]]
+    cur_metadata <- metadata[grepl(paste0(assy, "$"), rownames(metadata)),]
+    p_title <- plot_title[[assy]]
+    
+    # get graph
+    if(!is.null(graph.name)){
+      if(graph.name %in% vrGraphNames(object)){
+        graph <- vrGraph(object, assay = assy, graph.type = graph.name)
       } else {
-        graph <- NULL
+        stop("the graph with named '", graph.name, "' was not found in the graph list!")
       }
-
-      # visualize
-      p_title <- plot_title[[assy]]
-      l_title <- legend_title[[feat]]
-      gg[[i]] <- vrSpatialFeaturePlotSingle(assay = cur_assay, metadata = cur_metadata, feature = feat, plot.segments = plot.segments, n.tile = n.tile, graph = graph, limits = limits[[feat]][[assy]],
-                              group.by = group.by, norm = norm, log = log, font.size = font.size, pt.size = pt.size, title.size = title.size, alpha = alpha, cell.shape = cell.shape,
-                              label = label, plot_title = p_title, legend_title = l_title, background = background, reg = reg, crop = crop)
-      i <- i + 1
+    } else {
+      graph <- NULL
+    }
+    
+    # make one plot by combining features
+    if(combine.features){
+      
+      if(vrAssayTypes(cur_assay) != "cell"){
+        stop("Currently, combining features can only be used for cell based assays")
+      } else {
+        l_title <- ""
+        gg[[i]] <- vrSpatialFeaturePlotCombined(assay = cur_assay, metadata = cur_metadata, features = features, plot.segments = plot.segments, 
+                                                n.tile = n.tile, graph = graph, group.by = group.by, norm = norm, log = log, 
+                                                font.size = font.size, pt.size = pt.size, title.size = title.size, alpha = alpha, cell.shape = cell.shape,
+                                                label = label, plot_title = p_title, legend_title = l_title, reg = reg, crop = crop)
+      }
+      
+    # make individual feature plots
+    } else {
+     
+      # for each feature
+      for(feat in features){
+        l_title <- legend_title[[feat]]
+        gg[[i]] <- vrSpatialFeaturePlotSingle(assay = cur_assay, metadata = cur_metadata, feature = feat, plot.segments = plot.segments, 
+                                              n.tile = n.tile, graph = graph, limits = limits[[feat]][[assy]], group.by = group.by, norm = norm, log = log, 
+                                              font.size = font.size, pt.size = pt.size, title.size = title.size, alpha = alpha, cell.shape = cell.shape,
+                                              label = label, plot_title = p_title, legend_title = l_title, background = background, reg = reg, crop = crop)
+        i <- i + 1
+      }
     }
   }
 
@@ -895,6 +912,224 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 
   # return data
   return(g)
+}
+
+#' vrSpatialFeaturePlotSingle
+#'
+#' A single Spatial Feature plot of VoltRon object
+#'
+#' @param assay vrAssay object
+#' @param metadata the metadata associated with the assay
+#' @param features features, either from the rows of rawdata, normdata or columns of the metadata
+#' @param plot.segments plot segments from \link{vrSegments} instead of points
+#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param graph if not NULL, the graph is added to the plot
+#' @param limits limits of the legend of the plot
+#' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
+#' @param norm if TRUE, the normalized data is used
+#' @param log if TRUE, data features (excluding metadata features) will be log transformed
+#' @param font.size font sizes
+#' @param pt.size point size
+#' @param cell.shape the shape of the points representing cells, see \link{geom_point}
+#' @param title.size title size of legend and plot
+#' @param alpha alpha level of colors of visualized points and segments
+#' @param label if TRUE, labels of ROIs will be visualized too
+#' @param plot_title the main title of the single plot
+#' @param legend_title the legend title of the single plot
+#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
+#' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
+#' @param crop whether to crop an image of a spot assay to the extend of spots
+#' @param scale.image if TRUE, background image will be scaled down to a low resolution (width: 1000px)
+#'
+#' @import ggplot2
+#' @importFrom ggrepel geom_label_repel
+#' @importFrom ggforce geom_ellipse
+#' @importFrom igraph get.data.frame
+#' @importFrom dplyr arrange
+#'
+#' @noRd
+vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segments = FALSE, n.tile = 0, graph = NULL, group.by = "label", norm = TRUE, log = FALSE,
+                                         font.size = 2, pt.size = 2, cell.shape = 16, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL,
+                                         legend_title = NULL, reg = FALSE, crop = FALSE, scale.image = TRUE){
+  
+  # plot
+  g <- ggplot()
+  scale_factors <- 1
+  
+  # add image
+  info <- NULL
+  spatial_name <- vrMainSpatial(assay)
+  
+  # data
+  coords <- as.data.frame(vrCoordinates(assay, spatial_name = spatial_name, reg = reg))
+  coords <- coords/scale_factors
+  segments <- vrSegments(assay, spatial_name = spatial_name)
+  data_features <- features[features %in% vrFeatures(assay)]
+  if(length(data_features) > 0){
+    normdata <- vrData(assay, features = data_features, norm = norm)
+    if(log)
+      normdata <- log(normdata)
+  }
+  
+  # calculate limits for plotting, all for making one scale, feature for making multiple
+  limits <- Map(function(feat){
+    if(feat %in% vrFeatures(assay)){
+      return(range(normdata[feat, ]))
+    } else {
+      if(feat %in% colnames(metadata)){
+        return(range(metadata[,feat]))
+      } else {
+        stop("Feature '", feat, "' cannot be found in data or metadata!")
+      }
+    }
+  }, features)
+  
+  # set up the limits
+  if(vrAssayTypes(assay) == "spot"){
+    if(crop){
+      g <- g +
+        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
+    } else {
+      if(!is.null(info)){
+        g <- g +
+          coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
+      }
+    }
+  } else {
+    if(crop){
+      g <- g +
+        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
+    } else {
+      if(!is.null(info)){
+        g <- g +
+          xlim(0,info$width) + ylim(0, info$height)
+      }
+    }
+  }
+  
+  # configure titles
+  feature_title <- as.list(features)
+  names(feature_title) <- features
+  legend_title <- feature_title
+  
+  # for each feature
+  i <- 1
+  gg <- list()
+  all_data <- NULL
+  colors <- get_rasterization_colors(length(features))
+  for(feat in features){
+    
+    # get data
+    if(feat %in% data_features){
+      coords$score <- normdata[feat,]
+    } else {
+      coords$score <- metadata[,feat]
+    }
+    
+    # get image information and plotting features
+    midpoint <- sum(limits[[feat]])/2
+    
+    # add points, rasterize if requested or needed
+    if(n.tile > 0 || nrow(coords) > 50000){
+      if(n.tile == 0)
+        n.tile <- 1000
+      g_single <- ggplot() +
+        stat_summary_2d(mapping = aes(x = x, y = y, z = score), fun = mean, data = coords, geom = "tile", bins = n.tile, drop = TRUE) +
+        scale_fill_gradientn(name = legend_title[[feat]],
+                             colors=c("grey97", colors[i]),
+                             values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
+      all_data <- rbind(all_data,
+                        data.frame(layer_data(g_single), color_group = colors[i]))
+    } else {
+      g_single <- ggplot() +
+        geom_point(mapping = aes(x = x, y = y, color = score), coords, shape = 16, size = pt.size) + 
+        scale_color_gradientn(name = legend_title[[feat]],
+                              colors=c("grey97", colors[i]),
+                              values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
+      all_data <- rbind(all_data,
+                        data.frame(layer_data(g_single), value = coords$score, color_group = colors[i]))
+    }
+    
+    # add graph to list
+    gg[[i]] <- g_single
+    i <- i + 1
+  }
+  
+  # combine feature plots
+  g <- vrSpatialFeatureCombinePlot(g, all_data, n.tile, coords, features)
+  
+  # add if a graph exists
+  if(!is.null(graph)){
+    graph.df <- igraph::get.data.frame(graph)
+    graph.df$from.x <- coords$x[match(graph.df$from, rownames(coords))]
+    graph.df$from.y <- coords$y[match(graph.df$from, rownames(coords))]
+    graph.df$to.x <- coords$x[match(graph.df$to, rownames(coords))]
+    graph.df$to.y <- coords$y[match(graph.df$to, rownames(coords))]
+    g <- g +
+      geom_segment(data = graph.df, mapping = aes(x=from.x,xend = to.x, y=from.y,yend = to.y), alpha = 0.5, color = ifelse(background == "black", "grey", "black"))
+  }
+  
+  # more visualization parameters
+  g <- g +
+    ggtitle(plot_title) + theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,0,0), size = title.size),
+                                panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+                                axis.line=element_blank(),axis.text.x=element_blank(), axis.text.y=element_blank(),
+                                axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
+                                legend.key.size = unit(title.size, "points"), legend.title = element_text(size=title.size),
+                                legend.margin = margin(0,0,0,0))
+  
+  # background
+  g <- g +
+    theme(panel.background = element_rect(fill = "grey97", colour = "grey97", size = 0.5, linetype = "solid"))
+  
+  # return data
+  return(g)
+}
+
+#' vrSpatialFeatureCombinePlot
+#'
+#' A different plotting setting for vrSpatialFeaturePlot when combine.feature=TRUE
+#'
+#' @param g ggplot object
+#' @param all_data summary data
+#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param datax original plotting data
+#' @param features features
+#'
+#' @import ggplot2
+#'
+#' @noRd
+vrSpatialFeatureCombinePlot <- function(g, all_data, n.tile, coords, features){
+  
+  # tiling or not
+  if(n.tile > 0 || nrow(coords) > 50000){
+    if(n.tile == 0)
+      n.tile <- 1000
+    all_data <- all_data %>% group_by(x,y) %>% 
+      summarize(fill = fill[which.max(value)], 
+                group = color_group[which.max(value)], 
+                value = value[which.max(value)])
+    key_table <- all_data[,c("fill", "group", "value")] %>% 
+      dplyr::group_by(group) %>% 
+      dplyr::summarise(fill = fill[which.max(value)], value = max(value))
+    g.combined <- g +
+      ggplot2::geom_tile(data = as.data.frame(all_data), aes(x = x, y = y, fill = fill)) +
+      ggplot2::scale_fill_identity("", labels = features, breaks = key_table$fill, guide = "legend")
+  } else {
+    all_data <- all_data %>% group_by(x,y) %>% 
+      dplyr::summarise(color = colour[which.max(value)], 
+                       group = color_group[which.max(value)],
+                       value = value[which.max(value)])
+    key_table <- all_data[,c("color", "group", "value")] %>%
+      dplyr::group_by(group) %>% 
+      dplyr::summarise(color = color[which.max(value)], value = max(value))
+    g.combined <- g + 
+      ggplot2::geom_point(data = as.data.frame(all_data), aes(x = x, y = y, color = color)) + 
+      ggplot2::scale_color_identity("", labels = features, breaks = key_table$color, guide = "legend")
+  }
+  
+  g.combined
 }
 
 ####
@@ -1276,8 +1511,8 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
 #' @importFrom dplyr arrange desc
 #' 
 #' @export
-vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n.tile = 0, norm = TRUE, log = FALSE, assay = NULL, ncol = 2, nrow = NULL,
-                                   font.size = 2, pt.size = 1, keep.scale = "feature", common.legend = TRUE, collapse.plots = TRUE, combine.features = FALSE) {
+vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, combine.features = FALSE, n.tile = 0, norm = TRUE, log = FALSE, assay = NULL, ncol = 2, nrow = NULL,
+                                   font.size = 2, pt.size = 1, keep.scale = "feature", common.legend = TRUE, collapse.plots = TRUE) {
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -1378,7 +1613,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
                           data.frame(layer_data(g), value = datax$score, color_group = colors[i]))
       }
       
-    # make individual plots
+    # make individual feature plots
     } else {
       
       # plot
@@ -1420,48 +1655,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
       
       # combine features
       if(combine.features){
-
-        # ggplot 
-        g.combined <- ggplot()
-        
-        # tiling or not
-        if(n.tile > 0 || nrow(datax) > 50000){
-          if(n.tile == 0)
-            n.tile <- 1000
-          all_data <- all_data %>% group_by(x,y) %>% 
-            summarize(fill = fill[which.max(value)], 
-                      group = color_group[which.max(value)], 
-                      value = value[which.max(value)])
-          key_table <- all_data[,c("fill", "group", "value")] %>% 
-            dplyr::group_by(group) %>% 
-            dplyr::summarise(fill = fill[which.max(value)], value = max(value))
-          g.combined <- g.combined +
-            ggplot2::geom_tile(data = as.data.frame(all_data), aes(x = x, y = y, fill = fill)) +
-            ggplot2::scale_fill_identity("", labels = features, breaks = key_table$fill, guide = "legend")
-        } else {
-          all_data <- all_data %>% group_by(x,y) %>% 
-            dplyr::summarise(color = colour[which.max(value)], 
-                             group = color_group[which.max(value)],
-                             value = value[which.max(value)])
-          key_table <- all_data[,c("color", "group", "value")] %>%
-            dplyr::group_by(group) %>% 
-            dplyr::summarise(color = color[which.max(value)], value = max(value))
-          g.combined <- g.combined +
-            ggplot2::geom_point(data = as.data.frame(all_data), aes(x = x, y = y, color = color)) + 
-            ggplot2::scale_color_identity("", labels = features, breaks = key_table$color, guide = "legend")
-        }
-        
-        # style  
-        # g.combined <- g.combined + addEmbeddingPlotStyle(embedding) +
-        #   xlab(paste0(toupper(embedding), "_1")) + ylab(paste0(toupper(embedding), "_2"))
-        g.combined <- g.combined + 
-          theme_classic() + 
-          xlab(paste0(toupper(embedding), "_1")) + ylab(paste0(toupper(embedding), "_2")) + 
-          theme(plot.title = element_text(hjust = 0.5, margin=margin(0,0,0,0)),
-                panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
-                legend.margin = margin(0,0,0,0), panel.background = element_blank())
-        
-        # return
+        g.combined <- vrEmbeddingFeatureCombinePlot(all_data, n.tile, datax, features, embedding)
         return(g.combined)
       } else {
         if(length(gg) < ncol) ncol <- length(gg)
@@ -1473,6 +1667,60 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, n
   } else {
     return(gg)
   }
+}
+
+#' vrEmbeddingFeatureCombinePlot
+#'
+#' A different plotting setting for vrEmbeddingFeaturePlot when combine.feature=TRUE
+#'
+#' @param all_data summary data
+#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param datax original plotting data
+#' @param features features
+#' @param embedding embedding
+#'
+#' @import ggplot2
+#'
+#' @noRd
+vrEmbeddingFeatureCombinePlot <- function(all_data, n.tile, datax, features, embedding){
+  
+  # ggplot 
+  g.combined <- ggplot()
+  
+  # tiling or not
+  if(n.tile > 0 || nrow(datax) > 50000){
+    if(n.tile == 0)
+      n.tile <- 1000
+    all_data <- all_data %>% group_by(x,y) %>% 
+      summarize(fill = fill[which.max(value)], 
+                group = color_group[which.max(value)], 
+                value = value[which.max(value)])
+    key_table <- all_data[,c("fill", "group", "value")] %>% 
+      dplyr::group_by(group) %>% 
+      dplyr::summarise(fill = fill[which.max(value)], value = max(value))
+    g.combined <- g.combined +
+      ggplot2::geom_tile(data = as.data.frame(all_data), aes(x = x, y = y, fill = fill)) +
+      ggplot2::scale_fill_identity("", labels = features, breaks = key_table$fill, guide = "legend")
+  } else {
+    all_data <- all_data %>% group_by(x,y) %>% 
+      dplyr::summarise(color = colour[which.max(value)], 
+                       group = color_group[which.max(value)],
+                       value = value[which.max(value)])
+    key_table <- all_data[,c("color", "group", "value")] %>%
+      dplyr::group_by(group) %>% 
+      dplyr::summarise(color = color[which.max(value)], value = max(value))
+    g.combined <- g.combined +
+      ggplot2::geom_point(data = as.data.frame(all_data), aes(x = x, y = y, color = color)) + 
+      ggplot2::scale_color_identity("", labels = features, breaks = key_table$color, guide = "legend")
+  }
+  
+  # style  
+  g.combined <- g.combined + 
+    addEmbeddingPlotStyle(embedding) +
+    xlab(paste0(toupper(embedding), "_1")) + 
+    ylab(paste0(toupper(embedding), "_2"))
+  
+  g.combined
 }
 
 ####
@@ -2086,7 +2334,8 @@ vrFeaturePlotTiling <- function(g, data, legend_title, n.tile, alpha = 1, limits
     gplot <- gplot +
       scale_fill_gradientn(name = legend_title,
                            colors=c("dodgerblue2", "white", "yellow3"),
-                           values=rescale_numeric(c(0, midpoint, max(hex_count_data$value))), limits = c(0, max(hex_count_data$value)))
+                           values=rescale_numeric(c(min(hex_count_data$value), midpoint, max(hex_count_data$value)), 
+                           limits = c(min(hex_count_data$value), max(hex_count_data$value))))
   } else{
     gplot <- gplot +
       scale_fill_gradientn(name = legend_title,

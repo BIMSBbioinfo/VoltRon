@@ -7,6 +7,7 @@
 vrSpatialFeaturePlot(
   object,
   features,
+  combine.features = FALSE,
   group.by = "label",
   plot.segments = FALSE,
   n.tile = 0,
@@ -36,6 +37,8 @@ vrSpatialFeaturePlot(
 \item{object}{a VoltRon object}
 
 \item{features}{a set of features to be visualized, either from \link{vrFeatures} of raw or normalized data or columns of the \link{Metadata}.}
+
+\item{combine.features}{whether to combine all features in one plot}
 
 \item{group.by}{a column of metadata from \link{Metadata} used as grouping label for the spatial entities}
 

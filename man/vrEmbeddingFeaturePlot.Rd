@@ -8,6 +8,7 @@ vrEmbeddingFeaturePlot(
   object,
   embedding = "pca",
   features = NULL,
+  combine.features = FALSE,
   n.tile = 0,
   norm = TRUE,
   log = FALSE,
@@ -18,8 +19,7 @@ vrEmbeddingFeaturePlot(
   pt.size = 1,
   keep.scale = "feature",
   common.legend = TRUE,
-  collapse.plots = TRUE,
-  combine.features = FALSE
+  collapse.plots = TRUE
 )
 }
 \arguments{
@@ -28,6 +28,8 @@ vrEmbeddingFeaturePlot(
 \item{embedding}{the embedding type, i.e. pca, umap etc.}
 
 \item{features}{a set of features to be visualized, either from \link{vrFeatures} of raw or normalized data or columns of the \link{Metadata}.}
+
+\item{combine.features}{whether to combine all features in one plot}
 
 \item{n.tile}{should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules}
 
@@ -51,8 +53,6 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{common.legend}{whether to use a common legend for all plots, see \link{ggarrange}}
 
 \item{collapse.plots}{whether to combine all ggplots}
-
-\item{combine.features}{whether to combine all features in one plot}
 }
 \description{
 Plotting features of spatially resolved cells and spots on embeddings from multiple assays in a VoltRon object.
