@@ -426,11 +426,10 @@ subsetData <- function(object, spatialpoints = NULL, features = NULL){
         object@normdata <- object@normdata[rownames(object@normdata) %in% features,, drop = FALSE]
       }
     } else {
-      for(nm in vrFeatureTypeNames(object)){
-        if(nrow(object@data[[nm]]) > 0){
-          object@data[[nm]] <- object@data[[nm]][rownames(object@data[[nm]]) %in% features,, drop = FALSE]
-          object@data[[paste0(nm, "_norm")]] <- object@data[[paste0(nm, "_norm")]][rownames(object@data[[paste0(nm, "_norm")]]) %in% features,, drop = FALSE]
-        }
+      main <- vrMainFeatureType(object)
+      if(nrow(object@data[[main]]) > 0){
+        object@data[[main]] <- object@data[[main]][rownames(object@data[[main]]) %in% features,, drop = FALSE]
+        object@data[[paste0(main, "_norm")]] <- object@data[[paste0(main, "_norm")]][rownames(object@data[[paste0(main, "_norm")]]) %in% features,, drop = FALSE]
       }
     }
   }
@@ -915,28 +914,20 @@ vrData.vrAssay <- function(object, features = NULL, feat_type = NULL, norm = FAL
       stop("No features are available for tile and molecule assays!")
     } else{
 
-      # for tile only
-      if(assay.type == "tile") {
-
-        if(inherits(object, "vrAssay")){
-          if(norm){
-            return(object@normdata)
-          } else {
-            return(object@rawdata)
-          }
+      if(inherits(object, "vrAssay")){
+        if(norm){
+          return(object@normdata)
         } else {
-          if(is.null(feat_type))
-            feat_type <- vrMainFeatureType(object)
-          if(norm){
-            return(object@data[[paste0(feat_type, "_norm")]])
-          } else {
-            return(object@data[[feat_type]])
-          }
+          return(object@rawdata)
         }
-        
-      # for molecules only
-      } else if(assay.type == "molecule"){
-        return(matrix(nrow = 0, ncol = 0))
+      } else {
+        if(is.null(feat_type))
+          feat_type <- vrMainFeatureType(object)
+        if(norm){
+          return(object@data[[paste0(feat_type, "_norm")]])
+        } else {
+          return(object@data[[feat_type]])
+        }
       }
     }
   }

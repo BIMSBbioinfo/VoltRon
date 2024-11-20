@@ -461,7 +461,7 @@ import10Xh5 <- function(filename){
 
   # check package
   if(!requireNamespace("hdf5r")){
-    stop("You have to install the hdf5r package!")
+    stop("You have to install the hdf5r package!: install.packages('hdf5r'')")
   }
   
   # check file

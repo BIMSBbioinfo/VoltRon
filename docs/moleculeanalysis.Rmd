@@ -71,6 +71,24 @@ Assays: Xenium(Main) Xenium_mol
 
 <br>
 
+## Ondisk Support **(Optional)**
+
+You can also save the imported VoltRon object to disk and still accomplish analysis on molecule datasets.
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_R1 <- saveVoltRon(Xen_R1, format = "HDF5VoltRon", 
+                      output = "Xen_R1/", replace = TRUE)
+```
+
+The disk-backed data can be loaded once saved on disk again
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_R1_disk <- loadVoltRon("Xen_R1/")
+
+```
+
+<br>
+
 ## Spatial Visualization
 
 With **vrSpatialPlot**, we can visualize Xenium experiments in subcellular context. We first visualize mRNAs of ACTA2, a marker for smooth muscle cell actin, and other markers found in the breast cancer tissue sample. We can interactively select a subset of interest within the tissue section and visualize the localization of these transcripts. Here we subset a ductal carcinoma niche, and visualize mRNAs of four genes. 

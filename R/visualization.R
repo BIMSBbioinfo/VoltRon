@@ -267,7 +267,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     stop("The column '", group.by, "' was not found in the metadata!")
   if(inherits(metadata, "data.table")){
     cur_group.by <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
-    names(cur_group.by) <- names(metadata)
+    # names(cur_group.by) <- names(metadata)
+    names(cur_group.by) <- metadata$id
   } else {
     cur_group.by <- metadata[,group.by]
     if(!is.null(rownames(metadata))){

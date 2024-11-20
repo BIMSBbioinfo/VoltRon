@@ -13,7 +13,7 @@
 
 <title>Molecule Analysis</title>
 
-<script src="site_libs/header-attrs-2.27/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -35,8 +35,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -382,6 +382,9 @@ div.tocify {
         <li>
           <a href="conversion.html">Converting VoltRon Objects</a>
         </li>
+        <li>
+          <a href="ondisk.html">OnDisk-based Analysis Utilities</a>
+        </li>
       </ul>
     </li>
   </ul>
@@ -502,6 +505,16 @@ Xen_R1</code></pre>
 XeniumR1: 
   Layers: Section1 
 Assays: Xenium(Main) Xenium_mol </code></pre>
+<p><br></p>
+</div>
+<div id="ondisk-support-optional" class="section level2">
+<h2>Ondisk Support <strong>(Optional)</strong></h2>
+<p>You can also save the imported VoltRon object to disk and still
+accomplish analysis on molecule datasets.</p>
+<pre class="r watch-out"><code>Xen_R1 &lt;- saveVoltRon(Xen_R1, format = &quot;HDF5VoltRon&quot;, 
+                      output = &quot;Xen_R1/&quot;, replace = TRUE)</code></pre>
+<p>The disk-backed data can be loaded once saved on disk again</p>
+<pre class="r watch-out"><code>Xen_R1_disk &lt;- loadVoltRon(&quot;Xen_R1/&quot;)</code></pre>
 <p><br></p>
 </div>
 <div id="spatial-visualization" class="section level2">

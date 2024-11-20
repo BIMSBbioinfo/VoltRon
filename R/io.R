@@ -113,7 +113,7 @@ saveVoltRon <- function (object,
 loadVoltRon <- function(dir="my_se")
 {
   if(!requireNamespace('DelayedArray'))
-    stop("Please install DelayedArray package!")
+    stop("Please install DelayedArray package!: BiocManager::install('DelayedArray')")
   
   # check dir
   if (!isSingleString(dir))
@@ -258,6 +258,9 @@ modify_seeds <- function (x, FUN, ...)
 write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
                              as.sparse, verbose, replace)
 {
+  if(!requireNamespace('rhdf5'))
+    stop("Please install rhdf5 package!: BiocManager::install('rhdf5')")
+  
   # sample metadata
   sample_metadata <- SampleMetadata(object)
   
@@ -331,11 +334,9 @@ writeHDF5ArrayInMetadata <- function(object,
   
   # check HDF5DataFrame
   if(!requireNamespace('HDF5DataFrame'))
-    stop("Please install HDF5DataFrame package!")
+    stop("Please install HDF5DataFrame package!: devtools::install_github('BIMSBbioinfo/HDF5DataFrame')")
   if(!requireNamespace('HDF5Array'))
-    stop("Please install HDF5Array package!")
-  if(!requireNamespace('rhdf5'))
-    stop("Please install rhdf5 package!")
+    stop("Please install HDF5Array package!: BiocManager::install('HDF5Array')")
   
   # iterate over all metadata slots
   slot_names <- slotNames(object)
@@ -402,7 +403,7 @@ writeHDF5ArrayInVrData <- function(object,
   
   # check packages
   if(!requireNamespace('BPCells'))
-    stop("Please install BPCells package!")
+    stop("Please install BPCells package!: remotes::install_github('bnprks/BPCells/r')")
   
   # check if there is a data or rawdata slot in assay object
   catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
@@ -419,7 +420,7 @@ writeHDF5ArrayInVrData <- function(object,
       if(!inherits(a, c("DelayedArray", "IterableMatrix")) || replace){
         if(!inherits(a, "dgCMatrix"))
           a <- as(a, "dgCMatrix")
-        cat(paste0("Writing '", vrAssayNames(object), "' data \n"))
+        cat(paste0("Writing '", vrAssayNames(object), feat_type, "' data \n"))
         a <- BPCells::write_matrix_hdf5(a, 
                                         path = h5_path, 
                                         group = paste0(name, "/", feat), 
@@ -434,7 +435,7 @@ writeHDF5ArrayInVrData <- function(object,
       if(!inherits(a, c("DelayedArray", "IterableMatrix")) || replace){
         if(!inherits(a, "dgCMatrix"))
           a <- as(a, "dgCMatrix")
-        cat(paste0("Writing '", vrAssayNames(object), "' normalized data \n"))
+        cat(paste0("Writing '", vrAssayNames(object), " normalized ", feat_type, "' data \n"))
         a <- BPCells::write_matrix_hdf5(a, 
                                         path = h5_path, 
                                         group = paste0(name, "/", feat, "_norm"), 
@@ -493,7 +494,7 @@ writeHDF5ArrayInImage <- function(object,
   
   # check packages
   if(!requireNamespace('ImageArray'))
-    stop("Please install ImageArray package!")
+    stop("Please install ImageArray package!: devtools::install_github('BIMSBbioinfo/ImageArray')")
   
   # for each spatial system
   spatial_names <- vrSpatialNames(object)
@@ -557,8 +558,8 @@ writeHDF5ArrayInImage <- function(object,
 write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
                                as.sparse, verbose, replace)
 {
-  if(!requireNamespace('ImageArray'))
-    stop("Please install ImageArray package!")
+  if(!requireNamespace('pizzarr'))
+    stop("Please install pizzarr package!: devtools::install_github('keller-mark/pizzarr')")
   
   # sample metadata
   sample_metadata <- SampleMetadata(object)
@@ -633,11 +634,9 @@ writeZarrArrayInMetadata <- function(object,
   
   # check DelayedDataFrame
   if(!requireNamespace('ZarrDataFrame'))
-    stop("Please install ZarrDataFrame package!")
+    stop("Please install ZarrDataFrame package!: devtools::install_github('BIMSBbioinfo/ZarrDataFrame')")
   if(!requireNamespace('ZarrArray'))
-    stop("Please install ZarrArray package!")
-  if(!requireNamespace('pizzarr'))
-    stop("Please install pizzarr package!")
+    stop("Please install ZarrArray package!: devtools::install_github('BIMSBbioinfo/ZarrArray')")
   
   # iterate over all metadata slots
   slot_names <- slotNames(object)
@@ -705,7 +704,7 @@ writeZarrArrayInVrData <- function(object,
   
   # check packages
   if(!requireNamespace('ZarrArray'))
-    stop("Please install ZarrArray package!")
+    stop("Please install ZarrArray package!: devtools::install_github('BIMSBbioinfo/ZarrArray')")
   
   # check if there is a data or rawdata slot in assay object
   catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
@@ -800,7 +799,7 @@ writeZarrArrayInImage <- function(object,
   
   # check packages
   if(!requireNamespace('ImageArray'))
-    stop("Please install ImageArray package!")
+    stop("Please install ImageArray package!: devtools::install_github('BIMSBbioinfo/ImageArray')")
   
   # for each spatial system
   spatial_names <- vrSpatialNames(object)

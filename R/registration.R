@@ -65,7 +65,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
   ## UI and Server ####
   ui <- fluidPage(
     # use javascript extensions for Shiny
-    waiter::useWaiter(),
+    # waiter::useWaiter(),
     shinyjs::useShinyjs(),
     
     sidebarLayout(position = "left",
