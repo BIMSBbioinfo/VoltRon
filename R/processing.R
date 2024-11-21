@@ -338,6 +338,7 @@ getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca
 #' @param seed seed
 #'
 #' @importFrom uwot umap
+#' @importFrom Matrix t
 #'
 #' @export
 #'
@@ -346,7 +347,7 @@ getUMAP <- function(object, assay = NULL, data.type = "pca", dims = 1:30, umap.k
   # get data
   if(data.type %in% c("raw", "norm")){
     data <- vrData(object, assay = assay, norm = (data.type == "norm"))
-    data <- t(data)
+    data <- as.matrix(as(Matrix::t(data),"dgCMatrix"))
   } else{
     embedding_names <- vrEmbeddingNames(object)
     if(data.type %in% vrEmbeddingNames(object)) {

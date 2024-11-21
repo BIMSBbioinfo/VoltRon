@@ -212,14 +212,14 @@ getDeconSingle <- function(object, features = features, reference, method = "RCT
 getRCTD <- function(object, features = NULL, reference, ...){
 
   if (!requireNamespace('spacexr'))
-    stop("Please install spacexr package to use the RCTD algorithm")
+    stop("Please install spacexr package to use the RCTD algorithm: devtools::install_github('dmcable/spacexr')")
   if (!requireNamespace('Seurat'))
-    stop("Please install Seurat package for using Seurat objects")
+    stop("Please install Seurat package for using Seurat objects: install.packages('Seurat')")
 
   # create spatial data
   cat("Configuring Spatial Assay ...\n")
   spatialcounts <- vrData(object, norm = FALSE)
-  coords <- as.data.frame(vrCoordinates(object))
+  coords <- as.data.frame(as(vrCoordinates(object), "dgCMatrix"))[,c("x", "y")]
   spatialnUMI <- colSums(spatialcounts)
   spatialdata <- spacexr::SpatialRNA(coords, spatialcounts, spatialnUMI)
 
@@ -247,11 +247,11 @@ getRCTD <- function(object, features = NULL, reference, ...){
 getMuSiC <- function(object, features = NULL, reference, sc.samples = NULL){
 
   if (!requireNamespace('Seurat'))
-    stop("Please install Seurat package for using Seurat objects")
+    stop("Please install Seurat package for using Seurat objects: install.packages('Seurat')")
   if (!requireNamespace('MuSiC'))
-    stop("Please install MuSiC package for ROI deconvolution")
+    stop("Please install MuSiC package for ROI deconvolution: devtools::install_github('xuranw/MuSiC')")
   if (!requireNamespace('SingleCellExperiment'))
-    stop("Please install SingleCellExperiment package for ROI deconvolution")
+    stop("Please install SingleCellExperiment package for ROI deconvolution: BiocManager::install('SingleCellExperiment')")
 
   if(is.null(sc.samples))
     stop("Please provide a metadata column for samples for MuSiC algorithm to work, e.g. sc.samples = Sample")
@@ -278,7 +278,6 @@ getMuSiC <- function(object, features = NULL, reference, sc.samples = NULL){
   cat("Calculating Cell Type Compositions of ROIs with MuSiC ...\n")
   results <- MuSiC::music_prop(bulk.mtx = datax,
                         sc.sce = reference,
-                        # clusters = sc.cluster,
                         clusters = "music_decon_clusters",
                         samples = sc.samples,
                         verbose = T)

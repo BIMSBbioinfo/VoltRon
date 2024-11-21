@@ -420,7 +420,7 @@ writeHDF5ArrayInVrData <- function(object,
       if(!inherits(a, c("DelayedArray", "IterableMatrix")) || replace){
         if(!inherits(a, "dgCMatrix"))
           a <- as(a, "dgCMatrix")
-        cat(paste0("Writing '", vrAssayNames(object), feat_type, "' data \n"))
+        cat(paste0("Writing '", vrAssayNames(object), "' ", feat, " data \n"))
         a <- BPCells::write_matrix_hdf5(a, 
                                         path = h5_path, 
                                         group = paste0(name, "/", feat), 
@@ -435,7 +435,7 @@ writeHDF5ArrayInVrData <- function(object,
       if(!inherits(a, c("DelayedArray", "IterableMatrix")) || replace){
         if(!inherits(a, "dgCMatrix"))
           a <- as(a, "dgCMatrix")
-        cat(paste0("Writing '", vrAssayNames(object), " normalized ", feat_type, "' data \n"))
+        cat(paste0("Writing '", vrAssayNames(object), "' normalized ", feat, " data \n"))
         a <- BPCells::write_matrix_hdf5(a, 
                                         path = h5_path, 
                                         group = paste0(name, "/", feat, "_norm"), 

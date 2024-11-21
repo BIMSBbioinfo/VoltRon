@@ -126,11 +126,12 @@ knn_annoy <- function(data, query = data, k = 10, n_trees = 50, search_k = -1) {
 #' @param label the name for the newly created clustering column in the metadata
 #' @param graph the graph type to be used
 #' @param seed seed
+#' @param abundance_limit the minimum number of points for a cluster, hence clusters with abundance lower than this limit will be appointed to other nearby clusters
 #'
 #' @importFrom igraph cluster_leiden
 #' @export
 #'
-getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters", graph = "kNN", seed = 1){
+getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters", graph = "kNN", seed = 1, abundance_limit = 2){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -147,18 +148,21 @@ getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters"
   # clustering
   set.seed(seed)
   clusters <- igraph::cluster_leiden(object_graph, objective_function = "modularity", resolution_parameter = resolution)
-  clusters <- clusters$membership
 
+  # correct clustering
+  clusters <- correct_low_abundant_clusters(object_graph, clusters, abundance_limit)
+    
   # metadata
   metadata <- Metadata(object)
   entities <- vrSpatialPoints(object_subset)
-  if(inherits(metadata, "data.table")){
+  # if(inherits(metadata, "data.table")){
+  if(is.null(rownames(metadata))){
     metadata[[label]] <- as.numeric(NA)
-    metadata[[label]][metadata$id %in% entities] <- clusters
+    metadata[[label]][match(clusters$names, metadata$id)] <- clusters$membership
   } else {
     metadata_clusters <- NA
     metadata[[label]] <- metadata_clusters
-    metadata[entities,][[label]] <- clusters
+    metadata[clusters$names,][[label]] <- clusters$membership
   }
   Metadata(object) <- metadata
 
@@ -166,4 +170,18 @@ getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters"
   return(object)
 }
 
+#' @noRd
+correct_low_abundant_clusters <- function(object_graph, clusters, abundance_limit){
+
+  # cluster abundances
+  cluster_abundance <- table(clusters$membership)
+  
+  # check if some clusters are low in abundance
+  ind <- cluster_abundance < abundance_limit
+  if(any(ind)){
+    low_abundant_clusters <- names(cluster_abundance)[ind]
+    clusters$membership[clusters$membership %in% low_abundant_clusters] <- NA
+  } 
+  return(clusters)
+}
 

@@ -221,9 +221,13 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
   } else if(!is.null(assays)){
     assay_names <- unique(lapply(slotToList(object), function(x) {
       if(inherits(x, "data.table")){
-        unique(x$assay_id)
+        return(unique(as.vector(x$assay_id)))
       } else {
-        unique(stringr::str_extract(rownames(x), "Assay[0-9]+"))
+        if(!is.null(rownames(x))){
+          return(unique(stringr::str_extract(rownames(x), "Assay[0-9]+")))
+        } else {
+          return(unique(stringr::str_extract(as.vector(x$id), "Assay[0-9]+"))) 
+        }
       }
     }))
     assay_names <- unique(do.call(c,assay_names))

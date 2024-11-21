@@ -126,12 +126,6 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 
     # get assay
     cur_assay <- object[[assy]]
-    # if(inherits(metadata, 'data.table')){
-    #   cur_metadata <- metadata[assay_id == assy,]
-    # } else {
-    #   assy_id <- paste0(assy,"$")
-    #   cur_metadata <- metadata[grepl(assy_id, rownames(metadata)),]
-    # }
     cur_metadata <- subset_metadata(metadata, assays = assy)
 
     # get graph
@@ -236,7 +230,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     }
     
     if(!is.null(image)){
-      # info <- magick::image_info(image)
       info <- getImageInfo(image)
       if(info$width > 1000 && scale.image){
         image <- resize_Image(image, geometry = "1000x")
@@ -267,7 +260,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     stop("The column '", group.by, "' was not found in the metadata!")
   if(inherits(metadata, "data.table")){
     cur_group.by <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
-    # names(cur_group.by) <- names(metadata)
     names(cur_group.by) <- metadata$id
   } else {
     cur_group.by <- metadata[,group.by]
@@ -321,6 +313,9 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       }
     }
   }
+  
+  # set colors
+  names_colors <- factor(names(colors))
 
   # visualize based on points type
   if(vrAssayTypes(assay) == "ROI"){
@@ -343,17 +338,17 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     }
     if(!is.null(polygon_data)){
       g <- g +
-        geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha)
+        geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha, show.legend = TRUE)
     }
     if(!is.null(circle_data)){
       if(!requireNamespace('ggforce'))
-        stop("Please install ggforce package!")
+        stop("Please install ggforce package!: install.packages('ggforce')")
       g <- g +
         ggforce::geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0,
-                                  fill = group.by, group = segment), data = circle_data, lwd = 0, alpha = alpha)
+                                  fill = group.by, group = segment), data = circle_data, lwd = 0, alpha = alpha, show.legend = TRUE)
     }
     g <- g +
-      scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors), 
+      scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, 
                         guide = guide_legend(override.aes = list(alpha = 1))) +
       guides(fill = guide_legend(title = group.by))
 
@@ -369,7 +364,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       spot.type <- vrAssayParams(assay, param = "spot.type")
       spot.type <- ifelse(is.null(spot.type), "circle", spot.type)
       g <- g +
-        geom_spot(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]]), coords, shape = 21, alpha = alpha,
+        geom_spot(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]]), coords, shape = 21, alpha = alpha, show.legend = TRUE,
                   spot.radius = vrAssayParams(assay, param = "vis.spot.radius")/scale_factors,
                   spot.type = spot.type)
       
@@ -378,10 +373,10 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         g <- g + addGraph(graph, coords, background)
       }
     }
-    
+
     # style, color and text
     g <- g + 
-      scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
+      scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
 
   # cell visualization
@@ -397,8 +392,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
           len_segments <- sapply(segments, nrow, simplify = TRUE)
           polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), group.by = rep(cur_group.by, len_segments))
           g <- g +
-            geom_polygon(aes(x = .data[["x"]], y = .data[["y"]], fill = .data[["group.by"]], group = segment), data = polygon_data, alpha = alpha) +
-            scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
+            geom_polygon(aes(x = .data[["x"]], y = .data[["y"]], fill = .data[["group.by"]], group = segment), data = polygon_data, alpha = alpha, show.legend = TRUE) +
+            scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors) +
             guides(fill = guide_legend(title = group.by))
         }
       } else {
@@ -411,13 +406,13 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         } else {
           g <- g +
             geom_point(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]], color = .data[[group.by]]),
-                       coords, shape = cell.shape, size = rel(pt.size), alpha = alpha)
+                       coords, shape = cell.shape, size = rel(pt.size), alpha = alpha, show.legend = TRUE)
         }
         
         # style, color and text
         g <- g +
-          scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
-          scale_color_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
+          scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors) +
+          scale_color_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors) +
           guides(color = guide_legend(override.aes=list(size = legend.pt.size))) + 
           theme(legend.text=element_text(size=legend.text.size), legend.title=element_text(size=legend.text.size))
         
@@ -437,11 +432,11 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     } else {
       g <- g +
         geom_point(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]], color = .data[[group.by]]),
-                   coords, shape = cell.shape, size = rel(pt.size), alpha = alpha)
+                   coords, shape = cell.shape, size = rel(pt.size), alpha = alpha, show.legend = TRUE)
     }
     g <- g +
-      scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
-      scale_color_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
+      scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors) +
+      scale_color_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors) +
       guides(color = guide_legend(override.aes=list(size = legend.pt.size))) +
       theme(legend.text=element_text(size=legend.text.size), legend.title=element_text(size=legend.text.size))
 
@@ -543,7 +538,6 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
         data <- vrData(object[[assy]], features = feat, norm = norm)
         if(log)
           data <- log(data)
-        # return(range(data, na.rm = TRUE, finite = TRUE))
         return(getRange(data, na.rm = TRUE, finite = TRUE))
       } else {
         metadata <- Metadata(object, assay = assy)
@@ -555,7 +549,7 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
       }
     }, assay_names)
     if(keep.scale == "all"){
-      range_feat_all <- c(do.call(getMin, range_feat), do.call(getMax, range_feat))
+      range_feat_all <- c(do.call(min, range_feat), do.call(max, range_feat))
       range_feat <- Map(function(assy) return(range_feat_all), assay_names)
     }
     if(!keep.scale %in% c("all", "feature")){
@@ -801,7 +795,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
     }
     if(!is.null(circle_data)){
       if(!requireNamespace('ggforce'))
-        stop("Please install ggforce package!")
+        stop("Please install ggforce package!: install.packages('ggforce')")
       g <- g +
         ggforce::geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0,
                          fill = score, group = segment), data = circle_data, lwd = 0, alpha = alpha)
@@ -1255,7 +1249,7 @@ vrNeighbourhoodEnrichmentPlot <- function(results, assay = NULL, type = c("assoc
   
   # check Seurat package
   if(!requireNamespace('circlize'))
-    stop("Please install circlize package for coloring the Heatmap")
+    stop("Please install circlize package for coloring the Heatmap!: install.packages('circlize')")
   
   # get assay names
   if(!is.null(assay)){
@@ -1453,7 +1447,6 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
     guides(color = guide_legend(override.aes=list(size = 2)))
 
   # more visualization parameters
-  # g <- g + addEmbeddingPlotStyle(embedding)
   g <- g + 
     theme_classic() + 
     xlab(paste0(toupper(embedding), "_1")) + ylab(paste0(toupper(embedding), "_2")) + 
@@ -1465,8 +1458,6 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
   if(label){
     datax_group <- stats::aggregate(datax[,c("x","y")], list(datax[[group.by]]),mean)
     colnames(datax_group) <- c(group.by, "x", "y")
-    # g <- g +
-    #   geom_text(mapping = aes_string(x = "x", y = "y", label = group.by), datax_group, size = font.size)
     g <- g +
       geom_text(mapping = aes(x = .data[["x"]], y = .data[["y"]], label = .data[[group.by]]), datax_group, size = font.size)
   }
@@ -1550,11 +1541,9 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, c
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
     if(feat %in% vrFeatures(object, assay = assay)){
-      # return(range(normdata[feat, ]))
       return(getRange(normdata[feat, ]))
     } else {
       if(feat %in% colnames(metadata)){
-        # return(range(metadata[,feat]))
         return(getRange(metadata[, feat]))
       } else {
         stop("Feature '", feat, "' cannot be found in data or metadata!")
@@ -1845,9 +1834,9 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
                           outlier.quantile = 0.99, highlight.some = FALSE, n_highlight = 30, font.size = 13.2, seed = 1, ...){
 
   if (!requireNamespace('ComplexHeatmap'))
-    stop("Please install ComplexHeatmap package to use the Heatmap function")
+    stop("Please install ComplexHeatmap package to use the Heatmap function!: BiocManager::install('ComplexHeatmap')")
   if (!requireNamespace('viridisLite'))
-    stop("Please install viridisLite package to use the Heatmap function")
+    stop("Please install viridisLite package to use the Heatmap function!: install.packages('viridisLite')")
   
   # check object
   if(!inherits(object, "VoltRon"))
