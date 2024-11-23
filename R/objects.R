@@ -1505,11 +1505,12 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
 #' @export
 "Metadata<-.VoltRon" <- function(object, assay = NULL, type = NULL, value) {
 
-  if(!is.data.frame(value))
+  if(!is.data.frame(value) && !inherits(value, c("HDF5DataFrame", "ZarrDataFrame", "DataFrame")))
     stop("The new or updated metadata has to be a data frame")
 
-  if(is.null(rownames(value)))
-    stop("The new metadata should have row names to match its rows with the existing one")
+  `%notin%` <- Negate(`%in%`)
+  if(is.null(rownames(value)) && "id" %notin% colnames(value))
+    stop("The new metadata should have row names or a column called 'id' to match its rows with the existing one")
 
   if(is.null(type)){
     type <- unique(vrAssayTypes(object, assay = assay))
@@ -1523,10 +1524,9 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
 
   # get metadata
   metadata <- slot(object@metadata, name = type)
-  # cur_metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assay_names, ]
 
-  # if(type %in% slotNames(object@metadata)){
-  if(type %in% c("ROI", "cell", "spot")){
+  # if(type %in% c("ROI", "cell", "spot")){
+  if(!is.null(rownames(metadata))){
 
     # replace the metadata (or some part of it) with the new value
     if(length(setdiff(rownames(value), rownames(metadata))) == 0){
@@ -1558,7 +1558,8 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
       stop("Some rows of new data frame are not available in the metadata")
     }
 
-  } else if(type %in% c("tile", "molecule")){
+  # } else if(type %in% c("tile", "molecule")){
+  } else if("id" %in% colnames(metadata)){
 
     # replace the metadata (or some part of it) with the new value
     if(length(setdiff(value$id, metadata$id)) == 0){
@@ -1584,7 +1585,6 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
       }
 
       # replace data
-      # metadata[id %in% value$id, names(metadata):=value]
       metadata <- value
       slot(object@metadata, name = type) <- metadata
 
@@ -1593,7 +1593,8 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
     }
 
   } else {
-    stop("Please provide one of three assay types: 'ROI', 'cell', 'spot'.")
+    # stop("Please provide one of three assay types: 'ROI', 'cell', 'spot'.")
+    stop("The metadata should either have rownames or a column called 'id'!")
   }
   
   return(object)

@@ -130,3 +130,24 @@ test_that("embeddings", {
   
   expect_equal(1,1L)
 })
+
+test_that("visualization", {
+  
+  # get data
+  data("visium_data")
+  
+  # HDF5
+  visium_data2 <- saveVoltRon(visium_data, 
+                              output = output_h5ad, 
+                              format = "HDF5VoltRon", 
+                              replace = TRUE)
+
+  # check embeddings
+  vrSpatialPlot(visium_data2, group.by = "Sample")
+  vrSpatialFeaturePlot(visium_data2, features = "Count")
+  
+  # remove files
+  unlink(output_h5ad, recursive = TRUE)
+  
+  expect_equal(1,1L)
+})

@@ -266,7 +266,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     if(!is.null(rownames(metadata))){
       names(cur_group.by) <- rownames(metadata)
     } else {
-      names(cur_group.by) <- metadata$id
+      names(cur_group.by) <- as.vector(metadata$id)
     }
   }
   
@@ -288,7 +288,9 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   
   # merge matrices
   coords <- as.matrix(coords)
-  coords <- data.frame(coords, cur_group.by)
+  # coords <- data.frame(coords, cur_group.by)
+  coords <- data.frame(coords, cur_group.by[rownames(coords), drop = FALSE])
+  
   colnames(coords)[length(colnames(coords))] <- group.by
   
   # set up the limits
@@ -538,11 +540,13 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
         data <- vrData(object[[assy]], features = feat, norm = norm)
         if(log)
           data <- log(data)
-        return(getRange(data, na.rm = TRUE, finite = TRUE))
+        # return(getRange(data, na.rm = TRUE, finite = TRUE))
+        return(getRange(data, na.rm = TRUE))
       } else {
         metadata <- Metadata(object, assay = assy)
         if(feat %in% colnames(metadata)){
-          return(getRange(metadata[,feat], na.rm = TRUE, finite = TRUE))
+          # return(getRange(metadata[,feat], na.rm = TRUE, finite = TRUE))
+          return(getRange(metadata[,feat], na.rm = TRUE))
         } else {
           stop("Feature '", feat, "' cannot be found in data or metadata!")
         }
@@ -573,7 +577,9 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
 
     # get assay
     cur_assay <- object[[assy]]
-    cur_metadata <- metadata[grepl(paste0(assy, "$"), rownames(metadata)),]
+    # cur_metadata <- metadata[grepl(paste0(assy, "$"), rownames(metadata)),]
+    cur_metadata <- subset_metadata(metadata, assays = assy)
+    
     p_title <- plot_title[[assy]]
     
     # get graph
@@ -739,12 +745,16 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
     }
   } else {
     cur_score <- metadata[,feature]
-    names(cur_score) <- rownames(metadata)
+    if(!is.null(rownames(metadata))){
+      names(cur_score) <- rownames(metadata)
+    } else {
+      names(cur_score) <- as.vector(metadata$id)
+    }
   }
   
   # merge matrices
   coords <- as.matrix(coords)
-  coords <- data.frame(coords, cur_score[rownames(coords)])
+  coords <- data.frame(coords, cur_score[rownames(coords), drop = FALSE])
   colnames(coords)[length(colnames(coords))] <- "score"
 
   # get image information and plotting features
@@ -1359,13 +1369,14 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
   metadata <- Metadata(object, assay = assay)
 
   # grep assays from metadata
-  assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
-  if(inherits(metadata, "data.table")){
-    metadata <- subset(metadata, subset = assay_id %in% assay_names)
-  } else {
-    assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
-    metadata <- metadata[grepl(assy_id, rownames(metadata)),]
-  }
+  # assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
+  # if(inherits(metadata, "data.table")){
+  #   metadata <- subset(metadata, subset = assay_id %in% assay_names)
+  # } else {
+  #   assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
+  #   metadata <- metadata[grepl(assy_id, rownames(metadata)),]
+  # }
+  metadata <- subset_metadata(metadata, assays = assay_names)
 
   # check group.by 
   if(!group.by %in% colnames(metadata)){
@@ -1405,7 +1416,11 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
     if(inherits(metadata, "data.table")){
       datax[[group.by]] <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
     } else {
-      datax[[group.by]] <- as.factor(metadata[rownames(datax),group.by])
+      if(!is.null(rownames(metadata))){
+        datax[[group.by]] <- as.factor(metadata[rownames(datax),group.by])
+      } else{
+        datax[[group.by]] <- as.factor(as.vector(metadata[match(rownames(datax), as.vector(metadata$id)),group.by]))
+      }
     }
   } else {
     stop("Column ", group.by, " cannot be found in metadata!")

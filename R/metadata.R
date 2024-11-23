@@ -662,13 +662,18 @@ updateMetadataAssay <- function(object1, object2){
   replacement <- paste0("Assay", 1:length(assaytype))
   object1 <- lapply(object_list, function(obj) {
     if(nrow(obj) > 0){
+      
       if(inherits(obj, "data.table")){
+        
+        # change assay id
         temp <- obj$assay_id
         for(i in 1:length(assaytype))
           temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
         obj$assay_id <- temp
         return(obj)
+        
       } else if(inherits(obj, c("HDF5DataFrame", "ZarrDataFrame"))){
+        
         # change assay id
         if("assay_id" %in% colnames(obj)){
           temp <- as.vector(obj$assay_id)
@@ -676,6 +681,7 @@ updateMetadataAssay <- function(object1, object2){
             temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
           obj$assay_id <- temp
         }
+        
         # change id
         temp <- as.vector(obj$id)
         for(i in 1:length(assaytype)){
@@ -684,14 +690,19 @@ updateMetadataAssay <- function(object1, object2){
                  obj$id[grepl(paste0(assaytype[i],"$"),  obj$id)])
         }
         obj$id <- temp
+        
         return(obj)
       } else {
+        
+        # change rownames
         temp <- rownames(obj)
         for(i in 1:length(assaytype))
           temp[grepl(paste0(assaytype[i],"$"), rownames(obj))] <- 
             gsub(paste0(assaytype[i],"$"), replacement[i],
                  rownames(obj)[grepl(paste0(assaytype[i],"$"), rownames(obj))])
         rownames(obj) <- temp
+        
+        # change assay id
         if("assay_id" %in% colnames(obj)){
           temp <- obj$assay_id
           for(i in 1:length(assaytype))
@@ -733,12 +744,16 @@ updateMetadataAssay <- function(object1, object2){
   object2 <- lapply(object_list, function(obj) {
     if(nrow(obj) > 0){
       if(inherits(obj, "data.table")){
+        
+        # change assay id
         temp <- obj$assay_id
         for(i in 1:length(assaytype))
           temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
         obj$assay_id <- temp
+        
         return(obj)
       } else if(inherits(obj, c("HDF5DataFrame", "ZarrDataFrame"))){
+        
         # change assay id
         if("assay_id" %in% colnames(obj)){
           temp <- as.vector(obj$assay_id)
@@ -746,6 +761,7 @@ updateMetadataAssay <- function(object1, object2){
             temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
           obj$assay_id <- temp
         }
+        
         # change id
         temp <- as.vector(obj$id)
         for(i in 1:length(assaytype)){
@@ -754,14 +770,28 @@ updateMetadataAssay <- function(object1, object2){
                  obj$id[grepl(paste0(assaytype[i],"$"), obj$id)])
         }
         obj$id <- temp
+        
         return(obj)
       } else {
+        
+        # change row names
         temp <- rownames(obj)
         for(i in 1:length(assaytype))
           temp[grepl(paste0(assaytype[i],"$"), rownames(obj))] <- 
             gsub(paste0(assaytype[i],"$"), replacement[i],
                  rownames(obj)[grepl(paste0(assaytype[i],"$"), rownames(obj))])
         rownames(obj) <- temp
+        
+        # change id
+        temp <- obj$id
+        for(i in 1:length(assaytype)){
+          temp[grepl(paste0(assaytype[i],"$"), obj$id)] <- 
+            gsub(paste0(assaytype[i],"$"), replacement[i], 
+                 obj$id[grepl(paste0(assaytype[i],"$"), obj$id)])
+        }
+        obj$id <- temp
+        
+        # change assay id
         if("assay_id" %in% colnames(obj)){
           temp <- obj$assay_id
           for(i in 1:length(assaytype))

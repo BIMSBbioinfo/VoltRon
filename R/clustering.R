@@ -158,7 +158,7 @@ getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters"
   # if(inherits(metadata, "data.table")){
   if(is.null(rownames(metadata))){
     metadata[[label]] <- as.numeric(NA)
-    metadata[[label]][match(clusters$names, metadata$id)] <- clusters$membership
+    metadata[[label]][match(clusters$names, as.vector(metadata$id))] <- clusters$membership
   } else {
     metadata_clusters <- NA
     metadata[[label]] <- metadata_clusters

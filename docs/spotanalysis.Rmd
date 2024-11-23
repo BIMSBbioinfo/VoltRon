@@ -326,18 +326,10 @@ vrEmbeddingPlot(MBrain_Sec, embedding = "umap", group.by = "Clusters")
 <br>
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(MBrain_Sec, assay = "Assay1", group.by = "Clusters")
-vrSpatialPlot(MBrain_Sec, assay = "Assay2", group.by = "Clusters")
+vrSpatialPlot(MBrain_Sec, group.by = "Clusters")
 ```
 
-<table>
-<tbody>
-  <tr style = "vertical-align: center">
-  <td style = "width:50%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters1.png" class="center"></td>
-  <td style = "width:50%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters2.png" class="center"></td>
-  </tr>
-</tbody>
-</table>
+<img width="65%" height="65%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters1.png" class="center">
 
 <br>
 
@@ -361,12 +353,6 @@ coordinates <- as.matrix(IFdata[,c("posX","posY")], rownames.force = TRUE)
 <br>
 
 ## Importing MELC data
-
-<!-- First, we normalize the data using the hyperbolic arcsine function with a scale argument of 0.2. -->
-
-<!-- ```{r eval = FALSE, class.source="watch-out", fig.align='center'} -->
-<!-- data <- asinh(data/0.2) -->
-<!-- ``` -->
 
 Before analyzing MELC assays across FOVs, we should **build a VoltRon object** for each individual FOV/Section by using the **formVoltron** function. We then merge these sections to respective tissue blocks by defining their samples of origins. We can also define **assay names**, **assay types** and **sample (i.e. block) names** of these objects. 
 

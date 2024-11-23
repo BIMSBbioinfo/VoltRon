@@ -13,7 +13,7 @@
 
 <title>Cell/Spot Analysis</title>
 
-<script src="site_libs/header-attrs-2.28/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -35,8 +35,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -733,18 +733,15 @@ vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;Clust
 <p><br></p>
 <pre class="r watch-out"><code>vrSpatialPlot(MBrain_Sec, assay = &quot;Assay1&quot;, group.by = &quot;Clusters&quot;)
 vrSpatialPlot(MBrain_Sec, assay = &quot;Assay2&quot;, group.by = &quot;Clusters&quot;)</code></pre>
-<table>
-<tbody>
-<tr style="vertical-align: center">
-<td style="width:50%; vertical-align: center">
-<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters1.png" class="center">
-</td>
-<td style="width:50%; vertical-align: center">
-<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters2.png" class="center">
-</td>
-</tr>
-</tbody>
-</table>
+<p><img width="65%" height="65%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters1.png" class="center"></p>
+<!-- <table> -->
+<!-- <tbody> -->
+<!--   <tr style = "vertical-align: center"> -->
+<!--   <td style = "width:50%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters1.png" class="center"></td> -->
+<!--   <td style = "width:50%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters2.png" class="center"></td> -->
+<!--   </tr> -->
+<!-- </tbody> -->
+<!-- </table> -->
 <p><br></p>
 </div>
 </div>
@@ -778,10 +775,6 @@ coordinates &lt;- as.matrix(IFdata[,c(&quot;posX&quot;,&quot;posY&quot;)], rowna
 <p><br></p>
 <div id="importing-melc-data" class="section level2">
 <h2>Importing MELC data</h2>
-<!-- First, we normalize the data using the hyperbolic arcsine function with a scale argument of 0.2. -->
-<!-- ```{r eval = FALSE, class.source="watch-out", fig.align='center'} -->
-<!-- data <- asinh(data/0.2) -->
-<!-- ``` -->
 <p>Before analyzing MELC assays across FOVs, we should <strong>build a
 VoltRon object</strong> for each individual FOV/Section by using the
 <strong>formVoltron</strong> function. We then merge these sections to
