@@ -320,12 +320,12 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     }
     if(!is.null(polygon_data)){
       g <- g +
-        geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha)
+        geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha, show.legend = TRUE)
     }
     if(!is.null(circle_data)){
       g <- g +
         ggforce::geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0,
-                                  fill = group.by, group = segment), data = circle_data, lwd = 0, alpha = alpha)
+                                  fill = group.by, group = segment), data = circle_data, lwd = 0, alpha = alpha, show.legend = TRUE)
     }
     g <- g +
       scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors), 
@@ -335,7 +335,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   # spot visualization
   } else if(vrAssayTypes(assay) == "spot"){
     g <- g +
-      geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, 
+      geom_spot(mapping = aes_string(x = "x", y = "y", fill = group.by), coords, shape = 21, alpha = alpha, show.legend = TRUE,
                 spot.radius = vrAssayParams(assay, param = "vis.spot.radius")/scale_factors) +
       scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
@@ -358,7 +358,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
           len_segments <- sapply(segments, nrow, simplify = TRUE)
           polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), group.by = rep(coords[[group.by]], len_segments))
           g <- g +
-            geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha) +
+            geom_polygon(aes(x = x, y = y, fill = group.by, group = segment), data = polygon_data, alpha = alpha, show.legend = TRUE) +
             scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
             guides(fill = guide_legend(title = group.by))
         }
@@ -371,7 +371,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
           g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha)
         } else {
           g <- g +
-            geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha) 
+            geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha, show.legend = TRUE) 
         }
         
         # style, color and text
@@ -396,7 +396,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha)
     } else {
       g <- g +
-        geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha)
+        geom_point(mapping = aes_string(x = "x", y = "y", fill = group.by, color = group.by), coords, shape = cell.shape, size = rel(pt.size), alpha = alpha, show.legend = TRUE)
     }
     g <- g +
       scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
