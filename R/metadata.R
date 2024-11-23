@@ -692,6 +692,12 @@ updateMetadataAssay <- function(object1, object2){
             gsub(paste0(assaytype[i],"$"), replacement[i],
                  rownames(obj)[grepl(paste0(assaytype[i],"$"), rownames(obj))])
         rownames(obj) <- temp
+        if("assay_id" %in% colnames(obj)){
+          temp <- obj$assay_id
+          for(i in 1:length(assaytype))
+            temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
+          obj$assay_id <- temp
+        }
         return(obj)
       }
     } else {
@@ -756,6 +762,12 @@ updateMetadataAssay <- function(object1, object2){
             gsub(paste0(assaytype[i],"$"), replacement[i],
                  rownames(obj)[grepl(paste0(assaytype[i],"$"), rownames(obj))])
         rownames(obj) <- temp
+        if("assay_id" %in% colnames(obj)){
+          temp <- obj$assay_id
+          for(i in 1:length(assaytype))
+            temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
+          obj$assay_id <- temp
+        }
         obj
       }
     } else {
@@ -854,7 +866,6 @@ vrSampleNames.vrMetadata <- function(object){
 #' @importFrom methods new
 #'
 #' @noRd
-# setVRMetadata <- function(molecule, cell, spot, ROI, tile){
 setVRMetadata <- function(metadata, data, entityID, main.assay, assay.type, sample_name, layer_name, version){
   
   if(is.null(metadata)){
