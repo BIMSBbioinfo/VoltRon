@@ -526,7 +526,7 @@ import10Xh5 <- function(filename){
 #' @export
 #'
 importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetName, assay_name = "GeoMx",
-                        image = NULL, segment_polygons = FALSE, ome.tiff = NULL, resolution_level = 3, ...)
+                        image = NULL, segment_polygons = FALSE, ome.tiff = NULL, resolution_level = 3, image_name = "main", ...)
 {
   # Get pkc file
   if(file.exists(pkc.file)){
@@ -640,7 +640,7 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
 
   # create VoltRon for non-negative probes
   object <- formVoltRon(rawdata, metadata = segmentsummary, image, coords, segments, main.assay = assay_name, assay.type = "ROI", 
-                        feature_name = "RNA", ...)
+                        feature_name = "RNA", image_name = image_name, ...)
   
   # add negative probe assay as new feature set
   object <- addFeature(object, assay = assay_name, data = rawdata_neg, feature_name = "NegProbe")

@@ -437,7 +437,7 @@ vrBarPlot(GeoMxR1_subset, features = c("stromal", "macrophages"), group.by = "Sa
 
 ## H&E Image Integration
 
-Questions may arise when these ROI that are initially annotated as fibrotic regions may in fact be fibrotic. VoltRon provides advanced image registration workflows which we can use to H&E images of from the same TMA blocks where GeoMx slides were established.
+Questions may arise if in fact these ROIs are fibrotic even though they were initially annotated as fibrotic regions. VoltRon provides advanced image registration workflows which we can use to H&E images of from the same TMA blocks where GeoMx slides were established.
 
 We first import the H&E image of the prolonged case 4 TMA section using the **importImageData** function. This will import the H&E image as a standalone VoltRon object. For more information on image-based VoltRon objects, see the [Downstream analysis of Pixels](pixelanalysis.html) section.
 
@@ -452,7 +452,9 @@ vrImages(vrHEimage, scale.perc = 40)
 
 <br>
 
-We can now register the GeoMx slide with the newly imported H&E based VoltRon object. Since two images are associated with TMA sections that are not adjacent, we have to rely on the localization of vessels visible in both images for alignment. VoltRon allows manipulating multiple channels of an image object two choose the best background image for manual landmark selection. For more information on both manual and automated registration of VoltRon objects, see [here](registration.html).
+We can now register the GeoMx slide with the newly imported H&E based VoltRon object. Since two images are associated with TMA sections that are not adjacent, we have to rely on the localization of vessels visible in both images for alignment. VoltRon allows manipulating multiple channels of an image object two choose the best background image for manual landmark selection. For more information on both manual and automated registration of VoltRon objects, see [here](registration.html). 
+
+VoltRon provides multiple registration methods to align images. Here, after running the **registerSpatialData** function, we choose the **Homography + Non-rigid (TPS)** method which utilizes a perspective transformation on the H&E image followed by a thin plate spline (TPS) alignment. The perspective transformation performs a global alignment between the H&E image and the main GeoMx image (here the scan image with combined antibody channels), and the TPS method allows correct local deformations between the perspective transformed H&E image and the GeoMx image for a more accurate
 
 ```{r eval = FALSE, class.source="watch-out"}
 GeoMxR1_subset <- subset(GeoMxR1, sample = c("prolonged case 4"))
@@ -466,13 +468,13 @@ The result of the registration is a list of registered VoltRon objects which we 
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrHEimage_reg <- GeoMxReg$registered_spat[[2]]
-vrImages(GeoMxR1_subset[["Assay1"]], name = "image_1", channel = "H&E") <- vrImages(vrHEimage_reg, name = "H&E_reg")
+vrImages(GeoMxR1_subset[["Assay1"]], name = "main", channel = "H&E") <- vrImages(vrHEimage_reg, name = "H&E_reg")
 ```
 
-We can now visualize the ROIs and their annotations where the registered H&E visible in the background. We define the image key **image_1** and the channel name **H&E**. 
+We can now visualize the ROIs and their annotations where the registered H&E visible in the background. We define the spatial key **main** and the channel name **H&E**. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(GeoMxR1_subset, group.by = "ROI.type", alpha = 0.7, background = c("image_1", "H&E"))
+vrSpatialPlot(GeoMxR1_subset, group.by = "ROI.type", alpha = 0.7, background = c("main", "H&E"))
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_spatialplot_withHE.png" class="center">
@@ -480,7 +482,7 @@ vrSpatialPlot(GeoMxR1_subset, group.by = "ROI.type", alpha = 0.7, background = c
 Interactive Visualization can also be used to zoom in to ROIs and investigate the pathology associated with GeoMx ROIs labeled as fibrotic. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(GeoMxR1_subset, group.by = "ROI.type", alpha = 0.7, background = c("image_1", "H&E"), interactive = TRUE)
+vrSpatialPlot(GeoMxR1_subset, group.by = "ROI.type", alpha = 0.7, background = c("main", "H&E"), interactive = TRUE)
 ```
 
 <img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_spatialplot_withHE_interactive.png" class="center">
