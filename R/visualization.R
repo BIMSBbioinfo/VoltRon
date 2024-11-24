@@ -2075,7 +2075,6 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
   if(unique(assay_types) %in% c("spot","cell")){
     stop("vrBarPlot can only be used for ROI assays")
   } else {
-    # metadata <- Metadata(object, assay = assay, type = "ROI")
     metadata <- Metadata(object, type = "ROI")
     metadata <- subset_metadata(metadata, assays = assay_names)
   }
