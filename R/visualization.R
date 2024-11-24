@@ -577,7 +577,6 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
 
     # get assay
     cur_assay <- object[[assy]]
-    # cur_metadata <- metadata[grepl(paste0(assy, "$"), rownames(metadata)),]
     cur_metadata <- subset_metadata(metadata, assays = assy)
     
     p_title <- plot_title[[assy]]
@@ -2079,8 +2078,6 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
     # metadata <- Metadata(object, assay = assay, type = "ROI")
     metadata <- Metadata(object, type = "ROI")
     metadata <- subset_metadata(metadata, assays = assay_names)
-    # assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
-    # metadata <- metadata[grepl(assy_id, rownames(metadata)),]
   }
 
   # get feature data
@@ -2102,7 +2099,11 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 
   # labels and groups
   if(is.null(x.label)) {
-    x.labels <- factor(rownames(metadata))
+    if(is.null(rownames(metadata))){
+      x.labels <- factor(metadata$id)
+    } else {
+      x.labels <- factor(rownames(metadata))
+    }
   } else {
     if(x.label %in% colnames(metadata)){
       x.labels <- factor(as.vector(metadata[[x.label]]))
@@ -2216,26 +2217,39 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
   if(unique(assay_types) %in% c("spot","cell")){
     stop("vrProportionPlot can only be used for ROI assays")
   } else {
-    # metadata <- Metadata(object, assay = assay, type = "ROI")
     metadata <- Metadata(object, type = "ROI")
-    assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
-    metadata <- metadata[grepl(assy_id, rownames(metadata)),]
+    metadata <- subset_metadata(metadata, assay = assay_names)
   }
 
   # violin plot
-  assays <- stringr::str_extract(rownames(metadata), "Assay[0-9]+$")
+  assays <- stringr::str_extract(vrSpatialPoints(object, assay = assay_names), "Assay[0-9]+$")
   assay_title <- apply(sample.metadata[assays,], 1, function(x) paste(x["Sample"], x["Layer"], x["Assay"], sep = "|"))
-
+  
+  # labels and groups
   if(is.null(x.label)) {
-    x.label <- factor(rownames(metadata))
+    if(is.null(rownames(metadata))){
+      x.labels <- factor(metadata$id)
+    } else {
+      x.labels <- factor(rownames(metadata))
+    }
   } else {
-    x.label <- factor(metadata[[x.label]])
+    if(x.label %in% colnames(metadata)){
+      x.labels <- factor(as.vector(metadata[[x.label]]))
+    } else {
+      stop("Column '", x.label, "' cannot be found in metadata!")
+    }
   }
-
+  
+  # plotting data
+  if(!is.null(rownames(metadata))){
+    spatialpoints <- rownames(metadata) 
+  } else {
+    spatialpoints <- metadata$id
+  }
   ggplotdatax <- data.frame(t(barplotdata),
                             x.label =  x.label,
                             assay_title = assay_title,
-                            spatialpoints = rownames(metadata))
+                            spatialpoints = spatialpoints)
   ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "spatialpoints"))
   ggplotdatax <- ggplotdatax[ggplotdatax$value > 0,]
   gg <- ggplot(ggplotdatax, aes(x = x.label, y = value, fill = variable)) +
@@ -2268,7 +2282,7 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
                               x.label =  x.label,
                               assay_title = assay_title,
                               split.by = split.by.col,
-                              spatialpoints = rownames(metadata))
+                              spatialpoints = spatialpoints)
     ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "split.by", "spatialpoints"))
     ggplotdatax <- ggplotdatax[ggplotdatax$value > 0,]
     gg <- ggplot(ggplotdatax, aes(x = x.label, y = value, fill = variable)) +
@@ -2306,8 +2320,6 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
 #'
 #' @noRd
 vrGroupPlotTiling <- function(g, data, group.by, n.tile, alpha = 1){
-  # g + stat_bin_2d(mapping = aes_string(x = "x", y = "y", fill = group.by), 
-  #                 data = data, bins = n.tile, drop = TRUE, alpha = alpha)
   g + stat_bin_2d(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]]),
                   data = data, bins = n.tile, drop = TRUE, alpha = alpha)
 }
