@@ -646,7 +646,7 @@ updateMetadataAssay <- function(object1, object2){
   assaytype <- unlist(lapply(object_list, function(obj) {
     if(inherits(obj, "data.table")){
       unique(obj$assay_id)
-    } else if(inherits(obj, c("HDF5DataFrame", "ZarrDataFrame"))){
+    } else if(inherits(obj, c("HDF5DataFrame", "ZarrDataFrame", "DataFrame"))){
       if("assay_id" %in% colnames(obj)){
         unique(as.vector(obj$assay_id))
       } else {
@@ -672,7 +672,7 @@ updateMetadataAssay <- function(object1, object2){
         obj$assay_id <- temp
         return(obj)
         
-      } else if(inherits(obj, c("HDF5DataFrame", "ZarrDataFrame"))){
+      } else if(inherits(obj, c("HDF5DataFrame", "ZarrDataFrame", "DataFrame"))){
         
         # change assay id
         if("assay_id" %in% colnames(obj)){
@@ -727,7 +727,7 @@ updateMetadataAssay <- function(object1, object2){
   assaytype <- unlist(lapply(object_list, function(obj) {
     if(inherits(obj, "data.table")){
       unique(obj$assay_id)
-    } else if(inherits(obj, c("HDF5DataFrame", "ZarrDataFrame"))){
+    } else if(inherits(obj, c("HDF5DataFrame", "ZarrDataFrame", "DataFrame"))){
       if("assay_id" %in% colnames(obj)){
         unique(as.vector(obj$assay_id))
       } else {
@@ -752,7 +752,7 @@ updateMetadataAssay <- function(object1, object2){
         obj$assay_id <- temp
         
         return(obj)
-      } else if(inherits(obj, c("HDF5DataFrame", "ZarrDataFrame"))){
+      } else if(inherits(obj, c("HDF5DataFrame", "ZarrDataFrame", "DataFrame"))){
         
         # change assay id
         if("assay_id" %in% colnames(obj)){

@@ -147,7 +147,7 @@ NULL
 #' @export
 #' @method $<- VoltRon
 #'
-"$<-.VoltRon" <- function(x, i, ..., value) {
+"$<-.VoltRon" <- function(x, i, value) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(x)
@@ -901,8 +901,8 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 
   # subseting based on subset argument
   if (!missing(x = subset)) {
+    # subset_data <- subset
     subset <- rlang::enquo(arg = subset)
-    subset_data <- subset
   }
   if(!missing(subset)){
     metadata <- Metadata(object)
@@ -910,8 +910,9 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
     if(name %in% colnames(metadata)){
       if(inherits(metadata, "data.table")){
         spatialpoints <- metadata$id[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
-      } else if(inherits(metadata, c("HDF5DataaFrame", "ZarrDataFrame", "DataFrame"))){
-        
+      } else if(inherits(metadata, c("HDF5DataFrame", "ZarrDataFrame", "DataFrame"))){
+        stop("Direct subsetting for Ondisk VoltRon objects are currently not possible!")
+        # spatialpoints <- as.vector(metadata$id)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
       } else {
         if(!is.null(rownames(metadata))){
           cur_data <- rownames(metadata)

@@ -20,6 +20,14 @@ getRange <- function(data, ...){
   return(c(getMin(data, ...), getMax(data, ...)))
 }
 
+getColQuantiles <- function(data, desiredQuantile){
+  if(inherits(data, "IterableMatrix")){
+    return(BPCells::colQuantiles(data, probs = desiredQuantile))
+  } else {
+    return(apply(data, 2, function(x) stats::quantile(x, desiredQuantile)))
+  }
+}
+
 
 ####
 # Nanostring Auxiliary tools ####

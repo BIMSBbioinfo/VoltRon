@@ -539,7 +539,7 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
       if(feat %in% vrFeatures(object, assay = assy)){
         data <- vrData(object[[assy]], features = feat, norm = norm)
         if(log)
-          data <- log(data)
+          data <- log1p(data)
         # return(getRange(data, na.rm = TRUE, finite = TRUE))
         return(getRange(data, na.rm = TRUE))
       } else {
@@ -732,7 +732,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   if(length(data_features) > 0){
     normdata <- vrData(assay, features = feature, norm = norm)
     if(log)
-      normdata <- log(normdata)
+      normdata <- log1p(normdata)
   }
 
   # get data
@@ -907,12 +907,10 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   # visualize labels
   if(label){
     if(group.by %in% colnames(metadata)){
-      coords[[group.by]] <- metadata[,group.by]
+      coords[[group.by]] <- as.vector(metadata[,group.by])
     } else {
       stop("The column ", group.by, " was not found in the metadata!")
     }
-    # g <- g + ggrepel::geom_label_repel(mapping = aes_string(x = "x", y = "y", label = group.by), coords,
-    #                             box.padding = 0.5, size = font.size, direction = "both", seed = 1)
     g <- g + ggrepel::geom_label_repel(mapping = aes(x = .data[["x"]], y = .data[["y"]], label = .data[[group.by]]), coords,
                                 box.padding = 0.5, size = font.size, direction = "both", seed = 1)
   }
@@ -951,7 +949,6 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 #'
 #' @import ggplot2
 #' @importFrom ggrepel geom_label_repel
-#' @importFrom ggforce geom_ellipse
 #' @importFrom igraph get.data.frame
 #' @importFrom dplyr arrange
 #'
@@ -976,7 +973,7 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
   if(length(data_features) > 0){
     normdata <- vrData(assay, features = data_features, norm = norm)
     if(log)
-      normdata <- log(normdata)
+      normdata <- log1p(normdata)
   }
   
   # calculate limits for plotting, all for making one scale, feature for making multiple
@@ -1545,7 +1542,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, c
   if(length(data_features) > 0){
     normdata <- vrData(object, features = data_features, assay = assay_names, norm = norm)
     if(log)
-      normdata <- log(normdata)
+      normdata <- log1p(normdata)
   }
 
   # get embedding
@@ -2072,7 +2069,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
   # get data
   barplotdata <- vrData(object, assay = assay, norm = norm)
   if(log)
-    barplotdata <- log(barplotdata)
+    barplotdata <- log1p(barplotdata)
 
   # get entity type and metadata
   assay_types <- vrAssayTypes(object, assay = assay)
@@ -2081,16 +2078,17 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
   } else {
     # metadata <- Metadata(object, assay = assay, type = "ROI")
     metadata <- Metadata(object, type = "ROI")
-    assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
-    metadata <- metadata[grepl(assy_id, rownames(metadata)),]
+    metadata <- subset_metadata(metadata, assays = assay_names)
+    # assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
+    # metadata <- metadata[grepl(assy_id, rownames(metadata)),]
   }
 
   # get feature data
   datax <- lapply(features, function(x){
     if(x %in% rownames(barplotdata)){
-      return(barplotdata[x,])
+      return(as.vector(as(barplotdata[x,], "dgCMatrix")))
     } else if(x %in% colnames(metadata)){
-      return(metadata[,x])
+      return(as.vector(metadata[,x]))
     } else{
       stop("Feature '", x, "' cannot be found in data or metadata!")
     }
@@ -2098,8 +2096,8 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
   datax <- as.data.frame(do.call(cbind, datax))
   colnames(datax) <- features
 
-  # violin plot
-  assays <- stringr::str_extract(rownames(metadata), "Assay[0-9]+$")
+  # get assay titles
+  assays <- stringr::str_extract(vrSpatialPoints(object, assay = assay_names), "Assay[0-9]+$")
   assay_title <- apply(sample.metadata[assays,], 1, function(x) paste(x["Sample"], x["Layer"], x["Assay"], sep = "|"))
 
   # labels and groups
@@ -2107,24 +2105,29 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
     x.labels <- factor(rownames(metadata))
   } else {
     if(x.label %in% colnames(metadata)){
-      x.labels <- factor(metadata[[x.label]])
+      x.labels <- factor(as.vector(metadata[[x.label]]))
     } else {
       stop("Column '", x.label, "' cannot be found in metadata!")
     }
   }
   if(group.by %in% colnames(metadata)){
-    group.by.col <- factor(metadata[[group.by]])
+    group.by.col <- factor(as.vector(metadata[[group.by]]))
   } else {
     stop("Column '", group.by, "' cannot be found in metadata!")
   }
 
   # plotting data
+  if(!is.null(rownames(metadata))){
+    spatialpoints <- rownames(metadata) 
+  } else {
+    spatialpoints <- metadata$id
+  }
   if(is.null(split.by)){
     ggplotdatax <- data.frame(datax,
                               x.label = x.labels,
                               group.by = group.by.col,
                               assay_title = assay_title,
-                              spatialpoints = rownames(metadata))
+                              spatialpoints = spatialpoints)
     ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "group.by", "spatialpoints"))
     gg <- ggplot(ggplotdatax, aes(x = x.label, y = value,
                                   fill = factor(group.by, levels = unique(group.by)))) +
@@ -2145,7 +2148,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 
     # check split.by column name
     if(split.by %in% colnames(metadata)){
-      split.by.col <- factor(metadata[[split.by]])
+      split.by.col <- factor(as.vector(metadata[[split.by]]))
     } else {
       stop("Column '", split.by, "' cannot be found in metadata!")
     }
@@ -2156,7 +2159,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
                               group.by = group.by.col,
                               split.by = split.by.col,
                               assay_title = assay_title,
-                              spatialpoints = rownames(metadata))
+                              spatialpoints = spatialpoints)
     ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "group.by", "split.by", "spatialpoints"))
     gg <- ggplot(ggplotdatax, aes(x = x.label, y = value,
                                   fill = factor(group.by, levels = unique(group.by)))) +

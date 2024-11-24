@@ -13,7 +13,7 @@ saveVoltRon(
   chunkdim = NULL,
   level = NULL,
   as.sparse = NA,
-  verbose = FALSE
+  verbose = TRUE
 )
 }
 \arguments{

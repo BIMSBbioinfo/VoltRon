@@ -14,6 +14,7 @@ importGeoMx(
   segment_polygons = FALSE,
   ome.tiff = NULL,
   resolution_level = 3,
+  image_name = "main",
   ...
 )
 }

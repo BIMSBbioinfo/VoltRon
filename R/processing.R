@@ -49,13 +49,13 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
   if(method == "LogNorm"){
     normdata <- LogNorm(rawdata, coldepth, sizefactor)
   } else if(method == "Q3Norm") {
-    rawdata[rawdata==0] <- 1
-    qs <- apply(rawdata, 2, function(x) stats::quantile(x, desiredQuantile))
-    normdata <- sweep(rawdata, 2L, qs / exp(mean(log(qs))), FUN = "/")
+    # rawdata[rawdata==0] <- 1
+    qs <- getColQuantiles(rawdata, desiredQuantile)
+    normdata <- getDivideSweep(rawdata, qs / exp(mean(log(qs))))
   } else if(method == "LogQ3Norm") {
-    rawdata[rawdata==0] <- 1
-    qs <- apply(rawdata, 2, function(x) stats::quantile(x, desiredQuantile))
-    normdata <- sweep(rawdata, 2L, qs / exp(mean(log(qs))), FUN = "/")
+    # rawdata[rawdata==0] <- 1
+    qs <- getColQuantiles(rawdata, desiredQuantile)
+    normdata <- getDivideSweep(rawdata, qs / exp(mean(log(qs))))
     normdata <- log(normdata + 1)
   } else if(method == "CLR") {
     normdata <- apply(rawdata, 2, function(x) {
@@ -99,6 +99,17 @@ LogNorm <- function(rawdata, coldepth, sizefactor){
   } else {
     normdata <- sweep(rawdata, 2L, coldepth, FUN = "/")
     normdata <- log(normdata*sizefactor + 1)
+  }
+  return(normdata)
+}
+
+getDivideSweep <- function(rawdata, divisor){
+  if(inherits(rawdata, "IterableMatrix")){
+    if(!requireNamespace("BPCells"))
+      stop("You have to install BPCells!")
+    return(BPCells::t(BPCells::t(rawdata)/divisor))
+  } else {
+    return(sweep(rawdata, 2L, divisor, FUN = "/"))
   }
   return(normdata)
 }
