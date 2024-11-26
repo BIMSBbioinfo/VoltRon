@@ -1879,7 +1879,11 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
 
   # get entity type and metadata
   metadata <- Metadata(object, assay = assay)
-  metadata <- metadata[colnames(heatmapdata),]
+  if(!is.null(rownames(metadata))){
+    metadata <- metadata[colnames(heatmapdata),]
+  } else {
+    metadata <- metadata[match(colnames(heatmapdata), as.vector(metadata$id)),]
+  }
 
   # scaling, optional
   if(scaled){

@@ -362,11 +362,6 @@ merge.vrMetadata <- function(object, object_list) {
     spot.metadata <- rbind_metadata(methods::slot(obj1, "spot"), methods::slot(obj2, "spot"))
     roi.metadata <- rbind_metadata(methods::slot(obj1, "ROI"), methods::slot(obj2, "ROI"))
     tile.metadata <- rbind_metadata(methods::slot(obj1, "tile"), methods::slot(obj2, "tile"))
-    # combined.metadata <- setVRMetadata(molecule = mol.metadata, 
-    #                                    cell = cell.metadata, 
-    #                                    spot = spot.metadata, 
-    #                                    ROI = roi.metadata, 
-    #                                    tile = tile.metadata)
     combined.metadata <- methods::new("vrMetadata", 
                                       molecule = mol.metadata, 
                                       cell = cell.metadata, 
