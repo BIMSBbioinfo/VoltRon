@@ -267,7 +267,8 @@ write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
   # open h5 file
   if(verbose)
     cat(paste0("HDF5 file: ", h5_path, "\n"))
-  rhdf5::h5createFile(h5_path)
+  if(!file.exists("h5_path"))
+    rhdf5::h5createFile(h5_path)
   
   # create metadata
   rhdf5::h5createGroup(h5_path, group = "metadata")
@@ -361,7 +362,7 @@ writeHDF5ArrayInMetadata <- function(object,
                                       level=level,
                                       as.sparse=as.sparse,
                                       with.dimnames=FALSE,
-                                      verbose=verbose)
+                                      verbose=FALSE)
         }
         
         # write rest of the columns
@@ -379,7 +380,7 @@ writeHDF5ArrayInMetadata <- function(object,
                                       level=level,
                                       as.sparse=as.sparse,
                                       with.dimnames=FALSE,
-                                      verbose=verbose)
+                                      verbose=FALSE)
         }
         methods::slot(object, name = sn) <- 
           HDF5DataFrame::HDF5DataFrame(meta.data_list)
@@ -544,7 +545,7 @@ writeHDF5ArrayInImage <- function(object,
                                              chunkdim=chunkdim,
                                              level=level,
                                              as.sparse=as.sparse,
-                                             verbose=verbose)
+                                             verbose=FALSE)
           suppressWarnings({
             vrImages(object, name = spat, channel = ch) <- img 
           })
@@ -670,7 +671,7 @@ writeZarrArrayInMetadata <- function(object,
                                       level=level,
                                       as.sparse=as.sparse,
                                       with.dimnames=FALSE,
-                                      verbose=verbose)
+                                      verbose=FALSE)
         }
         
         # write rest of the columns
@@ -688,7 +689,7 @@ writeZarrArrayInMetadata <- function(object,
                                       level=level,
                                       as.sparse=as.sparse,
                                       with.dimnames=FALSE,
-                                      verbose=verbose)
+                                      verbose=FALSE)
         }
         methods::slot(object, name = sn) <- 
           ZarrDataFrame::ZarrDataFrame(meta.data_list)
@@ -738,7 +739,7 @@ writeZarrArrayInVrData <- function(object,
                                        level=level,
                                        as.sparse=as.sparse,
                                        with.dimnames=with.dimnames,
-                                       verbose=verbose)
+                                       verbose=FALSE)
         object@data[[feat]] <- a   
       }
       
@@ -754,7 +755,7 @@ writeZarrArrayInVrData <- function(object,
                                        level=level,
                                        as.sparse=as.sparse,
                                        with.dimnames=with.dimnames,
-                                       verbose=verbose)
+                                       verbose=FALSE)
         object@data[[paste0(feat, "_norm")]] <- a  
       }
     }
@@ -773,7 +774,7 @@ writeZarrArrayInVrData <- function(object,
                                      level=level,
                                      as.sparse=as.sparse,
                                      with.dimnames=TRUE,
-                                     verbose=verbose)
+                                     verbose=FALSE)
       object@rawdata <- a   
     }
     
@@ -789,7 +790,7 @@ writeZarrArrayInVrData <- function(object,
                                      level=level,
                                      as.sparse=as.sparse,
                                      with.dimnames=TRUE,
-                                     verbose=verbose)
+                                     verbose=FALSE)
       object@normdata <- a 
     }
     
@@ -835,7 +836,7 @@ writeZarrArrayInImage <- function(object,
                                           level=level,
                                           as.sparse=as.sparse,
                                           with.dimnames=TRUE,
-                                          verbose=verbose)
+                                          verbose=FALSE)
       vrCoordinates(object, spatial_name = spat) <- coords
     }
     
@@ -859,7 +860,7 @@ writeZarrArrayInImage <- function(object,
                                              chunkdim=chunkdim,
                                              level=level,
                                              as.sparse=as.sparse,
-                                             verbose=verbose)
+                                             verbose=FALSE)
           suppressWarnings({
             vrImages(object, name = spat, channel = ch) <- img 
           })
