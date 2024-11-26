@@ -66,7 +66,8 @@ Suggests:
     hdf5r,
     ImageArray,
     BPCells,
-    DelayedDataFrame
+    HDF5DataFrame,
+    ZarrDataFrame
 Config/testthat/edition: 3
 LazyData: true
 LazyDataCompression: gzip

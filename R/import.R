@@ -517,6 +517,7 @@ import10Xh5 <- function(filename){
 #' @param segment_polygons if TRUE, the ROI polygons are parsed from the OME.TIFF file
 #' @param ome.tiff the OME.TIFF file of the GeoMx experiment if exists
 #' @param resolution_level the level of resolution within GeoMx OME-TIFF image, Default: 3
+#' @param image_name the image name of the Visium assay, Default: main
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom dplyr %>% full_join

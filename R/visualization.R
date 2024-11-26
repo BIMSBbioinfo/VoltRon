@@ -602,7 +602,7 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
         gg[[i]] <- vrSpatialFeaturePlotCombined(assay = cur_assay, metadata = cur_metadata, features = features, plot.segments = plot.segments, 
                                                 n.tile = n.tile, graph = graph, group.by = group.by, norm = norm, log = log, 
                                                 font.size = font.size, pt.size = pt.size, title.size = title.size, alpha = alpha, cell.shape = cell.shape,
-                                                label = label, plot_title = p_title, legend_title = l_title, reg = reg, crop = crop)
+                                                label = label, plot_title = p_title, legend_title = l_title, background = background, reg = reg, crop = crop)
       }
       
     # make individual feature plots
@@ -942,6 +942,9 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 #' @param legend_title the legend title of the single plot
 #' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
+#' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
+#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
+#' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
 #' @param scale.image if TRUE, background image will be scaled down to a low resolution (width: 1000px)
@@ -954,7 +957,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 #' @noRd
 vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segments = FALSE, n.tile = 0, graph = NULL, group.by = "label", norm = TRUE, log = FALSE,
                                          font.size = 2, pt.size = 2, cell.shape = 16, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL,
-                                         legend_title = NULL, reg = FALSE, crop = FALSE, scale.image = TRUE){
+                                         legend_title = NULL, background = NULL, reg = FALSE, crop = FALSE, scale.image = TRUE){
   
   # plot
   g <- ggplot()
@@ -2221,7 +2224,7 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
     stop("vrProportionPlot can only be used for ROI assays")
   } else {
     metadata <- Metadata(object, type = "ROI")
-    metadata <- subset_metadata(metadata, assay = assay_names)
+    metadata <- subset_metadata(metadata, assays = assay_names)
   }
 
   # violin plot

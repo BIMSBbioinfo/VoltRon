@@ -111,7 +111,7 @@ getDivideSweep <- function(rawdata, divisor){
   } else {
     return(sweep(rawdata, 2L, divisor, FUN = "/"))
   }
-  return(normdata)
+  return(rawdata)
 }
 
 ####

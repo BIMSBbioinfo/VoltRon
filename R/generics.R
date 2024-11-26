@@ -144,7 +144,6 @@ vrAssayNames <- function(object, assay = NULL) {
 }
 
 #' @rdname vrAssayNames
-#' @export vrAssayNames<-
 #' @noRd
 "vrAssayNames<-" <- function(object, value) {
   UseMethod(generic = 'vrAssayNames<-', object = object)

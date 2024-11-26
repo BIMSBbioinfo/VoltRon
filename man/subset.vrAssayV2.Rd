@@ -4,7 +4,7 @@
 \alias{subset.vrAssayV2}
 \title{Subsetting vrAssayV2 objects}
 \usage{
-\method{subset}{vrAssayV2}(object, ...)
+\method{subset}{vrAssayV2}(object, subset, spatialpoints = NULL, features = NULL, image = NULL)
 }
 \arguments{
 \item{object}{a vrAssayV2 object}

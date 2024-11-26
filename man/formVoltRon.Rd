@@ -52,9 +52,9 @@ formVoltRon(
 
 \item{project}{project name}
 
-\item{...}{additional parameters passed to \link{formAssay}}
+\item{version}{the assay version, V1 or V2}
 
-\item{assay_version}{the VoltRon object version}
+\item{...}{additional parameters passed to \link{formAssay}}
 }
 \description{
 Create a VoltRon object

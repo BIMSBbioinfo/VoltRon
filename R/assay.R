@@ -301,8 +301,8 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
 #' @order 4
 #'
 #' @export
-subset.vrAssayV2 <- function(object, ...){
-  subset.vrAssay(object, ...)
+subset.vrAssayV2 <- function(object, subset, spatialpoints = NULL, features = NULL, image = NULL){
+  subset.vrAssay(object = object, subset, spatialpoints = spatialpoints, features = features, image = image)
 }
 
 #' subsetCoordinates
@@ -952,7 +952,7 @@ generateTileData.vrAssay <- function(object, name = NULL, reg = FALSE, channel =
   if(vrAssayTypes(object) != "tile"){
     stop("generateTileData can only be used for tile-based assays")
   } else {
-    image_data <- as.numeric(vrImages(object, name = spatial_name, reg = reg, channel = channel, as.raster = TRUE))
+    image_data <- as.numeric(vrImages(object, name = name, reg = reg, channel = channel, as.raster = TRUE))
     image_data <- (0.299 * image_data[,,1] + 0.587 * image_data[,,2] + 0.114 * image_data[,,3])
     image_data <- split_into_tiles(image_data, tile_size = vrAssayParams(object, param = "tile.size"))
     image_data <- sapply(image_data, function(x) return(as.vector(x)))

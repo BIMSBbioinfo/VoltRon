@@ -332,8 +332,8 @@ setMethod(
 #' @param layer_name the name of the layer
 #' @param image_name the name/key of the image
 #' @param feature_name the name/key of the feature set
-#' @param assay_version the VoltRon object version
 #' @param project project name
+#' @param version the assay version, V1 or V2
 #' @param ... additional parameters passed to \link{formAssay}
 #'
 #' @importFrom igraph make_empty_graph V vertices
