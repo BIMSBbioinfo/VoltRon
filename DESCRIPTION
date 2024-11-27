@@ -1,7 +1,7 @@
 Package: VoltRon
 Type: Package
 Title: VoltRon for Spatial Data Integration and Analysis
-Version: 1.0.0
+Version: 0.2.0
 Depends: R (>= 4.3.0)
 Author: Artür Manukyan, Ella Bahry, Raj Prateek Rai, Wei-Che Ko, Deborah Schmidt, Markus Landthaler, Altuna Akalin
 Maintainer: Artür Manukyan <artur-man@hotmail.com>
