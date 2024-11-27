@@ -740,7 +740,7 @@ as.SpatialExperiment <- function(object, assay = NULL, reg = FALSE){
   
   # check Seurat package
   if(!requireNamespace('SpatialExperiment'))
-    stop("Please install SpatialExperiment package!")
+    stop("Please install SpatialExperiment package!: BiocManager::install('SpatialExperiment'')")
   
   # check the number of assays
   if(is.null(assay)){
@@ -754,23 +754,25 @@ as.SpatialExperiment <- function(object, assay = NULL, reg = FALSE){
   }
   
   # check the number of assays
-  if(unique(vrAssayTypes(object, assay = assay)) %in% c("spot","ROI")) {
-    stop("Conversion of Spot or ROI assays into SpatialExperiment is not yet permitted!")
+  if(unique(vrAssayTypes(object, assay = assay)) %in% c("ROI", "molecule", "tile")) {
+    stop("Conversion of ROI, molecule and tile assays into SpatialExperiment is not yet permitted!")
   }
   
   # data
-  rowdata <- vrData(object, assay = assay, norm = FALSE)
+  rawdata <- vrData(object, assay = assay, norm = FALSE)
   
   # metadata
   metadata <- Metadata(object, assay = assay)
+  if(is.null(rownames(metadata)))
+    rownames(metadata) <- metadata$id
   assays <- stringr::str_extract(rownames(metadata), pattern = "_Assay[0-9]+$")
   assays <- gsub("^_", "", assays)
   
   # coordinates
-  coords <- vrCoordinates(object, assay = assay, reg = reg)
+  coords <- vrCoordinates(flipCoordinates(object, assay = assay), assay = assay, reg = reg)
   
   # Seurat object
-  spe <- SpatialExperiment::SpatialExperiment(assay=rowdata,
+  spe <- SpatialExperiment::SpatialExperiment(assay=list(counts = rawdata),
                                               colData=metadata,
                                               sample_id=assays,
                                               spatialCoords=coords)
@@ -778,20 +780,16 @@ as.SpatialExperiment <- function(object, assay = NULL, reg = FALSE){
   # get image objects for each assay
   for(assy in vrAssayNames(object)){
     assay_object <- object[[assy]]
-    if(vrAssayTypes(assay_object) == "cell"){
-      img <- vrImages(assay_object)
-      imgfile <- tempfile(fileext='.png')
-      magick::image_write(image = img, path = imgfile, format = 'png')
-      spe <- SpatialExperiment::addImg(spe,
-                                       sample_id = vrAssayNames(assay_object),
-                                       image_id = "main",
-                                       imageSource = imgfile,
-                                       scaleFactor = NA_real_,
-                                       load = TRUE)
-      file.remove(imgfile)
-    } else {
-      stop("Currently VoltRon does only support converting cell type spatial data sets into SpatialExperiment objects!")
-    }
+    img <- vrImages(assay_object)
+    imgfile <- tempfile(fileext='.png')
+    magick::image_write(image = img, path = imgfile, format = 'png')
+    spe <- SpatialExperiment::addImg(spe,
+                                     sample_id = vrAssayNames(assay_object),
+                                     image_id = "main",
+                                     imageSource = imgfile,
+                                     scaleFactor = 1,
+                                     load = TRUE)
+    file.remove(imgfile)
   }
   
   # return
