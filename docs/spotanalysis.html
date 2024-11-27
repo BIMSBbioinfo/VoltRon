@@ -597,7 +597,7 @@ neighbors (SNN)</strong> of cells which are constructed from
 dimensionally reduced gene expression profiles. The function
 <strong>getProfileNeighbors</strong> also has an option of building
 <strong>k-nearest neighbors (kNN)</strong> graphs.</p>
-<pre class="r watch-out"><code>Xen_data &lt;- getProfileNeighbors(Xen_data, dims = 1:20, k = 10, method = &quot;SNN&quot;)</code></pre>
+<pre class="r watch-out"><code>Xen_data &lt;- getProfileNeighbors(Xen_data, dims = 1:20, method = &quot;SNN&quot;)</code></pre>
 <p>We can later conduct a clustering of cells using the <strong>leiden’s
 method</strong> from the igraph package, which is utilized with the
 <strong>getClusters</strong> function.</p>
@@ -731,17 +731,8 @@ MBrain_Sec &lt;- getClusters(MBrain_Sec, resolution = 0.5, label = &quot;Cluster
 vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;Clusters&quot;)</code></pre>
 <p><img width="65%" height="65%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_umap_clusters.png" class="center"></p>
 <p><br></p>
-<pre class="r watch-out"><code>vrSpatialPlot(MBrain_Sec, assay = &quot;Assay1&quot;, group.by = &quot;Clusters&quot;)
-vrSpatialPlot(MBrain_Sec, assay = &quot;Assay2&quot;, group.by = &quot;Clusters&quot;)</code></pre>
+<pre class="r watch-out"><code>vrSpatialPlot(MBrain_Sec, group.by = &quot;Clusters&quot;)</code></pre>
 <p><img width="65%" height="65%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters1.png" class="center"></p>
-<!-- <table> -->
-<!-- <tbody> -->
-<!--   <tr style = "vertical-align: center"> -->
-<!--   <td style = "width:50%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters1.png" class="center"></td> -->
-<!--   <td style = "width:50%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters2.png" class="center"></td> -->
-<!--   </tr> -->
-<!-- </tbody> -->
-<!-- </table> -->
 <p><br></p>
 </div>
 </div>

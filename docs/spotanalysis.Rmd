@@ -158,7 +158,7 @@ vrEmbeddingFeaturePlot(Xen_data, features = c("LRRC15", "TCF7"), embedding = "um
 Next, we build neighborhood graphs with the **shared nearest neighbors (SNN)** of cells which are constructed from dimensionally reduced gene expression profiles. The function **getProfileNeighbors** also has an option of building **k-nearest neighbors (kNN)** graphs. 
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-Xen_data <- getProfileNeighbors(Xen_data, dims = 1:20, k = 10, method = "SNN")
+Xen_data <- getProfileNeighbors(Xen_data, dims = 1:20, method = "SNN")
 ```
 
 We can later conduct a clustering of cells using the **leiden's method** from the igraph package, which is utilized with the **getClusters** function.
