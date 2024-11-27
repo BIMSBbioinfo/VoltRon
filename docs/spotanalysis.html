@@ -626,17 +626,34 @@ the <a href="conversion.html">Converting VoltRon Objects</a>.</p>
 <strong>Clusters</strong> column, called <strong>CellType</strong>, we
 can insert this new metadata column directly to the object.</p>
 <pre class="r watch-out"><code>clusters &lt;- factor(Xen_data$Clusters, levels = sort(unique(Xen_data$Clusters)))
-levels(clusters) &lt;- c(&quot;DCIS_1&quot;, &quot;DCIS_2&quot;, &quot;IT_1&quot;, &quot;Macrophages&quot;, &quot;Adipocytes&quot;,
-                      &quot;CD4_TCells&quot;, &quot;CD8_TCells&quot;, &quot;IT_2&quot;, &quot;StromalCells&quot;, &quot;IT_3&quot;,
-                      &quot;EndothelialCells&quot;, &quot;ACTA2_myoepithelial&quot;, &quot;ACTA2_myoepithelial&quot;, 
-                      &quot;DCIS_3&quot;, &quot;MastCells&quot;, &quot;MyelomaCells&quot;, &quot;BCells&quot;, 
-                      &quot;StromalCells&quot;, &quot;PLD4+_LILRA4+_CD4+_Cells&quot;, &quot;KRT15_myoepithelial&quot;)
+levels(clusters) &lt;- c(&quot;DCIS_1&quot;, 
+                      &quot;DCIS_2&quot;, 
+                      &quot;CD4_TCells&quot;,
+                      &quot;Adipocytes&quot;,
+                      &quot;PLD4+_LILRA4+_CD4+_Cells&quot;,
+                      &quot;ACTA2_myoepithelial&quot;,
+                      &quot;IT_2&quot;,
+                      &quot;Macrophages&quot;,
+                      &quot;MastCells&quot;,
+                      &quot;Bcells&quot;,
+                      &quot;StromalCells&quot;,
+                      &quot;CD8_TCells&quot;,
+                      &quot;CD8_TCells&quot;,
+                      &quot;EndothelialCells&quot;,
+                      &quot;StromalCells&quot;,
+                      &quot;MyelomaCells&quot;,
+                      &quot;IT_1&quot;,
+                      &quot;IT_2&quot;,
+                      &quot;ACTA2_myoepithelial&quot;,
+                      &quot;DCIS_2&quot;,
+                      &quot;IT_3&quot;,
+                      &quot;KRT15_myoepithelial&quot;)
 Xen_data$CellType &lt;- as.character(clusters)</code></pre>
 <p><strong>vrSpatialPlot</strong> function can visualize multiple types
 of metadata columns, and users can change the location of the legends as
 well.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(Xen_data, group.by = &quot;CellType&quot;, pt.size = 0.13, background = &quot;black&quot;, 
-              legend.loc = &quot;top&quot;)</code></pre>
+              legend.loc = &quot;top&quot;, n.tile = 500)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_annotated.png" class="center"></p>
 <p><br></p>
 </div>
