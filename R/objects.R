@@ -1526,41 +1526,7 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
   # get metadata
   metadata <- slot(object@metadata, name = type)
 
-  # if(type %in% c("ROI", "cell", "spot")){
-  if(!is.null(rownames(metadata))){
-
-    # replace the metadata (or some part of it) with the new value
-    if(length(setdiff(rownames(value), rownames(metadata))) == 0){
-
-      # check columns of the new table
-      new_columns <- setdiff(colnames(value), colnames(metadata))
-
-      # current metadata shouldnt have columns that value doesnt have
-      if(length(setdiff(colnames(metadata), colnames(value))) > 0)
-        stop("Some columns of new data frame are not available in the metadata")
-
-      # if new columns appear, update the column names of the metadata'
-      if(length(new_columns) > 0){
-        value <- value[,c(colnames(metadata), new_columns)]
-        for(cur_col in new_columns){
-          if(is.numeric(value[[cur_col]])){
-            metadata[[cur_col]] <- NA
-          } else {
-            metadata[[cur_col]] <- ""
-          }
-        }
-      }
-
-      # replace data
-      metadata[rownames(value), ] <- value
-      slot(object@metadata, name = type) <- metadata
-
-    } else {
-      stop("Some rows of new data frame are not available in the metadata")
-    }
-
-  # } else if(type %in% c("tile", "molecule")){
-  } else if("id" %in% colnames(metadata)){
+  if("id" %in% colnames(metadata)){
 
     # replace the metadata (or some part of it) with the new value
     if(length(setdiff(value$id, metadata$id)) == 0){
@@ -1574,8 +1540,11 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
 
       # if new columns appear, update the column names of the metadata'
       if(length(new_columns) > 0){
-        value <- value[,colnames(value)[colnames(value) %in% c(colnames(metadata), new_columns)], with = FALSE]
-        # value <- value[,c(colnames(metadata), new_columns), with = FALSE]
+        if(inherits(metadata, "data.table")){
+          value <- value[,colnames(value)[colnames(value) %in% c(colnames(metadata), new_columns)], with = FALSE]
+        } else {
+          value <- value[,c(colnames(metadata), new_columns)]
+        }
         for(cur_col in new_columns){
           if(is.numeric(value[[cur_col]])){
             metadata[[cur_col]] <- NA
@@ -1592,9 +1561,40 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
     } else {
       stop("Some rows of new data frame are not available in the metadata")
     }
+    
+  } else if(!is.null(rownames(metadata))){
 
+      # replace the metadata (or some part of it) with the new value
+      if(length(setdiff(rownames(value), rownames(metadata))) == 0){
+  
+        # check columns of the new table
+        new_columns <- setdiff(colnames(value), colnames(metadata))
+  
+        # current metadata shouldnt have columns that value doesnt have
+        if(length(setdiff(colnames(metadata), colnames(value))) > 0)
+          stop("Some columns of new data frame are not available in the metadata")
+  
+        # if new columns appear, update the column names of the metadata'
+        if(length(new_columns) > 0){
+          value <- value[,c(colnames(metadata), new_columns)]
+          for(cur_col in new_columns){
+            if(is.numeric(value[[cur_col]])){
+              metadata[[cur_col]] <- NA
+            } else {
+              metadata[[cur_col]] <- ""
+            }
+          }
+        }
+  
+        # replace data
+        metadata[rownames(value), ] <- value
+        slot(object@metadata, name = type) <- metadata
+  
+      } else {
+        stop("Some rows of new data frame are not available in the metadata")
+      }
+    
   } else {
-    # stop("Please provide one of three assay types: 'ROI', 'cell', 'spot'.")
     stop("The metadata should either have rownames or a column called 'id'!")
   }
   

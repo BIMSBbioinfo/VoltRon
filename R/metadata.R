@@ -297,7 +297,6 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #'
 #' @noRd
-#'
 subset_sampleMetadata <- function(metadata, samples = NULL, assays = NULL) {
 
   # subseting on samples, layers and assays
