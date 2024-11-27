@@ -11,10 +11,10 @@
 #' @param to the name or class of target assay where data is transfered to
 #' @param features the set of features from \link{vrFeatures} or metadata columns from \link{Metadata} that are transferred. 
 #' Only one metadata feature can be transfered at a time.
-#' @param new_assay_name the name of the new assay created from the source assay defined in \code{from} argument.
+#' @param new_feature_name the name of the new feature set created from the source assay defined in \code{from} argument.
 #'
 #' @export
-transferData <- function(object, from = NULL, to = NULL, features = NULL, new_assay_name = NULL){
+transferData <- function(object, from = NULL, to = NULL, features = NULL, new_feature_name = NULL){
 
   # assay list
   assaytypes <- c("ROI", "spot", "cell", "molecule", "tile")
@@ -44,7 +44,7 @@ transferData <- function(object, from = NULL, to = NULL, features = NULL, new_as
   if(which(assaytypes == to_object_type) > which(assaytypes == from_object_type)){
     return(transferLabels(object = object, from = from, to = to, features = features))
   } else {
-    return(transferFeatureData(object = object, from = from, to = to, features = features, new_assay_name = new_assay_name))
+    return(transferFeatureData(object = object, from = from, to = to, features = features, new_feature_name = new_feature_name))
   }
 }
 
@@ -56,10 +56,10 @@ transferData <- function(object, from = NULL, to = NULL, features = NULL, new_as
 #' @param from The ID of assay whose data transfer to the second assay
 #' @param to The ID of the target assay where data is transfered to
 #' @param features The set of data or metadata features that are transfered. Only one metadata feature can be transfered at a time.
-#' @param new_assay_name the name of the new assay created from the source assay defined in \code{from}.
+#' @param new_feature_name the name of the new feature set created from the source assay defined in \code{from}.
 #'
 #' @noRd
-transferFeatureData <- function(object, from = NULL, to = NULL, features = NULL, new_assay_name = NULL){
+transferFeatureData <- function(object, from = NULL, to = NULL, features = NULL, new_feature_name = NULL){
 
   # get assays and metadata
   from_object <- object[[from]]
@@ -87,10 +87,10 @@ transferFeatureData <- function(object, from = NULL, to = NULL, features = NULL,
   }
 
   # add new feature set
-  if(is.null(new_assay_name)){
-    new_assay_name <- paste(vrMainFeatureType(object, assay = from)$Feature, "pseudo", sep = "_")
+  if(is.null(new_feature_name)){
+    new_feature_name <- paste(vrMainFeatureType(object, assay = from)$Feature, "pseudo", sep = "_")
   }
-  object <- addFeature(object, assay = to, data = new_assay, feature_name = new_assay_name)
+  object <- addFeature(object, assay = to, data = new_assay, feature_name = new_feature_name)
 
   # return
   object

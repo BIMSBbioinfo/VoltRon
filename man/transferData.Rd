@@ -9,7 +9,7 @@ transferData(
   from = NULL,
   to = NULL,
   features = NULL,
-  new_assay_name = NULL
+  new_feature_name = NULL
 )
 }
 \arguments{
@@ -22,7 +22,7 @@ transferData(
 \item{features}{the set of features from \link{vrFeatures} or metadata columns from \link{Metadata} that are transferred. 
 Only one metadata feature can be transfered at a time.}
 
-\item{new_assay_name}{the name of the new assay created from the source assay defined in \code{from} argument.}
+\item{new_feature_name}{the name of the new feature set created from the source assay defined in \code{from} argument.}
 }
 \description{
 transfer data across assays

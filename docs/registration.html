@@ -35,8 +35,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -626,7 +626,8 @@ VRBlock &lt;- merge(merge_list[[1]], merge_list[-1], samples = &quot;10XBlock&qu
 VRBlock</code></pre>
 <pre><code>10XBlock: 
   Layers: Section1 Section2 Section3 
-Assays: Xenium(Main) Visium</code></pre>
+Assays: Xenium(Main) Visium
+Features: RNA(Main) </code></pre>
 <p>Here, we can quickly check the change in spatial coordinate systems
 in the new tissue block. The <code>registerSpatialData</code> function
 syncronizes the coordinate systems of all VoltRon objects in the list
@@ -725,17 +726,17 @@ single metadata feature with, e.g. cell types, then the each spot at the
 new pseudo Visium will be collection of abundances of the categories
 within that metadata feature.</p>
 <pre class="r watch-out"><code>VRBlock &lt;- transferData(VRBlock, from = &quot;Assay1&quot;, to = &quot;Assay2&quot;, features = &quot;CellType&quot;, 
-                        new_assay_name = &quot;Visium_pseudo_CellType&quot;)
-SampleMetadata(VRBlock)</code></pre>
-<pre><code>                        Assay    Layer   Sample
-Assay1                 Xenium Section1 10XBlock
-Assay2                 Visium Section2 10XBlock
-Assay3                 Xenium Section3 10XBlock
-Assay4          Visium_pseudo Section2 10XBlock
-Assay5 Visium_pseudo_CellType Section2 10XBlock</code></pre>
+                        new_assay_name = &quot;Visium_CellType&quot;)
+VRBlock</code></pre>
+<pre><code>VoltRon Object 
+10XBlock: 
+  Layers: Section1 Section2 Section3 
+Assays: Visium(Main) Xenium 
+Features: RNA_pseudo(Main) RNA Visium_CellType </code></pre>
 <p>By visualizing the transferred labels on the Visium spots, we can see
 abundance of some DCIS and invasive tumor subtypes.</p>
-<pre class="r watch-out"><code>vrSpatialFeaturePlot(VRBlock, assay = &quot;Visium_pseudo_CellType&quot;,
+<pre class="r watch-out"><code>vrMainFeatureType(VRBlock_new) &lt;- &quot;Visium_CellType&quot;
+vrSpatialFeaturePlot(VRBlock, assay = &quot;Visium&quot;,
                      features = c(&quot;IT_1&quot;,&quot;DCIS_2&quot;), 
                      crop = TRUE, alpha = 1, ncol = 3)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_CellType.png" class="center"></p>
@@ -798,12 +799,12 @@ registered image which is the first Assay of the Xenium data
 we give a name for the new image/channel which is
 <strong>H&amp;E</strong>.</p>
 <pre class="r watch-out"><code>Xen_R1_image_reg &lt;- xen_reg$registered_spat[[2]]
-vrImages(Xen_R1[[&quot;Assay1&quot;]], name = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- vrImages(Xen_R1_image_reg, name = &quot;H&amp;E_reg&quot;)</code></pre>
+vrImages(Xen_R1[[&quot;Assay1&quot;]], channel = &quot;H&amp;E&quot;) &lt;- vrImages(Xen_R1_image_reg, name = &quot;H&amp;E_reg&quot;)</code></pre>
 <p>Now we can call the registered H&amp;E image of the Xenium data or
 later put the aligned H&amp;E when calling
 <strong>vrSpatialPlot</strong> or
 <strong>vrSpatialFeaturePlot</strong>.</p>
-<pre class="r watch-out"><code>vrImages(Xen_R1, name = &quot;main&quot;, channel = &quot;H&amp;E&quot;, scale.perc = 5)</code></pre>
+<pre class="r watch-out"><code>vrImages(Xen_R1, channel = &quot;H&amp;E&quot;, scale.perc = 5)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE.png" class="center"></p>
 <p><br></p>
 </div>
