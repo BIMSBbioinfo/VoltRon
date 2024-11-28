@@ -144,7 +144,6 @@ transferLabels <- function(object, from = NULL, to = NULL, features = NULL){
 #'
 #' @importFrom dplyr %>% right_join
 #' @importFrom stats aggregate
-#' @importFrom FNN get.knnx
 #' @importFrom magick image_data
 #'
 #' @noRd
@@ -162,7 +161,9 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
 
   # get distances from cells to spots
   # alldist <- flexclust::dist2(coords_cells, coords_spots)
-  cell_to_spot <- FNN::get.knnx(coords_spots, coords_cells, k = 1)
+  # cell_to_spot <- FNN::get.knnx(coords_spots, coords_cells, k = 1)
+  cell_to_spot <- knn_annoy(coords_spots, coords_cells, k = 1)
+  names(cell_to_spot) <- c("nn.index", "nn.dist")
   cell_to_spot_nnid <- vrSpatialPoints(to_object)[cell_to_spot$nn.index[,1]]
   names(cell_to_spot_nnid) <- rownames(coords_cells)
   cell_to_spot_nndist <- cell_to_spot$nn.dist[,1]
@@ -243,7 +244,6 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
 #'
 #' @importFrom dplyr %>% right_join
 #' @importFrom stats aggregate
-#' @importFrom FNN get.knnx
 #' @importFrom magick image_data
 #'
 #' @noRd
@@ -339,8 +339,9 @@ getCellsFromTiles <- function(from_object, from_metadata = NULL, to_object, feat
   coords_tiles <- vrCoordinates(from_object)
 
   # get distances from cells to spots
-  # tile_to_cell <- FNN::get.knnx(coords_cells, coords_tiles, k = 1)
-  tile_to_cell <- FNN::get.knnx(coords_tiles, coords_cells, k = k)
+  # tile_to_cell <- FNN::get.knnx(coords_tiles, coords_cells, k = k)
+  tile_to_cell <- knn_annoy(coords_tiles, coords_cells, k = k)
+  names(tile_to_cell) <- c("nn.index", "nn.dist")
   tile_to_cell_nnid <- data.frame(id = rownames(coords_cells), tile_to_cell$nn.index)
   tile_to_cell_nnid <- reshape2::melt(tile_to_cell_nnid, id.vars = "id")
   tile_id <- vrSpatialPoints(from_object)[tile_to_cell_nnid$value]

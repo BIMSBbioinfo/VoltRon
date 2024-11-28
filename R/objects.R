@@ -834,7 +834,7 @@ getBlockConnectivity <- function(object, assay){
     catch_connect <- try(slot(object[[samp]], name = "adjacency"), silent = TRUE)
     if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
       adjacency <- object[[samp]]@adjacency
-      adjacency <- adjacency[match(cur_sections,rownames(adjacency)), match(cur_sections,rownames(adjacency))]
+      adjacency <- adjacency[match(cur_sections,rownames(adjacency)), match(cur_sections,rownames(adjacency)), drop = FALSE]
       colnames(adjacency) <- rownames(adjacency) <- cur_assaynames
       components <- igraph::components(igraph::graph_from_adjacency_matrix(adjacency))
       assay_list <- c(assay_list, split(names(components$membership), components$membership))

@@ -17,21 +17,18 @@ NULL
 #' @param k number of neighbors for kNN
 #' @param radius When \code{method = "radius"} selected, determines the radius of a neighborhood ball around each spatial point
 #' @param graph.key the name of the graph
-#' @param ... additional parameters passed to \link{get.knn}
 #'
 #' @importFrom igraph add_edges simplify make_empty_graph vertices
 #' @importFrom RCDT delaunay
-#' @importFrom FNN get.knn
 #' @importFrom RANN nn2
 #' @importFrom reshape2 melt
 #' @importFrom stats dist
 #'
 #' @export
 getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", k = 10, radius = numeric(0), 
-                                graph.key = method, ...){
+                                graph.key = method){
 
   # get coordinates
-  # coords <- vrCoordinates(object, assay = assay)
   spatialpoints <- vrSpatialPoints(object, assay = assay)
 
   # get spatial graph per assay
@@ -43,7 +40,6 @@ getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", k = 1
   # get spatial edges
   spatialedges_list <- list()
   for(assy in assay_names){
-    # cur_coords <- coords[grepl(paste0(assy, "$"), rownames(coords)), ]
     cur_coords <- vrCoordinates(object, assay = assy)
     spatialedges <-
       switch(method,
@@ -54,16 +50,10 @@ getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", k = 1
                nnedges
              },
              spatialkNN = {
-               # nnedges <- FNN::get.knn(cur_coords, k = 1)
                # nnedges <- RANN::nn2(cur_coords, k = k + 1)
                nnedges <- knn_annoy(cur_coords, k = k + 1)
                names(nnedges) <- c("nn.index", "nn.dist")
-               nnedges <- nnedges$nn.idx
-               # nnedges <- cbind(1:nrow(cur_coords), nnedges)
-               # nnedges <- apply(nnedges, 1, function(x){
-               #   do.call(c,lapply(x[-1], function(y) return(c(x[1],y))))
-               # })
-               # nnedges <- unlist(nnedges)
+               nnedges <- nnedges$nn.index
                nnedges <- reshape2::melt(data.frame(nnedges), id.vars = "X1")
                nnedges <- subset(nnedges[,c("X1", "value")], value != 0 & X1 != 0)
                nnedges <- as.vector(t(as.matrix(nnedges)))
@@ -75,13 +65,7 @@ getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", k = 1
                  spot.radius <- vrAssayParams(object[[assy]], param = "nearestpost.distance")
                  radius <- ifelse(is.null(spot.radius), 1, spot.radius)
                }
-               # distances <- as.matrix(stats::dist(cur_coords, method = "euclidean"))
-               # nnedges <- apply(distances, 1, function(x){
-               #   which(x < radius & x > .Machine$double.eps)
-               # })
                nnedges <- RANN::nn2(cur_coords, searchtype = "radius", radius = radius, k = min(300, sqrt(nrow(cur_coords))/2))
-               # nnedges <- knn_annoy(nndata, k = k + 1)
-               # names(nnedges) <- c("nn.index", "nn.dist")
                nnedges <- nnedges$nn.idx
                nnedges <- reshape2::melt(data.frame(nnedges), id.vars = "X1")
                nnedges <- subset(nnedges[,c("X1", "value")], value != 0 & X1 != 0)
@@ -140,7 +124,6 @@ vrNeighbourhoodEnrichment <- function(object, assay = NULL, group.by = NULL, gra
   neigh_results <- list()
   for(assy in assay_names){
     message("Testing Neighborhood Enrichment of '", group.by ,"' for '", assy, "'")
-    # object_subset <- subset(object, spatialpoints = vrSpatialPoints(object)[grepl(paste0(assy,"$"), vrSpatialPoints(object))])
     object_subset <- subset(object, assays = assy)
     neigh_results[[assy]] <- vrNeighbourhoodEnrichmentSingle(object_subset, group.by = group.by, graph.type = graph.type,
                                                              num.sim = num.sim, seed = seed)
@@ -202,9 +185,6 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
   neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data_list)
 
   # get adjacency for observed and simulated pairs
-  # grp_sim_data <- 
-  # neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data)
-  
   neigh_results <- neighbors_graph_data %>%
     dplyr::group_by(from_value, to_value, type) %>%
     dplyr::summarize(mean_value = dplyr::n()) %>%
