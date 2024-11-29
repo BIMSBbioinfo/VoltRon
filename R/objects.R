@@ -83,8 +83,10 @@ setMethod(
     if(!is.null(main.feat)){
       main.feat <- unique(vrMainFeatureType(object)$Feature)
       unique_features <- vrFeatureTypeNames(object)
-      unique_features <- unique_features[c(which(unique_features == main.feat),which(unique_features != main.feat))]
-      unique_features[1] <- paste0(unique_features[1], "(Main)")
+      if(length(main.feat) == 1){
+        unique_features <- unique_features[c(which(unique_features == main.feat),which(unique_features != main.feat))]
+        unique_features[1] <- paste0(unique_features[1], "(Main)") 
+      }
       cat("Features:", paste(unique_features, collapse = " "), "\n") 
     }
 
@@ -1390,7 +1392,7 @@ vrMainFeatureType.VoltRon <- function(object, assay = NULL){
 #' @rdname vrMainFeatureType
 #' @order 4
 #' @export
-"vrMainFeatureType<-.VoltRon" <- function(object, assay = NULL, value){
+"vrMainFeatureType<-.VoltRon" <- function(object, assay = NULL, ignore = FALSE, value){
   
   # sample metadata
   sample_metadata <- SampleMetadata(object)
@@ -1402,7 +1404,7 @@ vrMainFeatureType.VoltRon <- function(object, assay = NULL){
     stop("You can only set the main feature type of a single assay type")
   } else {
     for(assy in assay_names){
-      vrMainFeatureType(object[[assy]]) <- value
+      vrMainFeatureType(object[[assy]], ignore = ignore) <- value
     }
   }
   

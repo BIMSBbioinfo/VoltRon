@@ -310,7 +310,7 @@ vrMainFeatureType <- function(object, assay = NULL) {
 #' @rdname vrMainFeatureType
 #' @export vrMainFeatureType<-
 #' @noRd
-"vrMainFeatureType<-" <- function(object, assay = NULL, value) {
+"vrMainFeatureType<-" <- function(object, assay = NULL, ignore = FALSE, value) {
   UseMethod(generic = 'vrMainFeatureType<-', object = object)
 }
 

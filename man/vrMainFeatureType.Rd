@@ -18,9 +18,9 @@ vrMainFeatureType(object, assay = NULL)
 
 \method{vrMainFeatureType}{vrAssay}(object)
 
-\method{vrMainFeatureType}{VoltRon}(object, assay = NULL) <- value
+\method{vrMainFeatureType}{VoltRon}(object, assay = NULL, ignore = FALSE) <- value
 
-\method{vrMainFeatureType}{vrAssayV2}(object) <- value
+\method{vrMainFeatureType}{vrAssayV2}(object, ignore = FALSE) <- value
 
 \method{vrMainFeatureType}{vrAssay}(object) <- value
 }
