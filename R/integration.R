@@ -41,7 +41,7 @@ transferData <- function(object, from = NULL, to = NULL, features = NULL, new_fe
   to_object_type <- vrAssayTypes(object[[to]])
   from_object_type <- vrAssayTypes(object[[from]])
   
-  if(which(assaytypes == to_object_type) > which(assaytypes == from_object_type)){
+  if(which(assaytypes == to_object_type) > which(assaytypes == from_object_type) && from_object_type == "ROI"){
     return(transferLabels(object = object, from = from, to = to, features = features))
   } else {
     return(transferFeatureData(object = object, from = from, to = to, features = features, new_feature_name = new_feature_name))
@@ -79,6 +79,8 @@ transferFeatureData <- function(object, from = NULL, to = NULL, features = NULL,
   } else if(to_object_type == "cell"){
     if(from_object_type == "tile"){
       new_assay <- getCellsFromTiles(from_object, from_metadata, to_object, features = features)
+    } else if(from_object_type == "spot"){
+      new_assay <- getCellsFromSpots(from_object, from_metadata, to_object, features = features)
     }
   } else if(to_object_type == "ROI"){
     if(from_object_type == "cell"){
@@ -151,7 +153,6 @@ transferLabels <- function(object, from = NULL, to = NULL, features = NULL){
 getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, features = NULL) {
 
   # get the spot radius of Visium spots
-  # Vis_spotradius <- to_object@params$spot.radius
   Vis_spotradius <- vrAssayParams(to_object, param = "spot.radius")
 
   # get cell and spot coordinates
@@ -214,23 +215,83 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
   aggregate_raw_counts <- t(aggregate_raw_counts[,-1])
   aggregate_raw_counts[is.na(aggregate_raw_counts)] <- 0
 
-  # create new assay
-  # images <- list()
-  # for(img in vrImageNames(to_object)){
-  #   images[[img]] <- magick::image_data(vrImages(to_object, name = img))
-  # }
-  # new_assay <- formAssay(data = aggregate_raw_counts,
-  #                        coords = vrCoordinates(to_object)[colnames(aggregate_raw_counts),],
-  #                        image = vrImages(to_object),
-  #                        type = vrAssayTypes(to_object),
-  #                        main_image = to_object@main_image,
-  #                        params = to_object@params)
-  # new_assay@image <- to_object@image
-  # new_assay <- subset(new_assay, spatialpoints = colnames(aggregate_raw_counts))
-
   # return
-  # return(new_assay)
   return(aggregate_raw_counts)
+}
+
+#' getSpotsFromCells
+#'
+#' Generate Psuedo counts per spots and insert to as a separate image assay to the Visium object
+#'
+#' @param from_object The vrAssay object whose data transfer to the second assay
+#' @param from_metadata the metadata associated with \code{from_object}
+#' @param to_object The ID of the target vrAssay object where data is transfered to
+#' @param features the name of the metadata feature to transfer, if NULL, the rawdata will be transfered
+#'
+#' @importFrom dplyr %>% right_join
+#' @importFrom stats aggregate
+#' @importFrom magick image_data
+#'
+#' @noRd
+#'
+getCellsFromSpots <- function(from_object, from_metadata = NULL, to_object, features = NULL) {
+  
+  # get the spot radius of Visium spots
+  radius <- vrAssayParams(from_object, param = "nearestpost.distance")/2
+  
+  # get cell and spot coordinates
+  cat("Spot to Cell Distances \n")
+  coords_spots <- vrCoordinates(from_object)
+  coords_cells <- vrCoordinates(to_object)
+  
+  # get distances from cells to spots
+  spot_to_cell <- knn_annoy(coords_spots, coords_cells, k = 1)
+  names(spot_to_cell) <- c("nn.index", "nn.dist")
+  nnindex <- spot_to_cell$nn.index[,1]
+  names_nnindex <- names(nnindex)
+  nnindex <- vrSpatialPoints(from_object)[nnindex]
+  names(nnindex) <- names_nnindex
+  nndist <- spot_to_cell$nn.dist[,1]
+  nnindex <- nnindex[nndist < radius]
+
+  # find associated spot for each cell
+  cat("Find associated spot for each cell \n")
+
+  # get data
+  if(is.null(features)){
+    raw_counts <- vrData(from_object, norm = FALSE)
+  } else {
+    data_features <- features[features %in% vrFeatures(from_object)]
+    metadata_features <- features[features %in% colnames(from_metadata)]
+    if(length(data_features) > 0){
+      if(length(metadata_features) > 0){
+        stop("Data and metadata features cannot be transfered in the same time!")
+      } else {
+        raw_counts <- vrData(from_object, norm = FALSE)
+        raw_counts <- raw_counts[features,]
+        message("There are ", length(setdiff(features, data_features)), " unknown features!")
+      }
+    } else {
+      if(length(metadata_features) > 1){
+        stop("Only one metadata column can be transfered at a time")
+      } else if(length(metadata_features) == 1) {
+        raw_counts <- from_metadata[,metadata_features, drop = FALSE]
+        rownames_raw_counts <- rownames(raw_counts)
+        raw_counts <- dummy_cols(raw_counts, remove_first_dummy = FALSE)
+        raw_counts <- raw_counts[,-1]
+        raw_counts <- t(raw_counts)
+        colnames(raw_counts) <- rownames_raw_counts
+        rownames(raw_counts) <- gsub(paste0("^", metadata_features, "_"), "", rownames(raw_counts))
+      } else {
+        stop("Features cannot be found in data and metadata!")
+      }
+    }
+  }
+  raw_counts <- raw_counts[,nnindex, drop = FALSE]
+  colnames(raw_counts) <- names(nnindex)
+  
+  # return
+  return(raw_counts)
 }
 
 #' getROIsFromCells
@@ -359,18 +420,7 @@ getCellsFromTiles <- function(from_object, from_metadata = NULL, to_object, feat
   aggregate_raw_counts <- t(aggregate_raw_counts[,-1])
   aggregate_raw_counts[is.na(aggregate_raw_counts)] <- 0
 
-  # create new assay
-  # new_assay <- formAssay(data = aggregate_raw_counts,
-  #                        coords = vrCoordinates(to_object)[colnames(aggregate_raw_counts),],
-  #                        image = vrImages(to_object),
-  #                        type = vrAssayTypes(to_object),
-  #                        main_image = to_object@main_image,
-  #                        params = to_object@params)
-  # new_assay@image <- to_object@image
-  # new_assay <- subset(new_assay, spatialpoints = colnames(aggregate_raw_counts))
-
   # return
-  # return(new_assay)
   return(aggregate_raw_counts)
 }
 

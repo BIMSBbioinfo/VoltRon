@@ -525,10 +525,10 @@ vrMainFeatureType.vrAssay <- vrMainFeatureType.vrAssayV2
 #' @rdname vrMainFeatureType
 #' @order 5
 #' @export
-"vrMainFeatureType<-.vrAssayV2" <- function(object, value){
+"vrMainFeatureType<-.vrAssayV2" <- function(object, ignore = FALSE, value){
   if(value %in% names(object@data)){
     object@main_featureset <- value
-  } else {
+  } else if(!ignore){
     stop("the feature type '", value, "' is not found in the assay!") 
   }
   return(object)
@@ -538,7 +538,7 @@ vrMainFeatureType.vrAssay <- vrMainFeatureType.vrAssayV2
 #' @order 5
 #' @export
 "vrMainFeatureType<-.vrAssay" <- function(object, value){
-  stop("vrAssay v1 objects do not have multiple feature types!")
+  stop("vrAssay V1 objects do not have multiple feature types!")
 }
 
 #' @rdname vrFeatureTypeNames
@@ -547,7 +547,6 @@ vrMainFeatureType.vrAssay <- vrMainFeatureType.vrAssayV2
 vrFeatureTypeNames.vrAssayV2 <- function(object){
   names_data <- names(object@data)
   return(names_data[!grepl("_norm$", names_data)])
-  # return(names(object@data))
 }
 
 #' @rdname vrFeatureTypeNames
