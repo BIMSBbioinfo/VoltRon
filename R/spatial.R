@@ -40,7 +40,7 @@ getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", k = 1
   # get spatial edges
   spatialedges_list <- list()
   for(assy in assay_names){
-    cur_coords <- vrCoordinates(object, assay = assy)
+    cur_coords <- as.matrix(vrCoordinates(object, assay = assy))
     spatialedges <-
       switch(method,
              delaunay = {

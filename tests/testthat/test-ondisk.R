@@ -182,3 +182,35 @@ test_that("visualization", {
   
   expect_equal(1,1L)
 })
+
+test_that("neighbors", {
+  
+  # get data
+  data("xenium_data")
+  
+  # HDF5
+  xenium_data2 <- saveVoltRon(xenium_data, 
+                              output = output_h5ad, 
+                              format = "HDF5VoltRon", 
+                              replace = TRUE, 
+                              verbose = FALSE)
+  
+  # spatial neighbors, delaunay
+  xenium_data2 <- getSpatialNeighbors(xenium_data2, method = "delaunay")
+  graphs <- vrGraph(xenium_data2, graph.type = "delaunay")
+  expect_true(inherits(graphs,"igraph"))
+  expect_true(length(igraph::E(graphs)) > 0)
+  
+  # profile neighbors, kNN
+  xenium_data2 <- getProfileNeighbors(xenium_data2, method = "kNN", k = 10, data.type = "pca")
+  graphs <- vrGraph(xenium_data2, graph.type = "kNN")
+  expect_true(inherits(graphs,"igraph"))
+  expect_true(length(igraph::E(graphs)) > 0)
+  xenium_data2 <- getClusters(xenium_data2, graph = "kNN", label = "cluster_knn")
+  expect_true(is.numeric(unique(xenium_data2$cluster_knn)))
+  
+  # remove files
+  unlink(output_h5ad, recursive = TRUE)
+  
+  expect_equal(1,1L)
+})
