@@ -8,25 +8,25 @@
 \alias{.DollarNames.VoltRon}
 \alias{[[,VoltRon,character,missing-method}
 \alias{[[,VoltRon-methods}
-\alias{[[<-,VoltRon,character,missing-method}
+\alias{[[<-,VoltRon,character,missing,ANY-method}
 \alias{[[<-,VoltRon-methods}
 \alias{[[,VoltRon,character,character-method}
-\alias{[[<-,VoltRon,character,character-method}
+\alias{[[<-,VoltRon,character,character,ANY-method}
 \title{Methods for VoltRon}
 \usage{
 \method{$}{VoltRon}(x, i, ...)
 
-\method{$}{VoltRon}(x, i, ...) <- value
+\method{$}{VoltRon}(x, i) <- value
 
 \method{.DollarNames}{VoltRon}(x, pattern = "")
 
 \S4method{[[}{VoltRon,character,missing}(x, i, j, ...)
 
-\S4method{[[}{VoltRon,character,missing}(x, i, j, ...) <- value
+\S4method{[[}{VoltRon,character,missing,ANY}(x, i, j, ...) <- value
 
 \S4method{[[}{VoltRon,character,character}(x, i, j, ...)
 
-\S4method{[[}{VoltRon,character,character}(x, i, j, ...) <- value
+\S4method{[[}{VoltRon,character,character,ANY}(x, i, j, ...) <- value
 }
 \arguments{
 \item{x}{A VoltRon object}

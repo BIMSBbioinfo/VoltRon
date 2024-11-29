@@ -4,6 +4,7 @@
 \alias{vrImageChannelNames}
 \alias{vrImageChannelNames.VoltRon}
 \alias{vrImageChannelNames.vrAssay}
+\alias{vrImageChannelNames.vrAssayV2}
 \alias{vrImageChannelNames.vrImage}
 \alias{vrImageChannelNames.vrSpatial}
 \title{vrImageChannelNames}
@@ -13,6 +14,8 @@ vrImageChannelNames(object, assay = NULL, name = NULL)
 \method{vrImageChannelNames}{VoltRon}(object, assay = NULL)
 
 \method{vrImageChannelNames}{vrAssay}(object, name = NULL)
+
+\method{vrImageChannelNames}{vrAssayV2}(object, name = NULL)
 
 \method{vrImageChannelNames}{vrImage}(object)
 

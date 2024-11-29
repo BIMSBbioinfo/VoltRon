@@ -13,7 +13,7 @@
 
 <title>Niche Clustering</title>
 
-<script src="site_libs/header-attrs-2.27/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -35,8 +35,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -382,6 +382,9 @@ div.tocify {
         <li>
           <a href="conversion.html">Converting VoltRon Objects</a>
         </li>
+        <li>
+          <a href="ondisk.html">OnDisk-based Analysis Utilities</a>
+        </li>
       </ul>
     </li>
   </ul>
@@ -473,7 +476,6 @@ spot could be incorporated to detect <strong>niches</strong> (i.e. small
 local microenvironments of cells) within the tissue. We can process cell
 type abundance assays and used them for clustering to detect these
 niches.</p>
-<!-- VoltRon includes wrapper commands for using popular RNA deconvolution methods such as [RCTD](https://www.nature.com/articles/s41587-021-00830-w) (**spot**), [SPOTlight](https://academic.oup.com/nar/article/49/9/e50/6129341) (**spot**) and [MuSiC](https://www.nature.com/articles/s41467-018-08023-x) (**ROI**), and return estimated abundances as additional assays within each layer. These novel assays then can be further processed and used for clustering to detect niches across multiple datatypes.   -->
 <p><br></p>
 <div id="import-st-data" class="section level2">
 <h2>Import ST Data</h2>
@@ -506,7 +508,8 @@ Anterior:
   Layers: Section1 Section2 
 Posterior: 
   Layers: Section1 Section2 
-Assays: Visium(Main) </code></pre>
+Assays: Visium(Main) 
+Features: RNA(Main) </code></pre>
 <p>VoltRon maps metadata features on the spatial images, multiple
 features can be provided for all assays/layers associated with the main
 assay (Visium).</p>
@@ -554,9 +557,12 @@ gsubclass | gclass</code></pre>
 <p>In order to integrate the scRNA data and the Visium data sets within
 the VoltRon objects, we will use <strong>RCTD</strong> algorithm which
 is accessible with the <a
-href="https://github.com/dmcable/spacexr">spacexr</a> package. For all
-layers with a Visium data, an additional assay within the same layer
-with **_decon** postfix will be created.</p>
+href="https://github.com/dmcable/spacexr">spacexr</a> package.</p>
+<pre class="r watch-out"><code>if(requireNamespace(&quot;spacexr&quot;))
+  devtools::install_github(&quot;dmcable/spacexr&quot;, build_vignettes = FALSE)</code></pre>
+<p>After running <strong>getDeconvolution</strong>, an additional assay
+within the same layer with **_decon** postfix will be created for all
+layers with a Visium data.</p>
 <pre class="r watch-out"><code>library(spacexr)
 MBrain_Sec &lt;- getDeconvolution(MBrain_Sec, sc.object = allen_reference, sc.cluster = &quot;subclass&quot;, max_cores = 6)
 MBrain_Sec</code></pre>
@@ -565,11 +571,12 @@ Anterior:
   Layers: Section1 Section2 
 Posterior: 
   Layers: Section1 Section2 
-Assays: Visium(Main) Visium_decon </code></pre>
-<p>We can now switch to the <strong>Visium_decon</strong> assay where
+Assays: Visium(Main) 
+Features: RNA(Main) Decon </code></pre>
+<p>We can now switch to the <strong>Decon</strong> feature type where
 features are cell types from the scRNA reference and the data values are
 cell types percentages in each spot.</p>
-<pre class="r watch-out"><code>vrMainAssay(MBrain_Sec) &lt;- &quot;Visium_decon&quot;
+<pre class="r watch-out"><code>vrMainFeatureType(MBrain_Sec) &lt;- &quot;Decon&quot;
 vrFeatures(MBrain_Sec)</code></pre>
 <pre><code> [1] &quot;Astro&quot;      &quot;Endo&quot;       &quot;L23 IT&quot;     &quot;L4&quot;         &quot;L5 IT&quot;      &quot;L5 PT&quot;     
  [7] &quot;L6 CT&quot;      &quot;L6 IT&quot;      &quot;L6b&quot;        &quot;Lamp5&quot;      &quot;Macrophage&quot; &quot;Meis2&quot;     
@@ -604,13 +611,13 @@ PCA.</p>
 normalized data slots. Hence, we build a UMAP reduction from CLR data.
 However, UMAP will always be calculated from a PCA reduction by default
 (if a PCA embedding is found in the object).</p>
-<pre class="r watch-out"><code>MBrain_Sec &lt;- getUMAP(MBrain_Sec, assay = &quot;Visium_decon&quot;, data.type = &quot;norm&quot;)
+<pre class="r watch-out"><code>MBrain_Sec &lt;- getUMAP(MBrain_Sec, data.type = &quot;norm&quot;)
 vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;Sample&quot;)</code></pre>
 <p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_embedding_sample.png" class="center"></p>
 <p><br></p>
 <p>Using normalized cell type abundances, we can now generate k-nearest
 neighbor graphs and cluster the graph using leiden method.</p>
-<pre class="r watch-out"><code>MBrain_Sec &lt;- getProfileNeighbors(MBrain_Sec, assay = &quot;Visium_decon&quot;, data.type = &quot;norm&quot;, method = &quot;SNN&quot;)
+<pre class="r watch-out"><code>MBrain_Sec &lt;- getProfileNeighbors(MBrain_Sec, data.type = &quot;norm&quot;, method = &quot;SNN&quot;)
 MBrain_Sec &lt;- getClusters(MBrain_Sec, resolution = 0.6, graph = &quot;SNN&quot;)</code></pre>
 <p><br></p>
 </div>

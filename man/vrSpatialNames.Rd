@@ -4,6 +4,7 @@
 \alias{vrSpatialNames}
 \alias{vrSpatialNames.VoltRon}
 \alias{vrSpatialNames.vrAssay}
+\alias{vrSpatialNames.vrAssayV2}
 \title{vrSpatialNames}
 \usage{
 vrSpatialNames(object, assay = NULL)
@@ -11,6 +12,8 @@ vrSpatialNames(object, assay = NULL)
 \method{vrSpatialNames}{VoltRon}(object, assay = NULL)
 
 \method{vrSpatialNames}{vrAssay}(object)
+
+\method{vrSpatialNames}{vrAssayV2}(object)
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object}

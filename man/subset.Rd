@@ -14,7 +14,7 @@
   features = NULL,
   image = NULL,
   interactive = FALSE,
-  use_points = FALSE,
+  use.points.only = FALSE,
   shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive()))
 )
 }
@@ -35,7 +35,7 @@
 
 \item{interactive}{TRUE if interactive subsetting on the image is demanded}
 
-\item{use_points}{if \code{interactive} is \code{TRUE}, use spatial points instead of the reference image}
+\item{use.points.only}{if \code{interactive} is \code{TRUE}, use spatial points instead of the reference image}
 
 \item{shiny.options}{a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}}
 }

@@ -10,7 +10,8 @@ getClusters(
   assay = NULL,
   label = "clusters",
   graph = "kNN",
-  seed = 1
+  seed = 1,
+  abundance_limit = 2
 )
 }
 \arguments{
@@ -26,6 +27,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{graph}{the graph type to be used}
 
 \item{seed}{seed}
+
+\item{abundance_limit}{the minimum number of points for a cluster, hence clusters with abundance lower than this limit will be appointed to other nearby clusters}
 }
 \description{
 Get clustering of the VoltRon object

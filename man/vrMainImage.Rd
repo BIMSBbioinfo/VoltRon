@@ -4,8 +4,10 @@
 \alias{vrMainImage}
 \alias{vrMainImage.VoltRon}
 \alias{vrMainImage.vrAssay}
+\alias{vrMainImage.vrAssayV2}
 \alias{vrMainImage<-.VoltRon}
 \alias{vrMainImage<-.vrAssay}
+\alias{vrMainImage<-.vrAssayV2}
 \title{vrMainImage}
 \usage{
 vrMainImage(object, assay = NULL)
@@ -14,9 +16,13 @@ vrMainImage(object, assay = NULL)
 
 \method{vrMainImage}{vrAssay}(object)
 
+\method{vrMainImage}{vrAssayV2}(object)
+
 \method{vrMainImage}{VoltRon}(object, assay = NULL) <- value
 
 \method{vrMainImage}{vrAssay}(object) <- value
+
+\method{vrMainImage}{vrAssayV2}(object) <- value
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object}

@@ -4,6 +4,7 @@
 \alias{getFeatures}
 \alias{getFeatures.VoltRon}
 \alias{getFeatures.vrAssay}
+\alias{getFeatures.vrAssayV2}
 \title{getFeatures}
 \usage{
 getFeatures(object, assay = NULL, max.count = 1, n = 3000)
@@ -11,6 +12,8 @@ getFeatures(object, assay = NULL, max.count = 1, n = 3000)
 \method{getFeatures}{VoltRon}(object, assay = NULL, max.count = 1, n = 3000)
 
 \method{getFeatures}{vrAssay}(object, max.count = 1, n = 3000)
+
+\method{getFeatures}{vrAssayV2}(object, max.count = 1, n = 3000)
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object}

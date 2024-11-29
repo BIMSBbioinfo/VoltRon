@@ -130,6 +130,7 @@ VoltRon Object
 acute case 1 (HE): 
   Layers: Section1 
 Assays: ImageData(Main) ROIAnnotation 
+Features: main(Main) 
 ```
 
 By visualizing these annotations interactively, we can see that the ROIs point to the hyaline membranes. Here, we likely find extra-cellular SARS-COV-2 molecules mostly outside of any single cell.

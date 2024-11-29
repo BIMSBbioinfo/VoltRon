@@ -12,6 +12,8 @@ setOldClass(Classes = c('igraph'))
 #' The vrSample (VoltRon Sample) Class
 #'
 #' @slot layer A list of layers (vrLayer)
+#' @slot zlocation a vector of z coordinates of layers
+#' @slot adjacency an adjacency matrix of connected layers within a block
 #'
 #' @name vrSample-class
 #' @rdname vrSample-class
@@ -20,7 +22,9 @@ setOldClass(Classes = c('igraph'))
 vrSample <- setClass(
   Class = 'vrSample',
   slots = c(
-    layer = 'list'
+    layer = 'list',
+    zlocation = 'numeric',
+    adjacency = "matrix"
   )
 )
 
@@ -89,18 +93,22 @@ setMethod(
 
 ## vrBlock ####
 
-#' The vrSample (VoltRon Sample) Class
+#' The vrBlock (VoltRon Block) Class
 #'
 #' @slot layer A list of layers (vrLayer)
+#' @slot zlocation a vector of z coordinates of layers
+#' @slot adjacency an adjacency matrix of connected layers within a block
 #'
-#' @name vrSample-class
-#' @rdname vrSample-class
-#' @exportClass vrSample
+#' @name vrBlock-class
+#' @rdname vrBlock-class
+#' @exportClass vrBlock
 #'
-vrSample <- setClass(
+vrBlock <- setClass(
   Class = 'vrBlock',
   slots = c(
-    layer = 'list'
+    layer = 'list',
+    zlocation = 'numeric', 
+    adjacency = "matrix"
   )
 )
 
@@ -319,9 +327,20 @@ subset.vrSample <- function(object, subset, assays = NULL, spatialpoints = NULL,
   }
 
   # remove NULL assays
-  object@layer <- object@layer[which(sapply(object@layer, function(x) !is.null(x)))]
-
+  ind <- which(sapply(object@layer, function(x) !is.null(x)))
+  object@layer <- object@layer[ind]
+  
+  # check if there are layers
   if(length(object@layer) > 0){
+    
+    # get updated adjaceny and distance
+    catch_connect <- try(slot(object, name = "zlocation"), silent = TRUE)
+    if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
+      object@zlocation <- object@zlocation[ind]
+      object@adjacency <- object@adjacency[ind, ind, drop = FALSE]
+    }
+    
+    # return object
     return(object)
   } else {
     return(NULL)
@@ -461,12 +480,20 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
 
     # subset assays
     object@assay <- sapply(object@assay, function(assy) {
-      subset.vrAssay(assy, spatialpoints = spatialpoints)
+      if(inherits(assy, "vrAssay")){
+        return(subset.vrAssay(assy, spatialpoints = spatialpoints))
+      } else {
+        return(subset.vrAssayV2(assy, spatialpoints = spatialpoints))
+      }
     }, USE.NAMES = TRUE, simplify = TRUE)
-
+    
   } else if(!is.null(image)){
     object@assay <- sapply(object@assay, function(assy) {
-      subset.vrAssay(assy, image = image)
+      if(inherits(assy, "vrAssay")){
+        return(subset.vrAssay(assy, image = image))
+      } else {
+        return(subset.vrAssayV2(assy, image = image))
+      }
     }, USE.NAMES = TRUE, simplify = TRUE)
   }
 
@@ -513,7 +540,7 @@ subset.Connectivity <- function(object, spatialpoints = NULL){
 #'
 #' get spatial points connected to other spatial points in the connectivity graph of vrLayer
 #'
-#' @param object the connectivity graph of the vrLayer
+#' @param object A vrLayer object
 #' @param spatialpoints the set of spatial points
 #'
 #' @importFrom igraph neighborhood V vcount

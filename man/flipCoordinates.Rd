@@ -4,6 +4,7 @@
 \alias{flipCoordinates}
 \alias{flipCoordinates.VoltRon}
 \alias{flipCoordinates.vrAssay}
+\alias{flipCoordinates.vrAssayV2}
 \title{flipCoordinates}
 \usage{
 flipCoordinates(
@@ -23,6 +24,8 @@ flipCoordinates(
 )
 
 \method{flipCoordinates}{vrAssay}(object, image_name = NULL, spatial_name = NULL, ...)
+
+\method{flipCoordinates}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, ...)
 }
 \arguments{
 \item{object}{a VoltRon, vrAssay or vrImage object}

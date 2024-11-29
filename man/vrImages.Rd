@@ -4,9 +4,11 @@
 \alias{vrImages}
 \alias{vrImages.VoltRon}
 \alias{vrImages.vrAssay}
+\alias{vrImages.vrAssayV2}
 \alias{vrImages.vrImage}
 \alias{vrImages.vrSpatial}
 \alias{vrImages<-.vrAssay}
+\alias{vrImages<-.vrAssayV2}
 \alias{vrImages<-.vrImage}
 \alias{vrImages<-.vrSpatial}
 \title{vrImages}
@@ -40,11 +42,22 @@ vrImages(
   scale.perc = 100
 )
 
+\method{vrImages}{vrAssayV2}(
+  object,
+  name = NULL,
+  reg = FALSE,
+  channel = NULL,
+  as.raster = FALSE,
+  scale.perc = 100
+)
+
 \method{vrImages}{vrImage}(object, channel = NULL, as.raster = FALSE, scale.perc = 100)
 
 \method{vrImages}{vrSpatial}(object, channel = NULL, as.raster = FALSE, scale.perc = 100)
 
 \method{vrImages}{vrAssay}(object, name = NULL, channel = NULL, reg = FALSE) <- value
+
+\method{vrImages}{vrAssayV2}(object, name = NULL, channel = NULL, reg = FALSE) <- value
 
 \method{vrImages}{vrImage}(object, channel = NULL) <- value
 

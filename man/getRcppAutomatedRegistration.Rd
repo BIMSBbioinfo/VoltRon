@@ -15,7 +15,8 @@ getRcppAutomatedRegistration(
   flipflop_ref = "None",
   rotate_query = "0",
   rotate_ref = "0",
-  method = "FLANN"
+  matcher = "FLANN",
+  method = "Homography"
 )
 }
 \arguments{
@@ -39,7 +40,9 @@ getRcppAutomatedRegistration(
 
 \item{rotate_ref}{rotation of reference image}
 
-\item{method}{the automated registration method, either FLANN or BRUTE-FORCE}
+\item{matcher}{the matching method for landmarks/keypoints FLANN or BRUTE-FORCE}
+
+\item{method}{the automated registration method, Homography or Homography+TPS}
 }
 \description{
 Automated registration workflos with Rcpp

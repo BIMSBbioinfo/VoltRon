@@ -14,6 +14,7 @@ importGeoMx(
   segment_polygons = FALSE,
   ome.tiff = NULL,
   resolution_level = 3,
+  image_name = "main",
   ...
 )
 }
@@ -35,6 +36,8 @@ importGeoMx(
 \item{ome.tiff}{the OME.TIFF file of the GeoMx experiment if exists}
 
 \item{resolution_level}{the level of resolution within GeoMx OME-TIFF image, Default: 3}
+
+\item{image_name}{the image name of the Visium assay, Default: main}
 
 \item{...}{additional parameters passed to \link{formVoltRon}}
 }

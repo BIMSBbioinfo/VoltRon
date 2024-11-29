@@ -11,14 +11,14 @@ The vrMetadata (VoltRon Metadata) Class
 \section{Slots}{
 
 \describe{
-\item{\code{tile}}{the metadata data table of tiles}
+\item{\code{tile}}{the metadata of tiles}
 
-\item{\code{molecule}}{the metadata data table of molecules}
+\item{\code{molecule}}{the metadata of molecules}
 
-\item{\code{cell}}{the metadata data frame of cells}
+\item{\code{cell}}{the metadata of cells}
 
-\item{\code{spot}}{the metadata data frame of spot}
+\item{\code{spot}}{the metadata of spot}
 
-\item{\code{ROI}}{the metadata data frame of ROI}
+\item{\code{ROI}}{the metadata of ROI}
 }}
 

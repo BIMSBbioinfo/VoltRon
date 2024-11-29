@@ -25,10 +25,10 @@ getDiffExp <- function(object, assay = NULL, group.by, group.base = NULL, covari
   # check groups
   if(group.by %in% colnames(metadata)){
     if(!is.null(group.base)){
-      if(!group.base %in% unique(metadata[[group.by]]))
+      if(!group.base %in% unique(as.vector(metadata[[group.by]])))
         stop("Please specify a group that is included in the group.by column of metadata to define the base group!")
     } else{
-      group.base <- levels(factor(metadata[[group.by]]))[1]
+      group.base <- levels(factor(as.vector(metadata[[group.by]])))[1]
     }
   } else {
     stop("Column ", group.by, " cannot be found in metadata!")
@@ -54,7 +54,6 @@ getDiffExp <- function(object, assay = NULL, group.by, group.base = NULL, covari
 #' @param covariates the covariate variable for the design formula
 #'
 #' @importFrom stats as.formula
-#' @importFrom S4Vectors DataFrame
 #'
 #' @noRd
 getDiffExpDESeq2 <- function(data, metadata, group.by, group.base = NULL, covariates){
@@ -66,12 +65,12 @@ getDiffExpDESeq2 <- function(data, metadata, group.by, group.base = NULL, covari
 
   # make formula
   if(is.null(covariates)){
-    group.by.data <- metadata[[group.by]]
+    group.by.data <- as.vector(metadata[[group.by]])
     uniq_groups <- unique(group.by.data)
     if(!is.null(group.base))
       uniq_groups <- c(group.base, uniq_groups[!uniq_groups %in% group.base])
     group.by.data <- factor(group.by.data, levels = uniq_groups)
-    colData <- S4Vectors::DataFrame(group.by.data)
+    colData <- data.frame(group.by.data)
     colnames(colData) <- c(group.by, covariates)
     deseq2.formula <- stats::as.formula(paste0("~", group.by))
   } else {
@@ -82,7 +81,7 @@ getDiffExpDESeq2 <- function(data, metadata, group.by, group.base = NULL, covari
         uniq_groups <- c(group.base, uniq_groups[!uniq_groups %in% group.base])
       group.by.data <- factor(design.data[[group.by]], levels = uniq_groups)
       design.data[[group.by]] <- group.by.data
-      colData <- S4Vectors::DataFrame(design.data)
+      colData <- data.frame(design.data)
       colnames(colData) <- c(group.by, covariates)
       deseq2.formula <- stats::as.formula(paste0("~", group.by, " + ", paste(covariates, collapse = " + ")))
     } else {
@@ -91,6 +90,7 @@ getDiffExpDESeq2 <- function(data, metadata, group.by, group.base = NULL, covari
   }
 
   # run DESeq2
+  data <- as.matrix(as(data, "dgCMatrix"))
   dds <- DESeq2::DESeqDataSetFromMatrix(countData = data, colData = colData, design = deseq2.formula)
   dds <- DESeq2::DESeq(dds)
 

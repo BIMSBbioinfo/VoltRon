@@ -6,7 +6,9 @@
 \alias{vrAssayNames.VoltRon}
 \alias{vrAssayNames.vrMetadata}
 \alias{vrAssayNames.vrAssay}
+\alias{vrAssayNames.vrAssayV2}
 \alias{vrAssayNames<-.vrAssay}
+\alias{vrAssayNames<-.vrAssayV2}
 \title{Get Assay names}
 \usage{
 vrAssayNames(object, assay = NULL)
@@ -17,7 +19,11 @@ vrAssayNames(object, assay = NULL)
 
 \method{vrAssayNames}{vrAssay}(object)
 
+\method{vrAssayNames}{vrAssayV2}(object)
+
 \method{vrAssayNames}{vrAssay}(object) <- value
+
+\method{vrAssayNames}{vrAssayV2}(object) <- value
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object}

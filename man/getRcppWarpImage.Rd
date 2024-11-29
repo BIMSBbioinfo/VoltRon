@@ -4,14 +4,14 @@
 \alias{getRcppWarpImage}
 \title{getRcppWarpImage}
 \usage{
-getRcppWarpImage(ref_image, query_image, hmatrix)
+getRcppWarpImage(ref_image, query_image, mapping)
 }
 \arguments{
 \item{ref_image}{reference image}
 
 \item{query_image}{query image}
 
-\item{hmatrix}{the homography matrix}
+\item{mapping}{a list of the homography matrices and TPS keypoints}
 }
 \description{
 Warping a query image given a homography image

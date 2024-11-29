@@ -13,7 +13,7 @@
 
 <title>Importing Spatial Data</title>
 
-<script src="site_libs/header-attrs-2.27/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -35,8 +35,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -381,6 +381,9 @@ div.tocify {
         </li>
         <li>
           <a href="conversion.html">Converting VoltRon Objects</a>
+        </li>
+        <li>
+          <a href="ondisk.html">OnDisk-based Analysis Utilities</a>
         </li>
       </ul>
     </li>
@@ -905,7 +908,7 @@ vrSpatialPlot but requires extra arguements such as
 for normalized expression (default), and <strong>log</strong> for log
 transformed counts.</p>
 <pre class="r watch-out"><code>vrSpatialFeaturePlot(visium_data, features = &quot;Count&quot;)
-vrSpatialFeaturePlot(visium_data, features = &quot;Stat1&quot;, norm = TRUE, log = TRUE)</code></pre>
+vrSpatialFeaturePlot(visium_data, features = &quot;Stat1&quot;, norm = TRUE)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spfeature.png" class="center"></p>
 <p><br></p>
 <p>For all variations of <strong>vrSpatialPlot</strong> and

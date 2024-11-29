@@ -3,9 +3,11 @@
 \name{vrMainChannel}
 \alias{vrMainChannel}
 \alias{vrMainChannel.vrAssay}
+\alias{vrMainChannel.vrAssayV2}
 \alias{vrMainChannel.vrImage}
 \alias{vrMainChannel.vrSpatial}
 \alias{vrMainChannel<-.vrAssay}
+\alias{vrMainChannel<-.vrAssayV2}
 \alias{vrMainChannel<-.vrImage}
 \alias{vrMainChannel<-.vrSpatial}
 \title{vrMainChannel}
@@ -14,11 +16,15 @@ vrMainChannel(object, name = NULL)
 
 \method{vrMainChannel}{vrAssay}(object, name = NULL)
 
+\method{vrMainChannel}{vrAssayV2}(object, name = NULL)
+
 \method{vrMainChannel}{vrImage}(object)
 
 \method{vrMainChannel}{vrSpatial}(object)
 
 \method{vrMainChannel}{vrAssay}(object, name = NULL) <- value
+
+\method{vrMainChannel}{vrAssayV2}(object, name = NULL) <- value
 
 \method{vrMainChannel}{vrImage}(object) <- value
 

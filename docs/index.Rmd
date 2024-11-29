@@ -111,7 +111,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 <!--
 # To install on **MacOS**, you need to first install [homebrew](https://brew.sh/): 
-# 
+# w
 # ```sh
 # /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 # ```

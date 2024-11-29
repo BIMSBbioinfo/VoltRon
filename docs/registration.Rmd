@@ -162,6 +162,7 @@ VRBlock
 10XBlock: 
   Layers: Section1 Section2 Section3 
 Assays: Xenium(Main) Visium
+Features: RNA(Main) 
 ```
 
 Here, we can quickly check the change in spatial coordinate systems in the new tissue block. The `registerSpatialData` function syncronizes the coordinate systems of all VoltRon objects in the list before merging. Both Xenium sections have now two coordinate system where the registered system **main_reg** is the default one.
@@ -176,6 +177,8 @@ vrSpatialNames(VRBlock, assay = "all")
 2 Assay2          main     main
 3 Assay3 main,main_reg main_reg
 ```
+
+<br>
 
 ### Data/Label Transfer Across Layers
 
@@ -207,30 +210,32 @@ The **transferData** function detects the types of both the **source (from)** an
 VRBlock <- transferData(VRBlock, from = "Assay1", to = "Assay2")
 ```
 
-VoltRon supports multiple assays within each layer. Now, Section 2 includes two spot-type assays:
+VoltRon supports multiple feature type within each assay. Now, the Visium assay includes two spot-type features:
 
-* the original Visium spot assay,
-* a pseudo Visium assay with aggregated Xenium raw counts.
+* the original Visium spot feature counts,
+* a pseudo Visium feature count matrix with aggregated Xenium raw counts.
 
 ```{r class.source="watch-out", eval = FALSE}
-SampleMetadata(VRBlock)
+VRBlock
 ```
 
 ```
-               Assay    Layer   Sample
-Assay1        Xenium Section1 10XBlock
-Assay2        Visium Section2 10XBlock
-Assay3        Xenium Section3 10XBlock
-Assay4 Visium_pseudo Section2 10XBlock
+VoltRon Object 
+10XBlock: 
+  Layers: Section1 Section2 Section3 
+Assays: Visium(Main) Xenium 
+Features: RNA_pseudo(Main) RNA 
 ```
 
 We can now visualize both the original and aggregated counts of a gene, such as ERBB2 and ESR1 that marks ductal carcinoma in situ (DCIS) regions, to validate the correlation of gene signatures across adjacent tissue sections, and to validate the accuracy of the automated image alignment. Here, PGR is also expressed at a small DCIS region found on adipocyte niche of the tissue. 
 
 ```{r class.source="watch-out", eval = FALSE}
 library(patchwork)
-g1 <- vrSpatialFeaturePlot(VRBlock, assay = "Visium", 
+vrMainFeatureType(VRBlock_new, assay = "Visium") <- "RNA"
+g1 <- vrSpatialFeaturePlot(VRBlock,  
                            features = c("ERBB2", "ESR1", "PGR"), crop = FALSE, 
                            norm = FALSE, ncol = 3)
+vrMainFeatureType(VRBlock_new, assay = "Visium") <- "RNA_pseudo"
 g2 <- vrSpatialFeaturePlot(VRBlock, assay = "Visium_pseudo", 
                            features = c("ERBB2", "ESR1", "PGR"), crop = FALSE, 
                            norm = FALSE, ncol = 3)
@@ -253,23 +258,23 @@ Here, we can see that both Xenium layers are clustered and annotated where we ca
 
 ```{r class.source="watch-out", eval = FALSE}
 VRBlock <- transferData(VRBlock, from = "Assay1", to = "Assay2", features = "CellType", 
-                        new_assay_name = "Visium_pseudo_CellType")
-SampleMetadata(VRBlock)
+                        new_assay_name = "Visium_CellType")
+VRBlock
 ```
 
 ```
-                        Assay    Layer   Sample
-Assay1                 Xenium Section1 10XBlock
-Assay2                 Visium Section2 10XBlock
-Assay3                 Xenium Section3 10XBlock
-Assay4          Visium_pseudo Section2 10XBlock
-Assay5 Visium_pseudo_CellType Section2 10XBlock
+VoltRon Object 
+10XBlock: 
+  Layers: Section1 Section2 Section3 
+Assays: Visium(Main) Xenium 
+Features: RNA_pseudo(Main) RNA Visium_CellType 
 ```
 
 By visualizing the transferred labels on the Visium spots, we can see abundance of some DCIS and invasive tumor subtypes. 
 
 ```{r class.source="watch-out", eval = FALSE}
-vrSpatialFeaturePlot(VRBlock, assay = "Visium_pseudo_CellType",
+vrMainFeatureType(VRBlock_new) <- "Visium_CellType"
+vrSpatialFeaturePlot(VRBlock, assay = "Visium",
                      features = c("IT_1","DCIS_2"), 
                      crop = TRUE, alpha = 1, ncol = 3)
 ```
@@ -290,7 +295,7 @@ library(VoltRon)
 # import Xenium 
 Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1")
 
-# import H&E image and built a VoltRon object
+# import H&E image and build a VoltRon object
 Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif",
                                 sample_name = "XeniumR1image",
                                 image_name = "H&E")
@@ -332,13 +337,13 @@ Now we create a new channel for the existing coordinate system of the Xenium dat
 
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1_image_reg <- xen_reg$registered_spat[[2]]
-vrImages(Xen_R1[["Assay1"]], name = "main", channel = "H&E") <- vrImages(Xen_R1_image_reg, name = "H&E_reg")
+vrImages(Xen_R1[["Assay1"]], channel = "H&E") <- vrImages(Xen_R1_image_reg, name = "H&E_reg")
 ```
 
 Now we can call the registered H&E image of the Xenium data or later put the aligned H&E when calling **vrSpatialPlot** or **vrSpatialFeaturePlot**.
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrImages(Xen_R1, name = "main", channel = "H&E", scale.perc = 5)
+vrImages(Xen_R1, channel = "H&E", scale.perc = 5)
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE.png" class="center">

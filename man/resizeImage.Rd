@@ -4,6 +4,7 @@
 \alias{resizeImage}
 \alias{resizeImage.VoltRon}
 \alias{resizeImage.vrAssay}
+\alias{resizeImage.vrAssayV2}
 \alias{resizeImage.vrImage}
 \alias{resizeImage.vrSpatial}
 \title{resizeImage}
@@ -13,6 +14,8 @@ resizeImage(object, assay = NULL, name = NULL, reg = FALSE, size)
 \method{resizeImage}{VoltRon}(object, assay = NULL, name = NULL, reg = FALSE, size = NULL)
 
 \method{resizeImage}{vrAssay}(object, name = NULL, reg = FALSE, size = NULL)
+
+\method{resizeImage}{vrAssayV2}(object, name = NULL, reg = FALSE, size = NULL)
 
 \method{resizeImage}{vrImage}(object, size = NULL)
 

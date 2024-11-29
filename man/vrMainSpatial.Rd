@@ -4,8 +4,10 @@
 \alias{vrMainSpatial}
 \alias{vrMainSpatial.VoltRon}
 \alias{vrMainSpatial.vrAssay}
+\alias{vrMainSpatial.vrAssayV2}
 \alias{vrMainSpatial<-.VoltRon}
 \alias{vrMainSpatial<-.vrAssay}
+\alias{vrMainSpatial<-.vrAssayV2}
 \title{vrMainSpatial}
 \usage{
 vrMainSpatial(object, assay = NULL)
@@ -14,9 +16,13 @@ vrMainSpatial(object, assay = NULL)
 
 \method{vrMainSpatial}{vrAssay}(object)
 
+\method{vrMainSpatial}{vrAssayV2}(object)
+
 \method{vrMainSpatial}{VoltRon}(object, assay = NULL) <- value
 
 \method{vrMainSpatial}{vrAssay}(object) <- value
+
+\method{vrMainSpatial}{vrAssayV2}(object) <- value
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object}

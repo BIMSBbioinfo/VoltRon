@@ -1,20 +1,20 @@
 Package: VoltRon
 Type: Package
 Title: VoltRon for Spatial Data Integration and Analysis
-Version: 0.1.0
+Version: 0.2.0
 Depends: R (>= 4.3.0)
-Author: Artür Manukyan, Ella Bahry, Deborah Schmidt, Markus Landthaler, Altuna Akalin
-Maintainer: Artur Manukyan <artur-man@hotmail.com>
+Author: Artür Manukyan, Ella Bahry, Raj Prateek Rai, Wei-Che Ko, Deborah Schmidt, Markus Landthaler, Altuna Akalin
+Maintainer: Artür Manukyan <artur-man@hotmail.com>
 Description: VoltRon is a novel spatial omic analysis toolbox for multi-omics integration using spatial image registration. VoltRon is capable of analyzing multiple types and modalities of spatially-aware datasets. VoltRon visualizes and analyzes regions of interests (ROIs), spots, cells and even molecules.
 License: MIT + file LICENSE
-SystemRequirements: OpenCV 4.7 (or higher): libopencv-dev (Debian, Ubuntu) or opencv-devel (Fedora)
+SystemRequirements: OpenCV 4.8 (or higher): libopencv-dev (Debian, Ubuntu) or opencv-devel (Fedora)
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 biocViews:
-Imports: methods, S4Vectors, EBImage, FNN, Matrix, dplyr, ggforce, 
-         ggplot2, ggpubr, ggrepel, hdf5r, igraph, irlba, rjson, magick, 
-         reshape2, rlang, scales, shiny, shinyjs, stringr, uwot, data.table, 
-         RCDT, basilisk, reticulate, sp, ids, waiter, rstudioapi, htmltools
+Imports: methods, S4Arrays, grDevices, data.table, EBImage, RcppAnnoy, RANN,
+         Matrix, dplyr, ggplot2, ggrepel, igraph, irlba, rjson, magick, ids, 
+         sp, reshape2, rlang, ggpubr, shiny, shinyjs, stringr, uwot, RCDT, 
+         basilisk, reticulate
 LinkingTo: Rcpp, RcppArmadillo (>= 0.4)
 Collate: 
     'RcppExports.R'
@@ -32,6 +32,7 @@ Collate:
     'import.R'
     'integration.R'
     'interactive.R'
+    'io.R'
     'metadata.R'
     'objects.R'
     'processing.R'
@@ -53,13 +54,21 @@ Suggests:
     xlsx,
     tiledb,
     tiledbsc,
+    arrow,
     vitessceR,
     testthat (>= 3.0.0),
     geojsonR,
-    DelayedArray,
     circlize,
+    rstudioapi,
+    ggforce,
     anndataR,
-    anndata
+    anndata,
+    DelayedArray,
+    hdf5r,
+    ImageArray,
+    BPCells,
+    HDF5DataFrame,
+    ZarrDataFrame
 Config/testthat/edition: 3
 LazyData: true
 LazyDataCompression: gzip

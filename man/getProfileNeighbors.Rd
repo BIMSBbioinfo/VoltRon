@@ -7,12 +7,11 @@
 getProfileNeighbors(
   object,
   assay = NULL,
+  method = "kNN",
+  k = 10,
   data.type = "pca",
   dims = 1:30,
-  k = 10,
-  method = "kNN",
-  graph.key = method,
-  ...
+  graph.key = method
 )
 }
 \arguments{
@@ -21,17 +20,15 @@ getProfileNeighbors(
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
+\item{method}{the method used for graph construction, SNN or kNN}
+
+\item{k}{number of neighbors for kNN}
+
 \item{data.type}{the type of embedding used for neighborhood calculation, e.g. raw counts (raw), normalized counts (norm), PCA embeddings (pca), UMAP embeddings (umap) etc.}
 
 \item{dims}{the set of dimensions of the embedding data}
 
-\item{k}{number of neighbors for kNN}
-
-\item{method}{the method used for graph construction, SNN or kNN}
-
 \item{graph.key}{the name of the graph}
-
-\item{...}{additional parameters passed to \link{get.knn}}
 }
 \description{
 Get neighbors of spatial points

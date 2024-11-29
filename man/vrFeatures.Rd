@@ -4,6 +4,7 @@
 \alias{vrFeatures}
 \alias{vrFeatures.VoltRon}
 \alias{vrFeatures.vrAssay}
+\alias{vrFeatures.vrAssayV2}
 \title{vrFeatures}
 \usage{
 vrFeatures(object, assay = NULL)
@@ -11,6 +12,8 @@ vrFeatures(object, assay = NULL)
 \method{vrFeatures}{VoltRon}(object, assay = NULL)
 
 \method{vrFeatures}{vrAssay}(object)
+
+\method{vrFeatures}{vrAssayV2}(object)
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object}

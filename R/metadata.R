@@ -1,16 +1,27 @@
+#' @importClassesFrom data.table data.table
+
 ####
 # Objects and Classes ####
 ####
+
+suppressWarnings({
+  setClassUnion("metadata_data",
+                members = c("data.table", 
+                            "data.frame",
+                            if (requireNamespace("S4Vectors", quietly = TRUE)) "DataFrame" else NULL,
+                            if (requireNamespace("HDF5DataFrame", quietly = TRUE)) "HDF5DataFrame" else NULL, 
+                            if (requireNamespace("ZarrDataFrame", quietly = TRUE)) "ZarrDataFrame" else NULL))
+})
 
 ## vrMetadata ####
 
 #' The vrMetadata (VoltRon Metadata) Class
 #'
-#' @slot tile the metadata data table of tiles
-#' @slot molecule the metadata data table of molecules
-#' @slot cell the metadata data frame of cells
-#' @slot spot the metadata data frame of spot
-#' @slot ROI the metadata data frame of ROI
+#' @slot tile the metadata of tiles
+#' @slot molecule the metadata of molecules
+#' @slot cell the metadata of cells
+#' @slot spot the metadata of spot
+#' @slot ROI the metadata of ROI
 #'
 #' @name vrMetadata-class
 #' @rdname vrMetadata-class
@@ -19,11 +30,11 @@
 vrMetadata <- setClass(
   Class = 'vrMetadata',
   slots = c(
-    molecule = 'data.table',
-    cell = 'data.frame',
-    spot = 'data.frame',
-    ROI = 'data.frame',
-    tile = 'data.table'
+    molecule = 'metadata_data',
+    cell = 'metadata_data',
+    spot = 'metadata_data',
+    ROI = 'metadata_data',
+    tile = 'metadata_data'
   )
 )
 
@@ -137,15 +148,30 @@ vrSpatialPoints.vrMetadata <- function(object, assay = NULL) {
   # get spatial points
   points <- unlist(lapply(methods::slotNames(object), function(x) {
     if(x %in% c("cell", "spot", "ROI")){
-      sp <- rownames(slot(object, name = x))
-      if(!is.null(assay))
-        sp <- sp[grepl(paste(paste0(assay, "$"), collapse = "|"), sp)]
-      return(sp)
+      mdata <- slot(object, name = x)
+      if(nrow(mdata) > 0){
+        if(!is.null(rownames(mdata))){
+          sp <- rownames(mdata)
+        } else {
+          sp <- as.vector(mdata$id)
+        }
+        if(!is.null(assay))
+          sp <- sp[grepl(paste(paste0(assay, "$"), collapse = "|"), sp)]
+        return(sp)  
+      }
     } else {
       mdata <- slot(object, name = x)
       if(nrow(mdata) > 0){
-        sp_data <- subset(slot(object, name = x), subset = assay_id %in% assay)
-        return(sp_data[["id"]])
+        if(inherits(mdata, "data.table")){
+          if(!is.null(assay))
+            sp <- subset(mdata, subset = assay_id %in% assay)
+          return(sp[["id"]])
+        } else {
+          sp <- as.vector(mdata$id)
+          if(!is.null(assay))
+            sp <- sp[grepl(paste(paste0(assay, "$"), collapse = "|"), sp)]
+          return(sp)
+        }
       }
     }
   }))
@@ -180,36 +206,40 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
   # subset all metadata types
   if(!is.null(samples)){
     if(nrow(object@molecule) > 0){
-      mol.metadata <- object@molecule[Sample %in% samples, ]
+      mol.metadata <- subset_metadata(object@molecule, samples = samples)
     } else {
       mol.metadata <- data.table::data.table()
     }
-    cell.metadata <- object@cell[object@cell$Sample %in% samples, ]
-    spot.metadata <- object@spot[object@spot$Sample %in% samples, ]
-    roi.metadata <- object@ROI[object@ROI$Sample %in% samples, ]
+    cell.metadata <- subset_metadata(object@cell, samples = samples)
+    spot.metadata <- subset_metadata(object@spot, samples = samples)
+    roi.metadata <- subset_metadata(object@ROI, samples = samples)
     if(nrow(object@tile) > 0){
-      tile.metadata <- object@tile[Sample %in% samples, ]
+      tile.metadata <- subset_metadata(object@tile, samples = samples)
     } else {
       tile.metadata <- data.table::data.table()
     }
   } else if(!is.null(assays)){
     assay_names <- unique(lapply(slotToList(object), function(x) {
       if(inherits(x, "data.table")){
-        unique(x$assay_id)
+        return(unique(as.vector(x$assay_id)))
       } else {
-        unique(stringr::str_extract(rownames(x), "Assay[0-9]+"))
+        if(!is.null(rownames(x))){
+          return(unique(stringr::str_extract(rownames(x), "Assay[0-9]+")))
+        } else {
+          return(unique(stringr::str_extract(as.vector(x$id), "Assay[0-9]+"))) 
+        }
       }
     }))
     assay_names <- unique(do.call(c,assay_names))
     if(all(assays %in% assay_names)){
       if(nrow(object@molecule) > 0) {
-        mol.metadata <- object@molecule[assay_id %in% assays, ]
+        mol.metadata <- subset_metadata(object@molecule, assays = assays)
       } else {
         mol.metadata <- data.table::data.table()
       }
-      cell.metadata <- object@cell[stringr::str_extract(rownames(object@cell), "Assay[0-9]+") %in% assays, ]
-      spot.metadata <- object@spot[stringr::str_extract(rownames(object@spot), "Assay[0-9]+") %in% assays, ]
-      roi.metadata <- object@ROI[stringr::str_extract(rownames(object@ROI), "Assay[0-9]+") %in% assays, ]
+      cell.metadata <- subset_metadata(object@cell, assays = assays)
+      spot.metadata <- subset_metadata(object@spot, assays = assays)
+      roi.metadata <- subset_metadata(object@ROI, assays = assays)
       if(nrow(object@tile) > 0) {
         tile.metadata <- object@tile[assay_id %in% assays, ]
       } else {
@@ -217,44 +247,45 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
       }
     } else {
       if(nrow(object@molecule) > 0) {
-        mol.metadata <- object@molecule[Assay %in% assays, ]
+        mol.metadata <- subset_metadata(object@molecule, assaytypes = assays)
       } else {
         mol.metadata <- data.table::data.table()
       }
-      cell.metadata <- object@cell[object@cell$Assay %in% assays, ]
-      spot.metadata <- object@spot[object@spot$Assay %in% assays, ]
-      roi.metadata <- object@ROI[object@ROI$Assay %in% assays, ]
+      cell.metadata <- subset_metadata(object@cell, assaytypes = assays)
+      spot.metadata <- subset_metadata(object@spot, assaytypes = assays)
+      roi.metadata <- subset_metadata(object@ROI, assaytypes = assays)
       if(nrow(object@tile) > 0) {
-        tile.metadata <- object@tile[Assay %in% assays, ]
+        tile.metadata <- subset_metadata(object@tile, assaytypes = assays)
       } else {
         tile.metadata <- data.table::data.table()
       }
     }
   } else if(!is.null(spatialpoints)){
       if(nrow(object@molecule) > 0){
-        mol.metadata <- data.table::copy(object@molecule)
-        data.table::setkey(mol.metadata, "id")
-        mol.metadata <- mol.metadata[J(spatialpoints), nomatch=0L]
-        object@molecule <- data.table::copy(mol.metadata)
+        mol.metadata <- subset_metadata(object@molecule, spatialpoints = spatialpoints)
       } else {
         mol.metadata <- data.table::data.table()
       }
-      cell.metadata <- object@cell[rownames(object@cell) %in% spatialpoints, ]
-      spot.metadata <- object@spot[rownames(object@spot) %in% spatialpoints, ]
-      roi.metadata <- object@ROI[rownames(object@ROI) %in% spatialpoints, ]
+      cell.metadata <- subset_metadata(object@cell, spatialpoints = spatialpoints)
+      spot.metadata <- subset_metadata(object@spot, spatialpoints = spatialpoints)
+      roi.metadata <- subset_metadata(object@ROI, spatialpoints = spatialpoints)
       if(nrow(object@tile) > 0){
-        tile.metadata <- object@tile[id %in% spatialpoints, ]
+        tile.metadata <- subset_metadata(object@tile, spatialpoints = spatialpoints)
       } else {
         tile.metadata <- data.table::data.table()
       }
   } else {
-    stop(paste0("No assay or sample name was provided!"))
+    stop(paste0("No assay, sample or spatial points were provided!"))
   }
 
   # return new metadata
-  setVRMetadata(molecule = mol.metadata, cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata, tile = tile.metadata)
+  methods::new("vrMetadata",
+               molecule = mol.metadata,
+               cell = cell.metadata,
+               spot = spot.metadata,
+               ROI = roi.metadata,
+               tile = tile.metadata)
 }
-
 
 #' subset_sampleMetadata
 #'
@@ -266,7 +297,6 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #'
 #' @noRd
-#'
 subset_sampleMetadata <- function(metadata, samples = NULL, assays = NULL) {
 
   # subseting on samples, layers and assays
@@ -326,16 +356,129 @@ merge.vrMetadata <- function(object, object_list) {
     updateobjects <- updateMetadataAssay(obj1, obj2)
     obj1 <- updateobjects$object1
     obj2 <- updateobjects$object2
-    mol.metadata <- bind_rows(methods::slot(obj1, "molecule"), methods::slot(obj2, "molecule"))
-    cell.metadata <- bind_rows(methods::slot(obj1, "cell"), methods::slot(obj2, "cell"))
-    spot.metadata <- bind_rows(methods::slot(obj1, "spot"), methods::slot(obj2, "spot"))
-    roi.metadata <- bind_rows(methods::slot(obj1, "ROI"), methods::slot(obj2, "ROI"))
-    tile.metadata <- bind_rows(methods::slot(obj1, "tile"), methods::slot(obj2, "tile"))
-    combined.metadata <- setVRMetadata(molecule = mol.metadata, cell = cell.metadata, spot = spot.metadata, ROI = roi.metadata, tile = tile.metadata)
+    mol.metadata <- rbind_metadata(methods::slot(obj1, "molecule"), methods::slot(obj2, "molecule"))
+    cell.metadata <- rbind_metadata(methods::slot(obj1, "cell"), methods::slot(obj2, "cell"))
+    spot.metadata <- rbind_metadata(methods::slot(obj1, "spot"), methods::slot(obj2, "spot"))
+    roi.metadata <- rbind_metadata(methods::slot(obj1, "ROI"), methods::slot(obj2, "ROI"))
+    tile.metadata <- rbind_metadata(methods::slot(obj1, "tile"), methods::slot(obj2, "tile"))
+    combined.metadata <- methods::new("vrMetadata", 
+                                      molecule = mol.metadata, 
+                                      cell = cell.metadata, 
+                                      spot = spot.metadata, 
+                                      ROI = roi.metadata, 
+                                      tile = tile.metadata)
   }
 
   # return combined object
   return(combined.metadata)
+}
+
+#' rbind_metadata
+#'
+#' @param metadata1 metadata1
+#' @param metadata2 metadata2
+#'
+#' @method merge vrMetadata
+#'
+#' @importFrom dplyr bind_rows
+#' @noRd
+#'
+rbind_metadata <- function(metadata1, metadata2){
+  flag1 <- FALSE
+  flag2 <- FALSE
+  if(!inherits(metadata1, "DataFrame")){
+    flag1 <- TRUE
+  }
+  if(!inherits(metadata2, "DataFrame")){
+    flag2 <- TRUE
+  }
+  if(flag1 && flag2){
+    return(dplyr::bind_rows(metadata1,metadata2))
+  } else {
+    if(flag1)
+      metadata1 <- S4Vectors::DataFrame(metadata1)
+    if(flag2)
+      metadata2 <- S4Vectors::DataFrame(metadata2)
+    return(rbind(metadata1, metadata2))
+  }
+}
+
+#' subset_metadata
+#'
+#' @param metadata metadata
+#' @param samples the set of samples to subset the object
+#' @param assays assay name (exp: Assay1), see \code{SampleMetadata(object)}
+#' @param assaytypes assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param spatialpoints the set of spatial points to subset the object
+#'
+#' @noRd
+subset_metadata <- function(metadata, assays = NULL, assaytypes = NULL, samples = NULL, spatialpoints = NULL){
+  
+  if(inherits(metadata, "data.table")){
+    if(nrow(metadata) > 0){
+      if(!is.null(assays)){
+        metadata <- subset(metadata, subset = assay_id %in% assays)
+      } else if(!is.null(assaytypes)){
+        metadata <- subset(metadata, subset = Assay %in% assaytypes)
+      } else if(!is.null(samples)){
+        metadata <- subset(metadata, subset = Sample %in% samples)
+      } else if(!is.null(spatialpoints)){
+        metadata <- subset(metadata, subset = id %in% spatialpoints)
+      } else {
+        stop(paste0("No assay, sample or spatial points were provided!"))
+      }  
+    } else {
+      metadata <- data.table::data.table()
+    }
+  } else if(inherits(metadata, "DataFrame")){
+    if(!is.null(assays)){
+      if("assay_id" %in% colnames(metadata)){
+        cur_column <- as.vector(metadata$assay_id)
+        metadata <- metadata[cur_column %in% assays,]
+      } else {
+        cur_column <- as.vector(metadata$id)
+        metadata <- metadata[stringr::str_extract(cur_column, "Assay[0-9]+") %in% assays, ]
+      }
+    } else if(!is.null(assaytypes)){
+      cur_column <- as.vector(metadata$Assay)
+      metadata <- metadata[cur_column %in% assaytypes,]
+    } else if(!is.null(samples)){
+      cur_column <- as.vector(metadata$Sample)
+      metadata <- metadata[cur_column %in% samples,]
+    } else if(!is.null(spatialpoints)){
+      cur_column <- as.vector(metadata$id)
+      metadata <- metadata[cur_column %in% spatialpoints,]
+    } else {
+      stop(paste0("No assay, sample or spatial points were provided!"))
+    }  
+  } else {
+    if(nrow(metadata) > 0){
+      if(!is.null(assays)){
+        if(!is.null(rownames(metadata))){
+          metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assays, ]
+        } else {
+          if("assay_id" %in% colnames(metadata)){
+            metadata <- subset(metadata, subset = assay_id %in% assays)
+          } else {
+            metadata <- metadata[stringr::str_extract(metadata$id, "Assay[0-9]+") %in% assays, ]
+          }
+        }
+      } else if(!is.null(assaytypes)){
+        metadata <- subset(metadata, subset = Assay %in% assaytypes)
+      } else if(!is.null(samples)){
+        metadata <- subset(metadata, subset = Sample %in% samples)
+      } else if(!is.null(spatialpoints)){
+        if(!is.null(rownames(metadata))){
+          metadata <- metadata[rownames(metadata) %in% spatialpoints,]
+        } else {
+          metadata <- metadata[metadata$id %in% spatialpoints,]
+        }
+      } else {
+        stop(paste0("No assay, sample or spatial points were provided!"))
+      }  
+    }
+  }
+  metadata
 }
 
 #' merge.sampleMetadata
@@ -466,7 +609,13 @@ vrAssayNames.vrMetadata <- function(object){
     if(sl %in% c("molecule", "tile")){
       cur_names <- cur_metadata$assay_id
     } else {
-      cur_names <- stringr::str_extract(rownames(cur_metadata), "Assay[0-9]+")
+      if("assay_id" %in% colnames(cur_metadata)){
+        cur_names <- as.vector(cur_metadata$assay_id)
+      } else if(!is.null(rownames(cur_metadata))){
+        cur_names <- stringr::str_extract(rownames(cur_metadata), "Assay[0-9]+")
+      } else{
+        cur_names <- stringr::str_extract(as.vector(cur_metadata$id), "Assay[0-9]+")
+      }
     }
     assay_names <- c(assay_names, unique(cur_names))
   }
@@ -491,6 +640,12 @@ updateMetadataAssay <- function(object1, object2){
   assaytype <- unlist(lapply(object_list, function(obj) {
     if(inherits(obj, "data.table")){
       unique(obj$assay_id)
+    } else if(inherits(obj, c("HDF5DataFrame", "ZarrDataFrame", "DataFrame"))){
+      if("assay_id" %in% colnames(obj)){
+        unique(as.vector(obj$assay_id))
+      } else {
+        unique(stringr::str_extract(as.vector(obj$id), "Assay[0-9]+$"))
+      }
     } else {
       unique(stringr::str_extract(rownames(obj), "Assay[0-9]+$"))
     }
@@ -500,28 +655,78 @@ updateMetadataAssay <- function(object1, object2){
   # replace assay names
   replacement <- paste0("Assay", 1:length(assaytype))
   object1 <- lapply(object_list, function(obj) {
-    if(inherits(obj, "data.table")){
-      temp <- obj$assay_id
-      for(i in 1:length(assaytype))
-        temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
-      obj$assay_id <- temp
-      return(obj)
+    if(nrow(obj) > 0){
+      
+      if(inherits(obj, "data.table")){
+        
+        # change assay id
+        temp <- obj$assay_id
+        for(i in 1:length(assaytype))
+          temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
+        obj$assay_id <- temp
+        return(obj)
+        
+      } else if(inherits(obj, c("HDF5DataFrame", "ZarrDataFrame", "DataFrame"))){
+        
+        # change assay id
+        if("assay_id" %in% colnames(obj)){
+          temp <- as.vector(obj$assay_id)
+          for(i in 1:length(assaytype))
+            temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
+          obj$assay_id <- temp
+        }
+        
+        # change id
+        temp <- as.vector(obj$id)
+        for(i in 1:length(assaytype)){
+          temp[grepl(paste0(assaytype[i],"$"), obj$id)] <- 
+            gsub(paste0(assaytype[i],"$"), replacement[i],
+                 obj$id[grepl(paste0(assaytype[i],"$"),  obj$id)])
+        }
+        obj$id <- temp
+        
+        return(obj)
+      } else {
+        
+        # change rownames
+        temp <- rownames(obj)
+        for(i in 1:length(assaytype))
+          temp[grepl(paste0(assaytype[i],"$"), rownames(obj))] <- 
+            gsub(paste0(assaytype[i],"$"), replacement[i],
+                 rownames(obj)[grepl(paste0(assaytype[i],"$"), rownames(obj))])
+        rownames(obj) <- temp
+        
+        # change assay id
+        if("assay_id" %in% colnames(obj)){
+          temp <- obj$assay_id
+          for(i in 1:length(assaytype))
+            temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
+          obj$assay_id <- temp
+        }
+        return(obj)
+      }
     } else {
-      temp <- rownames(obj)
-      for(i in 1:length(assaytype))
-        temp[grepl(paste0(assaytype[i],"$"), rownames(obj))] <- gsub(paste0(assaytype[i],"$"), replacement[i],
-                                                                     rownames(obj)[grepl(paste0(assaytype[i],"$"), rownames(obj))])
-      rownames(obj) <- temp
       return(obj)
     }
   })
-  object1 <- methods::new("vrMetadata", molecule = object1$molecule, cell = object1$cell, spot = object1$spot, ROI = object1$ROI, tile = object1$tile)
+  object1 <- methods::new("vrMetadata", 
+                          molecule = object1$molecule, 
+                          cell = object1$cell, 
+                          spot = object1$spot, 
+                          ROI = object1$ROI, 
+                          tile = object1$tile)
 
   # get assay types
   object_list <- slotToList(object2)
   assaytype <- unlist(lapply(object_list, function(obj) {
     if(inherits(obj, "data.table")){
       unique(obj$assay_id)
+    } else if(inherits(obj, c("HDF5DataFrame", "ZarrDataFrame", "DataFrame"))){
+      if("assay_id" %in% colnames(obj)){
+        unique(as.vector(obj$assay_id))
+      } else {
+        unique(stringr::str_extract(as.vector(obj$id), "Assay[0-9]+$"))
+      }
     } else {
       unique(stringr::str_extract(rownames(obj), "Assay[0-9]+$"))
     }
@@ -531,22 +736,74 @@ updateMetadataAssay <- function(object1, object2){
   # replace assay names
   replacement <- paste0("Assay", (length(replacement)+1):(length(replacement) + length(assaytype)))
   object2 <- lapply(object_list, function(obj) {
-    if(inherits(obj, "data.table")){
-      temp <- obj$assay_id
-      for(i in 1:length(assaytype))
-        temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
-      obj$assay_id <- temp
-      return(obj)
+    if(nrow(obj) > 0){
+      if(inherits(obj, "data.table")){
+        
+        # change assay id
+        temp <- obj$assay_id
+        for(i in 1:length(assaytype))
+          temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
+        obj$assay_id <- temp
+        
+        return(obj)
+      } else if(inherits(obj, c("HDF5DataFrame", "ZarrDataFrame", "DataFrame"))){
+        
+        # change assay id
+        if("assay_id" %in% colnames(obj)){
+          temp <- as.vector(obj$assay_id)
+          for(i in 1:length(assaytype))
+            temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
+          obj$assay_id <- temp
+        }
+        
+        # change id
+        temp <- as.vector(obj$id)
+        for(i in 1:length(assaytype)){
+          temp[grepl(paste0(assaytype[i],"$"), obj$id)] <- 
+            gsub(paste0(assaytype[i],"$"), replacement[i], 
+                 obj$id[grepl(paste0(assaytype[i],"$"), obj$id)])
+        }
+        obj$id <- temp
+        
+        return(obj)
+      } else {
+        
+        # change row names
+        temp <- rownames(obj)
+        for(i in 1:length(assaytype))
+          temp[grepl(paste0(assaytype[i],"$"), rownames(obj))] <- 
+            gsub(paste0(assaytype[i],"$"), replacement[i],
+                 rownames(obj)[grepl(paste0(assaytype[i],"$"), rownames(obj))])
+        rownames(obj) <- temp
+        
+        # change id
+        temp <- obj$id
+        for(i in 1:length(assaytype)){
+          temp[grepl(paste0(assaytype[i],"$"), obj$id)] <- 
+            gsub(paste0(assaytype[i],"$"), replacement[i], 
+                 obj$id[grepl(paste0(assaytype[i],"$"), obj$id)])
+        }
+        obj$id <- temp
+        
+        # change assay id
+        if("assay_id" %in% colnames(obj)){
+          temp <- obj$assay_id
+          for(i in 1:length(assaytype))
+            temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
+          obj$assay_id <- temp
+        }
+        obj
+      }
     } else {
-      temp <- rownames(obj)
-      for(i in 1:length(assaytype))
-        temp[grepl(paste0(assaytype[i],"$"), rownames(obj))] <- gsub(paste0(assaytype[i],"$"), replacement[i],
-                                                                     rownames(obj)[grepl(paste0(assaytype[i],"$"), rownames(obj))])
-      rownames(obj) <- temp
-      obj
+      return(obj)
     }
   })
-  object2 <- methods::new("vrMetadata", molecule = object2$molecule, cell = object2$cell, spot = object2$spot, ROI = object2$ROI, tile = object2$tile)
+  object2 <- methods::new("vrMetadata", 
+                          molecule = object2$molecule, 
+                          cell = object2$cell, 
+                          spot = object2$spot, 
+                          ROI = object2$ROI, 
+                          tile = object2$tile)
 
   # return
   return(list(object1 = object1, object2 = object2))
@@ -633,8 +890,177 @@ vrSampleNames.vrMetadata <- function(object){
 #' @importFrom methods new
 #'
 #' @noRd
-setVRMetadata <- function(molecule, cell, spot, ROI, tile){
-  methods::new("vrMetadata", molecule = molecule, cell = cell, spot = spot, ROI = ROI, tile = tile)
+setVRMetadata <- function(metadata, data, entityID, main.assay, assay.type, sample_name, layer_name, version){
+  
+  if(is.null(metadata)){
+
+    # set metadata
+    vr_metadata <- list(molecule = data.table::data.table(),
+                        cell = data.frame(),
+                        spot = data.frame(),
+                        ROI = data.frame(),
+                        tile = data.table::data.table())
+
+    # create entity IDs using Assay index, make it colnames
+    entityID <- stringr::str_replace(entityID, pattern = "$", paste0("_Assay1"))
+
+    # create metadata
+    # slot(vr_metadata, name = assay.type) <-
+    if(version == "v1"){
+      vr_metadata[[assay.type]] <- 
+        data.frame(Count = Matrix::colSums(data),
+                   assay_id = "Assay1",
+                   Assay = main.assay,
+                   Layer = layer_name,
+                   Sample = sample_name,
+                   row.names = entityID) 
+    } else if (version == "v2"){
+      vr_metadata[[assay.type]] <- 
+        data.frame(id = entityID,
+                   Count = Matrix::colSums(data),
+                   assay_id = "Assay1",
+                   Assay = main.assay,
+                   Layer = layer_name,
+                   Sample = sample_name,
+                   row.names = entityID) 
+    }
+
+  } else {
+    if(any(class(metadata) %in% c("data.table", "data.frame", "matrix"))){
+      vr_metadata <- list(molecule = data.table::data.table(),
+                          cell = data.frame(),
+                          spot = data.frame(),
+                          ROI = data.frame(),
+                          tile = data.table::data.table())
+
+      # if metadata is a data.table
+      if(inherits(metadata, "data.table")){
+
+        # if there are no id column, insert entityID
+        if(!"id" %in% colnames(metadata)){
+          metadata$id <- entityID  
+        }
+        
+        # check ID names
+        if(length(setdiff(metadata$id, entityID)) > 0){
+          stop("Entity IDs are not matching")
+        } else {
+
+          # entity IDs
+          metadata <- subset(metadata, subset = entityID %in% id)
+
+          # create entity IDs using Assay index, make it colnames
+          set.seed(nrow(metadata$id))
+          entityID <- paste0(metadata$id, "_", ids::random_id(bytes = 3, use_openssl = FALSE))
+
+          if(nrow(data) > 0){
+            suppressWarnings({
+              vr_metadata[[assay.type]] <-
+                data.table::data.table(id = entityID,
+                                       assay_id = "Assay1",
+                                       Count = Matrix::colSums(data),
+                                       Assay = main.assay,
+                                       Layer = layer_name,
+                                       Sample = sample_name,
+                                       metadata[,-"id"])
+            })
+          } else{
+            suppressWarnings({
+              vr_metadata[[assay.type]] <-
+                  data.table::data.table(id = entityID,
+                                         assay_id = "Assay1",
+                                         Assay = main.assay,
+                                         Layer = layer_name,
+                                         Sample = sample_name, 
+                                         metadata[,-"id"])
+            })
+          }
+        }
+
+      # if metadata is a regular data.frame
+      } else if(inherits(metadata, "data.frame")){
+
+        # check row names
+        if(length(setdiff(rownames(metadata), entityID)) > 0){
+          stop("Entity IDs are not matching")
+        } else {
+
+          # entity IDs
+          if(version == "v1") {
+            metadata <- metadata[entityID,] 
+          } else if(version == "v2") {
+            
+            # if there are no id column, insert entityID
+            if(!"id" %in% colnames(metadata)){
+              metadata$id <- entityID  
+            }
+            metadata <- metadata[match(entityID, metadata$id),]
+          }
+
+          # create entity IDs using Assay index, make it colnames
+          entityID <- stringr::str_replace(entityID, pattern = "$", paste0("_Assay1"))
+
+          # create metadata for version 1
+          if(version == "v1"){
+            if(nrow(data) > 0){
+              vr_metadata[[assay.type]] <-
+                data.frame(Count = Matrix::colSums(data),
+                           assay_id = "Assay1",
+                           Assay = main.assay,
+                           Layer = layer_name,
+                           Sample = sample_name,
+                           metadata, 
+                           row.names = entityID)
+            } else{
+              vr_metadata[[assay.type]] <-
+                data.frame(assay_id = "Assay1",
+                           Assay = main.assay,
+                           Layer = layer_name,
+                           Sample = sample_name,
+                           metadata,
+                           row.names = entityID)
+            } 
+          
+          # create metadata for version 2
+          } else if(version == "v2"){
+            if(nrow(data) > 0){
+              vr_metadata[[assay.type]] <-
+                data.frame(id = entityID,
+                           Count = Matrix::colSums(data),
+                           assay_id = "Assay1",
+                           Assay = main.assay,
+                           Layer = layer_name,
+                           Sample = sample_name,
+                           metadata, 
+                           row.names = entityID)
+            } else{
+              vr_metadata[[assay.type]] <-
+                data.frame(id = entityID,
+                           Assay = main.assay,
+                           assay_id = "Assay1",
+                           Layer = layer_name,
+                           Sample = sample_name,
+                           metadata,
+                           row.names = entityID)
+            }
+          }
+          
+        }
+      }
+    }
+  }
+  
+  return(
+    list(
+      entityID = entityID,
+      vr_metadata =  methods::new("vrMetadata", 
+                                 molecule = vr_metadata$molecule, 
+                                 cell = vr_metadata$cell, 
+                                 spot = vr_metadata$spot, 
+                                 ROI = vr_metadata$ROI, 
+                                 tile = vr_metadata$tile)
+    )
+  )
 }
 
 #' setVRSampleMetadata

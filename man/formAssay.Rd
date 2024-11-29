@@ -13,6 +13,8 @@ formAssay(
   type = "ROI",
   name = "Assay1",
   main_image = "image_1",
+  main_featureset = NULL,
+  assay_version = "v2",
   ...
 )
 }
@@ -32,6 +34,10 @@ formAssay(
 \item{name}{the name of the assay}
 
 \item{main_image}{the name of the main_image}
+
+\item{main_featureset}{the name of the main_featureset}
+
+\item{assay_version}{the assay version}
 
 \item{...}{additional arguements passed to \link{formImage}}
 }

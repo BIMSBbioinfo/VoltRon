@@ -10,7 +10,7 @@ NULL
 #' @method normalizeData VoltRon
 #'
 #' @export
-normalizeData.VoltRon <- function(object, assay = NULL, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2, sizefactor = 10000) {
+normalizeData.VoltRon <- function(object, assay = NULL, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2, sizefactor = 10000, feat_type = NULL) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -18,7 +18,7 @@ normalizeData.VoltRon <- function(object, assay = NULL, method = "LogNorm", desi
   # normalize assays
   for(assy in assay_names){
     cur_assay <- object[[assy]]
-    object[[assy]] <- normalizeData(cur_assay, method = method, desiredQuantile = desiredQuantile, scale = scale, sizefactor = sizefactor)
+    object[[assy]] <- normalizeData(cur_assay, method = method, desiredQuantile = desiredQuantile, scale = scale, sizefactor = sizefactor, feat_type = feat_type)
   }
 
   # return
@@ -31,10 +31,10 @@ normalizeData.VoltRon <- function(object, assay = NULL, method = "LogNorm", desi
 #' @importFrom stats quantile
 #'
 #' @export
-normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2, sizefactor = 10000) {
+normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2, sizefactor = 10000, feat_type = NULL) {
 
   # size factor
-  rawdata <- vrData(object)
+  rawdata <- vrData(object, feat_type = feat_type, norm = FALSE)
   coldepth <- colSums(rawdata)
 
   if(!is.numeric(desiredQuantile)){
@@ -47,18 +47,15 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
 
   # normalization method
   if(method == "LogNorm"){
-    # depth <- matrix(rep(coldepth, nrow(rawdata)), byrow = T, nrow = nrow(rawdata))
-    # normdata <- (rawdata/depth)*sizefactor
-    normdata <- sweep(rawdata, 2L, coldepth, FUN = "/")
-    normdata <- log(normdata*sizefactor + 1)
+    normdata <- LogNorm(rawdata, coldepth, sizefactor)
   } else if(method == "Q3Norm") {
-    rawdata[rawdata==0] <- 1
-    qs <- apply(rawdata, 2, function(x) stats::quantile(x, desiredQuantile))
-    normdata <- sweep(rawdata, 2L, qs / exp(mean(log(qs))), FUN = "/")
+    # rawdata[rawdata==0] <- 1
+    qs <- getColQuantiles(rawdata, desiredQuantile)
+    normdata <- getDivideSweep(rawdata, qs / exp(mean(log(qs))))
   } else if(method == "LogQ3Norm") {
-    rawdata[rawdata==0] <- 1
-    qs <- apply(rawdata, 2, function(x) stats::quantile(x, desiredQuantile))
-    normdata <- sweep(rawdata, 2L, qs / exp(mean(log(qs))), FUN = "/")
+    # rawdata[rawdata==0] <- 1
+    qs <- getColQuantiles(rawdata, desiredQuantile)
+    normdata <- getDivideSweep(rawdata, qs / exp(mean(log(qs))))
     normdata <- log(normdata + 1)
   } else if(method == "CLR") {
     normdata <- apply(rawdata, 2, function(x) {
@@ -71,10 +68,50 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
   }
 
   # get normalized data
-  object@normdata <- normdata
+  catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
+  catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
+  if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
+    if(is.null(feat_type))
+      feat_type <- vrMainFeatureType(object)
+    object@data[[paste0(feat_type, "_norm")]] <- normdata
+  } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
+    object@normdata <- normdata
+  }
 
   # return
   return(object)
+}
+
+#' @rdname normalizeData
+#' @method normalizeData vrAssayV2
+#'
+#' @importFrom stats quantile
+#'
+#' @export
+normalizeData.vrAssayV2 <- normalizeData.vrAssay
+
+LogNorm <- function(rawdata, coldepth, sizefactor){
+  if(inherits(rawdata, "IterableMatrix")){
+    if(!requireNamespace("BPCells"))
+      stop("You have to install BPCells!")
+    normdata <- BPCells::t(BPCells::t(rawdata)/coldepth)
+    normdata <- BPCells::log1p_slow(normdata*sizefactor)
+  } else {
+    normdata <- sweep(rawdata, 2L, coldepth, FUN = "/")
+    normdata <- log(normdata*sizefactor + 1)
+  }
+  return(normdata)
+}
+
+getDivideSweep <- function(rawdata, divisor){
+  if(inherits(rawdata, "IterableMatrix")){
+    if(!requireNamespace("BPCells"))
+      stop("You have to install BPCells!")
+    return(BPCells::t(BPCells::t(rawdata)/divisor))
+  } else {
+    return(sweep(rawdata, 2L, divisor, FUN = "/"))
+  }
+  return(rawdata)
 }
 
 ####
@@ -112,11 +149,12 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
   features <- vrFeatures(object)
 
   # eliminate genes with low counts
-  keep.genes <- which(apply(rawdata,1,max) > max.count)
+  # keep.genes <- which(apply(rawdata,1,max) > max.count)
+  keep.genes <- getMaxCount(rawdata, max.count)
 
   # vst estimation
-  # vst_data <- data.frame(mean = rowMeans(rawdata), var = apply(rawdata, 1, stats::var))
-  vst_data <- data.frame(mean = Matrix::rowMeans(rawdata), var = apply(rawdata, 1, stats::var))
+  # vst_data <- data.frame(mean = Matrix::rowMeans(rawdata), var = apply(rawdata, 1, stats::var))
+  vst_data <- getVstData(rawdata)
   loess_data <- vst_data[keep.genes,]
   loess_results <- stats::loess(var~mean, loess_data, span = 0.3)
   vst_data$adj_var <- 0
@@ -131,6 +169,41 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
   return(object)
 }
 
+#' @rdname getFeatures
+#'
+#' @importFrom stats loess predict var
+#' @importFrom Matrix rowMeans
+#'
+#' @export
+getFeatures.vrAssayV2 <- getFeatures.vrAssay
+
+getVstData <- function(rawdata){
+  if(inherits(rawdata, "IterableMatrix")){
+    if(!requireNamespace("BPCells"))
+      stop("You have to install BPCells!")
+    mean_data <- BPCells::rowMeans(rawdata)
+    var_data <- BPCells::rowSums(rawdata^2)
+    var_data <- (var_data - mean_data^2/nrow(rawdata))/(nrow(rawdata)-1)
+    # var_data <- BPCells::matrix_stats(rawdata, row_stats="variance")
+  } else {
+    mean_data <- Matrix::rowMeans(rawdata)
+    var_data <- apply(rawdata, 1, stats::var)
+  }
+  vst_data <- data.frame(mean = mean_data, var = var_data)
+  return(vst_data)
+}
+
+getMaxCount <- function(rawdata, max.count){
+  if(inherits(rawdata, "IterableMatrix")){
+    if(!requireNamespace("BPCells"))
+      stop("You have to install BPCells!")
+    rawdata <- rawdata > max.count
+    keep.genes <- which(BPCells::rowSums(rawdata) > 0)
+  } else {
+    keep.genes <- which(apply(rawdata,1,max) > max.count)
+  }
+  return(keep.genes)
+}
 
 #' getVariableFeatures
 #'
@@ -155,8 +228,11 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
   ranks <- NULL
   for(assy in assay_names){
     feature_data <- vrFeatureData(object[[assy]], ...)
-    if(nrow(feature_data) > 0){
-      feature_data$gene <- rownames(feature_data)
+    # if(nrow(feature_data) > 0){
+    if(!is.null(feature_data)) {
+      if(nrow(feature_data) > 0){
+        feature_data$gene <- rownames(feature_data)
+      }
     } else {
       feature_data <- data.frame(gene = vrFeatures(object[[assy]]), rank = NA)
     }
@@ -204,10 +280,8 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #' @param seed seed
 #'
 #' @importFrom irlba irlba
-#' @importFrom dplyr left_join
 #'
 #' @export
-#'
 getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca", overwrite = FALSE, seed = 1){
 
   # get assay names
@@ -237,17 +311,22 @@ getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca
   # get data
   normdata <- vrData(object_subset, assay = assay, norm = TRUE)
 
-  # scale data before PCA
-  scale.data <- apply(normdata, 1, scale)
-
   # get PCA embedding
   set.seed(seed)
-  pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
-  # loading_matrix <- data.frame(pr.data$rotation, features = features)
-  pr.data <- pr.data$x
+  if(inherits(normdata, "IterableMatrix")){
+    if(!requireNamespace("BPCells"))
+      stop("You have to install BPCells!")
+    svd <- BPCells::svds(normdata, k=dims)
+    pr.data <- BPCells::multiply_cols(svd$v, svd$d)
+  } else {
+    scale.data <- apply(normdata, 1, scale)
+    pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+    pr.data <- pr.data$x 
+  }
+  
+  # change colnames
   colnames(pr.data) <- paste0("PC", 1:dims)
   rownames(pr.data) <- colnames(normdata)
-  # rownames(pr.data) <- vrSpatialPoints(object_subset, assay = assay)
 
   # set Embeddings
   vrEmbeddings(object, assay = assay, type = type, overwrite = overwrite) <- pr.data
@@ -270,6 +349,7 @@ getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca
 #' @param seed seed
 #'
 #' @importFrom uwot umap
+#' @importFrom Matrix t
 #'
 #' @export
 #'
@@ -278,7 +358,7 @@ getUMAP <- function(object, assay = NULL, data.type = "pca", dims = 1:30, umap.k
   # get data
   if(data.type %in% c("raw", "norm")){
     data <- vrData(object, assay = assay, norm = (data.type == "norm"))
-    data <- t(data)
+    data <- as.matrix(as(Matrix::t(data),"dgCMatrix"))
   } else{
     embedding_names <- vrEmbeddingNames(object)
     if(data.type %in% vrEmbeddingNames(object)) {

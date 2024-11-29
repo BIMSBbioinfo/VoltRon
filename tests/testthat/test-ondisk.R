@@ -1,0 +1,216 @@
+# create dir
+dir.create(td <- tempfile())
+output_zarr <- paste0(td, "/xenium_data_zarr_test")
+output_h5ad <- paste0(td, "/xenium_data_h5_test")
+output_h5ad_2 <- paste0(td, "/xenium_data_h5_test")
+output_h5ad_merged <- paste0(td, "/xenium_data_merged_h5_test")
+
+test_that("save and load on disk", {
+  
+  # get data
+  data("xenium_data")
+  
+  # HDF5
+  xenium_data2 <- saveVoltRon(xenium_data, 
+                              output = output_h5ad, 
+                              format = "HDF5VoltRon", 
+                              replace = TRUE, 
+                              verbose = FALSE)
+  xenium_data2 <- loadVoltRon(dir = output_h5ad)
+
+  # zarr
+  xenium_data2 <- saveVoltRon(xenium_data, 
+                              output = output_zarr,
+                              format = "ZarrVoltRon", 
+                              replace = TRUE, 
+                              verbose = FALSE)
+  xenium_data2 <- loadVoltRon(dir = output_zarr)
+
+  # remove files
+  unlink(output_h5ad, recursive = TRUE)
+  unlink(output_zarr, recursive = TRUE)
+
+  expect_equal(1,1L)
+})
+
+test_that("double write and merging", {
+  
+  # get data
+  data("visium_data")
+  data("xenium_data")
+  
+  # write merged data
+  xenium_data2 <- xenium_data 
+  xenium_data2$Sample <- "XeniumR2"
+  xenium_data2 <- merge(xenium_data, xenium_data2)
+  xenium_data3 <- saveVoltRon(xenium_data2, 
+                              output = output_zarr, 
+                              format = "ZarrVoltRon", 
+                              replace = TRUE, 
+                              verbose = FALSE)
+  
+  # merged ondisk data
+  xenium_data_disk <- saveVoltRon(xenium_data, 
+                              output = output_h5ad, 
+                              format = "HDF5VoltRon", 
+                              replace = TRUE, 
+                              verbose = FALSE)
+  xenium_data2 <- xenium_data 
+  xenium_data2$Sample <- "XeniumR2"
+  xenium_data2_disk <- saveVoltRon(xenium_data2, 
+                                   output = output_h5ad_2, 
+                                   format = "HDF5VoltRon", 
+                                   replace = TRUE, 
+                                   verbose = FALSE)
+  xenium_data_merged <- merge(xenium_data_disk, xenium_data2_disk)
+  xenium_data_merged_disk <- saveVoltRon(xenium_data_merged, 
+                                         output = output_h5ad_merged, 
+                                         format = "HDF5VoltRon", 
+                                         replace = TRUE, 
+                                         verbose = FALSE)
+  
+  # remove files
+  unlink(output_h5ad, recursive = TRUE)
+  unlink(output_h5ad_2, recursive = TRUE)
+  unlink(output_h5ad_merged, recursive = TRUE)
+  unlink(output_zarr, recursive = TRUE)
+  
+  expect_equal(1,1L)
+})
+
+test_that("subsetting", {
+  
+  # get data
+  data("xenium_data")
+  
+  # HDF5
+  xenium_data2 <- saveVoltRon(xenium_data, 
+                              output = output_h5ad, 
+                              format = "HDF5VoltRon", 
+                              replace = TRUE, 
+                              verbose = FALSE)
+
+  # by spatialpoints
+  spatpoints <- vrSpatialPoints(xenium_data2)[1:30]
+  xenium_data2_subset <- subset(xenium_data2, spatialpoints = spatpoints)
+  expect_equal(vrSpatialPoints(xenium_data2_subset), spatpoints)
+  
+  # visualize
+  vrSpatialPlot(xenium_data2_subset)
+  vrSpatialFeaturePlot(xenium_data2_subset, features = "KRT15")
+  
+  # by image
+  xenium_data2_subset <- subset(xenium_data2, image = "290x202+98+17")
+  expect_equal(length(vrSpatialPoints(xenium_data2_subset)), 392)
+  expect_equal(is(vrImages(xenium_data2_subset)), "magick-image")
+  expect_equal(is(vrImages(xenium_data2_subset, as.raster = TRUE)), "Image_Array")
+  
+  # visualize
+  vrSpatialPlot(xenium_data2_subset)
+  vrSpatialFeaturePlot(xenium_data2_subset, features = "KRT15")
+  
+  # remove files
+  unlink(output_h5ad, recursive = TRUE)
+  
+  expect_equal(1,1L)
+})
+
+test_that("metadata", {
+  
+  # get data
+  data("xenium_data")
+  
+  # HDF5
+  xenium_data2 <- saveVoltRon(xenium_data, 
+                              output = output_h5ad, 
+                              format = "HDF5VoltRon", 
+                              replace = TRUE,
+                              verbose = FALSE)
+  
+  # add column to metadata
+  xenium_data2$new_column <- vrSpatialPoints(xenium_data2)
+  
+  # remove files
+  unlink(output_h5ad, recursive = TRUE)
+  
+  expect_equal(1,1L)
+})
+
+
+test_that("embeddings", {
+  
+  # get data
+  data("xenium_data")
+  
+  # HDF5
+  xenium_data2 <- saveVoltRon(xenium_data, 
+                              output = output_h5ad, 
+                              format = "HDF5VoltRon", 
+                              replace = TRUE, 
+                              verbose = FALSE)
+  xenium_data2 <- getPCA(xenium_data2, features = vrFeatures(xenium_data2), type = "pca_key")
+  
+  # check embeddings
+  emb <- vrEmbeddings(xenium_data2, type = "pca_key")
+  expect_true(all(dim(emb) > 1))
+  expect_true(all(vrEmbeddingNames(xenium_data2) == c("pca", "umap", "pca_key")))
+  
+  # remove files
+  unlink(output_h5ad, recursive = TRUE)
+  
+  expect_equal(1,1L)
+})
+
+test_that("visualization", {
+  
+  # get data
+  data("visium_data")
+  
+  # HDF5
+  visium_data2 <- saveVoltRon(visium_data, 
+                              output = output_h5ad, 
+                              format = "HDF5VoltRon", 
+                              replace = TRUE, 
+                              verbose = FALSE)
+
+  # check embeddings
+  vrSpatialPlot(visium_data2, group.by = "Sample")
+  vrSpatialFeaturePlot(visium_data2, features = "Count")
+  
+  # remove files
+  unlink(output_h5ad, recursive = TRUE)
+  
+  expect_equal(1,1L)
+})
+
+test_that("neighbors", {
+  
+  # get data
+  data("xenium_data")
+  
+  # HDF5
+  xenium_data2 <- saveVoltRon(xenium_data, 
+                              output = output_h5ad, 
+                              format = "HDF5VoltRon", 
+                              replace = TRUE, 
+                              verbose = FALSE)
+  
+  # spatial neighbors, delaunay
+  xenium_data2 <- getSpatialNeighbors(xenium_data2, method = "delaunay")
+  graphs <- vrGraph(xenium_data2, graph.type = "delaunay")
+  expect_true(inherits(graphs,"igraph"))
+  expect_true(length(igraph::E(graphs)) > 0)
+  
+  # profile neighbors, kNN
+  xenium_data2 <- getProfileNeighbors(xenium_data2, method = "kNN", k = 10, data.type = "pca")
+  graphs <- vrGraph(xenium_data2, graph.type = "kNN")
+  expect_true(inherits(graphs,"igraph"))
+  expect_true(length(igraph::E(graphs)) > 0)
+  xenium_data2 <- getClusters(xenium_data2, graph = "kNN", label = "cluster_knn")
+  expect_true(is.numeric(unique(xenium_data2$cluster_knn)))
+  
+  # remove files
+  unlink(output_h5ad, recursive = TRUE)
+  
+  expect_equal(1,1L)
+})

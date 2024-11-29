@@ -46,33 +46,31 @@ getDeconvolution <- function(object, assay = NULL, features = NULL, sc.object, s
       rawdata <- getDeconSingle(object = cur_assay, features = features, reference = reference, method = method, ...)
 
       # create new assay
-      cat("Adding cell type compositions as new assay:", paste(sample.metadata[assy, "Assay"], "decon", sep = "_"), "...\n")
-      spatialpoints <- colnames(rawdata)
-      new_assay <- formAssay(data = rawdata,
-                             coords = vrCoordinates(cur_assay)[spatialpoints,], 
-                             segments = vrSegments(cur_assay)[spatialpoints],
-                             image = vrImages(cur_assay), 
-                             type = cur_assay@type, 
-                             params = cur_assay@params, 
-                             name = cur_assay@name, 
-                             main_image = cur_assay@main_image)
-      new_assay@image <- cur_assay@image
-      new_assay <- subset(new_assay, spatialpoints = spatialpoints)
-
-      # add the new assay
-      object <- addAssay(object,
-                         assay = new_assay,
-                         metadata = Metadata(object, assay = assy)[spatialpoints,],
-                         assay_name = paste(sample.metadata[assy, "Assay"], "decon", sep = "_"),
-                         sample = sample.metadata[assy, "Sample"],
-                         layer = sample.metadata[assy, "Layer"])
+      # cat("Adding cell type compositions as new assay:", paste(sample.metadata[assy, "Assay"], "decon", sep = "_"), "...\n")
+      # spatialpoints <- colnames(rawdata)
+      # new_assay <- formAssay(data = rawdata,
+      #                        coords = vrCoordinates(cur_assay)[spatialpoints,], segments = vrSegments(cur_assay)[spatialpoints],
+      #                        image = vrImages(cur_assay), type = cur_assay@type, params = cur_assay@params, name = cur_assay@name, main_image = cur_assay@main_image)
+      # new_assay@image <- cur_assay@image
+      # new_assay <- subset(new_assay, spatialpoints = spatialpoints)
+      # 
+      # # add the new assay
+      # object <- addAssay(object,
+      #                    assay = new_assay,
+      #                    metadata = Metadata(object, assay = assy)[spatialpoints,],
+      #                    assay_name = paste(sample.metadata[assy, "Assay"], "decon", sep = "_"),
+      #                    sample = sample.metadata[assy, "Sample"],
+      #                    layer = sample.metadata[assy, "Layer"])
 
       # add connectivity of spatial points across assays
       # connectivity <- cbind(vrSpatialPoints, spatialpoints)
-      # object <- addConnectivity(object,
+      # object <- addLayerConnectivity(object,
       #                           connectivity = connectivity,
       #                           sample = sample.metadata["Assay1", "Sample"],
       #                           layer = sample.metadata["Assay1", "Layer"])
+      
+      # add cell type mixtures as new featureset
+      object <- addFeature(object, assay = assy, data = rawdata, feature_name = "Decon")
     }
   }
 
@@ -214,14 +212,14 @@ getDeconSingle <- function(object, features = features, reference, method = "RCT
 getRCTD <- function(object, features = NULL, reference, ...){
 
   if (!requireNamespace('spacexr'))
-    stop("Please install spacexr package to use the RCTD algorithm")
+    stop("Please install spacexr package to use the RCTD algorithm: devtools::install_github('dmcable/spacexr')")
   if (!requireNamespace('Seurat'))
-    stop("Please install Seurat package for using Seurat objects")
+    stop("Please install Seurat package for using Seurat objects: install.packages('Seurat')")
 
   # create spatial data
   cat("Configuring Spatial Assay ...\n")
   spatialcounts <- vrData(object, norm = FALSE)
-  coords <- as.data.frame(vrCoordinates(object))
+  coords <- as.data.frame(as(vrCoordinates(object), "dgCMatrix"))[,c("x", "y")]
   spatialnUMI <- colSums(spatialcounts)
   spatialdata <- spacexr::SpatialRNA(coords, spatialcounts, spatialnUMI)
 
@@ -249,11 +247,11 @@ getRCTD <- function(object, features = NULL, reference, ...){
 getMuSiC <- function(object, features = NULL, reference, sc.samples = NULL){
 
   if (!requireNamespace('Seurat'))
-    stop("Please install Seurat package for using Seurat objects")
+    stop("Please install Seurat package for using Seurat objects: install.packages('Seurat')")
   if (!requireNamespace('MuSiC'))
-    stop("Please install MuSiC package for ROI deconvolution")
+    stop("Please install MuSiC package for ROI deconvolution: devtools::install_github('xuranw/MuSiC')")
   if (!requireNamespace('SingleCellExperiment'))
-    stop("Please install SingleCellExperiment package for ROI deconvolution")
+    stop("Please install SingleCellExperiment package for ROI deconvolution: BiocManager::install('SingleCellExperiment')")
 
   if(is.null(sc.samples))
     stop("Please provide a metadata column for samples for MuSiC algorithm to work, e.g. sc.samples = Sample")
@@ -280,7 +278,6 @@ getMuSiC <- function(object, features = NULL, reference, sc.samples = NULL){
   cat("Calculating Cell Type Compositions of ROIs with MuSiC ...\n")
   results <- MuSiC::music_prop(bulk.mtx = datax,
                         sc.sce = reference,
-                        # clusters = sc.cluster,
                         clusters = "music_decon_clusters",
                         samples = sc.samples,
                         verbose = T)

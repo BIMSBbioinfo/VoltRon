@@ -13,7 +13,7 @@
 
 <title>Importing Spatial Data</title>
 
-<script src="site_libs/header-attrs-2.27/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -35,8 +35,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -382,6 +382,9 @@ div.tocify {
         <li>
           <a href="conversion.html">Converting VoltRon Objects</a>
         </li>
+        <li>
+          <a href="ondisk.html">OnDisk-based Analysis Utilities</a>
+        </li>
       </ul>
     </li>
   </ul>
@@ -503,6 +506,8 @@ Visium readouts and create a VoltRon object. Here, we point to the
 folder of all the files with <strong>dir.path</strong> argument and also
 determine the name of this sample (<strong>sample_name</strong>).</p>
 <pre class="r watch-out"><code>library(VoltRon)
+install.packages(&quot;hdf5r&quot;)
+library(hdf5r)
 Vis_R1 &lt;- importVisium(dir.path = &quot;Visium/&quot;, sample_name = &quot;VisiumR1&quot;)</code></pre>
 <pre><code>VoltRon Object 
 VisiumR1: 
@@ -530,6 +535,66 @@ currently the “H&amp;E_stain”.</p>
 selects the low resolution image, you can select the higher resolution
 one using <strong>resolution_level=“hires”</strong></p>
 <pre class="r watch-out"><code>Vis_R1 &lt;- importVisium(dir.path = &quot;Visium/&quot;, sample_name = &quot;VisiumR1&quot;, resolution_level=&quot;hires&quot;)</code></pre>
+<p><br></p>
+</div>
+<div id="visiumhd-10x-genomics" class="section level2">
+<h2>VisiumHD (10x Genomics)</h2>
+<p></br></p>
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/visiumhd_summary.png" class="center">
+<p style="margin-left: 1.2cm; margin-top:0.2cm; font-size:80%;">
+<em> <a
+href="https://www.10xgenomics.com/products/visium-hd-spatial-gene-expression"
+class="uri">https://www.10xgenomics.com/products/visium-hd-spatial-gene-expression</a>
+</em>
+</p>
+<p>10x Genomics <a
+href="https://www.10xgenomics.com/products/visium-hd-spatial-gene-expression">VisiumHD</a>
+Spatial Gene Expression Platform contains two 6.5 x 6.5 mm Capture Areas
+with a continuous lawn of oligonucleotides arrayed in millions of 2 x 2
+µm barcoded squares without gaps, achieving single cell–scale spatial
+resolution. The data is output at 2 µm, as well as multiple bin sizes.
+The 8 x 8 µm bin is the recommended starting point for visualization and
+analysis.</p>
+<p>We will use the readouts of <strong>Visium CytAssist</strong>
+platform that was derived from a single tissue section of a breast
+cancer sample. More information on the Visium CytAssist data and the
+study can be also be found on the <a
+href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">BioArxiv
+preprint</a>. You can download the data from the <a
+href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
+Genomics website</a> (specifically, import the <strong>Visium
+Spatial</strong> data).</p>
+<p>We use the <strong>importVisium</strong> function to import the
+Visium readouts and create a VoltRon object. Here, we point to the
+folder of all the files with <strong>dir.path</strong> argument and also
+determine the name of this sample (<strong>sample_name</strong>).</p>
+<pre class="r watch-out"><code>library(VoltRon)
+install.packages(c(&quot;arrow&quot;, &quot;hdf5r&quot;))
+library(arrow)
+library(hdf5r)
+hddata &lt;- importVisium(dir.path = &quot;VisiumHD/outs/&quot;, 
+                       sample_name = &quot;VisiumHD&quot;)</code></pre>
+<p><br></p>
+<p>The VisiumHD readouts provide multiple bin sizes which are aggregated
+versions of the original 2<span class="math inline">\(\mu\)</span>m
+<span class="math inline">\(x\)</span> 2<span
+class="math inline">\(\mu\)</span>m capture spots. The default bin sizes
+are <strong>(i)</strong> 2<span class="math inline">\(\mu\)</span>m
+<span class="math inline">\(x\)</span> 2<span
+class="math inline">\(\mu\)</span>m, <strong>(ii)</strong> 8<span
+class="math inline">\(\mu\)</span>m <span
+class="math inline">\(x\)</span> 8<span
+class="math inline">\(\mu\)</span>m and <strong>(iii)</strong> 16<span
+class="math inline">\(\mu\)</span>m <span
+class="math inline">\(x\)</span> 16<span
+class="math inline">\(\mu\)</span>m. Although by default the
+<strong>importVisium</strong> function selects the low resolution image,
+you can select the higher resolution one using
+<strong>resolution_level=“hires”</strong>.</p>
+<pre class="r watch-out"><code>hddata &lt;- importVisium(dir.path = &quot;VisiumHD/outs/&quot;, 
+                       bin.size = &quot;16&quot;, 
+                       resolution_level = &quot;hires&quot;, 
+                       sample_name = &quot;VisiumHD&quot;)</code></pre>
 <p><br></p>
 </div>
 <div id="xenium-10x-genomics" class="section level2">
@@ -561,6 +626,8 @@ Xenium readouts and create a VoltRon object. Here, we point to the
 folder of all the files with <strong>dir.path</strong> argument and also
 determine the name of this sample (<strong>sample_name</strong>).</p>
 <pre class="r watch-out"><code>library(VoltRon)
+install.packages(&quot;hdf5r&quot;)
+library(hdf5r)
 Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)</code></pre>
 <pre><code>VoltRon Object 
 XeniumR1: 

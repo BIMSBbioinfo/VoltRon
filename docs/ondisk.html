@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>ondisk</title>
+
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+.tocify-subheader {
+  display: inline;
+}
+.tocify-subheader .tocify-item {
+  font-size: 0.95em;
+}
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">VoltRon</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="tutorials.html">Explore</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Vignette
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Spatial Data Integration</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="registration.html">Spatial Data Alignment</a>
+        </li>
+        <li>
+          <a href="multiomic.html">Multi-omic Integration</a>
+        </li>
+        <li>
+          <a href="deconvolution.html">Niche Clustering</a>
+        </li>
+      </ul>
+    </li>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Downstream Analysis</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="roianalysis.html">ROI Analysis</a>
+        </li>
+        <li>
+          <a href="spotanalysis.html">Cell/Spot Analysis</a>
+        </li>
+        <li>
+          <a href="moleculeanalysis.html">Molecule Analysis</a>
+        </li>
+        <li>
+          <a href="pixelanalysis.html">Pixels (Image Only) Analysis</a>
+        </li>
+      </ul>
+    </li>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Utilities</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="interactive.html">Interactive Utilities</a>
+        </li>
+        <li>
+          <a href="importingdata.html">Importing Spatial Data</a>
+        </li>
+        <li>
+          <a href="voltronobjects.html">Working with VoltRon Objects</a>
+        </li>
+        <li>
+          <a href="conversion.html">Converting VoltRon Objects</a>
+        </li>
+        <li>
+          <a href="ondisk.html">OnDisk-based Analysis Utilities</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <span class="fa fa-envelope-o"></span>
+     
+    Contact
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="https://bioinformatics.mdc-berlin.de">Altuna Lab/BIMSB Bioinfo</a>
+    </li>
+    <li>
+      <a href="https://www.mdc-berlin.de/landthaler">Landthaler Lab/BIMSB</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <span class="fa fa-github"></span>
+     
+    GitHub
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="https://github.com/BIMSBbioinfo/VoltRon">VoltRon</a>
+    </li>
+    <li>
+      <a href="https://github.com/BIMSBbioinfo">BIMSB Bioinfo</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">ondisk</h1>
+
+</div>
+
+
+<style>
+.title{
+  display: none;
+}
+body {
+  text-align: justify
+}
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+<style type="text/css">
+.watch-out {
+  color: black;
+}
+</style>
+<p><br></p>
+<div id="import-visiumhd-data" class="section level2">
+<h2>Import VisiumHD Data</h2>
+<p>We first have to download some packages that are necessary to import
+datasets from <code>.parquet</code> and <code>.h5</code> files provided
+by the VisiumHD readouts.</p>
+<pre class="r watch-out"><code>install.packages(c(&quot;arrow&quot;, &quot;hdf5r&quot;))
+library(arrow)
+library(hdf5r)</code></pre>
+<p>We use the <strong>importVisiumHD</strong> function to start
+analyzing the data. The data has 393401 spots which we will use
+OnDisk-backed methods to efficiently manipulate, analyze and visualize
+these spots.</p>
+<p>The VisiumHD readouts provide multiple bin sizes which are aggregated
+versions of the original 2<span class="math inline">\(\mu\)</span>m
+<span class="math inline">\(x\)</span> 2<span
+class="math inline">\(\mu\)</span>m capture spots. The default bin sizes
+are <strong>(i)</strong> 2<span class="math inline">\(\mu\)</span>m
+<span class="math inline">\(x\)</span> 2<span
+class="math inline">\(\mu\)</span>m, <strong>(ii)</strong> 8<span
+class="math inline">\(\mu\)</span>m <span
+class="math inline">\(x\)</span> 8<span
+class="math inline">\(\mu\)</span>m and <strong>(iii)</strong> 16<span
+class="math inline">\(\mu\)</span>m <span
+class="math inline">\(x\)</span> 16<span
+class="math inline">\(\mu\)</span>m.</p>
+<pre class="r watch-out"><code>hddata &lt;- importVisiumHD(dir.path = &quot;VisiumHD/outs/&quot;, 
+                         bin.size = &quot;8&quot;, 
+                         resolution_level = &quot;hires&quot;)</code></pre>
+<p><br></p>
+</div>
+<div id="savingloading-voltron-objects" class="section level2">
+<h2>Saving/Loading VoltRon Objects</h2>
+<p>We use <strong>BPCells</strong> and <strong>ImageArray</strong>
+packages to accelerate operations of feature matrices and images. Here
+<strong>BPCells</strong> allows users access and operate on large
+feature matrices or clustering/spatial analysis, while
+<strong>ImageArray</strong> provides <a
+href="https://en.wikipedia.org/wiki/Pyramid_(image_processing)">pyramids
+images</a> to allow fast access to large microscopy images. You can
+download these package from GitHub using <strong>devtools</strong>.</p>
+<pre class="r watch-out"><code>devtools::install_github(&quot;bnprks/BPCells/r&quot;)
+devtools::install_github(&quot;BIMSBbioinfo/ImageArray&quot;)
+library(BPCells)
+library(ImageArray)</code></pre>
+<p>We can now save the VoltRon object to disk, large matrices and images
+will be written to either <strong>hdf5</strong> or <strong>zarr</strong>
+files depending on the <strong>format</strong> arguement, and the rest
+of the R object would be written to an <code>.rds</code> file, both
+under the designated <strong>output</strong>.</p>
+<pre class="r watch-out"><code>hddata &lt;- saveVoltRon(hddata, format = &quot;HDF5VoltRon&quot;, output = &quot;data/VisiumHD&quot;)</code></pre>
+<p>If you want you can load the VoltRon object from the same path as you
+have saved.</p>
+<pre class="r watch-out"><code>hddata &lt;- loadVoltRon(&quot;data/VisiumHD/&quot;)</code></pre>
+<p><br></p>
+</div>
+<div id="cellspot-analysis" class="section level2">
+<h2>Cell/Spot Analysis</h2>
+<p>The <strong>BPCells</strong> package provides fast methods to achieve
+operations common to single cell analysis such as filtering,
+normalization and dimensionality reduction. Here we have an example of
+single-cell like clustering of VisiumHD bins which is efficiently
+clustered.</p>
+<pre class="r watch-out"><code>spatialpoints &lt;- vrSpatialPoints(hddata)[as.vector(Metadata(hddata)$Count &gt; 10)]
+hddata &lt;- subset(hddata, spatialpoints = spatialpoints)
+hddata &lt;- normalizeData(hddata, sizefactor = 10000)
+hddata &lt;- getFeatures(hddata, n = 3000)
+selected_features &lt;- getVariableFeatures(hddata)
+hddata &lt;- getPCA(hddata, features = selected_features, dims = 30)
+hddata &lt;- getUMAP(hddata, dims = 1:30)</code></pre>
+<p>We can now visualized genes over embedding or spatial plots.</p>
+<pre class="r watch-out"><code>vrEmbeddingFeaturePlot(hddata, features = &quot;Nrgn&quot;, embedding = &quot;umap&quot;)
+vrSpatialFeaturePlot(hddata, features = &quot;Nrgn&quot;)</code></pre>
+<table>
+<tbody>
+<tr style="vertical-align: center">
+<td style="width:50%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/ondisk_embeddingfeature.png" class="center">
+</td>
+<td style="width:55%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/ondisk_spatialfeature.png" class="center">
+</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+</div>
+<div id="spatial-data-alignment" class="section level2">
+<h2>Spatial Data Alignment</h2>
+<p>The image registration workflow in the <a
+href="registration.html">Spatial Data Alignment</a> tutorial can also be
+conducted using disk-backed methods of the VoltRon package.</p>
+<pre class="r watch-out"><code>library(VoltRon)
+Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;, resolution_level = 3)
+Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
+                                sample_name = &quot;XeniumR1image&quot;,
+                                image_name = &quot;H&amp;E&quot;)</code></pre>
+<p><br></p>
+<p>We can save both Xenium and H&amp;E (image) datasets to disk before
+using the mini Shiny app for registration</p>
+<pre class="r watch-out"><code>Xen_R1_disk &lt;- saveVoltRon(Xen_R1, 
+                           format = &quot;HDF5VoltRon&quot;, 
+                           output = &quot;data/Xen_R1_h5&quot;, replace = TRUE)
+Xen_R1_image_disk &lt;- saveVoltRon(Xen_R1_image,
+                                 format = &quot;HDF5VoltRon&quot;, 
+                                 output = &quot;data/Xen_R1_image_h5&quot;, replace = TRUE)</code></pre>
+<p><br></p>
+<p>These disk-based datasets can then be loaded from the disk
+easily.</p>
+<pre class="r watch-out"><code>Xen_R1_disk &lt;- loadVoltRon(&quot;../data/OnDisk/Xen_R1_h5/&quot;)
+Xen_R1_image_disk &lt;- loadVoltRon(&quot;../data/OnDisk/Xen_R1_image_h5/&quot;)</code></pre>
+<p><br></p>
+<p>VoltRon stores large images as pyramids to increase interactive
+visualization efficiency. This storage strategy allows shiny apps to
+zoom in to tissue niches in a speedy fashion. VoltRon incorporates
+<code>Image_Array</code> objects (<a
+href="https://github.com/BIMSBbioinfo/ImageArray"
+class="uri">https://github.com/BIMSBbioinfo/ImageArray</a>) to define
+these pyramids.</p>
+<pre class="r watch-out"><code>vrImages(Xen_R1_image_disk, as.raster = TRUE)</code></pre>
+<pre><code>Image_Array Object 
+Series 1 of size (3,27587,20511) 
+Series 2 of size (3,13794,10256) 
+Series 3 of size (3,6897,5128) 
+Series 4 of size (3,3449,2564) 
+Series 5 of size (3,1725,1282) 
+Series 6 of size (3,863,641) 
+Series 7 of size (3,432,321) </code></pre>
+<p><br></p>
+<p>We can now visualize and align the Xenium and H&amp;E objects.</p>
+<pre class="r watch-out"><code># Align spatial data
+xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1_disk, Xen_R1_image_disk))</code></pre>
+<div>
+<p><video width="100%" height="100%" controls autoplay>
+<source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/video_temp.mov" type="video/mp4">
+Your browser does not support the video tag. </video></p>
+</div>
+<p><br></p>
+<pre class="r watch-out"><code># transfer aligned H&amp;E to Xenium data
+Xenium_reg &lt;- xen_reg$registered_spat[[2]]
+vrImages(Xen_R1_disk[[&quot;Assay1&quot;]], name = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- vrImages(Xenium_reg, name = &quot;H&amp;E_reg&quot;)
+
+# visualize
+vrImages(Xen_R1_disk, channel = &quot;H&amp;E&quot;, scale.perc = 10)</code></pre>
+<p><br></p>
+<p><img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/ondisk_alignedHE.png" class="center"></p>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = false;
+    options.smoothScroll = false;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

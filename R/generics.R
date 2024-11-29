@@ -28,7 +28,7 @@ vrFeatures <- function(object, assay = NULL) {
 #' @rdname vrFeatureData
 #' @export vrFeatureData
 #' @order 1
-vrFeatureData <- function(object, assay = NULL) {
+vrFeatureData <- function(object, assay = NULL, feat_type = NULL) {
   UseMethod(generic = 'vrFeatureData', object = object)
 }
 
@@ -65,8 +65,21 @@ getFeatures <- function(object, assay = NULL, max.count = 1, n = 3000) {
 #' @rdname vrData
 #' @export vrData
 #' @order 1
-vrData <- function(object, assay = NULL, features = NULL, norm = FALSE) {
+vrData <- function(object, assay = NULL, features = NULL, feat_type = NULL, norm = FALSE) {
   UseMethod(generic = 'vrData', object = object)
+}
+
+#' generateTileData
+#'
+#' Generating data matrices for tile-based VoltRon objects from images
+#'
+#' @param object a VoltRon or vrAssay object
+#'
+#' @rdname generateTileData
+#' @export generateTileData
+#' @order 1
+generateTileData <- function(object, assay = NULL, name = NULL, reg = FALSE, channel = NULL) {
+  UseMethod(generic = 'generateTileData', object = object)
 }
 
 #' changeSampleNames
@@ -131,7 +144,6 @@ vrAssayNames <- function(object, assay = NULL) {
 }
 
 #' @rdname vrAssayNames
-#' @export vrAssayNames<-
 #' @noRd
 "vrAssayNames<-" <- function(object, value) {
   UseMethod(generic = 'vrAssayNames<-', object = object)
@@ -207,12 +219,12 @@ Metadata <- function(object, assay = NULL, type = NULL) {
 #' @param desiredQuantile the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}.
 #' @param scale the scale parameter for the hyperbolic arcsine transformation
 #' @param sizefactor size factor if \code{method} is selected as \code{LogNorm}
+#' @param feat_type the feature set type
 #' 
 #' @rdname normalizeData
 #' @export normalizeData
-#'
 normalizeData <- function(object, assay = NULL, method = "LogNorm", desiredQuantile = 0.9, 
-                          scale = 0.2, sizefactor = 10000) {
+                          scale = 0.2, sizefactor = 10000, feat_type = NULL) {
   UseMethod(generic = 'normalizeData', object = object)
 }
 
@@ -257,6 +269,62 @@ vrEmbeddings <- function(object, assay = NULL, type = "pca", dims = 1:30) {
 #' @noRd
 "vrEmbeddings<-" <- function(object, assay = NULL, type = "pca", overwrite = FALSE, value) {
   UseMethod(generic = 'vrEmbeddings<-', object = object)
+}
+
+####
+# Feature ####
+####
+
+#' addFeature
+#'
+#' add a new feature set to a vrAssay (or VoltRon) object
+#'
+#' @param object a VoltRon or vrAssay object
+#'
+#' @rdname addFeature
+#' @export addFeature
+#' @order 1
+addFeature <- function(object, assay = NULL, data, feature_name) {
+  UseMethod(generic = 'addFeature', object = object)
+}
+
+#' vrMainFeatureType
+#'
+#' Get the main feature type
+#'
+#' @param object a VoltRon or vrAssay object
+#'
+#' @rdname vrMainFeatureType
+#' @export vrMainFeatureType
+#' @order 1
+vrMainFeatureType <- function(object, assay = NULL) {
+  UseMethod(generic = 'vrMainFeatureType', object = object)
+}
+
+#' vrMainFeatureType
+#'
+#' Set the main image
+#'
+#' @param value the name of main image
+#'
+#' @rdname vrMainFeatureType
+#' @export vrMainFeatureType<-
+#' @noRd
+"vrMainFeatureType<-" <- function(object, assay = NULL, value) {
+  UseMethod(generic = 'vrMainFeatureType<-', object = object)
+}
+
+#' vrFeatureTypeNames
+#'
+#' Get the names of the feature types
+#'
+#' @param object a VoltRon or vrAssay object
+#'
+#' @rdname vrFeatureTypeNames
+#' @export vrFeatureTypeNames
+#' @order 1
+vrFeatureTypeNames <- function(object, assay = NULL) {
+  UseMethod(generic = 'vrFeatureTypeNames', object = object)
 }
 
 ####

@@ -41,8 +41,6 @@ Spot-based spatial transcriptomic assays capture spatially-resolved gene express
 
 VoltRon includes wrapper commands for using popular RNA deconvolution methods such as [RCTD](https://www.nature.com/articles/s41587-021-00830-w) (**spot**) and return estimated abundances as additional assays within each layer. These estimated percentages of cell types each spot could be incorporated to detect **niches** (i.e. small local microenvironments of cells) within the tissue. We can process cell type abundance assays and used them for clustering to detect these niches. 
 
-<!-- VoltRon includes wrapper commands for using popular RNA deconvolution methods such as [RCTD](https://www.nature.com/articles/s41587-021-00830-w) (**spot**), [SPOTlight](https://academic.oup.com/nar/article/49/9/e50/6129341) (**spot**) and [MuSiC](https://www.nature.com/articles/s41467-018-08023-x) (**ROI**), and return estimated abundances as additional assays within each layer. These novel assays then can be further processed and used for clustering to detect niches across multiple datatypes.   -->
-
 <br>
 
 ## Import ST Data
@@ -72,6 +70,7 @@ Anterior:
 Posterior: 
   Layers: Section1 Section2 
 Assays: Visium(Main) 
+Features: RNA(Main) 
 ```
 
 VoltRon maps metadata features on the spatial images, multiple features can be provided for all assays/layers associated with the main assay (Visium). 
@@ -118,7 +117,14 @@ gsubclass | gclass
 
 ## Spot Deconvolution with RCTD
 
-In order to integrate the scRNA data and the Visium data sets within the VoltRon objects, we will use **RCTD** algorithm which is accessible with the [spacexr](https://github.com/dmcable/spacexr) package. For all layers with a Visium data, an additional assay within the same layer with **_decon** postfix will be created. 
+In order to integrate the scRNA data and the Visium data sets within the VoltRon objects, we will use **RCTD** algorithm which is accessible with the [spacexr](https://github.com/dmcable/spacexr) package. 
+
+```{r eval = FALSE, class.source="watch-out"}
+if(requireNamespace("spacexr"))
+  devtools::install_github("dmcable/spacexr", build_vignettes = FALSE)
+```
+
+After running **getDeconvolution**, an additional assay within the same layer with **_decon** postfix will be created for all layers with a Visium data. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(spacexr)
@@ -132,13 +138,14 @@ Anterior:
   Layers: Section1 Section2 
 Posterior: 
   Layers: Section1 Section2 
-Assays: Visium(Main) Visium_decon 
+Assays: Visium(Main) 
+Features: RNA(Main) Decon 
 ```
 
-We can now switch to the **Visium_decon** assay where features are cell types from the scRNA reference and the data values are cell types percentages in each spot. 
+We can now switch to the **Decon** feature type where features are cell types from the scRNA reference and the data values are cell types percentages in each spot. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrMainAssay(MBrain_Sec) <- "Visium_decon"
+vrMainFeatureType(MBrain_Sec) <- "Decon"
 vrFeatures(MBrain_Sec)
 ```
 
@@ -175,7 +182,7 @@ The CLR normalized assay have only 25 features, each representing a cell type fr
 VoltRon is also capable of calculating the UMAP reduction from normalized data slots. Hence, we build a UMAP reduction from CLR data. However, UMAP will always be calculated from a PCA reduction by default (if a PCA embedding is found in the object). 
 
 ```{r eval = FALSE, class.source="watch-out"}
-MBrain_Sec <- getUMAP(MBrain_Sec, assay = "Visium_decon", data.type = "norm")
+MBrain_Sec <- getUMAP(MBrain_Sec, data.type = "norm")
 vrEmbeddingPlot(MBrain_Sec, embedding = "umap", group.by = "Sample")
 ```
 
@@ -186,7 +193,7 @@ vrEmbeddingPlot(MBrain_Sec, embedding = "umap", group.by = "Sample")
 Using normalized cell type abundances, we can now generate k-nearest neighbor graphs and cluster the graph using leiden method.  
 
 ```{r eval = FALSE, class.source="watch-out"}
-MBrain_Sec <- getProfileNeighbors(MBrain_Sec, assay = "Visium_decon", data.type = "norm", method = "SNN")
+MBrain_Sec <- getProfileNeighbors(MBrain_Sec, data.type = "norm", method = "SNN")
 MBrain_Sec <- getClusters(MBrain_Sec, resolution = 0.6, graph = "SNN")
 ```
 

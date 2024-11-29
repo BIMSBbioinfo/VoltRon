@@ -2,7 +2,7 @@
 % Please edit documentation in R/import.R
 \name{importPhenoCycler}
 \alias{importPhenoCycler}
-\title{Title}
+\title{importPhenoCycler}
 \usage{
 importPhenoCycler(
   dir.path,
@@ -38,5 +38,5 @@ importPhenoCycler(
 \item{...}{additional parameters passed to \link{formVoltRon}}
 }
 \description{
-Title
+Importing PhenoCycler data
 }

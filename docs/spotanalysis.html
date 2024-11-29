@@ -13,7 +13,7 @@
 
 <title>Cell/Spot Analysis</title>
 
-<script src="site_libs/header-attrs-2.27/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -35,8 +35,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -382,6 +382,9 @@ div.tocify {
         <li>
           <a href="conversion.html">Converting VoltRon Objects</a>
         </li>
+        <li>
+          <a href="ondisk.html">OnDisk-based Analysis Utilities</a>
+        </li>
       </ul>
     </li>
   </ul>
@@ -594,7 +597,7 @@ neighbors (SNN)</strong> of cells which are constructed from
 dimensionally reduced gene expression profiles. The function
 <strong>getProfileNeighbors</strong> also has an option of building
 <strong>k-nearest neighbors (kNN)</strong> graphs.</p>
-<pre class="r watch-out"><code>Xen_data &lt;- getProfileNeighbors(Xen_data, dims = 1:20, k = 10, method = &quot;SNN&quot;)</code></pre>
+<pre class="r watch-out"><code>Xen_data &lt;- getProfileNeighbors(Xen_data, dims = 1:20, method = &quot;SNN&quot;)</code></pre>
 <p>We can later conduct a clustering of cells using the <strong>leiden’s
 method</strong> from the igraph package, which is utilized with the
 <strong>getClusters</strong> function.</p>
@@ -623,17 +626,34 @@ the <a href="conversion.html">Converting VoltRon Objects</a>.</p>
 <strong>Clusters</strong> column, called <strong>CellType</strong>, we
 can insert this new metadata column directly to the object.</p>
 <pre class="r watch-out"><code>clusters &lt;- factor(Xen_data$Clusters, levels = sort(unique(Xen_data$Clusters)))
-levels(clusters) &lt;- c(&quot;DCIS_1&quot;, &quot;DCIS_2&quot;, &quot;IT_1&quot;, &quot;Macrophages&quot;, &quot;Adipocytes&quot;,
-                      &quot;CD4_TCells&quot;, &quot;CD8_TCells&quot;, &quot;IT_2&quot;, &quot;StromalCells&quot;, &quot;IT_3&quot;,
-                      &quot;EndothelialCells&quot;, &quot;ACTA2_myoepithelial&quot;, &quot;ACTA2_myoepithelial&quot;, 
-                      &quot;DCIS_3&quot;, &quot;MastCells&quot;, &quot;MyelomaCells&quot;, &quot;BCells&quot;, 
-                      &quot;StromalCells&quot;, &quot;PLD4+_LILRA4+_CD4+_Cells&quot;, &quot;KRT15_myoepithelial&quot;)
+levels(clusters) &lt;- c(&quot;DCIS_1&quot;, 
+                      &quot;DCIS_2&quot;, 
+                      &quot;CD4_TCells&quot;,
+                      &quot;Adipocytes&quot;,
+                      &quot;PLD4+_LILRA4+_CD4+_Cells&quot;,
+                      &quot;ACTA2_myoepithelial&quot;,
+                      &quot;IT_2&quot;,
+                      &quot;Macrophages&quot;,
+                      &quot;MastCells&quot;,
+                      &quot;Bcells&quot;,
+                      &quot;StromalCells&quot;,
+                      &quot;CD8_TCells&quot;,
+                      &quot;CD8_TCells&quot;,
+                      &quot;EndothelialCells&quot;,
+                      &quot;StromalCells&quot;,
+                      &quot;MyelomaCells&quot;,
+                      &quot;IT_1&quot;,
+                      &quot;IT_2&quot;,
+                      &quot;ACTA2_myoepithelial&quot;,
+                      &quot;DCIS_2&quot;,
+                      &quot;IT_3&quot;,
+                      &quot;KRT15_myoepithelial&quot;)
 Xen_data$CellType &lt;- as.character(clusters)</code></pre>
 <p><strong>vrSpatialPlot</strong> function can visualize multiple types
 of metadata columns, and users can change the location of the legends as
 well.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(Xen_data, group.by = &quot;CellType&quot;, pt.size = 0.13, background = &quot;black&quot;, 
-              legend.loc = &quot;top&quot;)</code></pre>
+              legend.loc = &quot;top&quot;, n.tile = 500)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_annotated.png" class="center"></p>
 <p><br></p>
 </div>
@@ -728,20 +748,8 @@ MBrain_Sec &lt;- getClusters(MBrain_Sec, resolution = 0.5, label = &quot;Cluster
 vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;Clusters&quot;)</code></pre>
 <p><img width="65%" height="65%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_umap_clusters.png" class="center"></p>
 <p><br></p>
-<pre class="r watch-out"><code>vrSpatialPlot(MBrain_Sec, assay = &quot;Assay1&quot;, group.by = &quot;Clusters&quot;)
-vrSpatialPlot(MBrain_Sec, assay = &quot;Assay2&quot;, group.by = &quot;Clusters&quot;)</code></pre>
-<table>
-<tbody>
-<tr style="vertical-align: center">
-<td style="width:50%; vertical-align: center">
-<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters1.png" class="center">
-</td>
-<td style="width:50%; vertical-align: center">
-<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters2.png" class="center">
-</td>
-</tr>
-</tbody>
-</table>
+<pre class="r watch-out"><code>vrSpatialPlot(MBrain_Sec, group.by = &quot;Clusters&quot;)</code></pre>
+<p><img width="65%" height="65%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters1.png" class="center"></p>
 <p><br></p>
 </div>
 </div>
@@ -775,10 +783,6 @@ coordinates &lt;- as.matrix(IFdata[,c(&quot;posX&quot;,&quot;posY&quot;)], rowna
 <p><br></p>
 <div id="importing-melc-data" class="section level2">
 <h2>Importing MELC data</h2>
-<!-- First, we normalize the data using the hyperbolic arcsine function with a scale argument of 0.2. -->
-<!-- ```{r eval = FALSE, class.source="watch-out", fig.align='center'} -->
-<!-- data <- asinh(data/0.2) -->
-<!-- ``` -->
 <p>Before analyzing MELC assays across FOVs, we should <strong>build a
 VoltRon object</strong> for each individual FOV/Section by using the
 <strong>formVoltron</strong> function. We then merge these sections to

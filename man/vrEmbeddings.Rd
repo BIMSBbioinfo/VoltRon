@@ -4,7 +4,9 @@
 \alias{vrEmbeddings}
 \alias{vrEmbeddings.VoltRon}
 \alias{vrEmbeddings.vrAssay}
+\alias{vrEmbeddings.vrAssayV2}
 \alias{vrEmbeddings<-.vrAssay}
+\alias{vrEmbeddings<-.vrAssayV2}
 \alias{vrEmbeddings<-.VoltRon}
 \title{vrEmbeddings}
 \usage{
@@ -14,7 +16,11 @@ vrEmbeddings(object, assay = NULL, type = "pca", dims = 1:30)
 
 \method{vrEmbeddings}{vrAssay}(object, type = "pca", dims = 1:30)
 
+\method{vrEmbeddings}{vrAssayV2}(object, type = "pca", dims = 1:30)
+
 \method{vrEmbeddings}{vrAssay}(object, type = "pca") <- value
+
+\method{vrEmbeddings}{vrAssayV2}(object, type = "pca") <- value
 
 \method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", overwrite = FALSE) <- value
 }

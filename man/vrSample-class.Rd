@@ -7,14 +7,14 @@
 \title{The vrSample (VoltRon Sample) Class}
 \description{
 The vrSample (VoltRon Sample) Class
-
-The vrSample (VoltRon Sample) Class
 }
 \section{Slots}{
 
 \describe{
 \item{\code{layer}}{A list of layers (vrLayer)}
 
-\item{\code{layer}}{A list of layers (vrLayer)}
+\item{\code{zlocation}}{a vector of z coordinates of layers}
+
+\item{\code{adjacency}}{an adjacency matrix of connected layers within a block}
 }}
 

@@ -4,6 +4,7 @@
 \alias{vrAssayTypes}
 \alias{vrAssayTypes.VoltRon}
 \alias{vrAssayTypes.vrAssay}
+\alias{vrAssayTypes.vrAssayV2}
 \title{Get assay types}
 \usage{
 vrAssayTypes(object, assay = NULL)
@@ -11,6 +12,8 @@ vrAssayTypes(object, assay = NULL)
 \method{vrAssayTypes}{VoltRon}(object, assay = NULL)
 
 \method{vrAssayTypes}{vrAssay}(object)
+
+\method{vrAssayTypes}{vrAssayV2}(object)
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object}

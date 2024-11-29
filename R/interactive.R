@@ -11,9 +11,9 @@
 #' @inheritParams shiny::runApp
 #' @param plot_g the ggplot plot
 #' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
-#' 
-#' @importFrom rstudioapi viewer
 #'
+#' @importFrom shinyjs useShinyjs
+#' 
 #' @noRd
 vrSpatialPlotInteractive <- function(plot_g = NULL, 
                                      shiny.options = list()){
@@ -102,6 +102,10 @@ mod_app_server <- function(id, plot_g = NULL) {
 #'
 #' @noRd
 configure_shiny_options <- function(shiny.options){
+  
+  # check package
+  if (!requireNamespace('rstudioapi'))
+    stop("Please install rstudioapi package to use RStudio for interactive visualization")
   
   # launch.browser
   if("launch.browser" %in% names(shiny.options)){

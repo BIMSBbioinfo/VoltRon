@@ -17,7 +17,9 @@ formVoltRon(
   sample_name = NULL,
   layer_name = NULL,
   image_name = NULL,
+  feature_name = NULL,
   project = NULL,
+  version = "v2",
   ...
 )
 }
@@ -46,7 +48,11 @@ formVoltRon(
 
 \item{image_name}{the name/key of the image}
 
+\item{feature_name}{the name/key of the feature set}
+
 \item{project}{project name}
+
+\item{version}{the assay version, V1 or V2}
 
 \item{...}{additional parameters passed to \link{formAssay}}
 }

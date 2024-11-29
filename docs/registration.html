@@ -13,7 +13,7 @@
 
 <title>Image Registration</title>
 
-<script src="site_libs/header-attrs-2.28/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -35,8 +35,8 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -382,6 +382,9 @@ div.tocify {
         <li>
           <a href="conversion.html">Converting VoltRon Objects</a>
         </li>
+        <li>
+          <a href="ondisk.html">OnDisk-based Analysis Utilities</a>
+        </li>
       </ul>
     </li>
   </ul>
@@ -623,7 +626,8 @@ VRBlock &lt;- merge(merge_list[[1]], merge_list[-1], samples = &quot;10XBlock&qu
 VRBlock</code></pre>
 <pre><code>10XBlock: 
   Layers: Section1 Section2 Section3 
-Assays: Xenium(Main) Visium</code></pre>
+Assays: Xenium(Main) Visium
+Features: RNA(Main) </code></pre>
 <p>Here, we can quickly check the change in spatial coordinate systems
 in the new tissue block. The <code>registerSpatialData</code> function
 syncronizes the coordinate systems of all VoltRon objects in the list
@@ -635,6 +639,7 @@ one.</p>
 1 Assay1 main,main_reg main_reg
 2 Assay2          main     main
 3 Assay3 main,main_reg main_reg</code></pre>
+<p><br></p>
 </div>
 <div id="datalabel-transfer-across-layers" class="section level3">
 <h3>Data/Label Transfer Across Layers</h3>
@@ -669,18 +674,19 @@ each cell in the source Xenium assay will be aggregated into spots in a
 newly create pseudo Visium assay. The new assay with aggregated counts
 will be named <strong>Visium_pseudo</strong>.</p>
 <pre class="r watch-out"><code>VRBlock &lt;- transferData(VRBlock, from = &quot;Assay1&quot;, to = &quot;Assay2&quot;)</code></pre>
-<p>VoltRon supports multiple assays within each layer. Now, Section 2
-includes two spot-type assays:</p>
+<p>VoltRon supports multiple feature type within each assay. Now, the
+Visium assay includes two spot-type features:</p>
 <ul>
-<li>the original Visium spot assay,</li>
-<li>a pseudo Visium assay with aggregated Xenium raw counts.</li>
+<li>the original Visium spot feature counts,</li>
+<li>a pseudo Visium feature count matrix with aggregated Xenium raw
+counts.</li>
 </ul>
-<pre class="r watch-out"><code>SampleMetadata(VRBlock)</code></pre>
-<pre><code>               Assay    Layer   Sample
-Assay1        Xenium Section1 10XBlock
-Assay2        Visium Section2 10XBlock
-Assay3        Xenium Section3 10XBlock
-Assay4 Visium_pseudo Section2 10XBlock</code></pre>
+<pre class="r watch-out"><code>VRBlock</code></pre>
+<pre><code>VoltRon Object 
+10XBlock: 
+  Layers: Section1 Section2 Section3 
+Assays: Visium(Main) Xenium 
+Features: RNA_pseudo(Main) RNA </code></pre>
 <p>We can now visualize both the original and aggregated counts of a
 gene, such as ERBB2 and ESR1 that marks ductal carcinoma in situ (DCIS)
 regions, to validate the correlation of gene signatures across adjacent
@@ -688,9 +694,11 @@ tissue sections, and to validate the accuracy of the automated image
 alignment. Here, PGR is also expressed at a small DCIS region found on
 adipocyte niche of the tissue.</p>
 <pre class="r watch-out"><code>library(patchwork)
-g1 &lt;- vrSpatialFeaturePlot(VRBlock, assay = &quot;Visium&quot;, 
+vrMainFeatureType(VRBlock_new, assay = &quot;Visium&quot;) &lt;- &quot;RNA&quot;
+g1 &lt;- vrSpatialFeaturePlot(VRBlock,  
                            features = c(&quot;ERBB2&quot;, &quot;ESR1&quot;, &quot;PGR&quot;), crop = FALSE, 
                            norm = FALSE, ncol = 3)
+vrMainFeatureType(VRBlock_new, assay = &quot;Visium&quot;) &lt;- &quot;RNA_pseudo&quot;
 g2 &lt;- vrSpatialFeaturePlot(VRBlock, assay = &quot;Visium_pseudo&quot;, 
                            features = c(&quot;ERBB2&quot;, &quot;ESR1&quot;, &quot;PGR&quot;), crop = FALSE, 
                            norm = FALSE, ncol = 3)
@@ -718,17 +726,17 @@ single metadata feature with, e.g. cell types, then the each spot at the
 new pseudo Visium will be collection of abundances of the categories
 within that metadata feature.</p>
 <pre class="r watch-out"><code>VRBlock &lt;- transferData(VRBlock, from = &quot;Assay1&quot;, to = &quot;Assay2&quot;, features = &quot;CellType&quot;, 
-                        new_assay_name = &quot;Visium_pseudo_CellType&quot;)
-SampleMetadata(VRBlock)</code></pre>
-<pre><code>                        Assay    Layer   Sample
-Assay1                 Xenium Section1 10XBlock
-Assay2                 Visium Section2 10XBlock
-Assay3                 Xenium Section3 10XBlock
-Assay4          Visium_pseudo Section2 10XBlock
-Assay5 Visium_pseudo_CellType Section2 10XBlock</code></pre>
+                        new_assay_name = &quot;Visium_CellType&quot;)
+VRBlock</code></pre>
+<pre><code>VoltRon Object 
+10XBlock: 
+  Layers: Section1 Section2 Section3 
+Assays: Visium(Main) Xenium 
+Features: RNA_pseudo(Main) RNA Visium_CellType </code></pre>
 <p>By visualizing the transferred labels on the Visium spots, we can see
 abundance of some DCIS and invasive tumor subtypes.</p>
-<pre class="r watch-out"><code>vrSpatialFeaturePlot(VRBlock, assay = &quot;Visium_pseudo_CellType&quot;,
+<pre class="r watch-out"><code>vrMainFeatureType(VRBlock_new) &lt;- &quot;Visium_CellType&quot;
+vrSpatialFeaturePlot(VRBlock, assay = &quot;Visium&quot;,
                      features = c(&quot;IT_1&quot;,&quot;DCIS_2&quot;), 
                      crop = TRUE, alpha = 1, ncol = 3)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_CellType.png" class="center"></p>
@@ -756,7 +764,7 @@ Genomics website</a> (specifically, import <strong>In Situ Replicate
 # import Xenium 
 Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
 
-# import H&amp;E image and built a VoltRon object
+# import H&amp;E image and build a VoltRon object
 Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
                                 sample_name = &quot;XeniumR1image&quot;,
                                 image_name = &quot;H&amp;E&quot;)
@@ -791,12 +799,12 @@ registered image which is the first Assay of the Xenium data
 we give a name for the new image/channel which is
 <strong>H&amp;E</strong>.</p>
 <pre class="r watch-out"><code>Xen_R1_image_reg &lt;- xen_reg$registered_spat[[2]]
-vrImages(Xen_R1[[&quot;Assay1&quot;]], name = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- vrImages(Xen_R1_image_reg, name = &quot;H&amp;E_reg&quot;)</code></pre>
+vrImages(Xen_R1[[&quot;Assay1&quot;]], channel = &quot;H&amp;E&quot;) &lt;- vrImages(Xen_R1_image_reg, name = &quot;H&amp;E_reg&quot;)</code></pre>
 <p>Now we can call the registered H&amp;E image of the Xenium data or
 later put the aligned H&amp;E when calling
 <strong>vrSpatialPlot</strong> or
 <strong>vrSpatialFeaturePlot</strong>.</p>
-<pre class="r watch-out"><code>vrImages(Xen_R1, name = &quot;main&quot;, channel = &quot;H&amp;E&quot;, scale.perc = 5)</code></pre>
+<pre class="r watch-out"><code>vrImages(Xen_R1, channel = &quot;H&amp;E&quot;, scale.perc = 5)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE.png" class="center"></p>
 <p><br></p>
 </div>

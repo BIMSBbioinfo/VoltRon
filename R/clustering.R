@@ -13,19 +13,16 @@ NULL
 #' @param object a VoltRon object
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param method the method used for graph construction, SNN or kNN
+#' @param k number of neighbors for kNN
 #' @param data.type the type of embedding used for neighborhood calculation, e.g. raw counts (raw), normalized counts (norm), PCA embeddings (pca), UMAP embeddings (umap) etc.
 #' @param dims the set of dimensions of the embedding data
-#' @param k number of neighbors for kNN
-#' @param method the method used for graph construction, SNN or kNN
 #' @param graph.key the name of the graph
-#' @param ... additional parameters passed to \link{get.knn}
 #'
 #' @importFrom igraph add_edges simplify make_empty_graph vertices E<- E
-#' @importFrom FNN get.knn
 #'
 #' @export
-#'
-getProfileNeighbors <- function(object, assay = NULL, data.type = "pca", dims = 1:30, k = 10, method = "kNN", graph.key = method, ...){
+getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, data.type = "pca", dims = 1:30, graph.key = method){
 
   # get data
   if(data.type %in% c("raw", "norm")){
@@ -41,7 +38,11 @@ getProfileNeighbors <- function(object, assay = NULL, data.type = "pca", dims = 
   }
 
   # find profile neighbors
-  nnedges <- FNN::get.knn(nndata, k = k + 1)
+  # if(knn.method == "FNN"){
+  #   nnedges <- FNN::get.knn(nndata, k = k + 1)
+  nnedges <- knn_annoy(nndata, k = k + 1)
+  names(nnedges) <- c("nn.index", "nn.dist")
+  weights <- NULL
   nnedges <-
     switch(method,
            SNN = {
@@ -73,6 +74,40 @@ getProfileNeighbors <- function(object, assay = NULL, data.type = "pca", dims = 
   return(object)
 }
 
+#' knn_annoy
+#' 
+#' knn engine employed by RcppAnnoy package, adapted from \code{BPCells} package.
+#' 
+#' @rdname knn
+#' 
+#' @details **knn_annoy**: Use RcppAnnoy as knn engine
+#' 
+#' @param data data
+#' @param query query data (Default: data)
+#' @param k number of neighbors for kNN
+#' @param n_trees Number of trees during index build time. More trees gives higher accuracy
+#' @param search_k Number of nodes to inspect during the query, or -1 for default value. Higher number gives higher accuracy
+#' 
+#' @importFrom RcppAnnoy AnnoyEuclidean
+knn_annoy <- function(data, query = data, k = 10, n_trees = 50, search_k = -1) {
+  annoy <- new(RcppAnnoy::AnnoyEuclidean, ncol(data))
+  for (i in seq_len(nrow(data))) {
+    annoy$addItem(i - 1, data[i, ])
+  }
+  annoy$build(n_trees)
+  
+  idx <- matrix(nrow = nrow(query), ncol = k)
+  dist <- matrix(nrow = nrow(query), ncol = k)
+  rownames(idx) <- rownames(query)
+  rownames(dist) <- rownames(query)
+  for (i in seq_len(nrow(query))) {
+    res <- annoy$getNNsByVectorList(query[i, ], k, search_k, include_distances = TRUE)
+    idx[i, ] <- res$item + 1
+    dist[i, ] <- res$dist
+  }
+  list(idx = idx, dist = dist)
+}
+
 ####
 # Clustering ####
 ####
@@ -88,11 +123,12 @@ getProfileNeighbors <- function(object, assay = NULL, data.type = "pca", dims = 
 #' @param label the name for the newly created clustering column in the metadata
 #' @param graph the graph type to be used
 #' @param seed seed
+#' @param abundance_limit the minimum number of points for a cluster, hence clusters with abundance lower than this limit will be appointed to other nearby clusters
 #'
 #' @importFrom igraph cluster_leiden
 #' @export
 #'
-getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters", graph = "kNN", seed = 1){
+getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters", graph = "kNN", seed = 1, abundance_limit = 2){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -109,18 +145,21 @@ getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters"
   # clustering
   set.seed(seed)
   clusters <- igraph::cluster_leiden(object_graph, objective_function = "modularity", resolution_parameter = resolution)
-  clusters <- clusters$membership
 
+  # correct clustering
+  clusters <- correct_low_abundant_clusters(object_graph, clusters, abundance_limit)
+    
   # metadata
   metadata <- Metadata(object)
   entities <- vrSpatialPoints(object_subset)
-  if(inherits(metadata, "data.table")){
+  # if(inherits(metadata, "data.table")){
+  if(is.null(rownames(metadata))){
     metadata[[label]] <- as.numeric(NA)
-    metadata[[label]][metadata$id %in% entities] <- clusters
+    metadata[[label]][match(clusters$names, as.vector(metadata$id))] <- clusters$membership
   } else {
     metadata_clusters <- NA
     metadata[[label]] <- metadata_clusters
-    metadata[entities,][[label]] <- clusters
+    metadata[clusters$names,][[label]] <- clusters$membership
   }
   Metadata(object) <- metadata
 
@@ -128,4 +167,18 @@ getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters"
   return(object)
 }
 
+#' @noRd
+correct_low_abundant_clusters <- function(object_graph, clusters, abundance_limit){
+
+  # cluster abundances
+  cluster_abundance <- table(clusters$membership)
+  
+  # check if some clusters are low in abundance
+  ind <- cluster_abundance < abundance_limit
+  if(any(ind)){
+    low_abundant_clusters <- names(cluster_abundance)[ind]
+    clusters$membership[clusters$membership %in% low_abundant_clusters] <- NA
+  } 
+  return(clusters)
+}
 

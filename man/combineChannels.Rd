@@ -4,6 +4,7 @@
 \alias{combineChannels}
 \alias{combineChannels.VoltRon}
 \alias{combineChannels.vrAssay}
+\alias{combineChannels.vrAssayV2}
 \alias{combineChannels.vrImage}
 \alias{combineChannels.vrSpatial}
 \title{combineChannels}
@@ -29,6 +30,15 @@ combineChannels(
 )
 
 \method{combineChannels}{vrAssay}(
+  object,
+  name = NULL,
+  reg = FALSE,
+  channels = NULL,
+  colors = NULL,
+  channel_key = "combined"
+)
+
+\method{combineChannels}{vrAssayV2}(
   object,
   name = NULL,
   reg = FALSE,

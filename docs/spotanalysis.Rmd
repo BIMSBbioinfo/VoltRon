@@ -158,7 +158,7 @@ vrEmbeddingFeaturePlot(Xen_data, features = c("LRRC15", "TCF7"), embedding = "um
 Next, we build neighborhood graphs with the **shared nearest neighbors (SNN)** of cells which are constructed from dimensionally reduced gene expression profiles. The function **getProfileNeighbors** also has an option of building **k-nearest neighbors (kNN)** graphs. 
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-Xen_data <- getProfileNeighbors(Xen_data, dims = 1:20, k = 10, method = "SNN")
+Xen_data <- getProfileNeighbors(Xen_data, dims = 1:20, method = "SNN")
 ```
 
 We can later conduct a clustering of cells using the **leiden's method** from the igraph package, which is utilized with the **getClusters** function.
@@ -194,11 +194,28 @@ Let us create a new metadata feature from the **Clusters** column, called **Cell
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 clusters <- factor(Xen_data$Clusters, levels = sort(unique(Xen_data$Clusters)))
-levels(clusters) <- c("DCIS_1", "DCIS_2", "IT_1", "Macrophages", "Adipocytes",
-                      "CD4_TCells", "CD8_TCells", "IT_2", "StromalCells", "IT_3",
-                      "EndothelialCells", "ACTA2_myoepithelial", "ACTA2_myoepithelial", 
-                      "DCIS_3", "MastCells", "MyelomaCells", "BCells", 
-                      "StromalCells", "PLD4+_LILRA4+_CD4+_Cells", "KRT15_myoepithelial")
+levels(clusters) <- c("DCIS_1", 
+                      "DCIS_2", 
+                      "CD4_TCells",
+                      "Adipocytes",
+                      "PLD4+_LILRA4+_CD4+_Cells",
+                      "ACTA2_myoepithelial",
+                      "IT_2",
+                      "Macrophages",
+                      "MastCells",
+                      "Bcells",
+                      "StromalCells",
+                      "CD8_TCells",
+                      "CD8_TCells",
+                      "EndothelialCells",
+                      "StromalCells",
+                      "MyelomaCells",
+                      "IT_1",
+                      "IT_2",
+                      "ACTA2_myoepithelial",
+                      "DCIS_2",
+                      "IT_3",
+                      "KRT15_myoepithelial")
 Xen_data$CellType <- as.character(clusters)
 ```
 
@@ -206,7 +223,7 @@ Xen_data$CellType <- as.character(clusters)
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 vrSpatialPlot(Xen_data, group.by = "CellType", pt.size = 0.13, background = "black", 
-              legend.loc = "top")
+              legend.loc = "top", n.tile = 500)
 ```
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_annotated.png" class="center">
@@ -326,18 +343,10 @@ vrEmbeddingPlot(MBrain_Sec, embedding = "umap", group.by = "Clusters")
 <br>
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(MBrain_Sec, assay = "Assay1", group.by = "Clusters")
-vrSpatialPlot(MBrain_Sec, assay = "Assay2", group.by = "Clusters")
+vrSpatialPlot(MBrain_Sec, group.by = "Clusters")
 ```
 
-<table>
-<tbody>
-  <tr style = "vertical-align: center">
-  <td style = "width:50%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters1.png" class="center"></td>
-  <td style = "width:50%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters2.png" class="center"></td>
-  </tr>
-</tbody>
-</table>
+<img width="65%" height="65%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters1.png" class="center">
 
 <br>
 
@@ -361,12 +370,6 @@ coordinates <- as.matrix(IFdata[,c("posX","posY")], rownames.force = TRUE)
 <br>
 
 ## Importing MELC data
-
-<!-- First, we normalize the data using the hyperbolic arcsine function with a scale argument of 0.2. -->
-
-<!-- ```{r eval = FALSE, class.source="watch-out", fig.align='center'} -->
-<!-- data <- asinh(data/0.2) -->
-<!-- ``` -->
 
 Before analyzing MELC assays across FOVs, we should **build a VoltRon object** for each individual FOV/Section by using the **formVoltron** function. We then merge these sections to respective tissue blocks by defining their samples of origins. We can also define **assay names**, **assay types** and **sample (i.e. block) names** of these objects. 
 
