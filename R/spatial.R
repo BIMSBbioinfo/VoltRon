@@ -208,3 +208,145 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
   # return
   neigh_results
 }
+
+####
+# Hot Spot Analysis ####
+####
+
+#' getHotSpotAnalysis
+#'
+#' Conduct hot spot detection
+#'
+#' @param object a VoltRon object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param method the statistical method of conducting hot spot analysis. Default is "Getis-Ord"
+#' @param features a set of features to be visualized, either from \link{vrFeatures} of raw or normalized data or columns of the \link{Metadata}.
+#' @param graph.type the type of graph to determine spatial neighborhood
+#' @param alpha.value the alpha value for the hot spot analysis test. Default is 0.01
+#' @param norm if TRUE, the normalized data is used
+#' @param seed seed
+#'
+#' @export
+getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", features , graph.type = "delaunay", alpha.value = 0.01, norm = TRUE, seed = 1){
+  
+  # set the seed
+  set.seed(seed)
+  
+  # check object
+  if(!inherits(object, "VoltRon"))
+    stop("Please provide a VoltRon object!")
+  
+  # metadata
+  sample.metadata <- SampleMetadata(object)
+  metadata <- Metadata(object)
+  
+  # initiate metadata columns
+  for(feat in features){
+    metadata[[paste0(feat,"_hotspot_flag")]] <- 
+      metadata[[paste0(feat,"_hotspot_pvalue")]] <- 
+        metadata[[paste0(feat,"_hotspot_stat")]] <- rep(NA, nrow(metadata))
+  }
+  
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  
+  # test for each assay
+  neigh_results <- list()
+  for(assy in assay_names){
+    
+    # verbose
+    message("Running Hot Spot Analysis with '", method, "' for '", assy, "'")
+    
+    # get related data 
+    graph <- vrGraph(object, assay = assy, graph.type = graph.type)
+    cur_metadata <- subset_metadata(metadata, assays = assy)
+    
+    # get features
+    data_features <- features[features %in% vrFeatures(object, assay = assy)]
+    if(length(data_features) > 0){
+      normdata <- vrData(object, assay = assy, features = data_features, norm = norm)
+    }
+    
+    # for each feature
+    for(feat in features){
+      
+      # Getis-Ord 
+      if(method == "Getis-Ord"){
+
+        # get feature
+        if(feat %in% data_features){
+          if(inherits(normdata, "IterableMatrix")){
+            statistic <- as.matrix(normdata[feat,])[1,]
+          } else {
+            statistic <- normdata[feat,]
+          }
+        } else {
+          if(feat %in% colnames(cur_metadata)){
+            statistic <- cur_metadata[,feat]
+          } else {
+            stop("'", feat, "' is not found in either the data matrix or the metadata!")
+          }
+        }
+        
+        # initiate getis ord
+        getisord <- list()
+        length(getisord) <- 3
+        names(getisord) <- c("hotspot_stat", "hotspot_pvalue", "hotspot_flag")
+        
+        # calculate getis ord
+        adj_matrix <- igraph::as_adjacency_matrix(graph)
+        n <- length(statistic)
+        getisord_stat <- adj_matrix %*% statistic
+        getisord_stat <- getisord_stat/(sum(statistic) - statistic)
+        getisord[[1]] <- getisord_stat[,1]
+          
+        # calculate z score expectation and variance
+        weight_sum <- rowSums(as.matrix(adj_matrix))
+        getisord_exp <- weight_sum/(n - 1)
+        getisord_moment_1 <- (sum(statistic) - statistic)/(n - 1)
+        getisord_moment_2 <- (sum(statistic^2) - statistic^2)/(n - 1) - getisord_moment_1^2
+        getisord_var <- weight_sum*(n - 1 - weight_sum)*getisord_moment_2
+        getisord_var <- getisord_var/((n-1)^2 *(n-2)*getisord_moment_1^2)
+        
+        # calculate z score 
+        getisord_zscore <- (getisord[[1]] - getisord_exp)/sqrt(getisord_var)
+        getisord_zscore[is.nan(getisord_zscore)] <- NA
+        getisord[[2]] <- 1-pnorm(getisord_zscore)
+        getisord[[3]] <- ifelse(getisord[[2]] < 0.01, "hot", "cold") 
+        
+        # get graph based hot spot filtering
+        # at least some number of common neighbors should be hotspots
+        
+        # update metadata for features
+        for(label in names(getisord))
+          cur_metadata[[paste(feat, label, sep = "_")]] <-  getisord[[label]]
+      }
+    }
+    
+    # update metadata for assays
+    if(is.null(rownames(metadata))){
+      ind <- match(cur_metadata$id, as.vector(metadata$id))
+      for(feat in features){
+        for(label in names(getisord)){
+          metadata_label <- paste(feat, label, sep = "_")
+          metadata[[metadata_label]][ind] <- cur_metadata[[metadata_label]]
+        }
+      }
+    } else {
+      for(feat in features){
+        for(label in names(getisord)){
+          metadata_label <- paste(feat, label, sep = "_")
+          metadata[rownames(cur_metadata),][[metadata_label]] <- cur_metadata[[metadata_label]]     
+        }
+      }
+    }
+  }
+  
+  # update metadata
+  Metadata(object) <- metadata
+  
+  # return
+  return(object)
+}
+
