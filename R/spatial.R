@@ -65,7 +65,7 @@ getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", k = 1
                  spot.radius <- vrAssayParams(object[[assy]], param = "nearestpost.distance")
                  radius <- ifelse(is.null(spot.radius), 1, spot.radius)
                }
-               nnedges <- RANN::nn2(cur_coords, searchtype = "radius", radius = radius, k = min(300, sqrt(nrow(cur_coords))/2))
+               nnedges <- suppressWarnings({RANN::nn2(cur_coords, searchtype = "radius", radius = radius, k = min(300, sqrt(nrow(cur_coords))/2))})
                nnedges <- nnedges$nn.idx
                nnedges <- reshape2::melt(data.frame(nnedges), id.vars = "X1")
                nnedges <- subset(nnedges[,c("X1", "value")], value != 0 & X1 != 0)
@@ -313,7 +313,7 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
         getisord_zscore <- (getisord[[1]] - getisord_exp)/sqrt(getisord_var)
         getisord_zscore[is.nan(getisord_zscore)] <- NA
         getisord[[2]] <- 1-pnorm(getisord_zscore)
-        getisord[[3]] <- ifelse(getisord[[2]] < 0.01, "hot", "cold") 
+        getisord[[3]] <- ifelse(getisord[[2]] < alpha.value, "hot", "cold") 
         
         # get graph based hot spot filtering
         # at least some number of common neighbors should be hotspots
