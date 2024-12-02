@@ -52,8 +52,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 <br>
 
-## Spatial Data Integration
-
+## Spatially Aware Analysis
 
 **VoltRon** will incorporate multiple data integration modules to achieve data transfer across a diverse set of modalities. We utilize the <a href="https://opencv.org/">OpenCV</a> library which fully embedded into VoltRon using <a href="https://www.rcpp.org/">Rcpp</a>, hence VoltRon can align reference images of spatial datasets using computer vision and image registration. Users can automaticaly or manually align a list of images (**H&E, microscopy or DAPI images**) using a small shiny app incorporated within our analysis workflow. 
 
@@ -75,7 +74,7 @@ In addition, VoltRon integrates with spot deconvolution methods such as RCTD to 
    <td onclick="location.href='deconvolution.html';"> 
       <p class ="tutorial"> Niche Clustering </p>
       <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/deconvolution.png" class="center">
-      <p style = "margin: 3%"> Clustering with ROI/spot deconvolution</p>
+      <p style = "margin: 5%"> Clustering based on ROI/spot deconvolution and Spatial Neighborhood </p>
    </td>
   </tr>
 </tbody>
@@ -84,7 +83,7 @@ In addition, VoltRon integrates with spot deconvolution methods such as RCTD to 
 <br>
 <br>
 
-## Downstream Analysis 
+## Downstream Analysis
 
 **VoltRon** is also capable of end-to-end analysis of diverse set of spatial data types such as **ROIs** (regions of interest), **spots**, **single cells**,  **molecules** and even **images**. VoltRon incorporates built-in functions to import readouts of these distinct spatial omic technologies where a similar set of functions can be used to analyze each individual data type.
 

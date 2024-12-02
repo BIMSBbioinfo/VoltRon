@@ -350,3 +350,62 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
   return(object)
 }
 
+####
+# Niche Analysis ####
+####
+
+#' getNicheAssay
+#'
+#' Create Niche Assays
+#'
+#' @param object a VoltRon object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param label grouping label for Niche definition
+#' @param graph.type the type of graph to determine spatial neighborhood
+#' @param new_feature_name the name of the new feature set created for the niche assay. Default: "Niche"
+#'
+#' @importFrom igraph V V<- neighborhood
+#' @export
+getNicheAssay <- function(object, assay = NULL, label = NULL, graph.type = "delaunay", new_feature_name = "Niche"){
+  
+  # get metadata
+  sample.metadata <- SampleMetadata(object)
+  metadata <- Metadata(object)
+  
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  
+  # get graph 
+  graph <- vrGraph(object, assay = assay_names, graph.type = graph.type)
+  
+  # get label
+  cur_metadata <- subset_metadata(metadata, assays = assay_names)
+  if(label %in% colnames(cur_metadata)){
+    label <- cur_metadata[,label]
+    if(!is.null(rownames(cur_metadata))){
+      names(label) <- rownames(cur_metadata)
+    } else {
+      names(label) <- cur_metadata$id
+    }
+  } else {
+    stop("'", label, "' is not found in the metadata!")
+  }
+  
+  # get niche assay
+  adj_matrix <- igraph::neighborhood(graph)
+  unique_label <- unique(label)
+  niche_counts <- sapply(adj_matrix, function(x){
+    table(factor(label[x], levels = unique_label))
+  }, simplify = TRUE)
+  colnames(niche_counts) <- igraph::V(graph)$name
+  
+  # add cell type mixtures as new feature set
+  for(assy in assay_names){
+    cur_niche_counts <- niche_counts[,stringr::str_extract(colnames(niche_counts), "Assay[0-9]+") %in% assy]
+    object <- addFeature(object, assay = assy, data = cur_niche_counts, feature_name = new_feature_name)
+  }
+
+  # return
+  return(object)
+}

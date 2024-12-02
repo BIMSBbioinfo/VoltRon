@@ -50,3 +50,30 @@ test_that("spatial tests", {
   expect_true(all(c("GNLY_hotspot_stat", "GNLY_hotspot_pvalue", "GNLY_hotspot_flag") %in% colnames(Metadata(xenium_data))))
   expect_true(all(c("Count_hotspot_stat", "Count_hotspot_pvalue", "Count_hotspot_flag") %in% colnames(Metadata(xenium_data))))
 })
+
+test_that("niche clutsering", {
+  
+  # single assay
+  data("xenium_data")
+  xenium_data2 <- getSpatialNeighbors(xenium_data, radius = 15, method = "radius")
+  xenium_data2 <- getNicheAssay(xenium_data2, label = "clusters", graph.type = "radius")
+  expect_equal(vrFeatureTypeNames(xenium_data2), c("RNA", "Niche"))
+  xenium_data2 <- getNicheAssay(xenium_data2, label = "clusters", graph.type = "radius", new_feature_name = "Niche2")
+  expect_equal(vrFeatureTypeNames(xenium_data2), c("RNA", "Niche", "Niche2"))
+  expect_error(getNicheAssay(xenium_data2, label = "clusters1", graph.type = "radius"))
+  rm(xenium_data2)
+
+  # multiple assays
+  data("xenium_data")
+  xenium_data2 <- xenium_data
+  xenium_data2$Sample <- "Sample2"
+  xenium_data2 <- merge(xenium_data2, xenium_data)
+  xenium_data2 <- getSpatialNeighbors(xenium_data2, radius = 15, method = "radius")
+  xenium_data3 <- getNicheAssay(xenium_data2, label = "clusters", graph.type = "radius")
+  metadata <- vrFeatureTypeNames(xenium_data3, assay = "all")
+  expect_equal(metadata$Feature, c("RNA,Niche", "RNA,Niche"))
+  xenium_data3 <- getNicheAssay(xenium_data2, assay = "Assay1", label = "clusters", graph.type = "radius")
+  metadata <- vrFeatureTypeNames(xenium_data3, assay = "all")
+  expect_equal(metadata$Feature, c("RNA,Niche", "RNA"))
+  
+})
