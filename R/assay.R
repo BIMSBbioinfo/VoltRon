@@ -116,6 +116,7 @@ setMethod(
 
 #' @param object a vrAssay object to be converted to vrAssayV2
 #' @rdname updateAssay
+#' @method updateAssay vrAssay
 #' @importFrom methods new
 #' @noRd
 updateAssay.vrAssay <- function(object){
@@ -137,8 +138,9 @@ updateAssay.vrAssay <- function(object){
                main_featureset = "main")
 }
 
-#' @rdname updateAssay
 #' @param object a vrAssayV2 object to be converted to vrAssayV2
+#' @rdname updateAssay
+#' @method updateAssay vrAssayV2
 #' @noRd
 updateAssay.vrAssayV2 <- function(object){
   message("The assay is of version 2, nothing to change!")

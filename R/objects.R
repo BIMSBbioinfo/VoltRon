@@ -490,9 +490,10 @@ formVoltRon <- function(data = NULL,
 
 #' @param object a VoltRon object
 #' @rdname updateAssay
-#'
+#' @method updateAssay VoltRon
+#' @export
 #' @noRd
-udpateAssay.VoltRon <- function(object, assay = NULL) {
+updateAssay.VoltRon <- function(object, assay = NULL) {
   
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -587,7 +588,6 @@ addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample 
 #' @rdname vrAssayNames
 #' @order 2
 #' @export
-#' 
 vrAssayNames.VoltRon <- function(object, assay = NULL){
 
   # sample metadata
