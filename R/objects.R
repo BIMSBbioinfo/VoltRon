@@ -488,6 +488,23 @@ formVoltRon <- function(data = NULL,
 
 ### Assay Methods ####
 
+#' @param object a VoltRon object
+#' @rdname updateAssay
+#' @method updateAssay VoltRon
+#' @export
+#' @noRd
+updateAssay.VoltRon <- function(object, assay = NULL) {
+  
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  
+  # set embeddings
+  for(assy in assay_names)
+    object[[assy]] <- updateAssay(object[[assy]])
+  
+  return(object)
+}
+
 #' Main Assay
 #'
 #' Get and set the main assay of a VoltRon object
@@ -571,7 +588,6 @@ addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample 
 #' @rdname vrAssayNames
 #' @order 2
 #' @export
-#' 
 vrAssayNames.VoltRon <- function(object, assay = NULL){
 
   # sample metadata
