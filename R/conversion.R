@@ -758,17 +758,19 @@ as.SpatialExperiment <- function(object, assay = NULL, reg = FALSE){
   }
   
   # data
-  rawdata <- vrData(object, assay = assay, norm = FALSE)
+  rawdata <- as.matrix(vrData(object, assay = assay, norm = FALSE))
   
   # metadata
   metadata <- Metadata(object, assay = assay)
   if(is.null(rownames(metadata)))
     rownames(metadata) <- metadata$id
+  metadata <- metadata[colnames(rawdata),]
   assays <- stringr::str_extract(rownames(metadata), pattern = "_Assay[0-9]+$")
   assays <- gsub("^_", "", assays)
   
   # coordinates
-  coords <- vrCoordinates(flipCoordinates(object, assay = assay), assay = assay, reg = reg)
+  coords <- as.matrix(vrCoordinates(flipCoordinates(object, assay = assay), assay = assay, reg = reg))
+  coords <- coords[colnames(rawdata),]
   
   # Seurat object
   spe <- SpatialExperiment::SpatialExperiment(assay=list(counts = rawdata),

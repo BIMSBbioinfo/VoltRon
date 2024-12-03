@@ -1087,7 +1087,7 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
   
   # background
   g <- g +
-    theme(panel.background = element_rect(fill = "grey97", colour = "grey97", size = 0.5, linetype = "solid"))
+    theme(panel.background = element_rect(fill = "grey97", colour = "grey97", linewidth = 0.5, linetype = "solid"))
   
   # return data
   return(g)

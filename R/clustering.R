@@ -144,7 +144,7 @@ getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters"
 
   # clustering
   set.seed(seed)
-  clusters <- igraph::cluster_leiden(object_graph, objective_function = "modularity", resolution_parameter = resolution)
+  clusters <- igraph::cluster_leiden(object_graph, objective_function = "modularity", resolution = resolution)
 
   # correct clustering
   clusters <- correct_low_abundant_clusters(object_graph, clusters, abundance_limit)

@@ -35,7 +35,6 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
 
   # size factor
   rawdata <- vrData(object, feat_type = feat_type, norm = FALSE)
-  coldepth <- colSums(rawdata)
 
   if(!is.numeric(desiredQuantile)){
     stop("desiredQuantile should be numeric")
@@ -47,7 +46,7 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
 
   # normalization method
   if(method == "LogNorm"){
-    normdata <- LogNorm(rawdata, coldepth, sizefactor)
+    normdata <- LogNorm(rawdata, colSums(rawdata), sizefactor)
   } else if(method == "Q3Norm") {
     # rawdata[rawdata==0] <- 1
     qs <- getColQuantiles(rawdata, desiredQuantile)
@@ -58,7 +57,8 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
     normdata <- getDivideSweep(rawdata, qs / exp(mean(log(qs))))
     normdata <- log(normdata + 1)
   } else if(method == "CLR") {
-    normdata <- apply(rawdata, 2, function(x) {
+    normdata <- getDivideSweep(rawdata, colSums(rawdata))
+    normdata <- apply(normdata, 2, function(x) {
       log1p(x = x / (exp(x = sum(log1p(x = x[x > 0]), na.rm = TRUE) / length(x = x))))
     })
   } else if(method == "hyper.arcsine") {
