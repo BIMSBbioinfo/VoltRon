@@ -31,12 +31,10 @@ suppressWarnings({
 #' @slot type the type of the assay (tile, molecule, cell, spot, ROI)
 #' @slot name the assay name
 #' @slot main_image the key of the main image
-#' @slot main_featureset the key of the main feature set
 #'
 #' @name vrAssay-class
 #' @rdname vrAssay-class
 #' @exportClass vrAssay
-#'
 vrAssay <- setClass(
   Class = 'vrAssay',
   slots = c(
@@ -48,8 +46,7 @@ vrAssay <- setClass(
     params = "list",
     type = "character",
     name = "character",
-    main_image = "character",
-    main_featureset = "character"
+    main_image = "character"
   )
 )
 
@@ -82,7 +79,6 @@ setMethod(
 #' @name vrAssayV2-class
 #' @rdname vrAssayV2-class
 #' @exportClass vrAssayV2
-#'
 vrAssayV2 <- setClass(
   Class = 'vrAssayV2',
   slots = c(
@@ -115,6 +111,39 @@ setMethod(
     return(invisible(x = NULL))
   }
 )
+
+## UpdateAssay ####
+
+#' @param object a vrAssay object to be converted to vrAssayV2
+#' @rdname updateAssay
+#' @importFrom methods new
+#' @noRd
+updateAssay.vrAssay <- function(object){
+
+  # data matrix and feature data
+  data_list <- list(main = object@rawdata, main_norm = object@normdata)
+  featuredata_list <- list(main = object@featuredata)
+
+  # create assay v2
+  methods::new("vrAssayV2",
+               data = data_list,
+               featuredata = featuredata_list,
+               embeddings = object@embeddings,
+               image = object@image,
+               params = object@params,
+               type = object@type,
+               name = object@name,
+               main_image = object@main_image,
+               main_featureset = "main")
+}
+
+#' @rdname updateAssay
+#' @param object a vrAssayV2 object to be converted to vrAssayV2
+#' @noRd
+updateAssay.vrAssayV2 <- function(object){
+  message("The assay is of version 2, nothing to change!")
+  return(object)
+}
 
 ####
 # Methods ####
@@ -181,7 +210,7 @@ formAssay <- function(data = NULL,
     object <-   methods::new("vrAssay", 
                              rawdata = data, normdata = data,
                              image = image, params = params, type = type, name = name, 
-                             main_image = main_image, main_featureset = main_featureset)
+                             main_image = main_image)
   }
   return(object)
 }

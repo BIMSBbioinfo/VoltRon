@@ -112,6 +112,20 @@ changeAssayNames <- function(object, ...) {
 # Assay ####
 ####
 
+#' Update Assay
+#'
+#' update assays from vrAssay to vrAssayV2
+#'
+#' @param object a VoltRon object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#'
+#' @rdname updateAssay
+#' @export updateAssay
+updateAssay <- function(object, assay) {
+  UseMethod(generic = 'updateAssay', object = object)
+}
+
 #' Add Assay
 #'
 #' add a new assay (vrAssay object) to a VoltRon object

@@ -28,7 +28,5 @@ The vrAssay (VoltRon Assay) Class
 \item{\code{name}}{the assay name}
 
 \item{\code{main_image}}{the key of the main image}
-
-\item{\code{main_featureset}}{the key of the main feature set}
 }}
 
