@@ -153,7 +153,7 @@ formImage <- function(coords, segments = list(), image = NULL, main_channel = NU
 
       # enter names if there are no names
       if(is.null(names(image)))
-        names(image) <- paste("image_", 1:length(image))
+        names(image) <- paste("channel_", 1:length(image), sep = "")
 
       # get image information
       imageinfo <- sapply(image, function(x) magick::image_info(x)[,c("width", "height")], USE.NAMES = TRUE)
