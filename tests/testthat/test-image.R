@@ -1,4 +1,3 @@
-# Testing functions of manipulating images ####
 test_that("image", {
   
   # get data
@@ -30,6 +29,33 @@ test_that("image", {
   vrMainSpatial(visium_data[["Assay1"]]) <- "new_image"
   expect_equal(vrMainImage(visium_data[["Assay1"]]), "new_image")
   expect_equal(vrMainSpatial(visium_data[["Assay1"]]), "new_image")
+  
+  # return
+  expect_equal(1,1L)
+})
+
+test_that("import image voltron data", {
+  
+  # get image
+  imgfile <- system.file("extdata", "DAPI.tif", package = "VoltRon")
+  
+  # tile size
+  imgdata <- importImageData(imgfile, tile.size = 4, image_name = "main")
+  imgdata <- importImageData(imgfile, tile.size = 1, image_name = "main")
+  imgdata <- importImageData(imgfile, tile.size = 200, image_name = "main")
+  expect_equal(vrImageChannelNames(imgdata)$Spatial, "main")
+  expect_error(imgdata <- importImageData("", tile.size = 200, image_name = "main"))
+  
+  # channel names
+  imgdata <- importImageData(imgfile, tile.size = 200, image_name = "main", channel_names = "DAPI")
+  expect_equal(vrImageChannelNames(imgdata)$Channels, "DAPI")
+  
+  # multiple images
+  imgfile <- c(imgfile, imgfile)
+  imgdata <- importImageData(imgfile, tile.size = 4)
+  expect_equal(vrImageChannelNames(imgdata)$Channels, "channel_1,channel_2")
+  imgdata <- importImageData(imgfile, tile.size = 4, channel_names = c("DAPI", "DAPI2"))
+  expect_equal(vrImageChannelNames(imgdata)$Channels, "DAPI,DAPI2")
   
   # return
   expect_equal(1,1L)

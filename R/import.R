@@ -1938,44 +1938,69 @@ importDBITSeq <- function(path.rna, path.prot = NULL, size = 10, assay_name = "D
 #'
 #' import an image as VoltRon object
 #'
-#' @param image the path to an image file
+#' @param image a single or a list of image paths or magick-image objects
 #' @param tile.size the size of tiles
-#' @param stack.id the id of the stack when the magick image composed of multiple layers
 #' @param segments Either a list of segments or a GeoJSON file. This will result in a second assay in the VoltRon object to be created
 #' @param image_name the image name of the Image assay, Default: main
+#' @param channel_name the channel names of the images if multiple images are provided
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
 #' @importFrom data.table data.table
 #'
+#' @examples
+#' # single image
+#' imgfile <- system.file("extdata", "DAPI.tif", package = "VoltRon")
+#' vrdata <- importImageData(imgfile, image_name = "main")
+#' 
+#' # multiple images
+#' imgfile <- c(system.file("extdata", "DAPI.tif", package = "VoltRon"), 
+#'              system.file("extdata", "DAPI.tif", package = "VoltRon"))
+#' vrdata <- importImageData(imgfile, image_name = "main", channel_name = c("DAPI", "DAPI2"))
+#' 
 #' @export
-#'
-importImageData <- function(image, tile.size = 10, stack.id = 1, segments = NULL, image_name = "main", ...){
-
+importImageData <- function(image, tile.size = 10, stack.id = 1, segments = NULL, image_name = "main", channel_names = NULL, ...){
+  
+  # images and channel names
+  if(!is.null(channel_names)){
+    if(length(image) != length(channel_names))
+      stop("Provided channel names should of the same length as the images!")
+    if(any(!is.character(channel_names)))
+      stop("Invalid channel names!")  
+  }
+  
   # get image
-  if(!inherits(image, "magick-image")){
-    if(!is.character(image)){
-      stop("image should either be a magick-image object or a file.path")
-    } else{
-      if(file.exists(image)){
-        image <- magick::image_read(image)
-      } else {
-        stop(image, " is not found!")
+  if(!is.list(image)){}
+    image <- as.list(image)
+  image <- sapply(image, function(img){
+    if(!inherits(img, "magick-image")){
+      if(!is.character(img)){
+        stop("image should either be a magick-image object or a file.path")
+      } else{
+        if(file.exists(img)){
+          img <- magick::image_read(img)
+        } else {
+          stop(img, " is not found!")
+        }
       }
     }
+  }, USE.NAMES = TRUE, simplify = FALSE)
+  
+  # channel names
+  if(!is.null(channel_names)){
+    names(image) <- channel_names
   }
 
-  # get image layer from stacked magick images
-  if(length(image) > 1){
-    if(stack.id > length(image)){
-      stop("The stack.id should be an integer between 1 and ", length(image))
-    } else {
-      image <- image[stack.id]
-    }
+  # check image size
+  imageinfo <- sapply(image, function(img) {
+    info <- magick::image_info(img)
+    c(info$width, info$height)
+  }, simplify = TRUE)
+  unique_width <- unique(imageinfo[1,])
+  unique_height <- unique(imageinfo[2,])
+  if(length(unique_width) == 1 && length(unique_height) == 1){
+    imageinfo <- list(width = imageinfo[1,1], height = imageinfo[2,1])
   }
-
-  # image info
-  imageinfo <- magick::image_info(image)
 
   # coordinates
   even_odd_correction <- (!tile.size%%2)*(0.5)
