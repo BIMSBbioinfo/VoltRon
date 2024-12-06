@@ -1093,6 +1093,13 @@ shorten_assay_links_images <- function(object){
   spatial_names <- vrSpatialNames(object)
   for(spat in spatial_names){
     
+    # coordinates
+    vrCoordinates(object, spatial_name = spat) <- 
+      modify_seeds(vrCoordinates(object, spatial_name = spat),
+                   function(x) {
+                     shorten_assay_links_data(x)
+                   }) 
+    
     # for each channel
     channels <- vrImageChannelNames(object, name = spat)
     if(!all(grepl("No Channels", channels))){
@@ -1221,6 +1228,13 @@ restore_absolute_assay_links_images <- function(object, dir){
   # for each spatial system
   spatial_names <- vrSpatialNames(object)
   for(spat in spatial_names){
+    
+    # coordinates
+    vrCoordinates(object, spatial_name = spat) <- 
+      modify_seeds(vrCoordinates(object, spatial_name = spat),
+                   function(x) {
+                     restore_absolute_links(x, dir)
+                   })
     
     # for each channel
     channels <- vrImageChannelNames(object, name = spat)
