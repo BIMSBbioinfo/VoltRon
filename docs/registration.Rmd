@@ -3,7 +3,7 @@ title: "Image Registration"
 output: 
   html_document:
     toc: true
-    toc_depth: 4
+    toc_depth: 5
     toc_float:
       collapsed: false
       smooth_scroll: true
@@ -189,7 +189,7 @@ The combined VoltRon object of Visium and Xenium datasets can be used to transfe
 
 <br>
 
-#### Data Transfer
+#### Data Transfer (Cells->Spots)
 
 We must first determine the names of the assays where labels are transfered **from** one **to** the other. For the sake of this tutorial, we can select Assay1 of **Xenium as the source** assay and the Assay2 of **Visium as the destination** assay. 
 
@@ -204,7 +204,7 @@ Assay2 Visium Section2 10XBlock
 Assay3 Xenium Section3 10XBlock
 ```
 
-The **transferData** function detects the types of both the **source (from)** and the **destination (to)** assays and determines the how the data should be transfered. Since we transfer data from the Xenium assay to the Visium assay (hence **Cells -> Spots**), the raw count data of each cell in the source Xenium assay will be aggregated into spots in a newly create pseudo Visium assay. The new assay with aggregated counts will be named **Visium_pseudo**. 
+The **transferData** function detects the types of both the **source (from)** and the **destination (to)** assays and determines the how the data should be transfered. We can first transfer data from the Xenium assay to the Visium assay (hence **Cells -> Spots**), the raw count data of each cell in the source Xenium assay will be aggregated into spots in a newly create pseudo Visium assay. The new assay with aggregated counts will be named **Visium_pseudo**. 
 
 ```{r class.source="watch-out", eval = FALSE}
 VRBlock <- transferData(VRBlock, from = "Assay1", to = "Assay2")
@@ -216,6 +216,7 @@ VoltRon supports multiple feature type within each assay. Now, the Visium assay 
 * a pseudo Visium feature count matrix with aggregated Xenium raw counts.
 
 ```{r class.source="watch-out", eval = FALSE}
+vrMainAssay(VRBlock) <- "Visium"
 VRBlock
 ```
 
@@ -224,19 +225,19 @@ VoltRon Object
 10XBlock: 
   Layers: Section1 Section2 Section3 
 Assays: Visium(Main) Xenium 
-Features: RNA_pseudo(Main) RNA 
+Features: RNA(Main) RNA_pseudo 
 ```
 
 We can now visualize both the original and aggregated counts of a gene, such as ERBB2 and ESR1 that marks ductal carcinoma in situ (DCIS) regions, to validate the correlation of gene signatures across adjacent tissue sections, and to validate the accuracy of the automated image alignment. Here, PGR is also expressed at a small DCIS region found on adipocyte niche of the tissue. 
 
 ```{r class.source="watch-out", eval = FALSE}
 library(patchwork)
-vrMainFeatureType(VRBlock_new, assay = "Visium") <- "RNA"
+vrMainFeatureType(VRBlock, assay = "Visium") <- "RNA"
 g1 <- vrSpatialFeaturePlot(VRBlock,  
                            features = c("ERBB2", "ESR1", "PGR"), crop = FALSE, 
                            norm = FALSE, ncol = 3)
-vrMainFeatureType(VRBlock_new, assay = "Visium") <- "RNA_pseudo"
-g2 <- vrSpatialFeaturePlot(VRBlock, assay = "Visium_pseudo", 
+vrMainFeatureType(VRBlock, assay = "Visium") <- "RNA_pseudo"
+g2 <- vrSpatialFeaturePlot(VRBlock, 
                            features = c("ERBB2", "ESR1", "PGR"), crop = FALSE, 
                            norm = FALSE, ncol = 3)
 g1 / g2
@@ -244,7 +245,43 @@ g1 / g2
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_TACSTD2.png" class="center">
 
-#### Label Transfer
+#### Data Transfer (Spots->Cells)
+
+A similar transfer can be achieved on the opposite direction. We can select Assay2 of **Visium as the source** assay and Assay1 of **Xenium as the destination**, thus we can transfer whole transcriptome counts of the Visium assays to Xenium to create new feature sets for Xenium data with more features originally available in the Xenium panel.
+
+```{r class.source="watch-out", eval = FALSE}
+vrMainFeatureType(VRBlock, assay = "Visium") <- "RNA"
+VRBlock <- transferData(VRBlock, from = "Assay2", to = "Assay1")
+```
+
+We now set the main feature set of the Xenium assays.
+
+```{r class.source="watch-out", eval = FALSE}
+vrMainFeatureType(VRBlock, assay = "Xenium", ignore = TRUE) <- "RNA_pseudo"
+vrMainFeatureType(VRBlock, assay = "all")
+```
+
+```
+   Assay    Feature
+1 Assay1 RNA_pseudo
+2 Assay2        RNA
+3 Assay3        RNA
+```
+
+```{r class.source="watch-out", eval = FALSE}
+library(patchwork)
+g1 <- vrSpatialFeaturePlot(VRBlock, 
+                           assay = "Assay1", features = c("ERBB2", "ESR1", "PGR"), 
+                           crop = TRUE, norm = FALSE, alpha = 1, n.tile = 300, ncol = 3)
+g2 <- vrSpatialFeaturePlot(VRBlock, 
+                           assay = "Assay2", features = c("ERBB2", "ESR1", "PGR"), 
+                           crop = TRUE, norm = FALSE, alpha = 1, ncol = 3)
+g1 / g2
+```
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_spot2cell.png" class="center">
+
+#### Label Transfer (Cells->Spots)
 
 The **transferData** function can also transfer **metadata features** across layers and assays. In this case, we will transfer cell type labels that were trained on the Xenium sections onto the Visium sections. We will use the cluster labels generated at the end of the Xenium analysis section of workflow from [Cell/Spot Analysis](spotanalysis.html). You can download the VoltRon object with clustered and annotated Xenium cells along with the Visium assay from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/VRBlock_data_clustered.rds). 
 
