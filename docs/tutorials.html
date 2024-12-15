@@ -397,24 +397,32 @@ p.tutorial {
 <p><br> <!-- <br> --></p>
 <!-- ## Spatial Data Analysis with VoltRon -->
 <p><br></p>
-<div id="spatially-aware-analysis" class="section level2">
-<h2>Spatially Aware Analysis</h2>
-<p><strong>VoltRon</strong> will incorporate multiple data integration
-modules to achieve data transfer across a diverse set of modalities. We
-utilize the <a href="https://opencv.org/">OpenCV</a> library which fully
-embedded into VoltRon using <a href="https://www.rcpp.org/">Rcpp</a>,
-hence VoltRon can align reference images of spatial datasets using
-computer vision and image registration. Users can automaticaly or
-manually align a list of images (<strong>H&amp;E, microscopy or DAPI
-images</strong>) using a small shiny app incorporated within our
-analysis workflow.</p>
-<p>In addition, VoltRon integrates with spot deconvolution methods such
-as RCTD to infer spot transcriptomics assays such as Visium and
-DBIT-Seq. We estimate the cell type abundances from a reference single
-cell data (Seurat, SingleCellExperiment etc.) with already annotated
-cell types. Then we generate additional assays associated with layers of
-the VoltRon object, and implement <strong>clustering on normalized cell
-type abundance data</strong> to discover niches in the dataset.</p>
+<div id="spatially-aware-data-integration-and-analysis"
+class="section level2">
+<h2>Spatially Aware Data Integration and Analysis</h2>
+<p><strong>VoltRon</strong> incorporates multiple <strong>data
+integration utilities to achieve data transfer</strong> across a diverse
+set of spatial data modalities and types. VoltRon utilizes OpenCV to
+align and synchronize spatial omic datasets using <strong>computer
+vision and image registration</strong>. Users can automaticaly or
+manually align a list of microscopy images (<strong>H&amp;E</strong>,
+<strong>DAPI</strong> etc) using a <strong>Shiny App</strong>
+incorporated within our analysis workflow. Once aligned, feature data
+and metadata level information can be transfered across aligned tissue
+sections.</p>
+<p>In addition, VoltRon provides a number of spatially aware data
+analysis methods to detecting niches (i.e. <strong>Niche
+Clustering</strong>) within tissues. VoltRon allows estimating niches
+associated with each cell by incorporating the cell type level
+information around each cell or spot. We either detect cellular
+populations/compositions within a spatial neighborhood of a cell to
+create these niche level information (e.g. Xenium) or we estimate the
+cell type abundances of spots (e.g. Visium, DBIT-Seq) from a reference
+single cell data (Seurat, SingleCellExperiment etc.) with already
+annotated cell types. VoltRon can also use these spatial neighborhood to
+detect hot spots (i.e. <strong>Hot Spot Analysis</strong>) of features,
+cell types and even molecular densities.</p>
+<div>
 <table>
 <tbody>
 <tr>
@@ -448,17 +456,18 @@ Clustering based on ROI/spot deconvolution and Spatial Neighborhood
 </tr>
 </tbody>
 </table>
+</div>
 <p><br> <br></p>
 </div>
-<div id="downstream-analysis" class="section level2">
-<h2>Downstream Analysis</h2>
+<div id="additional-downstream-analysis" class="section level2">
+<h2>Additional Downstream Analysis</h2>
 <p><strong>VoltRon</strong> is also capable of end-to-end analysis of
-diverse set of spatial data types such as <strong>ROIs</strong> (regions
-of interest), <strong>spots</strong>, <strong>single cells</strong>,
-<strong>molecules</strong> and even <strong>images</strong>. VoltRon
-incorporates built-in functions to import readouts of these distinct
-spatial omic technologies where a similar set of functions can be used
-to analyze each individual data type.</p>
+diverse set of spatial data types (or spatial entities)such as
+<strong>ROIs</strong> (regions of interest), <strong>spots</strong>,
+<strong>single cells</strong>, <strong>molecules</strong> and even
+<strong>images</strong>. Users can set any data type as default at any
+time where VoltRon provides minimal set of functions to analyze, process
+and visualize each of these modalities.</p>
 <table>
 <tbody>
 <tr>
@@ -516,12 +525,16 @@ Development) </strong>
 <div id="other-utilities" class="section level2">
 <h2>Other Utilities</h2>
 <p>Here, we provide a group of tutorials to use additional features of
-the VoltRon objects. Here we describe a collection of features that
-VoltRon package utilizes such as interactive analysis and importing
-spatially aware data from diverse spatial omic technologies. VoltRon
-will be able to convert its objects to a diverse set of
-objects/datatypes commonly incorporated spatial data analysis (Seurat,
-SpatialExperiment, Giotto, anndata, SpatialData etc.)</p>
+the VoltRon objects as well as further information on how to use
+VoltRon. We describe a collection of features that VoltRon package
+utilizes such as <strong>interactive annotation/visualization</strong>
+and importing spatially aware data from <strong>diverse spatial omic
+technologies</strong>. VoltRon is able to convert its objects to a
+diverse set of objects/datatypes commonly incorporated spatial data
+analysis (<strong>Seurat</strong>, <strong>SpatialExperiment</strong>,
+<strong>Giotto</strong>, <strong>AnnData</strong> etc.). Large VoltRon
+objects can be <strong>saved ondisk</strong> and efficiently analyzed
+without straining memory.</p>
 <table>
 <tbody>
 <tr>

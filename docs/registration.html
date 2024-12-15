@@ -653,8 +653,8 @@ can be summarized to generate:</p>
 <li>pseudo gene expression assays.</li>
 </ul>
 <p><br></p>
-<div id="data-transfer" class="section level4">
-<h4>Data Transfer</h4>
+<div id="data-transfer-cells-spots" class="section level4">
+<h4>Data Transfer (Cells-&gt;Spots)</h4>
 <p>We must first determine the names of the assays where labels are
 transfered <strong>from</strong> one <strong>to</strong> the other. For
 the sake of this tutorial, we can select Assay1 of <strong>Xenium as the
@@ -668,11 +668,11 @@ Assay3 Xenium Section3 10XBlock</code></pre>
 <p>The <strong>transferData</strong> function detects the types of both
 the <strong>source (from)</strong> and the <strong>destination
 (to)</strong> assays and determines the how the data should be
-transfered. Since we transfer data from the Xenium assay to the Visium
-assay (hence <strong>Cells -&gt; Spots</strong>), the raw count data of
-each cell in the source Xenium assay will be aggregated into spots in a
-newly create pseudo Visium assay. The new assay with aggregated counts
-will be named <strong>Visium_pseudo</strong>.</p>
+transfered. We can first transfer data from the Xenium assay to the
+Visium assay (hence <strong>Cells -&gt; Spots</strong>), the raw count
+data of each cell in the source Xenium assay will be aggregated into
+spots in a newly create pseudo Visium assay. The new assay with
+aggregated counts will be named <strong>Visium_pseudo</strong>.</p>
 <pre class="r watch-out"><code>VRBlock &lt;- transferData(VRBlock, from = &quot;Assay1&quot;, to = &quot;Assay2&quot;)</code></pre>
 <p>VoltRon supports multiple feature type within each assay. Now, the
 Visium assay includes two spot-type features:</p>
@@ -681,12 +681,13 @@ Visium assay includes two spot-type features:</p>
 <li>a pseudo Visium feature count matrix with aggregated Xenium raw
 counts.</li>
 </ul>
-<pre class="r watch-out"><code>VRBlock</code></pre>
+<pre class="r watch-out"><code>vrMainAssay(VRBlock) &lt;- &quot;Visium&quot;
+VRBlock</code></pre>
 <pre><code>VoltRon Object 
 10XBlock: 
   Layers: Section1 Section2 Section3 
 Assays: Visium(Main) Xenium 
-Features: RNA_pseudo(Main) RNA </code></pre>
+Features: RNA(Main) RNA_pseudo </code></pre>
 <p>We can now visualize both the original and aggregated counts of a
 gene, such as ERBB2 and ESR1 that marks ductal carcinoma in situ (DCIS)
 regions, to validate the correlation of gene signatures across adjacent
@@ -694,19 +695,46 @@ tissue sections, and to validate the accuracy of the automated image
 alignment. Here, PGR is also expressed at a small DCIS region found on
 adipocyte niche of the tissue.</p>
 <pre class="r watch-out"><code>library(patchwork)
-vrMainFeatureType(VRBlock_new, assay = &quot;Visium&quot;) &lt;- &quot;RNA&quot;
+vrMainFeatureType(VRBlock, assay = &quot;Visium&quot;) &lt;- &quot;RNA&quot;
 g1 &lt;- vrSpatialFeaturePlot(VRBlock,  
                            features = c(&quot;ERBB2&quot;, &quot;ESR1&quot;, &quot;PGR&quot;), crop = FALSE, 
                            norm = FALSE, ncol = 3)
-vrMainFeatureType(VRBlock_new, assay = &quot;Visium&quot;) &lt;- &quot;RNA_pseudo&quot;
-g2 &lt;- vrSpatialFeaturePlot(VRBlock, assay = &quot;Visium_pseudo&quot;, 
+vrMainFeatureType(VRBlock, assay = &quot;Visium&quot;) &lt;- &quot;RNA_pseudo&quot;
+g2 &lt;- vrSpatialFeaturePlot(VRBlock, 
                            features = c(&quot;ERBB2&quot;, &quot;ESR1&quot;, &quot;PGR&quot;), crop = FALSE, 
                            norm = FALSE, ncol = 3)
 g1 / g2</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_TACSTD2.png" class="center"></p>
 </div>
-<div id="label-transfer" class="section level4">
-<h4>Label Transfer</h4>
+<div id="data-transfer-spots-cells" class="section level4">
+<h4>Data Transfer (Spots-&gt;Cells)</h4>
+<p>A similar transfer can be achieved on the opposite direction. We can
+select Assay2 of <strong>Visium as the source</strong> assay and Assay1
+of <strong>Xenium as the destination</strong>, thus we can transfer
+whole transcriptome counts of the Visium assays to Xenium to create new
+feature sets for Xenium data with more features originally available in
+the Xenium panel.</p>
+<pre class="r watch-out"><code>vrMainFeatureType(VRBlock, assay = &quot;Visium&quot;) &lt;- &quot;RNA&quot;
+VRBlock &lt;- transferData(VRBlock, from = &quot;Assay2&quot;, to = &quot;Assay1&quot;)</code></pre>
+<p>We now set the main feature set of the Xenium assays.</p>
+<pre class="r watch-out"><code>vrMainFeatureType(VRBlock, assay = &quot;Xenium&quot;, ignore = TRUE) &lt;- &quot;RNA_pseudo&quot;
+vrMainFeatureType(VRBlock, assay = &quot;all&quot;)</code></pre>
+<pre><code>   Assay    Feature
+1 Assay1 RNA_pseudo
+2 Assay2        RNA
+3 Assay3        RNA</code></pre>
+<pre class="r watch-out"><code>library(patchwork)
+g1 &lt;- vrSpatialFeaturePlot(VRBlock, 
+                           assay = &quot;Assay1&quot;, features = c(&quot;ERBB2&quot;, &quot;ESR1&quot;, &quot;PGR&quot;), 
+                           crop = TRUE, norm = FALSE, alpha = 1, n.tile = 300, ncol = 3)
+g2 &lt;- vrSpatialFeaturePlot(VRBlock, 
+                           assay = &quot;Assay2&quot;, features = c(&quot;ERBB2&quot;, &quot;ESR1&quot;, &quot;PGR&quot;), 
+                           crop = TRUE, norm = FALSE, alpha = 1, ncol = 3)
+g1 / g2</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_spot2cell.png" class="center"></p>
+</div>
+<div id="label-transfer-cells-spots" class="section level4">
+<h4>Label Transfer (Cells-&gt;Spots)</h4>
 <p>The <strong>transferData</strong> function can also transfer
 <strong>metadata features</strong> across layers and assays. In this
 case, we will transfer cell type labels that were trained on the Xenium
@@ -933,7 +961,7 @@ $(document).ready(function ()  {
 
     // establish options
     var options = {
-      selectors: "h1,h2,h3,h4",
+      selectors: "h1,h2,h3,h4,h5",
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {

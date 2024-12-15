@@ -536,6 +536,36 @@ annotations with Xenium datasets to further understand the spatial
 localization of virus ORF types over the tissue.</p>
 <p><br></p>
 </div>
+<div id="hot-spot-analysis" class="section level2">
+<h2>Hot Spot Analysis</h2>
+<p>VoltRon platform allows users to find hot spots of several types of
+spatial entities, for spots, cells, and even molecules. We first learn
+spatial neighborhoods from molecules of interests, in this case, the
+extracellular virus particles and their ORFs.</p>
+<pre class="r watch-out"><code>vr2_merged_acute1</code></pre>
+<pre><code>VoltRon Object 
+acute case 1: 
+  Layers: Section1 
+Assays: Xenium(Main) Xenium_mol </code></pre>
+<p>We switch to the molecule assay of the VoltRon object, and select
+virus ORFs. We also look for other virus ORFs that are 50 pixel distance
+from each virus molecule to pin point neighborhoods that are rich in
+virus.</p>
+<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- getSpatialNeighbors(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
+                                         group.by = &quot;gene&quot;, group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), 
+                                         method = &quot;radius&quot;, radius = 50)</code></pre>
+<p>This will create a new graph with the voltron object</p>
+<pre class="r watch-out"><code>vrGraphNames(vr2_merged_acute1)</code></pre>
+<pre><code>[1] &quot;radius&quot;</code></pre>
+<p>We now select the feature type and graph name to run an hot spot
+analysis which will label each molecule if their neighborhood are dense
+in other virus molecules.</p>
+<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- getHotSpotAnalysis(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
+                                        features = &quot;gene&quot;, graph.type = &quot;radius&quot;)
+vrSpatialPlot(vr2_merged_acute1_2, assay = &quot;Xenium_mol&quot;, 
+              group.by = &quot;gene_hotspot_flag&quot;, group.ids = c(&quot;cold&quot;, &quot;hot&quot;), alpha = 1)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_hotspot.png" class="center"></p>
+</div>
 <div id="automated-he-registration" class="section level2">
 <h2>Automated H&amp;E Registration</h2>
 <p>VoltRon can analyze and also integrate information from distinct

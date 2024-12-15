@@ -7,6 +7,8 @@
 getSpatialNeighbors(
   object,
   assay = NULL,
+  group.by = NULL,
+  group.ids = NULL,
   method = "delaunay",
   k = 10,
   radius = numeric(0),
@@ -19,13 +21,17 @@ getSpatialNeighbors(
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{method}{the method spatial connectivity: "delaunay", "spatialkNN", "radius"}
+\item{group.by}{a column of metadata from \link{Metadata} used as grouping label for the spatial entities.}
 
-\item{k}{number of neighbors for kNN}
+\item{group.ids}{a subset of categories defined in metadata column from \code{group.by}.}
 
-\item{radius}{When \code{method = "radius"} selected, determines the radius of a neighborhood ball around each spatial point}
+\item{method}{the method spatial connectivity: "delaunay", "spatialkNN", "radius".}
 
-\item{graph.key}{the name of the graph}
+\item{k}{number of neighbors for kNN.}
+
+\item{radius}{When \code{method = "radius"} selected, determines the radius of a neighborhood ball around each spatial point.}
+
+\item{graph.key}{the name of the graph.}
 }
 \description{
 get neighbors in an assay given spatial coordinates

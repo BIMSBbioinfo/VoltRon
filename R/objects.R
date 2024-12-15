@@ -1816,7 +1816,7 @@ flipCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, spa
 #'
 #' @importFrom igraph induced_subgraph
 #' @export
-vrGraph <- function(object, assay = NULL, graph.type = "kNN") {
+vrGraph <- function(object, assay = NULL, graph.type = NULL) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1827,8 +1827,18 @@ vrGraph <- function(object, assay = NULL, graph.type = "kNN") {
     stop("There are no graphs in this VoltRon object!")
 
   # check graph type
-  if(!graph.type %in% names(object@graph))
-    stop("The graph name '", graph.type, "' can't be found in this VoltRon object!")
+  # if(!graph.type %in% names(object@graph))
+  #   stop("The graph name '", graph.type, "' can't be found in this VoltRon object!")
+  if(is.null(graph.type)){
+    graph.type <- vrGraphNames(object)
+    if(length(graph.type) == 0){
+      stop("There are no graphs in this VoltRon object!")
+    }
+    graph.type <- graph.type[1]
+  } else {
+    if(!graph.type %in% vrGraphNames(object))
+      stop("The graph name '", graph.type, "' can't be found in this VoltRon object!")
+  }
 
   # return graph
   if(length(vrGraphNames(object)) > 0){

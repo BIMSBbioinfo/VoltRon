@@ -7,7 +7,6 @@
 importImageData(
   image,
   tile.size = 10,
-  stack.id = 1,
   segments = NULL,
   image_name = "main",
   channel_names = NULL,
