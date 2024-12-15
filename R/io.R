@@ -180,7 +180,7 @@ modify_seeds <- function (x, FUN, ...)
   else {
     x <- FUN(x, ...)
   }
-  x
+  return(x)
 }
 
 #' .write_VoltRon
@@ -824,21 +824,22 @@ writeZarrArrayInImage <- function(object,
     zarr.array <- pizzarr::zarr_open(store = zarr_path)
     zarr.array$create_group(paste0(name, "/", spat))
     
-    # write coordinates 
-    coords <- vrCoordinates(object, spatial_name = spat)
-    if(!inherits(coords, c("DelayedArray", "IterableMatrix")) || replace){
-      if(verbose)
-        cat(paste0("Writing '", name, "' coordinates \n"))
-      coords <- ZarrArray::writeZarrArray(coords, 
-                                          zarr_path, 
-                                          name = paste0(name, "/", spat, "/coords"),
-                                          chunkdim=chunkdim, 
-                                          level=level,
-                                          as.sparse=as.sparse,
-                                          with.dimnames=TRUE,
-                                          verbose=FALSE)
-      vrCoordinates(object, spatial_name = spat) <- coords
-    }
+    # TODO: check the problem with changing path to zarr arrays
+    # # write coordinates 
+    # coords <- vrCoordinates(object, spatial_name = spat)
+    # if(!inherits(coords, c("DelayedArray", "IterableMatrix")) || replace){
+    #   if(verbose)
+    #     cat(paste0("Writing '", name, "' coordinates \n"))
+    #   coords <- ZarrArray::writeZarrArray(coords, 
+    #                                       zarr_path, 
+    #                                       name = paste0(name, "/", spat, "/coords"),
+    #                                       chunkdim=chunkdim, 
+    #                                       level=level,
+    #                                       as.sparse=as.sparse,
+    #                                       with.dimnames=TRUE,
+    #                                       verbose=FALSE)
+    #   vrCoordinates(object, spatial_name = spat) <- coords
+    # }
     
     # for each channel
     channels <- vrImageChannelNames(object, name = spat)
@@ -1093,12 +1094,14 @@ shorten_assay_links_images <- function(object){
   spatial_names <- vrSpatialNames(object)
   for(spat in spatial_names){
     
+    # TODO: check the problem with zarr array paths
     # coordinates
-    vrCoordinates(object, spatial_name = spat) <- 
+    vrCoordinates(object, spatial_name = spat) <-
       modify_seeds(vrCoordinates(object, spatial_name = spat),
                    function(x) {
                      shorten_assay_links_data(x)
-                   }) 
+                     # DelayedArray::path(x) <- basename(DelayedArray::path(x))
+                   })
     
     # for each channel
     channels <- vrImageChannelNames(object, name = spat)
@@ -1230,7 +1233,7 @@ restore_absolute_assay_links_images <- function(object, dir){
   for(spat in spatial_names){
     
     # coordinates
-    vrCoordinates(object, spatial_name = spat) <- 
+    vrCoordinates(object, spatial_name = spat) <-
       modify_seeds(vrCoordinates(object, spatial_name = spat),
                    function(x) {
                      restore_absolute_links(x, dir)

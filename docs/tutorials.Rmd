@@ -58,6 +58,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 In addition, VoltRon provides a number of spatially aware data analysis methods to detecting niches (i.e. **Niche Clustering**) within tissues. VoltRon allows estimating niches associated with each cell by incorporating the cell type level information around each cell or spot. We either detect cellular populations/compositions within a spatial neighborhood of a cell to create these niche level information (e.g. Xenium) or we estimate the cell type abundances of spots (e.g. Visium, DBIT-Seq) from a reference single cell data (Seurat, SingleCellExperiment etc.) with already annotated cell types. VoltRon can also use these spatial neighborhood to detect hot spots (i.e. **Hot Spot Analysis**) of features, cell types and even molecular densities.
 
+<div>
 <table>
 <tbody>
   <tr>
@@ -79,6 +80,7 @@ In addition, VoltRon provides a number of spatially aware data analysis methods 
   </tr>
 </tbody>
 </table>
+</div>
 
 <br>
 <br>

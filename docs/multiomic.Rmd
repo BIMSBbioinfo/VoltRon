@@ -108,6 +108,50 @@ In the following sections, we will integrate pathological images and annotations
 
 <br>
 
+## Hot Spot Analysis
+
+VoltRon platform allows users to find hot spots of several types of spatial entities, for spots, cells, and even molecules. We first learn spatial neighborhoods from molecules of interests, in this case, the extracellular virus particles and their ORFs.
+
+```{r eval = FALSE, class.source="watch-out"}
+vr2_merged_acute1
+```
+
+```
+VoltRon Object 
+acute case 1: 
+  Layers: Section1 
+Assays: Xenium(Main) Xenium_mol 
+```
+
+We switch to the molecule assay of the VoltRon object, and select virus ORFs. We also look for other virus ORFs that are 50 pixel distance from each virus molecule to pin point neighborhoods that are rich in virus.
+
+```{r eval = FALSE, class.source="watch-out"}
+vr2_merged_acute1 <- getSpatialNeighbors(vr2_merged_acute1, assay = "Xenium_mol", 
+                                         group.by = "gene", group.ids = c("S2_N", "S2_orf1ab"), 
+                                         method = "radius", radius = 50)
+```
+
+This will create a new graph with the voltron object
+
+```{r eval = FALSE, class.source="watch-out"}
+vrGraphNames(vr2_merged_acute1)
+```
+
+```
+[1] "radius"
+```
+
+We now select the feature type and graph name to run an hot spot analysis which will label each molecule if their neighborhood are dense in other virus molecules.
+
+```{r eval = FALSE, class.source="watch-out"}
+vr2_merged_acute1 <- getHotSpotAnalysis(vr2_merged_acute1, assay = "Xenium_mol", 
+                                        features = "gene", graph.type = "radius")
+vrSpatialPlot(vr2_merged_acute1_2, assay = "Xenium_mol", 
+              group.by = "gene_hotspot_flag", group.ids = c("cold", "hot"), alpha = 1)
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_hotspot.png" class="center">
+
 ## Automated H&E Registration
 
 VoltRon can analyze and also integrate information from distinct spatial data types such as images, annotations (as regions of interests, i.e. ROIs) and molecules independently. Using such advanced utilities, we can make use of histological information and generate new metadata level information for molecule datasets.

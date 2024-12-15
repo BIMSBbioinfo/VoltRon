@@ -13,10 +13,12 @@ NULL
 #' @param object a VoltRon object
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param method the method spatial connectivity: "delaunay", "spatialkNN", "radius"
-#' @param k number of neighbors for kNN
-#' @param radius When \code{method = "radius"} selected, determines the radius of a neighborhood ball around each spatial point
-#' @param graph.key the name of the graph
+#' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities.
+#' @param group.ids a subset of categories defined in metadata column from \code{group.by}.
+#' @param method the method spatial connectivity: "delaunay", "spatialkNN", "radius".
+#' @param k number of neighbors for kNN.
+#' @param radius When \code{method = "radius"} selected, determines the radius of a neighborhood ball around each spatial point.
+#' @param graph.key the name of the graph.
 #'
 #' @importFrom igraph add_edges simplify make_empty_graph vertices
 #' @importFrom RCDT delaunay
@@ -25,7 +27,13 @@ NULL
 #' @importFrom stats dist
 #'
 #' @export
-getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", k = 10, radius = numeric(0), 
+getSpatialNeighbors <- function(object, 
+                                assay = NULL, 
+                                group.by = NULL,
+                                group.ids = NULL,
+                                method = "delaunay", 
+                                k = 10, 
+                                radius = numeric(0), 
                                 graph.key = method){
 
   # get coordinates
@@ -40,7 +48,46 @@ getSpatialNeighbors <- function(object, assay = NULL, method = "delaunay", k = 1
   # get spatial edges
   spatialedges_list <- list()
   for(assy in assay_names){
+    
+    # get coordinates
     cur_coords <- as.matrix(vrCoordinates(object, assay = assy))
+    
+    # get groups
+    if(!is.null(group.by) && !is.null(group.ids)){
+      
+      # metadata
+      message("Calculating Spatial Neighbors with group.by='", group.by, "' and group.ids='", paste(group.ids, collapse = ","), "'\n")
+      metadata = Metadata(object, assay = assy)
+      if(!group.by %in% colnames(metadata))
+        stop("The column '", group.by, "' was not found in the metadata!")
+      if(inherits(metadata, "data.table")){
+        cur_group.by <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
+        names(cur_group.by) <- metadata$id
+      } else {
+        cur_group.by <- metadata[,group.by]
+        if(!is.null(rownames(metadata))){
+          names(cur_group.by) <- rownames(metadata)
+        } else {
+          names(cur_group.by) <- as.vector(metadata$id)
+        }
+      }
+      if(!is.null(group.ids)){
+        len_set_diff <- length(setdiff(group.ids,  cur_group.by))
+        if(len_set_diff > 0){
+        } else if(len_set_diff == length(group.ids)){ 
+          stop("None of the groups defined in group.ids exist in group.by!")
+        } 
+        cur_group.by <- cur_group.by[cur_group.by %in% group.ids]
+        cur_coords <- cur_coords[names(cur_group.by),]
+      }
+      
+    } else if(sum(is.null(group.by),is.null(group.ids)) == 2) {
+      
+    } else {
+      stop("Either both 'group.by' and 'group.ids' should be specified or both should be null")
+    }
+    
+    # get edges
     spatialedges <-
       switch(method,
              delaunay = {
@@ -226,9 +273,12 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
 #' @param alpha.value the alpha value for the hot spot analysis test. Default is 0.01
 #' @param norm if TRUE, the normalized data is used
 #' @param seed seed
+#' 
+#' @importFrom Matrix rowSums
+#' @importFrom igraph as_adjacency_matrix
 #'
 #' @export
-getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", features , graph.type = "delaunay", alpha.value = 0.01, norm = TRUE, seed = 1){
+getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", features, graph.type = "delaunay", alpha.value = 0.01, norm = TRUE, seed = 1){
   
   # set the seed
   set.seed(seed)
@@ -239,7 +289,7 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
   
   # metadata
   sample.metadata <- SampleMetadata(object)
-  metadata <- Metadata(object)
+  metadata <- Metadata(object, assay = assay)
   
   # initiate metadata columns
   for(feat in features){
@@ -260,6 +310,7 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
     
     # get related data 
     graph <- vrGraph(object, assay = assy, graph.type = graph.type)
+    adj_matrix <- igraph::as_adjacency_matrix(graph)
     cur_metadata <- subset_metadata(metadata, assays = assy)
     
     # get features
@@ -281,12 +332,19 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
           } else {
             statistic <- normdata[feat,]
           }
-        } else {
-          if(feat %in% colnames(cur_metadata)){
-            statistic <- cur_metadata[,feat]
+        } else if(feat %in% colnames(cur_metadata)){
+          if(inherits(cur_metadata, "data.table")){
+            statistic <- cur_metadata[,get(names(cur_metadata)[which(colnames(cur_metadata) == feat)])]
           } else {
-            stop("'", feat, "' is not found in either the data matrix or the metadata!")
+            statistic <- cur_metadata[,feat]
           }
+        } else {
+          stop("'", feat, "' is not found in either the data matrix or the metadata!")
+        }
+        
+        # update statistics if not numeric
+        if(!is.numeric(statistic)){
+          statistic <- Matrix::rowSums(adj_matrix)
         }
         
         # initiate getis ord
@@ -295,14 +353,13 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
         names(getisord) <- c("hotspot_stat", "hotspot_pvalue", "hotspot_flag")
         
         # calculate getis ord
-        adj_matrix <- igraph::as_adjacency_matrix(graph)
         n <- length(statistic)
         getisord_stat <- adj_matrix %*% statistic
         getisord_stat <- getisord_stat/(sum(statistic) - statistic)
         getisord[[1]] <- getisord_stat[,1]
           
         # calculate z score expectation and variance
-        weight_sum <- rowSums(as.matrix(adj_matrix))
+        weight_sum <- Matrix::rowSums(adj_matrix)
         getisord_exp <- weight_sum/(n - 1)
         getisord_moment_1 <- (sum(statistic) - statistic)/(n - 1)
         getisord_moment_2 <- (sum(statistic^2) - statistic^2)/(n - 1) - getisord_moment_1^2
@@ -325,7 +382,7 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
     }
     
     # update metadata for assays
-    if(is.null(rownames(metadata))){
+    if("id" %in% colnames(metadata)){
       ind <- match(cur_metadata$id, as.vector(metadata$id))
       for(feat in features){
         for(label in names(getisord)){
@@ -344,7 +401,7 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
   }
   
   # update metadata
-  Metadata(object) <- metadata
+  Metadata(object, assay = assay) <- metadata
   
   # return
   return(object)

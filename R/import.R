@@ -1959,7 +1959,7 @@ importDBITSeq <- function(path.rna, path.prot = NULL, size = 10, assay_name = "D
 #' vrdata <- importImageData(imgfile, image_name = "main", channel_name = c("DAPI", "DAPI2"))
 #' 
 #' @export
-importImageData <- function(image, tile.size = 10, stack.id = 1, segments = NULL, image_name = "main", channel_names = NULL, ...){
+importImageData <- function(image, tile.size = 10, segments = NULL, image_name = "main", channel_names = NULL, ...){
   
   # images and channel names
   if(!is.null(channel_names)){
@@ -1984,6 +1984,7 @@ importImageData <- function(image, tile.size = 10, stack.id = 1, segments = NULL
         }
       }
     }
+    img
   }, USE.NAMES = TRUE, simplify = FALSE)
   
   # channel names

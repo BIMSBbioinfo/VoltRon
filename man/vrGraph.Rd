@@ -5,7 +5,7 @@
 \alias{vrGraph<-}
 \title{vrGraph}
 \usage{
-vrGraph(object, assay = NULL, graph.type = "kNN")
+vrGraph(object, assay = NULL, graph.type = NULL)
 
 vrGraph(object, graph.type = "kNN") <- value
 }
