@@ -61,7 +61,7 @@ Depending on the number of required dependencies, installation may be completed 
 
 On **Windows** and **MacOS**, OpenCV will be downloaded automatically upon installation. However, [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html) may be required to be downloaded too, hence this may take some time!
 
-On **Ubuntu** we provide a set of instructions that may help users to build OpenCV with necessary headers [here](inst/extdata/install_ubuntu.md).
+On **Ubuntu** we provide a set of instructions that may help users to build OpenCV with necessary headers [here](https://github.com/BIMSBbioinfo/VoltRon/blob/main/inst/extdata/install_ubuntu.md).
 
 On **Fedora** you may need [`opencv-devel`](https://src.fedoraproject.org/rpms/opencv):
 

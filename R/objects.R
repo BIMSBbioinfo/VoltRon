@@ -1573,7 +1573,7 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
       }
 
       # replace data
-      metadata <- value
+      metadata[value$id, ] <- value
       slot(object@metadata, name = type) <- metadata
 
     } else {
