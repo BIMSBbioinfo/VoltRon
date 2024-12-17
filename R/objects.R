@@ -1573,7 +1573,14 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
       }
 
       # replace data
-      metadata[value$id, ] <- value
+      if(!inherits(metadata, "DataFrame")){
+        metadata[match(value$id, metadata$id), ] <- value
+      } else {
+        ind <- match(as.vector(value$id), as.vector(metadata$id))
+        for(cur_col in new_columns){
+          metadata[[cur_col]][ind] <- value[[cur_col]]
+        }
+      }
       slot(object@metadata, name = type) <- metadata
 
     } else {
@@ -1607,7 +1614,6 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
         # replace data
         metadata[rownames(value), ] <- value
         slot(object@metadata, name = type) <- metadata
-  
       } else {
         stop("Some rows of new data frame are not available in the metadata")
       }
