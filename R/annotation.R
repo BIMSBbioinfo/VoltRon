@@ -651,8 +651,10 @@ transformSpatialLayer <- function(g_spatial, image, ranges, max.pixel.size){
   }
   
   # correct for offset effect
-  g_spatial$data$x <- g_spatial$data$x - min(g_spatial$data$x)
-  g_spatial$data$y <- g_spatial$data$y - min(g_spatial$data$y)
+  # g_spatial$data$x <- g_spatial$data$x - min(g_spatial$data$x)
+  # g_spatial$data$y <- g_spatial$data$y - min(g_spatial$data$y)
+  g_spatial$data$x <- g_spatial$data$x - limits[1,1]
+  g_spatial$data$y <- g_spatial$data$y - limits[1,2]
   
   # return
   g_spatial

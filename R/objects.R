@@ -1833,8 +1833,6 @@ vrGraph <- function(object, assay = NULL, graph.type = NULL) {
     stop("There are no graphs in this VoltRon object!")
 
   # check graph type
-  # if(!graph.type %in% names(object@graph))
-  #   stop("The graph name '", graph.type, "' can't be found in this VoltRon object!")
   if(is.null(graph.type)){
     graph.type <- vrGraphNames(object)
     if(length(graph.type) == 0){
@@ -1920,9 +1918,6 @@ subset_graphs <- function(object, spatialpoints){
 
   # graph names
   graphnames <- vrGraphNames(object)
-
-  # # get spatialpoints
-  # spatialpoints <- vrSpatialPoints(metadata, assay = vrAssayNames(object))
 
   # for all graphs
   if(!is.null(graphnames)){
@@ -2071,13 +2066,6 @@ combineGraphs <- function(object, graph.names = NULL, graph.weights = NULL, grap
   allmat <- NULL
   # gr_list <- list()
   for(gr in graph.names){
-    # gr_list[[gr]] <- vrGraph(object, graph.type = gr)
-    # weights <- E(gr_list[[gr]])$weight
-    # if(is.null(weights)){
-    #   E(gr_list[[gr]])$weight <- graph.weights[gr]
-    # } else {
-    #   E(gr_list[[gr]])$weight <- weights*graph.weights[gr]
-    # }
     cur_graph <- vrGraph(object, graph.type = gr)
     if("weight" %in% igraph::edge_attr_names(cur_graph)){
       adjmat <- igraph::as_adjacency_matrix(cur_graph, attr = "weight")
@@ -2093,9 +2081,6 @@ combineGraphs <- function(object, graph.names = NULL, graph.weights = NULL, grap
   }
 
   # union of graphs
-  # combined_gr <- igraph::union(gr_list[[1]], gr_list[-1])
-  # combined_gr <- simplify(combined_gr, edge.attr.comb=list(weight="sum"))
-  # vrGraph(object, graph.type = graph.key) <- combined_gr
   vrGraph(object, graph.type = graph.key) <- igraph::graph_from_adjacency_matrix(allmat, mode = "undirected", weighted = TRUE, diag = FALSE)
 
   # return
