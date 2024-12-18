@@ -93,6 +93,8 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
   names(plot_title) <- assay_names
 
   # adjust group.ids
+  if(!group.by %in% colnames(metadata))
+    stop("The column '", group.by, "' was not found in the metadata!")
   if(is.null(group.ids)){
     group.ids <- unique(metadata[[group.by]])
   }
@@ -140,8 +142,6 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
     }
 
     # check group.by
-    if(!group.by %in% colnames(metadata))
-      stop("The column '", group.by, "' was not found in the metadata!")
     levels_group.by <- as.character(unique(metadata[[group.by]][!is.na(metadata[[group.by]])]))
     if(all(!is.na(suppressWarnings(as.numeric(levels_group.by))))){
       levels_group.by <- sort(as.numeric(levels_group.by))
