@@ -763,11 +763,56 @@ Assays: Visium(Main) Xenium
 Features: RNA_pseudo(Main) RNA Visium_CellType </code></pre>
 <p>By visualizing the transferred labels on the Visium spots, we can see
 abundance of some DCIS and invasive tumor subtypes.</p>
-<pre class="r watch-out"><code>vrMainFeatureType(VRBlock_new) &lt;- &quot;Visium_CellType&quot;
+<pre class="r watch-out"><code>vrMainFeatureType(VRBlock) &lt;- &quot;Visium_CellType&quot;
 vrSpatialFeaturePlot(VRBlock, assay = &quot;Visium&quot;,
                      features = c(&quot;IT_1&quot;,&quot;DCIS_2&quot;), 
                      crop = TRUE, alpha = 1, ncol = 3)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_CellType.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="label-transfer-rois-" class="section level4">
+<h4>Label Transfer (ROIs-&gt;…)</h4>
+<p>VoltRon allows users to annotate regions of interests (ROIs) in a
+given assay and transfer the annotations to these ROIs across other
+assays within the same tissue block. Let us annotate two specific tumor
+regions in the Visium section. In the process, a new assay called
+<strong>ROIAnnotation</strong> will be added to the VoltRon object.</p>
+<pre class="r watch-out"><code>VRBlock &lt;- annotateSpatialData(VRBlock, assay = &quot;Visium&quot;, 
+                               label = &quot;annotation&quot;, use.image.only = TRUE)</code></pre>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_ROIAnnotation.png" class="center"></p>
+<p><br></p>
+<p>You can observe the changes in the object and check the assay ID of
+this new ROI type assay using <code>SampleMetadata</code> function.</p>
+<pre class="r watch-out"><code>VRBlock</code></pre>
+<pre><code>VoltRon Object 
+10XBlock: 
+  Layers: Section1 Section2 Section3 
+Assays: Xenium(Main) Visium ROIAnnotation 
+Features: RNA(Main) </code></pre>
+<pre class="r watch-out"><code>SampleMetadata(VRBlock)</code></pre>
+<pre><code>               Assay    Layer   Sample
+Assay1        Xenium Section1 10XBlock
+Assay2        Visium Section2 10XBlock
+Assay3        Xenium Section3 10XBlock
+Assay4 ROIAnnotation Section2 10XBlock</code></pre>
+<p>The metadata of the ROI assay will include the annotation of the ROIs
+as well.</p>
+<pre class="r watch-out"><code>Metadata(VRBlock, assay = &quot;ROIAnnotation&quot;)</code></pre>
+<pre><code>                               Assay    Layer   Sample      annotation
+InvasiveTumor_Assay4   ROIAnnotation Section2 10XBlock   InvasiveTumor
+DuctalCarcinoma_Assay4 ROIAnnotation Section2 10XBlock DuctalCarcinoma</code></pre>
+<p>Now we can transfer the ROI labels from the
+<strong>annotation</strong> metadata column and define the same metadata
+column in the remaining assays.</p>
+<pre class="r watch-out"><code>VRBlock &lt;- transferData(object = VRBlock, from = &quot;Assay4&quot;, to = &quot;Assay1&quot;, 
+                        features = &quot;annotation&quot;)
+VRBlock &lt;- transferData(object = VRBlock, from = &quot;Assay4&quot;, to = &quot;Assay3&quot;, 
+                        features = &quot;annotation&quot;)</code></pre>
+<p>Let us observe the changes across all assays.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(VRBlock, group.by = &quot;annotation&quot;, assay = &quot;Xenium&quot;, crop = TRUE)
+vrSpatialPlot(VRBlock, group.by = &quot;annotation&quot;, assay = &quot;Visium&quot;, crop = TRUE)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_ROI_xenium.png" class="center"></p>
+<p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_ROI_visium.png" class="center"></p>
 <p><br></p>
 </div>
 </div>

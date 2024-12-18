@@ -530,10 +530,8 @@ merge_sampleMetadata <- function(metadata_list) {
 #' @noRd
 addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, sample = "Sample1", layer = "Section1"){
 
-  # assay info
-  assay.type <- vrAssayTypes(assay)
-
   # get metadata and other info
+  assay.type <- vrAssayTypes(assay)
   object_metadata <- methods::slot(object, name = assay.type)
   data <- vrData(assay, norm = FALSE)
 
@@ -548,13 +546,13 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
     if(!is.null(metadata)){
 
       if(nrow(data) > 0){
-        assay_metadata<- data.table::data.table(metadata[, "id", with=FALSE], assay_id = assay_id, Count = Matrix::colSums(data),
-                                                metadata[, colnames(metadata)[!colnames(metadata) %in% c("id", "assay_id", "Count", "Assay", "Layer", "Sample")], with=FALSE],
-                                                Assay = assay_name, Layer = layer, Sample = sample)
+        assay_metadata <- data.table::data.table(metadata[, "id", with=FALSE], assay_id = assay_id, Count = Matrix::colSums(data),
+                                                 Assay = assay_name, Layer = layer, Sample = sample,
+                                                 metadata[, colnames(metadata)[!colnames(metadata) %in% c("id", "assay_id", "Count", "Assay", "Layer", "Sample")], with=FALSE])
       } else{
         assay_metadata <- data.table::data.table(metadata[, "id", with=FALSE], assay_id = assay_id,
-                                                 metadata[, colnames(metadata)[!colnames(metadata) %in% c("id", "assay_id", "Count", "Assay", "Layer", "Sample")], with=FALSE],
-                                                 Assay = assay_name, Layer = layer, Sample = sample)
+                                                 Assay = assay_name, Layer = layer, Sample = sample,
+                                                 metadata[, colnames(metadata)[!colnames(metadata) %in% c("id", "assay_id", "Count", "Assay", "Layer", "Sample")], with=FALSE])
       }
 
     }
@@ -564,32 +562,68 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
     entityID_nopostfix <- stringr::str_replace(vrSpatialPoints(assay), pattern = "_Assay[0-9]+", "")
     entityID <- stringr::str_replace(entityID_nopostfix, pattern = "$", paste0("_", assay_id))
 
-    if(nrow(data) > 0){
-      assay_metadata <- data.frame(Count = Matrix::colSums(data))
-    } else {
-      assay_metadata <- NULL
-    }
-
-    if(!is.null(metadata)){
+    # if original metadata has rownames
+    if(!"id" %in% colnames(object_metadata)){
       rownames_metadata <- stringr::str_replace(rownames(metadata), pattern = "_Assay[0-9]+", "")
-      if(length(setdiff(rownames_metadata, entityID_nopostfix)) > 0){
-        stop("Some spatial points in the metadata does not match with the assay!")
-      } else{
+      
+      # initiate metadata
+      if(nrow(data) > 0){
+        assay_metadata <- data.frame(Count = Matrix::colSums(data), row.names = entityID)
+      } else {
+        assay_metadata <- data.frame(row.names = entityID)
+      }
+
+      # add metadata
+      if(!is.null(metadata)){
+        if(length(setdiff(rownames_metadata, entityID_nopostfix)) > 0){
+          stop("Some spatial points in the metadata does not match with the assay!")
+        } else{
+          assay_metadata <- dplyr::bind_cols(assay_metadata,
+                                             metadata[,!colnames(metadata) %in% c("Count", "Assay", "Layer", "Sample"), drop = FALSE])
+        }
+      }
+      
+      # complete assay_metadata
+      assay_metadata <- dplyr::bind_cols(data.frame(Assay = rep(assay_name, length(entityID)),
+                                                    Layer = rep(layer, length(entityID)),
+                                                    Sample = rep(sample, length(entityID))),
+                                         assay_metadata)
+    } else {
+      metadata_id <- stringr::str_replace(as.vector(metadata$id), pattern = "_Assay[0-9]+", "")
+      
+      # initiate metadata
+      if(nrow(data) > 0){
+        assay_metadata <- data.frame(id = entityID, Count = Matrix::colSums(data), assay_id = assay_id)
+      } else {
+        assay_metadata <- data.frame(id = entityID, assay_id = assay_id)
+      }
+      
+      # add metadata
+      if(!is.null(metadata)){
+        if(length(setdiff(metadata_id, entityID_nopostfix)) > 0){
+          stop("Some spatial points in the metadata does not match with the assay!")
+        } else{
+          assay_metadata <- dplyr::bind_cols(assay_metadata,
+                                             data.frame(Assay = rep(assay_name, length(entityID)),
+                                                        Layer = rep(layer, length(entityID)),
+                                                        Sample = rep(sample, length(entityID))),
+                                             metadata[,!colnames(metadata) %in% c("id", "Count", "assay_id", "Assay", "Layer", "Sample"), drop = FALSE])
+        }
+      } else {
         assay_metadata <- dplyr::bind_cols(assay_metadata,
-                                           metadata[,!colnames(metadata) %in% c("Count", "Assay", "Layer", "Sample")])
-        rownames(assay_metadata) <- entityID
+                                           data.frame(Assay = rep(assay_name, length(entityID)),
+                                                      Layer = rep(layer, length(entityID)),
+                                                      Sample = rep(sample, length(entityID))))
       }
     }
-
-    # complete assay_metadata
-    assay_metadata <- dplyr::bind_cols(assay_metadata,
-                                       data.frame(Assay = rep(assay_name, length(entityID)),
-                                                  Layer = rep(layer, length(entityID)),
-                                                  Sample = rep(sample, length(entityID))))
   }
 
   # add to the main metadata
-  object_metadata <- dplyr::bind_rows(object_metadata, assay_metadata)
+  if(inherits(object_metadata, "DataFrame")){
+    object_metadata <- rbind(object_metadata, assay_metadata)
+  } else {
+    object_metadata <- dplyr::bind_rows(object_metadata, assay_metadata)
+  }
   methods::slot(object, name = assay.type) <- object_metadata
 
   # return

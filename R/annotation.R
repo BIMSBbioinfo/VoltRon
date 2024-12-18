@@ -383,7 +383,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
         
         ### annotate spatial points ####
         if(inherits(metadata, "data.table")){
-          spatialpoints <- metadata$id
+          spatialpoints <- as.vector(metadata$id)
         } else {
           spatialpoints <- rownames(metadata)
         }
@@ -413,14 +413,17 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
         coords <- t(sapply(segments, function(seg){
           apply(seg[,c("x", "y")], 2, mean)
         }, simplify = TRUE))
-        new_assay <- formAssay(coords = coords, segments = segments,
+        new_assay <- formAssay(coords = coords, 
+                               segments = segments,
                                type = "ROI",
                                image = vrImages(object, assay = assay),
                                main_image = vrMainImage(object[[assay]]),
                                name = assay)
+        metadata <- data.frame(check.rows = FALSE, row.names = rownames(coords), selected_label_list)
+        colnames(metadata) <- label
         object <- addAssay.VoltRon(object,
                                    assay = new_assay,
-                                   metadata = data.frame(check.rows = FALSE, row.names = rownames(coords)),
+                                   metadata = metadata,
                                    assay_name = annotation_assay,
                                    sample = sample_metadata[assay, "Sample"],
                                    layer = sample_metadata[assay, "Layer"])
