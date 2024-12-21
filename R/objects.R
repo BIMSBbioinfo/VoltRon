@@ -1403,6 +1403,7 @@ vrMainFeatureType.VoltRon <- function(object, assay = NULL){
   }
 }
 
+#' @param ignore ignore if some assays dont have the feature set name
 #' @param value the name of main feature set
 #'
 #' @rdname vrMainFeatureType

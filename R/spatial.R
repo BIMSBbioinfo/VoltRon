@@ -276,6 +276,7 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
 #' 
 #' @importFrom Matrix rowSums
 #' @importFrom igraph as_adjacency_matrix
+#' @importFrom stats pnorm
 #'
 #' @export
 getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", features, graph.type = "delaunay", alpha.value = 0.01, norm = TRUE, seed = 1){
@@ -369,7 +370,7 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
         # calculate z score 
         getisord_zscore <- (getisord[[1]] - getisord_exp)/sqrt(getisord_var)
         getisord_zscore[is.nan(getisord_zscore)] <- NA
-        getisord[[2]] <- 1-pnorm(getisord_zscore)
+        getisord[[2]] <- 1-stats::pnorm(getisord_zscore)
         getisord[[3]] <- ifelse(getisord[[2]] < alpha.value, "hot", "cold") 
         
         # get graph based hot spot filtering

@@ -48,7 +48,7 @@ MBrain_Sec <- readRDS("Visium&Visium_data_decon_analyzed.rds")
 We can start annotating the spatial assay. By passing arguments used by the **vrSpatialPlot** function to visualize labels (e.g. clusters), we can better select regions within tissue sections for annotation. 
 
 ```{r class.source="watch-out", eval = FALSE}
-MBrain_Sec <- annotateSpatialData(MBrain_Sec, assay = "Assay5", 
+MBrain_Sec <- annotateSpatialData(MBrain_Sec, assay = "Assay1", 
                                   group.by = "clusters", label = "annotation")
 ```
 
@@ -82,11 +82,7 @@ Assay1        Visium Section1  Anterior
 Assay2        Visium Section2  Anterior
 Assay3        Visium Section1 Posterior
 Assay4        Visium Section2 Posterior
-Assay5  Visium_decon Section1  Anterior
-Assay6  Visium_decon Section2  Anterior
-Assay7  Visium_decon Section1 Posterior
-Assay8  Visium_decon Section2 Posterior
-Assay9 ROIAnnotation Section1  Anterior
+Assay5 ROIAnnotation Section1  Anterior
 ```
 
 The new annotations are available in the metadata of the spot assay (default assay in this object) and can be visualized if wanted.
@@ -97,16 +93,16 @@ head(Metadata(MBrain_Sec))
 
 ```
                           Count        Assay    Layer   Sample clusters annotation
-AAACAAGTATCTCCCA-1_Assay5     1 Visium_decon Section1 Anterior        1   Region 3
-AAACACCAATAACTGC-1_Assay5     1 Visium_decon Section1 Anterior        3  undefined
-AAACAGAGCGACTCCT-1_Assay5     1 Visium_decon Section1 Anterior        4  undefined
-AAACAGCTTTCAGAAG-1_Assay5     1 Visium_decon Section1 Anterior        5   Region 1
-AAACAGGGTCTATATT-1_Assay5     1 Visium_decon Section1 Anterior        5   Region 1
-AAACATGGTGAGAGGA-1_Assay5     1 Visium_decon Section1 Anterior        3  undefined
+AAACAAGTATCTCCCA-1_Assay1     1 Visium_decon Section1 Anterior        1   Region 3
+AAACACCAATAACTGC-1_Assay1     1 Visium_decon Section1 Anterior        3  undefined
+AAACAGAGCGACTCCT-1_Assay1     1 Visium_decon Section1 Anterior        4  undefined
+AAACAGCTTTCAGAAG-1_Assay1     1 Visium_decon Section1 Anterior        5   Region 1
+AAACAGGGTCTATATT-1_Assay1     1 Visium_decon Section1 Anterior        5   Region 1
+AAACATGGTGAGAGGA-1_Assay1     1 Visium_decon Section1 Anterior        3  undefined
 ```
 
 ```{r class.source="watch-out", eval = FALSE}
-vrSpatialPlot(MBrain_Sec, assay = "Assay5", group.by = "annotation")
+vrSpatialPlot(MBrain_Sec, assay = "Assay1", group.by = "annotation")
 ```
 
 <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_annotation_plot.png" class="center">

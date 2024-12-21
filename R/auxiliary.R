@@ -811,7 +811,7 @@ cloneLayer <- function (l, verbose = FALSE, showDefaults = TRUE)
   }
 }
 
-#' @import dplyr 
+#' @importFrom dplyr filter left_join
 #' @importFrom rlang sym '!!'
 #' @noRd
 cloneProto <- function(l) {

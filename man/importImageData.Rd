@@ -22,9 +22,9 @@ importImageData(
 
 \item{image_name}{the image name of the Image assay, Default: main}
 
-\item{...}{additional parameters passed to \link{formVoltRon}}
+\item{channel_names}{the channel names of the images if multiple images are provided}
 
-\item{channel_name}{the channel names of the images if multiple images are provided}
+\item{...}{additional parameters passed to \link{formVoltRon}}
 }
 \description{
 import an image as VoltRon object
