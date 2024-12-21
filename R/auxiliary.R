@@ -606,7 +606,7 @@ standardize_property_names <- function(x) {
 hue_pal <- function(n, h = c(0, 360) + 15, c = 100, l = 65, h.start = 0, direction = 1) 
 {
   if (n == 0) {
-    cli::cli_abort("Must request at least one colour from a hue palette.")
+    stop("Must request at least one colour from a hue palette.")
   }
   if ((diff(h)%%360) < 1) {
     h[2] <- h[2] - 360/n
@@ -614,7 +614,6 @@ hue_pal <- function(n, h = c(0, 360) + 15, c = 100, l = 65, h.start = 0, directi
   hues <- seq(h[1], h[2], length.out = n)
   hues <- (hues + h.start)%%360
   hcl <- cbind(hues, c, l)
-  # pal <- farver::encode_colour(hcl, from = "hcl")
   pal <- apply(hcl, 1, function(x){
     grDevices::hcl(x[1], x[2], x[3])
   })
