@@ -3,10 +3,7 @@
 #include "opencv2/xfeatures2d.hpp"
 #include "opencv2/features2d.hpp"
 #include "opencv2/shape/shape_transformer.hpp"
-#include <opencv2/imgproc.hpp>
-#include <vector>
-#include <cmath>
-#include <limits>
+// #include <opencv2/imgproc.hpp>
 
 using namespace Rcpp;
 using namespace std;
@@ -1095,7 +1092,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   cv::Mat im = imageToMat(query_image, width2, height2);
   
   // Homography (with FLANN) + Non-rigid (TPS)
-  if(strcmp(matcher.get_cstring(), "FLANN") == 0 & strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0){
+  if(strcmp(matcher.get_cstring(), "FLANN") == 0 && strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0){
     alignImagesFLANNTPS(im, imReference, imReg, imOverlay, imMatches, 
                         h, keypoints, 
                         invert_query, invert_ref,
@@ -1104,7 +1101,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   }
   
   // Homography (with FLANN)
-  if(strcmp(matcher.get_cstring(), "FLANN") == 0 & strcmp(method.get_cstring(), "Homography") == 0){
+  if(strcmp(matcher.get_cstring(), "FLANN") == 0 && strcmp(method.get_cstring(), "Homography") == 0){
   alignImagesFLANN(im, imReference, imReg, imOverlay, imMatches, 
                    h, invert_query, invert_ref,
                    flipflop_query.get_cstring(), flipflop_ref.get_cstring(), 
@@ -1112,7 +1109,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   }
   
   // Homography (with Brute-Force matching)
-  if(strcmp(matcher.get_cstring(), "BRUTE-FORCE") == 0 & strcmp(method.get_cstring(), "Homography") == 0){
+  if(strcmp(matcher.get_cstring(), "BRUTE-FORCE") == 0 && strcmp(method.get_cstring(), "Homography") == 0){
     alignImagesBRUTE(im, imReference, imReg, imOverlay, imMatches, 
                      h, GOOD_MATCH_PERCENT, MAX_FEATURES);
   }

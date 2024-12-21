@@ -1044,7 +1044,8 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
         stat_summary_2d(mapping = aes(x = x, y = y, z = score), fun = mean, data = coords, geom = "tile", bins = n.tile, drop = TRUE) +
         scale_fill_gradientn(name = legend_title[[feat]],
                              colors=c("grey97", colors[i]),
-                             values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
+                             # values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
+                             values=rescale_numeric(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
       all_data <- rbind(all_data,
                         data.frame(layer_data(g_single), color_group = colors[i]))
     } else {
@@ -1052,7 +1053,8 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
         geom_point(mapping = aes(x = x, y = y, color = score), coords, shape = 16, size = pt.size) + 
         scale_color_gradientn(name = legend_title[[feat]],
                               colors=c("grey97", colors[i]),
-                              values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
+                              # values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
+                              values=rescale_numeric(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
       all_data <- rbind(all_data,
                         data.frame(layer_data(g_single), value = coords$score, color_group = colors[i]))
     }

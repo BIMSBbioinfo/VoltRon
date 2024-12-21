@@ -1942,7 +1942,7 @@ importDBITSeq <- function(path.rna, path.prot = NULL, size = 10, assay_name = "D
 #' @param tile.size the size of tiles
 #' @param segments Either a list of segments or a GeoJSON file. This will result in a second assay in the VoltRon object to be created
 #' @param image_name the image name of the Image assay, Default: main
-#' @param channel_name the channel names of the images if multiple images are provided
+#' @param channel_names the channel names of the images if multiple images are provided
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom magick image_read image_info

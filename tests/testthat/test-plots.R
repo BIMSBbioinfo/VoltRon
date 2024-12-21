@@ -8,7 +8,8 @@ test_that("plots", {
   data("xenium_data")
 
   # get custom colors
-  colors <- scales::hue_pal()(length(unique(xenium_data$clusters)))
+  # colors <- scales::hue_pal()(length(unique(xenium_data$clusters)))
+  colors <- hue_pal(length(unique(xenium_data$clusters)))
   names(colors) <- unique(xenium_data$clusters)
 
   # embedding plot

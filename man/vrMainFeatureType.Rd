@@ -30,6 +30,8 @@ vrMainFeatureType(object, assay = NULL)
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays.}
 
+\item{ignore}{ignore if some assays dont have the feature set name}
+
 \item{value}{the name of main feature set}
 }
 \description{
