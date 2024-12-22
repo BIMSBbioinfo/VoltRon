@@ -663,7 +663,7 @@ href="spotanalysis.html">Cell/Spot Analysis</a>. You can download the
 VoltRon object with clustered and annotated Xenium cells along with the
 Visium assay from <a
 href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/VRBlock_data_clustered.rds">here</a>.</p>
-<pre class="r watch-out"><code>Xen_data &lt;- readRDS(&quot;../../mainWorkflows/data/VisiumXenium/VRBlock_data_clustered.rds&quot;)
+<pre class="r watch-out"><code>Xen_data &lt;- readRDS(&quot;VRBlock_data_clustered.rds&quot;)
 vrMainSpatial(Xen_data, assay = &quot;Assay1&quot;) &lt;- &quot;main&quot;
 vrMainSpatial(Xen_data, assay = &quot;Assay3&quot;) &lt;- &quot;main&quot;
 vrSpatialPlot(Xen_data, group.by = &quot;CellType&quot;, pt.size = 0.13, background = &quot;black&quot;, 
