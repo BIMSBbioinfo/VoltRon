@@ -120,15 +120,17 @@ knn_annoy <- function(data, query = data, k = 10, n_trees = 50, search_k = -1) {
 #' @param resolution the resolution parameter for leiden clustering
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param method The method of clustering. Use 'leiden' to perform graph clustering and 'kmeans' for K-means based clustering
 #' @param label the name for the newly created clustering column in the metadata
 #' @param graph the graph type to be used
 #' @param seed seed
 #' @param abundance_limit the minimum number of points for a cluster, hence clusters with abundance lower than this limit will be appointed to other nearby clusters
 #'
 #' @importFrom igraph cluster_leiden
+#' @importFrom stats kmeans
+#' 
 #' @export
-#'
-getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters", graph = "kNN", seed = 1, abundance_limit = 2){
+getClusters <- function(object, resolution = 1, nclus = integer(0), assay = NULL, method = "leiden", label = "clusters", graph = "kNN", seed = 1, abundance_limit = 2){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -139,15 +141,24 @@ getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters"
   # get assays
   object_subset <- subset(object, assays = assay_names)
 
-  # graph
-  object_graph <- vrGraph(object_subset, assay = assay, graph.type = graph)
-
+  # check clustering parameters
+  .check_clustering_params(method, resolution, nclus, abundance_limit)
+  
   # clustering
   set.seed(seed)
-  clusters <- igraph::cluster_leiden(object_graph, objective_function = "modularity", resolution = resolution)
+  if(method == "leiden"){
+    object_graph <- vrGraph(object_subset, assay = assay, graph.type = graph)
+    clusters <- igraph::cluster_leiden(object_graph, objective_function = "modularity", resolution = resolution) 
+  } else if(method == "kmeans"){
+    vrdata <- vrData(object_subset, norm = TRUE)
+    clusters <- stats::kmeans(t(vrdata), centers = nclus)
+    clusters <- list(names = names(clusters$cluster), membership = clusters$cluster)
+  } else {
+    stop("Unrecognized clustering method! Use either 'leiden' for graph clustering or 'kmeans' for K-means clustering")
+  }
 
   # correct clustering
-  clusters <- correct_low_abundant_clusters(object_graph, clusters, abundance_limit)
+  clusters <- .correct_low_abundant_clusters(object_graph, clusters, abundance_limit)
     
   # metadata
   metadata <- Metadata(object)
@@ -167,7 +178,7 @@ getClusters <- function(object, resolution = 1, assay = NULL, label = "clusters"
 }
 
 #' @noRd
-correct_low_abundant_clusters <- function(object_graph, clusters, abundance_limit){
+.correct_low_abundant_clusters <- function(object_graph, clusters, abundance_limit){
 
   # cluster abundances
   cluster_abundance <- table(clusters$membership)
@@ -179,5 +190,41 @@ correct_low_abundant_clusters <- function(object_graph, clusters, abundance_limi
     clusters$membership[clusters$membership %in% low_abundant_clusters] <- NA
   } 
   return(clusters)
+}
+
+#' @noRd
+.check_clustering_params <- function(method, resolution, nclus, abundance_limit){
+  
+  # method related params
+  if(method == "leiden"){
+    msg <- "Resolution must be a single numeric and above 0"
+    if(!is.numeric(resolution))
+      stop(msg) 
+    if(length(resolution) > 1)
+      stop(msg) 
+    if(resolution == 0 | resolution < 0)
+      stop(msg)
+  } else if(method == "kmeans"){
+    msg <- "Number of cluster centres (nclus) must be a single integer and should be above 1"
+    if(!is.numeric(nclus))
+      stop(msg) 
+    if(length(nclus) > 1)
+      stop(msg) 
+    if(nclus %% 1 != 0)
+      stop(msg) 
+    if(nclus == 0)
+      stop(msg) 
+  }
+  
+  # low abundant clusters
+  msg <- "Low abundance limit must be a single integer and should be above 0"
+  if(!is.numeric(abundance_limit))
+    stop(msg) 
+  if(length(abundance_limit) > 1)
+    stop(msg) 
+  if(abundance_limit %% 1 != 0)
+    stop(msg) 
+  if(abundance_limit == 0 || abundance_limit < 0)
+    stop(msg) 
 }
 

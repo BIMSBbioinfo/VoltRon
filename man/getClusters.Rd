@@ -7,7 +7,9 @@
 getClusters(
   object,
   resolution = 1,
+  nclus = integer(0),
   assay = NULL,
+  method = "leiden",
   label = "clusters",
   graph = "kNN",
   seed = 1,
@@ -19,8 +21,12 @@ getClusters(
 
 \item{resolution}{the resolution parameter for leiden clustering}
 
+\item{nclus}{the number of cluster centers for K-means clustering}
+
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
+
+\item{method}{The method of clustering. Use 'leiden' to perform graph clustering and 'kmeans' for K-means based clustering}
 
 \item{label}{the name for the newly created clustering column in the metadata}
 
