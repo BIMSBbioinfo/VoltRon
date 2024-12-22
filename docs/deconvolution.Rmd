@@ -244,7 +244,7 @@ Unlike spot-based assays, spatial transcriptomics data in single cell resolution
 For this, the data has to be already clustered (and annotated if possible). We will use the cluster labels generated at the end of the Xenium analysis section of workflow from [Cell/Spot Analysis](spotanalysis.html). You can download the VoltRon object with clustered and annotated Xenium cells along with the Visium assay from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/VRBlock_data_clustered.rds). 
 
 ```{r eval = FALSE, class.source="watch-out"}
-Xen_data <- readRDS("../../mainWorkflows/data/VisiumXenium/VRBlock_data_clustered.rds")
+Xen_data <- readRDS("VRBlock_data_clustered.rds")
 vrMainSpatial(Xen_data, assay = "Assay1") <- "main"
 vrMainSpatial(Xen_data, assay = "Assay3") <- "main"
 vrSpatialPlot(Xen_data, group.by = "CellType", pt.size = 0.13, background = "black", 
