@@ -629,17 +629,7 @@ vrMainSpatial.VoltRon <- function(object, assay = NULL){
   } else {
     stop("You can only set the main spatial system of a single assay")
   }
-  
-  # if(!is.null(assay)){
-  #   if(length(assay_names) == 1){
-  #     vrMainSpatial(object[[assay]]) <- value
-  #   } else {
-  #     stop("You can only set the main spatial system of a single assay")
-  #   }
-  # } else {
-  #   stop("You should define the assay whose main spatial system you wanna set, by using 'Assay = <assay name>'")
-  # }
-  # 
+
   return(object)
 }
 

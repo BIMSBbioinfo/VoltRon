@@ -19,6 +19,13 @@ test_that("spatial", {
   xenium_data <- getClusters(xenium_data, graph = "SNN", label = "cluster_SNN")
   expect_true(is.numeric(unique(xenium_data$cluster_SNN)))
   
+  # check parameters
+  expect_error(xenium_data <- getClusters(xenium_data, graph = "SNN", label = "cluster_SNN", resolution = 0))
+  expect_error(xenium_data <- getClusters(xenium_data, graph = "SNN", label = "cluster_SNN", resolution = c(0,1)))
+  expect_error(xenium_data <- getClusters(xenium_data, graph = "SNN", label = "cluster_SNN", resolution = -0.5))
+  expect_error(xenium_data <- getClusters(xenium_data, graph = "SNN", label = "cluster_SNN", resolution = 1, abundance_limit = 0))
+  expect_error(xenium_data <- getClusters(xenium_data, graph = "SNN", label = "cluster_SNN", resolution = 1, abundance_limit = 1.1))
+  
   # return
   expect_equal(1,1L)
 })

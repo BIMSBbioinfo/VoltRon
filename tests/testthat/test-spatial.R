@@ -51,20 +51,38 @@ test_that("spatial tests", {
   expect_true(all(c("Count_hotspot_stat", "Count_hotspot_pvalue", "Count_hotspot_flag") %in% colnames(Metadata(xenium_data))))
 })
 
-test_that("niche clutsering", {
-  
-  # single assay
+test_that("niche clustering", {
+
   data("xenium_data")
+  
+  ####
+  # single assay
+  ####
+  
+  # build niche assay
   xenium_data2 <- getSpatialNeighbors(xenium_data, radius = 15, method = "radius")
   xenium_data2 <- getNicheAssay(xenium_data2, label = "clusters", graph.type = "radius")
   expect_equal(vrFeatureTypeNames(xenium_data2), c("RNA", "Niche"))
   xenium_data2 <- getNicheAssay(xenium_data2, label = "clusters", graph.type = "radius", new_feature_name = "Niche2")
   expect_equal(vrFeatureTypeNames(xenium_data2), c("RNA", "Niche", "Niche2"))
   expect_error(getNicheAssay(xenium_data2, label = "clusters1", graph.type = "radius"))
+  
+  # cluster niches
+  vrMainFeatureType(xenium_data2) <- "Niche"
+  xenium_data2 <- getClusters(xenium_data2, nclus = 3, method = "kmeans", label = "cluster_niches")
+  expect_true("cluster_niches" %in% colnames(Metadata(xenium_data2)))
+  expect_error(xenium_data2 <- getClusters(xenium_data2, nclus = 0, method = "kmeans", label = "cluster_niches"))
+  expect_error(xenium_data2 <- getClusters(xenium_data2, nclus = 1.1, method = "kmeans", label = "cluster_niches"))
+  expect_error(xenium_data2 <- getClusters(xenium_data2, nclus = -1, method = "kmeans", label = "cluster_niches"))
+  expect_error(xenium_data2 <- getClusters(xenium_data2, nclus = c(1,2), method = "kmeans", label = "cluster_niches"))
+  
+  # clean
   rm(xenium_data2)
 
+  ####
   # multiple assays
-  data("xenium_data")
+  ####
+  
   xenium_data2 <- xenium_data
   xenium_data2$Sample <- "Sample2"
   xenium_data2 <- merge(xenium_data2, xenium_data)
@@ -75,5 +93,9 @@ test_that("niche clutsering", {
   xenium_data3 <- getNicheAssay(xenium_data2, assay = "Assay1", label = "clusters", graph.type = "radius")
   metadata <- vrFeatureTypeNames(xenium_data3, assay = "all")
   expect_equal(metadata$Feature, c("RNA,Niche", "RNA"))
+  
+  # clean
+  rm(xenium_data2)
+  rm(xenium_data3)
   
 })
