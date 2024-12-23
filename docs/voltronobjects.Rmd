@@ -315,11 +315,11 @@ $`77200_Assay1`
 
 <br>
 
-## Images and Spatial Systems {#image}
+## Images and Coordinate Systems {#image}
 
-Below we review some of the essential built-in functions to manipulate and manage images of a VoltRon object. 
+Below we review some of the essential built-in functions to manipulate and manage images of a VoltRon object as well as the coordinate systems that are associated with these images.
 
-### Spatial system names
+### Spatial Coordinate Systems
 
 In a VoltRon object, each image has a unique ID which is also associated with a coordinate (or spatial) system. The names of these spatial systems can be called using the **vrSpatialNames** function.
 
@@ -343,25 +343,6 @@ vrSpatialNames(visium_data, assay = "Assay1")
 ```
 
 <br>
-
-### Channel names
-
-Each spatial system object (vrSpatial) in VoltRon object can also include a indefinite number of channels which you can get (or request) a list of for further use.
-
-```{r eval = FALSE, class.source="watch-out"}
-vrImageChannelNames(melc_data)
-vrImageChannelNames(melc_data, assay = "MELC")
-vrImageChannelNames(melc_data, assay = "Assay1")
-```
-
-```
-   Assay Spatial  Channels
-1 Assay1    MELC DAPI,CD45
-```
-
-<br>
-
-### Default spatial systems
 
 If you wanna see the list of all spatial systems associated with all assays of the main assay type, you can call the **vrMainSpatial** function.
 
@@ -388,7 +369,24 @@ vrMainSpatial(visium_data, assay = "Assay1")
 
 <br>
 
-### Get and set images
+### Channel Names
+
+Each spatial system object (vrSpatial) in VoltRon object can also include a indefinite number of channels which you can get (or request) a list of for further use.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImageChannelNames(melc_data)
+vrImageChannelNames(melc_data, assay = "MELC")
+vrImageChannelNames(melc_data, assay = "Assay1")
+```
+
+```
+   Assay Spatial  Channels
+1 Assay1    MELC DAPI,CD45
+```
+
+<br>
+
+### Get and Set Images
 
 In VoltRon, images can be called specifically, or return as a list. The return image is of a magick image object (see [magick](https://cran.r-project.org/web/packages/magick/vignettes/intro.html) package)
 
@@ -431,7 +429,7 @@ vrImages(melc_data, scale.perc = 25)
 
 <br>
 
-### Combining image channels
+### Combining Image Channels
 
 VoltRon even allows manipulation of channel images if you also provide an associate list of colors.
 

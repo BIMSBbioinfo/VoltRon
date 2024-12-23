@@ -717,7 +717,7 @@ the Xenium panel.</p>
 <pre class="r watch-out"><code>vrMainFeatureType(VRBlock, assay = &quot;Visium&quot;) &lt;- &quot;RNA&quot;
 VRBlock &lt;- transferData(VRBlock, from = &quot;Assay2&quot;, to = &quot;Assay1&quot;)</code></pre>
 <p>We now set the main feature set of the Xenium assays.</p>
-<pre class="r watch-out"><code>vrMainFeatureType(VRBlock, assay = &quot;Xenium&quot;, ignore = TRUE) &lt;- &quot;RNA_pseudo&quot;
+<pre class="r watch-out"><code>vrMainFeatureType(VRBlock, assay = &quot;Xenium&quot;) &lt;- &quot;RNA_pseudo&quot;
 vrMainFeatureType(VRBlock, assay = &quot;all&quot;)</code></pre>
 <pre><code>   Assay    Feature
 1 Assay1 RNA_pseudo

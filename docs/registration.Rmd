@@ -257,7 +257,7 @@ VRBlock <- transferData(VRBlock, from = "Assay2", to = "Assay1")
 We now set the main feature set of the Xenium assays.
 
 ```{r class.source="watch-out", eval = FALSE}
-vrMainFeatureType(VRBlock, assay = "Xenium", ignore = TRUE) <- "RNA_pseudo"
+vrMainFeatureType(VRBlock, assay = "Xenium") <- "RNA_pseudo"
 vrMainFeatureType(VRBlock, assay = "all")
 ```
 

@@ -19,7 +19,7 @@ vrSpatialNames(object, assay = NULL)
 \item{object}{a VoltRon or vrAssay object}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-if NULL, the default assay will be used, see \link{vrMainAssay}.}
+if NULL, the default assay will be used, see \link{vrMainAssay}. If equals to "all", then provides a summary of spatial systems across all assays}
 }
 \description{
 Get names of all spatial systems

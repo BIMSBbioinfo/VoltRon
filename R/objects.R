@@ -1403,13 +1403,12 @@ vrMainFeatureType.VoltRon <- function(object, assay = NULL){
   }
 }
 
-#' @param ignore ignore if some assays dont have the feature set name
 #' @param value the name of main feature set
 #'
 #' @rdname vrMainFeatureType
 #' @order 4
 #' @export
-"vrMainFeatureType<-.VoltRon" <- function(object, assay = NULL, ignore = FALSE, value){
+"vrMainFeatureType<-.VoltRon" <- function(object, assay = NULL, value){
   
   # sample metadata
   sample_metadata <- SampleMetadata(object)
@@ -1421,7 +1420,7 @@ vrMainFeatureType.VoltRon <- function(object, assay = NULL){
     stop("You can only set the main feature type of a single assay type")
   } else {
     for(assy in assay_names){
-      vrMainFeatureType(object[[assy]], ignore = ignore) <- value
+      vrMainFeatureType(object[[assy]], ignore = TRUE) <- value
     }
   }
   
