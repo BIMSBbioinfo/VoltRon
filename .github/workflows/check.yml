@@ -43,34 +43,16 @@ jobs:
           r-version: ${{ matrix.config.r }}
           rtools-version: ${{ matrix.config.rtools-version }}
       
-      ## Linux dependencies
+      ## Windows dependencies
       - name: Install Windows system dependencies
         if: runner.os == 'Windows'
         run: |
           ## Edit below if you have any Windows system dependencies
         shell: Rscript {0}
-        
-      ## Linux dependencies
-      - name: Install Linux system dependencies
-        if: matrix.config.os == 'ubuntu-latest'
-        run: |
-          ## Enter ubuntu/linux dependencies, e.g. OpenCV
-          git clone https://github.com/opencv/opencv.git
-          git clone https://github.com/opencv/opencv_contrib.git
-
-          mkdir build
-          cd build
-          cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D INSTALL_C_EXAMPLES=ON -D INSTALL_PYTHON_EXAMPLES=ON  -D OPENCV_GENERATE_PKGCONFIG=ON -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules/  -D BUILD_opencv_xfeatures2d=ON ../opencv/
-
-          make -j5
-          make install
-
-          sh -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf'
-          ldconfig
       
-      ## macOS dependencies
-      - name: Install macOS system dependencies
-        if: matrix.config.os == 'macOS-latest'
+      ## macOS/linux dependencies
+      - name: Install macOS/linux system dependencies
+        if: matrix.config.os != 'windows-latest'
         run: |
           ## Enable installing XML from source if needed
           brew install libxml2
@@ -117,6 +99,24 @@ jobs:
         continue-on-error: true
         shell: Rscript {0}
         
+      ## Linux dependencies for OpenCV
+      - name: Install OpenCV for linux
+        if: matrix.config.os == 'ubuntu-latest'
+        run: |
+          ## Edit below if you have any ubuntu/linux dependencies, e.g. OpenCV
+          git clone https://github.com/opencv/opencv.git
+          git clone https://github.com/opencv/opencv_contrib.git
+
+          mkdir build
+          cd build
+          cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D INSTALL_C_EXAMPLES=ON -D INSTALL_PYTHON_EXAMPLES=ON  -D OPENCV_GENERATE_PKGCONFIG=ON -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules/  -D BUILD_opencv_xfeatures2d=ON ../opencv/
+
+          make -j5
+          make install
+
+          sh -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf'
+          ldconfig
+          
       ## R CMD Check
       - name: Run CMD check
         env:
