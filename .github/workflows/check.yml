@@ -1,0 +1,34 @@
+on:
+  push:
+  pull_request:
+
+name: R-CMD-check
+
+jobs:
+  check:
+    runs-on: ${{ matrix.config.os }}
+    env:
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      _R_CHECK_TESTS_NLINES_: 0
+      NOT_CRAN: true
+      HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: true
+      
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: macos-latest,   r: 'release'}
+          # - {os: windows-latest, r: 'release'}
+          # - {os: ubuntu-latest,   r: 'release'}
+    
+    steps:
+    
+      ## Most of these steps are the same as the ones in
+      ## https://github.com/r-lib/actions/blob/master/examples/check-standard.yaml
+      ## If they update their steps, we will also need to update ours.
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup pandoc from r-lib
+        if: runner.os != 'Linux'
+        uses: r-lib/actions/setup-pandoc@v2

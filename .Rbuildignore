@@ -4,3 +4,6 @@
 LICENSE.md
 git 
 dev
+^.github$
+^index\.md$
+^LICENSE\.md$
