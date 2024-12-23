@@ -112,8 +112,8 @@ jobs:
           make -j5
           sudo make install
       
-          sh -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf'
-          ldconfig
+          sudo sh -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf'
+          sudo ldconfig
           
       ## R CMD Check
       - name: Run CMD check
