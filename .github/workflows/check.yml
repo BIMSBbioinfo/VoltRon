@@ -12,6 +12,7 @@ jobs:
       _R_CHECK_TESTS_NLINES_: 0
       NOT_CRAN: true
       HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: true
+      _R_CHECK_FORCE_SUGGESTS_: false #TODO: drop this for now!
       
     strategy:
       fail-fast: false
