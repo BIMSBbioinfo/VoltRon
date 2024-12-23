@@ -116,22 +116,23 @@ knn_annoy <- function(data, query = data, k = 10, n_trees = 50, search_k = -1) {
 #'
 #' Get clustering of the VoltRon object
 #'
-#' @param object a VoltRon object
-#' @param resolution the resolution parameter for leiden clustering.
-#' @param nclus The number of cluster centers for K-means clustering.
+#' @param object a VoltRon object.
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param method The method of clustering. Use 'leiden' to perform graph clustering and 'kmeans' for K-means based clustering
-#' @param label the name for the newly created clustering column in the metadata
-#' @param graph the graph type to be used
-#' @param seed seed
-#' @param abundance_limit the minimum number of points for a cluster, hence clusters with abundance lower than this limit will be appointed to other nearby clusters
+#' @param label the name for the newly created clustering column in the metadata.
+#' @param method The method of clustering. Use 'leiden' to perform graph clustering, 'kmeans' for K-means based clustering and 'hierarchical' for hierarchical clustering.
+#' @param resolution the resolution parameter for leiden clustering.
+#' @param graph the graph type to be used.
+#' @param nclus The number of cluster centers for K-means or hierarchical clustering.
+#' @param distance_measure the distance measure used by hierarchical clustering.
+#' @param abundance_limit the minimum number of points for a cluster, hence clusters with abundance lower than this limit will be appointed to other nearby clusters.
+#' @param seed seed.
 #'
 #' @importFrom igraph cluster_leiden
-#' @importFrom stats kmeans
+#' @importFrom stats kmeans hclust cutree
 #' 
 #' @export
-getClusters <- function(object, resolution = 1, nclus = integer(0), assay = NULL, method = "leiden", label = "clusters", graph = "kNN", seed = 1, abundance_limit = 2){
+getClusters <- function(object, assay = NULL, label = "clusters", method = "leiden", resolution = 1, graph = "kNN", nclus = integer(0), distance_measure = "manhattan", abundance_limit = 2, seed = 1){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -154,11 +155,25 @@ getClusters <- function(object, resolution = 1, nclus = integer(0), assay = NULL
     vrdata <- vrData(object_subset, norm = TRUE)
     clusters <- stats::kmeans(t(vrdata), centers = nclus)
     clusters <- list(names = names(clusters$cluster), membership = clusters$cluster)
+  } else if(method == "hierarchical"){
+    vrdata <- vrData(object_subset, norm = TRUE)
+    switch(distance_measure,
+           manhattan = {
+             # propor_dis <- dist(x = t(vrdata), method = "manhattan")
+             propor_dis <- RcppAnnoy::AnnoyManhattan(t(vrdata), t(vrdata))
+           }, 
+           jsd = {
+             # TODO: replace this with JSD
+             propor_dis <- philentropy::distance(t(vrdata), method = "jensen-shannon")
+           })
+    clusters <- fastcluster::hclust(d = propor_dis, method = "ward.D2")
+    clusters <- stats::cutree(clusters, k = nclus)
+    clusters <- list(names = names(clusters), membership = clusters)
   } else {
     stop("Unrecognized clustering method! Use either 'leiden' for graph clustering or 'kmeans' for K-means clustering")
   }
 
-  # correct clustering
+  # correct clustering for low abundant clusters
   clusters <- .correct_low_abundant_clusters(object_graph, clusters, abundance_limit)
     
   # metadata
