@@ -32,7 +32,6 @@ jobs:
 
       ## pandoc
       - name: Setup pandoc from r-lib
-        if: runner.os != 'Linux'
         uses: r-lib/actions/setup-pandoc@v2
           
       ## R is already included in the Bioconductor docker images
