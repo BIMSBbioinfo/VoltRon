@@ -35,13 +35,13 @@ jobs:
         if: runner.os != 'Linux'
         uses: r-lib/actions/setup-pandoc@v2
         
-      ## Set the R library to the directory matching the
-      ## R packages cache step further below when running on Docker (Linux).
-      - name: Set R Library home on Linux
-        if: runner.os == 'Linux'
-        run: |
-          mkdir /R-site-library
-          echo ".libPaths('/R-site-library')" > ~/.Rprofile
+      # ## Set the R library to the directory matching the
+      # ## R packages cache step further below when running on Docker (Linux).
+      # - name: Set R Library home on Linux
+      #   if: runner.os == 'Linux'
+      #   run: |
+      #     mkdir /R-site-library
+      #     echo ".libPaths('/R-site-library')" > ~/.Rprofile
           
       ## R is already included in the Bioconductor docker images
       - name: Setup R from r-lib
