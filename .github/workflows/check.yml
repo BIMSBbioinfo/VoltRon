@@ -139,6 +139,17 @@ jobs:
           sudo ldconfig
           cd /
           
+      # All Other dependencies
+      - name: Install Suggested dependencies
+        run: |
+          BiocManager::install(c('DelayedArray'))"
+          BiocManager::install(c('HDF5Array'))
+          remotes::install_github('bnprks/BPCells/r')
+          devtools::install_github('BIMSBbioinfo/ImageArray')
+          devtools::install_github('BIMSBbioinfo/HDF5DataFrame')
+          devtools::install_github('BIMSBbioinfo/ZarrDataFrame')
+        shell: Rscript {0}
+          
       ## R CMD Check
       - name: Run CMD check
         env:
