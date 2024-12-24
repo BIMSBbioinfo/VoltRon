@@ -94,7 +94,6 @@ jobs:
           ## Ideally, all dependencies should get installed in the first pass.
           install.packages(c("rcmdcheck", "BiocCheck"), repos = BiocManager::repositories())
           remotes::install_local(dependencies = TRUE, repos = BiocManager::repositories(), build_vignettes = FALSE, upgrade = TRUE)
-        continue-on-error: true
         shell: Rscript {0}
         
       ## Linux dependencies for OpenCV
