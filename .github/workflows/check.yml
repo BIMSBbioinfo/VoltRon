@@ -92,6 +92,9 @@ jobs:
 
           ## For installing usethis's dependency gert
           brew install libgit2
+          
+          ## hdft
+          brew install libhdf5
 
           ## Required for tcltk
           brew install xquartz --cask
