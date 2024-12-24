@@ -13,6 +13,8 @@ jobs:
       NOT_CRAN: true
       HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: true
       _R_CHECK_FORCE_SUGGESTS_: false #TODO: drop this for now!
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       
     strategy:
       fail-fast: false
