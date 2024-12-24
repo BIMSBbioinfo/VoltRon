@@ -91,11 +91,10 @@ jobs:
           brew install harfbuzz fribidi
 
           ## For installing usethis's dependency gert
-          brew install libheif
           brew install libgit2
           
           ## hdf5
-          brew install libhdf5
+          brew install hdf5
 
           ## Required for tcltk
           brew install xquartz --cask
