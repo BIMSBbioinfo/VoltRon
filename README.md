@@ -1,3 +1,14 @@
+# VoltRon
+
+### Spatial omic analysis toolbox for multi-resolution and multi-omic integration using image registration
+
+**Citation:** Manukyan, A., Bahry, E., Wyler, E. et al. ... & Akalin, A. (2023). [VoltRon: A Spatial Omics Analysis Platform for Multi-Resolution and Multi-omics Integration using Image Registration](https://www.biorxiv.org/content/10.1101/2023.12.15.571667v1). bioRxiv, 2023-12.
+
+[![R-CMD-CHECK](https://github.com/BIMSBbioinfo/VoltRon/actions/workflows/check.yml/badge.svg)](https://github.com/BIMSBbioinfo/VoltRon/actions/workflows/check.yml)
+[![DOI:10.1101/2023.12.15.571667](https://zenodo.org/badge/DOI/10.1101/2023.12.15.571667-x.svg)](https://doi.org/10.1101/2023.12.15.571667)
+
+-----
+
 ![](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltron_framework_box_io.png)
 
 <br>
