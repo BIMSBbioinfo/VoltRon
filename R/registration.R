@@ -9,7 +9,9 @@
 #' @param object_list a list of VoltRon (or Seurat) objects
 #' @param reference_spatdata a reference spatial data set, used only if \code{object_list} is \code{NULL}
 #' @param query_spatdata a query spatial data set, used only if \code{object_list} is \code{NULL}
-#' @param keypoints a list of tables, each points to matching keypoints from registered images.
+#' @param keypoints (DEPRECATED) a list of tables, each points to matching keypoints from registered images.
+#' @param mapping_parameters for manual image registration, a list of tables, each points to matching keypoints from registered images, and for automated image registration, a set of mapping parameters
+#' @param interactive if TRUE, the shiny application for image registration will be triggered, otherwise 'mapping_parameters' or 'keypoints' should be defined.
 #' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
 #'
 #' @import shiny
@@ -18,7 +20,7 @@
 #' @importFrom magick image_read
 #'
 #' @export
-registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL, 
+registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL, mapping_parameters = list(), interactive = TRUE,
                                 shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive()))) {
 
   ## Importing images ####
@@ -26,6 +28,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
   # check object classes
   # if the input is not a list, switch to reference vs query mode
   if(!is.null(object_list)){
+    
     # reference and query indices
     spatdata_list <- object_list
     centre <- floor(stats::median(1:length(spatdata_list)))
@@ -34,6 +37,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     # reference vs query mode
   } else {
 
+    # get spatial data list
     spatdata_list <- list(reference_spatdata, query_spatdata)
 
     # reference and query indices
@@ -46,7 +50,6 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     assayname <- vrAssayNames(spat)
     channel_names <- vrImageChannelNames(spat[[assayname]])
     sapply(channel_names, function(chan){
-      # vrImages(spat, assay = assayname, channel = chan)
       img <- vrImages(spat[[assayname]], channel = chan, as.raster = TRUE)
       if(!inherits(img, "Image_Array")){
         img <- magick::image_read(img)
@@ -62,12 +65,37 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     vrImageChannelNames(spat[[assayname]])
   })
   
+  ## Parameters ####
+  if(!is.null(keypoints)){
+    message("The use of 'keypoints' is deprecated, please use 'mapping_parameters' instead!")
+    mapping_parameters[["keypoints"]] <- keypoints
+  }
+  if(!"keypoints" %in% names(mapping_parameters)){
+    if(all(grepl("[0-9]-[0-9]", names(mapping_parameters)))){
+      mapping_parameters[["keypoints"]] <- mapping_parameters
+    } else {
+      stop("'mapping_parameters' does not include keypoints")
+    }
+  }
+  
+  ## Non-interactive Registration ####
+  if(!interactive){
+    return(getNonInteractiveRegistration(obj_list = spatdata_list, 
+                                         centre = centre, 
+                                         register_ind = register_ind, 
+                                         mapping_parameters = mapping_parameters, 
+                                         image_list = orig_image_query_list,
+                                         image_list_full = orig_image_query_list_full,
+                                         channel_names = orig_image_channelname_list))
+  }
+
   ## UI and Server ####
   ui <- fluidPage(
+    
     # use javascript extensions for Shiny
-    # waiter::useWaiter(),
     shinyjs::useShinyjs(),
     
+    # side bar
     sidebarLayout(position = "left",
                   
                   # Side bar
@@ -148,7 +176,8 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     manageImageZoomOptions(centre, register_ind, zoom_list, orig_image_query_list, orig_image_query_info_list, input, output, session)
     
     ## Manage reference and query keypoints ####
-    xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
+    # xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
+    xyTable_list <- initateKeypoints(length(orig_image_query_list), mapping_parameters$keypoints)
     manageKeypoints(centre, register_ind, xyTable_list, orig_image_query_list, orig_image_query_info_list, zoom_list, input, output, session)
     
     ## Image registration ####
@@ -172,9 +201,14 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
       # keypoints
       keypoints <- reactiveValuesToList(xyTable_list)
       
+      # mapping parameters
+      mapping_parameters <- transferShinyInput(input, 
+                                               image_list = orig_image_query_list)
+      
       # get keypoints and registered spatial datasets
       stopApp(
         list(keypoints = keypoints,
+             mapping_parameters = c(as.list(mapping_parameters), list(keypoints = keypoints)),
              registered_spat = getRegisteredObject(spatdata_list,
                                                    registration_mapping_list,
                                                    register_ind,
@@ -538,11 +572,73 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
 
   # waiter start
   withProgress(message = 'Register Coordinates (and Segments)', value = 0, {
-  # waiter::waiter_show(html = waiter::spin_ring(), color = paste0("rgba(128,128,128,", 0.15, ")"))
 
+    # register all assays
+    for(i in register_ind){
+  
+      # choose image query and ref order
+      if(i > ref_ind){
+        ref_extension = paste0("ref_image",ref_ind)
+        query_extension = paste0("query_image",i)
+      } else {
+        ref_extension = paste0("query_image",ref_ind)
+        query_extension = paste0("ref_image",i)
+      }
+  
+      # register the VoltRon object
+      for(assy in vrAssayNames(obj_list[[i]], assay = "all")){
+  
+        # Increment the progress bar, and update the detail text.
+        incProgress(1/length(register_ind), detail = paste("Register", assy, "of Layer", i, sep = " "))
+  
+        # register assay
+        obj_list[[i]] <- applyPerspectiveTransform(obj_list[[i]],
+                                                   assay = assy,
+                                                   mapping = mapping_list[[paste0(i)]],
+                                                   reference_image = image_list[[ref_ind]],
+                                                   input = input,
+                                                   reg_mode = reg_mode,
+                                                   ref_extension = ref_extension,
+                                                   query_extension = query_extension)
+  
+      }
+      registered_sr[[i]] <- obj_list[[i]]
+  
+    }
+
+  })
+  return(registered_sr)
+}
+
+#' getRegisteredObjectNonShiny
+#'
+#' Get registered list of VoltRon objects, without shiny
+#'
+#' @param obj_list a list of VoltRon objects
+#' @param mapping_list a list of transformation matrices
+#' @param register_ind the indices of query images/spatialdatasets
+#' @param centre the index of the central reference image/spatialdata
+#' @param input input
+#' @param reg_mode the registration mode, either "auto" or "manual"
+#' @param image_list the list of query/ref images
+#' @param aligned_image_list the list of aligned query/ref images
+#'
+#' @noRd
+getRegisteredObjectNonShiny <- function(obj_list, mapping_list, register_ind, centre, input, reg_mode = "manual", image_list = NULL, aligned_image_list = NULL){
+  
+  # initiate registered VoltRon objects
+  ref_ind <- centre
+  registered_sr <- list()
+  
+  # the original reference object
+  registered_sr[[ref_ind]] <- obj_list[[ref_ind]]
+  
+  # message
+  message('Register Coordinates (and Segments)')
+  
   # register all assays
   for(i in register_ind){
-
+    
     # choose image query and ref order
     if(i > ref_ind){
       ref_extension = paste0("ref_image",ref_ind)
@@ -551,12 +647,12 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
       ref_extension = paste0("query_image",ref_ind)
       query_extension = paste0("ref_image",i)
     }
-
+    
     # register the VoltRon object
     for(assy in vrAssayNames(obj_list[[i]], assay = "all")){
-
-      # Increment the progress bar, and update the detail text.
-      incProgress(1/length(register_ind), detail = paste("Register", assy, "of Layer", i, sep = " "))
+      
+      # message
+      message("Register ", assy, " of Layer ", i)
 
       # register assay
       obj_list[[i]] <- applyPerspectiveTransform(obj_list[[i]],
@@ -567,16 +663,11 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
                                                  reg_mode = reg_mode,
                                                  ref_extension = ref_extension,
                                                  query_extension = query_extension)
-
+      
     }
     registered_sr[[i]] <- obj_list[[i]]
-
+    
   }
-
-  # waiter end
-  # waiter::waiter_hide()
-
-  })
   return(registered_sr)
 }
 
@@ -755,7 +846,7 @@ manageMapping <- function(mappings){
 }
   
 ####
-# Managing Keypoints ####
+# Managing Parameters ####
 ####
 
 #' initateKeypoints
@@ -1070,6 +1161,56 @@ imageKeypoint <- function(image, keypoints){
   image <- image +
     geom_point(mapping = aes(x = x, y = y), keypoints, size = 8, shape = 21, fill = "white") +
     geom_text(mapping = aes(x = x, y = y, label = KeyPoint), keypoints, size = 5)
+}
+
+#' checkKeypoints
+#'
+#' check keypoints list
+#'
+#' @param keypoints_list list of matching keypoints
+#'
+#' @noRd
+checkKeypoints <- function(keypoints_list){
+  keypoints_check_flag <- sapply(keypoints_list, function(key_list){
+    nrow(key_list$ref) > 0 | nrow(key_list$query) > 0
+  })
+  if(!all(unlist(keypoints_check_flag))){
+    showNotification("Please select keypoints for all images\n")
+    return(NULL)
+  }
+
+  keypoints_check_flag <- sapply(keypoints_list, function(key_list){
+    nrow(key_list$ref) == nrow(key_list$query)
+  })
+  if(!all(unlist(keypoints_check_flag))){
+    showNotification("The number of reference and query keypoints should be equal! \n")
+    return(NULL)
+  }
+}
+
+transferShinyInput <- function(params, image_list){
+  
+  # the number of registrations
+  len_image <- length(image_list)
+  
+  # transfer params
+  input <- list()
+  input[["automatictag"]] <- params[["automatictag"]]
+  input[["GOOD_MATCH_PERCENT"]] <- params[["GOOD_MATCH_PERCENT"]]
+  input[["MAX_FEATURES"]] <- params[["MAX_FEATURES"]]
+  input[["Method"]] <- params[["Method"]]
+  input[["Matcher"]] <- params[["Matcher"]]
+  for(i in 1:len_image){
+    for(imgtype in c("ref","query")){
+      input[[paste0("rotate_", imgtype, "_image", i)]] <-  params[[paste0("rotate_", imgtype, "_image", i)]]
+      input[[paste0("flipflop_", imgtype, "_image", i)]] <-  params[[paste0("flipflop_", imgtype, "_image", i)]]
+      input[[paste0("negate_", imgtype, "_image", i)]] <-  params[[paste0("negate_", imgtype, "_image", i)]]
+      input[[paste0("scale_", imgtype, "_image", i)]] <-  params[[paste0("scale_", imgtype, "_image", i)]]
+      input[[paste0("channel_", imgtype, "_image", i)]] <-  params[[paste0("scale_", imgtype, "_image", i)]]
+    }
+  }
+  
+  input
 }
 
 ####
@@ -1704,45 +1845,27 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
 
       # waiter start
       withProgress(message = paste0('Manual Registration (', input$Method, ')'), value = 0, {
-      # waiter::waiter_show(html = waiter::spin_ring(), color = paste0("rgba(128,128,128,", 0.15, ")"))
 
-      # Check keypoints
-      keypoints_check_flag <- sapply(keypoints_list, function(key_list){
-        nrow(key_list$ref) > 0 | nrow(key_list$query) > 0
-      })
-      if(!all(unlist(keypoints_check_flag))){
-        showNotification("Please select keypoints for all images\n")
-        return(NULL)
-      }
+        # Check keypoints
+        checkKeypoints(keypoints_list)
+  
+        # Register keypoints
+        aligned_image_list <- list()
+        for(i in register_ind){
+  
+          # Increment the progress bar, and update the detail text.
+          incProgress(1/length(register_ind), detail = paste("Registering Image", i, sep = " "))
+  
+          # get a sequential mapping between a query and reference image
+          results <- computeManualPairwiseTransform(image_list, keypoints_list, query_ind = i, ref_ind = centre, input = input)
+  
+          # save transformation mapping
+          registration_mapping_list[[paste0(i)]] <- results$mapping
+  
+          # save matches
+          aligned_image_list[[i]] <- results$aligned_image
+        }
 
-      keypoints_check_flag <- sapply(keypoints_list, function(key_list){
-        nrow(key_list$ref) == nrow(key_list$query)
-      })
-      if(!all(unlist(keypoints_check_flag))){
-        showNotification("The number of reference and query keypoints should be equal! \n")
-        return(NULL)
-      }
-
-      # Register keypoints
-      mapping_list <- list()
-      aligned_image_list <- list()
-      for(i in register_ind){
-
-        # Increment the progress bar, and update the detail text.
-        incProgress(1/length(register_ind), detail = paste("Registering Image", i, sep = " "))
-
-        # get a sequential mapping between a query and reference image
-        results <- computeManualPairwiseTransform(image_list, keypoints_list, query_ind = i, ref_ind = centre, input = input)
-
-        # save transformation mapping
-        registration_mapping_list[[paste0(i)]] <- results$mapping
-
-        # save matches
-        aligned_image_list[[i]] <- results$aligned_image
-      }
-
-      # waiter end
-      # waiter::waiter_hide()
       })
 
       # Plot registered images
@@ -1912,40 +2035,36 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
 
       # waiter start
       withProgress(message = paste0('Automated Registration (', input$Method,')'), value = 0, {
-      # waiter::waiter_show(html = waiter::spin_ring(), color = paste0("rgba(128,128,128,", 0.15, ")"))
 
-      # Register keypoints
-      mapping_list <- list()
-      dest_image_list <- list()
-      overlayed_image_list <- list()
-      aligned_image_list <- list()
-      alignment_image_list <- list()
-      for(i in register_ind){
+        # Register keypoints
+        dest_image_list <- list()
+        overlayed_image_list <- list()
+        aligned_image_list <- list()
+        alignment_image_list <- list()
+        for(i in register_ind){
+  
+          # Increment the progress bar, and update the detail text.
+          incProgress(1/length(register_ind), detail = paste("Registering Image", i, sep = " "))
+  
+          # get a sequential mapping between a query and reference image
+          results <- computeAutomatedPairwiseTransform(image_list, channel_names, query_ind = i, ref_ind = centre, input)
+  
+          # save transformation matrix
+          registration_mapping_list[[paste0(i)]] <- results$mapping
+  
+          # destination image
+          dest_image_list[[i]] <- results$dest_image
+  
+          # save aligned images
+          aligned_image_list[[i]] <- results$aligned_image
+  
+          # save alignment
+          overlayed_image_list[[i]] <- results$overlay_image
+  
+          # save matches
+          alignment_image_list[[i]] <- results$alignment_image
+        }
 
-        # Increment the progress bar, and update the detail text.
-        incProgress(1/length(register_ind), detail = paste("Registering Image", i, sep = " "))
-
-        # get a sequential mapping between a query and reference image
-        results <- computeAutomatedPairwiseTransform(image_list, channel_names, query_ind = i, ref_ind = centre, input)
-
-        # save transformation matrix
-        registration_mapping_list[[paste0(i)]] <- results$mapping
-
-        # destination image
-        dest_image_list[[i]] <- results$dest_image
-
-        # save aligned images
-        aligned_image_list[[i]] <- results$aligned_image
-
-        # save alignment
-        overlayed_image_list[[i]] <- results$overlay_image
-
-        # save matches
-        alignment_image_list[[i]] <- results$alignment_image
-      }
-
-      # waiter end
-      # waiter::waiter_hide()
       })
 
       # Plot registered images
@@ -2107,3 +2226,79 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
               alignment_image = magick::image_read(reg[[4]]),
               overlay_image = magick::image_read(reg[[5]])))
 }
+
+####
+# Non-interactive Image Registration ####
+####
+
+#' getNonInteractiveRegistration
+#'
+#' Non-interactive registration of spatial data 
+#'
+#' @param obj_list a list of VoltRon objects
+#' @param centre the index of the central reference image/spatialdata
+#' @param register_ind the indices of query images/spatialdatasets
+#' @param mapping_parameters mapping parameters
+#' @param image_list the list of query/ref images (with main channel)
+#' @param image_list_full the list of query/ref images (with all channels)
+#' @param channel_names the list of channel names for each image
+#' 
+#' @noRd
+getNonInteractiveRegistration <- function(obj_list, 
+                                          centre, 
+                                          register_ind, 
+                                          mapping_parameters = NULL,
+                                          image_list = NULL,
+                                          image_list_full = NULL, 
+                                          channel_names = NULL){
+  
+  # check mapping parameters 
+  if(is.null(mapping_parameters)){
+    stop("'mapping_parameters' is not provided, please run registerSpatialData once and save contents of 'mapping_parameters' for later use.")
+    
+  }
+  
+  # Register images
+  registration_mapping_list <- list()
+  for(i in register_ind){
+    
+    # Increment the progress bar, and update the detail text.
+    message("Registering Image ", i)
+
+    # get a sequential mapping between a query and reference image
+    results <- switch(mapping_parameters$automatictag, 
+           "auto" = {
+             computeAutomatedPairwiseTransform(image_list = image_list_full, 
+                                               channel_names = channel_names, 
+                                               query_ind = i, 
+                                               ref_ind = centre, 
+                                               input = mapping_parameters)
+           }, 
+           "manual" = {
+             checkKeypoints(keypoints_list)
+             computeManualPairwiseTransform(image_list = image_list, 
+                                            keypoints_list = mapping_parameters$keypoints, 
+                                            query_ind = i, 
+                                            ref_ind = centre, 
+                                            input = mapping_parameters)
+           })
+    
+    # save transformation matrix
+    registration_mapping_list[[paste0(i)]] <- results$mapping
+  }
+  
+  # return the list of registered voltron objects
+  return(
+    list(keypoints = keypoints,
+         mapping_parameters = mapping_parameters,
+         registered_spat = getRegisteredObjectNonShiny(obj_list,
+                                                       registration_mapping_list,
+                                                       register_ind,
+                                                       centre,
+                                                       input = mapping_parameters,
+                                                       reg_mode = ifelse(mapping_parameters$automatictag, "auto", "manual"),
+                                                       image_list = image_list)) 
+  )
+}
+
+
