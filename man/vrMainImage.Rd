@@ -20,9 +20,9 @@ vrMainImage(object, assay = NULL)
 
 \method{vrMainImage}{VoltRon}(object, assay = NULL) <- value
 
-\method{vrMainImage}{vrAssay}(object) <- value
+\method{vrMainImage}{vrAssay}(object, ignore = FALSE) <- value
 
-\method{vrMainImage}{vrAssayV2}(object) <- value
+\method{vrMainImage}{vrAssayV2}(object, ignore = FALSE) <- value
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object}
@@ -31,6 +31,8 @@ vrMainImage(object, assay = NULL)
 If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays.}
 
 \item{value}{the name of main image}
+
+\item{ignore}{if TRUE, the non-existing spatial coordinate system will be ignored.}
 }
 \description{
 Get the main image

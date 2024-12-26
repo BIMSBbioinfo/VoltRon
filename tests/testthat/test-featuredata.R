@@ -7,7 +7,7 @@ test_that("featuredata", {
   # get and set feature types
   vrMainFeatureType(visium_data)
   vrMainFeatureType(visium_data, assay = "Assay1") <- "RNA"
-  expect_error(vrMainFeatureType(visium_data) <- "main")
+  expect_warning(vrMainFeatureType(visium_data) <- "main")
   
   # get feature data
   expect_equal(vrFeatureTypeNames(visium_data), "RNA")

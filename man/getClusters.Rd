@@ -19,9 +19,9 @@ getClusters(
 \arguments{
 \item{object}{a VoltRon object}
 
-\item{resolution}{the resolution parameter for leiden clustering}
+\item{resolution}{the resolution parameter for leiden clustering.}
 
-\item{nclus}{the number of cluster centers for K-means clustering}
+\item{nclus}{The number of cluster centers for K-means clustering.}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
