@@ -580,6 +580,21 @@ vertically) and negating these images. We always negate DAPI images to
 align them onto H&amp;E images.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration_FLANN.gif" class="center"></p>
+<p><br></p>
+<p>You can save and use the same parameters later, and reproduce the
+alignment without choosing parameters the second time. You can find a
+presaved set of parameters <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/mapping_parameters.rds">here</a>.</p>
+<pre class="r watch-out"><code>mapping_parameters &lt;- xen_reg$mapping_parameters
+xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), 
+                               mapping_parameters = mapping_parameters)</code></pre>
+<p>If the pre-saved parameters are available, the registration can also
+be performed without using the shiny app. By using <strong>interactive =
+FALSE</strong>, we can register images and VoltRon objects directly.</p>
+<pre class="r watch-out"><code>mapping_parameters &lt;- xen_reg$mapping_parameters
+xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), 
+                               mapping_parameters = mapping_parameters, 
+                               interactive = FALSE)</code></pre>
 <p>In case there are only two images, <strong>the first image will be
 taken as the image of reference</strong>. Hence, in order to align the
 first Xenium Replicate to the Visium dataset, we can create a list of
@@ -599,12 +614,22 @@ as reference and the users will be able to observe the quality of the
 registration and remove/reselect keypoints as they see fit.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration.gif" class="center"></p>
+<p><br></p>
 <p>You can save and use the same keypoints later, and reproduce the
 manual alignment without choosing keypoints for the second time. You can
-find a presaved set of keypoints <a
-href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/keypoints.rds">here</a>.</p>
-<pre class="r watch-out"><code>keypoints &lt;- xen_reg$keypoints
-xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), keypoints = keypoints)</code></pre>
+find a presaved set of parameters with selected manual keypoints <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/mapping_parameters_manual.rds">here</a>.</p>
+<pre class="r watch-out"><code>mapping_parameters &lt;- xen_reg$mapping_parameters
+xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), 
+                               mapping_parameters = mapping_parameters)</code></pre>
+<p>If the pre-saved keypoints are available with parameters, the
+registration can also be performed without using the shiny app. By using
+<strong>interactive = FALSE</strong>, we can register images and VoltRon
+objects directly.</p>
+<pre class="r watch-out"><code>mapping_parameters &lt;- xen_reg$mapping_parameters
+xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), 
+                               mapping_parameters = mapping_parameters, 
+                               interactive = FALSE)</code></pre>
 <p>In case there are only two images, <strong>the first image will be
 taken as the image of reference</strong>. Hence, in order to align the
 first Xenium Replicate to the Visium dataset. We can create a list of
