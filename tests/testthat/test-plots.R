@@ -1,5 +1,3 @@
-library(BPCells)
-
 # Testing plotting functions
 test_that("plots", {
 
