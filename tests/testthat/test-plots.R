@@ -2,7 +2,6 @@
 test_that("plots", {
 
   # get data
-  data("visium_data")
   data("xenium_data")
 
   # get custom colors
@@ -22,15 +21,36 @@ test_that("plots", {
   # embedding feature plot
   vrEmbeddingFeaturePlot(xenium_data, features = c("ACTA2", "TACSTD2"), embedding = "umap", combine.features = TRUE)
 
-  # spatial plot
+  # spatial plot, groups and colors
   vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE)
   vrSpatialPlot(xenium_data, group.by = "clusters", group.ids = c(1,3,4), plot.segments = TRUE)
   vrSpatialPlot(xenium_data, group.by = "clusters", colors = colors, plot.segments = TRUE)
   vrSpatialPlot(xenium_data, group.by = "clusters", group.ids = c(1,3,4), colors = colors[c(1,3,4)], plot.segments = TRUE)
-  vrSpatialPlot(xenium_data, group.by = "clusters", background = "black")
-  vrSpatialPlot(xenium_data, group.by = "clusters", background = "white")
-  vrSpatialPlot(xenium_data, group.by = "clusters", background = "main")
-  expect_warning(vrSpatialPlot(xenium_data, group.by = "clusters", background = c("main", "DAPI2")))
+  
+  # spatial plot, background color
+  vrSpatialPlot(xenium_data, group.by = "clusters", background.color = "black")
+  vrSpatialPlot(xenium_data, group.by = "clusters", background.color = "yellow")
+  vrSpatialPlot(xenium_data, group.by = "clusters", background.color = "white")
+  
+  # spatial plot with spatial and channel arguments
+  vrSpatialPlot(xenium_data, group.by = "clusters", spatial = "main")
+  vrSpatialPlot(xenium_data, group.by = "clusters", spatial = "main", background.color = "yellow")
+  vrSpatialPlot(xenium_data, group.by = "clusters", spatial = "main", channel = "DAPI")
+  vrSpatialPlot(xenium_data, group.by = "clusters", channel = "DAPI")
+  expect_warning(vrSpatialPlot(xenium_data, group.by = "clusters", channel = "DAPI2"))
+  expect_warning(vrSpatialPlot(xenium_data, group.by = "clusters", spatial = "main", channel = "DAPI2"))
+  expect_error(vrSpatialPlot(xenium_data, group.by = "clusters", spatial = "main2"))
+  expect_error(vrSpatialPlot(xenium_data, group.by = "clusters", spatial = "main2", channel = "DAPI2"))
+
+  # spatial plot, old background argument
+  expect_warning(
+    expect_warning(vrSpatialPlot(xenium_data, group.by = "clusters", background = "main")))
+  expect_warning(
+    expect_warning(
+      expect_warning(vrSpatialPlot(xenium_data, group.by = "clusters", background = c("main", "DAPI2")))))
+  expect_warning(
+    expect_warning(
+      expect_error(vrSpatialPlot(xenium_data, group.by = "clusters", background = "main2"))))
   
   # spatial plot without segmentation
   vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = FALSE)
@@ -79,11 +99,10 @@ test_that("rasterization", {
   data("xenium_data")
   
   # spatial plot
-  vrSpatialPlot(xenium_data, group.by = "clusters", background = "black", n.tile = 100)
-  vrSpatialPlot(xenium_data, group.by = "clusters", background = "black", n.tile = 1)
-  vrSpatialPlot(xenium_data, group.by = "clusters", background = "black", n.tile = 10)
-  expect_warning(vrSpatialPlot(xenium_data, group.by = "clusters", background = c("main", "DAPI2")))
-  
+  vrSpatialPlot(xenium_data, group.by = "clusters", background.color = "black", n.tile = 100)
+  vrSpatialPlot(xenium_data, group.by = "clusters", background.color = "black", n.tile = 1)
+  vrSpatialPlot(xenium_data, group.by = "clusters", background.color = "black", n.tile = 10)
+
   # feature plots
   vrSpatialFeaturePlot(xenium_data, features = "Count", n.tile = 20)
   vrSpatialFeaturePlot(xenium_data, features = "KRT14", norm = TRUE, log = TRUE, n.tile = 10)

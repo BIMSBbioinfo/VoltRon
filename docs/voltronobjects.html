@@ -648,11 +648,12 @@ $`77200_Assay1`
 <p><br></p>
 </div>
 <div id="image" class="section level2">
-<h2>Images and Spatial Systems</h2>
+<h2>Images and Coordinate Systems</h2>
 <p>Below we review some of the essential built-in functions to
-manipulate and manage images of a VoltRon object.</p>
-<div id="spatial-system-names" class="section level3">
-<h3>Spatial system names</h3>
+manipulate and manage images of a VoltRon object as well as the
+coordinate systems that are associated with these images.</p>
+<div id="spatial-coordinate-systems" class="section level3">
+<h3>Spatial Coordinate Systems</h3>
 <p>In a VoltRon object, each image has a unique ID which is also
 associated with a coordinate (or spatial) system. The names of these
 spatial systems can be called using the <strong>vrSpatialNames</strong>
@@ -666,21 +667,6 @@ href="#samplemetadata">Sample Metadata</a>)</p>
 vrSpatialNames(visium_data, assay = &quot;Assay1&quot;)</code></pre>
 <pre><code>[1] &quot;main&quot;</code></pre>
 <p><br></p>
-</div>
-<div id="channel-names" class="section level3">
-<h3>Channel names</h3>
-<p>Each spatial system object (vrSpatial) in VoltRon object can also
-include a indefinite number of channels which you can get (or request) a
-list of for further use.</p>
-<pre class="r watch-out"><code>vrImageChannelNames(melc_data)
-vrImageChannelNames(melc_data, assay = &quot;MELC&quot;)
-vrImageChannelNames(melc_data, assay = &quot;Assay1&quot;)</code></pre>
-<pre><code>   Assay Spatial  Channels
-1 Assay1    MELC DAPI,CD45</code></pre>
-<p><br></p>
-</div>
-<div id="default-spatial-systems" class="section level3">
-<h3>Default spatial systems</h3>
 <p>If you wanna see the list of all spatial systems associated with all
 assays of the main assay type, you can call the
 <strong>vrMainSpatial</strong> function.</p>
@@ -696,8 +682,20 @@ vrMainSpatial(visium_data, assay = &quot;Assay1&quot;)</code></pre>
 1 Assay1    main</code></pre>
 <p><br></p>
 </div>
+<div id="channel-names" class="section level3">
+<h3>Channel Names</h3>
+<p>Each spatial system object (vrSpatial) in VoltRon object can also
+include a indefinite number of channels which you can get (or request) a
+list of for further use.</p>
+<pre class="r watch-out"><code>vrImageChannelNames(melc_data)
+vrImageChannelNames(melc_data, assay = &quot;MELC&quot;)
+vrImageChannelNames(melc_data, assay = &quot;Assay1&quot;)</code></pre>
+<pre><code>   Assay Spatial  Channels
+1 Assay1    MELC DAPI,CD45</code></pre>
+<p><br></p>
+</div>
 <div id="get-and-set-images" class="section level3">
-<h3>Get and set images</h3>
+<h3>Get and Set Images</h3>
 <p>In VoltRon, images can be called specifically, or return as a list.
 The return image is of a magick image object (see <a
 href="https://cran.r-project.org/web/packages/magick/vignettes/intro.html">magick</a>
@@ -726,7 +724,7 @@ visualization for large images. This is accomplished with
 <p><br></p>
 </div>
 <div id="combining-image-channels" class="section level3">
-<h3>Combining image channels</h3>
+<h3>Combining Image Channels</h3>
 <p>VoltRon even allows manipulation of channel images if you also
 provide an associate list of colors.</p>
 <pre class="r watch-out"><code>melc_data &lt;- combineChannels(melc_data, 
@@ -877,10 +875,9 @@ the segments transparent</p>
 <pre class="r watch-out"><code>vrSpatialPlot(xenium_data, group.by = &quot;clusters&quot;, plot.segments = TRUE, alpha = 0.6)</code></pre>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spsegment.png" class="center"></p>
 <p><br></p>
-<p>The background information can be set to either a “white” or “black”
-background.</p>
+<p>The background color can be set to any color.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(xenium_data, group.by = &quot;clusters&quot;, plot.segments = TRUE, 
-              background = &quot;white&quot;)</code></pre>
+              background.color = &quot;white&quot;)</code></pre>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spback.png" class="center"></p>
 <p><br></p>
 <p>In cases where there are multiple coordinate systems, you can get the
@@ -893,9 +890,9 @@ the image (coordinate system) and the other would be channel name. You
 can get the name of these channels from <a
 href="#image">vrImageChannelNames</a>.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(xenium_data, group.by = &quot;clusters&quot;, plot.segments = TRUE,
-              background = c(&quot;main&quot;))
+              spatial = &quot;main&quot;)
 vrSpatialPlot(xenium_data, group.by = &quot;clusters&quot;, plot.segments = TRUE,
-              background = c(&quot;main&quot;, &quot;DAPI&quot;))</code></pre>
+              spatial = &quot;main&quot;, channel = &quot;DAPI&quot;)</code></pre>
 <p><br></p>
 <p>If the visualized assay is of a type “spot”, you can crop the image
 to encapsulate the smallest subset that include all spots.</p>

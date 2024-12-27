@@ -30,7 +30,10 @@ NULL
 #' @param cell.shape the shape of the points representing cells, see \link{geom_point}
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param label if TRUE, the labels of the ROI assays will be visualized
-#' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
+#' @param spatial the name of the main spatial system
+#' @param channel the name of the channel associated with the image
+#' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
+#' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
 #' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
@@ -48,9 +51,11 @@ NULL
 #' @importFrom ggpubr ggarrange
 #'
 #' @export
-vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, assay = NULL, graph.name = NULL,
-                          reduction = NULL, ncol = 2, nrow = NULL, font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, label = FALSE, background = NULL, reg = FALSE,
-                          crop = FALSE, legend.pt.size = 2, legend.text.size = 14, scale.image = TRUE, legend.loc = "right", common.legend = TRUE, collapse.plots = TRUE, interactive = FALSE, 
+vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, 
+                          assay = NULL, graph.name = NULL, reduction = NULL, ncol = 2, nrow = NULL, font.size = 2, pt.size = 2, 
+                          cell.shape = 21, alpha = 1, label = FALSE, spatial = NULL, channel = NULL, background.color = NULL, 
+                          background = NULL, reg = FALSE, crop = FALSE, legend.pt.size = 2, legend.text.size = 14, 
+                          scale.image = TRUE, legend.loc = "right", common.legend = TRUE, collapse.plots = TRUE, interactive = FALSE, 
                           shiny.options = list()) {
 
   # check object for zarr
@@ -73,14 +78,14 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
   # interactive plotting
   if(interactive){
     if(length(assay_names) > 1){
-      stop("Only one assay can be visualized with the interactive plot")
+      stop("Only one assay can be visualized with the interactive plot at a time.")
     } else{
-      gg <- vrSpatialPlot(object, group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, colors = colors, n.tile = n.tile, assay = assay,
-                          graph.name = graph.name, reduction = reduction, ncol = ncol, nrow = nrow, font.size = font.size, pt.size = pt.size,
-                          cell.shape = cell.shape, alpha = alpha, label = label, background = background, reg = reg,
-                          crop = crop, legend.pt.size = legend.pt.size, legend.text.size = legend.text.size, scale.image = FALSE, 
-                          legend.loc = legend.loc, common.legend = common.legend, collapse.plots = collapse.plots,
-                          interactive = FALSE)
+      gg <- vrSpatialPlot(object, group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, colors = colors, n.tile = n.tile, 
+                          assay = assay, graph.name = graph.name, reduction = reduction, ncol = ncol, nrow = nrow, font.size = font.size, 
+                          pt.size = pt.size, cell.shape = cell.shape, alpha = alpha, label = label, spatial = spatial, channel = channel, 
+                          background.color = background.color, background = background, reg = reg, crop = crop, legend.pt.size = legend.pt.size, 
+                          legend.text.size = legend.text.size, scale.image = FALSE, legend.loc = legend.loc, common.legend = common.legend, 
+                          collapse.plots = collapse.plots, interactive = FALSE)
       return(vrSpatialPlotInteractive(plot_g = gg, shiny.options = shiny.options))
     }
   }
@@ -104,7 +109,6 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
   if(all(!is.na(suppressWarnings(as.numeric(levels_group.ids))))){
     levels_group.ids <- sort(as.numeric(levels_group.ids))
   }
-  # group.ids <- levels(factor(group.ids, levels = levels_group.ids))
   group.ids <- factor(group.ids, levels = levels_group.ids)
 
   # check colors
@@ -152,7 +156,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
     p_title <- plot_title[[assy]]
     gg[[i]] <- vrSpatialPlotSingle(assay = cur_assay, metadata = cur_metadata,
                                    group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, colors = colors, n.tile = n.tile, graph = graph, font.size = font.size, pt.size = pt.size,
-                                   alpha = alpha, cell.shape = cell.shape, plot_title = p_title, background = background, reg = reg,
+                                   alpha = alpha, cell.shape = cell.shape, plot_title = p_title, background = background, spatial = spatial, channel = channel, background.color = background.color, reg = reg,
                                    crop = crop, legend.pt.size = legend.pt.size, legend.text.size = legend.text.size, scale.image = scale.image)
     i <- i + 1
   }
@@ -190,7 +194,10 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 #' @param cell.shape the shape of the points representing cells, see \link{geom_point}
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param plot_title the title of the single plot
-#' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
+#' @param spatial the name of the main spatial system
+#' @param channel the name of the channel associated with the image
+#' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
+#' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
 #' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
@@ -204,50 +211,24 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 #' @importFrom magick image_info image_read
 #'
 #' @noRd
-vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, graph = NULL,
-                                font.size = 2, pt.size = 2, cell.shape = 16, alpha = 1, plot_title = NULL, background = NULL,
-                                reg = FALSE, crop = FALSE, legend.pt.size = 2, legend.text.size = 14, scale.image = TRUE){
+vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, 
+                                graph = NULL, font.size = 2, pt.size = 2, cell.shape = 16, alpha = 1, plot_title = NULL, spatial = NULL, 
+                                channel = NULL, background.color = NULL, background = NULL, reg = FALSE, crop = FALSE, legend.pt.size = 2, 
+                                legend.text.size = 14, scale.image = TRUE){
 
   # plot
   g <- ggplot()
   scale_factors <- 1
 
-  # add image
-  if(is.null(background))
-    background <- vrMainSpatial(assay)
-  if(length(background) == 2) {
-    channel <- background[2]
-  } else {
-    channel <- NULL
-  }
-  background <- background[1]
-  if(background %in% vrSpatialNames(assay)){ 
-    
-    # get image
-    image <- vrImages(assay, name = background, channel = channel, as.raster = TRUE)
-    if(!is.null(image) & !inherits(image, "Image_Array")){
-      image <- magick::image_read(image)
-    }
-    
-    if(!is.null(image)){
-      info <- getImageInfo(image)
-      if(info$width > 1000 && scale.image){
-        image <- resize_Image(image, geometry = "1000x")
-        scale_factors <- info$width/1000
-        info <- getImageInfo(image)
-      }
-      g <- g +
-        ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
-    } else {
-      info <- NULL
-    }
-    spatial_name <- background
-  } else {
-    info <- NULL
-    spatial_name <- vrMainSpatial(assay)
-  }
+  # add image and background
+  image <- vrSpatialPlotImage(g, assay, background, scale.image, spatial = spatial, 
+                              channel = channel, background.color = background.color)
+  g <- image$plot
+  info <- image$info
+  background.color <- image$background.color
+  spatial_name <- image$spatial
 
-  # data
+  # coords
   coords <- vrCoordinates(assay, spatial_name = spatial_name, reg = reg)
   if(!inherits(coords, "IterableMatrix")){
     coords <- as.data.frame(coords)
@@ -270,6 +251,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     }
   }
   
+  # group ids
   if(!is.null(group.ids)){
     len_set_diff <- length(setdiff(group.ids,  cur_group.by))
     if(len_set_diff > 0){
@@ -286,35 +268,13 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   # change levels of groups
   cur_group.by <- factor(cur_group.by, levels = group.ids)
   
-  # merge matrices
+  # add groups
   coords <- as.matrix(coords)
-  # coords <- data.frame(coords, cur_group.by)
   coords <- data.frame(coords, cur_group.by[rownames(coords), drop = FALSE])
-  
   colnames(coords)[length(colnames(coords))] <- group.by
   
   # set up the limits
-  if(vrAssayTypes(assay) == "spot"){
-    if(crop){
-      g <- g +
-        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
-    } else {
-      if(!is.null(info)){
-        g <- g +
-          coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
-      }
-    }
-  } else {
-    if(crop){
-      g <- g +
-        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
-    } else {
-      if(!is.null(info)){
-        g <- g +
-          xlim(0,info$width) + ylim(0, info$height)
-      }
-    }
-  }
+  g <- vrSpatialExtent(g, assay, coords, crop, info)
   
   # set colors
   names_colors <- factor(names(colors))
@@ -372,7 +332,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       
       # add if a graph exists
       if(!is.null(graph)){
-        g <- g + addGraph(graph, coords, background)
+        g <- g + addGraph(graph, coords, background.color)
       }
     }
 
@@ -420,7 +380,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         
         # add if a graph exists
         if(!is.null(graph)){
-          g <- g + addGraph(graph, coords, background)
+          g <- g + addGraph(graph, coords, background.color)
         }
         
       }
@@ -454,20 +414,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
                                 axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
                                 legend.margin = margin(0,0,0,0))
 
-  # background
-  if(any(background %in% c("white","black"))){
-    g <- g +
-      theme(panel.background = element_rect(fill = background, colour = background, linewidth = 0.5, linetype = "solid"))
-  } else{
-    if(is.null(info)){
-      g <- g +
-        theme(panel.background = element_rect(fill = "grey97", colour = "grey97", linewidth = 0.5, linetype = "solid"))
-    } else{
-      g <- g +
-        theme(panel.background = element_blank())
-    }
-  }
-
   # return data
   return(g)
 }
@@ -500,7 +446,10 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param keep.scale whether unify all scales for all features or not
 #' @param label if TRUE, labels of ROIs will be visualized too
-#' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
+#' @param spatial the name of the main spatial system
+#' @param channel the name of the channel associated with the image
+#' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
+#' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
 #' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
@@ -515,9 +464,11 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #'
 #' @export
 #'
-vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, group.by = "label", plot.segments = FALSE, n.tile = 0, norm = TRUE, log = FALSE, assay = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
-                         font.size = 2, pt.size = 2, cell.shape = 16, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, background = NULL, reg = FALSE,
-                         crop = FALSE, scale.image = TRUE, common.legend = FALSE, legend.loc = "right", collapse.plots = TRUE) {
+vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, group.by = "label", plot.segments = FALSE, n.tile = 0, 
+                                 norm = TRUE, log = FALSE, assay = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
+                                 font.size = 2, pt.size = 2, cell.shape = 16, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, 
+                                 spatial = NULL, channel = NULL, background.color = NULL, background = NULL, reg = FALSE,
+                                 crop = FALSE, scale.image = TRUE, common.legend = FALSE, legend.loc = "right", collapse.plots = TRUE) {
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -614,7 +565,8 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
         gg[[i]] <- vrSpatialFeaturePlotSingle(assay = cur_assay, metadata = cur_metadata, feature = feat, plot.segments = plot.segments, 
                                               n.tile = n.tile, graph = graph, limits = limits[[feat]][[assy]], group.by = group.by, norm = norm, log = log, 
                                               font.size = font.size, pt.size = pt.size, title.size = title.size, alpha = alpha, cell.shape = cell.shape,
-                                              label = label, plot_title = p_title, legend_title = l_title, background = background, reg = reg, crop = crop)
+                                              label = label, plot_title = p_title, legend_title = l_title, spatial = spatial, channel = channel, 
+                                              background.color = background.color, background = background, reg = reg, crop = crop)
         i <- i + 1
       }
     }
@@ -664,8 +616,11 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
 #' @param label if TRUE, labels of ROIs will be visualized too
 #' @param plot_title the main title of the single plot
 #' @param legend_title the legend title of the single plot
-#' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
-#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
+#' @param spatial the name of the main spatial system
+#' @param channel the name of the channel associated with the image
+#' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
+#' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
+#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial})
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
@@ -677,64 +632,22 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
 #' @importFrom dplyr arrange
 #'
 #' @noRd
-vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments = FALSE, n.tile = 0, graph = NULL, limits, group.by = "label", norm = TRUE, log = FALSE,
-                               font.size = 2, pt.size = 2, cell.shape = 16, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL,
-                               legend_title = NULL, background = NULL, reg = FALSE, crop = FALSE, scale.image = TRUE){
+vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments = FALSE, n.tile = 0, graph = NULL, limits, 
+                                       group.by = "label", norm = TRUE, log = FALSE, font.size = 2, pt.size = 2, cell.shape = 16, 
+                                       title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL, legend_title = NULL, 
+                                       spatial = NULL, channel = NULL, background.color = NULL, background = NULL, reg = FALSE, 
+                                       crop = FALSE, scale.image = TRUE){
 
-  # plot
-  g <- ggplot()
-  scale_factors <- 1
-
-  # add image
-  if(is.null(background))
-    background <- vrMainSpatial(assay)
-  if(length(background) == 2) {
-    channel <- background[2]
-  } else {
-    channel <- NULL
-  }
-  background <- background[1]
-  if(background %in% vrSpatialNames(assay)){
-    
-    # get image
-    image <- vrImages(assay, name = background, channel = channel, as.raster = TRUE)
-    if(!is.null(image) & !inherits(image, "Image_Array")){
-      image <- magick::image_read(image)
-    }
-    
-    if(!is.null(image)){
-      info <- getImageInfo(image)
-      if(info$width > 1000 && scale.image){
-        image <- resize_Image(image, geometry = "1000x")
-        scale_factors <- info$width/1000
-        info <- getImageInfo(image)
-      }
-      g <- g +
-        ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
-    } else {
-      info <- NULL
-    }
-    spatial_name <- background
-  } else {
-    info <- NULL
-    spatial_name <- vrMainSpatial(assay)
-  }
-
-  # data
-  coords <- vrCoordinates(assay, spatial_name = spatial_name, reg = reg)
-  if(!inherits(coords, "IterableMatrix")){
-    coords <- as.data.frame(coords)
-  } 
-  coords <- coords/scale_factors
-  segments <- vrSegments(assay, spatial_name = spatial_name)
+  # get image information and plotting features
+  midpoint <- sum(limits)/2
+  
+  # get data
   data_features <- feature[feature %in% vrFeatures(assay)]
   if(length(data_features) > 0){
     normdata <- vrData(assay, features = feature, norm = norm)
     if(log)
       normdata <- log1p(normdata)
   }
-
-  # get data
   if(feature %in% data_features){
     if(inherits(normdata, "IterableMatrix")){
       cur_score <- as.matrix(normdata[feature,])[1,]
@@ -751,36 +664,33 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
     }
   }
   
-  # merge matrices
+  # plot
+  g <- ggplot()
+  scale_factors <- 1
+
+  # add image and background
+  image <- vrSpatialPlotImage(g, assay, background, scale.image, spatial = spatial, 
+                              channel = channel, background.color = background.color)
+  g <- image$plot
+  info <- image$info
+  background.color <- image$background.color
+  spatial_name <- image$spatial
+
+  # coords
+  coords <- vrCoordinates(assay, spatial_name = spatial_name, reg = reg)
+  if(!inherits(coords, "IterableMatrix")){
+    coords <- as.data.frame(coords)
+  } 
+  coords <- coords/scale_factors
+  segments <- vrSegments(assay, spatial_name = spatial_name)
+  
+  # add score
   coords <- as.matrix(coords)
   coords <- data.frame(coords, cur_score[rownames(coords), drop = FALSE])
   colnames(coords)[length(colnames(coords))] <- "score"
-
-  # get image information and plotting features
-  midpoint <- sum(limits)/2
   
   # set up the limits
-  if(vrAssayTypes(assay) == "spot"){
-    if(crop){
-      g <- g +
-        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
-    } else {
-      if(!is.null(info)){
-        g <- g +
-          coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
-      }
-    }
-  } else {
-    if(crop){
-      g <- g +
-        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
-    } else {
-      if(!is.null(info)){
-        g <- g +
-          xlim(0,info$width) + ylim(0, info$height)
-      }
-    }
-  }
+  g <- vrSpatialExtent(g, assay, coords, crop, info)
 
   # add points or segments
   if(vrAssayTypes(assay) == "ROI" && !is.null(segments)){
@@ -889,20 +799,6 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
                                 legend.key.size = unit(title.size, "points"), legend.title = element_text(size=title.size),
                                 legend.margin = margin(0,0,0,0))
 
-  # background
-  if(any(background %in% c("white","black"))){
-    g <- g +
-      theme(panel.background = element_rect(fill = background, colour = background, linewidth = 0.5, linetype = "solid"))
-  } else{
-    if(is.null(info)){
-      g <- g +
-        theme(panel.background = element_rect(fill = "grey97", colour = "grey97", linewidth = 0.5, linetype = "solid"))
-    } else{
-      g <- g +
-        theme(panel.background = element_blank())
-    }
-  }
-
   # visualize labels
   if(label){
     if(group.by %in% colnames(metadata)){
@@ -992,27 +888,7 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
   }, features)
   
   # set up the limits
-  if(vrAssayTypes(assay) == "spot"){
-    if(crop){
-      g <- g +
-        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
-    } else {
-      if(!is.null(info)){
-        g <- g +
-          coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
-      }
-    }
-  } else {
-    if(crop){
-      g <- g +
-        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
-    } else {
-      if(!is.null(info)){
-        g <- g +
-          xlim(0,info$width) + ylim(0, info$height)
-      }
-    }
-  }
+  g <- vrSpatialExtent(g, assay, coords, crop, info)
   
   # configure titles
   feature_title <- as.list(features)
@@ -1044,7 +920,6 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
         stat_summary_2d(mapping = aes(x = x, y = y, z = score), fun = mean, data = coords, geom = "tile", bins = n.tile, drop = TRUE) +
         scale_fill_gradientn(name = legend_title[[feat]],
                              colors=c("grey97", colors[i]),
-                             # values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
                              values=rescale_numeric(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
       all_data <- rbind(all_data,
                         data.frame(layer_data(g_single), color_group = colors[i]))
@@ -1053,7 +928,6 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
         geom_point(mapping = aes(x = x, y = y, color = score), coords, shape = 16, size = pt.size) + 
         scale_color_gradientn(name = legend_title[[feat]],
                               colors=c("grey97", colors[i]),
-                              # values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
                               values=rescale_numeric(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
       all_data <- rbind(all_data,
                         data.frame(layer_data(g_single), value = coords$score, color_group = colors[i]))
@@ -1091,7 +965,7 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
   g <- g +
     theme(panel.background = element_rect(fill = "grey97", colour = "grey97", linewidth = 0.5, linetype = "solid"))
   
-  # return data
+  # return plot
   return(g)
 }
 
@@ -1143,6 +1017,122 @@ vrSpatialFeatureCombinePlot <- function(g, all_data, n.tile, coords, features){
 ####
 ## Spatial Auxiliary ####
 ####
+
+#' vrSpatialPlotImage
+#'
+#' setting background with or without the image
+#'
+#' @param g a ggplot object
+#' @param assay vrAssay object
+#' @param spatial the name of the main spatial system
+#' @param channel the name of the channel associated with the image
+#' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
+#' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
+#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial})
+#' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
+#' @param scale.image if TRUE, background image will be scaled down to a low resolution (width: 1000px)
+#'
+#' @import ggplot2
+#' @importFrom magick image_read
+#'
+#' @noRd
+vrSpatialPlotImage <- function(g, assay, background, scale.image, spatial = NULL, channel = NULL, background.color = NULL){
+ 
+  # check background, spatial and channel 
+  if(!is.null(background)){
+    warning("The use of 'background' is deprecated, please use 'spatial' to call spatial coordinate systems and 'channel' to get channels of associated images.")
+    warning("Please use 'background.color' to draw spatial plots with custom colors in the background.")
+    if(length(background) == 2) {
+      channel <- background[2]
+    } else {
+      channel <- NULL
+    }
+    spatial <- background[1]
+  } else {
+    if(is.null(spatial)){
+      spatial <- vrMainSpatial(assay)
+    }
+  }
+  
+  # get image and adjust size
+  if(spatial %in% vrSpatialNames(assay) && is.null(background.color)){ 
+    
+    # get image
+    image <- vrImages(assay, name = spatial, channel = channel, as.raster = TRUE)
+    if(!is.null(image) & !inherits(image, "Image_Array")){
+      image <- magick::image_read(image)
+    }
+    
+    if(!is.null(image)){
+      info <- getImageInfo(image)
+      if(info$width > 1000 && scale.image){
+        image <- resize_Image(image, geometry = "1000x")
+        scale_factors <- info$width/1000
+        info <- getImageInfo(image)
+      }
+      g <- g +
+        ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
+    } else {
+      info <- NULL
+    }
+  } else {
+    info <- NULL
+  } 
+  
+  # background color
+  # if(any(background.color %in% c("white","black"))){
+  if(!is.null(background.color)){
+    g <- g +
+      theme(panel.background = element_rect(fill = background.color, colour = background.color, linewidth = 0.5, linetype = "solid"))
+  } else{
+    if(is.null(info)){
+      g <- g +
+        theme(panel.background = element_rect(fill = "grey97", colour = "grey97", linewidth = 0.5, linetype = "solid"))
+    } else{
+      g <- g +
+        theme(panel.background = element_blank())
+    }
+  }
+  list(plot = g, info = info, background.color = background.color, spatial = spatial)
+}
+
+#' vrSpatialExtent
+#'
+#' setting extent for spatial plots
+#'
+#' @param g a ggplot object
+#' @param assay vrAssay object
+#' @param coords coordinates
+#' @param crop whether to crop an image of a spot assay to the extend of spots
+#' @param image info
+#' 
+#' @importFrom ggplot2 xlim ylim coord_fixed
+#' 
+#' @noRd
+vrSpatialExtent <- function(g, assay, coords, crop, info){
+  if(vrAssayTypes(assay) == "spot"){
+    if(crop){
+      g <- g +
+        ggplot2::coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
+    } else {
+      if(!is.null(info)){
+        g <- g +
+          ggplot2::coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
+      }
+    }
+  } else {
+    if(crop){
+      g <- g +
+        ggplot2::coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
+    } else {
+      if(!is.null(info)){
+        g <- g +
+          ggplot2::xlim(0,info$width) + ggplot2::ylim(0, info$height)
+      }
+    }
+  }
+  g
+}
 
 #' @import ggplot2
 #' @importFrom grid pointsGrob unit gpar
@@ -1370,13 +1360,6 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
   metadata <- Metadata(object, assay = assay)
 
   # grep assays from metadata
-  # assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
-  # if(inherits(metadata, "data.table")){
-  #   metadata <- subset(metadata, subset = assay_id %in% assay_names)
-  # } else {
-  #   assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
-  #   metadata <- metadata[grepl(assy_id, rownames(metadata)),]
-  # }
   metadata <- subset_metadata(metadata, assays = assay_names)
 
   # check group.by 
@@ -1797,16 +1780,12 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
   g <- ggplot()
 
   # plot scatter
-  # g <- g +
-  #   geom_point(mapping = aes_string(x = feature.1, y = feature.2), data = data_feature, size = pt.size)
   g <- g +
     geom_point(mapping = aes(x = .data[[feature.1]], y = .data[[feature.2]]), data = data_feature, size = pt.size)
 
   # visualize labels
   if(label){
     data_feature[[group.by]] <- metadata[,group.by]
-    # g <- g + ggrepel::geom_label_repel(mapping = aes_string(x = feature.1, y = feature.2, label = group.by), data_feature,
-    #                             box.padding = 0.5, size = font.size, direction = "both", seed = 1)
     g <- g + ggrepel::geom_label_repel(mapping = aes(x = .data[[feature.1]], y = .data[[feature.2]], label = .data[[group.by]]), data_feature,
                                 box.padding = 0.5, size = font.size, direction = "both", seed = 1)
   }
