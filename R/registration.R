@@ -198,8 +198,9 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     ## Return values for the shiny app ####
     observeEvent(input$done, {
       
-      # keypoints
+      # keypoints and mapping
       keypoints <- reactiveValuesToList(xyTable_list)
+      mapping <- reactiveValuesToList(registration_mapping_list)
       
       # mapping parameters
       mapping_parameters <- transferParameterInput(input, 
@@ -208,7 +209,9 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
       # get keypoints and registered spatial datasets
       stopApp(
         list(keypoints = keypoints,
-             mapping_parameters = c(as.list(mapping_parameters), list(keypoints = keypoints)),
+             mapping_parameters = c(as.list(mapping_parameters), 
+                                    list(keypoints = keypoints, 
+                                         mapping = mapping)),
              registered_spat = getRegisteredObject(spatdata_list,
                                                    registration_mapping_list,
                                                    register_ind,
@@ -1287,7 +1290,7 @@ transferParameterInput <- function(params, image_list){
       input[[paste0("flipflop_", imgtype, "_image", i)]] <-  params[[paste0("flipflop_", imgtype, "_image", i)]]
       input[[paste0("negate_", imgtype, "_image", i)]] <-  params[[paste0("negate_", imgtype, "_image", i)]]
       input[[paste0("scale_", imgtype, "_image", i)]] <-  params[[paste0("scale_", imgtype, "_image", i)]]
-      input[[paste0("channel_", imgtype, "_image", i)]] <-  params[[paste0("scale_", imgtype, "_image", i)]]
+      input[[paste0("channel_", imgtype, "_image", i)]] <-  params[[paste0("channel_", imgtype, "_image", i)]]
     }
   }
   

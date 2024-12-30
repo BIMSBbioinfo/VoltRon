@@ -955,12 +955,12 @@ vrImages(GeoMxR1_subset[[&quot;Assay1&quot;]], name = &quot;main&quot;, channel 
 <p>We can now visualize the ROIs and their annotations where the
 registered H&amp;E visible in the background. We define the spatial key
 <strong>main</strong> and the channel name <strong>H&amp;E</strong>.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(GeoMxR1_subset, group.by = &quot;ROI.type&quot;, alpha = 0.7, background = c(&quot;main&quot;, &quot;H&amp;E&quot;))</code></pre>
+<pre class="r watch-out"><code>vrSpatialPlot(GeoMxR1_subset, group.by = &quot;ROI.type&quot;, alpha = 0.7, spatial = &quot;main&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_spatialplot_withHE.png" class="center"></p>
 <p>Interactive Visualization can also be used to zoom in to ROIs and
 investigate the pathology associated with GeoMx ROIs labeled as
 fibrotic.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(GeoMxR1_subset, group.by = &quot;ROI.type&quot;, alpha = 0.7, background = c(&quot;main&quot;, &quot;H&amp;E&quot;), interactive = TRUE)</code></pre>
+<pre class="r watch-out"><code>vrSpatialPlot(GeoMxR1_subset, group.by = &quot;ROI.type&quot;, alpha = 0.7, spatial = &quot;main&quot;, channel = &quot;H&amp;E&quot;, interactive = TRUE)</code></pre>
 <p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_spatialplot_withHE_interactive.png" class="center"></p>
 </div>
 </div>

@@ -24,6 +24,9 @@ vrSpatialFeaturePlot(
   alpha = 0.6,
   keep.scale = "feature",
   label = FALSE,
+  spatial = NULL,
+  channel = NULL,
+  background.color = NULL,
   background = NULL,
   reg = FALSE,
   crop = FALSE,
@@ -73,7 +76,13 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{label}{if TRUE, labels of ROIs will be visualized too}
 
-\item{background}{the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
+\item{spatial}{the name of the main spatial system}
+
+\item{channel}{the name of the channel associated with the image}
+
+\item{background.color}{the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.}
+
+\item{background}{(DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
 and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
 and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.}
 
