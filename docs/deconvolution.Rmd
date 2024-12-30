@@ -247,7 +247,7 @@ For this, the data has to be already clustered (and annotated if possible). We w
 Xen_data <- readRDS("VRBlock_data_clustered.rds")
 vrMainSpatial(Xen_data, assay = "Assay1") <- "main"
 vrMainSpatial(Xen_data, assay = "Assay3") <- "main"
-vrSpatialPlot(Xen_data, group.by = "CellType", pt.size = 0.13, background = "black", 
+vrSpatialPlot(Xen_data, group.by = "CellType", pt.size = 0.13, background.color = "black", 
               legend.loc = "top", n.tile = 500)
 ```
 

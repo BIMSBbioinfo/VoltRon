@@ -9,6 +9,8 @@ registerSpatialData(
   reference_spatdata = NULL,
   query_spatdata = NULL,
   keypoints = NULL,
+  mapping_parameters = list(),
+  interactive = TRUE,
   shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive()))
 )
 }
@@ -19,7 +21,11 @@ registerSpatialData(
 
 \item{query_spatdata}{a query spatial data set, used only if \code{object_list} is \code{NULL}}
 
-\item{keypoints}{a list of tables, each points to matching keypoints from registered images.}
+\item{keypoints}{(DEPRECATED) a list of tables, each points to matching keypoints from registered images.}
+
+\item{mapping_parameters}{for manual image registration, a list of tables, each points to matching keypoints from registered images, and for automated image registration, a set of mapping parameters}
+
+\item{interactive}{if TRUE, the shiny application for image registration will be triggered, otherwise 'mapping_parameters' or 'keypoints' should be defined.}
 
 \item{shiny.options}{a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}}
 }

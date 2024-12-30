@@ -332,7 +332,7 @@ By visualizing and zooming on a spatial plot with annotated cells, we can detect
 ```{r eval = FALSE, class.source="watch-out"}
 vrSpatialPlot(vr2_merged_acute1, assay = "Xenium", group.by = "CellType", 
               group.ids = c("H.I. Cells", "T cells"), plot.segments = TRUE, 
-              alpha = 0.6, background = c("main", "H&E"), interactive = TRUE)
+              alpha = 0.6, spatial = "main", channel = "H&E", interactive = TRUE)
 ```
 
 <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_spatialplot_infected.png" class="center">

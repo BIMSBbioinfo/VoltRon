@@ -553,22 +553,31 @@ vrMainFeatureType.vrAssayV2 <- function(object){
 #' @export
 vrMainFeatureType.vrAssay <- vrMainFeatureType.vrAssayV2
   
+#' @param ignore ignore if some assays dont have the feature set name
+#' 
 #' @rdname vrMainFeatureType
 #' @order 5
 #' @export
 "vrMainFeatureType<-.vrAssayV2" <- function(object, ignore = FALSE, value){
   if(value %in% names(object@data)){
     object@main_featureset <- value
-  } else if(!ignore){
-    stop("the feature type '", value, "' is not found in the assay!") 
+  } else {
+    if(ignore){
+      warning("The feature type '", value, "' is not found in '", vrAssayNames(object),"'. Main feature type is still set to '", vrMainFeatureType(object), "'")
+    } else {
+      stop("The feature type '", value, "' is not found in '", vrAssayNames(object),"'. Use ignore = TRUE for ignoring this message")
+    }
   }
+  
   return(object)
 }
 
+#' @param ignore ignore if some assays dont have the feature set name
+#' 
 #' @rdname vrMainFeatureType
 #' @order 5
 #' @export
-"vrMainFeatureType<-.vrAssay" <- function(object, value){
+"vrMainFeatureType<-.vrAssay" <- function(object, ignore = FALSE, value){
   stop("vrAssay V1 objects do not have multiple feature types!")
 }
 

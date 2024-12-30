@@ -117,7 +117,8 @@ knn_annoy <- function(data, query = data, k = 10, n_trees = 50, search_k = -1) {
 #' Get clustering of the VoltRon object
 #'
 #' @param object a VoltRon object
-#' @param resolution the resolution parameter for leiden clustering
+#' @param resolution the resolution parameter for leiden clustering.
+#' @param nclus The number of cluster centers for K-means clustering.
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param method The method of clustering. Use 'leiden' to perform graph clustering and 'kmeans' for K-means based clustering

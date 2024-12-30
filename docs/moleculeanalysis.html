@@ -534,10 +534,10 @@ vrSpatialPlot(Xen_R1_subset, assay = &quot;Xenium_mol&quot;, group.by = &quot;ge
 <p><br></p>
 <p>We can use the <strong>n.tile</strong> argument to divide the count
 of selected group.ids (e.g. genes here) into hexagonal bins. We will use
-this arguement to divide the x and y-axis into 100 tiles and aggregate
+this argument to divide the x and y-axis into 100 tiles and aggregate
 transcript counts from select <strong>group.id</strong></p>
 <pre class="r watch-out"><code>vrSpatialPlot(Xen_R1_subset, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;, group.id = &quot;ACTA2&quot;,
-              legend.pt.size = 5, n.tile = 100, background = &quot;black&quot;)</code></pre>
+              legend.pt.size = 5, n.tile = 100, background.color = &quot;black&quot;)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize_bins.png" class="center"></p>
 <p><br></p>
 </div>

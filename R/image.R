@@ -571,11 +571,9 @@ vrMainImage.VoltRon <- function(object, assay = NULL){
   }
   
   # get assay types
-  # image_names <- unlist(lapply(assay_names, function(x) vrMainImage(object[[x]])))
   spatial_names <- unlist(lapply(assay_names, function(x) vrMainSpatial(object[[x]])))
 
   # return data
-  # image_data <- data.frame(Assay = assay_names, Image = image_names)
   spatial_data <- data.frame(Assay = assay_names, Spatial = spatial_names)
 
   # return
@@ -598,16 +596,20 @@ vrMainSpatial.VoltRon <- function(object, assay = NULL){
 #' @order 4
 #' @export
 "vrMainImage<-.VoltRon" <- function(object, assay = NULL, value){
-
-  if(!is.null(assay)){
-    if(length(assay) == 1){
-      # vrMainImage(object[[assay]]) <- value
-      vrMainSpatial(object[[assay]]) <- value
-    } else {
-      stop("You can only set the main image of a single assay")
-    }
+  
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  
+  # get spatial metadata
+  sample.metadata <- SampleMetadata(object)
+  assayclass <- unique(sample.metadata[assay_names,"Assay"])
+  
+  # check for assay number
+  if(length(assayclass) == 1){
+    for(assy in assay_names)
+      vrMainSpatial(object[[assy]], ignore = TRUE) <- value
   } else {
-    stop("You should define the assay whose main image you wanna set, by using 'Assay = <assay name>'")
+    stop("You can only set the main spatial system of a single assay")
   }
 
   return(object)
@@ -623,9 +625,14 @@ vrMainSpatial.VoltRon <- function(object, assay = NULL){
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
   
+  # get spatial metadata
+  sample.metadata <- SampleMetadata(object)
+  assayclass <- unique(sample.metadata[assay_names,"Assay"])
+  
   # check for assay number
-  if(length(assay_names) == 1){
-    vrMainSpatial(object[[assay_names]]) <- value
+  if(length(assayclass) == 1){
+    for(assy in assay_names)
+      vrMainSpatial(object[[assy]], ignore = TRUE) <- value
   } else {
     stop("You can only set the main spatial system of a single assay")
   }
@@ -657,140 +664,72 @@ vrMainSpatial.vrAssay <- function(object){
 #' @export
 vrMainSpatial.vrAssayV2 <- vrMainSpatial.vrAssay
 
+#' @noRd
+.replaceMainSpatial <- function(object, ignore = FALSE, value){
+  
+  if(length(value) %in% c(1,2)){
+    
+    # get channel name if exists in the value
+    if(length(value) == 2){
+      channel <- value[2]
+      value <- value[1]
+    } else {
+      channel <- NULL
+    }
+    
+    # set main spatial/image
+    if(value %in% vrSpatialNames(object)){
+      object@main_image <- value
+      
+      # set channel
+      if(!is.null(channel))
+        vrMainChannel(object@image[[value]]) <- channel
+      
+    } else {
+      if(ignore){
+        warning("'",value,"' is not a spatial coordinate system in '", vrAssayNames(object),"'. Main system is still set to '", vrMainSpatial(object), "'")
+      } else {
+        stop("'",value,"' is not a spatial coordinate system in '", vrAssayNames(object),"'. Use ignore = TRUE for ignoring this message")
+      }
+    }
+    
+  } else {
+    stop("The Main image is set by either: \n    vrMainSpatial(object) <- c('<spatial name>', '<channel name>')\n or vrMainSpatial(object) <- '<spatial name>'")
+  }
+  
+  return(object)
+}
+
+#' @param ignore if TRUE, the non-existing spatial coordinate system will be ignored.
+#' 
 #' @rdname vrMainImage
 #' @order 5
 #' @export
-"vrMainImage<-.vrAssay" <- function(object, value){
+"vrMainImage<-.vrAssay" <- .replaceMainSpatial
 
-  if(length(value) > 0){
-    
-    # get channel name if exists in the value
-    if(length(value) == 2){
-      channel <- value[2]
-      value <- value[1]
-    } else {
-      channel <- NULL
-    }
-    
-    # set main spatial/image
-    if(value %in% vrSpatialNames(object)){
-      object@main_image <- value
-    } else {
-      stop("'",value,"' is not a spatial coordinate system")
-    }
-
-    # set channel
-    if(!is.null(channel))
-      vrMainChannel(object@image[[value]]) <- channel
-    
-  } else {
-    stop("The Main image is set by either: \n    vrMainImage(object) <- c('image name', 'channel name')\n or vrMainImage(object) <- 'image name'")
-  }
-  
-  return(object)
-}
-
+#' @param ignore if TRUE, the non-existing spatial coordinate system will be ignored.
+#' 
 #' @rdname vrMainImage
 #' @order 5
 #' @export
-"vrMainImage<-.vrAssayV2" <- function(object, value){
-  
-  if(length(value) > 0){
-    
-    # get channel name if exists in the value
-    if(length(value) == 2){
-      channel <- value[2]
-      value <- value[1]
-    } else {
-      channel <- NULL
-    }
-    
-    # set main spatial/image
-    if(value %in% vrSpatialNames(object)){
-      object@main_image <- value
-    } else {
-      stop("'",value,"' is not a spatial coordinate system")
-    }
-    
-    # set channel
-    if(!is.null(channel))
-      vrMainChannel(object@image[[value]]) <- channel
-    
-  } else {
-    stop("The Main image is set by either: \n    vrMainImage(object) <- c('image name', 'channel name')\n or vrMainImage(object) <- 'image name'")
-  }
-  
-  return(object)
-}
+"vrMainImage<-.vrAssayV2" <- .replaceMainSpatial
 
+#' @param ignore if TRUE, the non-existing spatial coordinate system will be ignored.
+#' 
 #' @rdname vrMainSpatial
 #' @order 5
 #' @export
-"vrMainSpatial<-.vrAssay" <- function(object, value){
-  
-  if(length(value) > 0){
-    
-    # get channel name if exists in the value
-    if(length(value) == 2){
-      channel <- value[2]
-      value <- value[1]
-    } else {
-      channel <- NULL
-    }
-    
-    # set main spatial/image
-    if(value %in% vrSpatialNames(object)){
-      object@main_image <- value
-    } else {
-      stop("'",value,"' is not a spatial coordinate system")
-    }
-    
-    # set channel
-    if(!is.null(channel))
-      vrMainChannel(object@image[[value]]) <- channel
-    
-  } else {
-    stop("The Main image is set by either: \n    vrMainImage(object) <- c('image name', 'channel name')\n or vrMainImage(object) <- 'image name'")
-  }
-  
-  return(object)
-}
+"vrMainSpatial<-.vrAssay" <- .replaceMainSpatial
 
+#' @param ignore if TRUE, the non-existing spatial coordinate system will be ignored.
+#'
 #' @rdname vrMainSpatial
 #' @order 5
 #' @export
-"vrMainSpatial<-.vrAssayV2" <- function(object, value){
-  
-  if(length(value) > 0){
-    
-    # get channel name if exists in the value
-    if(length(value) == 2){
-      channel <- value[2]
-      value <- value[1]
-    } else {
-      channel <- NULL
-    }
-    
-    # set main spatial/image
-    if(value %in% vrSpatialNames(object)){
-      object@main_image <- value
-    } else {
-      stop("'",value,"' is not a spatial coordinate system")
-    }
-    
-    # set channel
-    if(!is.null(channel))
-      vrMainChannel(object@image[[value]]) <- channel
-    
-  } else {
-    stop("The Main image is set by either: \n    vrMainImage(object) <- c('image name', 'channel name')\n or vrMainImage(object) <- 'image name'")
-  }
-  
-  return(object)
-}
+"vrMainSpatial<-.vrAssayV2" <- .replaceMainSpatial
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays
+#' If NULL, the default assay will be used, see \link{vrMainAssay}. If equals to "all", then provides a summary of spatial systems across all assays
 #'
 #' @rdname vrImageNames
 #'
@@ -810,14 +749,14 @@ vrImageNames.VoltRon <- function(object, assay = NULL){
     }
   }
   
-  # image_names <- unique(unlist(lapply(assay_names, function(x) vrImageNames(object[[x]]))))
+  # unique names
   spatial_names <- unique(unlist(lapply(assay_names, function(x) vrSpatialNames(object[[x]]))))
   
   return(spatial_names)
 }
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' if NULL, the default assay will be used, see \link{vrMainAssay}. If equals to "all", then provides a summary of spatial systems across all assays
 #'
 #' @rdname vrSpatialNames
 #'
@@ -963,7 +902,6 @@ vrImageChannelNames.VoltRon <- function(object, assay = NULL){
   }
 
   # get image names
-  # image_names <- unlist(lapply(assay_names, function(x) vrMainImage(object[[x]])))
   spatial_names <- unlist(lapply(assay_names, function(x) vrMainSpatial(object[[x]])))
 
   # get channel names
@@ -1500,12 +1438,6 @@ vrCoordinates.vrSpatial <- function(object) {
   } else {
     stop("Please make sure that the coordinates matrix have only two or three columns: for x and y coordinates")
   }
-
-  # if(ncol(value) != 2) {
-  #   stop("Please make sure that the coordinates matrix have only two columns: for x and y coordinates")
-  # } else {
-  #   colnames(value) <- c("x", "y")
-  # }
   
   methods::slot(object = object, name = 'coords') <- value
   return(object)

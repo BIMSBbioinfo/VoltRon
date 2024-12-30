@@ -526,7 +526,7 @@ vrMainSpatial <- function(object, assay = NULL) {
 #' @rdname vrMainImage
 #' @export vrMainImage<-
 #' @noRd
-"vrMainImage<-" <- function(object, assay = NULL, value) {
+"vrMainImage<-" <- function(object, assay = NULL, ignore = FALSE, value) {
   UseMethod(generic = 'vrMainImage<-', object = object)
 }
 
@@ -539,7 +539,7 @@ vrMainSpatial <- function(object, assay = NULL) {
 #' @rdname vrMainSpatial
 #' @export vrMainSpatial<-
 #' @noRd
-"vrMainSpatial<-" <- function(object, assay = NULL, value) {
+"vrMainSpatial<-" <- function(object, assay = NULL, ignore = FALSE, value) {
   UseMethod(generic = 'vrMainSpatial<-', object = object)
 }
 

@@ -18,11 +18,11 @@ vrMainFeatureType(object, assay = NULL)
 
 \method{vrMainFeatureType}{vrAssay}(object)
 
-\method{vrMainFeatureType}{VoltRon}(object, assay = NULL, ignore = FALSE) <- value
+\method{vrMainFeatureType}{VoltRon}(object, assay = NULL) <- value
 
 \method{vrMainFeatureType}{vrAssayV2}(object, ignore = FALSE) <- value
 
-\method{vrMainFeatureType}{vrAssay}(object) <- value
+\method{vrMainFeatureType}{vrAssay}(object, ignore = FALSE) <- value
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object}
@@ -30,9 +30,9 @@ vrMainFeatureType(object, assay = NULL)
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays.}
 
-\item{ignore}{ignore if some assays dont have the feature set name}
-
 \item{value}{the name of main feature set}
+
+\item{ignore}{ignore if some assays dont have the feature set name}
 }
 \description{
 Get the main feature type
