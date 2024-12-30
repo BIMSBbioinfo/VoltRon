@@ -474,7 +474,7 @@ vrImages(GeoMxR1_subset[["Assay1"]], name = "main", channel = "H&E") <- vrImages
 We can now visualize the ROIs and their annotations where the registered H&E visible in the background. We define the spatial key **main** and the channel name **H&E**. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(GeoMxR1_subset, group.by = "ROI.type", alpha = 0.7, background = c("main", "H&E"))
+vrSpatialPlot(GeoMxR1_subset, group.by = "ROI.type", alpha = 0.7, spatial = "main", channel = "H&E")
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_spatialplot_withHE.png" class="center">
@@ -482,7 +482,7 @@ vrSpatialPlot(GeoMxR1_subset, group.by = "ROI.type", alpha = 0.7, background = c
 Interactive Visualization can also be used to zoom in to ROIs and investigate the pathology associated with GeoMx ROIs labeled as fibrotic. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(GeoMxR1_subset, group.by = "ROI.type", alpha = 0.7, background = c("main", "H&E"), interactive = TRUE)
+vrSpatialPlot(GeoMxR1_subset, group.by = "ROI.type", alpha = 0.7, spatial = "main", channel = "H&E", interactive = TRUE)
 ```
 
 <img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_spatialplot_withHE_interactive.png" class="center">

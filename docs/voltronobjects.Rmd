@@ -671,11 +671,11 @@ vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE, alpha = 
 
 <br>
 
-The background information can be set to either a "white" or "black" background.
+The background color can be set to any color.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE, 
-              background = "white")
+              background.color = "white")
 ```
 
 <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spback.png" class="center">
@@ -689,9 +689,9 @@ If also want to select a channel from the same coordinate system, you can set ba
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE,
-              background = c("main"))
+              spatial = "main")
 vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE,
-              background = c("main", "DAPI"))
+              spatial = "main", channel = "DAPI")
 ```
 
 <br>
