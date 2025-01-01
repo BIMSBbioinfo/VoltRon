@@ -218,7 +218,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 
   # plot
   g <- ggplot()
-  scale_factors <- 1
 
   # add image and background
   image <- vrSpatialPlotImage(g, assay, background, scale.image, spatial = spatial, 
@@ -227,6 +226,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   info <- image$info
   background.color <- image$background.color
   spatial_name <- image$spatial
+  scale_factors <- image$scale_factors
 
   # coords
   coords <- vrCoordinates(assay, spatial_name = spatial_name, reg = reg)
@@ -666,7 +666,6 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   
   # plot
   g <- ggplot()
-  scale_factors <- 1
 
   # add image and background
   image <- vrSpatialPlotImage(g, assay, background, scale.image, spatial = spatial, 
@@ -675,6 +674,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   info <- image$info
   background.color <- image$background.color
   spatial_name <- image$spatial
+  scale_factors <- image$scale_factors
 
   # coords
   coords <- vrCoordinates(assay, spatial_name = spatial_name, reg = reg)
@@ -1038,6 +1038,9 @@ vrSpatialFeatureCombinePlot <- function(g, all_data, n.tile, coords, features){
 #' @noRd
 vrSpatialPlotImage <- function(g, assay, background, scale.image, spatial = NULL, channel = NULL, background.color = NULL){
  
+  # parameters
+  scale_factors <- 1
+  
   # check background, spatial and channel 
   if(!is.null(background)){
     warning("The use of 'background' is deprecated, please use 'spatial' to call spatial coordinate systems and 'channel' to get channels of associated images.")
@@ -1093,7 +1096,7 @@ vrSpatialPlotImage <- function(g, assay, background, scale.image, spatial = NULL
         theme(panel.background = element_blank())
     }
   }
-  list(plot = g, info = info, background.color = background.color, spatial = spatial)
+  list(plot = g, info = info, background.color = background.color, spatial = spatial, scale_factors = scale_factors)
 }
 
 #' vrSpatialExtent
