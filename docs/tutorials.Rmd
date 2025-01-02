@@ -72,7 +72,7 @@ In addition, VoltRon provides a number of spatially aware data analysis methods 
       <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic.png" class="center">
       <p style = "margin: 3%"> Integrating data modalities within or across tissue sections </p>
    </td>
-   <td onclick="location.href='deconvolution.html';"> 
+   <td onclick="location.href='nicheclustering.html';"> 
       <p class ="tutorial"> Niche Clustering </p>
       <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/deconvolution.png" class="center">
       <p style = "margin: 5%"> Clustering based on ROI/spot deconvolution and Spatial Neighborhood </p>

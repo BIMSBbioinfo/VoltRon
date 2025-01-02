@@ -355,6 +355,7 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
         
         # calculate getis ord
         n <- length(statistic)
+        statistic <- statistic - (min(statistic)) ### correct for negative scores, correct for this later
         getisord_stat <- adj_matrix %*% statistic
         getisord_stat <- getisord_stat/(sum(statistic) - statistic)
         getisord[[1]] <- getisord_stat[,1]

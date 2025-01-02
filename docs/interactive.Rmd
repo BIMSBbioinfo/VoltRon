@@ -37,7 +37,7 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 # Interactive Annotation
 
-**VoltRon** includes interactive applications to select and manually label spatial points by drawing polygons and circles. As an example, we will use a Spot-based spatial transcriptomic assay, specifically the **Mouse Brain Serial Section 1/2** datasets, analyzed in the [Niche Clustering](deconvolution.html) tutorial. You can find the already analyzed data stored as a VoltRon object [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/NicheClustering/Visium&Visium_data_decon_analyzed.rds)
+**VoltRon** includes interactive applications to select and manually label spatial points by drawing polygons and circles. As an example, we will use a Spot-based spatial transcriptomic assay, specifically the **Mouse Brain Serial Section 1/2** datasets, analyzed in the [Niche Clustering](nicheclustering.html) tutorial. You can find the already analyzed data stored as a VoltRon object [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/NicheClustering/Visium&Visium_data_decon_analyzed.rds)
 
 ```{r class.source="watch-out", eval = FALSE}
 MBrain_Sec <- readRDS("Visium&Visium_data_decon_analyzed.rds")
