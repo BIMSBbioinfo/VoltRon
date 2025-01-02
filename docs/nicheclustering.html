@@ -346,7 +346,7 @@ div.tocify {
           <a href="multiomic.html">Multi-omic Integration</a>
         </li>
         <li>
-          <a href="deconvolution.html">Niche Clustering</a>
+          <a href="nicheclustering.html">Niche Clustering</a>
         </li>
       </ul>
     </li>
@@ -462,19 +462,22 @@ body {
 <h1>Spot-based Niche Clustering</h1>
 <p>Spot-based spatial transcriptomic assays capture spatially-resolved
 gene expression profiles that are somewhat closer to single cell
-resolution. However, each spot still include a few number of cells that
-are likely from a combination of cell types within the tissue of origin.
-RNA deconvolution is then incorporated to estimate the
-percentage/abundance of these cell types within each spot/ROI given a
-reference scRNAseq dataset.</p>
-<p>VoltRon includes wrapper commands for using popular RNA deconvolution
-methods such as <a
-href="https://www.nature.com/articles/s41587-021-00830-w">RCTD</a>
-(<strong>spot</strong>) and return estimated abundances as additional
-assays within each layer. These estimated percentages of cell types each
-spot could be incorporated to detect <strong>niches</strong> (i.e. small
-local microenvironments of cells) within the tissue. We can process cell
-type abundance assays and used them for clustering to detect these
+resolution. However, each spot still includes a few number of cells that
+are likely originated from few number of cell types, hence
+transcriptomic profile of each spot would likely include markers from
+multiple cell types. Here, <strong>RNA deconvolution</strong> can be
+incorporated to estimate the percentage/abundance of cell types for each
+spot. We use a scRNAseq dataset as a reference to computationally
+estimate the relative abundance of cell types across across the
+spots.</p>
+<p>VoltRon includes wrapper commands for using popular spot-level RNA
+deconvolution methods such as <a
+href="https://www.nature.com/articles/s41587-021-00830-w">RCTD</a> and
+return estimated abundances as additional feature sets within each
+layer. These estimated percentages of cell types for each spot could be
+incorporated to detect <strong>niches</strong> (i.e. small local
+microenvironments of cells) within the tissue. We can process cell type
+abundance assays and used them for clustering to detect these
 niches.</p>
 <p><br></p>
 <div id="import-visium-data" class="section level2">
@@ -489,9 +492,9 @@ href="https://www.10xgenomics.com/resources/datasets?menu%5Bproducts.name%5D=Spa
 <strong>AnatomicalEntity=brain</strong>, <strong>Chemistry=v1</strong>
 and <strong>PipelineVersion=v1.1.0</strong>).</p>
 <p>We will now import each of four samples separately and merge them
-into one VoltRon object. There are four sections in total given two
-serial anterior and serial posterior sections, hence we have <strong>two
-tissue blocks each having two layers</strong>.</p>
+into one VoltRon object. There are four brain tissue sections in total
+given two serial anterior and serial posterior sections, hence we have
+<strong>two tissue blocks each having two layers</strong>.</p>
 <pre class="r watch-out"><code>library(VoltRon)
 Ant_Sec1 &lt;- importVisium(&quot;Sagittal_Anterior/Section1/&quot;, sample_name = &quot;Anterior1&quot;)
 Ant_Sec2 &lt;- importVisium(&quot;Sagittal_Anterior/Section2/&quot;, sample_name = &quot;Anterior2&quot;)
@@ -522,24 +525,30 @@ assay (Visium).</p>
 <p>We will now import the scRNA data for reference which can be
 downloaded from <a
 href="https://www.dropbox.com/s/cuowvm4vrf65pvq/allen_cortex.rds?dl=1">here</a>.
-Specifically, we will use a scRNA reference of Mouse cortical adult
-brain with 14,000 cells from the Allen Institute, generated with the
-SMART-Seq2 protocol. This scRNA data is also used by the Spatial Data
+Specifically, we will use a scRNA data of Mouse cortical adult brain
+with 14,000 cells, generated with the SMART-Seq2 protocol, from the
+Allen Institute. This scRNA data is also used by the Spatial Data
 Analysis tutorial in <a
-href="https://satijalab.org/seurat/articles/spatial_vignette.html#integration-with-single-cell-data">Seurat
-website</a>.</p>
-<p>Before deconvoluting Visium spots, we correct cell types labels and
-drop some cell types with extremely few number of cells (e.g. “CR”).</p>
-<pre class="r watch-out"><code>library(Seurat)
+href="https://satijalab.org/seurat/articles/spatial_vignette.html#integration-with-single-cell-data">Seurat</a>
+website.</p>
+<pre class="r watch-out"><code># install packages if necessary
+if(!requireNamespace(&quot;Seurat&quot;))
+  install.packages(&quot;Seurat&quot;)
+if(!requireNamespace(&quot;dplyr&quot;))
+  install.packages(&quot;dplyr&quot;)
+
+# import scRNA data
+library(Seurat)
 allen_reference &lt;- readRDS(&quot;allen_cortex.rds&quot;)
 
 # process and reduce dimensionality
 library(dplyr)
 allen_reference &lt;- SCTransform(allen_reference, ncells = 3000, verbose = FALSE) %&gt;%
   RunPCA(verbose = FALSE) %&gt;%
-  RunUMAP(dims = 1:30)
-
-# update labels and subset
+  RunUMAP(dims = 1:30)</code></pre>
+<p>Before deconvoluting Visium spots, we correct cell types labels and
+drop some cell types with extremely few number of cells (e.g. “CR”).</p>
+<pre class="r watch-out"><code># update labels and subset
 allen_reference$subclass &lt;- gsub(&quot;L2/3 IT&quot;, &quot;L23 IT&quot;, allen_reference$subclass)
 allen_reference &lt;- allen_reference[,colnames(allen_reference)[!allen_reference@meta.data$subclass %in% &quot;CR&quot;]]
 
@@ -554,15 +563,16 @@ gsubclass | gclass</code></pre>
 </div>
 <div id="spot-deconvolution-with-rctd" class="section level2">
 <h2>Spot Deconvolution with RCTD</h2>
-<p>In order to integrate the scRNA data and the Visium data sets within
-the VoltRon objects, we will use <strong>RCTD</strong> algorithm which
-is accessible with the <a
+<p>In order to integrate the scRNA data and the spatial data sets within
+the VoltRon object and estimate relative cell type abundances for each
+Visium spot, we will use <strong>RCTD</strong> algorithm which is
+accessible with the <a
 href="https://github.com/dmcable/spacexr">spacexr</a> package.</p>
-<pre class="r watch-out"><code>if(requireNamespace(&quot;spacexr&quot;))
+<pre class="r watch-out"><code>if(!requireNamespace(&quot;spacexr&quot;))
   devtools::install_github(&quot;dmcable/spacexr&quot;, build_vignettes = FALSE)</code></pre>
-<p>After running <strong>getDeconvolution</strong>, an additional assay
-within the same layer with **_decon** postfix will be created for all
-layers with a Visium data.</p>
+<p>After running <strong>getDeconvolution</strong>, an additional
+feature set within the same Visium assay with name
+<strong>Decon</strong> will be created.</p>
 <pre class="r watch-out"><code>library(spacexr)
 MBrain_Sec &lt;- getDeconvolution(MBrain_Sec, sc.object = allen_reference, sc.cluster = &quot;subclass&quot;, max_cores = 6)
 MBrain_Sec</code></pre>
@@ -582,8 +592,8 @@ vrFeatures(MBrain_Sec)</code></pre>
  [7] &quot;L6 CT&quot;      &quot;L6 IT&quot;      &quot;L6b&quot;        &quot;Lamp5&quot;      &quot;Macrophage&quot; &quot;Meis2&quot;     
 [13] &quot;NP&quot;         &quot;Oligo&quot;      &quot;Peri&quot;       &quot;Pvalb&quot;      &quot;Serpinf1&quot;   &quot;SMC&quot;       
 [19] &quot;Sncg&quot;       &quot;Sst&quot;        &quot;Vip&quot;        &quot;VLMC&quot;          </code></pre>
-<p>These features (i.e. cell type abundances) can be visualized like all
-other feature types.</p>
+<p>These features (i.e. cell type abundances) can be visualized like any
+other feature type.</p>
 <pre class="r watch-out"><code>vrSpatialFeaturePlot(MBrain_Sec, features = c(&quot;L4&quot;, &quot;L5 PT&quot;, &quot;Oligo&quot;, &quot;Vip&quot;), 
                      crop = TRUE, ncol = 2, alpha = 1, keep.scale = &quot;all&quot;)</code></pre>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_spatialfeature_plot.png" class="center"></p>
@@ -593,24 +603,30 @@ other feature types.</p>
 <h2>Clustering</h2>
 <p>Relative cell type abundances that are learned by RCTD and stored
 within VoltRon can now be used to cluster spots. These groups or
-clusters of spots can also be realized as <strong>niches</strong>,
-regions within tissue sections that have a distinct cell type
-composition compared to the remaining parts of the tissue.</p>
-<p>We will now normalize and process relative cell type abundances to
-learn/detect these niche clusters. We treat cell type abundances as <a
+clusters of spots can often be referred to as <strong>niches</strong>.
+Here, as a definition, a niche is a region or a collection of regions
+within tissue that have a distinct cell type composition as opposed to
+the remaining parts of the tissue.</p>
+<p>The cell type abundances (which adds up to one for each spot) can be
+normalized and processed like transcriptomic and proteomic profiles
+prior to clustering (i.e. niche clustering). We treat cell type
+abundances as <a
 href="https://en.wikipedia.org/wiki/Compositional_data">compositional
 data</a>, hence we incorporate <strong>centred log ratio (CLR)</strong>
 transformation for normalizing them.</p>
-<pre class="r watch-out"><code>MBrain_Sec &lt;- normalizeData(MBrain_Sec, method = &quot;CLR&quot;)</code></pre>
+<pre class="r watch-out"><code>vrMainFeatureType(MBrain_Sec) &lt;- &quot;Decon&quot;
+MBrain_Sec &lt;- normalizeData(MBrain_Sec, method = &quot;CLR&quot;)</code></pre>
 <p>The CLR normalized assay have only 25 features, each representing a
 cell type from the single cell reference data. Hence, we can
 <strong>directly calculate UMAP reductions from this feature
-set</strong> without relying on a prior dimensionality reduction such as
-PCA.</p>
-<p>VoltRon is also capable of calculating the UMAP reduction from
-normalized data slots. Hence, we build a UMAP reduction from CLR data.
-However, UMAP will always be calculated from a PCA reduction by default
-(if a PCA embedding is found in the object).</p>
+abundances</strong> since we dont have much number of features which
+necessitates dimensionality reduction such as PCA.</p>
+<p>However, we may still need to reduce the dimensionality of this space
+with 25 features using UMAP for visualizing purposes. VoltRon is also
+capable of calculating the UMAP reduction from normalized data slots.
+Hence, we build a UMAP reduction from CLR data directly. However, UMAP
+will always be calculated from a PCA reduction by default (if a PCA
+embedding is found in the object).</p>
 <pre class="r watch-out"><code>MBrain_Sec &lt;- getUMAP(MBrain_Sec, data.type = &quot;norm&quot;)
 vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;Sample&quot;)</code></pre>
 <p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_embedding_sample.png" class="center"></p>
@@ -628,20 +644,25 @@ e.g. embeddings, coordinates, heatmap and even barplots. We can now map
 the clusters we have generated on UMAP embeddings.</p>
 <pre class="r watch-out"><code># visualize 
 g1 &lt;- vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;Sample&quot;)
-g2 &lt;- vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;clusters&quot;, label = TRUE)
+g2 &lt;- vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;niche_clusters&quot;, label = TRUE)
 g1 | g2</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_embedding_clusters.png" class="center"></p>
 <p><br></p>
 <p>Mapping clusters on the spatial images and spots would show the niche
-structure across the tissues and layers.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(MBrain_Sec, group.by = &quot;clusters&quot;, crop = TRUE, alpha = 1)</code></pre>
+structure across all four tissue sections.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(MBrain_Sec, group.by = &quot;niche_clusters&quot;, crop = TRUE, alpha = 1)</code></pre>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_spatial_clusters.png" class="center"></p>
 <p><br></p>
 <p>We use <strong>vrHeatmapPlot</strong> to investigate relative cell
 type abundances across these niche clusters. You will need to have
 <strong>ComplexHeatmap</strong> package in your namespace.</p>
-<pre class="r watch-out"><code>library(ComplexHeatmap)
-vrHeatmapPlot(MBrain_Sec, features = vrFeatures(MBrain_Sec), group.by = &quot;clusters&quot;, 
+<pre class="r watch-out"><code># install packages if necessary
+if(!requireNamespace(&quot;ComplexHeatmap&quot;))
+  BiocManager::install(&quot;ComplexHeatmap&quot;)
+
+# heatmap of niches
+library(ComplexHeatmap)
+vrHeatmapPlot(MBrain_Sec, features = vrFeatures(MBrain_Sec), group.by = &quot;niche_clusters&quot;, 
               show_row_names = T, show_heatmap_legend = T)</code></pre>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_heatmap_clusters.png" class="center">
 <br></p>
@@ -649,22 +670,30 @@ vrHeatmapPlot(MBrain_Sec, features = vrFeatures(MBrain_Sec), group.by = &quot;cl
 </div>
 <div id="cell-based-niche-clustering" class="section level1">
 <h1>Cell-based Niche Clustering</h1>
-<p>Unlike spot-based assays, spatial transcriptomics data in single cell
-resolution require building niche assays to detect clusters that are
-equivalent to the niches that each individual cell belongs to. We first
-detect the mixture of cells around a spatial neighborhood around each of
-these cells and use that a profile to perform clustering.</p>
+<p>Similar to spot-based spatial omics assays, we can build and cluster
+niche associated to each cell for spatial transcriptomics datasets in
+single cell resolution. For this, we require building niche assays for
+the collections of cells where a niche of cell is defined as a region of
+sets of regions with distinct cell type population that each of these
+cells belong to.</p>
+<p>Here, we dont require any scRNA reference dataset but we may first
+need to cluster and annotate cells in the RNA/transcriptome level
+profiles, and determine cell types. Then, we first detect the mixture of
+cell types within a spatial neighborhood around all cells and use that
+as a profile to perform clustering where these clusters will be
+associated with niches.</p>
 <div id="import-xenium-data" class="section level2">
 <h2>Import Xenium Data</h2>
 <p>For this, the data has to be already clustered (and annotated if
 possible). We will use the cluster labels generated at the end of the
-Xenium analysis section of workflow from <a
-href="spotanalysis.html">Cell/Spot Analysis</a>. You can download the
-VoltRon object with clustered and annotated Xenium cells along with the
-Visium assay from <a
+Xenium analysis workflow from <a href="spotanalysis.html">Cell/Spot
+Analysis</a>. You can download the VoltRon object with clustered and
+annotated Xenium cells along with the Visium assay from <a
 href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/VRBlock_data_clustered.rds">here</a>.</p>
-<pre class="r watch-out"><code>Xen_data &lt;- readRDS(&quot;VRBlock_data_clustered.rds&quot;)
-vrMainSpatial(Xen_data, assay = &quot;Assay1&quot;) &lt;- &quot;main&quot;
+<pre class="r watch-out"><code>Xen_data &lt;- readRDS(&quot;VRBlock_data_clustered.rds&quot;)</code></pre>
+<p>We will use all these 18 cell types used for annotating Xenium cells
+for detecting niches with distinct cellular type mixtures.</p>
+<pre class="r watch-out"><code>vrMainSpatial(Xen_data, assay = &quot;Assay1&quot;) &lt;- &quot;main&quot;
 vrMainSpatial(Xen_data, assay = &quot;Assay3&quot;) &lt;- &quot;main&quot;
 vrSpatialPlot(Xen_data, group.by = &quot;CellType&quot;, pt.size = 0.13, background.color = &quot;black&quot;, 
               legend.loc = &quot;top&quot;, n.tile = 500)</code></pre>
@@ -673,11 +702,11 @@ vrSpatialPlot(Xen_data, group.by = &quot;CellType&quot;, pt.size = 0.13, backgro
 </div>
 <div id="creating-niche-assay" class="section level2">
 <h2>Creating Niche Assay</h2>
-<p>Here, in order to calculate niche profiles for each cell, we have to
-first build spatial neighborhoods around cells and capture the local
-cell type mixtures. Using <strong>getSpatialNeighbors</strong>, we build
-a spatial neighborhood graph to connect all cells to other cells within
-at most 15 distance apart</p>
+<p>For calculating niche profiles for each cell, we have to first build
+spatial neighborhoods around cells and capture the local cell type
+mixtures. Using <strong>getSpatialNeighbors</strong>, we build a spatial
+neighborhood graph to connect all cells to other cells within at most 15
+distance apart.</p>
 <pre class="r watch-out"><code>Xen_data &lt;- getSpatialNeighbors(Xen_data, radius = 15, method = &quot;radius&quot;)
 vrGraphNames(Xen_data)</code></pre>
 <pre><code>[1] &quot;radius&quot;</code></pre>
@@ -704,9 +733,13 @@ transformation.</p>
 Xen_data &lt;- normalizeData(Xen_data, method = &quot;CLR&quot;)</code></pre>
 <p>Default clustering functions could be used to analyze the normalized
 niche profiles of cells to detect niches associated with each cell.
-However, we use K-means algorithm to perform the niche clustering.</p>
-<pre class="r watch-out"><code>Xen_data &lt;- getClusters(Xen_data, nclus = 7, method = &quot;kmeans&quot;, label = &quot;niche_clusters&quot;)
-head(Metadata(Xen_data))</code></pre>
+However, we use K-means algorithm to perform the niche clustering. For
+this exercise, we pick an estimate of 7 clusters which will be the
+number of niche clusters we get.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- getClusters(Xen_data, nclus = 7, method = &quot;kmeans&quot;, label = &quot;niche_clusters&quot;)</code></pre>
+<p>After the niche clustering, the metadata is updated and observed
+later like below.</p>
+<pre class="r watch-out"><code>head(Metadata(Xen_data))</code></pre>
 <div>
 <pre><code style="font-size: 10px;">               id Count assay_id  Assay    Layer   Sample CellType niche_clusters
 1_Assay1 1_Assay1    28   Assay1 Xenium Section1 10XBlock   DCIS_1              2
@@ -720,10 +753,29 @@ head(Metadata(Xen_data))</code></pre>
 </div>
 <div id="visualization-1" class="section level2">
 <h2>Visualization</h2>
+<p>After niche clustering, each cell in the Xenium assay will be
+assigned a niche which is initially a number which indicates the ID of
+each particular niche. It is up to the user to annotate, filter and
+visualize these niches moving forward.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(Xen_data, group.by = &quot;niche_clusters&quot;, alpha = 1, legend.loc = &quot;top&quot;)</code></pre>
+<p>We use <strong>vrHeatmapPlot</strong> to investigate the abundance of
+each cell type across the niche clusters. You will need to have
+<strong>ComplexHeatmap</strong> package in your namespace. We see that
+niche cluster 1 include all invasive tumor subtypes (IT 1-3). We see
+this for two subtypes of in situ ductal carcinoma (DCIS 1,2) subtypes as
+well other than a third DCIS subcluster being within proximity to
+myoepithelial cells. Niche cluster 6 also shows regions within the
+breast cancer tissue where T cells and B cells are found together
+abundantly.</p>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_xenium_nicheclusters.png" class="center">
 <br></p>
-<pre class="r watch-out"><code>vrHeatmapPlot(Xen_data, features = vrFeatures(Xen_data), group.by = &quot;niche_clusters&quot;)</code></pre>
+<pre class="r watch-out"><code># install packages if necessary
+if(!requireNamespace(&quot;ComplexHeatmap&quot;))
+  BiocManager::install(&quot;ComplexHeatmap&quot;)
+
+# heatmap of niches
+library(ComplexHeatmap)
+vrHeatmapPlot(Xen_data, features = vrFeatures(Xen_data), group.by = &quot;niche_clusters&quot;)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_xenium_heatmapclusters.png" class="center">
 <br></p>
 </div>
