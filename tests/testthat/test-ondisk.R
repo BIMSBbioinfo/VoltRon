@@ -30,12 +30,12 @@ test_that("save and load on disk", {
 
   # TODO: output zarr problem with path
   # zarr
-  # xenium_data2 <- saveVoltRon(xenium_data, 
-  #                             output = output_zarr,
-  #                             format = "ZarrVoltRon", 
-  #                             replace = TRUE, 
-  #                             verbose = FALSE)
-  # xenium_data2 <- loadVoltRon(dir = output_zarr)
+  xenium_data2 <- saveVoltRon(xenium_data,
+                              output = output_zarr,
+                              format = "ZarrVoltRon",
+                              replace = TRUE,
+                              verbose = FALSE)
+  xenium_data2 <- loadVoltRon(dir = output_zarr)
 
   # remove files
   unlink(output_h5ad, recursive = TRUE)
@@ -52,14 +52,14 @@ test_that("double write and merging", {
   
   # TODO: output zarr problem with path
   # write merged data
-  # xenium_data2 <- xenium_data 
-  # xenium_data2$Sample <- "XeniumR2"
-  # xenium_data2 <- merge(xenium_data, xenium_data2)
-  # xenium_data3 <- saveVoltRon(xenium_data2, 
-  #                             output = output_zarr, 
-  #                             format = "ZarrVoltRon", 
-  #                             replace = TRUE, 
-  #                             verbose = FALSE)
+  xenium_data2 <- xenium_data
+  xenium_data2$Sample <- "XeniumR2"
+  xenium_data2 <- merge(xenium_data, xenium_data2)
+  xenium_data3 <- saveVoltRon(xenium_data2,
+                              output = output_zarr,
+                              format = "ZarrVoltRon",
+                              replace = TRUE,
+                              verbose = FALSE)
   
   # merged ondisk data
   xenium_data_disk <- saveVoltRon(xenium_data, 
