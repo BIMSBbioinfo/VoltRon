@@ -6,6 +6,7 @@
 
 [![R-CMD-CHECK](https://github.com/BIMSBbioinfo/VoltRon/actions/workflows/check.yml/badge.svg)](https://github.com/BIMSBbioinfo/VoltRon/actions/workflows/check.yml)
 [![DOI:10.1101/2023.12.15.571667](https://zenodo.org/badge/DOI/10.1101/2023.12.15.571667-x.svg)](https://doi.org/10.1101/2023.12.15.571667)
+[![Publish Docker image](https://github.com/BIMSBbioinfo/VoltRon/actions/workflows/docker.yml/badge.svg)](https://github.com/BIMSBbioinfo/VoltRon/actions/workflows/docker.yml)
 
 -----
 
