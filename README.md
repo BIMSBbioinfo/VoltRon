@@ -91,10 +91,6 @@ Then, start the RStudio session from the browser at `http://localhost:8787/` and
 
 See [here](https://github.com/BIMSBbioinfo/VoltRon/blob/main/inst/extdata/docker_desktop_instructions.md) for more instructions on how to run the container using [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 
-## Tutorials
-
-Please see the [Explore](https://artur-man.github.io/VoltRon/tutorials.html) section in the VoltRon website for tutorials, example scripts and analysis found in the [preprint](https://www.biorxiv.org/content/10.1101/2023.12.15.571667v1). Tutorials include links for accessing necessary data to run scripts across all tutorials. 
-
 ## References
 
 Manukyan, A., Bahry, E., Wyler, E., Becher, E., Pascual-Reguant, A., Plumbom, I., ... & Akalin, A. (2023). [VoltRon: A Spatial Omics Analysis Platform for Multi-Resolution and Multi-omics Integration using Image Registration](https://www.biorxiv.org/content/10.1101/2023.12.15.571667v1). bioRxiv, 2023-12.
