@@ -1,20 +1,18 @@
+[![R-CMD-CHECK](https://github.com/BIMSBbioinfo/VoltRon/actions/workflows/check.yml/badge.svg)](https://github.com/BIMSBbioinfo/VoltRon/actions/workflows/check.yml)
+[![DOI:10.1101/2023.12.15.571667](https://zenodo.org/badge/DOI/10.1101/2023.12.15.571667-x.svg)](https://doi.org/10.1101/2023.12.15.571667)
+[![Publish Docker image](https://github.com/BIMSBbioinfo/VoltRon/actions/workflows/docker.yml/badge.svg)](https://github.com/BIMSBbioinfo/VoltRon/actions/workflows/docker.yml)
+
 # VoltRon
 
 ### Spatial omic analysis toolbox for multi-resolution and multi-omic integration using image registration
 
-**Citation:** Manukyan, A., Bahry, E., Wyler, E. et al. ... & Akalin, A. (2023). [VoltRon: A Spatial Omics Analysis Platform for Multi-Resolution and Multi-omics Integration using Image Registration](https://www.biorxiv.org/content/10.1101/2023.12.15.571667v1). bioRxiv, 2023-12.
-
-[![R-CMD-CHECK](https://github.com/BIMSBbioinfo/VoltRon/actions/workflows/check.yml/badge.svg)](https://github.com/BIMSBbioinfo/VoltRon/actions/workflows/check.yml)
-[![DOI:10.1101/2023.12.15.571667](https://zenodo.org/badge/DOI/10.1101/2023.12.15.571667-x.svg)](https://doi.org/10.1101/2023.12.15.571667)
-[![Publish Docker image](https://github.com/BIMSBbioinfo/VoltRon/actions/workflows/docker.yml/badge.svg)](https://github.com/BIMSBbioinfo/VoltRon/actions/workflows/docker.yml)
+### [Website](https://bioinformatics.mdc-berlin.de/VoltRon/) | [Tutorials](https://bioinformatics.mdc-berlin.de/VoltRon/tutorials.html) | [Preprint](https://www.biorxiv.org/content/10.1101/2023.12.15.571667v1)
 
 -----
 
 ![](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltron_framework_box_io.png)
 
 <br>
-
-**Website and Tutorials**: <a href="https://bioinformatics.mdc-berlin.de/VoltRon">https://bioinformatics.mdc-berlin.de/VoltRon</a>
 
 **VoltRon**  is a spatial omic analysis toolbox for multi-omics integration using spatial image registration. VoltRon is also capable of analyzing multiple types of spatially-aware data modalities.
    
@@ -34,18 +32,18 @@
     <li style="padding-bottom: 10px">
     <p style="padding-bottom: 3px"> <strong> Spatially Aware Analysis </strong> allows detecting spatial patterns across cells, spots, molecules and other entities. </p>
     <ul class="maintext3">
-      <li style="padding-bottom: 10px padding-top: 12px">
+      <li style="padding-bottom: 10px padding-top: 10px">
       <strong>(Niche Clustering: Spots)</strong> VoltRon allows integration to single cell RNA datasets using <a href="https://satijalab.org/seurat/">Seurat</a>, <a href="https://www.bioconductor.org/packages/release/bioc/vignettes/SingleCellExperiment/inst/doc/intro.html">SingleCellExperiment</a> and <a href="https://github.com/dmcable/spacexr">spacexr</a> for spot deconvolution. Estimated cell type abundances are then used to cluster spots into groups of cell type niches which are defined as spots with distinct composition of cell types.
       </li>
       <li style="padding-bottom: 2px">
       <strong>(Niche Clustering: Cells)</strong> VoltRon creates spatial neighborhoods around cells to cluster local cellular compositions around all cells which in turn informs users on cell types that are likely within proximity to each other.
       </li>
-      <li style="padding-bottom: 10px">
+      <li style="padding-bottom: 1px">
       <strong>(Hot Spot Detection)</strong> VoltRon detects region of locally spatial patterns of cells/molecules/spots that are abundant in biological events and/or features.
       </li>
     </ul>  
     </li>
-    <li style="padding-bottom: 10px">
+    <li>
     <p> <strong> Support for Big Data </strong> for VoltRon objects enables storing large feature data matrices and large microscopic images of tissues on disk without overloading memory, thus allowing analysis on large datasets with ease. VoltRon stores large images as pyramid structures to speed up visualization and data retrieval. </p>
     </li>
     <li style="padding-bottom: 10px">
