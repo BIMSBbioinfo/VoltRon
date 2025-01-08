@@ -521,7 +521,7 @@ unreplicated and replicated virus molecules, respectively. We can
 visualize again tile the count of these virus expressions by
 specifically selecting these two ORFs.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;, 
-              group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), n.tile = 300)</code></pre>
+              group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), n.tile = 500)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus.png" class="center"></p>
 <p><br></p>
 <p>We can even zoom into specific locations at the tissue to investigate
@@ -562,7 +562,7 @@ analysis which will label each molecule if their neighborhood are dense
 in other virus molecules.</p>
 <pre class="r watch-out"><code>vr2_merged_acute1 &lt;- getHotSpotAnalysis(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
                                         features = &quot;gene&quot;, graph.type = &quot;radius&quot;)
-vrSpatialPlot(vr2_merged_acute1_2, assay = &quot;Xenium_mol&quot;, 
+vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
               group.by = &quot;gene_hotspot_flag&quot;, group.ids = c(&quot;cold&quot;, &quot;hot&quot;), alpha = 1)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_hotspot.png" class="center"></p>
 </div>
@@ -657,11 +657,6 @@ tool for interactive visualization.</p>
 <pre class="r watch-out"><code># convert VoltRon object to h5ad
 as.AnnData(vr2_merged_acute1, assay = &quot;Xenium&quot;, file = &quot;vr2_merged_acute1.h5ad&quot;, 
            flip_coordinates = TRUE, name = &quot;main&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
-<!-- # export the registered H&E image -->
-<!-- library(magick) -->
-<!-- img <- vrImages(vr2_merged_acute1, assay = "Assay7", name = "main", channel = "H&E") -->
-<!-- image_write(image = img, path = "vr2_merged_acute1_H&E.png", format = "png") -->
-<p><br></p>
 <p>To run TissUUmaps please follow installation instructions <a
 href="https://tissuumaps.github.io/installation/">here</a>, then you can
 simply drag and drop both the h5ad file and png file to the

@@ -469,7 +469,6 @@ Clustering</a> tutorial. You can find the already analyzed data stored
 as a VoltRon object <a
 href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/NicheClustering/Visium&amp;Visium_data_decon_analyzed.rds">here</a></p>
 <pre class="r watch-out"><code>MBrain_Sec &lt;- readRDS(&quot;Visium&amp;Visium_data_decon_analyzed.rds&quot;)</code></pre>
-<p><br></p>
 <p>We can start annotating the spatial assay. By passing arguments used
 by the <strong>vrSpatialPlot</strong> function to visualize labels
 (e.g. clusters), we can better select regions within tissue sections for
@@ -590,7 +589,6 @@ will create the array in the specified location. We use the
 of cells vertically, hence match it with the top to bottom system of the
 background DAPI image.</p>
 <pre class="r watch-out"><code>as.AnnData(xenium_data, file = &quot;xenium_data.h5ad&quot;, assay = &quot;Xenium&quot;, flip_coordinates = TRUE)</code></pre>
-<p><br></p>
 <p>To use <strong>TissUUmaps</strong>, you can follow the instructions
 <a href="https://tissuumaps.github.io/installation/">here</a>. Once
 installed and executed, simply drag and drop the h5ad file to the main

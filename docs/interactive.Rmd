@@ -43,8 +43,6 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 MBrain_Sec <- readRDS("Visium&Visium_data_decon_analyzed.rds")
 ```
 
-<br>
-
 We can start annotating the spatial assay. By passing arguments used by the **vrSpatialPlot** function to visualize labels (e.g. clusters), we can better select regions within tissue sections for annotation. 
 
 ```{r class.source="watch-out", eval = FALSE}
@@ -180,8 +178,6 @@ To use **TissUUmaps** for interactive investigation of your spatial omic data, w
 ```{r class.source="watch-out", eval = FALSE}
 as.AnnData(xenium_data, file = "xenium_data.h5ad", assay = "Xenium", flip_coordinates = TRUE)
 ```
-
-<br>
 
 To use **TissUUmaps**, you can follow the instructions [here](https://tissuumaps.github.io/installation/). Once installed and executed, simply drag and drop the h5ad file to the main panel of the application
 

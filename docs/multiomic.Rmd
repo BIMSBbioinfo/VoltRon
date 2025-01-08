@@ -86,7 +86,7 @@ We incorporate two open reading frames (ORFs), named **S2_N** and **S2_orf1ab**,
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrSpatialPlot(vr2_merged_acute1, assay = "Xenium_mol", group.by = "gene", 
-              group.ids = c("S2_N", "S2_orf1ab"), n.tile = 300)
+              group.ids = c("S2_N", "S2_orf1ab"), n.tile = 500)
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus.png" class="center">
@@ -146,7 +146,7 @@ We now select the feature type and graph name to run an hot spot analysis which 
 ```{r eval = FALSE, class.source="watch-out"}
 vr2_merged_acute1 <- getHotSpotAnalysis(vr2_merged_acute1, assay = "Xenium_mol", 
                                         features = "gene", graph.type = "radius")
-vrSpatialPlot(vr2_merged_acute1_2, assay = "Xenium_mol", 
+vrSpatialPlot(vr2_merged_acute1, assay = "Xenium_mol", 
               group.by = "gene_hotspot_flag", group.ids = c("cold", "hot"), alpha = 1)
 ```
 
@@ -240,13 +240,6 @@ Once the H&E image is registered and transfered to the Xenium data, we can conve
 as.AnnData(vr2_merged_acute1, assay = "Xenium", file = "vr2_merged_acute1.h5ad", 
            flip_coordinates = TRUE, name = "main", channel = "H&E")
 ```
-
-<!-- # export the registered H&E image -->
-<!-- library(magick) -->
-<!-- img <- vrImages(vr2_merged_acute1, assay = "Assay7", name = "main", channel = "H&E") -->
-<!-- image_write(image = img, path = "vr2_merged_acute1_H&E.png", format = "png") -->
-
-<br>
 
 To run TissUUmaps please follow installation instructions [here](https://tissuumaps.github.io/installation/), then you can simply drag and drop both the h5ad file and png file to the application.
 
