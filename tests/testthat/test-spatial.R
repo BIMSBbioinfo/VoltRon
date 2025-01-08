@@ -8,18 +8,42 @@ test_that("spatial neighbors", {
   graphs <- vrGraph(xenium_data, graph.type = "delaunay")
   expect_true(inherits(graphs,"igraph"))
   expect_true(length(igraph::E(graphs)) > 0)
+  vrSpatialPlot(xenium_data, graph.name = "delaunay", group.by = "clusters")
   
   # spatial neighbors, spatialkNN
   xenium_data <- getSpatialNeighbors(xenium_data, method = "spatialkNN", k = 5)
   graphs <- vrGraph(xenium_data, graph.type = "spatialkNN")
   expect_true(inherits(graphs,"igraph"))
   expect_true(length(igraph::E(graphs)) > 0)
+  vrSpatialPlot(xenium_data, graph.name = "spatialkNN", group.by = "clusters")
   
   # spatial neighbors, radius
   xenium_data <- getSpatialNeighbors(xenium_data, method = "radius", radius = 10)
   graphs <- vrGraph(xenium_data, graph.type = "radius")
   expect_true(inherits(graphs,"igraph"))
   expect_true(length(igraph::E(graphs)) > 0)
+  vrSpatialPlot(xenium_data, graph.name = "radius", group.by = "clusters")
+  
+  # return
+  expect_equal(1,1L)
+})
+
+test_that("spatial neighbors for subsets", {
+  
+  # get data
+  data("xenium_data")
+  
+  # merge two of same types
+  xenium_data2 <- xenium_data
+  xenium_data2$Sample <- "XeniumR2"
+  merged_data <- merge(xenium_data, xenium_data2)
+  
+  # spatial neighbors, delaunay
+  merged_data <- getSpatialNeighbors(merged_data, assay = "Assay1", method = "delaunay")
+  graphs <- vrGraph(merged_data, graph.type = "delaunay")
+  expect_true(inherits(graphs,"igraph"))
+  expect_true(length(igraph::E(graphs)) > 0)
+  vrSpatialPlot(merged_data, graph.name = "delaunay", group.by = "clusters")
   
   # return
   expect_equal(1,1L)

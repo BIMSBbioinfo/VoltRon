@@ -22,6 +22,7 @@ NULL
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param graph.name if not NULL, the spatial graph is with name \code{graph.name} is visualized as well, see \link{vrGraphNames}
+#' @param graph.edge.color the colors of the graph edges, if \code{graph.name} is not NULL.
 #' @param reduction used by \code{vrSpatialPlotVitessce} to visualize an embedding alongside with the spatial plot.
 #' @param ncol column wise number of plots, for \link{ggarrange}
 #' @param nrow row wise number of plots, for \link{ggarrange}
@@ -52,7 +53,7 @@ NULL
 #'
 #' @export
 vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, 
-                          assay = NULL, graph.name = NULL, reduction = NULL, ncol = 2, nrow = NULL, font.size = 2, pt.size = 2, 
+                          assay = NULL, graph.name = NULL, graph.edge.color = "orange", reduction = NULL, ncol = 2, nrow = NULL, font.size = 2, pt.size = 2, 
                           cell.shape = 21, alpha = 1, label = FALSE, spatial = NULL, channel = NULL, background.color = NULL, 
                           background = NULL, reg = FALSE, crop = FALSE, legend.pt.size = 2, legend.text.size = 14, 
                           scale.image = TRUE, legend.loc = "right", common.legend = TRUE, collapse.plots = TRUE, interactive = FALSE, 
@@ -155,8 +156,8 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
     # visualize
     p_title <- plot_title[[assy]]
     gg[[i]] <- vrSpatialPlotSingle(assay = cur_assay, metadata = cur_metadata,
-                                   group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, colors = colors, n.tile = n.tile, graph = graph, font.size = font.size, pt.size = pt.size,
-                                   alpha = alpha, cell.shape = cell.shape, plot_title = p_title, background = background, spatial = spatial, channel = channel, background.color = background.color, reg = reg,
+                                   group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, colors = colors, n.tile = n.tile, graph = graph, graph.edge.color = graph.edge.color, font.size = font.size, 
+                                   pt.size = pt.size, alpha = alpha, cell.shape = cell.shape, plot_title = p_title, background = background, spatial = spatial, channel = channel, background.color = background.color, reg = reg,
                                    crop = crop, legend.pt.size = legend.pt.size, legend.text.size = legend.text.size, scale.image = scale.image)
     i <- i + 1
   }
@@ -212,7 +213,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 #'
 #' @noRd
 vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, 
-                                graph = NULL, font.size = 2, pt.size = 2, cell.shape = 16, alpha = 1, plot_title = NULL, spatial = NULL, 
+                                graph = NULL, graph.edge.color = "orange", font.size = 2, pt.size = 2, cell.shape = 16, alpha = 1, plot_title = NULL, spatial = NULL, 
                                 channel = NULL, background.color = NULL, background = NULL, reg = FALSE, crop = FALSE, legend.pt.size = 2, 
                                 legend.text.size = 14, scale.image = TRUE){
 
@@ -332,7 +333,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       
       # add if a graph exists
       if(!is.null(graph)){
-        g <- g + addGraph(graph, coords, background.color)
+        g <- g + addGraph(graph = graph, coords = coords, background = graph.edge.color)
       }
     }
 
@@ -380,7 +381,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         
         # add if a graph exists
         if(!is.null(graph)){
-          g <- g + addGraph(graph, coords, background.color)
+          g <- g + addGraph(graph = graph, coords = coords, background = graph.edge.color)
         }
         
       }
@@ -1083,7 +1084,6 @@ vrSpatialPlotImage <- function(g, assay, background, scale.image, spatial = NULL
   } 
   
   # background color
-  # if(any(background.color %in% c("white","black"))){
   if(!is.null(background.color)){
     g <- g +
       theme(panel.background = element_rect(fill = background.color, colour = background.color, linewidth = 0.5, linetype = "solid"))
@@ -1222,17 +1222,18 @@ GeomSpot <- ggplot2::ggproto("GeomSpot",
 #' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
 #'
 #' @import ggplot2
+#' @importFrom igraph as_data_frame
 #'
 #' @noRd
 addGraph <- function(graph, coords, background){
-  graph.df <- igraph::get.data.frame(graph)
+  # graph.df <- igraph::get.data.frame(graph)
+  graph.df <- igraph::as_data_frame(graph)
   graph.df$from.x <- coords$x[match(graph.df$from, rownames(coords))]
   graph.df$from.y <- coords$y[match(graph.df$from, rownames(coords))]
   graph.df$to.x <- coords$x[match(graph.df$to, rownames(coords))]
   graph.df$to.y <- coords$y[match(graph.df$to, rownames(coords))]
   geom_segment(data = graph.df, mapping = aes(x=from.x,xend = to.x, y=from.y,yend = to.y), 
-               alpha = 0.5, color = ifelse(background == "black", "grey", "black"))
-  
+               alpha = 0.5, color = background)
 }
 
 ####

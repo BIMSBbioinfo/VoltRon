@@ -23,7 +23,7 @@ NULL
 #' @importFrom igraph add_edges simplify make_empty_graph vertices
 #' @importFrom RCDT delaunay
 #' @importFrom RANN nn2
-#' @importFrom reshape2 melt
+#' @importFrom data.table melt
 #' @importFrom stats dist
 #'
 #' @export
@@ -43,11 +43,11 @@ getSpatialNeighbors <- function(object,
   assay_names <- vrAssayNames(object, assay = assay)
   
   # get assay connectivity 
-  assay_names <- getBlockConnectivity(object, assay = assay_names)
+  assay_names_connected <- getBlockConnectivity(object, assay = assay_names)
   
   # get spatial edges
   spatialedges_list <- list()
-  for(assy in assay_names){
+  for(assy in assay_names_connected){
     
     # get coordinates
     cur_coords <- as.matrix(vrCoordinates(object, assay = assy))
@@ -100,9 +100,11 @@ getSpatialNeighbors <- function(object,
                # nnedges <- RANN::nn2(cur_coords, k = k + 1)
                nnedges <- knn_annoy(cur_coords, k = k + 1)
                names(nnedges) <- c("nn.index", "nn.dist")
-               nnedges <- nnedges$nn.index
-               nnedges <- reshape2::melt(data.frame(nnedges), id.vars = "X1")
-               nnedges <- subset(nnedges[,c("X1", "value")], value != 0 & X1 != 0)
+               # nnedges <- nnedges$nn.index
+               # nnedges <- reshape2::melt(data.frame(nnedges), id.vars = "X1")
+               # nnedges <- subset(nnedges[,c("X1", "value")], value != 0 & X1 != 0)
+               nnedges <- data.table::melt(data.table::data.table(nnedges$nn.index), id.vars = "V1")
+               nnedges <- nnedges[,c("V1", "value")][V1 > 0 & value > 0]
                nnedges <- as.vector(t(as.matrix(nnedges)))
                nnedges <- rownames(cur_coords)[nnedges]
                nnedges
@@ -113,9 +115,11 @@ getSpatialNeighbors <- function(object,
                  radius <- ifelse(is.null(spot.radius), 1, spot.radius)
                }
                nnedges <- suppressWarnings({RANN::nn2(cur_coords, searchtype = "radius", radius = radius, k = min(300, sqrt(nrow(cur_coords))/2))})
-               nnedges <- nnedges$nn.idx
-               nnedges <- reshape2::melt(data.frame(nnedges), id.vars = "X1")
-               nnedges <- subset(nnedges[,c("X1", "value")], value != 0 & X1 != 0)
+               # nnedges <- nnedges$nn.idx
+               # nnedges <- reshape2::melt(data.frame(nnedges), id.vars = "X1")
+               nnedges <- data.table::melt(data.table::data.table(nnedges$nn.idx), id.vars = "V1")
+               # nnedges <- subset(nnedges[,c("X1", "value")], value != 0 & X1 != 0)
+               nnedges <- nnedges[,c("V1", "value")][V1 > 0 & value > 0]
                nnedges <- as.vector(t(as.matrix(nnedges)))
                nnedges <- rownames(cur_coords)[nnedges]
                nnedges
@@ -128,7 +132,7 @@ getSpatialNeighbors <- function(object,
   graph <- make_empty_graph(directed = FALSE) + vertices(spatialpoints)
   graph <- add_edges(graph, edges = spatialedges)
   graph <- simplify(graph, remove.multiple = TRUE, remove.loops = FALSE)
-  vrGraph(object, graph.type = graph.key) <- graph
+  vrGraph(object, assay = assay_names, graph.type = graph.key) <- graph
 
   # return
   return(object)

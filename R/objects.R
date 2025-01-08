@@ -1820,7 +1820,8 @@ flipCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, spa
 #'
 #' @rdname vrGraph
 #'
-#' @importFrom igraph induced_subgraph
+#' @importFrom igraph induced_subgraph V
+#' 
 #' @export
 vrGraph <- function(object, assay = NULL, graph.type = NULL) {
 
@@ -1846,6 +1847,7 @@ vrGraph <- function(object, assay = NULL, graph.type = NULL) {
 
   # return graph
   if(length(vrGraphNames(object)) > 0){
+    node_names <- intersect(igraph::V(object@graph[[graph.type]])$name, node_names)
     returngraph <- igraph::induced_subgraph(object@graph[[graph.type]], node_names)
     return(returngraph)
   } else {
@@ -1858,32 +1860,37 @@ vrGraph <- function(object, assay = NULL, graph.type = NULL) {
 #' 
 #' @rdname vrGraph
 #'
-#' @importFrom igraph disjoint_union induced_subgraph
+#' @importFrom igraph disjoint_union induced_subgraph V
 #' @export
-"vrGraph<-" <- function(object, graph.type = "kNN", value) {
+"vrGraph<-" <- function(object, assay = NULL, graph.type = "kNN", value) {
 
   # check value
   if(!inherits(value, "igraph"))
     stop("The 'value' should be of an igraph class!")
 
-  # all vertices
-  spobject <- vrSpatialPoints(object)
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  spobject <- vrSpatialPoints(object, assay = assay_names)
 
   # check if there exists graphs
   graph <- object@graph
   if(length(names(object@graph)) == 0 || !graph.type %in% names(object@graph)){
-    graph[[graph.type]] <- make_empty_graph(directed = FALSE) + vertices(spobject)
+    
+    # graph[[graph.type]] <- make_empty_graph(directed = FALSE) + vertices(spobject)
+    graph[[graph.type]] <- value
+    
+  } else {
+   
+    # vertices
+    new_vert <- igraph::V(value)$name
+    
+    # edges
+    subg_inv <- igraph::induced_subgraph(graph[[graph.type]], spobject[!spobject%in%new_vert])
+    graph[[graph.type]] <- igraph::disjoint_union(value, subg_inv)
   }
-
-  # vertices
-  new_vert <- V(value)$name
-
-  # edges
-  subg_inv <- igraph::induced_subgraph(graph[[graph.type]], spobject[!spobject%in%new_vert])
-  graph[[graph.type]] <- igraph::disjoint_union(value, subg_inv)
-
+  
   # update object
-  object@graph <- graph
+  object@graph <- graph 
 
   # return
   return(object)
