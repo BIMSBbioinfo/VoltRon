@@ -118,10 +118,18 @@ xen_reg <- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))
 
 <br>
 
-You can save and use the same parameters later, and reproduce the alignment without choosing parameters the second time. You can find a presaved set of parameters [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/mapping_parameters.rds).
+You can save and use the same parameters later, and reproduce the alignment without choosing parameters the second time. 
 
 ```{r class.source="watch-out", eval = FALSE} 
 mapping_parameters <- xen_reg$mapping_parameters
+xen_reg <- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), 
+                               mapping_parameters = mapping_parameters)
+```
+
+You can find a presaved set of parameters [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/mapping_parameters.rds).
+
+```{r class.source="watch-out", eval = FALSE} 
+mapping_parameters <- readRDS("mapping_parameters.rds")
 xen_reg <- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), 
                                mapping_parameters = mapping_parameters)
 ```
@@ -155,10 +163,18 @@ xen_reg <- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))
 
 <br>
 
-You can save and use the same keypoints later, and reproduce the manual alignment without choosing keypoints for the second time. You can find a presaved set of parameters with selected manual keypoints  [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/mapping_parameters_manual.rds).
+You can save and use the same keypoints later, and reproduce the manual alignment without choosing keypoints for the second time. 
 
 ```{r class.source="watch-out", eval = FALSE} 
 mapping_parameters <- xen_reg$mapping_parameters
+xen_reg <- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), 
+                               mapping_parameters = mapping_parameters)
+```
+
+You can find a presaved set of parameters with selected manual keypoints  [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/mapping_parameters_manual.rds).
+
+```{r class.source="watch-out", eval = FALSE} 
+mapping_parameters <- readRDS("mapping_parameters_manual.rds")
 xen_reg <- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), 
                                mapping_parameters = mapping_parameters)
 ```
@@ -317,6 +333,7 @@ g1 / g2
 The **transferData** function can also transfer **metadata features** across layers and assays. In this case, we will transfer cell type labels that were trained on the Xenium sections onto the Visium sections. We will use the cluster labels generated at the end of the Xenium analysis section of workflow from [Cell/Spot Analysis](spotanalysis.html). You can download the VoltRon object with clustered and annotated Xenium cells along with the Visium assay from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/VRBlock_data_clustered.rds). 
 
 ```{r class.source="watch-out", eval = FALSE}
+VRBlock <- readRDS("VRBlock_data_clustered.rds")
 vrSpatialPlot(VRBlock, assay = "Xenium", group.by = "CellType", pt.size = 0.4)
 ```
 

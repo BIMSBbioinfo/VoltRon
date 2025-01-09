@@ -582,10 +582,13 @@ align them onto H&amp;E images.</p>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration_FLANN.gif" class="center"></p>
 <p><br></p>
 <p>You can save and use the same parameters later, and reproduce the
-alignment without choosing parameters the second time. You can find a
-presaved set of parameters <a
-href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/mapping_parameters.rds">here</a>.</p>
+alignment without choosing parameters the second time.</p>
 <pre class="r watch-out"><code>mapping_parameters &lt;- xen_reg$mapping_parameters
+xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), 
+                               mapping_parameters = mapping_parameters)</code></pre>
+<p>You can find a presaved set of parameters <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/mapping_parameters.rds">here</a>.</p>
+<pre class="r watch-out"><code>mapping_parameters &lt;- readRDS(&quot;mapping_parameters.rds&quot;)
 xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), 
                                mapping_parameters = mapping_parameters)</code></pre>
 <p>If the pre-saved parameters are available, the registration can also
@@ -616,10 +619,14 @@ registration and remove/reselect keypoints as they see fit.</p>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration.gif" class="center"></p>
 <p><br></p>
 <p>You can save and use the same keypoints later, and reproduce the
-manual alignment without choosing keypoints for the second time. You can
-find a presaved set of parameters with selected manual keypoints <a
-href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/mapping_parameters_manual.rds">here</a>.</p>
+manual alignment without choosing keypoints for the second time.</p>
 <pre class="r watch-out"><code>mapping_parameters &lt;- xen_reg$mapping_parameters
+xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), 
+                               mapping_parameters = mapping_parameters)</code></pre>
+<p>You can find a presaved set of parameters with selected manual
+keypoints <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/mapping_parameters_manual.rds">here</a>.</p>
+<pre class="r watch-out"><code>mapping_parameters &lt;- readRDS(&quot;mapping_parameters_manual.rds&quot;)
 xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), 
                                mapping_parameters = mapping_parameters)</code></pre>
 <p>If the pre-saved keypoints are available with parameters, the
@@ -769,7 +776,8 @@ href="spotanalysis.html">Cell/Spot Analysis</a>. You can download the
 VoltRon object with clustered and annotated Xenium cells along with the
 Visium assay from <a
 href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/VRBlock_data_clustered.rds">here</a>.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(VRBlock, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;, pt.size = 0.4)</code></pre>
+<pre class="r watch-out"><code>VRBlock &lt;- readRDS(&quot;VRBlock_data_clustered.rds&quot;)
+vrSpatialPlot(VRBlock, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;, pt.size = 0.4)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_annotated.png" class="center"></p>
 <p>Here, we can see that both Xenium layers are clustered and annotated
 where we can use these cell annotations and transfer them to the Visium
