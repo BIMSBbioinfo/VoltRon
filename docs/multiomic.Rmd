@@ -131,7 +131,7 @@ vr2_merged_acute1 <- getSpatialNeighbors(vr2_merged_acute1, assay = "Xenium_mol"
                                          method = "radius", radius = 50)
 ```
 
-This will create a new graph with the voltron object
+We can now observe the new spatial neighborhood graph saved in the VoltRon object with name **radius**.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrGraphNames(vr2_merged_acute1)
@@ -210,6 +210,18 @@ vrImages(vr2_merged_acute1[["Assay8"]], name = "main", channel = "H&E") <-
   vrImages(imgdata_reg, assay = "Assay1", name = "main_reg")
 ```
 
+We can now observe the new channels available for the both molecule and cell-level assays of Xenium data. 
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImageChannelNames(vr2_merged_acute1)
+```
+
+```
+   Assay  Spatial  Channels
+1 Assay7     main  DAPI,H&E
+2 Assay8     main  DAPI,H&E
+```
+
 <br>
 
 You can also add the VoltRon object of H&E data as an additional assay of the Xenium section such that one layer includes cell, molecules, ROI Annotations and images in the same time. Specifically, we add the ROI annotation to the Xenium VoltRon object using the **addAssay** function where we choose the destination sample/block and the layer of the assay. 
@@ -253,7 +265,6 @@ To run TissUUmaps please follow installation instructions [here](https://tissuum
 Now we can transfer ROI annotations as additional metadata features of the molecule assay. We will refer the new metadata column as "Region" which will indicate if the molecule is within any annotated ROI in the same layer.
 
 ```{r eval = FALSE, class.source="watch-out"}
-# make a new metadata column for ROIAnnotation assay using names
 vrMainAssay(vr2_merged_acute1) <- "ROIAnnotation"
 vr2_merged_acute1$Region <- vrSpatialPoints(vr2_merged_acute1)
 

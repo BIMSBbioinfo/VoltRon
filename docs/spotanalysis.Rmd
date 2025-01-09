@@ -157,6 +157,11 @@ Next, we build neighborhood graphs with the **shared nearest neighbors (SNN)** o
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 Xen_data <- getProfileNeighbors(Xen_data, dims = 1:20, method = "SNN")
+vrGraphNames(Xen_data)
+```
+
+```
+[1] "SNN"
 ```
 
 We can later conduct a clustering of cells using the **leiden's method** from the igraph package, which is utilized with the **getClusters** function.
@@ -334,6 +339,14 @@ vrEmbeddingPlot(MBrain_Sec, embedding = "umap")
 
 ```{r eval = FALSE, class.source="watch-out"}
 MBrain_Sec <- getProfileNeighbors(MBrain_Sec, dims = 1:30, k = 10, method = "SNN")
+vrGraphNames(MBrain_Sec)
+```
+
+```
+[1] "SNN"
+```
+
+```{r eval = FALSE, class.source="watch-out"}
 MBrain_Sec <- getClusters(MBrain_Sec, resolution = 0.5, label = "Clusters", graph = "SNN")
 vrEmbeddingPlot(MBrain_Sec, embedding = "umap", group.by = "Clusters")
 ```
@@ -461,6 +474,14 @@ Now we can visualize the clusters across these sections and perhaps also check f
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 # SNN graph and clusters
 vr_merged <- getProfileNeighbors(vr_merged, dims = 1:10, k = 10, method = "SNN")
+vrGraphNames(vr_merged)
+```
+
+```
+[1] "SNN"
+```
+
+```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 vr_merged <- getClusters(vr_merged, resolution = 0.8, label = "MELC_Clusters", graph = "SNN")
 
 # install patchwork package
@@ -515,7 +536,17 @@ We use the **vrNeighbourhoodEnrichment** function to detect cell type pairs that
 [Delaunay tesselations](https://en.wikipedia.org/wiki/Delaunay_triangulation) or graphs are commonly used to determine neighbors of spatial entities. The function **getSpatialNeighbors** builds a delaunay graph of all assays of a certain type and detects neighbors of cells in a VoltRon object.
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-vr_merged_result <- getSpatialNeighbors(vr_merged, method = "delaunay")
+vr_merged <- getSpatialNeighbors(vr_merged, method = "delaunay")
+```
+
+The graph **delaunay**, which we will use for spatially-aware neightborhood analysis, is now the second graph available in the VoltRon object along with **SNN**.
+
+```{r eval = FALSE, class.source="watch-out", fig.align='center'}
+vrGraphNames(vr_merged)
+```
+
+```
+[1] "SNN"      "delaunay"
 ```
 
 Once neighbors are founds, we can apply a **permutation test** that compares the number of cell type occurances with an expected number of these occurances under multiple permutations of labels in the tissue (fixed coordinates but cells are randomly labelled). A similar approach is used to by several spatial analysis frameworks and packages ([Schapiro et. al 2017](https://www.nature.com/articles/nmeth.4391), [Palla et. al 2022](https://www.nature.com/articles/s41592-021-01358-2)).
@@ -523,7 +554,7 @@ Once neighbors are founds, we can apply a **permutation test** that compares the
 Here, we will use the original cell type labels annotated by [Mothes et. al 2023](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9922044/).
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-neighborhood_results <- vrNeighbourhoodEnrichment(vr_merged_result, group.by = "Clusters")
+neighborhood_results <- vrNeighbourhoodEnrichment(vr_merged, group.by = "Clusters")
 ```
 
 The neighborhood analysis provides the results of:

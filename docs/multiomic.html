@@ -554,7 +554,8 @@ virus.</p>
 <pre class="r watch-out"><code>vr2_merged_acute1 &lt;- getSpatialNeighbors(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
                                          group.by = &quot;gene&quot;, group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), 
                                          method = &quot;radius&quot;, radius = 50)</code></pre>
-<p>This will create a new graph with the voltron object</p>
+<p>We can now observe the new spatial neighborhood graph saved in the
+VoltRon object with name <strong>radius</strong>.</p>
 <pre class="r watch-out"><code>vrGraphNames(vr2_merged_acute1)</code></pre>
 <pre><code>[1] &quot;radius&quot;</code></pre>
 <p>We now select the feature type and graph name to run an hot spot
@@ -563,7 +564,8 @@ in other virus molecules.</p>
 <pre class="r watch-out"><code>vr2_merged_acute1 &lt;- getHotSpotAnalysis(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
                                         features = &quot;gene&quot;, graph.type = &quot;radius&quot;)
 vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
-              group.by = &quot;gene_hotspot_flag&quot;, group.ids = c(&quot;cold&quot;, &quot;hot&quot;), alpha = 1)</code></pre>
+              group.by = &quot;gene_hotspot_flag&quot;, group.ids = c(&quot;cold&quot;, &quot;hot&quot;), 
+              alpha = 1, background.color = &quot;white&quot;)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_hotspot.png" class="center"></p>
 </div>
 <div id="automated-he-registration" class="section level2">
@@ -629,6 +631,12 @@ vrImages(vr2_merged_acute1[[&quot;Assay7&quot;]], name = &quot;main&quot;, chann
   vrImages(imgdata_reg, assay = &quot;Assay1&quot;, name = &quot;main_reg&quot;)
 vrImages(vr2_merged_acute1[[&quot;Assay8&quot;]], name = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- 
   vrImages(imgdata_reg, assay = &quot;Assay1&quot;, name = &quot;main_reg&quot;)</code></pre>
+<p>We can now observe the new channels available for the both molecule
+and cell-level assays of Xenium data.</p>
+<pre class="r watch-out"><code>vrImageChannelNames(vr2_merged_acute1)</code></pre>
+<pre><code>   Assay  Spatial  Channels
+1 Assay7     main  DAPI,H&amp;E
+2 Assay8     main  DAPI,H&amp;E</code></pre>
 <p><br></p>
 <p>You can also add the VoltRon object of H&amp;E data as an additional
 assay of the Xenium section such that one layer includes cell,
@@ -670,8 +678,7 @@ application.</p>
 of the molecule assay. We will refer the new metadata column as “Region”
 which will indicate if the molecule is within any annotated ROI in the
 same layer.</p>
-<pre class="r watch-out"><code># make a new metadata column for ROIAnnotation assay using names
-vrMainAssay(vr2_merged_acute1) &lt;- &quot;ROIAnnotation&quot;
+<pre class="r watch-out"><code>vrMainAssay(vr2_merged_acute1) &lt;- &quot;ROIAnnotation&quot;
 vr2_merged_acute1$Region &lt;- vrSpatialPoints(vr2_merged_acute1)
 
 # set the spatial coordinate system of ROI Annotations assay

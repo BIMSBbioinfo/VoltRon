@@ -438,8 +438,8 @@ Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1")
 
 # import H&E image and build a VoltRon object
 Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif",
-                                sample_name = "XeniumR1image",
-                                image_name = "H&E")
+                                sample_name = "XeniumR1image", 
+                                channel_names = "H&E")
 Xen_R1_image
 ```
 
@@ -478,10 +478,21 @@ Now we create a new channel for the existing coordinate system of the Xenium dat
 
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1_image_reg <- xen_reg$registered_spat[[2]]
-vrImages(Xen_R1[["Assay1"]], channel = "H&E") <- vrImages(Xen_R1_image_reg, name = "H&E_reg")
+vrImages(Xen_R1[["Assay1"]], channel = "H&E") <- vrImages(Xenium_reg, name = "main_reg", channel = "H&E")
 ```
 
-Now we can call the registered H&E image of the Xenium data or later put the aligned H&E when calling **vrSpatialPlot** or **vrSpatialFeaturePlot**.
+We can now observe the new channels (H&E) available for the Xenium assay using **vrImageChannelNames**.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImageChannelNames(Xen_R1)
+```
+
+```
+   Assay Spatial Channels
+1 Assay1    main DAPI,H&E
+```
+
+We can call the registered H&E image of the Xenium data or later put the aligned H&E when calling **vrSpatialPlot** or **vrSpatialFeaturePlot**. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrImages(Xen_R1, channel = "H&E", scale.perc = 5)

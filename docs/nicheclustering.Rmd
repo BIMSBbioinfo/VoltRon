@@ -207,6 +207,14 @@ Using normalized cell type abundances, we can now generate k-nearest neighbor gr
 
 ```{r eval = FALSE, class.source="watch-out"}
 MBrain_Sec <- getProfileNeighbors(MBrain_Sec, data.type = "norm", method = "SNN")
+vrGraphNames(MBrain_Sec)
+```
+
+```
+[1] "SNN"
+```
+
+```{r eval = FALSE, class.source="watch-out"}
 MBrain_Sec <- getClusters(MBrain_Sec, resolution = 0.6, graph = "SNN")
 ```
 
