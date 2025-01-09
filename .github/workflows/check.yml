@@ -161,6 +161,10 @@ jobs:
           BiocManager::install('ComplexHeatmap')
           devtools::install_github('dmcable/spacexr')
           devtools::install_github('xuranw/MuSiC')
+          BiocManager::install('SingleCellExperiment')
+          BiocManager::install('SpatialExperiment')
+          install.packages('dplyr')
+          BiocManager::install('DESeq2')
         shell: Rscript {0}
           
       ## R CMD Check

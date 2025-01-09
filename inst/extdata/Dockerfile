@@ -39,6 +39,10 @@ RUN R -e "BiocManager::install('RBioFormats')"
 RUN R -e "BiocManager::install('ComplexHeatmap')"
 RUN R -e "devtools::install_github('dmcable/spacexr')"
 RUN R -e "devtools::install_github('xuranw/MuSiC')"
+RUN R -e "BiocManager::install('SingleCellExperiment')"
+RUN R -e "BiocManager::install('SpatialExperiment')"
+RUN R -e "install.packages('dplyr')"
+RUN R -e "BiocManager::install('DESeq2')"
 
 # Install VoltRon dependencies
 RUN R -e "devtools::install_github('BIMSBbioinfo/VoltRon')"
