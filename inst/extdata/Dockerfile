@@ -32,6 +32,13 @@ RUN R -e "remotes::install_github('bnprks/BPCells/r@v0.3.0')"
 RUN R -e "remotes::install_github('BIMSBbioinfo/ImageArray')"
 RUN R -e "remotes::install_github('BIMSBbioinfo/HDF5DataFrame')"
 RUN R -e "remotes::install_github('BIMSBbioinfo/ZarrDataFrame')"
+RUN R -e "install.packages('Seurat')"
+RUN R -e "BiocManager::install('glmGamPoi')"
+RUN R -e "install.packages('hdf5r')"
+RUN R -e "BiocManager::install('RBioFormats')"
+RUN R -e "BiocManager::install('ComplexHeatmap')"
+RUN R -e "devtools::install_github('dmcable/spacexr')"
+RUN R -e "devtools::install_github('xuranw/MuSiC')"
 
 # Install VoltRon dependencies
 RUN R -e "devtools::install_github('BIMSBbioinfo/VoltRon')"

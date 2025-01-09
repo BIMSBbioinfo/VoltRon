@@ -154,6 +154,13 @@ jobs:
           devtools::install_github('BIMSBbioinfo/ImageArray')
           devtools::install_github('BIMSBbioinfo/HDF5DataFrame')
           devtools::install_github('BIMSBbioinfo/ZarrDataFrame')
+          install.packages("Seurat")
+          BiocManager::install("glmGamPoi")
+          install.packages('hdf5r')
+          BiocManager::install('RBioFormats')
+          BiocManager::install('ComplexHeatmap')
+          devtools::install_github('dmcable/spacexr')
+          devtools::install_github('xuranw/MuSiC')
         shell: Rscript {0}
           
       ## R CMD Check
