@@ -79,6 +79,12 @@ On **Fedora** you may need [`opencv-devel`](https://src.fedoraproject.org/rpms/o
 yum install opencv-devel
 ```
 
+## Dependencies
+
+VoltRon incorporates `RBioformats` package to import images from `ome.tiff` files, which requires [Java JDK](https://www.oracle.com/java/technologies/downloads/?er=221886) to be available in your system:
+
+See [https://cran.r-project.org/web/packages/rJava](https://cran.r-project.org/web/packages/rJava) below for more information.
+
 ## Docker Hub
 
 You can also run VoltRon from a container already available in [Docker Hub](https://hub.docker.com/repository/docker/amanukyan1385/rstudio-voltron/general). The docker image is based on the [Rocker Project](https://rocker-project.org/) and can be run from the terminal like below: 
