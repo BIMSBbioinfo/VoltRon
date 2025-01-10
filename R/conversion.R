@@ -338,10 +338,17 @@ as.AnnData <- function(object,
     images_mgk <- list(images_mgk)
     names(images_mgk) <- vrAssayNames(object, assay = assay)  
   }
-  image_data_list <- lapply(images_mgk, function(img) {
+  image_list <- lapply(images_mgk, function(img) {
     list(images = list(hires = as.numeric(magick::image_data(img, channels = "rgb"))),
          scalefactors = list(tissue_hires_scalef = 1, spot_diameter_fullres = 0.5))
   })
+  
+  # obsm
+  # TODO: currently embedding and spatial dimensions should of the same size, but its not 
+  # always the case in VoltRon objects
+  obsm <- c(obsm, list(spatial = coords, 
+                       spatial_AssayID = coords, 
+                       segmentation = segmentations_array))
   
   # save as zarr
   if(grepl(".zarr[/]?$", file)){
@@ -354,8 +361,8 @@ as.AnnData <- function(object,
     proc <- basilisk::basiliskStart(py_env)
     on.exit(basilisk::basiliskStop(proc))
     success <- basilisk::basiliskRun(proc, function(data, metadata, obsm, coords, segments, image_list, file) {
-      anndata <- reticulate::import("anndata")
       zarr <- reticulate::import("zarr")
+      anndata <- reticulate::import("anndata")
       make_numpy_friendly <- function(x) {
         if (DelayedArray::is_sparse(x)) {
           methods::as(x, "dgCMatrix")
@@ -365,18 +372,17 @@ as.AnnData <- function(object,
         }
       }
       X <- make_numpy_friendly(t(data))
-      obsm <- c(obsm, list(spatial = coords, 
-                           spatial_AssayID = coords, 
-                           segmentation = segmentations_array))
+      obsm <- list(spatial = coords, 
+                   spatial_AssayID = coords, 
+                   segmentation = segmentations_array)
       adata <- anndata$AnnData(X = X, 
                                obs = metadata, 
                                obsm = obsm, 
-                               uns = list(spatial = image_data_list))
-      
+                               uns = list(spatial = image_list))
+      adata <- reticulate::r_to_py(adata)
       adata$write_zarr(file)
       return(TRUE)
-    }, data = data, metadata = metadata, obsm = obsm, coords = coords, segments = segmentations_array, image_list = image_data_list, file = file)
-    
+    }, data = data, metadata = metadata, obsm = obsm, coords = coords, segments = segmentations_array, image_list = image_list, file = file)
     if(create.ometiff){
       success2 <- as.OmeTiff(images_mgk[[1]], out_path = gsub("zarr[/]?$", "ome.tiff", file)) 
       success <- success & success2
@@ -401,7 +407,7 @@ as.AnnData <- function(object,
                                  obsm = list(spatial = coords, 
                                              spatial_AssayID = coords, 
                                              segmentation = segmentations_array),
-                                 uns = list(spatial = image_data_list))
+                                 uns = list(spatial = image_list))
       
       # Write to h5ad file using anndataR
       anndataR::write_h5ad(adata, path = file)
@@ -414,10 +420,10 @@ as.AnnData <- function(object,
       # Create anndata using anndata
       adata <- anndata::AnnData(X = t(data), 
                                 obs = metadata, 
-                                obsm = list(spatial = coords, 
-                                            spatial_AssayID = coords, 
+                                obsm = list(spatial = coords,
+                                            spatial_AssayID = coords,
                                             segmentation = segmentations_array),
-                                uns = list(spatial = image_data_list))
+                                uns = list(spatial = image_list))
       
       
       # Write to h5ad file using anndata
@@ -603,8 +609,7 @@ as.OmeZarr <- function (object, out_path, image_id = "image_1"){
   
   # get image and transpose the array
   img_arr <- apply(as.matrix(magick::image_raster(object, tidy = FALSE)), c(1, 2), col2rgb)
-  # img_arr <- aperm(img_arr, c(2,3,1))
-  
+
   # run basilisk
   proc <- basilisk::basiliskStart(py_env)
   on.exit(basilisk::basiliskStop(proc))
