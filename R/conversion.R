@@ -2,7 +2,6 @@
 # Seurat ####
 ####
 
-#' @param object a Seurat object
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
 #' @param assay_name the assay name
 #' @param ... Additional parameter passed to \link{formVoltRon}
@@ -17,10 +16,9 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
 
   # check Seurat package
   if(!requireNamespace('Seurat'))
-    stop("Please install Seurat package for using Seurat objects")
+    stop("Please install Seurat package for using Seurat objects!: install.packages('Seurat')")
 
   # raw counts
-  # rawdata <- as.matrix(object[[Seurat::DefaultAssay(object)]]@counts)
   rawdata <- SeuratObject::LayerData(object, assay = Seurat::DefaultAssay(object), layer = "counts")
 
   # metadata
@@ -65,7 +63,7 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
       colnames(coords) <- c("x", "y")
       rownames(coords) <- cells_nopostfix
 
-      # from voltron
+      # form voltron
       params <- list()
       assay.type <- "cell"
       assay_name <- "FOV"
@@ -79,8 +77,6 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
         for(embed_name in names(embedding_list)){
           cur_embedding <- embedding_list[[embed_name]][cells,]
           rownames(cur_embedding) <- spatialpoints
-          # embedding_sp <- embedding_list[[embed_name]][spatialpoints_nopostfix[spatialpoints_assay == vrAssayNames(voltron_list[[fn]])],]
-          # rownames(embedding_sp) <- spatialpoints
           vrEmbeddings(voltron_list[[fn]], type = embed_name) <- cur_embedding
         }
       }
@@ -91,7 +87,7 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
     vrobject <- merge(voltron_list[[1]], voltron_list[-1])
   } else{
     image <- NULL
-    warning("There are no spatial objects available in this Seurat object")
+    stop("There are no spatial objects available in this Seurat object")
   }
 
   return(vrobject)
@@ -722,6 +718,122 @@ as.Giotto <- function(object, assay = NULL, reg = FALSE){
 # SpatialExperiment ####
 ####
 
+#' @param type the spatial data type of Seurat object: "image" or "spatial"
+#' @param assay_type one of two types, 'cell' or 'spot' etc.
+#' @param assay_name the assay name of the voltron assays (e.g. Visium, Xenium etc.)
+#' @param image_id select image_id names if needed.
+#' @param ... Additional parameter passed to \link{formVoltRon}
+#'
+#' @rdname as.VoltRon
+#' @method as.VoltRon SpatialExperiment
+#' 
+#' @importFrom magick image_read
+#'
+#' @export
+as.VoltRon.SpatialExperiment <- function(object, assay_type = "cell", assay_name = NULL, image_id = NULL, ...){
+  
+  # check SpatialExperiment package
+  if(!requireNamespace('SpatialExperiment'))
+    stop("Please install SpatialExperiment package for using SpatialExperiment objects!: BiocManager::install('SpatialExperiment')")
+  
+  # raw counts
+  data <- SummarizedExperiment::assay(object, i = "counts")
+
+  # metadata
+  metadata <- as.data.frame(SummarizedExperiment::colData(object))
+  
+  # embeddings
+  dim_names <- SingleCellExperiment::reducedDimNames(object)
+  if(length(dim_names) > 0){
+    embeddings_flag <- TRUE
+    embedding_list <- sapply(dim_names, function(x) {
+      SingleCellExperiment::reducedDim(object, type = x)
+    }, USE.NAMES = TRUE)
+  } else {
+    embeddings_flag <- FALSE
+  }
+  
+  # coords
+  coords <- SpatialExperiment::spatialCoords(object)
+  colnames(coords) <- c("x", "y")
+  
+  # img data
+  imgdata <- SpatialExperiment::imgData(object)
+  
+  # image
+  voltron_list <- list()
+  sample_names <- unique(metadata$sample_id)
+  for(samp in sample_names){
+    
+    # spatial points
+    sppoints <- rownames(metadata)[metadata$sample_id == samp]
+    sppoints_nopostfix <- gsub("_Assay[0-9]+$", "", sppoints)
+    
+    # metadata 
+    cur_metadata <- metadata[sppoints,]
+    
+    # data
+    cur_data <- data[,sppoints]
+    
+    # coords
+    cur_coords <- coords[sppoints,]
+    
+    # image
+    if(nrow(imgdata) > 0){
+      if(is.null(image_id)){
+        image_names <- imgdata$image_id[imgdata$sample_id == samp]
+      } else {
+        image_names <- image_id
+      }
+      img_list <- sapply(image_names, function(img){ 
+        imgraster <- SpatialExperiment::imgRaster(object, 
+                                                  sample_id = samp, 
+                                                  image_id = img)
+        magick::image_read(imgraster)
+      }, USE.NAMES = TRUE)
+    } else {
+      img_list <- NULL
+    }
+    
+    # get params
+    if(assay_type == "spot"){
+      vis.spot.radius <- 1 
+      spot.radius <- 1
+    } else {
+      params <- list()
+    }
+    
+    # form voltron
+    assay_name <- assay_name
+    assay_type <- assay_type
+    voltron_list[[samp]] <- formVoltRon(data = cur_data, metadata = cur_metadata, coords = cur_coords, 
+                                      main.assay = assay_name, image = img_list, params = params, 
+                                      assay.type = assay_type, sample_name = samp, ...)
+    
+    # add embeddings
+    spatialpoints <- vrSpatialPoints(voltron_list[[samp]])
+    spatialpoints_nopostfix <- stringr::str_replace(spatialpoints, "_Assay[0-9]+$", "")
+    spatialpoints_assay <- stringr::str_extract(spatialpoints, "Assay[0-9]+$")
+    if(embeddings_flag){
+      for(embed_name in names(embedding_list)){
+        cur_embedding <- embedding_list[[embed_name]][cells,]
+        rownames(cur_embedding) <- spatialpoints
+        vrEmbeddings(voltron_list[[samp]], type = embed_name) <- cur_embedding
+      }
+    }
+  }
+  
+  # merge object
+  message("Merging object ...")
+  if(length(voltron_list) > 1){
+    vrobject <- merge(voltron_list[[1]], voltron_list[-1])
+  } else {
+    vrobject <- voltron_list[[1]]
+  }
+
+  return(vrobject)
+}
+
 #' as.SpatialExperiment
 #'
 #' Converting a VoltRon object into a SpatialExperiment object
@@ -773,13 +885,22 @@ as.SpatialExperiment <- function(object, assay = NULL, reg = FALSE){
   assays <- stringr::str_extract(rownames(metadata), pattern = "_Assay[0-9]+$")
   assays <- gsub("^_", "", assays)
   
+  # Embeddings
+  reduceddims <- list()
+  if (length(vrEmbeddingNames(object, assay = assay)) > 0) {
+    for (embed_name in vrEmbeddingNames(object, assay = assay)) {
+      reduceddims[[embed_name]] <- vrEmbeddings(object, assay = assay, type = embed_name)
+    }
+  }
+  
   # coordinates
   coords <- as.matrix(vrCoordinates(flipCoordinates(object, assay = assay), assay = assay, reg = reg))
   coords <- coords[colnames(rawdata),]
   
   # Seurat object
   spe <- SpatialExperiment::SpatialExperiment(assay=list(counts = rawdata),
-                                              colData=metadata,
+                                              colData=metadata, 
+                                              reducedDims = reduceddims,
                                               sample_id=assays,
                                               spatialCoords=coords)
   

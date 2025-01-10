@@ -3,20 +3,33 @@
 \name{as.VoltRon}
 \alias{as.VoltRon}
 \alias{as.VoltRon.Seurat}
+\alias{as.VoltRon.SpatialExperiment}
 \title{as.VoltRon}
 \usage{
 as.VoltRon(object, ...)
 
 \method{as.VoltRon}{Seurat}(object, type = c("image", "spatial"), assay_name = NULL, ...)
+
+\method{as.VoltRon}{SpatialExperiment}(
+  object,
+  assay_type = "cell",
+  assay_name = NULL,
+  image_id = NULL,
+  ...
+)
 }
 \arguments{
-\item{object}{a Seurat object}
+\item{object}{a Seurat or SpatialExperiment object}
 
 \item{...}{Additional parameter passed to \link{formVoltRon}}
 
 \item{type}{the spatial data type of Seurat object: "image" or "spatial"}
 
-\item{assay_name}{the assay name}
+\item{assay_name}{the assay name of the voltron assays (e.g. Visium, Xenium etc.)}
+
+\item{assay_type}{one of two types, 'cell' or 'spot' etc.}
+
+\item{image_id}{select image_id names if needed.}
 }
 \description{
 Generic methods for conversion into a VoltRon object
