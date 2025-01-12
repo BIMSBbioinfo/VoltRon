@@ -23,7 +23,7 @@ NULL
 #' @importFrom igraph add_edges simplify make_empty_graph vertices
 #' @importFrom RCDT delaunay
 #' @importFrom RANN nn2
-#' @importFrom data.table melt
+#' @importFrom data.table data.table melt
 #' @importFrom stats dist
 #'
 #' @export

@@ -404,7 +404,8 @@ getCellsFromTiles <- function(from_object, from_metadata = NULL, to_object, feat
   tile_to_cell <- knn_annoy(coords_tiles, coords_cells, k = k)
   names(tile_to_cell) <- c("nn.index", "nn.dist")
   tile_to_cell_nnid <- data.frame(id = rownames(coords_cells), tile_to_cell$nn.index)
-  tile_to_cell_nnid <- reshape2::melt(tile_to_cell_nnid, id.vars = "id")
+  # tile_to_cell_nnid <- reshape2::melt(tile_to_cell_nnid, id.vars = "id")
+  tile_to_cell_nnid <- data.table::melt(tile_to_cell_nnid, id.vars = "id")
   tile_id <- vrSpatialPoints(from_object)[tile_to_cell_nnid$value]
   tile_to_cell_nnid <- tile_to_cell_nnid$id
 

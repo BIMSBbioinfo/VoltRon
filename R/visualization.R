@@ -1939,7 +1939,7 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
 #' @param nrow row wise number of plots, for \link{ggarrange}
 #'
 #' @import ggplot2
-#' @importFrom reshape2 melt
+#' @importFrom data.table data.table melt
 #'
 #' @export
 #'
@@ -1988,8 +1988,9 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, group.by = "Samp
                       group.by =  as.factor(metadata[[group.by]]),
                       assay_title = assay_title,
                       spatialpoints = rownames(metadata))
-  ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("group.by", "assay_title", "spatialpoints"))
-
+  # ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("group.by", "assay_title", "spatialpoints"))
+  ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("group.by", "assay_title", "spatialpoints"))
+  
   # visualize points on violin
   if(plot.points){
     gg <- ggplot(ggplotdatax, aes(x = group.by, y = value, color = group.by)) + 
@@ -2036,7 +2037,7 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, group.by = "Samp
 #' @param nrow row wise number of plots, for \link{ggarrange}
 #'
 #' @import ggplot2
-#' @importFrom reshape2 melt
+#' @importFrom data.table data.table melt
 #'
 #' @export
 #'
@@ -2120,7 +2121,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
                               group.by = group.by.col,
                               assay_title = assay_title,
                               spatialpoints = spatialpoints)
-    ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "group.by", "spatialpoints"))
+    ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.label", "assay_title", "group.by", "spatialpoints"))
     gg <- ggplot(ggplotdatax, aes(x = x.label, y = value,
                                   fill = factor(group.by, levels = unique(group.by)))) +
       geom_bar(stat = "identity") +
@@ -2152,7 +2153,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
                               split.by = split.by.col,
                               assay_title = assay_title,
                               spatialpoints = spatialpoints)
-    ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "group.by", "split.by", "spatialpoints"))
+    ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.label", "assay_title", "group.by", "split.by", "spatialpoints"))
     gg <- ggplot(ggplotdatax, aes(x = x.label, y = value,
                                   fill = factor(group.by, levels = unique(group.by)))) +
       geom_bar(stat = "identity") +
@@ -2183,7 +2184,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 #' @param nrow row wise number of plots, for \link{ggarrange}
 #'
 #' @import ggplot2
-#' @importFrom reshape2 melt
+#' @importFrom data.table data.table melt
 #'
 #' @export
 #'
@@ -2241,7 +2242,7 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
                             x.label =  x.label,
                             assay_title = assay_title,
                             spatialpoints = spatialpoints)
-  ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "spatialpoints"))
+  ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.label", "assay_title", "spatialpoints"))
   ggplotdatax <- ggplotdatax[ggplotdatax$value > 0,]
   gg <- ggplot(ggplotdatax, aes(x = x.label, y = value, fill = variable)) +
     geom_bar(stat = "identity") +
@@ -2254,7 +2255,7 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
                               x.label =  x.label,
                               assay_title = assay_title,
                               spatialpoints = rownames(metadata))
-    ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "spatialpoints"))
+    ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.label", "assay_title", "spatialpoints"))
     ggplotdatax <- ggplotdatax[ggplotdatax$value > 0,]
     gg <- ggplot(ggplotdatax, aes(x = x.label, y = value, fill = variable)) +
       geom_bar(stat = "identity") +
@@ -2274,7 +2275,7 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
                               assay_title = assay_title,
                               split.by = split.by.col,
                               spatialpoints = spatialpoints)
-    ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "split.by", "spatialpoints"))
+    ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.label", "assay_title", "split.by", "spatialpoints"))
     ggplotdatax <- ggplotdatax[ggplotdatax$value > 0,]
     gg <- ggplot(ggplotdatax, aes(x = x.label, y = value, fill = variable)) +
       geom_bar(stat = "identity") +

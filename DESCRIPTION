@@ -1,20 +1,19 @@
 Package: VoltRon
 Type: Package
-Title: VoltRon for Spatial Data Integration and Analysis
+Title: VoltRon for Spatial Omics Data Integration and Analysis
 Version: 0.2.0
 Depends: R (>= 4.3.0)
 Author: Artür Manukyan, Ella Bahry, Raj Prateek Rai, Wei-Che Ko, Deborah Schmidt, Markus Landthaler, Altuna Akalin
 Maintainer: Artür Manukyan <artur-man@hotmail.com>
-Description: VoltRon is a novel spatial omic analysis toolbox for multi-omics integration using spatial image registration. VoltRon is capable of analyzing multiple types and modalities of spatially-aware datasets. VoltRon visualizes and analyzes regions of interests (ROIs), spots, cells and even molecules.
+Description: VoltRon is a novel spatial omic analysis toolbox for multi-omics integration using spatial image registration. VoltRon is capable of analyzing multiple types and modalities of spatially-aware datasets. VoltRon visualizes and analyzes regions of interests (ROIs), spots, cells, molecules and event tiles.
 License: MIT + file LICENSE
 SystemRequirements: OpenCV 4.8 (or higher): libopencv-dev (Debian, Ubuntu) or opencv-devel (Fedora)
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 biocViews:
-Imports: methods, S4Arrays, grDevices, data.table, EBImage, RcppAnnoy, RANN,
-         Matrix, dplyr, ggplot2, ggrepel, igraph, irlba, rjson, magick, ids, 
-         sp, reshape2, rlang, ggpubr, shiny, shinyjs, stringr, uwot, RCDT, 
-         basilisk, reticulate
+Imports: methods, grDevices, data.table, Matrix, S4Arrays, ids, RcppAnnoy, RANN, igraph,
+         dplyr, ggplot2, ggrepel, ggpubr, rjson, magick, EBImage, 
+         sp, rlang, shiny, shinyjs, stringr, irlba, uwot, RCDT, basilisk, reticulate
 LinkingTo: Rcpp, RcppArmadillo (>= 0.4)
 Collate: 
     'RcppExports.R'
@@ -41,6 +40,7 @@ Collate:
     'spatial.R'
     'visualization.R'
 Suggests:
+    testthat (>= 3.0.0),
     SpatialExperiment,
     SingleCellExperiment,
     Seurat,
@@ -52,11 +52,11 @@ Suggests:
     XML,
     ComplexHeatmap,
     xlsx,
+    reshape2,
     tiledb,
     tiledbsc,
     arrow,
     vitessceR,
-    testthat (>= 3.0.0),
     geojsonR,
     circlize,
     rstudioapi,

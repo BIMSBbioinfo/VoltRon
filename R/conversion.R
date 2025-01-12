@@ -767,8 +767,7 @@ as.VoltRon.SpatialExperiment <- function(object, assay_type = "cell", assay_name
     
     # spatial points
     sppoints <- rownames(metadata)[metadata$sample_id == samp]
-    sppoints_nopostfix <- gsub("_Assay[0-9]+$", "", sppoints)
-    
+
     # metadata 
     cur_metadata <- metadata[sppoints,]
     
@@ -816,7 +815,7 @@ as.VoltRon.SpatialExperiment <- function(object, assay_type = "cell", assay_name
     spatialpoints_assay <- stringr::str_extract(spatialpoints, "Assay[0-9]+$")
     if(embeddings_flag){
       for(embed_name in names(embedding_list)){
-        cur_embedding <- embedding_list[[embed_name]][cells,]
+        cur_embedding <- embedding_list[[embed_name]][sppoints,]
         rownames(cur_embedding) <- spatialpoints
         vrEmbeddings(voltron_list[[samp]], type = embed_name) <- cur_embedding
       }

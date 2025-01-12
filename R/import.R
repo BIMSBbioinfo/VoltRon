@@ -201,9 +201,6 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #'
 generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_level = 7, overwrite_resolution = FALSE, output.path = NULL, file.name = "morphology_lowres.tif", ...) {
   
-  if (!requireNamespace('RBioFormats'))
-    stop("Please install RBioFormats package to read the ome.tiff file!")
-  
   # file path to either Xenium output folder or specified folder
   file.path <- paste0(dir.path, "/", file.name)
   output.file <- paste0(output.path, "/", file.name)
@@ -213,7 +210,7 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
     message(paste0(file.name, " already exists!"))
   } else {
     if (!requireNamespace('RBioFormats'))
-      stop("Please install RBioFormats package to read the ome.tiff file!")
+      stop("Please install RBioFormats package to extract xml from the ome.tiff file!: BiocManager::install('RBioFormats')")
     if(dir.exists(paste0(dir.path, "/morphology_focus"))){
       message("Loading morphology_focus_0000.ome.tif ...")
       morphology_image_lowres <- RBioFormats::read.image(paste0(dir.path, "/morphology_focus/morphology_focus_0000.ome.tif"),
@@ -402,7 +399,7 @@ importVisiumHD <- function(dir.path, bin.size = "8", selected_assay = "Gene Expr
   
   # coordinates
   if(!requireNamespace("arrow"))
-    stop("Please install arrow package to import VisiumHD!")
+    stop("Please install arrow package to import VisiumHD!: install.packages('arrow')")
   coords_file <- list.files(paste0(dir.path, "/spatial/"), full.names = TRUE)
   coords_file <- coords_file[grepl("tissue_positions",coords_file)]
   if(length(coords_file) == 1){
@@ -461,7 +458,7 @@ import10Xh5 <- function(filename){
 
   # check package
   if(!requireNamespace("hdf5r")){
-    stop("You have to install the hdf5r package!: install.packages('hdf5r'')")
+    stop("You have to install the hdf5r package!: install.packages('hdf5r')")
   }
   
   # check file
@@ -588,7 +585,7 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
   if(file.exists(summarySegment)){
     if(grepl(".xls$|.xlsx$", summarySegment)){
       if (!requireNamespace('xlsx'))
-        stop("Please install xlsx package for using the read.xlsx function!")
+        stop("Please install xlsx package for using the read.xlsx function!: install.packages('xlsx')")
       if(!is.null(summarySegmentSheetName)){
         segmentsummary <- xlsx::read.xlsx(summarySegment, sheetName = summarySegmentSheetName)
       } else {
@@ -872,7 +869,7 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
   if(file.exists(ome.tiff)){
     if(grepl(".ome.tiff$|.ome.tif$", ome.tiff)){
       if (!requireNamespace('RBioFormats'))
-        stop("Please install RBioFormats package to extract xml from the ome.tiff file!")
+        stop("Please install RBioFormats package to extract xml from the ome.tiff file!: BiocManager::install('RBioFormats')")
       if (!requireNamespace('XML'))
         stop("Please install XML package to extract xml from the ome.tiff file!")
       omexml <- RBioFormats::read.omexml(ome.tiff)
@@ -964,7 +961,7 @@ importGeoMxChannels <- function(ome.tiff, summary, imageinfo, resolution_level){
   if(file.exists(ome.tiff)){
     if(grepl(".ome.tiff$|.ome.tif$", ome.tiff)){
       if (!requireNamespace('RBioFormats'))
-        stop("Please install RBioFormats package to extract xml from the ome.tiff file!")
+        stop("Please install RBioFormats package to extract xml from the ome.tiff file!: BiocManager::install('RBioFormats')")
       if (!requireNamespace('XML'))
         stop("Please install XML package to extract xml from the ome.tiff file!")
       omexml <- RBioFormats::read.omexml(ome.tiff)
@@ -1161,12 +1158,15 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
 #'
 #' @importFrom magick image_read image_contrast
 #' @importFrom EBImage writeImage
-#' @importFrom reshape2 acast
 #'
 #' @export
-#'
 generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path = NULL, ...) {
 
+  # check package
+  if(!requireNamespace("reshape2")){
+    stop("You have to install the reshape2 package!: install.packages('reshape2')")
+  }
+  
   # file path to either Xenium output folder or specified folder
   file.path <- paste0(dir.path, "/CellComposite_lowres.tif")
   output.file <- paste0(output.path, "/CellComposite_lowres.tif")
@@ -1285,7 +1285,7 @@ importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, u
     
     # check RBioFormats
     if (!requireNamespace('RBioFormats'))
-      stop("Please install RBioFormats package to extract xml from the ome.tiff file!")
+      stop("Please install RBioFormats package to extract xml from the ome.tiff file!: BiocManager::install('RBioFormats')")
     
     # check image
     image_file <- paste0(dir.path, "/images/DAPI.tiff")
@@ -1415,9 +1415,9 @@ importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, u
 #'
 importSTOmics <- function(h5ad.path, assay_name = "STOmics", sample_name = NULL, image_name = "main", channel_name = "H&E", ...)
 {
-  # check Seurat package
+  # check package
   if(!requireNamespace('anndataR'))
-    stop("Please install anndataR package")
+    stop("Please install anndataR package!: devtools::install_github('scverse/anndataR')")
   
   # get h5ad data
   stdata <- anndataR::read_h5ad(h5ad.path, to = "HDF5AnnData")
@@ -1567,9 +1567,6 @@ readPhenoCyclerMat <- function(
     filter = 'DAPI|Blank|Empty',
     inform.quant = c('mean', 'total', 'min', 'max', 'std')
 ) {
-  if (!requireNamespace("data.table", quietly = TRUE)) {
-    stop("Please install 'data.table' for this function")
-  }
   # Check arguments
   if (!file.exists(filename)) {
     stop(paste("Can't file file:", filename))
@@ -1788,14 +1785,14 @@ readPhenoCyclerMat <- function(
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom methods as
-#' @importFrom reshape2 melt
+#' @importFrom Matrix t
 #' 
 #' @export
 importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, image_name = "main", channel_name = "H&E", ...)
 {
-  # check Seurat package
+  # check package
   if(!requireNamespace('anndataR'))
-    stop("Please install anndataR package")
+    stop("Please install anndataR package!: devtools::install_github('scverse/anndataR')")
   
   # get h5ad data
   stdata <- anndataR::read_h5ad(h5ad.path, to = "HDF5AnnData")
@@ -1822,7 +1819,9 @@ importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, i
   # get individual sections as voltron data
   sections <- unique(metadata$n_section)
   zlocation <- zlocation[order(sections)]
-  connectivity <- reshape2::melt(matrix(rep(1, length(sections)^2), nrow = length(sections)))[,1:2]
+  # connectivity <- reshape2::melt(matrix(rep(1, length(sections)^2), nrow = length(sections)))[,1:2]
+  connectivity <- data.frame(Var1 = rep(1:length(sections), length(sections)), 
+                             Var2 = rep(1:length(sections), each = length(sections)))
   sections <- sections[order(sections)]
   vr_data_list <- list()
   message("Creating Layers ...")
