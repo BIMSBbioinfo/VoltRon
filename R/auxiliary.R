@@ -194,19 +194,19 @@ rownames(.dccMetadata[["protocolData"]])[rownames(.dccMetadata[["protocolData"]]
 # Basilisk Environment ####
 ####
 
-#' The Python Basilisk environment
+#' get the Python Basilisk environment
 #'
 #' Defines a conda environment via Basilisk, which is used to convert R objects to Zarr stores.
-#'
-#' @importFrom basilisk BasiliskEnvironment
 #'
 #' @keywords internal
 #'
 #' @noRd
-py_env <- basilisk::BasiliskEnvironment(
-  envname="VoltRon_basilisk_env",
-  pkgname="VoltRon",
-  packages=c(
+getBasilisk <- function(){
+ 
+  if(!requireNamespace('basilisk'))
+    stop("Please install basilisk package!: BiocManager::install('basilisk')")
+  
+  basilisk.packages=c(
     "numpy==1.*",
     "pandas==1.*",
     "anndata==0.7.*",
@@ -219,11 +219,20 @@ py_env <- basilisk::BasiliskEnvironment(
     "zarr==2.*",
     "numcodecs==0.*",
     "tifffile==2024.2.12"
-  ),
-  pip=c(
+  )
+  basilisk.pip=c(
     "ome-zarr==0.2.1"
   )
-)
+  
+  py_env <- basilisk::BasiliskEnvironment(
+    envname="VoltRon_basilisk_env",
+    pkgname="VoltRon",
+    packages=basilisk.packages,
+    pip=basilisk.pip
+  )
+  
+  py_env
+}
 
 ####
 # Other Auxiliary tools ####

@@ -1,9 +1,10 @@
 # test_that("as.AnnData", {
 # 
 #   # library
-#   skip_if_not_installed("DelayedArray")
-#   skip_if_not_installed("anndata")
+#   skip_if_not_installed("basilisk")
 #   skip_if_not_installed("reticulate")
+#   skip_if_not_installed("anndata")
+#   skip_if_not_installed("DelayedArray")
 # 
 #   # get data
 #   data("visium_data")

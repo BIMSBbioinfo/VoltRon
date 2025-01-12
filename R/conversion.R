@@ -201,9 +201,9 @@ as.Seurat <- function(object, cell.assay = NULL, molecule.assay = NULL, image_ke
 #'
 convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
   
-  # check Seurat package
+  # check anndata package
   if(!requireNamespace('anndata'))
-    stop("Please install anndata package")
+    stop("Please install anndata package!: install.packages('anndata')")
   
   # read anndata
   adata <- anndata::read_h5ad(file)
@@ -350,10 +350,15 @@ as.AnnData <- function(object,
   if(grepl(".zarr[/]?$", file)){
     
     # check packages
+    if(!requireNamespace('basilisk'))
+      stop("Please install basilisk package!: BiocManager::install('basilisk')")
+    if(!requireNamespace('reticulate'))
+      stop("Please install reticulate package!: install.packages('reticulate')")
     if(!requireNamespace('DelayedArray'))
       stop("Please install DelayedArray package for using DelayedArray functions")
     
     # run basilisk to call zarr methods
+    py_env <- getBasilisk()
     proc <- basilisk::basiliskStart(py_env)
     on.exit(basilisk::basiliskStop(proc))
     success <- basilisk::basiliskRun(proc, function(data, metadata, obsm, coords, segments, image_list, file) {
@@ -440,8 +445,6 @@ as.AnnData <- function(object,
 
 #' @rdname as.Zarr
 #'
-#' @importFrom basilisk basiliskStart basiliskStop basiliskRun
-#' @importFrom reticulate import
 #' @importFrom magick image_raster
 #' @importFrom grDevices col2rgb
 #'
@@ -450,6 +453,10 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
 {
   
   # check packages
+  if(!requireNamespace('basilisk'))
+    stop("Please install basilisk package!: BiocManager::install('basilisk')")
+  if(!requireNamespace('reticulate'))
+    stop("Please install reticulate package!: install.packages('reticulate')")
   if(!requireNamespace('DelayedArray'))
     stop("Please install DelayedArray package for using DelayedArray functions")
   
@@ -468,6 +475,7 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
     }
   }
   
+  py_env <- getBasilisk()
   proc <- basilisk::basiliskStart(py_env)
   on.exit(basilisk::basiliskStop(proc))
   success <- basilisk::basiliskRun(proc, function(datax, metadata, obsm, out_path) {
@@ -498,15 +506,20 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
 
 #' @rdname as.Zarr
 #'
-#' @importFrom basilisk basiliskStart basiliskStop basiliskRun
-#' @importFrom reticulate import
 #' @importFrom magick image_raster
 #' @importFrom grDevices col2rgb
 #'
 #' @export
 "as.Zarr.magick-image" <- function (object, out_path, image_id = "image_1")
 {
+  # check packages
+  if(!requireNamespace('basilisk'))
+    stop("Please install basilisk package!: BiocManager::install('basilisk')")
+  if(!requireNamespace('reticulate'))
+    stop("Please install reticulate package!: install.packages('reticulate')")
+  
   img_arr <- apply(as.matrix(magick::image_raster(object, tidy = FALSE)), c(1, 2), col2rgb)
+  py_env <- getBasilisk()
   proc <- basilisk::basiliskStart(py_env)
   on.exit(basilisk::basiliskStop(proc))
   success <- basilisk::basiliskRun(proc, function(img_arr, image_id, out_path) {
@@ -547,19 +560,24 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
 #' @param out_path output path to ome.tiff file
 #' @param image_id image name
 #' 
-#' @importFrom basilisk basiliskStart basiliskStop basiliskRun
-#' @importFrom reticulate import
 #' @importFrom magick image_raster
 #' @importFrom grDevices col2rgb
 #'
 #' @export
 as.OmeTiff <- function (object, out_path, image_id = "image_1"){
   
+  # check packages
+  if(!requireNamespace('basilisk'))
+    stop("Please install basilisk package!: BiocManager::install('basilisk')")
+  if(!requireNamespace('reticulate'))
+    stop("Please install reticulate package!: install.packages('reticulate')")
+  
   # get image and transpose the array
   img_arr <- apply(as.matrix(magick::image_raster(object, tidy = FALSE)), c(1, 2), col2rgb)
   img_arr <- aperm(img_arr, c(2,3,1))
   
   # run basilisk
+  py_env <- getBasilisk()
   proc <- basilisk::basiliskStart(py_env)
   on.exit(basilisk::basiliskStop(proc))
   success <- basilisk::basiliskRun(proc, function(img_arr, image_id, out_path, e) {
@@ -595,18 +613,23 @@ with tifffile.TiffWriter('", out_path, "') as tif: tif.write(tifimage, photometr
 #' @param out_path output path to ome.tiff file
 #' @param image_id image name
 #' 
-#' @importFrom basilisk basiliskStart basiliskStop basiliskRun
-#' @importFrom reticulate import
 #' @importFrom magick image_raster
 #' @importFrom grDevices col2rgb
 #'
 #' @export
 as.OmeZarr <- function (object, out_path, image_id = "image_1"){
   
+  # check packages
+  if(!requireNamespace('basilisk'))
+    stop("Please install basilisk package!: BiocManager::install('basilisk')")
+  if(!requireNamespace('reticulate'))
+    stop("Please install reticulate package!: install.packages('reticulate')")
+  
   # get image and transpose the array
   img_arr <- apply(as.matrix(magick::image_raster(object, tidy = FALSE)), c(1, 2), col2rgb)
 
   # run basilisk
+  py_env <- getBasilisk()
   proc <- basilisk::basiliskStart(py_env)
   on.exit(basilisk::basiliskStop(proc))
   success <- basilisk::basiliskRun(proc, function(img_arr, image_id, out_path) {

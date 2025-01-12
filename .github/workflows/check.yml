@@ -148,6 +148,8 @@ jobs:
       # All Other dependencies
       - name: Install Suggested dependencies
         run: |
+          install.packages(c('reticulate'))
+          BiocManager::install(c('basilisk'))
           BiocManager::install(c('DelayedArray'))
           BiocManager::install(c('HDF5Array'))
           remotes::install_github('bnprks/BPCells/r@v0.3.0')
