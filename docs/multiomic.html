@@ -611,14 +611,24 @@ SARS-COV-2 molecules mostly outside of any single cell.</p>
               alpha = 0.7, interactive = TRUE)</code></pre>
 <p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_Covid_HE_zoom.png" class="center"></p>
 <p><br></p>
+<p>At a first glance, although the Xenium (DAPI) and H&amp;E images are
+associated with the same TMA core, they were captured in a different
+perspective; that is, one image is almost the 90 degree rotated version
+of the other. We will account for this rotation when we (automatically)
+align the Xenium data with the H&amp;E image.</p>
+<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- modulateImage(vr2_merged_acute1, brightness = 300, channel = &quot;DAPI&quot;)
+vrImages(vr2_merged_acute1, assay = &quot;Assay7&quot;, scale.perc = 20)
+vrImages(imgdata, assay = &quot;Assay1&quot;, scale.perc = 20)</code></pre>
+<p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_twoimages.png" class="center"></p>
+<p><br></p>
 <p>We now register the H&amp;E image and annotations to the DAPI image
 of Xenium section using the <strong>registerSpatialData</strong>
-function. See <a href="registration.html">Spatial Data Alignment</a>
-tutorial for more information. We select FLANN automated registration
-mode, negate the DAPI image of the Xenium slide, turn 90 degrees to the
-left and set the scale parameter of both images to width = 1859.</p>
-<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- modulateImage(vr2_merged_acute1, brightness = 300, channel = &quot;DAPI&quot;)
-xen_reg &lt;- registerSpatialData(object_list = list(vr2_merged_acute1, imgdata))</code></pre>
+function. We select FLANN (with “Homography” method) automated
+registration mode, negate the DAPI image of the Xenium slide, turn 90
+degrees to the left and set the scale parameter of both images to
+<strong>width = 1859</strong>. See <a href="registration.html">Spatial
+Data Alignment</a> tutorial for more information.</p>
+<pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(vr2_merged_acute1, imgdata))</code></pre>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_HE_registration.png" class="center"></p>
 <p><br></p>
 <p>Once registered, we can isolate the registered H&amp;E data and use
