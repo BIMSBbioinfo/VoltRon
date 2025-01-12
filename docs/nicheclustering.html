@@ -637,7 +637,9 @@ vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;Sampl
 <p>Using normalized cell type abundances, we can now generate k-nearest
 neighbor graphs and cluster the graph using leiden method.</p>
 <pre class="r watch-out"><code>MBrain_Sec &lt;- getProfileNeighbors(MBrain_Sec, data.type = &quot;norm&quot;, method = &quot;SNN&quot;)
-MBrain_Sec &lt;- getClusters(MBrain_Sec, resolution = 0.6, graph = &quot;SNN&quot;)</code></pre>
+vrGraphNames(MBrain_Sec)</code></pre>
+<pre><code>[1] &quot;SNN&quot;</code></pre>
+<pre class="r watch-out"><code>MBrain_Sec &lt;- getClusters(MBrain_Sec, resolution = 0.6, graph = &quot;SNN&quot;)</code></pre>
 <p><br></p>
 </div>
 <div id="visualization" class="section level2">

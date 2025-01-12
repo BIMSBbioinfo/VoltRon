@@ -667,10 +667,10 @@ before merging. Both Xenium sections have now two coordinate system
 where the registered system <strong>main_reg</strong> is the default
 one.</p>
 <pre class="r watch-out"><code>vrSpatialNames(VRBlock, assay = &quot;all&quot;)</code></pre>
-<pre><code>   Assay       Spatial     Main
-1 Assay1 main,main_reg main_reg
-2 Assay2          main     main
-3 Assay3 main,main_reg main_reg</code></pre>
+<pre><code>        Assay    Layer   Sample       Spatial     Main
+Assay1 Xenium Section1 10XBlock main,main_reg main_reg
+Assay2 Visium Section2 10XBlock          main     main
+Assay3 Xenium Section3 10XBlock main,main_reg main_reg</code></pre>
 <p><br></p>
 </div>
 <div id="datalabel-transfer-across-layers" class="section level3">
@@ -892,14 +892,14 @@ assays in one of these VoltRon objects.</p>
 <p>First we align the H&amp;E image to the DAPI image of the Xenium
 replicate. Similar to the first use case, we need to negate the DAPI
 image and change the alignment of the image to match it with the H&amp;E
-image. We can also adjust the resolution of the H&amp;E image to
+image. We can also scale the resolution of the H&amp;E image to
 9103.71x6768.63.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))</code></pre>
 <p><img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE_function.png" class="center"></p>
 <p><br></p>
 <p>Now we create a new channel for the existing coordinate system of the
-Xenium data. Here, the key of the registered H&amp;E image will be
-<strong>H&amp;E_reg</strong>. We choose the destination of the
+Xenium data. Here, the spatial key of the registered H&amp;E image will
+be <strong>main_reg</strong>. We choose the destination of the
 registered image which is the first Assay of the Xenium data
 (i.e. <strong>Assay1</strong>). The original DAPI coordinate system, and
 we give a name for the new image/channel which is
@@ -909,8 +909,8 @@ vrImages(Xen_R1[[&quot;Assay1&quot;]], channel = &quot;H&amp;E&quot;) &lt;- vrIm
 <p>We can now observe the new channels (H&amp;E) available for the
 Xenium assay using <strong>vrImageChannelNames</strong>.</p>
 <pre class="r watch-out"><code>vrImageChannelNames(Xen_R1)</code></pre>
-<pre><code>   Assay Spatial Channels
-1 Assay1    main DAPI,H&amp;E</code></pre>
+<pre><code>       Assay    Layer           Sample Spatial                                               Channels
+Assay1 GeoMx Section1 prolonged case 4    main scanimage,DNA,PanCK,CD45,Alpha Smooth Muscle Actin,H&amp;E</code></pre>
 <p>We can call the registered H&amp;E image of the Xenium data or later
 put the aligned H&amp;E when calling <strong>vrSpatialPlot</strong> or
 <strong>vrSpatialFeaturePlot</strong>.</p>

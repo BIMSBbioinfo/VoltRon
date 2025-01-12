@@ -690,8 +690,8 @@ list of for further use.</p>
 <pre class="r watch-out"><code>vrImageChannelNames(melc_data)
 vrImageChannelNames(melc_data, assay = &quot;MELC&quot;)
 vrImageChannelNames(melc_data, assay = &quot;Assay1&quot;)</code></pre>
-<pre><code>   Assay Spatial  Channels
-1 Assay1    MELC DAPI,CD45</code></pre>
+<pre><code>       Assay    Layer         Sample Spatial  Channels
+Assay1  MELC Section1 control_case_3    MELC DAPI,CD45</code></pre>
 <p><br></p>
 </div>
 <div id="get-and-set-images" class="section level3">
@@ -733,8 +733,8 @@ provide an associate list of colors.</p>
 <p>These new images can be stored as new channels within the same image
 object, and called later again</p>
 <pre class="r watch-out"><code>vrImageChannelNames(melc_data)</code></pre>
-<pre><code>   Assay Spatial           Channels
-1 Assay1    MELC DAPI,CD45,combined</code></pre>
+<pre><code>       Assay    Layer         Sample Spatial           Channels
+Assay1  MELC Section1 control_case_3    MELC DAPI,CD45,combined</code></pre>
 <pre class="r watch-out"><code>vrImages(melc_data, channel = &quot;combined&quot;)</code></pre>
 <p><br></p>
 </div>

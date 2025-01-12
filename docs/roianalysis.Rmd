@@ -458,7 +458,8 @@ VoltRon provides multiple registration methods to align images. Here, after runn
 
 ```{r eval = FALSE, class.source="watch-out"}
 GeoMxR1_subset <- subset(GeoMxR1, sample = c("prolonged case 4"))
-GeoMxReg <- registerSpatialData(reference_spatdata = GeoMxR1_subset, query_spatdata = vrHEimage)
+GeoMxReg <- registerSpatialData(reference_spatdata = GeoMxR1_subset, 
+                                query_spatdata = vrHEimage)
 ```
 
 <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_manualregistration.png" class="center">
@@ -491,15 +492,14 @@ We can now observe the new channels (H&E) available for the GeoMx assay using **
 vrImageChannelNames(GeoMxR1_subset)
 ```
 
-```
-   Assay Spatial                                               Channels
-1 Assay1    main scanimage,DNA,PanCK,CD45,Alpha Smooth Muscle Actin,H&E
-```
+<div><pre><code style="font-size: 12px;">       Assay    Layer           Sample Spatial                                               Channels
+Assay1 GeoMx Section1 prolonged case 4    main scanimage,DNA,PanCK,CD45,Alpha Smooth Muscle Actin,H&E</code></pre></div>
 
 We can now visualize the ROIs and their annotations where the registered H&E visible in the background. We define the spatial key **main** and the channel name **H&E**. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(GeoMxR1_subset, group.by = "ROI.type", alpha = 0.7, spatial = "main", channel = "H&E")
+vrSpatialPlot(GeoMxR1_subset, group.by = "ROI.type", alpha = 0.7, 
+              spatial = "main", channel = "H&E")
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_spatialplot_withHE.png" class="center">
@@ -507,7 +507,9 @@ vrSpatialPlot(GeoMxR1_subset, group.by = "ROI.type", alpha = 0.7, spatial = "mai
 Interactive Visualization can also be used to zoom in to ROIs and investigate the pathology associated with GeoMx ROIs labeled as fibrotic. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(GeoMxR1_subset, group.by = "ROI.type", alpha = 0.7, spatial = "main", channel = "H&E", interactive = TRUE)
+vrSpatialPlot(GeoMxR1_subset, group.by = "ROI.type", alpha = 0.7, 
+              spatial = "main", channel = "H&E", 
+              interactive = TRUE)
 ```
 
 <img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_spatialplot_withHE_interactive.png" class="center">

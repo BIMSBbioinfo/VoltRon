@@ -630,8 +630,8 @@ vrImageChannelNames(vr_object)
 ```
 
 ```
-   Assay Image  Channels
-1 Assay1  MELC DAPI,CD45
+       Assay    Layer         Sample Spatial  Channels
+Assay1  MELC Section1 control_case_3    MELC DAPI,CD45
 ```
 
 You can extract each of these channels individually.

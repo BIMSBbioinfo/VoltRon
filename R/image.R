@@ -736,6 +736,9 @@ vrMainSpatial.vrAssayV2 <- vrMainSpatial.vrAssay
 #' @export
 vrImageNames.VoltRon <- function(object, assay = NULL){
 
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+  
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
 
@@ -744,7 +747,8 @@ vrImageNames.VoltRon <- function(object, assay = NULL){
     if(assay == "all"){
       spatial_names <- unlist(lapply(assay_names, function(x) paste(vrSpatialNames(object[[x]]), collapse = ",")))
       main_spatial_names <- unlist(lapply(assay_names, function(x) vrMainSpatial(object[[x]])))
-      spatial_names <- data.frame(Assay = assay_names, Spatial = spatial_names, Main = main_spatial_names)
+      # spatial_names <- data.frame(Assay = assay_names, Spatial = spatial_names, Main = main_spatial_names)
+      spatial_names <- data.frame(sample.metadata[assay_names,], Spatial = spatial_names, Main = main_spatial_names)
       return(spatial_names)
     }
   }
@@ -901,6 +905,9 @@ vrImageChannelNames.VoltRon <- function(object, assay = NULL){
     assay_names <- vrAssayNames(object, assay = assay)
   }
 
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+  
   # get image names
   spatial_names <- unlist(lapply(assay_names, function(x) vrMainSpatial(object[[x]])))
 
@@ -908,7 +915,8 @@ vrImageChannelNames.VoltRon <- function(object, assay = NULL){
   image_channels <- unlist(lapply(assay_names, function(x) paste(vrImageChannelNames(object[[x]]), collapse = ",")))
 
   # return data
-  image_data <- data.frame(Assay = assay_names, Spatial = spatial_names, Channels = image_channels)
+  # image_data <- data.frame(Assay = assay_names, Spatial = spatial_names, Channels = image_channels)
+  image_data <- data.frame(sample.metadata[assay_names,], Spatial = spatial_names, Channels = image_channels)
 
   # return
   return(image_data)

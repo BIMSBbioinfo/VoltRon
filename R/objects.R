@@ -1574,7 +1574,12 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
 
       # replace data
       if(!inherits(metadata, "DataFrame")){
-        metadata[match(value$id, metadata$id), ] <- value
+        # TODO: is this replace method appropriate for all dataframe types ? 
+        # metadata[match(value$id, metadata$id), ] <- value
+        ind <- match(value$id, metadata$id)
+        for(cur_col in new_columns){
+          metadata[[cur_col]][ind] <- value[[cur_col]]
+        }
       } else {
         ind <- match(as.vector(value$id), as.vector(metadata$id))
         for(cur_col in new_columns){

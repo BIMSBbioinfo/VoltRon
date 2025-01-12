@@ -217,9 +217,9 @@ vrImageChannelNames(vr2_merged_acute1)
 ```
 
 ```
-   Assay  Spatial  Channels
-1 Assay7     main  DAPI,H&E
-2 Assay8     main  DAPI,H&E
+               Assay    Layer       Sample  Spatial Channels
+Assay7        Xenium Section1 acute case 1     main DAPI,H&E
+Assay8    Xenium_mol Section1 acute case 1     main DAPI,H&E
 ```
 
 <br>
