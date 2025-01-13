@@ -201,7 +201,6 @@ setMethod(
   signature = 'vrLayer',
   definition = function(object) {
     cat(class(x = object), "(VoltRon Layer) Object \n")
-    # cat("This object includes", length(object@assay), "assays \n")
     layers <- names(unlist(object@assay))
     cat("Assay(s):", paste(layers, collapse = " "), "\n")
     return(invisible(x = NULL))

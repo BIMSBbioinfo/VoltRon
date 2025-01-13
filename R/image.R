@@ -1806,9 +1806,7 @@ demuxVoltRon <- function(object, max.pixel.size = 1200, use.points.only = FALSE,
   shiny::runApp(
     shiny::shinyApp(ui, server, options = list(host = shiny.options[["host"]], port = shiny.options[["port"]], launch.browser = shiny.options[["launch.browser"]]),
                     onStart = function() {
-                      cat("Doing application setup\n")
                       onStop(function() {
-                        cat("Doing application cleanup\n")
                       })
                     })
   )

@@ -1173,7 +1173,7 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 
   # check if the file exists in either Xenium output folder, or the specified location
   if(file.exists(file.path) | file.exists(paste0(output.file))){
-    cat("CellComposite_lowres.tif already exists! \n")
+    message("CellComposite_lowres.tif already exists! \n")
     return(NULL)
   }
 
@@ -1183,7 +1183,7 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
   fov_positions <- read.csv(fov_positions_path)
 
   # manipulate fov positions matrix
-  cat("Getting FOV Positions \n")
+  message("Getting FOV Positions \n")
   relative_fov_positions <- fov_positions
   x_min <- min(relative_fov_positions$x_global_px)
   y_min <- min(relative_fov_positions$y_global_px)
@@ -1195,7 +1195,7 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
   relative_fov_positions <- relative_fov_positions[order(relative_fov_positions$y_global_px, decreasing = TRUE),]
 
   # Combine Images of the FOV grid
-  cat("Loading FOV tif files \n")
+  message("Loading FOV tif files \n")
   image.dir.path <- paste0(dir.path,"/CellComposite/")
   morphology_image_data <- NULL
   for(i in relative_fov_positions$fov){
@@ -1213,16 +1213,16 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 
   # pick a resolution level
   morphology_image_info <- image_info(morphology_image)
-  cat(paste0("Image Resolution (X:", morphology_image_info$width, " Y:", morphology_image_info$height, ") \n"))
+  message("Image Resolution (X:", morphology_image_info$width, " Y:", morphology_image_info$height, ") \n")
 
   # increase contrast using EBImage
   if(increase.contrast) {
-    cat("Increasing Contrast \n")
+    message("Increasing Contrast \n")
     morphology_image <- magick::image_contrast(morphology_image, sharpen = 1)
   }
 
   # write to the same folder
-  cat("Writing Tiff File \n")
+  message("Writing Tiff File \n")
   if(is.null(output.path)){
     EBImage::writeImage(magick::as_EBImage(morphology_image), file = file.path, ...)
   } else {

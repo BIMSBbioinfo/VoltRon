@@ -330,7 +330,7 @@ make_css <- function (..., file = NULL)
     css_string
   }
   else {
-    cat(css_string, file = file)
+    message(css_string, file = file)
     invisible(NULL)
   }
 }

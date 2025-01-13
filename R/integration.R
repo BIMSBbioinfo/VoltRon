@@ -156,7 +156,7 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
   Vis_spotradius <- vrAssayParams(to_object, param = "spot.radius")
 
   # get cell and spot coordinates
-  cat("Cell to Spot Distances \n")
+  message("Cell to Spot Distances \n")
   coords_spots <- vrCoordinates(to_object)
   coords_cells <- vrCoordinates(from_object)
 
@@ -172,7 +172,7 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
   cell_to_spot_nnid <- cell_to_spot_nnid[cell_to_spot_nndist < Vis_spotradius]
 
   # find associated spot for each cell
-  cat("Find associated spots for each cell \n")
+  message("Find associated spots for each cell \n")
   cell_to_spot_id <- names(cell_to_spot_nnid)
 
   # get data
@@ -208,7 +208,7 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
   raw_counts <- raw_counts[,cell_to_spot_id, drop = FALSE]
 
   # pool cell counts to Spots
-  cat("Aggregating cell profiles in spots \n")
+  message("Aggregating cell profiles in spots \n")
   aggregate_raw_counts <- stats::aggregate(t(as.matrix(raw_counts)), list(cell_to_spot_nnid), sum)
   aggregate_raw_counts <- data.frame(barcodes = vrSpatialPoints(to_object)) %>% dplyr::right_join(aggregate_raw_counts, by = c("barcodes" = "Group.1"))
   rownames(aggregate_raw_counts) <- aggregate_raw_counts$barcodes
@@ -240,7 +240,7 @@ getCellsFromSpots <- function(from_object, from_metadata = NULL, to_object, feat
   radius <- vrAssayParams(from_object, param = "nearestpost.distance")/2
   
   # get cell and spot coordinates
-  cat("Spot to Cell Distances \n")
+  message("Spot to Cell Distances \n")
   coords_spots <- vrCoordinates(from_object)
   coords_cells <- vrCoordinates(to_object)
   
@@ -255,7 +255,7 @@ getCellsFromSpots <- function(from_object, from_metadata = NULL, to_object, feat
   nnindex <- nnindex[nndist < radius]
 
   # find associated spot for each cell
-  cat("Find associated spot for each cell \n")
+  message("Find associated spot for each cell \n")
 
   # get data
   if(is.null(features)){
@@ -312,12 +312,12 @@ getCellsFromSpots <- function(from_object, from_metadata = NULL, to_object, feat
 getROIsFromCells <- function(from_object, from_metadata = NULL, to_object, features = NULL) {
 
   # get cell and ROIs coordinates
-  cat("Cell to ROI Distances \n")
+  message("Cell to ROI Distances \n")
   segments_rois <- vrSegments(to_object)
   coords_cells <- vrCoordinates(from_object)
   
   # find associated spot for each cell
-  cat("Find associated ROIs for each cell \n")
+  message("Find associated ROIs for each cell \n")
   cell_to_roi_id <- NULL
   cell_to_roi_labelid <- NULL
   names_segments_rois <- names(segments_rois)
@@ -366,36 +366,21 @@ getROIsFromCells <- function(from_object, from_metadata = NULL, to_object, featu
   raw_counts <- raw_counts[,cell_to_roi_id, drop = FALSE]
   
   # pool cell counts to Spots
-  cat("Aggregating cell profiles in spots \n")
+  message("Aggregating cell profiles in spots \n")
   aggregate_raw_counts <- stats::aggregate(t(as.matrix(raw_counts)), list(cell_to_roi_labelid), sum)
   aggregate_raw_counts <- data.frame(barcodes = vrSpatialPoints(to_object)) %>% dplyr::right_join(aggregate_raw_counts, by = c("barcodes" = "Group.1"))
   rownames(aggregate_raw_counts) <- aggregate_raw_counts$barcodes
   aggregate_raw_counts <- t(aggregate_raw_counts[,-1])
   aggregate_raw_counts[is.na(aggregate_raw_counts)] <- 0
   
-  # create new assay
-  # images <- list()
-  # for(img in vrImageNames(to_object)){
-  #   images[[img]] <- magick::image_data(vrImages(to_object, name = img))
-  # }
-  # new_assay <- formAssay(data = aggregate_raw_counts,
-  #                        coords = vrCoordinates(to_object)[colnames(aggregate_raw_counts),],
-  #                        image = vrImages(to_object),
-  #                        type = vrAssayTypes(to_object),
-  #                        main_image = to_object@main_image,
-  #                        params = to_object@params)
-  # new_assay@image <- to_object@image
-  # new_assay <- subset(new_assay, spatialpoints = colnames(aggregate_raw_counts))
-  
   # return
-  # return(new_assay)
   return(aggregate_raw_counts)
 }
 
 getCellsFromTiles <- function(from_object, from_metadata = NULL, to_object, features = NULL, k = 5) {
 
   # get cell and spot coordinates
-  cat("Tile to Cell Distances \n")
+  message("Tile to Cell Distances \n")
   coords_cells <- vrCoordinates(to_object)
   coords_tiles <- vrCoordinates(from_object)
 
@@ -414,7 +399,7 @@ getCellsFromTiles <- function(from_object, from_metadata = NULL, to_object, feat
   raw_counts <- raw_counts[,tile_id]
 
   # pool cell counts to Spots
-  cat("Aggregating tile profiles in cells \n")
+  message("Aggregating tile profiles in cells \n")
   aggregate_raw_counts <- stats::aggregate(t(as.matrix(raw_counts)), list(tile_to_cell_nnid), mean)
   aggregate_raw_counts <- data.frame(barcodes = vrSpatialPoints(to_object)) %>% dplyr::right_join(aggregate_raw_counts, by = c("barcodes" = "Group.1"))
   rownames(aggregate_raw_counts) <- aggregate_raw_counts$barcodes
