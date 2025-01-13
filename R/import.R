@@ -21,6 +21,7 @@
 #' @param image_name the image name of the Xenium assay, Default: main
 #' @param channel_name the channel name of the image of the Xenium assay, Default: DAPI
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
+#' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
@@ -30,10 +31,13 @@
 #'
 #' @export
 #'
-importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", sample_name = NULL, use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, overwrite_resolution = FALSE, image_name = "main", channel_name = "DAPI", import_molecules = FALSE, ...)
+importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", sample_name = NULL, use_image = TRUE, 
+                          morphology_image = "morphology_lowres.tif", resolution_level = 7, overwrite_resolution = FALSE, 
+                          image_name = "main", channel_name = "DAPI", import_molecules = FALSE, verbose = TRUE, ...)
 {
   # cell assay
-  message("Creating cell level assay ...")
+  if(verbose)
+    message("Creating cell level assay ...")
 
   # raw counts
   datafile <- paste0(dir.path, "/cell_feature_matrix.h5")
@@ -50,8 +54,8 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 
   # image
   if(use_image){
-    # suppressMessages(generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level, overwrite_resolution = overwrite_resolution))
-    generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level, overwrite_resolution = overwrite_resolution)
+    generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level, overwrite_resolution = overwrite_resolution,
+                        verbose = verbose)
     image_file <- paste0(dir.path, "/", morphology_image)
     if(file.exists(image_file)){
       image <-  image_read(image_file)
@@ -108,7 +112,8 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   if(!import_molecules){
     return(cell_object)
   } else {
-    message("Creating molecule level assay ...")
+    if(verbose)
+      message("Creating molecule level assay ...")
     # transcripts
     transcripts_file <- paste0(dir.path, "/transcripts.csv.gz")
     if(!file.exists(transcripts_file)){
@@ -144,7 +149,8 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
       mol_assay <- formAssay(coords = coords, image = image, type = "molecule", main_image = image_name, main_channel = channel_name)
 
       # merge assays in one section
-      message("Merging assays ...")
+      if(verbose)
+        message("Merging assays ...")
       sample.metadata <- SampleMetadata(cell_object)
       object <- addAssay(cell_object,
                          assay = mol_assay,
@@ -187,6 +193,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #' @param overwrite_resolution if TRUE, the image "file.name" will be generated again although it exists at "dir.path"
 #' @param output.path The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.
 #' @param file.name the name of the lowred morphology image. Default: morphology_lowres.tif
+#' @param verbose verbose
 #' @param ... additional parameters passed to the \link{writeImage} function
 #'
 #' @importFrom EBImage writeImage
@@ -199,7 +206,8 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #'
 #' @export
 #'
-generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_level = 7, overwrite_resolution = FALSE, output.path = NULL, file.name = "morphology_lowres.tif", ...) {
+generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_level = 7, overwrite_resolution = FALSE, 
+                                output.path = NULL, file.name = "morphology_lowres.tif", verbose = TRUE, ...) {
   
   # file path to either Xenium output folder or specified folder
   file.path <- paste0(dir.path, "/", file.name)
@@ -207,32 +215,38 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
   
   # check if the file exists in either Xenium output folder, or the specified location
   if((file.exists(file.path) | file.exists(paste0(output.file))) & !overwrite_resolution){
-    message(paste0(file.name, " already exists!"))
+    if(verbose)
+      message(paste0(file.name, " already exists!"))
   } else {
     if (!requireNamespace('RBioFormats'))
       stop("Please install RBioFormats package to extract xml from the ome.tiff file!: BiocManager::install('RBioFormats')")
     if(dir.exists(paste0(dir.path, "/morphology_focus"))){
-      message("Loading morphology_focus_0000.ome.tif ...")
+      if(verbose)
+        message("Loading morphology_focus_0000.ome.tif ...")
       morphology_image_lowres <- RBioFormats::read.image(paste0(dir.path, "/morphology_focus/morphology_focus_0000.ome.tif"),
                                                          resolution = resolution_level,
                                                          subset=list(C=1))
     } else if(file.exists(paste0(dir.path, "/morphology_mip.ome.tif"))) {
-      message("Loading morphology_mip.ome.tif ...")
+      if(verbose)
+        message("Loading morphology_mip.ome.tif ...")
       morphology_image_lowres <- RBioFormats::read.image(paste0(dir.path, "/morphology_mip.ome.tif"), resolution = resolution_level)
     }
     
     # pick a resolution level
     image_info <- morphology_image_lowres@metadata$coreMetadata
-    message(paste0("  Image Resolution (X:", image_info$sizeX, " Y:", image_info$sizeY, ") ..."))
+    if(verbose)
+      message(paste0("  Image Resolution (X:", image_info$sizeX, " Y:", image_info$sizeY, ") ..."))
     
     # increase contrast using EBImage
     if(increase.contrast) {
-      message("  Increasing Contrast ...")
+      if(verbose)
+        message("  Increasing Contrast ...")
       morphology_image_lowres <- (morphology_image_lowres/max(morphology_image_lowres))
     }
     
     # write to the same folder
-    message("  Writing Tiff File ...")
+    if(verbose)
+      message("  Writing Tiff File ...")
     if(is.null(output.path)){
       EBImage::writeImage(morphology_image_lowres, file = file.path, ...)
     } else {
@@ -1040,6 +1054,7 @@ rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level){
 #' @param image_name the image name of the CosMx assay, Default: main
 #' @param ome.tiff the OME.TIFF file of the CosMx experiment if exists
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
+#' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom data.table data.table
@@ -1048,7 +1063,7 @@ rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level){
 #' @export
 #'
 importCosMx <- function(tiledbURI, assay_name = "CosMx",
-                        image = NULL, image_name = "main", ome.tiff = NULL, import_molecules = FALSE, ...)
+                        image = NULL, image_name = "main", ome.tiff = NULL, import_molecules = FALSE, verbose = TRUE, ...)
 {
   # check tiledb and tiledbsc
   if (!requireNamespace("tiledb", quietly = TRUE))
@@ -1059,7 +1074,8 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
          remotes::install_github('tiledb-inc/tiledbsc', force = TRUE, ref = '8157b7d54398b1f957832f37fff0b173d355530e')")
 
   # get tiledb
-  message("Scanning TileDB array for cell data ...")
+  if(verbose)
+    message("Scanning TileDB array for cell data ...")
   tiledb_scdataset <- tiledbsc::SOMACollection$new(uri = tiledbURI, verbose = FALSE)
 
   # raw counts
@@ -1075,7 +1091,8 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
 
   # transcripts
   if(import_molecules){
-    message("Scanning TileDB array for molecule data ...")
+    if(verbose)
+      message("Scanning TileDB array for molecule data ...")
     subcellular <- tiledb::tiledb_array(
       tiledb_scdataset$somas$RNA$obsm$members$transcriptCoords$uri,
       return_as="data.table")[]
@@ -1090,7 +1107,8 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
   for(slide in slides){
 
     # cell assay
-    message("Creating cell level assay for slide ", slide, " ...")
+    if(verbose)
+      message("Creating cell level assay for slide ", slide, " ...")
 
     # slide info
     cur_coords <- coords[metadata$slide_ID_numeric == slide,]
@@ -1106,7 +1124,8 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
     if(import_molecules){
 
       # get slide
-      message("Creating molecule level assay for slide ", slide, " ...")
+      if(verbose)
+        message("Creating molecule level assay for slide ", slide, " ...")
       cur_subcellular <- subset(subcellular, slideID == slide)
 
       # coordinates
@@ -1116,8 +1135,6 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
       # get subcellular data components
       mol_metadata <- cur_subcellular[,colnames(cur_subcellular)[!colnames(cur_subcellular) %in% c("CellId", "cell_id", "x_FOV_px", "y_FOV_px")], with = FALSE]
       set.seed(nrow(mol_metadata))
-      #entity_ID <- paste0(rownames(mol_metadata), "_", ids::random_id(bytes = 3, use_openssl = FALSE))
-      # mol_metadata <- data.table::data.table(id = entity_ID, assay_id = "Assay1", mol_metadata)
       mol_metadata$id <- rownames(mol_metadata)
       mol_metadata$postfix <- paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))
       mol_metadata$assay_id <- "Assay1"
@@ -1130,7 +1147,8 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
       mol_assay <- formAssay(coords = mol_coords, image = image, type = "molecule", main_image = image_name)
 
       # merge assays in one section
-      message("Merging assays for slide ", slide, " ...")
+      if(verbose)
+        message("Merging assays for slide ", slide, " ...")
       sample.metadata <- SampleMetadata(cell_object)
       cell_object <- addAssay(cell_object,
                               assay = mol_assay,
@@ -1143,7 +1161,8 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
   }
 
   # return
-  message("Merging slides ...")
+  if(verbose)
+    message("Merging slides ...")
   vr <- merge(vr_list[[1]], vr_list[-1])
 }
 
@@ -1154,13 +1173,14 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
 #' @param dir.path CosMx output folder
 #' @param increase.contrast increase the contrast of the image before writing
 #' @param output.path The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.
+#' @param verbose verbose
 #' @param ... additional parameters passed to the \link{writeImage} function
 #'
 #' @importFrom magick image_read image_contrast
 #' @importFrom EBImage writeImage
 #'
 #' @export
-generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path = NULL, ...) {
+generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path = NULL, verbose = TRUE, ...) {
 
   # check package
   if(!requireNamespace("reshape2")){
@@ -1173,7 +1193,8 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 
   # check if the file exists in either Xenium output folder, or the specified location
   if(file.exists(file.path) | file.exists(paste0(output.file))){
-    message("CellComposite_lowres.tif already exists! \n")
+    if(verbose)
+      message("CellComposite_lowres.tif already exists! \n")
     return(NULL)
   }
 
@@ -1183,7 +1204,8 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
   fov_positions <- read.csv(fov_positions_path)
 
   # manipulate fov positions matrix
-  message("Getting FOV Positions \n")
+  if(verbose)
+    message("Getting FOV Positions \n")
   relative_fov_positions <- fov_positions
   x_min <- min(relative_fov_positions$x_global_px)
   y_min <- min(relative_fov_positions$y_global_px)
@@ -1195,7 +1217,8 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
   relative_fov_positions <- relative_fov_positions[order(relative_fov_positions$y_global_px, decreasing = TRUE),]
 
   # Combine Images of the FOV grid
-  message("Loading FOV tif files \n")
+  if(verbose)
+    message("Loading FOV tif files \n")
   image.dir.path <- paste0(dir.path,"/CellComposite/")
   morphology_image_data <- NULL
   for(i in relative_fov_positions$fov){
@@ -1213,16 +1236,19 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 
   # pick a resolution level
   morphology_image_info <- image_info(morphology_image)
-  message("Image Resolution (X:", morphology_image_info$width, " Y:", morphology_image_info$height, ") \n")
+  if(verbose)
+    message("Image Resolution (X:", morphology_image_info$width, " Y:", morphology_image_info$height, ") \n")
 
   # increase contrast using EBImage
   if(increase.contrast) {
-    message("Increasing Contrast \n")
+    if(verbose)
+      message("Increasing Contrast \n")
     morphology_image <- magick::image_contrast(morphology_image, sharpen = 1)
   }
 
   # write to the same folder
-  message("Writing Tiff File \n")
+  if(verbose)
+    message("Writing Tiff File \n")
   if(is.null(output.path)){
     EBImage::writeImage(magick::as_EBImage(morphology_image), file = file.path, ...)
   } else {
@@ -1252,6 +1278,7 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #' @param image_name the image name of the Xenium assay, Default: main
 #' @param channel_name the channel name of the image of the Xenium assay, Default: DAPI
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
+#' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon}
 #' 
 #' @importFrom magick image_read image_info
@@ -1264,10 +1291,12 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #' @export
 #'
 importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, use_image = TRUE, 
-                          resolution_level = 7, image_name = "main", channel_name = "DAPI", import_molecules = FALSE, ...)
+                          resolution_level = 7, image_name = "main", channel_name = "DAPI", import_molecules = FALSE, 
+                          verbose = TRUE, ...)
 {
   # cell assay
-  message("Creating cell level assay ...")
+  if(verbose)
+     message("Creating cell level assay ...")
   
   # raw counts
   DataOutputfiles <- list.files(paste0(dir.path, "DataOutput/"))
@@ -1330,8 +1359,8 @@ importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, u
   if(!import_molecules){
     return(cell_object)
   } else {
-    message("Creating molecule level assay ...")
-    # transcripts
+    if(verbose)
+      message("Creating molecule level assay ...")
     transcripts_file <- DataOutputfiles[grepl("_transcriptlocation.csv", DataOutputfiles)]
     if(length(transcripts_file) == 0){
       stop("There are no files ending with '_transcriptlocation.csv' in the path")
@@ -1365,7 +1394,8 @@ importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, u
       mol_assay <- formAssay(coords = coords, image = image, type = "molecule", main_image = image_name, main_channel = channel_name)
       
       # merge assays in one section
-      message("Merging assays ...")
+      if(verbose)
+        message("Merging assays ...")
       sample.metadata <- SampleMetadata(cell_object)
       object <- addAssay(cell_object,
                          assay = mol_assay,
@@ -1475,13 +1505,15 @@ importSTOmics <- function(h5ad.path, assay_name = "STOmics", sample_name = NULL,
 #' }
 #' @param filter A pattern to filter features by; pass \code{NA} to skip feature filtering
 #' @param inform.quant When \code{type} is \dQuote{\code{inform}}, the quantification level to read in 
+#' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon} 
 #' 
 #' @importFrom magick image_info image_read
 #'
 #' @export
 importPhenoCycler <- function(dir.path, assay_name = "PhenoCycler", sample_name = NULL, image_name = "main", 
-                              type = c('inform', 'processor', 'qupath'), filter = 'DAPI|Blank|Empty', inform.quant = c('mean', 'total', 'min', 'max', 'std'), ...){
+                              type = c('inform', 'processor', 'qupath'), filter = 'DAPI|Blank|Empty', 
+                              inform.quant = c('mean', 'total', 'min', 'max', 'std'), verbose = TRUE, ...){
   
   # raw counts, metadata and coordinates 
   listoffiles <- list.files(paste0(dir.path, "/processed/segm/segm-1/fcs/compensated/"), full.names = TRUE)
@@ -1513,7 +1545,8 @@ importPhenoCycler <- function(dir.path, assay_name = "PhenoCycler", sample_name 
   image_dir <- paste0(dir.path, "/processed/stitched/reg001/")
   list_files <- list.files(image_dir)
   if(!dir.exists(image_dir)){
-    message("There are no images of channels!")
+    if(verbose)
+      message("There are no images of channels!")
     image_list <- NULL
   } else {
     if(!any(grepl(".tif$", list_files))){
@@ -1782,13 +1815,14 @@ readPhenoCyclerMat <- function(
 #' @param sample_name the name of the sample
 #' @param image_name the image name of the Visium assay, Default: main
 #' @param channel_name the channel name of the image of the Visium assay, Default: H&E
+#' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom methods as
 #' @importFrom Matrix t
 #' 
 #' @export
-importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, image_name = "main", channel_name = "H&E", ...)
+importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, image_name = "main", channel_name = "H&E", verbose = TRUE, ...)
 {
   # check package
   if(!requireNamespace('anndataR'))
@@ -1824,7 +1858,8 @@ importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, i
                              Var2 = rep(1:length(sections), each = length(sections)))
   sections <- sections[order(sections)]
   vr_data_list <- list()
-  message("Creating Layers ...")
+  if(verbose)
+    message("Creating Layers ...")
   for(i in 1:length(sections)){
     ind <- metadata$n_section == sections[i]
     spatialpoints <- rownames(metadata[metadata$n_section == sections[i],])

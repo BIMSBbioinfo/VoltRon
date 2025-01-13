@@ -1052,6 +1052,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 #' @param object_list a list of VoltRon objects
 #' @param samples a single sample name or multiple sample names of the same size as the given VoltRon objects
 #' @param main.assay the name of the main assay
+#' @param verbose verbose
 #'
 #' @rdname merge
 #' @aliases merge
@@ -1059,7 +1060,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 #' @importFrom methods new
 #'
 #' @export
-merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL) {
+merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL, verbose = TRUE) {
 
   # combine all elements
   if(!is.list(object_list))
@@ -1080,12 +1081,14 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   sample.metadata <- merge_sampleMetadata(sample.metadata_list)
 
   # merge metadata and sample metadata
-  message("Merging metadata ...")
+  if(verbose)
+    message("Merging metadata ...")
   metadata_list <- lapply(object_list, function(x) slot(x, name = "metadata"))
   metadata <- merge(metadata_list[[1]], metadata_list[-1])
 
   # combine samples and rename layers
-  message("Merging blocks and layers ...")
+  if(verbose)
+    message("Merging blocks and layers ...")
   listofSamples <- NULL
   for(i in 1:length(object_list)){
     cur_object <- object_list[[i]]@samples

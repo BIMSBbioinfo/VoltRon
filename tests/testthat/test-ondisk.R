@@ -54,7 +54,7 @@ test_that("double write and merging", {
   # write merged data
   xenium_data2 <- xenium_data
   xenium_data2$Sample <- "XeniumR2"
-  xenium_data2 <- merge(xenium_data, xenium_data2)
+  xenium_data2 <- merge(xenium_data, xenium_data2, verbose = FALSE)
   xenium_data3 <- saveVoltRon(xenium_data2,
                               output = output_zarr,
                               format = "ZarrVoltRon",
@@ -74,7 +74,7 @@ test_that("double write and merging", {
                                    format = "HDF5VoltRon", 
                                    replace = TRUE, 
                                    verbose = FALSE)
-  xenium_data_merged <- merge(xenium_data_disk, xenium_data2_disk)
+  xenium_data_merged <- merge(xenium_data_disk, xenium_data2_disk, verbose = FALSE)
   xenium_data_merged_disk <- saveVoltRon(xenium_data_merged, 
                                          output = output_h5ad_merged, 
                                          format = "HDF5VoltRon", 

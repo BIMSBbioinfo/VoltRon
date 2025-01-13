@@ -4,6 +4,7 @@
 
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
 #' @param assay_name the assay name
+#' @param verbose verbose
 #' @param ... Additional parameter passed to \link{formVoltRon}
 #'
 #' @rdname as.VoltRon
@@ -12,7 +13,7 @@
 #' @importFrom stringr str_replace str_extract
 #' @export
 #'
-as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name = NULL, ...){
+as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name = NULL, verbose = TRUE, ...){
 
   # check Seurat package
   if(!requireNamespace('Seurat'))
@@ -40,7 +41,8 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
     for(fn in fov_names){
 
       # message
-      message("Converting FOV: ", fn, " ...")
+      if(verbose)
+        message("Converting FOV: ", fn, " ...")
 
       # image object
       spatialobject <- spatialobjectlist[[fn]]
@@ -83,7 +85,8 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
     }
 
     # merge object
-    message("Merging object ...")
+    if(verbose)
+      message("Merging object ...")
     vrobject <- merge(voltron_list[[1]], voltron_list[-1])
   } else{
     image <- NULL
@@ -745,6 +748,7 @@ as.Giotto <- function(object, assay = NULL, reg = FALSE){
 #' @param assay_type one of two types, 'cell' or 'spot' etc.
 #' @param assay_name the assay name of the voltron assays (e.g. Visium, Xenium etc.)
 #' @param image_id select image_id names if needed.
+#' @param verbose verbose
 #' @param ... Additional parameter passed to \link{formVoltRon}
 #'
 #' @rdname as.VoltRon
@@ -753,7 +757,7 @@ as.Giotto <- function(object, assay = NULL, reg = FALSE){
 #' @importFrom magick image_read
 #'
 #' @export
-as.VoltRon.SpatialExperiment <- function(object, assay_type = "cell", assay_name = NULL, image_id = NULL, ...){
+as.VoltRon.SpatialExperiment <- function(object, assay_type = "cell", assay_name = NULL, image_id = NULL, verbose = TRUE, ...){
   
   # check SpatialExperiment package
   if(!requireNamespace('SpatialExperiment'))
@@ -846,7 +850,8 @@ as.VoltRon.SpatialExperiment <- function(object, assay_type = "cell", assay_name
   }
   
   # merge object
-  message("Merging object ...")
+  if(verbose)
+    message("Merging object ...")
   if(length(voltron_list) > 1){
     vrobject <- merge(voltron_list[[1]], voltron_list[-1])
   } else {

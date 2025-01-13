@@ -10,6 +10,7 @@ importOpenST(
   sample_name = NULL,
   image_name = "main",
   channel_name = "H&E",
+  verbose = TRUE,
   ...
 )
 }
@@ -23,6 +24,8 @@ importOpenST(
 \item{image_name}{the image name of the Visium assay, Default: main}
 
 \item{channel_name}{the channel name of the image of the Visium assay, Default: H&E}
+
+\item{verbose}{verbose}
 
 \item{...}{additional parameters passed to \link{formVoltRon}}
 }

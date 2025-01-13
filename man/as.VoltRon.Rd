@@ -8,13 +8,20 @@
 \usage{
 as.VoltRon(object, ...)
 
-\method{as.VoltRon}{Seurat}(object, type = c("image", "spatial"), assay_name = NULL, ...)
+\method{as.VoltRon}{Seurat}(
+  object,
+  type = c("image", "spatial"),
+  assay_name = NULL,
+  verbose = TRUE,
+  ...
+)
 
 \method{as.VoltRon}{SpatialExperiment}(
   object,
   assay_type = "cell",
   assay_name = NULL,
   image_id = NULL,
+  verbose = TRUE,
   ...
 )
 }
@@ -26,6 +33,8 @@ as.VoltRon(object, ...)
 \item{type}{the spatial data type of Seurat object: "image" or "spatial"}
 
 \item{assay_name}{the assay name of the voltron assays (e.g. Visium, Xenium etc.)}
+
+\item{verbose}{verbose}
 
 \item{assay_type}{one of two types, 'cell' or 'spot' etc.}
 

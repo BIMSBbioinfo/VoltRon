@@ -19,6 +19,7 @@ NULL
 #' @param k number of neighbors for kNN.
 #' @param radius When \code{method = "radius"} selected, determines the radius of a neighborhood ball around each spatial point.
 #' @param graph.key the name of the graph.
+#' @param verbose verbose
 #'
 #' @importFrom igraph add_edges simplify make_empty_graph vertices
 #' @importFrom RCDT delaunay
@@ -34,7 +35,8 @@ getSpatialNeighbors <- function(object,
                                 method = "delaunay", 
                                 k = 10, 
                                 radius = numeric(0), 
-                                graph.key = method){
+                                graph.key = method, 
+                                verbose = TRUE){
 
   # get coordinates
   spatialpoints <- vrSpatialPoints(object, assay = assay)
@@ -56,7 +58,8 @@ getSpatialNeighbors <- function(object,
     if(!is.null(group.by) && !is.null(group.ids)){
       
       # metadata
-      message("Calculating Spatial Neighbors with group.by='", group.by, "' and group.ids='", paste(group.ids, collapse = ","), "'\n")
+      if(verbose)
+        message("Calculating Spatial Neighbors with group.by='", group.by, "' and group.ids='", paste(group.ids, collapse = ","), "'\n")
       metadata = Metadata(object, assay = assy)
       if(!group.by %in% colnames(metadata))
         stop("The column '", group.by, "' was not found in the metadata!")
@@ -153,10 +156,11 @@ getSpatialNeighbors <- function(object,
 #' @param graph.type the type of graph to determine spatial neighborhood
 #' @param num.sim the number of simulations
 #' @param seed seed
+#' @param verbose verbose
 #'
 #' @export
 #'
-vrNeighbourhoodEnrichment <- function(object, assay = NULL, group.by = NULL, graph.type = "delaunay", num.sim = 1000, seed = 1){
+vrNeighbourhoodEnrichment <- function(object, assay = NULL, group.by = NULL, graph.type = "delaunay", num.sim = 1000, seed = 1, verbose = TRUE){
 
   # set the seed
   set.seed(seed)
@@ -174,7 +178,8 @@ vrNeighbourhoodEnrichment <- function(object, assay = NULL, group.by = NULL, gra
   # test for each assay
   neigh_results <- list()
   for(assy in assay_names){
-    message("Testing Neighborhood Enrichment of '", group.by ,"' for '", assy, "'")
+    if(verbose)
+      message("Testing Neighborhood Enrichment of '", group.by ,"' for '", assy, "'")
     object_subset <- subset(object, assays = assy)
     neigh_results[[assy]] <- vrNeighbourhoodEnrichmentSingle(object_subset, group.by = group.by, graph.type = graph.type,
                                                              num.sim = num.sim, seed = seed)
@@ -277,13 +282,14 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
 #' @param alpha.value the alpha value for the hot spot analysis test. Default is 0.01
 #' @param norm if TRUE, the normalized data is used
 #' @param seed seed
+#' @param verbose verbose
 #' 
 #' @importFrom Matrix rowSums
 #' @importFrom igraph as_adjacency_matrix
 #' @importFrom stats pnorm
 #'
 #' @export
-getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", features, graph.type = "delaunay", alpha.value = 0.01, norm = TRUE, seed = 1){
+getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", features, graph.type = "delaunay", alpha.value = 0.01, norm = TRUE, seed = 1, verbose = TRUE){
   
   # set the seed
   set.seed(seed)
@@ -311,7 +317,8 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
   for(assy in assay_names){
     
     # verbose
-    message("Running Hot Spot Analysis with '", method, "' for '", assy, "'")
+    if(verbose)
+      message("Running Hot Spot Analysis with '", method, "' for '", assy, "'")
     
     # get related data 
     graph <- vrGraph(object, assay = assy, graph.type = graph.type)
