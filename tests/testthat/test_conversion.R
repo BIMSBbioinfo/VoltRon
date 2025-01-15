@@ -35,7 +35,7 @@ test_that("as.AnnData", {
   # as.AnnData(visium_data, file = zarr_file, flip_coordinates = TRUE)
 
   # clean file
-  file.remove(h5ad_file)
-  unlink(zarr_file, recursive = TRUE)
+  # file.remove(h5ad_file)
+  # unlink(zarr_file, recursive = TRUE)
   expect_equal(1,1L)
 })

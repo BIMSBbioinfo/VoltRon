@@ -59,7 +59,7 @@ getSpatialNeighbors <- function(object,
       
       # metadata
       if(verbose)
-        message("Calculating Spatial Neighbors with group.by='", group.by, "' and group.ids='", paste(group.ids, collapse = ","), "'\n")
+        message("Calculating Spatial Neighbors with group.by='", group.by, "' and group.ids='", paste(group.ids, collapse = ","), "'")
       metadata = Metadata(object, assay = assy)
       if(!group.by %in% colnames(metadata))
         stop("The column '", group.by, "' was not found in the metadata!")

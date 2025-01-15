@@ -806,17 +806,39 @@ as.VoltRon.SpatialExperiment <- function(object, assay_type = "cell", assay_name
     
     # image
     if(nrow(imgdata) > 0){
+      
+      # get image names 
       if(is.null(image_id)){
         image_names <- imgdata$image_id[imgdata$sample_id == samp]
       } else {
         image_names <- image_id
       }
+      
+      # get image scales
+      scale.factors_list <- sapply(image_names, function(img){ 
+        SpatialExperiment::scaleFactors(object, 
+                                        sample_id = samp, 
+                                        image_id = img)
+      })
+      if(length(unique(scale.factors_list)) > 1){
+        stop("All images of a single sample should have the same scale for VoltRon object conversion!: please select an 'image_id'")
+      }
+      
+      # get image list
       img_list <- sapply(image_names, function(img){ 
         imgraster <- SpatialExperiment::imgRaster(object, 
                                                   sample_id = samp, 
                                                   image_id = img)
         magick::image_read(imgraster)
       }, USE.NAMES = TRUE)
+      
+      # scale coordinates
+      scale.factors <- unique(unlist(scale.factors_list))
+      cur_coords <- cur_coords*scale.factors
+      
+      # reverse y coordinates
+      imginfo <- getImageInfo(img_list[[1]])
+      cur_coords[,2] <- imginfo$height - cur_coords[,2]
     } else {
       img_list <- NULL
     }
@@ -930,20 +952,24 @@ as.SpatialExperiment <- function(object, assay = NULL, reg = FALSE){
                                               reducedDims = reduceddims,
                                               sample_id=assays,
                                               spatialCoords=coords)
+  spe$sample_id <- assays
   
   # get image objects for each assay
   for(assy in vrAssayNames(object)){
     assay_object <- object[[assy]]
-    img <- vrImages(assay_object)
-    imgfile <- tempfile(fileext='.png')
-    magick::image_write(image = img, path = imgfile, format = 'png')
-    spe <- SpatialExperiment::addImg(spe,
-                                     sample_id = vrAssayNames(assay_object),
-                                     image_id = "main",
-                                     imageSource = imgfile,
-                                     scaleFactor = 1,
-                                     load = TRUE)
-    file.remove(imgfile)
+    channels <- vrImageChannelNames(assay_object)
+    for(ch in channels){
+      img <- vrImages(assay_object, channel = ch)
+      imgfile <- tempfile(fileext='.png')
+      magick::image_write(image = img, path = imgfile, format = 'png')
+      spe <- SpatialExperiment::addImg(spe,
+                                       sample_id = vrAssayNames(assay_object),
+                                       image_id = ch,
+                                       imageSource = imgfile,
+                                       scaleFactor = 1,
+                                       load = TRUE)
+      file.remove(imgfile) 
+    }
   }
   
   # return

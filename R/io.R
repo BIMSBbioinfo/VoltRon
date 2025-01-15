@@ -266,7 +266,7 @@ write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
   
   # open h5 file
   if(verbose)
-    message("HDF5 file: ", h5_path, "\n")
+    message("HDF5 file: ", h5_path)
   if(!file.exists("h5_path"))
     rhdf5::h5createFile(h5_path)
   
@@ -349,7 +349,7 @@ writeHDF5ArrayInMetadata <- function(object,
         meta.data_list <- list()
         rhdf5::h5createGroup(h5_path, group = paste0(name, "/", sn))
         if(verbose)
-          message("Writing ", sn, " Metadata \n")
+          message("Writing ", sn, " Metadata")
         
         # write rownames first if they exist, and there is no id column
         if(!is.null(rownames(meta.data)) && !("id" %in% colnames(meta.data))){
@@ -424,7 +424,7 @@ writeHDF5ArrayInVrData <- function(object,
         if(!inherits(a, "dgCMatrix"))
           a <- as(a, "dgCMatrix")
         if(verbose)
-          message("Writing '", vrAssayNames(object), "' ", feat, " data \n")
+          message("Writing '", vrAssayNames(object), "' ", feat, " data")
         a <- BPCells::write_matrix_hdf5(a, 
                                         path = h5_path, 
                                         group = paste0(name, "/", feat), 
@@ -440,7 +440,7 @@ writeHDF5ArrayInVrData <- function(object,
         if(!inherits(a, "dgCMatrix"))
           a <- as(a, "dgCMatrix")
         if(verbose)
-          message("Writing '", vrAssayNames(object), "' normalized ", feat, " data \n")
+          message("Writing '", vrAssayNames(object), "' normalized ", feat, " data")
         a <- BPCells::write_matrix_hdf5(a, 
                                         path = h5_path, 
                                         group = paste0(name, "/", feat, "_norm"), 
@@ -459,7 +459,7 @@ writeHDF5ArrayInVrData <- function(object,
       if(!inherits(a, "dgCMatrix"))
         a <- as(a, "dgCMatrix")
       if(verbose)
-        message("Writing '", vrAssayNames(object), "' data \n")
+        message("Writing '", vrAssayNames(object), "' data")
       a <- BPCells::write_matrix_hdf5(a, 
                                       path = h5_path, 
                                       group = paste0(name, "/rawdata"), 
@@ -473,7 +473,7 @@ writeHDF5ArrayInVrData <- function(object,
       if(!inherits(a, "dgCMatrix"))
         a <- as(a, "dgCMatrix")
       if(verbose)
-        message("Writing '", vrAssayNames(object), "' normalized data \n")
+        message("Writing '", vrAssayNames(object), "' normalized data")
       a <- BPCells::write_matrix_hdf5(a, 
                                       path = h5_path, 
                                       group = paste0(name, "/normdata"), 
@@ -516,7 +516,7 @@ writeHDF5ArrayInImage <- function(object,
       if(!inherits(coords, "dgCMatrix"))
         coords <- as(coords, "dgCMatrix")
       if(verbose)
-        message("Writing '", name, "' coordinates \n")
+        message("Writing '", name, "' coordinates")
       coords <- BPCells::write_matrix_hdf5(coords, 
                                            path = h5_path, 
                                            group = paste0(name, "/", spat, "/coords"), 
@@ -536,7 +536,7 @@ writeHDF5ArrayInImage <- function(object,
         # write image
         if(!inherits(img, "Image_Array") || replace){
           if(verbose)
-            message("Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"' \n")
+            message("Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"'")
           img <- ImageArray::writeImageArray(img,
                                              output = gsub(".h5$", "", h5_path),
                                              name = paste0(name, "/", spat, "/", ch), 
@@ -575,7 +575,7 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
   
   # create zarr
   if(verbose)
-    message("Zarr store: ", zarr_path, "\n")
+    message("Zarr store: ", zarr_path)
   zarr.array <- pizzarr::zarr_open(store = zarr_path)
   
   # create metadata
@@ -657,7 +657,7 @@ writeZarrArrayInMetadata <- function(object,
         meta.data_list <- list()
         zarr.array <- pizzarr::zarr_open(store = zarr_path)
         if(verbose)
-          message("Writing ", sn, " Metadata \n")
+          message("Writing ", sn, " Metadata")
         zarr.array$create_group(paste0(name, "/", sn))
         
         # write rownames first if they exist, and there is no id column
@@ -731,7 +731,7 @@ writeZarrArrayInVrData <- function(object,
       a <- vrData(object, feat_type = feat, norm = FALSE)
       if(!inherits(a, "DelayedArray") || replace){
         if(verbose)
-          message("Writing '", vrAssayNames(object), "' data \n")
+          message("Writing '", vrAssayNames(object), "' data")
         a <- ZarrArray::writeZarrArray(a, 
                                        zarr_path, 
                                        name = paste0(name, "/", feat),
@@ -747,7 +747,7 @@ writeZarrArrayInVrData <- function(object,
       a <- vrData(object, feat_type = feat, norm = TRUE)
       if(!inherits(a, "DelayedArray") || replace){
         if(verbose)
-          message("Writing '", vrAssayNames(object), "' normalized data \n")
+          message("Writing '", vrAssayNames(object), "' normalized data")
         a <- ZarrArray::writeZarrArray(a, 
                                        zarr_path, 
                                        name = paste0(name, "/", feat, "_norm"),
@@ -766,7 +766,7 @@ writeZarrArrayInVrData <- function(object,
     a <- vrData(object, norm = FALSE)
     if(!inherits(a, "DelayedArray") || replace){
       if(verbose)
-        message("Writing '", vrAssayNames(object), "' data \n")
+        message("Writing '", vrAssayNames(object), "' data")
       a <- ZarrArray::writeZarrArray(a, 
                                      zarr_path, 
                                      name = paste0(name, "/rawdata"),
@@ -782,7 +782,7 @@ writeZarrArrayInVrData <- function(object,
     a <- vrData(object, norm = TRUE)
     if(!inherits(a, "DelayedArray") || replace){
       if(verbose)
-        message("Writing '", vrAssayNames(object), "' normalized data \n")
+        message("Writing '", vrAssayNames(object), "' normalized data")
       a <- ZarrArray::writeZarrArray(a, 
                                      zarr_path, 
                                      name = paste0(name, "/normdata"),
@@ -828,7 +828,7 @@ writeZarrArrayInImage <- function(object,
     coords <- vrCoordinates(object, spatial_name = spat)
     if(!inherits(coords, c("DelayedArray", "IterableMatrix")) || replace){
       if(verbose)
-        message("Writing '", name, "' coordinates \n")
+        message("Writing '", name, "' coordinates")
       coords <- ZarrArray::writeZarrArray(coords,
                                           zarr_path,
                                           name = paste0(name, "/", spat, "/coords"),
@@ -851,7 +851,7 @@ writeZarrArrayInImage <- function(object,
         # write image
         if(!inherits(img, "Image_Array") || replace){
           if(verbose)
-            message("Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"' \n")
+            message("Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"'")
           img <- ImageArray::writeImageArray(img,
                                              output = gsub(".zarr$", "", zarr_path),
                                              name = paste0(name, "/", spat, "/", ch), 

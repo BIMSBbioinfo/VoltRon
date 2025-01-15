@@ -1205,6 +1205,9 @@ vrData.VoltRon <- function(object, assay = NULL, features = NULL, feat_type = NU
   data <- NULL
   for(i in 1:length(assay_names)){
     cur_data <- vrData(object[[assay_names[i]]], features = features, feat_type = feat_type, norm = norm, ...)
+    if(inherits(cur_data, c("dgCMatrix", "CsparseMatrix", "dsparseMatrix"))){
+      cur_data <- as.matrix(cur_data)
+    }
     if(inherits(cur_data, c("data.frame", "Matrix", "matrix"))){
       cur_data <- data.frame(cur_data, feature.ID = rownames(cur_data), check.names = FALSE) 
     } 
