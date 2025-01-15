@@ -945,6 +945,8 @@ as.SpatialExperiment <- function(object, assay = NULL, reg = FALSE){
   # coordinates
   coords <- as.matrix(vrCoordinates(flipCoordinates(object, assay = assay), assay = assay, reg = reg))
   coords <- coords[colnames(rawdata),]
+  coords <- coords[,c("x", "y")]
+  colnames(coords) <- c("x_centroid", "y_centroid")
   
   # Seurat object
   spe <- SpatialExperiment::SpatialExperiment(assay=list(counts = rawdata),
