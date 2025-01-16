@@ -11,6 +11,7 @@ generateXeniumImage(
   overwrite_resolution = FALSE,
   output.path = NULL,
   file.name = "morphology_lowres.tif",
+  verbose = TRUE,
   ...
 )
 }
@@ -26,6 +27,8 @@ generateXeniumImage(
 \item{output.path}{The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.}
 
 \item{file.name}{the name of the lowred morphology image. Default: morphology_lowres.tif}
+
+\item{verbose}{verbose}
 
 \item{...}{additional parameters passed to the \link{writeImage} function}
 }

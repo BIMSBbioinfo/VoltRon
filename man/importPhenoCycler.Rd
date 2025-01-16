@@ -12,6 +12,7 @@ importPhenoCycler(
   type = c("inform", "processor", "qupath"),
   filter = "DAPI|Blank|Empty",
   inform.quant = c("mean", "total", "min", "max", "std"),
+  verbose = TRUE,
   ...
 )
 }
@@ -34,6 +35,8 @@ importPhenoCycler(
 \item{filter}{A pattern to filter features by; pass \code{NA} to skip feature filtering}
 
 \item{inform.quant}{When \code{type} is \dQuote{\code{inform}}, the quantification level to read in}
+
+\item{verbose}{verbose}
 
 \item{...}{additional parameters passed to \link{formVoltRon}}
 }

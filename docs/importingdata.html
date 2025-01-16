@@ -346,7 +346,7 @@ div.tocify {
           <a href="multiomic.html">Multi-omic Integration</a>
         </li>
         <li>
-          <a href="deconvolution.html">Niche Clustering</a>
+          <a href="nicheclustering.html">Niche Clustering</a>
         </li>
       </ul>
     </li>
@@ -1153,8 +1153,8 @@ vr_object&lt;- formVoltRon(data = intensity_data,
 <p>These channels then can be interrogated and used as background images
 for spatial plots and spatial feature plots as well.</p>
 <pre class="r watch-out"><code>vrImageChannelNames(vr_object)</code></pre>
-<pre><code>   Assay Image  Channels
-1 Assay1  MELC DAPI,CD45</code></pre>
+<pre><code>       Assay    Layer         Sample Spatial  Channels
+Assay1  MELC Section1 control_case_3    MELC DAPI,CD45</code></pre>
 <p>You can extract each of these channels individually.</p>
 <pre class="r watch-out"><code>vrImages(vr_object, name = &quot;MELC&quot;, channel = &quot;DAPI&quot;)
 vrImages(vr_object, name = &quot;MELC&quot;, channel = &quot;CD45&quot;)</code></pre>

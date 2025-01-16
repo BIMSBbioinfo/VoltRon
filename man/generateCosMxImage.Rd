@@ -4,7 +4,13 @@
 \alias{generateCosMxImage}
 \title{generateCosMxImage}
 \usage{
-generateCosMxImage(dir.path, increase.contrast = TRUE, output.path = NULL, ...)
+generateCosMxImage(
+  dir.path,
+  increase.contrast = TRUE,
+  output.path = NULL,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{dir.path}{CosMx output folder}
@@ -12,6 +18,8 @@ generateCosMxImage(dir.path, increase.contrast = TRUE, output.path = NULL, ...)
 \item{increase.contrast}{increase the contrast of the image before writing}
 
 \item{output.path}{The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.}
+
+\item{verbose}{verbose}
 
 \item{...}{additional parameters passed to the \link{writeImage} function}
 }

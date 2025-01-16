@@ -19,11 +19,12 @@ NULL
 #' @param k number of neighbors for kNN.
 #' @param radius When \code{method = "radius"} selected, determines the radius of a neighborhood ball around each spatial point.
 #' @param graph.key the name of the graph.
+#' @param verbose verbose
 #'
 #' @importFrom igraph add_edges simplify make_empty_graph vertices
 #' @importFrom RCDT delaunay
 #' @importFrom RANN nn2
-#' @importFrom reshape2 melt
+#' @importFrom data.table data.table melt
 #' @importFrom stats dist
 #'
 #' @export
@@ -34,7 +35,8 @@ getSpatialNeighbors <- function(object,
                                 method = "delaunay", 
                                 k = 10, 
                                 radius = numeric(0), 
-                                graph.key = method){
+                                graph.key = method, 
+                                verbose = TRUE){
 
   # get coordinates
   spatialpoints <- vrSpatialPoints(object, assay = assay)
@@ -43,11 +45,11 @@ getSpatialNeighbors <- function(object,
   assay_names <- vrAssayNames(object, assay = assay)
   
   # get assay connectivity 
-  assay_names <- getBlockConnectivity(object, assay = assay_names)
+  assay_names_connected <- getBlockConnectivity(object, assay = assay_names)
   
   # get spatial edges
   spatialedges_list <- list()
-  for(assy in assay_names){
+  for(assy in assay_names_connected){
     
     # get coordinates
     cur_coords <- as.matrix(vrCoordinates(object, assay = assy))
@@ -56,7 +58,8 @@ getSpatialNeighbors <- function(object,
     if(!is.null(group.by) && !is.null(group.ids)){
       
       # metadata
-      message("Calculating Spatial Neighbors with group.by='", group.by, "' and group.ids='", paste(group.ids, collapse = ","), "'\n")
+      if(verbose)
+        message("Calculating Spatial Neighbors with group.by='", group.by, "' and group.ids='", paste(group.ids, collapse = ","), "'")
       metadata = Metadata(object, assay = assy)
       if(!group.by %in% colnames(metadata))
         stop("The column '", group.by, "' was not found in the metadata!")
@@ -100,9 +103,11 @@ getSpatialNeighbors <- function(object,
                # nnedges <- RANN::nn2(cur_coords, k = k + 1)
                nnedges <- knn_annoy(cur_coords, k = k + 1)
                names(nnedges) <- c("nn.index", "nn.dist")
-               nnedges <- nnedges$nn.index
-               nnedges <- reshape2::melt(data.frame(nnedges), id.vars = "X1")
-               nnedges <- subset(nnedges[,c("X1", "value")], value != 0 & X1 != 0)
+               # nnedges <- nnedges$nn.index
+               # nnedges <- reshape2::melt(data.frame(nnedges), id.vars = "X1")
+               # nnedges <- subset(nnedges[,c("X1", "value")], value != 0 & X1 != 0)
+               nnedges <- data.table::melt(data.table::data.table(nnedges$nn.index), id.vars = "V1")
+               nnedges <- nnedges[,c("V1", "value")][V1 > 0 & value > 0]
                nnedges <- as.vector(t(as.matrix(nnedges)))
                nnedges <- rownames(cur_coords)[nnedges]
                nnedges
@@ -113,9 +118,11 @@ getSpatialNeighbors <- function(object,
                  radius <- ifelse(is.null(spot.radius), 1, spot.radius)
                }
                nnedges <- suppressWarnings({RANN::nn2(cur_coords, searchtype = "radius", radius = radius, k = min(300, sqrt(nrow(cur_coords))/2))})
-               nnedges <- nnedges$nn.idx
-               nnedges <- reshape2::melt(data.frame(nnedges), id.vars = "X1")
-               nnedges <- subset(nnedges[,c("X1", "value")], value != 0 & X1 != 0)
+               # nnedges <- nnedges$nn.idx
+               # nnedges <- reshape2::melt(data.frame(nnedges), id.vars = "X1")
+               nnedges <- data.table::melt(data.table::data.table(nnedges$nn.idx), id.vars = "V1")
+               # nnedges <- subset(nnedges[,c("X1", "value")], value != 0 & X1 != 0)
+               nnedges <- nnedges[,c("V1", "value")][V1 > 0 & value > 0]
                nnedges <- as.vector(t(as.matrix(nnedges)))
                nnedges <- rownames(cur_coords)[nnedges]
                nnedges
@@ -128,7 +135,7 @@ getSpatialNeighbors <- function(object,
   graph <- make_empty_graph(directed = FALSE) + vertices(spatialpoints)
   graph <- add_edges(graph, edges = spatialedges)
   graph <- simplify(graph, remove.multiple = TRUE, remove.loops = FALSE)
-  vrGraph(object, graph.type = graph.key) <- graph
+  vrGraph(object, assay = assay_names, graph.type = graph.key) <- graph
 
   # return
   return(object)
@@ -149,10 +156,11 @@ getSpatialNeighbors <- function(object,
 #' @param graph.type the type of graph to determine spatial neighborhood
 #' @param num.sim the number of simulations
 #' @param seed seed
+#' @param verbose verbose
 #'
 #' @export
 #'
-vrNeighbourhoodEnrichment <- function(object, assay = NULL, group.by = NULL, graph.type = "delaunay", num.sim = 1000, seed = 1){
+vrNeighbourhoodEnrichment <- function(object, assay = NULL, group.by = NULL, graph.type = "delaunay", num.sim = 1000, seed = 1, verbose = TRUE){
 
   # set the seed
   set.seed(seed)
@@ -170,7 +178,8 @@ vrNeighbourhoodEnrichment <- function(object, assay = NULL, group.by = NULL, gra
   # test for each assay
   neigh_results <- list()
   for(assy in assay_names){
-    message("Testing Neighborhood Enrichment of '", group.by ,"' for '", assy, "'")
+    if(verbose)
+      message("Testing Neighborhood Enrichment of '", group.by ,"' for '", assy, "'")
     object_subset <- subset(object, assays = assy)
     neigh_results[[assy]] <- vrNeighbourhoodEnrichmentSingle(object_subset, group.by = group.by, graph.type = graph.type,
                                                              num.sim = num.sim, seed = seed)
@@ -273,13 +282,14 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
 #' @param alpha.value the alpha value for the hot spot analysis test. Default is 0.01
 #' @param norm if TRUE, the normalized data is used
 #' @param seed seed
+#' @param verbose verbose
 #' 
 #' @importFrom Matrix rowSums
 #' @importFrom igraph as_adjacency_matrix
 #' @importFrom stats pnorm
 #'
 #' @export
-getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", features, graph.type = "delaunay", alpha.value = 0.01, norm = TRUE, seed = 1){
+getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", features, graph.type = "delaunay", alpha.value = 0.01, norm = TRUE, seed = 1, verbose = TRUE){
   
   # set the seed
   set.seed(seed)
@@ -307,7 +317,8 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
   for(assy in assay_names){
     
     # verbose
-    message("Running Hot Spot Analysis with '", method, "' for '", assy, "'")
+    if(verbose)
+      message("Running Hot Spot Analysis with '", method, "' for '", assy, "'")
     
     # get related data 
     graph <- vrGraph(object, assay = assy, graph.type = graph.type)
@@ -355,6 +366,7 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
         
         # calculate getis ord
         n <- length(statistic)
+        statistic <- statistic - (min(statistic)) ### correct for negative scores, correct for this later
         getisord_stat <- adj_matrix %*% statistic
         getisord_stat <- getisord_stat/(sum(statistic) - statistic)
         getisord[[1]] <- getisord_stat[,1]

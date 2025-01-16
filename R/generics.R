@@ -615,7 +615,7 @@ combineChannels <- function(object, assay = NULL, name = NULL, reg = FALSE, chan
 #'
 #' Generic methods for conversion into a VoltRon object
 #'
-#' @param object a VoltRon object
+#' @param object a Seurat or SpatialExperiment object
 #' @param ... Arguments passed to other methods
 #'
 #' @rdname as.VoltRon

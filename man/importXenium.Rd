@@ -16,6 +16,7 @@ importXenium(
   image_name = "main",
   channel_name = "DAPI",
   import_molecules = FALSE,
+  verbose = TRUE,
   ...
 )
 }
@@ -41,6 +42,8 @@ importXenium(
 \item{channel_name}{the channel name of the image of the Xenium assay, Default: DAPI}
 
 \item{import_molecules}{if TRUE, molecule assay will be created along with cell assay.}
+
+\item{verbose}{verbose}
 
 \item{...}{additional parameters passed to \link{formVoltRon}}
 }

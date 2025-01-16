@@ -2,9 +2,9 @@
 # Seurat ####
 ####
 
-#' @param object a Seurat object
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
 #' @param assay_name the assay name
+#' @param verbose verbose
 #' @param ... Additional parameter passed to \link{formVoltRon}
 #'
 #' @rdname as.VoltRon
@@ -13,14 +13,13 @@
 #' @importFrom stringr str_replace str_extract
 #' @export
 #'
-as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name = NULL, ...){
+as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name = NULL, verbose = TRUE, ...){
 
   # check Seurat package
   if(!requireNamespace('Seurat'))
-    stop("Please install Seurat package for using Seurat objects")
+    stop("Please install Seurat package for using Seurat objects!: install.packages('Seurat')")
 
   # raw counts
-  # rawdata <- as.matrix(object[[Seurat::DefaultAssay(object)]]@counts)
   rawdata <- SeuratObject::LayerData(object, assay = Seurat::DefaultAssay(object), layer = "counts")
 
   # metadata
@@ -42,7 +41,8 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
     for(fn in fov_names){
 
       # message
-      message("Converting FOV: ", fn, " ...")
+      if(verbose)
+        message("Converting FOV: ", fn, " ...")
 
       # image object
       spatialobject <- spatialobjectlist[[fn]]
@@ -65,7 +65,7 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
       colnames(coords) <- c("x", "y")
       rownames(coords) <- cells_nopostfix
 
-      # from voltron
+      # form voltron
       params <- list()
       assay.type <- "cell"
       assay_name <- "FOV"
@@ -79,19 +79,18 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
         for(embed_name in names(embedding_list)){
           cur_embedding <- embedding_list[[embed_name]][cells,]
           rownames(cur_embedding) <- spatialpoints
-          # embedding_sp <- embedding_list[[embed_name]][spatialpoints_nopostfix[spatialpoints_assay == vrAssayNames(voltron_list[[fn]])],]
-          # rownames(embedding_sp) <- spatialpoints
           vrEmbeddings(voltron_list[[fn]], type = embed_name) <- cur_embedding
         }
       }
     }
 
     # merge object
-    message("Merging object ...")
+    if(verbose)
+      message("Merging object ...")
     vrobject <- merge(voltron_list[[1]], voltron_list[-1])
   } else{
     image <- NULL
-    warning("There are no spatial objects available in this Seurat object")
+    stop("There are no spatial objects available in this Seurat object")
   }
 
   return(vrobject)
@@ -205,9 +204,9 @@ as.Seurat <- function(object, cell.assay = NULL, molecule.assay = NULL, image_ke
 #'
 convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
   
-  # check Seurat package
+  # check anndata package
   if(!requireNamespace('anndata'))
-    stop("Please install anndata package")
+    stop("Please install anndata package!: install.packages('anndata')")
   
   # read anndata
   adata <- anndata::read_h5ad(file)
@@ -338,24 +337,36 @@ as.AnnData <- function(object,
     images_mgk <- list(images_mgk)
     names(images_mgk) <- vrAssayNames(object, assay = assay)  
   }
-  image_data_list <- lapply(images_mgk, function(img) {
+  image_list <- lapply(images_mgk, function(img) {
     list(images = list(hires = as.numeric(magick::image_data(img, channels = "rgb"))),
          scalefactors = list(tissue_hires_scalef = 1, spot_diameter_fullres = 0.5))
   })
+  
+  # obsm
+  # TODO: currently embedding and spatial dimensions should of the same size, but its not 
+  # always the case in VoltRon objects
+  obsm <- c(obsm, list(spatial = coords, 
+                       spatial_AssayID = coords, 
+                       segmentation = segmentations_array))
   
   # save as zarr
   if(grepl(".zarr[/]?$", file)){
     
     # check packages
+    if(!requireNamespace('basilisk'))
+      stop("Please install basilisk package!: BiocManager::install('basilisk')")
+    if(!requireNamespace('reticulate'))
+      stop("Please install reticulate package!: install.packages('reticulate')")
     if(!requireNamespace('DelayedArray'))
       stop("Please install DelayedArray package for using DelayedArray functions")
     
     # run basilisk to call zarr methods
+    py_env <- getBasilisk()
     proc <- basilisk::basiliskStart(py_env)
     on.exit(basilisk::basiliskStop(proc))
     success <- basilisk::basiliskRun(proc, function(data, metadata, obsm, coords, segments, image_list, file) {
-      anndata <- reticulate::import("anndata")
       zarr <- reticulate::import("zarr")
+      anndata <- reticulate::import("anndata")
       make_numpy_friendly <- function(x) {
         if (DelayedArray::is_sparse(x)) {
           methods::as(x, "dgCMatrix")
@@ -365,18 +376,17 @@ as.AnnData <- function(object,
         }
       }
       X <- make_numpy_friendly(t(data))
-      obsm <- c(obsm, list(spatial = coords, 
-                           spatial_AssayID = coords, 
-                           segmentation = segmentations_array))
+      obsm <- list(spatial = coords, 
+                   spatial_AssayID = coords, 
+                   segmentation = segmentations_array)
       adata <- anndata$AnnData(X = X, 
                                obs = metadata, 
                                obsm = obsm, 
-                               uns = list(spatial = image_data_list))
-      
+                               uns = list(spatial = image_list))
+      adata <- reticulate::r_to_py(adata)
       adata$write_zarr(file)
       return(TRUE)
-    }, data = data, metadata = metadata, obsm = obsm, coords = coords, segments = segmentations_array, image_list = image_data_list, file = file)
-    
+    }, data = data, metadata = metadata, obsm = obsm, coords = coords, segments = segmentations_array, image_list = image_list, file = file)
     if(create.ometiff){
       success2 <- as.OmeTiff(images_mgk[[1]], out_path = gsub("zarr[/]?$", "ome.tiff", file)) 
       success <- success & success2
@@ -401,7 +411,7 @@ as.AnnData <- function(object,
                                  obsm = list(spatial = coords, 
                                              spatial_AssayID = coords, 
                                              segmentation = segmentations_array),
-                                 uns = list(spatial = image_data_list))
+                                 uns = list(spatial = image_list))
       
       # Write to h5ad file using anndataR
       anndataR::write_h5ad(adata, path = file)
@@ -414,10 +424,10 @@ as.AnnData <- function(object,
       # Create anndata using anndata
       adata <- anndata::AnnData(X = t(data), 
                                 obs = metadata, 
-                                obsm = list(spatial = coords, 
-                                            spatial_AssayID = coords, 
+                                obsm = list(spatial = coords,
+                                            spatial_AssayID = coords,
                                             segmentation = segmentations_array),
-                                uns = list(spatial = image_data_list))
+                                uns = list(spatial = image_list))
       
       
       # Write to h5ad file using anndata
@@ -438,8 +448,6 @@ as.AnnData <- function(object,
 
 #' @rdname as.Zarr
 #'
-#' @importFrom basilisk basiliskStart basiliskStop basiliskRun
-#' @importFrom reticulate import
 #' @importFrom magick image_raster
 #' @importFrom grDevices col2rgb
 #'
@@ -448,6 +456,10 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
 {
   
   # check packages
+  if(!requireNamespace('basilisk'))
+    stop("Please install basilisk package!: BiocManager::install('basilisk')")
+  if(!requireNamespace('reticulate'))
+    stop("Please install reticulate package!: install.packages('reticulate')")
   if(!requireNamespace('DelayedArray'))
     stop("Please install DelayedArray package for using DelayedArray functions")
   
@@ -466,6 +478,7 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
     }
   }
   
+  py_env <- getBasilisk()
   proc <- basilisk::basiliskStart(py_env)
   on.exit(basilisk::basiliskStop(proc))
   success <- basilisk::basiliskRun(proc, function(datax, metadata, obsm, out_path) {
@@ -496,15 +509,20 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
 
 #' @rdname as.Zarr
 #'
-#' @importFrom basilisk basiliskStart basiliskStop basiliskRun
-#' @importFrom reticulate import
 #' @importFrom magick image_raster
 #' @importFrom grDevices col2rgb
 #'
 #' @export
 "as.Zarr.magick-image" <- function (object, out_path, image_id = "image_1")
 {
+  # check packages
+  if(!requireNamespace('basilisk'))
+    stop("Please install basilisk package!: BiocManager::install('basilisk')")
+  if(!requireNamespace('reticulate'))
+    stop("Please install reticulate package!: install.packages('reticulate')")
+  
   img_arr <- apply(as.matrix(magick::image_raster(object, tidy = FALSE)), c(1, 2), col2rgb)
+  py_env <- getBasilisk()
   proc <- basilisk::basiliskStart(py_env)
   on.exit(basilisk::basiliskStop(proc))
   success <- basilisk::basiliskRun(proc, function(img_arr, image_id, out_path) {
@@ -545,19 +563,24 @@ as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
 #' @param out_path output path to ome.tiff file
 #' @param image_id image name
 #' 
-#' @importFrom basilisk basiliskStart basiliskStop basiliskRun
-#' @importFrom reticulate import
 #' @importFrom magick image_raster
 #' @importFrom grDevices col2rgb
 #'
 #' @export
 as.OmeTiff <- function (object, out_path, image_id = "image_1"){
   
+  # check packages
+  if(!requireNamespace('basilisk'))
+    stop("Please install basilisk package!: BiocManager::install('basilisk')")
+  if(!requireNamespace('reticulate'))
+    stop("Please install reticulate package!: install.packages('reticulate')")
+  
   # get image and transpose the array
   img_arr <- apply(as.matrix(magick::image_raster(object, tidy = FALSE)), c(1, 2), col2rgb)
   img_arr <- aperm(img_arr, c(2,3,1))
   
   # run basilisk
+  py_env <- getBasilisk()
   proc <- basilisk::basiliskStart(py_env)
   on.exit(basilisk::basiliskStop(proc))
   success <- basilisk::basiliskRun(proc, function(img_arr, image_id, out_path, e) {
@@ -593,19 +616,23 @@ with tifffile.TiffWriter('", out_path, "') as tif: tif.write(tifimage, photometr
 #' @param out_path output path to ome.tiff file
 #' @param image_id image name
 #' 
-#' @importFrom basilisk basiliskStart basiliskStop basiliskRun
-#' @importFrom reticulate import
 #' @importFrom magick image_raster
 #' @importFrom grDevices col2rgb
 #'
 #' @export
 as.OmeZarr <- function (object, out_path, image_id = "image_1"){
   
+  # check packages
+  if(!requireNamespace('basilisk'))
+    stop("Please install basilisk package!: BiocManager::install('basilisk')")
+  if(!requireNamespace('reticulate'))
+    stop("Please install reticulate package!: install.packages('reticulate')")
+  
   # get image and transpose the array
   img_arr <- apply(as.matrix(magick::image_raster(object, tidy = FALSE)), c(1, 2), col2rgb)
-  # img_arr <- aperm(img_arr, c(2,3,1))
-  
+
   # run basilisk
+  py_env <- getBasilisk()
   proc <- basilisk::basiliskStart(py_env)
   on.exit(basilisk::basiliskStop(proc))
   success <- basilisk::basiliskRun(proc, function(img_arr, image_id, out_path) {
@@ -717,6 +744,145 @@ as.Giotto <- function(object, assay = NULL, reg = FALSE){
 # SpatialExperiment ####
 ####
 
+#' @param type the spatial data type of Seurat object: "image" or "spatial"
+#' @param assay_type one of two types, 'cell' or 'spot' etc.
+#' @param assay_name the assay name of the voltron assays (e.g. Visium, Xenium etc.)
+#' @param image_id select image_id names if needed.
+#' @param verbose verbose
+#' @param ... Additional parameter passed to \link{formVoltRon}
+#'
+#' @rdname as.VoltRon
+#' @method as.VoltRon SpatialExperiment
+#' 
+#' @importFrom magick image_read
+#'
+#' @export
+as.VoltRon.SpatialExperiment <- function(object, assay_type = "cell", assay_name = NULL, image_id = NULL, verbose = TRUE, ...){
+  
+  # check SpatialExperiment package
+  if(!requireNamespace('SpatialExperiment'))
+    stop("Please install SpatialExperiment package for using SpatialExperiment objects!: BiocManager::install('SpatialExperiment')")
+  
+  # raw counts
+  data <- SummarizedExperiment::assay(object, i = "counts")
+
+  # metadata
+  metadata <- as.data.frame(SummarizedExperiment::colData(object))
+  
+  # embeddings
+  dim_names <- SingleCellExperiment::reducedDimNames(object)
+  if(length(dim_names) > 0){
+    embeddings_flag <- TRUE
+    embedding_list <- sapply(dim_names, function(x) {
+      SingleCellExperiment::reducedDim(object, type = x)
+    }, USE.NAMES = TRUE)
+  } else {
+    embeddings_flag <- FALSE
+  }
+  
+  # coords
+  coords <- SpatialExperiment::spatialCoords(object)
+  colnames(coords) <- c("x", "y")
+  
+  # img data
+  imgdata <- SpatialExperiment::imgData(object)
+  
+  # image
+  voltron_list <- list()
+  sample_names <- unique(metadata$sample_id)
+  for(samp in sample_names){
+    
+    # spatial points
+    sppoints <- rownames(metadata)[metadata$sample_id == samp]
+
+    # metadata 
+    cur_metadata <- metadata[sppoints,]
+    
+    # data
+    cur_data <- data[,sppoints]
+    
+    # coords
+    cur_coords <- coords[sppoints,]
+    
+    # image
+    if(nrow(imgdata) > 0){
+      
+      # get image names 
+      if(is.null(image_id)){
+        image_names <- imgdata$image_id[imgdata$sample_id == samp]
+      } else {
+        image_names <- image_id
+      }
+      
+      # get image scales
+      scale.factors_list <- sapply(image_names, function(img){ 
+        SpatialExperiment::scaleFactors(object, 
+                                        sample_id = samp, 
+                                        image_id = img)
+      })
+      if(length(unique(scale.factors_list)) > 1){
+        stop("All images of a single sample should have the same scale for VoltRon object conversion!: please select an 'image_id'")
+      }
+      
+      # get image list
+      img_list <- sapply(image_names, function(img){ 
+        imgraster <- SpatialExperiment::imgRaster(object, 
+                                                  sample_id = samp, 
+                                                  image_id = img)
+        magick::image_read(imgraster)
+      }, USE.NAMES = TRUE)
+      
+      # scale coordinates
+      scale.factors <- unique(unlist(scale.factors_list))
+      cur_coords <- cur_coords*scale.factors
+      
+      # reverse y coordinates
+      imginfo <- getImageInfo(img_list[[1]])
+      cur_coords[,2] <- imginfo$height - cur_coords[,2]
+    } else {
+      img_list <- NULL
+    }
+    
+    # get params
+    if(assay_type == "spot"){
+      vis.spot.radius <- 1 
+      spot.radius <- 1
+    } else {
+      params <- list()
+    }
+    
+    # form voltron
+    assay_name <- assay_name
+    assay_type <- assay_type
+    voltron_list[[samp]] <- formVoltRon(data = cur_data, metadata = cur_metadata, coords = cur_coords, 
+                                      main.assay = assay_name, image = img_list, params = params, 
+                                      assay.type = assay_type, sample_name = samp, ...)
+    
+    # add embeddings
+    spatialpoints <- vrSpatialPoints(voltron_list[[samp]])
+    spatialpoints_nopostfix <- stringr::str_replace(spatialpoints, "_Assay[0-9]+$", "")
+    spatialpoints_assay <- stringr::str_extract(spatialpoints, "Assay[0-9]+$")
+    if(embeddings_flag){
+      for(embed_name in names(embedding_list)){
+        cur_embedding <- embedding_list[[embed_name]][sppoints,]
+        rownames(cur_embedding) <- spatialpoints
+        vrEmbeddings(voltron_list[[samp]], type = embed_name) <- cur_embedding
+      }
+    }
+  }
+  
+  # merge object
+  if(verbose)
+    message("Merging object ...")
+  if(length(voltron_list) > 1){
+    vrobject <- merge(voltron_list[[1]], voltron_list[-1])
+  } else {
+    vrobject <- voltron_list[[1]]
+  }
+
+  return(vrobject)
+}
+
 #' as.SpatialExperiment
 #'
 #' Converting a VoltRon object into a SpatialExperiment object
@@ -768,29 +934,44 @@ as.SpatialExperiment <- function(object, assay = NULL, reg = FALSE){
   assays <- stringr::str_extract(rownames(metadata), pattern = "_Assay[0-9]+$")
   assays <- gsub("^_", "", assays)
   
+  # Embeddings
+  reduceddims <- list()
+  if (length(vrEmbeddingNames(object, assay = assay)) > 0) {
+    for (embed_name in vrEmbeddingNames(object, assay = assay)) {
+      reduceddims[[embed_name]] <- vrEmbeddings(object, assay = assay, type = embed_name)
+    }
+  }
+  
   # coordinates
   coords <- as.matrix(vrCoordinates(flipCoordinates(object, assay = assay), assay = assay, reg = reg))
   coords <- coords[colnames(rawdata),]
+  coords <- coords[,c("x", "y")]
+  colnames(coords) <- c("x_centroid", "y_centroid")
   
   # Seurat object
   spe <- SpatialExperiment::SpatialExperiment(assay=list(counts = rawdata),
-                                              colData=metadata,
+                                              colData=metadata, 
+                                              reducedDims = reduceddims,
                                               sample_id=assays,
                                               spatialCoords=coords)
+  spe$sample_id <- assays
   
   # get image objects for each assay
   for(assy in vrAssayNames(object)){
     assay_object <- object[[assy]]
-    img <- vrImages(assay_object)
-    imgfile <- tempfile(fileext='.png')
-    magick::image_write(image = img, path = imgfile, format = 'png')
-    spe <- SpatialExperiment::addImg(spe,
-                                     sample_id = vrAssayNames(assay_object),
-                                     image_id = "main",
-                                     imageSource = imgfile,
-                                     scaleFactor = 1,
-                                     load = TRUE)
-    file.remove(imgfile)
+    channels <- vrImageChannelNames(assay_object)
+    for(ch in channels){
+      img <- vrImages(assay_object, channel = ch)
+      imgfile <- tempfile(fileext='.png')
+      magick::image_write(image = img, path = imgfile, format = 'png')
+      spe <- SpatialExperiment::addImg(spe,
+                                       sample_id = vrAssayNames(assay_object),
+                                       image_id = ch,
+                                       imageSource = imgfile,
+                                       scaleFactor = 1,
+                                       load = TRUE)
+      file.remove(imgfile) 
+    }
   }
   
   # return

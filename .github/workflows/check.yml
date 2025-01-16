@@ -148,12 +148,25 @@ jobs:
       # All Other dependencies
       - name: Install Suggested dependencies
         run: |
+          install.packages(c('reticulate'))
+          BiocManager::install(c('basilisk'))
           BiocManager::install(c('DelayedArray'))
           BiocManager::install(c('HDF5Array'))
           remotes::install_github('bnprks/BPCells/r@v0.3.0')
           devtools::install_github('BIMSBbioinfo/ImageArray')
           devtools::install_github('BIMSBbioinfo/HDF5DataFrame')
           devtools::install_github('BIMSBbioinfo/ZarrDataFrame')
+          install.packages("Seurat")
+          BiocManager::install("glmGamPoi")
+          install.packages('hdf5r')
+          BiocManager::install('RBioFormats')
+          BiocManager::install('ComplexHeatmap')
+          devtools::install_github('dmcable/spacexr')
+          devtools::install_github('xuranw/MuSiC')
+          BiocManager::install('SingleCellExperiment')
+          BiocManager::install('SpatialExperiment')
+          install.packages('dplyr')
+          BiocManager::install('DESeq2')
         shell: Rscript {0}
           
       ## R CMD Check

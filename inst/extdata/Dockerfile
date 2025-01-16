@@ -22,16 +22,29 @@ RUN R -e "install.packages(c('shiny', 'devtools', 'BiocManager'), repos='http://
 
 # Install VoltRon dependencies
 RUN R -e "install.packages(c('grDevices', 'data.table', 'RcppAnnoy', 'RANN', 'Matrix', 'dplyr', 'ggplot2', 'ggrepel', 'igraph', 'irlba', 'rjson', 'magick', 'ids', 'sp', 'reshape2', 'rlang', 'ggpubr', 'shinyjs'), repos='http://cran.rstudio.com/')"
-RUN R -e "install.packages(c('stringr', 'uwot', 'RCDT', 'reticulate'), repos='http://cran.rstudio.com/')"
-RUN R -e "BiocManager::install(c('EBImage', 'basilisk', 'S4Arrays'))"
+RUN R -e "install.packages(c('stringr', 'uwot', 'RCDT'), repos='http://cran.rstudio.com/')"
+RUN R -e "BiocManager::install(c('EBImage', 'S4Arrays'))"
 
 # Install Suggested dependencies
+RUN R -e "install.packages(c('reticulate'))"
+RUN R -e "BiocManager::install(c('basilisk'))"
 RUN R -e "BiocManager::install(c('DelayedArray'))"
 RUN R -e "BiocManager::install(c('HDF5Array'))"
 RUN R -e "remotes::install_github('bnprks/BPCells/r@v0.3.0')"
 RUN R -e "remotes::install_github('BIMSBbioinfo/ImageArray')"
 RUN R -e "remotes::install_github('BIMSBbioinfo/HDF5DataFrame')"
 RUN R -e "remotes::install_github('BIMSBbioinfo/ZarrDataFrame')"
+RUN R -e "install.packages('Seurat')"
+RUN R -e "BiocManager::install('glmGamPoi')"
+RUN R -e "install.packages('hdf5r')"
+RUN R -e "BiocManager::install('RBioFormats')"
+RUN R -e "BiocManager::install('ComplexHeatmap')"
+RUN R -e "devtools::install_github('dmcable/spacexr')"
+RUN R -e "devtools::install_github('xuranw/MuSiC')"
+RUN R -e "BiocManager::install('SingleCellExperiment')"
+RUN R -e "BiocManager::install('SpatialExperiment')"
+RUN R -e "install.packages('dplyr')"
+RUN R -e "BiocManager::install('DESeq2')"
 
 # Install VoltRon dependencies
 RUN R -e "devtools::install_github('BIMSBbioinfo/VoltRon')"

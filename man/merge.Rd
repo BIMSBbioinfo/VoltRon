@@ -5,7 +5,7 @@
 \alias{merge}
 \title{Merging VoltRon objects}
 \usage{
-\method{merge}{VoltRon}(object, object_list, samples = NULL, main.assay = NULL)
+\method{merge}{VoltRon}(object, object_list, samples = NULL, main.assay = NULL, verbose = TRUE)
 }
 \arguments{
 \item{object}{a VoltRon Object}
@@ -15,6 +15,8 @@
 \item{samples}{a single sample name or multiple sample names of the same size as the given VoltRon objects}
 
 \item{main.assay}{the name of the main assay}
+
+\item{verbose}{verbose}
 }
 \description{
 Given a VoltRon object, and a list of VoltRon objects, merge all.

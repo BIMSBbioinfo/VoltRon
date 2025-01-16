@@ -37,13 +37,11 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 # Interactive Annotation
 
-**VoltRon** includes interactive applications to select and manually label spatial points by drawing polygons and circles. As an example, we will use a Spot-based spatial transcriptomic assay, specifically the **Mouse Brain Serial Section 1/2** datasets, analyzed in the [Niche Clustering](deconvolution.html) tutorial. You can find the already analyzed data stored as a VoltRon object [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/NicheClustering/Visium&Visium_data_decon_analyzed.rds)
+**VoltRon** includes interactive applications to select and manually label spatial points by drawing polygons and circles. As an example, we will use a Spot-based spatial transcriptomic assay, specifically the **Mouse Brain Serial Section 1/2** datasets, analyzed in the [Niche Clustering](nicheclustering.html) tutorial. You can find the already analyzed data stored as a VoltRon object [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/NicheClustering/Visium&Visium_data_decon_analyzed.rds)
 
 ```{r class.source="watch-out", eval = FALSE}
 MBrain_Sec <- readRDS("Visium&Visium_data_decon_analyzed.rds")
 ```
-
-<br>
 
 We can start annotating the spatial assay. By passing arguments used by the **vrSpatialPlot** function to visualize labels (e.g. clusters), we can better select regions within tissue sections for annotation. 
 
@@ -116,25 +114,6 @@ VoltRon incorporates utilities
 * **(i)** to convert VoltRon objects into other spatial data objects and files that could be used platforms, and 
 * **(ii)** to incorporate wrapper functions to call methods from package that achieves interactive visualization
 
-<!--
-We will use the clustered and annotated Xenium data using VoltRon [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered_annotated.rds). 
-
-```{r class.source="watch-out", eval = FALSE}
-Xen_data <- readRDS("Xenium_data_clustered_annotated.rds")
-SampleMetadata(Xen_data)
-```
-
-```
-            Assay    Layer   Sample
-Assay2 Xenium_mol Section1 XeniumR1
-Assay4 Xenium_mol Section1 XeniumR2
-Assay1     Xenium Section1 XeniumR1
-Assay3     Xenium Section1 XeniumR2
-```
-
-<br>
--->
-
 <br>
 
 ## Vitessce 
@@ -180,8 +159,6 @@ To use **TissUUmaps** for interactive investigation of your spatial omic data, w
 ```{r class.source="watch-out", eval = FALSE}
 as.AnnData(xenium_data, file = "xenium_data.h5ad", assay = "Xenium", flip_coordinates = TRUE)
 ```
-
-<br>
 
 To use **TissUUmaps**, you can follow the instructions [here](https://tissuumaps.github.io/installation/). Once installed and executed, simply drag and drop the h5ad file to the main panel of the application
 

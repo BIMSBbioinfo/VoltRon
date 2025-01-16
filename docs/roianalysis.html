@@ -346,7 +346,7 @@ div.tocify {
           <a href="multiomic.html">Multi-omic Integration</a>
         </li>
         <li>
-          <a href="deconvolution.html">Niche Clustering</a>
+          <a href="nicheclustering.html">Niche Clustering</a>
         </li>
       </ul>
     </li>
@@ -919,7 +919,7 @@ href="pixelanalysis.html">Downstream analysis of Pixels</a> section.</p>
 <p>We will use the H&amp;E image of TMA section taken from the same
 block as the Prolonged case 4. You can download the image from <a
 href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/prolonged_case4_HE.tif">here</a>.</p>
-<pre class="r watch-out"><code>vrHEimage &lt;- importImageData(&quot;prolonged_case4_HE.tif&quot;, image_name = &quot;H&amp;E&quot;)
+<pre class="r watch-out"><code>vrHEimage &lt;- importImageData(&quot;prolonged_case4_HE.tif&quot;, channel_names = &quot;H&amp;E&quot;)
 vrImages(vrHEimage, scale.perc = 40)</code></pre>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/prolonged_case4_HE.png" class="center"></p>
 <p><br></p>
@@ -941,26 +941,44 @@ image (here the scan image with combined antibody channels), and the TPS
 method allows correct local deformations between the perspective
 transformed H&amp;E image and the GeoMx image for a more accurate</p>
 <pre class="r watch-out"><code>GeoMxR1_subset &lt;- subset(GeoMxR1, sample = c(&quot;prolonged case 4&quot;))
-GeoMxReg &lt;- registerSpatialData(reference_spatdata = GeoMxR1_subset, query_spatdata = vrHEimage)</code></pre>
+GeoMxReg &lt;- registerSpatialData(reference_spatdata = GeoMxR1_subset, 
+                                query_spatdata = vrHEimage)</code></pre>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_manualregistration.png" class="center"></p>
 <p>The result of the registration is a list of registered VoltRon
 objects which we can use for parsing the registered image as well. In
 this case, the second element of the resulting list would be the
-registered H&amp;E based VoltRon object. We can also exchange images
-where the H&amp;E image now is registered to the perspective as the
-GeoMx channels, and can be defined as a new channel in the original
-GeoMx object.</p>
-<pre class="r watch-out"><code>vrHEimage_reg &lt;- GeoMxReg$registered_spat[[2]]
-vrImages(GeoMxR1_subset[[&quot;Assay1&quot;]], name = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- vrImages(vrHEimage_reg, name = &quot;H&amp;E_reg&quot;)</code></pre>
+registered H&amp;E based VoltRon object.</p>
+<pre class="r watch-out"><code>vrHEimage_reg &lt;- GeoMxReg$registered_spat[[2]]</code></pre>
+<p>We can check the additional coordinate system now available for the
+registered H&amp;E image. One is the coordinate system with the original
+image, and the other with the one that is registered.</p>
+<pre class="r watch-out"><code>vrSpatialNames(vrHEimage_reg)</code></pre>
+<pre><code>[1] &quot;main&quot;     &quot;main_reg&quot;</code></pre>
+<p>We can also exchange images where the H&amp;E image now is registered
+to the perspective of the GeoMx channels, and can be defined as a new
+channel in the original GeoMx object.</p>
+<pre class="r watch-out"><code>vrImages(GeoMxR1_subset[[&quot;Assay1&quot;]], name = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- vrImages(vrHEimage_reg, name = &quot;main_reg&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
+<p>We can now observe the new channels (H&amp;E) available for the GeoMx
+assay using <strong>vrImageChannelNames</strong>. H&amp;E is saved as a
+separate channel along with the originally available antibody channels
+of the original GeoMx experiment.</p>
+<pre class="r watch-out"><code>vrImageChannelNames(GeoMxR1_subset)</code></pre>
+<div>
+<pre><code style="font-size: 12px;">       Assay    Layer           Sample Spatial                                               Channels
+Assay1 GeoMx Section1 prolonged case 4    main scanimage,DNA,PanCK,CD45,Alpha Smooth Muscle Actin,H&E</code></pre>
+</div>
 <p>We can now visualize the ROIs and their annotations where the
 registered H&amp;E visible in the background. We define the spatial key
 <strong>main</strong> and the channel name <strong>H&amp;E</strong>.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(GeoMxR1_subset, group.by = &quot;ROI.type&quot;, alpha = 0.7, spatial = &quot;main&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
+<pre class="r watch-out"><code>vrSpatialPlot(GeoMxR1_subset, group.by = &quot;ROI.type&quot;, alpha = 0.7, 
+              spatial = &quot;main&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_spatialplot_withHE.png" class="center"></p>
 <p>Interactive Visualization can also be used to zoom in to ROIs and
 investigate the pathology associated with GeoMx ROIs labeled as
 fibrotic.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(GeoMxR1_subset, group.by = &quot;ROI.type&quot;, alpha = 0.7, spatial = &quot;main&quot;, channel = &quot;H&amp;E&quot;, interactive = TRUE)</code></pre>
+<pre class="r watch-out"><code>vrSpatialPlot(GeoMxR1_subset, group.by = &quot;ROI.type&quot;, alpha = 0.7, 
+              spatial = &quot;main&quot;, channel = &quot;H&amp;E&quot;, 
+              interactive = TRUE)</code></pre>
 <p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_spatialplot_withHE_interactive.png" class="center"></p>
 </div>
 </div>

@@ -53,7 +53,6 @@ setMethod(
     for(samp in sample_names[1:show_length]){
       cat(samp, ": \n", sep = "")
       layers <- unique(sample.metadata$Layer[sample.metadata$Sample == samp])
-      # cat("  Layers:", paste(layers, collapse = " "), "\n")
       layers <- split(layers, ceiling(seq_along(layers)/5))
       cat("  Layers:", paste(layers[[1]], collapse = " "), "\n")
       if(length(layers) > 1){
@@ -1053,6 +1052,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 #' @param object_list a list of VoltRon objects
 #' @param samples a single sample name or multiple sample names of the same size as the given VoltRon objects
 #' @param main.assay the name of the main assay
+#' @param verbose verbose
 #'
 #' @rdname merge
 #' @aliases merge
@@ -1060,7 +1060,7 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 #' @importFrom methods new
 #'
 #' @export
-merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL) {
+merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL, verbose = TRUE) {
 
   # combine all elements
   if(!is.list(object_list))
@@ -1081,12 +1081,14 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   sample.metadata <- merge_sampleMetadata(sample.metadata_list)
 
   # merge metadata and sample metadata
-  message("Merging metadata ...")
+  if(verbose)
+    message("Merging metadata ...")
   metadata_list <- lapply(object_list, function(x) slot(x, name = "metadata"))
   metadata <- merge(metadata_list[[1]], metadata_list[-1])
 
   # combine samples and rename layers
-  message("Merging blocks and layers ...")
+  if(verbose)
+    message("Merging blocks and layers ...")
   listofSamples <- NULL
   for(i in 1:length(object_list)){
     cur_object <- object_list[[i]]@samples
@@ -1203,6 +1205,9 @@ vrData.VoltRon <- function(object, assay = NULL, features = NULL, feat_type = NU
   data <- NULL
   for(i in 1:length(assay_names)){
     cur_data <- vrData(object[[assay_names[i]]], features = features, feat_type = feat_type, norm = norm, ...)
+    if(inherits(cur_data, c("dgCMatrix", "CsparseMatrix", "dsparseMatrix"))){
+      cur_data <- as.matrix(cur_data)
+    }
     if(inherits(cur_data, c("data.frame", "Matrix", "matrix"))){
       cur_data <- data.frame(cur_data, feature.ID = rownames(cur_data), check.names = FALSE) 
     } 
@@ -1574,7 +1579,12 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
 
       # replace data
       if(!inherits(metadata, "DataFrame")){
-        metadata[match(value$id, metadata$id), ] <- value
+        # TODO: is this replace method appropriate for all dataframe types ? 
+        # metadata[match(value$id, metadata$id), ] <- value
+        ind <- match(value$id, metadata$id)
+        for(cur_col in new_columns){
+          metadata[[cur_col]][ind] <- value[[cur_col]]
+        }
       } else {
         ind <- match(as.vector(value$id), as.vector(metadata$id))
         for(cur_col in new_columns){
@@ -1820,7 +1830,8 @@ flipCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, spa
 #'
 #' @rdname vrGraph
 #'
-#' @importFrom igraph induced_subgraph
+#' @importFrom igraph induced_subgraph V
+#' 
 #' @export
 vrGraph <- function(object, assay = NULL, graph.type = NULL) {
 
@@ -1846,6 +1857,7 @@ vrGraph <- function(object, assay = NULL, graph.type = NULL) {
 
   # return graph
   if(length(vrGraphNames(object)) > 0){
+    node_names <- intersect(igraph::V(object@graph[[graph.type]])$name, node_names)
     returngraph <- igraph::induced_subgraph(object@graph[[graph.type]], node_names)
     return(returngraph)
   } else {
@@ -1858,32 +1870,37 @@ vrGraph <- function(object, assay = NULL, graph.type = NULL) {
 #' 
 #' @rdname vrGraph
 #'
-#' @importFrom igraph disjoint_union induced_subgraph
+#' @importFrom igraph disjoint_union induced_subgraph V
 #' @export
-"vrGraph<-" <- function(object, graph.type = "kNN", value) {
+"vrGraph<-" <- function(object, assay = NULL, graph.type = "kNN", value) {
 
   # check value
   if(!inherits(value, "igraph"))
     stop("The 'value' should be of an igraph class!")
 
-  # all vertices
-  spobject <- vrSpatialPoints(object)
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  spobject <- vrSpatialPoints(object, assay = assay_names)
 
   # check if there exists graphs
   graph <- object@graph
   if(length(names(object@graph)) == 0 || !graph.type %in% names(object@graph)){
-    graph[[graph.type]] <- make_empty_graph(directed = FALSE) + vertices(spobject)
+    
+    # graph[[graph.type]] <- make_empty_graph(directed = FALSE) + vertices(spobject)
+    graph[[graph.type]] <- value
+    
+  } else {
+   
+    # vertices
+    new_vert <- igraph::V(value)$name
+    
+    # edges
+    subg_inv <- igraph::induced_subgraph(graph[[graph.type]], spobject[!spobject%in%new_vert])
+    graph[[graph.type]] <- igraph::disjoint_union(value, subg_inv)
   }
-
-  # vertices
-  new_vert <- V(value)$name
-
-  # edges
-  subg_inv <- igraph::induced_subgraph(graph[[graph.type]], spobject[!spobject%in%new_vert])
-  graph[[graph.type]] <- igraph::disjoint_union(value, subg_inv)
-
+  
   # update object
-  object@graph <- graph
+  object@graph <- graph 
 
   # return
   return(object)

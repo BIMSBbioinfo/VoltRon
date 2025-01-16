@@ -346,7 +346,7 @@ div.tocify {
           <a href="multiomic.html">Multi-omic Integration</a>
         </li>
         <li>
-          <a href="deconvolution.html">Niche Clustering</a>
+          <a href="nicheclustering.html">Niche Clustering</a>
         </li>
       </ul>
     </li>
@@ -521,7 +521,7 @@ unreplicated and replicated virus molecules, respectively. We can
 visualize again tile the count of these virus expressions by
 specifically selecting these two ORFs.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;, 
-              group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), n.tile = 300)</code></pre>
+              group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), n.tile = 500)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus.png" class="center"></p>
 <p><br></p>
 <p>We can even zoom into specific locations at the tissue to investigate
@@ -554,7 +554,8 @@ virus.</p>
 <pre class="r watch-out"><code>vr2_merged_acute1 &lt;- getSpatialNeighbors(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
                                          group.by = &quot;gene&quot;, group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), 
                                          method = &quot;radius&quot;, radius = 50)</code></pre>
-<p>This will create a new graph with the voltron object</p>
+<p>We can now observe the new spatial neighborhood graph saved in the
+VoltRon object with name <strong>radius</strong>.</p>
 <pre class="r watch-out"><code>vrGraphNames(vr2_merged_acute1)</code></pre>
 <pre><code>[1] &quot;radius&quot;</code></pre>
 <p>We now select the feature type and graph name to run an hot spot
@@ -562,8 +563,9 @@ analysis which will label each molecule if their neighborhood are dense
 in other virus molecules.</p>
 <pre class="r watch-out"><code>vr2_merged_acute1 &lt;- getHotSpotAnalysis(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
                                         features = &quot;gene&quot;, graph.type = &quot;radius&quot;)
-vrSpatialPlot(vr2_merged_acute1_2, assay = &quot;Xenium_mol&quot;, 
-              group.by = &quot;gene_hotspot_flag&quot;, group.ids = c(&quot;cold&quot;, &quot;hot&quot;), alpha = 1)</code></pre>
+vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
+              group.by = &quot;gene_hotspot_flag&quot;, group.ids = c(&quot;cold&quot;, &quot;hot&quot;), 
+              alpha = 1, background.color = &quot;white&quot;)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_hotspot.png" class="center"></p>
 </div>
 <div id="automated-he-registration" class="section level2">
@@ -609,14 +611,24 @@ SARS-COV-2 molecules mostly outside of any single cell.</p>
               alpha = 0.7, interactive = TRUE)</code></pre>
 <p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_Covid_HE_zoom.png" class="center"></p>
 <p><br></p>
+<p>At a first glance, although the Xenium (DAPI) and H&amp;E images are
+associated with the same TMA core, they were captured in a different
+perspective; that is, one image is almost the 90 degree rotated version
+of the other. We will account for this rotation when we (automatically)
+align the Xenium data with the H&amp;E image.</p>
+<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- modulateImage(vr2_merged_acute1, brightness = 300, channel = &quot;DAPI&quot;)
+vrImages(vr2_merged_acute1, assay = &quot;Assay7&quot;, scale.perc = 20)
+vrImages(imgdata, assay = &quot;Assay1&quot;, scale.perc = 20)</code></pre>
+<p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_twoimages.png" class="center"></p>
+<p><br></p>
 <p>We now register the H&amp;E image and annotations to the DAPI image
 of Xenium section using the <strong>registerSpatialData</strong>
-function. See <a href="registration.html">Spatial Data Alignment</a>
-tutorial for more information. We select FLANN automated registration
-mode, negate the DAPI image of the Xenium slide, turn 90 degrees to the
-left and set the scale parameter of both images to width = 1859.</p>
-<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- modulateImage(vr2_merged_acute1, brightness = 300, channel = &quot;DAPI&quot;)
-xen_reg &lt;- registerSpatialData(object_list = list(vr2_merged_acute1, imgdata))</code></pre>
+function. We select FLANN (with “Homography” method) automated
+registration mode, negate the DAPI image of the Xenium slide, turn 90
+degrees to the left and set the scale parameter of both images to
+<strong>width = 1859</strong>. See <a href="registration.html">Spatial
+Data Alignment</a> tutorial for more information.</p>
+<pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(vr2_merged_acute1, imgdata))</code></pre>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_HE_registration.png" class="center"></p>
 <p><br></p>
 <p>Once registered, we can isolate the registered H&amp;E data and use
@@ -629,6 +641,12 @@ vrImages(vr2_merged_acute1[[&quot;Assay7&quot;]], name = &quot;main&quot;, chann
   vrImages(imgdata_reg, assay = &quot;Assay1&quot;, name = &quot;main_reg&quot;)
 vrImages(vr2_merged_acute1[[&quot;Assay8&quot;]], name = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- 
   vrImages(imgdata_reg, assay = &quot;Assay1&quot;, name = &quot;main_reg&quot;)</code></pre>
+<p>We can now observe the new channels available for the both molecule
+and cell-level assays of Xenium data.</p>
+<pre class="r watch-out"><code>vrImageChannelNames(vr2_merged_acute1)</code></pre>
+<pre><code>               Assay    Layer       Sample  Spatial Channels
+Assay7        Xenium Section1 acute case 1     main DAPI,H&amp;E
+Assay8    Xenium_mol Section1 acute case 1     main DAPI,H&amp;E</code></pre>
 <p><br></p>
 <p>You can also add the VoltRon object of H&amp;E data as an additional
 assay of the Xenium section such that one layer includes cell,
@@ -657,11 +675,6 @@ tool for interactive visualization.</p>
 <pre class="r watch-out"><code># convert VoltRon object to h5ad
 as.AnnData(vr2_merged_acute1, assay = &quot;Xenium&quot;, file = &quot;vr2_merged_acute1.h5ad&quot;, 
            flip_coordinates = TRUE, name = &quot;main&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
-<!-- # export the registered H&E image -->
-<!-- library(magick) -->
-<!-- img <- vrImages(vr2_merged_acute1, assay = "Assay7", name = "main", channel = "H&E") -->
-<!-- image_write(image = img, path = "vr2_merged_acute1_H&E.png", format = "png") -->
-<p><br></p>
 <p>To run TissUUmaps please follow installation instructions <a
 href="https://tissuumaps.github.io/installation/">here</a>, then you can
 simply drag and drop both the h5ad file and png file to the
@@ -675,8 +688,7 @@ application.</p>
 of the molecule assay. We will refer the new metadata column as “Region”
 which will indicate if the molecule is within any annotated ROI in the
 same layer.</p>
-<pre class="r watch-out"><code># make a new metadata column for ROIAnnotation assay using names
-vrMainAssay(vr2_merged_acute1) &lt;- &quot;ROIAnnotation&quot;
+<pre class="r watch-out"><code>vrMainAssay(vr2_merged_acute1) &lt;- &quot;ROIAnnotation&quot;
 vr2_merged_acute1$Region &lt;- vrSpatialPoints(vr2_merged_acute1)
 
 # set the spatial coordinate system of ROI Annotations assay
