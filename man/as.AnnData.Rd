@@ -11,6 +11,7 @@ as.AnnData(
   flip_coordinates = FALSE,
   method = "anndata",
   create.ometiff = FALSE,
+  python.path = NULL,
   ...
 )
 }
@@ -27,6 +28,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{method}{the package to use for conversion: "anndataR" or "anndata".}
 
 \item{create.ometiff}{should an ometiff file be generated of default image of the object}
+
+\item{python.path}{the path to the python binary, otherwise \code{basilisk} package is used.}
 
 \item{...}{additional parameters passed to \link{vrImages}.}
 }

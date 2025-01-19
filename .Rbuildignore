@@ -7,3 +7,4 @@ dev
 ^.github$
 ^index\.md$
 ^LICENSE\.md$
+Dockerfile
