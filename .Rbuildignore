@@ -8,3 +8,4 @@ dev
 ^index\.md$
 ^LICENSE\.md$
 Dockerfile
+environment.yml
