@@ -7,10 +7,9 @@ RUN apt-get install -y libgdal-dev libfftw3-dev libmagick++-dev cmake libhdf5-de
 RUN apt-get install -y libssl-dev libcurl4-openssl-dev libgit2-dev libxml2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev libz-dev
 
 # build conda
-RUN ls
-RUN wget https://github.com/conda-forge/miniforge/releases/download/24.11.2-1/Miniforge3-Linux-aarch64.sh
-RUN bash Miniforge3-Linux-aarch64.sh -b
-SHELL ["/bin/bash", "-c"] 
+SHELL ["/bin/bash", "-c"]
+RUN wget https://github.com/conda-forge/miniforge/releases/download/24.11.2-1/Miniforge3-$(uname)-$(uname -m).sh
+RUN bash Miniforge3-$(uname)-$(uname -m).sh -b
 RUN /root/miniforge3/bin/conda init
 RUN source /root/.bashrc
 
