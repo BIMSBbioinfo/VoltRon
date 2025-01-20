@@ -2,13 +2,10 @@
 % Please edit documentation in R/generics.R, R/conversion.R
 \name{as.Zarr}
 \alias{as.Zarr}
-\alias{as.Zarr.VoltRon}
 \alias{as.Zarr.magick-image}
 \title{as.Zarr}
 \usage{
 as.Zarr(object, out_path, image_id)
-
-\method{as.Zarr}{VoltRon}(object, out_path, image_id = "image_1")
 
 \method{as.Zarr}{`magick-image`}(object, out_path, image_id = "image_1")
 }

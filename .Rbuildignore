@@ -7,3 +7,5 @@ dev
 ^.github$
 ^index\.md$
 ^LICENSE\.md$
+Dockerfile
+environment.yml

@@ -148,8 +148,6 @@ jobs:
       # All Other dependencies
       - name: Install Suggested dependencies
         run: |
-          install.packages(c('reticulate'))
-          BiocManager::install(c('basilisk'))
           BiocManager::install(c('DelayedArray'))
           BiocManager::install(c('HDF5Array'))
           remotes::install_github('bnprks/BPCells/r@v0.3.0')
@@ -183,3 +181,9 @@ jobs:
               check_dir = "check"
           )
         shell: Rscript {0}
+
+      # All Other dependencies
+      - name: Install other Suggested dependencies
+        run: |
+          install.packages(c('reticulate'))
+          BiocManager::install(c('basilisk'))

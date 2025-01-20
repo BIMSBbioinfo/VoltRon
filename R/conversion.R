@@ -248,6 +248,7 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
 #' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped.
 #' @param method the package to use for conversion: "anndataR" or "anndata".
 #' @param create.ometiff should an ometiff file be generated of default image of the object
+#' @param python.path the path to the python binary, otherwise \code{basilisk} package is used.
 #' @param ... additional parameters passed to \link{vrImages}.
 #' 
 #' @details
@@ -267,6 +268,7 @@ as.AnnData <- function(object,
                        flip_coordinates = FALSE, 
                        method = "anndata", 
                        create.ometiff = FALSE, 
+                       python.path = NULL,
                        ...) {
   
   # Check the number of assays
@@ -361,32 +363,61 @@ as.AnnData <- function(object,
       stop("Please install DelayedArray package for using DelayedArray functions")
     
     # run basilisk to call zarr methods
-    py_env <- getBasilisk()
-    proc <- basilisk::basiliskStart(py_env)
-    on.exit(basilisk::basiliskStop(proc))
-    success <- basilisk::basiliskRun(proc, function(data, metadata, obsm, coords, segments, image_list, file) {
-      zarr <- reticulate::import("zarr")
-      anndata <- reticulate::import("anndata")
-      make_numpy_friendly <- function(x) {
-        if (DelayedArray::is_sparse(x)) {
-          methods::as(x, "dgCMatrix")
+    if(is.null(python.path)){
+      py_env <- getBasilisk()
+      proc <- basilisk::basiliskStart(py_env)
+      on.exit(basilisk::basiliskStop(proc))
+      success <- basilisk::basiliskRun(proc, function(data, metadata, obsm, coords, segments, image_list, file) {
+        zarr <- reticulate::import("zarr")
+        anndata <- reticulate::import("anndata")
+        make_numpy_friendly <- function(x) {
+          if (DelayedArray::is_sparse(x)) {
+            methods::as(x, "dgCMatrix")
+          }
+          else {
+            as.matrix(x)
+          }
         }
-        else {
-          as.matrix(x)
+        X <- make_numpy_friendly(t(data))
+        obsm <- list(spatial = coords, 
+                     spatial_AssayID = coords, 
+                     segmentation = segmentations_array)
+        adata <- anndata$AnnData(X = X, 
+                                 obs = metadata, 
+                                 obsm = obsm, 
+                                 uns = list(spatial = image_list))
+        adata <- reticulate::r_to_py(adata)
+        adata$write_zarr(file)       
+        return(TRUE)
+      }, data = data, metadata = metadata, obsm = obsm, coords = coords, segments = segmentations_array, image_list = image_list, file = file)
+    } else {
+      if(file.exists(python.path)){
+        reticulate::use_python(python = python.path)
+        zarr <- reticulate::import("zarr")
+        anndata <- reticulate::import("anndata")
+        make_numpy_friendly <- function(x) {
+          if (DelayedArray::is_sparse(x)) {
+            methods::as(x, "dgCMatrix")
+          }
+          else {
+            as.matrix(x)
+          }
         }
+        X <- make_numpy_friendly(t(data))
+        obsm <- list(spatial = coords, 
+                     spatial_AssayID = coords, 
+                     segmentation = segmentations_array)
+        adata <- anndata$AnnData(X = X, 
+                                 obs = metadata, 
+                                 obsm = obsm, 
+                                 uns = list(spatial = image_list))
+        adata <- reticulate::r_to_py(adata)
+        adata$write_zarr(file)       
+      } else {
+        stop("The python path '", python.path, "' doesn't exist!")
       }
-      X <- make_numpy_friendly(t(data))
-      obsm <- list(spatial = coords, 
-                   spatial_AssayID = coords, 
-                   segmentation = segmentations_array)
-      adata <- anndata$AnnData(X = X, 
-                               obs = metadata, 
-                               obsm = obsm, 
-                               uns = list(spatial = image_list))
-      adata <- reticulate::r_to_py(adata)
-      adata$write_zarr(file)
-      return(TRUE)
-    }, data = data, metadata = metadata, obsm = obsm, coords = coords, segments = segmentations_array, image_list = image_list, file = file)
+    }
+    
     if(create.ometiff){
       success2 <- as.OmeTiff(images_mgk[[1]], out_path = gsub("zarr[/]?$", "ome.tiff", file)) 
       success <- success & success2
@@ -421,6 +452,15 @@ as.AnnData <- function(object,
         stop("The anndata package is not installed. Please install it or choose the 'anndataR' method.")
       }
       
+      # check reticulate
+      if(!is.null(python.path)){
+        if(file.exists(python.path)){
+          print(reticulate::py_config())
+        } else {
+          stop("The python path '", python.path, "' doesn't exist!")
+        }
+      }
+      
       # Create anndata using anndata
       adata <- anndata::AnnData(X = t(data), 
                                 obs = metadata, 
@@ -442,70 +482,32 @@ as.AnnData <- function(object,
   }
 }  
 
-####
-# AnnData (Zarr) ####
-####
+# write_anndata_zarr <- function(data, metadata, obsm, coords, segments, image_list, file){
+#   zarr <- reticulate::import("zarr")
+#   anndata <- reticulate::import("anndata")
+#   make_numpy_friendly <- function(x) {
+#     if (DelayedArray::is_sparse(x)) {
+#       methods::as(x, "dgCMatrix")
+#     }
+#     else {
+#       as.matrix(x)
+#     }
+#   }
+#   X <- make_numpy_friendly(t(data))
+#   obsm <- list(spatial = coords, 
+#                spatial_AssayID = coords, 
+#                segmentation = segmentations_array)
+#   adata <- anndata$AnnData(X = X, 
+#                            obs = metadata, 
+#                            obsm = obsm, 
+#                            uns = list(spatial = image_list))
+#   adata <- reticulate::r_to_py(adata)
+#   adata$write_zarr(file) 
+# }
 
-#' @rdname as.Zarr
-#'
-#' @importFrom magick image_raster
-#' @importFrom grDevices col2rgb
-#'
-#' @export
-as.Zarr.VoltRon <- function (object, out_path, image_id = "image_1")
-{
-  
-  # check packages
-  if(!requireNamespace('basilisk'))
-    stop("Please install basilisk package!: BiocManager::install('basilisk')")
-  if(!requireNamespace('reticulate'))
-    stop("Please install reticulate package!: install.packages('reticulate')")
-  if(!requireNamespace('DelayedArray'))
-    stop("Please install DelayedArray package for using DelayedArray functions")
-  
-  # object data
-  datax <- vrData(object, norm = FALSE)
-  metadata <- Metadata(object)
-
-  # obsm
-  obsm <- list()
-  coords <- vrCoordinates(object)
-  obsm[["spatial"]] <- t(as.matrix(coords))
-  if (length(vrEmbeddingNames(object)) > 0) {
-    for (embed_name in vrEmbeddingNames(object)) {
-      embedding <- vrEmbeddings(object, type = embed_name)
-      obsm[[embed_name]] <- t(as.matrix(embedding))
-    }
-  }
-  
-  py_env <- getBasilisk()
-  proc <- basilisk::basiliskStart(py_env)
-  on.exit(basilisk::basiliskStop(proc))
-  success <- basilisk::basiliskRun(proc, function(datax, metadata, obsm, out_path) {
-    anndata <- reticulate::import("anndata")
-    zarr <- reticulate::import("zarr")
-    make_numpy_friendly <- function(x, transpose = TRUE) {
-      if (transpose) {
-        x <- Matrix::t(x)
-      }
-      if (DelayedArray::is_sparse(x)) {
-        methods::as(x, "dgCMatrix")
-      }
-      else {
-        as.matrix(x)
-      }
-    }
-    X <- make_numpy_friendly(datax)
-    adata <- anndata$AnnData(X = X, obs = metadata)
-    if (length(obsm) > 0) {
-      obsm <- lapply(obsm, make_numpy_friendly)
-      adata$obsm <- obsm
-    }
-    adata$write_zarr(out_path)
-    return(TRUE)
-  }, datax = datax, metadata = metadata, obsm = obsm, out_path = out_path)
-  return(success)
-}
+####
+# Zarr ####
+####
 
 #' @rdname as.Zarr
 #'

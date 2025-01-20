@@ -1,41 +1,60 @@
-test_that("as.AnnData", {
+# library
+skip_if_not_installed("basilisk")
+skip_if_not_installed("reticulate")
+skip_if_not_installed("anndata")
+skip_if_not_installed("DelayedArray")
 
-  # library
-  skip_if_not_installed("basilisk")
-  skip_if_not_installed("reticulate")
-  skip_if_not_installed("anndata")
-  skip_if_not_installed("DelayedArray")
+# file
+h5ad_file <- tempfile(fileext = ".h5ad")
+zarr_file <- tempfile(fileext = ".zarr")
+
+test_that("as.AnnData", {
 
   # get data
   data("visium_data")
   data("xenium_data")
 
-  # file
-  h5ad_file <- tempfile(fileext = ".h5ad")
-  zarr_file <- tempfile(fileext = ".zarr")
+  # xenium to anndata
+  as.AnnData(xenium_data, file = h5ad_file)
+  as.AnnData(xenium_data, file = h5ad_file, assay = "Assay1")
+  as.AnnData(xenium_data, file = h5ad_file, flip_coordinates = TRUE)
 
-  # # xenium to anndata
-  # as.AnnData(xenium_data, file = h5ad_file)
-  # as.AnnData(xenium_data, file = h5ad_file, assay = "Assay1")
-  # as.AnnData(xenium_data, file = h5ad_file, flip_coordinates = TRUE)
-  # 
-  # # visium to anndata
-  # as.AnnData(visium_data, file = h5ad_file)
-  # as.AnnData(visium_data, file = h5ad_file, assay = "Assay1")
-  # as.AnnData(visium_data, file = h5ad_file, flip_coordinates = TRUE)
-  # 
-  # # xenium to anndata
-  # as.AnnData(xenium_data, file = zarr_file)
-  # as.AnnData(xenium_data, file = zarr_file, assay = "Assay1")
-  # as.AnnData(xenium_data, file = zarr_file, flip_coordinates = TRUE)
-  # 
-  # # visium to anndata
-  # as.AnnData(visium_data, file = zarr_file)
-  # as.AnnData(visium_data, file = zarr_file, assay = "Assay1")
-  # as.AnnData(visium_data, file = zarr_file, flip_coordinates = TRUE)
+  # visium to anndata
+  as.AnnData(visium_data, file = h5ad_file)
+  as.AnnData(visium_data, file = h5ad_file, assay = "Assay1")
+  as.AnnData(visium_data, file = h5ad_file, flip_coordinates = TRUE)
+  
+  # xenium to anndata
+  as.AnnData(xenium_data, file = zarr_file)
+  as.AnnData(xenium_data, file = zarr_file, assay = "Assay1")
+  as.AnnData(xenium_data, file = zarr_file, flip_coordinates = TRUE)
 
+  # visium to anndata
+  as.AnnData(visium_data, file = zarr_file)
+  as.AnnData(visium_data, file = zarr_file, assay = "Assay1")
+  as.AnnData(visium_data, file = zarr_file, flip_coordinates = TRUE)
+  
   # clean file
-  # file.remove(h5ad_file)
-  # unlink(zarr_file, recursive = TRUE)
+  file.remove(h5ad_file)
+  unlink(zarr_file, recursive = TRUE)
+  expect_equal(1,1L)
+})
+
+test_that("as.AnnData, python path", {
+  
+  # get data
+  data("visium_data")
+  data("xenium_data")
+  
+  # python.path
+  python.path <- system("which python", intern = TRUE)
+  expect_error(as.AnnData(visium_data, file = h5ad_file, python.path = ""))
+  
+  # python.path
+  python.path <- system("which python", intern = TRUE)
+  expect_error(as.AnnData(visium_data, file = zarr_file, python.path = python.path))
+  expect_error(as.AnnData(visium_data, file = zarr_file, python.path = ""))
+  
+  # clean file
   expect_equal(1,1L)
 })
