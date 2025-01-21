@@ -248,13 +248,13 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...){
 #' @param flip_coordinates if TRUE, the spatial coordinates (including segments) will be flipped.
 #' @param method the package to use for conversion: "anndataR" or "anndata".
 #' @param create.ometiff should an ometiff file be generated of default image of the object
-#' @param python.path the path to the python binary, otherwise \code{basilisk} package is used.
+#' @param python.path the path to the python binary, otherwise either \code{basilisk} package is used or \code{getOption("voltron.python.path")} should be not NULL.
 #' @param ... additional parameters passed to \link{vrImages}.
 #' 
 #' @details
 #' This function converts a VoltRon object into an AnnData object (.h5ad file). It extracts assay data,
 #' spatial coordinates, and optionally flips coordinates. Images associated with the assay can be included in the 
-#' resulting AnnData file, with additional customization parameters like channel, scale.perc.
+#' resulting AnnData file, with additional customization parameters like channel, scale.perc. 
 #' 
 #' @rdname as.AnnData
 #'
@@ -363,7 +363,31 @@ as.AnnData <- function(object,
       stop("Please install DelayedArray package for using DelayedArray functions")
     
     # run basilisk to call zarr methods
-    if(is.null(python.path)){
+    python.path <- getPythonPath(python.path)
+    if(!is.null(python.path)){
+      reticulate::use_python(python = python.path)
+      
+      zarr <- reticulate::import("zarr")
+      anndata <- reticulate::import("anndata")
+      make_numpy_friendly <- function(x) {
+        if (DelayedArray::is_sparse(x)) {
+          methods::as(x, "dgCMatrix")
+        }
+        else {
+          as.matrix(x)
+        }
+      }
+      X <- make_numpy_friendly(t(data))
+      obsm <- list(spatial = coords, 
+                   spatial_AssayID = coords, 
+                   segmentation = segmentations_array)
+      adata <- anndata$AnnData(X = X, 
+                               obs = metadata, 
+                               obsm = obsm, 
+                               uns = list(spatial = image_list))
+      adata <- reticulate::r_to_py(adata)
+      adata$write_zarr(file)   
+    } else {
       py_env <- getBasilisk()
       proc <- basilisk::basiliskStart(py_env)
       on.exit(basilisk::basiliskStop(proc))
@@ -390,32 +414,6 @@ as.AnnData <- function(object,
         adata$write_zarr(file)       
         return(TRUE)
       }, data = data, metadata = metadata, obsm = obsm, coords = coords, segments = segmentations_array, image_list = image_list, file = file)
-    } else {
-      if(file.exists(python.path)){
-        reticulate::use_python(python = python.path)
-        zarr <- reticulate::import("zarr")
-        anndata <- reticulate::import("anndata")
-        make_numpy_friendly <- function(x) {
-          if (DelayedArray::is_sparse(x)) {
-            methods::as(x, "dgCMatrix")
-          }
-          else {
-            as.matrix(x)
-          }
-        }
-        X <- make_numpy_friendly(t(data))
-        obsm <- list(spatial = coords, 
-                     spatial_AssayID = coords, 
-                     segmentation = segmentations_array)
-        adata <- anndata$AnnData(X = X, 
-                                 obs = metadata, 
-                                 obsm = obsm, 
-                                 uns = list(spatial = image_list))
-        adata <- reticulate::r_to_py(adata)
-        adata$write_zarr(file)       
-      } else {
-        stop("The python path '", python.path, "' doesn't exist!")
-      }
     }
     
     if(create.ometiff){
@@ -453,12 +451,9 @@ as.AnnData <- function(object,
       }
       
       # check reticulate
+      python.path <- getPythonPath(python.path)
       if(!is.null(python.path)){
-        if(file.exists(python.path)){
-          print(reticulate::py_config())
-        } else {
-          stop("The python path '", python.path, "' doesn't exist!")
-        }
+        reticulate::use_python(python.path)
       }
       
       # Create anndata using anndata
@@ -481,29 +476,6 @@ as.AnnData <- function(object,
     stop("the 'file' should have an .h5ad, .zarr or .zarr/ extension")
   }
 }  
-
-# write_anndata_zarr <- function(data, metadata, obsm, coords, segments, image_list, file){
-#   zarr <- reticulate::import("zarr")
-#   anndata <- reticulate::import("anndata")
-#   make_numpy_friendly <- function(x) {
-#     if (DelayedArray::is_sparse(x)) {
-#       methods::as(x, "dgCMatrix")
-#     }
-#     else {
-#       as.matrix(x)
-#     }
-#   }
-#   X <- make_numpy_friendly(t(data))
-#   obsm <- list(spatial = coords, 
-#                spatial_AssayID = coords, 
-#                segmentation = segmentations_array)
-#   adata <- anndata$AnnData(X = X, 
-#                            obs = metadata, 
-#                            obsm = obsm, 
-#                            uns = list(spatial = image_list))
-#   adata <- reticulate::r_to_py(adata)
-#   adata$write_zarr(file) 
-# }
 
 ####
 # Zarr ####
@@ -978,4 +950,24 @@ as.SpatialExperiment <- function(object, assay = NULL, reg = FALSE){
   
   # return
   spe
+}
+
+####
+# Auxiliary ####
+####
+
+getPythonPath <- function(python.path){
+  voltron.python.path <- getOption("voltron.python.path")
+  python.path <- python.path %||% voltron.python.path
+  if(is.null(python.path)){
+    return(NULL)
+  } else {
+    if(file.exists(python.path)){
+      return(python.path)
+    } else if(file.exists(voltron.python.path)){
+      return(voltron.python.path)
+    } else {
+      stop("The python path '", python.path, "' doesn't exist!")
+    }
+  }
 }

@@ -47,13 +47,18 @@ test_that("as.AnnData, python path", {
   data("xenium_data")
   
   # python.path
-  python.path <- system("which python", intern = TRUE)
   expect_error(as.AnnData(visium_data, file = h5ad_file, python.path = ""))
   
   # python.path
   python.path <- system("which python", intern = TRUE)
   expect_error(as.AnnData(visium_data, file = zarr_file, python.path = python.path))
   expect_error(as.AnnData(visium_data, file = zarr_file, python.path = ""))
+  
+  # options path
+  options(voltron.python.path = python.path)
+  expect_error(as.AnnData(visium_data, file = zarr_file))
+  options(voltron.python.path = NULL)
+  expect_true(as.AnnData(visium_data, file = zarr_file))
   
   # clean file
   expect_equal(1,1L)
