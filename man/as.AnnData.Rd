@@ -29,7 +29,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{create.ometiff}{should an ometiff file be generated of default image of the object}
 
-\item{python.path}{the path to the python binary, otherwise \code{basilisk} package is used.}
+\item{python.path}{the path to the python binary, otherwise either \code{basilisk} package is used or \code{getOption("voltron.python.path")} should be not NULL.}
 
 \item{...}{additional parameters passed to \link{vrImages}.}
 }
