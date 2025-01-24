@@ -793,14 +793,14 @@ applyPerspectiveTransform <- function(object,
     
     # get registered coordinates
     coords_reg <- as.matrix(as(coords, "dgCMatrix"))
-    coords_reg[,c("x", "y")] <- applyTransform(coords[,c("x", "y")], mapping)
+    coords_reg[,c("x", "y")] <- applyMapping(coords[,c("x", "y")], mapping)
     rownames(coords_reg) <- rownames(coords)
     colnames(coords_reg) <- colnames(coords)
 
     # get registered segments
     if(length(segments) > 0){
       segments_reg <- do.call(rbind, segments)
-      segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTransform(as.matrix(segments_reg[,colnames(segments_reg) %in% c("x", "y")]), mapping)
+      segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyMapping(as.matrix(segments_reg[,colnames(segments_reg) %in% c("x", "y")]), mapping)
       segments_reg <- split(segments_reg, segments_reg[,1])
       names(segments_reg) <- names(segments)
     } else {
@@ -843,7 +843,7 @@ applyPerspectiveTransform <- function(object,
 
     coords_reg[,2] <- query_info$height - coords_reg[,2]
     coords_reg <- as.matrix(coords_reg)
-    coords_reg <- applyTransform(coords_reg, mapping)
+    coords_reg <- applyMapping(coords_reg, mapping)
     coords_reg <- as.data.frame(coords_reg)
     coords_reg[,2] <- ref_info$height - coords_reg[,2]
 
@@ -862,7 +862,7 @@ applyPerspectiveTransform <- function(object,
       segments_reg <- as.data.frame(segments_reg)
       segments_reg <- transformImageKeypoints(query_image, segments_reg, query_extension, input)$keypoints
       segments_reg[,colnames(segments_reg) %in% c("y")] <- query_info$height - segments_reg[,colnames(segments_reg) %in% c("y")]
-      segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTransform(as.matrix(segments_reg[,colnames(segments_reg) %in% c("x", "y")]), mapping)
+      segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyMapping(as.matrix(segments_reg[,colnames(segments_reg) %in% c("x", "y")]), mapping)
       segments_reg[,colnames(segments_reg) %in% c("y")]  <- ref_info$height - segments_reg[,colnames(segments_reg) %in% c("y")]
       segments_reg <- transformKeypoints(ref_image, segments_reg, ref_extension, input)
       segments_reg <- split(segments_reg, segments_reg[,1])
