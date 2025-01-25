@@ -2,14 +2,16 @@
 % Please edit documentation in R/allgenerics.R, R/image.R
 \name{modulateImage}
 \alias{modulateImage}
-\alias{modulateImage.VoltRon}
-\alias{modulateImage.vrAssay}
-\alias{modulateImage.vrAssayV2}
-\alias{modulateImage.vrImage}
-\alias{modulateImage.vrSpatial}
+\alias{modulateImage,VoltRon-method}
+\alias{modulateImage,vrAssay-method}
+\alias{modulateImage,vrAssayV2-method}
+\alias{modulateImage,vrImage-method}
+\alias{modulateImage,vrSpatial-method}
 \title{modulateImage}
 \usage{
-modulateImage(
+modulateImage(object, ...)
+
+\S4method{modulateImage}{VoltRon}(
   object,
   assay = NULL,
   name = NULL,
@@ -21,19 +23,7 @@ modulateImage(
   force = FALSE
 )
 
-\method{modulateImage}{VoltRon}(
-  object,
-  assay = NULL,
-  name = NULL,
-  reg = FALSE,
-  channel = NULL,
-  brightness = 100,
-  saturation = 100,
-  hue = 100,
-  force = FALSE
-)
-
-\method{modulateImage}{vrAssay}(
+\S4method{modulateImage}{vrAssay}(
   object,
   name = NULL,
   reg = FALSE,
@@ -44,7 +34,7 @@ modulateImage(
   force = FALSE
 )
 
-\method{modulateImage}{vrAssayV2}(
+\S4method{modulateImage}{vrAssayV2}(
   object,
   name = NULL,
   reg = FALSE,
@@ -55,7 +45,7 @@ modulateImage(
   force = FALSE
 )
 
-\method{modulateImage}{vrImage}(
+\S4method{modulateImage}{vrImage}(
   object,
   channel = NULL,
   brightness = 100,
@@ -64,7 +54,7 @@ modulateImage(
   force = FALSE
 )
 
-\method{modulateImage}{vrSpatial}(
+\S4method{modulateImage}{vrSpatial}(
   object,
   channel = NULL,
   brightness = 100,
@@ -74,7 +64,9 @@ modulateImage(
 )
 }
 \arguments{
-\item{object}{a VoltRon, vrAssay or vrImage object}
+\item{object}{a VoltRon, vrAssay or vrSpatial object.}
+
+\item{...}{arguments passed to other methods.}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}

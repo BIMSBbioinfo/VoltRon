@@ -4,27 +4,12 @@
 \alias{addAssay}
 \title{Add Assay}
 \usage{
-addAssay(
-  object,
-  assay,
-  metadata = NULL,
-  assay_name,
-  sample = "Sample1",
-  layer = "Section1"
-)
+addAssay(object, ...)
 }
 \arguments{
-\item{object}{a VoltRon object}
+\item{object}{a VoltRon object.}
 
-\item{assay}{a vrAssay object}
-
-\item{metadata}{a predefined metadata}
-
-\item{assay_name}{assay name of the new added assay}
-
-\item{sample}{sample name}
-
-\item{layer}{layer name}
+\item{...}{arguments passed to other methods.}
 }
 \description{
 add a new assay (vrAssay object) to a VoltRon object

@@ -485,12 +485,7 @@ formVoltRon <- function(data = NULL,
 
 ### Assay Methods ####
 
-#' @param object a VoltRon object
-#' @rdname updateAssay
-#' @method updateAssay VoltRon
-#' @export
-#' @noRd
-updateAssay.VoltRon <- function(object, assay = NULL) {
+updateAssayVoltRon <- function(object, assay = NULL) {
   
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -502,6 +497,15 @@ updateAssay.VoltRon <- function(object, assay = NULL) {
   return(object)
 }
 
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' 
+#' @rdname updateAssay
+#' @method updateAssay VoltRon
+#' @export
+#' @noRd
+setMethod("updateAssay", "VoltRon", updateAssayVoltRon)
+
 #' Main Assay
 #'
 #' Get and set the main assay of a VoltRon object
@@ -510,17 +514,14 @@ updateAssay.VoltRon <- function(object, assay = NULL) {
 #' @rdname vrMainAssay
 #'
 #' @export
-#'
-vrMainAssay <- function(object) {
+setMethod("vrMainAssay", "VoltRon", function(object) {
   object@main.assay
-}
+})
 
-#' @param value new assay name
-#'
 #' @rdname vrMainAssay
 #'
 #' @export
-"vrMainAssay<-" <- function(object, value) {
+setMethod("vrMainAssay<-", "VoltRon", function(object, value) {
   sample.metadata <- SampleMetadata(object)
   assay_names <- unique(sample.metadata$Assay)
   if(!value %in% assay_names){
@@ -529,17 +530,9 @@ vrMainAssay <- function(object) {
     object@main.assay <- value
   }
   return(object)
-}
+})
 
-
-#' @rdname addAssay
-#' @method addAssay VoltRon
-#'
-#' @importFrom igraph make_empty_graph add_edges vertices
-#'
-#' @export
-#' @noRd
-addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample = "Sample1", layer = "Section1"){
+addAssayVoltRon <- function(object, assay, metadata = NULL, assay_name, sample = "Sample1", layer = "Section1"){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -579,21 +572,30 @@ addAssay.VoltRon <- function(object, assay, metadata = NULL, assay_name, sample 
   return(object)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param assay a vrAssay object
+#' @param metadata a predefined metadata
+#' @param assay_name assay name of the new added assay
+#' @param sample sample name
+#' @param layer layer name
+#' 
+#' @rdname addAssay
+#' @method addAssay VoltRon
 #'
-#' @rdname vrAssayNames
-#' @order 2
+#' @importFrom igraph make_empty_graph add_edges vertices
+#'
 #' @export
-vrAssayNames.VoltRon <- function(object, assay = NULL){
+#' @noRd
+setMethod("addAssay", "VoltRon", addAssayVoltRon)
 
+vrAssayNamesVoltRon <- function(object, assay = NULL){
+  
   # sample metadata
   sample.metadata <- SampleMetadata(object)
-
+  
   # check assays
   if(is.null(assay))
     assay <- vrMainAssay(object)
-
+  
   # get assay names
   if(any(assay == "all")){
     assay_names <- rownames(sample.metadata)
@@ -608,8 +610,27 @@ vrAssayNames.VoltRon <- function(object, assay = NULL){
       }
     }
   }
-
+  
   return(assay_names)
+}
+
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#'
+#' @rdname vrAssayNames
+#' @order 2
+#' @export
+setMethod("vrAssayNames", "VoltRon", vrAssayNamesVoltRon)
+
+vrAssayTypesVoltRon <- function(object, assay = NULL){
+  
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  
+  # get assay types
+  assay_types <- sapply(assay_names, function(x) vrAssayTypes(object[[x]]))
+  
+  return(assay_types)
 }
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
@@ -619,38 +640,16 @@ vrAssayNames.VoltRon <- function(object, assay = NULL){
 #' @order 2
 #'
 #' @export
-vrAssayTypes.VoltRon <- function(object, assay = NULL){
+setMethod("vrAssayTypes", "VoltRon", vrAssayTypesVoltRon)
 
-  # get assay names
-  assay_names <- vrAssayNames(object, assay = assay)
-
-  # get assay types
-  assay_types <- sapply(assay_names, function(x) vrAssayTypes(object[[x]]))
-
-  return(assay_types)
-}
-
-
-#' changeSampleNames.VoltRon
-#'
-#' Change the sample names of the VoltRon object and reorient layers if needed
-#'
-#' @param samples a single or a set of sample names
-#' 
-#' @rdname changeSampleNames
-#'
-#' @importFrom dplyr n_distinct %>% distinct select mutate group_by
-#' @importFrom methods new
-#'
-#' @noRd
-changeSampleNames.VoltRon <- function(object, samples = NULL){
-
+changeSampleNamesVoltRon <- function(object, samples = NULL){
+  
   # sample metadata
   sample.metadata <- SampleMetadata(object)
-
+  
   # old to new samples table
   samples_table <- data.frame(sample.metadata, AssayID = rownames(sample.metadata), NewSample = samples)
-
+  
   # check if multiple new sample names are associated with the same section of one sample
   check_samples_table <- samples_table %>%
     dplyr::group_by(Assay, Sample) %>% dplyr::mutate(n = dplyr::n_distinct(NewSample)) %>%
@@ -661,15 +660,15 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
     print(sample.metadata)
     stop()
   }
-
+  
   # assign new sample names to samples and sample metadata
   new_sample.metadata <- NULL
   new_listofSamples <- list()
   for(cur_sample in unique(samples)){
-
+    
     # current sample and sample table
     cur_sample.metadata <- samples_table[samples_table$NewSample == cur_sample,]
-
+    
     # for each unique sample names, combine layers and multiple samples into one
     listofLayers <- NULL
     uniq_old_samples <- unique(cur_sample.metadata$Sample)
@@ -683,7 +682,7 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
     
     # make layer adjacency and get distance
     adjacency <- matrix(0, nrow = length(listofLayers), ncol = length(listofLayers),
-                  dimnames = list(names(listofLayers), names(listofLayers)))
+                        dimnames = list(names(listofLayers), names(listofLayers)))
     diag(adjacency) <- 1
     # distance <- matrix(NA, nrow = length(listofLayers), ncol = length(listofLayers),
     #                    dimnames = list(names(listofLayers), names(listofLayers)))
@@ -700,35 +699,38 @@ changeSampleNames.VoltRon <- function(object, samples = NULL){
     new_listofSamples <- c(new_listofSamples, listofSamples)
     new_sample.metadata <- rbind(new_sample.metadata, cur_sample.metadata)
   }
-
+  
   # assign new samples and layers to metadata
   metadata <- changeSampleNames(Metadata(object, type = "all"), sample_metadata_table = new_sample.metadata)
-
+  
   # sample metadata
   new_sample.metadata <- new_sample.metadata[,c("Assay", "NewLayer", "NewSample")]
   colnames(new_sample.metadata) <- c("Assay", "Layer", "Sample")
-
+  
   # reinsert object elements
   object@sample.metadata <- new_sample.metadata
   object@samples <- new_listofSamples
   object@metadata <- metadata
-
+  
   # return
   return(object)
 }
 
-#' changeAssayNames.VoltRon
+#' changeSampleNames.VoltRon
 #'
 #' Change the sample names of the VoltRon object and reorient layers if needed
 #'
-#' @rdname changeAssayNames
-#' @method changeAssayNames VoltRon
+#' @param samples a single or a set of sample names
+#' 
+#' @rdname changeSampleNames
 #'
-#' @param object a VoltRon object
-#' @param assays a set of assay names
+#' @importFrom dplyr n_distinct %>% distinct select mutate group_by
+#' @importFrom methods new
 #'
 #' @noRd
-changeAssayNames.VoltRon <- function(object, assays = NULL){
+setMethod("changeSampleNames", "VoltRon", changeSampleNamesVoltRon)
+
+changeAssayNamesVoltRon <- function(object, assays = NULL){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -753,6 +755,19 @@ changeAssayNames.VoltRon <- function(object, assays = NULL){
   # return
   return(object)
 }
+
+#' changeAssayNames.VoltRon
+#'
+#' Change the sample names of the VoltRon object and reorient layers if needed
+#'
+#' @rdname changeAssayNames
+#' @method changeAssayNames VoltRon
+#'
+#' @param object a VoltRon object
+#' @param assays a set of assay names
+#'
+#' @noRd
+setMethod("changeAssayNames", "VoltRon", changeAssayNamesVoltRon)
 
 #' addLayerConnectivity
 #'
@@ -981,9 +996,10 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subset.vrSample(samp, spatialpoints = spatialpoints)
     }, USE.NAMES = TRUE)
-    spatialpoints <-  do.call("c", lapply(listofSamples, vrSpatialPoints.vrSample))
+    # spatialpoints <-  do.call("c", lapply(listofSamples, vrSpatialPoints.vrSample))
+    spatialpoints <-  do.call("c", lapply(listofSamples, vrSpatialPoints))
     metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
-    sample.metadata <- subset_sampleMetadata(sample.metadata, assays = vrAssayNames.vrMetadata(metadata))
+    sample.metadata <- subset_sampleMetadata(sample.metadata, assays = vrAssayNamesvrMetadata(metadata))
 
   } else if(!is.null(features)){
     
@@ -1013,7 +1029,8 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
         listofSamples <- sapply(object@samples[samples], function(samp) {
           subset.vrSample(samp, image = image)
         }, USE.NAMES = TRUE)
-        spatialpoints <-  do.call(c, lapply(listofSamples, vrSpatialPoints.vrSample))
+        # spatialpoints <-  do.call(c, lapply(listofSamples, vrSpatialPoints.vrSample))
+        spatialpoints <-  do.call("c", lapply(listofSamples, vrSpatialPoints))
         metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
       }
     } else {
@@ -1118,14 +1135,14 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
 #' @order 2
 #' 
 #' @export
-vrSpatialPoints.VoltRon <- function(object, assay = NULL) {
+setMethod("vrSpatialPoints", "VoltRon", function(object, assay = NULL) {
 
   # get assays
   assay <- vrAssayNames(object, assay = assay)
 
   # return
   return(vrSpatialPoints(object@metadata, assay = assay))
-}
+})
 
 vrFeaturesVoltRon <- function(object, assay = NULL) {
 
@@ -1187,20 +1204,7 @@ vrFeatureDataReplaceVoltRon <- function(object, assay = NULL, value) {
 #' @export
 setMethod("vrFeatureData<-", "VoltRon", vrFeatureDataReplaceVoltRon)
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param features the set of features
-#' @param feat_type the feature set type 
-#' @param norm TRUE if normalized data should be returned
-#' @param ... additional parameters passed to other methods and \link{vrImages}
-#'
-#' @rdname vrData
-#' @order 2
-#' 
-#' @importFrom dplyr full_join mutate_all coalesce
-#'
-#' @export
-vrData.VoltRon <- function(object, assay = NULL, features = NULL, feat_type = NULL, norm = FALSE, ...) {
+vrDataVoltRon <- function(object, assay = NULL, features = NULL, feat_type = NULL, norm = FALSE, ...) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1232,6 +1236,21 @@ vrData.VoltRon <- function(object, assay = NULL, features = NULL, feat_type = NU
   return(data)
 }
 
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param features the set of features
+#' @param feat_type the feature set type 
+#' @param norm TRUE if normalized data should be returned
+#' @param ... additional parameters passed to other methods and \link{vrImages}
+#'
+#' @rdname vrData
+#' @order 2
+#' 
+#' @importFrom dplyr full_join mutate_all coalesce
+#'
+#' @export
+setMethod("vrData", "VoltRon", vrDataVoltRon)
+
 #' @importFrom Matrix Matrix
 merge_data <- function(data1, data2, by = "feature.ID"){
   if(inherits(data1, c("data.frame", "Matrix"))){
@@ -1260,15 +1279,7 @@ merge_data <- function(data1, data2, by = "feature.ID"){
   return(data1)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param ... additional parameters passed to \link{generateTileData.vrAssay}
-#' 
-#' @rdname generateTileData
-#' @order 2
-#'
-#' @export
-generateTileData.VoltRon <- function(object, assay = NULL, ...) {
+generateTileDataVoltRon <- function(object, assay = NULL, ...) {
   
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1283,21 +1294,61 @@ generateTileData.VoltRon <- function(object, assay = NULL, ...) {
     object[[assy]] <- generateTileData(object[[assy]], ...)
 }
 
-#' @rdname vrEmbeddings
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param ... additional parameters passed to vrAssay.
+#' 
+#' @rdname generateTileData
 #' @order 2
 #'
 #' @export
-vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", dims = 1:30) {
+setMethod("generateTileData", "VoltRon", generateTileDataVoltRon)
 
+vrEmbeddingsVoltRon <- function(object, assay = NULL, type = "pca", dims = 1:30) {
+  
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
-
+  
   # get all coordinates
   returndata_list <- list()
   for(i in 1:length(assay_names))
     returndata_list[[i]] <- vrEmbeddings(object[[assay_names[i]]], type = type, dims = dims)
-
+  
   return(do.call(rbind, returndata_list))
+}
+
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param type the key name for the embedding, i.e. "pca" or "umap"
+#' @param dims the set of dimensions of the embedding data
+#' 
+#' @rdname vrEmbeddings
+#' @order 2
+#'
+#' @export
+setMethod("vrEmbeddings", "VoltRon", vrEmbeddingsVoltRon)
+
+vrEmbeddingsReplaceVoltRon <- function(object, assay = NULL, type = "pca", overwrite = FALSE, value) {
+  
+  # check if the embedding exists
+  if(type %in% vrEmbeddingNames(object) && !overwrite)
+    stop("An embedding named '", type, "' already exists in this object. Do overwrite = TRUE for replacing with the existing one.")
+  
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  
+  # set embeddings
+  for(assy in assay_names){
+    assayobject <- object[[assy]]
+    if(vrAssayTypes(assayobject) %in% c("ROI", "cell", "spot")){
+      vrEmbeddings(assayobject, type = type) <- value[grepl(paste0(assy, "$"), rownames(value)),, drop = FALSE]
+    } else {
+      vrEmbeddings(assayobject, type = type) <- value[vrSpatialPoints(assayobject),, drop = FALSE]
+    }
+    object[[assy]] <- assayobject
+  }
+  
+  return(object)
 }
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
@@ -1310,28 +1361,17 @@ vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", dims = 1:30
 #' @order 4
 #'
 #' @export
-#'
-"vrEmbeddings<-.VoltRon" <- function(object, assay = NULL, type = "pca", overwrite = FALSE, value) {
+setMethod("vrEmbeddings<-", "VoltRon", vrEmbeddingsReplaceVoltRon)
 
-  # check if the embedding exists
-  if(type %in% vrEmbeddingNames(object) && !overwrite)
-    stop("An embedding named '", type, "' already exists in this object. Do overwrite = TRUE for replacing with the existing one.")
-
+vrEmbeddingNamesVoltRon <- function(object, assay = NULL){
+  
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
-
-  # set embeddings
-  for(assy in assay_names){
-    assayobject <- object[[assy]]
-    if(vrAssayTypes(assayobject) %in% c("ROI", "cell", "spot")){
-      vrEmbeddings(assayobject, type = type) <- value[grepl(paste0(assy, "$"), rownames(value)),, drop = FALSE]
-    } else {
-      vrEmbeddings(assayobject, type = type) <- value[vrSpatialPoints(assayobject),, drop = FALSE]
-    }
-    object[[assy]] <- assayobject
-  }
-
-  return(object)
+  
+  # get assay types
+  embed_names <- unique(unlist(lapply(assay_names, function(x) vrEmbeddingNames(object[[x]]))))
+  
+  return(embed_names)
 }
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
@@ -1341,31 +1381,11 @@ vrEmbeddings.VoltRon <- function(object, assay = NULL, type = "pca", dims = 1:30
 #' @order 2
 #'
 #' @export
-vrEmbeddingNames.VoltRon <- function(object, assay = NULL){
-
-  # get assay names
-  assay_names <- vrAssayNames(object, assay = assay)
-
-  # get assay types
-  embed_names <- unique(unlist(lapply(assay_names, function(x) vrEmbeddingNames(object[[x]]))))
-
-  return(embed_names)
-}
+setMethod("vrEmbeddingNames", "VoltRon", vrEmbeddingNamesVoltRon)
 
 #### Feature ####
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays.
-#' @param data new data matrix for new feature set
-#' @param feature_name the name of the new feature set
-#' 
-#' @rdname addFeature
-#' @method addFeature VoltRon
-#' 
-#' @importFrom stringr str_replace
-#' 
-#' @export
-addFeature.VoltRon <- function(object, assay = NULL, data, feature_name){
+addFeatureVoltRon <- function(object, assay = NULL, data, feature_name){
   
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1382,11 +1402,18 @@ addFeature.VoltRon <- function(object, assay = NULL, data, feature_name){
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays.
-#'
-#' @rdname vrMainFeatureType
-#' @order 2
+#' @param data new data matrix for new feature set
+#' @param feature_name the name of the new feature set
+#' 
+#' @rdname addFeature
+#' @method addFeature VoltRon
+#' 
+#' @importFrom stringr str_replace
+#' 
 #' @export
-vrMainFeatureType.VoltRon <- function(object, assay = NULL){
+setMethod("addFeature", "VoltRon", addFeatureVoltRon)
+
+vrMainFeatureTypeVoltRon <- function(object, assay = NULL){
   
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1412,12 +1439,15 @@ vrMainFeatureType.VoltRon <- function(object, assay = NULL){
   }
 }
 
-#' @param value the name of main feature set
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays.
 #'
 #' @rdname vrMainFeatureType
-#' @order 4
+#' @order 2
 #' @export
-"vrMainFeatureType<-.VoltRon" <- function(object, assay = NULL, value){
+setMethod("vrMainFeatureType", "VoltRon", vrMainFeatureTypeVoltRon)
+
+vrMainFeatureTypeReplaceVoltRon <- function(object, assay = NULL, value){
   
   # sample metadata
   sample_metadata <- SampleMetadata(object)
@@ -1436,13 +1466,12 @@ vrMainFeatureType.VoltRon <- function(object, assay = NULL){
   return(object)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays
-#'
-#' @rdname vrFeatureTypeNames
-#'
+#' @rdname vrMainFeatureType
+#' @order 4
 #' @export
-vrFeatureTypeNames.VoltRon <- function(object, assay = NULL){
+setMethod("vrMainFeatureType<-", "VoltRon", vrMainFeatureTypeReplaceVoltRon)
+
+vrFeatureTypeNamesVoltRon <- function(object, assay = NULL){
   
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1460,6 +1489,14 @@ vrFeatureTypeNames.VoltRon <- function(object, assay = NULL){
   
   return(feature_names)
 }
+
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays
+#'
+#' @rdname vrFeatureTypeNames
+#'
+#' @export
+setMethod("vrFeatureTypeNames", "VoltRon", vrFeatureTypeNamesVoltRon)
 
 #### Metadata ####
   
@@ -1656,23 +1693,14 @@ SampleMetadata <- function(object) {
 
 #### Spatial ####
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param image_name (deprecated, use \code{spatial_name}) the name/key of the image associated with the coordinates
-#' @param spatial_name the name/key of the spatial system associated with the coordinates
-#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
-#'
-#' @rdname vrCoordinates
-#' @order 2
-#' @export
-vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL, reg = FALSE) {
-
+vrCoordinatesVoltRon <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL, reg = FALSE) {
+  
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
   
   # get sample metadata
   sample_metadata <- SampleMetadata(object)
-
+  
   # get spatial name
   if(!is.null(spatial_name)) 
     image_name <- spatial_name
@@ -1700,30 +1728,36 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, spati
       coords <- cur_coords
     }
   }
-
+  
   # return image
   return(coords)
 }
 
-#' @param value new coordinates of spatial points
-#' 
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param image_name (deprecated, use \code{spatial_name}) the name/key of the image associated with the coordinates
+#' @param spatial_name the name/key of the spatial system associated with the coordinates
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
+#'
 #' @rdname vrCoordinates
-#' @order 4
+#' @order 2
 #' @export
-"vrCoordinates<-.VoltRon" <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
+setMethod("vrCoordinates", "VoltRon", vrCoordinatesVoltRon)
 
+vrCoordinatesReplaceVoltRon <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
+  
   # sample metadata
   sample.metadata <- SampleMetadata(object)
-
+  
   # check the number of assays in the object
   if(nrow(sample.metadata) > 1)
     stop("Changing the coordinates of multiple assays in the same time are not permitted!")
-
+  
   # get assay
   cur_assay <- sample.metadata[1,]
   vrlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
   vrassay <- vrlayer[[cur_assay$Assay]]
-
+  
   # get spatial name
   if(!is.null(spatial_name)) 
     image_name <- spatial_name
@@ -1732,8 +1766,34 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, spati
   vrCoordinates(vrassay, spatial_name = image_name, reg = reg) <- value
   vrlayer[[cur_assay$Assay]] <- vrassay
   object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
-
+  
   return(object)
+}
+
+#' @param value new coordinates of spatial points
+#' 
+#' @rdname vrCoordinates
+#' @order 4
+#' @export
+setMethod("vrCoordinates<-", "VoltRon", vrCoordinatesReplaceVoltRon)
+
+vrSegmentsVoltRon <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL, reg = FALSE) {
+  
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  
+  # get spatial name
+  if(!is.null(spatial_name)) 
+    image_name <- spatial_name
+  
+  # get all coordinates
+  segts <- NULL
+  for(assy in assay_names)
+    segts <- c(segts, vrSegments(object[[assy]], spatial_name = image_name, reg = reg))
+  # segts <- c(segts, vrSegments(object[[assy]], image_name = image_name, reg = reg))
+  
+  # return image
+  return(segts)
 }
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
@@ -1745,23 +1805,32 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, spati
 #' @rdname vrSegments
 #' @order 2
 #' @export
-vrSegments.VoltRon <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL, reg = FALSE) {
+setMethod("vrSegments", "VoltRon", vrSegmentsVoltRon)
 
-  # get assay names
-  assay_names <- vrAssayNames(object, assay = assay)
-
+vrSegmentsReplaceVoltRon <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
+  
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+  
+  # check the number of assays in the object
+  if(nrow(sample.metadata) > 1)
+    stop("Changing the coordinates of multiple assays are not permitted!")
+  
+  # get assay
+  cur_assay <- sample.metadata[1,]
+  vrlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
+  vrassay <- vrlayer[[cur_assay$Assay]]
+  
   # get spatial name
   if(!is.null(spatial_name)) 
     image_name <- spatial_name
   
-  # get all coordinates
-  segts <- NULL
-  for(assy in assay_names)
-    segts <- c(segts, vrSegments(object[[assy]], spatial_name = image_name, reg = reg))
-    # segts <- c(segts, vrSegments(object[[assy]], image_name = image_name, reg = reg))
-
-  # return image
-  return(segts)
+  # change coordinates
+  vrSegments(vrassay, spatial_name = image_name, reg = reg) <- value
+  vrlayer[[cur_assay$Assay]] <- vrassay
+  object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
+  
+  return(object)
 }
 
 #' @param value new segment coordinates of spatial points
@@ -1769,30 +1838,21 @@ vrSegments.VoltRon <- function(object, assay = NULL, image_name = NULL, spatial_
 #' @rdname vrSegments
 #' @order 5
 #' @export
-"vrSegments<-.VoltRon" <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
+setMethod("vrSegments<-", "VoltRon", vrSegmentsReplaceVoltRon)
 
-  # sample metadata
-  sample.metadata <- SampleMetadata(object)
-
-  # check the number of assays in the object
-  if(nrow(sample.metadata) > 1)
-    stop("Changing the coordinates of multiple assays are not permitted!")
-
-  # get assay
-  cur_assay <- sample.metadata[1,]
-  vrlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
-  vrassay <- vrlayer[[cur_assay$Assay]]
-
+flipCoordinatesVoltRon <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL, ...){
+  
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  
   # get spatial name
   if(!is.null(spatial_name)) 
     image_name <- spatial_name
   
-  # change coordinates
-  # vrSegments(vrassay, image_name = image_name, reg = reg) <- value
-  vrSegments(vrassay, spatial_name = image_name, reg = reg) <- value
-  vrlayer[[cur_assay$Assay]] <- vrassay
-  object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
-
+  # flip coordinates
+  for(assy in assay_names){
+    object[[assy]] <- flipCoordinates(object[[assy]], spatial_name = image_name, ...)
+  }
   return(object)
 }
 
@@ -1806,22 +1866,7 @@ vrSegments.VoltRon <- function(object, assay = NULL, image_name = NULL, spatial_
 #' @order 2
 #'
 #' @export
-flipCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL, ...){
-  
-  # get assay names
-  assay_names <- vrAssayNames(object, assay = assay)
-  
-  # get spatial name
-  if(!is.null(spatial_name)) 
-    image_name <- spatial_name
-  
-  # flip coordinates
-  for(assy in assay_names){
-    object[[assy]] <- flipCoordinates(object[[assy]], spatial_name = image_name, ...)
-    # object[[assy]] <- flipCoordinates(object[[assy]], image_name = image_name, ...)
-  }
-  return(object)
-}
+setMethod("flipCoordinates", "VoltRon", flipCoordinatesVoltRon)
 
 #### Graphs ####
 
@@ -2087,7 +2132,6 @@ combineGraphs <- function(object, graph.names = NULL, graph.weights = NULL, grap
 
   # collect graphs
   allmat <- NULL
-  # gr_list <- list()
   for(gr in graph.names){
     cur_graph <- vrGraph(object, graph.type = gr)
     if("weight" %in% igraph::edge_attr_names(cur_graph)){

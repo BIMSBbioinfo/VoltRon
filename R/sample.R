@@ -363,29 +363,39 @@ subset.vrBlock <- function(object, subset, assays = NULL, spatialpoints = NULL, 
   subset.vrSample(object, subset = subset, assays = assays, spatialpoints = spatialpoints, image = image)
 }
 
-#' @param ... arguments passed to other methods
-#' 
 #' @rdname vrSpatialPoints
 #' @order 5
 #' @export
-vrSpatialPoints.vrSample <- function(object, ...) {
-  # layers <- object@layer
-  # spatialpoints <- unlist(sapply(layers, function(lay) {
-  #   vrSpatialPoints(lay)
-  # }, simplify = TRUE))
-  # spatialpoints
+setMethod("vrSpatialPoints", "vrSample", function(object) {
   do.call("c", lapply(object@layer, function(lay) {
     vrSpatialPoints(lay)
   }))
-}
+})
 
-#' @param ... arguments passed to other methods
-#' 
 #' @rdname vrSpatialPoints
 #' @order 5
 #' @export
-vrSpatialPoints.vrBlock <- function(object, ...) {
-  vrSpatialPoints.vrSample(object, ...)
+setMethod("vrSpatialPoints", "vrBlock", function(object) {
+  do.call("c", lapply(object@layer, function(lay) {
+    vrSpatialPoints(lay)
+  }))
+})
+
+changeAssayNamesvrSample <- function(object, sample.metadata = NULL){
+  
+  if(is.null(sample.metadata))
+    stop("Please provide a sample.metadata")
+  
+  if(!"NewAssayNames" %in% colnames(sample.metadata))
+    stop("Please provide a sample.metadata with NewAssayNames column which includes the new assay names")
+  
+  # change the assay names of the layers
+  layer_names <- names(object@layer)
+  for(lyr in layer_names)
+    object[[lyr]] <- changeAssayNames(object[[lyr]], sample.metadata = sample.metadata[sample.metadata$Layer == lyr,])
+  
+  # return
+  return(object)
 }
 
 #' changeAssayNames.vrSample
@@ -397,20 +407,10 @@ vrSpatialPoints.vrBlock <- function(object, ...) {
 #' @rdname changeAssayNames
 #'
 #' @noRd
-changeAssayNames.vrSample <- function(object, sample.metadata = NULL){
+setMethod("changeAssayNames", "vrSample", changeAssayNamesvrSample)
 
-  if(is.null(sample.metadata))
-    stop("Please provide a sample.metadata")
-
-  if(!"NewAssayNames" %in% colnames(sample.metadata))
-    stop("Please provide a sample.metadata with NewAssayNames column which includes the new assay names")
-
-  # change the assay names of the layers
-  layer_names <- names(object@layer)
-  for(lyr in layer_names)
-    object[[lyr]] <- changeAssayNames(object[[lyr]], sample.metadata = sample.metadata[sample.metadata$Layer == lyr,])
-
-  # return
+changeAssayNamesvrBlock <- function(object, sample.metadata = NULL) {
+  object <- changeAssayNamesvrSample(object, sample.metadata = sample.metadata)
   return(object)
 }
 
@@ -423,10 +423,7 @@ changeAssayNames.vrSample <- function(object, sample.metadata = NULL){
 #' @rdname changeAssayNames
 #'
 #' @noRd
-changeAssayNames.vrBlock <- function(object, sample.metadata = NULL) {
-  object <- changeAssayNames.vrSample(object, sample.metadata = sample.metadata)
-  return(object)
-}
+setMethod("changeAssayNames", "vrBlock", changeAssayNamesvrBlock)
 
 ### vrLayer Methods ####
 
@@ -510,16 +507,11 @@ subset.vrLayer <- function(object, subset, assays = NULL, spatialpoints = NULL, 
 #' @rdname vrSpatialPoints
 #' @order 6
 #' @export
-vrSpatialPoints.vrLayer <- function(object, ...) {
-  # assays <- object@assay
-  # spatialpoints <- unlist(sapply(assays, function(assy) {
-  #   vrSpatialPoints(assy)
-  # }, simplify = TRUE))
-  # spatialpoints
+setMethod("vrSpatialPoints", "vrLayer", function(object) {
   do.call("c", lapply(object@assay, function(assy) {
       vrSpatialPoints(assy)
   }))
-}
+})
 
 #' subset.Connectivity
 #'
@@ -554,17 +546,7 @@ getConnectedSpatialPoints <- function(object, spatialpoints = NULL){
   }
 }
 
-#' changeAssayNames.vrLayer
-#'
-#' Change the assay names of assays within a vrSample object
-#'
-#' @rdname changeAssayNames
-#'
-#' @importFrom igraph V V<- vcount
-#' @importFrom methods is
-#'
-#' @noRd
-changeAssayNames.vrLayer <- function(object, sample.metadata = NULL){
+changeAssayNamesvrLayer <- function(object, sample.metadata = NULL){
 
   if(is.null(sample.metadata))
     stop("Please provide a sample.metadata")
@@ -599,3 +581,14 @@ changeAssayNames.vrLayer <- function(object, sample.metadata = NULL){
   return(object)
 }
 
+#' changeAssayNamesvrLayer
+#'
+#' Change the assay names of assays within a vrSample object
+#'
+#' @rdname changeAssayNames
+#'
+#' @importFrom igraph V V<- vcount
+#' @importFrom methods is
+#'
+#' @noRd
+setMethod("changeAssayNames", "vrLayer", changeAssayNamesvrLayer)

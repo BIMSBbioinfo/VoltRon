@@ -2,18 +2,20 @@
 % Please edit documentation in R/allgenerics.R, R/image.R
 \name{vrImages}
 \alias{vrImages}
-\alias{vrImages.VoltRon}
-\alias{vrImages.vrAssay}
-\alias{vrImages.vrAssayV2}
-\alias{vrImages.vrImage}
-\alias{vrImages.vrSpatial}
-\alias{vrImages<-.vrAssay}
-\alias{vrImages<-.vrAssayV2}
-\alias{vrImages<-.vrImage}
-\alias{vrImages<-.vrSpatial}
+\alias{vrImages,VoltRon-method}
+\alias{vrImages,vrAssay-method}
+\alias{vrImages,vrAssayV2-method}
+\alias{vrImages,vrImage-method}
+\alias{vrImages,vrSpatial-method}
+\alias{vrImages<-,vrAssay-method}
+\alias{vrImages<-,vrAssayV2-method}
+\alias{vrImages<-,vrImage-method}
+\alias{vrImages<-,vrSpatial-method}
 \title{vrImages}
 \usage{
-vrImages(
+vrImages(object, ...)
+
+\S4method{vrImages}{VoltRon}(
   object,
   assay = NULL,
   name = NULL,
@@ -23,17 +25,7 @@ vrImages(
   scale.perc = 100
 )
 
-\method{vrImages}{VoltRon}(
-  object,
-  assay = NULL,
-  name = NULL,
-  reg = FALSE,
-  channel = NULL,
-  as.raster = FALSE,
-  scale.perc = 100
-)
-
-\method{vrImages}{vrAssay}(
+\S4method{vrImages}{vrAssay}(
   object,
   name = NULL,
   reg = FALSE,
@@ -42,7 +34,7 @@ vrImages(
   scale.perc = 100
 )
 
-\method{vrImages}{vrAssayV2}(
+\S4method{vrImages}{vrAssayV2}(
   object,
   name = NULL,
   reg = FALSE,
@@ -51,20 +43,22 @@ vrImages(
   scale.perc = 100
 )
 
-\method{vrImages}{vrImage}(object, channel = NULL, as.raster = FALSE, scale.perc = 100)
+\S4method{vrImages}{vrImage}(object, channel = NULL, as.raster = FALSE, scale.perc = 100)
 
-\method{vrImages}{vrSpatial}(object, channel = NULL, as.raster = FALSE, scale.perc = 100)
+\S4method{vrImages}{vrSpatial}(object, channel = NULL, as.raster = FALSE, scale.perc = 100)
 
-\method{vrImages}{vrAssay}(object, name = NULL, channel = NULL, reg = FALSE) <- value
+\S4method{vrImages}{vrAssay}(object, name = NULL, channel = NULL, reg = FALSE) <- value
 
-\method{vrImages}{vrAssayV2}(object, name = NULL, channel = NULL, reg = FALSE) <- value
+\S4method{vrImages}{vrAssayV2}(object, name = NULL, channel = NULL, reg = FALSE) <- value
 
-\method{vrImages}{vrImage}(object, channel = NULL) <- value
+\S4method{vrImages}{vrImage}(object, channel = NULL) <- value
 
-\method{vrImages}{vrSpatial}(object, channel = NULL) <- value
+\S4method{vrImages}{vrSpatial}(object, channel = NULL) <- value
 }
 \arguments{
-\item{object}{a VoltRon, vrAssay or vrImage object}
+\item{object}{a VoltRon, vrAssay or vrSpatial object.}
+
+\item{...}{arguments passed to other methods.}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}

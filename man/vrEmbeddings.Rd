@@ -2,30 +2,32 @@
 % Please edit documentation in R/allgenerics.R, R/objects.R, R/assay.R
 \name{vrEmbeddings}
 \alias{vrEmbeddings}
-\alias{vrEmbeddings.VoltRon}
-\alias{vrEmbeddings.vrAssay}
-\alias{vrEmbeddings.vrAssayV2}
-\alias{vrEmbeddings<-.vrAssay}
-\alias{vrEmbeddings<-.vrAssayV2}
-\alias{vrEmbeddings<-.VoltRon}
+\alias{vrEmbeddings,VoltRon-method}
+\alias{vrEmbeddings,vrAssay-method}
+\alias{vrEmbeddings,vrAssayV2-method}
+\alias{vrEmbeddings<-,vrAssay-method}
+\alias{vrEmbeddings<-,vrAssayV2-method}
+\alias{vrEmbeddings<-,VoltRon-method}
 \title{vrEmbeddings}
 \usage{
-vrEmbeddings(object, assay = NULL, type = "pca", dims = 1:30)
+vrEmbeddings(object, ...)
 
-\method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", dims = 1:30)
+\S4method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", dims = 1:30)
 
-\method{vrEmbeddings}{vrAssay}(object, type = "pca", dims = 1:30)
+\S4method{vrEmbeddings}{vrAssay}(object, type = "pca", dims = 1:30)
 
-\method{vrEmbeddings}{vrAssayV2}(object, type = "pca", dims = 1:30)
+\S4method{vrEmbeddings}{vrAssayV2}(object, type = "pca", dims = 1:30)
 
-\method{vrEmbeddings}{vrAssay}(object, type = "pca") <- value
+\S4method{vrEmbeddings}{vrAssay}(object, type = "pca") <- value
 
-\method{vrEmbeddings}{vrAssayV2}(object, type = "pca") <- value
+\S4method{vrEmbeddings}{vrAssayV2}(object, type = "pca") <- value
 
-\method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", overwrite = FALSE) <- value
+\S4method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", overwrite = FALSE) <- value
 }
 \arguments{
-\item{object}{a VoltRon or vrAssay object}
+\item{object}{a VoltRon or vrAssay object.}
+
+\item{...}{arguments passed to other methods.}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}

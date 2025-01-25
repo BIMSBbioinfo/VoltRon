@@ -3,30 +3,32 @@
 %   R/assay.R
 \name{vrAssayNames}
 \alias{vrAssayNames}
-\alias{vrAssayNames.VoltRon}
-\alias{vrAssayNames.vrMetadata}
-\alias{vrAssayNames.vrAssay}
-\alias{vrAssayNames.vrAssayV2}
-\alias{vrAssayNames<-.vrAssay}
-\alias{vrAssayNames<-.vrAssayV2}
+\alias{vrAssayNames,VoltRon-method}
+\alias{vrAssayNames,vrMetadata-method}
+\alias{vrAssayNames,vrAssay-method}
+\alias{vrAssayNames,vrAssayV2-method}
+\alias{vrAssayNames<-,vrAssay-method}
+\alias{vrAssayNames<-,vrAssayV2-method}
 \title{Get Assay names}
 \usage{
-vrAssayNames(object, assay = NULL)
+vrAssayNames(object, ...)
 
-\method{vrAssayNames}{VoltRon}(object, assay = NULL)
+\S4method{vrAssayNames}{VoltRon}(object, assay = NULL)
 
-\method{vrAssayNames}{vrMetadata}(object)
+\S4method{vrAssayNames}{vrMetadata}(object)
 
-\method{vrAssayNames}{vrAssay}(object)
+\S4method{vrAssayNames}{vrAssay}(object)
 
-\method{vrAssayNames}{vrAssayV2}(object)
+\S4method{vrAssayNames}{vrAssayV2}(object)
 
-\method{vrAssayNames}{vrAssay}(object) <- value
+\S4method{vrAssayNames}{vrAssay}(object) <- value
 
-\method{vrAssayNames}{vrAssayV2}(object) <- value
+\S4method{vrAssayNames}{vrAssayV2}(object) <- value
 }
 \arguments{
-\item{object}{a VoltRon or vrAssay object}
+\item{object}{a VoltRon or vrAssay object.}
+
+\item{...}{arguments passed to other methods.}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}

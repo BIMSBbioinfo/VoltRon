@@ -2,15 +2,17 @@
 % Please edit documentation in R/allgenerics.R, R/metadata.R
 \name{vrSampleNames}
 \alias{vrSampleNames}
-\alias{vrSampleNames.vrMetadata}
+\alias{vrSampleNames,vrMetadata-method}
 \title{Get Sample names}
 \usage{
-vrSampleNames(object)
+vrSampleNames(object, ...)
 
-\method{vrSampleNames}{vrMetadata}(object)
+\S4method{vrSampleNames}{vrMetadata}(object)
 }
 \arguments{
-\item{object}{a vrMetadata object}
+\item{object}{a vrMetadata object.}
+
+\item{...}{arguments passed to other methods.}
 }
 \description{
 Given a vrMetadata object, give names of samples

@@ -2,30 +2,32 @@
 % Please edit documentation in R/allgenerics.R, R/image.R
 \name{vrMainImage}
 \alias{vrMainImage}
-\alias{vrMainImage.VoltRon}
-\alias{vrMainImage.vrAssay}
-\alias{vrMainImage.vrAssayV2}
-\alias{vrMainImage<-.VoltRon}
-\alias{vrMainImage<-.vrAssay}
-\alias{vrMainImage<-.vrAssayV2}
+\alias{vrMainImage,VoltRon-method}
+\alias{vrMainImage,vrAssay-method}
+\alias{vrMainImage,vrAssayV2-method}
+\alias{vrMainImage<-,VoltRon-method}
+\alias{vrMainImage<-,vrAssay-method}
+\alias{vrMainImage<-,vrAssayV2-method}
 \title{vrMainImage}
 \usage{
-vrMainImage(object, assay = NULL)
+vrMainImage(object, ...)
 
-\method{vrMainImage}{VoltRon}(object, assay = NULL)
+\S4method{vrMainImage}{VoltRon}(object, assay = NULL)
 
-\method{vrMainImage}{vrAssay}(object)
+\S4method{vrMainImage}{vrAssay}(object)
 
-\method{vrMainImage}{vrAssayV2}(object)
+\S4method{vrMainImage}{vrAssayV2}(object)
 
-\method{vrMainImage}{VoltRon}(object, assay = NULL) <- value
+\S4method{vrMainImage}{VoltRon}(object, assay = NULL) <- value
 
-\method{vrMainImage}{vrAssay}(object, ignore = FALSE) <- value
+\S4method{vrMainImage}{vrAssay}(object, ignore = FALSE) <- value
 
-\method{vrMainImage}{vrAssayV2}(object, ignore = FALSE) <- value
+\S4method{vrMainImage}{vrAssayV2}(object, ignore = FALSE) <- value
 }
 \arguments{
-\item{object}{a VoltRon or vrAssay object}
+\item{object}{a VoltRon or vrAssay object.}
+
+\item{...}{arguments passed to other methods.}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays.}

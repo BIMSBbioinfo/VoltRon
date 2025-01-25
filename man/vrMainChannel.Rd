@@ -2,41 +2,43 @@
 % Please edit documentation in R/allgenerics.R, R/image.R
 \name{vrMainChannel}
 \alias{vrMainChannel}
-\alias{vrMainChannel.vrAssay}
-\alias{vrMainChannel.vrAssayV2}
-\alias{vrMainChannel.vrImage}
-\alias{vrMainChannel.vrSpatial}
-\alias{vrMainChannel<-.vrAssay}
-\alias{vrMainChannel<-.vrAssayV2}
-\alias{vrMainChannel<-.vrImage}
-\alias{vrMainChannel<-.vrSpatial}
+\alias{vrMainChannel,vrAssay-method}
+\alias{vrMainChannel,vrAssayV2-method}
+\alias{vrMainChannel,vrImage-method}
+\alias{vrMainChannel,vrSpatial-method}
+\alias{vrMainChannel<-,vrAssay-method}
+\alias{vrMainChannel<-,vrAssayV2-method}
+\alias{vrMainChannel<-,vrImage-method}
+\alias{vrMainChannel<-,vrSpatial-method}
 \title{vrMainChannel}
 \usage{
-vrMainChannel(object, name = NULL)
+vrMainChannel(object, ...)
 
-\method{vrMainChannel}{vrAssay}(object, name = NULL)
+\S4method{vrMainChannel}{vrAssay}(object, name = NULL)
 
-\method{vrMainChannel}{vrAssayV2}(object, name = NULL)
+\S4method{vrMainChannel}{vrAssayV2}(object, name = NULL)
 
-\method{vrMainChannel}{vrImage}(object)
+\S4method{vrMainChannel}{vrImage}(object)
 
-\method{vrMainChannel}{vrSpatial}(object)
+\S4method{vrMainChannel}{vrSpatial}(object)
 
-\method{vrMainChannel}{vrAssay}(object, name = NULL) <- value
+\S4method{vrMainChannel}{vrAssay}(object, name = NULL) <- value
 
-\method{vrMainChannel}{vrAssayV2}(object, name = NULL) <- value
+\S4method{vrMainChannel}{vrAssayV2}(object, name = NULL) <- value
 
-\method{vrMainChannel}{vrImage}(object) <- value
+\S4method{vrMainChannel}{vrImage}(object) <- value
 
-\method{vrMainChannel}{vrSpatial}(object) <- value
+\S4method{vrMainChannel}{vrSpatial}(object) <- value
 }
 \arguments{
-\item{object}{a vrAssay or vrImage object}
+\item{object}{a vrAssay or vrSpatial object}
+
+\item{...}{arguments passed to other methods.}
 
 \item{name}{the name of the image}
 
 \item{value}{the name of main channel}
 }
 \description{
-Get and set the main channel name of the image
+Get and set the main channel name of the spatial system.
 }

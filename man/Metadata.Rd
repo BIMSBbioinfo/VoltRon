@@ -13,7 +13,9 @@ Metadata(object, ...)
 \S4method{Metadata}{VoltRon}(object, assay = NULL, type = NULL) <- value
 }
 \arguments{
-\item{object}{a VoltRon object}
+\item{object}{a VoltRon object.}
+
+\item{...}{arguments passed to other methods.}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}

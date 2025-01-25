@@ -10,8 +10,9 @@ NULL
 #'
 #' Get names of the features.
 #'
-#' @param object a VoltRon or vrAssay object
-#'
+#' @param object a VoltRon or vrAssay object.
+#' @param ... arguments passed to other methods.
+#' 
 #' @rdname vrFeatures
 #' @export vrFeatures
 #' @order 1
@@ -21,7 +22,8 @@ setGeneric("vrFeatures", function(object, ...) standardGeneric("vrFeatures"))
 #'
 #' Get and set feature data from the main.assay
 #'
-#' @param object a VoltRon or vrAssay object
+#' @param object a VoltRon or vrAssay object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname vrFeatureData
 #' @export vrFeatureData
@@ -31,145 +33,139 @@ setGeneric("vrFeatureData", function(object, ...) standardGeneric("vrFeatureData
 #' @rdname vrFeatureData
 #' @export vrFeatureData<-
 #' @noRd
-setGeneric("vrFeatureData<-", function(object, ...) standardGeneric("vrFeatureData<-"))
+setGeneric("vrFeatureData<-", function(object, ..., value) standardGeneric("vrFeatureData<-"))
 
 #' getFeatures
 #'
 #' Get variable features of assays
 #'
-#' @param object a VoltRon or vrAssay object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param max.count maximum count (across spatial points) for low count filtering
-#' @param n the top number of variable features 
+#' @param object a VoltRon or vrAssay object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname getFeatures
 #' @export getFeatures
-#'
-getFeatures <- function(object, assay = NULL, max.count = 1, n = 3000) {
-  UseMethod(generic = 'getFeatures', object = object)
-}
+setGeneric("getFeatures", function(object, ...) standardGeneric("getFeatures"))
 
 #' vrData
 #'
 #' Get data of assays
 #'
-#' @param object a VoltRon or vrAssay object
+#' @param object a VoltRon or vrAssay object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname vrData
 #' @export vrData
 #' @order 1
-vrData <- function(object, assay = NULL, features = NULL, feat_type = NULL, norm = FALSE) {
-  UseMethod(generic = 'vrData', object = object)
-}
+setGeneric("vrData", function(object, ...) standardGeneric("vrData"))
 
 #' generateTileData
 #'
 #' Generating data matrices for tile-based VoltRon objects from images
 #'
-#' @param object a VoltRon or vrAssay object
+#' @param object a VoltRon or vrAssay object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname generateTileData
 #' @export generateTileData
 #' @order 1
-generateTileData <- function(object, assay = NULL, name = NULL, reg = FALSE, channel = NULL) {
-  UseMethod(generic = 'generateTileData', object = object)
-}
+setGeneric("generateTileData", function(object, ...) standardGeneric("generateTileData"))
 
 #' changeSampleNames
 #'
 #' change sample names of VoltRon or other objects
 #'
-#' @param object a VoltRon or vrMetadata object
+#' @param object a VoltRon or vrMetadata object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname changeSampleNames
 #'
 #' @noRd
-changeSampleNames <- function(object, samples = NULL, sample_metadata_table) {
-  UseMethod(generic = 'changeSampleNames', object = object)
-}
+setGeneric("changeSampleNames", function(object, ...) standardGeneric("changeSampleNames"))
 
 #' changeAssayNames
 #'
 #' change assay names of VoltRon or other objects
 #'
-#' @param object a VoltRon, vrSample or vrLayer object
+#' @param object a VoltRon, vrSample or vrLayer object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname changeAssayNames
 #'
 #' @noRd
-changeAssayNames <- function(object, ...) {
-  UseMethod(generic = 'changeAssayNames', object = object)
-}
+setGeneric("changeAssayNames", function(object, ...) standardGeneric("changeAssayNames"))
 
 ####
 # Assay ####
 ####
 
+#' Main Assay
+#'
+#' Get and set the main assay of a VoltRon object
+#' 
+#' @param object a VoltRon object.
+#' @param ... arguments passed to other methods.
+#'
+#' @rdname vrMainAssay
+#' @export vrMainAssay
+setGeneric("vrMainAssay", function(object, ...) standardGeneric("vrMainAssay"))
+
+#' @param value new assay name
+#' 
+#' @rdname vrMainAssay
+#' @export vrMainAssay<-
+#' @noRd
+setGeneric("vrMainAssay<-", function(object, ..., value) standardGeneric("vrMainAssay<-"))
+
 #' Update Assay
 #'
 #' update assays from vrAssay to vrAssayV2
-#'
-#' @param object a VoltRon object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' 
+#' @param object a VoltRon object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname updateAssay
 #' @export updateAssay
-updateAssay <- function(object, assay) {
-  UseMethod(generic = 'updateAssay', object = object)
-}
+setGeneric("updateAssay", function(object, ...) standardGeneric("updateAssay"))
 
 #' Add Assay
 #'
 #' add a new assay (vrAssay object) to a VoltRon object
 #'
-#' @param object a VoltRon object
-#' @param assay a vrAssay object
-#' @param metadata a predefined metadata
-#' @param assay_name assay name of the new added assay
-#' @param sample sample name
-#' @param layer layer name
+#' @param object a VoltRon object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname addAssay
 #' @export addAssay
-#'
-addAssay <- function(object, assay, metadata = NULL, assay_name, sample = "Sample1", layer = "Section1") {
-  UseMethod(generic = 'addAssay', object = object)
-}
+setGeneric("addAssay", function(object, ...) standardGeneric("addAssay"))
 
 #' Get Assay names
 #'
 #' Given a VoltRon, vrMetadata or vrAssay object, get/set names of assays.
 #'
-#' @param object a VoltRon or vrAssay object
+#' @param object a VoltRon or vrAssay object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname vrAssayNames
 #' @export vrAssayNames
 #' @order 1
-vrAssayNames <- function(object, assay = NULL) {
-  UseMethod(generic = 'vrAssayNames', object = object)
-}
+setGeneric("vrAssayNames", function(object, ...) standardGeneric("vrAssayNames"))
 
 #' @rdname vrAssayNames
 #' @noRd
-"vrAssayNames<-" <- function(object, value) {
-  UseMethod(generic = 'vrAssayNames<-', object = object)
-}
+setGeneric("vrAssayNames<-", function(object, ..., value) standardGeneric("vrAssayNames<-"))
 
 #' Get assay types
 #' 
 #' Given a VoltRon or vrAssay object, get types of assays. 
 #' Here, an assay type is of either tile, molecule, cell, spot or ROI.
 #'
-#' @param object a VoltRon or vrAssay object
+#' @param object a VoltRon or vrAssay object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname vrAssayTypes
 #' @export vrAssayTypes
 #' @order 1
-vrAssayTypes <- function(object, assay = NULL) {
-  UseMethod(generic = 'vrAssayTypes', object = object)
-}
+setGeneric("vrAssayTypes", function(object, ...) standardGeneric("vrAssayTypes"))
 
 ####
 # Sample ####
@@ -179,14 +175,12 @@ vrAssayTypes <- function(object, assay = NULL) {
 #'
 #' Given a vrMetadata object, give names of samples
 #'
-#' @param object a vrMetadata object
+#' @param object a vrMetadata object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname vrSampleNames
 #' @export vrSampleNames
-#'
-vrSampleNames <- function(object) {
-  UseMethod(generic = 'vrSampleNames', object = object)
-}
+setGeneric("vrSampleNames", function(object, ...) standardGeneric("vrSampleNames"))
 
 ####
 # Metadata ####
@@ -196,7 +190,8 @@ vrSampleNames <- function(object) {
 #'
 #' Get the metadata of a VoltRon object.
 #'
-#' @param object a VoltRon object
+#' @param object a VoltRon object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname Metadata
 #' @export Metadata
@@ -216,21 +211,12 @@ setGeneric("Metadata<-", function(object, ..., value) standardGeneric("Metadata<
 #' 
 #' Given a VoltRon or vrAssay object, normalize the raw count data.
 #'
-#' @param object a VoltRon or vrAssay object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param method the normalization method: "LogNorm", "Q3Norm", "LogQ3Norm" or "CLR"
-#' @param desiredQuantile the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}.
-#' @param scale the scale parameter for the hyperbolic arcsine transformation
-#' @param sizefactor size factor if \code{method} is selected as \code{LogNorm}
-#' @param feat_type the feature set type
+#' @param object a VoltRon or vrAssay object.
+#' @param ... arguments passed to other methods.
 #' 
 #' @rdname normalizeData
 #' @export normalizeData
-normalizeData <- function(object, assay = NULL, method = "LogNorm", desiredQuantile = 0.9, 
-                          scale = 0.2, sizefactor = 10000, feat_type = NULL) {
-  UseMethod(generic = 'normalizeData', object = object)
-}
+setGeneric("normalizeData", function(object, ...) standardGeneric("normalizeData"))
 
 ####
 # Embedding ####
@@ -240,40 +226,32 @@ normalizeData <- function(object, assay = NULL, method = "LogNorm", desiredQuant
 #'
 #' Given a VoltRon or vrAssay object, give names of embeddings
 #'
-#' @param object a VoltRon or vrAssay object
+#' @param object a VoltRon or vrAssay object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname vrEmbeddingNames
 #' @export vrEmbeddingNames
 #' @order 1
-vrEmbeddingNames <- function(object, assay = NULL) {
-  UseMethod(generic = 'vrEmbeddingNames', object = object)
-}
+setGeneric("vrEmbeddingNames", function(object, ...) standardGeneric("vrEmbeddingNames"))
 
 #' vrEmbeddings
 #'
 #' Given a VoltRon or vrAssay object, get embeddings of spatial points
-#'
-#' @param object a VoltRon or vrAssay object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param type the key name for the embedding, i.e. "pca" or "umap"
-#' @param dims the set of dimensions of the embedding data
+#' 
+#' @param object a VoltRon or vrAssay object.
+#' @param ... arguments passed to other methods.
 #' 
 #' @rdname vrEmbeddings
 #' @export vrEmbeddings
 #' @order 1
-vrEmbeddings <- function(object, assay = NULL, type = "pca", dims = 1:30) {
-  UseMethod(generic = 'vrEmbeddings', object = object)
-}
+setGeneric("vrEmbeddings", function(object, ...) standardGeneric("vrEmbeddings"))
 
 #' @param value new embedding data
 #'
 #' @rdname vrEmbeddings
 #' @export vrEmbeddings<-
 #' @noRd
-"vrEmbeddings<-" <- function(object, assay = NULL, type = "pca", overwrite = FALSE, value) {
-  UseMethod(generic = 'vrEmbeddings<-', object = object)
-}
+setGeneric("vrEmbeddings<-", function(object, ..., value) standardGeneric("vrEmbeddings<-"))
 
 ####
 # Feature ####
@@ -283,53 +261,47 @@ vrEmbeddings <- function(object, assay = NULL, type = "pca", dims = 1:30) {
 #'
 #' add a new feature set to a vrAssay (or VoltRon) object
 #'
-#' @param object a VoltRon or vrAssay object
+#' @param object a VoltRon or vrAssay object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname addFeature
 #' @export addFeature
 #' @order 1
-addFeature <- function(object, assay = NULL, data, feature_name) {
-  UseMethod(generic = 'addFeature', object = object)
-}
+setGeneric("addFeature", function(object, ...) standardGeneric("addFeature"))
 
 #' vrMainFeatureType
 #'
 #' Get the main feature type
 #'
-#' @param object a VoltRon or vrAssay object
+#' @param object a VoltRon or vrAssay object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname vrMainFeatureType
 #' @export vrMainFeatureType
 #' @order 1
-vrMainFeatureType <- function(object, assay = NULL) {
-  UseMethod(generic = 'vrMainFeatureType', object = object)
-}
+setGeneric("vrMainFeatureType", function(object, ...) standardGeneric("vrMainFeatureType"))
 
 #' vrMainFeatureType
 #'
 #' Set the main image
 #'
-#' @param value the name of main image
+#' @param value the name of main feature set.
 #'
 #' @rdname vrMainFeatureType
 #' @export vrMainFeatureType<-
-#' @noRd
-"vrMainFeatureType<-" <- function(object, assay = NULL, ignore = FALSE, value) {
-  UseMethod(generic = 'vrMainFeatureType<-', object = object)
-}
+setGeneric("vrMainFeatureType<-", function(object, ..., value) standardGeneric("vrMainFeatureType<-"))
 
 #' vrFeatureTypeNames
 #'
 #' Get the names of the feature types
 #'
-#' @param object a VoltRon or vrAssay object
+#' @param object a VoltRon or vrAssay object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname vrFeatureTypeNames
 #' @export vrFeatureTypeNames
 #' @order 1
-vrFeatureTypeNames <- function(object, assay = NULL) {
-  UseMethod(generic = 'vrFeatureTypeNames', object = object)
-}
+setGeneric("vrFeatureTypeNames", function(object, ...) standardGeneric("vrFeatureTypeNames"))
 
 ####
 # Spatial ####
@@ -339,8 +311,8 @@ vrFeatureTypeNames <- function(object, assay = NULL) {
 #'
 #' Get and set spatial entities.
 #'
-#' @param object a VoltRon, vrSample, vrLayer, vrAssay or vrImage object
-#' @param ... arguments passed to other methods
+#' @param object a VoltRon, vrSample, vrLayer, vrAssay or vrSpatial object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname vrSpatialPoints
 #' @export vrSpatialPoints
@@ -350,9 +322,7 @@ vrFeatureTypeNames <- function(object, assay = NULL) {
 #' vrSpatialPoints(visium_data)
 #' vrSpatialPoints(visium_data, assay = "Visium")
 #' vrSpatialPoints(visium_data, assay = "Assay1")
-vrSpatialPoints <- function(object, assay = NULL) {
-  UseMethod(generic = 'vrSpatialPoints', object = object)
-}
+setGeneric("vrSpatialPoints", function(object, ...) standardGeneric("vrSpatialPoints"))
 
 #' @param value names for spatial points
 #'
@@ -360,63 +330,57 @@ vrSpatialPoints <- function(object, assay = NULL) {
 #' @export vrSpatialPoints<-
 #' @noRd
 #'
-"vrSpatialPoints<-" <- function(object, value) {
-  UseMethod(generic = 'vrSpatialPoints<-', object = object)
-}
+setGeneric("vrSpatialPoints<-", function(object, ..., value) standardGeneric("vrSpatialPoints<-"))
 
 #' vrCoordinates
 #'
-#' Given a VoltRon, vrAssay or vrImage object, get and set the coordinates of assays and coordinate systems
+#' Given a VoltRon, vrAssay or vrSpatial object, get and set the coordinates of assays and coordinate systems
 #'
-#' @param object a VoltRon, vrAssay or vrImage object
+#' @param object a VoltRon, vrAssay or vrSpatial object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname vrCoordinates
 #' @export vrCoordinates
 #' @order 1
-#'
-vrCoordinates <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL, reg = FALSE) {
-  UseMethod(generic = 'vrCoordinates', object = object)
-}
+setGeneric("vrCoordinates", function(object, ...) standardGeneric("vrCoordinates"))
 
+#' @param value coordinates
+#' 
 #' @rdname vrCoordinates
 #' @export vrCoordinates<-
 #' @noRd
-"vrCoordinates<-" <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
-  UseMethod(generic = 'vrCoordinates<-', object = object)
-}
+setGeneric("vrCoordinates<-", function(object, ..., value) standardGeneric("vrCoordinates<-"))
 
 #' vrSegments
 #'
-#' Given a VoltRon, vrAssay or vrImage object, get and set the segment coordinates of assays and coordinate systems
+#' Given a VoltRon, vrAssay or vrSpatial object, get and set the segment coordinates of assays and coordinate systems
 #'
-#' @param object a VoltRon, vrAssay or vrImage object
+#' @param object a VoltRon, vrAssay or vrSpatial object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname vrSegments
 #' @export vrSegments
 #' @order 1
-vrSegments <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL,  reg = FALSE) {
-  UseMethod(generic = 'vrSegments', object = object)
-}
+setGeneric("vrSegments", function(object, ...) standardGeneric("vrSegments"))
 
+#' @param value segments
+#' 
 #' @rdname vrSegments
 #' @export vrSegments<-
 #' @noRd
-"vrSegments<-" <- function(object, image_name = NULL, spatial_name = NULL,  reg = FALSE, value) {
-  UseMethod(generic = 'vrSegments<-', object = object)
-}
+setGeneric("vrSegments<-", function(object, ..., value) standardGeneric("vrSegments<-"))
 
 #' flipCoordinates
 #'
 #' Flip the coordinates of spatial points in the y axis direction. 
 #'
-#' @param object a VoltRon, vrAssay or vrImage object
+#' @param object a VoltRon, vrAssay or vrSpatial object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname flipCoordinates
 #' @export flipCoordinates
 #' @order 1
-flipCoordinates <- function(object, assay = NULL, spatial_name = NULL, image_name = NULL, ...) {
-  UseMethod(generic = 'flipCoordinates', object = object)
-}
+setGeneric("flipCoordinates", function(object, ...) standardGeneric("flipCoordinates"))
 
 ####
 # Image ####
@@ -426,176 +390,155 @@ flipCoordinates <- function(object, assay = NULL, spatial_name = NULL, image_nam
 #'
 #' Get images of VoltRon objects
 #'
-#' @param object a VoltRon, vrAssay or vrImage object
+#' @param object a VoltRon, vrAssay or vrSpatial object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname vrImages
 #' @export vrImages
 #' @order 1
-vrImages <- function(object, assay = NULL, name = NULL, reg = FALSE, channel = NULL, as.raster = FALSE, scale.perc = 100) {
-  UseMethod(generic = 'vrImages', object = object)
-}
+setGeneric("vrImages", function(object, ...) standardGeneric("vrImages"))
 
+#' @param value a raster image or an image of \code{magick-image} object
+#' 
 #' @rdname vrImages
 #' @export vrImages<-
 #' @noRd
-"vrImages<-" <- function(object, name = NULL, reg = FALSE, channel = NULL, value) {
-  UseMethod(generic = 'vrImages<-', object = object)
-}
+setGeneric("vrImages<-", function(object, ..., value) standardGeneric("vrImages<-"))
 
 #' vrImageNames
 #'
 #' Get names of all images
 #'
-#' @param object a VoltRon or vrAssay object
+#' @param object a VoltRon or vrAssay object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname vrImageNames
 #' @export vrImageNames
-#' 
-vrImageNames <- function(object, assay = NULL) {
-  UseMethod(generic = 'vrImageNames', object = object)
-}
+setGeneric("vrImageNames", function(object, ...) standardGeneric("vrImageNames"))
 
 #' vrSpatialNames
 #'
 #' Get names of all spatial systems
 #'
-#' @param object a VoltRon or vrAssay object
+#' @param object a VoltRon or vrAssay object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname vrSpatialNames
 #' @export vrSpatialNames
-#' 
-vrSpatialNames <- function(object, assay = NULL) {
-  UseMethod(generic = 'vrSpatialNames', object = object)
-}
+setGeneric("vrSpatialNames", function(object, ...) standardGeneric("vrSpatialNames"))
 
 #' vrImageChannelNames
 #'
 #' Get names of all image channels
 #'
-#' @param object a VoltRon, vrAssay or vrImage object
+#' @param object a VoltRon, vrAssay or vrSpatial object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname vrImageChannelNames
 #' @export vrImageChannelNames
 #'
-vrImageChannelNames <- function(object, assay = NULL, name = NULL) {
-  UseMethod(generic = 'vrImageChannelNames', object = object)
-}
+setGeneric("vrImageChannelNames", function(object, ...) standardGeneric("vrImageChannelNames"))
 
 #' vrMainImage
 #'
 #' Get the main image
 #'
-#' @param object a VoltRon or vrAssay object
+#' @param object a VoltRon or vrAssay object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname vrMainImage
 #' @export vrMainImage
 #' @order 1
-vrMainImage <- function(object, assay = NULL) {
-  UseMethod(generic = 'vrMainImage', object = object)
-}
+setGeneric("vrMainImage", function(object, ...) standardGeneric("vrMainImage"))
 
 #' vrMainSpatial
 #'
 #' Get the main spatial system name
 #'
-#' @param object a VoltRon or vrAssay object
+#' @param object a VoltRon or vrAssay object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname vrMainSpatial
 #' @export vrMainSpatial
 #' @order 1
-vrMainSpatial <- function(object, assay = NULL) {
-  UseMethod(generic = 'vrMainSpatial', object = object)
-}
+setGeneric("vrMainSpatial", function(object, ...) standardGeneric("vrMainSpatial"))
 
 #' vrMainImage
 #'
 #' Set the main image
 #'
-#' @param value the name of main image
+#' @param value the name of main spatial coordinate system.
 #'
 #' @rdname vrMainImage
 #' @export vrMainImage<-
 #' @noRd
-"vrMainImage<-" <- function(object, assay = NULL, ignore = FALSE, value) {
-  UseMethod(generic = 'vrMainImage<-', object = object)
-}
+setGeneric("vrMainImage<-", function(object, ..., value) standardGeneric("vrMainImage<-"))
 
 #' vrMainSpatial
 #'
 #' Set the main image
 #'
-#' @param value the name of main image
+#' @param value the name of main spatial coordinate system
 #'
 #' @rdname vrMainSpatial
 #' @export vrMainSpatial<-
 #' @noRd
-"vrMainSpatial<-" <- function(object, assay = NULL, ignore = FALSE, value) {
-  UseMethod(generic = 'vrMainSpatial<-', object = object)
-}
+setGeneric("vrMainSpatial<-", function(object, ..., value) standardGeneric("vrMainSpatial<-"))
 
 #' vrMainChannel
 #'
-#' Get and set the main channel name of the image
+#' Get and set the main channel name of the spatial system.
+#' @param ... arguments passed to other methods.
 #'
-#' @param object a vrAssay or vrImage object
+#' @param object a vrAssay or vrSpatial object
 #'
 #' @rdname vrMainChannel
 #' @export vrMainChannel
 #' @order 1
-vrMainChannel <- function(object, name = NULL) {
-  UseMethod(generic = 'vrMainChannel', object = object)
-}
+setGeneric("vrMainChannel", function(object, ...) standardGeneric("vrMainChannel"))
 
-#' @param value the name of main channel
+#' @param value the name of main channel of the spatial system
 #'
 #' @rdname vrMainChannel
 #' @export vrMainChannel<-
 #' @noRd
-"vrMainChannel<-" <- function(object, name = NULL, value) {
-  UseMethod(generic = 'vrMainChannel<-', object = object)
-}
-
+setGeneric("vrMainChannel<-", function(object, ..., value) standardGeneric("vrMainChannel<-"))
 
 #' resizeImage
 #'
 #' Resizing Magick images
 #'
-#' @param object a VoltRon, vrAssay or vrImage object
+#' @param object a VoltRon, vrAssay or vrSpatial object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname resizeImage
 #' @export resizeImage
 #'
-resizeImage <- function(object, assay = NULL, name = NULL, reg = FALSE, size) {
-  UseMethod(generic = 'resizeImage', object = object)
-}
+setGeneric("resizeImage", function(object, ...) standardGeneric("resizeImage"))
 
 #' modulateImage
 #'
 #' Modulating Magick images
 #'
-#' @param object a VoltRon, vrAssay or vrImage object
+#' @param object a VoltRon, vrAssay or vrSpatial object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname modulateImage
 #' @export modulateImage
 #'
-modulateImage <- function(object, assay = NULL, name = NULL, reg = FALSE, channel = NULL, 
-                          brightness = 100, saturation = 100, hue = 100, force = FALSE) {
-  UseMethod(generic = 'modulateImage', object = object)
-}
+setGeneric("modulateImage", function(object, ...) standardGeneric("modulateImage"))
 
 #' combineChannels
 #'
 #' Combining channels into novel channels of the same image
 #'
-#' @param object a VoltRon, vrAssay or vrImage object
+#' @param object a VoltRon, vrAssay or vrSpatial object.
+#' @param ... arguments passed to other methods.
 #'
 #' @rdname combineChannels
 #' @export combineChannels
 #'
-combineChannels <- function(object, assay = NULL, name = NULL, reg = FALSE, channels = NULL, 
-                            colors = NULL, channel_key = "combined") {
-  UseMethod(generic = 'combineChannels', object = object)
-}
+setGeneric("combineChannels", function(object, ...) standardGeneric("combineChannels"))
 
 ####
 # Conversion ####

@@ -2,21 +2,23 @@
 % Please edit documentation in R/allgenerics.R, R/objects.R, R/assay.R
 \name{vrAssayTypes}
 \alias{vrAssayTypes}
-\alias{vrAssayTypes.VoltRon}
-\alias{vrAssayTypes.vrAssay}
-\alias{vrAssayTypes.vrAssayV2}
+\alias{vrAssayTypes,VoltRon-method}
+\alias{vrAssayTypes,vrAssay-method}
+\alias{vrAssayTypes,vrAssayV2-method}
 \title{Get assay types}
 \usage{
-vrAssayTypes(object, assay = NULL)
+vrAssayTypes(object, ...)
 
-\method{vrAssayTypes}{VoltRon}(object, assay = NULL)
+\S4method{vrAssayTypes}{VoltRon}(object, assay = NULL)
 
-\method{vrAssayTypes}{vrAssay}(object)
+\S4method{vrAssayTypes}{vrAssay}(object)
 
-\method{vrAssayTypes}{vrAssayV2}(object)
+\S4method{vrAssayTypes}{vrAssayV2}(object)
 }
 \arguments{
-\item{object}{a VoltRon or vrAssay object}
+\item{object}{a VoltRon or vrAssay object.}
+
+\item{...}{arguments passed to other methods.}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}

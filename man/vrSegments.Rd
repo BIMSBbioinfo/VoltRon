@@ -3,19 +3,21 @@
 %   R/image.R
 \name{vrSegments}
 \alias{vrSegments}
-\alias{vrSegments.VoltRon}
-\alias{vrSegments.vrAssay}
-\alias{vrSegments.vrAssayV2}
-\alias{vrSegments.vrImage}
-\alias{vrSegments.vrSpatial}
-\alias{vrSegments<-.VoltRon}
-\alias{vrSegments<-.vrAssay}
-\alias{vrSegments<-.vrAssayV2}
-\alias{vrSegments<-.vrImage}
-\alias{vrSegments<-.vrSpatial}
+\alias{vrSegments,VoltRon-method}
+\alias{vrSegments,vrAssay-method}
+\alias{vrSegments,vrAssayV2-method}
+\alias{vrSegments,vrImage-method}
+\alias{vrSegments,vrSpatial-method}
+\alias{vrSegments<-,VoltRon-method}
+\alias{vrSegments<-,vrAssay-method}
+\alias{vrSegments<-,vrAssayV2-method}
+\alias{vrSegments<-,vrImage-method}
+\alias{vrSegments<-,vrSpatial-method}
 \title{vrSegments}
 \usage{
-vrSegments(
+vrSegments(object, ...)
+
+\S4method{vrSegments}{VoltRon}(
   object,
   assay = NULL,
   image_name = NULL,
@@ -23,34 +25,28 @@ vrSegments(
   reg = FALSE
 )
 
-\method{vrSegments}{VoltRon}(
-  object,
-  assay = NULL,
-  image_name = NULL,
-  spatial_name = NULL,
-  reg = FALSE
-)
+\S4method{vrSegments}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE)
 
-\method{vrSegments}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE)
+\S4method{vrSegments}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, reg = FALSE)
 
-\method{vrSegments}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, reg = FALSE)
+\S4method{vrSegments}{vrImage}(object)
 
-\method{vrSegments}{vrImage}(object)
+\S4method{vrSegments}{vrSpatial}(object)
 
-\method{vrSegments}{vrSpatial}(object)
+\S4method{vrSegments}{VoltRon}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
 
-\method{vrSegments}{VoltRon}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
+\S4method{vrSegments}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
 
-\method{vrSegments}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
+\S4method{vrSegments}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
 
-\method{vrSegments}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
+\S4method{vrSegments}{vrImage}(object) <- value
 
-\method{vrSegments}{vrImage}(object) <- value
-
-\method{vrSegments}{vrSpatial}(object) <- value
+\S4method{vrSegments}{vrSpatial}(object) <- value
 }
 \arguments{
-\item{object}{a VoltRon, vrAssay or vrImage object}
+\item{object}{a VoltRon, vrAssay or vrSpatial object.}
+
+\item{...}{arguments passed to other methods.}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
@@ -64,5 +60,5 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{value}{new segment coordinates of spatial points}
 }
 \description{
-Given a VoltRon, vrAssay or vrImage object, get and set the segment coordinates of assays and coordinate systems
+Given a VoltRon, vrAssay or vrSpatial object, get and set the segment coordinates of assays and coordinate systems
 }

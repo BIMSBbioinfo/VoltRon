@@ -421,12 +421,12 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
                                name = assay)
         metadata <- data.frame(check.rows = FALSE, row.names = rownames(coords), selected_label_list)
         colnames(metadata) <- label
-        object <- addAssay.VoltRon(object,
-                                   assay = new_assay,
-                                   metadata = metadata,
-                                   assay_name = annotation_assay,
-                                   sample = sample_metadata[assay, "Sample"],
-                                   layer = sample_metadata[assay, "Layer"])
+        object <- addAssayVoltRon(object,
+                                  assay = new_assay,
+                                  metadata = metadata,
+                                  assay_name = annotation_assay,
+                                  sample = sample_metadata[assay, "Sample"],
+                                  layer = sample_metadata[assay, "Layer"])
         
         # stop app and return
         stopApp(object)

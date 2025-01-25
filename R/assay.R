@@ -113,17 +113,12 @@ setMethod(
 
 ## UpdateAssay ####
 
-#' @param object a vrAssay object to be converted to vrAssayV2
-#' @rdname updateAssay
-#' @method updateAssay vrAssay
-#' @importFrom methods new
-#' @noRd
-updateAssay.vrAssay <- function(object){
-
+updateAssayvrAssay <- function(object){
+  
   # data matrix and feature data
   data_list <- list(main = object@rawdata, main_norm = object@normdata)
   featuredata_list <- list(main = object@featuredata)
-
+  
   # create assay v2
   methods::new("vrAssayV2",
                data = data_list,
@@ -137,14 +132,23 @@ updateAssay.vrAssay <- function(object){
                main_featureset = "main")
 }
 
+#' @param object a vrAssay object to be converted to vrAssayV2
+#' @rdname updateAssay
+#' @method updateAssay vrAssay
+#' @importFrom methods new
+#' @noRd
+setMethod("updateAssay", "vrAssay", updateAssayvrAssay)
+
+updateAssayvrAssayV2 <- function(object){
+  message("The assay is of version 2, nothing to change!")
+  return(object)
+}
+
 #' @param object a vrAssayV2 object to be converted to vrAssayV2
 #' @rdname updateAssay
 #' @method updateAssay vrAssayV2
 #' @noRd
-updateAssay.vrAssayV2 <- function(object){
-  message("The assay is of version 2, nothing to change!")
-  return(object)
-}
+setMethod("updateAssay", "vrAssayV2", updateAssayvrAssayV2)
 
 ####
 # Methods ####
@@ -535,11 +539,7 @@ updateData <- function(object, value){
 
 ### Feature Methods ####
 
-#' @rdname vrMainFeatureType
-#' @order 3
-#' @export
-vrMainFeatureType.vrAssayV2 <- function(object){
-
+vrMainFeatureTypevrAssayV2 <- function(object){
   if(inherits(object, "vrAssayV2")){
     return(object@main_featureset)
   } else {
@@ -550,14 +550,14 @@ vrMainFeatureType.vrAssayV2 <- function(object){
 #' @rdname vrMainFeatureType
 #' @order 3
 #' @export
-vrMainFeatureType.vrAssay <- vrMainFeatureType.vrAssayV2
-  
-#' @param ignore ignore if some assays dont have the feature set name
-#' 
+setMethod("vrMainFeatureType", "vrAssayV2", vrMainFeatureTypevrAssayV2)
+
 #' @rdname vrMainFeatureType
-#' @order 5
+#' @order 3
 #' @export
-"vrMainFeatureType<-.vrAssayV2" <- function(object, ignore = FALSE, value){
+setMethod("vrMainFeatureType", "vrAssay", vrMainFeatureTypevrAssayV2)
+
+vrMainFeatureTypeReplacevrAssayV2 <- function(object, ignore = FALSE, value){
   if(value %in% names(object@data)){
     object@main_featureset <- value
   } else {
@@ -576,14 +576,18 @@ vrMainFeatureType.vrAssay <- vrMainFeatureType.vrAssayV2
 #' @rdname vrMainFeatureType
 #' @order 5
 #' @export
-"vrMainFeatureType<-.vrAssay" <- function(object, ignore = FALSE, value){
-  stop("vrAssay V1 objects do not have multiple feature types!")
-}
+setMethod("vrMainFeatureType<-", "vrAssayV2", vrMainFeatureTypeReplacevrAssayV2)
 
-#' @rdname vrFeatureTypeNames
-#'
+#' @param ignore ignore if some assays dont have the feature set name
+#' 
+#' @rdname vrMainFeatureType
+#' @order 5
 #' @export
-vrFeatureTypeNames.vrAssayV2 <- function(object){
+setMethod("vrMainFeatureType<-", "vrAssay", function(object, ignore = FALSE, value){
+  stop("vrAssay V1 objects do not have multiple feature types!")
+})
+
+vrFeatureTypeNamesvrAssayV2 <- function(object){
   names_data <- names(object@data)
   return(names_data[!grepl("_norm$", names_data)])
 }
@@ -591,17 +595,16 @@ vrFeatureTypeNames.vrAssayV2 <- function(object){
 #' @rdname vrFeatureTypeNames
 #'
 #' @export
-vrFeatureTypeNames.vrAssay <- function(object){
-  stop("vrAssay v1 objects do not have multiple feature types!")
-}
+setMethod("vrFeatureTypeNames", "vrAssayV2", vrFeatureTypeNamesvrAssayV2)
 
-#' @rdname addFeature
-#' @method addFeature vrAssayV2
-#' 
-#' @importFrom stringr str_remove
-#' 
+#' @rdname vrFeatureTypeNames
+#'
 #' @export
-addFeature.vrAssayV2 <- function(object, data, feature_name){
+setMethod("vrFeatureTypeNames", "vrAssay", function(object){
+  stop("vrAssay V1 objects do not have multiple feature types!")
+})
+
+addFeaturevrAssayV2 <- function(object, data, feature_name){
   
   # get feature name
   featuresets <- vrFeatureTypeNames(object)
@@ -630,66 +633,33 @@ addFeature.vrAssayV2 <- function(object, data, feature_name){
   return(object)
 }
 
+#' @rdname addFeature
+#' @method addFeature vrAssayV2
+#' 
+#' @importFrom stringr str_remove
+#' 
+#' @export
+setMethod("addFeature", "vrAssayV2", addFeaturevrAssayV2)
+
 ### Other Methods ####
 
 #' @rdname vrSpatialPoints
 #' @order 4
 #' 
 #' @export
-vrSpatialPoints.vrAssay <- function(object) {
+setMethod("vrSpatialPoints", "vrAssay", function(object) {
   return(rownames(vrCoordinates(object)))
-}
+})
 
 #' @rdname vrSpatialPoints
 #' @order 4
 #' 
 #' @export
-vrSpatialPoints.vrAssayV2 <- vrSpatialPoints.vrAssay
+setMethod("vrSpatialPoints", "vrAssayV2", function(object) {
+  return(rownames(vrCoordinates(object)))
+})
 
-#' @rdname vrSpatialPoints
-#' @order 8
-#' @export
-"vrSpatialPoints<-.vrAssay" <- function(object, value) {
-
-  # spatial points 
-  spatialpoints <- vrSpatialPoints(object)
-    
-  # data
-  if(length(vrSpatialPoints(object)) != length(value)){
-    stop("The number of spatial points is not matching with the input")
-  } else {
-    # if(ncol(object@rawdata) > 0){
-    if(ncol(getData(object)) > 0){
-      object <- updateData(object, value)
-    }
-  }
-
-  # images
-  for(img in vrSpatialNames(object)){
-    vrSpatialPoints(object@image[[img]]) <- value
-  }
-
-  # embeddings
-  embeddings <- object@embeddings
-  embed_names <- names(embeddings)
-  if(length(embed_names) > 0){
-    for(type in embed_names){
-      if(nrow(embeddings[[type]]) > 0){
-        rownames(embeddings[[type]]) <- value[match(rownames(embeddings[[type]]), spatialpoints)]
-        object@embeddings[[type]] <- embeddings[[type]]
-      }
-    }
-  }
-
-
-  # return
-  return(object)
-}
-
-#' @rdname vrSpatialPoints
-#' @order 8
-#' @export
-"vrSpatialPoints<-.vrAssayV2" <- function(object, value) {
+vrSpatialPointsReplacevrAssayV2 <- function(object, value) {
   
   # spatial points 
   spatialpoints <- vrSpatialPoints(object)
@@ -720,10 +690,19 @@ vrSpatialPoints.vrAssayV2 <- vrSpatialPoints.vrAssay
     }
   }
   
-  
   # return
   return(object)
 }
+
+#' @rdname vrSpatialPoints
+#' @order 8
+#' @export
+setMethod("vrSpatialPoints<-", "vrAssay", vrSpatialPointsReplacevrAssayV2)
+
+#' @rdname vrSpatialPoints
+#' @order 8
+#' @export
+setMethod("vrSpatialPoints<-", "vrAssayV2", vrSpatialPointsReplacevrAssayV2)
 
 vrFeaturesvrAssay <- function(object) {
   return(rownames(getData(object)))
@@ -784,11 +763,8 @@ vrFeatureDataReplacevrAssayV2 <- function(object, feat_type = NULL, value) {
 #' @export
 setMethod("vrFeatureData<-", "vrAssayV2", vrFeatureDataReplacevrAssayV2)
 
-#' @rdname vrAssayNames
-#' @order 4
-#' @export
-vrAssayNames.vrAssay <- function(object) {
-
+vrAssayNamesvrAssay <- function(object) {
+  
   if(.hasSlot(object, name = "name")){
     if(grep("Assay", object@name)){
       return(object@name)
@@ -807,73 +783,84 @@ vrAssayNames.vrAssay <- function(object) {
 #' @rdname vrAssayNames
 #' @order 4
 #' @export
-vrAssayNames.vrAssayV2 <- vrAssayNames.vrAssay
+setMethod("vrAssayNames", "vrAssay", vrAssayNamesvrAssay)
 
-#' @param value assay name
-#' 
 #' @rdname vrAssayNames
-#' @order 5
-#' @importFrom stringr str_replace
-"vrAssayNames<-.vrAssay" <- function(object, value){
-
-  # get original assay name
-  assayname <- vrAssayNames(object)
-
-  # change assay names
-  spatialpoints <- stringr::str_replace(vrSpatialPoints(object), assayname, value)
-
-  # add assay name if missing
-  if(vrAssayTypes(object) %in% c("ROI", "cell", "spot")){
-    ind <- !grepl("Assay[0-9]+$", spatialpoints)
-    spatialpoints[ind] <- stringr::str_replace(spatialpoints[ind], "$", paste0("_", value))
-  }
-
-  # replace spatial point names
-  vrSpatialPoints(object) <- spatialpoints
-  object@name <- value
-
-  # return
-  return(object)
-}
-
-#' @param value assay name
-#' 
-#' @rdname vrAssayNames
-#' @order 5
-#' @importFrom stringr str_replace
-"vrAssayNames<-.vrAssayV2" <- function(object, value){
-  
-  # get original assay name
-  assayname <- vrAssayNames(object)
-  
-  # change assay names
-  spatialpoints <- stringr::str_replace(vrSpatialPoints(object), assayname, value)
-  
-  # add assay name if missing
-  if(vrAssayTypes(object) %in% c("ROI", "cell", "spot")){
-    ind <- !grepl("Assay[0-9]+$", spatialpoints)
-    spatialpoints[ind] <- stringr::str_replace(spatialpoints[ind], "$", paste0("_", value))
-  }
-  
-  # replace spatial point names
-  vrSpatialPoints(object) <- spatialpoints
-  object@name <- value
-  
-  # return
-  return(object)
-}
-
-#' @rdname vrAssayTypes
-#' @order 3
+#' @order 4
 #' @export
-vrAssayTypes.vrAssay <- function(object) {
+setMethod("vrAssayNames", "vrAssayV2", vrAssayNamesvrAssay)
+
+vrAssayNamesReplacevrAssay <- function(object, value){
+  
+  # get original assay name
+  assayname <- vrAssayNames(object)
+  
+  # change assay names
+  spatialpoints <- stringr::str_replace(vrSpatialPoints(object), assayname, value)
+  
+  # add assay name if missing
+  if(vrAssayTypes(object) %in% c("ROI", "cell", "spot")){
+    ind <- !grepl("Assay[0-9]+$", spatialpoints)
+    spatialpoints[ind] <- stringr::str_replace(spatialpoints[ind], "$", paste0("_", value))
+  }
+  
+  # replace spatial point names
+  vrSpatialPoints(object) <- spatialpoints
+  object@name <- value
+  
+  # return
+  return(object)
+}
+
+#' @param value assay name
+#' 
+#' @rdname vrAssayNames
+#' @order 5
+#' @importFrom stringr str_replace
+setMethod("vrAssayNames<-", "vrAssay", vrAssayNamesReplacevrAssay)
+
+vrAssayNamesReplacevrAssayV2 <- function(object, value){
+  
+  # get original assay name
+  assayname <- vrAssayNames(object)
+  
+  # change assay names
+  spatialpoints <- stringr::str_replace(vrSpatialPoints(object), assayname, value)
+  
+  # add assay name if missing
+  if(vrAssayTypes(object) %in% c("ROI", "cell", "spot")){
+    ind <- !grepl("Assay[0-9]+$", spatialpoints)
+    spatialpoints[ind] <- stringr::str_replace(spatialpoints[ind], "$", paste0("_", value))
+  }
+  
+  # replace spatial point names
+  vrSpatialPoints(object) <- spatialpoints
+  object@name <- value
+  
+  # return
+  return(object)
+}
+
+#' @param value assay name
+#' 
+#' @rdname vrAssayNames
+#' @order 5
+#' @importFrom stringr str_replace
+setMethod("vrAssayNames<-", "vrAssayV2", vrAssayNamesReplacevrAssayV2)
+
+vrAssayTypesvrAssay <- function(object) {
   return(object@type)
 }
 
 #' @rdname vrAssayTypes
 #' @order 3
 #' @export
-vrAssayTypes.vrAssayV2 <- vrAssayTypes.vrAssay 
+setMethod("vrAssayTypes", "vrAssay", vrAssayTypesvrAssay)
+
+#' @rdname vrAssayTypes
+#' @order 3
+#' @export
+setMethod("vrAssayTypes", "vrAssayV2", vrAssayTypesvrAssay)
 
 #' Get assay parameters
 #'
@@ -898,20 +885,14 @@ vrAssayParams <- function(object, param = NULL) {
   }
 }
 
-#' @rdname vrData
-#' @order 3
-#'
-#' @importFrom magick image_raster
-#'
-#' @export
-vrData.vrAssay <- function(object, features = NULL, feat_type = NULL, norm = FALSE, ...) {
-
+vrDatavrAssay <- function(object, features = NULL, feat_type = NULL, norm = FALSE, ...) {
+  
   # get assay types
   assay.type <- vrAssayTypes(object)
   
   # for ROIs, cells and spots
   if(assay.type %in% c("ROI", "cell", "spot")){
-
+    
     # check if there are features
     if(!is.null(features)){
       if(!all(features %in% vrFeatures(object))){
@@ -933,8 +914,8 @@ vrData.vrAssay <- function(object, features = NULL, feat_type = NULL, norm = FAL
           return(object@data[[feat_type]][features,,drop = FALSE])
         }
       }
-
-    # if there are no features requested, return the data
+      
+      # if there are no features requested, return the data
     } else {
       
       if(inherits(object, "vrAssay")){
@@ -953,15 +934,15 @@ vrData.vrAssay <- function(object, features = NULL, feat_type = NULL, norm = FAL
         }
       }
     }
-
-  # for tiles and molecules
+    
+    # for tiles and molecules
   } else {
-
+    
     # check if features are requested
     if(!is.null(features)){
       stop("No features are available for tile and molecule assays!")
     } else{
-
+      
       if(inherits(object, "vrAssay")){
         if(norm){
           return(object@normdata)
@@ -984,18 +965,18 @@ vrData.vrAssay <- function(object, features = NULL, feat_type = NULL, norm = FAL
 #' @rdname vrData
 #' @order 3
 #'
+#' @importFrom magick image_raster
+#'
 #' @export
-vrData.vrAssayV2 <- vrData.vrAssay
+setMethod("vrData", "vrAssay", vrDatavrAssay)
 
-#' @param name the name of the main spatial system
-#' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
-#' @param channel the name of the channel associated with the image
-#' 
-#' @rdname generateTileData
+#' @rdname vrData
 #' @order 3
 #'
 #' @export
-generateTileData.vrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL) {
+setMethod("vrData", "vrAssayV2", vrDatavrAssay)
+
+generateTileDatavrAssay <- function(object, name = NULL, reg = FALSE, channel = NULL) {
   
   if(vrAssayTypes(object) != "tile"){
     stop("generateTileData can only be used for tile-based assays")
@@ -1019,18 +1000,24 @@ generateTileData.vrAssay <- function(object, name = NULL, reg = FALSE, channel =
   return(object)
 }
 
+#' @param name the name of the main spatial system
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
+#' @param channel the name of the channel associated with the image
+#' 
 #' @rdname generateTileData
 #' @order 3
 #'
 #' @export
-generateTileData.vrAssayV2 <- generateTileData.vrAssay
+setMethod("generateTileData", "vrAssay", generateTileDatavrAssay)
 
-#' @rdname vrCoordinates
+#' @rdname generateTileData
 #' @order 3
-#' @export
 #'
-vrCoordinates.vrAssay <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE) {
+#' @export
+setMethod("generateTileData", "vrAssayV2", generateTileDatavrAssay)
 
+vrCoordinatesvrAssay <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE) {
+  
   # get spatial name
   if(!is.null(spatial_name)) 
     image_name <- spatial_name
@@ -1039,7 +1026,7 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, spatial_name = NULL
   if(is.null(image_name)){
     image_name <- vrMainSpatial(object)
   }
-
+  
   # check registered coordinates
   if(reg){
     if(!paste0(image_name, "_reg") %in% vrSpatialNames(object)){
@@ -1048,12 +1035,12 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, spatial_name = NULL
       image_name <- paste0(image_name, "_reg")
     }
   }
-
+  
   # check coordinates
   if(!image_name %in% vrSpatialNames(object)){
     stop(image_name, " is not among any spatial system in this vrAssay object")
   }
-
+  
   # return coordinates
   return(vrCoordinates(object@image[[image_name]]))
 }
@@ -1062,50 +1049,15 @@ vrCoordinates.vrAssay <- function(object, image_name = NULL, spatial_name = NULL
 #' @order 3
 #' @export
 #'
-vrCoordinates.vrAssayV2 <- vrCoordinates.vrAssay
-
-#' @rdname vrCoordinates
-#' @order 5
-#' @importFrom methods slot
-#'
-#' @export
-"vrCoordinates<-.vrAssay" <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
-
-  # get spatial name
-  if(!is.null(spatial_name)) 
-    image_name <- spatial_name
-  
-  # check main image
-  if(is.null(image_name)){
-    image_name <- vrMainSpatial(object)
-  }
-
-  # check registered coordinates
-  if(reg){
-    image_name <- paste0(image_name, "_reg")
-  }
-
-  # check coordinates
-  if(!image_name %in% vrSpatialNames(object)){
-    stop(image_name, " is not among any spatial system in this vrAssay object")
-  }
-
-  vrCoordinates(object@image[[image_name]]) <- value
-  return(object)
-}
+setMethod("vrCoordinates", "vrAssay", vrCoordinatesvrAssay)
 
 #' @rdname vrCoordinates
 #' @order 3
 #' @export
 #'
-vrCoordinates.vrAssayV2 <- vrCoordinates.vrAssay
+setMethod("vrCoordinates", "vrAssayV2", vrCoordinatesvrAssay)
 
-#' @rdname vrCoordinates
-#' @order 5
-#' @importFrom methods slot
-#'
-#' @export
-"vrCoordinates<-.vrAssayV2" <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
+vrCoordinatesReplacevrAssay <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
   
   # get spatial name
   if(!is.null(spatial_name)) 
@@ -1130,13 +1082,21 @@ vrCoordinates.vrAssayV2 <- vrCoordinates.vrAssay
   return(object)
 }
 
-#' @rdname flipCoordinates
-#' @order 3
-#'
-#' @importFrom magick image_info
+#' @rdname vrCoordinates
+#' @order 5
+#' @importFrom methods slot
 #'
 #' @export
-flipCoordinates.vrAssay <- function(object, image_name = NULL, spatial_name = NULL, ...) {
+setMethod("vrCoordinates<-", "vrAssay", vrCoordinatesReplacevrAssay)
+
+#' @rdname vrCoordinates
+#' @order 5
+#' @importFrom methods slot
+#'
+#' @export
+setMethod("vrCoordinates<-", "vrAssayV2", vrCoordinatesReplacevrAssay)
+
+flipCoordinatesvrAssay <- function(object, image_name = NULL, spatial_name = NULL, ...) {
   
   # get spatial name
   if(!is.null(spatial_name)) 
@@ -1176,24 +1136,28 @@ flipCoordinates.vrAssay <- function(object, image_name = NULL, spatial_name = NU
 #' @rdname flipCoordinates
 #' @order 3
 #'
+#' @importFrom magick image_info
+#'
 #' @export
-flipCoordinates.vrAssayV2 <- flipCoordinates.vrAssay
+setMethod("flipCoordinates", "vrAssay", flipCoordinatesvrAssay)
 
-#' @rdname vrSegments
+#' @rdname flipCoordinates
 #' @order 3
+#'
 #' @export
-vrSegments.vrAssay <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE) {
+setMethod("flipCoordinates", "vrAssayV2", flipCoordinatesvrAssay)
 
+vrSegmentsvrAssay <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE) {
+  
   # get spatial name
   if(!is.null(spatial_name)) 
     image_name <- spatial_name
   
   # check main image
   if(is.null(image_name)){
-    # image_name <- vrMainImage(object)
     image_name <- vrMainSpatial(object)
   }
-
+  
   # check registered segments
   if(reg){
     if(!paste0(image_name, "_reg") %in% vrSpatialNames(object)){
@@ -1202,12 +1166,12 @@ vrSegments.vrAssay <- function(object, image_name = NULL, spatial_name = NULL, r
       image_name <- paste0(image_name, "_reg")
     }
   }
-
+  
   # check coordinates
   if(!image_name %in% vrSpatialNames(object)){
     stop(image_name, " is not among any spatial system in this vrAssay object")
   }
-
+  
   # return coordinates
   return(vrSegments(object@image[[image_name]]))
 }
@@ -1215,75 +1179,56 @@ vrSegments.vrAssay <- function(object, image_name = NULL, spatial_name = NULL, r
 #' @rdname vrSegments
 #' @order 3
 #' @export
-vrSegments.vrAssayV2 <- vrSegments.vrAssay
+setMethod("vrSegments", "vrAssay", vrSegmentsvrAssay)
 
 #' @rdname vrSegments
-#' @order 6
-#' @importFrom methods slot
-#' @export
-"vrSegments<-.vrAssay" <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
-
-  # get spatial name
-  if(!is.null(spatial_name)) 
-    image_name <- spatial_name
-  
-  # check main image
-  if(is.null(image_name)){
-    image_name <- vrMainSpatial(object)
-  }
-
-  # check registered segments
-  if(reg){
-    image_name <- paste0(image_name, "_reg")
-  }
-
-  # check coordinates
-  if(!image_name %in% vrSpatialNames(object)){
-    stop(image_name, " is not among any spatial system in this vrAssay object")
-  }
-
-  vrSegments(object@image[[image_name]]) <- value
-  return(object)
-}
-
-#' @rdname vrSegments
-#' @order 6
-#' @importFrom methods slot
-#' @export
-"vrSegments<-.vrAssayV2" <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
-  
-  # get spatial name
-  if(!is.null(spatial_name)) 
-    image_name <- spatial_name
-  
-  # check main image
-  if(is.null(image_name)){
-    image_name <- vrMainSpatial(object)
-  }
-  
-  # check registered segments
-  if(reg){
-    image_name <- paste0(image_name, "_reg")
-  }
-  
-  # check coordinates
-  if(!image_name %in% vrSpatialNames(object)){
-    stop(image_name, " is not among any spatial system in this vrAssay object")
-  }
-  
-  vrSegments(object@image[[image_name]]) <- value
-  return(object)
-}
-
-#' @rdname vrEmbeddings
 #' @order 3
 #' @export
-vrEmbeddings.vrAssay <- function(object, type = "pca", dims = 1:30) {
+setMethod("vrSegments", "vrAssayV2", vrSegmentsvrAssay)
 
+vrSegmentsReplacevrAssay <- function(object, image_name = NULL, spatial_name = NULL, reg = FALSE, value) {
+  
+  # get spatial name
+  if(!is.null(spatial_name)) 
+    image_name <- spatial_name
+  
+  # check main image
+  if(is.null(image_name)){
+    image_name <- vrMainSpatial(object)
+  }
+  
+  # check registered segments
+  if(reg){
+    image_name <- paste0(image_name, "_reg")
+  }
+  
+  # check coordinates
+  if(!image_name %in% vrSpatialNames(object)){
+    stop(image_name, " is not among any spatial system in this vrAssay object")
+  }
+  
+  vrSegments(object@image[[image_name]]) <- value
+  return(object)
+}
+
+#' @rdname vrSegments
+#' @order 6
+#' @importFrom methods slot
+#' @export
+setMethod("vrSegments<-", "vrAssay", vrSegmentsReplacevrAssay)
+
+#' @rdname vrSegments
+#' @order 6
+#' @importFrom methods slot
+#' @export
+setMethod("vrSegments<-", "vrAssayV2", vrSegmentsReplacevrAssay)
+
+vrEmbeddingsvrAssay <- function(object, type = "pca", dims = 1:30) {
+  
   # embeddings
   embeddings <- object@embeddings
   embedding_names <- names(embeddings)
-
+  
   # check embeddings and return
   if(!type %in% embedding_names){
     stop("Embedding type ", type, " is not found!")
@@ -1299,30 +1244,35 @@ vrEmbeddings.vrAssay <- function(object, type = "pca", dims = 1:30) {
 #' @rdname vrEmbeddings
 #' @order 3
 #' @export
-#'
-vrEmbeddings.vrAssayV2 <- vrEmbeddings.vrAssay
+setMethod("vrEmbeddings", "vrAssay", vrEmbeddingsvrAssay)
 
 #' @rdname vrEmbeddings
-#' @order 4
-#' @export
-"vrEmbeddings<-.vrAssay" <- function(object, type = "pca", value) {
-  object@embeddings[[type]] <- value
-  return(object)
-}
-
-#' @rdname vrEmbeddings
-#' @order 4
-#' @export
-"vrEmbeddings<-.vrAssayV2" <- function(object, type = "pca", value) {
-  object@embeddings[[type]] <- value
-  return(object)
-}
-
-#' @rdname vrEmbeddingNames
 #' @order 3
-#'
 #' @export
-vrEmbeddingNames.vrAssay <- function(object){
+#'
+setMethod("vrEmbeddings", "vrAssayV2", vrEmbeddingsvrAssay)
+
+vrEmbeddingsReplacevrAssay <- function(object, type = "pca", value) {
+  object@embeddings[[type]] <- value
+  return(object)
+}
+
+#' @rdname vrEmbeddings
+#' @order 4
+#' @export
+setMethod("vrEmbeddings<-", "vrAssay", vrEmbeddingsReplacevrAssay)
+
+vrEmbeddingsReplacevrAssayV2 <- function(object, type = "pca", value) {
+  object@embeddings[[type]] <- value
+  return(object)
+}
+
+#' @rdname vrEmbeddings
+#' @order 4
+#' @export
+setMethod("vrEmbeddings<-", "vrAssayV2", vrEmbeddingsReplacevrAssayV2)
+
+vrEmbeddingNamesvrAssay <- function(object){
   return(names(object@embeddings))
 }
 
@@ -1330,4 +1280,10 @@ vrEmbeddingNames.vrAssay <- function(object){
 #' @order 3
 #'
 #' @export
-vrEmbeddingNames.vrAssayV2 <- vrEmbeddingNames.vrAssay
+setMethod("vrEmbeddingNames", "vrAssay", vrEmbeddingNamesvrAssay)
+
+#' @rdname vrEmbeddingNames
+#' @order 3
+#'
+#' @export
+setMethod("vrEmbeddingNames", "vrAssayV2", vrEmbeddingNamesvrAssay)

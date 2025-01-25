@@ -4,13 +4,12 @@
 \alias{updateAssay}
 \title{Update Assay}
 \usage{
-updateAssay(object, assay)
+updateAssay(object, ...)
 }
 \arguments{
-\item{object}{a VoltRon object}
+\item{object}{a VoltRon object.}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-if NULL, the default assay will be used, see \link{vrMainAssay}.}
+\item{...}{arguments passed to other methods.}
 }
 \description{
 update assays from vrAssay to vrAssayV2

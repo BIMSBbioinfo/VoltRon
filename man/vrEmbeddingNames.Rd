@@ -2,21 +2,23 @@
 % Please edit documentation in R/allgenerics.R, R/objects.R, R/assay.R
 \name{vrEmbeddingNames}
 \alias{vrEmbeddingNames}
-\alias{vrEmbeddingNames.VoltRon}
-\alias{vrEmbeddingNames.vrAssay}
-\alias{vrEmbeddingNames.vrAssayV2}
+\alias{vrEmbeddingNames,VoltRon-method}
+\alias{vrEmbeddingNames,vrAssay-method}
+\alias{vrEmbeddingNames,vrAssayV2-method}
 \title{Get Embedding names}
 \usage{
-vrEmbeddingNames(object, assay = NULL)
+vrEmbeddingNames(object, ...)
 
-\method{vrEmbeddingNames}{VoltRon}(object, assay = NULL)
+\S4method{vrEmbeddingNames}{VoltRon}(object, assay = NULL)
 
-\method{vrEmbeddingNames}{vrAssay}(object)
+\S4method{vrEmbeddingNames}{vrAssay}(object)
 
-\method{vrEmbeddingNames}{vrAssayV2}(object)
+\S4method{vrEmbeddingNames}{vrAssayV2}(object)
 }
 \arguments{
-\item{object}{a VoltRon or vrAssay object}
+\item{object}{a VoltRon or vrAssay object.}
+
+\item{...}{arguments passed to other methods.}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}

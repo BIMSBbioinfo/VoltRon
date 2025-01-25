@@ -134,17 +134,8 @@ setMethod(
 # Methods ####
 ####
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#'
-#' @rdname vrSpatialPoints
-#' @order 3
-#'
-#' @importFrom methods slotNames
-#'
-#' @export
-vrSpatialPoints.vrMetadata <- function(object, assay = NULL) {
-
+vrSpatialPointsvrMetadata <- function(object, assay = NULL) {
+  
   # get spatial points
   points <- unlist(lapply(methods::slotNames(object), function(x) {
     if(x %in% c("cell", "spot", "ROI")){
@@ -175,10 +166,21 @@ vrSpatialPoints.vrMetadata <- function(object, assay = NULL) {
       }
     }
   }))
-
+  
   # return points
   return(points)
 }
+
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#'
+#' @rdname vrSpatialPoints
+#' @order 3
+#'
+#' @importFrom methods slotNames
+#'
+#' @export
+setMethod("vrSpatialPoints", "vrMetadata", vrSpatialPointsvrMetadata)
 
 #' Subsetting vrMetadata objects
 #'
@@ -517,18 +519,7 @@ merge_sampleMetadata <- function(metadata_list) {
 
 ### Assay Methods ####
 
-#' @rdname addAssay
-#' @method addAssay vrMetadata
-#'
-#' @importFrom dplyr bind_rows bind_cols
-#' @importFrom methods slot slot<-
-#' @importFrom stringr str_replace
-#' @importFrom data.table data.table
-#' @importFrom Matrix colSums
-#'
-#' @export
-#' @noRd
-addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, sample = "Sample1", layer = "Section1"){
+addAssayvrMetadata <- function(object, metadata = NULL, assay, assay_name, sample = "Sample1", layer = "Section1"){
 
   # get metadata and other info
   assay.type <- vrAssayTypes(assay)
@@ -630,12 +621,21 @@ addAssay.vrMetadata <- function(object, metadata = NULL, assay, assay_name, samp
   return(object)
 }
 
-#' @rdname vrAssayNames
-#' @order 3
-#' @importFrom methods slotNames
+#' @rdname addAssay
+#' @method addAssay vrMetadata
+#'
+#' @importFrom dplyr bind_rows bind_cols
+#' @importFrom methods slot slot<-
+#' @importFrom stringr str_replace
+#' @importFrom data.table data.table
+#' @importFrom Matrix colSums
+#'
 #' @export
-vrAssayNames.vrMetadata <- function(object){
+#' @noRd
+setMethod("addAssay", "vrMetadata", addAssayvrMetadata)
 
+vrAssayNamesvrMetadata <- function(object){
+  
   # get assay names from metadata
   assay_names <- NULL
   for(sl in methods::slotNames(object)){
@@ -655,6 +655,12 @@ vrAssayNames.vrMetadata <- function(object){
   }
   assay_names
 }
+
+#' @rdname vrAssayNames
+#' @order 3
+#' @importFrom methods slotNames
+#' @export
+setMethod("vrAssayNames", "vrMetadata", vrAssayNamesvrMetadata)
 
 #' updateMetadataAssay
 #'
@@ -843,20 +849,7 @@ updateMetadataAssay <- function(object1, object2){
   return(list(object1 = object1, object2 = object2))
 }
 
-#' changeSampleNames.vrMetadata
-#'
-#' Change the sample names of the vrMetadata object and reorient layers if needed
-#' This functions requires the new and old sample and layer names passed from \code{changeSampleNames.VoltRon}
-#'
-#' @param sample_metadata_table the sample metadata with old and new layers and samples passed from \code{changeSampleNames.VoltRon}
-#' 
-#' @rdname changeSampleNames
-#' @method changeSampleNames vrMetadata
-#'
-#' @importFrom methods slot slot<- slotNames
-#'
-#' @noRd
-changeSampleNames.vrMetadata <- function(object, sample_metadata_table){
+changeSampleNamesvrMetadata <- function(object, sample_metadata_table){
 
   # get old and new samples
   old.samples <- sample_metadata_table$Sample
@@ -888,26 +881,42 @@ changeSampleNames.vrMetadata <- function(object, sample_metadata_table){
   return(new_object)
 }
 
+#' changeSampleNames.vrMetadata
+#'
+#' Change the sample names of the vrMetadata object and reorient layers if needed
+#' This functions requires the new and old sample and layer names passed from \code{changeSampleNames.VoltRon}
+#'
+#' @param sample_metadata_table the sample metadata with old and new layers and samples passed from \code{changeSampleNames.VoltRon}
+#' 
+#' @rdname changeSampleNames
+#' @method changeSampleNames vrMetadata
+#'
+#' @importFrom methods slot slot<- slotNames
+#'
+#' @noRd
+setMethod("changeSampleNames", "vrMetadata", changeSampleNamesvrMetadata)
+
 ### Sample Methods ####
 
-#' @rdname vrSampleNames
-#' @method vrSampleNames vrMetadata
-#'
-#' @importFrom methods slotNames
-#' @export
-#'
-vrSampleNames.vrMetadata <- function(object){
-
+vrSampleNamesvrMetadata <- function(object){
+  
   # get assay names from metadata
   sample_names <- NULL
   for(sl in methods::slotNames(object)){
     cur_metadata <- slot(object, name = sl)
     sample_names <- c(sample_names, unique(cur_metadata$Sample))
   }
-
+  
   # return
   sample_names
 }
+
+#' @rdname vrSampleNames
+#' @method vrSampleNames vrMetadata
+#'
+#' @importFrom methods slotNames
+#' @export
+setMethod("vrSampleNames", "vrMetadata", vrSampleNamesvrMetadata)
 
 ####
 # Functions ####

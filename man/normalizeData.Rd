@@ -2,12 +2,14 @@
 % Please edit documentation in R/allgenerics.R, R/processing.R
 \name{normalizeData}
 \alias{normalizeData}
-\alias{normalizeData.VoltRon}
-\alias{normalizeData.vrAssay}
-\alias{normalizeData.vrAssayV2}
+\alias{normalizeData,VoltRon-method}
+\alias{normalizeData,vrAssay-method}
+\alias{normalizeData,vrAssayV2-method}
 \title{Normalize Data}
 \usage{
-normalizeData(
+normalizeData(object, ...)
+
+\S4method{normalizeData}{VoltRon}(
   object,
   assay = NULL,
   method = "LogNorm",
@@ -17,17 +19,7 @@ normalizeData(
   feat_type = NULL
 )
 
-\method{normalizeData}{VoltRon}(
-  object,
-  assay = NULL,
-  method = "LogNorm",
-  desiredQuantile = 0.9,
-  scale = 0.2,
-  sizefactor = 10000,
-  feat_type = NULL
-)
-
-\method{normalizeData}{vrAssay}(
+\S4method{normalizeData}{vrAssay}(
   object,
   method = "LogNorm",
   desiredQuantile = 0.9,
@@ -36,7 +28,7 @@ normalizeData(
   feat_type = NULL
 )
 
-\method{normalizeData}{vrAssayV2}(
+\S4method{normalizeData}{vrAssayV2}(
   object,
   method = "LogNorm",
   desiredQuantile = 0.9,
@@ -46,7 +38,9 @@ normalizeData(
 )
 }
 \arguments{
-\item{object}{a VoltRon or vrAssay object}
+\item{object}{a VoltRon or vrAssay object.}
+
+\item{...}{arguments passed to other methods.}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}

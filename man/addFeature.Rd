@@ -2,25 +2,27 @@
 % Please edit documentation in R/allgenerics.R, R/assay.R, R/objects.R
 \name{addFeature}
 \alias{addFeature}
-\alias{addFeature.vrAssayV2}
-\alias{addFeature.VoltRon}
+\alias{addFeature,vrAssayV2-method}
+\alias{addFeature,VoltRon-method}
 \title{addFeature}
 \usage{
-addFeature(object, assay = NULL, data, feature_name)
+addFeature(object, ...)
 
-\method{addFeature}{vrAssayV2}(object, data, feature_name)
+\S4method{addFeature}{vrAssayV2}(object, data, feature_name)
 
-\method{addFeature}{VoltRon}(object, assay = NULL, data, feature_name)
+\S4method{addFeature}{VoltRon}(object, assay = NULL, data, feature_name)
 }
 \arguments{
-\item{object}{a VoltRon or vrAssay object}
+\item{object}{a VoltRon or vrAssay object.}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays.}
+\item{...}{arguments passed to other methods.}
 
 \item{data}{new data matrix for new feature set}
 
 \item{feature_name}{the name of the new feature set}
+
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays.}
 }
 \description{
 add a new feature set to a vrAssay (or VoltRon) object

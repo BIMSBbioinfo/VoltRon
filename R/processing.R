@@ -6,36 +6,40 @@ NULL
 # Normalization ####
 ####
 
-#' @rdname normalizeData
-#' @method normalizeData VoltRon
-#'
-#' @export
-normalizeData.VoltRon <- function(object, assay = NULL, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2, sizefactor = 10000, feat_type = NULL) {
-
+normalizeDataVoltRon <- function(object, assay = NULL, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2, sizefactor = 10000, feat_type = NULL) {
+  
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
-
+  
   # normalize assays
   for(assy in assay_names){
     cur_assay <- object[[assy]]
     object[[assy]] <- normalizeData(cur_assay, method = method, desiredQuantile = desiredQuantile, scale = scale, sizefactor = sizefactor, feat_type = feat_type)
   }
-
+  
   # return
   return(object)
 }
 
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param method the normalization method: "LogNorm", "Q3Norm", "LogQ3Norm" or "CLR"
+#' @param desiredQuantile the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}.
+#' @param scale the scale parameter for the hyperbolic arcsine transformation
+#' @param sizefactor size factor if \code{method} is selected as \code{LogNorm}
+#' @param feat_type the feature set type
+#' 
 #' @rdname normalizeData
-#' @method normalizeData vrAssay
-#'
-#' @importFrom stats quantile
+#' @method normalizeData VoltRon
 #'
 #' @export
-normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2, sizefactor = 10000, feat_type = NULL) {
+setMethod("normalizeData", "VoltRon", normalizeDataVoltRon)
 
+normalizeDatavrAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2, sizefactor = 10000, feat_type = NULL) {
+  
   # size factor
   rawdata <- vrData(object, feat_type = feat_type, norm = FALSE)
-
+  
   if(!is.numeric(desiredQuantile)){
     stop("desiredQuantile should be numeric")
   } else {
@@ -43,7 +47,7 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
       stop("desiredQuantile should be between [0,1]")
     }
   }
-
+  
   # normalization method
   if(method == "LogNorm"){
     normdata <- LogNorm(rawdata, colSums(rawdata), sizefactor)
@@ -66,7 +70,7 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
   } else {
     stop('Please select one of these methods: "LogNorm", "Q3Norm", "LogQ3Norm" or "CLR"')
   }
-
+  
   # get normalized data
   catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
   catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
@@ -77,10 +81,18 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
   } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
     object@normdata <- normdata
   }
-
+  
   # return
   return(object)
 }
+
+#' @rdname normalizeData
+#' @method normalizeData vrAssay
+#'
+#' @importFrom stats quantile
+#'
+#' @export
+setMethod("normalizeData", "vrAssay", normalizeDatavrAssay)
 
 #' @rdname normalizeData
 #' @method normalizeData vrAssayV2
@@ -88,7 +100,7 @@ normalizeData.vrAssay <- function(object, method = "LogNorm", desiredQuantile = 
 #' @importFrom stats quantile
 #'
 #' @export
-normalizeData.vrAssayV2 <- normalizeData.vrAssay
+setMethod("normalizeData", "vrAssayV2", normalizeDatavrAssay)
 
 LogNorm <- function(rawdata, coldepth, sizefactor){
   if(inherits(rawdata, "IterableMatrix")){
@@ -118,40 +130,41 @@ getDivideSweep <- function(rawdata, divisor){
 # Features ####
 ####
 
-#' @rdname getFeatures
-#'
-#' @export
-getFeatures.VoltRon <- function(object, assay = NULL, max.count = 1, n = 3000){
-
+getFeaturesVoltRon <- function(object, assay = NULL, max.count = 1, n = 3000){
+  
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
-
+  
   # get features for all coordinates
   for(assy in assay_names){
     object[[assy]] <- getFeatures(object[[assy]], max.count = max.count, n = n)
   }
-
+  
   # return
   return(object)
 }
 
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param max.count maximum count (across spatial points) for low count filtering
+#' @param n the top number of variable features 
+#' 
 #' @rdname getFeatures
 #'
-#' @importFrom stats loess predict var
-#' @importFrom Matrix rowMeans
-#'
 #' @export
-getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
+setMethod("getFeatures", "VoltRon", getFeaturesVoltRon)
 
+getFeaturesvrAssay <- function(object, max.count = 1, n = 3000){
+  
   # get data and coordinates
   rawdata <- vrData(object, norm = FALSE)
   coords <- vrCoordinates(object)
   features <- vrFeatures(object)
-
+  
   # eliminate genes with low counts
   # keep.genes <- which(apply(rawdata,1,max) > max.count)
   keep.genes <- getMaxCount(rawdata, max.count)
-
+  
   # vst estimation
   # vst_data <- data.frame(mean = Matrix::rowMeans(rawdata), var = apply(rawdata, 1, stats::var))
   vst_data <- getVstData(rawdata)
@@ -161,10 +174,10 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
   vst_data$rank <- 0
   vst_data[keep.genes,]$adj_var <- stats::predict(loess_results)
   vst_data[keep.genes,]$rank <- order(order(vst_data$adj_var[keep.genes], decreasing = TRUE))
-
+  
   # set feature data
   vrFeatureData(object) <- vst_data
-
+  
   # return
   return(object)
 }
@@ -175,7 +188,15 @@ getFeatures.vrAssay <- function(object, max.count = 1, n = 3000){
 #' @importFrom Matrix rowMeans
 #'
 #' @export
-getFeatures.vrAssayV2 <- getFeatures.vrAssay
+setMethod("getFeatures", "vrAssay", getFeaturesvrAssay)
+
+#' @rdname getFeatures
+#'
+#' @importFrom stats loess predict var
+#' @importFrom Matrix rowMeans
+#'
+#' @export
+setMethod("getFeatures", "vrAssayV2", getFeaturesvrAssay)
 
 getVstData <- function(rawdata){
   if(inherits(rawdata, "IterableMatrix")){

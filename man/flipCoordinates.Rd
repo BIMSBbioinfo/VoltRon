@@ -2,20 +2,14 @@
 % Please edit documentation in R/allgenerics.R, R/objects.R, R/assay.R
 \name{flipCoordinates}
 \alias{flipCoordinates}
-\alias{flipCoordinates.VoltRon}
-\alias{flipCoordinates.vrAssay}
-\alias{flipCoordinates.vrAssayV2}
+\alias{flipCoordinates,VoltRon-method}
+\alias{flipCoordinates,vrAssay-method}
+\alias{flipCoordinates,vrAssayV2-method}
 \title{flipCoordinates}
 \usage{
-flipCoordinates(
-  object,
-  assay = NULL,
-  spatial_name = NULL,
-  image_name = NULL,
-  ...
-)
+flipCoordinates(object, ...)
 
-\method{flipCoordinates}{VoltRon}(
+\S4method{flipCoordinates}{VoltRon}(
   object,
   assay = NULL,
   image_name = NULL,
@@ -23,21 +17,21 @@ flipCoordinates(
   ...
 )
 
-\method{flipCoordinates}{vrAssay}(object, image_name = NULL, spatial_name = NULL, ...)
+\S4method{flipCoordinates}{vrAssay}(object, image_name = NULL, spatial_name = NULL, ...)
 
-\method{flipCoordinates}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, ...)
+\S4method{flipCoordinates}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, ...)
 }
 \arguments{
-\item{object}{a VoltRon, vrAssay or vrImage object}
+\item{object}{a VoltRon, vrAssay or vrSpatial object.}
+
+\item{...}{additional parameters passed to \link{vrCoordinates} and \link{vrSegments}}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{spatial_name}{the name/key of the spatial system associated with the coordinates}
-
 \item{image_name}{(deprecated, use \code{spatial_name}) the name/key of the image}
 
-\item{...}{additional parameters passed to \link{vrCoordinates} and \link{vrSegments}}
+\item{spatial_name}{the name/key of the spatial system associated with the coordinates}
 }
 \description{
 Flip the coordinates of spatial points in the y axis direction.
