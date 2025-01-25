@@ -56,7 +56,6 @@ setMethod(
   f = 'show',
   signature = 'vrAssay',
   definition = function(object) {
-
     cat("vrAssay (VoltRon Assay) of", nrow(vrCoordinates(object)), "spatial points and", nrow(object@rawdata), "features. \n")
     return(invisible(x = NULL))
   }
@@ -726,41 +725,44 @@ vrSpatialPoints.vrAssayV2 <- vrSpatialPoints.vrAssay
   return(object)
 }
 
-#' @rdname vrFeatures
-#' @order 3
-#' @export
-vrFeatures.vrAssay <- function(object) {
-  # return(rownames(object@rawdata))
+vrFeaturesvrAssay <- function(object) {
   return(rownames(getData(object)))
 }
 
 #' @rdname vrFeatures
 #' @order 3
 #' @export
-vrFeatures.vrAssayV2 <- vrFeatures.vrAssay
-
-#' @rdname vrFeatureData
+setMethod("vrFeatures", signature = "vrAssay", definition = vrFeaturesvrAssay)
+ 
+#' @rdname vrFeatures
+#' @method vrFeatures vrAssayV2
 #' @order 3
 #' @export
-vrFeatureData.vrAssay <- function(object) {
+setMethod("vrFeatures", "vrAssayV2", vrFeaturesvrAssay)
+
+vrFeatureDatavrAssay <- function(object) {
   return(object@featuredata)
 }
 
-#' @param feat_type the feature set type
-#' 
 #' @rdname vrFeatureData
 #' @order 3
 #' @export
-vrFeatureData.vrAssayV2 <- function(object, feat_type = NULL){
+setMethod("vrFeatureData", "vrAssay", vrFeatureDatavrAssay)
+
+vrFeatureDatavrAssayV2 <- function(object, feat_type = NULL){
   if(is.null(feat_type))
     feat_type <- vrMainFeatureType(object)
   return(object@featuredata[[feat_type]])
 }
 
+#' @param feat_type the feature set type
+#'
 #' @rdname vrFeatureData
-#' @order 5
+#' @order 3
 #' @export
-"vrFeatureData<-.vrAssay" <- function(object, value) {
+setMethod("vrFeatureData", "vrAssayV2", vrFeatureDatavrAssayV2)
+
+vrFeatureDataRreplacevrAssay <- function(object, value) {
   object@featuredata <- value
   return(object)
 }
@@ -768,12 +770,19 @@ vrFeatureData.vrAssayV2 <- function(object, feat_type = NULL){
 #' @rdname vrFeatureData
 #' @order 5
 #' @export
-"vrFeatureData<-.vrAssayV2" <- function(object, feat_type = NULL, value) {
+setMethod("vrFeatureData<-", "vrAssay", vrFeatureDataRreplacevrAssay)
+
+vrFeatureDataReplacevrAssayV2 <- function(object, feat_type = NULL, value) {
   if(is.null(feat_type))
     feat_type <- vrMainFeatureType(object)
   object@featuredata[[feat_type]] <- value
   return(object)
 }
+
+#' @rdname vrFeatureData
+#' @order 5
+#' @export
+setMethod("vrFeatureData<-", "vrAssayV2", vrFeatureDataReplacevrAssayV2)
 
 #' @rdname vrAssayNames
 #' @order 4

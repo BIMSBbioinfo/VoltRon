@@ -1,4 +1,4 @@
-#' @include generics.R
+#' @include allgenerics.R
 #'
 NULL
 

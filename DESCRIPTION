@@ -17,11 +17,11 @@ Imports: methods, grDevices, data.table, Matrix, S4Arrays, ids, RcppAnnoy,
 LinkingTo: Rcpp, RcppArmadillo (>= 0.4)
 Collate: 
     'RcppExports.R'
-    'annotation.R'
     'zzz.R'
+    'allgenerics.R'
+    'annotation.R'
     'assay.R'
     'auxiliary.R'
-    'generics.R'
     'clustering.R'
     'conversion.R'
     'deconvolution.R'

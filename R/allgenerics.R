@@ -15,9 +15,7 @@ NULL
 #' @rdname vrFeatures
 #' @export vrFeatures
 #' @order 1
-vrFeatures <- function(object, assay = NULL) {
-  UseMethod(generic = 'vrFeatures', object = object)
-}
+setGeneric("vrFeatures", function(object, ...) standardGeneric("vrFeatures"))
 
 #' Feature Data
 #'
@@ -28,16 +26,12 @@ vrFeatures <- function(object, assay = NULL) {
 #' @rdname vrFeatureData
 #' @export vrFeatureData
 #' @order 1
-vrFeatureData <- function(object, assay = NULL, feat_type = NULL) {
-  UseMethod(generic = 'vrFeatureData', object = object)
-}
+setGeneric("vrFeatureData", function(object, ...) standardGeneric("vrFeatureData"))
 
 #' @rdname vrFeatureData
 #' @export vrFeatureData<-
 #' @noRd
-"vrFeatureData<-" <- function(object, assay = NULL, value) {
-  UseMethod(generic = 'vrFeatureData<-', object = object)
-}
+setGeneric("vrFeatureData<-", function(object, ...) standardGeneric("vrFeatureData<-"))
 
 #' getFeatures
 #'

@@ -1,5 +1,5 @@
 #' @include zzz.R
-#' @include generics.R
+#' @include allgenerics.R
 #' @useDynLib VoltRon
 NULL
 
@@ -1127,13 +1127,7 @@ vrSpatialPoints.VoltRon <- function(object, assay = NULL) {
   return(vrSpatialPoints(object@metadata, assay = assay))
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#'
-#' @rdname vrFeatures
-#' @order 2
-#' @export
-vrFeatures.VoltRon <- function(object, assay = NULL) {
+vrFeaturesVoltRon <- function(object, assay = NULL) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1149,10 +1143,12 @@ vrFeatures.VoltRon <- function(object, assay = NULL) {
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #'
-#' @rdname vrFeatureData
+#' @rdname vrFeatures
 #' @order 2
 #' @export
-vrFeatureData.VoltRon <- function(object, assay = NULL, feat_type = NULL) {
+setMethod("vrFeatures", "VoltRon", vrFeaturesVoltRon)
+
+vrFeatureDataVoltRon <- function(object, assay = NULL, feat_type = NULL) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1164,12 +1160,15 @@ vrFeatureData.VoltRon <- function(object, assay = NULL, feat_type = NULL) {
   return(features)
 }
 
-#' @param value new feature metadata
-#' 
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#'
 #' @rdname vrFeatureData
-#' @order 4
+#' @order 2
 #' @export
-"vrFeatureData<-.VoltRon" <- function(object, assay = NULL, value) {
+setMethod("vrFeatureData", "VoltRon", vrFeatureDataVoltRon)
+
+vrFeatureDataReplaceVoltRon <- function(object, assay = NULL, value) {
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1180,6 +1179,13 @@ vrFeatureData.VoltRon <- function(object, assay = NULL, feat_type = NULL) {
 
   return(object)
 }
+
+#' @param value new feature metadata
+#' 
+#' @rdname vrFeatureData
+#' @order 4
+#' @export
+setMethod("vrFeatureData<-", "VoltRon", vrFeatureDataReplaceVoltRon)
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
