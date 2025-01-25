@@ -2,15 +2,15 @@
 % Please edit documentation in R/generics.R, R/objects.R
 \name{Metadata}
 \alias{Metadata}
-\alias{Metadata.VoltRon}
-\alias{Metadata<-.VoltRon}
+\alias{Metadata,VoltRon-method}
+\alias{Metadata<-,VoltRon-method}
 \title{Metadata}
 \usage{
-Metadata(object, assay = NULL, type = NULL)
+Metadata(object, ...)
 
-\method{Metadata}{VoltRon}(object, assay = NULL, type = NULL)
+\S4method{Metadata}{VoltRon}(object, assay = NULL, type = NULL)
 
-\method{Metadata}{VoltRon}(object, assay = NULL, type = NULL) <- value
+\S4method{Metadata}{VoltRon}(object, assay = NULL, type = NULL) <- value
 }
 \arguments{
 \item{object}{a VoltRon object}

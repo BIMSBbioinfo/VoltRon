@@ -206,17 +206,13 @@ vrSampleNames <- function(object) {
 #'
 #' @rdname Metadata
 #' @export Metadata
-Metadata <- function(object, assay = NULL, type = NULL) {
-  UseMethod(generic = 'Metadata', object = object)
-}
+setGeneric("Metadata", function(object, ...) standardGeneric("Metadata"))
 
 #' @param value new metadata
-#' 
+#'
 #' @rdname Metadata
 #' @noRd
-"Metadata<-" <- function(object, assay = NULL, type = NULL, value) {
-  UseMethod(generic = 'Metadata<-', object = object)
-}
+setGeneric("Metadata<-", function(object, ..., value) standardGeneric("Metadata<-"))
 
 ####
 # Processing ####

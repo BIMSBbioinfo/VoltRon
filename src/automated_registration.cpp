@@ -28,7 +28,7 @@ std::string check_degenerate(std::vector<cv::KeyPoint> keypoints1, std::vector<c
   std::string message;
   if(keypoints1_sd < 1.0 | keypoints2_sd < 1.0){
     message = "degenarate";
-    // cout << "WARNING: points may be in a degenerate configuration." << endl;
+    Rcout << "WARNING: points may be in a degenerate configuration." << endl;
   } else {
     message = "not degenarate";
   }
@@ -73,7 +73,7 @@ std::string check_transformation_by_point_distribution(Mat &im, Mat &h){
   std::string message;
   if(gridpoints_reg_sd < 1.0 | gridpoints_reg_sd > max(height, width)){
     message = "large distribution";
-    // cout << "WARNING: Transformation may be poor - transformed points grid seem to be concentrated!" << endl;
+    Rcout << "WARNING: Transformation may be poor - transformed points grid seem to be concentrated!" << endl;
   } else {
     message = "small distribution";
   }
@@ -163,13 +163,13 @@ void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   Ptr<Feature2D> orb = ORB::create(MAX_FEATURES);
   orb->detectAndCompute(im1Gray, Mat(), keypoints1, descriptors1);
   orb->detectAndCompute(im2Gray, Mat(), keypoints2, descriptors2);
-  // cout << "DONE: orb based key-points detection and descriptors computation" << endl;
+  Rcout << "DONE: orb based key-points detection and descriptors computation" << endl;
 
   // Match features.
   std::vector<DMatch> matches;
   Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
   matcher->match(descriptors1, descriptors2, matches, Mat());
-  // cout << "DONE: BruteForce-Hamming - descriptor matching" << endl;
+  Rcout << "DONE: BruteForce-Hamming - descriptor matching" << endl;
 
   // Sort matches by score
   std::sort(matches.begin(), matches.end());
@@ -177,7 +177,7 @@ void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   // Remove not so good matches
   const int numGoodMatches = matches.size() * GOOD_MATCH_PERCENT;
   matches.erase(matches.begin()+numGoodMatches, matches.end());
-  // cout << "DONE: get good matches by distance thresholding" << endl;
+  Rcout << "DONE: get good matches by distance thresholding" << endl;
 
   // Extract location of good matches
   std::vector<Point2f> points1, points2;
@@ -189,7 +189,7 @@ void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
 
   // Find homography
   h = findHomography(points1, points2, RANSAC);
-  // cout << "DONE: calculated homography matrix" << endl;
+  Rcout << "DONE: calculated homography matrix" << endl;
 
   // Extract location of good matches in terms of keypoints
   std::vector<KeyPoint> keypoints1_best, keypoints2_best;
@@ -239,20 +239,20 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   Ptr<Feature2D> sift = cv::SIFT::create();
   sift->detectAndCompute(im1Proc, Mat(), keypoints1, descriptors1);
   sift->detectAndCompute(im2Proc, Mat(), keypoints2, descriptors2);
-  // cout << "DONE: sift based key-points detection and descriptors computation" << endl;
+  Rcout << "DONE: sift based key-points detection and descriptors computation" << endl;
 
   // Match features using FLANN matching
   std::vector<std::vector<DMatch>> matches;
   cv::FlannBasedMatcher custom_matcher = cv::FlannBasedMatcher(cv::makePtr<cv::flann::KDTreeIndexParams>(5), cv::makePtr<cv::flann::SearchParams>(50, 0, TRUE));
   cv::Ptr<cv::FlannBasedMatcher> matcher = custom_matcher.create();
   matcher->knnMatch(descriptors1, descriptors2, matches, 2);
-  // cout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
+  Rcout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
 
   // Find good matches
   // goodMatches = get_good_matches(matches)
   std::vector<DMatch> good_matches;
   getGoodMatches(matches, good_matches);
-  // cout << "DONE: get good matches by distance thresholding" << endl;
+  Rcout << "DONE: get good matches by distance thresholding" << endl;
 
   // Extract location of good matches
   std::vector<Point2f> points1, points2;
@@ -265,7 +265,7 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   // Find homography
   cv::Mat mask;
   h = findHomography(points1, points2, RANSAC, 5, mask);
-  // cout << "DONE: calculated homography matrix" << endl;
+  Rcpp::Rcout << "DONE: calculated homography matrix" << endl;
 
   // Draw top matches and good ones only
   std::vector<cv::DMatch> top_matches;
@@ -301,7 +301,7 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   warpPerspective(im1Proc, im1Warp, h, im2Proc.size());
   warpPerspective(im1NormalProc, im1NormalWarp, h, im2Proc.size());
   im1Reg = reversepreprocessImage(im1NormalWarp, flipflop_ref, rotate_ref);
-  // cout << "DONE: warped query image" << endl;
+  Rcout << "DONE: warped query image" << endl;
 
   // change color map
   Mat im1Combine;
@@ -342,19 +342,19 @@ void alignImagesFLANNTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   Ptr<Feature2D> sift = cv::SIFT::create();
   sift->detectAndCompute(im1Proc, Mat(), keypoints1, descriptors1);
   sift->detectAndCompute(im2Proc, Mat(), keypoints2, descriptors2);
-  // cout << "DONE: sift based key-points detection and descriptors computation" << endl;
+  Rcout << "DONE: sift based key-points detection and descriptors computation" << endl;
   
   // Match features using FLANN matching
   std::vector<std::vector<DMatch>> matches;
   cv::FlannBasedMatcher custom_matcher = cv::FlannBasedMatcher(cv::makePtr<cv::flann::KDTreeIndexParams>(5), cv::makePtr<cv::flann::SearchParams>(50, 0, TRUE));
   cv::Ptr<cv::FlannBasedMatcher> matcher = custom_matcher.create();
   matcher->knnMatch(descriptors1, descriptors2, matches, 2);
-  // cout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
+  Rcout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
   
   // Find good matches
   std::vector<DMatch> good_matches;
   getGoodMatches(matches, good_matches);
-  // cout << "DONE: get good matches by distance thresholding" << endl;
+  Rcout << "DONE: get good matches by distance thresholding" << endl;
   
   // Extract location of good matches
   std::vector<Point2f> points1, points2;
@@ -367,13 +367,13 @@ void alignImagesFLANNTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   // Find homography
   cv::Mat mask;
   h = findHomography(points1, points2, RANSAC, 5, mask);
-  // cout << "DONE: calculated homography matrix" << endl;
+  Rcout << "DONE: calculated homography matrix" << endl;
 
   // Use homography to warp image
   Mat im1Warp, im1NormalWarp;
   warpPerspective(im1Proc, im1Warp, h, im2Proc.size());
   warpPerspective(im1NormalProc, im1NormalWarp, h, im2Proc.size());
-  // cout << "DONE: warped query image" << endl;
+  Rcout << "DONE: warped query image" << endl;
   
   // Draw top matches and good ones only
   std::vector<cv::DMatch> top_matches;

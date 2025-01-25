@@ -21,7 +21,6 @@ NULL
 #' @name VoltRon-class
 #' @rdname VoltRon-class
 #' @exportClass VoltRon
-#'
 VoltRon <- setClass(
   Class = 'VoltRon',
   slots = c(
@@ -190,7 +189,6 @@ NULL
 #'
 #' @importFrom utils .DollarNames
 #' @method .DollarNames VoltRon
-#'
 ".DollarNames.VoltRon" <- function(x, pattern = '') {
   meta.data <- as.list(x = Metadata(x))
   return(.DollarNames(x = meta.data, pattern = pattern))
@@ -1458,16 +1456,8 @@ vrFeatureTypeNames.VoltRon <- function(object, assay = NULL){
 }
 
 #### Metadata ####
-
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param type the assay type: ROI, spot or cell, or all for the entire metadata object
-#' 
-#' @rdname Metadata
-#'
-#' @importFrom methods slotNames
-#' @export
-Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
+  
+MetadataVoltRon <- function(object, assay = NULL, type = NULL){
 
   # check type
   if(!is.null(type)){
@@ -1521,13 +1511,17 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
   }
 }
 
-#' @param value new metadata
-#'
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param type the assay type: ROI, spot or cell, or all for the entire metadata object
+#' 
 #' @rdname Metadata
-#' @method Metadata<- VoltRon
 #'
+#' @importFrom methods slotNames
 #' @export
-"Metadata<-.VoltRon" <- function(object, assay = NULL, type = NULL, value) {
+setMethod("Metadata", "VoltRon", MetadataVoltRon)
+          
+MetadataReplaceVoltRon <- function(object, assay = NULL, type = NULL, value) {
 
   if(!is.data.frame(value) && !inherits(value, c("HDF5DataFrame", "ZarrDataFrame", "DataFrame")))
     stop("The new or updated metadata has to be a data frame")
@@ -1635,6 +1629,14 @@ Metadata.VoltRon <- function(object, assay = NULL, type = NULL) {
   return(object)
 }
 
+#' @param value new metadata
+#'
+#' @rdname Metadata
+#' @method Metadata<- VoltRon
+#'
+#' @export
+setMethod("Metadata<-", "VoltRon", MetadataReplaceVoltRon)
+
 #' SampleMetadata
 #'
 #' Get the sample metadata of a VoltRon object
@@ -1657,7 +1659,6 @@ SampleMetadata <- function(object) {
 #' @rdname vrCoordinates
 #' @order 2
 #' @export
-#'
 vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL, reg = FALSE) {
 
   # get assay names
@@ -1722,7 +1723,6 @@ vrCoordinates.VoltRon <- function(object, assay = NULL, image_name = NULL, spati
     image_name <- spatial_name
   
   # change coordinates
-  # vrCoordinates(vrassay, image_name = image_name, reg = reg) <- value
   vrCoordinates(vrassay, spatial_name = image_name, reg = reg) <- value
   vrlayer[[cur_assay$Assay]] <- vrassay
   object[[cur_assay$Sample, cur_assay$Layer]] <- vrlayer
