@@ -185,67 +185,54 @@ formImage <- function(coords, segments = list(), image = NULL, main_channel = NU
 
 ### Subset vrImage objects ####
 
-#' Subsetting vrImage objects
-#'
-#' Given a vrImage object, subset the object given one of the attributes.
-#'
-#' @param object A vrImage object
-#' @param subset Logical statement for subsetting
-#' @param spatialpoints the set of spatial points to subset the object
-#' @param image the subseting string passed to \link{image_crop}
-#'
-#' @method subset vrImage
-#' @order 5
-#'
-#' @importFrom rlang enquo
-#' @importFrom magick image_crop
-#'
-#' @export
-#'
-subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
-
+subsetvrImage <- function(x, subset, spatialpoints = NULL, image = NULL) {
+  
+  # start
+  object <- x
+  
   if (!missing(x = subset)) {
     subset <- rlang::enquo(arg = subset)
   }
-
+  
   # coords and segments
   coords <- vrCoordinates(object)
   segments <- vrSegments(object)
-
+  
   if(!is.null(spatialpoints)){
-
+    
     # check if spatial points are here
     spatialpoints <- intersect(spatialpoints, rownames(coords))
     if(length(spatialpoints) == 0){
       return(NULL)
     }
-
+    
     # coordinates
     vrCoordinates(object) <- coords[spatialpoints,, drop = FALSE]
-
+    
     # segments
     if(length(segments) > 0)
       vrSegments(object) <- segments[spatialpoints]
-
+    
   } else if(!is.null(image)) {
-
+    
     # get one image
     vrimage <- vrImages(object)
-
+    
     # coordinates
     cropped_coords <- subsetCoordinates(coords, vrimage, image)
     vrCoordinates(object) <- cropped_coords
-
+    
     # segments
     cropped_segments <- segments[rownames(cropped_coords)]
     if(length(segments) > 0){
       segments[rownames(cropped_coords)] <- subsetSegments(cropped_segments, vrimage, image)
       vrSegments(object) <- segments
     }
-
+    
     # spatial points
-    object <- subset.vrImage(object, spatialpoints = rownames(cropped_coords))
-
+    # object <- subset.vrImage(object, spatialpoints = rownames(cropped_coords))
+    object <- subsetvrImage(object, spatialpoints = rownames(cropped_coords))
+    
     # image
     for(img in vrImageChannelNames(object)){
       
@@ -262,16 +249,34 @@ subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
       }
     }
   }
-
+  
   # set VoltRon class
   return(object)
 }
+
+#' Subsetting vrImage objects
+#'
+#' Given a vrImage object, subset the object given one of the attributes.
+#'
+#' @param x A vrImage object
+#' @param subset Logical statement for subsetting
+#' @param spatialpoints the set of spatial points to subset the object
+#' @param image the subseting string passed to \link{image_crop}
+#'
+#' @method subset vrImage
+#' @order 5
+#'
+#' @importFrom rlang enquo
+#' @importFrom magick image_crop
+#'
+#' @export
+setMethod("subset", "vrImage", subsetvrImage)
 
 #' Subsetting vrSpatial objects
 #'
 #' Given a vrSpatial object, subset the object given one of the attributes.
 #'
-#' @param object A vrSpatial object
+#' @param x A vrSpatial object
 #' @param subset Logical statement for subsetting
 #' @param spatialpoints the set of spatial points to subset the object
 #' @param image the subseting string passed to \link{image_crop}
@@ -284,9 +289,7 @@ subset.vrImage <- function(object, subset, spatialpoints = NULL, image = NULL) {
 #'
 #' @export
 #'
-subset.vrSpatial <- function(object, subset, spatialpoints = NULL, image = NULL){
-  subset.vrImage(object, subset = subset, spatialpoints = spatialpoints, image = image)
-}
+setMethod("subset", "vrSpatial", subsetvrImage)
 
 ####
 # Methods ####

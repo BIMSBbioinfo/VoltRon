@@ -2,11 +2,14 @@
 % Please edit documentation in R/allgenerics.R, R/objects.R
 \name{vrMainAssay}
 \alias{vrMainAssay}
+\alias{vrMainAssay<-}
 \alias{vrMainAssay,VoltRon-method}
 \alias{vrMainAssay<-,VoltRon-method}
 \title{Main Assay}
 \usage{
 vrMainAssay(object, ...)
+
+vrMainAssay(object, ...) <- value
 
 \S4method{vrMainAssay}{VoltRon}(object)
 
@@ -16,6 +19,8 @@ vrMainAssay(object, ...)
 \item{object}{a VoltRon object}
 
 \item{...}{arguments passed to other methods.}
+
+\item{value}{new assay name}
 }
 \description{
 Get and set the main assay of a VoltRon object

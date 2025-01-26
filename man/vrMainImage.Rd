@@ -8,6 +8,7 @@
 \alias{vrMainImage<-,VoltRon-method}
 \alias{vrMainImage<-,vrAssay-method}
 \alias{vrMainImage<-,vrAssayV2-method}
+\alias{vrMainImage<-}
 \title{vrMainImage}
 \usage{
 vrMainImage(object, ...)
@@ -23,6 +24,8 @@ vrMainImage(object, ...)
 \S4method{vrMainImage}{vrAssay}(object, ignore = FALSE) <- value
 
 \S4method{vrMainImage}{vrAssayV2}(object, ignore = FALSE) <- value
+
+vrMainImage(object, ...) <- value
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object.}
@@ -32,10 +35,12 @@ vrMainImage(object, ...)
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays.}
 
-\item{value}{the name of main image}
+\item{value}{the name of main spatial coordinate system.}
 
 \item{ignore}{if TRUE, the non-existing spatial coordinate system will be ignored.}
 }
 \description{
 Get the main image
+
+Set the main image
 }

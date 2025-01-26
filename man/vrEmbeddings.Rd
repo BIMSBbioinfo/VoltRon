@@ -8,6 +8,7 @@
 \alias{vrEmbeddings<-,vrAssay-method}
 \alias{vrEmbeddings<-,vrAssayV2-method}
 \alias{vrEmbeddings<-,VoltRon-method}
+\alias{vrEmbeddings<-}
 \title{vrEmbeddings}
 \usage{
 vrEmbeddings(object, ...)
@@ -23,6 +24,8 @@ vrEmbeddings(object, ...)
 \S4method{vrEmbeddings}{vrAssayV2}(object, type = "pca") <- value
 
 \S4method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", overwrite = FALSE) <- value
+
+vrEmbeddings(object, ...) <- value
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object.}

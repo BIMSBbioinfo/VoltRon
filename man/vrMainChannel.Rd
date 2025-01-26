@@ -10,6 +10,7 @@
 \alias{vrMainChannel<-,vrAssayV2-method}
 \alias{vrMainChannel<-,vrImage-method}
 \alias{vrMainChannel<-,vrSpatial-method}
+\alias{vrMainChannel<-}
 \title{vrMainChannel}
 \usage{
 vrMainChannel(object, ...)
@@ -29,6 +30,8 @@ vrMainChannel(object, ...)
 \S4method{vrMainChannel}{vrImage}(object) <- value
 
 \S4method{vrMainChannel}{vrSpatial}(object) <- value
+
+vrMainChannel(object, ...) <- value
 }
 \arguments{
 \item{object}{a vrAssay or vrSpatial object}
@@ -37,7 +40,7 @@ vrMainChannel(object, ...)
 
 \item{name}{the name of the image}
 
-\item{value}{the name of main channel}
+\item{value}{the name of main channel of the spatial system}
 }
 \description{
 Get and set the main channel name of the spatial system.

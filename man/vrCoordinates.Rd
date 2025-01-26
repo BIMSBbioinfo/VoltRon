@@ -13,6 +13,7 @@
 \alias{vrCoordinates<-,vrAssayV2-method}
 \alias{vrCoordinates<-,vrImage-method}
 \alias{vrCoordinates<-,vrSpatial-method}
+\alias{vrCoordinates<-}
 \title{vrCoordinates}
 \usage{
 vrCoordinates(object, ...)
@@ -42,6 +43,8 @@ vrCoordinates(object, ...)
 \S4method{vrCoordinates}{vrImage}(object) <- value
 
 \S4method{vrCoordinates}{vrSpatial}(object) <- value
+
+vrCoordinates(object, ...) <- value
 }
 \arguments{
 \item{object}{a VoltRon, vrAssay or vrSpatial object.}
@@ -57,7 +60,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{reg}{TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested}
 
-\item{value}{new coordinates of spatial points}
+\item{value}{coordinates}
 }
 \description{
 Given a VoltRon, vrAssay or vrSpatial object, get and set the coordinates of assays and coordinate systems

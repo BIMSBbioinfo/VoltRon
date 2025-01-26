@@ -16,6 +16,7 @@
 \alias{vrSpatialPoints<-,vrAssayV2-method}
 \alias{vrSpatialPoints<-,vrImage-method}
 \alias{vrSpatialPoints<-,vrSpatial-method}
+\alias{vrSpatialPoints<-}
 \title{vrSpatialPoints}
 \usage{
 vrSpatialPoints(object, ...)
@@ -45,6 +46,8 @@ vrSpatialPoints(object, ...)
 \S4method{vrSpatialPoints}{vrImage}(object) <- value
 
 \S4method{vrSpatialPoints}{vrSpatial}(object) <- value
+
+vrSpatialPoints(object, ...) <- value
 }
 \arguments{
 \item{object}{a VoltRon, vrSample, vrLayer, vrAssay or vrSpatial object.}
@@ -54,7 +57,7 @@ vrSpatialPoints(object, ...)
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{value}{new spatial points}
+\item{value}{names for spatial points}
 }
 \description{
 Get and set spatial entities.

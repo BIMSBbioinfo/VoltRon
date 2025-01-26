@@ -13,6 +13,7 @@
 \alias{vrSegments<-,vrAssayV2-method}
 \alias{vrSegments<-,vrImage-method}
 \alias{vrSegments<-,vrSpatial-method}
+\alias{vrSegments<-}
 \title{vrSegments}
 \usage{
 vrSegments(object, ...)
@@ -42,6 +43,8 @@ vrSegments(object, ...)
 \S4method{vrSegments}{vrImage}(object) <- value
 
 \S4method{vrSegments}{vrSpatial}(object) <- value
+
+vrSegments(object, ...) <- value
 }
 \arguments{
 \item{object}{a VoltRon, vrAssay or vrSpatial object.}
@@ -57,7 +60,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{reg}{TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested}
 
-\item{value}{new segment coordinates of spatial points}
+\item{value}{segments}
 }
 \description{
 Given a VoltRon, vrAssay or vrSpatial object, get and set the segment coordinates of assays and coordinate systems

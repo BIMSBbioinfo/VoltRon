@@ -32,7 +32,6 @@ setGeneric("vrFeatureData", function(object, ...) standardGeneric("vrFeatureData
 
 #' @rdname vrFeatureData
 #' @export vrFeatureData<-
-#' @noRd
 setGeneric("vrFeatureData<-", function(object, ..., value) standardGeneric("vrFeatureData<-"))
 
 #' getFeatures
@@ -113,7 +112,6 @@ setGeneric("vrMainAssay", function(object, ...) standardGeneric("vrMainAssay"))
 #' 
 #' @rdname vrMainAssay
 #' @export vrMainAssay<-
-#' @noRd
 setGeneric("vrMainAssay<-", function(object, ..., value) standardGeneric("vrMainAssay<-"))
 
 #' Update Assay
@@ -200,7 +198,6 @@ setGeneric("Metadata", function(object, ...) standardGeneric("Metadata"))
 #' @param value new metadata
 #'
 #' @rdname Metadata
-#' @noRd
 setGeneric("Metadata<-", function(object, ..., value) standardGeneric("Metadata<-"))
 
 ####
@@ -250,7 +247,6 @@ setGeneric("vrEmbeddings", function(object, ...) standardGeneric("vrEmbeddings")
 #'
 #' @rdname vrEmbeddings
 #' @export vrEmbeddings<-
-#' @noRd
 setGeneric("vrEmbeddings<-", function(object, ..., value) standardGeneric("vrEmbeddings<-"))
 
 ####
@@ -328,8 +324,6 @@ setGeneric("vrSpatialPoints", function(object, ...) standardGeneric("vrSpatialPo
 #'
 #' @rdname vrSpatialPoints
 #' @export vrSpatialPoints<-
-#' @noRd
-#'
 setGeneric("vrSpatialPoints<-", function(object, ..., value) standardGeneric("vrSpatialPoints<-"))
 
 #' vrCoordinates
@@ -348,7 +342,6 @@ setGeneric("vrCoordinates", function(object, ...) standardGeneric("vrCoordinates
 #' 
 #' @rdname vrCoordinates
 #' @export vrCoordinates<-
-#' @noRd
 setGeneric("vrCoordinates<-", function(object, ..., value) standardGeneric("vrCoordinates<-"))
 
 #' vrSegments
@@ -367,7 +360,6 @@ setGeneric("vrSegments", function(object, ...) standardGeneric("vrSegments"))
 #' 
 #' @rdname vrSegments
 #' @export vrSegments<-
-#' @noRd
 setGeneric("vrSegments<-", function(object, ..., value) standardGeneric("vrSegments<-"))
 
 #' flipCoordinates
@@ -402,7 +394,6 @@ setGeneric("vrImages", function(object, ...) standardGeneric("vrImages"))
 #' 
 #' @rdname vrImages
 #' @export vrImages<-
-#' @noRd
 setGeneric("vrImages<-", function(object, ..., value) standardGeneric("vrImages<-"))
 
 #' vrImageNames
@@ -471,7 +462,6 @@ setGeneric("vrMainSpatial", function(object, ...) standardGeneric("vrMainSpatial
 #'
 #' @rdname vrMainImage
 #' @export vrMainImage<-
-#' @noRd
 setGeneric("vrMainImage<-", function(object, ..., value) standardGeneric("vrMainImage<-"))
 
 #' vrMainSpatial
@@ -482,7 +472,6 @@ setGeneric("vrMainImage<-", function(object, ..., value) standardGeneric("vrMain
 #'
 #' @rdname vrMainSpatial
 #' @export vrMainSpatial<-
-#' @noRd
 setGeneric("vrMainSpatial<-", function(object, ..., value) standardGeneric("vrMainSpatial<-"))
 
 #' vrMainChannel
@@ -501,7 +490,6 @@ setGeneric("vrMainChannel", function(object, ...) standardGeneric("vrMainChannel
 #'
 #' @rdname vrMainChannel
 #' @export vrMainChannel<-
-#' @noRd
 setGeneric("vrMainChannel<-", function(object, ..., value) standardGeneric("vrMainChannel<-"))
 
 #' resizeImage

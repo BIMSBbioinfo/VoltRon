@@ -503,7 +503,6 @@ updateAssayVoltRon <- function(object, assay = NULL) {
 #' @rdname updateAssay
 #' @method updateAssay VoltRon
 #' @export
-#' @noRd
 setMethod("updateAssay", "VoltRon", updateAssayVoltRon)
 
 #' Main Assay
@@ -584,7 +583,6 @@ addAssayVoltRon <- function(object, assay, metadata = NULL, assay_name, sample =
 #' @importFrom igraph make_empty_graph add_edges vertices
 #'
 #' @export
-#' @noRd
 setMethod("addAssay", "VoltRon", addAssayVoltRon)
 
 vrAssayNamesVoltRon <- function(object, assay = NULL){
@@ -879,56 +877,12 @@ getBlockConnectivity <- function(object, assay){
 
 ### Object Methods ####
 
-#' Subsetting VoltRon objects
-#'
-#' Given a VoltRon object, subset the object given one of the attributes
-#'
-#' @param object a vrAssay object
-#' @param subset Logical statement for subsetting
-#' @param samples the set of samples to subset the object
-#' @param assays the set of assays to subset the object
-#' @param spatialpoints the set of spatial points to subset the object
-#' @param features the set of features to subset the object
-#' @param image the subseting string passed to \link{image_crop}
-#' @param interactive TRUE if interactive subsetting on the image is demanded
-#' @param use.points.only if \code{interactive} is \code{TRUE}, use spatial points instead of the reference image
-#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
-#' 
-#' @rdname subset
-#' @aliases subset
-#' @method subset VoltRon
-#'
-#' @importFrom rlang enquo eval_tidy quo_get_expr quo_text
-#' @importFrom stringr str_extract
-#' @importFrom methods new
-#'
-#' @export
-#'
-#' @examples
-#' # example data
-#' data("visium_data")
-#' 
-#' # subset based on assay
-#' subset(visium_data, assays = "Assay1")
-#' subset(visium_data, assays = "Visium")
-#' 
-#' # subset based on samples
-#' subset(visium_data, samples = "Anterior1")
-#' 
-#' # subset based on assay
-#' subset(visium_data, spatialpoints = c("GTTATATTATCTCCCT-1_Assay1", "GTTTGGGTTTCGCCCG-1_Assay1"))
-#' 
-#' # subset based on features
-#' subset(visium_data, features = c("Map3k19", "Rab3gap1"))
-#' 
-#' # interactive subsetting
-#' \dontrun{
-#' visium_subset_data <- subset(visium_data, interactive = TRUE)
-#' visium_subset <- visium_subset_data$subsets[[1]]
-#' }
-subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatialpoints = NULL, features = NULL, image = NULL, interactive = FALSE, use.points.only = FALSE, 
+subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoints = NULL, features = NULL, image = NULL, interactive = FALSE, use.points.only = FALSE, 
                            shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive()))) {
 
+  # start
+  object <- x
+  
   # subseting based on subset argument
   if (!missing(x = subset)) {
     # subset_data <- subset
@@ -973,7 +927,8 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
     # check assays associated with samples and subset for assays
     if(all(samples %in% sample.metadata$Sample)){
       assays <- rownames(sample.metadata)[sample.metadata$Sample %in% samples]
-      return(subset.VoltRon(object, assays = assays))
+      # return(subset.VoltRon(object, assays = assays))
+      return(subsetVoltRon(object, assays = assays))
     } else {
       stop("Some requested samples are not found in this VoltRon object!")
     }
@@ -982,23 +937,27 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
 
     # subset for assays
     sample.metadata <- subset_sampleMetadata(sample.metadata, assays = assays)
-    metadata <- subset.vrMetadata(Metadata(object, type = "all"), assays = assays)
+    # metadata <- subset.vrMetadata(Metadata(object, type = "all"), assays = assays)
+    metadata <- subsetvrMetadata(Metadata(object, type = "all"), assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
-      subset.vrSample(samp, assays = assays)
+      # subset.vrSample(samp, assays = assays)
+      subsetvrSample(samp, assays = assays)
     }, USE.NAMES = TRUE)
 
   } else if(!is.null(spatialpoints)) {
 
     # subsetting on entity names
-    metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
+    # metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
+    metadata <- subsetvrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
     samples <- vrSampleNames(metadata)
     listofSamples <- sapply(object@samples[samples], function(samp) {
-      subset.vrSample(samp, spatialpoints = spatialpoints)
+      subsetvrSample(samp, spatialpoints = spatialpoints)
     }, USE.NAMES = TRUE)
     # spatialpoints <-  do.call("c", lapply(listofSamples, vrSpatialPoints.vrSample))
     spatialpoints <-  do.call("c", lapply(listofSamples, vrSpatialPoints))
-    metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
+    # metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
+    metadata <- subsetvrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
     sample.metadata <- subset_sampleMetadata(sample.metadata, assays = vrAssayNamesvrMetadata(metadata))
 
   } else if(!is.null(features)){
@@ -1007,9 +966,11 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
     assay_names <- vrAssayNames(object)
     for(assy in assay_names){
       if(inherits(object[[assy]], "vrAssay")){
-        object[[assy]] <- subset.vrAssay(object[[assy]], features = features) 
+        # object[[assy]] <- subset.vrAssay(object[[assy]], features = features) 
+        object[[assy]] <- subsetvrAssay(object[[assy]], features = features) 
       } else {
-        object[[assy]] <- subset.vrAssayV2(object[[assy]], features = features)
+        # object[[assy]] <- subset.vrAssayV2(object[[assy]], features = features)
+        object[[assy]] <- subsetvrAssay(object[[assy]], features = features) 
       }
     } 
     metadata <- Metadata(object, type = "all")
@@ -1027,11 +988,12 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
       } else {
         samples <- unique(sample.metadata$Sample)
         listofSamples <- sapply(object@samples[samples], function(samp) {
-          subset.vrSample(samp, image = image)
+          subsetvrSample(samp, image = image)
         }, USE.NAMES = TRUE)
         # spatialpoints <-  do.call(c, lapply(listofSamples, vrSpatialPoints.vrSample))
         spatialpoints <-  do.call("c", lapply(listofSamples, vrSpatialPoints))
-        metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
+        # metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
+        metadata <- subsetvrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
       }
     } else {
       stop("Please provide a character based subsetting notation, see magick::image_crop documentation")
@@ -1059,24 +1021,61 @@ subset.VoltRon <- function(object, subset, samples = NULL, assays = NULL, spatia
                graph = graph_list, main.assay = main.assay, project = project)
 }
 
-#' Merging VoltRon objects
+#' Subsetting VoltRon objects
 #'
-#' Given a VoltRon object, and a list of VoltRon objects, merge all.
+#' Given a VoltRon object, subset the object given one of the attributes
 #'
-#' @param object a VoltRon Object
-#' @param object_list a list of VoltRon objects
-#' @param samples a single sample name or multiple sample names of the same size as the given VoltRon objects
-#' @param main.assay the name of the main assay
-#' @param verbose verbose
+#' @param x a vrAssay object
+#' @param subset Logical statement for subsetting
+#' @param samples the set of samples to subset the object
+#' @param assays the set of assays to subset the object
+#' @param spatialpoints the set of spatial points to subset the object
+#' @param features the set of features to subset the object
+#' @param image the subseting string passed to \link{image_crop}
+#' @param interactive TRUE if interactive subsetting on the image is demanded
+#' @param use.points.only if \code{interactive} is \code{TRUE}, use spatial points instead of the reference image
+#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
+#' 
+#' @rdname subset
+#' @aliases subset
+#' @method subset VoltRon
 #'
-#' @rdname merge
-#' @aliases merge
-#' @method merge VoltRon
+#' @importFrom rlang enquo eval_tidy quo_get_expr quo_text
+#' @importFrom stringr str_extract
 #' @importFrom methods new
 #'
 #' @export
-merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL, verbose = TRUE) {
+#'
+#' @examples
+#' # example data
+#' data("visium_data")
+#' 
+#' # subset based on assay
+#' subset(visium_data, assays = "Assay1")
+#' subset(visium_data, assays = "Visium")
+#' 
+#' # subset based on samples
+#' subset(visium_data, samples = "Anterior1")
+#' 
+#' # subset based on assay
+#' subset(visium_data, spatialpoints = c("GTTATATTATCTCCCT-1_Assay1", "GTTTGGGTTTCGCCCG-1_Assay1"))
+#' 
+#' # subset based on features
+#' subset(visium_data, features = c("Map3k19", "Rab3gap1"))
+#' 
+#' # interactive subsetting
+#' \dontrun{
+#' visium_subset_data <- subset(visium_data, interactive = TRUE)
+#' visium_subset <- visium_subset_data$subsets[[1]]
+#' }
+setMethod("subset", "VoltRon", subsetVoltRon)
 
+mergeVoltRon <- function(x, y, samples = NULL, main.assay = NULL, verbose = TRUE) {
+
+  # start 
+  object <- x 
+  object_list <- y
+  
   # combine all elements
   if(!is.list(object_list))
     object_list <- list(object_list)
@@ -1130,6 +1129,24 @@ merge.VoltRon <- function(object, object_list, samples = NULL, main.assay = NULL
   # return
   object
 }
+
+#' Merging VoltRon objects
+#'
+#' Given a VoltRon object, and a list of VoltRon objects, merge all.
+#'
+#' @param x a VoltRon Object
+#' @param y a single or a list of VoltRon objects
+#' @param samples a single sample name or multiple sample names of the same size as the given VoltRon objects
+#' @param main.assay the name of the main assay
+#' @param verbose verbose
+#'
+#' @rdname merge
+#' @aliases merge
+#' @method merge VoltRon
+#' @importFrom methods new
+#'
+#' @export
+setMethod("merge", signature = "VoltRon", mergeVoltRon)
 
 #' @rdname vrSpatialPoints
 #' @order 2

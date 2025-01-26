@@ -2,11 +2,14 @@
 % Please edit documentation in R/allgenerics.R, R/objects.R
 \name{Metadata}
 \alias{Metadata}
+\alias{Metadata<-}
 \alias{Metadata,VoltRon-method}
 \alias{Metadata<-,VoltRon-method}
 \title{Metadata}
 \usage{
 Metadata(object, ...)
+
+Metadata(object, ...) <- value
 
 \S4method{Metadata}{VoltRon}(object, assay = NULL, type = NULL)
 
@@ -17,12 +20,12 @@ Metadata(object, ...)
 
 \item{...}{arguments passed to other methods.}
 
+\item{value}{new metadata}
+
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{type}{the assay type: ROI, spot or cell, or all for the entire metadata object}
-
-\item{value}{new metadata}
 }
 \description{
 Get the metadata of a VoltRon object.

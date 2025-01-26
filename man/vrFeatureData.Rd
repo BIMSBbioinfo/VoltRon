@@ -8,6 +8,7 @@
 \alias{vrFeatureData<-,VoltRon-method}
 \alias{vrFeatureData<-,vrAssay-method}
 \alias{vrFeatureData<-,vrAssayV2-method}
+\alias{vrFeatureData<-}
 \title{Feature Data}
 \usage{
 vrFeatureData(object, ...)
@@ -23,6 +24,8 @@ vrFeatureData(object, ...)
 \S4method{vrFeatureData}{vrAssay}(object) <- value
 
 \S4method{vrFeatureData}{vrAssayV2}(object, feat_type = NULL) <- value
+
+vrFeatureData(object, ...) <- value
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object.}

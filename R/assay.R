@@ -136,7 +136,6 @@ updateAssayvrAssay <- function(object){
 #' @rdname updateAssay
 #' @method updateAssay vrAssay
 #' @importFrom methods new
-#' @noRd
 setMethod("updateAssay", "vrAssay", updateAssayvrAssay)
 
 updateAssayvrAssayV2 <- function(object){
@@ -147,7 +146,6 @@ updateAssayvrAssayV2 <- function(object){
 #' @param object a vrAssayV2 object to be converted to vrAssayV2
 #' @rdname updateAssay
 #' @method updateAssay vrAssayV2
-#' @noRd
 setMethod("updateAssay", "vrAssayV2", updateAssayvrAssayV2)
 
 ####
@@ -222,11 +220,99 @@ formAssay <- function(data = NULL,
 
 ### Subset vrAssay objects ####
 
+subsetvrAssay <- function(x, subset, spatialpoints = NULL, features = NULL, image = NULL) {
+  
+  # start 
+  object <- x
+  
+  if (!missing(x = subset)) {
+    subset <- rlang::enquo(arg = subset)
+  }
+  
+  # subseting on samples, layers and assays
+  if(!is.null(features)){
+    
+    # select features
+    nonmatching_features <- setdiff(features, vrFeatures(object))
+    features <- intersect(vrFeatures(object), features)
+    
+    if(length(features) > 0){
+      # object@rawdata <- object@rawdata[rownames(object@rawdata) %in% features,, drop = FALSE]
+      # object@normdata <- object@normdata[rownames(object@normdata) %in% features,, drop = FALSE]
+      object <- subsetData(object, features = features)
+      object <- subsetData(object, features = features)
+      
+    } else {
+      stop("none of the provided features are found in the assay")
+    }
+    
+    if(length(nonmatching_features))
+      message("the following features are not found in the assay: ", paste(nonmatching_features, collapse = ", "))
+    
+  } else {
+    
+    if(!is.null(spatialpoints)){
+      
+      # check if spatial points are here
+      spatialpoints <- intersect(spatialpoints, vrSpatialPoints(object))
+      if(length(spatialpoints) == 0){
+        return(NULL)
+      }
+      
+      # data
+      # object@rawdata  <- object@rawdata[,spatialpoints, drop = FALSE]
+      # object@normdata  <- object@normdata[,spatialpoints, drop = FALSE]
+      object <- subsetData(object, spatialpoints = spatialpoints)
+      object <- subsetData(object, spatialpoints = spatialpoints)
+      
+      # embeddings
+      for(embed in vrEmbeddingNames(object)){
+        embedding <- vrEmbeddings(object, type = embed)
+        vrEmbeddings(object, type = embed) <- embedding[spatialpoints[spatialpoints %in% rownames(embedding)],, drop = FALSE]
+      }
+      
+      # image
+      # for(img in vrImageNames(object))
+      for(img in vrSpatialNames(object))
+        object@image[[img]] <- subsetvrImage(object@image[[img]], spatialpoints = spatialpoints)
+        # object@image[[img]] <- subset.vrImage(object@image[[img]], spatialpoints = spatialpoints)
+      
+    } else if(!is.null(image)) {
+      
+      # images
+      img <- vrMainSpatial(object)
+      object@image <- object@image[img]
+      object@image[[img]] <- subsetvrImage(object@image[[img]], image = image)
+      # object@image[[img]] <- subset.vrImage(object@image[[img]], image = image)
+      spatialpoints <- rownames(vrCoordinates(object@image[[img]]))
+      
+      # data
+      # object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
+      # object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE]
+      object <- subsetData(object, spatialpoints = spatialpoints)
+      object <- subsetData(object, spatialpoints = spatialpoints)
+      
+      # embeddings
+      for(embed in vrEmbeddingNames(object)){
+        embedding <- vrEmbeddings(object, type = embed)
+        vrEmbeddings(object, type = embed) <- embedding[rownames(embedding) %in% spatialpoints,, drop = FALSE]
+      }
+    } else {
+      
+      # else return empty
+      return(NULL)
+    }
+  }
+  
+  # set VoltRon class
+  return(object)
+}
+
 #' Subsetting vrAssay objects
 #'
 #' Given a vrAssay object, subset the object given one of the attributes
 #'
-#' @param object a vrAssay object
+#' @param x a vrAssay object
 #' @param subset Logical statement for subsetting
 #' @param spatialpoints the set of spatial points to subset the object
 #' @param features the set of features to subset the object
@@ -238,94 +324,13 @@ formAssay <- function(data = NULL,
 #' @importFrom rlang enquo
 #'
 #' @export
-subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL, image = NULL) {
-
-  if (!missing(x = subset)) {
-    subset <- rlang::enquo(arg = subset)
-  }
-
-  # subseting on samples, layers and assays
-  if(!is.null(features)){
-
-    # select features
-    nonmatching_features <- setdiff(features, vrFeatures(object))
-    features <- intersect(vrFeatures(object), features)
-
-    if(length(features) > 0){
-      # object@rawdata <- object@rawdata[rownames(object@rawdata) %in% features,, drop = FALSE]
-      # object@normdata <- object@normdata[rownames(object@normdata) %in% features,, drop = FALSE]
-      object <- subsetData(object, features = features)
-      object <- subsetData(object, features = features)
-      
-    } else {
-      stop("none of the provided features are found in the assay")
-    }
-
-    if(length(nonmatching_features))
-      message("the following features are not found in the assay: ", paste(nonmatching_features, collapse = ", "))
-
-  } else {
-
-    if(!is.null(spatialpoints)){
-
-      # check if spatial points are here
-      spatialpoints <- intersect(spatialpoints, vrSpatialPoints(object))
-      if(length(spatialpoints) == 0){
-        return(NULL)
-      }
-
-      # data
-      # object@rawdata  <- object@rawdata[,spatialpoints, drop = FALSE]
-      # object@normdata  <- object@normdata[,spatialpoints, drop = FALSE]
-      object <- subsetData(object, spatialpoints = spatialpoints)
-      object <- subsetData(object, spatialpoints = spatialpoints)
-
-      # embeddings
-      for(embed in vrEmbeddingNames(object)){
-        embedding <- vrEmbeddings(object, type = embed)
-        vrEmbeddings(object, type = embed) <- embedding[spatialpoints[spatialpoints %in% rownames(embedding)],, drop = FALSE]
-      }
-
-      # image
-      # for(img in vrImageNames(object))
-      for(img in vrSpatialNames(object))
-        object@image[[img]] <- subset.vrImage(object@image[[img]], spatialpoints = spatialpoints)
-
-    } else if(!is.null(image)) {
-
-      # images
-      img <- vrMainSpatial(object)
-      object@image <- object@image[img]
-      object@image[[img]] <- subset.vrImage(object@image[[img]], image = image)
-      spatialpoints <- rownames(vrCoordinates(object@image[[img]]))
-
-      # data
-      # object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
-      # object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE]
-      object <- subsetData(object, spatialpoints = spatialpoints)
-      object <- subsetData(object, spatialpoints = spatialpoints)
-
-      # embeddings
-      for(embed in vrEmbeddingNames(object)){
-        embedding <- vrEmbeddings(object, type = embed)
-        vrEmbeddings(object, type = embed) <- embedding[rownames(embedding) %in% spatialpoints,, drop = FALSE]
-      }
-    } else {
-
-      # else return empty
-      return(NULL)
-    }
-  }
-
-  # set VoltRon class
-  return(object)
-}
+setMethod("subset", "vrAssay", subsetvrAssay)
 
 #' Subsetting vrAssayV2 objects
 #'
 #' Given a vrAssayV2 object, subset the object given one of the attributes
 #'
-#' @param object a vrAssayV2 object
+#' @param x a vrAssayV2 object
 #' @param subset Logical statement for subsetting
 #' @param spatialpoints the set of spatial points to subset the object
 #' @param features the set of features to subset the object
@@ -335,9 +340,7 @@ subset.vrAssay <- function(object, subset, spatialpoints = NULL, features = NULL
 #' @order 4
 #'
 #' @export
-subset.vrAssayV2 <- function(object, subset, spatialpoints = NULL, features = NULL, image = NULL){
-  subset.vrAssay(object = object, subset, spatialpoints = spatialpoints, features = features, image = image)
-}
+setMethod("subset", "vrAssayV2", subsetvrAssay)
 
 #' subsetCoordinates
 #'

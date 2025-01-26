@@ -182,29 +182,15 @@ vrSpatialPointsvrMetadata <- function(object, assay = NULL) {
 #' @export
 setMethod("vrSpatialPoints", "vrMetadata", vrSpatialPointsvrMetadata)
 
-#' Subsetting vrMetadata objects
-#'
-#' Given a vrMetadata object, subset the object given one of the attributes
-#'
-#' @param object a vrMetadata object
-#' @param subset the subset statement
-#' @param samples the set of samples to subset the object
-#' @param assays assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
-#' @param spatialpoints the set of spatial points to subset the object
-#'
-#' @method subset vrMetadata
-#' @order 3
-#'
-#' @importFrom rlang enquo
-#' @importFrom stringr str_extract
-#' @importFrom data.table setkey
-#'
-subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spatialpoints = NULL) {
-
+subsetvrMetadata <- function(x, subset, samples = NULL, assays = NULL, spatialpoints = NULL) {
+  
+  # start 
+  object <- x
+  
   if (!missing(x = subset)) {
     subset <- enquo(arg = subset)
   }
-
+  
   # subset all metadata types
   if(!is.null(samples)){
     if(nrow(object@molecule) > 0){
@@ -263,23 +249,23 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
       }
     }
   } else if(!is.null(spatialpoints)){
-      if(nrow(object@molecule) > 0){
-        mol.metadata <- subset_metadata(object@molecule, spatialpoints = spatialpoints)
-      } else {
-        mol.metadata <- data.table::data.table()
-      }
-      cell.metadata <- subset_metadata(object@cell, spatialpoints = spatialpoints)
-      spot.metadata <- subset_metadata(object@spot, spatialpoints = spatialpoints)
-      roi.metadata <- subset_metadata(object@ROI, spatialpoints = spatialpoints)
-      if(nrow(object@tile) > 0){
-        tile.metadata <- subset_metadata(object@tile, spatialpoints = spatialpoints)
-      } else {
-        tile.metadata <- data.table::data.table()
-      }
+    if(nrow(object@molecule) > 0){
+      mol.metadata <- subset_metadata(object@molecule, spatialpoints = spatialpoints)
+    } else {
+      mol.metadata <- data.table::data.table()
+    }
+    cell.metadata <- subset_metadata(object@cell, spatialpoints = spatialpoints)
+    spot.metadata <- subset_metadata(object@spot, spatialpoints = spatialpoints)
+    roi.metadata <- subset_metadata(object@ROI, spatialpoints = spatialpoints)
+    if(nrow(object@tile) > 0){
+      tile.metadata <- subset_metadata(object@tile, spatialpoints = spatialpoints)
+    } else {
+      tile.metadata <- data.table::data.table()
+    }
   } else {
     stop(paste0("No assay, sample or spatial points were provided!"))
   }
-
+  
   # return new metadata
   methods::new("vrMetadata",
                molecule = mol.metadata,
@@ -288,6 +274,24 @@ subset.vrMetadata <- function(object, subset, samples = NULL, assays = NULL, spa
                ROI = roi.metadata,
                tile = tile.metadata)
 }
+
+#' Subsetting vrMetadata objects
+#'
+#' Given a vrMetadata object, subset the object given one of the attributes
+#'
+#' @param x a vrMetadata object
+#' @param subset the subset statement
+#' @param samples the set of samples to subset the object
+#' @param assays assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
+#' @param spatialpoints the set of spatial points to subset the object
+#'
+#' @method subset vrMetadata
+#' @order 3
+#'
+#' @importFrom rlang enquo
+#' @importFrom stringr str_extract
+#' @importFrom data.table setkey
+setMethod("subset", "vrMetadata", subsetvrMetadata)
 
 #' subset_sampleMetadata
 #'
@@ -320,21 +324,12 @@ subset_sampleMetadata <- function(metadata, samples = NULL, assays = NULL) {
   metadata
 }
 
-#' Merging vrMetadata objects
-#'
-#' Given a vrMetadata object, and a list of vrMetadata objects, merge all.
-#'
-#' @param object a vrMetadata object
-#' @param object_list a list of vrMetadata objects
-#'
-#' @method merge vrMetadata
-#'
-#' @importFrom dplyr bind_rows
-#' @importFrom methods slot
-#' @export
-#'
-merge.vrMetadata <- function(object, object_list) {
+mergevrMetadata <- function(x, y) {
 
+  # start 
+  object <- x
+  object_list <- y
+  
   # combine all elements
   if(!is.list(object_list))
     object_list <- list(object_list)
@@ -374,6 +369,20 @@ merge.vrMetadata <- function(object, object_list) {
   # return combined object
   return(combined.metadata)
 }
+
+#' Merging vrMetadata objects
+#'
+#' Given a vrMetadata object, and a list of vrMetadata objects, merge all.
+#'
+#' @param x a vrMetadata object
+#' @param y a single or a list of vrMetadata objects
+#'
+#' @method merge vrMetadata
+#'
+#' @importFrom dplyr bind_rows
+#' @importFrom methods slot
+#' @export
+setMethod("merge", "vrMetadata", mergevrMetadata)
 
 #' rbind_metadata
 #'
@@ -631,7 +640,6 @@ addAssayvrMetadata <- function(object, metadata = NULL, assay, assay_name, sampl
 #' @importFrom Matrix colSums
 #'
 #' @export
-#' @noRd
 setMethod("addAssay", "vrMetadata", addAssayvrMetadata)
 
 vrAssayNamesvrMetadata <- function(object){
