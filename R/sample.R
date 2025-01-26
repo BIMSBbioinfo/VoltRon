@@ -1,45 +1,4 @@
-####
-# Objects and Classes ####
-####
-
-## Auxiliary ####
-
-# Set classes
-setOldClass(Classes = c('igraph'))
-
 ## vrSample ####
-
-#' The vrSample (VoltRon Sample) Class
-#'
-#' @slot layer A list of layers (vrLayer)
-#' @slot zlocation a vector of z coordinates of layers
-#' @slot adjacency an adjacency matrix of connected layers within a block
-#'
-#' @name vrSample-class
-#' @rdname vrSample-class
-#' @exportClass vrSample
-#'
-vrSample <- setClass(
-  Class = 'vrSample',
-  slots = c(
-    layer = 'list',
-    zlocation = 'numeric',
-    adjacency = "matrix"
-  )
-)
-
-### show ####
-
-setMethod(
-  f = 'show',
-  signature = 'vrSample',
-  definition = function(object) {
-    cat(class(x = object), "(VoltRon Block) Object \n")
-    layers <- names(unlist(object@layer))
-    cat("Layer(s):", paste(layers, collapse = " "), "\n")
-    return(invisible(x = NULL))
-  }
-)
 
 ### subset ####
 
@@ -112,38 +71,6 @@ setMethod(
 
 ## vrBlock ####
 
-#' The vrBlock (VoltRon Block) Class
-#'
-#' @slot layer A list of layers (vrLayer)
-#' @slot zlocation a vector of z coordinates of layers
-#' @slot adjacency an adjacency matrix of connected layers within a block
-#'
-#' @name vrBlock-class
-#' @rdname vrBlock-class
-#' @exportClass vrBlock
-#'
-vrBlock <- setClass(
-  Class = 'vrBlock',
-  slots = c(
-    layer = 'list',
-    zlocation = 'numeric', 
-    adjacency = "matrix"
-  )
-)
-
-### show ####
-
-setMethod(
-  f = 'show',
-  signature = 'vrBlock',
-  definition = function(object) {
-    cat(class(x = object), "(VoltRon Block) Object \n")
-    layers <- names(unlist(object@layer))
-    cat("Layer(s):", paste(layers, collapse = " "), "\n")
-    return(invisible(x = NULL))
-  }
-)
-
 ### subset ####
 
 #' @describeIn vrSample-methods (deprecated) Accessing vrLayer objects from \code{vrBlock} objects
@@ -198,37 +125,7 @@ setMethod(
 
 ## vrLayer ####
 
-#' The vrLayer (VoltRon Layer) Class
-#'
-#' @slot assay A list of assays (vrAssay)
-#' @slot connectivity the connectivity graph
-#'
-#' @name vrLayer-class
-#' @rdname vrLayer-class
-#' @exportClass vrLayer
-#' 
-vrLayer <- setClass(
-  Class = 'vrLayer',
-  slots = c(
-    assay = 'list',
-    connectivity = 'igraph'
-  )
-)
-
-### show ####
-
-setMethod(
-  f = 'show',
-  signature = 'vrLayer',
-  definition = function(object) {
-    cat(class(x = object), "(VoltRon Layer) Object \n")
-    layers <- names(unlist(object@assay))
-    cat("Assay(s):", paste(layers, collapse = " "), "\n")
-    return(invisible(x = NULL))
-  }
-)
-
-### subset of assays ####
+### subset ####
 
 #' Methods for vrLayer objects
 #'

@@ -4,57 +4,6 @@
 # Objects and Classes ####
 ####
 
-suppressWarnings({
-  setClassUnion("metadata_data",
-                members = c("data.table", 
-                            "data.frame",
-                            if (requireNamespace("S4Vectors", quietly = TRUE)) "DataFrame" else NULL,
-                            if (requireNamespace("HDF5DataFrame", quietly = TRUE)) "HDF5DataFrame" else NULL, 
-                            if (requireNamespace("ZarrDataFrame", quietly = TRUE)) "ZarrDataFrame" else NULL))
-})
-
-## vrMetadata ####
-
-#' The vrMetadata (VoltRon Metadata) Class
-#'
-#' @slot tile the metadata of tiles
-#' @slot molecule the metadata of molecules
-#' @slot cell the metadata of cells
-#' @slot spot the metadata of spot
-#' @slot ROI the metadata of ROI
-#'
-#' @name vrMetadata-class
-#' @rdname vrMetadata-class
-#' @exportClass vrMetadata
-#'
-vrMetadata <- setClass(
-  Class = 'vrMetadata',
-  slots = c(
-    molecule = 'metadata_data',
-    cell = 'metadata_data',
-    spot = 'metadata_data',
-    ROI = 'metadata_data',
-    tile = 'metadata_data'
-  )
-)
-
-### show ####
-
-setMethod(
-  f = 'show',
-  signature = 'vrMetadata',
-  definition = function(object) {
-    cat("VoltRon Metadata Object \n")
-    cat("This object includes: \n")
-    lapply(methods::slotNames(object), function(x){
-      if(nrow(slot(object, name = x))){
-        cat("  ", nrow(slot(object, name = x)), paste0(x, "s"), "\n")
-      }
-    })
-    return(invisible(x = NULL))
-  }
-)
-
 ### $ methods ####
 
 #' @method $ vrMetadata
@@ -977,7 +926,7 @@ setVRMetadata <- function(metadata, data, entityID, main.assay, assay.type, samp
     }
 
   } else {
-    if(any(class(metadata) %in% c("data.table", "data.frame", "matrix"))){
+    if(any(is(metadata) %in% c("data.table", "data.frame", "matrix"))){
       vr_metadata <- list(molecule = data.table::data.table(),
                           cell = data.frame(),
                           spot = data.frame(),

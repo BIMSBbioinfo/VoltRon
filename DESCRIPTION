@@ -19,6 +19,7 @@ Collate:
     'RcppExports.R'
     'zzz.R'
     'allgenerics.R'
+    'allclasses.R'
     'annotation.R'
     'assay.R'
     'auxiliary.R'
