@@ -128,7 +128,7 @@ setMethod(
       if(i %in% assay_names){
         cur_assay <- sample.metadata[i,]
         assay_list <- x@samples[[cur_assay$Sample]]@layer[[cur_assay$Layer]]@assay
-        assay_names <- sapply(assay_list, vrAssayNames)
+        assay_names <- vapply(assay_list, vrAssayNames, character(1))
         return(assay_list[[which(assay_names == rownames(cur_assay))]])
       } else {
         stop("There are no samples or assays named ", i, " in this object")
@@ -535,7 +535,7 @@ vrAssayTypesVoltRon <- function(object, assay = NULL){
   assay_names <- vrAssayNames(object, assay = assay)
   
   # get assay types
-  assay_types <- sapply(assay_names, function(x) vrAssayTypes(object[[x]]))
+  assay_types <- vapply(assay_names, function(x) vrAssayTypes(object[[x]]), character(1))
   
   return(assay_types)
 }
@@ -562,10 +562,8 @@ changeSampleNamesVoltRon <- function(object, samples = NULL){
     dplyr::group_by(Assay, Sample) %>% dplyr::mutate(n = dplyr::n_distinct(NewSample)) %>%
     select(c("Assay", "Sample", "n")) %>% distinct()
   if(any(check_samples_table$n > 1)){
-    message("Overwriting the sample names of assays that were original from a single layer of a sample arent allowed")
-    message("Check Sample Metadata for the correct Sample reassignment")
-    print(sample.metadata)
-    stop()
+    message("Overwriting the sample names of assays that were original from a single layer of a sample aren't allowed")
+    stop("Check Sample Metadata for the correct Sample reassignment")
   }
   
   # assign new sample names to samples and sample metadata
@@ -822,7 +820,7 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
   }
 
   # subseting on other attributes
-  attrinfo <- c(sapply(list(samples, assays, spatialpoints, features), function(x) length(x) > 0), interactive)
+  attrinfo <- c(vapply(list(samples, assays, spatialpoints, features), function(x) length(x) > 0, logical(1)), interactive)
   if(sum(attrinfo) > 1){
     stop("Please choose only one of the subsetting attributes: 'samples', 'assays', 'spatialpoints', 'features' or 'interactive'")
   }

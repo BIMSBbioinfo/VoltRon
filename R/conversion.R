@@ -313,7 +313,7 @@ as.AnnData <- function(object,
   # Segments
   segments <- vrSegments(object, assay = assay)
   if(length(segments) > 0){
-    max_vertices <- max(sapply(segments, nrow))
+    max_vertices <- max(vapply(segments, nrow, numeric(1)))
     num_cells <- length(segments)
     segmentations_array <- array(NA, dim = c(num_cells, max_vertices, 2))
     cell_ids <- names(segments)
@@ -789,11 +789,11 @@ as.VoltRon.SpatialExperiment <- function(object, assay_type = "cell", assay_name
       }
       
       # get image scales
-      scale.factors_list <- sapply(image_names, function(img){ 
+      scale.factors_list <- vapply(image_names, function(img){ 
         SpatialExperiment::scaleFactors(object, 
                                         sample_id = samp, 
                                         image_id = img)
-      })
+      }, numeric(1))
       if(length(unique(scale.factors_list)) > 1){
         stop("All images of a single sample should have the same scale for VoltRon object conversion!: please select an 'image_id'")
       }

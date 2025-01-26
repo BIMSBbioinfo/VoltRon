@@ -51,7 +51,8 @@ formImage <- function(coords, segments = list(), image = NULL, main_channel = NU
         names(image) <- paste("channel_", 1:length(image), sep = "")
 
       # get image information
-      imageinfo <- sapply(image, function(x) magick::image_info(x)[,c("width", "height")], USE.NAMES = TRUE)
+      imageinfo <- vapply(image, function(x) as.matrix(magick::image_info(x)[,c("width", "height")])[1,], 
+                          numeric(2), USE.NAMES = TRUE)
       flag <- all(apply(imageinfo, 1, function(x) length(unique(x)) == 1))
 
       #
@@ -1214,7 +1215,7 @@ vrCoordinatesRepkacevrImage <- function(object, value) {
   coords <- vrCoordinates(object)
   
   # stop if the rownames are not matching
-  if(any(sapply(rownames(value),is.null)))
+  if(any(vapply(rownames(value),is.null, logical(1))))
     stop("Provided coordinates data does not have cell/spot/ROI names")
   
   if(!all(rownames(value) %in% rownames(coords)))
@@ -1268,7 +1269,7 @@ vrSegmentsReplacevrImage <- function(object, value) {
   segts <- vrSegments(object)
   
   # stop if the names are not matching
-  if(any(sapply(names(value),is.null)))
+  if(any(vapply(names(value),is.null, logical(1))))
     stop("Provided coordinates data does not have cell/spot/ROI names")
   
   if(!all(names(value) %in% names(segts)))
@@ -1564,7 +1565,7 @@ demuxVoltRon <- function(object, max.pixel.size = 1200, use.points.only = FALSE,
         box_list <- selected_corners_list_image()
         
         # collect labels
-        sample_names <- sapply(1:length(box_list$box), function(i) input[[paste0("sample",i)]])
+        sample_names <- vapply(1:length(box_list$box), function(i) input[[paste0("sample",i)]], character(1))
 
         # check if sample names are present
         if(any(sample_names == "")) {

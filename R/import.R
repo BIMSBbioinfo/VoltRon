@@ -2027,10 +2027,10 @@ importImageData <- function(image, tile.size = 10, segments = NULL, image_name =
   }
 
   # check image size
-  imageinfo <- sapply(image, function(img) {
+  imageinfo <- vapply(image, function(img) {
     info <- magick::image_info(img)
     c(info$width, info$height)
-  }, simplify = TRUE)
+  }, numeric(2))
   unique_width <- unique(imageinfo[1,])
   unique_height <- unique(imageinfo[2,])
   if(length(unique_width) == 1 && length(unique_height) == 1){
@@ -2067,9 +2067,9 @@ importImageData <- function(image, tile.size = 10, segments = NULL, image_name =
     }
     
     # make coordinates out of segments
-    coords <- t(sapply(segments, function(dat){
+    coords <- t(vapply(segments, function(dat){
       apply(dat[,c("x", "y")], 2, mean)
-    }))
+    }, numeric(2)))
     rownames(coords) <- names(segments)
     
     # make segment assay

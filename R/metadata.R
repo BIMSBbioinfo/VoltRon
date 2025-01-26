@@ -1071,7 +1071,8 @@ setVRMetadata <- function(metadata, data, entityID, main.assay, assay.type, samp
 setVRSampleMetadata <- function(samples){
 
   # imput missing sample names
-  sample_name_ind <- sapply(names(samples), is.null)
+  # sample_name_ind <- sapply(names(samples), is.null)
+  sample_name_ind <- vapply(names(samples), is.null, logical(1))
   if(length(sample_name_ind) > 0){
     names_samples <- names(samples)
     if(any(sample_name_ind)){

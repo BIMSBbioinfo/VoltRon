@@ -64,7 +64,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
   }
   if(!use.image.only){
     # get spatial plot
-    g_spatial <- vrSpatialPlot(object, assay = assay, background = c(image_name, channel), scale.image = FALSE, ...)
+    g_spatial <- vrSpatialPlot(object, assay = assay, spatial = image_name, channel = channel, scale.image = FALSE, ...)
     g_spatial <- g_spatial$layers[[2]]
   }
   
@@ -373,7 +373,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
       selected_polygon_list <- selected_corners_list()
       
       # collect labels
-      selected_label_list <- sapply(1:length(selected_polygon_list), function(i) input[[paste0("region",i)]])
+      selected_label_list <- vapply(1:length(selected_polygon_list), function(i) input[[paste0("region",i)]], character(1))
       
       if(length(selected_corners_list()) == 0){
         showNotification("You have not annotated the data yet!")
@@ -410,9 +410,9 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
         for(i in 1:length(selected_label_list)){
           segments[[selected_label_list[i]]] <- data.frame(id = i, selected_polygon_list[[i]])
         }
-        coords <- t(sapply(segments, function(seg){
+        coords <- t(vapply(segments, function(seg){
           apply(seg[,c("x", "y")], 2, mean)
-        }, simplify = TRUE))
+        }, numeric(2)))
         new_assay <- formAssay(coords = coords, 
                                segments = segments,
                                type = "ROI",

@@ -352,7 +352,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         } else {
           polygon_data <- do.call(rbind,segments)
           polygon_data[,c("x", "y")] <- polygon_data[,c("x", "y")]/scale_factors
-          len_segments <- sapply(segments, nrow, simplify = TRUE)
+          # len_segments <- sapply(segments, nrow, simplify = TRUE)
+          len_segments <- vapply(segments, nrow, numeric(1))
           polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), group.by = rep(cur_group.by, len_segments))
           g <- g +
             geom_polygon(aes(x = .data[["x"]], y = .data[["y"]], fill = .data[["group.by"]], group = segment), data = polygon_data, alpha = alpha, show.legend = TRUE) +
@@ -752,7 +753,8 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
       } else {
         polygon_data <- do.call(rbind,segments)
         polygon_data[,c("x", "y")] <- polygon_data[,c("x", "y")]/scale_factors
-        len_segments <- sapply(segments, nrow, simplify = TRUE)
+        # len_segments <- sapply(segments, nrow, simplify = TRUE)
+        len_segments <- vapply(segments, nrow, numeric(1))
         polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), score = rep(coords$score, len_segments))
         g <- g +
           geom_polygon(aes(x = x, y = y, fill = score, group = segment), data = polygon_data, alpha = alpha)
@@ -1771,13 +1773,14 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
   metadata <- Metadata(object, assay = assay)
 
   # get data
-  data_feature <- sapply(c(feature.1, feature.2), function(feat){
+  # data_feature <- sapply(c(feature.1, feature.2), function(feat){
+  data_feature <- vapply(c(feature.1, feature.2), function(feat){
     if(feat %in% rownames(normdata)){
       return(normdata[feat,])
     } else {
       return(metadata[,feat])
     }
-  })
+  }, numeric(nrow(metadata)))
   data_feature <- as.data.frame(data_feature)
 
   # plot

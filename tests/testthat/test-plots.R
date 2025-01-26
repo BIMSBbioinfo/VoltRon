@@ -1,14 +1,14 @@
 # Testing plotting functions
-test_that("plots", {
+test_that("non-spatial plots", {
 
   # get data
   data("xenium_data")
-
+  
   # get custom colors
   # colors <- scales::hue_pal()(length(unique(xenium_data$clusters)))
   colors <- hue_pal(length(unique(xenium_data$clusters)))
   names(colors) <- unique(xenium_data$clusters)
-
+  
   # embedding plot
   vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", label = T)
   vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", group.ids = c(1,3,4), label = T)
@@ -20,6 +20,24 @@ test_that("plots", {
   
   # embedding feature plot
   vrEmbeddingFeaturePlot(xenium_data, features = c("ACTA2", "TACSTD2"), embedding = "umap", combine.features = TRUE)
+  
+  # scatterplot
+  vrScatterPlot(xenium_data, feature.1 = "NKG7", feature.2 = "TRAC")
+  xenium_data <- normalizeData(xenium_data)
+  vrScatterPlot(xenium_data, feature.1 = "NKG7", feature.2 = "TRAC", norm = TRUE)
+})
+
+
+# Testing plotting functions
+test_that("spatial plots", {
+
+  # get data
+  data("xenium_data")
+
+  # get custom colors
+  # colors <- scales::hue_pal()(length(unique(xenium_data$clusters)))
+  colors <- hue_pal(length(unique(xenium_data$clusters)))
+  names(colors) <- unique(xenium_data$clusters)
 
   # spatial plot, groups and colors
   vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE)

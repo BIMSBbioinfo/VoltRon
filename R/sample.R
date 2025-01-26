@@ -257,7 +257,7 @@ subsetvrSample <- function(x, subset, assays = NULL, spatialpoints = NULL, image
   }
   
   # remove NULL assays
-  ind <- which(sapply(object@layer, function(x) !is.null(x)))
+  ind <- which(vapply(object@layer, function(x) !is.null(x), logical(1)))
   object@layer <- object@layer[ind]
   
   # check if there are layers
@@ -388,7 +388,7 @@ subsetvrLayer <- function(x, subset, assays = NULL, spatialpoints = NULL, image 
   if(!is.null(assays)){
     
     # get assay names of all assays
-    assay_names <- sapply(object@assay, vrAssayNames)
+    assay_names <- vapply(object@assay, vrAssayNames, character(1))
     if(any(assays %in% assay_names)) {
       assays <- intersect(assays, assay_names)
       object@assay  <- object@assay[which(assay_names %in% assays)]
@@ -432,7 +432,7 @@ subsetvrLayer <- function(x, subset, assays = NULL, spatialpoints = NULL, image 
   }
   
   # remove NULL assays
-  object@assay <- object@assay[which(sapply(object@assay, function(x) !is.null(x)))]
+  object@assay <- object@assay[which(vapply(object@assay, function(x) !is.null(x), logical(1)))]
   
   # set VoltRon class
   if(length(object@assay) > 0){
@@ -514,7 +514,7 @@ changeAssayNamesvrLayer <- function(object, sample.metadata = NULL){
   if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
     if(igraph::vcount(object@connectivity) > 0){
       spatialpoints <- igraph::V(object@connectivity)$name
-      old_assay_names <- sapply(object@assay, vrAssayNames)
+      old_assay_names <- vapply(object@assay, vrAssayNames, character(1))
       new_assay_names <- sample.metadata$NewAssayNames
       cur_spatialpoints <- spatialpoints
       for(i in 1:length(old_assay_names)){
