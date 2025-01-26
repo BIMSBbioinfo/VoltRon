@@ -216,7 +216,7 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
   # check if the file exists in either Xenium output folder, or the specified location
   if((file.exists(file.path) | file.exists(paste0(output.file))) & !overwrite_resolution){
     if(verbose)
-      message(paste0(file.name, " already exists!"))
+      message(file.name, " already exists!")
   } else {
     if (!requireNamespace('RBioFormats'))
       stop("Please install RBioFormats package to extract xml from the ome.tiff file!: BiocManager::install('RBioFormats')")
@@ -235,7 +235,7 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
     # pick a resolution level
     image_info <- morphology_image_lowres@metadata$coreMetadata
     if(verbose)
-      message(paste0("  Image Resolution (X:", image_info$sizeX, " Y:", image_info$sizeY, ") ..."))
+      message("  Image Resolution (X:", image_info$sizeX, " Y:", image_info$sizeY, ") ...")
     
     # increase contrast using EBImage
     if(increase.contrast) {
@@ -1602,7 +1602,7 @@ readPhenoCyclerMat <- function(
 ) {
   # Check arguments
   if (!file.exists(filename)) {
-    stop(paste("Can't file file:", filename))
+    stop("Can't find file: ", filename)
   }
   type <- tolower(x = type[1L])
   type <- match.arg(arg = type)

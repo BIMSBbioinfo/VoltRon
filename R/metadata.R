@@ -212,7 +212,7 @@ subsetvrMetadata <- function(x, subset, samples = NULL, assays = NULL, spatialpo
       tile.metadata <- data.table::data.table()
     }
   } else {
-    stop(paste0("No assay, sample or spatial points were provided!"))
+    stop("No assay, sample or spatial points were provided!")
   }
   
   # return new metadata
@@ -385,7 +385,7 @@ subset_metadata <- function(metadata, assays = NULL, assaytypes = NULL, samples 
       } else if(!is.null(spatialpoints)){
         metadata <- subset(metadata, subset = id %in% spatialpoints)
       } else {
-        stop(paste0("No assay, sample or spatial points were provided!"))
+        stop("No assay, sample or spatial points were provided!")
       }  
     } else {
       metadata <- data.table::data.table()
@@ -409,7 +409,7 @@ subset_metadata <- function(metadata, assays = NULL, assaytypes = NULL, samples 
       cur_column <- as.vector(metadata$id)
       metadata <- metadata[cur_column %in% spatialpoints,]
     } else {
-      stop(paste0("No assay, sample or spatial points were provided!"))
+      stop("No assay, sample or spatial points were provided!")
     }  
   } else {
     if(nrow(metadata) > 0){
@@ -434,7 +434,7 @@ subset_metadata <- function(metadata, assays = NULL, assaytypes = NULL, samples 
           metadata <- metadata[metadata$id %in% spatialpoints,]
         }
       } else {
-        stop(paste0("No assay, sample or spatial points were provided!"))
+        stop("No assay, sample or spatial points were provided!")
       }  
     }
   }

@@ -413,14 +413,13 @@ dummy_cols <- function(.data, select_columns = NULL, remove_first_dummy = FALSE,
     char_cols <- names(char_cols)
   }
   if (length(char_cols) == 0 && is.null(select_columns)) {
-    stop(paste0("No character or factor columns found. ",
-                "Please use select_columns to choose columns."))
+    stop("No character or factor columns found. ",
+         "Please use select_columns to choose columns.")
   }
   if (!is.null(select_columns) && length(cols_not_in_data) >
       0) {
-    warning(paste0("NOTE: The following select_columns input(s) ",
-                   "is not a column in data.\n"), paste0(names(cols_not_in_data),
-                                                         "\t"))
+    warning("NOTE: The following select_columns input(s) ",
+                   "is not a column in data:\n", names(cols_not_in_data), "\t")
   }
   for (col_name in char_cols) {
     if (is.factor(.data[[col_name]])) {

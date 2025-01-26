@@ -117,12 +117,12 @@ loadVoltRon <- function(dir="my_se")
   
   # check dir
   if (!isSingleString(dir))
-    stop(paste0("'dir' must be a single string specifying the path ",
-              "to the directory containing an rds and/or .h5/.zarr file!"))
+    stop("'dir' must be a single string specifying the path ",
+              "to the directory containing an rds and/or .h5/.zarr file!")
   if (!dir.exists(dir)) {
     if (file.exists(dir))
-      stop(paste0("\"", dir, "\" is a file, not a directory"))
-    stop(paste0("directory \"", dir, "\" not found"))
+      stop("\"", dir, "\" is a file, not a directory")
+    stop("directory \"", dir, "\" not found")
   }
   
   # get rds path
@@ -221,15 +221,15 @@ modify_seeds <- function (x, FUN, ...)
 {
   # check rds file
   if (!file.exists(rds_path))
-    stop(paste0("file not found: ", rds_path))
+    stop("file not found: ", rds_path)
   if (dir.exists(rds_path))
-    stop(paste0("'", rds_path, "' is a directory, not a file"))
+    stop("'", rds_path, "' is a directory, not a file")
   
   # check VoltRon object
   object <- readRDS(rds_path)
   if (!is(object, "VoltRon"))
-    stop(paste0("the object serialized in \"", rds_path, "\" is not ",
-                "a VoltRon object"))
+    stop("the object serialized in \"", rds_path, "\" is not ",
+                "a VoltRon object")
   
   # get dir name
   dir <- dirname(rds_path)
@@ -1279,7 +1279,7 @@ restore_absolute_links <- function(x, dir){
 
   # check object
   if (!is(x, c("Array")) && !is(x, c("IterableMatrix")) && !is(x, c("HDF5DataFrame")) && !is(x, c("ZarrDataFrame")))
-    stop(message("object is not DelayedArray"))
+    stop("object is not DelayedArray")
   
   # get path
   if(inherits(x, "DelayedArray") || "filepath" %in% slotNames(x)){
@@ -1293,8 +1293,8 @@ restore_absolute_links <- function(x, dir){
   ## file_path_as_absolute() will fail if the file does
   ## not exist.
   if (!file.exists(file_path))
-    stop(message("Object points to an HDF5 file ",
-              "that does not exist: ", file_path))
+    stop("Object points to an HDF5 file ",
+              "that does not exist: ", file_path)
   if(inherits(x, "DelayedArray") || "filepath" %in% slotNames(x)){
     x@filepath <- file_path_as_absolute(file_path)
     msg <- validate_absolute_path(x@filepath, paste0("'filepath' slot of Object"))
@@ -1308,7 +1308,7 @@ restore_absolute_links <- function(x, dir){
 
   # validate
   if (!isTRUE(msg))
-    stop(paste0(msg))
+    stop(msg)
   
   # return
   x
@@ -1326,13 +1326,13 @@ restore_absolute_links_images <- function(file_path, dir){
   ## file_path_as_absolute() will fail if the file does
   ## not exist.
   if (!file.exists(file_path))
-    stop(message("file_path doesnt exist"))
+    stop("file_path doesnt exist")
   file_path <- file_path_as_absolute(file_path)
   
   # validate
   msg <- validate_absolute_path(file_path, paste0("'filepath' slot of object"))
   if (!isTRUE(msg))
-    stop(paste0(msg))
+    stop(msg)
   file_path
 }
 
@@ -1464,7 +1464,7 @@ stop_if_bad_dir <- function(dir, prefix = "")
              "Make sure you're using the same 'prefix' ",
              "that was used when the object was saved.")
   }
-  stop(paste0(msg))
+  stop(msg)
 }
 
 #' file_path_as_absolute

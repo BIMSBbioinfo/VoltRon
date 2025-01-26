@@ -283,10 +283,10 @@ formVoltRon <- function(data = NULL,
     main.assay <- paste0("Custom_", assay.type)
   layer_name <- ifelse(is.null(layer_name), "Section1", layer_name)
   if(main.assay == layer_name)
-      stop(paste0("'", layer_name, "' cannot be a layer name, since main assay is named '", main.assay, "'."))
+      stop("'", layer_name, "' cannot be a layer name, since main assay is named '", main.assay, "'.")
   sample_name <- ifelse(is.null(sample_name), "Sample1", sample_name)
   if(main.assay == sample_name)
-    stop(paste0("'", sample_name, "' cannot be a sample name, since main assay is named '", main.assay, "'."))
+    stop("'", sample_name, "' cannot be a sample name, since main assay is named '", main.assay, "'.")
   image_name <- ifelse(is.null(image_name), "image_1", image_name)
 
   # entity IDs from either the data or metadata

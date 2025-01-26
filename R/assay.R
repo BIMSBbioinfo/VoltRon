@@ -510,7 +510,7 @@ addFeaturevrAssayV2 <- function(object, data, feature_name){
   # get feature name
   featuresets <- vrFeatureTypeNames(object)
   if(feature_name %in% featuresets){
-    stop(paste0("Feature type '", feature_name, "' already exists in the assay."))
+    stop("Feature type '", feature_name, "' already exists in the assay.")
   }
   
   # check spatial point names in the object
