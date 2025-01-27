@@ -1724,7 +1724,6 @@ readPhenoCyclerMat <- function(
       )
       outs$centroids <- centroids
       outs$metadata <- md
-      # browser()
       for (i in classes) {
         df <- exprs[exprs$class == i, , drop = FALSE]
         expr <- mtx[, df$cols]

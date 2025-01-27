@@ -471,8 +471,10 @@ getJointPCA <- function(object, assay.1 = NULL, assay.2 = NULL, dims = 30, seed 
     object_subset <- object
   }
 
-  # get PCA embedding
+  # set seed
   set.seed(seed)
+  
+  # get PCA embedding
   normdata.1 <- vrData(object_subset, assay = assay, norm = TRUE)
   scale.data <- apply(normdata.1, 1, scale)
   pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
@@ -501,7 +503,6 @@ getJointPCA <- function(object, assay.1 = NULL, assay.2 = NULL, dims = 30, seed 
   }
 
   # get PCA embedding
-  set.seed(seed)
   normdata.2 <- vrData(object_subset, assay = assay, norm = TRUE)
   scale.data <- apply(normdata.2, 1, scale)
   pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))

@@ -281,7 +281,6 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
 #' @param graph.type the type of graph to determine spatial neighborhood
 #' @param alpha.value the alpha value for the hot spot analysis test. Default is 0.01
 #' @param norm if TRUE, the normalized data is used
-#' @param seed seed
 #' @param verbose verbose
 #' 
 #' @importFrom Matrix rowSums
@@ -289,10 +288,7 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
 #' @importFrom stats pnorm
 #'
 #' @export
-getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", features, graph.type = "delaunay", alpha.value = 0.01, norm = TRUE, seed = 1, verbose = TRUE){
-  
-  # set the seed
-  set.seed(seed)
+getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", features, graph.type = "delaunay", alpha.value = 0.01, norm = TRUE, verbose = TRUE){
   
   # check object
   if(!inherits(object, "VoltRon"))

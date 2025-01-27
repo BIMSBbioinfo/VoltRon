@@ -1825,7 +1825,6 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 #' @param highlight.some if TRUE, some rows will be showed at random, reproducible by \code{seed} argument
 #' @param n_highlight the number of row labels shown, if \code{show_row_names} is TRUE
 #' @param font.size font size
-#' @param seed the seed for \link{set.seed}
 #' @param ... additional parameters passed to \link{getVariableFeatures}
 #'
 #' @importFrom stats quantile
@@ -1833,7 +1832,7 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 #' @export
 vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clusters",
                           norm = TRUE, scaled = TRUE, show_row_names = NULL, cluster_rows = TRUE, show_heatmap_legend = FALSE,
-                          outlier.quantile = 0.99, highlight.some = FALSE, n_highlight = 30, font.size = 13.2, seed = 1, ...){
+                          outlier.quantile = 0.99, highlight.some = FALSE, n_highlight = 30, font.size = 13.2, ...){
 
   if (!requireNamespace('ComplexHeatmap'))
     stop("Please install ComplexHeatmap package to use the Heatmap function!: BiocManager::install('ComplexHeatmap')")
@@ -1843,9 +1842,6 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
   # check object
   if(!inherits(object, "VoltRon"))
     stop("Please provide a VoltRon object!")
-
-  # seed
-  set.seed(seed)
 
   # data
   heatmapdata <- vrData(object, assay = assay, norm = norm)
