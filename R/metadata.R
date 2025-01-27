@@ -453,7 +453,7 @@ merge_sampleMetadata <- function(metadata_list) {
 
   sample_names <- NULL
   sample.metadata <- do.call(rbind, metadata_list)
-  rownames(sample.metadata) <- paste0("Assay", 1:nrow(sample.metadata))
+  rownames(sample.metadata) <- paste0("Assay", seq_len(nrow(sample.metadata)))
 
   # change sample names if provided
   if(!is.null(sample_names)){
@@ -465,9 +465,9 @@ merge_sampleMetadata <- function(metadata_list) {
       sample.metadata$Sample <- sample_names
       section_ids <- rep(NA,nrow(sample.metadata))
       uniq_names <- unique(sample.metadata$Sample)
-      for(i in 1:length(uniq_names)){
+      for(i in seq_len(length(uniq_names))){
         cur_ind <- which(sample.metadata$Sample == uniq_names[i])
-        section_ids[cur_ind] <- 1:length(cur_ind)
+        section_ids[cur_ind] <- seq_len(length(cur_ind))
       }
       sample.metadata$Layer <- paste0("Section", section_ids)
     }
@@ -650,7 +650,7 @@ updateMetadataAssay <- function(object1, object2){
   assaytype <- assaytype[order(nchar(assaytype), assaytype)]
 
   # replace assay names
-  replacement <- paste0("Assay", 1:length(assaytype))
+  replacement <- paste0("Assay", seq_len(length(assaytype)))
   object1 <- lapply(object_list, function(obj) {
     if(nrow(obj) > 0){
       
@@ -658,7 +658,7 @@ updateMetadataAssay <- function(object1, object2){
         
         # change assay id
         temp <- obj$assay_id
-        for(i in 1:length(assaytype))
+        for(i in seq_len(length(assaytype)))
           temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
         obj$assay_id <- temp
         return(obj)
@@ -668,14 +668,14 @@ updateMetadataAssay <- function(object1, object2){
         # change assay id
         if("assay_id" %in% colnames(obj)){
           temp <- as.vector(obj$assay_id)
-          for(i in 1:length(assaytype))
+          for(i in seq_len(length(assaytype)))
             temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
           obj$assay_id <- temp
         }
         
         # change id
         temp <- as.vector(obj$id)
-        for(i in 1:length(assaytype)){
+        for(i in seq_len(length(assaytype))){
           temp[grepl(paste0(assaytype[i],"$"), obj$id)] <- 
             gsub(paste0(assaytype[i],"$"), replacement[i],
                  obj$id[grepl(paste0(assaytype[i],"$"),  obj$id)])
@@ -687,7 +687,7 @@ updateMetadataAssay <- function(object1, object2){
         
         # change rownames
         temp <- rownames(obj)
-        for(i in 1:length(assaytype))
+        for(i in seq_len(length(assaytype)))
           temp[grepl(paste0(assaytype[i],"$"), rownames(obj))] <- 
             gsub(paste0(assaytype[i],"$"), replacement[i],
                  rownames(obj)[grepl(paste0(assaytype[i],"$"), rownames(obj))])
@@ -696,7 +696,7 @@ updateMetadataAssay <- function(object1, object2){
         # change assay id
         if("assay_id" %in% colnames(obj)){
           temp <- obj$assay_id
-          for(i in 1:length(assaytype))
+          for(i in seq_len(length(assaytype)))
             temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
           obj$assay_id <- temp
         }
@@ -738,7 +738,7 @@ updateMetadataAssay <- function(object1, object2){
         
         # change assay id
         temp <- obj$assay_id
-        for(i in 1:length(assaytype))
+        for(i in seq_len(length(assaytype)))
           temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
         obj$assay_id <- temp
         
@@ -748,14 +748,14 @@ updateMetadataAssay <- function(object1, object2){
         # change assay id
         if("assay_id" %in% colnames(obj)){
           temp <- as.vector(obj$assay_id)
-          for(i in 1:length(assaytype))
+          for(i in seq_len(length(assaytype)))
             temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
           obj$assay_id <- temp
         }
         
         # change id
         temp <- as.vector(obj$id)
-        for(i in 1:length(assaytype)){
+        for(i in seq_len(length(assaytype))){
           temp[grepl(paste0(assaytype[i],"$"), obj$id)] <- 
             gsub(paste0(assaytype[i],"$"), replacement[i], 
                  obj$id[grepl(paste0(assaytype[i],"$"), obj$id)])
@@ -767,7 +767,7 @@ updateMetadataAssay <- function(object1, object2){
         
         # change row names
         temp <- rownames(obj)
-        for(i in 1:length(assaytype))
+        for(i in seq_len(length(assaytype)))
           temp[grepl(paste0(assaytype[i],"$"), rownames(obj))] <- 
             gsub(paste0(assaytype[i],"$"), replacement[i],
                  rownames(obj)[grepl(paste0(assaytype[i],"$"), rownames(obj))])
@@ -775,7 +775,7 @@ updateMetadataAssay <- function(object1, object2){
         
         # change id
         temp <- obj$id
-        for(i in 1:length(assaytype)){
+        for(i in seq_len(length(assaytype))){
           temp[grepl(paste0(assaytype[i],"$"), obj$id)] <- 
             gsub(paste0(assaytype[i],"$"), replacement[i], 
                  obj$id[grepl(paste0(assaytype[i],"$"), obj$id)])
@@ -785,7 +785,7 @@ updateMetadataAssay <- function(object1, object2){
         # change assay id
         if("assay_id" %in% colnames(obj)){
           temp <- obj$assay_id
-          for(i in 1:length(assaytype))
+          for(i in seq_len(length(assaytype)))
             temp[grepl(assaytype[i], obj$assay_id)] <- replacement[i]
           obj$assay_id <- temp
         }
@@ -821,11 +821,11 @@ changeSampleNamesvrMetadata <- function(object, sample_metadata_table){
     if(nrow(new_metadata) > 0){
 
       # change samples
-      for(i in 1:length(old.samples))
+      for(i in seq_len(length(old.samples)))
         new_metadata$Sample[new_metadata$Sample==old.samples[i]] <- new.samples[i]
 
       # change layers
-      for(i in 1:nrow(sample_metadata_table)){
+      for(i in seq_len(nrow(sample_metadata_table))){
         new_metadata$Layer[grepl(paste0(sample_metadata_table$AssayID[i], "$"), rownames(new_metadata))] <- sample_metadata_table[sample_metadata_table$AssayID[i], "NewLayer"]
       }
 
@@ -1080,22 +1080,22 @@ setVRSampleMetadata <- function(samples){
       names_samples[null_samples_ind] <- paste0("Sample", null_samples_ind)
     }
   } else {
-    names_samples <- paste0("Sample", 1:length(samples))
+    names_samples <- paste0("Sample", seq_len(length(samples)))
   }
 
   # get sample metadata
   sample_list <- names(samples)
   sample.metadata <- NULL
-  for(i in 1:length(sample_list)){
+  for(i in seq_len(length(sample_list))){
     layer_list <- samples[[sample_list[i]]]@layer
     layer_data <- NULL
-    for(j in 1:length(layer_list)){
+    for(j in seq_len(length(layer_list))){
       assay_list <- layer_list[[j]]@assay
       layer_data <- rbind(layer_data, cbind(names(assay_list), names(layer_list)[j]))
     }
     sample.metadata <- rbind(sample.metadata, cbind(layer_data, sample_list[i]))
   }
-  sample.metadata <- data.frame(sample.metadata, row.names = paste0("Assay", 1:nrow(sample.metadata)))
+  sample.metadata <- data.frame(sample.metadata, row.names = paste0("Assay", seq_len(nrow(sample.metadata))))
   colnames(sample.metadata) <- c("Assay", "Layer", "Sample")
 
   sample.metadata

@@ -402,7 +402,7 @@ setMethod(
     # get sample and layer names
     sample_names <- unique(sample.metadata$Sample)
     show_length <- min(5,length(sample_names))
-    for(samp in sample_names[1:show_length]){
+    for(samp in sample_names[seq_len(show_length)]){
       cat(samp, ": \n", sep = "")
       layers <- unique(sample.metadata$Layer[sample.metadata$Sample == samp])
       layers <- split(layers, ceiling(seq_along(layers)/5))

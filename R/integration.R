@@ -321,7 +321,7 @@ getROIsFromCells <- function(from_object, from_metadata = NULL, to_object, featu
   cell_to_roi_id <- NULL
   cell_to_roi_labelid <- NULL
   names_segments_rois <- names(segments_rois)
-  for(i in 1:length(segments_rois)){
+  for(i in seq_len(length(segments_rois))){
     cur_segt <- segments_rois[[i]]
     if(ncol(cur_segt) > 3){
       in.list <- point.in.circle(coords_cells[,1], coords_cells[,2], cur_segt$x, cur_segt$y, cur_segt$rx)
@@ -432,7 +432,7 @@ transferLabelsFromROI <- function(from_object, from_metadata = NULL, to_object, 
     new_label <- rep("undefined", length(spatialpoints))
     names(new_label) <- spatialpoints
     
-    for(i in 1:length(segments_roi)){
+    for(i in seq_len(length(segments_roi))){
       cur_poly <- segments_roi[[i]][,c("x","y")]
       in.list <- sp::point.in.polygon(coords[,1], coords[,2], cur_poly[,1], cur_poly[,2])
       new_label[rownames(coords)[!!in.list]] <- feat_labels[i]
@@ -479,7 +479,7 @@ getJointPCA <- function(object, assay.1 = NULL, assay.2 = NULL, dims = 30, seed 
   scale.data <- apply(normdata.1, 1, scale)
   pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
   pr.data.1 <- pr.data$x
-  colnames(pr.data.1) <- paste0("PC", 1:dims)
+  colnames(pr.data.1) <- paste0("PC", seq_len(dims))
   rownames(pr.data.1) <- colnames(normdata.1)
   normdata.1 <- normdata.1/(pr.data$sdev[1]^2)
 
@@ -507,7 +507,7 @@ getJointPCA <- function(object, assay.1 = NULL, assay.2 = NULL, dims = 30, seed 
   scale.data <- apply(normdata.2, 1, scale)
   pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
   pr.data.2 <- pr.data$x
-  colnames(pr.data.2) <- paste0("PC", 1:dims)
+  colnames(pr.data.2) <- paste0("PC", seq_len(dims))
   rownames(pr.data.2) <- colnames(normdata.2)
   normdata.2 <- normdata.2/(pr.data$sdev[1]^2)
 
@@ -517,7 +517,7 @@ getJointPCA <- function(object, assay.1 = NULL, assay.2 = NULL, dims = 30, seed 
   pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
   prsdev <- pr.data$sdev
   pr.data <- pr.data$x
-  colnames(pr.data) <- paste0("PC", 1:dims)
+  colnames(pr.data) <- paste0("PC", seq_len(dims))
   rownames(pr.data) <- colnames(normdata)
   normdata <- normdata/(prsdev[1]^2)
 

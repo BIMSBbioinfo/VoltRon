@@ -294,7 +294,7 @@ formVoltRon <- function(data = NULL,
 
     # check for colnames of the raw data
     if(is.null(colnames(data))){
-      entityID_nopostfix <- paste0(assay.type,1:ncol(data))
+      entityID_nopostfix <- paste0(assay.type, seq_len(ncol(data)))
     } else {
       entityID_nopostfix <- colnames(data)
     }
@@ -309,7 +309,7 @@ formVoltRon <- function(data = NULL,
 
       # check row names if exists
       if(is.null(rownames(metadata)) && is.null(metadata$id)){
-        entityID_nopostfix <- paste0(assay.type,1:nrow(metadata))
+        entityID_nopostfix <- paste0(assay.type, seq_len(nrow(metadata)))
         rownames(metadata) <- entityID
       } else {
         entityID_nopostfix <- metadata$id %||% rownames(metadata)
@@ -577,7 +577,7 @@ changeSampleNamesVoltRon <- function(object, samples = NULL){
     # for each unique sample names, combine layers and multiple samples into one
     listofLayers <- NULL
     uniq_old_samples <- unique(cur_sample.metadata$Sample)
-    for(i in 1:length(uniq_old_samples)){
+    for(i in seq_len(length(uniq_old_samples))){
       listofLayers <- c(listofLayers, object[[uniq_old_samples[i]]]@layer)
     }
     cur_sample.metadata$comb <- paste(cur_sample.metadata$Sample, cur_sample.metadata$Layer, sep = "_")
@@ -725,7 +725,7 @@ addBlockConnectivity <- function(object, connectivity, zlocation = NULL, sample)
   
   # update adjacency
   adjacency <- cursample@adjacency
-  for(i in 1:nrow(connectivity)){
+  for(i in seq_len(nrow(connectivity))){
     adjacency[connectivity[i,1], connectivity[i,2]] <- 
       adjacency[connectivity[i,2], connectivity[i,1]] <- 1
   }
@@ -1011,7 +1011,7 @@ mergeVoltRon <- function(x, y, samples = NULL, main.assay = NULL, verbose = TRUE
   if(verbose)
     message("Merging blocks and layers ...")
   listofSamples <- NULL
-  for(i in 1:length(object_list)){
+  for(i in seq_len(length(object_list))){
     cur_object <- object_list[[i]]@samples
     listofSamples <- c(listofSamples, cur_object)
   }
@@ -1135,7 +1135,7 @@ vrDataVoltRon <- function(object, assay = NULL, features = NULL, feat_type = NUL
 
   # get all coordinates
   data <- NULL
-  for(i in 1:length(assay_names)){
+  for(i in seq_len(length(assay_names))){
     cur_data <- vrData(object[[assay_names[i]]], features = features, feat_type = feat_type, norm = norm, ...)
     if(inherits(cur_data, c("dgCMatrix", "CsparseMatrix", "dsparseMatrix"))){
       cur_data <- as.matrix(cur_data)
@@ -1228,14 +1228,14 @@ generateTileDataVoltRon <- function(object, assay = NULL, ...) {
 #' @export
 setMethod("generateTileData", "VoltRon", generateTileDataVoltRon)
 
-vrEmbeddingsVoltRon <- function(object, assay = NULL, type = "pca", dims = 1:30) {
+vrEmbeddingsVoltRon <- function(object, assay = NULL, type = "pca", dims = seq_len(30)) {
   
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
   
   # get all coordinates
   returndata_list <- list()
-  for(i in 1:length(assay_names))
+  for(i in seq_len(length(assay_names)))
     returndata_list[[i]] <- vrEmbeddings(object[[assay_names[i]]], type = type, dims = dims)
   
   return(do.call(rbind, returndata_list))
@@ -1988,10 +1988,10 @@ updateGraphAssay <- function(object1, object2){
   assaytype <- assaytype[order(nchar(assaytype), assaytype)]
 
   # replace assay names
-  replacement <- paste0("Assay", 1:length(assaytype))
+  replacement <- paste0("Assay", seq_len(length(assaytype)))
   vertex_names <- igraph::V(object1)$name
   temp <- vertex_names
-  for(i in 1:length(assaytype))
+  for(i in seq_len(length(assaytype)))
     temp[grepl(paste0(assaytype[i],"$"), vertex_names)] <- gsub(paste0(assaytype[i],"$"), replacement[i],
                                                                 vertex_names[grepl(paste0(assaytype[i],"$"), vertex_names)])
   igraph::V(object1)$name <- temp
@@ -2004,7 +2004,7 @@ updateGraphAssay <- function(object1, object2){
   replacement <- paste0("Assay", (length(replacement)+1):(length(replacement) + length(assaytype)))
   vertex_names <- igraph::V(object2)$name
   temp <- vertex_names
-  for(i in 1:length(assaytype))
+  for(i in seq_len(length(assaytype)))
     temp[grepl(paste0(assaytype[i],"$"), vertex_names)] <- gsub(paste0(assaytype[i],"$"), replacement[i],
                                                                 vertex_names[grepl(paste0(assaytype[i],"$"), vertex_names)])
   igraph::V(object2)$name <- temp

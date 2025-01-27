@@ -28,8 +28,8 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
   # if the input is not a list, switch to reference vs query mode
   if(!is.null(object_list)){
     spatdata_list <- object_list
-    centre <- floor(stats::median(1:length(spatdata_list)))
-    register_ind <- setdiff(1:length(spatdata_list), centre)
+    centre <- floor(stats::median(seq_len(length(spatdata_list))))
+    register_ind <- setdiff(seq_len(length(spatdata_list)), centre)
   } else {
     spatdata_list <- list(reference_spatdata, query_spatdata)
     centre <- 1
@@ -311,7 +311,7 @@ getImageTabPanels <- function(len_images, channel_names, type, params = NULL){
   label <- ifelse(type == "ref", "Ref. ", "Query ")
 
   # call panels
-  do.call(tabsetPanel, c(id=paste0('image_tab_panel_',type), lapply(1:len_images, function(i) {
+  do.call(tabsetPanel, c(id=paste0('image_tab_panel_',type), lapply(seq_len(len_images), function(i) {
     tabPanel(paste0(label,i),
              br(),
              fluidRow(
@@ -494,7 +494,7 @@ updateParameterPanels <- function(len_images, params, input, output, session){
   shinyjs::hide(id = "MAX_FEATURES")
 
   # hide scale parameters
-  for(i in 1:len_images){
+  for(i in seq_len(len_images)){
     shinyjs::hide(id = paste0("scale_ref_image",i))
     shinyjs::hide(id = paste0("scale_query_image",i))
     shinyjs::hide(id = paste0("scaleinfo_ref_image",i))
@@ -527,7 +527,7 @@ updateParameterPanels <- function(len_images, params, input, output, session){
       }
 
       # show scale parameters
-      for(i in 1:len_images){
+      for(i in seq_len(len_images)){
         shinyjs::show(id = paste0("scale_ref_image",i))
         shinyjs::show(id = paste0("scale_query_image",i))
         shinyjs::show(id = paste0("scaleinfo_ref_image",i))
@@ -554,7 +554,7 @@ updateParameterPanels <- function(len_images, params, input, output, session){
       }
 
       # hide scale parameters
-      for(i in 1:len_images){
+      for(i in seq_len(len_images)){
         shinyjs::hide(id = paste0("scale_ref_image",i))
         shinyjs::hide(id = paste0("scale_query_image",i))
         shinyjs::hide(id = paste0("scaleinfo_ref_image",i))
@@ -609,7 +609,7 @@ initiateParameterPanels <- function(mapping_parameters, len_images, input, outpu
 
   # update image specific parameters
   lapply(c("ref", "query"), function(t){
-    lapply(1:len_images, function(i){
+    lapply(seq_len(len_images), function(i){
       lapply(c("rotate", "flipflop", "negate", "channel"), function(c){
           updateSelectInput(session = session, paste0(c, "_", t, "_image",i), selected = mapping_parameters[[paste0(c, "_", t, "_image",i)]])
       })
@@ -948,14 +948,13 @@ initateKeypoints <- function(len_images, keypoints_list, input, output, session)
 
   # initiate keypoints
   if(is.null(keypoints_list)){
-    keypoints_list <- lapply(1:(len_images-1), function(i) {
+    keypoints_list <- lapply(seq_len(len_images-1), function(i) {
       list(ref = dplyr::tibble(KeyPoint = numeric(), x = numeric(), y = numeric()),
            query = dplyr::tibble(KeyPoint = numeric(), x = numeric(), y = numeric()))
-
     })
 
     # set names for keypoints
-    names(keypoints_list) <- paste0(1:(len_images-1),"-",2:len_images)
+    names(keypoints_list) <- paste0(seq_len(len_images-1),"-",2:len_images)
   }
 
   # return keypoints as reactive values
@@ -986,7 +985,7 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, info
   len_tables <- length(xyTable_list)
 
   # set click operations for reference and query points
-  lapply(1:len_tables, function(i){
+  lapply(seq_len(len_tables), function(i){
     lapply(image_types, function(type){
 
       # listen to click operations for reference/query plots
@@ -1052,7 +1051,7 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, info
   })
 
   # remove keypoints from images
-  lapply(1:len_tables, function(i){
+  lapply(seq_len(len_tables), function(i){
     lapply(image_types, function(type){
       observeEvent(input[[paste0("remove_", type, i)]], {
         ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
@@ -1282,7 +1281,7 @@ transferParameterInput <- function(params, image_list){
   input[["MAX_FEATURES"]] <- params[["MAX_FEATURES"]]
   input[["Method"]] <- params[["Method"]]
   input[["Matcher"]] <- params[["Matcher"]]
-  for(i in 1:len_image){
+  for(i in seq_len(len_image)){
     for(imgtype in c("ref","query")){
       input[[paste0("rotate_", imgtype, "_image", i)]] <-  params[[paste0("rotate_", imgtype, "_image", i)]]
       input[[paste0("flipflop_", imgtype, "_image", i)]] <-  params[[paste0("flipflop_", imgtype, "_image", i)]]
@@ -1340,13 +1339,13 @@ initiateZoomOptions <- function(info_list, input, output, session){
   len_images <- length(info_list)
   
   # initiate zoom options list
-  zoom_list <- lapply(1:len_images, function(i) {
+  zoom_list <- lapply(seq_len(len_images), function(i) {
     list(ref = list(x = c(0, info_list[[i]][1]), y = c(0, info_list[[i]][2])),
          query = list(x = c(0, info_list[[i]][1]), y = c(0, info_list[[i]][2])))
   })
   
   # set names for keypoints
-  names(zoom_list) <- paste0(1:len_images)
+  names(zoom_list) <- paste0(seq_len(len_images))
   
   # return keypoints as reactive values
   do.call("reactiveValues", zoom_list)
@@ -1375,7 +1374,7 @@ manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_list, 
   len_tables <- length(zoom_list)
   
   # set click operations for reference and query points
-  lapply(1:len_tables, function(i){
+  lapply(seq_len(len_tables), function(i){
     lapply(image_types, function(type){
       
       # listen to click operations for reference/query plots
@@ -1471,7 +1470,7 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
   len_images <- length(image_list)
 
   # output query images
-  lapply(1:len_images, function(i){
+  lapply(seq_len(len_images), function(i){
     lapply(image_types, function(type){
 
       # image output
@@ -1815,7 +1814,7 @@ transformImageQueryList <- function(image_list, input){
   # length of images
   len_register <- length(image_list) - 1
 
-  trans_query_list <- lapply(1:len_register, function(i){
+  trans_query_list <- lapply(seq_len(len_register), function(i){
     reactive({
       list(ref = transformImage(image_list[[i]], paste0("ref_image",i), input),
            query = transformImage(image_list[[i+1]], paste0("query_image",i+1), input))
@@ -1823,7 +1822,7 @@ transformImageQueryList <- function(image_list, input){
   })
 
   ####
-  names(trans_query_list) <- paste0(1:(length(image_list)-1),"-",2:length(image_list)) # REMOVE LATER, or decide not to
+  names(trans_query_list) <- paste0(seq_len(length(image_list)-1),"-",2:length(image_list)) # REMOVE LATER, or decide not to
   ####
 
   return(trans_query_list)
@@ -1884,8 +1883,8 @@ getRcppWarpImage <- function(ref_image, query_image, mapping){
 initiateMappings <- function(len_images, input, output, session){
 
   # initiate matrices
-  matrix_list <- lapply(1:len_images, function(i) return(NULL))
-  names(matrix_list) <- 1:len_images
+  matrix_list <- lapply(seq_len(len_images), function(i) return(NULL))
+  names(matrix_list) <- seq_len(len_images)
 
   # return matrices as reactive values
   do.call("reactiveValues", matrix_list)
@@ -1999,7 +1998,7 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
   # reference and target landmarks/keypoints
   mapping <- list()
   aligned_image <- image_list[[query_ind]]
-  for(kk in 1:nrow(mapping_mat)){
+  for(kk in seq_len(nrow(mapping_mat))){
     cur_map <- mapping_mat[kk,]
     ref_image <- image_list[[cur_map[2]]]
     if(which.min(cur_map) == 1){
@@ -2206,7 +2205,7 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
   # reference and target landmarks/keypoints
   mapping <- list()
   query_image <- image_list[[query_ind]]
-  for(kk in 1:nrow(mapping_mat)){
+  for(kk in seq_len(nrow(mapping_mat))){
     cur_map <- mapping_mat[kk,]
     ref_image <- image_list[[cur_map[2]]]
 

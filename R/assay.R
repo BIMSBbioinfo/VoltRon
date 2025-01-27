@@ -311,7 +311,7 @@ subsetSegments <- function(segments, image, crop_info){
   # get segments
   segment_names <- names(segments)
   segments <- do.call(dplyr::bind_rows, segments)
-  rownames(segments) <- 1:nrow(segments)
+  rownames(segments) <- seq_len(nrow(segments))
   segments <- data.frame(segments, row_id = rownames(segments))
   
   # subset
@@ -887,7 +887,7 @@ generateTileDatavrAssay <- function(object, name = NULL, reg = FALSE, channel = 
     image_data <- split_into_tiles(image_data, tile_size = vrAssayParams(object, param = "tile.size"))
     image_data <- sapply(image_data, function(x) return(as.vector(x)))
     image_data <- image_data*255
-    rownames(image_data) <- paste0("pixel", 1:nrow(image_data))
+    rownames(image_data) <- paste0("pixel", seq_len(nrow(image_data)))
     colnames(image_data) <- vrSpatialPoints(object)
     feat_type <- vrMainFeatureType(object)
     
@@ -1124,7 +1124,7 @@ setMethod("vrSegments<-", "vrAssay", vrSegmentsReplacevrAssay)
 #' @export
 setMethod("vrSegments<-", "vrAssayV2", vrSegmentsReplacevrAssay)
 
-vrEmbeddingsvrAssay <- function(object, type = "pca", dims = 1:30) {
+vrEmbeddingsvrAssay <- function(object, type = "pca", dims = seq_len(30)) {
   
   # embeddings
   embeddings <- object@embeddings
@@ -1136,7 +1136,7 @@ vrEmbeddingsvrAssay <- function(object, type = "pca", dims = 1:30) {
   } else{
     embedding <- object@embeddings[[type]]
     if(max(dims) > ncol(embedding)){
-      dims <- 1:ncol(embedding)
+      dims <- seq_len(ncol(embedding))
     }
     return(embedding[,dims, drop = FALSE])
   }

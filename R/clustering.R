@@ -22,7 +22,7 @@ NULL
 #' @importFrom igraph add_edges simplify make_empty_graph vertices E<- E
 #'
 #' @export
-getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, data.type = "pca", dims = 1:30, graph.key = method){
+getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, data.type = "pca", dims = seq_len(30), graph.key = method){
 
   # get data
   if(data.type %in% c("raw", "norm")){
@@ -54,7 +54,7 @@ getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, da
            },
            kNN = {
              nnedges <- nnedges$nn.index
-             nnedges <- cbind(1:nrow(nndata), nnedges)
+             nnedges <- cbind(seq_len(nrow(nndata)), nnedges)
              nnedges <- apply(nnedges, 1, function(x){
                do.call(c,lapply(x[-1], function(y) return(c(x[1],y))))
              })

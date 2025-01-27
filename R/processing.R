@@ -346,7 +346,7 @@ getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca
   }
   
   # change colnames
-  colnames(pr.data) <- paste0("PC", 1:dims)
+  colnames(pr.data) <- paste0("PC", seq_len(dims))
   rownames(pr.data) <- colnames(normdata)
 
   # set Embeddings
@@ -374,7 +374,7 @@ getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca
 #'
 #' @export
 #'
-getUMAP <- function(object, assay = NULL, data.type = "pca", dims = 1:30, umap.key = "umap", overwrite = FALSE, seed = 1){
+getUMAP <- function(object, assay = NULL, data.type = "pca", dims = seq_len(30), umap.key = "umap", overwrite = FALSE, seed = 1){
 
   # get data
   if(data.type %in% c("raw", "norm")){
@@ -423,8 +423,8 @@ split_into_tiles <- function(image_data, tile_size = 10) {
   tiles <- list()
 
   # Loop through the image data matrix to extract tiles
-  for (i in 1:n_row_tiles) {
-    for (j in 1:n_col_tiles) {
+  for (i in seq_len(n_row_tiles)) {
+    for (j in seq_len(n_col_tiles)) {
       # Calculate the indices for the current tile
       start_row <- (i - 1) * tile_size + 1
       end_row <- i * tile_size

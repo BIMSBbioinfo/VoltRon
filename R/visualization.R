@@ -171,7 +171,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
       return(gg[[1]] + theme(legend.position=legend.loc))
     }
   } else {
-    for(i in 1:length(assay_names)){
+    for(i in seq_len(length(assay_names))){
       gg[[i]] <- gg[[i]] + theme(legend.position=legend.loc)
     }
     return(gg)
@@ -284,7 +284,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   if(vrAssayTypes(assay) == "ROI"){
     polygon_data <- NULL
     circle_data <- NULL
-    for(i in 1:length(segments)){
+    for(i in seq_len(length(segments))){
       if(nrow(segments[[i]]) > 1){
         cur_segment <- segments[[i]][,c("x","y")]
         cur_data <- as.data.frame(cbind(cur_segment, names(segments)[i], cur_group.by[i]))
@@ -589,7 +589,7 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
       return(suppressWarnings(gg[[1]] + theme(legend.position=legend.loc)))
     }
   } else {
-    for(i in 1:(length(features)*length(assay_names))){
+    for(i in seq_len(length(features)*length(assay_names))){
       gg[[i]] <- gg[[i]] + theme(legend.position=legend.loc)
     }
     return(suppressWarnings(gg))
@@ -698,7 +698,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   if(vrAssayTypes(assay) == "ROI" && !is.null(segments)){
     polygon_data <- NULL
     circle_data <- NULL
-    for(i in 1:length(segments)){
+    for(i in seq_len(length(segments))){
       cur_data <- as.data.frame(cbind(segments[[i]], names(segments)[i], coords$score[i]))
       if(nrow(segments[[i]]) > 1){
         colnames(cur_data) <- c("id", "x", "y", "segment", "score")
@@ -1280,7 +1280,7 @@ vrNeighbourhoodEnrichmentPlot <- function(results, assay = NULL, type = c("assoc
   mat <- matrix(nrow = length(entities), ncol = length(entities))
   rownames(mat) <- colnames(mat) <- entities
   mat_padj <- mat
-  for(i in 1:nrow(results)){
+  for(i in seq_len(nrow(results))){
     mat_padj[which(results$cell1[i]==entities), which(results$cell2[i]==entities)] <- 
       mat_padj[which(results$cell2[i]==entities), which(results$cell1[i]==entities)] <- ifelse(type == "assoc", results$p_assoc_adj[i], results$p_segreg_adj[i])
     mat[which(results$cell1[i]==entities), which(results$cell2[i]==entities)] <- 
@@ -1309,7 +1309,7 @@ vrNeighbourhoodEnrichmentPlot <- function(results, assay = NULL, type = c("assoc
 
   # extra heatmap legend
   lgd <- ComplexHeatmap::Legend(labels = c("1.00", "0.75", "0.50", "0.25"), title = "p.adj", type = "points", pch = 16, 
-                                size = unit(1:5, 'mm'), direction = 'vertical', legend_gp = gpar(col = "black"), background = 'white')
+                                size = unit(seq_len(5), 'mm'), direction = 'vertical', legend_gp = gpar(col = "black"), background = 'white')
   
   # draw heatmap
   ComplexHeatmap::draw(ht, annotation_legend_list = lgd)
@@ -1400,7 +1400,7 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
 
   # plotting features
   datax <- data.frame(vrEmbeddings(object, assay = assay_names, type = embedding))
-  datax <- datax[,1:2]
+  datax <- datax[,seq_len(2)]
   colnames(datax) <- c("x", "y")
   if(group.by %in% colnames(metadata)){
     if(inherits(metadata, "data.table")){
@@ -1540,7 +1540,7 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, c
 
   # get embedding
   datax <- data.frame(vrEmbeddings(object, assay = assay_names, type = embedding))
-  datax <- datax[,1:2]
+  datax <- datax[,seq_len(2)]
   colnames(datax) <- c("x", "y")
 
   # calculate limits for plotting, all for making one scale, feature for making multiple
@@ -1898,7 +1898,7 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
 
   # highlight some rows
   if(highlight.some){
-    ind <- sample(1:nrow(heatmapdata), n_highlight, replace = FALSE)
+    ind <- sample(seq_len(nrow(heatmapdata)), n_highlight, replace = FALSE)
     ha <- ComplexHeatmap::rowAnnotation(foo = ComplexHeatmap::anno_mark(at = ind, labels = rownames(heatmapdata)[ind], padding = 1,
                                                                         labels_gp = gpar(fontsize = font.size)))
   } else{
@@ -2365,7 +2365,7 @@ vrFeaturePlotTiling <- function(g, data, legend_title, n.tile, alpha = 1, limits
 #' @noRd
 get_rasterization_colors <- function(n){
   colors <- c("darkblue",'darkred', "yellow2", "darkgreen", "darkorange", 'darkmagenta', "brown")
-  colors[1:n]
+  colors[seq_len(n)]
 }
 
 ####

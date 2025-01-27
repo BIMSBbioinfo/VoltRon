@@ -48,7 +48,7 @@ formImage <- function(coords, segments = list(), image = NULL, main_channel = NU
 
       # enter names if there are no names
       if(is.null(names(image)))
-        names(image) <- paste("channel_", 1:length(image), sep = "")
+        names(image) <- paste("channel_", seq_len(length(image)), sep = "")
 
       # get image information
       imageinfo <- vapply(image, function(x) as.matrix(magick::image_info(x)[,c("width", "height")])[1,], 
@@ -1519,10 +1519,10 @@ demuxVoltRon <- function(object, max.pixel.size = 1200, use.points.only = FALSE,
         
         # visualize already selected boxes
         if(length(selected_corners_list()) > 0){
-          for (i in 1:length(selected_corners_list())){
+          for (i in seq_len(length(selected_corners_list()))){
             corners <- apply(as.matrix(selected_corners_list()[[i]]),2,as.numeric)
             if(nrow(corners) > 1){
-              corners <- as.data.frame(rbind(cbind(corners[1,1], corners[1:2,2]), cbind(corners[2,1], corners[2:1,2])))
+              corners <- as.data.frame(rbind(cbind(corners[1,1], corners[seq_len(2),2]), cbind(corners[2,1], corners[rev(seq_len(2)),2])))
               colnames(corners) <- c("x", "y")
               pl <- pl + ggplot2::geom_polygon(aes(x = x, y = y), data = corners, alpha = 0.3, fill = "green", color = "black")
               
@@ -1532,9 +1532,9 @@ demuxVoltRon <- function(object, max.pixel.size = 1200, use.points.only = FALSE,
         
         # put labels of the already selected polygons
         if(length(selected_corners_list()) > 0){
-          for (i in 1:length(selected_corners_list())){
+          for (i in seq_len(length(selected_corners_list()))){
             corners <- selected_corners_list()[[i]]
-            corners <- as.data.frame(rbind(cbind(corners[1,1], corners[1:2,2]), cbind(corners[2,1], corners[2:1,2])))
+            corners <- as.data.frame(rbind(cbind(corners[1,1], corners[seq_len(2),2]), cbind(corners[2,1], corners[rev(seq_len(2)),2])))
             corners <- data.frame(x = mean(corners[,1]), y = max(corners[,2]), sample = paste("Subset ", isolate(textboxes()[i])))
             pl <- pl +
               ggrepel::geom_label_repel(mapping = aes(x = x, y = y, label = sample), data = corners,
@@ -1565,13 +1565,13 @@ demuxVoltRon <- function(object, max.pixel.size = 1200, use.points.only = FALSE,
         box_list <- selected_corners_list_image()
         
         # collect labels
-        sample_names <- vapply(1:length(box_list$box), function(i) input[[paste0("sample",i)]], character(1))
+        sample_names <- vapply(seq_len(length(box_list$box)), function(i) input[[paste0("sample",i)]], character(1))
 
         # check if sample names are present
         if(any(sample_names == "")) {
           showNotification("Some subsets have blank (empty!) sample names.")
         } else{
-          for(i in 1:length(box_list$box)){
+          for(i in seq_len(length(box_list$box))){
             temp <- subset(object, image = box_list$box[i])
             temp$Sample <- sample_names[i]
             subsets[[sample_names[i]]] <- temp

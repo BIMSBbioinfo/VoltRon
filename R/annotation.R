@@ -207,10 +207,10 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
 
     # Region Events ####
     n <- length(segments)
-    textboxes <- reactiveVal(if (n > 0) 1:n else numeric(0))
+    textboxes <- reactiveVal(if (n > 0) seq_len(n) else numeric(0))
     if (n > 0) {
       segment_names <- as.list(segment_names)
-      names(segment_names) <- paste0("region", 1:n)
+      names(segment_names) <- paste0("region", seq_len(n))
       textbox_values <- do.call("reactiveValues", segment_names)
     } else {
       textbox_values <- reactiveValues()
@@ -329,7 +329,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
       # visualize already selected regions ####
       transformed_corners_list <- lapply(selected_corners_list(), transformSelectedCorners, img, ranges, max.pixel.size)
       if(length(transformed_corners_list) > 0){
-        for (i in 1:length(transformed_corners_list)){
+        for (i in seq_len(length(transformed_corners_list))){
           cur_corners <- transformed_corners_list[[i]]
           
           # visualize regions
@@ -373,7 +373,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
       selected_polygon_list <- selected_corners_list()
       
       # collect labels
-      selected_label_list <- vapply(1:length(selected_polygon_list), function(i) input[[paste0("region",i)]], character(1))
+      selected_label_list <- vapply(seq_len(length(selected_polygon_list)), function(i) input[[paste0("region",i)]], character(1))
       
       if(length(selected_corners_list()) == 0){
         showNotification("You have not annotated the data yet!")
@@ -391,7 +391,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
         new_label <- rep("undefined", length(spatialpoints))
         names(new_label) <- spatialpoints
         result_list <- list()
-        for(i in 1:length(selected_polygon_list)){
+        for(i in seq_len(length(selected_polygon_list))){
           cur_poly <- selected_polygon_list[[i]]
           if(ncol(cur_poly) > 2){
             in.list <- point.in.circle(coords[,1], coords[,2], cur_poly[,1], cur_poly[,2], cur_poly[,3])
@@ -407,7 +407,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
         
         # add polygons to a new assay ####
         segments <- list()
-        for(i in 1:length(selected_label_list)){
+        for(i in seq_len(length(selected_label_list))){
           segments[[selected_label_list[i]]] <- data.frame(id = i, selected_polygon_list[[i]])
         }
         coords <- t(vapply(segments, function(seg){
@@ -567,7 +567,7 @@ transformSelectedCorners <- function(selected_corners, image, ranges, max.pixel.
   # get circle radius 
   if(circle){
     selected_radius <- selected_corners[,3:4, drop = FALSE]
-    selected_corners <- selected_corners[,1:2, drop = FALSE]
+    selected_corners <- selected_corners[,seq_len(2), drop = FALSE]
   }
   
   # get image info

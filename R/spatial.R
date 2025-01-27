@@ -95,7 +95,7 @@ getSpatialNeighbors <- function(object,
       switch(method,
              delaunay = {
                nnedges <- RCDT::delaunay(cur_coords)
-               nnedges <- as.vector(t(nnedges$edges[,1:2]))
+               nnedges <- as.vector(t(nnedges$edges[,seq_len(2)]))
                nnedges <- rownames(cur_coords)[nnedges]
                nnedges
              },
@@ -231,7 +231,7 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
   colnames(neighbors_graph_data) <- c("from", "to")
   
   # get simulations
-  grp_sim <- vapply(1:1000, function(x) sample(grp), numeric(length(grp)))
+  grp_sim <- vapply(seq_len(1000), function(x) sample(grp), numeric(length(grp)))
   rownames(grp_sim) <- names(grp)
   
   # get adjacency for observed and simulated pairs

@@ -366,7 +366,7 @@ writeHDF5ArrayInMetadata <- function(object,
         }
         
         # write rest of the columns
-        for(i in 1:ncol(meta.data)){
+        for(i in seq_len(ncol(meta.data))){
           if(inherits(meta.data,"data.table")){
             cur_column <- as.array(as.vector(subset(meta.data, select = colnames(meta.data)[i]))[[1]])
           } else {
@@ -675,7 +675,7 @@ writeZarrArrayInMetadata <- function(object,
         }
         
         # write rest of the columns
-        for(i in 1:ncol(meta.data)){
+        for(i in seq_len(ncol(meta.data))){
           if(inherits(meta.data,"data.table")){
             cur_column <- as.array(as.vector(subset(meta.data, select = colnames(meta.data)[i]))[[1]])
           } else {
@@ -1146,7 +1146,7 @@ shorten_assay_links_bpcells <- function(object){
     object@matrix <- shorten_assay_links_bpcells(object@matrix)
   } else if("matrix_list" %in% slot_names){
     object_list <- object@matrix_list
-    for(i in 1:length(object_list))
+    for(i in seq_len(length(object_list)))
       object_list[[i]] <- shorten_assay_links_bpcells(object_list[[i]])
   }
   return(object)
@@ -1351,7 +1351,7 @@ updateIterableMatrixPath <- function(object, FUN, ...){
     object@matrix <- updateIterableMatrixPath(object@matrix, FUN, ...)
   } else if("matrix_list" %in% slot_names){
     object_list <- object@matrix_list
-    for(i in 1:length(object_list)){
+    for(i in seq_len(length(object_list))){
       object_list[[i]] <- updateIterableMatrixPath(object_list[[i]], FUN, ...)
     }
     object@matrix_list <- object_list
@@ -1371,13 +1371,13 @@ updateDataFramePath <- function(object, FUN, ...){
     object@seed <- updateIterableMatrixPath(object@seed, FUN, ...)
   } else if("listData" %in% slot_names){
     object_list <- object@listData
-    for(i in 1:length(object_list)){
+    for(i in seq_len(length(object_list))){
       object_list[[i]] <- updateDataFramePath(object_list[[i]], FUN, ...)
     }
     object@listData <- object_list
   } else if("seeds" %in% slot_names){
     object_list <- object@seeds
-    for(i in 1:length(object_list)){
+    for(i in seq_len(length(object_list))){
       object_list[[i]] <- updateDataFramePath(object_list[[i]], FUN, ...)
     }
     object@seeds <- object_list
