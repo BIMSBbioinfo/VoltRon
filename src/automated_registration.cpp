@@ -89,7 +89,7 @@ std::string check_transformation_metrics(std::vector<cv::KeyPoint> keypoints1, s
   std::string degenerate;
   degenerate = check_degenerate(keypoints1, keypoints2);
   
-  // //  check transformation
+  //  check transformation
   // std::string transformation;
   // transformation = check_transformation_by_pts_mean_sqrt(keypoints1, keypoints2, h, mask);
   
@@ -503,10 +503,10 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   
   // Homography (with FLANN)
   if(strcmp(matcher.get_cstring(), "FLANN") == 0 && strcmp(method.get_cstring(), "Homography") == 0){
-  alignImagesFLANN(im, imReference, imReg, imOverlay, imMatches, 
-                   h, invert_query, invert_ref,
-                   flipflop_query.get_cstring(), flipflop_ref.get_cstring(), 
-                   rotate_query.get_cstring(), rotate_ref.get_cstring());
+    alignImagesFLANN(im, imReference, imReg, imOverlay, imMatches, 
+                     h, invert_query, invert_ref,
+                     flipflop_query.get_cstring(), flipflop_ref.get_cstring(), 
+                     rotate_query.get_cstring(), rotate_ref.get_cstring());
   }
   
   // Homography (with Brute-Force matching)
