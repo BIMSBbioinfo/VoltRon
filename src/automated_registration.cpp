@@ -17,33 +17,30 @@ using namespace std;
 using namespace cv;
 using namespace cv::xfeatures2d;
 
+// Parameters
+struct Parameters
+{ 
+  const int sift_nfeatures=20000;
+  const int tile_size=5000;
+  const int tile_overlap=50;
+};
+
 // check if keypoints are degenerate
-std::string check_degenerate(std::vector<cv::KeyPoint> keypoints1, std::vector<cv::KeyPoint> keypoints2) {
+bool check_degenerate(std::vector<cv::KeyPoint> keypoints1, std::vector<cv::KeyPoint> keypoints2) {
 
   // get sd
   double keypoints1_sd = cppSD(keypoints1);
   double keypoints2_sd = cppSD(keypoints2);
   
   // get warning message
-  std::string message;
+  bool is_degenerate = FALSE;
   if(keypoints1_sd < 1.0 | keypoints2_sd < 1.0){
-    message = "degenarate";
+    is_degenerate = TRUE;
     Rcout << "WARNING: points may be in a degenerate configuration." << endl;
-  } else {
-    message = "not degenarate";
-  }
+  } 
 
-  return message;
+  return is_degenerate;
 }
-
-// // check transformation of points
-// std::string check_transformation_by_pts_mean_sqrt(std::vector<cv::KeyPoint> keypoints1, std::vector<cv::KeyPoint> keypoints2, Mat &h, Mat &mask){
-// 
-//   // perspective transformation of query keypoints
-//   std::vector<cv::Point2f> keypoints1_reg;
-//   cv::perspectiveTransform(keypoints1, keypoints1_reg, h);
-// 
-// }
 
 // check distribution of registered points
 std::string check_transformation_by_point_distribution(Mat &im, Mat &h){
@@ -83,11 +80,10 @@ std::string check_transformation_by_point_distribution(Mat &im, Mat &h){
 
 
 // do overall checks on keypoints and images
-std::string check_transformation_metrics(std::vector<cv::KeyPoint> keypoints1, std::vector<cv::KeyPoint> keypoints2, Mat &im1, Mat &im2, Mat &h, Mat &mask) {
+bool check_transformation_metrics(std::vector<cv::KeyPoint> keypoints1, std::vector<cv::KeyPoint> keypoints2, Mat &im1, Mat &im2, Mat &h, Mat &mask) {
   
   // check keypoint standard deviation
-  std::string degenerate;
-  degenerate = check_degenerate(keypoints1, keypoints2);
+  bool is_degenerate = check_degenerate(keypoints1, keypoints2);
   
   //  check transformation
   // std::string transformation;
@@ -97,7 +93,7 @@ std::string check_transformation_metrics(std::vector<cv::KeyPoint> keypoints1, s
   std::string distribution;
   distribution = check_transformation_by_point_distribution(im2, h);
     
-  return degenerate;
+  return is_degenerate;
 }
 
 // get good matching keypoints
@@ -210,8 +206,138 @@ void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   warpPerspective(im1, im1Overlay, h, im2.size());
 }
 
+void computeSIFTTiles(Mat &im, std::vector<KeyPoint> &keypoints, Mat &descriptors, Ptr<Feature2D> &sift,
+                      Parameters params){
+  
+  // image size
+  int width = im.size().width;
+  int height = im.size().height;
+  
+  // tile overlaps
+  int step_x = params.tile_size - params.tile_overlap;
+  int step_y = params.tile_size - params.tile_overlap;
+  
+  // compare size and tiles
+  if(width <= params.tile_size or height <= params.tile_size){
+    
+    sift->detectAndCompute(im, Mat(), keypoints, descriptors);
+    return;
+    
+  } else {
+    
+    // Loop over tile positions
+    for (int y = 0; y < height - params.tile_overlap; y += step_y) {
+      for (int x = 0; x < width - params.tile_overlap; x += step_x) {
+        
+        // Define the region of interest (tile)
+        int tile_x_end = std::min(x + params.tile_size, width);
+        int tile_y_end = std::min(y + params.tile_size, height);
+        cv::Rect tile_rect(x, y, tile_x_end - x, tile_y_end - y);
+        
+        // 
+        cv::Mat tile = im(tile_rect);
+        
+        // Detect keypoints and compute descriptors in the tile
+        std::vector<cv::KeyPoint> tile_keypoints;
+        cv::Mat tile_descriptors;
+        sift->detectAndCompute(tile, Mat(), tile_keypoints, tile_descriptors);
+        
+        // Adjust keypoint coordinates
+        for (auto& kp : tile_keypoints) {
+          kp.pt.x += x;
+          kp.pt.y += y;
+          keypoints.push_back(kp);
+        }
+        
+        // Append tile descriptors to the global descriptors matrix
+        if (!tile_descriptors.empty()) {
+          if (descriptors.empty()) {
+            descriptors = tile_descriptors.clone();
+          } else {
+            cv::vconcat(descriptors, tile_descriptors, descriptors);
+          }
+        }
+        
+      }
+    }
+    
+  }
+}
+
+void getSIFTTransformationMatrix(Mat im1Proc, Mat im1NormalProc, Mat im2Proc, Mat im1, Mat im2, Mat &h, Mat &mask, 
+                                 Mat &imMatches, std::vector<Point2f> &points1, std::vector<Point2f> &points2,
+                                 Parameters params, bool &is_faulty){
+  
+  //////////////////////
+  /// Compute SIFT /////
+  //////////////////////
+  
+  // Variables to store keypoints and descriptors
+  std::vector<KeyPoint> keypoints1, keypoints2;
+  Mat descriptors1, descriptors2;
+  
+  // Detect SIFT features
+  Ptr<Feature2D> sift = cv::SIFT::create(params.sift_nfeatures);
+  // sift->detectAndCompute(im1Proc, Mat(), keypoints1, descriptors1);
+  // sift->detectAndCompute(im2Proc, Mat(), keypoints2, descriptors2);
+  computeSIFTTiles(im1Proc, keypoints1, descriptors1, sift, params);
+  computeSIFTTiles(im2Proc, keypoints2, descriptors2, sift, params);
+  Rcout << "DONE: sift based key-points detection and descriptors computation" << endl;
+  
+  ///////////////////////
+  /// Compute FLANN /////
+  ///////////////////////
+  
+  // Match features using FLANN matching
+  std::vector<std::vector<DMatch>> matches;
+  cv::FlannBasedMatcher custom_matcher = cv::FlannBasedMatcher(cv::makePtr<cv::flann::KDTreeIndexParams>(5), cv::makePtr<cv::flann::SearchParams>(50, 0, TRUE));
+  cv::Ptr<cv::FlannBasedMatcher> matcher = custom_matcher.create();
+  matcher->knnMatch(descriptors1, descriptors2, matches, 2);
+  Rcout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
+  
+  // Find good matches
+  std::vector<DMatch> good_matches;
+  getGoodMatches(matches, good_matches);
+  Rcout << "DONE: get good matches by distance thresholding" << endl;
+  
+  ///////////////////////
+  /// Find Homography ///
+  ///////////////////////
+  
+  // Extract location of good matches
+  //std::vector<Point2f> points1, points2;
+  for( size_t i = 0; i < good_matches.size(); i++ )
+  {
+    points1.push_back(keypoints1[good_matches[i].queryIdx].pt);
+    points2.push_back(keypoints2[good_matches[i].trainIdx].pt);
+  }
+  
+  // Find homography
+  h = findHomography(points1, points2, RANSAC, 5, mask);
+  Rcout << "DONE: calculated homography matrix" << endl;
+  
+  ///////////////////////
+  /// Find Matches ///
+  ///////////////////////
+  
+  // Draw top matches and good ones only
+  std::vector<cv::DMatch> top_matches;
+  std::vector<cv::KeyPoint> keypoints1_best, keypoints2_best;
+  for(size_t i = 0; i < good_matches.size(); i++ )
+  {
+    keypoints1_best.push_back(keypoints1[good_matches[i].queryIdx]);
+    keypoints2_best.push_back(keypoints2[good_matches[i].trainIdx]);
+    top_matches.push_back(cv::DMatch(static_cast<int>(i), static_cast<int>(i), 0));
+  }
+  drawMatches(im1Proc, keypoints1_best, im2Proc, keypoints2_best, top_matches, imMatches);
+  
+  // check keypoints
+  is_faulty = check_transformation_metrics(keypoints1_best, keypoints2_best, im1, im2, h, mask);
+}
+
+
 // align images with FLANN algorithm
-void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imMatches, Mat &h,
+void alignImagesFLANN_old(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imMatches, Mat &h,
                  const bool invert_query, const bool invert_ref,
                  const char* flipflop_query, const char* flipflop_ref,
                  const char* rotate_query, const char* rotate_ref)
@@ -278,23 +404,8 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   }
   drawMatches(im1Proc, keypoints1_best, im2Proc, keypoints2_best, top_matches, imMatches);
   
-  // Visualize matches, use for demonstration purposes
-  // std::vector<cv::DMatch> top_matches_vis;
-  // std::vector<cv::KeyPoint> keypoints1_best_vis, keypoints2_best_vis;
-  // for(size_t i = 0; i < good_matches.size(); i++)
-  // {
-  //   keypoints1_best_vis.push_back(keypoints1[good_matches[i].queryIdx]);
-  //   keypoints2_best_vis.push_back(keypoints2[good_matches[i].trainIdx]);
-  //   top_matches_vis.push_back(cv::DMatch(static_cast<int>(i), static_cast<int>(i), 0));
-  // }
-  // Mat im1Proc_vis, im2Proc_vis, im1NormalProc_vis, imMatches_vis;
-  // im1Proc_vis = preprocessImage(im1, invert_query, flipflop_query, rotate_query);
-  // im2Proc_vis = preprocessImage(im2, invert_ref, flipflop_ref, rotate_ref);
-  // drawMatches(im1Proc_vis, keypoints1_best, im2Proc_vis, keypoints2_best, top_matches, imMatches_vis);
-  // cv::imwrite("matches.jpg", imMatches_vis);
-  
   // check keypoints
-  std::string is_faulty = check_transformation_metrics(keypoints1_best, keypoints2_best, im1, im2, h, mask);
+  bool is_faulty = check_transformation_metrics(keypoints1_best, keypoints2_best, im1, im2, h, mask);
 
   // Use homography to warp image
   Mat im1Warp, im1NormalWarp;
@@ -313,15 +424,26 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
 }
 
 // align images with FLANN algorithm
-void alignImagesFLANNTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, 
-                         Mat &imMatches, Mat &h, Rcpp::List &keypoints,
-                         const bool invert_query, const bool invert_ref,
-                         const char* flipflop_query, const char* flipflop_ref,
-                         const char* rotate_query, const char* rotate_ref)
+void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, 
+                      Mat &imMatches, Mat &h, Rcpp::List &keypoints,
+                      const bool invert_query, const bool invert_ref,
+                      const char* flipflop_query, const char* flipflop_ref,
+                      const char* rotate_query, const char* rotate_ref,
+                      const bool run_TPS)
 {
   
   // seed
   cv::setRNGSeed(0);
+  
+  ////////////////////
+  /// Parameters /////
+  ////////////////////
+  
+  Parameters params;
+
+  //////////////////////
+  /// Process Images ///
+  //////////////////////
   
   // Convert images to grayscale
   Mat im1Gray, im2Gray;
@@ -334,65 +456,31 @@ void alignImagesFLANNTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   im1NormalProc = preprocessImage(im1, FALSE, flipflop_query, rotate_query);
   im2Proc = preprocessImage(im2Gray, invert_ref, flipflop_ref, rotate_ref);
   
-  // Variables to store keypoints and descriptors
-  std::vector<KeyPoint> keypoints1, keypoints2;
-  Mat descriptors1, descriptors2;
+  // ////////////////////////////////////
+  // /// Compute SIFT+FLANN+Homograpy ///
+  // ////////////////////////////////////
   
-  // Detect SIFT features
-  Ptr<Feature2D> sift = cv::SIFT::create();
-  sift->detectAndCompute(im1Proc, Mat(), keypoints1, descriptors1);
-  sift->detectAndCompute(im2Proc, Mat(), keypoints2, descriptors2);
-  Rcout << "DONE: sift based key-points detection and descriptors computation" << endl;
-  
-  // Match features using FLANN matching
-  std::vector<std::vector<DMatch>> matches;
-  cv::FlannBasedMatcher custom_matcher = cv::FlannBasedMatcher(cv::makePtr<cv::flann::KDTreeIndexParams>(5), cv::makePtr<cv::flann::SearchParams>(50, 0, TRUE));
-  cv::Ptr<cv::FlannBasedMatcher> matcher = custom_matcher.create();
-  matcher->knnMatch(descriptors1, descriptors2, matches, 2);
-  Rcout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
-  
-  // Find good matches
-  std::vector<DMatch> good_matches;
-  getGoodMatches(matches, good_matches);
-  Rcout << "DONE: get good matches by distance thresholding" << endl;
-  
-  // Extract location of good matches
-  std::vector<Point2f> points1, points2;
-  for( size_t i = 0; i < good_matches.size(); i++ )
-  {
-    points1.push_back(keypoints1[good_matches[i].queryIdx].pt);
-    points2.push_back(keypoints2[good_matches[i].trainIdx].pt);
-  }
-  
-  // Find homography
+  // RUN SIFT+FLANN+Homography
+  bool is_faulty = FALSE;
   cv::Mat mask;
-  h = findHomography(points1, points2, RANSAC, 5, mask);
-  Rcout << "DONE: calculated homography matrix" << endl;
-
+  std::vector<Point2f> points1, points2;
+  getSIFTTransformationMatrix(im1Proc, im1NormalProc, im2Proc, im1, im2, h, mask, imMatches, 
+                              points1, points2, params, is_faulty);
+  
   // Use homography to warp image
   Mat im1Warp, im1NormalWarp;
   warpPerspective(im1Proc, im1Warp, h, im2Proc.size());
   warpPerspective(im1NormalProc, im1NormalWarp, h, im2Proc.size());
   Rcout << "DONE: warped query image" << endl;
   
-  // Draw top matches and good ones only
-  std::vector<cv::DMatch> top_matches;
-  std::vector<cv::KeyPoint> keypoints1_best, keypoints2_best;
-  for(size_t i = 0; i < good_matches.size(); i++ )
-  {
-    keypoints1_best.push_back(keypoints1[good_matches[i].queryIdx]);
-    keypoints2_best.push_back(keypoints2[good_matches[i].trainIdx]);
-    top_matches.push_back(cv::DMatch(static_cast<int>(i), static_cast<int>(i), 0));
-  }
-  drawMatches(im1Proc, keypoints1_best, im2Proc, keypoints2_best, top_matches, imMatches);
-  
-  // check keypoints
-  std::string is_faulty = check_transformation_metrics(keypoints1_best, keypoints2_best, im1, im2, h, mask);
+  ///////////////////////
+  /// Find Homography ///
+  ///////////////////////
   
   // continue with TPS or do FLANN only
   Mat im1Reg_Warp_nonrigid;
   Mat im1Reg_NormalWarp_nonrigid;
-  if(is_faulty == "degenerate"){
+  if(is_faulty || run_TPS){
     
     // change color map
     Mat im1Combine;
@@ -405,7 +493,7 @@ void alignImagesFLANNTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     cvtColor(im1Combine, im1Overlay, cv::COLOR_GRAY2BGR);
     cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
 
-  // if FLANN succeeds   
+  // TPS is requested (only if FLANN succeeded)
   } else {
     
     // Filtered points (inliers) based on the mask
@@ -492,25 +580,20 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   // Read image to be aligned
   cv::Mat im = imageToMat(query_image, width2, height2);
   
-  // Homography (with FLANN) + Non-rigid (TPS)
-  if(strcmp(matcher.get_cstring(), "FLANN") == 0 && strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0){
-    alignImagesFLANNTPS(im, imReference, imReg, imOverlay, imMatches, 
-                        h, keypoints, 
-                        invert_query, invert_ref,
-                        flipflop_query.get_cstring(), flipflop_ref.get_cstring(), 
-                        rotate_query.get_cstring(), rotate_ref.get_cstring());
-  }
-  
   // Homography (with FLANN)
-  if(strcmp(matcher.get_cstring(), "FLANN") == 0 && strcmp(method.get_cstring(), "Homography") == 0){
+  if(strcmp(matcher.get_cstring(), "FLANN") == 0 && (strcmp(method.get_cstring(), "Homography") == 0 || strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0)){
+    const bool run_TPS = strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0;
+    Rcout << "Running SIFT+FLANN Alignment" << ((run_TPS) ? " with TPS" : "") << endl;
     alignImagesFLANN(im, imReference, imReg, imOverlay, imMatches, 
-                     h, invert_query, invert_ref,
+                     h, keypoints, 
+                     invert_query, invert_ref,
                      flipflop_query.get_cstring(), flipflop_ref.get_cstring(), 
-                     rotate_query.get_cstring(), rotate_ref.get_cstring());
+                     rotate_query.get_cstring(), rotate_ref.get_cstring(), run_TPS);
   }
   
   // Homography (with Brute-Force matching)
   if(strcmp(matcher.get_cstring(), "BRUTE-FORCE") == 0 && strcmp(method.get_cstring(), "Homography") == 0){
+    Rcout << "Running BRUTE-FORCE Alignment" << endl;
     alignImagesBRUTE(im, imReference, imReg, imOverlay, imMatches, 
                      h, GOOD_MATCH_PERCENT, MAX_FEATURES);
   }
