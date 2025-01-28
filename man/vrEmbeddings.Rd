@@ -13,11 +13,11 @@
 \usage{
 vrEmbeddings(object, ...)
 
-\S4method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", dims = 1:30)
+\S4method{vrEmbeddings}{VoltRon}(object, assay = NULL, type = "pca", dims = seq_len(30))
 
-\S4method{vrEmbeddings}{vrAssay}(object, type = "pca", dims = 1:30)
+\S4method{vrEmbeddings}{vrAssay}(object, type = "pca", dims = seq_len(30))
 
-\S4method{vrEmbeddings}{vrAssayV2}(object, type = "pca", dims = 1:30)
+\S4method{vrEmbeddings}{vrAssayV2}(object, type = "pca", dims = seq_len(30))
 
 \S4method{vrEmbeddings}{vrAssay}(object, type = "pca") <- value
 

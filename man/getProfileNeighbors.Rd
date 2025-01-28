@@ -10,7 +10,7 @@ getProfileNeighbors(
   method = "kNN",
   k = 10,
   data.type = "pca",
-  dims = 1:30,
+  dims = seq_len(30),
   graph.key = method
 )
 }

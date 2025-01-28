@@ -339,6 +339,8 @@ writeHDF5ArrayInMetadata <- function(object,
     stop("Please install HDF5DataFrame package!: devtools::install_github('BIMSBbioinfo/HDF5DataFrame')")
   if(!requireNamespace('HDF5Array'))
     stop("Please install HDF5Array package!: BiocManager::install('HDF5Array')")
+  if(!requireNamespace('rhdf5'))
+    stop("Please install rhdf5 package!: BiocManager::install('rhdf5')")
   
   # iterate over all metadata slots
   slot_names <- slotNames(object)
@@ -502,6 +504,10 @@ writeHDF5ArrayInImage <- function(object,
   # check packages
   if(!requireNamespace('ImageArray'))
     stop("Please install ImageArray package!: devtools::install_github('BIMSBbioinfo/ImageArray')")
+  if(!requireNamespace('rhdf5'))
+    stop("Please install rhdf5 package!: BiocManager::install('rhdf5')")
+  if(!requireNamespace('BPCells'))
+    stop("Please install BPCells package!: remotes::install_github('bnprks/BPCells/r')")
   
   # for each spatial system
   spatial_names <- vrSpatialNames(object)
@@ -647,6 +653,8 @@ writeZarrArrayInMetadata <- function(object,
     stop("Please install ZarrDataFrame package!: devtools::install_github('BIMSBbioinfo/ZarrDataFrame')")
   if(!requireNamespace('ZarrArray'))
     stop("Please install ZarrArray package!: devtools::install_github('BIMSBbioinfo/ZarrArray')")
+  if(!requireNamespace('pizzarr'))
+    stop("Please install pizzarr package!: devtools::install_github('keller-mark/pizzarr')")
   
   # iterate over all metadata slots
   slot_names <- slotNames(object)
@@ -800,7 +808,7 @@ writeZarrArrayInVrData <- function(object,
 }
 
 #' writeZarrArrayInImage
-#'
+#' 
 #' @noRd
 writeZarrArrayInImage <- function(object, 
                                   zarr_path,
@@ -815,6 +823,10 @@ writeZarrArrayInImage <- function(object,
   # check packages
   if(!requireNamespace('ImageArray'))
     stop("Please install ImageArray package!: devtools::install_github('BIMSBbioinfo/ImageArray')")
+  if(!requireNamespace('ZarrArray'))
+    stop("Please install ZarrArray package!: devtools::install_github('BIMSBbioinfo/ZarrArray')")
+  if(!requireNamespace('pizzarr'))
+    stop("Please install pizzarr package!: devtools::install_github('keller-mark/pizzarr')")
   
   # for each spatial system
   spatial_names <- vrSpatialNames(object)

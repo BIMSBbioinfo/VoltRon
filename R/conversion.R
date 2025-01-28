@@ -661,7 +661,7 @@ as.Giotto <- function(object, assay = NULL, reg = FALSE){
   
   # check Seurat package
   if(!requireNamespace('Giotto'))
-    stop("Please install Giotto package!")
+    stop("Please install Giotto package!devtools::install_github('drieslab/Giotto')")
   
   # check the number of assays
   if(is.null(assay)){

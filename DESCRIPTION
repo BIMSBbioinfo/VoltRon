@@ -40,6 +40,7 @@ Collate:
     'auxiliary.R'
     'clustering.R'
     'conversion.R'
+    'data.R'
     'deconvolution.R'
     'differentialexpression.R'
     'image.R'
@@ -56,18 +57,32 @@ Collate:
     'visualization.R'
 Suggests:
     testthat (>= 3.0.0),
+    S4Vectors,
+    DelayedArray,
+    hdf5r,
+    rhdf5,
+    basilisk,
+    reticulate,
+    RBioFormats,
+    BPCells,
+    HDF5Array,
+    pizzarr,
+    ZarrArray,
+    HDF5DataFrame,
+    ZarrDataFrame,
+    ImageArray,
+    viridisLite,
     SpatialExperiment,
     SingleCellExperiment,
+    SummarizedExperiment,
     Seurat,
     SeuratObject,
+    Giotto,
     DESeq2,
     MuSiC,
     spacexr,
-    RBioFormats,
     XML,
     ComplexHeatmap,
-    basilisk,
-    reticulate,
     xlsx,
     reshape2,
     tiledb,
@@ -79,13 +94,7 @@ Suggests:
     rstudioapi,
     ggforce,
     anndataR,
-    anndata,
-    DelayedArray,
-    hdf5r,
-    ImageArray,
-    BPCells,
-    HDF5DataFrame,
-    ZarrDataFrame
+    anndata
 Config/testthat/edition: 3
 LazyData: true
 LazyDataCompression: gzip

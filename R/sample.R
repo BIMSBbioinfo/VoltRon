@@ -18,7 +18,7 @@
 #'
 NULL
 
-#' @describeIn vrSample-methods Accessing vrLayer objects from \code{vrBlock} objects
+#' @describeIn vrSample-methods Accessing vrLayer objects from \code{vrSample} objects
 #' 
 #' @importFrom methods slot
 setMethod(
@@ -40,7 +40,7 @@ setMethod(
 )
 
 
-#' @describeIn vrSample-methods Accessing vrLayer objects from \code{vrBlock} objects
+#' @describeIn vrSample-methods Accessing vrLayer objects from \code{vrSample} objects
 #' 
 #' @importFrom methods slot
 setMethod(
