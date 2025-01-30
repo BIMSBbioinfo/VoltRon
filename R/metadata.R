@@ -547,6 +547,11 @@ addAssayvrMetadata <- function(object, metadata = NULL, assay, assay_name, sampl
         assay_metadata <- data.frame(id = entityID, assay_id = assay_id)
       }
       
+      # check rownames
+      if(!is.null(rownames(object_metadata))){
+        rownames(assay_metadata) <- assay_metadata$id
+      }
+      
       # add metadata
       if(!is.null(metadata)){
         if(length(setdiff(metadata_id, entityID_nopostfix)) > 0){
