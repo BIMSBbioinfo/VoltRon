@@ -13,3 +13,5 @@ autobrew
 .deps
 Makevars
 dev
+libs_copy.tar.xz
+cleanup

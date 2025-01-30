@@ -35,10 +35,10 @@ if [ "$PKGCONFIG_CFLAGS" ] || [ "$PKGCONFIG_LIBS" ]; then
     PKG_CFLAGS="$PKG_CFLAGS -D_DATA_PREFIX=${PKGCONFIG_PREFIX}"
   fi
 elif [ `uname` = "Darwin" ]; then
-  curl -sfL "https://autobrew.github.io/scripts/opencv" > autobrew
-    . ./autobrew
-  rm autobrew
-  rm cleanup
+  rm -f cleanup
+  # curl -sfL "https://autobrew.github.io/scripts/opencv" > autobrew
+  . ./autobrew
+  # rm autobrew
 fi
 
 ## adding additional features for Morpho derived C++ functions ### DELETE THIS LATER, Morpho no longer required!

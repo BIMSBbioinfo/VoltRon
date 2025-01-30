@@ -28,7 +28,6 @@ Rcpp::NumericMatrix replaceNaMatrix(Rcpp::NumericMatrix mat, int replace) {
   return mat;
 }
 
-
 ////
 // Conversion
 ////
