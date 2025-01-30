@@ -355,7 +355,6 @@ bool getSIFTTransformationMatrixSingle(
   Ptr<Feature2D> sift = cv::SIFT::create(params.sift_nfeatures);
   computeSIFTTiles(im1Proc, keypoints1, descriptors1, sift, params);
   computeSIFTTiles(im2Proc, keypoints2, descriptors2, sift, params);
-  
   Rcout << "DONE: SIFT based key-points detection and descriptors computation" << endl;
   
   // filter duplicates
@@ -460,6 +459,7 @@ void getSIFTTransformationMatrix(
                                               imMatches,
                                               points1, points2, good_matches,
                                               params, is_faulty);
+    Rcout << "DONE: calculated homography matrix with " << points1.size() << " points" << endl;
   } else {
     return;
   }
@@ -477,6 +477,7 @@ void getSIFTTransformationMatrix(
                                               imMatches,
                                               points1, points2, good_matches,
                                               params, is_faulty);
+    Rcout << "DONE: calculated homography matrix with " << points1.size() << " points" << endl;
   } else {
     return;
   }
@@ -491,11 +492,11 @@ void getSIFTTransformationMatrix(
                                               imMatches,
                                               points1, points2, good_matches,
                                               params, is_faulty);
+    Rcout << "DONE: calculated homography matrix with " << points1.size() << " points" << endl;
   } else {
     return;
   }
   
-  Rcout << "DONE: calculated homography matrix with " << points1.size() << " points" << endl;
 // 
 //   // check keypoints
 //   is_faulty = check_transformation_metrics(points1, points2, im1, im2, h, mask);
