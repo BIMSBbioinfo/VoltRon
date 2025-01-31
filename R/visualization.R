@@ -429,7 +429,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   return(g)
 }
 
-#' addSpatialPlot
+#' addSpatialLayer
 #'
 #' adding additional layers of spatial plots to an existing \link{vrSpatialPlot}.
 #'
@@ -451,7 +451,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #' @import ggplot2
 #' 
 #' @export
-addSpatialPlot <- function(g, object, assay, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, reg = FALSE, colors = NULL, alpha = 1,
+addSpatialLayer <- function(g, object, assay, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, reg = FALSE, colors = NULL, alpha = 1,
                            n.tile = 0, pt.size = 2, cell.shape = 21, graph = NULL){
   
   # check package
@@ -461,14 +461,24 @@ addSpatialPlot <- function(g, object, assay, group.by = "Sample", plot.segments 
   
   # sample metadata
   sample.metadata <- SampleMetadata(object)
+  spatial.names <- vrSpatialNames(object, assay = "all")
   
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
   
   # objects and parameters
   assay <- object[[assay_names]]
+  adj_assay <- g$voltron_params$assay
   spatial_name <- g$voltron_params$spatial_name
   scale_factors <- g$voltron_params$scale_factors
+  
+  # check adjacency
+  adj_sample <- unique(sample.metadata[c(assay_names, adj_assay),"Sample"])
+  adj_spatial <- unique(spatial.names[c(assay_names, adj_assay),"Main"])
+  if(length(adj_sample) != 1 || length(adj_sample) != 1){
+    message("Assays in addSpatialLayer() are not adjacent to vrSpatialPlot()!")
+    return(g)
+  } 
   
   # get entity type and metadata
   metadata <- Metadata(object, assay = assay_names)
@@ -1046,7 +1056,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
                                 legend.margin = margin(0,0,0,0))
 
   # visualize labels
-  if(label){
+  if(label && vrAssayTypes(assay) == "ROI"){
     if(group.by %in% colnames(metadata)){
       coords[[group.by]] <- as.vector(metadata[,group.by])
     } else {

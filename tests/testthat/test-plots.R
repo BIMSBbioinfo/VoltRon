@@ -150,47 +150,51 @@ test_that("multilayer", {
   
   # cell vs ROI (without segments)
   vrSpatialPlot(merged_object, plot.segments = FALSE) |>
-    addSpatialPlot(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.3)
+    addSpatialLayer(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.3)
   
   # cell vs ROI (with segments)
   vrSpatialPlot(merged_object, plot.segments = TRUE) |>
-    addSpatialPlot(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.4, colors = list(Block = "blue"))
-  
-  # tiling first doesnt work
+    addSpatialLayer(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.4, colors = list(Block = "blue"))
+  # TODO: tiling first doesnt work
   # vrSpatialPlot(merged_object, plot.segments = FALSE, n.tile = 100) |>
-  #   addSpatialPlot(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.4, colors = list(Block = "blue"))
+  #   addSpatialLayer(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.4, colors = list(Block = "blue"))
   
   # ROI vs cell
   vrSpatialPlot(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.4, colors = list(Block = "blue")) |>
-    addSpatialPlot(merged_object, assay = "Assay1")
+    addSpatialLayer(merged_object, assay = "Assay1")
   vrSpatialPlot(merged_object, assay = "Assay3", group.by = "Sample", alpha = 1, colors = list(Block = "blue")) |>
-    addSpatialPlot(merged_object, assay = "Assay1", plot.segments = TRUE, alpha = 0.4)
+    addSpatialLayer(merged_object, assay = "Assay1", plot.segments = TRUE, alpha = 0.4)
   vrSpatialPlot(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.4, colors = list(Block = "blue")) |>
-    addSpatialPlot(merged_object, assay = "Assay1", n.tile = 100)
+    addSpatialLayer(merged_object, assay = "Assay1", n.tile = 100)
   
   # cell vs molecule (without segments)
   vrSpatialPlot(merged_object, plot.segments = FALSE) |>
-    addSpatialPlot(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green"))
+    addSpatialLayer(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green"))
   vrSpatialPlot(merged_object, plot.segments = FALSE) |>
-    addSpatialPlot(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green"), n.tile = 100)
-  
-  # Both tiling doesnt work for now
+    addSpatialLayer(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green"), n.tile = 100)
+  # TODO: Both tiling doesnt work for now
   # vrSpatialPlot(merged_object, plot.segments = FALSE, n.tile = 100) |>
-  #   addSpatialPlot(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green"), n.tile = 100)
+  #   addSpatialLayer(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green"), n.tile = 100)
   
-  # cell vs molecule (with segments)
+  # cell vs molecule 
   vrSpatialPlot(merged_object, plot.segments = TRUE) |>
-    addSpatialPlot(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green"))
+    addSpatialLayer(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green"))
   vrSpatialPlot(merged_object, plot.segments = TRUE) |>
-    addSpatialPlot(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green"), n.tile = 100)
+    addSpatialLayer(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green"), n.tile = 100)
   
   # molecule vs cell (with segments)
   vrSpatialPlot(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green")) |>
-    addSpatialPlot(merged_object, assay = "Assay1")
+    addSpatialLayer(merged_object, assay = "Assay1")
   vrSpatialPlot(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green")) |>
-    addSpatialPlot(merged_object, assay = "Assay1", n.tile = 100)
+    addSpatialLayer(merged_object, assay = "Assay1", n.tile = 100)
   vrSpatialPlot(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green")) |>
-    addSpatialPlot(merged_object, assay = "Assay1", plot.segments = TRUE, alpha = 0.4)
+    addSpatialLayer(merged_object, assay = "Assay1", plot.segments = TRUE, alpha = 0.4)
+  
+  # cells, ROIs and molecules together
+  vrSpatialPlot(merged_object, plot.segments = TRUE) |>
+    addSpatialLayer(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green")) |>
+    addSpatialLayer(merged_object, assay = "Assay3", group.by = "Layer", alpha = 0.4, colors = list(Section3 = "blue"))
+  
   
   expect_equal(1,1)
 })
