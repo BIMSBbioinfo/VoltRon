@@ -2311,8 +2311,8 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
 #'
 #' @noRd
 vrGroupPlotTiling <- function(g, data, group.by, n.tile, alpha = 1){
-  g + stat_bin_2d(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]]),
-                  data = data, bins = n.tile, drop = TRUE, alpha = alpha)
+  g + stat_bin_2d(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]], color = .data[[group.by]]),
+                  data = data, bins = n.tile, drop = TRUE, alpha = alpha, show.legend = TRUE)
 }
 
 #' vrFeaturePlotTiling

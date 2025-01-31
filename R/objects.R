@@ -1635,11 +1635,13 @@ vrCoordinatesVoltRon <- function(object, assay = NULL, image_name = NULL, spatia
     
     # get coordinates
     cur_coords <- vrCoordinates(object[[assy]], image_name = image_name, reg = reg)
+    if(inherits(cur_coords, "IterableMatrix"))
+      cur_coords <- as.matrix(as(cur_coords, "dgCMatrix"))
     
     # update zlocation
     sample_name <- sample_metadata[assy, "Sample"]
     
-    catch_connect <- try(slot(object, name = "zlocation"), silent = TRUE)
+    catch_connect <- try(slot(object[[sample_name]], name = "zlocation"), silent = TRUE)
     if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
       zlocation <- object[[sample_name]]@zlocation 
       cur_coords[,"z"] <- rep(zlocation[sample_metadata[assy, "Layer"]], nrow(cur_coords)) 

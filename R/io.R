@@ -346,7 +346,7 @@ writeHDF5ArrayInMetadata <- function(object,
   slot_names <- slotNames(object)
   for(sn in slot_names){
     meta.data <- methods::slot(object, name = sn)
-    if(!inherits(meta.data, c("HDF5DataFrame")) || replace){
+    if(!inherits(meta.data, c("DataFrame", "HDF5DataFrame")) || replace){
       if(nrow(meta.data) > 0){
         meta.data_list <- list()
         rhdf5::h5createGroup(h5_path, group = paste0(name, "/", sn))
@@ -374,6 +374,8 @@ writeHDF5ArrayInMetadata <- function(object,
           } else {
             cur_column <- as.array(meta.data[,i])
           }
+          if(is.factor(cur_column))
+            cur_column <- as.array(as.character(cur_column))
           meta.data_list[[colnames(meta.data)[i]]] <- 
             HDF5Array::writeHDF5Array(cur_column, 
                                       h5_path, 
@@ -660,7 +662,7 @@ writeZarrArrayInMetadata <- function(object,
   slot_names <- slotNames(object)
   for(sn in slot_names){
     meta.data <- methods::slot(object, name = sn)
-    if(!inherits(meta.data, c("ZarrDataFrame")) || replace){
+    if(!inherits(meta.data, c("DataFrame", "ZarrDataFrame")) || replace){
       if(nrow(meta.data) > 0){
         meta.data_list <- list()
         zarr.array <- pizzarr::zarr_open(store = zarr_path)

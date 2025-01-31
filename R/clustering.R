@@ -140,7 +140,7 @@ getClusters <- function(object, resolution = 1, nclus = integer(0), assay = NULL
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get assays
-  object_subset <- subset(object, assays = assay_names)
+  object_subset <- subsetVoltRon(object, assays = assay_names)
 
   # check clustering parameters
   .check_clustering_params(method, resolution, nclus, abundance_limit)
