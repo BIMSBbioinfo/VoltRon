@@ -142,6 +142,16 @@ test_that("metadata", {
   # add column to metadata
   xenium_data2$new_column <- vrSpatialPoints(xenium_data2)
   
+  # save updated metadata
+  xenium_data2 <- saveVoltRon(xenium_data2, verbose = FALSE)
+  meta.data <- Metadata(xenium_data2)
+  expect_true(is(meta.data@listData[["new_column"]], "HDF5ColumnVector"))
+  
+  # load after update
+  xenium_data2 <- loadVoltRon(output_h5ad)
+  meta.data <- Metadata(xenium_data2)
+  expect_true(is(meta.data@listData[["new_column"]], "HDF5ColumnVector"))
+  
   # remove files
   unlink(output_h5ad, recursive = TRUE)
   
@@ -220,6 +230,16 @@ test_that("neighbors", {
   expect_true(length(igraph::E(graphs)) > 0)
   xenium_data2 <- getClusters(xenium_data2, graph = "kNN", label = "cluster_knn")
   expect_true(is.numeric(unique(xenium_data2$cluster_knn)))
+  
+  # update metadata
+  xenium_data2 <- saveVoltRon(xenium_data2, verbose = FALSE)
+  meta.data <- Metadata(xenium_data2)
+  expect_true(is(meta.data@listData[["cluster_knn"]], "HDF5ColumnVector"))
+  
+  # load after update
+  xenium_data2 <- loadVoltRon(output_h5ad)
+  meta.data <- Metadata(xenium_data2)
+  expect_true(is(meta.data@listData[["cluster_knn"]], "HDF5ColumnVector"))
   
   # remove files
   unlink(output_h5ad, recursive = TRUE)
