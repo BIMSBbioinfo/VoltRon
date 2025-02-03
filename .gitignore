@@ -13,3 +13,4 @@ autobrew
 .deps
 Makevars
 dev
+*.tar.xz
