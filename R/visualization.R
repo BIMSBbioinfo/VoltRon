@@ -189,6 +189,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 #' @param colors the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by
 #' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
 #' @param graph if not NULL, the graph is added to the plot
+#' @param graph.edge.color the color of graph edges, if \code{graph} is not NULL.
 #' @param font.size font sizes
 #' @param pt.size point size
 #' @param cell.shape the shape of the points representing cells, see \link{geom_point}
@@ -433,7 +434,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #'
 #' adding additional layers of spatial plots to an existing \link{vrSpatialPlot}.
 #'
-#' @param a ggplot object 
+#' @param g ggplot object 
 #' @param object a VoltRon object
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
@@ -447,12 +448,13 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #' @param pt.size point size
 #' @param cell.shape the shape of the points representing cells, see \link{geom_point}
 #' @param graph if not NULL, the graph is added to the plot
+#' @param graph.edge.color the color of graph edges, if \code{graph} is not NULL.
 #' 
 #' @import ggplot2
 #' 
 #' @export
 addSpatialLayer <- function(g, object, assay, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, reg = FALSE, colors = NULL, alpha = 1,
-                           n.tile = 0, pt.size = 2, cell.shape = 21, graph = NULL){
+                           n.tile = 0, pt.size = 2, cell.shape = 21, graph = NULL, graph.edge.color = "orange"){
   
   # check package
   if(!requireNamespace("ggnewscale")){

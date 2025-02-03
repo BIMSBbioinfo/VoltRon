@@ -17,10 +17,13 @@ addSpatialLayer(
   n.tile = 0,
   pt.size = 2,
   cell.shape = 21,
-  graph = NULL
+  graph = NULL,
+  graph.edge.color = "orange"
 )
 }
 \arguments{
+\item{g}{ggplot object}
+
 \item{object}{a VoltRon object}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
@@ -46,7 +49,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{graph}{if not NULL, the graph is added to the plot}
 
-\item{a}{ggplot object}
+\item{graph.edge.color}{the color of graph edges, if \code{graph} is not NULL.}
 }
 \description{
 adding additional layers of spatial plots to an existing \link{vrSpatialPlot}.
