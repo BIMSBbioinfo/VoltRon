@@ -18,7 +18,8 @@ addSpatialLayer(
   pt.size = 2,
   cell.shape = 21,
   graph = NULL,
-  graph.edge.color = "orange"
+  graph.edge.color = "orange",
+  spatial = NULL
 )
 }
 \arguments{

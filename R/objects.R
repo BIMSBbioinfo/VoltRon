@@ -1442,7 +1442,7 @@ MetadataVoltRon <- function(object, assay = NULL, type = NULL){
   } else{
     type <- unique(vrAssayTypes(object, assay = assay))
     if(length(type) > 1)
-      stop("Select only metadata with a single assay type!")
+      stop("You cannot get the metadata of multiple spatial entity types in the same time! See SampleMetadata()")
   }
 
   # get assay metadata from matching type
@@ -1505,7 +1505,7 @@ MetadataReplaceVoltRon <- function(object, assay = NULL, type = NULL, value) {
   sample.metadata <- SampleMetadata(object)
 
   # get assay names
-  assay_names <- vrAssayNames(object, assay = assay)
+  # assay_names <- vrAssayNames(object, assay = assay)
 
   # get metadata
   metadata <- slot(object@metadata, name = type)
@@ -1566,7 +1566,7 @@ MetadataReplaceVoltRon <- function(object, assay = NULL, type = NULL, value) {
         # check columns of the new table
         new_columns <- setdiff(colnames(value), colnames(metadata))
   
-        # current metadata shouldnt have columns that value doesnt have
+        # current metadata shouldn't have columns that value doesnt have
         if(length(setdiff(colnames(metadata), colnames(value))) > 0)
           stop("Some columns of new data frame are not available in the metadata")
   
@@ -1603,6 +1603,69 @@ MetadataReplaceVoltRon <- function(object, assay = NULL, type = NULL, value) {
 #'
 #' @export
 setMethod("Metadata<-", "VoltRon", MetadataReplaceVoltRon)
+
+#' addMetadata
+#' 
+#' adding new columns or updating the values of the existing columns
+#' 
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param type the assay type: ROI, spot or cell, or all for the entire metadata object
+#' @param value the new values of the metadata column
+#' @param label the label of the new column, either a new column or an existing one
+#'
+#' @export
+addMetadata <- function(object, assay = NULL, type = NULL, value, label) {
+  
+  # auxiliary
+  `%notin%` <- Negate(`%in%`)
+
+  # check type
+  if(is.null(type)){
+    type <- unique(vrAssayTypes(object, assay = assay))
+    if(length(type) > 1){
+      stop("You cannot update the metadata of multiple spatial entity types in the same time! See SampleMetadata()")
+    }
+  }
+  
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+  
+  # get assay names
+  entities <- vrSpatialPoints(object, assay = assay)
+
+  # get metadata
+  metadata <- slot(object@metadata, name = type)
+  
+  # add or replace the new column
+  if(label %notin% colnames(metadata)){
+    
+    # add empty values if the column is new
+    if(is.numeric(value)){
+      metadata[[label]] <- NA
+    } else {
+      metadata[[label]] <- ""
+    }
+  }
+  
+  # replace data
+  if(length(value) == length(entities) || length(value) == 1){
+    if(is.null(rownames(metadata))){
+      metadata[[label]][match(entities, as.vector(metadata$id))] <- value
+    } else {
+      metadata[entities,][[label]] <- value
+    } 
+  } else {
+    stop("value should be of the same length as the rows of metadata or 1!")
+  }
+  
+  # replace metadata
+  slot(object@metadata, name = type) <- metadata
+  
+  # return
+  return(object)
+}
+
 
 #' SampleMetadata
 #'

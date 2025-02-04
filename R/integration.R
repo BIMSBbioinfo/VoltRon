@@ -105,7 +105,7 @@ transferFeatureData <- function(object, from = NULL, to = NULL, features = NULL,
 #' @param object a VoltRon object
 #' @param from The ID of assay whose data transfer to the second assay
 #' @param to The ID of the target assay where data is transfered to
-#' @param features The set of data or metadata features that are transfered. Only one metadata feature can be transfered at a time.
+#' @param features The set of data or metadata features that are transferred. Only one metadata feature can be transferred at a time.
 #'
 #' @noRd
 transferLabels <- function(object, from = NULL, to = NULL, features = NULL){
@@ -125,9 +125,24 @@ transferLabels <- function(object, from = NULL, to = NULL, features = NULL){
     
     # transfer labels
     transferedLabelsMetadata <- transferLabelsFromROI(from_object, from_metadata, to_object, to_metadata, features = features)
-    
-    # transfer labels
-    Metadata(object, assay = to) <- transferedLabelsMetadata
+
+    # update metadata
+    # metadata <- Metadata(object, assay = to)
+    # entities <- vrSpatialPoints(to_object)
+    # if(is.numeric(value)){
+    #   metadata[[features]] <- as.numeric(NA)
+    # } else {
+    #   metadata[[features]] <- ""
+    # }
+    # if(is.null(rownames(metadata))){
+    #   metadata[[features]][match(entities, as.vector(metadata$id))] <- value
+    # } else {
+    #   metadata[entities,][[features]] <- value
+    # }
+    # 
+    # # transfer labels
+    # Metadata(object, assay = to) <- metadata
+    object <- addMetadata(object, assay = to, value = transferedLabelsMetadata[[features]], label = features)
   }
     
   # return

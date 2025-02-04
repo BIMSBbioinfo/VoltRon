@@ -365,7 +365,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
           g <- g +
             geom_polygon(aes(x = .data[["x"]], y = .data[["y"]], fill = .data[["group.by"]], group = segment), data = polygon_data, alpha = alpha, show.legend = TRUE) +
             scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 1))
-            # guides(fill = guide_legend(title = group.by))
+            
         }
       } else {
         
@@ -381,11 +381,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         }
         
         # style, color and text
-        # g <- g +
-        #   scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 1)) +
-        #   scale_color_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 1)) +
-        #   guides(color = guide_legend(override.aes=list(size = legend.pt.size))) +
-        #   theme(legend.text=element_text(size=legend.text.size), legend.title=element_text(size=legend.text.size))
         g <- g +
           scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 1)) +
           scale_color_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 1)) +
@@ -454,7 +449,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #' 
 #' @export
 addSpatialLayer <- function(g, object, assay, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, reg = FALSE, colors = NULL, alpha = 1,
-                           n.tile = 0, pt.size = 2, cell.shape = 21, graph = NULL, graph.edge.color = "orange"){
+                           n.tile = 0, pt.size = 2, cell.shape = 21, graph = NULL, graph.edge.color = "orange", spatial = NULL){
   
   # check package
   if(!requireNamespace("ggnewscale")){
@@ -471,7 +466,7 @@ addSpatialLayer <- function(g, object, assay, group.by = "Sample", plot.segments
   # objects and parameters
   assay <- object[[assay_names]]
   adj_assay <- g$voltron_params$assay
-  spatial_name <- g$voltron_params$spatial_name
+  spatial_name <- if(is.null(spatial)) g$voltron_params$spatial_name else spatial
   scale_factors <- g$voltron_params$scale_factors
   
   # check adjacency
@@ -568,8 +563,8 @@ addSpatialLayer <- function(g, object, assay, group.by = "Sample", plot.segments
   names_colors <- factor(names(colors))
   
   # set new scales
-  g <- g + ggnewscale::new_scale_fill()
   g <- g + ggnewscale::new_scale_color()
+  g <- g + ggnewscale::new_scale_fill()
   
   # visualize based on points type
   if(vrAssayTypes(assay) == "ROI"){
