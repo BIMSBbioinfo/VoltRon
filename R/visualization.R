@@ -563,8 +563,8 @@ addSpatialLayer <- function(g, object, assay, group.by = "Sample", plot.segments
   names_colors <- factor(names(colors))
   
   # set new scales
-  g <- g + ggnewscale::new_scale_color()
   g <- g + ggnewscale::new_scale_fill()
+  g <- g + ggnewscale::new_scale_color()
   
   # visualize based on points type
   if(vrAssayTypes(assay) == "ROI"){
