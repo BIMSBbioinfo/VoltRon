@@ -563,9 +563,9 @@ addSpatialLayer <- function(g, object, assay, group.by = "Sample", plot.segments
   names_colors <- factor(names(colors))
   
   # set new scales
-  g <- g + ggnewscale::new_scale_fill()
   g <- g + ggnewscale::new_scale_color()
-  
+  g <- g + ggnewscale::new_scale_fill()
+
   # visualize based on points type
   if(vrAssayTypes(assay) == "ROI"){
     polygon_data <- NULL
@@ -2562,7 +2562,7 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
 #' @noRd
 vrGroupPlotTiling <- function(g, data, group.by, n.tile, alpha = 1){
   g + stat_bin_2d(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]], color = .data[[group.by]]),
-                  data = data, bins = n.tile, drop = TRUE, alpha = alpha, show.legend = TRUE)
+                  data = data, bins = n.tile, drop = TRUE, alpha = alpha)
 }
 
 #' vrFeaturePlotTiling

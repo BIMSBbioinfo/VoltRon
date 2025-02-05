@@ -220,5 +220,9 @@ test_that("multilayer (with tiling)", {
   vrSpatialPlot(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green")) |>
     addSpatialLayer(merged_object, assay = "Assay1", plot.segments = TRUE)
   
+  # molecule vs ROI
+  vrSpatialPlot(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green"), n.tile = 100) |>
+    addSpatialLayer(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.4, colors = list(Block = "blue"))
+  
   expect_equal(1,1)
 })
