@@ -51,3 +51,30 @@ test_that("add column (numeric)", {
   
   expect_equal(1,1L)
 })
+
+test_that("add column ($ method)", {
+  
+  # get data
+  data("visium_data")
+  data("xenium_data")
+  
+  # add a text column
+  xenium_data2 <- xenium_data
+  xenium_data2$column <- "text"
+  old_column <- xenium_data2$column
+  
+  # replace value of label, and check difference
+  xenium_data2$column <- paste0("text", 1:nrow(Metadata(xenium_data2)))
+  expect_false(all(xenium_data2$column == old_column))
+  
+  # add a numeric column
+  xenium_data2 <- xenium_data
+  xenium_data2$column <- 1
+  old_column <- xenium_data2$column
+  
+  # replace value of label, and check difference
+  xenium_data2$column <- 1:nrow(Metadata(xenium_data2))
+  expect_false(all(xenium_data2$column == old_column))
+  
+  expect_equal(1,1L)
+})
