@@ -801,7 +801,7 @@ membranes.</p>
 s2_summary_infected &lt;- 
   Metadata(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;) %&gt;%
   filter(gene %in% c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), 
-         Infected != &quot;undefined&quot;) %&gt;% 
+         Region == &quot;Infected&quot;) %&gt;% 
   summarise(S2_N = sum(gene == &quot;S2_N&quot;), 
             S2_orf1ab = sum(gene == &quot;S2_orf1ab&quot;), 
             ratio = sum(gene == &quot;S2_N&quot;)/sum(gene == &quot;S2_orf1ab&quot;)) %&gt;% 

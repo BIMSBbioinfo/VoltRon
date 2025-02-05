@@ -408,7 +408,7 @@ library(dplyr)
 s2_summary_infected <- 
   Metadata(vr2_merged_acute1, assay = "Xenium_mol") %>%
   filter(gene %in% c("S2_N", "S2_orf1ab"), 
-         Infected != "undefined") %>% 
+         Region == "Infected") %>% 
   summarise(S2_N = sum(gene == "S2_N"), 
             S2_orf1ab = sum(gene == "S2_orf1ab"), 
             ratio = sum(gene == "S2_N")/sum(gene == "S2_orf1ab")) %>% 

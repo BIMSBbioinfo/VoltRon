@@ -48,6 +48,7 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 In this tutorial, we will cover some of the fundemantel built-in functions of VoltRon to manage data, images and spatial information of assays. Here is the list of example datasets included in the Package.
 
 ```{r eval = FALSE, class.source="watch-out"}
+library(VoltRon)
 data("visium_data")
 data("melc_data")
 data("xenium_data")
@@ -727,6 +728,29 @@ vrSpatialFeaturePlot(visium_data, assay = "Assay1", features = "Count")
 ```
 
 <br>
+
+### Spatial Plots (Multi-Layer)
+
+**vrSpatialPlot** function can be paired with the **addSpatialLayer** function to add additional assays of the same spatial coordinate system as the original assay. We use the piping operator "|>" to connect to functions which overlays the results of the first image with the second. **addSpatialLayer** will check if two assays are within the same tissue block and coordinate system, and will overlay these assays if thats the case. 
+
+This utility can be used to visualize molecules along with cell segments. Here we can also color each individual molecule (gene) type.
+
+```{r eval = TRUE, class.source="watch-out"}
+data("merged_object")
+vrSpatialPlot(merged_object, plot.segments = TRUE, group.by = "clusters") |>
+  addSpatialLayer(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, 
+                  colors = list(KRT15 = "blue", KRT14 = "green"))
+```
+
+<br>
+
+You can also visualize the segments that represents annotations of the tissue sections along with the cells.
+
+```{r eval = TRUE, class.source="watch-out"}
+data("merged_object")
+vrSpatialPlot(merged_object, plot.segments = FALSE, group.by = "clusters") |>
+  addSpatialLayer(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.3, color = list(Block = "blue"))
+```
 
 ### Embedding Plots
 
