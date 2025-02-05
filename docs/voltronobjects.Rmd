@@ -38,6 +38,11 @@ table, th, td {
 ```{r setup, include=FALSE}
 # use rmarkdown::render_site(envir = knitr::knit_global())
 knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
+library(VoltRon)
+library(patchwork)
+library(magick)
+if(!requireNamespace("ggnewscale"))
+  install.packages("ggnewscale")
 ```
 
 <br>
@@ -48,10 +53,10 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 In this tutorial, we will cover some of the fundemantel built-in functions of VoltRon to manage data, images and spatial information of assays. Here is the list of example datasets included in the Package.
 
 ```{r eval = FALSE, class.source="watch-out"}
-library(VoltRon)
 data("visium_data")
 data("melc_data")
 data("xenium_data")
+data("merged_object")
 ```
 
 <br>
@@ -60,13 +65,8 @@ data("xenium_data")
 
 The sample metadata is a summarized data frame which provides informations on assays, layers and sample (tissue blocks) included in the VoltRon object. You can use the **SampleMetadata** function to call this table. The row names are the unique assay IDs, following assay types (e.g. Visium), layer name and Sample (typicall tissue block with multiple layers and assays).
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out"}
 SampleMetadata(visium_data)
-```
-
-```
-        Assay    Layer    Sample
-Assay1 Visium Section1 Anterior1
 ```
 
 <br>
@@ -79,17 +79,9 @@ The **Metadata** function calls the metadata table of the main assay type (see [
 Metadata(visium_data)
 ```
 
+```{r echo = FALSE, class.source="watch-out"}
+head(Metadata(visium_data),6)
 ```
-                          Count  Assay    Layer    Sample
-AAAGGCTCTCGCGCCG-1_Assay1 39690 Visium Section1 Anterior1
-AAATGGCCCGTGCCCT-1_Assay1 33516 Visium Section1 Anterior1
-AAATTACACGACTCTG-1_Assay1 12250 Visium Section1 Anterior1
-AAGACATACGTGGTTT-1_Assay1 31821 Visium Section1 Anterior1
-ACCTACTATAAATCTA-1_Assay1 41387 Visium Section1 Anterior1
-ACGCGGGCCAAGGACA-1_Assay1 48003 Visium Section1 Anterior1
-```
-
-<br>
 
 You can also specify the assay ID or the assay type to call metadata of a subset of spatial points.
 
@@ -97,6 +89,7 @@ You can also specify the assay ID or the assay type to call metadata of a subset
 Metadata(visium_data, assay = "Visium")
 Metadata(visium_data, assay = "Assay1")
 ```
+
 The **type** argument returns all spatial points of a given spatial point type (ROI, spot, cell, molecule or tile).
 
 ```{r eval = FALSE, class.source="watch-out"}
@@ -105,14 +98,8 @@ Metadata(visium_data, type = "spot")
 
 If the type argument is specified as **all**. Then this would return the VoltRon Metadata Object (vrMetadata)
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out"}
 Metadata(visium_data, type = "all")
-```
-
-```
-VoltRon Metadata Object 
-This object includes: 
-   100 spots
 ```
 
 <br>
@@ -127,8 +114,8 @@ The **vrSpatialPoints** function return the IDs of these entities for further do
 vrSpatialPoints(visium_data)
 ```
 
-```
-  [1] "AAAGGCTCTCGCGCCG-1_Assay1" "AAATGGCCCGTGCCCT-1_Assay1" "AAATTACACGACTCTG-1_Assay1" 
+```{r echo = FALSE, class.source="watch-out"}
+head(vrSpatialPoints(visium_data),3)
 ```
 
 You can also specify the assay ID or the assay type to call metadata of a subset of spatial points.
@@ -138,8 +125,8 @@ vrSpatialPoints(visium_data, assay = "Visium")
 vrSpatialPoints(visium_data, assay = "Assay1")
 ```
 
-```
-  [1] "AAAGGCTCTCGCGCCG-1_Assay1" "AAATGGCCCGTGCCCT-1_Assay1" "AAATTACACGACTCTG-1_Assay1" 
+```{r echo = FALSE, class.source="watch-out"}
+head(vrSpatialPoints(visium_data, assay = "Visium"),3)
 ```
 
 <br>
@@ -148,69 +135,39 @@ vrSpatialPoints(visium_data, assay = "Assay1")
 
 The default (or main) assay of the VoltRon object is typically shown when printed (next to the assay name says "main" in paranthesis)
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out"}
 melc_data
 ```
 
-```
-VoltRon Object 
-control_case_3: 
-  Layers: Section1 
-Assays: MELC(Main) 
-```
-
-<br>
-
 You can also call/get the name of the default (or main) using the **vrMainAssay** function
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out"}
 vrMainAssay(melc_data)
 ```
 
-```
-[1] "MELC"
-```
-
-<br>
-
 You can also set the main assay yourself, but only the assay types given in the **Assay** column of **SampleMetadata(object)**.
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out"}
 SampleMetadata(melc_data)
 ```
 
-```
-       Assay    Layer         Sample
-Assay1  MELC Section1 control_case_3
-```
-
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out"}
 vrMainAssay(melc_data) <- "MELC"
 ```
 
-<br>
-
 You can also get the assay IDs associated with the main assay using **vrAssayNames** function. 
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out"}
 vrAssayNames(melc_data)
 ```
 
-```
-[1] "Assay1"
-```
-
-<br>
-
 The assay type can be provided with the **assay** arguement to get type specific assay IDs
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out"}
 vrAssayNames(melc_data, assay = "MELC")
 ```
 
-```
-[1] "Assay1"
-```
+<br>
 
 ## Coordinates and Segments
 
@@ -220,17 +177,9 @@ The **vrCoordinates** function is used to call the centroids of spots, cells and
 vrCoordinates(visium_data)
 ```
 
+```{r echo = FALSE, class.source="watch-out"}
+head(vrCoordinates(visium_data),6)
 ```
-                                 x        y
-AAAGGCTCTCGCGCCG-1_Assay1 271.9105 183.1497
-AAATGGCCCGTGCCCT-1_Assay1 136.8330 220.2237
-AAATTACACGACTCTG-1_Assay1 382.0482 436.6781
-AAGACATACGTGGTTT-1_Assay1 481.5491 102.7539
-ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
-ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120
-```
-
-<br>
 
 You can also specify the assay ID or the assay type to call coordinates of a subset of spatial points.
 
@@ -238,6 +187,8 @@ You can also specify the assay ID or the assay type to call coordinates of a sub
 vrCoordinates(visium_data, assay = "Visium")
 vrCoordinates(visium_data, assay = "Assay1")
 ```
+
+<br>
 
 Each assay a VoltRon object may incorporate indefinite number of coordinate systems. One can look for these coordinate systems using the **vrMainSpatial** function, and select one of systems to call coordinates (see [vrMainSpatial](#image))
 
@@ -251,17 +202,8 @@ The **reg** option in the **vrCoordinates** function looks for a registered vers
 vrCoordinates(visium_data, spatial_name = "main", reg = TRUE)
 ```
 
-```
-                                 x        y
-AAAGGCTCTCGCGCCG-1_Assay1 271.9105 183.1497
-AAATGGCCCGTGCCCT-1_Assay1 136.8330 220.2237
-AAATTACACGACTCTG-1_Assay1 382.0482 436.6781
-AAGACATACGTGGTTT-1_Assay1 481.5491 102.7539
-ACCTACTATAAATCTA-1_Assay1 282.5473 102.7539
-ACGCGGGCCAAGGACA-1_Assay1 296.7470 313.0120
-Warning message:
-In vrCoordinates.vrAssay(object[[assy]], spatial_name = spatial_name,  :
-  There are no registered spatial systems with name main!
+```{r echo = FALSE, class.source="watch-out"}
+head(vrCoordinates(visium_data, spatial_name = "main", reg = TRUE),6)
 ```
 
 <br>
@@ -276,42 +218,8 @@ vrSegments(xenium_data, spatial_name = "main")
 vrSegments(xenium_data, spatial_name = "main", reg = TRUE)
 ```
 
-```
-$`77197_Assay1`
-# A tibble: 13 × 3
-   cell_id     x     y
-     <int> <dbl> <dbl>
- 1   77197  490.  379.
- 2   77197  487   378.
- 3   77197  486.  373.
- 4   77197  485.  366.
- 5   77197  492.  364.
- 6   77197  496.  360.
- 7   77197  504.  354.
- 8   77197  505.  354.
- 9   77197  505   356.
-10   77197  500.  366.
-11   77197  492.  374.
-12   77197  490.  379.
-13   77197  490.  379.
-
-$`77200_Assay1`
-# A tibble: 13 × 3
-   cell_id     x     y
-     <int> <dbl> <dbl>
- 1   77200  493.  383.
- 2   77200  490.  380.
- 3   77200  491.  376.
- 4   77200  493.  374.
- 5   77200  500.  366.
- 6   77200  505   356.
- 7   77200  510.  361.
- 8   77200  510.  366.
- 9   77200  509.  369.
-10   77200  505.  372.
-11   77200  502.  376.
-12   77200  498   379.
-13   77200  493.  383.
+```{r echo = FALSE, class.source="watch-out"}
+head(vrSegments(xenium_data),2)
 ```
 
 <br>
@@ -320,16 +228,14 @@ $`77200_Assay1`
 
 Below we review some of the essential built-in functions to manipulate and manage images of a VoltRon object as well as the coordinate systems that are associated with these images.
 
+<br>
+
 ### Spatial Coordinate Systems
 
 In a VoltRon object, each image has a unique ID which is also associated with a coordinate (or spatial) system. The names of these spatial systems can be called using the **vrSpatialNames** function.
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out"}
 vrSpatialNames(visium_data)
-```
-
-```
-[1] "main"
 ```
 
 You can also specify the assay ID or the assay type to call image names of a subset assays or any assay type (see [Sample Metadata](#samplemetadata))
@@ -339,21 +245,16 @@ vrSpatialNames(visium_data, assay = "Visium")
 vrSpatialNames(visium_data, assay = "Assay1")
 ```
 
-```
-[1] "main"
+```{r echo = FALSE, class.source="watch-out"}
+vrSpatialNames(visium_data, assay = "Visium")
 ```
 
 <br>
 
 If you wanna see the list of all spatial systems associated with all assays of the main assay type, you can call the **vrMainSpatial** function.
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out"}
 vrMainSpatial(visium_data)
-```
-
-```
-   Assay Spatial
-1 Assay1    main
 ```
 
 You can also specify the assay ID or the assay type to call spatial system names of a subset assays or any assay type (see [Sample Metadata](#samplemetadata))
@@ -363,9 +264,8 @@ vrMainSpatial(visium_data, assay = "Visium")
 vrMainSpatial(visium_data, assay = "Assay1")
 ```
 
-```
-   Assay Spatial
-1 Assay1    main
+```{r echo = FALSE, class.source="watch-out"}
+vrMainSpatial(visium_data, assay = "Visium")
 ```
 
 <br>
@@ -380,9 +280,8 @@ vrImageChannelNames(melc_data, assay = "MELC")
 vrImageChannelNames(melc_data, assay = "Assay1")
 ```
 
-```
-       Assay    Layer         Sample Spatial  Channels
-Assay1  MELC Section1 control_case_3    MELC DAPI,CD45
+```{r echo = FALSE, class.source="watch-out"}
+vrImageChannelNames(melc_data)
 ```
 
 <br>
@@ -397,7 +296,11 @@ vrImages(visium_data, assay = "Visium")
 vrImages(visium_data, assay = "Assay1")
 ```
 
-<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_HE.png" class="center">
+```{r echo = FALSE, class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
+magick::image_ggplot(vrImages(visium_data))
+```
+
+<!-- <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_HE.png" class="center"> -->
 
 <br>
 
@@ -407,7 +310,11 @@ Once you know the name of a specific channel, you can the image of a specific ch
 vrImages(melc_data, name = "MELC", channel = "DAPI")
 ```
 
-<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_DAPI.png" class="center">
+```{r echo = FALSE, class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
+magick::image_ggplot(vrImages(melc_data, name = "MELC", channel = "DAPI"))
+```
+
+<!-- <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_DAPI.png" class="center"> -->
 
 <br>
 
@@ -418,7 +325,12 @@ vrMainSpatial(melc_data, assay = "Assay1") <- c("MELC", "CD45")
 vrImages(melc_data)
 ```
 
-<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_CD45.png" class="center">
+```{r echo = FALSE, class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
+vrMainSpatial(melc_data, assay = "Assay1") <- c("MELC", "CD45")
+magick::image_ggplot(vrImages(melc_data))
+```
+
+<!-- <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_CD45.png" class="center"> -->
 
 <br>
 
@@ -434,7 +346,7 @@ vrImages(melc_data, scale.perc = 25)
 
 VoltRon even allows manipulation of channel images if you also provide an associate list of colors.
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out"}
 melc_data <- combineChannels(melc_data, 
                              channels = c("DAPI", "CD45"), colors = c("grey", "green"), 
                              channel_key = "combined")
@@ -442,49 +354,28 @@ melc_data <- combineChannels(melc_data,
 
 These new images can be stored as new channels within the same image object, and called later again
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out"}
 vrImageChannelNames(melc_data)
-```
-
-```
-       Assay    Layer         Sample Spatial           Channels
-Assay1  MELC Section1 control_case_3    MELC DAPI,CD45,combined
 ```
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrImages(melc_data, channel = "combined")
 ```
 
+```{r echo = FALSE, class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
+magick::image_ggplot(vrImages(melc_data, channel = "combined"))
+```
+
 <br>
 
 ## Feature Matrix (Data)
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out"}
 vrData(visium_data)[3:8,3:5]
 ```
 
-```
-        AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
-Gm19938                         0                         0                         0
-Gm37381                         0                         0                         0
-Rp1                             0                         0                         0
-Sox17                           0                         1                         1
-Gm37587                         0                         0                         0
-Gm37323                         0                         0                         0
-```
-
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out"}
 vrData(visium_data, norm = TRUE)[3:8,3:5]
-```
-
-```
-        AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
-Gm19938                         0                 0.0000000                 0.0000000
-Gm37381                         0                 0.0000000                 0.0000000
-Rp1                             0                 0.0000000                 0.0000000
-Sox17                           0                 0.2732722                 0.2164184
-Gm37587                         0                 0.0000000                 0.0000000
-Gm37323                         0                 0.0000000                 0.0000000
 ```
 
 <br>
@@ -493,12 +384,8 @@ Gm37323                         0                 0.0000000                 0.00
 
 You can parse and even set individual embedding elements in a VoltRon object.
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out"}
 vrEmbeddingNames(xenium_data)
-```
-
-```
-[1] "pca"  "umap"
 ```
 
 You can use these names of get the associated embedding dataset from the object. 
@@ -507,21 +394,13 @@ You can use these names of get the associated embedding dataset from the object.
 vrEmbeddings(xenium_data, type = "umap")
 ```
 
+```{r echo = FALSE, class.source="watch-out"}
+head(vrEmbeddings(xenium_data, type = "umap"),6)
 ```
-                   x         y
-171_Assay1 -7.253258 0.3016544
-180_Assay1  5.242596 4.3041073
-182_Assay1  3.705179 4.8671747
-185_Assay1  5.239327 4.2822548
-197_Assay1 -4.665270 2.8520897
-206_Assay1 -1.887516 4.0298878
-```
-
-<br>
 
 You can also set and create new embedding elements in the voltron object. In this case, you have to make sure that the row names should match with the targeted spatial points.
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out"}
 new_umap_data <- vrEmbeddings(xenium_data, type = "umap")
 vrEmbeddings(xenium_data, type = "new_umap") <- new_umap_data*2
 ```
@@ -532,42 +411,34 @@ Now we can observe changes to the new embedding data.
 vrEmbeddings(xenium_data, type = "new_umap")
 ```
 
-```
-                    x         y
-171_Assay1 -14.506517 0.6033088
-180_Assay1  10.485192 8.6082145
-182_Assay1   7.410358 9.7343494
-185_Assay1  10.478653 8.5645096
-197_Assay1  -9.330539 5.7041794
-206_Assay1  -3.775032 8.0597755
-[1] "pca"      "umap"     "new_umap"
+```{r echo = FALSE, class.source="watch-out"}
+head(vrEmbeddings(xenium_data, type = "new_umap"),6)
 ```
 
-<br>
-
-You can choose invidiual assay names or assay classes.
+You can choose individual assay names or assay classes.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrEmbeddings(xenium_data, type = "umap", assay = "Xenium")
 vrEmbeddings(xenium_data, type = "pca", assay = "Assay1")
 ```
 
+<br>
+
 ## Subsetting VoltRon objects
+
+<br>
 
 ### sample/assay 
 
 VoltRon object can be subsetted in a variety of ways using assay names, sample names, spatial point names, features (e.g. gene), image coordinates (crop boxes or bounding boxes) as well as interactively.
 
-```{r eval = FALSE, class.source="watch-out"}
-visium_data <- subset(visium_data, samples = "Anterior1")
-visium_data <- subset(visium_data, assays = "Assay1")
+```{r class.source="watch-out"}
+visium_data_subset <- subset(visium_data, assays = "Assay1")
 ```
 
-```
-VoltRon Object 
-Anterior1: 
-  Layers: Section1 
-Assays: Visium(Main) 
+```{r class.source="watch-out"}
+visium_data_subset <- subset(visium_data, samples = "Anterior1")
+visium_data_subset
 ```
 
 <br>
@@ -581,19 +452,14 @@ selected_points <- vrSpatialPoints(visium_data)
 selected_points[1:20]
 ```
 
-```
-  [1] "AAAGGCTCTCGCGCCG-1_Assay1" "AAATGGCCCGTGCCCT-1_Assay1" "AAATTACACGACTCTG-1_Assay1" 
-```
-
-```{r eval = FALSE, class.source="watch-out"}
-visium_data <- subset(visium_data, spatialpoints = selected_points[1:20])
+```{r echo = FALSE, class.source="watch-out"}
+selected_points <- vrSpatialPoints(visium_data)
+head(selected_points,3)
 ```
 
-```
-VoltRon Object 
-Anterior1: 
-  Layers: Section1 
-Assays: Visium(Main) 
+```{r class.source="watch-out"}
+visium_data_subset <- subset(visium_data, spatialpoints = selected_points[1:20])
+visium_data_subset
 ```
 
 <br>
@@ -602,24 +468,14 @@ Assays: Visium(Main)
 
 You can select a few number of features and subset the features given this list. However, it would only subset the main assay (see [vrMainAssay](#assays))
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out"}
 selected_features <- vrFeatures(visium_data)
 selected_features[1:20]
 ```
 
-```
- [1] "Xkr4"          "Gm1992"        "Gm19938"       "Gm37381"       "Rp1"           "Sox17"         "Gm37587"       "Gm37323"       "Mrpl15"        "Lypla1"       
-[11] "Tcea1"         "Rgs20"         "Gm16041"       "Atp6v1h"       "Oprk1"         "Npbwr1"        "Rb1cc1"        "4732440D04Rik" "Alkal1"        "St18"
-```
-
-```{r eval = FALSE, class.source="watch-out"}
-visium_data <- subset(visium_data, features = selected_features[1:20])
-vrFeatures(visium_data)
-```
-
-```
- [1] "Xkr4"          "Gm1992"        "Gm19938"       "Gm37381"       "Rp1"           "Sox17"         "Gm37587"       "Gm37323"       "Mrpl15"        "Lypla1"       
-[11] "Tcea1"         "Rgs20"         "Gm16041"       "Atp6v1h"       "Oprk1"         "Npbwr1"        "Rb1cc1"        "4732440D04Rik" "Alkal1"        "St18"
+```{r class.source="watch-out"}
+visium_data_subset <- subset(visium_data, features = selected_features[1:20])
+vrFeatures(visium_data_subset)
 ```
 
 <br>
@@ -650,36 +506,38 @@ vrImages(visium_data_subset)
 
 VoltRon provides visualization utilities for both spatial and embedding level visualizations.
 
+<br>
+
 ### Spatial Plots
 
 **vrSpatialPlot** is the main function for visualize labels and identities of cells. This information is parsed from the Metadata of the main assay (see [vrMainAssay](#assays)). The users can also specify the assay.
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
 vrSpatialPlot(xenium_data, group.by = "clusters")
 ```
 
-<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_sp.png" class="center">
+<!-- <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_sp.png" class="center"> -->
 
 <br>
 
 You can also visualize the segments of spatial points and even get the segments transparent
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
 vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE, alpha = 0.6)
 ```
 
-<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spsegment.png" class="center">
+<!-- <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spsegment.png" class="center"> -->
 
 <br>
 
 The background color can be set to any color.
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
 vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE, 
               background.color = "white")
 ```
 
-<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spback.png" class="center">
+<!-- <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spback.png" class="center"> -->
 
 <br>
 
@@ -699,11 +557,11 @@ vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE,
 
 If the visualized assay is of a type "spot", you can crop the image to encapsulate the smallest subset that include all spots.
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
 vrSpatialPlot(visium_data, group.by = "Sample", crop = TRUE)
 ```
 
-<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spcrop.png" class="center">
+<!-- <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spcrop.png" class="center"> -->
 
 <br>
 
@@ -714,7 +572,13 @@ vrSpatialFeaturePlot(visium_data, features = "Count")
 vrSpatialFeaturePlot(visium_data, features = "Stat1", norm = TRUE)
 ```
 
-<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spfeature.png" class="center">
+```{r echo = FALSE, class.source="watch-out", fig.align='center', fig.height=5, fig.width=12}
+g1 <- vrSpatialFeaturePlot(visium_data, features = "Count")
+g2 <- vrSpatialFeaturePlot(visium_data, features = "Stat1", norm = TRUE)
+g1 | g2
+```
+
+<!-- <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spfeature.png" class="center"> -->
 
 <br>
 
@@ -736,7 +600,10 @@ vrSpatialFeaturePlot(visium_data, assay = "Assay1", features = "Count")
 This utility can be used to visualize molecules along with cell segments. Here we can also color each individual molecule (gene) type.
 
 ```{r eval = TRUE, class.source="watch-out"}
-data("merged_object")
+library(ggnewscale)
+```
+
+```{r eval = TRUE, class.source="watch-out", fig.height=5, fig.width=6, fig.align='center', out.width="60%"}
 vrSpatialPlot(merged_object, plot.segments = TRUE, group.by = "clusters") |>
   addSpatialLayer(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, 
                   colors = list(KRT15 = "blue", KRT14 = "green"))
@@ -746,21 +613,23 @@ vrSpatialPlot(merged_object, plot.segments = TRUE, group.by = "clusters") |>
 
 You can also visualize the segments that represents annotations of the tissue sections along with the cells.
 
-```{r eval = TRUE, class.source="watch-out"}
-data("merged_object")
+```{r eval = TRUE, class.source="watch-out", fig.height=5, fig.width=6, fig.align='center', out.width="60%"}
 vrSpatialPlot(merged_object, plot.segments = FALSE, group.by = "clusters") |>
-  addSpatialLayer(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.3, color = list(Block = "blue"))
+  addSpatialLayer(merged_object, assay = "Assay3", group.by = "Region", alpha = 0.3, 
+                  color = list(Region1 = "blue", Region2 = "yellow"))
 ```
+
+<br>
 
 ### Embedding Plots
 
 Dimensional reduction and embedding features are also possible for the VoltRon objects.
 
-```{r eval = FALSE, class.source="watch-out"}
+```{r, class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
 vrEmbeddingPlot(xenium_data, embedding = "umap", group.by = "clusters", label = T)
 ```
 
-<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_embed.png" class="center">
+<!-- <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_embed.png" class="center"> -->
 
 <br>
 
@@ -771,7 +640,13 @@ vrEmbeddingFeaturePlot(xenium_data, embedding = "umap", features = "Count")
 vrEmbeddingFeaturePlot(xenium_data, embedding = "umap", features = "KRT5", norm = FALSE)
 ```
 
-<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_embedfeature.png" class="center">
+```{r echo=FALSE, class.source="watch-out", fig.height=5, fig.width=12, fig.align='center'}
+g1 <- vrEmbeddingFeaturePlot(xenium_data, embedding = "umap", features = "Count")
+g2 <- vrEmbeddingFeaturePlot(xenium_data, embedding = "umap", features = "KRT5", norm = FALSE)
+g1 | g2
+```
+
+<!-- <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_embedfeature.png" class="center"> -->
 
 <br>
 
