@@ -591,7 +591,7 @@ addSpatialLayer <- function(g, object, assay, group.by = "Sample", plot.segments
     }
     if(!is.null(polygon_data)){
       g <- g +
-        geom_polygon(aes(x = .data$x, y = .data$y, fill = .data[["group.by"]], group = .data[["segment"]]), data = polygon_data, alpha = alpha)
+        geom_polygon(aes(x = .data$x, y = .data$y, fill = .data[["group.by"]], group = .data[["segment"]]), data = polygon_data, alpha = alpha, col = "grey")
     }
     if(!is.null(circle_data)){
       if(!requireNamespace('ggforce'))

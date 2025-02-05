@@ -695,7 +695,8 @@ vr2_merged_acute1$Region &lt;- vrSpatialPoints(vr2_merged_acute1)
 vrMainSpatial(vr2_merged_acute1[[&quot;Assay9&quot;]]) &lt;- &quot;main_reg&quot;
 
 # transfer ROI annotations to molecules
-vr2_merged_acute1 &lt;- transferData(object = vr2_merged_acute1, from = &quot;Assay9&quot;, to = &quot;Assay8&quot;, features = &quot;Region&quot;)
+vr2_merged_acute1 &lt;- transferData(object = vr2_merged_acute1, from = &quot;Assay9&quot;, to = &quot;Assay8&quot;, 
+                                  features = &quot;Region&quot;)
 
 # Metadata of molecules
 Metadata(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;)</code></pre>
@@ -725,7 +726,8 @@ head(table(vr2_merged_acute1$Region))</code></pre>
 <p>Now we will grab these annotations from molecule metadata and
 calculate the ratio of N to orf1ab frequency of SARS-COV-2 particles
 across all annotated molecules.</p>
-<pre class="r watch-out"><code>s2_summary_hyaline &lt;- 
+<pre class="r watch-out"><code>library(dplyr)
+s2_summary_hyaline &lt;- 
   Metadata(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;) %&gt;%
   filter(gene %in% c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), 
          Region != &quot;undefined&quot;) %&gt;% 
@@ -739,7 +741,7 @@ s2_summary_hyaline</code></pre>
 <p><br></p>
 </div>
 <div id="manual-annotation" class="section level2">
-<h2>Manual Annotation</h2>
+<h2>Manual annotation</h2>
 <p>To compare the proportion of <strong>S2_N</strong> and
 <strong>S2_orf1ab</strong> molecules in hyaline membranes with tissue
 sites of possible infection. We focus on another tissue niche where a
@@ -761,16 +763,20 @@ image as the background again, and generate a new molecule-level
 metadata column called “Infected”.</p>
 <pre class="r watch-out"><code>vr2_merged_acute1 &lt;- annotateSpatialData(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
                                          label = &quot;Infected&quot;, use.image = TRUE, 
-                                         channel = &quot;H&amp;E&quot;)</code></pre>
+                                         channel = &quot;H&amp;E&quot;, annotation_assay = &quot;ROIAnnotation1&quot;)</code></pre>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_annotation_infected.png" class="center"></p>
 <p><br></p>
 </div>
+<div id="visualize-annotations" class="section level2">
+<h2>Visualize annotations</h2>
+</div>
 <div id="comparison-of-annotations" class="section level2">
-<h2>Comparison of Annotations</h2>
+<h2>Comparison of annotations</h2>
 <p>By using the newly annotated infection-associated virus molecules, we
 can do a comparison of infected regions versus the hyaline
 membranes.</p>
-<pre class="r watch-out"><code>s2_summary_infected &lt;- 
+<pre class="r watch-out"><code>library(dplyr)
+s2_summary_infected &lt;- 
   Metadata(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;) %&gt;%
   filter(gene %in% c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), 
          Infected != &quot;undefined&quot;) %&gt;% 

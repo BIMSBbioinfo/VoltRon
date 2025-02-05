@@ -441,6 +441,17 @@ vrSpatialPlot(VRBlock, group.by = "annotation", assay = "Visium", crop = TRUE)
 
 <br>
 
+You can also use the **addSpatialLayer** function to overlay annotation segments to the spatial plot of the Xenium data.
+ 
+```{r class.source="watch-out", eval = FALSE}
+vrSpatialPlot(VRBlock_new2, group.by = "CellType", assay = "Assay1", crop = TRUE) |>
+  addSpatialLayer(VRBlock_new2, assay = "ROIAnnotation", group.by = "annotation", spatial = "main", alpha = 0.4)
+```
+
+<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_ROI_xenium_overlay.png" class="center">
+
+<br>
+
 ## Alignment of Xenium and H&E
 
 In this use case, we will align **immunofluorescence (IF)** of the **Xenium In Situ** platform to an **H&E images** generated from the same sections as the Xenium. VoltRon provides built-in utilities to import images as spatial datasets where **tiles** are the spatial points. We will import both Xenium and H&E images into two separate VoltRon objects and overlay H&E images. 
