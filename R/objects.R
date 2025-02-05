@@ -82,8 +82,9 @@ NULL
     }
   } else {
     if(length(value) == 1 | nrow(metadata) == length(value)){
-      metadata[[i]] <- value
-      Metadata(x, assay = assay_names) <- metadata
+      # metadata[[i]] <- value
+      # Metadata(x, assay = assay_names) <- metadata
+      x <- addMetadata(x, assay = assay_names, label = i, value = value)
     } else {
       stop("The new or the existing column should of length 1 or the same as the number of rows")
     }
@@ -1650,7 +1651,7 @@ addMetadata <- function(object, assay = NULL, type = NULL, value, label) {
   
   # replace data
   if(length(value) == length(entities) || length(value) == 1){
-    if(is.null(rownames(metadata))){
+    if(is.null(rownames(metadata)) || inherits(metadata, "data.table")){
       metadata[[label]][match(entities, as.vector(metadata$id))] <- value
     } else {
       metadata[entities,][[label]] <- value

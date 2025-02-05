@@ -361,7 +361,7 @@ Now we use the **annotateSpatialData** function to create an additional annotati
 
 ```{r eval = FALSE, class.source="watch-out"}
 vr2_merged_acute1 <- annotateSpatialData(vr2_merged_acute1, assay = "Xenium_mol", 
-                                         label = "Infected", use.image = TRUE, 
+                                         label = "Region", use.image = TRUE, 
                                          channel = "H&E", annotation_assay = "ROIAnnotation1")
 ```
 
@@ -371,6 +371,32 @@ vr2_merged_acute1 <- annotateSpatialData(vr2_merged_acute1, assay = "Xenium_mol"
 
 ## Visualize annotations
 
+Before visualizing the annotations and molecule localizations in the same time, lets make some changes to the metadata. 
+We basically wanna change the annotation of all ROIs originated from the GeoJson file to have the label **Hyaline Membrane**.
+
+```{r eval = FALSE, class.source="watch-out"}
+# update molecule metadata
+vrMainAssay(vr2_merged_acute1_infected) <- "Xenium_mol"
+vr2_merged_acute1_infected$Region <- gsub("ROI[0-9]+", "Hyaline Membrane", 
+                                          vr2_merged_acute1_infected$Region)
+
+# update ROI metadata
+vrMainAssay(vr2_merged_acute1_infected) <- "ROIAnnotation"
+vr2_merged_acute1_infected$Region <- gsub("ROI[0-9]+", "Hyaline Membrane", 
+                                          vr2_merged_acute1_infected$Region)
+```
+
+Now we can visualize two assays together. We use the **addSpatialLayer** function to overlay molecule locations with both the Hyaline Membrane and the infected region annotations.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPlot(vr2_merged_acute1_infected, assay = "Xenium_mol", group.by = "gene", 
+              group.ids = c("S2_N", "S2_orf1ab"), n.tile = 500) |>
+  addSpatialLayer(vr2_merged_acute1_infected, assay = "ROIAnnotation", 
+                  group.by = "Region", alpha = 0.3, 
+                  colors = list(`Hyaline Membrane` = "blue", `Infected` = "yellow"))
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_overlay.png" class="center">
 
 
 ## Comparison of annotations

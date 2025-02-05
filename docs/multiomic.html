@@ -762,13 +762,35 @@ selecting this region of infection we can directly annotate the
 image as the background again, and generate a new molecule-level
 metadata column called “Infected”.</p>
 <pre class="r watch-out"><code>vr2_merged_acute1 &lt;- annotateSpatialData(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
-                                         label = &quot;Infected&quot;, use.image = TRUE, 
+                                         label = &quot;Region&quot;, use.image = TRUE, 
                                          channel = &quot;H&amp;E&quot;, annotation_assay = &quot;ROIAnnotation1&quot;)</code></pre>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_annotation_infected.png" class="center"></p>
 <p><br></p>
 </div>
 <div id="visualize-annotations" class="section level2">
 <h2>Visualize annotations</h2>
+<p>Before visualizing the annotations and molecule localizations in the
+same time, lets make some changes to the metadata. We basically wanna
+change the annotation of all ROIs originated from the GeoJson file to
+have the label <strong>Hyaline Membrane</strong>.</p>
+<pre class="r watch-out"><code># update molecule metadata
+vrMainAssay(vr2_merged_acute1_infected) &lt;- &quot;Xenium_mol&quot;
+vr2_merged_acute1_infected$Region &lt;- gsub(&quot;ROI[0-9]+&quot;, &quot;Hyaline Membrane&quot;, 
+                                          vr2_merged_acute1_infected$Region)
+
+# update ROI metadata
+vrMainAssay(vr2_merged_acute1_infected) &lt;- &quot;ROIAnnotation&quot;
+vr2_merged_acute1_infected$Region &lt;- gsub(&quot;ROI[0-9]+&quot;, &quot;Hyaline Membrane&quot;, 
+                                          vr2_merged_acute1_infected$Region)</code></pre>
+<p>Now we can visualize two assays together. We use the
+<strong>addSpatialLayer</strong> function to overlay molecule locations
+with both the Hyaline Membrane and the infected region annotations.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1_infected, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;, 
+              group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), n.tile = 500) |&gt;
+  addSpatialLayer(vr2_merged_acute1_infected, assay = &quot;ROIAnnotation&quot;, 
+                  group.by = &quot;Region&quot;, alpha = 0.3, 
+                  colors = list(`Hyaline Membrane` = &quot;blue&quot;, `Infected` = &quot;yellow&quot;))</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_overlay.png" class="center"></p>
 </div>
 <div id="comparison-of-annotations" class="section level2">
 <h2>Comparison of annotations</h2>
