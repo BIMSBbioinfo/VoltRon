@@ -19,7 +19,7 @@
 )
 }
 \arguments{
-\item{x}{a vrAssay object}
+\item{x}{a VoltRon object}
 
 \item{subset}{Logical statement for subsetting}
 

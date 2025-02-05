@@ -933,7 +933,7 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
 #'
 #' Given a VoltRon object, subset the object given one of the attributes
 #'
-#' @param x a vrAssay object
+#' @param x a VoltRon object
 #' @param subset Logical statement for subsetting
 #' @param samples the set of samples to subset the object
 #' @param assays the set of assays to subset the object
@@ -1609,6 +1609,7 @@ setMethod("Metadata<-", "VoltRon", MetadataReplaceVoltRon)
 #' 
 #' adding new columns or updating the values of the existing columns
 #' 
+#' @param object a VoltRon object
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param type the assay type: ROI, spot or cell, or all for the entire metadata object
@@ -1617,6 +1618,9 @@ setMethod("Metadata<-", "VoltRon", MetadataReplaceVoltRon)
 #'
 #' @export
 addMetadata <- function(object, assay = NULL, type = NULL, value, label) {
+  
+  if(!inherits(object, "VoltRon"))
+    stop("Object must be of VoltRon class!")
   
   # auxiliary
   `%notin%` <- Negate(`%in%`)

@@ -51,6 +51,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{graph}{if not NULL, the graph is added to the plot}
 
 \item{graph.edge.color}{the color of graph edges, if \code{graph} is not NULL.}
+
+\item{spatial}{the name of the main spatial system}
 }
 \description{
 adding additional layers of spatial plots to an existing \link{vrSpatialPlot}.

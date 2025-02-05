@@ -444,6 +444,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #' @param cell.shape the shape of the points representing cells, see \link{geom_point}
 #' @param graph if not NULL, the graph is added to the plot
 #' @param graph.edge.color the color of graph edges, if \code{graph} is not NULL.
+#' @param spatial the name of the main spatial system
 #' 
 #' @import ggplot2
 #' 
