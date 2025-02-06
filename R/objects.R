@@ -1086,6 +1086,7 @@ vrFeaturesVoltRon <- function(object, assay = NULL) {
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #'
 #' @rdname vrFeatures
+#' @method vrFeatures VoltRon
 #' @order 2
 #' @export
 setMethod("vrFeatures", "VoltRon", vrFeaturesVoltRon)
@@ -1771,7 +1772,7 @@ vrCoordinatesReplaceVoltRon <- function(object, image_name = NULL, spatial_name 
 #' @export
 setMethod("vrCoordinates<-", "VoltRon", vrCoordinatesReplaceVoltRon)
 
-vrSegmentsVoltRon <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL, reg = FALSE) {
+vrSegmentsVoltRon <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL, reg = FALSE, as.data.frame = FALSE) {
   
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1784,8 +1785,10 @@ vrSegmentsVoltRon <- function(object, assay = NULL, image_name = NULL, spatial_n
   segts <- NULL
   for(assy in assay_names)
     segts <- c(segts, vrSegments(object[[assy]], spatial_name = image_name, reg = reg))
-  # segts <- c(segts, vrSegments(object[[assy]], image_name = image_name, reg = reg))
   
+  if(as.data.frame)
+    segts <- do.call(rbind, segts)
+
   # return image
   return(segts)
 }
@@ -1795,6 +1798,7 @@ vrSegmentsVoltRon <- function(object, assay = NULL, image_name = NULL, spatial_n
 #' @param image_name (deprecated, use \code{spatial_name}) the name/key of the image associated with the coordinates
 #' @param spatial_name the name/key of the spatial system associated with the coordinates
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
+#' @param as.data.frame if TRUE, the coordinates of segment nodes will be returned as a data frame
 #'
 #' @rdname vrSegments
 #' @order 2
