@@ -512,32 +512,32 @@ VoltRon provides visualization utilities for both spatial and embedding level vi
 
 **vrSpatialPlot** is the main function for visualize labels and identities of cells. This information is parsed from the Metadata of the main assay (see [vrMainAssay](#assays)). The users can also specify the assay.
 
-```{r class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
+```{r eval = FALSE, class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
 vrSpatialPlot(xenium_data, group.by = "clusters")
 ```
 
-<!-- <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_sp.png" class="center"> -->
+<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_sp.png" class="center">
 
 <br>
 
 You can also visualize the segments of spatial points and even get the segments transparent
 
-```{r class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
+```{r eval = FALSE, class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
 vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE, alpha = 0.6)
 ```
 
-<!-- <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spsegment.png" class="center"> -->
+<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spsegment.png" class="center">
 
 <br>
 
 The background color can be set to any color.
 
-```{r class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
+```{r eval = FALSE, class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
 vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE, 
               background.color = "white")
 ```
 
-<!-- <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spback.png" class="center"> -->
+<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spback.png" class="center">
 
 <br>
 
@@ -557,11 +557,11 @@ vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE,
 
 If the visualized assay is of a type "spot", you can crop the image to encapsulate the smallest subset that include all spots.
 
-```{r class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
+```{r eval = FALSE, class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
 vrSpatialPlot(visium_data, group.by = "Sample", crop = TRUE)
 ```
 
-<!-- <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spcrop.png" class="center"> -->
+<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spcrop.png" class="center">
 
 <br>
 
@@ -572,13 +572,13 @@ vrSpatialFeaturePlot(visium_data, features = "Count")
 vrSpatialFeaturePlot(visium_data, features = "Stat1", norm = TRUE)
 ```
 
-```{r echo = FALSE, class.source="watch-out", fig.align='center', fig.height=5, fig.width=12}
+```{r eval = FALSE, echo = FALSE, class.source="watch-out", fig.align='center', fig.height=5, fig.width=12}
 g1 <- vrSpatialFeaturePlot(visium_data, features = "Count")
 g2 <- vrSpatialFeaturePlot(visium_data, features = "Stat1", norm = TRUE)
 g1 | g2
 ```
 
-<!-- <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spfeature.png" class="center"> -->
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spfeature.png" class="center">
 
 <br>
 
@@ -625,11 +625,11 @@ vrSpatialPlot(merged_object, plot.segments = FALSE, group.by = "clusters") |>
 
 Dimensional reduction and embedding features are also possible for the VoltRon objects.
 
-```{r, class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
+```{r, eval = FALSE, class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
 vrEmbeddingPlot(xenium_data, embedding = "umap", group.by = "clusters", label = T)
 ```
 
-<!-- <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_embed.png" class="center"> -->
+<img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_embed.png" class="center">
 
 <br>
 
@@ -640,13 +640,13 @@ vrEmbeddingFeaturePlot(xenium_data, embedding = "umap", features = "Count")
 vrEmbeddingFeaturePlot(xenium_data, embedding = "umap", features = "KRT5", norm = FALSE)
 ```
 
-```{r echo=FALSE, class.source="watch-out", fig.height=5, fig.width=12, fig.align='center'}
+```{r echo=FALSE, eval = FALSE, class.source="watch-out", fig.height=5, fig.width=12, fig.align='center'}
 g1 <- vrEmbeddingFeaturePlot(xenium_data, embedding = "umap", features = "Count")
 g2 <- vrEmbeddingFeaturePlot(xenium_data, embedding = "umap", features = "KRT5", norm = FALSE)
 g1 | g2
 ```
 
-<!-- <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_embedfeature.png" class="center"> -->
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_embedfeature.png" class="center">
 
 <br>
 
