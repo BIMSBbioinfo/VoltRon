@@ -195,9 +195,23 @@ test_that("visualization", {
                               replace = TRUE, 
                               verbose = FALSE)
 
-  # check embeddings
+  # check spatial plots
   vrSpatialPlot(visium_data2, group.by = "Sample")
   vrSpatialFeaturePlot(visium_data2, features = "Count")
+  
+  # check multilayer spatial plots
+  data("merged_object")
+  merged_object2 <- saveVoltRon(merged_object, 
+                                output = output_h5ad, 
+                                format = "HDF5VoltRon", 
+                                replace = TRUE, 
+                                verbose = FALSE)
+  vrSpatialPlot(merged_object2, plot.segments = FALSE, n.tile = 100) |>
+    addSpatialLayer(merged_object2, assay = "Assay3", group.by = "Sample", alpha = 0.4, colors = list(Block = "blue"))
+  vrSpatialPlot(merged_object2, plot.segments = TRUE, n.tile = 100) |>
+    addSpatialLayer(merged_object2, assay = "Assay3", group.by = "Sample", alpha = 0.4, colors = list(Block = "blue"))
+  vrSpatialPlot(merged_object2, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green"), n.tile = 100) |>
+    addSpatialLayer(merged_object2, assay = "Assay3", group.by = "Sample", alpha = 0.4, colors = list(Block = "blue"))
   
   # remove files
   unlink(output_h5ad, recursive = TRUE)
