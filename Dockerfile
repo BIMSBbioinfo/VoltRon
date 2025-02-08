@@ -6,17 +6,6 @@ RUN apt-get update
 RUN apt-get install -y libgdal-dev libfftw3-dev libmagick++-dev cmake libhdf5-dev git libopencv-dev libopencv-features2d-dev  
 RUN apt-get install -y libssl-dev libcurl4-openssl-dev libgit2-dev libxml2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev libz-dev
 
-# build conda
-SHELL ["/bin/bash", "-c"]
-RUN wget https://github.com/conda-forge/miniforge/releases/download/24.11.2-1/Miniforge3-$(uname)-$(uname -m).sh
-RUN bash Miniforge3-$(uname)-$(uname -m).sh -b
-RUN /root/miniforge3/bin/conda init
-RUN source /root/.bashrc
-
-# build voltron env
-ADD environment.yml environment.yml
-RUN /root/miniforge3/bin/conda env create -f environment.yml
-
 # OpenCV
 RUN wget https://github.com/opencv/opencv/archive/refs/tags/4.8.1.zip
 RUN unzip 4.8.1.zip
@@ -41,7 +30,6 @@ RUN R -e "install.packages(c('stringr', 'uwot', 'RCDT'), repos='http://cran.rstu
 RUN R -e "BiocManager::install(c('EBImage', 'S4Arrays'))"
 
 # Install Suggested dependencies
-RUN R -e "install.packages(c('reticulate'))"
 RUN R -e "BiocManager::install(c('DelayedArray'))"
 RUN R -e "BiocManager::install(c('HDF5Array'))"
 RUN R -e "remotes::install_github('bnprks/BPCells/r@v0.3.0')"
@@ -62,6 +50,16 @@ RUN R -e "install.packages('dplyr')"
 RUN R -e "BiocManager::install('DESeq2')"
 RUN R -e "install.packages('ggnewscale')"
 RUN R -e "install.packages('patchwork')"
+RUN R -e "install.packages('anndata')"
 
 # Install VoltRon dependencies
 RUN R -e "devtools::install_github('BIMSBbioinfo/VoltRon')"
+
+# Install basilisk and setup environment
+USER rstudio
+RUN R -e "BiocManager::install('basilisk')"
+RUN R -e "basilisk::obtainEnvironmentPath(VoltRon::getBasilisk())"
+
+# return to root
+USER root
+RUN touch temp.txt

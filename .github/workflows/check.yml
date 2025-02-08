@@ -170,6 +170,14 @@ jobs:
           install.packages('patchwork')
         shell: Rscript {0}
           
+      # All Other dependencies
+      - name: Install other Suggested dependencies
+        run: |
+          BiocManager::install('basilisk')
+          install.packages('reticulate')
+          install.packages('patchwork')
+        shell: Rscript {0}
+          
       ## R CMD Check
       - name: Run CMD check
         env:
@@ -184,9 +192,3 @@ jobs:
               check_dir = "check"
           )
         shell: Rscript {0}
-
-      # All Other dependencies
-      - name: Install other Suggested dependencies
-        run: |
-          install.packages(c('reticulate'))
-          BiocManager::install(c('basilisk'))

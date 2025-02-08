@@ -33,6 +33,7 @@ saveVoltRon <- function (object,
   
   # check if the object was previously saved on disk
   paths <- .get_unique_links(object)
+  paths <- unique(vapply(paths, file_path_as_absolute, character(1)))
   if(length(paths) > 1){
     if(is.null(output)){
       stop("There are multiple paths that this VoltRon object is saved to, cannot write unless 'output' is specified!")
