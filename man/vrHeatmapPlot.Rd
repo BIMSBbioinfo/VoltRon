@@ -18,7 +18,6 @@ vrHeatmapPlot(
   highlight.some = FALSE,
   n_highlight = 30,
   font.size = 13.2,
-  seed = 1,
   ...
 )
 }
@@ -49,8 +48,6 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{n_highlight}{the number of row labels shown, if \code{show_row_names} is TRUE}
 
 \item{font.size}{font size}
-
-\item{seed}{the seed for \link{set.seed}}
 
 \item{...}{additional parameters passed to \link{getVariableFeatures}}
 }

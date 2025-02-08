@@ -95,7 +95,7 @@ getDiffExpDESeq2 <- function(data, metadata, group.by, group.base = NULL, covari
   dds <- DESeq2::DESeq(dds)
 
   all_results <- NULL
-  for(i in 1:(length(uniq_groups)-1)){
+  for(i in seq_len(length(uniq_groups)-1)){
     for(j in (i+1):length(uniq_groups)){
       comparison <- c(group.by, uniq_groups[i], uniq_groups[j])
       cur_results <- as.data.frame(DESeq2::results(dds, comparison))

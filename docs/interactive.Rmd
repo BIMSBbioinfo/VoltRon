@@ -107,6 +107,18 @@ vrSpatialPlot(MBrain_Sec, assay = "Assay1", group.by = "annotation")
 
 <br>
 
+You can also overlay the ROI annotations with the clustered spots to visualize multiple assays in the same time.
+
+```{r class.source="watch-out", eval = FALSE}
+library(ggnewscale)
+vrSpatialPlot(MBrain_Sec, assay = "Assay1", group.by = "clusters") |> 
+  addSpatialLayer(MBrain_Sec, assay = "Assay5", group.by = "annotation", alpha = 0.7)
+```
+
+<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_annotation_example_overlay_plot.png" class="center">
+
+<br>
+
 # Interactive Visualization
 
 VoltRon incorporates utilities 

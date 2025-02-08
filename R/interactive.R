@@ -154,7 +154,7 @@ vrSpatialPlotVitessce <- function(zarr.file, group.by = "Sample", reduction = NU
 
   # check file
   if(!dir.exists(zarr.file))
-    stop(paste0(zarr.file, " is not found at the specified location!"))
+    stop(zarr.file, " is not found at the specified location!")
   
   # get embedding
   if(is.null(reduction)){

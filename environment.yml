@@ -7,7 +7,6 @@ dependencies:
   - numpy==1.*
   - pandas==1.*
   - anndata==0.8.*
-  #- anndata==0.7.*
   - h5py==3.*
   - hdf5==1.*
   - natsort==7.*

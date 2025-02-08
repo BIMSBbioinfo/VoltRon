@@ -12,7 +12,6 @@ getHotSpotAnalysis(
   graph.type = "delaunay",
   alpha.value = 0.01,
   norm = TRUE,
-  seed = 1,
   verbose = TRUE
 )
 }
@@ -31,8 +30,6 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{alpha.value}{the alpha value for the hot spot analysis test. Default is 0.01}
 
 \item{norm}{if TRUE, the normalized data is used}
-
-\item{seed}{seed}
 
 \item{verbose}{verbose}
 }

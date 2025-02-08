@@ -157,6 +157,7 @@ jobs:
           install.packages("Seurat")
           BiocManager::install("glmGamPoi")
           install.packages('hdf5r')
+          install.packages('arrow')
           BiocManager::install('RBioFormats')
           BiocManager::install('ComplexHeatmap')
           devtools::install_github('dmcable/spacexr')
@@ -165,6 +166,16 @@ jobs:
           BiocManager::install('SpatialExperiment')
           install.packages('dplyr')
           BiocManager::install('DESeq2')
+          install.packages('ggnewscale')
+          install.packages('patchwork')
+        shell: Rscript {0}
+          
+      # All Other dependencies
+      - name: Install other Suggested dependencies
+        run: |
+          BiocManager::install('basilisk')
+          install.packages('reticulate')
+          install.packages('patchwork')
         shell: Rscript {0}
           
       ## R CMD Check
@@ -181,9 +192,3 @@ jobs:
               check_dir = "check"
           )
         shell: Rscript {0}
-
-      # All Other dependencies
-      - name: Install other Suggested dependencies
-        run: |
-          install.packages(c('reticulate'))
-          BiocManager::install(c('basilisk'))

@@ -216,7 +216,7 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
   # check if the file exists in either Xenium output folder, or the specified location
   if((file.exists(file.path) | file.exists(paste0(output.file))) & !overwrite_resolution){
     if(verbose)
-      message(paste0(file.name, " already exists!"))
+      message(file.name, " already exists!")
   } else {
     if (!requireNamespace('RBioFormats'))
       stop("Please install RBioFormats package to extract xml from the ome.tiff file!: BiocManager::install('RBioFormats')")
@@ -235,7 +235,7 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
     # pick a resolution level
     image_info <- morphology_image_lowres@metadata$coreMetadata
     if(verbose)
-      message(paste0("  Image Resolution (X:", image_info$sizeX, " Y:", image_info$sizeY, ") ..."))
+      message("  Image Resolution (X:", image_info$sizeX, " Y:", image_info$sizeY, ") ...")
     
     # increase contrast using EBImage
     if(increase.contrast) {
@@ -567,7 +567,7 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
 
   # merge dcc files
   rawdata <- NULL
-  for(i in 1:length(dccData)){
+  for(i in seq_len(length(dccData))){
     cur_data <- dccData[[i]]$Code_Summary
     colnames(cur_data) <- c("RTS_ID", dcc_filenames[i])
     if(i == 1){
@@ -902,7 +902,7 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
   # get masks for each ROI
   mask_lists <- list()
-  for(i in 1:length(ROIs)){
+  for(i in seq_len(length(ROIs))){
     cur_ROI <- ROIs[[i]]
 
     # if the shape is a polygon
@@ -1225,9 +1225,9 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
     image_path <- paste0(image.dir.path, "CellComposite_F", str_pad(as.character(i), 3, pad = 0), ".jpg")
     image_data <- magick::image_read(image_path) %>% magick::image_resize("x500") %>% magick::image_raster()
     if(is.null(morphology_image_data))
-      dim_image <- apply(image_data[,1:2], 2, max)
+      dim_image <- apply(image_data[,seq_len(2)], 2, max)
     scale_dim <- relative_fov_positions[i,2:3]*dim_image
-    image_data[,1:2] <- image_data[,1:2] +
+    image_data[,seq_len(2)] <- image_data[,seq_len(2)] +
       rep(1, nrow(image_data)) %o% as.matrix(scale_dim)[1,]
     morphology_image_data <- rbind(morphology_image_data, image_data)
   }
@@ -1368,7 +1368,7 @@ importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, u
       
       # get subcellur data components
       subcellular_data <- data.table::fread(paste0(dir.path, "DataOutput/", transcripts_file))
-      subcellular_data$id <- 1:nrow(subcellular_data)
+      subcellular_data$id <- seq_len(nrow(subcellular_data))
       subcellular_data <- subcellular_data[,c("id", colnames(subcellular_data)[!colnames(subcellular_data) %in% "id"]), with = FALSE]
       colnames(subcellular_data)[colnames(subcellular_data)=="name"] <- "gene"
       
@@ -1602,7 +1602,7 @@ readPhenoCyclerMat <- function(
 ) {
   # Check arguments
   if (!file.exists(filename)) {
-    stop(paste("Can't file file:", filename))
+    stop("Can't find file: ", filename)
   }
   type <- tolower(x = type[1L])
   type <- match.arg(arg = type)
@@ -1724,7 +1724,6 @@ readPhenoCyclerMat <- function(
       )
       outs$centroids <- centroids
       outs$metadata <- md
-      # browser()
       for (i in classes) {
         df <- exprs[exprs$class == i, , drop = FALSE]
         expr <- mtx[, df$cols]
@@ -1853,14 +1852,14 @@ importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, i
   # get individual sections as voltron data
   sections <- unique(metadata$n_section)
   zlocation <- zlocation[order(sections)]
-  # connectivity <- reshape2::melt(matrix(rep(1, length(sections)^2), nrow = length(sections)))[,1:2]
-  connectivity <- data.frame(Var1 = rep(1:length(sections), length(sections)), 
-                             Var2 = rep(1:length(sections), each = length(sections)))
+  # connectivity <- reshape2::melt(matrix(rep(1, length(sections)^2), nrow = length(sections)))[,seq_len(2)]
+  connectivity <- data.frame(Var1 = rep(seq_len(length(sections)), length(sections)), 
+                             Var2 = rep(seq_len(length(sections)), each = length(sections)))
   sections <- sections[order(sections)]
   vr_data_list <- list()
   if(verbose)
     message("Creating Layers ...")
-  for(i in 1:length(sections)){
+  for(i in seq_len(length(sections))){
     ind <- metadata$n_section == sections[i]
     spatialpoints <- rownames(metadata[metadata$n_section == sections[i],])
     cur_data <- rawdata[,spatialpoints]
@@ -2027,10 +2026,10 @@ importImageData <- function(image, tile.size = 10, segments = NULL, image_name =
   }
 
   # check image size
-  imageinfo <- sapply(image, function(img) {
+  imageinfo <- vapply(image, function(img) {
     info <- magick::image_info(img)
     c(info$width, info$height)
-  }, simplify = TRUE)
+  }, numeric(2))
   unique_width <- unique(imageinfo[1,])
   unique_height <- unique(imageinfo[2,])
   if(length(unique_width) == 1 && length(unique_height) == 1){
@@ -2039,12 +2038,12 @@ importImageData <- function(image, tile.size = 10, segments = NULL, image_name =
 
   # coordinates
   even_odd_correction <- (!tile.size%%2)*(0.5)
-  x_coords <- seq((tile.size/2) + even_odd_correction, imageinfo$width, tile.size)[1:(imageinfo$width %/% tile.size)]
-  y_coords <- seq((tile.size/2) + even_odd_correction, imageinfo$height, tile.size)[1:(imageinfo$height %/% tile.size)]
+  x_coords <- seq((tile.size/2) + even_odd_correction, imageinfo$width, tile.size)[seq_len(imageinfo$width %/% tile.size)]
+  y_coords <- seq((tile.size/2) + even_odd_correction, imageinfo$height, tile.size)[seq_len(imageinfo$height %/% tile.size)]
   y_coords <- rev(y_coords)
   coords <- as.matrix(expand.grid(x_coords, y_coords))
   colnames(coords) <- c("x", "y")
-  rownames(coords) <- paste0("tile", 1:nrow(coords))
+  rownames(coords) <- paste0("tile", seq_len(nrow(coords)))
 
   # metadata
   metadata <- data.table::data.table(id = rownames(coords))
@@ -2067,9 +2066,9 @@ importImageData <- function(image, tile.size = 10, segments = NULL, image_name =
     }
     
     # make coordinates out of segments
-    coords <- t(sapply(segments, function(dat){
+    coords <- t(vapply(segments, function(dat){
       apply(dat[,c("x", "y")], 2, mean)
-    }))
+    }, numeric(2)))
     rownames(coords) <- names(segments)
     
     # make segment assay
@@ -2127,10 +2126,10 @@ generateSegments <- function(geojson.file){
   # attach names to segments
   segments <- mapply(function(x, sgt){
     dplyr::tibble(data.frame(id = x, sgt))
-  }, 1:length(segments), segments, SIMPLIFY = FALSE)
+  }, seq_len(length(segments)), segments, SIMPLIFY = FALSE)
   
   # generate ROI names
-  names(segments) <- paste0("ROI", 1:length(segments))
+  names(segments) <- paste0("ROI", seq_len(length(segments)))
 
   # return
   return(segments)

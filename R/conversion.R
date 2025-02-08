@@ -60,7 +60,7 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
       rownames(cur_metadata) <- cells_nopostfix
 
       # coords
-      coords <- as.matrix(Seurat::GetTissueCoordinates(spatialobject))[,1:2]
+      coords <- as.matrix(Seurat::GetTissueCoordinates(spatialobject))[,seq_len(2)]
       coords <- apply(coords, 2, as.numeric)
       colnames(coords) <- c("x", "y")
       rownames(coords) <- cells_nopostfix
@@ -151,7 +151,7 @@ as.Seurat <- function(object, cell.assay = NULL, molecule.assay = NULL, image_ke
   if(length(vrEmbeddingNames(object)) > 0){
     for(embd in vrEmbeddingNames(object)){
       embd_data <- vrEmbeddings(object, type = embd)
-      colnames(embd_data) <- paste0(embd, 1:ncol(embd_data))
+      colnames(embd_data) <- paste0(embd, seq_len(ncol(embd_data)))
       seu[[embd]] <- Seurat::CreateDimReducObject(embd_data, key = paste0(embd, "_"), assay = Seurat::DefaultAssay(seu))
     }
   }
@@ -313,7 +313,7 @@ as.AnnData <- function(object,
   # Segments
   segments <- vrSegments(object, assay = assay)
   if(length(segments) > 0){
-    max_vertices <- max(sapply(segments, nrow))
+    max_vertices <- max(vapply(segments, nrow, numeric(1)))
     num_cells <- length(segments)
     segmentations_array <- array(NA, dim = c(num_cells, max_vertices, 2))
     cell_ids <- names(segments)
@@ -326,7 +326,7 @@ as.AnnData <- function(object,
       }
       segmentations_array[i, , ] <- seg_matrix
     }
-    for (k in 1:2) {
+    for (k in seq_len(2)) {
       segmentations_array[,,k] <- t(apply(segmentations_array[,,k], 1, fill_na_with_preceding))
     } 
   } else {
@@ -661,7 +661,7 @@ as.Giotto <- function(object, assay = NULL, reg = FALSE){
   
   # check Seurat package
   if(!requireNamespace('Giotto'))
-    stop("Please install Giotto package!")
+    stop("Please install Giotto package!devtools::install_github('drieslab/Giotto')")
   
   # check the number of assays
   if(is.null(assay)){
@@ -789,11 +789,11 @@ as.VoltRon.SpatialExperiment <- function(object, assay_type = "cell", assay_name
       }
       
       # get image scales
-      scale.factors_list <- sapply(image_names, function(img){ 
+      scale.factors_list <- vapply(image_names, function(img){ 
         SpatialExperiment::scaleFactors(object, 
                                         sample_id = samp, 
                                         image_id = img)
-      })
+      }, numeric(1))
       if(length(unique(scale.factors_list)) > 1){
         stop("All images of a single sample should have the same scale for VoltRon object conversion!: please select an 'image_id'")
       }

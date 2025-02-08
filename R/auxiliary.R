@@ -198,9 +198,7 @@ rownames(.dccMetadata[["protocolData"]])[rownames(.dccMetadata[["protocolData"]]
 #'
 #' Defines a conda environment via Basilisk, which is used to convert R objects to Zarr stores.
 #'
-#' @keywords internal
-#'
-#' @noRd
+#' @export
 getBasilisk <- function(){
  
   if(!requireNamespace('basilisk'))
@@ -209,7 +207,7 @@ getBasilisk <- function(){
   basilisk.packages=c(
     "numpy==1.*",
     "pandas==1.*",
-    "anndata==0.7.*",
+    "anndata==0.8.*",
     "h5py==3.*",
     "hdf5==1.*",
     "natsort==7.*",
@@ -413,14 +411,13 @@ dummy_cols <- function(.data, select_columns = NULL, remove_first_dummy = FALSE,
     char_cols <- names(char_cols)
   }
   if (length(char_cols) == 0 && is.null(select_columns)) {
-    stop(paste0("No character or factor columns found. ",
-                "Please use select_columns to choose columns."))
+    stop("No character or factor columns found. ",
+         "Please use select_columns to choose columns.")
   }
   if (!is.null(select_columns) && length(cols_not_in_data) >
       0) {
-    warning(paste0("NOTE: The following select_columns input(s) ",
-                   "is not a column in data.\n"), paste0(names(cols_not_in_data),
-                                                         "\t"))
+    warning("NOTE: The following select_columns input(s) ",
+                   "is not a column in data:\n", names(cols_not_in_data), "\t")
   }
   for (col_name in char_cols) {
     if (is.factor(.data[[col_name]])) {
@@ -478,7 +475,7 @@ dummy_cols <- function(.data, select_columns = NULL, remove_first_dummy = FALSE,
       if (!is.null(split)) {
         max_split_length <- max(sapply(strsplit(as.character(.data[[col_name]]),
                                                 split = split), length))
-        for (split_length in 1:max_split_length) {
+        for (split_length in seq_len(max_split_length)) {
           data.table::set(.data, i = which(data.table::chmatch(as.character(trimws(sapply(strsplit(as.character(.data[[col_name]]),
                                                                                                    split = split), `[`, split_length))), unique_value,
                                                                nomatch = 0) == 1L), j = paste0(col_name,
@@ -656,7 +653,7 @@ as.raster_array <- function (x, max = 1, ...)
     else if (d[3L] == 1L) 
       rgb(t(x[, , 1L]), t(x[, , 1L]), t(x[, , 1L]), maxColorValue = max)
     else stop("a raster array must have exactly 1, 3 or 4 planes"), 
-    dim = d[1:2])
+    dim = d[seq_len(2)])
   class(r) <- "raster"
   r
 }

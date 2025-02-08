@@ -1,4 +1,4 @@
-#' @include generics.R
+#' @include allgenerics.R
 #'
 NULL
 
@@ -95,7 +95,7 @@ getSpatialNeighbors <- function(object,
       switch(method,
              delaunay = {
                nnedges <- RCDT::delaunay(cur_coords)
-               nnedges <- as.vector(t(nnedges$edges[,1:2]))
+               nnedges <- as.vector(t(nnedges$edges[,seq_len(2)]))
                nnedges <- rownames(cur_coords)[nnedges]
                nnedges
              },
@@ -231,7 +231,7 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
   colnames(neighbors_graph_data) <- c("from", "to")
   
   # get simulations
-  grp_sim <- sapply(1:1000, function(x) sample(grp))
+  grp_sim <- vapply(seq_len(1000), function(x) sample(grp), numeric(length(grp)))
   rownames(grp_sim) <- names(grp)
   
   # get adjacency for observed and simulated pairs
@@ -281,7 +281,6 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
 #' @param graph.type the type of graph to determine spatial neighborhood
 #' @param alpha.value the alpha value for the hot spot analysis test. Default is 0.01
 #' @param norm if TRUE, the normalized data is used
-#' @param seed seed
 #' @param verbose verbose
 #' 
 #' @importFrom Matrix rowSums
@@ -289,10 +288,7 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
 #' @importFrom stats pnorm
 #'
 #' @export
-getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", features, graph.type = "delaunay", alpha.value = 0.01, norm = TRUE, seed = 1, verbose = TRUE){
-  
-  # set the seed
-  set.seed(seed)
+getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", features, graph.type = "delaunay", alpha.value = 0.01, norm = TRUE, verbose = TRUE){
   
   # check object
   if(!inherits(object, "VoltRon"))
@@ -465,9 +461,9 @@ getNicheAssay <- function(object, assay = NULL, label = NULL, graph.type = "dela
   # get niche assay
   adj_matrix <- igraph::neighborhood(graph)
   unique_label <- unique(label)
-  niche_counts <- sapply(adj_matrix, function(x){
+  niche_counts <- vapply(adj_matrix, function(x){
     table(factor(label[x], levels = unique_label))
-  }, simplify = TRUE)
+  }, numeric(length(unique_label)))
   colnames(niche_counts) <- igraph::V(graph)$name
   
   # add cell type mixtures as new feature set

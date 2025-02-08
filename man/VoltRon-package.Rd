@@ -5,5 +5,5 @@
 \alias{VoltRon-package}
 \title{VoltRon: VoltRon for Spatial Omics Data Integration and Analysis}
 \description{
-VoltRon is a novel spatial omic analysis toolbox for multi-omics integration using spatial image registration. VoltRon is capable of analyzing multiple types and modalities of spatially-aware datasets. VoltRon visualizes and analyzes regions of interests (ROIs), spots, cells, molecules and event tiles.
+VoltRon is a spatial omic analysis toolbox for multi-omics integration using spatial image registration. VoltRon is capable of analyzing multiple types and modalities of spatially-aware datasets. VoltRon visualizes and analyzes regions of interests (ROIs), spots, cells, molecules and event tiles.
 }
