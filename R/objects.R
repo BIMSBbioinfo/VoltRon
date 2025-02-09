@@ -1006,7 +1006,7 @@ mergeVoltRon <- function(x, y, samples = NULL, main.assay = NULL, verbose = TRUE
   if(verbose)
     message("Merging metadata ...")
   metadata_list <- lapply(object_list, function(x) slot(x, name = "metadata"))
-  metadata <- merge(metadata_list[[1]], metadata_list[-1])
+  metadata <- mergevrMetadata(metadata_list[[1]], metadata_list[-1])
 
   # combine samples and rename layers
   if(verbose)
