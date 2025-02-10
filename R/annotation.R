@@ -144,7 +144,11 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
                     
                     fluidRow(
                       column(6,shiny::selectInput("region_type", label = "Region Type", choices = c("Polygon", "Circle"), selected = "Polygon")),
-                      column(6,sliderInput("alpha", "Transparency", min = 0, max = 1, value = 0.2)),
+                      column(6,shiny::sliderInput("alpha", "Transparency", min = 0, max = 1, value = 0.2)),
+                    ),
+                    
+                    fluidRow(
+                      column(6,shiny::sliderInput("label_size", label = "Label Size", min = 1, max = 5, step = 0.5, value = 4)),
                     ),
                     
                     # instructions
@@ -159,13 +163,15 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
                     fluidRow(
                       column(12,h4("Selected Regions")),
                       br(),
-                      uiOutput("textbox_ui"),
+                      column(12,shiny::actionButton("done", "Done")),
                       br()  
                     ),
                     
                     # Subsets
                     fluidRow(
-                      column(12,shiny::actionButton("done", "Done"))
+                      br(),
+                      uiOutput("textbox_ui"),
+                      br()  
                     ),
                     
                     width = 4
@@ -218,7 +224,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
     
     # Dynamically generate UI for textboxes and remove buttons
     output$textbox_ui <- renderUI({
-      lapply(textboxes(), function(i) {
+      lapply(rev(textboxes()), function(i) {
         column(12,
                textInputwithButton(textinputId = paste0("region", i), label = paste0("Region ", i),
                                    buttoninputId = paste0("remove", i), value = isolate(textbox_values[[paste0("region", i)]]), 
@@ -350,7 +356,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
           }
           g <- g +
             ggrepel::geom_label_repel(mapping = aes(x = x, y = y, label = region), data = cur_corners,
-                                      size = 5, direction = "y", nudge_y = 6, box.padding = 0, label.padding = 1, seed = 1, color = "red")
+                                      size = input$label_size, direction = "y", nudge_y = 6, box.padding = 0, label.padding = input$label_size*0.1, seed = 1, color = "red")
           
         }
       }

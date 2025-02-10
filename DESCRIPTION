@@ -93,8 +93,9 @@ Suggests:
     circlize,
     rstudioapi,
     ggforce,
+    ggnewscale,
     anndataR,
-    anndata
+    anndata,
 Config/testthat/edition: 3
 LazyData: true
 LazyDataCompression: gzip

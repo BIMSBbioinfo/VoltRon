@@ -6,6 +6,7 @@ old_files
 .gitignore
 src/*.o
 src/*.so
+src/Makevars
 .DS_Store
 */.DS_Store
 configure.log
@@ -13,5 +14,5 @@ autobrew
 .deps
 Makevars
 dev
-libs_copy.tar.xz
+*.tar.xz
 cleanup

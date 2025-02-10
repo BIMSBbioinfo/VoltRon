@@ -23,7 +23,8 @@ vrSegments(object, ...)
   assay = NULL,
   image_name = NULL,
   spatial_name = NULL,
-  reg = FALSE
+  reg = FALSE,
+  as.data.frame = FALSE
 )
 
 \S4method{vrSegments}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE)
@@ -59,6 +60,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{spatial_name}{the name/key of the spatial system associated with the coordinates}
 
 \item{reg}{TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested}
+
+\item{as.data.frame}{if TRUE, the coordinates of segment nodes will be returned as a data frame}
 
 \item{value}{segments}
 }

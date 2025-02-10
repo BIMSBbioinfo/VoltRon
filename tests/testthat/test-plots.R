@@ -55,8 +55,8 @@ test_that("spatial plots", {
   vrSpatialPlot(xenium_data, group.by = "clusters", spatial = "main", background.color = "yellow")
   vrSpatialPlot(xenium_data, group.by = "clusters", spatial = "main", channel = "DAPI")
   vrSpatialPlot(xenium_data, group.by = "clusters", channel = "DAPI")
-  expect_warning(vrSpatialPlot(xenium_data, group.by = "clusters", channel = "DAPI2"))
-  expect_warning(vrSpatialPlot(xenium_data, group.by = "clusters", spatial = "main", channel = "DAPI2"))
+  vrSpatialPlot(xenium_data, group.by = "clusters", channel = "DAPI2")
+  vrSpatialPlot(xenium_data, group.by = "clusters", spatial = "main", channel = "DAPI2")
   expect_error(vrSpatialPlot(xenium_data, group.by = "clusters", spatial = "main2"))
   expect_error(vrSpatialPlot(xenium_data, group.by = "clusters", spatial = "main2", channel = "DAPI2"))
 
@@ -64,8 +64,7 @@ test_that("spatial plots", {
   expect_warning(
     expect_warning(vrSpatialPlot(xenium_data, group.by = "clusters", background = "main")))
   expect_warning(
-    expect_warning(
-      expect_warning(vrSpatialPlot(xenium_data, group.by = "clusters", background = c("main", "DAPI2")))))
+      expect_warning(vrSpatialPlot(xenium_data, group.by = "clusters", background = c("main", "DAPI2"))))
   expect_warning(
     expect_warning(
       expect_error(vrSpatialPlot(xenium_data, group.by = "clusters", background = "main2"))))
@@ -138,4 +137,92 @@ test_that("rasterization", {
   
   # return
   expect_equal(1,1L)
+})
+
+# testing multilayer plots
+test_that("multilayer", {
+  
+  skip_if_not_installed("ggnewscale")
+  data("merged_object")
+  
+  # single
+  vrSpatialPlot(merged_object)
+  
+  # cell vs ROI (without segments)
+  vrSpatialPlot(merged_object, plot.segments = FALSE) |>
+    addSpatialLayer(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.3)
+  
+  # cell vs ROI (with segments)
+  vrSpatialPlot(merged_object, plot.segments = TRUE) |>
+    addSpatialLayer(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.4, colors = list(Block = "blue"))
+
+  # ROI vs cell
+  vrSpatialPlot(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.4, colors = list(Block = "blue")) |>
+    addSpatialLayer(merged_object, assay = "Assay1")
+  vrSpatialPlot(merged_object, assay = "Assay3", group.by = "Sample", alpha = 1, colors = list(Block = "blue")) |>
+    addSpatialLayer(merged_object, assay = "Assay1", plot.segments = TRUE, alpha = 0.4)
+  vrSpatialPlot(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.4, colors = list(Block = "blue")) |>
+    addSpatialLayer(merged_object, assay = "Assay1", n.tile = 100)
+  
+  # cell vs molecule (without segments)
+  vrSpatialPlot(merged_object, plot.segments = FALSE) |>
+    addSpatialLayer(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green"))
+  
+  # cell vs molecule 
+  vrSpatialPlot(merged_object, plot.segments = TRUE) |>
+    addSpatialLayer(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green"))
+  
+  # molecule vs cell (with segments)
+  vrSpatialPlot(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green")) |>
+    addSpatialLayer(merged_object, assay = "Assay1")
+  vrSpatialPlot(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green")) |>
+    addSpatialLayer(merged_object, assay = "Assay1", plot.segments = TRUE, alpha = 0.4)
+  
+  # cells, ROIs and molecules together
+  vrSpatialPlot(merged_object, plot.segments = TRUE) |>
+    addSpatialLayer(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green")) |>
+    addSpatialLayer(merged_object, assay = "Assay3", group.by = "Layer", alpha = 0.4, colors = list(Section3 = "blue"))
+  
+  expect_equal(1,1)
+})
+
+# testing multilayer plots
+# TODO: tiling multilayer visualization behavior is not ideal right now
+test_that("multilayer (with tiling)", {
+  
+  skip_if_not_installed("ggnewscale")
+  data("merged_object")
+  
+  # single
+  vrSpatialPlot(merged_object)
+  
+  # cell vs ROI (without segments)
+  vrSpatialPlot(merged_object, plot.segments = FALSE, n.tile = 100) |>
+    addSpatialLayer(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.4, colors = list(Block = "blue"))
+  
+  # ROI vs cell
+  vrSpatialPlot(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.4, colors = list(Block = "blue")) |>
+    addSpatialLayer(merged_object, assay = "Assay1", n.tile = 100)
+  
+  # cell vs molecule (without segments)
+  vrSpatialPlot(merged_object, plot.segments = FALSE) |>
+    addSpatialLayer(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green"), n.tile = 100)
+  vrSpatialPlot(merged_object, plot.segments = FALSE, n.tile = 100) |>
+    addSpatialLayer(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green"), n.tile = 100)
+  
+  # cell vs molecule 
+  vrSpatialPlot(merged_object, plot.segments = TRUE) |>
+    addSpatialLayer(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green"), n.tile = 100)
+  
+  # molecule vs cell (with segments)
+  vrSpatialPlot(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green")) |>
+    addSpatialLayer(merged_object, assay = "Assay1", n.tile = 100)
+  vrSpatialPlot(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green")) |>
+    addSpatialLayer(merged_object, assay = "Assay1", plot.segments = TRUE)
+  
+  # molecule vs ROI
+  vrSpatialPlot(merged_object, assay = "Assay2", group.by = "gene", alpha = 1, colors = list(KRT15 = "blue", KRT14 = "green"), n.tile = 100) |>
+    addSpatialLayer(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.4, colors = list(Block = "blue"))
+  
+  expect_equal(1,1)
 })

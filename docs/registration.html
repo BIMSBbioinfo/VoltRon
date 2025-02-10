@@ -847,6 +847,12 @@ vrSpatialPlot(VRBlock, group.by = &quot;annotation&quot;, assay = &quot;Visium&q
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_ROI_xenium.png" class="center"></p>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_ROI_visium.png" class="center"></p>
 <p><br></p>
+<p>You can also use the <strong>addSpatialLayer</strong> function to
+overlay annotation segments to the spatial plot of the Xenium data.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(VRBlock_new2, group.by = &quot;CellType&quot;, assay = &quot;Assay1&quot;, crop = TRUE) |&gt;
+  addSpatialLayer(VRBlock_new2, assay = &quot;ROIAnnotation&quot;, group.by = &quot;annotation&quot;, spatial = &quot;main&quot;, alpha = 0.4)</code></pre>
+<p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_ROI_xenium_overlay.png" class="center"></p>
+<p><br></p>
 </div>
 </div>
 </div>

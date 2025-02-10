@@ -198,9 +198,7 @@ rownames(.dccMetadata[["protocolData"]])[rownames(.dccMetadata[["protocolData"]]
 #'
 #' Defines a conda environment via Basilisk, which is used to convert R objects to Zarr stores.
 #'
-#' @keywords internal
-#'
-#' @noRd
+#' @export
 getBasilisk <- function(){
  
   if(!requireNamespace('basilisk'))
@@ -209,7 +207,7 @@ getBasilisk <- function(){
   basilisk.packages=c(
     "numpy==1.*",
     "pandas==1.*",
-    "anndata==0.7.*",
+    "anndata==0.8.*",
     "h5py==3.*",
     "hdf5==1.*",
     "natsort==7.*",

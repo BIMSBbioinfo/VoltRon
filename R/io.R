@@ -33,6 +33,7 @@ saveVoltRon <- function (object,
   
   # check if the object was previously saved on disk
   paths <- .get_unique_links(object)
+  paths <- unique(vapply(paths, file_path_as_absolute, character(1)))
   if(length(paths) > 1){
     if(is.null(output)){
       stop("There are multiple paths that this VoltRon object is saved to, cannot write unless 'output' is specified!")
@@ -346,7 +347,7 @@ writeHDF5ArrayInMetadata <- function(object,
   slot_names <- slotNames(object)
   for(sn in slot_names){
     meta.data <- methods::slot(object, name = sn)
-    if(!inherits(meta.data, c("HDF5DataFrame")) || replace){
+    if(!inherits(meta.data, c("DataFrame", "HDF5DataFrame")) || replace){
       if(nrow(meta.data) > 0){
         meta.data_list <- list()
         rhdf5::h5createGroup(h5_path, group = paste0(name, "/", sn))
@@ -369,15 +370,18 @@ writeHDF5ArrayInMetadata <- function(object,
         
         # write rest of the columns
         for(i in seq_len(ncol(meta.data))){
+          column_name <- paste0(name, "/", sn, "/", colnames(meta.data)[i])
           if(inherits(meta.data,"data.table")){
             cur_column <- as.array(as.vector(subset(meta.data, select = colnames(meta.data)[i]))[[1]])
           } else {
             cur_column <- as.array(meta.data[,i])
           }
+          if(is.factor(cur_column))
+            cur_column <- as.array(as.character(cur_column))
           meta.data_list[[colnames(meta.data)[i]]] <- 
             HDF5Array::writeHDF5Array(cur_column, 
                                       h5_path, 
-                                      name = paste0(name, "/", sn, "/", colnames(meta.data)[i]),
+                                      name = column_name,
                                       chunkdim=chunkdim, 
                                       level=level,
                                       as.sparse=as.sparse,
@@ -387,6 +391,37 @@ writeHDF5ArrayInMetadata <- function(object,
         methods::slot(object, name = sn) <- 
           HDF5DataFrame::HDF5DataFrame(meta.data_list)
       }
+    } else {
+      meta.data_list <- list()
+      for(i in seq_len(ncol(meta.data))){
+        column_name <- paste0(name, "/", sn, "/", colnames(meta.data)[i])
+        if(!h5Dexists(h5_path, column_name)){
+          if(inherits(meta.data,"data.table")){
+            cur_column <- as.array(as.vector(subset(meta.data, select = colnames(meta.data)[i]))[[1]])
+          } else {
+            cur_column <- as.array(meta.data[,i])
+          }
+          if(is.factor(cur_column))
+            cur_column <- as.array(as.character(cur_column))
+          new_column <- HDF5Array::writeHDF5Array(cur_column, 
+                                                  h5_path, 
+                                                  name = column_name,
+                                                  chunkdim=chunkdim, 
+                                                  level=level,
+                                                  as.sparse=as.sparse,
+                                                  with.dimnames=FALSE,
+                                                  verbose=FALSE)
+          new_column <- HDF5DataFrame::HDF5ColumnVector(DelayedArray::path(new_column), 
+                                                        name = paste0(name, "/", sn), 
+                                                        column = colnames(meta.data)[i])
+          meta.data[[colnames(meta.data)[i]]] <- new_column
+        } else {
+          # meta.data_list[[colnames(meta.data)[i]]] <- meta.data[[colnames(meta.data)[i]]]
+        } 
+      }
+      methods::slot(object, name = sn) <- meta.data
+      # methods::slot(object, name = sn) <- 
+      #   HDF5DataFrame::HDF5DataFrame(meta.data_list)
     }
   }
   
@@ -660,7 +695,7 @@ writeZarrArrayInMetadata <- function(object,
   slot_names <- slotNames(object)
   for(sn in slot_names){
     meta.data <- methods::slot(object, name = sn)
-    if(!inherits(meta.data, c("ZarrDataFrame")) || replace){
+    if(!inherits(meta.data, c("DataFrame", "ZarrDataFrame")) || replace){
       if(nrow(meta.data) > 0){
         meta.data_list <- list()
         zarr.array <- pizzarr::zarr_open(store = zarr_path)
@@ -1039,11 +1074,14 @@ shorten_metadata_links <- function(object)
   for(sn in slot_names){
     meta.data <- methods::slot(object, name = sn)
     if(nrow(meta.data) > 0){
-      meta.data <- modify_seeds(meta.data,
-                                function(x) {
-                                  x@path <- basename(DelayedArray::path(x))
-                                  x
-                                })
+      for(i in seq_len(ncol(meta.data))){
+        meta.data[[colnames(meta.data)[i]]] <- 
+          modify_seeds(meta.data[[colnames(meta.data)[i]]],
+                       function(x) {
+                         x@path <- basename(DelayedArray::path(x))
+                         x
+                       })
+      }
     }
     methods::slot(object, name = sn) <- meta.data
   }
@@ -1178,10 +1216,17 @@ restore_absolute_metadata_links <- function(object, dir){
   for(sn in slot_names){
     meta.data <- methods::slot(object, name = sn)
     if(nrow(meta.data) > 0){
-      meta.data <- modify_seeds(meta.data,
-                                function(x) {
-                                  restore_absolute_links(x,dir)
-                                })
+      # meta.data <- modify_seeds(meta.data,
+      #                           function(x) {
+      #                             restore_absolute_links(x,dir)
+      #                           })
+      for(i in seq_len(ncol(meta.data))){
+        meta.data[[colnames(meta.data)[i]]] <- 
+          modify_seeds(meta.data[[colnames(meta.data)[i]]],
+                       function(x) {
+                         restore_absolute_links(x,dir)
+                       })
+      }
     }
     methods::slot(object, name = sn) <- meta.data
   }
@@ -1290,13 +1335,15 @@ restore_absolute_links <- function(x, dir){
   }
 
   # check object
-  if (!is(x, c("Array")) && !is(x, c("IterableMatrix")) && !is(x, c("HDF5DataFrame")) && !is(x, c("ZarrDataFrame")))
-    stop("object is not DelayedArray")
+  if (!is(x, c("Array")) && !is(x, c("IterableMatrix")) && !is(x, c("HDF5DataFrame")) && !is(x, c("ZarrDataFrame")) && !is(x, "HDF5ColumnSeed") && !is(x, "ZarrColumnSeed"))
+    stop("object is not DelayedArray or DelayedArraySeed")
   
   # get path
   if(inherits(x, "DelayedArray") || "filepath" %in% slotNames(x)){
     file_path <- file.path(dir, x@filepath)
-  } else if(inherits(x, "IterableMatrix")){
+  } else if(inherits(x, c("HDF5ColumnSeed", "ZarrColumnSeed"))){
+    file_path <- file.path(dir, x@path)
+  } else  if(inherits(x, "IterableMatrix")){
     file_path <- file.path(dir, getIterableMatrixPath(x))
   } else if(inherits(x, c("HDF5DataFrame", "ZarrDataFrame"))){
     file_path <- file.path(dir, getDataFramePath(x))
@@ -1310,6 +1357,9 @@ restore_absolute_links <- function(x, dir){
   if(inherits(x, "DelayedArray") || "filepath" %in% slotNames(x)){
     x@filepath <- file_path_as_absolute(file_path)
     msg <- validate_absolute_path(x@filepath, paste0("'filepath' slot of Object"))
+  } else if(inherits(x, c("HDF5ColumnSeed", "ZarrColumnSeed"))){
+    x@path <- file_path_as_absolute(file_path)
+    msg <- validate_absolute_path(x@path, paste0("'path' slot of Object"))
   } else if(inherits(x, "IterableMatrix")){
     x <- updateIterableMatrixPath(x, file_path_as_absolute(file_path))
     msg <- validate_absolute_path(getIterableMatrixPath(x), paste0("'filepath' slot of Object"))
@@ -1509,4 +1559,32 @@ validate_absolute_path <- function(path, what="'path'")
     return(paste0(what, " (\"", path, "\") must be the absolute ",
                   "canonical path the HDF5 file"))
   TRUE
+}
+
+h5Gexists <- function (file, group) 
+{
+  if(!requireNamespace('rhdf5'))
+    stop("Please install rhdf5 package!: BiocManager::install('rhdf5')")
+  
+  loc = rhdf5::H5Fopen(file)
+  on.exit(rhdf5::H5close())
+  if (is.character(group)) {
+    return(rhdf5::H5Lexists(loc, group))
+  } else {
+    stop("\"dataset\" argument must be a character vector of length one.")
+  }
+}
+
+h5Dexists <- function (file, dataset) 
+{
+  if(!requireNamespace('rhdf5'))
+    stop("Please install rhdf5 package!: BiocManager::install('rhdf5')")
+  
+  loc = rhdf5::H5Fopen(file)
+  on.exit(rhdf5::H5close())
+  if (is.character(dataset)) {
+    return(rhdf5::H5Lexists(loc, dataset))
+  } else {
+    stop("\"dataset\" argument must be a character vector of length one.")
+  }
 }

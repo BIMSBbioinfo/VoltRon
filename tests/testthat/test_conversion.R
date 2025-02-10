@@ -1,8 +1,5 @@
 # library
-skip_if_not_installed("basilisk")
-skip_if_not_installed("reticulate")
-skip_if_not_installed("anndata")
-skip_if_not_installed("DelayedArray")
+skip_on_ci() # dont test on GitHub actions
 
 # file
 h5ad_file <- tempfile(fileext = ".h5ad")

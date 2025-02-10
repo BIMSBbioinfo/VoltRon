@@ -82,8 +82,9 @@ NULL
     }
   } else {
     if(length(value) == 1 | nrow(metadata) == length(value)){
-      metadata[[i]] <- value
-      Metadata(x, assay = assay_names) <- metadata
+      # metadata[[i]] <- value
+      # Metadata(x, assay = assay_names) <- metadata
+      x <- addMetadata(x, assay = assay_names, label = i, value = value)
     } else {
       stop("The new or the existing column should of length 1 or the same as the number of rows")
     }
@@ -932,7 +933,7 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
 #'
 #' Given a VoltRon object, subset the object given one of the attributes
 #'
-#' @param x a vrAssay object
+#' @param x a VoltRon object
 #' @param subset Logical statement for subsetting
 #' @param samples the set of samples to subset the object
 #' @param assays the set of assays to subset the object
@@ -1005,7 +1006,7 @@ mergeVoltRon <- function(x, y, samples = NULL, main.assay = NULL, verbose = TRUE
   if(verbose)
     message("Merging metadata ...")
   metadata_list <- lapply(object_list, function(x) slot(x, name = "metadata"))
-  metadata <- merge(metadata_list[[1]], metadata_list[-1])
+  metadata <- mergevrMetadata(metadata_list[[1]], metadata_list[-1])
 
   # combine samples and rename layers
   if(verbose)
@@ -1085,6 +1086,7 @@ vrFeaturesVoltRon <- function(object, assay = NULL) {
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #'
 #' @rdname vrFeatures
+#' @method vrFeatures VoltRon
 #' @order 2
 #' @export
 setMethod("vrFeatures", "VoltRon", vrFeaturesVoltRon)
@@ -1442,7 +1444,7 @@ MetadataVoltRon <- function(object, assay = NULL, type = NULL){
   } else{
     type <- unique(vrAssayTypes(object, assay = assay))
     if(length(type) > 1)
-      stop("Select only metadata with a single assay type!")
+      stop("You cannot get the metadata of multiple spatial entity types in the same time! See SampleMetadata()")
   }
 
   # get assay metadata from matching type
@@ -1505,7 +1507,7 @@ MetadataReplaceVoltRon <- function(object, assay = NULL, type = NULL, value) {
   sample.metadata <- SampleMetadata(object)
 
   # get assay names
-  assay_names <- vrAssayNames(object, assay = assay)
+  # assay_names <- vrAssayNames(object, assay = assay)
 
   # get metadata
   metadata <- slot(object@metadata, name = type)
@@ -1566,7 +1568,7 @@ MetadataReplaceVoltRon <- function(object, assay = NULL, type = NULL, value) {
         # check columns of the new table
         new_columns <- setdiff(colnames(value), colnames(metadata))
   
-        # current metadata shouldnt have columns that value doesnt have
+        # current metadata shouldn't have columns that value doesnt have
         if(length(setdiff(colnames(metadata), colnames(value))) > 0)
           stop("Some columns of new data frame are not available in the metadata")
   
@@ -1604,6 +1606,73 @@ MetadataReplaceVoltRon <- function(object, assay = NULL, type = NULL, value) {
 #' @export
 setMethod("Metadata<-", "VoltRon", MetadataReplaceVoltRon)
 
+#' addMetadata
+#' 
+#' adding new columns or updating the values of the existing columns
+#' 
+#' @param object a VoltRon object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param type the assay type: ROI, spot or cell, or all for the entire metadata object
+#' @param value the new values of the metadata column
+#' @param label the label of the new column, either a new column or an existing one
+#'
+#' @export
+addMetadata <- function(object, assay = NULL, type = NULL, value, label) {
+  
+  if(!inherits(object, "VoltRon"))
+    stop("Object must be of VoltRon class!")
+  
+  # auxiliary
+  `%notin%` <- Negate(`%in%`)
+
+  # check type
+  if(is.null(type)){
+    type <- unique(vrAssayTypes(object, assay = assay))
+    if(length(type) > 1){
+      stop("You cannot update the metadata of multiple spatial entity types in the same time! See SampleMetadata()")
+    }
+  }
+  
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+  
+  # get assay names
+  entities <- vrSpatialPoints(object, assay = assay)
+
+  # get metadata
+  metadata <- slot(object@metadata, name = type)
+  
+  # add or replace the new column
+  if(label %notin% colnames(metadata)){
+    
+    # add empty values if the column is new
+    if(is.numeric(value)){
+      metadata[[label]] <- NA
+    } else {
+      metadata[[label]] <- ""
+    }
+  }
+  
+  # replace data
+  if(length(value) == length(entities) || length(value) == 1){
+    if(is.null(rownames(metadata)) || inherits(metadata, "data.table")){
+      metadata[[label]][match(entities, as.vector(metadata$id))] <- value
+    } else {
+      metadata[entities,][[label]] <- value
+    } 
+  } else {
+    stop("value should be of the same length as the rows of metadata or 1!")
+  }
+  
+  # replace metadata
+  slot(object@metadata, name = type) <- metadata
+  
+  # return
+  return(object)
+}
+
+
 #' SampleMetadata
 #'
 #' Get the sample metadata of a VoltRon object
@@ -1635,11 +1704,13 @@ vrCoordinatesVoltRon <- function(object, assay = NULL, image_name = NULL, spatia
     
     # get coordinates
     cur_coords <- vrCoordinates(object[[assy]], image_name = image_name, reg = reg)
+    if(inherits(cur_coords, "IterableMatrix"))
+      cur_coords <- as.matrix(as(cur_coords, "dgCMatrix"))
     
     # update zlocation
     sample_name <- sample_metadata[assy, "Sample"]
     
-    catch_connect <- try(slot(object, name = "zlocation"), silent = TRUE)
+    catch_connect <- try(slot(object[[sample_name]], name = "zlocation"), silent = TRUE)
     if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
       zlocation <- object[[sample_name]]@zlocation 
       cur_coords[,"z"] <- rep(zlocation[sample_metadata[assy, "Layer"]], nrow(cur_coords)) 
@@ -1701,7 +1772,7 @@ vrCoordinatesReplaceVoltRon <- function(object, image_name = NULL, spatial_name 
 #' @export
 setMethod("vrCoordinates<-", "VoltRon", vrCoordinatesReplaceVoltRon)
 
-vrSegmentsVoltRon <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL, reg = FALSE) {
+vrSegmentsVoltRon <- function(object, assay = NULL, image_name = NULL, spatial_name = NULL, reg = FALSE, as.data.frame = FALSE) {
   
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -1714,8 +1785,10 @@ vrSegmentsVoltRon <- function(object, assay = NULL, image_name = NULL, spatial_n
   segts <- NULL
   for(assy in assay_names)
     segts <- c(segts, vrSegments(object[[assy]], spatial_name = image_name, reg = reg))
-  # segts <- c(segts, vrSegments(object[[assy]], image_name = image_name, reg = reg))
   
+  if(as.data.frame)
+    segts <- do.call(rbind, segts)
+
   # return image
   return(segts)
 }
@@ -1725,6 +1798,7 @@ vrSegmentsVoltRon <- function(object, assay = NULL, image_name = NULL, spatial_n
 #' @param image_name (deprecated, use \code{spatial_name}) the name/key of the image associated with the coordinates
 #' @param spatial_name the name/key of the spatial system associated with the coordinates
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested
+#' @param as.data.frame if TRUE, the coordinates of segment nodes will be returned as a data frame
 #'
 #' @rdname vrSegments
 #' @order 2

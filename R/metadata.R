@@ -294,9 +294,9 @@ mergevrMetadata <- function(x, y) {
 
   # initial combination
   if(length(object_list) > 2){
-    combined.metadata <- merge(obj1, obj2)
+    combined.metadata <- mergevrMetadata(obj1, obj2)
     for(i in 3:(length(object_list))){
-      combined.metadata <- merge(combined.metadata, object_list[[i]])
+      combined.metadata <- mergevrMetadata(combined.metadata, object_list[[i]])
     }
   } else {
     updateobjects <- updateMetadataAssay(obj1, obj2)
@@ -545,6 +545,11 @@ addAssayvrMetadata <- function(object, metadata = NULL, assay, assay_name, sampl
         assay_metadata <- data.frame(id = entityID, Count = Matrix::colSums(data), assay_id = assay_id)
       } else {
         assay_metadata <- data.frame(id = entityID, assay_id = assay_id)
+      }
+      
+      # check rownames
+      if(!is.null(rownames(object_metadata))){
+        rownames(assay_metadata) <- assay_metadata$id
       }
       
       # add metadata
