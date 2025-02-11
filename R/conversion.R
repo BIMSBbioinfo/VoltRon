@@ -573,7 +573,6 @@ as.OmeTiff <- function (object, out_path, image_id = "image_1"){
 import tifffile
 tifimage = r.img_arr_py.astype('uint8')
 # tifimage = np.random.randint(0, 255, (32, 32, 3), 'uint8')
-np.savetxt('data.csv', tifimage[:,:,0], delimiter=',')
 with tifffile.TiffWriter('", out_path, "') as tif: tif.write(tifimage, photometric='rgb')"
       ))
     

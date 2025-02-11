@@ -172,7 +172,11 @@ getClusters <- function(object, resolution = 1, nclus = integer(0), assay = NULL
   #   metadata[clusters$names,][[label]] <- clusters$membership
   # }
   # Metadata(object, assay = assay) <- metadata
-  object <- addMetadata(object, assay = assay, value = clusters$membership, label = label)
+  
+  spatialpoints <- vrSpatialPoints(object, assay = assay)
+  membership <- setNames(rep(NA,length(spatialpoints)), spatialpoints)
+  membership[clusters$names] <- clusters$membership
+  object <- addMetadata(object, assay = assay, value = membership, label = label)
 
   # return
   return(object)
