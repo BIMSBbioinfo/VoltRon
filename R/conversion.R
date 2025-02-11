@@ -161,7 +161,7 @@ as.Seurat <- function(object, cell.assay = NULL, molecule.assay = NULL, image_ke
     assay_object <- object[[assy]]
     if(type == "image"){
       coords <- vrCoordinates(assay_object, reg = reg)
-      image.data <- list(centroids = SeuratObject::CreateCentroids(coords))
+      image.data <- list(centroids = SeuratObject::CreateCentroids(coords[,c("x", "y")]))
       if(!is.null(molecule.assay)){
         assay_metadata <- sample_metadata[assy,]
         molecule.assay.id <- rownames(sample_metadata)[sample_metadata$Assay == molecule.assay & (assay_metadata$Layer == sample_metadata$Layer & assay_metadata$Sample == sample_metadata$Sample)]
