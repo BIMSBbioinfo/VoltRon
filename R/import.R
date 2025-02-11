@@ -49,7 +49,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
       stop("There are no assays called ", selected_assay, " in the h5 file!")
     }
   } else {
-    stop("There are no files named 'filtered_feature_bc_matrix.h5' in the path")
+    stop("There are no files named 'cell_feature_matrix.h5' in the path")
   }
 
   # image
