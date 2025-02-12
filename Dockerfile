@@ -38,7 +38,6 @@ RUN R -e "remotes::install_github('BIMSBbioinfo/HDF5DataFrame')"
 RUN R -e "remotes::install_github('BIMSBbioinfo/ZarrDataFrame')"
 RUN R -e "install.packages('Seurat')"
 RUN R -e "BiocManager::install('glmGamPoi')"
-RUN R -e "install.packages('hdf5r')"
 RUN R -e "install.packages('arrow')"
 RUN R -e "BiocManager::install('RBioFormats')"
 RUN R -e "BiocManager::install('ComplexHeatmap')"
@@ -53,7 +52,7 @@ RUN R -e "install.packages('patchwork')"
 RUN R -e "install.packages('anndata')"
 
 # Install VoltRon dependencies
-RUN R -e "devtools::install_github('BIMSBbioinfo/VoltRon')"
+RUN R -e "devtools::install_github('Artur-man/VoltRon')"
 
 # Install basilisk and setup environment
 USER rstudio
@@ -62,4 +61,6 @@ RUN R -e "basilisk::obtainEnvironmentPath(VoltRon::getBasilisk())"
 
 # return to root
 USER root
+RUN touch temp.txt
+
 RUN touch temp.txt
