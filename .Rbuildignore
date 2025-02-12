@@ -9,7 +9,3 @@ dev
 ^LICENSE\.md$
 Dockerfile
 environment.yml
-.deps
-autobrew
-configure.log
-src/Makevars
