@@ -1,4 +1,3 @@
-# Testing functions of manipulating assays ####
 test_that("assay", {
 
   # get data
@@ -19,7 +18,6 @@ test_that("assay", {
   expect_equal(1,1L)
 })
 
-# Testing functions of manipulating samples ####
 test_that("sample", {
 
   # get data
@@ -44,7 +42,6 @@ test_that("sample", {
   expect_equal(1,1L)
 })
 
-# Testing functions of manipulating samples ####
 test_that("merge objects", {
   
   # get data

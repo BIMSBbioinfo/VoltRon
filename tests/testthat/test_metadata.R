@@ -15,7 +15,7 @@ test_that("add column (numeric)", {
   # update metadata of only one assay
   xenium_data2 <- xenium_data
   xenium_data2$Sample <- "XeniumR2"
-  xenium_data2 <- merge(xenium_data, xenium_data2)
+  xenium_data2 <- merge(xenium_data, xenium_data2, verbose = FALSE)
   xenium_data2 <- addMetadata(xenium_data2, assay = "Assay1", value = 1:nrow(Metadata(xenium_data2, assay = "Assay1")), label = "column")
   
   # check if Assay2 label is empty
@@ -25,7 +25,7 @@ test_that("add column (numeric)", {
   expect_equal(1,1L)
 })
 
-test_that("add column (numeric)", {
+test_that("add column (text)", {
   
   # get data
   data("visium_data")
@@ -42,7 +42,7 @@ test_that("add column (numeric)", {
   # update metadata of only one assay
   xenium_data2 <- xenium_data
   xenium_data2$Sample <- "XeniumR2"
-  xenium_data2 <- merge(xenium_data, xenium_data2)
+  xenium_data2 <- merge(xenium_data, xenium_data2, verbose = FALSE)
   xenium_data2 <- addMetadata(xenium_data2, assay = "Assay1", value = paste0("text", 1:nrow(Metadata(xenium_data2, assay = "Assay1"))), label = "column")
   
   # check if Assay2 label is empty text

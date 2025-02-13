@@ -59,7 +59,6 @@ Suggests:
     testthat (>= 3.0.0),
     S4Vectors,
     DelayedArray,
-    hdf5r,
     rhdf5,
     basilisk,
     reticulate,

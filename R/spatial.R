@@ -103,9 +103,6 @@ getSpatialNeighbors <- function(object,
                # nnedges <- RANN::nn2(cur_coords, k = k + 1)
                nnedges <- knn_annoy(cur_coords, k = k + 1)
                names(nnedges) <- c("nn.index", "nn.dist")
-               # nnedges <- nnedges$nn.index
-               # nnedges <- reshape2::melt(data.frame(nnedges), id.vars = "X1")
-               # nnedges <- subset(nnedges[,c("X1", "value")], value != 0 & X1 != 0)
                nnedges <- data.table::melt(data.table::data.table(nnedges$nn.index), id.vars = "V1")
                nnedges <- nnedges[,c("V1", "value")][V1 > 0 & value > 0]
                nnedges <- as.vector(t(as.matrix(nnedges)))
@@ -118,10 +115,7 @@ getSpatialNeighbors <- function(object,
                  radius <- ifelse(is.null(spot.radius), 1, spot.radius)
                }
                nnedges <- suppressWarnings({RANN::nn2(cur_coords, searchtype = "radius", radius = radius, k = min(300, sqrt(nrow(cur_coords))/2))})
-               # nnedges <- nnedges$nn.idx
-               # nnedges <- reshape2::melt(data.frame(nnedges), id.vars = "X1")
                nnedges <- data.table::melt(data.table::data.table(nnedges$nn.idx), id.vars = "V1")
-               # nnedges <- subset(nnedges[,c("X1", "value")], value != 0 & X1 != 0)
                nnedges <- nnedges[,c("V1", "value")][V1 > 0 & value > 0]
                nnedges <- as.vector(t(as.matrix(nnedges)))
                nnedges <- rownames(cur_coords)[nnedges]
@@ -378,7 +372,8 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
         # calculate z score 
         getisord_zscore <- (getisord[[1]] - getisord_exp)/sqrt(getisord_var)
         getisord_zscore[is.nan(getisord_zscore)] <- NA
-        getisord[[2]] <- 1-stats::pnorm(getisord_zscore)
+        # getisord[[2]] <- 1-stats::pnorm(getisord_zscore)
+        getisord[[2]] <- p.adjust(1-stats::pnorm(getisord_zscore), method = "bonferroni")
         getisord[[3]] <- ifelse(getisord[[2]] < alpha.value, "hot", "cold") 
         
         # get graph based hot spot filtering
@@ -392,25 +387,26 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
     
     # update metadata for assays
     if("id" %in% colnames(metadata)){
-      ind <- match(cur_metadata$id, as.vector(metadata$id))
+      ind <- match(as.vector(cur_metadata$id), as.vector(metadata$id))
       for(feat in features){
         for(label in names(getisord)){
           metadata_label <- paste(feat, label, sep = "_")
           metadata[[metadata_label]][ind] <- cur_metadata[[metadata_label]]
+          object <- addMetadata(object, assay = assay, value = metadata[[metadata_label]], label = metadata_label)
         }
       }
     } else {
       for(feat in features){
         for(label in names(getisord)){
           metadata_label <- paste(feat, label, sep = "_")
-          metadata[rownames(cur_metadata),][[metadata_label]] <- cur_metadata[[metadata_label]]     
+          object <- addMetadata(object, assay = assay, value = metadata[[metadata_label]], label = metadata_label)
         }
       }
     }
   }
   
   # update metadata
-  Metadata(object, assay = assay) <- metadata
+  # Metadata(object, assay = assay) <- metadata
   
   # return
   return(object)
