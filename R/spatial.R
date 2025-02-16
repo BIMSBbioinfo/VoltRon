@@ -444,11 +444,11 @@ getNicheAssay <- function(object, assay = NULL, label = NULL, graph.type = "dela
   # get label
   cur_metadata <- subset_metadata(metadata, assays = assay_names)
   if(label %in% colnames(cur_metadata)){
-    label <- cur_metadata[,label]
+    label <- as.vector(cur_metadata[,label])
     if(!is.null(rownames(cur_metadata))){
       names(label) <- rownames(cur_metadata)
     } else {
-      names(label) <- cur_metadata$id
+      names(label) <- as.vector(cur_metadata$id)
     }
   } else {
     stop("'", label, "' is not found in the metadata!")
