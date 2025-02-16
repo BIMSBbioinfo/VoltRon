@@ -463,11 +463,11 @@ importVisiumHD <- function(dir.path, bin.size = "8", selected_assay = "Gene Expr
 #'
 #' import the sparse matrix from the H5 file
 #'
-#' @param filename the path tp h5 file
+#' @param filename the path to h5 file
 #'
 #' @importFrom Matrix sparseMatrix
 #'
-#' @noRd
+#' @export
 import10Xh5 <- function(filename){
 
   # check package
@@ -1851,7 +1851,6 @@ importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, i
   # get individual sections as voltron data
   sections <- unique(metadata$n_section)
   zlocation <- zlocation[order(sections)]
-  # connectivity <- reshape2::melt(matrix(rep(1, length(sections)^2), nrow = length(sections)))[,seq_len(2)]
   connectivity <- data.frame(Var1 = rep(seq_len(length(sections)), length(sections)), 
                              Var2 = rep(seq_len(length(sections)), each = length(sections)))
   sections <- sections[order(sections)]
@@ -1872,7 +1871,7 @@ importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, i
   
   # create VoltRon
   sample_name <- ifelse(is.null(sample_name), "Sample", sample_name)
-  vr_data <- merge(vr_data_list[[1]], vr_data_list[-1], samples = sample_name)
+  vr_data <- mergeVoltRon(vr_data_list[[1]], vr_data_list[-1], samples = sample_name)
   
   # set zlocations and adjacency of layer in the vrBlock
   vr_data <- addBlockConnectivity(vr_data, connectivity = connectivity, zlocation = zlocation, sample = sample_name)
