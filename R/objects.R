@@ -1459,7 +1459,7 @@ MetadataVoltRon <- function(object, assay = NULL, type = NULL){
     # get metadata
     metadata <- slot(object@metadata, name = type)
     if(inherits(metadata, "data.table")){
-      metadata <- subsetvrMetadata(metadata, assay_id %in% assay_names)
+      metadata <- subset(metadata, assay_id %in% assay_names)
     } else if(inherits(metadata, c("HDF5DataFrame", "ZarrDataFrame", "DataFrame"))){
       if("assay_id" %in% colnames(metadata)){
         metadata_list <- list()
