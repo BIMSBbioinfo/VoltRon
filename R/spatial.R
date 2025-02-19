@@ -225,7 +225,7 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
   colnames(neighbors_graph_data) <- c("from", "to")
   
   # get simulations
-  grp_sim <- vapply(seq_len(1000), function(x) sample(grp), numeric(length(grp)))
+  grp_sim <- vapply(seq_len(1000), function(x) sample(grp), grp)
   rownames(grp_sim) <- names(grp)
   
   # get adjacency for observed and simulated pairs
@@ -459,7 +459,7 @@ getNicheAssay <- function(object, assay = NULL, label = NULL, graph.type = "dela
   unique_label <- unique(label)
   niche_counts <- vapply(adj_matrix, function(x){
     table(factor(label[x], levels = unique_label))
-  }, numeric(length(unique_label)))
+  }, numeric(length(na.omit(unique_label))))
   colnames(niche_counts) <- igraph::V(graph)$name
   
   # add cell type mixtures as new feature set
