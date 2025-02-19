@@ -816,7 +816,7 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
     } else {
       stop("Column '", name, "' is not found in the metadata")
     }
-    object <- subset(object, spatialpoints = spatialpoints)
+    object <- subsetVoltRon(object, spatialpoints = spatialpoints)
     return(object)
   }
 
