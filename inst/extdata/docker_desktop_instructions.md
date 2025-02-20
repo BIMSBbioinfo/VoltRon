@@ -12,7 +12,7 @@ docker pull amanukyan1385/rstudio-voltron:main
 
 4. Find `amanukyan1385/rstudio-voltron:main` and click `Run` on the right. 
 
-5. Enter `8787` to Ports, `PASSWORD` to `Variable` and `yourpassword` (you can also give a custom password) to `Value` under Environment variables. 
+5. Enter `8787` to Ports, `PASSWORD` to `Variable` and `yourpassword` (you can also give a custom password) to `Value` under Environment variables. If you want to add folders to the docker image, you can update `Volumes` by entering the path to the folder in your local machine in `Host path`, and then by entering the path in the docker container under `Container path` (e.g. /home/rstudio/workshop/).  
 
 6. Click `Run`
 

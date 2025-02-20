@@ -2297,7 +2297,6 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, group.by = "Samp
 #' @importFrom data.table data.table melt
 #'
 #' @export
-#'
 vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, group.by = "Sample", 
                       split.by = NULL, norm = TRUE, log = FALSE, ncol = 2, nrow = NULL){
 
@@ -2332,7 +2331,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
   # get feature data
   datax <- lapply(features, function(x){
     if(x %in% rownames(barplotdata)){
-      return(as.vector(as(barplotdata[x,], "dgCMatrix")))
+      return(as.vector(as(barplotdata[x,,drop = FALSE], "dgCMatrix")))
     } else if(x %in% colnames(metadata)){
       return(as.vector(metadata[,x]))
     } else{

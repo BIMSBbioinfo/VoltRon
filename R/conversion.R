@@ -355,8 +355,6 @@ as.AnnData <- function(object,
   if(grepl(".zarr[/]?$", file)){
     
     # check packages
-    if(!requireNamespace('basilisk'))
-      stop("Please install basilisk package!: BiocManager::install('basilisk')")
     if(!requireNamespace('reticulate'))
       stop("Please install reticulate package!: install.packages('reticulate')")
     if(!requireNamespace('DelayedArray'))
@@ -387,7 +385,7 @@ as.AnnData <- function(object,
                                uns = list(spatial = image_list))
       adata <- reticulate::r_to_py(adata)
       adata$write_zarr(file)   
-    } else {
+    } else if(!requireNamespace('basilisk')){
       py_env <- getBasilisk()
       proc <- basilisk::basiliskStart(py_env)
       on.exit(basilisk::basiliskStop(proc))
@@ -414,6 +412,8 @@ as.AnnData <- function(object,
         adata$write_zarr(file)       
         return(TRUE)
       }, data = data, metadata = metadata, obsm = obsm, coords = coords, segments = segmentations_array, image_list = image_list, file = file)
+    } else {
+      stop("Please define the 'python.path' or install the basilisk package!: BiocManager::install('basilisk')")
     }
     
     if(create.ometiff){
