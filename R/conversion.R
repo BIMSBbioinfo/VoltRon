@@ -385,7 +385,7 @@ as.AnnData <- function(object,
                                uns = list(spatial = image_list))
       adata <- reticulate::r_to_py(adata)
       adata$write_zarr(file)   
-    } else if(!requireNamespace('basilisk')){
+    } else if(requireNamespace('basilisk')){
       py_env <- getBasilisk()
       proc <- basilisk::basiliskStart(py_env)
       on.exit(basilisk::basiliskStop(proc))
