@@ -36,7 +36,6 @@ NULL
 #' 
 #' @export
 #' @method $ VoltRon
-#'
 "$.VoltRon" <- function(x, i, ...) {
 
   # get assay names
@@ -55,7 +54,6 @@ NULL
 #'
 #' @export
 #' @method $<- VoltRon
-#'
 "$<-.VoltRon" <- function(x, i, value) {
 
   # sample metadata
