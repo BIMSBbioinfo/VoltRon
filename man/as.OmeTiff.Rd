@@ -4,7 +4,7 @@
 \alias{as.OmeTiff}
 \title{as.OmeTiff}
 \usage{
-as.OmeTiff(object, out_path, image_id = "image_1")
+as.OmeTiff(object, out_path, image_id = "image_1", python.path = NULL)
 }
 \arguments{
 \item{object}{a magick-image object}
@@ -12,6 +12,8 @@ as.OmeTiff(object, out_path, image_id = "image_1")
 \item{out_path}{output path to ome.tiff file}
 
 \item{image_id}{image name}
+
+\item{python.path}{the path to the python binary, otherwise either \code{basilisk} package is used or \code{getOption("voltron.python.path")} should be not NULL.}
 }
 \description{
 Converting VoltRon (magick) images to ome.tiff
