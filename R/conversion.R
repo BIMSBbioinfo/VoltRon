@@ -385,6 +385,7 @@ as.AnnData <- function(object,
                                uns = list(spatial = image_list))
       adata <- reticulate::r_to_py(adata)
       adata$write_zarr(file)   
+      success <- TRUE
     } else if(requireNamespace('basilisk')){
       py_env <- getBasilisk()
       proc <- basilisk::basiliskStart(py_env)
@@ -417,7 +418,7 @@ as.AnnData <- function(object,
     }
     
     if(create.ometiff){
-      success2 <- as.OmeTiff(images_mgk[[1]], out_path = gsub("zarr[/]?$", "ome.tiff", file)) 
+      success2 <- as.OmeTiff(images_mgk[[1]], out_path = gsub("zarr[/]?$", "ome.tiff", file), python.path = python.path) 
       success <- success & success2
     } 
     
@@ -536,16 +537,15 @@ as.AnnData <- function(object,
 #' @param object a magick-image object
 #' @param out_path output path to ome.tiff file
 #' @param image_id image name
+#' @param python.path the path to the python binary, otherwise either \code{basilisk} package is used or \code{getOption("voltron.python.path")} should be not NULL.
 #' 
 #' @importFrom magick image_raster
 #' @importFrom grDevices col2rgb
 #'
 #' @export
-as.OmeTiff <- function (object, out_path, image_id = "image_1"){
+as.OmeTiff <- function (object, out_path, image_id = "image_1", python.path = NULL){
   
   # check packages
-  if(!requireNamespace('basilisk'))
-    stop("Please install basilisk package!: BiocManager::install('basilisk')")
   if(!requireNamespace('reticulate'))
     stop("Please install reticulate package!: install.packages('reticulate')")
   
@@ -554,20 +554,13 @@ as.OmeTiff <- function (object, out_path, image_id = "image_1"){
   img_arr <- aperm(img_arr, c(2,3,1))
   
   # run basilisk
-  py_env <- getBasilisk()
-  proc <- basilisk::basiliskStart(py_env)
-  on.exit(basilisk::basiliskStop(proc))
-  success <- basilisk::basiliskRun(proc, function(img_arr, image_id, out_path, e) {
-    
-    # set up environment
+  python.path <- getPythonPath(python.path)
+  if(!is.null(python.path)){
+    reticulate::use_python(python = python.path)
     e <- new.env()
     options("reticulate.engine.environment" = e)
-    
-    # get image data to python environment
     img_arr <- reticulate::r_to_py(img_arr)
     assign("img_arr_py", img_arr, envir = e)
-
-    # save ome.tiff
     reticulate::py_run_string(
       paste0("import numpy as np
 import tifffile
@@ -575,9 +568,36 @@ tifimage = r.img_arr_py.astype('uint8')
 # tifimage = np.random.randint(0, 255, (32, 32, 3), 'uint8')
 with tifffile.TiffWriter('", out_path, "') as tif: tif.write(tifimage, photometric='rgb')"
       ))
-    
-    return(TRUE)
-  }, img_arr = img_arr, image_id = image_id, out_path = out_path)
+    success <- TRUE
+  } else if(requireNamespace('basilisk')) {
+    py_env <- getBasilisk()
+    proc <- basilisk::basiliskStart(py_env)
+    on.exit(basilisk::basiliskStop(proc))
+    success <- basilisk::basiliskRun(proc, function(img_arr, image_id, out_path, e) {
+      
+      # set up environment
+      e <- new.env()
+      options("reticulate.engine.environment" = e)
+      
+      # get image data to python environment
+      img_arr <- reticulate::r_to_py(img_arr)
+      assign("img_arr_py", img_arr, envir = e)
+      
+      # save ome.tiff
+      reticulate::py_run_string(
+        paste0("import numpy as np
+import tifffile
+tifimage = r.img_arr_py.astype('uint8')
+# tifimage = np.random.randint(0, 255, (32, 32, 3), 'uint8')
+with tifffile.TiffWriter('", out_path, "') as tif: tif.write(tifimage, photometric='rgb')"
+        ))
+      
+      return(TRUE)
+    }, img_arr = img_arr, image_id = image_id, out_path = out_path)
+  } else {
+    stop("Please define the 'python.path' or install the basilisk package!: BiocManager::install('basilisk')")
+  }
+  
   return(success)
 }
 

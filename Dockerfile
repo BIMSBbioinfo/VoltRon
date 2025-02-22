@@ -51,7 +51,6 @@ RUN R -e "install.packages('patchwork')"
 RUN R -e "install.packages('anndata')"
 RUN R -e "install.packages('R.utils')"
 RUN R -e "devtools::install_github('immunogenomics/presto')"
-RUN R -e "devtools::install_github('vitessce/vitessceR')"
 
 # Install VoltRon dependencies
 RUN R -e "devtools::install_github('Artur-man/VoltRon')"
@@ -81,3 +80,9 @@ RUN R -e "options(timeout = 600000000); devtools::install_github(\"dmcable/space
 
 # increase cache disk size for ImageMagick
 RUN sed -i 's/2GiB/10GiB/g' /etc/ImageMagick-6/policy.xml
+
+# vitessceR
+RUN apt-get update -y
+RUN apt upgrade -y
+RUN apt-get install -y libsodium-dev 
+RUN R -e "options(timeout = 600000000); devtools::install_github(\"vitessce/vitessceR\")"
