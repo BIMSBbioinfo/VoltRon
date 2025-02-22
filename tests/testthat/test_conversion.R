@@ -100,3 +100,20 @@ test_that("as.ometiff, python path", {
   file.remove(ometiff_file)
   expect_equal(1,1L)
 })
+
+test_that("as.Seurat", {
+  
+  # one sample
+  test1 <- VoltRon::as.Seurat(xenium_data, cell.assay = "Xenium", type = "image")
+  test1_Voltron <- as.VoltRon(test1, assay_name = "Xenium")
+  
+  # multiple samples
+  xenium_data2 <- xenium_data
+  xenium_data2$Sample <- "sample1"
+  xenium_data2 <- merge(xenium_data2, xenium_data)
+  test1 <- VoltRon::as.Seurat(xenium_data2, cell.assay = "Xenium", type = "image")
+  test1_Voltron <- as.VoltRon(test1, assay_name = "Xenium")
+  
+  expect_equal(1,1L)
+  
+})
