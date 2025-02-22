@@ -85,9 +85,13 @@ as.VoltRon.Seurat <- function(object, type = c("image", "spatial"), assay_name =
     }
 
     # merge object
-    if(verbose)
-      message("Merging object ...")
-    vrobject <- merge(voltron_list[[1]], voltron_list[-1])
+    if(length(voltron_list) > 1){
+      if(verbose)
+        message("Merging object ...")
+      vrobject <- merge(voltron_list[[1]], voltron_list[-1]) 
+    } else {
+      vrobject <- voltron_list[[1]]
+    }
   } else{
     image <- NULL
     stop("There are no spatial objects available in this Seurat object")
