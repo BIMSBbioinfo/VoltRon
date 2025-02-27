@@ -1572,7 +1572,7 @@ demuxVoltRon <- function(object, max.pixel.size = 1200, use.points.only = FALSE,
           showNotification("Some subsets have blank (empty!) sample names.")
         } else{
           for(i in seq_len(length(box_list$box))){
-            temp <- subset(object, image = box_list$box[i])
+            temp <- subsetVoltRon(object, image = box_list$box[i])
             temp$Sample <- sample_names[i]
             subsets[[sample_names[i]]] <- temp
           }
