@@ -174,7 +174,7 @@ vrNeighbourhoodEnrichment <- function(object, assay = NULL, group.by = NULL, gra
   for(assy in assay_names){
     if(verbose)
       message("Testing Neighborhood Enrichment of '", group.by ,"' for '", assy, "'")
-    object_subset <- subset(object, assays = assy)
+    object_subset <- subsetVoltRon(object, assays = assy)
     neigh_results[[assy]] <- vrNeighbourhoodEnrichmentSingle(object_subset, group.by = group.by, graph.type = graph.type,
                                                              num.sim = num.sim, seed = seed)
     neigh_results[[assy]] <- data.frame(neigh_results[[assy]], AssayID = assy, SampleMetadata(object_subset))
