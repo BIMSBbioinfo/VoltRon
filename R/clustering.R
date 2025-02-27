@@ -162,17 +162,10 @@ getClusters <- function(object, resolution = 1, nclus = integer(0), assay = NULL
   clusters <- .correct_low_abundant_clusters(object_graph, clusters, abundance_limit)
     
   # update metadata
-  # metadata <- Metadata(object, assay = assay)
-  # if(is.null(rownames(metadata))){
-  #   metadata[[label]] <- as.numeric(NA)
-  #   metadata[[label]][match(clusters$names, as.vector(metadata$id))] <- clusters$membership
-  # } else {
-  #   metadata_clusters <- NA
-  #   metadata[[label]] <- metadata_clusters
-  #   metadata[clusters$names,][[label]] <- clusters$membership
-  # }
-  # Metadata(object, assay = assay) <- metadata
-  object <- addMetadata(object, assay = assay, value = clusters$membership, label = label)
+  spatialpoints <- vrSpatialPoints(object, assay = assay)
+  membership <- setNames(rep(NA,length(spatialpoints)), spatialpoints)
+  membership[clusters$names] <- clusters$membership
+  object <- addMetadata(object, assay = assay, value = membership, label = label)
 
   # return
   return(object)

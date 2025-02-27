@@ -62,7 +62,8 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
   # check object for zarr
   if(is.character(object)){
     if(grepl(".zarr$", object)){
-      return(vrSpatialPlotVitessce(zarr.file = object, group.by = group.by, reduction = reduction))
+      return(vrSpatialPlotVitessce(zarr.file = object, group.by = group.by, reduction = reduction, 
+                                   shiny.options = shiny.options))
     }
   }
 
@@ -1696,10 +1697,12 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
     # g <- g +
     #   geom_point(mapping = aes_string(x = "x", y = "y", color = group.by), datax, shape = 16, size = pt.size)
     g <- g +
-      geom_point(mapping = aes(x = .data[["x"]], y = .data[["y"]], color = .data[[group.by]]), datax, shape = 16, size = pt.size)
+      geom_point(mapping = aes(x = .data[["x"]], y = .data[["y"]], 
+                               color = .data[[group.by]], fill = .data[[group.by]]), datax, shape = 16, size = pt.size)
   }
   g <- g +
     scale_color_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
+    scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
     guides(color = guide_legend(override.aes=list(size = 2)))
 
   # more visualization parameters
@@ -2131,6 +2134,9 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
   } else {
     legend_title <- "Norm. \n Exp."
   }
+  
+  # check for nan
+  heatmapdata[is.nan(heatmapdata)] <- 0
 
   # manage data for plotting
   if(group.by %in% colnames(metadata)){
@@ -2150,7 +2156,9 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
   # highlight some rows
   if(highlight.some){
     ind <- sample(seq_len(nrow(heatmapdata)), n_highlight, replace = FALSE)
-    ha <- ComplexHeatmap::rowAnnotation(foo = ComplexHeatmap::anno_mark(at = ind, labels = rownames(heatmapdata)[ind], padding = 1,
+    ha <- ComplexHeatmap::rowAnnotation(foo = ComplexHeatmap::anno_mark(at = ind, 
+                                                                        labels = rownames(heatmapdata)[ind], 
+                                                                        padding = 1,
                                                                         labels_gp = gpar(fontsize = font.size)))
   } else{
     ha <- NULL
@@ -2290,7 +2298,6 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, group.by = "Samp
 #' @importFrom data.table data.table melt
 #'
 #' @export
-#'
 vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, group.by = "Sample", 
                       split.by = NULL, norm = TRUE, log = FALSE, ncol = 2, nrow = NULL){
 
@@ -2325,7 +2332,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
   # get feature data
   datax <- lapply(features, function(x){
     if(x %in% rownames(barplotdata)){
-      return(as.vector(as(barplotdata[x,], "dgCMatrix")))
+      return(as.vector(as(barplotdata[x,,drop = FALSE], "dgCMatrix")))
     } else if(x %in% colnames(metadata)){
       return(as.vector(metadata[,x]))
     } else{

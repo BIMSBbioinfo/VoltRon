@@ -49,7 +49,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
       stop("There are no assays called ", selected_assay, " in the h5 file!")
     }
   } else {
-    stop("There are no files named 'filtered_feature_bc_matrix.h5' in the path")
+    stop("There are no files named 'cell_feature_matrix.h5' in the path")
   }
 
   # image
@@ -463,33 +463,32 @@ importVisiumHD <- function(dir.path, bin.size = "8", selected_assay = "Gene Expr
 #'
 #' import the sparse matrix from the H5 file
 #'
-#' @param filename the path tp h5 file
+#' @param filename the path to h5 file
 #'
 #' @importFrom Matrix sparseMatrix
 #'
-#' @noRd
+#' @export
 import10Xh5 <- function(filename){
 
   # check package
-  if(!requireNamespace("hdf5r")){
-    stop("You have to install the hdf5r package!: install.packages('hdf5r')")
+  if(!requireNamespace("rhdf5")){
+    stop("You have to install the rhdf5 package!: BiocManager::install('rhdf5')")
   }
   
   # check file
   if(file.exists(filename)){
-    input.file <- hdf5r::H5File$new(filename = filename, mode = "r")
-    matrix.10X <- input.file[["matrix"]]
+    matrix.10X <- rhdf5::h5read(file = filename, name = "matrix")
   } else {
     stop("There are no files named ", filename," in the path")
   }
 
   # get data, barcodes and feature
-  features <- hdf5r::readDataSet(matrix.10X[["features"]][["name"]])
-  feature_type <- hdf5r::readDataSet(matrix.10X[["features"]][["feature_type"]])
-  cells <- hdf5r::readDataSet(matrix.10X[["barcodes"]])
-  mat <- hdf5r::readDataSet(matrix.10X[["data"]])
-  indices <- hdf5r::readDataSet(matrix.10X[["indices"]])
-  indptr <- hdf5r::readDataSet(matrix.10X[["indptr"]])
+  features <- matrix.10X[["features"]][["name"]]
+  feature_type <- matrix.10X[["features"]][["feature_type"]]
+  cells <- matrix.10X[["barcodes"]]
+  mat <- matrix.10X[["data"]]
+  indices <- matrix.10X[["indices"]]
+  indptr <- matrix.10X[["indptr"]]
   sparse.mat <- sparseMatrix(i = indices + 1, p = indptr,
                              x = as.numeric(mat), dims = c(length(features), length(cells)),
                              repr = "T")
@@ -1852,7 +1851,6 @@ importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, i
   # get individual sections as voltron data
   sections <- unique(metadata$n_section)
   zlocation <- zlocation[order(sections)]
-  # connectivity <- reshape2::melt(matrix(rep(1, length(sections)^2), nrow = length(sections)))[,seq_len(2)]
   connectivity <- data.frame(Var1 = rep(seq_len(length(sections)), length(sections)), 
                              Var2 = rep(seq_len(length(sections)), each = length(sections)))
   sections <- sections[order(sections)]
@@ -1873,7 +1871,7 @@ importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, i
   
   # create VoltRon
   sample_name <- ifelse(is.null(sample_name), "Sample", sample_name)
-  vr_data <- merge(vr_data_list[[1]], vr_data_list[-1], samples = sample_name)
+  vr_data <- mergeVoltRon(vr_data_list[[1]], vr_data_list[-1], samples = sample_name)
   
   # set zlocations and adjacency of layer in the vrBlock
   vr_data <- addBlockConnectivity(vr_data, connectivity = connectivity, zlocation = zlocation, sample = sample_name)

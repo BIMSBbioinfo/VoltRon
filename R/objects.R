@@ -36,7 +36,6 @@ NULL
 #' 
 #' @export
 #' @method $ VoltRon
-#'
 "$.VoltRon" <- function(x, i, ...) {
 
   # get assay names
@@ -55,7 +54,6 @@ NULL
 #'
 #' @export
 #' @method $<- VoltRon
-#'
 "$<-.VoltRon" <- function(x, i, value) {
 
   # sample metadata
@@ -816,7 +814,7 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
     } else {
       stop("Column '", name, "' is not found in the metadata")
     }
-    object <- subset(object, spatialpoints = spatialpoints)
+    object <- subsetVoltRon(object, spatialpoints = spatialpoints)
     return(object)
   }
 

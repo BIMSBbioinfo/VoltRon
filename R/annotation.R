@@ -95,7 +95,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
       
       # remove the latest annotation
       all_assay_names <- vrAssayNames(object, assay = "all")
-      object <- subset(object, assays = all_assay_names[!all_assay_names %in% rownames(layer_metadata)[layer_metadata$Assay == annotation_assay]])
+      object <- subsetVoltRon(object, assays = all_assay_names[!all_assay_names %in% rownames(layer_metadata)[layer_metadata$Assay == annotation_assay]])
       
     } else {
       segments <- list()

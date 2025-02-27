@@ -506,8 +506,8 @@ Visium readouts and create a VoltRon object. Here, we point to the
 folder of all the files with <strong>dir.path</strong> argument and also
 determine the name of this sample (<strong>sample_name</strong>).</p>
 <pre class="r watch-out"><code>library(VoltRon)
-install.packages(&quot;hdf5r&quot;)
-library(hdf5r)
+BiocManager::install(&quot;rhdf5&quot;)
+library(rhdf5)
 Vis_R1 &lt;- importVisium(dir.path = &quot;Visium/&quot;, sample_name = &quot;VisiumR1&quot;)</code></pre>
 <pre><code>VoltRon Object 
 VisiumR1: 
@@ -569,9 +569,10 @@ Visium readouts and create a VoltRon object. Here, we point to the
 folder of all the files with <strong>dir.path</strong> argument and also
 determine the name of this sample (<strong>sample_name</strong>).</p>
 <pre class="r watch-out"><code>library(VoltRon)
-install.packages(c(&quot;arrow&quot;, &quot;hdf5r&quot;))
+install.packages(&quot;arrow&quot;)
+BiocManager::install(&quot;rhdf5&quot;)
 library(arrow)
-library(hdf5r)
+library(rhdf5)
 hddata &lt;- importVisium(dir.path = &quot;VisiumHD/outs/&quot;, 
                        sample_name = &quot;VisiumHD&quot;)</code></pre>
 <p><br></p>
@@ -626,8 +627,8 @@ Xenium readouts and create a VoltRon object. Here, we point to the
 folder of all the files with <strong>dir.path</strong> argument and also
 determine the name of this sample (<strong>sample_name</strong>).</p>
 <pre class="r watch-out"><code>library(VoltRon)
-install.packages(&quot;hdf5r&quot;)
-library(hdf5r)
+BiocManager::install(&quot;rhdf5&quot;)
+library(rhdf5)
 Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)</code></pre>
 <pre><code>VoltRon Object 
 XeniumR1: 

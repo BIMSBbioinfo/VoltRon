@@ -38,11 +38,9 @@ RUN R -e "remotes::install_github('BIMSBbioinfo/HDF5DataFrame')"
 RUN R -e "remotes::install_github('BIMSBbioinfo/ZarrDataFrame')"
 RUN R -e "install.packages('Seurat')"
 RUN R -e "BiocManager::install('glmGamPoi')"
-RUN R -e "install.packages('hdf5r')"
 RUN R -e "install.packages('arrow')"
 RUN R -e "BiocManager::install('RBioFormats')"
 RUN R -e "BiocManager::install('ComplexHeatmap')"
-RUN R -e "devtools::install_github('dmcable/spacexr')"
 RUN R -e "devtools::install_github('xuranw/MuSiC')"
 RUN R -e "BiocManager::install('SingleCellExperiment')"
 RUN R -e "BiocManager::install('SpatialExperiment')"
@@ -51,15 +49,40 @@ RUN R -e "BiocManager::install('DESeq2')"
 RUN R -e "install.packages('ggnewscale')"
 RUN R -e "install.packages('patchwork')"
 RUN R -e "install.packages('anndata')"
+RUN R -e "install.packages('R.utils')"
+RUN R -e "devtools::install_github('immunogenomics/presto')"
 
 # Install VoltRon dependencies
-RUN R -e "devtools::install_github('BIMSBbioinfo/VoltRon')"
+RUN R -e "devtools::install_github('Artur-man/VoltRon')"
 
 # Install basilisk and setup environment
 USER rstudio
 RUN R -e "BiocManager::install('basilisk')"
 RUN R -e "basilisk::obtainEnvironmentPath(VoltRon::getBasilisk())"
+RUN sh -c 'echo "options(voltron.python.path = \"/home/rstudio/.cache/R/basilisk/1.18.0/VoltRon/0.2.0/VoltRon_basilisk_env/bin/python\")" > /home/rstudio/.Rprofile'
 
-# return to root
+# set up java
 USER root
-RUN touch temp.txt
+RUN apt-get update -y
+RUN apt upgrade -y
+RUN apt-get install -y openjdk-21-jdk
+RUN export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64/
+RUN R CMD javareconf -e
+
+# Install java based packages
+RUN R -e "install.packages('rJava')"
+RUN R -e "BiocManager::install('RBioFormats')"
+RUN sh -c 'echo "options(java.parameters = \"-Xmx10g\")" >> /home/rstudio/.Rprofile'
+
+# Install spacexr
+RUN apt-get install -y libgsl-dev
+RUN R -e "options(timeout = 600000000); devtools::install_github(\"dmcable/spacexr\")"
+
+# increase cache disk size for ImageMagick
+RUN sed -i 's/2GiB/10GiB/g' /etc/ImageMagick-6/policy.xml
+
+# vitessceR
+RUN apt-get update -y
+RUN apt upgrade -y
+RUN apt-get install -y libsodium-dev 
+RUN R -e "options(timeout = 600000000); devtools::install_github(\"vitessce/vitessceR\")"
