@@ -290,7 +290,7 @@ void computeSIFTTiles(Mat &im, std::vector<KeyPoint> &keypoints, Mat &descriptor
   
   // compare size and tiles
   if(width <= params.tile_size or height <= params.tile_size){
-    
+
     sift->detectAndCompute(im, Mat(), keypoints, descriptors);
     return;
     
@@ -487,6 +487,8 @@ void getSIFTTransformationMatrix(
     
     std::vector<DMatch> good_matches;
     std::vector<KeyPoint> keypoints1, keypoints2;
+    cv::equalizeHist(im1Proc, im1Proc_eq);
+    cv::equalizeHist(im2Proc, im2Proc_eq);
     Rcout << "UPDATE: Calculating Transformation Matrix with histogram equalization (3)" << endl;
     check = getSIFTTransformationMatrixSingle(im1Proc_eq, im2Proc_eq, im1, im2, h, mask,
                                               imMatches,
