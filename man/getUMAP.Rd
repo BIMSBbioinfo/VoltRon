@@ -8,7 +8,7 @@ getUMAP(
   object,
   assay = NULL,
   data.type = "pca",
-  dims = 1:30,
+  dims = seq_len(30),
   umap.key = "umap",
   overwrite = FALSE,
   seed = 1

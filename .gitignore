@@ -6,10 +6,11 @@ old_files
 .gitignore
 src/*.o
 src/*.so
+src/Makevars
 .DS_Store
 */.DS_Store
 configure.log
 autobrew
 .deps
-Makevars
 dev
+*.tar.xz

@@ -13,6 +13,7 @@ vrSpatialPlot(
   n.tile = 0,
   assay = NULL,
   graph.name = NULL,
+  graph.edge.color = "orange",
   reduction = NULL,
   ncol = 2,
   nrow = NULL,
@@ -54,6 +55,8 @@ vrSpatialPlot(
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{graph.name}{if not NULL, the spatial graph is with name \code{graph.name} is visualized as well, see \link{vrGraphNames}}
+
+\item{graph.edge.color}{the colors of the graph edges, if \code{graph.name} is not NULL.}
 
 \item{reduction}{used by \code{vrSpatialPlotVitessce} to visualize an embedding alongside with the spatial plot.}
 

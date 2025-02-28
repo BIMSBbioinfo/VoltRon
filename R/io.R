@@ -33,6 +33,7 @@ saveVoltRon <- function (object,
   
   # check if the object was previously saved on disk
   paths <- .get_unique_links(object)
+  paths <- unique(vapply(paths, file_path_as_absolute, character(1)))
   if(length(paths) > 1){
     if(is.null(output)){
       stop("There are multiple paths that this VoltRon object is saved to, cannot write unless 'output' is specified!")
@@ -117,12 +118,12 @@ loadVoltRon <- function(dir="my_se")
   
   # check dir
   if (!isSingleString(dir))
-    stop(paste0("'dir' must be a single string specifying the path ",
-              "to the directory containing an rds and/or .h5/.zarr file!"))
+    stop("'dir' must be a single string specifying the path ",
+              "to the directory containing an rds and/or .h5/.zarr file!")
   if (!dir.exists(dir)) {
     if (file.exists(dir))
-      stop(paste0("\"", dir, "\" is a file, not a directory"))
-    stop(paste0("directory \"", dir, "\" not found"))
+      stop("\"", dir, "\" is a file, not a directory")
+    stop("directory \"", dir, "\" not found")
   }
   
   # get rds path
@@ -221,15 +222,15 @@ modify_seeds <- function (x, FUN, ...)
 {
   # check rds file
   if (!file.exists(rds_path))
-    stop(paste0("file not found: ", rds_path))
+    stop("file not found: ", rds_path)
   if (dir.exists(rds_path))
-    stop(paste0("'", rds_path, "' is a directory, not a file"))
+    stop("'", rds_path, "' is a directory, not a file")
   
   # check VoltRon object
   object <- readRDS(rds_path)
   if (!is(object, "VoltRon"))
-    stop(paste0("the object serialized in \"", rds_path, "\" is not ",
-                "a VoltRon object"))
+    stop("the object serialized in \"", rds_path, "\" is not ",
+                "a VoltRon object")
   
   # get dir name
   dir <- dirname(rds_path)
@@ -266,7 +267,7 @@ write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
   
   # open h5 file
   if(verbose)
-    cat(paste0("HDF5 file: ", h5_path, "\n"))
+    message("HDF5 file: ", h5_path)
   if(!file.exists("h5_path"))
     rhdf5::h5createFile(h5_path)
   
@@ -339,17 +340,19 @@ writeHDF5ArrayInMetadata <- function(object,
     stop("Please install HDF5DataFrame package!: devtools::install_github('BIMSBbioinfo/HDF5DataFrame')")
   if(!requireNamespace('HDF5Array'))
     stop("Please install HDF5Array package!: BiocManager::install('HDF5Array')")
+  if(!requireNamespace('rhdf5'))
+    stop("Please install rhdf5 package!: BiocManager::install('rhdf5')")
   
   # iterate over all metadata slots
   slot_names <- slotNames(object)
   for(sn in slot_names){
     meta.data <- methods::slot(object, name = sn)
-    if(!inherits(meta.data, c("HDF5DataFrame")) || replace){
+    if(!inherits(meta.data, c("DataFrame", "HDF5DataFrame")) || replace){
       if(nrow(meta.data) > 0){
         meta.data_list <- list()
         rhdf5::h5createGroup(h5_path, group = paste0(name, "/", sn))
         if(verbose)
-          cat(paste0("Writing ", sn, " Metadata \n"))
+          message("Writing ", sn, " Metadata")
         
         # write rownames first if they exist, and there is no id column
         if(!is.null(rownames(meta.data)) && !("id" %in% colnames(meta.data))){
@@ -366,16 +369,19 @@ writeHDF5ArrayInMetadata <- function(object,
         }
         
         # write rest of the columns
-        for(i in 1:ncol(meta.data)){
+        for(i in seq_len(ncol(meta.data))){
+          column_name <- paste0(name, "/", sn, "/", colnames(meta.data)[i])
           if(inherits(meta.data,"data.table")){
             cur_column <- as.array(as.vector(subset(meta.data, select = colnames(meta.data)[i]))[[1]])
           } else {
             cur_column <- as.array(meta.data[,i])
           }
+          if(is.factor(cur_column))
+            cur_column <- as.array(as.character(cur_column))
           meta.data_list[[colnames(meta.data)[i]]] <- 
             HDF5Array::writeHDF5Array(cur_column, 
                                       h5_path, 
-                                      name = paste0(name, "/", sn, "/", colnames(meta.data)[i]),
+                                      name = column_name,
                                       chunkdim=chunkdim, 
                                       level=level,
                                       as.sparse=as.sparse,
@@ -385,6 +391,37 @@ writeHDF5ArrayInMetadata <- function(object,
         methods::slot(object, name = sn) <- 
           HDF5DataFrame::HDF5DataFrame(meta.data_list)
       }
+    } else {
+      meta.data_list <- list()
+      for(i in seq_len(ncol(meta.data))){
+        column_name <- paste0(name, "/", sn, "/", colnames(meta.data)[i])
+        if(!h5Dexists(h5_path, column_name)){
+          if(inherits(meta.data,"data.table")){
+            cur_column <- as.array(as.vector(subset(meta.data, select = colnames(meta.data)[i]))[[1]])
+          } else {
+            cur_column <- as.array(meta.data[,i])
+          }
+          if(is.factor(cur_column))
+            cur_column <- as.array(as.character(cur_column))
+          new_column <- HDF5Array::writeHDF5Array(cur_column, 
+                                                  h5_path, 
+                                                  name = column_name,
+                                                  chunkdim=chunkdim, 
+                                                  level=level,
+                                                  as.sparse=as.sparse,
+                                                  with.dimnames=FALSE,
+                                                  verbose=FALSE)
+          new_column <- HDF5DataFrame::HDF5ColumnVector(DelayedArray::path(new_column), 
+                                                        name = paste0(name, "/", sn), 
+                                                        column = colnames(meta.data)[i])
+          meta.data[[colnames(meta.data)[i]]] <- new_column
+        } else {
+          # meta.data_list[[colnames(meta.data)[i]]] <- meta.data[[colnames(meta.data)[i]]]
+        } 
+      }
+      methods::slot(object, name = sn) <- meta.data
+      # methods::slot(object, name = sn) <- 
+      #   HDF5DataFrame::HDF5DataFrame(meta.data_list)
     }
   }
   
@@ -424,7 +461,7 @@ writeHDF5ArrayInVrData <- function(object,
         if(!inherits(a, "dgCMatrix"))
           a <- as(a, "dgCMatrix")
         if(verbose)
-          cat(paste0("Writing '", vrAssayNames(object), "' ", feat, " data \n"))
+          message("Writing '", vrAssayNames(object), "' ", feat, " data")
         a <- BPCells::write_matrix_hdf5(a, 
                                         path = h5_path, 
                                         group = paste0(name, "/", feat), 
@@ -440,7 +477,7 @@ writeHDF5ArrayInVrData <- function(object,
         if(!inherits(a, "dgCMatrix"))
           a <- as(a, "dgCMatrix")
         if(verbose)
-          cat(paste0("Writing '", vrAssayNames(object), "' normalized ", feat, " data \n"))
+          message("Writing '", vrAssayNames(object), "' normalized ", feat, " data")
         a <- BPCells::write_matrix_hdf5(a, 
                                         path = h5_path, 
                                         group = paste0(name, "/", feat, "_norm"), 
@@ -459,7 +496,7 @@ writeHDF5ArrayInVrData <- function(object,
       if(!inherits(a, "dgCMatrix"))
         a <- as(a, "dgCMatrix")
       if(verbose)
-        cat(paste0("Writing '", vrAssayNames(object), "' data \n"))
+        message("Writing '", vrAssayNames(object), "' data")
       a <- BPCells::write_matrix_hdf5(a, 
                                       path = h5_path, 
                                       group = paste0(name, "/rawdata"), 
@@ -473,7 +510,7 @@ writeHDF5ArrayInVrData <- function(object,
       if(!inherits(a, "dgCMatrix"))
         a <- as(a, "dgCMatrix")
       if(verbose)
-        cat(paste0("Writing '", vrAssayNames(object), "' normalized data \n"))
+        message("Writing '", vrAssayNames(object), "' normalized data")
       a <- BPCells::write_matrix_hdf5(a, 
                                       path = h5_path, 
                                       group = paste0(name, "/normdata"), 
@@ -502,6 +539,10 @@ writeHDF5ArrayInImage <- function(object,
   # check packages
   if(!requireNamespace('ImageArray'))
     stop("Please install ImageArray package!: devtools::install_github('BIMSBbioinfo/ImageArray')")
+  if(!requireNamespace('rhdf5'))
+    stop("Please install rhdf5 package!: BiocManager::install('rhdf5')")
+  if(!requireNamespace('BPCells'))
+    stop("Please install BPCells package!: remotes::install_github('bnprks/BPCells/r')")
   
   # for each spatial system
   spatial_names <- vrSpatialNames(object)
@@ -516,7 +557,7 @@ writeHDF5ArrayInImage <- function(object,
       if(!inherits(coords, "dgCMatrix"))
         coords <- as(coords, "dgCMatrix")
       if(verbose)
-        cat(paste0("Writing '", name, "' coordinates \n"))
+        message("Writing '", name, "' coordinates")
       coords <- BPCells::write_matrix_hdf5(coords, 
                                            path = h5_path, 
                                            group = paste0(name, "/", spat, "/coords"), 
@@ -536,7 +577,7 @@ writeHDF5ArrayInImage <- function(object,
         # write image
         if(!inherits(img, "Image_Array") || replace){
           if(verbose)
-            cat(paste0("Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"' \n"))
+            message("Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"'")
           img <- ImageArray::writeImageArray(img,
                                              output = gsub(".h5$", "", h5_path),
                                              name = paste0(name, "/", spat, "/", ch), 
@@ -575,7 +616,7 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
   
   # create zarr
   if(verbose)
-    cat(paste0("Zarr store: ", zarr_path, "\n"))
+    message("Zarr store: ", zarr_path)
   zarr.array <- pizzarr::zarr_open(store = zarr_path)
   
   # create metadata
@@ -647,17 +688,19 @@ writeZarrArrayInMetadata <- function(object,
     stop("Please install ZarrDataFrame package!: devtools::install_github('BIMSBbioinfo/ZarrDataFrame')")
   if(!requireNamespace('ZarrArray'))
     stop("Please install ZarrArray package!: devtools::install_github('BIMSBbioinfo/ZarrArray')")
+  if(!requireNamespace('pizzarr'))
+    stop("Please install pizzarr package!: devtools::install_github('keller-mark/pizzarr')")
   
   # iterate over all metadata slots
   slot_names <- slotNames(object)
   for(sn in slot_names){
     meta.data <- methods::slot(object, name = sn)
-    if(!inherits(meta.data, c("ZarrDataFrame")) || replace){
+    if(!inherits(meta.data, c("DataFrame", "ZarrDataFrame")) || replace){
       if(nrow(meta.data) > 0){
         meta.data_list <- list()
         zarr.array <- pizzarr::zarr_open(store = zarr_path)
         if(verbose)
-          cat(paste0("Writing ", sn, " Metadata \n"))
+          message("Writing ", sn, " Metadata")
         zarr.array$create_group(paste0(name, "/", sn))
         
         # write rownames first if they exist, and there is no id column
@@ -675,7 +718,7 @@ writeZarrArrayInMetadata <- function(object,
         }
         
         # write rest of the columns
-        for(i in 1:ncol(meta.data)){
+        for(i in seq_len(ncol(meta.data))){
           if(inherits(meta.data,"data.table")){
             cur_column <- as.array(as.vector(subset(meta.data, select = colnames(meta.data)[i]))[[1]])
           } else {
@@ -731,7 +774,7 @@ writeZarrArrayInVrData <- function(object,
       a <- vrData(object, feat_type = feat, norm = FALSE)
       if(!inherits(a, "DelayedArray") || replace){
         if(verbose)
-          cat(paste0("Writing '", vrAssayNames(object), "' data \n"))
+          message("Writing '", vrAssayNames(object), "' data")
         a <- ZarrArray::writeZarrArray(a, 
                                        zarr_path, 
                                        name = paste0(name, "/", feat),
@@ -747,7 +790,7 @@ writeZarrArrayInVrData <- function(object,
       a <- vrData(object, feat_type = feat, norm = TRUE)
       if(!inherits(a, "DelayedArray") || replace){
         if(verbose)
-          cat(paste0("Writing '", vrAssayNames(object), "' normalized data \n"))
+          message("Writing '", vrAssayNames(object), "' normalized data")
         a <- ZarrArray::writeZarrArray(a, 
                                        zarr_path, 
                                        name = paste0(name, "/", feat, "_norm"),
@@ -766,7 +809,7 @@ writeZarrArrayInVrData <- function(object,
     a <- vrData(object, norm = FALSE)
     if(!inherits(a, "DelayedArray") || replace){
       if(verbose)
-        cat(paste0("Writing '", vrAssayNames(object), "' data \n"))
+        message("Writing '", vrAssayNames(object), "' data")
       a <- ZarrArray::writeZarrArray(a, 
                                      zarr_path, 
                                      name = paste0(name, "/rawdata"),
@@ -782,7 +825,7 @@ writeZarrArrayInVrData <- function(object,
     a <- vrData(object, norm = TRUE)
     if(!inherits(a, "DelayedArray") || replace){
       if(verbose)
-        cat(paste0("Writing '", vrAssayNames(object), "' normalized data \n"))
+        message("Writing '", vrAssayNames(object), "' normalized data")
       a <- ZarrArray::writeZarrArray(a, 
                                      zarr_path, 
                                      name = paste0(name, "/normdata"),
@@ -800,7 +843,7 @@ writeZarrArrayInVrData <- function(object,
 }
 
 #' writeZarrArrayInImage
-#'
+#' 
 #' @noRd
 writeZarrArrayInImage <- function(object, 
                                   zarr_path,
@@ -815,6 +858,10 @@ writeZarrArrayInImage <- function(object,
   # check packages
   if(!requireNamespace('ImageArray'))
     stop("Please install ImageArray package!: devtools::install_github('BIMSBbioinfo/ImageArray')")
+  if(!requireNamespace('ZarrArray'))
+    stop("Please install ZarrArray package!: devtools::install_github('BIMSBbioinfo/ZarrArray')")
+  if(!requireNamespace('pizzarr'))
+    stop("Please install pizzarr package!: devtools::install_github('keller-mark/pizzarr')")
   
   # for each spatial system
   spatial_names <- vrSpatialNames(object)
@@ -824,22 +871,21 @@ writeZarrArrayInImage <- function(object,
     zarr.array <- pizzarr::zarr_open(store = zarr_path)
     zarr.array$create_group(paste0(name, "/", spat))
     
-    # TODO: check the problem with changing path to zarr arrays
-    # # write coordinates 
-    # coords <- vrCoordinates(object, spatial_name = spat)
-    # if(!inherits(coords, c("DelayedArray", "IterableMatrix")) || replace){
-    #   if(verbose)
-    #     cat(paste0("Writing '", name, "' coordinates \n"))
-    #   coords <- ZarrArray::writeZarrArray(coords, 
-    #                                       zarr_path, 
-    #                                       name = paste0(name, "/", spat, "/coords"),
-    #                                       chunkdim=chunkdim, 
-    #                                       level=level,
-    #                                       as.sparse=as.sparse,
-    #                                       with.dimnames=TRUE,
-    #                                       verbose=FALSE)
-    #   vrCoordinates(object, spatial_name = spat) <- coords
-    # }
+    # write coordinates 
+    coords <- vrCoordinates(object, spatial_name = spat)
+    if(!inherits(coords, c("DelayedArray", "IterableMatrix")) || replace){
+      if(verbose)
+        message("Writing '", name, "' coordinates")
+      coords <- ZarrArray::writeZarrArray(coords,
+                                          zarr_path,
+                                          name = paste0(name, "/", spat, "/coords"),
+                                          chunkdim=chunkdim,
+                                          level=level,
+                                          as.sparse=as.sparse,
+                                          with.dimnames=TRUE,
+                                          verbose=FALSE)
+      vrCoordinates(object, spatial_name = spat) <- coords
+    }
     
     # for each channel
     channels <- vrImageChannelNames(object, name = spat)
@@ -852,7 +898,7 @@ writeZarrArrayInImage <- function(object,
         # write image
         if(!inherits(img, "Image_Array") || replace){
           if(verbose)
-            cat(paste0("Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"' \n"))
+            message("Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"'")
           img <- ImageArray::writeImageArray(img,
                                              output = gsub(".zarr$", "", zarr_path),
                                              name = paste0(name, "/", spat, "/", ch), 
@@ -1028,11 +1074,14 @@ shorten_metadata_links <- function(object)
   for(sn in slot_names){
     meta.data <- methods::slot(object, name = sn)
     if(nrow(meta.data) > 0){
-      meta.data <- modify_seeds(meta.data,
-                                function(x) {
-                                  x@path <- basename(DelayedArray::path(x))
-                                  x
-                                })
+      for(i in seq_len(ncol(meta.data))){
+        meta.data[[colnames(meta.data)[i]]] <- 
+          modify_seeds(meta.data[[colnames(meta.data)[i]]],
+                       function(x) {
+                         x@path <- basename(DelayedArray::path(x))
+                         x
+                       })
+      }
     }
     methods::slot(object, name = sn) <- meta.data
   }
@@ -1094,14 +1143,14 @@ shorten_assay_links_images <- function(object){
   spatial_names <- vrSpatialNames(object)
   for(spat in spatial_names){
     
-    # TODO: check the problem with zarr array paths
     # coordinates
-    vrCoordinates(object, spatial_name = spat) <-
+    # TODO: replace method for vrCoordinates fail with ZarrArray
+    object@image[[spat]]@coords <-
       modify_seeds(vrCoordinates(object, spatial_name = spat),
                    function(x) {
                      shorten_assay_links_data(x)
-                     # DelayedArray::path(x) <- basename(DelayedArray::path(x))
                    })
+    
     
     # for each channel
     channels <- vrImageChannelNames(object, name = spat)
@@ -1147,7 +1196,7 @@ shorten_assay_links_bpcells <- function(object){
     object@matrix <- shorten_assay_links_bpcells(object@matrix)
   } else if("matrix_list" %in% slot_names){
     object_list <- object@matrix_list
-    for(i in 1:length(object_list))
+    for(i in seq_len(length(object_list)))
       object_list[[i]] <- shorten_assay_links_bpcells(object_list[[i]])
   }
   return(object)
@@ -1167,10 +1216,17 @@ restore_absolute_metadata_links <- function(object, dir){
   for(sn in slot_names){
     meta.data <- methods::slot(object, name = sn)
     if(nrow(meta.data) > 0){
-      meta.data <- modify_seeds(meta.data,
-                                function(x) {
-                                  restore_absolute_links(x,dir)
-                                })
+      # meta.data <- modify_seeds(meta.data,
+      #                           function(x) {
+      #                             restore_absolute_links(x,dir)
+      #                           })
+      for(i in seq_len(ncol(meta.data))){
+        meta.data[[colnames(meta.data)[i]]] <- 
+          modify_seeds(meta.data[[colnames(meta.data)[i]]],
+                       function(x) {
+                         restore_absolute_links(x,dir)
+                       })
+      }
     }
     methods::slot(object, name = sn) <- meta.data
   }
@@ -1233,7 +1289,8 @@ restore_absolute_assay_links_images <- function(object, dir){
   for(spat in spatial_names){
     
     # coordinates
-    vrCoordinates(object, spatial_name = spat) <-
+    # TODO: replace method for vrCoordinates fail with ZarrArray
+    object@image[[spat]]@coords <-
       modify_seeds(vrCoordinates(object, spatial_name = spat),
                    function(x) {
                      restore_absolute_links(x, dir)
@@ -1278,13 +1335,15 @@ restore_absolute_links <- function(x, dir){
   }
 
   # check object
-  if (!is(x, c("Array")) && !is(x, c("IterableMatrix")) && !is(x, c("HDF5DataFrame")) && !is(x, c("ZarrDataFrame")))
-    stop(message("object is not DelayedArray"))
+  if (!is(x, c("Array")) && !is(x, c("IterableMatrix")) && !is(x, c("HDF5DataFrame")) && !is(x, c("ZarrDataFrame")) && !is(x, "HDF5ColumnSeed") && !is(x, "ZarrColumnSeed"))
+    stop("object is not DelayedArray or DelayedArraySeed")
   
   # get path
   if(inherits(x, "DelayedArray") || "filepath" %in% slotNames(x)){
     file_path <- file.path(dir, x@filepath)
-  } else if(inherits(x, "IterableMatrix")){
+  } else if(inherits(x, c("HDF5ColumnSeed", "ZarrColumnSeed"))){
+    file_path <- file.path(dir, x@path)
+  } else  if(inherits(x, "IterableMatrix")){
     file_path <- file.path(dir, getIterableMatrixPath(x))
   } else if(inherits(x, c("HDF5DataFrame", "ZarrDataFrame"))){
     file_path <- file.path(dir, getDataFramePath(x))
@@ -1293,11 +1352,14 @@ restore_absolute_links <- function(x, dir){
   ## file_path_as_absolute() will fail if the file does
   ## not exist.
   if (!file.exists(file_path))
-    stop(message("Object points to an HDF5 file ",
-              "that does not exist: ", file_path))
+    stop("Object points to an HDF5 file ",
+              "that does not exist: ", file_path)
   if(inherits(x, "DelayedArray") || "filepath" %in% slotNames(x)){
     x@filepath <- file_path_as_absolute(file_path)
     msg <- validate_absolute_path(x@filepath, paste0("'filepath' slot of Object"))
+  } else if(inherits(x, c("HDF5ColumnSeed", "ZarrColumnSeed"))){
+    x@path <- file_path_as_absolute(file_path)
+    msg <- validate_absolute_path(x@path, paste0("'path' slot of Object"))
   } else if(inherits(x, "IterableMatrix")){
     x <- updateIterableMatrixPath(x, file_path_as_absolute(file_path))
     msg <- validate_absolute_path(getIterableMatrixPath(x), paste0("'filepath' slot of Object"))
@@ -1308,7 +1370,7 @@ restore_absolute_links <- function(x, dir){
 
   # validate
   if (!isTRUE(msg))
-    stop(paste0(msg))
+    stop(msg)
   
   # return
   x
@@ -1326,13 +1388,13 @@ restore_absolute_links_images <- function(file_path, dir){
   ## file_path_as_absolute() will fail if the file does
   ## not exist.
   if (!file.exists(file_path))
-    stop(message("file_path doesnt exist"))
+    stop("file_path doesnt exist")
   file_path <- file_path_as_absolute(file_path)
   
   # validate
   msg <- validate_absolute_path(file_path, paste0("'filepath' slot of object"))
   if (!isTRUE(msg))
-    stop(paste0(msg))
+    stop(msg)
   file_path
 }
 
@@ -1351,7 +1413,7 @@ updateIterableMatrixPath <- function(object, FUN, ...){
     object@matrix <- updateIterableMatrixPath(object@matrix, FUN, ...)
   } else if("matrix_list" %in% slot_names){
     object_list <- object@matrix_list
-    for(i in 1:length(object_list)){
+    for(i in seq_len(length(object_list))){
       object_list[[i]] <- updateIterableMatrixPath(object_list[[i]], FUN, ...)
     }
     object@matrix_list <- object_list
@@ -1371,13 +1433,13 @@ updateDataFramePath <- function(object, FUN, ...){
     object@seed <- updateIterableMatrixPath(object@seed, FUN, ...)
   } else if("listData" %in% slot_names){
     object_list <- object@listData
-    for(i in 1:length(object_list)){
+    for(i in seq_len(length(object_list))){
       object_list[[i]] <- updateDataFramePath(object_list[[i]], FUN, ...)
     }
     object@listData <- object_list
   } else if("seeds" %in% slot_names){
     object_list <- object@seeds
-    for(i in 1:length(object_list)){
+    for(i in seq_len(length(object_list))){
       object_list[[i]] <- updateDataFramePath(object_list[[i]], FUN, ...)
     }
     object@seeds <- object_list
@@ -1464,7 +1526,7 @@ stop_if_bad_dir <- function(dir, prefix = "")
              "Make sure you're using the same 'prefix' ",
              "that was used when the object was saved.")
   }
-  stop(paste0(msg))
+  stop(msg)
 }
 
 #' file_path_as_absolute
@@ -1497,4 +1559,32 @@ validate_absolute_path <- function(path, what="'path'")
     return(paste0(what, " (\"", path, "\") must be the absolute ",
                   "canonical path the HDF5 file"))
   TRUE
+}
+
+h5Gexists <- function (file, group) 
+{
+  if(!requireNamespace('rhdf5'))
+    stop("Please install rhdf5 package!: BiocManager::install('rhdf5')")
+  
+  loc = rhdf5::H5Fopen(file)
+  on.exit(rhdf5::H5close())
+  if (is.character(group)) {
+    return(rhdf5::H5Lexists(loc, group))
+  } else {
+    stop("\"dataset\" argument must be a character vector of length one.")
+  }
+}
+
+h5Dexists <- function (file, dataset) 
+{
+  if(!requireNamespace('rhdf5'))
+    stop("Please install rhdf5 package!: BiocManager::install('rhdf5')")
+  
+  loc = rhdf5::H5Fopen(file)
+  on.exit(rhdf5::H5close())
+  if (is.character(dataset)) {
+    return(rhdf5::H5Lexists(loc, dataset))
+  } else {
+    stop("\"dataset\" argument must be a character vector of length one.")
+  }
 }

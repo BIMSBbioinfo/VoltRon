@@ -7,3 +7,8 @@ dev
 ^.github$
 ^index\.md$
 ^LICENSE\.md$
+Dockerfile
+environment.yml
+.deps
+autobrew
+configure.log

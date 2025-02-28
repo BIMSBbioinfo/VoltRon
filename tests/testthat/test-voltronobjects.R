@@ -1,4 +1,3 @@
-# Testing functions of manipulating assays ####
 test_that("assay", {
 
   # get data
@@ -19,7 +18,6 @@ test_that("assay", {
   expect_equal(1,1L)
 })
 
-# Testing functions of manipulating samples ####
 test_that("sample", {
 
   # get data
@@ -44,7 +42,6 @@ test_that("sample", {
   expect_equal(1,1L)
 })
 
-# Testing functions of manipulating samples ####
 test_that("merge objects", {
   
   # get data
@@ -55,14 +52,14 @@ test_that("merge objects", {
   # merge two of same types
   xenium_data2 <- xenium_data
   xenium_data2$Sample <- "XeniumR2"
-  merged_data <- merge(xenium_data, xenium_data2)
+  merged_data <- merge(xenium_data, xenium_data2, verbose = FALSE)
   
   # merge two of different types
-  merged_data <- merge(xenium_data, visium_data)
+  merged_data <- merge(xenium_data, visium_data, verbose = FALSE)
   
   # merge multiple
   merge_list <- list(xenium_data, visium_data, melc_data)
-  merged_data <- merge(merge_list[[1]], merge_list[-1])
+  merged_data <- merge(merge_list[[1]], merge_list[-1], verbose = FALSE)
   
   expect_equal(1,1L)
 })

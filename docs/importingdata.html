@@ -506,8 +506,8 @@ Visium readouts and create a VoltRon object. Here, we point to the
 folder of all the files with <strong>dir.path</strong> argument and also
 determine the name of this sample (<strong>sample_name</strong>).</p>
 <pre class="r watch-out"><code>library(VoltRon)
-install.packages(&quot;hdf5r&quot;)
-library(hdf5r)
+BiocManager::install(&quot;rhdf5&quot;)
+library(rhdf5)
 Vis_R1 &lt;- importVisium(dir.path = &quot;Visium/&quot;, sample_name = &quot;VisiumR1&quot;)</code></pre>
 <pre><code>VoltRon Object 
 VisiumR1: 
@@ -569,9 +569,10 @@ Visium readouts and create a VoltRon object. Here, we point to the
 folder of all the files with <strong>dir.path</strong> argument and also
 determine the name of this sample (<strong>sample_name</strong>).</p>
 <pre class="r watch-out"><code>library(VoltRon)
-install.packages(c(&quot;arrow&quot;, &quot;hdf5r&quot;))
+install.packages(&quot;arrow&quot;)
+BiocManager::install(&quot;rhdf5&quot;)
 library(arrow)
-library(hdf5r)
+library(rhdf5)
 hddata &lt;- importVisium(dir.path = &quot;VisiumHD/outs/&quot;, 
                        sample_name = &quot;VisiumHD&quot;)</code></pre>
 <p><br></p>
@@ -626,8 +627,8 @@ Xenium readouts and create a VoltRon object. Here, we point to the
 folder of all the files with <strong>dir.path</strong> argument and also
 determine the name of this sample (<strong>sample_name</strong>).</p>
 <pre class="r watch-out"><code>library(VoltRon)
-install.packages(&quot;hdf5r&quot;)
-library(hdf5r)
+BiocManager::install(&quot;rhdf5&quot;)
+library(rhdf5)
 Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)</code></pre>
 <pre><code>VoltRon Object 
 XeniumR1: 
@@ -1153,8 +1154,8 @@ vr_object&lt;- formVoltRon(data = intensity_data,
 <p>These channels then can be interrogated and used as background images
 for spatial plots and spatial feature plots as well.</p>
 <pre class="r watch-out"><code>vrImageChannelNames(vr_object)</code></pre>
-<pre><code>   Assay Image  Channels
-1 Assay1  MELC DAPI,CD45</code></pre>
+<pre><code>       Assay    Layer         Sample Spatial  Channels
+Assay1  MELC Section1 control_case_3    MELC DAPI,CD45</code></pre>
 <p>You can extract each of these channels individually.</p>
 <pre class="r watch-out"><code>vrImages(vr_object, name = &quot;MELC&quot;, channel = &quot;DAPI&quot;)
 vrImages(vr_object, name = &quot;MELC&quot;, channel = &quot;CD45&quot;)</code></pre>

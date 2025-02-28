@@ -65,8 +65,8 @@ We use the **importVisium** function to import the Visium readouts and create a 
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
-install.packages("hdf5r")
-library(hdf5r)
+BiocManager::install("rhdf5")
+library(rhdf5)
 Vis_R1 <- importVisium(dir.path = "Visium/", sample_name = "VisiumR1")
 ```
 
@@ -129,9 +129,10 @@ We use the **importVisium** function to import the Visium readouts and create a 
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
-install.packages(c("arrow", "hdf5r"))
+install.packages("arrow")
+BiocManager::install("rhdf5")
 library(arrow)
-library(hdf5r)
+library(rhdf5)
 hddata <- importVisium(dir.path = "VisiumHD/outs/", 
                        sample_name = "VisiumHD")
 ```
@@ -164,8 +165,8 @@ We use the **importXenium** function to import the Xenium readouts and create a 
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
-install.packages("hdf5r")
-library(hdf5r)
+BiocManager::install("rhdf5")
+library(rhdf5)
 Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1")
 ```
 
@@ -630,8 +631,8 @@ vrImageChannelNames(vr_object)
 ```
 
 ```
-   Assay Image  Channels
-1 Assay1  MELC DAPI,CD45
+       Assay    Layer         Sample Spatial  Channels
+Assay1  MELC Section1 control_case_3    MELC DAPI,CD45
 ```
 
 You can extract each of these channels individually.

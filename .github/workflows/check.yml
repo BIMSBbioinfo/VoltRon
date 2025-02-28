@@ -154,6 +154,27 @@ jobs:
           devtools::install_github('BIMSBbioinfo/ImageArray')
           devtools::install_github('BIMSBbioinfo/HDF5DataFrame')
           devtools::install_github('BIMSBbioinfo/ZarrDataFrame')
+          install.packages("Seurat")
+          BiocManager::install("glmGamPoi")
+          install.packages('arrow')
+          BiocManager::install('RBioFormats')
+          BiocManager::install('ComplexHeatmap')
+          devtools::install_github('dmcable/spacexr')
+          devtools::install_github('xuranw/MuSiC')
+          BiocManager::install('SingleCellExperiment')
+          BiocManager::install('SpatialExperiment')
+          install.packages('dplyr')
+          BiocManager::install('DESeq2')
+          install.packages('ggnewscale')
+          install.packages('patchwork')
+        shell: Rscript {0}
+          
+      # All Other dependencies
+      - name: Install other Suggested dependencies
+        run: |
+          BiocManager::install('basilisk')
+          install.packages('reticulate')
+          install.packages('patchwork')
         shell: Rscript {0}
           
       ## R CMD Check

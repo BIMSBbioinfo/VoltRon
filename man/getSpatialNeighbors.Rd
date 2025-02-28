@@ -12,7 +12,8 @@ getSpatialNeighbors(
   method = "delaunay",
   k = 10,
   radius = numeric(0),
-  graph.key = method
+  graph.key = method,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{radius}{When \code{method = "radius"} selected, determines the radius of a neighborhood ball around each spatial point.}
 
 \item{graph.key}{the name of the graph.}
+
+\item{verbose}{verbose}
 }
 \description{
 get neighbors in an assay given spatial coordinates

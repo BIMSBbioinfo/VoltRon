@@ -11,6 +11,7 @@ importCosMx(
   image_name = "main",
   ome.tiff = NULL,
   import_molecules = FALSE,
+  verbose = TRUE,
   ...
 )
 }
@@ -26,6 +27,8 @@ importCosMx(
 \item{ome.tiff}{the OME.TIFF file of the CosMx experiment if exists}
 
 \item{import_molecules}{if TRUE, molecule assay will be created along with cell assay.}
+
+\item{verbose}{verbose}
 
 \item{...}{additional parameters passed to \link{formVoltRon}}
 }

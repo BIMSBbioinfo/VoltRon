@@ -79,6 +79,12 @@ On **Fedora** you may need [`opencv-devel`](https://src.fedoraproject.org/rpms/o
 yum install opencv-devel
 ```
 
+## Dependencies
+
+VoltRon incorporates `RBioformats` package to import images from `ome.tiff` files, which requires [Java JDK](https://www.oracle.com/java/technologies/downloads/?er=221886) to be available in your system:
+
+See [https://cran.r-project.org/web/packages/rJava](https://cran.r-project.org/web/packages/rJava) below for more information.
+
 ## Docker Hub
 
 You can also run VoltRon from a container already available in [Docker Hub](https://hub.docker.com/repository/docker/amanukyan1385/rstudio-voltron/general). The docker image is based on the [Rocker Project](https://rocker-project.org/) and can be run from the terminal like below: 
@@ -90,10 +96,6 @@ docker run --rm -ti -e PASSWORD=<yourpassword> -p 8787:8787 amanukyan1385/rstudi
 Then, start the RStudio session from the browser at `http://localhost:8787/` and enter `rstudio` as username and `<yourpassword>` as password. 
 
 See [here](https://github.com/BIMSBbioinfo/VoltRon/blob/main/inst/extdata/docker_desktop_instructions.md) for more instructions on how to run the container using [Docker Desktop](https://www.docker.com/products/docker-desktop/).
-
-## Tutorials
-
-Please see the [Explore](https://artur-man.github.io/VoltRon/tutorials.html) section in the VoltRon website for tutorials, example scripts and analysis found in the [preprint](https://www.biorxiv.org/content/10.1101/2023.12.15.571667v1). Tutorials include links for accessing necessary data to run scripts across all tutorials. 
 
 ## References
 
