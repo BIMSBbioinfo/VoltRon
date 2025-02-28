@@ -432,8 +432,8 @@ void getSIFTTransformationMatrix(
   //////////////////////////
   
   // images
-  Mat im1Proc_eq;
-  Mat im2Proc_eq;
+  Mat im1Proc_eq, im1Proc_eq2;
+  Mat im2Proc_eq, im2Proc_eq2;
   
   // check variable
   bool check;
@@ -485,12 +485,13 @@ void getSIFTTransformationMatrix(
   // last try with both equalized images
   if(!check){
     
+    cv::equalizeHist(im1Proc, im1Proc_eq2);
+    cv::equalizeHist(im2Proc, im2Proc_eq2);
+    Rcout << "UPDATE: Calculating Transformation Matrix with histogram equalization (3)" << endl;
+    
     std::vector<DMatch> good_matches;
     std::vector<KeyPoint> keypoints1, keypoints2;
-    cv::equalizeHist(im1Proc, im1Proc_eq);
-    cv::equalizeHist(im2Proc, im2Proc_eq);
-    Rcout << "UPDATE: Calculating Transformation Matrix with histogram equalization (3)" << endl;
-    check = getSIFTTransformationMatrixSingle(im1Proc_eq, im2Proc_eq, im1, im2, h, mask,
+    check = getSIFTTransformationMatrixSingle(im1Proc_eq2, im2Proc_eq2, im1, im2, h, mask,
                                               imMatches,
                                               points1, points2, good_matches,
                                               params, is_faulty);
