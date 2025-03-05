@@ -86,3 +86,6 @@ RUN apt-get update -y
 RUN apt upgrade -y
 RUN apt-get install -y libsodium-dev 
 RUN R -e "options(timeout = 600000000); devtools::install_github(\"vitessce/vitessceR\")"
+
+# increase timeout
+RUN sh -c 'echo "options(timeout = 600000000)">> /home/rstudio/.Rprofile'
