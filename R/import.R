@@ -1094,7 +1094,7 @@ importCosMxCSV <- function(path, assay_name = "CosMx",
                         image = NULL, image_name = "main", ome.tiff = NULL, import_molecules = FALSE, verbose = TRUE, ...)
 {
   list_of_files <- list.files(path, full.names = TRUE)
-  
+
   # metadata
   metadata_file <- list_of_files[grepl("metadata_file", list_of_files)]
   if(file.exists(metadata_file)){
@@ -1103,7 +1103,7 @@ importCosMxCSV <- function(path, assay_name = "CosMx",
   } else {
     stop("There are no file with mattern 'metadata_file' in the path")
   }
-  
+
   # raw counts
   if(verbose)
     message("Reading cell data from CosMx folder ...")
@@ -1115,7 +1115,7 @@ importCosMxCSV <- function(path, assay_name = "CosMx",
   } else {
     stop("There are no files with pattern 'exprMat_file' in the path")
   }
-    
+  
   # coordinates
   coords <- as.matrix(metadata[,c("CenterX_global_px", "CenterY_global_px")])
   colnames(coords) <- c("x","y")
@@ -1129,7 +1129,8 @@ importCosMxCSV <- function(path, assay_name = "CosMx",
     colnames(segments) <- c("cell_id", "x", "y")
     segments <- segments %>% dplyr::group_split(cell_id)
     segments <- as.list(segments)
-    names(segments) <- rownames(coords)
+    sgt <- do.call(rbind, segments)
+    names(segments) <- unique(sgt$cell_id)
   } else {
     stop("There are no file with mattern 'polygons' in the path")
   }
@@ -1163,10 +1164,10 @@ importCosMxCSV <- function(path, assay_name = "CosMx",
     cur_metadata <- metadata[ind,]
     cur_coords <- coords[ind,]
     cur_counts <- counts[,ind]
-    cur_segments <- segments[ind]
+    cur_segments <- segments[rownames(cur_coords)]
     
     # create VoltRon object
-    cell_object <- formVoltRon(data = cur_counts, metadata = cur_metadata, image = image, coords = cur_coords, 
+    cell_object <- formVoltRon(data = cur_counts, metadata = cur_metadata, image = image, coords = cur_coords, segments = cur_segments,
                                main.assay = assay_name, assay.type = "cell", image_name = image_name, feature_name = "RNA", ...)
     cell_object$Sample <- paste0("Slide", slide)
     
