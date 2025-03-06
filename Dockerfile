@@ -73,6 +73,9 @@ RUN R CMD javareconf -e
 RUN R -e "install.packages('rJava')"
 RUN R -e "BiocManager::install('RBioFormats')"
 RUN sh -c 'echo "options(java.parameters = \"-Xmx10g\")" >> /home/rstudio/.Rprofile'
+USER rstudio
+RUN R -e "options(timeout = 600000000); library(RBioFormats)"
+USER root
 
 # Install spacexr
 RUN apt-get install -y libgsl-dev
