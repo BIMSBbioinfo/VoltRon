@@ -7,20 +7,25 @@ NULL
 
 # pseudo IterableMatrix for BPCells
 if(!requireNamespace("BPCells", quietly = TRUE)){
-  setClass("IterableMatrix")
+  suppressMessages({
+    suppressWarnings({
+      setClass("IterableMatrix")
+      })
+    })
 } 
 
 ## vrImage ####
 
 # Set class union
-suppressWarnings({
-  setClassUnion("image_matrix", 
-                members = c("matrix", 
-                            "data.frame",
-                            "dgRMatrix", 
-                            "dgeMatrix", 
-                            "Array", 
-                            "IterableMatrix"))
+suppressMessages({
+  suppressWarnings({
+    setClassUnion("image_matrix", 
+                  members = c("matrix", 
+                              "data.frame",
+                              "dgRMatrix", 
+                              "dgeMatrix", 
+                              "Array", 
+                              "IterableMatrix"))  })
 })
 
 #' The vrImage (VoltRon Image) Class
