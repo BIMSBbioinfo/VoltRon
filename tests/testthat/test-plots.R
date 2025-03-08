@@ -114,11 +114,18 @@ test_that("rasterization", {
   
   # get data
   data("xenium_data")
+  data("visium_data")
   
   # spatial plot
   vrSpatialPlot(xenium_data, group.by = "clusters", background.color = "black", n.tile = 100)
   vrSpatialPlot(xenium_data, group.by = "clusters", background.color = "black", n.tile = 1)
   vrSpatialPlot(xenium_data, group.by = "clusters", background.color = "black", n.tile = 10)
+  
+  # spatial plot spots
+  vrSpatialPlot(visium_data, n.tile = 100)
+  vrSpatialPlot(visium_data, n.tile = 1)
+  vrSpatialPlot(visium_data, n.tile = 10)
+  vrSpatialPlot(visium_data, n.tile = 0)
 
   # feature plots
   vrSpatialFeaturePlot(xenium_data, features = "Count", n.tile = 20)
