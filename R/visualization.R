@@ -331,7 +331,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     if(n.tile > 0 || nrow(coords) > 50000){
       if(n.tile == 0)
         n.tile <- 1000
-      g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha)
+      g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha, spot = TRUE)
     } else {
       spot.type <- vrAssayParams(assay, param = "spot.type")
       spot.type <- ifelse(is.null(spot.type), "circle", spot.type)
@@ -345,9 +345,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         g <- g + addGraph(graph = graph, coords = coords, background = graph.edge.color)
       }
     }
-
-    # style, color and text
-    g <- g + 
+    
+    g <- g +
       scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
 
@@ -745,12 +744,10 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
         data <- vrData(object[[assy]], features = feat, norm = norm)
         if(log)
           data <- log1p(data)
-        # return(getRange(data, na.rm = TRUE, finite = TRUE))
         return(getRange(data, na.rm = TRUE))
       } else {
         metadata <- Metadata(object, assay = assy)
         if(feat %in% colnames(metadata)){
-          # return(getRange(metadata[,feat], na.rm = TRUE, finite = TRUE))
           return(getRange(metadata[,feat], na.rm = TRUE))
         } else {
           stop("Feature '", feat, "' cannot be found in data or metadata!")
@@ -1132,10 +1129,10 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
     if(feat %in% vrFeatures(assay)){
-      return(range(normdata[feat, ]))
+      return(getRange(normdata[feat, ], na.rm = TRUE))
     } else {
       if(feat %in% colnames(metadata)){
-        return(range(metadata[,feat]))
+        return(getRange(metadata[,feat], na.rm = TRUE))
       } else {
         stop("Feature '", feat, "' cannot be found in data or metadata!")
       }
@@ -1800,10 +1797,10 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, c
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
     if(feat %in% vrFeatures(object, assay = assay)){
-      return(getRange(normdata[feat, ]))
+      return(getRange(normdata[feat, ], na.rm = TRUE))
     } else {
       if(feat %in% colnames(metadata)){
-        return(getRange(metadata[, feat]))
+        return(getRange(metadata[, feat], na.rm = TRUE))
       } else {
         stop("Feature '", feat, "' cannot be found in data or metadata!")
       }
@@ -2564,13 +2561,20 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
 #' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
 #' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
 #' @param alpha alpha level of colors of visualized points and segments
+#' @param spot if TRUE, tiling will be done specificall for spot datasets
 #'
 #' @import ggplot2
 #'
 #' @noRd
-vrGroupPlotTiling <- function(g, data, group.by, n.tile, alpha = 1){
-  g + stat_bin_2d(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]], color = .data[[group.by]]),
-                  data = data, bins = n.tile, drop = TRUE, alpha = alpha)
+vrGroupPlotTiling <- function(g, data, group.by, n.tile, alpha = 1, spot = FALSE) {
+  if(spot){
+    g <- g + stat_bin_2d(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]]),
+                         data = data, bins = n.tile, drop = TRUE, alpha = alpha)
+  } else {
+    g <- g + stat_bin_2d(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]], color = .data[[group.by]]),
+                         data = data, bins = n.tile, drop = TRUE, alpha = alpha) 
+  }
+  g
 }
 
 #' vrFeaturePlotTiling
