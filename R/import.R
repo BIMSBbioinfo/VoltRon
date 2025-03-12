@@ -138,10 +138,10 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
       # mol_metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell_id", "transcript_id", "x_location", "y_location")], with = FALSE]
       mol_metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell_id", "transcript_id", "x_location", "y_location", "z_location")], with = FALSE]
       set.seed(nrow(mol_metadata$id))
-      mol_metadata$postfix <- paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))
-      mol_metadata$assay_id <- "Assay1"
+      mol_metadata[, postfix:=paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))]
+      mol_metadata[, assay_id:="Assay1"]
       mol_metadata[, id:=do.call(paste0,.SD), .SDcols=c("id", "postfix")]
-
+      
       # coord names
       rownames(coords) <- mol_metadata$id
 
@@ -166,7 +166,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
         connectivity[["cell_id"]] <- vrSpatialPoints(cell_object)[connectivity[["cell_id"]]]
       } else {
         connectivity <- subset(connectivity, cell_id != "UNASSIGNED")
-        connectivity$cell_assay_id <- "_Assay1"
+        connectivity[, cell_assay_id:="_Assay1"]
         connectivity[, cell_id:=do.call(paste0,.SD), .SDcols=c("cell_id", "cell_assay_id")]
         connectivity$cell_assay_id <- NULL
       }
@@ -1190,9 +1190,9 @@ importCosMxCSV <- function(path, assay_name = "CosMx",
       # get molecules data components
       mol_metadata <- cur_molecules[,colnames(cur_molecules)[!colnames(cur_molecules) %in% c("CellId", "x_global_px", "y_global_px")], with = FALSE]
       set.seed(nrow(mol_metadata))
-      mol_metadata$id <- rownames(mol_metadata)
-      mol_metadata$postfix <- paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))
-      mol_metadata$assay_id <- "Assay1"
+      mol_metadata[, id:=1:.N]
+      mol_metadata[, assay_id:="Assay1"]
+      mol_metadata[, postfix:=paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))]
       mol_metadata[, id:=do.call(paste0,.SD), .SDcols=c("id", "postfix")]
       
       # coord names
@@ -1320,9 +1320,9 @@ importCosMxTileDB <- function(tiledbURI, assay_name = "CosMx",
       # get subcellular data components
       mol_metadata <- cur_subcellular[,colnames(cur_subcellular)[!colnames(cur_subcellular) %in% c("CellId", "cell_id", "x_global_px", "y_global_px")], with = FALSE]
       set.seed(nrow(mol_metadata))
-      mol_metadata$id <- rownames(mol_metadata)
-      mol_metadata$postfix <- paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))
-      mol_metadata$assay_id <- "Assay1"
+      mol_metadata[, id:=1:.N]
+      mol_metadata[, assay_id:="Assay1"]
+      mol_metadata[, postfix:=paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))]
       mol_metadata[, id:=do.call(paste0,.SD), .SDcols=c("id", "postfix")]
       
       # coord names

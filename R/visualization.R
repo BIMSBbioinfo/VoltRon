@@ -744,12 +744,10 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
         data <- vrData(object[[assy]], features = feat, norm = norm)
         if(log)
           data <- log1p(data)
-        # return(getRange(data, na.rm = TRUE, finite = TRUE))
         return(getRange(data, na.rm = TRUE))
       } else {
         metadata <- Metadata(object, assay = assy)
         if(feat %in% colnames(metadata)){
-          # return(getRange(metadata[,feat], na.rm = TRUE, finite = TRUE))
           return(getRange(metadata[,feat], na.rm = TRUE))
         } else {
           stop("Feature '", feat, "' cannot be found in data or metadata!")
@@ -1131,10 +1129,10 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
     if(feat %in% vrFeatures(assay)){
-      return(range(normdata[feat, ]))
+      return(getRange(normdata[feat, ], na.rm = TRUE))
     } else {
       if(feat %in% colnames(metadata)){
-        return(range(metadata[,feat]))
+        return(getRange(metadata[,feat], na.rm = TRUE))
       } else {
         stop("Feature '", feat, "' cannot be found in data or metadata!")
       }
@@ -1799,10 +1797,10 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, c
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
     if(feat %in% vrFeatures(object, assay = assay)){
-      return(getRange(normdata[feat, ]))
+      return(getRange(normdata[feat, ], na.rm = TRUE))
     } else {
       if(feat %in% colnames(metadata)){
-        return(getRange(metadata[, feat]))
+        return(getRange(metadata[, feat], na.rm = TRUE))
       } else {
         stop("Feature '", feat, "' cannot be found in data or metadata!")
       }

@@ -113,7 +113,7 @@ test_that("as.Seurat", {
   # multiple samples
   xenium_data2 <- xenium_data
   xenium_data2$Sample <- "sample1"
-  xenium_data2 <- merge(xenium_data2, xenium_data)
+  xenium_data2 <- merge(xenium_data2, xenium_data, verbose = FALSE)
   test1 <- VoltRon::as.Seurat(xenium_data2, cell.assay = "Xenium", type = "image")
   test1_Voltron <- as.VoltRon(test1, assay_name = "Xenium")
   
