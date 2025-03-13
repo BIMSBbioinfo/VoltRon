@@ -32,7 +32,7 @@
 #' @export
 #'
 importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", sample_name = NULL, use_image = TRUE, 
-                          morphology_image = "morphology_lowres.tif", resolution_level = 7, overwrite_resolution = FALSE, 
+                          morphology_image = "morphology_lowres.tif", resolution_level = 7, overwrite_resolution = TRUE, 
                           image_name = "main", channel_name = "DAPI", import_molecules = FALSE, verbose = TRUE, ...)
 {
   # cell assay
@@ -115,12 +115,16 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
     if(verbose)
       message("Creating molecule level assay ...")
     # transcripts
-    transcripts_file <- paste0(dir.path, "/transcripts.csv.gz")
+    transcripts_file <- paste0(dir.path, "/transcripts.parquet")
     if(!file.exists(transcripts_file)){
       stop("There are no file named 'transcripts.csv.gz' in the path")
     } else {
+      if (!requireNamespace('arrow'))
+        stop("Please install arrow package to extract molecule data!: install.packages('arrow')")
+      
       # get subcellur data components
-      subcellular_data <- data.table::fread(transcripts_file)
+      # subcellular_data <- data.table::fread(transcripts_file)
+      subcellular_data <- data.table::as.data.table(arrow::read_parquet(transcripts_file, as_data_frame = FALSE))
       subcellular_data <- subcellular_data[,c("transcript_id", colnames(subcellular_data)[!colnames(subcellular_data) %in% "transcript_id"]), with = FALSE]
       colnames(subcellular_data)[colnames(subcellular_data)=="transcript_id"] <- "id"
       colnames(subcellular_data)[colnames(subcellular_data)=="feature_name"] <- "gene"
