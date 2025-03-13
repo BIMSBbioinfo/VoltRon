@@ -113,15 +113,21 @@ subsetvrImage <- function(x, subset, spatialpoints = NULL, image = NULL) {
     
     # get one image
     vrimage <- vrImages(object)
+    if(!is.null(vrimage)){
+      imageinfo <- getImageInfo(vrimage)
+    } else {
+      imageinfo <- list(width = getMax(coords[,"x"]), height = getMax(coords[,"y"]))
+    }
+    # vrimage <- vrImages(object)
     
     # coordinates
-    cropped_coords <- subsetCoordinates(coords, vrimage, image)
+    cropped_coords <- subsetCoordinates(coords, imageinfo, image)
     vrCoordinates(object) <- cropped_coords
     
     # segments
     cropped_segments <- segments[rownames(cropped_coords)]
     if(length(segments) > 0){
-      segments[rownames(cropped_coords)] <- subsetSegments(cropped_segments, vrimage, image)
+      segments[rownames(cropped_coords)] <- subsetSegments(cropped_segments, imageinfo, image)
       vrSegments(object) <- segments
     }
     
@@ -130,7 +136,7 @@ subsetvrImage <- function(x, subset, spatialpoints = NULL, image = NULL) {
     object <- subsetvrImage(object, spatialpoints = rownames(cropped_coords))
     
     # image
-    for(img in vrImageChannelNames(object)){
+    for(img in vrImageChannelNames(object, return.report = FALSE)){
       
       # check if the image is either ondisk or inmemory
       img_data <- object@image[[img]]
@@ -770,15 +776,20 @@ setMethod("vrImageChannelNames", "vrAssay", vrImageChannelNamesvrAssay)
 #' @export
 setMethod("vrImageChannelNames", "vrAssayV2", vrImageChannelNamesvrAssay)
 
-vrImageChannelNamesvrImage <- function(object){
+vrImageChannelNamesvrImage <- function(object, return.report = TRUE){
   if(is.null(names(object@image))){
-    return("No Channels or Images are found!")
+    if(return.report){
+      return("No Channels or Images are found!")
+    } else {
+      return(NULL)
+    }
   } else{
     return(names(object@image))
   }
 }
 
 #' @rdname vrImageChannelNames
+#' @param return.report if TRUE and no image is present, return a character stating that there is no image
 #'
 #' @export
 setMethod("vrImageChannelNames", "vrImage", vrImageChannelNamesvrImage)
@@ -1321,26 +1332,36 @@ demuxVoltRon <- function(object, max.pixel.size = 1200, use.points.only = FALSE,
   
   # get image
   images <- vrImages(object[[vrAssayNames(object)]], as.raster = TRUE)
-  if(!inherits(images, "Image_Array")){
-    images <- magick::image_read(images)
+  if(!is.null(images)){
+    if(!inherits(images, "Image_Array")){
+      images <- magick::image_read(images)
+    } 
+  } else {
+    use.points.only <- TRUE 
   }
   
   # scale 
-  imageinfo <- getImageInfo(images)
   scale_factor <- 1
-  if(imageinfo$width > max.pixel.size){
-    scale_factor <- imageinfo$width/max.pixel.size
-  }
   if(use.points.only){
-    object_small <- resizeImage(object, size = max.pixel.size)
-    image_info_small <- magick::image_info(vrImages(object_small))
-    coords <- as.data.frame(vrCoordinates(object_small, reg = FALSE))
-    pl <- ggplot() + geom_point(aes_string(x = "x", y = "y"), coords, size = 1.5, color = "black") +
-      theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
-            axis.line=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
-            legend.margin = margin(0,0,0,0), plot.margin = unit( c(0,0,0,0),"in")) +
-      coord_fixed()
+    colors <- list("black")
+    names(colors) <- SampleMetadata(object)[["Sample"]]
+    pl <- vrSpatialPlot(object, background.color = "white", group.by = "Sample", colors = colors)
+    if(!is.null(images)){
+      imageinfo <- getImageInfo(images)
+    } else {
+      coords <- vrCoordinates(object)
+      imageinfo <- list(width = getMax(coords[,"x"]), height = getMax(coords[,"y"]))
+    }
   } else {
+    
+    # scale 
+    imageinfo <- getImageInfo(images)
+    scale_factor <- 1
+    if(imageinfo$width > max.pixel.size){
+      scale_factor <- imageinfo$width/max.pixel.size
+    }
+    
+    # plot
     pl <- plotImage(images, max.pixel.size = max.pixel.size)
   }
 

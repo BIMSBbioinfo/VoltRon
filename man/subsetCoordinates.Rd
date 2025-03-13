@@ -4,12 +4,12 @@
 \alias{subsetCoordinates}
 \title{subsetCoordinates}
 \usage{
-subsetCoordinates(coords, image, crop_info)
+subsetCoordinates(coords, imageinfo, crop_info)
 }
 \arguments{
 \item{coords}{the coordinates of the spatial points}
 
-\item{image}{the magick image associated with the coordinates}
+\item{imageinfo}{the magick image info associated with the image}
 
 \item{crop_info}{the subseting string passed to \link{image_crop}}
 }
