@@ -135,11 +135,8 @@ subsetvrAssay <- function(x, subset, spatialpoints = NULL, features = NULL, imag
     features <- intersect(vrFeatures(object), features)
     
     if(length(features) > 0){
-      # object@rawdata <- object@rawdata[rownames(object@rawdata) %in% features,, drop = FALSE]
-      # object@normdata <- object@normdata[rownames(object@normdata) %in% features,, drop = FALSE]
       object <- subsetData(object, features = features)
       object <- subsetData(object, features = features)
-      
     } else {
       stop("none of the provided features are found in the assay")
     }
@@ -158,8 +155,6 @@ subsetvrAssay <- function(x, subset, spatialpoints = NULL, features = NULL, imag
       }
       
       # data
-      # object@rawdata  <- object@rawdata[,spatialpoints, drop = FALSE]
-      # object@normdata  <- object@normdata[,spatialpoints, drop = FALSE]
       object <- subsetData(object, spatialpoints = spatialpoints)
       object <- subsetData(object, spatialpoints = spatialpoints)
       
@@ -170,23 +165,18 @@ subsetvrAssay <- function(x, subset, spatialpoints = NULL, features = NULL, imag
       }
       
       # image
-      # for(img in vrImageNames(object))
       for(img in vrSpatialNames(object))
         object@image[[img]] <- subsetvrImage(object@image[[img]], spatialpoints = spatialpoints)
-        # object@image[[img]] <- subset.vrImage(object@image[[img]], spatialpoints = spatialpoints)
-      
+
     } else if(!is.null(image)) {
       
       # images
       img <- vrMainSpatial(object)
       object@image <- object@image[img]
       object@image[[img]] <- subsetvrImage(object@image[[img]], image = image)
-      # object@image[[img]] <- subset.vrImage(object@image[[img]], image = image)
       spatialpoints <- rownames(vrCoordinates(object@image[[img]]))
       
       # data
-      # object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
-      # object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE]
       object <- subsetData(object, spatialpoints = spatialpoints)
       object <- subsetData(object, spatialpoints = spatialpoints)
       
