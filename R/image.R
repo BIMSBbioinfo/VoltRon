@@ -140,7 +140,7 @@ subsetvrImage <- function(x, subset, spatialpoints = NULL, image = NULL) {
       
       # check if the image is either ondisk or inmemory
       img_data <- object@image[[img]]
-      if(inherits(img_data, "Image_Array")){
+      if(inherits(img_data, "ImgArray")){
         crop_info_int <- as.integer(strsplit(image, split = "[x|+]")[[1]])
         img_data <- ImageArray::crop(img_data, ind = list(crop_info_int[3]:(crop_info_int[3]+crop_info_int[1]), crop_info_int[4]:(crop_info_int[4]+crop_info_int[2])))
         object@image[[img]] <- img_data
@@ -337,9 +337,8 @@ vrImagesvrImage <- function(object, channel = NULL, as.raster = FALSE, scale.per
     } else {
       
       # get image as array if image is stored as a DelayedArray
-      if(inherits(img, "Image_Array")){
-        # img <- as.array(img@seed)
-        img <- as.array(img)
+      if(inherits(img, "ImgArray")){
+        img <- DelayedArray::realize(img)
         img <- array(as.raw(img), dim = dim(img))
       }
       
@@ -384,7 +383,7 @@ vrImagesReplacevrImage <- function(object, channel = NULL, value){
     object@image[[channel]] <- value
   } else if(inherits(value, "magick-image")){
     object@image[[channel]] <- magick::image_data(value)
-  } else if(inherits(value, "Image_Array")){
+  } else if(inherits(value, "ImgArray")){
     object@image[[channel]] <- value
   } else {
     stop("Please provide either a magick-image or bitmap class image object!")
@@ -893,7 +892,7 @@ resizeImagevrImage <- function(object, size = NULL){
   image_names <- vrImageChannelNames(object)
   for(img in image_names){
     img_data <- object@image[[img]]
-    if(inherits(img_data, "Image_Array")){
+    if(inherits(img_data, "ImgArray")){
       stop("Currently modulateImage only works on in-memory images!")
     } else {
       img_data <- magick::image_read(img_data)
@@ -999,7 +998,7 @@ modulateImagevrImage <- function(object, channel = NULL, brightness = 100, satur
   # modulate image
   for(img in channel){
     img_data <- object@image[[img]]
-    if(inherits(img_data, "Image_Array")){
+    if(inherits(img_data, "ImgArray")){
       stop("Currently modulateImage only works on in-memory images!")
     } else {
       img_data <- magick::image_read(img_data)
@@ -1333,7 +1332,7 @@ demuxVoltRon <- function(object, max.pixel.size = 1200, use.points.only = FALSE,
   # get image
   images <- vrImages(object[[vrAssayNames(object)]], as.raster = TRUE)
   if(!is.null(images)){
-    if(!inherits(images, "Image_Array")){
+    if(!inherits(images, "ImgArray")){
       images <- magick::image_read(images)
     } 
   } else {

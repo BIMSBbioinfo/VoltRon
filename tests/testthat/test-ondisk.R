@@ -1,9 +1,9 @@
 # packages 
 skip_if_not_installed("rhdf5")
-skip_if_not_installed("pizzarr")
+# skip_if_not_installed("pizzarr")
 skip_if_not_installed("HDF5Array")
 skip_if_not_installed("HDF5DataFrame")
-skip_if_not_installed("ZarrArray")
+# skip_if_not_installed("ZarrArray")
 skip_if_not_installed("ZarrDataFrame")
 skip_if_not_installed("ImageArray")
 skip_if_not_installed("BPCells")
@@ -115,7 +115,7 @@ test_that("subsetting", {
   xenium_data2_subset <- subset(xenium_data2, image = "290x202+98+17")
   expect_equal(length(vrSpatialPoints(xenium_data2_subset)), 392)
   expect_equal(is(vrImages(xenium_data2_subset)), "magick-image")
-  expect_equal(is(vrImages(xenium_data2_subset, as.raster = TRUE)), "Image_Array")
+  expect_equal(is(vrImages(xenium_data2_subset, as.raster = TRUE)), "ImgArray")
   
   # visualize
   vrSpatialPlot(xenium_data2_subset)

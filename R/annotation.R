@@ -54,12 +54,12 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
   
   # get image
   img <- vrImages(object[[assay]], name = image_name, channel = channel, as.raster = TRUE)
-  if(!inherits(img, "Image_Array")){
+  if(!inherits(img, "ImgArray")){
     if(!requireNamespace("ImageArray")){
       message("Please install ImageArray package to speed up visualization")
       img <- magick::image_read(img)
     } else{
-      img <- ImageArray::createImageArray(img)
+      img <- ImageArray::createImgArray(img)
     }
   }
   if(!use.image.only){
@@ -470,8 +470,8 @@ manageImageBrush <- function(image, ranges, max.pixel.size, input, output, sessi
       width <- limits[2,1]-limits[1,1]
       height <- limits[2,2]-limits[1,2]
       if(max(height,width) > max.pixel.size){
-        if(inherits(image, "Image_Array")){
-          n.series <- ImageArray::len(image)
+        if(inherits(image, "ImgArray")){
+          n.series <- ImageArray::length(image)
           cur_width <- width
           cur_height <- height
           for(ii in 2:n.series){
@@ -527,8 +527,8 @@ manageSelectedCorners <- function(selected_corners, image, ranges, max.pixel.siz
       width <- limits[2,1]-limits[1,1]
       height <- limits[2,2]-limits[1,2]
       if(max(height,width) > max.pixel.size){
-        if(inherits(image, c("Image_Array"))){
-          n.series <- ImageArray::len(image)
+        if(inherits(image, c("ImgArray"))){
+          n.series <- ImageArray::length(image)
           cur_width <- width
           cur_height <- height
           for(ii in 2:n.series){
@@ -587,8 +587,8 @@ transformSelectedCorners <- function(selected_corners, image, ranges, max.pixel.
   width <- limits[2,1]-limits[1,1]
   height <- limits[2,2]-limits[1,2]
   if(max(height,width) > max.pixel.size){
-    if(inherits(image, "Image_Array")){
-      n.series <- ImageArray::len(image)
+    if(inherits(image, "ImgArray")){
+      n.series <- ImageArray::length(image)
       cur_width <- width
       cur_height <- height
       for(ii in 2:n.series){
@@ -638,8 +638,8 @@ transformSpatialLayer <- function(g_spatial, image, ranges, max.pixel.size){
   width <- limits[2,1]-limits[1,1]
   height <- limits[2,2]-limits[1,2]
   if(max(height,width) > max.pixel.size){
-    if(inherits(image, "Image_Array")){
-      n.series <- ImageArray::len(image)
+    if(inherits(image, "ImgArray")){
+      n.series <- ImageArray::length(image)
       cur_width <- width
       cur_height <- height
       for(ii in 2:n.series){
