@@ -236,6 +236,7 @@ getBasilisk <- function(){
 # Other Auxiliary tools ####
 ####
 
+#' @noRd
 fill.na <- function(x, i = 5) {
   if (is.na(x)[i]) {
     return(round(mean(x, na.rm = TRUE), 0))

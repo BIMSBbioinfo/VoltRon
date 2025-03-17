@@ -47,9 +47,9 @@ Collate:
     'import.R'
     'integration.R'
     'interactive.R'
-    'io.R'
     'metadata.R'
     'objects.R'
+    'ondisk.R'
     'processing.R'
     'registration.R'
     'sample.R'
@@ -60,13 +60,12 @@ Suggests:
     S4Vectors,
     DelayedArray,
     rhdf5,
+    Rarr,
     basilisk,
     reticulate,
     RBioFormats,
     BPCells,
     HDF5Array,
-    pizzarr,
-    ZarrArray,
     HDF5DataFrame,
     ZarrDataFrame,
     ImageArray,

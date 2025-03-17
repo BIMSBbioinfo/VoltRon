@@ -1314,7 +1314,7 @@ vrSpatialPlotImage <- function(g, assay, background, scale.image, spatial = NULL
     
     # get image
     image <- suppressWarnings({vrImages(assay, name = spatial, channel = channel, as.raster = TRUE)})
-    if(!is.null(image) & !inherits(image, "Image_Array")){
+    if(!is.null(image) & !inherits(image, "ImgArray")){
       image <- magick::image_read(image)
     }
     
@@ -1325,6 +1325,13 @@ vrSpatialPlotImage <- function(g, assay, background, scale.image, spatial = NULL
         scale_factors <- info$width/1000
         info <- getImageInfo(image)
       }
+      
+      # TODO: is this necessary ? 
+      if(inherits(image, "ImgArray")){
+        image <- ImageArray::as.raster(image)
+      }
+
+      # annotation raster
       g <- g +
         ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
     } else {
