@@ -1332,7 +1332,9 @@ setMethod(".restore_absolute_assay_links", signature = "vrAssayV2", .restore_abs
   if(grepl(".zarr", file_path)){
     second <- strsplit(file_path, split = "\\.zarr")[[1]][2]
     first <- strsplit(file_path, split = "\\.zarr")[[1]][1]
-    file_path <- file.path(paste0(basename(first), ".zarr"), second)
+    file_path <- paste0(basename(first), ".zarr")
+    if(!is.na(second))
+      file_path <- file.path(file_path, second)
   } else {
     file_path <- basename(file_path)
   }

@@ -60,6 +60,7 @@ Suggests:
     S4Vectors,
     DelayedArray,
     rhdf5,
+    Rarr,
     basilisk,
     reticulate,
     RBioFormats,
