@@ -130,11 +130,10 @@ loadVoltRon <- function(dir="my_se")
   rds_path <- file.path(dir, paste0("se.rds"))
   
   # load h5/zarr store
-  .read_VoltRon(rds_path)
-  # ans <- try(.read_VoltRon(rds_path), silent=TRUE)
-  # if (inherits(ans, "try-error"))
-  #   stop_if_bad_dir(dir, prefix = "")
-  # ans
+  ans <- try(.read_VoltRon(rds_path), silent=TRUE)
+  if (inherits(ans, "try-error"))
+    stop_if_bad_dir(dir, prefix = "")
+  ans
 }
 
 ####
@@ -623,9 +622,6 @@ open_zarr <- function(dir, name){
 write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
                                as.sparse, verbose, replace)
 {
-  # if(!requireNamespace('pizzarr'))
-  #   stop("Please install pizzarr package!: devtools::install_github('keller-mark/pizzarr')")
-  # 
   # sample metadata
   sample_metadata <- SampleMetadata(object)
   
@@ -703,8 +699,8 @@ writeZarrArrayInMetadata <- function(object,
   # check DelayedDataFrame
   if(!requireNamespace('ZarrDataFrame'))
     stop("Please install ZarrDataFrame package!: devtools::install_github('BIMSBbioinfo/ZarrDataFrame')")
-  # if(!requireNamespace('ZarrArray'))
-  #   stop("Please install ZarrArray package!: devtools::install_github('BIMSBbioinfo/ZarrArray')")
+  if(!requireNamespace('Rarr'))
+    stop("Please install Rarr package!: BiocManager::install('Rarr')")
 
   # iterate over all metadata slots
   slot_names <- slotNames(object)
@@ -775,6 +771,8 @@ writeZarrArrayInVrData <- function(object,
                                    replace = FALSE){
   
   # check packages
+  if(!requireNamespace('Rarr'))
+    stop("Please install Rarr package!: BiocManager::install('Rarr')")
   
   # check if there is a data or rawdata slot in assay object
   catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
@@ -862,7 +860,9 @@ writeZarrArrayInImage <- function(object,
   # check packages
   if(!requireNamespace('ImageArray'))
     stop("Please install ImageArray package!: devtools::install_github('BIMSBbioinfo/ImageArray')")
-
+  if(!requireNamespace('Rarr'))
+    stop("Please install Rarr package!: BiocManager::install('Rarr')")
+  
   # for each spatial system
   spatial_names <- vrSpatialNames(object)
   for(spat in spatial_names){
@@ -1356,35 +1356,6 @@ setMethod(".restore_absolute_assay_links", signature = "vrAssayV2", .restore_abs
 }
 
 setMethod(".restore_absolute_links", signature = "ANY", .restore_absolute_links_delayedarray)
-
-#' .restore_absolute_links
-#'
-#' @noRd
-.restore_absolute_links_dataframe <- function(x, dir){
-  
-  # get basename
-  x@path <- basename(x@path)
-  
-  # get path
-  file_path <- file.path(dir, x@path)
-  
-  # update path
-  if (!file.exists(file_path))
-    stop("Object points to a file ",
-         "that does not exist: ", file_path)
-  x@path <- file_path_as_absolute(file_path)
-  msg <- validate_absolute_path(x@path, paste0("'path' slot of Object"))
-  
-  # validate
-  if (!isTRUE(msg))
-    stop(msg)
-  
-  # return
-  x
-}
-
-setMethod(".restore_absolute_links", signature = "HDF5ColumnSeed", .restore_absolute_links_dataframe)
-setMethod(".restore_absolute_links", signature = "ZarrColumnSeed", .restore_absolute_links_dataframe)
 
 #' .restore_absolute_links
 #'
