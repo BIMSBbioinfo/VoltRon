@@ -154,6 +154,7 @@ jobs:
           devtools::install_github('BIMSBbioinfo/ImageArray')
           devtools::install_github('BIMSBbioinfo/HDF5DataFrame')
           devtools::install_github('BIMSBbioinfo/ZarrDataFrame')
+          devtools::install_github("Artur-man/Rarr")
           install.packages("Seurat")
           BiocManager::install("glmGamPoi")
           install.packages('arrow')
