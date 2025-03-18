@@ -33,16 +33,15 @@ RUN R -e "BiocManager::install(c('EBImage', 'S4Arrays'))"
 RUN R -e "BiocManager::install(c('DelayedArray'))"
 RUN R -e "BiocManager::install(c('HDF5Array'))"
 RUN R -e "devtools::install_github('Artur-man/Rarr@voltron')"
-RUN R -e "remotes::install_github('bnprks/BPCells/r@v0.3.0')"
-RUN R -e "remotes::install_github('BIMSBbioinfo/ImageArray')"
-RUN R -e "remotes::install_github('BIMSBbioinfo/HDF5DataFrame')"
-RUN R -e "remotes::install_github('BIMSBbioinfo/ZarrDataFrame')"
-RUN R -e "install.packages('Seurat')"
+RUN R -e "options(timeout = 600000000); remotes::install_github('bnprks/BPCells/r@v0.3.0')"
+RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/ImageArray')"
+RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/HDF5DataFrame')"
+RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/ZarrDataFrame')"
+RUN R -e "options(timeout = 600000000); install.packages('Seurat')"
 RUN R -e "BiocManager::install('glmGamPoi')"
 RUN R -e "install.packages('arrow')"
-RUN R -e "BiocManager::install('RBioFormats')"
 RUN R -e "BiocManager::install('ComplexHeatmap')"
-RUN R -e "devtools::install_github('xuranw/MuSiC')"
+RUN R -e "options(timeout = 600000000); devtools::install_github('xuranw/MuSiC')"
 RUN R -e "BiocManager::install('SingleCellExperiment')"
 RUN R -e "BiocManager::install('SpatialExperiment')"
 RUN R -e "install.packages('dplyr')"
@@ -90,6 +89,4 @@ RUN apt-get update -y
 RUN apt upgrade -y
 RUN apt-get install -y libsodium-dev 
 RUN R -e "options(timeout = 600000000); devtools::install_github(\"vitessce/vitessceR\")"
-
-# increase timeout
 RUN sh -c 'echo "options(timeout = 600000000)">> /home/rstudio/.Rprofile'
