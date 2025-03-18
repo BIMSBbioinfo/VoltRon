@@ -135,11 +135,8 @@ subsetvrAssay <- function(x, subset, spatialpoints = NULL, features = NULL, imag
     features <- intersect(vrFeatures(object), features)
     
     if(length(features) > 0){
-      # object@rawdata <- object@rawdata[rownames(object@rawdata) %in% features,, drop = FALSE]
-      # object@normdata <- object@normdata[rownames(object@normdata) %in% features,, drop = FALSE]
       object <- subsetData(object, features = features)
       object <- subsetData(object, features = features)
-      
     } else {
       stop("none of the provided features are found in the assay")
     }
@@ -158,8 +155,6 @@ subsetvrAssay <- function(x, subset, spatialpoints = NULL, features = NULL, imag
       }
       
       # data
-      # object@rawdata  <- object@rawdata[,spatialpoints, drop = FALSE]
-      # object@normdata  <- object@normdata[,spatialpoints, drop = FALSE]
       object <- subsetData(object, spatialpoints = spatialpoints)
       object <- subsetData(object, spatialpoints = spatialpoints)
       
@@ -170,23 +165,18 @@ subsetvrAssay <- function(x, subset, spatialpoints = NULL, features = NULL, imag
       }
       
       # image
-      # for(img in vrImageNames(object))
       for(img in vrSpatialNames(object))
         object@image[[img]] <- subsetvrImage(object@image[[img]], spatialpoints = spatialpoints)
-        # object@image[[img]] <- subset.vrImage(object@image[[img]], spatialpoints = spatialpoints)
-      
+
     } else if(!is.null(image)) {
       
       # images
       img <- vrMainSpatial(object)
       object@image <- object@image[img]
       object@image[[img]] <- subsetvrImage(object@image[[img]], image = image)
-      # object@image[[img]] <- subset.vrImage(object@image[[img]], image = image)
       spatialpoints <- rownames(vrCoordinates(object@image[[img]]))
       
       # data
-      # object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
-      # object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE]
       object <- subsetData(object, spatialpoints = spatialpoints)
       object <- subsetData(object, spatialpoints = spatialpoints)
       
@@ -245,13 +235,10 @@ setMethod("subset", "vrAssayV2", subsetvrAssay)
 #' subsetting coordinates given cropping parameters of a magick image objects
 #'
 #' @param coords the coordinates of the spatial points
-#' @param image the magick image associated with the coordinates
+#' @param imageinfo the magick image info associated with the image
 #' @param crop_info the subseting string passed to \link{image_crop}
 #'
-subsetCoordinates <- function(coords, image, crop_info){
-
-  # image
-  imageinfo <- image_info(image)
+subsetCoordinates <- function(coords, imageinfo, crop_info){
 
   # get crop information
   crop_info <- strsplit(crop_info, split = "\\+")[[1]]
@@ -302,11 +289,11 @@ subsetCoordinates <- function(coords, image, crop_info){
 #' subsetting segments given cropping parameters of a magick image objects
 #'
 #' @param segments the list of segments each associated with a spatial point
-#' @param image the magick image associated with the coordinates
+#' @param imageinfo the magick image info associated with the image
 #' @param crop_info the subseting string passed to \link{image_crop}
 #'
 #' @importFrom dplyr bind_rows
-subsetSegments <- function(segments, image, crop_info){
+subsetSegments <- function(segments, imageinfo, crop_info){
 
   # get segments
   segment_names <- names(segments)
@@ -315,7 +302,7 @@ subsetSegments <- function(segments, image, crop_info){
   segments <- data.frame(segments, row_id = rownames(segments))
   
   # subset
-  cropped_segments <- subsetCoordinates(segments[,c("x","y")], image, crop_info)
+  cropped_segments <- subsetCoordinates(segments[,c("x","y")], imageinfo, crop_info)
   if(any(colnames(segments) %in% c("rx", "ry"))){
     cropped_segments_extra <- segments[rownames(cropped_segments), c("rx", "ry")]
     cropped_segments <- cbind(cropped_segments, cropped_segments_extra)

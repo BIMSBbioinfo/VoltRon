@@ -1,8 +1,9 @@
-# Testing functions of subsetting ####
 test_that("subset", {
   
   # get data
   data("visium_data")
+  data("xenium_data")
+  data("merged_object")
   
   # subset based on assay
   subset(visium_data, assays = "Assay1")
@@ -20,6 +21,11 @@ test_that("subset", {
   # subset based on features
   subset(visium_data, features = c("Map3k19", "Rab3gap1"))
   expect_error(subset(visium_data, features = c("feature")))
+  
+  # subset based on image
+  tmp <- subset(merged_object, assay = "Assay1")
+  tmp <- expect_warning(subset(tmp, image = "199x74+125+179.973327636719"))
+  tmp <- subset(xenium_data, image = "240x150+135+188")
   
   # return
   expect_equal(1,1L)

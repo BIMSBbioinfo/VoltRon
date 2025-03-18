@@ -559,3 +559,31 @@ as.VoltRon <- function(object, ...) {
 as.Zarr <- function(object, out_path, image_id) {
   UseMethod(generic = 'as.Zarr', object = object)
 }
+
+####
+# OnDisk ####
+####
+
+#' .shorten_assay_links
+#'
+#' @param object a vrAssay or vrAssayV2 object.
+#' @param ... arguments passed to other methods.
+#'
+#' @noRd
+setGeneric(".shorten_assay_links", function(object, ...) standardGeneric(".shorten_assay_links"))
+
+#' .restore_absolute_assay_links
+#'
+#' @param object a vrAssay or vrAssayV2 object.
+#' @param ... arguments passed to other methods.
+#'
+#' @noRd
+setGeneric(".restore_absolute_assay_links", function(object, ...) standardGeneric(".restore_absolute_assay_links"))
+
+#' .restore_absolute_links
+#'
+#' @param x an object of either DelayedArray or other variants
+#' @param ... arguments passed to other methods.
+#'
+#' @noRd
+setGeneric(".restore_absolute_links", function(x, ...) standardGeneric(".restore_absolute_links"))

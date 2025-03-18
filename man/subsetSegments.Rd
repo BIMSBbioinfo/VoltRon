@@ -4,12 +4,12 @@
 \alias{subsetSegments}
 \title{subsetSegments}
 \usage{
-subsetSegments(segments, image, crop_info)
+subsetSegments(segments, imageinfo, crop_info)
 }
 \arguments{
 \item{segments}{the list of segments each associated with a spatial point}
 
-\item{image}{the magick image associated with the coordinates}
+\item{imageinfo}{the magick image info associated with the image}
 
 \item{crop_info}{the subseting string passed to \link{image_crop}}
 }
