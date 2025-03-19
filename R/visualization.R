@@ -2576,10 +2576,10 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
 vrGroupPlotTiling <- function(g, data, group.by, n.tile, alpha = 1, spot = FALSE) {
   if(spot){
     g <- g + stat_bin_2d(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]]),
-                         data = data, bins = n.tile, drop = TRUE, alpha = alpha)
+                         data = data, bins = n.tile, drop = TRUE, alpha = alpha, show.legend = TRUE)
   } else {
     g <- g + stat_bin_2d(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]], color = .data[[group.by]]),
-                         data = data, bins = n.tile, drop = TRUE, alpha = alpha) 
+                         data = data, bins = n.tile, drop = TRUE, alpha = alpha, show.legend = TRUE) 
   }
   g
 }
