@@ -153,11 +153,11 @@ loadVoltRon <- function(dir="my_se")
   assay_names <- vrAssayNames(object, assay = "all")
   
   # update metadata
-  object@metadata <- shorten_metadata_links(Metadata(object, type = "all"))
+  object@metadata <- .shorten_metadata_links(Metadata(object, type = "all"))
     
   # update all assays
   for(assy in assay_names)
-    object[[assy]] <- shorten_assay_links(object[[assy]])
+    object[[assy]] <- .shorten_assay_links(object[[assy]])
   
   # verbose and save rds
   if (verbose)
@@ -165,23 +165,6 @@ loadVoltRon <- function(dir="my_se")
             ifelse(file.exists(rds_path), "existing ", ""),
             "RDS file:\n  ", rds_path)
   saveRDS(object, file=rds_path)
-}
-
-#' modify_seeds
-#'
-#' @noRd
-modify_seeds <- function (x, FUN, ...) 
-{
-  if (is(x, "DelayedUnaryOp")) {
-    x@seed <- modify_seeds(x@seed, FUN, ...)
-  }
-  else if (is(x, "DelayedNaryOp")) {
-    x@seeds <- lapply(x@seeds, modify_seeds, FUN, ...)
-  }
-  else {
-    x <- FUN(x, ...)
-  }
-  return(x)
 }
 
 #' .write_VoltRon
@@ -239,11 +222,11 @@ modify_seeds <- function (x, FUN, ...)
   assay_names <- vrAssayNames(object, assay = "all")
   
   # restore metadata links 
-  object@metadata <- restore_absolute_metadata_links(Metadata(object, type = "all"), dir)
+  object@metadata <- .restore_absolute_metadata_links(Metadata(object, type = "all"), dir)
   
   # restore assay links
   for(assy in assay_names)
-    object[[assy]] <- restore_absolute_assay_links(object[[assy]], dir)
+    object[[assy]] <- .restore_absolute_assay_links(object[[assy]], dir)
   
   # return object
   object
@@ -575,13 +558,13 @@ writeHDF5ArrayInImage <- function(object,
         img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
         
         # write image
-        if(!inherits(img, "Image_Array") || replace){
+        if(!inherits(img, "ImgArray") || replace){
           if(verbose)
             message("Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"'")
-          img <- ImageArray::writeImageArray(img,
+          img <- ImageArray::writeImgArray(img,
                                              output = gsub(".h5$", "", h5_path),
                                              name = paste0(name, "/", spat, "/", ch), 
-                                             format = "HDF5ImageArray", 
+                                             format = "HDF5ImgArray", 
                                              replace = FALSE, 
                                              chunkdim=chunkdim,
                                              level=level,
@@ -602,25 +585,54 @@ writeHDF5ArrayInImage <- function(object,
 ## ZARR Support ####
 ####
 
+#' zarrcreateGroup
+#'
+#' get information of an ImgArray object
+#'
+#' @param store the location of (zarr) store
+#' @param name name of the group
+#' @export
+zarrcreateGroup <- function(store, name){
+  split.name <- strsplit(name, split = "\\/")[[1]]
+  if(length(split.name) > 1){
+    split.name <- vapply(rev(seq_len(length(split.name)))[seq_len(2)], 
+                         function(x) paste(split.name[seq_len(x)], collapse = "/"), 
+                         FUN.VALUE = character(1)) 
+    if(!dir.exists(file.path(store,split.name[2])))
+      zarrcreateGroup(store = store, name = split.name[2])
+  }
+  dir.create(file.path(store, split.name[1]), showWarnings = FALSE)
+  write("{\"zarr_format\":2}", file = file.path(store, split.name[1], ".zgroup"))
+}
+
+#' open_zarr
+#'
+#' open zarr store
+#'
+#' @param dir the location of zarr store
+#' @param name name of the zarr store
+#' @export
+open_zarr <- function(dir, name){
+  zarrcreateGroup(store = dir, name = name)
+}
+
 #' write_zarr_samples
 #'
 #' @noRd
 write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
                                as.sparse, verbose, replace)
 {
-  if(!requireNamespace('pizzarr'))
-    stop("Please install pizzarr package!: devtools::install_github('keller-mark/pizzarr')")
-  
   # sample metadata
   sample_metadata <- SampleMetadata(object)
   
   # create zarr
   if(verbose)
     message("Zarr store: ", zarr_path)
-  zarr.array <- pizzarr::zarr_open(store = zarr_path)
-  
+  dir.zarr <- gsub(paste0(basename(zarr_path), "$"), "", zarr_path)
+  open_zarr(dir = dir.zarr, name = basename(zarr_path))
+
   # create metadata
-  zarr.array$create_group("metadata")
+  zarrcreateGroup(zarr_path, "metadata")
   object@metadata <- writeZarrArrayInMetadata(object = Metadata(object, type = "all"), 
                                               zarr_path,
                                               name = "metadata",
@@ -639,7 +651,8 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
     assay_object <- object[[assy]]
     
     # create assay group in h5
-    zarr.array$create_group(assy)
+    # zarr.array$create_group(assy)
+    zarrcreateGroup(zarr_path, assy)
     
     # get data and write
     assay_object <- writeZarrArrayInVrData(object = assay_object, 
@@ -686,11 +699,9 @@ writeZarrArrayInMetadata <- function(object,
   # check DelayedDataFrame
   if(!requireNamespace('ZarrDataFrame'))
     stop("Please install ZarrDataFrame package!: devtools::install_github('BIMSBbioinfo/ZarrDataFrame')")
-  if(!requireNamespace('ZarrArray'))
-    stop("Please install ZarrArray package!: devtools::install_github('BIMSBbioinfo/ZarrArray')")
-  if(!requireNamespace('pizzarr'))
-    stop("Please install pizzarr package!: devtools::install_github('keller-mark/pizzarr')")
-  
+  if(!requireNamespace('Rarr'))
+    stop("Please install Rarr package!: BiocManager::install('Rarr')")
+
   # iterate over all metadata slots
   slot_names <- slotNames(object)
   for(sn in slot_names){
@@ -698,44 +709,47 @@ writeZarrArrayInMetadata <- function(object,
     if(!inherits(meta.data, c("DataFrame", "ZarrDataFrame")) || replace){
       if(nrow(meta.data) > 0){
         meta.data_list <- list()
-        zarr.array <- pizzarr::zarr_open(store = zarr_path)
+        dir.zarr <- gsub(paste0(basename(zarr_path), "$"), "", zarr_path)
+        open_zarr(dir = dir.zarr, name = basename(zarr_path))
         if(verbose)
           message("Writing ", sn, " Metadata")
-        zarr.array$create_group(paste0(name, "/", sn))
+        zarrcreateGroup(zarr_path, paste0(name, "/", sn))
         
         # write rownames first if they exist, and there is no id column
         if(!is.null(rownames(meta.data)) && !("id" %in% colnames(meta.data))){
           cur_column <- as.array(rownames(meta.data))
+          nchar <- NULL
+          if(is.character(cur_column) || is.factor(cur_column)){
+            cur_column <- as.character(cur_column)
+            nchar <- max(vapply(cur_column, function(x) nchar(x), numeric(1)))
+          }
+          cur_column <- as.array(cur_column)
           meta.data_list[["id"]] <- 
-            ZarrArray::writeZarrArray(cur_column, 
-                                      zarr_path, 
-                                      name = paste0(name, "/", sn, "/id"),
-                                      chunkdim=chunkdim, 
-                                      level=level,
-                                      as.sparse=as.sparse,
-                                      with.dimnames=FALSE,
-                                      verbose=FALSE)
+            Rarr::writeZarrArray(cur_column, 
+                                 zarr_array_path = file.path(zarr_path, paste0(name, "/", sn, "/id")), 
+                                 chunk_dim = min(length(cur_column), 2000), nchar = nchar)
         }
         
         # write rest of the columns
         for(i in seq_len(ncol(meta.data))){
           if(inherits(meta.data,"data.table")){
-            cur_column <- as.array(as.vector(subset(meta.data, select = colnames(meta.data)[i]))[[1]])
+            cur_column <- as.vector(subset(meta.data, select = colnames(meta.data)[i]))[[1]]
           } else {
-            cur_column <- as.array(meta.data[,i])
+            cur_column <- meta.data[,i]
           }
+          nchar <- NULL
+          if(is.character(cur_column) || is.factor(cur_column)){
+            cur_column <- as.character(cur_column)
+            nchar <- max(vapply(cur_column, function(x) nchar(x), numeric(1)))
+          }
+          cur_column <- as.array(cur_column)
           meta.data_list[[colnames(meta.data)[i]]] <- 
-            ZarrArray::writeZarrArray(cur_column, 
-                                      zarr_path, 
-                                      name = paste0(name, "/", sn, "/", colnames(meta.data)[i]),
-                                      chunkdim=chunkdim, 
-                                      level=level,
-                                      as.sparse=as.sparse,
-                                      with.dimnames=FALSE,
-                                      verbose=FALSE)
+            Rarr::writeZarrArray(cur_column, 
+                                 zarr_array_path = file.path(zarr_path, paste0(name, "/", sn, "/", colnames(meta.data)[i])), 
+                                 chunk_dim = min(length(cur_column), 2000), nchar = nchar)
         }
         methods::slot(object, name = sn) <- 
-          ZarrDataFrame::ZarrDataFrame(meta.data_list)
+          ZarrDataFrame::ZarrDataFrame(meta.data_list, name = paste0(name, "/", sn))
       }
     }
   }
@@ -757,8 +771,8 @@ writeZarrArrayInVrData <- function(object,
                                    replace = FALSE){
   
   # check packages
-  if(!requireNamespace('ZarrArray'))
-    stop("Please install ZarrArray package!: devtools::install_github('BIMSBbioinfo/ZarrArray')")
+  if(!requireNamespace('Rarr'))
+    stop("Please install Rarr package!: BiocManager::install('Rarr')")
   
   # check if there is a data or rawdata slot in assay object
   catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
@@ -775,14 +789,11 @@ writeZarrArrayInVrData <- function(object,
       if(!inherits(a, "DelayedArray") || replace){
         if(verbose)
           message("Writing '", vrAssayNames(object), "' data")
-        a <- ZarrArray::writeZarrArray(a, 
-                                       zarr_path, 
-                                       name = paste0(name, "/", feat),
-                                       chunkdim=chunkdim, 
-                                       level=level,
-                                       as.sparse=as.sparse,
-                                       with.dimnames=with.dimnames,
-                                       verbose=FALSE)
+        if(is.null(chunkdim)) 
+          chunkdim <- vapply(dim(a), function(x) min(x,1000), numeric(1))
+        a <- Rarr::writeZarrArray(a, 
+                                  zarr_array_path = file.path(zarr_path, paste0(name, "/", feat)),
+                                  chunk_dim = chunkdim)
         object@data[[feat]] <- a   
       }
       
@@ -791,14 +802,11 @@ writeZarrArrayInVrData <- function(object,
       if(!inherits(a, "DelayedArray") || replace){
         if(verbose)
           message("Writing '", vrAssayNames(object), "' normalized data")
-        a <- ZarrArray::writeZarrArray(a, 
-                                       zarr_path, 
-                                       name = paste0(name, "/", feat, "_norm"),
-                                       chunkdim=chunkdim, 
-                                       level=level,
-                                       as.sparse=as.sparse,
-                                       with.dimnames=with.dimnames,
-                                       verbose=FALSE)
+        if(is.null(chunkdim)) 
+          chunkdim <- vapply(dim(a), function(x) min(x,1000), numeric(1))
+        a <- Rarr::writeZarrArray(a, 
+                                  zarr_array_path = file.path(zarr_path, paste0(name, "/", feat, "_norm")),
+                                  chunk_dim = chunkdim)
         object@data[[paste0(feat, "_norm")]] <- a  
       }
     }
@@ -810,14 +818,11 @@ writeZarrArrayInVrData <- function(object,
     if(!inherits(a, "DelayedArray") || replace){
       if(verbose)
         message("Writing '", vrAssayNames(object), "' data")
-      a <- ZarrArray::writeZarrArray(a, 
-                                     zarr_path, 
-                                     name = paste0(name, "/rawdata"),
-                                     chunkdim=chunkdim, 
-                                     level=level,
-                                     as.sparse=as.sparse,
-                                     with.dimnames=TRUE,
-                                     verbose=FALSE)
+      if(is.null(chunkdim)) 
+        chunkdim <- vapply(dim(a), function(x) min(x,1000), numeric(1))
+      a <- Rarr::writeZarrArray(a, 
+                                zarr_array_path = file.path(zarr_path, paste0(name, "/rawdata")),
+                                chunk_dim = chunkdim)
       object@rawdata <- a   
     }
     
@@ -826,14 +831,11 @@ writeZarrArrayInVrData <- function(object,
     if(!inherits(a, "DelayedArray") || replace){
       if(verbose)
         message("Writing '", vrAssayNames(object), "' normalized data")
-      a <- ZarrArray::writeZarrArray(a, 
-                                     zarr_path, 
-                                     name = paste0(name, "/normdata"),
-                                     chunkdim=chunkdim, 
-                                     level=level,
-                                     as.sparse=as.sparse,
-                                     with.dimnames=TRUE,
-                                     verbose=FALSE)
+      if(is.null(chunkdim)) 
+        chunkdim <- vapply(dim(a), function(x) min(x,1000), numeric(1))
+      a <- Rarr::writeZarrArray(a, 
+                                zarr_array_path = file.path(zarr_path, paste0(name, "/normdata")),
+                                chunk_dim = chunkdim)
       object@normdata <- a 
     }
     
@@ -858,32 +860,28 @@ writeZarrArrayInImage <- function(object,
   # check packages
   if(!requireNamespace('ImageArray'))
     stop("Please install ImageArray package!: devtools::install_github('BIMSBbioinfo/ImageArray')")
-  if(!requireNamespace('ZarrArray'))
-    stop("Please install ZarrArray package!: devtools::install_github('BIMSBbioinfo/ZarrArray')")
-  if(!requireNamespace('pizzarr'))
-    stop("Please install pizzarr package!: devtools::install_github('keller-mark/pizzarr')")
+  if(!requireNamespace('Rarr'))
+    stop("Please install Rarr package!: BiocManager::install('Rarr')")
   
   # for each spatial system
   spatial_names <- vrSpatialNames(object)
   for(spat in spatial_names){
     
     # open group for spatial system
-    zarr.array <- pizzarr::zarr_open(store = zarr_path)
-    zarr.array$create_group(paste0(name, "/", spat))
+    dir.zarr <- gsub(paste0(basename(zarr_path), "$"), "", zarr_path)
+    open_zarr(dir = dir.zarr, name = basename(zarr_path))
+    zarrcreateGroup(zarr_path, paste0(name, "/", spat))
     
     # write coordinates 
     coords <- vrCoordinates(object, spatial_name = spat)
     if(!inherits(coords, c("DelayedArray", "IterableMatrix")) || replace){
       if(verbose)
         message("Writing '", name, "' coordinates")
-      coords <- ZarrArray::writeZarrArray(coords,
-                                          zarr_path,
-                                          name = paste0(name, "/", spat, "/coords"),
-                                          chunkdim=chunkdim,
-                                          level=level,
-                                          as.sparse=as.sparse,
-                                          with.dimnames=TRUE,
-                                          verbose=FALSE)
+      if(is.null(chunkdim)) 
+        chunkdim <- vapply(dim(coords), function(x) min(x,1000), numeric(1))
+      coords <- Rarr::writeZarrArray(coords, 
+                                zarr_array_path = file.path(zarr_path, paste0(name, "/", spat, "/coords")),
+                                chunk_dim = chunkdim)
       vrCoordinates(object, spatial_name = spat) <- coords
     }
     
@@ -896,18 +894,18 @@ writeZarrArrayInImage <- function(object,
         img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
         
         # write image
-        if(!inherits(img, "Image_Array") || replace){
+        if(!inherits(img, "ImgArray") || replace){
           if(verbose)
             message("Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"'")
-          img <- ImageArray::writeImageArray(img,
-                                             output = gsub(".zarr$", "", zarr_path),
-                                             name = paste0(name, "/", spat, "/", ch), 
-                                             format = "ZarrImageArray", 
-                                             replace = FALSE, 
-                                             chunkdim=chunkdim,
-                                             level=level,
-                                             as.sparse=as.sparse,
-                                             verbose=FALSE)
+          img <- ImageArray::writeImgArray(img,
+                                           output = gsub(".zarr$", "", zarr_path),
+                                           name = paste0(name, "/", spat, "/", ch), 
+                                           format = "ZarrImgArray", 
+                                           replace = FALSE, 
+                                           chunkdim=chunkdim,
+                                           level=level,
+                                           as.sparse=as.sparse,
+                                           verbose=FALSE)
           suppressWarnings({
             vrImages(object, name = spat, channel = ch) <- img 
           })
@@ -1067,7 +1065,7 @@ getDataFramePath <- function(object){
 #' shorten_assay_links
 #'
 #' @noRd
-shorten_metadata_links <- function(object)
+.shorten_metadata_links <- function(object)
 {
   # iterate over all metadata slots
   slot_names <- slotNames(object)
@@ -1076,7 +1074,7 @@ shorten_metadata_links <- function(object)
     if(nrow(meta.data) > 0){
       for(i in seq_len(ncol(meta.data))){
         meta.data[[colnames(meta.data)[i]]] <- 
-          modify_seeds(meta.data[[colnames(meta.data)[i]]],
+          .modify_seeds(meta.data[[colnames(meta.data)[i]]],
                        function(x) {
                          x@path <- basename(DelayedArray::path(x))
                          x
@@ -1091,78 +1089,63 @@ shorten_metadata_links <- function(object)
 #' shorten_assay_links
 #'
 #' @noRd
-shorten_assay_links <- function(object)
+.shorten_vrassay_links <- function(object)
 {
-  # data
-  
-  # check if there is a data or rawdata slot in assay object
-  catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
-  catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
-  
-  # get data with a specific feature
-  if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
-    
-    feature_types <- vrFeatureTypeNames(object)
-    for(feat in feature_types){
-      
-      object@data[[feat]] <- modify_seeds(object@data[[feat]],
-                                     function(x) {
-                                       shorten_assay_links_data(x)
-                                     })
-      object@data[[paste0(feat, "_norm")]] <- modify_seeds(object@data[[paste0(feat, "_norm")]],
-                                      function(x) {
-                                        shorten_assay_links_data(x)
-                                      })  
-      
-    }
-    
-  } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
-    object@rawdata <- modify_seeds(object@rawdata,
-                                   function(x) {
-                                     shorten_assay_links_data(x)
-                                   })
-    object@normdata <- modify_seeds(object@normdata,
-                                    function(x) {
-                                      shorten_assay_links_data(x)
-                                    })  
-  }
-  
-  # images
-  object <- shorten_assay_links_images(object)
-  
-  # return
+  object@rawdata <- .modify_seeds(object@rawdata, .shorten_assay_links_data)
+  object@normdata <- .modify_seeds(object@normdata, .shorten_assay_links_data)
+  object <- .shorten_assay_links_images(object)
   object
 }
 
-#' shorten_assay_links_images
+setMethod(".shorten_assay_links", signature = "vrAssay", .shorten_vrassay_links)
+
+
+#' shorten_assay_links
 #'
 #' @noRd
-shorten_assay_links_images <- function(object){
+.shorten_vrassayv2_links <- function(object)
+{
+  feature_types <- vrFeatureTypeNames(object)
+  for(feat in feature_types){
+    object@data[[feat]] <- .modify_seeds(object@data[[feat]], 
+                                        .shorten_assay_links_data)
+    object@data[[paste0(feat, "_norm")]] <- .modify_seeds(object@data[[paste0(feat, "_norm")]], 
+                                                         .shorten_assay_links_data)
+  }
+  object <- .shorten_assay_links_images(object)
+  object
+}
+
+setMethod(".shorten_assay_links", signature = "vrAssayV2", .shorten_vrassayv2_links)
+
+#' .shorten_assay_links_images
+#'
+#' @noRd
+.shorten_assay_links_images <- function(object){
   
   # for each spatial system
   spatial_names <- vrSpatialNames(object)
   for(spat in spatial_names){
     
     # coordinates
-    # TODO: replace method for vrCoordinates fail with ZarrArray
     object@image[[spat]]@coords <-
-      modify_seeds(vrCoordinates(object, spatial_name = spat),
+      .modify_seeds(vrCoordinates(object, spatial_name = spat),
                    function(x) {
-                     shorten_assay_links_data(x)
+                     .shorten_assay_links_data(x)
                    })
-    
     
     # for each channel
     channels <- vrImageChannelNames(object, name = spat)
     if(!all(grepl("No Channels", channels))){
       for(ch in channels){
-        
         img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
-        img <- modify_seeds(img,
-                            function(x) {
-                              ImageArray::filepath(x) <- basename(ImageArray::filepath(x))
-                              x
-                            })
+        for(i in seq_len(length(img))){
+          img[[i]] <- .modify_seeds(img[[i]],
+                                    function(x) {
+                                      # ImageArray::path(x) <- basename(ImageArray::path(x))
+                                      .shorten_assay_links_data(x)
+                                    })
+        }
         suppressWarnings({
           vrImages(object, name = spat, channel = ch) <- img 
         })
@@ -1174,30 +1157,35 @@ shorten_assay_links_images <- function(object){
   return(object)
 }
 
-shorten_assay_links_data <- function(object){
-  if(inherits(object, "DelayedArray")){
-    object@filepath <- basename(object@filepath)
-  } else if(inherits(object, "IterableMatrix")){
-    object <- shorten_assay_links_bpcells(object)
-  } else if("filepath" %in% slotNames(object)){
-    object@filepath <- basename(object@filepath)
+.shorten_assay_links_data <- function(x){
+  if(inherits(x, "IterableMatrix")){
+    x <- .shorten_assay_links_bpcells(x)
+  } else {
+    # get path type 
+    path.slot <- slotNames(x)[grepl("path|Path", slotNames(x))]
+    file_path <- slot(x, name = path.slot)
+    if(inherits(x, "ZarrArraySeed")){
+      name <- strsplit(file_path, split = "\\.zarr")[[1]][2]
+      file_path <- strsplit(file_path, split = "\\.zarr")[[1]][1]
+      file_path <- file.path(paste0(basename(file_path), ".zarr"), name)
+    } else{
+      file_path <- basename(file_path)
+    }
+    slot(x, name = path.slot)  <- file_path
   }
-  return(object)
+  return(x)
 }
 
-shorten_assay_links_bpcells <- function(object){
-  if(!inherits(object, "IterableMatrix")){
-    stop("object should be an object of IterableMatrix")
-  }
+.shorten_assay_links_bpcells <- function(object){
   slot_names <- slotNames(object)
   if("path" %in% slot_names){
     object@path <- basename(object@path)
   } else if("matrix" %in% slot_names){
-    object@matrix <- shorten_assay_links_bpcells(object@matrix)
+    object@matrix <- .shorten_assay_links_bpcells(object@matrix)
   } else if("matrix_list" %in% slot_names){
     object_list <- object@matrix_list
     for(i in seq_len(length(object_list)))
-      object_list[[i]] <- shorten_assay_links_bpcells(object_list[[i]])
+      object_list[[i]] <- .shorten_assay_links_bpcells(object_list[[i]])
   }
   return(object)
 }
@@ -1206,25 +1194,21 @@ shorten_assay_links_bpcells <- function(object){
 ## restore links ####
 ####
 
-#' restore_absolute_metadata_links
+#' .restore_absolute_metadata_links
 #'
 #' @noRd
-restore_absolute_metadata_links <- function(object, dir){
+.restore_absolute_metadata_links <- function(object, dir){
   
   # iterate over all metadata slots
   slot_names <- slotNames(object)
   for(sn in slot_names){
     meta.data <- methods::slot(object, name = sn)
     if(nrow(meta.data) > 0){
-      # meta.data <- modify_seeds(meta.data,
-      #                           function(x) {
-      #                             restore_absolute_links(x,dir)
-      #                           })
       for(i in seq_len(ncol(meta.data))){
         meta.data[[colnames(meta.data)[i]]] <- 
-          modify_seeds(meta.data[[colnames(meta.data)[i]]],
+          .modify_seeds(meta.data[[colnames(meta.data)[i]]],
                        function(x) {
-                         restore_absolute_links(x,dir)
+                         .restore_absolute_links(x,dir)
                        })
       }
     }
@@ -1235,78 +1219,72 @@ restore_absolute_metadata_links <- function(object, dir){
   object
 }
 
-#' restore_absolute_assay_links
+#' .restore_absolute_vrassay_links
 #'
 #' @noRd
-restore_absolute_assay_links <- function(object, dir){
-  
-  # check if there is a data or rawdata slot in assay object
-  catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
-  catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
-  
-  # get data with a specific feature
-  if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
-    
-    feature_types <- vrFeatureTypeNames(object)
-    for(feat in feature_types){
-      
-      object@data[[feat]] <- modify_seeds(object@data[[feat]],
-                                          function(x) {
-                                            restore_absolute_links(x, dir)
-                                          })
-      object@data[[paste0(feat, "_norm")]] <- modify_seeds(object@data[[paste0(feat, "_norm")]],
-                                                           function(x) {
-                                                             restore_absolute_links(x, dir)
-                                                           })  
-      
-    }
-    
-  } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
-    object@rawdata <- modify_seeds(object@rawdata,
-                                   function(x) {
-                                     restore_absolute_links(x, dir)
-                                   })
-    object@normdata <- modify_seeds(object@normdata,
-                                    function(x) {
-                                      restore_absolute_links(x, dir)
-                                    })  
-  }
+.restore_absolute_vrassay_links <- function(object, dir){
+
+  # get data
+  object@rawdata <- .modify_seeds(object@rawdata, \(x) .restore_absolute_links(x, dir))
+  object@normdata <- .modify_seeds(object@normdata, \(x) .restore_absolute_links(x, dir))
   
   # images
-  object <- restore_absolute_assay_links_images(object, dir)
+  object <- .restore_absolute_assay_links_images(object, dir)
   
   # return
   object
 }
 
-#' restore_absolute_assay_links_images
+setMethod(".restore_absolute_assay_links", signature = "vrAssay", .restore_absolute_vrassay_links)
+
+#' .restore_absolute_vrassayv2_links
 #'
 #' @noRd
-restore_absolute_assay_links_images <- function(object, dir){
+.restore_absolute_vrassayv2_links <- function(object, dir){
+  
+  # get data with a specific feature
+  feature_types <- vrFeatureTypeNames(object)
+  for(feat in feature_types){
+    object@data[[feat]] <- .modify_seeds(object@data[[feat]], \(x) .restore_absolute_links(x, dir))
+    object@data[[paste0(feat, "_norm")]] <- .modify_seeds(object@data[[paste0(feat, "_norm")]], \(x) .restore_absolute_links(x, dir))
+  }
+  
+  # images
+  object <- .restore_absolute_assay_links_images(object, dir)
+  
+  # return
+  object
+}
+
+setMethod(".restore_absolute_assay_links", signature = "vrAssayV2", .restore_absolute_vrassayv2_links)
+
+#' .restore_absolute_assay_links_images
+#'
+#' @noRd
+.restore_absolute_assay_links_images <- function(object, dir){
   
   # for each spatial system
   spatial_names <- vrSpatialNames(object)
   for(spat in spatial_names){
     
     # coordinates
-    # TODO: replace method for vrCoordinates fail with ZarrArray
     object@image[[spat]]@coords <-
-      modify_seeds(vrCoordinates(object, spatial_name = spat),
+      .modify_seeds(vrCoordinates(object, spatial_name = spat),
                    function(x) {
-                     restore_absolute_links(x, dir)
+                     .restore_absolute_links(x, dir)
                    })
     
     # for each channel
     channels <- vrImageChannelNames(object, name = spat)
     if(!all(grepl("No Channels", channels))){
       for(ch in channels){
-        
         img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
-        img <- modify_seeds(img,
-                            function(x) {
-                              ImageArray::filepath(x) <- restore_absolute_links_images(ImageArray::filepath(x), dir)
-                              x
-                            })
+        for(i in seq_len(length(img))){
+          img[[i]] <- .modify_seeds(img[[i]],
+                                    function(x) {
+                                      .restore_absolute_links(x, dir)
+                                    })
+        }
         suppressWarnings({
           vrImages(object, name = spat, channel = ch) <- img 
         })
@@ -1318,10 +1296,99 @@ restore_absolute_assay_links_images <- function(object, dir){
   return(object)
 }
 
-#' restore_absolute_links
+#' .restore_absolute_links_images
 #'
 #' @noRd
-restore_absolute_links <- function(x, dir){
+.restore_absolute_links_images <- function(file_path, dir){
+  file_path <- basename(file_path)
+  
+  # get path
+  file_path <- file.path(dir, file_path)
+  
+  ## file_path_as_absolute() will fail if the file does
+  ## not exist.
+  if (!file.exists(file_path))
+    stop("file_path doesnt exist")
+  file_path <- file_path_as_absolute(file_path)
+  
+  # validate
+  msg <- validate_absolute_path(file_path, paste0("'filepath' slot of object"))
+  if (!isTRUE(msg))
+    stop(msg)
+  file_path
+}
+
+#' .restore_absolute_links
+#'
+#' @noRd
+.restore_absolute_links_delayedarray <- function(x, dir){
+  
+  # get path type 
+  path.slot <- slotNames(x)[grepl("path|Path", slotNames(x))]
+  file_path <- slot(x, name = path.slot)
+  
+  # get base name
+  name <- NULL
+  if(grepl(".zarr", file_path)){
+    second <- strsplit(file_path, split = "\\.zarr")[[1]][2]
+    first <- strsplit(file_path, split = "\\.zarr")[[1]][1]
+    file_path <- paste0(basename(first), ".zarr")
+    if(!is.na(second))
+      file_path <- file.path(file_path, second)
+  } else {
+    file_path <- basename(file_path)
+  }
+  
+  # get path
+  file_path <- file.path(dir, file_path)
+  
+  # update path
+  if (!file.exists(file_path))
+    stop("Object points to a file ",
+         "that does not exist: ", file_path)
+  slot(x, name = path.slot) <- file_path_as_absolute(file_path)
+  msg <- validate_absolute_path(slot(x, name = path.slot), paste0("path slot of Object"))
+  
+  # validate
+  if (!isTRUE(msg))
+    stop(msg)
+  
+  # return
+  x
+}
+
+setMethod(".restore_absolute_links", signature = "ANY", .restore_absolute_links_delayedarray)
+
+#' .restore_absolute_links
+#'
+#' @noRd
+.restore_absolute_links_iterablematrix <- function(x, dir){
+  x <- updateIterableMatrixPath(x, basename)
+  
+  # get path
+  file_path <- file.path(dir, getIterableMatrixPath(x))
+  
+  # update path
+  if (!file.exists(file_path))
+    stop("Object points to a file ",
+         "that does not exist: ", file_path)
+  x <- updateIterableMatrixPath(x, file_path_as_absolute(file_path))
+  msg <- validate_absolute_path(getIterableMatrixPath(x), paste0("'filepath' slot of Object"))
+  
+  # validate
+  if (!isTRUE(msg))
+    stop(msg)
+  
+  # return
+  x
+}
+
+setMethod(".restore_absolute_links", signature = "IterableMatrix", .restore_absolute_links_iterablematrix)
+
+#' .restore_absolute_links_old
+#'
+#' @noRd
+.restore_absolute_links_old <- function(x, dir){
   if(inherits(x, "DelayedArray")){
     x@filepath <- basename(x@filepath)
   } else if(inherits(x, "IterableMatrix")){
@@ -1374,28 +1441,6 @@ restore_absolute_links <- function(x, dir){
   
   # return
   x
-}
-
-#' restore_absolute_links_images
-#'
-#' @noRd
-restore_absolute_links_images <- function(file_path, dir){
-  file_path <- basename(file_path)
-  
-  # get path
-  file_path <- file.path(dir, file_path)
-  
-  ## file_path_as_absolute() will fail if the file does
-  ## not exist.
-  if (!file.exists(file_path))
-    stop("file_path doesnt exist")
-  file_path <- file_path_as_absolute(file_path)
-  
-  # validate
-  msg <- validate_absolute_path(file_path, paste0("'filepath' slot of object"))
-  if (!isTRUE(msg))
-    stop(msg)
-  file_path
 }
 
 updateIterableMatrixPath <- function(object, FUN, ...){
@@ -1552,7 +1597,7 @@ validate_absolute_path <- function(path, what="'path'")
   if (!file.exists(path))
     return(paste0(what, " (\"", path, "\") must be the path to ",
                   "an existing HDF5 file"))
-  if (dir.exists(path) && !grepl(".zarr$", path))
+  if (!dir.exists(path) && grepl(".zarr$", path))
     return(paste0(what, " (\"", path, "\") must be the path to ",
                   "an HDF5 file, not a directory"))
   if (path != file_path_as_absolute(path))
@@ -1588,3 +1633,15 @@ h5Dexists <- function (file, dataset)
     stop("\"dataset\" argument must be a character vector of length one.")
   }
 }
+
+.modify_seeds <- function(x, FUN, ...){
+  if (is(x, "DelayedUnaryOp")) {
+    x@seed <- .modify_seeds(x@seed, FUN, ...)
+  } else if (is(x, "DelayedNaryOp")) {
+    x@seeds <- lapply(x@seeds, .modify_seeds, FUN, ...)
+  } else {
+    x <- FUN(x, ...)
+  }
+  return(x)
+}
+

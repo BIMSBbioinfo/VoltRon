@@ -476,7 +476,7 @@ getJointPCA <- function(object, assay.1 = NULL, assay.2 = NULL, dims = 30, seed 
   if(length(assay_features) > 0) {
     features <- getVariableFeatures(object, assay = assay)
     vrMainAssay(object) <- object@sample.metadata[assay, "Assay"]
-    object_subset <- subset(object, features = features)
+    object_subset <- subsetVoltRon(object, features = features)
     vrMainAssay(object_subset) <- vrMainAssay(object)
     if(dims > length(features)){
       message("Requested more PC dimensions than existing features: dims = length(features) now!")
@@ -507,7 +507,7 @@ getJointPCA <- function(object, assay.1 = NULL, assay.2 = NULL, dims = 30, seed 
   if(length(assay_features) > 0) {
     features <- getVariableFeatures(object, assay = assay)
     vrMainAssay(object) <- object@sample.metadata[assay, "Assay"]
-    object_subset <- subset(object, features = features)
+    object_subset <- subsetVoltRon(object, features = features)
     vrMainAssay(object_subset) <- vrMainAssay(object)
     if(dims > length(features)){
       message("Requested more PC dimensions than existing features: dims = length(features) now!")

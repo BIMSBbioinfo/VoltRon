@@ -123,3 +123,12 @@ test_that("niche clustering", {
   rm(xenium_data3)
   
 })
+
+test_that("neighborhood analysis", {
+  
+  data("xenium_data")
+  
+  xenium_data <- getSpatialNeighbors(xenium_data, method = "delaunay", verbose = FALSE)
+  results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters", graph.type = "delaunay")
+  expect_error(results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters2", graph.type = "delaunay"))
+})

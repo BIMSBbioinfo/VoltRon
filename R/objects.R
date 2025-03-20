@@ -833,7 +833,6 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
     # check assays associated with samples and subset for assays
     if(all(samples %in% sample.metadata$Sample)){
       assays <- rownames(sample.metadata)[sample.metadata$Sample %in% samples]
-      # return(subset.VoltRon(object, assays = assays))
       return(subsetVoltRon(object, assays = assays))
     } else {
       stop("Some requested samples are not found in this VoltRon object!")
@@ -843,26 +842,21 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
 
     # subset for assays
     sample.metadata <- subset_sampleMetadata(sample.metadata, assays = assays)
-    # metadata <- subset.vrMetadata(Metadata(object, type = "all"), assays = assays)
     metadata <- subsetvrMetadata(Metadata(object, type = "all"), assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
-      # subset.vrSample(samp, assays = assays)
       subsetvrSample(samp, assays = assays)
     }, USE.NAMES = TRUE)
 
   } else if(!is.null(spatialpoints)) {
 
     # subsetting on entity names
-    # metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
     metadata <- subsetvrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
     samples <- vrSampleNames(metadata)
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subsetvrSample(samp, spatialpoints = spatialpoints)
     }, USE.NAMES = TRUE)
-    # spatialpoints <-  do.call("c", lapply(listofSamples, vrSpatialPoints.vrSample))
     spatialpoints <-  do.call("c", lapply(listofSamples, vrSpatialPoints))
-    # metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
     metadata <- subsetvrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
     sample.metadata <- subset_sampleMetadata(sample.metadata, assays = vrAssayNamesvrMetadata(metadata))
 
@@ -872,10 +866,8 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
     assay_names <- vrAssayNames(object)
     for(assy in assay_names){
       if(inherits(object[[assy]], "vrAssay")){
-        # object[[assy]] <- subset.vrAssay(object[[assy]], features = features) 
         object[[assy]] <- subsetvrAssay(object[[assy]], features = features) 
       } else {
-        # object[[assy]] <- subset.vrAssayV2(object[[assy]], features = features)
         object[[assy]] <- subsetvrAssay(object[[assy]], features = features) 
       }
     } 
@@ -896,16 +888,13 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
         listofSamples <- sapply(object@samples[samples], function(samp) {
           subsetvrSample(samp, image = image)
         }, USE.NAMES = TRUE)
-        # spatialpoints <-  do.call(c, lapply(listofSamples, vrSpatialPoints.vrSample))
         spatialpoints <-  do.call("c", lapply(listofSamples, vrSpatialPoints))
-        # metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
         metadata <- subsetvrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
       }
     } else {
       stop("Please provide a character based subsetting notation, see magick::image_crop documentation")
     }
   } else if(interactive){
-    
     # interactive subsetting
     results <- demuxVoltRon(object, use.points.only = use.points.only, shiny.options = shiny.options)
     return(results)
