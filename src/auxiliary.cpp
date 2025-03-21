@@ -156,6 +156,36 @@ cv::Mat point2fToMat(std::vector<cv::Point2f> points) {
   return mat;
 }
 
+// Function to convert a cv::Point2f object to a cv::Mat
+// std::vector<uint8_t> matToIntVector(cv::Mat mat) {
+//   std::vector<uint8_t> points;
+//   
+//   // Iterate over the rows of the matrix
+//   for (int i = 0; i < mat.rows; ++i) {
+//     
+//     // Create Point2f object and add it to the vector
+//     points.push_back(mat.at<int>(i,0));
+//   }
+//   
+//   return points;
+// }
+
+cv::Mat IntVectorToMat(std::vector<uint8_t> points) {
+  cv::Mat mat(points.size(), 1, CV_8U);
+  // cv::Mat mat;
+
+  // Iterate over the vector of Point2f
+  for (size_t i = 0; i < points.size(); ++i) {
+    mat.at<int>(i, 0) = (int) points[i];
+  }
+
+  return mat;
+}
+
+// cv::Mat IntVectortoMat(std::vector<uint8_t> vec) {
+//   return cv::Mat(vec).reshape(1, vec.size()); // Create a single-column matrix
+// }
+
 // calculate standard deviation of a vector
 double cppSD(std::vector<cv::KeyPoint> points)
 {

@@ -337,7 +337,6 @@ void computeSIFTTiles(Mat &im, std::vector<KeyPoint> &keypoints, Mat &descriptor
 
 bool getSIFTTransformationMatrixSingle(
     Mat im1Proc, Mat im2Proc, Mat im1, Mat im2, Mat &h, Mat &mask, 
-    // std::vector<KeyPoint> &keypoints1, std::vector<KeyPoint> &keypoints2, 
     Mat &imMatches, 
     std::vector<Point2f> &points1, std::vector<Point2f> &points2, 
     std::vector<DMatch> good_matches, 
@@ -390,14 +389,25 @@ bool getSIFTTransformationMatrixSingle(
   }
 
   // Find homography
-  h = findHomography(points1, 
-                     points2, 
-                     cv::RANSAC, 
-                     params.ransac_pixel_threshold, 
-                     mask, 
-                     params.ransac_maxIters, 
+  h = findHomography(points1,
+                     points2,
+                     cv::RANSAC,
+                     params.ransac_pixel_threshold,
+                     mask,
+                     params.ransac_maxIters,
                      params.ransac_confidence);
-
+  // std::vector<uint8_t> match_mask;
+  // h = estimateAffine2D(points1,
+  //                      points2,
+  //                      match_mask,
+  //                      cv::RANSAC,
+  //                      params.ransac_pixel_threshold,
+  //                      params.ransac_maxIters,
+  //                      params.ransac_confidence);
+  // mask = IntVectorToMat(match_mask);
+  // Rcout << mask << endl;
+  Rcout << h << endl;
+  
   // Draw top matches and good ones only
   std::vector<cv::DMatch> top_matches;
   std::vector<cv::KeyPoint> keypoints1_best, keypoints2_best;
@@ -447,6 +457,7 @@ void getSIFTTransformationMatrix(
                                             params, is_faulty);
   
   // equalize first image if fails
+  mask = cv::Mat();
   if(!check){
 
     Mat im1Proc_eq;
@@ -465,6 +476,7 @@ void getSIFTTransformationMatrix(
   }
   
   // equalize second image if fails
+  mask = cv::Mat();
   if(!check){
     
     cv::equalizeHist(im2Proc, im2Proc_eq);
@@ -483,6 +495,7 @@ void getSIFTTransformationMatrix(
   }
   
   // last try with both equalized images
+  mask = cv::Mat();
   if(!check){
     
     cv::equalizeHist(im1Proc, im1Proc_eq2);

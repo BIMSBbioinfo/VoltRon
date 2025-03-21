@@ -33,6 +33,10 @@ Rcpp::NumericMatrix point2fToNumericMatrix(std::vector<cv::Point2f> points);
 std::vector<cv::Point2f> matToPoint2f(cv::Mat mat);
 cv::Mat point2fToMat(std::vector<cv::Point2f> points);
 
+// std::vector<uint8_t> vs cv::Mat
+// std::vector<uint8_t> matToIntVector(cv::Mat mat);
+cv::Mat IntVectorToMat(std::vector<uint8_t> points);
+
 // std::vector<double> vs std::vector<cv::Point2f>
 std::vector<double> KeyPointToDoubleVector(std::vector<cv::KeyPoint> points);
 std::vector<double> Point2fToDoubleVector(std::vector<cv::Point2f> points);
