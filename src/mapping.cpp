@@ -40,9 +40,13 @@ Rcpp::NumericMatrix applyMapping(Rcpp::NumericMatrix coords, Rcpp::List mapping)
     if(h.cols > 0){
       
       // transform coordinates
-      cv::perspectiveTransform(coords_mat, coords_temp, h);
+      std::vector<cv::Point2f> gridpoints_reg;
+      if (h.rows == 2){
+        cv::transform(coords_mat, coords_temp, h);
+      } else {
+        cv::perspectiveTransform(coords_mat, coords_temp, h);
+      }
       coords_mat = coords_temp;
-      
     } 
     
     // non-rigid warping

@@ -65,7 +65,11 @@ std::string check_transformation_by_point_distribution(Mat &im, Mat &h){
   
   // register grid points
   std::vector<cv::Point2f> gridpoints_reg;
-  cv::perspectiveTransform(gridpoints, gridpoints_reg, h);
+  if (h.rows == 2){
+    cv::transform(gridpoints, gridpoints_reg, h);
+  } else {
+    cv::perspectiveTransform(gridpoints, gridpoints_reg, h);
+  }
 
   // Compute the standard deviation of the transformed points
   double gridpoints_reg_sd = cppSD(gridpoints_reg);
@@ -107,7 +111,7 @@ bool check_transformation_metrics(std::vector<cv::Point2f> points1, std::vector<
   //  check distribution
   std::string distribution;
   distribution = check_transformation_by_point_distribution(im2, h);
-    
+
   return is_degenerate;
 }
 
@@ -328,10 +332,8 @@ void computeSIFTTiles(Mat &im, std::vector<KeyPoint> &keypoints, Mat &descriptor
             cv::vconcat(descriptors, tile_descriptors, descriptors);
           }
         }
-        
       }
     }
-    
   }
 }
 
@@ -340,7 +342,7 @@ bool getSIFTTransformationMatrixSingle(
     Mat &imMatches, 
     std::vector<Point2f> &points1, std::vector<Point2f> &points2, 
     std::vector<DMatch> good_matches, 
-    Parameters params, bool &is_faulty){
+    const bool &run_Affine, Parameters params, bool &is_faulty){
   
   //////////////////////
   /// Compute SIFT /////
@@ -389,25 +391,26 @@ bool getSIFTTransformationMatrixSingle(
   }
 
   // Find homography
-  h = findHomography(points1,
-                     points2,
-                     cv::RANSAC,
-                     params.ransac_pixel_threshold,
-                     mask,
-                     params.ransac_maxIters,
-                     params.ransac_confidence);
-  // std::vector<uint8_t> match_mask;
-  // h = estimateAffine2D(points1,
-  //                      points2,
-  //                      match_mask,
-  //                      cv::RANSAC,
-  //                      params.ransac_pixel_threshold,
-  //                      params.ransac_maxIters,
-  //                      params.ransac_confidence);
-  // mask = IntVectorToMat(match_mask);
-  // Rcout << mask << endl;
-  Rcout << h << endl;
-  
+  if(run_Affine){
+    std::vector<uint8_t> match_mask;
+    h = estimateAffine2D(points1,
+                         points2,
+                         match_mask,
+                         cv::RANSAC,
+                         params.ransac_pixel_threshold,
+                         params.ransac_maxIters,
+                         params.ransac_confidence);
+    mask = IntVectorToMat(match_mask);
+  } else {
+    h = findHomography(points1,
+                       points2,
+                       cv::RANSAC,
+                       params.ransac_pixel_threshold,
+                       mask,
+                       params.ransac_maxIters,
+                       params.ransac_confidence);
+  }
+
   // Draw top matches and good ones only
   std::vector<cv::DMatch> top_matches;
   std::vector<cv::KeyPoint> keypoints1_best, keypoints2_best;
@@ -434,8 +437,8 @@ bool getSIFTTransformationMatrixSingle(
 
 void getSIFTTransformationMatrix(
     Mat im1Proc, Mat im2Proc, Mat im1, Mat im2, Mat &h, Mat &mask, 
-    Mat &imMatches, std::vector<Point2f> &points1, std::vector<Point2f> &points2,
-    Parameters params, bool &is_faulty){
+    Mat &imMatches, std::vector<Point2f> &points1, std::vector<Point2f> &points2, 
+    const bool &run_Affine, Parameters params, bool &is_faulty){
   
   //////////////////////////
   /// Run multiple SIFT ////
@@ -447,14 +450,15 @@ void getSIFTTransformationMatrix(
   
   // check variable
   bool check;
-  Rcout << "UPDATE: Calculating Transformation Matrix" << endl;
+  Rcout << "UPDATE: Calculating" << (run_Affine ? " (Affine) " : " (Homography) ") << "Transformation Matrix" << endl;
   
   // find matches and points
   std::vector<DMatch> good_matches;
   check = getSIFTTransformationMatrixSingle(im1Proc, im2Proc, im1, im2, h, mask,
                                             imMatches,
                                             points1, points2, good_matches,
-                                            params, is_faulty);
+                                            run_Affine, params, is_faulty);
+  Rcout << "DONE: calculated homography matrix with " << points1.size() << " points" << endl;
   
   // equalize first image if fails
   mask = cv::Mat();
@@ -469,7 +473,7 @@ void getSIFTTransformationMatrix(
     check = getSIFTTransformationMatrixSingle(im1Proc_eq, im2Proc, im1, im2, h, mask,
                                               imMatches,
                                               points1, points2, good_matches,
-                                              params, is_faulty);
+                                              run_Affine, params, is_faulty);
     Rcout << "DONE: calculated homography matrix with " << points1.size() << " points" << endl;
   } else {
     return;
@@ -488,7 +492,7 @@ void getSIFTTransformationMatrix(
     check = getSIFTTransformationMatrixSingle(im1Proc, im2Proc_eq, im1, im2, h, mask,
                                               imMatches,
                                               points1, points2, good_matches,
-                                              params, is_faulty);
+                                              run_Affine, params, is_faulty);
     Rcout << "DONE: calculated homography matrix with " << points1.size() << " points" << endl;
   } else {
     return;
@@ -507,7 +511,7 @@ void getSIFTTransformationMatrix(
     check = getSIFTTransformationMatrixSingle(im1Proc_eq2, im2Proc_eq2, im1, im2, h, mask,
                                               imMatches,
                                               points1, points2, good_matches,
-                                              params, is_faulty);
+                                              run_Affine, params, is_faulty);
     Rcout << "DONE: calculated homography matrix with " << points1.size() << " points" << endl;
   } else {
     return;
@@ -586,7 +590,7 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
                       const bool invert_query, const bool invert_ref,
                       const char* flipflop_query, const char* flipflop_ref,
                       const char* rotate_query, const char* rotate_ref,
-                      const bool run_TPS)
+                      const bool run_Affine, const bool run_TPS)
 {
   
   // parameters
@@ -617,7 +621,7 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   cv::Mat mask;
   std::vector<Point2f> points1, points2;
   getSIFTTransformationMatrix(im1Proc, im2Proc, im1, im2, h, mask, imMatches,
-                              points1, points2, params, is_faulty);
+                              points1, points2, run_Affine, params, is_faulty);
   
   // check result
   is_faulty = check_transformation_metrics(points1, points2, im1, im2, h, mask);
@@ -625,8 +629,14 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   
   // Use homography to warp image
   Mat im1Warp, im1NormalWarp;
-  warpPerspective(im1Proc, im1Warp, h, im2Proc.size());
-  warpPerspective(im1NormalProc, im1NormalWarp, h, im2Proc.size());
+  if(h.rows == 2){
+    warpAffine(im1Proc, im1Warp, h, im2Proc.size());
+    warpAffine(im1NormalProc, im1NormalWarp, h, im2Proc.size());   
+  } else {
+    warpPerspective(im1Proc, im1Warp, h, im2Proc.size());
+    warpPerspective(im1NormalProc, im1NormalWarp, h, im2Proc.size());    
+  }
+
   Rcout << "DONE: warped query image" << endl;
   
   ///////////////////////
@@ -739,14 +749,17 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   cv::Mat im = imageToMat(query_image, width2, height2);
   
   // Homography (with FLANN)
-  if(strcmp(matcher.get_cstring(), "FLANN") == 0 && (strcmp(method.get_cstring(), "Homography") == 0 || strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0)){
+  if(strcmp(matcher.get_cstring(), "FLANN") == 0 && 
+     ((strcmp(method.get_cstring(), "Homography") == 0 || strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0) || 
+      (strcmp(method.get_cstring(), "Affine") == 0 || strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0))){
     const bool run_TPS = strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0;
+    const bool run_Affine = (strcmp(method.get_cstring(), "Affine") == 0 || strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0);
     Rcout << "Running SIFT+FLANN Alignment" << ((run_TPS) ? " with TPS" : "") << endl;
     alignImagesFLANN(im, imReference, imReg, imOverlay, imMatches, 
                      h, keypoints, 
                      invert_query, invert_ref,
                      flipflop_query.get_cstring(), flipflop_ref.get_cstring(), 
-                     rotate_query.get_cstring(), rotate_ref.get_cstring(), run_TPS);
+                     rotate_query.get_cstring(), rotate_ref.get_cstring(), run_Affine, run_TPS);
   }
   
   // Homography (with Brute-Force matching)

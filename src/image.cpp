@@ -108,9 +108,12 @@ Rcpp::RawVector warpImage(Rcpp::RawVector ref_image, Rcpp::RawVector query_image
     if(h.cols > 0){
       
       // transform coordinates
-      cv::warpPerspective(im, im_temp, h, imReference.size()); 
+      if(h.rows == 2){
+        cv::warpAffine(im, im_temp, h, imReference.size()); 
+      } else {
+        cv::warpPerspective(im, im_temp, h, imReference.size());    
+      }
       im = im_temp;
-      
     } 
     
     // non-rigid warping

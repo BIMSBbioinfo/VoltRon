@@ -165,8 +165,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     ## Manage interface ####
     updateParameterPanels(length(orig_image_query_list), mapping_parameters, input, output, session)
     updateTabPanels(centre, register_ind, input, output, session)
-    # initiateParameterPanels(mapping_parameters, length(orig_image_query_list), input, output, session)
-    
+
     ## Transform images ####
     trans_image_query_list <- transformImageQueryList(orig_image_query_list, input)
     
@@ -176,7 +175,6 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     manageImageZoomOptions(centre, register_ind, zoom_list, orig_image_query_list, orig_image_query_info_list, input, output, session)
     
     ## Manage reference and query keypoints ####
-    # xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
     xyTable_list <- initateKeypoints(length(orig_image_query_list), mapping_parameters$keypoints)
     manageKeypoints(centre, register_ind, xyTable_list, orig_image_query_list, orig_image_query_info_list, zoom_list, input, output, session)
     
@@ -256,8 +254,7 @@ getSideBar <- function(params = NULL){
       column(12,shiny::checkboxInput("automatictag", "Automated", value = params[["automatictag"]])),
       br(),
       column(12,selectInput("Method", "Method", 
-                            choices = c("Homography", "Non-Rigid", "Homography + Non-Rigid"), 
-                            # selected = "Homography")),
+                            choices = c("Affine", "Homography", "Non-Rigid", "Affine + Non-Rigid", "Homography + Non-Rigid"), 
                             selected = ifelse(is.null(params[["Method"]]), "Homography", params[["Method"]]))),
       br(),
       column(12,selectInput("Matcher", "Matcher", 
@@ -505,14 +502,12 @@ updateParameterPanels <- function(len_images, params, input, output, session){
     if(input$automatictag){
       
       # Method and Matcher
-      choices <- c("Homography", "Homography + Non-Rigid")
+      choices <- c("Affine", "Homography", "Affine + Non-Rigid", "Homography + Non-Rigid")
       selected <- ifelse(is.null(params[["Method"]]), choices[1],
                          ifelse(!params[["Method"]] %in% choices, choices[1], params[["Method"]]))
-      # selected <- choices[1]
       updateSelectInput(session, 
                         "Method", 
                         choices = choices, 
-                        # selected = "Homography")
                         selected = selected)
       shinyjs::show(id = "Matcher")
 
@@ -540,7 +535,6 @@ updateParameterPanels <- function(len_images, params, input, output, session){
       choices <- c("Non-Rigid", "Homography + Non-Rigid")
       selected <- ifelse(is.null(params[["Method"]]), choices[1],
                          ifelse(!params[["Method"]] %in% choices, choices[1], params[["Method"]]))
-      # selected <- choices[1]
       updateSelectInput(session, "Method", 
                         choices = choices, 
                         # selected = "Non-Rigid")
@@ -2243,7 +2237,11 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
                                         matcher = input$Matcher, method = input$Method)
 
     # update transformation matrix
-    reg[[1]][[1]] <- solve(diag(c(ref_scale,ref_scale,1))) %*% reg[[1]][[1]] %*% diag(c(query_scale,query_scale,1))
+    if(nrow(reg[[1]][[1]]) == 2){
+      reg[[1]][[1]] <- solve(diag(c(ref_scale,ref_scale))) %*% reg[[1]][[1]] %*% diag(c(query_scale,query_scale,1))
+    } else {
+      reg[[1]][[1]] <- solve(diag(c(ref_scale,ref_scale,1))) %*% reg[[1]][[1]] %*% diag(c(query_scale,query_scale,1)) 
+    }
 
     # return transformation matrix and images
     mapping[[kk]] <- reg[[1]]
