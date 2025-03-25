@@ -461,7 +461,7 @@ void getSIFTTransformationMatrix(
   Rcout << "DONE: calculated homography matrix with " << points1.size() << " points" << endl;
   
   // equalize first image if fails
-  mask = cv::Mat();
+  // mask = cv::Mat();
   if(!check){
 
     Mat im1Proc_eq;
@@ -480,7 +480,7 @@ void getSIFTTransformationMatrix(
   }
   
   // equalize second image if fails
-  mask = cv::Mat();
+  // mask = cv::Mat();
   if(!check){
     
     cv::equalizeHist(im2Proc, im2Proc_eq);
@@ -499,7 +499,7 @@ void getSIFTTransformationMatrix(
   }
   
   // last try with both equalized images
-  mask = cv::Mat();
+  // mask = cv::Mat();
   if(!check){
     
     cv::equalizeHist(im1Proc, im1Proc_eq2);
@@ -622,11 +622,11 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   std::vector<Point2f> points1, points2;
   getSIFTTransformationMatrix(im1Proc, im2Proc, im1, im2, h, mask, imMatches,
                               points1, points2, run_Affine, params, is_faulty);
-  
+
   // check result
   is_faulty = check_transformation_metrics(points1, points2, im1, im2, h, mask);
   Rcout << "UPDATE: Registration is " << (is_faulty ? "degenerate!" : "not degenerate!") << endl;
-  
+
   // Use homography to warp image
   Mat im1Warp, im1NormalWarp;
   if(h.rows == 2){
@@ -677,7 +677,11 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     
     // transform query
     std::vector<cv::Point2f> filtered_points1_reg;
-    cv::perspectiveTransform(filtered_points1, filtered_points1_reg, h);
+    if (h.rows == 2){
+      cv::transform(filtered_points1, filtered_points1_reg, h);
+    } else {
+      cv::perspectiveTransform(filtered_points1, filtered_points1_reg, h);
+    }
     
     // get TPS matches
     std::vector<cv::DMatch> matches;
@@ -752,7 +756,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   if(strcmp(matcher.get_cstring(), "FLANN") == 0 && 
      ((strcmp(method.get_cstring(), "Homography") == 0 || strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0) || 
       (strcmp(method.get_cstring(), "Affine") == 0 || strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0))){
-    const bool run_TPS = strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0;
+    const bool run_TPS = (strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0 || strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0);
     const bool run_Affine = (strcmp(method.get_cstring(), "Affine") == 0 || strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0);
     Rcout << "Running SIFT+FLANN Alignment" << ((run_TPS) ? " with TPS" : "") << endl;
     alignImagesFLANN(im, imReference, imReg, imOverlay, imMatches, 

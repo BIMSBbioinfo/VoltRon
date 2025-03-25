@@ -60,7 +60,8 @@ void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::List &keypoints,
 
 // align images with affine transformation with TPS algorithm
 void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &keypoints,
-                          Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark)
+                          Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark, 
+                          const bool run_Affine)
 {
   
   // seed
@@ -79,12 +80,18 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
   
   // calculate homography transformation
   Mat im1Affine;
-  // h = estimateAffine2D(query_mat, ref_mat);
-  h = findHomography(query_mat, ref_mat);
-  cv::warpPerspective(im1, im1Affine, h, im2.size());
-  // cv::warpAffine(im1, im1Affine, h, im2.size());
   std::vector<cv::Point2f> query_reg;
-  cv::perspectiveTransform(query_mat, query_reg, h);
+  if(run_Affine){
+    h = estimateAffine2D(query_mat, ref_mat);
+    Rcout << h << endl;
+    cv::warpAffine(im1, im1Affine, h, im2.size());
+    cv::transform(query_mat, query_reg, h);
+  } else {
+    h = findHomography(query_mat, ref_mat);
+    Rcout << h << endl;
+    cv::warpPerspective(im1, im1Affine, h, im2.size());
+    cv::perspectiveTransform(query_mat, query_reg, h);
+  }
   
   // calculate TPS transformation
   Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
@@ -130,10 +137,11 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVe
 
 
   // Homography + Non-rigid (TPS)
-  if(strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0){
+  if(strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0 || strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0){
+    const bool run_Affine = (strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0);
     alignImagesAffineTPS(im, imReference, imReg, 
                          h, keypoints,
-                         query_landmark, reference_landmark);
+                         query_landmark, reference_landmark, run_Affine);
   }
   
   // Non-rigid (TPS) only

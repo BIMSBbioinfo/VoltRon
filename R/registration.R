@@ -532,7 +532,8 @@ updateParameterPanels <- function(len_images, params, input, output, session){
     } else {
       
       # Method and Matcher
-      choices <- c("Non-Rigid", "Homography + Non-Rigid")
+      # choices <- c("Non-Rigid", "Homography + Non-Rigid")
+      choices <- c("Non-Rigid", "Affine + Non-Rigid", "Homography + Non-Rigid")
       selected <- ifelse(is.null(params[["Method"]]), choices[1],
                          ifelse(!params[["Method"]] %in% choices, choices[1], params[["Method"]]))
       updateSelectInput(session, "Method", 
