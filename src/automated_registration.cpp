@@ -450,7 +450,7 @@ void getSIFTTransformationMatrix(
   
   // check variable
   bool check;
-  Rcout << "UPDATE: Calculating" << (run_Affine ? " (Affine) " : " (Homography) ") << "Transformation Matrix" << endl;
+  Rcout << "Calculating" << (run_Affine ? " (Affine) " : " (Homography) ") << "Transformation Matrix" << endl;
   
   // find matches and points
   std::vector<DMatch> good_matches;
@@ -466,7 +466,7 @@ void getSIFTTransformationMatrix(
 
     Mat im1Proc_eq;
     cv::equalizeHist(im1Proc, im1Proc_eq);
-    Rcout << "UPDATE: Calculating Transformation Matrix with histogram equalization (1)" << endl;
+    Rcout << "Calculating Transformation Matrix with histogram equalization (1)" << endl;
 
     std::vector<DMatch> good_matches;
     std::vector<KeyPoint> keypoints1, keypoints2;
@@ -484,7 +484,7 @@ void getSIFTTransformationMatrix(
   if(!check){
     
     cv::equalizeHist(im2Proc, im2Proc_eq);
-    Rcout << "UPDATE: Calculating Transformation Matrix with histogram equalization (2)" << endl;
+    Rcout << "Calculating Transformation Matrix with histogram equalization (2)" << endl;
     
     good_matches.clear();
     std::vector<DMatch> good_matches;
@@ -504,7 +504,7 @@ void getSIFTTransformationMatrix(
     
     cv::equalizeHist(im1Proc, im1Proc_eq2);
     cv::equalizeHist(im2Proc, im2Proc_eq2);
-    Rcout << "UPDATE: Calculating Transformation Matrix with histogram equalization (3)" << endl;
+    Rcout << "Calculating Transformation Matrix with histogram equalization (3)" << endl;
     
     std::vector<DMatch> good_matches;
     std::vector<KeyPoint> keypoints1, keypoints2;
@@ -625,7 +625,7 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
 
   // check result
   is_faulty = check_transformation_metrics(points1, points2, im1, im2, h, mask);
-  Rcout << "UPDATE: Registration is " << (is_faulty ? "degenerate!" : "not degenerate!") << endl;
+  Rcout << "Registration is " << (is_faulty ? "degenerate!" : "not degenerate!") << endl;
 
   // Use homography to warp image
   Mat im1Warp, im1NormalWarp;

@@ -533,12 +533,11 @@ updateParameterPanels <- function(len_images, params, input, output, session){
       
       # Method and Matcher
       # choices <- c("Non-Rigid", "Homography + Non-Rigid")
-      choices <- c("Non-Rigid", "Affine + Non-Rigid", "Homography + Non-Rigid")
+      choices <- c("Affine", "Homography", "Affine + Non-Rigid", "Homography + Non-Rigid", "Non-Rigid")
       selected <- ifelse(is.null(params[["Method"]]), choices[1],
                          ifelse(!params[["Method"]] %in% choices, choices[1], params[["Method"]]))
       updateSelectInput(session, "Method", 
                         choices = choices, 
-                        # selected = "Non-Rigid")
                         selected = selected)
       shinyjs::hide(id = "Matcher")
 
@@ -2022,9 +2021,7 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
                                          method = input$Method)
     
     # return transformation matrix and images
-    mapping[[kk]] <- list(reg$transmat[[1]], 
-                          list(reference = reg$transmat[[2]][[1]],
-                               query = reg$transmat[[2]][[2]]))
+    mapping[[kk]] <- reg[[1]]
     aligned_image <- reg$aligned_image
   }
 
@@ -2071,6 +2068,12 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
                                         width1 = dim(ref_image)[2], height1 = dim(ref_image)[3],
                                         width2 = dim(query_image)[2], height2 = dim(query_image)[3], 
                                         method = method)
+  
+  # check for null keypoints
+  if(suppressWarnings(all(lapply(reg[[1]][[2]], is.null)))){
+    reg[[1]] <- list(reg[[1]][[1]], NULL)
+  }
+  
   return(list(transmat = reg[[1]], 
               aligned_image = magick::image_read(reg[[2]])))
 }
@@ -2244,6 +2247,12 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
       reg[[1]][[1]] <- solve(diag(c(ref_scale,ref_scale,1))) %*% reg[[1]][[1]] %*% diag(c(query_scale,query_scale,1)) 
     }
 
+    # update keypoints 
+    if(!is.null(reg[[2]])){
+      reg[[1]][[2]][[1]] <- reg[[1]][[2]][[1]]*(1/ref_scale)
+      reg[[1]][[2]][[2]] <- reg[[1]][[2]][[2]]*(1/ref_scale)
+    }
+    
     # return transformation matrix and images
     mapping[[kk]] <- reg[[1]]
     dest_image <- reg$dest_image
