@@ -2248,7 +2248,7 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
     }
 
     # update keypoints 
-    if(!is.null(reg[[2]])){
+    if(!is.null(reg[[1]][[2]])){
       reg[[1]][[2]][[1]] <- reg[[1]][[2]][[1]]*(1/ref_scale)
       reg[[1]][[2]][[2]] <- reg[[1]][[2]][[2]]*(1/ref_scale)
     }
