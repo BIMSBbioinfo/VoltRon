@@ -646,6 +646,26 @@ addSpatialLayer <- function(g, object, assay, group.by = "Sample", plot.segments
       }
       
     }
+  } else if(vrAssayTypes(assay) == "spot"){
+    
+    # rasterize if requested or needed
+    if(n.tile > 0 || nrow(coords) > 50000){
+      if(n.tile == 0)
+        n.tile <- 1000
+      g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha, spot = TRUE)
+    } else {
+      spot.type <- vrAssayParams(assay, param = "spot.type")
+      spot.type <- ifelse(is.null(spot.type), "circle", spot.type)
+      g <- g +
+        geom_spot(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]]), coords, shape = 21, alpha = alpha, show.legend = TRUE,
+                  spot.radius = vrAssayParams(assay, param = "vis.spot.radius")/scale_factors,
+                  spot.type = spot.type)
+    }
+    
+    g <- g +
+      scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors)
+    
+    # cell visualization
   } else if(vrAssayTypes(assay) == "molecule") {
     
     # rasterize if requested or needed

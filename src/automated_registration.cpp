@@ -390,7 +390,7 @@ bool getSIFTTransformationMatrixSingle(
     points2.push_back(keypoints2[good_matches[i].trainIdx].pt);
   }
 
-  // Find homography
+  // Find transformation matrix
   if(run_Affine){
     std::vector<uint8_t> match_mask;
     h = estimateAffine2D(points1,
@@ -523,7 +523,9 @@ void getSIFTTransformationMatrix(
 }
 
 // align images with BRUTE FORCE algorithm
-void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imMatches, Mat &h, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES)
+void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imMatches, Mat &h,
+                      const float GOOD_MATCH_PERCENT, const int MAX_FEATURES,
+                      const bool run_Affine)
 {
   // Convert images to grayscale
   Mat im1Gray, im2Gray;
@@ -563,25 +565,60 @@ void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   }
   
   // Find homography
-  h = findHomography(points1, points2, RANSAC);
-  Rcout << "DONE: calculated homography matrix" << endl;
+  // cv::Mat mask;
+  // h = findHomography(points1, points2, RANSAC, 5, mask);
+  // Rcout << "DONE: calculated homography matrix" << endl;
   
-  // Extract location of good matches in terms of keypoints
-  std::vector<KeyPoint> keypoints1_best, keypoints2_best;
-  std::vector<cv::DMatch> goodMatches;
-  for( size_t i = 0; i < matches.size(); i++ )
+  // check variable
+  Rcout << "Calculating" << (run_Affine ? " (Affine) " : " (Homography) ") << "Transformation Matrix" << endl;
+  
+  // Find transformation matrix
+  cv::Mat mask;
+  if(run_Affine){
+    std::vector<uint8_t> match_mask;
+    h = estimateAffine2D(points1,
+                         points2,
+                         match_mask,
+                         cv::RANSAC);
+    mask = IntVectorToMat(match_mask);
+  } else {
+    h = findHomography(points1,
+                       points2,
+                       cv::RANSAC,
+                       5,
+                       mask);
+  }
+
+  // Draw top matches and good ones only
+  std::vector<cv::DMatch> top_matches;
+  std::vector<cv::KeyPoint> keypoints1_best, keypoints2_best;
+  for(size_t i = 0; i < matches.size(); i++ )
   {
     keypoints1_best.push_back(keypoints1[matches[i].queryIdx]);
     keypoints2_best.push_back(keypoints2[matches[i].trainIdx]);
-    goodMatches.push_back(cv::DMatch(static_cast<int>(i), static_cast<int>(i), 0));
   }
-  
-  // Draw top matches and good ones only
-  drawMatches(im1, keypoints1_best, im2, keypoints2_best, goodMatches, imMatches);
-  
+  std::vector<cv::KeyPoint> keypoints1_best2, keypoints2_best2;
+  int j=0;
+  for (int i = 0; i < mask.rows; i++) {
+    if (mask.at<uchar>(i)) {
+      keypoints1_best2.push_back(keypoints1_best[i]);
+      keypoints2_best2.push_back(keypoints2_best[i]);
+      top_matches.push_back(cv::DMatch(static_cast<int>(j), static_cast<int>(j), 0));
+      j++;
+    }
+  }
+  drawMatches(im1, keypoints1_best2, im2, keypoints2_best2, top_matches, imMatches);
+
   // Use homography to warp image
-  warpPerspective(im1, im1Reg, h, im2.size());
-  warpPerspective(im1, im1Overlay, h, im2.size());
+  // warpPerspective(im1, im1Reg, h, im2.size());
+  // warpPerspective(im1, im1Overlay, h, im2.size());
+  if(h.rows == 2){
+    warpAffine(im1, im1Reg, h, im2.size());
+    warpAffine(im1, im1Overlay, h, im2.size());   
+  } else {
+    warpPerspective(im1, im1Reg, h, im2.size());
+    warpPerspective(im1, im1Overlay, h, im2.size());
+  }
 }
 
 // align images with FLANN algorithm
@@ -767,10 +804,12 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   }
   
   // Homography (with Brute-Force matching)
-  if(strcmp(matcher.get_cstring(), "BRUTE-FORCE") == 0 && strcmp(method.get_cstring(), "Homography") == 0){
+  // if(strcmp(matcher.get_cstring(), "BRUTE-FORCE") == 0 && strcmp(method.get_cstring(), "Homography") == 0){
+  if(strcmp(matcher.get_cstring(), "BRUTE-FORCE") == 0){
+    const bool run_Affine = (strcmp(method.get_cstring(), "Affine") == 0 || strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0);
     Rcout << "Running BRUTE-FORCE Alignment" << endl;
     alignImagesBRUTE(im, imReference, imReg, imOverlay, imMatches, 
-                     h, GOOD_MATCH_PERCENT, MAX_FEATURES);
+                     h, GOOD_MATCH_PERCENT, MAX_FEATURES, run_Affine);
   }
 
   // transformation matrix, can be either a matrix, set of keypoints or both

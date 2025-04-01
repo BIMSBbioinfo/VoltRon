@@ -316,15 +316,22 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   # coordinates
   coords_file <- list.files(paste0(dir.path, "/spatial/"), full.names = TRUE)
   coords_file <- coords_file[grepl("tissue_positions",coords_file)]
-  if(length(coords_file) == 1){
-    if(grepl("tissue_positions_list.csv", coords_file)) {
-      coords <- utils::read.csv(file = coords_file, header = FALSE)
-      colnames(coords) <- c("barcode", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres")
-    } else {
-      coords <- utils::read.csv(file = coords_file, header = TRUE)
-    }
-  } else if(length(coords_file) > 1) {
-    stop("There are more than 1 position files in the path")
+  if(length(coords_file) > 0){
+    if(length(coords_file) > 1) {
+      message("There are more than 1 position files in the path, using the first!")
+      coords_file <- coords_file[1]
+    } 
+    coords <- utils::read.csv(file = coords_file, header = FALSE)
+    if("barcode" %in% as.vector(coords[1,,drop = TRUE])){
+      coords <- utils::read.csv(file = coords_file, header = FALSE, skip = 1)
+    } 
+    colnames(coords) <- c("barcode", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres")
+    # if(grepl("tissue_positions_list.csv", coords_file)) {
+    #   coords <- utils::read.csv(file = coords_file, header = FALSE)
+    #   colnames(coords) <- c("barcode", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres")
+    # } else {
+    #   coords <- utils::read.csv(file = coords_file, header = TRUE)
+    # }
   } else {
     stop("There are no files named 'tissue_positions.csv' in the path")
   }
