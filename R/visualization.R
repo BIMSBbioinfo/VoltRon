@@ -1629,9 +1629,27 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
     stop("Column ", group.by, " is not found in metadata!")
   }
   
+  # plotting features
+  datax <- data.frame(vrEmbeddings(object, assay = assay_names, type = embedding))
+  datax <- datax[,seq_len(2)]
+  colnames(datax) <- c("x", "y")
+  if(group.by %in% colnames(metadata)){
+    if(inherits(metadata, "data.table")){
+      datax[[group.by]] <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
+    } else {
+      if(!is.null(rownames(metadata))){
+        datax[[group.by]] <- as.factor(metadata[rownames(datax),group.by])
+      } else{
+        datax[[group.by]] <- as.factor(as.vector(metadata[match(rownames(datax), as.vector(metadata$id)),group.by]))
+      }
+    }
+  } else {
+    stop("Column ", group.by, " cannot be found in metadata!")
+  }
+  
   # adjust group.ids
   if(is.null(group.ids)){
-    group.ids <- unique(metadata[[group.by]])
+    group.ids <- unique(datax[[group.by]])
   }
 
   # check group.id
@@ -1652,24 +1670,6 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
   } else{
     colors <- hue_pal(length(group.ids))
     names(colors) <- group.ids
-  }
-
-  # plotting features
-  datax <- data.frame(vrEmbeddings(object, assay = assay_names, type = embedding))
-  datax <- datax[,seq_len(2)]
-  colnames(datax) <- c("x", "y")
-  if(group.by %in% colnames(metadata)){
-    if(inherits(metadata, "data.table")){
-      datax[[group.by]] <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
-    } else {
-      if(!is.null(rownames(metadata))){
-        datax[[group.by]] <- as.factor(metadata[rownames(datax),group.by])
-      } else{
-        datax[[group.by]] <- as.factor(as.vector(metadata[match(rownames(datax), as.vector(metadata$id)),group.by]))
-      }
-    }
-  } else {
-    stop("Column ", group.by, " cannot be found in metadata!")
   }
   
   # subset group.by using group.id
