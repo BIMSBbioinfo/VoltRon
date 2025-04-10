@@ -568,7 +568,6 @@ writeHDF5ArrayInImage <- function(object,
                                              replace = FALSE, 
                                              chunkdim=chunkdim,
                                              level=level,
-                                             as.sparse=as.sparse,
                                              verbose=FALSE)
           suppressWarnings({
             vrImages(object, name = spat, channel = ch) <- img 
@@ -904,7 +903,6 @@ writeZarrArrayInImage <- function(object,
                                            replace = FALSE, 
                                            chunkdim=chunkdim,
                                            level=level,
-                                           as.sparse=as.sparse,
                                            verbose=FALSE)
           suppressWarnings({
             vrImages(object, name = spat, channel = ch) <- img 
