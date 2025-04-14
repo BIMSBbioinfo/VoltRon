@@ -889,6 +889,26 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
                                        spatial = NULL, channel = NULL, background.color = NULL, background = NULL, reg = FALSE, 
                                        crop = FALSE, scale.image = TRUE){
 
+  # plot
+  g <- ggplot()
+  
+  # add image and background
+  image <- vrSpatialPlotImage(g, assay, background, scale.image, spatial = spatial, 
+                              channel = channel, background.color = background.color)
+  g <- image$plot
+  info <- image$info
+  background.color <- image$background.color
+  spatial_name <- image$spatial
+  scale_factors <- image$scale_factors
+  
+  # coords
+  coords <- vrCoordinates(assay, spatial_name = spatial_name, reg = reg)
+  if(!inherits(coords, "IterableMatrix")){
+    coords <- as.data.frame(coords)
+  } 
+  coords <- coords/scale_factors
+  segments <- vrSegments(assay, spatial_name = spatial_name)
+  
   # get image information and plotting features
   midpoint <- sum(limits)/2
   
@@ -914,26 +934,6 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
       names(cur_score) <- as.vector(metadata$id)
     }
   }
-  
-  # plot
-  g <- ggplot()
-
-  # add image and background
-  image <- vrSpatialPlotImage(g, assay, background, scale.image, spatial = spatial, 
-                              channel = channel, background.color = background.color)
-  g <- image$plot
-  info <- image$info
-  background.color <- image$background.color
-  spatial_name <- image$spatial
-  scale_factors <- image$scale_factors
-
-  # coords
-  coords <- vrCoordinates(assay, spatial_name = spatial_name, reg = reg)
-  if(!inherits(coords, "IterableMatrix")){
-    coords <- as.data.frame(coords)
-  } 
-  coords <- coords/scale_factors
-  segments <- vrSegments(assay, spatial_name = spatial_name)
   
   # add score
   coords <- as.matrix(coords)

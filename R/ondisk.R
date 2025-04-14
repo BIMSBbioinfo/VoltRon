@@ -881,6 +881,10 @@ writeZarrArrayInImage <- function(object,
       coords <- Rarr::writeZarrArray(coords, 
                                 zarr_array_path = file.path(zarr_path, paste0(name, "/", spat, "/coords")),
                                 chunk_dim = chunkdim)
+      
+      # Rarr::ZarrArray doesnt have rownames
+      rownames(coords) <- vrSpatialPoints(object)
+      
       vrCoordinates(object, spatial_name = spat) <- coords
     }
     
