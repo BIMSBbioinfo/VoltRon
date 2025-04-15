@@ -1002,7 +1002,6 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
       } else {
         polygon_data <- do.call(rbind,segments)
         polygon_data[,c("x", "y")] <- polygon_data[,c("x", "y")]/scale_factors
-        # len_segments <- sapply(segments, nrow, simplify = TRUE)
         len_segments <- vapply(segments, nrow, numeric(1))
         polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), score = rep(coords$score, len_segments))
         g <- g +
@@ -1175,6 +1174,9 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
                              values=rescale_numeric(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
       all_data <- rbind(all_data,
                         data.frame(layer_data(g_single), color_group = colors[i]))
+      
+      # if data being tiled, ignore segments 
+      plot.segments <- FALSE
     } else {
       g_single <- ggplot() +
         geom_point(mapping = aes(x = x, y = y, color = score), coords, shape = 16, size = pt.size) + 
@@ -1182,7 +1184,7 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
                               colors=c("grey97", colors[i]),
                               values=rescale_numeric(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
       all_data <- rbind(all_data,
-                        data.frame(layer_data(g_single), value = coords$score, color_group = colors[i]))
+                        data.frame(layer_data(g_single), value = coords$score, color_group = colors[i], obs = rownames(coords)))
     }
     
     # add graph to list
@@ -1191,7 +1193,7 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
   }
   
   # combine feature plots
-  g <- vrSpatialFeatureCombinePlot(g, all_data, n.tile, coords, features)
+  g <- vrSpatialFeatureCombinePlot(g, all_data, n.tile, coords, segments, scale_factors, features, plot.segments)
   
   # add if a graph exists
   if(!is.null(graph)){
@@ -1229,38 +1231,66 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
 #' @param all_data summary data
 #' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
 #' @param datax original plotting data
+#' @param segments segments
+#' @param scale_factors scale factors
 #' @param features features
+#' @param plot.segments plot segments from \link{vrSegments} instead of points
 #'
 #' @import ggplot2
 #'
 #' @noRd
-vrSpatialFeatureCombinePlot <- function(g, all_data, n.tile, coords, features){
+vrSpatialFeatureCombinePlot <- function(g, all_data, n.tile, coords, segments, scale_factors, features, plot.segments = FALSE){
   
-  # tiling or not
-  if(n.tile > 0 || nrow(coords) > 50000){
-    if(n.tile == 0)
-      n.tile <- 1000
+  # segments or not
+  if(plot.segments){
+    
+    # get polygons
+    polygon_data <- do.call(rbind,segments)
+    polygon_data[,c("x", "y")] <- polygon_data[,c("x", "y")]/scale_factors
+    len_segments <- vapply(segments, nrow, numeric(1))
+    polygon_data <- data.frame(polygon_data, obs = rep(names(segments), len_segments))
+    
     all_data <- all_data %>% group_by(x,y) %>% 
-      summarize(fill = fill[which.max(value)], 
-                group = color_group[which.max(value)], 
-                value = value[which.max(value)])
-    key_table <- all_data[,c("fill", "group", "value")] %>% 
+      dplyr::summarise(fill = colour[which.max(value)], 
+                       group = color_group[which.max(value)],
+                       value = value[which.max(value)], 
+                       obs = obs[1])
+    polygon_data <- polygon_data %>% left_join(all_data[,c("obs", "fill")])
+    key_table <- all_data[,c("fill", "group", "value")] %>%
       dplyr::group_by(group) %>% 
       dplyr::summarise(fill = fill[which.max(value)], value = max(value))
-    g.combined <- g +
-      ggplot2::geom_tile(data = as.data.frame(all_data), aes(x = x, y = y, fill = fill)) +
-      ggplot2::scale_fill_identity("", labels = features, breaks = key_table$fill, guide = "legend")
-  } else {
-    all_data <- all_data %>% group_by(x,y) %>% 
-      dplyr::summarise(color = colour[which.max(value)], 
-                       group = color_group[which.max(value)],
-                       value = value[which.max(value)])
-    key_table <- all_data[,c("color", "group", "value")] %>%
-      dplyr::group_by(group) %>% 
-      dplyr::summarise(color = color[which.max(value)], value = max(value))
     g.combined <- g + 
-      ggplot2::geom_point(data = as.data.frame(all_data), aes(x = x, y = y, color = color)) + 
-      ggplot2::scale_color_identity("", labels = features, breaks = key_table$color, guide = "legend")
+      ggplot2::geom_polygon(data = polygon_data, aes(x = x, y = y, fill = fill, group = obs)) + 
+      ggplot2::scale_fill_identity("", labels = features, breaks = key_table$fill, guide = "legend")
+    
+  } else {
+    
+    # tiling or not
+    if(n.tile > 0 || nrow(coords) > 50000){
+      if(n.tile == 0)
+        n.tile <- 1000
+      all_data <- all_data %>% group_by(x,y) %>% 
+        summarize(fill = fill[which.max(value)], 
+                  group = color_group[which.max(value)], 
+                  value = value[which.max(value)])
+      key_table <- all_data[,c("fill", "group", "value")] %>% 
+        dplyr::group_by(group) %>% 
+        dplyr::summarise(fill = fill[which.max(value)], value = max(value))
+      g.combined <- g +
+        ggplot2::geom_tile(data = as.data.frame(all_data), aes(x = x, y = y, fill = fill)) +
+        ggplot2::scale_fill_identity("", labels = features, breaks = key_table$fill, guide = "legend")
+    } else {
+      all_data <- all_data %>% group_by(x,y) %>% 
+        dplyr::summarise(color = colour[which.max(value)], 
+                         group = color_group[which.max(value)],
+                         value = value[which.max(value)])
+      key_table <- all_data[,c("color", "group", "value")] %>%
+        dplyr::group_by(group) %>% 
+        dplyr::summarise(color = color[which.max(value)], value = max(value))
+      g.combined <- g + 
+        ggplot2::geom_point(data = as.data.frame(all_data), aes(x = x, y = y, color = color)) + 
+        ggplot2::scale_color_identity("", labels = features, breaks = key_table$color, guide = "legend")
+    } 
   }
   
   g.combined
