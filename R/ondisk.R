@@ -15,6 +15,7 @@
 #' @param level The compression level to use for writing the assay data to disk.
 #' @param as.sparse as.sparse
 #' @param verbose verbose
+#' @param feature.vs.obs.engine The on-disk method for the manipulating feature x obs matrices: BPCells or DelayedArray
 #'
 #' @export
 saveVoltRon <- function (object, 
@@ -36,19 +37,22 @@ saveVoltRon <- function (object,
   paths <- unique(vapply(paths, file_path_as_absolute, character(1)))
   if(length(paths) > 1){
     if(is.null(output)){
-      stop("There are multiple paths that this VoltRon object is saved to, cannot write unless 'output' is specified!")
+      stop("There are multiple paths that this VoltRon object is saved to, 
+           cannot write unless 'output' is specified!")
     }
     replace <- TRUE
   } else if(length(paths) == 1){
     if(is.null(output)){
-      message("Object has existing paths and 'output' is not specified, using those instead of the provided 'ondisk_path'")
+      message("Object has existing paths and 'output' is not specified, 
+              using those instead of the provided 'ondisk_path'")
       format <- ifelse(grepl(".zarr$", paths), "ZarrVoltRon", "HDF5VoltRon")
       output <- base::dirname(paths)
       replace <- FALSE    
     }
   } else {
     if(length(format) > 1){
-      message("No paths are found in the object, and no format is chosen, saving as rds only!")
+      message("No paths are found in the object, and no format is chosen, 
+              saving as rds only!")
       format <- "InMemoryVoltRon"
     }
   }
@@ -83,8 +87,17 @@ saveVoltRon <- function (object,
     
     
     # write on disk
-    object <- .write_VoltRon(object, assay = assay, format = format, rds_path = rds_path, ondisk_path = ondisk_path, 
-                             chunkdim = chunkdim, level = level, as.sparse = as.sparse, verbose = verbose, replace = replace)
+    object <- .write_VoltRon(object, 
+                             assay = assay, 
+                             format = format, 
+                             rds_path = rds_path, 
+                             ondisk_path = ondisk_path, 
+                             chunkdim = chunkdim, 
+                             level = level, 
+                             as.sparse = as.sparse, 
+                             verbose = verbose, 
+                             replace = replace, 
+                             feature.vs.obs.engine = feature.vs.obs.engine)
     
     # serialize rds file
     .serialize_VoltRonObject(object, rds_path, verbose = verbose)
@@ -114,7 +127,8 @@ saveVoltRon <- function (object,
 loadVoltRon <- function(dir="my_se")
 {
   if(!requireNamespace('DelayedArray'))
-    stop("Please install DelayedArray package!: BiocManager::install('DelayedArray')")
+    stop("Please install DelayedArray package!: 
+         BiocManager::install('DelayedArray')")
   
   # check dir
   if (!isSingleString(dir))
@@ -170,7 +184,10 @@ loadVoltRon <- function(dir="my_se")
 #' .write_VoltRon
 #'
 #' @noRd
-.write_VoltRon <- function(object, assay = NULL, format, rds_path, ondisk_path, chunkdim=NULL, level=NULL, as.sparse=NA, verbose=TRUE, replace = FALSE)
+.write_VoltRon <- function(object, assay = NULL, format, rds_path, 
+                           ondisk_path, chunkdim=NULL, level=NULL, 
+                           as.sparse=NA, verbose=TRUE, replace = FALSE, 
+                           feature.vs.obs.engine = "BPCells")
 {
   # check object
   if (!is(object, "VoltRon"))
@@ -189,9 +206,16 @@ loadVoltRon <- function(dir="my_se")
     stop("'verbose' must be TRUE or FALSE")
   
   if(format == "HDF5VoltRon"){
-    object <- write_h5_samples(object, assay = assay, h5_path = ondisk_path, chunkdim, level, as.sparse, verbose, replace)
+    object <- write_h5_samples(object, assay = assay, h5_path = ondisk_path, 
+                               chunkdim, level, as.sparse, verbose, replace, 
+                               feature.vs.obs.engine)
   } else if(format == "ZarrVoltRon"){
-    object <- write_zarr_samples(object, assay = assay, zarr_path = ondisk_path, chunkdim, level, as.sparse, verbose, replace)
+    if(feature.vs.obs.engine == "BPCells"){
+      message("BPCells-backend for Zarr store are currently unavailable")
+    }
+    object <- write_zarr_samples(object, assay = assay, 
+                                 zarr_path = ondisk_path, chunkdim, 
+                                 level, as.sparse, verbose, replace)
   } else {
     stop("'format' should be either 'HDF5VoltRon' or 'ZarrVoltRon'")
   }
@@ -222,7 +246,8 @@ loadVoltRon <- function(dir="my_se")
   assay_names <- vrAssayNames(object, assay = "all")
   
   # restore metadata links 
-  object@metadata <- .restore_absolute_metadata_links(Metadata(object, type = "all"), dir)
+  object@metadata <- .restore_absolute_metadata_links(
+    Metadata(object, type = "all"), dir)
   
   # restore assay links
   for(assy in assay_names)
@@ -240,7 +265,8 @@ loadVoltRon <- function(dir="my_se")
 #'
 #' @noRd
 write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
-                             as.sparse, verbose, replace)
+                             as.sparse, verbose, replace, 
+                             feature.vs.obs.engine = "BPCells")
 {
   if(!requireNamespace('rhdf5'))
     stop("Please install rhdf5 package!: BiocManager::install('rhdf5')")
@@ -256,7 +282,8 @@ write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
   
   # create metadata
   rhdf5::h5createGroup(h5_path, group = "metadata")
-  object@metadata <- writeHDF5ArrayInMetadata(object = Metadata(object, type = "all"), 
+  object@metadata <- writeHDF5ArrayInMetadata(object = Metadata(object, 
+                                                                type = "all"), 
                                               h5_path,
                                               name = "metadata",
                                               chunkdim=chunkdim, 
@@ -277,26 +304,30 @@ write_h5_samples <- function(object, assay = NULL, h5_path, chunkdim, level,
     rhdf5::h5createGroup(h5_path, group = assy)
     
     # get data and write
-    assay_object <- writeHDF5ArrayInVrData(object = assay_object, 
-                                           h5_path,
-                                           name = assy,
-                                           chunkdim=chunkdim, 
-                                           level=level,
-                                           as.sparse=as.sparse,
-                                           with.dimnames=TRUE,
-                                           verbose=verbose, 
-                                           replace=replace)
+    assay_object <- 
+      writeHDF5ArrayInVrData(object = assay_object, 
+                             h5_path,
+                             name = assy,
+                             chunkdim=chunkdim, 
+                             level=level,
+                             as.sparse=as.sparse,
+                             with.dimnames=TRUE,
+                             verbose=verbose, 
+                             replace=replace, 
+                             feature.vs.obs.engine = feature.vs.obs.engine)
     
     # get image data and write
-    assay_object <- writeHDF5ArrayInImage(object = assay_object, 
-                                          h5_path,
-                                          name = assy,
-                                          chunkdim=chunkdim, 
-                                          level=level,
-                                          as.sparse=as.sparse,
-                                          with.dimnames=FALSE,
-                                          verbose=verbose, 
-                                          replace=replace)
+    assay_object <- 
+      writeHDF5ArrayInImage(object = assay_object, 
+                            h5_path,
+                            name = assy,
+                            chunkdim=chunkdim, 
+                            level=level,
+                            as.sparse=as.sparse,
+                            with.dimnames=FALSE,
+                            verbose=verbose, 
+                            replace=replace, 
+                            feature.vs.obs.engine = feature.vs.obs.engine)
     
     # write assay back
     object[[assy]] <- assay_object
@@ -320,11 +351,14 @@ writeHDF5ArrayInMetadata <- function(object,
   
   # check HDF5DataFrame
   if(!requireNamespace('HDF5DataFrame'))
-    stop("Please install HDF5DataFrame package!: devtools::install_github('BIMSBbioinfo/HDF5DataFrame')")
+    stop("Please install HDF5DataFrame package!: 
+         devtools::install_github('BIMSBbioinfo/HDF5DataFrame')")
   if(!requireNamespace('HDF5Array'))
-    stop("Please install HDF5Array package!: BiocManager::install('HDF5Array')")
+    stop("Please install HDF5Array package!: 
+         BiocManager::install('HDF5Array')")
   if(!requireNamespace('rhdf5'))
-    stop("Please install rhdf5 package!: BiocManager::install('rhdf5')")
+    stop("Please install rhdf5 package!: 
+         BiocManager::install('rhdf5')")
   
   # iterate over all metadata slots
   slot_names <- slotNames(object)
@@ -355,7 +389,9 @@ writeHDF5ArrayInMetadata <- function(object,
         for(i in seq_len(ncol(meta.data))){
           column_name <- paste0(name, "/", sn, "/", colnames(meta.data)[i])
           if(inherits(meta.data,"data.table")){
-            cur_column <- as.array(as.vector(subset(meta.data, select = colnames(meta.data)[i]))[[1]])
+            cur_column <- as.array(
+              as.vector(
+                subset(meta.data, select = colnames(meta.data)[i]))[[1]])
           } else {
             cur_column <- as.array(meta.data[,i])
           }
@@ -380,7 +416,9 @@ writeHDF5ArrayInMetadata <- function(object,
         column_name <- paste0(name, "/", sn, "/", colnames(meta.data)[i])
         if(!h5Dexists(h5_path, column_name)){
           if(inherits(meta.data,"data.table")){
-            cur_column <- as.array(as.vector(subset(meta.data, select = colnames(meta.data)[i]))[[1]])
+            cur_column <- as.array(
+              as.vector(subset(meta.data, 
+                               select = colnames(meta.data)[i]))[[1]])
           } else {
             cur_column <- as.array(meta.data[,i])
           }
@@ -394,12 +432,14 @@ writeHDF5ArrayInMetadata <- function(object,
                                                   as.sparse=as.sparse,
                                                   with.dimnames=FALSE,
                                                   verbose=FALSE)
-          new_column <- HDF5DataFrame::HDF5ColumnVector(DelayedArray::path(new_column), 
-                                                        name = paste0(name, "/", sn), 
-                                                        column = colnames(meta.data)[i])
+          new_column <- 
+            HDF5DataFrame::HDF5ColumnVector(DelayedArray::path(new_column), 
+                                            name = paste0(name, "/", sn), 
+                                            column = colnames(meta.data)[i])
           meta.data[[colnames(meta.data)[i]]] <- new_column
         } else {
-          # meta.data_list[[colnames(meta.data)[i]]] <- meta.data[[colnames(meta.data)[i]]]
+          # meta.data_list[[colnames(meta.data)[i]]] <- 
+          #.       meta.data[[colnames(meta.data)[i]]]
         } 
       }
       methods::slot(object, name = sn) <- meta.data
@@ -422,18 +462,21 @@ writeHDF5ArrayInVrData <- function(object,
                                    as.sparse,
                                    with.dimnames=FALSE,
                                    verbose, 
-                                   replace = FALSE){
+                                   replace = FALSE, 
+                                   feature.vs.obs.engine = "BPCells"){
   
   # check packages
   if(!requireNamespace('BPCells'))
-    stop("Please install BPCells package!: remotes::install_github('bnprks/BPCells/r')")
+    stop("Please install BPCells package!: 
+         remotes::install_github('bnprks/BPCells/r')")
   
   # check if there is a data or rawdata slot in assay object
   catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
   catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
   
   # get data with a specific feature
-  if(!is(catch_connect1, 'try-error') && !methods::is(catch_connect1,'error')){
+  if(!is(catch_connect1, 'try-error') && 
+     !methods::is(catch_connect1,'error')){
     
     feature_types <- vrFeatureTypeNames(object)
     for(feat in feature_types){
@@ -449,7 +492,6 @@ writeHDF5ArrayInVrData <- function(object,
                                         path = h5_path, 
                                         group = paste0(name, "/", feat), 
                                         overwrite = TRUE)
-        # chunk_size = chunkdim)
         object@data[[feat]] <- a   
         
       }
@@ -460,18 +502,20 @@ writeHDF5ArrayInVrData <- function(object,
         if(!inherits(a, "dgCMatrix"))
           a <- as(a, "dgCMatrix")
         if(verbose)
-          message("Writing '", vrAssayNames(object), "' normalized ", feat, " data")
+          message("Writing '", vrAssayNames(object), "' normalized ", 
+                  feat, " data")
         a <- BPCells::write_matrix_hdf5(a, 
                                         path = h5_path, 
-                                        group = paste0(name, "/", feat, "_norm"), 
+                                        group = paste0(name, "/", 
+                                                       feat, "_norm"), 
                                         overwrite = TRUE)
-        # chunk_size = chunkdim)
         object@data[[paste0(feat, "_norm")]] <- a  
       }
       
     }
     
-  } else if(!is(catch_connect2, 'try-error') && !methods::is(catch_connect2,'error')){
+  } else if(!is(catch_connect2, 'try-error') && 
+            !methods::is(catch_connect2,'error')){
     
     # raw data
     a <- vrData(object, norm = FALSE)
@@ -521,11 +565,13 @@ writeHDF5ArrayInImage <- function(object,
   
   # check packages
   if(!requireNamespace('ImageArray'))
-    stop("Please install ImageArray package!: devtools::install_github('BIMSBbioinfo/ImageArray')")
+    stop("Please install ImageArray package!: 
+         devtools::install_github('BIMSBbioinfo/ImageArray')")
   if(!requireNamespace('rhdf5'))
     stop("Please install rhdf5 package!: BiocManager::install('rhdf5')")
   if(!requireNamespace('BPCells'))
-    stop("Please install BPCells package!: remotes::install_github('bnprks/BPCells/r')")
+    stop("Please install BPCells package!: 
+         remotes::install_github('bnprks/BPCells/r')")
   
   # for each spatial system
   spatial_names <- vrSpatialNames(object)
@@ -560,15 +606,17 @@ writeHDF5ArrayInImage <- function(object,
         # write image
         if(!inherits(img, "ImgArray") || replace){
           if(verbose)
-            message("Writing '", name, "' image channel '", ch, "' for spatial system '", spat,"'")
-          img <- ImageArray::writeImgArray(img,
-                                             output = gsub(".h5$", "", h5_path),
-                                             name = paste0(name, "/", spat, "/", ch), 
-                                             format = "HDF5ImgArray", 
-                                             replace = FALSE, 
-                                             chunkdim=chunkdim,
-                                             level=level,
-                                             verbose=FALSE)
+            message("Writing '", name, "' image channel '", 
+                    ch, "' for spatial system '", spat,"'")
+          img <- 
+            ImageArray::writeImgArray(img,
+                                      output = gsub(".h5$", "", h5_path),
+                                      name = paste0(name, "/", spat, "/", ch), 
+                                      format = "HDF5ImgArray", 
+                                      replace = FALSE, 
+                                      chunkdim=chunkdim,
+                                      level=level,
+                                      verbose=FALSE)
           suppressWarnings({
             vrImages(object, name = spat, channel = ch) <- img 
           })
@@ -618,7 +666,8 @@ open_zarr <- function(dir, name){
 #' write_zarr_samples
 #'
 #' @noRd
-write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
+write_zarr_samples <- function(object, assay = NULL, 
+                               zarr_path, chunkdim, level,
                                as.sparse, verbose, replace)
 {
   # sample metadata
@@ -632,15 +681,16 @@ write_zarr_samples <- function(object, assay = NULL, zarr_path, chunkdim, level,
 
   # create metadata
   zarrcreateGroup(zarr_path, "metadata")
-  object@metadata <- writeZarrArrayInMetadata(object = Metadata(object, type = "all"), 
-                                              zarr_path,
-                                              name = "metadata",
-                                              chunkdim=chunkdim, 
-                                              level=level,
-                                              as.sparse=as.sparse,
-                                              with.dimnames=TRUE,
-                                              verbose=verbose, 
-                                              replace=replace)
+  object@metadata <- 
+    writeZarrArrayInMetadata(object = Metadata(object, type = "all"), 
+                             zarr_path,
+                             name = "metadata",
+                             chunkdim=chunkdim, 
+                             level=level,
+                             as.sparse=as.sparse,
+                             with.dimnames=TRUE,
+                             verbose=verbose, 
+                             replace=replace)
   
   # iterate over assays
   assay_names <- vrAssayNames(object, assay = assay)
@@ -697,7 +747,8 @@ writeZarrArrayInMetadata <- function(object,
   
   # check DelayedDataFrame
   if(!requireNamespace('ZarrDataFrame'))
-    stop("Please install ZarrDataFrame package!: devtools::install_github('BIMSBbioinfo/ZarrDataFrame')")
+    stop("Please install ZarrDataFrame package!: 
+         devtools::install_github('BIMSBbioinfo/ZarrDataFrame')")
   if(!requireNamespace('Rarr'))
     stop("Please install Rarr package!: BiocManager::install('Rarr')")
 
@@ -724,15 +775,19 @@ writeZarrArrayInMetadata <- function(object,
           }
           cur_column <- as.array(cur_column)
           meta.data_list[["id"]] <- 
-            Rarr::writeZarrArray(cur_column, 
-                                 zarr_array_path = file.path(zarr_path, paste0(name, "/", sn, "/id")), 
-                                 chunk_dim = min(length(cur_column), 2000), nchar = nchar)
+            Rarr::writeZarrArray(
+              cur_column, 
+              zarr_array_path = file.path(zarr_path, 
+                                          paste0(name, "/", sn, "/id")), 
+              chunk_dim = min(length(cur_column), 2000), nchar = nchar)
         }
         
         # write rest of the columns
         for(i in seq_len(ncol(meta.data))){
           if(inherits(meta.data,"data.table")){
-            cur_column <- as.vector(subset(meta.data, select = colnames(meta.data)[i]))[[1]]
+            cur_column <- as.vector(
+              subset(meta.data, 
+                     select = colnames(meta.data)[i]))[[1]]
           } else {
             cur_column <- meta.data[,i]
           }
@@ -743,12 +798,17 @@ writeZarrArrayInMetadata <- function(object,
           }
           cur_column <- as.array(cur_column)
           meta.data_list[[colnames(meta.data)[i]]] <- 
-            Rarr::writeZarrArray(cur_column, 
-                                 zarr_array_path = file.path(zarr_path, paste0(name, "/", sn, "/", colnames(meta.data)[i])), 
-                                 chunk_dim = min(length(cur_column), 2000), nchar = nchar)
+            Rarr::writeZarrArray(
+              cur_column, 
+              zarr_array_path = file.path(zarr_path, 
+                                          paste0(name, "/", 
+                                                 sn, "/", 
+                                                 colnames(meta.data)[i])), 
+              chunk_dim = min(length(cur_column), 2000), nchar = nchar)
         }
         methods::slot(object, name = sn) <- 
-          ZarrDataFrame::ZarrDataFrame(meta.data_list, name = paste0(name, "/", sn))
+          ZarrDataFrame::ZarrDataFrame(meta.data_list, 
+                                       name = paste0(name, "/", sn))
       }
     }
   }

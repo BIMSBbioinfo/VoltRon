@@ -201,11 +201,10 @@ setMethod("getFeatures", "vrAssayV2", getFeaturesvrAssay)
 getVstData <- function(rawdata){
   if(inherits(rawdata, "IterableMatrix")){
     if(!requireNamespace("BPCells"))
-      stop("You have to install BPCells!")
+      stop("You have to install BPCells!: remotes::install_github('bnprks/BPCells/r')")
     mean_data <- BPCells::rowMeans(rawdata)
     var_data <- BPCells::rowSums(rawdata^2)
     var_data <- (var_data - mean_data^2/nrow(rawdata))/(nrow(rawdata)-1)
-    # var_data <- BPCells::matrix_stats(rawdata, row_stats="variance")
   } else {
     mean_data <- Matrix::rowMeans(rawdata)
     var_data <- apply(rawdata, 1, stats::var)
@@ -217,7 +216,7 @@ getVstData <- function(rawdata){
 getMaxCount <- function(rawdata, max.count){
   if(inherits(rawdata, "IterableMatrix")){
     if(!requireNamespace("BPCells"))
-      stop("You have to install BPCells!")
+      stop("You have to install BPCells!: remotes::install_github('bnprks/BPCells/r')")
     rawdata <- rawdata > max.count
     keep.genes <- which(BPCells::rowSums(rawdata) > 0)
   } else {
@@ -230,7 +229,7 @@ getMaxCount <- function(rawdata, max.count){
 #'
 #' get shared variable features across multiple assays
 #'
-#' @param object a Voltron Object
+#' @param object a VoltRon Object
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param n the number of features
@@ -268,7 +267,6 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
   rownames_ranks <- ranks$gene
   ranks <- ranks[,!colnames(ranks) %in% "gene", drop = FALSE]
   ranks <- apply(ranks, 1, function(x) exp(mean(log(x))))
-  # names(ranks) <- rownames(feature_data)
   names(ranks) <- rownames_ranks
   ranks <- ranks[ranks != 0]
 
@@ -336,7 +334,7 @@ getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca
   set.seed(seed)
   if(inherits(normdata, "IterableMatrix")){
     if(!requireNamespace("BPCells"))
-      stop("You have to install BPCells!")
+      stop("You have to install BPCells!: remotes::install_github('bnprks/BPCells/r')")
     svd <- BPCells::svds(normdata, k=dims)
     pr.data <- BPCells::multiply_cols(svd$v, svd$d)
   } else {
