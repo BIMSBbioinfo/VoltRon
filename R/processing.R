@@ -298,7 +298,7 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #' @param overwrite Whether the existing embedding with name 'type' should be overwritten in \link{vrEmbeddings}
 #' @param seed seed
 #'
-#' @importFrom irlba irlba
+#' @importFrom BiocSingular runPCA FastAutoParam
 #'
 #' @export
 getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca", overwrite = FALSE, seed = 1){
@@ -338,8 +338,13 @@ getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca
     svd <- BPCells::svds(normdata, k=dims)
     pr.data <- BPCells::multiply_cols(svd$v, svd$d)
   } else {
-    scale.data <- apply(normdata, 1, scale)
-    pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+    # scale.data <- apply(normdata, 1, scale)
+    # pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+    pr.data <- BiocSingular::runPCA(t(normdata),
+                                    rank=dims,
+                                    scale=TRUE,
+                                    center=TRUE,
+                                    BSPARAM=BiocSingular::FastAutoParam())
     pr.data <- pr.data$x 
   }
   

@@ -18,17 +18,23 @@ Author@R:
 		     role=c("aut")),
 	person("Altuna", "Akalin", 
 		     role=c("aut"))
-Author: Artür Manukyan, Ella Bahry, Raj Prateek Rai, Wei-Che Ko, Markus Landthaler, Altuna Akalin
+Author: Artür Manukyan, Ella Bahry, Raj Prateek Rai, Wei-Che Ko,  
+        Markus Landthaler, Altuna Akalin
 Maintainer: Artür Manukyan <artur-man@hotmail.com>
-Description: VoltRon is a spatial omic analysis toolbox for multi-omics integration using spatial image registration. VoltRon is capable of analyzing multiple types and modalities of spatially-aware datasets. VoltRon visualizes and analyzes regions of interests (ROIs), spots, cells, molecules and event tiles.
+Description: VoltRon is a spatial omic analysis toolbox for multi-omics 
+             integration using spatial image registration. VoltRon is capable 
+             of analyzing multiple types and modalities of spatially-aware 
+             datasets. VoltRon visualizes and analyzes regions of interests 
+             (ROIs), spots, cells, molecules and event tiles.
 License: MIT + file LICENSE
-SystemRequirements: OpenCV 4.8 (or higher): libopencv-dev (Debian, Ubuntu) or opencv-devel (Fedora)
+SystemRequirements: OpenCV 4.8 (or higher): libopencv-dev (Debian, Ubuntu) or 
+                    opencv-devel (Fedora)
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 biocViews:
 Imports: methods, grDevices, data.table, Matrix, S4Arrays, ids, RcppAnnoy, 
          RANN, igraph, dplyr, ggplot2, ggrepel, ggpubr, rjson, magick, 
-         EBImage, sp, rlang, shiny, shinyjs, stringr, irlba, uwot, RCDT
+         EBImage, sp, rlang, shiny, shinyjs, stringr, BiocSingular, uwot, RCDT
 LinkingTo: Rcpp, RcppArmadillo (>= 0.4)
 Collate: 
     'RcppExports.R'

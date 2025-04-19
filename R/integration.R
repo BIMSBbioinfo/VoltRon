@@ -491,8 +491,13 @@ getJointPCA <- function(object, assay.1 = NULL, assay.2 = NULL, dims = 30, seed 
   
   # get PCA embedding
   normdata.1 <- vrData(object_subset, assay = assay, norm = TRUE)
-  scale.data <- apply(normdata.1, 1, scale)
-  pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+  # scale.data <- apply(normdata.1, 1, scale)
+  # pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+  pr.data <- BiocSingular::runPCA(t(normdata.1),
+                                  rank=dims,
+                                  scale=TRUE,
+                                  center=TRUE,
+                                  BSPARAM=BiocSingular::FastAutoParam())
   pr.data.1 <- pr.data$x
   colnames(pr.data.1) <- paste0("PC", seq_len(dims))
   rownames(pr.data.1) <- colnames(normdata.1)
@@ -519,8 +524,13 @@ getJointPCA <- function(object, assay.1 = NULL, assay.2 = NULL, dims = 30, seed 
 
   # get PCA embedding
   normdata.2 <- vrData(object_subset, assay = assay, norm = TRUE)
-  scale.data <- apply(normdata.2, 1, scale)
-  pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+  # scale.data <- apply(normdata.2, 1, scale)
+  # pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+  pr.data <- BiocSingular::runPCA(t(normdata.2),
+                                  rank=dims,
+                                  scale=TRUE,
+                                  center=TRUE,
+                                  BSPARAM=BiocSingular::FastAutoParam())
   pr.data.2 <- pr.data$x
   colnames(pr.data.2) <- paste0("PC", seq_len(dims))
   rownames(pr.data.2) <- colnames(normdata.2)
@@ -528,8 +538,13 @@ getJointPCA <- function(object, assay.1 = NULL, assay.2 = NULL, dims = 30, seed 
 
   # get joint PCA
   normdata <- rbind(normdata.1, normdata.2)
-  scale.data <- apply(normdata, 1, scale)
-  pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+  # scale.data <- apply(normdata, 1, scale)
+  # pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+  pr.data <- BiocSingular::runPCA(t(normdata),
+                                  rank=dims,
+                                  scale=TRUE,
+                                  center=TRUE,
+                                  BSPARAM=BiocSingular::FastAutoParam())
   prsdev <- pr.data$sdev
   pr.data <- pr.data$x
   colnames(pr.data) <- paste0("PC", seq_len(dims))
