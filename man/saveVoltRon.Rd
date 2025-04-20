@@ -13,7 +13,8 @@ saveVoltRon(
   chunkdim = NULL,
   level = NULL,
   as.sparse = NA,
-  verbose = TRUE
+  verbose = TRUE,
+  feature.vs.obs.engine = "BPCells"
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ saveVoltRon(
 \item{as.sparse}{as.sparse}
 
 \item{verbose}{verbose}
+
+\item{feature.vs.obs.engine}{The on-disk method for the manipulating feature x obs matrices: BPCells or DelayedArray}
 }
 \description{
 save VoltRon object in memory or on disk
