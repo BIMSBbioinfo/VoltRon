@@ -105,9 +105,16 @@ setMethod("normalizeData", "vrAssayV2", normalizeDatavrAssay)
 LogNorm <- function(rawdata, coldepth, sizefactor){
   if(inherits(rawdata, "IterableMatrix")){
     if(!requireNamespace("BPCells"))
-      stop("You have to install BPCells!")
+      stop("You have to install BPCells!: 
+           remotes::install_github('bnprks/BPCells/r')")
     normdata <- BPCells::t(BPCells::t(rawdata)/coldepth)
     normdata <- BPCells::log1p_slow(normdata*sizefactor)
+  } else if(inherits(rawdata, "DelayedArray")){
+    if(!requireNamespace("DelayedMatrixStats"))
+      stop("You have to install DelayedMatrixStats!: 
+           BiocManager::install('DelayedMatrixStats')")
+    normdata <- DelayedMatrixStats::sweep(rawdata, 2L, coldepth, FUN = "/")
+    normdata <- log(normdata*sizefactor + 1)
   } else {
     normdata <- sweep(rawdata, 2L, coldepth, FUN = "/")
     normdata <- log(normdata*sizefactor + 1)
@@ -118,8 +125,14 @@ LogNorm <- function(rawdata, coldepth, sizefactor){
 getDivideSweep <- function(rawdata, divisor){
   if(inherits(rawdata, "IterableMatrix")){
     if(!requireNamespace("BPCells"))
-      stop("You have to install BPCells!")
+      stop("You have to install BPCells!: 
+           remotes::install_github('bnprks/BPCells/r')")
     return(BPCells::t(BPCells::t(rawdata)/divisor))
+  } else if(inherits(rawdata, "DelayedArray")){
+    if(!requireNamespace("DelayedMatrixStats"))
+      stop("You have to install DelayedMatrixStats!: 
+           BiocManager::install('DelayedMatrixStats')")
+    return(DelayedMatrixStats::sweep(rawdata, 2L, divisor, FUN = "/"))
   } else {
     return(sweep(rawdata, 2L, divisor, FUN = "/"))
   }
@@ -201,10 +214,17 @@ setMethod("getFeatures", "vrAssayV2", getFeaturesvrAssay)
 getVstData <- function(rawdata){
   if(inherits(rawdata, "IterableMatrix")){
     if(!requireNamespace("BPCells"))
-      stop("You have to install BPCells!: remotes::install_github('bnprks/BPCells/r')")
+      stop("You have to install BPCells!: 
+           remotes::install_github('bnprks/BPCells/r')")
     mean_data <- BPCells::rowMeans(rawdata)
     var_data <- BPCells::rowSums(rawdata^2)
     var_data <- (var_data - mean_data^2/nrow(rawdata))/(nrow(rawdata)-1)
+  } else if(inherits(rawdata, "DelayedArray")){
+    if(!requireNamespace("DelayedMatrixStats"))
+      stop("You have to install DelayedMatrixStats!: 
+           BiocManager::install('DelayedMatrixStats')")
+    mean_data <- DelayedMatrixStats::rowMeans2(rawdata)
+    var_data <- DelayedMatrixStats::rowVars(rawdata)
   } else {
     mean_data <- Matrix::rowMeans(rawdata)
     var_data <- apply(rawdata, 1, stats::var)
@@ -216,9 +236,16 @@ getVstData <- function(rawdata){
 getMaxCount <- function(rawdata, max.count){
   if(inherits(rawdata, "IterableMatrix")){
     if(!requireNamespace("BPCells"))
-      stop("You have to install BPCells!: remotes::install_github('bnprks/BPCells/r')")
+      stop("You have to install BPCells!: 
+           remotes::install_github('bnprks/BPCells/r')")
     rawdata <- rawdata > max.count
     keep.genes <- which(BPCells::rowSums(rawdata) > 0)
+  } else if(inherits(rawdata, "DelayedArray")){
+    if(!requireNamespace("DelayedMatrixStats"))
+      stop("You have to install DelayedMatrixStats!: 
+           BiocManager::install('DelayedMatrixStats')")
+    rawdata <- rawdata > max.count
+    keep.genes <- which(DelayedMatrixStats::rowSums2(rawdata) > 0)
   } else {
     keep.genes <- which(apply(rawdata,1,max) > max.count)
   }
@@ -230,7 +257,8 @@ getMaxCount <- function(rawdata, max.count){
 #' get shared variable features across multiple assays
 #'
 #' @param object a VoltRon Object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' @param assay assay name (exp: Assay1) or assay class 
+#' (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param n the number of features
 #' @param ... additional arguements passed to \link{vrFeatureData}

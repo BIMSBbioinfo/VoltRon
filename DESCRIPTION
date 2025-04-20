@@ -65,6 +65,7 @@ Suggests:
     testthat (>= 3.0.0),
     S4Vectors,
     DelayedArray,
+    DelayedMatrixStats,
     rhdf5,
     Rarr,
     basilisk,

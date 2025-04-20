@@ -31,6 +31,7 @@ RUN R -e "BiocManager::install(c('EBImage', 'S4Arrays', 'BiocSingular'))"
 
 # Install Suggested dependencies
 RUN R -e "BiocManager::install(c('DelayedArray'))"
+RUN R -e "BiocManager::install(c('DelayedMatrixStats'))"
 RUN R -e "BiocManager::install(c('HDF5Array'))"
 RUN R -e "devtools::install_github('Artur-man/Rarr@voltron')"
 RUN R -e "options(timeout = 600000000); remotes::install_github('bnprks/BPCells/r@v0.3.0')"
