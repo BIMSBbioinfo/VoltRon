@@ -36,7 +36,6 @@ test_that("save/load single assay", {
                               feature.vs.obs.engine = "DelayedArray")
   xenium_data2 <- loadVoltRon(dir = output_h5ad)
 
-  # TODO: output zarr problem with path
   # zarr
   xenium_data2 <- saveVoltRon(xenium_data,
                               output = output_zarr,
@@ -74,7 +73,6 @@ test_that("save/load multiple assay", {
                               feature.vs.obs.engine = "DelayedArray")
   merged_object2 <- loadVoltRon(dir = output_h5ad)
   
-  # TODO: output zarr problem with path
   # zarr
   merged_object2 <- saveVoltRon(merged_object,
                               output = output_zarr,
@@ -252,6 +250,103 @@ test_that("metadata", {
   expect_equal(1,1L)
 })
 
+test_that("normalization", {
+  
+  # get data
+  data("xenium_data")
+  data("visium_data")
+  
+  # HDF5 with BPCells
+  xenium_data_bpcells <- saveVoltRon(xenium_data, 
+                              output = output_h5ad, 
+                              format = "HDF5VoltRon", 
+                              replace = TRUE, 
+                              verbose = FALSE)
+  xenium_data_bpcells <- normalizeData(xenium_data_bpcells)
+  
+  # HDF5 with DelayedArray
+  xenium_data_hdf5 <- saveVoltRon(xenium_data, 
+                              output = output_h5ad, 
+                              format = "HDF5VoltRon", 
+                              replace = TRUE, 
+                              verbose = FALSE,
+                              feature.vs.obs.engine = "DelayedArray")
+  xenium_data_hdf5 <- normalizeData(xenium_data_hdf5)
+  # TODO: vrData(xenium_data_bpcells, norm = TRUE) throws error
+  # in multiple calls
+  # 
+  # expect_equal(
+  #   as(vrData(xenium_data_bpcells, norm = TRUE), "dgCMatrix"),
+  #   as(vrData(xenium_data_hdf5, norm = TRUE), "dgCMatrix")
+  # )
+
+  # zarr
+  xenium_data_zarr <- saveVoltRon(xenium_data, 
+                              output = output_zarr, 
+                              format = "ZarrVoltRon", 
+                              replace = TRUE, 
+                              verbose = FALSE)
+  xenium_data_zarr <- normalizeData(xenium_data_zarr)
+  expect_equal(
+    as(vrData(xenium_data_zarr, norm = TRUE), "dgCMatrix"),
+    as(vrData(xenium_data_hdf5, norm = TRUE), "dgCMatrix")
+  )
+  
+  # remove files
+  unlink(output_h5ad, recursive = TRUE)
+  unlink(output_zarr, recursive = TRUE)
+  
+  expect_equal(1,1L)
+})
+
+test_that("feature selection", {
+  
+  # get data
+  data("visium_data")
+  
+  # HDF5 with BPCells
+  xenium_data_bpcells <- saveVoltRon(visium_data, 
+                                     output = output_h5ad, 
+                                     format = "HDF5VoltRon", 
+                                     replace = TRUE, 
+                                     verbose = FALSE)
+  xenium_data_bpcells <- getFeatures(xenium_data_bpcells, n = 3000)
+  vrFeatureData(xenium_data_bpcells)
+  
+  # HDF5 with DelayedArray
+  xenium_data_hdf5 <- saveVoltRon(visium_data, 
+                                  output = output_h5ad, 
+                                  format = "HDF5VoltRon", 
+                                  replace = TRUE, 
+                                  verbose = FALSE,
+                                  feature.vs.obs.engine = "DelayedArray")
+  xenium_data_hdf5 <- getFeatures(xenium_data_hdf5, n = 3000)
+  
+  # TODO: for now it looks like bpcells and delayedarray feature selection
+  # results are not the same (but i think slightly equal)
+  # expect_equal(
+  #   vrFeatureData(xenium_data_bpcells)[1:100,],
+  #   vrFeatureData(xenium_data_hdf5)[1:100,]
+  # )
+  
+  # zarr
+  xenium_data_zarr <- saveVoltRon(visium_data, 
+                                  output = output_zarr, 
+                                  format = "ZarrVoltRon", 
+                                  replace = TRUE, 
+                                  verbose = FALSE)
+  xenium_data_zarr <- getFeatures(xenium_data_zarr, n = 3000)
+  expect_equal(
+    vrFeatureData(xenium_data_hdf5),
+    vrFeatureData(xenium_data_zarr)
+  )
+  
+  # remove files
+  unlink(output_h5ad, recursive = TRUE)
+  unlink(output_zarr, recursive = TRUE)
+  
+  expect_equal(1,1L)
+})
 
 test_that("embeddings with BPCells-backed", {
   

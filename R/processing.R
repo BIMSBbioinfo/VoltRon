@@ -110,10 +110,10 @@ LogNorm <- function(rawdata, coldepth, sizefactor){
     normdata <- BPCells::t(BPCells::t(rawdata)/coldepth)
     normdata <- BPCells::log1p_slow(normdata*sizefactor)
   } else if(inherits(rawdata, "DelayedArray")){
-    if(!requireNamespace("DelayedMatrixStats"))
-      stop("You have to install DelayedMatrixStats!: 
-           BiocManager::install('DelayedMatrixStats')")
-    normdata <- DelayedMatrixStats::sweep(rawdata, 2L, coldepth, FUN = "/")
+    if(!requireNamespace("DelayedArray"))
+      stop("You have to install DelayedArray!: 
+           BiocManager::install('DelayedArray')")
+    normdata <- DelayedArray::sweep(rawdata, 2L, coldepth, FUN = "/")
     normdata <- log(normdata*sizefactor + 1)
   } else {
     normdata <- sweep(rawdata, 2L, coldepth, FUN = "/")
@@ -129,10 +129,10 @@ getDivideSweep <- function(rawdata, divisor){
            remotes::install_github('bnprks/BPCells/r')")
     return(BPCells::t(BPCells::t(rawdata)/divisor))
   } else if(inherits(rawdata, "DelayedArray")){
-    if(!requireNamespace("DelayedMatrixStats"))
-      stop("You have to install DelayedMatrixStats!: 
-           BiocManager::install('DelayedMatrixStats')")
-    return(DelayedMatrixStats::sweep(rawdata, 2L, divisor, FUN = "/"))
+    if(!requireNamespace("DelayedArray"))
+      stop("You have to install DelayedArray!: 
+           BiocManager::install('DelayedArray')")
+    return(DelayedArray::sweep(rawdata, 2L, divisor, FUN = "/"))
   } else {
     return(sweep(rawdata, 2L, divisor, FUN = "/"))
   }
@@ -179,7 +179,6 @@ getFeaturesvrAssay <- function(object, max.count = 1, n = 3000){
   keep.genes <- getMaxCount(rawdata, max.count)
   
   # vst estimation
-  # vst_data <- data.frame(mean = Matrix::rowMeans(rawdata), var = apply(rawdata, 1, stats::var))
   vst_data <- getVstData(rawdata)
   loess_data <- vst_data[keep.genes,]
   loess_results <- stats::loess(var~mean, loess_data, span = 0.3)
@@ -217,8 +216,9 @@ getVstData <- function(rawdata){
       stop("You have to install BPCells!: 
            remotes::install_github('bnprks/BPCells/r')")
     mean_data <- BPCells::rowMeans(rawdata)
-    var_data <- BPCells::rowSums(rawdata^2)
-    var_data <- (var_data - mean_data^2/nrow(rawdata))/(nrow(rawdata)-1)
+    # var_data <- BPCells::rowSums(rawdata^2)
+    # var_data <- (var_data - mean_data^2/nrow(rawdata))/(nrow(rawdata)-1)
+    var_data <- BPCells::rowVars(rawdata)
   } else if(inherits(rawdata, "DelayedArray")){
     if(!requireNamespace("DelayedMatrixStats"))
       stop("You have to install DelayedMatrixStats!: 
