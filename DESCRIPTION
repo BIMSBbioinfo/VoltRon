@@ -66,6 +66,7 @@ Suggests:
     S4Vectors,
     DelayedArray,
     DelayedMatrixStats,
+    BiocParallel,
     rhdf5,
     Rarr,
     basilisk,

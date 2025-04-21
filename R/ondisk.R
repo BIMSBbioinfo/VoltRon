@@ -13,7 +13,7 @@
 #' @param replace When no prefix is specified, should a pre-existing directory be replaced with a new empty one? The content of the pre-existing directory will be lost!
 #' @param chunkdim The dimensions of the chunks to use for writing the assay data to disk.
 #' @param level The compression level to use for writing the assay data to disk.
-#' @param as.sparse as.sparse
+#' @param as.sparse Whether the dataset (for HDF5 DelayedArray) should be flagged as sparse or not.
 #' @param verbose verbose
 #' @param feature.vs.obs.engine The on-disk method for the manipulating feature x obs matrices: BPCells or DelayedArray
 #'
@@ -27,7 +27,7 @@ saveVoltRon <- function (object,
                          replace = FALSE, 
                          chunkdim = NULL, 
                          level = NULL, 
-                         as.sparse = NA, 
+                         as.sparse = FALSE, 
                          verbose = TRUE, 
                          feature.vs.obs.engine = "BPCells") 
 {
@@ -189,7 +189,7 @@ loadVoltRon <- function(dir="my_se")
 #' @noRd
 .write_VoltRon <- function(object, assay = NULL, format, rds_path, 
                            ondisk_path, chunkdim=NULL, level=NULL, 
-                           as.sparse=NA, verbose=TRUE, replace = FALSE, 
+                           as.sparse=FALSE, verbose=TRUE, replace = FALSE, 
                            feature.vs.obs.engine = "BPCells")
 {
   # check object
@@ -272,7 +272,7 @@ write_h5_samples <- function(object,
                              h5_path, 
                              chunkdim, 
                              level,
-                             as.sparse, 
+                             as.sparse = FALSE, 
                              verbose, 
                              replace, 
                              feature.vs.obs.engine = "BPCells")
@@ -297,7 +297,6 @@ write_h5_samples <- function(object,
                              name = "metadata",
                              chunkdim=chunkdim, 
                              level=level,
-                             as.sparse=as.sparse,
                              with.dimnames=TRUE,
                              verbose=verbose, 
                              replace=replace)
@@ -332,7 +331,6 @@ write_h5_samples <- function(object,
                             name = assy,
                             chunkdim=chunkdim, 
                             level=level,
-                            as.sparse=as.sparse,
                             verbose=verbose, 
                             replace=replace,
                             feature.vs.obs.engine = feature.vs.obs.engine)
@@ -352,7 +350,6 @@ writeHDF5ArrayInMetadata <- function(object,
                                      name,
                                      chunkdim, 
                                      level,
-                                     as.sparse,
                                      with.dimnames=FALSE,
                                      verbose, 
                                      replace = FALSE){
@@ -388,7 +385,6 @@ writeHDF5ArrayInMetadata <- function(object,
                                       name = paste0(name, "/", sn, "/id"),
                                       chunkdim=chunkdim, 
                                       level=level,
-                                      as.sparse=as.sparse,
                                       with.dimnames=FALSE,
                                       verbose=FALSE)
         }
@@ -411,7 +407,6 @@ writeHDF5ArrayInMetadata <- function(object,
                                       name = column_name,
                                       chunkdim=chunkdim, 
                                       level=level,
-                                      as.sparse=as.sparse,
                                       with.dimnames=FALSE,
                                       verbose=FALSE)
         }
@@ -437,7 +432,6 @@ writeHDF5ArrayInMetadata <- function(object,
                                                   name = column_name,
                                                   chunkdim=chunkdim, 
                                                   level=level,
-                                                  as.sparse=as.sparse,
                                                   with.dimnames=FALSE,
                                                   verbose=FALSE)
           new_column <- 
@@ -451,8 +445,6 @@ writeHDF5ArrayInMetadata <- function(object,
         } 
       }
       methods::slot(object, name = sn) <- meta.data
-      # methods::slot(object, name = sn) <- 
-      #   HDF5DataFrame::HDF5DataFrame(meta.data_list)
     }
   }
   
@@ -467,16 +459,11 @@ writeHDF5ArrayInVrData <- function(object,
                                    name,
                                    chunkdim, 
                                    level,
-                                   as.sparse,
+                                   as.sparse = FALSE,
                                    with.dimnames=FALSE,
                                    verbose, 
                                    replace = FALSE, 
                                    feature.vs.obs.engine = "BPCells"){
-  
-  # check packages
-  if(!requireNamespace('BPCells'))
-    stop("Please install BPCells package!: 
-         remotes::install_github('bnprks/BPCells/r')")
   
   # check if there is a data or rawdata slot in assay object
   catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
@@ -494,10 +481,6 @@ writeHDF5ArrayInVrData <- function(object,
       if(!inherits(a, c("DelayedArray", "IterableMatrix")) || replace){
         if(verbose)
           message("Writing '", vrAssayNames(object), "' ", feat, " data")
-        # a <- BPCells::write_matrix_hdf5(a, 
-        #                                 path = h5_path, 
-        #                                 group = paste0(name, "/", feat), 
-        #                                 overwrite = TRUE)
         a <- .writeHDF5(object = a, 
                         h5_path = h5_path, 
                         name = paste0(name, "/", feat), 
@@ -517,11 +500,6 @@ writeHDF5ArrayInVrData <- function(object,
         if(verbose)
           message("Writing '", vrAssayNames(object), "' normalized ", 
                   feat, " data")
-        # a <- BPCells::write_matrix_hdf5(a, 
-        #                                 path = h5_path, 
-        #                                 group = paste0(name, "/", 
-        #                                                feat, "_norm"), 
-        #                                 overwrite = TRUE)
         a <- .writeHDF5(object = a, 
                         h5_path = h5_path, 
                         name = paste0(name, "/", feat, "_norm"), 
@@ -544,10 +522,6 @@ writeHDF5ArrayInVrData <- function(object,
     if(!inherits(a, "DelayedArray") || replace){
       if(verbose)
         message("Writing '", vrAssayNames(object), "' data")
-      # a <- BPCells::write_matrix_hdf5(a, 
-      #                                 path = h5_path, 
-      #                                 group = paste0(name, "/rawdata"), 
-      #                                 overwrite = TRUE)
       a <- .writeHDF5(object = a, 
                       h5_path = h5_path, 
                       name = paste0(name, "/rawdata"), 
@@ -565,10 +539,6 @@ writeHDF5ArrayInVrData <- function(object,
     if(!inherits(a, "DelayedArray") || replace){
       if(verbose)
         message("Writing '", vrAssayNames(object), "' normalized data")
-      # a <- BPCells::write_matrix_hdf5(a, 
-      #                                 path = h5_path, 
-      #                                 group = paste0(name, "/normdata"), 
-      #                                 overwrite = TRUE)
       a <- .writeHDF5(object = a, 
                       h5_path = h5_path, 
                       name = paste0(name, "/normdata"), 
@@ -594,20 +564,16 @@ writeHDF5ArrayInImage <- function(object,
                                   name,
                                   chunkdim, 
                                   level,
-                                  as.sparse,
                                   verbose, 
                                   replace = FALSE, 
                                   feature.vs.obs.engine = "BPCells"){
   
   # check packages
+  if(!requireNamespace('rhdf5'))
+    stop("Please install rhdf5 package!: BiocManager::install('rhdf5')")
   if(!requireNamespace('ImageArray'))
     stop("Please install ImageArray package!: 
          devtools::install_github('BIMSBbioinfo/ImageArray')")
-  if(!requireNamespace('rhdf5'))
-    stop("Please install rhdf5 package!: BiocManager::install('rhdf5')")
-  if(!requireNamespace('BPCells'))
-    stop("Please install BPCells package!: 
-         remotes::install_github('bnprks/BPCells/r')")
   
   # for each spatial system
   spatial_names <- vrSpatialNames(object)
@@ -619,21 +585,13 @@ writeHDF5ArrayInImage <- function(object,
     # write coordinates 
     coords <- vrCoordinates(object, spatial_name = spat)
     if(!inherits(coords, c("DelayedArray", "IterableMatrix")) || replace){
-      # if(!inherits(coords, "dgCMatrix"))
-      #   coords <- as(coords, "dgCMatrix")
       if(verbose)
         message("Writing '", name, "' coordinates")
-      # coords <- BPCells::write_matrix_hdf5(coords, 
-      #                                      path = h5_path, 
-      #                                      group = paste0(name, "/", 
-      #                                                     spat, "/coords"), 
-      #                                      overwrite = TRUE)
       coords <- .writeHDF5(object = coords, 
                            h5_path = h5_path, 
                            name = paste0(name, "/spat_", spat, "/coords"), 
                            chunkdim = chunkdim, 
                            level = level, 
-                           as.sparse = as.sparse, 
                            with.dimnames = TRUE, 
                            verbose = verbose, 
                            feature.vs.obs.engine = feature.vs.obs.engine)
@@ -678,12 +636,15 @@ writeHDF5ArrayInImage <- function(object,
                        name,
                        chunkdim, 
                        level,
-                       as.sparse,
+                       as.sparse = FALSE,
                        with.dimnames=FALSE,
                        verbose, 
                        feature.vs.obs.engine = "BPCells"){
   
   if(feature.vs.obs.engine == "BPCells"){
+    if(!requireNamespace('BPCells'))
+      stop("Please install BPCells package!: 
+         remotes::install_github('bnprks/BPCells/r')")
     if(!inherits(object, "dgCMatrix"))
       object <- as(object, "dgCMatrix")
     object <- BPCells::write_matrix_hdf5(object, 
@@ -691,14 +652,25 @@ writeHDF5ArrayInImage <- function(object,
                                     group = name, 
                                     overwrite = TRUE)
   } else if (feature.vs.obs.engine == "DelayedArray"){
-    object <- HDF5Array::writeHDF5Array(object, 
-                                   filepath = h5_path, 
-                                   name = name,
-                                   chunkdim=chunkdim, 
-                                   level=level,
-                                   as.sparse=as.sparse,
-                                   with.dimnames=with.dimnames, 
-                                   verbose=FALSE)
+    if(!requireNamespace('HDF5Array'))
+      stop("Please install HDF5Array package!: 
+         BiocManager::install('HDF5Array')")
+    if(as.sparse){
+      object <- HDF5Array::writeTENxMatrix(object, 
+                                           filepath = h5_path, 
+                                           group = name,
+                                           level=level,
+                                           verbose=FALSE)
+    } else {
+      object <- HDF5Array::writeHDF5Array(object, 
+                                          filepath = h5_path, 
+                                          name = name,
+                                          chunkdim=chunkdim, 
+                                          level=level,
+                                          as.sparse = as.sparse,
+                                          with.dimnames=with.dimnames, 
+                                          verbose=FALSE) 
+    }
   } else {
     stop("Unrecognized on-disk backed approach, please use
          either 'BPCells' or 'DelayedArray'")
@@ -980,10 +952,6 @@ writeZarrArrayInVrData <- function(object,
         message("Writing '", vrAssayNames(object), "' data")
       if(is.null(chunkdim)) 
         chunkdim <- vapply(dim(a), function(x) min(x,1000), numeric(1))
-      # a <- Rarr::writeZarrArray(
-      #   a, 
-      #   zarr_array_path = file.path(zarr_path, paste0(name, "/rawdata")),
-      #   chunk_dim = chunkdim)
       if(nrow(a) > 0){
         a <- Rarr::writeZarrArray(
           a,
@@ -1007,10 +975,6 @@ writeZarrArrayInVrData <- function(object,
         message("Writing '", vrAssayNames(object), "' normalized data")
       if(is.null(chunkdim)) 
         chunkdim <- vapply(dim(a), function(x) min(x,1000), numeric(1))
-      # a <- Rarr::writeZarrArray(
-      #   a, 
-      #   zarr_array_path = file.path(zarr_path, paste0(name, "/normdata")),
-      #   chunk_dim = chunkdim)
       if(nrow(a) > 0){
         a <- Rarr::writeZarrArray(
           a,

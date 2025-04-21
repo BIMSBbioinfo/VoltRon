@@ -12,7 +12,7 @@ saveVoltRon(
   replace = FALSE,
   chunkdim = NULL,
   level = NULL,
-  as.sparse = NA,
+  as.sparse = FALSE,
   verbose = TRUE,
   feature.vs.obs.engine = "BPCells"
 )
@@ -32,7 +32,7 @@ saveVoltRon(
 
 \item{level}{The compression level to use for writing the assay data to disk.}
 
-\item{as.sparse}{as.sparse}
+\item{as.sparse}{Whether the dataset (for HDF5 DelayedArray) should be flagged as sparse or not.}
 
 \item{verbose}{verbose}
 
