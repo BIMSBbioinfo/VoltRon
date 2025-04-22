@@ -153,7 +153,6 @@ getDivideSweep <- function(rawdata, divisor){
     if(!requireNamespace("DelayedArray"))
       stop("You have to install DelayedArray!: 
            BiocManager::install('DelayedArray')")
-    # return(DelayedArray::sweep(rawdata, 2L, divisor, FUN = "/"))
     return(t(t(rawdata)/divisor))
   } else {
     return(sweep(rawdata, 2L, divisor, FUN = "/"))
@@ -401,7 +400,7 @@ getPCA <- function(object,
     if(!requireNamespace("BPCells"))
       stop("You have to install BPCells!: ", 
            "remotes::install_github('bnprks/BPCells/r')")
-    svd <- BPCells::svds(normdata, k=dims, threads = n.workers)
+    svd <- BPCells::svds(normdata, k=dims, threads = as.integer(n.workers))
     pr.data <- BPCells::multiply_cols(svd$v, svd$d)
   } else {
     if(n.workers > 1){
