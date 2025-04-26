@@ -804,7 +804,8 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
         gg[[i]] <- vrSpatialFeaturePlotCombined(assay = cur_assay, metadata = cur_metadata, features = features, plot.segments = plot.segments, 
                                                 n.tile = n.tile, graph = graph, group.by = group.by, norm = norm, log = log, 
                                                 font.size = font.size, pt.size = pt.size, title.size = title.size, alpha = alpha, cell.shape = cell.shape,
-                                                label = label, plot_title = p_title, legend_title = l_title, background = background, reg = reg, crop = crop)
+                                                label = label, plot_title = p_title, legend_title = l_title, spatial = spatial, channel = channel, 
+                                                background.color = background.color, background = background, reg = reg, crop = crop)
       }
       
     # make individual feature plots
@@ -1087,10 +1088,11 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 #' @param label if TRUE, labels of ROIs will be visualized too
 #' @param plot_title the main title of the single plot
 #' @param legend_title the legend title of the single plot
-#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
-#' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
-#' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
-#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
+#' @param spatial the name of the main spatial system
+#' @param channel the name of the channel associated with the image
+#' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
+#' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
+#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial})
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
@@ -1104,15 +1106,24 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 #' @noRd
 vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segments = FALSE, n.tile = 0, graph = NULL, group.by = "label", norm = TRUE, log = FALSE,
                                          font.size = 2, pt.size = 2, cell.shape = 16, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL,
-                                         legend_title = NULL, background = NULL, reg = FALSE, crop = FALSE, scale.image = TRUE){
+                                         spatial = NULL, channel = NULL, legend_title = NULL, background.color = NULL, background = NULL, reg = FALSE, crop = FALSE, scale.image = TRUE){
   
   # plot
   g <- ggplot()
-  scale_factors <- 1
+  # scale_factors <- 1
+  
+  # add image and background
+  image <- vrSpatialPlotImage(g, assay, background, scale.image, spatial = spatial, 
+                              channel = channel, background.color = background.color)
+  g <- image$plot
+  info <- image$info
+  background.color <- image$background.color
+  spatial_name <- image$spatial
+  scale_factors <- image$scale_factors
   
   # add image
-  info <- NULL
-  spatial_name <- vrMainSpatial(assay)
+  # info <- NULL
+  # spatial_name <- vrMainSpatial(assay)
   
   # data
   coords <- as.data.frame(vrCoordinates(assay, spatial_name = spatial_name, reg = reg))
@@ -1193,7 +1204,7 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
   }
   
   # combine feature plots
-  g <- vrSpatialFeatureCombinePlot(g, all_data, n.tile, coords, segments, scale_factors, features, plot.segments)
+  g <- vrSpatialFeatureCombinePlot(g, all_data, n.tile, coords, segments, scale_factors, features, plot.segments, alpha)
   
   # add if a graph exists
   if(!is.null(graph)){
@@ -1239,7 +1250,7 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
 #' @import ggplot2
 #'
 #' @noRd
-vrSpatialFeatureCombinePlot <- function(g, all_data, n.tile, coords, segments, scale_factors, features, plot.segments = FALSE){
+vrSpatialFeatureCombinePlot <- function(g, all_data, n.tile, coords, segments, scale_factors, features, plot.segments = FALSE, alpha){
   
   # segments or not
   if(plot.segments){
@@ -1260,7 +1271,7 @@ vrSpatialFeatureCombinePlot <- function(g, all_data, n.tile, coords, segments, s
       dplyr::group_by(group) %>% 
       dplyr::summarise(fill = fill[which.max(value)], value = max(value))
     g.combined <- g + 
-      ggplot2::geom_polygon(data = polygon_data, aes(x = x, y = y, fill = fill, group = obs)) + 
+      ggplot2::geom_polygon(data = polygon_data, aes(x = x, y = y, fill = fill, group = obs), alpha = alpha) + 
       ggplot2::scale_fill_identity("", labels = features, breaks = key_table$fill, guide = "legend")
     
   } else {
