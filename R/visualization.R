@@ -1121,10 +1121,6 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
   spatial_name <- image$spatial
   scale_factors <- image$scale_factors
   
-  # add image
-  # info <- NULL
-  # spatial_name <- vrMainSpatial(assay)
-  
   # data
   coords <- as.data.frame(vrCoordinates(assay, spatial_name = spatial_name, reg = reg))
   coords <- coords/scale_factors
@@ -1226,9 +1222,9 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
                                 legend.key.size = unit(title.size, "points"), legend.title = element_text(size=title.size),
                                 legend.margin = margin(0,0,0,0))
   
-  # background
-  g <- g +
-    theme(panel.background = element_rect(fill = "grey97", colour = "grey97", linewidth = 0.5, linetype = "solid"))
+  # # background
+  # g <- g +
+  #   theme(panel.background = element_rect(fill = "grey97", colour = "grey97", linewidth = 0.5, linetype = "solid"))
   
   # return plot
   return(g)
