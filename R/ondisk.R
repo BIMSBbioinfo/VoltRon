@@ -902,6 +902,8 @@ writeZarrArrayInVrData <- function(object,
         if(is.null(chunkdim)) 
           chunkdim <- vapply(dim(a), function(x) min(x,1000), numeric(1))
         if(nrow(a) > 0){
+          if(!is.array(a))
+            a <- as.array(a)
           a <- Rarr::writeZarrArray(
             a, 
             zarr_array_path = file.path(zarr_path, paste0(name, "/", feat)),
@@ -925,6 +927,8 @@ writeZarrArrayInVrData <- function(object,
         if(is.null(chunkdim)) 
           chunkdim <- vapply(dim(a), function(x) min(x,1000), numeric(1))
         if(nrow(a) > 0){
+          if(!is.array(a))
+            a <- as.array(a)
           a <- Rarr::writeZarrArray(
             a, 
             zarr_array_path = file.path(zarr_path, 
@@ -953,6 +957,8 @@ writeZarrArrayInVrData <- function(object,
       if(is.null(chunkdim)) 
         chunkdim <- vapply(dim(a), function(x) min(x,1000), numeric(1))
       if(nrow(a) > 0){
+        if(!is.array(a))
+          a <- as.array(a)
         a <- Rarr::writeZarrArray(
           a,
           zarr_array_path = file.path(zarr_path, paste0(name, "/rawdata")),
@@ -976,6 +982,8 @@ writeZarrArrayInVrData <- function(object,
       if(is.null(chunkdim)) 
         chunkdim <- vapply(dim(a), function(x) min(x,1000), numeric(1))
       if(nrow(a) > 0){
+        if(!is.array(a))
+          a <- as.array(a)
         a <- Rarr::writeZarrArray(
           a,
           zarr_array_path = file.path(zarr_path, paste0(name, "/normdata")),
