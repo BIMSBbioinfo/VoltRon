@@ -300,7 +300,6 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
   ranks <- NULL
   for(assy in assay_names){
     feature_data <- vrFeatureData(object[[assy]], ...)
-    # if(nrow(feature_data) > 0){
     if(!is.null(feature_data)) {
       if(nrow(feature_data) > 0){
         feature_data$gene <- rownames(feature_data)
