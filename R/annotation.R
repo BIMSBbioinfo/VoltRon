@@ -408,8 +408,6 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
         }
         
         # place annotation to metadata
-        print(metadata)
-        print(length(new_label))
         metadata[[label]] <- new_label
         Metadata(object, assay = sample_metadata[assay, "Assay"]) <- metadata
         

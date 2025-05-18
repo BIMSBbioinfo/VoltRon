@@ -38,8 +38,6 @@ getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, da
   }
 
   # find profile neighbors
-  # if(knn.method == "FNN"){
-  #   nnedges <- FNN::get.knn(nndata, k = k + 1)
   nnedges <- knn_annoy(nndata, k = k + 1)
   names(nnedges) <- c("nn.index", "nn.dist")
   weights <- NULL

@@ -53,6 +53,10 @@ test_that("merge objects", {
   xenium_data2 <- xenium_data
   xenium_data2$Sample <- "XeniumR2"
   merged_data <- merge(xenium_data, xenium_data2, verbose = FALSE)
+  expect_equal(
+    ncol(vrData(merged_data)),
+    ncol(vrData(xenium_data))*2
+  )
   
   # merge two of different types
   merged_data <- merge(xenium_data, visium_data, verbose = FALSE)

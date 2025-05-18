@@ -84,6 +84,7 @@ test_that("spatial plots", {
   vrSpatialFeaturePlot(visium_data, features = "Stat1", norm = TRUE, log = TRUE)
   expect_error(vrSpatialFeaturePlot(visium_data, features = "Count_new"))
   vrSpatialFeaturePlot(xenium_data, features = c("ACTA2", "TACSTD2"), norm = TRUE, combine.features = TRUE)
+  vrSpatialFeaturePlot(xenium_data, features = c("ACTA2", "TACSTD2"), norm = TRUE, combine.features = TRUE, plot.segments = TRUE)
   
   # return
   expect_equal(1,1L)
@@ -132,7 +133,10 @@ test_that("rasterization", {
   vrSpatialFeaturePlot(xenium_data, features = "KRT14", norm = TRUE, log = TRUE, n.tile = 10)
   expect_error(vrSpatialFeaturePlot(xenium_data, features = "Count_new"))
   vrSpatialFeaturePlot(xenium_data, features = c("ACTA2", "TACSTD2"), norm = TRUE, n.tile = 100, combine.features = TRUE)
+  vrSpatialFeaturePlot(xenium_data, features = c("ACTA2", "TACSTD2"), norm = TRUE, n.tile = 100, combine.features = TRUE, plot.segments = TRUE)
   vrSpatialFeaturePlot(xenium_data, features = c("ACTA2", "TACSTD2"), norm = TRUE, n.tile = 2, combine.features = TRUE)
+  vrSpatialFeaturePlot(xenium_data, features = c("ACTA2", "TACSTD2"), norm = TRUE, n.tile = 2, combine.features = TRUE, plot.segments = TRUE)
+  vrSpatialFeaturePlot(xenium_data, features = c("ACTA2", "TACSTD2"), norm = TRUE, n.tile = 0, combine.features = TRUE, plot.segments = TRUE)
   
   # embedding plots
   vrEmbeddingPlot(xenium_data, n.tile = 1200, group.by = "clusters")
@@ -141,7 +145,7 @@ test_that("rasterization", {
   vrEmbeddingFeaturePlot(xenium_data, n.tile = 2, features = c("ACTA2", "TACSTD2"), embedding = "umap", combine.features = TRUE)
   vrEmbeddingPlot(xenium_data, n.tile = 2, group.by = "clusters")
   vrEmbeddingFeaturePlot(xenium_data, n.tile = 10, features = c("ACTA2"))
-  
+
   # return
   expect_equal(1,1L)
 })

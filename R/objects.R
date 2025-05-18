@@ -1166,28 +1166,44 @@ setMethod("vrData", "VoltRon", vrDataVoltRon)
 
 #' @importFrom Matrix Matrix
 merge_data <- function(data1, data2, by = "feature.ID"){
+  
   if(inherits(data1, c("data.frame", "Matrix"))){
     
     # merge
     data1 <- dplyr::full_join(data1, data2, by = "feature.ID")
     
-  } else if(inherits(data1, c("IterableMatrix"))) {
+  } else if(inherits(data1, c("IterableMatrix", "DelayedArray"))) {
     rownames_all <- unique(c(rownames(data1), rownames(data2)))
     
     # first data
-    m <- Matrix::Matrix(nrow = length(rownames_all) - length(rownames(data1)), ncol = ncol(data1), data = 0, sparse = TRUE)
+    m <- Matrix::Matrix(nrow = length(rownames_all) - length(rownames(data1)), 
+                        ncol = ncol(data1), data = 0, sparse = TRUE)
+    if(is(data1, "DelayedArray"))
+      m  <- DelayedArray::DelayedArray(m)
     data1_new <- rbind(data1, m)
-    rownames(data1_new) <- c(rownames(data1), setdiff(rownames_all, rownames(data1)))
+    rownames(data1_new) <- c(rownames(data1), 
+                             setdiff(rownames_all, rownames(data1)))
     data1_new <- data1_new[rownames_all,]
     
     # second data
-    m <- Matrix::Matrix(nrow = length(rownames_all) - length(rownames(data2)), ncol = ncol(data2), data = 0, sparse = TRUE)
+    m <- Matrix::Matrix(nrow = length(rownames_all) - length(rownames(data2)), 
+                        ncol = ncol(data2), data = 0, sparse = TRUE)
+    if(is(data1, "DelayedArray"))
+      m  <- DelayedArray::DelayedArray(m)
     data2_new <- rbind(data2, m)
-    rownames(data2_new) <- c(rownames(data2), setdiff(rownames_all, rownames(data2)))
+    rownames(data2_new) <- c(rownames(data2), 
+                             setdiff(rownames_all, rownames(data2)))
     data2_new <- data2_new[rownames_all,]
    
     # merge 
-    data1 <- cbind(data1_new, data2_new)
+    if(is(data1_new, "DelayedArray")){
+      data1 <- DelayedArray::cbind(data1_new, data2_new) 
+    } else {
+      data1 <- cbind(data1_new, data2_new) 
+    }
+  } else {
+    stop("Using merge_data for unrecognized class: should be either
+         'data.frame', 'Matrix', 'DelayedArray' or 'IterableMatrix'")
   }
   return(data1)
 }
@@ -1697,10 +1713,12 @@ vrCoordinatesVoltRon <- function(object, assay = NULL, image_name = NULL, spatia
     # update zlocation
     sample_name <- sample_metadata[assy, "Sample"]
     
-    catch_connect <- try(slot(object[[sample_name]], name = "zlocation"), silent = TRUE)
-    if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
-      zlocation <- object[[sample_name]]@zlocation 
-      cur_coords[,"z"] <- rep(zlocation[sample_metadata[assy, "Layer"]], nrow(cur_coords)) 
+    if("z" %in% colnames(cur_coords)){
+      catch_connect <- try(slot(object[[sample_name]], name = "zlocation"), silent = TRUE)
+      if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
+        zlocation <- object[[sample_name]]@zlocation 
+        cur_coords[,"z"] <- rep(zlocation[sample_metadata[assy, "Layer"]], nrow(cur_coords)) 
+      } 
     }
     
     # merge coordinates

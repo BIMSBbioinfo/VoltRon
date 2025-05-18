@@ -1,4 +1,54 @@
 ####
+# Object ####
+####
+
+#' fixVoltRon
+#'
+#' @param object a VoltRon object
+#'
+#' @importFrom methods is
+#' @importFrom igraph make_empty_graph
+#' 
+#' @export
+fixVoltRon <- function(object){
+  
+  # sample.metadata
+  sample.metadata <- SampleMetadata(object)
+  
+  # fix samples and layers
+  for(samp in unique(sample.metadata$Sample)){
+   
+    # sample
+    object_sample <- object[[samp]]
+    
+    # correct
+    catch_connect <- try(slot(object_sample, name = "zlocation"), silent = TRUE)
+    if(methods::is(catch_connect, 'try-error') || methods::is(catch_connect,'error')){
+      object_sample@zlocation <- numeric(0)
+    }
+    catch_connect <- try(slot(object_sample, name = "adjacency"), silent = TRUE)
+    if(methods::is(catch_connect, 'try-error') || methods::is(catch_connect,'error')){
+      object_sample@adjacency <- matrix()
+    }
+  
+    # fix layers
+    for(lyr in unique(sample.metadata$Layer[sample.metadata$Sample == samp])){
+      object_layer <- object_sample[[lyr]]
+      
+      # correct
+      catch_connect <- try(slot(object_layer, name = "connectivity"), silent = TRUE)
+      if(methods::is(catch_connect, 'try-error') || methods::is(catch_connect,'error')){
+        object_layer@connectivity <- igraph::make_empty_graph()
+      }
+      
+      object_sample[[lyr]] <- object_layer
+    }
+    object[[samp]] <- object_sample
+  }
+  object
+}
+
+####
 # Matrix Operations ####
 ####
 
@@ -205,6 +255,7 @@ getBasilisk <- function(){
     stop("Please install basilisk package!: BiocManager::install('basilisk')")
   
   basilisk.packages=c(
+    "python=3.11",
     "numpy==1.*",
     "pandas==1.*",
     "anndata==0.8.*",

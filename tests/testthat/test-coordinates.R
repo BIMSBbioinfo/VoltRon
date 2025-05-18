@@ -25,3 +25,22 @@ test_that("coordinates", {
   
   expect_equal(1,1L)
 })
+
+test_that("2d vs 3d", {
+  
+  # get data
+  data("xenium_data")
+  
+  # change to 2 dimensions, might occur in previous versions of VoltRon
+  xenium_data[["Assay1"]]@image$main@coords <- xenium_data[["Assay1"]]@image$main@coords[,1:2]
+  
+  # coordinates
+  coords <- vrCoordinates(xenium_data)
+  
+  # merge with second object and try again
+  xenium_data2 <- xenium_data
+  xenium_data2$Sample <- "Sample2"
+  xenium_data <- merge(xenium_data, xenium_data2)
+  
+  expect_equal(1,1L)
+})
