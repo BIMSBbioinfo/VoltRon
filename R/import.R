@@ -2038,16 +2038,22 @@ importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, i
   rownames(metadata) <- obs_names
   
   # coordinates
-  coords <- stdata$obsm$spatial_3d_aligned
-  rownames(coords) <- obs_names
-  zlocation <- unique(coords[,3])
+  obsm <- stdata$obsm
+  if("spatial_3d_aligned" %in% names(obsm)) {
+    coords <- stdata$obsm$spatial_3d_aligned
+    rownames(coords) <- obs_names
+    zlocation <- unique(coords[,3])
+    sections <- unique(metadata$n_section)
+    zlocation <- zlocation[order(sections)]
+    sections <- sections[order(sections)]
+  } else {
+    coords <- stdata$obsm$spatial
+    rownames(coords) <- obs_names
+    zlocation <- 0
+    metadata$n_sections <- sections <- 1
+  }
   
-  # get individual sections as voltron data
-  sections <- unique(metadata$n_section)
-  zlocation <- zlocation[order(sections)]
-  connectivity <- data.frame(Var1 = rep(seq_len(length(sections)), length(sections)), 
-                             Var2 = rep(seq_len(length(sections)), each = length(sections)))
-  sections <- sections[order(sections)]
+  # get individual sections as voltron data if there are any
   vr_data_list <- list()
   if(verbose)
     message("Creating Layers ...")
@@ -2058,17 +2064,36 @@ importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, i
     cur_metadata <- metadata[spatialpoints,]
     cur_coords <- coords[ind,c(1,2)]
     rownames(cur_coords) <- spatialpoints
-    vr_data_list[[i]] <- formVoltRon(data = cur_data, metadata = cur_metadata, coords = cur_coords, 
-                                     main.assay = assay_name, sample_name = paste0("Section", sections[i]),
-                                     image_name = image_name, main_channel = channel_name, feature_name = "RNA", ...)
+    vr_data_list[[i]] <- 
+      formVoltRon(data = cur_data, 
+                  metadata = cur_metadata, 
+                  coords = cur_coords, 
+                  main.assay = assay_name, 
+                  sample_name = paste0("Section", sections[i]),
+                  image_name = image_name, 
+                  main_channel = channel_name, 
+                  feature_name = "RNA", ...)
   }
   
   # create VoltRon
   sample_name <- ifelse(is.null(sample_name), "Sample", sample_name)
-  vr_data <- mergeVoltRon(vr_data_list[[1]], vr_data_list[-1], samples = sample_name)
   
   # set zlocations and adjacency of layer in the vrBlock
-  vr_data <- addBlockConnectivity(vr_data, connectivity = connectivity, zlocation = zlocation, sample = sample_name)
+  if(length(vr_data_list) > 1){
+    vr_data <- mergeVoltRon(vr_data_list[[1]], 
+                            vr_data_list[-1], 
+                            samples = sample_name)
+    connectivity <- data.frame(Var1 = rep(seq_len(length(sections)), 
+                                          length(sections)), 
+                               Var2 = rep(seq_len(length(sections)), 
+                                          each = length(sections)))
+    vr_data <- addBlockConnectivity(vr_data, 
+                                    connectivity = connectivity, 
+                                    zlocation = zlocation, 
+                                    sample = sample_name)
+  } else {
+    vr_data <- vr_data_list[[1]]
+  }
   
   # return
   vr_data

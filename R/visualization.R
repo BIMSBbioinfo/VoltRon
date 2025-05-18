@@ -884,6 +884,8 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
 #' @importFrom dplyr arrange
 #'
 #' @noRd
+
+
 vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments = FALSE, n.tile = 0, graph = NULL, limits, 
                                        group.by = "label", norm = TRUE, log = FALSE, font.size = 2, pt.size = 2, cell.shape = 16, 
                                        title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL, legend_title = NULL, 
@@ -917,8 +919,6 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   data_features <- feature[feature %in% vrFeatures(assay)]
   if(length(data_features) > 0){
     normdata <- vrData(assay, features = feature, norm = norm)
-    if(log)
-      normdata <- log1p(normdata)
   }
   if(feature %in% data_features){
     if(inherits(normdata, "IterableMatrix")){
@@ -935,6 +935,10 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
       names(cur_score) <- as.vector(metadata$id)
     }
   }
+  
+  # log transform
+  if(log)
+    cur_score <- log1p(cur_score)
   
   # add score
   coords <- as.matrix(coords)
