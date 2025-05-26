@@ -1221,6 +1221,9 @@ generateTileDataVoltRon <- function(object, assay = NULL, ...) {
   # get tile data for all assays
   for(assy in assay_names)
     object[[assy]] <- generateTileData(object[[assy]], ...)
+  
+  # return
+  object
 }
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 

@@ -1288,7 +1288,7 @@ vrSpatialFeatureCombinePlot <- function(g, all_data, n.tile, coords, segments, s
         dplyr::group_by(group) %>% 
         dplyr::summarise(fill = fill[which.max(value)], value = max(value))
       g.combined <- g +
-        ggplot2::geom_tile(data = as.data.frame(all_data), aes(x = x, y = y, fill = fill)) +
+        ggplot2::geom_raster(data = as.data.frame(all_data), aes(x = x, y = y, fill = fill)) +
         ggplot2::scale_fill_identity("", labels = features, breaks = key_table$fill, guide = "legend")
     } else {
       all_data <- all_data %>% group_by(x,y) %>% 
@@ -1995,7 +1995,7 @@ vrEmbeddingFeatureCombinePlot <- function(all_data, n.tile, datax, features, emb
       dplyr::group_by(group) %>% 
       dplyr::summarise(fill = fill[which.max(value)], value = max(value))
     g.combined <- g.combined +
-      ggplot2::geom_tile(data = as.data.frame(all_data), aes(x = x, y = y, fill = fill)) +
+      ggplot2::geom_raster(data = as.data.frame(all_data), aes(x = x, y = y, fill = fill)) +
       ggplot2::scale_fill_identity("", labels = features, breaks = key_table$fill, guide = "legend")
   } else {
     all_data <- all_data %>% group_by(x,y) %>% 

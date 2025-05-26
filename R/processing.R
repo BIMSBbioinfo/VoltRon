@@ -501,7 +501,7 @@ getUMAP <- function(object,
 # Image Processing ####
 ####
 
-#' split_into_tiles
+#' .make_tiles_data
 #'
 #' split image raster data into tiles
 #'
@@ -509,34 +509,28 @@ getUMAP <- function(object,
 #' @param tile_size tile size
 #'
 #' @noRd
-split_into_tiles <- function(image_data, tile_size = 10) {
-  n_rows <- nrow(image_data)
-  n_cols <- ncol(image_data)
+.make_tiles_data <- function(image_data, tile_size = 10) {
 
   # Calculate the number of tiles in rows and columns
-  n_row_tiles <- n_rows %/% tile_size
-  n_col_tiles <- n_cols %/% tile_size
+  n_rows <- nrow(image_data)
+  n_cols <- ncol(image_data)
+  row_tile_size <- (n_rows %/% tile_size)
+  col_tile_size <- (n_cols %/% tile_size)
+  rowlimit <- tile_size * row_tile_size
+  collimit <- tile_size * col_tile_size
+  
+  # subset image data given tile_size
+  image_data <- image_data[1:rowlimit, 1:collimit]
 
-  # Initialize an empty list to store tiles
-  tiles <- list()
-
-  # Loop through the image data matrix to extract tiles
-  for (i in seq_len(n_row_tiles)) {
-    for (j in seq_len(n_col_tiles)) {
-      # Calculate the indices for the current tile
-      start_row <- (i - 1) * tile_size + 1
-      end_row <- i * tile_size
-      start_col <- (j - 1) * tile_size + 1
-      end_col <- j * tile_size
-
-      # Extract the current tile from the image data matrix
-      tile <- image_data[start_row:end_row, start_col:end_col]
-
-      # Store the tile in the list
-      tiles[[length(tiles) + 1]] <- tile
-    }
-  }
+  # permute the data to create tile data
+  # dimensions: block_row, rows, block_col, cols
+  tiles_data <- array(image_data, 
+                      dim = c(tile_size, row_tile_size, 
+                              tile_size, col_tile_size))
+  tiles_data <- aperm(tiles_data, c(3, 1, 4, 2))  
+  tiles_data <- apply(tiles_data, c(3, 4), function(x) c(x))
+  tiles_data <- matrix(tiles_data, nrow = tile_size*tile_size)
 
   # Return the list of tiles
-  return(tiles)
+  return(tiles_data)
 }
