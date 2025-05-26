@@ -823,7 +823,7 @@ vrDatavrAssay <- function(object, features = NULL, feat_type = NULL, norm = FALS
       }
     }
     
-    # for tiles and molecules
+  # for tiles and molecules
   } else {
     
     # check if features are requested
@@ -869,18 +869,22 @@ generateTileDatavrAssay <- function(object, name = NULL, reg = FALSE, channel = 
   if(vrAssayTypes(object) != "tile"){
     stop("generateTileData can only be used for tile-based assays")
   } else {
+    
+    # make image data
     image_data <- as.numeric(vrImages(object, name = name, reg = reg, channel = channel, as.raster = TRUE))
     image_data <- (0.299 * image_data[,,1] + 0.587 * image_data[,,2] + 0.114 * image_data[,,3])
-    image_data <- split_into_tiles(image_data, tile_size = vrAssayParams(object, param = "tile.size"))
-    image_data <- sapply(image_data, function(x) return(as.vector(x)))
+    image_data <- .make_tiles_data(image_data, tile_size = vrAssayParams(object, param = "tile.size"))
+
+    # update pixel intensity to uint8
     image_data <- image_data*255
     rownames(image_data) <- paste0("pixel", seq_len(nrow(image_data)))
     colnames(image_data) <- vrSpatialPoints(object)
-    feat_type <- vrMainFeatureType(object)
-    
+
+    # populate image data
     if(inherits(object, "vrAssay")){
       object@rawdata <- object@normdata <- image_data
     } else{
+      feat_type <- vrMainFeatureType(object)
       object@data[[feat_type]] <- image_data
       object@data[[paste0(feat_type, "_norm")]] <- image_data
     }

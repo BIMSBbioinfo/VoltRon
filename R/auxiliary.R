@@ -255,6 +255,7 @@ getBasilisk <- function(){
     stop("Please install basilisk package!: BiocManager::install('basilisk')")
   
   basilisk.packages=c(
+    "python=3.11",
     "numpy==1.*",
     "pandas==1.*",
     "anndata==0.8.*",

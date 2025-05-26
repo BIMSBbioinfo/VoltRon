@@ -6,7 +6,13 @@ NULL
 # Normalization ####
 ####
 
-normalizeDataVoltRon <- function(object, assay = NULL, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2, sizefactor = 10000, feat_type = NULL) {
+normalizeDataVoltRon <- function(object, 
+                                 assay = NULL, 
+                                 method = "LogNorm", 
+                                 desiredQuantile = 0.9, 
+                                 scale = 0.2, 
+                                 sizefactor = 10000, 
+                                 feat_type = NULL) {
   
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -14,17 +20,25 @@ normalizeDataVoltRon <- function(object, assay = NULL, method = "LogNorm", desir
   # normalize assays
   for(assy in assay_names){
     cur_assay <- object[[assy]]
-    object[[assy]] <- normalizeData(cur_assay, method = method, desiredQuantile = desiredQuantile, scale = scale, sizefactor = sizefactor, feat_type = feat_type)
+    object[[assy]] <- normalizeData(cur_assay, 
+                                    method = method, 
+                                    desiredQuantile = desiredQuantile, 
+                                    scale = scale, 
+                                    sizefactor = sizefactor, 
+                                    feat_type = feat_type)
   }
   
   # return
   return(object)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' @param assay assay name (exp: Assay1) or assay class 
+#  (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param method the normalization method: "LogNorm", "Q3Norm", "LogQ3Norm" or "CLR"
-#' @param desiredQuantile the quantile of the data if "QuanNorm" or "LogQuanNorm" is selected as \code{method}.
+#' @param method the normalization method: "LogNorm", 
+#' "Q3Norm", "LogQ3Norm" or "CLR"
+#' @param desiredQuantile the quantile of the data if "QuanNorm" 
+#' or "LogQuanNorm" is selected as \code{method}.
 #' @param scale the scale parameter for the hyperbolic arcsine transformation
 #' @param sizefactor size factor if \code{method} is selected as \code{LogNorm}
 #' @param feat_type the feature set type
@@ -35,7 +49,12 @@ normalizeDataVoltRon <- function(object, assay = NULL, method = "LogNorm", desir
 #' @export
 setMethod("normalizeData", "VoltRon", normalizeDataVoltRon)
 
-normalizeDatavrAssay <- function(object, method = "LogNorm", desiredQuantile = 0.9, scale = 0.2, sizefactor = 10000, feat_type = NULL) {
+normalizeDatavrAssay <- function(object, 
+                                 method = "LogNorm", 
+                                 desiredQuantile = 0.9, 
+                                 scale = 0.2, 
+                                 sizefactor = 10000, 
+                                 feat_type = NULL) {
   
   # size factor
   rawdata <- vrData(object, feat_type = feat_type, norm = FALSE)
@@ -68,7 +87,8 @@ normalizeDatavrAssay <- function(object, method = "LogNorm", desiredQuantile = 0
   } else if(method == "hyper.arcsine") {
     normdata <- asinh(rawdata/scale)
   } else {
-    stop('Please select one of these methods: "LogNorm", "Q3Norm", "LogQ3Norm" or "CLR"')
+    stop('Please select one of these methods: "LogNorm",', 
+         ' "Q3Norm", "LogQ3Norm" or "CLR"')
   }
   
   # get normalized data
@@ -105,9 +125,17 @@ setMethod("normalizeData", "vrAssayV2", normalizeDatavrAssay)
 LogNorm <- function(rawdata, coldepth, sizefactor){
   if(inherits(rawdata, "IterableMatrix")){
     if(!requireNamespace("BPCells"))
-      stop("You have to install BPCells!")
+      stop("You have to install BPCells!: 
+           remotes::install_github('bnprks/BPCells/r')")
     normdata <- BPCells::t(BPCells::t(rawdata)/coldepth)
     normdata <- BPCells::log1p_slow(normdata*sizefactor)
+  } else if(inherits(rawdata, "DelayedArray")){
+    if(!requireNamespace("DelayedArray"))
+      stop("You have to install DelayedArray!: 
+           BiocManager::install('DelayedArray')")
+    # normdata <- DelayedArray::sweep(rawdata, 2L, coldepth, FUN = "/")
+    normdata <- t(t(rawdata)/coldepth)
+    normdata <- log(normdata*sizefactor + 1)
   } else {
     normdata <- sweep(rawdata, 2L, coldepth, FUN = "/")
     normdata <- log(normdata*sizefactor + 1)
@@ -118,8 +146,14 @@ LogNorm <- function(rawdata, coldepth, sizefactor){
 getDivideSweep <- function(rawdata, divisor){
   if(inherits(rawdata, "IterableMatrix")){
     if(!requireNamespace("BPCells"))
-      stop("You have to install BPCells!")
+      stop("You have to install BPCells!: 
+           remotes::install_github('bnprks/BPCells/r')")
     return(BPCells::t(BPCells::t(rawdata)/divisor))
+  } else if(inherits(rawdata, "DelayedArray")){
+    if(!requireNamespace("DelayedArray"))
+      stop("You have to install DelayedArray!: 
+           BiocManager::install('DelayedArray')")
+    return(t(t(rawdata)/divisor))
   } else {
     return(sweep(rawdata, 2L, divisor, FUN = "/"))
   }
@@ -144,9 +178,11 @@ getFeaturesVoltRon <- function(object, assay = NULL, max.count = 1, n = 3000){
   return(object)
 }
 
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' @param assay assay name (exp: Assay1) or assay class 
+#' (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param max.count maximum count (across spatial points) for low count filtering
+#' @param max.count maximum count (across spatial points) for 
+#' low count filtering
 #' @param n the top number of variable features 
 #' 
 #' @rdname getFeatures
@@ -166,14 +202,14 @@ getFeaturesvrAssay <- function(object, max.count = 1, n = 3000){
   keep.genes <- getMaxCount(rawdata, max.count)
   
   # vst estimation
-  # vst_data <- data.frame(mean = Matrix::rowMeans(rawdata), var = apply(rawdata, 1, stats::var))
   vst_data <- getVstData(rawdata)
   loess_data <- vst_data[keep.genes,]
   loess_results <- stats::loess(var~mean, loess_data, span = 0.3)
   vst_data$adj_var <- 0
   vst_data$rank <- 0
   vst_data[keep.genes,]$adj_var <- stats::predict(loess_results)
-  vst_data[keep.genes,]$rank <- order(order(vst_data$adj_var[keep.genes], decreasing = TRUE))
+  vst_data[keep.genes,]$rank <- order(order(vst_data$adj_var[keep.genes], 
+                                            decreasing = TRUE))
   
   # set feature data
   vrFeatureData(object) <- vst_data
@@ -201,11 +237,18 @@ setMethod("getFeatures", "vrAssayV2", getFeaturesvrAssay)
 getVstData <- function(rawdata){
   if(inherits(rawdata, "IterableMatrix")){
     if(!requireNamespace("BPCells"))
-      stop("You have to install BPCells!")
+      stop("You have to install BPCells!: 
+           remotes::install_github('bnprks/BPCells/r')")
     mean_data <- BPCells::rowMeans(rawdata)
-    var_data <- BPCells::rowSums(rawdata^2)
-    var_data <- (var_data - mean_data^2/nrow(rawdata))/(nrow(rawdata)-1)
-    # var_data <- BPCells::matrix_stats(rawdata, row_stats="variance")
+    # var_data <- BPCells::rowSums(rawdata^2)
+    # var_data <- (var_data - mean_data^2/nrow(rawdata))/(nrow(rawdata)-1)
+    var_data <- BPCells::rowVars(rawdata)
+  } else if(inherits(rawdata, "DelayedArray")){
+    if(!requireNamespace("DelayedMatrixStats"))
+      stop("You have to install DelayedMatrixStats!: 
+           BiocManager::install('DelayedMatrixStats')")
+    mean_data <- DelayedMatrixStats::rowMeans2(rawdata)
+    var_data <- DelayedMatrixStats::rowVars(rawdata)
   } else {
     mean_data <- Matrix::rowMeans(rawdata)
     var_data <- apply(rawdata, 1, stats::var)
@@ -217,9 +260,16 @@ getVstData <- function(rawdata){
 getMaxCount <- function(rawdata, max.count){
   if(inherits(rawdata, "IterableMatrix")){
     if(!requireNamespace("BPCells"))
-      stop("You have to install BPCells!")
+      stop("You have to install BPCells!: 
+           remotes::install_github('bnprks/BPCells/r')")
     rawdata <- rawdata > max.count
     keep.genes <- which(BPCells::rowSums(rawdata) > 0)
+  } else if(inherits(rawdata, "DelayedArray")){
+    if(!requireNamespace("DelayedMatrixStats"))
+      stop("You have to install DelayedMatrixStats!: 
+           BiocManager::install('DelayedMatrixStats')")
+    rawdata <- rawdata > max.count
+    keep.genes <- which(DelayedMatrixStats::rowSums2(rawdata) > 0)
   } else {
     keep.genes <- which(apply(rawdata,1,max) > max.count)
   }
@@ -230,8 +280,9 @@ getMaxCount <- function(rawdata, max.count){
 #'
 #' get shared variable features across multiple assays
 #'
-#' @param object a Voltron Object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' @param object a VoltRon Object
+#' @param assay assay name (exp: Assay1) or assay class 
+#' (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param n the number of features
 #' @param ... additional arguements passed to \link{vrFeatureData}
@@ -249,7 +300,6 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
   ranks <- NULL
   for(assy in assay_names){
     feature_data <- vrFeatureData(object[[assy]], ...)
-    # if(nrow(feature_data) > 0){
     if(!is.null(feature_data)) {
       if(nrow(feature_data) > 0){
         feature_data$gene <- rownames(feature_data)
@@ -260,7 +310,8 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
     if(is.null(ranks)){
       ranks <- feature_data[,c("gene", "rank")]
     } else {
-      ranks <- ranks %>% full_join(feature_data[,c("gene", "rank")], by = c("gene" = "gene"))
+      ranks <- ranks %>% full_join(feature_data[,c("gene", "rank")], 
+                                   by = c("gene" = "gene"))
     }
   }
 
@@ -268,7 +319,6 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
   rownames_ranks <- ranks$gene
   ranks <- ranks[,!colnames(ranks) %in% "gene", drop = FALSE]
   ranks <- apply(ranks, 1, function(x) exp(mean(log(x))))
-  # names(ranks) <- rownames(feature_data)
   names(ranks) <- rownames_ranks
   ranks <- ranks[ranks != 0]
 
@@ -292,18 +342,28 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #' calculate PCA of the VoltRon objects
 #'
 #' @param object a VoltRon object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' @param assay assay name (exp: Assay1) or assay class 
+#' (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param features the selected features for PCA reduction
 #' @param dims the number of dimensions extracted from PCA
 #' @param type the key name for the embedding, default: pca
-#' @param overwrite Whether the existing embedding with name 'type' should be overwritten in \link{vrEmbeddings}
+#' @param n.workers the number of cores/workers use for parallelization.
+#' @param overwrite Whether the existing embedding with name 'type' 
+#' should be overwritten in \link{vrEmbeddings}
 #' @param seed seed
 #'
-#' @importFrom irlba irlba
+#' @importFrom BiocSingular runPCA FastAutoParam
 #'
 #' @export
-getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca", overwrite = FALSE, seed = 1){
+getPCA <- function(object, 
+                   assay = NULL, 
+                   features = NULL, 
+                   dims = 30, 
+                   type = "pca", 
+                   n.workers = 1, 
+                   overwrite = FALSE, 
+                   seed = 1){
 
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
@@ -320,7 +380,8 @@ getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca
 
     # adjust extraction features length
     if(dims > length(features)){
-      message("Requested more PC dimensions than existing features: dims = length(features) now!")
+      message("Requested more PC dimensions than existing ", 
+              "features: dims = length(features) now!")
       dims <- length(features)
     }
 
@@ -336,12 +397,30 @@ getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca
   set.seed(seed)
   if(inherits(normdata, "IterableMatrix")){
     if(!requireNamespace("BPCells"))
-      stop("You have to install BPCells!")
-    svd <- BPCells::svds(normdata, k=dims)
+      stop("You have to install BPCells!: ", 
+           "remotes::install_github('bnprks/BPCells/r')")
+    svd <- BPCells::svds(normdata, k=dims, threads = as.integer(n.workers))
     pr.data <- BPCells::multiply_cols(svd$v, svd$d)
   } else {
-    scale.data <- apply(normdata, 1, scale)
-    pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+    if(n.workers > 1){
+      if(!requireNamespace("BiocParallel"))
+        stop("You have to install BiocParallel!: ", 
+             "BiocManager::install('BiocParallel')")
+      pr.data <- 
+        BiocSingular::runPCA(t(normdata), 
+                             rank=dims,
+                             scale=TRUE,
+                             center=TRUE, 
+                             BPPARAM = BiocParallel::MulticoreParam(n.workers), 
+                             BSPARAM=BiocSingular::FastAutoParam()) 
+    } else {
+      pr.data <- 
+        BiocSingular::runPCA(t(normdata), 
+                             rank=dims,
+                             scale=TRUE,
+                             center=TRUE, 
+                             BSPARAM=BiocSingular::FastAutoParam())
+    }
     pr.data <- pr.data$x 
   }
   
@@ -350,7 +429,10 @@ getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca
   rownames(pr.data) <- colnames(normdata)
 
   # set Embeddings
-  vrEmbeddings(object, assay = assay, type = type, overwrite = overwrite) <- pr.data
+  vrEmbeddings(object, 
+               assay = assay, 
+               type = type, 
+               overwrite = overwrite) <- pr.data
 
   # return
   return(object)
@@ -361,12 +443,15 @@ getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca
 #' calculate UMAP of the VoltRon objects
 #'
 #' @param object a VoltRon object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' @param assay assay name (exp: Assay1) or assay class 
+#' (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param data.type the type of data used to calculate UMAP from: "pca" (default), "raw" or "norm"
+#' @param data.type the type of data used to calculate UMAP from: 
+#' "pca" (default), "raw" or "norm"
 #' @param dims the number of dimensions extracted from PCA
 #' @param umap.key the name of the umap embedding, default: umap
-#' @param overwrite Whether the existing embedding with name 'type' should be overwritten in \link{vrEmbeddings}
+#' @param overwrite Whether the existing embedding with name 'type' 
+#' should be overwritten in \link{vrEmbeddings}
 #' @param seed seed
 #'
 #' @importFrom uwot umap
@@ -374,7 +459,13 @@ getPCA <- function(object, assay = NULL, features = NULL, dims = 30, type = "pca
 #'
 #' @export
 #'
-getUMAP <- function(object, assay = NULL, data.type = "pca", dims = seq_len(30), umap.key = "umap", overwrite = FALSE, seed = 1){
+getUMAP <- function(object, 
+                    assay = NULL, 
+                    data.type = "pca", 
+                    dims = seq_len(30), 
+                    umap.key = "umap", 
+                    overwrite = FALSE, 
+                    seed = 1){
 
   # get data
   if(data.type %in% c("raw", "norm")){
@@ -383,9 +474,13 @@ getUMAP <- function(object, assay = NULL, data.type = "pca", dims = seq_len(30),
   } else{
     embedding_names <- vrEmbeddingNames(object)
     if(data.type %in% vrEmbeddingNames(object)) {
-      data <- vrEmbeddings(object, assay = assay, type = data.type, dims = dims)
+      data <- vrEmbeddings(object, 
+                           assay = assay, 
+                           type = data.type, 
+                           dims = dims)
     } else {
-      stop("Please provide a data type from one of three choices: raw, norm and pca")
+      stop("Please provide a data type from one of ", 
+           "three choices: raw, norm and pca")
     }
   }
 
@@ -393,7 +488,10 @@ getUMAP <- function(object, assay = NULL, data.type = "pca", dims = seq_len(30),
   set.seed(seed)
   umap_data <- uwot::umap(data)
   colnames(umap_data) <- c("x", "y")
-  vrEmbeddings(object, assay = assay, type = umap.key, overwrite = overwrite) <- umap_data
+  vrEmbeddings(object, 
+               assay = assay, 
+               type = umap.key, 
+               overwrite = overwrite) <- umap_data
 
   # return
   return(object)
@@ -403,7 +501,7 @@ getUMAP <- function(object, assay = NULL, data.type = "pca", dims = seq_len(30),
 # Image Processing ####
 ####
 
-#' split_into_tiles
+#' .make_tiles_data
 #'
 #' split image raster data into tiles
 #'
@@ -411,34 +509,28 @@ getUMAP <- function(object, assay = NULL, data.type = "pca", dims = seq_len(30),
 #' @param tile_size tile size
 #'
 #' @noRd
-split_into_tiles <- function(image_data, tile_size = 10) {
-  n_rows <- nrow(image_data)
-  n_cols <- ncol(image_data)
+.make_tiles_data <- function(image_data, tile_size = 10) {
 
   # Calculate the number of tiles in rows and columns
-  n_row_tiles <- n_rows %/% tile_size
-  n_col_tiles <- n_cols %/% tile_size
+  n_rows <- nrow(image_data)
+  n_cols <- ncol(image_data)
+  row_tile_size <- (n_rows %/% tile_size)
+  col_tile_size <- (n_cols %/% tile_size)
+  rowlimit <- tile_size * row_tile_size
+  collimit <- tile_size * col_tile_size
+  
+  # subset image data given tile_size
+  image_data <- image_data[1:rowlimit, 1:collimit]
 
-  # Initialize an empty list to store tiles
-  tiles <- list()
-
-  # Loop through the image data matrix to extract tiles
-  for (i in seq_len(n_row_tiles)) {
-    for (j in seq_len(n_col_tiles)) {
-      # Calculate the indices for the current tile
-      start_row <- (i - 1) * tile_size + 1
-      end_row <- i * tile_size
-      start_col <- (j - 1) * tile_size + 1
-      end_col <- j * tile_size
-
-      # Extract the current tile from the image data matrix
-      tile <- image_data[start_row:end_row, start_col:end_col]
-
-      # Store the tile in the list
-      tiles[[length(tiles) + 1]] <- tile
-    }
-  }
+  # permute the data to create tile data
+  # dimensions: block_row, rows, block_col, cols
+  tiles_data <- array(image_data, 
+                      dim = c(tile_size, row_tile_size, 
+                              tile_size, col_tile_size))
+  tiles_data <- aperm(tiles_data, c(3, 1, 4, 2))  
+  tiles_data <- apply(tiles_data, c(3, 4), function(x) c(x))
+  tiles_data <- matrix(tiles_data, nrow = tile_size*tile_size)
 
   # Return the list of tiles
-  return(tiles)
+  return(tiles_data)
 }

@@ -12,8 +12,9 @@ saveVoltRon(
   replace = FALSE,
   chunkdim = NULL,
   level = NULL,
-  as.sparse = NA,
-  verbose = TRUE
+  as.sparse = FALSE,
+  verbose = TRUE,
+  feature.vs.obs.engine = "BPCells"
 )
 }
 \arguments{
@@ -31,9 +32,11 @@ saveVoltRon(
 
 \item{level}{The compression level to use for writing the assay data to disk.}
 
-\item{as.sparse}{as.sparse}
+\item{as.sparse}{Whether the dataset (for HDF5 DelayedArray) should be flagged as sparse or not.}
 
 \item{verbose}{verbose}
+
+\item{feature.vs.obs.engine}{The on-disk method for the manipulating feature x obs matrices: BPCells or DelayedArray}
 }
 \description{
 save VoltRon object in memory or on disk

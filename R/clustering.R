@@ -38,8 +38,6 @@ getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, da
   }
 
   # find profile neighbors
-  # if(knn.method == "FNN"){
-  #   nnedges <- FNN::get.knn(nndata, k = k + 1)
   nnedges <- knn_annoy(nndata, k = k + 1)
   names(nnedges) <- c("nn.index", "nn.dist")
   weights <- NULL
@@ -121,6 +119,9 @@ knn_annoy <- function(data, query = data, k = 10, n_trees = 50, search_k = -1) {
 #' @param nclus The number of cluster centers for K-means clustering.
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param method The method of clustering. Use :
+#' (i) 'leiden' to perform graph clustering and 
+#' (ii) 'kmeans' for K-means based clustering
 #' @param method The method of clustering. Use 'leiden' to perform graph clustering and 'kmeans' for K-means based clustering
 #' @param label the name for the newly created clustering column in the metadata
 #' @param graph the graph type to be used

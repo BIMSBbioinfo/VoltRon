@@ -20,10 +20,12 @@ getFeatures(object, ...)
 
 \item{...}{arguments passed to other methods.}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class 
+(exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{max.count}{maximum count (across spatial points) for low count filtering}
+\item{max.count}{maximum count (across spatial points) for 
+low count filtering}
 
 \item{n}{the top number of variable features}
 }
