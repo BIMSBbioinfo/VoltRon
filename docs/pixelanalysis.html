@@ -470,9 +470,10 @@ table, th, td {
 large amount of spatially resolved datasets. As opposed to datasets with
 either supracellular (spot-level) or cellular resolutions, one might
 analyze image datasets and pixels to characterize the morphology of a
-tissue section. Here, images can also be used to build VoltRon objects
-where pixels (or tiles) are defined as spatial points, and then can also
-be used for multiple downstream analysis purposes.</p>
+tissue section.</p>
+<p>Here, images can also be used to build VoltRon objects where pixels
+(or tiles) are defined as spatial points, and then can also be used for
+multiple downstream analysis purposes.</p>
 <p><br></p>
 <div id="importing-images-he" class="section level2">
 <h2>Importing Images (H&amp;E)</h2>
@@ -482,7 +483,8 @@ href="https://www.10xgenomics.com/platforms/xenium">Xenium In Situ</a>
 platform. Three tissue sections were cut from a single formalin-fixed,
 paraffin-embedded (FFPE) breast cancer tissue block. A 5 <span
 class="math inline">\(\mu\)</span>m section was used to generate a
-single Xenium replicate.</p>
+single Xenium replicate. The H&amp;E staining was performed on the
+tissue after the Xenium run.</p>
 <p>More information on the Xenium and the study can be also be found on
 the <a
 href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">BioArxiv
@@ -508,7 +510,9 @@ Features: main(Main) </code></pre>
 <div id="building-datasets-for-tiles" class="section level2">
 <h2>Building Datasets for Tiles</h2>
 <p>The VoltRon object stores the metadata information and localization
-of all tiles in the image.</p>
+of all tiles in the image. These tiles, like any observation, can be
+analyzed independently where you can reduce its dimensionality to
+perform clustering later.</p>
 <pre class="r watch-out"><code>head(Metadata(Xen_R1_image))</code></pre>
 <pre><code>             id assay_id     Assay    Layer        Sample
          &lt;char&gt;   &lt;char&gt;    &lt;char&gt;   &lt;char&gt;        &lt;char&gt;
@@ -518,7 +522,8 @@ of all tiles in the image.</p>
 4: tile4_2c05fc   Assay1 ImageData Section1 XeniumR1image
 5: tile5_2c05fc   Assay1 ImageData Section1 XeniumR1image
 6: tile6_2c05fc   Assay1 ImageData Section1 XeniumR1image</code></pre>
-<p>Each row is associated with a tile of parsed from the image.</p>
+<p>Each row is associated with a tile of parsed from the image, and the
+users can define additional metadata columns afterwards.</p>
 <pre class="r watch-out"><code>nrow(Metadata(Xen_R1_image))</code></pre>
 <pre><code>[1] 24888</code></pre>
 <p>In order to generate data values from image tiles, we can treat each
@@ -533,7 +538,11 @@ dim(vrData(Xen_R1_image))</code></pre>
 <div id="dimensionality-reduction" class="section level2">
 <h2>Dimensionality Reduction</h2>
 <p>We can now reduce the dimensionality of these pixel intensities using
-PCA and visualize the data variability across tiles.</p>
+PCA and visualize the data variability across tiles. The data matrix we
+generated with the <strong>generateTileData</strong> earlier will be
+used here similar to gene/protein expression datasets, where we reduce
+40000 variables (each associated with a pixel) to a managable number,
+say 15.</p>
 <pre class="r watch-out"><code>Xen_R1_image &lt;- getPCA(Xen_R1_image, dims = 15)
 Xen_R1_image &lt;- getUMAP(Xen_R1_image)
 vrEmbeddingPlot(Xen_R1_image, embedding = &quot;umap&quot;, group.by = &quot;Sample&quot;)</code></pre>
@@ -542,17 +551,38 @@ vrEmbeddingPlot(Xen_R1_image, embedding = &quot;umap&quot;, group.by = &quot;Sam
 </div>
 <div id="clustering" class="section level2">
 <h2>Clustering</h2>
+<p>Here, the dimensionally reduced image tiles can be clustered using
+either graph clustering approaches or kmeans clustering depending on the
+choice.</p>
 <pre class="r watch-out"><code>Xen_R1_image &lt;- getProfileNeighbors(Xen_R1_image, data.type = &quot;pca&quot;, 
                                     k = 10, method = &quot;SNN&quot;, dims = 1:15)
 Xen_R1_image &lt;- getClusters(Xen_R1_image, resolution = 1.0, 
                             label = &quot;Cluster_snn&quot;, graph = &quot;SNN&quot;)</code></pre>
+<p>We here visualize the transparent clustering information of tiles by
+rasterizing the tiles into larger sizes to increase plotting speed where
+we can see the distinction between different tissue niches of the
+image.</p>
 <pre class="r watch-out"><code>g1 &lt;- vrSpatialPlot(Xen_R1_image, group.by = &quot;Cluster_snn&quot;, 
                     alpha = 0.5, n.tile = 100)
 g2 &lt;- vrEmbeddingPlot(Xen_R1_image, embedding = &quot;umap&quot;, 
                       group.by = &quot;Cluster_snn&quot;)
 g1 | g2 </code></pre>
-<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_spatialcluster.png" class="center"></p>
+<table>
+<tbody>
+<tr style="vertical-align: center">
+<td style="width:60%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_spatialcluster.png" class="center">
+</td>
+<td style="width:40%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_embeddingcluster.png" class="center">
+</td>
+</tr>
+</tbody>
+</table>
 <p></br></p>
+</div>
+<div id="data-transfer" class="section level2">
+<h2>Data transfer</h2>
 </div>
 </div>
 

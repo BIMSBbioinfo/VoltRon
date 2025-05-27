@@ -44,13 +44,15 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 # Analysis of Images
 
-VoltRon is a spatial omic analysis platform that allows storing a large amount of spatially resolved datasets. As opposed to datasets with either supracellular (spot-level) or cellular resolutions, one might analyze image datasets and pixels to characterize the morphology of a tissue section. Here, images can also be used to build VoltRon objects where pixels (or tiles) are defined as spatial points, and then can also be used for multiple downstream analysis purposes. 
+VoltRon is a spatial omic analysis platform that allows storing a large amount of spatially resolved datasets. As opposed to datasets with either supracellular (spot-level) or cellular resolutions, one might analyze image datasets and pixels to characterize the morphology of a tissue section. 
+
+Here, images can also be used to build VoltRon objects where pixels (or tiles) are defined as spatial points, and then can also be used for multiple downstream analysis purposes. 
 
 <br>
 
 ## Importing Images (H&E)
 
-In this use case, we will analyze the H&E image derived from a tissue section that was first analyzed by The 10x Genomics [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform. Three tissue sections were cut from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. A 5 $\mu$m section was used to generate a single Xenium replicate. 
+In this use case, we will analyze the H&E image derived from a tissue section that was first analyzed by The 10x Genomics [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform. Three tissue sections were cut from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. A 5 $\mu$m section was used to generate a single Xenium replicate. The H&E staining was performed on the tissue after the Xenium run.
 
 More information on the Xenium and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the H&E image from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) as well (specifically, import the **Post-Xenium H&E image (TIFF)** data). 
 
@@ -81,7 +83,7 @@ vrImages(Xen_R1_image, scale.perc = 2)
 
 ## Building Datasets for Tiles
 
-The VoltRon object stores the metadata information and localization of all tiles in the image.
+The VoltRon object stores the metadata information and localization of all tiles in the image. These tiles, like any observation, can be analyzed independently where you can reduce its dimensionality to perform clustering later.
 
 ```{r eval = FALSE, class.source="watch-out"}
 head(Metadata(Xen_R1_image))
@@ -98,7 +100,8 @@ head(Metadata(Xen_R1_image))
 6: tile6_2c05fc   Assay1 ImageData Section1 XeniumR1image
 ```
 
-Each row is associated with a tile of parsed from the image.
+Each row is associated with a tile of parsed from the image, and the users can 
+define additional metadata columns afterwards.
 
 ```{r eval = FALSE, class.source="watch-out"}
 nrow(Metadata(Xen_R1_image))
@@ -123,7 +126,7 @@ dim(vrData(Xen_R1_image))
 
 ## Dimensionality Reduction
 
-We can now reduce the dimensionality of these pixel intensities using PCA and visualize the data variability across tiles.
+We can now reduce the dimensionality of these pixel intensities using PCA and visualize the data variability across tiles. The data matrix we generated with the **generateTileData** earlier will be used here similar to gene/protein expression datasets, where we reduce 40000 variables (each associated with a pixel) to a managable number, say 15. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1_image <- getPCA(Xen_R1_image, dims = 15)
@@ -137,12 +140,18 @@ vrEmbeddingPlot(Xen_R1_image, embedding = "umap", group.by = "Sample")
 
 ## Clustering
 
+Here, the dimensionally reduced image tiles can be clustered using either graph clustering approaches or kmeans clustering depending on the choice. 
+
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1_image <- getProfileNeighbors(Xen_R1_image, data.type = "pca", 
                                     k = 10, method = "SNN", dims = 1:15)
 Xen_R1_image <- getClusters(Xen_R1_image, resolution = 1.0, 
                             label = "Cluster_snn", graph = "SNN")
 ```
+
+We here visualize the transparent clustering information of tiles by rasterizing 
+the tiles into larger sizes to increase plotting speed where we can see the 
+distinction between different tissue niches of the image.
 
 ```{r eval = FALSE, class.source="watch-out"}
 g1 <- vrSpatialPlot(Xen_R1_image, group.by = "Cluster_snn", 
@@ -152,6 +161,18 @@ g2 <- vrEmbeddingPlot(Xen_R1_image, embedding = "umap",
 g1 | g2 
 ```
 
-<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_spatialcluster.png" class="center">
+<table>
+<tbody>
+  <tr style = "vertical-align: center">
+  <td style = "width:60%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_spatialcluster.png" class="center"></td>
+  <td style = "width:40%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_embeddingcluster.png" class="center"></td>
+  </tr>
+</tbody>
+</table>
 
 </br>
+
+## Data transfer
+
+
+
