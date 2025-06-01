@@ -369,9 +369,17 @@ rbind_metadata <- function(metadata1, metadata2){
 #' @param assays assay name (exp: Assay1), see \code{SampleMetadata(object)}
 #' @param assaytypes assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param spatialpoints the set of spatial points to subset the object
+#' @param features the set of metadata columns to be subsetted
+#' @param drop drop
 #'
 #' @noRd
-subset_metadata <- function(metadata, assays = NULL, assaytypes = NULL, samples = NULL, spatialpoints = NULL){
+subset_metadata <- function(metadata, 
+                            assays = NULL, 
+                            assaytypes = NULL, 
+                            samples = NULL, 
+                            spatialpoints = NULL, 
+                            features = NULL,
+                            drop = TRUE){
   
   if(inherits(metadata, "data.table")){
     if(nrow(metadata) > 0){
@@ -383,6 +391,8 @@ subset_metadata <- function(metadata, assays = NULL, assaytypes = NULL, samples 
         metadata <- subset(metadata, subset = Sample %in% samples)
       } else if(!is.null(spatialpoints)){
         metadata <- subset(metadata, subset = id %in% spatialpoints)
+      } else if(!is.null(features)){
+        metadata <- metadata[,get(names(metadata)[which(colnames(metadata) %in% features)])]
       } else {
         stop("No assay, sample or spatial points were provided!")
       }  
@@ -407,6 +417,8 @@ subset_metadata <- function(metadata, assays = NULL, assaytypes = NULL, samples 
     } else if(!is.null(spatialpoints)){
       cur_column <- as.vector(metadata$id)
       metadata <- metadata[cur_column %in% spatialpoints,]
+    } else if(!is.null(features)){
+      metadata <- metadata[,features]
     } else {
       stop("No assay, sample or spatial points were provided!")
     }  
@@ -425,11 +437,13 @@ subset_metadata <- function(metadata, assays = NULL, assaytypes = NULL, samples 
       } else if(!is.null(samples)){
         metadata <- subset(metadata, subset = Sample %in% samples)
       } else if(!is.null(spatialpoints)){
-        if(!is.null(rownames(metadata))){
-          metadata <- metadata[rownames(metadata) %in% spatialpoints,]
-        } else {
+        if("id" %in% colnames(metadata)){
           metadata <- metadata[metadata$id %in% spatialpoints,]
+        } else {
+          metadata <- metadata[rownames(metadata) %in% spatialpoints,]
         }
+      } else if(!is.null(features)){
+        metadata <- metadata[,features, drop = drop]
       } else {
         stop("No assay, sample or spatial points were provided!")
       }  
