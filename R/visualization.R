@@ -351,7 +351,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
 
   # cell visualization
-  } else if(vrAssayTypes(assay) %in% c("cell", "tile")) {
+  } else if(vrAssayTypes(assay) == "cell") {
 
       if(plot.segments){
   
@@ -392,6 +392,30 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         }
         
       }
+  } else if(vrAssayTypes(assay) == "tile") {
+    
+    # rasterize if requested or needed
+    if(n.tile > 0 || nrow(coords) > 50000){
+      if(n.tile == 0)
+        n.tile <- 1000
+      g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha)
+    } else {
+      g <- g +
+        geom_raster(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]], color = .data[[group.by]]),
+                   coords, shape = cell.shape, size = rel(pt.size), alpha = alpha, show.legend = TRUE)
+    }
+    
+    # style, color and text
+    g <- g +
+      scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 1)) +
+      scale_color_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 1)) +
+      theme(legend.text=element_text(size=legend.text.size), legend.title=element_text(size=legend.text.size))
+    
+    # add if a graph exists
+    if(!is.null(graph)){
+      g <- g + addGraph(graph = graph, coords = coords, background = graph.edge.color)
+    }
+    
   } else if(vrAssayTypes(assay) == "molecule") {
     
     # rasterize if requested or needed
@@ -998,7 +1022,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
                              values=rescale_numeric(c(limits[1], midpoint, limits[2])), limits = limits)
     }
 
-  } else if(vrAssayTypes(assay) %in% c("cell", "tile")) {
+  } else if(vrAssayTypes(assay) == "cell") {
 
     if(plot.segments){
 
@@ -1042,6 +1066,21 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
           geom_segment(data = graph.df, mapping = aes(x=from.x,xend = to.x, y=from.y,yend = to.y), alpha = 0.5, color = ifelse(background == "black", "grey", "black"))
       }
     }
+  } else if(vrAssayTypes(assay)  == "tile") {
+    
+    # rasterize if requested or needed
+    if(n.tile > 0 || nrow(coords) > 50000){
+      if(n.tile == 0)
+        n.tile <- 1000
+      g <- vrFeaturePlotTiling(g = g, data = coords, legend_title = legend_title, n.tile = n.tile, alpha = alpha, type = "spatial")
+    } else {
+      g <- g +
+        geom_raster(mapping = aes(x = x, y = y, fill = score, color = score), dplyr::arrange(coords, score), shape = cell.shape, size = rel(pt.size), alpha = alpha) +
+        scale_fill_gradientn(name = legend_title,
+                               colors=c("dodgerblue2", "white", "yellow3"), 
+                               values=rescale_numeric(c(limits[1], midpoint, limits[2])), limits = limits, aesthetics = c("fill", "colour")) 
+    }
+    
   } else {
     stop("Feature plotting is not possible for molecule assays!")
   }
