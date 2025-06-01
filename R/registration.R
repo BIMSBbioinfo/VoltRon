@@ -1008,7 +1008,7 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, info
           height <- limits_trans[2,2]-limits_trans[1,2]
           if(max(height,width) > 1000){
             if(inherits(image_trans, "ImgArray")){
-              n.series <- ImageArray::length(image_trans)
+              n.series <- length(image_trans)
               cur_width <- width
               cur_height <- height
               for(ii in 2:n.series){
@@ -1397,7 +1397,7 @@ manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_list, 
           height <- limits_trans[2,2]-limits_trans[1,2]
           if(max(height,width) > 1000){
             if(inherits(image_trans, "ImgArray")){
-              n.series <- ImageArray::length(image_trans)
+              n.series <- length(image_trans)
               cur_width <- width
               cur_height <- height
               for(ii in 2:n.series){
@@ -1501,7 +1501,7 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
           
           # scale keypoints
           if(inherits(img_trans$image, "ImgArray")){
-            n.series <- ImageArray::length(img_trans$image)
+            n.series <- length(img_trans$image)
             cur_width <- width
             cur_height <- height
             for(ii in 2:n.series){
@@ -1832,13 +1832,15 @@ transformImageQueryList <- function(image_list, input){
 #' @param mapping a list of the homography matrices and TPS keypoints 
 #'
 #' @importFrom magick image_read image_data
+#' @importFrom DelayedArray realize
 #' 
 #' @export
 getRcppWarpImage <- function(ref_image, query_image, mapping){
   
   # ref image
   if(inherits(ref_image, "ImgArray")){
-    ref_image <- as.array(ref_image)
+    # ref_image <- as.array(ref_image)
+    ref_image <- DelayedArray::realize(ref_image)
     ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
   } else {
     ref_image <- magick::image_data(ref_image, channels = "rgb")
@@ -1846,7 +1848,8 @@ getRcppWarpImage <- function(ref_image, query_image, mapping){
   
   # query image
   if(inherits(query_image, "ImgArray")){
-    query_image <- as.array(query_image)
+    # query_image <- as.array(query_image)
+    query_image <- DelayedArray::realize(query_image)
     query_image <- array(as.raw(query_image), dim = dim(query_image))
   } else {
     query_image <- magick::image_data(query_image, channels = "rgb")
@@ -2040,6 +2043,7 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
 #' @param method the automated registration method, either TPS or Homography+TPS
 #'
 #' @importFrom magick image_read image_data
+#' @importFrom DelayedArray realize
 #'
 #' @export
 getRcppManualRegistration <- function(query_image, ref_image, query_landmark, reference_landmark, 
@@ -2047,7 +2051,8 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
   
   # ref image
   if(inherits(ref_image, "ImgArray")){
-    ref_image <- as.array(ref_image)
+    # ref_image <- as.array(ref_image)
+    ref_image <- DelayedArray::realize(ref_image)
     ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
   } else {
     ref_image <- magick::image_data(ref_image, channels = "rgb")
@@ -2055,7 +2060,8 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
   
   # query image
   if(inherits(query_image, "ImgArray")){
-    query_image <- as.array(query_image)
+    # query_image <- as.array(query_image)
+    query_image <- DelayedArray::realize(query_image)
     query_image <- array(as.raw(query_image), dim = dim(query_image))
   } else {
     query_image <- magick::image_data(query_image, channels = "rgb")
@@ -2128,7 +2134,7 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
   
           # get a sequential mapping between a query and reference image
           results <- computeAutomatedPairwiseTransform(image_list, channel_names, query_ind = i, ref_ind = centre, input)
-  
+
           # save transformation matrix
           registration_mapping_list[[paste0(i)]] <- results$mapping
   
@@ -2152,9 +2158,11 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
         output[[paste0("plot_query_reg",i)]] <- renderImage({
 
           # get images
-          image_view_list <- list(rep(magick::image_resize(dest_image_list[[i]], geometry = "400x"),5),
-                                  rep(magick::image_resize(overlayed_image_list[[i]], geometry = "400x"),5))
-
+          # image_view_list <- list(rep(magick::image_resize(dest_image_list[[i]], geometry = "400x"),5),
+          #                         rep(magick::image_resize(overlayed_image_list[[i]], geometry = "400x"),5))
+          image_view_list <- list(rep(dest_image_list[[i]],5),
+                                  rep(overlayed_image_list[[i]],5))
+          
           # make slide show
           image_view_list <- image_view_list %>%
             magick::image_join() %>%
@@ -2239,7 +2247,7 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
                                         rotate_query = input[[paste0("rotate_", query_label, "_image", cur_map[1])]],
                                         rotate_ref = input[[paste0("rotate_", ref_label, "_image", cur_map[2])]],
                                         matcher = input$Matcher, method = input$Method)
-
+    
     # update transformation matrix
     if(nrow(reg[[1]][[1]]) == 2){
       reg[[1]][[1]] <- solve(diag(c(ref_scale,ref_scale))) %*% reg[[1]][[1]] %*% diag(c(query_scale,query_scale,1))
@@ -2296,6 +2304,7 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
                                          matcher = "FLANN", method = "Homography") {
   ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
   query_image_rast <- magick::image_data(query_image, channels = "rgb")
+  
   reg <- automated_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
                                            width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
                                            width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3],

@@ -104,7 +104,7 @@ bool check_transformation_metrics(std::vector<cv::Point2f> points1, std::vector<
   // check keypoint standard deviation
   bool is_degenerate = check_degenerate(points1, points2);
   
-  //  check transformation
+  // TODO: check transformation
   // std::string transformation;
   // transformation = check_transformation_by_pts_mean_sqrt(keypoints1, keypoints2, h, mask);
   
@@ -429,7 +429,7 @@ bool getSIFTTransformationMatrixSingle(
       j++;
     }
   }
-  drawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches);
+  scaledDrawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches);
   
   // check number of matches
   return check_matches(mask);
@@ -564,11 +564,6 @@ void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
     points2.push_back( keypoints2[ matches[i].trainIdx ].pt );
   }
   
-  // Find homography
-  // cv::Mat mask;
-  // h = findHomography(points1, points2, RANSAC, 5, mask);
-  // Rcout << "DONE: calculated homography matrix" << endl;
-  
   // check variable
   Rcout << "Calculating" << (run_Affine ? " (Affine) " : " (Homography) ") << "Transformation Matrix" << endl;
   
@@ -607,11 +602,9 @@ void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
       j++;
     }
   }
-  drawMatches(im1, keypoints1_best2, im2, keypoints2_best2, top_matches, imMatches);
-
+  scaledDrawMatches(im1, keypoints1_best2, im2, keypoints2_best2, top_matches, imMatches);
+  
   // Use homography to warp image
-  // warpPerspective(im1, im1Reg, h, im2.size());
-  // warpPerspective(im1, im1Overlay, h, im2.size());
   if(h.rows == 2){
     warpAffine(im1, im1Reg, h, im2.size());
     warpAffine(im1, im1Overlay, h, im2.size());   
@@ -619,6 +612,10 @@ void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
     warpPerspective(im1, im1Reg, h, im2.size());
     warpPerspective(im1, im1Overlay, h, im2.size());
   }
+  
+  // resize image to visualize faster later in Shiny
+  im2 = resize_image(im2, 500);
+  im1Overlay = resize_image(im1Overlay, 500);
 }
 
 // align images with FLANN algorithm
@@ -765,6 +762,10 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     cvtColor(im1Combine, im1Overlay, cv::COLOR_GRAY2BGR);
     cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
   }
+  
+  // resize image to visualize faster later in Shiny
+  im2 = resize_image(im2, 500);
+  im1Overlay = resize_image(im1Overlay, 500);
 }
 
 // [[Rcpp::export]]
