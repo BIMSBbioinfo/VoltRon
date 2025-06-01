@@ -147,6 +147,7 @@ as.Seurat <- function(object, cell.assay = NULL, molecule.assay = NULL, image_ke
   
   # metadata
   metadata <- Metadata(object, assay = cell.assay)
+  metadata <- as.data.frame(metadata)
   
   # Seurat object
   seu <- Seurat::CreateSeuratObject(counts = data, meta.data = metadata, assay = cell.assay)
