@@ -9,6 +9,7 @@ transferData(
   from = NULL,
   to = NULL,
   features = NULL,
+  expand = TRUE,
   new_feature_name = NULL
 )
 }
@@ -22,7 +23,12 @@ transferData(
 \item{features}{the set of features from \link{vrFeatures} or metadata columns from \link{Metadata} that are transferred. 
 Only one metadata feature can be transfered at a time.}
 
-\item{new_feature_name}{the name of the new feature set created from the source assay defined in \code{from} argument.}
+\item{expand}{if TRUE, metadata features will be transformed into
+dummy features where each category in the feature will be a new feature}
+
+\item{new_feature_name}{the name of the new feature set created 
+from the source assay defined in \code{from} argument.
+Only used when a new assay in created.}
 }
 \description{
 transfer data across assays
