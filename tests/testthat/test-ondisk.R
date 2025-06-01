@@ -169,6 +169,30 @@ test_that("double write and merging", {
   expect_equal(1,1L)
 })
 
+test_that("merging ondisk with memory", {
+  
+  # get data
+  data("visium_data")
+  data("xenium_data")
+  
+  # merged ondisk data with hdf5 (BPCells)
+  xenium_data_disk <- saveVoltRon(xenium_data, 
+                                  output = output_h5ad, 
+                                  format = "HDF5VoltRon", 
+                                  replace = TRUE, 
+                                  verbose = FALSE)
+  xenium_data2 <- xenium_data 
+  xenium_data2$Sample <- "XeniumR2"
+  xenium_data_merged <- merge(xenium_data_disk, 
+                              xenium_data2, 
+                              verbose = FALSE)
+  
+  # remove files
+  unlink(output_h5ad, recursive = TRUE)
+  
+  expect_equal(1,1L)
+})
+
 test_that("subsetting", {
   
   # get data
