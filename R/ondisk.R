@@ -1317,7 +1317,7 @@ setMethod(".shorten_assay_links",
     if(!all(grepl("No Channels", channels))){
       for(ch in channels){
         img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
-        for(i in seq_len(length(img))){
+        for(i in seq_len(length(img@series))){
           img[[i]] <- .modify_seeds(img[[i]],
                                     function(x) {
                                       .shorten_assay_links_data(x)
@@ -1461,7 +1461,8 @@ setMethod(".restore_absolute_assay_links", signature = "vrAssayV2", .restore_abs
     if(!all(grepl("No Channels", channels))){
       for(ch in channels){
         img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
-        for(i in seq_len(length(img))){
+        # TODO: for now length method for ImageArray 
+        for(i in seq_len(length(img@series))){
           img[[i]] <- .modify_seeds(img[[i]],
                                     function(x) {
                                       .restore_absolute_links(x, dir)
