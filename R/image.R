@@ -118,8 +118,7 @@ subsetvrImage <- function(x, subset, spatialpoints = NULL, image = NULL) {
     } else {
       imageinfo <- list(width = getMax(coords[,"x"]), height = getMax(coords[,"y"]))
     }
-    # vrimage <- vrImages(object)
-    
+
     # coordinates
     cropped_coords <- subsetCoordinates(coords, imageinfo, image)
     vrCoordinates(object) <- cropped_coords
@@ -1356,8 +1355,23 @@ demuxVoltRon <- function(object, max.pixel.size = 1200, use.points.only = FALSE,
     # scale 
     imageinfo <- getImageInfo(images)
     scale_factor <- 1
-    if(imageinfo$width > max.pixel.size){
-      scale_factor <- imageinfo$width/max.pixel.size
+    if(max(imageinfo$height, imageinfo$width) > max.pixel.size){
+      # scale keypoints
+      if(inherits(images, "ImgArray")){
+        n.series <- length(images@series)
+        cur_width <- imageinfo$width
+        cur_height <- imageinfo$height
+        for(ii in 2:n.series){
+          cur_width <- imageinfo$width/(2^(ii-1))
+          cur_height <- imageinfo$height/(2^(ii-1))
+          if(max(cur_height, cur_width) <= max.pixel.size){
+            break
+          }
+        }
+        scale_factor <- imageinfo$width/cur_width
+      } else {
+        scale_factor <- imageinfo$width/max.pixel.size
+      }
     }
     
     # plot
