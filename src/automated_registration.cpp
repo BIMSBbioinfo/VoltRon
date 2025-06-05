@@ -525,6 +525,9 @@ void getSIFTTransformationMatrix(
 // align images with BRUTE FORCE algorithm
 void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imMatches, Mat &h,
                       const float GOOD_MATCH_PERCENT, const int MAX_FEATURES,
+                      const bool invert_query, const bool invert_ref,
+                      const char* flipflop_query, const char* flipflop_ref,
+                      const char* rotate_query, const char* rotate_ref,
                       const bool run_Affine)
 {
   // Convert images to grayscale
@@ -536,10 +539,16 @@ void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
   std::vector<KeyPoint> keypoints1, keypoints2;
   Mat descriptors1, descriptors2;
   
+  // Process images
+  Mat im1Proc, im2Proc, im1NormalProc;
+  im1Proc = preprocessImage(im1Gray, invert_query, flipflop_query, rotate_query);
+  im1NormalProc = preprocessImage(im1, FALSE, flipflop_query, rotate_query);
+  im2Proc = preprocessImage(im2Gray, invert_ref, flipflop_ref, rotate_ref);
+  
   // Detect ORB features and compute descriptors.
   Ptr<Feature2D> orb = ORB::create(MAX_FEATURES);
-  orb->detectAndCompute(im1Gray, Mat(), keypoints1, descriptors1);
-  orb->detectAndCompute(im2Gray, Mat(), keypoints2, descriptors2);
+  orb->detectAndCompute(im1Proc, Mat(), keypoints1, descriptors1);
+  orb->detectAndCompute(im2Proc, Mat(), keypoints2, descriptors2);
   Rcout << "DONE: orb based key-points detection and descriptors computation" << endl;
   
   // Match features.
@@ -602,20 +611,29 @@ void alignImagesBRUTE(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imM
       j++;
     }
   }
-  scaledDrawMatches(im1, keypoints1_best2, im2, keypoints2_best2, top_matches, imMatches);
-  
+  scaledDrawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches);
+
   // Use homography to warp image
+  Mat im1Warp, im1NormalWarp;
   if(h.rows == 2){
-    warpAffine(im1, im1Reg, h, im2.size());
-    warpAffine(im1, im1Overlay, h, im2.size());   
+    warpAffine(im1Proc, im1Warp, h, im2Proc.size());
+    warpAffine(im1NormalProc, im1NormalWarp, h, im2Proc.size());   
   } else {
-    warpPerspective(im1, im1Reg, h, im2.size());
-    warpPerspective(im1, im1Overlay, h, im2.size());
+    warpPerspective(im1Proc, im1Warp, h, im2Proc.size());
+    warpPerspective(im1NormalProc, im1NormalWarp, h, im2Proc.size());    
   }
+
+  // Reverse process
+  im1Reg = reversepreprocessImage(im1NormalWarp, flipflop_ref, rotate_ref);
+  // Rcout << flipflop_ref << endl;
+  // Rcout << rotate_ref << endl;
+
+  // return as rgb
+  cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
   
   // resize image to visualize faster later in Shiny
   im2 = resize_image(im2, 500);
-  im1Overlay = resize_image(im1Overlay, 500);
+  im1Overlay = resize_image(im1Reg, 500);
 }
 
 // align images with FLANN algorithm
@@ -810,7 +828,11 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
     const bool run_Affine = (strcmp(method.get_cstring(), "Affine") == 0 || strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0);
     Rcout << "Running BRUTE-FORCE Alignment" << endl;
     alignImagesBRUTE(im, imReference, imReg, imOverlay, imMatches, 
-                     h, GOOD_MATCH_PERCENT, MAX_FEATURES, run_Affine);
+                     h, GOOD_MATCH_PERCENT, MAX_FEATURES, 
+                     invert_query, invert_ref,
+                     flipflop_query.get_cstring(), flipflop_ref.get_cstring(), 
+                     rotate_query.get_cstring(), rotate_ref.get_cstring(), 
+                     run_Affine);
   }
 
   // transformation matrix, can be either a matrix, set of keypoints or both
