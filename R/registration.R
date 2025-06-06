@@ -564,10 +564,10 @@ updateParameterPanels <- function(len_images, params, input, output, session){
     } else {
       shinyjs::show(id = "GOOD_MATCH_PERCENT")
       shinyjs::show(id = "MAX_FEATURES")
-      if(grepl("Non-Rigid", input$Method)){
-        updateSelectInput(session, "Method", selected = "Homography") 
-        showNotification("Brute-Force Matching can't be used with Non-Rigid Registration\n")
-      }
+      # if(grepl("Non-Rigid", input$Method)){
+      #   updateSelectInput(session, "Method", selected = "Homography") 
+      #   showNotification("Brute-Force Matching can't be used with Non-Rigid Registration\n")
+      # }
     }
   })
   
