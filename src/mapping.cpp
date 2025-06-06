@@ -69,8 +69,14 @@ Rcpp::NumericMatrix applyMapping(Rcpp::NumericMatrix coords, Rcpp::List mapping)
       // apply transformation to coordinates
       tps->applyTransformation(coords_mat, coords_temp);
       
-    } else {
+      // // temp position
+      // std::vector<cv::Point2f> query_mat_tmp;
+      // tps->applyTransformation(query_mat, query_mat_tmp);
+      // Rcout << query_mat << endl;
+      // Rcout << query_mat_tmp << endl;
+      // Rcout << ref_mat << endl;
       
+    } else {
       coords_temp = coords_mat;
     }
     
