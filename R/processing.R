@@ -36,7 +36,7 @@ normalizeDataVoltRon <- function(object,
 #  (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param method the normalization method: "LogNorm", 
-#' "Q3Norm", "LogQ3Norm" or "CLR"
+#' "Q3Norm", "LogQ3Norm", "CLR" or "hyper.arcsine".
 #' @param desiredQuantile the quantile of the data if "QuanNorm" 
 #' or "LogQuanNorm" is selected as \code{method}.
 #' @param scale the scale parameter for the hyperbolic arcsine transformation
