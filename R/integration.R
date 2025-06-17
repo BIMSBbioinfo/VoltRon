@@ -263,19 +263,18 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, tran
   #     }
   #   }
   # }
-  row_counts <- transfer_data
-  raw_counts <- raw_counts[,cell_to_spot_id, drop = FALSE]
+  transfer_data <- transfer_data[,cell_to_spot_id, drop = FALSE]
   
   # pool cell counts to Spots
   message("Aggregating cell profiles in spots \n")
-  aggregate_raw_counts <- stats::aggregate(t(as.matrix(raw_counts)), list(cell_to_spot_nnid), sum)
-  aggregate_raw_counts <- data.frame(barcodes = vrSpatialPoints(to_object)) %>% dplyr::right_join(aggregate_raw_counts, by = c("barcodes" = "Group.1"))
-  rownames(aggregate_raw_counts) <- aggregate_raw_counts$barcodes
-  aggregate_raw_counts <- t(aggregate_raw_counts[,-1])
-  aggregate_raw_counts[is.na(aggregate_raw_counts)] <- 0
+  aggregate_transfer_data <- stats::aggregate(t(as.matrix(transfer_data)), list(cell_to_spot_nnid), sum)
+  aggregate_transfer_data <- data.frame(barcodes = vrSpatialPoints(to_object)) %>% dplyr::right_join(aggregate_transfer_data, by = c("barcodes" = "Group.1"))
+  rownames(aggregate_transfer_data) <- aggregate_transfer_data$barcodes
+  aggregate_transfer_data <- t(aggregate_transfer_data[,-1])
+  aggregate_transfer_data[is.na(aggregate_transfer_data)] <- 0
   
   # return
-  return(aggregate_raw_counts)
+  return(aggregate_transfer_data)
 }
 
 #' getSpotsFromCells
@@ -346,12 +345,11 @@ getCellsFromSpots <- function(from_object, from_metadata = NULL, to_object, tran
   #     }
   #   }
   # }
-  row_counts <- transfer_data
-  raw_counts <- raw_counts[,nnindex, drop = FALSE]
-  colnames(raw_counts) <- names(nnindex)
+  transfer_data <- transfer_data[,nnindex, drop = FALSE]
+  colnames(transfer_data) <- names(nnindex)
   
   # return
-  return(raw_counts)
+  return(transfer_data)
 }
 
 #' getROIsFromCells
@@ -423,19 +421,18 @@ getROIsFromCells <- function(from_object, from_metadata = NULL, to_object, trans
   #     }
   #   }
   # }
-  raw_counts <- transfer_data
-  raw_counts <- raw_counts[,cell_to_roi_id, drop = FALSE]
+  transfer_data <- transfer_data[,cell_to_roi_id, drop = FALSE]
   
   # pool cell counts to Spots
   message("Aggregating cell profiles in spots \n")
-  aggregate_raw_counts <- stats::aggregate(t(as.matrix(raw_counts)), list(cell_to_roi_labelid), sum)
-  aggregate_raw_counts <- data.frame(barcodes = vrSpatialPoints(to_object)) %>% dplyr::right_join(aggregate_raw_counts, by = c("barcodes" = "Group.1"))
-  rownames(aggregate_raw_counts) <- aggregate_raw_counts$barcodes
-  aggregate_raw_counts <- t(aggregate_raw_counts[,-1])
-  aggregate_raw_counts[is.na(aggregate_raw_counts)] <- 0
+  aggregate_transfer_data <- stats::aggregate(t(as.matrix(transfer_data)), list(cell_to_roi_labelid), sum)
+  aggregate_transfer_data <- data.frame(barcodes = vrSpatialPoints(to_object)) %>% dplyr::right_join(aggregate_transfer_data, by = c("barcodes" = "Group.1"))
+  rownames(aggregate_transfer_data) <- aggregate_transfer_data$barcodes
+  aggregate_transfer_data <- t(aggregate_transfer_data[,-1])
+  aggregate_transfer_data[is.na(aggregate_transfer_data)] <- 0
   
   # return
-  return(aggregate_raw_counts)
+  return(aggregate_transfer_data)
 }
 
 # getCellsFromTiles <- function(from_object, from_metadata = NULL, to_object, features = NULL, k = 1) {
@@ -469,7 +466,7 @@ getROIsFromCells <- function(from_object, from_metadata = NULL, to_object, trans
 #   return(aggregate_raw_counts)
 # }
 
-transferLabelsFromROI <- function(from_object, from_metadata = NULL, to_object, to_metadata = NULL, feature_data = NULL) {
+transferLabelsFromROI <- function(from_object, from_metadata = NULL, to_object, to_metadata = NULL, transfer_data = NULL) {
   
   # get ROI and other coordinates
   segments_roi <- vrSegments(from_object)
@@ -482,10 +479,10 @@ transferLabelsFromROI <- function(from_object, from_metadata = NULL, to_object, 
   # }
   
   # annotate points in the to object
-  for(feat in colnames(feature_data)){
+  for(feat in colnames(transfer_data)){
     
     # get from metadata labels
-    feat_labels <- feature_data[,feat]
+    feat_labels <- transfer_data[,feat]
     
     # get to metadata
     new_label <- rep("undefined", length(spatialpoints))
@@ -557,6 +554,7 @@ transferLabelsFromTiles2Cells <- function(from_object, from_metadata = NULL,
   from_object <- object[[from]]
   
   # check feature direction
+  data_type <- "data_feature"
   if(is.null(features)){
     raw_counts <- vrData(from_object, norm = FALSE)
   } else {
@@ -570,7 +568,6 @@ transferLabelsFromTiles2Cells <- function(from_object, from_metadata = NULL,
         raw_counts <- raw_counts[features,]
         message("There are ", length(setdiff(features, data_features)), " unknown features!")
       }
-      data_type <- "data_feature"
     } else {
       if(length(metadata_features) > 1){
         stop("Only one metadata column can be transfered at a time")
@@ -584,7 +581,6 @@ transferLabelsFromTiles2Cells <- function(from_object, from_metadata = NULL,
           raw_counts <- t(raw_counts)
           colnames(raw_counts) <- rownames_raw_counts
           rownames(raw_counts) <- gsub(paste0("^", metadata_features, "_"), "", rownames(raw_counts))
-          data_type <- "data_feature"
         } else {
           data_type <- "metadata_feature"
         }

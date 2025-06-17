@@ -1669,7 +1669,7 @@ addMetadata <- function(object, assay = NULL, type = NULL, value, label) {
   
   # replace data
   if(length(value) == length(entities) || length(value) == 1){
-    if(is.null(rownames(metadata)) || inherits(metadata, "data.table")){
+    if("id" %in% colnames(metadata) || inherits(metadata, "data.table")){
       metadata[[label]][match(entities, as.vector(metadata$id))] <- value
     } else {
       metadata[entities,][[label]] <- value
