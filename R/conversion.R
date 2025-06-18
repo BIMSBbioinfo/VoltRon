@@ -293,11 +293,19 @@ as.AnnData <- function(object,
   
   # Data
   data <- vrData(object, assay = assay, norm = FALSE)
+  data <- as.matrix(data)
   
   # Metadata
   metadata <- Metadata(object, assay = assay)
-  metadata[["library_id"]] <- stringr::str_extract(rownames(metadata), "_Assay[0-9]+$")
+  if("assay_id" %in% colnames(metadata)){
+    metadata[["library_id"]] <- as.vector(metadata$assay_id)
+  } else if("id" %in% colnames(metadata)){
+    metadata[["library_id"]] <- stringr::str_extract(as.vector(metadata$id), "_Assay[0-9]+$")
+  } else {
+    metadata[["library_id"]] <- stringr::str_extract(rownames(metadata), "_Assay[0-9]+$")
+  }
   metadata[["library_id"]] <- gsub("^_", "", metadata[["library_id"]])
+  metadata <- as.data.frame(metadata)
   
   # Embeddings
   obsm <- list()

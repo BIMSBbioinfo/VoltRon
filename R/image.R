@@ -998,10 +998,10 @@ modulateImagevrImage <- function(object, channel = NULL, brightness = 100, satur
   for(img in channel){
     img_data <- object@image[[img]]
     if(inherits(img_data, "ImgArray")){
-      stop("Currently modulateImage only works on in-memory images!")
+      # stop("Currently modulateImage only works on in-memory images!")
+      object@image[[img]] <- ImageArray::modulate(object@image[[img]], brightness = brightness)
     } else {
       img_data <- magick::image_read(img_data)
-      # img_data <- getImage(object, name = img)
       img_data <- magick::image_modulate(img_data, brightness = brightness, saturation = saturation, hue = hue)
       object@image[[img]] <- magick::image_data(img_data) 
     }
