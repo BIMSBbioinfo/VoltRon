@@ -352,6 +352,7 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #' @param overwrite Whether the existing embedding with name 'type' 
 #' should be overwritten in \link{vrEmbeddings}
 #' @param seed seed
+#' @param source Character either "features"  or "embeddings" . Default: "features"
 #'
 #' @importFrom BiocSingular runPCA FastAutoParam
 #'
@@ -363,77 +364,90 @@ getPCA <- function(object,
                    type = "pca", 
                    n.workers = 1, 
                    overwrite = FALSE, 
-                   seed = 1){
-
-  # get assay names
+                   seed = 1,
+                   source = c("features","embeddings")){
+  
+  source <- match.arg(source)
   assay_names <- vrAssayNames(object, assay = assay)
-
-  # get shared features and subset
-  assay_features <- vrFeatures(object, assay = assay)
-
-  # if there are features of a VoltRon object, then get variable features too
-  if(length(assay_features) > 0) {
-    if(is.null(features))
-      features <- getVariableFeatures(object, assay = assay)
-    object_subset <- subsetVoltRon(object, features = features)
-    vrMainAssay(object_subset) <- vrMainAssay(object)
-
-    # adjust extraction features length
-    if(dims > length(features)){
-      message("Requested more PC dimensions than existing ", 
-              "features: dims = length(features) now!")
-      dims <- length(features)
+  
+  # Choose data source
+  if (source == "embeddings") {
+    # Embedding input
+    if (length(features) != 1 || !(features %in% vrEmbeddingNames(object))) {
+      stop("When source='embeddings', 'features' must be exactly one existing embedding name.")
     }
-
-  # if there are no features in VoltRon object, return the assay as itself
-  } else {
-    object_subset <- object
-  }
-
-  # get data
-  normdata <- vrData(object_subset, assay = assay, norm = TRUE)
-
-  # get PCA embedding
-  set.seed(seed)
-  if(inherits(normdata, "IterableMatrix")){
-    if(!requireNamespace("BPCells"))
-      stop("You have to install BPCells!: ", 
-           "remotes::install_github('bnprks/BPCells/r')")
-    svd <- BPCells::svds(normdata, k=dims, threads = as.integer(n.workers))
-    pr.data <- BPCells::multiply_cols(svd$v, svd$d)
-  } else {
-    if(n.workers > 1){
-      if(!requireNamespace("BiocParallel"))
-        stop("You have to install BiocParallel!: ", 
-             "BiocManager::install('BiocParallel')")
-      pr.data <- 
-        BiocSingular::runPCA(t(normdata), 
-                             rank=dims,
-                             scale=TRUE,
-                             center=TRUE, 
-                             BPPARAM = BiocParallel::MulticoreParam(n.workers), 
-                             BSPARAM=BiocSingular::FastAutoParam()) 
+    normdata <- vrEmbeddings(object,
+                             assay = assay,
+                             type  = features,
+                             dims  = Inf)
+    
+    if (dims > ncol(normdata)) {
+      message("Requested more PC dimensions than existing embeddings; setting dims = ncol(normdata).")
+      dims <- ncol(normdata)
+    }
+    
+  } else (source == "features") {
+    # original
+    assay_features <- vrFeatures(object, assay = assay)
+    
+    # if there are features of a VoltRon object, then get variable features too
+    if (length(assay_features) > 0) {
+      if (is.null(features))
+        features <- getVariableFeatures(object, assay = assay)
+      object_subset <- subsetVoltRon(object, features = features)
+      vrMainAssay(object_subset) <- vrMainAssay(object)
+      
+      # adjust extraction features lengths
+      if (dims > length(features)) {
+        message("Requested more PC dimensions than existing features; setting dims = length(features).")
+        dims <- length(features)
+      }
+      # if there are no features in VoltRon object, return the assay as itself
     } else {
-      pr.data <- 
-        BiocSingular::runPCA(t(normdata), 
-                             rank=dims,
-                             scale=TRUE,
-                             center=TRUE, 
-                             BSPARAM=BiocSingular::FastAutoParam())
+      object_subset <- object
     }
-    pr.data <- pr.data$x 
+    normdata <- vrData(object_subset, assay = assay, norm = TRUE)
+  }
+  
+  # Compute PCA
+  set.seed(seed)
+  if (inherits(normdata, "IterableMatrix")) {
+    if (!requireNamespace("BPCells", quietly = TRUE))
+      stop("You have to install BPCells!: remotes::install_github('bnprks/BPCells/r')")
+    svd <- BPCells::svds(normdata, k = dims, threads = as.integer(n.workers))
+    pr.data <- BPCells::multiply_cols(svd$v, svd$d)
+    
+  } else {
+    if (n.workers > 1) {
+      if (!requireNamespace("BiocParallel", quietly = TRUE))
+        stop("You have to install BiocParallel!: BiocManager::install('BiocParallel')")
+      pca_obj <- BiocSingular::runPCA(
+        t(normdata), rank    = dims,
+        scale   = TRUE,
+        center  = TRUE,
+        BPPARAM = BiocParallel::MulticoreParam(n.workers),
+        BSPARAM = BiocSingular::FastAutoParam()
+      )
+    } else {
+      pca_obj <- BiocSingular::runPCA(
+        t(normdata), rank   = dims,
+        scale  = TRUE,
+        center = TRUE,
+        BSPARAM = BiocSingular::FastAutoParam()
+      )
+    }
+    pr.data <- pca_obj$x
   }
   
   # change colnames
   colnames(pr.data) <- paste0("PC", seq_len(dims))
   rownames(pr.data) <- colnames(normdata)
-
+  
   # set Embeddings
-  vrEmbeddings(object, 
-               assay = assay, 
-               type = type, 
+  vrEmbeddings(object,
+               assay = assay_names,
+               type = type,
                overwrite = overwrite) <- pr.data
-
   # return
   return(object)
 }
