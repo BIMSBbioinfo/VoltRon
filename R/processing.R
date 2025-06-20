@@ -366,27 +366,32 @@ getPCA <- function(object,
                    n.workers = 1, 
                    overwrite = FALSE, 
                    seed = 1,
-                   source = c("features","embeddings")){
+                   source = c("features", "embeddings")) {
   
   source <- match.arg(source)
   
   # Choose data source
   if (source == "embeddings") {
-    # Embedding input
     if (length(features) != 1 || !(features %in% vrEmbeddingNames(object))) {
       stop("When source='embeddings', 'features' must be exactly one existing embedding name.")
     }
+    
+    # get data
     normdata <- vrEmbeddings(object,
                              assay = assay,
                              type  = features,
                              dims  = Inf)
-    # Clamp dims to available columns
+    #check dims and col
     if (dims > ncol(normdata)) {
       message("Requested more PC dimensions than existing embeddings; setting dims = ncol(normdata).")
       dims <- ncol(normdata)
     }
+    
   } else {
-    # original
+    # get assay names
+    assay_names <- vrAssayNames(object, assay = assay)
+    
+    # get shared features and subset
     assay_features <- vrFeatures(object, assay = assay)
     
     # if there are features of a VoltRon object, then get variable features too
@@ -396,15 +401,17 @@ getPCA <- function(object,
       object_subset <- subsetVoltRon(object, features = features)
       vrMainAssay(object_subset) <- vrMainAssay(object)
       
-      # adjust extraction features lengths
+      # adjust extraction features length
       if (dims > length(features)) {
         message("Requested more PC dimensions than existing features; setting dims = length(features).")
         dims <- length(features)
       }
+      
       # if there are no features in VoltRon object, return the assay as itself
     } else {
       object_subset <- object
     }
+    # get data
     normdata <- vrData(object_subset, assay = assay, norm = TRUE)
   }
   
@@ -419,33 +426,63 @@ getPCA <- function(object,
     if (n.workers > 1) {
       if (!requireNamespace("BiocParallel", quietly = TRUE))
         stop("You have to install BiocParallel!: BiocManager::install('BiocParallel')")
-      pca_obj <- BiocSingular::runPCA(
-        t(normdata), rank    = dims,
-        scale   = TRUE,
-        center  = TRUE,
-        BPPARAM = BiocParallel::MulticoreParam(n.workers),
-        BSPARAM = BiocSingular::FastAutoParam()
-      )
+      
+      if (source == "embeddings") {
+        pr.data <- BiocSingular::runPCA(
+          normdata, rank = dims,
+          scale = TRUE,
+          center = TRUE,
+          BSPARAM = BiocSingular::FastAutoParam()
+        )
+        pr.data <- pr.data$x
+      } else {
+        pr.data <- BiocSingular::runPCA(
+          t(normdata), rank = dims,
+          scale = TRUE,
+          center = TRUE,
+          BPPARAM = BiocParallel::MulticoreParam(n.workers),
+          BSPARAM = BiocSingular::FastAutoParam()
+        )
+        pr.data <- pr.data$x
+      }
     } else {
-      pca_obj <- BiocSingular::runPCA(
-        t(normdata), rank   = dims,
-        scale  = TRUE,
-        center = TRUE,
-        BSPARAM= BiocSingular::FastAutoParam()
-      )
+      #again for n.workers condition
+      if (source == "embeddings") {
+        pr.data <- BiocSingular::runPCA(
+          normdata, rank = dims,
+          scale = TRUE,
+          center = TRUE,
+          BSPARAM = BiocSingular::FastAutoParam()
+        )
+        pr.data <- pr.data$x
+      } else {
+        pr.data <- BiocSingular::runPCA(
+          t(normdata), rank = dims,
+          scale = TRUE,
+          center = TRUE,
+          BSPARAM = BiocSingular::FastAutoParam()
+        )
+        pr.data <- pr.data$x
+      }
     }
-    pr.data <- pca_obj$x
   }
   
   # Label and save
   colnames(pr.data) <- paste0("PC", seq_len(dims))
-  rownames(pr.data) <- colnames(normdata)
+  if (source == "embeddings") {
+    rownames(pr.data) <- rownames(normdata)
+  } else {
+    rownames(pr.data) <- colnames(normdata)
+  }
+  
   vrEmbeddings(object,
                assay = assay,
                type = type,
                overwrite = overwrite) <- pr.data
+  
   return(object)
 }
+
 
 #' getUMAP
 #'
