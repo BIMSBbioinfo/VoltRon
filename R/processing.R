@@ -352,7 +352,8 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #' @param overwrite Whether the existing embedding with name 'type' 
 #' should be overwritten in \link{vrEmbeddings}
 #' @param seed seed
-#' @param source Character either "features"  or "embeddings" . Default: "features"
+#' @param source Character either "features" (PCA on gene features) or
+#'   "embeddings" (PCA on an existing embedding). Default: "features"
 #'
 #' @importFrom BiocSingular runPCA FastAutoParam
 #'
@@ -368,7 +369,6 @@ getPCA <- function(object,
                    source = c("features","embeddings")){
   
   source <- match.arg(source)
-  assay_names <- vrAssayNames(object, assay = assay)
   
   # Choose data source
   if (source == "embeddings") {
@@ -380,13 +380,12 @@ getPCA <- function(object,
                              assay = assay,
                              type  = features,
                              dims  = Inf)
-    
+    # Clamp dims to available columns
     if (dims > ncol(normdata)) {
       message("Requested more PC dimensions than existing embeddings; setting dims = ncol(normdata).")
       dims <- ncol(normdata)
     }
-    
-  } else (source == "features") {
+  } else {
     # original
     assay_features <- vrFeatures(object, assay = assay)
     
@@ -416,7 +415,6 @@ getPCA <- function(object,
       stop("You have to install BPCells!: remotes::install_github('bnprks/BPCells/r')")
     svd <- BPCells::svds(normdata, k = dims, threads = as.integer(n.workers))
     pr.data <- BPCells::multiply_cols(svd$v, svd$d)
-    
   } else {
     if (n.workers > 1) {
       if (!requireNamespace("BiocParallel", quietly = TRUE))
@@ -433,22 +431,19 @@ getPCA <- function(object,
         t(normdata), rank   = dims,
         scale  = TRUE,
         center = TRUE,
-        BSPARAM = BiocSingular::FastAutoParam()
+        BSPARAM= BiocSingular::FastAutoParam()
       )
     }
     pr.data <- pca_obj$x
   }
   
-  # change colnames
+  # Label and save
   colnames(pr.data) <- paste0("PC", seq_len(dims))
   rownames(pr.data) <- colnames(normdata)
-  
-  # set Embeddings
   vrEmbeddings(object,
-               assay = assay_names,
+               assay = assay,
                type = type,
                overwrite = overwrite) <- pr.data
-  # return
   return(object)
 }
 
