@@ -359,14 +359,14 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #'
 #' @export
 getPCA <- function(object, 
-                   assay = NULL, 
-                   features = NULL, 
-                   dims = 30, 
-                   type = "pca", 
-                   n.workers = 1, 
-                   overwrite = FALSE, 
-                   seed = 1,
-                   source = c("features", "embeddings")) {
+                    assay = NULL, 
+                    features = NULL, 
+                    dims = 30, 
+                    type = "pca", 
+                    n.workers = 1, 
+                    overwrite = FALSE, 
+                    seed = 1,
+                    source = c("features", "embeddings")) {
   
   source <- match.arg(source)
   
@@ -423,49 +423,29 @@ getPCA <- function(object,
     svd <- BPCells::svds(normdata, k = dims, threads = as.integer(n.workers))
     pr.data <- BPCells::multiply_cols(svd$v, svd$d)
   } else {
+    input_data <- if (source == "embeddings") normdata else t(normdata)
+    
     if (n.workers > 1) {
       if (!requireNamespace("BiocParallel", quietly = TRUE))
         stop("You have to install BiocParallel!: BiocManager::install('BiocParallel')")
       
-      if (source == "embeddings") {
-        pr.data <- BiocSingular::runPCA(
-          normdata, rank = dims,
-          scale = TRUE,
-          center = TRUE,
-          BSPARAM = BiocSingular::FastAutoParam()
-        )
-        pr.data <- pr.data$x
-      } else {
-        pr.data <- BiocSingular::runPCA(
-          t(normdata), rank = dims,
-          scale = TRUE,
-          center = TRUE,
-          BPPARAM = BiocParallel::MulticoreParam(n.workers),
-          BSPARAM = BiocSingular::FastAutoParam()
-        )
-        pr.data <- pr.data$x
-      }
+      pr.data <- BiocSingular::runPCA(
+        input_data, rank = dims,
+        scale = TRUE,
+        center = TRUE,
+        BPPARAM = BiocParallel::MulticoreParam(n.workers),
+        BSPARAM = BiocSingular::FastAutoParam()
+      )$x
     } else {
-      #again for n.workers condition
-      if (source == "embeddings") {
-        pr.data <- BiocSingular::runPCA(
-          normdata, rank = dims,
-          scale = TRUE,
-          center = TRUE,
-          BSPARAM = BiocSingular::FastAutoParam()
-        )
-        pr.data <- pr.data$x
-      } else {
-        pr.data <- BiocSingular::runPCA(
-          t(normdata), rank = dims,
-          scale = TRUE,
-          center = TRUE,
-          BSPARAM = BiocSingular::FastAutoParam()
-        )
-        pr.data <- pr.data$x
-      }
+      pr.data <- BiocSingular::runPCA(
+        input_data, rank = dims,
+        scale = TRUE,
+        center = TRUE,
+        BSPARAM = BiocSingular::FastAutoParam()
+      )$x
     }
   }
+  
   
   # Label and save
   colnames(pr.data) <- paste0("PC", seq_len(dims))
