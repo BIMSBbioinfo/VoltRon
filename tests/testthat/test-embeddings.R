@@ -26,6 +26,12 @@ test_that("embeddings", {
   
   #do PCA
   visium_data <- getPCA(visium_data, features = "embed", type = "embedding_PCA", source = "embeddings", overwrite = TRUE)
+  expect_true("embedding_PCA" %in% vrEmbeddingNames(visium_data))
+  
+  PCAs <- vrEmbeddings(visium_data, type = "embedding_PCA")
+  expect_false(is.null(PCAs))
+  expect_gt(nrow(PCAs), 0)
+  expect_gt(ncol(PCAs), 0)
   
   # return
   expect_equal(1,1L)
