@@ -11,6 +11,22 @@ test_that("embeddings", {
   expect_error(vrEmbeddings(visium_data, type = "pca") <- vrCoordinates(visium_data))
   vrEmbeddings(visium_data, type = "pca", overwrite = TRUE) <- vrCoordinates(visium_data)
   
+  #test PCA on embeddings associated with obj
+  # Get row names
+  row_ids <- rownames(vrCoordinates(visium_data))
+  
+  # Create dummy embeddings with the same rows and 100 columns
+  dummy_emb <- matrix(
+    rnorm(length(row_ids) * 100),
+    nrow = length(row_ids),
+    ncol = 100
+  )
+  rownames(dummy_emb) <- row_ids
+  vrEmbeddings(visium_data, type = "embed", overwrite=TRUE) <- dummy_emb
+  
+  #do PCA
+  visium_data <- getPCA(visium_data, features = "embed", type = "embedding_PCA", source = "embeddings", overwrite = TRUE)
+  
   # return
   expect_equal(1,1L)
 })
