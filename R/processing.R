@@ -346,6 +346,8 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #' (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param features the selected features for PCA reduction
+#' @param data.type the type of data used to calculate PCA from: 
+#' "norm" (default), "raw" or an existing embeddings \link{vrEmbeddingNames}.
 #' @param dims the number of dimensions extracted from PCA
 #' @param type the key name for the embedding, default: pca
 #' @param n.workers the number of cores/workers use for parallelization.
@@ -361,27 +363,27 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 getPCA <- function(object, 
                     assay = NULL, 
                     features = NULL, 
+                    data.type = "norm",
                     dims = 30, 
-                    type = "pca", 
+                    pca.key = "pca", 
                     n.workers = 1, 
                     overwrite = FALSE, 
                     seed = 1,
                     source = c("features", "embeddings")) {
-  
+    
   source <- match.arg(source)
+  embedding_names <- vrEmbeddingNames(object)
   
   # Choose data source
-  if (source == "embeddings") {
-    if (length(features) != 1 || !(features %in% vrEmbeddingNames(object))) {
-      stop("When source='embeddings', 'features' must be exactly one existing embedding name.")
-    }
+  if (data.type %in% embedding_names) {
     
     # get data
     normdata <- vrEmbeddings(object,
                              assay = assay,
-                             type  = features,
+                             type  = data.type,
                              dims  = Inf)
-    #check dims and col
+    
+    # check dims and col
     if (dims > ncol(normdata)) {
       message("Requested more PC dimensions than existing embeddings; setting dims = ncol(normdata).")
       dims <- ncol(normdata)
@@ -411,8 +413,10 @@ getPCA <- function(object,
     } else {
       object_subset <- object
     }
+    
     # get data
-    normdata <- vrData(object_subset, assay = assay, norm = TRUE)
+    norm <- data.type == "norm"
+    normdata <- vrData(object_subset, assay = assay, norm = norm)
   }
   
   # Compute PCA
@@ -449,7 +453,7 @@ getPCA <- function(object,
   
   # Label and save
   colnames(pr.data) <- paste0("PC", seq_len(dims))
-  if (source == "embeddings") {
+  if (data.type %in% embedding_names) {
     rownames(pr.data) <- rownames(normdata)
   } else {
     rownames(pr.data) <- colnames(normdata)
@@ -457,7 +461,7 @@ getPCA <- function(object,
   
   vrEmbeddings(object,
                assay = assay,
-               type = type,
+               type = pca.key,
                overwrite = overwrite) <- pr.data
   
   return(object)

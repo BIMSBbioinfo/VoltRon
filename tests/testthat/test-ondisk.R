@@ -385,7 +385,7 @@ test_that("embeddings with BPCells-backed", {
                               verbose = FALSE)
   xenium_data2 <- getPCA(xenium_data2, 
                          features = vrFeatures(xenium_data2), 
-                         type = "pca_key")
+                         pca.key = "pca_key")
   
   # check embeddings
   emb <- vrEmbeddings(xenium_data2, type = "pca_key")
@@ -412,7 +412,7 @@ test_that("embeddings with DelayedArray", {
                               verbose = FALSE)
   xenium_data2 <- getPCA(xenium_data2, 
                          features = vrFeatures(xenium_data2), 
-                         type = "pca_key")
+                         pca.key = "pca_key")
   
   # check embeddings
   emb <- vrEmbeddings(xenium_data2, type = "pca_key")

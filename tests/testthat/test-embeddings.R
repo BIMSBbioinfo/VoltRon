@@ -35,7 +35,7 @@ test_that("embeddings from embeddings", {
   vrEmbeddings(visium_data, type = "embed", overwrite=TRUE) <- dummy_emb
   
   #do PCA
-  visium_data <- getPCA(visium_data, features = "embed", type = "embedding_PCA", source = "embeddings", overwrite = TRUE)
+  visium_data <- getPCA(visium_data, data.type = "embed", pca.key = "embedding_PCA", overwrite = TRUE)
   expect_true("embedding_PCA" %in% vrEmbeddingNames(visium_data))
   
   PCAs <- vrEmbeddings(visium_data, type = "embedding_PCA")
