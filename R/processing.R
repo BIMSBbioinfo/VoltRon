@@ -36,7 +36,7 @@ normalizeDataVoltRon <- function(object,
 #  (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param method the normalization method: "LogNorm", 
-#' "Q3Norm", "LogQ3Norm" or "CLR"
+#' "Q3Norm", "LogQ3Norm", "CLR" or "hyper.arcsine".
 #' @param desiredQuantile the quantile of the data if "QuanNorm" 
 #' or "LogQuanNorm" is selected as \code{method}.
 #' @param scale the scale parameter for the hyperbolic arcsine transformation
@@ -346,6 +346,8 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #' (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param features the selected features for PCA reduction
+#' @param data.type the type of data used to calculate PCA from: 
+#' "norm" (default), "raw" or an existing embeddings \link{vrEmbeddingNames}.
 #' @param dims the number of dimensions extracted from PCA
 #' @param type the key name for the embedding, default: pca
 #' @param n.workers the number of cores/workers use for parallelization.
@@ -361,27 +363,27 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 getPCA <- function(object, 
                     assay = NULL, 
                     features = NULL, 
+                    data.type = "norm",
                     dims = 30, 
-                    type = "pca", 
+                    pca.key = "pca", 
                     n.workers = 1, 
                     overwrite = FALSE, 
                     seed = 1,
                     source = c("features", "embeddings")) {
-  
+    
   source <- match.arg(source)
+  embedding_names <- vrEmbeddingNames(object)
   
   # Choose data source
-  if (source == "embeddings") {
-    if (length(features) != 1 || !(features %in% vrEmbeddingNames(object))) {
-      stop("When source='embeddings', 'features' must be exactly one existing embedding name.")
-    }
+  if (data.type %in% embedding_names) {
     
     # get data
     normdata <- vrEmbeddings(object,
                              assay = assay,
-                             type  = features,
+                             type  = data.type,
                              dims  = Inf)
-    #check dims and col
+    
+    # check dims and col
     if (dims > ncol(normdata)) {
       message("Requested more PC dimensions than existing embeddings; setting dims = ncol(normdata).")
       dims <- ncol(normdata)
@@ -411,8 +413,10 @@ getPCA <- function(object,
     } else {
       object_subset <- object
     }
+    
     # get data
-    normdata <- vrData(object_subset, assay = assay, norm = TRUE)
+    norm <- data.type == "norm"
+    normdata <- vrData(object_subset, assay = assay, norm = norm)
   }
   
   # Compute PCA
@@ -449,7 +453,7 @@ getPCA <- function(object,
   
   # Label and save
   colnames(pr.data) <- paste0("PC", seq_len(dims))
-  if (source == "embeddings") {
+  if (data.type %in% embedding_names) {
     rownames(pr.data) <- rownames(normdata)
   } else {
     rownames(pr.data) <- colnames(normdata)
@@ -457,7 +461,7 @@ getPCA <- function(object,
   
   vrEmbeddings(object,
                assay = assay,
-               type = type,
+               type = pca.key,
                overwrite = overwrite) <- pr.data
   
   return(object)
@@ -527,7 +531,7 @@ getUMAP <- function(object,
 # Image Processing ####
 ####
 
-#' split_into_tiles
+#' .make_tiles_data
 #'
 #' split image raster data into tiles
 #'
@@ -535,34 +539,28 @@ getUMAP <- function(object,
 #' @param tile_size tile size
 #'
 #' @noRd
-split_into_tiles <- function(image_data, tile_size = 10) {
-  n_rows <- nrow(image_data)
-  n_cols <- ncol(image_data)
+.make_tiles_data <- function(image_data, tile_size = 10) {
 
   # Calculate the number of tiles in rows and columns
-  n_row_tiles <- n_rows %/% tile_size
-  n_col_tiles <- n_cols %/% tile_size
+  n_rows <- nrow(image_data)
+  n_cols <- ncol(image_data)
+  row_tile_size <- (n_rows %/% tile_size)
+  col_tile_size <- (n_cols %/% tile_size)
+  rowlimit <- tile_size * row_tile_size
+  collimit <- tile_size * col_tile_size
+  
+  # subset image data given tile_size
+  image_data <- image_data[1:rowlimit, 1:collimit]
 
-  # Initialize an empty list to store tiles
-  tiles <- list()
-
-  # Loop through the image data matrix to extract tiles
-  for (i in seq_len(n_row_tiles)) {
-    for (j in seq_len(n_col_tiles)) {
-      # Calculate the indices for the current tile
-      start_row <- (i - 1) * tile_size + 1
-      end_row <- i * tile_size
-      start_col <- (j - 1) * tile_size + 1
-      end_col <- j * tile_size
-
-      # Extract the current tile from the image data matrix
-      tile <- image_data[start_row:end_row, start_col:end_col]
-
-      # Store the tile in the list
-      tiles[[length(tiles) + 1]] <- tile
-    }
-  }
+  # permute the data to create tile data
+  # dimensions: block_row, rows, block_col, cols
+  tiles_data <- array(image_data, 
+                      dim = c(tile_size, row_tile_size, 
+                              tile_size, col_tile_size))
+  tiles_data <- aperm(tiles_data, c(3, 1, 4, 2))  
+  tiles_data <- apply(tiles_data, c(3, 4), function(x) c(x))
+  tiles_data <- matrix(tiles_data, nrow = tile_size*tile_size)
 
   # Return the list of tiles
-  return(tiles)
+  return(tiles_data)
 }

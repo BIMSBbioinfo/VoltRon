@@ -464,25 +464,27 @@ table, th, td {
 }
 </style>
 <p><br></p>
-<div id="analyzing-image-datasets" class="section level1">
-<h1>Analyzing Image Datasets</h1>
+<div id="analysis-of-images" class="section level1">
+<h1>Analysis of Images</h1>
 <p>VoltRon is a spatial omic analysis platform that allows storing a
 large amount of spatially resolved datasets. As opposed to datasets with
 either supracellular (spot-level) or cellular resolutions, one might
 analyze image datasets and pixels to characterize the morphology of a
-tissue section. Here, images can also be used to build VoltRon objects
-where pixels (or tiles) are defined as spatial points, and then can also
-be used for multiple downstream analysis purposes.</p>
+tissue section.</p>
+<p>Here, images can also be used to build VoltRon objects where pixels
+(or tiles) are defined as spatial points, and then can also be used for
+multiple downstream analysis purposes.</p>
 <p><br></p>
-<div id="analysis-of-he-images" class="section level2">
-<h2>Analysis of H&amp;E images</h2>
+<div id="importing-images-he" class="section level2">
+<h2>Importing Images (H&amp;E)</h2>
 <p>In this use case, we will analyze the H&amp;E image derived from a
 tissue section that was first analyzed by The 10x Genomics <a
 href="https://www.10xgenomics.com/platforms/xenium">Xenium In Situ</a>
 platform. Three tissue sections were cut from a single formalin-fixed,
 paraffin-embedded (FFPE) breast cancer tissue block. A 5 <span
 class="math inline">\(\mu\)</span>m section was used to generate a
-single Xenium replicate.</p>
+single Xenium replicate. The H&amp;E staining was performed on the
+tissue after the Xenium run.</p>
 <p>More information on the Xenium and the study can be also be found on
 the <a
 href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">BioArxiv
@@ -491,31 +493,96 @@ href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-
 Genomics website</a> as well (specifically, import the
 <strong>Post-Xenium H&amp;E image (TIFF)</strong> data).</p>
 <p>We incorporate <strong>importImageData</strong> to convert an image
-into a pixel-based spatial dataset.</p>
+into a tile/pixel-based spatial dataset.</p>
 <pre class="r watch-out"><code>Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
                                 sample_name = &quot;XeniumR1image&quot;, 
-                                image_name = &quot;H&amp;E&quot;)
+                                image_name = &quot;H&amp;E&quot;, tile.size = 100)
 Xen_R1_image</code></pre>
 <pre><code>VoltRon Object 
 XeniumR1image: 
   Layers: Section1 
-Assays: ImageData(Main) </code></pre>
+Assays: ImageData(Main) 
+Features: main(Main) </code></pre>
 <pre class="r watch-out"><code>vrImages(Xen_R1_image, scale.perc = 2)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE.png" class="center"></p>
 <p></br></p>
-<p>This VoltRon object stores the metadata information and localization
-of all pixels in the image.</p>
+</div>
+<div id="building-datasets-for-tiles" class="section level2">
+<h2>Building Datasets for Tiles</h2>
+<p>The VoltRon object stores the metadata information and localization
+of all tiles in the image. These tiles, like any observation, can be
+analyzed independently where you can reduce its dimensionality to
+perform clustering later.</p>
 <pre class="r watch-out"><code>head(Metadata(Xen_R1_image))</code></pre>
-<pre><code>             id assay_id     Assay    Layer        Sample     id
-         &lt;char&gt;   &lt;char&gt;    &lt;char&gt;   &lt;char&gt;        &lt;char&gt; &lt;char&gt;
-1: tile1_3adf0a   Assay1 ImageData Section1 XeniumR1image  tile1
-2: tile2_3adf0a   Assay1 ImageData Section1 XeniumR1image  tile2
-3: tile3_3adf0a   Assay1 ImageData Section1 XeniumR1image  tile3
-4: tile4_3adf0a   Assay1 ImageData Section1 XeniumR1image  tile4
-5: tile5_3adf0a   Assay1 ImageData Section1 XeniumR1image  tile5
-6: tile6_3adf0a   Assay1 ImageData Section1 XeniumR1image  tile6</code></pre>
+<pre><code>             id assay_id     Assay    Layer        Sample
+         &lt;char&gt;   &lt;char&gt;    &lt;char&gt;   &lt;char&gt;        &lt;char&gt;
+1: tile1_2c05fc   Assay1 ImageData Section1 XeniumR1image
+2: tile2_2c05fc   Assay1 ImageData Section1 XeniumR1image
+3: tile3_2c05fc   Assay1 ImageData Section1 XeniumR1image
+4: tile4_2c05fc   Assay1 ImageData Section1 XeniumR1image
+5: tile5_2c05fc   Assay1 ImageData Section1 XeniumR1image
+6: tile6_2c05fc   Assay1 ImageData Section1 XeniumR1image</code></pre>
+<p>Each row is associated with a tile of parsed from the image, and the
+users can define additional metadata columns afterwards.</p>
 <pre class="r watch-out"><code>nrow(Metadata(Xen_R1_image))</code></pre>
-<pre><code>[1] 5656658</code></pre>
+<pre><code>[1] 24888</code></pre>
+<p>In order to generate data values from image tiles, we can treat each
+pixel of a tile as a data dimension (in this case, by 200x200 tiles we
+have 40000 pixels, thus dimensions). We generate this dataset as
+below:</p>
+<pre class="r watch-out"><code>Xen_R1_image &lt;- generateTileData(Xen_R1_image)
+dim(vrData(Xen_R1_image))</code></pre>
+<pre><code>[1] 40000 13974</code></pre>
+<p></br></p>
+</div>
+<div id="dimensionality-reduction" class="section level2">
+<h2>Dimensionality Reduction</h2>
+<p>We can now reduce the dimensionality of these pixel intensities using
+PCA and visualize the data variability across tiles. The data matrix we
+generated with the <strong>generateTileData</strong> earlier will be
+used here similar to gene/protein expression datasets, where we reduce
+40000 variables (each associated with a pixel) to a managable number,
+say 15.</p>
+<pre class="r watch-out"><code>Xen_R1_image &lt;- getPCA(Xen_R1_image, dims = 15)
+Xen_R1_image &lt;- getUMAP(Xen_R1_image)
+vrEmbeddingPlot(Xen_R1_image, embedding = &quot;umap&quot;, group.by = &quot;Sample&quot;)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_embedding.png" class="center"></p>
+<p></br></p>
+</div>
+<div id="clustering" class="section level2">
+<h2>Clustering</h2>
+<p>Here, the dimensionally reduced image tiles can be clustered using
+either graph clustering approaches or kmeans clustering depending on the
+choice.</p>
+<pre class="r watch-out"><code>Xen_R1_image &lt;- getProfileNeighbors(Xen_R1_image, data.type = &quot;pca&quot;, 
+                                    k = 10, method = &quot;SNN&quot;, dims = 1:15)
+Xen_R1_image &lt;- getClusters(Xen_R1_image, resolution = 1.0, 
+                            label = &quot;Cluster_snn&quot;, graph = &quot;SNN&quot;)</code></pre>
+<p>We here visualize the transparent clustering information of tiles by
+rasterizing the tiles into larger sizes to increase plotting speed where
+we can see the distinction between different tissue niches of the
+image.</p>
+<pre class="r watch-out"><code>g1 &lt;- vrSpatialPlot(Xen_R1_image, group.by = &quot;Cluster_snn&quot;, 
+                    alpha = 0.5, n.tile = 100)
+g2 &lt;- vrEmbeddingPlot(Xen_R1_image, embedding = &quot;umap&quot;, 
+                      group.by = &quot;Cluster_snn&quot;)
+g1 | g2 </code></pre>
+<table>
+<tbody>
+<tr style="vertical-align: center">
+<td style="width:60%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_spatialcluster.png" class="center">
+</td>
+<td style="width:40%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_embeddingcluster.png" class="center">
+</td>
+</tr>
+</tbody>
+</table>
+<p></br></p>
+</div>
+<div id="data-transfer" class="section level2">
+<h2>Data transfer</h2>
 </div>
 </div>
 

@@ -452,9 +452,12 @@ addAssayVoltRon <- function(object, assay, metadata = NULL, assay_name, sample =
   # update sample.metadata and metadata
   object@sample.metadata <- rbind(sample.metadata, c(assay_name, layer, sample))
   rownames(object@sample.metadata) <- assay_names
-  object@metadata <- addAssay(object@metadata, metadata = metadata,
-                              assay = assay, assay_name = assay_name,
-                              sample = sample, layer = layer)
+  object@metadata <- addAssay(object@metadata, 
+                              metadata = metadata,
+                              assay = assay, 
+                              assay_name = assay_name,
+                              sample = sample, 
+                              layer = layer)
 
   # get sample and layer
   curlayer <- object[[sample, layer]]
@@ -1221,6 +1224,9 @@ generateTileDataVoltRon <- function(object, assay = NULL, ...) {
   # get tile data for all assays
   for(assy in assay_names)
     object[[assy]] <- generateTileData(object[[assy]], ...)
+  
+  # return
+  object
 }
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
@@ -1475,7 +1481,11 @@ MetadataVoltRon <- function(object, assay = NULL, type = NULL){
         metadata <- metadata[ind,]
       }
     } else {
-      metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assay_names, ]
+      if("assay_id" %in% colnames(metadata)){
+        metadata <- metadata[stringr::str_extract(metadata$id, "Assay[0-9]+") %in% assay_names, ]
+      } else {
+        metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assay_names, ]
+      }
     }
     return(metadata)
   } else {

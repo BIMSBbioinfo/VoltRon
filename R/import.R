@@ -2254,10 +2254,11 @@ importImageData <- function(image, tile.size = 10, segments = NULL, image_name =
   }
 
   # coordinates
-  even_odd_correction <- (!tile.size%%2)*(0.5)
-  x_coords <- seq((tile.size/2) + even_odd_correction, imageinfo$width, tile.size)[seq_len(imageinfo$width %/% tile.size)]
-  y_coords <- seq((tile.size/2) + even_odd_correction, imageinfo$height, tile.size)[seq_len(imageinfo$height %/% tile.size)]
-  y_coords <- rev(y_coords)
+  row_tile_size <- (imageinfo$height %/% tile.size)
+  col_tile_size <- (imageinfo$width %/% tile.size)
+  x_coords <- tile.size/2 + (seq_len(col_tile_size) - 1) * tile.size
+  y_coords <- tile.size/2 + (seq_len(row_tile_size) - 1) * tile.size
+  y_coords <- imageinfo$height - y_coords
   coords <- as.matrix(expand.grid(x_coords, y_coords))
   colnames(coords) <- c("x", "y")
   rownames(coords) <- paste0("tile", seq_len(nrow(coords)))

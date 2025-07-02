@@ -1,3 +1,8 @@
+test_that("add assay metadata", {
+  
+  expect_equal(1,1L)
+})
+
 test_that("add column (numeric)", {
 
   # get data
@@ -78,3 +83,4 @@ test_that("add column ($ method)", {
   
   expect_equal(1,1L)
 })
+
