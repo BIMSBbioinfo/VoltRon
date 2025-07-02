@@ -11,7 +11,17 @@ test_that("embeddings", {
   expect_error(vrEmbeddings(visium_data, type = "pca") <- vrCoordinates(visium_data))
   vrEmbeddings(visium_data, type = "pca", overwrite = TRUE) <- vrCoordinates(visium_data)
   
-  #test PCA on embeddings associated with obj
+  # return
+  expect_equal(1,1L)
+})
+
+# Testing functions of manipulating embeddings ####
+test_that("embeddings from embeddings", {
+  
+  # get data
+  data("visium_data")
+  
+  # test PCA on embeddings associated with obj
   # Get row names
   row_ids <- rownames(vrCoordinates(visium_data))
   
