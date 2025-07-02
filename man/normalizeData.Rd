@@ -46,7 +46,7 @@ normalizeData(object, ...)
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{method}{the normalization method: "LogNorm", 
-"Q3Norm", "LogQ3Norm" or "CLR"}
+"Q3Norm", "LogQ3Norm", "CLR" or "hyper.arcsine".}
 
 \item{desiredQuantile}{the quantile of the data if "QuanNorm" 
 or "LogQuanNorm" is selected as \code{method}.}
