@@ -31,6 +31,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{dims}{the number of dimensions extracted from PCA}
 
+\item{pca.key}{the key name for the embedding, default: pca}
+
 \item{n.workers}{the number of cores/workers use for parallelization.}
 
 \item{overwrite}{Whether the existing embedding with name 'type' 
@@ -40,8 +42,6 @@ should be overwritten in \link{vrEmbeddings}}
 
 \item{source}{Character either "features" (PCA on gene features) or
 "embeddings" (PCA on an existing embedding). Default: "features"}
-
-\item{type}{the key name for the embedding, default: pca}
 }
 \description{
 calculate PCA of the VoltRon objects

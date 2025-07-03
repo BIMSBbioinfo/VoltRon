@@ -30,3 +30,14 @@ test_that("subset", {
   # return
   expect_equal(1,1L)
 })
+
+test_that("subset image", {
+  
+  # visium
+  data("visium_data")
+  
+  # return empty object 
+  expect_warning(
+    expect_null(subset(visium_data, image = "25x20+243+190"))
+  )
+})

@@ -754,8 +754,6 @@ readPKC <- function (file, default_pkc_vers = NULL)
       if (length(remove_rts) > 0) {
         warning("The following probes were removed from analysis",
                 " as they were not found in all PKC module versions used.\n",
-                # paste(utils::capture.output(print(subset(rtsid_lookup_df,
-                #                                   subset = RTS_ID %in% remove_rts))), collapse = "\n")
                 )
         rtsid_lookup_df <- subset(rtsid_lookup_df, subset = !RTS_ID %in%
                                     remove_rts)

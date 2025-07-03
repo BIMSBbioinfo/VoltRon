@@ -356,12 +356,6 @@ rbind_metadata <- function(metadata1, metadata2){
   } else {
     metadata1 <- .make_DF(metadata1)
     metadata2 <- .make_DF(metadata2)
-    # if(flag1)
-    #   # metadata1 <- S4Vectors::DataFrame(metadata1)
-    #   metadata1 <- .make_DF(metadata1)
-    # if(flag2)
-    #   # metadata2 <- S4Vectors::DataFrame(metadata2)
-    #   metadata2 <- .make_DF(metadata2)
     return(rbind(metadata1, metadata2))
   }
 }

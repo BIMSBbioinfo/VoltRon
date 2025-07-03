@@ -173,7 +173,14 @@ subsetvrAssay <- function(x, subset, spatialpoints = NULL, features = NULL, imag
       # images
       img <- vrMainSpatial(object)
       object@image <- object@image[img]
-      object@image[[img]] <- subsetvrImage(object@image[[img]], image = image)
+      subset_img <- subsetvrImage(object@image[[img]], image = image)
+      
+      # if the image is empty, return NULL
+      if(is.null(subset_img)){
+        return(NULL)
+      } else {
+        object@image[[img]] <- subset_img
+      }
       spatialpoints <- rownames(vrCoordinates(object@image[[img]]))
       
       # data
@@ -280,7 +287,9 @@ subsetCoordinates <- function(coords, imageinfo, crop_info){
     # return new coords
     return(coords)
   } else {
-    stop("No spatial points remain after cropping!")
+    # stop("No spatial points remain after cropping!")
+    warning("No spatial points remain after cropping!")
+    return(NULL)
   }
 }
 
