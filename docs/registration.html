@@ -346,7 +346,7 @@ div.tocify {
           <a href="multiomic.html">Multi-omic Integration</a>
         </li>
         <li>
-          <a href="deconvolution.html">Niche Clustering</a>
+          <a href="nicheclustering.html">Niche Clustering</a>
         </li>
       </ul>
     </li>
@@ -580,6 +580,24 @@ vertically) and negating these images. We always negate DAPI images to
 align them onto H&amp;E images.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration_FLANN.gif" class="center"></p>
+<p><br></p>
+<p>You can save and use the same parameters later, and reproduce the
+alignment without choosing parameters the second time.</p>
+<pre class="r watch-out"><code>mapping_parameters &lt;- xen_reg$mapping_parameters
+xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), 
+                               mapping_parameters = mapping_parameters)</code></pre>
+<p>You can find a presaved set of parameters <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/mapping_parameters.rds">here</a>.</p>
+<pre class="r watch-out"><code>mapping_parameters &lt;- readRDS(&quot;mapping_parameters.rds&quot;)
+xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), 
+                               mapping_parameters = mapping_parameters)</code></pre>
+<p>If the pre-saved parameters are available, the registration can also
+be performed without using the shiny app. By using <strong>interactive =
+FALSE</strong>, we can register images and VoltRon objects directly.</p>
+<pre class="r watch-out"><code>mapping_parameters &lt;- xen_reg$mapping_parameters
+xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), 
+                               mapping_parameters = mapping_parameters, 
+                               interactive = FALSE)</code></pre>
 <p>In case there are only two images, <strong>the first image will be
 taken as the image of reference</strong>. Hence, in order to align the
 first Xenium Replicate to the Visium dataset, we can create a list of
@@ -599,12 +617,26 @@ as reference and the users will be able to observe the quality of the
 registration and remove/reselect keypoints as they see fit.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration.gif" class="center"></p>
+<p><br></p>
 <p>You can save and use the same keypoints later, and reproduce the
-manual alignment without choosing keypoints for the second time. You can
-find a presaved set of keypoints <a
-href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/keypoints.rds">here</a>.</p>
-<pre class="r watch-out"><code>keypoints &lt;- xen_reg$keypoints
-xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), keypoints = keypoints)</code></pre>
+manual alignment without choosing keypoints for the second time.</p>
+<pre class="r watch-out"><code>mapping_parameters &lt;- xen_reg$mapping_parameters
+xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), 
+                               mapping_parameters = mapping_parameters)</code></pre>
+<p>You can find a presaved set of parameters with selected manual
+keypoints <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/mapping_parameters_manual.rds">here</a>.</p>
+<pre class="r watch-out"><code>mapping_parameters &lt;- readRDS(&quot;mapping_parameters_manual.rds&quot;)
+xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), 
+                               mapping_parameters = mapping_parameters)</code></pre>
+<p>If the pre-saved keypoints are available with parameters, the
+registration can also be performed without using the shiny app. By using
+<strong>interactive = FALSE</strong>, we can register images and VoltRon
+objects directly.</p>
+<pre class="r watch-out"><code>mapping_parameters &lt;- xen_reg$mapping_parameters
+xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2), 
+                               mapping_parameters = mapping_parameters, 
+                               interactive = FALSE)</code></pre>
 <p>In case there are only two images, <strong>the first image will be
 taken as the image of reference</strong>. Hence, in order to align the
 first Xenium Replicate to the Visium dataset. We can create a list of
@@ -635,10 +667,10 @@ before merging. Both Xenium sections have now two coordinate system
 where the registered system <strong>main_reg</strong> is the default
 one.</p>
 <pre class="r watch-out"><code>vrSpatialNames(VRBlock, assay = &quot;all&quot;)</code></pre>
-<pre><code>   Assay       Spatial     Main
-1 Assay1 main,main_reg main_reg
-2 Assay2          main     main
-3 Assay3 main,main_reg main_reg</code></pre>
+<pre><code>        Assay    Layer   Sample       Spatial     Main
+Assay1 Xenium Section1 10XBlock main,main_reg main_reg
+Assay2 Visium Section2 10XBlock          main     main
+Assay3 Xenium Section3 10XBlock main,main_reg main_reg</code></pre>
 <p><br></p>
 </div>
 <div id="datalabel-transfer-across-layers" class="section level3">
@@ -744,7 +776,8 @@ href="spotanalysis.html">Cell/Spot Analysis</a>. You can download the
 VoltRon object with clustered and annotated Xenium cells along with the
 Visium assay from <a
 href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/VRBlock_data_clustered.rds">here</a>.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(VRBlock, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;, pt.size = 0.4)</code></pre>
+<pre class="r watch-out"><code>VRBlock &lt;- readRDS(&quot;VRBlock_data_clustered.rds&quot;)
+vrSpatialPlot(VRBlock, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;, pt.size = 0.4)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_annotated.png" class="center"></p>
 <p>Here, we can see that both Xenium layers are clustered and annotated
 where we can use these cell annotations and transfer them to the Visium
@@ -814,6 +847,12 @@ vrSpatialPlot(VRBlock, group.by = &quot;annotation&quot;, assay = &quot;Visium&q
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_ROI_xenium.png" class="center"></p>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_ROI_visium.png" class="center"></p>
 <p><br></p>
+<p>You can also use the <strong>addSpatialLayer</strong> function to
+overlay annotation segments to the spatial plot of the Xenium data.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(VRBlock_new2, group.by = &quot;CellType&quot;, assay = &quot;Assay1&quot;, crop = TRUE) |&gt;
+  addSpatialLayer(VRBlock_new2, assay = &quot;ROIAnnotation&quot;, group.by = &quot;annotation&quot;, spatial = &quot;main&quot;, alpha = 0.4)</code></pre>
+<p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_ROI_xenium_overlay.png" class="center"></p>
+<p><br></p>
 </div>
 </div>
 </div>
@@ -839,8 +878,8 @@ Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;Xenium
 
 # import H&amp;E image and build a VoltRon object
 Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
-                                sample_name = &quot;XeniumR1image&quot;,
-                                image_name = &quot;H&amp;E&quot;)
+                                sample_name = &quot;XeniumR1image&quot;, 
+                                channel_names = &quot;H&amp;E&quot;)
 Xen_R1_image</code></pre>
 <pre><code>VoltRon Object 
 XeniumR1image: 
@@ -859,23 +898,27 @@ assays in one of these VoltRon objects.</p>
 <p>First we align the H&amp;E image to the DAPI image of the Xenium
 replicate. Similar to the first use case, we need to negate the DAPI
 image and change the alignment of the image to match it with the H&amp;E
-image. We can also adjust the resolution of the H&amp;E image to
+image. We can also scale the resolution of the H&amp;E image to
 9103.71x6768.63.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))</code></pre>
 <p><img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE_function.png" class="center"></p>
 <p><br></p>
 <p>Now we create a new channel for the existing coordinate system of the
-Xenium data. Here, the key of the registered H&amp;E image will be
-<strong>H&amp;E_reg</strong>. We choose the destination of the
+Xenium data. Here, the spatial key of the registered H&amp;E image will
+be <strong>main_reg</strong>. We choose the destination of the
 registered image which is the first Assay of the Xenium data
 (i.e. <strong>Assay1</strong>). The original DAPI coordinate system, and
 we give a name for the new image/channel which is
 <strong>H&amp;E</strong>.</p>
 <pre class="r watch-out"><code>Xen_R1_image_reg &lt;- xen_reg$registered_spat[[2]]
-vrImages(Xen_R1[[&quot;Assay1&quot;]], channel = &quot;H&amp;E&quot;) &lt;- vrImages(Xen_R1_image_reg, name = &quot;H&amp;E_reg&quot;)</code></pre>
-<p>Now we can call the registered H&amp;E image of the Xenium data or
-later put the aligned H&amp;E when calling
-<strong>vrSpatialPlot</strong> or
+vrImages(Xen_R1[[&quot;Assay1&quot;]], channel = &quot;H&amp;E&quot;) &lt;- vrImages(Xenium_reg, name = &quot;main_reg&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
+<p>We can now observe the new channels (H&amp;E) available for the
+Xenium assay using <strong>vrImageChannelNames</strong>.</p>
+<pre class="r watch-out"><code>vrImageChannelNames(Xen_R1)</code></pre>
+<pre><code>       Assay    Layer           Sample Spatial                                               Channels
+Assay1 GeoMx Section1 prolonged case 4    main scanimage,DNA,PanCK,CD45,Alpha Smooth Muscle Actin,H&amp;E</code></pre>
+<p>We can call the registered H&amp;E image of the Xenium data or later
+put the aligned H&amp;E when calling <strong>vrSpatialPlot</strong> or
 <strong>vrSpatialFeaturePlot</strong>.</p>
 <pre class="r watch-out"><code>vrImages(Xen_R1, channel = &quot;H&amp;E&quot;, scale.perc = 5)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE.png" class="center"></p>

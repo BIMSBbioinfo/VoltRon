@@ -1,4 +1,4 @@
-#' @include generics.R
+#' @include allgenerics.R
 #'
 NULL
 
@@ -22,7 +22,7 @@ NULL
 #' @importFrom igraph add_edges simplify make_empty_graph vertices E<- E
 #'
 #' @export
-getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, data.type = "pca", dims = 1:30, graph.key = method){
+getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, data.type = "pca", dims = seq_len(30), graph.key = method){
 
   # get data
   if(data.type %in% c("raw", "norm")){
@@ -38,8 +38,6 @@ getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, da
   }
 
   # find profile neighbors
-  # if(knn.method == "FNN"){
-  #   nnedges <- FNN::get.knn(nndata, k = k + 1)
   nnedges <- knn_annoy(nndata, k = k + 1)
   names(nnedges) <- c("nn.index", "nn.dist")
   weights <- NULL
@@ -54,7 +52,7 @@ getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, da
            },
            kNN = {
              nnedges <- nnedges$nn.index
-             nnedges <- cbind(1:nrow(nndata), nnedges)
+             nnedges <- cbind(seq_len(nrow(nndata)), nnedges)
              nnedges <- apply(nnedges, 1, function(x){
                do.call(c,lapply(x[-1], function(y) return(c(x[1],y))))
              })
@@ -120,7 +118,10 @@ knn_annoy <- function(data, query = data, k = 10, n_trees = 50, search_k = -1) {
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param label the name for the newly created clustering column in the metadata.
-#' @param method The method of clustering. Use 'leiden' to perform graph clustering, 'kmeans' for K-means based clustering and 'hierarchical' for hierarchical clustering.
+#' @param method The method of clustering. Use :
+#' (i) 'leiden' to perform graph clustering and 
+#' (ii) 'kmeans' for K-means based clustering
+#' (iii) 'hierarchical' for hierarchical clustering.
 #' @param resolution the resolution parameter for leiden clustering.
 #' @param graph the graph type to be used.
 #' @param nclus The number of cluster centers for K-means or hierarchical clustering.
@@ -132,7 +133,8 @@ knn_annoy <- function(data, query = data, k = 10, n_trees = 50, search_k = -1) {
 #' @importFrom stats kmeans hclust cutree
 #' 
 #' @export
-getClusters <- function(object, assay = NULL, label = "clusters", method = "leiden", resolution = 1, graph = "kNN", nclus = integer(0), distance_measure = "manhattan", abundance_limit = 2, seed = 1){
+getClusters <- function(object, assay = NULL, label = "clusters", method = "leiden", resolution = 1, 
+                        graph = "kNN", nclus = integer(0), distance_measure = "manhattan", abundance_limit = 2, seed = 1){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -141,7 +143,7 @@ getClusters <- function(object, assay = NULL, label = "clusters", method = "leid
   assay_names <- vrAssayNames(object, assay = assay)
 
   # get assays
-  object_subset <- subset(object, assays = assay_names)
+  object_subset <- subsetVoltRon(object, assays = assay_names)
 
   # check clustering parameters
   .check_clustering_params(method, resolution, nclus, abundance_limit)
@@ -176,18 +178,11 @@ getClusters <- function(object, assay = NULL, label = "clusters", method = "leid
   # correct clustering for low abundant clusters
   clusters <- .correct_low_abundant_clusters(object_graph, clusters, abundance_limit)
     
-  # metadata
-  metadata <- Metadata(object)
-  entities <- vrSpatialPoints(object_subset)
-  if(is.null(rownames(metadata))){
-    metadata[[label]] <- as.numeric(NA)
-    metadata[[label]][match(clusters$names, as.vector(metadata$id))] <- clusters$membership
-  } else {
-    metadata_clusters <- NA
-    metadata[[label]] <- metadata_clusters
-    metadata[clusters$names,][[label]] <- clusters$membership
-  }
-  Metadata(object) <- metadata
+  # update metadata
+  spatialpoints <- vrSpatialPoints(object, assay = assay)
+  membership <- setNames(rep(NA,length(spatialpoints)), spatialpoints)
+  membership[clusters$names] <- clusters$membership
+  object <- addMetadata(object, assay = assay, value = membership, label = label)
 
   # return
   return(object)

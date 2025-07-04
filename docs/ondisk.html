@@ -346,7 +346,7 @@ div.tocify {
           <a href="multiomic.html">Multi-omic Integration</a>
         </li>
         <li>
-          <a href="deconvolution.html">Niche Clustering</a>
+          <a href="nicheclustering.html">Niche Clustering</a>
         </li>
       </ul>
     </li>
@@ -463,9 +463,10 @@ body {
 <p>We first have to download some packages that are necessary to import
 datasets from <code>.parquet</code> and <code>.h5</code> files provided
 by the VisiumHD readouts.</p>
-<pre class="r watch-out"><code>install.packages(c(&quot;arrow&quot;, &quot;hdf5r&quot;))
+<pre class="r watch-out"><code>install.packages(&quot;arrow&quot;)
+BiocManager::install(&quot;rhdf5&quot;)
 library(arrow)
-library(hdf5r)</code></pre>
+library(rhdf5)</code></pre>
 <p>We use the <strong>importVisiumHD</strong> function to start
 analyzing the data. The data has 393401 spots which we will use
 OnDisk-backed methods to efficiently manipulate, analyze and visualize

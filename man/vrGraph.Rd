@@ -7,7 +7,7 @@
 \usage{
 vrGraph(object, assay = NULL, graph.type = NULL)
 
-vrGraph(object, graph.type = "kNN") <- value
+vrGraph(object, assay = NULL, graph.type = "kNN") <- value
 }
 \arguments{
 \item{object}{a VoltRon object}

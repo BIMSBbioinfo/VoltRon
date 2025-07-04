@@ -12,7 +12,7 @@ getHotSpotAnalysis(
   graph.type = "delaunay",
   alpha.value = 0.01,
   norm = TRUE,
-  seed = 1
+  verbose = TRUE
 )
 }
 \arguments{
@@ -31,7 +31,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{norm}{if TRUE, the normalized data is used}
 
-\item{seed}{seed}
+\item{verbose}{verbose}
 }
 \description{
 Conduct hot spot detection

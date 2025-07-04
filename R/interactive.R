@@ -39,9 +39,7 @@ vrSpatialPlotInteractive <- function(plot_g = NULL,
   shiny::runApp(
     shiny::shinyApp(ui, server, options = list(host = shiny.options[["host"]], port = shiny.options[["port"]], launch.browser = shiny.options[["launch.browser"]]),
                     onStart = function() {
-                      cat("Doing application setup\n")
                       onStop(function() {
-                        cat("Doing application cleanup\n")
                       })
                     })
   )
@@ -146,17 +144,18 @@ configure_shiny_options <- function(shiny.options){
 #' @param zarr.file The zarr file of a VoltRon object
 #' @param group.by a grouping label for the spatial entities
 #' @param reduction The name of the reduction to visualize an embedding alongside with the spatial plot.
-#'
+#' @param shiny.options a list of shiny options (host, port etc.) passed \code{options} argument of \link{wc$widget}.
+#' 
 #' @noRd
-vrSpatialPlotVitessce <- function(zarr.file, group.by = "Sample", reduction = NULL) {
+vrSpatialPlotVitessce <- function(zarr.file, group.by = "Sample", reduction = NULL, shiny.options = NULL) {
 
   # check package
   if (!requireNamespace('vitessceR'))
-    stop("Please install vitessceR package for using interactive visualization")
+    stop("Please install vitessceR package for using interactive visualization!: devtools::install_github('vitessce/vitessceR')")
 
   # check file
   if(!dir.exists(zarr.file))
-    stop(paste0(zarr.file, " is not found at the specified location!"))
+    stop(zarr.file, " is not found at the specified location!")
   
   # get embedding
   if(is.null(reduction)){
@@ -211,5 +210,13 @@ vrSpatialPlotVitessce <- function(zarr.file, group.by = "Sample", reduction = NU
     )
   }
 
-  vc$widget(theme = "light")
+  if(length(shiny.options) == 0){
+    vc$widget(theme = "light")
+  } else {
+    if (!requireNamespace('rstudioapi'))
+      stop("Please install rstudioapi package!: install.packages('rstudioapi')")
+    message("Listening widget from ", shiny.options[["host"]], ":", shiny.options[["port"]])
+    base = rstudioapi::translateLocalUrl(paste0(shiny.options[["host"]],":",shiny.options[["port"]]), absolute=TRUE)
+    vc$widget(theme = "light", base_url=base, port=shiny.options[["port"]])
+  }
 }

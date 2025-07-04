@@ -105,7 +105,7 @@ transferFeatureData <- function(object, from = NULL, to = NULL, features = NULL,
 #' @param object a VoltRon object
 #' @param from The ID of assay whose data transfer to the second assay
 #' @param to The ID of the target assay where data is transfered to
-#' @param features The set of data or metadata features that are transfered. Only one metadata feature can be transfered at a time.
+#' @param features The set of data or metadata features that are transferred. Only one metadata feature can be transferred at a time.
 #'
 #' @noRd
 transferLabels <- function(object, from = NULL, to = NULL, features = NULL){
@@ -125,9 +125,24 @@ transferLabels <- function(object, from = NULL, to = NULL, features = NULL){
     
     # transfer labels
     transferedLabelsMetadata <- transferLabelsFromROI(from_object, from_metadata, to_object, to_metadata, features = features)
-    
-    # transfer labels
-    Metadata(object, assay = to) <- transferedLabelsMetadata
+
+    # update metadata
+    # metadata <- Metadata(object, assay = to)
+    # entities <- vrSpatialPoints(to_object)
+    # if(is.numeric(value)){
+    #   metadata[[features]] <- as.numeric(NA)
+    # } else {
+    #   metadata[[features]] <- ""
+    # }
+    # if(is.null(rownames(metadata))){
+    #   metadata[[features]][match(entities, as.vector(metadata$id))] <- value
+    # } else {
+    #   metadata[entities,][[features]] <- value
+    # }
+    # 
+    # # transfer labels
+    # Metadata(object, assay = to) <- metadata
+    object <- addMetadata(object, assay = to, value = transferedLabelsMetadata[[features]], label = features)
   }
     
   # return
@@ -156,7 +171,7 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
   Vis_spotradius <- vrAssayParams(to_object, param = "spot.radius")
 
   # get cell and spot coordinates
-  cat("Cell to Spot Distances \n")
+  message("Cell to Spot Distances \n")
   coords_spots <- vrCoordinates(to_object)
   coords_cells <- vrCoordinates(from_object)
 
@@ -172,7 +187,7 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
   cell_to_spot_nnid <- cell_to_spot_nnid[cell_to_spot_nndist < Vis_spotradius]
 
   # find associated spot for each cell
-  cat("Find associated spots for each cell \n")
+  message("Find associated spots for each cell \n")
   cell_to_spot_id <- names(cell_to_spot_nnid)
 
   # get data
@@ -208,7 +223,7 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, feat
   raw_counts <- raw_counts[,cell_to_spot_id, drop = FALSE]
 
   # pool cell counts to Spots
-  cat("Aggregating cell profiles in spots \n")
+  message("Aggregating cell profiles in spots \n")
   aggregate_raw_counts <- stats::aggregate(t(as.matrix(raw_counts)), list(cell_to_spot_nnid), sum)
   aggregate_raw_counts <- data.frame(barcodes = vrSpatialPoints(to_object)) %>% dplyr::right_join(aggregate_raw_counts, by = c("barcodes" = "Group.1"))
   rownames(aggregate_raw_counts) <- aggregate_raw_counts$barcodes
@@ -240,7 +255,7 @@ getCellsFromSpots <- function(from_object, from_metadata = NULL, to_object, feat
   radius <- vrAssayParams(from_object, param = "nearestpost.distance")/2
   
   # get cell and spot coordinates
-  cat("Spot to Cell Distances \n")
+  message("Spot to Cell Distances \n")
   coords_spots <- vrCoordinates(from_object)
   coords_cells <- vrCoordinates(to_object)
   
@@ -255,7 +270,7 @@ getCellsFromSpots <- function(from_object, from_metadata = NULL, to_object, feat
   nnindex <- nnindex[nndist < radius]
 
   # find associated spot for each cell
-  cat("Find associated spot for each cell \n")
+  message("Find associated spot for each cell \n")
 
   # get data
   if(is.null(features)){
@@ -312,16 +327,16 @@ getCellsFromSpots <- function(from_object, from_metadata = NULL, to_object, feat
 getROIsFromCells <- function(from_object, from_metadata = NULL, to_object, features = NULL) {
 
   # get cell and ROIs coordinates
-  cat("Cell to ROI Distances \n")
+  message("Cell to ROI Distances \n")
   segments_rois <- vrSegments(to_object)
   coords_cells <- vrCoordinates(from_object)
   
   # find associated spot for each cell
-  cat("Find associated ROIs for each cell \n")
+  message("Find associated ROIs for each cell \n")
   cell_to_roi_id <- NULL
   cell_to_roi_labelid <- NULL
   names_segments_rois <- names(segments_rois)
-  for(i in 1:length(segments_rois)){
+  for(i in seq_len(length(segments_rois))){
     cur_segt <- segments_rois[[i]]
     if(ncol(cur_segt) > 3){
       in.list <- point.in.circle(coords_cells[,1], coords_cells[,2], cur_segt$x, cur_segt$y, cur_segt$rx)
@@ -366,36 +381,21 @@ getROIsFromCells <- function(from_object, from_metadata = NULL, to_object, featu
   raw_counts <- raw_counts[,cell_to_roi_id, drop = FALSE]
   
   # pool cell counts to Spots
-  cat("Aggregating cell profiles in spots \n")
+  message("Aggregating cell profiles in spots \n")
   aggregate_raw_counts <- stats::aggregate(t(as.matrix(raw_counts)), list(cell_to_roi_labelid), sum)
   aggregate_raw_counts <- data.frame(barcodes = vrSpatialPoints(to_object)) %>% dplyr::right_join(aggregate_raw_counts, by = c("barcodes" = "Group.1"))
   rownames(aggregate_raw_counts) <- aggregate_raw_counts$barcodes
   aggregate_raw_counts <- t(aggregate_raw_counts[,-1])
   aggregate_raw_counts[is.na(aggregate_raw_counts)] <- 0
   
-  # create new assay
-  # images <- list()
-  # for(img in vrImageNames(to_object)){
-  #   images[[img]] <- magick::image_data(vrImages(to_object, name = img))
-  # }
-  # new_assay <- formAssay(data = aggregate_raw_counts,
-  #                        coords = vrCoordinates(to_object)[colnames(aggregate_raw_counts),],
-  #                        image = vrImages(to_object),
-  #                        type = vrAssayTypes(to_object),
-  #                        main_image = to_object@main_image,
-  #                        params = to_object@params)
-  # new_assay@image <- to_object@image
-  # new_assay <- subset(new_assay, spatialpoints = colnames(aggregate_raw_counts))
-  
   # return
-  # return(new_assay)
   return(aggregate_raw_counts)
 }
 
 getCellsFromTiles <- function(from_object, from_metadata = NULL, to_object, features = NULL, k = 5) {
 
   # get cell and spot coordinates
-  cat("Tile to Cell Distances \n")
+  message("Tile to Cell Distances \n")
   coords_cells <- vrCoordinates(to_object)
   coords_tiles <- vrCoordinates(from_object)
 
@@ -404,7 +404,8 @@ getCellsFromTiles <- function(from_object, from_metadata = NULL, to_object, feat
   tile_to_cell <- knn_annoy(coords_tiles, coords_cells, k = k)
   names(tile_to_cell) <- c("nn.index", "nn.dist")
   tile_to_cell_nnid <- data.frame(id = rownames(coords_cells), tile_to_cell$nn.index)
-  tile_to_cell_nnid <- reshape2::melt(tile_to_cell_nnid, id.vars = "id")
+  # tile_to_cell_nnid <- reshape2::melt(tile_to_cell_nnid, id.vars = "id")
+  tile_to_cell_nnid <- data.table::melt(tile_to_cell_nnid, id.vars = "id")
   tile_id <- vrSpatialPoints(from_object)[tile_to_cell_nnid$value]
   tile_to_cell_nnid <- tile_to_cell_nnid$id
 
@@ -413,7 +414,7 @@ getCellsFromTiles <- function(from_object, from_metadata = NULL, to_object, feat
   raw_counts <- raw_counts[,tile_id]
 
   # pool cell counts to Spots
-  cat("Aggregating tile profiles in cells \n")
+  message("Aggregating tile profiles in cells \n")
   aggregate_raw_counts <- stats::aggregate(t(as.matrix(raw_counts)), list(tile_to_cell_nnid), mean)
   aggregate_raw_counts <- data.frame(barcodes = vrSpatialPoints(to_object)) %>% dplyr::right_join(aggregate_raw_counts, by = c("barcodes" = "Group.1"))
   rownames(aggregate_raw_counts) <- aggregate_raw_counts$barcodes
@@ -446,7 +447,7 @@ transferLabelsFromROI <- function(from_object, from_metadata = NULL, to_object, 
     new_label <- rep("undefined", length(spatialpoints))
     names(new_label) <- spatialpoints
     
-    for(i in 1:length(segments_roi)){
+    for(i in seq_len(length(segments_roi))){
       cur_poly <- segments_roi[[i]][,c("x","y")]
       in.list <- sp::point.in.polygon(coords[,1], coords[,2], cur_poly[,1], cur_poly[,2])
       new_label[rownames(coords)[!!in.list]] <- feat_labels[i]
@@ -475,7 +476,7 @@ getJointPCA <- function(object, assay.1 = NULL, assay.2 = NULL, dims = 30, seed 
   if(length(assay_features) > 0) {
     features <- getVariableFeatures(object, assay = assay)
     vrMainAssay(object) <- object@sample.metadata[assay, "Assay"]
-    object_subset <- subset(object, features = features)
+    object_subset <- subsetVoltRon(object, features = features)
     vrMainAssay(object_subset) <- vrMainAssay(object)
     if(dims > length(features)){
       message("Requested more PC dimensions than existing features: dims = length(features) now!")
@@ -485,13 +486,20 @@ getJointPCA <- function(object, assay.1 = NULL, assay.2 = NULL, dims = 30, seed 
     object_subset <- object
   }
 
-  # get PCA embedding
+  # set seed
   set.seed(seed)
+  
+  # get PCA embedding
   normdata.1 <- vrData(object_subset, assay = assay, norm = TRUE)
-  scale.data <- apply(normdata.1, 1, scale)
-  pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+  # scale.data <- apply(normdata.1, 1, scale)
+  # pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+  pr.data <- BiocSingular::runPCA(t(normdata.1),
+                                  rank=dims,
+                                  scale=TRUE,
+                                  center=TRUE,
+                                  BSPARAM=BiocSingular::FastAutoParam())
   pr.data.1 <- pr.data$x
-  colnames(pr.data.1) <- paste0("PC", 1:dims)
+  colnames(pr.data.1) <- paste0("PC", seq_len(dims))
   rownames(pr.data.1) <- colnames(normdata.1)
   normdata.1 <- normdata.1/(pr.data$sdev[1]^2)
 
@@ -504,7 +512,7 @@ getJointPCA <- function(object, assay.1 = NULL, assay.2 = NULL, dims = 30, seed 
   if(length(assay_features) > 0) {
     features <- getVariableFeatures(object, assay = assay)
     vrMainAssay(object) <- object@sample.metadata[assay, "Assay"]
-    object_subset <- subset(object, features = features)
+    object_subset <- subsetVoltRon(object, features = features)
     vrMainAssay(object_subset) <- vrMainAssay(object)
     if(dims > length(features)){
       message("Requested more PC dimensions than existing features: dims = length(features) now!")
@@ -515,22 +523,31 @@ getJointPCA <- function(object, assay.1 = NULL, assay.2 = NULL, dims = 30, seed 
   }
 
   # get PCA embedding
-  set.seed(seed)
   normdata.2 <- vrData(object_subset, assay = assay, norm = TRUE)
-  scale.data <- apply(normdata.2, 1, scale)
-  pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+  # scale.data <- apply(normdata.2, 1, scale)
+  # pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+  pr.data <- BiocSingular::runPCA(t(normdata.2),
+                                  rank=dims,
+                                  scale=TRUE,
+                                  center=TRUE,
+                                  BSPARAM=BiocSingular::FastAutoParam())
   pr.data.2 <- pr.data$x
-  colnames(pr.data.2) <- paste0("PC", 1:dims)
+  colnames(pr.data.2) <- paste0("PC", seq_len(dims))
   rownames(pr.data.2) <- colnames(normdata.2)
   normdata.2 <- normdata.2/(pr.data$sdev[1]^2)
 
   # get joint PCA
   normdata <- rbind(normdata.1, normdata.2)
-  scale.data <- apply(normdata, 1, scale)
-  pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+  # scale.data <- apply(normdata, 1, scale)
+  # pr.data <- irlba::prcomp_irlba(scale.data, n=dims, center=colMeans(scale.data))
+  pr.data <- BiocSingular::runPCA(t(normdata),
+                                  rank=dims,
+                                  scale=TRUE,
+                                  center=TRUE,
+                                  BSPARAM=BiocSingular::FastAutoParam())
   prsdev <- pr.data$sdev
   pr.data <- pr.data$x
-  colnames(pr.data) <- paste0("PC", 1:dims)
+  colnames(pr.data) <- paste0("PC", seq_len(dims))
   rownames(pr.data) <- colnames(normdata)
   normdata <- normdata/(prsdev[1]^2)
 

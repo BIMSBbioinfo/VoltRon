@@ -21,6 +21,7 @@
 #' @param image_name the image name of the Xenium assay, Default: main
 #' @param channel_name the channel name of the image of the Xenium assay, Default: DAPI
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
+#' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
@@ -30,10 +31,13 @@
 #'
 #' @export
 #'
-importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", sample_name = NULL, use_image = TRUE, morphology_image = "morphology_lowres.tif", resolution_level = 7, overwrite_resolution = FALSE, image_name = "main", channel_name = "DAPI", import_molecules = FALSE, ...)
+importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_name = "Xenium", sample_name = NULL, use_image = TRUE, 
+                          morphology_image = "morphology_lowres.tif", resolution_level = 7, overwrite_resolution = TRUE, 
+                          image_name = "main", channel_name = "DAPI", import_molecules = FALSE, verbose = TRUE, ...)
 {
   # cell assay
-  message("Creating cell level assay ...")
+  if(verbose)
+    message("Creating cell level assay ...")
 
   # raw counts
   datafile <- paste0(dir.path, "/cell_feature_matrix.h5")
@@ -45,13 +49,13 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
       stop("There are no assays called ", selected_assay, " in the h5 file!")
     }
   } else {
-    stop("There are no files named 'filtered_feature_bc_matrix.h5' in the path")
+    stop("There are no files named 'cell_feature_matrix.h5' in the path")
   }
 
   # image
   if(use_image){
-    # suppressMessages(generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level, overwrite_resolution = overwrite_resolution))
-    generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level, overwrite_resolution = overwrite_resolution)
+    generateXeniumImage(dir.path, file.name = morphology_image, resolution_level = resolution_level, overwrite_resolution = overwrite_resolution,
+                        verbose = verbose)
     image_file <- paste0(dir.path, "/", morphology_image)
     if(file.exists(image_file)){
       image <-  image_read(image_file)
@@ -108,14 +112,19 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
   if(!import_molecules){
     return(cell_object)
   } else {
-    message("Creating molecule level assay ...")
+    if(verbose)
+      message("Creating molecule level assay ...")
     # transcripts
-    transcripts_file <- paste0(dir.path, "/transcripts.csv.gz")
+    transcripts_file <- paste0(dir.path, "/transcripts.parquet")
     if(!file.exists(transcripts_file)){
       stop("There are no file named 'transcripts.csv.gz' in the path")
     } else {
+      if (!requireNamespace('arrow'))
+        stop("Please install arrow package to extract molecule data!: install.packages('arrow')")
+      
       # get subcellur data components
-      subcellular_data <- data.table::fread(transcripts_file)
+      # subcellular_data <- data.table::fread(transcripts_file)
+      subcellular_data <- data.table::as.data.table(arrow::read_parquet(transcripts_file, as_data_frame = FALSE))
       subcellular_data <- subcellular_data[,c("transcript_id", colnames(subcellular_data)[!colnames(subcellular_data) %in% "transcript_id"]), with = FALSE]
       colnames(subcellular_data)[colnames(subcellular_data)=="transcript_id"] <- "id"
       colnames(subcellular_data)[colnames(subcellular_data)=="feature_name"] <- "gene"
@@ -130,13 +139,12 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
       coords[,"y"] <- range_coords[2] - coords[,"y"]  + range_coords[1]
 
       # metadata
-      # mol_metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell_id", "transcript_id", "x_location", "y_location")], with = FALSE]
       mol_metadata <- subcellular_data[,colnames(subcellular_data)[!colnames(subcellular_data) %in% c("cell_id", "transcript_id", "x_location", "y_location", "z_location")], with = FALSE]
       set.seed(nrow(mol_metadata$id))
-      mol_metadata$postfix <- paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))
-      mol_metadata$assay_id <- "Assay1"
+      mol_metadata[, postfix:=paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))]
+      mol_metadata[, assay_id:="Assay1"]
       mol_metadata[, id:=do.call(paste0,.SD), .SDcols=c("id", "postfix")]
-
+      
       # coord names
       rownames(coords) <- mol_metadata$id
 
@@ -144,7 +152,8 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
       mol_assay <- formAssay(coords = coords, image = image, type = "molecule", main_image = image_name, main_channel = channel_name)
 
       # merge assays in one section
-      message("Merging assays ...")
+      if(verbose)
+        message("Merging assays ...")
       sample.metadata <- SampleMetadata(cell_object)
       object <- addAssay(cell_object,
                          assay = mol_assay,
@@ -160,7 +169,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
         connectivity[["cell_id"]] <- vrSpatialPoints(cell_object)[connectivity[["cell_id"]]]
       } else {
         connectivity <- subset(connectivity, cell_id != "UNASSIGNED")
-        connectivity$cell_assay_id <- "_Assay1"
+        connectivity[, cell_assay_id:="_Assay1"]
         connectivity[, cell_id:=do.call(paste0,.SD), .SDcols=c("cell_id", "cell_assay_id")]
         connectivity$cell_assay_id <- NULL
       }
@@ -187,6 +196,7 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #' @param overwrite_resolution if TRUE, the image "file.name" will be generated again although it exists at "dir.path"
 #' @param output.path The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.
 #' @param file.name the name of the lowred morphology image. Default: morphology_lowres.tif
+#' @param verbose verbose
 #' @param ... additional parameters passed to the \link{writeImage} function
 #'
 #' @importFrom EBImage writeImage
@@ -199,10 +209,8 @@ importXenium <- function (dir.path, selected_assay = "Gene Expression", assay_na
 #'
 #' @export
 #'
-generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_level = 7, overwrite_resolution = FALSE, output.path = NULL, file.name = "morphology_lowres.tif", ...) {
-  
-  if (!requireNamespace('RBioFormats'))
-    stop("Please install RBioFormats package to read the ome.tiff file!")
+generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_level = 7, overwrite_resolution = FALSE, 
+                                output.path = NULL, file.name = "morphology_lowres.tif", verbose = TRUE, ...) {
   
   # file path to either Xenium output folder or specified folder
   file.path <- paste0(dir.path, "/", file.name)
@@ -210,32 +218,38 @@ generateXeniumImage <- function(dir.path, increase.contrast = TRUE, resolution_l
   
   # check if the file exists in either Xenium output folder, or the specified location
   if((file.exists(file.path) | file.exists(paste0(output.file))) & !overwrite_resolution){
-    message(paste0(file.name, " already exists!"))
+    if(verbose)
+      message(file.name, " already exists!")
   } else {
     if (!requireNamespace('RBioFormats'))
-      stop("Please install RBioFormats package to read the ome.tiff file!")
+      stop("Please install RBioFormats package to extract xml from the ome.tiff file!: BiocManager::install('RBioFormats')")
     if(dir.exists(paste0(dir.path, "/morphology_focus"))){
-      message("Loading morphology_focus_0000.ome.tif ...")
+      if(verbose)
+        message("Loading morphology_focus_0000.ome.tif ...")
       morphology_image_lowres <- RBioFormats::read.image(paste0(dir.path, "/morphology_focus/morphology_focus_0000.ome.tif"),
                                                          resolution = resolution_level,
                                                          subset=list(C=1))
     } else if(file.exists(paste0(dir.path, "/morphology_mip.ome.tif"))) {
-      message("Loading morphology_mip.ome.tif ...")
+      if(verbose)
+        message("Loading morphology_mip.ome.tif ...")
       morphology_image_lowres <- RBioFormats::read.image(paste0(dir.path, "/morphology_mip.ome.tif"), resolution = resolution_level)
     }
     
     # pick a resolution level
     image_info <- morphology_image_lowres@metadata$coreMetadata
-    message(paste0("  Image Resolution (X:", image_info$sizeX, " Y:", image_info$sizeY, ") ..."))
+    if(verbose)
+      message("  Image Resolution (X:", image_info$sizeX, " Y:", image_info$sizeY, ") ...")
     
     # increase contrast using EBImage
     if(increase.contrast) {
-      message("  Increasing Contrast ...")
+      if(verbose)
+        message("  Increasing Contrast ...")
       morphology_image_lowres <- (morphology_image_lowres/max(morphology_image_lowres))
     }
     
     # write to the same folder
-    message("  Writing Tiff File ...")
+    if(verbose)
+      message("  Writing Tiff File ...")
     if(is.null(output.path)){
       EBImage::writeImage(morphology_image_lowres, file = file.path, ...)
     } else {
@@ -402,7 +416,7 @@ importVisiumHD <- function(dir.path, bin.size = "8", selected_assay = "Gene Expr
   
   # coordinates
   if(!requireNamespace("arrow"))
-    stop("Please install arrow package to import VisiumHD!")
+    stop("Please install arrow package to import VisiumHD!: install.packages('arrow')")
   coords_file <- list.files(paste0(dir.path, "/spatial/"), full.names = TRUE)
   coords_file <- coords_file[grepl("tissue_positions",coords_file)]
   if(length(coords_file) == 1){
@@ -452,33 +466,32 @@ importVisiumHD <- function(dir.path, bin.size = "8", selected_assay = "Gene Expr
 #'
 #' import the sparse matrix from the H5 file
 #'
-#' @param filename the path tp h5 file
+#' @param filename the path to h5 file
 #'
 #' @importFrom Matrix sparseMatrix
 #'
-#' @noRd
+#' @export
 import10Xh5 <- function(filename){
 
   # check package
-  if(!requireNamespace("hdf5r")){
-    stop("You have to install the hdf5r package!: install.packages('hdf5r'')")
+  if(!requireNamespace("rhdf5")){
+    stop("You have to install the rhdf5 package!: BiocManager::install('rhdf5')")
   }
   
   # check file
   if(file.exists(filename)){
-    input.file <- hdf5r::H5File$new(filename = filename, mode = "r")
-    matrix.10X <- input.file[["matrix"]]
+    matrix.10X <- rhdf5::h5read(file = filename, name = "matrix")
   } else {
     stop("There are no files named ", filename," in the path")
   }
 
   # get data, barcodes and feature
-  features <- hdf5r::readDataSet(matrix.10X[["features"]][["name"]])
-  feature_type <- hdf5r::readDataSet(matrix.10X[["features"]][["feature_type"]])
-  cells <- hdf5r::readDataSet(matrix.10X[["barcodes"]])
-  mat <- hdf5r::readDataSet(matrix.10X[["data"]])
-  indices <- hdf5r::readDataSet(matrix.10X[["indices"]])
-  indptr <- hdf5r::readDataSet(matrix.10X[["indptr"]])
+  features <- matrix.10X[["features"]][["name"]]
+  feature_type <- matrix.10X[["features"]][["feature_type"]]
+  cells <- matrix.10X[["barcodes"]]
+  mat <- matrix.10X[["data"]]
+  indices <- matrix.10X[["indices"]]
+  indptr <- matrix.10X[["indptr"]]
   sparse.mat <- sparseMatrix(i = indices + 1, p = indptr,
                              x = as.numeric(mat), dims = c(length(features), length(cells)),
                              repr = "T")
@@ -556,7 +569,7 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
 
   # merge dcc files
   rawdata <- NULL
-  for(i in 1:length(dccData)){
+  for(i in seq_len(length(dccData))){
     cur_data <- dccData[[i]]$Code_Summary
     colnames(cur_data) <- c("RTS_ID", dcc_filenames[i])
     if(i == 1){
@@ -588,7 +601,7 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
   if(file.exists(summarySegment)){
     if(grepl(".xls$|.xlsx$", summarySegment)){
       if (!requireNamespace('xlsx'))
-        stop("Please install xlsx package for using the read.xlsx function!")
+        stop("Please install xlsx package for using the read.xlsx function!: install.packages('xlsx')")
       if(!is.null(summarySegmentSheetName)){
         segmentsummary <- xlsx::read.xlsx(summarySegment, sheetName = summarySegmentSheetName)
       } else {
@@ -741,8 +754,6 @@ readPKC <- function (file, default_pkc_vers = NULL)
       if (length(remove_rts) > 0) {
         warning("The following probes were removed from analysis",
                 " as they were not found in all PKC module versions used.\n",
-                # paste(utils::capture.output(print(subset(rtsid_lookup_df,
-                #                                   subset = RTS_ID %in% remove_rts))), collapse = "\n")
                 )
         rtsid_lookup_df <- subset(rtsid_lookup_df, subset = !RTS_ID %in%
                                     remove_rts)
@@ -872,7 +883,7 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
   if(file.exists(ome.tiff)){
     if(grepl(".ome.tiff$|.ome.tif$", ome.tiff)){
       if (!requireNamespace('RBioFormats'))
-        stop("Please install RBioFormats package to extract xml from the ome.tiff file!")
+        stop("Please install RBioFormats package to extract xml from the ome.tiff file!: BiocManager::install('RBioFormats')")
       if (!requireNamespace('XML'))
         stop("Please install XML package to extract xml from the ome.tiff file!")
       omexml <- RBioFormats::read.omexml(ome.tiff)
@@ -891,7 +902,7 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo){
 
   # get masks for each ROI
   mask_lists <- list()
-  for(i in 1:length(ROIs)){
+  for(i in seq_len(length(ROIs))){
     cur_ROI <- ROIs[[i]]
 
     # if the shape is a polygon
@@ -964,7 +975,7 @@ importGeoMxChannels <- function(ome.tiff, summary, imageinfo, resolution_level){
   if(file.exists(ome.tiff)){
     if(grepl(".ome.tiff$|.ome.tif$", ome.tiff)){
       if (!requireNamespace('RBioFormats'))
-        stop("Please install RBioFormats package to extract xml from the ome.tiff file!")
+        stop("Please install RBioFormats package to extract xml from the ome.tiff file!: BiocManager::install('RBioFormats')")
       if (!requireNamespace('XML'))
         stop("Please install XML package to extract xml from the ome.tiff file!")
       omexml <- RBioFormats::read.omexml(ome.tiff)
@@ -1037,103 +1048,163 @@ rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level){
 #'
 #' Import CosMx data
 #'
-#' @param tiledbURI the path to the tiledb folder
+#' @param path the path to the tiledb folder
 #' @param assay_name the assay name, default: CosMx
 #' @param image the reference morphology image of the CosMx assay
 #' @param image_name the image name of the CosMx assay, Default: main
 #' @param ome.tiff the OME.TIFF file of the CosMx experiment if exists
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
+#' @param verbose verbose
+#' @param method the approach for importing the CosMx assay either by the folder of CSVs or with TileDB array.
+#' @param ... additional parameters passed to \link{formVoltRon}
+#'
+#' @export
+importCosMx <- function(path, assay_name = "CosMx",
+                        image = NULL, image_name = "main", ome.tiff = NULL, import_molecules = FALSE, verbose = TRUE, method = "CSV", ...)
+{
+  if(method == "CSV"){
+    vr <- importCosMxCSV(path = path, assay_name = assay_name,
+                         image = image, image_name = image_name, ome.tiff = ome.tiff, import_molecules = import_molecules, verbose = verbose, ...)
+  } else if(method == "TileDB"){
+    vr <- importCosMxTileDB(tiledbURI = path, assay_name = assay_name,
+                            image = image, image_name = image_name, ome.tiff = ome.tiff, import_molecules = import_molecules, verbose = verbose, ...)
+  } else {
+    stop("method should be either 'CSV' or 'TileDB'!")
+  }
+  vr
+}
+
+#' importCosMx
+#'
+#' Import CosMx data
+#'
+#' @param path the path to the tiledb folder
+#' @param assay_name the assay name, default: CosMx
+#' @param image the reference morphology image of the CosMx assay
+#' @param image_name the image name of the CosMx assay, Default: main
+#' @param ome.tiff the OME.TIFF file of the CosMx experiment if exists
+#' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
+#' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom data.table data.table
 #' @importFrom ids random_id
 #'
-#' @export
-#'
-importCosMx <- function(tiledbURI, assay_name = "CosMx",
-                        image = NULL, image_name = "main", ome.tiff = NULL, import_molecules = FALSE, ...)
+#' @noRd
+importCosMxCSV <- function(path, assay_name = "CosMx",
+                        image = NULL, image_name = "main", ome.tiff = NULL, import_molecules = FALSE, verbose = TRUE, ...)
 {
-  # check tiledb and tiledbsc
-  if (!requireNamespace("tiledb", quietly = TRUE))
-    stop("Please install the tiledb package: \n
-         remotes::install_github('TileDB-Inc/TileDB-R', force = TRUE, ref = '0.17.0')")
-  if (!requireNamespace("tiledbsc", quietly = TRUE))
-    stop("Please install the tiledbsc package: \n
-         remotes::install_github('tiledb-inc/tiledbsc', force = TRUE, ref = '8157b7d54398b1f957832f37fff0b173d355530e')")
+  list_of_files <- list.files(path, full.names = TRUE)
 
-  # get tiledb
-  message("Scanning TileDB array for cell data ...")
-  tiledb_scdataset <- tiledbsc::SOMACollection$new(uri = tiledbURI, verbose = FALSE)
-
-  # raw counts
-  counts <- tiledb_scdataset$somas$RNA$X$members$counts$to_matrix(batch_mode = TRUE)
-  counts <- as.matrix(counts)
-
-  # cell metadata
-  metadata <- tiledb_scdataset$somas$RNA$obs$to_dataframe()
-
-  # coordinates
-  coords <- as.matrix(metadata[,c("x_slide_mm", "y_slide_mm")])
-  colnames(coords) <- c("x","y")
-
-  # transcripts
-  if(import_molecules){
-    message("Scanning TileDB array for molecule data ...")
-    subcellular <- tiledb::tiledb_array(
-      tiledb_scdataset$somas$RNA$obsm$members$transcriptCoords$uri,
-      return_as="data.table")[]
-    colnames(subcellular)[colnames(subcellular)=="target"] <- "gene"
+  # metadata
+  metadata_file <- list_of_files[grepl("metadata_file", list_of_files)]
+  if(file.exists(metadata_file)){
+    metadata <- data.table::fread(metadata_file, data.table = FALSE)
+    rownames(metadata) <- metadata$cell
+  } else {
+    stop("There are no file with mattern 'metadata_file' in the path")
   }
 
-  # get slides and construct VoltRon objects for each slides
-  slides <- unique(metadata$slide_ID_numeric)
+  # raw counts
+  if(verbose)
+    message("Reading cell data from CosMx folder ...")
+  datafile <- list_of_files[grepl("exprMat_file", list_of_files)]
+  if(file.exists(datafile)){
+    tmp <- data.table::fread(datafile)
+    counts <- t(as(as.matrix(tmp[,-(1:2)]), "dgCMatrix"))
+    colnames(counts) <- metadata$cell
+  } else {
+    stop("There are no files with pattern 'exprMat_file' in the path")
+  }
+  
+  # coordinates
+  coords <- as.matrix(metadata[,c("CenterX_global_px", "CenterY_global_px")])
+  colnames(coords) <- c("x","y")
+  rownames(coords) <- metadata$cell
 
+  # segments
+  segments_file <- list_of_files[grepl("polygons", list_of_files)]
+  if(file.exists(segments_file)){
+    segments <- as.data.frame(data.table::fread(segments_file))
+    segments <- segments[,c("cell", "x_global_px", "y_global_px")]
+    colnames(segments) <- c("cell_id", "x", "y")
+    segments <- segments %>% dplyr::group_split(cell_id)
+    segments <- as.list(segments)
+    sgt <- do.call(rbind, segments)
+    names(segments) <- unique(sgt$cell_id)
+  } else {
+    stop("There are no file with mattern 'polygons' in the path")
+  }
+  
+  # transcripts
+  if(import_molecules){
+    if(verbose)
+      message("Reading molecule data from CosMx folder ...")
+    molecule_file <- list_of_files[grepl("tx_file", list_of_files)]
+    if(file.exists(molecule_file)){
+      molecules <- data.table::fread(molecule_file)
+      colnames(molecules)[colnames(molecules)=="target"] <- "gene"
+    } else {
+      stop("There are no file with mattern 'tx_file' in the path")
+    }
+  }
+  
+  # get slides and construct VoltRon objects for each slides
+  slides <- unique(metadata$slide_ID)
+  
   # for each slide create a VoltRon object with combined layers
   vr_list <- list()
   for(slide in slides){
-
+    
     # cell assay
-    message("Creating cell level assay for slide ", slide, " ...")
-
+    if(verbose)
+      message("Creating cell level assay for slide ", slide, " ...")
+    
     # slide info
-    cur_coords <- coords[metadata$slide_ID_numeric == slide,]
-    cur_counts <- counts[,rownames(cur_coords)]
-    cur_metadata <- metadata[rownames(cur_coords),]
-
+    ind <- metadata$slide_ID == slide
+    cur_metadata <- metadata[ind,]
+    cur_coords <- coords[ind,]
+    cur_counts <- counts[,ind]
+    cur_segments <- segments[rownames(cur_coords)]
+    
     # create VoltRon object
-    cell_object <- formVoltRon(data = cur_counts, metadata = cur_metadata, image = image, coords = cur_coords, 
-                               main.assay = assay_name, assay.type = "cell", image_name = image_name, main_featureset = "RNA", ...)
+    cell_object <- formVoltRon(data = cur_counts, metadata = cur_metadata, image = image, coords = cur_coords, segments = cur_segments,
+                               main.assay = assay_name, assay.type = "cell", image_name = image_name, feature_name = "RNA", ...)
     cell_object$Sample <- paste0("Slide", slide)
-
+    
     # molecule assay
     if(import_molecules){
-
+      
       # get slide
-      message("Creating molecule level assay for slide ", slide, " ...")
-      cur_subcellular <- subset(subcellular, slideID == slide)
-
+      if(verbose)
+        message("Creating molecule level assay for slide ", slide, " ...")
+      if(!"slideID" %in% colnames(molecules)){
+        cur_molecules <- molecules
+      } else {
+        cur_molecules <- subset(molecules, slideID == slide)
+      }
+      
       # coordinates
-      mol_coords <- as.matrix(cur_subcellular[,c("x_FOV_px", "y_FOV_px")])
+      mol_coords <- as.matrix(cur_molecules[,c("x_global_px", "y_global_px")])
       colnames(mol_coords) <- c("x", "y")
-
-      # get subcellular data components
-      mol_metadata <- cur_subcellular[,colnames(cur_subcellular)[!colnames(cur_subcellular) %in% c("CellId", "cell_id", "x_FOV_px", "y_FOV_px")], with = FALSE]
+      
+      # get molecules data components
+      mol_metadata <- cur_molecules[,colnames(cur_molecules)[!colnames(cur_molecules) %in% c("CellId", "x_global_px", "y_global_px")], with = FALSE]
       set.seed(nrow(mol_metadata))
-      #entity_ID <- paste0(rownames(mol_metadata), "_", ids::random_id(bytes = 3, use_openssl = FALSE))
-      # mol_metadata <- data.table::data.table(id = entity_ID, assay_id = "Assay1", mol_metadata)
-      mol_metadata$id <- rownames(mol_metadata)
-      mol_metadata$postfix <- paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))
-      mol_metadata$assay_id <- "Assay1"
+      mol_metadata[, id:=1:.N]
+      mol_metadata[, assay_id:="Assay1"]
+      mol_metadata[, postfix:=paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))]
       mol_metadata[, id:=do.call(paste0,.SD), .SDcols=c("id", "postfix")]
       
       # coord names
       rownames(mol_coords) <- mol_metadata$id
-
+      
       # create VoltRon assay for molecules
       mol_assay <- formAssay(coords = mol_coords, image = image, type = "molecule", main_image = image_name)
-
+      
       # merge assays in one section
-      message("Merging assays for slide ", slide, " ...")
+      if(verbose)
+        message("Merging assays for slide ", slide, " ...")
       sample.metadata <- SampleMetadata(cell_object)
       cell_object <- addAssay(cell_object,
                               assay = mol_assay,
@@ -1144,10 +1215,146 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
     }
     vr_list <- append(vr_list, cell_object)
   }
-
+  
   # return
-  message("Merging slides ...")
-  vr <- merge(vr_list[[1]], vr_list[-1])
+  if(verbose)
+    message("Merging slides ...")
+  if(length(vr_list) > 1){
+    vr <- merge(vr_list[[1]], vr_list[-1])
+  } else {
+    vr <- vr_list[[1]]
+  }
+  vr
+}
+
+#' importCosMx
+#'
+#' Import CosMx data
+#'
+#' @param tiledbURI the path to the tiledb folder
+#' @param assay_name the assay name, default: CosMx
+#' @param image the reference morphology image of the CosMx assay
+#' @param image_name the image name of the CosMx assay, Default: main
+#' @param ome.tiff the OME.TIFF file of the CosMx experiment if exists
+#' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
+#' @param verbose verbose
+#' @param ... additional parameters passed to \link{formVoltRon}
+#'
+#' @importFrom data.table data.table
+#' @importFrom ids random_id
+#'
+#' @noRd
+importCosMxTileDB <- function(tiledbURI, assay_name = "CosMx",
+                        image = NULL, image_name = "main", ome.tiff = NULL, import_molecules = FALSE, verbose = TRUE, ...)
+{
+  # check tiledb and tiledbsc
+  if (!requireNamespace("tiledb", quietly = TRUE))
+    stop("Please install the tiledb package: \n
+         remotes::install_github('TileDB-Inc/TileDB-R', force = TRUE, ref = '0.17.0')")
+  if (!requireNamespace("tiledbsc", quietly = TRUE))
+    stop("Please install the tiledbsc package: \n
+         remotes::install_github('tiledb-inc/tiledbsc', force = TRUE, ref = '8157b7d54398b1f957832f37fff0b173d355530e')")
+  
+  # get tiledb
+  if(verbose)
+    message("Scanning TileDB array for cell data ...")
+  tiledb_scdataset <- tiledbsc::SOMACollection$new(uri = tiledbURI, verbose = FALSE)
+  
+  # raw counts
+  counts <- tiledb_scdataset$somas$RNA$X$members$counts$to_matrix(batch_mode = TRUE)
+  counts <- as.matrix(counts)
+  
+  # cell metadata
+  metadata <- tiledb_scdataset$somas$RNA$obs$to_dataframe()
+  
+  # coordinates
+  coords <- as.matrix(metadata[,c("x_slide_mm", "y_slide_mm")])
+  colnames(coords) <- c("x","y")
+  
+  # transcripts
+  if(import_molecules){
+    if(verbose)
+      message("Scanning TileDB array for molecule data ...")
+    subcellular <- tiledb::tiledb_array(
+      tiledb_scdataset$somas$RNA$obsm$members$transcriptCoords$uri,
+      return_as="data.table")[]
+    colnames(subcellular)[colnames(subcellular)=="target"] <- "gene"
+  }
+  
+  # get slides and construct VoltRon objects for each slides
+  slides <- unique(metadata$slide_ID_numeric)
+  
+  # for each slide create a VoltRon object with combined layers
+  vr_list <- list()
+  for(slide in slides){
+    
+    # cell assay
+    if(verbose)
+      message("Creating cell level assay for slide ", slide, " ...")
+    
+    # slide info
+    cur_coords <- coords[metadata$slide_ID_numeric == slide,]
+    cur_counts <- counts[,rownames(cur_coords)]
+    cur_metadata <- metadata[rownames(cur_coords),]
+    
+    # create VoltRon object
+    cell_object <- formVoltRon(data = cur_counts, metadata = cur_metadata, image = image, coords = cur_coords, 
+                               main.assay = assay_name, assay.type = "cell", image_name = image_name, feature_name = "RNA", ...)
+    cell_object$Sample <- paste0("Slide", slide)
+    
+    # molecule assay
+    if(import_molecules){
+      
+      # get slide
+      if(verbose)
+        message("Creating molecule level assay for slide ", slide, " ...")
+      if("slideID" %in% colnames(subcellular)){
+        cur_subcellular <- subcellular
+      } else {
+        cur_subcellular <- subset(subcellular, slideID == slide)
+      }
+
+      # coordinates
+      mol_coords <- as.matrix(cur_subcellular[,c("x_global_px", "y_global_px")])
+      colnames(mol_coords) <- c("x", "y")
+      
+      # get subcellular data components
+      mol_metadata <- cur_subcellular[,colnames(cur_subcellular)[!colnames(cur_subcellular) %in% c("CellId", "cell_id", "x_global_px", "y_global_px")], with = FALSE]
+      set.seed(nrow(mol_metadata))
+      mol_metadata[, id:=1:.N]
+      mol_metadata[, assay_id:="Assay1"]
+      mol_metadata[, postfix:=paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))]
+      mol_metadata[, id:=do.call(paste0,.SD), .SDcols=c("id", "postfix")]
+      
+      # coord names
+      rownames(mol_coords) <- mol_metadata$id
+      
+      # create VoltRon assay for molecules
+      mol_assay <- formAssay(coords = mol_coords, image = image, type = "molecule", main_image = image_name)
+      
+      # merge assays in one section
+      if(verbose)
+        message("Merging assays for slide ", slide, " ...")
+      sample.metadata <- SampleMetadata(cell_object)
+      cell_object <- addAssay(cell_object,
+                              assay = mol_assay,
+                              metadata = mol_metadata,
+                              assay_name = paste0(assay_name, "_mol"),
+                              sample = sample.metadata["Assay1", "Sample"],
+                              layer = sample.metadata["Assay1", "Layer"])
+    }
+    vr_list <- append(vr_list, cell_object)
+  }
+  
+  # return
+  if(verbose)
+    message("Merging slides ...")
+  if(length(vr_list) > 1){
+    vr <- merge(vr_list[[1]], vr_list[-1])
+  } else {
+    vr <- vr_list[[1]]
+  }
+  vr
 }
 
 #' generateCosMxImage
@@ -1157,23 +1364,28 @@ importCosMx <- function(tiledbURI, assay_name = "CosMx",
 #' @param dir.path CosMx output folder
 #' @param increase.contrast increase the contrast of the image before writing
 #' @param output.path The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.
+#' @param verbose verbose
 #' @param ... additional parameters passed to the \link{writeImage} function
 #'
 #' @importFrom magick image_read image_contrast
 #' @importFrom EBImage writeImage
-#' @importFrom reshape2 acast
 #'
 #' @export
-#'
-generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path = NULL, ...) {
+generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path = NULL, verbose = TRUE, ...) {
 
+  # check package
+  if(!requireNamespace("reshape2")){
+    stop("You have to install the reshape2 package!: install.packages('reshape2')")
+  }
+  
   # file path to either Xenium output folder or specified folder
   file.path <- paste0(dir.path, "/CellComposite_lowres.tif")
   output.file <- paste0(output.path, "/CellComposite_lowres.tif")
 
   # check if the file exists in either Xenium output folder, or the specified location
   if(file.exists(file.path) | file.exists(paste0(output.file))){
-    cat("CellComposite_lowres.tif already exists! \n")
+    if(verbose)
+      message("CellComposite_lowres.tif already exists! \n")
     return(NULL)
   }
 
@@ -1183,7 +1395,8 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
   fov_positions <- read.csv(fov_positions_path)
 
   # manipulate fov positions matrix
-  cat("Getting FOV Positions \n")
+  if(verbose)
+    message("Getting FOV Positions \n")
   relative_fov_positions <- fov_positions
   x_min <- min(relative_fov_positions$x_global_px)
   y_min <- min(relative_fov_positions$y_global_px)
@@ -1195,16 +1408,17 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
   relative_fov_positions <- relative_fov_positions[order(relative_fov_positions$y_global_px, decreasing = TRUE),]
 
   # Combine Images of the FOV grid
-  cat("Loading FOV tif files \n")
+  if(verbose)
+    message("Loading FOV tif files \n")
   image.dir.path <- paste0(dir.path,"/CellComposite/")
   morphology_image_data <- NULL
   for(i in relative_fov_positions$fov){
     image_path <- paste0(image.dir.path, "CellComposite_F", str_pad(as.character(i), 3, pad = 0), ".jpg")
     image_data <- magick::image_read(image_path) %>% magick::image_resize("x500") %>% magick::image_raster()
     if(is.null(morphology_image_data))
-      dim_image <- apply(image_data[,1:2], 2, max)
+      dim_image <- apply(image_data[,seq_len(2)], 2, max)
     scale_dim <- relative_fov_positions[i,2:3]*dim_image
-    image_data[,1:2] <- image_data[,1:2] +
+    image_data[,seq_len(2)] <- image_data[,seq_len(2)] +
       rep(1, nrow(image_data)) %o% as.matrix(scale_dim)[1,]
     morphology_image_data <- rbind(morphology_image_data, image_data)
   }
@@ -1213,16 +1427,19 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 
   # pick a resolution level
   morphology_image_info <- image_info(morphology_image)
-  cat(paste0("Image Resolution (X:", morphology_image_info$width, " Y:", morphology_image_info$height, ") \n"))
+  if(verbose)
+    message("Image Resolution (X:", morphology_image_info$width, " Y:", morphology_image_info$height, ") \n")
 
   # increase contrast using EBImage
   if(increase.contrast) {
-    cat("Increasing Contrast \n")
+    if(verbose)
+      message("Increasing Contrast \n")
     morphology_image <- magick::image_contrast(morphology_image, sharpen = 1)
   }
 
   # write to the same folder
-  cat("Writing Tiff File \n")
+  if(verbose)
+    message("Writing Tiff File \n")
   if(is.null(output.path)){
     EBImage::writeImage(magick::as_EBImage(morphology_image), file = file.path, ...)
   } else {
@@ -1252,6 +1469,7 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #' @param image_name the image name of the Xenium assay, Default: main
 #' @param channel_name the channel name of the image of the Xenium assay, Default: DAPI
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
+#' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon}
 #' 
 #' @importFrom magick image_read image_info
@@ -1264,10 +1482,12 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
 #' @export
 #'
 importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, use_image = TRUE, 
-                          resolution_level = 7, image_name = "main", channel_name = "DAPI", import_molecules = FALSE, ...)
+                          resolution_level = 7, image_name = "main", channel_name = "DAPI", import_molecules = FALSE, 
+                          verbose = TRUE, ...)
 {
   # cell assay
-  message("Creating cell level assay ...")
+  if(verbose)
+     message("Creating cell level assay ...")
   
   # raw counts
   DataOutputfiles <- list.files(paste0(dir.path, "DataOutput/"))
@@ -1285,7 +1505,7 @@ importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, u
     
     # check RBioFormats
     if (!requireNamespace('RBioFormats'))
-      stop("Please install RBioFormats package to extract xml from the ome.tiff file!")
+      stop("Please install RBioFormats package to extract xml from the ome.tiff file!: BiocManager::install('RBioFormats')")
     
     # check image
     image_file <- paste0(dir.path, "/images/DAPI.tiff")
@@ -1330,8 +1550,8 @@ importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, u
   if(!import_molecules){
     return(cell_object)
   } else {
-    message("Creating molecule level assay ...")
-    # transcripts
+    if(verbose)
+      message("Creating molecule level assay ...")
     transcripts_file <- DataOutputfiles[grepl("_transcriptlocation.csv", DataOutputfiles)]
     if(length(transcripts_file) == 0){
       stop("There are no files ending with '_transcriptlocation.csv' in the path")
@@ -1339,7 +1559,7 @@ importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, u
       
       # get subcellur data components
       subcellular_data <- data.table::fread(paste0(dir.path, "DataOutput/", transcripts_file))
-      subcellular_data$id <- 1:nrow(subcellular_data)
+      subcellular_data$id <- seq_len(nrow(subcellular_data))
       subcellular_data <- subcellular_data[,c("id", colnames(subcellular_data)[!colnames(subcellular_data) %in% "id"]), with = FALSE]
       colnames(subcellular_data)[colnames(subcellular_data)=="name"] <- "gene"
       
@@ -1365,7 +1585,8 @@ importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, u
       mol_assay <- formAssay(coords = coords, image = image, type = "molecule", main_image = image_name, main_channel = channel_name)
       
       # merge assays in one section
-      message("Merging assays ...")
+      if(verbose)
+        message("Merging assays ...")
       sample.metadata <- SampleMetadata(cell_object)
       object <- addAssay(cell_object,
                          assay = mol_assay,
@@ -1415,9 +1636,9 @@ importGenePS <- function (dir.path, assay_name = "GenePS", sample_name = NULL, u
 #'
 importSTOmics <- function(h5ad.path, assay_name = "STOmics", sample_name = NULL, image_name = "main", channel_name = "H&E", ...)
 {
-  # check Seurat package
+  # check package
   if(!requireNamespace('anndataR'))
-    stop("Please install anndataR package")
+    stop("Please install anndataR package!: devtools::install_github('scverse/anndataR')")
   
   # get h5ad data
   stdata <- anndataR::read_h5ad(h5ad.path, to = "HDF5AnnData")
@@ -1475,13 +1696,15 @@ importSTOmics <- function(h5ad.path, assay_name = "STOmics", sample_name = NULL,
 #' }
 #' @param filter A pattern to filter features by; pass \code{NA} to skip feature filtering
 #' @param inform.quant When \code{type} is \dQuote{\code{inform}}, the quantification level to read in 
+#' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon} 
 #' 
 #' @importFrom magick image_info image_read
 #'
 #' @export
 importPhenoCycler <- function(dir.path, assay_name = "PhenoCycler", sample_name = NULL, image_name = "main", 
-                              type = c('inform', 'processor', 'qupath'), filter = 'DAPI|Blank|Empty', inform.quant = c('mean', 'total', 'min', 'max', 'std'), ...){
+                              type = c('inform', 'processor', 'qupath'), filter = 'DAPI|Blank|Empty', 
+                              inform.quant = c('mean', 'total', 'min', 'max', 'std'), verbose = TRUE, ...){
   
   # raw counts, metadata and coordinates 
   listoffiles <- list.files(paste0(dir.path, "/processed/segm/segm-1/fcs/compensated/"), full.names = TRUE)
@@ -1513,7 +1736,8 @@ importPhenoCycler <- function(dir.path, assay_name = "PhenoCycler", sample_name 
   image_dir <- paste0(dir.path, "/processed/stitched/reg001/")
   list_files <- list.files(image_dir)
   if(!dir.exists(image_dir)){
-    message("There are no images of channels!")
+    if(verbose)
+      message("There are no images of channels!")
     image_list <- NULL
   } else {
     if(!any(grepl(".tif$", list_files))){
@@ -1567,12 +1791,9 @@ readPhenoCyclerMat <- function(
     filter = 'DAPI|Blank|Empty',
     inform.quant = c('mean', 'total', 'min', 'max', 'std')
 ) {
-  if (!requireNamespace("data.table", quietly = TRUE)) {
-    stop("Please install 'data.table' for this function")
-  }
   # Check arguments
   if (!file.exists(filename)) {
-    stop(paste("Can't file file:", filename))
+    stop("Can't find file: ", filename)
   }
   type <- tolower(x = type[1L])
   type <- match.arg(arg = type)
@@ -1694,7 +1915,6 @@ readPhenoCyclerMat <- function(
       )
       outs$centroids <- centroids
       outs$metadata <- md
-      # browser()
       for (i in classes) {
         df <- exprs[exprs$class == i, , drop = FALSE]
         expr <- mtx[, df$cols]
@@ -1785,17 +2005,18 @@ readPhenoCyclerMat <- function(
 #' @param sample_name the name of the sample
 #' @param image_name the image name of the Visium assay, Default: main
 #' @param channel_name the channel name of the image of the Visium assay, Default: H&E
+#' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom methods as
-#' @importFrom reshape2 melt
+#' @importFrom Matrix t
 #' 
 #' @export
-importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, image_name = "main", channel_name = "H&E", ...)
+importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, image_name = "main", channel_name = "H&E", verbose = TRUE, ...)
 {
-  # check Seurat package
+  # check package
   if(!requireNamespace('anndataR'))
-    stop("Please install anndataR package")
+    stop("Please install anndataR package!: devtools::install_github('scverse/anndataR')")
   
   # get h5ad data
   stdata <- anndataR::read_h5ad(h5ad.path, to = "HDF5AnnData")
@@ -1815,35 +2036,62 @@ importOpenST <- function(h5ad.path, assay_name = "OpenST", sample_name = NULL, i
   rownames(metadata) <- obs_names
   
   # coordinates
-  coords <- stdata$obsm$spatial_3d_aligned
-  rownames(coords) <- obs_names
-  zlocation <- unique(coords[,3])
+  obsm <- stdata$obsm
+  if("spatial_3d_aligned" %in% names(obsm)) {
+    coords <- stdata$obsm$spatial_3d_aligned
+    rownames(coords) <- obs_names
+    zlocation <- unique(coords[,3])
+    sections <- unique(metadata$n_section)
+    zlocation <- zlocation[order(sections)]
+    sections <- sections[order(sections)]
+  } else {
+    coords <- stdata$obsm$spatial
+    rownames(coords) <- obs_names
+    zlocation <- 0
+    metadata$n_sections <- sections <- 1
+  }
   
-  # get individual sections as voltron data
-  sections <- unique(metadata$n_section)
-  zlocation <- zlocation[order(sections)]
-  connectivity <- reshape2::melt(matrix(rep(1, length(sections)^2), nrow = length(sections)))[,1:2]
-  sections <- sections[order(sections)]
+  # get individual sections as voltron data if there are any
   vr_data_list <- list()
-  message("Creating Layers ...")
-  for(i in 1:length(sections)){
+  if(verbose)
+    message("Creating Layers ...")
+  for(i in seq_len(length(sections))){
     ind <- metadata$n_section == sections[i]
     spatialpoints <- rownames(metadata[metadata$n_section == sections[i],])
     cur_data <- rawdata[,spatialpoints]
     cur_metadata <- metadata[spatialpoints,]
     cur_coords <- coords[ind,c(1,2)]
     rownames(cur_coords) <- spatialpoints
-    vr_data_list[[i]] <- formVoltRon(data = cur_data, metadata = cur_metadata, coords = cur_coords, 
-                                     main.assay = assay_name, sample_name = paste0("Section", sections[i]),
-                                     image_name = image_name, main_channel = channel_name, feature_name = "RNA", ...)
+    vr_data_list[[i]] <- 
+      formVoltRon(data = cur_data, 
+                  metadata = cur_metadata, 
+                  coords = cur_coords, 
+                  main.assay = assay_name, 
+                  sample_name = paste0("Section", sections[i]),
+                  image_name = image_name, 
+                  main_channel = channel_name, 
+                  feature_name = "RNA", ...)
   }
   
   # create VoltRon
   sample_name <- ifelse(is.null(sample_name), "Sample", sample_name)
-  vr_data <- merge(vr_data_list[[1]], vr_data_list[-1], samples = sample_name)
   
   # set zlocations and adjacency of layer in the vrBlock
-  vr_data <- addBlockConnectivity(vr_data, connectivity = connectivity, zlocation = zlocation, sample = sample_name)
+  if(length(vr_data_list) > 1){
+    vr_data <- mergeVoltRon(vr_data_list[[1]], 
+                            vr_data_list[-1], 
+                            samples = sample_name)
+    connectivity <- data.frame(Var1 = rep(seq_len(length(sections)), 
+                                          length(sections)), 
+                               Var2 = rep(seq_len(length(sections)), 
+                                          each = length(sections)))
+    vr_data <- addBlockConnectivity(vr_data, 
+                                    connectivity = connectivity, 
+                                    zlocation = zlocation, 
+                                    sample = sample_name)
+  } else {
+    vr_data <- vr_data_list[[1]]
+  }
   
   # return
   vr_data
@@ -1993,10 +2241,10 @@ importImageData <- function(image, tile.size = 10, segments = NULL, image_name =
   }
 
   # check image size
-  imageinfo <- sapply(image, function(img) {
+  imageinfo <- vapply(image, function(img) {
     info <- magick::image_info(img)
     c(info$width, info$height)
-  }, simplify = TRUE)
+  }, numeric(2))
   unique_width <- unique(imageinfo[1,])
   unique_height <- unique(imageinfo[2,])
   if(length(unique_width) == 1 && length(unique_height) == 1){
@@ -2004,13 +2252,14 @@ importImageData <- function(image, tile.size = 10, segments = NULL, image_name =
   }
 
   # coordinates
-  even_odd_correction <- (!tile.size%%2)*(0.5)
-  x_coords <- seq((tile.size/2) + even_odd_correction, imageinfo$width, tile.size)[1:(imageinfo$width %/% tile.size)]
-  y_coords <- seq((tile.size/2) + even_odd_correction, imageinfo$height, tile.size)[1:(imageinfo$height %/% tile.size)]
-  y_coords <- rev(y_coords)
+  row_tile_size <- (imageinfo$height %/% tile.size)
+  col_tile_size <- (imageinfo$width %/% tile.size)
+  x_coords <- tile.size/2 + (seq_len(col_tile_size) - 1) * tile.size
+  y_coords <- tile.size/2 + (seq_len(row_tile_size) - 1) * tile.size
+  y_coords <- imageinfo$height - y_coords
   coords <- as.matrix(expand.grid(x_coords, y_coords))
   colnames(coords) <- c("x", "y")
-  rownames(coords) <- paste0("tile", 1:nrow(coords))
+  rownames(coords) <- paste0("tile", seq_len(nrow(coords)))
 
   # metadata
   metadata <- data.table::data.table(id = rownames(coords))
@@ -2026,16 +2275,16 @@ importImageData <- function(image, tile.size = 10, segments = NULL, image_name =
     # check if segments are paths
     if(inherits(segments, "character")){
       if(grepl(".geojson$", segments)){
-        segments <- generateSegmentsFromGeoJSON(geojson.file = segments)
+        segments <- generateSegments(geojson.file = segments)
       } else {
         stop("Only lists or GeoJSON files are accepted as segments input!")
       }
     }
     
     # make coordinates out of segments
-    coords <- t(sapply(segments, function(dat){
+    coords <- t(vapply(segments, function(dat){
       apply(dat[,c("x", "y")], 2, mean)
-    }))
+    }, numeric(2)))
     rownames(coords) <- names(segments)
     
     # make segment assay
@@ -2056,9 +2305,9 @@ importImageData <- function(image, tile.size = 10, segments = NULL, image_name =
 }
 
 
-#' generateSegmentsFromGeoJSON
+#' generateSegments
 #' 
-#' The function to import segments from a json data
+#' The function to import segments from a geojson file
 #'
 #' @param geojson.file the GeoJSON file, typically generated by QuPath software
 #'
@@ -2066,16 +2315,12 @@ importImageData <- function(image, tile.size = 10, segments = NULL, image_name =
 #' @importFrom dplyr tibble
 #' 
 #' @export
-generateSegmentsFromGeoJSON <- function(geojson.file){
-  
-  # if(!requireNamespace('geojsonR'))
-  #   stop("Please install geojsonR package for using geojsonR functions")
+generateSegments <- function(geojson.file){
   
   # get segments
   if(inherits(geojson.file, "character")){
     if(file.exists(geojson.file)){
       segments <- rjson::fromJSON(file = geojson.file)
-      # segments <- geojsonR::FROM_GeoJson(geojson.file)
     } else {
       stop("geojson.file doesn't exist!")
     }
@@ -2097,49 +2342,51 @@ generateSegmentsFromGeoJSON <- function(geojson.file){
   # attach names to segments
   segments <- mapply(function(x, sgt){
     dplyr::tibble(data.frame(id = x, sgt))
-  }, 1:length(segments), segments, SIMPLIFY = FALSE)
+  }, seq_len(length(segments)), segments, SIMPLIFY = FALSE)
   
   # generate ROI names
-  names(segments) <- paste0("ROI", 1:length(segments))
+  names(segments) <- paste0("ROI", seq_len(length(segments)))
 
   # return
   return(segments)
 }
 
-#' generateSegmentsFromGeoJSON
+#' generateGeoJSON
 #' 
-#' The function to import segments from a json data
+#' generating geojson files from segments
 #'
 #' @param segments the segments, typically from \link{vrSegments}.
-#' @param geojson.file the GeoJSON file, typically to be used by QuPath software.
+#' @param file the GeoJSON file, typically to be used by QuPath software.
 #'
 #' @importFrom rjson fromJSON
 #' 
 #' @export
-generateGeoJSONFromSegments <- function(segments, geojson.file){
+generateGeoJSON <- function(segments, file){
   
   if(!requireNamespace('geojsonR'))
     stop("Please install geojsonR package for using geojsonR functions")
   
   # get segments
-  if(!inherits(geojson.file, "character")){
-    stop("geojson.file should be the path to the GeoJSON file!")
+  if(!inherits(file, "character")){
+    stop("file should be the path to the GeoJSON file!")
   } 
   
   # reshape segments
   segments <- mapply(function(id, sgt){
-    poly <- as.list(data.frame(t(as.matrix(sgt[,c("x", "y")]))))
+    poly <- na.omit(as.matrix(sgt[,c("x", "y")]))
+    poly <- rbind(poly, poly[1,,drop = FALSE])
+    poly <- as.list(data.frame(t(poly)))
     names(poly) <- NULL
     init <- geojsonR::TO_GeoJson$new()
-    geometry <- init$Polygon(list(poly), stringify = FALSE)
-    feature <- list(id = id, geometry = geometry, properties = list(objectType = "annotation"))
+    geometry <- init$Polygon(list(poly), stringify = TRUE)
+    feature <- list(type = "Feature", 
+                    id = id, 
+                    geometry = geometry[!names(geometry) %in% "json_dump"],
+                    properties = list(objectType = "annotation"))
     feature
   }, names(segments), segments, SIMPLIFY = FALSE, USE.NAMES = FALSE)
 
   # save as json
   segments <- rjson::toJSON(segments)
-  write(segments, file = geojson.file)
-  
-  # return
-  return(segments)
+  write(segments, file = file)
 }

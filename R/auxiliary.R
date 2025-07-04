@@ -1,4 +1,54 @@
 ####
+# Object ####
+####
+
+#' fixVoltRon
+#'
+#' @param object a VoltRon object
+#'
+#' @importFrom methods is
+#' @importFrom igraph make_empty_graph
+#' 
+#' @export
+fixVoltRon <- function(object){
+  
+  # sample.metadata
+  sample.metadata <- SampleMetadata(object)
+  
+  # fix samples and layers
+  for(samp in unique(sample.metadata$Sample)){
+   
+    # sample
+    object_sample <- object[[samp]]
+    
+    # correct
+    catch_connect <- try(slot(object_sample, name = "zlocation"), silent = TRUE)
+    if(methods::is(catch_connect, 'try-error') || methods::is(catch_connect,'error')){
+      object_sample@zlocation <- numeric(0)
+    }
+    catch_connect <- try(slot(object_sample, name = "adjacency"), silent = TRUE)
+    if(methods::is(catch_connect, 'try-error') || methods::is(catch_connect,'error')){
+      object_sample@adjacency <- matrix()
+    }
+  
+    # fix layers
+    for(lyr in unique(sample.metadata$Layer[sample.metadata$Sample == samp])){
+      object_layer <- object_sample[[lyr]]
+      
+      # correct
+      catch_connect <- try(slot(object_layer, name = "connectivity"), silent = TRUE)
+      if(methods::is(catch_connect, 'try-error') || methods::is(catch_connect,'error')){
+        object_layer@connectivity <- igraph::make_empty_graph()
+      }
+      
+      object_sample[[lyr]] <- object_layer
+    }
+    object[[samp]] <- object_sample
+  }
+  object
+}
+
+####
 # Matrix Operations ####
 ####
 
@@ -194,22 +244,21 @@ rownames(.dccMetadata[["protocolData"]])[rownames(.dccMetadata[["protocolData"]]
 # Basilisk Environment ####
 ####
 
-#' The Python Basilisk environment
+#' get the Python Basilisk environment
 #'
 #' Defines a conda environment via Basilisk, which is used to convert R objects to Zarr stores.
 #'
-#' @importFrom basilisk BasiliskEnvironment
-#'
-#' @keywords internal
-#'
-#' @noRd
-py_env <- basilisk::BasiliskEnvironment(
-  envname="VoltRon_basilisk_env",
-  pkgname="VoltRon",
-  packages=c(
+#' @export
+getBasilisk <- function(){
+ 
+  if(!requireNamespace('basilisk'))
+    stop("Please install basilisk package!: BiocManager::install('basilisk')")
+  
+  basilisk.packages=c(
+    "python=3.11",
     "numpy==1.*",
     "pandas==1.*",
-    "anndata==0.7.*",
+    "anndata==0.8.*",
     "h5py==3.*",
     "hdf5==1.*",
     "natsort==7.*",
@@ -219,16 +268,26 @@ py_env <- basilisk::BasiliskEnvironment(
     "zarr==2.*",
     "numcodecs==0.*",
     "tifffile==2024.2.12"
-  ),
-  pip=c(
+  )
+  basilisk.pip=c(
     "ome-zarr==0.2.1"
   )
-)
+  
+  py_env <- basilisk::BasiliskEnvironment(
+    envname="VoltRon_basilisk_env",
+    pkgname="VoltRon",
+    packages=basilisk.packages,
+    pip=basilisk.pip
+  )
+  
+  py_env
+}
 
 ####
 # Other Auxiliary tools ####
 ####
 
+#' @noRd
 fill.na <- function(x, i = 5) {
   if (is.na(x)[i]) {
     return(round(mean(x, na.rm = TRUE), 0))
@@ -321,7 +380,7 @@ make_css <- function (..., file = NULL)
     css_string
   }
   else {
-    cat(css_string, file = file)
+    message(css_string, file = file)
     invisible(NULL)
   }
 }
@@ -404,14 +463,13 @@ dummy_cols <- function(.data, select_columns = NULL, remove_first_dummy = FALSE,
     char_cols <- names(char_cols)
   }
   if (length(char_cols) == 0 && is.null(select_columns)) {
-    stop(paste0("No character or factor columns found. ",
-                "Please use select_columns to choose columns."))
+    stop("No character or factor columns found. ",
+         "Please use select_columns to choose columns.")
   }
   if (!is.null(select_columns) && length(cols_not_in_data) >
       0) {
-    warning(paste0("NOTE: The following select_columns input(s) ",
-                   "is not a column in data.\n"), paste0(names(cols_not_in_data),
-                                                         "\t"))
+    warning("NOTE: The following select_columns input(s) ",
+                   "is not a column in data:\n", names(cols_not_in_data), "\t")
   }
   for (col_name in char_cols) {
     if (is.factor(.data[[col_name]])) {
@@ -469,7 +527,7 @@ dummy_cols <- function(.data, select_columns = NULL, remove_first_dummy = FALSE,
       if (!is.null(split)) {
         max_split_length <- max(sapply(strsplit(as.character(.data[[col_name]]),
                                                 split = split), length))
-        for (split_length in 1:max_split_length) {
+        for (split_length in seq_len(max_split_length)) {
           data.table::set(.data, i = which(data.table::chmatch(as.character(trimws(sapply(strsplit(as.character(.data[[col_name]]),
                                                                                                    split = split), `[`, split_length))), unique_value,
                                                                nomatch = 0) == 1L), j = paste0(col_name,
@@ -647,7 +705,7 @@ as.raster_array <- function (x, max = 1, ...)
     else if (d[3L] == 1L) 
       rgb(t(x[, , 1L]), t(x[, , 1L]), t(x[, , 1L]), maxColorValue = max)
     else stop("a raster array must have exactly 1, 3 or 4 planes"), 
-    dim = d[1:2])
+    dim = d[seq_len(2)])
   class(r) <- "raster"
   r
 }

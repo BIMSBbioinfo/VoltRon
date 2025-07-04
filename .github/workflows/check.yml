@@ -1,0 +1,195 @@
+on:
+  push:
+  pull_request:
+
+name: R-CMD-check
+
+jobs:
+  check:
+    runs-on: ${{ matrix.config.os }}
+    env:
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      _R_CHECK_TESTS_NLINES_: 0
+      NOT_CRAN: true
+      HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: true
+      _R_CHECK_FORCE_SUGGESTS_: false #TODO: drop this for now!
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: macos-latest,   r: 'release'}
+          - {os: windows-latest, r: 'release', rtools-version: '44'}
+          - {os: ubuntu-latest,   r: 'release'}
+          - {os: ubuntu-24.04,   r: 'release'}
+    
+    steps:
+    
+      ## Most of these steps are the same as the ones in
+      ## https://github.com/r-lib/actions/blob/master/examples/check-standard.yaml
+      ## If they update their steps, we will also need to update ours.
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      ## pandoc
+      - name: Setup pandoc from r-lib
+        uses: r-lib/actions/setup-pandoc@v2
+          
+      ## R is already included in the Bioconductor docker images
+      - name: Setup R from r-lib
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.config.r }}
+          rtools-version: ${{ matrix.config.rtools-version }}
+      
+      ## Windows dependencies
+      - name: Install Windows system dependencies
+        if: runner.os == 'Windows'
+        run: |
+          ## Edit below if you have any Windows system dependencies
+        shell: Rscript {0}
+
+      ## linux dependencies
+      - name: Install linux system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install -y libgdal-dev 
+          sudo apt-get install -y libfftw3-dev 
+          sudo apt-get install -y libmagick++-dev 
+          sudo apt-get install -y cmake 
+          sudo apt-get install -y libhdf5-dev 
+          sudo apt-get install -y git 
+          sudo apt-get install -y libopencv-dev 
+          sudo apt-get install -y libopencv-features2d-dev  
+          sudo apt-get install -y libssl-dev 
+          sudo apt-get install -y libcurl4-openssl-dev 
+          sudo apt-get install -y libgit2-dev 
+          sudo apt-get install -y libxml2-dev 
+          sudo apt-get install -y libfontconfig1-dev 
+          sudo apt-get install -y libharfbuzz-dev 
+          sudo apt-get install -y libfribidi-dev 
+          sudo apt-get install -y libfreetype6-dev 
+          sudo apt-get install -y libpng-dev 
+          sudo apt-get install -y libtiff5-dev 
+          sudo apt-get install -y libjpeg-dev 
+          sudo apt-get install -y libz-dev
+
+      ## macOS dependencies
+      - name: Install macOS system dependencies
+        if: runner.os == 'macOS'
+        run: |
+          ## Enable installing XML from source if needed
+          brew install libxml2
+          echo "XML_CONFIG=/usr/local/opt/libxml2/bin/xml2-config" >> $GITHUB_ENV
+
+          ## Required to install magick as noted at
+          ## https://github.com/r-lib/usethis/commit/f1f1e0d10c1ebc75fd4c18fa7e2de4551fd9978f#diff-9bfee71065492f63457918efcd912cf2
+          brew install imagemagick@6
+
+          ## For textshaping, required by ragg, and required by pkgdown
+          brew install harfbuzz fribidi
+
+          ## For installing usethis's dependency gert
+          brew install libgit2
+          
+          ## hdf5
+          brew install hdf5
+
+          ## Required for tcltk
+          brew install xquartz --cask
+          
+      ## remotes, devtools
+      - name: Query dependencies
+        run: |
+          install.packages('remotes')
+          install.packages('devtools')
+        shell: Rscript {0}
+      
+      ## BiocManager  
+      - name: Install BiocManager
+        run: |
+          remotes::install_cran("BiocManager")
+        shell: Rscript {0}
+      
+      # All Other dependencies
+      - name: Install dependencies
+        run: |
+          ## Try installing the package dependencies in steps. First the local
+          ## dependencies, then any remaining dependencies to avoid the
+          ## issues described at
+          ## https://stat.ethz.ch/pipermail/bioc-devel/2020-April/016675.html
+          ## https://github.com/r-lib/remotes/issues/296
+          ## Ideally, all dependencies should get installed in the first pass.
+          install.packages(c("rcmdcheck", "BiocCheck"), repos = BiocManager::repositories())
+          remotes::install_local(dependencies = TRUE, repos = BiocManager::repositories(), build_vignettes = FALSE, upgrade = TRUE)
+        shell: Rscript {0}
+        
+      ## Linux dependencies for OpenCV
+      - name: Install OpenCV for linux
+        if: runner.os == 'Linux'
+        run: |
+          ## Edit below if you have any ubuntu/linux dependencies, e.g. OpenCV
+          git clone https://github.com/opencv/opencv.git
+          git clone https://github.com/opencv/opencv_contrib.git
+      
+          mkdir build
+          cd build
+          cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D INSTALL_C_EXAMPLES=ON -D INSTALL_PYTHON_EXAMPLES=ON  -D OPENCV_GENERATE_PKGCONFIG=ON -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules/  -D BUILD_opencv_xfeatures2d=ON ../opencv/
+      
+          make -j5
+          sudo make install
+      
+          sudo sh -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf'
+          sudo ldconfig
+          cd /
+          
+      # All Other dependencies
+      - name: Install Suggested dependencies
+        run: |
+          BiocManager::install(c('DelayedArray'))
+          BiocManager::install(c('DelayedMatrixStats'))
+          BiocManager::install(c('HDF5Array'))
+          remotes::install_github('bnprks/BPCells/r@v0.3.0')
+          devtools::install_github("Artur-man/Rarr@voltron")
+          devtools::install_github('BIMSBbioinfo/ImageArray')
+          devtools::install_github('BIMSBbioinfo/HDF5DataFrame')
+          devtools::install_github('BIMSBbioinfo/ZarrDataFrame')
+          install.packages("Seurat")
+          BiocManager::install("glmGamPoi")
+          install.packages('arrow')
+          BiocManager::install('RBioFormats')
+          BiocManager::install('ComplexHeatmap')
+          devtools::install_github('dmcable/spacexr')
+          devtools::install_github('xuranw/MuSiC')
+          BiocManager::install('SingleCellExperiment')
+          BiocManager::install('SpatialExperiment')
+          install.packages('dplyr')
+          BiocManager::install('DESeq2')
+          install.packages('ggnewscale')
+          install.packages('patchwork')
+        shell: Rscript {0}
+          
+      # All Other dependencies
+      - name: Install other Suggested dependencies
+        run: |
+          BiocManager::install('basilisk')
+          install.packages('reticulate')
+          install.packages('patchwork')
+        shell: Rscript {0}
+          
+      ## R CMD Check
+      - name: Run CMD check
+        env:
+          _R_CHECK_CRAN_INCOMING_: false
+          DISPLAY: 99.0
+        run: |
+          options(crayon.enabled = TRUE)
+          rcmdcheck::rcmdcheck(
+              args = c("--no-manual", "--no-vignettes", "--timings"),
+              build_args = c("--no-manual", "--keep-empty-dirs", "--no-resave-data"),
+              error_on = "error",
+              check_dir = "check"
+          )
+        shell: Rscript {0}

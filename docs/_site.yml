@@ -14,7 +14,7 @@ navbar:
         - text: "Multi-omic Integration"
           href: multiomic.html
         - text: "Niche Clustering"
-          href: deconvolution.html
+          href: nicheclustering.html
       - text: "Downstream Analysis"
         menu:
         - text: "ROI Analysis"

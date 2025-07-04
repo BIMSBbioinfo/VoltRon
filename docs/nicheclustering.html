@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Niche Clustering</title>
+
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+.tocify-subheader {
+  display: inline;
+}
+.tocify-subheader .tocify-item {
+  font-size: 0.95em;
+}
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">VoltRon</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="tutorials.html">Explore</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Vignette
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Spatial Data Integration</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="registration.html">Spatial Data Alignment</a>
+        </li>
+        <li>
+          <a href="multiomic.html">Multi-omic Integration</a>
+        </li>
+        <li>
+          <a href="nicheclustering.html">Niche Clustering</a>
+        </li>
+      </ul>
+    </li>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Downstream Analysis</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="roianalysis.html">ROI Analysis</a>
+        </li>
+        <li>
+          <a href="spotanalysis.html">Cell/Spot Analysis</a>
+        </li>
+        <li>
+          <a href="moleculeanalysis.html">Molecule Analysis</a>
+        </li>
+        <li>
+          <a href="pixelanalysis.html">Pixels (Image Only) Analysis</a>
+        </li>
+      </ul>
+    </li>
+    <li class="dropdown-submenu">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Utilities</a>
+      <ul class="dropdown-menu" role="menu">
+        <li>
+          <a href="interactive.html">Interactive Utilities</a>
+        </li>
+        <li>
+          <a href="importingdata.html">Importing Spatial Data</a>
+        </li>
+        <li>
+          <a href="voltronobjects.html">Working with VoltRon Objects</a>
+        </li>
+        <li>
+          <a href="conversion.html">Converting VoltRon Objects</a>
+        </li>
+        <li>
+          <a href="ondisk.html">OnDisk-based Analysis Utilities</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <span class="fa fa-envelope-o"></span>
+     
+    Contact
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="https://bioinformatics.mdc-berlin.de">Altuna Lab/BIMSB Bioinfo</a>
+    </li>
+    <li>
+      <a href="https://www.mdc-berlin.de/landthaler">Landthaler Lab/BIMSB</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <span class="fa fa-github"></span>
+     
+    GitHub
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="https://github.com/BIMSBbioinfo/VoltRon">VoltRon</a>
+    </li>
+    <li>
+      <a href="https://github.com/BIMSBbioinfo">BIMSB Bioinfo</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Niche Clustering</h1>
+
+</div>
+
+
+<style>
+.title{
+  display: none;
+}
+body {
+  text-align: justify
+}
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+<style type="text/css">
+.watch-out {
+  color: black;
+}
+</style>
+<p><br></p>
+<div id="spot-based-niche-clustering" class="section level1">
+<h1>Spot-based Niche Clustering</h1>
+<p>Spot-based spatial transcriptomic assays capture spatially-resolved
+gene expression profiles that are somewhat closer to single cell
+resolution. However, each spot still includes a few number of cells that
+are likely originated from few number of cell types, hence
+transcriptomic profile of each spot would likely include markers from
+multiple cell types. Here, <strong>RNA deconvolution</strong> can be
+incorporated to estimate the percentage/abundance of cell types for each
+spot. We use a scRNAseq dataset as a reference to computationally
+estimate the relative abundance of cell types across across the
+spots.</p>
+<p>VoltRon includes wrapper commands for using popular spot-level RNA
+deconvolution methods such as <a
+href="https://www.nature.com/articles/s41587-021-00830-w">RCTD</a> and
+return estimated abundances as additional feature sets within each
+layer. These estimated percentages of cell types for each spot could be
+incorporated to detect <strong>niches</strong> (i.e. small local
+microenvironments of cells) within the tissue. We can process cell type
+abundance assays and used them for clustering to detect these
+niches.</p>
+<p><br></p>
+<div id="import-visium-data" class="section level2">
+<h2>Import Visium Data</h2>
+<p>For this tutorial we will analyze spot-based transcriptomic assays
+from Mouse Brain generated by the <a
+href="https://www.10xgenomics.com/products/spatial-gene-expression">Visium</a>
+instrument.</p>
+<p>You can find and download readouts of all four Visium sections <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Visium/MouseBrainSerialSections.zip">here</a>.
+The <strong>Mouse Brain Serial Section 1/2</strong> datasets can be also
+downloaded from <a
+href="https://www.10xgenomics.com/resources/datasets?menu%5Bproducts.name%5D=Spatial%20Gene%20Expression&amp;query=&amp;page=1&amp;configure%5BhitsPerPage%5D=50&amp;configure%5BmaxValuesPerFacet%5D=1000">here</a>
+(specifically, please filter for <strong>Species=Mouse</strong>,
+<strong>AnatomicalEntity=brain</strong>, <strong>Chemistry=v1</strong>
+and <strong>PipelineVersion=v1.1.0</strong>).</p>
+<p>We will now import each of four samples separately and merge them
+into one VoltRon object. There are four brain tissue sections in total
+given two serial anterior and serial posterior sections, hence we have
+<strong>two tissue blocks each having two layers</strong>.</p>
+<pre class="r watch-out"><code>library(VoltRon)
+Ant_Sec1 &lt;- importVisium(&quot;Sagittal_Anterior/Section1/&quot;, sample_name = &quot;Anterior1&quot;)
+Ant_Sec2 &lt;- importVisium(&quot;Sagittal_Anterior/Section2/&quot;, sample_name = &quot;Anterior2&quot;)
+Pos_Sec1 &lt;- importVisium(&quot;Sagittal_Posterior/Section1/&quot;, sample_name = &quot;Posterior1&quot;)
+Pos_Sec2 &lt;- importVisium(&quot;Sagittal_Posterior/Section2/&quot;, sample_name = &quot;Posterior2&quot;)
+
+# merge datasets
+MBrain_Sec_list &lt;- list(Ant_Sec1, Ant_Sec2, Pos_Sec1, Pos_Sec2)
+MBrain_Sec &lt;- merge(MBrain_Sec_list[[1]], MBrain_Sec_list[-1], 
+                    samples = c(&quot;Anterior&quot;, &quot;Anterior&quot;, &quot;Posterior&quot;, &quot;Posterior&quot;))
+MBrain_Sec</code></pre>
+<pre><code>VoltRon Object 
+Anterior: 
+  Layers: Section1 Section2 
+Posterior: 
+  Layers: Section1 Section2 
+Assays: Visium(Main) 
+Features: RNA(Main) </code></pre>
+<p>VoltRon maps metadata features on the spatial images, multiple
+features can be provided for all assays/layers associated with the main
+assay (Visium).</p>
+<pre class="r watch-out"><code>vrSpatialFeaturePlot(MBrain_Sec, features = &quot;Count&quot;, crop = TRUE, alpha = 1, ncol = 2)</code></pre>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_first_plot.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="import-scrna-data" class="section level2">
+<h2>Import scRNA data</h2>
+<p>We will now import the scRNA data for reference which can be
+downloaded from <a
+href="https://www.dropbox.com/s/cuowvm4vrf65pvq/allen_cortex.rds?dl=1">here</a>.
+Specifically, we will use a scRNA data of Mouse cortical adult brain
+with 14,000 cells, generated with the SMART-Seq2 protocol, from the
+Allen Institute. This scRNA data is also used by the Spatial Data
+Analysis tutorial in <a
+href="https://satijalab.org/seurat/articles/spatial_vignette.html#integration-with-single-cell-data">Seurat</a>
+website.</p>
+<pre class="r watch-out"><code># install packages if necessary
+if(!requireNamespace(&quot;Seurat&quot;))
+  install.packages(&quot;Seurat&quot;)
+if(!requireNamespace(&quot;dplyr&quot;))
+  install.packages(&quot;dplyr&quot;)
+
+# import scRNA data
+library(Seurat)
+allen_reference &lt;- readRDS(&quot;allen_cortex.rds&quot;)
+
+# process and reduce dimensionality
+library(dplyr)
+allen_reference &lt;- SCTransform(allen_reference, ncells = 3000, verbose = FALSE) %&gt;%
+  RunPCA(verbose = FALSE) %&gt;%
+  RunUMAP(dims = 1:30)</code></pre>
+<p>Before deconvoluting Visium spots, we correct cell types labels and
+drop some cell types with extremely few number of cells (e.g. “CR”).</p>
+<pre class="r watch-out"><code># update labels and subset
+allen_reference$subclass &lt;- gsub(&quot;L2/3 IT&quot;, &quot;L23 IT&quot;, allen_reference$subclass)
+allen_reference &lt;- allen_reference[,colnames(allen_reference)[!allen_reference@meta.data$subclass %in% &quot;CR&quot;]]
+
+# visualize
+Idents(allen_reference) &lt;- &quot;subclass&quot;
+gsubclass &lt;- DimPlot(allen_reference, reduction = &quot;umap&quot;, label = T) + NoLegend()
+Idents(allen_reference) &lt;- &quot;class&quot;
+gclass &lt;- DimPlot(allen_reference, reduction = &quot;umap&quot;, label = T) + NoLegend()
+gsubclass | gclass</code></pre>
+<p><img width="95%" height="95%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_singlecell.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="spot-deconvolution-with-rctd" class="section level2">
+<h2>Spot Deconvolution with RCTD</h2>
+<p>In order to integrate the scRNA data and the spatial data sets within
+the VoltRon object and estimate relative cell type abundances for each
+Visium spot, we will use <strong>RCTD</strong> algorithm which is
+accessible with the <a
+href="https://github.com/dmcable/spacexr">spacexr</a> package.</p>
+<pre class="r watch-out"><code>if(!requireNamespace(&quot;spacexr&quot;))
+  devtools::install_github(&quot;dmcable/spacexr&quot;, build_vignettes = FALSE)</code></pre>
+<p>After running <strong>getDeconvolution</strong>, an additional
+feature set within the same Visium assay with name
+<strong>Decon</strong> will be created.</p>
+<pre class="r watch-out"><code>library(spacexr)
+MBrain_Sec &lt;- getDeconvolution(MBrain_Sec, sc.object = allen_reference, sc.cluster = &quot;subclass&quot;, max_cores = 6)
+MBrain_Sec</code></pre>
+<pre><code>VoltRon Object 
+Anterior: 
+  Layers: Section1 Section2 
+Posterior: 
+  Layers: Section1 Section2 
+Assays: Visium(Main) 
+Features: RNA(Main) Decon </code></pre>
+<p>We can now switch to the <strong>Decon</strong> feature type where
+features are cell types from the scRNA reference and the data values are
+cell types percentages in each spot.</p>
+<pre class="r watch-out"><code>vrMainFeatureType(MBrain_Sec) &lt;- &quot;Decon&quot;
+vrFeatures(MBrain_Sec)</code></pre>
+<pre><code> [1] &quot;Astro&quot;      &quot;Endo&quot;       &quot;L23 IT&quot;     &quot;L4&quot;         &quot;L5 IT&quot;      &quot;L5 PT&quot;     
+ [7] &quot;L6 CT&quot;      &quot;L6 IT&quot;      &quot;L6b&quot;        &quot;Lamp5&quot;      &quot;Macrophage&quot; &quot;Meis2&quot;     
+[13] &quot;NP&quot;         &quot;Oligo&quot;      &quot;Peri&quot;       &quot;Pvalb&quot;      &quot;Serpinf1&quot;   &quot;SMC&quot;       
+[19] &quot;Sncg&quot;       &quot;Sst&quot;        &quot;Vip&quot;        &quot;VLMC&quot;          </code></pre>
+<p>These features (i.e. cell type abundances) can be visualized like any
+other feature type.</p>
+<pre class="r watch-out"><code>vrSpatialFeaturePlot(MBrain_Sec, features = c(&quot;L4&quot;, &quot;L5 PT&quot;, &quot;Oligo&quot;, &quot;Vip&quot;), 
+                     crop = TRUE, ncol = 2, alpha = 1, keep.scale = &quot;all&quot;)</code></pre>
+<p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_spatialfeature_plot.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="clustering" class="section level2">
+<h2>Clustering</h2>
+<p>Relative cell type abundances that are learned by RCTD and stored
+within VoltRon can now be used to cluster spots. These groups or
+clusters of spots can often be referred to as <strong>niches</strong>.
+Here, as a definition, a niche is a region or a collection of regions
+within tissue that have a distinct cell type composition as opposed to
+the remaining parts of the tissue.</p>
+<p>The cell type abundances (which adds up to one for each spot) can be
+normalized and processed like transcriptomic and proteomic profiles
+prior to clustering (i.e. niche clustering). We treat cell type
+abundances as <a
+href="https://en.wikipedia.org/wiki/Compositional_data">compositional
+data</a>, hence we incorporate <strong>centred log ratio (CLR)</strong>
+transformation for normalizing them.</p>
+<pre class="r watch-out"><code>vrMainFeatureType(MBrain_Sec) &lt;- &quot;Decon&quot;
+MBrain_Sec &lt;- normalizeData(MBrain_Sec, method = &quot;CLR&quot;)</code></pre>
+<p>The CLR normalized assay have only 25 features, each representing a
+cell type from the single cell reference data. Hence, we can
+<strong>directly calculate UMAP reductions from this feature
+abundances</strong> since we dont have much number of features which
+necessitates dimensionality reduction such as PCA.</p>
+<p>However, we may still need to reduce the dimensionality of this space
+with 25 features using UMAP for visualizing purposes. VoltRon is also
+capable of calculating the UMAP reduction from normalized data slots.
+Hence, we build a UMAP reduction from CLR data directly. However, UMAP
+will always be calculated from a PCA reduction by default (if a PCA
+embedding is found in the object).</p>
+<pre class="r watch-out"><code>MBrain_Sec &lt;- getUMAP(MBrain_Sec, data.type = &quot;norm&quot;)
+vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;Sample&quot;)</code></pre>
+<p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_embedding_sample.png" class="center"></p>
+<p><br></p>
+<p>Using normalized cell type abundances, we can now generate k-nearest
+neighbor graphs and cluster the graph using leiden method.</p>
+<pre class="r watch-out"><code>MBrain_Sec &lt;- getProfileNeighbors(MBrain_Sec, data.type = &quot;norm&quot;, method = &quot;SNN&quot;)
+vrGraphNames(MBrain_Sec)</code></pre>
+<pre><code>[1] &quot;SNN&quot;</code></pre>
+<pre class="r watch-out"><code>MBrain_Sec &lt;- getClusters(MBrain_Sec, resolution = 0.6, graph = &quot;SNN&quot;)</code></pre>
+<p><br></p>
+</div>
+<div id="visualization" class="section level2">
+<h2>Visualization</h2>
+<p>VoltRon incorporates distinct plotting functions for,
+e.g. embeddings, coordinates, heatmap and even barplots. We can now map
+the clusters we have generated on UMAP embeddings.</p>
+<pre class="r watch-out"><code># visualize 
+g1 &lt;- vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;Sample&quot;)
+g2 &lt;- vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;niche_clusters&quot;, label = TRUE)
+g1 | g2</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_embedding_clusters.png" class="center"></p>
+<p><br></p>
+<p>Mapping clusters on the spatial images and spots would show the niche
+structure across all four tissue sections.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(MBrain_Sec, group.by = &quot;niche_clusters&quot;, crop = TRUE, alpha = 1)</code></pre>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_spatial_clusters.png" class="center"></p>
+<p><br></p>
+<p>We use <strong>vrHeatmapPlot</strong> to investigate relative cell
+type abundances across these niche clusters. You will need to have
+<strong>ComplexHeatmap</strong> package in your namespace.</p>
+<pre class="r watch-out"><code># install packages if necessary
+if(!requireNamespace(&quot;ComplexHeatmap&quot;))
+  BiocManager::install(&quot;ComplexHeatmap&quot;)
+
+# heatmap of niches
+library(ComplexHeatmap)
+vrHeatmapPlot(MBrain_Sec, features = vrFeatures(MBrain_Sec), group.by = &quot;niche_clusters&quot;, 
+              show_row_names = T, show_heatmap_legend = T)</code></pre>
+<p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_heatmap_clusters.png" class="center">
+<br></p>
+</div>
+</div>
+<div id="cellxenium" class="section level1">
+<h1>Cell-based Niche Clustering</h1>
+<p>Similar to spot-based spatial omics assays, we can build and cluster
+niche associated to each cell for spatial transcriptomics datasets in
+single cell resolution. For this, we require building niche assays for
+the collections of cells where a niche of cell is defined as a region of
+sets of regions with distinct cell type population that each of these
+cells belong to.</p>
+<p>Here, we dont require any scRNA reference dataset but we may first
+need to cluster and annotate cells in the RNA/transcriptome level
+profiles, and determine cell types. Then, we first detect the mixture of
+cell types within a spatial neighborhood around all cells and use that
+as a profile to perform clustering where these clusters will be
+associated with niches.</p>
+<div id="import-xenium-data" class="section level2">
+<h2>Import Xenium Data</h2>
+<p>For this, the data has to be already clustered (and annotated if
+possible). We will use the cluster labels generated at the end of the
+Xenium analysis workflow from <a href="spotanalysis.html">Cell/Spot
+Analysis</a>. You can download the VoltRon object with clustered and
+annotated Xenium cells along with the Visium assay from <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/VRBlock_data_clustered.rds">here</a>.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- readRDS(&quot;VRBlock_data_clustered.rds&quot;)</code></pre>
+<p>We will use all these 18 cell types used for annotating Xenium cells
+for detecting niches with distinct cellular type mixtures.</p>
+<pre class="r watch-out"><code>vrMainSpatial(Xen_data, assay = &quot;Assay1&quot;) &lt;- &quot;main&quot;
+vrMainSpatial(Xen_data, assay = &quot;Assay3&quot;) &lt;- &quot;main&quot;
+vrSpatialPlot(Xen_data, group.by = &quot;CellType&quot;, pt.size = 0.13, background.color = &quot;black&quot;, 
+              legend.loc = &quot;top&quot;, n.tile = 500)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_xenium_clusters.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="creating-niche-assay" class="section level2">
+<h2>Creating Niche Assay</h2>
+<p>For calculating niche profiles for each cell, we have to first build
+spatial neighborhoods around cells and capture the local cell type
+mixtures. Using <strong>getSpatialNeighbors</strong>, we build a spatial
+neighborhood graph to connect all cells to other cells within at most 15
+distance apart.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- getSpatialNeighbors(Xen_data, radius = 15, method = &quot;radius&quot;)
+vrGraphNames(Xen_data)</code></pre>
+<pre><code>[1] &quot;radius&quot;</code></pre>
+<p>Now, we can build a niche assay for cells using the
+<strong>getNicheAssay</strong> function which will create an additional
+feature set for cells called <strong>Niche</strong>. Here, each cell
+type is a feature and the profile of a cell represents the relative
+abundance of cell types around each cell.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- getNicheAssay(Xen_data, label = &quot;CellType&quot;, graph.type = &quot;radius&quot;)
+Xen_data</code></pre>
+<pre><code>VoltRon Object 
+10XBlock: 
+  Layers: Section1 Section2 Section3 
+Assays: Xenium(Main) Visium 
+Features: RNA(Main) Niche</code></pre>
+<p><br></p>
+</div>
+<div id="clustering-1" class="section level2">
+<h2>Clustering</h2>
+<p>The Niche assay can be normalized similar to the spot-level niche
+analysis using <strong>centred log ratio (CLR)</strong>
+transformation.</p>
+<pre class="r watch-out"><code>vrMainFeatureType(Xen_data) &lt;- &quot;Niche&quot;
+Xen_data &lt;- normalizeData(Xen_data, method = &quot;CLR&quot;)</code></pre>
+<p>Default clustering functions could be used to analyze the normalized
+niche profiles of cells to detect niches associated with each cell.
+However, we use K-means algorithm to perform the niche clustering. For
+this exercise, we pick an estimate of 7 clusters which will be the
+number of niche clusters we get.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- getClusters(Xen_data, nclus = 7, method = &quot;kmeans&quot;, label = &quot;niche_clusters&quot;)</code></pre>
+<p>After the niche clustering, the metadata is updated and observed
+later like below.</p>
+<pre class="r watch-out"><code>head(Metadata(Xen_data))</code></pre>
+<div>
+<pre><code style="font-size: 10px;">               id Count assay_id  Assay    Layer   Sample CellType niche_clusters
+1_Assay1 1_Assay1    28   Assay1 Xenium Section1 10XBlock   DCIS_1              2
+2_Assay1 2_Assay1    94   Assay1 Xenium Section1 10XBlock   DCIS_2              2
+3_Assay1 3_Assay1     9   Assay1 Xenium Section1 10XBlock   DCIS_1              2
+4_Assay1 4_Assay1    11   Assay1 Xenium Section1 10XBlock   DCIS_1              2
+5_Assay1 5_Assay1    48   Assay1 Xenium Section1 10XBlock   DCIS_2              2
+6_Assay1 6_Assay1     7   Assay1 Xenium Section1 10XBlock   DCIS_1              2</code></pre>
+</div>
+<p><br></p>
+</div>
+<div id="visualization-1" class="section level2">
+<h2>Visualization</h2>
+<p>After niche clustering, each cell in the Xenium assay will be
+assigned a niche which is initially a number which indicates the ID of
+each particular niche. It is up to the user to annotate, filter and
+visualize these niches moving forward.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(Xen_data, group.by = &quot;niche_clusters&quot;, alpha = 1, legend.loc = &quot;top&quot;)</code></pre>
+<p>We use <strong>vrHeatmapPlot</strong> to investigate the abundance of
+each cell type across the niche clusters. You will need to have
+<strong>ComplexHeatmap</strong> package in your namespace. We see that
+niche cluster 1 include all invasive tumor subtypes (IT 1-3). We see
+this for two subtypes of in situ ductal carcinoma (DCIS 1,2) subtypes as
+well other than a third DCIS subcluster being within proximity to
+myoepithelial cells. Niche cluster 6 also shows regions within the
+breast cancer tissue where T cells and B cells are found together
+abundantly.</p>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_xenium_nicheclusters.png" class="center">
+<br></p>
+<pre class="r watch-out"><code># install packages if necessary
+if(!requireNamespace(&quot;ComplexHeatmap&quot;))
+  BiocManager::install(&quot;ComplexHeatmap&quot;)
+
+# heatmap of niches
+library(ComplexHeatmap)
+vrHeatmapPlot(Xen_data, features = vrFeatures(Xen_data), group.by = &quot;niche_clusters&quot;)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_xenium_heatmapclusters.png" class="center">
+<br></p>
+</div>
+</div>
+<div id="d-niche-clustering" class="section level1">
+<h1>3D Niche Clustering</h1>
+<p>VoltRon extends coordinate spaces to three dimensions, thus allow
+analyzing the proximity across observations in three dimensions.</p>
+<div id="import-openst-data" class="section level2">
+<h2>Import OpenST Data</h2>
+<p>We will the OpenST <a
+href="https://rajewsky-lab.github.io/openst/latest/">https://rajewsky-lab.github.io/openst/latest/</a>
+assays to capture cells in 3D and detect tissue niches of the metastatic
+lymph node example that is deposited to NCBI/GEO (<a
+href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE251926">GSE251926</a>).
+Please use the
+<strong>GSE251926_metastatic_lymph_node_3d.h5ad.gz</strong> file and
+unzip it to use the importOpenST function below.</p>
+<pre class="r watch-out"><code>vr_openst &lt;- importOpenST(h5ad.path = &quot;GSE251926_metastatic_lymph_node_3d.h5ad&quot;, 
+                          sample_name = &quot;MLN_3D&quot;, assay_name = &quot;OpenST&quot;)
+vr_openst</code></pre>
+<pre><code>VoltRon Object 
+MLN_3D: 
+  Layers: Section1 Section2 Section3 Section4 Section5 
+          Section6 Section7 Section8 Section9 Section10 
+          Section11 Section12 Section13 Section14 Section15 
+          Section16 Section17 Section18 Section19 
+Assays: OpenST(Main) 
+Features: Niche_15(Main) RNA </code></pre>
+<p>OpenST cells from <strong>GSE251926</strong> are already called and
+annotated. See the <a
+href="https://www.cell.com/cell/fulltext/S0092-8674(24)00636-6">OpenST
+paper</a> for more information.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(vr_openst, assay = c(&quot;Assay1&quot;, &quot;Assay2&quot;, &quot;Assay3&quot;, &quot;Assay4&quot;), 
+              group.by = &quot;annotation&quot;, n.tile = 400, alpha = 1, ncol = 2,
+              background.color = &quot;black&quot;)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/openst_spatial_plot.png" class="center">
+<br></p>
+<p>The <strong>importOpenST</strong> function automatically detects
+sections of an OpenST readout and create a block of these sections in
+the form of a VoltRon object. Here, we have more than 1 million cells
+across 19 tissue sections.</p>
+<pre class="r watch-out"><code>length(vrSpatialPoints(vr_openst))</code></pre>
+<pre><code>[1] 1097769</code></pre>
+</div>
+<div id="voltron-objects-on-disk" class="section level2">
+<h2>VoltRon Objects on Disk</h2>
+<p>VoltRon provide utilities to store <strong>(i)</strong> large images
+and <strong>(ii)</strong> large feature vs observation matrices on disk
+for decreased memory consumption. We use the
+<strong>saveVoltRon</strong> function to determine a location for large
+data matrices to be stored. We choose <strong>HDF5VoltRon</strong> as
+the format, indicating the feature profiles of these 1 million cells to
+be stored in a separate .h5 file in the <strong>output</strong>.</p>
+<pre class="r watch-out"><code>vr_openst &lt;- saveVoltRon(vr_openst, 
+                         format = &quot;HDF5VoltRon&quot;, 
+                         output = &quot;data/OnDisk/OpenST/mln3d/&quot;, 
+                         replace = TRUE)</code></pre>
+<p>A saved VoltRon object on disk can be loaded given the location.</p>
+<pre class="r watch-out"><code>vr_openst &lt;- loadVoltRon(dir = &quot;data/OnDisk/OpenST/mln3d/&quot;)</code></pre>
+</div>
+<div id="creating-niche-assay-for-3d" class="section level2">
+<h2>Creating Niche Assay for 3D</h2>
+<p>Once the ondisk VoltRon object is loaded, the niche clustering
+workflow is followed similar to the Xenium example <a
+href="#cellxenium">above</a>. We can check the three dimensional
+coordinates (with z axis) of all one million cells using again the
+<strong>vrCoordinates</strong> function.</p>
+<pre class="r watch-out"><code>head(vrCoordinates(vr_openst))</code></pre>
+<pre><code>               x    y        z
+2_307_Assay1 259 4848 57.97101
+2_309_Assay1 259 5448 57.97101
+2_446_Assay1 313 5640 57.97101
+2_655_Assay1 493 6225 57.97101
+2_656_Assay1 495 6262 57.97101
+2_658_Assay1 495 6319 57.97101</code></pre>
+<p>Let us capture the relative cell type mixture around each cell using
+a spatial proximity graph. We will use this graph to build a niche assay
+whose features are cell type and measures are proportional abundance of
+each cell type around that cell.</p>
+<pre class="r watch-out"><code>vr_openst &lt;- getSpatialNeighbors(vr_openst, radius = 60, method = &quot;radius&quot;)
+vr_openst &lt;- getNicheAssay(vr_openst, label = &quot;annotation&quot;, 
+                           graph.type = &quot;radius&quot;, new_feature_name = &quot;Niche_60&quot;)</code></pre>
+<p>We visualize the TIMP1 expression of cells, which is a marker for M1
+macrophages, in the first two adjacent sections, and also visualize the
+relative amount of M1 macrophages neighboring each cell.</p>
+<pre class="r watch-out"><code>vrMainFeatureType(vr_openst) &lt;- &quot;RNA&quot;
+vrSpatialFeaturePlot(vr_openst, assay = c(&quot;Assay1&quot;, &quot;Assay2&quot;), 
+                     features = &quot;SPP1&quot;, n.tile = 400, alpha = 1, 
+                     background.color = &quot;black&quot;)
+vrMainFeatureType(vr_openst) &lt;- &quot;Niche_15&quot;
+vrSpatialFeaturePlot(vr_openst, assay = c(&quot;Assay1&quot;, &quot;Assay2&quot;), 
+                     features = &quot;M1_macrophages&quot;, n.tile = 400, alpha = 1, 
+                     background.color = &quot;black&quot;)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/openst_feature_plot.png" class="center">
+<br></p>
+</div>
+<div id="clustering-2" class="section level2">
+<h2>Clustering</h2>
+<p>We incorporate <strong>centred log ratio (CLR)</strong>
+transformation for normalizing cell type abundances before K-means
+clustering.</p>
+<pre class="r watch-out"><code>vr_openst &lt;- normalizeData(vr_openst, method = &quot;CLR&quot;)
+vr_openst &lt;- getClusters(vr_openst, nclus = 6, 
+                         method = &quot;kmeans&quot;, label = &quot;niche_clusters&quot;)</code></pre>
+</div>
+<div id="visualization-2" class="section level2">
+<h2>Visualization</h2>
+<pre class="r watch-out"><code>g1 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay1&quot;, group.by = &quot;niche_clusters&quot;, background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
+g2 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay1&quot;, group.by = &quot;annotation&quot;, background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
+g3 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay2&quot;, group.by = &quot;niche_clusters&quot;, background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
+g4 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay2&quot;, group.by = &quot;annotation&quot;, background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
+
+library(patchwork)
+(g1 | g2) / (g3 | g4)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/openst_niche_plot.png" class="center">
+<br></p>
+<p>We use <strong>vrHeatmapPlot</strong> to investigate the abundance of
+each cell type across the niche clusters. You will need to have
+<strong>ComplexHeatmap</strong> package in your namespace. We see a
+clear separation of e.g. Tumor, Plasma cells (IGHG3+), and macrophages,
+where M1 macrophages mostly compose separate niches compared to T cells
+although both groups are found in niches along with IGHA1+ Plasma cells
+and Endothelial Venules.</p>
+<pre class="r watch-out"><code># install packages if necessary
+if(!requireNamespace(&quot;ComplexHeatmap&quot;))
+  BiocManager::install(&quot;ComplexHeatmap&quot;)
+
+# heatmap of niches
+library(ComplexHeatmap)
+vrHeatmapPlot(openst_data_disk, features = vrFeatures(openst_data_disk), 
+              group.by = &quot;niche_clusters&quot;)</code></pre>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/openst_heatmap_plot.png" class="center">
+<br></p>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = false;
+    options.smoothScroll = false;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

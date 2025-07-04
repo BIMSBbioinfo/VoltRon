@@ -8,7 +8,7 @@ getUMAP(
   object,
   assay = NULL,
   data.type = "pca",
-  dims = 1:30,
+  dims = seq_len(30),
   umap.key = "umap",
   overwrite = FALSE,
   seed = 1
@@ -17,16 +17,19 @@ getUMAP(
 \arguments{
 \item{object}{a VoltRon object}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class 
+(exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{data.type}{the type of data used to calculate UMAP from: "pca" (default), "raw" or "norm"}
+\item{data.type}{the type of data used to calculate UMAP from: 
+"pca" (default), "raw" or "norm"}
 
 \item{dims}{the number of dimensions extracted from PCA}
 
 \item{umap.key}{the name of the umap embedding, default: umap}
 
-\item{overwrite}{Whether the existing embedding with name 'type' should be overwritten in \link{vrEmbeddings}}
+\item{overwrite}{Whether the existing embedding with name 'type' 
+should be overwritten in \link{vrEmbeddings}}
 
 \item{seed}{seed}
 }

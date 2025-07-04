@@ -346,7 +346,7 @@ div.tocify {
           <a href="multiomic.html">Multi-omic Integration</a>
         </li>
         <li>
-          <a href="deconvolution.html">Niche Clustering</a>
+          <a href="nicheclustering.html">Niche Clustering</a>
         </li>
       </ul>
     </li>
@@ -464,12 +464,11 @@ body {
 and manually label spatial points by drawing polygons and circles. As an
 example, we will use a Spot-based spatial transcriptomic assay,
 specifically the <strong>Mouse Brain Serial Section 1/2</strong>
-datasets, analyzed in the <a href="deconvolution.html">Niche
+datasets, analyzed in the <a href="nicheclustering.html">Niche
 Clustering</a> tutorial. You can find the already analyzed data stored
 as a VoltRon object <a
 href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/NicheClustering/Visium&amp;Visium_data_decon_analyzed.rds">here</a></p>
 <pre class="r watch-out"><code>MBrain_Sec &lt;- readRDS(&quot;Visium&amp;Visium_data_decon_analyzed.rds&quot;)</code></pre>
-<p><br></p>
 <p>We can start annotating the spatial assay. By passing arguments used
 by the <strong>vrSpatialPlot</strong> function to visualize labels
 (e.g. clusters), we can better select regions within tissue sections for
@@ -512,6 +511,13 @@ AAACATGGTGAGAGGA-1_Assay1     1 Visium_decon Section1 Anterior        3  undefin
 <pre class="r watch-out"><code>vrSpatialPlot(MBrain_Sec, assay = &quot;Assay1&quot;, group.by = &quot;annotation&quot;)</code></pre>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_annotation_plot.png" class="center"></p>
 <p><br></p>
+<p>You can also overlay the ROI annotations with the clustered spots to
+visualize multiple assays in the same time.</p>
+<pre class="r watch-out"><code>library(ggnewscale)
+vrSpatialPlot(MBrain_Sec, assay = &quot;Assay1&quot;, group.by = &quot;clusters&quot;) |&gt; 
+  addSpatialLayer(MBrain_Sec, assay = &quot;Assay5&quot;, group.by = &quot;annotation&quot;, alpha = 0.7)</code></pre>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_annotation_example_overlay_plot.png" class="center"></p>
+<p><br></p>
 </div>
 <div id="interactive-visualization" class="section level1">
 <h1>Interactive Visualization</h1>
@@ -522,25 +528,6 @@ data objects and files that could be used platforms, and</li>
 <li><strong>(ii)</strong> to incorporate wrapper functions to call
 methods from package that achieves interactive visualization</li>
 </ul>
-<!--
-We will use the clustered and annotated Xenium data using VoltRon [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered_annotated.rds). 
-
-
-```{.r .watch-out}
-Xen_data <- readRDS("Xenium_data_clustered_annotated.rds")
-SampleMetadata(Xen_data)
-```
-
-```
-            Assay    Layer   Sample
-Assay2 Xenium_mol Section1 XeniumR1
-Assay4 Xenium_mol Section1 XeniumR2
-Assay1     Xenium Section1 XeniumR1
-Assay3     Xenium Section1 XeniumR2
-```
-
-<br>
--->
 <p><br></p>
 <div id="vitessce" class="section level2">
 <h2>Vitessce</h2>
@@ -590,7 +577,6 @@ will create the array in the specified location. We use the
 of cells vertically, hence match it with the top to bottom system of the
 background DAPI image.</p>
 <pre class="r watch-out"><code>as.AnnData(xenium_data, file = &quot;xenium_data.h5ad&quot;, assay = &quot;Xenium&quot;, flip_coordinates = TRUE)</code></pre>
-<p><br></p>
 <p>To use <strong>TissUUmaps</strong>, you can follow the instructions
 <a href="https://tissuumaps.github.io/installation/">here</a>. Once
 installed and executed, simply drag and drop the h5ad file to the main

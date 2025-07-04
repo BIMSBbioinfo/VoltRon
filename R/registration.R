@@ -9,7 +9,9 @@
 #' @param object_list a list of VoltRon (or Seurat) objects
 #' @param reference_spatdata a reference spatial data set, used only if \code{object_list} is \code{NULL}
 #' @param query_spatdata a query spatial data set, used only if \code{object_list} is \code{NULL}
-#' @param keypoints a list of tables, each points to matching keypoints from registered images.
+#' @param keypoints (DEPRECATED) a list of tables, each points to matching keypoints from registered images.
+#' @param mapping_parameters for manual image registration, a list of tables, each points to matching keypoints from registered images, and for automated image registration, a set of mapping parameters
+#' @param interactive if TRUE, the shiny application for image registration will be triggered, otherwise 'mapping_parameters' or 'keypoints' should be defined.
 #' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
 #'
 #' @import shiny
@@ -18,25 +20,18 @@
 #' @importFrom magick image_read
 #'
 #' @export
-registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL, 
+registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, query_spatdata = NULL, keypoints = NULL, mapping_parameters = list(), interactive = TRUE,
                                 shiny.options = list(launch.browser = getOption("shiny.launch.browser", interactive()))) {
 
   ## Importing images ####
 
-  # check object classes
   # if the input is not a list, switch to reference vs query mode
   if(!is.null(object_list)){
-    # reference and query indices
     spatdata_list <- object_list
-    centre <- floor(stats::median(1:length(spatdata_list)))
-    register_ind <- setdiff(1:length(spatdata_list), centre)
-
-    # reference vs query mode
+    centre <- floor(stats::median(seq_len(length(spatdata_list))))
+    register_ind <- setdiff(seq_len(length(spatdata_list)), centre)
   } else {
-
     spatdata_list <- list(reference_spatdata, query_spatdata)
-
-    # reference and query indices
     centre <- 1
     register_ind <- 2
   }
@@ -46,9 +41,8 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     assayname <- vrAssayNames(spat)
     channel_names <- vrImageChannelNames(spat[[assayname]])
     sapply(channel_names, function(chan){
-      # vrImages(spat, assay = assayname, channel = chan)
       img <- vrImages(spat[[assayname]], channel = chan, as.raster = TRUE)
-      if(!inherits(img, "Image_Array")){
+      if(!inherits(img, "ImgArray")){
         img <- magick::image_read(img)
       }
       img
@@ -62,12 +56,37 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     vrImageChannelNames(spat[[assayname]])
   })
   
+  ## Parameters ####
+  if(!is.null(keypoints)){
+    message("The use of 'keypoints' is deprecated, please use 'mapping_parameters' instead!")
+    mapping_parameters[["keypoints"]] <- keypoints
+  }
+  if(!"keypoints" %in% names(mapping_parameters) && !all(is.null(names(mapping_parameters)))){
+    if(all(grepl("[0-9]-[0-9]", names(mapping_parameters)))){
+      mapping_parameters[["keypoints"]] <- mapping_parameters
+    } else {
+      stop("'mapping_parameters' does not include keypoints")
+    }
+  }
+  
+  ## Non-interactive Registration ####
+  if(!interactive){
+    return(getNonInteractiveRegistration(obj_list = spatdata_list, 
+                                         centre = centre, 
+                                         register_ind = register_ind, 
+                                         mapping_parameters = mapping_parameters, 
+                                         image_list = orig_image_query_list,
+                                         image_list_full = orig_image_query_list_full,
+                                         channel_names = orig_image_channelname_list))
+  }
+
   ## UI and Server ####
   ui <- fluidPage(
+    
     # use javascript extensions for Shiny
-    # waiter::useWaiter(),
     shinyjs::useShinyjs(),
     
+    # side bar
     sidebarLayout(position = "left",
                   
                   # Side bar
@@ -94,7 +113,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
                     ")),
                     
                     # side bar for configuration
-                    getSideBar(),
+                    getSideBar(params = mapping_parameters),
                     
                     # panel options
                     width = 3,
@@ -107,7 +126,10 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
                     column(6,
                            
                            # Reference Images
-                           getImageTabPanels(length(orig_image_query_list), orig_image_channelname_list, type = "ref"),
+                           getImageTabPanels(length(orig_image_query_list), 
+                                             orig_image_channelname_list, 
+                                             type = "ref", 
+                                             params = mapping_parameters),
                            
                            br(),
                            
@@ -119,12 +141,17 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
                     column(6,
                            
                            # Query Images
-                           getImageTabPanels(length(orig_image_query_list), orig_image_channelname_list, type = "query"),
+                           getImageTabPanels(length(orig_image_query_list), 
+                                             orig_image_channelname_list, 
+                                             type = "query", 
+                                             params = mapping_parameters),
                            
                            br(),
                            
                            # Registered Query Images
-                           getRegisteredImageTabPanels(length(orig_image_query_list), centre, register_ind)
+                           getRegisteredImageTabPanels(length(orig_image_query_list), 
+                                                       centre, 
+                                                       register_ind)
                     ),
                     
                     # panel options
@@ -136,8 +163,9 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
   server <- function(input, output, session) {
     
     ## Manage interface ####
-    updateParameterPanels(length(orig_image_query_list), input, output, session)
-    updateSequentialTabPanels(input, output, session, centre, register_ind)
+    updateParameterPanels(length(orig_image_query_list), mapping_parameters, input, output, session)
+    updateTabPanels(centre, register_ind, input, output, session)
+    # initiateParameterPanels(mapping_parameters, length(orig_image_query_list), input, output, session)
     
     ## Transform images ####
     trans_image_query_list <- transformImageQueryList(orig_image_query_list, input)
@@ -148,7 +176,8 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     manageImageZoomOptions(centre, register_ind, zoom_list, orig_image_query_list, orig_image_query_info_list, input, output, session)
     
     ## Manage reference and query keypoints ####
-    xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
+    # xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
+    xyTable_list <- initateKeypoints(length(orig_image_query_list), mapping_parameters$keypoints)
     manageKeypoints(centre, register_ind, xyTable_list, orig_image_query_list, orig_image_query_info_list, zoom_list, input, output, session)
     
     ## Image registration ####
@@ -169,12 +198,20 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     ## Return values for the shiny app ####
     observeEvent(input$done, {
       
-      # keypoints
+      # keypoints and mapping
       keypoints <- reactiveValuesToList(xyTable_list)
+      mapping <- reactiveValuesToList(registration_mapping_list)
+      
+      # mapping parameters
+      mapping_parameters <- transferParameterInput(input, 
+                                                   image_list = orig_image_query_list)
       
       # get keypoints and registered spatial datasets
       stopApp(
         list(keypoints = keypoints,
+             mapping_parameters = c(as.list(mapping_parameters), 
+                                    list(keypoints = keypoints, 
+                                         mapping = mapping)),
              registered_spat = getRegisteredObject(spatdata_list,
                                                    registration_mapping_list,
                                                    register_ind,
@@ -193,9 +230,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
   shiny::runApp(
     shiny::shinyApp(ui, server, options = list(host = shiny.options[["host"]], port = shiny.options[["port"]], launch.browser = shiny.options[["launch.browser"]]),
                     onStart = function() {
-                      cat("Doing application setup\n")
                       onStop(function() {
-                        cat("Doing application cleanup\n")
                       })
                     })
   )
@@ -209,25 +244,35 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
 #'
 #' The UI for the app side bar
 #'
+#' @param params mapping parameters
+#' 
 #' @import shiny
 #' 
 #' @noRd
-getSideBar <- function(len_images, channel_names, type){
+getSideBar <- function(params = NULL){
   list(
     h4("Spatial Data Alignment"),
     fluidRow(
-      column(12,shiny::checkboxInput("automatictag", "Automated", value = FALSE)),
+      column(12,shiny::checkboxInput("automatictag", "Automated", value = params[["automatictag"]])),
       br(),
       column(12,selectInput("Method", "Method", 
                             choices = c("Homography", "Non-Rigid", "Homography + Non-Rigid"), 
-                            selected = "Homography")),
+                            # selected = "Homography")),
+                            selected = ifelse(is.null(params[["Method"]]), "Homography", params[["Method"]]))),
       br(),
       column(12,selectInput("Matcher", "Matcher", 
                             choices = c("FLANN", "BRUTE-FORCE"), 
-                            selected = "FLANN")),
+                            # selected = "FLANN")),
+                            selected = ifelse(is.null(params[["Matcher"]]), "FLANN", params[["Matcher"]]))),
       br(),
-      column(12,textInput("GOOD_MATCH_PERCENT", "Match %", value = "0.20", width = "80%", placeholder = NULL)),
-      column(12,textInput("MAX_FEATURES", "# of Features", value = "1000", width = "80%", placeholder = NULL)),
+      column(12,textInput("GOOD_MATCH_PERCENT", "Match %", 
+                          # value = "0.20", 
+                          value = ifelse(is.null(params[["GOOD_MATCH_PERCENT"]]), "0.20", params[["GOOD_MATCH_PERCENT"]]),
+                          width = "80%", placeholder = NULL)),
+      column(12,textInput("MAX_FEATURES", "# of Features", 
+                          # value = "1000", 
+                          value = ifelse(is.null(params[["MAX_FEATURES"]]), "1000", params[["MAX_FEATURES"]]),
+                          width = "80%", placeholder = NULL)),
       br(),
       column(12,shiny::actionButton("register", "Register!")),
       br(),
@@ -257,25 +302,45 @@ getSideBar <- function(len_images, channel_names, type){
 #' @param len_images the number of query images
 #' @param channel_names the list of channel names for each image
 #' @param type Either reference (ref) or query (query) image
+#' @param params mapping parameters
 #'
 #' @noRd
-getImageTabPanels <- function(len_images, channel_names, type){
+getImageTabPanels <- function(len_images, channel_names, type, params = NULL){
 
   # get panel label
   label <- ifelse(type == "ref", "Ref. ", "Query ")
 
   # call panels
-  do.call(tabsetPanel, c(id=paste0('image_tab_panel_',type), lapply(1:len_images, function(i) {
+  do.call(tabsetPanel, c(id=paste0('image_tab_panel_',type), lapply(seq_len(len_images), function(i) {
     tabPanel(paste0(label,i),
              br(),
              fluidRow(
-               column(4, selectInput(paste0("rotate_", type, "_image",i), "Rotate (ClockWise):", choices = c(0,90,180,270), selected = 0)),
-               column(4, selectInput(paste0("flipflop_", type, "_image",i), "Transform:", choices = c("None", "Flip", "Flop"), selected = "None")),
-               column(4, selectInput(paste0("negate_", type, "_image",i), "Negate Image:", choices = c("No", "Yes"), selected = "No"))
+               column(4, selectInput(paste0("rotate_", type, "_image",i), 
+                                     "Rotate (ClockWise):", 
+                                     choices = c(0,90,180,270), 
+                                     # selected = 0)),
+                                     selected = ifelse(is.null(params[[paste0("rotate_", type, "_image",i)]]), 0, params[[paste0("rotate_", type, "_image",i)]]))),
+               column(4, selectInput(paste0("flipflop_", type, "_image",i), 
+                                     "Transform:", 
+                                     choices = c("None", "Flip", "Flop"), 
+                                     # selected = "None")),
+                                     selected = ifelse(is.null(params[[paste0("flipflop_", type, "_image",i)]]), "None", params[[paste0("flipflop_", type, "_image",i)]]))),
+               column(4, selectInput(paste0("negate_", type, "_image",i), 
+                                     "Negate Image:", 
+                                     choices = c("No", "Yes"), 
+                                     # selected = "No"))
+                                     selected = ifelse(is.null(params[[paste0("negate_", type, "_image",i)]]), "No", params[[paste0("negate_", type, "_image",i)]])))
              ),
              fluidRow(
-               column(4, selectInput(paste0("channel_", type, "_image",i), "Channel:", choices = channel_names[[i]])),
-               column(4, sliderInput(paste0("scale_", type, "_image",i), "Scale Parameter", min = 0, max = 1,  value = 1)),
+               column(4, selectInput(paste0("channel_", type, "_image",i), 
+                                     "Channel:", 
+                                     choices = channel_names[[i]])),
+               column(4, sliderInput(paste0("scale_", type, "_image",i), 
+                                     "Scale Parameter", 
+                                     min = 0, 
+                                     max = 1,  
+                                     # value = 1)),
+                                     value = ifelse(is.null(params[[paste0("scale_", type, "_image",i)]]), "1", params[[paste0("scale_", type, "_image",i)]]))),
                textOutput(paste0("scaleinfo_", type, "_image",i))
              ),
              fluidRow(imageOutput(paste0("plot_", type, i), 
@@ -327,7 +392,6 @@ getRegisteredImageTabPanels <- function(len_images, centre, register_ind){
   do.call(tabsetPanel, c(id='image_tab_panel_reg_query',lapply(register_ind, function(i) {
     tabPanel(paste0("Reg. ",i, "->", centre),
              br(),
-             # column(6, sliderInput(paste0("plot_query_reg_alpha",i), label = "Alpha Level", min = 0, max = 1, value = 0.2)),
              fluidRow(
                column(12, align="center",
                       imageOutput(paste0("plot_query_reg",i))
@@ -337,18 +401,18 @@ getRegisteredImageTabPanels <- function(len_images, centre, register_ind){
   })))
 }
 
-#' updateSequentialTabPanels
+#' updateTabPanels
 #'
 #' A function for automatized selection of reference/query tab panels
 #'
+#' @param centre center image index
+#' @param register_ind query image indices
 #' @param input input
 #' @param output output
 #' @param session session
-#' @param centre center image index
-#' @param register_ind query image indices
 #'
 #' @noRd
-updateSequentialTabPanels <- function(input, output, session, centre, register_ind){
+updateTabPanels <- function(centre, register_ind, input, output, session){
 
   # number of panels
   npanels <- length(register_ind) + 1
@@ -408,12 +472,16 @@ updateSequentialTabPanels <- function(input, output, session, centre, register_i
 #' A function for managing which parameter panels or input boxes to appear on UI
 #'
 #' @param len_images the length of images
+#' @param params mapping parameters
 #' @param input input
 #' @param output output
 #' @param session session
+#' 
+#' @importFrom shinyjs hide show
+#' @import shiny
 #'
 #' @noRd
-updateParameterPanels <- function(len_images, input, output, session){
+updateParameterPanels <- function(len_images, params, input, output, session){
 
   # done event
   shinyjs::hide(id = "done")
@@ -426,7 +494,7 @@ updateParameterPanels <- function(len_images, input, output, session){
   shinyjs::hide(id = "MAX_FEATURES")
 
   # hide scale parameters
-  for(i in 1:len_images){
+  for(i in seq_len(len_images)){
     shinyjs::hide(id = paste0("scale_ref_image",i))
     shinyjs::hide(id = paste0("scale_query_image",i))
     shinyjs::hide(id = paste0("scaleinfo_ref_image",i))
@@ -437,7 +505,15 @@ updateParameterPanels <- function(len_images, input, output, session){
     if(input$automatictag){
       
       # Method and Matcher
-      updateSelectInput(session, "Method", choices = c("Homography", "Homography + Non-Rigid"), selected = "Homography")
+      choices <- c("Homography", "Homography + Non-Rigid")
+      selected <- ifelse(is.null(params[["Method"]]), choices[1],
+                         ifelse(!params[["Method"]] %in% choices, choices[1], params[["Method"]]))
+      # selected <- choices[1]
+      updateSelectInput(session, 
+                        "Method", 
+                        choices = choices, 
+                        # selected = "Homography")
+                        selected = selected)
       shinyjs::show(id = "Matcher")
 
       # show automatic registration parameters of BRUTE-FORCE
@@ -451,7 +527,7 @@ updateParameterPanels <- function(len_images, input, output, session){
       }
 
       # show scale parameters
-      for(i in 1:len_images){
+      for(i in seq_len(len_images)){
         shinyjs::show(id = paste0("scale_ref_image",i))
         shinyjs::show(id = paste0("scale_query_image",i))
         shinyjs::show(id = paste0("scaleinfo_ref_image",i))
@@ -461,7 +537,14 @@ updateParameterPanels <- function(len_images, input, output, session){
     } else {
       
       # Method and Matcher
-      updateSelectInput(session, "Method", choices = c("Non-Rigid", "Homography + Non-Rigid"), selected = "Non-Rigid")
+      choices <- c("Non-Rigid", "Homography + Non-Rigid")
+      selected <- ifelse(is.null(params[["Method"]]), choices[1],
+                         ifelse(!params[["Method"]] %in% choices, choices[1], params[["Method"]]))
+      # selected <- choices[1]
+      updateSelectInput(session, "Method", 
+                        choices = choices, 
+                        # selected = "Non-Rigid")
+                        selected = selected)
       shinyjs::hide(id = "Matcher")
 
       # hide automatic registration parameters of BRUTE-FORCE
@@ -471,7 +554,7 @@ updateParameterPanels <- function(len_images, input, output, session){
       }
 
       # hide scale parameters
-      for(i in 1:len_images){
+      for(i in seq_len(len_images)){
         shinyjs::hide(id = paste0("scale_ref_image",i))
         shinyjs::hide(id = paste0("scale_query_image",i))
         shinyjs::hide(id = paste0("scaleinfo_ref_image",i))
@@ -509,6 +592,39 @@ updateParameterPanels <- function(len_images, input, output, session){
   })
 }
 
+#' initiateParameterPanels
+#'
+#' A function for managing which initialized parameters
+#'
+#' @param mapping_parameters mapping parameters
+#' @param len_images the length of images
+#' @param input input
+#' @param output output
+#' @param session session
+#' 
+#' @import shiny
+#'
+#' @noRd
+initiateParameterPanels <- function(mapping_parameters, len_images, input, output, session){
+
+  # update image specific parameters
+  lapply(c("ref", "query"), function(t){
+    lapply(seq_len(len_images), function(i){
+      lapply(c("rotate", "flipflop", "negate", "channel"), function(c){
+          updateSelectInput(session = session, paste0(c, "_", t, "_image",i), selected = mapping_parameters[[paste0(c, "_", t, "_image",i)]])
+      })
+      updateSliderInput(session = session, paste0("scale_", t, "_image",i), value = mapping_parameters[[paste0("scale_", t, "_image",i)]])
+    })
+  })
+  
+  # update alignment parameters
+  updateCheckboxInput(session = session, "automatictag", value = mapping_parameters[["automatictag"]])
+  updateTextInput(session = session, "GOOD_MATCH_PERCENT", value = mapping_parameters[["GOOD_MATCH_PERCENT"]])
+  updateTextInput(session = session, "MAX_FEATURES", value = mapping_parameters[["MAX_FEATURES"]])
+  updateSelectInput(session = session, "Method", selected = mapping_parameters[["Method"]])
+  updateSelectInput(session = session, "Matcher", selected = mapping_parameters[["Matcher"]])
+}
+
 ####
 # Registering Objects ####
 ####
@@ -538,11 +654,73 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
 
   # waiter start
   withProgress(message = 'Register Coordinates (and Segments)', value = 0, {
-  # waiter::waiter_show(html = waiter::spin_ring(), color = paste0("rgba(128,128,128,", 0.15, ")"))
 
+    # register all assays
+    for(i in register_ind){
+  
+      # choose image query and ref order
+      if(i > ref_ind){
+        ref_extension = paste0("ref_image",ref_ind)
+        query_extension = paste0("query_image",i)
+      } else {
+        ref_extension = paste0("query_image",ref_ind)
+        query_extension = paste0("ref_image",i)
+      }
+  
+      # register the VoltRon object
+      for(assy in vrAssayNames(obj_list[[i]], assay = "all")){
+  
+        # Increment the progress bar, and update the detail text.
+        incProgress(1/length(register_ind), detail = paste("Register", assy, "of Layer", i, sep = " "))
+  
+        # register assay
+        obj_list[[i]] <- applyPerspectiveTransform(obj_list[[i]],
+                                                   assay = assy,
+                                                   mapping = mapping_list[[paste0(i)]],
+                                                   reference_image = image_list[[ref_ind]],
+                                                   input = input,
+                                                   reg_mode = reg_mode,
+                                                   ref_extension = ref_extension,
+                                                   query_extension = query_extension)
+  
+      }
+      registered_sr[[i]] <- obj_list[[i]]
+  
+    }
+
+  })
+  return(registered_sr)
+}
+
+#' getRegisteredObjectNonShiny
+#'
+#' Get registered list of VoltRon objects, without shiny
+#'
+#' @param obj_list a list of VoltRon objects
+#' @param mapping_list a list of transformation matrices
+#' @param register_ind the indices of query images/spatialdatasets
+#' @param centre the index of the central reference image/spatialdata
+#' @param input input
+#' @param reg_mode the registration mode, either "auto" or "manual"
+#' @param image_list the list of query/ref images
+#' @param aligned_image_list the list of aligned query/ref images
+#'
+#' @noRd
+getRegisteredObjectNonShiny <- function(obj_list, mapping_list, register_ind, centre, input, reg_mode = "manual", image_list = NULL, aligned_image_list = NULL){
+  
+  # initiate registered VoltRon objects
+  ref_ind <- centre
+  registered_sr <- list()
+  
+  # the original reference object
+  registered_sr[[ref_ind]] <- obj_list[[ref_ind]]
+  
+  # message
+  message('Register Coordinates (and Segments)')
+  
   # register all assays
   for(i in register_ind){
-
+    
     # choose image query and ref order
     if(i > ref_ind){
       ref_extension = paste0("ref_image",ref_ind)
@@ -551,12 +729,12 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
       ref_extension = paste0("query_image",ref_ind)
       query_extension = paste0("ref_image",i)
     }
-
+    
     # register the VoltRon object
     for(assy in vrAssayNames(obj_list[[i]], assay = "all")){
-
-      # Increment the progress bar, and update the detail text.
-      incProgress(1/length(register_ind), detail = paste("Register", assy, "of Layer", i, sep = " "))
+      
+      # message
+      message("Register ", assy, " of Layer ", i)
 
       # register assay
       obj_list[[i]] <- applyPerspectiveTransform(obj_list[[i]],
@@ -567,16 +745,11 @@ getRegisteredObject <- function(obj_list, mapping_list, register_ind, centre, in
                                                  reg_mode = reg_mode,
                                                  ref_extension = ref_extension,
                                                  query_extension = query_extension)
-
+      
     }
     registered_sr[[i]] <- obj_list[[i]]
-
+    
   }
-
-  # waiter end
-  # waiter::waiter_hide()
-
-  })
   return(registered_sr)
 }
 
@@ -620,14 +793,14 @@ applyPerspectiveTransform <- function(object,
     
     # get registered coordinates
     coords_reg <- as.matrix(as(coords, "dgCMatrix"))
-    coords_reg[,c("x", "y")] <- applyTransform(coords[,c("x", "y")], mapping)
+    coords_reg[,c("x", "y")] <- applyMapping(coords[,c("x", "y")], mapping)
     rownames(coords_reg) <- rownames(coords)
     colnames(coords_reg) <- colnames(coords)
 
     # get registered segments
     if(length(segments) > 0){
       segments_reg <- do.call(rbind, segments)
-      segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTransform(as.matrix(segments_reg[,colnames(segments_reg) %in% c("x", "y")]), mapping)
+      segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyMapping(as.matrix(segments_reg[,colnames(segments_reg) %in% c("x", "y")]), mapping)
       segments_reg <- split(segments_reg, segments_reg[,1])
       names(segments_reg) <- names(segments)
     } else {
@@ -638,7 +811,7 @@ applyPerspectiveTransform <- function(object,
     image_reg_list <- sapply(vrImageChannelNames(object[[assay]]), function(x) NULL, USE.NAMES = TRUE)
     for(channel_ind in names(image_reg_list)){
       query_image <- vrImages(object[[assay]], channel = channel_ind, as.raster = TRUE)
-      if(!inherits(query_image, "Image_Array")){
+      if(!inherits(query_image, "ImgArray")){
         query_image <- magick::image_read(query_image)
       }
       warped_image <- getRcppWarpImage(ref_image = reference_image,
@@ -655,7 +828,7 @@ applyPerspectiveTransform <- function(object,
     # images
     ref_image <- transformImage(reference_image, ref_extension, input)
     query_image <- vrImages(object[[assay]], as.raster = TRUE)
-    if(!inherits(query_image, "Image_Array")){
+    if(!inherits(query_image, "ImgArray")){
       query_image <- magick::image_read(query_image)
     }
     query_image <- transformImage(query_image, query_extension, input)
@@ -670,7 +843,7 @@ applyPerspectiveTransform <- function(object,
 
     coords_reg[,2] <- query_info$height - coords_reg[,2]
     coords_reg <- as.matrix(coords_reg)
-    coords_reg <- applyTransform(coords_reg, mapping)
+    coords_reg <- applyMapping(coords_reg, mapping)
     coords_reg <- as.data.frame(coords_reg)
     coords_reg[,2] <- ref_info$height - coords_reg[,2]
 
@@ -689,7 +862,7 @@ applyPerspectiveTransform <- function(object,
       segments_reg <- as.data.frame(segments_reg)
       segments_reg <- transformImageKeypoints(query_image, segments_reg, query_extension, input)$keypoints
       segments_reg[,colnames(segments_reg) %in% c("y")] <- query_info$height - segments_reg[,colnames(segments_reg) %in% c("y")]
-      segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyTransform(as.matrix(segments_reg[,colnames(segments_reg) %in% c("x", "y")]), mapping)
+      segments_reg[,colnames(segments_reg) %in% c("x", "y")] <- applyMapping(as.matrix(segments_reg[,colnames(segments_reg) %in% c("x", "y")]), mapping)
       segments_reg[,colnames(segments_reg) %in% c("y")]  <- ref_info$height - segments_reg[,colnames(segments_reg) %in% c("y")]
       segments_reg <- transformKeypoints(ref_image, segments_reg, ref_extension, input)
       segments_reg <- split(segments_reg, segments_reg[,1])
@@ -705,7 +878,7 @@ applyPerspectiveTransform <- function(object,
       # rotate, flip and flop before warping in C++
       ref_image <- transformImage(reference_image, ref_extension, input)
       query_image <- vrImages(object[[assay]], channel = channel_ind, as.raster = TRUE)
-      if(!inherits(query_image, "Image_Array")){
+      if(!inherits(query_image, "ImgArray")){
         query_image <- magick::image_read(query_image)
       }
       query_image <- transformImage(query_image, query_extension, input)
@@ -755,7 +928,7 @@ manageMapping <- function(mappings){
 }
   
 ####
-# Managing Keypoints ####
+# Managing Parameters ####
 ####
 
 #' initateKeypoints
@@ -775,14 +948,13 @@ initateKeypoints <- function(len_images, keypoints_list, input, output, session)
 
   # initiate keypoints
   if(is.null(keypoints_list)){
-    keypoints_list <- lapply(1:(len_images-1), function(i) {
+    keypoints_list <- lapply(seq_len(len_images-1), function(i) {
       list(ref = dplyr::tibble(KeyPoint = numeric(), x = numeric(), y = numeric()),
            query = dplyr::tibble(KeyPoint = numeric(), x = numeric(), y = numeric()))
-
     })
 
     # set names for keypoints
-    names(keypoints_list) <- paste0(1:(len_images-1),"-",2:len_images)
+    names(keypoints_list) <- paste0(seq_len(len_images-1),"-",2:len_images)
   }
 
   # return keypoints as reactive values
@@ -813,7 +985,7 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, info
   len_tables <- length(xyTable_list)
 
   # set click operations for reference and query points
-  lapply(1:len_tables, function(i){
+  lapply(seq_len(len_tables), function(i){
     lapply(image_types, function(type){
 
       # listen to click operations for reference/query plots
@@ -841,8 +1013,8 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, info
           width <- limits_trans[2,1]-limits_trans[1,1]
           height <- limits_trans[2,2]-limits_trans[1,2]
           if(max(height,width) > 1000){
-            if(inherits(image_trans, "Image_Array")){
-              n.series <- ImageArray::len(image_trans)
+            if(inherits(image_trans, "ImgArray")){
+              n.series <- ImageArray::length(image_trans)
               cur_width <- width
               cur_height <- height
               for(ii in 2:n.series){
@@ -879,7 +1051,7 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, info
   })
 
   # remove keypoints from images
-  lapply(1:len_tables, function(i){
+  lapply(seq_len(len_tables), function(i){
     lapply(image_types, function(type){
       observeEvent(input[[paste0("remove_", type, i)]], {
         ref_ind <- ifelse(type == "ref", i, i-1) # select reference image
@@ -1072,6 +1244,56 @@ imageKeypoint <- function(image, keypoints){
     geom_text(mapping = aes(x = x, y = y, label = KeyPoint), keypoints, size = 5)
 }
 
+#' checkKeypoints
+#'
+#' check keypoints list
+#'
+#' @param keypoints_list list of matching keypoints
+#'
+#' @noRd
+checkKeypoints <- function(keypoints_list){
+  keypoints_check_flag <- sapply(keypoints_list, function(key_list){
+    nrow(key_list$ref) > 0 | nrow(key_list$query) > 0
+  })
+  if(!all(unlist(keypoints_check_flag))){
+    showNotification("Please select keypoints for all images\n")
+    return(NULL)
+  }
+
+  keypoints_check_flag <- sapply(keypoints_list, function(key_list){
+    nrow(key_list$ref) == nrow(key_list$query)
+  })
+  if(!all(unlist(keypoints_check_flag))){
+    showNotification("The number of reference and query keypoints should be equal! \n")
+    return(NULL)
+  }
+}
+
+transferParameterInput <- function(params, image_list){
+  
+  # the number of registrations
+  len_image <- length(image_list)
+  
+  # transfer params
+  input <- list()
+  input[["automatictag"]] <- params[["automatictag"]]
+  input[["GOOD_MATCH_PERCENT"]] <- params[["GOOD_MATCH_PERCENT"]]
+  input[["MAX_FEATURES"]] <- params[["MAX_FEATURES"]]
+  input[["Method"]] <- params[["Method"]]
+  input[["Matcher"]] <- params[["Matcher"]]
+  for(i in seq_len(len_image)){
+    for(imgtype in c("ref","query")){
+      input[[paste0("rotate_", imgtype, "_image", i)]] <-  params[[paste0("rotate_", imgtype, "_image", i)]]
+      input[[paste0("flipflop_", imgtype, "_image", i)]] <-  params[[paste0("flipflop_", imgtype, "_image", i)]]
+      input[[paste0("negate_", imgtype, "_image", i)]] <-  params[[paste0("negate_", imgtype, "_image", i)]]
+      input[[paste0("scale_", imgtype, "_image", i)]] <-  params[[paste0("scale_", imgtype, "_image", i)]]
+      input[[paste0("channel_", imgtype, "_image", i)]] <-  params[[paste0("channel_", imgtype, "_image", i)]]
+    }
+  }
+  
+  input
+}
+
 ####
 # Managing Zoom Options ####
 ####
@@ -1117,13 +1339,13 @@ initiateZoomOptions <- function(info_list, input, output, session){
   len_images <- length(info_list)
   
   # initiate zoom options list
-  zoom_list <- lapply(1:len_images, function(i) {
+  zoom_list <- lapply(seq_len(len_images), function(i) {
     list(ref = list(x = c(0, info_list[[i]][1]), y = c(0, info_list[[i]][2])),
          query = list(x = c(0, info_list[[i]][1]), y = c(0, info_list[[i]][2])))
   })
   
   # set names for keypoints
-  names(zoom_list) <- paste0(1:len_images)
+  names(zoom_list) <- paste0(seq_len(len_images))
   
   # return keypoints as reactive values
   do.call("reactiveValues", zoom_list)
@@ -1152,7 +1374,7 @@ manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_list, 
   len_tables <- length(zoom_list)
   
   # set click operations for reference and query points
-  lapply(1:len_tables, function(i){
+  lapply(seq_len(len_tables), function(i){
     lapply(image_types, function(type){
       
       # listen to click operations for reference/query plots
@@ -1180,8 +1402,8 @@ manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_list, 
           width <- limits_trans[2,1]-limits_trans[1,1]
           height <- limits_trans[2,2]-limits_trans[1,2]
           if(max(height,width) > 1000){
-            if(inherits(image_trans, "Image_Array")){
-              n.series <- ImageArray::len(image_trans)
+            if(inherits(image_trans, "ImgArray")){
+              n.series <- ImageArray::length(image_trans)
               cur_width <- width
               cur_height <- height
               for(ii in 2:n.series){
@@ -1248,7 +1470,7 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
   len_images <- length(image_list)
 
   # output query images
-  lapply(1:len_images, function(i){
+  lapply(seq_len(len_images), function(i){
     lapply(image_types, function(type){
 
       # image output
@@ -1284,8 +1506,8 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
         if(max(height, width) > 1000){
           
           # scale keypoints
-          if(inherits(img_trans$image, "Image_Array")){
-            n.series <- ImageArray::len(img_trans$image)
+          if(inherits(img_trans$image, "ImgArray")){
+            n.series <- ImageArray::length(img_trans$image)
             cur_width <- width
             cur_height <- height
             for(ii in 2:n.series){
@@ -1338,8 +1560,8 @@ plotImage <- function(image, max.pixel.size = NULL){
       } 
     }
     imgggplot <- magick::image_ggplot(image)
-  } else if(inherits(image, "Image_Array")){
-    img_raster <- as.raster(image, max.pixel.size = max.pixel.size)
+  } else if(inherits(image, "ImgArray")){
+    img_raster <- ImageArray::as.raster(image, max.pixel.size = max.pixel.size)
     info <- list(width = dim(img_raster)[2], height = dim(img_raster)[1])
     imgggplot <- ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x", "y")) + 
       ggplot2::geom_blank() + 
@@ -1379,7 +1601,7 @@ getImageInfo <- function(image){
   
   if(inherits(image, "magick-image")){
     imginfo <- magick::image_info(image)
-  } else if(inherits(image, "Image_Array")){
+  } else if(inherits(image, "ImgArray")){
     imginfo <- ImageArray::getImageInfo(image)
   }
   as.data.frame(imginfo)
@@ -1399,7 +1621,7 @@ rotateImage <- function(image, degrees){
   
   if(inherits(image, "magick-image")){
     image <- magick::image_rotate(image, degrees = degrees)
-  } else if(inherits(image, "Image_Array")){
+  } else if(inherits(image, "ImgArray")){
     image <- ImageArray::rotate(image, degrees)
   }
   image
@@ -1418,7 +1640,7 @@ negateImage <- function(image){
   
   if(inherits(image, "magick-image")){
     image <- magick::image_negate(image)
-  } else if(inherits(image, "Image_Array")){
+  } else if(inherits(image, "ImgArray")){
     image <- ImageArray::negate(image)
   }
   image
@@ -1437,7 +1659,7 @@ flipImage <- function(image){
   
   if(inherits(image, "magick-image")){
     image <- magick::image_flip(image)
-  } else if(inherits(image, "Image_Array")){
+  } else if(inherits(image, "ImgArray")){
     image <- ImageArray::flip(image)
   }
   image
@@ -1456,7 +1678,7 @@ flopImage <- function(image){
   
   if(inherits(image, "magick-image")){
     image <- magick::image_flop(image)
-  } else if(inherits(image, "Image_Array")){
+  } else if(inherits(image, "ImgArray")){
     image <- ImageArray::flop(image)
   }
   image
@@ -1476,7 +1698,7 @@ cropImage <- function(image, geometry){
   
   if(inherits(image, "magick-image")){
     image <- magick::image_crop(image, geometry = geometry)
-  } else if(inherits(image, "Image_Array")){
+  } else if(inherits(image, "ImgArray")){
     crop_info_int <- as.integer(strsplit(geometry, split = "[x|+]")[[1]])
     image <- ImageArray::crop(image, ind = list(crop_info_int[3]:(crop_info_int[3]+crop_info_int[1]), crop_info_int[4]:(crop_info_int[4]+crop_info_int[2])))
   }
@@ -1500,7 +1722,7 @@ resize_Image <- function(image, geometry){
   
   if(inherits(image, "magick-image")){
     image <- magick::image_resize(image, geometry = geometry)
-  } else if(inherits(image, "Image_Array")){
+  } else if(inherits(image, "ImgArray")){
     
     # get scale factor 
     if(grepl("%$", geometry)){
@@ -1511,7 +1733,8 @@ resize_Image <- function(image, geometry){
 
     # get scaled array 
     scaled_image_info <- ceiling(image_info_large*scale_factor)
-    image <- as.array(image, min.pixel.size = max(scaled_image_info))
+    # image <- as.array(image, min.pixel.size = max(scaled_image_info))
+    image <- DelayedArray::realize(image, min.pixel.size = max(scaled_image_info))
     
     # convert to magick image
     image <- magick::image_read(array(as.raw(image), dim = dim(image)))
@@ -1592,7 +1815,7 @@ transformImageQueryList <- function(image_list, input){
   # length of images
   len_register <- length(image_list) - 1
 
-  trans_query_list <- lapply(1:len_register, function(i){
+  trans_query_list <- lapply(seq_len(len_register), function(i){
     reactive({
       list(ref = transformImage(image_list[[i]], paste0("ref_image",i), input),
            query = transformImage(image_list[[i+1]], paste0("query_image",i+1), input))
@@ -1600,7 +1823,7 @@ transformImageQueryList <- function(image_list, input){
   })
 
   ####
-  names(trans_query_list) <- paste0(1:(length(image_list)-1),"-",2:length(image_list)) # REMOVE LATER, or decide not to
+  names(trans_query_list) <- paste0(seq_len(length(image_list)-1),"-",2:length(image_list)) # REMOVE LATER, or decide not to
   ####
 
   return(trans_query_list)
@@ -1620,7 +1843,7 @@ transformImageQueryList <- function(image_list, input){
 getRcppWarpImage <- function(ref_image, query_image, mapping){
   
   # ref image
-  if(inherits(ref_image, "Image_Array")){
+  if(inherits(ref_image, "ImgArray")){
     ref_image <- as.array(ref_image)
     ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
   } else {
@@ -1628,7 +1851,7 @@ getRcppWarpImage <- function(ref_image, query_image, mapping){
   }
   
   # query image
-  if(inherits(query_image, "Image_Array")){
+  if(inherits(query_image, "ImgArray")){
     query_image <- as.array(query_image)
     query_image <- array(as.raw(query_image), dim = dim(query_image))
   } else {
@@ -1661,8 +1884,8 @@ getRcppWarpImage <- function(ref_image, query_image, mapping){
 initiateMappings <- function(len_images, input, output, session){
 
   # initiate matrices
-  matrix_list <- lapply(1:len_images, function(i) return(NULL))
-  names(matrix_list) <- 1:len_images
+  matrix_list <- lapply(seq_len(len_images), function(i) return(NULL))
+  names(matrix_list) <- seq_len(len_images)
 
   # return matrices as reactive values
   do.call("reactiveValues", matrix_list)
@@ -1704,45 +1927,27 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
 
       # waiter start
       withProgress(message = paste0('Manual Registration (', input$Method, ')'), value = 0, {
-      # waiter::waiter_show(html = waiter::spin_ring(), color = paste0("rgba(128,128,128,", 0.15, ")"))
 
-      # Check keypoints
-      keypoints_check_flag <- sapply(keypoints_list, function(key_list){
-        nrow(key_list$ref) > 0 | nrow(key_list$query) > 0
-      })
-      if(!all(unlist(keypoints_check_flag))){
-        showNotification("Please select keypoints for all images\n")
-        return(NULL)
-      }
+        # Check keypoints
+        checkKeypoints(keypoints_list)
+  
+        # Register keypoints
+        aligned_image_list <- list()
+        for(i in register_ind){
+  
+          # Increment the progress bar, and update the detail text.
+          incProgress(1/length(register_ind), detail = paste("Registering Image", i, sep = " "))
+  
+          # get a sequential mapping between a query and reference image
+          results <- computeManualPairwiseTransform(image_list, keypoints_list, query_ind = i, ref_ind = centre, input = input)
+  
+          # save transformation mapping
+          registration_mapping_list[[paste0(i)]] <- results$mapping
+  
+          # save matches
+          aligned_image_list[[i]] <- results$aligned_image
+        }
 
-      keypoints_check_flag <- sapply(keypoints_list, function(key_list){
-        nrow(key_list$ref) == nrow(key_list$query)
-      })
-      if(!all(unlist(keypoints_check_flag))){
-        showNotification("The number of reference and query keypoints should be equal! \n")
-        return(NULL)
-      }
-
-      # Register keypoints
-      mapping_list <- list()
-      aligned_image_list <- list()
-      for(i in register_ind){
-
-        # Increment the progress bar, and update the detail text.
-        incProgress(1/length(register_ind), detail = paste("Registering Image", i, sep = " "))
-
-        # get a sequential mapping between a query and reference image
-        results <- computeManualPairwiseTransform(image_list, keypoints_list, query_ind = i, ref_ind = centre, input = input)
-
-        # save transformation mapping
-        registration_mapping_list[[paste0(i)]] <- results$mapping
-
-        # save matches
-        aligned_image_list[[i]] <- results$aligned_image
-      }
-
-      # waiter end
-      # waiter::waiter_hide()
       })
 
       # Plot registered images
@@ -1794,7 +1999,7 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
   # reference and target landmarks/keypoints
   mapping <- list()
   aligned_image <- image_list[[query_ind]]
-  for(kk in 1:nrow(mapping_mat)){
+  for(kk in seq_len(nrow(mapping_mat))){
     cur_map <- mapping_mat[kk,]
     ref_image <- image_list[[cur_map[2]]]
     if(which.min(cur_map) == 1){
@@ -1849,7 +2054,7 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
                                       method = "TPS") {
   
   # ref image
-  if(inherits(ref_image, "Image_Array")){
+  if(inherits(ref_image, "ImgArray")){
     ref_image <- as.array(ref_image)
     ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
   } else {
@@ -1857,7 +2062,7 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
   }
   
   # query image
-  if(inherits(query_image, "Image_Array")){
+  if(inherits(query_image, "ImgArray")){
     query_image <- as.array(query_image)
     query_image <- array(as.raw(query_image), dim = dim(query_image))
   } else {
@@ -1912,40 +2117,36 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
 
       # waiter start
       withProgress(message = paste0('Automated Registration (', input$Method,')'), value = 0, {
-      # waiter::waiter_show(html = waiter::spin_ring(), color = paste0("rgba(128,128,128,", 0.15, ")"))
 
-      # Register keypoints
-      mapping_list <- list()
-      dest_image_list <- list()
-      overlayed_image_list <- list()
-      aligned_image_list <- list()
-      alignment_image_list <- list()
-      for(i in register_ind){
+        # Register keypoints
+        dest_image_list <- list()
+        overlayed_image_list <- list()
+        aligned_image_list <- list()
+        alignment_image_list <- list()
+        for(i in register_ind){
+  
+          # Increment the progress bar, and update the detail text.
+          incProgress(1/length(register_ind), detail = paste("Registering Image", i, sep = " "))
+  
+          # get a sequential mapping between a query and reference image
+          results <- computeAutomatedPairwiseTransform(image_list, channel_names, query_ind = i, ref_ind = centre, input)
+  
+          # save transformation matrix
+          registration_mapping_list[[paste0(i)]] <- results$mapping
+  
+          # destination image
+          dest_image_list[[i]] <- results$dest_image
+  
+          # save aligned images
+          aligned_image_list[[i]] <- results$aligned_image
+  
+          # save alignment
+          overlayed_image_list[[i]] <- results$overlay_image
+  
+          # save matches
+          alignment_image_list[[i]] <- results$alignment_image
+        }
 
-        # Increment the progress bar, and update the detail text.
-        incProgress(1/length(register_ind), detail = paste("Registering Image", i, sep = " "))
-
-        # get a sequential mapping between a query and reference image
-        results <- computeAutomatedPairwiseTransform(image_list, channel_names, query_ind = i, ref_ind = centre, input)
-
-        # save transformation matrix
-        registration_mapping_list[[paste0(i)]] <- results$mapping
-
-        # destination image
-        dest_image_list[[i]] <- results$dest_image
-
-        # save aligned images
-        aligned_image_list[[i]] <- results$aligned_image
-
-        # save alignment
-        overlayed_image_list[[i]] <- results$overlay_image
-
-        # save matches
-        alignment_image_list[[i]] <- results$alignment_image
-      }
-
-      # waiter end
-      # waiter::waiter_hide()
       })
 
       # Plot registered images
@@ -2005,7 +2206,7 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
   # reference and target landmarks/keypoints
   mapping <- list()
   query_image <- image_list[[query_ind]]
-  for(kk in 1:nrow(mapping_mat)){
+  for(kk in seq_len(nrow(mapping_mat))){
     cur_map <- mapping_mat[kk,]
     ref_image <- image_list[[cur_map[2]]]
 
@@ -2107,3 +2308,79 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
               alignment_image = magick::image_read(reg[[4]]),
               overlay_image = magick::image_read(reg[[5]])))
 }
+
+####
+# Non-interactive Image Registration ####
+####
+
+#' getNonInteractiveRegistration
+#'
+#' Non-interactive registration of spatial data 
+#'
+#' @param obj_list a list of VoltRon objects
+#' @param centre the index of the central reference image/spatialdata
+#' @param register_ind the indices of query images/spatialdatasets
+#' @param mapping_parameters mapping parameters
+#' @param image_list the list of query/ref images (with main channel)
+#' @param image_list_full the list of query/ref images (with all channels)
+#' @param channel_names the list of channel names for each image
+#' 
+#' @noRd
+getNonInteractiveRegistration <- function(obj_list, 
+                                          centre, 
+                                          register_ind, 
+                                          mapping_parameters = NULL,
+                                          image_list = NULL,
+                                          image_list_full = NULL, 
+                                          channel_names = NULL){
+  
+  # check mapping parameters 
+  if(is.null(mapping_parameters)){
+    stop("'mapping_parameters' is not provided, please run registerSpatialData once and save contents of 'mapping_parameters' for later use.")
+    
+  }
+  
+  # Register images
+  registration_mapping_list <- list()
+  for(i in register_ind){
+    
+    # Increment the progress bar, and update the detail text.
+    message("Registering Image ", i)
+
+    # get a sequential mapping between a query and reference image
+    results <- switch(mapping_parameters$automatictag, 
+           "auto" = {
+             computeAutomatedPairwiseTransform(image_list = image_list_full, 
+                                               channel_names = channel_names, 
+                                               query_ind = i, 
+                                               ref_ind = centre, 
+                                               input = mapping_parameters)
+           }, 
+           "manual" = {
+             checkKeypoints(mapping_parameters$keypoints)
+             computeManualPairwiseTransform(image_list = image_list, 
+                                            keypoints_list = mapping_parameters$keypoints, 
+                                            query_ind = i, 
+                                            ref_ind = centre, 
+                                            input = mapping_parameters)
+           })
+    
+    # save transformation matrix
+    registration_mapping_list[[paste0(i)]] <- results$mapping
+  }
+  
+  # return the list of registered voltron objects
+  return(
+    list(keypoints = mapping_parameters$keypoints,
+         mapping_parameters = mapping_parameters,
+         registered_spat = getRegisteredObjectNonShiny(obj_list,
+                                                       registration_mapping_list,
+                                                       register_ind,
+                                                       centre,
+                                                       input = mapping_parameters,
+                                                       reg_mode = ifelse(mapping_parameters$automatictag, "auto", "manual"),
+                                                       image_list = image_list)) 
+  )
+}
+
+

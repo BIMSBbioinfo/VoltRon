@@ -1,0 +1,21 @@
+name: voltron
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - python==3.10.14
+  - numpy==1.*
+  - pandas==1.*
+  - anndata==0.8.*
+  - h5py==3.*
+  - hdf5==1.*
+  - natsort==7.*
+  - packaging==20.*
+  - scipy==1.*
+  - sqlite==3.*
+  - zarr==2.*
+  - numcodecs==0.*
+  - tifffile==2024.2.12
+  - pip
+  - pip:
+      - ome-zarr==0.2.1

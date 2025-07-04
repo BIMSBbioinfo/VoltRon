@@ -83,7 +83,7 @@ getDeconReference <- function(sc.object, sc.assay = "RNA", sc.cluster = "seurat_
       if (!requireNamespace('Seurat'))
         stop("Please install Seurat package for using Seurat objects")
 
-      cat("Configuring Single Cell Assay (reference) ...\n")
+      message("Configuring Single Cell Assay (reference) ...\n")
       sccounts <- Seurat::GetAssayData(sc.object[[sc.assay]], slot = "counts")
       # sccounts <- as.matrix(apply(sccounts,2,ceiling))
       rownames(sccounts) <- rownames(sc.object[[sc.assay]])
@@ -106,7 +106,7 @@ getDeconReference <- function(sc.object, sc.assay = "RNA", sc.cluster = "seurat_
     # deconvolution with MuSiC
     if(method == "MuSiC"){
 
-      cat("Configuring Single Cell Assay (reference) ...\n")
+      message("Configuring Single Cell Assay (reference) ...\n")
       if(inherits(sc.object, "SingleCellExperiment")){
         sc.object$music_decon_clusters <- sc.object[[sc.cluster]]
         reference <- sc.object
@@ -152,7 +152,7 @@ getDeconSingle <- function(object, features = features, reference, method = "RCT
     }
 
     if(method == "RCTD"){
-      cat("Running RCTD for spot deconvolution ...\n")
+      message("Running RCTD for spot deconvolution ...\n")
       rawdata <- getRCTD(object = object, features = features, reference = reference, ...)
     }
 
@@ -165,7 +165,7 @@ getDeconSingle <- function(object, features = features, reference, method = "RCT
     }
 
     if(method == "MuSiC"){
-      cat("Running MuSiC for ROI deconvolution ...\n")
+      message("Running MuSiC for ROI deconvolution ...\n")
       rawdata <- getMuSiC(object = object, features = features, reference = reference, ...)
     }
 
@@ -193,7 +193,7 @@ getRCTD <- function(object, features = NULL, reference, ...){
     stop("Please install Seurat package for using Seurat objects: install.packages('Seurat')")
 
   # create spatial data
-  cat("Configuring Spatial Assay ...\n")
+  message("Configuring Spatial Assay ...\n")
   spatialcounts <- vrData(object, norm = FALSE)
   coords <- as.data.frame(as(vrCoordinates(object), "dgCMatrix"))[,c("x", "y")]
   spatialnUMI <- colSums(spatialcounts)
@@ -201,7 +201,7 @@ getRCTD <- function(object, features = NULL, reference, ...){
 
   # Run RCTD
   myRCTD <- spacexr::create.RCTD(spatialdata, reference, ...)
-  cat("Calculating Cell Type Compositions of spots with RCTD ...\n")
+  message("Calculating Cell Type Compositions of spots with RCTD ...\n")
   myRCTD <- quiet(spacexr::run.RCTD(myRCTD, doublet_mode = 'full'))
   results <- as.matrix(myRCTD@results$weights)
   norm_weights <- t(sweep(results, 1, rowSums(results), "/"))
@@ -251,7 +251,7 @@ getMuSiC <- function(object, features = NULL, reference, sc.samples = NULL){
   datax <- datax[common_features,]
 
   # deconvolute
-  cat("Calculating Cell Type Compositions of ROIs with MuSiC ...\n")
+  message("Calculating Cell Type Compositions of ROIs with MuSiC ...\n")
   results <- MuSiC::music_prop(bulk.mtx = datax,
                         sc.sce = reference,
                         clusters = "music_decon_clusters",

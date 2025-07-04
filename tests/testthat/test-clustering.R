@@ -1,4 +1,4 @@
-test_that("spatial", {
+test_that("clustering", {
   
   # get data
   data("xenium_data")

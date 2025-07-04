@@ -12,10 +12,11 @@ importXenium(
   use_image = TRUE,
   morphology_image = "morphology_lowres.tif",
   resolution_level = 7,
-  overwrite_resolution = FALSE,
+  overwrite_resolution = TRUE,
   image_name = "main",
   channel_name = "DAPI",
   import_molecules = FALSE,
+  verbose = TRUE,
   ...
 )
 }
@@ -41,6 +42,8 @@ importXenium(
 \item{channel_name}{the channel name of the image of the Xenium assay, Default: DAPI}
 
 \item{import_molecules}{if TRUE, molecule assay will be created along with cell assay.}
+
+\item{verbose}{verbose}
 
 \item{...}{additional parameters passed to \link{formVoltRon}}
 }

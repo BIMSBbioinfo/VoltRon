@@ -10,7 +10,8 @@ vrNeighbourhoodEnrichment(
   group.by = NULL,
   graph.type = "delaunay",
   num.sim = 1000,
-  seed = 1
+  seed = 1,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -26,6 +27,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{num.sim}{the number of simulations}
 
 \item{seed}{seed}
+
+\item{verbose}{verbose}
 }
 \description{
 Conduct Neighborhood enrichment test for pairs of clusters for all assays

@@ -24,7 +24,7 @@ test_that("coords_system", {
   expect_error(vrMainSpatial(visium_data[["Assay1"]], ignore = FALSE) <- "main2")
   
   # mergeddata
-  mergeddata <- merge(xenium_data, visium_data)
+  mergeddata <- merge(xenium_data, visium_data, verbose = FALSE)
   expect_true(nrow(vrSpatialNames(mergeddata, assay = "all")) == 2)
   vrMainSpatial(mergeddata) <- c("main", "H&E")
   vrMainAssay(mergeddata) <- "Xenium"

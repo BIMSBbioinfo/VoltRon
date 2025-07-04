@@ -22,6 +22,7 @@ NULL
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param graph.name if not NULL, the spatial graph is with name \code{graph.name} is visualized as well, see \link{vrGraphNames}
+#' @param graph.edge.color the colors of the graph edges, if \code{graph.name} is not NULL.
 #' @param reduction used by \code{vrSpatialPlotVitessce} to visualize an embedding alongside with the spatial plot.
 #' @param ncol column wise number of plots, for \link{ggarrange}
 #' @param nrow row wise number of plots, for \link{ggarrange}
@@ -30,7 +31,10 @@ NULL
 #' @param cell.shape the shape of the points representing cells, see \link{geom_point}
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param label if TRUE, the labels of the ROI assays will be visualized
-#' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
+#' @param spatial the name of the main spatial system
+#' @param channel the name of the channel associated with the image
+#' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
+#' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
 #' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
@@ -48,15 +52,18 @@ NULL
 #' @importFrom ggpubr ggarrange
 #'
 #' @export
-vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, assay = NULL, graph.name = NULL,
-                          reduction = NULL, ncol = 2, nrow = NULL, font.size = 2, pt.size = 2, cell.shape = 21, alpha = 1, label = FALSE, background = NULL, reg = FALSE,
-                          crop = FALSE, legend.pt.size = 2, legend.text.size = 14, scale.image = TRUE, legend.loc = "right", common.legend = TRUE, collapse.plots = TRUE, interactive = FALSE, 
+vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, 
+                          assay = NULL, graph.name = NULL, graph.edge.color = "orange", reduction = NULL, ncol = 2, nrow = NULL, font.size = 2, pt.size = 2, 
+                          cell.shape = 21, alpha = 1, label = FALSE, spatial = NULL, channel = NULL, background.color = NULL, 
+                          background = NULL, reg = FALSE, crop = FALSE, legend.pt.size = 2, legend.text.size = 14, 
+                          scale.image = TRUE, legend.loc = "right", common.legend = TRUE, collapse.plots = TRUE, interactive = FALSE, 
                           shiny.options = list()) {
 
   # check object for zarr
   if(is.character(object)){
     if(grepl(".zarr$", object)){
-      return(vrSpatialPlotVitessce(zarr.file = object, group.by = group.by, reduction = reduction))
+      return(vrSpatialPlotVitessce(zarr.file = object, group.by = group.by, reduction = reduction, 
+                                   shiny.options = shiny.options))
     }
   }
 
@@ -73,14 +80,14 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
   # interactive plotting
   if(interactive){
     if(length(assay_names) > 1){
-      stop("Only one assay can be visualized with the interactive plot")
+      stop("Only one assay can be visualized with the interactive plot at a time.")
     } else{
-      gg <- vrSpatialPlot(object, group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, colors = colors, n.tile = n.tile, assay = assay,
-                          graph.name = graph.name, reduction = reduction, ncol = ncol, nrow = nrow, font.size = font.size, pt.size = pt.size,
-                          cell.shape = cell.shape, alpha = alpha, label = label, background = background, reg = reg,
-                          crop = crop, legend.pt.size = legend.pt.size, legend.text.size = legend.text.size, scale.image = FALSE, 
-                          legend.loc = legend.loc, common.legend = common.legend, collapse.plots = collapse.plots,
-                          interactive = FALSE)
+      gg <- vrSpatialPlot(object, group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, colors = colors, n.tile = n.tile, 
+                          assay = assay, graph.name = graph.name, reduction = reduction, ncol = ncol, nrow = nrow, font.size = font.size, 
+                          pt.size = pt.size, cell.shape = cell.shape, alpha = alpha, label = label, spatial = spatial, channel = channel, 
+                          background.color = background.color, background = background, reg = reg, crop = crop, legend.pt.size = legend.pt.size, 
+                          legend.text.size = legend.text.size, scale.image = FALSE, legend.loc = legend.loc, common.legend = common.legend, 
+                          collapse.plots = collapse.plots, interactive = FALSE)
       return(vrSpatialPlotInteractive(plot_g = gg, shiny.options = shiny.options))
     }
   }
@@ -104,7 +111,6 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
   if(all(!is.na(suppressWarnings(as.numeric(levels_group.ids))))){
     levels_group.ids <- sort(as.numeric(levels_group.ids))
   }
-  # group.ids <- levels(factor(group.ids, levels = levels_group.ids))
   group.ids <- factor(group.ids, levels = levels_group.ids)
 
   # check colors
@@ -119,7 +125,6 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
     colors <- hue_pal(length(group.ids))
     names(colors) <- group.ids
   }
-
 
   # for each assay
   i <- 1
@@ -151,8 +156,8 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
     # visualize
     p_title <- plot_title[[assy]]
     gg[[i]] <- vrSpatialPlotSingle(assay = cur_assay, metadata = cur_metadata,
-                                   group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, colors = colors, n.tile = n.tile, graph = graph, font.size = font.size, pt.size = pt.size,
-                                   alpha = alpha, cell.shape = cell.shape, plot_title = p_title, background = background, reg = reg,
+                                   group.by = group.by, plot.segments = plot.segments, group.ids = group.ids, colors = colors, n.tile = n.tile, graph = graph, graph.edge.color = graph.edge.color, font.size = font.size, 
+                                   pt.size = pt.size, alpha = alpha, cell.shape = cell.shape, plot_title = p_title, background = background, spatial = spatial, channel = channel, background.color = background.color, reg = reg,
                                    crop = crop, legend.pt.size = legend.pt.size, legend.text.size = legend.text.size, scale.image = scale.image)
     i <- i + 1
   }
@@ -166,7 +171,7 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
       return(gg[[1]] + theme(legend.position=legend.loc))
     }
   } else {
-    for(i in 1:length(assay_names)){
+    for(i in seq_len(length(assay_names))){
       gg[[i]] <- gg[[i]] + theme(legend.position=legend.loc)
     }
     return(gg)
@@ -185,12 +190,16 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 #' @param colors the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by
 #' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
 #' @param graph if not NULL, the graph is added to the plot
+#' @param graph.edge.color the color of graph edges, if \code{graph} is not NULL.
 #' @param font.size font sizes
 #' @param pt.size point size
 #' @param cell.shape the shape of the points representing cells, see \link{geom_point}
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param plot_title the title of the single plot
-#' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
+#' @param spatial the name of the main spatial system
+#' @param channel the name of the channel associated with the image
+#' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
+#' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
 #' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
@@ -204,50 +213,28 @@ vrSpatialPlot <- function(object, group.by = "Sample", plot.segments = FALSE, gr
 #' @importFrom magick image_info image_read
 #'
 #' @noRd
-vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, graph = NULL,
-                                font.size = 2, pt.size = 2, cell.shape = 16, alpha = 1, plot_title = NULL, background = NULL,
-                                reg = FALSE, crop = FALSE, legend.pt.size = 2, legend.text.size = 14, scale.image = TRUE){
+vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, colors = NULL, n.tile = 0, 
+                                graph = NULL, graph.edge.color = "orange", font.size = 2, pt.size = 2, cell.shape = 16, alpha = 1, plot_title = NULL, spatial = NULL, 
+                                channel = NULL, background.color = NULL, background = NULL, reg = FALSE, crop = FALSE, legend.pt.size = 2, 
+                                legend.text.size = 14, scale.image = TRUE){
 
   # plot
   g <- ggplot()
-  scale_factors <- 1
+  
+  # add assay to ggplot
+  g$voltron_params <- list()
+  g$voltron_params$assay <- vrAssayNames(assay)
 
-  # add image
-  if(is.null(background))
-    background <- vrMainSpatial(assay)
-  if(length(background) == 2) {
-    channel <- background[2]
-  } else {
-    channel <- NULL
-  }
-  background <- background[1]
-  if(background %in% vrSpatialNames(assay)){ 
-    
-    # get image
-    image <- vrImages(assay, name = background, channel = channel, as.raster = TRUE)
-    if(!is.null(image) & !inherits(image, "Image_Array")){
-      image <- magick::image_read(image)
-    }
-    
-    if(!is.null(image)){
-      info <- getImageInfo(image)
-      if(info$width > 1000 && scale.image){
-        image <- resize_Image(image, geometry = "1000x")
-        scale_factors <- info$width/1000
-        info <- getImageInfo(image)
-      }
-      g <- g +
-        ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
-    } else {
-      info <- NULL
-    }
-    spatial_name <- background
-  } else {
-    info <- NULL
-    spatial_name <- vrMainSpatial(assay)
-  }
+  # add image and background
+  image <- vrSpatialPlotImage(g, assay, background, scale.image, spatial = spatial, 
+                              channel = channel, background.color = background.color)
+  g <- image$plot
+  info <- image$info
+  background.color <- image$background.color
+  g$voltron_params$spatial_name <- spatial_name <- image$spatial
+  g$voltron_params$scale_factors <- scale_factors <- image$scale_factors
 
-  # data
+  # coords
   coords <- vrCoordinates(assay, spatial_name = spatial_name, reg = reg)
   if(!inherits(coords, "IterableMatrix")){
     coords <- as.data.frame(coords)
@@ -270,6 +257,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     }
   }
   
+  # group ids
   if(!is.null(group.ids)){
     len_set_diff <- length(setdiff(group.ids,  cur_group.by))
     if(len_set_diff > 0){
@@ -286,35 +274,13 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   # change levels of groups
   cur_group.by <- factor(cur_group.by, levels = group.ids)
   
-  # merge matrices
+  # add groups
   coords <- as.matrix(coords)
-  # coords <- data.frame(coords, cur_group.by)
   coords <- data.frame(coords, cur_group.by[rownames(coords), drop = FALSE])
-  
   colnames(coords)[length(colnames(coords))] <- group.by
   
   # set up the limits
-  if(vrAssayTypes(assay) == "spot"){
-    if(crop){
-      g <- g +
-        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
-    } else {
-      if(!is.null(info)){
-        g <- g +
-          coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
-      }
-    }
-  } else {
-    if(crop){
-      g <- g +
-        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
-    } else {
-      if(!is.null(info)){
-        g <- g +
-          xlim(0,info$width) + ylim(0, info$height)
-      }
-    }
-  }
+  g <- vrSpatialExtent(g, assay, coords, crop, info)
   
   # set colors
   names_colors <- factor(names(colors))
@@ -323,16 +289,20 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
   if(vrAssayTypes(assay) == "ROI"){
     polygon_data <- NULL
     circle_data <- NULL
-    for(i in 1:length(segments)){
+    for(i in seq_len(length(segments))){
       if(nrow(segments[[i]]) > 1){
         cur_segment <- segments[[i]][,c("x","y")]
-        cur_data <- as.data.frame(cbind(cur_segment, names(segments)[i], cur_group.by[i]))
+        suppressWarnings({
+          cur_data <- as.data.frame(cbind(cur_segment, names(segments)[i], cur_group.by[i]))
+        })
         colnames(cur_data) <- c("x", "y", "segment", "group.by")
         cur_data[,c("x", "y")] <- cur_data[,c("x", "y")]/scale_factors
         polygon_data <- as.data.frame(rbind(polygon_data, cur_data))
       } else {
         cur_segment <- segments[[i]][,c("x","y", "rx", "ry")]
-        cur_data <- as.data.frame(cbind(cur_segment, names(segments)[i], cur_group.by[i]))
+        suppressWarnings({
+          cur_data <- as.data.frame(cbind(cur_segment, names(segments)[i], cur_group.by[i]))
+        })
         colnames(cur_data) <- c("x", "y", "rx", "ry", "segment", "group.by")
         cur_data[,c("x", "y","rx", "ry")] <- cur_data[,c("x", "y","rx", "ry")]/scale_factors
         circle_data <- as.data.frame(rbind(circle_data,  cur_data))
@@ -361,7 +331,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     if(n.tile > 0 || nrow(coords) > 50000){
       if(n.tile == 0)
         n.tile <- 1000
-      g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha)
+      g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha, spot = TRUE)
     } else {
       spot.type <- vrAssayParams(assay, param = "spot.type")
       spot.type <- ifelse(is.null(spot.type), "circle", spot.type)
@@ -372,12 +342,11 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       
       # add if a graph exists
       if(!is.null(graph)){
-        g <- g + addGraph(graph, coords, background)
+        g <- g + addGraph(graph = graph, coords = coords, background = graph.edge.color)
       }
     }
-
-    # style, color and text
-    g <- g + 
+    
+    g <- g +
       scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors) +
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
 
@@ -391,12 +360,12 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         } else {
           polygon_data <- do.call(rbind,segments)
           polygon_data[,c("x", "y")] <- polygon_data[,c("x", "y")]/scale_factors
-          len_segments <- sapply(segments, nrow, simplify = TRUE)
+          len_segments <- vapply(segments, nrow, numeric(1))
           polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), group.by = rep(cur_group.by, len_segments))
           g <- g +
             geom_polygon(aes(x = .data[["x"]], y = .data[["y"]], fill = .data[["group.by"]], group = segment), data = polygon_data, alpha = alpha, show.legend = TRUE) +
-            scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors) +
-            guides(fill = guide_legend(title = group.by))
+            scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 1))
+            
         }
       } else {
         
@@ -413,14 +382,13 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         
         # style, color and text
         g <- g +
-          scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors) +
-          scale_color_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors) +
-          guides(color = guide_legend(override.aes=list(size = legend.pt.size))) + 
+          scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 1)) +
+          scale_color_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 1)) +
           theme(legend.text=element_text(size=legend.text.size), legend.title=element_text(size=legend.text.size))
         
         # add if a graph exists
         if(!is.null(graph)){
-          g <- g + addGraph(graph, coords, background)
+          g <- g + addGraph(graph = graph, coords = coords, background = graph.edge.color)
         }
         
       }
@@ -437,9 +405,8 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
                    coords, shape = cell.shape, size = rel(pt.size), alpha = alpha, show.legend = TRUE)
     }
     g <- g +
-      scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors) +
-      scale_color_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors) +
-      guides(color = guide_legend(override.aes=list(size = legend.pt.size))) +
+      scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 1)) +
+      scale_color_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 1)) +
       theme(legend.text=element_text(size=legend.text.size), legend.title=element_text(size=legend.text.size))
 
   } else {
@@ -454,21 +421,253 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
                                 axis.ticks=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
                                 legend.margin = margin(0,0,0,0))
 
-  # background
-  if(any(background %in% c("white","black"))){
-    g <- g +
-      theme(panel.background = element_rect(fill = background, colour = background, linewidth = 0.5, linetype = "solid"))
+  # return data
+  return(g)
+}
+
+#' addSpatialLayer
+#'
+#' adding additional layers of spatial plots to an existing \link{vrSpatialPlot}.
+#'
+#' @param g ggplot object 
+#' @param object a VoltRon object
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
+#' @param plot.segments plot segments from \link{vrSegments} instead of points
+#' @param group.ids a subset of categories defined in metadata column from \code{group.by}
+#' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
+#' @param colors the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by
+#' @param alpha alpha level of colors of visualized points and segments
+#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param pt.size point size
+#' @param cell.shape the shape of the points representing cells, see \link{geom_point}
+#' @param graph if not NULL, the graph is added to the plot
+#' @param graph.edge.color the color of graph edges, if \code{graph} is not NULL.
+#' @param spatial the name of the main spatial system
+#' 
+#' @import ggplot2
+#' 
+#' @export
+addSpatialLayer <- function(g, object, assay, group.by = "Sample", plot.segments = FALSE, group.ids = NULL, reg = FALSE, colors = NULL, alpha = 1,
+                           n.tile = 0, pt.size = 2, cell.shape = 21, graph = NULL, graph.edge.color = "orange", spatial = NULL){
+  
+  # check package
+  if(!requireNamespace("ggnewscale")){
+    stop("Please install ggnewscale package for using multilayer visualization!: install_packages('ggnewscale')")
+  }
+  
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+  spatial.names <- vrSpatialNames(object, assay = "all")
+  
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  
+  # objects and parameters
+  assay <- object[[assay_names]]
+  adj_assay <- g$voltron_params$assay
+  spatial_name <- if(is.null(spatial)) g$voltron_params$spatial_name else spatial
+  scale_factors <- g$voltron_params$scale_factors
+  
+  # check adjacency
+  adj_sample <- unique(sample.metadata[c(assay_names, adj_assay),"Sample"])
+  adj_spatial <- unique(spatial.names[c(assay_names, adj_assay),"Main"])
+  if(length(adj_sample) != 1 || length(adj_sample) != 1){
+    message("Assays in addSpatialLayer() are not adjacent to vrSpatialPlot()!")
+    return(g)
+  } 
+  
+  # get entity type and metadata
+  metadata <- Metadata(object, assay = assay_names)
+  
+  # coords
+  coords <- vrCoordinates(assay, spatial_name = spatial_name, reg = reg)
+  if(!inherits(coords, "IterableMatrix")){
+    coords <- as.data.frame(coords)
+  } 
+  coords <- coords/scale_factors
+  segments <- vrSegments(assay, spatial_name = spatial_name)
+  
+  # adjust group.ids
+  if(!group.by %in% colnames(metadata))
+    stop("The column '", group.by, "' was not found in the metadata!")
+  if(is.null(group.ids)){
+    group.ids <- unique(metadata[[group.by]])
+  }
+  
+  # check group.id
+  levels_group.ids <- as.character(group.ids)
+  if(all(!is.na(suppressWarnings(as.numeric(levels_group.ids))))){
+    levels_group.ids <- sort(as.numeric(levels_group.ids))
+  }
+  group.ids <- factor(group.ids, levels = levels_group.ids)
+  
+  # check colors
+  if(!is.null(colors)){
+    if(length(colors) != length(levels_group.ids)){
+      stop("Please provide colors whose length is equal to group.ids (if specified) or unique elements of group.by")
+    }
+    if(is.null(names(colors))){
+      stop("Name of each color has to be specified given as names(colors)")
+    }
   } else{
-    if(is.null(info)){
-      g <- g +
-        theme(panel.background = element_rect(fill = "grey97", colour = "grey97", linewidth = 0.5, linetype = "solid"))
-    } else{
-      g <- g +
-        theme(panel.background = element_blank())
+    colors <- hue_pal(length(group.ids))
+    names(colors) <- group.ids
+  }
+  
+  # check group.by
+  levels_group.by <- as.character(unique(metadata[[group.by]][!is.na(metadata[[group.by]])]))
+  if(all(!is.na(suppressWarnings(as.numeric(levels_group.by))))){
+    levels_group.by <- sort(as.numeric(levels_group.by))
+  }
+  metadata[[group.by]] <- factor(metadata[[group.by]], levels = levels_group.by)
+  
+  # plotting features
+  if(!group.by %in% colnames(metadata))
+    stop("The column '", group.by, "' was not found in the metadata!")
+  if(inherits(metadata, "data.table")){
+    cur_group.by <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
+    names(cur_group.by) <- metadata$id
+  } else {
+    cur_group.by <- metadata[,group.by]
+    if(!is.null(rownames(metadata))){
+      names(cur_group.by) <- rownames(metadata)
+    } else {
+      names(cur_group.by) <- as.vector(metadata$id)
     }
   }
+  
+  # group ids
+  if(!is.null(group.ids)){
+    len_set_diff <- length(setdiff(group.ids,  cur_group.by))
+    if(len_set_diff > 0){
+      # warning("Some groups defined in group.ids does not exist in group.by!")
+    } else if(len_set_diff == length(group.ids)){ 
+      stop("None of the groups defined in group.ids exist in group.by!")
+    } else {
+      segments <- segments[cur_group.by %in% group.ids]
+    }
+    cur_group.by <- droplevels(cur_group.by[cur_group.by %in% group.ids])
+    coords <- coords[names(cur_group.by),]
+  }
+  
+  # change levels of groups
+  cur_group.by <- factor(cur_group.by, levels = group.ids)
+  
+  # add groups
+  coords <- as.matrix(coords)
+  coords <- data.frame(coords, cur_group.by[rownames(coords), drop = FALSE])
+  colnames(coords)[length(colnames(coords))] <- group.by
+  
+  # set colors
+  names_colors <- factor(names(colors))
+  
+  # set new scales
+  g <- g + ggnewscale::new_scale_color()
+  g <- g + ggnewscale::new_scale_fill()
 
-  # return data
+  # visualize based on points type
+  if(vrAssayTypes(assay) == "ROI"){
+    polygon_data <- NULL
+    circle_data <- NULL
+    for(i in seq_len(length(segments))){
+      if(nrow(segments[[i]]) > 1){
+        cur_segment <- segments[[i]][,c("x","y")]
+        suppressWarnings({
+          cur_data <- as.data.frame(cbind(cur_segment, names(segments)[i], cur_group.by[i]))
+        })
+        colnames(cur_data) <- c("x", "y", "segment", "group.by")
+        cur_data[,c("x", "y")] <- cur_data[,c("x", "y")]/scale_factors
+        polygon_data <- as.data.frame(rbind(polygon_data, cur_data))
+      } else {
+        cur_segment <- segments[[i]][,c("x","y", "rx", "ry")]
+        suppressWarnings({
+          cur_data <- as.data.frame(cbind(cur_segment, names(segments)[i], cur_group.by[i]))
+        })
+        colnames(cur_data) <- c("x", "y", "rx", "ry", "segment", "group.by")
+        cur_data[,c("x", "y","rx", "ry")] <- cur_data[,c("x", "y","rx", "ry")]/scale_factors
+        circle_data <- as.data.frame(rbind(circle_data,  cur_data))
+      }
+    }
+    if(!is.null(polygon_data)){
+      g <- g +
+        geom_polygon(aes(x = .data$x, y = .data$y, fill = .data[["group.by"]], group = .data[["segment"]]), data = polygon_data, alpha = alpha, col = "grey")
+    }
+    if(!is.null(circle_data)){
+      if(!requireNamespace('ggforce'))
+        stop("Please install ggforce package!: install.packages('ggforce')")
+      g <- g +
+        ggforce::geom_ellipse(aes(x0 = as.numeric(x), y0 = as.numeric(y), a = as.numeric(rx), b = as.numeric(ry), angle = 0,
+                                  fill = group.by, color = "grey", group = segment), data = circle_data, lwd = 0, alpha = alpha)
+    }
+    g <- g +
+      scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by,
+                        guide = guide_legend(override.aes = list(alpha = 1), order = 2)) +
+      scale_color_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by,
+                        guide = guide_legend(override.aes = list(alpha = 1), order = 2))
+    
+  } else if(vrAssayTypes(assay) %in% c("cell", "tile")) {
+    
+    if(plot.segments){
+      
+      if(length(segments) == 0) {
+        stop("No Segments are available in this assay!")
+      } else {
+        polygon_data <- do.call(rbind,segments)
+        polygon_data[,c("x", "y")] <- polygon_data[,c("x", "y")]/scale_factors
+        len_segments <- vapply(segments, nrow, numeric(1))
+        polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), group.by = rep(cur_group.by, len_segments))
+        g <- g +
+          geom_polygon(aes(x = .data[["x"]], y = .data[["y"]], fill = .data[["group.by"]], group = segment), data = polygon_data, alpha = alpha) +
+          scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 2))
+      }
+    } else {
+      
+      # rasterize if requested or needed
+      if(n.tile > 0 || nrow(coords) > 50000){
+        if(n.tile == 0)
+          n.tile <- 1000
+        g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha)
+      } else {
+        g <- g +
+          geom_point(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]], color = .data[[group.by]]),
+                     coords, shape = cell.shape, size = rel(pt.size), alpha = alpha)
+      }
+      
+      # style, color and text
+      g <- g +
+        scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 2)) +
+        scale_color_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 2))
+
+      # add if a graph exists
+      if(!is.null(graph)){
+        g <- g + addGraph(graph = graph, coords = coords, background = graph.edge.color)
+      }
+      
+    }
+  } else if(vrAssayTypes(assay) == "molecule") {
+    
+    # rasterize if requested or needed
+    if(n.tile > 0 || nrow(coords) > 50000){
+      if(n.tile == 0)
+        n.tile <- 1000
+      g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha)
+    } else {
+      g <- g +
+        geom_point(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]], color = .data[[group.by]]),
+                   coords, shape = cell.shape, size = rel(pt.size), alpha = alpha)
+    }
+    g <- g +
+      scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by,
+                        guide = guide_legend(override.aes = list(alpha = 1), order = 2)) +
+      scale_color_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by,
+                         guide = guide_legend(override.aes = list(alpha = 1), order = 2))
+
+  } else {
+    stop("Only ROIs, spots, cells, molecules and tiles can be visualized with vrSpatialPlot!")
+  }
+  
   return(g)
 }
 
@@ -500,7 +699,10 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param keep.scale whether unify all scales for all features or not
 #' @param label if TRUE, labels of ROIs will be visualized too
-#' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
+#' @param spatial the name of the main spatial system
+#' @param channel the name of the channel associated with the image
+#' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
+#' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
 #' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
@@ -515,9 +717,11 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
 #'
 #' @export
 #'
-vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, group.by = "label", plot.segments = FALSE, n.tile = 0, norm = TRUE, log = FALSE, assay = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
-                         font.size = 2, pt.size = 2, cell.shape = 16, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, background = NULL, reg = FALSE,
-                         crop = FALSE, scale.image = TRUE, common.legend = FALSE, legend.loc = "right", collapse.plots = TRUE) {
+vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, group.by = "label", plot.segments = FALSE, n.tile = 0, 
+                                 norm = TRUE, log = FALSE, assay = NULL, graph.name = NULL, ncol = 2, nrow = NULL,
+                                 font.size = 2, pt.size = 2, cell.shape = 16, title.size = 10, alpha = 0.6, keep.scale = "feature", label = FALSE, 
+                                 spatial = NULL, channel = NULL, background.color = NULL, background = NULL, reg = FALSE,
+                                 crop = FALSE, scale.image = TRUE, common.legend = FALSE, legend.loc = "right", collapse.plots = TRUE) {
 
   # check object
   if(!inherits(object, "VoltRon"))
@@ -540,12 +744,10 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
         data <- vrData(object[[assy]], features = feat, norm = norm)
         if(log)
           data <- log1p(data)
-        # return(getRange(data, na.rm = TRUE, finite = TRUE))
         return(getRange(data, na.rm = TRUE))
       } else {
         metadata <- Metadata(object, assay = assy)
         if(feat %in% colnames(metadata)){
-          # return(getRange(metadata[,feat], na.rm = TRUE, finite = TRUE))
           return(getRange(metadata[,feat], na.rm = TRUE))
         } else {
           stop("Feature '", feat, "' cannot be found in data or metadata!")
@@ -602,7 +804,8 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
         gg[[i]] <- vrSpatialFeaturePlotCombined(assay = cur_assay, metadata = cur_metadata, features = features, plot.segments = plot.segments, 
                                                 n.tile = n.tile, graph = graph, group.by = group.by, norm = norm, log = log, 
                                                 font.size = font.size, pt.size = pt.size, title.size = title.size, alpha = alpha, cell.shape = cell.shape,
-                                                label = label, plot_title = p_title, legend_title = l_title, background = background, reg = reg, crop = crop)
+                                                label = label, plot_title = p_title, legend_title = l_title, spatial = spatial, channel = channel, 
+                                                background.color = background.color, background = background, reg = reg, crop = crop)
       }
       
     # make individual feature plots
@@ -614,7 +817,8 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
         gg[[i]] <- vrSpatialFeaturePlotSingle(assay = cur_assay, metadata = cur_metadata, feature = feat, plot.segments = plot.segments, 
                                               n.tile = n.tile, graph = graph, limits = limits[[feat]][[assy]], group.by = group.by, norm = norm, log = log, 
                                               font.size = font.size, pt.size = pt.size, title.size = title.size, alpha = alpha, cell.shape = cell.shape,
-                                              label = label, plot_title = p_title, legend_title = l_title, background = background, reg = reg, crop = crop)
+                                              label = label, plot_title = p_title, legend_title = l_title, spatial = spatial, channel = channel, 
+                                              background.color = background.color, background = background, reg = reg, crop = crop)
         i <- i + 1
       }
     }
@@ -635,7 +839,7 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
       return(suppressWarnings(gg[[1]] + theme(legend.position=legend.loc)))
     }
   } else {
-    for(i in 1:(length(features)*length(assay_names))){
+    for(i in seq_len(length(features)*length(assay_names))){
       gg[[i]] <- gg[[i]] + theme(legend.position=legend.loc)
     }
     return(suppressWarnings(gg))
@@ -664,8 +868,11 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
 #' @param label if TRUE, labels of ROIs will be visualized too
 #' @param plot_title the main title of the single plot
 #' @param legend_title the legend title of the single plot
-#' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
-#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
+#' @param spatial the name of the main spatial system
+#' @param channel the name of the channel associated with the image
+#' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
+#' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
+#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial})
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
@@ -677,64 +884,42 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
 #' @importFrom dplyr arrange
 #'
 #' @noRd
-vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments = FALSE, n.tile = 0, graph = NULL, limits, group.by = "label", norm = TRUE, log = FALSE,
-                               font.size = 2, pt.size = 2, cell.shape = 16, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL,
-                               legend_title = NULL, background = NULL, reg = FALSE, crop = FALSE, scale.image = TRUE){
+
+
+vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments = FALSE, n.tile = 0, graph = NULL, limits, 
+                                       group.by = "label", norm = TRUE, log = FALSE, font.size = 2, pt.size = 2, cell.shape = 16, 
+                                       title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL, legend_title = NULL, 
+                                       spatial = NULL, channel = NULL, background.color = NULL, background = NULL, reg = FALSE, 
+                                       crop = FALSE, scale.image = TRUE){
 
   # plot
   g <- ggplot()
-  scale_factors <- 1
-
-  # add image
-  if(is.null(background))
-    background <- vrMainSpatial(assay)
-  if(length(background) == 2) {
-    channel <- background[2]
-  } else {
-    channel <- NULL
-  }
-  background <- background[1]
-  if(background %in% vrSpatialNames(assay)){
-    
-    # get image
-    image <- vrImages(assay, name = background, channel = channel, as.raster = TRUE)
-    if(!is.null(image) & !inherits(image, "Image_Array")){
-      image <- magick::image_read(image)
-    }
-    
-    if(!is.null(image)){
-      info <- getImageInfo(image)
-      if(info$width > 1000 && scale.image){
-        image <- resize_Image(image, geometry = "1000x")
-        scale_factors <- info$width/1000
-        info <- getImageInfo(image)
-      }
-      g <- g +
-        ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
-    } else {
-      info <- NULL
-    }
-    spatial_name <- background
-  } else {
-    info <- NULL
-    spatial_name <- vrMainSpatial(assay)
-  }
-
-  # data
+  
+  # add image and background
+  image <- vrSpatialPlotImage(g, assay, background, scale.image, spatial = spatial, 
+                              channel = channel, background.color = background.color)
+  g <- image$plot
+  info <- image$info
+  background.color <- image$background.color
+  spatial_name <- image$spatial
+  scale_factors <- image$scale_factors
+  
+  # coords
   coords <- vrCoordinates(assay, spatial_name = spatial_name, reg = reg)
   if(!inherits(coords, "IterableMatrix")){
     coords <- as.data.frame(coords)
   } 
   coords <- coords/scale_factors
   segments <- vrSegments(assay, spatial_name = spatial_name)
+  
+  # get image information and plotting features
+  midpoint <- sum(limits)/2
+  
+  # get data
   data_features <- feature[feature %in% vrFeatures(assay)]
   if(length(data_features) > 0){
     normdata <- vrData(assay, features = feature, norm = norm)
-    if(log)
-      normdata <- log1p(normdata)
   }
-
-  # get data
   if(feature %in% data_features){
     if(inherits(normdata, "IterableMatrix")){
       cur_score <- as.matrix(normdata[feature,])[1,]
@@ -751,42 +936,23 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
     }
   }
   
-  # merge matrices
+  # log transform
+  if(log)
+    cur_score <- log1p(cur_score)
+  
+  # add score
   coords <- as.matrix(coords)
   coords <- data.frame(coords, cur_score[rownames(coords), drop = FALSE])
   colnames(coords)[length(colnames(coords))] <- "score"
-
-  # get image information and plotting features
-  midpoint <- sum(limits)/2
   
   # set up the limits
-  if(vrAssayTypes(assay) == "spot"){
-    if(crop){
-      g <- g +
-        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
-    } else {
-      if(!is.null(info)){
-        g <- g +
-          coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
-      }
-    }
-  } else {
-    if(crop){
-      g <- g +
-        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
-    } else {
-      if(!is.null(info)){
-        g <- g +
-          xlim(0,info$width) + ylim(0, info$height)
-      }
-    }
-  }
+  g <- vrSpatialExtent(g, assay, coords, crop, info)
 
   # add points or segments
   if(vrAssayTypes(assay) == "ROI" && !is.null(segments)){
     polygon_data <- NULL
     circle_data <- NULL
-    for(i in 1:length(segments)){
+    for(i in seq_len(length(segments))){
       cur_data <- as.data.frame(cbind(segments[[i]], names(segments)[i], coords$score[i]))
       if(nrow(segments[[i]]) > 1){
         colnames(cur_data) <- c("id", "x", "y", "segment", "score")
@@ -841,7 +1007,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
       } else {
         polygon_data <- do.call(rbind,segments)
         polygon_data[,c("x", "y")] <- polygon_data[,c("x", "y")]/scale_factors
-        len_segments <- sapply(segments, nrow, simplify = TRUE)
+        len_segments <- vapply(segments, nrow, numeric(1))
         polygon_data <- data.frame(polygon_data, segment = rep(names(segments), len_segments), score = rep(coords$score, len_segments))
         g <- g +
           geom_polygon(aes(x = x, y = y, fill = score, group = segment), data = polygon_data, alpha = alpha)
@@ -889,22 +1055,8 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
                                 legend.key.size = unit(title.size, "points"), legend.title = element_text(size=title.size),
                                 legend.margin = margin(0,0,0,0))
 
-  # background
-  if(any(background %in% c("white","black"))){
-    g <- g +
-      theme(panel.background = element_rect(fill = background, colour = background, linewidth = 0.5, linetype = "solid"))
-  } else{
-    if(is.null(info)){
-      g <- g +
-        theme(panel.background = element_rect(fill = "grey97", colour = "grey97", linewidth = 0.5, linetype = "solid"))
-    } else{
-      g <- g +
-        theme(panel.background = element_blank())
-    }
-  }
-
   # visualize labels
-  if(label){
+  if(label && vrAssayTypes(assay) == "ROI"){
     if(group.by %in% colnames(metadata)){
       coords[[group.by]] <- as.vector(metadata[,group.by])
     } else {
@@ -940,10 +1092,11 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 #' @param label if TRUE, labels of ROIs will be visualized too
 #' @param plot_title the main title of the single plot
 #' @param legend_title the legend title of the single plot
-#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
-#' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
-#' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
-#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
+#' @param spatial the name of the main spatial system
+#' @param channel the name of the channel associated with the image
+#' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
+#' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
+#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial})
 #' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
@@ -957,15 +1110,20 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
 #' @noRd
 vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segments = FALSE, n.tile = 0, graph = NULL, group.by = "label", norm = TRUE, log = FALSE,
                                          font.size = 2, pt.size = 2, cell.shape = 16, title.size = 10, alpha = 0.6, label = FALSE, plot_title = NULL,
-                                         legend_title = NULL, background = NULL, reg = FALSE, crop = FALSE, scale.image = TRUE){
+                                         spatial = NULL, channel = NULL, legend_title = NULL, background.color = NULL, background = NULL, reg = FALSE, crop = FALSE, scale.image = TRUE){
   
   # plot
   g <- ggplot()
-  scale_factors <- 1
+  # scale_factors <- 1
   
-  # add image
-  info <- NULL
-  spatial_name <- vrMainSpatial(assay)
+  # add image and background
+  image <- vrSpatialPlotImage(g, assay, background, scale.image, spatial = spatial, 
+                              channel = channel, background.color = background.color)
+  g <- image$plot
+  info <- image$info
+  background.color <- image$background.color
+  spatial_name <- image$spatial
+  scale_factors <- image$scale_factors
   
   # data
   coords <- as.data.frame(vrCoordinates(assay, spatial_name = spatial_name, reg = reg))
@@ -981,10 +1139,10 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
     if(feat %in% vrFeatures(assay)){
-      return(range(normdata[feat, ]))
+      return(getRange(normdata[feat, ], na.rm = TRUE))
     } else {
       if(feat %in% colnames(metadata)){
-        return(range(metadata[,feat]))
+        return(getRange(metadata[,feat], na.rm = TRUE))
       } else {
         stop("Feature '", feat, "' cannot be found in data or metadata!")
       }
@@ -992,27 +1150,7 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
   }, features)
   
   # set up the limits
-  if(vrAssayTypes(assay) == "spot"){
-    if(crop){
-      g <- g +
-        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
-    } else {
-      if(!is.null(info)){
-        g <- g +
-          coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
-      }
-    }
-  } else {
-    if(crop){
-      g <- g +
-        coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
-    } else {
-      if(!is.null(info)){
-        g <- g +
-          xlim(0,info$width) + ylim(0, info$height)
-      }
-    }
-  }
+  g <- vrSpatialExtent(g, assay, coords, crop, info)
   
   # configure titles
   feature_title <- as.list(features)
@@ -1044,19 +1182,20 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
         stat_summary_2d(mapping = aes(x = x, y = y, z = score), fun = mean, data = coords, geom = "tile", bins = n.tile, drop = TRUE) +
         scale_fill_gradientn(name = legend_title[[feat]],
                              colors=c("grey97", colors[i]),
-                             # values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
                              values=rescale_numeric(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
       all_data <- rbind(all_data,
                         data.frame(layer_data(g_single), color_group = colors[i]))
+      
+      # if data being tiled, ignore segments 
+      plot.segments <- FALSE
     } else {
       g_single <- ggplot() +
         geom_point(mapping = aes(x = x, y = y, color = score), coords, shape = 16, size = pt.size) + 
         scale_color_gradientn(name = legend_title[[feat]],
                               colors=c("grey97", colors[i]),
-                              # values=scales::rescale(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
                               values=rescale_numeric(c(limits[[feat]][1], limits[[feat]][2])), limits = limits[[feat]])
       all_data <- rbind(all_data,
-                        data.frame(layer_data(g_single), value = coords$score, color_group = colors[i]))
+                        data.frame(layer_data(g_single), value = coords$score, color_group = colors[i], obs = rownames(coords)))
     }
     
     # add graph to list
@@ -1065,7 +1204,7 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
   }
   
   # combine feature plots
-  g <- vrSpatialFeatureCombinePlot(g, all_data, n.tile, coords, features)
+  g <- vrSpatialFeatureCombinePlot(g, all_data, n.tile, coords, segments, scale_factors, features, plot.segments, alpha)
   
   # add if a graph exists
   if(!is.null(graph)){
@@ -1087,11 +1226,11 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
                                 legend.key.size = unit(title.size, "points"), legend.title = element_text(size=title.size),
                                 legend.margin = margin(0,0,0,0))
   
-  # background
-  g <- g +
-    theme(panel.background = element_rect(fill = "grey97", colour = "grey97", linewidth = 0.5, linetype = "solid"))
+  # # background
+  # g <- g +
+  #   theme(panel.background = element_rect(fill = "grey97", colour = "grey97", linewidth = 0.5, linetype = "solid"))
   
-  # return data
+  # return plot
   return(g)
 }
 
@@ -1103,38 +1242,66 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
 #' @param all_data summary data
 #' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
 #' @param datax original plotting data
+#' @param segments segments
+#' @param scale_factors scale factors
 #' @param features features
+#' @param plot.segments plot segments from \link{vrSegments} instead of points
 #'
 #' @import ggplot2
 #'
 #' @noRd
-vrSpatialFeatureCombinePlot <- function(g, all_data, n.tile, coords, features){
+vrSpatialFeatureCombinePlot <- function(g, all_data, n.tile, coords, segments, scale_factors, features, plot.segments = FALSE, alpha){
   
-  # tiling or not
-  if(n.tile > 0 || nrow(coords) > 50000){
-    if(n.tile == 0)
-      n.tile <- 1000
+  # segments or not
+  if(plot.segments){
+    
+    # get polygons
+    polygon_data <- do.call(rbind,segments)
+    polygon_data[,c("x", "y")] <- polygon_data[,c("x", "y")]/scale_factors
+    len_segments <- vapply(segments, nrow, numeric(1))
+    polygon_data <- data.frame(polygon_data, obs = rep(names(segments), len_segments))
+    
     all_data <- all_data %>% group_by(x,y) %>% 
-      summarize(fill = fill[which.max(value)], 
-                group = color_group[which.max(value)], 
-                value = value[which.max(value)])
-    key_table <- all_data[,c("fill", "group", "value")] %>% 
+      dplyr::summarise(fill = colour[which.max(value)], 
+                       group = color_group[which.max(value)],
+                       value = value[which.max(value)], 
+                       obs = obs[1])
+    polygon_data <- polygon_data %>% left_join(all_data[,c("obs", "fill")])
+    key_table <- all_data[,c("fill", "group", "value")] %>%
       dplyr::group_by(group) %>% 
       dplyr::summarise(fill = fill[which.max(value)], value = max(value))
-    g.combined <- g +
-      ggplot2::geom_tile(data = as.data.frame(all_data), aes(x = x, y = y, fill = fill)) +
-      ggplot2::scale_fill_identity("", labels = features, breaks = key_table$fill, guide = "legend")
-  } else {
-    all_data <- all_data %>% group_by(x,y) %>% 
-      dplyr::summarise(color = colour[which.max(value)], 
-                       group = color_group[which.max(value)],
-                       value = value[which.max(value)])
-    key_table <- all_data[,c("color", "group", "value")] %>%
-      dplyr::group_by(group) %>% 
-      dplyr::summarise(color = color[which.max(value)], value = max(value))
     g.combined <- g + 
-      ggplot2::geom_point(data = as.data.frame(all_data), aes(x = x, y = y, color = color)) + 
-      ggplot2::scale_color_identity("", labels = features, breaks = key_table$color, guide = "legend")
+      ggplot2::geom_polygon(data = polygon_data, aes(x = x, y = y, fill = fill, group = obs), alpha = alpha) + 
+      ggplot2::scale_fill_identity("", labels = features, breaks = key_table$fill, guide = "legend")
+    
+  } else {
+    
+    # tiling or not
+    if(n.tile > 0 || nrow(coords) > 50000){
+      if(n.tile == 0)
+        n.tile <- 1000
+      all_data <- all_data %>% group_by(x,y) %>% 
+        summarize(fill = fill[which.max(value)], 
+                  group = color_group[which.max(value)], 
+                  value = value[which.max(value)])
+      key_table <- all_data[,c("fill", "group", "value")] %>% 
+        dplyr::group_by(group) %>% 
+        dplyr::summarise(fill = fill[which.max(value)], value = max(value))
+      g.combined <- g +
+        ggplot2::geom_raster(data = as.data.frame(all_data), aes(x = x, y = y, fill = fill)) +
+        ggplot2::scale_fill_identity("", labels = features, breaks = key_table$fill, guide = "legend")
+    } else {
+      all_data <- all_data %>% group_by(x,y) %>% 
+        dplyr::summarise(color = colour[which.max(value)], 
+                         group = color_group[which.max(value)],
+                         value = value[which.max(value)])
+      key_table <- all_data[,c("color", "group", "value")] %>%
+        dplyr::group_by(group) %>% 
+        dplyr::summarise(color = color[which.max(value)], value = max(value))
+      g.combined <- g + 
+        ggplot2::geom_point(data = as.data.frame(all_data), aes(x = x, y = y, color = color)) + 
+        ggplot2::scale_color_identity("", labels = features, breaks = key_table$color, guide = "legend")
+    } 
   }
   
   g.combined
@@ -1143,6 +1310,131 @@ vrSpatialFeatureCombinePlot <- function(g, all_data, n.tile, coords, features){
 ####
 ## Spatial Auxiliary ####
 ####
+
+#' vrSpatialPlotImage
+#'
+#' setting background with or without the image
+#'
+#' @param g a ggplot object
+#' @param assay vrAssay object
+#' @param spatial the name of the main spatial system
+#' @param channel the name of the channel associated with the image
+#' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
+#' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
+#' and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial})
+#' and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.
+#' @param scale.image if TRUE, background image will be scaled down to a low resolution (width: 1000px)
+#'
+#' @import ggplot2
+#' @importFrom magick image_read
+#'
+#' @noRd
+vrSpatialPlotImage <- function(g, assay, background, scale.image, spatial = NULL, channel = NULL, background.color = NULL){
+ 
+  # parameters
+  scale_factors <- 1
+  
+  # check background, spatial and channel 
+  if(!is.null(background)){
+    warning("The use of 'background' is deprecated, please use 'spatial' to call spatial coordinate systems and 'channel' to get channels of associated images.")
+    warning("Please use 'background.color' to draw spatial plots with custom colors in the background.")
+    if(length(background) == 2) {
+      channel <- background[2]
+    } else {
+      channel <- NULL
+    }
+    spatial <- background[1]
+  } else {
+    if(is.null(spatial)){
+      spatial <- vrMainSpatial(assay)
+    }
+  }
+  
+  # get image and adjust size
+  if(spatial %in% vrSpatialNames(assay) && is.null(background.color)){ 
+    
+    # get image
+    image <- suppressWarnings({vrImages(assay, name = spatial, channel = channel, as.raster = TRUE)})
+    if(!is.null(image) & !inherits(image, "ImgArray")){
+      image <- magick::image_read(image)
+    }
+    
+    if(!is.null(image)){
+      info <- getImageInfo(image)
+      if(info$width > 1000 && scale.image){
+        image <- resize_Image(image, geometry = "1000x")
+        scale_factors <- info$width/1000
+        info <- getImageInfo(image)
+      }
+      
+      # TODO: is this necessary ? 
+      if(inherits(image, "ImgArray")){
+        image <- ImageArray::as.raster(image)
+      }
+
+      # annotation raster
+      g <- g +
+        ggplot2::annotation_raster(image, 0, info$width, info$height, 0, interpolate = FALSE)
+    } else {
+      info <- NULL
+    }
+  } else {
+    info <- NULL
+  } 
+  
+  # background color
+  if(!is.null(background.color)){
+    g <- g +
+      theme(panel.background = element_rect(fill = background.color, colour = background.color, linewidth = 0.5, linetype = "solid"))
+  } else{
+    if(is.null(info)){
+      g <- g +
+        theme(panel.background = element_rect(fill = "grey97", colour = "grey97", linewidth = 0.5, linetype = "solid"))
+    } else{
+      g <- g +
+        theme(panel.background = element_blank())
+    }
+  }
+  list(plot = g, info = info, background.color = background.color, spatial = spatial, scale_factors = scale_factors)
+}
+
+#' vrSpatialExtent
+#'
+#' setting extent for spatial plots
+#'
+#' @param g a ggplot object
+#' @param assay vrAssay object
+#' @param coords coordinates
+#' @param crop whether to crop an image of a spot assay to the extend of spots
+#' @param image info
+#' 
+#' @importFrom ggplot2 xlim ylim coord_fixed
+#' 
+#' @noRd
+vrSpatialExtent <- function(g, assay, coords, crop, info){
+  if(vrAssayTypes(assay) == "spot"){
+    if(crop){
+      g <- g +
+        ggplot2::coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
+    } else {
+      if(!is.null(info)){
+        g <- g +
+          ggplot2::coord_fixed(xlim = c(0,info$width), ylim = c(0,info$height))
+      }
+    }
+  } else {
+    if(crop){
+      g <- g +
+        ggplot2::coord_fixed(xlim = range(coords$x), ylim = range(coords$y))
+    } else {
+      if(!is.null(info)){
+        g <- g +
+          ggplot2::xlim(0,info$width) + ggplot2::ylim(0, info$height)
+      }
+    }
+  }
+  g
+}
 
 #' @import ggplot2
 #' @importFrom grid pointsGrob unit gpar
@@ -1229,17 +1521,18 @@ GeomSpot <- ggplot2::ggproto("GeomSpot",
 #' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
 #'
 #' @import ggplot2
+#' @importFrom igraph as_data_frame
 #'
 #' @noRd
 addGraph <- function(graph, coords, background){
-  graph.df <- igraph::get.data.frame(graph)
+  # graph.df <- igraph::get.data.frame(graph)
+  graph.df <- igraph::as_data_frame(graph)
   graph.df$from.x <- coords$x[match(graph.df$from, rownames(coords))]
   graph.df$from.y <- coords$y[match(graph.df$from, rownames(coords))]
   graph.df$to.x <- coords$x[match(graph.df$to, rownames(coords))]
   graph.df$to.y <- coords$y[match(graph.df$to, rownames(coords))]
   geom_segment(data = graph.df, mapping = aes(x=from.x,xend = to.x, y=from.y,yend = to.y), 
-               alpha = 0.5, color = ifelse(background == "black", "grey", "black"))
-  
+               alpha = 0.5, color = background)
 }
 
 ####
@@ -1284,7 +1577,7 @@ vrNeighbourhoodEnrichmentPlot <- function(results, assay = NULL, type = c("assoc
   mat <- matrix(nrow = length(entities), ncol = length(entities))
   rownames(mat) <- colnames(mat) <- entities
   mat_padj <- mat
-  for(i in 1:nrow(results)){
+  for(i in seq_len(nrow(results))){
     mat_padj[which(results$cell1[i]==entities), which(results$cell2[i]==entities)] <- 
       mat_padj[which(results$cell2[i]==entities), which(results$cell1[i]==entities)] <- ifelse(type == "assoc", results$p_assoc_adj[i], results$p_segreg_adj[i])
     mat[which(results$cell1[i]==entities), which(results$cell2[i]==entities)] <- 
@@ -1313,7 +1606,7 @@ vrNeighbourhoodEnrichmentPlot <- function(results, assay = NULL, type = c("assoc
 
   # extra heatmap legend
   lgd <- ComplexHeatmap::Legend(labels = c("1.00", "0.75", "0.50", "0.25"), title = "p.adj", type = "points", pch = 16, 
-                                size = unit(1:5, 'mm'), direction = 'vertical', legend_gp = gpar(col = "black"), background = 'white')
+                                size = unit(seq_len(5), 'mm'), direction = 'vertical', legend_gp = gpar(col = "black"), background = 'white')
   
   # draw heatmap
   ComplexHeatmap::draw(ht, annotation_legend_list = lgd)
@@ -1370,13 +1663,6 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
   metadata <- Metadata(object, assay = assay)
 
   # grep assays from metadata
-  # assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
-  # if(inherits(metadata, "data.table")){
-  #   metadata <- subset(metadata, subset = assay_id %in% assay_names)
-  # } else {
-  #   assy_id <- paste(paste0(assay_names,"$"), collapse = "|")
-  #   metadata <- metadata[grepl(assy_id, rownames(metadata)),]
-  # }
   metadata <- subset_metadata(metadata, assays = assay_names)
 
   # check group.by 
@@ -1384,9 +1670,27 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
     stop("Column ", group.by, " is not found in metadata!")
   }
   
+  # plotting features
+  datax <- data.frame(vrEmbeddings(object, assay = assay_names, type = embedding))
+  datax <- datax[,seq_len(2)]
+  colnames(datax) <- c("x", "y")
+  if(group.by %in% colnames(metadata)){
+    if(inherits(metadata, "data.table")){
+      datax[[group.by]] <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
+    } else {
+      if(!is.null(rownames(metadata))){
+        datax[[group.by]] <- as.factor(metadata[rownames(datax),group.by])
+      } else{
+        datax[[group.by]] <- as.factor(as.vector(metadata[match(rownames(datax), as.vector(metadata$id)),group.by]))
+      }
+    }
+  } else {
+    stop("Column ", group.by, " cannot be found in metadata!")
+  }
+  
   # adjust group.ids
   if(is.null(group.ids)){
-    group.ids <- unique(metadata[[group.by]])
+    group.ids <- unique(datax[[group.by]])
   }
 
   # check group.id
@@ -1407,24 +1711,6 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
   } else{
     colors <- hue_pal(length(group.ids))
     names(colors) <- group.ids
-  }
-
-  # plotting features
-  datax <- data.frame(vrEmbeddings(object, assay = assay_names, type = embedding))
-  datax <- datax[,1:2]
-  colnames(datax) <- c("x", "y")
-  if(group.by %in% colnames(metadata)){
-    if(inherits(metadata, "data.table")){
-      datax[[group.by]] <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
-    } else {
-      if(!is.null(rownames(metadata))){
-        datax[[group.by]] <- as.factor(metadata[rownames(datax),group.by])
-      } else{
-        datax[[group.by]] <- as.factor(as.vector(metadata[match(rownames(datax), as.vector(metadata$id)),group.by]))
-      }
-    }
-  } else {
-    stop("Column ", group.by, " cannot be found in metadata!")
   }
   
   # subset group.by using group.id
@@ -1456,10 +1742,12 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
     # g <- g +
     #   geom_point(mapping = aes_string(x = "x", y = "y", color = group.by), datax, shape = 16, size = pt.size)
     g <- g +
-      geom_point(mapping = aes(x = .data[["x"]], y = .data[["y"]], color = .data[[group.by]]), datax, shape = 16, size = pt.size)
+      geom_point(mapping = aes(x = .data[["x"]], y = .data[["y"]], 
+                               color = .data[[group.by]], fill = .data[[group.by]]), datax, shape = 16, size = pt.size)
   }
   g <- g +
     scale_color_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
+    scale_fill_manual(values = colors, labels = names(colors), drop = FALSE, limits = names(colors)) +
     guides(color = guide_legend(override.aes=list(size = 2)))
 
   # more visualization parameters
@@ -1551,16 +1839,16 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, c
 
   # get embedding
   datax <- data.frame(vrEmbeddings(object, assay = assay_names, type = embedding))
-  datax <- datax[,1:2]
+  datax <- datax[,seq_len(2)]
   colnames(datax) <- c("x", "y")
 
   # calculate limits for plotting, all for making one scale, feature for making multiple
   limits <- Map(function(feat){
     if(feat %in% vrFeatures(object, assay = assay)){
-      return(getRange(normdata[feat, ]))
+      return(getRange(normdata[feat, ], na.rm = TRUE))
     } else {
       if(feat %in% colnames(metadata)){
-        return(getRange(metadata[, feat]))
+        return(getRange(metadata[, feat], na.rm = TRUE))
       } else {
         stop("Feature '", feat, "' cannot be found in data or metadata!")
       }
@@ -1707,7 +1995,7 @@ vrEmbeddingFeatureCombinePlot <- function(all_data, n.tile, datax, features, emb
       dplyr::group_by(group) %>% 
       dplyr::summarise(fill = fill[which.max(value)], value = max(value))
     g.combined <- g.combined +
-      ggplot2::geom_tile(data = as.data.frame(all_data), aes(x = x, y = y, fill = fill)) +
+      ggplot2::geom_raster(data = as.data.frame(all_data), aes(x = x, y = y, fill = fill)) +
       ggplot2::scale_fill_identity("", labels = features, breaks = key_table$fill, guide = "legend")
   } else {
     all_data <- all_data %>% group_by(x,y) %>% 
@@ -1784,29 +2072,26 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
   metadata <- Metadata(object, assay = assay)
 
   # get data
-  data_feature <- sapply(c(feature.1, feature.2), function(feat){
+  # data_feature <- sapply(c(feature.1, feature.2), function(feat){
+  data_feature <- vapply(c(feature.1, feature.2), function(feat){
     if(feat %in% rownames(normdata)){
       return(normdata[feat,])
     } else {
       return(metadata[,feat])
     }
-  })
+  }, numeric(nrow(metadata)))
   data_feature <- as.data.frame(data_feature)
 
   # plot
   g <- ggplot()
 
   # plot scatter
-  # g <- g +
-  #   geom_point(mapping = aes_string(x = feature.1, y = feature.2), data = data_feature, size = pt.size)
   g <- g +
     geom_point(mapping = aes(x = .data[[feature.1]], y = .data[[feature.2]]), data = data_feature, size = pt.size)
 
   # visualize labels
   if(label){
     data_feature[[group.by]] <- metadata[,group.by]
-    # g <- g + ggrepel::geom_label_repel(mapping = aes_string(x = feature.1, y = feature.2, label = group.by), data_feature,
-    #                             box.padding = 0.5, size = font.size, direction = "both", seed = 1)
     g <- g + ggrepel::geom_label_repel(mapping = aes(x = .data[[feature.1]], y = .data[[feature.2]], label = .data[[group.by]]), data_feature,
                                 box.padding = 0.5, size = font.size, direction = "both", seed = 1)
   }
@@ -1839,7 +2124,6 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 #' @param highlight.some if TRUE, some rows will be showed at random, reproducible by \code{seed} argument
 #' @param n_highlight the number of row labels shown, if \code{show_row_names} is TRUE
 #' @param font.size font size
-#' @param seed the seed for \link{set.seed}
 #' @param ... additional parameters passed to \link{getVariableFeatures}
 #'
 #' @importFrom stats quantile
@@ -1847,7 +2131,7 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
 #' @export
 vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clusters",
                           norm = TRUE, scaled = TRUE, show_row_names = NULL, cluster_rows = TRUE, show_heatmap_legend = FALSE,
-                          outlier.quantile = 0.99, highlight.some = FALSE, n_highlight = 30, font.size = 13.2, seed = 1, ...){
+                          outlier.quantile = 0.99, highlight.some = FALSE, n_highlight = 30, font.size = 13.2, ...){
 
   if (!requireNamespace('ComplexHeatmap'))
     stop("Please install ComplexHeatmap package to use the Heatmap function!: BiocManager::install('ComplexHeatmap')")
@@ -1857,9 +2141,6 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
   # check object
   if(!inherits(object, "VoltRon"))
     stop("Please provide a VoltRon object!")
-
-  # seed
-  set.seed(seed)
 
   # data
   heatmapdata <- vrData(object, assay = assay, norm = norm)
@@ -1898,6 +2179,9 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
   } else {
     legend_title <- "Norm. \n Exp."
   }
+  
+  # check for nan
+  heatmapdata[is.nan(heatmapdata)] <- 0
 
   # manage data for plotting
   if(group.by %in% colnames(metadata)){
@@ -1916,8 +2200,10 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
 
   # highlight some rows
   if(highlight.some){
-    ind <- sample(1:nrow(heatmapdata), n_highlight, replace = FALSE)
-    ha <- ComplexHeatmap::rowAnnotation(foo = ComplexHeatmap::anno_mark(at = ind, labels = rownames(heatmapdata)[ind], padding = 1,
+    ind <- sample(seq_len(nrow(heatmapdata)), n_highlight, replace = FALSE)
+    ha <- ComplexHeatmap::rowAnnotation(foo = ComplexHeatmap::anno_mark(at = ind, 
+                                                                        labels = rownames(heatmapdata)[ind], 
+                                                                        padding = 1,
                                                                         labels_gp = gpar(fontsize = font.size)))
   } else{
     ha <- NULL
@@ -1956,7 +2242,7 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
 #' @param nrow row wise number of plots, for \link{ggarrange}
 #'
 #' @import ggplot2
-#' @importFrom reshape2 melt
+#' @importFrom data.table data.table melt
 #'
 #' @export
 #'
@@ -2005,8 +2291,9 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, group.by = "Samp
                       group.by =  as.factor(metadata[[group.by]]),
                       assay_title = assay_title,
                       spatialpoints = rownames(metadata))
-  ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("group.by", "assay_title", "spatialpoints"))
-
+  # ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("group.by", "assay_title", "spatialpoints"))
+  ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("group.by", "assay_title", "spatialpoints"))
+  
   # visualize points on violin
   if(plot.points){
     gg <- ggplot(ggplotdatax, aes(x = group.by, y = value, color = group.by)) + 
@@ -2053,10 +2340,9 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, group.by = "Samp
 #' @param nrow row wise number of plots, for \link{ggarrange}
 #'
 #' @import ggplot2
-#' @importFrom reshape2 melt
+#' @importFrom data.table data.table melt
 #'
 #' @export
-#'
 vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, group.by = "Sample", 
                       split.by = NULL, norm = TRUE, log = FALSE, ncol = 2, nrow = NULL){
 
@@ -2091,7 +2377,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
   # get feature data
   datax <- lapply(features, function(x){
     if(x %in% rownames(barplotdata)){
-      return(as.vector(as(barplotdata[x,], "dgCMatrix")))
+      return(as.vector(as(barplotdata[x,,drop = FALSE], "dgCMatrix")))
     } else if(x %in% colnames(metadata)){
       return(as.vector(metadata[,x]))
     } else{
@@ -2137,7 +2423,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
                               group.by = group.by.col,
                               assay_title = assay_title,
                               spatialpoints = spatialpoints)
-    ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "group.by", "spatialpoints"))
+    ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.label", "assay_title", "group.by", "spatialpoints"))
     gg <- ggplot(ggplotdatax, aes(x = x.label, y = value,
                                   fill = factor(group.by, levels = unique(group.by)))) +
       geom_bar(stat = "identity") +
@@ -2169,7 +2455,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
                               split.by = split.by.col,
                               assay_title = assay_title,
                               spatialpoints = spatialpoints)
-    ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "group.by", "split.by", "spatialpoints"))
+    ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.label", "assay_title", "group.by", "split.by", "spatialpoints"))
     gg <- ggplot(ggplotdatax, aes(x = x.label, y = value,
                                   fill = factor(group.by, levels = unique(group.by)))) +
       geom_bar(stat = "identity") +
@@ -2200,7 +2486,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 #' @param nrow row wise number of plots, for \link{ggarrange}
 #'
 #' @import ggplot2
-#' @importFrom reshape2 melt
+#' @importFrom data.table data.table melt
 #'
 #' @export
 #'
@@ -2258,7 +2544,7 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
                             x.label =  x.label,
                             assay_title = assay_title,
                             spatialpoints = spatialpoints)
-  ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "spatialpoints"))
+  ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.label", "assay_title", "spatialpoints"))
   ggplotdatax <- ggplotdatax[ggplotdatax$value > 0,]
   gg <- ggplot(ggplotdatax, aes(x = x.label, y = value, fill = variable)) +
     geom_bar(stat = "identity") +
@@ -2271,7 +2557,7 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
                               x.label =  x.label,
                               assay_title = assay_title,
                               spatialpoints = rownames(metadata))
-    ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "spatialpoints"))
+    ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.label", "assay_title", "spatialpoints"))
     ggplotdatax <- ggplotdatax[ggplotdatax$value > 0,]
     gg <- ggplot(ggplotdatax, aes(x = x.label, y = value, fill = variable)) +
       geom_bar(stat = "identity") +
@@ -2291,7 +2577,7 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
                               assay_title = assay_title,
                               split.by = split.by.col,
                               spatialpoints = spatialpoints)
-    ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("x.label", "assay_title", "split.by", "spatialpoints"))
+    ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.label", "assay_title", "split.by", "spatialpoints"))
     ggplotdatax <- ggplotdatax[ggplotdatax$value > 0,]
     gg <- ggplot(ggplotdatax, aes(x = x.label, y = value, fill = variable)) +
       geom_bar(stat = "identity") +
@@ -2323,13 +2609,20 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
 #' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
 #' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
 #' @param alpha alpha level of colors of visualized points and segments
+#' @param spot if TRUE, tiling will be done specificall for spot datasets
 #'
 #' @import ggplot2
 #'
 #' @noRd
-vrGroupPlotTiling <- function(g, data, group.by, n.tile, alpha = 1){
-  g + stat_bin_2d(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]]),
-                  data = data, bins = n.tile, drop = TRUE, alpha = alpha)
+vrGroupPlotTiling <- function(g, data, group.by, n.tile, alpha = 1, spot = FALSE) {
+  if(spot){
+    g <- g + stat_bin_2d(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]]),
+                         data = data, bins = n.tile, drop = TRUE, alpha = alpha, show.legend = TRUE)
+  } else {
+    g <- g + stat_bin_2d(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]], color = .data[[group.by]]),
+                         data = data, bins = n.tile, drop = TRUE, alpha = alpha, show.legend = TRUE) 
+  }
+  g
 }
 
 #' vrFeaturePlotTiling
@@ -2382,7 +2675,7 @@ vrFeaturePlotTiling <- function(g, data, legend_title, n.tile, alpha = 1, limits
 #' @noRd
 get_rasterization_colors <- function(n){
   colors <- c("darkblue",'darkred', "yellow2", "darkgreen", "darkorange", 'darkmagenta', "brown")
-  colors[1:n]
+  colors[seq_len(n)]
 }
 
 ####

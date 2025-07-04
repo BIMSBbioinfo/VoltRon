@@ -86,7 +86,7 @@ We incorporate two open reading frames (ORFs), named **S2_N** and **S2_orf1ab**,
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrSpatialPlot(vr2_merged_acute1, assay = "Xenium_mol", group.by = "gene", 
-              group.ids = c("S2_N", "S2_orf1ab"), n.tile = 300)
+              group.ids = c("S2_N", "S2_orf1ab"), n.tile = 500)
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus.png" class="center">
@@ -131,7 +131,7 @@ vr2_merged_acute1 <- getSpatialNeighbors(vr2_merged_acute1, assay = "Xenium_mol"
                                          method = "radius", radius = 50)
 ```
 
-This will create a new graph with the voltron object
+We can now observe the new spatial neighborhood graph saved in the VoltRon object with name **radius**.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrGraphNames(vr2_merged_acute1)
@@ -146,8 +146,9 @@ We now select the feature type and graph name to run an hot spot analysis which 
 ```{r eval = FALSE, class.source="watch-out"}
 vr2_merged_acute1 <- getHotSpotAnalysis(vr2_merged_acute1, assay = "Xenium_mol", 
                                         features = "gene", graph.type = "radius")
-vrSpatialPlot(vr2_merged_acute1_2, assay = "Xenium_mol", 
-              group.by = "gene_hotspot_flag", group.ids = c("cold", "hot"), alpha = 1)
+vrSpatialPlot(vr2_merged_acute1, assay = "Xenium_mol", 
+              group.by = "gene_hotspot_flag", group.ids = c("cold", "hot"), 
+              alpha = 1, background.color = "white")
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_hotspot.png" class="center">
@@ -188,10 +189,21 @@ vrSpatialPlot(imgdata, assay = "ROIAnnotation", group.by = "Sample",
 
 <br>
 
-We now register the H&E image and annotations to the DAPI image of Xenium section using the **registerSpatialData** function. See [Spatial Data Alignment](registration.html) tutorial for more information. We select FLANN automated registration mode, negate the DAPI image of the Xenium slide, turn 90 degrees to the left and set the scale parameter of both images to width = 1859.
+At a first glance, although the Xenium (DAPI) and H&E images are associated with the same TMA core, they were captured in a different perspective; that is, one image is almost the 90 degree rotated version of the other. We will account for this rotation when we (automatically) align the Xenium data with the H&E image. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 vr2_merged_acute1 <- modulateImage(vr2_merged_acute1, brightness = 300, channel = "DAPI")
+vrImages(vr2_merged_acute1, assay = "Assay7", scale.perc = 20)
+vrImages(imgdata, assay = "Assay1", scale.perc = 20)
+```
+
+<img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_twoimages.png" class="center">
+
+<br>
+
+We now register the H&E image and annotations to the DAPI image of Xenium section using the **registerSpatialData** function. We select FLANN (with "Homography" method) automated registration mode, negate the DAPI image of the Xenium slide, turn 90 degrees to the left and set the scale parameter of both images to **width = 1859**. See [Spatial Data Alignment](registration.html) tutorial for more information. 
+
+```{r eval = FALSE, class.source="watch-out"}
 xen_reg <- registerSpatialData(object_list = list(vr2_merged_acute1, imgdata))
 ```
 
@@ -207,6 +219,18 @@ vrImages(vr2_merged_acute1[["Assay7"]], name = "main", channel = "H&E") <-
   vrImages(imgdata_reg, assay = "Assay1", name = "main_reg")
 vrImages(vr2_merged_acute1[["Assay8"]], name = "main", channel = "H&E") <- 
   vrImages(imgdata_reg, assay = "Assay1", name = "main_reg")
+```
+
+We can now observe the new channels available for the both molecule and cell-level assays of Xenium data. 
+
+```{r eval = FALSE, class.source="watch-out"}
+vrImageChannelNames(vr2_merged_acute1)
+```
+
+```
+               Assay    Layer       Sample  Spatial Channels
+Assay7        Xenium Section1 acute case 1     main DAPI,H&E
+Assay8    Xenium_mol Section1 acute case 1     main DAPI,H&E
 ```
 
 <br>
@@ -241,13 +265,6 @@ as.AnnData(vr2_merged_acute1, assay = "Xenium", file = "vr2_merged_acute1.h5ad",
            flip_coordinates = TRUE, name = "main", channel = "H&E")
 ```
 
-<!-- # export the registered H&E image -->
-<!-- library(magick) -->
-<!-- img <- vrImages(vr2_merged_acute1, assay = "Assay7", name = "main", channel = "H&E") -->
-<!-- image_write(image = img, path = "vr2_merged_acute1_H&E.png", format = "png") -->
-
-<br>
-
 To run TissUUmaps please follow installation instructions [here](https://tissuumaps.github.io/installation/), then you can simply drag and drop both the h5ad file and png file to the application.
 
 <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_interactivevisualization.png" class="center">
@@ -259,7 +276,6 @@ To run TissUUmaps please follow installation instructions [here](https://tissuum
 Now we can transfer ROI annotations as additional metadata features of the molecule assay. We will refer the new metadata column as "Region" which will indicate if the molecule is within any annotated ROI in the same layer.
 
 ```{r eval = FALSE, class.source="watch-out"}
-# make a new metadata column for ROIAnnotation assay using names
 vrMainAssay(vr2_merged_acute1) <- "ROIAnnotation"
 vr2_merged_acute1$Region <- vrSpatialPoints(vr2_merged_acute1)
 
@@ -267,7 +283,8 @@ vr2_merged_acute1$Region <- vrSpatialPoints(vr2_merged_acute1)
 vrMainSpatial(vr2_merged_acute1[["Assay9"]]) <- "main_reg"
 
 # transfer ROI annotations to molecules
-vr2_merged_acute1 <- transferData(object = vr2_merged_acute1, from = "Assay9", to = "Assay8", features = "Region")
+vr2_merged_acute1 <- transferData(object = vr2_merged_acute1, from = "Assay9", to = "Assay8", 
+                                  features = "Region")
 
 # Metadata of molecules
 Metadata(vr2_merged_acute1, assay = "Xenium_mol")
@@ -305,6 +322,7 @@ head(table(vr2_merged_acute1$Region))
 Now we will grab these annotations from molecule metadata and calculate the ratio of N to orf1ab frequency of SARS-COV-2 particles across all annotated molecules.
 
 ```{r eval = FALSE, class.source="watch-out"}
+library(dplyr)
 s2_summary_hyaline <- 
   Metadata(vr2_merged_acute1, assay = "Xenium_mol") %>%
   filter(gene %in% c("S2_N", "S2_orf1ab"), 
@@ -323,7 +341,7 @@ s2_summary_hyaline
 
 <br>
 
-## Manual Annotation
+## Manual annotation
 
 To compare the proportion of **S2_N** and **S2_orf1ab** molecules in hyaline membranes with tissue sites of possible infection. We focus on another tissue niche where a large accumulation of cells with high **S2_N** and **S2_orf1ab** counts. 
 
@@ -332,7 +350,7 @@ By visualizing and zooming on a spatial plot with annotated cells, we can detect
 ```{r eval = FALSE, class.source="watch-out"}
 vrSpatialPlot(vr2_merged_acute1, assay = "Xenium", group.by = "CellType", 
               group.ids = c("H.I. Cells", "T cells"), plot.segments = TRUE, 
-              alpha = 0.6, background = c("main", "H&E"), interactive = TRUE)
+              alpha = 0.6, spatial = "main", channel = "H&E", interactive = TRUE)
 ```
 
 <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_spatialplot_infected.png" class="center">
@@ -343,23 +361,54 @@ Now we use the **annotateSpatialData** function to create an additional annotati
 
 ```{r eval = FALSE, class.source="watch-out"}
 vr2_merged_acute1 <- annotateSpatialData(vr2_merged_acute1, assay = "Xenium_mol", 
-                                         label = "Infected", use.image = TRUE, 
-                                         channel = "H&E")
+                                         label = "Region", use.image = TRUE, 
+                                         channel = "H&E", annotation_assay = "ROIAnnotation1")
 ```
 
 <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_annotation_infected.png" class="center">
 
 <br>
 
-## Comparison of Annotations
+## Visualize annotations
+
+Before visualizing the annotations and molecule localizations in the same time, lets make some changes to the metadata. 
+We basically wanna change the annotation of all ROIs originated from the GeoJson file to have the label **Hyaline Membrane**.
+
+```{r eval = FALSE, class.source="watch-out"}
+# update molecule metadata
+vrMainAssay(vr2_merged_acute1_infected) <- "Xenium_mol"
+vr2_merged_acute1_infected$Region <- gsub("ROI[0-9]+", "Hyaline Membrane", 
+                                          vr2_merged_acute1_infected$Region)
+
+# update ROI metadata
+vrMainAssay(vr2_merged_acute1_infected) <- "ROIAnnotation"
+vr2_merged_acute1_infected$Region <- gsub("ROI[0-9]+", "Hyaline Membrane", 
+                                          vr2_merged_acute1_infected$Region)
+```
+
+Now we can visualize two assays together. We use the **addSpatialLayer** function to overlay molecule locations with both the Hyaline Membrane and the infected region annotations.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPlot(vr2_merged_acute1_infected, assay = "Xenium_mol", group.by = "gene", 
+              group.ids = c("S2_N", "S2_orf1ab"), n.tile = 500) |>
+  addSpatialLayer(vr2_merged_acute1_infected, assay = "ROIAnnotation", 
+                  group.by = "Region", alpha = 0.3, 
+                  colors = list(`Hyaline Membrane` = "blue", `Infected` = "yellow"))
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_overlay.png" class="center">
+
+
+## Comparison of annotations
 
 By using the newly annotated infection-associated virus molecules, we can do a comparison of infected regions versus the hyaline membranes. 
 
 ```{r eval = FALSE, class.source="watch-out"}
+library(dplyr)
 s2_summary_infected <- 
   Metadata(vr2_merged_acute1, assay = "Xenium_mol") %>%
   filter(gene %in% c("S2_N", "S2_orf1ab"), 
-         Infected != "undefined") %>% 
+         Region == "Infected") %>% 
   summarise(S2_N = sum(gene == "S2_N"), 
             S2_orf1ab = sum(gene == "S2_orf1ab"), 
             ratio = sum(gene == "S2_N")/sum(gene == "S2_orf1ab")) %>% 
