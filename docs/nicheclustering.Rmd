@@ -495,10 +495,14 @@ vr_openst <- getClusters(vr_openst, nclus = 6,
 ## Visualization
 
 ```{r eval = FALSE, class.source="watch-out"}
-g1 <- vrSpatialPlot(vr_openst, assay = "Assay1", group.by = "niche_clusters", background.color = "black", n.tile = 400, alpha = 1)
-g2 <- vrSpatialPlot(vr_openst, assay = "Assay1", group.by = "annotation", background.color = "black", n.tile = 400, alpha = 1)
-g3 <- vrSpatialPlot(vr_openst, assay = "Assay2", group.by = "niche_clusters", background.color = "black", n.tile = 400, alpha = 1)
-g4 <- vrSpatialPlot(vr_openst, assay = "Assay2", group.by = "annotation", background.color = "black", n.tile = 400, alpha = 1)
+g1 <- vrSpatialPlot(vr_openst, assay = "Assay1", group.by = "niche_clusters", 
+                    background.color = "black", n.tile = 400, alpha = 1)
+g2 <- vrSpatialPlot(vr_openst, assay = "Assay1", group.by = "annotation", 
+                    background.color = "black", n.tile = 400, alpha = 1)
+g3 <- vrSpatialPlot(vr_openst, assay = "Assay2", group.by = "niche_clusters", 
+                    background.color = "black", n.tile = 400, alpha = 1)
+g4 <- vrSpatialPlot(vr_openst, assay = "Assay2", group.by = "annotation", 
+                    background.color = "black", n.tile = 400, alpha = 1)
 
 library(patchwork)
 (g1 | g2) / (g3 | g4)
