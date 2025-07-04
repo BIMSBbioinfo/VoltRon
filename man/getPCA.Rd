@@ -8,11 +8,13 @@ getPCA(
   object,
   assay = NULL,
   features = NULL,
+  data.type = "norm",
   dims = 30,
-  type = "pca",
+  pca.key = "pca",
   n.workers = 1,
   overwrite = FALSE,
-  seed = 1
+  seed = 1,
+  source = c("features", "embeddings")
 )
 }
 \arguments{
@@ -24,9 +26,10 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{features}{the selected features for PCA reduction}
 
-\item{dims}{the number of dimensions extracted from PCA}
+\item{data.type}{the type of data used to calculate PCA from: 
+"norm" (default), "raw" or an existing embeddings \link{vrEmbeddingNames}.}
 
-\item{type}{the key name for the embedding, default: pca}
+\item{dims}{the number of dimensions extracted from PCA}
 
 \item{n.workers}{the number of cores/workers use for parallelization.}
 
@@ -34,6 +37,11 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 should be overwritten in \link{vrEmbeddings}}
 
 \item{seed}{seed}
+
+\item{source}{Character either "features" (PCA on gene features) or
+"embeddings" (PCA on an existing embedding). Default: "features"}
+
+\item{type}{the key name for the embedding, default: pca}
 }
 \description{
 calculate PCA of the VoltRon objects

@@ -121,8 +121,14 @@ subsetvrImage <- function(x, subset, spatialpoints = NULL, image = NULL) {
 
     # coordinates
     cropped_coords <- subsetCoordinates(coords, imageinfo, image)
-    vrCoordinates(object) <- cropped_coords
     
+    # if there are no coordinates, or samples, return NULL
+    if(is.null(cropped_coords)) {
+      return(NULL)
+    } else {
+      vrCoordinates(object) <- cropped_coords
+    }
+
     # segments
     cropped_segments <- segments[rownames(cropped_coords)]
     if(length(segments) > 0){
@@ -131,7 +137,6 @@ subsetvrImage <- function(x, subset, spatialpoints = NULL, image = NULL) {
     }
     
     # spatial points
-    # object <- subset.vrImage(object, spatialpoints = rownames(cropped_coords))
     object <- subsetvrImage(object, spatialpoints = rownames(cropped_coords))
     
     # image
@@ -1607,8 +1612,9 @@ demuxVoltRon <- function(object, max.pixel.size = 1200, use.points.only = FALSE,
         } else{
           for(i in seq_len(length(box_list$box))){
             temp <- subsetVoltRon(object, image = box_list$box[i])
-            temp$Sample <- sample_names[i]
-            subsets[[sample_names[i]]] <- temp
+            if(!is.null(temp))
+              temp$Sample <- sample_names[i]
+            subsets[sample_names[i]] <- list(temp)
           }
           stopApp(list(subsets = subsets, subset_info_list = box_list))
         }

@@ -891,11 +891,17 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
         listofSamples <- sapply(object@samples[samples], function(samp) {
           subsetvrSample(samp, image = image)
         }, USE.NAMES = TRUE)
+        
+        # if all subsets are empty, return NULL
+        if(all(vapply(listofSamples, is.null, logical(1))))
+          return(NULL)
+        
+        # check spatialpoints
         spatialpoints <-  do.call("c", lapply(listofSamples, vrSpatialPoints))
         metadata <- subsetvrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
       }
     } else {
-      stop("Please provide a character based subsetting notation, see magick::image_crop documentation")
+      stop("Please provide a character based subsetting notation, see help(geometry, package = 'magick')")
     }
   } else if(interactive){
     # interactive subsetting
