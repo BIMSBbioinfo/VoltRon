@@ -161,14 +161,12 @@ getClusters <- function(object, assay = NULL, label = "clusters", method = "leid
     vrdata <- vrData(object_subset, norm = TRUE)
     switch(distance_measure,
            manhattan = {
-             # propor_dis <- dist(x = t(vrdata), method = "manhattan")
-             propor_dis <- RcppAnnoy::AnnoyManhattan(t(vrdata), t(vrdata))
+             propor_dis <- dist(x = t(vrdata), method = "manhattan")
            }, 
            jsd = {
-             # TODO: replace this with JSD
              propor_dis <- philentropy::distance(t(vrdata), method = "jensen-shannon")
            })
-    clusters <- fastcluster::hclust(d = propor_dis, method = "ward.D2")
+    clusters <- stats::hclust(d = propor_dis, method = "ward.D2")
     clusters <- stats::cutree(clusters, k = nclus)
     clusters <- list(names = names(clusters), membership = clusters)
   } else {
