@@ -353,9 +353,13 @@ as.AnnData <- function(object,
     names(images_mgk) <- vrAssayNames(object, assay = assay)  
   }
   image_list <- lapply(images_mgk, function(img) {
-    list(images = list(hires = as.numeric(magick::image_data(img, channels = "rgb"))),
+    imgdata <- NULL
+    if(!is.null(img)) 
+      imgdata <- as.numeric(magick::image_data(img, channels = "rgb"))
+    list(images = list(hires = imgdata),
          scalefactors = list(tissue_hires_scalef = 1, spot_diameter_fullres = 0.5))
   })
+  uns <- list(spatial = image_list)
   
   # obsm
   # TODO: currently embedding and spatial dimensions should of the same size, but its not 
@@ -395,7 +399,7 @@ as.AnnData <- function(object,
       adata <- anndata$AnnData(X = X, 
                                obs = metadata, 
                                obsm = obsm, 
-                               uns = list(spatial = image_list))
+                               uns = uns)
       adata <- reticulate::r_to_py(adata)
       adata$write_zarr(file)   
       success <- TRUE
@@ -403,7 +407,7 @@ as.AnnData <- function(object,
       py_env <- getBasilisk()
       proc <- basilisk::basiliskStart(py_env)
       on.exit(basilisk::basiliskStop(proc))
-      success <- basilisk::basiliskRun(proc, function(data, metadata, obsm, coords, segments, image_list, file) {
+      success <- basilisk::basiliskRun(proc, function(data, metadata, obsm, coords, segments, uns, file) {
         zarr <- reticulate::import("zarr")
         anndata <- reticulate::import("anndata")
         make_numpy_friendly <- function(x) {
@@ -421,11 +425,11 @@ as.AnnData <- function(object,
         adata <- anndata$AnnData(X = X, 
                                  obs = metadata, 
                                  obsm = obsm, 
-                                 uns = list(spatial = image_list))
+                                 uns = uns)
         adata <- reticulate::r_to_py(adata)
         adata$write_zarr(file)       
         return(TRUE)
-      }, data = data, metadata = metadata, obsm = obsm, coords = coords, segments = segmentations_array, image_list = image_list, file = file)
+      }, data = data, metadata = metadata, obsm = obsm, coords = coords, segments = segmentations_array, uns = uns, file = file)
     } else {
       stop("Please define the 'python.path' or install the basilisk package!: BiocManager::install('basilisk')")
     }
@@ -454,7 +458,7 @@ as.AnnData <- function(object,
                                  obsm = list(spatial = coords, 
                                              spatial_AssayID = coords, 
                                              segmentation = segmentations_array),
-                                 uns = list(spatial = image_list))
+                                 uns = uns)
       
       # Write to h5ad file using anndataR
       anndataR::write_h5ad(adata, path = file)
@@ -476,7 +480,7 @@ as.AnnData <- function(object,
                                 obsm = list(spatial = coords,
                                             spatial_AssayID = coords,
                                             segmentation = segmentations_array),
-                                uns = list(spatial = image_list))
+                                uns = uns)
       
       
       # Write to h5ad file using anndata
