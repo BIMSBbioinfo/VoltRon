@@ -471,7 +471,7 @@ manageImageBrush <- function(image, ranges, max.pixel.size, input, output, sessi
       height <- limits[2,2]-limits[1,2]
       if(max(height,width) > max.pixel.size){
         if(inherits(image, "ImgArray")){
-          n.series <- ImageArray::length(image)
+          n.series <- length(image)
           cur_width <- width
           cur_height <- height
           for(ii in 2:n.series){
@@ -528,7 +528,7 @@ manageSelectedCorners <- function(selected_corners, image, ranges, max.pixel.siz
       height <- limits[2,2]-limits[1,2]
       if(max(height,width) > max.pixel.size){
         if(inherits(image, c("ImgArray"))){
-          n.series <- ImageArray::length(image)
+          n.series <- length(image)
           cur_width <- width
           cur_height <- height
           for(ii in 2:n.series){
@@ -588,7 +588,7 @@ transformSelectedCorners <- function(selected_corners, image, ranges, max.pixel.
   height <- limits[2,2]-limits[1,2]
   if(max(height,width) > max.pixel.size){
     if(inherits(image, "ImgArray")){
-      n.series <- ImageArray::length(image)
+      n.series <- length(image)
       cur_width <- width
       cur_height <- height
       for(ii in 2:n.series){
@@ -639,7 +639,7 @@ transformSpatialLayer <- function(g_spatial, image, ranges, max.pixel.size){
   height <- limits[2,2]-limits[1,2]
   if(max(height,width) > max.pixel.size){
     if(inherits(image, "ImgArray")){
-      n.series <- ImageArray::length(image)
+      n.series <- length(image)
       cur_width <- width
       cur_height <- height
       for(ii in 2:n.series){
