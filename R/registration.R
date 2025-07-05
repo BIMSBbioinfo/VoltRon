@@ -1014,7 +1014,7 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, info
           height <- limits_trans[2,2]-limits_trans[1,2]
           if(max(height,width) > 1000){
             if(inherits(image_trans, "ImgArray")){
-              n.series <- ImageArray::length(image_trans)
+              n.series <- length(image_trans)
               cur_width <- width
               cur_height <- height
               for(ii in 2:n.series){
@@ -1403,7 +1403,7 @@ manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_list, 
           height <- limits_trans[2,2]-limits_trans[1,2]
           if(max(height,width) > 1000){
             if(inherits(image_trans, "ImgArray")){
-              n.series <- ImageArray::length(image_trans)
+              n.series <- length(image_trans)
               cur_width <- width
               cur_height <- height
               for(ii in 2:n.series){
@@ -1507,7 +1507,7 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
           
           # scale keypoints
           if(inherits(img_trans$image, "ImgArray")){
-            n.series <- ImageArray::length(img_trans$image)
+            n.series <- length(img_trans$image)
             cur_width <- width
             cur_height <- height
             for(ii in 2:n.series){
