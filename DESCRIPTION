@@ -32,9 +32,10 @@ SystemRequirements: OpenCV 4.8 (or higher): libopencv-dev (Debian, Ubuntu) or
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 biocViews:
-Imports: methods, grDevices, data.table, Matrix, S4Arrays, ids, RcppAnnoy, 
-         RANN, igraph, dplyr, ggplot2, ggrepel, ggpubr, rjson, magick, 
-         EBImage, sp, rlang, shiny, shinyjs, stringr, BiocSingular, uwot, RCDT
+Imports: methods, grDevices, data.table, Matrix, S4Arrays, S4Vectors, 
+         ids, RcppAnnoy, RANN, igraph, dplyr, ggplot2, ggrepel, ggpubr, 
+         rjson, magick, EBImage, sp, rlang, shiny, shinyjs, stringr, 
+         BiocSingular, uwot, RCDT
 LinkingTo: Rcpp, RcppArmadillo (>= 0.4)
 Collate: 
     'RcppExports.R'
@@ -63,7 +64,6 @@ Collate:
     'visualization.R'
 Suggests:
     testthat (>= 3.0.0),
-    S4Vectors,
     DelayedArray,
     DelayedMatrixStats,
     BiocParallel,

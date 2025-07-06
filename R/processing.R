@@ -349,7 +349,7 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...){
 #' @param data.type the type of data used to calculate PCA from: 
 #' "norm" (default), "raw" or an existing embeddings \link{vrEmbeddingNames}.
 #' @param dims the number of dimensions extracted from PCA
-#' @param type the key name for the embedding, default: pca
+#' @param pca.key the key name for the embedding, default: pca
 #' @param n.workers the number of cores/workers use for parallelization.
 #' @param overwrite Whether the existing embedding with name 'type' 
 #' should be overwritten in \link{vrEmbeddings}

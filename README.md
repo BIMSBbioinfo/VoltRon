@@ -85,6 +85,13 @@ VoltRon incorporates `RBioformats` package to import images from `ome.tiff` file
 
 See [https://cran.r-project.org/web/packages/rJava](https://cran.r-project.org/web/packages/rJava) below for more information.
 
+We also use a specific version of the [Rarr]() package geared towards reading and writing missing data types (e.g. character). 
+We will use the standard Rarr package onces modifications are releaseed to Bioconductor. Thus please use: 
+
+```
+devtools::install_github("Artur-man/Rarr@voltron")
+```
+
 ## Docker Hub
 
 You can also run VoltRon from a container already available in [Docker Hub](https://hub.docker.com/repository/docker/amanukyan1385/rstudio-voltron/general). The docker image is based on the [Rocker Project](https://rocker-project.org/) and can be run from the terminal like below: 
