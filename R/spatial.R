@@ -50,31 +50,33 @@ getSpatialNeighbors <- function(object,
   # get spatial edges
   spatialedges_list <- list()
   for(assy in assay_names_connected){
-    
-    # get coordinates
-    cur_coords <- as.matrix(vrCoordinates(object, assay = assy))
-    
-    # get groups
-    if(!is.null(group.by) && !is.null(group.ids)){
+  
+    coords <- NULL
+    for(a in assy){
       
-      # metadata
-      if(verbose)
-        message("Calculating Spatial Neighbors with group.by='", group.by, "' and group.ids='", paste(group.ids, collapse = ","), "'")
-      metadata = Metadata(object, assay = assy)
-      if(!group.by %in% colnames(metadata))
-        stop("The column '", group.by, "' was not found in the metadata!")
-      if(inherits(metadata, "data.table")){
-        cur_group.by <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
-        names(cur_group.by) <- metadata$id
-      } else {
-        cur_group.by <- metadata[,group.by]
-        if(!is.null(rownames(metadata))){
-          names(cur_group.by) <- rownames(metadata)
+      # get coordinates and metadata
+      cur_coords <- as.matrix(vrCoordinates(object, assay = a))
+      metadata <- Metadata(object, assay = a)
+      
+      if(!is.null(group.by) && !is.null(group.ids)){
+        
+        if(verbose)
+          message("Calculating Spatial Neighbors with group.by='", group.by, "' and group.ids='", paste(group.ids, collapse = ","), "'")
+        
+        # get groups
+        if(!group.by %in% colnames(metadata))
+          stop("The column '", group.by, "' was not found in the metadata!")
+        if(inherits(metadata, "data.table")){
+          cur_group.by <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
+          names(cur_group.by) <- metadata$id
         } else {
-          names(cur_group.by) <- as.vector(metadata$id)
+          cur_group.by <- metadata[,group.by]
+          if("id" %in% colnames(metadata)){
+            names(cur_group.by) <- as.vector(metadata$id)
+          } else {
+            names(cur_group.by) <- rownames(metadata)
+          }
         }
-      }
-      if(!is.null(group.ids)){
         len_set_diff <- length(setdiff(group.ids,  cur_group.by))
         if(len_set_diff > 0){
         } else if(len_set_diff == length(group.ids)){ 
@@ -82,31 +84,34 @@ getSpatialNeighbors <- function(object,
         } 
         cur_group.by <- cur_group.by[cur_group.by %in% group.ids]
         cur_coords <- cur_coords[names(cur_group.by),]
+        
+      } else if(is.null(group.by) && is.null(group.ids)) {
+        
+      } else {
+        stop("Either both 'group.by' and 'group.ids' should be specified or both should be null")
       }
       
-    } else if(sum(is.null(group.by),is.null(group.ids)) == 2) {
-      
-    } else {
-      stop("Either both 'group.by' and 'group.ids' should be specified or both should be null")
+      # merge coords
+      coords <- rbind(coords, cur_coords)
     }
     
     # get edges
     spatialedges <-
       switch(method,
              delaunay = {
-               nnedges <- RCDT::delaunay(cur_coords)
+               nnedges <- RCDT::delaunay(coords)
                nnedges <- as.vector(t(nnedges$edges[,seq_len(2)]))
-               nnedges <- rownames(cur_coords)[nnedges]
+               nnedges <- rownames(coords)[nnedges]
                nnedges
              },
              spatialkNN = {
-               # nnedges <- RANN::nn2(cur_coords, k = k + 1)
-               nnedges <- knn_annoy(cur_coords, k = k + 1)
+               # nnedges <- RANN::nn2(coords, k = k + 1)
+               nnedges <- knn_annoy(coords, k = k + 1)
                names(nnedges) <- c("nn.index", "nn.dist")
                nnedges <- data.table::melt(data.table::data.table(nnedges$nn.index), id.vars = "V1")
                nnedges <- nnedges[,c("V1", "value")][V1 > 0 & value > 0]
                nnedges <- as.vector(t(as.matrix(nnedges)))
-               nnedges <- rownames(cur_coords)[nnedges]
+               nnedges <- rownames(coords)[nnedges]
                nnedges
              },
              radius = {
@@ -114,11 +119,11 @@ getSpatialNeighbors <- function(object,
                  spot.radius <- vrAssayParams(object[[assy]], param = "nearestpost.distance")
                  radius <- ifelse(is.null(spot.radius), 1, spot.radius)
                }
-               nnedges <- suppressWarnings({RANN::nn2(cur_coords, searchtype = "radius", radius = radius, k = min(300, sqrt(nrow(cur_coords))/2))})
+               nnedges <- suppressWarnings({RANN::nn2(coords, searchtype = "radius", radius = radius, k = min(300, sqrt(nrow(cur_coords))/2))})
                nnedges <- data.table::melt(data.table::data.table(nnedges$nn.idx), id.vars = "V1")
                nnedges <- nnedges[,c("V1", "value")][V1 > 0 & value > 0]
                nnedges <- as.vector(t(as.matrix(nnedges)))
-               nnedges <- rownames(cur_coords)[nnedges]
+               nnedges <- rownames(coords)[nnedges]
                nnedges
              })
     spatialedges_list <- c(spatialedges_list, list(spatialedges))

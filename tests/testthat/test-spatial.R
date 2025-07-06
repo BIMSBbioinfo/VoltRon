@@ -132,3 +132,12 @@ test_that("neighborhood analysis", {
   results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters", graph.type = "delaunay")
   expect_error(results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters2", graph.type = "delaunay"))
 })
+
+test_that("multi assay neigh. analysis", {
+  
+  data("merged_object")
+  merged_object <- getSpatialNeighbors(merged_object, assay = c("Assay1", "Assay4"), verbose = FALSE)
+
+  results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters", graph.type = "delaunay")
+  expect_error(results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters2", graph.type = "delaunay"))
+})
