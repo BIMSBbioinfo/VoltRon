@@ -126,8 +126,10 @@ test_that("niche clustering", {
 
 test_that("neighborhood analysis", {
   
+  # data
   data("xenium_data")
   
+  # neighborhood test
   xenium_data <- getSpatialNeighbors(xenium_data, method = "delaunay", verbose = FALSE)
   results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters", graph.type = "delaunay")
   expect_error(results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters2", graph.type = "delaunay"))
@@ -135,9 +137,33 @@ test_that("neighborhood analysis", {
 
 test_that("multi assay neigh. analysis", {
   
+  # data
   data("merged_object")
-  merged_object <- getSpatialNeighbors(merged_object, assay = c("Assay1", "Assay4"), verbose = FALSE)
-
-  results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters", graph.type = "delaunay")
-  expect_error(results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters2", graph.type = "delaunay"))
+  
+  # get spatial neighbors
+  merged_object <- getSpatialNeighbors(merged_object, 
+                                       assay = c("Assay1", "Assay4"), 
+                                       group.by = list(
+                                         Assay1 = "clusters",
+                                         Assay4 = "gene"
+                                         ),
+                                       group.ids = list(
+                                         Assay4 = c("KRT14", "KRT15")
+                                         ),
+                                       graph.key = "delaunay", 
+                                       verbose = FALSE)
+  
+  expect_contains(
+    unique(stringr::str_extract(names(V(vrGraph(merged_object, 
+                                                assay = c("Assay1", "Assay4"),
+                                                graph.type = "delaunay"))), 
+                                "Assay[0-9]+$")),
+    c("Assay1", "Assay4")
+  )
+    
+  # neighborhood test
+  results <- vrNeighbourhoodEnrichment(merged_object, assay = c("Assay1", "Assay4"), 
+                                       group.by = list(Assay1 = "clusters", 
+                                                       Assay4 = "gene"), 
+                                       graph.type = "delaunay")
 })

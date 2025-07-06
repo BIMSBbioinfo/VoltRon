@@ -59,33 +59,40 @@ getSpatialNeighbors <- function(object,
       metadata <- Metadata(object, assay = a)
       
       if(!is.null(group.by) && !is.null(group.ids)){
+      
+        # get groups
+        if(is.list(group.by)){
+          cur_group.by <- group.by[[a]]
+          cur_group.ids <- group.ids[[a]]
+        }
         
         if(verbose)
-          message("Calculating Spatial Neighbors with group.by='", group.by, "' and group.ids='", paste(group.ids, collapse = ","), "'")
-        
-        # get groups
-        if(!group.by %in% colnames(metadata))
-          stop("The column '", group.by, "' was not found in the metadata!")
+          message("Calculating Spatial Neighbors with group.by='", cur_group.by, "' and group.ids='", paste(cur_group.ids, collapse = ","), "'")
+      
+        if(!cur_group.by %in% colnames(metadata))
+          stop("The column '", cur_group.by, "' was not found in the metadata!")
         if(inherits(metadata, "data.table")){
-          cur_group.by <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
-          names(cur_group.by) <- metadata$id
+          column <- metadata[,get(names(metadata)[which(colnames(metadata) == cur_group.by)])]
+          names(column) <- metadata$id
         } else {
-          cur_group.by <- metadata[,group.by]
+          column <- metadata[,cur_group.by]
           if("id" %in% colnames(metadata)){
-            names(cur_group.by) <- as.vector(metadata$id)
+            names(column) <- as.vector(metadata$id)
           } else {
-            names(cur_group.by) <- rownames(metadata)
+            names(column) <- rownames(metadata)
           }
         }
-        len_set_diff <- length(setdiff(group.ids,  cur_group.by))
-        if(len_set_diff > 0){
-        } else if(len_set_diff == length(group.ids)){ 
-          stop("None of the groups defined in group.ids exist in group.by!")
-        } 
-        cur_group.by <- cur_group.by[cur_group.by %in% group.ids]
-        cur_coords <- cur_coords[names(cur_group.by),]
+        if(a %in% names(group.ids)){
+          len_set_diff <- length(setdiff(cur_group.ids,  column))
+          if(len_set_diff > 0){
+          } else if(len_set_diff == length(cur_group.ids)){ 
+            stop("None of the groups defined in group.ids exist in cur_group.by!")
+          } 
+          column <- column[column %in% cur_group.ids] 
+        }
+        cur_coords <- cur_coords[names(column),]
         
-      } else if(is.null(group.by) && is.null(group.ids)) {
+      } else if(is.null(cur_group.by) && is.null(group.ids)) {
         
       } else {
         stop("Either both 'group.by' and 'group.ids' should be specified or both should be null")
@@ -131,7 +138,7 @@ getSpatialNeighbors <- function(object,
   spatialedges <- unlist(spatialedges_list)
 
   # make graph and add edges
-  graph <- make_empty_graph(directed = FALSE) + vertices(spatialpoints)
+  graph <- make_empty_graph(directed = FALSE) + rownames(coords)
   graph <- add_edges(graph, edges = spatialedges)
   graph <- simplify(graph, remove.multiple = TRUE, remove.loops = FALSE)
   vrGraph(object, assay = assay_names, graph.type = graph.key) <- graph
@@ -151,14 +158,13 @@ getSpatialNeighbors <- function(object,
 #' @param object a VoltRon object
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param group.by a column from metadata to seperate spatial points
+#' @param group.by a column from metadata to separate spatial points
 #' @param graph.type the type of graph to determine spatial neighborhood
 #' @param num.sim the number of simulations
 #' @param seed seed
 #' @param verbose verbose
 #'
 #' @export
-#'
 vrNeighbourhoodEnrichment <- function(object, assay = NULL, group.by = NULL, graph.type = "delaunay", num.sim = 1000, seed = 1, verbose = TRUE){
 
   # set the seed
@@ -174,15 +180,35 @@ vrNeighbourhoodEnrichment <- function(object, assay = NULL, group.by = NULL, gra
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
 
+  # check groups
+  if(is.list(group.by)){
+    if(is.null(names(group.by)))
+      stop("If 'group.by' is a list, then names should be Assay ids, e.g. Assay1, Assay4 etc.")
+    if(!all(names(group.by) %in% assay_names))
+      stop("Names of the 'group.by' list should of assays")
+  }
+    
+  # get assay connectivity 
+  assay_names_connected <- getBlockConnectivity(object, assay = assay_names)
+
   # test for each assay
   neigh_results <- list()
-  for(assy in assay_names){
+  for(assy in assay_names_connected){
+    cur_group.by <- group.by
+    if(is.list(group.by))
+      cur_group.by <- group.by[assy]
     if(verbose)
-      message("Testing Neighborhood Enrichment of '", group.by ,"' for '", assy, "'")
+      message("Testing Neighborhood Enrichment of '", 
+              paste(cur_group.by, collapse = ", ") ,"' for '", 
+              paste(assy, collapse = ", "), "'")
     object_subset <- subsetVoltRon(object, assays = assy)
-    neigh_results[[assy]] <- vrNeighbourhoodEnrichmentSingle(object_subset, group.by = group.by, graph.type = graph.type,
-                                                             num.sim = num.sim, seed = seed)
-    neigh_results[[assy]] <- data.frame(neigh_results[[assy]], AssayID = assy, SampleMetadata(object_subset))
+    res <- vrNeighbourhoodEnrichmentSingle(object_subset, 
+                                           group.by = cur_group.by, 
+                                           graph.type = graph.type,
+                                           num.sim = num.sim, 
+                                           seed = seed)
+    res <- data.frame(res, AssayID = paste(assy, collapse = ", "), unique(object_subset$Sample))
+    neigh_results <- c(neigh_results, list(res))
   }
   all_neigh_results <- do.call(rbind, neigh_results)
 
@@ -209,27 +235,40 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
   # set the seed
   set.seed(seed)
   
-  # main object
-  metadata <- Metadata(object)
-  if(group.by %in% colnames(metadata)){
-    grp <- metadata[[group.by]]
-    names(grp) <- rownames(metadata) 
-  } else {
-    stop("'", group.by, "' is not available in metadata!")
+  # check groups
+  if(!is.list(group.by)){
+    group.by <- list(group.by)
+    names(group.by) <- vrAssayNames(object)
+  }
+
+  # get groups
+  grp <- NULL
+  for(assy in names(group.by)){
+    metadata <- Metadata(object, assay = assy)
+    if(group.by[[assy]] %in% colnames(metadata)){
+      cur_grp <- metadata[[group.by[[assy]]]]
+      if("id" %in% colnames(metadata)){
+        names(cur_grp) <- as.vector(metadata$id)
+      } else {
+        names(cur_grp) <- rownames(metadata) 
+      }
+    } else {
+      stop("'", group.by[[assy]], "' is not available in metadata!")
+    } 
+    grp <- c(grp, cur_grp)
   }
 
   # get graph and neighborhood
-  graph <- vrGraph(object, graph.type = graph.type)
+  graph <- vrGraph(object, graph.type = graph.type, assay = names(group.by))
   neighbors_graph <- igraph::neighborhood(graph)
   neighbors_graph_data <- lapply(neighbors_graph, function(x) {
-    # cbind(x$name[1],x$name[-1])
     cbind(x$name[1],x$name)[-1,]
-    # if(dat)
   })
   neighbors_graph_data <- do.call(rbind, neighbors_graph_data)
   colnames(neighbors_graph_data) <- c("from", "to")
   
   # get simulations
+  grp <- grp[names(V(graph))]
   grp_sim <- vapply(seq_len(1000), function(x) sample(grp), grp)
   rownames(grp_sim) <- names(grp)
   

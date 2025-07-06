@@ -776,9 +776,10 @@ getBlockConnectivity <- function(object, assay){
       components <- igraph::components(igraph::graph_from_adjacency_matrix(adjacency))
       assay_list <- c(assay_list, split(names(components$membership), components$membership))
     } else {
-      assay_list <- c(assay_list, cur_assaynames)
+      assay_list <- c(assay_list, split(cur_assaynames, cur_sections))
     }
   }
+  names(assay_list) <- NULL
   
   # return list
   assay_list
@@ -916,8 +917,10 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
   project <- object@project
 
   # subset graphs
-  graph_list <- subset_graphs(object, 
-                              spatialpoints = vrSpatialPoints(metadata, assay = vrAssayNames(object)))
+  # graph_list <- subset_graphs(object, 
+  #                             spatialpoints = vrSpatialPoints(metadata, assay = vrAssayNames(object)))
+  graph_list <- subset_graphs(object,
+                              spatialpoints = vrSpatialPoints(metadata, assay = vrAssayNames(object, assay = "all")))
 
   # set VoltRon class
   methods::new("VoltRon",
