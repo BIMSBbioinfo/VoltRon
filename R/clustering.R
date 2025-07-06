@@ -125,7 +125,7 @@ knn_annoy <- function(data, query = data, k = 10, n_trees = 50, search_k = -1) {
 #' @param resolution the resolution parameter for leiden clustering.
 #' @param graph the graph type to be used.
 #' @param nclus The number of cluster centers for K-means or hierarchical clustering.
-#' @param distance_measure the distance measure used by hierarchical clustering.
+#' @param distance_measure the distance measure used by hierarchical clustering. See \code{method} for a list of distance measures in \link{dist}.
 #' @param abundance_limit the minimum number of points for a cluster, hence clusters with abundance lower than this limit will be appointed to other nearby clusters.
 #' @param seed seed.
 #'
@@ -160,12 +160,13 @@ getClusters <- function(object, assay = NULL, label = "clusters", method = "leid
   } else if(method == "hierarchical"){
     vrdata <- vrData(object_subset, norm = TRUE)
     switch(distance_measure,
-           manhattan = {
-             propor_dis <- dist(x = t(vrdata), method = "manhattan")
-           }, 
            jsd = {
              propor_dis <- philentropy::distance(t(vrdata), method = "jensen-shannon")
-           })
+           },
+           {
+             propor_dis <- dist(x = t(vrdata), method = distance_measure)
+           }
+           )
     clusters <- stats::hclust(d = propor_dis, method = "ward.D2")
     clusters <- stats::cutree(clusters, k = nclus)
     clusters <- list(names = names(clusters), membership = clusters)
