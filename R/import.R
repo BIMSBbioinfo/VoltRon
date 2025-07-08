@@ -1361,7 +1361,8 @@ importCosMxTileDB <- function(tiledbURI, assay_name = "CosMx",
 #'
 #' Generates a low resolution Morphology image of the CosMx experiment
 #'
-#' @param dir.path CosMx output folder
+#' @param dir.path CosMx folder of images
+#' @param fov.position.file the file providing FOV positions
 #' @param increase.contrast increase the contrast of the image before writing
 #' @param output.path The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.
 #' @param verbose verbose
@@ -1369,9 +1370,10 @@ importCosMxTileDB <- function(tiledbURI, assay_name = "CosMx",
 #'
 #' @importFrom magick image_read image_contrast
 #' @importFrom EBImage writeImage
+#' @importFrom stringr str_pad
 #'
 #' @export
-generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path = NULL, verbose = TRUE, ...) {
+generateCosMxImage <- function(dir.path, fov.position.file, increase.contrast = TRUE, output.path = NULL, verbose = TRUE, ...) {
 
   # check package
   if(!requireNamespace("reshape2")){
@@ -1390,8 +1392,9 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
   }
 
   # FOV positions of CosMx
-  list_of_files <- list.files(dir.path)
-  fov_positions_path <- paste0(dir.path, "/", list_of_files[grepl("fov_positions_file.csv$",list_of_files)][1])
+  # list_of_files <- list.files(dir.path)
+  # fov_positions_path <- paste0(dir.path, "/", list_of_files[grepl("fov_positions_file.csv$",list_of_files)][1])
+  fov_positions_path <- fov.position.file
   fov_positions <- read.csv(fov_positions_path)
 
   # manipulate fov positions matrix
@@ -1411,9 +1414,19 @@ generateCosMxImage <- function(dir.path, increase.contrast = TRUE, output.path =
   if(verbose)
     message("Loading FOV tif files \n")
   image.dir.path <- paste0(dir.path,"/CellComposite/")
+  image.files <- list.files(image.dir.path)
+  image.files <- image.files[grepl("^CellComposite_F", image.files)]
   morphology_image_data <- NULL
-  for(i in relative_fov_positions$fov){
-    image_path <- paste0(image.dir.path, "CellComposite_F", str_pad(as.character(i), 3, pad = 0), ".jpg")
+  fov_info <- colnames(relative_fov_positions)
+  fov_info <- fov_info[grepl("fov|FOV", fov_info)]
+  if(length(fov_info) > 0){
+    fov_info <- relative_fov_positions[[fov_info]]
+  } else {
+    stop("no FOV info is found in fov_positions_file.csv")
+  }
+  for(i in fov_info){
+    # image_path <- paste0(image.dir.path, "CellComposite_F", stringr::str_pad(as.character(i), 3, pad = 0), ".jpg")
+    image_path <- image.files[grepl(paste0(i,".jpg$"), image.files)]
     image_data <- magick::image_read(image_path) %>% magick::image_resize("x500") %>% magick::image_raster()
     if(is.null(morphology_image_data))
       dim_image <- apply(image_data[,seq_len(2)], 2, max)
