@@ -1059,15 +1059,19 @@ rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level){
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @export
-importCosMx <- function(path, assay_name = "CosMx",
-                        image = NULL, image_name = "main", ome.tiff = NULL, import_molecules = FALSE, verbose = TRUE, method = "CSV", ...)
+importCosMx <- function(path, 
+                        assay_name = "CosMx",
+                        image = NULL, 
+                        image_name = "main", 
+                        import_molecules = FALSE, 
+                        verbose = TRUE, method = "CSV", ...)
 {
   if(method == "CSV"){
     vr <- importCosMxCSV(path = path, assay_name = assay_name,
-                         image = image, image_name = image_name, ome.tiff = ome.tiff, import_molecules = import_molecules, verbose = verbose, ...)
+                         image = image, image_name = image_name, import_molecules = import_molecules, verbose = verbose, ...)
   } else if(method == "TileDB"){
     vr <- importCosMxTileDB(tiledbURI = path, assay_name = assay_name,
-                            image = image, image_name = image_name, ome.tiff = ome.tiff, import_molecules = import_molecules, verbose = verbose, ...)
+                            image = image, image_name = image_name, import_molecules = import_molecules, verbose = verbose, ...)
   } else {
     stop("method should be either 'CSV' or 'TileDB'!")
   }
@@ -1082,7 +1086,6 @@ importCosMx <- function(path, assay_name = "CosMx",
 #' @param assay_name the assay name, default: CosMx
 #' @param image the reference morphology image of the CosMx assay
 #' @param image_name the image name of the CosMx assay, Default: main
-#' @param ome.tiff the OME.TIFF file of the CosMx experiment if exists
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
 #' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon}
@@ -1091,8 +1094,12 @@ importCosMx <- function(path, assay_name = "CosMx",
 #' @importFrom ids random_id
 #'
 #' @noRd
-importCosMxCSV <- function(path, assay_name = "CosMx",
-                        image = NULL, image_name = "main", ome.tiff = NULL, import_molecules = FALSE, verbose = TRUE, ...)
+importCosMxCSV <- function(path, 
+                           assay_name = "CosMx",
+                           image = NULL, 
+                           image_name = "main", 
+                           import_molecules = FALSE, 
+                           verbose = TRUE, ...)
 {
   list_of_files <- list.files(path, full.names = TRUE)
 
@@ -1235,7 +1242,6 @@ importCosMxCSV <- function(path, assay_name = "CosMx",
 #' @param assay_name the assay name, default: CosMx
 #' @param image the reference morphology image of the CosMx assay
 #' @param image_name the image name of the CosMx assay, Default: main
-#' @param ome.tiff the OME.TIFF file of the CosMx experiment if exists
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
 #' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon}
@@ -1244,8 +1250,12 @@ importCosMxCSV <- function(path, assay_name = "CosMx",
 #' @importFrom ids random_id
 #'
 #' @noRd
-importCosMxTileDB <- function(tiledbURI, assay_name = "CosMx",
-                        image = NULL, image_name = "main", ome.tiff = NULL, import_molecules = FALSE, verbose = TRUE, ...)
+importCosMxTileDB <- function(tiledbURI, 
+                              assay_name = "CosMx",
+                              image = NULL, 
+                              image_name = "main", 
+                              import_molecules = FALSE, 
+                              verbose = TRUE, ...)
 {
   # check tiledb and tiledbsc
   if (!requireNamespace("tiledb", quietly = TRUE))
@@ -1368,13 +1378,13 @@ importCosMxTileDB <- function(tiledbURI, assay_name = "CosMx",
 #' @param verbose verbose
 #' @param ... additional parameters passed to the \link{writeImage} function
 #'
-#' @importFrom magick image_read image_contrast
+#' @importFrom magick image_read image_contrast image_composite image_blank
 #' @importFrom EBImage writeImage
 #' @importFrom stringr str_pad
 #'
 #' @export
-generateCosMxImage <- function(dir.path, fov.position.file, increase.contrast = TRUE, output.path = NULL, verbose = TRUE, ...) {
-
+generateCosMxImage <- function(dir.path, fov.position.file, increase.contrast = FALSE, output.path = NULL, verbose = TRUE, ...) {
+  
   # check package
   if(!requireNamespace("reshape2")){
     stop("You have to install the reshape2 package!: install.packages('reshape2')")
@@ -1383,83 +1393,91 @@ generateCosMxImage <- function(dir.path, fov.position.file, increase.contrast = 
   # file path to either Xenium output folder or specified folder
   file.path <- paste0(dir.path, "/CellComposite_lowres.tif")
   output.file <- paste0(output.path, "/CellComposite_lowres.tif")
-
+  
   # check if the file exists in either Xenium output folder, or the specified location
   if(file.exists(file.path) | file.exists(paste0(output.file))){
     if(verbose)
       message("CellComposite_lowres.tif already exists! \n")
     return(NULL)
   }
-
-  # FOV positions of CosMx
-  # list_of_files <- list.files(dir.path)
-  # fov_positions_path <- paste0(dir.path, "/", list_of_files[grepl("fov_positions_file.csv$",list_of_files)][1])
-  fov_positions_path <- fov.position.file
-  fov_positions <- read.csv(fov_positions_path)
-
-  # manipulate fov positions matrix
-  if(verbose)
-    message("Getting FOV Positions \n")
-  relative_fov_positions <- fov_positions
-  x_min <- min(relative_fov_positions$x_global_px)
-  y_min <- min(relative_fov_positions$y_global_px)
-  x_gap <- diff(unique(fov_positions$x_global_px))[1]
-  y_gap <- diff(unique(fov_positions$y_global_px))[1]
-  relative_fov_positions[,c("x_global_px","y_global_px")] <- t(apply(relative_fov_positions[,c("x_global_px","y_global_px")], 1, function(cell){
-    c((cell[1]-x_min)/x_gap,(cell[2]-y_min)/y_gap)
-  }))
-  relative_fov_positions <- relative_fov_positions[order(relative_fov_positions$y_global_px, decreasing = TRUE),]
-
+  
   # Combine Images of the FOV grid
   if(verbose)
-    message("Loading FOV tif files \n")
+    message("Parsing tif files ...")
   image.dir.path <- paste0(dir.path,"/CellComposite/")
   image.files <- list.files(image.dir.path)
   image.files <- image.files[grepl("^CellComposite_F", image.files)]
-  morphology_image_data <- NULL
-  fov_info <- colnames(relative_fov_positions)
-  fov_info <- fov_info[grepl("fov|FOV", fov_info)]
+  image.files_FOV_ID <- vapply(image.files, function(x) strsplit(x, split = "CellComposite_F[0]+")[[1]][2], character(1))
+  image.files_FOV_ID <- as.numeric(gsub(".jpg", "", image.files_FOV_ID))
+  
+  # FOV positions of CosMx
+  if(verbose)
+    message("Getting FOV Positions ...")
+  fov_positions_path <- fov.position.file
+  fov_positions <- read.csv(fov_positions_path)
+  fov_positions[,3] <- max(fov_positions[,3]) - fov_positions[,3]
+  fov_positions[,c(2,3)] <- floor(fov_positions[,c(2,3)]/10)
+  fov_info <- colnames(fov_positions)[grepl("fov|FOV", colnames(fov_positions))]
   if(length(fov_info) > 0){
-    fov_info <- relative_fov_positions[[fov_info]]
+    fov_info <- fov_positions[[fov_info]]
+    fov_info <- fov_info[fov_info %in% image.files_FOV_ID]
   } else {
     stop("no FOV info is found in fov_positions_file.csv")
   }
-  for(i in fov_info){
-    # image_path <- paste0(image.dir.path, "CellComposite_F", stringr::str_pad(as.character(i), 3, pad = 0), ".jpg")
-    image_path <- image.files[grepl(paste0(i,".jpg$"), image.files)]
-    image_data <- magick::image_read(image_path) %>% magick::image_resize("x500") %>% magick::image_raster()
-    if(is.null(morphology_image_data))
-      dim_image <- apply(image_data[,seq_len(2)], 2, max)
-    scale_dim <- relative_fov_positions[i,2:3]*dim_image
-    image_data[,seq_len(2)] <- image_data[,seq_len(2)] +
-      rep(1, nrow(image_data)) %o% as.matrix(scale_dim)[1,]
-    morphology_image_data <- rbind(morphology_image_data, image_data)
+  
+  # Combine images 
+  if(verbose)
+    message("Combining Images ...")
+  extent <- apply(fov_positions[,c(2,3)], 2, max)
+  extent <- extent + 600
+  morphology_image <- magick::image_blank(extent[1], 
+                                          extent[2], 
+                                          color = "black")
+  n <- length(fov_info)
+  for(i in 1:n){
+    
+    # progress 
+    cat(paste0(round(i / n * 100), '% completed \n'))
+    Sys.sleep(.05)
+    if (i == n) cat('Done\n') else cat("\033[2K")
+    
+    # add image
+    image_path <- image.files[grepl(paste0("F[0]+", fov_info[i],".jpg$"), image.files)][1]
+    imagedata <- magick::image_read(file.path(image.dir.path, image_path)) %>% 
+      magick::image_resize(magick::geometry_size_percent(10))
+    off_set <- fov_positions[i,c(2,3)]
+    morphology_image <- morphology_image %>% 
+      image_composite(imagedata, offset = paste0("+", off_set[1], "+", off_set[2]))
+    rm(imagedata)
   }
-  morphology_image_data_array <- reshape2::acast(morphology_image_data, y ~ x)
-  morphology_image <- magick::image_read(morphology_image_data_array) %>% magick::image_resize("x800")
-
+  
   # pick a resolution level
   morphology_image_info <- image_info(morphology_image)
   if(verbose)
-    message("Image Resolution (X:", morphology_image_info$width, " Y:", morphology_image_info$height, ") \n")
-
-  # increase contrast using EBImage
+    message("Image Resolution ",
+            "(X:", morphology_image_info$width, 
+            " Y:", morphology_image_info$height, ") \n")
+  
+  # increase contrast
   if(increase.contrast) {
     if(verbose)
       message("Increasing Contrast \n")
     morphology_image <- magick::image_contrast(morphology_image, sharpen = 1)
   }
-
+  
   # write to the same folder
   if(verbose)
-    message("Writing Tiff File \n")
+    message("Writing tif file ...")
   if(is.null(output.path)){
-    EBImage::writeImage(magick::as_EBImage(morphology_image), file = file.path, ...)
+    EBImage::writeImage(magick::as_EBImage(morphology_image), 
+                        file = file.path, ...)
   } else {
-    EBImage::writeImage(magick::as_EBImage(morphology_image), file = output.file, ...)
+    EBImage::writeImage(magick::as_EBImage(morphology_image), 
+                        file = output.file, ...)
   }
-
-  return(NULL)
+  
+  # return
+  return(morphology_image)
 }
 
 ####
