@@ -258,26 +258,62 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
     grp <- c(grp, cur_grp)
   }
 
+  # # get graph and neighborhood
+  # graph <- vrGraph(object, graph.type = graph.type, assay = names(group.by))
+  # neighbors_graph <- igraph::neighborhood(graph)
+  # neighbors_graph_data <- lapply(neighbors_graph, function(x) {
+  #   cbind(x$name[1],x$name)[-1,]
+  # })
+  # neighbors_graph_data <- do.call(rbind, neighbors_graph_data)
+  # colnames(neighbors_graph_data) <- c("from", "to")
+  
   # get graph and neighborhood
-  graph <- vrGraph(object, graph.type = graph.type, assay = names(group.by))
-  neighbors_graph <- igraph::neighborhood(graph)
-  neighbors_graph_data <- lapply(neighbors_graph, function(x) {
-    cbind(x$name[1],x$name)[-1,]
-  })
-  neighbors_graph_data <- do.call(rbind, neighbors_graph_data)
+  graphx <- vrGraph(object, graph.type = graph.type, assay = names(group.by))
+  vertex_names <- igraph::V(graphx)$name
+  neighbors_graph <- igraph::neighborhood(graphx, nodes = vertex_names)
+  
+  # get neighborhood data
+  node_names <- rep(vertex_names, rep(lapply(neighbors_graph, length)))
+  target_names <- unlist(neighbors_graph)
+  neighbors_graph_data <- cbind(node_names, names(target_names))
   colnames(neighbors_graph_data) <- c("from", "to")
   
   # get simulations
-  grp <- grp[names(V(graph))]
-  grp_sim <- vapply(seq_len(1000), function(x) sample(grp), grp)
+  grp <- grp[names(V(graphx))]
+  # grp_sim <- vapply(seq_len(num.sim), function(x) sample(grp), grp)
+  # rownames(grp_sim) <- names(grp)
+  # 
+  # # get adjacency for observed and simulated pairs
+  # neighbors_graph_data_list <- list(data.frame(neighbors_graph_data, from_value = grp[neighbors_graph_data[,1]], to_value = grp[neighbors_graph_data[,2]], type = "obs"))
+  # for(i in 2:(ncol(grp_sim)+1))
+  #   neighbors_graph_data_list[[i]] <- data.frame(neighbors_graph_data, from_value = grp_sim[,i-1][neighbors_graph_data[,1]], to_value = grp_sim[,i-1][neighbors_graph_data[,2]], type = paste0("sim", i))
+  # neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data_list)
+  grp_sim <- replicate(num.sim, sample(grp), simplify = "matrix")
   rownames(grp_sim) <- names(grp)
   
-  # get adjacency for observed and simulated pairs
-  neighbors_graph_data_list <- list(data.frame(neighbors_graph_data, from_value = grp[neighbors_graph_data[,1]], to_value = grp[neighbors_graph_data[,2]], type = "obs"))
-  for(i in 2:(ncol(grp_sim)+1))
-    neighbors_graph_data_list[[i]] <- data.frame(neighbors_graph_data, from_value = grp_sim[,i-1][neighbors_graph_data[,1]], to_value = grp_sim[,i-1][neighbors_graph_data[,2]], type = paste0("sim", i))
+  from_ids <- neighbors_graph_data[, 1]
+  to_ids <- neighbors_graph_data[, 2]
+  
+  neighbors_graph_data_list <- vector("list", num.sim + 1)
+  neighbors_graph_data_list[[1]] <- data.frame(
+    neighbors_graph_data,
+    from_value = grp[from_ids],
+    to_value = grp[to_ids],
+    type = "obs"
+  )
+  
+  for(i in seq_len(num.sim)) {
+    sim_grp <- grp_sim[, i]
+    neighbors_graph_data_list[[i + 1]] <- data.frame(
+      neighbors_graph_data,
+      from_value = sim_grp[from_ids],
+      to_value = sim_grp[to_ids],
+      type = paste0("sim", i)
+    )
+  }
+  
   neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data_list)
-
+  
   # get adjacency for observed and simulated pairs
   neigh_results <- neighbors_graph_data %>%
     dplyr::group_by(from_value, to_value, type) %>%
