@@ -266,7 +266,8 @@ formVoltRon <- function(data = NULL,
                         image_name = NULL, 
                         feature_name = NULL,
                         project = NULL, 
-                        version = "v2", ...){
+                        version = "v2", 
+                        ...){
 
   # set project name
   if(is.null(project))

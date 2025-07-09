@@ -1056,6 +1056,7 @@ rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level){
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
 #' @param verbose verbose
 #' @param method the approach for importing the CosMx assay either by the folder of CSVs or with TileDB array.
+#' @param feature_name the name/key of the feature set.
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @export
@@ -1064,14 +1065,20 @@ importCosMx <- function(path,
                         image = NULL, 
                         image_name = "main", 
                         import_molecules = FALSE, 
-                        verbose = TRUE, method = "CSV", ...)
+                        verbose = TRUE, 
+                        method = "CSV", 
+                        feature_name = NULL, ...)
 {
   if(method == "CSV"){
     vr <- importCosMxCSV(path = path, assay_name = assay_name,
-                         image = image, image_name = image_name, import_molecules = import_molecules, verbose = verbose, ...)
+                         image = image, image_name = image_name, 
+                         import_molecules = import_molecules, 
+                         feature_name = feature_name, verbose = verbose, ...)
   } else if(method == "TileDB"){
     vr <- importCosMxTileDB(tiledbURI = path, assay_name = assay_name,
-                            image = image, image_name = image_name, import_molecules = import_molecules, verbose = verbose, ...)
+                            image = image, image_name = image_name, 
+                            import_molecules = import_molecules, 
+                            feature_name = feature_name, verbose = verbose, ...)
   } else {
     stop("method should be either 'CSV' or 'TileDB'!")
   }
@@ -1087,6 +1094,7 @@ importCosMx <- function(path,
 #' @param image the reference morphology image of the CosMx assay
 #' @param image_name the image name of the CosMx assay, Default: main
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
+#' @param feature_name the name/key of the feature set
 #' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
@@ -1099,6 +1107,7 @@ importCosMxCSV <- function(path,
                            image = NULL, 
                            image_name = "main", 
                            import_molecules = FALSE, 
+                           feature_name = NULL,
                            verbose = TRUE, ...)
 {
   list_of_files <- list.files(path, full.names = TRUE)
@@ -1176,7 +1185,7 @@ importCosMxCSV <- function(path,
     
     # create VoltRon object
     cell_object <- formVoltRon(data = cur_counts, metadata = cur_metadata, image = image, coords = cur_coords, segments = cur_segments,
-                               main.assay = assay_name, assay.type = "cell", image_name = image_name, feature_name = "RNA", ...)
+                               main.assay = assay_name, assay.type = "cell", image_name = image_name, feature_name = feature_name, ...)
     cell_object$Sample <- paste0("Slide", slide)
     
     # molecule assay
@@ -1243,6 +1252,7 @@ importCosMxCSV <- function(path,
 #' @param image the reference morphology image of the CosMx assay
 #' @param image_name the image name of the CosMx assay, Default: main
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
+#' @param feature_name the name/key of the feature set
 #' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
@@ -1255,6 +1265,7 @@ importCosMxTileDB <- function(tiledbURI,
                               image = NULL, 
                               image_name = "main", 
                               import_molecules = FALSE, 
+                              feature_name = NULL,
                               verbose = TRUE, ...)
 {
   # check tiledb and tiledbsc
@@ -1309,7 +1320,7 @@ importCosMxTileDB <- function(tiledbURI,
     
     # create VoltRon object
     cell_object <- formVoltRon(data = cur_counts, metadata = cur_metadata, image = image, coords = cur_coords, 
-                               main.assay = assay_name, assay.type = "cell", image_name = image_name, feature_name = "RNA", ...)
+                               main.assay = assay_name, assay.type = "cell", image_name = image_name, feature_name = feature_name, ...)
     cell_object$Sample <- paste0("Slide", slide)
     
     # molecule assay
