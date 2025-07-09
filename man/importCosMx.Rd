@@ -9,10 +9,10 @@ importCosMx(
   assay_name = "CosMx",
   image = NULL,
   image_name = "main",
-  ome.tiff = NULL,
   import_molecules = FALSE,
   verbose = TRUE,
   method = "CSV",
+  feature_name = NULL,
   ...
 )
 }
@@ -25,15 +25,17 @@ importCosMx(
 
 \item{image_name}{the image name of the CosMx assay, Default: main}
 
-\item{ome.tiff}{the OME.TIFF file of the CosMx experiment if exists}
-
 \item{import_molecules}{if TRUE, molecule assay will be created along with cell assay.}
 
 \item{verbose}{verbose}
 
 \item{method}{the approach for importing the CosMx assay either by the folder of CSVs or with TileDB array.}
 
+\item{feature_name}{the name/key of the feature set.}
+
 \item{...}{additional parameters passed to \link{formVoltRon}}
+
+\item{ome.tiff}{the OME.TIFF file of the CosMx experiment if exists}
 }
 \description{
 Import CosMx data

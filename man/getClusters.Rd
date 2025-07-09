@@ -6,35 +6,41 @@
 \usage{
 getClusters(
   object,
-  resolution = 1,
-  nclus = integer(0),
   assay = NULL,
-  method = "leiden",
   label = "clusters",
+  method = "leiden",
+  resolution = 1,
   graph = "kNN",
-  seed = 1,
-  abundance_limit = 2
+  nclus = integer(0),
+  distance_measure = "manhattan",
+  abundance_limit = 2,
+  seed = 1
 )
 }
 \arguments{
-\item{object}{a VoltRon object}
-
-\item{resolution}{the resolution parameter for leiden clustering.}
-
-\item{nclus}{The number of cluster centers for K-means clustering.}
+\item{object}{a VoltRon object.}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{method}{The method of clustering. Use 'leiden' to perform graph clustering and 'kmeans' for K-means based clustering}
+\item{label}{the name for the newly created clustering column in the metadata.}
 
-\item{label}{the name for the newly created clustering column in the metadata}
+\item{method}{The method of clustering. Use :
+(i) 'leiden' to perform graph clustering and 
+(ii) 'kmeans' for K-means based clustering
+(iii) 'hierarchical' for hierarchical clustering.}
 
-\item{graph}{the graph type to be used}
+\item{resolution}{the resolution parameter for leiden clustering.}
 
-\item{seed}{seed}
+\item{graph}{the graph type to be used.}
 
-\item{abundance_limit}{the minimum number of points for a cluster, hence clusters with abundance lower than this limit will be appointed to other nearby clusters}
+\item{nclus}{The number of cluster centers for K-means or hierarchical clustering.}
+
+\item{distance_measure}{the distance measure used by hierarchical clustering. See \code{method} for a list of distance measures in \link{dist}.}
+
+\item{abundance_limit}{the minimum number of points for a cluster, hence clusters with abundance lower than this limit will be appointed to other nearby clusters.}
+
+\item{seed}{seed.}
 }
 \description{
 Get clustering of the VoltRon object
