@@ -36,7 +36,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{nclus}{The number of cluster centers for K-means or hierarchical clustering.}
 
-\item{distance_measure}{the distance measure used by hierarchical clustering. See \code{method} for a list of distance measures in \link{dist}}
+\item{distance_measure}{the distance measure used by hierarchical clustering. See \code{method} for a list of distance measures in \link{dist}.}
 
 \item{abundance_limit}{the minimum number of points for a cluster, hence clusters with abundance lower than this limit will be appointed to other nearby clusters.}
 
