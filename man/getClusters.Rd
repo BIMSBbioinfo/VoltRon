@@ -36,7 +36,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{graph}{the graph type to be used.}
 
-\item{data.type}{the type of data used to calculate PCA from: 
+\item{data.type}{the type of data used to cluster spatial points: 
 "norm" (default), "raw" or an existing embeddings \link{vrEmbeddingNames}.}
 
 \item{dims}{the number of dimensions extracted from the embedding if data.type is not NULL}

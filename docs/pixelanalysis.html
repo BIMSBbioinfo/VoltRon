@@ -581,8 +581,84 @@ g1 | g2 </code></pre>
 </table>
 <p></br></p>
 </div>
-<div id="data-transfer" class="section level2">
-<h2>Data transfer</h2>
+</div>
+<div id="image-foundation-models" class="section level1">
+<h1>Image Foundation Models</h1>
+<p>Using VoltRon we can also integrate tile-level spatial entities and
+image tiles with existing image foundation models such as <a
+href="https://github.com/beneroth13/dinov2">DinoV2</a> or <a
+href="https://github.com/mahmoodlab/UNI">UNI</a>.</p>
+<p>We can parse tiles from VoltRon, and get embedding values from a
+Foundation model to conduct downstream clustering using PCA and kmeans
+clustering.</p>
+<p><br></p>
+<div id="importing-images-he-1" class="section level2">
+<h2>Importing Images (H&amp;E)</h2>
+<p>We first import the H&amp;E image to VoltRon. This time we will set
+the tile size to 128 which will generate 34400 tiles on the breast
+cancer tissue.</p>
+<pre class="r watch-out"><code>Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
+                                sample_name = &quot;XeniumR1image&quot;,
+                                image_name = &quot;H&amp;E&quot;, tile.size = 128)
+Xen_R1_image@metadata</code></pre>
+<pre><code>VoltRon Metadata Object 
+This object includes: 
+   34400 tiles </code></pre>
+<p><br></p>
+</div>
+<div id="add-external-embeddings" class="section level2">
+<h2>Add External Embeddings</h2>
+<p>We will now load and add the DinoV2 embeddings as additional
+embedding data before analysis and clustering. Here, we use
+<strong>overwrite</strong> argument (default is <code>FALSE</code>) as a
+safe-guard for overwriting already existing embeddings with the same
+name, i.e. <code>type = "dinov2"</code>, but if the an embedding with
+name <code>dinov2</code> doesn’t exist, this will be overlooked.</p>
+<pre class="r watch-out"><code>dinov2_embed &lt;- read.csv(&quot;img_128_processed.csv&quot;)
+vrEmbeddings(Xen_R1_image, type = &quot;dinov2&quot;, overwrite = TRUE) &lt;-  dinov2_embed</code></pre>
+<p><br></p>
+</div>
+<div id="dimensionality-reduction-1" class="section level2">
+<h2>Dimensionality Reduction</h2>
+<p>If we check the number of extracted features from the DinoV2 model,
+we see that its 1536 which we could further reduced using PCA and UMAP
+prior to clustering.</p>
+<pre class="r watch-out"><code>Xen_R1_image &lt;- getPCA(Xen_R1_image, dims = 50, data.type = &quot;dinov2&quot;)
+Xen_R1_image &lt;- getUMAP(Xen_R1_image)
+vrEmbeddingPlot(Xen_R1_image, embedding = &quot;umap&quot;, group.by = &quot;Sample&quot;)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_embedding.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="clustering-1" class="section level2">
+<h2>Clustering</h2>
+<p>With the PCA embeddings generated from the DinoV2 embeddings now we
+can apply K means clustering.</p>
+<pre class="r watch-out"><code>Xen_R1_image &lt;- getClusters(Xen_R1_image, method = &quot;kmeans&quot;, 
+                            label = &quot;Cluster_kmeans&quot;, data.type = &quot;pca&quot;, 
+                            nclus = 10)</code></pre>
+<pre class="r watch-out"><code>vrEmbeddingPlot(Xen_R1_image, embedding = &quot;umap&quot;, group.by = &quot;Cluster_snn&quot;)
+vrSpatialPlot(Xen_R1_image, group.by = &quot;Cluster_kmeans&quot;, alpha = 1)</code></pre>
+<table>
+<tbody>
+<tr style="vertical-align: center">
+<td style="width:45%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_embedding_kmeans.png" class="center">
+</td>
+<td style="width:55%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_spatial.png" class="center">
+</td>
+</tr>
+</tbody>
+</table>
+<p>We can zoom to certain locations over the tissue and visualize the
+tile-based embedding clusters over regions.</p>
+<pre class="r watch-out"><code># interactive subsetting
+Xen_R1_image_subset &lt;- subset(Xen_R1_image, interactive = TRUE)
+Xen_R1_image_subset &lt;- Xen_R1_image_subset$subsets[[1]]
+
+# visualization
+vrSpatialPlot(Xen_R1_image_subset, group.by = &quot;Cluster_kmeans&quot;, alpha = 0.5)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_spatial_subset.png" class="center"></p>
 </div>
 </div>
 
