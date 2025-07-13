@@ -42,7 +42,100 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 <br>
 
-# Label Transfer via Registration
+# Xenium Breast Cancer Data 
+
+## Import Spatial Data
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_R1 <- importXenium("Xenium_R1/outs",
+                       sample_name = "XeniumR1", resolution_level = 3,
+                       overwrite_resolution = TRUE)
+Xen_R1
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif",
+                                sample_name = "XeniumR1",
+                                channel_names = "H&E", tile.size = 128)
+Xen_R1_image                                
+```
+
+## Clustering
+
+```{r eval = FALSE, class.source="watch-out"}
+embed_data <- read.csv("data/BreastTile/img_128_processed.csv", row.names = 1)
+ind <- sapply(vrSpatialPoints(Xen_R1_image), function(x) strsplit(x, split = "_")[[1]][1])
+embed_data <- embed_data[ind,]
+rownames(embed_data) <- vrSpatialPoints(Xen_R1_image)
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+vrEmbeddings(Xen_R1_image, type = "dinov2", overwrite = TRUE) <-  embed_data
+Xen_R1_image <- getPCA(Xen_R1_image, dims = 50, data.type = "dinov2")
+Xen_R1_image <- getUMAP(Xen_R1_image)
+Xen_R1_image <- getClusters(Xen_R1_image, method = "kmeans", label = "Cluster_kmeans", data.type = "pca", nclus = 10)
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPlot(Xen_R1_image, group.by = "Cluster_kmeans", alpha = 1)
+```
+
+## Automated H&E Registration
+
+```{r eval = FALSE, class.source="watch-out"}
+xen_reg <- registerSpatialData(object_list = list(Xen_R1_image, Xen_R1))
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_R1_reg <- xen_reg$registered_spat[[2]]
+Xen_R1_merged <- Xen_R1_image
+Xen_R1_merged <- addAssay(Xen_R1_merged, 
+                          metadata = Metadata(Xen_R1_reg), 
+                          assay = Xen_R1_reg[["Assay1"]],
+                          assay_name = "Xenium",
+                          sample = "XeniumR1")
+```
+
+## Label Transfer
+
+```{r eval = FALSE, class.source="watch-out"}
+# transfer label
+Xen_R1_merged <- transferData(Xen_R1_merged, 
+                              from = "Assay1", 
+                              to = "Assay2", 
+                              features = "Cluster_kmeans", 
+                              expand = FALSE)
+
+# transfer image
+vrImages(Xen_R1_merged[["Assay2"]], name = "main_reg", channel = "H&E") <- 
+  vrImages(Xen_R1_merged, assay = "Assay1")
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+vrMainAssay(Xen_R1_merged) <- "Xenium"
+vrSpatialPlot(Xen_R1_merged, group.by = "Cluster_kmeans", spatial = "main")
+```
+
+## Marker Analysis
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_data_seu <- VoltRon::as.Seurat(Xen_R1_merged, cell.assay = "Xenium", type = "image")
+Xen_data_seu <- NormalizeData(Xen_data_seu, scale.factor = 100)
+Idents(Xen_data_seu) <- "Cluster_kmeans"
+markers_image <- FindAllMarkers(Xen_data_seu)
+markers_image_top <- markers_image %>%
+  group_by(cluster) %>%
+  dplyr::filter(avg_log2FC > 1, p_val_adj < 0.05, pct.1 > 0.5)
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_R1_merged <- normalizeData(Xen_R1_merged, sizefactor = 1000)
+vrHeatmapPlot(Xen_R1_merged, group.by = "Cluster_kmeans", 
+              features = unique(markers_image_top$gene), 
+              show_row_names = TRUE)
+```
+
+# Xenium COVID-19 Lung Data 
 
 VoltRon is capable of analyzing molecule-level subcellular datasets independent of single cells, and specifically those that may also found outside of these cells. To demonstrate how VoltRon investigates extra-cellular molecules, we will make use of another Xenium in situ dataset where custom Xenium probes designed to hybridize distinct open reading frames of SARS-COV-2 virus molecules. These subcellular entities which then can be detected both within and outside of cells which allows to understand proliferation mechanics of the virus across the tissue.
 
@@ -271,7 +364,7 @@ To run TissUUmaps please follow installation instructions [here](https://tissuum
 
 <br>
 
-## Label transfer
+## Label Transfer
 
 Now we can transfer ROI annotations as additional metadata features of the molecule assay. We will refer the new metadata column as "Region" which will indicate if the molecule is within any annotated ROI in the same layer.
 
