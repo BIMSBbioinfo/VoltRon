@@ -204,8 +204,13 @@ This object includes:
 We will now load and add the DinoV2 embeddings as additional embedding data before analysis and clustering. Here, we use **overwrite** argument (default is `FALSE`) as a safe-guard for overwriting already existing embeddings with the same name, i.e. `type = "dinov2"`, but if the an embedding with name `dinov2` doesn't exist, this will be overlooked. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-# get embedding data
-embed_data <- read.csv("data/BreastTile/img_128_processed.csv", row.names = 1)
+# get embed data
+embed_data <- read.csv("data/BreastTile/img_128.csv")
+rownames(embed_data) <- embed_data$tile_id
+embed_data <- embed_data[,-1]
+embed_data <- as.matrix(embed_data)
+# write.csv(embed_data, file = "data/BreastTile/img_128_processed.csv", quote = FALSE, row.names = TRUE)
+# embed_data <- read.csv("data/BreastTile/img_128_processed.csv", row.names = 1)
 ind <- sapply(vrSpatialPoints(Xen_R1_image), function(x) strsplit(x, split = "_")[[1]][1])
 embed_data <- embed_data[ind,]
 rownames(embed_data) <- vrSpatialPoints(Xen_R1_image)
