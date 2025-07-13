@@ -615,8 +615,9 @@ You can also visualize the segments that represents annotations of the tissue se
 
 ```{r eval = TRUE, class.source="watch-out", fig.height=5, fig.width=6, fig.align='center', out.width="60%"}
 vrSpatialPlot(merged_object, plot.segments = FALSE, group.by = "clusters") |>
-  addSpatialLayer(merged_object, assay = "Assay3", group.by = "Region", alpha = 0.3, 
-                  color = list(Region1 = "blue", Region2 = "yellow"))
+  addSpatialLayer(merged_object, assay = "Assay3", group.by = "annotation", alpha = 0.6, 
+                  group.ids = c("Immune", "DCIS_Subtype1"),
+                  color = list(Immune = "blue", DCIS_Subtype1 = "yellow"))
 ```
 
 <br>

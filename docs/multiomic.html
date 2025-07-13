@@ -840,27 +840,51 @@ odds ratio
 </div>
 <div id="xenium-breast-cancer-data" class="section level1">
 <h1>Xenium Breast Cancer Data</h1>
-<div id="import-spatial-data" class="section level2">
-<h2>Import Spatial Data</h2>
+<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD ## Import Spatial Data</p>
 <pre class="r watch-out"><code>Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;,
                        sample_name = &quot;XeniumR1&quot;, resolution_level = 3,
+=======
+VoltRon allows analyzing biological images, such as H&amp;E stainings of tissue sections, independant to omics assays on either the same or adjacent tissue section. VoltRon defines image tiles, which are collections of image pixels of the same size, and generate latent variables that are analyzed downstream. Unsupervised clustering of these tiles partition regions over the image with respect to morphological features. Here, these regions might be associated to tumor, immune or strama niches can then be transfered to cells in the same tissue section learn collections of cells with similar features. 
+
+We will use the **H&amp;E images** generated from the same sections as the **Xenium In Situ** platform, and cluster tiles of the H&amp;E to later transfer groups of tiles to Xenium cells. 
+
+You can download the Xenium readout and the H&amp;E image of the same tissue section from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import **In Situ Replicate 1** and **Supplemental: Post-Xenium H&amp;E image (TIFF)**). 
+
+## Import Spatial Data
+
+We import both Xenium and post-Xenium H&amp;E images into two separate VoltRon objects and overlay H&amp;E images. </code></pre>
+<pre class="r watch-out"><code>Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;,
+                       sample_name = &quot;XeniumR1&quot;, 
+                       resolution_level = 3,
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; dev
                        overwrite_resolution = TRUE)
 Xen_R1</code></pre>
 <pre class="r watch-out"><code>Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
                                 sample_name = &quot;XeniumR1&quot;,
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
                                 channel_names = &quot;H&amp;E&quot;, tile.size = 128)
+=======
+                                channel_names = &quot;H&amp;E&quot;, 
+                                tile.size = 128)
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; dev
 Xen_R1_image                                </code></pre>
 <p><br></p>
-</div>
 <div id="clustering" class="section level2">
 <h2>Clustering</h2>
+<p>Using VoltRon we can also integrate tile-level spatial entities and
+image tiles with existing image foundation models such as <a
+href="https://github.com/beneroth13/dinov2">DinoV2</a> or <a
+href="https://github.com/mahmoodlab/UNI">UNI</a>. We can parse tiles
+from VoltRon, and get embedding values from a Foundation model to
+conduct downstream clustering using PCA and kmeans clustering. See <a
+href="pixelanalysis.html#Image_Foundation_Models">Image tiles/pixels
+analysis</a> tutorial for more information.</p>
 <pre class="r watch-out"><code>embed_data &lt;- readRDS(&quot;data/BreastTile/img_128_processed.rds&quot;)
 ind &lt;- sapply(vrSpatialPoints(Xen_R1_image), function(x) strsplit(x, split = &quot;_&quot;)[[1]][1])
 embed_data &lt;- embed_data[ind,]
-rownames(embed_data) &lt;- vrSpatialPoints(Xen_R1_image)</code></pre>
-<pre class="r watch-out"><code>vrEmbeddings(Xen_R1_image, type = &quot;dinov2&quot;, overwrite = TRUE) &lt;-  embed_data
-Xen_R1_image &lt;- getPCA(Xen_R1_image, dims = 50, data.type = &quot;dinov2&quot;)
-Xen_R1_image &lt;- getUMAP(Xen_R1_image)
+rownames(embed_data) &lt;- vrSpatialPoints(Xen_R1_image)
+vrEmbeddings(Xen_R1_image, type = &quot;dinov2&quot;, overwrite = TRUE) &lt;-  embed_data</code></pre>
+<pre class="r watch-out"><code>Xen_R1_image &lt;- getPCA(Xen_R1_image, dims = 50, data.type = &quot;dinov2&quot;)
 Xen_R1_image &lt;- getClusters(Xen_R1_image, method = &quot;kmeans&quot;, label = &quot;Cluster_kmeans&quot;, data.type = &quot;pca&quot;, nclus = 10)</code></pre>
 <pre class="r watch-out"><code>vrSpatialPlot(Xen_R1_image, group.by = &quot;Cluster_kmeans&quot;, alpha = 1)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_spatial.png" class="center"></p>
@@ -868,9 +892,20 @@ Xen_R1_image &lt;- getClusters(Xen_R1_image, method = &quot;kmeans&quot;, label 
 </div>
 <div id="automated-he-registration-1" class="section level2">
 <h2>Automated H&amp;E Registration</h2>
+<p>In order to transfer the cluster labels of the tiles that partition
+regions, we need to first syncronize the spatial coordinate systems of
+the H&amp;E image and the Xenium cells. Here we use the H&amp;E image as
+the reference image and warp the coordinate system of the Xenium cells
+using the DAPI channel of the Xenium assay. See <a
+href="registration.html#Alignment_of_Xenium_and_HE">Spatial Data
+Alignment</a> tutorial for more information on image registeration and
+alignment.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1_image, Xen_R1))</code></pre>
 <p><img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_HE_registration.png" class="center"></p>
 <p><br></p>
+<p>We can now parse the registered Xenium data from the result of the
+<strong>registerSpatialData</strong> function, and add this assay to the
+same section as the H&amp;E image.</p>
 <pre class="r watch-out"><code>Xen_R1_reg &lt;- xen_reg$registered_spat[[2]]
 Xen_R1_merged &lt;- Xen_R1_image
 Xen_R1_merged &lt;- addAssay(Xen_R1_merged, 
@@ -881,6 +916,18 @@ Xen_R1_merged &lt;- addAssay(Xen_R1_merged,
 </div>
 <div id="label-transfer-1" class="section level2">
 <h2>Label Transfer</h2>
+<p>We can view the combined dataset with the H&amp;E tile data and
+Xenium assay that are in the same tissue section.</p>
+<pre class="r watch-out"><code>SampleMetadata(Xen_R1_merged)</code></pre>
+<pre><code>           Assay    Layer   Sample
+Assay1 ImageData Section1 XeniumR1
+Assay2    Xenium Section1 XeniumR1</code></pre>
+<p>We would like to transfer the labels of the tiles to cells whose
+centroids are within a single tile. Thus we transfer
+<strong>Cluster_kmeans</strong> from Assay1 (H&amp;E tiles) to Assay2
+(Xenium cells). We can also transfer the H&amp;E image to the Xenium
+assay the second (registered) coordinate system of Xenium data is sync
+with the H&amp;E image.</p>
 <pre class="r watch-out"><code># transfer label
 Xen_R1_merged &lt;- transferData(Xen_R1_merged, 
                               from = &quot;Assay1&quot;, 
@@ -891,6 +938,10 @@ Xen_R1_merged &lt;- transferData(Xen_R1_merged,
 # transfer image
 vrImages(Xen_R1_merged[[&quot;Assay2&quot;]], name = &quot;main_reg&quot;, channel = &quot;H&amp;E&quot;) &lt;- 
   vrImages(Xen_R1_merged, assay = &quot;Assay1&quot;)</code></pre>
+<p>You can visualize the transferred tile labels in two different
+spatial coordinate systems and with different images (DAPI, H&amp;E
+etc.) using <strong>spatial</strong> and <strong>channel</strong>
+arguements, respectively.</p>
 <pre class="r watch-out"><code>vrMainAssay(Xen_R1_merged) &lt;- &quot;Xenium&quot;
 vrSpatialPlot(Xen_R1_merged, group.by = &quot;Cluster_kmeans&quot;, spatial = &quot;main&quot;)
 vrSpatialPlot(Xen_R1_merged, group.by = &quot;Cluster_kmeans&quot;, spatial = &quot;main_reg&quot;, 
@@ -911,7 +962,16 @@ vrSpatialPlot(Xen_R1_merged, group.by = &quot;Cluster_kmeans&quot;, spatial = &q
 </div>
 <div id="marker-analysis" class="section level2">
 <h2>Marker Analysis</h2>
-<pre class="r watch-out"><code>Xen_data_seu &lt;- VoltRon::as.Seurat(Xen_R1_merged, cell.assay = &quot;Xenium&quot;, type = &quot;image&quot;)
+<p>Now that we have labelled cells whose partitioning is determined by
+the morphological (image foundayion model) features, we can perform
+marker analysis to determine signatures associated with groups. We
+convert the cells assays of the VoltRon object to a Seurat object prior
+to marker analysis, find markers associated with groups and then parse
+significant markers to visualize later. See <a
+href="conversion.html#Seurat">Conversion</a> tutorial for more
+information on VoltRon’s interoperability features.</p>
+<pre class="r watch-out"><code>library(Seurat)
+Xen_data_seu &lt;- VoltRon::as.Seurat(Xen_R1_merged, cell.assay = &quot;Xenium&quot;, type = &quot;image&quot;)
 Xen_data_seu &lt;- NormalizeData(Xen_data_seu, scale.factor = 100)
 Idents(Xen_data_seu) &lt;- &quot;Cluster_kmeans&quot;
 markers_image &lt;- FindAllMarkers(Xen_data_seu)
@@ -929,12 +989,33 @@ head(as.data.frame(markers_image_top))</code></pre>
 6     0   1.493334 0.670 0.259         0       8 MYO5B</code></pre>
 </div>
 <p><br></p>
+<p>Heatmap visualization of these clusters reveal markers of tumor,
+stroma and immune niches.</p>
 <pre class="r watch-out"><code>Xen_R1_merged &lt;- normalizeData(Xen_R1_merged, sizefactor = 1000)
 vrHeatmapPlot(Xen_R1_merged, group.by = &quot;Cluster_kmeans&quot;, 
               features = unique(markers_image_top$gene), 
               show_row_names = TRUE)</code></pre>
 <p><img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_heatmap_cell.png" class="center"></p>
 <p><br></p>
+<p>Inspecting the heatmap and the spatial plot simultanuously, we can
+see that some tiles are associated with the H&amp;E background where
+others are representing tumor, immune and stroma niches.</p>
+<pre class="r watch-out"><code>annotation &lt;- Xen_R1_image$Cluster_kmeans 
+annotation[annotation %in% c(6,8)] &lt;- &quot;Tumor Niche&quot;
+annotation[annotation %in% c(1)] &lt;- &quot;Immune Niche&quot;
+annotation[annotation %in% c(2,10,9)] &lt;- &quot;Stroma&quot;
+annotation[annotation %in% c(3,5,7,4)] &lt;- &quot;Background&quot;
+Xen_R1_image$annotation &lt;- annotation</code></pre>
+<p>Users can also visualize tile and cell simultaneously and their
+features.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(Xen_R1_image_subset, group.by = &quot;Cluster_kmeans&quot;, alpha = 0.7)
+vrSpatialPlot(Xen_R1_image_subset, assay = &quot;Xenium&quot;, group.by = &quot;annotation&quot;, 
+              alpha = 0.7, plot.segments = TRUE, channel = &quot;H&amp;E&quot;)</code></pre>
+<p><img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_spatial_cell_joint_subset.png" class="center"></p>
+<pre class="r watch-out"><code>vrSpatialFeaturePlot(Xen_R1_image_subset, assay = &quot;Xenium&quot;, 
+                     features = c(&quot;PTPRC&quot;, &quot;EPCAM&quot;, &quot;MMP2&quot;), 
+                     alpha = 0.7, plot.segments = TRUE, ncol = 2)</code></pre>
+<p><img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_spatial_cell_markers_subset.png" class="center"></p>
 </div>
 </div>
 
