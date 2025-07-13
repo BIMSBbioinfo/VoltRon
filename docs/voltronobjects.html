@@ -493,13 +493,20 @@ tissue block with multiple layers and assays).</p>
 <p>The <strong>Metadata</strong> function calls the metadata table of
 the main assay type (see <a href="#assays">vrMainAssay</a>).</p>
 <pre class="r watch-out"><code>Metadata(visium_data)</code></pre>
-<pre><code>##                                                  id Count assay_id  Assay    Layer    Sample
-## AAAGGCTCTCGCGCCG-1_Assay1 AAAGGCTCTCGCGCCG-1_Assay1 39690   Assay1 Visium Section1 Anterior1
-## AAATGGCCCGTGCCCT-1_Assay1 AAATGGCCCGTGCCCT-1_Assay1 33516   Assay1 Visium Section1 Anterior1
-## AAATTACACGACTCTG-1_Assay1 AAATTACACGACTCTG-1_Assay1 12250   Assay1 Visium Section1 Anterior1
-## AAGACATACGTGGTTT-1_Assay1 AAGACATACGTGGTTT-1_Assay1 31821   Assay1 Visium Section1 Anterior1
-## ACCTACTATAAATCTA-1_Assay1 ACCTACTATAAATCTA-1_Assay1 41387   Assay1 Visium Section1 Anterior1
-## ACGCGGGCCAAGGACA-1_Assay1 ACGCGGGCCAAGGACA-1_Assay1 48003   Assay1 Visium Section1 Anterior1</code></pre>
+<pre><code>##                                                  id Count assay_id  Assay
+## AAAGGCTCTCGCGCCG-1_Assay1 AAAGGCTCTCGCGCCG-1_Assay1 39690   Assay1 Visium
+## AAATGGCCCGTGCCCT-1_Assay1 AAATGGCCCGTGCCCT-1_Assay1 33516   Assay1 Visium
+## AAATTACACGACTCTG-1_Assay1 AAATTACACGACTCTG-1_Assay1 12250   Assay1 Visium
+## AAGACATACGTGGTTT-1_Assay1 AAGACATACGTGGTTT-1_Assay1 31821   Assay1 Visium
+## ACCTACTATAAATCTA-1_Assay1 ACCTACTATAAATCTA-1_Assay1 41387   Assay1 Visium
+## ACGCGGGCCAAGGACA-1_Assay1 ACGCGGGCCAAGGACA-1_Assay1 48003   Assay1 Visium
+##                              Layer    Sample
+## AAAGGCTCTCGCGCCG-1_Assay1 Section1 Anterior1
+## AAATGGCCCGTGCCCT-1_Assay1 Section1 Anterior1
+## AAATTACACGACTCTG-1_Assay1 Section1 Anterior1
+## AAGACATACGTGGTTT-1_Assay1 Section1 Anterior1
+## ACCTACTATAAATCTA-1_Assay1 Section1 Anterior1
+## ACGCGGGCCAAGGACA-1_Assay1 Section1 Anterior1</code></pre>
 <p>You can also specify the assay ID or the assay type to call metadata
 of a subset of spatial points.</p>
 <pre class="r watch-out"><code>Metadata(visium_data, assay = &quot;Visium&quot;)
@@ -523,12 +530,14 @@ spot, cell, molecule and tile).</p>
 <p>The <strong>vrSpatialPoints</strong> function return the IDs of these
 entities for further downstream operations, such as subsetting etc.</p>
 <pre class="r watch-out"><code>vrSpatialPoints(visium_data)</code></pre>
-<pre><code>## [1] &quot;AAAGGCTCTCGCGCCG-1_Assay1&quot; &quot;AAATGGCCCGTGCCCT-1_Assay1&quot; &quot;AAATTACACGACTCTG-1_Assay1&quot;</code></pre>
+<pre><code>## [1] &quot;AAAGGCTCTCGCGCCG-1_Assay1&quot; &quot;AAATGGCCCGTGCCCT-1_Assay1&quot;
+## [3] &quot;AAATTACACGACTCTG-1_Assay1&quot;</code></pre>
 <p>You can also specify the assay ID or the assay type to call metadata
 of a subset of spatial points.</p>
 <pre class="r watch-out"><code>vrSpatialPoints(visium_data, assay = &quot;Visium&quot;)
 vrSpatialPoints(visium_data, assay = &quot;Assay1&quot;)</code></pre>
-<pre><code>## [1] &quot;AAAGGCTCTCGCGCCG-1_Assay1&quot; &quot;AAATGGCCCGTGCCCT-1_Assay1&quot; &quot;AAATTACACGACTCTG-1_Assay1&quot;</code></pre>
+<pre><code>## [1] &quot;AAAGGCTCTCGCGCCG-1_Assay1&quot; &quot;AAATGGCCCGTGCCCT-1_Assay1&quot;
+## [3] &quot;AAATTACACGACTCTG-1_Assay1&quot;</code></pre>
 <p><br></p>
 </div>
 <div id="assays" class="section level2">
@@ -589,7 +598,8 @@ call coordinates (see <a href="#image">vrMainSpatial</a>)</p>
 function looks for a registered version of the main coordinate system
 and returns its coordinates (if there is any).</p>
 <pre class="r watch-out"><code>vrCoordinates(visium_data, spatial_name = &quot;main&quot;, reg = TRUE)</code></pre>
-<pre><code>## Warning in .local(object, ...): There are no registered spatial systems with name main!</code></pre>
+<pre><code>## Warning in .local(object, ...): There are no registered spatial systems with
+## name main!</code></pre>
 <pre><code>##                                   x        y z
 ## CCTTGACCACTTTATT-1_Assay1 463.78658 183.1497 0
 ## ATTTGTCTTGGGAGCT-1_Assay1 374.97419 275.8864 0
@@ -739,21 +749,35 @@ object, and called later again</p>
 <div id="feature-matrix-data" class="section level2">
 <h2>Feature Matrix (Data)</h2>
 <pre class="r watch-out"><code>vrData(visium_data)[3:8,3:5]</code></pre>
-<pre><code>##         AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
-## Gm19938                         0                         0                         0
-## Gm37381                         0                         0                         0
-## Rp1                             0                         0                         0
-## Sox17                           0                         1                         1
-## Gm37587                         0                         0                         0
-## Gm37323                         0                         0                         0</code></pre>
+<pre><code>##         AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1
+## Gm19938                         0                         0
+## Gm37381                         0                         0
+## Rp1                             0                         0
+## Sox17                           0                         1
+## Gm37587                         0                         0
+## Gm37323                         0                         0
+##         ACCTACTATAAATCTA-1_Assay1
+## Gm19938                         0
+## Gm37381                         0
+## Rp1                             0
+## Sox17                           1
+## Gm37587                         0
+## Gm37323                         0</code></pre>
 <pre class="r watch-out"><code>vrData(visium_data, norm = TRUE)[3:8,3:5]</code></pre>
-<pre><code>##         AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1 ACCTACTATAAATCTA-1_Assay1
-## Gm19938                         0                 0.0000000                 0.0000000
-## Gm37381                         0                 0.0000000                 0.0000000
-## Rp1                             0                 0.0000000                 0.0000000
-## Sox17                           0                 0.2732722                 0.2164184
-## Gm37587                         0                 0.0000000                 0.0000000
-## Gm37323                         0                 0.0000000                 0.0000000</code></pre>
+<pre><code>##         AAATTACACGACTCTG-1_Assay1 AAGACATACGTGGTTT-1_Assay1
+## Gm19938                         0                 0.0000000
+## Gm37381                         0                 0.0000000
+## Rp1                             0                 0.0000000
+## Sox17                           0                 0.2732722
+## Gm37587                         0                 0.0000000
+## Gm37323                         0                 0.0000000
+##         ACCTACTATAAATCTA-1_Assay1
+## Gm19938                 0.0000000
+## Gm37381                 0.0000000
+## Rp1                     0.0000000
+## Sox17                   0.2164184
+## Gm37587                 0.0000000
+## Gm37323                 0.0000000</code></pre>
 <p><br></p>
 </div>
 <div id="embedding" class="section level2">
@@ -816,7 +840,8 @@ visium_data_subset</code></pre>
 href="#spatialpoints">vrSpatialPoints</a>)</p>
 <pre class="r watch-out"><code>selected_points &lt;- vrSpatialPoints(visium_data)
 selected_points[1:20]</code></pre>
-<pre><code>## [1] &quot;AAAGGCTCTCGCGCCG-1_Assay1&quot; &quot;AAATGGCCCGTGCCCT-1_Assay1&quot; &quot;AAATTACACGACTCTG-1_Assay1&quot;</code></pre>
+<pre><code>## [1] &quot;AAAGGCTCTCGCGCCG-1_Assay1&quot; &quot;AAATGGCCCGTGCCCT-1_Assay1&quot;
+## [3] &quot;AAATTACACGACTCTG-1_Assay1&quot;</code></pre>
 <pre class="r watch-out"><code>visium_data_subset &lt;- subset(visium_data, spatialpoints = selected_points[1:20])
 visium_data_subset</code></pre>
 <pre><code>## VoltRon Object 
@@ -833,12 +858,18 @@ this list. However, it would only subset the main assay (see <a
 href="#assays">vrMainAssay</a>)</p>
 <pre class="r watch-out"><code>selected_features &lt;- vrFeatures(visium_data)
 selected_features[1:20]</code></pre>
-<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;       &quot;Mrpl15&quot;        &quot;Lypla1&quot;       
-## [11] &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;        &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
+<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;      
+##  [5] &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;      
+##  [9] &quot;Mrpl15&quot;        &quot;Lypla1&quot;        &quot;Tcea1&quot;         &quot;Rgs20&quot;        
+## [13] &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;       
+## [17] &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
 <pre class="r watch-out"><code>visium_data_subset &lt;- subset(visium_data, features = selected_features[1:20])
 vrFeatures(visium_data_subset)</code></pre>
-<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;       &quot;Mrpl15&quot;        &quot;Lypla1&quot;       
-## [11] &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;        &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
+<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;      
+##  [5] &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;      
+##  [9] &quot;Mrpl15&quot;        &quot;Lypla1&quot;        &quot;Tcea1&quot;         &quot;Rgs20&quot;        
+## [13] &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;       
+## [17] &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
 <p><br></p>
 </div>
 <div id="interactive-subsetting" class="section level3">
@@ -941,8 +972,9 @@ type.</p>
 <p>You can also visualize the segments that represents annotations of
 the tissue sections along with the cells.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(merged_object, plot.segments = FALSE, group.by = &quot;clusters&quot;) |&gt;
-  addSpatialLayer(merged_object, assay = &quot;Assay3&quot;, group.by = &quot;Region&quot;, alpha = 0.3, 
-                  color = list(Region1 = &quot;blue&quot;, Region2 = &quot;yellow&quot;))</code></pre>
+  addSpatialLayer(merged_object, assay = &quot;Assay3&quot;, group.by = &quot;annotation&quot;, alpha = 0.6, 
+                  group.ids = c(&quot;Immune&quot;, &quot;DCIS_Subtype1&quot;),
+                  color = list(Immune = &quot;blue&quot;, DCIS_Subtype1 = &quot;yellow&quot;))</code></pre>
 <pre><code>## Warning: Duplicated `override.aes` is ignored.</code></pre>
 <p><img src="voltronobjects_files/figure-html/unnamed-chunk-74-1.png" width="60%" style="display: block; margin: auto;" /></p>
 <p><br></p>
