@@ -42,99 +42,6 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 <br>
 
-# Xenium Breast Cancer Data 
-
-## Import Spatial Data
-
-```{r eval = FALSE, class.source="watch-out"}
-Xen_R1 <- importXenium("Xenium_R1/outs",
-                       sample_name = "XeniumR1", resolution_level = 3,
-                       overwrite_resolution = TRUE)
-Xen_R1
-```
-
-```{r eval = FALSE, class.source="watch-out"}
-Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif",
-                                sample_name = "XeniumR1",
-                                channel_names = "H&E", tile.size = 128)
-Xen_R1_image                                
-```
-
-## Clustering
-
-```{r eval = FALSE, class.source="watch-out"}
-embed_data <- read.csv("data/BreastTile/img_128_processed.csv", row.names = 1)
-ind <- sapply(vrSpatialPoints(Xen_R1_image), function(x) strsplit(x, split = "_")[[1]][1])
-embed_data <- embed_data[ind,]
-rownames(embed_data) <- vrSpatialPoints(Xen_R1_image)
-```
-
-```{r eval = FALSE, class.source="watch-out"}
-vrEmbeddings(Xen_R1_image, type = "dinov2", overwrite = TRUE) <-  embed_data
-Xen_R1_image <- getPCA(Xen_R1_image, dims = 50, data.type = "dinov2")
-Xen_R1_image <- getUMAP(Xen_R1_image)
-Xen_R1_image <- getClusters(Xen_R1_image, method = "kmeans", label = "Cluster_kmeans", data.type = "pca", nclus = 10)
-```
-
-```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(Xen_R1_image, group.by = "Cluster_kmeans", alpha = 1)
-```
-
-## Automated H&E Registration
-
-```{r eval = FALSE, class.source="watch-out"}
-xen_reg <- registerSpatialData(object_list = list(Xen_R1_image, Xen_R1))
-```
-
-```{r eval = FALSE, class.source="watch-out"}
-Xen_R1_reg <- xen_reg$registered_spat[[2]]
-Xen_R1_merged <- Xen_R1_image
-Xen_R1_merged <- addAssay(Xen_R1_merged, 
-                          metadata = Metadata(Xen_R1_reg), 
-                          assay = Xen_R1_reg[["Assay1"]],
-                          assay_name = "Xenium",
-                          sample = "XeniumR1")
-```
-
-## Label Transfer
-
-```{r eval = FALSE, class.source="watch-out"}
-# transfer label
-Xen_R1_merged <- transferData(Xen_R1_merged, 
-                              from = "Assay1", 
-                              to = "Assay2", 
-                              features = "Cluster_kmeans", 
-                              expand = FALSE)
-
-# transfer image
-vrImages(Xen_R1_merged[["Assay2"]], name = "main_reg", channel = "H&E") <- 
-  vrImages(Xen_R1_merged, assay = "Assay1")
-```
-
-```{r eval = FALSE, class.source="watch-out"}
-vrMainAssay(Xen_R1_merged) <- "Xenium"
-vrSpatialPlot(Xen_R1_merged, group.by = "Cluster_kmeans", spatial = "main")
-```
-
-## Marker Analysis
-
-```{r eval = FALSE, class.source="watch-out"}
-Xen_data_seu <- VoltRon::as.Seurat(Xen_R1_merged, cell.assay = "Xenium", type = "image")
-Xen_data_seu <- NormalizeData(Xen_data_seu, scale.factor = 100)
-Idents(Xen_data_seu) <- "Cluster_kmeans"
-markers_image <- FindAllMarkers(Xen_data_seu)
-markers_image_top <- markers_image %>%
-  group_by(cluster) %>%
-  dplyr::filter(avg_log2FC > 1, p_val_adj < 0.05, pct.1 > 0.5)
-```
-
-```{r eval = FALSE, class.source="watch-out"}
-Xen_R1_merged <- normalizeData(Xen_R1_merged, sizefactor = 1000)
-vrHeatmapPlot(Xen_R1_merged, group.by = "Cluster_kmeans", 
-              features = unique(markers_image_top$gene), 
-              show_row_names = TRUE)
-```
-
 # Xenium COVID-19 Lung Data 
 
 VoltRon is capable of analyzing molecule-level subcellular datasets independent of single cells, and specifically those that may also found outside of these cells. To demonstrate how VoltRon investigates extra-cellular molecules, we will make use of another Xenium in situ dataset where custom Xenium probes designed to hybridize distinct open reading frames of SARS-COV-2 virus molecules. These subcellular entities which then can be detected both within and outside of cells which allows to understand proliferation mechanics of the virus across the tissue.
@@ -152,8 +59,6 @@ Across these eight TMA section, we investigate a section of acute case which is 
 ```{r eval = FALSE, class.source="watch-out"}
 vr2_merged_acute1 <- readRDS(file = "acutecase1_annotated.rds")
 ```
-
-<br>
 
 Lets visualize both the UMAP and Spatial plot of the annotated cells.
 
@@ -552,3 +457,134 @@ odds ratio
  0.5655696 
 ```
 
+
+
+# Xenium Breast Cancer Data 
+
+## Import Spatial Data
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_R1 <- importXenium("Xenium_R1/outs",
+                       sample_name = "XeniumR1", resolution_level = 3,
+                       overwrite_resolution = TRUE)
+Xen_R1
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif",
+                                sample_name = "XeniumR1",
+                                channel_names = "H&E", tile.size = 128)
+Xen_R1_image                                
+```
+
+<br>
+
+## Clustering
+
+```{r eval = FALSE, class.source="watch-out"}
+embed_data <- readRDS("data/BreastTile/img_128_processed.rds")
+ind <- sapply(vrSpatialPoints(Xen_R1_image), function(x) strsplit(x, split = "_")[[1]][1])
+embed_data <- embed_data[ind,]
+rownames(embed_data) <- vrSpatialPoints(Xen_R1_image)
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+vrEmbeddings(Xen_R1_image, type = "dinov2", overwrite = TRUE) <-  embed_data
+Xen_R1_image <- getPCA(Xen_R1_image, dims = 50, data.type = "dinov2")
+Xen_R1_image <- getUMAP(Xen_R1_image)
+Xen_R1_image <- getClusters(Xen_R1_image, method = "kmeans", label = "Cluster_kmeans", data.type = "pca", nclus = 10)
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPlot(Xen_R1_image, group.by = "Cluster_kmeans", alpha = 1)
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_spatial.png" class="center">
+
+<br>
+
+## Automated H&E Registration
+
+```{r eval = FALSE, class.source="watch-out"}
+xen_reg <- registerSpatialData(object_list = list(Xen_R1_image, Xen_R1))
+```
+
+<img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_HE_registration.png" class="center">
+
+<br>
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_R1_reg <- xen_reg$registered_spat[[2]]
+Xen_R1_merged <- Xen_R1_image
+Xen_R1_merged <- addAssay(Xen_R1_merged, 
+                          metadata = Metadata(Xen_R1_reg), 
+                          assay = Xen_R1_reg[["Assay1"]],
+                          assay_name = "Xenium",
+                          sample = "XeniumR1")
+```
+
+## Label Transfer
+
+```{r eval = FALSE, class.source="watch-out"}
+# transfer label
+Xen_R1_merged <- transferData(Xen_R1_merged, 
+                              from = "Assay1", 
+                              to = "Assay2", 
+                              features = "Cluster_kmeans", 
+                              expand = FALSE)
+
+# transfer image
+vrImages(Xen_R1_merged[["Assay2"]], name = "main_reg", channel = "H&E") <- 
+  vrImages(Xen_R1_merged, assay = "Assay1")
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+vrMainAssay(Xen_R1_merged) <- "Xenium"
+vrSpatialPlot(Xen_R1_merged, group.by = "Cluster_kmeans", spatial = "main")
+vrSpatialPlot(Xen_R1_merged, group.by = "Cluster_kmeans", spatial = "main_reg", 
+              channel = "H&E")
+```
+
+<table>
+<tbody>
+  <tr style = "vertical-align: center">
+  <td style = "width:50%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_spatial_cell.png" class="center"></td>
+  <td style = "width:50%; vertical-align: center"> <img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_spatial_cell_he.png" class="center"></td>
+  </tr>
+</tbody>
+</table>
+
+<br>
+
+## Marker Analysis
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_data_seu <- VoltRon::as.Seurat(Xen_R1_merged, cell.assay = "Xenium", type = "image")
+Xen_data_seu <- NormalizeData(Xen_data_seu, scale.factor = 100)
+Idents(Xen_data_seu) <- "Cluster_kmeans"
+markers_image <- FindAllMarkers(Xen_data_seu)
+markers_image_top <- markers_image %>%
+  group_by(cluster) %>%
+  dplyr::filter(avg_log2FC > 1, p_val_adj < 0.05, pct.1 > 0.5)
+head(as.data.frame(markers_image_top))
+```
+
+<div><pre><code style="font-size: 13px;">  p_val avg_log2FC pct.1 pct.2 p_val_adj cluster  gene
+1     0   1.679807 0.787 0.335         0       8  MLPH
+2     0   1.406676 0.869 0.430         0       8  KRT8
+3     0   1.442903 0.782 0.359         0       8  CDH1
+4     0   1.693801 0.808 0.385         0       8  FASN
+5     0   1.526783 0.874 0.458         0       8 EPCAM
+6     0   1.493334 0.670 0.259         0       8 MYO5B</code></pre></div>
+<br>
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_R1_merged <- normalizeData(Xen_R1_merged, sizefactor = 1000)
+vrHeatmapPlot(Xen_R1_merged, group.by = "Cluster_kmeans", 
+              features = unique(markers_image_top$gene), 
+              show_row_names = TRUE)
+```
+
+<img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_heatmap_cell.png" class="center">
+
+<br>
