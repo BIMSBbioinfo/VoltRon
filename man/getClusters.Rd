@@ -11,6 +11,8 @@ getClusters(
   method = "leiden",
   resolution = 1,
   graph = "kNN",
+  data.type = "norm",
+  dims = 1:30,
   nclus = integer(0),
   distance_measure = "manhattan",
   abundance_limit = 2,
@@ -33,6 +35,11 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{resolution}{the resolution parameter for leiden clustering.}
 
 \item{graph}{the graph type to be used.}
+
+\item{data.type}{the type of data used to cluster spatial points: 
+"norm" (default), "raw" or an existing embeddings \link{vrEmbeddingNames}.}
+
+\item{dims}{the number of dimensions extracted from the embedding if data.type is not NULL}
 
 \item{nclus}{The number of cluster centers for K-means or hierarchical clustering.}
 

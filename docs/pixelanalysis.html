@@ -11,7 +11,7 @@
 
 
 
-<title>Molecule Analysis</title>
+<title>Importing Spatial Data</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -434,7 +434,7 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Molecule Analysis</h1>
+<h1 class="title toc-ignore">Importing Spatial Data</h1>
 
 </div>
 
@@ -464,184 +464,201 @@ table, th, td {
 }
 </style>
 <p><br></p>
-<div id="xenium-breast-cancer-data" class="section level1">
-<h1>Xenium Breast Cancer Data</h1>
-<p>VoltRon is an end-to-end spatial omic analysis package which also
-supports investigating spatial points in sub-cellular resolution,
-including those that are based on Fluorescence in situ hybrizrization
-where one can spatially locate each individual molecule that are
-hybridrized.</p>
-<p>In this use case, we analyse readouts of the experiments conducted on
-example tissue sections analysed by the <a
+<div id="analysis-of-images" class="section level1">
+<h1>Analysis of Images</h1>
+<p>VoltRon is a spatial omic analysis platform that allows storing a
+large amount of spatially resolved datasets. As opposed to datasets with
+either supracellular (spot-level) or cellular resolutions, one might
+analyze image datasets and pixels to characterize the morphology of a
+tissue section.</p>
+<p>Here, images can also be used to build VoltRon objects where pixels
+(or tiles) are defined as spatial points, and then can also be used for
+multiple downstream analysis purposes.</p>
+<p><br></p>
+<div id="importing-images-he" class="section level2">
+<h2>Importing Images (H&amp;E)</h2>
+<p>In this use case, we will analyze the H&amp;E image derived from a
+tissue section that was first analyzed by The 10x Genomics <a
 href="https://www.10xgenomics.com/platforms/xenium">Xenium In Situ</a>
-platform. Two tissue sections of 5 <span
-class="math inline">\(\mu\)</span>m tickness are derived from a single
-formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block.
-More information on the spatial datasets and the study can be also be
-found on the <a
+platform. Three tissue sections were cut from a single formalin-fixed,
+paraffin-embedded (FFPE) breast cancer tissue block. A 5 <span
+class="math inline">\(\mu\)</span>m section was used to generate a
+single Xenium replicate. The H&amp;E staining was performed on the
+tissue after the Xenium run.</p>
+<p>More information on the Xenium and the study can be also be found on
+the <a
 href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">BioArxiv
-preprint</a>.</p>
-<p>You can import these readouts from the <a
+preprint</a>. You can download the H&amp;E image from the <a
 href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
-Genomics website</a> (specifically, import <strong>In Situ Replicate
-1/2</strong>). Alternatively, you can <strong>download a zipped
-collection of Xenium readouts</strong> from <a
-href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip">here</a>.</p>
-<p><br></p>
-<div id="creating-voltron-objects" class="section level2">
-<h2>Creating VoltRon objects</h2>
-<p>VoltRon includes built-in functions for converting readouts of Xenium
-experiments into VoltRon objects. The <strong>importXenium</strong>
-function locates all readout documents under the output folder of the
-Xenium experiment, and forms a VoltRon object. In this case, the Xenium
-data includes two assays (in the same layer) where one is the cell
-segmentation based cell profile data and the other is the pure molecule
-assay where the identity (gene of origin) of RNA molecules are
-given.</p>
-<pre class="r watch-out"><code>library(VoltRon)
-Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;, import_molecules = TRUE)
-Xen_R1</code></pre>
+Genomics website</a> as well (specifically, import the
+<strong>Post-Xenium H&amp;E image (TIFF)</strong> data).</p>
+<p>We incorporate <strong>importImageData</strong> to convert an image
+into a tile/pixel-based spatial dataset.</p>
+<pre class="r watch-out"><code>Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
+                                sample_name = &quot;XeniumR1image&quot;, 
+                                image_name = &quot;H&amp;E&quot;, tile.size = 100)
+Xen_R1_image</code></pre>
 <pre><code>VoltRon Object 
-XeniumR1: 
+XeniumR1image: 
   Layers: Section1 
-Assays: Xenium(Main) Xenium_mol </code></pre>
+Assays: ImageData(Main) 
+Features: main(Main) </code></pre>
+<pre class="r watch-out"><code>vrImages(Xen_R1_image, scale.perc = 2)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE.png" class="center"></p>
+<p></br></p>
+</div>
+<div id="building-datasets-for-tiles" class="section level2">
+<h2>Building Datasets for Tiles</h2>
+<p>The VoltRon object stores the metadata information and localization
+of all tiles in the image. These tiles, like any observation, can be
+analyzed independently where you can reduce its dimensionality to
+perform clustering later.</p>
+<pre class="r watch-out"><code>head(Metadata(Xen_R1_image))</code></pre>
+<pre><code>             id assay_id     Assay    Layer        Sample
+         &lt;char&gt;   &lt;char&gt;    &lt;char&gt;   &lt;char&gt;        &lt;char&gt;
+1: tile1_2c05fc   Assay1 ImageData Section1 XeniumR1image
+2: tile2_2c05fc   Assay1 ImageData Section1 XeniumR1image
+3: tile3_2c05fc   Assay1 ImageData Section1 XeniumR1image
+4: tile4_2c05fc   Assay1 ImageData Section1 XeniumR1image
+5: tile5_2c05fc   Assay1 ImageData Section1 XeniumR1image
+6: tile6_2c05fc   Assay1 ImageData Section1 XeniumR1image</code></pre>
+<p>Each row is associated with a tile of parsed from the image, and the
+users can define additional metadata columns afterwards.</p>
+<pre class="r watch-out"><code>nrow(Metadata(Xen_R1_image))</code></pre>
+<pre><code>[1] 24888</code></pre>
+<p>In order to generate data values from image tiles, we can treat each
+pixel of a tile as a data dimension (in this case, by 200x200 tiles we
+have 40000 pixels, thus dimensions). We generate this dataset as
+below:</p>
+<pre class="r watch-out"><code>Xen_R1_image &lt;- generateTileData(Xen_R1_image)
+dim(vrData(Xen_R1_image))</code></pre>
+<pre><code>[1] 40000 13974</code></pre>
+<p></br></p>
+</div>
+<div id="dimensionality-reduction" class="section level2">
+<h2>Dimensionality Reduction</h2>
+<p>We can now reduce the dimensionality of these pixel intensities using
+PCA and visualize the data variability across tiles. The data matrix we
+generated with the <strong>generateTileData</strong> earlier will be
+used here similar to gene/protein expression datasets, where we reduce
+40000 variables (each associated with a pixel) to a managable number,
+say 15.</p>
+<pre class="r watch-out"><code>Xen_R1_image &lt;- getPCA(Xen_R1_image, dims = 15)
+Xen_R1_image &lt;- getUMAP(Xen_R1_image)
+vrEmbeddingPlot(Xen_R1_image, embedding = &quot;umap&quot;, group.by = &quot;Sample&quot;)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_embedding.png" class="center"></p>
+<p></br></p>
+</div>
+<div id="clustering" class="section level2">
+<h2>Clustering</h2>
+<p>Here, the dimensionally reduced image tiles can be clustered using
+either graph clustering approaches or kmeans clustering depending on the
+choice.</p>
+<pre class="r watch-out"><code>Xen_R1_image &lt;- getProfileNeighbors(Xen_R1_image, data.type = &quot;pca&quot;, 
+                                    k = 10, method = &quot;SNN&quot;, dims = 1:15)
+Xen_R1_image &lt;- getClusters(Xen_R1_image, resolution = 1.0, 
+                            label = &quot;Cluster_snn&quot;, graph = &quot;SNN&quot;)</code></pre>
+<p>We here visualize the transparent clustering information of tiles by
+rasterizing the tiles into larger sizes to increase plotting speed where
+we can see the distinction between different tissue niches of the
+image.</p>
+<pre class="r watch-out"><code>g1 &lt;- vrSpatialPlot(Xen_R1_image, group.by = &quot;Cluster_snn&quot;, 
+                    alpha = 0.5, n.tile = 100)
+g2 &lt;- vrEmbeddingPlot(Xen_R1_image, embedding = &quot;umap&quot;, 
+                      group.by = &quot;Cluster_snn&quot;)
+g1 | g2 </code></pre>
+<table>
+<tbody>
+<tr style="vertical-align: center">
+<td style="width:60%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_spatialcluster.png" class="center">
+</td>
+<td style="width:40%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_embeddingcluster.png" class="center">
+</td>
+</tr>
+</tbody>
+</table>
+<p></br></p>
+</div>
+</div>
+<div id="image-foundation-models" class="section level1">
+<h1>Image Foundation Models</h1>
+<p>Using VoltRon we can also integrate tile-level spatial entities and
+image tiles with existing image foundation models such as <a
+href="https://github.com/beneroth13/dinov2">DinoV2</a> or <a
+href="https://github.com/mahmoodlab/UNI">UNI</a>.</p>
+<p>We can parse tiles from VoltRon, and get embedding values from a
+Foundation model to conduct downstream clustering using PCA and kmeans
+clustering.</p>
+<p><br></p>
+<div id="importing-images-he-1" class="section level2">
+<h2>Importing Images (H&amp;E)</h2>
+<p>We first import the H&amp;E image to VoltRon. This time we will set
+the tile size to 128 which will generate 34400 tiles on the breast
+cancer tissue.</p>
+<pre class="r watch-out"><code>Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
+                                sample_name = &quot;XeniumR1image&quot;,
+                                image_name = &quot;H&amp;E&quot;, tile.size = 128)
+Xen_R1_image@metadata</code></pre>
+<pre><code>VoltRon Metadata Object 
+This object includes: 
+   34400 tiles </code></pre>
 <p><br></p>
 </div>
-<div id="ondisk-support-optional" class="section level2">
-<h2>Ondisk Support <strong>(Optional)</strong></h2>
-<p>You can also save the imported VoltRon object to disk and still
-accomplish analysis on molecule datasets.</p>
-<pre class="r watch-out"><code>Xen_R1 &lt;- saveVoltRon(Xen_R1, format = &quot;HDF5VoltRon&quot;, 
-                      output = &quot;Xen_R1/&quot;, replace = TRUE)</code></pre>
-<p>The disk-backed data can be loaded once saved on disk again</p>
-<pre class="r watch-out"><code>Xen_R1_disk &lt;- loadVoltRon(&quot;Xen_R1/&quot;)</code></pre>
+<div id="add-external-embeddings" class="section level2">
+<h2>Add External Embeddings</h2>
+<p>We will now load and add the DinoV2 embeddings as additional
+embedding data before analysis and clustering. Here, we use
+<strong>overwrite</strong> argument (default is <code>FALSE</code>) as a
+safe-guard for overwriting already existing embeddings with the same
+name, i.e. <code>type = "dinov2"</code>, but if the an embedding with
+name <code>dinov2</code> doesn’t exist, this will be overlooked.</p>
+<pre class="r watch-out"><code>dinov2_embed &lt;- read.csv(&quot;img_128_processed.csv&quot;)
+vrEmbeddings(Xen_R1_image, type = &quot;dinov2&quot;, overwrite = TRUE) &lt;-  dinov2_embed</code></pre>
 <p><br></p>
 </div>
-<div id="spatial-visualization" class="section level2">
-<h2>Spatial Visualization</h2>
-<p>With <strong>vrSpatialPlot</strong>, we can visualize Xenium
-experiments in subcellular context. We first visualize mRNAs of ACTA2, a
-marker for smooth muscle cell actin, and other markers found in the
-breast cancer tissue sample. We can interactively select a subset of
-interest within the tissue section and visualize the localization of
-these transcripts. Here we subset a ductal carcinoma niche, and
-visualize mRNAs of four genes.</p>
-<pre class="r watch-out"><code>Xen_R1_subset &lt;- subset(Xen_R1, interactive = TRUE)
-Xen_R1_subset &lt;- Xen_R1_subset$subsets[[1]]
-vrSpatialPlot(Xen_R1_subset, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;,
-              group.id = c(&quot;ACTA2&quot;, &quot;KRT15&quot;, &quot;TACSTD2&quot;, &quot;CEACAM6&quot;), pt.size = 0.2, legend.pt.size = 5)</code></pre>
-<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize.png" class="center"></p>
-<p><br></p>
-<p>We can use the <strong>n.tile</strong> argument to divide the count
-of selected group.ids (e.g. genes here) into hexagonal bins. We will use
-this argument to divide the x and y-axis into 100 tiles and aggregate
-transcript counts from select <strong>group.id</strong></p>
-<pre class="r watch-out"><code>vrSpatialPlot(Xen_R1_subset, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;, group.id = &quot;ACTA2&quot;,
-              legend.pt.size = 5, n.tile = 100, background.color = &quot;black&quot;)</code></pre>
-<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize_bins.png" class="center"></p>
+<div id="dimensionality-reduction-1" class="section level2">
+<h2>Dimensionality Reduction</h2>
+<p>If we check the number of extracted features from the DinoV2 model,
+we see that its 1536 which we could further reduced using PCA and UMAP
+prior to clustering.</p>
+<pre class="r watch-out"><code>Xen_R1_image &lt;- getPCA(Xen_R1_image, dims = 50, data.type = &quot;dinov2&quot;)
+Xen_R1_image &lt;- getUMAP(Xen_R1_image)
+vrEmbeddingPlot(Xen_R1_image, embedding = &quot;umap&quot;, group.by = &quot;Sample&quot;)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_embedding.png" class="center"></p>
 <p><br></p>
 </div>
-</div>
-<div id="xenium-covid-19-lung-data" class="section level1">
-<h1>Xenium COVID-19 Lung Data</h1>
-<p>VoltRon is capable of analyzing localization of sub-cellular entities
-such as molecules beyond mRNAs, thus the analysis may also extend to
-extracellular molecules such as viral RNA. Using Xenium in situ, we
-locate the two open reading frames (ORFs) of genomic and subgenomics RNA
-of SARS-COV-2, namely <strong>S2_N</strong> and
-<strong>S2_orf1ab</strong> and analyze their abundances over the
-COVID-19 infected lung tissue.</p>
-<p>Specifically, we analyse readouts of <strong>eight tissue micro array
-(TMA) tissue sections</strong> that were fitted into the scan area of a
-slide loaded on a Xenium in situ instrument. These sections were cut
-from <strong>control and COVID-19 lung tissues</strong> of donors
-categorized based on disease durations (acute and prolonged). You can
-download the standard Xenium output folder <a
-href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Xenium_SARSCOV2.zip">here</a>.</p>
-<p>For more information on the TMA blocks, see <a
-href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732">GSE190732</a>
-for more information.</p>
-<p>Across these eight TMA section, we investigate a section of acute
-case which is originated from a lung with extreme number of detected
-open reading frames of virus molecules. For convenience, we load a
-VoltRon object where cells are already annotated. You can also find the
-RDS file <a
-href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/acutecase1_annotated.rds">here</a>.</p>
-<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- readRDS(file = &quot;acutecase1_annotated.rds&quot;)</code></pre>
-<p>You would see that we have two assays associated with the tissue
-section, one for the cells and the other for the molecules.</p>
-<pre class="r watch-out"><code>SampleMetadata(vr2_merged_acute1)</code></pre>
-<pre><code>            Assay    Layer       Sample
-Assay7     Xenium Section1 acute case 1
-Assay8 Xenium_mol Section1 acute case 1</code></pre>
-<p><br></p>
-<div id="spatial-visualization-1" class="section level2">
-<h2>Spatial Visualization</h2>
-<p>We can visualize individual <strong>S2_N</strong> and
-<strong>S2_orf1ab</strong> by simply switching to
-<strong>Xenium_mol</strong> assay given</p>
-<pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;, 
-              group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), n.tile = 500)</code></pre>
-<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_covid_xenium.png" class="center"></p>
-<p><br></p>
-<p>You can also visualize both the cellular and subcellular spatial
-points on the same plot using <strong>addSpatialLayer</strong> function,
-which would show points of the section where virus is abundant with no
-cell segment on top.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;, 
-              group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), n.tile = 500) |&gt; 
-  addSpatialLayer(vr2_merged_acute1, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;, n.tile = 500, plot.segments = TRUE)</code></pre>
-<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/moleculecell_covid_xenium.png" class="center"></p>
-</div>
-<div id="hot-spot-analysis" class="section level2">
-<h2>Hot Spot Analysis</h2>
-<p>We switch to the molecule assay of the VoltRon object, and select
-virus ORFs. We also look for other virus ORFs that are 50 pixel distance
-from each virus molecule to pin point neighborhoods that are rich in
-virus.</p>
-<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- getSpatialNeighbors(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
-                                         group.by = &quot;gene&quot;, group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), 
-                                         method = &quot;radius&quot;, radius = 50)</code></pre>
-<p>We can now observe the new spatial neighborhood graph saved in the
-VoltRon object with name <strong>radius</strong>.</p>
-<pre class="r watch-out"><code>vrGraphNames(vr2_merged_acute1)</code></pre>
-<pre><code>[1] &quot;radius&quot;</code></pre>
-<p>We now select the feature type and graph name to run an hot spot
-analysis which will label each molecule if their neighborhood are dense
-in other virus molecules.</p>
-<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- getHotSpotAnalysis(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
-                                        features = &quot;gene&quot;, graph.type = &quot;radius&quot;)</code></pre>
-<p>The <strong>getHotSpotAnalysis</strong> function will produce test
-statistics and adjusted p-values for all the selected molecules in the
-region.</p>
-<pre class="r watch-out"><code>meta &lt;- Metadata(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;)
-head(meta[meta$gene %in% c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;),])</code></pre>
-<div>
-<pre><code style="font-size: 11.7px;">                       id assay_id overlaps_nucleus   gene z_location    qv fov_name nucleus_distance
-                   <char>   <char>            <int> <char>      <num> <num>   <char>            <num>
-1: 281694020045508_25831b   Assay8                0   S2_N   20.37133    40       Q7         402.4913
-2: 281694020045511_25831b   Assay8                0   S2_N   20.39390    40       Q7         362.9937
-3: 281694020042882_25831b   Assay8                0   S2_N   20.14611    40       Q7         233.1110
-4: 281694020045509_25831b   Assay8                0   S2_N   20.14540    40       Q7         241.3636
-5: 281694020042883_25831b   Assay8                0   S2_N   19.92565    40       Q7         170.5991
-6: 281694020042884_25831b   Assay8                0   S2_N   19.96041    40       Q7         167.2583
-   postfix      Assay    Layer       Sample gene_hotspot_stat gene_hotspot_pvalue gene_hotspot_flag
-    <char>     <char>   <char>       <char>             <num>               <num>            <char>
-1: _25831b Xenium_mol Section1 acute case 1      0.000000e+00                  NA              <NA>
-2: _25831b Xenium_mol Section1 acute case 1      0.000000e+00                  NA              <NA>
-3: _25831b Xenium_mol Section1 acute case 1      1.469335e-08                   1              cold
-4: _25831b Xenium_mol Section1 acute case 1      1.469335e-08                   1              cold
-5: _25831b Xenium_mol Section1 acute case 1      4.408006e-08                   1              cold
-6: _25831b Xenium_mol Section1 acute case 1      4.408006e-08                   1              cold</code></pre>
-</div>
-<p><br></p>
-<p>Now we can visualize the localization of S2_N and S2_orf1ab molecules
-that are located in “hot regions”, or niches that are significantly
-abundant with these molecules.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
-              group.by = &quot;gene_hotspot_flag&quot;, group.ids = c(&quot;cold&quot;, &quot;hot&quot;), 
-              alpha = 1, background.color = &quot;white&quot;)</code></pre>
-<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_hotspot.png" class="center"></p>
+<div id="clustering-1" class="section level2">
+<h2>Clustering</h2>
+<p>With the PCA embeddings generated from the DinoV2 embeddings now we
+can apply K means clustering.</p>
+<pre class="r watch-out"><code>Xen_R1_image &lt;- getClusters(Xen_R1_image, method = &quot;kmeans&quot;, 
+                            label = &quot;Cluster_kmeans&quot;, data.type = &quot;pca&quot;, 
+                            nclus = 10)</code></pre>
+<pre class="r watch-out"><code>vrEmbeddingPlot(Xen_R1_image, embedding = &quot;umap&quot;, group.by = &quot;Cluster_snn&quot;)
+vrSpatialPlot(Xen_R1_image, group.by = &quot;Cluster_kmeans&quot;, alpha = 1)</code></pre>
+<table>
+<tbody>
+<tr style="vertical-align: center">
+<td style="width:45%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_embedding_kmeans.png" class="center">
+</td>
+<td style="width:55%; vertical-align: center">
+<img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_spatial.png" class="center">
+</td>
+</tr>
+</tbody>
+</table>
+<p>We can zoom to certain locations over the tissue and visualize the
+tile-based embedding clusters over regions.</p>
+<pre class="r watch-out"><code># interactive subsetting
+Xen_R1_image_subset &lt;- subset(Xen_R1_image, interactive = TRUE)
+Xen_R1_image_subset &lt;- Xen_R1_image_subset$subsets[[1]]
+
+# visualization
+vrSpatialPlot(Xen_R1_image_subset, group.by = &quot;Cluster_kmeans&quot;, alpha = 0.5)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_spatial_subset.png" class="center"></p>
 </div>
 </div>
 

@@ -506,7 +506,7 @@ transferLabelsFromTiles2Cells <- function(from_object, from_metadata = NULL,
                                           transfer_data = NULL, k = 1){
   
   # get cell and spot coordinates
-  message("Tile to Cell Distances \n")
+  message("Tile to Cell Distances ...")
   coords_cells <- vrCoordinates(to_object)
   if(!inherits(coords_cells, "IterableMatrix")){
     coords_cells <- as.data.frame(coords_cells)
@@ -572,8 +572,13 @@ transferLabelsFromTiles2Cells <- function(from_object, from_metadata = NULL,
       if(length(metadata_features) > 1){
         stop("Only one metadata column can be transfered at a time")
       } else if(length(metadata_features) == 1) {
-        raw_counts <- from_metadata[,metadata_features, drop = FALSE]
+        if(inherits(from_metadata, "data.table")){
+          raw_counts <- from_metadata[, get(names(from_metadata)[which(colnames(from_metadata) == metadata_features)])]
+        } else{
+          raw_counts <- from_metadata[,metadata_features, drop = FALSE]
+        }
         raw_counts <- as.data.frame(raw_counts)
+        colnames(raw_counts) <- metadata_features
         if(expand){
           rownames_raw_counts <- rownames(raw_counts)
           raw_counts <- dummy_cols(raw_counts, remove_first_dummy = FALSE)

@@ -376,9 +376,15 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
             n.tile <- 1000
           g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha)
         } else {
-          g <- g +
-            geom_point(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]], color = .data[[group.by]]),
-                       coords, shape = cell.shape, size = rel(pt.size), alpha = alpha, show.legend = TRUE)
+          if(vrAssayTypes(assay) == "cell"){
+            g <- g +
+              geom_point(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]], color = .data[[group.by]]),
+                         coords, shape = cell.shape, size = rel(pt.size), alpha = alpha, show.legend = TRUE)
+          } else {
+            g <- g +
+              geom_raster(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]], color = .data[[group.by]]),
+                          coords, alpha = alpha, show.legend = TRUE)
+          }
         }
         
         # style, color and text

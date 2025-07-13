@@ -427,7 +427,7 @@ getPCA <- function(object,
     svd <- BPCells::svds(normdata, k = dims, threads = as.integer(n.workers))
     pr.data <- BPCells::multiply_cols(svd$v, svd$d)
   } else {
-    input_data <- if (source == "embeddings") normdata else t(normdata)
+    input_data <- if (data.type %in% embedding_names) normdata else t(normdata)
     
     if (n.workers > 1) {
       if (!requireNamespace("BiocParallel", quietly = TRUE))
@@ -449,7 +449,6 @@ getPCA <- function(object,
       )$x
     }
   }
-  
   
   # Label and save
   colnames(pr.data) <- paste0("PC", seq_len(dims))
