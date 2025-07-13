@@ -614,7 +614,13 @@ embedding data before analysis and clustering. Here, we use
 safe-guard for overwriting already existing embeddings with the same
 name, i.e. <code>type = "dinov2"</code>, but if the an embedding with
 name <code>dinov2</code> doesn’t exist, this will be overlooked.</p>
-<pre class="r watch-out"><code>dinov2_embed &lt;- read.csv(&quot;img_128_processed.csv&quot;)
+<pre class="r watch-out"><code># get embed data
+embed_data &lt;- readRDS(&quot;data/BreastTile/img_128_processed.rds&quot;)
+ind &lt;- sapply(vrSpatialPoints(Xen_R1_image), function(x) strsplit(x, split = &quot;_&quot;)[[1]][1])
+embed_data &lt;- embed_data[ind,]
+rownames(embed_data) &lt;- vrSpatialPoints(Xen_R1_image)
+
+# import DinoV2 embedding
 vrEmbeddings(Xen_R1_image, type = &quot;dinov2&quot;, overwrite = TRUE) &lt;-  dinov2_embed</code></pre>
 <p><br></p>
 </div>
