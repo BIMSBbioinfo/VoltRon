@@ -840,35 +840,43 @@ odds ratio
 </div>
 <div id="xenium-breast-cancer-data" class="section level1">
 <h1>Xenium Breast Cancer Data</h1>
-<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD ## Import Spatial Data</p>
-<pre class="r watch-out"><code>Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;,
-                       sample_name = &quot;XeniumR1&quot;, resolution_level = 3,
-=======
-VoltRon allows analyzing biological images, such as H&amp;E stainings of tissue sections, independant to omics assays on either the same or adjacent tissue section. VoltRon defines image tiles, which are collections of image pixels of the same size, and generate latent variables that are analyzed downstream. Unsupervised clustering of these tiles partition regions over the image with respect to morphological features. Here, these regions might be associated to tumor, immune or strama niches can then be transfered to cells in the same tissue section learn collections of cells with similar features. 
-
-We will use the **H&amp;E images** generated from the same sections as the **Xenium In Situ** platform, and cluster tiles of the H&amp;E to later transfer groups of tiles to Xenium cells. 
-
-You can download the Xenium readout and the H&amp;E image of the same tissue section from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import **In Situ Replicate 1** and **Supplemental: Post-Xenium H&amp;E image (TIFF)**). 
-
-## Import Spatial Data
-
-We import both Xenium and post-Xenium H&amp;E images into two separate VoltRon objects and overlay H&amp;E images. </code></pre>
+<p>Xen_R1 &lt;- importXenium(“Xenium_R1/outs”, sample_name = “XeniumR1”,
+resolution_level = 3, VoltRon allows analyzing biological images, such
+as H&amp;E stainings of tissue sections, independant to omics assays on
+either the same or adjacent tissue section. VoltRon defines image tiles,
+which are collections of image pixels of the same size, and generate
+latent variables that are analyzed downstream. Unsupervised clustering
+of these tiles partition regions over the image with respect to
+morphological features. Here, these regions might be associated to
+tumor, immune or strama niches can then be transfered to cells in the
+same tissue section learn collections of cells with similar
+features.</p>
+<p>We will use the <strong>H&amp;E images</strong> generated from the
+same sections as the <strong>Xenium In Situ</strong> platform, and
+cluster tiles of the H&amp;E to later transfer groups of tiles to Xenium
+cells.</p>
+<p>You can download the Xenium readout and the H&amp;E image of the same
+tissue section from the <a
+href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
+Genomics website</a> (specifically, import <strong>In Situ Replicate
+1</strong> and <strong>Supplemental: Post-Xenium H&amp;E image
+(TIFF)</strong>).</p>
+<div id="import-spatial-data" class="section level2">
+<h2>Import Spatial Data</h2>
+<p>We import both Xenium and post-Xenium H&amp;E images into two
+separate VoltRon objects and overlay H&amp;E images.</p>
 <pre class="r watch-out"><code>Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;,
                        sample_name = &quot;XeniumR1&quot;, 
                        resolution_level = 3,
-&gt;&gt;&gt;&gt;&gt;&gt;&gt; dev
                        overwrite_resolution = TRUE)
 Xen_R1</code></pre>
 <pre class="r watch-out"><code>Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
                                 sample_name = &quot;XeniumR1&quot;,
-&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
-                                channel_names = &quot;H&amp;E&quot;, tile.size = 128)
-=======
                                 channel_names = &quot;H&amp;E&quot;, 
                                 tile.size = 128)
-&gt;&gt;&gt;&gt;&gt;&gt;&gt; dev
 Xen_R1_image                                </code></pre>
 <p><br></p>
+</div>
 <div id="clustering" class="section level2">
 <h2>Clustering</h2>
 <p>Using VoltRon we can also integrate tile-level spatial entities and

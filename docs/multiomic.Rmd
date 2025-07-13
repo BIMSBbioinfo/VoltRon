@@ -461,13 +461,6 @@ odds ratio
 
 # Xenium Breast Cancer Data 
 
-<<<<<<< HEAD
-## Import Spatial Data
-
-```{r eval = FALSE, class.source="watch-out"}
-Xen_R1 <- importXenium("Xenium_R1/outs",
-                       sample_name = "XeniumR1", resolution_level = 3,
-=======
 VoltRon allows analyzing biological images, such as H&E stainings of tissue sections, independant to omics assays on either the same or adjacent tissue section. VoltRon defines image tiles, which are collections of image pixels of the same size, and generate latent variables that are analyzed downstream. Unsupervised clustering of these tiles partition regions over the image with respect to morphological features. Here, these regions might be associated to tumor, immune or strama niches can then be transfered to cells in the same tissue section learn collections of cells with similar features. 
 
 We will use the **H&E images** generated from the same sections as the **Xenium In Situ** platform, and cluster tiles of the H&E to later transfer groups of tiles to Xenium cells. 
@@ -482,7 +475,6 @@ We import both Xenium and post-Xenium H&E images into two separate VoltRon objec
 Xen_R1 <- importXenium("Xenium_R1/outs",
                        sample_name = "XeniumR1", 
                        resolution_level = 3,
->>>>>>> dev
                        overwrite_resolution = TRUE)
 Xen_R1
 ```
@@ -490,12 +482,8 @@ Xen_R1
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif",
                                 sample_name = "XeniumR1",
-<<<<<<< HEAD
-                                channel_names = "H&E", tile.size = 128)
-=======
                                 channel_names = "H&E", 
                                 tile.size = 128)
->>>>>>> dev
 Xen_R1_image                                
 ```
 
