@@ -889,10 +889,14 @@ vr_openst &lt;- getClusters(vr_openst, nclus = 6,
 </div>
 <div id="visualization-2" class="section level2">
 <h2>Visualization</h2>
-<pre class="r watch-out"><code>g1 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay1&quot;, group.by = &quot;niche_clusters&quot;, background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
-g2 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay1&quot;, group.by = &quot;annotation&quot;, background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
-g3 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay2&quot;, group.by = &quot;niche_clusters&quot;, background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
-g4 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay2&quot;, group.by = &quot;annotation&quot;, background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
+<pre class="r watch-out"><code>g1 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay1&quot;, group.by = &quot;niche_clusters&quot;, 
+                    background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
+g2 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay1&quot;, group.by = &quot;annotation&quot;, 
+                    background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
+g3 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay2&quot;, group.by = &quot;niche_clusters&quot;, 
+                    background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
+g4 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay2&quot;, group.by = &quot;annotation&quot;, 
+                    background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
 
 library(patchwork)
 (g1 | g2) / (g3 | g4)</code></pre>
