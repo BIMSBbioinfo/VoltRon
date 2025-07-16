@@ -388,25 +388,18 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
     # update metadata for assays
     if("id" %in% colnames(metadata)){
       ind <- match(as.vector(cur_metadata$id), as.vector(metadata$id))
-      for(feat in features){
-        for(label in names(getisord)){
-          metadata_label <- paste(feat, label, sep = "_")
-          metadata[[metadata_label]][ind] <- cur_metadata[[metadata_label]]
-          object <- addMetadata(object, assay = assay, value = metadata[[metadata_label]], label = metadata_label)
-        }
-      }
     } else {
-      for(feat in features){
-        for(label in names(getisord)){
-          metadata_label <- paste(feat, label, sep = "_")
-          object <- addMetadata(object, assay = assay, value = metadata[[metadata_label]], label = metadata_label)
-        }
+      ind <- match(as.vector(rownames(cur_metadata)), as.vector(rownames(metadata)))
+    }
+    
+    for(feat in features){
+      for(label in names(getisord)){
+        metadata_label <- paste(feat, label, sep = "_")
+        metadata[[metadata_label]][ind] <- cur_metadata[[metadata_label]]        
+        object <- addMetadata(object, assay = assay, value = metadata[[metadata_label]], label = metadata_label)
       }
     }
   }
-  
-  # update metadata
-  # Metadata(object, assay = assay) <- metadata
   
   # return
   return(object)
