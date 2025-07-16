@@ -390,7 +390,9 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         g <- g +
           scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 1)) +
           scale_color_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 1)) +
-          theme(legend.text=element_text(size=legend.text.size), legend.title=element_text(size=legend.text.size))
+          theme(legend.text=element_text(size=legend.text.size), legend.title=element_text(size=legend.text.size)) +
+          guides(colour = guide_legend(override.aes = list(size=legend.pt.size)),
+                 fill = guide_legend(override.aes = list(size=legend.pt.size)))
         
         # add if a graph exists
         if(!is.null(graph)){
@@ -413,7 +415,9 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     g <- g +
       scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 1)) +
       scale_color_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 1)) +
-      theme(legend.text=element_text(size=legend.text.size), legend.title=element_text(size=legend.text.size))
+      theme(legend.text=element_text(size=legend.text.size), legend.title=element_text(size=legend.text.size)) +
+      guides(colour = guide_legend(override.aes = list(size=legend.pt.size)),
+             fill = guide_legend(override.aes = list(size=legend.pt.size)))
 
   } else {
     stop("Only ROIs, spots, cells, molecules and tiles can be visualized with vrSpatialPlot!")
