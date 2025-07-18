@@ -1571,8 +1571,8 @@ vrNeighbourhoodEnrichmentPlot <- function(results, assay = NULL, type = c("assoc
   
   # make vis matrices
   results$p_adj <- ifelse(results$value > 0, results$p_assoc, results$p_segreg)
-  results$cell1 <- results$from_value
-  results$cell2 <- results$to_value
+  results$cell1 <- results$from
+  results$cell2 <- results$to
   entities <- unique(c(results$cell1,results$cell2))
   mat <- matrix(nrow = length(entities), ncol = length(entities))
   rownames(mat) <- colnames(mat) <- entities

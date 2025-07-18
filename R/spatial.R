@@ -92,7 +92,7 @@ getSpatialNeighbors <- function(object,
         }
         cur_coords <- cur_coords[names(column),]
         
-      } else if(is.null(cur_group.by) && is.null(group.ids)) {
+      } else if(is.null(group.by) && is.null(group.ids)) {
         
       } else {
         stop("Either both 'group.by' and 'group.ids' should be specified or both should be null")
@@ -309,7 +309,6 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
       neighbors_graph_data,
       from_value = sim_grp[from_ids],
       to_value = sim_grp[to_ids],
-      # type = paste0("sim", i)
     )
   }
   neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data_list)
@@ -381,77 +380,87 @@ vrNeighbourhoodEnrichmentSingle2 <- function(object, group.by = NULL, graph.type
     } 
     grp <- c(grp, cur_grp)
   }
+  # spatialpoints <- names(grp)
   
   # get graph and neighborhood
-  message("Getting Neighborhood graph ...")
+  message("Getting neighborhood graph")
   graphx <- vrGraph(object, graph.type = graph.type, assay = names(group.by))
   vertex_names <- igraph::V(graphx)$name
   neighbors_graph <- igraph::neighborhood(graphx, nodes = vertex_names)
-  # graph <- vrGraph(object, graph.type = graph.type, assay = names(group.by))
-  # neighbors_graph <- igraph::neighborhood(graph)
-  # neighbors_graph_data <- lapply(neighbors_graph, function(x) {
-  #   cbind(x$name[1],x$name)[-1,]
-  # })
-  # neighbors_graph_data <- do.call(rbind, neighbors_graph_data)
-  # colnames(neighbors_graph_data) <- c("from", "to")
+  spatialpoints <- vertex_names
   
   # get neighborhood data
   node_names <- rep(vertex_names, rep(lapply(neighbors_graph, length)))
   target_names <- unlist(neighbors_graph)
-  # neighbors_graph_data <- cbind(node_names, names(target_names))
-  # colnames(neighbors_graph_data) <- c("from", "to")
   neighbors_graph_data <- data.table::data.table(node_names, names(target_names))
-  setnames(neighbors_graph_data, c("from", "to"))
+  neighbors_graph_data <- setNames(neighbors_graph_data, c("from", "to"))
 
   # get simulations
-  message("Permute labels ...")
+  message("Permuting labels")
   grp <- grp[names(V(graphx))]
-  # grp_sim <- vapply(seq_len(num.sim), function(x) sample(grp), grp)
-  # rownames(grp_sim) <- names(grp)
-  # 
-  # # get adjacency for observed and simulated pairs
-  # neighbors_graph_data_list <- list(data.frame(neighbors_graph_data, from_value = grp[neighbors_graph_data[,1]], to_value = grp[neighbors_graph_data[,2]], type = "obs"))
-  # for(i in 2:(ncol(grp_sim)+1))
-  #   neighbors_graph_data_list[[i]] <- data.frame(neighbors_graph_data, from_value = grp_sim[,i-1][neighbors_graph_data[,1]], to_value = grp_sim[,i-1][neighbors_graph_data[,2]], type = paste0("sim", i))
-  # neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data_list)
   grp_sim <- replicate(num.sim, sample(grp), simplify = "matrix")
-  rownames(grp_sim) <- names(grp)
-  
+  grp_sim <- cbind(grp, grp_sim)
+  grp_sim <- data.table(as.data.table(grp_sim))
+
   # get adjacency for observed and simulated pairs
-  message("Simulate Edges ...")
+  message("Simulating edges")
+  from_ids <- match(neighbors_graph_data$from, vertex_names)
+  to_ids   <- match(neighbors_graph_data$to, vertex_names)
+  # from_ids <- neighbors_graph_data$from
+  # to_ids <- neighbors_graph_data$to
+  message("art1")
+  # idx_lookup <- setNames(seq_len(nrow(grp_sim)), rownames(grp_sim))
+  # from_ids <- idx_lookup[neighbors_graph_data$from]
+  # to_ids   <- idx_lookup[neighbors_graph_data$to]
+  from_labels <- data.table::copy(grp_sim)[as.integer(from_ids), ]
+  colnames(grp_sim) <- c("obs", paste0("sim",1:(ncol(grp_sim)-1)))
+  to_labels   <- data.table::copy(grp_sim)[as.integer(to_ids), ]
+  print(head(to_ids))
+  print(to_labels[1:5,1:5])
+  message("art3")
   
-  # observed: get values for "from" and "to"
-  dt_obs <- copy(neighbors_graph_data)[, `:=`(
-    from_value = grp[from],
-    to_value = grp[to],
-    type = "obs"
-  )]
+  # statistics
+  message("Calculating statistics")
+  # to_labels <- data.table::melt(data.table::data.table(to_labels),
+  #                               measure.vars  = colnames(to_labels))
+  to_labels <- data.table::melt(to_labels,
+                                measure.vars  = colnames(to_labels))
+  names(to_labels) <- c("type", "to")
+  from_labels <- data.table::melt(from_labels,
+                                measure.vars  = colnames(from_labels))
+  names(from_labels) <- c("type", "from")
+  message("art1")
+  dt <- data.table(from_labels[,2], 
+                   to_labels)
+  message("art2")
+  pair_counts <- dt[, .N, by = .(from, to, type)]
+  message("art3")
+  pair_counts[, `:=`(
+    assoc_test = N > if ("obs" %in% type) N[type == "obs"] else 0,
+    segreg_test = N < if ("obs" %in% type) N[type == "obs"] else 0,
+    majortype = ifelse(type == "obs", "obs", "sim")
+  ), by = .(from, to)]
+  message("art4")
+  pair_counts[, value := {
+    if (sum(majortype == "obs") > 0) {
+      obs_val <- N[majortype == "obs"]
+      sim_mean <- mean(N[majortype == "sim"])
+      if (sim_mean > 0) log(obs_val / sim_mean) else 0
+    } else {
+      0
+    }
+  }, by = .(from, to)]
+  pair_counts <- pair_counts[type != "obs"]
+  pair_counts <- pair_counts[, .(
+    p_assoc = mean(assoc_test),
+    p_segreg = mean(segreg_test),
+    value = value[1]
+  ), by = .(from, to)]
+  pair_counts[, p_assoc_adj := p.adjust(p_assoc, method = "fdr")]
+  pair_counts[, p_segreg_adj := p.adjust(p_segreg, method = "fdr")]
   
-  grp_sim <- as.data.table(grp_sim)
-  colnm <- colnames(grp_sim)
-  for(i in seq_len(num.sim)) {
-    print(i)
-    sim_grp <- grp_sim[[colnm[i]]]
-    tmp <-     
-      copy(neighbors_graph_data)[, `:=`(
-      from_value = sim_grp[from],
-      to_value = sim_grp[to],
-      type = paste0("sim", i)
-    )]
-  }
-  
-  # # Simulations — melt the matrix and join
-  # grp_sim <- as.data.table(grp_sim)
-  # grp_sim_dt <- grp_sim
-  # grp_sim_dt[, id := rownames(grp_sim)]
-  # grp_sim_long <- melt(grp_sim_dt, id.vars = "id", variable.name = "sim", value.name = "value")
-  # 
-  # # Join for 'from' and 'to' in simulation space
-  # dt_sim <- CJ(sim = colnames(grp_sim), idx = seq_len(nrow(neighbors_graph_data)))
-  # dt_sim[, `:=`(
-  #   from = neighbors_graph_data$from[idx],
-  #   to   = neighbors_graph_data$to[idx]
-  # )]
+  # return
+  pair_counts
 }
 
 ####
