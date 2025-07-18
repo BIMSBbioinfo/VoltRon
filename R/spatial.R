@@ -400,7 +400,7 @@ vrNeighbourhoodEnrichmentSingle2 <- function(object, group.by = NULL, graph.type
   grp <- grp[names(V(graphx))]
   grp_sim <- replicate(num.sim, sample(grp), simplify = "matrix")
   grp_sim <- cbind(grp, grp_sim)
-  grp_sim <- data.table(as.data.table(grp_sim))
+  grp_sim <- data.table::as.data.table(grp_sim)
 
   # get adjacency for observed and simulated pairs
   message("Simulating edges")
@@ -412,52 +412,61 @@ vrNeighbourhoodEnrichmentSingle2 <- function(object, group.by = NULL, graph.type
   # idx_lookup <- setNames(seq_len(nrow(grp_sim)), rownames(grp_sim))
   # from_ids <- idx_lookup[neighbors_graph_data$from]
   # to_ids   <- idx_lookup[neighbors_graph_data$to]
-  from_labels <- data.table::copy(grp_sim)[as.integer(from_ids), ]
-  colnames(grp_sim) <- c("obs", paste0("sim",1:(ncol(grp_sim)-1)))
-  to_labels   <- data.table::copy(grp_sim)[as.integer(to_ids), ]
-  print(head(to_ids))
-  print(to_labels[1:5,1:5])
+  from_labels <- grp_sim[as.integer(from_ids), ]
+  colnames(from_labels) <- c("obs", paste0("sim",1:(ncol(grp_sim)-1)))
+  to_labels   <- grp_sim[as.integer(to_ids), ]
+  colnames(to_labels) <- c("obs", paste0("sim",1:(ncol(grp_sim)-1)))
   message("art3")
   
   # statistics
   message("Calculating statistics")
+  myfun <- function(x,y){
+    print(head(x))
+    print(head(y))
+    as.data.frame(table(x, y))
+  }
+  # pair_counts <- data.table::copy(from_labels)
+  tmp <- Map(myfun, from_labels, to_labels)
+  # pair_counts[, names(from_labels) := Map(myfun, from_labels, to_labels)]
+  
+    
   # to_labels <- data.table::melt(data.table::data.table(to_labels),
   #                               measure.vars  = colnames(to_labels))
-  to_labels <- data.table::melt(to_labels,
-                                measure.vars  = colnames(to_labels))
-  names(to_labels) <- c("type", "to")
-  from_labels <- data.table::melt(from_labels,
-                                measure.vars  = colnames(from_labels))
-  names(from_labels) <- c("type", "from")
-  message("art1")
-  dt <- data.table(from_labels[,2], 
-                   to_labels)
-  message("art2")
-  pair_counts <- dt[, .N, by = .(from, to, type)]
-  message("art3")
-  pair_counts[, `:=`(
-    assoc_test = N > if ("obs" %in% type) N[type == "obs"] else 0,
-    segreg_test = N < if ("obs" %in% type) N[type == "obs"] else 0,
-    majortype = ifelse(type == "obs", "obs", "sim")
-  ), by = .(from, to)]
-  message("art4")
-  pair_counts[, value := {
-    if (sum(majortype == "obs") > 0) {
-      obs_val <- N[majortype == "obs"]
-      sim_mean <- mean(N[majortype == "sim"])
-      if (sim_mean > 0) log(obs_val / sim_mean) else 0
-    } else {
-      0
-    }
-  }, by = .(from, to)]
-  pair_counts <- pair_counts[type != "obs"]
-  pair_counts <- pair_counts[, .(
-    p_assoc = mean(assoc_test),
-    p_segreg = mean(segreg_test),
-    value = value[1]
-  ), by = .(from, to)]
-  pair_counts[, p_assoc_adj := p.adjust(p_assoc, method = "fdr")]
-  pair_counts[, p_segreg_adj := p.adjust(p_segreg, method = "fdr")]
+  # to_labels <- data.table::melt(to_labels,
+  #                               measure.vars  = colnames(to_labels))
+  # names(to_labels) <- c("type", "to")
+  # from_labels <- data.table::melt(from_labels,
+  #                               measure.vars  = colnames(from_labels))
+  # names(from_labels) <- c("type", "from")
+  # message("art1")
+  # dt <- data.table(from_labels[,2], 
+  #                  to_labels)
+  # message("art2")
+  # pair_counts <- dt[, .N, by = .(from, to, type)]
+  # message("art3")
+  # pair_counts[, `:=`(
+  #   assoc_test = N > if ("obs" %in% type) N[type == "obs"] else 0,
+  #   segreg_test = N < if ("obs" %in% type) N[type == "obs"] else 0,
+  #   majortype = ifelse(type == "obs", "obs", "sim")
+  # ), by = .(from, to)]
+  # message("art4")
+  # pair_counts[, value := {
+  #   if (sum(majortype == "obs") > 0) {
+  #     obs_val <- N[majortype == "obs"]
+  #     sim_mean <- mean(N[majortype == "sim"])
+  #     if (sim_mean > 0) log(obs_val / sim_mean) else 0
+  #   } else {
+  #     0
+  #   }
+  # }, by = .(from, to)]
+  # pair_counts <- pair_counts[type != "obs"]
+  # pair_counts <- pair_counts[, .(
+  #   p_assoc = mean(assoc_test),
+  #   p_segreg = mean(segreg_test),
+  #   value = value[1]
+  # ), by = .(from, to)]
+  # pair_counts[, p_assoc_adj := p.adjust(p_assoc, method = "fdr")]
+  # pair_counts[, p_segreg_adj := p.adjust(p_segreg, method = "fdr")]
   
   # return
   pair_counts
