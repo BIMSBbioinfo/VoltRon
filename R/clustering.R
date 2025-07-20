@@ -186,6 +186,8 @@ getClusters <- function(object,
     switch(distance_measure,
            jsd = {
              propor_dis <- philentropy::distance(vrdata, method = "jensen-shannon")
+             rownames(propor_dis) <- colnames(propor_dis) <- rownames(vrdata)
+             propor_dis <- as.dist(propor_dis)
            },
            {
              propor_dis <- dist(x = vrdata, method = distance_measure)
