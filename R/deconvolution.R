@@ -194,6 +194,7 @@ getRCTD <- function(object, features = NULL, reference, sc.cluster, ...){
   myRCTD <- quiet(spacexr::runRctd(myRCTD, rctd_mode = 'full', ...))
   results <- SummarizedExperiment::assay(myRCTD, i = "weights")
   norm_weights <- sweep(results, 2, colSums(results), "/")
+  norm_weights <- as.matrix(norm_weights)
 
   # return
   return(norm_weights)
