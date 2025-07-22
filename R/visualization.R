@@ -2649,7 +2649,7 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
 #' @import ggplot2
 #'
 #' @noRd
-vrGroupPlotTiling <- function(g, data, group.by, n.tile, alpha = 1, spot = FALSE, combine.groups = TRUE) {
+vrGroupPlotTiling <- function(g, data, group.by, n.tile, alpha = 1, spot = FALSE, combine.groups = FALSE) {
   if(spot){
     g <- g + stat_bin_2d(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]]),
                          data = data, bins = n.tile, drop = TRUE, alpha = alpha, show.legend = TRUE)
