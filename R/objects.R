@@ -592,15 +592,10 @@ changeSampleNamesVoltRon <- function(object, samples = NULL){
     adjacency <- matrix(0, nrow = length(listofLayers), ncol = length(listofLayers),
                         dimnames = list(names(listofLayers), names(listofLayers)))
     diag(adjacency) <- 1
-    # distance <- matrix(NA, nrow = length(listofLayers), ncol = length(listofLayers),
-    #                    dimnames = list(names(listofLayers), names(listofLayers)))
-    # diag(distance) <- 0
     zlocation <- rep(0,length(listofLayers))
     names(zlocation) <- names(listofLayers)
     
     # make new block
-    # listofSamples <- list(methods::new("vrBlock", 
-    #                                    layer = listofLayers, adjacency = adjacency, distance = distance))
     listofSamples <- list(methods::new("vrBlock",
                                        layer = listofLayers, zlocation = zlocation, adjacency = adjacency))
     names(listofSamples) <- cur_sample
