@@ -1059,7 +1059,6 @@ rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level){
 #' @param assay_name the assay name, default: CosMx
 #' @param image the reference morphology image of the CosMx assay
 #' @param image_name the image name of the CosMx assay, Default: main
-#' @param ome.tiff the OME.TIFF file of the CosMx experiment if exists
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
 #' @param verbose verbose
 #' @param method the approach for importing the CosMx assay either by the folder of CSVs or with TileDB array.

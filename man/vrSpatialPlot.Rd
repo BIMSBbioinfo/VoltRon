@@ -28,6 +28,7 @@ vrSpatialPlot(
   background = NULL,
   reg = FALSE,
   crop = FALSE,
+  combine.groups = FALSE,
   legend.pt.size = 2,
   legend.text.size = 14,
   scale.image = TRUE,
@@ -87,6 +88,8 @@ and main channel (\link{vrMainChannel}) will be in the background. Otherwise the
 \item{reg}{TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested}
 
 \item{crop}{whether to crop an image of a spot assay to the extend of spots}
+
+\item{combine.groups}{if TRUE, tile colors will reflect relative abundance of either of two groups, strictly for visualizing two groups when assay is a molecule typed and tiled (see \code{n.tile}).}
 
 \item{legend.pt.size}{the size of points at the legend}
 
