@@ -784,7 +784,12 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
       } else {
         metadata <- Metadata(object, assay = assy)
         if(feat %in% colnames(metadata)){
-          return(getRange(metadata[,feat], na.rm = TRUE))
+          if(inherits(metadata, "data.table")){
+            featdata <- metadata[,get(names(metadata)[which(colnames(metadata) == feat)])]
+          } else {
+            featdata <- metadata[,feat]
+          }
+          return(getRange(featdata, na.rm = TRUE))
         } else {
           stop("Feature '", feat, "' cannot be found in data or metadata!")
         }
@@ -962,11 +967,16 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
       names(cur_score) <- colnames(normdata)
     }
   } else {
-    cur_score <- metadata[,feature]
-    if(!is.null(rownames(metadata))){
-      names(cur_score) <- rownames(metadata)
+    if(inherits(metadata, "data.table")){
+      cur_score <- metadata[,get(names(metadata)[which(colnames(metadata) == feature)])]
     } else {
+      cur_score <- metadata[,feature]
+    }
+    # cur_score <- metadata[,feature]
+    if("id" %in% colnames(metadata)){
       names(cur_score) <- as.vector(metadata$id)
+    } else {
+      names(cur_score) <- rownames(metadata)
     }
   }
   
@@ -1176,7 +1186,13 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
       return(getRange(normdata[feat, ], na.rm = TRUE))
     } else {
       if(feat %in% colnames(metadata)){
-        return(getRange(metadata[,feat], na.rm = TRUE))
+        if(inherits(metadata, "data.table")){
+          featdata <- metadata[,get(names(metadata)[which(colnames(metadata) == feat)])]
+        } else {
+          featdata <- metadata[,feat]
+        }
+        return(getRange(featdata, na.rm = TRUE))
+        # return(getRange(metadata[,feat], na.rm = TRUE))
       } else {
         stop("Feature '", feat, "' cannot be found in data or metadata!")
       }
@@ -1202,7 +1218,12 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
     if(feat %in% data_features){
       coords$score <- normdata[feat,]
     } else {
-      coords$score <- metadata[,feat]
+      if(inherits(metadata, "data.table")){
+        coords$score <- metadata[,get(names(metadata)[which(colnames(metadata) == feature)])]
+      } else {
+        coords$score <- metadata[,feature]
+      }
+      # coords$score <- metadata[,feat]
     }
     
     # get image information and plotting features
@@ -1882,7 +1903,12 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, c
       return(getRange(normdata[feat, ], na.rm = TRUE))
     } else {
       if(feat %in% colnames(metadata)){
-        return(getRange(metadata[, feat], na.rm = TRUE))
+        if(inherits(metadata, "data.table")){
+          featdata <- metadata[,get(names(metadata)[which(colnames(metadata) == feat)])]
+        } else {
+          featdata <- metadata[,feat]
+        }
+        return(getRange(featdata, na.rm = TRUE))
       } else {
         stop("Feature '", feat, "' cannot be found in data or metadata!")
       }
@@ -1910,7 +1936,17 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, c
         datax$score <- normdata[feat, rownames(datax)]
       }
     } else {
-      datax$score <- metadata[rownames(datax),feat]
+      if("id" %in% colnames(metadata)){
+        ind <- match(rownames(datax), metadata$id)
+      } else {
+        ind <- rownames(metadata)
+      }
+      if(inherits(metadata, "data.table")){
+        datax$score <- metadata[ind,get(names(metadata)[which(colnames(metadata) == feat)])]
+      } else {
+        datax$score <- metadata[ind,feat]
+      }
+      # datax$score <- metadata[rownames(datax),feat]
     }
 
     # get image information and plotting features
@@ -2199,10 +2235,10 @@ vrHeatmapPlot <- function(object, assay = NULL, features = NULL, group.by = "clu
 
   # get entity type and metadata
   metadata <- Metadata(object, assay = assay)
-  if(!is.null(rownames(metadata))){
-    metadata <- metadata[colnames(heatmapdata),]
-  } else {
+  if("id" %in% colnames(metadata)){
     metadata <- metadata[match(colnames(heatmapdata), as.vector(metadata$id)),]
+  } else {
+    metadata <- metadata[colnames(heatmapdata),]
   }
 
   # scaling, optional
