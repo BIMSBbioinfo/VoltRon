@@ -237,3 +237,25 @@ test_that("multilayer (with tiling)", {
   
   expect_equal(1,1)
 })
+
+# Testing plotting functions
+test_that("combined groups for vrspatialplot", {
+  
+  data("merged_object")
+  
+  # combined groups 
+  vrSpatialPlot(merged_object, assay = "MolAssay", group.by = "gene", 
+                n.tile = 50, combine.groups = TRUE)
+  
+  # multiple layers
+  vrSpatialPlot(merged_object, assay = "Assay2", group.by = "gene", 
+                n.tile = 50, combine.groups = TRUE) |>
+    addSpatialLayer(merged_object, assay = "Assay1", group.by = "Sample")
+  vrSpatialPlot(merged_object, assay = "Assay1", group.by = "Sample") |>
+    addSpatialLayer(merged_object, assay = "Assay4", group.by = "gene", 
+                    n.tile = 50, combine.groups = TRUE, alpha = 0.3)
+  
+  # There should be two groups
+  expect_error(vrSpatialPlot(merged_object, assay = "MolAssay", group.by = "gene", 
+                            n.tile = 50, combine.groups = TRUE, group.ids = "KRT14"))
+})

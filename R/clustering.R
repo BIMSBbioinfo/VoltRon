@@ -133,7 +133,7 @@ knn_annoy <- function(data, query = data, k = 10, n_trees = 50, search_k = -1) {
 #' @param seed seed.
 #'
 #' @importFrom igraph cluster_leiden
-#' @importFrom stats kmeans hclust cutree
+#' @importFrom stats kmeans hclust cutree as.dist
 #' 
 #' @export
 getClusters <- function(object, 
@@ -183,14 +183,12 @@ getClusters <- function(object,
     clusters <- stats::kmeans(vrdata, centers = nclus)
     clusters <- list(names = names(clusters$cluster), membership = clusters$cluster)
   } else if(method == "hierarchical"){
-    switch(distance_measure,
-           jsd = {
-             propor_dis <- philentropy::distance(vrdata, method = "jensen-shannon")
-           },
-           {
-             propor_dis <- dist(x = vrdata, method = distance_measure)
-           }
-           )
+    # switch(distance_measure,
+    #        {
+    #          propor_dis <- dist(x = vrdata, method = distance_measure)
+    #        }
+    #        )
+    propor_dis <- dist(x = vrdata, method = distance_measure)
     clusters <- stats::hclust(d = propor_dis, method = "ward.D2")
     clusters <- stats::cutree(clusters, k = nclus)
     clusters <- list(names = names(clusters), membership = clusters)

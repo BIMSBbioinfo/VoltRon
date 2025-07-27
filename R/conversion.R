@@ -447,7 +447,8 @@ as.AnnData <- function(object,
     # Check and use a package for saving h5ad
     if (method == "anndataR") {
       if (!requireNamespace('anndataR', quietly = TRUE)) {
-        stop("The anndataR package is not installed. Please install it or choose the 'anndata' method.")
+        stop("The anndataR package is not installed. Please choose the 'anndata' method or ",
+             "install anndataR: devtools::install_github('scverse/anndataR')")
       }
       
       # Create anndata using anndataR
@@ -465,7 +466,8 @@ as.AnnData <- function(object,
       
     } else if (method == "anndata") {
       if (!requireNamespace('anndata', quietly = TRUE)) {
-        stop("The anndata package is not installed. Please install it or choose the 'anndataR' method.")
+        stop("The anndata package is not installed. Please choose the 'anndataR' method or ",
+             "install anndata: install.packages('anndata')")
       }
       
       # check reticulate

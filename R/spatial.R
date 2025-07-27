@@ -388,25 +388,18 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
     # update metadata for assays
     if("id" %in% colnames(metadata)){
       ind <- match(as.vector(cur_metadata$id), as.vector(metadata$id))
-      for(feat in features){
-        for(label in names(getisord)){
-          metadata_label <- paste(feat, label, sep = "_")
-          metadata[[metadata_label]][ind] <- cur_metadata[[metadata_label]]
-          object <- addMetadata(object, assay = assay, value = metadata[[metadata_label]], label = metadata_label)
-        }
-      }
     } else {
-      for(feat in features){
-        for(label in names(getisord)){
-          metadata_label <- paste(feat, label, sep = "_")
-          object <- addMetadata(object, assay = assay, value = metadata[[metadata_label]], label = metadata_label)
-        }
+      ind <- match(as.vector(rownames(cur_metadata)), as.vector(rownames(metadata)))
+    }
+    
+    for(feat in features){
+      for(label in names(getisord)){
+        metadata_label <- paste(feat, label, sep = "_")
+        metadata[[metadata_label]][ind] <- cur_metadata[[metadata_label]]        
+        object <- addMetadata(object, assay = assay, value = metadata[[metadata_label]], label = metadata_label)
       }
     }
   }
-  
-  # update metadata
-  # Metadata(object, assay = assay) <- metadata
   
   # return
   return(object)
@@ -440,27 +433,38 @@ getNicheAssay <- function(object, assay = NULL, label = NULL, graph.type = "dela
   
   # get graph 
   graph <- vrGraph(object, assay = assay_names, graph.type = graph.type)
-  
+
   # get label
-  cur_metadata <- subset_metadata(metadata, assays = assay_names)
-  if(label %in% colnames(cur_metadata)){
-    label <- as.vector(cur_metadata[,label])
-    if(!is.null(rownames(cur_metadata))){
-      names(label) <- rownames(cur_metadata)
-    } else {
-      names(label) <- as.vector(cur_metadata$id)
-    }
+  if(is.null(label)){
+    vrdata <- vrData(object, assay = assay_names, norm = FALSE)
+    
+    # get niche assay
+    adj_matrix <- igraph::get.adjacency(graph, type = "both")
+    niche_counts <- vrdata %*% adj_matrix
+    
+    
   } else {
-    stop("'", label, "' is not found in the metadata!")
+    cur_metadata <- subset_metadata(metadata, assays = assay_names)
+    if(label %in% colnames(cur_metadata)){
+      label <- as.vector(cur_metadata[,label])
+      if("id" %in% colnames(cur_metadata)){
+        names(label) <- as.vector(cur_metadata$id)
+      } else {
+        names(label) <- rownames(cur_metadata)
+      }
+    } else {
+      stop("'", label, "' is not found in the metadata!")
+    }
+    
+    # get niche assay
+    unique_label <- unique(label)
+    adj_matrix <- igraph::neighborhood(graph)
+    niche_counts <- vapply(adj_matrix, function(x){
+      table(factor(label[x], levels = unique_label))
+    }, numeric(length(na.omit(unique_label))))
+    colnames(niche_counts) <- igraph::V(graph)$name
   }
   
-  # get niche assay
-  adj_matrix <- igraph::neighborhood(graph)
-  unique_label <- unique(label)
-  niche_counts <- vapply(adj_matrix, function(x){
-    table(factor(label[x], levels = unique_label))
-  }, numeric(length(na.omit(unique_label))))
-  colnames(niche_counts) <- igraph::V(graph)$name
   
   # add cell type mixtures as new feature set
   for(assy in assay_names){

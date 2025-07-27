@@ -481,7 +481,12 @@ subset_metadata <- function(metadata,
           metadata <- metadata[rownames(metadata) %in% spatialpoints,]
         }
       } else if(!is.null(features)){
-        metadata <- metadata[,features, drop = drop]
+        if(inherits(metadata, "data.table")){
+          metadata <- metadata[,get(names(metadata)[which(colnames(metadata) == features)])]
+        } else {
+          metadata <- metadata[,features, drop = drop]
+        }
+        # metadata <- metadata[,features, drop = drop]
       } else {
         stop("No assay, sample or spatial points were provided!")
       }  
