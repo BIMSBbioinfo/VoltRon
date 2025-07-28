@@ -49,6 +49,9 @@ bool check_degenerate(std::vector<cv::Point2f> points1, std::vector<cv::Point2f>
 // check distribution of registered points
 std::string check_transformation_by_point_distribution(Mat &im, Mat &h){
 
+  // message
+  std::string message;
+  
   // get image shape
   int height = im.rows;
   int width = im.cols;
@@ -62,20 +65,22 @@ std::string check_transformation_by_point_distribution(Mat &im, Mat &h){
       gridpoints.push_back(cv::Point2f(j,i));
     }
   }
-  
+
   // register grid points
   std::vector<cv::Point2f> gridpoints_reg;
   if (h.rows == 2){
     cv::transform(gridpoints, gridpoints_reg, h);
-  } else {
+  } else if(h.rows == 3) {
     cv::perspectiveTransform(gridpoints, gridpoints_reg, h);
+  } else {
+    message = "no distribution";
+    return message;
   }
 
   // Compute the standard deviation of the transformed points
   double gridpoints_reg_sd = cppSD(gridpoints_reg);
 
   // get warning message
-  std::string message;
   if(gridpoints_reg_sd < 1.0 | gridpoints_reg_sd > max(height, width)){
     message = "large distribution";
     Rcout << "WARNING: Transformation may be poor - transformed points grid seem to be concentrated!" << endl;
@@ -99,12 +104,11 @@ bool check_matches(Mat &mask){
 // do overall checks on keypoints and images
 bool check_transformation_metrics(std::vector<cv::Point2f> points1, std::vector<cv::Point2f> points2, Mat &im1, Mat &im2, Mat &h, Mat &mask) {
   
-  // make keypoints from points
-  
   // check keypoint standard deviation
   bool is_degenerate = check_degenerate(points1, points2);
   
   // TODO: check transformation
+  // make keypoints from points
   // std::string transformation;
   // transformation = check_transformation_by_pts_mean_sqrt(keypoints1, keypoints2, h, mask);
   
@@ -389,26 +393,34 @@ bool getSIFTTransformationMatrixSingle(
     points1.push_back(keypoints1[good_matches[i].queryIdx].pt);
     points2.push_back(keypoints2[good_matches[i].trainIdx].pt);
   }
+  
+  // check variable
+  Rcout << "Calculating" << (run_Affine ? " (Affine) " : " (Homography) ") << "Transformation Matrix" << endl;
 
   // Find transformation matrix
-  if(run_Affine){
-    std::vector<uint8_t> match_mask;
-    h = estimateAffine2D(points1,
+  if(points1.size() > 0){
+    if(run_Affine){
+      std::vector<uint8_t> match_mask;
+      h = estimateAffine2D(points1,
+                           points2,
+                           match_mask,
+                           cv::RANSAC,
+                           params.ransac_pixel_threshold,
+                           params.ransac_maxIters,
+                           params.ransac_confidence);
+      mask = IntVectorToMat(match_mask);
+    } else {
+      h = findHomography(points1,
                          points2,
-                         match_mask,
                          cv::RANSAC,
                          params.ransac_pixel_threshold,
+                         mask,
                          params.ransac_maxIters,
                          params.ransac_confidence);
-    mask = IntVectorToMat(match_mask);
+    } 
   } else {
-    h = findHomography(points1,
-                       points2,
-                       cv::RANSAC,
-                       params.ransac_pixel_threshold,
-                       mask,
-                       params.ransac_maxIters,
-                       params.ransac_confidence);
+    Rcout <<  "Found no matches!" << endl;
+    return false;
   }
 
   // Draw top matches and good ones only
@@ -521,7 +533,7 @@ void getSIFTTransformationMatrix(
   }
 }
 
-void getORBTransformationMatrix(
+bool getORBTransformationMatrix(
     Mat im1Proc, Mat im2Proc, Mat im1, Mat im2, Mat &h, Mat &mask, 
     Mat &imMatches, std::vector<Point2f> &points1, std::vector<Point2f> &points2, 
     const bool &run_Affine, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES, bool &is_faulty){
@@ -564,22 +576,27 @@ void getORBTransformationMatrix(
   
   // check variable
   Rcout << "Calculating" << (run_Affine ? " (Affine) " : " (Homography) ") << "Transformation Matrix" << endl;
-  
+    
   // Find transformation matrix
-  // cv::Mat mask;
-  if(run_Affine){
-    std::vector<uint8_t> match_mask;
-    h = estimateAffine2D(points1,
+  if(points1.size() > 0){
+    // cv::Mat mask;
+    if(run_Affine){
+      std::vector<uint8_t> match_mask;
+      h = estimateAffine2D(points1,
+                           points2,
+                           match_mask,
+                           cv::RANSAC);
+      mask = IntVectorToMat(match_mask);
+    } else {
+      h = findHomography(points1,
                          points2,
-                         match_mask,
-                         cv::RANSAC);
-    mask = IntVectorToMat(match_mask);
+                         cv::RANSAC,
+                         5,
+                         mask);
+    }
   } else {
-    h = findHomography(points1,
-                       points2,
-                       cv::RANSAC,
-                       5,
-                       mask);
+    Rcout <<  "Found no matches!" << endl;
+    return false;
   }
   
   // Draw top matches and good ones only
@@ -601,6 +618,9 @@ void getORBTransformationMatrix(
     }
   }
   scaledDrawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches);
+  
+  // check number of matches
+  check_matches(mask);
 }
 
 // align images with FLANN algorithm
@@ -658,10 +678,6 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     getSIFTTransformationMatrix(im1Proc, im2Proc, im1, im2, h, mask, imMatches,
                                 points1, points2, run_Affine, is_faulty);
     
-    // void getSIFTTransformationMatrix(
-    //     Mat im1Proc, Mat im2Proc, Mat im1, Mat im2, Mat &h, Mat &mask, 
-    //     Mat &imMatches, std::vector<Point2f> &points1, std::vector<Point2f> &points2, 
-    //     const bool &run_Affine, bool &is_faulty){
   }
   
   // check result
@@ -673,9 +689,12 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   if(h.rows == 2){
     warpAffine(im1Proc, im1Warp, h, im2Proc.size());
     warpAffine(im1NormalProc, im1NormalWarp, h, im2Proc.size());   
-  } else {
+  } else if(h.rows == 3){
     warpPerspective(im1Proc, im1Warp, h, im2Proc.size());
     warpPerspective(im1NormalProc, im1NormalWarp, h, im2Proc.size());    
+  } else {
+    Rcout << "WARNING: No transformation was found" << endl;
+    return;
   }
   
   Rcout << "DONE: warped query image" << endl;
@@ -846,14 +865,20 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
   // destination image, registered image, keypoint matching image
   out[1] = matToImage(imReference.clone());
   
-  // registered image
-  out[2] = matToImage(imReg.clone());
-  
-  // keypoint matching image
-  out[3] = matToImage(imMatches.clone());
-  
-  // overlay image
-  out[4] = matToImage(imOverlay.clone());
+  // check if transformation matrix is calculated, 
+  // otherwise return NULL
+  if(h.rows > 1){
+    // registered image
+    out[2] = matToImage(imReg.clone());
+    // keypoint matching image
+    out[3] = matToImage(imMatches.clone());
+    // overlay image
+    out[4] = matToImage(imOverlay.clone()); 
+  } else {
+    out[2] = R_NilValue;
+    out[3] = R_NilValue;
+    out[4] = R_NilValue;
+  }
   
   // return
   return out;

@@ -2140,7 +2140,7 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
   
           # destination image
           dest_image_list[[i]] <- results$dest_image
-  
+          
           # save aligned images
           aligned_image_list[[i]] <- results$aligned_image
   
@@ -2160,8 +2160,13 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
           # get images
           # image_view_list <- list(rep(magick::image_resize(dest_image_list[[i]], geometry = "400x"),5),
           #                         rep(magick::image_resize(overlayed_image_list[[i]], geometry = "400x"),5))
+          if(is.null(overlayed_image_list[[i]])){
+            overlayed_image <- dest_image_list[[i]]
+          } else {
+            overlayed_image <- overlayed_image_list[[i]]
+          }
           image_view_list <- list(rep(dest_image_list[[i]],5),
-                                  rep(overlayed_image_list[[i]],5))
+                                  rep(overlayed_image,5))
           
           # make slide show
           image_view_list <- image_view_list %>%
@@ -2319,11 +2324,25 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
     reg[[1]] <- list(reg[[1]][[1]], NULL)
   }
   
+  # check for failed registeration
+  aligned_image <- 
+    if(!is.null(reg[[3]])) magick::image_read(reg[[3]]) else NULL
+  alignment_image <- 
+    if(!is.null(reg[[4]])) magick::image_read(reg[[4]]) else NULL
+  overlay_image <- 
+    if(!is.null(reg[[5]])) magick::image_read(reg[[5]]) else NULL
+  
+  # return
+  # return(list(transmat = reg[[1]],
+  #             dest_image = magick::image_read(reg[[2]]),
+  #             aligned_image = magick::image_read(reg[[3]]),
+  #             alignment_image = magick::image_read(reg[[4]]),
+  #             overlay_image = magick::image_read(reg[[5]])))
   return(list(transmat = reg[[1]],
               dest_image = magick::image_read(reg[[2]]),
-              aligned_image = magick::image_read(reg[[3]]),
-              alignment_image = magick::image_read(reg[[4]]),
-              overlay_image = magick::image_read(reg[[5]])))
+              aligned_image = aligned_image,
+              alignment_image = alignment_image,
+              overlay_image = overlay_image))
 }
 
 ####
