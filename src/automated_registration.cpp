@@ -1,4 +1,5 @@
 #include <Rcpp.h>
+#include <sys/resource.h>
 
 // OpenCV
 #include <opencv2/opencv.hpp>
@@ -28,6 +29,21 @@ struct SIFTParameters
   const float ransac_confidence = 0.95;
   const int ransac_maxIters=2000;
 };
+
+// memory check
+void log_mem_usage(const std::string& label = "") {
+  struct rusage usage;
+  getrusage(RUSAGE_SELF, &usage);
+  long rss_kb = usage.ru_maxrss;
+  
+  double rss_mb = rss_kb / 1024.0;
+  double rss_gb = rss_mb / 1024.0;
+  
+  Rcpp::Rcout << "Memory [" << label << "]: "
+              << rss_kb << " KB | "
+              << rss_mb << " MB | "
+              << rss_gb << " GB" << std::endl;
+}
 
 // check if keypoints are degenerate
 bool check_degenerate(std::vector<cv::Point2f> &points1, std::vector<cv::Point2f> &points2) {
@@ -897,6 +913,8 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
               rotate_query.get_cstring(), rotate_ref.get_cstring(), 
               run_Affine, run_TPS);
 
+  log_mem_usage("After alignment");
+  
   // transformation matrix, can be either a matrix, set of keypoints or both
   out_trans[0] = matToNumericMatrix(h.clone());
   out_trans[1] = keypoints;
@@ -920,12 +938,16 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
     out[4] = R_NilValue;
   }
   
+  log_mem_usage("during transfer");
+  
   // release
   im.release();
   imReference.release();
   imReg.release();
   imMatches.release();
   imOverlay.release();
+  
+  log_mem_usage("After release");
   
   // return
   return out;
