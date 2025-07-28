@@ -81,7 +81,7 @@ cv::Mat reversepreprocessImage(Mat &im, const char* flipflop, const char* rotate
   return imRotate;
 }
 
-cv::Mat resize_image(cv::Mat im, int width)
+cv::Mat resize_image(cv::Mat &im, int width)
 {
   // calculate resize factor
   int resized_cols = width;
@@ -93,8 +93,8 @@ cv::Mat resize_image(cv::Mat im, int width)
   return im_resized;
 }
 
-std::vector<cv::KeyPoint> resize_keypoints(std::vector<cv::KeyPoint> keypoints, 
-                                           cv::Mat im,
+std::vector<cv::KeyPoint> resize_keypoints(std::vector<cv::KeyPoint> &keypoints, 
+                                           cv::Mat &im,
                                            int width)
 {
   // scale factor
@@ -113,9 +113,9 @@ std::vector<cv::KeyPoint> resize_keypoints(std::vector<cv::KeyPoint> keypoints,
   return new_keypoints;
 }
 
-void scaledDrawMatches(cv::Mat im1, std::vector<cv::KeyPoint> keypoints1, 
-                       cv::Mat im2, std::vector<cv::KeyPoint> keypoints2,
-                       std::vector<cv::DMatch> top_matches,
+void scaledDrawMatches(cv::Mat im1, std::vector<cv::KeyPoint> &keypoints1, 
+                       cv::Mat im2, std::vector<cv::KeyPoint> &keypoints2,
+                       std::vector<cv::DMatch> &top_matches,
                        cv::Mat &imMatches)
 {
   // resize keypoints

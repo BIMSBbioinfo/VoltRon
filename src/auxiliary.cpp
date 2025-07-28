@@ -46,7 +46,7 @@ Rcpp::RawVector matToImage(cv::Mat mat) {
 }
 
 // Function to convert a RawVector for magick images to a cv::Mat object
-cv::Mat imageToMat(Rcpp::RawVector image_data, int width, int height) {
+cv::Mat imageToMat(Rcpp::RawVector &image_data, int width, int height) {
   
   // Create cv::Mat object
   cv::Mat mat(height, width, CV_8UC3, image_data.begin());
@@ -89,7 +89,7 @@ Rcpp::NumericMatrix matToNumericMatrix(cv::Mat m) {
 }
 
 // Function to convert a cv::Point2f object to a NumericMatrix
-Rcpp::NumericMatrix point2fToNumericMatrix(std::vector<cv::Point2f> points) {
+Rcpp::NumericMatrix point2fToNumericMatrix(std::vector<cv::Point2f> &points) {
   int n = points.size();
   Rcpp::NumericMatrix mat(n, 2);
   for (int i = 0; i < n; i++) {
@@ -100,7 +100,7 @@ Rcpp::NumericMatrix point2fToNumericMatrix(std::vector<cv::Point2f> points) {
 }
 
 // Function to convert a cv::Keypoint object to a std::vector<double>
-std::vector<double> KeyPointToDoubleVector(std::vector<cv::KeyPoint> points) {
+std::vector<double> KeyPointToDoubleVector(std::vector<cv::KeyPoint> &points) {
   int n = points.size();
   std::vector<double> vec(n);
   for (int i = 0; i < n; i++) {
@@ -110,7 +110,7 @@ std::vector<double> KeyPointToDoubleVector(std::vector<cv::KeyPoint> points) {
 }
 
 // Function to convert a cv::Point2f object to a std::vector<double>
-std::vector<double> Point2fToDoubleVector(std::vector<cv::Point2f> points) {
+std::vector<double> Point2fToDoubleVector(std::vector<cv::Point2f> &points) {
   int n = points.size();
   std::vector<double> vec(n);
   for (int i = 0; i < n; i++) {
@@ -120,7 +120,7 @@ std::vector<double> Point2fToDoubleVector(std::vector<cv::Point2f> points) {
 }
 
 // Function to convert a cv::Point2f object to a cv::Mat
-std::vector<cv::Point2f> matToPoint2f(cv::Mat mat) {
+std::vector<cv::Point2f> matToPoint2f(cv::Mat &mat) {
   std::vector<cv::Point2f> points;
   
   // Assuming the matrix has 2 columns (x and y coordinates)
@@ -142,7 +142,7 @@ std::vector<cv::Point2f> matToPoint2f(cv::Mat mat) {
   return points;
 }
 
-cv::Mat point2fToMat(std::vector<cv::Point2f> points) {
+cv::Mat point2fToMat(std::vector<cv::Point2f> &points) {
   cv::Mat mat(points.size(), 2, CV_32F);
   
   // Iterate over the vector of Point2f
@@ -157,7 +157,7 @@ cv::Mat point2fToMat(std::vector<cv::Point2f> points) {
 }
 
 // Function to convert a cv::Point2f object to a cv::Mat
-cv::Mat IntVectorToMat(std::vector<uint8_t> points) {
+cv::Mat IntVectorToMat(std::vector<uint8_t> &points) {
   cv::Mat mat(points.size(), 1, CV_8U);
 
   // Iterate over the vector of Point2f
@@ -169,7 +169,7 @@ cv::Mat IntVectorToMat(std::vector<uint8_t> points) {
 }
 
 // calculate standard deviation of a vector
-double cppSD(std::vector<cv::KeyPoint> points)
+double cppSD(std::vector<cv::KeyPoint> &points)
 {
   std::vector<double> inVec = KeyPointToDoubleVector(points);
   int n = inVec.size();
@@ -184,10 +184,11 @@ double cppSD(std::vector<cv::KeyPoint> points)
   }
   
   double sd = std::accumulate(inVec.begin(), inVec.end(), 0.0);
+  std::vector<double>().swap(inVec);
   return std::sqrt( sd / (n-1) );
 }
 
-double cppSD(std::vector<cv::Point2f> points)
+double cppSD(std::vector<cv::Point2f> &points)
 {
   std::vector<double> inVec = Point2fToDoubleVector(points);
   int n = inVec.size();
@@ -202,5 +203,6 @@ double cppSD(std::vector<cv::Point2f> points)
   }
   
   double sd = std::accumulate(inVec.begin(), inVec.end(), 0.0);
+  std::vector<double>().swap(inVec);
   return std::sqrt( sd / (n-1) );
 }
