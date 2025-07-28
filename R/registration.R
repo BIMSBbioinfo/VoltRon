@@ -2158,9 +2158,7 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
         output[[paste0("plot_query_reg",i)]] <- renderImage({
 
           # get images
-          # image_view_list <- list(rep(magick::image_resize(dest_image_list[[i]], geometry = "400x"),5),
-          #                         rep(magick::image_resize(overlayed_image_list[[i]], geometry = "400x"),5))
-          if(is.null(overlayed_image_list[[i]])){
+          if(suppressWarnings(is.na(overlayed_image_list[[i]]))){
             overlayed_image <- dest_image_list[[i]]
           } else {
             overlayed_image <- overlayed_image_list[[i]]
@@ -2180,7 +2178,8 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
       lapply(register_ind, function(i){
         cur_alignment_image <- alignment_image_list[[i]]
         output[[paste0("plot_alignment",i)]] <- renderPlot({
-          magick::image_ggplot(cur_alignment_image)
+          if(!suppressWarnings(is.na(cur_alignment_image)))
+            magick::image_ggplot(cur_alignment_image)
         })
       })
 
@@ -2256,9 +2255,9 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
     # update transformation matrix
     if(nrow(reg[[1]][[1]]) == 2){
       reg[[1]][[1]] <- solve(diag(c(ref_scale,ref_scale))) %*% reg[[1]][[1]] %*% diag(c(query_scale,query_scale,1))
-    } else {
+    } else if(nrow(reg[[1]][[1]]) == 3){
       reg[[1]][[1]] <- solve(diag(c(ref_scale,ref_scale,1))) %*% reg[[1]][[1]] %*% diag(c(query_scale,query_scale,1)) 
-    }
+    } 
 
     # update keypoints 
     if(!is.null(reg[[1]][[2]])){
@@ -2326,11 +2325,11 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
   
   # check for failed registeration
   aligned_image <- 
-    if(!is.null(reg[[3]])) magick::image_read(reg[[3]]) else NULL
+    if(!is.null(reg[[3]])) magick::image_read(reg[[3]]) else NA
   alignment_image <- 
-    if(!is.null(reg[[4]])) magick::image_read(reg[[4]]) else NULL
+    if(!is.null(reg[[4]])) magick::image_read(reg[[4]]) else NA
   overlay_image <- 
-    if(!is.null(reg[[5]])) magick::image_read(reg[[5]]) else NULL
+    if(!is.null(reg[[5]])) magick::image_read(reg[[5]]) else NA
   
   # return
   # return(list(transmat = reg[[1]],
