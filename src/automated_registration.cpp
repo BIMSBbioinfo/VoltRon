@@ -275,7 +275,8 @@ void filterDuplicateKeypoints(std::vector<cv::KeyPoint> &keypoints, cv::Mat &des
   
   for (int idx : unique_indices) {
     unique_keypoints.push_back(keypoints[idx]);
-    unique_descriptors.push_back(descriptors.row(idx));
+    // unique_descriptors.push_back(descriptors.row(idx));
+    unique_descriptors.push_back(descriptors.row(idx).clone());
   }
   
   keypoints = std::move(unique_keypoints);
@@ -299,9 +300,13 @@ void keepTopKeypoints(std::vector<KeyPoint> &keypoints, Mat &descriptors, SIFTPa
     kp_desc_pairs.resize(params.max_nfeatures);
   }
   
+  // TODO: we had problems here, were getting heap memory allocation
+  // issues
   keypoints.clear();
-  descriptors.release();
-  
+  // descriptors.release();
+  // descriptors = cv::Mat();
+  descriptors.create(0, descriptors.cols, descriptors.type());
+
   for (const auto& pair : kp_desc_pairs) {
     keypoints.push_back(pair.first);
     descriptors.push_back(pair.second);
@@ -522,6 +527,7 @@ void getSIFTTransformationMatrix(
 
     // points1.clear();
     // points2.clear();
+    // good_matches.clear();
     Mat im1Proc_eq;
     cv::equalizeHist(im1Proc, im1Proc_eq);
     Rcout << "MESSAGE: Calculating Transformation Matrix with histogram equalization (1)" << endl;
@@ -535,15 +541,17 @@ void getSIFTTransformationMatrix(
   } else {
     return;
   }
-  
+
   // equalize second image if fails
-  // mask = cv::Mat();
   if(!check){
-    
+
+    // points1.clear();
+    // points2.clear();
+    // good_matches.clear();
     cv::equalizeHist(im2Proc, im2Proc_eq);
     Rcout << "MESSAGE: Calculating Transformation Matrix with histogram equalization (2)" << endl;
-    
-    good_matches.clear();
+
+    // good_matches.clear();
     std::vector<DMatch> good_matches;
     check = getSIFTTransformationMatrixSingle(im1Proc, im2Proc_eq, h, mask,
                                               imMatches,
@@ -553,15 +561,17 @@ void getSIFTTransformationMatrix(
   } else {
     return;
   }
-  
+
   // last try with both equalized images
-  // mask = cv::Mat();
   if(!check){
-    
+
+    // points1.clear();
+    // points2.clear();
+    // good_matches.clear();
     cv::equalizeHist(im1Proc, im1Proc_eq2);
     cv::equalizeHist(im2Proc, im2Proc_eq2);
     Rcout << "MESSAGE: Calculating Transformation Matrix with histogram equalization (3)" << endl;
-    
+
     std::vector<DMatch> good_matches;
     check = getSIFTTransformationMatrixSingle(im1Proc_eq2, im2Proc_eq2, h, mask,
                                               imMatches,
