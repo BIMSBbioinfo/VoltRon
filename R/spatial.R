@@ -68,10 +68,10 @@ getSpatialNeighbors <- function(object,
         names(cur_group.by) <- metadata$id
       } else {
         cur_group.by <- metadata[,group.by]
-        if(!is.null(rownames(metadata))){
-          names(cur_group.by) <- rownames(metadata)
-        } else {
+        if("id" %in% colnames(metadata)){
           names(cur_group.by) <- as.vector(metadata$id)
+        } else {
+          names(cur_group.by) <- rownames(metadata)
         }
       }
       if(!is.null(group.ids)){

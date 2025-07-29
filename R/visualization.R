@@ -252,10 +252,10 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     names(cur_group.by) <- metadata$id
   } else {
     cur_group.by <- metadata[,group.by]
-    if(!is.null(rownames(metadata))){
-      names(cur_group.by) <- rownames(metadata)
-    } else {
+    if("id" %in% colnames(metadata)){
       names(cur_group.by) <- as.vector(metadata$id)
+    } else {
+      names(cur_group.by) <- rownames(metadata)
     }
   }
   
@@ -555,10 +555,10 @@ addSpatialLayer <- function(g, object, assay, group.by = "Sample", plot.segments
     names(cur_group.by) <- metadata$id
   } else {
     cur_group.by <- metadata[,group.by]
-    if(!is.null(rownames(metadata))){
-      names(cur_group.by) <- rownames(metadata)
-    } else {
+    if("id" %in% colnames(metadata)){
       names(cur_group.by) <- as.vector(metadata$id)
+    } else {
+      names(cur_group.by) <- rownames(metadata)
     }
   }
   
@@ -1733,10 +1733,10 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
     if(inherits(metadata, "data.table")){
       datax[[group.by]] <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
     } else {
-      if(!is.null(rownames(metadata))){
-        datax[[group.by]] <- as.factor(metadata[rownames(datax),group.by])
-      } else{
+      if("id" %in% colnames(metadata)){
         datax[[group.by]] <- as.factor(as.vector(metadata[match(rownames(datax), as.vector(metadata$id)),group.by]))
+      } else{
+        datax[[group.by]] <- as.factor(metadata[rownames(datax),group.by])
       }
     }
   } else {
@@ -2463,7 +2463,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 
   # labels and groups
   if(is.null(x.label)) {
-    if(is.null(rownames(metadata))){
+    if("id" %in% colnames(metadata)){
       x.labels <- factor(metadata$id)
     } else {
       x.labels <- factor(rownames(metadata))
@@ -2482,10 +2482,10 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
   }
 
   # plotting data
-  if(!is.null(rownames(metadata))){
-    spatialpoints <- rownames(metadata) 
-  } else {
+  if("id" %in% colnames(metadata)){
     spatialpoints <- metadata$id
+  } else {
+    spatialpoints <- rownames(metadata) 
   }
   if(is.null(split.by)){
     ggplotdatax <- data.frame(datax,
@@ -2591,7 +2591,7 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
   
   # labels and groups
   if(is.null(x.label)) {
-    if(is.null(rownames(metadata))){
+    if("id" %in% colnames(metadata)){
       x.labels <- factor(metadata$id)
     } else {
       x.labels <- factor(rownames(metadata))
@@ -2605,11 +2605,12 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
   }
   
   # plotting data
-  if(!is.null(rownames(metadata))){
-    spatialpoints <- rownames(metadata) 
-  } else {
+  if("id" %in% colnames(metadata)){
     spatialpoints <- metadata$id
+  } else {
+    spatialpoints <- rownames(metadata) 
   }
+  
   ggplotdatax <- data.frame(t(barplotdata),
                             x.label =  x.label,
                             assay_title = assay_title,

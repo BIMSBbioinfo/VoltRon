@@ -803,10 +803,10 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
         stop("Direct subsetting for Ondisk VoltRon objects are currently not possible!")
         # spatialpoints <- as.vector(metadata$id)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
       } else {
-        if(!is.null(rownames(metadata))){
-          cur_data <- rownames(metadata)
-        } else {
+        if("id" %in% colnames(metadata)){
           cur_data <- metadata$id
+        } else {
+          cur_data <- rownames(metadata)
         }
         spatialpoints <- rownames(metadata)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
       }
@@ -1671,7 +1671,7 @@ addMetadata <- function(object, assay = NULL, type = NULL, value, label) {
   
   # replace data
   if(length(value) == length(entities) || length(value) == 1){
-    if(is.null(rownames(metadata)) || inherits(metadata, "data.table")){
+    if("id" %in% colnames(metadata) || inherits(metadata, "data.table")){
       metadata[[label]][match(entities, as.vector(metadata$id))] <- value
     } else {
       metadata[entities,][[label]] <- value
