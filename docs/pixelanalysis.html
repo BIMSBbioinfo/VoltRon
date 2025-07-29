@@ -613,7 +613,9 @@ embedding data before analysis and clustering. Here, we use
 <strong>overwrite</strong> argument (default is <code>FALSE</code>) as a
 safe-guard for overwriting already existing embeddings with the same
 name, i.e. <code>type = "dinov2"</code>, but if the an embedding with
-name <code>dinov2</code> doesn’t exist, this will be overlooked.</p>
+name <code>dinov2</code> doesn’t exist, this will be overlooked. You can
+download the DinoV2 embeddings from <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/PixelAnalysis/img_128_processed.rds">here</a>.</p>
 <pre class="r watch-out"><code># get embed data
 embed_data &lt;- readRDS(&quot;data/BreastTile/img_128_processed.rds&quot;)
 ind &lt;- sapply(vrSpatialPoints(Xen_R1_image), function(x) strsplit(x, split = &quot;_&quot;)[[1]][1])
