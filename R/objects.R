@@ -96,6 +96,7 @@ NULL
 #' @inheritParams utils::.DollarNames
 #'
 #' @importFrom utils .DollarNames
+#' @export
 #' @method .DollarNames VoltRon
 ".DollarNames.VoltRon" <- function(x, pattern = '') {
   meta.data <- as.list(x = Metadata(x))

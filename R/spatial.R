@@ -464,8 +464,8 @@ getNicheAssay <- function(object, assay = NULL, label = NULL, graph.type = "dela
     }, numeric(length(na.omit(unique_label))))
     colnames(niche_counts) <- igraph::V(graph)$name
   }
-  
-  
+  niche_counts <- as.matrix(niche_counts)
+
   # add cell type mixtures as new feature set
   for(assy in assay_names){
     cur_niche_counts <- niche_counts[,stringr::str_extract(colnames(niche_counts), "Assay[0-9]+") %in% assy]

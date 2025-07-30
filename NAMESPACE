@@ -2,6 +2,7 @@
 
 S3method("$",VoltRon)
 S3method("$<-",VoltRon)
+S3method(.DollarNames,VoltRon)
 S3method(as.VoltRon,Seurat)
 S3method(as.VoltRon,SpatialExperiment)
 S3method(as.Zarr,"magick-image")
