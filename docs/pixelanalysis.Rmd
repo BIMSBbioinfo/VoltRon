@@ -205,7 +205,7 @@ We will now load and add the DinoV2 embeddings as additional embedding data befo
 
 ```{r eval = FALSE, class.source="watch-out"}
 # get embed data
-embed_data <- readRDS("data/BreastTile/img_128_processed.rds")
+embed_data <- readRDS("img_128_processed.rds")
 ind <- sapply(vrSpatialPoints(Xen_R1_image), function(x) strsplit(x, split = "_")[[1]][1])
 embed_data <- embed_data[ind,]
 rownames(embed_data) <- vrSpatialPoints(Xen_R1_image)

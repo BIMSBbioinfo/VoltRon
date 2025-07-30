@@ -484,7 +484,7 @@ and further downstream data integration.</p>
 <div id="xenium-covid-19-lung-data" class="section level2">
 <h2>Xenium COVID-19 Lung Data</h2>
 <p>Xenium in situ platform is compatible with H&amp;E and
-immunofluorescence imaging instrument, thus researchers can image slides
+immunofluorescence imaging , thus researchers can stain whole slides
 post-Xenium to capture additional information on the morphology of the
 tissue and integrate it with the Xenium readouts. In this usecase, we
 would like to integrate the post-Xenium H&amp;E image of tissue micro
@@ -590,7 +590,8 @@ in other virus molecules.</p>
                                         features = &quot;gene&quot;, graph.type = &quot;radius&quot;)
 vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
               group.by = &quot;gene_hotspot_flag&quot;, group.ids = c(&quot;cold&quot;, &quot;hot&quot;), 
-              alpha = 1, background.color = &quot;white&quot;)</code></pre>
+              alpha = 1, colors = list(cold = &quot;blue&quot;, hot = &quot;red&quot;), 
+              background.color = &quot;white&quot;)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_hotspot.png" class="center"></p>
 </div>
 <div id="automated-he-registration" class="section level3">
@@ -910,8 +911,10 @@ href="https://github.com/mahmoodlab/UNI">UNI</a>. We can parse tiles
 from VoltRon, and get embedding values from a Foundation model to
 conduct downstream clustering using PCA and kmeans clustering. See <a
 href="pixelanalysis.html#Image_Foundation_Models">Image tiles/pixels
-analysis</a> tutorial for more information.</p>
-<pre class="r watch-out"><code>embed_data &lt;- readRDS(&quot;data/BreastTile/img_128_processed.rds&quot;)
+analysis</a> tutorial for more information. You can also download the
+DinoV2 embeddings from <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/PixelAnalysis/img_128_processed.rds">here</a>.</p>
+<pre class="r watch-out"><code>embed_data &lt;- readRDS(&quot;img_128_processed.rds&quot;)
 ind &lt;- sapply(vrSpatialPoints(Xen_R1_image), function(x) strsplit(x, split = &quot;_&quot;)[[1]][1])
 embed_data &lt;- embed_data[ind,]
 rownames(embed_data) &lt;- vrSpatialPoints(Xen_R1_image)

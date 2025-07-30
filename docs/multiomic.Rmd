@@ -154,7 +154,8 @@ vr2_merged_acute1 <- getHotSpotAnalysis(vr2_merged_acute1, assay = "Xenium_mol",
                                         features = "gene", graph.type = "radius")
 vrSpatialPlot(vr2_merged_acute1, assay = "Xenium_mol", 
               group.by = "gene_hotspot_flag", group.ids = c("cold", "hot"), 
-              alpha = 1, background.color = "white")
+              alpha = 1, colors = list(cold = "blue", hot = "red"), 
+              background.color = "white")
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_hotspot.png" class="center">
@@ -497,10 +498,10 @@ Xen_R1_image
 
 ### Clustering
 
-Using VoltRon we can also integrate tile-level spatial entities and image tiles with existing image foundation models such as [DinoV2](https://github.com/beneroth13/dinov2) or [UNI](https://github.com/mahmoodlab/UNI). We can parse tiles from VoltRon, and get embedding values from a Foundation model to conduct downstream clustering using PCA and kmeans clustering. See [Image tiles/pixels analysis](pixelanalysis.html#Image_Foundation_Models) tutorial for more information.
+Using VoltRon we can also integrate tile-level spatial entities and image tiles with existing image foundation models such as [DinoV2](https://github.com/beneroth13/dinov2) or [UNI](https://github.com/mahmoodlab/UNI). We can parse tiles from VoltRon, and get embedding values from a Foundation model to conduct downstream clustering using PCA and kmeans clustering. See [Image tiles/pixels analysis](pixelanalysis.html#Image_Foundation_Models) tutorial for more information. You can also download the DinoV2 embeddings from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/PixelAnalysis/img_128_processed.rds).
 
 ```{r eval = FALSE, class.source="watch-out"}
-embed_data <- readRDS("data/BreastTile/img_128_processed.rds")
+embed_data <- readRDS("img_128_processed.rds")
 ind <- sapply(vrSpatialPoints(Xen_R1_image), function(x) strsplit(x, split = "_")[[1]][1])
 embed_data <- embed_data[ind,]
 rownames(embed_data) <- vrSpatialPoints(Xen_R1_image)
