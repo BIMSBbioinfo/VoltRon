@@ -972,7 +972,6 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
     } else {
       cur_score <- metadata[,feature]
     }
-    # cur_score <- metadata[,feature]
     if("id" %in% colnames(metadata)){
       names(cur_score) <- as.vector(metadata$id)
     } else {
@@ -1042,7 +1041,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
                              values=rescale_numeric(c(limits[1], midpoint, limits[2])), limits = limits)
     }
 
-  } else if(vrAssayTypes(assay) %in% c("cell", "tile")) {
+  } else if(vrAssayTypes(assay) %in% c("cell", "tile", "molecule")) {
 
     if(plot.segments){
 
@@ -1086,9 +1085,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
           geom_segment(data = graph.df, mapping = aes(x=from.x,xend = to.x, y=from.y,yend = to.y), alpha = 0.5, color = ifelse(background == "black", "grey", "black"))
       }
     }
-  } else {
-    stop("Feature plotting is not possible for molecule assays!")
-  }
+  } 
 
   # more visualization parameters
   g <- g +
