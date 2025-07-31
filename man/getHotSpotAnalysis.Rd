@@ -9,9 +9,11 @@ getHotSpotAnalysis(
   assay = NULL,
   method = "Getis-Ord",
   features,
-  graph.type = "delaunay",
+  graph.type = NULL,
+  group.ids = NULL,
   alpha.value = 0.01,
   norm = TRUE,
+  n.tile = 0,
   verbose = TRUE
 )
 }
@@ -27,9 +29,14 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{graph.type}{the type of graph to determine spatial neighborhood}
 
+\item{group.ids}{a subset of categories defined in metadata column from \code{features}, 
+throws an error if the feature does not include}
+
 \item{alpha.value}{the alpha value for the hot spot analysis test. Default is 0.01}
 
 \item{norm}{if TRUE, the normalized data is used}
+
+\item{n.tile}{should points be rasterized along x-and y-axes, typically used for molecule assays to generate features for Getis-Ord statistics}
 
 \item{verbose}{verbose}
 }

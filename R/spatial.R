@@ -273,16 +273,23 @@ vrNeighbourhoodEnrichmentSingle <- function(object, group.by = NULL, graph.type 
 #' @param method the statistical method of conducting hot spot analysis. Default is "Getis-Ord"
 #' @param features a set of features to be visualized, either from \link{vrFeatures} of raw or normalized data or columns of the \link{Metadata}.
 #' @param graph.type the type of graph to determine spatial neighborhood
+#' @param group.ids a subset of categories defined in metadata column from \code{features}, 
+#' throws an error if the feature does not include 
 #' @param alpha.value the alpha value for the hot spot analysis test. Default is 0.01
 #' @param norm if TRUE, the normalized data is used
+#' @param n.tile should points be rasterized along x-and y-axes, typically used for molecule assays to generate features for Getis-Ord statistics
 #' @param verbose verbose
 #' 
-#' @importFrom Matrix rowSums
 #' @importFrom igraph as_adjacency_matrix
 #' @importFrom stats pnorm
 #'
 #' @export
-getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", features, graph.type = "delaunay", alpha.value = 0.01, norm = TRUE, verbose = TRUE){
+getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", 
+                               features, graph.type = NULL,
+                               group.ids = NULL,
+                               alpha.value = 0.01, norm = TRUE, 
+                               n.tile = 0,
+                               verbose = TRUE){
   
   # check object
   if(!inherits(object, "VoltRon"))
@@ -298,9 +305,16 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
       metadata[[paste0(feat,"_hotspot_pvalue")]] <- 
         metadata[[paste0(feat,"_hotspot_stat")]] <- rep(NA, nrow(metadata))
   }
+  if(!is.null(group.ids)){
+    if(length(features) > 1)
+      stop("group.ids can only be specified for a single 'feautures' entry!")
+  }
   
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
+  assay_types <- vrAssayTypes(object, assay = assay_names)
+  if(length(unique(assay_types)) > 1)
+    stop("Only one spatial entity type can be analyzed at time!")
   
   # test for each assay
   neigh_results <- list()
@@ -310,11 +324,18 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
     if(verbose)
       message("Running Hot Spot Analysis with '", method, "' for '", assy, "'")
     
-    # get related data 
-    graph <- vrGraph(object, assay = assy, graph.type = graph.type)
-    adj_matrix <- igraph::as_adjacency_matrix(graph)
+    # metadata
     cur_metadata <- subset_metadata(metadata, assays = assy)
     
+    # get graph
+    if(!is.null(graph.type)){
+      graph <- vrGraph(object, assay = assy, graph.type = graph.type)
+      adj_matrix <- igraph::as_adjacency_matrix(graph)
+    } else {
+      if(n.tile == 0)
+        stop("If graph.type is not provided (NULL), then the data should be rasterized with argument n.tile > 0!")
+    }
+
     # get features
     data_features <- features[features %in% vrFeatures(object, assay = assy)]
     if(length(data_features) > 0){
@@ -326,7 +347,7 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
       
       # Getis-Ord 
       if(method == "Getis-Ord"){
-
+        
         # get feature
         if(feat %in% data_features){
           if(inherits(normdata, "IterableMatrix")){
@@ -344,40 +365,61 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
           stop("'", feat, "' is not found in either the data matrix or the metadata!")
         }
         
-        # update statistics if not numeric
-        if(!is.numeric(statistic)){
-          statistic <- Matrix::rowSums(adj_matrix)
+        # index
+        if("id" %in% colnames(cur_metadata)){
+          index <- cur_metadata$id
+        } else {
+          index <- rownames(index)
         }
         
-        # initiate getis ord
-        getisord <- list()
-        length(getisord) <- 3
-        names(getisord) <- c("hotspot_stat", "hotspot_pvalue", "hotspot_flag")
+        # update statistics if not numeric
+        mapping <- NULL
+        if(!is.numeric(statistic)){
+          if(n.tile == 0){
+            statistic <- rowSums(adj_matrix)
+          } else {
+            warning("n.tile > 0, hence 'graph.type'=", graph.type, " is ignored")
+            if(!is.null(group.ids)){
+              check <- group.ids %in% statistic
+              if(any(!check))
+                stop("some group.ids are not found in ", features)
+              group.index <- index[statistic %in% group.ids]
+            }
+            coords <- vrCoordinates(object, assay = assy)
+            rasterization <- .rasterize_points(coords, statistic, 
+                                               group.ids = group.ids, n.tile)
+            statistic <- rasterization$data$count
+            adj_matrix <- rasterization$adj_matrix
+            mapping <- rasterization$mapping
+          }
+        } else {
+          if(!is.null(group.ids)){
+            warning("group.ids is ignored since ", feat, " is not a categorical vector!")
+            group.ids <- NULL
+          }
+        }
+      
+        # get getis ord stats
+        getisord <- .calculate_getis_ord(statistic, adj_matrix, alpha.value)
         
-        # calculate getis ord
-        n <- length(statistic)
-        statistic <- statistic - (min(statistic)) ### correct for negative scores, correct for this later
-        getisord_stat <- adj_matrix %*% statistic
-        getisord_stat <- getisord_stat/(sum(statistic) - statistic)
-        getisord[[1]] <- getisord_stat[,1]
-          
-        # calculate z score expectation and variance
-        weight_sum <- Matrix::rowSums(adj_matrix)
-        getisord_exp <- weight_sum/(n - 1)
-        getisord_moment_1 <- (sum(statistic) - statistic)/(n - 1)
-        getisord_moment_2 <- (sum(statistic^2) - statistic^2)/(n - 1) - getisord_moment_1^2
-        getisord_var <- weight_sum*(n - 1 - weight_sum)*getisord_moment_2
-        getisord_var <- getisord_var/((n-1)^2 *(n-2)*getisord_moment_1^2)
+        # if mapping is given for tiles, adjust for it 
+        if(!is.null(mapping)){
+           getisord[[1]] <- getisord[[1]][mapping]
+           getisord[[2]] <- getisord[[2]][mapping]
+           getisord[[3]] <- getisord[[3]][mapping]
+           mapping <- NULL
+           adj_matrix <- NULL
+        }
         
-        # calculate z score 
-        getisord_zscore <- (getisord[[1]] - getisord_exp)/sqrt(getisord_var)
-        getisord_zscore[is.nan(getisord_zscore)] <- NA
-        # getisord[[2]] <- 1-stats::pnorm(getisord_zscore)
-        getisord[[2]] <- p.adjust(1-stats::pnorm(getisord_zscore), method = "bonferroni")
-        getisord[[3]] <- ifelse(getisord[[2]] < alpha.value, "hot", "cold") 
-        
-        # get graph based hot spot filtering
-        # at least some number of common neighbors should be hotspots
+        # if mapping is given for group.ids, adjust for it 
+        if(!is.null(group.ids)){
+          tmp <- setNames(rep(NA, length(index)), index)
+          for(i in 1:3){
+            cur_tmp <- tmp
+            cur_tmp[group.index] <- getisord[[i]]
+            getisord[[i]] <- cur_tmp 
+          }
+        } 
         
         # update metadata for features
         for(label in names(getisord))
@@ -403,6 +445,114 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord", featu
   
   # return
   return(object)
+}
+
+#' @importFrom Matrix rowSums
+#' @noRd
+.calculate_getis_ord <- function(statistic, adj_matrix, alpha.value){
+  
+  # initiate getis ord
+  getisord <- list()
+  length(getisord) <- 3
+  names(getisord) <- c("hotspot_stat", "hotspot_pvalue", "hotspot_flag")
+  
+  # calculate getis ord
+  n <- length(statistic)
+  statistic <- statistic - (min(statistic)) ### correct for negative scores, correct for this later
+  getisord_stat <- adj_matrix %*% statistic
+  getisord_stat <- getisord_stat/(sum(statistic) - statistic)
+  getisord[[1]] <- getisord_stat[,1]
+  
+  # calculate z score expectation and variance
+  weight_sum <- Matrix::rowSums(adj_matrix)
+  getisord_exp <- weight_sum/(n - 1)
+  getisord_moment_1 <- (sum(statistic) - statistic)/(n - 1)
+  getisord_moment_2 <- (sum(statistic^2) - statistic^2)/(n - 1) - getisord_moment_1^2
+  getisord_var <- weight_sum*(n - 1 - weight_sum)*getisord_moment_2
+  getisord_var <- getisord_var/((n-1)^2 *(n-2)*getisord_moment_1^2)
+  
+  # calculate z score 
+  getisord_zscore <- (getisord[[1]] - getisord_exp)/sqrt(getisord_var)
+  getisord_zscore[is.nan(getisord_zscore)] <- NA
+  getisord[[2]] <- p.adjust(1-stats::pnorm(getisord_zscore), method = "bonferroni")
+  getisord[[3]] <- ifelse(getisord[[2]] < alpha.value, "hot", "cold") 
+  
+  # return
+  getisord
+}
+
+#' @import ggplot2
+#' @noRd
+.rasterize_points <- function(coords, statistic, group.ids = NULL, n.tile = 0){
+  
+  # check tiles
+  if(n.tile < 1){
+    if((n.tile %% 1 != 0))
+      stop("n.tile should be bigger than 1 and an integer!")  
+  }
+  
+  # subset group.ids
+  if(!is.null(group.ids)){
+    ind <- statistic %in% group.ids
+    coords <- coords[ind,]
+  }
+  
+  # rasterize
+  coords <- data.frame(coords[,c("x", "y")])
+  ranges <- apply(coords, 2, range)
+  ranges <- ranges[2,] - ranges[1,]
+  binwidth <- min(ranges/n.tile)
+  gplot <- ggplot() + 
+    ggplot2::stat_bin_2d(mapping = aes(x = .data[["x"]], y = .data[["y"]]),
+                         data = coords,
+                         binwidth = c(binwidth, binwidth), 
+                         drop = FALSE)
+  hex_count_data <- suppressWarnings(ggplot_build(gplot)$data)[[1]]
+
+  # adjacency matrix 
+  adj_matrix <- .make_raster_adjacency_matrix(hex_count_data)
+  
+  # mapping between points and rasters
+  coords_tile <- sweep(coords, 2, c(binwidth, binwidth), FUN = "/")
+  coords_tile <- ceiling(coords_tile)
+  width_ind <- max(coords_tile$x)
+  coords_tile$id <- (coords_tile$y-1)*width_ind + coords_tile$x
+  mapping <- setNames(coords_tile$id, rownames(coords))
+  
+  # return
+  hex_count_data <- hex_count_data[,c("xbin", "ybin", "count")]
+  return(list(data = hex_count_data, 
+              adj_matrix = adj_matrix, 
+              mapping = mapping))
+}
+
+#' @importFrom igraph add_edges simplify make_empty_graph get.adjacency
+#' @importFrom RANN nn2
+#' @importFrom data.table data.table melt
+#' @noRd
+.make_raster_adjacency_matrix <- function(hex_count_data){
+  
+  # find nnedges
+  hex_count_data$id <- 1:nrow(hex_count_data)
+  # distance <- (hex_count_data$x[2] - hex_count_data$x[1]) * 1.75
+  distance <- 1.75
+  nnedges <- suppressWarnings({RANN::nn2(hex_count_data[,c("xbin", "ybin")], 
+                                         searchtype = "radius", 
+                                         radius = distance, k = 9)})
+
+  # make edges
+  nnedges <- data.table::melt(data.table::data.table(nnedges$nn.idx), id.vars = "V1")
+  nnedges <- nnedges[,c("V1", "value")][V1 > 0 & value > 0]
+  nnedges <- as.vector(t(as.matrix(nnedges)))
+  
+  # make graph
+  graph <- make_empty_graph(directed = FALSE) + vertices(hex_count_data$id)
+  graph <- add_edges(graph, edges = nnedges)
+  graph <- simplify(graph, remove.multiple = TRUE, remove.loops = FALSE)
+  graph <- igraph::get.adjacency(graph)
+    
+  # return
+  graph
 }
 
 ####
