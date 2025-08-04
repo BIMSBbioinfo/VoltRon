@@ -56,11 +56,11 @@ library(ImageArray)
 
 We first have to download some packages that are necessary to import datasets from `.parquet` and `.h5` files provided by the VisiumHD readouts.
 
-```{r class.source="watch-out", eval = FALSE}
-install.packages("arrow")
-BiocManager::install("rhdf5")
-library(arrow)
-library(rhdf5)
+```{r eval = FALSE, class.source="watch-out"}
+if(!requireNamespace("arrow"))
+  install.packages("arrow")
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
 ```
 
 We use the **importVisiumHD** function to start analyzing the data. The data has 393401 spots which we will use OnDisk-backed methods to efficiently manipulate, analyze and visualize these spots.

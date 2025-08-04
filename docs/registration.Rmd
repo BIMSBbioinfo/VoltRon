@@ -553,6 +553,11 @@ vrImages(Xen_R1, channel = "H&E", scale.perc = 5)
 In the next use case, we will align **H&E images** associated with Visium data generated from tissue block sections of **adult humans with postmortem dorsolateral prefrontal cortex (DLPFC)**. Two pairs of adjacent sections was obtained from the tissue block of the third donor. Each pair are composed of two 10 $\mu$m serial tissue sections, and pairs are located 300 $\mu$m apart from each other. Hence, we align each pair individually. The datasets can be downloaded from [here](https://research.libd.org/spatialLIBD/). 
 
 ```{r class.source="watch-out", eval = FALSE} 
+# dependencies
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
+
+# import Visium data
 library(VoltRon)
 DLPFC_1 <- importVisium("DLPFC/151673", sample_name = "DLPFC_1")
 DLPFC_2 <- importVisium("DLPFC/151674", sample_name = "DLPFC_2")
