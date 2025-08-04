@@ -91,6 +91,30 @@ test_that("spatial plots", {
 })
 
 # Testing plotting functions
+test_that("molecule spatial plots", {
+  
+  # get data
+  data("merged_object")
+  
+  # spatial plot 
+  vrSpatialPlot(merged_object, assay = "MolAssay", group.by = "gene")
+  vrSpatialPlot(merged_object, assay = "MolAssay", group.by = "gene", n.tile = 10)
+  vrSpatialPlot(merged_object, assay = "MolAssay", group.by = "gene", n.tile = 100)
+  vrSpatialPlot(merged_object, assay = "MolAssay", group.by = "gene", group.ids = "KRT14", n.tile = 100)
+  
+  # TODO: KRT16 is not found but should return an error
+  vrSpatialPlot(merged_object, assay = "MolAssay", group.by = "gene", group.ids = "KRT16", n.tile = 100)
+  
+  # spatial feature plot
+  vrMainAssay(merged_object) <- "MolAssay"
+  vrSpatialFeaturePlot(merged_object, features = "qv", n.tile = 10)
+  vrSpatialFeaturePlot(merged_object, features = "qv", n.tile = 100)
+  
+  # return
+  expect_equal(1,1L)
+})
+
+# Testing plotting functions
 test_that("missing_embedding_values", {
   
   # get data
@@ -236,4 +260,26 @@ test_that("multilayer (with tiling)", {
     addSpatialLayer(merged_object, assay = "Assay3", group.by = "Sample", alpha = 0.4, colors = list(Block = "blue"))
   
   expect_equal(1,1)
+})
+
+# Testing plotting functions
+test_that("combined groups for vrspatialplot", {
+  
+  data("merged_object")
+  
+  # combined groups 
+  vrSpatialPlot(merged_object, assay = "MolAssay", group.by = "gene", 
+                n.tile = 50, combine.groups = TRUE)
+  
+  # multiple layers
+  vrSpatialPlot(merged_object, assay = "Assay2", group.by = "gene", 
+                n.tile = 50, combine.groups = TRUE) |>
+    addSpatialLayer(merged_object, assay = "Assay1", group.by = "Sample")
+  vrSpatialPlot(merged_object, assay = "Assay1", group.by = "Sample") |>
+    addSpatialLayer(merged_object, assay = "Assay4", group.by = "gene", 
+                    n.tile = 50, combine.groups = TRUE, alpha = 0.3)
+  
+  # There should be two groups
+  expect_error(vrSpatialPlot(merged_object, assay = "MolAssay", group.by = "gene", 
+                            n.tile = 50, combine.groups = TRUE, group.ids = "KRT14"))
 })

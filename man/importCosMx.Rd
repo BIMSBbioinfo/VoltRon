@@ -34,8 +34,6 @@ importCosMx(
 \item{feature_name}{the name/key of the feature set.}
 
 \item{...}{additional parameters passed to \link{formVoltRon}}
-
-\item{ome.tiff}{the OME.TIFF file of the CosMx experiment if exists}
 }
 \description{
 Import CosMx data

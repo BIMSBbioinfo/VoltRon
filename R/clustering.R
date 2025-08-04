@@ -86,7 +86,7 @@ getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, da
 #' @param n_trees Number of trees during index build time. More trees gives higher accuracy
 #' @param search_k Number of nodes to inspect during the query, or -1 for default value. Higher number gives higher accuracy
 #' 
-#' @importFrom RcppAnnoy AnnoyEuclidean
+#' @importFrom RcppAnnoy AnnoyEuclidean AnnoyManhattan
 knn_annoy <- function(data, query = data, k = 10, n_trees = 50, search_k = -1) {
   annoy <- new(RcppAnnoy::AnnoyEuclidean, ncol(data))
   for (i in seq_len(nrow(data))) {
@@ -133,7 +133,7 @@ knn_annoy <- function(data, query = data, k = 10, n_trees = 50, search_k = -1) {
 #' @param seed seed.
 #'
 #' @importFrom igraph cluster_leiden
-#' @importFrom stats kmeans hclust cutree
+#' @importFrom stats kmeans hclust cutree dist
 #' 
 #' @export
 getClusters <- function(object, 
@@ -145,7 +145,7 @@ getClusters <- function(object,
                         data.type = "norm",
                         dims = 1:30,
                         nclus = integer(0), 
-                        distance_measure = "manhattan", 
+                        distance_measure = "euclidean", 
                         abundance_limit = 2, 
                         seed = 1){
 
@@ -183,14 +183,7 @@ getClusters <- function(object,
     clusters <- stats::kmeans(vrdata, centers = nclus)
     clusters <- list(names = names(clusters$cluster), membership = clusters$cluster)
   } else if(method == "hierarchical"){
-    switch(distance_measure,
-           jsd = {
-             propor_dis <- philentropy::distance(vrdata, method = "jensen-shannon")
-           },
-           {
-             propor_dis <- dist(x = vrdata, method = distance_measure)
-           }
-           )
+    propor_dis <- stats::dist(x = vrdata, method = distance_measure)
     clusters <- stats::hclust(d = propor_dis, method = "ward.D2")
     clusters <- stats::cutree(clusters, k = nclus)
     clusters <- list(names = names(clusters), membership = clusters)

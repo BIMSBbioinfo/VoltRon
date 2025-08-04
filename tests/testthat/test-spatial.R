@@ -57,6 +57,12 @@ test_that("spatial tests", {
   # spatial neighbors, radius based
   xenium_data <- getSpatialNeighbors(xenium_data, method = "radius", radius = 10, verbose = FALSE)
   
+  # getis ord test, replace
+  xenium_data <- getHotSpotAnalysis(xenium_data, graph.type = "radius", features = c("GNLY"), verbose = FALSE)
+  tmp <- xenium_data$GNLY_hotspot_flag
+  xenium_data <- getHotSpotAnalysis(xenium_data, graph.type = "radius", features = c("GNLY"), verbose = FALSE, alpha.value = 0.0001)
+  expect_false(all(xenium_data$GNLY_hotspot_flag == tmp))
+  
   # getis ord test
   xenium_data <- getHotSpotAnalysis(xenium_data, graph.type = "radius", features = c("GNLY"), verbose = FALSE)
   expect_true(all(c("GNLY_hotspot_stat", "GNLY_hotspot_pvalue", "GNLY_hotspot_flag") %in% colnames(Metadata(xenium_data))))
@@ -131,4 +137,50 @@ test_that("neighborhood analysis", {
   xenium_data <- getSpatialNeighbors(xenium_data, method = "delaunay", verbose = FALSE)
   results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters", graph.type = "delaunay")
   expect_error(results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters2", graph.type = "delaunay"))
+})
+
+test_that("hot spot analysis with tiles", {
+  
+  # get data
+  data("merged_object")
+  vrMainAssay(merged_object) <- "MolAssay"
+  
+  # getis ord test of molecules with tiles
+  merged_object <- getHotSpotAnalysis(merged_object, features = "gene", verbose = FALSE, n.tile = 2)
+  vrSpatialPlot(merged_object, group.by = "gene_hotspot_flag")
+  
+  # getis ord test of molecules with no tiles
+  expect_error({merged_object <- getHotSpotAnalysis(merged_object, features = "gene", verbose = FALSE)})
+  merged_object <- getSpatialNeighbors(merged_object, method = "radius", radius = 30, verbose = FALSE)
+  merged_object <- getHotSpotAnalysis(merged_object, features = "gene", graph.type = "radius", verbose = FALSE)
+  vrSpatialPlot(merged_object, group.by = "gene_hotspot_flag")
+  
+  # get data
+  data("merged_object")
+  vrMainAssay(merged_object) <- "CellAssay"
+  expect_error({merged_object <- getHotSpotAnalysis(merged_object, features = "CellType", 
+                                      group.ids = c("MyelomaCells", "CD8_TCells"), 
+                                      verbose = FALSE)})
+  
+  # getis ord test of cells with tiles, gets a warning
+  print(colnames(Metadata(merged_object)))
+  expect_warning({merged_object <- getHotSpotAnalysis(merged_object, features = "CellType", 
+                                      group.ids = c("MyelomaCells", "CD8_TCells"), 
+                                      verbose = FALSE, n.tile = 10)})
+  vrSpatialPlot(merged_object, group.by = "CellType_hotspot_flag")
+  
+  # getis ord test of cells with tiles and a graph, gets a warning, should ignore graph
+  merged_object <- getSpatialNeighbors(merged_object, method = "radius", radius = 30, verbose = FALSE)
+  expect_warning({merged_object <- getHotSpotAnalysis(merged_object, features = "CellType", 
+                                      group.ids = c("MyelomaCells", "CD8_TCells"), 
+                                      verbose = FALSE, graph.type = "radius", n.tile = 10)})
+  vrSpatialPlot(merged_object, group.by = "CellType_hotspot_flag")
+  
+  # getis ord test of cells with feature and group.ids, gets a warning, should ignore group.ids
+  expect_warning({merged_object <- getHotSpotAnalysis(merged_object, features = "Count", 
+                                      group.ids = c("MyelomaCells", "CD8_TCells"), 
+                                      verbose = FALSE, graph.type = "radius", n.tile = 10)})
+  vrSpatialPlot(merged_object, group.by = "Count_hotspot_flag")
+  
+  
 })

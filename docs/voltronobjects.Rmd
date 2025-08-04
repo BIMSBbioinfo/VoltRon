@@ -47,7 +47,6 @@ if(!requireNamespace("ggnewscale"))
 
 <br>
 
-
 # Working with VoltRon objects
 
 In this tutorial, we will cover some of the fundemantel built-in functions of VoltRon to manage data, images and spatial information of assays. Here is the list of example datasets included in the Package.
@@ -593,7 +592,42 @@ vrSpatialFeaturePlot(visium_data, assay = "Assay1", features = "Count")
 
 <br>
 
-### Spatial Plots (Multi-Layer)
+**vrSpatialPlot** will allow you to visualize multiple data types within a single VoltRon object. We use our multi data type VoltRon object. 
+
+```{r eval = TRUE, class.source="watch-out", fig.height=5, fig.width=6, fig.align='center', out.width="60%"}
+data(merged_object)
+merged_object
+```
+Given the description in the VoltRon object, we can call the molecule assay for plotting.
+
+```{r eval = TRUE, class.source="watch-out", fig.height=3, fig.width=6, fig.align='center', out.width="85%"}
+vrSpatialPlot(merged_object, assay = "MolAssay", group.by = "gene")
+```
+
+Now, let us do the same with the ROI Assay.
+
+```{r eval = TRUE, class.source="watch-out", fig.height=3, fig.width=6, fig.align='center', out.width="85%"}
+vrSpatialPlot(merged_object, assay = "ROIAssay", group.by = "annotation")
+```
+
+### Rasterization
+
+VoltRon provides automated rasterization of the data to increase speed. However, users can 
+manually define the rasterization parameter while visualizing the data to create 
+customized density graphs of observations. We use the **n.tile** arguement for that. Given the 
+value of the argument, the plot will be divided into chunks along both x and y axis. 
+
+```{r eval = TRUE, class.source="watch-out", fig.height=5, fig.width=6, fig.align='center', out.width="85%"}
+vrSpatialPlot(merged_object, group.by = "clusters", n.tile = 40)
+```
+
+This apply to molecule datasets too. 
+
+```{r eval = TRUE, class.source="watch-out", fig.height=3, fig.width=6, fig.align='center', out.width="85%"}
+vrSpatialPlot(merged_object, assay = "MolAssay", group.by = "gene", n.tile = 40)
+```
+
+### Multi-Layer Spatial Plots
 
 **vrSpatialPlot** function can be paired with the **addSpatialLayer** function to add additional assays of the same spatial coordinate system as the original assay. We use the piping operator "|>" to connect to functions which overlays the results of the first image with the second. **addSpatialLayer** will check if two assays are within the same tissue block and coordinate system, and will overlay these assays if thats the case. 
 
@@ -613,7 +647,7 @@ vrSpatialPlot(merged_object, plot.segments = TRUE, group.by = "clusters") |>
 
 You can also visualize the segments that represents annotations of the tissue sections along with the cells.
 
-```{r eval = TRUE, class.source="watch-out", fig.height=5, fig.width=6, fig.align='center', out.width="60%"}
+```{r eval = TRUE, class.source="watch-out", fig.height=5, fig.width=8, fig.align='center', out.width="70%"}
 vrSpatialPlot(merged_object, plot.segments = FALSE, group.by = "clusters") |>
   addSpatialLayer(merged_object, assay = "Assay3", group.by = "annotation", alpha = 0.6, 
                   group.ids = c("Immune", "DCIS_Subtype1"),
@@ -621,6 +655,35 @@ vrSpatialPlot(merged_object, plot.segments = FALSE, group.by = "clusters") |>
 ```
 
 <br>
+
+### Combine Features/Groups
+
+At any time, given two features or groups, these two entries can be combined into a single graph. 
+
+To visualize, the expression of two features in a single graph, you can simply provide **combine.features=TRUE**. The function won't work with features more than two.
+
+```{r eval = TRUE, class.source="watch-out", fig.height=5, fig.width=6, fig.align='center', out.width="60%"}
+data("xenium_data")
+vrSpatialFeaturePlot(xenium_data, features = c("ACTA2", "TACSTD2"), 
+                     norm = TRUE, combine.features = TRUE)
+```
+
+Similarly, we can apply this to embedding plots too. 
+
+```{r eval = TRUE, class.source="watch-out", fig.height=5, fig.width=6, fig.align='center', out.width="60%"}
+data("xenium_data")
+vrEmbeddingFeaturePlot(xenium_data, features = c("ACTA2", "TACSTD2"), 
+                       embedding = "umap", combine.features = TRUE)
+```
+
+In order to visualize the density of two molecule per each tile, you can define a tiling parameter
+**n.tile** and also enter **combine.graphs=TRUE**. 
+
+```{r eval = TRUE, class.source="watch-out", fig.height=5, fig.width=6, fig.align='center', out.width="60%"}
+data("merged_object")
+vrSpatialPlot(merged_object, assay = "Assay2", group.by = "gene", 
+              n.tile = 50, combine.groups = TRUE, group.ids = c("KRT14", "KRT15"))
+```
 
 ### Embedding Plots
 

@@ -299,11 +299,11 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   } else {
     stop("There are no files named 'filtered_feature_bc_matrix.h5' in the path")
   }
-
+  
   # resolution
   if(!resolution_level %in% c("lowres","hires"))
     stop("resolution_level should be either 'lowres' or 'hires'!")
-
+  
   # image
   image_file <- paste0(dir.path, paste0("/spatial/tissue_", resolution_level, "_image.png"))
   if(file.exists(image_file)){
@@ -312,23 +312,30 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   } else {
     stop("There are no spatial image files in the path")
   }
-
+  
   # coordinates
   coords_file <- list.files(paste0(dir.path, "/spatial/"), full.names = TRUE)
   coords_file <- coords_file[grepl("tissue_positions",coords_file)]
-  if(length(coords_file) == 1){
-    if(grepl("tissue_positions_list.csv", coords_file)) {
-      coords <- utils::read.csv(file = coords_file, header = FALSE)
-      colnames(coords) <- c("barcode", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres")
-    } else {
-      coords <- utils::read.csv(file = coords_file, header = TRUE)
-    }
-  } else if(length(coords_file) > 1) {
-    stop("There are more than 1 position files in the path")
+  if(length(coords_file) > 0){
+    if(length(coords_file) > 1) {
+      message("There are more than 1 position files in the path, using the first!")
+      coords_file <- coords_file[1]
+    } 
+    coords <- utils::read.csv(file = coords_file, header = FALSE)
+    if("barcode" %in% as.vector(coords[1,,drop = TRUE])){
+      coords <- utils::read.csv(file = coords_file, header = FALSE, skip = 1)
+    } 
+    colnames(coords) <- c("barcode", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres")
+    # if(grepl("tissue_positions_list.csv", coords_file)) {
+    #   coords <- utils::read.csv(file = coords_file, header = FALSE)
+    #   colnames(coords) <- c("barcode", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres")
+    # } else {
+    #   coords <- utils::read.csv(file = coords_file, header = TRUE)
+    # }
   } else {
     stop("There are no files named 'tissue_positions.csv' in the path")
   }
-
+  
   if(inTissue){
     coords <- coords[coords$in_tissue==1,]
     rawdata <- rawdata[,colnames(rawdata) %in% coords$barcode]
@@ -338,7 +345,7 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   coords <- as.matrix(coords[,c("pxl_col_in_fullres", "pxl_row_in_fullres")], )
   colnames(coords) <- c("x", "y")
   rownames(coords) <- spotID
-
+  
   # scale coordinates
   scale_file <- paste0(dir.path, "/spatial/scalefactors_json.json")
   if(file.exists(scale_file)){
@@ -354,7 +361,7 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   } else {
     stop("There are no files named 'scalefactors_json.json' in the path")
   }
-
+  
   # create VoltRon
   formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", 
               image_name = image_name, main_channel = channel_name, sample_name = sample_name, 
@@ -1052,7 +1059,6 @@ rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level){
 #' @param assay_name the assay name, default: CosMx
 #' @param image the reference morphology image of the CosMx assay
 #' @param image_name the image name of the CosMx assay, Default: main
-#' @param ome.tiff the OME.TIFF file of the CosMx experiment if exists
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
 #' @param verbose verbose
 #' @param method the approach for importing the CosMx assay either by the folder of CSVs or with TileDB array.
