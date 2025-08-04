@@ -91,7 +91,7 @@ test_that("spatial plots", {
 })
 
 # Testing plotting functions
-test_that("spatial plots", {
+test_that("molecule spatial plots", {
   
   # get data
   data("merged_object")
