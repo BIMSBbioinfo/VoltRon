@@ -622,13 +622,19 @@ preprint</a>. You can download the data from the <a
 href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
 Genomics website</a> (specifically, import the <strong>In Situ Replicate
 1</strong> data).</p>
+<p>Before we start, Xenium readouts require a number of Bioconductor and
+R packages to be installed.</p>
+<pre class="r watch-out"><code>if(!requireNamespace(&quot;RBioFormats&quot;))
+  BiocManager::install(&quot;RBioFormats&quot;)
+if(!requireNamespace(&quot;arrow&quot;))
+  install.packages(&quot;arrow&quot;)
+if(!requireNamespace(&quot;rhdf5&quot;))
+  BiocManager::install(&quot;rhdf5&quot;)</code></pre>
 <p>We use the <strong>importXenium</strong> function to import the
 Xenium readouts and create a VoltRon object. Here, we point to the
 folder of all the files with <strong>dir.path</strong> argument and also
 determine the name of this sample (<strong>sample_name</strong>).</p>
 <pre class="r watch-out"><code>library(VoltRon)
-BiocManager::install(&quot;rhdf5&quot;)
-library(rhdf5)
 Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)</code></pre>
 <pre><code>VoltRon Object 
 XeniumR1: 

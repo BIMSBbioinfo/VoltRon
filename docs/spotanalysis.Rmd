@@ -50,6 +50,15 @@ You can import these readouts from the [10x Genomics website](https://www.10xgen
 VoltRon includes built-in functions for converting readouts of Xenium experiments into VoltRon objects. The **importXenium** function locates all readout documents under the output folder of the Xenium experiment, and forms a VoltRon object. We will import both Xenium replicates separately, and merge them after some image manipulation.
 
 ```{r eval = FALSE, class.source="watch-out"}
+# dependencies
+if(!requireNamespace("RBioFormats"))
+  BiocManager::install("RBioFormats")
+if(!requireNamespace("arrow"))
+  install.packages("arrow")
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
+
+# import Xenium data
 library(VoltRon)
 Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1", import_molecules = TRUE)
 Xen_R2 <- importXenium("Xenium_R2/outs", sample_name = "XeniumR2", import_molecules = TRUE)

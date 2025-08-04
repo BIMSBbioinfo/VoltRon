@@ -479,6 +479,15 @@ You can download the Xenium readout and the H&E image of the same tissue section
 We import both Xenium and post-Xenium H&E images into two separate VoltRon objects and overlay H&E images. 
 
 ```{r eval = FALSE, class.source="watch-out"}
+# dependencies
+if(!requireNamespace("RBioFormats"))
+  BiocManager::install("RBioFormats")
+if(!requireNamespace("arrow"))
+  install.packages("arrow")
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
+
+# import Xenium
 Xen_R1 <- importXenium("Xenium_R1/outs",
                        sample_name = "XeniumR1", 
                        resolution_level = 3,

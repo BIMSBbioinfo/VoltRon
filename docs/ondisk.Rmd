@@ -130,8 +130,15 @@ To demonstrate that VoltRon facilitates large data analysis on single cell level
 See [Whole Mouse Pup Preview](https://www.10xgenomics.com/datasets/mouse-pup-preview-data-xenium-mouse-tissue-atlassing-panel-1-standard) to learn more than the panel and the readout. 
 
 ```{r class.source="watch-out", eval = FALSE}
-BiocManager::install("rhdf5")
-library(rhdf5)
+# dependencies
+if(!requireNamespace("RBioFormats"))
+  BiocManager::install("RBioFormats")
+if(!requireNamespace("arrow"))
+  install.packages("arrow")
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
+
+# import Xenium data
 Xen_R1 <- importXenium("Xenium_pup/outs/", 
                        sample_name = "XeniumR1",
                        resolution_level = 3, 
@@ -208,8 +215,19 @@ g1 | g2
 The image registration workflow in the [Spatial Data Alignment](registration.html) tutorial can also be conducted using disk-backed methods of the VoltRon package. 
 
 ```{r class.source="watch-out", eval = FALSE}
+# dependencies
+if(!requireNamespace("RBioFormats"))
+  BiocManager::install("RBioFormats")
+if(!requireNamespace("arrow"))
+  install.packages("arrow")
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
 library(VoltRon)
+
+# import Xenium data
 Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1", resolution_level = 3)
+
+# import H&E image
 Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif",
                                 sample_name = "XeniumR1image",
                                 image_name = "H&E")

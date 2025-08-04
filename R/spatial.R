@@ -302,7 +302,7 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord",
   # initiate metadata columns
   for(feat in features){
     metadata[[paste0(feat,"_hotspot_flag")]] <- 
-      metadata[[paste0(feat,"_hotspot_pvalue")]] <- 
+      metadata[[paste0(feat,"_hotspot_padj")]] <- 
         metadata[[paste0(feat,"_hotspot_stat")]] <- rep(NA, nrow(metadata))
   }
   if(!is.null(group.ids)){
@@ -378,7 +378,8 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord",
           if(n.tile == 0){
             statistic <- rowSums(adj_matrix)
           } else {
-            warning("n.tile > 0, hence 'graph.type'=", graph.type, " is ignored")
+            if(!is.null(graph.type))
+              warning("n.tile > 0, hence 'graph.type'=", graph.type, " is ignored")
             if(!is.null(group.ids)){
               check <- group.ids %in% statistic
               if(any(!check))
@@ -454,7 +455,7 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord",
   # initiate getis ord
   getisord <- list()
   length(getisord) <- 3
-  names(getisord) <- c("hotspot_stat", "hotspot_pvalue", "hotspot_flag")
+  names(getisord) <- c("hotspot_stat", "hotspot_padj", "hotspot_flag")
   
   # calculate getis ord
   n <- length(statistic)

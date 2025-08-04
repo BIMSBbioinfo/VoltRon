@@ -890,7 +890,16 @@ Genomics website</a> (specifically, import <strong>In Situ Replicate
 <h3>Import Spatial Data</h3>
 <p>We import both Xenium and post-Xenium H&amp;E images into two
 separate VoltRon objects and overlay H&amp;E images.</p>
-<pre class="r watch-out"><code>Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;,
+<pre class="r watch-out"><code># dependencies
+if(!requireNamespace(&quot;RBioFormats&quot;))
+  BiocManager::install(&quot;RBioFormats&quot;)
+if(!requireNamespace(&quot;arrow&quot;))
+  install.packages(&quot;arrow&quot;)
+if(!requireNamespace(&quot;rhdf5&quot;))
+  BiocManager::install(&quot;rhdf5&quot;)
+
+# import Xenium
+Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;,
                        sample_name = &quot;XeniumR1&quot;, 
                        resolution_level = 3,
                        overwrite_resolution = TRUE)

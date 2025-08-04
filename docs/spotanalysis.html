@@ -491,7 +491,16 @@ function locates all readout documents under the output folder of the
 Xenium experiment, and forms a VoltRon object. We will import both
 Xenium replicates separately, and merge them after some image
 manipulation.</p>
-<pre class="r watch-out"><code>library(VoltRon)
+<pre class="r watch-out"><code># dependencies
+if(!requireNamespace(&quot;RBioFormats&quot;))
+  BiocManager::install(&quot;RBioFormats&quot;)
+if(!requireNamespace(&quot;arrow&quot;))
+  install.packages(&quot;arrow&quot;)
+if(!requireNamespace(&quot;rhdf5&quot;))
+  BiocManager::install(&quot;rhdf5&quot;)
+
+# import Xenium data
+library(VoltRon)
 Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;, import_molecules = TRUE)
 Xen_R2 &lt;- importXenium(&quot;Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;, import_molecules = TRUE)</code></pre>
 <p>Before moving on to the downstream analysis of the imaging-based
