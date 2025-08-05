@@ -242,6 +242,44 @@ vrSpatialPlot(Xen_data, group.by = "CellType", pt.size = 0.13, background.color 
 
 <br>
 
+## Hot Spot Analysis
+
+VoltRon platform allows users to find hot spots (Regions of increased feature of interest) of several types of spatial entities, for spots, cells, and even molecules. Please see [Molecule Analysis Tutorial](moleculeanalysis.html) for more information on hot spot analysis. 
+
+We first have to learn a spatial graph, and in the case of Xenium data which is a cell type assay we can use a [Delaunay Tesselation](https://en.wikipedia.org/wiki/Delaunay_triangulation) to train the neighborhood graph. This will create a second graph in the VoltRon object, representing the spatial relationship between cells.
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_data <- getSpatialNeighbors(Xen_data, method = "delaunay")
+```
+
+Now, we can specify **delaunay** as the graph of interest, and use **getHotSpotAnalysis** function to test each cell and their surrounding for significant increase in a feature of interest; for example, PGR. 
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_data <- getHotSpotAnalysis(Xen_data, graph.type = "delaunay", features = "PGR")
+```
+
+The results of the hot spot analysis (i.e. Getis-Ord statistics, adjusted p-value and hot spot annotation) can later be found in the metadata. A hot spot here indicates a cell at the center of a cluster of cells with increased expression of PGR.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPlot(Xen_data, group.by = "PGR_hotspot_flag", alpha = 1, 
+              n.tile = 250, background.color = "black",
+              colors = list(cold = "blue", hot = "orange"), 
+              common.legend = TRUE, legend.loc = "top")
+```
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_hotspot.png" class="center">
+
+<br>
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialFeaturePlot(Xen_data, features = "PGR", alpha = 1, 
+                     n.tile = 250, background.color = "black")
+```
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_pgr.png" class="center">
+
+<br>
+
 # Visium Data Analysis
 
 Spot-based spatial transcriptomic assays capture spatially-resolved gene expression profiles that are somewhat closer to single cell resolution. However, each spot still include a few number of cells that are likely from a combination of cell types within the tissue of origin. VoltRon analyzes spot level spatial data sets and even allows selecting a highly variable subset of features to cluster spots into meaningful groups of in situ spots for detecting niches of interests
@@ -374,6 +412,49 @@ vrSpatialPlot(MBrain_Sec, group.by = "Clusters")
 ```
 
 <img width="65%" height="65%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters1.png" class="center">
+
+<br>
+
+## Hot Spot Analysis
+
+VoltRon platform allows users to find hot spots (Regions of increased feature of interest) of several types of spatial entities, for spots, cells, and even molecules. Please see [Molecule Analysis Tutorial](moleculeanalysis.html) for more information on hot spot analysis. 
+
+Hot Spot analysis can also be applied to spot-level dataset which might help us locate regions or niches with high 
+values of a feature of interest, i.e. genes. We first have to learn a spatial graph where for the case of spot-level Visium data, this includes the immediate neighbors of each spot. This will create a second graph in the VoltRon object, representing the spatial relationship between each spot and the surrounding spots.
+
+```{r eval = FALSE, class.source="watch-out"}
+MBrain_Sec <- getSpatialNeighbors(MBrain_Sec, method = "radius")
+vrGraphNames(MBrain_Sec)
+```
+
+```
+[1] "SNN" "radius"
+```
+
+Now, we can specify **radius** as the graph of interest, and use **getHotSpotAnalysis** function to test each spot for significant increase in a feature of interest, i.e. Spp1. 
+
+```{r eval = FALSE, class.source="watch-out"}
+MBrain_Sec <- getHotSpotAnalysis(MBrain_Sec, graph.type = "radius", features = "Spp1")
+```
+
+The results of the hot spot analysis (i.e. Getis-Ord statistics, adjusted p-value and hot spot annotation) can later be found in the metadata. We can Getis-Ord statistics of each individual spot as well as the hot and cold annotation of the spots. Each hot spot represents a niche whose Spp1 expression as well as neighboring Spp1 expressions are high.  
+
+```{r eval = FALSE, class.source="watch-out"}
+library(patchwork)
+g1 <- vrSpatialFeaturePlot(MBrain_Sec, features = "Spp1_hotspot_stat", ncol = 1)
+g2 <- vrSpatialPlot(MBrain_Sec, group.by = "Spp1_hotspot_flag", ncol = 1)
+g1 | g2 
+```
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_hotspot.png" class="center">
+
+<br>
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialFeaturePlot(MBrain_Sec, features = "Spp1")
+```
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spp1.png" class="center">
 
 <br>
 
