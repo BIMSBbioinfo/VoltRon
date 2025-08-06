@@ -464,30 +464,56 @@ table, th, td {
 }
 </style>
 <p><br></p>
-<div id="xenium-covid-19-lung-data" class="section level1">
-<h1>Xenium COVID-19 Lung Data</h1>
+<div id="multi-omics-analysis" class="section level1">
+<h1>Multi-omics Analysis</h1>
+<p>VoltRon is a end-to-end spatial multi-omics platform that enables
+both automated and manual data alignment workflows to synchronize
+coordinate frameworks across spatial omics assays. However, upon
+harmonization of the spatial observations, VoltRon can be used to
+further transfer and integrate information across omic datasets captured
+on same and adjacent tissue sections. These assays are not just limited
+to datasets with single cell and spot resolutions but also to assays
+solely composed of molecule and image tile observations.</p>
+<p>Below, we demonstrate data integration capabilities of VoltRon across
+distinct modalities using several use cases. In the <a
+href="registration.html">Spatial Data Alignment</a>, we have highlighted
+several scenarios to align spatial assays within tissue blocks. However
+in this tutorial, we demonstrate analysis starting with data alignment
+and further downstream data integration.</p>
+<p><br></p>
+<div id="xenium-covid-19-lung-data" class="section level2">
+<h2>Xenium COVID-19 Lung Data</h2>
+<p>Xenium in situ platform is compatible with H&amp;E and
+immunofluorescence imaging , thus researchers can stain whole slides
+post-Xenium to capture additional information on the morphology of the
+tissue and integrate it with the Xenium readouts. In this usecase, we
+would like to integrate the post-Xenium H&amp;E image of tissue micro
+array sections composed of control and COVID-19 lung biopsy punches. Our
+objective is to asses the localization of SARS-COV-2 virus molecules by
+integrating pathology image annotations.</p>
 <p>VoltRon is capable of analyzing molecule-level subcellular datasets
 independent of single cells, and specifically those that may also found
-outside of these cells. To demonstrate how VoltRon investigates
-extra-cellular molecules, we will make use of another Xenium in situ
-dataset where custom Xenium probes designed to hybridize distinct open
-reading frames of SARS-COV-2 virus molecules. These subcellular entities
-which then can be detected both within and outside of cells which allows
-to understand proliferation mechanics of the virus across the
-tissue.</p>
-<p>In this use case, we analyse readouts of <strong>eight tissue micro
-array (TMA) tissue sections</strong> that were fitted into the scan area
-of a slide loaded on a Xenium in situ instrument. These sections were
-cut from <strong>control and COVID-19 lung tissues</strong> of donors
-categorized based on disease durations (acute and prolonged). You can
-download the standard Xenium output folder <a
-href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Xenium_SARSCOV2.zip">here</a>.</p>
-<p>For more information on the TMA blocks, see <a
+outside of these cells. The Xenium run was performed with custom Xenium
+probes designed to hybridize distinct open reading frames of SARS-COV-2
+virus molecules. These subcellular entities which then can be detected
+both within and outside of cells which allows to understand
+proliferation mechanics of the virus across the tissue. By aligning the
+image and the associated pathology annotations of the postXenium H&amp;E
+of this slide, we can transfer labels of annotations to Xenium cells and
+molecules, thus inferring the abundance of viral RNA further.</p>
+<p>We analyse readouts of <strong>eight tissue micro array (TMA) tissue
+sections</strong> that were fitted into the scan area of a slide loaded
+on a Xenium in situ instrument. These sections were cut from
+<strong>control and COVID-19 lung tissues</strong> of donors categorized
+based on disease durations (acute and prolonged). You can download the
+standard Xenium output folder <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Xenium_SARSCOV2.zip">here</a>.
+For more information on the TMA blocks, see <a
 href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732">GSE190732</a>
 for more information.</p>
 <p><br></p>
-<div id="single-cells-and-molecules" class="section level2">
-<h2>Single Cells and Molecules</h2>
+<div id="single-cells-and-molecules" class="section level3">
+<h3>Single Cells and Molecules</h3>
 <p>Across these eight TMA section, we investigate a section of acute
 case which is originated from a lung with extreme number of detected
 open reading frames of virus molecules. For convenience, we load a
@@ -535,40 +561,40 @@ annotations with Xenium datasets to further understand the spatial
 localization of virus ORF types over the tissue.</p>
 <p><br></p>
 </div>
-<div id="hot-spot-analysis" class="section level2">
-<h2>Hot Spot Analysis</h2>
-<p>VoltRon platform allows users to find hot spots of several types of
-spatial entities, for spots, cells, and even molecules. We first learn
-spatial neighborhoods from molecules of interests, in this case, the
-extracellular virus particles and their ORFs.</p>
+<div id="hot-spot-analysis" class="section level3">
+<h3>Hot Spot Analysis</h3>
+<p>VoltRon platform allows users to find hot spots (Regions of increased
+feature of interest) of several types of spatial entities, for spots,
+cells, and even molecules. Please see <a
+href="moleculeanalysis.html">Molecule Analysis Tutorial</a> for more
+information on hot spot analysis. We switch to the molecule assay of the
+VoltRon object, and select virus ORFs to detect regions of high viral
+activity.</p>
 <pre class="r watch-out"><code>vr2_merged_acute1</code></pre>
 <pre><code>VoltRon Object 
 acute case 1: 
   Layers: Section1 
 Assays: Xenium(Main) Xenium_mol </code></pre>
-<p>We switch to the molecule assay of the VoltRon object, and select
-virus ORFs. We also look for other virus ORFs that are 50 pixel distance
-from each virus molecule to pin point neighborhoods that are rich in
-virus.</p>
-<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- getSpatialNeighbors(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
-                                         group.by = &quot;gene&quot;, group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), 
-                                         method = &quot;radius&quot;, radius = 50)</code></pre>
-<p>We can now observe the new spatial neighborhood graph saved in the
-VoltRon object with name <strong>radius</strong>.</p>
-<pre class="r watch-out"><code>vrGraphNames(vr2_merged_acute1)</code></pre>
-<pre><code>[1] &quot;radius&quot;</code></pre>
-<p>We now select the feature type and graph name to run an hot spot
-analysis which will label each molecule if their neighborhood are dense
-in other virus molecules.</p>
+<p>In this case, we are only interested in niches abundant with S2_N and
+S2_orf1ab molecules. We use the <strong>getHotSpotAnalysis</strong>
+function to find regions of high S2_N and S2_orf1ab abundance. The
+tiling parameter <strong>n.tile</strong> is necessary to apply Getis-Ord
+statistics on molecule data since these spatial entities does not have
+features in a VoltRon object.</p>
 <pre class="r watch-out"><code>vr2_merged_acute1 &lt;- getHotSpotAnalysis(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
-                                        features = &quot;gene&quot;, graph.type = &quot;radius&quot;)
-vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
+                                        features = &quot;gene&quot;, 
+                                        group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), n.tile = 100)</code></pre>
+<p>Now we can visualize the localization of molecules that are located
+in “hot regions”, or niches that are significantly abundant with these
+molecules.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
               group.by = &quot;gene_hotspot_flag&quot;, group.ids = c(&quot;cold&quot;, &quot;hot&quot;), 
-              alpha = 1, background.color = &quot;white&quot;)</code></pre>
+              alpha = 1, colors = list(cold = &quot;blue&quot;, hot = &quot;red&quot;), 
+              background.color = &quot;white&quot;)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_hotspot.png" class="center"></p>
 </div>
-<div id="automated-he-registration" class="section level2">
-<h2>Automated H&amp;E Registration</h2>
+<div id="automated-he-registration" class="section level3">
+<h3>Automated H&amp;E Registration</h3>
 <p>VoltRon can analyze and also integrate information from distinct
 spatial data types such as images, annotations (as regions of interests,
 i.e. ROIs) and molecules independently. Using such advanced utilities,
@@ -665,8 +691,8 @@ acute case 1:
 Assays: ROIAnnotation(Main) Xenium_mol Xenium </code></pre>
 <p><br></p>
 </div>
-<div id="interactive-visualization" class="section level2">
-<h2>Interactive Visualization</h2>
+<div id="interactive-visualization" class="section level3">
+<h3>Interactive Visualization</h3>
 <p>Once the H&amp;E image is registered and transfered to the Xenium
 data, we can convert the VoltRon object into an Anndata object (h5ad
 file) and use <a href="https://tissuumaps.github.io/">TissUUmaps</a>
@@ -681,8 +707,8 @@ application.</p>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_interactivevisualization.png" class="center"></p>
 <p><br></p>
 </div>
-<div id="label-transfer" class="section level2">
-<h2>Label Transfer</h2>
+<div id="label-transfer" class="section level3">
+<h3>Label Transfer</h3>
 <p>Now we can transfer ROI annotations as additional metadata features
 of the molecule assay. We will refer the new metadata column as “Region”
 which will indicate if the molecule is within any annotated ROI in the
@@ -739,8 +765,8 @@ s2_summary_hyaline</code></pre>
 [1,] 50977     33532 1.520249</code></pre>
 <p><br></p>
 </div>
-<div id="manual-annotation" class="section level2">
-<h2>Manual annotation</h2>
+<div id="manual-annotation" class="section level3">
+<h3>Manual annotation</h3>
 <p>To compare the proportion of <strong>S2_N</strong> and
 <strong>S2_orf1ab</strong> molecules in hyaline membranes with tissue
 sites of possible infection. We focus on another tissue niche where a
@@ -766,33 +792,33 @@ metadata column called “Infected”.</p>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_annotation_infected.png" class="center"></p>
 <p><br></p>
 </div>
-<div id="visualize-annotations" class="section level2">
-<h2>Visualize annotations</h2>
+<div id="visualize-annotations" class="section level3">
+<h3>Visualize annotations</h3>
 <p>Before visualizing the annotations and molecule localizations in the
 same time, lets make some changes to the metadata. We basically wanna
 change the annotation of all ROIs originated from the GeoJson file to
 have the label <strong>Hyaline Membrane</strong>.</p>
 <pre class="r watch-out"><code># update molecule metadata
-vrMainAssay(vr2_merged_acute1_infected) &lt;- &quot;Xenium_mol&quot;
-vr2_merged_acute1_infected$Region &lt;- gsub(&quot;ROI[0-9]+&quot;, &quot;Hyaline Membrane&quot;, 
-                                          vr2_merged_acute1_infected$Region)
+vrMainAssay(vr2_merged_acute1) &lt;- &quot;Xenium_mol&quot;
+vr2_merged_acute1$Region &lt;- gsub(&quot;ROI[0-9]+&quot;, &quot;Hyaline Membrane&quot;,
+                                 vr2_merged_acute1$Region)
 
 # update ROI metadata
-vrMainAssay(vr2_merged_acute1_infected) &lt;- &quot;ROIAnnotation&quot;
-vr2_merged_acute1_infected$Region &lt;- gsub(&quot;ROI[0-9]+&quot;, &quot;Hyaline Membrane&quot;, 
-                                          vr2_merged_acute1_infected$Region)</code></pre>
+vrMainAssay(vr2_merged_acute1) &lt;- &quot;ROIAnnotation&quot;
+vr2_merged_acute1$Region &lt;- gsub(&quot;ROI[0-9]+&quot;, &quot;Hyaline Membrane&quot;, 
+                                 vr2_merged_acute1$Region)</code></pre>
 <p>Now we can visualize two assays together. We use the
 <strong>addSpatialLayer</strong> function to overlay molecule locations
 with both the Hyaline Membrane and the infected region annotations.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1_infected, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;, 
+<pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;, 
               group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), n.tile = 500) |&gt;
-  addSpatialLayer(vr2_merged_acute1_infected, assay = &quot;ROIAnnotation&quot;, 
+  addSpatialLayer(vr2_merged_acute1, assay = &quot;ROIAnnotation&quot;, 
                   group.by = &quot;Region&quot;, alpha = 0.3, 
                   colors = list(`Hyaline Membrane` = &quot;blue&quot;, `Infected` = &quot;yellow&quot;))</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_overlay.png" class="center"></p>
 </div>
-<div id="comparison-of-annotations" class="section level2">
-<h2>Comparison of annotations</h2>
+<div id="comparison-of-annotations" class="section level3">
+<h3>Comparison of annotations</h3>
 <p>By using the newly annotated infection-associated virus molecules, we
 can do a comparison of infected regions versus the hyaline
 membranes.</p>
@@ -838,8 +864,8 @@ odds ratio
  0.5655696 </code></pre>
 </div>
 </div>
-<div id="xenium-breast-cancer-data" class="section level1">
-<h1>Xenium Breast Cancer Data</h1>
+<div id="xenium-breast-cancer-data" class="section level2">
+<h2>Xenium Breast Cancer Data</h2>
 <p>VoltRon allows analyzing biological images, such as H&amp;E stainings
 of tissue sections, independant to omics assays on either the same or
 adjacent tissue section. VoltRon defines image tiles, which are
@@ -859,11 +885,20 @@ href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-
 Genomics website</a> (specifically, import <strong>In Situ Replicate
 1</strong> and <strong>Supplemental: Post-Xenium H&amp;E image
 (TIFF)</strong>).</p>
-<div id="import-spatial-data" class="section level2">
-<h2>Import Spatial Data</h2>
+<div id="import-spatial-data" class="section level3">
+<h3>Import Spatial Data</h3>
 <p>We import both Xenium and post-Xenium H&amp;E images into two
 separate VoltRon objects and overlay H&amp;E images.</p>
-<pre class="r watch-out"><code>Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;,
+<pre class="r watch-out"><code># dependencies
+if(!requireNamespace(&quot;RBioFormats&quot;))
+  BiocManager::install(&quot;RBioFormats&quot;)
+if(!requireNamespace(&quot;arrow&quot;))
+  install.packages(&quot;arrow&quot;)
+if(!requireNamespace(&quot;rhdf5&quot;))
+  BiocManager::install(&quot;rhdf5&quot;)
+
+# import Xenium
+Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;,
                        sample_name = &quot;XeniumR1&quot;, 
                        resolution_level = 3,
                        overwrite_resolution = TRUE)
@@ -875,8 +910,8 @@ Xen_R1</code></pre>
 Xen_R1_image                                </code></pre>
 <p><br></p>
 </div>
-<div id="clustering" class="section level2">
-<h2>Clustering</h2>
+<div id="clustering" class="section level3">
+<h3>Clustering</h3>
 <p>Using VoltRon we can also integrate tile-level spatial entities and
 image tiles with existing image foundation models such as <a
 href="https://github.com/beneroth13/dinov2">DinoV2</a> or <a
@@ -884,8 +919,10 @@ href="https://github.com/mahmoodlab/UNI">UNI</a>. We can parse tiles
 from VoltRon, and get embedding values from a Foundation model to
 conduct downstream clustering using PCA and kmeans clustering. See <a
 href="pixelanalysis.html#Image_Foundation_Models">Image tiles/pixels
-analysis</a> tutorial for more information.</p>
-<pre class="r watch-out"><code>embed_data &lt;- readRDS(&quot;data/BreastTile/img_128_processed.rds&quot;)
+analysis</a> tutorial for more information. You can also download the
+DinoV2 embeddings from <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/PixelAnalysis/img_128_processed.rds">here</a>.</p>
+<pre class="r watch-out"><code>embed_data &lt;- readRDS(&quot;img_128_processed.rds&quot;)
 ind &lt;- sapply(vrSpatialPoints(Xen_R1_image), function(x) strsplit(x, split = &quot;_&quot;)[[1]][1])
 embed_data &lt;- embed_data[ind,]
 rownames(embed_data) &lt;- vrSpatialPoints(Xen_R1_image)
@@ -896,8 +933,8 @@ Xen_R1_image &lt;- getClusters(Xen_R1_image, method = &quot;kmeans&quot;, label 
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_spatial.png" class="center"></p>
 <p><br></p>
 </div>
-<div id="automated-he-registration-1" class="section level2">
-<h2>Automated H&amp;E Registration</h2>
+<div id="automated-he-registration-1" class="section level3">
+<h3>Automated H&amp;E Registration</h3>
 <p>In order to transfer the cluster labels of the tiles that partition
 regions, we need to first syncronize the spatial coordinate systems of
 the H&amp;E image and the Xenium cells. Here we use the H&amp;E image as
@@ -920,8 +957,8 @@ Xen_R1_merged &lt;- addAssay(Xen_R1_merged,
                           assay_name = &quot;Xenium&quot;,
                           sample = &quot;XeniumR1&quot;)</code></pre>
 </div>
-<div id="label-transfer-1" class="section level2">
-<h2>Label Transfer</h2>
+<div id="label-transfer-1" class="section level3">
+<h3>Label Transfer</h3>
 <p>We can view the combined dataset with the H&amp;E tile data and
 Xenium assay that are in the same tissue section.</p>
 <pre class="r watch-out"><code>SampleMetadata(Xen_R1_merged)</code></pre>
@@ -966,8 +1003,8 @@ vrSpatialPlot(Xen_R1_merged, group.by = &quot;Cluster_kmeans&quot;, spatial = &q
 </table>
 <p><br></p>
 </div>
-<div id="marker-analysis" class="section level2">
-<h2>Marker Analysis</h2>
+<div id="marker-analysis" class="section level3">
+<h3>Marker Analysis</h3>
 <p>Now that we have labelled cells whose partitioning is determined by
 the morphological (image foundayion model) features, we can perform
 marker analysis to determine signatures associated with groups. We
@@ -1022,6 +1059,7 @@ vrSpatialPlot(Xen_R1_image_subset, assay = &quot;Xenium&quot;, group.by = &quot;
                      features = c(&quot;PTPRC&quot;, &quot;EPCAM&quot;, &quot;MMP2&quot;), 
                      alpha = 0.7, plot.segments = TRUE, ncol = 2)</code></pre>
 <p><img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_spatial_cell_markers_subset.png" class="center"></p>
+</div>
 </div>
 </div>
 

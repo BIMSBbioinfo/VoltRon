@@ -96,6 +96,7 @@ NULL
 #' @inheritParams utils::.DollarNames
 #'
 #' @importFrom utils .DollarNames
+#' @export
 #' @method .DollarNames VoltRon
 ".DollarNames.VoltRon" <- function(x, pattern = '') {
   meta.data <- as.list(x = Metadata(x))
@@ -803,10 +804,10 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
         stop("Direct subsetting for Ondisk VoltRon objects are currently not possible!")
         # spatialpoints <- as.vector(metadata$id)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
       } else {
-        if(!is.null(rownames(metadata))){
-          cur_data <- rownames(metadata)
-        } else {
+        if("id" %in% colnames(metadata)){
           cur_data <- metadata$id
+        } else {
+          cur_data <- rownames(metadata)
         }
         spatialpoints <- rownames(metadata)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
       }

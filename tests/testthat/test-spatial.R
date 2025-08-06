@@ -65,7 +65,7 @@ test_that("spatial tests", {
   
   # getis ord test
   xenium_data <- getHotSpotAnalysis(xenium_data, graph.type = "radius", features = c("GNLY"), verbose = FALSE)
-  expect_true(all(c("GNLY_hotspot_stat", "GNLY_hotspot_pvalue", "GNLY_hotspot_flag") %in% colnames(Metadata(xenium_data))))
+  expect_true(all(c("GNLY_hotspot_stat", "GNLY_hotspot_padj", "GNLY_hotspot_flag") %in% colnames(Metadata(xenium_data))))
   xenium_data <- getHotSpotAnalysis(xenium_data, graph.type = "radius", features = c("GNLY", "Count"), verbose = FALSE)
   expect_error(getHotSpotAnalysis(xenium_data, graph.type = "radius", features = c("GNLY", "Count1"), verbose = FALSE))
   expect_error(getHotSpotAnalysis(xenium_data, graph.type = "radius", features = c("GNLY2", "Count1"), verbose = FALSE))
@@ -77,8 +77,8 @@ test_that("spatial tests", {
   xenium_data <- merge(xenium_data, xenium_data2, verbose = FALSE)
   xenium_data <- getSpatialNeighbors(xenium_data, method = "radius", radius = 10, verbose = FALSE)
   xenium_data <- getHotSpotAnalysis(xenium_data, graph.type = "radius", features = c("GNLY", "Count"), verbose = FALSE)
-  expect_true(all(c("GNLY_hotspot_stat", "GNLY_hotspot_pvalue", "GNLY_hotspot_flag") %in% colnames(Metadata(xenium_data))))
-  expect_true(all(c("Count_hotspot_stat", "Count_hotspot_pvalue", "Count_hotspot_flag") %in% colnames(Metadata(xenium_data))))
+  expect_true(all(c("GNLY_hotspot_stat", "GNLY_hotspot_padj", "GNLY_hotspot_flag") %in% colnames(Metadata(xenium_data))))
+  expect_true(all(c("Count_hotspot_stat", "Count_hotspot_padj", "Count_hotspot_flag") %in% colnames(Metadata(xenium_data))))
 })
 
 test_that("niche clustering", {
@@ -137,4 +137,50 @@ test_that("neighborhood analysis", {
   xenium_data <- getSpatialNeighbors(xenium_data, method = "delaunay", verbose = FALSE)
   results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters", graph.type = "delaunay")
   expect_error(results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters2", graph.type = "delaunay"))
+})
+
+test_that("hot spot analysis with tiles", {
+  
+  # get data
+  data("merged_object")
+  vrMainAssay(merged_object) <- "MolAssay"
+  
+  # getis ord test of molecules with tiles
+  merged_object <- getHotSpotAnalysis(merged_object, features = "gene", verbose = FALSE, n.tile = 2)
+  vrSpatialPlot(merged_object, group.by = "gene_hotspot_flag")
+  
+  # getis ord test of molecules with no tiles
+  expect_error({merged_object <- getHotSpotAnalysis(merged_object, features = "gene", verbose = FALSE)})
+  merged_object <- getSpatialNeighbors(merged_object, method = "radius", radius = 30, verbose = FALSE)
+  merged_object <- getHotSpotAnalysis(merged_object, features = "gene", graph.type = "radius", verbose = FALSE)
+  vrSpatialPlot(merged_object, group.by = "gene_hotspot_flag")
+  
+  # get data
+  data("merged_object")
+  vrMainAssay(merged_object) <- "CellAssay"
+  expect_error({merged_object <- getHotSpotAnalysis(merged_object, features = "CellType", 
+                                      group.ids = c("MyelomaCells", "CD8_TCells"), 
+                                      verbose = FALSE)})
+  
+  # getis ord test of cells with tiles, gets a warning
+  print(colnames(Metadata(merged_object)))
+  merged_object <- getHotSpotAnalysis(merged_object, features = "CellType", 
+                                      group.ids = c("MyelomaCells", "CD8_TCells"), 
+                                      verbose = FALSE, n.tile = 10)
+  vrSpatialPlot(merged_object, group.by = "CellType_hotspot_flag")
+  
+  # getis ord test of cells with tiles and a graph, gets a warning, should ignore graph
+  merged_object <- getSpatialNeighbors(merged_object, method = "radius", radius = 30, verbose = FALSE)
+  expect_warning({merged_object <- getHotSpotAnalysis(merged_object, features = "CellType", 
+                                      group.ids = c("MyelomaCells", "CD8_TCells"), 
+                                      verbose = FALSE, graph.type = "radius", n.tile = 10)})
+  vrSpatialPlot(merged_object, group.by = "CellType_hotspot_flag")
+  
+  # getis ord test of cells with feature and group.ids, gets a warning, should ignore group.ids
+  expect_warning({merged_object <- getHotSpotAnalysis(merged_object, features = "Count", 
+                                      group.ids = c("MyelomaCells", "CD8_TCells"), 
+                                      verbose = FALSE, graph.type = "radius", n.tile = 10)})
+  vrSpatialPlot(merged_object, group.by = "Count_hotspot_flag")
+  
+  
 })

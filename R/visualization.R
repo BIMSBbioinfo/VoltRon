@@ -251,7 +251,6 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     cur_group.by <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
     names(cur_group.by) <- metadata$id
   } else {
-    # cur_group.by <- metadata[,group.by]
     cur_group.by <- subset_metadata(metadata, features = group.by, drop = TRUE)
     if("id" %in% colnames(metadata)){
       names(cur_group.by) <- as.vector(metadata$id)
@@ -1011,7 +1010,6 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
       names(cur_score) <- colnames(normdata)
     }
   } else {
-    # cur_score <- metadata[,feature]
     cur_score <- subset_metadata(metadata, features = feature, drop = TRUE)
     if("id" %in% colnames(metadata)){
       names(cur_score) <- as.vector(metadata$id)
@@ -1081,8 +1079,8 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
                              colors=c("dodgerblue3", "yellow", "red"),
                              values=rescale_numeric(c(limits[1], midpoint, limits[2])), limits = limits)
     }
-
-  } else if(vrAssayTypes(assay) == "cell") {
+    
+  } else if(vrAssayTypes(assay) %in% c("cell", "molecule")) {
 
     if(plot.segments){
 
@@ -2666,6 +2664,7 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
   } else {
     spatialpoints <- rownames(metadata) 
   }
+  
   ggplotdatax <- data.frame(t(barplotdata),
                             x.label =  x.label,
                             assay_title = assay_title,

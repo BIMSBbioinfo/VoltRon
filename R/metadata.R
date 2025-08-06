@@ -463,12 +463,14 @@ subset_metadata <- function(metadata,
   } else {
     if(nrow(metadata) > 0){
       if(!is.null(assays)){
-        if("assay_id" %in% colnames(metadata)){
-          metadata <- subset(metadata, subset = assay_id %in% assays)
-        } else if("id" %in% colnames(metadata)){
+        if("id" %in% colnames(metadata)){
           metadata <- metadata[stringr::str_extract(metadata$id, "Assay[0-9]+") %in% assays, ]
         } else {
-          metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assays, ]
+          if("assay_id" %in% colnames(metadata)){
+            metadata <- subset(metadata, subset = assay_id %in% assays)
+          } else {
+            metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assays, ]
+          }
         }
       } else if(!is.null(assaytypes)){
         metadata <- subset(metadata, subset = Assay %in% assaytypes)
@@ -686,11 +688,11 @@ vrAssayNamesvrMetadata <- function(object){
     } else {
       if("assay_id" %in% colnames(cur_metadata)){
         cur_names <- as.vector(cur_metadata$assay_id)
-      } else if(!is.null(rownames(cur_metadata))){
-        cur_names <- stringr::str_extract(rownames(cur_metadata), 
+      } else if("id" %in% colnames(cur_metadata)){
+        cur_names <- stringr::str_extract(as.vector(cur_metadata$id), 
                                           "Assay[0-9]+")
       } else{
-        cur_names <- stringr::str_extract(as.vector(cur_metadata$id), 
+        cur_names <- stringr::str_extract(rownames(cur_metadata), 
                                           "Assay[0-9]+")
       }
     }
