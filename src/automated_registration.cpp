@@ -129,7 +129,7 @@ bool check_transformation_metrics(std::vector<cv::Point2f> &points1, std::vector
   // make keypoints from points
   // std::string transformation;
   // transformation = check_transformation_by_pts_mean_sqrt(keypoints1, keypoints2, h, mask);
-  
+
   //  check distribution
   std::string distribution;
   distribution = check_transformation_by_point_distribution(im2, h);
@@ -676,7 +676,7 @@ bool getORBTransformationMatrix(
   scaledDrawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches);
   
   // check number of matches
-  check_matches(mask);
+  return check_matches(mask);
 }
 
 // align images with FLANN algorithm
@@ -722,9 +722,11 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     Rcout << "MESSAGE: Running BRUTE-FORCE Alignment" << endl;
     
     // run ORB
-    getORBTransformationMatrix(im1Proc, im2Proc, h, mask, imMatches,
-                               points1, points2, run_Affine, 
-                               GOOD_MATCH_PERCENT, MAX_FEATURES, is_faulty);
+    bool check;
+    check = getORBTransformationMatrix(im1Proc, im2Proc, h, mask, imMatches,
+                                       points1, points2, run_Affine, 
+                                       GOOD_MATCH_PERCENT, MAX_FEATURES, is_faulty);
+    
   } else {
     
     // message
