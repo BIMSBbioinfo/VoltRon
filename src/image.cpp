@@ -121,10 +121,12 @@ void scaledDrawMatches(cv::Mat im1, std::vector<cv::KeyPoint> &keypoints1,
   // resize keypoints
   keypoints1 = resize_keypoints(keypoints1, im1, 500);
   keypoints2 = resize_keypoints(keypoints2, im2, 500);
-  
+
   // resize images
   im1 = resize_image(im1, 500);
   im2 = resize_image(im2, 500);
+  Rcout << im1.size() << endl;
+  Rcout << im2.size() << endl;
   
   // draw matches
   drawMatches(im1, keypoints1, im2, keypoints2, top_matches, imMatches);
