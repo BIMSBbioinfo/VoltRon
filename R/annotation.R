@@ -152,11 +152,16 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
                     ),
                     
                     # instructions
-                    h4("How to use"),
+                    h4("How to use (Select Region)"),
                     p(style="font-size: 12px;", strong("Single-L-click"), " to select polygon or circle points"),
                     p(style="font-size: 12px;", strong("Add Region"), " to set points as a new region"),
                     p(style="font-size: 12px;", strong("Circles"), " require only 2 points"),
                     p(style="font-size: 12px;", strong("Polygons"), " require at least 4 points"),
+                    br(),
+                    h4("How to use (Zooming)"),
+                    p(style="font-size: 12px;", strong("Single-L-hold-drag:"), "Select area"),
+                    p(style="font-size: 12px;", strong("Double-L-click (selected area):"), "Zoom in"),
+                    p(style="font-size: 12px;", strong("Double-L-click (no area):"), "Zoom out"),
                     br(),
                     
                     # Subsets

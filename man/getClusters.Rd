@@ -14,7 +14,7 @@ getClusters(
   data.type = "norm",
   dims = 1:30,
   nclus = integer(0),
-  distance_measure = "manhattan",
+  distance_measure = "euclidean",
   abundance_limit = 2,
   seed = 1
 )

@@ -53,6 +53,11 @@ You can find and download readouts of all four Visium sections [here](https://bi
 We will now import each of four samples separately and merge them into one VoltRon object. There are four brain tissue sections in total given two serial anterior and serial posterior sections, hence we have **two tissue blocks each having two layers**. 
 
 ```{r eval = FALSE, class.source="watch-out"}
+# dependencies
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
+
+# import visium data
 library(VoltRon)
 Ant_Sec1 <- importVisium("Sagittal_Anterior/Section1/", sample_name = "Anterior1")
 Ant_Sec2 <- importVisium("Sagittal_Anterior/Section2/", sample_name = "Anterior2")

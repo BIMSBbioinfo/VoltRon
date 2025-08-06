@@ -61,12 +61,17 @@ VoltRon objects are compatible with readouts of almost all of these technologies
 
 We will use the readouts of **Visium CytAssist** platform that was derived from a single tissue section of a breast cancer sample. More information on the Visium CytAssist data and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **Visium Spatial** data). 
 
+Before we start, Visium readouts require **rhdf5** package to be installed.
+
+```{r eval = FALSE, class.source="watch-out"}
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
+```
+
 We use the **importVisium** function to import the Visium readouts and create a VoltRon object. Here, we point to the folder of all the files with **dir.path** argument and also determine the name of this sample (**sample_name**).
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
-BiocManager::install("rhdf5")
-library(rhdf5)
 Vis_R1 <- importVisium(dir.path = "Visium/", sample_name = "VisiumR1")
 ```
 
@@ -125,16 +130,22 @@ Vis_R1 <- importVisium(dir.path = "Visium/", sample_name = "VisiumR1", resolutio
 
 We will use the readouts of **Visium CytAssist** platform that was derived from a single tissue section of a breast cancer sample. More information on the Visium CytAssist data and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **Visium Spatial** data). 
 
-We use the **importVisium** function to import the Visium readouts and create a VoltRon object. Here, we point to the folder of all the files with **dir.path** argument and also determine the name of this sample (**sample_name**). 
+Before we start, VisiumHD readouts require a number of Bioconductor and R packages to be installed. 
+
+```{r eval = FALSE, class.source="watch-out"}
+if(!requireNamespace("arrow"))
+  install.packages("arrow")
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
+```
+
+
+We use the **importVisiumHD** function to import the Visium readouts and create a VoltRon object. Here, we point to the folder of all the files with **dir.path** argument and also determine the name of this sample (**sample_name**). 
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
-install.packages("arrow")
-BiocManager::install("rhdf5")
-library(arrow)
-library(rhdf5)
-hddata <- importVisium(dir.path = "VisiumHD/outs/", 
-                       sample_name = "VisiumHD")
+hddata <- importVisiumHD(dir.path = "VisiumHD/outs/", 
+                         sample_name = "VisiumHD")
 ```
 
 <br>
@@ -142,10 +153,10 @@ hddata <- importVisium(dir.path = "VisiumHD/outs/",
 The VisiumHD readouts provide multiple bin sizes which are aggregated versions of the original 2$\mu$m $x$ 2$\mu$m capture spots. The default bin sizes are **(i)** 2$\mu$m $x$ 2$\mu$m, **(ii)** 8$\mu$m $x$ 8$\mu$m and **(iii)** 16$\mu$m $x$ 16$\mu$m. Although by default the **importVisium** function selects the low resolution image, you can select the higher resolution one using **resolution_level="hires"**.
 
 ```{r eval = FALSE, class.source="watch-out"}
-hddata <- importVisium(dir.path = "VisiumHD/outs/", 
-                       bin.size = "16", 
-                       resolution_level = "hires", 
-                       sample_name = "VisiumHD")
+hddata <- importVisiumHD(dir.path = "VisiumHD/outs/", 
+                         bin.size = "16", 
+                         resolution_level = "hires", 
+                         sample_name = "VisiumHD")
 ```
 
 <br>
@@ -161,12 +172,21 @@ The 10x Genomics [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) 
 
 We will use the readouts of a single Xenium platform replicate that was derived from a single tissue section of a breast cancer sample. More information on the Xenium data and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **In Situ Replicate 1** data). 
 
+Before we start, Xenium readouts require a number of Bioconductor and R packages to be installed. 
+
+```{r eval = FALSE, class.source="watch-out"}
+if(!requireNamespace("RBioFormats"))
+  BiocManager::install("RBioFormats")
+if(!requireNamespace("arrow"))
+  install.packages("arrow")
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
+```
+
 We use the **importXenium** function to import the Xenium readouts and create a VoltRon object. Here, we point to the folder of all the files with **dir.path** argument and also determine the name of this sample (**sample_name**).
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
-BiocManager::install("rhdf5")
-library(rhdf5)
 Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1")
 ```
 
