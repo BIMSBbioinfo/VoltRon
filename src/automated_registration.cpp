@@ -92,11 +92,11 @@ std::string check_transformation_by_point_distribution(Mat &im, Mat &h){
     message = "no distribution";
     return message;
   }
-  std::vector<cv::Point2f>().swap(gridpoints);
+  // std::vector<cv::Point2f>().swap(gridpoints);
 
   // Compute the standard deviation of the transformed points
   double gridpoints_reg_sd = cppSD(gridpoints_reg);
-  std::vector<cv::Point2f>().swap(gridpoints_reg);
+  // std::vector<cv::Point2f>().swap(gridpoints_reg);
   
   // get warning message
   if(gridpoints_reg_sd < 1.0 | gridpoints_reg_sd > max(height, width)){
@@ -138,7 +138,7 @@ bool check_transformation_metrics(std::vector<cv::Point2f> &points1, std::vector
 }
 
 // get good matching keypoints
-void getGoodMatches(std::vector<std::vector<DMatch>> &matches12,std::vector<std::vector<DMatch>> &matches21, 
+void getGoodMatches(std::vector<std::vector<DMatch>> &matches12,std::vector<std::vector<DMatch>> &matches21,
                     std::vector<DMatch> &good_matches, const float lowe_ratio = 0.8)
 {
   // direction wise good matches
@@ -153,7 +153,7 @@ void getGoodMatches(std::vector<std::vector<DMatch>> &matches12,std::vector<std:
       good_matches21.push_back(matches21[i][0]);
     }
   }
-  
+
   // get good matches as dictionaries
   std::map<std::pair<int, int>, std::vector<DMatch>> matches12_map;
   std::map<std::pair<int, int>, std::vector<DMatch>> matches21_map;
@@ -165,30 +165,39 @@ void getGoodMatches(std::vector<std::vector<DMatch>> &matches12,std::vector<std:
     auto rounded_pt = std::make_pair(match.trainIdx, match.queryIdx);
     matches21_map[rounded_pt].push_back(match);
   }
-  
+
   // get mutual matches
   for (const auto& item : matches12_map) {
     auto query_train_pair = item.first;
     const cv::DMatch& m12 = item.second[0];
-    
+
     auto it = matches21_map.find(query_train_pair);
     if (it != matches21_map.end()) {
       const cv::DMatch& m21 = it->second[0];
-      
+
       // Calculate average distance
       float avg_distance = (m12.distance + m21.distance) / 2.0f;
-      
+
       // Create a new match object with averaged distance
       cv::DMatch mutual_match(m12.queryIdx, m12.trainIdx, avg_distance);
       good_matches.push_back(mutual_match);
     }
   }
-  
-  // TODO: can I release there now ? 
-  std::vector<DMatch>().swap(good_matches12);
-  std::vector<DMatch>().swap(good_matches21);
-  std::map<std::pair<int, int>, std::vector<DMatch>>().swap(matches12_map);
-  std::map<std::pair<int, int>, std::vector<DMatch>>().swap(matches21_map);
+
+  // TODO: can I release there now ?
+  // std::vector<DMatch>().swap(good_matches12);
+  // std::vector<DMatch>().swap(good_matches21);
+  // std::map<std::pair<int, int>, std::vector<DMatch>>().swap(matches12_map);
+  // std::map<std::pair<int, int>, std::vector<DMatch>>().swap(matches21_map);
+}
+
+void getGoodMatches_temp(std::vector<std::vector<DMatch>> matches, std::vector<DMatch> &good_matches, const float lowe_ratio = 0.8)
+{
+  for (size_t i = 0; i < matches.size(); i++) {
+    if (matches[i][0].distance < lowe_ratio * matches[i][1].distance) {
+      good_matches.push_back(matches[i][0]);
+    }
+  }
 }
 
 // remove duplicate keypoints for TPS
@@ -224,12 +233,12 @@ void removeCloseMatches(std::vector<cv::Point2f>& points1, std::vector<cv::Point
   }
   
   // Update the original point set with the filtered points
-  std::vector<Point2f>().swap(points1);
-  std::vector<Point2f>().swap(points2);
-  points1 = std::move(filtered_points1);
-  points2 = std::move(filtered_points2);
-  // points1 = filtered_points1;
-  // points2 = filtered_points2;
+  // std::vector<Point2f>().swap(points1);
+  // std::vector<Point2f>().swap(points2);
+  // points1 = std::move(filtered_points1);
+  // points2 = std::move(filtered_points2);
+  points1 = filtered_points1;
+  points2 = filtered_points2;
 }
 
 // get good matching keypoints
@@ -362,7 +371,7 @@ void computeSIFTTiles(Mat &im, std::vector<KeyPoint> &keypoints, Mat &descriptor
             descriptors = tile_descriptors.clone();
           } else {
             cv::vconcat(descriptors, tile_descriptors, descriptors);
-            tile_descriptors.release();
+            // tile_descriptors.release();
           }
         }
       }
@@ -387,40 +396,56 @@ bool getSIFTTransformationMatrixSingle(
   
   // Detect SIFT features
   Ptr<Feature2D> sift = cv::SIFT::create(params.sift_nfeatures);
-  computeSIFTTiles(im1Proc, keypoints1, descriptors1, sift, params);
-  computeSIFTTiles(im2Proc, keypoints2, descriptors2, sift, params);
+  // computeSIFTTiles(im1Proc, keypoints1, descriptors1, sift, params);
+  // computeSIFTTiles(im2Proc, keypoints2, descriptors2, sift, params);
+  sift->detectAndCompute(im1Proc, Mat(), keypoints1, descriptors1);
+  sift->detectAndCompute(im2Proc, Mat(), keypoints2, descriptors2);
+  
   Rcout << "MESSAGE: Generated " << keypoints1.size() << " and " << keypoints2.size() << " keypoints"  << endl;
   Rcout << "DONE: SIFT based key-points detection and descriptors computation" << endl;
 
   // filter duplicates
-  filterDuplicateKeypoints(keypoints1, descriptors1);
-  filterDuplicateKeypoints(keypoints2, descriptors2);
+  // filterDuplicateKeypoints(keypoints1, descriptors1);
+  // filterDuplicateKeypoints(keypoints2, descriptors2);
   
   // get top key points
-  keepTopKeypoints(keypoints1, descriptors1, params);
-  keepTopKeypoints(keypoints2, descriptors2, params);
-  Rcout << "MESSAGE: After filtering " << keypoints1.size() << " and " << keypoints2.size() << " keypoints" << endl;
+  // keepTopKeypoints(keypoints1, descriptors1, params);
+  // keepTopKeypoints(keypoints2, descriptors2, params);
+  // Rcout << "MESSAGE: After filtering " << keypoints1.size() << " and " << keypoints2.size() << " keypoints" << endl;
     
   ///////////////////////
   /// Compute FLANN /////
   ///////////////////////
   
   // Match features using FLANN matching
-  std::vector<std::vector<DMatch>> matches12, matches21;
-  getFLANNMatches(descriptors1, descriptors2, matches12, matches21);
+  std::vector<std::vector<DMatch>> matches;
+  cv::FlannBasedMatcher custom_matcher = cv::FlannBasedMatcher(cv::makePtr<cv::flann::KDTreeIndexParams>(5), cv::makePtr<cv::flann::SearchParams>(50, 0, TRUE));
+  cv::Ptr<cv::FlannBasedMatcher> matcher = custom_matcher.create();
+  matcher->knnMatch(descriptors1, descriptors2, matches, 2);
   Rcout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
   
-  // TODO: can I release there now ? 
-  descriptors1.release();
-  descriptors2.release();
-  
   // Find good matches
-  getGoodMatches(matches12, matches21, good_matches);
-  Rcout << "DONE: get good mutual matches by distance thresholding" << endl;
+  // goodMatches = get_good_matches(matches)
+  // std::vector<DMatch> good_matches;
+  getGoodMatches_temp(matches, good_matches);
+  Rcout << "DONE: get good matches by distance thresholding" << endl;
+  
+  // // Match features using FLANN matching
+  // std::vector<std::vector<DMatch>> matches12, matches21;
+  // getFLANNMatches(descriptors1, descriptors2, matches12, matches21);
+  // Rcout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
+  // 
+  // // TODO: can I release there now ? 
+  // // descriptors1.release();
+  // // descriptors2.release();
+  // 
+  // // Find good matches
+  // getGoodMatches(matches12, matches21, good_matches);
+  // Rcout << "DONE: get good mutual matches by distance thresholding" << endl;
   
   // TODO: can I release there now ? 
-  std::vector<std::vector<DMatch>>().swap(matches12);
-  std::vector<std::vector<DMatch>>().swap(matches21);
+  // std::vector<std::vector<DMatch>>().swap(matches12);
+  // std::vector<std::vector<DMatch>>().swap(matches21);
   
   ///////////////////////
   /// Find Homography ///
@@ -432,7 +457,7 @@ bool getSIFTTransformationMatrixSingle(
     points1.push_back(keypoints1[good_matches[i].queryIdx].pt);
     points2.push_back(keypoints2[good_matches[i].trainIdx].pt);
   }
-  
+
   // check variable
   Rcout << "MESSAGE: Calculating" << (run_Affine ? " (Affine) " : " (Homography) ") << "Transformation Matrix" << endl;
 
@@ -484,11 +509,11 @@ bool getSIFTTransformationMatrixSingle(
   scaledDrawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches);
 
   // TODO: can I release there now ? 
-  std::vector<cv::KeyPoint>().swap(keypoints1_best);
-  std::vector<cv::KeyPoint>().swap(keypoints2_best);
-  std::vector<cv::KeyPoint>().swap(keypoints1_best2);
-  std::vector<cv::KeyPoint>().swap(keypoints2_best2);
-  std::vector<cv::DMatch>().swap(top_matches);
+  // std::vector<cv::KeyPoint>().swap(keypoints1_best);
+  // std::vector<cv::KeyPoint>().swap(keypoints2_best);
+  // std::vector<cv::KeyPoint>().swap(keypoints1_best2);
+  // std::vector<cv::KeyPoint>().swap(keypoints2_best2);
+  // std::vector<cv::DMatch>().swap(top_matches);
   
   // check number of matches
   return check_matches(mask);
@@ -525,9 +550,6 @@ void getSIFTTransformationMatrix(
   // equalize first image if fails
   if(!check){
 
-    // points1.clear();
-    // points2.clear();
-    // good_matches.clear();
     Mat im1Proc_eq;
     cv::equalizeHist(im1Proc, im1Proc_eq);
     Rcout << "MESSAGE: Calculating Transformation Matrix with histogram equalization (1)" << endl;
@@ -545,13 +567,9 @@ void getSIFTTransformationMatrix(
   // equalize second image if fails
   if(!check){
 
-    // points1.clear();
-    // points2.clear();
-    // good_matches.clear();
     cv::equalizeHist(im2Proc, im2Proc_eq);
     Rcout << "MESSAGE: Calculating Transformation Matrix with histogram equalization (2)" << endl;
 
-    // good_matches.clear();
     std::vector<DMatch> good_matches;
     check = getSIFTTransformationMatrixSingle(im1Proc, im2Proc_eq, h, mask,
                                               imMatches,
@@ -565,9 +583,6 @@ void getSIFTTransformationMatrix(
   // last try with both equalized images
   if(!check){
 
-    // points1.clear();
-    // points2.clear();
-    // good_matches.clear();
     cv::equalizeHist(im1Proc, im1Proc_eq2);
     cv::equalizeHist(im2Proc, im2Proc_eq2);
     Rcout << "MESSAGE: Calculating Transformation Matrix with histogram equalization (3)" << endl;
@@ -583,10 +598,10 @@ void getSIFTTransformationMatrix(
   }
   
   // release
-  im1Proc_eq.release();
-  im1Proc_eq2.release();
-  im2Proc_eq.release();
-  im2Proc_eq2.release();
+  // im1Proc_eq.release();
+  // im1Proc_eq2.release();
+  // im2Proc_eq.release();
+  // im2Proc_eq2.release();
 }
 
 bool getORBTransformationMatrix(
@@ -769,14 +784,14 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     
     // change color map
     cv::addWeighted(im2Proc, 0.7, im1Warp, 0.3, 0, im1Combine);
-    
+
     // Reverse process
     im1Reg = reversepreprocessImage(im1NormalWarp, flipflop_ref, rotate_ref);
-    
+
     // return as rgb
     cvtColor(im1Combine, im1Overlay, cv::COLOR_GRAY2BGR);
     cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
-    
+
     // TPS is requested (only if FLANN succeeded)
   } else {
     
@@ -851,15 +866,16 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   }
   
   // release
-  im1Combine.release();
-  im2Proc.release();
-  im1Warp.release();
-  im1NormalWarp.release();
-  im1NormalProc.release();
+  // im1Combine.release();
+  // im2Proc.release();
+  // im1Warp.release();
+  // im1NormalWarp.release();
+  // im1NormalProc.release();
   
   // resize image to visualize faster later in Shiny
   im2 = resize_image(im2, 500);
   im1Overlay = resize_image(im1Overlay, 500);
+  Rcout << "DONE: warped query image" << endl;
 }
 
 // [[Rcpp::export]]
@@ -925,7 +941,17 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
               rotate_query.get_cstring(), rotate_ref.get_cstring(), 
               run_Affine, run_TPS);
 
-  log_mem_usage("After alignment");
+  // void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, Mat &imMatches, 
+  //                  Mat &h, Rcpp::List &keypoints,
+  //                  const float GOOD_MATCH_PERCENT, const int MAX_FEATURES,
+  //                  Rcpp::String matcher,
+  //                  const bool invert_query, const bool invert_ref,
+  //                  const char* flipflop_query, const char* flipflop_ref,
+  //                  const char* rotate_query, const char* rotate_ref,
+  //                  const bool run_Affine, const bool run_TPS)
+    
+  Rcout << "DONE: warped query image" << endl;
+  // log_mem_usage("After alignment");
   
   // transformation matrix, can be either a matrix, set of keypoints or both
   out_trans[0] = matToNumericMatrix(h.clone());
@@ -950,16 +976,16 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
     out[4] = R_NilValue;
   }
   
-  log_mem_usage("during transfer");
+  // log_mem_usage("during transfer");
   
   // release
-  im.release();
-  imReference.release();
-  imReg.release();
-  imMatches.release();
-  imOverlay.release();
+  // im.release();
+  // imReference.release();
+  // imReg.release();
+  // imMatches.release();
+  // imOverlay.release();
   
-  log_mem_usage("After release");
+  // log_mem_usage("After release");
   
   // return
   return out;
