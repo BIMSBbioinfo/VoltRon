@@ -162,7 +162,8 @@ cv::Mat IntVectorToMat(std::vector<uint8_t> &points) {
 
   // Iterate over the vector of Point2f
   for (size_t i = 0; i < points.size(); ++i) {
-    mat.at<int>(i, 0) = (int) points[i];
+    // mat.at<int>(i, 0) = (int) points[i]; // causing heap error
+    mat.at<uint8_t>(i, 0) = points[i];
   }
 
   return mat;
