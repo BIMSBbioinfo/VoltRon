@@ -1,5 +1,9 @@
 #include <Rcpp.h>
 #include <sys/resource.h>
+#include <sys/sysctl.h>
+#include <unistd.h>
+#include <mach/vm_statistics.h>
+#include <mach/mach.h>
 
 // OpenCV
 #include <opencv2/opencv.hpp>
@@ -43,7 +47,25 @@ void log_mem_usage(const std::string& label = "") {
   Rcpp::Rcout << "Used Memory [" << label << "]: " << rss_gb << " GB" << std::endl;
 }
 
-double object_size(long bsize) {
+void log_mem_macos(const std::string& label = "") {
+  mach_task_basic_info info;
+  mach_msg_type_number_t size = MACH_TASK_BASIC_INFO_COUNT;
+  kern_return_t kr = task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
+                               (task_info_t)&info, &size);
+  
+  if (kr != KERN_SUCCESS) {
+    Rcpp::Rcerr << "[MEM " << label << "] Failed to get memory info.\n";
+    return;
+  }
+  
+  double rss_gb = static_cast<double>(info.resident_size) / (1024.0 * 1024.0 * 1024.0);
+  double virt_gb = static_cast<double>(info.virtual_size) / (1024.0 * 1024.0 * 1024.0);
+  
+  Rcpp::Rcout << "[MEM " << label << "] Resident (RSS): "
+              << rss_gb << " GB, Virtual: " << virt_gb << " GB\n";
+}
+
+double object_size_long(long bsize) {
   
   double rss_kb = bsize / 1024.0;
   double rss_mb = rss_kb / 1024.0;
@@ -52,6 +74,51 @@ double object_size(long bsize) {
   return rss_gb;
 }
 
+double object_size_double(double bsize) {
+  
+  double rss_kb = bsize / 1024;
+  double rss_mb = rss_kb / 1024;
+  double rss_gb = rss_mb / 1024;
+  
+  return rss_gb;
+}
+
+double ps_system_swap() {
+  vm_statistics_data_t vm;
+  int pagesize = getpagesize();
+  double active = (double) vm.active_count * pagesize;
+  double wired = (double) vm.wire_count * pagesize;
+  return active + wired;
+}
+
+size_t get_resident_bytes() {
+  mach_task_basic_info info;
+  mach_msg_type_number_t size = MACH_TASK_BASIC_INFO_COUNT;
+  if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
+                (task_info_t)&info, &size) != KERN_SUCCESS) {
+    return 0;
+  }
+  return info.resident_size;
+}
+
+double bytes_to_gb(size_t bytes) {
+  return static_cast<double>(bytes) / (1024.0 * 1024.0 * 1024.0);
+}
+
+struct MemProfiler {
+  size_t start;
+  std::string label;
+  
+  MemProfiler(const std::string& lbl) : label(lbl) {
+    start = get_resident_bytes();
+  }
+  
+  ~MemProfiler() {
+    size_t end = get_resident_bytes();
+    double diff_gb = bytes_to_gb(end - start);
+    Rcpp::Rcout << "[MEM] " << label << ": +" << diff_gb << " GB" << std::endl;
+  }
+};
 
 // check if keypoints are degenerate
 bool check_degenerate(std::vector<cv::Point2f> &points1, std::vector<cv::Point2f> &points2) {
@@ -255,6 +322,9 @@ void getFLANNMatches(cv::Mat &descriptors1,
                      std::vector<std::vector<DMatch>> &matches12, 
                      std::vector<std::vector<DMatch>> &matches21)
 {
+  // profiler
+  MemProfiler mp("FLANN Matches");
+  
   cv::FlannBasedMatcher custom_matcher = cv::FlannBasedMatcher(cv::makePtr<cv::flann::KDTreeIndexParams>(5), 
                                                                cv::makePtr<cv::flann::SearchParams>(50, 0, TRUE));
   cv::Ptr<cv::FlannBasedMatcher> matcher = custom_matcher.create();
@@ -332,6 +402,8 @@ void keepTopKeypoints(std::vector<KeyPoint> &keypoints, Mat &descriptors, SIFTPa
 
 void computeSIFTTiles(Mat &im, std::vector<KeyPoint> &keypoints, Mat &descriptors, Ptr<Feature2D> &sift,
                       SIFTParameters params){
+  // profiler
+  MemProfiler mp("SIFT Tiles");
   
   // image size
   int width = im.size().width;
@@ -393,6 +465,8 @@ bool getSIFTTransformationMatrixSingle(
     std::vector<Point2f> &points1, std::vector<Point2f> &points2, 
     // std::vector<DMatch> &good_matches, 
     const bool &run_Affine, SIFTParameters params, bool &is_faulty){
+  // profiler
+  MemProfiler mp("Find Transformation");
   
   //////////////////////
   /// Compute SIFT /////
@@ -408,7 +482,7 @@ bool getSIFTTransformationMatrixSingle(
   computeSIFTTiles(im2Proc, keypoints2, descriptors2, sift, params);
   Rcout << "MESSAGE: Generated " << keypoints1.size() << " and " << keypoints2.size() << " keypoints"  << endl;
   Rcout << "DONE: SIFT based key-points detection and descriptors computation" << endl;
-  log_mem_usage("sift landmarks");
+  // log_mem_usage("sift landmarks");
   
   // filter duplicates
   filterDuplicateKeypoints(keypoints1, descriptors1);
@@ -418,7 +492,7 @@ bool getSIFTTransformationMatrixSingle(
   keepTopKeypoints(keypoints1, descriptors1, params);
   keepTopKeypoints(keypoints2, descriptors2, params);
   Rcout << "MESSAGE: After filtering " << keypoints1.size() << " and " << keypoints2.size() << " keypoints" << endl;
-  log_mem_usage("filter landmarks");
+  // log_mem_usage("filter landmarks");
   
   ///////////////////////
   /// Compute FLANN /////
@@ -428,7 +502,7 @@ bool getSIFTTransformationMatrixSingle(
   std::vector<std::vector<DMatch>> matches12, matches21;
   getFLANNMatches(descriptors1, descriptors2, matches12, matches21);
   Rcout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
-  log_mem_usage("flann matching");
+  // log_mem_usage("flann matching");
   
   // TODO: can I release there now ?
   descriptors1.release();
@@ -438,7 +512,7 @@ bool getSIFTTransformationMatrixSingle(
   std::vector<DMatch> good_matches;
   getGoodMatches(matches12, matches21, good_matches);
   Rcout << "DONE: get good mutual matches by distance thresholding" << endl;
-  log_mem_usage("good matches");
+  // log_mem_usage("good matches");
   
   // TODO: can I release there now ? 
   std::vector<std::vector<DMatch>>().swap(matches12);
@@ -483,7 +557,7 @@ bool getSIFTTransformationMatrixSingle(
     Rcout <<  "WARNING: Found no matches!" << endl;
     return false;
   }
-  log_mem_usage("find transformation");
+  // log_mem_usage("find transformation");
   
   // Draw top matches and good ones only
   std::vector<cv::DMatch> top_matches;
@@ -504,7 +578,7 @@ bool getSIFTTransformationMatrixSingle(
     }
   }
   scaledDrawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches);
-  log_mem_usage("draw matches");
+  // log_mem_usage("draw matches");
   
   // TODO: can I release there now ? 
   // std::vector<cv::KeyPoint>().swap(keypoints1_best);
@@ -745,6 +819,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
                                 points1, points2, run_Affine, is_faulty);
 
   }
+  // log_mem_macos("after sift detection");
   
   // check result
   is_faulty = check_transformation_metrics(points1, points2, im2, h, mask);
@@ -764,7 +839,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   }
   
   Rcout << "DONE: warped query image" << endl;
-  log_mem_usage("warp image");
+  // log_mem_macos("after image warping");
   
   ///////////////////////
   /// Find Homography ///
@@ -858,6 +933,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
     
   }
+  // log_mem_macos("after transformation detection");
   
   // release
   im1Combine.release();
@@ -881,7 +957,10 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
                                              Rcpp::String rotate_query, Rcpp::String rotate_ref,
                                              Rcpp::String matcher, Rcpp::String method)
 {
-  log_mem_usage("pre conversion");
+  // log_mem_usage("pre conversion");
+  // log_mem_macos("pre conversion");
+  // Rcout << ps_system_swap() << endl;
+  // Rcout << object_size_double(ps_system_swap()) << endl;
   
   // Return data
   Rcpp::List out(5);
@@ -891,26 +970,20 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
 
   // Read reference image
   cv::Mat imReference = imageToMat(ref_image, width1, height1);
-  Rcout << ref_image.size()  << endl;
-  Rcout << ref_image.length() << endl;
-  Rcout << object_size(ref_image.size() * sizeof(ref_image[0])) << endl;
-  Rcout << object_size(imReference.total() * imReference.elemSize()) << endl;
-  Rcout << object_size(imReference.step[0] * imReference.rows) << endl;
-  
+  // Rcout << object_size_long(ref_image.size())  << endl;
+  // Rcout << object_size_long(imReference.total() * imReference.elemSize()) << endl;
+
   // Read image to be aligned
   cv::Mat im = imageToMat(query_image, width2, height2);
-  Rcout << query_image.size() << endl;
-  Rcout << query_image.length() << endl;
-  Rcout << object_size(query_image.size()) << endl;
-  Rcout << object_size(im.total() * im.elemSize()) << endl;
-  Rcout << object_size(im.step[0] * im.rows) << endl;
-  
+  // Rcout << object_size_long(query_image.size()) << endl;
+  // Rcout << object_size_long(im.total() * im.elemSize()) << endl;
+
   // run alignment
   const bool run_TPS = (strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0 || 
                         strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0);
   const bool run_Affine = (strcmp(method.get_cstring(), "Affine") == 0 || 
                            strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0);
-  log_mem_usage("pre alignment");
+  // log_mem_usage("pre alignment");
   alignImages(im, imReference, imReg, imOverlay, imMatches,
               h, keypoints,
               GOOD_MATCH_PERCENT, MAX_FEATURES,
@@ -919,7 +992,8 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
               flipflop_query.get_cstring(), flipflop_ref.get_cstring(),
               rotate_query.get_cstring(), rotate_ref.get_cstring(),
               run_Affine, run_TPS);
-
+  // log_mem_macos("after alignment");
+  
   // transformation matrix, can be either a matrix, set of keypoints or both
   out_trans[0] = matToNumericMatrix(h.clone());
   out_trans[1] = keypoints;
@@ -943,7 +1017,8 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
     out[4] = R_NilValue;
   }
   
-
+  // log_mem_macos("after result preperation");
+  
   // release
   im.release();
   imReference.release();
@@ -951,7 +1026,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
   imMatches.release();
   imOverlay.release();
   
-  log_mem_usage("now");
+  // log_mem_usage("now");
   
   // return
   return out;

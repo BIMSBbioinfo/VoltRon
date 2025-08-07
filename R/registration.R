@@ -2312,11 +2312,9 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
                                          flipflop_query = "None", flipflop_ref = "None",
                                          rotate_query = "0", rotate_ref = "0", 
                                          matcher = "FLANN", method = "Homography") {
-  cat("Memory used before conversion: ", mem_used() / (1024^3), "\n")
   ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
   query_image_rast <- magick::image_data(query_image, channels = "rgb")
-  cat("Memory used after conversion: ", mem_used() / (1024^3), "\n")
-  
+
   reg <- automated_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
                                            width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
                                            width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3],
@@ -2340,11 +2338,6 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
     if(!is.null(reg[[5]])) magick::image_read(reg[[5]]) else NA
   
   # return
-  # return(list(transmat = reg[[1]],
-  #             dest_image = magick::image_read(reg[[2]]),
-  #             aligned_image = magick::image_read(reg[[3]]),
-  #             alignment_image = magick::image_read(reg[[4]]),
-  #             overlay_image = magick::image_read(reg[[5]])))
   return(list(transmat = reg[[1]],
               dest_image = magick::image_read(reg[[2]]),
               aligned_image = aligned_image,
