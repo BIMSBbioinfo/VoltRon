@@ -34,15 +34,13 @@ struct SIFTParameters
 void log_mem_usage(const std::string& label = "") {
   struct rusage usage;
   getrusage(RUSAGE_SELF, &usage);
-  long rss_kb = usage.ru_maxrss;
+  long rss_b = usage.ru_maxrss;
   
+  double rss_kb = rss_b / 1024.0;
   double rss_mb = rss_kb / 1024.0;
   double rss_gb = rss_mb / 1024.0;
   
-  Rcpp::Rcout << "Memory [" << label << "]: "
-              << rss_kb << " KB | "
-              << rss_mb << " MB | "
-              << rss_gb << " GB" << std::endl;
+  Rcpp::Rcout << "Used Memory: " << rss_gb << " GB" << std::endl;
 }
 
 // check if keypoints are degenerate
@@ -396,24 +394,20 @@ bool getSIFTTransformationMatrixSingle(
   
   // Detect SIFT features
   Ptr<Feature2D> sift = cv::SIFT::create(params.sift_nfeatures);
-  // Ptr<Feature2D> sift = cv::SIFT::create();
   computeSIFTTiles(im1Proc, keypoints1, descriptors1, sift, params);
   computeSIFTTiles(im2Proc, keypoints2, descriptors2, sift, params);
-  // sift->detectAndCompute(im1Proc, Mat(), keypoints1, descriptors1);
-  // sift->detectAndCompute(im2Proc, Mat(), keypoints2, descriptors2);
-  
   Rcout << "MESSAGE: Generated " << keypoints1.size() << " and " << keypoints2.size() << " keypoints"  << endl;
   Rcout << "DONE: SIFT based key-points detection and descriptors computation" << endl;
 
   // filter duplicates
-  // filterDuplicateKeypoints(keypoints1, descriptors1);
-  // filterDuplicateKeypoints(keypoints2, descriptors2);
+  filterDuplicateKeypoints(keypoints1, descriptors1);
+  filterDuplicateKeypoints(keypoints2, descriptors2);
   
   // get top key points
-  // keepTopKeypoints(keypoints1, descriptors1, params);
-  // keepTopKeypoints(keypoints2, descriptors2, params);
-  // Rcout << "MESSAGE: After filtering " << keypoints1.size() << " and " << keypoints2.size() << " keypoints" << endl;
-    
+  keepTopKeypoints(keypoints1, descriptors1, params);
+  keepTopKeypoints(keypoints2, descriptors2, params);
+  Rcout << "MESSAGE: After filtering " << keypoints1.size() << " and " << keypoints2.size() << " keypoints" << endl;
+
   ///////////////////////
   /// Compute FLANN /////
   ///////////////////////
@@ -423,18 +417,18 @@ bool getSIFTTransformationMatrixSingle(
   getFLANNMatches(descriptors1, descriptors2, matches12, matches21);
   Rcout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
 
-  // // TODO: can I release there now ? 
-  // // descriptors1.release();
-  // // descriptors2.release();
-  // 
+  // TODO: can I release there now ?
+  descriptors1.release();
+  descriptors2.release();
+
   // Find good matches
   std::vector<DMatch> good_matches;
   getGoodMatches(matches12, matches21, good_matches);
   Rcout << "DONE: get good mutual matches by distance thresholding" << endl;
   
   // TODO: can I release there now ? 
-  // std::vector<std::vector<DMatch>>().swap(matches12);
-  // std::vector<std::vector<DMatch>>().swap(matches21);
+  std::vector<std::vector<DMatch>>().swap(matches12);
+  std::vector<std::vector<DMatch>>().swap(matches21);
   
   ///////////////////////
   /// Find Homography ///
@@ -452,30 +446,24 @@ bool getSIFTTransformationMatrixSingle(
 
   // Find transformation matrix
   if(points1.size() > 0){
-    Rcout << "MESSAGE: Matching " << points1.size() << " keypoints" << endl;
     if(run_Affine){
       std::vector<uint8_t> match_mask;
-      // h = estimateAffine2D(points1,
-      //                      points2,
-      //                      match_mask,
-      //                      cv::RANSAC,
-      //                      params.ransac_pixel_threshold,
-      //                      params.ransac_maxIters,
-      //                      params.ransac_confidence);
       h = estimateAffine2D(points1,
                            points2,
                            match_mask,
-                           cv::RANSAC);
+                           cv::RANSAC,
+                           params.ransac_pixel_threshold,
+                           params.ransac_maxIters,
+                           params.ransac_confidence);
       mask = IntVectorToMat(match_mask);
     } else {
-      // h = findHomography(points1,
-      //                    points2,
-      //                    cv::RANSAC,
-      //                    params.ransac_pixel_threshold,
-      //                    mask,
-      //                    params.ransac_maxIters,
-      //                    params.ransac_confidence);
-      h = findHomography(points1, points2, RANSAC);
+      h = findHomography(points1,
+                         points2,
+                         cv::RANSAC,
+                         params.ransac_pixel_threshold,
+                         mask,
+                         params.ransac_maxIters,
+                         params.ransac_confidence);
     } 
   } else {
     Rcout <<  "WARNING: Found no matches!" << endl;
@@ -500,8 +488,7 @@ bool getSIFTTransformationMatrixSingle(
       j++;
     }
   }
-  // scaledDrawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches);
-  drawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches);
+  scaledDrawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches);
 
   // TODO: can I release there now ? 
   // std::vector<cv::KeyPoint>().swap(keypoints1_best);
@@ -537,7 +524,6 @@ void getSIFTTransformationMatrix(
   // find matches and points
   check = getSIFTTransformationMatrixSingle(im1Proc, im2Proc, h, mask,
                                             imMatches,
-                                            // points1, points2, good_matches,
                                             points1, points2,
                                             run_Affine, params, is_faulty);
   Rcout << "DONE: calculated homography matrix with " << points1.size() << " points" << endl;
@@ -551,7 +537,6 @@ void getSIFTTransformationMatrix(
 
     check = getSIFTTransformationMatrixSingle(im1Proc_eq, im2Proc, h, mask,
                                               imMatches,
-                                              // points1, points2, good_matches,
                                               points1, points2,
                                               run_Affine, params, is_faulty);
     Rcout << "DONE: calculated homography matrix with " << points1.size() << " points" << endl;
@@ -567,7 +552,6 @@ void getSIFTTransformationMatrix(
 
     check = getSIFTTransformationMatrixSingle(im1Proc, im2Proc_eq, h, mask,
                                               imMatches,
-                                              // points1, points2, good_matches,
                                               points1, points2,
                                               run_Affine, params, is_faulty);
     Rcout << "DONE: calculated homography matrix with " << points1.size() << " points" << endl;
@@ -584,7 +568,6 @@ void getSIFTTransformationMatrix(
 
     check = getSIFTTransformationMatrixSingle(im1Proc_eq2, im2Proc_eq2, h, mask,
                                               imMatches,
-                                              // points1, points2, good_matches,
                                               points1, points2,
                                               run_Affine, params, is_faulty);
     Rcout << "DONE: calculated homography matrix with " << points1.size() << " points" << endl;
@@ -592,7 +575,7 @@ void getSIFTTransformationMatrix(
     return;
   }
   
-  // release
+  // TODO: release ?
   // im1Proc_eq.release();
   // im1Proc_eq2.release();
   // im2Proc_eq.release();
@@ -645,7 +628,6 @@ bool getORBTransformationMatrix(
     
   // Find transformation matrix
   if(points1.size() > 0){
-    Rcout << "MESSAGE: Matching " << points1.size() << " keypoints" << endl;
     if(run_Affine){
       std::vector<uint8_t> match_mask;
       h = estimateAffine2D(points1,
@@ -861,253 +843,11 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   }
   
   // release
-  // im1Combine.release();
-  // im2Proc.release();
-  // im1Warp.release();
-  // im1NormalWarp.release();
-  // im1NormalProc.release();
-  
-  // resize image to visualize faster later in Shiny
-  im2 = resize_image(im2, 500);
-  im1Overlay = resize_image(im1Overlay, 500);
-}
-
-// align images with FLANN algorithm
-void alignImagesFLANN2(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, 
-                       Mat &imMatches, Mat &h, Rcpp::List &keypoints,
-                       const bool invert_query, const bool invert_ref,
-                       const char* flipflop_query, const char* flipflop_ref,
-                       const char* rotate_query, const char* rotate_ref,
-                       const bool run_Affine, const bool run_TPS)
-{
-  
-  // parameters
-  cv::setRNGSeed(0);
-  SIFTParameters params;
-  
-  //////////////////////
-  /// Process Images ///
-  //////////////////////
-  
-  // Convert images to grayscale
-  Mat im1Gray, im2Gray;
-  cvtColor(im1, im1Gray, cv::COLOR_BGR2GRAY);
-  cvtColor(im2, im2Gray, cv::COLOR_BGR2GRAY);
-  
-  // Process images
-  Mat im1Proc, im2Proc, im1NormalProc;
-  im1Proc = preprocessImage(im1Gray, invert_query, flipflop_query, rotate_query);
-  im1NormalProc = preprocessImage(im1, FALSE, flipflop_query, rotate_query);
-  im2Proc = preprocessImage(im2Gray, invert_ref, flipflop_ref, rotate_ref);
-  
-  // ////////////////////////////////////
-  // /// Compute SIFT+FLANN+Homograpy ///
-  // ////////////////////////////////////
-  
-  // RUN SIFT+FLANN+Homography with retry
-  bool is_faulty = FALSE;
-  cv::Mat mask;
-  std::vector<Point2f> points1, points2;
-  
-  
-  // Variables to store keypoints and descriptors
-  std::vector<KeyPoint> keypoints1, keypoints2;
-  Mat descriptors1, descriptors2;
-  
-  // Detect SIFT features
-  // Ptr<Feature2D> sift = cv::SIFT::create(params.sift_nfeatures);
-  Ptr<Feature2D> sift = cv::SIFT::create();
-  // computeSIFTTiles(im1Proc, keypoints1, descriptors1, sift, params);
-  // computeSIFTTiles(im2Proc, keypoints2, descriptors2, sift, params);
-  sift->detectAndCompute(im1Proc, Mat(), keypoints1, descriptors1);
-  sift->detectAndCompute(im2Proc, Mat(), keypoints2, descriptors2);
-  
-  Rcout << "MESSAGE: Generated " << keypoints1.size() << " and " << keypoints2.size() << " keypoints"  << endl;
-  Rcout << "DONE: SIFT based key-points detection and descriptors computation" << endl;
-  
-  ///////////////////////
-  /// Compute FLANN /////
-  ///////////////////////
-  
-  // Match features using FLANN matching
-  std::vector<std::vector<DMatch>> matches;
-  cv::FlannBasedMatcher custom_matcher = cv::FlannBasedMatcher(cv::makePtr<cv::flann::KDTreeIndexParams>(5), cv::makePtr<cv::flann::SearchParams>(50, 0, TRUE));
-  cv::Ptr<cv::FlannBasedMatcher> matcher = custom_matcher.create();
-  matcher->knnMatch(descriptors1, descriptors2, matches, 2);
-  Rcout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
-  
-  // Find good matches
-  // goodMatches = get_good_matches(matches)
-  std::vector<DMatch> good_matches;
-  getGoodMatches_temp(matches, good_matches);
-  Rcout << "DONE: get good matches by distance thresholding" << endl;
-  
-  ///////////////////////
-  /// Find Homography ///
-  ///////////////////////
-  
-  // Extract location of good matches
-  for( size_t i = 0; i < good_matches.size(); i++ )
-  {
-    points1.push_back(keypoints1[good_matches[i].queryIdx].pt);
-    points2.push_back(keypoints2[good_matches[i].trainIdx].pt);
-  }
-  
-  // check variable
-  Rcout << "MESSAGE: Calculating" << (run_Affine ? " (Affine) " : " (Homography) ") << "Transformation Matrix" << endl;
-  
-  // Find transformation matrix
-  Rcout << "MESSAGE: Matching " << points1.size() << " keypoints" << endl;
-  if(run_Affine){
-    std::vector<uint8_t> match_mask;
-    // h = estimateAffine2D(points1,
-    //                      points2,
-    //                      match_mask,
-    //                      cv::RANSAC,
-    //                      params.ransac_pixel_threshold,
-    //                      params.ransac_maxIters,
-    //                      params.ransac_confidence);
-    h = estimateAffine2D(points1,
-                         points2,
-                         match_mask,
-                         cv::RANSAC);
-    mask = IntVectorToMat(match_mask);
-  } else {
-    // h = findHomography(points1,
-    //                    points2,
-    //                    cv::RANSAC,
-    //                    params.ransac_pixel_threshold,
-    //                    mask,
-    //                    params.ransac_maxIters,
-    //                    params.ransac_confidence);
-    h = findHomography(points1, points2, RANSAC);
-  } 
-  
-  // Draw top matches and good ones only
-  std::vector<cv::DMatch> top_matches;
-  std::vector<cv::KeyPoint> keypoints1_best, keypoints2_best;
-  for(size_t i = 0; i < good_matches.size(); i++ )
-  {
-    keypoints1_best.push_back(keypoints1[good_matches[i].queryIdx]);
-    keypoints2_best.push_back(keypoints2[good_matches[i].trainIdx]);
-  }
-  std::vector<cv::KeyPoint> keypoints1_best2, keypoints2_best2;
-  int j=0;
-  for (int i = 0; i < mask.rows; i++) {
-    if (mask.at<uchar>(i)) {
-      keypoints1_best2.push_back(keypoints1_best[i]);
-      keypoints2_best2.push_back(keypoints2_best[i]);
-      top_matches.push_back(cv::DMatch(static_cast<int>(j), static_cast<int>(j), 0));
-      j++;
-    }
-  }
-  // scaledDrawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches);
-  drawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches); 
-  
-  // check result
-  is_faulty = check_transformation_metrics(points1, points2, im2, h, mask);
-  Rcout << "MESSAGE: Registration is " << (is_faulty ? "degenerate!" : "not degenerate!") << endl;
-  
-  // Use homography to warp image
-  Mat im1Warp, im1NormalWarp;
-  if(h.rows == 2){
-    warpAffine(im1Proc, im1Warp, h, im2Proc.size());
-    warpAffine(im1NormalProc, im1NormalWarp, h, im2Proc.size());   
-  } else {
-    warpPerspective(im1Proc, im1Warp, h, im2Proc.size());
-    warpPerspective(im1NormalProc, im1NormalWarp, h, im2Proc.size());    
-  }
-  
-  Rcout << "DONE: warped query image" << endl;
-  
-  ///////////////////////
-  /// Find Homography ///
-  ///////////////////////
-  
-  // continue with TPS or do FLANN only
-  Mat im1Reg_Warp_nonrigid;
-  Mat im1Reg_NormalWarp_nonrigid;
-  Mat im1Combine;
-  if(is_faulty || !run_TPS){
-    
-    // change color map
-    cv::addWeighted(im2Proc, 0.7, im1Warp, 0.3, 0, im1Combine);
-    
-    // Reverse process
-    im1Reg = reversepreprocessImage(im1NormalWarp, flipflop_ref, rotate_ref);
-    
-    // return as rgb
-    cvtColor(im1Combine, im1Overlay, cv::COLOR_GRAY2BGR);
-    cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
-    
-    // TPS is requested (only if FLANN succeeded)
-  } else {
-    
-    Rcout << "MESSAGE: Running Thin-Plate-Spline Alignment" << endl;
-    
-    // Filtered points (inliers) based on the mask
-    std::vector<cv::Point2f> filtered_points1;
-    std::vector<cv::Point2f> filtered_points2;
-    for (int i = 0; i < mask.rows; i++) {
-      if (mask.at<uchar>(i)) {
-        filtered_points1.push_back(points1[i]);
-        filtered_points2.push_back(points2[i]);
-      }
-    }
-    removeCloseMatches(filtered_points1, filtered_points2);
-    
-    // transform query
-    std::vector<cv::Point2f> filtered_points1_reg;
-    if (h.rows == 2){
-      cv::transform(filtered_points1, filtered_points1_reg, h);
-    } else {
-      cv::perspectiveTransform(filtered_points1, filtered_points1_reg, h);
-    }
-    
-    // get TPS matches
-    std::vector<cv::DMatch> matches;
-    for (unsigned int i = 0; i < filtered_points2.size(); i++)
-      matches.push_back(cv::DMatch(i, i, 0));
-    
-    // calculate TPS transformation
-    Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
-    tps->estimateTransformation(filtered_points2, filtered_points1_reg, matches);
-    
-    // save keypoints 
-    keypoints[0] = point2fToNumericMatrix(filtered_points2);
-    keypoints[1] = point2fToNumericMatrix(filtered_points1_reg); 
-    
-    // determine extension limits for both images
-    int y_max = max(im1Warp.rows, im2.rows);
-    int x_max = max(im1Warp.cols, im2.cols);
-    
-    // extend images
-    cv::copyMakeBorder(im1Warp, im1Warp, 0.0, (int) (y_max - im1Warp.rows), 0.0, (x_max - im1Warp.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
-    cv::copyMakeBorder(im1NormalWarp, im1NormalWarp, 0.0, (int) (y_max - im1NormalWarp.rows), 0.0, (x_max - im1NormalWarp.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
-    
-    // transform image
-    Mat im1Reg_Warp_nonrigid;
-    Mat im1Reg_NormalWarp_nonrigid;
-    tps->warpImage(im1Warp, im1Reg_Warp_nonrigid);
-    tps->warpImage(im1NormalWarp, im1Reg_NormalWarp_nonrigid);
-    
-    // resize image
-    cv::Mat im1Reg_NormalWarp_nonrigid_cropped  = im1Reg_NormalWarp_nonrigid(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
-    im1Reg_NormalWarp_nonrigid = im1Reg_NormalWarp_nonrigid_cropped.clone();
-    
-    cv::Mat im1Reg_Warp_nonrigid_cropped  = im1Reg_Warp_nonrigid(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
-    im1Reg_Warp_nonrigid = im1Reg_Warp_nonrigid_cropped.clone();
-    
-    // change color map
-    cv::addWeighted(im2Proc, 0.7, im1Reg_Warp_nonrigid, 0.3, 0, im1Combine);
-    
-    // Reverse process
-    im1Reg = reversepreprocessImage(im1Reg_NormalWarp_nonrigid, flipflop_ref, rotate_ref);
-    
-    // return as rgb
-    cvtColor(im1Combine, im1Overlay, cv::COLOR_GRAY2BGR);
-    cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
-  }
+  im1Combine.release();
+  im2Proc.release();
+  im1Warp.release();
+  im1NormalWarp.release();
+  im1NormalProc.release();
   
   // resize image to visualize faster later in Shiny
   im2 = resize_image(im2, 500);
@@ -1149,14 +889,6 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
               flipflop_query.get_cstring(), flipflop_ref.get_cstring(),
               rotate_query.get_cstring(), rotate_ref.get_cstring(),
               run_Affine, run_TPS);
-  
-  // alignImagesFLANN2(im, imReference, imReg, imOverlay, imMatches, 
-  //                   h, keypoints,
-  //                   invert_query, invert_ref,
-  //                   flipflop_query.get_cstring(), flipflop_ref.get_cstring(), 
-  //                   rotate_query.get_cstring(), rotate_ref.get_cstring(), 
-  //                   run_Affine, run_TPS);
-    
 
   // transformation matrix, can be either a matrix, set of keypoints or both
   out_trans[0] = matToNumericMatrix(h.clone());
@@ -1168,31 +900,28 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
 
   // check if transformation matrix is calculated, 
   // otherwise return NULL
-  out[2] = matToImage(imReg.clone());
-  // keypoint matching image
-  out[3] = matToImage(imMatches.clone());
-  // overlay image
-  out[4] = matToImage(imOverlay.clone()); 
-  // if(h.rows > 1){
-  //   // registered image
-  //   out[2] = matToImage(imReg.clone());
-  //   // keypoint matching image
-  //   out[3] = matToImage(imMatches.clone());
-  //   // overlay image
-  //   out[4] = matToImage(imOverlay.clone()); 
-  // } else {
-  //   out[2] = R_NilValue;
-  //   out[3] = R_NilValue;
-  //   out[4] = R_NilValue;
-  // }
+  if(h.rows > 1){
+    // registered image
+    out[2] = matToImage(imReg.clone());
+    // keypoint matching image
+    out[3] = matToImage(imMatches.clone());
+    // overlay image
+    out[4] = matToImage(imOverlay.clone());
+  } else {
+    out[2] = R_NilValue;
+    out[3] = R_NilValue;
+    out[4] = R_NilValue;
+  }
   
 
   // release
-  // im.release();
-  // imReference.release();
-  // imReg.release();
-  // imMatches.release();
-  // imOverlay.release();
+  im.release();
+  imReference.release();
+  imReg.release();
+  imMatches.release();
+  imOverlay.release();
+  
+  log_mem_usage("now");
   
   // return
   return out;
@@ -1353,6 +1082,248 @@ void alignImagesFLANN(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   std::vector<Point2f> points1, points2;
   // getSIFTTransformationMatrix(im1Proc, im2Proc, im1, im2, h, mask, imMatches,
   //                             points1, points2, run_Affine, params, is_faulty);
+  
+  // check result
+  is_faulty = check_transformation_metrics(points1, points2, im2, h, mask);
+  Rcout << "MESSAGE: Registration is " << (is_faulty ? "degenerate!" : "not degenerate!") << endl;
+  
+  // Use homography to warp image
+  Mat im1Warp, im1NormalWarp;
+  if(h.rows == 2){
+    warpAffine(im1Proc, im1Warp, h, im2Proc.size());
+    warpAffine(im1NormalProc, im1NormalWarp, h, im2Proc.size());   
+  } else {
+    warpPerspective(im1Proc, im1Warp, h, im2Proc.size());
+    warpPerspective(im1NormalProc, im1NormalWarp, h, im2Proc.size());    
+  }
+  
+  Rcout << "DONE: warped query image" << endl;
+  
+  ///////////////////////
+  /// Find Homography ///
+  ///////////////////////
+  
+  // continue with TPS or do FLANN only
+  Mat im1Reg_Warp_nonrigid;
+  Mat im1Reg_NormalWarp_nonrigid;
+  Mat im1Combine;
+  if(is_faulty || !run_TPS){
+    
+    // change color map
+    cv::addWeighted(im2Proc, 0.7, im1Warp, 0.3, 0, im1Combine);
+    
+    // Reverse process
+    im1Reg = reversepreprocessImage(im1NormalWarp, flipflop_ref, rotate_ref);
+    
+    // return as rgb
+    cvtColor(im1Combine, im1Overlay, cv::COLOR_GRAY2BGR);
+    cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
+    
+    // TPS is requested (only if FLANN succeeded)
+  } else {
+    
+    Rcout << "MESSAGE: Running Thin-Plate-Spline Alignment" << endl;
+    
+    // Filtered points (inliers) based on the mask
+    std::vector<cv::Point2f> filtered_points1;
+    std::vector<cv::Point2f> filtered_points2;
+    for (int i = 0; i < mask.rows; i++) {
+      if (mask.at<uchar>(i)) {
+        filtered_points1.push_back(points1[i]);
+        filtered_points2.push_back(points2[i]);
+      }
+    }
+    removeCloseMatches(filtered_points1, filtered_points2);
+    
+    // transform query
+    std::vector<cv::Point2f> filtered_points1_reg;
+    if (h.rows == 2){
+      cv::transform(filtered_points1, filtered_points1_reg, h);
+    } else {
+      cv::perspectiveTransform(filtered_points1, filtered_points1_reg, h);
+    }
+    
+    // get TPS matches
+    std::vector<cv::DMatch> matches;
+    for (unsigned int i = 0; i < filtered_points2.size(); i++)
+      matches.push_back(cv::DMatch(i, i, 0));
+    
+    // calculate TPS transformation
+    Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
+    tps->estimateTransformation(filtered_points2, filtered_points1_reg, matches);
+    
+    // save keypoints 
+    keypoints[0] = point2fToNumericMatrix(filtered_points2);
+    keypoints[1] = point2fToNumericMatrix(filtered_points1_reg); 
+    
+    // determine extension limits for both images
+    int y_max = max(im1Warp.rows, im2.rows);
+    int x_max = max(im1Warp.cols, im2.cols);
+    
+    // extend images
+    cv::copyMakeBorder(im1Warp, im1Warp, 0.0, (int) (y_max - im1Warp.rows), 0.0, (x_max - im1Warp.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    cv::copyMakeBorder(im1NormalWarp, im1NormalWarp, 0.0, (int) (y_max - im1NormalWarp.rows), 0.0, (x_max - im1NormalWarp.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    
+    // transform image
+    Mat im1Reg_Warp_nonrigid;
+    Mat im1Reg_NormalWarp_nonrigid;
+    tps->warpImage(im1Warp, im1Reg_Warp_nonrigid);
+    tps->warpImage(im1NormalWarp, im1Reg_NormalWarp_nonrigid);
+    
+    // resize image
+    cv::Mat im1Reg_NormalWarp_nonrigid_cropped  = im1Reg_NormalWarp_nonrigid(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
+    im1Reg_NormalWarp_nonrigid = im1Reg_NormalWarp_nonrigid_cropped.clone();
+    
+    cv::Mat im1Reg_Warp_nonrigid_cropped  = im1Reg_Warp_nonrigid(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
+    im1Reg_Warp_nonrigid = im1Reg_Warp_nonrigid_cropped.clone();
+    
+    // change color map
+    cv::addWeighted(im2Proc, 0.7, im1Reg_Warp_nonrigid, 0.3, 0, im1Combine);
+    
+    // Reverse process
+    im1Reg = reversepreprocessImage(im1Reg_NormalWarp_nonrigid, flipflop_ref, rotate_ref);
+    
+    // return as rgb
+    cvtColor(im1Combine, im1Overlay, cv::COLOR_GRAY2BGR);
+    cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
+  }
+  
+  // resize image to visualize faster later in Shiny
+  im2 = resize_image(im2, 500);
+  im1Overlay = resize_image(im1Overlay, 500);
+}
+
+// align images with FLANN algorithm
+void alignImagesFLANN2(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, 
+                       Mat &imMatches, Mat &h, Rcpp::List &keypoints,
+                       const bool invert_query, const bool invert_ref,
+                       const char* flipflop_query, const char* flipflop_ref,
+                       const char* rotate_query, const char* rotate_ref,
+                       const bool run_Affine, const bool run_TPS)
+{
+  
+  // parameters
+  cv::setRNGSeed(0);
+  SIFTParameters params;
+  
+  //////////////////////
+  /// Process Images ///
+  //////////////////////
+  
+  // Convert images to grayscale
+  Mat im1Gray, im2Gray;
+  cvtColor(im1, im1Gray, cv::COLOR_BGR2GRAY);
+  cvtColor(im2, im2Gray, cv::COLOR_BGR2GRAY);
+  
+  // Process images
+  Mat im1Proc, im2Proc, im1NormalProc;
+  im1Proc = preprocessImage(im1Gray, invert_query, flipflop_query, rotate_query);
+  im1NormalProc = preprocessImage(im1, FALSE, flipflop_query, rotate_query);
+  im2Proc = preprocessImage(im2Gray, invert_ref, flipflop_ref, rotate_ref);
+  
+  // ////////////////////////////////////
+  // /// Compute SIFT+FLANN+Homograpy ///
+  // ////////////////////////////////////
+  
+  // RUN SIFT+FLANN+Homography with retry
+  bool is_faulty = FALSE;
+  cv::Mat mask;
+  std::vector<Point2f> points1, points2;
+  
+  
+  // Variables to store keypoints and descriptors
+  std::vector<KeyPoint> keypoints1, keypoints2;
+  Mat descriptors1, descriptors2;
+  
+  // Detect SIFT features
+  // Ptr<Feature2D> sift = cv::SIFT::create(params.sift_nfeatures);
+  Ptr<Feature2D> sift = cv::SIFT::create();
+  // computeSIFTTiles(im1Proc, keypoints1, descriptors1, sift, params);
+  // computeSIFTTiles(im2Proc, keypoints2, descriptors2, sift, params);
+  sift->detectAndCompute(im1Proc, Mat(), keypoints1, descriptors1);
+  sift->detectAndCompute(im2Proc, Mat(), keypoints2, descriptors2);
+  
+  Rcout << "MESSAGE: Generated " << keypoints1.size() << " and " << keypoints2.size() << " keypoints"  << endl;
+  Rcout << "DONE: SIFT based key-points detection and descriptors computation" << endl;
+  
+  ///////////////////////
+  /// Compute FLANN /////
+  ///////////////////////
+  
+  // Match features using FLANN matching
+  std::vector<std::vector<DMatch>> matches;
+  cv::FlannBasedMatcher custom_matcher = cv::FlannBasedMatcher(cv::makePtr<cv::flann::KDTreeIndexParams>(5), cv::makePtr<cv::flann::SearchParams>(50, 0, TRUE));
+  cv::Ptr<cv::FlannBasedMatcher> matcher = custom_matcher.create();
+  matcher->knnMatch(descriptors1, descriptors2, matches, 2);
+  Rcout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
+  
+  // Find good matches
+  // goodMatches = get_good_matches(matches)
+  std::vector<DMatch> good_matches;
+  getGoodMatches_temp(matches, good_matches);
+  Rcout << "DONE: get good matches by distance thresholding" << endl;
+  
+  ///////////////////////
+  /// Find Homography ///
+  ///////////////////////
+  
+  // Extract location of good matches
+  for( size_t i = 0; i < good_matches.size(); i++ )
+  {
+    points1.push_back(keypoints1[good_matches[i].queryIdx].pt);
+    points2.push_back(keypoints2[good_matches[i].trainIdx].pt);
+  }
+  
+  // check variable
+  Rcout << "MESSAGE: Calculating" << (run_Affine ? " (Affine) " : " (Homography) ") << "Transformation Matrix" << endl;
+  
+  // Find transformation matrix
+  Rcout << "MESSAGE: Matching " << points1.size() << " keypoints" << endl;
+  if(run_Affine){
+    std::vector<uint8_t> match_mask;
+    // h = estimateAffine2D(points1,
+    //                      points2,
+    //                      match_mask,
+    //                      cv::RANSAC,
+    //                      params.ransac_pixel_threshold,
+    //                      params.ransac_maxIters,
+    //                      params.ransac_confidence);
+    h = estimateAffine2D(points1,
+                         points2,
+                         match_mask,
+                         cv::RANSAC);
+    mask = IntVectorToMat(match_mask);
+  } else {
+    // h = findHomography(points1,
+    //                    points2,
+    //                    cv::RANSAC,
+    //                    params.ransac_pixel_threshold,
+    //                    mask,
+    //                    params.ransac_maxIters,
+    //                    params.ransac_confidence);
+    h = findHomography(points1, points2, RANSAC);
+  } 
+  
+  // Draw top matches and good ones only
+  std::vector<cv::DMatch> top_matches;
+  std::vector<cv::KeyPoint> keypoints1_best, keypoints2_best;
+  for(size_t i = 0; i < good_matches.size(); i++ )
+  {
+    keypoints1_best.push_back(keypoints1[good_matches[i].queryIdx]);
+    keypoints2_best.push_back(keypoints2[good_matches[i].trainIdx]);
+  }
+  std::vector<cv::KeyPoint> keypoints1_best2, keypoints2_best2;
+  int j=0;
+  for (int i = 0; i < mask.rows; i++) {
+    if (mask.at<uchar>(i)) {
+      keypoints1_best2.push_back(keypoints1_best[i]);
+      keypoints2_best2.push_back(keypoints2_best[i]);
+      top_matches.push_back(cv::DMatch(static_cast<int>(j), static_cast<int>(j), 0));
+      j++;
+    }
+  }
+  // scaledDrawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches);
+  drawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches); 
   
   // check result
   is_faulty = check_transformation_metrics(points1, points2, im2, h, mask);
