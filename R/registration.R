@@ -1256,17 +1256,21 @@ checkKeypoints <- function(keypoints_list){
     nrow(key_list$ref) > 0 | nrow(key_list$query) > 0
   })
   if(!all(unlist(keypoints_check_flag))){
-    showNotification("Please select keypoints for all images\n")
-    return(NULL)
+    showNotification("Please select keypoints for all image pairs! \n", 
+                     type = "error")
+    return(FALSE)
   }
 
   keypoints_check_flag <- sapply(keypoints_list, function(key_list){
     nrow(key_list$ref) == nrow(key_list$query)
   })
   if(!all(unlist(keypoints_check_flag))){
-    showNotification("The number of reference and query keypoints should be equal! \n")
-    return(NULL)
+    showNotification("The number of reference and query keypoints should be equal! \n", 
+                     type = "error")
+    return(FALSE)
   }
+  
+  return(TRUE)
 }
 
 transferParameterInput <- function(params, image_list){
@@ -1925,11 +1929,13 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
     # Manual Registration
     if(!input$automatictag){
 
+      # Check keypoints
+      flag <- checkKeypoints(keypoints_list)
+      if(!flag) 
+        return(NULL)
+      
       # waiter start
       withProgress(message = paste0('Manual Registration (', input$Method, ')'), value = 0, {
-
-        # Check keypoints
-        checkKeypoints(keypoints_list)
   
         # Register keypoints
         aligned_image_list <- list()
@@ -2357,7 +2363,7 @@ getNonInteractiveRegistration <- function(obj_list,
                                                input = mapping_parameters)
            }, 
            "manual" = {
-             checkKeypoints(mapping_parameters$keypoints)
+             flag <- checkKeypoints(mapping_parameters$keypoints)
              computeManualPairwiseTransform(image_list = image_list, 
                                             keypoints_list = mapping_parameters$keypoints, 
                                             query_ind = i, 
