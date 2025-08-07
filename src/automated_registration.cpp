@@ -40,8 +40,18 @@ void log_mem_usage(const std::string& label = "") {
   double rss_mb = rss_kb / 1024.0;
   double rss_gb = rss_mb / 1024.0;
   
-  Rcpp::Rcout << "Used Memory: " << rss_gb << " GB" << std::endl;
+  Rcpp::Rcout << "Used Memory [" << label << "]: " << rss_gb << " GB" << std::endl;
 }
+
+double object_size(long bsize) {
+  
+  double rss_kb = bsize / 1024.0;
+  double rss_mb = rss_kb / 1024.0;
+  double rss_gb = rss_mb / 1024.0;
+  
+  return rss_gb;
+}
+
 
 // check if keypoints are degenerate
 bool check_degenerate(std::vector<cv::Point2f> &points1, std::vector<cv::Point2f> &points2) {
@@ -398,7 +408,8 @@ bool getSIFTTransformationMatrixSingle(
   computeSIFTTiles(im2Proc, keypoints2, descriptors2, sift, params);
   Rcout << "MESSAGE: Generated " << keypoints1.size() << " and " << keypoints2.size() << " keypoints"  << endl;
   Rcout << "DONE: SIFT based key-points detection and descriptors computation" << endl;
-
+  log_mem_usage("sift landmarks");
+  
   // filter duplicates
   filterDuplicateKeypoints(keypoints1, descriptors1);
   filterDuplicateKeypoints(keypoints2, descriptors2);
@@ -407,7 +418,8 @@ bool getSIFTTransformationMatrixSingle(
   keepTopKeypoints(keypoints1, descriptors1, params);
   keepTopKeypoints(keypoints2, descriptors2, params);
   Rcout << "MESSAGE: After filtering " << keypoints1.size() << " and " << keypoints2.size() << " keypoints" << endl;
-
+  log_mem_usage("filter landmarks");
+  
   ///////////////////////
   /// Compute FLANN /////
   ///////////////////////
@@ -416,7 +428,8 @@ bool getSIFTTransformationMatrixSingle(
   std::vector<std::vector<DMatch>> matches12, matches21;
   getFLANNMatches(descriptors1, descriptors2, matches12, matches21);
   Rcout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
-
+  log_mem_usage("flann matching");
+  
   // TODO: can I release there now ?
   descriptors1.release();
   descriptors2.release();
@@ -425,6 +438,7 @@ bool getSIFTTransformationMatrixSingle(
   std::vector<DMatch> good_matches;
   getGoodMatches(matches12, matches21, good_matches);
   Rcout << "DONE: get good mutual matches by distance thresholding" << endl;
+  log_mem_usage("good matches");
   
   // TODO: can I release there now ? 
   std::vector<std::vector<DMatch>>().swap(matches12);
@@ -469,7 +483,8 @@ bool getSIFTTransformationMatrixSingle(
     Rcout <<  "WARNING: Found no matches!" << endl;
     return false;
   }
-
+  log_mem_usage("find transformation");
+  
   // Draw top matches and good ones only
   std::vector<cv::DMatch> top_matches;
   std::vector<cv::KeyPoint> keypoints1_best, keypoints2_best;
@@ -489,7 +504,8 @@ bool getSIFTTransformationMatrixSingle(
     }
   }
   scaledDrawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches);
-
+  log_mem_usage("draw matches");
+  
   // TODO: can I release there now ? 
   // std::vector<cv::KeyPoint>().swap(keypoints1_best);
   // std::vector<cv::KeyPoint>().swap(keypoints2_best);
@@ -748,6 +764,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   }
   
   Rcout << "DONE: warped query image" << endl;
+  log_mem_usage("warp image");
   
   ///////////////////////
   /// Find Homography ///
@@ -855,7 +872,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
 }
 
 // [[Rcpp::export]]
-Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image,
+Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::RawVector& query_image,
                                              const int width1, const int height1,
                                              const int width2, const int height2,
                                              const float GOOD_MATCH_PERCENT, const int MAX_FEATURES,
@@ -864,23 +881,36 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::Ra
                                              Rcpp::String rotate_query, Rcpp::String rotate_ref,
                                              Rcpp::String matcher, Rcpp::String method)
 {
+  log_mem_usage("pre conversion");
+  
   // Return data
   Rcpp::List out(5);
   Rcpp::List out_trans(2);
   Rcpp::List keypoints(2);
   Mat imOverlay, imReg, h, imMatches;
-  
+
   // Read reference image
   cv::Mat imReference = imageToMat(ref_image, width1, height1);
-
+  Rcout << ref_image.size()  << endl;
+  Rcout << ref_image.length() << endl;
+  Rcout << object_size(ref_image.size() * sizeof(ref_image[0])) << endl;
+  Rcout << object_size(imReference.total() * imReference.elemSize()) << endl;
+  Rcout << object_size(imReference.step[0] * imReference.rows) << endl;
+  
   // Read image to be aligned
   cv::Mat im = imageToMat(query_image, width2, height2);
+  Rcout << query_image.size() << endl;
+  Rcout << query_image.length() << endl;
+  Rcout << object_size(query_image.size()) << endl;
+  Rcout << object_size(im.total() * im.elemSize()) << endl;
+  Rcout << object_size(im.step[0] * im.rows) << endl;
   
   // run alignment
   const bool run_TPS = (strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0 || 
                         strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0);
   const bool run_Affine = (strcmp(method.get_cstring(), "Affine") == 0 || 
                            strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0);
+  log_mem_usage("pre alignment");
   alignImages(im, imReference, imReg, imOverlay, imMatches,
               h, keypoints,
               GOOD_MATCH_PERCENT, MAX_FEATURES,

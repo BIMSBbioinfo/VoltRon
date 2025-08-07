@@ -2306,8 +2306,10 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
                                          flipflop_query = "None", flipflop_ref = "None",
                                          rotate_query = "0", rotate_ref = "0", 
                                          matcher = "FLANN", method = "Homography") {
+  cat("Memory used before conversion: ", mem_used() / (1024^3), "\n")
   ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
   query_image_rast <- magick::image_data(query_image, channels = "rgb")
+  cat("Memory used after conversion: ", mem_used() / (1024^3), "\n")
   
   reg <- automated_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
                                            width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
