@@ -91,18 +91,18 @@ double ps_system_swap() {
   return active + wired;
 }
 
-size_t get_resident_bytes() {
+double get_resident_bytes() {
   mach_task_basic_info info;
   mach_msg_type_number_t size = MACH_TASK_BASIC_INFO_COUNT;
   if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
                 (task_info_t)&info, &size) != KERN_SUCCESS) {
     return 0;
   }
-  return info.resident_size;
+  return static_cast<double>(info.resident_size);
 }
 
-double bytes_to_gb(size_t bytes) {
-  return static_cast<double>(bytes) / (1024.0 * 1024.0 * 1024.0);
+double bytes_to_gb(double bytes) {
+  return bytes / (1024.0 * 1024.0 * 1024.0);
 }
 
 struct MemProfiler {
