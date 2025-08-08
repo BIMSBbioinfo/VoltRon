@@ -2273,6 +2273,7 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
     
     # return transformation matrix and images
     mapping[[kk]] <- reg[[1]]
+    # dest_image <- resize_Image(ref_image, "500x")
     dest_image <- reg$dest_image
     aligned_image <- reg$aligned_image
     alignment_image <- reg$alignment_image
@@ -2312,12 +2313,14 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
                                          flipflop_query = "None", flipflop_ref = "None",
                                          rotate_query = "0", rotate_ref = "0", 
                                          matcher = "FLANN", method = "Homography") {
-  ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
-  query_image_rast <- magick::image_data(query_image, channels = "rgb")
+  # ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
+  # query_image_rast <- magick::image_data(query_image, channels = "rgb")
+  ref_image <- magick::image_data(ref_image, channels = "rgb")
+  query_image <- magick::image_data(query_image, channels = "rgb")
 
-  reg <- automated_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
-                                           width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
-                                           width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3],
+  reg <- automated_registeration_rawvector(ref_image = ref_image, query_image = query_image,
+                                           width1 = dim(ref_image)[2], height1 = dim(ref_image)[3],
+                                           width2 = dim(query_image)[2], height2 = dim(query_image)[3],
                                            GOOD_MATCH_PERCENT = GOOD_MATCH_PERCENT, MAX_FEATURES = MAX_FEATURES,
                                            invert_query = invert_query, invert_ref = invert_ref,
                                            flipflop_query = flipflop_query, flipflop_ref = flipflop_ref,
@@ -2340,6 +2343,7 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
   # return
   return(list(transmat = reg[[1]],
               dest_image = magick::image_read(reg[[2]]),
+              # dest_image = magick::image_read(ref_image),
               aligned_image = aligned_image,
               alignment_image = alignment_image,
               overlay_image = overlay_image))
@@ -2384,22 +2388,6 @@ getNonInteractiveRegistration <- function(obj_list,
     message("Registering Image ", i)
 
     # get a sequential mapping between a query and reference image
-    # results <- switch(mapping_parameters$automatictag, 
-    #        "auto" = {
-    #          computeAutomatedPairwiseTransform(image_list = image_list_full, 
-    #                                            channel_names = channel_names, 
-    #                                            query_ind = i, 
-    #                                            ref_ind = centre, 
-    #                                            input = mapping_parameters)
-    #        }, 
-    #        "manual" = {
-    #          flag <- checkKeypoints(mapping_parameters$keypoints)
-    #          computeManualPairwiseTransform(image_list = image_list, 
-    #                                         keypoints_list = mapping_parameters$keypoints, 
-    #                                         query_ind = i, 
-    #                                         ref_ind = centre, 
-    #                                         input = mapping_parameters)
-    #        })
     if(mapping_parameters$automatictag){
       results <- computeAutomatedPairwiseTransform(image_list = image_list_full,
                                                    channel_names = channel_names,

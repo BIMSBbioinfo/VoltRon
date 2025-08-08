@@ -864,7 +864,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   cvtColor(im1Proc, im1Overlay, cv::COLOR_GRAY2BGR);
   cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
   
-  // log_mem_macos("after transformation detection");
+  log_mem_macos("after alignment");
   
   // release
   im2Proc.release();
@@ -927,6 +927,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
   
   // destination image, registered image, keypoint matching image
   out[1] = matToImage(imReference);
+  // out[1] = R_NilValue;
   
   // check if transformation matrix is calculated, 
   // otherwise return NULL
