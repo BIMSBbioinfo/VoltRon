@@ -695,14 +695,18 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   
   // Convert images to grayscale
   Mat im1Gray, im2Gray;
-  cvtColor(im1, im1Gray, cv::COLOR_BGR2GRAY);
-  cvtColor(im2, im2Gray, cv::COLOR_BGR2GRAY);
+  Mat im1Proc, im2Proc, im1NormalProc;
+  // cvtColor(im1, im1Gray, cv::COLOR_BGR2GRAY);
+  // cvtColor(im2, im2Gray, cv::COLOR_BGR2GRAY);
+  cvtColor(im1, im1Proc, cv::COLOR_BGR2GRAY);
+  cvtColor(im2, im2Proc, cv::COLOR_BGR2GRAY);
   
   // Process images
-  Mat im1Proc, im2Proc, im1NormalProc;
-  im1Proc = preprocessImage(im1Gray, invert_query, flipflop_query, rotate_query);
+  // im1Proc = preprocessImage(im1Gray, invert_query, flipflop_query, rotate_query);
+  im1Proc = preprocessImage(im1Proc, invert_query, flipflop_query, rotate_query);
   im1NormalProc = preprocessImage(im1, FALSE, flipflop_query, rotate_query);
-  im2Proc = preprocessImage(im2Gray, invert_ref, flipflop_ref, rotate_ref);
+  // im2Proc = preprocessImage(im2Gray, invert_ref, flipflop_ref, rotate_ref);
+  im2Proc = preprocessImage(im2Proc, invert_ref, flipflop_ref, rotate_ref);
   
   // ////////////////////////////////////
   // /// Compute SIFT+FLANN+Homograpy ///
@@ -742,11 +746,15 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   // Use homography to warp image
   Mat im1Warp, im1NormalWarp;
   if(h.rows == 2){
-    warpAffine(im1Proc, im1Warp, h, im2Proc.size());
-    warpAffine(im1NormalProc, im1NormalWarp, h, im2Proc.size());   
+    // warpAffine(im1Proc, im1Warp, h, im2Proc.size());
+    // warpAffine(im1NormalProc, im1NormalWarp, h, im2Proc.size());   
+    warpAffine(im1Proc, im1Proc, h, im2Proc.size());
+    warpAffine(im1NormalProc, im1NormalProc, h, im2Proc.size());
   } else if(h.rows == 3){
-    warpPerspective(im1Proc, im1Warp, h, im2Proc.size());
-    warpPerspective(im1NormalProc, im1NormalWarp, h, im2Proc.size());    
+    // warpPerspective(im1Proc, im1Warp, h, im2Proc.size());
+    // warpPerspective(im1NormalProc, im1NormalWarp, h, im2Proc.size());    
+    warpPerspective(im1Proc, im1Proc, h, im2Proc.size());
+    warpPerspective(im1NormalProc, im1NormalProc, h, im2Proc.size());
   } else {
     Rcout << "WARNING: No transformation was found" << endl;
     return;
@@ -766,13 +774,15 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   if(is_faulty || !run_TPS){
     
     // change color map
-    cv::addWeighted(im2Proc, 0.7, im1Warp, 0.3, 0, im1Combine);
+    // cv::addWeighted(im2Proc, 0.7, im1Warp, 0.3, 0, im1Combine);
+    cv::addWeighted(im2Proc, 0.7, im1Warp, 0.3, 0, im1Warp);
 
     // Reverse process
     im1Reg = reversepreprocessImage(im1NormalWarp, flipflop_ref, rotate_ref);
 
     // return as rgb
-    cvtColor(im1Combine, im1Overlay, cv::COLOR_GRAY2BGR);
+    // cvtColor(im1Combine, im1Overlay, cv::COLOR_GRAY2BGR);
+    cvtColor(im1Warp, im1Overlay, cv::COLOR_GRAY2BGR);
     cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
 
     // TPS is requested (only if FLANN succeeded)
@@ -872,9 +882,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
                                              Rcpp::String matcher, Rcpp::String method)
 {
   // log_mem_usage("pre conversion");
-  // log_mem_macos("pre conversion");
-  // Rcout << ps_system_swap() << endl;
-  // Rcout << object_size_double(ps_system_swap()) << endl;
+  log_mem_macos("pre conversion");
   
   // Return data
   Rcpp::List out(5);
@@ -885,12 +893,12 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
   // Read reference image
   cv::Mat imReference = imageToMat(ref_image, width1, height1);
   // Rcout << object_size_long(ref_image.size())  << endl;
-  // Rcout << object_size_long(imReference.total() * imReference.elemSize()) << endl;
+  Rcout << object_size_long(sizeof(cv::Mat) + imReference.total() * imReference.elemSize()) << endl;
 
   // Read image to be aligned
   cv::Mat im = imageToMat(query_image, width2, height2);
   // Rcout << object_size_long(query_image.size()) << endl;
-  // Rcout << object_size_long(im.total() * im.elemSize()) << endl;
+  Rcout << object_size_long(sizeof(cv::Mat) + im.total() * im.elemSize()) << endl;
 
   // run alignment
   const bool run_TPS = (strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0 || 
