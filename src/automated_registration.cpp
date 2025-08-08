@@ -694,7 +694,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   //////////////////////
   
   // Convert images to grayscale
-  Mat im1Gray, im2Gray;
+  // Mat im1Gray, im2Gray;
   Mat im1Proc, im2Proc, im1NormalProc;
   // cvtColor(im1, im1Gray, cv::COLOR_BGR2GRAY);
   // cvtColor(im2, im2Gray, cv::COLOR_BGR2GRAY);
@@ -744,7 +744,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   Rcout << "MESSAGE: Registration is " << (is_faulty ? "degenerate!" : "not degenerate!") << endl;
   
   // Use homography to warp image
-  Mat im1Warp, im1NormalWarp;
+  // Mat im1Warp, im1NormalWarp;
   if(h.rows == 2){
     // warpAffine(im1Proc, im1Warp, h, im2Proc.size());
     // warpAffine(im1NormalProc, im1NormalWarp, h, im2Proc.size());   
@@ -768,22 +768,22 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   ///////////////////////
   
   // continue with TPS or do FLANN only
-  Mat im1Reg_Warp_nonrigid;
-  Mat im1Reg_NormalWarp_nonrigid;
-  Mat im1Combine;
+  // Mat im1Reg_Warp_nonrigid;
+  // Mat im1Reg_NormalWarp_nonrigid;
+  // Mat im1Combine;
   if(is_faulty || !run_TPS){
     
     // change color map
     // cv::addWeighted(im2Proc, 0.7, im1Warp, 0.3, 0, im1Combine);
-    cv::addWeighted(im2Proc, 0.7, im1Warp, 0.3, 0, im1Warp);
+    cv::addWeighted(im2Proc, 0.7, im1Proc, 0.3, 0, im1Proc);
 
     // Reverse process
-    im1Reg = reversepreprocessImage(im1NormalWarp, flipflop_ref, rotate_ref);
+    im1Reg = reversepreprocessImage(im1NormalProc, flipflop_ref, rotate_ref);
 
     // return as rgb
     // cvtColor(im1Combine, im1Overlay, cv::COLOR_GRAY2BGR);
-    cvtColor(im1Warp, im1Overlay, cv::COLOR_GRAY2BGR);
-    cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
+    // cvtColor(im1Proc, im1Overlay, cv::COLOR_GRAY2BGR);
+    // cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
 
     // TPS is requested (only if FLANN succeeded)
   } else {
@@ -823,47 +823,51 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     keypoints[1] = point2fToNumericMatrix(filtered_points1_reg); 
     
     // determine extension limits for both images
-    int y_max = max(im1Warp.rows, im2.rows);
-    int x_max = max(im1Warp.cols, im2.cols);
+    int y_max = max(im1Proc.rows, im2.rows);
+    int x_max = max(im1Proc.cols, im2.cols);
     
     // extend images
-    cv::copyMakeBorder(im1Warp, im1Warp, 0.0, (int) (y_max - im1Warp.rows), 0.0, (x_max - im1Warp.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
-    cv::copyMakeBorder(im1NormalWarp, im1NormalWarp, 0.0, (int) (y_max - im1NormalWarp.rows), 0.0, (x_max - im1NormalWarp.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    cv::copyMakeBorder(im1Proc, im1Proc, 0.0, (int) (y_max - im1Proc.rows), 0.0, (x_max - im1Proc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    cv::copyMakeBorder(im1NormalProc, im1NormalProc, 0.0, (int) (y_max - im1NormalProc.rows), 0.0, (x_max - im1NormalProc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
     
     // transform image
-    Mat im1Reg_Warp_nonrigid;
-    Mat im1Reg_NormalWarp_nonrigid;
-    tps->warpImage(im1Warp, im1Reg_Warp_nonrigid);
-    tps->warpImage(im1NormalWarp, im1Reg_NormalWarp_nonrigid);
+    // Mat im1Reg_Warp_nonrigid;
+    // Mat im1Reg_NormalWarp_nonrigid;
+    // tps->warpImage(im1Proc, im1Reg_Warp_nonrigid);
+    // tps->warpImage(im1NormalProc, im1Reg_NormalWarp_nonrigid);
+    tps->warpImage(im1Proc, im1Proc);
+    tps->warpImage(im1NormalProc, im1NormalProc);
     
     // resize image
-    cv::Mat im1Reg_NormalWarp_nonrigid_cropped  = im1Reg_NormalWarp_nonrigid(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
-    im1Reg_NormalWarp_nonrigid = im1Reg_NormalWarp_nonrigid_cropped.clone();
-    im1Reg_NormalWarp_nonrigid_cropped.release();
+    // cv::Mat im1Reg_Warp_nonrigid_cropped  = im1Reg_Warp_nonrigid(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
+    // im1Reg_Warp_nonrigid = im1Reg_Warp_nonrigid_cropped.clone();
+    // im1Reg_Warp_nonrigid_cropped.release();
+    // im1Reg_Warp_nonrigid = im1Proc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
+    im1Proc = im1Proc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
     
-    cv::Mat im1Reg_Warp_nonrigid_cropped  = im1Reg_Warp_nonrigid(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
-    im1Reg_Warp_nonrigid = im1Reg_Warp_nonrigid_cropped.clone();
-    im1Reg_Warp_nonrigid_cropped.release();
+    // cv::Mat im1Reg_NormalWarp_nonrigid_cropped  = im1Reg_NormalWarp_nonrigid(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
+    // im1Reg_NormalWarp_nonrigid = im1Reg_NormalWarp_nonrigid_cropped.clone();
+    // im1Reg_NormalWarp_nonrigid_cropped.release();
+    // im1Reg_NormalWarp_nonrigid = im1NormalProc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
+    im1NormalProc = im1NormalProc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
     
     // change color map
-    cv::addWeighted(im2Proc, 0.7, im1Reg_Warp_nonrigid, 0.3, 0, im1Combine);
+    // cv::addWeighted(im2Proc, 0.7, im1Proc, 0.3, 0, im1Reg_Warp_nonrigid);
+    cv::addWeighted(im2Proc, 0.7, im1Proc, 0.3, 0, im1Proc);
     
     // Reverse process
-    im1Reg = reversepreprocessImage(im1Reg_NormalWarp_nonrigid, flipflop_ref, rotate_ref);
-    im1Reg_NormalWarp_nonrigid.release();
-    
-    // return as rgb
-    cvtColor(im1Combine, im1Overlay, cv::COLOR_GRAY2BGR);
-    cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
-    
+    im1Reg = reversepreprocessImage(im1NormalProc, flipflop_ref, rotate_ref);
   }
+  
+  // return as rgb
+  // cvtColor(im1Reg_Warp_nonrigid, im1Overlay, cv::COLOR_GRAY2BGR);
+  cvtColor(im1Proc, im1Overlay, cv::COLOR_GRAY2BGR);
+  cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
+  
   // log_mem_macos("after transformation detection");
   
   // release
-  im1Combine.release();
   im2Proc.release();
-  im1Warp.release();
-  im1NormalWarp.release();
   im1NormalProc.release();
   
   // resize image to visualize faster later in Shiny
