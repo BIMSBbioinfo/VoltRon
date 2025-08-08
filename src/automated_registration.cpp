@@ -34,92 +34,6 @@ struct SIFTParameters
   const int ransac_maxIters=2000;
 };
 
-// memory check
-void log_mem_usage(const std::string& label = "") {
-  struct rusage usage;
-  getrusage(RUSAGE_SELF, &usage);
-  long rss_b = usage.ru_maxrss;
-  
-  double rss_kb = rss_b / 1024.0;
-  double rss_mb = rss_kb / 1024.0;
-  double rss_gb = rss_mb / 1024.0;
-  
-  Rcpp::Rcout << "Used Memory [" << label << "]: " << rss_gb << " GB" << std::endl;
-}
-
-void log_mem_macos(const std::string& label = "") {
-  mach_task_basic_info info;
-  mach_msg_type_number_t size = MACH_TASK_BASIC_INFO_COUNT;
-  kern_return_t kr = task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
-                               (task_info_t)&info, &size);
-  
-  if (kr != KERN_SUCCESS) {
-    Rcpp::Rcerr << "[MEM " << label << "] Failed to get memory info.\n";
-    return;
-  }
-  
-  double rss_gb = static_cast<double>(info.resident_size) / (1024.0 * 1024.0 * 1024.0);
-  double virt_gb = static_cast<double>(info.virtual_size) / (1024.0 * 1024.0 * 1024.0);
-  
-  Rcpp::Rcout << "[MEM " << label << "] Resident (RSS): "
-              << rss_gb << " GB, Virtual: " << virt_gb << " GB\n";
-}
-
-double object_size_long(long bsize) {
-  
-  double rss_kb = bsize / 1024.0;
-  double rss_mb = rss_kb / 1024.0;
-  double rss_gb = rss_mb / 1024.0;
-  
-  return rss_gb;
-}
-
-double object_size_double(double bsize) {
-  
-  double rss_kb = bsize / 1024;
-  double rss_mb = rss_kb / 1024;
-  double rss_gb = rss_mb / 1024;
-  
-  return rss_gb;
-}
-
-double ps_system_swap() {
-  vm_statistics_data_t vm;
-  int pagesize = getpagesize();
-  double active = (double) vm.active_count * pagesize;
-  double wired = (double) vm.wire_count * pagesize;
-  return active + wired;
-}
-
-double get_resident_bytes() {
-  mach_task_basic_info info;
-  mach_msg_type_number_t size = MACH_TASK_BASIC_INFO_COUNT;
-  if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
-                (task_info_t)&info, &size) != KERN_SUCCESS) {
-    return 0;
-  }
-  return static_cast<double>(info.resident_size);
-}
-
-double bytes_to_gb(double bytes) {
-  return bytes / (1024.0 * 1024.0 * 1024.0);
-}
-
-struct MemProfiler {
-  size_t start;
-  std::string label;
-  
-  MemProfiler(const std::string& lbl) : label(lbl) {
-    start = get_resident_bytes();
-  }
-  
-  ~MemProfiler() {
-    size_t end = get_resident_bytes();
-    double diff_gb = bytes_to_gb(end - start);
-    Rcpp::Rcout << "[MEM] " << label << ": +" << diff_gb << " GB" << std::endl;
-  }
-};
-
 // check if keypoints are degenerate
 bool check_degenerate(std::vector<cv::Point2f> &points1, std::vector<cv::Point2f> &points2) {
 
@@ -1000,17 +914,17 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
   out[0] = out_trans;
   
   // destination image, registered image, keypoint matching image
-  out[1] = matToImage(imReference.clone());
-
+  out[1] = matToImage(imReference);
+  
   // check if transformation matrix is calculated, 
   // otherwise return NULL
   if(h.rows > 1){
     // registered image
-    out[2] = matToImage(imReg.clone());
+    out[2] = matToImage(imReg);
     // keypoint matching image
-    out[3] = matToImage(imMatches.clone());
+    out[3] = matToImage(imMatches);
     // overlay image
-    out[4] = matToImage(imOverlay.clone());
+    out[4] = matToImage(imOverlay);
   } else {
     out[2] = R_NilValue;
     out[3] = R_NilValue;

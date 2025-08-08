@@ -1,8 +1,18 @@
-#include "Rcpp.h"
+#include <Rcpp.h>
+#include <sys/resource.h>
+#include <sys/sysctl.h>
+#include <unistd.h>
+#include <mach/vm_statistics.h>
+#include <mach/mach.h>
+
+// OpenCV
 #include <opencv2/opencv.hpp>
 #include "opencv2/xfeatures2d.hpp"
 #include "opencv2/features2d.hpp"
 #include "opencv2/shape/shape_transformer.hpp"
+
+// Internal functions
+#include "auxiliary.h"
 
 using namespace Rcpp;
 using namespace std;
@@ -29,12 +39,81 @@ Rcpp::NumericMatrix replaceNaMatrix(Rcpp::NumericMatrix mat, int replace) {
 }
 
 ////
+// memory
+////
+
+// memory check
+void log_mem_usage(const std::string& label = "") {
+  struct rusage usage;
+  getrusage(RUSAGE_SELF, &usage);
+  long rss_b = usage.ru_maxrss;
+  
+  double rss_kb = rss_b / 1024.0;
+  double rss_mb = rss_kb / 1024.0;
+  double rss_gb = rss_mb / 1024.0;
+  
+  Rcpp::Rcout << "Used Memory [" << label << "]: " << rss_gb << " GB" << std::endl;
+}
+
+void log_mem_macos(const std::string& label = "") {
+  mach_task_basic_info info;
+  mach_msg_type_number_t size = MACH_TASK_BASIC_INFO_COUNT;
+  kern_return_t kr = task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
+                               (task_info_t)&info, &size);
+  
+  if (kr != KERN_SUCCESS) {
+    Rcpp::Rcerr << "[MEM " << label << "] Failed to get memory info.\n";
+    return;
+  }
+  
+  double rss_gb = static_cast<double>(info.resident_size) / (1024.0 * 1024.0 * 1024.0);
+  double virt_gb = static_cast<double>(info.virtual_size) / (1024.0 * 1024.0 * 1024.0);
+  
+  Rcpp::Rcout << "[MEM " << label << "] Resident (RSS): "
+              << rss_gb << " GB, Virtual: " << virt_gb << " GB\n";
+}
+
+double object_size_long(long bsize) {
+  
+  double rss_kb = bsize / 1024.0;
+  double rss_mb = rss_kb / 1024.0;
+  double rss_gb = rss_mb / 1024.0;
+  
+  return rss_gb;
+}
+
+double object_size_double(double bsize) {
+  
+  double rss_kb = bsize / 1024;
+  double rss_mb = rss_kb / 1024;
+  double rss_gb = rss_mb / 1024;
+  
+  return rss_gb;
+}
+
+double get_resident_bytes() {
+  mach_task_basic_info info;
+  mach_msg_type_number_t size = MACH_TASK_BASIC_INFO_COUNT;
+  if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
+                (task_info_t)&info, &size) != KERN_SUCCESS) {
+    return 0;
+  }
+  return static_cast<double>(info.resident_size);
+}
+
+double bytes_to_gb(double bytes) {
+  return bytes / (1024.0 * 1024.0 * 1024.0);
+}
+
+////
 // Conversion
 ////
 
 // Function to convert a cv::Mat object to a RawVector for magick images
-Rcpp::RawVector matToImage(cv::Mat mat) {
-
+Rcpp::RawVector matToImage(const cv::Mat &mat) {
+  // profiler
+  MemProfiler mp("Mat -> Image");
+  
   // Create RawVector object
   Rcpp::RawVector rawvec(mat.total() * mat.elemSize());
   rawvec.attr("dim") = Rcpp::Dimension(3, mat.cols, mat.rows);
@@ -47,6 +126,8 @@ Rcpp::RawVector matToImage(cv::Mat mat) {
 
 // Function to convert a RawVector for magick images to a cv::Mat object
 cv::Mat imageToMat(Rcpp::RawVector &image_data, int width, int height) {
+  // profiler
+  MemProfiler mp("Image -> Mat");
   
   // Create cv::Mat object
   cv::Mat mat(height, width, CV_8UC3, image_data.begin());
@@ -168,6 +249,10 @@ cv::Mat IntVectorToMat(std::vector<uint8_t> &points) {
 
   return mat;
 }
+
+////
+// stats
+////
 
 // calculate standard deviation of a vector
 double cppSD(std::vector<cv::KeyPoint> &points)
