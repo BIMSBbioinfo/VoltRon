@@ -627,7 +627,10 @@ href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-
 Genomics website</a> (specifically, import the <strong>In Situ Replicate
 1</strong> data).</p>
 <p>Before we start, Xenium readouts require a number of Bioconductor and
-R packages to be installed.</p>
+R packages to be installed. RBioFormats requires rJava and JDK
+installed, see <a
+href="https://github.com/BIMSBbioinfo/VoltRon?tab=readme-ov-file#dependencies">dependencies</a>
+section for more information.</p>
 <pre class="r watch-out"><code>if(!requireNamespace(&quot;RBioFormats&quot;))
   BiocManager::install(&quot;RBioFormats&quot;)
 if(!requireNamespace(&quot;arrow&quot;))
@@ -803,9 +806,11 @@ GeoMxR1 &lt;- importGeoMx(dcc.path = &quot;DCC-20230427/&quot;,
 <p>The OME.TIFF file here provides the ROI coordinates within the
 embedded XML metadata. We can also incorporate the
 <strong>RBioFormats</strong> package to extract the XML metadata from
-the OME.TIFF file.</p>
-<pre class="r watch-out"><code># fix java parameters
-options(java.parameters = &quot;-Xmx4g&quot;)
+the OME.TIFF file. RBioFormats requires rJava and JDK installed, see <a
+href="https://github.com/BIMSBbioinfo/VoltRon?tab=readme-ov-file#dependencies">dependencies</a>
+section for more information.</p>
+<pre class="r watch-out"><code>if(!requireNamespace(&quot;RBioFormats&quot;))
+  BiocManager::install(&quot;RBioFormats&quot;)
 library(RBioFormats)
 
 # alternatively you can use RBioFormats to create an xml file
@@ -1218,6 +1223,9 @@ href="https://en.wikipedia.org/wiki/Pyramid_(image_processing)">image
 pyramids</a>, we need to use <strong>RBioFormats</strong> the package.
 The <code>read.metadata</code> function will allow you to browse the
 existing resolutions and series in the image.</p>
+<p>RBioFormats requires rJava and JDK installed, see <a
+href="https://github.com/BIMSBbioinfo/VoltRon?tab=readme-ov-file#dependencies">dependencies</a>
+section for more information.</p>
 <p>We will use the post-Xenium OME.TIFF files from the <a
 href="https://www.10xgenomics.com/datasets/xenium-prime-ffpe-neonatal-mouse">Whole
 Mouse Pup slide</a> from the 10X Genomics website. Please download the
@@ -1251,6 +1259,7 @@ globalMetadata:List of 1525
  $ 20x_BF_01 Units #049                                  : chr &quot;10^-6m^1&quot;
  $ 20x_BF_01 Value #357                                  : chr &quot;0&quot;
   [list output truncated]</code></pre>
+<p></br></p>
 <p>Now, we can specify the <code>series</code> and
 <code>resolution</code> to select the image layer we want to import to
 VoltRon.</p>

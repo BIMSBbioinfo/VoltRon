@@ -172,7 +172,7 @@ The 10x Genomics [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) 
 
 We will use the readouts of a single Xenium platform replicate that was derived from a single tissue section of a breast cancer sample. More information on the Xenium data and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **In Situ Replicate 1** data). 
 
-Before we start, Xenium readouts require a number of Bioconductor and R packages to be installed. 
+Before we start, Xenium readouts require a number of Bioconductor and R packages to be installed. RBioFormats requires rJava and JDK installed, see [dependencies](https://github.com/BIMSBbioinfo/VoltRon?tab=readme-ov-file#dependencies) section for more information.
 
 ```{r eval = FALSE, class.source="watch-out"}
 if(!requireNamespace("RBioFormats"))
@@ -314,11 +314,11 @@ GeoMxR1 <- importGeoMx(dcc.path = "DCC-20230427/",
                        sample_name = "GeoMxR1")
 ```
 
-The OME.TIFF file here provides the ROI coordinates within the embedded XML metadata. We can also incorporate the **RBioFormats** package to extract the XML metadata from the OME.TIFF file. 
+The OME.TIFF file here provides the ROI coordinates within the embedded XML metadata. We can also incorporate the **RBioFormats** package to extract the XML metadata from the OME.TIFF file. RBioFormats requires rJava and JDK installed, see [dependencies](https://github.com/BIMSBbioinfo/VoltRon?tab=readme-ov-file#dependencies) section for more information.
 
 ```{r eval = FALSE, class.source="watch-out"}
-# fix java parameters
-options(java.parameters = "-Xmx4g")
+if(!requireNamespace("RBioFormats"))
+  BiocManager::install("RBioFormats")
 library(RBioFormats)
 
 # alternatively you can use RBioFormats to create an xml file
@@ -707,6 +707,8 @@ vrImages(Xen_R1_image)
 You can also import images from OME.TIFF files directly. Since these files often come in shape 
 of [image pyramids](https://en.wikipedia.org/wiki/Pyramid_(image_processing)), we need to use 
 **RBioFormats** the package. The `read.metadata` function will allow you to browse the existing resolutions and series in the image. 
+
+RBioFormats requires rJava and JDK installed, see [dependencies](https://github.com/BIMSBbioinfo/VoltRon?tab=readme-ov-file#dependencies) section for more information.
 
 We will use the post-Xenium OME.TIFF files from the [Whole Mouse Pup slide](https://www.10xgenomics.com/datasets/xenium-prime-ffpe-neonatal-mouse) from the 10X Genomics website. Please download the OME.TIFF file from output files.  
 
