@@ -38,6 +38,7 @@ test_that("import image voltron data", {
   
   # get image
   imgfile <- system.file("extdata", "DAPI.tif", package = "VoltRon")
+  img.ometiff <- system.file(package = "VoltRon","extdata/xy_12bit__plant.ome.tiff")
   
   # tile size
   imgdata <- importImageData(imgfile, tile.size = 4, image_name = "main")
@@ -49,13 +50,19 @@ test_that("import image voltron data", {
   # channel names
   imgdata <- importImageData(imgfile, tile.size = 200, image_name = "main", channel_names = "DAPI")
   expect_equal(vrImageChannelNames(imgdata)$Channels, "DAPI")
-  
+  expect_error(importImageData(imgfile, tile.size = 10, 
+                               channel_names = c("ch1", "ch3")))
   # multiple images
   imgfile <- c(imgfile, imgfile)
   imgdata <- importImageData(imgfile, tile.size = 4)
   expect_equal(vrImageChannelNames(imgdata)$Channels, "channel_1,channel_2")
   imgdata <- importImageData(imgfile, tile.size = 4, channel_names = c("DAPI", "DAPI2"))
   expect_equal(vrImageChannelNames(imgdata)$Channels, "DAPI,DAPI2")
+  
+  # ome.tiff
+  # import image data
+  vrimagedata <- importImageData(img.ometiff, series = 1, resolution = 1)
+  expect_error(importImageData(img.ometiff, series = 1))
   
   # return
   expect_equal(1,1L)

@@ -674,7 +674,7 @@ vrImages(vr_object, name = "MELC", channel = "CD45")
 
 ## Image-only VoltRon objects
 
-The **formVoltRon** function can also be used to build VoltRon objects where pixels (or tiles) are defined as spatial points. These information are derived from images only which then can be used for multiple downstream analysis purposes. 
+With VoltRon we can also build objects where pixels (or tiles) are defined as spatial points. These information are derived from images only which then can be used for multiple downstream analysis purposes. 
 
 For this we incorporate **importImageData** function and only supply an image object. We will use the H&E image derived from a tissue section that was first analyzed by The 10x Genomics [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform.
 
@@ -699,5 +699,61 @@ vrImages(Xen_R1_image)
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE.png" class="center">
+
+</br>
+
+### OME-TIFF
+
+You can also import images from OME.TIFF files directly. Since these files often come in shape 
+of [image pyramids](https://en.wikipedia.org/wiki/Pyramid_(image_processing)), we need to use 
+**RBioFormats** the package. The `read.metadata` function will allow you to browse the existing resolutions and series in the image. 
+
+We will use the post-Xenium OME.TIFF files from the [Whole Mouse Pup slide](https://www.10xgenomics.com/datasets/xenium-prime-ffpe-neonatal-mouse) from the 10X Genomics website. Please download the OME.TIFF file from output files.  
+
+```{r eval = FALSE, class.source="watch-out"}
+# dependencies
+if(!requireNamespace("RBioFormats"))
+  BiocManager::install("RBioFormats")
+library(RBioFormats)
+
+# import image
+ome.tiff <- "Xenium_Prime_Mouse_Pup_FFPE_he_image.ome.tif"
+read.metadata(ome.tiff)
+```
+
+```
+ImageMetadata list of length 10 
+
+ series res sizeX sizeY sizeC sizeZ sizeT total
+ 1      1   90959 62008 3     1     1     3    
+ 1      2   45479 31004 3     1     1     3    
+ 1      3   22739 15502 3     1     1     3    
+ 1      4   11369 7751  3     1     1     3    
+ 1      5   5684  3875  3     1     1     3    
+ 1      6   2842  1937  3     1     1     3    
+ 1      7   1421  968   3     1     1     3    
+ 1      8   710   484   3     1     1     3    
+ 1      9   355   242   3     1     1     3    
+ 1      10  177   121   3     1     1     3    
+
+globalMetadata:List of 1525
+ $ 20x_BF_01 Microscope Autoexposure enabled             : chr "0"
+ $ 20x_BF_01 Value #359                                  : chr "(42753.440890479455, 8472.726448134907)"
+ $ 20x_BF_01 Value #358                                  : chr "-122.4"
+ $ 20x_BF_01 Units #049                                  : chr "10^-6m^1"
+ $ 20x_BF_01 Value #357                                  : chr "0"
+  [list output truncated]
+```
+
+</br>
+
+Now, we can specify the `series` and `resolution` to select the image layer we want to import to VoltRon.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrimagedata <- importImageData(ome.tiff, series = 1, resolution = 5)
+vrImages(vrimagedata)
+```
+
+<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE_OMETIFF.png" class="center">
 
 </br>
