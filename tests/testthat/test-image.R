@@ -38,8 +38,7 @@ test_that("import image voltron data", {
   
   # get image
   imgfile <- system.file("extdata", "DAPI.tif", package = "VoltRon")
-  img.ometiff <- system.file(package = "VoltRon","extdata/xy_12bit__plant.ome.tiff")
-  
+
   # tile size
   imgdata <- importImageData(imgfile, tile.size = 4, image_name = "main")
   imgdata <- importImageData(imgfile, tile.size = 1, image_name = "main")
@@ -59,11 +58,19 @@ test_that("import image voltron data", {
   imgdata <- importImageData(imgfile, tile.size = 4, channel_names = c("DAPI", "DAPI2"))
   expect_equal(vrImageChannelNames(imgdata)$Channels, "DAPI,DAPI2")
   
-  # ome.tiff
-  # import image data
-  vrimagedata <- importImageData(img.ometiff, series = 1, resolution = 1)
-  expect_error(importImageData(img.ometiff, series = 1))
-  
   # return
   expect_equal(1,1L)
+})
+
+test_that("import ome.tiff", {
+  
+  # skip
+  skip_if_not_installed("RBioFormats")
+  
+  # get image
+  img.ometiff <- system.file(package = "VoltRon","extdata/xy_12bit__plant.ome.tiff")
+  
+  # ome.tiff
+  vrimagedata <- importImageData(img.ometiff, series = 1, resolution = 1)
+  expect_error(importImageData(img.ometiff, series = 1))
 })
