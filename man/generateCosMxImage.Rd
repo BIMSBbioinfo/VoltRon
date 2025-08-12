@@ -2,7 +2,7 @@
 % Please edit documentation in R/import.R
 \name{generateCosMxImage}
 \alias{generateCosMxImage}
-\title{generateCosMxImage}
+\title{}
 \usage{
 generateCosMxImage(
   dir.path,
@@ -27,5 +27,8 @@ generateCosMxImage(
 \item{...}{additional parameters passed to the \link{writeImage} function}
 }
 \description{
+
+}
+\details{
 Generates a low resolution Morphology image of the CosMx experiment
 }

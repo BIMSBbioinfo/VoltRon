@@ -1836,7 +1836,6 @@ transformImageQueryList <- function(image_list, input){
 #' @param mapping a list of the homography matrices and TPS keypoints 
 #'
 #' @importFrom magick image_read image_data
-#' @importFrom DelayedArray realize
 #' 
 #' @export
 getRcppWarpImage <- function(ref_image, query_image, mapping){
@@ -2049,7 +2048,6 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
 #' @param method the automated registration method, either TPS or Homography+TPS
 #'
 #' @importFrom magick image_read image_data
-#' @importFrom DelayedArray realize
 #'
 #' @export
 getRcppManualRegistration <- function(query_image, ref_image, query_landmark, reference_landmark, 

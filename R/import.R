@@ -1250,23 +1250,6 @@ importCosMxCSV <- function(path,
   vr
 }
 
-#' #' importCosMx
-#' #'
-#' #' Import CosMx data
-#' #'
-#' #' @param tiledbURI the path to the tiledb folder
-#' #' @param assay_name the assay name, default: CosMx
-#' #' @param image the reference morphology image of the CosMx assay
-#' #' @param image_name the image name of the CosMx assay, Default: main
-#' #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
-#' #' @param feature_name the name/key of the feature set
-#' #' @param verbose verbose
-#' #' @param ... additional parameters passed to \link{formVoltRon}
-#' #'
-#' #' @importFrom data.table data.table
-#' #' @importFrom ids random_id
-#' #'
-#' #' @noRd
 #' importCosMxTileDB <- function(tiledbURI, 
 #'                               assay_name = "CosMx",
 #'                               image = NULL, 
