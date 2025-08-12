@@ -112,7 +112,7 @@ double bytes_to_gb(double bytes) {
 // Function to convert a cv::Mat object to a RawVector for magick images
 Rcpp::RawVector matToImage(const cv::Mat &mat) {
   // profiler
-  MemProfiler mp("Mat -> Image");
+  // MemProfiler mp("Mat -> Image");
   
   // Create RawVector object
   Rcpp::RawVector rawvec(mat.total() * mat.elemSize());
@@ -127,7 +127,7 @@ Rcpp::RawVector matToImage(const cv::Mat &mat) {
 // Function to convert a RawVector for magick images to a cv::Mat object
 cv::Mat imageToMat(Rcpp::RawVector &image_data, int width, int height) {
   // profiler
-  MemProfiler mp("Image -> Mat");
+  // MemProfiler mp("Image -> Mat");
   
   // Create cv::Mat object
   cv::Mat mat(height, width, CV_8UC3, image_data.begin());

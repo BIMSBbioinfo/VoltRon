@@ -237,7 +237,7 @@ void getFLANNMatches(cv::Mat &descriptors1,
                      std::vector<std::vector<DMatch>> &matches21)
 {
   // profiler
-  MemProfiler mp("FLANN Matches");
+  // MemProfiler mp("FLANN Matches");
   
   cv::FlannBasedMatcher custom_matcher = cv::FlannBasedMatcher(cv::makePtr<cv::flann::KDTreeIndexParams>(5), 
                                                                cv::makePtr<cv::flann::SearchParams>(50, 0, TRUE));
@@ -317,7 +317,7 @@ void keepTopKeypoints(std::vector<KeyPoint> &keypoints, Mat &descriptors, SIFTPa
 void computeSIFTTiles(Mat &im, std::vector<KeyPoint> &keypoints, Mat &descriptors, Ptr<Feature2D> &sift,
                       SIFTParameters params){
   // profiler
-  MemProfiler mp("SIFT Tiles");
+  // MemProfiler mp("SIFT Tiles");
   
   // image size
   int width = im.size().width;
@@ -380,7 +380,7 @@ bool getSIFTTransformationMatrixSingle(
     // std::vector<DMatch> &good_matches, 
     const bool &run_Affine, SIFTParameters params, bool &is_faulty){
   // profiler
-  MemProfiler mp("Find Transformation");
+  // MemProfiler mp("Find Transformation");
   
   //////////////////////
   /// Compute SIFT /////
@@ -737,8 +737,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
                                 points1, points2, run_Affine, is_faulty);
 
   }
-  // log_mem_macos("after sift detection");
-  
+
   // check result
   is_faulty = check_transformation_metrics(points1, points2, im2, h, mask);
   Rcout << "MESSAGE: Registration is " << (is_faulty ? "degenerate!" : "not degenerate!") << endl;
@@ -761,8 +760,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   }
   
   Rcout << "DONE: warped query image" << endl;
-  // log_mem_macos("after image warping");
-  
+
   ///////////////////////
   /// Find Homography ///
   ///////////////////////
@@ -863,9 +861,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   // cvtColor(im1Reg_Warp_nonrigid, im1Overlay, cv::COLOR_GRAY2BGR);
   cvtColor(im1Proc, im1Overlay, cv::COLOR_GRAY2BGR);
   cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
-  
-  log_mem_macos("after alignment");
-  
+
   // release
   im2Proc.release();
   im1NormalProc.release();
@@ -885,9 +881,6 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
                                              Rcpp::String rotate_query, Rcpp::String rotate_ref,
                                              Rcpp::String matcher, Rcpp::String method)
 {
-  // log_mem_usage("pre conversion");
-  log_mem_macos("pre conversion");
-  
   // Return data
   Rcpp::List out(5);
   Rcpp::List out_trans(2);
@@ -909,7 +902,6 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
                         strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0);
   const bool run_Affine = (strcmp(method.get_cstring(), "Affine") == 0 || 
                            strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0);
-  // log_mem_usage("pre alignment");
   alignImages(im, imReference, imReg, imOverlay, imMatches,
               h, keypoints,
               GOOD_MATCH_PERCENT, MAX_FEATURES,
@@ -918,8 +910,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
               flipflop_query.get_cstring(), flipflop_ref.get_cstring(),
               rotate_query.get_cstring(), rotate_ref.get_cstring(),
               run_Affine, run_TPS);
-  // log_mem_macos("after alignment");
-  
+
   // transformation matrix, can be either a matrix, set of keypoints or both
   out_trans[0] = matToNumericMatrix(h.clone());
   out_trans[1] = keypoints;
@@ -944,16 +935,12 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
     out[4] = R_NilValue;
   }
   
-  // log_mem_macos("after result preperation");
-  
   // release
   im.release();
   imReference.release();
   imReg.release();
   imMatches.release();
   imOverlay.release();
-  
-  // log_mem_usage("now");
   
   // return
   return out;
