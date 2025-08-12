@@ -10,6 +10,8 @@ importImageData(
   segments = NULL,
   image_name = "main",
   channel_names = NULL,
+  series = 1,
+  resolution = NULL,
   ...
 )
 }
@@ -23,6 +25,12 @@ importImageData(
 \item{image_name}{the image name of the Image assay, Default: main}
 
 \item{channel_names}{the channel names of the images if multiple images are provided}
+
+\item{series}{the series IDs of the pyramidal image, 
+typical an integer starting from 1}
+
+\item{resolution}{the resolution IDs of the 
+pyramidal image, typical an integer starting from 1}
 
 \item{...}{additional parameters passed to \link{formVoltRon}}
 }
