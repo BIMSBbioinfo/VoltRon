@@ -170,6 +170,7 @@ jobs:
           install.packages('ggnewscale')
           install.packages('patchwork')
           devtools::install_github('vitessce/vitessceR')
+          BiocManager::install('TOAST')
           devtools::install_github('xuranw/MuSiC')
           devtools::install_github('scverse/anndataR')
           devtools::install_github('drieslab/Giotto')
