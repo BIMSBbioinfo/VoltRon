@@ -1,7 +1,7 @@
 Package: VoltRon
 Type: Package
 Title: VoltRon for Spatial Omics Data Integration and Analysis
-Version: 0.2.0
+Version: 0.2.1
 Depends: R (>= 4.4.0)
 Author@R: 
 	person("Artür", "Manukyan", 
