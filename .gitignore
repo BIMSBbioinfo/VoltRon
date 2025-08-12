@@ -16,3 +16,4 @@ Makevars
 dev
 *.tar.xz
 cleanup
+inst/share
