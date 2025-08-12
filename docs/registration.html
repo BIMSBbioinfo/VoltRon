@@ -955,7 +955,12 @@ are located 300 <span class="math inline">\(\mu\)</span>m apart from
 each other. Hence, we align each pair individually. The datasets can be
 downloaded from <a
 href="https://research.libd.org/spatialLIBD/">here</a>.</p>
-<pre class="r watch-out"><code>library(VoltRon)
+<pre class="r watch-out"><code># dependencies
+if(!requireNamespace(&quot;rhdf5&quot;))
+  BiocManager::install(&quot;rhdf5&quot;)
+
+# import Visium data
+library(VoltRon)
 DLPFC_1 &lt;- importVisium(&quot;DLPFC/151673&quot;, sample_name = &quot;DLPFC_1&quot;)
 DLPFC_2 &lt;- importVisium(&quot;DLPFC/151674&quot;, sample_name = &quot;DLPFC_2&quot;)
 DLPFC_3 &lt;- importVisium(&quot;DLPFC/151675&quot;, sample_name = &quot;DLPFC_3&quot;)
