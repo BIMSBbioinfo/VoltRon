@@ -1985,13 +1985,14 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, c
         datax$score <- normdata[feat, rownames(datax)]
       }
     } else {
-      cur_metadata <- subset_metadata(metadata, features = feat, drop = FALSE)
+      cur_metadata <- subset_metadata(metadata, features = feat, drop = TRUE)
       if("id" %in% colnames(metadata)){
         ind <- match(rownames(datax), metadata$id)
       } else {
         ind <- rownames(metadata)
       }
-      datax$score <- cur_metadata[ind,1]
+      # datax$score <- cur_metadata[ind,1]
+      datax$score <- cur_metadata[ind]
     }
 
     # get image information and plotting features
