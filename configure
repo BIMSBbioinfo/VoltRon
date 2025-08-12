@@ -35,8 +35,7 @@ if [ "$PKGCONFIG_CFLAGS" ] || [ "$PKGCONFIG_LIBS" ]; then
     PKG_CFLAGS="$PKG_CFLAGS -D_DATA_PREFIX=${PKGCONFIG_PREFIX}"
   fi
 elif [ `uname` = "Darwin" ]; then
-  # curl -sfL "https://autobrew.github.io/scripts/opencv" > autobrew
-    . ./autobrew_temp
+  curl -sfL "https://autobrew.github.io/scripts/opencv" > autobrew
   uniq cleanup > cleanup_tmp && mv cleanup_tmp cleanup
 fi
 
