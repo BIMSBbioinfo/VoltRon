@@ -116,7 +116,7 @@ In the following sections, we will integrate pathological images and annotations
 
 ### Hot Spot Analysis
 
-VoltRon platform allows users to find hot spots of several types of spatial entities, for spots, cells, and even molecules. We first learn spatial neighborhoods from molecules of interests, in this case, the extracellular virus particles and their ORFs.
+VoltRon platform allows users to find hot spots (Regions of increased feature of interest) of several types of spatial entities, for spots, cells, and even molecules. Please see [Molecule Analysis Tutorial](moleculeanalysis.html) for more information on hot spot analysis. We switch to the molecule assay of the VoltRon object, and select virus ORFs to detect regions of high viral activity.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vr2_merged_acute1
@@ -129,29 +129,17 @@ acute case 1:
 Assays: Xenium(Main) Xenium_mol 
 ```
 
-We switch to the molecule assay of the VoltRon object, and select virus ORFs. We also look for other virus ORFs that are 50 pixel distance from each virus molecule to pin point neighborhoods that are rich in virus.
-
-```{r eval = FALSE, class.source="watch-out"}
-vr2_merged_acute1 <- getSpatialNeighbors(vr2_merged_acute1, assay = "Xenium_mol", 
-                                         group.by = "gene", group.ids = c("S2_N", "S2_orf1ab"), 
-                                         method = "radius", radius = 50)
-```
-
-We can now observe the new spatial neighborhood graph saved in the VoltRon object with name **radius**.
-
-```{r eval = FALSE, class.source="watch-out"}
-vrGraphNames(vr2_merged_acute1)
-```
-
-```
-[1] "radius"
-```
-
-We now select the feature type and graph name to run an hot spot analysis which will label each molecule if their neighborhood are dense in other virus molecules.
+In this case, we are only interested in niches abundant with S2_N and S2_orf1ab molecules. We use the **getHotSpotAnalysis** function to find regions of high S2_N and S2_orf1ab abundance. The tiling parameter **n.tile** is necessary to apply Getis-Ord statistics on molecule data since these spatial entities does not have features in a VoltRon object.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vr2_merged_acute1 <- getHotSpotAnalysis(vr2_merged_acute1, assay = "Xenium_mol", 
-                                        features = "gene", graph.type = "radius")
+                                        features = "gene", 
+                                        group.ids = c("S2_N", "S2_orf1ab"), n.tile = 100)
+```
+
+Now we can visualize the localization of molecules that are located in "hot regions", or niches that are significantly abundant with these molecules.
+
+```{r eval = FALSE, class.source="watch-out"}
 vrSpatialPlot(vr2_merged_acute1, assay = "Xenium_mol", 
               group.by = "gene_hotspot_flag", group.ids = c("cold", "hot"), 
               alpha = 1, colors = list(cold = "blue", hot = "red"), 
@@ -479,6 +467,15 @@ You can download the Xenium readout and the H&E image of the same tissue section
 We import both Xenium and post-Xenium H&E images into two separate VoltRon objects and overlay H&E images. 
 
 ```{r eval = FALSE, class.source="watch-out"}
+# dependencies
+if(!requireNamespace("RBioFormats"))
+  BiocManager::install("RBioFormats")
+if(!requireNamespace("arrow"))
+  install.packages("arrow")
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
+
+# import Xenium
 Xen_R1 <- importXenium("Xenium_R1/outs",
                        sample_name = "XeniumR1", 
                        resolution_level = 3,

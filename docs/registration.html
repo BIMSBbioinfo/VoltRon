@@ -509,9 +509,20 @@ Xenium and Visium platforms into VoltRon objects. We will import both
 Xenium replicates alongside with the Visium CytAssist data so that we
 can register images of these assays and merge them into one VoltRon
 object.</p>
-<pre class="r watch-out"><code>library(VoltRon)
+<pre class="r watch-out"><code># dependencies
+if(!requireNamespace(&quot;RBioFormats&quot;))
+  BiocManager::install(&quot;RBioFormats&quot;)
+if(!requireNamespace(&quot;arrow&quot;))
+  install.packages(&quot;arrow&quot;)
+if(!requireNamespace(&quot;rhdf5&quot;))
+  BiocManager::install(&quot;rhdf5&quot;)
+library(VoltRon)
+
+# import Xenium data
 Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
 Xen_R2 &lt;- importXenium(&quot;Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;)
+
+# import Visium data
 Vis &lt;- importVisium(&quot;Visium/&quot;, sample_name = &quot;VisiumR1&quot;)</code></pre>
 <p>Before moving on to image alignment, we can inspect both Xenium and
 Visium images. We use the <strong>vrImages</strong> function to call and
@@ -871,12 +882,19 @@ href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-
 Genomics website</a> (specifically, import <strong>In Situ Replicate
 1</strong> and <strong>Supplemental: Post-Xenium H&amp;E image
 (TIFF)</strong>).</p>
-<pre class="r watch-out"><code>library(VoltRon)
+<pre class="r watch-out"><code># dependencies
+if(!requireNamespace(&quot;RBioFormats&quot;))
+  BiocManager::install(&quot;RBioFormats&quot;)
+if(!requireNamespace(&quot;arrow&quot;))
+  install.packages(&quot;arrow&quot;)
+if(!requireNamespace(&quot;rhdf5&quot;))
+  BiocManager::install(&quot;rhdf5&quot;)
+library(VoltRon)
 
 # import Xenium 
 Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
 
-# import H&amp;E image and build a VoltRon object
+# import H&amp;E image 
 Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
                                 sample_name = &quot;XeniumR1image&quot;, 
                                 channel_names = &quot;H&amp;E&quot;)

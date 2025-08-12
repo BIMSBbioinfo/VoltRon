@@ -2239,6 +2239,10 @@ importDBITSeq <- function(path.rna, path.prot = NULL, size = 10, assay_name = "D
 #' @param segments Either a list of segments or a GeoJSON file. This will result in a second assay in the VoltRon object to be created
 #' @param image_name the image name of the Image assay, Default: main
 #' @param channel_names the channel names of the images if multiple images are provided
+#' @param series the series IDs of the pyramidal image, 
+#' typical an integer starting from 1
+#' @param resolution the resolution IDs of the 
+#' pyramidal image, typical an integer starting from 1
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
@@ -2255,39 +2259,43 @@ importDBITSeq <- function(path.rna, path.prot = NULL, size = 10, assay_name = "D
 #' vrdata <- importImageData(imgfile, image_name = "main", channel_name = c("DAPI", "DAPI2"))
 #' 
 #' @export
-importImageData <- function(image, tile.size = 10, segments = NULL, image_name = "main", channel_names = NULL, ...){
+importImageData <- function(image, tile.size = 10, segments = NULL, 
+                            image_name = "main", channel_names = NULL, 
+                            series = 1, resolution = NULL, ...){
   
-  # images and channel names
-  if(!is.null(channel_names)){
-    if(length(image) != length(channel_names))
-      stop("Provided channel names should of the same length as the images!")
-    if(any(!is.character(channel_names)))
-      stop("Invalid channel names!")  
-  }
+  # # images and channel names
+  # if(!is.null(channel_names)){
+  #   if(length(image) != length(channel_names))
+  #     stop("Provided channel names should of the same length as the images!")
+  #   if(any(!is.character(channel_names)))
+  #     stop("Invalid channel names!")  
+  # }
+  # 
+  # # get image
+  # if(!is.list(image)){}
+  #   image <- as.list(image)
+  # image <- sapply(image, function(img){
+  #   if(!inherits(img, "magick-image")){
+  #     if(!is.character(img)){
+  #       stop("image should either be a magick-image object or a file.path")
+  #     } else{
+  #       if(file.exists(img)){
+  #         img <- magick::image_read(img)
+  #       } else {
+  #         stop(img, " is not found!")
+  #       }
+  #     }
+  #   }
+  #   img
+  # }, USE.NAMES = TRUE, simplify = FALSE)
+  # 
+  # # channel names
+  # if(!is.null(channel_names)){
+  #   names(image) <- channel_names
+  # }
+  image <- importImage(image, channel_names = channel_names, 
+                       series = series, resolution = resolution)
   
-  # get image
-  if(!is.list(image)){}
-    image <- as.list(image)
-  image <- sapply(image, function(img){
-    if(!inherits(img, "magick-image")){
-      if(!is.character(img)){
-        stop("image should either be a magick-image object or a file.path")
-      } else{
-        if(file.exists(img)){
-          img <- magick::image_read(img)
-        } else {
-          stop(img, " is not found!")
-        }
-      }
-    }
-    img
-  }, USE.NAMES = TRUE, simplify = FALSE)
-  
-  # channel names
-  if(!is.null(channel_names)){
-    names(image) <- channel_names
-  }
-
   # check image size
   imageinfo <- vapply(image, function(img) {
     info <- magick::image_info(img)
@@ -2350,6 +2358,105 @@ importImageData <- function(image, tile.size = 10, segments = NULL, image_name =
     # return
     return(object)
   }
+}
+
+#' importImage
+#'
+#' import an image to be used in \code{importImageData}
+#'
+#' @param image a single or a list of image paths or magick-image objects
+#' @param channel_names the channel names of the images if multiple images are provided
+#' @param series the series IDs of the pyramidal image, 
+#' typical an integer starting from 1
+#' @param resolution the resolution IDs of the 
+#' pyramidal image, typical an integer starting from 1
+#'
+#' @importFrom magick image_read image_info
+#' @importFrom data.table data.table
+#'
+#' @noRd
+importImage <- function(image, channel_names = NULL, 
+                        series = 1, resolution = NULL){
+  
+  # images and channel names
+  if(!is.null(channel_names)){
+    if(length(image) != length(channel_names))
+      stop("Provided channel names should of the same length as the images!")
+    if(any(!is.character(channel_names)))
+      stop("Invalid channel names!")
+  }
+
+  # check if image is ome.tiff
+  if(is.character(image)){
+    if(any(grepl(".ome.tiff$|.ome.tif$", image))){
+      if (!requireNamespace('RBioFormats'))
+        stop("Please install RBioFormats package to images from the ome.tiff file!: BiocManager::install('RBioFormats')")
+      if(is.null(resolution))
+        stop("For importing images from ome.tiff files, please specify resolution. ", 
+             "See help(read.metadata) from RBioFormats package.")
+      if(length(image) > 1)
+        stop("Only a single ome.tiff file")
+    }
+  } else {
+    if(!inherits(image, "magick-image"))
+      stop("image should either be a magick-image object or a file.path")
+  }
+    
+  # get image
+  if(!is.list(image))
+    image <- as.list(image)
+  image <- sapply(image, function(img){
+    # check if image exists
+    if(is.character(img)){
+      if(file.exists(img)){
+        # ome.tiff images
+        if(grepl(".ome.tiff$|.ome.tif$", img)){
+          omexml <- RBioFormats::read.omexml(img)
+          omexml <- XML::xmlToList(omexml, simplify = TRUE)
+          meta <- RBioFormats::read.metadata(img)
+          img <- RBioFormats::read.image(img, 
+                                         series = series, 
+                                         resolution = resolution, 
+                                         normalize = TRUE)
+          img <- EBImage::as.Image(img)
+          # check if there are more than 3 or 1 channels
+          if(length(d <- dim(img)) > 2){
+            if(d[3] != 3){
+              img <- sapply(seq_len(d[3]), function(i){
+                tmp <- img[,,i]
+                magick::image_read(grDevices::as.raster(tmp))
+              })
+            } else {
+              img <- magick::image_read(grDevices::as.raster(img))
+            }
+          } else {
+            img <- magick::image_read(grDevices::as.raster(img))
+          }
+        # regular tiff images
+        } else {
+          img <- magick::image_read(img)
+        }
+      } else {
+        stop(img, " is not found!")
+      }
+    }
+    img
+  }, USE.NAMES = TRUE, simplify = FALSE)
+  
+  # flatten nested image lists
+  image <- unlist(image, recursive = FALSE)
+  
+  # channel names
+  if(!is.null(channel_names)){
+    if(length(image) == length(channel_names)){
+      names(image) <- channel_names
+    } else {
+      stop("Provided channel_names should be the same length as the images!")
+    }
+  }
+  
+  # return
+  return(image)
 }
 
 

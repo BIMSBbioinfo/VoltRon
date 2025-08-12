@@ -563,32 +563,31 @@ localization of virus ORF types over the tissue.</p>
 </div>
 <div id="hot-spot-analysis" class="section level3">
 <h3>Hot Spot Analysis</h3>
-<p>VoltRon platform allows users to find hot spots of several types of
-spatial entities, for spots, cells, and even molecules. We first learn
-spatial neighborhoods from molecules of interests, in this case, the
-extracellular virus particles and their ORFs.</p>
+<p>VoltRon platform allows users to find hot spots (Regions of increased
+feature of interest) of several types of spatial entities, for spots,
+cells, and even molecules. Please see <a
+href="moleculeanalysis.html">Molecule Analysis Tutorial</a> for more
+information on hot spot analysis. We switch to the molecule assay of the
+VoltRon object, and select virus ORFs to detect regions of high viral
+activity.</p>
 <pre class="r watch-out"><code>vr2_merged_acute1</code></pre>
 <pre><code>VoltRon Object 
 acute case 1: 
   Layers: Section1 
 Assays: Xenium(Main) Xenium_mol </code></pre>
-<p>We switch to the molecule assay of the VoltRon object, and select
-virus ORFs. We also look for other virus ORFs that are 50 pixel distance
-from each virus molecule to pin point neighborhoods that are rich in
-virus.</p>
-<pre class="r watch-out"><code>vr2_merged_acute1 &lt;- getSpatialNeighbors(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
-                                         group.by = &quot;gene&quot;, group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), 
-                                         method = &quot;radius&quot;, radius = 50)</code></pre>
-<p>We can now observe the new spatial neighborhood graph saved in the
-VoltRon object with name <strong>radius</strong>.</p>
-<pre class="r watch-out"><code>vrGraphNames(vr2_merged_acute1)</code></pre>
-<pre><code>[1] &quot;radius&quot;</code></pre>
-<p>We now select the feature type and graph name to run an hot spot
-analysis which will label each molecule if their neighborhood are dense
-in other virus molecules.</p>
+<p>In this case, we are only interested in niches abundant with S2_N and
+S2_orf1ab molecules. We use the <strong>getHotSpotAnalysis</strong>
+function to find regions of high S2_N and S2_orf1ab abundance. The
+tiling parameter <strong>n.tile</strong> is necessary to apply Getis-Ord
+statistics on molecule data since these spatial entities does not have
+features in a VoltRon object.</p>
 <pre class="r watch-out"><code>vr2_merged_acute1 &lt;- getHotSpotAnalysis(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
-                                        features = &quot;gene&quot;, graph.type = &quot;radius&quot;)
-vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
+                                        features = &quot;gene&quot;, 
+                                        group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), n.tile = 100)</code></pre>
+<p>Now we can visualize the localization of molecules that are located
+in “hot regions”, or niches that are significantly abundant with these
+molecules.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, 
               group.by = &quot;gene_hotspot_flag&quot;, group.ids = c(&quot;cold&quot;, &quot;hot&quot;), 
               alpha = 1, colors = list(cold = &quot;blue&quot;, hot = &quot;red&quot;), 
               background.color = &quot;white&quot;)</code></pre>
@@ -890,7 +889,16 @@ Genomics website</a> (specifically, import <strong>In Situ Replicate
 <h3>Import Spatial Data</h3>
 <p>We import both Xenium and post-Xenium H&amp;E images into two
 separate VoltRon objects and overlay H&amp;E images.</p>
-<pre class="r watch-out"><code>Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;,
+<pre class="r watch-out"><code># dependencies
+if(!requireNamespace(&quot;RBioFormats&quot;))
+  BiocManager::install(&quot;RBioFormats&quot;)
+if(!requireNamespace(&quot;arrow&quot;))
+  install.packages(&quot;arrow&quot;)
+if(!requireNamespace(&quot;rhdf5&quot;))
+  BiocManager::install(&quot;rhdf5&quot;)
+
+# import Xenium
+Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;,
                        sample_name = &quot;XeniumR1&quot;, 
                        resolution_level = 3,
                        overwrite_resolution = TRUE)

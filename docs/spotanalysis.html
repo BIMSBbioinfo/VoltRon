@@ -491,7 +491,16 @@ function locates all readout documents under the output folder of the
 Xenium experiment, and forms a VoltRon object. We will import both
 Xenium replicates separately, and merge them after some image
 manipulation.</p>
-<pre class="r watch-out"><code>library(VoltRon)
+<pre class="r watch-out"><code># dependencies
+if(!requireNamespace(&quot;RBioFormats&quot;))
+  BiocManager::install(&quot;RBioFormats&quot;)
+if(!requireNamespace(&quot;arrow&quot;))
+  install.packages(&quot;arrow&quot;)
+if(!requireNamespace(&quot;rhdf5&quot;))
+  BiocManager::install(&quot;rhdf5&quot;)
+
+# import Xenium data
+library(VoltRon)
 Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;, import_molecules = TRUE)
 Xen_R2 &lt;- importXenium(&quot;Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;, import_molecules = TRUE)</code></pre>
 <p>Before moving on to the downstream analysis of the imaging-based
@@ -658,6 +667,40 @@ well.</p>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_annotated.png" class="center"></p>
 <p><br></p>
 </div>
+<div id="hot-spot-analysis" class="section level2">
+<h2>Hot Spot Analysis</h2>
+<p>VoltRon platform allows users to find hot spots (Regions of increased
+feature of interest) of several types of spatial entities, for spots,
+cells, and even molecules. Please see <a
+href="moleculeanalysis.html">Molecule Analysis Tutorial</a> for more
+information on hot spot analysis.</p>
+<p>We first have to learn a spatial graph, and in the case of Xenium
+data which is a cell type assay we can use a <a
+href="https://en.wikipedia.org/wiki/Delaunay_triangulation">Delaunay
+Tesselation</a> to train the neighborhood graph. This will create a
+second graph in the VoltRon object, representing the spatial
+relationship between cells.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- getSpatialNeighbors(Xen_data, method = &quot;delaunay&quot;)</code></pre>
+<p>Now, we can specify <strong>delaunay</strong> as the graph of
+interest, and use <strong>getHotSpotAnalysis</strong> function to test
+each cell and their surrounding for significant increase in a feature of
+interest; for example, PGR.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- getHotSpotAnalysis(Xen_data, graph.type = &quot;delaunay&quot;, features = &quot;PGR&quot;)</code></pre>
+<p>The results of the hot spot analysis (i.e. Getis-Ord statistics,
+adjusted p-value and hot spot annotation) can later be found in the
+metadata. A hot spot here indicates a cell at the center of a cluster of
+cells with increased expression of PGR.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(Xen_data, group.by = &quot;PGR_hotspot_flag&quot;, alpha = 1, 
+              n.tile = 250, background.color = &quot;black&quot;,
+              colors = list(cold = &quot;blue&quot;, hot = &quot;orange&quot;), 
+              common.legend = TRUE, legend.loc = &quot;top&quot;)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_hotspot.png" class="center"></p>
+<p><br></p>
+<pre class="r watch-out"><code>vrSpatialFeaturePlot(Xen_data, features = &quot;PGR&quot;, alpha = 1, 
+                     n.tile = 250, background.color = &quot;black&quot;)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_pgr.png" class="center"></p>
+<p><br></p>
+</div>
 </div>
 <div id="visium-data-analysis" class="section level1">
 <h1>Visium Data Analysis</h1>
@@ -686,7 +729,12 @@ and <strong>PipelineVersion=v1.1.0</strong>).</p>
 into one VoltRon object. There are four sections in total given two
 serial anterior and serial posterior sections, hence we have <strong>two
 tissue blocks each having two layers</strong>.</p>
-<pre class="r watch-out"><code>library(VoltRon)
+<pre class="r watch-out"><code># dependencies 
+if(!requireNamespace(&quot;rhdf5&quot;))
+  BiocManager::install(&quot;rhdf5&quot;)
+
+# import Visium data
+library(VoltRon)
 Ant_Sec1 &lt;- importVisium(&quot;Sagittal_Anterior/Section1/&quot;, sample_name = &quot;Anterior1&quot;)
 Pos_Sec1 &lt;- importVisium(&quot;Sagittal_Posterior/Section1/&quot;, sample_name = &quot;Posterior1&quot;)
 
@@ -756,6 +804,43 @@ vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;Clust
 <p><br></p>
 <pre class="r watch-out"><code>vrSpatialPlot(MBrain_Sec, group.by = &quot;Clusters&quot;)</code></pre>
 <p><img width="65%" height="65%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spatial_clusters1.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="hot-spot-analysis-1" class="section level2">
+<h2>Hot Spot Analysis</h2>
+<p>VoltRon platform allows users to find hot spots (Regions of increased
+feature of interest) of several types of spatial entities, for spots,
+cells, and even molecules. Please see <a
+href="moleculeanalysis.html">Molecule Analysis Tutorial</a> for more
+information on hot spot analysis.</p>
+<p>Hot Spot analysis can also be applied to spot-level dataset which
+might help us locate regions or niches with high values of a feature of
+interest, i.e. genes. We first have to learn a spatial graph where for
+the case of spot-level Visium data, this includes the immediate
+neighbors of each spot. This will create a second graph in the VoltRon
+object, representing the spatial relationship between each spot and the
+surrounding spots.</p>
+<pre class="r watch-out"><code>MBrain_Sec &lt;- getSpatialNeighbors(MBrain_Sec, method = &quot;radius&quot;)
+vrGraphNames(MBrain_Sec)</code></pre>
+<pre><code>[1] &quot;SNN&quot; &quot;radius&quot;</code></pre>
+<p>Now, we can specify <strong>radius</strong> as the graph of interest,
+and use <strong>getHotSpotAnalysis</strong> function to test each spot
+for significant increase in a feature of interest, i.e. Spp1.</p>
+<pre class="r watch-out"><code>MBrain_Sec &lt;- getHotSpotAnalysis(MBrain_Sec, graph.type = &quot;radius&quot;, features = &quot;Spp1&quot;)</code></pre>
+<p>The results of the hot spot analysis (i.e. Getis-Ord statistics,
+adjusted p-value and hot spot annotation) can later be found in the
+metadata. We can Getis-Ord statistics of each individual spot as well as
+the hot and cold annotation of the spots. Each hot spot represents a
+niche whose Spp1 expression as well as neighboring Spp1 expressions are
+high.</p>
+<pre class="r watch-out"><code>library(patchwork)
+g1 &lt;- vrSpatialFeaturePlot(MBrain_Sec, features = &quot;Spp1_hotspot_stat&quot;, ncol = 1)
+g2 &lt;- vrSpatialPlot(MBrain_Sec, group.by = &quot;Spp1_hotspot_flag&quot;, ncol = 1)
+g1 | g2 </code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_hotspot.png" class="center"></p>
+<p><br></p>
+<pre class="r watch-out"><code>vrSpatialFeaturePlot(MBrain_Sec, features = &quot;Spp1&quot;)</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_visium_spp1.png" class="center"></p>
 <p><br></p>
 </div>
 </div>
