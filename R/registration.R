@@ -2375,7 +2375,7 @@ getNonInteractiveRegistration <- function(obj_list,
                                           channel_names = NULL){
   
   # check mapping parameters 
-  if(is.null(mapping_parameters)){
+  if(length(mapping_parameters) < 1){
     stop("'mapping_parameters' is not provided, please run registerSpatialData once and save contents of 'mapping_parameters' for later use.")
     
   }

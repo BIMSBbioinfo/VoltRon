@@ -405,7 +405,7 @@ bool getSIFTTransformationMatrixSingle(
   // get top key points
   keepTopKeypoints(keypoints1, descriptors1, params);
   keepTopKeypoints(keypoints2, descriptors2, params);
-  Rcout << "MESSAGE: After filtering " << keypoints1.size() << " and " << keypoints2.size() << " keypoints" << endl;
+  Rcout << "MESSAGE: Filtered other than " << keypoints1.size() << " and " << keypoints2.size() << " keypoints" << endl;
   // log_mem_usage("filter landmarks");
   
   ///////////////////////
@@ -890,12 +890,12 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
   // Read reference image
   cv::Mat imReference = imageToMat(ref_image, width1, height1);
   // Rcout << object_size_long(ref_image.size())  << endl;
-  Rcout << object_size_long(sizeof(cv::Mat) + imReference.total() * imReference.elemSize()) << endl;
+  // Rcout << object_size_long(sizeof(cv::Mat) + imReference.total() * imReference.elemSize()) << endl;
 
   // Read image to be aligned
   cv::Mat im = imageToMat(query_image, width2, height2);
   // Rcout << object_size_long(query_image.size()) << endl;
-  Rcout << object_size_long(sizeof(cv::Mat) + im.total() * im.elemSize()) << endl;
+  // Rcout << object_size_long(sizeof(cv::Mat) + im.total() * im.elemSize()) << endl;
 
   // run alignment
   const bool run_TPS = (strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0 || 
