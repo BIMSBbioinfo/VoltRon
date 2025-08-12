@@ -2371,22 +2371,36 @@ getNonInteractiveRegistration <- function(obj_list,
     message("Registering Image ", i)
 
     # get a sequential mapping between a query and reference image
-    results <- switch(mapping_parameters$automatictag, 
-           "auto" = {
-             computeAutomatedPairwiseTransform(image_list = image_list_full, 
-                                               channel_names = channel_names, 
-                                               query_ind = i, 
-                                               ref_ind = centre, 
-                                               input = mapping_parameters)
-           }, 
-           "manual" = {
-             flag <- checkKeypoints(mapping_parameters$keypoints)
-             computeManualPairwiseTransform(image_list = image_list, 
-                                            keypoints_list = mapping_parameters$keypoints, 
-                                            query_ind = i, 
-                                            ref_ind = centre, 
-                                            input = mapping_parameters)
-           })
+    # results <- switch(mapping_parameters$automatictag, 
+    #        "auto" = {
+    #          computeAutomatedPairwiseTransform(image_list = image_list_full, 
+    #                                            channel_names = channel_names, 
+    #                                            query_ind = i, 
+    #                                            ref_ind = centre, 
+    #                                            input = mapping_parameters)
+    #        }, 
+    #        "manual" = {
+    #          flag <- checkKeypoints(mapping_parameters$keypoints)
+    #          computeManualPairwiseTransform(image_list = image_list, 
+    #                                         keypoints_list = mapping_parameters$keypoints, 
+    #                                         query_ind = i, 
+    #                                         ref_ind = centre, 
+    #                                         input = mapping_parameters)
+    #        })
+    if(mapping_parameters$automatictag){
+      results <- computeAutomatedPairwiseTransform(image_list = image_list_full,
+                                                   channel_names = channel_names,
+                                                   query_ind = i,
+                                                   ref_ind = centre,
+                                                   input = mapping_parameters)
+    } else {
+      flag <- checkKeypoints(mapping_parameters$keypoints)
+      results <- computeManualPairwiseTransform(image_list = image_list,
+                                                keypoints_list = mapping_parameters$keypoints,
+                                                query_ind = i,
+                                                ref_ind = centre,
+                                                input = mapping_parameters)
+    }
     
     # save transformation matrix
     registration_mapping_list[[paste0(i)]] <- results$mapping
