@@ -96,10 +96,11 @@ getSpatialNeighbors <- function(object,
       } else {
         stop("Either both 'group.by' and 'group.ids' should be specified or both should be null")
       }
+        
+      }
       
       # merge coords
       coords <- rbind(coords, cur_coords)
-      }
     }
     
     # get edges
@@ -138,7 +139,7 @@ getSpatialNeighbors <- function(object,
   spatialedges <- unlist(spatialedges_list)
 
   # make graph and add edges
-  graph <- make_empty_graph(directed = FALSE) + rownames(coords)
+  graph <- make_empty_graph(directed = FALSE) + spatialpoints
   graph <- add_edges(graph, edges = spatialedges)
   graph <- simplify(graph, remove.multiple = TRUE, remove.loops = FALSE)
   vrGraph(object, assay = assay_names, graph.type = graph.key) <- graph
