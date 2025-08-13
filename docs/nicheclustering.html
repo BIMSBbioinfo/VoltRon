@@ -498,7 +498,12 @@ and <strong>PipelineVersion=v1.1.0</strong>).</p>
 into one VoltRon object. There are four brain tissue sections in total
 given two serial anterior and serial posterior sections, hence we have
 <strong>two tissue blocks each having two layers</strong>.</p>
-<pre class="r watch-out"><code>library(VoltRon)
+<pre class="r watch-out"><code># dependencies
+if(!requireNamespace(&quot;rhdf5&quot;))
+  BiocManager::install(&quot;rhdf5&quot;)
+
+# import visium data
+library(VoltRon)
 Ant_Sec1 &lt;- importVisium(&quot;Sagittal_Anterior/Section1/&quot;, sample_name = &quot;Anterior1&quot;)
 Ant_Sec2 &lt;- importVisium(&quot;Sagittal_Anterior/Section2/&quot;, sample_name = &quot;Anterior2&quot;)
 Pos_Sec1 &lt;- importVisium(&quot;Sagittal_Posterior/Section1/&quot;, sample_name = &quot;Posterior1&quot;)

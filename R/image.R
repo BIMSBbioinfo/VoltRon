@@ -1003,10 +1003,10 @@ modulateImagevrImage <- function(object, channel = NULL, brightness = 100, satur
   for(img in channel){
     img_data <- object@image[[img]]
     if(inherits(img_data, "ImgArray")){
-      stop("Currently modulateImage only works on in-memory images!")
+      # stop("Currently modulateImage only works on in-memory images!")
+      object@image[[img]] <- ImageArray::modulate(object@image[[img]], brightness = brightness)
     } else {
       img_data <- magick::image_read(img_data)
-      # img_data <- getImage(object, name = img)
       img_data <- magick::image_modulate(img_data, brightness = brightness, saturation = saturation, hue = hue)
       object@image[[img]] <- magick::image_data(img_data) 
     }
@@ -1360,8 +1360,23 @@ demuxVoltRon <- function(object, max.pixel.size = 1200, use.points.only = FALSE,
     # scale 
     imageinfo <- getImageInfo(images)
     scale_factor <- 1
-    if(imageinfo$width > max.pixel.size){
-      scale_factor <- imageinfo$width/max.pixel.size
+    if(max(imageinfo$height, imageinfo$width) > max.pixel.size){
+      # scale keypoints
+      if(inherits(images, "ImgArray")){
+        n.series <- length(images@series)
+        cur_width <- imageinfo$width
+        cur_height <- imageinfo$height
+        for(ii in 2:n.series){
+          cur_width <- imageinfo$width/(2^(ii-1))
+          cur_height <- imageinfo$height/(2^(ii-1))
+          if(max(cur_height, cur_width) <= max.pixel.size){
+            break
+          }
+        }
+        scale_factor <- imageinfo$width/cur_width
+      } else {
+        scale_factor <- imageinfo$width/max.pixel.size
+      }
     }
     
     # plot

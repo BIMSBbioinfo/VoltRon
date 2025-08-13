@@ -165,8 +165,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     ## Manage interface ####
     updateParameterPanels(length(orig_image_query_list), mapping_parameters, input, output, session)
     updateTabPanels(centre, register_ind, input, output, session)
-    # initiateParameterPanels(mapping_parameters, length(orig_image_query_list), input, output, session)
-    
+
     ## Transform images ####
     trans_image_query_list <- transformImageQueryList(orig_image_query_list, input)
     
@@ -176,7 +175,6 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     manageImageZoomOptions(centre, register_ind, zoom_list, orig_image_query_list, orig_image_query_info_list, input, output, session)
     
     ## Manage reference and query keypoints ####
-    # xyTable_list <- initateKeypoints(length(orig_image_query_list), keypoints)
     xyTable_list <- initateKeypoints(length(orig_image_query_list), mapping_parameters$keypoints)
     manageKeypoints(centre, register_ind, xyTable_list, orig_image_query_list, orig_image_query_info_list, zoom_list, input, output, session)
     
@@ -256,8 +254,7 @@ getSideBar <- function(params = NULL){
       column(12,shiny::checkboxInput("automatictag", "Automated", value = params[["automatictag"]])),
       br(),
       column(12,selectInput("Method", "Method", 
-                            choices = c("Homography", "Non-Rigid", "Homography + Non-Rigid"), 
-                            # selected = "Homography")),
+                            choices = c("Affine", "Homography", "Non-Rigid", "Affine + Non-Rigid", "Homography + Non-Rigid"), 
                             selected = ifelse(is.null(params[["Method"]]), "Homography", params[["Method"]]))),
       br(),
       column(12,selectInput("Matcher", "Matcher", 
@@ -505,14 +502,12 @@ updateParameterPanels <- function(len_images, params, input, output, session){
     if(input$automatictag){
       
       # Method and Matcher
-      choices <- c("Homography", "Homography + Non-Rigid")
+      choices <- c("Affine", "Homography", "Affine + Non-Rigid", "Homography + Non-Rigid")
       selected <- ifelse(is.null(params[["Method"]]), choices[1],
                          ifelse(!params[["Method"]] %in% choices, choices[1], params[["Method"]]))
-      # selected <- choices[1]
       updateSelectInput(session, 
                         "Method", 
                         choices = choices, 
-                        # selected = "Homography")
                         selected = selected)
       shinyjs::show(id = "Matcher")
 
@@ -537,13 +532,12 @@ updateParameterPanels <- function(len_images, params, input, output, session){
     } else {
       
       # Method and Matcher
-      choices <- c("Non-Rigid", "Homography + Non-Rigid")
+      # choices <- c("Non-Rigid", "Homography + Non-Rigid")
+      choices <- c("Affine", "Homography", "Affine + Non-Rigid", "Homography + Non-Rigid", "Non-Rigid")
       selected <- ifelse(is.null(params[["Method"]]), choices[1],
                          ifelse(!params[["Method"]] %in% choices, choices[1], params[["Method"]]))
-      # selected <- choices[1]
       updateSelectInput(session, "Method", 
                         choices = choices, 
-                        # selected = "Non-Rigid")
                         selected = selected)
       shinyjs::hide(id = "Matcher")
 
@@ -570,10 +564,10 @@ updateParameterPanels <- function(len_images, params, input, output, session){
     } else {
       shinyjs::show(id = "GOOD_MATCH_PERCENT")
       shinyjs::show(id = "MAX_FEATURES")
-      if(grepl("Non-Rigid", input$Method)){
-        updateSelectInput(session, "Method", selected = "Homography") 
-        showNotification("Brute-Force Matching can't be used with Non-Rigid Registration\n")
-      }
+      # if(grepl("Non-Rigid", input$Method)){
+      #   updateSelectInput(session, "Method", selected = "Homography") 
+      #   showNotification("Brute-Force Matching can't be used with Non-Rigid Registration\n")
+      # }
     }
   })
   
@@ -1848,7 +1842,8 @@ getRcppWarpImage <- function(ref_image, query_image, mapping){
   
   # ref image
   if(inherits(ref_image, "ImgArray")){
-    ref_image <- as.array(ref_image)
+    # ref_image <- as.array(ref_image)
+    ref_image <- DelayedArray::realize(ref_image)
     ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
   } else {
     ref_image <- magick::image_data(ref_image, channels = "rgb")
@@ -1856,7 +1851,8 @@ getRcppWarpImage <- function(ref_image, query_image, mapping){
   
   # query image
   if(inherits(query_image, "ImgArray")){
-    query_image <- as.array(query_image)
+    # query_image <- as.array(query_image)
+    query_image <- DelayedArray::realize(query_image)
     query_image <- array(as.raw(query_image), dim = dim(query_image))
   } else {
     query_image <- magick::image_data(query_image, channels = "rgb")
@@ -2033,9 +2029,7 @@ computeManualPairwiseTransform <- function(image_list, keypoints_list, query_ind
                                          method = input$Method)
     
     # return transformation matrix and images
-    mapping[[kk]] <- list(reg$transmat[[1]], 
-                          list(reference = reg$transmat[[2]][[1]],
-                               query = reg$transmat[[2]][[2]]))
+    mapping[[kk]] <- reg[[1]]
     aligned_image <- reg$aligned_image
   }
 
@@ -2061,7 +2055,8 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
   
   # ref image
   if(inherits(ref_image, "ImgArray")){
-    ref_image <- as.array(ref_image)
+    # ref_image <- as.array(ref_image)
+    ref_image <- DelayedArray::realize(ref_image)
     ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
   } else {
     ref_image <- magick::image_data(ref_image, channels = "rgb")
@@ -2069,7 +2064,8 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
   
   # query image
   if(inherits(query_image, "ImgArray")){
-    query_image <- as.array(query_image)
+    # query_image <- as.array(query_image)
+    query_image <- DelayedArray::realize(query_image)
     query_image <- array(as.raw(query_image), dim = dim(query_image))
   } else {
     query_image <- magick::image_data(query_image, channels = "rgb")
@@ -2082,6 +2078,12 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
                                         width1 = dim(ref_image)[2], height1 = dim(ref_image)[3],
                                         width2 = dim(query_image)[2], height2 = dim(query_image)[3], 
                                         method = method)
+  
+  # check for null keypoints
+  if(suppressWarnings(all(lapply(reg[[1]][[2]], is.null)))){
+    reg[[1]] <- list(reg[[1]][[1]], NULL)
+  }
+  
   return(list(transmat = reg[[1]], 
               aligned_image = magick::image_read(reg[[2]])))
 }
@@ -2136,13 +2138,13 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
   
           # get a sequential mapping between a query and reference image
           results <- computeAutomatedPairwiseTransform(image_list, channel_names, query_ind = i, ref_ind = centre, input)
-  
+
           # save transformation matrix
           registration_mapping_list[[paste0(i)]] <- results$mapping
   
           # destination image
           dest_image_list[[i]] <- results$dest_image
-  
+          
           # save aligned images
           aligned_image_list[[i]] <- results$aligned_image
   
@@ -2160,9 +2162,14 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
         output[[paste0("plot_query_reg",i)]] <- renderImage({
 
           # get images
-          image_view_list <- list(rep(magick::image_resize(dest_image_list[[i]], geometry = "400x"),5),
-                                  rep(magick::image_resize(overlayed_image_list[[i]], geometry = "400x"),5))
-
+          if(suppressWarnings(is.na(overlayed_image_list[[i]]))){
+            overlayed_image <- dest_image_list[[i]]
+          } else {
+            overlayed_image <- overlayed_image_list[[i]]
+          }
+          image_view_list <- list(rep(dest_image_list[[i]],5),
+                                  rep(overlayed_image,5))
+          
           # make slide show
           image_view_list <- image_view_list %>%
             magick::image_join() %>%
@@ -2175,7 +2182,8 @@ getAutomatedRegisteration <- function(registration_mapping_list, spatdata_list, 
       lapply(register_ind, function(i){
         cur_alignment_image <- alignment_image_list[[i]]
         output[[paste0("plot_alignment",i)]] <- renderPlot({
-          magick::image_ggplot(cur_alignment_image)
+          if(!suppressWarnings(is.na(cur_alignment_image)))
+            magick::image_ggplot(cur_alignment_image)
         })
       })
 
@@ -2247,12 +2255,23 @@ computeAutomatedPairwiseTransform <- function(image_list, channel_names, query_i
                                         rotate_query = input[[paste0("rotate_", query_label, "_image", cur_map[1])]],
                                         rotate_ref = input[[paste0("rotate_", ref_label, "_image", cur_map[2])]],
                                         matcher = input$Matcher, method = input$Method)
-
+    
     # update transformation matrix
-    reg[[1]][[1]] <- solve(diag(c(ref_scale,ref_scale,1))) %*% reg[[1]][[1]] %*% diag(c(query_scale,query_scale,1))
+    if(nrow(reg[[1]][[1]]) == 2){
+      reg[[1]][[1]] <- solve(diag(c(ref_scale,ref_scale))) %*% reg[[1]][[1]] %*% diag(c(query_scale,query_scale,1))
+    } else if(nrow(reg[[1]][[1]]) == 3){
+      reg[[1]][[1]] <- solve(diag(c(ref_scale,ref_scale,1))) %*% reg[[1]][[1]] %*% diag(c(query_scale,query_scale,1)) 
+    } 
 
+    # update keypoints 
+    if(!is.null(reg[[1]][[2]])){
+      reg[[1]][[2]][[1]] <- reg[[1]][[2]][[1]]*(1/ref_scale)
+      reg[[1]][[2]][[2]] <- reg[[1]][[2]][[2]]*(1/ref_scale)
+    }
+    
     # return transformation matrix and images
     mapping[[kk]] <- reg[[1]]
+    # dest_image <- resize_Image(ref_image, "500x")
     dest_image <- reg$dest_image
     aligned_image <- reg$aligned_image
     alignment_image <- reg$alignment_image
@@ -2292,11 +2311,14 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
                                          flipflop_query = "None", flipflop_ref = "None",
                                          rotate_query = "0", rotate_ref = "0", 
                                          matcher = "FLANN", method = "Homography") {
-  ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
-  query_image_rast <- magick::image_data(query_image, channels = "rgb")
-  reg <- automated_registeration_rawvector(ref_image = ref_image_rast, query_image = query_image_rast,
-                                           width1 = dim(ref_image_rast)[2], height1 = dim(ref_image_rast)[3],
-                                           width2 = dim(query_image_rast)[2], height2 = dim(query_image_rast)[3],
+  # ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
+  # query_image_rast <- magick::image_data(query_image, channels = "rgb")
+  ref_image <- magick::image_data(ref_image, channels = "rgb")
+  query_image <- magick::image_data(query_image, channels = "rgb")
+
+  reg <- automated_registeration_rawvector(ref_image = ref_image, query_image = query_image,
+                                           width1 = dim(ref_image)[2], height1 = dim(ref_image)[3],
+                                           width2 = dim(query_image)[2], height2 = dim(query_image)[3],
                                            GOOD_MATCH_PERCENT = GOOD_MATCH_PERCENT, MAX_FEATURES = MAX_FEATURES,
                                            invert_query = invert_query, invert_ref = invert_ref,
                                            flipflop_query = flipflop_query, flipflop_ref = flipflop_ref,
@@ -2308,11 +2330,21 @@ getRcppAutomatedRegistration <- function(ref_image, query_image,
     reg[[1]] <- list(reg[[1]][[1]], NULL)
   }
   
+  # check for failed registeration
+  aligned_image <- 
+    if(!is.null(reg[[3]])) magick::image_read(reg[[3]]) else NA
+  alignment_image <- 
+    if(!is.null(reg[[4]])) magick::image_read(reg[[4]]) else NA
+  overlay_image <- 
+    if(!is.null(reg[[5]])) magick::image_read(reg[[5]]) else NA
+  
+  # return
   return(list(transmat = reg[[1]],
               dest_image = magick::image_read(reg[[2]]),
-              aligned_image = magick::image_read(reg[[3]]),
-              alignment_image = magick::image_read(reg[[4]]),
-              overlay_image = magick::image_read(reg[[5]])))
+              # dest_image = magick::image_read(ref_image),
+              aligned_image = aligned_image,
+              alignment_image = alignment_image,
+              overlay_image = overlay_image))
 }
 
 ####
@@ -2341,7 +2373,7 @@ getNonInteractiveRegistration <- function(obj_list,
                                           channel_names = NULL){
   
   # check mapping parameters 
-  if(is.null(mapping_parameters)){
+  if(length(mapping_parameters) < 1){
     stop("'mapping_parameters' is not provided, please run registerSpatialData once and save contents of 'mapping_parameters' for later use.")
     
   }
@@ -2354,22 +2386,6 @@ getNonInteractiveRegistration <- function(obj_list,
     message("Registering Image ", i)
 
     # get a sequential mapping between a query and reference image
-    # results <- switch(mapping_parameters$automatictag, 
-    #        "auto" = {
-    #          computeAutomatedPairwiseTransform(image_list = image_list_full, 
-    #                                            channel_names = channel_names, 
-    #                                            query_ind = i, 
-    #                                            ref_ind = centre, 
-    #                                            input = mapping_parameters)
-    #        }, 
-    #        "manual" = {
-    #          flag <- checkKeypoints(mapping_parameters$keypoints)
-    #          computeManualPairwiseTransform(image_list = image_list, 
-    #                                         keypoints_list = mapping_parameters$keypoints, 
-    #                                         query_ind = i, 
-    #                                         ref_ind = centre, 
-    #                                         input = mapping_parameters)
-    #        })
     if(mapping_parameters$automatictag){
       results <- computeAutomatedPairwiseTransform(image_list = image_list_full,
                                                    channel_names = channel_names,

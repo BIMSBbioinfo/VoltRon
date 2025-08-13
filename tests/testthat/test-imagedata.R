@@ -1,8 +1,7 @@
 img <- system.file(package = "VoltRon", "extdata/DAPI.tif")
 
-# Testing functions of image datasets ####
-test_that("imagedata", {
-  
+test_that("import", {
+
   # import image data
   vrimgdata <- importImageData(img, tile.size = 10)
   vrimgdata <- importImageData(img, tile.size = 2)
@@ -18,7 +17,6 @@ test_that("imagedata", {
   expect_equal(1,1L)
 })
 
-# Testing functions of image datasets ####
 test_that("image data visualization", {
 
   # import image data
@@ -38,6 +36,14 @@ test_that("image data visualization", {
   vrimgdata$pca <- vrEmbeddings(vrimgdata, type = "pca")[,1]
   vrSpatialFeaturePlot(vrimgdata, features = "pca")
   
+  # plot
+  vrimgdata$class <- sample(paste(1:6),
+                            length(vrSpatialPoints(vrimgdata)), 
+                            replace = TRUE) 
+  vrSpatialPlot(vrimgdata, alpha = 0.6, group.by = "class")
+  vrimgdata$count <- 1:length(vrSpatialPoints(vrimgdata)) 
+  vrSpatialFeaturePlot(vrimgdata, alpha = 0.6, features = "count")
+
   # return
   expect_equal(1,1L)
 })
