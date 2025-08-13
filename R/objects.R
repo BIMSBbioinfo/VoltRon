@@ -96,6 +96,7 @@ NULL
 #' @inheritParams utils::.DollarNames
 #'
 #' @importFrom utils .DollarNames
+#' @export
 #' @method .DollarNames VoltRon
 ".DollarNames.VoltRon" <- function(x, pattern = '') {
   meta.data <- as.list(x = Metadata(x))
@@ -592,15 +593,10 @@ changeSampleNamesVoltRon <- function(object, samples = NULL){
     adjacency <- matrix(0, nrow = length(listofLayers), ncol = length(listofLayers),
                         dimnames = list(names(listofLayers), names(listofLayers)))
     diag(adjacency) <- 1
-    # distance <- matrix(NA, nrow = length(listofLayers), ncol = length(listofLayers),
-    #                    dimnames = list(names(listofLayers), names(listofLayers)))
-    # diag(distance) <- 0
     zlocation <- rep(0,length(listofLayers))
     names(zlocation) <- names(listofLayers)
     
     # make new block
-    # listofSamples <- list(methods::new("vrBlock", 
-    #                                    layer = listofLayers, adjacency = adjacency, distance = distance))
     listofSamples <- list(methods::new("vrBlock",
                                        layer = listofLayers, zlocation = zlocation, adjacency = adjacency))
     names(listofSamples) <- cur_sample
@@ -809,10 +805,10 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
         stop("Direct subsetting for Ondisk VoltRon objects are currently not possible!")
         # spatialpoints <- as.vector(metadata$id)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
       } else {
-        if(!is.null(rownames(metadata))){
-          cur_data <- rownames(metadata)
-        } else {
+        if("id" %in% colnames(metadata)){
           cur_data <- metadata$id
+        } else {
+          cur_data <- rownames(metadata)
         }
         spatialpoints <- rownames(metadata)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
       }
@@ -1679,7 +1675,7 @@ addMetadata <- function(object, assay = NULL, type = NULL, value, label) {
   
   # replace data
   if(length(value) == length(entities) || length(value) == 1){
-    if(is.null(rownames(metadata)) || inherits(metadata, "data.table")){
+    if("id" %in% colnames(metadata) || inherits(metadata, "data.table")){
       metadata[[label]][match(entities, as.vector(metadata$id))] <- value
     } else {
       metadata[entities,][[label]] <- value

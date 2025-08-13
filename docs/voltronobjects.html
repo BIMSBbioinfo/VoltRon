@@ -833,12 +833,14 @@ this list. However, it would only subset the main assay (see <a
 href="#assays">vrMainAssay</a>)</p>
 <pre class="r watch-out"><code>selected_features &lt;- vrFeatures(visium_data)
 selected_features[1:20]</code></pre>
-<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;       &quot;Mrpl15&quot;        &quot;Lypla1&quot;       
-## [11] &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;        &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
+<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;      
+##  [9] &quot;Mrpl15&quot;        &quot;Lypla1&quot;        &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;       
+## [17] &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
 <pre class="r watch-out"><code>visium_data_subset &lt;- subset(visium_data, features = selected_features[1:20])
 vrFeatures(visium_data_subset)</code></pre>
-<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;       &quot;Mrpl15&quot;        &quot;Lypla1&quot;       
-## [11] &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;        &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
+<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;      
+##  [9] &quot;Mrpl15&quot;        &quot;Lypla1&quot;        &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;       
+## [17] &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
 <p><br></p>
 </div>
 <div id="interactive-subsetting" class="section level3">
@@ -917,9 +919,47 @@ vrSpatialPlot(visium_data, assay = &quot;Assay1&quot;, plot.segments = TRUE)
 vrSpatialFeaturePlot(visium_data, assay = &quot;Visium&quot;, features = &quot;Count&quot;)
 vrSpatialFeaturePlot(visium_data, assay = &quot;Assay1&quot;, features = &quot;Count&quot;)</code></pre>
 <p><br></p>
+<p><strong>vrSpatialPlot</strong> will allow you to visualize multiple
+data types within a single VoltRon object. We use our multi data type
+VoltRon object.</p>
+<pre class="r watch-out"><code>data(merged_object)
+merged_object</code></pre>
+<pre><code>## VoltRon Object 
+## Block: 
+##   Layers: Section1 Section2 Section3 
+## Assays: CellAssay(Main) MolAssay ROIAssay 
+## Features: main(Main)</code></pre>
+<p>Given the description in the VoltRon object, we can call the molecule
+assay for plotting.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(merged_object, assay = &quot;MolAssay&quot;, group.by = &quot;gene&quot;)</code></pre>
+<pre><code>## Warning: Duplicated `override.aes` is ignored.
+## Duplicated `override.aes` is ignored.
+## Duplicated `override.aes` is ignored.</code></pre>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-73-1.png" width="85%" style="display: block; margin: auto;" /></p>
+<p>Now, let us do the same with the ROI Assay.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(merged_object, assay = &quot;ROIAssay&quot;, group.by = &quot;annotation&quot;)</code></pre>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-74-1.png" width="85%" style="display: block; margin: auto;" /></p>
 </div>
-<div id="spatial-plots-multi-layer" class="section level3">
-<h3>Spatial Plots (Multi-Layer)</h3>
+<div id="rasterization" class="section level3">
+<h3>Rasterization</h3>
+<p>VoltRon provides automated rasterization of the data to increase
+speed. However, users can manually define the rasterization parameter
+while visualizing the data to create customized density graphs of
+observations. We use the <strong>n.tile</strong> arguement for that.
+Given the value of the argument, the plot will be divided into chunks
+along both x and y axis.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(merged_object, group.by = &quot;clusters&quot;, n.tile = 40)</code></pre>
+<pre><code>## Warning: Duplicated `override.aes` is ignored.</code></pre>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-75-1.png" width="85%" style="display: block; margin: auto;" /></p>
+<p>This apply to molecule datasets too.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(merged_object, assay = &quot;MolAssay&quot;, group.by = &quot;gene&quot;, n.tile = 40)</code></pre>
+<pre><code>## Warning: Duplicated `override.aes` is ignored.
+## Duplicated `override.aes` is ignored.
+## Duplicated `override.aes` is ignored.</code></pre>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-76-1.png" width="85%" style="display: block; margin: auto;" /></p>
+</div>
+<div id="multi-layer-spatial-plots" class="section level3">
+<h3>Multi-Layer Spatial Plots</h3>
 <p><strong>vrSpatialPlot</strong> function can be paired with the
 <strong>addSpatialLayer</strong> function to add additional assays of
 the same spatial coordinate system as the original assay. We use the
@@ -936,16 +976,44 @@ type.</p>
   addSpatialLayer(merged_object, assay = &quot;Assay2&quot;, group.by = &quot;gene&quot;, alpha = 1, 
                   colors = list(KRT15 = &quot;blue&quot;, KRT14 = &quot;green&quot;))</code></pre>
 <pre><code>## Warning: Duplicated `override.aes` is ignored.</code></pre>
-<p><img src="voltronobjects_files/figure-html/unnamed-chunk-73-1.png" width="60%" style="display: block; margin: auto;" /></p>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-78-1.png" width="60%" style="display: block; margin: auto;" /></p>
 <p><br></p>
 <p>You can also visualize the segments that represents annotations of
 the tissue sections along with the cells.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(merged_object, plot.segments = FALSE, group.by = &quot;clusters&quot;) |&gt;
-  addSpatialLayer(merged_object, assay = &quot;Assay3&quot;, group.by = &quot;Region&quot;, alpha = 0.3, 
-                  color = list(Region1 = &quot;blue&quot;, Region2 = &quot;yellow&quot;))</code></pre>
-<pre><code>## Warning: Duplicated `override.aes` is ignored.</code></pre>
-<p><img src="voltronobjects_files/figure-html/unnamed-chunk-74-1.png" width="60%" style="display: block; margin: auto;" /></p>
+  addSpatialLayer(merged_object, assay = &quot;Assay3&quot;, group.by = &quot;annotation&quot;, alpha = 0.6, 
+                  group.ids = c(&quot;Immune&quot;, &quot;DCIS_Subtype1&quot;),
+                  color = list(Immune = &quot;blue&quot;, DCIS_Subtype1 = &quot;yellow&quot;))</code></pre>
+<pre><code>## Warning: Duplicated `override.aes` is ignored.
+## Duplicated `override.aes` is ignored.</code></pre>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-79-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p><br></p>
+</div>
+<div id="combine-featuresgroups" class="section level3">
+<h3>Combine Features/Groups</h3>
+<p>At any time, given two features or groups, these two entries can be
+combined into a single graph.</p>
+<p>To visualize, the expression of two features in a single graph, you
+can simply provide <strong>combine.features=TRUE</strong>. The function
+won’t work with features more than two.</p>
+<pre class="r watch-out"><code>data(&quot;xenium_data&quot;)
+vrSpatialFeaturePlot(xenium_data, features = c(&quot;ACTA2&quot;, &quot;TACSTD2&quot;), 
+                     norm = TRUE, combine.features = TRUE)</code></pre>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-80-1.png" width="60%" style="display: block; margin: auto;" /></p>
+<p>Similarly, we can apply this to embedding plots too.</p>
+<pre class="r watch-out"><code>data(&quot;xenium_data&quot;)
+vrEmbeddingFeaturePlot(xenium_data, features = c(&quot;ACTA2&quot;, &quot;TACSTD2&quot;), 
+                       embedding = &quot;umap&quot;, combine.features = TRUE)</code></pre>
+<pre><code>## Warning in plot_theme(plot): The `x` theme element is not defined in the element hierarchy.</code></pre>
+<pre><code>## Warning in plot_theme(plot): The `y` theme element is not defined in the element hierarchy.</code></pre>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-81-1.png" width="60%" style="display: block; margin: auto;" /></p>
+<p>In order to visualize the density of two molecule per each tile, you
+can define a tiling parameter <strong>n.tile</strong> and also enter
+<strong>combine.graphs=TRUE</strong>.</p>
+<pre class="r watch-out"><code>data(&quot;merged_object&quot;)
+vrSpatialPlot(merged_object, assay = &quot;Assay2&quot;, group.by = &quot;gene&quot;, 
+              n.tile = 50, combine.groups = TRUE, group.ids = c(&quot;KRT14&quot;, &quot;KRT15&quot;))</code></pre>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-82-1.png" width="60%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="embedding-plots" class="section level3">
 <h3>Embedding Plots</h3>

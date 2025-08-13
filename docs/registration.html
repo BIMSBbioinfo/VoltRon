@@ -509,9 +509,20 @@ Xenium and Visium platforms into VoltRon objects. We will import both
 Xenium replicates alongside with the Visium CytAssist data so that we
 can register images of these assays and merge them into one VoltRon
 object.</p>
-<pre class="r watch-out"><code>library(VoltRon)
+<pre class="r watch-out"><code># dependencies
+if(!requireNamespace(&quot;RBioFormats&quot;))
+  BiocManager::install(&quot;RBioFormats&quot;)
+if(!requireNamespace(&quot;arrow&quot;))
+  install.packages(&quot;arrow&quot;)
+if(!requireNamespace(&quot;rhdf5&quot;))
+  BiocManager::install(&quot;rhdf5&quot;)
+library(VoltRon)
+
+# import Xenium data
 Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
 Xen_R2 &lt;- importXenium(&quot;Xenium_R2/outs&quot;, sample_name = &quot;XeniumR2&quot;)
+
+# import Visium data
 Vis &lt;- importVisium(&quot;Visium/&quot;, sample_name = &quot;VisiumR1&quot;)</code></pre>
 <p>Before moving on to image alignment, we can inspect both Xenium and
 Visium images. We use the <strong>vrImages</strong> function to call and
@@ -579,7 +590,12 @@ images into the same orientation by rotating, flipping (horizontally and
 vertically) and negating these images. We always negate DAPI images to
 align them onto H&amp;E images.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))</code></pre>
-<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration_FLANN.gif" class="center"></p>
+<!-- <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration_FLANN.gif" class="center"> -->
+<div>
+<p><video width="100%" height="100%" controls autoplay>
+<source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration_FLANN.mov" type="video/mp4">
+Your browser does not support the video tag. </video></p>
+</div>
 <p><br></p>
 <p>You can save and use the same parameters later, and reproduce the
 alignment without choosing parameters the second time.</p>
@@ -616,7 +632,12 @@ automated mode, <strong>the image on the center</strong> will be taken
 as reference and the users will be able to observe the quality of the
 registration and remove/reselect keypoints as they see fit.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))</code></pre>
-<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration.gif" class="center"></p>
+<!-- <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration.gif" class="center"> -->
+<div>
+<p><video width="100%" height="100%" controls autoplay>
+<source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration_Manual.mov" type="video/mp4">
+Your browser does not support the video tag. </video></p>
+</div>
 <p><br></p>
 <p>You can save and use the same keypoints later, and reproduce the
 manual alignment without choosing keypoints for the second time.</p>
@@ -871,12 +892,19 @@ href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-
 Genomics website</a> (specifically, import <strong>In Situ Replicate
 1</strong> and <strong>Supplemental: Post-Xenium H&amp;E image
 (TIFF)</strong>).</p>
-<pre class="r watch-out"><code>library(VoltRon)
+<pre class="r watch-out"><code># dependencies
+if(!requireNamespace(&quot;RBioFormats&quot;))
+  BiocManager::install(&quot;RBioFormats&quot;)
+if(!requireNamespace(&quot;arrow&quot;))
+  install.packages(&quot;arrow&quot;)
+if(!requireNamespace(&quot;rhdf5&quot;))
+  BiocManager::install(&quot;rhdf5&quot;)
+library(VoltRon)
 
 # import Xenium 
 Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
 
-# import H&amp;E image and build a VoltRon object
+# import H&amp;E image 
 Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
                                 sample_name = &quot;XeniumR1image&quot;, 
                                 channel_names = &quot;H&amp;E&quot;)
@@ -937,7 +965,12 @@ are located 300 <span class="math inline">\(\mu\)</span>m apart from
 each other. Hence, we align each pair individually. The datasets can be
 downloaded from <a
 href="https://research.libd.org/spatialLIBD/">here</a>.</p>
-<pre class="r watch-out"><code>library(VoltRon)
+<pre class="r watch-out"><code># dependencies
+if(!requireNamespace(&quot;rhdf5&quot;))
+  BiocManager::install(&quot;rhdf5&quot;)
+
+# import Visium data
+library(VoltRon)
 DLPFC_1 &lt;- importVisium(&quot;DLPFC/151673&quot;, sample_name = &quot;DLPFC_1&quot;)
 DLPFC_2 &lt;- importVisium(&quot;DLPFC/151674&quot;, sample_name = &quot;DLPFC_2&quot;)
 DLPFC_3 &lt;- importVisium(&quot;DLPFC/151675&quot;, sample_name = &quot;DLPFC_3&quot;)
@@ -967,7 +1000,12 @@ tuning of these parameters where users will immediately observe the
 alignment quality looking at the slideshow.</p>
 <pre class="r watch-out"><code>DLPFC_list &lt;- list(DLPFC_1, DLPFC_2)
 reg1and2 &lt;- registerSpatialData(object_list = DLPFC_list)</code></pre>
-<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/VisiumDLFPCRegistration.gif" class="center"></p>
+<!-- <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/VisiumDLFPCRegistration.gif" class="center"> -->
+<div>
+<p><video width="100%" height="100%" controls autoplay>
+<source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/VisiumDLFPCRegistration.mov" type="video/mp4">
+Your browser does not support the video tag. </video></p>
+</div>
 <p><br></p>
 <p>We can now apply a similar alignment across the second pair of
 VoltRon objects. We will use <strong>800 features</strong> for this

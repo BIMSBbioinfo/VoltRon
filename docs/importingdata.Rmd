@@ -61,12 +61,17 @@ VoltRon objects are compatible with readouts of almost all of these technologies
 
 We will use the readouts of **Visium CytAssist** platform that was derived from a single tissue section of a breast cancer sample. More information on the Visium CytAssist data and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **Visium Spatial** data). 
 
+Before we start, Visium readouts require **rhdf5** package to be installed.
+
+```{r eval = FALSE, class.source="watch-out"}
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
+```
+
 We use the **importVisium** function to import the Visium readouts and create a VoltRon object. Here, we point to the folder of all the files with **dir.path** argument and also determine the name of this sample (**sample_name**).
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
-BiocManager::install("rhdf5")
-library(rhdf5)
 Vis_R1 <- importVisium(dir.path = "Visium/", sample_name = "VisiumR1")
 ```
 
@@ -125,16 +130,22 @@ Vis_R1 <- importVisium(dir.path = "Visium/", sample_name = "VisiumR1", resolutio
 
 We will use the readouts of **Visium CytAssist** platform that was derived from a single tissue section of a breast cancer sample. More information on the Visium CytAssist data and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **Visium Spatial** data). 
 
-We use the **importVisium** function to import the Visium readouts and create a VoltRon object. Here, we point to the folder of all the files with **dir.path** argument and also determine the name of this sample (**sample_name**). 
+Before we start, VisiumHD readouts require a number of Bioconductor and R packages to be installed. 
+
+```{r eval = FALSE, class.source="watch-out"}
+if(!requireNamespace("arrow"))
+  install.packages("arrow")
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
+```
+
+
+We use the **importVisiumHD** function to import the Visium readouts and create a VoltRon object. Here, we point to the folder of all the files with **dir.path** argument and also determine the name of this sample (**sample_name**). 
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
-install.packages("arrow")
-BiocManager::install("rhdf5")
-library(arrow)
-library(rhdf5)
-hddata <- importVisium(dir.path = "VisiumHD/outs/", 
-                       sample_name = "VisiumHD")
+hddata <- importVisiumHD(dir.path = "VisiumHD/outs/", 
+                         sample_name = "VisiumHD")
 ```
 
 <br>
@@ -142,10 +153,10 @@ hddata <- importVisium(dir.path = "VisiumHD/outs/",
 The VisiumHD readouts provide multiple bin sizes which are aggregated versions of the original 2$\mu$m $x$ 2$\mu$m capture spots. The default bin sizes are **(i)** 2$\mu$m $x$ 2$\mu$m, **(ii)** 8$\mu$m $x$ 8$\mu$m and **(iii)** 16$\mu$m $x$ 16$\mu$m. Although by default the **importVisium** function selects the low resolution image, you can select the higher resolution one using **resolution_level="hires"**.
 
 ```{r eval = FALSE, class.source="watch-out"}
-hddata <- importVisium(dir.path = "VisiumHD/outs/", 
-                       bin.size = "16", 
-                       resolution_level = "hires", 
-                       sample_name = "VisiumHD")
+hddata <- importVisiumHD(dir.path = "VisiumHD/outs/", 
+                         bin.size = "16", 
+                         resolution_level = "hires", 
+                         sample_name = "VisiumHD")
 ```
 
 <br>
@@ -161,12 +172,21 @@ The 10x Genomics [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) 
 
 We will use the readouts of a single Xenium platform replicate that was derived from a single tissue section of a breast cancer sample. More information on the Xenium data and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **In Situ Replicate 1** data). 
 
+Before we start, Xenium readouts require a number of Bioconductor and R packages to be installed. RBioFormats requires rJava and JDK installed, see [dependencies](https://github.com/BIMSBbioinfo/VoltRon?tab=readme-ov-file#dependencies) section for more information.
+
+```{r eval = FALSE, class.source="watch-out"}
+if(!requireNamespace("RBioFormats"))
+  BiocManager::install("RBioFormats")
+if(!requireNamespace("arrow"))
+  install.packages("arrow")
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
+```
+
 We use the **importXenium** function to import the Xenium readouts and create a VoltRon object. Here, we point to the folder of all the files with **dir.path** argument and also determine the name of this sample (**sample_name**).
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
-BiocManager::install("rhdf5")
-library(rhdf5)
 Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1")
 ```
 
@@ -294,11 +314,11 @@ GeoMxR1 <- importGeoMx(dcc.path = "DCC-20230427/",
                        sample_name = "GeoMxR1")
 ```
 
-The OME.TIFF file here provides the ROI coordinates within the embedded XML metadata. We can also incorporate the **RBioFormats** package to extract the XML metadata from the OME.TIFF file. 
+The OME.TIFF file here provides the ROI coordinates within the embedded XML metadata. We can also incorporate the **RBioFormats** package to extract the XML metadata from the OME.TIFF file. RBioFormats requires rJava and JDK installed, see [dependencies](https://github.com/BIMSBbioinfo/VoltRon?tab=readme-ov-file#dependencies) section for more information.
 
 ```{r eval = FALSE, class.source="watch-out"}
-# fix java parameters
-options(java.parameters = "-Xmx4g")
+if(!requireNamespace("RBioFormats"))
+  BiocManager::install("RBioFormats")
 library(RBioFormats)
 
 # alternatively you can use RBioFormats to create an xml file
@@ -654,7 +674,7 @@ vrImages(vr_object, name = "MELC", channel = "CD45")
 
 ## Image-only VoltRon objects
 
-The **formVoltRon** function can also be used to build VoltRon objects where pixels (or tiles) are defined as spatial points. These information are derived from images only which then can be used for multiple downstream analysis purposes. 
+With VoltRon we can also build objects where pixels (or tiles) are defined as spatial points. These information are derived from images only which then can be used for multiple downstream analysis purposes. 
 
 For this we incorporate **importImageData** function and only supply an image object. We will use the H&E image derived from a tissue section that was first analyzed by The 10x Genomics [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform.
 
@@ -679,5 +699,63 @@ vrImages(Xen_R1_image)
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE.png" class="center">
+
+</br>
+
+### OME-TIFF
+
+You can also import images from OME.TIFF files directly. Since these files often come in shape 
+of [image pyramids](https://en.wikipedia.org/wiki/Pyramid_(image_processing)), we need to use 
+**RBioFormats** the package. The `read.metadata` function will allow you to browse the existing resolutions and series in the image. 
+
+RBioFormats requires rJava and JDK installed, see [dependencies](https://github.com/BIMSBbioinfo/VoltRon?tab=readme-ov-file#dependencies) section for more information.
+
+We will use the post-Xenium OME.TIFF files from the [Whole Mouse Pup slide](https://www.10xgenomics.com/datasets/xenium-prime-ffpe-neonatal-mouse) from the 10X Genomics website. Please download the OME.TIFF file from output files.  
+
+```{r eval = FALSE, class.source="watch-out"}
+# dependencies
+if(!requireNamespace("RBioFormats"))
+  BiocManager::install("RBioFormats")
+library(RBioFormats)
+
+# import image
+ome.tiff <- "Xenium_Prime_Mouse_Pup_FFPE_he_image.ome.tif"
+read.metadata(ome.tiff)
+```
+
+```
+ImageMetadata list of length 10 
+
+ series res sizeX sizeY sizeC sizeZ sizeT total
+ 1      1   90959 62008 3     1     1     3    
+ 1      2   45479 31004 3     1     1     3    
+ 1      3   22739 15502 3     1     1     3    
+ 1      4   11369 7751  3     1     1     3    
+ 1      5   5684  3875  3     1     1     3    
+ 1      6   2842  1937  3     1     1     3    
+ 1      7   1421  968   3     1     1     3    
+ 1      8   710   484   3     1     1     3    
+ 1      9   355   242   3     1     1     3    
+ 1      10  177   121   3     1     1     3    
+
+globalMetadata:List of 1525
+ $ 20x_BF_01 Microscope Autoexposure enabled             : chr "0"
+ $ 20x_BF_01 Value #359                                  : chr "(42753.440890479455, 8472.726448134907)"
+ $ 20x_BF_01 Value #358                                  : chr "-122.4"
+ $ 20x_BF_01 Units #049                                  : chr "10^-6m^1"
+ $ 20x_BF_01 Value #357                                  : chr "0"
+  [list output truncated]
+```
+
+</br>
+
+Now, we can specify the `series` and `resolution` to select the image layer we want to import to VoltRon.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrimagedata <- importImageData(ome.tiff, series = 1, resolution = 5)
+vrImages(vrimagedata)
+```
+
+<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE_OMETIFF.png" class="center">
 
 </br>

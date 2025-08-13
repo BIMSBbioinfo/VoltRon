@@ -42,9 +42,17 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 <br>
 
-# Xenium Breast Cancer Data
+# Molecule Analysis
 
-VoltRon is an end-to-end spatial omic analysis package which also supports investigating spatial points in sub-cellular resolution, including those that are based on Fluorescence in situ hybrizrization where one can spatially locate each individual molecule that are hybridrized. 
+VoltRon is an end-to-end spatial omic analysis package which also supports investigating spatial points in sub-cellular resolution, including those that are based on Fluorescence in situ hybridization where one can spatially locate each individual molecule that are hybridrized. 
+
+In this tutorial, we provide a number of examples where we show how VoltRon manages, analyzes and visualizes molecules as spatial entities whose identities are given in the metadata of a VoltRon object.  
+
+<br>
+
+## Xenium Breast Cancer Data
+
+VoltRon is an end-to-end spatial omic analysis package which also supports investigating spatial points in sub-cellular resolution, including those that are based on Fluorescence in situ hybridization where one can spatially locate each individual molecule that are hybridrized. 
 
 In this use case, we analyse readouts of the experiments conducted on example tissue sections analysed by the [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform. Two tissue sections of 5 $\mu$m tickness are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. More information on the spatial datasets and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
  
@@ -52,11 +60,22 @@ You can import these readouts from the [10x Genomics website](https://www.10xgen
 
 <br>
 
-## Building VoltRon objects
+### Creating VoltRon objects
 
-VoltRon includes built-in functions for converting readouts of Xenium experiments into VoltRon objects. The **importXenium** function locates all readout documents under the output folder of the Xenium experiment, and forms a VoltRon object. In this case, the Xenium data includes two assays (in the same layer) where one is the cell segmentation based cell profile data and the other is the pure molecule assay where the identity (gene of origin) of RNA molecules are given.
+VoltRon includes built-in functions for converting readouts of Xenium experiments into VoltRon objects. The **importXenium** function uses files of the readout of a Xenium experiment under the output folder, and forms a VoltRon object. 
+
+In this case, the Xenium data includes two assays (in the same layer) where one is the cell segmentation based cell profile data and the other is the pure molecule assay where the identity (gene of origin) of RNA molecules are given. In order to import the molecules, we use **import_molecules = TRUE**. 
 
 ```{r eval = FALSE, class.source="watch-out"}
+# dependencies
+if(!requireNamespace("RBioFormats"))
+  BiocManager::install("RBioFormats")
+if(!requireNamespace("arrow"))
+  install.packages("arrow")
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
+
+# import Xenium data
 library(VoltRon)
 Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1", import_molecules = TRUE)
 Xen_R1
@@ -71,9 +90,9 @@ Assays: Xenium(Main) Xenium_mol
 
 <br>
 
-## Ondisk Support **(Optional)**
+### Ondisk Support **(Optional)**
 
-You can also save the imported VoltRon object to disk and still accomplish analysis on molecule datasets.
+In order to save space from large amount of data that is generated in a VoltRon object, you can also save the imported VoltRon object to disk and still accomplish analysis on molecule datasets. We use the **saveVoltRon** function which stores both the cell and the molecule assay on disk.
 
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1 <- saveVoltRon(Xen_R1, format = "HDF5VoltRon", 
@@ -89,9 +108,20 @@ Xen_R1_disk <- loadVoltRon("Xen_R1/")
 
 <br>
 
-## Spatial Visualization
+### Spatial Visualization
 
-With **vrSpatialPlot**, we can visualize Xenium experiments in subcellular context. We first visualize mRNAs of ACTA2, a marker for smooth muscle cell actin, and other markers found in the breast cancer tissue sample. We can interactively select a subset of interest within the tissue section and visualize the localization of these transcripts. Here we subset a ductal carcinoma niche, and visualize mRNAs of four genes. 
+With **vrSpatialPlot**, we can visualize Xenium experiments in subcellular context. We first visualize mRNAs of ACTA2, a marker for smooth muscle cell actin, as well as markers that are found in myoepithelial and breast cancer associated tumor cells. 
+
+VoltRon incorporates automated rasterization of point (aggregating points into tiles of equal size) if large number of spatial entities are being visualized, and thus speeds up plotting. 
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPlot(Xen_R1, group.by = "gene", assay = "Xenium_mol", 
+              group.id = c("ACTA2", "KRT15", "TACSTD2", "CEACAM6"))
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize_whole.png" class="center">
+
+We can interactively select a subset of interest within the tissue section and visualize the localization of these transcripts. Here we subset a ductal carcinoma niche, and visualize mRNAs of four genes. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1_subset <- subset(Xen_R1, interactive = TRUE)
@@ -104,13 +134,148 @@ vrSpatialPlot(Xen_R1_subset, assay = "Xenium_mol", group.by = "gene",
 
 <br>
 
-We can use the **n.tile** argument to divide the count of selected group.ids (e.g. genes here) into hexagonal bins. We will use this argument to divide the x and y-axis into 100 tiles and aggregate transcript counts from select **group.id**
+We can use the **n.tile** argument to divide the count of selected group.ids (e.g. genes here) into hexagonal bins. We will use this argument to divide the x and y-axis into 200 tiles and aggregate transcript counts from select **group.id**
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(Xen_R1_subset, assay = "Xenium_mol", group.by = "gene", group.id = "ACTA2",
-              legend.pt.size = 5, n.tile = 100, background.color = "black")
+vrSpatialPlot(Xen_R1_subset, assay = "Xenium_mol", group.by = "gene",
+              group.id = c("ACTA2", "KRT15", "TACSTD2", "CEACAM6"), n.tile = 200)
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize_bins.png" class="center">
 
 <br>
+
+## Xenium COVID-19 Lung Data
+
+Since VoltRon is capable of analyzing localization of sub-cellular entities such as molecules beyond mRNAs, the analysis may also extend to extracellular molecules such as viral RNA. Using Xenium in situ, we locate the open reading frames (ORFs) of genomic and subgenomics RNA of SARS-COV-2, namely **S2_N** and **S2_orf1ab** and analyze their abundances over the COVID-19 infected lung tissue. 
+
+Specifically, we analyse readouts of **eight tissue micro array (TMA) tissue sections** that were fitted into the scan area of a slide loaded on a Xenium in situ instrument. These sections were cut from **control and COVID-19 lung tissues** of donors categorized based on disease durations (acute and prolonged). You can download the standard Xenium output folder [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Xenium_SARSCOV2.zip).  
+
+For more information on the TMA blocks, see [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information. 
+
+Across these eight TMA section, we investigate a section of acute case which is originated from a lung with extreme number of detected open reading frames of virus molecules. For convenience, we load a VoltRon object where cells are already annotated. You can also find the RDS file  [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/acutecase1_annotated.rds).
+
+```{r eval = FALSE, class.source="watch-out"}
+vr2_merged_acute1 <- readRDS(file = "acutecase1_annotated.rds")
+```
+
+You would see that we have two assays associated with the tissue section, one for the cells and the other for the molecules.
+
+```{r eval = FALSE, class.source="watch-out"}
+SampleMetadata(vr2_merged_acute1)
+```
+
+```
+            Assay    Layer       Sample
+Assay7     Xenium Section1 acute case 1
+Assay8 Xenium_mol Section1 acute case 1
+```
+
+<br>
+
+### Spatial Visualization
+
+We can visualize individual **S2_N** and **S2_orf1ab** by simply switching to **Xenium_mol** assay given
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPlot(vr2_merged_acute1, assay = "Xenium_mol", group.by = "gene", 
+              group.ids = c("S2_N", "S2_orf1ab"), n.tile = 500)
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_covid_xenium.png" class="center">
+
+<br>
+
+You can also visualize both the cellular and subcellular spatial points on the same plot using **addSpatialLayer** function, which would show points of the section where virus is abundant with no cell segment on top. 
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPlot(vr2_merged_acute1, assay = "Xenium_mol", group.by = "gene", 
+              group.ids = c("S2_N", "S2_orf1ab"), n.tile = 500) |> 
+  addSpatialLayer(vr2_merged_acute1, assay = "Xenium", group.by = "CellType", plot.segments = TRUE)
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/moleculecell_covid_xenium.png" class="center">
+
+Let us zoom into a specific niche to observe the localization of cell free viral RNA and the surrounding cells.
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_R1_subset <- subset(Xen_R1, interactive = TRUE)
+Xen_R1_subset <- Xen_R1_subset$subsets[[1]]
+vrSpatialPlot(vr2_merged_acute1_subset, assay = "Xenium_mol", group.by = "gene", 
+              group.ids = c("S2_N", "S2_orf1ab"), pt.size = 0.4) |> 
+  addSpatialLayer(vr2_merged_acute1_subset, assay = "Xenium", group.by = "CellType", 
+                  plot.segments = TRUE, alpha = 0.7)
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/moleculecell_covid_xenium_subset.png" class="center">
+
+<br>
+
+### Hot Spot Analysis
+
+Viral RNAs in a highly infected lung sample such as this one may cluster and aggregate in certain niches of the tissue. We can perform **hot spot analysis** to find these locations of clusters with high abundance (i.e. hot spot) to later identify neighboring cells, and to better understand the effects of the viral infection.  
+
+We use the **getHotSpotAnalysis** function to calculate [Getis-Ord](https://en.wikipedia.org/wiki/Getis%E2%80%93Ord_statistics) statistics for spatial entities, which detects neighborhoods with large values of a feature of interest compared to the global mean of the same feature. Again we are only interested in niches abundant with S2_N and S2_orf1ab molecules.
+
+In case of molecules, we divide the spatial data into tiles of equal size and treat the abundance of molecules as a feature. The neighbors of the tiles are thus other adjacent tiles (eight tiles surrounding each tile). The tiling parameter **n.tile** can later be changed by the users. 
+
+```{r eval = FALSE, class.source="watch-out"}
+vr2_merged_acute1 <- getHotSpotAnalysis(vr2_merged_acute1, assay = "Xenium_mol", 
+                                        features = "gene", 
+                                        group.ids = c("S2_N", "S2_orf1ab"), n.tile = 100)
+```
+
+The **getHotSpotAnalysis** function will produce test statistics and adjusted p-values for all the selected molecules in the region.
+
+```{r eval = FALSE, class.source="watch-out"}
+meta <- Metadata(vr2_merged_acute1, assay = "Xenium_mol")
+head(meta[meta$gene %in% c("S2_N", "S2_orf1ab"),])
+```
+
+
+<div><pre><code style="font-size: 11.7px;">                       id assay_id overlaps_nucleus   gene z_location    qv fov_name nucleus_distance
+                   <char>   <char>            <int> <char>      <num> <num>   <char>            <num>
+1: 281694020045508_25831b   Assay8                0   S2_N   20.37133    40       Q7         402.4913
+2: 281694020045511_25831b   Assay8                0   S2_N   20.39390    40       Q7         362.9937
+3: 281694020042882_25831b   Assay8                0   S2_N   20.14611    40       Q7         233.1110
+4: 281694020045509_25831b   Assay8                0   S2_N   20.14540    40       Q7         241.3636
+5: 281694020042883_25831b   Assay8                0   S2_N   19.92565    40       Q7         170.5991
+6: 281694020042884_25831b   Assay8                0   S2_N   19.96041    40       Q7         167.2583
+   postfix      Assay    Layer       Sample gene_hotspot_stat   gene_hotspot_padj gene_hotspot_flag
+    <char>     <char>   <char>       <char>             <num>               <num>            <char>
+1: _25831b Xenium_mol Section1 acute case 1      0.000000e+00                   1              cold
+2: _25831b Xenium_mol Section1 acute case 1      0.000000e+00                   1              cold
+3: _25831b Xenium_mol Section1 acute case 1      5.752399e-06                   1              cold
+4: _25831b Xenium_mol Section1 acute case 1      5.752399e-06                   1              cold
+5: _25831b Xenium_mol Section1 acute case 1      1.150483e-05                   1              cold
+6: _25831b Xenium_mol Section1 acute case 1      1.150483e-05                   1              cold</code></pre></div>
+
+<br>
+
+Now we can visualize the localization of S2_N and S2_orf1ab molecules that are located in "hot regions", or niches that are significantly abundant with these molecules.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPlot(vr2_merged_acute1, assay = "Xenium_mol", 
+              group.by = "gene_hotspot_flag", group.ids = c("cold", "hot"), 
+              alpha = 1, colors = list(cold = "blue", hot = "red"), 
+              background.color = "white")
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_hotspot.png" class="center">
+
+The Getis-Ord test statistics and the associated adjusted p-values are stored within the molecule metadata and can be visualized at will. 
+
+```{r eval = FALSE, class.source="watch-out"}
+library(patchwork)
+g1 <- vrSpatialFeaturePlot(vr2_merged_acute1, assay = "Xenium_mol", 
+                     features = "gene_hotspot_stat", 
+                     alpha = 1, 
+                     background.color = "black")
+g2 <- vrSpatialFeaturePlot(vr2_merged_acute1, assay = "Xenium_mol", 
+                     features = "gene_hotspot_padj", 
+                     alpha = 1, 
+                     background.color = "black")
+g1 | g2
+```
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_hotspot_stats.png" class="center">

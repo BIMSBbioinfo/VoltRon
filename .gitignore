@@ -12,5 +12,8 @@ src/Makevars
 configure.log
 autobrew
 .deps
+Makevars
 dev
 *.tar.xz
+cleanup
+inst/share

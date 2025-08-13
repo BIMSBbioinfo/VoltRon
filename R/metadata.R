@@ -90,13 +90,18 @@ vrSpatialPointsvrMetadata <- function(object, assay = NULL) {
     if(x %in% c("cell", "spot", "ROI")){
       mdata <- slot(object, name = x)
       if(nrow(mdata) > 0){
-        if(!is.null(rownames(mdata))){
-          sp <- rownames(mdata)
-        } else {
+        if("id" %in% colnames(mdata)){
           sp <- as.vector(mdata$id)
+        } else {
+          sp <- rownames(mdata)
         }
-        if(!is.null(assay))
-          sp <- sp[grepl(paste(paste0(assay, "$"), collapse = "|"), sp)]
+        if(!is.null(assay)){
+          if("assay_id" %in% colnames(mdata)){
+            sp <- sp[as.vector(mdata$assay_id) %in% assay]
+          } else {
+            sp <- sp[grepl(paste(paste0(assay, "$"), collapse = "|"), sp)]
+          } 
+        }
         return(sp)  
       }
     } else {
@@ -108,8 +113,13 @@ vrSpatialPointsvrMetadata <- function(object, assay = NULL) {
           return(sp[["id"]])
         } else {
           sp <- as.vector(mdata$id)
-          if(!is.null(assay))
-            sp <- sp[grepl(paste(paste0(assay, "$"), collapse = "|"), sp)]
+          if(!is.null(assay)){
+            if("assay_id" %in% colnames(mdata)){
+              sp <- sp[as.vector(mdata$assay_id) %in% assay]
+            } else {
+              sp <- sp[grepl(paste(paste0(assay, "$"), collapse = "|"), sp)]
+            }
+          }
           return(sp)
         }
       }
@@ -156,18 +166,7 @@ subsetvrMetadata <- function(x, subset, samples = NULL, assays = NULL, spatialpo
       tile.metadata <- data.table::data.table()
     }
   } else if(!is.null(assays)){
-    assay_names <- unique(lapply(slotToList(object), function(x) {
-      if(inherits(x, "data.table")){
-        return(unique(as.vector(x$assay_id)))
-      } else {
-        if(!is.null(rownames(x))){
-          return(unique(stringr::str_extract(rownames(x), "Assay[0-9]+")))
-        } else {
-          return(unique(stringr::str_extract(as.vector(x$id), "Assay[0-9]+"))) 
-        }
-      }
-    }))
-    assay_names <- unique(do.call(c,assay_names))
+    assay_names <- vrAssayNamesvrMetadata(object)
     if(all(assays %in% assay_names)){
       if(nrow(object@molecule) > 0) {
         mol.metadata <- subset_metadata(object@molecule, assays = assays)
@@ -178,7 +177,7 @@ subsetvrMetadata <- function(x, subset, samples = NULL, assays = NULL, spatialpo
       spot.metadata <- subset_metadata(object@spot, assays = assays)
       roi.metadata <- subset_metadata(object@ROI, assays = assays)
       if(nrow(object@tile) > 0) {
-        tile.metadata <- object@tile[assay_id %in% assays, ]
+        tile.metadata <- subset_metadata(object@tile, assays = assays)
       } else {
         tile.metadata <- data.table::data.table()
       }
@@ -408,9 +407,17 @@ cbind_metadata <- function(...){
 #' @param assays assay name (exp: Assay1), see \code{SampleMetadata(object)}
 #' @param assaytypes assay class (exp: Visium, Xenium), see \code{SampleMetadata(object)}
 #' @param spatialpoints the set of spatial points to subset the object
+#' @param features the set of metadata columns to be subsetted
+#' @param drop drop
 #'
 #' @noRd
-subset_metadata <- function(metadata, assays = NULL, assaytypes = NULL, samples = NULL, spatialpoints = NULL){
+subset_metadata <- function(metadata, 
+                            assays = NULL, 
+                            assaytypes = NULL, 
+                            samples = NULL, 
+                            spatialpoints = NULL, 
+                            features = NULL,
+                            drop = TRUE){
   
   if(inherits(metadata, "data.table")){
     if(nrow(metadata) > 0){
@@ -422,6 +429,8 @@ subset_metadata <- function(metadata, assays = NULL, assaytypes = NULL, samples 
         metadata <- subset(metadata, subset = Sample %in% samples)
       } else if(!is.null(spatialpoints)){
         metadata <- subset(metadata, subset = id %in% spatialpoints)
+      } else if(!is.null(features)){
+        metadata <- metadata[,get(names(metadata)[which(colnames(metadata) %in% features)])]
       } else {
         stop("No assay, sample or spatial points were provided!")
       }  
@@ -446,19 +455,21 @@ subset_metadata <- function(metadata, assays = NULL, assaytypes = NULL, samples 
     } else if(!is.null(spatialpoints)){
       cur_column <- as.vector(metadata$id)
       metadata <- metadata[cur_column %in% spatialpoints,]
+    } else if(!is.null(features)){
+      metadata <- metadata[,features]
     } else {
       stop("No assay, sample or spatial points were provided!")
     }  
   } else {
     if(nrow(metadata) > 0){
       if(!is.null(assays)){
-        if(!is.null(rownames(metadata))){
-          metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assays, ]
+        if("id" %in% colnames(metadata)){
+          metadata <- metadata[stringr::str_extract(metadata$id, "Assay[0-9]+") %in% assays, ]
         } else {
           if("assay_id" %in% colnames(metadata)){
             metadata <- subset(metadata, subset = assay_id %in% assays)
           } else {
-            metadata <- metadata[stringr::str_extract(metadata$id, "Assay[0-9]+") %in% assays, ]
+            metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assays, ]
           }
         }
       } else if(!is.null(assaytypes)){
@@ -466,11 +477,18 @@ subset_metadata <- function(metadata, assays = NULL, assaytypes = NULL, samples 
       } else if(!is.null(samples)){
         metadata <- subset(metadata, subset = Sample %in% samples)
       } else if(!is.null(spatialpoints)){
-        if(!is.null(rownames(metadata))){
-          metadata <- metadata[rownames(metadata) %in% spatialpoints,]
-        } else {
+        if("id" %in% colnames(metadata)){
           metadata <- metadata[metadata$id %in% spatialpoints,]
+        } else {
+          metadata <- metadata[rownames(metadata) %in% spatialpoints,]
         }
+      } else if(!is.null(features)){
+        if(inherits(metadata, "data.table")){
+          metadata <- metadata[,get(names(metadata)[which(colnames(metadata) == features)])]
+        } else {
+          metadata <- metadata[,features, drop = drop]
+        }
+        # metadata <- metadata[,features, drop = drop]
       } else {
         stop("No assay, sample or spatial points were provided!")
       }  
@@ -689,11 +707,11 @@ vrAssayNamesvrMetadata <- function(object){
     } else {
       if("assay_id" %in% colnames(cur_metadata)){
         cur_names <- as.vector(cur_metadata$assay_id)
-      } else if(!is.null(rownames(cur_metadata))){
-        cur_names <- stringr::str_extract(rownames(cur_metadata), 
+      } else if("id" %in% colnames(cur_metadata)){
+        cur_names <- stringr::str_extract(as.vector(cur_metadata$id), 
                                           "Assay[0-9]+")
       } else{
-        cur_names <- stringr::str_extract(as.vector(cur_metadata$id), 
+        cur_names <- stringr::str_extract(rownames(cur_metadata), 
                                           "Assay[0-9]+")
       }
     }

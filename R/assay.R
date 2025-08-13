@@ -881,7 +881,17 @@ generateTileDatavrAssay <- function(object, name = NULL, reg = FALSE, channel = 
     
     # make image data
     image_data <- as.numeric(vrImages(object, name = name, reg = reg, channel = channel, as.raster = TRUE))
-    image_data <- (0.299 * image_data[,,1] + 0.587 * image_data[,,2] + 0.114 * image_data[,,3])
+    
+    # prepare tile data
+    if(length(dim(image_data)) == 3){
+      if(dim(image_data)[3] > 1){
+        image_data <- (0.299 * image_data[,,1] + 0.587 * image_data[,,2] + 0.114 * image_data[,,3])
+      } else {
+        image_data <- image_data[,,1]
+      }
+    } 
+
+    # make tile data
     image_data <- .make_tiles_data(image_data, tile_size = vrAssayParams(object, param = "tile.size"))
 
     # update pixel intensity to uint8

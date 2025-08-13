@@ -19,7 +19,8 @@ addSpatialLayer(
   cell.shape = 21,
   graph = NULL,
   graph.edge.color = "orange",
-  spatial = NULL
+  spatial = NULL,
+  combine.groups = FALSE
 )
 }
 \arguments{
@@ -53,6 +54,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{graph.edge.color}{the color of graph edges, if \code{graph} is not NULL.}
 
 \item{spatial}{the name of the main spatial system}
+
+\item{combine.groups}{if TRUE, tile colors will reflect relative abundance of either of two groups, strictly for visualizing two groups when assay is a molecule typed and tiled (see \code{n.tile}).}
 }
 \description{
 adding additional layers of spatial plots to an existing \link{vrSpatialPlot}.

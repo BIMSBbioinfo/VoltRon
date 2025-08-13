@@ -299,11 +299,11 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   } else {
     stop("There are no files named 'filtered_feature_bc_matrix.h5' in the path")
   }
-
+  
   # resolution
   if(!resolution_level %in% c("lowres","hires"))
     stop("resolution_level should be either 'lowres' or 'hires'!")
-
+  
   # image
   image_file <- paste0(dir.path, paste0("/spatial/tissue_", resolution_level, "_image.png"))
   if(file.exists(image_file)){
@@ -312,23 +312,30 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   } else {
     stop("There are no spatial image files in the path")
   }
-
+  
   # coordinates
   coords_file <- list.files(paste0(dir.path, "/spatial/"), full.names = TRUE)
   coords_file <- coords_file[grepl("tissue_positions",coords_file)]
-  if(length(coords_file) == 1){
-    if(grepl("tissue_positions_list.csv", coords_file)) {
-      coords <- utils::read.csv(file = coords_file, header = FALSE)
-      colnames(coords) <- c("barcode", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres")
-    } else {
-      coords <- utils::read.csv(file = coords_file, header = TRUE)
-    }
-  } else if(length(coords_file) > 1) {
-    stop("There are more than 1 position files in the path")
+  if(length(coords_file) > 0){
+    if(length(coords_file) > 1) {
+      message("There are more than 1 position files in the path, using the first!")
+      coords_file <- coords_file[1]
+    } 
+    coords <- utils::read.csv(file = coords_file, header = FALSE)
+    if("barcode" %in% as.vector(coords[1,,drop = TRUE])){
+      coords <- utils::read.csv(file = coords_file, header = FALSE, skip = 1)
+    } 
+    colnames(coords) <- c("barcode", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres")
+    # if(grepl("tissue_positions_list.csv", coords_file)) {
+    #   coords <- utils::read.csv(file = coords_file, header = FALSE)
+    #   colnames(coords) <- c("barcode", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres")
+    # } else {
+    #   coords <- utils::read.csv(file = coords_file, header = TRUE)
+    # }
   } else {
     stop("There are no files named 'tissue_positions.csv' in the path")
   }
-
+  
   if(inTissue){
     coords <- coords[coords$in_tissue==1,]
     rawdata <- rawdata[,colnames(rawdata) %in% coords$barcode]
@@ -338,7 +345,7 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   coords <- as.matrix(coords[,c("pxl_col_in_fullres", "pxl_row_in_fullres")], )
   colnames(coords) <- c("x", "y")
   rownames(coords) <- spotID
-
+  
   # scale coordinates
   scale_file <- paste0(dir.path, "/spatial/scalefactors_json.json")
   if(file.exists(scale_file)){
@@ -354,7 +361,7 @@ importVisium <- function(dir.path, selected_assay = "Gene Expression", assay_nam
   } else {
     stop("There are no files named 'scalefactors_json.json' in the path")
   }
-
+  
   # create VoltRon
   formVoltRon(rawdata, metadata = NULL, image, coords, main.assay = assay_name, params = params, assay.type = "spot", 
               image_name = image_name, main_channel = channel_name, sample_name = sample_name, 
@@ -1052,7 +1059,6 @@ rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level){
 #' @param assay_name the assay name, default: CosMx
 #' @param image the reference morphology image of the CosMx assay
 #' @param image_name the image name of the CosMx assay, Default: main
-#' @param ome.tiff the OME.TIFF file of the CosMx experiment if exists
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
 #' @param verbose verbose
 #' @param method the approach for importing the CosMx assay either by the folder of CSVs or with TileDB array.
@@ -1075,10 +1081,11 @@ importCosMx <- function(path,
                          import_molecules = import_molecules, 
                          feature_name = feature_name, verbose = verbose, ...)
   } else if(method == "TileDB"){
-    vr <- importCosMxTileDB(tiledbURI = path, assay_name = assay_name,
-                            image = image, image_name = image_name, 
-                            import_molecules = import_molecules, 
-                            feature_name = feature_name, verbose = verbose, ...)
+    stop("TileDB importer is currently deprecated!")
+    # vr <- importCosMxTileDB(tiledbURI = path, assay_name = assay_name,
+    #                         image = image, image_name = image_name, 
+    #                         import_molecules = import_molecules, 
+    #                         feature_name = feature_name, verbose = verbose, ...)
   } else {
     stop("method should be either 'CSV' or 'TileDB'!")
   }
@@ -1243,140 +1250,123 @@ importCosMxCSV <- function(path,
   vr
 }
 
-#' importCosMx
-#'
-#' Import CosMx data
-#'
-#' @param tiledbURI the path to the tiledb folder
-#' @param assay_name the assay name, default: CosMx
-#' @param image the reference morphology image of the CosMx assay
-#' @param image_name the image name of the CosMx assay, Default: main
-#' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
-#' @param feature_name the name/key of the feature set
-#' @param verbose verbose
-#' @param ... additional parameters passed to \link{formVoltRon}
-#'
-#' @importFrom data.table data.table
-#' @importFrom ids random_id
-#'
-#' @noRd
-importCosMxTileDB <- function(tiledbURI, 
-                              assay_name = "CosMx",
-                              image = NULL, 
-                              image_name = "main", 
-                              import_molecules = FALSE, 
-                              feature_name = NULL,
-                              verbose = TRUE, ...)
-{
-  # check tiledb and tiledbsc
-  if (!requireNamespace("tiledb", quietly = TRUE))
-    stop("Please install the tiledb package: \n
-         remotes::install_github('TileDB-Inc/TileDB-R', force = TRUE, ref = '0.17.0')")
-  if (!requireNamespace("tiledbsc", quietly = TRUE))
-    stop("Please install the tiledbsc package: \n
-         remotes::install_github('tiledb-inc/tiledbsc', force = TRUE, ref = '8157b7d54398b1f957832f37fff0b173d355530e')")
-  
-  # get tiledb
-  if(verbose)
-    message("Scanning TileDB array for cell data ...")
-  tiledb_scdataset <- tiledbsc::SOMACollection$new(uri = tiledbURI, verbose = FALSE)
-  
-  # raw counts
-  counts <- tiledb_scdataset$somas$RNA$X$members$counts$to_matrix(batch_mode = TRUE)
-  counts <- as.matrix(counts)
-  
-  # cell metadata
-  metadata <- tiledb_scdataset$somas$RNA$obs$to_dataframe()
-  
-  # coordinates
-  coords <- as.matrix(metadata[,c("x_slide_mm", "y_slide_mm")])
-  colnames(coords) <- c("x","y")
-  
-  # transcripts
-  if(import_molecules){
-    if(verbose)
-      message("Scanning TileDB array for molecule data ...")
-    subcellular <- tiledb::tiledb_array(
-      tiledb_scdataset$somas$RNA$obsm$members$transcriptCoords$uri,
-      return_as="data.table")[]
-    colnames(subcellular)[colnames(subcellular)=="target"] <- "gene"
-  }
-  
-  # get slides and construct VoltRon objects for each slides
-  slides <- unique(metadata$slide_ID_numeric)
-  
-  # for each slide create a VoltRon object with combined layers
-  vr_list <- list()
-  for(slide in slides){
-    
-    # cell assay
-    if(verbose)
-      message("Creating cell level assay for slide ", slide, " ...")
-    
-    # slide info
-    cur_coords <- coords[metadata$slide_ID_numeric == slide,]
-    cur_counts <- counts[,rownames(cur_coords)]
-    cur_metadata <- metadata[rownames(cur_coords),]
-    
-    # create VoltRon object
-    cell_object <- formVoltRon(data = cur_counts, metadata = cur_metadata, image = image, coords = cur_coords, 
-                               main.assay = assay_name, assay.type = "cell", image_name = image_name, feature_name = feature_name, ...)
-    cell_object$Sample <- paste0("Slide", slide)
-    
-    # molecule assay
-    if(import_molecules){
-      
-      # get slide
-      if(verbose)
-        message("Creating molecule level assay for slide ", slide, " ...")
-      if("slideID" %in% colnames(subcellular)){
-        cur_subcellular <- subcellular
-      } else {
-        cur_subcellular <- subset(subcellular, slideID == slide)
-      }
-
-      # coordinates
-      mol_coords <- as.matrix(cur_subcellular[,c("x_global_px", "y_global_px")])
-      colnames(mol_coords) <- c("x", "y")
-      
-      # get subcellular data components
-      mol_metadata <- cur_subcellular[,colnames(cur_subcellular)[!colnames(cur_subcellular) %in% c("CellId", "cell_id", "x_global_px", "y_global_px")], with = FALSE]
-      set.seed(nrow(mol_metadata))
-      mol_metadata[, id:=1:.N]
-      mol_metadata[, assay_id:="Assay1"]
-      mol_metadata[, postfix:=paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))]
-      mol_metadata[, id:=do.call(paste0,.SD), .SDcols=c("id", "postfix")]
-      
-      # coord names
-      rownames(mol_coords) <- mol_metadata$id
-      
-      # create VoltRon assay for molecules
-      mol_assay <- formAssay(coords = mol_coords, image = image, type = "molecule", main_image = image_name)
-      
-      # merge assays in one section
-      if(verbose)
-        message("Merging assays for slide ", slide, " ...")
-      sample.metadata <- SampleMetadata(cell_object)
-      cell_object <- addAssay(cell_object,
-                              assay = mol_assay,
-                              metadata = mol_metadata,
-                              assay_name = paste0(assay_name, "_mol"),
-                              sample = sample.metadata["Assay1", "Sample"],
-                              layer = sample.metadata["Assay1", "Layer"])
-    }
-    vr_list <- append(vr_list, cell_object)
-  }
-  
-  # return
-  if(verbose)
-    message("Merging slides ...")
-  if(length(vr_list) > 1){
-    vr <- merge(vr_list[[1]], vr_list[-1])
-  } else {
-    vr <- vr_list[[1]]
-  }
-  vr
-}
+# importCosMxTileDB <- function(tiledbURI,
+#                               assay_name = "CosMx",
+#                               image = NULL,
+#                               image_name = "main",
+#                               import_molecules = FALSE,
+#                               feature_name = NULL,
+#                               verbose = TRUE, ...)
+# {
+#   # check tiledb and tiledbsc
+#   if (!requireNamespace("tiledb", quietly = TRUE))
+#     stop("Please install the tiledb package: \n
+#          remotes::install_github('TileDB-Inc/TileDB-R', force = TRUE, ref = '0.17.0')")
+#   if (!requireNamespace("tiledbsc", quietly = TRUE))
+#     stop("Please install the tiledbsc package: \n
+#          remotes::install_github('tiledb-inc/tiledbsc', force = TRUE, ref = '8157b7d54398b1f957832f37fff0b173d355530e')")
+# 
+#   # get tiledb
+#   if(verbose)
+#     message("Scanning TileDB array for cell data ...")
+#   tiledb_scdataset <- tiledbsc::SOMACollection$new(uri = tiledbURI, verbose = FALSE)
+# 
+#   # raw counts
+#   counts <- tiledb_scdataset$somas$RNA$X$members$counts$to_matrix(batch_mode = TRUE)
+#   counts <- as.matrix(counts)
+# 
+#   # cell metadata
+#   metadata <- tiledb_scdataset$somas$RNA$obs$to_dataframe()
+# 
+#   # coordinates
+#   coords <- as.matrix(metadata[,c("x_slide_mm", "y_slide_mm")])
+#   colnames(coords) <- c("x","y")
+# 
+#   # transcripts
+#   if(import_molecules){
+#     if(verbose)
+#       message("Scanning TileDB array for molecule data ...")
+#     subcellular <- tiledb::tiledb_array(
+#       tiledb_scdataset$somas$RNA$obsm$members$transcriptCoords$uri,
+#       return_as="data.table")[]
+#     colnames(subcellular)[colnames(subcellular)=="target"] <- "gene"
+#   }
+# 
+#   # get slides and construct VoltRon objects for each slides
+#   slides <- unique(metadata$slide_ID_numeric)
+# 
+#   # for each slide create a VoltRon object with combined layers
+#   vr_list <- list()
+#   for(slide in slides){
+# 
+#     # cell assay
+#     if(verbose)
+#       message("Creating cell level assay for slide ", slide, " ...")
+# 
+#     # slide info
+#     cur_coords <- coords[metadata$slide_ID_numeric == slide,]
+#     cur_counts <- counts[,rownames(cur_coords)]
+#     cur_metadata <- metadata[rownames(cur_coords),]
+# 
+#     # create VoltRon object
+#     cell_object <- formVoltRon(data = cur_counts, metadata = cur_metadata, image = image, coords = cur_coords,
+#                                main.assay = assay_name, assay.type = "cell", image_name = image_name, feature_name = feature_name, ...)
+#     cell_object$Sample <- paste0("Slide", slide)
+# 
+#     # molecule assay
+#     if(import_molecules){
+# 
+#       # get slide
+#       if(verbose)
+#         message("Creating molecule level assay for slide ", slide, " ...")
+#       if("slideID" %in% colnames(subcellular)){
+#         cur_subcellular <- subcellular
+#       } else {
+#         cur_subcellular <- subset(subcellular, slideID == slide)
+#       }
+# 
+#       # coordinates
+#       mol_coords <- as.matrix(cur_subcellular[,c("x_global_px", "y_global_px")])
+#       colnames(mol_coords) <- c("x", "y")
+# 
+#       # get subcellular data components
+#       mol_metadata <- cur_subcellular[,colnames(cur_subcellular)[!colnames(cur_subcellular) %in% c("CellId", "cell_id", "x_global_px", "y_global_px")], with = FALSE]
+#       set.seed(nrow(mol_metadata))
+#       mol_metadata[, id:=1:.N]
+#       mol_metadata[, assay_id:="Assay1"]
+#       mol_metadata[, postfix:=paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))]
+#       mol_metadata[, id:=do.call(paste0,.SD), .SDcols=c("id", "postfix")]
+# 
+#       # coord names
+#       rownames(mol_coords) <- mol_metadata$id
+# 
+#       # create VoltRon assay for molecules
+#       mol_assay <- formAssay(coords = mol_coords, image = image, type = "molecule", main_image = image_name)
+# 
+#       # merge assays in one section
+#       if(verbose)
+#         message("Merging assays for slide ", slide, " ...")
+#       sample.metadata <- SampleMetadata(cell_object)
+#       cell_object <- addAssay(cell_object,
+#                               assay = mol_assay,
+#                               metadata = mol_metadata,
+#                               assay_name = paste0(assay_name, "_mol"),
+#                               sample = sample.metadata["Assay1", "Sample"],
+#                               layer = sample.metadata["Assay1", "Layer"])
+#     }
+#     vr_list <- append(vr_list, cell_object)
+#   }
+# 
+#   # return
+#   if(verbose)
+#     message("Merging slides ...")
+#   if(length(vr_list) > 1){
+#     vr <- merge(vr_list[[1]], vr_list[-1])
+#   } else {
+#     vr <- vr_list[[1]]
+#   }
+#   vr
+# }
 
 #' generateCosMxImage
 #'
@@ -2233,6 +2223,10 @@ importDBITSeq <- function(path.rna, path.prot = NULL, size = 10, assay_name = "D
 #' @param segments Either a list of segments or a GeoJSON file. This will result in a second assay in the VoltRon object to be created
 #' @param image_name the image name of the Image assay, Default: main
 #' @param channel_names the channel names of the images if multiple images are provided
+#' @param series the series IDs of the pyramidal image, 
+#' typical an integer starting from 1
+#' @param resolution the resolution IDs of the 
+#' pyramidal image, typical an integer starting from 1
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
@@ -2249,39 +2243,43 @@ importDBITSeq <- function(path.rna, path.prot = NULL, size = 10, assay_name = "D
 #' vrdata <- importImageData(imgfile, image_name = "main", channel_name = c("DAPI", "DAPI2"))
 #' 
 #' @export
-importImageData <- function(image, tile.size = 10, segments = NULL, image_name = "main", channel_names = NULL, ...){
+importImageData <- function(image, tile.size = 10, segments = NULL, 
+                            image_name = "main", channel_names = NULL, 
+                            series = 1, resolution = NULL, ...){
   
-  # images and channel names
-  if(!is.null(channel_names)){
-    if(length(image) != length(channel_names))
-      stop("Provided channel names should of the same length as the images!")
-    if(any(!is.character(channel_names)))
-      stop("Invalid channel names!")  
-  }
+  # # images and channel names
+  # if(!is.null(channel_names)){
+  #   if(length(image) != length(channel_names))
+  #     stop("Provided channel names should of the same length as the images!")
+  #   if(any(!is.character(channel_names)))
+  #     stop("Invalid channel names!")  
+  # }
+  # 
+  # # get image
+  # if(!is.list(image)){}
+  #   image <- as.list(image)
+  # image <- sapply(image, function(img){
+  #   if(!inherits(img, "magick-image")){
+  #     if(!is.character(img)){
+  #       stop("image should either be a magick-image object or a file.path")
+  #     } else{
+  #       if(file.exists(img)){
+  #         img <- magick::image_read(img)
+  #       } else {
+  #         stop(img, " is not found!")
+  #       }
+  #     }
+  #   }
+  #   img
+  # }, USE.NAMES = TRUE, simplify = FALSE)
+  # 
+  # # channel names
+  # if(!is.null(channel_names)){
+  #   names(image) <- channel_names
+  # }
+  image <- importImage(image, channel_names = channel_names, 
+                       series = series, resolution = resolution)
   
-  # get image
-  if(!is.list(image)){}
-    image <- as.list(image)
-  image <- sapply(image, function(img){
-    if(!inherits(img, "magick-image")){
-      if(!is.character(img)){
-        stop("image should either be a magick-image object or a file.path")
-      } else{
-        if(file.exists(img)){
-          img <- magick::image_read(img)
-        } else {
-          stop(img, " is not found!")
-        }
-      }
-    }
-    img
-  }, USE.NAMES = TRUE, simplify = FALSE)
-  
-  # channel names
-  if(!is.null(channel_names)){
-    names(image) <- channel_names
-  }
-
   # check image size
   imageinfo <- vapply(image, function(img) {
     info <- magick::image_info(img)
@@ -2344,6 +2342,105 @@ importImageData <- function(image, tile.size = 10, segments = NULL, image_name =
     # return
     return(object)
   }
+}
+
+#' importImage
+#'
+#' import an image to be used in \code{importImageData}
+#'
+#' @param image a single or a list of image paths or magick-image objects
+#' @param channel_names the channel names of the images if multiple images are provided
+#' @param series the series IDs of the pyramidal image, 
+#' typical an integer starting from 1
+#' @param resolution the resolution IDs of the 
+#' pyramidal image, typical an integer starting from 1
+#'
+#' @importFrom magick image_read image_info
+#' @importFrom data.table data.table
+#'
+#' @noRd
+importImage <- function(image, channel_names = NULL, 
+                        series = 1, resolution = NULL){
+  
+  # images and channel names
+  if(!is.null(channel_names)){
+    if(length(image) != length(channel_names))
+      stop("Provided channel names should of the same length as the images!")
+    if(any(!is.character(channel_names)))
+      stop("Invalid channel names!")
+  }
+
+  # check if image is ome.tiff
+  if(is.character(image)){
+    if(any(grepl(".ome.tiff$|.ome.tif$", image))){
+      if (!requireNamespace('RBioFormats'))
+        stop("Please install RBioFormats package to images from the ome.tiff file!: BiocManager::install('RBioFormats')")
+      if(is.null(resolution))
+        stop("For importing images from ome.tiff files, please specify resolution. ", 
+             "See help(read.metadata) from RBioFormats package.")
+      if(length(image) > 1)
+        stop("Only a single ome.tiff file")
+    }
+  } else {
+    if(!inherits(image, "magick-image"))
+      stop("image should either be a magick-image object or a file.path")
+  }
+    
+  # get image
+  if(!is.list(image))
+    image <- as.list(image)
+  image <- sapply(image, function(img){
+    # check if image exists
+    if(is.character(img)){
+      if(file.exists(img)){
+        # ome.tiff images
+        if(grepl(".ome.tiff$|.ome.tif$", img)){
+          omexml <- RBioFormats::read.omexml(img)
+          omexml <- XML::xmlToList(omexml, simplify = TRUE)
+          meta <- RBioFormats::read.metadata(img)
+          img <- RBioFormats::read.image(img, 
+                                         series = series, 
+                                         resolution = resolution, 
+                                         normalize = TRUE)
+          img <- EBImage::as.Image(img)
+          # check if there are more than 3 or 1 channels
+          if(length(d <- dim(img)) > 2){
+            if(d[3] != 3){
+              img <- sapply(seq_len(d[3]), function(i){
+                tmp <- img[,,i]
+                magick::image_read(grDevices::as.raster(tmp))
+              })
+            } else {
+              img <- magick::image_read(grDevices::as.raster(img))
+            }
+          } else {
+            img <- magick::image_read(grDevices::as.raster(img))
+          }
+        # regular tiff images
+        } else {
+          img <- magick::image_read(img)
+        }
+      } else {
+        stop(img, " is not found!")
+      }
+    }
+    img
+  }, USE.NAMES = TRUE, simplify = FALSE)
+  
+  # flatten nested image lists
+  image <- unlist(image, recursive = FALSE)
+  
+  # channel names
+  if(!is.null(channel_names)){
+    if(length(image) == length(channel_names)){
+      names(image) <- channel_names
+    } else {
+      stop("Provided channel_names should be the same length as the images!")
+    }
+  }
+  
+  # return
+  return(image)
 }
 
 
