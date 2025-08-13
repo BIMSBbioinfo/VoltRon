@@ -1,9 +1,9 @@
 #include <Rcpp.h>
-#include <sys/resource.h>
-#include <sys/sysctl.h>
-#include <unistd.h>
-#include <mach/vm_statistics.h>
-#include <mach/mach.h>
+// #include <sys/resource.h>
+// #include <sys/sysctl.h>
+// #include <unistd.h>
+// #include <mach/vm_statistics.h>
+// #include <mach/mach.h>
 
 // OpenCV
 #include <opencv2/opencv.hpp>

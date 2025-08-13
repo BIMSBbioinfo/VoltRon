@@ -52,28 +52,28 @@ double cppSD(std::vector<cv::Point2f> &points);
 // memory
 ////
 
-void log_mem_usage(const std::string& label);
-void log_mem_macos(const std::string& label);
-double object_size_long(long bsize);
-double object_size_double(double bsize);
-double get_resident_bytes();
-double bytes_to_gb(double bytes);
-
-struct MemProfiler {
-  size_t start;
-  std::string label;
-
-  MemProfiler(const std::string& lbl) : label(lbl) {
-    start = get_resident_bytes();
-  }
-
-  ~MemProfiler() {
-    size_t end = get_resident_bytes();
-    double diff = (double) end - (double) start;
-    if(diff < 0.0) diff = 0.0;
-    double diff_gb = bytes_to_gb(diff);
-    Rcpp::Rcout << "[MEM] " << label << ": +" << diff_gb << " GB" << std::endl;
-  }
-};
+// void log_mem_usage(const std::string& label);
+// void log_mem_macos(const std::string& label);
+// double object_size_long(long bsize);
+// double object_size_double(double bsize);
+// double get_resident_bytes();
+// double bytes_to_gb(double bytes);
+// 
+// struct MemProfiler {
+//   size_t start;
+//   std::string label;
+// 
+//   MemProfiler(const std::string& lbl) : label(lbl) {
+//     start = get_resident_bytes();
+//   }
+// 
+//   ~MemProfiler() {
+//     size_t end = get_resident_bytes();
+//     double diff = (double) end - (double) start;
+//     if(diff < 0.0) diff = 0.0;
+//     double diff_gb = bytes_to_gb(diff);
+//     Rcpp::Rcout << "[MEM] " << label << ": +" << diff_gb << " GB" << std::endl;
+//   }
+// };
 
 #endif

@@ -1,9 +1,9 @@
 #include <Rcpp.h>
-#include <sys/resource.h>
-#include <sys/sysctl.h>
-#include <unistd.h>
-#include <mach/vm_statistics.h>
-#include <mach/mach.h>
+// #include <sys/resource.h>
+// #include <sys/sysctl.h>
+// #include <unistd.h>
+// #include <mach/vm_statistics.h>
+// #include <mach/mach.h>
 
 // OpenCV
 #include <opencv2/opencv.hpp>
@@ -42,68 +42,68 @@ Rcpp::NumericMatrix replaceNaMatrix(Rcpp::NumericMatrix mat, int replace) {
 // memory
 ////
 
-// memory check
-void log_mem_usage(const std::string& label = "") {
-  struct rusage usage;
-  getrusage(RUSAGE_SELF, &usage);
-  long rss_b = usage.ru_maxrss;
-  
-  double rss_kb = rss_b / 1024.0;
-  double rss_mb = rss_kb / 1024.0;
-  double rss_gb = rss_mb / 1024.0;
-  
-  Rcpp::Rcout << "Used Memory [" << label << "]: " << rss_gb << " GB" << std::endl;
-}
-
-void log_mem_macos(const std::string& label = "") {
-  mach_task_basic_info info;
-  mach_msg_type_number_t size = MACH_TASK_BASIC_INFO_COUNT;
-  kern_return_t kr = task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
-                               (task_info_t)&info, &size);
-  
-  if (kr != KERN_SUCCESS) {
-    Rcpp::Rcerr << "[MEM " << label << "] Failed to get memory info.\n";
-    return;
-  }
-  
-  double rss_gb = static_cast<double>(info.resident_size) / (1024.0 * 1024.0 * 1024.0);
-  double virt_gb = static_cast<double>(info.virtual_size) / (1024.0 * 1024.0 * 1024.0);
-  
-  Rcpp::Rcout << "[MEM " << label << "] Resident (RSS): "
-              << rss_gb << " GB, Virtual: " << virt_gb << " GB\n";
-}
-
-double object_size_long(long bsize) {
-  
-  double rss_kb = bsize / 1024.0;
-  double rss_mb = rss_kb / 1024.0;
-  double rss_gb = rss_mb / 1024.0;
-  
-  return rss_gb;
-}
-
-double object_size_double(double bsize) {
-  
-  double rss_kb = bsize / 1024;
-  double rss_mb = rss_kb / 1024;
-  double rss_gb = rss_mb / 1024;
-  
-  return rss_gb;
-}
-
-double get_resident_bytes() {
-  mach_task_basic_info info;
-  mach_msg_type_number_t size = MACH_TASK_BASIC_INFO_COUNT;
-  if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
-                (task_info_t)&info, &size) != KERN_SUCCESS) {
-    return 0;
-  }
-  return static_cast<double>(info.resident_size);
-}
-
-double bytes_to_gb(double bytes) {
-  return bytes / (1024.0 * 1024.0 * 1024.0);
-}
+// // memory check
+// void log_mem_usage(const std::string& label = "") {
+//   struct rusage usage;
+//   getrusage(RUSAGE_SELF, &usage);
+//   long rss_b = usage.ru_maxrss;
+//   
+//   double rss_kb = rss_b / 1024.0;
+//   double rss_mb = rss_kb / 1024.0;
+//   double rss_gb = rss_mb / 1024.0;
+//   
+//   Rcpp::Rcout << "Used Memory [" << label << "]: " << rss_gb << " GB" << std::endl;
+// }
+// 
+// void log_mem_macos(const std::string& label = "") {
+//   mach_task_basic_info info;
+//   mach_msg_type_number_t size = MACH_TASK_BASIC_INFO_COUNT;
+//   kern_return_t kr = task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
+//                                (task_info_t)&info, &size);
+//   
+//   if (kr != KERN_SUCCESS) {
+//     Rcpp::Rcerr << "[MEM " << label << "] Failed to get memory info.\n";
+//     return;
+//   }
+//   
+//   double rss_gb = static_cast<double>(info.resident_size) / (1024.0 * 1024.0 * 1024.0);
+//   double virt_gb = static_cast<double>(info.virtual_size) / (1024.0 * 1024.0 * 1024.0);
+//   
+//   Rcpp::Rcout << "[MEM " << label << "] Resident (RSS): "
+//               << rss_gb << " GB, Virtual: " << virt_gb << " GB\n";
+// }
+// 
+// double object_size_long(long bsize) {
+//   
+//   double rss_kb = bsize / 1024.0;
+//   double rss_mb = rss_kb / 1024.0;
+//   double rss_gb = rss_mb / 1024.0;
+//   
+//   return rss_gb;
+// }
+// 
+// double object_size_double(double bsize) {
+//   
+//   double rss_kb = bsize / 1024;
+//   double rss_mb = rss_kb / 1024;
+//   double rss_gb = rss_mb / 1024;
+//   
+//   return rss_gb;
+// }
+// 
+// double get_resident_bytes() {
+//   mach_task_basic_info info;
+//   mach_msg_type_number_t size = MACH_TASK_BASIC_INFO_COUNT;
+//   if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
+//                 (task_info_t)&info, &size) != KERN_SUCCESS) {
+//     return 0;
+//   }
+//   return static_cast<double>(info.resident_size);
+// }
+// 
+// double bytes_to_gb(double bytes) {
+//   return bytes / (1024.0 * 1024.0 * 1024.0);
+// }
 
 ////
 // Conversion
