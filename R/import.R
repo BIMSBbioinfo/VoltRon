@@ -1250,123 +1250,123 @@ importCosMxCSV <- function(path,
   vr
 }
 
-#' importCosMxTileDB <- function(tiledbURI, 
-#'                               assay_name = "CosMx",
-#'                               image = NULL, 
-#'                               image_name = "main", 
-#'                               import_molecules = FALSE, 
-#'                               feature_name = NULL,
-#'                               verbose = TRUE, ...)
-#' {
-#'   # check tiledb and tiledbsc
-#'   if (!requireNamespace("tiledb", quietly = TRUE))
-#'     stop("Please install the tiledb package: \n
-#'          remotes::install_github('TileDB-Inc/TileDB-R', force = TRUE, ref = '0.17.0')")
-#'   if (!requireNamespace("tiledbsc", quietly = TRUE))
-#'     stop("Please install the tiledbsc package: \n
-#'          remotes::install_github('tiledb-inc/tiledbsc', force = TRUE, ref = '8157b7d54398b1f957832f37fff0b173d355530e')")
-#'   
-#'   # get tiledb
-#'   if(verbose)
-#'     message("Scanning TileDB array for cell data ...")
-#'   tiledb_scdataset <- tiledbsc::SOMACollection$new(uri = tiledbURI, verbose = FALSE)
-#'   
-#'   # raw counts
-#'   counts <- tiledb_scdataset$somas$RNA$X$members$counts$to_matrix(batch_mode = TRUE)
-#'   counts <- as.matrix(counts)
-#'   
-#'   # cell metadata
-#'   metadata <- tiledb_scdataset$somas$RNA$obs$to_dataframe()
-#'   
-#'   # coordinates
-#'   coords <- as.matrix(metadata[,c("x_slide_mm", "y_slide_mm")])
-#'   colnames(coords) <- c("x","y")
-#'   
-#'   # transcripts
-#'   if(import_molecules){
-#'     if(verbose)
-#'       message("Scanning TileDB array for molecule data ...")
-#'     subcellular <- tiledb::tiledb_array(
-#'       tiledb_scdataset$somas$RNA$obsm$members$transcriptCoords$uri,
-#'       return_as="data.table")[]
-#'     colnames(subcellular)[colnames(subcellular)=="target"] <- "gene"
-#'   }
-#'   
-#'   # get slides and construct VoltRon objects for each slides
-#'   slides <- unique(metadata$slide_ID_numeric)
-#'   
-#'   # for each slide create a VoltRon object with combined layers
-#'   vr_list <- list()
-#'   for(slide in slides){
-#'     
-#'     # cell assay
-#'     if(verbose)
-#'       message("Creating cell level assay for slide ", slide, " ...")
-#'     
-#'     # slide info
-#'     cur_coords <- coords[metadata$slide_ID_numeric == slide,]
-#'     cur_counts <- counts[,rownames(cur_coords)]
-#'     cur_metadata <- metadata[rownames(cur_coords),]
-#'     
-#'     # create VoltRon object
-#'     cell_object <- formVoltRon(data = cur_counts, metadata = cur_metadata, image = image, coords = cur_coords, 
-#'                                main.assay = assay_name, assay.type = "cell", image_name = image_name, feature_name = feature_name, ...)
-#'     cell_object$Sample <- paste0("Slide", slide)
-#'     
-#'     # molecule assay
-#'     if(import_molecules){
-#'       
-#'       # get slide
-#'       if(verbose)
-#'         message("Creating molecule level assay for slide ", slide, " ...")
-#'       if("slideID" %in% colnames(subcellular)){
-#'         cur_subcellular <- subcellular
-#'       } else {
-#'         cur_subcellular <- subset(subcellular, slideID == slide)
-#'       }
-#' 
-#'       # coordinates
-#'       mol_coords <- as.matrix(cur_subcellular[,c("x_global_px", "y_global_px")])
-#'       colnames(mol_coords) <- c("x", "y")
-#'       
-#'       # get subcellular data components
-#'       mol_metadata <- cur_subcellular[,colnames(cur_subcellular)[!colnames(cur_subcellular) %in% c("CellId", "cell_id", "x_global_px", "y_global_px")], with = FALSE]
-#'       set.seed(nrow(mol_metadata))
-#'       mol_metadata[, id:=1:.N]
-#'       mol_metadata[, assay_id:="Assay1"]
-#'       mol_metadata[, postfix:=paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))]
-#'       mol_metadata[, id:=do.call(paste0,.SD), .SDcols=c("id", "postfix")]
-#'       
-#'       # coord names
-#'       rownames(mol_coords) <- mol_metadata$id
-#'       
-#'       # create VoltRon assay for molecules
-#'       mol_assay <- formAssay(coords = mol_coords, image = image, type = "molecule", main_image = image_name)
-#'       
-#'       # merge assays in one section
-#'       if(verbose)
-#'         message("Merging assays for slide ", slide, " ...")
-#'       sample.metadata <- SampleMetadata(cell_object)
-#'       cell_object <- addAssay(cell_object,
-#'                               assay = mol_assay,
-#'                               metadata = mol_metadata,
-#'                               assay_name = paste0(assay_name, "_mol"),
-#'                               sample = sample.metadata["Assay1", "Sample"],
-#'                               layer = sample.metadata["Assay1", "Layer"])
-#'     }
-#'     vr_list <- append(vr_list, cell_object)
-#'   }
-#'   
-#'   # return
-#'   if(verbose)
-#'     message("Merging slides ...")
-#'   if(length(vr_list) > 1){
-#'     vr <- merge(vr_list[[1]], vr_list[-1])
-#'   } else {
-#'     vr <- vr_list[[1]]
-#'   }
-#'   vr
-#' }
+# importCosMxTileDB <- function(tiledbURI,
+#                               assay_name = "CosMx",
+#                               image = NULL,
+#                               image_name = "main",
+#                               import_molecules = FALSE,
+#                               feature_name = NULL,
+#                               verbose = TRUE, ...)
+# {
+#   # check tiledb and tiledbsc
+#   if (!requireNamespace("tiledb", quietly = TRUE))
+#     stop("Please install the tiledb package: \n
+#          remotes::install_github('TileDB-Inc/TileDB-R', force = TRUE, ref = '0.17.0')")
+#   if (!requireNamespace("tiledbsc", quietly = TRUE))
+#     stop("Please install the tiledbsc package: \n
+#          remotes::install_github('tiledb-inc/tiledbsc', force = TRUE, ref = '8157b7d54398b1f957832f37fff0b173d355530e')")
+# 
+#   # get tiledb
+#   if(verbose)
+#     message("Scanning TileDB array for cell data ...")
+#   tiledb_scdataset <- tiledbsc::SOMACollection$new(uri = tiledbURI, verbose = FALSE)
+# 
+#   # raw counts
+#   counts <- tiledb_scdataset$somas$RNA$X$members$counts$to_matrix(batch_mode = TRUE)
+#   counts <- as.matrix(counts)
+# 
+#   # cell metadata
+#   metadata <- tiledb_scdataset$somas$RNA$obs$to_dataframe()
+# 
+#   # coordinates
+#   coords <- as.matrix(metadata[,c("x_slide_mm", "y_slide_mm")])
+#   colnames(coords) <- c("x","y")
+# 
+#   # transcripts
+#   if(import_molecules){
+#     if(verbose)
+#       message("Scanning TileDB array for molecule data ...")
+#     subcellular <- tiledb::tiledb_array(
+#       tiledb_scdataset$somas$RNA$obsm$members$transcriptCoords$uri,
+#       return_as="data.table")[]
+#     colnames(subcellular)[colnames(subcellular)=="target"] <- "gene"
+#   }
+# 
+#   # get slides and construct VoltRon objects for each slides
+#   slides <- unique(metadata$slide_ID_numeric)
+# 
+#   # for each slide create a VoltRon object with combined layers
+#   vr_list <- list()
+#   for(slide in slides){
+# 
+#     # cell assay
+#     if(verbose)
+#       message("Creating cell level assay for slide ", slide, " ...")
+# 
+#     # slide info
+#     cur_coords <- coords[metadata$slide_ID_numeric == slide,]
+#     cur_counts <- counts[,rownames(cur_coords)]
+#     cur_metadata <- metadata[rownames(cur_coords),]
+# 
+#     # create VoltRon object
+#     cell_object <- formVoltRon(data = cur_counts, metadata = cur_metadata, image = image, coords = cur_coords,
+#                                main.assay = assay_name, assay.type = "cell", image_name = image_name, feature_name = feature_name, ...)
+#     cell_object$Sample <- paste0("Slide", slide)
+# 
+#     # molecule assay
+#     if(import_molecules){
+# 
+#       # get slide
+#       if(verbose)
+#         message("Creating molecule level assay for slide ", slide, " ...")
+#       if("slideID" %in% colnames(subcellular)){
+#         cur_subcellular <- subcellular
+#       } else {
+#         cur_subcellular <- subset(subcellular, slideID == slide)
+#       }
+# 
+#       # coordinates
+#       mol_coords <- as.matrix(cur_subcellular[,c("x_global_px", "y_global_px")])
+#       colnames(mol_coords) <- c("x", "y")
+# 
+#       # get subcellular data components
+#       mol_metadata <- cur_subcellular[,colnames(cur_subcellular)[!colnames(cur_subcellular) %in% c("CellId", "cell_id", "x_global_px", "y_global_px")], with = FALSE]
+#       set.seed(nrow(mol_metadata))
+#       mol_metadata[, id:=1:.N]
+#       mol_metadata[, assay_id:="Assay1"]
+#       mol_metadata[, postfix:=paste0("_", ids::random_id(bytes = 3, use_openssl = FALSE))]
+#       mol_metadata[, id:=do.call(paste0,.SD), .SDcols=c("id", "postfix")]
+# 
+#       # coord names
+#       rownames(mol_coords) <- mol_metadata$id
+# 
+#       # create VoltRon assay for molecules
+#       mol_assay <- formAssay(coords = mol_coords, image = image, type = "molecule", main_image = image_name)
+# 
+#       # merge assays in one section
+#       if(verbose)
+#         message("Merging assays for slide ", slide, " ...")
+#       sample.metadata <- SampleMetadata(cell_object)
+#       cell_object <- addAssay(cell_object,
+#                               assay = mol_assay,
+#                               metadata = mol_metadata,
+#                               assay_name = paste0(assay_name, "_mol"),
+#                               sample = sample.metadata["Assay1", "Sample"],
+#                               layer = sample.metadata["Assay1", "Layer"])
+#     }
+#     vr_list <- append(vr_list, cell_object)
+#   }
+# 
+#   # return
+#   if(verbose)
+#     message("Merging slides ...")
+#   if(length(vr_list) > 1){
+#     vr <- merge(vr_list[[1]], vr_list[-1])
+#   } else {
+#     vr <- vr_list[[1]]
+#   }
+#   vr
+# }
 
 #' generateCosMxImage
 #'
