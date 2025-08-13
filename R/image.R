@@ -113,28 +113,38 @@ subsetvrImage <- function(x, subset, spatialpoints = NULL, image = NULL) {
     
     # get one image
     vrimage <- vrImages(object)
-    
+    if(!is.null(vrimage)){
+      imageinfo <- getImageInfo(vrimage)
+    } else {
+      imageinfo <- list(width = getMax(coords[,"x"]), height = getMax(coords[,"y"]))
+    }
+
     # coordinates
-    cropped_coords <- subsetCoordinates(coords, vrimage, image)
-    vrCoordinates(object) <- cropped_coords
+    cropped_coords <- subsetCoordinates(coords, imageinfo, image)
     
+    # if there are no coordinates, or samples, return NULL
+    if(is.null(cropped_coords)) {
+      return(NULL)
+    } else {
+      vrCoordinates(object) <- cropped_coords
+    }
+
     # segments
     cropped_segments <- segments[rownames(cropped_coords)]
     if(length(segments) > 0){
-      segments[rownames(cropped_coords)] <- subsetSegments(cropped_segments, vrimage, image)
+      segments[rownames(cropped_coords)] <- subsetSegments(cropped_segments, imageinfo, image)
       vrSegments(object) <- segments
     }
     
     # spatial points
-    # object <- subset.vrImage(object, spatialpoints = rownames(cropped_coords))
     object <- subsetvrImage(object, spatialpoints = rownames(cropped_coords))
     
     # image
-    for(img in vrImageChannelNames(object)){
+    for(img in vrImageChannelNames(object, return.report = FALSE)){
       
       # check if the image is either ondisk or inmemory
       img_data <- object@image[[img]]
-      if(inherits(img_data, "Image_Array")){
+      if(inherits(img_data, "ImgArray")){
         crop_info_int <- as.integer(strsplit(image, split = "[x|+]")[[1]])
         img_data <- ImageArray::crop(img_data, ind = list(crop_info_int[3]:(crop_info_int[3]+crop_info_int[1]), crop_info_int[4]:(crop_info_int[4]+crop_info_int[2])))
         object@image[[img]] <- img_data
@@ -331,9 +341,8 @@ vrImagesvrImage <- function(object, channel = NULL, as.raster = FALSE, scale.per
     } else {
       
       # get image as array if image is stored as a DelayedArray
-      if(inherits(img, "Image_Array")){
-        # img <- as.array(img@seed)
-        img <- as.array(img)
+      if(inherits(img, "ImgArray")){
+        img <- DelayedArray::realize(img)
         img <- array(as.raw(img), dim = dim(img))
       }
       
@@ -378,7 +387,7 @@ vrImagesReplacevrImage <- function(object, channel = NULL, value){
     object@image[[channel]] <- value
   } else if(inherits(value, "magick-image")){
     object@image[[channel]] <- magick::image_data(value)
-  } else if(inherits(value, "Image_Array")){
+  } else if(inherits(value, "ImgArray")){
     object@image[[channel]] <- value
   } else {
     stop("Please provide either a magick-image or bitmap class image object!")
@@ -770,15 +779,20 @@ setMethod("vrImageChannelNames", "vrAssay", vrImageChannelNamesvrAssay)
 #' @export
 setMethod("vrImageChannelNames", "vrAssayV2", vrImageChannelNamesvrAssay)
 
-vrImageChannelNamesvrImage <- function(object){
+vrImageChannelNamesvrImage <- function(object, return.report = TRUE){
   if(is.null(names(object@image))){
-    return("No Channels or Images are found!")
+    if(return.report){
+      return("No Channels or Images are found!")
+    } else {
+      return(NULL)
+    }
   } else{
     return(names(object@image))
   }
 }
 
 #' @rdname vrImageChannelNames
+#' @param return.report if TRUE and no image is present, return a character stating that there is no image
 #'
 #' @export
 setMethod("vrImageChannelNames", "vrImage", vrImageChannelNamesvrImage)
@@ -882,7 +896,7 @@ resizeImagevrImage <- function(object, size = NULL){
   image_names <- vrImageChannelNames(object)
   for(img in image_names){
     img_data <- object@image[[img]]
-    if(inherits(img_data, "Image_Array")){
+    if(inherits(img_data, "ImgArray")){
       stop("Currently modulateImage only works on in-memory images!")
     } else {
       img_data <- magick::image_read(img_data)
@@ -988,7 +1002,7 @@ modulateImagevrImage <- function(object, channel = NULL, brightness = 100, satur
   # modulate image
   for(img in channel){
     img_data <- object@image[[img]]
-    if(inherits(img_data, "Image_Array")){
+    if(inherits(img_data, "ImgArray")){
       stop("Currently modulateImage only works on in-memory images!")
     } else {
       img_data <- magick::image_read(img_data)
@@ -1321,26 +1335,36 @@ demuxVoltRon <- function(object, max.pixel.size = 1200, use.points.only = FALSE,
   
   # get image
   images <- vrImages(object[[vrAssayNames(object)]], as.raster = TRUE)
-  if(!inherits(images, "Image_Array")){
-    images <- magick::image_read(images)
+  if(!is.null(images)){
+    if(!inherits(images, "ImgArray")){
+      images <- magick::image_read(images)
+    } 
+  } else {
+    use.points.only <- TRUE 
   }
   
   # scale 
-  imageinfo <- getImageInfo(images)
   scale_factor <- 1
-  if(imageinfo$width > max.pixel.size){
-    scale_factor <- imageinfo$width/max.pixel.size
-  }
   if(use.points.only){
-    object_small <- resizeImage(object, size = max.pixel.size)
-    image_info_small <- magick::image_info(vrImages(object_small))
-    coords <- as.data.frame(vrCoordinates(object_small, reg = FALSE))
-    pl <- ggplot() + geom_point(aes_string(x = "x", y = "y"), coords, size = 1.5, color = "black") +
-      theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
-            axis.line=element_blank(), axis.title.x=element_blank(), axis.title.y=element_blank(),
-            legend.margin = margin(0,0,0,0), plot.margin = unit( c(0,0,0,0),"in")) +
-      coord_fixed()
+    colors <- list("black")
+    names(colors) <- SampleMetadata(object)[["Sample"]]
+    pl <- vrSpatialPlot(object, background.color = "white", group.by = "Sample", colors = colors)
+    if(!is.null(images)){
+      imageinfo <- getImageInfo(images)
+    } else {
+      coords <- vrCoordinates(object)
+      imageinfo <- list(width = getMax(coords[,"x"]), height = getMax(coords[,"y"]))
+    }
   } else {
+    
+    # scale 
+    imageinfo <- getImageInfo(images)
+    scale_factor <- 1
+    if(imageinfo$width > max.pixel.size){
+      scale_factor <- imageinfo$width/max.pixel.size
+    }
+    
+    # plot
     pl <- plotImage(images, max.pixel.size = max.pixel.size)
   }
 
@@ -1573,8 +1597,9 @@ demuxVoltRon <- function(object, max.pixel.size = 1200, use.points.only = FALSE,
         } else{
           for(i in seq_len(length(box_list$box))){
             temp <- subsetVoltRon(object, image = box_list$box[i])
-            temp$Sample <- sample_names[i]
-            subsets[[sample_names[i]]] <- temp
+            if(!is.null(temp))
+              temp$Sample <- sample_names[i]
+            subsets[sample_names[i]] <- list(temp)
           }
           stopApp(list(subsets = subsets, subset_info_list = box_list))
         }

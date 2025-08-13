@@ -53,6 +53,11 @@ You can find and download readouts of all four Visium sections [here](https://bi
 We will now import each of four samples separately and merge them into one VoltRon object. There are four brain tissue sections in total given two serial anterior and serial posterior sections, hence we have **two tissue blocks each having two layers**. 
 
 ```{r eval = FALSE, class.source="watch-out"}
+# dependencies
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
+
+# import visium data
 library(VoltRon)
 Ant_Sec1 <- importVisium("Sagittal_Anterior/Section1/", sample_name = "Anterior1")
 Ant_Sec2 <- importVisium("Sagittal_Anterior/Section2/", sample_name = "Anterior2")
@@ -261,7 +266,7 @@ vrHeatmapPlot(MBrain_Sec, features = vrFeatures(MBrain_Sec), group.by = "niche_c
 <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_heatmap_clusters.png" class="center">
 <br>
 
-# Cell-based Niche Clustering
+# Cell-based Niche Clustering {#cellxenium}
 
 Similar to spot-based spatial omics assays, we can build and cluster niche associated to each cell for spatial transcriptomics datasets in single cell resolution. For this, we require building niche assays for the collections of cells where a niche of cell is defined as a region of sets of regions with distinct cell type population that each of these cells belong to. 
 
@@ -373,4 +378,156 @@ vrHeatmapPlot(Xen_data, features = vrFeatures(Xen_data), group.by = "niche_clust
 ```
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_xenium_heatmapclusters.png" class="center">
+<br>
+
+# 3D Niche Clustering
+
+VoltRon extends coordinate spaces to three dimensions, thus allow analyzing the proximity across observations in three dimensions. 
+
+## Import OpenST Data
+
+We will the OpenST [https://rajewsky-lab.github.io/openst/latest/](https://rajewsky-lab.github.io/openst/latest/) assays to capture cells in 3D and detect tissue niches of the metastatic lymph node example that is deposited to NCBI/GEO ([GSE251926](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE251926)). Please use the **GSE251926_metastatic_lymph_node_3d.h5ad.gz** file and unzip it to use the importOpenST function below. 
+
+```{r eval = FALSE, class.source="watch-out"}
+vr_openst <- importOpenST(h5ad.path = "GSE251926_metastatic_lymph_node_3d.h5ad", 
+                          sample_name = "MLN_3D", assay_name = "OpenST")
+vr_openst
+```
+
+```
+VoltRon Object 
+MLN_3D: 
+  Layers: Section1 Section2 Section3 Section4 Section5 
+          Section6 Section7 Section8 Section9 Section10 
+          Section11 Section12 Section13 Section14 Section15 
+          Section16 Section17 Section18 Section19 
+Assays: OpenST(Main) 
+Features: Niche_15(Main) RNA 
+```
+
+OpenST cells from **GSE251926** are already called and annotated. See the [OpenST paper](https://www.cell.com/cell/fulltext/S0092-8674(24)00636-6) for more information.
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPlot(vr_openst, assay = c("Assay1", "Assay2", "Assay3", "Assay4"), 
+              group.by = "annotation", n.tile = 400, alpha = 1, ncol = 2,
+              background.color = "black")
+```            
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/openst_spatial_plot.png" class="center">
+<br>
+
+The **importOpenST** function automatically detects sections of an OpenST readout and create a block of these sections in the form of a VoltRon object. Here, we have more than 1 million cells across 19 tissue sections.
+
+```{r eval = FALSE, class.source="watch-out"}
+length(vrSpatialPoints(vr_openst))
+```
+
+```
+[1] 1097769
+```
+
+## VoltRon Objects on Disk
+
+VoltRon provide utilities to store **(i)** large images and **(ii)** large feature vs observation matrices on disk for decreased memory consumption. We use the **saveVoltRon** function to determine a location for large data matrices to be stored. We choose **HDF5VoltRon** as the format, indicating the feature profiles of these 1 million cells to be stored in a separate .h5 file in the **output**.
+
+```{r eval = FALSE, class.source="watch-out"}
+vr_openst <- saveVoltRon(vr_openst, 
+                         format = "HDF5VoltRon", 
+                         output = "data/OnDisk/OpenST/mln3d/", 
+                         replace = TRUE)
+```
+                     
+A saved VoltRon object on disk can be loaded given the location.
+
+```{r eval = FALSE, class.source="watch-out"}
+vr_openst <- loadVoltRon(dir = "data/OnDisk/OpenST/mln3d/")
+```
+
+## Creating Niche Assay for 3D
+
+Once the ondisk VoltRon object is loaded, the niche clustering workflow is followed similar to the Xenium example [above](#cellxenium). We can check the 
+three dimensional coordinates (with z axis) of all one million cells using again the **vrCoordinates** function.
+
+```{r eval = FALSE, class.source="watch-out"}
+head(vrCoordinates(vr_openst))
+```
+
+```
+               x    y        z
+2_307_Assay1 259 4848 57.97101
+2_309_Assay1 259 5448 57.97101
+2_446_Assay1 313 5640 57.97101
+2_655_Assay1 493 6225 57.97101
+2_656_Assay1 495 6262 57.97101
+2_658_Assay1 495 6319 57.97101
+```
+
+Let us capture the relative cell type mixture around each cell using a spatial proximity graph. We will use this graph to build a niche assay
+whose features are cell type and measures are proportional abundance of each cell type around that cell. 
+
+```{r eval = FALSE, class.source="watch-out"}
+vr_openst <- getSpatialNeighbors(vr_openst, radius = 60, method = "radius")
+vr_openst <- getNicheAssay(vr_openst, label = "annotation", 
+                           graph.type = "radius", new_feature_name = "Niche_60")
+```
+
+We visualize the TIMP1 expression of cells, which is a marker for M1 macrophages, in the first two adjacent sections, and also visualize the relative amount of M1 macrophages neighboring each cell. 
+
+```{r eval = FALSE, class.source="watch-out"}
+vrMainFeatureType(vr_openst) <- "RNA"
+vrSpatialFeaturePlot(vr_openst, assay = c("Assay1", "Assay2"), 
+                     features = "SPP1", n.tile = 400, alpha = 1, 
+                     background.color = "black")
+vrMainFeatureType(vr_openst) <- "Niche_15"
+vrSpatialFeaturePlot(vr_openst, assay = c("Assay1", "Assay2"), 
+                     features = "M1_macrophages", n.tile = 400, alpha = 1, 
+                     background.color = "black")
+```
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/openst_feature_plot.png" class="center">
+<br>
+
+## Clustering
+
+We incorporate **centred log ratio (CLR)** transformation for normalizing cell type abundances before K-means clustering. 
+
+```{r eval = FALSE, class.source="watch-out"}
+vr_openst <- normalizeData(vr_openst, method = "CLR")
+vr_openst <- getClusters(vr_openst, nclus = 6, 
+                         method = "kmeans", label = "niche_clusters")
+```
+
+## Visualization
+
+```{r eval = FALSE, class.source="watch-out"}
+g1 <- vrSpatialPlot(vr_openst, assay = "Assay1", group.by = "niche_clusters", 
+                    background.color = "black", n.tile = 400, alpha = 1)
+g2 <- vrSpatialPlot(vr_openst, assay = "Assay1", group.by = "annotation", 
+                    background.color = "black", n.tile = 400, alpha = 1)
+g3 <- vrSpatialPlot(vr_openst, assay = "Assay2", group.by = "niche_clusters", 
+                    background.color = "black", n.tile = 400, alpha = 1)
+g4 <- vrSpatialPlot(vr_openst, assay = "Assay2", group.by = "annotation", 
+                    background.color = "black", n.tile = 400, alpha = 1)
+
+library(patchwork)
+(g1 | g2) / (g3 | g4)
+```
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/openst_niche_plot.png" class="center">
+<br>
+
+We use **vrHeatmapPlot** to investigate the abundance of each cell type across the niche clusters. You will need to have **ComplexHeatmap** package in your namespace. We see a clear separation of e.g. Tumor, Plasma cells (IGHG3+), and macrophages, where M1 macrophages mostly compose separate niches compared to T cells although both groups are found in niches along with IGHA1+ Plasma cells and Endothelial Venules.
+
+```{r eval = FALSE, class.source="watch-out"}
+# install packages if necessary
+if(!requireNamespace("ComplexHeatmap"))
+  BiocManager::install("ComplexHeatmap")
+
+# heatmap of niches
+library(ComplexHeatmap)
+vrHeatmapPlot(openst_data_disk, features = vrFeatures(openst_data_disk), 
+              group.by = "niche_clusters")
+```
+
+<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/openst_heatmap_plot.png" class="center">
 <br>

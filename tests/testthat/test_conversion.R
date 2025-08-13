@@ -103,6 +103,9 @@ test_that("as.ometiff, python path", {
 
 test_that("as.Seurat", {
   
+  # check Seurat
+  skip_if_not_installed("Seurat")
+  
   # one sample
   test1 <- VoltRon::as.Seurat(xenium_data, cell.assay = "Xenium", type = "image")
   test1_Voltron <- as.VoltRon(test1, assay_name = "Xenium")
@@ -110,7 +113,7 @@ test_that("as.Seurat", {
   # multiple samples
   xenium_data2 <- xenium_data
   xenium_data2$Sample <- "sample1"
-  xenium_data2 <- merge(xenium_data2, xenium_data)
+  xenium_data2 <- merge(xenium_data2, xenium_data, verbose = FALSE)
   test1 <- VoltRon::as.Seurat(xenium_data2, cell.assay = "Xenium", type = "image")
   test1_Voltron <- as.VoltRon(test1, assay_name = "Xenium")
   

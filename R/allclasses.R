@@ -3,17 +3,29 @@
 #' @useDynLib VoltRon
 NULL
 
+## Auxiliary ####
+
+# pseudo IterableMatrix for BPCells
+if(!requireNamespace("BPCells", quietly = TRUE)){
+  suppressMessages({
+    suppressWarnings({
+      setClass("IterableMatrix")
+      })
+    })
+} 
+
 ## vrImage ####
 
 # Set class union
-suppressWarnings({
-  setClassUnion("image_matrix", 
-                members = c("matrix", 
-                            "data.frame",
-                            "dgRMatrix", 
-                            "dgeMatrix", 
-                            "Array", 
-                            if (requireNamespace("BPCells", quietly = TRUE)) "IterableMatrix" else NULL))
+suppressMessages({
+  suppressWarnings({
+    setClassUnion("image_matrix", 
+                  members = c("matrix", 
+                              "data.frame",
+                              "dgRMatrix", 
+                              "dgeMatrix", 
+                              "Array", 
+                              "IterableMatrix"))  })
 })
 
 #' The vrImage (VoltRon Image) Class
@@ -112,7 +124,7 @@ suppressWarnings({
                 members = c("matrix", 
                             "dgCMatrix", "dgRMatrix", "dgeMatrix", 
                             "Array", 
-                            if (requireNamespace("BPCells", quietly = TRUE)) "IterableMatrix" else NULL))
+                            "IterableMatrix"))
 })
 
 #' The vrAssay (VoltRon Assay) Class

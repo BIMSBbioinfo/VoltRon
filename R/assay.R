@@ -135,11 +135,8 @@ subsetvrAssay <- function(x, subset, spatialpoints = NULL, features = NULL, imag
     features <- intersect(vrFeatures(object), features)
     
     if(length(features) > 0){
-      # object@rawdata <- object@rawdata[rownames(object@rawdata) %in% features,, drop = FALSE]
-      # object@normdata <- object@normdata[rownames(object@normdata) %in% features,, drop = FALSE]
       object <- subsetData(object, features = features)
       object <- subsetData(object, features = features)
-      
     } else {
       stop("none of the provided features are found in the assay")
     }
@@ -158,8 +155,6 @@ subsetvrAssay <- function(x, subset, spatialpoints = NULL, features = NULL, imag
       }
       
       # data
-      # object@rawdata  <- object@rawdata[,spatialpoints, drop = FALSE]
-      # object@normdata  <- object@normdata[,spatialpoints, drop = FALSE]
       object <- subsetData(object, spatialpoints = spatialpoints)
       object <- subsetData(object, spatialpoints = spatialpoints)
       
@@ -170,23 +165,25 @@ subsetvrAssay <- function(x, subset, spatialpoints = NULL, features = NULL, imag
       }
       
       # image
-      # for(img in vrImageNames(object))
       for(img in vrSpatialNames(object))
         object@image[[img]] <- subsetvrImage(object@image[[img]], spatialpoints = spatialpoints)
-        # object@image[[img]] <- subset.vrImage(object@image[[img]], spatialpoints = spatialpoints)
-      
+
     } else if(!is.null(image)) {
       
       # images
       img <- vrMainSpatial(object)
       object@image <- object@image[img]
-      object@image[[img]] <- subsetvrImage(object@image[[img]], image = image)
-      # object@image[[img]] <- subset.vrImage(object@image[[img]], image = image)
+      subset_img <- subsetvrImage(object@image[[img]], image = image)
+      
+      # if the image is empty, return NULL
+      if(is.null(subset_img)){
+        return(NULL)
+      } else {
+        object@image[[img]] <- subset_img
+      }
       spatialpoints <- rownames(vrCoordinates(object@image[[img]]))
       
       # data
-      # object@rawdata  <- object@rawdata[,colnames(object@rawdata) %in% spatialpoints, drop = FALSE]
-      # object@normdata  <- object@normdata[,colnames(object@normdata) %in% spatialpoints, drop = FALSE]
       object <- subsetData(object, spatialpoints = spatialpoints)
       object <- subsetData(object, spatialpoints = spatialpoints)
       
@@ -245,13 +242,10 @@ setMethod("subset", "vrAssayV2", subsetvrAssay)
 #' subsetting coordinates given cropping parameters of a magick image objects
 #'
 #' @param coords the coordinates of the spatial points
-#' @param image the magick image associated with the coordinates
+#' @param imageinfo the magick image info associated with the image
 #' @param crop_info the subseting string passed to \link{image_crop}
 #'
-subsetCoordinates <- function(coords, image, crop_info){
-
-  # image
-  imageinfo <- image_info(image)
+subsetCoordinates <- function(coords, imageinfo, crop_info){
 
   # get crop information
   crop_info <- strsplit(crop_info, split = "\\+")[[1]]
@@ -293,7 +287,9 @@ subsetCoordinates <- function(coords, image, crop_info){
     # return new coords
     return(coords)
   } else {
-    stop("No spatial points remain after cropping!")
+    # stop("No spatial points remain after cropping!")
+    warning("No spatial points remain after cropping!")
+    return(NULL)
   }
 }
 
@@ -302,11 +298,11 @@ subsetCoordinates <- function(coords, image, crop_info){
 #' subsetting segments given cropping parameters of a magick image objects
 #'
 #' @param segments the list of segments each associated with a spatial point
-#' @param image the magick image associated with the coordinates
+#' @param imageinfo the magick image info associated with the image
 #' @param crop_info the subseting string passed to \link{image_crop}
 #'
 #' @importFrom dplyr bind_rows
-subsetSegments <- function(segments, image, crop_info){
+subsetSegments <- function(segments, imageinfo, crop_info){
 
   # get segments
   segment_names <- names(segments)
@@ -315,7 +311,7 @@ subsetSegments <- function(segments, image, crop_info){
   segments <- data.frame(segments, row_id = rownames(segments))
   
   # subset
-  cropped_segments <- subsetCoordinates(segments[,c("x","y")], image, crop_info)
+  cropped_segments <- subsetCoordinates(segments[,c("x","y")], imageinfo, crop_info)
   if(any(colnames(segments) %in% c("rx", "ry"))){
     cropped_segments_extra <- segments[rownames(cropped_segments), c("rx", "ry")]
     cropped_segments <- cbind(cropped_segments, cropped_segments_extra)
@@ -836,7 +832,7 @@ vrDatavrAssay <- function(object, features = NULL, feat_type = NULL, norm = FALS
       }
     }
     
-    # for tiles and molecules
+  # for tiles and molecules
   } else {
     
     # check if features are requested
@@ -882,18 +878,32 @@ generateTileDatavrAssay <- function(object, name = NULL, reg = FALSE, channel = 
   if(vrAssayTypes(object) != "tile"){
     stop("generateTileData can only be used for tile-based assays")
   } else {
+    
+    # make image data
     image_data <- as.numeric(vrImages(object, name = name, reg = reg, channel = channel, as.raster = TRUE))
-    image_data <- (0.299 * image_data[,,1] + 0.587 * image_data[,,2] + 0.114 * image_data[,,3])
-    image_data <- split_into_tiles(image_data, tile_size = vrAssayParams(object, param = "tile.size"))
-    image_data <- sapply(image_data, function(x) return(as.vector(x)))
+    
+    # prepare tile data
+    if(length(dim(image_data)) == 3){
+      if(dim(image_data)[3] > 1){
+        image_data <- (0.299 * image_data[,,1] + 0.587 * image_data[,,2] + 0.114 * image_data[,,3])
+      } else {
+        image_data <- image_data[,,1]
+      }
+    } 
+
+    # make tile data
+    image_data <- .make_tiles_data(image_data, tile_size = vrAssayParams(object, param = "tile.size"))
+
+    # update pixel intensity to uint8
     image_data <- image_data*255
     rownames(image_data) <- paste0("pixel", seq_len(nrow(image_data)))
     colnames(image_data) <- vrSpatialPoints(object)
-    feat_type <- vrMainFeatureType(object)
-    
+
+    # populate image data
     if(inherits(object, "vrAssay")){
       object@rawdata <- object@normdata <- image_data
     } else{
+      feat_type <- vrMainFeatureType(object)
       object@data[[feat_type]] <- image_data
       object@data[[paste0(feat_type, "_norm")]] <- image_data
     }

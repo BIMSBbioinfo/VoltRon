@@ -54,12 +54,12 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
   
   # get image
   img <- vrImages(object[[assay]], name = image_name, channel = channel, as.raster = TRUE)
-  if(!inherits(img, "Image_Array")){
+  if(!inherits(img, "ImgArray")){
     if(!requireNamespace("ImageArray")){
       message("Please install ImageArray package to speed up visualization")
       img <- magick::image_read(img)
     } else{
-      img <- ImageArray::createImageArray(img)
+      img <- ImageArray::createImgArray(img)
     }
   }
   if(!use.image.only){
@@ -152,11 +152,16 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
                     ),
                     
                     # instructions
-                    h4("How to use"),
+                    h4("How to use (Select Region)"),
                     p(style="font-size: 12px;", strong("Single-L-click"), " to select polygon or circle points"),
                     p(style="font-size: 12px;", strong("Add Region"), " to set points as a new region"),
                     p(style="font-size: 12px;", strong("Circles"), " require only 2 points"),
                     p(style="font-size: 12px;", strong("Polygons"), " require at least 4 points"),
+                    br(),
+                    h4("How to use (Zooming)"),
+                    p(style="font-size: 12px;", strong("Single-L-hold-drag:"), "Select area"),
+                    p(style="font-size: 12px;", strong("Double-L-click (selected area):"), "Zoom in"),
+                    p(style="font-size: 12px;", strong("Double-L-click (no area):"), "Zoom out"),
                     br(),
                     
                     # Subsets
@@ -388,7 +393,7 @@ annotateSpatialData <- function(object, label = "annotation", assay = NULL, anno
       } else {
         
         ### annotate spatial points ####
-        if(inherits(metadata, "data.table")){
+        if("id" %in% colnames(metadata)){
           spatialpoints <- as.vector(metadata$id)
         } else {
           spatialpoints <- rownames(metadata)
@@ -470,8 +475,8 @@ manageImageBrush <- function(image, ranges, max.pixel.size, input, output, sessi
       width <- limits[2,1]-limits[1,1]
       height <- limits[2,2]-limits[1,2]
       if(max(height,width) > max.pixel.size){
-        if(inherits(image, "Image_Array")){
-          n.series <- ImageArray::len(image)
+        if(inherits(image, "ImgArray")){
+          n.series <- length(image)
           cur_width <- width
           cur_height <- height
           for(ii in 2:n.series){
@@ -527,8 +532,8 @@ manageSelectedCorners <- function(selected_corners, image, ranges, max.pixel.siz
       width <- limits[2,1]-limits[1,1]
       height <- limits[2,2]-limits[1,2]
       if(max(height,width) > max.pixel.size){
-        if(inherits(image, c("Image_Array"))){
-          n.series <- ImageArray::len(image)
+        if(inherits(image, c("ImgArray"))){
+          n.series <- length(image)
           cur_width <- width
           cur_height <- height
           for(ii in 2:n.series){
@@ -587,8 +592,8 @@ transformSelectedCorners <- function(selected_corners, image, ranges, max.pixel.
   width <- limits[2,1]-limits[1,1]
   height <- limits[2,2]-limits[1,2]
   if(max(height,width) > max.pixel.size){
-    if(inherits(image, "Image_Array")){
-      n.series <- ImageArray::len(image)
+    if(inherits(image, "ImgArray")){
+      n.series <- length(image)
       cur_width <- width
       cur_height <- height
       for(ii in 2:n.series){
@@ -638,8 +643,8 @@ transformSpatialLayer <- function(g_spatial, image, ranges, max.pixel.size){
   width <- limits[2,1]-limits[1,1]
   height <- limits[2,2]-limits[1,2]
   if(max(height,width) > max.pixel.size){
-    if(inherits(image, "Image_Array")){
-      n.series <- ImageArray::len(image)
+    if(inherits(image, "ImgArray")){
+      n.series <- length(image)
       cur_width <- width
       cur_height <- height
       for(ii in 2:n.series){

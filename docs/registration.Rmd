@@ -62,9 +62,20 @@ You can download the Xenium and Visium readouts from the [10x Genomics website](
 VoltRon includes built-in functions for converting readouts from both Xenium and Visium platforms into VoltRon objects. We will import both Xenium replicates alongside with the Visium CytAssist data so that we can register images of these assays and merge them into one VoltRon object. 
 
 ```{r eval = FALSE, class.source="watch-out"}
+# dependencies
+if(!requireNamespace("RBioFormats"))
+  BiocManager::install("RBioFormats")
+if(!requireNamespace("arrow"))
+  install.packages("arrow")
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
 library(VoltRon)
+
+# import Xenium data
 Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1")
 Xen_R2 <- importXenium("Xenium_R2/outs", sample_name = "XeniumR2")
+
+# import Visium data
 Vis <- importVisium("Visium/", sample_name = "VisiumR1")
 ```
 
@@ -459,12 +470,19 @@ In this use case, we will align **immunofluorescence (IF)** of the **Xenium In S
 You can download the Xenium readout and the H&E image of the same tissue section from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import **In Situ Replicate 1** and **Supplemental: Post-Xenium H&E image (TIFF)**). 
 
 ```{r eval = FALSE, class.source="watch-out"}
+# dependencies
+if(!requireNamespace("RBioFormats"))
+  BiocManager::install("RBioFormats")
+if(!requireNamespace("arrow"))
+  install.packages("arrow")
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
 library(VoltRon)
 
 # import Xenium 
 Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1")
 
-# import H&E image and build a VoltRon object
+# import H&E image 
 Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif",
                                 sample_name = "XeniumR1image", 
                                 channel_names = "H&E")
@@ -535,6 +553,11 @@ vrImages(Xen_R1, channel = "H&E", scale.perc = 5)
 In the next use case, we will align **H&E images** associated with Visium data generated from tissue block sections of **adult humans with postmortem dorsolateral prefrontal cortex (DLPFC)**. Two pairs of adjacent sections was obtained from the tissue block of the third donor. Each pair are composed of two 10 $\mu$m serial tissue sections, and pairs are located 300 $\mu$m apart from each other. Hence, we align each pair individually. The datasets can be downloaded from [here](https://research.libd.org/spatialLIBD/). 
 
 ```{r class.source="watch-out", eval = FALSE} 
+# dependencies
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
+
+# import Visium data
 library(VoltRon)
 DLPFC_1 <- importVisium("DLPFC/151673", sample_name = "DLPFC_1")
 DLPFC_2 <- importVisium("DLPFC/151674", sample_name = "DLPFC_2")

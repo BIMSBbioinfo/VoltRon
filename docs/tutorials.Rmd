@@ -110,14 +110,14 @@ In addition, VoltRon provides a number of spatially aware data analysis methods 
       <p class ="tutorial"> Molecules </p>
       <br>
       <div style = "margin: 5%"><img  src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize.png" class="center"></div>
-      <p style = "margin-top: 10%"> Analysis and visualization of Molecule datasets <br> <strong> (Under Development) </strong> </p>
+      <p style = "margin-top: 10%"> Analysis and visualization of Molecule datasets </p>
    </td>
   </tr>
   <tr>
      <td onclick="location.href='pixelanalysis.html';"> 
-      <p class ="tutorial"> Pixels (Image Only) </p>
+      <p class ="tutorial"> Image Tiles/Pixels </p>
       <div style = "margin: 5%"><img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/tissue_lowres_image_grid.png" class="center"></div>
-      <p style = "margin-top: 3%"> Analysis and visualization of Image datasets <br> <strong> (Under Development) </strong> </p>
+      <p style = "margin-top: 3%"> Analysis and visualization of Image datasets </p>
    </td>
    <td>
    </td>
@@ -165,7 +165,7 @@ Here, we provide a group of tutorials to use additional features of the VoltRon 
       <p style = "margin-top: 9%"> Converting VoltRon objects into Seurat, SpatialExperiment and Squidpy (anndata) etc. </p>
    </td>
    <td onclick="location.href='ondisk.html';"> 
-      <p class ="tutorial"> OnDisk Analysis Utilities </p>
+      <p class ="tutorial"> Disk-backed Spatial Analysis </p>
       <div style = "margin: 5%"><img src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/ondisk.png" class="center"></div>
       <p style = "margin: 5%"> Efficient access to large VoltRon objects </p>
    </td>

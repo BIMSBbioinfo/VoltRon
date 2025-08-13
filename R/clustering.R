@@ -38,8 +38,6 @@ getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, da
   }
 
   # find profile neighbors
-  # if(knn.method == "FNN"){
-  #   nnedges <- FNN::get.knn(nndata, k = k + 1)
   nnedges <- knn_annoy(nndata, k = k + 1)
   names(nnedges) <- c("nn.index", "nn.dist")
   weights <- NULL
@@ -88,7 +86,7 @@ getProfileNeighbors <- function(object, assay = NULL, method = "kNN", k = 10, da
 #' @param n_trees Number of trees during index build time. More trees gives higher accuracy
 #' @param search_k Number of nodes to inspect during the query, or -1 for default value. Higher number gives higher accuracy
 #' 
-#' @importFrom RcppAnnoy AnnoyEuclidean
+#' @importFrom RcppAnnoy AnnoyEuclidean AnnoyManhattan
 knn_annoy <- function(data, query = data, k = 10, n_trees = 50, search_k = -1) {
   annoy <- new(RcppAnnoy::AnnoyEuclidean, ncol(data))
   for (i in seq_len(nrow(data))) {
@@ -116,22 +114,40 @@ knn_annoy <- function(data, query = data, k = 10, n_trees = 50, search_k = -1) {
 #'
 #' Get clustering of the VoltRon object
 #'
-#' @param object a VoltRon object
-#' @param resolution the resolution parameter for leiden clustering.
-#' @param nclus The number of cluster centers for K-means clustering.
+#' @param object a VoltRon object.
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param method The method of clustering. Use 'leiden' to perform graph clustering and 'kmeans' for K-means based clustering
-#' @param label the name for the newly created clustering column in the metadata
-#' @param graph the graph type to be used
-#' @param seed seed
-#' @param abundance_limit the minimum number of points for a cluster, hence clusters with abundance lower than this limit will be appointed to other nearby clusters
+#' @param label the name for the newly created clustering column in the metadata.
+#' @param method The method of clustering. Use :
+#' (i) 'leiden' to perform graph clustering and 
+#' (ii) 'kmeans' for K-means based clustering
+#' (iii) 'hierarchical' for hierarchical clustering.
+#' @param resolution the resolution parameter for leiden clustering.
+#' @param graph the graph type to be used.
+#' @param data.type the type of data used to cluster spatial points: 
+#' "norm" (default), "raw" or an existing embeddings \link{vrEmbeddingNames}.
+#' @param dims the number of dimensions extracted from the embedding if data.type is not NULL
+#' @param nclus The number of cluster centers for K-means or hierarchical clustering.
+#' @param distance_measure the distance measure used by hierarchical clustering. See \code{method} for a list of distance measures in \link{dist}.
+#' @param abundance_limit the minimum number of points for a cluster, hence clusters with abundance lower than this limit will be appointed to other nearby clusters.
+#' @param seed seed.
 #'
 #' @importFrom igraph cluster_leiden
-#' @importFrom stats kmeans
+#' @importFrom stats kmeans hclust cutree dist
 #' 
 #' @export
-getClusters <- function(object, resolution = 1, nclus = integer(0), assay = NULL, method = "leiden", label = "clusters", graph = "kNN", seed = 1, abundance_limit = 2){
+getClusters <- function(object, 
+                        assay = NULL, 
+                        label = "clusters", 
+                        method = "leiden", 
+                        resolution = 1, 
+                        graph = "kNN", 
+                        data.type = "norm",
+                        dims = 1:30,
+                        nclus = integer(0), 
+                        distance_measure = "euclidean", 
+                        abundance_limit = 2, 
+                        seed = 1){
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
@@ -145,20 +161,37 @@ getClusters <- function(object, resolution = 1, nclus = integer(0), assay = NULL
   # check clustering parameters
   .check_clustering_params(method, resolution, nclus, abundance_limit)
   
+  # get data type if data_type is specified 
+  embedding_names <- vrEmbeddingNames(object)
+  if (data.type %in% embedding_names) {
+    
+    # get data
+    vrdata <- vrEmbeddings(object,
+                             assay = assay,
+                             type  = data.type,
+                             dims  = dims)
+  } else if(!is.null(data.type)){
+    vrdata <- t(vrData(object_subset, norm = data.type == "norm"))
+  }
+
   # clustering
   set.seed(seed)
   if(method == "leiden"){
     object_graph <- vrGraph(object_subset, assay = assay, graph.type = graph)
     clusters <- igraph::cluster_leiden(object_graph, objective_function = "modularity", resolution = resolution) 
   } else if(method == "kmeans"){
-    vrdata <- vrData(object_subset, norm = TRUE)
-    clusters <- stats::kmeans(t(vrdata), centers = nclus)
+    clusters <- stats::kmeans(vrdata, centers = nclus)
     clusters <- list(names = names(clusters$cluster), membership = clusters$cluster)
+  } else if(method == "hierarchical"){
+    propor_dis <- stats::dist(x = vrdata, method = distance_measure)
+    clusters <- stats::hclust(d = propor_dis, method = "ward.D2")
+    clusters <- stats::cutree(clusters, k = nclus)
+    clusters <- list(names = names(clusters), membership = clusters)
   } else {
     stop("Unrecognized clustering method! Use either 'leiden' for graph clustering or 'kmeans' for K-means clustering")
   }
 
-  # correct clustering
+  # correct clustering for low abundant clusters
   clusters <- .correct_low_abundant_clusters(object_graph, clusters, abundance_limit)
     
   # update metadata

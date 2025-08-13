@@ -96,6 +96,7 @@ NULL
 #' @inheritParams utils::.DollarNames
 #'
 #' @importFrom utils .DollarNames
+#' @export
 #' @method .DollarNames VoltRon
 ".DollarNames.VoltRon" <- function(x, pattern = '') {
   meta.data <- as.list(x = Metadata(x))
@@ -266,7 +267,8 @@ formVoltRon <- function(data = NULL,
                         image_name = NULL, 
                         feature_name = NULL,
                         project = NULL, 
-                        version = "v2", ...){
+                        version = "v2", 
+                        ...){
 
   # set project name
   if(is.null(project))
@@ -452,9 +454,12 @@ addAssayVoltRon <- function(object, assay, metadata = NULL, assay_name, sample =
   # update sample.metadata and metadata
   object@sample.metadata <- rbind(sample.metadata, c(assay_name, layer, sample))
   rownames(object@sample.metadata) <- assay_names
-  object@metadata <- addAssay(object@metadata, metadata = metadata,
-                              assay = assay, assay_name = assay_name,
-                              sample = sample, layer = layer)
+  object@metadata <- addAssay(object@metadata, 
+                              metadata = metadata,
+                              assay = assay, 
+                              assay_name = assay_name,
+                              sample = sample, 
+                              layer = layer)
 
   # get sample and layer
   curlayer <- object[[sample, layer]]
@@ -588,15 +593,10 @@ changeSampleNamesVoltRon <- function(object, samples = NULL){
     adjacency <- matrix(0, nrow = length(listofLayers), ncol = length(listofLayers),
                         dimnames = list(names(listofLayers), names(listofLayers)))
     diag(adjacency) <- 1
-    # distance <- matrix(NA, nrow = length(listofLayers), ncol = length(listofLayers),
-    #                    dimnames = list(names(listofLayers), names(listofLayers)))
-    # diag(distance) <- 0
     zlocation <- rep(0,length(listofLayers))
     names(zlocation) <- names(listofLayers)
     
     # make new block
-    # listofSamples <- list(methods::new("vrBlock", 
-    #                                    layer = listofLayers, adjacency = adjacency, distance = distance))
     listofSamples <- list(methods::new("vrBlock",
                                        layer = listofLayers, zlocation = zlocation, adjacency = adjacency))
     names(listofSamples) <- cur_sample
@@ -804,10 +804,10 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
         stop("Direct subsetting for Ondisk VoltRon objects are currently not possible!")
         # spatialpoints <- as.vector(metadata$id)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
       } else {
-        if(!is.null(rownames(metadata))){
-          cur_data <- rownames(metadata)
-        } else {
+        if("id" %in% colnames(metadata)){
           cur_data <- metadata$id
+        } else {
+          cur_data <- rownames(metadata)
         }
         spatialpoints <- rownames(metadata)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
       }
@@ -833,7 +833,6 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
     # check assays associated with samples and subset for assays
     if(all(samples %in% sample.metadata$Sample)){
       assays <- rownames(sample.metadata)[sample.metadata$Sample %in% samples]
-      # return(subset.VoltRon(object, assays = assays))
       return(subsetVoltRon(object, assays = assays))
     } else {
       stop("Some requested samples are not found in this VoltRon object!")
@@ -843,26 +842,21 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
 
     # subset for assays
     sample.metadata <- subset_sampleMetadata(sample.metadata, assays = assays)
-    # metadata <- subset.vrMetadata(Metadata(object, type = "all"), assays = assays)
     metadata <- subsetvrMetadata(Metadata(object, type = "all"), assays = assays)
     samples <- unique(sample.metadata$Sample)
     listofSamples <- sapply(object@samples[samples], function(samp) {
-      # subset.vrSample(samp, assays = assays)
       subsetvrSample(samp, assays = assays)
     }, USE.NAMES = TRUE)
 
   } else if(!is.null(spatialpoints)) {
 
     # subsetting on entity names
-    # metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
     metadata <- subsetvrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
     samples <- vrSampleNames(metadata)
     listofSamples <- sapply(object@samples[samples], function(samp) {
       subsetvrSample(samp, spatialpoints = spatialpoints)
     }, USE.NAMES = TRUE)
-    # spatialpoints <-  do.call("c", lapply(listofSamples, vrSpatialPoints.vrSample))
     spatialpoints <-  do.call("c", lapply(listofSamples, vrSpatialPoints))
-    # metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
     metadata <- subsetvrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
     sample.metadata <- subset_sampleMetadata(sample.metadata, assays = vrAssayNamesvrMetadata(metadata))
 
@@ -872,10 +866,8 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
     assay_names <- vrAssayNames(object)
     for(assy in assay_names){
       if(inherits(object[[assy]], "vrAssay")){
-        # object[[assy]] <- subset.vrAssay(object[[assy]], features = features) 
         object[[assy]] <- subsetvrAssay(object[[assy]], features = features) 
       } else {
-        # object[[assy]] <- subset.vrAssayV2(object[[assy]], features = features)
         object[[assy]] <- subsetvrAssay(object[[assy]], features = features) 
       }
     } 
@@ -896,16 +888,19 @@ subsetVoltRon <- function(x, subset, samples = NULL, assays = NULL, spatialpoint
         listofSamples <- sapply(object@samples[samples], function(samp) {
           subsetvrSample(samp, image = image)
         }, USE.NAMES = TRUE)
-        # spatialpoints <-  do.call(c, lapply(listofSamples, vrSpatialPoints.vrSample))
+        
+        # if all subsets are empty, return NULL
+        if(all(vapply(listofSamples, is.null, logical(1))))
+          return(NULL)
+        
+        # check spatialpoints
         spatialpoints <-  do.call("c", lapply(listofSamples, vrSpatialPoints))
-        # metadata <- subset.vrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
         metadata <- subsetvrMetadata(Metadata(object, type = "all"), spatialpoints = spatialpoints)
       }
     } else {
-      stop("Please provide a character based subsetting notation, see magick::image_crop documentation")
+      stop("Please provide a character based subsetting notation, see help(geometry, package = 'magick')")
     }
   } else if(interactive){
-    
     # interactive subsetting
     results <- demuxVoltRon(object, use.points.only = use.points.only, shiny.options = shiny.options)
     return(results)
@@ -1177,28 +1172,44 @@ setMethod("vrData", "VoltRon", vrDataVoltRon)
 
 #' @importFrom Matrix Matrix
 merge_data <- function(data1, data2, by = "feature.ID"){
+  
   if(inherits(data1, c("data.frame", "Matrix"))){
     
     # merge
     data1 <- dplyr::full_join(data1, data2, by = "feature.ID")
     
-  } else if(inherits(data1, c("IterableMatrix"))) {
+  } else if(inherits(data1, c("IterableMatrix", "DelayedArray"))) {
     rownames_all <- unique(c(rownames(data1), rownames(data2)))
     
     # first data
-    m <- Matrix::Matrix(nrow = length(rownames_all) - length(rownames(data1)), ncol = ncol(data1), data = 0, sparse = TRUE)
+    m <- Matrix::Matrix(nrow = length(rownames_all) - length(rownames(data1)), 
+                        ncol = ncol(data1), data = 0, sparse = TRUE)
+    if(is(data1, "DelayedArray"))
+      m  <- DelayedArray::DelayedArray(m)
     data1_new <- rbind(data1, m)
-    rownames(data1_new) <- c(rownames(data1), setdiff(rownames_all, rownames(data1)))
+    rownames(data1_new) <- c(rownames(data1), 
+                             setdiff(rownames_all, rownames(data1)))
     data1_new <- data1_new[rownames_all,]
     
     # second data
-    m <- Matrix::Matrix(nrow = length(rownames_all) - length(rownames(data2)), ncol = ncol(data2), data = 0, sparse = TRUE)
+    m <- Matrix::Matrix(nrow = length(rownames_all) - length(rownames(data2)), 
+                        ncol = ncol(data2), data = 0, sparse = TRUE)
+    if(is(data1, "DelayedArray"))
+      m  <- DelayedArray::DelayedArray(m)
     data2_new <- rbind(data2, m)
-    rownames(data2_new) <- c(rownames(data2), setdiff(rownames_all, rownames(data2)))
+    rownames(data2_new) <- c(rownames(data2), 
+                             setdiff(rownames_all, rownames(data2)))
     data2_new <- data2_new[rownames_all,]
    
     # merge 
-    data1 <- cbind(data1_new, data2_new)
+    if(is(data1_new, "DelayedArray")){
+      data1 <- DelayedArray::cbind(data1_new, data2_new) 
+    } else {
+      data1 <- cbind(data1_new, data2_new) 
+    }
+  } else {
+    stop("Using merge_data for unrecognized class: should be either
+         'data.frame', 'Matrix', 'DelayedArray' or 'IterableMatrix'")
   }
   return(data1)
 }
@@ -1216,6 +1227,9 @@ generateTileDataVoltRon <- function(object, assay = NULL, ...) {
   # get tile data for all assays
   for(assy in assay_names)
     object[[assy]] <- generateTileData(object[[assy]], ...)
+  
+  # return
+  object
 }
 
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
@@ -1470,7 +1484,11 @@ MetadataVoltRon <- function(object, assay = NULL, type = NULL){
         metadata <- metadata[ind,]
       }
     } else {
-      metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assay_names, ]
+      if("assay_id" %in% colnames(metadata)){
+        metadata <- metadata[stringr::str_extract(metadata$id, "Assay[0-9]+") %in% assay_names, ]
+      } else {
+        metadata <- metadata[stringr::str_extract(rownames(metadata), "Assay[0-9]+") %in% assay_names, ]
+      }
     }
     return(metadata)
   } else {
@@ -1654,7 +1672,7 @@ addMetadata <- function(object, assay = NULL, type = NULL, value, label) {
   
   # replace data
   if(length(value) == length(entities) || length(value) == 1){
-    if(is.null(rownames(metadata)) || inherits(metadata, "data.table")){
+    if("id" %in% colnames(metadata) || inherits(metadata, "data.table")){
       metadata[[label]][match(entities, as.vector(metadata$id))] <- value
     } else {
       metadata[entities,][[label]] <- value
@@ -1708,10 +1726,12 @@ vrCoordinatesVoltRon <- function(object, assay = NULL, image_name = NULL, spatia
     # update zlocation
     sample_name <- sample_metadata[assy, "Sample"]
     
-    catch_connect <- try(slot(object[[sample_name]], name = "zlocation"), silent = TRUE)
-    if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
-      zlocation <- object[[sample_name]]@zlocation 
-      cur_coords[,"z"] <- rep(zlocation[sample_metadata[assy, "Layer"]], nrow(cur_coords)) 
+    if("z" %in% colnames(cur_coords)){
+      catch_connect <- try(slot(object[[sample_name]], name = "zlocation"), silent = TRUE)
+      if(!is(catch_connect, 'try-error') && !methods::is(catch_connect,'error')){
+        zlocation <- object[[sample_name]]@zlocation 
+        cur_coords[,"z"] <- rep(zlocation[sample_metadata[assy, "Layer"]], nrow(cur_coords)) 
+      } 
     }
     
     # merge coordinates

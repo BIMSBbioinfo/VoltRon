@@ -42,7 +42,7 @@ registerSpatialData <- function(object_list = NULL, reference_spatdata = NULL, q
     channel_names <- vrImageChannelNames(spat[[assayname]])
     sapply(channel_names, function(chan){
       img <- vrImages(spat[[assayname]], channel = chan, as.raster = TRUE)
-      if(!inherits(img, "Image_Array")){
+      if(!inherits(img, "ImgArray")){
         img <- magick::image_read(img)
       }
       img
@@ -811,7 +811,7 @@ applyPerspectiveTransform <- function(object,
     image_reg_list <- sapply(vrImageChannelNames(object[[assay]]), function(x) NULL, USE.NAMES = TRUE)
     for(channel_ind in names(image_reg_list)){
       query_image <- vrImages(object[[assay]], channel = channel_ind, as.raster = TRUE)
-      if(!inherits(query_image, "Image_Array")){
+      if(!inherits(query_image, "ImgArray")){
         query_image <- magick::image_read(query_image)
       }
       warped_image <- getRcppWarpImage(ref_image = reference_image,
@@ -828,7 +828,7 @@ applyPerspectiveTransform <- function(object,
     # images
     ref_image <- transformImage(reference_image, ref_extension, input)
     query_image <- vrImages(object[[assay]], as.raster = TRUE)
-    if(!inherits(query_image, "Image_Array")){
+    if(!inherits(query_image, "ImgArray")){
       query_image <- magick::image_read(query_image)
     }
     query_image <- transformImage(query_image, query_extension, input)
@@ -878,7 +878,7 @@ applyPerspectiveTransform <- function(object,
       # rotate, flip and flop before warping in C++
       ref_image <- transformImage(reference_image, ref_extension, input)
       query_image <- vrImages(object[[assay]], channel = channel_ind, as.raster = TRUE)
-      if(!inherits(query_image, "Image_Array")){
+      if(!inherits(query_image, "ImgArray")){
         query_image <- magick::image_read(query_image)
       }
       query_image <- transformImage(query_image, query_extension, input)
@@ -1013,8 +1013,8 @@ manageKeypoints <- function(centre, register_ind, xyTable_list, image_list, info
           width <- limits_trans[2,1]-limits_trans[1,1]
           height <- limits_trans[2,2]-limits_trans[1,2]
           if(max(height,width) > 1000){
-            if(inherits(image_trans, "Image_Array")){
-              n.series <- ImageArray::len(image_trans)
+            if(inherits(image_trans, "ImgArray")){
+              n.series <- length(image_trans)
               cur_width <- width
               cur_height <- height
               for(ii in 2:n.series){
@@ -1256,17 +1256,21 @@ checkKeypoints <- function(keypoints_list){
     nrow(key_list$ref) > 0 | nrow(key_list$query) > 0
   })
   if(!all(unlist(keypoints_check_flag))){
-    showNotification("Please select keypoints for all images\n")
-    return(NULL)
+    showNotification("Please select keypoints for all image pairs! \n", 
+                     type = "error")
+    return(FALSE)
   }
 
   keypoints_check_flag <- sapply(keypoints_list, function(key_list){
     nrow(key_list$ref) == nrow(key_list$query)
   })
   if(!all(unlist(keypoints_check_flag))){
-    showNotification("The number of reference and query keypoints should be equal! \n")
-    return(NULL)
+    showNotification("The number of reference and query keypoints should be equal! \n", 
+                     type = "error")
+    return(FALSE)
   }
+  
+  return(TRUE)
 }
 
 transferParameterInput <- function(params, image_list){
@@ -1402,8 +1406,8 @@ manageImageZoomOptions <- function(centre, register_ind, zoom_list, image_list, 
           width <- limits_trans[2,1]-limits_trans[1,1]
           height <- limits_trans[2,2]-limits_trans[1,2]
           if(max(height,width) > 1000){
-            if(inherits(image_trans, "Image_Array")){
-              n.series <- ImageArray::len(image_trans)
+            if(inherits(image_trans, "ImgArray")){
+              n.series <- length(image_trans)
               cur_width <- width
               cur_height <- height
               for(ii in 2:n.series){
@@ -1506,8 +1510,8 @@ getImageOutput <- function(image_list, info_list, keypoints_list = NULL, zoom_li
         if(max(height, width) > 1000){
           
           # scale keypoints
-          if(inherits(img_trans$image, "Image_Array")){
-            n.series <- ImageArray::len(img_trans$image)
+          if(inherits(img_trans$image, "ImgArray")){
+            n.series <- length(img_trans$image)
             cur_width <- width
             cur_height <- height
             for(ii in 2:n.series){
@@ -1560,8 +1564,8 @@ plotImage <- function(image, max.pixel.size = NULL){
       } 
     }
     imgggplot <- magick::image_ggplot(image)
-  } else if(inherits(image, "Image_Array")){
-    img_raster <- as.raster(image, max.pixel.size = max.pixel.size)
+  } else if(inherits(image, "ImgArray")){
+    img_raster <- ImageArray::as.raster(image, max.pixel.size = max.pixel.size)
     info <- list(width = dim(img_raster)[2], height = dim(img_raster)[1])
     imgggplot <- ggplot2::ggplot(data.frame(x = 0, y = 0), ggplot2::aes_string("x", "y")) + 
       ggplot2::geom_blank() + 
@@ -1601,7 +1605,7 @@ getImageInfo <- function(image){
   
   if(inherits(image, "magick-image")){
     imginfo <- magick::image_info(image)
-  } else if(inherits(image, "Image_Array")){
+  } else if(inherits(image, "ImgArray")){
     imginfo <- ImageArray::getImageInfo(image)
   }
   as.data.frame(imginfo)
@@ -1621,7 +1625,7 @@ rotateImage <- function(image, degrees){
   
   if(inherits(image, "magick-image")){
     image <- magick::image_rotate(image, degrees = degrees)
-  } else if(inherits(image, "Image_Array")){
+  } else if(inherits(image, "ImgArray")){
     image <- ImageArray::rotate(image, degrees)
   }
   image
@@ -1640,7 +1644,7 @@ negateImage <- function(image){
   
   if(inherits(image, "magick-image")){
     image <- magick::image_negate(image)
-  } else if(inherits(image, "Image_Array")){
+  } else if(inherits(image, "ImgArray")){
     image <- ImageArray::negate(image)
   }
   image
@@ -1659,7 +1663,7 @@ flipImage <- function(image){
   
   if(inherits(image, "magick-image")){
     image <- magick::image_flip(image)
-  } else if(inherits(image, "Image_Array")){
+  } else if(inherits(image, "ImgArray")){
     image <- ImageArray::flip(image)
   }
   image
@@ -1678,7 +1682,7 @@ flopImage <- function(image){
   
   if(inherits(image, "magick-image")){
     image <- magick::image_flop(image)
-  } else if(inherits(image, "Image_Array")){
+  } else if(inherits(image, "ImgArray")){
     image <- ImageArray::flop(image)
   }
   image
@@ -1698,7 +1702,7 @@ cropImage <- function(image, geometry){
   
   if(inherits(image, "magick-image")){
     image <- magick::image_crop(image, geometry = geometry)
-  } else if(inherits(image, "Image_Array")){
+  } else if(inherits(image, "ImgArray")){
     crop_info_int <- as.integer(strsplit(geometry, split = "[x|+]")[[1]])
     image <- ImageArray::crop(image, ind = list(crop_info_int[3]:(crop_info_int[3]+crop_info_int[1]), crop_info_int[4]:(crop_info_int[4]+crop_info_int[2])))
   }
@@ -1722,7 +1726,7 @@ resize_Image <- function(image, geometry){
   
   if(inherits(image, "magick-image")){
     image <- magick::image_resize(image, geometry = geometry)
-  } else if(inherits(image, "Image_Array")){
+  } else if(inherits(image, "ImgArray")){
     
     # get scale factor 
     if(grepl("%$", geometry)){
@@ -1733,7 +1737,8 @@ resize_Image <- function(image, geometry){
 
     # get scaled array 
     scaled_image_info <- ceiling(image_info_large*scale_factor)
-    image <- as.array(image, min.pixel.size = max(scaled_image_info))
+    # image <- as.array(image, min.pixel.size = max(scaled_image_info))
+    image <- DelayedArray::realize(image, min.pixel.size = max(scaled_image_info))
     
     # convert to magick image
     image <- magick::image_read(array(as.raw(image), dim = dim(image)))
@@ -1842,7 +1847,7 @@ transformImageQueryList <- function(image_list, input){
 getRcppWarpImage <- function(ref_image, query_image, mapping){
   
   # ref image
-  if(inherits(ref_image, "Image_Array")){
+  if(inherits(ref_image, "ImgArray")){
     ref_image <- as.array(ref_image)
     ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
   } else {
@@ -1850,7 +1855,7 @@ getRcppWarpImage <- function(ref_image, query_image, mapping){
   }
   
   # query image
-  if(inherits(query_image, "Image_Array")){
+  if(inherits(query_image, "ImgArray")){
     query_image <- as.array(query_image)
     query_image <- array(as.raw(query_image), dim = dim(query_image))
   } else {
@@ -1924,11 +1929,13 @@ getManualRegisteration <- function(registration_mapping_list, spatdata_list, ima
     # Manual Registration
     if(!input$automatictag){
 
+      # Check keypoints
+      flag <- checkKeypoints(keypoints_list)
+      if(!flag) 
+        return(NULL)
+      
       # waiter start
       withProgress(message = paste0('Manual Registration (', input$Method, ')'), value = 0, {
-
-        # Check keypoints
-        checkKeypoints(keypoints_list)
   
         # Register keypoints
         aligned_image_list <- list()
@@ -2053,7 +2060,7 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
                                       method = "TPS") {
   
   # ref image
-  if(inherits(ref_image, "Image_Array")){
+  if(inherits(ref_image, "ImgArray")){
     ref_image <- as.array(ref_image)
     ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
   } else {
@@ -2061,7 +2068,7 @@ getRcppManualRegistration <- function(query_image, ref_image, query_landmark, re
   }
   
   # query image
-  if(inherits(query_image, "Image_Array")){
+  if(inherits(query_image, "ImgArray")){
     query_image <- as.array(query_image)
     query_image <- array(as.raw(query_image), dim = dim(query_image))
   } else {
@@ -2347,22 +2354,36 @@ getNonInteractiveRegistration <- function(obj_list,
     message("Registering Image ", i)
 
     # get a sequential mapping between a query and reference image
-    results <- switch(mapping_parameters$automatictag, 
-           "auto" = {
-             computeAutomatedPairwiseTransform(image_list = image_list_full, 
-                                               channel_names = channel_names, 
-                                               query_ind = i, 
-                                               ref_ind = centre, 
-                                               input = mapping_parameters)
-           }, 
-           "manual" = {
-             checkKeypoints(mapping_parameters$keypoints)
-             computeManualPairwiseTransform(image_list = image_list, 
-                                            keypoints_list = mapping_parameters$keypoints, 
-                                            query_ind = i, 
-                                            ref_ind = centre, 
-                                            input = mapping_parameters)
-           })
+    # results <- switch(mapping_parameters$automatictag, 
+    #        "auto" = {
+    #          computeAutomatedPairwiseTransform(image_list = image_list_full, 
+    #                                            channel_names = channel_names, 
+    #                                            query_ind = i, 
+    #                                            ref_ind = centre, 
+    #                                            input = mapping_parameters)
+    #        }, 
+    #        "manual" = {
+    #          flag <- checkKeypoints(mapping_parameters$keypoints)
+    #          computeManualPairwiseTransform(image_list = image_list, 
+    #                                         keypoints_list = mapping_parameters$keypoints, 
+    #                                         query_ind = i, 
+    #                                         ref_ind = centre, 
+    #                                         input = mapping_parameters)
+    #        })
+    if(mapping_parameters$automatictag){
+      results <- computeAutomatedPairwiseTransform(image_list = image_list_full,
+                                                   channel_names = channel_names,
+                                                   query_ind = i,
+                                                   ref_ind = centre,
+                                                   input = mapping_parameters)
+    } else {
+      flag <- checkKeypoints(mapping_parameters$keypoints)
+      results <- computeManualPairwiseTransform(image_list = image_list,
+                                                keypoints_list = mapping_parameters$keypoints,
+                                                query_ind = i,
+                                                ref_ind = centre,
+                                                input = mapping_parameters)
+    }
     
     # save transformation matrix
     registration_mapping_list[[paste0(i)]] <- results$mapping

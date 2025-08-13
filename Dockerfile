@@ -25,23 +25,24 @@ RUN ldconfig
 RUN R -e "install.packages(c('shiny', 'devtools', 'BiocManager'), repos='http://cran.rstudio.com/')"
 
 # Install VoltRon dependencies
-RUN R -e "install.packages(c('grDevices', 'data.table', 'RcppAnnoy', 'RANN', 'Matrix', 'dplyr', 'ggplot2', 'ggrepel', 'igraph', 'irlba', 'rjson', 'magick', 'ids', 'sp', 'reshape2', 'rlang', 'ggpubr', 'shinyjs'), repos='http://cran.rstudio.com/')"
+RUN R -e "install.packages(c('grDevices', 'data.table', 'RcppAnnoy', 'RANN', 'Matrix', 'dplyr', 'ggplot2', 'ggrepel', 'igraph', 'rjson', 'magick', 'ids', 'sp', 'reshape2', 'rlang', 'ggpubr', 'shinyjs'), repos='http://cran.rstudio.com/')"
 RUN R -e "install.packages(c('stringr', 'uwot', 'RCDT'), repos='http://cran.rstudio.com/')"
-RUN R -e "BiocManager::install(c('EBImage', 'S4Arrays'))"
+RUN R -e "BiocManager::install(c('EBImage', 'S4Arrays', 'BiocSingular'))"
 
 # Install Suggested dependencies
 RUN R -e "BiocManager::install(c('DelayedArray'))"
+RUN R -e "BiocManager::install(c('DelayedMatrixStats'))"
 RUN R -e "BiocManager::install(c('HDF5Array'))"
-RUN R -e "remotes::install_github('bnprks/BPCells/r@v0.3.0')"
-RUN R -e "remotes::install_github('BIMSBbioinfo/ImageArray')"
-RUN R -e "remotes::install_github('BIMSBbioinfo/HDF5DataFrame')"
-RUN R -e "remotes::install_github('BIMSBbioinfo/ZarrDataFrame')"
-RUN R -e "install.packages('Seurat')"
+RUN R -e "devtools::install_github('Artur-man/Rarr@voltron')"
+RUN R -e "options(timeout = 600000000); remotes::install_github('bnprks/BPCells/r@v0.3.0')"
+RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/ImageArray')"
+RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/HDF5DataFrame')"
+RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/ZarrDataFrame')"
+RUN R -e "options(timeout = 600000000); install.packages('Seurat')"
 RUN R -e "BiocManager::install('glmGamPoi')"
 RUN R -e "install.packages('arrow')"
-RUN R -e "BiocManager::install('RBioFormats')"
 RUN R -e "BiocManager::install('ComplexHeatmap')"
-RUN R -e "devtools::install_github('xuranw/MuSiC')"
+RUN R -e "options(timeout = 600000000); devtools::install_github('xuranw/MuSiC')"
 RUN R -e "BiocManager::install('SingleCellExperiment')"
 RUN R -e "BiocManager::install('SpatialExperiment')"
 RUN R -e "install.packages('dplyr')"
@@ -73,6 +74,9 @@ RUN R CMD javareconf -e
 RUN R -e "install.packages('rJava')"
 RUN R -e "BiocManager::install('RBioFormats')"
 RUN sh -c 'echo "options(java.parameters = \"-Xmx10g\")" >> /home/rstudio/.Rprofile'
+USER rstudio
+RUN R -e "options(timeout = 600000000); library(RBioFormats)"
+USER root
 
 # Install spacexr
 RUN apt-get install -y libgsl-dev
@@ -86,3 +90,4 @@ RUN apt-get update -y
 RUN apt upgrade -y
 RUN apt-get install -y libsodium-dev 
 RUN R -e "options(timeout = 600000000); devtools::install_github(\"vitessce/vitessceR\")"
+RUN sh -c 'echo "options(timeout = 600000000)">> /home/rstudio/.Rprofile'

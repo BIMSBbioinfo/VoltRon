@@ -6,14 +6,17 @@
 \usage{
 generateCosMxImage(
   dir.path,
-  increase.contrast = TRUE,
+  fov.position.file,
+  increase.contrast = FALSE,
   output.path = NULL,
   verbose = TRUE,
   ...
 )
 }
 \arguments{
-\item{dir.path}{CosMx output folder}
+\item{dir.path}{CosMx folder of images}
+
+\item{fov.position.file}{the file providing FOV positions}
 
 \item{increase.contrast}{increase the contrast of the image before writing}
 

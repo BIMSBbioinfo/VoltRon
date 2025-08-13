@@ -17,9 +17,9 @@ vrImageChannelNames(object, ...)
 
 \S4method{vrImageChannelNames}{vrAssayV2}(object, name = NULL)
 
-\S4method{vrImageChannelNames}{vrImage}(object)
+\S4method{vrImageChannelNames}{vrImage}(object, return.report = TRUE)
 
-\S4method{vrImageChannelNames}{vrSpatial}(object)
+\S4method{vrImageChannelNames}{vrSpatial}(object, return.report = TRUE)
 }
 \arguments{
 \item{object}{a VoltRon, vrAssay or vrSpatial object.}
@@ -30,6 +30,8 @@ vrImageChannelNames(object, ...)
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{name}{the key of the image}
+
+\item{return.report}{if TRUE and no image is present, return a character stating that there is no image}
 }
 \description{
 Get names of all image channels
