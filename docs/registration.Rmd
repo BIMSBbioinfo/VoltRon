@@ -125,7 +125,14 @@ We will select **FLANN** method for automated alignment which incorporates the *
 xen_reg <- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))
 ```
 
-<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration_FLANN.gif" class="center">
+<!-- <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration_FLANN.gif" class="center"> -->
+
+<div>
+  <video width="100%" height="100%" controls autoplay>
+    <source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration_FLANN.mov" type="video/mp4">
+  Your browser does not support the video tag.
+  </video>
+</div>
 
 <br>
 
@@ -170,7 +177,14 @@ Given the diverse types of tissue sections and their complex morphology, we need
 xen_reg <- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))
 ```
 
-<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration.gif" class="center">
+<!-- <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration.gif" class="center"> -->
+
+<div>
+  <video width="100%" height="100%" controls autoplay>
+    <source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration_Manual.mov" type="video/mp4">
+  Your browser does not support the video tag.
+  </video>
+</div>
 
 <br>
 
@@ -581,7 +595,14 @@ DLPFC_list <- list(DLPFC_1, DLPFC_2)
 reg1and2 <- registerSpatialData(object_list = DLPFC_list)
 ```
 
-<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/VisiumDLFPCRegistration.gif" class="center">
+<!-- <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/VisiumDLFPCRegistration.gif" class="center"> -->
+
+<div>
+  <video width="100%" height="100%" controls autoplay>
+    <source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/VisiumDLFPCRegistration.mov" type="video/mp4">
+  Your browser does not support the video tag.
+  </video>
+</div>
 
 <br>
 
