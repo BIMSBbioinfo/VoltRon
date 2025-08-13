@@ -251,7 +251,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
     cur_group.by <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
     names(cur_group.by) <- metadata$id
   } else {
-    cur_group.by <- metadata[,group.by]
+    cur_group.by <- subset_metadata(metadata, features = group.by, drop = TRUE)
     if("id" %in% colnames(metadata)){
       names(cur_group.by) <- as.vector(metadata$id)
     } else {
@@ -353,7 +353,7 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       guides(fill = guide_legend(override.aes=list(shape = 21, size = 4, lwd = 0.1)))
 
   # cell visualization
-  } else if(vrAssayTypes(assay) %in% c("cell", "tile")) {
+  } else if(vrAssayTypes(assay) == "cell") {
 
       if(plot.segments){
   
@@ -402,6 +402,30 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
         }
         
       }
+  } else if(vrAssayTypes(assay) == "tile") {
+    
+    # rasterize if requested or needed
+    if(n.tile > 0 || nrow(coords) > 50000){
+      if(n.tile == 0)
+        n.tile <- 1000
+      g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha)
+    } else {
+      g <- g +
+        geom_raster(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]], color = .data[[group.by]]),
+                   coords, alpha = alpha, show.legend = TRUE)
+    }
+    
+    # style, color and text
+    g <- g +
+      scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 1)) +
+      scale_color_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors, name = group.by, guide = guide_legend(order = 1)) +
+      theme(legend.text=element_text(size=legend.text.size), legend.title=element_text(size=legend.text.size))
+    
+    # add if a graph exists
+    if(!is.null(graph)){
+      g <- g + addGraph(graph = graph, coords = coords, background = graph.edge.color)
+    }
+    
   } else if(vrAssayTypes(assay) == "molecule") {
     
     # rasterize if requested or needed
@@ -551,7 +575,8 @@ addSpatialLayer <- function(g, object, assay, group.by = "Sample", plot.segments
   if(!group.by %in% colnames(metadata))
     stop("The column '", group.by, "' was not found in the metadata!")
   if(inherits(metadata, "data.table")){
-    cur_group.by <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
+    # cur_group.by <- metadata[,get(names(metadata)[which(colnames(metadata) == group.by)])]
+    cur_group.by <- subset_metadata(metadata, features = group.by, drop = TRUE)
     names(cur_group.by) <- metadata$id
   } else {
     cur_group.by <- metadata[,group.by]
@@ -670,6 +695,26 @@ addSpatialLayer <- function(g, object, assay, group.by = "Sample", plot.segments
       }
       
     }
+  } else if(vrAssayTypes(assay) == "spot"){
+    
+    # rasterize if requested or needed
+    if(n.tile > 0 || nrow(coords) > 50000){
+      if(n.tile == 0)
+        n.tile <- 1000
+      g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha, spot = TRUE)
+    } else {
+      spot.type <- vrAssayParams(assay, param = "spot.type")
+      spot.type <- ifelse(is.null(spot.type), "circle", spot.type)
+      g <- g +
+        geom_spot(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]]), coords, shape = 21, alpha = alpha, show.legend = TRUE,
+                  spot.radius = vrAssayParams(assay, param = "vis.spot.radius")/scale_factors,
+                  spot.type = spot.type)
+    }
+    
+    g <- g +
+      scale_fill_manual(values = colors, labels = names_colors, drop = FALSE, limits = names_colors)
+    
+    # cell visualization
   } else if(vrAssayTypes(assay) == "molecule") {
     
     # rasterize if requested or needed
@@ -784,12 +829,10 @@ vrSpatialFeaturePlot <- function(object, features, combine.features = FALSE, gro
       } else {
         metadata <- Metadata(object, assay = assy)
         if(feat %in% colnames(metadata)){
-          if(inherits(metadata, "data.table")){
-            featdata <- metadata[,get(names(metadata)[which(colnames(metadata) == feat)])]
-          } else {
-            featdata <- metadata[,feat]
-          }
-          return(getRange(featdata, na.rm = TRUE))
+          return(getRange(
+            subset_metadata(metadata, features = feat, drop = TRUE),
+            # metadata[,feat], 
+            na.rm = TRUE))
         } else {
           stop("Feature '", feat, "' cannot be found in data or metadata!")
         }
@@ -967,11 +1010,7 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
       names(cur_score) <- colnames(normdata)
     }
   } else {
-    if(inherits(metadata, "data.table")){
-      cur_score <- metadata[,get(names(metadata)[which(colnames(metadata) == feature)])]
-    } else {
-      cur_score <- metadata[,feature]
-    }
+    cur_score <- subset_metadata(metadata, features = feature, drop = TRUE)
     if("id" %in% colnames(metadata)){
       names(cur_score) <- as.vector(metadata$id)
     } else {
@@ -1040,8 +1079,8 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
                              colors=c("dodgerblue3", "yellow", "red"),
                              values=rescale_numeric(c(limits[1], midpoint, limits[2])), limits = limits)
     }
-
-  } else if(vrAssayTypes(assay) %in% c("cell", "tile", "molecule")) {
+    
+  } else if(vrAssayTypes(assay) %in% c("cell", "molecule")) {
 
     if(plot.segments){
 
@@ -1085,7 +1124,27 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
           geom_segment(data = graph.df, mapping = aes(x=from.x,xend = to.x, y=from.y,yend = to.y), alpha = 0.5, color = ifelse(background == "black", "grey", "black"))
       }
     }
-  } 
+  } else if(vrAssayTypes(assay)  == "tile") {
+    
+    # rasterize if requested or needed
+    if(n.tile > 0 || nrow(coords) > 50000){
+      if(n.tile == 0)
+        n.tile <- 1000
+      g <- vrFeaturePlotTiling(g = g, data = coords, legend_title = legend_title, n.tile = n.tile, alpha = alpha, type = "spatial")
+    } else {
+      g <- g +
+        geom_raster(mapping = aes(x = x, y = y, 
+                                  fill = score), 
+                    dplyr::arrange(coords, score), 
+                    alpha = alpha) +
+        scale_fill_gradientn(name = legend_title,
+                               colors=c("dodgerblue2", "white", "yellow3"), 
+                               values=rescale_numeric(c(limits[1], midpoint, limits[2])), limits = limits, aesthetics = c("fill", "colour")) 
+    }
+    
+  } else {
+    stop("Feature plotting is not possible for molecule assays!")
+  }
 
   # more visualization parameters
   g <- g +
@@ -1099,7 +1158,10 @@ vrSpatialFeaturePlotSingle <- function(assay, metadata, feature, plot.segments =
   # visualize labels
   if(label && vrAssayTypes(assay) == "ROI"){
     if(group.by %in% colnames(metadata)){
-      coords[[group.by]] <- as.vector(metadata[,group.by])
+      coords[[group.by]] <- as.vector(
+        # metadata[,group.by]
+        cur_score <- subset_metadata(metadata, features = group.by, drop = TRUE)
+        )
     } else {
       stop("The column ", group.by, " was not found in the metadata!")
     }
@@ -1183,13 +1245,10 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
       return(getRange(normdata[feat, ], na.rm = TRUE))
     } else {
       if(feat %in% colnames(metadata)){
-        if(inherits(metadata, "data.table")){
-          featdata <- metadata[,get(names(metadata)[which(colnames(metadata) == feat)])]
-        } else {
-          featdata <- metadata[,feat]
-        }
-        return(getRange(featdata, na.rm = TRUE))
-        # return(getRange(metadata[,feat], na.rm = TRUE))
+        return(getRange(
+          subset_metadata(metadata, features = feat, drop = TRUE),
+          # metadata[,feat], 
+          na.rm = TRUE))
       } else {
         stop("Feature '", feat, "' cannot be found in data or metadata!")
       }
@@ -1215,12 +1274,8 @@ vrSpatialFeaturePlotCombined <- function(assay, metadata, features, plot.segment
     if(feat %in% data_features){
       coords$score <- normdata[feat,]
     } else {
-      if(inherits(metadata, "data.table")){
-        coords$score <- metadata[,get(names(metadata)[which(colnames(metadata) == feature)])]
-      } else {
-        coords$score <- metadata[,feature]
-      }
       # coords$score <- metadata[,feat]
+      coords$score <- subset_metadata(metadata, features = feat, drop = TRUE)
     }
     
     # get image information and plotting features
@@ -1577,7 +1632,6 @@ GeomSpot <- ggplot2::ggproto("GeomSpot",
 #'
 #' @noRd
 addGraph <- function(graph, coords, background){
-  # graph.df <- igraph::get.data.frame(graph)
   graph.df <- igraph::as_data_frame(graph)
   graph.df$from.x <- coords$x[match(graph.df$from, rownames(coords))]
   graph.df$from.y <- coords$y[match(graph.df$from, rownames(coords))]
@@ -1732,7 +1786,7 @@ vrEmbeddingPlot <- function(object, embedding = "pca", group.by = "Sample", grou
     } else {
       if("id" %in% colnames(metadata)){
         datax[[group.by]] <- as.factor(as.vector(metadata[match(rownames(datax), as.vector(metadata$id)),group.by]))
-      } else{
+      } else {
         datax[[group.by]] <- as.factor(metadata[rownames(datax),group.by])
       }
     }
@@ -1900,12 +1954,10 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, c
       return(getRange(normdata[feat, ], na.rm = TRUE))
     } else {
       if(feat %in% colnames(metadata)){
-        if(inherits(metadata, "data.table")){
-          featdata <- metadata[,get(names(metadata)[which(colnames(metadata) == feat)])]
-        } else {
-          featdata <- metadata[,feat]
-        }
-        return(getRange(featdata, na.rm = TRUE))
+        return(getRange(
+          subset_metadata(metadata, features = feat, drop = TRUE),
+          # metadata[, feat], 
+          na.rm = TRUE))
       } else {
         stop("Feature '", feat, "' cannot be found in data or metadata!")
       }
@@ -1933,17 +1985,14 @@ vrEmbeddingFeaturePlot <- function(object, embedding = "pca", features = NULL, c
         datax$score <- normdata[feat, rownames(datax)]
       }
     } else {
+      cur_metadata <- subset_metadata(metadata, features = feat, drop = TRUE)
       if("id" %in% colnames(metadata)){
         ind <- match(rownames(datax), metadata$id)
       } else {
         ind <- rownames(metadata)
       }
-      if(inherits(metadata, "data.table")){
-        datax$score <- metadata[ind,get(names(metadata)[which(colnames(metadata) == feat)])]
-      } else {
-        datax$score <- metadata[ind,feat]
-      }
-      # datax$score <- metadata[rownames(datax),feat]
+      # datax$score <- cur_metadata[ind,1]
+      datax$score <- cur_metadata[ind]
     }
 
     # get image information and plotting features
@@ -2144,7 +2193,10 @@ vrScatterPlot <- function(object, feature.1, feature.2, norm = TRUE, assay = NUL
     if(feat %in% rownames(normdata)){
       return(normdata[feat,])
     } else {
-      return(metadata[,feat])
+      return(
+        subset_metadata(metadata, features = feat, drop = TRUE)
+        # metadata[,feat]
+      )
     }
   }, numeric(nrow(metadata)))
   data_feature <- as.data.frame(data_feature)
@@ -2341,7 +2393,10 @@ vrViolinPlot <- function(object, features = NULL, assay = NULL, group.by = "Samp
     if(x %in% vrFeatures(object, assay = assay)){
       return(violindata[x,])
     } else if(x %in% colnames(metadata)){
-      return(metadata[,x])
+      return(
+        subset_metadata(metadata, features = x, drop = TRUE)
+      )
+      # return(metadata[,x])
     } else {
       stop("Please provide feature names which reside in either the data or metadata slots!")
     }
@@ -2446,7 +2501,10 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
     if(x %in% rownames(barplotdata)){
       return(as.vector(as(barplotdata[x,,drop = FALSE], "dgCMatrix")))
     } else if(x %in% colnames(metadata)){
-      return(as.vector(metadata[,x]))
+      return(as.vector(
+        subset_metadata(metadata, features = x, drop = TRUE)
+        # metadata[,x]
+      ))
     } else{
       stop("Feature '", x, "' cannot be found in data or metadata!")
     }
