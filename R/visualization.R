@@ -266,9 +266,11 @@ vrSpatialPlotSingle <- function(assay, metadata, group.by = "Sample", plot.segme
       # warning("Some groups defined in group.ids does not exist in group.by!")
     } else if(len_set_diff == length(group.ids)){ 
       stop("None of the groups defined in group.ids exist in group.by!")
-    } else {
-      segments <- segments[cur_group.by %in% group.ids]
     }
+    # } else {
+    #   # segments <- segments[cur_group.by %in% group.ids]
+    # }
+    segments <- segments[cur_group.by %in% group.ids]
     cur_group.by <- droplevels(cur_group.by[cur_group.by %in% group.ids])
     coords <- coords[names(cur_group.by),]
   }
