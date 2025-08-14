@@ -12,7 +12,9 @@
 #' @param features the set of features from \link{vrFeatures} or metadata columns from \link{Metadata} that are transferred. 
 #' Only one metadata feature can be transfered at a time.
 #' @param expand if TRUE, metadata features will be transformed into
-#' dummy features where each category in the feature will be a new feature
+#' dummy features where each category in the feature will be a new feature. 
+#' If FALSE, metadata features will not be transformed and transfered as
+#' metadata columns, else the decision will be made automatically.
 #' @param new_feature_name the name of the new feature set created 
 #' from the source assay defined in \code{from} argument.
 #' Only used when a new assay in created.
@@ -22,7 +24,7 @@ transferData <- function(object,
                          from = NULL, 
                          to = NULL, 
                          features = NULL, 
-                         expand = FALSE,
+                         expand = NULL,
                          new_feature_name = NULL){
   
   # assay list
@@ -51,8 +53,8 @@ transferData <- function(object,
   from_object_type <- vrAssayTypes(object[[from]])
   
   # get metadata transfer material and approach
-  if(expand){
-    expand_feature <- TRUE
+  if(!is.null(expand)){
+    expand_feature <- expand
   } else {
     from_object_ind <- which(assaytypes %in% from_object_type)
     to_object_ind <- which(assaytypes %in% to_object_type)
@@ -109,7 +111,7 @@ transferFeatureData <- function(object, from = NULL, to = NULL, transfer_data = 
     if(from_object_type == "tile"){
       stop("Tile to cell feature data transfer is currently not supported")
       # new_assay <- getCellsFromTiles(from_object, from_metadata, 
-      #                                to_object, features = features)
+      #                                to_object, transfer_data = transfer_data)
     } else if(from_object_type == "spot"){
       new_assay <- getCellsFromSpots(from_object, from_metadata, 
                                      to_object, transfer_data = transfer_data)
