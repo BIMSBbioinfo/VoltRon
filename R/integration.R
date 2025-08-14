@@ -234,39 +234,6 @@ getSpotsFromCells <- function(from_object, from_metadata = NULL, to_object, tran
   # find associated spot for each cell
   message("Find associated spots for each cell ...")
   cell_to_spot_id <- names(cell_to_spot_nnid)
-  
-  # get data
-  # if(is.null(features)){
-  #   raw_counts <- vrData(from_object, norm = FALSE)
-  # } else {
-  #   data_features <- features[features %in% vrFeatures(from_object)]
-  #   metadata_features <- features[features %in% colnames(from_metadata)]
-  #   if(length(data_features) > 0){
-  #     if(length(metadata_features) > 0){
-  #       stop("Data and metadata features cannot be transfered in the same time!")
-  #     } else {
-  #       raw_counts <- vrData(from_object, norm = FALSE)
-  #       raw_counts <- raw_counts[features,]
-  #       message("There are ", 
-  #               length(setdiff(features, data_features)), 
-  #               " unknown features!")
-  #     }
-  #   } else {
-  #     if(length(metadata_features) > 1){
-  #       stop("Only one metadata column can be transfered at a time")
-  #     } else if(length(metadata_features) == 1) {
-  #       raw_counts <- from_metadata[,metadata_features, drop = FALSE]
-  #       rownames_raw_counts <- rownames(raw_counts)
-  #       raw_counts <- dummy_cols(raw_counts, remove_first_dummy = FALSE)
-  #       raw_counts <- raw_counts[,-1]
-  #       raw_counts <- t(raw_counts)
-  #       colnames(raw_counts) <- rownames_raw_counts
-  #       rownames(raw_counts) <- gsub(paste0("^", metadata_features, "_"), "", rownames(raw_counts))
-  #     } else {
-  #       stop("Features cannot be found in data and metadata!")
-  #     }
-  #   }
-  # }
   transfer_data <- transfer_data[,cell_to_spot_id, drop = FALSE]
   
   # pool cell counts to Spots
@@ -318,37 +285,6 @@ getCellsFromSpots <- function(from_object, from_metadata = NULL, to_object, tran
   
   # find associated spot for each cell
   message("Find associated spot for each cell ...")
-  
-  # get data
-  # if(is.null(features)){
-  #   raw_counts <- vrData(from_object, norm = FALSE)
-  # } else {
-  #   data_features <- features[features %in% vrFeatures(from_object)]
-  #   metadata_features <- features[features %in% colnames(from_metadata)]
-  #   if(length(data_features) > 0){
-  #     if(length(metadata_features) > 0){
-  #       stop("Data and metadata features cannot be transfered in the same time!")
-  #     } else {
-  #       raw_counts <- vrData(from_object, norm = FALSE)
-  #       raw_counts <- raw_counts[features,]
-  #       message("There are ", length(setdiff(features, data_features)), " unknown features!")
-  #     }
-  #   } else {
-  #     if(length(metadata_features) > 1){
-  #       stop("Only one metadata column can be transfered at a time")
-  #     } else if(length(metadata_features) == 1) {
-  #       raw_counts <- from_metadata[,metadata_features, drop = FALSE]
-  #       rownames_raw_counts <- rownames(raw_counts)
-  #       raw_counts <- dummy_cols(raw_counts, remove_first_dummy = FALSE)
-  #       raw_counts <- raw_counts[,-1]
-  #       raw_counts <- t(raw_counts)
-  #       colnames(raw_counts) <- rownames_raw_counts
-  #       rownames(raw_counts) <- gsub(paste0("^", metadata_features, "_"), "", rownames(raw_counts))
-  #     } else {
-  #       stop("Features cannot be found in data and metadata!")
-  #     }
-  #   }
-  # }
   transfer_data <- transfer_data[,nnindex, drop = FALSE]
   colnames(transfer_data) <- names(nnindex)
   
@@ -394,41 +330,10 @@ getROIsFromCells <- function(from_object, from_metadata = NULL, to_object, trans
     cell_to_roi_id <- c(cell_to_roi_id, in.list.cells)
     cell_to_roi_labelid <- c(cell_to_roi_labelid, rep(names_segments_rois[i], length(in.list.cells)))
   }
-  
-  # get data
-  # if(is.null(features)){
-  #   raw_counts <- vrData(from_object, norm = FALSE)
-  # } else {
-  #   data_features <- features[features %in% vrFeatures(from_object)]
-  #   metadata_features <- features[features %in% colnames(from_metadata)]
-  #   if(length(data_features) > 0){
-  #     if(length(metadata_features) > 0){
-  #       stop("Data and metadata features cannot be transfered in the same time!")
-  #     } else {
-  #       raw_counts <- vrData(from_object, norm = FALSE)
-  #       raw_counts <- raw_counts[features,]
-  #       message("There are ", length(setdiff(features, data_features)), " unknown features!")
-  #     }
-  #   } else {
-  #     if(length(metadata_features) > 1){
-  #       stop("Only one metadata column can be transfered at a time")
-  #     } else if(length(metadata_features) == 1) {
-  #       raw_counts <- from_metadata[,metadata_features, drop = FALSE]
-  #       rownames_raw_counts <- rownames(raw_counts)
-  #       raw_counts <- dummy_cols(raw_counts, remove_first_dummy = FALSE)
-  #       raw_counts <- raw_counts[,-1]
-  #       raw_counts <- t(raw_counts)
-  #       colnames(raw_counts) <- rownames_raw_counts
-  #       rownames(raw_counts) <- gsub(paste0("^", metadata_features, "_"), "", rownames(raw_counts))
-  #     } else {
-  #       stop("Features cannot be found in data and metadata!")
-  #     }
-  #   }
-  # }
   transfer_data <- transfer_data[,cell_to_roi_id, drop = FALSE]
   
   # pool cell counts to Spots
-  message("Aggregating cell profiles into spots ...")
+  message("Aggregating cell profiles into ROIs ...")
   aggregate_transfer_data <- stats::aggregate(t(as.matrix(transfer_data)), list(cell_to_roi_labelid), sum)
   aggregate_transfer_data <- data.frame(barcodes = vrSpatialPoints(to_object)) %>% dplyr::right_join(aggregate_transfer_data, by = c("barcodes" = "Group.1"))
   rownames(aggregate_transfer_data) <- aggregate_transfer_data$barcodes
