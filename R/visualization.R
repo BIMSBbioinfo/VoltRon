@@ -2546,12 +2546,12 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
   }
   if(is.null(split.by)){
     ggplotdatax <- data.frame(datax,
-                              x.label = x.labels,
+                              x.labels = x.labels,
                               group.by = group.by.col,
                               assay_title = assay_title,
                               spatialpoints = spatialpoints)
-    ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.label", "assay_title", "group.by", "spatialpoints"))
-    gg <- ggplot(ggplotdatax, aes(x = x.label, y = value,
+    ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.labels", "assay_title", "group.by", "spatialpoints"))
+    gg <- ggplot(ggplotdatax, aes(x = x.labels, y = value,
                                   fill = factor(group.by, levels = unique(group.by)))) +
       geom_bar(stat = "identity") +
       theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
@@ -2577,13 +2577,13 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
 
     # make ggplot
     ggplotdatax <- data.frame(datax,
-                              x.label =  x.labels,
+                              x.labels =  x.labels,
                               group.by = group.by.col,
                               split.by = split.by.col,
                               assay_title = assay_title,
                               spatialpoints = spatialpoints)
-    ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.label", "assay_title", "group.by", "split.by", "spatialpoints"))
-    gg <- ggplot(ggplotdatax, aes(x = x.label, y = value,
+    ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.labels", "assay_title", "group.by", "split.by", "spatialpoints"))
+    gg <- ggplot(ggplotdatax, aes(x = x.labels, y = value,
                                   fill = factor(group.by, levels = unique(group.by)))) +
       geom_bar(stat = "identity") +
       theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
@@ -2669,12 +2669,12 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
   }
   
   ggplotdatax <- data.frame(t(barplotdata),
-                            x.label =  x.label,
+                            x.labels =  x.labels,
                             assay_title = assay_title,
                             spatialpoints = spatialpoints)
-  ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.label", "assay_title", "spatialpoints"))
+  ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.labels", "assay_title", "spatialpoints"))
   ggplotdatax <- ggplotdatax[ggplotdatax$value > 0,]
-  gg <- ggplot(ggplotdatax, aes(x = x.label, y = value, fill = variable)) +
+  gg <- ggplot(ggplotdatax, aes(x = x.labels, y = value, fill = variable)) +
     geom_bar(stat = "identity") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
     ylab("") + xlab("") +
@@ -2682,12 +2682,12 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
 
   if(is.null(split.by)){
     ggplotdatax <- data.frame(t(barplotdata),
-                              x.label =  x.label,
+                              x.labels =  x.labels,
                               assay_title = assay_title,
                               spatialpoints = rownames(metadata))
-    ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.label", "assay_title", "spatialpoints"))
+    ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.labels", "assay_title", "spatialpoints"))
     ggplotdatax <- ggplotdatax[ggplotdatax$value > 0,]
-    gg <- ggplot(ggplotdatax, aes(x = x.label, y = value, fill = variable)) +
+    gg <- ggplot(ggplotdatax, aes(x = x.labels, y = value, fill = variable)) +
       geom_bar(stat = "identity") +
       theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
       ylab("") + xlab("") +
@@ -2701,13 +2701,13 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
       stop("Column '", split.by, "' cannot be found in metadata!")
     }
     ggplotdatax <- data.frame(t(barplotdata),
-                              x.label =  x.label,
+                              x.labels =  x.labels,
                               assay_title = assay_title,
                               split.by = split.by.col,
                               spatialpoints = spatialpoints)
-    ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.label", "assay_title", "split.by", "spatialpoints"))
+    ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.labels", "assay_title", "split.by", "spatialpoints"))
     ggplotdatax <- ggplotdatax[ggplotdatax$value > 0,]
-    gg <- ggplot(ggplotdatax, aes(x = x.label, y = value, fill = variable)) +
+    gg <- ggplot(ggplotdatax, aes(x = x.labels, y = value, fill = variable)) +
       geom_bar(stat = "identity") +
       theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
       ylab("") + xlab("") +
