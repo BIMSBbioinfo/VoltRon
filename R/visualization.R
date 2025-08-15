@@ -2521,7 +2521,7 @@ vrBarPlot <- function(object, features = NULL, assay = NULL, x.label = NULL, gro
   # labels and groups
   if(is.null(x.label)) {
     if("id" %in% colnames(metadata)){
-      x.labels <- factor(metadata$id)
+      x.labels <- factor(as.vector(metadata$id))
     } else {
       x.labels <- factor(rownames(metadata))
     }
@@ -2663,28 +2663,15 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
   
   # plotting data
   if("id" %in% colnames(metadata)){
-    spatialpoints <- metadata$id
+    spatialpoints <- as.vector(metadata$id)
   } else {
     spatialpoints <- rownames(metadata) 
   }
-  
-  ggplotdatax <- data.frame(t(barplotdata),
-                            x.labels =  x.labels,
-                            assay_title = assay_title,
-                            spatialpoints = spatialpoints)
-  ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.labels", "assay_title", "spatialpoints"))
-  ggplotdatax <- ggplotdatax[ggplotdatax$value > 0,]
-  gg <- ggplot(ggplotdatax, aes(x = x.labels, y = value, fill = variable)) +
-    geom_bar(stat = "identity") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
-    ylab("") + xlab("") +
-    guides(fill = guide_legend(title = ""))
-
   if(is.null(split.by)){
     ggplotdatax <- data.frame(t(barplotdata),
                               x.labels =  x.labels,
                               assay_title = assay_title,
-                              spatialpoints = rownames(metadata))
+                              spatialpoints = spatialpoints)
     ggplotdatax <- data.table::melt(data.table::data.table(ggplotdatax), id.var = c("x.labels", "assay_title", "spatialpoints"))
     ggplotdatax <- ggplotdatax[ggplotdatax$value > 0,]
     gg <- ggplot(ggplotdatax, aes(x = x.labels, y = value, fill = variable)) +
@@ -2696,7 +2683,7 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
 
     # check split.by column name
     if(split.by %in% colnames(metadata)){
-      split.by.col <- factor(metadata[[split.by]])
+      split.by.col <- factor(as.vector(metadata[[split.by]]))
     } else {
       stop("Column '", split.by, "' cannot be found in metadata!")
     }
