@@ -632,17 +632,23 @@ vrHeatmapPlot(Xen_R1_merged, group.by = "Cluster_kmeans",
 Inspecting the heatmap and the spatial plot simultanuously, we can see that some tiles are associated with the H&E background where others are representing tumor, immune and stroma niches.
 
 ```{r eval = FALSE, class.source="watch-out"}
-annotation <- Xen_R1_image$Cluster_kmeans 
+annotation <- Xen_R1_merged$Cluster_kmeans 
 annotation[annotation %in% c(6,8)] <- "Tumor Niche"
 annotation[annotation %in% c(1)] <- "Immune Niche"
 annotation[annotation %in% c(2,10,9)] <- "Stroma"
-annotation[annotation %in% c(3,5,7,4)] <- "Background"
-Xen_R1_image$annotation <- annotation
+annotation[annotation %in% c(4)] <- "Stroma"
+annotation[annotation %in% c(3,5,7)] <- "Background"
+Xen_R1_merged$annotation <- annotation
 ```
 
 Users can also visualize tile and cell simultaneously and their features.
 
 ```{r eval = FALSE, class.source="watch-out"}
+# select a subset
+Xen_R1_image_subset <- subset(Xen_R1_merged, interactive = TRUE)
+Xen_R1_image_subset <- Xen_R1_image_subset$subsets[[1]]
+
+# visualize 
 vrSpatialPlot(Xen_R1_image_subset, group.by = "Cluster_kmeans", alpha = 0.7)
 vrSpatialPlot(Xen_R1_image_subset, assay = "Xenium", group.by = "annotation", 
               alpha = 0.7, plot.segments = TRUE, channel = "H&E")

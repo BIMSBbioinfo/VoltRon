@@ -724,8 +724,9 @@ the <strong>source (from)</strong> and the <strong>destination
 transfered. We can first transfer data from the Xenium assay to the
 Visium assay (hence <strong>Cells -&gt; Spots</strong>), the raw count
 data of each cell in the source Xenium assay will be aggregated into
-spots in a newly create pseudo Visium assay. The new assay with
-aggregated counts will be named <strong>Visium_pseudo</strong>.</p>
+spots in a new count feature data type in the Visium assay. The new
+feature data with aggregated counts will be named
+<strong>RNA_pseudo</strong>.</p>
 <pre class="r watch-out"><code>VRBlock &lt;- transferData(VRBlock, from = &quot;Assay1&quot;, to = &quot;Assay2&quot;)</code></pre>
 <p>VoltRon supports multiple feature type within each assay. Now, the
 Visium assay includes two spot-type features:</p>
@@ -802,13 +803,13 @@ vrSpatialPlot(VRBlock, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quo
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_annotated.png" class="center"></p>
 <p>Here, we can see that both Xenium layers are clustered and annotated
 where we can use these cell annotations and transfer them to the Visium
-assay to create an assay of <strong>estimated cell type
+assay to create a new feature data of <strong>estimated cell type
 abundances</strong>. If the features argument is specified, and if its a
 single metadata feature with, e.g. cell types, then the each spot at the
 new pseudo Visium will be collection of abundances of the categories
 within that metadata feature.</p>
 <pre class="r watch-out"><code>VRBlock &lt;- transferData(VRBlock, from = &quot;Assay1&quot;, to = &quot;Assay2&quot;, features = &quot;CellType&quot;, 
-                        new_assay_name = &quot;Visium_CellType&quot;)
+                        new_feature_name = &quot;Visium_CellType&quot;)
 VRBlock</code></pre>
 <pre><code>VoltRon Object 
 10XBlock: 

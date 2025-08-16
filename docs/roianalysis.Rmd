@@ -42,7 +42,9 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 # ROI Analysis
 
-VoltRon is capable of analyzing readouts from distinct spatial technologies including **segmentation (ROI)-based transciptomics assays** that capture large polygonic regions on tissue sections. VoltRon recognizes such readouts including ones from commercially available tools and allows users to implement a workflow similar to ones conducted on bulk RNA-Seq datasets. In this tutorial, we will analyze morphological images and gene expression profiles provided by the readouts of the [Nanostring's GeoMx Digital Spatial Profiler](https://nanostring.com/products/geomx-digital-spatial-profiler/geomx-dsp-overview/) platform, a high-plex spatial profiling technology which produces segmentation-based protein and RNA assays. 
+VoltRon is capable of analyzing readouts from distinct spatial technologies including **segmentation (ROI)-based transciptomics assays** that capture mRNA abundance from large polygonic regions on tissue sections. VoltRon recognizes such readouts including ones from commercially available tools and allows users to execute a workflow similar to ones conducted on bulk RNA-Seq datasets. 
+
+In this tutorial, we will analyze morphological images and gene expression profiles provided by the readouts of the [Nanostring's GeoMx Digital Spatial Profiler](https://nanostring.com/products/geomx-digital-spatial-profiler/geomx-dsp-overview/) platform, a high-plex spatial profiling technology which produces segmentation-based protein and RNA assays. 
 
 In this use case, **eight tissue micro array (TMA) tissue sections** were fitted into the scan area of the slide loaded on the GeoMx DSP instrument. These sections were cut from **control and COVID-19 lung tissues** of donors categorized based on disease durations (acute and prolonged). See [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information.  
 
@@ -97,7 +99,9 @@ GeoMxR1 <- importGeoMx(dcc.path = "DCC-20230427/",
                        sample_name = "GeoMxR1")
 ```
 
-We can import the GeoMx ROI segments from the **Lu1A1B5umtrueexp.ome.tiff** image file directly by replacing the .xml file with the .ome.tiff file in the **ome.tiff** argument. Note that you need to call the **RBioFormats** library. If you are getting a **java error** when running importGeoMx, try increasing the maximum heap size by supplying the **-Xmx** parameter. Run the code below before rerunning **importGeoMx** again.
+We can import the GeoMx ROI segments from the **Lu1A1B5umtrueexp.ome.tiff** image file directly by replacing the .xml file with the .ome.tiff file in the **ome.tiff** argument. If you provide the ome.tiff, then **importGeoMx** will also capture individual IF staining channels. 
+
+Note that you need to call the **RBioFormats** library. If you are getting a **java error** when running importGeoMx, try increasing the maximum heap size by supplying the **-Xmx** parameter. Run the code below before rerunning **importGeoMx** again.
 
 ```{r eval = FALSE, class.source="watch-out"}
 options(java.parameters = "-Xmx4g")
@@ -462,7 +466,16 @@ GeoMxReg <- registerSpatialData(reference_spatdata = GeoMxR1_subset,
                                 query_spatdata = vrHEimage)
 ```
 
-<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_manualregistration.png" class="center">
+<!-- <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_manualregistration.png" class="center"> -->
+
+<div>
+  <video width="100%" height="100%" controls autoplay>
+    <source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/ROIAnalysis.mov" type="video/mp4">
+  Your browser does not support the video tag.
+  </video>
+</div>
+
+<br>
 
 The result of the registration is a list of registered VoltRon objects which we can use for parsing the registered image as well. In this case, the second element of the resulting list would be the registered H&E based VoltRon object. 
 
