@@ -538,6 +538,7 @@ import10Xh5 <- function(filename){
 #' @param ome.tiff the OME.TIFF file of the GeoMx experiment if exists
 #' @param resolution_level the level of resolution within GeoMx OME-TIFF image, Default: 3
 #' @param image_name the image name of the Visium assay, Default: main
+#' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom dplyr %>% full_join
@@ -547,7 +548,8 @@ import10Xh5 <- function(filename){
 #' @export
 #'
 importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetName, assay_name = "GeoMx",
-                        image = NULL, segment_polygons = FALSE, ome.tiff = NULL, resolution_level = 3, image_name = "main", ...)
+                        image = NULL, segment_polygons = FALSE, ome.tiff = NULL, resolution_level = 3, 
+                        image_name = "main", verbose = TRUE, ...)
 {
   # Get pkc file
   if(file.exists(pkc.file)){
@@ -655,7 +657,7 @@ importGeoMx <- function(dcc.path, pkc.file, summarySegment, summarySegmentSheetN
     segments <- segments[rownames(coords)]
 
     # parse channels if ome.tiff is given
-    channels <- importGeoMxChannels(ome.tiff, segmentsummary, geomx_image_info, resolution_level = resolution_level)
+    channels <- importGeoMxChannels(ome.tiff, segmentsummary, geomx_image_info, resolution_level = resolution_level, verbose = verbose)
     image <- c(list(scanimage = image), channels)
   }
 
@@ -969,14 +971,14 @@ rescaleGeoMxPoints <- function(pts, summary, imageinfo){
 #' @param summary segmentation summary data frame
 #' @param imageinfo image information
 #' @param resolution_level the resolution level (1-7) of the image parsed from the OME.TIFF file
+#' @param verbose verbose
 #'
-#' @param RBioFormats read.image
-#' @param EBImage as.Image
-#' @param grDevices as.raster
-#' @param magick image_read
+#' @importFrom EBImage as.Image
+#' @importFrom grDevices as.raster
+#' @importFrom magick image_read
 #'
 #' @noRd
-importGeoMxChannels <- function(ome.tiff, summary, imageinfo, resolution_level){
+importGeoMxChannels <- function(ome.tiff, summary, imageinfo, resolution_level, verbose = TRUE){
 
   # check file
   if(file.exists(ome.tiff)){
@@ -996,10 +998,15 @@ importGeoMxChannels <- function(ome.tiff, summary, imageinfo, resolution_level){
   }
 
   # get all channels
+  if(verbose)
+    message("Loading ", basename(ome.tiff), " ...")
   ome.tiff <- RBioFormats::read.image(ome.tiff, resolution = resolution_level)
 
   # get frame information
-  nframes <- ome.tiff@metadata$coreMetadata$imageCount
+  image_info <- ome.tiff@metadata$coreMetadata
+  if(verbose)
+    message("  Image Resolution (X:", image_info$sizeX, " Y:", image_info$sizeY, ") ...")
+  nframes <- image_info$imageCount
   frames <- EBImage::getFrames(ome.tiff)
   frames <- lapply(frames, function(x){
     img <- magick::image_read(grDevices::as.raster(EBImage::as.Image(x)))
@@ -1011,6 +1018,8 @@ importGeoMxChannels <- function(ome.tiff, summary, imageinfo, resolution_level){
   channel_names <- lapply(omexml, function(x){
     x$Value$ChannelInfo$BiologicalTarget
   })
+  if(verbose)
+    message("  Channel Names: ", paste(channel_names, collapse = ", "))
   names(frames) <- channel_names
 
   # return frames

@@ -15,6 +15,7 @@ importGeoMx(
   ome.tiff = NULL,
   resolution_level = 3,
   image_name = "main",
+  verbose = TRUE,
   ...
 )
 }
@@ -38,6 +39,8 @@ importGeoMx(
 \item{resolution_level}{the level of resolution within GeoMx OME-TIFF image, Default: 3}
 
 \item{image_name}{the image name of the Visium assay, Default: main}
+
+\item{verbose}{verbose}
 
 \item{...}{additional parameters passed to \link{formVoltRon}}
 }

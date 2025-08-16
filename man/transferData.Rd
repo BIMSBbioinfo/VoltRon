@@ -9,7 +9,7 @@ transferData(
   from = NULL,
   to = NULL,
   features = NULL,
-  expand = TRUE,
+  expand = NULL,
   new_feature_name = NULL
 )
 }
@@ -24,7 +24,9 @@ transferData(
 Only one metadata feature can be transfered at a time.}
 
 \item{expand}{if TRUE, metadata features will be transformed into
-dummy features where each category in the feature will be a new feature}
+dummy features where each category in the feature will be a new feature. 
+If FALSE, metadata features will not be transformed and transfered as
+metadata columns, else the decision will be made automatically.}
 
 \item{new_feature_name}{the name of the new feature set created 
 from the source assay defined in \code{from} argument.

@@ -43,7 +43,9 @@ getDeconvolution <- function(object, assay = NULL, features = NULL, sc.object, s
       cur_assay <- object[[assy]]
 
       # RCTD
-      rawdata <- getDeconSingle(object = cur_assay, features = features, reference = reference, method = method, sc.cluster = sc.cluster,
+      rawdata <- getDeconSingle(object = cur_assay, features = features, 
+                                reference = reference, 
+                                method = method, sc.cluster = sc.cluster,
                                 ...)
       
       # add cell type mixtures as new featureset
@@ -77,14 +79,14 @@ getDeconReference <- function(sc.object, sc.assay = "RNA", sc.cluster = "seurat_
 
     # check method
     if(!method %in% c("MuSiC")){
-      message("The selected method is not provided for ROI deconvolution. Switching to MuSiC")
+      message("The selected method is not provided for ROI deconvolution. Switching to MuSiC ...")
       method <- "MuSiC"
     }
 
     # deconvolution with MuSiC
     if(method == "MuSiC"){
 
-      message("Configuring Single Cell Assay (reference) ...\n")
+      message("Configuring Single Cell Assay (Reference) ...")
       if(inherits(sc.object, "SingleCellExperiment")){
         sc.object$music_decon_clusters <- sc.object[[sc.cluster]]
         reference <- sc.object
@@ -131,7 +133,7 @@ getDeconSingle <- function(object, features = features, reference, method = "RCT
     }
 
     if(method == "RCTD"){
-      message("Running RCTD for spot deconvolution ...\n")
+      message("Running RCTD for spot deconvolution ...")
       rawdata <- getRCTD(object = object, features = features, reference = reference, sc.cluster = sc.cluster, ...)
     }
 
@@ -139,12 +141,12 @@ getDeconSingle <- function(object, features = features, reference, method = "RCT
 
     # check method
     if(!method %in% c("MuSiC")){
-      message("The selected method is not provided for ROI deconvolution. Switching to MuSiC")
+      message("The selected method is not provided for ROI deconvolution. Switching to MuSiC ...")
       method <- "MuSiC"
     }
 
     if(method == "MuSiC"){
-      message("Running MuSiC for ROI deconvolution ...\n")
+      message("Running MuSiC for ROI deconvolution ...")
       rawdata <- getMuSiC(object = object, features = features, reference = reference, sc.cluster, ...)
     }
 
@@ -178,7 +180,7 @@ getRCTD <- function(object, features = NULL, reference, sc.cluster, ...){
          Biocmanager::install('SingleCellExperiment')")
 
   # create spatial data
-  message("Configuring Spatial Assay ...\n")
+  message("Configuring Spatial Assay ...")
   spatialcounts <- vrData(object, norm = FALSE)
   coords <- as.matrix(as(vrCoordinates(object), "dgCMatrix"))[,c("x", "y")]
   # spatialnUMI <- colSums(spatialcounts)
@@ -190,7 +192,7 @@ getRCTD <- function(object, features = NULL, reference, sc.cluster, ...){
 
   # Run RCTD
   myRCTD <- spacexr::createRctd(spatialdata, reference, cell_type_col = sc.cluster)
-  message("Calculating Cell Type Compositions of spots with RCTD ...\n")
+  message("Calculating Cell Type Compositions of spots with RCTD ...")
   myRCTD <- quiet(spacexr::runRctd(myRCTD, rctd_mode = 'full', ...))
   results <- SummarizedExperiment::assay(myRCTD, i = "weights")
   norm_weights <- sweep(results, 2, colSums(results), "/")
@@ -216,7 +218,7 @@ getDeconReferenceSpot <- function(sc.object, sc.assay = NULL, sc.cluster, method
     if (!requireNamespace('spacexr'))
       stop("Please install spacexr package to use the RCTD algorithm")
     
-    message("Configuring Single Cell Assay (reference) ...\n")
+    message("Configuring Single Cell Assay (reference) ...")
     if(inherits(sc.object, "Seurat")){
       
       if (!requireNamespace('Seurat'))
@@ -279,10 +281,11 @@ getDeconReferenceSpot <- function(sc.object, sc.assay = NULL, sc.cluster, method
 #' @param object a vrAssay object
 #' @param features features
 #' @param reference the single cell deconvolution reference, generated \code{getDeconReference}
+#' @param sc.cluster metadata column variable used for the single cell data reference
 #' @param sc.samples metadata column in Seurat that provides the samples in the single cell data
 #'
 #' @noRd
-getMuSiC <- function(object, features = NULL, reference, sc.samples = NULL){
+getMuSiC <- function(object, features = NULL, reference, sc.cluster, sc.samples = NULL){
 
   if (!requireNamespace('Seurat'))
     stop("Please install Seurat package for using Seurat objects: install.packages('Seurat')")
@@ -313,11 +316,11 @@ getMuSiC <- function(object, features = NULL, reference, sc.samples = NULL){
   datax <- datax[common_features,]
 
   # deconvolute
-  message("Calculating Cell Type Compositions of ROIs with MuSiC ...\n")
+  message("Calculating Cell Type Compositions of ROIs with MuSiC ...")
   results <- MuSiC::music_prop(bulk.mtx = datax,
-                        sc.sce = reference,
-                        clusters = "music_decon_clusters",
-                        samples = sc.samples,
-                        verbose = T)
+                               sc.sce = reference,
+                               clusters = sc.cluster,
+                               samples = sc.samples,
+                               verbose = T)
   t(results$Est.prop.weighted)
 }
