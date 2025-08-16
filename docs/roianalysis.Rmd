@@ -466,7 +466,16 @@ GeoMxReg <- registerSpatialData(reference_spatdata = GeoMxR1_subset,
                                 query_spatdata = vrHEimage)
 ```
 
-<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_manualregistration.png" class="center">
+<!-- <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_manualregistration.png" class="center"> -->
+
+<div>
+  <video width="100%" height="100%" controls autoplay>
+    <source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/ROIAnalysis.mov" type="video/mp4">
+  Your browser does not support the video tag.
+  </video>
+</div>
+
+<br>
 
 The result of the registration is a list of registered VoltRon objects which we can use for parsing the registered image as well. In this case, the second element of the resulting list would be the registered H&E based VoltRon object. 
 

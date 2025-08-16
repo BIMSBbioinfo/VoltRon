@@ -973,7 +973,6 @@ rescaleGeoMxPoints <- function(pts, summary, imageinfo){
 #' @param resolution_level the resolution level (1-7) of the image parsed from the OME.TIFF file
 #' @param verbose verbose
 #'
-#' @importFrom RBioFormats read.image
 #' @importFrom EBImage as.Image
 #' @importFrom grDevices as.raster
 #' @importFrom magick image_read
