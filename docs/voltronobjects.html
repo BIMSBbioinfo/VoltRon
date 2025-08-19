@@ -833,14 +833,12 @@ this list. However, it would only subset the main assay (see <a
 href="#assays">vrMainAssay</a>)</p>
 <pre class="r watch-out"><code>selected_features &lt;- vrFeatures(visium_data)
 selected_features[1:20]</code></pre>
-<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;      
-##  [9] &quot;Mrpl15&quot;        &quot;Lypla1&quot;        &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;       
-## [17] &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
+<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;       &quot;Mrpl15&quot;        &quot;Lypla1&quot;        &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;      
+## [14] &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;        &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
 <pre class="r watch-out"><code>visium_data_subset &lt;- subset(visium_data, features = selected_features[1:20])
 vrFeatures(visium_data_subset)</code></pre>
-<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;      
-##  [9] &quot;Mrpl15&quot;        &quot;Lypla1&quot;        &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;       
-## [17] &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
+<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;       &quot;Mrpl15&quot;        &quot;Lypla1&quot;        &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;      
+## [14] &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;        &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
 <p><br></p>
 </div>
 <div id="interactive-subsetting" class="section level3">

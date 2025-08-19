@@ -193,9 +193,9 @@ Xen_R1_disk <- getProfileNeighbors(Xen_R1_disk, dims = 1:30, k = 10, method = "S
 Xen_R1_disk <- getClusters(Xen_R1_disk, resolution = 0.7, label = "Clusters", graph = "SNN")
 
 library(patchwork)
-g1 <- vrSpatialPlot(Xen_R1_disk3, group.by = "Clusters", n.tile = 400, 
+g1 <- vrSpatialPlot(Xen_R1_disk, group.by = "Clusters", n.tile = 400, 
                     alpha = 1, legend.loc = "none")
-g2 <- vrEmbeddingPlot(Xen_R1_disk3, group.by = "Clusters", embedding = "umap")
+g2 <- vrEmbeddingPlot(Xen_R1_disk, group.by = "Clusters", embedding = "umap")
 g1 | g2
 ```
 
