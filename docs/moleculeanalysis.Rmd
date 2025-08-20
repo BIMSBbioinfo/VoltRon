@@ -102,7 +102,7 @@ Xen_R1 <- saveVoltRon(Xen_R1, format = "HDF5VoltRon",
 The disk-backed data can be loaded once saved on disk again
 
 ```{r eval = FALSE, class.source="watch-out"}
-Xen_R1_disk <- loadVoltRon("Xen_R1/")
+Xen_R1 <- loadVoltRon("Xen_R1/")
 
 ```
 
