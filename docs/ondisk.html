@@ -627,9 +627,9 @@ Xen_R1_disk &lt;- getProfileNeighbors(Xen_R1_disk, dims = 1:30, k = 10, method =
 Xen_R1_disk &lt;- getClusters(Xen_R1_disk, resolution = 0.7, label = &quot;Clusters&quot;, graph = &quot;SNN&quot;)
 
 library(patchwork)
-g1 &lt;- vrSpatialPlot(Xen_R1_disk3, group.by = &quot;Clusters&quot;, n.tile = 400, 
+g1 &lt;- vrSpatialPlot(Xen_R1_disk, group.by = &quot;Clusters&quot;, n.tile = 400, 
                     alpha = 1, legend.loc = &quot;none&quot;)
-g2 &lt;- vrEmbeddingPlot(Xen_R1_disk3, group.by = &quot;Clusters&quot;, embedding = &quot;umap&quot;)
+g2 &lt;- vrEmbeddingPlot(Xen_R1_disk, group.by = &quot;Clusters&quot;, embedding = &quot;umap&quot;)
 g1 | g2</code></pre>
 <table>
 <tbody>
