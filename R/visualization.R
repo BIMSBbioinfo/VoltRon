@@ -679,7 +679,7 @@ addSpatialLayer <- function(g, object, assay, group.by = "Sample", plot.segments
       if(n.tile > 0 || nrow(coords) > 50000){
         if(n.tile == 0)
           n.tile <- 1000
-        g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha)
+        g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha, show.legend = NA)
       } else {
         g <- g +
           geom_point(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]], color = .data[[group.by]]),
@@ -703,7 +703,7 @@ addSpatialLayer <- function(g, object, assay, group.by = "Sample", plot.segments
     if(n.tile > 0 || nrow(coords) > 50000){
       if(n.tile == 0)
         n.tile <- 1000
-      g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha, spot = TRUE)
+      g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha, spot = TRUE, show.legend = NA)
     } else {
       spot.type <- vrAssayParams(assay, param = "spot.type")
       spot.type <- ifelse(is.null(spot.type), "circle", spot.type)
@@ -724,7 +724,7 @@ addSpatialLayer <- function(g, object, assay, group.by = "Sample", plot.segments
       if(n.tile == 0)
         n.tile <- 1000
       g <- vrGroupPlotTiling(g = g, data = coords, group.by = group.by, n.tile = n.tile, alpha = alpha, 
-                             combine.groups = combine.groups)
+                             combine.groups = combine.groups, show.legend = NA)
     } else {
       combine.groups <- FALSE
       g <- g +
@@ -2730,10 +2730,10 @@ vrProportionPlot <- function(object, assay = NULL, x.label = NULL,
 #' @import ggplot2
 #'
 #' @noRd
-vrGroupPlotTiling <- function(g, data, group.by, n.tile, alpha = 1, spot = FALSE, combine.groups = FALSE) {
+vrGroupPlotTiling <- function(g, data, group.by, n.tile, alpha = 1, spot = FALSE, combine.groups = FALSE, show.legend = TRUE) {
   if(spot){
     g <- g + stat_bin_2d(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]]),
-                         data = data, bins = n.tile, drop = TRUE, alpha = alpha, show.legend = TRUE)
+                         data = data, bins = n.tile, drop = TRUE, alpha = alpha, show.legend = show.legend)
   } else {
     if(combine.groups){
       grps <- unique(data[[group.by]]) 
@@ -2742,10 +2742,10 @@ vrGroupPlotTiling <- function(g, data, group.by, n.tile, alpha = 1, spot = FALSE
       }
       data$z <- ifelse(data[[group.by]] == grps[2], 1, 0)
       g <- g + stat_summary_2d(mapping = aes(x = .data[["x"]], y = .data[["y"]], z = .data[["z"]]),
-                           data = data, bins = n.tile, drop = TRUE, fun = mean, alpha = alpha, show.legend = TRUE) 
+                           data = data, bins = n.tile, drop = TRUE, fun = mean, alpha = alpha, show.legend = show.legend) 
     } else {
       g <- g + stat_bin_2d(mapping = aes(x = .data[["x"]], y = .data[["y"]], fill = .data[[group.by]], color = .data[[group.by]]),
-                           data = data, bins = n.tile, drop = TRUE, alpha = alpha, show.legend = TRUE)  
+                           data = data, bins = n.tile, drop = TRUE, alpha = alpha, show.legend = show.legend)  
     }
   }
   g
