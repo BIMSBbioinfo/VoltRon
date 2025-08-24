@@ -12,7 +12,7 @@ NULL
 #'
 #' @param object a VoltRon or vrAssay object.
 #' @param ... arguments passed to other methods.
-#' 
+#'
 #' @rdname vrFeatures
 #' @export vrFeatures
 #' @order 1
@@ -28,11 +28,15 @@ setGeneric("vrFeatures", function(object, ...) standardGeneric("vrFeatures"))
 #' @rdname vrFeatureData
 #' @export vrFeatureData
 #' @order 1
-setGeneric("vrFeatureData", function(object, ...) standardGeneric("vrFeatureData"))
+setGeneric("vrFeatureData", function(object, ...) {
+  standardGeneric("vrFeatureData")
+})
 
 #' @rdname vrFeatureData
 #' @export vrFeatureData<-
-setGeneric("vrFeatureData<-", function(object, ..., value) standardGeneric("vrFeatureData<-"))
+setGeneric("vrFeatureData<-", function(object, ..., value) {
+  standardGeneric("vrFeatureData<-")
+})
 
 #' getFeatures
 #'
@@ -67,7 +71,9 @@ setGeneric("vrData", function(object, ...) standardGeneric("vrData"))
 #' @rdname generateTileData
 #' @export generateTileData
 #' @order 1
-setGeneric("generateTileData", function(object, ...) standardGeneric("generateTileData"))
+setGeneric("generateTileData", function(object, ...) {
+  standardGeneric("generateTileData")
+})
 
 #' changeSampleNames
 #'
@@ -79,7 +85,9 @@ setGeneric("generateTileData", function(object, ...) standardGeneric("generateTi
 #' @rdname changeSampleNames
 #'
 #' @noRd
-setGeneric("changeSampleNames", function(object, ...) standardGeneric("changeSampleNames"))
+setGeneric("changeSampleNames", function(object, ...) {
+  standardGeneric("changeSampleNames")
+})
 
 #' changeAssayNames
 #'
@@ -91,7 +99,9 @@ setGeneric("changeSampleNames", function(object, ...) standardGeneric("changeSam
 #' @rdname changeAssayNames
 #'
 #' @noRd
-setGeneric("changeAssayNames", function(object, ...) standardGeneric("changeAssayNames"))
+setGeneric("changeAssayNames", function(object, ...) {
+  standardGeneric("changeAssayNames")
+})
 
 ####
 # Assay ####
@@ -100,7 +110,7 @@ setGeneric("changeAssayNames", function(object, ...) standardGeneric("changeAssa
 #' Main Assay
 #'
 #' Get and set the main assay of a VoltRon object
-#' 
+#'
 #' @param object a VoltRon object.
 #' @param ... arguments passed to other methods.
 #'
@@ -109,15 +119,17 @@ setGeneric("changeAssayNames", function(object, ...) standardGeneric("changeAssa
 setGeneric("vrMainAssay", function(object, ...) standardGeneric("vrMainAssay"))
 
 #' @param value new assay name
-#' 
+#'
 #' @rdname vrMainAssay
 #' @export vrMainAssay<-
-setGeneric("vrMainAssay<-", function(object, ..., value) standardGeneric("vrMainAssay<-"))
+setGeneric("vrMainAssay<-", function(object, ..., value) {
+  standardGeneric("vrMainAssay<-")
+})
 
 #' Update Assay
 #'
 #' update assays from vrAssay to vrAssayV2
-#' 
+#'
 #' @param object a VoltRon object.
 #' @param ... arguments passed to other methods.
 #'
@@ -146,15 +158,19 @@ setGeneric("addAssay", function(object, ...) standardGeneric("addAssay"))
 #' @rdname vrAssayNames
 #' @export vrAssayNames
 #' @order 1
-setGeneric("vrAssayNames", function(object, ...) standardGeneric("vrAssayNames"))
+setGeneric("vrAssayNames", function(object, ...) {
+  standardGeneric("vrAssayNames")
+})
 
 #' @rdname vrAssayNames
 #' @noRd
-setGeneric("vrAssayNames<-", function(object, ..., value) standardGeneric("vrAssayNames<-"))
+setGeneric("vrAssayNames<-", function(object, ..., value) {
+  standardGeneric("vrAssayNames<-")
+})
 
 #' Get assay types
-#' 
-#' Given a VoltRon or vrAssay object, get types of assays. 
+#'
+#' Given a VoltRon or vrAssay object, get types of assays.
 #' Here, an assay type is of either tile, molecule, cell, spot or ROI.
 #'
 #' @param object a VoltRon or vrAssay object.
@@ -163,7 +179,9 @@ setGeneric("vrAssayNames<-", function(object, ..., value) standardGeneric("vrAss
 #' @rdname vrAssayTypes
 #' @export vrAssayTypes
 #' @order 1
-setGeneric("vrAssayTypes", function(object, ...) standardGeneric("vrAssayTypes"))
+setGeneric("vrAssayTypes", function(object, ...) {
+  standardGeneric("vrAssayTypes")
+})
 
 ####
 # Sample ####
@@ -178,7 +196,9 @@ setGeneric("vrAssayTypes", function(object, ...) standardGeneric("vrAssayTypes")
 #'
 #' @rdname vrSampleNames
 #' @export vrSampleNames
-setGeneric("vrSampleNames", function(object, ...) standardGeneric("vrSampleNames"))
+setGeneric("vrSampleNames", function(object, ...) {
+  standardGeneric("vrSampleNames")
+})
 
 ####
 # Metadata ####
@@ -198,22 +218,26 @@ setGeneric("Metadata", function(object, ...) standardGeneric("Metadata"))
 #' @param value new metadata
 #'
 #' @rdname Metadata
-setGeneric("Metadata<-", function(object, ..., value) standardGeneric("Metadata<-"))
+setGeneric("Metadata<-", function(object, ..., value) {
+  standardGeneric("Metadata<-")
+})
 
 ####
 # Processing ####
 ####
 
 #' Normalize Data
-#' 
+#'
 #' Given a VoltRon or vrAssay object, normalize the raw count data.
 #'
 #' @param object a VoltRon or vrAssay object.
 #' @param ... arguments passed to other methods.
-#' 
+#'
 #' @rdname normalizeData
 #' @export normalizeData
-setGeneric("normalizeData", function(object, ...) standardGeneric("normalizeData"))
+setGeneric("normalizeData", function(object, ...) {
+  standardGeneric("normalizeData")
+})
 
 ####
 # Embedding ####
@@ -229,25 +253,31 @@ setGeneric("normalizeData", function(object, ...) standardGeneric("normalizeData
 #' @rdname vrEmbeddingNames
 #' @export vrEmbeddingNames
 #' @order 1
-setGeneric("vrEmbeddingNames", function(object, ...) standardGeneric("vrEmbeddingNames"))
+setGeneric("vrEmbeddingNames", function(object, ...) {
+  standardGeneric("vrEmbeddingNames")
+})
 
 #' vrEmbeddings
 #'
 #' Given a VoltRon or vrAssay object, get embeddings of spatial points
-#' 
+#'
 #' @param object a VoltRon or vrAssay object.
 #' @param ... arguments passed to other methods.
-#' 
+#'
 #' @rdname vrEmbeddings
 #' @export vrEmbeddings
 #' @order 1
-setGeneric("vrEmbeddings", function(object, ...) standardGeneric("vrEmbeddings"))
+setGeneric("vrEmbeddings", function(object, ...) {
+  standardGeneric("vrEmbeddings")
+})
 
 #' @param value new embedding data
 #'
 #' @rdname vrEmbeddings
 #' @export vrEmbeddings<-
-setGeneric("vrEmbeddings<-", function(object, ..., value) standardGeneric("vrEmbeddings<-"))
+setGeneric("vrEmbeddings<-", function(object, ..., value) {
+  standardGeneric("vrEmbeddings<-")
+})
 
 ####
 # Feature ####
@@ -275,7 +305,9 @@ setGeneric("addFeature", function(object, ...) standardGeneric("addFeature"))
 #' @rdname vrMainFeatureType
 #' @export vrMainFeatureType
 #' @order 1
-setGeneric("vrMainFeatureType", function(object, ...) standardGeneric("vrMainFeatureType"))
+setGeneric("vrMainFeatureType", function(object, ...) {
+  standardGeneric("vrMainFeatureType")
+})
 
 #' vrMainFeatureType
 #'
@@ -285,7 +317,9 @@ setGeneric("vrMainFeatureType", function(object, ...) standardGeneric("vrMainFea
 #'
 #' @rdname vrMainFeatureType
 #' @export vrMainFeatureType<-
-setGeneric("vrMainFeatureType<-", function(object, ..., value) standardGeneric("vrMainFeatureType<-"))
+setGeneric("vrMainFeatureType<-", function(object, ..., value) {
+  standardGeneric("vrMainFeatureType<-")
+})
 
 #' vrFeatureTypeNames
 #'
@@ -297,7 +331,9 @@ setGeneric("vrMainFeatureType<-", function(object, ..., value) standardGeneric("
 #' @rdname vrFeatureTypeNames
 #' @export vrFeatureTypeNames
 #' @order 1
-setGeneric("vrFeatureTypeNames", function(object, ...) standardGeneric("vrFeatureTypeNames"))
+setGeneric("vrFeatureTypeNames", function(object, ...) {
+  standardGeneric("vrFeatureTypeNames")
+})
 
 ####
 # Spatial ####
@@ -318,13 +354,17 @@ setGeneric("vrFeatureTypeNames", function(object, ...) standardGeneric("vrFeatur
 #' vrSpatialPoints(visium_data)
 #' vrSpatialPoints(visium_data, assay = "Visium")
 #' vrSpatialPoints(visium_data, assay = "Assay1")
-setGeneric("vrSpatialPoints", function(object, ...) standardGeneric("vrSpatialPoints"))
+setGeneric("vrSpatialPoints", function(object, ...) {
+  standardGeneric("vrSpatialPoints")
+})
 
 #' @param value names for spatial points
 #'
 #' @rdname vrSpatialPoints
 #' @export vrSpatialPoints<-
-setGeneric("vrSpatialPoints<-", function(object, ..., value) standardGeneric("vrSpatialPoints<-"))
+setGeneric("vrSpatialPoints<-", function(object, ..., value) {
+  standardGeneric("vrSpatialPoints<-")
+})
 
 #' vrCoordinates
 #'
@@ -336,13 +376,17 @@ setGeneric("vrSpatialPoints<-", function(object, ..., value) standardGeneric("vr
 #' @rdname vrCoordinates
 #' @export vrCoordinates
 #' @order 1
-setGeneric("vrCoordinates", function(object, ...) standardGeneric("vrCoordinates"))
+setGeneric("vrCoordinates", function(object, ...) {
+  standardGeneric("vrCoordinates")
+})
 
 #' @param value coordinates
-#' 
+#'
 #' @rdname vrCoordinates
 #' @export vrCoordinates<-
-setGeneric("vrCoordinates<-", function(object, ..., value) standardGeneric("vrCoordinates<-"))
+setGeneric("vrCoordinates<-", function(object, ..., value) {
+  standardGeneric("vrCoordinates<-")
+})
 
 #' vrSegments
 #'
@@ -357,14 +401,16 @@ setGeneric("vrCoordinates<-", function(object, ..., value) standardGeneric("vrCo
 setGeneric("vrSegments", function(object, ...) standardGeneric("vrSegments"))
 
 #' @param value segments
-#' 
+#'
 #' @rdname vrSegments
 #' @export vrSegments<-
-setGeneric("vrSegments<-", function(object, ..., value) standardGeneric("vrSegments<-"))
+setGeneric("vrSegments<-", function(object, ..., value) {
+  standardGeneric("vrSegments<-")
+})
 
 #' flipCoordinates
 #'
-#' Flip the coordinates of spatial points in the y axis direction. 
+#' Flip the coordinates of spatial points in the y axis direction.
 #'
 #' @param object a VoltRon, vrAssay or vrSpatial object.
 #' @param ... arguments passed to other methods.
@@ -372,7 +418,9 @@ setGeneric("vrSegments<-", function(object, ..., value) standardGeneric("vrSegme
 #' @rdname flipCoordinates
 #' @export flipCoordinates
 #' @order 1
-setGeneric("flipCoordinates", function(object, ...) standardGeneric("flipCoordinates"))
+setGeneric("flipCoordinates", function(object, ...) {
+  standardGeneric("flipCoordinates")
+})
 
 ####
 # Image ####
@@ -391,10 +439,12 @@ setGeneric("flipCoordinates", function(object, ...) standardGeneric("flipCoordin
 setGeneric("vrImages", function(object, ...) standardGeneric("vrImages"))
 
 #' @param value a raster image or an image of \code{magick-image} object
-#' 
+#'
 #' @rdname vrImages
 #' @export vrImages<-
-setGeneric("vrImages<-", function(object, ..., value) standardGeneric("vrImages<-"))
+setGeneric("vrImages<-", function(object, ..., value) {
+  standardGeneric("vrImages<-")
+})
 
 #' vrImageNames
 #'
@@ -405,7 +455,9 @@ setGeneric("vrImages<-", function(object, ..., value) standardGeneric("vrImages<
 #'
 #' @rdname vrImageNames
 #' @export vrImageNames
-setGeneric("vrImageNames", function(object, ...) standardGeneric("vrImageNames"))
+setGeneric("vrImageNames", function(object, ...) {
+  standardGeneric("vrImageNames")
+})
 
 #' vrSpatialNames
 #'
@@ -416,7 +468,9 @@ setGeneric("vrImageNames", function(object, ...) standardGeneric("vrImageNames")
 #'
 #' @rdname vrSpatialNames
 #' @export vrSpatialNames
-setGeneric("vrSpatialNames", function(object, ...) standardGeneric("vrSpatialNames"))
+setGeneric("vrSpatialNames", function(object, ...) {
+  standardGeneric("vrSpatialNames")
+})
 
 #' vrImageChannelNames
 #'
@@ -428,7 +482,9 @@ setGeneric("vrSpatialNames", function(object, ...) standardGeneric("vrSpatialNam
 #' @rdname vrImageChannelNames
 #' @export vrImageChannelNames
 #'
-setGeneric("vrImageChannelNames", function(object, ...) standardGeneric("vrImageChannelNames"))
+setGeneric("vrImageChannelNames", function(object, ...) {
+  standardGeneric("vrImageChannelNames")
+})
 
 #' vrMainImage
 #'
@@ -452,7 +508,9 @@ setGeneric("vrMainImage", function(object, ...) standardGeneric("vrMainImage"))
 #' @rdname vrMainSpatial
 #' @export vrMainSpatial
 #' @order 1
-setGeneric("vrMainSpatial", function(object, ...) standardGeneric("vrMainSpatial"))
+setGeneric("vrMainSpatial", function(object, ...) {
+  standardGeneric("vrMainSpatial")
+})
 
 #' vrMainImage
 #'
@@ -462,7 +520,9 @@ setGeneric("vrMainSpatial", function(object, ...) standardGeneric("vrMainSpatial
 #'
 #' @rdname vrMainImage
 #' @export vrMainImage<-
-setGeneric("vrMainImage<-", function(object, ..., value) standardGeneric("vrMainImage<-"))
+setGeneric("vrMainImage<-", function(object, ..., value) {
+  standardGeneric("vrMainImage<-")
+})
 
 #' vrMainSpatial
 #'
@@ -472,7 +532,9 @@ setGeneric("vrMainImage<-", function(object, ..., value) standardGeneric("vrMain
 #'
 #' @rdname vrMainSpatial
 #' @export vrMainSpatial<-
-setGeneric("vrMainSpatial<-", function(object, ..., value) standardGeneric("vrMainSpatial<-"))
+setGeneric("vrMainSpatial<-", function(object, ..., value) {
+  standardGeneric("vrMainSpatial<-")
+})
 
 #' vrMainChannel
 #'
@@ -484,13 +546,17 @@ setGeneric("vrMainSpatial<-", function(object, ..., value) standardGeneric("vrMa
 #' @rdname vrMainChannel
 #' @export vrMainChannel
 #' @order 1
-setGeneric("vrMainChannel", function(object, ...) standardGeneric("vrMainChannel"))
+setGeneric("vrMainChannel", function(object, ...) {
+  standardGeneric("vrMainChannel")
+})
 
 #' @param value the name of main channel of the spatial system
 #'
 #' @rdname vrMainChannel
 #' @export vrMainChannel<-
-setGeneric("vrMainChannel<-", function(object, ..., value) standardGeneric("vrMainChannel<-"))
+setGeneric("vrMainChannel<-", function(object, ..., value) {
+  standardGeneric("vrMainChannel<-")
+})
 
 #' resizeImage
 #'
@@ -514,7 +580,9 @@ setGeneric("resizeImage", function(object, ...) standardGeneric("resizeImage"))
 #' @rdname modulateImage
 #' @export modulateImage
 #'
-setGeneric("modulateImage", function(object, ...) standardGeneric("modulateImage"))
+setGeneric("modulateImage", function(object, ...) {
+  standardGeneric("modulateImage")
+})
 
 #' combineChannels
 #'
@@ -526,7 +594,9 @@ setGeneric("modulateImage", function(object, ...) standardGeneric("modulateImage
 #' @rdname combineChannels
 #' @export combineChannels
 #'
-setGeneric("combineChannels", function(object, ...) standardGeneric("combineChannels"))
+setGeneric("combineChannels", function(object, ...) {
+  standardGeneric("combineChannels")
+})
 
 ####
 # Conversion ####
@@ -570,7 +640,9 @@ as.Zarr <- function(object, out_path, image_id) {
 #' @param ... arguments passed to other methods.
 #'
 #' @noRd
-setGeneric(".shorten_assay_links", function(object, ...) standardGeneric(".shorten_assay_links"))
+setGeneric(".shorten_assay_links", function(object, ...) {
+  standardGeneric(".shorten_assay_links")
+})
 
 #' .restore_absolute_assay_links
 #'
@@ -578,7 +650,9 @@ setGeneric(".shorten_assay_links", function(object, ...) standardGeneric(".short
 #' @param ... arguments passed to other methods.
 #'
 #' @noRd
-setGeneric(".restore_absolute_assay_links", function(object, ...) standardGeneric(".restore_absolute_assay_links"))
+setGeneric(".restore_absolute_assay_links", function(object, ...) {
+  standardGeneric(".restore_absolute_assay_links")
+})
 
 #' .restore_absolute_links
 #'
@@ -586,4 +660,6 @@ setGeneric(".restore_absolute_assay_links", function(object, ...) standardGeneri
 #' @param ... arguments passed to other methods.
 #'
 #' @noRd
-setGeneric(".restore_absolute_links", function(x, ...) standardGeneric(".restore_absolute_links"))
+setGeneric(".restore_absolute_links", function(x, ...) {
+  standardGeneric(".restore_absolute_links")
+})
