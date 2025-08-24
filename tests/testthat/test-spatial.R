@@ -163,7 +163,6 @@ test_that("hot spot analysis with tiles", {
                                       verbose = FALSE)})
   
   # getis ord test of cells with tiles, gets a warning
-  print(colnames(Metadata(merged_object)))
   merged_object <- getHotSpotAnalysis(merged_object, features = "CellType", 
                                       group.ids = c("MyelomaCells", "CD8_TCells"), 
                                       verbose = FALSE, n.tile = 10)

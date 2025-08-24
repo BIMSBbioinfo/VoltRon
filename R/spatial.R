@@ -527,7 +527,7 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord",
               mapping = mapping))
 }
 
-#' @importFrom igraph add_edges simplify make_empty_graph get.adjacency
+#' @importFrom igraph add_edges simplify make_empty_graph as_adjacency_matrix
 #' @importFrom RANN nn2
 #' @importFrom data.table data.table melt
 #' @noRd
@@ -550,7 +550,7 @@ getHotSpotAnalysis <- function(object, assay = NULL, method = "Getis-Ord",
   graph <- make_empty_graph(directed = FALSE) + vertices(hex_count_data$id)
   graph <- add_edges(graph, edges = nnedges)
   graph <- simplify(graph, remove.multiple = TRUE, remove.loops = FALSE)
-  graph <- igraph::get.adjacency(graph)
+  graph <- igraph::as_adjacency_matrix(graph)
     
   # return
   graph
@@ -590,7 +590,7 @@ getNicheAssay <- function(object, assay = NULL, label = NULL, graph.type = "dela
     vrdata <- vrData(object, assay = assay_names, norm = FALSE)
     
     # get niche assay
-    adj_matrix <- igraph::get.adjacency(graph, type = "both")
+    adj_matrix <- igraph::as_adjacency_matrix(graph, type = "both")
     niche_counts <- vrdata %*% adj_matrix
     
     
