@@ -24,23 +24,23 @@ importGeoMx(
 
 \item{pkc.file}{path to the pkc file}
 
-\item{summarySegment}{the metadata csv (sep = ";") or excel file, 
-if the file is an excel file, \code{summarySegmentSheetName} should 
+\item{summarySegment}{the metadata csv (sep = ";") or excel file,
+if the file is an excel file, \code{summarySegmentSheetName} should
 be provided as well.}
 
-\item{summarySegmentSheetName}{the sheet name of the excel file, 
+\item{summarySegmentSheetName}{the sheet name of the excel file,
 \code{summarySegment}}
 
 \item{assay_name}{the assay name, default: GeoMx}
 
 \item{image}{the reference morphology image of the GeoMx assay}
 
-\item{segment_polygons}{if TRUE, the ROI polygons are parsed from the 
+\item{segment_polygons}{if TRUE, the ROI polygons are parsed from the
 OME.TIFF file}
 
 \item{ome.tiff}{the OME.TIFF file of the GeoMx experiment if exists}
 
-\item{resolution_level}{the level of resolution within GeoMx OME-TIFF 
+\item{resolution_level}{the level of resolution within GeoMx OME-TIFF
 image, Default: 3}
 
 \item{image_name}{the image name of the Visium assay, Default: main}

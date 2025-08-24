@@ -15,16 +15,16 @@
 #' @param assay_name the assay name of the SR object
 #' @param sample_name the name of the sample
 #' @param use_image if TRUE, the DAPI image will be used.
-#' @param morphology_image the name of the lowred morphology image. 
+#' @param morphology_image the name of the lowred morphology image.
 #' Default: morphology_lowres.tif
-#' @param resolution_level the level of resolution within Xenium OME-TIFF 
+#' @param resolution_level the level of resolution within Xenium OME-TIFF
 #' image, see \link{generateXeniumImage}. Default: 7 (553x402)
-#' @param overwrite_resolution if TRUE, the image "file.name" will be generated 
+#' @param overwrite_resolution if TRUE, the image "file.name" will be generated
 #' again although it exists at "dir.path"
 #' @param image_name the image name of the Xenium assay, Default: main
-#' @param channel_name the channel name of the image of the Xenium assay, 
+#' @param channel_name the channel name of the image of the Xenium assay,
 #' Default: DAPI
-#' @param import_molecules if TRUE, molecule assay will be created along with 
+#' @param import_molecules if TRUE, molecule assay will be created along with
 #' cell assay.
 #' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon}
@@ -155,7 +155,7 @@ importXenium <- function(
     } else {
       if (!requireNamespace('arrow')) {
         stop(
-          "Please install arrow package to extract molecule data!: ", 
+          "Please install arrow package to extract molecule data!: ",
           "install.packages('arrow')"
         )
       }
@@ -282,13 +282,13 @@ importXenium <- function(
 #'
 #' @param dir.path Xenium output folder
 #' @param increase.contrast increase the contrast of the image before writing
-#' @param resolution_level the level of resolution within Xenium OME-TIFF 
+#' @param resolution_level the level of resolution within Xenium OME-TIFF
 #' image. Default: 7 (553x402)
-#' @param overwrite_resolution if TRUE, the image "file.name" will be generated 
+#' @param overwrite_resolution if TRUE, the image "file.name" will be generated
 #' again although it exists at "dir.path"
-#' @param output.path The path to the new morphology image created if the 
+#' @param output.path The path to the new morphology image created if the
 #' image should be saved to a location other than Xenium output folder.
-#' @param file.name the name of the lowred morphology image. 
+#' @param file.name the name of the lowred morphology image.
 #' Default: morphology_lowres.tif
 #' @param verbose verbose
 #' @param ... additional parameters passed to the \link{writeImage} function
@@ -296,12 +296,12 @@ importXenium <- function(
 #' @importFrom EBImage writeImage
 #'
 #' @details
-#' The Xenium morphology_mip.ome.tif file that is found under the outs folder 
+#' The Xenium morphology_mip.ome.tif file that is found under the outs folder
 #' comes is an hyperstack of different resolutions of the DAPI image.
-#' \link{generateXeniumImage} allows extracting only one of these layers by 
-#' specifying the \code{resolution} parameter (Default: 7 for 553x402) 
-#' among 1 to 8. Lower incides of resolutions have higher higher resolutions, 
-#' e.g. 1 for 35416x25778. Note that you may need to allocate larger memory of 
+#' \link{generateXeniumImage} allows extracting only one of these layers by
+#' specifying the \code{resolution} parameter (Default: 7 for 553x402)
+#' among 1 to 8. Lower incides of resolutions have higher higher resolutions,
+#' e.g. 1 for 35416x25778. Note that you may need to allocate larger memory of
 #' Java to import higher resolution images.
 #'
 #' @export
@@ -320,7 +320,7 @@ generateXeniumImage <- function(
   file.path <- paste0(dir.path, "/", file.name)
   output.file <- paste0(output.path, "/", file.name)
 
-  # check if the file exists in either Xenium output folder, or the 
+  # check if the file exists in either Xenium output folder, or the
   # specified location
   if (
     (file.exists(file.path) | file.exists(paste0(output.file))) &
@@ -332,7 +332,7 @@ generateXeniumImage <- function(
   } else {
     if (!requireNamespace('RBioFormats')) {
       stop(
-        "Please install RBioFormats package to extract xml from the ome.tiff ", 
+        "Please install RBioFormats package to extract xml from the ome.tiff ",
         "file!: BiocManager::install('RBioFormats')"
       )
     }
@@ -402,11 +402,11 @@ generateXeniumImage <- function(
 #' @param assay_name the assay name
 #' @param sample_name the name of the sample
 #' @param image_name the image name of the Visium assay, Default: main
-#' @param channel_name the channel name of the image of the Visium assay, 
+#' @param channel_name the channel name of the image of the Visium assay,
 #' Default: H&E
-#' @param inTissue if TRUE, only barcodes that are in the tissue will 
+#' @param inTissue if TRUE, only barcodes that are in the tissue will
 #' be kept (default: TRUE)
-#' @param resolution_level the level of resolution of Visium image: 
+#' @param resolution_level the level of resolution of Visium image:
 #' "lowres" (default) or "hires"
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
@@ -541,11 +541,11 @@ importVisium <- function(
 #' @param assay_name the assay name
 #' @param sample_name the name of the sample
 #' @param image_name the image name of the Visium assay, Default: main
-#' @param channel_name the channel name of the image of the Visium assay, 
+#' @param channel_name the channel name of the image of the Visium assay,
 #' Default: H&E
-#' @param inTissue if TRUE, only barcodes that are in the tissue will be 
+#' @param inTissue if TRUE, only barcodes that are in the tissue will be
 #' kept (default: TRUE)
-#' @param resolution_level the level of resolution of Visium image: 
+#' @param resolution_level the level of resolution of Visium image:
 #' "lowres" (default) or "hires"
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
@@ -606,7 +606,7 @@ importVisiumHD <- function(
   # coordinates
   if (!requireNamespace("arrow")) {
     stop(
-      "Please install arrow package to import VisiumHD!: ", 
+      "Please install arrow package to import VisiumHD!: ",
       "install.packages('arrow')"
     )
   }
@@ -738,17 +738,17 @@ import10Xh5 <- function(filename) {
 #'
 #' @param dcc.path path to the folder where the dcc files are found
 #' @param pkc.file path to the pkc file
-#' @param summarySegment the metadata csv (sep = ";") or excel file, 
-#' if the file is an excel file, \code{summarySegmentSheetName} should 
+#' @param summarySegment the metadata csv (sep = ";") or excel file,
+#' if the file is an excel file, \code{summarySegmentSheetName} should
 #' be provided as well.
-#' @param summarySegmentSheetName the sheet name of the excel file, 
+#' @param summarySegmentSheetName the sheet name of the excel file,
 #' \code{summarySegment}
 #' @param assay_name the assay name, default: GeoMx
 #' @param image the reference morphology image of the GeoMx assay
-#' @param segment_polygons if TRUE, the ROI polygons are parsed from the 
+#' @param segment_polygons if TRUE, the ROI polygons are parsed from the
 #' OME.TIFF file
 #' @param ome.tiff the OME.TIFF file of the GeoMx experiment if exists
-#' @param resolution_level the level of resolution within GeoMx OME-TIFF 
+#' @param resolution_level the level of resolution within GeoMx OME-TIFF
 #' image, Default: 3
 #' @param image_name the image name of the Visium assay, Default: main
 #' @param verbose verbose
@@ -935,11 +935,11 @@ importGeoMx <- function(
 
 #' readPKC
 #'
-#' Read a NanoString Probe Kit Configuration (PKC) file. Adapted from 
+#' Read a NanoString Probe Kit Configuration (PKC) file. Adapted from
 #' \code{GeomxTools} package.
 #'
 #' @param file A character string containing the path to the PKC file.
-#' @param default_pkc_vers Optional list of pkc file names to use as default 
+#' @param default_pkc_vers Optional list of pkc file names to use as default
 #' if more than one pkc version of each module is provided.
 #'
 #' @importFrom rjson fromJSON
@@ -1235,7 +1235,7 @@ importGeoMxSegments <- function(ome.tiff, summary, imageinfo) {
     if (grepl(".ome.tiff$|.ome.tif$", ome.tiff)) {
       if (!requireNamespace('RBioFormats')) {
         stop(
-          "Please install RBioFormats package to extract xml from the ", 
+          "Please install RBioFormats package to extract xml from the ",
           "ome.tiff file!: BiocManager::install('RBioFormats')"
         )
       }
@@ -1331,7 +1331,7 @@ rescaleGeoMxPoints <- function(pts, summary, imageinfo) {
 #' @param ome.tiff the OME.TIFF file of the GeoMx Experiment
 #' @param summary segmentation summary data frame
 #' @param imageinfo image information
-#' @param resolution_level the resolution level (1-7) of the image parsed 
+#' @param resolution_level the resolution level (1-7) of the image parsed
 #' from the OME.TIFF file
 #' @param verbose verbose
 #'
@@ -1352,7 +1352,7 @@ importGeoMxChannels <- function(
     if (grepl(".ome.tiff$|.ome.tif$", ome.tiff)) {
       if (!requireNamespace('RBioFormats')) {
         stop(
-          "Please install RBioFormats package to extract xml from the ", 
+          "Please install RBioFormats package to extract xml from the ",
           "ome.tiff file!: BiocManager::install('RBioFormats')"
         )
       }
@@ -1425,7 +1425,7 @@ importGeoMxChannels <- function(
 #' @param img coordinates of the cells from the Xenium assays
 #' @param summary segmentation summary data frame
 #' @param imageinfo image information
-#' @param resolution_level the resolution level (1-7) of the image parsed 
+#' @param resolution_level the resolution level (1-7) of the image parsed
 #' from the OME.TIFF file
 #'
 #' @param magick image_crop
@@ -1474,10 +1474,10 @@ rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level) {
 #' @param assay_name the assay name, default: CosMx
 #' @param image the reference morphology image of the CosMx assay
 #' @param image_name the image name of the CosMx assay, Default: main
-#' @param import_molecules if TRUE, molecule assay will be created along 
+#' @param import_molecules if TRUE, molecule assay will be created along
 #' with cell assay.
 #' @param verbose verbose
-#' @param method the approach for importing the CosMx assay either by the 
+#' @param method the approach for importing the CosMx assay either by the
 #' folder of CSVs or with TileDB array.
 #' @param feature_name the name/key of the feature set.
 #' @param ... additional parameters passed to \link{formVoltRon}
@@ -1510,7 +1510,7 @@ importCosMx <- function(
     # vr <- importCosMxTileDB(tiledbURI = path, assay_name = assay_name,
     #                         image = image, image_name = image_name,
     #                         import_molecules = import_molecules,
-    #                         feature_name = feature_name, verbose = verbose, 
+    #                         feature_name = feature_name, verbose = verbose,
     #                         ...)
   } else {
     stop("method should be either 'CSV' or 'TileDB'!")
@@ -1526,7 +1526,7 @@ importCosMx <- function(
 #' @param assay_name the assay name, default: CosMx
 #' @param image the reference morphology image of the CosMx assay
 #' @param image_name the image name of the CosMx assay, Default: main
-#' @param import_molecules if TRUE, molecule assay will be created along 
+#' @param import_molecules if TRUE, molecule assay will be created along
 #' with cell assay.
 #' @param feature_name the name/key of the feature set
 #' @param verbose verbose
@@ -2901,13 +2901,19 @@ importDBITSeq <- function(
 #'
 #' @param image a single or a list of image paths or magick-image objects
 #' @param tile.size the size of tiles
-#' @param segments Either a list of segments or a GeoJSON file. This will result in a second assay in the VoltRon object to be created
+#' @param segments Either a list of segments or a GeoJSON file. This will
+#' result in a second assay in the VoltRon object to be created
 #' @param image_name the image name of the Image assay, Default: main
-#' @param channel_names the channel names of the images if multiple images are provided
+#' @param channel_names the channel names of the images if multiple
+#' images are provided
+#' @param channels the integer indices of the channels to be parsed from
+#' ome.tiff files.
 #' @param series the series IDs of the pyramidal image,
 #' typical an integer starting from 1
 #' @param resolution the resolution IDs of the
 #' pyramidal image, typical an integer starting from 1
+#' @param is.RGB If TRUE, all three channel images will be converted to RGB 
+#' images. 
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
@@ -2921,7 +2927,8 @@ importDBITSeq <- function(
 #' # multiple images
 #' imgfile <- c(system.file("extdata", "DAPI.tif", package = "VoltRon"),
 #'              system.file("extdata", "DAPI.tif", package = "VoltRon"))
-#' vrdata <- importImageData(imgfile, image_name = "main", channel_name = c("DAPI", "DAPI2"))
+#' vrdata <- importImageData(imgfile, image_name = "main",
+#'                                    channel_name = c("DAPI", "DAPI2"))
 #'
 #' @export
 importImageData <- function(
@@ -2930,45 +2937,20 @@ importImageData <- function(
   segments = NULL,
   image_name = "main",
   channel_names = NULL,
+  channels = NULL,
   series = 1,
   resolution = NULL,
+  is.RGB = TRUE,
   ...
 ) {
-  # # images and channel names
-  # if(!is.null(channel_names)){
-  #   if(length(image) != length(channel_names))
-  #     stop("Provided channel names should of the same length as the images!")
-  #   if(any(!is.character(channel_names)))
-  #     stop("Invalid channel names!")
-  # }
-  #
-  # # get image
-  # if(!is.list(image)){}
-  #   image <- as.list(image)
-  # image <- sapply(image, function(img){
-  #   if(!inherits(img, "magick-image")){
-  #     if(!is.character(img)){
-  #       stop("image should either be a magick-image object or a file.path")
-  #     } else{
-  #       if(file.exists(img)){
-  #         img <- magick::image_read(img)
-  #       } else {
-  #         stop(img, " is not found!")
-  #       }
-  #     }
-  #   }
-  #   img
-  # }, USE.NAMES = TRUE, simplify = FALSE)
-  #
-  # # channel names
-  # if(!is.null(channel_names)){
-  #   names(image) <- channel_names
-  # }
+  # images and channel names
   image <- importImage(
-    image,
+    image = image,
     channel_names = channel_names,
+    channels = channels,
     series = series,
-    resolution = resolution
+    resolution = resolution,
+    is.RGB = is.RGB
   )
 
   # check image size
@@ -3065,12 +3047,17 @@ importImageData <- function(
 #' import an image to be used in \code{importImageData}
 #'
 #' @param image a single or a list of image paths or magick-image objects
-#' @param channel_names the channel names of the images if multiple images are provided
+#' @param channel_names the channel names of the images if multiple images 
+#' are provided
+#' @param channels the integer indices of the channels to be parsed from
+#' ome.tiff files.
 #' @param series the series IDs of the pyramidal image,
 #' typical an integer starting from 1
 #' @param resolution the resolution IDs of the
 #' pyramidal image, typical an integer starting from 1
-#'
+#' @param is.RGB If TRUE, all three channel images will be converted to RGB 
+#' images. 
+#' 
 #' @importFrom magick image_read image_info
 #' @importFrom data.table data.table
 #'
@@ -3078,13 +3065,21 @@ importImageData <- function(
 importImage <- function(
   image,
   channel_names = NULL,
+  channels = NULL,
   series = 1,
-  resolution = NULL
+  resolution = NULL,
+  is.RGB = TRUE
 ) {
   # images and channel names
   if (!is.null(channel_names)) {
     if (length(image) != length(channel_names)) {
-      stop("Provided channel names should of the same length as the images!")
+      if(!is.null(channels)){
+        if(length(channels) != length(channel_names))
+          stop("Provided channel names should of ", 
+               "the same length as the requested channels!")
+      } else {
+        stop("Provided channel names should of ", 
+             "the same length as the images!")      }
     }
     if (any(!is.character(channel_names))) {
       stop("Invalid channel names!")
@@ -3096,17 +3091,18 @@ importImage <- function(
     if (any(grepl(".ome.tiff$|.ome.tif$", image))) {
       if (!requireNamespace('RBioFormats')) {
         stop(
-          "Please install RBioFormats package to images from the ome.tiff file!: BiocManager::install('RBioFormats')"
+          "Please install RBioFormats package to images from the ome.tiff ",
+          "file!: BiocManager::install('RBioFormats')"
         )
       }
       if (is.null(resolution)) {
         stop(
-          "For importing images from ome.tiff files, please specify resolution. ",
-          "See help(read.metadata) from RBioFormats package."
+          "For importing images from ome.tiff files, please specify ",
+          "resolution. See help(read.metadata) from RBioFormats package."
         )
       }
       if (length(image) > 1) {
-        stop("Only a single ome.tiff file")
+        stop("Only a single ome.tiff file should be used at a time!")
       }
     }
   } else {
@@ -3130,22 +3126,32 @@ importImage <- function(
             omexml <- RBioFormats::read.omexml(img)
             omexml <- XML::xmlToList(omexml, simplify = TRUE)
             meta <- RBioFormats::read.metadata(img)
+            # check image channel size
+            channels <- .checkOmeTiffChannels(
+              meta,
+              series,
+              resolution,
+              channels
+            )
+            # get image
             img <- RBioFormats::read.image(
               img,
               series = series,
               resolution = resolution,
-              normalize = TRUE
+              normalize = TRUE, 
+              subset = list(C=channels)
             )
             img <- EBImage::as.Image(img)
             # check if there are more than 3 or 1 channels
             if (length(d <- dim(img)) > 2) {
-              if (d[3] != 3) {
+              if(is.RGB && d[3] != 3){
+                message("Converting to an RGB image ...")
+                img <- magick::image_read(grDevices::as.raster(img))
+              } else {
                 img <- sapply(seq_len(d[3]), function(i) {
                   tmp <- img[,, i]
                   magick::image_read(grDevices::as.raster(tmp))
                 })
-              } else {
-                img <- magick::image_read(grDevices::as.raster(img))
               }
             } else {
               img <- magick::image_read(grDevices::as.raster(img))
@@ -3277,4 +3283,32 @@ generateGeoJSON <- function(segments, file) {
   # save as json
   segments <- rjson::toJSON(segments)
   write(segments, file = file)
+}
+
+.checkOmeTiffChannels <- function(meta.data, series, resolution, channels) {
+  
+  # find channel size given series and resolution
+  meta_list <- slot(meta.data, name = ".Data")
+  for (i in seq_len(length(meta_list))) {
+    cur_meta <- meta_list[[i]]$coreMetadata
+    if (cur_meta$series == series && cur_meta$resolutionLevel == resolution) {
+      sizeC <- cur_meta$sizeC
+      break
+    }
+  }
+  
+  # checn channels
+  if (is.null(channels)) {
+    message("'channels' is NULL, thus all channels will be parsed ...")
+    channels <- seq_len(sizeC)
+  } else {
+    # check integer indices
+    if (!all(channels %% 1 == 0)) {
+      stop("channels should be integer values!")
+    }
+    if (sizeC < max(channels)) {
+      stop("Number of channels do not match with requested channels!")
+    }
+  }
+  channels
 }
