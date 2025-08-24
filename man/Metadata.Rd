@@ -22,7 +22,7 @@ Metadata(object, ...) <- value
 
 \item{value}{new metadata}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{type}{the assay type: ROI, spot or cell, or all for the entire metadata object}

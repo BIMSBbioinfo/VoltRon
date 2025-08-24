@@ -20,13 +20,13 @@ getPCA(
 \arguments{
 \item{object}{a VoltRon object}
 
-\item{assay}{assay name (exp: Assay1) or assay class 
-(exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class
+(exp: Visium, Xenium), see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{features}{the selected features for PCA reduction}
 
-\item{data.type}{the type of data used to calculate PCA from: 
+\item{data.type}{the type of data used to calculate PCA from:
 "norm" (default), "raw" or an existing embeddings \link{vrEmbeddingNames}.}
 
 \item{dims}{the number of dimensions extracted from PCA}
@@ -35,7 +35,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{n.workers}{the number of cores/workers use for parallelization.}
 
-\item{overwrite}{Whether the existing embedding with name 'type' 
+\item{overwrite}{Whether the existing embedding with name 'type'
 should be overwritten in \link{vrEmbeddings}}
 
 \item{seed}{seed}

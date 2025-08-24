@@ -30,11 +30,14 @@ importVisiumHD(
 
 \item{image_name}{the image name of the Visium assay, Default: main}
 
-\item{channel_name}{the channel name of the image of the Visium assay, Default: H&E}
+\item{channel_name}{the channel name of the image of the Visium assay, 
+Default: H&E}
 
-\item{inTissue}{if TRUE, only barcodes that are in the tissue will be kept (default: TRUE)}
+\item{inTissue}{if TRUE, only barcodes that are in the tissue will be 
+kept (default: TRUE)}
 
-\item{resolution_level}{the level of resolution of Visium image: "lowres" (default) or "hires"}
+\item{resolution_level}{the level of resolution of Visium image: 
+"lowres" (default) or "hires"}
 
 \item{...}{additional parameters passed to \link{formVoltRon}}
 }

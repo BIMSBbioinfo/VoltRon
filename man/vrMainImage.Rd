@@ -32,8 +32,10 @@ vrMainImage(object, ...) <- value
 
 \item{...}{arguments passed to other methods.}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-If NULL, the default assay will be used, see \link{vrMainAssay}. If given as "all", then provides a summary of spatial systems across all assays.}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+see \link{SampleMetadata}.
+If NULL, the default assay will be used, see \link{vrMainAssay}. If given 
+as "all", then provides a summary of spatial systems across all assays.}
 
 \item{value}{the name of main spatial coordinate system.}
 

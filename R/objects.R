@@ -795,7 +795,7 @@ addLayerConnectivity <- function(object, connectivity, sample, layer) {
 #'
 #' @param object a VoltRon object
 #' @param connectivity a metadata of edges representing connected layers within a block
-#' @param zlocation
+#' @param zlocation zlocation
 #' @param sample sample name
 #'
 #' @noRd
@@ -834,7 +834,7 @@ addBlockConnectivity <- function(
 #'
 #' @param object a VoltRon object
 #' @param connectivity a metadata of edges representing connected layers within a block
-#' @param zlocation
+#' @param zlocation zlocation
 #' @param sample sample name
 #'
 #' @importFrom igraph components graph_from_adjacency_matrix

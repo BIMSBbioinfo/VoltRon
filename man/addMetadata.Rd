@@ -9,7 +9,7 @@ addMetadata(object, assay = NULL, type = NULL, value, label)
 \arguments{
 \item{object}{a VoltRon object}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{type}{the assay type: ROI, spot or cell, or all for the entire metadata object}

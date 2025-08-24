@@ -14,7 +14,8 @@ An object of class \code{VoltRon} of length 1.
 merged_object
 }
 \description{
-This VoltRon object is used for testing and as an example for transfering information between layers and multilayer plotting.
+This VoltRon object is used for testing and as an example for transfering 
+information between layers and multilayer plotting.
 }
 \examples{
 data(merged_object)

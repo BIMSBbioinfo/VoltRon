@@ -26,10 +26,10 @@ importImageData(
 
 \item{channel_names}{the channel names of the images if multiple images are provided}
 
-\item{series}{the series IDs of the pyramidal image, 
+\item{series}{the series IDs of the pyramidal image,
 typical an integer starting from 1}
 
-\item{resolution}{the resolution IDs of the 
+\item{resolution}{the resolution IDs of the
 pyramidal image, typical an integer starting from 1}
 
 \item{...}{additional parameters passed to \link{formVoltRon}}
@@ -43,7 +43,7 @@ imgfile <- system.file("extdata", "DAPI.tif", package = "VoltRon")
 vrdata <- importImageData(imgfile, image_name = "main")
 
 # multiple images
-imgfile <- c(system.file("extdata", "DAPI.tif", package = "VoltRon"), 
+imgfile <- c(system.file("extdata", "DAPI.tif", package = "VoltRon"),
              system.file("extdata", "DAPI.tif", package = "VoltRon"))
 vrdata <- importImageData(imgfile, image_name = "main", channel_name = c("DAPI", "DAPI2"))
 

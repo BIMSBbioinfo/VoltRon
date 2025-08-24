@@ -25,11 +25,13 @@ importCosMx(
 
 \item{image_name}{the image name of the CosMx assay, Default: main}
 
-\item{import_molecules}{if TRUE, molecule assay will be created along with cell assay.}
+\item{import_molecules}{if TRUE, molecule assay will be created along 
+with cell assay.}
 
 \item{verbose}{verbose}
 
-\item{method}{the approach for importing the CosMx assay either by the folder of CSVs or with TileDB array.}
+\item{method}{the approach for importing the CosMx assay either by the 
+folder of CSVs or with TileDB array.}
 
 \item{feature_name}{the name/key of the feature set.}
 

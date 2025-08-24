@@ -37,7 +37,7 @@ vrEmbeddingFeaturePlot(
 
 \item{log}{if TRUE, data features (excluding metadata features) will be log transformed}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{ncol}{column wise number of plots, for \link{ggarrange}}

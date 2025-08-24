@@ -7,6 +7,7 @@
 point.in.circle(x, y, circle.x, circle.y, radius)
 }
 \description{
-checks if points are in the defined circle ROI with a (x,y) center and radius
+checks if points are in the defined circle ROI with a (x,y) 
+center and radius
 }
 \keyword{internal}

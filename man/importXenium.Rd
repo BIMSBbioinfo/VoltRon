@@ -31,17 +31,22 @@ importXenium(
 
 \item{use_image}{if TRUE, the DAPI image will be used.}
 
-\item{morphology_image}{the name of the lowred morphology image. Default: morphology_lowres.tif}
+\item{morphology_image}{the name of the lowred morphology image. 
+Default: morphology_lowres.tif}
 
-\item{resolution_level}{the level of resolution within Xenium OME-TIFF image, see \link{generateXeniumImage}. Default: 7 (553x402)}
+\item{resolution_level}{the level of resolution within Xenium OME-TIFF 
+image, see \link{generateXeniumImage}. Default: 7 (553x402)}
 
-\item{overwrite_resolution}{if TRUE, the image "file.name" will be generated again although it exists at "dir.path"}
+\item{overwrite_resolution}{if TRUE, the image "file.name" will be generated 
+again although it exists at "dir.path"}
 
 \item{image_name}{the image name of the Xenium assay, Default: main}
 
-\item{channel_name}{the channel name of the image of the Xenium assay, Default: DAPI}
+\item{channel_name}{the channel name of the image of the Xenium assay, 
+Default: DAPI}
 
-\item{import_molecules}{if TRUE, molecule assay will be created along with cell assay.}
+\item{import_molecules}{if TRUE, molecule assay will be created along with 
+cell assay.}
 
 \item{verbose}{verbose}
 
