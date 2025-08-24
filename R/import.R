@@ -3060,6 +3060,7 @@ importImageData <- function(
 #' 
 #' @importFrom magick image_read image_info
 #' @importFrom data.table data.table
+#' @importFrom EBImage as.Image colorMode
 #'
 #' @noRd
 importImage <- function(
@@ -3142,18 +3143,22 @@ importImage <- function(
               subset = list(C=channels)
             )
             img <- EBImage::as.Image(img)
+            print(dim(img))
             # check if there are more than 3 or 1 channels
             if (length(d <- dim(img)) > 2) {
-              if(is.RGB && d[3] != 3){
+              if(is.RGB && d[3] == 3){
                 message("Converting to an RGB image ...")
                 img <- magick::image_read(grDevices::as.raster(img))
               } else {
                 img <- sapply(seq_len(d[3]), function(i) {
                   tmp <- img[,, i]
+                  EBImage::colorMode(tmp) <- "Grayscale"
+                  tmp <- tmp/max(tmp)
                   magick::image_read(grDevices::as.raster(tmp))
                 })
               }
             } else {
+              img <- img/max(img)
               img <- magick::image_read(grDevices::as.raster(img))
             }
             # regular tiff images
