@@ -2855,28 +2855,6 @@ importDBITSeq <- function(
 
   # add protein assay
   if (!is.null(path.prot)) {
-    # # create protein assay
-    # new_assay <- formAssay(data = protdata,
-    #                        coords = coords,
-    #                        type = "spot")
-    # new_assay@image <- object[["Assay1"]]@image
-    # sample.metadata <- SampleMetadata(object)
-
-    # # add new assay
-    # object <- addAssay(object,
-    #                    assay = new_assay,
-    #                    metadata = Metadata(object),
-    #                    assay_name = paste(assay_name, "Prot", sep = "-"),
-    #                    sample = sample.metadata["Assay1", "Sample"],
-    #                    layer = sample.metadata["Assay1", "Layer"])
-    #
-    # # add connectivity of spatial points across assays
-    # connectivity <- cbind(vrSpatialPoints(object, assay = "Assay1"),
-    #                       vrSpatialPoints(object, assay = "Assay2"))
-    # object <- addConnectivity(object,
-    #                           connectivity = connectivity,
-    #                           sample = sample.metadata["Assay1", "Sample"],
-    #                           layer = sample.metadata["Assay1", "Layer"])
 
     # add negative probe assay as new feature set
     object <- addFeature(
@@ -3143,11 +3121,11 @@ importImage <- function(
               subset = list(C=channels)
             )
             img <- EBImage::as.Image(img)
-            print(dim(img))
             # check if there are more than 3 or 1 channels
             if (length(d <- dim(img)) > 2) {
               if(is.RGB && d[3] == 3){
-                message("Converting to an RGB image ...")
+                message("Converting to an RGB image. set is.RGB = FALSE ", 
+                        "to turn this off ...")
                 img <- magick::image_read(grDevices::as.raster(img))
               } else {
                 img <- sapply(seq_len(d[3]), function(i) {
@@ -3254,7 +3232,8 @@ generateSegments <- function(geojson.file) {
 #' @export
 generateGeoJSON <- function(segments, file) {
   if (!requireNamespace('geojsonR')) {
-    stop("Please install geojsonR package for using geojsonR functions")
+    stop("Please install geojsonR package for using geojsonR functions: ", 
+         "install.packages('geojsonR')")
   }
 
   # get segments
