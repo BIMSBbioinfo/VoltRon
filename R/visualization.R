@@ -4291,7 +4291,9 @@ vrFeaturePlotTiling <- function(
   if (is.null(limits)) {
     hex_count_data <- suppressWarnings(ggplot_build(gplot)$data)
     hex_count_data <- hex_count_data[[length(hex_count_data)]]
-    midpoint <- max(hex_count_data$value) / 2
+    max_v <- max(hex_count_data$value, na.rm = TRUE) 
+    min_v <- min(hex_count_data$value, na.rm = TRUE) 
+    midpoint <- (max_v + min_v) / 2
   }
 
   # color scheme for either spatial or embedding feature plot
