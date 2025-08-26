@@ -3222,25 +3222,23 @@ generateSegments <- function(geojson.file) {
 
 #' generateGeoJSON
 #'
-#' generating geojson files from segments
+#' Old version: generating geojson files from segments
 #'
 #' @param segments the segments, typically from \link{vrSegments}.
 #' @param file the GeoJSON file, typically to be used by QuPath software.
 #'
-#' @importFrom rjson fromJSON
-#'
 #' @export
-generateGeoJSON <- function(segments, file) {
+generateGeoJSON_old <- function(segments, file) {
   if (!requireNamespace('geojsonR')) {
     stop("Please install geojsonR package for using geojsonR functions: ", 
          "install.packages('geojsonR')")
   }
-
+  
   # get segments
   if (!inherits(file, "character")) {
     stop("file should be the path to the GeoJSON file!")
   }
-
+  
   # reshape segments
   segments <- mapply(
     function(id, sgt) {
@@ -3263,10 +3261,58 @@ generateGeoJSON <- function(segments, file) {
     SIMPLIFY = FALSE,
     USE.NAMES = FALSE
   )
-
+  
   # save as json
   segments <- rjson::toJSON(segments)
   write(segments, file = file)
+}
+
+#' generateGeoJSON_old
+#'
+#' Old version: generating geojson files from segments
+#'
+#' @param segments the segments, typically from \link{vrSegments}.
+#' @param file the GeoJSON file, typically to be used by QuPath software.
+#'
+#' @importFrom rjson fromJSON
+#'
+#' @noRd
+generateGeoJSON <- function(segments, file) {
+  if (!requireNamespace('sf')) {
+    stop("Please install sf package: install.packages('sf')")
+  }
+
+  # get segments
+  if (!inherits(file, "character")) {
+    stop("file should be the path to the GeoJSON file!")
+  }
+  
+  # remove NAs
+  segments_list <- lapply(segments, function(tmp){
+    tmp <- as.matrix(na.omit(tmp)[,c("x","y")])
+    rownames(tmp) <- NULL
+    tmp
+  })
+  
+  # connect polygon
+  segments_list <- lapply(segments_list, function(tmp){
+    as.matrix(
+      rbind(as.data.frame(tmp) %>% distinct(),
+            tmp[1,,drop = FALSE])
+    )
+  })
+  
+  # st polygon
+  segments_sub_sf <- lapply(segments_list, function(x) sf::st_polygon(list(x)))
+  segments_sub_sf <- lapply(segments_sub_sf, function(x) sf::st_sfc((x)))
+  segments_sub_sf <- lapply(segments_sub_sf, sf::st_make_valid)
+  segments_sub_sf <- do.call("c", segments_sub_sf)
+  gdf <- sf::st_sf(id = names(segments_list), 
+                   name = names(segments_list), 
+                   geometry = segments_sub_sf, crs = 4326)
+  
+  # write
+  sf::st_write(gdf, file, append = FALSE)
 }
 
 .checkOmeTiffChannels <- function(meta.data, series, resolution, channels) {
