@@ -20,20 +20,20 @@ as.AnnData(
 
 \item{file}{the name of the h5ad file.}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium),
 see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{flip_coordinates}{if TRUE, the spatial coordinates 
+\item{flip_coordinates}{if TRUE, the spatial coordinates
 (including segments) will be flipped.}
 
 \item{method}{the package to use for conversion: "anndataR" or "anndata".}
 
-\item{create.ometiff}{should an ometiff file be generated of default 
+\item{create.ometiff}{should an ometiff file be generated of default
 image of the object}
 
-\item{python.path}{the path to the python binary, otherwise either 
-\code{basilisk} package is used or \code{getOption("voltron.python.path")} 
+\item{python.path}{the path to the python binary, otherwise either
+\code{basilisk} package is used or \code{getOption("voltron.python.path")}
 should be not NULL.}
 
 \item{...}{additional parameters passed to \link{vrImages}.}
@@ -42,9 +42,9 @@ should be not NULL.}
 Converting a VoltRon object into a AnnData (.h5ad) object
 }
 \details{
-This function converts a VoltRon object into an AnnData object (.h5ad file). 
-It extracts assay data, spatial coordinates, and optionally flips 
-coordinates. Images associated with the assay can be included in the 
-resulting AnnData file, with additional customization parameters like 
+This function converts a VoltRon object into an AnnData object (.h5ad file).
+It extracts assay data, spatial coordinates, and optionally flips
+coordinates. Images associated with the assay can be included in the
+resulting AnnData file, with additional customization parameters like
 channel, scale.perc.
 }

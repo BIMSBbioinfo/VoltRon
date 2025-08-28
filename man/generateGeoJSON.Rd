@@ -2,7 +2,7 @@
 % Please edit documentation in R/import.R
 \name{generateGeoJSON}
 \alias{generateGeoJSON}
-\title{generateGeoJSON}
+\title{generateGeoJSON_old}
 \usage{
 generateGeoJSON(segments, file)
 }
@@ -12,5 +12,5 @@ generateGeoJSON(segments, file)
 \item{file}{the GeoJSON file, typically to be used by QuPath software.}
 }
 \description{
-generating geojson files from segments
+Old version: generating geojson files from segments
 }

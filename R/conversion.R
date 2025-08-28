@@ -139,7 +139,7 @@ as.VoltRon.Seurat <- function(
 #'
 #' @param object a VoltRon object
 #' @param cell.assay the name(type) of the cell assay to be converted
-#' @param molecule.assay the name(type) of the molecule assay to be added to 
+#' @param molecule.assay the name(type) of the molecule assay to be added to
 #' the cell assay in Seurat object
 #' @param image_key the name (or prefix) of the image(s)
 #' @param type the spatial data type of Seurat object: "image" or "spatial"
@@ -325,25 +325,25 @@ convertAnnDataToVoltRon <- function(file, AssayID = NULL, ...) {
 #' Converting a VoltRon object into a AnnData (.h5ad) object
 #'
 #' @param object a VoltRon object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium),
 #' see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param file the name of the h5ad file.
-#' @param flip_coordinates if TRUE, the spatial coordinates 
+#' @param flip_coordinates if TRUE, the spatial coordinates
 #' (including segments) will be flipped.
 #' @param method the package to use for conversion: "anndataR" or "anndata".
-#' @param create.ometiff should an ometiff file be generated of default 
+#' @param create.ometiff should an ometiff file be generated of default
 #' image of the object
-#' @param python.path the path to the python binary, otherwise either 
-#' \code{basilisk} package is used or \code{getOption("voltron.python.path")} 
+#' @param python.path the path to the python binary, otherwise either
+#' \code{basilisk} package is used or \code{getOption("voltron.python.path")}
 #' should be not NULL.
 #' @param ... additional parameters passed to \link{vrImages}.
 #'
 #' @details
-#' This function converts a VoltRon object into an AnnData object (.h5ad file). 
-#' It extracts assay data, spatial coordinates, and optionally flips 
-#' coordinates. Images associated with the assay can be included in the 
-#' resulting AnnData file, with additional customization parameters like 
+#' This function converts a VoltRon object into an AnnData object (.h5ad file).
+#' It extracts assay data, spatial coordinates, and optionally flips
+#' coordinates. Images associated with the assay can be included in the
+#' resulting AnnData file, with additional customization parameters like
 #' channel, scale.perc.
 #'
 #' @rdname as.AnnData
@@ -378,7 +378,12 @@ as.AnnData <- function(
   }
 
   # Data
-  data <- vrData(object, assay = assay, norm = FALSE)
+  data <- vrData(
+    object,
+    assay = assay,
+    feat_type = vrFeatureTypeNames(object, assay = assay),
+    norm = FALSE
+  )
   data <- as.matrix(data)
 
   # Metadata
@@ -465,7 +470,7 @@ as.AnnData <- function(
   uns <- list(spatial = image_list)
 
   # obsm
-  # TODO: currently embedding and spatial dimensions should of the same size, 
+  # TODO: currently embedding and spatial dimensions should of the same size,
   # but its not always the case in VoltRon objects
   obsm <- c(
     obsm,
@@ -576,8 +581,8 @@ as.AnnData <- function(
     if (method == "anndataR") {
       if (!requireNamespace('anndataR', quietly = TRUE)) {
         stop(
-          "The anndataR package is not installed. Please choose the 'anndata' ", 
-          "method or install anndataR: devtools::", 
+          "The anndataR package is not installed. Please choose the 'anndata' ",
+          "method or install anndataR: devtools::",
           "install_github('scverse/anndataR')"
         )
       }
@@ -713,8 +718,8 @@ as.AnnData <- function(
 #' @param object a magick-image object
 #' @param out_path output path to ome.tiff file
 #' @param image_id image name
-#' @param python.path the path to the python binary, otherwise 
-#' either \code{basilisk} package is used or 
+#' @param python.path the path to the python binary, otherwise
+#' either \code{basilisk} package is used or
 #' \code{getOption("voltron.python.path")} should be not NULL.
 #'
 #' @importFrom magick image_raster

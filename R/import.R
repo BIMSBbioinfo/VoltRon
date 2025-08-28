@@ -3227,7 +3227,7 @@ generateSegments <- function(geojson.file) {
 #' @param segments the segments, typically from \link{vrSegments}.
 #' @param file the GeoJSON file, typically to be used by QuPath software.
 #'
-#' @export
+#' @noRd
 generateGeoJSON_old <- function(segments, file) {
   if (!requireNamespace('geojsonR')) {
     stop("Please install geojsonR package for using geojsonR functions: ", 
@@ -3276,7 +3276,7 @@ generateGeoJSON_old <- function(segments, file) {
 #'
 #' @importFrom rjson fromJSON
 #'
-#' @noRd
+#' @export
 generateGeoJSON <- function(segments, file) {
   if (!requireNamespace('sf')) {
     stop("Please install sf package: install.packages('sf')")

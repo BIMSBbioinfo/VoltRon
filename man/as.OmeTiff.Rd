@@ -13,8 +13,8 @@ as.OmeTiff(object, out_path, image_id = "image_1", python.path = NULL)
 
 \item{image_id}{image name}
 
-\item{python.path}{the path to the python binary, otherwise 
-either \code{basilisk} package is used or 
+\item{python.path}{the path to the python binary, otherwise
+either \code{basilisk} package is used or
 \code{getOption("voltron.python.path")} should be not NULL.}
 }
 \description{

@@ -383,6 +383,7 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...) {
 #' (exp: Visium, Xenium), see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param features the selected features for PCA reduction
+#' @param feat_type the feature set type
 #' @param data.type the type of data used to calculate PCA from:
 #' "norm" (default), "raw" or an existing embeddings \link{vrEmbeddingNames}.
 #' @param dims the number of dimensions extracted from PCA
@@ -401,15 +402,14 @@ getPCA <- function(
   object,
   assay = NULL,
   features = NULL,
+  feat_type = NULL,
   data.type = "norm",
   dims = 30,
   pca.key = "pca",
   n.workers = 1,
   overwrite = FALSE,
-  seed = 1,
-  source = c("features", "embeddings")
+  seed = 1
 ) {
-  source <- match.arg(source)
   embedding_names <- vrEmbeddingNames(object)
 
   # Choose data source
@@ -425,7 +425,8 @@ getPCA <- function(
     # check dims and col
     if (dims > ncol(normdata)) {
       message(
-        "Requested more PC dimensions than existing embeddings; setting dims = ncol(normdata)."
+        "Requested more PC dimensions than existing embeddings; ", 
+        "setting dims = ncol(normdata)."
       )
       dims <- ncol(normdata)
     }
@@ -447,7 +448,8 @@ getPCA <- function(
       # adjust extraction features length
       if (dims > length(features)) {
         message(
-          "Requested more PC dimensions than existing features; setting dims = length(features)."
+          "Requested more PC dimensions than existing features; ", 
+          "setting dims = length(features)."
         )
         dims <- length(features)
       }
@@ -459,7 +461,12 @@ getPCA <- function(
 
     # get data
     norm <- data.type == "norm"
-    normdata <- vrData(object_subset, assay = assay, norm = norm)
+    normdata <- vrData(
+      object_subset,
+      assay = assay,
+      feat_type = feat_type,
+      norm = norm
+    )
   }
 
   # Compute PCA
@@ -470,6 +477,10 @@ getPCA <- function(
         "You have to install BPCells!: remotes::install_github('bnprks/BPCells/r')"
       )
     }
+    stats <- BPCells::matrix_stats(normdata, row_stats="variance")
+    gene_means <- stats$row_stats["mean",]
+    gene_vars <- stats$row_stats["variance",]
+    normdata <- (normdata - gene_means) / sqrt(gene_vars)
     svd <- BPCells::svds(normdata, k = dims, threads = as.integer(n.workers))
     pr.data <- BPCells::multiply_cols(svd$v, svd$d)
   } else {

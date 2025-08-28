@@ -8,13 +8,13 @@ getPCA(
   object,
   assay = NULL,
   features = NULL,
+  feat_type = NULL,
   data.type = "norm",
   dims = 30,
   pca.key = "pca",
   n.workers = 1,
   overwrite = FALSE,
-  seed = 1,
-  source = c("features", "embeddings")
+  seed = 1
 )
 }
 \arguments{
@@ -25,6 +25,8 @@ getPCA(
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{features}{the selected features for PCA reduction}
+
+\item{feat_type}{the feature set type}
 
 \item{data.type}{the type of data used to calculate PCA from:
 "norm" (default), "raw" or an existing embeddings \link{vrEmbeddingNames}.}
