@@ -288,20 +288,20 @@ subsetCoordinates <- function(coords, imageinfo, crop_info) {
   # adjust for maximum res
   if (ylim[2] < 0) {
     ylim[2] <- 0
-    
+
     # Todo: CHANGE THIS LATER ?
-    # ylim[1] <- ylim[2] - imageinfo$height + crop_info[2] 
+    # ylim[1] <- ylim[2] - imageinfo$height + crop_info[2]
   }
   if (xlim[2] > imageinfo$width) {
     xlim[2] <- imageinfo$width
-    
+
     # Todo: CHANGE THIS LATER ?
-    # xlim[1] <- xlim[2] - crop_info[1] 
+    # xlim[1] <- xlim[2] - crop_info[1]
   }
 
   # get inside coords
   if (inherits(coords, "IterableMatrix")) {
-    # BPCells only accepts e1 > e2 ## S4 method for 
+    # BPCells only accepts e1 > e2 ## S4 method for
     # signature 'IterableMatrix,numeric'
     inside <- (!!as.vector(as(coords[, 1] > xlim[1], "dgCMatrix")) &
       !!!as.vector(as(coords[, 1] > xlim[2], "dgCMatrix"))) &
@@ -314,7 +314,6 @@ subsetCoordinates <- function(coords, imageinfo, crop_info) {
   coords <- coords[inside, ]
 
   if (nrow(coords) > 0) {
-    
     # adjust coordinates
     coords[, 1] <- coords[, 1] - xlim[1]
     coords[, 2] <- coords[, 2] - ylim[1]
@@ -411,7 +410,6 @@ subsetSegments <- function(segments, imageinfo, crop_info) {
 #'
 #' @noRd
 subsetData <- function(object, spatialpoints = NULL, features = NULL) {
-  
   # features
   if (!is.null(features)) {
     if (inherits(object, "vrAssay")) {
@@ -878,7 +876,6 @@ vrDatavrAssay <- function(
   norm = FALSE,
   ...
 ) {
-  
   # get assay types
   assay.type <- vrAssayTypes(object)
 
@@ -892,42 +889,45 @@ vrDatavrAssay <- function(
       stop("Some features are not available in the assay!")
     }
   }
-  
+
   if (inherits(object, "vrAssay")) {
     if (norm) {
       return(
-        if(is.null(features))
+        if (is.null(features)) {
           object@normdata
-        else
+        } else {
           object@normdata[features, , drop = FALSE]
+        }
       )
     } else {
       return(
-        if(is.null(features))
+        if (is.null(features)) {
           object@rawdata
-        else
+        } else {
           object@rawdata[features, , drop = FALSE]
+        }
       )
     }
   } else {
     if (is.null(feat_type)) {
       feat_type <- vrMainFeatureType(object)
     }
-    if (norm) {
-      return(
-        if(is.null(features))
-          object@data[[paste0(feat_type, "_norm")]]
-        else
-          object@data[[paste0(feat_type, "_norm")]][features, , drop = FALSE]
-      )
-    } else {
-      return(
-        if(is.null(features))
-          object@data[[feat_type]]
-        else
-          object@data[[feat_type]][features, , drop = FALSE]
-      )
+    
+    if (!all(feat_type %in% vrFeatureTypeNames(object))) {
+      stop("Some feature types cannot be found in the assay!")
     }
+    
+    if (norm) {
+      feat_type <- paste0(feat_type, "_norm")
+    }
+    vrdata <- getFeatureTypeData(object, feat_type)
+    return(
+      if (is.null(features)) {
+        vrdata
+      } else {
+        vrdata[features, , drop = FALSE]
+      }
+    )
   }
 }
 
@@ -945,6 +945,34 @@ setMethod("vrData", "vrAssay", vrDatavrAssay)
 #' @export
 setMethod("vrData", "vrAssayV2", vrDatavrAssay)
 
+#' getFeatureTypeData
+#'
+#' get and combine data from multiple feature types
+#'
+#' @param object a vrAssay object
+#' @param feat_type the feature set type
+#'
+#' @noRd
+getFeatureTypeData <- function(object, feat_type) {
+
+  # get data and merge
+  vrdata <- lapply(feat_type, function(feat) {
+    object@data[[feat]]
+  })
+  vrdata_merged <- do.call(rbind, vrdata)
+
+  # make rownames unique
+  if (length(feat_type) > 1) {
+    feature_names <- rep(feat_type, vapply(vrdata, nrow, integer(1)))
+    rownames(vrdata_merged) <- paste(
+      rownames(vrdata_merged),
+      feature_names,
+      sep = "_"
+    )
+  }
+  return(vrdata_merged)
+}
+
 #' getData
 #'
 #' get data matrix
@@ -958,7 +986,7 @@ getData <- function(object) {
   } else {
     data <- object@data[[vrMainFeatureType(object)]]
   }
-  
+
   return(data)
 }
 
@@ -984,7 +1012,7 @@ updateData <- function(object, value) {
       }
     }
   }
-  
+
   return(object)
 }
 
