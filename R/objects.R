@@ -1343,9 +1343,11 @@ vrDataVoltRon <- function(
       cur_data <- as.matrix(cur_data)
     }
     if (inherits(cur_data, c("data.frame", "Matrix", "matrix"))) {
+      id <- rownames(cur_data)
+      id <- if(length(id) > 0) id else character()
       cur_data <- data.frame(
         cur_data,
-        feature.ID = rownames(cur_data),
+        feature.ID = id,
         check.names = FALSE
       )
     }
