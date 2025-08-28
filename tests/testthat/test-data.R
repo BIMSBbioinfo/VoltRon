@@ -35,6 +35,10 @@ test_that("molecule/tile data", {
   expect_equal(nrow(data), 0)
   expect_equal(ncol(data), 
                length(vrSpatialPoints(merged_object, assay = "MolAssay")))
+  expect_error(
+    data <- vrData(merged_object, features = "art", assay = "MolAssay")
+  )
+
   
   # get data of an image data
   img <- system.file(package = "VoltRon", "extdata/DAPI.tif")

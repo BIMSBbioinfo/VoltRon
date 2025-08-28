@@ -288,16 +288,21 @@ subsetCoordinates <- function(coords, imageinfo, crop_info) {
   # adjust for maximum res
   if (ylim[2] < 0) {
     ylim[2] <- 0
-    # ylim[1] <- ylim[2] - imageinfo$height + crop_info[2] # CHANGE THIS LATER ?
+    
+    # Todo: CHANGE THIS LATER ?
+    # ylim[1] <- ylim[2] - imageinfo$height + crop_info[2] 
   }
   if (xlim[2] > imageinfo$width) {
     xlim[2] <- imageinfo$width
-    # xlim[1] <- xlim[2] - crop_info[1] # CHANGE THIS LATER ?
+    
+    # Todo: CHANGE THIS LATER ?
+    # xlim[1] <- xlim[2] - crop_info[1] 
   }
 
   # get inside coords
   if (inherits(coords, "IterableMatrix")) {
-    # BPCells only accepts e1 > e2 ## S4 method for signature 'IterableMatrix,numeric'
+    # BPCells only accepts e1 > e2 ## S4 method for 
+    # signature 'IterableMatrix,numeric'
     inside <- (!!as.vector(as(coords[, 1] > xlim[1], "dgCMatrix")) &
       !!!as.vector(as(coords[, 1] > xlim[2], "dgCMatrix"))) &
       (!!as.vector(as(coords[, 2] > ylim[1], "dgCMatrix")) &
@@ -309,6 +314,7 @@ subsetCoordinates <- function(coords, imageinfo, crop_info) {
   coords <- coords[inside, ]
 
   if (nrow(coords) > 0) {
+    
     # adjust coordinates
     coords[, 1] <- coords[, 1] - xlim[1]
     coords[, 2] <- coords[, 2] - ylim[1]
@@ -405,6 +411,7 @@ subsetSegments <- function(segments, imageinfo, crop_info) {
 #'
 #' @noRd
 subsetData <- function(object, spatialpoints = NULL, features = NULL) {
+  
   # features
   if (!is.null(features)) {
     if (inherits(object, "vrAssay")) {
@@ -443,7 +450,6 @@ subsetData <- function(object, spatialpoints = NULL, features = NULL) {
   # spatialpoints
   if (!is.null(spatialpoints)) {
     if (inherits(object, "vrAssay")) {
-      # if(nrow(object@rawdata) > 0){
       if (ncol(object@rawdata) > 0) {
         object@rawdata <- object@rawdata[,
           colnames(object@rawdata) %in% spatialpoints,
@@ -456,7 +462,6 @@ subsetData <- function(object, spatialpoints = NULL, features = NULL) {
       }
     } else {
       for (nm in vrFeatureTypeNames(object)) {
-        # if(nrow(object@data[[nm]]) > 0){
         if (ncol(object@data[[nm]]) > 0) {
           object@data[[nm]] <- object@data[[nm]][,
             colnames(object@data[[nm]]) %in% spatialpoints,
@@ -475,49 +480,6 @@ subsetData <- function(object, spatialpoints = NULL, features = NULL) {
   }
 
   # return
-  return(object)
-}
-
-#' getData
-#'
-#' get data matrix
-#'
-#' @param object a vrAssay object
-#'
-#' @noRd
-getData <- function(object) {
-  if (inherits(object, "vrAssay")) {
-    data <- object@rawdata
-  } else {
-    data <- object@data[[vrMainFeatureType(object)]]
-  }
-
-  return(data)
-}
-
-#' updateData
-#'
-#' update data matrix
-#'
-#' @param object a vrAssay object
-#' @param value the new column names
-#'
-#' @noRd
-updateData <- function(object, value) {
-  if (inherits(object, "vrAssay")) {
-    if (ncol(object@rawdata) > 0) {
-      colnames(object@rawdata) <- value
-      colnames(object@normdata) <- value
-    }
-  } else {
-    for (nm in vrFeatureTypeNames(object)) {
-      if (ncol(object@data[[nm]] > 0)) {
-        colnames(object@data[[nm]]) <- value
-        colnames(object@data[[paste0(nm, "_norm")]]) <- value
-      }
-    }
-  }
-
   return(object)
 }
 
@@ -916,80 +878,55 @@ vrDatavrAssay <- function(
   norm = FALSE,
   ...
 ) {
+  
   # get assay types
   assay.type <- vrAssayTypes(object)
 
-  # for ROIs, cells and spots
-  if (assay.type %in% c("ROI", "cell", "spot")) {
-    # check if there are features
-    if (!is.null(features)) {
-      if (!all(features %in% vrFeatures(object))) {
-        stop("Some features are not available in the assay!")
-      }
-
-      if (inherits(object, "vrAssay")) {
-        if (norm) {
-          return(object@normdata[features, , drop = FALSE])
-        } else {
-          return(object@rawdata[features, , drop = FALSE])
-        }
-      } else {
-        if (is.null(feat_type)) {
-          feat_type <- vrMainFeatureType(object)
-        }
-        if (norm) {
-          return(object@data[[paste0(feat_type, "_norm")]][
-            features,
-            ,
-            drop = FALSE
-          ])
-        } else {
-          return(object@data[[feat_type]][features, , drop = FALSE])
-        }
-      }
-
-      # if there are no features requested, return the data
-    } else {
-      if (inherits(object, "vrAssay")) {
-        if (norm) {
-          return(object@normdata)
-        } else {
-          return(object@rawdata)
-        }
-      } else {
-        if (is.null(feat_type)) {
-          feat_type <- vrMainFeatureType(object)
-        }
-        if (norm) {
-          return(object@data[[paste0(feat_type, "_norm")]])
-        } else {
-          return(object@data[[feat_type]])
-        }
-      }
+  # check if there are features
+  if (!is.null(features)) {
+    if (assay.type %in% c("molecule", "tile")) {
+      stop("No features are available for tile and molecule assays!")
     }
 
-    # for tiles and molecules
-  } else {
-    # check if features are requested
-    if (!is.null(features)) {
-      stop("No features are available for tile and molecule assays!")
+    if (!all(features %in% vrFeatures(object))) {
+      stop("Some features are not available in the assay!")
+    }
+  }
+  
+  if (inherits(object, "vrAssay")) {
+    if (norm) {
+      return(
+        if(is.null(features))
+          object@normdata
+        else
+          object@normdata[features, , drop = FALSE]
+      )
     } else {
-      if (inherits(object, "vrAssay")) {
-        if (norm) {
-          return(object@normdata)
-        } else {
-          return(object@rawdata)
-        }
-      } else {
-        if (is.null(feat_type)) {
-          feat_type <- vrMainFeatureType(object)
-        }
-        if (norm) {
-          return(object@data[[paste0(feat_type, "_norm")]])
-        } else {
-          return(object@data[[feat_type]])
-        }
-      }
+      return(
+        if(is.null(features))
+          object@rawdata
+        else
+          object@rawdata[features, , drop = FALSE]
+      )
+    }
+  } else {
+    if (is.null(feat_type)) {
+      feat_type <- vrMainFeatureType(object)
+    }
+    if (norm) {
+      return(
+        if(is.null(features))
+          object@data[[paste0(feat_type, "_norm")]]
+        else
+          object@data[[paste0(feat_type, "_norm")]][features, , drop = FALSE]
+      )
+    } else {
+      return(
+        if(is.null(features))
+          object@data[[feat_type]]
+        else
+          object@data[[feat_type]][features, , drop = FALSE]
+      )
     }
   }
 }
@@ -1007,6 +944,49 @@ setMethod("vrData", "vrAssay", vrDatavrAssay)
 #'
 #' @export
 setMethod("vrData", "vrAssayV2", vrDatavrAssay)
+
+#' getData
+#'
+#' get data matrix
+#'
+#' @param object a vrAssay object
+#'
+#' @noRd
+getData <- function(object) {
+  if (inherits(object, "vrAssay")) {
+    data <- object@rawdata
+  } else {
+    data <- object@data[[vrMainFeatureType(object)]]
+  }
+  
+  return(data)
+}
+
+#' updateData
+#'
+#' update data matrix
+#'
+#' @param object a vrAssay object
+#' @param value the new column names
+#'
+#' @noRd
+updateData <- function(object, value) {
+  if (inherits(object, "vrAssay")) {
+    if (ncol(object@rawdata) > 0) {
+      colnames(object@rawdata) <- value
+      colnames(object@normdata) <- value
+    }
+  } else {
+    for (nm in vrFeatureTypeNames(object)) {
+      if (ncol(object@data[[nm]] > 0)) {
+        colnames(object@data[[nm]]) <- value
+        colnames(object@data[[paste0(nm, "_norm")]]) <- value
+      }
+    }
+  }
+  
+  return(object)
+}
 
 generateTileDatavrAssay <- function(
   object,
