@@ -3220,7 +3220,7 @@ generateSegments <- function(geojson.file) {
   return(segments)
 }
 
-#' generateGeoJSON
+#' generateGeoJSON_old
 #'
 #' Old version: generating geojson files from segments
 #'
@@ -3267,9 +3267,9 @@ generateGeoJSON_old <- function(segments, file) {
   write(segments, file = file)
 }
 
-#' generateGeoJSON_old
+#' generateGeoJSON
 #'
-#' Old version: generating geojson files from segments
+#' Generating geojson files from segments
 #'
 #' @param segments the segments, typically from \link{vrSegments}.
 #' @param file the GeoJSON file, typically to be used by QuPath software.

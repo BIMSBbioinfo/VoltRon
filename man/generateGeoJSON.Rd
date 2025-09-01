@@ -2,7 +2,7 @@
 % Please edit documentation in R/import.R
 \name{generateGeoJSON}
 \alias{generateGeoJSON}
-\title{generateGeoJSON_old}
+\title{generateGeoJSON}
 \usage{
 generateGeoJSON(segments, file)
 }

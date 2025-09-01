@@ -392,8 +392,6 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...) {
 #' @param overwrite Whether the existing embedding with name 'type'
 #' should be overwritten in \link{vrEmbeddings}
 #' @param seed seed
-#' @param source Character either "features" (PCA on gene features) or
-#'   "embeddings" (PCA on an existing embedding). Default: "features"
 #'
 #' @importFrom BiocSingular runPCA FastAutoParam
 #'

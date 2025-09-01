@@ -41,9 +41,6 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 should be overwritten in \link{vrEmbeddings}}
 
 \item{seed}{seed}
-
-\item{source}{Character either "features" (PCA on gene features) or
-"embeddings" (PCA on an existing embedding). Default: "features"}
 }
 \description{
 calculate PCA of the VoltRon objects
