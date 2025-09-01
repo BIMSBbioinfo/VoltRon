@@ -1065,6 +1065,229 @@ vrSpatialPlot(Xen_R1_image_subset, assay = &quot;Xenium&quot;, group.by = &quot;
                      features = c(&quot;PTPRC&quot;, &quot;EPCAM&quot;, &quot;MMP2&quot;), 
                      alpha = 0.7, plot.segments = TRUE, ncol = 2)</code></pre>
 <p><img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_spatial_cell_markers_subset.png" class="center"></p>
+<p><br></p>
+</div>
+</div>
+<div id="xenium-if" class="section level2">
+<h2>Xenium + IF</h2>
+<p>Automated alignment workflow of VoltRon can also be used to integrate
+modalities generated from the same tissue section. In this use case, we
+will perform multiplex immunofluorescence (IF) imaging after a Xenium
+experiment and integrate Protein and RNA modalities for clustering.</p>
+<div id="import-xenium-data" class="section level3">
+<h3>Import Xenium Data</h3>
+<p>We will generate Xenium and IF dataset from a human tonsil tissue
+section. We first import the Xenium data, and interactively subset the
+tonsil sample from the tissue microarray.</p>
+<pre class="r watch-out"><code># dependencies
+if(!requireNamespace(&quot;RBioFormats&quot;))
+  BiocManager::install(&quot;RBioFormats&quot;)
+if(!requireNamespace(&quot;arrow&quot;))
+  install.packages(&quot;arrow&quot;)
+if(!requireNamespace(&quot;rhdf5&quot;))
+  BiocManager::install(&quot;rhdf5&quot;)
+
+# import Xenium
+xen &lt;- importXenium(&quot;Xenium/out&quot;, 
+                    sample_name = &quot;XeniumTonsil&quot;
+                    resolution_level = 3, 
+                    overwrite_resolution = TRUE)
+
+# subset interactive
+xen &lt;- subset(xen, interactive = TRUE)
+xen_tonsil &lt;- xen$subsets[[1]]
+vrImages(xen_tonsil)</code></pre>
+<p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_XeniumIF_xen.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="import-if-images" class="section level3">
+<h3>Import IF Images</h3>
+<p>Xenium in situ platform allows same section multiplex imaging post
+experiment. Depending on the protocol, the intensity measures of each
+channel can be stored in an ome.tiff file. We use the
+<strong>importImageData</strong> to import the images of channels where
+we can select channels and even give them names.</p>
+<p>We import only the DAPI, CD20 and CD21 channels. We will use DAPI
+channel for aligning these images to Xenium data, and remaining channels
+for clustering with the RNA features from Xenium.</p>
+<pre class="r watch-out"><code>if_tonsil &lt;- importImageData(&quot;Same section/Core_13.ome.tif&quot;, tile.size = 100, 
+                             series = 1, resolution = 1, channels = c(1,4,8), 
+                             channel_names = c(&quot;DAPI&quot;, &quot;CD20&quot;, &quot;CD21&quot;), 
+                             is.RGB = FALSE)</code></pre>
+</div>
+<div id="automated-alignment" class="section level3">
+<h3>Automated Alignment</h3>
+<p>Now, we perform automated alignment across Xenium and IF
+datasets.</p>
+<pre class="r watch-out"><code>xen_tonsil &lt;- modulateImage(xen_tonsil, brightness = 500)
+if_tonsil &lt;- modulateImage(if_tonsil, brightness = 700, channel = &quot;DAPI&quot;)
+xen_reg &lt;- registerSpatialData(object_list = list(if_tonsil, xen_tonsil))</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_XeniumIF_register.png" class="center"></p>
+<p><br></p>
+<p>The output of the <strong>registerSpatialData</strong> function will
+include a VoltRon object of the Xenium data whose cell segments are
+syncronized to the IF experiment.</p>
+<pre class="r watch-out"><code># get registered data
+xen_tonsil &lt;- xen_reg$registered_spat[[2]]</code></pre>
+<p>We can also transfer the CD20, and CD21 channels to the registered
+coordinate space of the Xenium data.</p>
+<pre class="r watch-out"><code>vrImages(xen_tonsil[[&quot;Assay1&quot;]], name = &quot;main_reg&quot;, channel = &quot;CD20&quot;) &lt;- 
+  vrImages(if_tonsil, channel = &quot;CD20&quot;)
+vrImages(xen_tonsil[[&quot;Assay1&quot;]], name = &quot;main_reg&quot;, channel = &quot;CD21&quot;) &lt;- 
+  vrImages(if_tonsil, channel = &quot;CD21&quot;)</code></pre>
+</div>
+<div id="quantify-intensity-of-cells" class="section level3">
+<h3>Quantify Intensity of Cells</h3>
+<p>With VoltRon, we can export the registered segments, and save it as a
+GeoJson file for further processing with QuPath, which we will use it to
+quantify the mean intensity measures of CD20 and CD21 protein per Xenium
+segments.</p>
+<p>This will enable collecting same segment RNA and Protein measures for
+multi-modal clustering.</p>
+<pre class="r watch-out"><code>segts &lt;- vrSegments(flipCoordinates(xen_tonsil))
+generateGeoJSON(segts, &quot;data/Xenium_Tonsil/polygons.geojson&quot;)</code></pre>
+<p>To perform intensity quntification of cells, simply drag and drop the
+ome.tiff and geojson files to QuPath. You can then navigate to
+<strong>Analyze -&gt; Calculate Features -&gt; Add Intensity
+Features</strong>, and click Run after selecting markers where we select
+CD20 and CD21.</p>
+<p>After calculating mean and median intensities, we navigate to
+<strong>Measure -&gt; Show Annotation Measurements</strong> and click
+<strong>Save</strong> to write the measurements to a .txt file.</p>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_XeniumIF_QuPath.png" class="center"></p>
+<p><br></p>
+<p>After quantifying with QuPath, we can import these measures and save
+it as a new feature data in VoltRon object.</p>
+<pre class="r watch-out"><code># add feature from QuPath
+datax &lt;- read.table(&quot;data/Xenium_Tonsil/measurements.txt&quot;, 
+                    header = TRUE, sep = &quot;\t&quot;)
+rownames(datax) &lt;- datax$Name
+datax &lt;- datax[vrSpatialPoints(xen_tonsil),]
+datax &lt;- datax[,c(11,13)]
+datax &lt;- apply(datax, 2, function(x){
+  x[is.na(x)] &lt;- min(x, na.rm = TRUE)
+  x
+})
+
+# adjust channel intensities
+datax[,1] &lt;- ifelse(datax[,1] &lt; 1054, datax[,1],1054)
+datax[,1] &lt;- ifelse(datax[,1] &gt; 331, datax[,1],331)
+datax[,1] &lt;- datax[,1] - min(datax[,1])
+datax[,2] &lt;- ifelse(datax[,2] &lt; 1421, datax[,2],1421)
+datax[,2] &lt;- ifelse(datax[,2] &gt; 491, datax[,2],491)
+datax[,2] &lt;- datax[,2] - min(datax[,2])
+colnames(datax) &lt;- c(&quot;CD20&quot;, &quot;CD21&quot;)</code></pre>
+<p>We use the <strong>addFeature</strong> function to import the new
+Protein measures as additional feature sets</p>
+<pre class="r watch-out"><code># add as protein features
+xen_tonsil &lt;- addFeature(xen_tonsil, data = t(datax), feature_name = &quot;Protein&quot;)
+xen_tonsil</code></pre>
+<pre><code>VoltRon Object 
+XeniumTonsil: 
+  Layers: Section1 
+Assays: Xenium(Main) 
+Features: RNA(Main) Protein </code></pre>
+<p><br></p>
+</div>
+<div id="processing-modalities" class="section level3">
+<h3>Processing Modalities</h3>
+<p>We first do a simple filtering on the Xenium cells, remove all cells
+whose total mRNA counts are lower than 30, and we normalize these counts
+afterwards.</p>
+<pre class="r watch-out"><code># subset
+spatialpoints &lt;- vrSpatialPoints(xen_tonsil)[as.vector(Metadata(xen_tonsil)$Count &gt; 30)]
+xen_tonsil &lt;- subset(xen_tonsil, spatialpoints = spatialpoints)
+
+# normalize RNA
+xen_tonsil &lt;- normalizeData(xen_tonsil, sizefactor = 1000)</code></pre>
+<p>VoltRon also includes methods to process protein intensity measures.
+We use the hyperbolic arcsine transformation with scaling parameter
+0.2.</p>
+<pre class="r watch-out"><code># normalize Protein markers
+vrMainFeatureType(xen_tonsil) &lt;- &quot;Protein&quot;
+xen_tonsil &lt;- normalizeData(xen_tonsil, method = &quot;hyper.arcsine&quot;, scale = 0.2)</code></pre>
+<p>We can visualize spatial localization of both normalized Protein and
+RNA features. CD20 and MS4A1 are Protein and RNA synonyms of the same
+marker, hence they largely co-localize. On the other hand, CD38 and CD21
+are both markers of germinal centers of human tonsils, but CD21 mainly
+expressed in these centers and CD38 can also be expressed in plasma
+cells</p>
+<pre class="r watch-out"><code>library(patchwork)
+vrMainFeatureType(xen_tonsil) &lt;- &quot;Protein&quot;
+g1 &lt;- vrSpatialFeaturePlot(xen_tonsil, features = c(&quot;CD20&quot;, &quot;CD21&quot;), 
+                           background.color = &quot;black&quot;, n.tile = 300, ncol = 2, 
+                           norm = TRUE)
+vrMainFeatureType(xen_tonsil) &lt;- &quot;RNA&quot;
+g2 &lt;- vrSpatialFeaturePlot(xen_tonsil, features = c(&quot;MS4A1&quot;, &quot;CD38&quot;), 
+                           background.color = &quot;black&quot;, n.tile = 300, ncol = 2)
+g1 / g2</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_XeniumIF_spatial.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="ondisk-optional" class="section level3">
+<h3>OnDisk (Optional)</h3>
+<p>VoltRon provides additional utilities to save object on disk to lower
+memory usage of data analysis and clustering. We can save the object on
+disk and continue analysis which will potentially increase the
+clustering speed.</p>
+<pre class="r watch-out"><code>xen_tonsil &lt;- saveVoltRon(xen_tonsil, 
+                               format = &quot;HDF5VoltRon&quot;, 
+                               output = &quot;data/OnDisk/Xenium_IF&quot;, 
+                               replace = TRUE)</code></pre>
+</div>
+<div id="clustering-1" class="section level3">
+<h3>Clustering</h3>
+<p>We can now apply dimensional reduction which will allow us to cluster
+cells. The <strong>feat_type</strong> argument in the
+<strong>getPCA</strong> function will accept multiple modality names of
+a VoltRon object. Here, <strong>vrFeatureTypeNames</strong> will provide
+the names of all modalities and will result in <strong>getPCA</strong>
+computing PC dimensions using both RNA and Protein modalities.</p>
+<pre class="r watch-out"><code>xen_tonsil &lt;- getPCA(xen_tonsil, 
+                     feat_type = vrFeatureTypeNames(xen_tonsil),
+                     dims = 30)
+xen_tonsil &lt;- getUMAP(xen_tonsil, dims = 1:30)</code></pre>
+<p>Let us visualize the expression of RNA and Protein features. We can
+see that CD21 (Protein) and CD38 (RNA) features, which both are germinal
+center markers, are expressed in different combinations. Also, CD20 and
+its RNA counterpart MS4A1 show similar expression patterns.</p>
+<pre class="r watch-out"><code># visualize embeddings 
+vrMainFeatureType(xen_tonsil) &lt;- &quot;Protein&quot;
+g1 &lt;- vrEmbeddingFeaturePlot(xen_tonsil, 
+                       features = c(&quot;CD20&quot;, &quot;CD21&quot;), embedding = &quot;umap&quot;, 
+                       pt.size = 0.4)
+vrMainFeatureType(xen_tonsil) &lt;- &quot;RNA&quot;
+g2 &lt;- vrEmbeddingFeaturePlot(xen_tonsil, 
+                       features = c(&quot;MS4A1&quot;, &quot;CXCL13&quot;), embedding = &quot;umap&quot;, 
+                       pt.size = 0.4)
+g1 / g2</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_XeniumIF_embedding.png" class="center"></p>
+<p><br></p>
+<p>Clustering with multi-modal PCA will reveal clusters high in both RNA
+and Protein features. We first cluster the cells using SNN based graph
+clustering, and then visualize the expression of CD21 to detect marker
+specific clusters.</p>
+<pre class="r watch-out"><code># clustering
+xen_tonsil &lt;- getProfileNeighbors(xen_tonsil, 
+                                  dims = 1:30, method = &quot;SNN&quot;)
+xen_tonsil &lt;- getClusters(xen_tonsil, resolution = res, 
+                          label = &quot;Clusters&quot;, graph = &quot;SNN&quot;) 
+
+# visualize
+vrEmbeddingPlot(xen_tonsil, group.by = &quot;Clusters&quot;, embedding = &quot;umap&quot;, 
+                pt.size = 0.4, label = TRUE)</code></pre>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_XeniumIF_embedding_cluster.png" class="center"></p>
+<p><br></p>
+<p>As observed, there is one cluster with high CD21 protein
+expression.</p>
+<pre class="r watch-out"><code>vrViolinPlot(xen_tonsil, features = &quot;CD21&quot;, group.by = &quot;Clusters&quot;)</code></pre>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_XeniumIF_violin_cluster.png" class="center"></p>
+<p><br></p>
+<p>We can visualize the spatial localization of this cluster alone,
+which point to the germinal centers of the human tonsil.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(xenium_reg, group.by = &quot;Clusters&quot;, group.ids = 14, 
+              plot.segments = TRUE)</code></pre>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_XeniumIF_spatial_gc.png" class="center"></p>
 </div>
 </div>
 </div>

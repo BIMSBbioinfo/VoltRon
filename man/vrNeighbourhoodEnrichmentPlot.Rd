@@ -15,7 +15,8 @@ vrNeighbourhoodEnrichmentPlot(
 
 \item{assay}{assay name (exp: Assay1), see \link{SampleMetadata}.}
 
-\item{type}{the type of spatial test. Either "assoc" for association test or "segreg" for segregation test}
+\item{type}{the type of spatial test. Either "assoc" for association 
+test or "segreg" for segregation test}
 }
 \description{
 Plotting results of \link{vrNeighbourhoodEnrichment}

@@ -27,17 +27,24 @@ vrEmbeddingPlot(
 
 \item{embedding}{the embedding type, i.e. pca, umap etc.}
 
-\item{group.by}{a column of metadata from \link{Metadata} used as grouping label for the spatial entities}
+\item{group.by}{a column of metadata from \link{Metadata} used as 
+grouping label for the spatial entities}
 
-\item{group.ids}{a subset of categories defined in metadata column from \code{group.by}}
+\item{group.ids}{a subset of categories defined in metadata column 
+from \code{group.by}}
 
-\item{split.by}{a column of metadata from \link{Metadata} used as splitting spatial entities into ggplot panels, see \link{facet_wrap}}
+\item{split.by}{a column of metadata from \link{Metadata} used as 
+splitting spatial entities into ggplot panels, see \link{facet_wrap}}
 
-\item{colors}{the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by}
+\item{colors}{the color set for group.by. Should be of the same size 
+of group.id (if specified) or unique elements in group.by}
 
-\item{n.tile}{should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules}
+\item{n.tile}{should points be aggregated into tiles before 
+visualization (see \link{geom_tile}). Applicable only for cells and 
+molecules}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{ncol}{column wise number of plots, for \link{facet_wrap}}
@@ -50,10 +57,12 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{label}{if TRUE, the labels of the ROI assays will be visualized}
 
-\item{common.legend}{whether to use a common legend for all plots, see \link{ggarrange}}
+\item{common.legend}{whether to use a common legend for all plots, 
+see \link{ggarrange}}
 
 \item{collapse.plots}{whether to combine all ggplots}
 }
 \description{
-Plotting embeddings of cells and spots on associated images from multiple assays in a VoltRon object.
+Plotting embeddings of cells and spots on associated images from multiple 
+assays in a VoltRon object.
 }

@@ -2526,13 +2526,6 @@ vrSpatialExtent <- function(g, assay, coords, crop, info) {
   g
 }
 
-#' @import ggplot2
-#' @importFrom grid pointsGrob unit gpar
-#' @importFrom rlang list2
-#'
-#' @noRd
-NULL
-
 #' geom_spot
 #'
 #' @import ggplot2
@@ -2626,7 +2619,8 @@ GeomSpot <- ggplot2::ggproto(
 #'
 #' @param coords coordinates data
 #' @param graph if not NULL, the graph is added to the plot
-#' @param background the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name
+#' @param background the background of the plot. Either an image name, 
+#' see \link{vrImageNames} or a vector of length two with image name
 #'
 #' @import ggplot2
 #' @importFrom igraph as_data_frame
@@ -2656,7 +2650,8 @@ addGraph <- function(graph, coords, background) {
 #'
 #' @param results The results from \link{vrNeighbourhoodEnrichment}
 #' @param assay assay name (exp: Assay1), see \link{SampleMetadata}.
-#' @param type the type of spatial test. Either "assoc" for association test or "segreg" for segregation test
+#' @param type the type of spatial test. Either "assoc" for association 
+#' test or "segreg" for segregation test
 #'
 #' @export
 #'
@@ -2668,7 +2663,8 @@ vrNeighbourhoodEnrichmentPlot <- function(
   # check Seurat package
   if (!requireNamespace('circlize')) {
     stop(
-      "Please install circlize package for coloring the Heatmap!: install.packages('circlize')"
+      "Please install circlize package for coloring the Heatmap!: ", 
+      "install.packages('circlize')"
     )
   }
 
@@ -2782,23 +2778,32 @@ vrNeighbourhoodEnrichmentPlot <- function(
 
 #' vrEmbeddingPlot
 #'
-#' Plotting embeddings of cells and spots on associated images from multiple assays in a VoltRon object.
+#' Plotting embeddings of cells and spots on associated images from multiple 
+#' assays in a VoltRon object.
 #'
 #' @param object a VoltRon object
 #' @param embedding the embedding type, i.e. pca, umap etc.
-#' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
-#' @param group.ids a subset of categories defined in metadata column from \code{group.by}
-#' @param split.by a column of metadata from \link{Metadata} used as splitting spatial entities into ggplot panels, see \link{facet_wrap}
-#' @param colors the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by
-#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
+#' @param group.by a column of metadata from \link{Metadata} used as 
+#' grouping label for the spatial entities
+#' @param group.ids a subset of categories defined in metadata column 
+#' from \code{group.by}
+#' @param split.by a column of metadata from \link{Metadata} used as 
+#' splitting spatial entities into ggplot panels, see \link{facet_wrap}
+#' @param colors the color set for group.by. Should be of the same size 
+#' of group.id (if specified) or unique elements in group.by
+#' @param n.tile should points be aggregated into tiles before 
+#' visualization (see \link{geom_tile}). Applicable only for cells and 
+#' molecules
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+#' see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param ncol column wise number of plots, for \link{facet_wrap}
 #' @param nrow row wise number of plots, for \link{facet_wrap}
 #' @param font.size font size of labels, if label is TRUE
 #' @param pt.size point size
 #' @param label if TRUE, the labels of the ROI assays will be visualized
-#' @param common.legend whether to use a common legend for all plots, see \link{ggarrange}
+#' @param common.legend whether to use a common legend for all plots, 
+#' see \link{ggarrange}
 #' @param collapse.plots whether to combine all ggplots
 #'
 #' @import ggplot2
@@ -2888,7 +2893,8 @@ vrEmbeddingPlot <- function(
   if (!is.null(colors)) {
     if (length(colors) != length(levels_group.ids)) {
       stop(
-        "Please provide colors whose length is equal to group.ids (if specified) or unique elements of group.by"
+        "Please provide colors whose length is equal to group.ids ", 
+        "(if specified) or unique elements of group.by"
       )
     }
     if (is.null(names(colors))) {
@@ -2933,8 +2939,6 @@ vrEmbeddingPlot <- function(
       n.tile = n.tile
     )
   } else {
-    # g <- g +
-    #   geom_point(mapping = aes_string(x = "x", y = "y", color = group.by), datax, shape = 16, size = pt.size)
     g <- g +
       geom_point(
         mapping = aes(
@@ -3016,23 +3020,30 @@ vrEmbeddingPlot <- function(
 
 #' vrEmbeddingFeaturePlot
 #'
-#' Plotting features of spatially resolved cells and spots on embeddings from multiple assays in a VoltRon object.
+#' Plotting features of spatially resolved cells and spots on embeddings 
+#' from multiple assays in a VoltRon object.
 #'
 #' @param object a VoltRon object
 #' @param embedding the embedding type, i.e. pca, umap etc.
-#' @param features a set of features to be visualized, either from \link{vrFeatures} of raw or normalized data or columns of the \link{Metadata}.
+#' @param features a set of features to be visualized, either from 
+#' \link{vrFeatures} of raw or normalized data or columns of the 
+#' \link{Metadata}.
 #' @param combine.features whether to combine all features in one plot
-#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param n.tile should points be aggregated into tiles before visualization 
+#' (see \link{geom_tile}). Applicable only for cells and molecules
 #' @param norm if TRUE, the normalized data is used
-#' @param log if TRUE, data features (excluding metadata features) will be log transformed
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
+#' @param log if TRUE, data features (excluding metadata features) will be 
+#' log transformed
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+#' see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param ncol column wise number of plots, for \link{ggarrange}
 #' @param nrow row wise number of plots, for \link{ggarrange}
 #' @param font.size font size
 #' @param pt.size point size
 #' @param keep.scale whether unify all scales for all features or not
-#' @param common.legend whether to use a common legend for all plots, see \link{ggarrange}
+#' @param common.legend whether to use a common legend for all plots, 
+#' see \link{ggarrange}
 #' @param collapse.plots whether to combine all ggplots
 #'
 #' @import ggplot2
@@ -3292,10 +3303,12 @@ vrEmbeddingFeaturePlot <- function(
 
 #' vrEmbeddingFeatureCombinePlot
 #'
-#' A different plotting setting for vrEmbeddingFeaturePlot when combine.feature=TRUE
+#' A different plotting setting for vrEmbeddingFeaturePlot when 
+#' combine.feature=TRUE
 #'
 #' @param all_data summary data
-#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param n.tile should points be aggregated into tiles before visualization 
+#' (see \link{geom_tile}). Applicable only for cells and molecules
 #' @param datax original plotting data
 #' @param features features
 #' @param embedding embedding
@@ -3384,11 +3397,13 @@ vrEmbeddingFeatureCombinePlot <- function(
 #' @param feature.1 first feature
 #' @param feature.2 second feature
 #' @param norm if TRUE, the normalize data will be used
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+#' see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param pt.size point size
 #' @param font.size font size
-#' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
+#' @param group.by a column of metadata from \link{Metadata} used as grouping 
+#' label for the spatial entities
 #' @param label whether labels are visualized or not
 #' @param trend inserting a trend line two the scatter plot
 #'
@@ -3498,18 +3513,25 @@ vrScatterPlot <- function(
 #' HeatmapPlot
 #'
 #' @param object a VoltRon object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+#' see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param features a set of features to be visualized from \link{vrFeatures} of raw or normalized data.
-#' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
+#' @param features a set of features to be visualized from \link{vrFeatures} 
+#' of raw or normalized data.
+#' @param group.by a column of metadata from \link{Metadata} used as grouping 
+#' label for the spatial entities
 #' @param norm if TRUE, the normalized data is used
 #' @param scaled if TRUE, the data will be scaled before visualization
 #' @param show_row_names if TRUE, row names of the heatmap will be shown
 #' @param cluster_rows if TRUE, the rows of the heatmap will be clustered
 #' @param show_heatmap_legend if TRUE, the heatmap legend is shown
-#' @param outlier.quantile quantile for detecting outliers whose values are set to the quantile, change to lower values to adjust large number of outliers, default: 0.99
-#' @param highlight.some if TRUE, some rows will be showed at random, reproducible by \code{seed} argument
-#' @param n_highlight the number of row labels shown, if \code{show_row_names} is TRUE
+#' @param outlier.quantile quantile for detecting outliers whose values are 
+#' set to the quantile, change to lower values to adjust large number of 
+#' outliers, default: 0.99
+#' @param highlight.some if TRUE, some rows will be showed at random, 
+#' reproducible by \code{seed} argument
+#' @param n_highlight the number of row labels shown, 
+#' if \code{show_row_names} is TRUE
 #' @param font.size font size
 #' @param ... additional parameters passed to \link{getVariableFeatures}
 #'
@@ -3534,12 +3556,14 @@ vrHeatmapPlot <- function(
 ) {
   if (!requireNamespace('ComplexHeatmap')) {
     stop(
-      "Please install ComplexHeatmap package to use the Heatmap function!: BiocManager::install('ComplexHeatmap')"
+      "Please install ComplexHeatmap package to use the Heatmap function!: ", 
+      "BiocManager::install('ComplexHeatmap')"
     )
   }
   if (!requireNamespace('viridisLite')) {
     stop(
-      "Please install viridisLite package to use the Heatmap function!: install.packages('viridisLite')"
+      "Please install viridisLite package to use the Heatmap function!: ", 
+      "install.packages('viridisLite')"
     )
   }
 
@@ -3671,10 +3695,14 @@ vrHeatmapPlot <- function(
 #' vrViolinPlot
 #'
 #' @param object a VoltRon object
-#' @param features a set of features to be visualized, either from \link{vrFeatures} of raw or normalized data or columns of the \link{Metadata}.
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
+#' @param features a set of features to be visualized, either from 
+#' \link{vrFeatures} of raw or normalized data or columns of the 
+#' \link{Metadata}.
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+#' see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
+#' @param group.by a column of metadata from \link{Metadata} used as 
+#' grouping label for the spatial entities
 #' @param norm if TRUE, the normalized data is used
 #' @param pt.size point size
 #' @param plot.points if TRUE, measures are visualized as points as well.
@@ -3713,6 +3741,9 @@ vrViolinPlot <- function(
   # get entity type and metadata
   metadata <- Metadata(object, assay = assay)
 
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+
   # get data
   if (any(features %in% vrFeatures(object, assay = assay))) {
     selected_features <- features[
@@ -3728,36 +3759,40 @@ vrViolinPlot <- function(
 
   # get feature data
   datax <- lapply(features, function(x) {
-    if (x %in% vrFeatures(object, assay = assay)) {
-      return(violindata[x, ])
+    if (x %in% rownames(violindata)) {
+      return(as.vector(as(violindata[x, , drop = FALSE], "dgCMatrix")))
     } else if (x %in% colnames(metadata)) {
-      return(
+      return(as.vector(
         subset_metadata(metadata, features = x, drop = TRUE)
-      )
-      # return(metadata[,x])
+      ))
     } else {
-      stop(
-        "Please provide feature names which reside in either the data or metadata slots!"
-      )
+      stop("Feature '", x, "' cannot be found in data or metadata!")
     }
   })
-  datax <- do.call(cbind, datax)
+  datax <- as.data.frame(do.call(cbind, datax))
   colnames(datax) <- features
 
-  # assays
-  assays <- stringr::str_extract(rownames(metadata), "Assay[0-9]+$")
+  # get assay titles
+  assays <- stringr::str_extract(
+    vrSpatialPoints(object, assay = assay_names),
+    "Assay[0-9]+$"
+  )
   assay_title <- apply(sample.metadata[assays, ], 1, function(x) {
     paste(x["Sample"], x["Layer"], x["Assay"], sep = "|")
   })
 
   # violin plot
+  if ("id" %in% colnames(metadata)) {
+    spatialpoints <- metadata$id
+  } else {
+    spatialpoints <- rownames(metadata)
+  }
   ggplotdatax <- data.frame(
     datax,
     group.by = as.factor(metadata[[group.by]]),
     assay_title = assay_title,
-    spatialpoints = rownames(metadata)
+    spatialpoints = spatialpoints
   )
-  # ggplotdatax <- reshape2::melt(ggplotdatax, id.var = c("group.by", "assay_title", "spatialpoints"))
   ggplotdatax <- data.table::melt(
     data.table::data.table(ggplotdatax),
     id.var = c("group.by", "assay_title", "spatialpoints")
@@ -3815,14 +3850,19 @@ vrViolinPlot <- function(
 #' vrBarPlot
 #'
 #' @param object a VoltRon object
-#' @param features a set of features to be visualized, either from \link{vrFeatures} of raw or normalized data or columns of the \link{Metadata}.
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
+#' @param features a set of features to be visualized, either from 
+#' \link{vrFeatures} of raw or normalized data or columns of the 
+#' \link{Metadata}.
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+#' see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param x.label labels of the x axis
-#' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
+#' @param group.by a column of metadata from \link{Metadata} used as 
+#' grouping label for the spatial entities
 #' @param split.by the column to split the barplots by
 #' @param norm if TRUE, the normalized data is used
-#' @param log if TRUE, data features (excluding metadata features) will be log transformed
+#' @param log if TRUE, data features (excluding metadata features) 
+#' will be log transformed
 #' @param ncol column wise number of plots, for \link{ggarrange}
 #' @param nrow row wise number of plots, for \link{ggarrange}
 #'
@@ -4030,11 +4070,13 @@ vrBarPlot <- function(
 #' vrPercentagePlot
 #'
 #' @param object a VoltRon object
-#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
+#' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+#' see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param x.label labels of the x axis
 #' @param split.by the column to split the barplots by
-#' @param split.method either facet_grid or facet_wrap, not affected if \code{split.by} is \code{NULL}
+#' @param split.method either facet_grid or facet_wrap, not affected 
+#' if \code{split.by} is \code{NULL}
 #' @param ncol column wise number of plots, for \link{ggarrange}
 #' @param nrow row wise number of plots, for \link{ggarrange}
 #'
@@ -4178,11 +4220,15 @@ vrProportionPlot <- function(
 #'
 #' @param g the ggplot figure
 #' @param data the data frame with coordinates and group identities
-#' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
-#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param group.by a column of metadata from \link{Metadata} used as 
+#' grouping label for the spatial entities
+#' @param n.tile should points be aggregated into tiles before visualization 
+#' (see \link{geom_tile}). Applicable only for cells and molecules
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param spot if TRUE, tiling will be done specificall for spot datasets
-#' @param combine.groups if TRUE, tile colors will reflect relative abundance of either of two groups, strictly for visualizing two groups when assay is a molecule typed and tiled (see \code{n.tile}).
+#' @param combine.groups if TRUE, tile colors will reflect relative abundance 
+#' of either of two groups, strictly for visualizing two groups when assay 
+#' is a molecule typed and tiled (see \code{n.tile}).
 #'
 #' @import ggplot2
 #'
@@ -4216,7 +4262,8 @@ vrGroupPlotTiling <- function(
       grps <- unique(data[[group.by]])
       if (length(grps) != 2) {
         stop(
-          "combine.groups = TRUE requires there should be exactly two groups at a time, but there are",
+          "combine.groups = TRUE requires there should be exactly", 
+          "two groups at a time, but there are",
           length(grps),
           "instead"
         )
@@ -4254,12 +4301,14 @@ vrGroupPlotTiling <- function(
 
 #' vrFeaturePlotTiling
 #'
-#' Plotting a tiled version of the vrEmbeddingFeaturePlot and vrSpatialFeaturePlot
+#' Plotting a tiled version of the vrEmbeddingFeaturePlot and 
+#' vrSpatialFeaturePlot
 #'
 #' @param g the ggplot figure
 #' @param data the data frame with coordinates and group identities
 #' @param legend_title the legend title of the single plot
-#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param n.tile should points be aggregated into tiles before visualization 
+#' (see \link{geom_tile}). Applicable only for cells and molecules
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param type embedding or spatial, changes the color scheme
 #'
@@ -4291,8 +4340,8 @@ vrFeaturePlotTiling <- function(
   if (is.null(limits)) {
     hex_count_data <- suppressWarnings(ggplot_build(gplot)$data)
     hex_count_data <- hex_count_data[[length(hex_count_data)]]
-    max_v <- max(hex_count_data$value, na.rm = TRUE) 
-    min_v <- min(hex_count_data$value, na.rm = TRUE) 
+    max_v <- max(hex_count_data$value, na.rm = TRUE)
+    min_v <- min(hex_count_data$value, na.rm = TRUE)
     midpoint <- (max_v + min_v) / 2
   }
 
