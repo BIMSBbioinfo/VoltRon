@@ -17,3 +17,25 @@ test_that("featuredata", {
   # return
   expect_equal(1,1L)
 })
+
+# Testing functions of manipulating embeddings ####
+test_that("add feature", {
+  
+  # get data
+  data("xenium_data")
+  
+  # add feature
+  xenium_data2 <- addFeature(xenium_data,
+                             data = vrData(xenium_data), 
+                             feature_name = "Protein")
+  expect_equal(vrFeatureTypeNames(xenium_data2), 
+               c("RNA", "Protein"))
+  
+  # get data
+  data <- vrData(xenium_data2, feat_type = c("RNA"))
+  data <- vrData(xenium_data2, feat_type = c("Protein"))
+  data <- vrData(xenium_data2, feat_type = c("RNA", "Protein"))
+  expect_equal(rownames(data), 
+               c(paste(vrFeatures(xenium_data), "RNA", sep = "_"),
+                 paste(vrFeatures(xenium_data), "Protein", sep = "_")))
+})

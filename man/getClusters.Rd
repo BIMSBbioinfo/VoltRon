@@ -22,13 +22,15 @@ getClusters(
 \arguments{
 \item{object}{a VoltRon object.}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{label}{the name for the newly created clustering column in the metadata.}
+\item{label}{the name for the newly created clustering column in the 
+metadata.}
 
 \item{method}{The method of clustering. Use :
-(i) 'leiden' to perform graph clustering and 
+(i) 'leiden' to perform graph clustering and
 (ii) 'kmeans' for K-means based clustering
 (iii) 'hierarchical' for hierarchical clustering.}
 
@@ -36,16 +38,21 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{graph}{the graph type to be used.}
 
-\item{data.type}{the type of data used to cluster spatial points: 
+\item{data.type}{the type of data used to cluster spatial points:
 "norm" (default), "raw" or an existing embeddings \link{vrEmbeddingNames}.}
 
-\item{dims}{the number of dimensions extracted from the embedding if data.type is not NULL}
+\item{dims}{the number of dimensions extracted from the embedding if 
+data.type is not NULL}
 
-\item{nclus}{The number of cluster centers for K-means or hierarchical clustering.}
+\item{nclus}{The number of cluster centers for K-means or hierarchical 
+clustering.}
 
-\item{distance_measure}{the distance measure used by hierarchical clustering. See \code{method} for a list of distance measures in \link{dist}.}
+\item{distance_measure}{the distance measure used by hierarchical clustering. 
+See \code{method} for a list of distance measures in \link{dist}.}
 
-\item{abundance_limit}{the minimum number of points for a cluster, hence clusters with abundance lower than this limit will be appointed to other nearby clusters.}
+\item{abundance_limit}{the minimum number of points for a cluster, hence 
+clusters with abundance lower than this limit will be appointed to other 
+nearby clusters.}
 
 \item{seed}{seed.}
 }

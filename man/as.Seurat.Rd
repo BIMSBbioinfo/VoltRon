@@ -18,7 +18,8 @@ as.Seurat(
 
 \item{cell.assay}{the name(type) of the cell assay to be converted}
 
-\item{molecule.assay}{the name(type) of the molecule assay to be added to the cell assay in Seurat object}
+\item{molecule.assay}{the name(type) of the molecule assay to be added to
+the cell assay in Seurat object}
 
 \item{image_key}{the name (or prefix) of the image(s)}
 

@@ -20,12 +20,13 @@ generateTileData(object, ...)
 
 \item{...}{additional parameters passed to vrAssay.}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{name}{the name of the main spatial system}
 
-\item{reg}{TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested}
+\item{reg}{TRUE if registered coordinates of the main
+image (\link{vrMainSpatial}) is requested}
 
 \item{channel}{the name of the channel associated with the image}
 }

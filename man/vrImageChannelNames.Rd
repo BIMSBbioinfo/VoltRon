@@ -26,12 +26,14 @@ vrImageChannelNames(object, ...)
 
 \item{...}{arguments passed to other methods.}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{name}{the key of the image}
 
-\item{return.report}{if TRUE and no image is present, return a character stating that there is no image}
+\item{return.report}{if TRUE and no image is present, return a character 
+stating that there is no image}
 }
 \description{
 Get names of all image channels

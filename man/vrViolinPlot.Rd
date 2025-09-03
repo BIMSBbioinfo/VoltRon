@@ -19,12 +19,16 @@ vrViolinPlot(
 \arguments{
 \item{object}{a VoltRon object}
 
-\item{features}{a set of features to be visualized, either from \link{vrFeatures} of raw or normalized data or columns of the \link{Metadata}.}
+\item{features}{a set of features to be visualized, either from 
+\link{vrFeatures} of raw or normalized data or columns of the 
+\link{Metadata}.}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{group.by}{a column of metadata from \link{Metadata} used as grouping label for the spatial entities}
+\item{group.by}{a column of metadata from \link{Metadata} used as 
+grouping label for the spatial entities}
 
 \item{norm}{if TRUE, the normalized data is used}
 
