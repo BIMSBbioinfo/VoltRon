@@ -195,9 +195,9 @@ getClusters <- function(
   embedding_names <- vrEmbeddingNames(object)
   if (data.type %in% embedding_names) {
     # get data
-    vrdata <- vrEmbeddings(object, assay = assay, type = data.type, dims = dims)
+    vrdata <- vrEmbeddings(object, assay = assay_names, type = data.type, dims = dims)
   } else if (!is.null(data.type)) {
-    vrdata <- t(vrData(object_subset, norm = data.type == "norm"))
+    vrdata <- t(vrData(object_subset, assay = assay_names, norm = data.type == "norm"))
   }
 
   # clustering
