@@ -27,17 +27,22 @@ vrEmbeddingFeaturePlot(
 
 \item{embedding}{the embedding type, i.e. pca, umap etc.}
 
-\item{features}{a set of features to be visualized, either from \link{vrFeatures} of raw or normalized data or columns of the \link{Metadata}.}
+\item{features}{a set of features to be visualized, either from 
+\link{vrFeatures} of raw or normalized data or columns of the 
+\link{Metadata}.}
 
 \item{combine.features}{whether to combine all features in one plot}
 
-\item{n.tile}{should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules}
+\item{n.tile}{should points be aggregated into tiles before visualization 
+(see \link{geom_tile}). Applicable only for cells and molecules}
 
 \item{norm}{if TRUE, the normalized data is used}
 
-\item{log}{if TRUE, data features (excluding metadata features) will be log transformed}
+\item{log}{if TRUE, data features (excluding metadata features) will be 
+log transformed}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{ncol}{column wise number of plots, for \link{ggarrange}}
@@ -50,10 +55,12 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{keep.scale}{whether unify all scales for all features or not}
 
-\item{common.legend}{whether to use a common legend for all plots, see \link{ggarrange}}
+\item{common.legend}{whether to use a common legend for all plots, 
+see \link{ggarrange}}
 
 \item{collapse.plots}{whether to combine all ggplots}
 }
 \description{
-Plotting features of spatially resolved cells and spots on embeddings from multiple assays in a VoltRon object.
+Plotting features of spatially resolved cells and spots on embeddings 
+from multiple assays in a VoltRon object.
 }

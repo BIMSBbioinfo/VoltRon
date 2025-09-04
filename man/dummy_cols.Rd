@@ -52,5 +52,6 @@ created dummy columns.
 Quickly create dummy (binary) columns from character and
 factor type columns in the inputted data (and numeric columns if specified.)
 This function is useful for statistical analysis when you want binary
-columns rather than character columns. Adapted from the \code{fastDummies} package (https://jacobkap.github.io/fastDummies/)
+columns rather than character columns. Adapted from the \code{fastDummies} 
+package (https://jacobkap.github.io/fastDummies/)
 }

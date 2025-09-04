@@ -6,26 +6,31 @@ NULL
 ## Auxiliary ####
 
 # pseudo IterableMatrix for BPCells
-if(!requireNamespace("BPCells", quietly = TRUE)){
+if (!requireNamespace("BPCells", quietly = TRUE)) {
   suppressMessages({
     suppressWarnings({
       setClass("IterableMatrix")
-      })
     })
-} 
+  })
+}
 
 ## vrImage ####
 
 # Set class union
 suppressMessages({
   suppressWarnings({
-    setClassUnion("image_matrix", 
-                  members = c("matrix", 
-                              "data.frame",
-                              "dgRMatrix", 
-                              "dgeMatrix", 
-                              "Array", 
-                              "IterableMatrix"))  })
+    setClassUnion(
+      "image_matrix",
+      members = c(
+        "matrix",
+        "data.frame",
+        "dgRMatrix",
+        "dgeMatrix",
+        "Array",
+        "IterableMatrix"
+      )
+    )
+  })
 })
 
 #' The vrImage (VoltRon Image) Class
@@ -55,15 +60,14 @@ setMethod(
   f = 'show',
   signature = 'vrImage',
   definition = function(object) {
-    
     # separate names
     image_names <- names(object@image)
     image_id <- seq_along(image_names)
-    image_names_split <- split(image_names, ceiling(image_id/10))
-    
+    image_names_split <- split(image_names, ceiling(image_id / 10))
+
     cat("vrImage (VoltRon Image) Object \n")
     text <- "Channels:"
-    for(img in image_names_split){
+    for (img in image_names_split) {
       cat(text, paste(img, collapse = ", "), "\n")
       text <- "         "
     }
@@ -100,15 +104,14 @@ setMethod(
   f = 'show',
   signature = 'vrSpatial',
   definition = function(object) {
-    
     # separate names
     image_names <- names(object@image)
     image_id <- seq_along(image_names)
-    image_names_split <- split(image_names, ceiling(image_id/10))
-    
+    image_names_split <- split(image_names, ceiling(image_id / 10))
+
     cat("vrSpatial (VoltRon Spatial) Object \n")
     text <- "Channels:"
-    for(img in image_names_split){
+    for (img in image_names_split) {
       cat(text, paste(img, collapse = ", "), "\n")
       text <- "         "
     }
@@ -120,11 +123,17 @@ setMethod(
 
 # Set class union
 suppressWarnings({
-  setClassUnion("data_matrix", 
-                members = c("matrix", 
-                            "dgCMatrix", "dgRMatrix", "dgeMatrix", 
-                            "Array", 
-                            "IterableMatrix"))
+  setClassUnion(
+    "data_matrix",
+    members = c(
+      "matrix",
+      "dgCMatrix",
+      "dgRMatrix",
+      "dgeMatrix",
+      "Array",
+      "IterableMatrix"
+    )
+  )
 })
 
 #' The vrAssay (VoltRon Assay) Class
@@ -163,7 +172,13 @@ setMethod(
   f = 'show',
   signature = 'vrAssay',
   definition = function(object) {
-    cat("vrAssay (VoltRon Assay) of", nrow(vrCoordinates(object)), "spatial points and", nrow(object@rawdata), "features. \n")
+    cat(
+      "vrAssay (VoltRon Assay) of",
+      nrow(vrCoordinates(object)),
+      "spatial points and",
+      nrow(object@rawdata),
+      "features. \n"
+    )
     return(invisible(x = NULL))
   }
 )
@@ -206,14 +221,19 @@ setMethod(
   f = 'show',
   signature = 'vrAssayV2',
   definition = function(object) {
-    
     # check if there is a data or rawdata slot in assay object
     cat(
-      paste0("vrAssayV2 (VoltRon Assay V2) of ", 
-             nrow(vrCoordinates(object)), " spatial points and ", 
-             nrow(object@data[[vrMainFeatureType(object)]]), " features (", vrMainFeatureType(object), "). \n")
+      paste0(
+        "vrAssayV2 (VoltRon Assay V2) of ",
+        nrow(vrCoordinates(object)),
+        " spatial points and ",
+        nrow(object@data[[vrMainFeatureType(object)]]),
+        " features (",
+        vrMainFeatureType(object),
+        "). \n"
+      )
     )
-    
+
     return(invisible(x = NULL))
   }
 )
@@ -231,7 +251,7 @@ setOldClass(Classes = c('igraph'))
 #' @name vrLayer-class
 #' @rdname vrLayer-class
 #' @exportClass vrLayer
-#' 
+#'
 vrLayer <- setClass(
   Class = 'vrLayer',
   slots = c(
@@ -303,7 +323,7 @@ vrBlock <- setClass(
   Class = 'vrBlock',
   slots = c(
     layer = 'list',
-    zlocation = 'numeric', 
+    zlocation = 'numeric',
     adjacency = "matrix"
   )
 )
@@ -324,12 +344,24 @@ setMethod(
 ## vrMetadata ####
 
 suppressWarnings({
-  setClassUnion("metadata_data",
-                members = c("data.table", 
-                            "data.frame",
-                            if (requireNamespace("S4Vectors", quietly = TRUE)) "DataFrame" else NULL,
-                            if (requireNamespace("HDF5DataFrame", quietly = TRUE)) "HDF5DataFrame" else NULL, 
-                            if (requireNamespace("ZarrDataFrame", quietly = TRUE)) "ZarrDataFrame" else NULL))
+  setClassUnion(
+    "metadata_data",
+    members = c(
+      "data.table",
+      "data.frame",
+      if (requireNamespace("S4Vectors", quietly = TRUE)) "DataFrame" else NULL,
+      if (requireNamespace("HDF5DataFrame", quietly = TRUE)) {
+        "HDF5DataFrame"
+      } else {
+        NULL
+      },
+      if (requireNamespace("ZarrDataFrame", quietly = TRUE)) {
+        "ZarrDataFrame"
+      } else {
+        NULL
+      }
+    )
+  )
 })
 
 #' The vrMetadata (VoltRon Metadata) Class
@@ -363,8 +395,8 @@ setMethod(
   definition = function(object) {
     cat("VoltRon Metadata Object \n")
     cat("This object includes: \n")
-    lapply(methods::slotNames(object), function(x){
-      if(nrow(slot(object, name = x))){
+    lapply(methods::slotNames(object), function(x) {
+      if (nrow(slot(object, name = x))) {
         cat("  ", nrow(slot(object, name = x)), paste0(x, "s"), "\n")
       }
     })
@@ -404,55 +436,60 @@ setMethod(
   f = 'show',
   signature = 'VoltRon',
   definition = function(object) {
-    
     # print class
     cat(class(x = object), "Object \n")
-    
+
     # sample metadata
     sample.metadata <- SampleMetadata(object)
-    
+
     # get sample and layer names
     sample_names <- unique(sample.metadata$Sample)
-    show_length <- min(5,length(sample_names))
-    for(samp in sample_names[seq_len(show_length)]){
+    show_length <- min(5, length(sample_names))
+    for (samp in sample_names[seq_len(show_length)]) {
       cat(samp, ": \n", sep = "")
       layers <- unique(sample.metadata$Layer[sample.metadata$Sample == samp])
-      layers <- split(layers, ceiling(seq_along(layers)/5))
+      layers <- split(layers, ceiling(seq_along(layers) / 5))
       cat("  Layers:", paste(layers[[1]], collapse = " "), "\n")
-      if(length(layers) > 1){
-        for(i in 2:length(layers)){
+      if (length(layers) > 1) {
+        for (i in 2:length(layers)) {
           cat("         ", paste(layers[[i]], collapse = " "), "\n")
-        } 
+        }
       }
     }
-    
+
     # get assay names
     unique_assays <- unique(sample.metadata$Assay)
-    
+
     # print
-    if(length(sample_names) > 5){
+    if (length(sample_names) > 5) {
       cat("...", "\n")
       cat("There are", length(sample_names), "samples in total", "\n")
     }
-    
+
     # print assays
     main.assay <- vrMainAssay(object)
-    unique_assays <- unique_assays[c(which(unique_assays == main.assay),which(unique_assays != main.assay))]
+    unique_assays <- unique_assays[c(
+      which(unique_assays == main.assay),
+      which(unique_assays != main.assay)
+    )]
     unique_assays[1] <- paste0(unique_assays[1], "(Main)")
     cat("Assays:", paste(unique_assays, collapse = " "), "\n")
-    
+
     # print features
     main.feat <- vrMainFeatureType(object)
-    if(!is.null(main.feat)){
+    if (!is.null(main.feat)) {
       main.feat <- unique(vrMainFeatureType(object)$Feature)
       unique_features <- vrFeatureTypeNames(object)
-      if(length(main.feat) == 1){
-        unique_features <- unique_features[c(which(unique_features == main.feat),which(unique_features != main.feat))]
-        unique_features[1] <- paste0(unique_features[1], "(Main)") 
+      if (length(main.feat) == 1) {
+        unique_features <- unique_features[c(
+          which(unique_features == main.feat),
+          which(unique_features != main.feat)
+        )]
+        unique_features[1] <- paste0(unique_features[1], "(Main)")
       }
-      cat("Features:", paste(unique_features, collapse = " "), "\n") 
+      cat("Features:", paste(unique_features, collapse = " "), "\n")
     }
-    
+
     # return invisible
     return(invisible(x = NULL))
   }

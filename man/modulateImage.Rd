@@ -68,22 +68,29 @@ modulateImage(object, ...)
 
 \item{...}{arguments passed to other methods.}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{name}{the name of the image}
 
-\item{reg}{TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested}
+\item{reg}{TRUE if registered coordinates of the main image 
+(\link{vrMainSpatial}) is requested}
 
 \item{channel}{the name of the channel associated with the image}
 
-\item{brightness}{modulation of brightness as percentage of the current value (100 for no change)}
+\item{brightness}{modulation of brightness as percentage of the 
+current value (100 for no change)}
 
-\item{saturation}{modulation of saturation as percentage of the current value (100 for no change)}
+\item{saturation}{modulation of saturation as percentage of the 
+current value (100 for no change)}
 
-\item{hue}{modulation of hue is an absolute rotation of -180 degrees to +180 degrees from the current position corresponding to an argument range of 0 to 200 (100 for no change)}
+\item{hue}{modulation of hue is an absolute rotation of -180 degrees 
+to +180 degrees from the current position corresponding to an argument 
+range of 0 to 200 (100 for no change)}
 
-\item{force}{if TRUE, all channels will be modulated given no specific channel name}
+\item{force}{if TRUE, all channels will be modulated given no specific 
+channel name}
 }
 \description{
 Modulating Magick images

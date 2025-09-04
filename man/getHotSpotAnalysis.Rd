@@ -20,7 +20,7 @@ getHotSpotAnalysis(
 \arguments{
 \item{object}{a VoltRon object}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{method}{the statistical method of conducting hot spot analysis. Default is "Getis-Ord"}
@@ -29,7 +29,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{graph.type}{the type of graph to determine spatial neighborhood}
 
-\item{group.ids}{a subset of categories defined in metadata column from \code{features}, 
+\item{group.ids}{a subset of categories defined in metadata column from \code{features},
 throws an error if the feature does not include}
 
 \item{alpha.value}{the alpha value for the hot spot analysis test. Default is 0.01}

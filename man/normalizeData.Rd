@@ -42,13 +42,13 @@ normalizeData(object, ...)
 
 \item{...}{arguments passed to other methods.}
 
-\item{assay}{assay name (exp: Assay1) or assay class 
+\item{assay}{assay name (exp: Assay1) or assay class
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{method}{the normalization method: "LogNorm", 
+\item{method}{the normalization method: "LogNorm",
 "Q3Norm", "LogQ3Norm", "CLR" or "hyper.arcsine".}
 
-\item{desiredQuantile}{the quantile of the data if "QuanNorm" 
+\item{desiredQuantile}{the quantile of the data if "QuanNorm"
 or "LogQuanNorm" is selected as \code{method}.}
 
 \item{scale}{the scale parameter for the hyperbolic arcsine transformation}

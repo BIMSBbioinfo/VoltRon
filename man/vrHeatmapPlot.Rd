@@ -24,12 +24,15 @@ vrHeatmapPlot(
 \arguments{
 \item{object}{a VoltRon object}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{features}{a set of features to be visualized from \link{vrFeatures} of raw or normalized data.}
+\item{features}{a set of features to be visualized from \link{vrFeatures} 
+of raw or normalized data.}
 
-\item{group.by}{a column of metadata from \link{Metadata} used as grouping label for the spatial entities}
+\item{group.by}{a column of metadata from \link{Metadata} used as grouping 
+label for the spatial entities}
 
 \item{norm}{if TRUE, the normalized data is used}
 
@@ -41,11 +44,15 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{show_heatmap_legend}{if TRUE, the heatmap legend is shown}
 
-\item{outlier.quantile}{quantile for detecting outliers whose values are set to the quantile, change to lower values to adjust large number of outliers, default: 0.99}
+\item{outlier.quantile}{quantile for detecting outliers whose values are 
+set to the quantile, change to lower values to adjust large number of 
+outliers, default: 0.99}
 
-\item{highlight.some}{if TRUE, some rows will be showed at random, reproducible by \code{seed} argument}
+\item{highlight.some}{if TRUE, some rows will be showed at random, 
+reproducible by \code{seed} argument}
 
-\item{n_highlight}{the number of row labels shown, if \code{show_row_names} is TRUE}
+\item{n_highlight}{the number of row labels shown, 
+if \code{show_row_names} is TRUE}
 
 \item{font.size}{font size}
 

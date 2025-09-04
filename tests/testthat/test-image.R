@@ -73,4 +73,9 @@ test_that("import ome.tiff", {
   # ome.tiff
   vrimagedata <- importImageData(img.ometiff, series = 1, resolution = 1)
   expect_error(importImageData(img.ometiff, series = 1))
+  
+  # ask for channels
+  vrimagedata <- importImageData(img.ometiff, series = 1, resolution = 1, channels = 1)
+  expect_error(importImageData(img.ometiff, series = 1, resolution = 1, channels = 2))
+  expect_error(importImageData(img.ometiff, series = 1, resolution = 1, channels = 1, channel_names = c("ch1", "ch2")))
 })

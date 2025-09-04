@@ -13,3 +13,4 @@ src/Makevars$
 .deps
 autobrew
 configure.log
+^[.]?air[.]toml$

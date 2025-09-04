@@ -26,12 +26,14 @@ resizeImage(object, ...)
 
 \item{...}{arguments passed to other methods.}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{name}{the name of the image}
 
-\item{reg}{TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested}
+\item{reg}{TRUE if registered coordinates of the main image 
+(\link{vrMainSpatial}) is requested}
 
 \item{size}{the width of the resized image}
 }

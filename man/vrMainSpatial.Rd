@@ -32,12 +32,14 @@ vrMainSpatial(object, ...) <- value
 
 \item{...}{arguments passed to other methods.}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-if NULL, the default assay will be used, see \link{vrMainAssay}.}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+see \link{SampleMetadata}. If NULL, the default assay will be 
+used, see \link{vrMainAssay}.}
 
 \item{value}{the name of main spatial coordinate system}
 
-\item{ignore}{if TRUE, the non-existing spatial coordinate system will be ignored.}
+\item{ignore}{if TRUE, the non-existing spatial coordinate 
+system will be ignored.}
 }
 \description{
 Get the main spatial system name

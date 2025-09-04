@@ -9,8 +9,8 @@ getVariableFeatures(object, assay = NULL, n = 3000, ...)
 \arguments{
 \item{object}{a VoltRon Object}
 
-\item{assay}{assay name (exp: Assay1) or assay class 
-(exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class
+(exp: Visium, Xenium), see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{n}{the number of features}
