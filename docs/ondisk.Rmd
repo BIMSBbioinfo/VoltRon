@@ -285,7 +285,7 @@ xen_reg <- registerSpatialData(object_list = list(Xen_R1_disk, Xen_R1_image_disk
 
 <div>
   <video width="100%" height="100%" controls autoplay>
-    <source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/video_temp.mov" type="video/mp4">
+    <source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/manual_registration_largeimage.mp4" type="video/mp4">
   Your browser does not support the video tag.
   </video>
 </div>

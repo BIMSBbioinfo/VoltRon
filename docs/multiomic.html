@@ -283,12 +283,6 @@ div.tocify {
   border-radius: 0px;
 }
 
-.tocify-subheader {
-  display: inline;
-}
-.tocify-subheader .tocify-item {
-  font-size: 0.95em;
-}
 
 </style>
 
@@ -885,8 +879,8 @@ href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-
 Genomics website</a> (specifically, import <strong>In Situ Replicate
 1</strong> and <strong>Supplemental: Post-Xenium H&amp;E image
 (TIFF)</strong>).</p>
-<div id="import-spatial-data" class="section level3">
-<h3>Import Spatial Data</h3>
+<div id="import-xenium-data" class="section level3">
+<h3>Import Xenium Data</h3>
 <p>We import both Xenium and post-Xenium H&amp;E images into two
 separate VoltRon objects and overlay H&amp;E images.</p>
 <pre class="r watch-out"><code># dependencies
@@ -1068,17 +1062,19 @@ vrSpatialPlot(Xen_R1_image_subset, assay = &quot;Xenium&quot;, group.by = &quot;
 <p><br></p>
 </div>
 </div>
-<div id="xenium-if" class="section level2">
-<h2>Xenium + IF</h2>
+<div id="xenium-if-tonsil-data" class="section level2">
+<h2>Xenium + IF Tonsil Data</h2>
 <p>Automated alignment workflow of VoltRon can also be used to integrate
 modalities generated from the same tissue section. In this use case, we
 will perform multiplex immunofluorescence (IF) imaging after a Xenium
 experiment and integrate Protein and RNA modalities for clustering.</p>
-<div id="import-xenium-data" class="section level3">
+<div id="import-xenium-data-1" class="section level3">
 <h3>Import Xenium Data</h3>
 <p>We will generate Xenium and IF dataset from a human tonsil tissue
 section. We first import the Xenium data, and interactively subset the
 tonsil sample from the tissue microarray.</p>
+<p>You can also download the tonsil subset from <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/Xenium_tonsil_subset.rds">here</a>.</p>
 <pre class="r watch-out"><code># dependencies
 if(!requireNamespace(&quot;RBioFormats&quot;))
   BiocManager::install(&quot;RBioFormats&quot;)
@@ -1096,6 +1092,8 @@ xen &lt;- importXenium(&quot;Xenium/out&quot;,
 # subset interactive
 xen &lt;- subset(xen, interactive = TRUE)
 xen_tonsil &lt;- xen$subsets[[1]]
+
+# view image
 vrImages(xen_tonsil)</code></pre>
 <p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_XeniumIF_xen.png" class="center"></p>
 <p><br></p>
@@ -1110,10 +1108,14 @@ we can select channels and even give them names.</p>
 <p>We import only the DAPI, CD20 and CD21 channels. We will use DAPI
 channel for aligning these images to Xenium data, and remaining channels
 for clustering with the RNA features from Xenium.</p>
-<pre class="r watch-out"><code>if_tonsil &lt;- importImageData(&quot;Same section/Core_13.ome.tif&quot;, tile.size = 100, 
+<p>You can download the ome.tiff file of the same section IF experiment
+<a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/same_section_IF.ome.tif">here</a>.</p>
+<pre class="r watch-out"><code>if_tonsil &lt;- importImageData(&quot;same_section_IF.ome.tif&quot;, tile.size = 100, 
                              series = 1, resolution = 1, channels = c(1,4,8), 
                              channel_names = c(&quot;DAPI&quot;, &quot;CD20&quot;, &quot;CD21&quot;), 
                              is.RGB = FALSE)</code></pre>
+<p><br></p>
 </div>
 <div id="automated-alignment" class="section level3">
 <h3>Automated Alignment</h3>
@@ -1135,6 +1137,7 @@ coordinate space of the Xenium data.</p>
   vrImages(if_tonsil, channel = &quot;CD20&quot;)
 vrImages(xen_tonsil[[&quot;Assay1&quot;]], name = &quot;main_reg&quot;, channel = &quot;CD21&quot;) &lt;- 
   vrImages(if_tonsil, channel = &quot;CD21&quot;)</code></pre>
+<p><br></p>
 </div>
 <div id="quantify-intensity-of-cells" class="section level3">
 <h3>Quantify Intensity of Cells</h3>
@@ -1145,21 +1148,26 @@ segments.</p>
 <p>This will enable collecting same segment RNA and Protein measures for
 multi-modal clustering.</p>
 <pre class="r watch-out"><code>segts &lt;- vrSegments(flipCoordinates(xen_tonsil))
-generateGeoJSON(segts, &quot;data/Xenium_Tonsil/polygons.geojson&quot;)</code></pre>
+generateGeoJSON(segts, &quot;registered_segments.geojson&quot;)</code></pre>
 <p>To perform intensity quntification of cells, simply drag and drop the
 ome.tiff and geojson files to QuPath. You can then navigate to
 <strong>Analyze -&gt; Calculate Features -&gt; Add Intensity
 Features</strong>, and click Run after selecting markers where we select
-CD20 and CD21.</p>
+CD20 and CD21. If you wanna perform the mean and median intensity
+calculation of features, you can use the GeoJSON file with registered
+segments found <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/registered_segments.geojson">here</a>.</p>
 <p>After calculating mean and median intensities, we navigate to
 <strong>Measure -&gt; Show Annotation Measurements</strong> and click
 <strong>Save</strong> to write the measurements to a .txt file.</p>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_XeniumIF_QuPath.png" class="center"></p>
 <p><br></p>
 <p>After quantifying with QuPath, we can import these measures and save
-it as a new feature data in VoltRon object.</p>
+it as a new feature data in VoltRon object. You can find the IF
+measurements of CD20 and CD21 markers <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/IF_measurements.txt">here</a>.</p>
 <pre class="r watch-out"><code># add feature from QuPath
-datax &lt;- read.table(&quot;data/Xenium_Tonsil/measurements.txt&quot;, 
+datax &lt;- read.table(&quot;IF_measurements.txt&quot;, 
                     header = TRUE, sep = &quot;\t&quot;)
 rownames(datax) &lt;- datax$Name
 datax &lt;- datax[vrSpatialPoints(xen_tonsil),]
@@ -1234,6 +1242,7 @@ clustering speed.</p>
                                format = &quot;HDF5VoltRon&quot;, 
                                output = &quot;data/OnDisk/Xenium_IF&quot;, 
                                replace = TRUE)</code></pre>
+<p><br></p>
 </div>
 <div id="clustering-1" class="section level3">
 <h3>Clustering</h3>
@@ -1350,7 +1359,7 @@ $(document).ready(function ()  {
       ignoreSelector: ".toc-ignore",
       scrollTo: 0
     };
-    options.showAndHide = false;
+    options.showAndHide = true;
     options.smoothScroll = false;
 
     // tocify
