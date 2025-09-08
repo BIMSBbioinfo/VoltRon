@@ -679,6 +679,8 @@ We will generate Xenium and IF dataset from a human tonsil tissue section. We
 first import the Xenium data, and interactively subset the tonsil sample from
 the tissue microarray. 
 
+You can download the tonsil subset from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/Xenium_tonsil_subset.rds).
+
 ```{r eval = FALSE, class.source="watch-out"}
 # dependencies
 if(!requireNamespace("RBioFormats"))
@@ -697,6 +699,8 @@ xen <- importXenium("Xenium/out",
 # subset interactive
 xen <- subset(xen, interactive = TRUE)
 xen_tonsil <- xen$subsets[[1]]
+
+# view image
 vrImages(xen_tonsil)
 ```
 
@@ -715,12 +719,16 @@ We import only the DAPI, CD20 and CD21 channels. We will use DAPI channel
 for aligning these images to Xenium data, and remaining channels for clustering
 with the RNA features from Xenium.
 
+You can download the ome.tiff file of the same section IF experiment [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/same_section_IF.ome.tif).
+
 ```{r eval = FALSE, class.source="watch-out"}
-if_tonsil <- importImageData("Same section/Core_13.ome.tif", tile.size = 100, 
+if_tonsil <- importImageData("same_section_IF.ome.tif", tile.size = 100, 
                              series = 1, resolution = 1, channels = c(1,4,8), 
                              channel_names = c("DAPI", "CD20", "CD21"), 
                              is.RGB = FALSE)
 ```
+
+<br>
 
 ### Automated Alignment
 
@@ -754,6 +762,8 @@ vrImages(xen_tonsil[["Assay1"]], name = "main_reg", channel = "CD21") <-
   vrImages(if_tonsil, channel = "CD21")
 ```
 
+<br>
+
 ### Quantify Intensity of Cells 
 
 With VoltRon, we can export the registered segments, and save it as a GeoJson
@@ -761,11 +771,11 @@ file for further processing with QuPath, which we will use it to quantify
 the mean intensity measures of CD20 and CD21 protein per Xenium segments. 
 
 This will enable collecting same segment RNA and Protein measures for 
-multi-modal clustering. 
+multi-modal clustering. You can find the GeoJSON file with registered segments [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/registered_segments.geojson).
 
 ```{r eval = FALSE, class.source="watch-out"}
 segts <- vrSegments(flipCoordinates(xen_tonsil))
-generateGeoJSON(segts, "data/Xenium_Tonsil/polygons.geojson")
+generateGeoJSON(segts, "registered_segments.geojson")
 ```
 
 To perform intensity quntification of cells, simply drag and drop the ome.tiff
@@ -780,11 +790,11 @@ measurements to a .txt file.
 <br>
 
 After quantifying with QuPath, we can import these measures and save it as a 
-new feature data in VoltRon object. 
+new feature data in VoltRon object. You can find the IF measurements of CD20 and CD21 markers [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/IF_measurements.txt).
 
 ```{r eval = FALSE, class.source="watch-out"}
 # add feature from QuPath
-datax <- read.table("data/Xenium_Tonsil/measurements.txt", 
+datax <- read.table("IF_measurements.txt", 
                     header = TRUE, sep = "\t")
 rownames(datax) <- datax$Name
 datax <- datax[vrSpatialPoints(xen_tonsil),]
@@ -880,6 +890,8 @@ xen_tonsil <- saveVoltRon(xen_tonsil,
                                output = "data/OnDisk/Xenium_IF", 
                                replace = TRUE)
 ```
+
+<br>
 
 ### Clustering
 
