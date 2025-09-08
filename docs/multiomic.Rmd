@@ -679,7 +679,7 @@ We will generate Xenium and IF dataset from a human tonsil tissue section. We
 first import the Xenium data, and interactively subset the tonsil sample from
 the tissue microarray. 
 
-You can download the tonsil subset from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/Xenium_tonsil_subset.rds).
+You can also download the tonsil subset from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/Xenium_tonsil_subset.rds).
 
 ```{r eval = FALSE, class.source="watch-out"}
 # dependencies
@@ -771,7 +771,7 @@ file for further processing with QuPath, which we will use it to quantify
 the mean intensity measures of CD20 and CD21 protein per Xenium segments. 
 
 This will enable collecting same segment RNA and Protein measures for 
-multi-modal clustering. You can find the GeoJSON file with registered segments [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/registered_segments.geojson).
+multi-modal clustering. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 segts <- vrSegments(flipCoordinates(xen_tonsil))
@@ -779,7 +779,7 @@ generateGeoJSON(segts, "registered_segments.geojson")
 ```
 
 To perform intensity quntification of cells, simply drag and drop the ome.tiff
-and geojson files to QuPath. You can then navigate to **Analyze -> Calculate Features -> Add Intensity Features**, and click Run after selecting markers where we select CD20 and CD21.
+and geojson files to QuPath. You can then navigate to **Analyze -> Calculate Features -> Add Intensity Features**, and click Run after selecting markers where we select CD20 and CD21. If you wanna perform the mean and median intensity calculation of features, you can use the GeoJSON file with registered segments found [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/registered_segments.geojson).
 
 After calculating mean and median intensities, we navigate to 
 **Measure -> Show Annotation Measurements** and click **Save** to write the 
