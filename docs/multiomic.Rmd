@@ -5,7 +5,7 @@ output:
     toc: true
     toc_depth: 4
     toc_float:
-      collapsed: false
+      collapsed: true
       smooth_scroll: false
 ---
 
@@ -462,7 +462,7 @@ We will use the **H&E images** generated from the same sections as the **Xenium 
 
 You can download the Xenium readout and the H&E image of the same tissue section from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import **In Situ Replicate 1** and **Supplemental: Post-Xenium H&E image (TIFF)**). 
 
-### Import Spatial Data
+### Import Xenium Data
 
 We import both Xenium and post-Xenium H&E images into two separate VoltRon objects and overlay H&E images. 
 
@@ -666,7 +666,7 @@ vrSpatialFeaturePlot(Xen_R1_image_subset, assay = "Xenium",
 
 <br>
 
-## Xenium + IF 
+## Xenium + IF Tonsil Data
 
 Automated alignment workflow of VoltRon can also be used to integrate modalities
 generated from the same tissue section. In this use case, we will perform
