@@ -721,12 +721,13 @@ getNicheAssay <- function(
   graph.type = "delaunay",
   new_feature_name = "Niche"
 ) {
-  # get metadata
-  sample.metadata <- SampleMetadata(object)
-  metadata <- Metadata(object)
-
+  
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
+  
+  # get metadata
+  sample.metadata <- SampleMetadata(object)
+  metadata <- Metadata(object, assay = assay_names)
 
   # get graph
   graph <- vrGraph(object, assay = assay_names, graph.type = graph.type)
