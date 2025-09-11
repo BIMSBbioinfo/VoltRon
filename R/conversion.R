@@ -508,11 +508,11 @@ as.AnnData <- function(
         }
       }
       X <- make_numpy_friendly(t(data))
-      obsm <- list(
-        spatial = coords,
-        spatial_AssayID = coords,
-        segmentation = segmentations_array
-      )
+      # obsm <- list(
+      #   spatial = coords,
+      #   spatial_AssayID = coords,
+      #   segmentation = segmentations_array
+      # )
       adata <- anndata$AnnData(X = X, obs = metadata, obsm = obsm, uns = uns)
       adata <- reticulate::r_to_py(adata)
       adata$write_zarr(file)
@@ -534,11 +534,11 @@ as.AnnData <- function(
             }
           }
           X <- make_numpy_friendly(t(data))
-          obsm <- list(
-            spatial = coords,
-            spatial_AssayID = coords,
-            segmentation = segmentations_array
-          )
+          # obsm <- list(
+          #   spatial = coords,
+          #   spatial_AssayID = coords,
+          #   segmentation = segmentations_array
+          # )
           adata <- anndata$AnnData(
             X = X,
             obs = metadata,
@@ -593,11 +593,12 @@ as.AnnData <- function(
         var_names = rownames(data),
         X = t(data),
         obs = metadata,
-        obsm = list(
-          spatial = coords,
-          spatial_AssayID = coords,
-          segmentation = segmentations_array
-        ),
+        obsm = osbm,
+        # obsm = list(
+        #   spatial = coords,
+        #   spatial_AssayID = coords,
+        #   segmentation = segmentations_array
+        # ),
         uns = uns
       )
 
@@ -621,11 +622,12 @@ as.AnnData <- function(
       adata <- anndata::AnnData(
         X = t(data),
         obs = metadata,
-        obsm = list(
-          spatial = coords,
-          spatial_AssayID = coords,
-          segmentation = segmentations_array
-        ),
+        obsm = obsm,
+        # obsm = list(
+        #   spatial = coords,
+        #   spatial_AssayID = coords,
+        #   segmentation = segmentations_array
+        # ),
         uns = uns
       )
 
