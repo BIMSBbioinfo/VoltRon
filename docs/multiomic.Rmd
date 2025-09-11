@@ -691,14 +691,17 @@ if(!requireNamespace("rhdf5"))
   BiocManager::install("rhdf5")
 
 # import Xenium
-xen <- importXenium("Xenium/out", 
-                    sample_name = "XeniumTonsil"
+xen <- importXenium("Xenium/outs", 
+                    sample_name = "XeniumTonsil",
                     resolution_level = 3, 
                     overwrite_resolution = TRUE)
 
 # subset interactive
 xen <- subset(xen, interactive = TRUE)
 xen_tonsil <- xen$subsets[[1]]
+
+# load from RDS if needed
+# xen_tonsil <- readRDS("Xenium_tonsil_subset.rds")
 
 # view image
 vrImages(xen_tonsil)
