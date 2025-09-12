@@ -1282,7 +1282,7 @@ specific clusters.</p>
 <pre class="r watch-out"><code># clustering
 xen_tonsil &lt;- getProfileNeighbors(xen_tonsil, 
                                   dims = 1:30, method = &quot;SNN&quot;)
-xen_tonsil &lt;- getClusters(xen_tonsil, resolution = res, 
+xen_tonsil &lt;- getClusters(xen_tonsil, resolution = 1.0, 
                           label = &quot;Clusters&quot;, graph = &quot;SNN&quot;) 
 
 # visualize
@@ -1297,7 +1297,7 @@ expression.</p>
 <p><br></p>
 <p>We can visualize the spatial localization of this cluster alone,
 which point to the germinal centers of the human tonsil.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(xenium_reg, group.by = &quot;Clusters&quot;, group.ids = 14, 
+<pre class="r watch-out"><code>vrSpatialPlot(xen_tonsil, group.by = &quot;Clusters&quot;, group.ids = 14, 
               plot.segments = TRUE)</code></pre>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_XeniumIF_spatial_gc.png" class="center"></p>
 </div>

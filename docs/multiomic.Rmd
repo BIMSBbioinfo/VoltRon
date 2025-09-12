@@ -941,7 +941,7 @@ visualize the expression of CD21 to detect marker specific clusters.
 # clustering
 xen_tonsil <- getProfileNeighbors(xen_tonsil, 
                                   dims = 1:30, method = "SNN")
-xen_tonsil <- getClusters(xen_tonsil, resolution = res, 
+xen_tonsil <- getClusters(xen_tonsil, resolution = 1.0, 
                           label = "Clusters", graph = "SNN") 
 
 # visualize
@@ -967,7 +967,7 @@ We can visualize the spatial localization of this cluster alone, which
 point to the germinal centers of the human tonsil.
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(xenium_reg, group.by = "Clusters", group.ids = 14, 
+vrSpatialPlot(xen_tonsil, group.by = "Clusters", group.ids = 14, 
               plot.segments = TRUE)
 ```
 

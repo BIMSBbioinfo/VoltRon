@@ -494,6 +494,16 @@ bool getSIFTTransformationMatrixSingle(
   scaledDrawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches);
   // log_mem_usage("draw matches");
   
+  // print keypoints
+  // Rcout << "points 1" << endl;
+  // for (int i = 0; i < keypoints1_best2.size(); i++) {
+  //   Rcout << keypoints1_best2[i].pt << endl;
+  // }
+  // Rcout << "points 2" << endl;
+  // for (int i = 0; i < keypoints1_best2.size(); i++) {
+  //   Rcout << keypoints2_best2[i].pt << endl;
+  // }
+  
   // TODO: can I release there now ? 
   // std::vector<cv::KeyPoint>().swap(keypoints1_best);
   // std::vector<cv::KeyPoint>().swap(keypoints2_best);
@@ -671,6 +681,16 @@ bool getORBTransformationMatrix(
   }
   scaledDrawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches);
   
+  // print keypoints
+  // Rcout << "points 1" << endl;
+  // for (int i = 0; i < keypoints1_best2.size(); i++) {
+  //   Rcout << keypoints1_best2[i].pt << endl;
+  // }
+  // Rcout << "points 2" << endl;
+  // for (int i = 0; i < keypoints1_best2.size(); i++) {
+  //   Rcout << keypoints2_best2[i].pt << endl;
+  // }
+
   // check number of matches
   return check_matches(mask);
 }
