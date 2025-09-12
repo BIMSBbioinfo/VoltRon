@@ -12,5 +12,5 @@ generateGeoJSON(segments, file)
 \item{file}{the GeoJSON file, typically to be used by QuPath software.}
 }
 \description{
-Old version: generating geojson files from segments
+Generating geojson files from segments
 }
