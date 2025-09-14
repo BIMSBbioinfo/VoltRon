@@ -18,20 +18,25 @@ getDeconvolution(
 \arguments{
 \item{object}{a VoltRon object}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium),
+see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{features}{features}
 
 \item{sc.object}{Seurat Object}
 
-\item{sc.assay}{assay of the Seurat Object used for the single cell data reference}
+\item{sc.assay}{assay of the Seurat Object used for the single cell 
+data reference}
 
-\item{sc.cluster}{metadata column variable used for the single cell data reference}
+\item{sc.cluster}{metadata column variable used for the single cell 
+data reference}
 
-\item{method}{Deconvolution method, RCTD (spot), SPOTlight (spot), MuSiC (ROI)}
+\item{method}{Deconvolution method, RCTD (spot), SPOTlight (spot), 
+MuSiC (ROI)}
 
-\item{...}{additional parameters passed to method specific functions, e.g. RCTD, MuSiC.}
+\item{...}{additional parameters passed to method specific functions,
+e.g. RCTD, MuSiC.}
 }
 \description{
 Calculate deconvolution of spots and ROIs

@@ -525,7 +525,7 @@ if(!requireNamespace("ComplexHeatmap"))
 
 # heatmap of niches
 library(ComplexHeatmap)
-vrHeatmapPlot(openst_data_disk, features = vrFeatures(openst_data_disk), 
+vrHeatmapPlot(vr_openst, features = vrFeatures(vr_openst), 
               group.by = "niche_clusters")
 ```
 

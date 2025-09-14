@@ -20,10 +20,10 @@ vrAssayTypes(object, ...)
 
 \item{...}{arguments passed to other methods.}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 }
 \description{
-Given a VoltRon or vrAssay object, get types of assays. 
+Given a VoltRon or vrAssay object, get types of assays.
 Here, an assay type is of either tile, molecule, cell, spot or ROI.
 }

@@ -159,6 +159,7 @@ test_that("multi assay neigh. analysis", {
                                        graph.key = "delaunay", 
                                        verbose = FALSE)
   
+  # check if graph has multiple assays
   expect_contains(
     unique(stringr::str_extract(names(V(vrGraph(merged_object, 
                                                 assay = c("Assay1", "Assay4"),
@@ -168,7 +169,8 @@ test_that("multi assay neigh. analysis", {
   )
     
   # neighborhood test
-  results <- vrNeighbourhoodEnrichment(merged_object, assay = c("Assay1", "Assay4"), 
+  results <- vrNeighbourhoodEnrichment(merged_object, 
+                                       assay = c("Assay1", "Assay4"), 
                                        group.by = list(Assay1 = "clusters", 
                                                        Assay4 = "gene"), 
                                        graph.type = "delaunay")
@@ -199,7 +201,6 @@ test_that("hot spot analysis with tiles", {
                                       verbose = FALSE)})
   
   # getis ord test of cells with tiles, gets a warning
-  print(colnames(Metadata(merged_object)))
   merged_object <- getHotSpotAnalysis(merged_object, features = "CellType", 
                                       group.ids = c("MyelomaCells", "CD8_TCells"), 
                                       verbose = FALSE, n.tile = 10)

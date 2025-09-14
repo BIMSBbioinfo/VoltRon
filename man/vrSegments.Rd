@@ -52,7 +52,7 @@ vrSegments(object, ...) <- value
 
 \item{...}{arguments passed to other methods.}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{image_name}{(deprecated, use \code{spatial_name}) the name/key of the image associated with the coordinates}

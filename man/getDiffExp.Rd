@@ -16,12 +16,15 @@ getDiffExp(
 \arguments{
 \item{object}{a VoltRon object}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
-if NULL, the default assay will be used, see \link{vrMainAssay}.}
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
+see \link{SampleMetadata}. if NULL, the default assay will be used, 
+see \link{vrMainAssay}.}
 
-\item{group.by}{the categorical variable from metadata to get differentially expressed features across}
+\item{group.by}{the categorical variable from metadata to get 
+differentially expressed features across}
 
-\item{group.base}{Optional, the base category in \code{group.by} which is used as control group}
+\item{group.base}{Optional, the base category in \code{group.by} which 
+is used as control group}
 
 \item{covariates}{the covariate variable for the design formula}
 

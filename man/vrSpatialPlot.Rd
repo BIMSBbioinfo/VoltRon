@@ -52,7 +52,7 @@ vrSpatialPlot(
 
 \item{n.tile}{should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules}
 
-\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}. 
+\item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{graph.name}{if not NULL, the spatial graph is with name \code{graph.name} is visualized as well, see \link{vrGraphNames}}
@@ -81,8 +81,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{background.color}{the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.}
 
-\item{background}{(DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name 
-and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial}) 
+\item{background}{(DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name
+and a channel name, see \link{vrImageChannelNames}. Type "black" or "white" for black or white backgrounds. if NULL, the main image (\link{vrMainSpatial})
 and main channel (\link{vrMainChannel}) will be in the background. Otherwise the background will be grey.}
 
 \item{reg}{TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested}
