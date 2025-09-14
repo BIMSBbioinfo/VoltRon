@@ -67,7 +67,7 @@ getSpatialNeighbors <- function(
           cur_group.ids <- group.ids[[a]]
         } else {
           cur_group.by <- group.by
-          cur_group.ids <- group.ids
+          cur_group.ids <- setNames(group.ids,a)
         }
         
         # find neighbors based on group.by and group.ids
@@ -100,8 +100,8 @@ getSpatialNeighbors <- function(
           } else if(len_set_diff == length(cur_group.ids)){ 
             stop("None of the groups defined in group.ids exist in cur_group.by!")
           } 
+          column <- column[column %in% cur_group.ids] 
         }
-        column <- column[column %in% cur_group.ids] 
         cur_coords <- cur_coords[names(column),]
         
       } else if(is.null(group.by) && is.null(group.ids)) {
