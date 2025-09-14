@@ -314,13 +314,13 @@ vrNeighbourhoodEnrichmentSingle <- function(
     type = "obs"
   )
   for(i in seq_len(num.sim)) {
-    # print(i)
+    print(i)
     sim_grp <- grp_sim[, i]
     neighbors_graph_data_list[[i + 1]] <- data.frame(
       neighbors_graph_data,
       from_value = sim_grp[from_ids],
       to_value = sim_grp[to_ids],
-      type = "sim"
+      type = paste0("sim", i)
     )
   }
   neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data_list)
