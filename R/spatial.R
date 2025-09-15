@@ -472,7 +472,7 @@ getHotSpotAnalysis <- function(
         if ("id" %in% colnames(cur_metadata)) {
           index <- cur_metadata$id
         } else {
-          index <- rownames(index)
+          index <- rownames(cur_metadata)
         }
 
         # update statistics if not numeric
