@@ -738,6 +738,7 @@ getNicheAssay <- function(
 
     # get niche assay
     adj_matrix <- igraph::as_adjacency_matrix(graph, type = "both")
+    adj_matrix <- adj_matrix[colnames(vrdata), colnames(vrdata)]
     niche_counts <- vrdata %*% adj_matrix
   } else {
     cur_metadata <- subset_metadata(metadata, assays = assay_names)

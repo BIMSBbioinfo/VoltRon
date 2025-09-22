@@ -607,22 +607,36 @@ other feature type.</p>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_spatialfeature_plot.png" class="center"></p>
 <p><br></p>
 </div>
-<div id="clustering" class="section level2">
-<h2>Clustering</h2>
+<div id="creating-niche-assay" class="section level2">
+<h2>Creating Niche Assay</h2>
 <p>Relative cell type abundances that are learned by RCTD and stored
 within VoltRon can now be used to cluster spots. These groups or
 clusters of spots can often be referred to as <strong>niches</strong>.
 Here, as a definition, a niche is a region or a collection of regions
 within tissue that have a distinct cell type composition as opposed to
 the remaining parts of the tissue.</p>
-<p>The cell type abundances (which adds up to one for each spot) can be
-normalized and processed like transcriptomic and proteomic profiles
-prior to clustering (i.e. niche clustering). We treat cell type
-abundances as <a
+<p>To find niches, we first detect neighboring spots of each individual
+spot, and then aggregate the cell type abundances within these
+neighborhoods. For this, we first build a spatial neighborhood graph
+using <strong>getSpatialNeighbors</strong> function, since the assays of
+the VoltRon object are of spot type, a “radius” type method for building
+the spatial graph will capture immediate spot neighbors of each
+spot.</p>
+<pre class="r watch-out"><code>MBrain_Sec &lt;- getSpatialNeighbors(MBrain_Sec, method = &quot;radius&quot;)</code></pre>
+<p>Then, we aggregate the counts of individual spots and neighbors.</p>
+<pre class="r watch-out"><code>vrMainFeatureType(MBrain_Sec) &lt;- &quot;Decon&quot;
+MBrain_Sec &lt;- getNicheAssay(MBrain_Sec, graph.type = &quot;radius&quot;)</code></pre>
+</div>
+<div id="clustering" class="section level2">
+<h2>Clustering</h2>
+<p>The cell type abundances of the Niche assay (which adds up to one for
+each Niche) can be normalized and processed like transcriptomic and
+proteomic profiles prior to clustering (i.e. niche clustering). We treat
+cell type abundances as <a
 href="https://en.wikipedia.org/wiki/Compositional_data">compositional
 data</a>, hence we incorporate <strong>centred log ratio (CLR)</strong>
 transformation for normalizing them.</p>
-<pre class="r watch-out"><code>vrMainFeatureType(MBrain_Sec) &lt;- &quot;Decon&quot;
+<pre class="r watch-out"><code>vrMainFeatureType(MBrain_Sec) &lt;- &quot;Niche&quot;
 MBrain_Sec &lt;- normalizeData(MBrain_Sec, method = &quot;CLR&quot;)</code></pre>
 <p>The CLR normalized assay have only 25 features, each representing a
 cell type from the single cell reference data. Hence, we can
@@ -639,12 +653,9 @@ embedding is found in the object).</p>
 vrEmbeddingPlot(MBrain_Sec, embedding = &quot;umap&quot;, group.by = &quot;Sample&quot;)</code></pre>
 <p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_embedding_sample.png" class="center"></p>
 <p><br></p>
-<p>Using normalized cell type abundances, we can now generate k-nearest
-neighbor graphs and cluster the graph using leiden method.</p>
-<pre class="r watch-out"><code>MBrain_Sec &lt;- getProfileNeighbors(MBrain_Sec, data.type = &quot;norm&quot;, method = &quot;SNN&quot;)
-vrGraphNames(MBrain_Sec)</code></pre>
-<pre><code>[1] &quot;SNN&quot;</code></pre>
-<pre class="r watch-out"><code>MBrain_Sec &lt;- getClusters(MBrain_Sec, resolution = 0.6, graph = &quot;SNN&quot;)</code></pre>
+<p>Using normalized cell type abundances, we can now cluster the niche
+profiles of spots using K-means clustering.</p>
+<pre class="r watch-out"><code>MBrain_Sec &lt;- getClusters(MBrain_Sec, method = &quot;kmeans&quot;, nclus = 8, label = &quot;niche_clusters&quot;)</code></pre>
 <p><br></p>
 </div>
 <div id="visualization" class="section level2">
@@ -710,7 +721,7 @@ vrSpatialPlot(Xen_data, group.by = &quot;CellType&quot;, pt.size = 0.13, backgro
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_xenium_clusters.png" class="center"></p>
 <p><br></p>
 </div>
-<div id="creating-niche-assay" class="section level2">
+<div id="creating-niche-assay-1" class="section level2">
 <h2>Creating Niche Assay</h2>
 <p>For calculating niche profiles for each cell, we have to first build
 spatial neighborhoods around cells and capture the local cell type
