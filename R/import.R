@@ -61,7 +61,7 @@ importXenium <- function(
   if (file.exists(datafile)) {
     rawdata <- import10Xh5(filename = datafile)
     if (any(names(rawdata) %in% selected_assay)) {
-      rawdata <- as.matrix(rawdata[[selected_assay]])
+      rawdata <- rawdata[[selected_assay]]
     } else {
       stop("There are no assays called ", selected_assay, " in the h5 file!")
     }
