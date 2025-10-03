@@ -929,11 +929,11 @@ subsetVoltRon <- function(
         # spatialpoints <- as.vector(metadata$id)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
       } else {
         if ("id" %in% colnames(metadata)) {
-          cur_data <- metadata$id
+          metadata_id <- metadata$id
         } else {
-          cur_data <- rownames(metadata)
+          metadata_id <- rownames(metadata)
         }
-        spatialpoints <- rownames(metadata)[eval_tidy(
+        spatialpoints <- metadata_id[eval_tidy(
           rlang::quo_get_expr(subset),
           data = metadata
         )]

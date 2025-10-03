@@ -2690,7 +2690,7 @@ importOpenST <- function(
   }
 
   # get h5ad data
-  stdata <- anndataR::read_h5ad(h5ad.path, to = "HDF5AnnData")
+  stdata <- anndataR::read_h5ad(h5ad.path, as = "HDF5AnnData")
 
   # observation and feature names
   obs_names <- stdata$obs_names
