@@ -3844,13 +3844,13 @@ vrViolinPlot <- function(
 
   if (length(features) > 1) {
     if (length(gg) < ncol) {
-      ncol <- length(gg)
+      ncol <- length(features)
     }
     gg <- gg +
       facet_wrap(
         . ~ variable,
         ncol = ncol,
-        nrow = ceiling(length(gg) / ncol),
+        nrow = ceiling(length(features) / ncol),
         scales = "free_y"
       )
   } else {

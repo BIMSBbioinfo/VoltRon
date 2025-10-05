@@ -184,14 +184,29 @@ vrSpatialFeaturePlot(MBrain_Sec, features = c("L4", "L5 PT", "Oligo", "Vip"),
 
 <br>
 
-## Clustering 
+## Creating Niche Assay
 
 Relative cell type abundances that are learned by RCTD and stored within VoltRon can now be used to cluster spots. These groups or clusters of spots can often be referred to as **niches**. Here, as a definition, a niche is a region or a collection of regions within tissue that have a distinct cell type composition as opposed to the remaining parts of the tissue.   
 
-The cell type abundances (which adds up to one for each spot) can be normalized and processed like transcriptomic and proteomic profiles prior to clustering (i.e. niche clustering). We treat cell type abundances as [compositional data](https://en.wikipedia.org/wiki/Compositional_data), hence we incorporate **centred log ratio (CLR)** transformation for normalizing them. 
+To find niches, we first detect neighboring spots of each individual spot, and then aggregate the cell type abundances within these neighborhoods. For this, we first build a spatial neighborhood graph using **getSpatialNeighbors** function, since the assays of the VoltRon object are of spot type, a "radius" type method for building the spatial graph will capture immediate spot neighbors of each spot. 
+
+```{r eval = FALSE, class.source="watch-out"}
+MBrain_Sec <- getSpatialNeighbors(MBrain_Sec, method = "radius")
+```
+
+Then, we aggregate the counts of individual spots and neighbors.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrMainFeatureType(MBrain_Sec) <- "Decon"
+MBrain_Sec <- getNicheAssay(MBrain_Sec, graph.type = "radius")
+```
+
+## Clustering 
+
+The cell type abundances of the Niche assay (which adds up to one for each Niche) can be normalized and processed like transcriptomic and proteomic profiles prior to clustering (i.e. niche clustering). We treat cell type abundances as [compositional data](https://en.wikipedia.org/wiki/Compositional_data), hence we incorporate **centred log ratio (CLR)** transformation for normalizing them. 
+
+```{r eval = FALSE, class.source="watch-out"}
+vrMainFeatureType(MBrain_Sec) <- "Niche"
 MBrain_Sec <- normalizeData(MBrain_Sec, method = "CLR")
 ```
 
@@ -208,19 +223,10 @@ vrEmbeddingPlot(MBrain_Sec, embedding = "umap", group.by = "Sample")
 
 <br>
 
-Using normalized cell type abundances, we can now generate k-nearest neighbor graphs and cluster the graph using leiden method.  
+Using normalized cell type abundances, we can now cluster the niche profiles of spots using K-means clustering.
 
 ```{r eval = FALSE, class.source="watch-out"}
-MBrain_Sec <- getProfileNeighbors(MBrain_Sec, data.type = "norm", method = "SNN")
-vrGraphNames(MBrain_Sec)
-```
-
-```
-[1] "SNN"
-```
-
-```{r eval = FALSE, class.source="watch-out"}
-MBrain_Sec <- getClusters(MBrain_Sec, resolution = 0.6, graph = "SNN")
+MBrain_Sec <- getClusters(MBrain_Sec, method = "kmeans", nclus = 8, label = "niche_clusters")
 ```
 
 <br>
