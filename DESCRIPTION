@@ -30,7 +30,7 @@ License: MIT + file LICENSE
 SystemRequirements: OpenCV 4.8 (or higher): libopencv-dev (Debian, Ubuntu) or 
                     opencv-devel (Fedora)
 Encoding: UTF-8
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 biocViews:
 Imports: methods, grDevices, data.table, Matrix, S4Arrays, S4Vectors, 
          ids, RcppAnnoy, RANN, igraph, dplyr, ggplot2, ggrepel, ggpubr, 
