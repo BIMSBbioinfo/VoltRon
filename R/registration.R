@@ -388,6 +388,19 @@ getSideBar <- function(params = NULL) {
       column(
         12,
         selectInput(
+          "nonrigid",
+          "Non-Rigid Method",
+          choices = c(
+            "TPS (OpenCV)",
+            "BSpline (SimpleITK)"
+          ),
+          selected = "TPS (OpenCV)"
+        )
+      ),
+      br(),
+      column(
+        12,
+        selectInput(
           "Matcher",
           "Matcher",
           choices = c("FLANN", "BRUTE-FORCE"),
@@ -797,6 +810,34 @@ updateParameterPanels <- function(len_images, params, input, output, session) {
     shinyjs::hide(id = paste0("scaleinfo_ref_image", i))
     shinyjs::hide(id = paste0("scaleinfo_query_image", i))
   }
+  
+  # done event
+  shinyjs::hide(id = "nonrigid")
+  observeEvent(input$Method, {
+    if(grepl("Non-Rigid", input$Method)){
+      shinyjs::show(id = "nonrigid")
+      if (input$automatictag) {
+        choices <- c(
+          "TPS (OpenCV)",
+          "BSpline (SimpleITK)"
+        )
+        selected <- "TPS (OpenCV)"
+      } else{
+        choices <- c(
+          "TPS (OpenCV)"
+        )
+        selected <- "TPS (OpenCV)"
+      }
+      updateSelectInput(
+        session,
+        "nonrigid",
+        choices = choices,
+        selected = selected
+      )
+    } else {
+      shinyjs::hide(id = "nonrigid")
+    }
+  })
 
   observeEvent(input$automatictag, {
     if (input$automatictag) {
