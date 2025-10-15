@@ -394,7 +394,11 @@ getSideBar <- function(params = NULL) {
             "TPS (OpenCV)",
             "BSpline (SimpleITK)"
           ),
-          selected = "TPS (OpenCV)"
+          selected = ifelse(
+            is.null(params[["nonrigid"]]),
+            "TPS (OpenCV)",
+            params[["nonrigid"]]
+          )
         )
       ),
       br(),
@@ -1822,6 +1826,7 @@ transferParameterInput <- function(params, image_list) {
   input[["MAX_FEATURES"]] <- params[["MAX_FEATURES"]]
   input[["Method"]] <- params[["Method"]]
   input[["Matcher"]] <- params[["Matcher"]]
+  input[["nonrigid"]] <- params[["nonrigid"]]
   for (i in seq_len(len_image)) {
     for (imgtype in c("ref", "query")) {
       input[[paste0("rotate_", imgtype, "_image", i)]] <- params[[paste0(
@@ -3028,9 +3033,10 @@ computeAutomatedPairwiseTransform <- function(
       )]],
       rotate_ref = input[[paste0("rotate_", ref_label, "_image", cur_map[2])]],
       matcher = input$Matcher,
-      method = input$Method
+      method = input$Method,
+      nonrigid = input$nonrigid
     )
-
+    
     # update transformation matrix
     if (nrow(reg[[1]][[1]]) == 2) {
       reg[[1]][[1]] <- solve(diag(c(ref_scale, ref_scale))) %*%
@@ -3048,9 +3054,36 @@ computeAutomatedPairwiseTransform <- function(
       reg[[1]][[2]][[2]] <- reg[[1]][[2]][[2]] * (1 / ref_scale)
     }
 
+    # run SimpleITK as fine registration
+    if(grepl("SimpleITK", input$nonrigid)){
+      if (!requireNamespace('SimpleITK')) {
+        stop("Please install SimpleITK package!: ", 
+             "remotes::install_github('BIMSBbioinfo/SimpleITKRInstaller')", 
+             ", this is gonna take a while :)")
+      }
+      tfx <- getSimpleITKAutomatedRegistration(
+        ref_image = ref_image,
+        query_image = reg$aligned_image,
+        invert_query = input[[paste0(
+          "negate_",
+          query_label,
+          "_image",
+          cur_map[1]
+        )]] ==
+          "Yes",
+        invert_ref = input[[paste0(
+          "negate_",
+          ref_label,
+          "_image",
+          cur_map[2]
+        )]] ==
+          "Yes")
+      reg$aligned_image <- tfx$aligned_image
+      reg[[1]][[2]] <- tfx$transformation
+    }
+    
     # return transformation matrix and images
     mapping[[kk]] <- reg[[1]]
-    # dest_image <- resize_Image(ref_image, "500x")
     dest_image <- reg$dest_image
     aligned_image <- reg$aligned_image
     alignment_image <- reg$alignment_image
@@ -3098,7 +3131,8 @@ getRcppAutomatedRegistration <- function(
   rotate_query = "0",
   rotate_ref = "0",
   matcher = "FLANN",
-  method = "Homography"
+  method = "Homography",
+  nonrigid = "TPS (OpenCV)"
 ) {
   # ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
   # query_image_rast <- magick::image_data(query_image, channels = "rgb")
@@ -3121,7 +3155,8 @@ getRcppAutomatedRegistration <- function(
     rotate_query = rotate_query,
     rotate_ref = rotate_ref,
     matcher = matcher,
-    method = method
+    method = method,
+    nonrigid = nonrigid
   )
 
   # check for null keypoints
@@ -3146,6 +3181,101 @@ getRcppAutomatedRegistration <- function(
     alignment_image = alignment_image,
     overlay_image = overlay_image
   ))
+}
+
+#' getSimpleITKAutomatedRegistration
+#'
+#' Automated registration workflos with Rcpp
+#'
+#' @param ref_image reference image
+#' @param query_image query image
+#' @param invert_query invert query image
+#' @param invert_ref invert reference image
+#'
+#' @importFrom magick as_EBImage 
+#' @importFrom EBImage imageData writeImage
+#' 
+#' @noRd
+getSimpleITKAutomatedRegistration <- function(
+    ref_image,
+    query_image,
+    invert_query = FALSE,
+    invert_ref = FALSE
+){
+  
+  # temp dir, delete later
+  tmpdir <- tempdir()
+  tmpdir <- file.path(tmpdir, "SimpleITK")
+  dir.create(tmpdir, showWarnings = FALSE)
+  
+  # prepare images
+  if(invert_ref)
+    ref_image <- magick::image_negate(ref_image)
+  ref_image1 <- magick::as_EBImage(ref_image)
+  # ref_image1 <- EBImage::imageData(ref_image1)
+  # dim_img <- 1:length(dim(ref_image))
+  # dim_img[1:2] <- rev(dim_img[1:2])
+  # ref_image1 <- aperm(ref_image1, perm = c(2,1,3))
+  EBImage::writeImage(ref_image1, 
+                      files = file.path(tmpdir, "ref_image.tiff"), 
+                      compression = "LZW", reduce = TRUE)
+  fixed <- SimpleITK::ReadImage(file.path(tmpdir, "ref_image.tiff"), 
+                                'sitkUInt8')
+  if(invert_query)
+    query_image <- magick::image_negate(query_image)
+  query_image1 <- as_EBImage(query_image)
+  # dim_img <- 1:length(dim(query_image))
+  # dim_img[1:2] <- rev(dim_img[1:2])
+  # query_image1 <- EBImage::imageData(query_image1)
+  # query_image1 <- aperm(query_image1, perm = c(2,1))
+  EBImage::writeImage(query_image1, 
+                      files = file.path(tmpdir, "query_image.tiff"),
+                      compression = "LZW", reduce = TRUE)
+  moving <- SimpleITK::ReadImage(file.path(tmpdir, "query_image.tiff"), 
+                                 'sitkUInt8')
+  
+  # get registration for image
+  elx <- SimpleITK::ElastixImageFilter()
+  elx$SetOutputDirectory(tmpdir)
+  elx$SetFixedImage(fixed)
+  elx$SetMovingImage(moving)
+  parameterMapVector = SimpleITK::VectorOfParameterMap()
+  mp <- SimpleITK:::ReadParameterFile(
+    system.file("extdata", "bspline_map.txt", package = "VoltRon")
+  )
+  elx$SetParameterMap(mp)
+  elx$LogToConsoleOff()
+  tmp <- elx$Execute()
+  sitk_img <- SimpleITK::ReadImage(file.path(tmpdir, "result.0.tif"))
+  arr <- SimpleITK::as.array(sitk_img)
+  arr8 <- 255 * (arr - min(arr)) / (max(arr) - min(arr))
+  arr8 <- array(as.integer(arr8), dim = dim(arr))
+  arr8 <- aperm(arr8, perm = c(2,1))
+  aligned_image <- magick::image_read(as.raster(arr8 / 255))
+  
+  # get transformation for the points and observations
+  elx <- SimpleITK::ElastixImageFilter()
+  elx$SetOutputDirectory(tmpdir)
+  elx$SetFixedImage(moving)
+  elx$SetMovingImage(fixed)
+  parameterMapVector = SimpleITK::VectorOfParameterMap()
+  mp <- SimpleITK:::ReadParameterFile(
+    system.file("extdata", "bspline_map.txt", package = "VoltRon")
+  )
+  elx$SetParameterMap(mp)
+  elx$LogToConsoleOff()
+  tmp <- elx$Execute()
+  transform_param_map <- elx$GetTransformParameterMap()
+  tfx <- SimpleITK::TransformixImageFilter()
+  tfx$LogToConsoleOff()
+  tfx$SetTransformParameterMap(transform_param_map)
+  tfx$SetMovingImage(SimpleITK::Image(moving$GetSize(), 'sitkFloat32'))
+  
+  # delete dir
+  unlink(tmpdir, recursive = TRUE)
+  
+  # return
+  return(list(aligned_image = aligned_image, transformation = tfx))
 }
 
 ####

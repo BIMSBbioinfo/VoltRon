@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // automated_registeration_rawvector
-Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::RawVector& query_image, const int width1, const int height1, const int width2, const int height2, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES, const bool invert_query, const bool invert_ref, Rcpp::String flipflop_query, Rcpp::String flipflop_ref, Rcpp::String rotate_query, Rcpp::String rotate_ref, Rcpp::String matcher, Rcpp::String method);
-RcppExport SEXP _VoltRon_automated_registeration_rawvector(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP, SEXP GOOD_MATCH_PERCENTSEXP, SEXP MAX_FEATURESSEXP, SEXP invert_querySEXP, SEXP invert_refSEXP, SEXP flipflop_querySEXP, SEXP flipflop_refSEXP, SEXP rotate_querySEXP, SEXP rotate_refSEXP, SEXP matcherSEXP, SEXP methodSEXP) {
+Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::RawVector& query_image, const int width1, const int height1, const int width2, const int height2, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES, const bool invert_query, const bool invert_ref, Rcpp::String flipflop_query, Rcpp::String flipflop_ref, Rcpp::String rotate_query, Rcpp::String rotate_ref, Rcpp::String matcher, Rcpp::String method, Rcpp::String nonrigid);
+RcppExport SEXP _VoltRon_automated_registeration_rawvector(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP, SEXP GOOD_MATCH_PERCENTSEXP, SEXP MAX_FEATURESSEXP, SEXP invert_querySEXP, SEXP invert_refSEXP, SEXP flipflop_querySEXP, SEXP flipflop_refSEXP, SEXP rotate_querySEXP, SEXP rotate_refSEXP, SEXP matcherSEXP, SEXP methodSEXP, SEXP nonrigidSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -33,7 +33,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::String >::type rotate_ref(rotate_refSEXP);
     Rcpp::traits::input_parameter< Rcpp::String >::type matcher(matcherSEXP);
     Rcpp::traits::input_parameter< Rcpp::String >::type method(methodSEXP);
-    rcpp_result_gen = Rcpp::wrap(automated_registeration_rawvector(ref_image, query_image, width1, height1, width2, height2, GOOD_MATCH_PERCENT, MAX_FEATURES, invert_query, invert_ref, flipflop_query, flipflop_ref, rotate_query, rotate_ref, matcher, method));
+    Rcpp::traits::input_parameter< Rcpp::String >::type nonrigid(nonrigidSEXP);
+    rcpp_result_gen = Rcpp::wrap(automated_registeration_rawvector(ref_image, query_image, width1, height1, width2, height2, GOOD_MATCH_PERCENT, MAX_FEATURES, invert_query, invert_ref, flipflop_query, flipflop_ref, rotate_query, rotate_ref, matcher, method, nonrigid));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -165,7 +166,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_VoltRon_automated_registeration_rawvector", (DL_FUNC) &_VoltRon_automated_registeration_rawvector, 16},
+    {"_VoltRon_automated_registeration_rawvector", (DL_FUNC) &_VoltRon_automated_registeration_rawvector, 17},
     {"_VoltRon_replaceNaMatrix", (DL_FUNC) &_VoltRon_replaceNaMatrix, 2},
     {"_VoltRon_warpImage", (DL_FUNC) &_VoltRon_warpImage, 7},
     {"_VoltRon_warpImageAuto", (DL_FUNC) &_VoltRon_warpImageAuto, 7},
