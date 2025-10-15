@@ -16,7 +16,8 @@ getRcppAutomatedRegistration(
   rotate_query = "0",
   rotate_ref = "0",
   matcher = "FLANN",
-  method = "Homography"
+  method = "Homography",
+  nonrigid = "TPS (OpenCV)"
 )
 }
 \arguments{

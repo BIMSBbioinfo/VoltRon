@@ -1389,10 +1389,14 @@ manageMapping <- function(mappings) {
 
 applyMapping <- function(coords, mapping){
   mapping_new <- mapping
-  if(inherits(mapping[[1]][[2]], "_p_itk__simple__TransformixImageFilter")){
-    mapping_new[[1]] <- list(mapping[[1]][[1]], NULL)
-    coords <- applyRcppMapping(coords, mapping_new)
-    coords <- applySimpleITKMapping(coords, mapping[[1]][[2]]$tfx_points)
+  if(!is.null(mapping[[1]][[2]])){
+    if(is(mapping[[1]][[2]][[1]], "_p_itk__simple__TransformixImageFilter")){
+      mapping_new[[1]] <- list(mapping[[1]][[1]], NULL)
+      coords <- applyRcppMapping(coords, mapping_new)
+      coords <- applySimpleITKMapping(coords, mapping[[1]][[2]][[1]])
+    } else {
+      coords <- applyRcppMapping(coords, mapping)
+    }
   } else {
     coords <- applyRcppMapping(coords, mapping)
   }
@@ -1406,16 +1410,16 @@ applySimpleITKMapping <- function(coords, mapping){
   tmpdir <- file.path(tmpdir, "SimpleITK")
   dir.create(tmpdir, showWarnings = FALSE)
   
-  # io
+  # get image
   input_file <- file.path(tmpdir, "inputpoints.txt")
   output_file <- file.path(tmpdir, "outputpoints.txt")
   
   # apply transformation
   tfx <- mapping
-  tfx$SetOutputDirectory(tmpdir)
   cat("point\n", nrow(coords), "\n", file = input_file)
   write.table(coords, input_file, append = TRUE,
               col.names = FALSE, row.names = FALSE, quote = FALSE)
+  tfx$SetOutputDirectory(tmpdir)
   tfx$SetFixedPointSetFileName(input_file)
   tmp <- tfx$Execute()
 
@@ -2577,27 +2581,40 @@ warpImage <- function(ref_image, query_image, mapping) {
 
   # mapping
   mapping_new <- mapping
-  if(inherits(mapping[[1]][[2]], "_p_itk__simple__TransformixImageFilter")){
-    mapping_new[[1]] <- list(mapping[[1]][[1]], NULL)
-    
-    # warp image in OpenCV
-    query_image <- warpRcppImage(
-      ref_image = ref_image,
-      query_image = query_image,
-      mapping = mapping_new,
-      width1 = dim(ref_image)[2],
-      height1 = dim(ref_image)[3],
-      width2 = dim(query_image)[2],
-      height2 = dim(query_image)[3]
-    )
-    
-    # warp image in SimpleITK
-    if(is.null(mapping[[1]][2])){
-      query_image <- warpSimpleITKImage(
+  if(!is.null(mapping[[1]][[2]])){
+    if(is(mapping[[1]][[2]][[2]], "_p_itk__simple__TransformixImageFilter")){
+      mapping_new[[1]] <- list(mapping[[1]][[1]], NULL)
+      
+      # warp image in OpenCV
+      query_image <- warpRcppImage(
         ref_image = ref_image,
         query_image = query_image,
-        mapping = mapping[[1]][[2]]$tfx_image
-      ) 
+        mapping = mapping_new,
+        width1 = dim(ref_image)[2],
+        height1 = dim(ref_image)[3],
+        width2 = dim(query_image)[2],
+        height2 = dim(query_image)[3]
+      )
+      
+      # warp image in SimpleITK
+      if(is.null(mapping[[1]][2])){
+        query_image <- warpSimpleITKImage(
+          ref_image = ref_image,
+          query_image = query_image,
+          mapping = mapping[[1]][[2]][[2]]
+        ) 
+      }
+    } else {
+      # warp image in OpenCV
+      query_image <- warpRcppImage(
+        ref_image = ref_image,
+        query_image = query_image,
+        mapping = mapping_new,
+        width1 = dim(ref_image)[2],
+        height1 = dim(ref_image)[3],
+        width2 = dim(query_image)[2],
+        height2 = dim(query_image)[3]
+      )      
     }
   } else {
     # warp image in OpenCV
@@ -2609,8 +2626,8 @@ warpImage <- function(ref_image, query_image, mapping) {
       height1 = dim(ref_image)[3],
       width2 = dim(query_image)[2],
       height2 = dim(query_image)[3]
-    )  
-   }
+    )    
+  }
   
   magick::image_read(query_image)
 }
@@ -2633,19 +2650,28 @@ warpSimpleITKImage <- function(ref_image, query_image, mapping) {
   tmpdir <- file.path(tmpdir, "SimpleITK")
   dir.create(tmpdir, showWarnings = FALSE)
   
-  # get image
+  # prepare images
   query_image1 <- as_EBImage(query_image)
-  # dim_img <- 1:length(dim(query_image))
-  # dim_img[1:2] <- rev(dim_img[1:2])
-  # query_image1 <- EBImage::imageData(query_image1)
-  # query_image1 <- aperm(query_image1, perm = c(2,1))
   EBImage::writeImage(query_image1, 
                       files = file.path(tmpdir, "query_image.tiff"),
                       compression = "LZW", reduce = TRUE)
   moving <- SimpleITK::ReadImage(file.path(tmpdir, "query_image.tiff"), 
                                  'sitkUInt8')
   
-  # 
+  # register
+  tfx_image <- SimpleITK::TransformixImageFilter()
+  tfx_image$LogToConsoleOff()
+  tfx_image$SetTransformParameterMap(transform_param_map)
+  tfx_image$SetMovingImage(SimpleITK::Image(moving$GetSize(), 'sitkFloat32'))
+  
+  # warp image
+  tfx$SetOutputDirectory(tmpdir)
+  tfx$SetMovingImage(moving)
+  tmp <- tfx$Execute()
+  SimpleITK::WriteImage(
+    SimpleITK::Cast(tfx$GetResultImage(), "sitkUInt8"),
+    file.path(tmpdir, "result_img.tif"))
+  query_image <- magick::image_read(file.path(tmpdir, "result_img.tif"))
   
   # delete dir
   unlink(tmpdir, recursive = TRUE)
@@ -3175,7 +3201,8 @@ computeAutomatedPairwiseTransform <- function(
     }
 
     # run SimpleITK as fine registration
-    if(grepl("SimpleITK", input$nonrigid)){
+    if(grepl("SimpleITK", input$nonrigid) && 
+       grepl("Non-Rigid", input$Method)){
       if (!requireNamespace('SimpleITK')) {
         stop("Please install SimpleITK package!: ", 
              "remotes::install_github('BIMSBbioinfo/SimpleITKRInstaller')", 
@@ -3383,7 +3410,7 @@ getSimpleITKAutomatedRegistration <- function(
   tfx_image <- SimpleITK::TransformixImageFilter()
   tfx_image$LogToConsoleOff()
   tfx_image$SetTransformParameterMap(transform_param_map)
-  tfx_image$SetMovingImage(SimpleITK::Image(moving$GetSize(), 'sitkFloat32'))
+  # tfx_image$SetMovingImage(SimpleITK::Image(moving$GetSize(), 'sitkFloat32'))
   
   # get transformation for the points and observations
   elx <- SimpleITK::ElastixImageFilter()
