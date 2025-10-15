@@ -1416,6 +1416,7 @@ applySimpleITKMapping <- function(coords, mapping){
   
   # apply transformation
   tfx <- mapping
+  file.remove(input_file)
   cat("point\n", nrow(coords), "\n", file = input_file)
   write.table(coords, input_file, append = TRUE,
               col.names = FALSE, row.names = FALSE, quote = FALSE)
@@ -3180,7 +3181,7 @@ computeAutomatedPairwiseTransform <- function(
       rotate_ref = input[[paste0("rotate_", ref_label, "_image", cur_map[2])]],
       matcher = input$Matcher,
       method = input$Method,
-      nonrigid = input$nonrigid
+      nonrigid = if(is.null(input$nonrigid)) "None" else input$nonrigid
     )
     
     # update transformation matrix
@@ -3208,16 +3209,10 @@ computeAutomatedPairwiseTransform <- function(
              "remotes::install_github('BIMSBbioinfo/SimpleITKRInstaller')", 
              ", this is gonna take a while :)")
       }
-      # aligned_image <- reg$aligned_image
-      # aligned_image <- getRcppWarpImage(ref_image = ref_image, 
-      #                            query_image = query_image,
-      #                            mapping = list(reg[[1]]))
-      aligned_image <- warpImage(ref_image = ref_image,
-                                 query_image = query_image,
-                                 mapping = list(reg[[1]]))
+
       tfx <- getSimpleITKAutomatedRegistration(
         ref_image = ref_image,
-        query_image = aligned_image,
+        query_image = query_image,
         invert_query = input[[paste0(
           "negate_",
           query_label,
@@ -3231,7 +3226,29 @@ computeAutomatedPairwiseTransform <- function(
           "_image",
           cur_map[2]
         )]] ==
-          "Yes")
+          "Yes",
+        flipflop_query = input[[paste0(
+          "flipflop_",
+          query_label,
+          "_image",
+          cur_map[1]
+        )]],
+        flipflop_ref = input[[paste0(
+          "flipflop_",
+          ref_label,
+          "_image",
+          cur_map[2]
+        )]],
+        rotate_query = input[[paste0(
+          "rotate_",
+          query_label,
+          "_image",
+          cur_map[1]
+        )]],
+        rotate_ref = input[[paste0(
+          "rotate_", ref_label, "_image", cur_map[2])]],
+        initial_mapping = list(reg[[1]])
+      )
       reg$aligned_image <- tfx$aligned_image
       reg[[1]][[2]] <- tfx$transformation
     }
@@ -3345,6 +3362,10 @@ getRcppAutomatedRegistration <- function(
 #' @param query_image query image
 #' @param invert_query invert query image
 #' @param invert_ref invert reference image
+#' @param flipflop_query flip or flop the query image
+#' @param flipflop_ref flip or flop the reference image
+#' @param rotate_query rotation of query image
+#' @param rotate_ref rotation of reference image
 #'
 #' @importFrom magick as_EBImage 
 #' @importFrom EBImage imageData writeImage
@@ -3354,7 +3375,12 @@ getSimpleITKAutomatedRegistration <- function(
     ref_image,
     query_image,
     invert_query = FALSE,
-    invert_ref = FALSE
+    invert_ref = FALSE,
+    flipflop_query = "None",
+    flipflop_ref = "None",
+    rotate_query = "0",
+    rotate_ref = "0",
+    initial_mapping = NULL
 ){
   
   # temp dir, delete later
@@ -3362,9 +3388,28 @@ getSimpleITKAutomatedRegistration <- function(
   tmpdir <- file.path(tmpdir, "SimpleITK")
   dir.create(tmpdir, showWarnings = FALSE)
   
-  # prepare images
+  # initial mapping
+  ref_image <- rotateImage(ref_image, as.numeric(rotate_ref))
+  if (flipflop_ref == "Flip") {
+    ref_image <- flipImage(ref_image)
+  } else if (flipflop_ref == "Flop") {
+    ref_image <- flopImage(ref_image)
+  }
   if(invert_ref)
     ref_image <- magick::image_negate(ref_image)
+  query_image <- rotateImage(query_image, as.numeric(rotate_query))
+  if (flipflop_query == "Flip") {
+    query_image <- flipImage(query_image)
+  } else if (flipflop_query == "Flop") {
+    query_image <- flopImage(query_image)
+  }
+  if(invert_query)
+    query_image <- magick::image_negate(query_image)
+  query_image <- warpImage(ref_image = ref_image,
+                           query_image = query_image,
+                           mapping = initial_mapping)
+  
+  # prepare images
   ref_image1 <- magick::as_EBImage(ref_image)
   # ref_image1 <- EBImage::imageData(ref_image1)
   # dim_img <- 1:length(dim(ref_image))
@@ -3375,8 +3420,6 @@ getSimpleITKAutomatedRegistration <- function(
                       compression = "LZW", reduce = TRUE)
   fixed <- SimpleITK::ReadImage(file.path(tmpdir, "ref_image.tiff"), 
                                 'sitkUInt8')
-  if(invert_query)
-    query_image <- magick::image_negate(query_image)
   query_image1 <- as_EBImage(query_image)
   # dim_img <- 1:length(dim(query_image))
   # dim_img[1:2] <- rev(dim_img[1:2])
@@ -3410,8 +3453,7 @@ getSimpleITKAutomatedRegistration <- function(
   tfx_image <- SimpleITK::TransformixImageFilter()
   tfx_image$LogToConsoleOff()
   tfx_image$SetTransformParameterMap(transform_param_map)
-  # tfx_image$SetMovingImage(SimpleITK::Image(moving$GetSize(), 'sitkFloat32'))
-  
+
   # get transformation for the points and observations
   elx <- SimpleITK::ElastixImageFilter()
   elx$SetOutputDirectory(tmpdir)
