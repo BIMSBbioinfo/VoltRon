@@ -1232,7 +1232,12 @@ applyPerspectiveTransform <- function(
       if (!inherits(query_image, "ImgArray")) {
         query_image <- magick::image_read(query_image)
       }
-      warped_image <- getRcppWarpImage(
+      # warped_image <- getRcppWarpImage(
+      #   ref_image = reference_image,
+      #   query_image = query_image,
+      #   mapping = mapping
+      # )
+      warped_image <- warpImage(
         ref_image = reference_image,
         query_image = query_image,
         mapping = mapping
@@ -1332,7 +1337,8 @@ applyPerspectiveTransform <- function(
         query_image <- magick::image_read(query_image)
       }
       query_image <- transformImage(query_image, query_extension, input)
-      query_image <- getRcppWarpImage(ref_image, query_image, mapping = mapping)
+      # query_image <- getRcppWarpImage(ref_image, query_image, mapping = mapping)
+      query_image <- warpImage(ref_image, query_image, mapping = mapping)
       query_image <- transformImageReverse(query_image, ref_extension, input)
 
       image_reg_list[[channel_ind]] <- query_image
@@ -1379,6 +1385,56 @@ manageMapping <- function(mappings) {
 
   # return
   return(new_mappings)
+}
+
+applyMapping <- function(coords, mapping){
+  mapping_new <- mapping
+  if(inherits(mapping[[1]][[2]], "_p_itk__simple__TransformixImageFilter")){
+    mapping_new[[1]] <- list(mapping[[1]][[1]], NULL)
+    coords <- applyRcppMapping(coords, mapping_new)
+    coords <- applySimpleITKMapping(coords, mapping[[1]][[2]]$tfx_points)
+  } else {
+    coords <- applyRcppMapping(coords, mapping)
+  }
+  coords
+}
+
+applySimpleITKMapping <- function(coords, mapping){
+  
+  # temp dir, delete later
+  tmpdir <- tempdir()
+  tmpdir <- file.path(tmpdir, "SimpleITK")
+  dir.create(tmpdir, showWarnings = FALSE)
+  
+  # io
+  input_file <- file.path(tmpdir, "inputpoints.txt")
+  output_file <- file.path(tmpdir, "outputpoints.txt")
+  
+  # apply transformation
+  tfx <- mapping
+  tfx$SetOutputDirectory(tmpdir)
+  cat("point\n", nrow(coords), "\n", file = input_file)
+  write.table(coords, input_file, append = TRUE,
+              col.names = FALSE, row.names = FALSE, quote = FALSE)
+  tfx$SetFixedPointSetFileName(input_file)
+  tmp <- tfx$Execute()
+
+  # get points
+  lines_coords <- readLines(output_file)
+  coords <- do.call(
+    rbind,
+    lapply(lines_coords, function(x) {
+      tmp <- strsplit(strsplit(x, split = "\\t")[[1]][6], 
+                      split = " ")[[1]][c(5,6)]
+      as.numeric(tmp)
+    })
+  )
+
+  # delete dir
+  unlink(tmpdir, recursive = TRUE)
+  
+  # return 
+  coords
 }
 
 ####
@@ -2489,7 +2545,7 @@ transformImageQueryList <- function(image_list, input) {
   return(trans_query_list)
 }
 
-#' getRcppWarpImage
+#' warpImage
 #'
 #' Warping a query image given a homography image
 #'
@@ -2500,7 +2556,7 @@ transformImageQueryList <- function(image_list, input) {
 #' @importFrom magick image_read image_data
 #'
 #' @export
-getRcppWarpImage <- function(ref_image, query_image, mapping) {
+warpImage <- function(ref_image, query_image, mapping) {
   # ref image
   if (inherits(ref_image, "ImgArray")) {
     # ref_image <- as.array(ref_image)
@@ -2519,17 +2575,81 @@ getRcppWarpImage <- function(ref_image, query_image, mapping) {
     query_image <- magick::image_data(query_image, channels = "rgb")
   }
 
-  # warp image
-  query_image <- warpImage(
-    ref_image = ref_image,
-    query_image = query_image,
-    mapping = mapping,
-    width1 = dim(ref_image)[2],
-    height1 = dim(ref_image)[3],
-    width2 = dim(query_image)[2],
-    height2 = dim(query_image)[3]
-  )
+  # mapping
+  mapping_new <- mapping
+  if(inherits(mapping[[1]][[2]], "_p_itk__simple__TransformixImageFilter")){
+    mapping_new[[1]] <- list(mapping[[1]][[1]], NULL)
+    
+    # warp image in OpenCV
+    query_image <- warpRcppImage(
+      ref_image = ref_image,
+      query_image = query_image,
+      mapping = mapping_new,
+      width1 = dim(ref_image)[2],
+      height1 = dim(ref_image)[3],
+      width2 = dim(query_image)[2],
+      height2 = dim(query_image)[3]
+    )
+    
+    # warp image in SimpleITK
+    if(is.null(mapping[[1]][2])){
+      query_image <- warpSimpleITKImage(
+        ref_image = ref_image,
+        query_image = query_image,
+        mapping = mapping[[1]][[2]]$tfx_image
+      ) 
+    }
+  } else {
+    # warp image in OpenCV
+    query_image <- warpRcppImage(
+      ref_image = ref_image,
+      query_image = query_image,
+      mapping = mapping_new,
+      width1 = dim(ref_image)[2],
+      height1 = dim(ref_image)[3],
+      width2 = dim(query_image)[2],
+      height2 = dim(query_image)[3]
+    )  
+   }
+  
   magick::image_read(query_image)
+}
+
+#' getRcppWarpImage
+#'
+#' Warping a query image given a homography image
+#'
+#' @param ref_image reference image
+#' @param query_image query image
+#' @param mapping a list of the homography matrices and TPS keypoints
+#'
+#' @importFrom magick image_read image_data
+#'
+#' @export
+warpSimpleITKImage <- function(ref_image, query_image, mapping) {
+  
+  # temp dir, delete later
+  tmpdir <- tempdir()
+  tmpdir <- file.path(tmpdir, "SimpleITK")
+  dir.create(tmpdir, showWarnings = FALSE)
+  
+  # get image
+  query_image1 <- as_EBImage(query_image)
+  # dim_img <- 1:length(dim(query_image))
+  # dim_img[1:2] <- rev(dim_img[1:2])
+  # query_image1 <- EBImage::imageData(query_image1)
+  # query_image1 <- aperm(query_image1, perm = c(2,1))
+  EBImage::writeImage(query_image1, 
+                      files = file.path(tmpdir, "query_image.tiff"),
+                      compression = "LZW", reduce = TRUE)
+  moving <- SimpleITK::ReadImage(file.path(tmpdir, "query_image.tiff"), 
+                                 'sitkUInt8')
+  
+  # 
+  
+  # delete dir
+  unlink(tmpdir, recursive = TRUE)
+  
 }
 
 ####
@@ -2984,19 +3104,19 @@ computeAutomatedPairwiseTransform <- function(
     ref_scale <- input[[paste0("scale_", ref_label, "_image", cur_map[2])]]
 
     # scale images
-    query_image <- resize_Image(
+    query_image_scaled <- resize_Image(
       query_image,
       geometry = magick::geometry_size_percent(100 * query_scale)
     )
-    ref_image <- resize_Image(
+    ref_image_scaled <- resize_Image(
       ref_image,
       geometry = magick::geometry_size_percent(100 * ref_scale)
     )
 
     # register images with OpenCV
     reg <- getRcppAutomatedRegistration(
-      ref_image = ref_image,
-      query_image = query_image,
+      ref_image = ref_image_scaled,
+      query_image = query_image_scaled,
       GOOD_MATCH_PERCENT = as.numeric(input$GOOD_MATCH_PERCENT),
       MAX_FEATURES = as.numeric(input$MAX_FEATURES),
       invert_query = input[[paste0(
@@ -3061,9 +3181,16 @@ computeAutomatedPairwiseTransform <- function(
              "remotes::install_github('BIMSBbioinfo/SimpleITKRInstaller')", 
              ", this is gonna take a while :)")
       }
+      # aligned_image <- reg$aligned_image
+      # aligned_image <- getRcppWarpImage(ref_image = ref_image, 
+      #                            query_image = query_image,
+      #                            mapping = list(reg[[1]]))
+      aligned_image <- warpImage(ref_image = ref_image,
+                                 query_image = query_image,
+                                 mapping = list(reg[[1]]))
       tfx <- getSimpleITKAutomatedRegistration(
         ref_image = ref_image,
-        query_image = reg$aligned_image,
+        query_image = aligned_image,
         invert_query = input[[paste0(
           "negate_",
           query_label,
@@ -3252,6 +3379,11 @@ getSimpleITKAutomatedRegistration <- function(
   arr8 <- array(as.integer(arr8), dim = dim(arr))
   arr8 <- aperm(arr8, perm = c(2,1))
   aligned_image <- magick::image_read(as.raster(arr8 / 255))
+  transform_param_map <- elx$GetTransformParameterMap()
+  tfx_image <- SimpleITK::TransformixImageFilter()
+  tfx_image$LogToConsoleOff()
+  tfx_image$SetTransformParameterMap(transform_param_map)
+  tfx_image$SetMovingImage(SimpleITK::Image(moving$GetSize(), 'sitkFloat32'))
   
   # get transformation for the points and observations
   elx <- SimpleITK::ElastixImageFilter()
@@ -3266,16 +3398,20 @@ getSimpleITKAutomatedRegistration <- function(
   elx$LogToConsoleOff()
   tmp <- elx$Execute()
   transform_param_map <- elx$GetTransformParameterMap()
-  tfx <- SimpleITK::TransformixImageFilter()
-  tfx$LogToConsoleOff()
-  tfx$SetTransformParameterMap(transform_param_map)
-  tfx$SetMovingImage(SimpleITK::Image(moving$GetSize(), 'sitkFloat32'))
+  tfx_points <- SimpleITK::TransformixImageFilter()
+  tfx_points$LogToConsoleOff()
+  tfx_points$SetTransformParameterMap(transform_param_map)
+  tfx_points$SetMovingImage(SimpleITK::Image(moving$GetSize(), 'sitkFloat32'))
   
   # delete dir
   unlink(tmpdir, recursive = TRUE)
   
   # return
-  return(list(aligned_image = aligned_image, transformation = tfx))
+  return(list(aligned_image = aligned_image, 
+              transformation = list(
+                tfx_points = tfx_points,
+                tfx_image = tfx_image
+              )))
 }
 
 ####

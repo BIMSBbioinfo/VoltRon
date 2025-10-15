@@ -9,8 +9,8 @@ replaceNaMatrix <- function(mat, replace) {
     .Call('_VoltRon_replaceNaMatrix', PACKAGE = 'VoltRon', mat, replace)
 }
 
-warpImage <- function(ref_image, query_image, mapping, width1, height1, width2, height2) {
-    .Call('_VoltRon_warpImage', PACKAGE = 'VoltRon', ref_image, query_image, mapping, width1, height1, width2, height2)
+warpRcppImage <- function(ref_image, query_image, mapping, width1, height1, width2, height2) {
+    .Call('_VoltRon_warpRcppImage', PACKAGE = 'VoltRon', ref_image, query_image, mapping, width1, height1, width2, height2)
 }
 
 warpImageAuto <- function(ref_image, query_image, mapping, width1, height1, width2, height2) {
@@ -25,8 +25,8 @@ manual_registeration_rawvector <- function(ref_image, query_image, reference_lan
     .Call('_VoltRon_manual_registeration_rawvector', PACKAGE = 'VoltRon', ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2, method)
 }
 
-applyMapping <- function(coords, mapping) {
-    .Call('_VoltRon_applyMapping', PACKAGE = 'VoltRon', coords, mapping)
+applyRcppMapping <- function(coords, mapping) {
+    .Call('_VoltRon_applyRcppMapping', PACKAGE = 'VoltRon', coords, mapping)
 }
 
 build_snn_rank <- function(neighbors) {
