@@ -1416,7 +1416,7 @@ applySimpleITKMapping <- function(coords, mapping){
   
   # apply transformation
   tfx <- mapping
-  file.remove(input_file)
+  suppressWarnings(file.remove(input_file, showWarnings = FALSE))
   cat("point\n", nrow(coords), "\n", file = input_file)
   write.table(coords, input_file, append = TRUE,
               col.names = FALSE, row.names = FALSE, quote = FALSE)
@@ -3382,7 +3382,8 @@ getSimpleITKAutomatedRegistration <- function(
     rotate_ref = "0",
     initial_mapping = NULL
 ){
-  
+  # message 
+  message("MESSAGE: Running B-Spline Alignment")
   # temp dir, delete later
   tmpdir <- tempdir()
   tmpdir <- file.path(tmpdir, "SimpleITK")
