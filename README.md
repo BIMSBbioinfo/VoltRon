@@ -81,16 +81,35 @@ yum install opencv-devel
 
 ## Dependencies
 
+### RBioformats
+
 VoltRon incorporates `RBioformats` package to import images from `ome.tiff` files, which requires [Java JDK](https://www.oracle.com/java/technologies/downloads/?er=221886) to be available in your system:
 
 See [https://cran.r-project.org/web/packages/rJava](https://cran.r-project.org/web/packages/rJava) below for more information.
 
+### Rarr
+
 We also use a specific version of the [Rarr]() package geared towards reading and writing missing data types (e.g. character). 
-We will use the standard Rarr package onces modifications are releaseed to Bioconductor. Thus please use: 
+We will use the standard Rarr package onces modifications are released to Bioconductor. Thus please use: 
 
 ```
 devtools::install_github("Artur-man/Rarr@voltron")
 ```
+
+### SimpleITK
+
+VoltRon incorporates the `SimpleITK` package to execute non-rigid alignment across assays. You can install SimpleITK from GitHub using the following command.
+
+Depending on the number of processors the user has, you can modify the `MAKEJ=6` argument. We also need `SimpleElastix` module of `SimpleITK` to be installed, 
+hence we add `-DSimpleITK_USE_ELASTIX=ON` to the `ADDITIONAL_SITK_MODULES` argument.
+
+```
+devtools::install_github("SimpleITK/SimpleITKRInstaller", 
+                         configure.vars=c("MAKEJ=6", 
+                                          "ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON"))
+```
+
+For more information, plase visit the [SimpleITK](https://simpleitk.readthedocs.io/en/v2.5.0/about.html) website.
 
 ## Docker Hub
 

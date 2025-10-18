@@ -91,3 +91,6 @@ RUN apt upgrade -y
 RUN apt-get install -y libsodium-dev 
 RUN R -e "options(timeout = 600000000); devtools::install_github(\"vitessce/vitessceR\")"
 RUN sh -c 'echo "options(timeout = 600000000)">> /home/rstudio/.Rprofile'
+
+# SimpleITK
+RUN R -e "devtools::install_github('SimpleITK/SimpleITKRInstaller', configure.vars=c('MAKEJ=1', 'ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON'))"
