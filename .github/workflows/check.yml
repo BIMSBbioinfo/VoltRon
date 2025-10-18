@@ -182,6 +182,7 @@ jobs:
           BiocManager::install('basilisk')
           install.packages('reticulate')
           install.packages('patchwork')
+          devtools::install_github("SimpleITK/SimpleITKRInstaller", configure.vars=c("MAKEJ=1", "ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON"))
         shell: Rscript {0}
           
       ## R CMD Check
