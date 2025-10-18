@@ -1405,6 +1405,13 @@ applyMapping <- function(coords, mapping){
 
 applySimpleITKMapping <- function(coords, mapping){
   
+  # check SimpleITK
+  if (!requireNamespace('SimpleITK')) {
+    stop("Please install SimpleITK package!: ", 
+         "remotes::install_github('BIMSBbioinfo/SimpleITKRInstaller')", 
+         ", this is gonna take a while :)")
+  }
+  
   # temp dir, delete later
   tmpdir <- tempdir()
   tmpdir <- file.path(tmpdir, "SimpleITK")
@@ -2646,6 +2653,13 @@ warpImage <- function(ref_image, query_image, mapping) {
 #' @export
 warpSimpleITKImage <- function(ref_image, query_image, mapping) {
   
+  # check SimpleITK
+  if (!requireNamespace('SimpleITK')) {
+    stop("Please install SimpleITK package!: ", 
+         "remotes::install_github('BIMSBbioinfo/SimpleITKRInstaller')", 
+         ", this is gonna take a while :)")
+  }
+  
   # temp dir, delete later
   tmpdir <- tempdir()
   tmpdir <- file.path(tmpdir, "SimpleITK")
@@ -3382,6 +3396,13 @@ getSimpleITKAutomatedRegistration <- function(
     rotate_ref = "0",
     initial_mapping = NULL
 ){
+  # check SimpleITK
+  if (!requireNamespace('SimpleITK')) {
+    stop("Please install SimpleITK package!: ", 
+         "remotes::install_github('BIMSBbioinfo/SimpleITKRInstaller')", 
+         ", this is gonna take a while :)")
+  }
+  
   # message 
   message("MESSAGE: Running B-Spline Alignment")
   # temp dir, delete later
