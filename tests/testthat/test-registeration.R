@@ -51,6 +51,9 @@ test_that("registeration non-rigid", {
   # get data
   data("xenium_data")
   
+  # simpleitk 
+  mapping_parameters_nonrigid$nonrigid <- "TPS (OpenCV)"
+  
   # non-interactive
   registerSpatialData(reference_spatdata = xenium_data, 
                       query_spatdata = xenium_data, 
@@ -83,6 +86,9 @@ test_that("registeration non-rigid simpleitk", {
   
   # get data
   data("xenium_data")
+  
+  # check simpleitk installed
+  skip_if_not_installed("SimpleITK")
   
   # simpleitk 
   mapping_parameters_nonrigid$nonrigid <- "SimpleITK"
