@@ -4069,15 +4069,16 @@ vrBarPlot <- function(
         facet_grid(variable ~ split.by, scales = "free", space = "free_x")
       return(gg)
     } else {
-      if (length(gg) < ncol) {
-        ncol <- length(gg)
-      }
+      # if (length(gg) < ncol) {
+      #   ncol <- length(gg)
+      # }
       gg <- gg +
         facet_wrap(
           . ~ split.by,
           ncol = ncol,
           nrow = ceiling(length(unique(split.by.col)) / ncol),
-          scales = "free_x"
+          scales = "free_x", 
+          space = "free_x"
         )
       return(gg)
     }
