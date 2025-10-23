@@ -640,7 +640,7 @@ vrEmbeddingPlot(Xen_R1_image, embedding = &quot;umap&quot;, group.by = &quot;Sam
 <div id="clustering-1" class="section level2">
 <h2>Clustering</h2>
 <p>With the PCA embeddings generated from the DinoV2 embeddings now we
-can apply K means clustering.</p>
+can apply k-means clustering.</p>
 <pre class="r watch-out"><code>Xen_R1_image &lt;- getClusters(Xen_R1_image, method = &quot;kmeans&quot;, 
                             label = &quot;Cluster_kmeans&quot;, data.type = &quot;pca&quot;, 
                             nclus = 10)</code></pre>

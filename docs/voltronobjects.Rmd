@@ -132,7 +132,7 @@ head(vrSpatialPoints(visium_data, assay = "Visium"),3)
 
 ## Assays {#assays}
 
-The default (or main) assay of the VoltRon object is typically shown when printed (next to the assay name says "main" in paranthesis)
+The default (or main) assay of the VoltRon object is typically shown when printed (next to the assay name says "main" in parentheses)
 
 ```{r class.source="watch-out"}
 melc_data

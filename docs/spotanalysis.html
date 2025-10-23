@@ -474,7 +474,7 @@ class="math inline">\(\mu\)</span>m thickness are derived from a single
 formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block.
 More information on the spatial datasets and the study can also be found
 on the <a
-href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">BioArxiv
+href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">bioRxiv
 preprint</a>.</p>
 <p>You can import these readouts from the <a
 href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
@@ -677,7 +677,7 @@ information on hot spot analysis.</p>
 <p>We first have to learn a spatial graph, and in the case of Xenium
 data which is a cell type assay we can use a <a
 href="https://en.wikipedia.org/wiki/Delaunay_triangulation">Delaunay
-Tesselation</a> to train the neighborhood graph. This will create a
+tesselation</a> to train the neighborhood graph. This will create a
 second graph in the VoltRon object, representing the spatial
 relationship between cells.</p>
 <pre class="r watch-out"><code>Xen_data &lt;- getSpatialNeighbors(Xen_data, method = &quot;delaunay&quot;)</code></pre>

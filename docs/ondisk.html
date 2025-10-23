@@ -609,8 +609,8 @@ clustered.</p>
 <pre class="r watch-out"><code>spatialpoints &lt;- vrSpatialPoints(Xen_R1)[as.vector(Metadata(Xen_R1)$Count &gt; 10)]
 Xen_R1 &lt;- subset(Xen_R1, spatialpoints = spatialpoints)
 Xen_R1 &lt;- normalizeData(Xen_R1, sizefactor = 10000)</code></pre>
-<p>We now visualize the localizaton of three markers, specifically Dsc3,
-Clec4f, Gfap; that point to the skin, liver and brain of the pup,
+<p>We now visualize the localization of three markers, specifically
+Dsc3, Clec4f, Gfap; that point to the skin, liver and brain of the pup,
 respectively. The <strong>n.tile</strong> parameter controls the level
 of rasterization of gene expression or metadata columns to speed up data
 visualization. Here, <strong>n.tile=400</strong> bins expression and

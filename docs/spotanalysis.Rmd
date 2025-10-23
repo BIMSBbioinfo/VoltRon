@@ -39,7 +39,7 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 VoltRon is an end-to-end spatial omics analysis package which also supports investigating spatial points in single cell resolution. VoltRon includes essential built-in functions capable of **filtering**, **processing** and **clustering** as well as **visualizing** spatial datasets with a goal of cell type discovery and annotation. 
 
-In this use case, we analyse readouts of the experiments conducted on example tissue sections analysed by the [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform. Two tissue sections of 5 $\mu$m thickness are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. More information on the spatial datasets and the study can also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
+In this use case, we analyse readouts of the experiments conducted on example tissue sections analysed by the [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform. Two tissue sections of 5 $\mu$m thickness are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. More information on the spatial datasets and the study can also be found on the [bioRxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
  
 You can import these readouts from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import **In Situ Replicate 1/2**). Alternatively, you can **download a zipped collection of Xenium readouts** from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip). 
 
@@ -246,7 +246,7 @@ vrSpatialPlot(Xen_data, group.by = "CellType", pt.size = 0.13, background.color 
 
 VoltRon platform allows users to find hot spots (Regions of increased feature of interest) of several types of spatial entities, for spots, cells, and even molecules. Please see [Molecule Analysis Tutorial](moleculeanalysis.html) for more information on hot spot analysis. 
 
-We first have to learn a spatial graph, and in the case of Xenium data which is a cell type assay we can use a [Delaunay Tesselation](https://en.wikipedia.org/wiki/Delaunay_triangulation) to train the neighborhood graph. This will create a second graph in the VoltRon object, representing the spatial relationship between cells.
+We first have to learn a spatial graph, and in the case of Xenium data which is a cell type assay we can use a [Delaunay tesselation](https://en.wikipedia.org/wiki/Delaunay_triangulation) to train the neighborhood graph. This will create a second graph in the VoltRon object, representing the spatial relationship between cells.
 
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_data <- getSpatialNeighbors(Xen_data, method = "delaunay")

@@ -483,7 +483,7 @@ post-Xenium to capture additional information on the morphology of the
 tissue and integrate it with the Xenium readouts. In this use case, we
 would like to integrate the post-Xenium H&amp;E image of tissue micro
 array sections composed of control and COVID-19 lung biopsy punches. Our
-objective is to asses the localization of SARS‑CoV‑2 virus molecules by
+objective is to assess the localization of SARS‑CoV‑2 virus molecules by
 integrating pathology image annotations.</p>
 <p>VoltRon is capable of analyzing molecule-level subcellular datasets
 independent of single cells, and specifically those that may also found
@@ -842,7 +842,7 @@ S2_table</code></pre>
 Region     N     orf1ab
   Hyaline  50977 33532 
   Infected 6376  2372</code></pre>
-<p>A quick test of independance on this contingency table show a
+<p>A quick test of independence on this contingency table show a
 significant difference of ratios across Hyaline and Infected
 regions.</p>
 <pre class="r watch-out"><code>fisher.test(S2_table, alternative = &quot;two.sided&quot;)</code></pre>
@@ -1001,7 +1001,7 @@ vrSpatialPlot(Xen_R1_merged, group.by = &quot;Cluster_kmeans&quot;, spatial = &q
 <div id="marker-analysis" class="section level3">
 <h3>Marker Analysis</h3>
 <p>Now that we have labelled cells whose partitioning is determined by
-the morphological (image foundayion model) features, we can perform
+the morphological (image foundation model) features, we can perform
 marker analysis to determine signatures associated with groups. We
 convert the cells assays of the VoltRon object to a Seurat object prior
 to marker analysis, find markers associated with groups and then parse

@@ -52,7 +52,7 @@ Below, we demonstrate data integration capabilities of VoltRon across distinct m
 
 ## Xenium COVID-19 Lung Data 
 
-Xenium in situ platform is compatible with H&E and immunofluorescence imaging , thus researchers can stain whole slides post-Xenium to capture additional information on the morphology of the tissue and integrate it with the Xenium readouts. In this use case, we would like to integrate the post-Xenium H&E image of tissue micro array sections composed of control and COVID-19 lung biopsy punches. Our objective is to asses the localization of SARS‑CoV‑2 virus molecules by integrating pathology image annotations. 
+Xenium in situ platform is compatible with H&E and immunofluorescence imaging , thus researchers can stain whole slides post-Xenium to capture additional information on the morphology of the tissue and integrate it with the Xenium readouts. In this use case, we would like to integrate the post-Xenium H&E image of tissue micro array sections composed of control and COVID-19 lung biopsy punches. Our objective is to assess the localization of SARS‑CoV‑2 virus molecules by integrating pathology image annotations. 
 
 VoltRon is capable of analyzing molecule-level subcellular datasets independent of single cells, and specifically those that may also found outside of these cells. The Xenium run was performed with custom Xenium probes designed to hybridize distinct open reading frames of SARS‑CoV‑2 virus molecules. These subcellular entities which then can be detected both within and outside of cells which allows to understand proliferation mechanics of the virus across the tissue. By aligning the image and the associated pathology annotations of the post-Xenium H&E of this slide, we can transfer labels of annotations to Xenium cells and molecules, thus inferring the abundance of viral RNA further. 
 
@@ -434,7 +434,7 @@ Region     N     orf1ab
   Infected 6376  2372
 ```
 
-A quick test of independance on this contingency table show a significant difference of ratios across Hyaline and Infected regions.
+A quick test of independence on this contingency table show a significant difference of ratios across Hyaline and Infected regions.
 
 ```{r eval = FALSE, class.source="watch-out"}
 fisher.test(S2_table, alternative = "two.sided")
@@ -593,7 +593,7 @@ vrSpatialPlot(Xen_R1_merged, group.by = "Cluster_kmeans", spatial = "main_reg",
 
 ### Marker Analysis
 
-Now that we have labelled cells whose partitioning is determined by the morphological (image foundayion model) features, we can perform marker analysis to determine signatures associated with groups. We convert the cells assays of the VoltRon object to a Seurat object prior to marker analysis, find markers associated with groups and then parse significant markers to visualize later. See [Conversion](conversion.html#Seurat) tutorial for more information on VoltRon's interoperability features.
+Now that we have labelled cells whose partitioning is determined by the morphological (image foundation model) features, we can perform marker analysis to determine signatures associated with groups. We convert the cells assays of the VoltRon object to a Seurat object prior to marker analysis, find markers associated with groups and then parse significant markers to visualize later. See [Conversion](conversion.html#Seurat) tutorial for more information on VoltRon's interoperability features.
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(Seurat)

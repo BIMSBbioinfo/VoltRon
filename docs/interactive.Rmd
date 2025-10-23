@@ -149,7 +149,7 @@ xenium_data <- as.AnnData(xenium_data, file = "xenium_data.zarr", assay = "Xeniu
 
 <br>
 
-We can use the zarr file directly in the **vrSpatialPlot** function to visualize the zarr array interactively in Rstudio viewer. The **reduction** argument allows the umap of the Xenium data to be visualized alongside with the spatial coordinates of the Xenium cells (thus associated cell segmentations).
+We can use the zarr file directly in the **vrSpatialPlot** function to visualize the zarr array interactively in RStudio viewer. The **reduction** argument allows the umap of the Xenium data to be visualized alongside with the spatial coordinates of the Xenium cells (thus associated cell segmentations).
 
 ```{r class.source="watch-out", eval = FALSE}
 vrSpatialPlot("xenium_data.zarr", group.by = "clusters", reduction = "umap")

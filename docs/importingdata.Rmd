@@ -59,7 +59,7 @@ VoltRon objects are compatible with readouts of almost all of these technologies
 
 10x Genomics [Visium](https://www.10xgenomics.com/products/spatial-gene-expression) Spatial Gene Expression Platform incorporates in situ arrays (i.e. spots) to capture spatial localization of omics profiles where these spots are of 55 $\mu$m in diameter and constitute a grid that covers a significant portion of a tissue section placed on the slide of the instrument.
 
-We will use the readouts of **Visium CytAssist** platform that was derived from a single tissue section of a breast cancer sample. More information on the Visium CytAssist data and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **Visium Spatial** data). 
+We will use the readouts of **Visium CytAssist** platform that was derived from a single tissue section of a breast cancer sample. More information on the Visium CytAssist data and the study can be also be found on the [bioRxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **Visium Spatial** data). 
 
 Before we start, Visium readouts require **rhdf5** package to be installed.
 
@@ -128,7 +128,7 @@ Vis_R1 <- importVisium(dir.path = "Visium/", sample_name = "VisiumR1", resolutio
 
 10x Genomics [VisiumHD](https://www.10xgenomics.com/products/visium-hd-spatial-gene-expression) Spatial Gene Expression Platform contains two 6.5 x 6.5 mm Capture Areas with a continuous lawn of oligonucleotides arrayed in millions of 2 x 2 µm barcoded squares without gaps, achieving single cell–scale spatial resolution. The data is output at 2 µm, as well as multiple bin sizes. The 8 x 8 µm bin is the recommended starting point for visualization and analysis.
 
-We will use the readouts of **Visium CytAssist** platform that was derived from a single tissue section of a breast cancer sample. More information on the Visium CytAssist data and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **Visium Spatial** data). 
+We will use the readouts of **Visium CytAssist** platform that was derived from a single tissue section of a breast cancer sample. More information on the Visium CytAssist data and the study can be also be found on the [bioRxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **Visium Spatial** data). 
 
 Before we start, VisiumHD readouts require a number of Bioconductor and R packages to be installed. 
 
@@ -170,7 +170,7 @@ hddata <- importVisiumHD(dir.path = "VisiumHD/outs/",
 
 The 10x Genomics [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) provides spatial localization of both (i) transcripts from a few hundred number of genes as well as (ii) the single cells with transcriptomics profiles. 
 
-We will use the readouts of a single Xenium platform replicate that was derived from a single tissue section of a breast cancer sample. More information on the Xenium data and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **In Situ Replicate 1** data). 
+We will use the readouts of a single Xenium platform replicate that was derived from a single tissue section of a breast cancer sample. More information on the Xenium data and the study can be also be found on the [bioRxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the data from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import the **In Situ Replicate 1** data). 
 
 Before we start, Xenium readouts require a number of Bioconductor and R packages to be installed. RBioFormats requires rJava and JDK installed, see [dependencies](https://github.com/BIMSBbioinfo/VoltRon?tab=readme-ov-file#dependencies) section for more information.
 
@@ -678,7 +678,7 @@ With VoltRon we can also build objects where pixels (or tiles) are defined as sp
 
 For this we incorporate **importImageData** function and only supply an image object. We will use the H&E image derived from a tissue section that was first analyzed by The 10x Genomics [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform.
 
-More information on the Xenium and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the H&E image from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) as well (specifically, import the **Post-Xenium H&E image (TIFF)** data). 
+More information on the Xenium and the study can be also be found on the [bioRxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the H&E image from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) as well (specifically, import the **Post-Xenium H&E image (TIFF)** data). 
 
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif",

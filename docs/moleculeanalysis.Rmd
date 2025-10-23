@@ -52,7 +52,7 @@ In this tutorial, we provide a number of examples where we show how VoltRon mana
 
 ## Xenium Breast Cancer Data
 
-In this use case, we analyse readouts of the experiments conducted on example tissue sections analysed by the [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform. Two tissue sections of 5 $\mu$m thickness are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. More information on the spatial datasets and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
+In this use case, we analyse readouts of the experiments conducted on example tissue sections analysed by the [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform. Two tissue sections of 5 $\mu$m thickness are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. More information on the spatial datasets and the study can be also be found on the [bioRxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
  
 You can import these readouts from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import **In Situ Replicate 1/2**). Alternatively, you can **download a zipped collection of Xenium readouts** from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip). 
 
@@ -145,7 +145,7 @@ vrSpatialPlot(Xen_R1_subset, assay = "Xenium_mol", group.by = "gene",
 
 ## Xenium COVID-19 Lung Data
 
-Since VoltRon is capable of analyzing localization of sub-cellular entities such as molecules beyond mRNAs, the analysis may also extend to extracellular molecules such as viral RNA. Using Xenium in situ, we locate the open reading frames (ORFs) of genomics and subgenomics RNA of SARS-COV-2, namely **S2_N** and **S2_orf1ab** and analyze their abundances over the COVID-19 infected lung tissue. 
+Since VoltRon is capable of analyzing localization of sub-cellular entities such as molecules beyond mRNAs, the analysis may also extend to extracellular molecules such as viral RNA. Using Xenium in situ, we locate the open reading frames (ORFs) of genomics and subgenomics RNA of SARS-CoV-2, namely **S2_N** and **S2_orf1ab** and analyze their abundances over the COVID-19 infected lung tissue. 
 
 Specifically, we analyse readouts of **eight tissue micro array (TMA) tissue sections** that were fitted into the scan area of a slide loaded on a Xenium in situ instrument. These sections were cut from **control and COVID-19 lung tissues** of donors categorized based on disease durations (acute and prolonged). You can download the standard Xenium output folder [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Xenium_SARSCOV2.zip).  
 

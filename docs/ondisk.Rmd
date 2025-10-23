@@ -174,7 +174,7 @@ Xen_R1 <- subset(Xen_R1, spatialpoints = spatialpoints)
 Xen_R1 <- normalizeData(Xen_R1, sizefactor = 10000)
 ```
 
-We now visualize the localizaton of three markers, specifically Dsc3, Clec4f, Gfap; that point to the skin, liver and brain of the pup, respectively. The **n.tile** parameter controls the level of rasterization of gene expression or metadata columns to speed up data visualization. Here, **n.tile=400** bins expression and metadata measures into 400 chunks along the x-and y-axis of the image.  
+We now visualize the localization of three markers, specifically Dsc3, Clec4f, Gfap; that point to the skin, liver and brain of the pup, respectively. The **n.tile** parameter controls the level of rasterization of gene expression or metadata columns to speed up data visualization. Here, **n.tile=400** bins expression and metadata measures into 400 chunks along the x-and y-axis of the image.  
 
 ```{r class.source="watch-out", eval = FALSE}
 vrSpatialFeaturePlot(Xen_R1, features = c("Dsc3", "Clec4f", "Gfap"), n.tile = 400, alpha = 1, ncol = 3, log = TRUE)
