@@ -44,7 +44,7 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 # Analysis of Images
 
-VoltRon is a spatial omic analysis platform that allows storing a large amount of spatially resolved datasets. As opposed to datasets with either supracellular (spot-level) or cellular resolutions, one might analyze image datasets and pixels to characterize the morphology of a tissue section. 
+VoltRon is a spatial omics analysis platform that allows storing a large amount of spatially resolved datasets. As opposed to datasets with either supracellular (spot-level) or cellular resolutions, one might analyze image datasets and pixels to characterize the morphology of a tissue section. 
 
 Here, images can also be used to build VoltRon objects where pixels (or tiles) are defined as spatial points, and then can also be used for multiple downstream analysis purposes. 
 
@@ -126,7 +126,7 @@ dim(vrData(Xen_R1_image))
 
 ## Dimensionality Reduction
 
-We can now reduce the dimensionality of these pixel intensities using PCA and visualize the data variability across tiles. The data matrix we generated with the **generateTileData** earlier will be used here similar to gene/protein expression datasets, where we reduce 40000 variables (each associated with a pixel) to a managable number, say 15. 
+We can now reduce the dimensionality of these pixel intensities using PCA and visualize the data variability across tiles. The data matrix we generated with the **generateTileData** earlier will be used here similar to gene/protein expression datasets, where we reduce 40000 variables (each associated with a pixel) to a manageable number, say 15. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1_image <- getPCA(Xen_R1_image, dims = 15)
@@ -149,7 +149,7 @@ Xen_R1_image <- getClusters(Xen_R1_image, resolution = 1.0,
                             label = "Cluster_snn", graph = "SNN")
 ```
 
-We here visualize the transparent clustering information of tiles by rasterizing 
+Here, we visualize the transparent clustering information of tiles by rasterizing 
 the tiles into larger sizes to increase plotting speed where we can see the 
 distinction between different tissue niches of the image.
 
@@ -205,10 +205,10 @@ We will now load and add the DinoV2 embeddings as additional embedding data befo
 
 ```{r eval = FALSE, class.source="watch-out"}
 # get embed data
-embed_data <- readRDS("img_128_processed.rds")
+dinov2_embed <- readRDS("img_128_processed.rds")
 ind <- sapply(vrSpatialPoints(Xen_R1_image), function(x) strsplit(x, split = "_")[[1]][1])
-embed_data <- embed_data[ind,]
-rownames(embed_data) <- vrSpatialPoints(Xen_R1_image)
+dinov2_embed <- dinov2_embed[ind,]
+rownames(dinov2_embed) <- vrSpatialPoints(Xen_R1_image)
 
 # import DinoV2 embedding
 vrEmbeddings(Xen_R1_image, type = "dinov2", overwrite = TRUE) <-  dinov2_embed
@@ -232,7 +232,7 @@ vrEmbeddingPlot(Xen_R1_image, embedding = "umap", group.by = "Sample")
 
 ## Clustering
 
-With the PCA embeddings generated from the DinoV2 embeddings now we can apply K means clustering. 
+With the PCA embeddings generated from the DinoV2 embeddings now we can apply k-means clustering. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1_image <- getClusters(Xen_R1_image, method = "kmeans", 

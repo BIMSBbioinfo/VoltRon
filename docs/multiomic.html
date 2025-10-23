@@ -460,14 +460,14 @@ table, th, td {
 <p><br></p>
 <div id="multi-omics-analysis" class="section level1">
 <h1>Multi-omics Analysis</h1>
-<p>VoltRon is a end-to-end spatial multi-omics platform that enables
+<p>VoltRon is an end-to-end spatial multi-omics platform that enables
 both automated and manual data alignment workflows to synchronize
 coordinate frameworks across spatial omics assays. However, upon
 harmonization of the spatial observations, VoltRon can be used to
-further transfer and integrate information across omic datasets captured
-on same and adjacent tissue sections. These assays are not just limited
-to datasets with single cell and spot resolutions but also to assays
-solely composed of molecule and image tile observations.</p>
+further transfer and integrate information across omics datasets
+captured on same and adjacent tissue sections. These assays are not just
+limited to datasets with single cell and spot resolutions but also to
+assays solely composed of molecule and image tile observations.</p>
 <p>Below, we demonstrate data integration capabilities of VoltRon across
 distinct modalities using several use cases. In the <a
 href="registration.html">Spatial Data Alignment</a>, we have highlighted
@@ -480,21 +480,22 @@ and further downstream data integration.</p>
 <p>Xenium in situ platform is compatible with H&amp;E and
 immunofluorescence imaging , thus researchers can stain whole slides
 post-Xenium to capture additional information on the morphology of the
-tissue and integrate it with the Xenium readouts. In this usecase, we
+tissue and integrate it with the Xenium readouts. In this use case, we
 would like to integrate the post-Xenium H&amp;E image of tissue micro
 array sections composed of control and COVID-19 lung biopsy punches. Our
-objective is to asses the localization of SARS-COV-2 virus molecules by
+objective is to assess the localization of SARS‑CoV‑2 virus molecules by
 integrating pathology image annotations.</p>
 <p>VoltRon is capable of analyzing molecule-level subcellular datasets
 independent of single cells, and specifically those that may also found
 outside of these cells. The Xenium run was performed with custom Xenium
-probes designed to hybridize distinct open reading frames of SARS-COV-2
+probes designed to hybridize distinct open reading frames of SARS‑CoV‑2
 virus molecules. These subcellular entities which then can be detected
 both within and outside of cells which allows to understand
 proliferation mechanics of the virus across the tissue. By aligning the
-image and the associated pathology annotations of the postXenium H&amp;E
-of this slide, we can transfer labels of annotations to Xenium cells and
-molecules, thus inferring the abundance of viral RNA further.</p>
+image and the associated pathology annotations of the post-Xenium
+H&amp;E of this slide, we can transfer labels of annotations to Xenium
+cells and molecules, thus inferring the abundance of viral RNA
+further.</p>
 <p>We analyse readouts of <strong>eight tissue micro array (TMA) tissue
 sections</strong> that were fitted into the scan area of a slide loaded
 on a Xenium in situ instrument. These sections were cut from
@@ -544,7 +545,7 @@ specifically selecting these two ORFs.</p>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus.png" class="center"></p>
 <p><br></p>
 <p>We can even zoom into specific locations at the tissue to investigate
-virus particles more closely by droping the <strong>n.tile</strong>
+virus particles more closely by dropping the <strong>n.tile</strong>
 argument and calling interactive visualization.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;, 
               group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), interactive = TRUE, pt.size = 0.1)</code></pre>
@@ -625,7 +626,7 @@ Assays: ImageData(Main) ROIAnnotation
 Features: main(Main) </code></pre>
 <p>By visualizing these annotations interactively, we can see that the
 ROIs point to the hyaline membranes. Here, we likely find extra-cellular
-SARS-COV-2 molecules mostly outside of any single cell.</p>
+SARS‑CoV‑2 molecules mostly outside of any single cell.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(imgdata, assay = &quot;ROIAnnotation&quot;, group.by = &quot;Sample&quot;, 
               alpha = 0.7, interactive = TRUE)</code></pre>
 <p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_Covid_HE_zoom.png" class="center"></p>
@@ -735,7 +736,7 @@ Metadata(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;)</code></pre>
 785791: 281874408673882_cb791e   Assay8                0   S2_N 40.00000 Xenium_mol Section1 acute case 1 undefined</code></pre>
 </div>
 <p><br></p>
-<p>This annotations can be accessed from the default molecule level
+<p>These annotations can be accessed from the default molecule level
 metadata of the VoltRon object.</p>
 <pre class="r watch-out"><code>vrMainAssay(vr2_merged_acute1) &lt;- &quot;Xenium_mol&quot;
 head(table(vr2_merged_acute1$Region))</code></pre>
@@ -743,7 +744,7 @@ head(table(vr2_merged_acute1$Region))</code></pre>
           583           624           784           357           215           200 </code></pre>
 <p><br></p>
 <p>Now we will grab these annotations from molecule metadata and
-calculate the ratio of N to orf1ab frequency of SARS-COV-2 particles
+calculate the ratio of N to orf1ab frequency of SARS‑CoV‑2 particles
 across all annotated molecules.</p>
 <pre class="r watch-out"><code>library(dplyr)
 s2_summary_hyaline &lt;- 
@@ -841,7 +842,7 @@ S2_table</code></pre>
 Region     N     orf1ab
   Hyaline  50977 33532 
   Infected 6376  2372</code></pre>
-<p>A quick test of independance on this contingency table show a
+<p>A quick test of independence on this contingency table show a
 significant difference of ratios across Hyaline and Infected
 regions.</p>
 <pre class="r watch-out"><code>fisher.test(S2_table, alternative = &quot;two.sided&quot;)</code></pre>
@@ -867,7 +868,7 @@ collections of image pixels of the same size, and generate latent
 variables that are analyzed downstream. Unsupervised clustering of these
 tiles partition regions over the image with respect to morphological
 features. Here, these regions might be associated to tumor, immune or
-strama niches can then be transfered to cells in the same tissue section
+stroma niches can then be transfered to cells in the same tissue section
 learn collections of cells with similar features.</p>
 <p>We will use the <strong>H&amp;E images</strong> generated from the
 same sections as the <strong>Xenium In Situ</strong> platform, and
@@ -978,7 +979,7 @@ vrImages(Xen_R1_merged[[&quot;Assay2&quot;]], name = &quot;main_reg&quot;, chann
 <p>You can visualize the transferred tile labels in two different
 spatial coordinate systems and with different images (DAPI, H&amp;E
 etc.) using <strong>spatial</strong> and <strong>channel</strong>
-arguements, respectively.</p>
+arguments, respectively.</p>
 <pre class="r watch-out"><code>vrMainAssay(Xen_R1_merged) &lt;- &quot;Xenium&quot;
 vrSpatialPlot(Xen_R1_merged, group.by = &quot;Cluster_kmeans&quot;, spatial = &quot;main&quot;)
 vrSpatialPlot(Xen_R1_merged, group.by = &quot;Cluster_kmeans&quot;, spatial = &quot;main_reg&quot;, 
@@ -1000,7 +1001,7 @@ vrSpatialPlot(Xen_R1_merged, group.by = &quot;Cluster_kmeans&quot;, spatial = &q
 <div id="marker-analysis" class="section level3">
 <h3>Marker Analysis</h3>
 <p>Now that we have labelled cells whose partitioning is determined by
-the morphological (image foundayion model) features, we can perform
+the morphological (image foundation model) features, we can perform
 marker analysis to determine signatures associated with groups. We
 convert the cells assays of the VoltRon object to a Seurat object prior
 to marker analysis, find markers associated with groups and then parse

@@ -462,7 +462,7 @@ body {
 <h1>Interactive Annotation</h1>
 <p><strong>VoltRon</strong> includes interactive applications to select
 and manually label spatial points by drawing polygons and circles. As an
-example, we will use a Spot-based spatial transcriptomic assay,
+example, we will use a Spot-based spatial transcriptomics assay,
 specifically the <strong>Mouse Brain Serial Section 1/2</strong>
 datasets, analyzed in the <a href="nicheclustering.html">Niche
 Clustering</a> tutorial. You can find the already analyzed data stored
@@ -482,7 +482,7 @@ spots with within regions of interests (ROIs) selected by the user, but
 also records these regions in ROI assays within the same layer of the
 annotated Visium assay. The new assay type will be given the name
 <strong>ROIAnnotations</strong> if otherwise not specified using the
-<strong>annotation_assay</strong> arguement in the function.</p>
+<strong>annotation_assay</strong> argument in the function.</p>
 <pre class="r watch-out"><code>MBrain_Sec </code></pre>
 <pre><code>VoltRon Object 
 Anterior: 
@@ -524,7 +524,7 @@ vrSpatialPlot(MBrain_Sec, assay = &quot;Assay1&quot;, group.by = &quot;clusters&
 <p>VoltRon incorporates utilities</p>
 <ul>
 <li><strong>(i)</strong> to convert VoltRon objects into other spatial
-data objects and files that could be used platforms, and</li>
+data objects and files that could be used by platforms, and</li>
 <li><strong>(ii)</strong> to incorporate wrapper functions to call
 methods from package that achieves interactive visualization</li>
 </ul>
@@ -540,22 +540,23 @@ arrays interactively in R.</p>
     install.packages(&quot;devtools&quot;)
 if (!require(&quot;vitessceR&quot;, quietly = TRUE))
     devtools::install_github(&quot;Artur-man/vitessceR&quot;)</code></pre>
-<p>We can convert the VoltRon object into an anndata object and save it
+<p>We can convert the VoltRon object into an AnnData object and save it
 as a a zarr array using the <strong>as.AnnData</strong> function which
 will create the array in the specified location. We use the
 <strong>flip_coordinates=TRUE</strong> argument to flip the coordinates
 of cells vertically, hence match it with the top to bottom system of the
 background DAPI image. Also, we can save an OMETIFF file of the DAPI
-image using <strong>create.ometiff</strong> arguement to be used by
+image using <strong>create.ometiff</strong> argument to be used by
 vitessceR later.</p>
-<pre class="r watch-out"><code>xenium_data &lt;- as.AnnData(xenium_data, file = &quot;xenium_data.zarr&quot;, assay = &quot;Xenium&quot;, 
+<pre class="r watch-out"><code>data(xenium_data)
+xenium_data &lt;- as.AnnData(xenium_data, file = &quot;xenium_data.zarr&quot;, assay = &quot;Xenium&quot;, 
                           flip_coordinates = TRUE, create.ometiff = TRUE)</code></pre>
 <p><br></p>
 <p>We can use the zarr file directly in the
 <strong>vrSpatialPlot</strong> function to visualize the zarr array
-interactively in Rstudio viewer. The <strong>reduction</strong>
-arguement allows the umap of the Xenium data to be visualized alongside
-with the spatial coordinates of the Xenium cells (thus associated cell
+interactively in RStudio viewer. The <strong>reduction</strong> argument
+allows the umap of the Xenium data to be visualized alongside with the
+spatial coordinates of the Xenium cells (thus associated cell
 segmentations).</p>
 <pre class="r watch-out"><code>vrSpatialPlot(&quot;xenium_data.zarr&quot;, group.by = &quot;clusters&quot;, reduction = &quot;umap&quot;)</code></pre>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_vitessce.png" class="center"></p>
@@ -569,14 +570,15 @@ users to zoom in and control the pane for advanced visualization.</p>
 <div id="tissuumaps" class="section level2">
 <h2>TissUUmaps</h2>
 <p>To use <strong>TissUUmaps</strong> for interactive investigation of
-your spatial omic data, we first need to convert the VoltRon object into
-an anndata object. However, this time we save the anndata object as an
-h5ad array using again the <strong>as.AnnData</strong> function which
+your spatial omics data, we first need to convert the VoltRon object
+into an AnnData object. However, this time we save the AnnData object as
+an h5ad array using again the <strong>as.AnnData</strong> function which
 will create the array in the specified location. We use the
 <strong>flip_coordinates=TRUE</strong> argument to flip the coordinates
 of cells vertically, hence match it with the top to bottom system of the
 background DAPI image.</p>
-<pre class="r watch-out"><code>as.AnnData(xenium_data, file = &quot;xenium_data.h5ad&quot;, assay = &quot;Xenium&quot;, flip_coordinates = TRUE)</code></pre>
+<pre class="r watch-out"><code>data(xenium_data)
+as.AnnData(xenium_data, file = &quot;xenium_data.h5ad&quot;, assay = &quot;Xenium&quot;, flip_coordinates = TRUE)</code></pre>
 <p>To use <strong>TissUUmaps</strong>, you can follow the instructions
 <a href="https://tissuumaps.github.io/installation/">here</a>. Once
 installed and executed, simply drag and drop the h5ad file to the main
