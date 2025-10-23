@@ -460,7 +460,7 @@ body {
 <p><br></p>
 <div id="spatial-data-alignment" class="section level1">
 <h1>Spatial Data Alignment</h1>
-<p>Spatial genomic technologies often generate diverse images and
+<p>Spatial genomics technologies often generate diverse images and
 spatial readouts, even though the tissue slices are from adjacent
 sections of a single tissue block. Hence, the alignment of images and
 spatial coordinates across tissue sections are of utmost importance to
@@ -762,7 +762,7 @@ g1 / g2</code></pre>
 </div>
 <div id="data-transfer-spots-cells" class="section level4">
 <h4>Data Transfer (Spots-&gt;Cells)</h4>
-<p>A similar transfer can be achieved on the opposite direction. We can
+<p>A similar transfer can be achieved in the opposite direction. We can
 select Assay2 of <strong>Visium as the source</strong> assay and Assay1
 of <strong>Xenium as the destination</strong>, thus we can transfer
 whole transcriptome counts of the Visium assays to Xenium to create new
@@ -914,7 +914,7 @@ Xen_R1_image</code></pre>
 XeniumR1image: 
   Layers: Section1 
 Assays: ImageData(Main) </code></pre>
-<p>Lets take a look at the image of the Xen_R1_image object</p>
+<p>Let’s take a look at the image of the Xen_R1_image object</p>
 <pre class="r watch-out"><code>vrImages(Xen_R1_image)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE.png" class="center"></p>
 <p><br></p>
@@ -940,12 +940,12 @@ registered image which is the first Assay of the Xenium data
 we give a name for the new image/channel which is
 <strong>H&amp;E</strong>.</p>
 <pre class="r watch-out"><code>Xen_R1_image_reg &lt;- xen_reg$registered_spat[[2]]
-vrImages(Xen_R1[[&quot;Assay1&quot;]], channel = &quot;H&amp;E&quot;) &lt;- vrImages(Xenium_reg, name = &quot;main_reg&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
+vrImages(Xen_R1[[&quot;Assay1&quot;]], channel = &quot;H&amp;E&quot;) &lt;- vrImages(Xen_R1_image_reg, name = &quot;main_reg&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
 <p>We can now observe the new channels (H&amp;E) available for the
 Xenium assay using <strong>vrImageChannelNames</strong>.</p>
 <pre class="r watch-out"><code>vrImageChannelNames(Xen_R1)</code></pre>
-<pre><code>       Assay    Layer           Sample Spatial                                               Channels
-Assay1 GeoMx Section1 prolonged case 4    main scanimage,DNA,PanCK,CD45,Alpha Smooth Muscle Actin,H&amp;E</code></pre>
+<pre><code>       Assay    Layer  Sample   Spatial  Channels
+Assay1 Xenium Section1 XeniumR1    main  DAPI,H&amp;E</code></pre>
 <p>We can call the registered H&amp;E image of the Xenium data or later
 put the aligned H&amp;E when calling <strong>vrSpatialPlot</strong> or
 <strong>vrSpatialFeaturePlot</strong>.</p>
@@ -959,7 +959,7 @@ put the aligned H&amp;E when calling <strong>vrSpatialPlot</strong> or
 <p>In the next use case, we will align <strong>H&amp;E images</strong>
 associated with Visium data generated from tissue block sections of
 <strong>adult humans with postmortem dorsolateral prefrontal cortex
-(DLPFC)</strong>. Two pairs of adjacent sections was obtained from the
+(DLPFC)</strong>. Two pairs of adjacent sections were obtained from the
 tissue block of the third donor. Each pair are composed of two 10 <span
 class="math inline">\(\mu\)</span>m serial tissue sections, and pairs
 are located 300 <span class="math inline">\(\mu\)</span>m apart from
@@ -985,7 +985,7 @@ images)</strong>. This time, we will use the
 <strong>BRUTE-FORCE</strong> method for automated alignment which we
 found to be more accurate compared to FLANN when aligning two H&amp;E
 images. The shiny app also provides two tuning parameters that used by
-the the BRUTE-FORCE workflow:</p>
+the BRUTE-FORCE workflow:</p>
 <ul>
 <li><strong># of Features</strong> option specifies the number of
 maximum image features spotted within each image which later be used to

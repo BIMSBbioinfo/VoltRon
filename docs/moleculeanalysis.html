@@ -466,27 +466,22 @@ table, th, td {
 <p><br></p>
 <div id="molecule-analysis" class="section level1">
 <h1>Molecule Analysis</h1>
-<p>VoltRon is an end-to-end spatial omic analysis package which also
+<p>VoltRon is an end-to-end spatial omics analysis package which also
 supports investigating spatial points in sub-cellular resolution,
 including those that are based on Fluorescence in situ hybridization
 where one can spatially locate each individual molecule that are
-hybridrized.</p>
+hybridized</p>
 <p>In this tutorial, we provide a number of examples where we show how
 VoltRon manages, analyzes and visualizes molecules as spatial entities
 whose identities are given in the metadata of a VoltRon object.</p>
 <p><br></p>
 <div id="xenium-breast-cancer-data" class="section level2">
 <h2>Xenium Breast Cancer Data</h2>
-<p>VoltRon is an end-to-end spatial omic analysis package which also
-supports investigating spatial points in sub-cellular resolution,
-including those that are based on Fluorescence in situ hybridization
-where one can spatially locate each individual molecule that are
-hybridrized.</p>
 <p>In this use case, we analyse readouts of the experiments conducted on
 example tissue sections analysed by the <a
 href="https://www.10xgenomics.com/platforms/xenium">Xenium In Situ</a>
 platform. Two tissue sections of 5 <span
-class="math inline">\(\mu\)</span>m tickness are derived from a single
+class="math inline">\(\mu\)</span>m thickness are derived from a single
 formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block.
 More information on the spatial datasets and the study can be also be
 found on the <a
@@ -551,7 +546,7 @@ in myoepithelial and breast cancer associated tumor cells.</p>
 points into tiles of equal size) if large number of spatial entities are
 being visualized, and thus speeds up plotting.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(Xen_R1, group.by = &quot;gene&quot;, assay = &quot;Xenium_mol&quot;, 
-              group.id = c(&quot;ACTA2&quot;, &quot;KRT15&quot;, &quot;TACSTD2&quot;, &quot;CEACAM6&quot;))</code></pre>
+              group.ids = c(&quot;ACTA2&quot;, &quot;KRT15&quot;, &quot;TACSTD2&quot;, &quot;CEACAM6&quot;))</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize_whole.png" class="center"></p>
 <p>We can interactively select a subset of interest within the tissue
 section and visualize the localization of these transcripts. Here we
@@ -559,7 +554,7 @@ subset a ductal carcinoma niche, and visualize mRNAs of four genes.</p>
 <pre class="r watch-out"><code>Xen_R1_subset &lt;- subset(Xen_R1, interactive = TRUE)
 Xen_R1_subset &lt;- Xen_R1_subset$subsets[[1]]
 vrSpatialPlot(Xen_R1_subset, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;,
-              group.id = c(&quot;ACTA2&quot;, &quot;KRT15&quot;, &quot;TACSTD2&quot;, &quot;CEACAM6&quot;), pt.size = 0.2, legend.pt.size = 5)</code></pre>
+              group.ids = c(&quot;ACTA2&quot;, &quot;KRT15&quot;, &quot;TACSTD2&quot;, &quot;CEACAM6&quot;), pt.size = 0.2, legend.pt.size = 5)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize.png" class="center"></p>
 <p><br></p>
 <p>We can use the <strong>n.tile</strong> argument to divide the count
@@ -567,7 +562,7 @@ of selected group.ids (e.g. genes here) into hexagonal bins. We will use
 this argument to divide the x and y-axis into 200 tiles and aggregate
 transcript counts from select <strong>group.id</strong></p>
 <pre class="r watch-out"><code>vrSpatialPlot(Xen_R1_subset, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;,
-              group.id = c(&quot;ACTA2&quot;, &quot;KRT15&quot;, &quot;TACSTD2&quot;, &quot;CEACAM6&quot;), n.tile = 200)</code></pre>
+              group.ids = c(&quot;ACTA2&quot;, &quot;KRT15&quot;, &quot;TACSTD2&quot;, &quot;CEACAM6&quot;), n.tile = 200)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize_bins.png" class="center"></p>
 <p><br></p>
 </div>
@@ -577,7 +572,7 @@ transcript counts from select <strong>group.id</strong></p>
 <p>Since VoltRon is capable of analyzing localization of sub-cellular
 entities such as molecules beyond mRNAs, the analysis may also extend to
 extracellular molecules such as viral RNA. Using Xenium in situ, we
-locate the open reading frames (ORFs) of genomic and subgenomics RNA of
+locate the open reading frames (ORFs) of genomics and subgenomics RNA of
 SARS-COV-2, namely <strong>S2_N</strong> and <strong>S2_orf1ab</strong>
 and analyze their abundances over the COVID-19 infected lung tissue.</p>
 <p>Specifically, we analyse readouts of <strong>eight tissue micro array
@@ -625,9 +620,9 @@ cell segment on top.</p>
 free viral RNA and the surrounding cells.</p>
 <pre class="r watch-out"><code>Xen_R1_subset &lt;- subset(Xen_R1, interactive = TRUE)
 Xen_R1_subset &lt;- Xen_R1_subset$subsets[[1]]
-vrSpatialPlot(vr2_merged_acute1_subset, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;, 
+vrSpatialPlot(Xen_R1_subset, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;, 
               group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), pt.size = 0.4) |&gt; 
-  addSpatialLayer(vr2_merged_acute1_subset, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;, 
+  addSpatialLayer(Xen_R1_subset, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;, 
                   plot.segments = TRUE, alpha = 0.7)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/moleculecell_covid_xenium_subset.png" class="center"></p>
 <p><br></p>

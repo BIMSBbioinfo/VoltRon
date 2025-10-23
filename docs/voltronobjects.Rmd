@@ -49,7 +49,7 @@ if(!requireNamespace("ggnewscale"))
 
 # Working with VoltRon objects
 
-In this tutorial, we will cover some of the fundemantel built-in functions of VoltRon to manage data, images and spatial information of assays. Here is the list of example datasets included in the Package.
+In this tutorial, we will cover some of the fundamental built-in functions of VoltRon to manage data, images and spatial information of assays. Here is the list of example datasets included in the Package.
 
 ```{r eval = FALSE, class.source="watch-out"}
 data("visium_data")
@@ -62,7 +62,7 @@ data("merged_object")
 
 ## Sample Metadata {#samplemetadata}
 
-The sample metadata is a summarized data frame which provides informations on assays, layers and sample (tissue blocks) included in the VoltRon object. You can use the **SampleMetadata** function to call this table. The row names are the unique assay IDs, following assay types (e.g. Visium), layer name and Sample (typicall tissue block with multiple layers and assays).
+The sample metadata is a summarized data frame which provides information on assays, layers and sample (tissue blocks) included in the VoltRon object. You can use the **SampleMetadata** function to call this table. The row names are the unique assay IDs, following assay types (e.g. Visium), layer name and Sample (typically a tissue block with multiple layers and assays).
 
 ```{r class.source="watch-out"}
 SampleMetadata(visium_data)
@@ -160,7 +160,7 @@ You can also get the assay IDs associated with the main assay using **vrAssayNam
 vrAssayNames(melc_data)
 ```
 
-The assay type can be provided with the **assay** arguement to get type specific assay IDs
+The assay type can be provided with the **assay** argument to get type specific assay IDs
 
 ```{r class.source="watch-out"}
 vrAssayNames(melc_data, assay = "MELC")
@@ -207,7 +207,7 @@ head(vrCoordinates(visium_data, spatial_name = "main", reg = TRUE),6)
 
 <br>
 
-The arguements of the **vrSegments** functions are idential to vrCoordinates and return a list of polygon corners associated with the coordinate system of the coordinates. 
+The arguments of the **vrSegments** functions are identical to vrCoordinates and return a list of polygon corners associated with the coordinate system of the coordinates. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrSegments(xenium_data)
@@ -250,7 +250,7 @@ vrSpatialNames(visium_data, assay = "Visium")
 
 <br>
 
-If you wanna see the list of all spatial systems associated with all assays of the main assay type, you can call the **vrMainSpatial** function.
+If you want to see the list of all spatial systems associated with all assays of the main assay type, you can call the **vrMainSpatial** function.
 
 ```{r class.source="watch-out"}
 vrMainSpatial(visium_data)
@@ -271,7 +271,7 @@ vrMainSpatial(visium_data, assay = "Visium")
 
 ### Channel Names
 
-Each spatial system object (vrSpatial) in VoltRon object can also include a indefinite number of channels which you can get (or request) a list of for further use.
+Each spatial system object (vrSpatial) in VoltRon object can also include an indefinite number of channels which you can get (or request) a list of for further use.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrImageChannelNames(melc_data)
@@ -333,7 +333,7 @@ magick::image_ggplot(vrImages(melc_data))
 
 <br>
 
-You can also resize the images as they are being returned. This is usually used for visualization purposes and helps speeding up visualization for large images. This is accomplished with **scale.perc** arguement.
+You can also resize the images as they are being returned. This is usually used for visualization purposes and helps speeding up visualization for large images. This is accomplished with **scale.perc** argument.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrImages(melc_data, scale.perc = 25)
@@ -481,7 +481,7 @@ vrFeatures(visium_data_subset)
 
 ### Interactive subsetting
 
-VoltRon allows interactively subsetting spatial data. Using the arguement **interactive = TRUE**, a mini Shiny app is triggered where users can select a bounding box to crop the spatial data.
+VoltRon allows interactively subsetting spatial data. Using the argument **interactive = TRUE**, a mini Shiny app is triggered where users can select a bounding box to crop the spatial data.
 
 ```{r eval = FALSE, class.source="watch-out"}
 visium_data_subset_info <- subset(visium_data, interactive = TRUE)
@@ -542,7 +542,7 @@ vrSpatialPlot(xenium_data, group.by = "clusters", plot.segments = TRUE,
 
 In cases where there are multiple coordinate systems, you can get the background set to the name of the image (or coordinate system). You can get the name of these images from [vrSpatialNames](#image). 
 
-If also want to select a channel from the same coordinate system, you can set background arguement as a vector of 2 where first is the name of the image (coordinate system) and the other would be channel name. You can get the name of these channels from [vrImageChannelNames](#image).
+If also want to select a channel from the same coordinate system, you can set background argument as a vector of 2 where first is the name of the image (coordinate system) and the other would be channel name. You can get the name of these channels from [vrImageChannelNames](#image).
 
 
 ```{r eval = FALSE, class.source="watch-out"}
@@ -564,7 +564,7 @@ vrSpatialPlot(visium_data, group.by = "Sample", crop = TRUE)
 
 <br>
 
-The **vrSpatialFeaturePlot** functions the same way as vrSpatialPlot but requires extra arguements such as **features** for selecting features, **norm** for normalized expression (default), and **log** for log transformed counts.
+The **vrSpatialFeaturePlot** functions the same way as vrSpatialPlot but requires extra arguments such as **features** for selecting features, **norm** for normalized expression (default), and **log** for log transformed counts.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrSpatialFeaturePlot(visium_data, features = "Count")
@@ -614,7 +614,7 @@ vrSpatialPlot(merged_object, assay = "ROIAssay", group.by = "annotation")
 
 VoltRon provides automated rasterization of the data to increase speed. However, users can 
 manually define the rasterization parameter while visualizing the data to create 
-customized density graphs of observations. We use the **n.tile** arguement for that. Given the 
+customized density graphs of observations. We use the **n.tile** argument for that. Given the 
 value of the argument, the plot will be divided into chunks along both x and y axis. 
 
 ```{r eval = TRUE, class.source="watch-out", fig.height=5, fig.width=6, fig.align='center', out.width="85%"}
@@ -697,7 +697,7 @@ vrEmbeddingPlot(xenium_data, embedding = "umap", group.by = "clusters", label = 
 
 <br>
 
-The **vrEmbeddingFeaturePlot** functions the same way as vrEmbeddingPlot but requires extra arguements such as **features** for selecting features, **norm** for normalized expression (default), and **log** for log transformed counts.
+The **vrEmbeddingFeaturePlot** functions the same way as vrEmbeddingPlot but requires extra arguments such as **features** for selecting features, **norm** for normalized expression (default), and **log** for log transformed counts.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrEmbeddingFeaturePlot(xenium_data, embedding = "umap", features = "Count")

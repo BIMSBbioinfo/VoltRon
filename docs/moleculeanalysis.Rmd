@@ -44,7 +44,7 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 # Molecule Analysis
 
-VoltRon is an end-to-end spatial omic analysis package which also supports investigating spatial points in sub-cellular resolution, including those that are based on Fluorescence in situ hybridization where one can spatially locate each individual molecule that are hybridrized. 
+VoltRon is an end-to-end spatial omics analysis package which also supports investigating spatial points in sub-cellular resolution, including those that are based on Fluorescence in situ hybridization where one can spatially locate each individual molecule that are hybridized 
 
 In this tutorial, we provide a number of examples where we show how VoltRon manages, analyzes and visualizes molecules as spatial entities whose identities are given in the metadata of a VoltRon object.  
 
@@ -52,9 +52,7 @@ In this tutorial, we provide a number of examples where we show how VoltRon mana
 
 ## Xenium Breast Cancer Data
 
-VoltRon is an end-to-end spatial omic analysis package which also supports investigating spatial points in sub-cellular resolution, including those that are based on Fluorescence in situ hybridization where one can spatially locate each individual molecule that are hybridrized. 
-
-In this use case, we analyse readouts of the experiments conducted on example tissue sections analysed by the [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform. Two tissue sections of 5 $\mu$m tickness are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. More information on the spatial datasets and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
+In this use case, we analyse readouts of the experiments conducted on example tissue sections analysed by the [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform. Two tissue sections of 5 $\mu$m thickness are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. More information on the spatial datasets and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
  
 You can import these readouts from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import **In Situ Replicate 1/2**). Alternatively, you can **download a zipped collection of Xenium readouts** from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip). 
 
@@ -116,7 +114,7 @@ VoltRon incorporates automated rasterization of point (aggregating points into t
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrSpatialPlot(Xen_R1, group.by = "gene", assay = "Xenium_mol", 
-              group.id = c("ACTA2", "KRT15", "TACSTD2", "CEACAM6"))
+              group.ids = c("ACTA2", "KRT15", "TACSTD2", "CEACAM6"))
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize_whole.png" class="center">
@@ -127,7 +125,7 @@ We can interactively select a subset of interest within the tissue section and v
 Xen_R1_subset <- subset(Xen_R1, interactive = TRUE)
 Xen_R1_subset <- Xen_R1_subset$subsets[[1]]
 vrSpatialPlot(Xen_R1_subset, assay = "Xenium_mol", group.by = "gene",
-              group.id = c("ACTA2", "KRT15", "TACSTD2", "CEACAM6"), pt.size = 0.2, legend.pt.size = 5)
+              group.ids = c("ACTA2", "KRT15", "TACSTD2", "CEACAM6"), pt.size = 0.2, legend.pt.size = 5)
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize.png" class="center">
@@ -138,7 +136,7 @@ We can use the **n.tile** argument to divide the count of selected group.ids (e.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrSpatialPlot(Xen_R1_subset, assay = "Xenium_mol", group.by = "gene",
-              group.id = c("ACTA2", "KRT15", "TACSTD2", "CEACAM6"), n.tile = 200)
+              group.ids = c("ACTA2", "KRT15", "TACSTD2", "CEACAM6"), n.tile = 200)
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transcripts_visualize_bins.png" class="center">
@@ -147,7 +145,7 @@ vrSpatialPlot(Xen_R1_subset, assay = "Xenium_mol", group.by = "gene",
 
 ## Xenium COVID-19 Lung Data
 
-Since VoltRon is capable of analyzing localization of sub-cellular entities such as molecules beyond mRNAs, the analysis may also extend to extracellular molecules such as viral RNA. Using Xenium in situ, we locate the open reading frames (ORFs) of genomic and subgenomics RNA of SARS-COV-2, namely **S2_N** and **S2_orf1ab** and analyze their abundances over the COVID-19 infected lung tissue. 
+Since VoltRon is capable of analyzing localization of sub-cellular entities such as molecules beyond mRNAs, the analysis may also extend to extracellular molecules such as viral RNA. Using Xenium in situ, we locate the open reading frames (ORFs) of genomics and subgenomics RNA of SARS-COV-2, namely **S2_N** and **S2_orf1ab** and analyze their abundances over the COVID-19 infected lung tissue. 
 
 Specifically, we analyse readouts of **eight tissue micro array (TMA) tissue sections** that were fitted into the scan area of a slide loaded on a Xenium in situ instrument. These sections were cut from **control and COVID-19 lung tissues** of donors categorized based on disease durations (acute and prolonged). You can download the standard Xenium output folder [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Xenium_SARSCOV2.zip).  
 
@@ -201,9 +199,9 @@ Let us zoom into a specific niche to observe the localization of cell free viral
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1_subset <- subset(Xen_R1, interactive = TRUE)
 Xen_R1_subset <- Xen_R1_subset$subsets[[1]]
-vrSpatialPlot(vr2_merged_acute1_subset, assay = "Xenium_mol", group.by = "gene", 
+vrSpatialPlot(Xen_R1_subset, assay = "Xenium_mol", group.by = "gene", 
               group.ids = c("S2_N", "S2_orf1ab"), pt.size = 0.4) |> 
-  addSpatialLayer(vr2_merged_acute1_subset, assay = "Xenium", group.by = "CellType", 
+  addSpatialLayer(Xen_R1_subset, assay = "Xenium", group.by = "CellType", 
                   plot.segments = TRUE, alpha = 0.7)
 ```
 

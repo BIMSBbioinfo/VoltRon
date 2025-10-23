@@ -466,7 +466,7 @@ table, th, td {
 <p><br></p>
 <div id="working-with-voltron-objects" class="section level1">
 <h1>Working with VoltRon objects</h1>
-<p>In this tutorial, we will cover some of the fundemantel built-in
+<p>In this tutorial, we will cover some of the fundamental built-in
 functions of VoltRon to manage data, images and spatial information of
 assays. Here is the list of example datasets included in the
 Package.</p>
@@ -478,11 +478,11 @@ data(&quot;merged_object&quot;)</code></pre>
 <div id="samplemetadata" class="section level2">
 <h2>Sample Metadata</h2>
 <p>The sample metadata is a summarized data frame which provides
-informations on assays, layers and sample (tissue blocks) included in
-the VoltRon object. You can use the <strong>SampleMetadata</strong>
-function to call this table. The row names are the unique assay IDs,
-following assay types (e.g. Visium), layer name and Sample (typicall
-tissue block with multiple layers and assays).</p>
+information on assays, layers and sample (tissue blocks) included in the
+VoltRon object. You can use the <strong>SampleMetadata</strong> function
+to call this table. The row names are the unique assay IDs, following
+assay types (e.g. Visium), layer name and Sample (typically a tissue
+block with multiple layers and assays).</p>
 <pre class="r watch-out"><code>SampleMetadata(visium_data)</code></pre>
 <pre><code>##         Assay    Layer    Sample
 ## Assay1 Visium Section1 Anterior1</code></pre>
@@ -557,7 +557,7 @@ given in the <strong>Assay</strong> column of
 <pre class="r watch-out"><code>vrAssayNames(melc_data)</code></pre>
 <pre><code>## [1] &quot;Assay1&quot;</code></pre>
 <p>The assay type can be provided with the <strong>assay</strong>
-arguement to get type specific assay IDs</p>
+argument to get type specific assay IDs</p>
 <pre class="r watch-out"><code>vrAssayNames(melc_data, assay = &quot;MELC&quot;)</code></pre>
 <pre><code>## [1] &quot;Assay1&quot;</code></pre>
 <p><br></p>
@@ -598,8 +598,8 @@ and returns its coordinates (if there is any).</p>
 ## GCATGGGTACTGACGC-1_Assay1  87.10844 269.6902 0
 ## AGTCGGCCCAAACGAC-1_Assay1 215.00861 368.6231 0</code></pre>
 <p><br></p>
-<p>The arguements of the <strong>vrSegments</strong> functions are
-idential to vrCoordinates and return a list of polygon corners
+<p>The arguments of the <strong>vrSegments</strong> functions are
+identical to vrCoordinates and return a list of polygon corners
 associated with the coordinate system of the coordinates.</p>
 <pre class="r watch-out"><code>vrSegments(xenium_data)
 vrSegments(xenium_data, assay = &quot;Xenium&quot;)
@@ -660,8 +660,8 @@ href="#samplemetadata">Sample Metadata</a>)</p>
 vrSpatialNames(visium_data, assay = &quot;Assay1&quot;)</code></pre>
 <pre><code>## [1] &quot;main&quot;</code></pre>
 <p><br></p>
-<p>If you wanna see the list of all spatial systems associated with all
-assays of the main assay type, you can call the
+<p>If you want to see the list of all spatial systems associated with
+all assays of the main assay type, you can call the
 <strong>vrMainSpatial</strong> function.</p>
 <pre class="r watch-out"><code>vrMainSpatial(visium_data)</code></pre>
 <pre><code>##    Assay Spatial
@@ -678,8 +678,8 @@ vrMainSpatial(visium_data, assay = &quot;Assay1&quot;)</code></pre>
 <div id="channel-names" class="section level3">
 <h3>Channel Names</h3>
 <p>Each spatial system object (vrSpatial) in VoltRon object can also
-include a indefinite number of channels which you can get (or request) a
-list of for further use.</p>
+include an indefinite number of channels which you can get (or request)
+a list of for further use.</p>
 <pre class="r watch-out"><code>vrImageChannelNames(melc_data)
 vrImageChannelNames(melc_data, assay = &quot;MELC&quot;)
 vrImageChannelNames(melc_data, assay = &quot;Assay1&quot;)</code></pre>
@@ -696,6 +696,13 @@ package)</p>
 <pre class="r watch-out"><code>vrImages(visium_data)
 vrImages(visium_data, assay = &quot;Visium&quot;)
 vrImages(visium_data, assay = &quot;Assay1&quot;)</code></pre>
+<pre><code>## Warning: `aes_string()` was deprecated in ggplot2 3.0.0.
+## ℹ Please use tidy evaluation idioms with `aes()`.
+## ℹ See also `vignette(&quot;ggplot2-in-packages&quot;)` for more information.
+## ℹ The deprecated feature was likely used in the magick package.
+##   Please report the issue at &lt;https://github.com/ropensci/magick/issues&gt;.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.</code></pre>
 <p><img src="voltronobjects_files/figure-html/unnamed-chunk-36-1.png" width="60%" style="display: block; margin: auto;" /></p>
 <!-- <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_HE.png" class="center"> -->
 <p><br></p>
@@ -715,7 +722,7 @@ vrImages(melc_data)</code></pre>
 <p>You can also resize the images as they are being returned. This is
 usually used for visualization purposes and helps speeding up
 visualization for large images. This is accomplished with
-<strong>scale.perc</strong> arguement.</p>
+<strong>scale.perc</strong> argument.</p>
 <pre class="r watch-out"><code>vrImages(melc_data, scale.perc = 25)</code></pre>
 <p><br></p>
 </div>
@@ -833,18 +840,20 @@ this list. However, it would only subset the main assay (see <a
 href="#assays">vrMainAssay</a>)</p>
 <pre class="r watch-out"><code>selected_features &lt;- vrFeatures(visium_data)
 selected_features[1:20]</code></pre>
-<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;       &quot;Mrpl15&quot;        &quot;Lypla1&quot;        &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;      
-## [14] &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;        &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
+<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;       &quot;Mrpl15&quot;       
+## [10] &quot;Lypla1&quot;        &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;        &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot;
+## [19] &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
 <pre class="r watch-out"><code>visium_data_subset &lt;- subset(visium_data, features = selected_features[1:20])
 vrFeatures(visium_data_subset)</code></pre>
-<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;       &quot;Mrpl15&quot;        &quot;Lypla1&quot;        &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;      
-## [14] &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;        &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
+<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;       &quot;Mrpl15&quot;       
+## [10] &quot;Lypla1&quot;        &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;        &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot;
+## [19] &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
 <p><br></p>
 </div>
 <div id="interactive-subsetting" class="section level3">
 <h3>Interactive subsetting</h3>
 <p>VoltRon allows interactively subsetting spatial data. Using the
-arguement <strong>interactive = TRUE</strong>, a mini Shiny app is
+argument <strong>interactive = TRUE</strong>, a mini Shiny app is
 triggered where users can select a bounding box to crop the spatial
 data.</p>
 <pre class="r watch-out"><code>visium_data_subset_info &lt;- subset(visium_data, interactive = TRUE)
@@ -886,7 +895,7 @@ background set to the name of the image (or coordinate system). You can
 get the name of these images from <a
 href="#image">vrSpatialNames</a>.</p>
 <p>If also want to select a channel from the same coordinate system, you
-can set background arguement as a vector of 2 where first is the name of
+can set background argument as a vector of 2 where first is the name of
 the image (coordinate system) and the other would be channel name. You
 can get the name of these channels from <a
 href="#image">vrImageChannelNames</a>.</p>
@@ -901,7 +910,7 @@ to encapsulate the smallest subset that include all spots.</p>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_spcrop.png" class="center"></p>
 <p><br></p>
 <p>The <strong>vrSpatialFeaturePlot</strong> functions the same way as
-vrSpatialPlot but requires extra arguements such as
+vrSpatialPlot but requires extra arguments such as
 <strong>features</strong> for selecting features, <strong>norm</strong>
 for normalized expression (default), and <strong>log</strong> for log
 transformed counts.</p>
@@ -930,9 +939,6 @@ merged_object</code></pre>
 <p>Given the description in the VoltRon object, we can call the molecule
 assay for plotting.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(merged_object, assay = &quot;MolAssay&quot;, group.by = &quot;gene&quot;)</code></pre>
-<pre><code>## Warning: Duplicated `override.aes` is ignored.
-## Duplicated `override.aes` is ignored.
-## Duplicated `override.aes` is ignored.</code></pre>
 <p><img src="voltronobjects_files/figure-html/unnamed-chunk-73-1.png" width="85%" style="display: block; margin: auto;" /></p>
 <p>Now, let us do the same with the ROI Assay.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(merged_object, assay = &quot;ROIAssay&quot;, group.by = &quot;annotation&quot;)</code></pre>
@@ -943,17 +949,13 @@ assay for plotting.</p>
 <p>VoltRon provides automated rasterization of the data to increase
 speed. However, users can manually define the rasterization parameter
 while visualizing the data to create customized density graphs of
-observations. We use the <strong>n.tile</strong> arguement for that.
+observations. We use the <strong>n.tile</strong> argument for that.
 Given the value of the argument, the plot will be divided into chunks
 along both x and y axis.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(merged_object, group.by = &quot;clusters&quot;, n.tile = 40)</code></pre>
-<pre><code>## Warning: Duplicated `override.aes` is ignored.</code></pre>
 <p><img src="voltronobjects_files/figure-html/unnamed-chunk-75-1.png" width="85%" style="display: block; margin: auto;" /></p>
 <p>This apply to molecule datasets too.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(merged_object, assay = &quot;MolAssay&quot;, group.by = &quot;gene&quot;, n.tile = 40)</code></pre>
-<pre><code>## Warning: Duplicated `override.aes` is ignored.
-## Duplicated `override.aes` is ignored.
-## Duplicated `override.aes` is ignored.</code></pre>
 <p><img src="voltronobjects_files/figure-html/unnamed-chunk-76-1.png" width="85%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="multi-layer-spatial-plots" class="section level3">
@@ -982,8 +984,7 @@ the tissue sections along with the cells.</p>
   addSpatialLayer(merged_object, assay = &quot;Assay3&quot;, group.by = &quot;annotation&quot;, alpha = 0.6, 
                   group.ids = c(&quot;Immune&quot;, &quot;DCIS_Subtype1&quot;),
                   color = list(Immune = &quot;blue&quot;, DCIS_Subtype1 = &quot;yellow&quot;))</code></pre>
-<pre><code>## Warning: Duplicated `override.aes` is ignored.
-## Duplicated `override.aes` is ignored.</code></pre>
+<pre><code>## Warning: Duplicated `override.aes` is ignored.</code></pre>
 <p><img src="voltronobjects_files/figure-html/unnamed-chunk-79-1.png" width="70%" style="display: block; margin: auto;" /></p>
 <p><br></p>
 </div>
@@ -1021,7 +1022,7 @@ the VoltRon objects.</p>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_embed.png" class="center"></p>
 <p><br></p>
 <p>The <strong>vrEmbeddingFeaturePlot</strong> functions the same way as
-vrEmbeddingPlot but requires extra arguements such as
+vrEmbeddingPlot but requires extra arguments such as
 <strong>features</strong> for selecting features, <strong>norm</strong>
 for normalized expression (default), and <strong>log</strong> for log
 transformed counts.</p>

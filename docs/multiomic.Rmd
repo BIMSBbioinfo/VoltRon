@@ -44,7 +44,7 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 # Multi-omics Analysis
 
-VoltRon is a end-to-end spatial multi-omics platform that enables both automated and manual data alignment workflows to synchronize coordinate frameworks across spatial omics assays. However, upon harmonization of the spatial observations, VoltRon can be used to further transfer and integrate information across omic datasets captured on same and adjacent tissue sections. These assays are not just limited to datasets with single cell and spot resolutions but also to assays solely composed of molecule and image tile observations.
+VoltRon is an end-to-end spatial multi-omics platform that enables both automated and manual data alignment workflows to synchronize coordinate frameworks across spatial omics assays. However, upon harmonization of the spatial observations, VoltRon can be used to further transfer and integrate information across omics datasets captured on same and adjacent tissue sections. These assays are not just limited to datasets with single cell and spot resolutions but also to assays solely composed of molecule and image tile observations.
 
 Below, we demonstrate data integration capabilities of VoltRon across distinct modalities using several use cases. In the [Spatial Data Alignment](registration.html), we have highlighted several scenarios to align spatial assays within tissue blocks. However in this tutorial, we demonstrate analysis starting with data alignment and further downstream data integration. 
 
@@ -52,9 +52,9 @@ Below, we demonstrate data integration capabilities of VoltRon across distinct m
 
 ## Xenium COVID-19 Lung Data 
 
-Xenium in situ platform is compatible with H&E and immunofluorescence imaging , thus researchers can stain whole slides post-Xenium to capture additional information on the morphology of the tissue and integrate it with the Xenium readouts. In this usecase, we would like to integrate the post-Xenium H&E image of tissue micro array sections composed of control and COVID-19 lung biopsy punches. Our objective is to asses the localization of SARS-COV-2 virus molecules by integrating pathology image annotations. 
+Xenium in situ platform is compatible with H&E and immunofluorescence imaging , thus researchers can stain whole slides post-Xenium to capture additional information on the morphology of the tissue and integrate it with the Xenium readouts. In this use case, we would like to integrate the post-Xenium H&E image of tissue micro array sections composed of control and COVID-19 lung biopsy punches. Our objective is to asses the localization of SARS‑CoV‑2 virus molecules by integrating pathology image annotations. 
 
-VoltRon is capable of analyzing molecule-level subcellular datasets independent of single cells, and specifically those that may also found outside of these cells. The Xenium run was performed with custom Xenium probes designed to hybridize distinct open reading frames of SARS-COV-2 virus molecules. These subcellular entities which then can be detected both within and outside of cells which allows to understand proliferation mechanics of the virus across the tissue. By aligning the image and the associated pathology annotations of the postXenium H&E of this slide, we can transfer labels of annotations to Xenium cells and molecules, thus inferring the abundance of viral RNA further. 
+VoltRon is capable of analyzing molecule-level subcellular datasets independent of single cells, and specifically those that may also found outside of these cells. The Xenium run was performed with custom Xenium probes designed to hybridize distinct open reading frames of SARS‑CoV‑2 virus molecules. These subcellular entities which then can be detected both within and outside of cells which allows to understand proliferation mechanics of the virus across the tissue. By aligning the image and the associated pathology annotations of the post-Xenium H&E of this slide, we can transfer labels of annotations to Xenium cells and molecules, thus inferring the abundance of viral RNA further. 
 
 We analyse readouts of **eight tissue micro array (TMA) tissue sections** that were fitted into the scan area of a slide loaded on a Xenium in situ instrument. These sections were cut from **control and COVID-19 lung tissues** of donors categorized based on disease durations (acute and prolonged). You can download the standard Xenium output folder [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Xenium_SARSCOV2.zip). For more information on the TMA blocks, see [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information. 
 
@@ -99,7 +99,7 @@ vrSpatialPlot(vr2_merged_acute1, assay = "Xenium_mol", group.by = "gene",
 
 <br>
 
-We can even zoom into specific locations at the tissue to investigate virus particles more closely by droping the **n.tile** argument and calling interactive visualization.
+We can even zoom into specific locations at the tissue to investigate virus particles more closely by dropping the **n.tile** argument and calling interactive visualization.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrSpatialPlot(vr2_merged_acute1, assay = "Xenium_mol", group.by = "gene", 
@@ -173,7 +173,7 @@ Assays: ImageData(Main) ROIAnnotation
 Features: main(Main) 
 ```
 
-By visualizing these annotations interactively, we can see that the ROIs point to the hyaline membranes. Here, we likely find extra-cellular SARS-COV-2 molecules mostly outside of any single cell.
+By visualizing these annotations interactively, we can see that the ROIs point to the hyaline membranes. Here, we likely find extra-cellular SARS‑CoV‑2 molecules mostly outside of any single cell.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrSpatialPlot(imgdata, assay = "ROIAnnotation", group.by = "Sample", 
@@ -300,7 +300,7 @@ Metadata(vr2_merged_acute1, assay = "Xenium_mol")
 785791: 281874408673882_cb791e   Assay8                0   S2_N 40.00000 Xenium_mol Section1 acute case 1 undefined</code></pre></div>
 <br>
 
-This annotations can be accessed from the default molecule level metadata of the VoltRon object.
+These annotations can be accessed from the default molecule level metadata of the VoltRon object.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrMainAssay(vr2_merged_acute1) <- "Xenium_mol"
@@ -314,7 +314,7 @@ head(table(vr2_merged_acute1$Region))
 
 <br>
 
-Now we will grab these annotations from molecule metadata and calculate the ratio of N to orf1ab frequency of SARS-COV-2 particles across all annotated molecules.
+Now we will grab these annotations from molecule metadata and calculate the ratio of N to orf1ab frequency of SARS‑CoV‑2 particles across all annotated molecules.
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(dplyr)
@@ -456,7 +456,7 @@ odds ratio
 
 ## Xenium Breast Cancer Data 
 
-VoltRon allows analyzing biological images, such as H&E stainings of tissue sections, independant to omics assays on either the same or adjacent tissue section. VoltRon defines image tiles, which are collections of image pixels of the same size, and generate latent variables that are analyzed downstream. Unsupervised clustering of these tiles partition regions over the image with respect to morphological features. Here, these regions might be associated to tumor, immune or strama niches can then be transfered to cells in the same tissue section learn collections of cells with similar features. 
+VoltRon allows analyzing biological images, such as H&E stainings of tissue sections, independant to omics assays on either the same or adjacent tissue section. VoltRon defines image tiles, which are collections of image pixels of the same size, and generate latent variables that are analyzed downstream. Unsupervised clustering of these tiles partition regions over the image with respect to morphological features. Here, these regions might be associated to tumor, immune or stroma niches can then be transfered to cells in the same tissue section learn collections of cells with similar features. 
 
 We will use the **H&E images** generated from the same sections as the **Xenium In Situ** platform, and cluster tiles of the H&E to later transfer groups of tiles to Xenium cells. 
 
@@ -571,7 +571,7 @@ vrImages(Xen_R1_merged[["Assay2"]], name = "main_reg", channel = "H&E") <-
   vrImages(Xen_R1_merged, assay = "Assay1")
 ```
 
-You can visualize the transferred tile labels in two different spatial coordinate systems and with different images (DAPI, H&E etc.) using **spatial** and **channel** arguements, respectively.
+You can visualize the transferred tile labels in two different spatial coordinate systems and with different images (DAPI, H&E etc.) using **spatial** and **channel** arguments, respectively.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrMainAssay(Xen_R1_merged) <- "Xenium"

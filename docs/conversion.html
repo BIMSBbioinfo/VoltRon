@@ -468,7 +468,7 @@ popular computational platforms such as <a
 href="https://satijalab.org/seurat/">Seurat</a>, <a
 href="https://squidpy.readthedocs.io/en/stable/">Squidpy</a> and even <a
 href="http://vitessce.io/docs/data-file-types/#anndata-zarr">Zarr</a>
-for interactive spatial data visualizatiob with <a
+for interactive spatial data visualization with <a
 href="http://vitessce.io/">Vitessce</a>.</p>
 <p>For both <strong>Seurat (R)</strong> and <strong>Squidpy
 (Python)</strong>, we analyse readouts of the experiments conducted on
@@ -715,8 +715,8 @@ Assay2 Xenium Section1 XeniumR2</code></pre>
 <div id="interactive-visualization" class="section level3">
 <h3>Interactive Visualization</h3>
 <p>Now we can convert the VoltRon object into a zarr array using the
-<strong>as.Zarr</strong> function which will create the array in a
-specified location.</p>
+<strong>as.AnnData</strong> function which will create the AnnData
+object as a zarr array in the specified location.</p>
 <pre class="r watch-out"><code>as.AnnData(Xen_data, assays = &quot;Assay1&quot;, 
            file = &quot;xendata_clustered_annotated.zarr&quot;, flip_coordinates = TRUE)</code></pre>
 <p>We can use the zarr file directly in the

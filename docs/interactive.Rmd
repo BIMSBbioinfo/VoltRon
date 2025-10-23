@@ -37,7 +37,7 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 # Interactive Annotation
 
-**VoltRon** includes interactive applications to select and manually label spatial points by drawing polygons and circles. As an example, we will use a Spot-based spatial transcriptomic assay, specifically the **Mouse Brain Serial Section 1/2** datasets, analyzed in the [Niche Clustering](nicheclustering.html) tutorial. You can find the already analyzed data stored as a VoltRon object [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/NicheClustering/Visium&Visium_data_decon_analyzed.rds)
+**VoltRon** includes interactive applications to select and manually label spatial points by drawing polygons and circles. As an example, we will use a Spot-based spatial transcriptomics assay, specifically the **Mouse Brain Serial Section 1/2** datasets, analyzed in the [Niche Clustering](nicheclustering.html) tutorial. You can find the already analyzed data stored as a VoltRon object [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/NicheClustering/Visium&Visium_data_decon_analyzed.rds)
 
 ```{r class.source="watch-out", eval = FALSE}
 MBrain_Sec <- readRDS("Visium&Visium_data_decon_analyzed.rds")
@@ -54,7 +54,7 @@ MBrain_Sec <- annotateSpatialData(MBrain_Sec, assay = "Assay1",
 
 <br>
 
-Here, **annotateSpatialData** function not only labels spots with within regions of interests (ROIs) selected by the user, but also records these regions in ROI assays within the same layer of the annotated Visium assay. The new assay type will be given the name **ROIAnnotations** if otherwise not specified using the **annotation_assay** arguement in the function.
+Here, **annotateSpatialData** function not only labels spots with within regions of interests (ROIs) selected by the user, but also records these regions in ROI assays within the same layer of the annotated Visium assay. The new assay type will be given the name **ROIAnnotations** if otherwise not specified using the **annotation_assay** argument in the function.
 
 ```{r class.source="watch-out", eval = FALSE}
 MBrain_Sec 
@@ -123,7 +123,7 @@ vrSpatialPlot(MBrain_Sec, assay = "Assay1", group.by = "clusters") |>
 
 VoltRon incorporates utilities 
 
-* **(i)** to convert VoltRon objects into other spatial data objects and files that could be used platforms, and 
+* **(i)** to convert VoltRon objects into other spatial data objects and files that could be used by platforms, and 
 * **(ii)** to incorporate wrapper functions to call methods from package that achieves interactive visualization
 
 <br>
@@ -139,16 +139,17 @@ if (!require("vitessceR", quietly = TRUE))
     devtools::install_github("Artur-man/vitessceR")
 ```
 
-We can convert the VoltRon object into an anndata object and save it as a a zarr array using the **as.AnnData** function which will create the array in the specified location. We use the **flip_coordinates=TRUE** argument to flip the coordinates of cells vertically, hence match it with the top to bottom system of the background DAPI image. Also, we can save an OMETIFF file of the DAPI image using **create.ometiff** arguement to be used by vitessceR later.
+We can convert the VoltRon object into an AnnData object and save it as a a zarr array using the **as.AnnData** function which will create the array in the specified location. We use the **flip_coordinates=TRUE** argument to flip the coordinates of cells vertically, hence match it with the top to bottom system of the background DAPI image. Also, we can save an OMETIFF file of the DAPI image using **create.ometiff** argument to be used by vitessceR later.
 
 ```{r class.source="watch-out", eval = FALSE}
+data(xenium_data)
 xenium_data <- as.AnnData(xenium_data, file = "xenium_data.zarr", assay = "Xenium", 
                           flip_coordinates = TRUE, create.ometiff = TRUE)
 ```
 
 <br>
 
-We can use the zarr file directly in the **vrSpatialPlot** function to visualize the zarr array interactively in Rstudio viewer. The **reduction** arguement allows the umap of the Xenium data to be visualized alongside with the spatial coordinates of the Xenium cells (thus associated cell segmentations).
+We can use the zarr file directly in the **vrSpatialPlot** function to visualize the zarr array interactively in Rstudio viewer. The **reduction** argument allows the umap of the Xenium data to be visualized alongside with the spatial coordinates of the Xenium cells (thus associated cell segmentations).
 
 ```{r class.source="watch-out", eval = FALSE}
 vrSpatialPlot("xenium_data.zarr", group.by = "clusters", reduction = "umap")
@@ -166,9 +167,10 @@ The vitessce application in the viewer pane allows visualizing background DAPI i
 
 ## TissUUmaps
 
-To use **TissUUmaps** for interactive investigation of your spatial omic data, we first need to convert the VoltRon object into an anndata object. However, this time we save the anndata object as an h5ad array using again the **as.AnnData** function which will create the array in the specified location. We use the **flip_coordinates=TRUE** argument to flip the coordinates of cells vertically, hence match it with the top to bottom system of the background DAPI image. 
+To use **TissUUmaps** for interactive investigation of your spatial omics data, we first need to convert the VoltRon object into an AnnData object. However, this time we save the AnnData object as an h5ad array using again the **as.AnnData** function which will create the array in the specified location. We use the **flip_coordinates=TRUE** argument to flip the coordinates of cells vertically, hence match it with the top to bottom system of the background DAPI image. 
 
 ```{r class.source="watch-out", eval = FALSE}
+data(xenium_data)
 as.AnnData(xenium_data, file = "xenium_data.h5ad", assay = "Xenium", flip_coordinates = TRUE)
 ```
 

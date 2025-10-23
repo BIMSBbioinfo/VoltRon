@@ -37,11 +37,11 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 # Disk-backed Analysis
 
-Emerging spatial omics instruments are capable of generating million of cells and transcripts as well as large high-resolution images. Existing software packages mostly use default in-memory storage (provided by built-in R objects) for both feature vs observations matrices and biological images of spatial omic datasets, however this approach both slow and inefficient. A common alternative is to use novel disk-backed data objects in R that allow data to sit in the disk, while efficiently stream data to memory for processing and analysis. 
+Emerging spatial omics instruments are capable of generating millions of cells and transcripts as well as large high-resolution images. Existing software packages mostly use default in-memory storage (provided by built-in R objects) for both feature vs observations matrices and biological images of spatial omics datasets, however this approach both slow and inefficient. A common alternative is to use novel disk-backed data objects in R that allow data to sit in the disk, while efficiently stream data to memory for processing and analysis. 
 
-We use **BPCells** and **ImageArray** packages to store large feature matrices and images to accelerate operations. Here **BPCells** allows users access and operate on large feature matrices or clustering/spatial analysis, while **ImageArray** provides [pyramids images](https://en.wikipedia.org/wiki/Pyramid_(image_processing)) to allow fast access to large microscopy images. 
+We use **BPCells** and **ImageArray** packages to store large feature matrices and images to accelerate operations. Here **BPCells** allows users access and operate on large feature matrices or clustering/spatial analysis, while **ImageArray** provides [image pyramids](https://en.wikipedia.org/wiki/Pyramid_(image_processing)) to allow fast access to large microscopy images. 
 
-You can download these package from GitHub using **devtools**:
+You can download these packages from GitHub using **devtools**:
 
 ```{r class.source="watch-out", eval = FALSE}
 devtools::install_github("bnprks/BPCells/r")
@@ -63,7 +63,7 @@ if(!requireNamespace("rhdf5"))
   BiocManager::install("rhdf5")
 ```
 
-We use the **importVisiumHD** function to start analyzing the data. The data has 393401 spots which we will use OnDisk-backed methods to efficiently manipulate, analyze and visualize these spots.
+We use the **importVisiumHD** function to start analyzing the data. The data has 393401 spots which we will use disk-backed methods to efficiently manipulate, analyze and visualize these spots.
 
 The VisiumHD readouts provide multiple bin sizes which are aggregated versions of the original 2$\mu$m $x$ 2$\mu$m capture spots. The default bin sizes are **(i)** 2$\mu$m $x$ 2$\mu$m, **(ii)** 8$\mu$m $x$ 8$\mu$m and **(iii)** 16$\mu$m $x$ 16$\mu$m.
 
@@ -187,15 +187,15 @@ vrSpatialFeaturePlot(Xen_R1, features = c("Dsc3", "Clec4f", "Gfap"), n.tile = 40
 We now learn PCA and UMAP embeddings of the mouse data, and cluster using shared nearest neighbor (SNN) graph.
 
 ```{r class.source="watch-out", eval = FALSE}
-Xen_R1_disk <- getPCA(Xen_R1_disk, dims = 30)
-Xen_R1_disk <- getUMAP(Xen_R1_disk, dims = 1:30)
-Xen_R1_disk <- getProfileNeighbors(Xen_R1_disk, dims = 1:30, k = 10, method = "SNN")
-Xen_R1_disk <- getClusters(Xen_R1_disk, resolution = 0.7, label = "Clusters", graph = "SNN")
+Xen_R1 <- getPCA(Xen_R1, dims = 30)
+Xen_R1 <- getUMAP(Xen_R1, dims = 1:30)
+Xen_R1 <- getProfileNeighbors(Xen_R1, dims = 1:30, k = 10, method = "SNN")
+Xen_R1 <- getClusters(Xen_R1, resolution = 0.7, label = "Clusters", graph = "SNN")
 
 library(patchwork)
-g1 <- vrSpatialPlot(Xen_R1_disk, group.by = "Clusters", n.tile = 400, 
+g1 <- vrSpatialPlot(Xen_R1, group.by = "Clusters", n.tile = 400, 
                     alpha = 1, legend.loc = "none")
-g2 <- vrEmbeddingPlot(Xen_R1_disk, group.by = "Clusters", embedding = "umap")
+g2 <- vrEmbeddingPlot(Xen_R1, group.by = "Clusters", embedding = "umap")
 g1 | g2
 ```
 
