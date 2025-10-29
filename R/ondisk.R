@@ -1554,7 +1554,7 @@ setMethod(
     if (!all(grepl("No Channels", channels))) {
       for (ch in channels) {
         img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
-        for (i in seq_len(length(img@series))) {
+        for (i in seq_len(length(img@levels))) {
           img[[i]] <- .modify_seeds(img[[i]], function(x) {
             .shorten_assay_links_data(x)
           })
@@ -1708,7 +1708,7 @@ setMethod(
       for (ch in channels) {
         img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
         # TODO: for now length method for ImageArray
-        for (i in seq_len(length(img@series))) {
+        for (i in seq_len(length(img@levels))) {
           img[[i]] <- .modify_seeds(img[[i]], function(x) {
             .restore_absolute_links(x, dir)
           })
