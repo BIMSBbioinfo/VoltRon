@@ -1606,7 +1606,7 @@ demuxVoltRon <- function(
     if (max(imageinfo$height, imageinfo$width) > max.pixel.size) {
       # scale keypoints
       if (inherits(images, "ImgArray")) {
-        n.series <- length(images@series)
+        n.series <- length(images@levels)
         cur_width <- imageinfo$width
         cur_height <- imageinfo$height
         for (ii in 2:n.series) {
