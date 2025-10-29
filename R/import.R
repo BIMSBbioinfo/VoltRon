@@ -3036,17 +3036,6 @@ importImageData <- function(
 #' @importFrom magick image_read image_info
 #' @importFrom data.table data.table
 #'
-#' @examples
-#' # single image
-#' imgfile <- system.file("extdata", "DAPI.tif", package = "VoltRon")
-#' vrdata <- importImageData(imgfile, image_name = "main")
-#'
-#' # multiple images
-#' imgfile <- c(system.file("extdata", "DAPI.tif", package = "VoltRon"),
-#'              system.file("extdata", "DAPI.tif", package = "VoltRon"))
-#' vrdata <- importImageData(imgfile, image_name = "main",
-#'                                    channel_name = c("DAPI", "DAPI2"))
-#'
 #' @export
 importQuPathIF <- function(
     measurements,
