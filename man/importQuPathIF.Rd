@@ -39,15 +39,3 @@ pyramidal image, typically an integer starting from 1}
 \description{
 import an QuPath-quantified IF assay as VoltRon object
 }
-\examples{
-# single image
-imgfile <- system.file("extdata", "DAPI.tif", package = "VoltRon")
-vrdata <- importImageData(imgfile, image_name = "main")
-
-# multiple images
-imgfile <- c(system.file("extdata", "DAPI.tif", package = "VoltRon"),
-             system.file("extdata", "DAPI.tif", package = "VoltRon"))
-vrdata <- importImageData(imgfile, image_name = "main",
-                                   channel_name = c("DAPI", "DAPI2"))
-
-}
