@@ -3020,6 +3020,119 @@ importImageData <- function(
   }
 }
 
+#' importImageData
+#'
+#' import an QuPath-quantified IF assay as VoltRon object
+#'
+#' @param measurements measurements
+#' @param image a single or a list of image paths or magick-image objects
+#' @param segments Either a list of segments or a GeoJSON file. This will
+#' result in a second assay in the VoltRon object to be created
+#' @param image_name the image name of the Image assay, Default: main
+#' @param channel_names the channel names of the images if multiple
+#' images are provided
+#' @param channels the integer indices of the channels to be parsed from
+#' ome.tiff files.
+#' @param series the series IDs of the pyramidal image,
+#' typically an integer starting from 1
+#' @param resolution the resolution IDs of the
+#' pyramidal image, typically an integer starting from 1
+#' @param ... additional parameters passed to \link{formVoltRon}
+#'
+#' @importFrom magick image_read image_info
+#' @importFrom data.table data.table
+#'
+#' @examples
+#' # single image
+#' imgfile <- system.file("extdata", "DAPI.tif", package = "VoltRon")
+#' vrdata <- importImageData(imgfile, image_name = "main")
+#'
+#' # multiple images
+#' imgfile <- c(system.file("extdata", "DAPI.tif", package = "VoltRon"),
+#'              system.file("extdata", "DAPI.tif", package = "VoltRon"))
+#' vrdata <- importImageData(imgfile, image_name = "main",
+#'                                    channel_name = c("DAPI", "DAPI2"))
+#'
+#' @export
+importQuPathIF <- function(
+    measurements,
+    image,
+    segments,
+    image_name = "main",
+    channel_names = NULL,
+    channels = NULL,
+    series = 1,
+    resolution = NULL,    
+    ...
+) {
+  
+  # # images and channel names
+  # image <- importImage(
+  #   image = image,
+  #   channel_names = channel_names,
+  #   channels = channels,
+  #   series = series,
+  #   resolution = resolution,
+  #   is.RGB = FALSE
+  # )
+  
+  # rawdata
+  rawdata <- read.table(file = measurements, header = TRUE)
+  rawdata <- t(rawdata)
+  
+  # check if segments are paths
+  if (inherits(segments, "character")) {
+    if (grepl(".geojson$", segments)) {
+      segments <- generateSegments(geojson.file = segments)
+      segments <- segments[-1]
+    } else {
+      stop("Only lists or GeoJSON files are accepted as segments input!")
+    }
+  }
+  
+  # check dimensions
+  if(length(segments) != ncol(rawdata))
+    stop("")
+  
+  # make coordinates out of segments
+  coords <- t(vapply(
+    segments,
+    function(dat) {
+      apply(dat[, c("x", "y")], 2, mean)
+    },
+    numeric(2)
+  ))
+  rownames(coords) <- names(segments)
+  
+  # assign cell names
+  cellID <- paste0("Cell", 1:length(segments))
+  metadata <- data.table::data.table(id = cellID)
+  colnames(rawdata) <- cellID
+  names(segments) <- cellID
+  rownames(coords) <- cellID
+
+  # create voltron object with tiles
+  object <- formVoltRon(
+    data = rawdata,
+    metadata = metadata,
+    # image = image,
+    coords,
+    main.assay = "IF",
+    assay.type = "cell",
+    image_name = image_name,
+    ...
+  )
+  
+  # flip coordinates
+  object <- flipCoordinates(object)
+  
+  return(object)
+}
+
+####
+# Auxiliary ####
+####
+
 #' importImage
 #'
 #' import an image to be used in \code{importImageData}
