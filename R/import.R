@@ -3151,13 +3151,6 @@ importImage <- function(
   resolution = NULL,
   is.RGB = TRUE
 ) {
-  # images and channel names
-  if (!is.null(channels)) {
-    if (any(!is.character(channels))) {
-      stop("Invalid channel names!")
-    }
-  }
-  
   # check if image is ome.tiff
   if (is.character(image)) {
     if (any(grepl(".ome.tiff$|.ome.tif$", image))) {
@@ -3435,19 +3428,24 @@ generateGeoJSON <- function(segments, file) {
     message("'channels' is NULL, thus all channels will be parsed ...")
     channelIDs <- seq_len(sizeC)
   } else {
-    # check character
-    if (!all(is.character(channels))) {
-      stop("channels should be integer values!")
-    }
+    # check length
     if (sizeC < length(channels)) {
       stop("Number of channels do not match with requested channels!")
     }
     
-    # get channel IDs
-    channel_names <- getOmeTiffChannels(img)
-    channelIDs <- vapply(channels, 
-                         function(x) which(channel_names %in% x)[1],
-                         numeric(1))
+    # check character
+    if (all(is.character(channels))) {
+      # get channel IDs
+      channel_names <- getOmeTiffChannels(img)
+      channelIDs <- vapply(channels, 
+                           function(x) which(channel_names %in% x)[1],
+                           numeric(1))
+    } else if(all(channels %% 1 == 0)){
+      channelIDs <- channels
+    } else {
+      stop("Invalid channel names! ",
+           "Please enter a vector of channel names or integers")
+    }
   }
   
   # return
