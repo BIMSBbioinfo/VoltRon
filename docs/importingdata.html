@@ -1186,6 +1186,43 @@ vrImages(vr_object, name = &quot;MELC&quot;, channel = &quot;CD45&quot;)</code><
 </table>
 <p></br></p>
 </div>
+<div id="multiplex-if-qupath" class="section level2">
+<h2>Multiplex IF (QuPath)</h2>
+<p>VoltRon supports the analysis of clustering cells captured from
+multiplex immunofluorescence (IF) experiment that typically captured and
+stored in ome.tiff and/or qptiff files of high-resolution images. To
+process and segment single cells as well as quantifying intensity of
+protein markers, we can use <a
+href="https://qupath.github.io/">QuPath</a> software. Extensions of
+QuPath such as InstanSeg and StarDist could be used to process images,
+which we then import into VoltRon to build multiple IF assays.</p>
+<p>QuPath allows you do select an ROI, and then the users can go to
+<strong>Extensions -&gt; InstanSeg -&gt; Run InstanSeg</strong>. The
+pane of InstanSeg let you choose the model for segmentation, device (mps
+and cuda for gpu support) and the channels to learn the segmentation and
+calculating features. Once complete, <strong>(i)</strong> the feature x
+segments (cell) matrix can be exported from <strong>Measurements -&gt;
+Show Detection Measurements -&gt; save* as a text file, </strong>(ii)**
+the segments are exported from <strong>Export objects as
+GeoJSON</strong> excluding measurements and exporting as
+FeatureCollection.</p>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/import_qupath.png" class="center"></p>
+<p>With these files, we can use the <strong>importQuPathIF</strong>
+function to import the data as a VoltRon object. You can select the
+resolution of the channels using <strong>series</strong> and
+<strong>resolution</strong> parameters which will pick the desired level
+from the ome.tiff file.</p>
+<pre class="r watch-out"><code>adj_vr &lt;- importQuPathIF(measurements = &quot;measurements.txt&quot;,
+                         segments = &quot;measurements.geojson&quot;, 
+                         image = &quot;if_exp.ome.tif&quot;, 
+                         channels = c(&quot;DAPI&quot;, &quot;CD20&quot;, &quot;CD21&quot;), 
+                         series = 1,
+                         resolution = 1, 
+                         sample_name = &quot;IFdata&quot;)</code></pre>
+<p>You can use the following function to get the names of all channels
+in the ome.tiff file</p>
+<pre class="r watch-out"><code>getOmeTiffChannels(if_exp.ome.tif)</code></pre>
+</div>
 <div id="image-only-voltron-objects" class="section level2">
 <h2>Image-only VoltRon objects</h2>
 <p>With VoltRon we can also build objects where pixels (or tiles) are

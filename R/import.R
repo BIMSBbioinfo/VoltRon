@@ -2882,10 +2882,8 @@ importDBITSeq <- function(
 #' @param segments Either a list of segments or a GeoJSON file. This will
 #' result in a second assay in the VoltRon object to be created
 #' @param image_name the image name of the Image assay, Default: main
-#' @param channel_names the channel names of the images if multiple
+#' @param channels the channel names of the images if multiple
 #' images are provided
-#' @param channels the integer indices of the channels to be parsed from
-#' ome.tiff files.
 #' @param series the series IDs of the pyramidal image,
 #' typical an integer starting from 1
 #' @param resolution the resolution IDs of the
@@ -2906,7 +2904,7 @@ importDBITSeq <- function(
 #' imgfile <- c(system.file("extdata", "DAPI.tif", package = "VoltRon"),
 #'              system.file("extdata", "DAPI.tif", package = "VoltRon"))
 #' vrdata <- importImageData(imgfile, image_name = "main",
-#'                                    channel_name = c("DAPI", "DAPI2"))
+#'                                    channels = c("DAPI", "DAPI2"))
 #'
 #' @export
 importImageData <- function(
@@ -2914,7 +2912,6 @@ importImageData <- function(
   tile.size = 10,
   segments = NULL,
   image_name = "main",
-  channel_names = NULL,
   channels = NULL,
   series = 1,
   resolution = NULL,
@@ -2924,7 +2921,6 @@ importImageData <- function(
   # images and channel names
   image <- importImage(
     image = image,
-    channel_names = channel_names,
     channels = channels,
     series = series,
     resolution = resolution,
@@ -3029,10 +3025,8 @@ importImageData <- function(
 #' @param segments Either a list of segments or a GeoJSON file. This will
 #' result in a second assay in the VoltRon object to be created
 #' @param image_name the image name of the Image assay, Default: main
-#' @param channel_names the channel names of the images if multiple
+#' @param channels the channel names of the images if multiple
 #' images are provided
-#' @param channels the integer indices of the channels to be parsed from
-#' ome.tiff files.
 #' @param series the series IDs of the pyramidal image,
 #' typically an integer starting from 1
 #' @param resolution the resolution IDs of the
@@ -3059,22 +3053,20 @@ importQuPathIF <- function(
     image,
     segments,
     image_name = "main",
-    channel_names = NULL,
     channels = NULL,
     series = 1,
     resolution = NULL,    
     ...
 ) {
   
-  # # images and channel names
-  # image <- importImage(
-  #   image = image,
-  #   channel_names = channel_names,
-  #   channels = channels,
-  #   series = series,
-  #   resolution = resolution,
-  #   is.RGB = FALSE
-  # )
+  # images and channel names
+  image <- importImage(
+    image = image,
+    channels = channels,
+    series = series,
+    resolution = resolution,
+    is.RGB = FALSE
+  )
   
   # rawdata
   rawdata <- read.table(file = measurements, header = TRUE)
@@ -3115,8 +3107,8 @@ importQuPathIF <- function(
   object <- formVoltRon(
     data = rawdata,
     metadata = metadata,
-    # image = image,
-    coords,
+    image = image,
+    coords = coords,
     main.assay = "IF",
     assay.type = "cell",
     image_name = image_name,
@@ -3138,10 +3130,8 @@ importQuPathIF <- function(
 #' import an image to be used in \code{importImageData}
 #'
 #' @param image a single or a list of image paths or magick-image objects
-#' @param channel_names the channel names of the images if multiple images 
+#' @param channels the channel names of the images if multiple images 
 #' are provided
-#' @param channels the integer indices of the channels to be parsed from
-#' ome.tiff files.
 #' @param series the series IDs of the pyramidal image,
 #' typical an integer starting from 1
 #' @param resolution the resolution IDs of the
@@ -3156,28 +3146,18 @@ importQuPathIF <- function(
 #' @noRd
 importImage <- function(
   image,
-  channel_names = NULL,
   channels = NULL,
   series = 1,
   resolution = NULL,
   is.RGB = TRUE
 ) {
   # images and channel names
-  if (!is.null(channel_names)) {
-    if (length(image) != length(channel_names)) {
-      if(!is.null(channels)){
-        if(length(channels) != length(channel_names))
-          stop("Provided channel names should of ", 
-               "the same length as the requested channels!")
-      } else {
-        stop("Provided channel names should of ", 
-             "the same length as the images!")      }
-    }
-    if (any(!is.character(channel_names))) {
+  if (!is.null(channels)) {
+    if (any(!is.character(channels))) {
       stop("Invalid channel names!")
     }
   }
-
+  
   # check if image is ome.tiff
   if (is.character(image)) {
     if (any(grepl(".ome.tiff$|.ome.tif$", image))) {
@@ -3215,12 +3195,9 @@ importImage <- function(
         if (file.exists(img)) {
           # ome.tiff images
           if (grepl(".ome.tiff$|.ome.tif$", img)) {
-            omexml <- RBioFormats::read.omexml(img)
-            omexml <- XML::xmlToList(omexml, simplify = TRUE)
-            meta <- RBioFormats::read.metadata(img)
             # check image channel size
-            channels <- .checkOmeTiffChannels(
-              meta,
+            channelIDs <- .checkOmeTiffChannels(
+              img,
               series,
               resolution,
               channels
@@ -3231,7 +3208,7 @@ importImage <- function(
               series = series,
               resolution = resolution,
               normalize = TRUE, 
-              subset = list(C=channels)
+              subset = list(C=channelIDs)
             )
             img <- EBImage::as.Image(img)
             # check if there are more than 3 or 1 channels
@@ -3270,9 +3247,9 @@ importImage <- function(
   image <- unlist(image, recursive = FALSE)
 
   # channel names
-  if (!is.null(channel_names)) {
-    if (length(image) == length(channel_names)) {
-      names(image) <- channel_names
+  if (!is.null(channels)) {
+    if (length(image) == length(channels)) {
+      names(image) <- channels
     } else {
       stop("Provided channel_names should be the same length as the images!")
     }
@@ -3428,10 +3405,23 @@ generateGeoJSON <- function(segments, file) {
   sf::st_write(gdf, file, append = FALSE)
 }
 
-.checkOmeTiffChannels <- function(meta.data, series, resolution, channels) {
+#' @noRd
+.checkOmeTiffChannels <- function(img, series, resolution, channels) {
+  
+  # check package
+  if (!requireNamespace('RBioFormats')) {
+    stop(
+      "Please install RBioFormats to read ome tiff channels!: ",
+      "BiocManager::install('RBioFormats')"
+    )
+  }
+  
+  # get metadata
+  omexml <- RBioFormats::read.omexml(img)
+  meta <- RBioFormats::read.metadata(img)
   
   # find channel size given series and resolution
-  meta_list <- slot(meta.data, name = ".Data")
+  meta_list <- slot(meta, name = ".Data")
   for (i in seq_len(length(meta_list))) {
     cur_meta <- meta_list[[i]]$coreMetadata
     if (cur_meta$series == series && cur_meta$resolutionLevel == resolution) {
@@ -3440,18 +3430,59 @@ generateGeoJSON <- function(segments, file) {
     }
   }
   
-  # checn channels
+  # check channels
   if (is.null(channels)) {
     message("'channels' is NULL, thus all channels will be parsed ...")
-    channels <- seq_len(sizeC)
+    channelIDs <- seq_len(sizeC)
   } else {
-    # check integer indices
-    if (!all(channels %% 1 == 0)) {
+    # check character
+    if (!all(is.character(channels))) {
       stop("channels should be integer values!")
     }
-    if (sizeC < max(channels)) {
+    if (sizeC < length(channels)) {
       stop("Number of channels do not match with requested channels!")
     }
+    
+    # get channel IDs
+    channel_names <- getOmeTiffChannels(img)
+    channelIDs <- vapply(channels, 
+                         function(x) which(channel_names %in% x)[1],
+                         numeric(1))
   }
-  channels
+  
+  # return
+  channelIDs
+}
+
+#' getOmeTiffChannels
+#'
+#' Function that returns the channel names of an image in a ome.tiff file
+#'
+#' @param ome.tiff location to ome.tiff file
+#'
+#' @export
+getOmeTiffChannels <- function(ome.tiff){
+  
+  # check package
+  if (!requireNamespace('RBioFormats')) {
+    stop(
+      "Please install RBioFormats to read ome tiff channels!: ",
+      "BiocManager::install('RBioFormats')"
+    )
+  }
+  if (!requireNamespace('XML')) {
+    stop(
+      "Please install XML package to read ome tiff channels!: ",
+      "BiocManager::install('XML')"
+    )
+  }
+  
+  # xml
+  omexml <- RBioFormats::read.omexml(ome.tiff)
+  doc <- XML::xmlParse(omexml)
+  ns <- c(ome = "http://www.openmicroscopy.org/Schemas/OME/2016-06")
+  channels <- XML::getNodeSet(doc, "//ome:Image[1]/ome:Pixels/ome:Channel", 
+                              namespaces = ns)
+  channel_names <- sapply(channels, function(x) XML::xmlGetAttr(x, "Name"))
+  channel_names
 }
