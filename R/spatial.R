@@ -472,7 +472,7 @@ getHotSpotAnalysis <- function(
         if ("id" %in% colnames(cur_metadata)) {
           index <- cur_metadata$id
         } else {
-          index <- rownames(index)
+          index <- rownames(cur_metadata)
         }
 
         # update statistics if not numeric
@@ -721,12 +721,13 @@ getNicheAssay <- function(
   graph.type = "delaunay",
   new_feature_name = "Niche"
 ) {
-  # get metadata
-  sample.metadata <- SampleMetadata(object)
-  metadata <- Metadata(object)
-
+  
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
+  
+  # get metadata
+  sample.metadata <- SampleMetadata(object)
+  metadata <- Metadata(object, assay = assay_names)
 
   # get graph
   graph <- vrGraph(object, assay = assay_names, graph.type = graph.type)
@@ -737,6 +738,7 @@ getNicheAssay <- function(
 
     # get niche assay
     adj_matrix <- igraph::as_adjacency_matrix(graph, type = "both")
+    adj_matrix <- adj_matrix[colnames(vrdata), colnames(vrdata)]
     niche_counts <- vrdata %*% adj_matrix
   } else {
     cur_metadata <- subset_metadata(metadata, assays = assay_names)

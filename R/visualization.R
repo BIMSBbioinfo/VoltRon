@@ -2143,7 +2143,9 @@ vrSpatialFeaturePlotCombined <- function(
         )
       all_data <- rbind(
         all_data,
-        data.frame(layer_data(g_single), color_group = colors[i])
+        data.frame(layer_data(g_single), 
+                   color_group = colors[i], 
+                   feat = feat)
       )
 
       # if data being tiled, ignore segments
@@ -2168,6 +2170,7 @@ vrSpatialFeaturePlotCombined <- function(
           layer_data(g_single),
           value = coords$score,
           color_group = colors[i],
+          feat = feat,
           obs = rownames(coords)
         )
       )
@@ -2186,7 +2189,6 @@ vrSpatialFeaturePlotCombined <- function(
     coords,
     segments,
     scale_factors,
-    features,
     plot.segments,
     alpha
   )
@@ -2260,7 +2262,6 @@ vrSpatialFeatureCombinePlot <- function(
   coords,
   segments,
   scale_factors,
-  features,
   plot.segments = FALSE,
   alpha
 ) {
@@ -2280,13 +2281,16 @@ vrSpatialFeatureCombinePlot <- function(
       dplyr::summarise(
         fill = colour[which.max(value)],
         group = color_group[which.max(value)],
+        feat = feat[which.max(value)],
         value = value[which.max(value)],
         obs = obs[1]
       )
     polygon_data <- polygon_data %>% left_join(all_data[, c("obs", "fill")])
-    key_table <- all_data[, c("fill", "group", "value")] %>%
+    key_table <- all_data[, c("fill", "group", "value", "feat")] %>%
       dplyr::group_by(group) %>%
-      dplyr::summarise(fill = fill[which.max(value)], value = max(value))
+      dplyr::summarise(fill = fill[which.max(value)], 
+                       feat = feat[which.max(value)],
+                       value = max(value))
     g.combined <- g +
       ggplot2::geom_polygon(
         data = polygon_data,
@@ -2295,7 +2299,7 @@ vrSpatialFeatureCombinePlot <- function(
       ) +
       ggplot2::scale_fill_identity(
         "",
-        labels = features,
+        labels = key_table$feat,
         breaks = key_table$fill,
         guide = "legend"
       )
@@ -2310,11 +2314,14 @@ vrSpatialFeatureCombinePlot <- function(
         summarize(
           fill = fill[which.max(value)],
           group = color_group[which.max(value)],
+          feat = feat[which.max(value)],
           value = value[which.max(value)]
         )
-      key_table <- all_data[, c("fill", "group", "value")] %>%
+      key_table <- all_data[, c("fill", "group", "value", "feat")] %>%
         dplyr::group_by(group) %>%
-        dplyr::summarise(fill = fill[which.max(value)], value = max(value))
+        dplyr::summarise(fill = fill[which.max(value)], 
+                         feat = feat[which.max(value)],
+                         value = max(value))
       g.combined <- g +
         ggplot2::geom_raster(
           data = as.data.frame(all_data),
@@ -2322,7 +2329,7 @@ vrSpatialFeatureCombinePlot <- function(
         ) +
         ggplot2::scale_fill_identity(
           "",
-          labels = features,
+          labels = key_table$feat,
           breaks = key_table$fill,
           guide = "legend"
         )
@@ -2332,11 +2339,14 @@ vrSpatialFeatureCombinePlot <- function(
         dplyr::summarise(
           color = colour[which.max(value)],
           group = color_group[which.max(value)],
+          feat = feat[which.max(value)],
           value = value[which.max(value)]
         )
-      key_table <- all_data[, c("color", "group", "value")] %>%
+      key_table <- all_data[, c("color", "group", "value", "feat")] %>%
         dplyr::group_by(group) %>%
-        dplyr::summarise(color = color[which.max(value)], value = max(value))
+        dplyr::summarise(color = color[which.max(value)], 
+                         feat = feat[which.max(value)],
+                         value = max(value))
       g.combined <- g +
         ggplot2::geom_point(
           data = as.data.frame(all_data),
@@ -2344,7 +2354,7 @@ vrSpatialFeatureCombinePlot <- function(
         ) +
         ggplot2::scale_color_identity(
           "",
-          labels = features,
+          labels = key_table$feat,
           breaks = key_table$color,
           guide = "legend"
         )
@@ -3189,7 +3199,9 @@ vrEmbeddingFeaturePlot <- function(
           )
         all_data <- rbind(
           all_data,
-          data.frame(layer_data(g), color_group = colors[i])
+          data.frame(layer_data(g), 
+                     color_group = colors[i], 
+                     feat = feat)
         )
       } else {
         g <- g +
@@ -3210,7 +3222,8 @@ vrEmbeddingFeaturePlot <- function(
           data.frame(
             layer_data(g),
             value = datax$score,
-            color_group = colors[i]
+            color_group = colors[i],
+            feat = feat
           )
         )
       }
@@ -3279,7 +3292,6 @@ vrEmbeddingFeaturePlot <- function(
           all_data,
           n.tile,
           datax,
-          features,
           embedding
         )
         return(g.combined)
@@ -3320,7 +3332,6 @@ vrEmbeddingFeatureCombinePlot <- function(
   all_data,
   n.tile,
   datax,
-  features,
   embedding
 ) {
   # ggplot
@@ -3336,11 +3347,14 @@ vrEmbeddingFeatureCombinePlot <- function(
       summarize(
         fill = fill[which.max(value)],
         group = color_group[which.max(value)],
+        feat = feat[which.max(value)],
         value = value[which.max(value)]
       )
-    key_table <- all_data[, c("fill", "group", "value")] %>%
+    key_table <- all_data[, c("fill", "group", "value", "feat")] %>%
       dplyr::group_by(group) %>%
-      dplyr::summarise(fill = fill[which.max(value)], value = max(value))
+      dplyr::summarise(fill = fill[which.max(value)], 
+                       feat = feat[which.max(value)],
+                       value = max(value))
     g.combined <- g.combined +
       ggplot2::geom_raster(
         data = as.data.frame(all_data),
@@ -3348,7 +3362,7 @@ vrEmbeddingFeatureCombinePlot <- function(
       ) +
       ggplot2::scale_fill_identity(
         "",
-        labels = features,
+        labels = key_table$feat,
         breaks = key_table$fill,
         guide = "legend"
       )
@@ -3358,11 +3372,14 @@ vrEmbeddingFeatureCombinePlot <- function(
       dplyr::summarise(
         color = colour[which.max(value)],
         group = color_group[which.max(value)],
+        feat = feat[which.max(value)],
         value = value[which.max(value)]
       )
-    key_table <- all_data[, c("color", "group", "value")] %>%
+    key_table <- all_data[, c("color", "group", "value", "feat")] %>%
       dplyr::group_by(group) %>%
-      dplyr::summarise(color = color[which.max(value)], value = max(value))
+      dplyr::summarise(color = color[which.max(value)], 
+                       feat = feat[which.max(value)],
+                       value = max(value))
     g.combined <- g.combined +
       ggplot2::geom_point(
         data = as.data.frame(all_data),
@@ -3370,7 +3387,7 @@ vrEmbeddingFeatureCombinePlot <- function(
       ) +
       ggplot2::scale_color_identity(
         "",
-        labels = features,
+        labels = key_table$feat,
         breaks = key_table$color,
         guide = "legend"
       )
@@ -3827,13 +3844,13 @@ vrViolinPlot <- function(
 
   if (length(features) > 1) {
     if (length(gg) < ncol) {
-      ncol <- length(gg)
+      ncol <- length(features)
     }
     gg <- gg +
       facet_wrap(
         . ~ variable,
         ncol = ncol,
-        nrow = ceiling(length(gg) / ncol),
+        nrow = ceiling(length(features) / ncol),
         scales = "free_y"
       )
   } else {
@@ -4052,15 +4069,16 @@ vrBarPlot <- function(
         facet_grid(variable ~ split.by, scales = "free", space = "free_x")
       return(gg)
     } else {
-      if (length(gg) < ncol) {
-        ncol <- length(gg)
-      }
+      # if (length(gg) < ncol) {
+      #   ncol <- length(gg)
+      # }
       gg <- gg +
         facet_wrap(
           . ~ split.by,
           ncol = ncol,
           nrow = ceiling(length(unique(split.by.col)) / ncol),
-          scales = "free_x"
+          scales = "free_x", 
+          space = "free_x"
         )
       return(gg)
     }

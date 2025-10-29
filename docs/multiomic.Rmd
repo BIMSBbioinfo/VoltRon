@@ -5,7 +5,7 @@ output:
     toc: true
     toc_depth: 4
     toc_float:
-      collapsed: false
+      collapsed: true
       smooth_scroll: false
 ---
 
@@ -44,7 +44,7 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 # Multi-omics Analysis
 
-VoltRon is a end-to-end spatial multi-omics platform that enables both automated and manual data alignment workflows to synchronize coordinate frameworks across spatial omics assays. However, upon harmonization of the spatial observations, VoltRon can be used to further transfer and integrate information across omic datasets captured on same and adjacent tissue sections. These assays are not just limited to datasets with single cell and spot resolutions but also to assays solely composed of molecule and image tile observations.
+VoltRon is an end-to-end spatial multi-omics platform that enables both automated and manual data alignment workflows to synchronize coordinate frameworks across spatial omics assays. However, upon harmonization of the spatial observations, VoltRon can be used to further transfer and integrate information across omics datasets captured on same and adjacent tissue sections. These assays are not just limited to datasets with single cell and spot resolutions but also to assays solely composed of molecule and image tile observations.
 
 Below, we demonstrate data integration capabilities of VoltRon across distinct modalities using several use cases. In the [Spatial Data Alignment](registration.html), we have highlighted several scenarios to align spatial assays within tissue blocks. However in this tutorial, we demonstrate analysis starting with data alignment and further downstream data integration. 
 
@@ -52,9 +52,9 @@ Below, we demonstrate data integration capabilities of VoltRon across distinct m
 
 ## Xenium COVID-19 Lung Data 
 
-Xenium in situ platform is compatible with H&E and immunofluorescence imaging , thus researchers can stain whole slides post-Xenium to capture additional information on the morphology of the tissue and integrate it with the Xenium readouts. In this usecase, we would like to integrate the post-Xenium H&E image of tissue micro array sections composed of control and COVID-19 lung biopsy punches. Our objective is to asses the localization of SARS-COV-2 virus molecules by integrating pathology image annotations. 
+Xenium in situ platform is compatible with H&E and immunofluorescence imaging , thus researchers can stain whole slides post-Xenium to capture additional information on the morphology of the tissue and integrate it with the Xenium readouts. In this use case, we would like to integrate the post-Xenium H&E image of tissue micro array sections composed of control and COVID-19 lung biopsy punches. Our objective is to assess the localization of SARS‑CoV‑2 virus molecules by integrating pathology image annotations. 
 
-VoltRon is capable of analyzing molecule-level subcellular datasets independent of single cells, and specifically those that may also found outside of these cells. The Xenium run was performed with custom Xenium probes designed to hybridize distinct open reading frames of SARS-COV-2 virus molecules. These subcellular entities which then can be detected both within and outside of cells which allows to understand proliferation mechanics of the virus across the tissue. By aligning the image and the associated pathology annotations of the postXenium H&E of this slide, we can transfer labels of annotations to Xenium cells and molecules, thus inferring the abundance of viral RNA further. 
+VoltRon is capable of analyzing molecule-level subcellular datasets independent of single cells, and specifically those that may also found outside of these cells. The Xenium run was performed with custom Xenium probes designed to hybridize distinct open reading frames of SARS‑CoV‑2 virus molecules. These subcellular entities which then can be detected both within and outside of cells which allows to understand proliferation mechanics of the virus across the tissue. By aligning the image and the associated pathology annotations of the post-Xenium H&E of this slide, we can transfer labels of annotations to Xenium cells and molecules, thus inferring the abundance of viral RNA further. 
 
 We analyse readouts of **eight tissue micro array (TMA) tissue sections** that were fitted into the scan area of a slide loaded on a Xenium in situ instrument. These sections were cut from **control and COVID-19 lung tissues** of donors categorized based on disease durations (acute and prolonged). You can download the standard Xenium output folder [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Xenium_SARSCOV2.zip). For more information on the TMA blocks, see [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information. 
 
@@ -99,7 +99,7 @@ vrSpatialPlot(vr2_merged_acute1, assay = "Xenium_mol", group.by = "gene",
 
 <br>
 
-We can even zoom into specific locations at the tissue to investigate virus particles more closely by droping the **n.tile** argument and calling interactive visualization.
+We can even zoom into specific locations at the tissue to investigate virus particles more closely by dropping the **n.tile** argument and calling interactive visualization.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrSpatialPlot(vr2_merged_acute1, assay = "Xenium_mol", group.by = "gene", 
@@ -173,7 +173,7 @@ Assays: ImageData(Main) ROIAnnotation
 Features: main(Main) 
 ```
 
-By visualizing these annotations interactively, we can see that the ROIs point to the hyaline membranes. Here, we likely find extra-cellular SARS-COV-2 molecules mostly outside of any single cell.
+By visualizing these annotations interactively, we can see that the ROIs point to the hyaline membranes. Here, we likely find extra-cellular SARS‑CoV‑2 molecules mostly outside of any single cell.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrSpatialPlot(imgdata, assay = "ROIAnnotation", group.by = "Sample", 
@@ -300,7 +300,7 @@ Metadata(vr2_merged_acute1, assay = "Xenium_mol")
 785791: 281874408673882_cb791e   Assay8                0   S2_N 40.00000 Xenium_mol Section1 acute case 1 undefined</code></pre></div>
 <br>
 
-This annotations can be accessed from the default molecule level metadata of the VoltRon object.
+These annotations can be accessed from the default molecule level metadata of the VoltRon object.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrMainAssay(vr2_merged_acute1) <- "Xenium_mol"
@@ -314,7 +314,7 @@ head(table(vr2_merged_acute1$Region))
 
 <br>
 
-Now we will grab these annotations from molecule metadata and calculate the ratio of N to orf1ab frequency of SARS-COV-2 particles across all annotated molecules.
+Now we will grab these annotations from molecule metadata and calculate the ratio of N to orf1ab frequency of SARS‑CoV‑2 particles across all annotated molecules.
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(dplyr)
@@ -434,7 +434,7 @@ Region     N     orf1ab
   Infected 6376  2372
 ```
 
-A quick test of independance on this contingency table show a significant difference of ratios across Hyaline and Infected regions.
+A quick test of independence on this contingency table show a significant difference of ratios across Hyaline and Infected regions.
 
 ```{r eval = FALSE, class.source="watch-out"}
 fisher.test(S2_table, alternative = "two.sided")
@@ -456,13 +456,13 @@ odds ratio
 
 ## Xenium Breast Cancer Data 
 
-VoltRon allows analyzing biological images, such as H&E stainings of tissue sections, independant to omics assays on either the same or adjacent tissue section. VoltRon defines image tiles, which are collections of image pixels of the same size, and generate latent variables that are analyzed downstream. Unsupervised clustering of these tiles partition regions over the image with respect to morphological features. Here, these regions might be associated to tumor, immune or strama niches can then be transfered to cells in the same tissue section learn collections of cells with similar features. 
+VoltRon allows analyzing biological images, such as H&E stainings of tissue sections, independant to omics assays on either the same or adjacent tissue section. VoltRon defines image tiles, which are collections of image pixels of the same size, and generate latent variables that are analyzed downstream. Unsupervised clustering of these tiles partition regions over the image with respect to morphological features. Here, these regions might be associated to tumor, immune or stroma niches can then be transfered to cells in the same tissue section learn collections of cells with similar features. 
 
 We will use the **H&E images** generated from the same sections as the **Xenium In Situ** platform, and cluster tiles of the H&E to later transfer groups of tiles to Xenium cells. 
 
 You can download the Xenium readout and the H&E image of the same tissue section from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import **In Situ Replicate 1** and **Supplemental: Post-Xenium H&E image (TIFF)**). 
 
-### Import Spatial Data
+### Import Xenium Data
 
 We import both Xenium and post-Xenium H&E images into two separate VoltRon objects and overlay H&E images. 
 
@@ -571,7 +571,7 @@ vrImages(Xen_R1_merged[["Assay2"]], name = "main_reg", channel = "H&E") <-
   vrImages(Xen_R1_merged, assay = "Assay1")
 ```
 
-You can visualize the transferred tile labels in two different spatial coordinate systems and with different images (DAPI, H&E etc.) using **spatial** and **channel** arguements, respectively.
+You can visualize the transferred tile labels in two different spatial coordinate systems and with different images (DAPI, H&E etc.) using **spatial** and **channel** arguments, respectively.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrMainAssay(Xen_R1_merged) <- "Xenium"
@@ -593,7 +593,7 @@ vrSpatialPlot(Xen_R1_merged, group.by = "Cluster_kmeans", spatial = "main_reg",
 
 ### Marker Analysis
 
-Now that we have labelled cells whose partitioning is determined by the morphological (image foundayion model) features, we can perform marker analysis to determine signatures associated with groups. We convert the cells assays of the VoltRon object to a Seurat object prior to marker analysis, find markers associated with groups and then parse significant markers to visualize later. See [Conversion](conversion.html#Seurat) tutorial for more information on VoltRon's interoperability features.
+Now that we have labelled cells whose partitioning is determined by the morphological (image foundation model) features, we can perform marker analysis to determine signatures associated with groups. We convert the cells assays of the VoltRon object to a Seurat object prior to marker analysis, find markers associated with groups and then parse significant markers to visualize later. See [Conversion](conversion.html#Seurat) tutorial for more information on VoltRon's interoperability features.
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(Seurat)
@@ -666,7 +666,7 @@ vrSpatialFeaturePlot(Xen_R1_image_subset, assay = "Xenium",
 
 <br>
 
-## Xenium + IF 
+## Xenium + IF Tonsil Data
 
 Automated alignment workflow of VoltRon can also be used to integrate modalities
 generated from the same tissue section. In this use case, we will perform
@@ -679,6 +679,8 @@ We will generate Xenium and IF dataset from a human tonsil tissue section. We
 first import the Xenium data, and interactively subset the tonsil sample from
 the tissue microarray. 
 
+You can also download the tonsil subset from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/Xenium_tonsil_subset.rds).
+
 ```{r eval = FALSE, class.source="watch-out"}
 # dependencies
 if(!requireNamespace("RBioFormats"))
@@ -689,14 +691,19 @@ if(!requireNamespace("rhdf5"))
   BiocManager::install("rhdf5")
 
 # import Xenium
-xen <- importXenium("Xenium/out", 
-                    sample_name = "XeniumTonsil"
+xen <- importXenium("Xenium/outs", 
+                    sample_name = "XeniumTonsil",
                     resolution_level = 3, 
                     overwrite_resolution = TRUE)
 
 # subset interactive
 xen <- subset(xen, interactive = TRUE)
 xen_tonsil <- xen$subsets[[1]]
+
+# load from RDS if needed
+# xen_tonsil <- readRDS("Xenium_tonsil_subset.rds")
+
+# view image
 vrImages(xen_tonsil)
 ```
 
@@ -715,12 +722,16 @@ We import only the DAPI, CD20 and CD21 channels. We will use DAPI channel
 for aligning these images to Xenium data, and remaining channels for clustering
 with the RNA features from Xenium.
 
+You can download the ome.tiff file of the same section IF experiment [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/same_section_IF.ome.tif).
+
 ```{r eval = FALSE, class.source="watch-out"}
-if_tonsil <- importImageData("Same section/Core_13.ome.tif", tile.size = 100, 
+if_tonsil <- importImageData("same_section_IF.ome.tif", tile.size = 100, 
                              series = 1, resolution = 1, channels = c(1,4,8), 
                              channel_names = c("DAPI", "CD20", "CD21"), 
                              is.RGB = FALSE)
 ```
+
+<br>
 
 ### Automated Alignment
 
@@ -754,6 +765,8 @@ vrImages(xen_tonsil[["Assay1"]], name = "main_reg", channel = "CD21") <-
   vrImages(if_tonsil, channel = "CD21")
 ```
 
+<br>
+
 ### Quantify Intensity of Cells 
 
 With VoltRon, we can export the registered segments, and save it as a GeoJson
@@ -765,11 +778,11 @@ multi-modal clustering.
 
 ```{r eval = FALSE, class.source="watch-out"}
 segts <- vrSegments(flipCoordinates(xen_tonsil))
-generateGeoJSON(segts, "data/Xenium_Tonsil/polygons.geojson")
+generateGeoJSON(segts, "registered_segments.geojson")
 ```
 
-To perform intensity quntification of cells, simply drag and drop the ome.tiff
-and geojson files to QuPath. You can then navigate to **Analyze -> Calculate Features -> Add Intensity Features**, and click Run after selecting markers where we select CD20 and CD21.
+To perform intensity quantification of cells, simply drag and drop the ome.tiff
+and geojson files to QuPath. You can then navigate to **Analyze -> Calculate Features -> Add Intensity Features**, and click Run after selecting markers where we select CD20 and CD21. If you wanna perform the mean and median intensity calculation of features, you can use the GeoJSON file with registered segments found [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/registered_segments.geojson).
 
 After calculating mean and median intensities, we navigate to 
 **Measure -> Show Annotation Measurements** and click **Save** to write the 
@@ -780,11 +793,11 @@ measurements to a .txt file.
 <br>
 
 After quantifying with QuPath, we can import these measures and save it as a 
-new feature data in VoltRon object. 
+new feature data in VoltRon object. You can find the IF measurements of CD20 and CD21 markers [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/IF_measurements.txt).
 
 ```{r eval = FALSE, class.source="watch-out"}
 # add feature from QuPath
-datax <- read.table("data/Xenium_Tonsil/measurements.txt", 
+datax <- read.table("IF_measurements.txt", 
                     header = TRUE, sep = "\t")
 rownames(datax) <- datax$Name
 datax <- datax[vrSpatialPoints(xen_tonsil),]
@@ -881,6 +894,8 @@ xen_tonsil <- saveVoltRon(xen_tonsil,
                                replace = TRUE)
 ```
 
+<br>
+
 ### Clustering
 
 We can now apply dimensional reduction which will allow us to cluster cells. The
@@ -926,7 +941,7 @@ visualize the expression of CD21 to detect marker specific clusters.
 # clustering
 xen_tonsil <- getProfileNeighbors(xen_tonsil, 
                                   dims = 1:30, method = "SNN")
-xen_tonsil <- getClusters(xen_tonsil, resolution = res, 
+xen_tonsil <- getClusters(xen_tonsil, resolution = 1.0, 
                           label = "Clusters", graph = "SNN") 
 
 # visualize
@@ -952,7 +967,7 @@ We can visualize the spatial localization of this cluster alone, which
 point to the germinal centers of the human tonsil.
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrSpatialPlot(xenium_reg, group.by = "Clusters", group.ids = 14, 
+vrSpatialPlot(xen_tonsil, group.by = "Clusters", group.ids = 14, 
               plot.segments = TRUE)
 ```
 

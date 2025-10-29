@@ -460,11 +460,11 @@ body {
 <p><br></p>
 <div id="disk-backed-analysis" class="section level1">
 <h1>Disk-backed Analysis</h1>
-<p>Emerging spatial omics instruments are capable of generating million
+<p>Emerging spatial omics instruments are capable of generating millions
 of cells and transcripts as well as large high-resolution images.
 Existing software packages mostly use default in-memory storage
 (provided by built-in R objects) for both feature vs observations
-matrices and biological images of spatial omic datasets, however this
+matrices and biological images of spatial omics datasets, however this
 approach both slow and inefficient. A common alternative is to use novel
 disk-backed data objects in R that allow data to sit in the disk, while
 efficiently stream data to memory for processing and analysis.</p>
@@ -473,9 +473,9 @@ packages to store large feature matrices and images to accelerate
 operations. Here <strong>BPCells</strong> allows users access and
 operate on large feature matrices or clustering/spatial analysis, while
 <strong>ImageArray</strong> provides <a
-href="https://en.wikipedia.org/wiki/Pyramid_(image_processing)">pyramids
-images</a> to allow fast access to large microscopy images.</p>
-<p>You can download these package from GitHub using
+href="https://en.wikipedia.org/wiki/Pyramid_(image_processing)">image
+pyramids</a> to allow fast access to large microscopy images.</p>
+<p>You can download these packages from GitHub using
 <strong>devtools</strong>:</p>
 <pre class="r watch-out"><code>devtools::install_github(&quot;bnprks/BPCells/r&quot;)
 devtools::install_github(&quot;BIMSBbioinfo/ImageArray&quot;)
@@ -494,7 +494,7 @@ if(!requireNamespace(&quot;rhdf5&quot;))
   BiocManager::install(&quot;rhdf5&quot;)</code></pre>
 <p>We use the <strong>importVisiumHD</strong> function to start
 analyzing the data. The data has 393401 spots which we will use
-OnDisk-backed methods to efficiently manipulate, analyze and visualize
+disk-backed methods to efficiently manipulate, analyze and visualize
 these spots.</p>
 <p>The VisiumHD readouts provide multiple bin sizes which are aggregated
 versions of the original 2<span class="math inline">\(\mu\)</span>m
@@ -609,8 +609,8 @@ clustered.</p>
 <pre class="r watch-out"><code>spatialpoints &lt;- vrSpatialPoints(Xen_R1)[as.vector(Metadata(Xen_R1)$Count &gt; 10)]
 Xen_R1 &lt;- subset(Xen_R1, spatialpoints = spatialpoints)
 Xen_R1 &lt;- normalizeData(Xen_R1, sizefactor = 10000)</code></pre>
-<p>We now visualize the localizaton of three markers, specifically Dsc3,
-Clec4f, Gfap; that point to the skin, liver and brain of the pup,
+<p>We now visualize the localization of three markers, specifically
+Dsc3, Clec4f, Gfap; that point to the skin, liver and brain of the pup,
 respectively. The <strong>n.tile</strong> parameter controls the level
 of rasterization of gene expression or metadata columns to speed up data
 visualization. Here, <strong>n.tile=400</strong> bins expression and
@@ -621,15 +621,15 @@ image.</p>
 <p><br></p>
 <p>We now learn PCA and UMAP embeddings of the mouse data, and cluster
 using shared nearest neighbor (SNN) graph.</p>
-<pre class="r watch-out"><code>Xen_R1_disk &lt;- getPCA(Xen_R1_disk, dims = 30)
-Xen_R1_disk &lt;- getUMAP(Xen_R1_disk, dims = 1:30)
-Xen_R1_disk &lt;- getProfileNeighbors(Xen_R1_disk, dims = 1:30, k = 10, method = &quot;SNN&quot;)
-Xen_R1_disk &lt;- getClusters(Xen_R1_disk, resolution = 0.7, label = &quot;Clusters&quot;, graph = &quot;SNN&quot;)
+<pre class="r watch-out"><code>Xen_R1 &lt;- getPCA(Xen_R1, dims = 30)
+Xen_R1 &lt;- getUMAP(Xen_R1, dims = 1:30)
+Xen_R1 &lt;- getProfileNeighbors(Xen_R1, dims = 1:30, k = 10, method = &quot;SNN&quot;)
+Xen_R1 &lt;- getClusters(Xen_R1, resolution = 0.7, label = &quot;Clusters&quot;, graph = &quot;SNN&quot;)
 
 library(patchwork)
-g1 &lt;- vrSpatialPlot(Xen_R1_disk, group.by = &quot;Clusters&quot;, n.tile = 400, 
+g1 &lt;- vrSpatialPlot(Xen_R1, group.by = &quot;Clusters&quot;, n.tile = 400, 
                     alpha = 1, legend.loc = &quot;none&quot;)
-g2 &lt;- vrEmbeddingPlot(Xen_R1_disk, group.by = &quot;Clusters&quot;, embedding = &quot;umap&quot;)
+g2 &lt;- vrEmbeddingPlot(Xen_R1, group.by = &quot;Clusters&quot;, embedding = &quot;umap&quot;)
 g1 | g2</code></pre>
 <table>
 <tbody>
@@ -704,7 +704,7 @@ Series 7 of size (3,432,321) </code></pre>
 xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1_disk, Xen_R1_image_disk))</code></pre>
 <div>
 <p><video width="100%" height="100%" controls autoplay>
-<source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/video_temp.mov" type="video/mp4">
+<source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/manual_registration_largeimage.mp4" type="video/mp4">
 Your browser does not support the video tag. </video></p>
 </div>
 <p><br></p>

@@ -86,10 +86,10 @@ VoltRon incorporates `RBioformats` package to import images from `ome.tiff` file
 See [https://cran.r-project.org/web/packages/rJava](https://cran.r-project.org/web/packages/rJava) below for more information.
 
 We also use a specific version of the [Rarr]() package geared towards reading and writing missing data types (e.g. character). 
-We will use the standard Rarr package onces modifications are releaseed to Bioconductor. Thus please use: 
+We will use the standard Rarr package once modifications are released to Bioconductor. Thus please use: 
 
 ```
-devtools::install_github("Artur-man/Rarr@voltron")
+devtools::install_github("Huber-group-EMBL/Rarr")
 ```
 
 ## Docker Hub
