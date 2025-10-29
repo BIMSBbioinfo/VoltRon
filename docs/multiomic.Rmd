@@ -781,7 +781,7 @@ segts <- vrSegments(flipCoordinates(xen_tonsil))
 generateGeoJSON(segts, "registered_segments.geojson")
 ```
 
-To perform intensity quntification of cells, simply drag and drop the ome.tiff
+To perform intensity quantification of cells, simply drag and drop the ome.tiff
 and geojson files to QuPath. You can then navigate to **Analyze -> Calculate Features -> Add Intensity Features**, and click Run after selecting markers where we select CD20 and CD21. If you wanna perform the mean and median intensity calculation of features, you can use the GeoJSON file with registered segments found [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/registered_segments.geojson).
 
 After calculating mean and median intensities, we navigate to 
