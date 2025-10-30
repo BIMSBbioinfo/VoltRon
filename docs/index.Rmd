@@ -52,7 +52,7 @@ knitr::opts_chunk$set(echo = TRUE)
  
 <br>
 
-<p class="maintext"> <strong> VoltRon </strong> is a spatial omic analysis toolbox for multi-omics integration using spatial image registration. VoltRon is also capable of analyzing multiple types of spatially-aware data modalities.</p>
+<p class="maintext"> <strong> VoltRon </strong> is a spatial omics analysis toolbox for multi-omics integration using spatial image registration. VoltRon is also capable of analyzing multiple types of spatially-aware data modalities.</p>
    <ul class="maintext2">
     <li style="padding-bottom: 10px">
       <strong> Unique data structure </strong> of VoltRon allows users to seamlessly define tissue blocks, layers and multiple assay types in one R object.
@@ -84,7 +84,7 @@ knitr::opts_chunk$set(echo = TRUE)
     <p> <strong> Support for Big Data </strong> for VoltRon objects enables storing large feature data matrices and large microscopic images of tissues on disk without overloading memory, thus allowing analysis on large datasets with ease. VoltRon stores large images as pyramid structures to speed up visualization and data retrieval. </p>
     </li>
     <li style="padding-bottom: 10px">
-    <p> <strong> Interoperability across R/Python frameworks </strong> allows users to convert VoltRon objects to a large number of objects used by other spatial omic platforms such as Seurat, Squidpy (AnnData), SpatialExperiment (BioConductor) and Giotto. </p>
+    <p> <strong> Interoperability across R/Python frameworks </strong> allows users to convert VoltRon objects to a large number of objects used by other spatial omics platforms such as Seurat, Squidpy (AnnData), SpatialExperiment (BioConductor) and Giotto. </p>
     </li>
   </ul>
 </div>

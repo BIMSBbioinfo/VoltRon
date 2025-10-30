@@ -89,11 +89,11 @@ See [https://cran.r-project.org/web/packages/rJava](https://cran.r-project.org/w
 
 ### Rarr
 
-We also use a specific version of the [Rarr]() package geared towards reading and writing missing data types (e.g. character). 
-We will use the standard Rarr package onces modifications are released to Bioconductor. Thus please use: 
+We also use a specific version of the `Rarr` package geared towards reading and writing missing data types (e.g. character). 
+We will use the standard Rarr package once modifications are released to Bioconductor. Thus please use: 
 
 ```
-devtools::install_github("Artur-man/Rarr@voltron")
+devtools::install_github("Huber-group-EMBL/Rarr")
 ```
 
 ### SimpleITK

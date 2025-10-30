@@ -37,7 +37,7 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 # Conversion to Other Platforms
 
-VoltRon is capable of end-to-end spatial data analysis for all levels of spatial resolutions, including those of single cell resolution. However, VoltRon provides a ecosystem friendly infrastructure where VoltRon objects could be transformed into data structures used by popular computational platforms such as [Seurat](https://satijalab.org/seurat/), [Squidpy](https://squidpy.readthedocs.io/en/stable/) and even [Zarr](http://vitessce.io/docs/data-file-types/#anndata-zarr) for interactive spatial data visualizatiob with [Vitessce](http://vitessce.io/).
+VoltRon is capable of end-to-end spatial data analysis for all levels of spatial resolutions, including those of single cell resolution. However, VoltRon provides a ecosystem friendly infrastructure where VoltRon objects could be transformed into data structures used by popular computational platforms such as [Seurat](https://satijalab.org/seurat/), [Squidpy](https://squidpy.readthedocs.io/en/stable/) and even [Zarr](http://vitessce.io/docs/data-file-types/#anndata-zarr) for interactive spatial data visualization with [Vitessce](http://vitessce.io/).
 
 For both **Seurat (R)** and **Squidpy (Python)**, we analyse readouts of the experiments conducted on example tissue sections analysed by the [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform. For more information on processing and analyzing Xenium datasets, check the [Cell/Spot Analysis](spotanalysis.html) tutorial.
 
@@ -325,7 +325,7 @@ Assay2 Xenium Section1 XeniumR2
 
 ### Interactive Visualization
 
-Now we can convert the VoltRon object into a zarr array using the **as.Zarr** function which will create the array in a specified location.
+Now we can convert the VoltRon object into a zarr array using the **as.AnnData** function which will create the AnnData object as a zarr array in the specified location.
 
 ```{r class.source="watch-out", eval = FALSE}
 as.AnnData(Xen_data, assays = "Assay1", 

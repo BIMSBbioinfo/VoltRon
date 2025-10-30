@@ -466,15 +466,15 @@ table, th, td {
 <p><br></p>
 <div id="importing-spatial-datasets" class="section level1">
 <h1>Importing Spatial Datasets</h1>
-<p>VoltRon is an end-to-end spatial omic analysis package that supports
+<p>VoltRon is an end-to-end spatial omics analysis package that supports
 a large selection of spatial data resolutions. Currently, there exists a
-considerable amount of spatial omic technologies that generate datasets
-whose omic profiles are spatially resolved.</p>
+considerable amount of spatial omics technologies that generate datasets
+whose omics profiles are spatially resolved.</p>
 <p>VoltRon objects are compatible with readouts of almost all of these
 technologies where we provide a selection of built-in functions to help
 users constructing VoltRon objects with ease. In this tutorial, we will
-review these spatial omic instruments and the functions available within
-the VoltRon package to import their readouts.</p>
+review these spatial omics instruments and the functions available
+within the VoltRon package to import their readouts.</p>
 <p></br></p>
 <div id="visium-10x-genomics" class="section level2">
 <h2>Visium (10x Genomics)</h2>
@@ -488,15 +488,15 @@ class="uri">https://www.10xgenomics.com/</a>) </em>
 <p>10x Genomics <a
 href="https://www.10xgenomics.com/products/spatial-gene-expression">Visium</a>
 Spatial Gene Expression Platform incorporates in situ arrays
-(i.e. spots) to capture spatial localization of omic profiles where
-these spots are of 55 m in diameter and constitute a grid that covers a
-significant portion of a tissue section placed on the slide of the
-instrument.</p>
+(i.e. spots) to capture spatial localization of omics profiles where
+these spots are of 55 <span class="math inline">\(\mu\)</span>m in
+diameter and constitute a grid that covers a significant portion of a
+tissue section placed on the slide of the instrument.</p>
 <p>We will use the readouts of <strong>Visium CytAssist</strong>
 platform that was derived from a single tissue section of a breast
 cancer sample. More information on the Visium CytAssist data and the
 study can be also be found on the <a
-href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">BioArxiv
+href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">bioRxiv
 preprint</a>. You can download the data from the <a
 href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
 Genomics website</a> (specifically, import the <strong>Visium
@@ -561,7 +561,7 @@ analysis.</p>
 platform that was derived from a single tissue section of a breast
 cancer sample. More information on the Visium CytAssist data and the
 study can be also be found on the <a
-href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">BioArxiv
+href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">bioRxiv
 preprint</a>. You can download the data from the <a
 href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
 Genomics website</a> (specifically, import the <strong>Visium
@@ -615,13 +615,13 @@ class="uri">https://www.biorxiv.org/content/10.1101/2022.10.06.510405v2</a>
 <p>The 10x Genomics <a
 href="https://www.10xgenomics.com/platforms/xenium">Xenium In Situ</a>
 provides spatial localization of both (i) transcripts from a few hundred
-number of genes as well as (ii) the single cells with transcriptomic
+number of genes as well as (ii) the single cells with transcriptomics
 profiles.</p>
 <p>We will use the readouts of a single Xenium platform replicate that
 was derived from a single tissue section of a breast cancer sample. More
 information on the Xenium data and the study can be also be found on the
 <a
-href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">BioArxiv
+href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">bioRxiv
 preprint</a>. You can download the data from the <a
 href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
 Genomics website</a> (specifically, import the <strong>In Situ Replicate
@@ -703,8 +703,8 @@ GeoMx Digital Spatial Profiler</a> is a high-plex spatial profiling
 technology which produces segmentation-based protein and RNA assays. The
 instrument allows users to select regions of interest (ROIs) from
 fluorescent microscopy images that capture the morphological context of
-the tissue. These are ROIs are then used to generate transcriptomic or
-proteomic profiles.</p>
+the tissue. These are ROIs are then used to generate transcriptomics or
+proteomics profiles.</p>
 <p>We will import the ROI profiles generated from the GeoMx scan area
 where COVID-19 lung tissues were fitted into. See <a
 href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732">GSE190732</a>
@@ -744,7 +744,7 @@ GeoMx™ DSP configuration file
 </td>
 <td>
 <a href="https://nanostring.com/wp-content/uploads/Hs_R_NGS_WTA_v1.0.pkc_.zip">Human
-RNA Whole Transcriptomic Atlas for NGS</a>
+RNA Whole Transcriptomics Atlas for NGS</a>
 </td>
 </tr>
 <tr>
@@ -841,7 +841,7 @@ href="https://nanostring.com/products/cosmx-spatial-molecular-imager/cosmx-smi-s
 CosMx Spatial Molecular Imaging</a> platform is a high-plex spatial
 multiomics technology that captures the spatial localization of both (i)
 transcripts from thousands of genes as well as (ii) the single cells
-with transcriptomic and proteomic profiles.</p>
+with transcriptomics and proteomics profiles.</p>
 <p>We will use the readouts from two slides of a single CosMx
 experiment. You can download the data from the <a
 href="https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/cosmx-smi-mouse-brain-ffpe-dataset/">Nanostring
@@ -1039,7 +1039,7 @@ raw.data &lt;- t(as.matrix(raw.data))
 # coords 
 coords &lt;- read.table(&quot;A1_selection.tsv&quot;, header = TRUE, sep = &quot;\t&quot;)
 rownames(coords) &lt;- paste(coords$x, coords$y, sep = &quot;x&quot;)
-coords &lt;- coords[entities,]
+coords &lt;- coords[spatialentities,]
 coords &lt;- coords[,c(&quot;pixel_x&quot;, &quot;pixel_y&quot;)]
 colnames(coords) &lt;- c(&quot;x&quot;, &quot;y&quot;)</code></pre>
 <p>The image can be imported using the <strong>magick</strong>
@@ -1082,7 +1082,7 @@ params &lt;- list(
 also flip the coordinates of spots vertically after creating the
 object.</p>
 <pre class="r watch-out"><code># make voltron object
-stdata &lt;- formVoltRon(data = datax, image = img, coords = coords, assay.type = &quot;spot&quot;, 
+stdata &lt;- formVoltRon(data = raw.data, image = img, coords = coords, assay.type = &quot;spot&quot;, 
                       params = params, sample_name = &quot;A1&quot;)
 stdata &lt;- flipCoordinates(stdata)</code></pre>
 <p>We can now visualize spots and the adjacency between these spots
@@ -1095,11 +1095,11 @@ vrSpatialPlot(stdata, graph.name = &quot;radius&quot;, crop = T)</code></pre>
 <div id="custom-voltron-objects" class="section level2">
 <h2>Custom VoltRon objects</h2>
 <p>VoltRon incorporates the <strong>formVoltRon</strong> function to
-assemble each component of a spatial omic assay into a VoltRon object.
+assemble each component of a spatial omics assay into a VoltRon object.
 Here:</p>
 <ul>
 <li><strong>the feature matrix</strong>: the <em> pxn </em> feature to
-point matrix for raw counts and omic profiles</li>
+point matrix for raw counts and omics profiles</li>
 <li><strong>metadata</strong>: the metadata table</li>
 <li><strong>image</strong>: An image or a list of images with names
 associated to channel</li>
@@ -1108,7 +1108,7 @@ associated to channel</li>
 spatial point</li>
 </ul>
 <p>can individually be prepared before executing formVoltRon.</p>
-<p>We will use a single image based proteomic assay to demonstrate
+<p>We will use a single image based proteomics assay to demonstrate
 building custom VoltRon objects. Specifically, we use cells
 characterized by <strong>multi-epitope ligand cartography
 (MELC)</strong> with a panel of 44 parameters. We use the already
@@ -1186,6 +1186,43 @@ vrImages(vr_object, name = &quot;MELC&quot;, channel = &quot;CD45&quot;)</code><
 </table>
 <p></br></p>
 </div>
+<div id="multiplex-if-qupath" class="section level2">
+<h2>Multiplex IF (QuPath)</h2>
+<p>VoltRon supports the analysis of clustering cells captured from
+multiplex immunofluorescence (IF) experiment that typically captured and
+stored in ome.tiff and/or qptiff files of high-resolution images. To
+process and segment single cells as well as quantifying intensity of
+protein markers, we can use <a
+href="https://qupath.github.io/">QuPath</a> software. Extensions of
+QuPath such as InstanSeg and StarDist could be used to process images,
+which we then import into VoltRon to build multiple IF assays.</p>
+<p>QuPath allows you do select an ROI, and then the users can go to
+<strong>Extensions -&gt; InstanSeg -&gt; Run InstanSeg</strong>. The
+pane of InstanSeg let you choose the model for segmentation, device (mps
+and cuda for gpu support) and the channels to learn the segmentation and
+calculating features. Once complete, <strong>(i)</strong> the feature x
+segments (cell) matrix can be exported from <strong>Measurements -&gt;
+Show Detection Measurements -&gt; save* as a text file, </strong>(ii)**
+the segments are exported from <strong>Export objects as
+GeoJSON</strong> excluding measurements and exporting as
+FeatureCollection.</p>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/import_qupath.png" class="center"></p>
+<p>With these files, we can use the <strong>importQuPathIF</strong>
+function to import the data as a VoltRon object. You can select the
+resolution of the channels using <strong>series</strong> and
+<strong>resolution</strong> parameters which will pick the desired level
+from the ome.tiff file.</p>
+<pre class="r watch-out"><code>adj_vr &lt;- importQuPathIF(measurements = &quot;measurements.txt&quot;,
+                         segments = &quot;measurements.geojson&quot;, 
+                         image = &quot;if_exp.ome.tif&quot;, 
+                         channels = c(&quot;DAPI&quot;, &quot;CD20&quot;, &quot;CD21&quot;), 
+                         series = 1,
+                         resolution = 1, 
+                         sample_name = &quot;IFdata&quot;)</code></pre>
+<p>You can use the following function to get the names of all channels
+in the ome.tiff file</p>
+<pre class="r watch-out"><code>getOmeTiffChannels(if_exp.ome.tif)</code></pre>
+</div>
 <div id="image-only-voltron-objects" class="section level2">
 <h2>Image-only VoltRon objects</h2>
 <p>With VoltRon we can also build objects where pixels (or tiles) are
@@ -1199,7 +1236,7 @@ href="https://www.10xgenomics.com/platforms/xenium">Xenium In Situ</a>
 platform.</p>
 <p>More information on the Xenium and the study can be also be found on
 the <a
-href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">BioArxiv
+href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">bioRxiv
 preprint</a>. You can download the H&amp;E image from the <a
 href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
 Genomics website</a> as well (specifically, import the
