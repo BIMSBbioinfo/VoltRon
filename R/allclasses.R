@@ -24,8 +24,9 @@ suppressMessages({
       members = c(
         "matrix",
         "data.frame",
-        "dgRMatrix",
-        "dgeMatrix",
+        # "dgRMatrix",
+        # "dgeMatrix",
+        "Matrix",
         "Array",
         "IterableMatrix"
       )
@@ -127,9 +128,10 @@ suppressWarnings({
     "data_matrix",
     members = c(
       "matrix",
-      "dgCMatrix",
-      "dgRMatrix",
-      "dgeMatrix",
+      # "dgCMatrix",
+      # "dgRMatrix",
+      # "dgeMatrix",
+      "Matrix",
       "Array",
       "IterableMatrix"
     )

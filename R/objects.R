@@ -930,11 +930,11 @@ subsetVoltRon <- function(
         # spatialpoints <- as.vector(metadata$id)[eval_tidy(rlang::quo_get_expr(subset), data = metadata)]
       } else {
         if ("id" %in% colnames(metadata)) {
-          cur_data <- metadata$id
+          metadata_id <- metadata$id
         } else {
-          cur_data <- rownames(metadata)
+          metadata_id <- rownames(metadata)
         }
-        spatialpoints <- rownames(metadata)[eval_tidy(
+        spatialpoints <- metadata_id[eval_tidy(
           rlang::quo_get_expr(subset),
           data = metadata
         )]
@@ -1253,11 +1253,15 @@ setMethod("merge", signature = "VoltRon", mergeVoltRon)
 #'
 #' @export
 setMethod("vrSpatialPoints", "VoltRon", function(object, assay = NULL) {
+  
   # get assays
   assay <- vrAssayNames(object, assay = assay)
-
+  spatialpoints <- unlist(lapply(assay, function(assy){
+    vrSpatialPoints(object@metadata, assay = assy)
+  }))
+  
   # return
-  return(vrSpatialPoints(object@metadata, assay = assay))
+  return(spatialpoints)
 })
 
 vrFeaturesVoltRon <- function(object, assay = NULL) {
@@ -1809,9 +1813,6 @@ MetadataReplaceVoltRon <- function(object, assay = NULL, type = NULL, value) {
 
   # sample metadata
   sample.metadata <- SampleMetadata(object)
-
-  # get assay names
-  # assay_names <- vrAssayNames(object, assay = assay)
 
   # get metadata
   metadata <- slot(object@metadata, name = type)

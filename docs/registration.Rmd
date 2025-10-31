@@ -38,7 +38,7 @@ knitr::opts_chunk$set(highlight = TRUE, echo = TRUE)
 
 # Spatial Data Alignment
 
-Spatial genomic technologies often generate diverse images and spatial readouts, even though the tissue slices are from adjacent sections of a single tissue block. Hence, the alignment of images and spatial coordinates across tissue sections are of utmost importance to dissect the correct spatial closeness across these sections. 
+Spatial genomics technologies often generate diverse images and spatial readouts, even though the tissue slices are from adjacent sections of a single tissue block. Hence, the alignment of images and spatial coordinates across tissue sections are of utmost importance to dissect the correct spatial closeness across these sections. 
 
 VoltRon allows users to **align spatial omics datasets of these serial sections** for data transfer and 3 dimensional stack alignment. The order of the tissue/sample slices should be provided by the user. VoltRon provides a fully embedded **shiny application** to either automatically or manually align images. The automatic alignment is achieved with the **OpenCV**'s C++ library fully embedded in the VoltRon package.
 
@@ -319,7 +319,7 @@ g1 / g2
 
 #### Data Transfer (Spots->Cells)
 
-A similar transfer can be achieved on the opposite direction. We can select Assay2 of **Visium as the source** assay and Assay1 of **Xenium as the destination**, thus we can transfer whole transcriptome counts of the Visium assays to Xenium to create new feature sets for Xenium data with more features originally available in the Xenium panel.
+A similar transfer can be achieved in the opposite direction. We can select Assay2 of **Visium as the source** assay and Assay1 of **Xenium as the destination**, thus we can transfer whole transcriptome counts of the Visium assays to Xenium to create new feature sets for Xenium data with more features originally available in the Xenium panel.
 
 ```{r class.source="watch-out", eval = FALSE}
 vrMainFeatureType(VRBlock, assay = "Visium") <- "RNA"
@@ -510,7 +510,7 @@ XeniumR1image:
 Assays: ImageData(Main) 
 ```
 
-Lets take a look at the image of the Xen_R1_image object
+Let's take a look at the image of the Xen_R1_image object
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrImages(Xen_R1_image)
@@ -538,7 +538,7 @@ Now we create a new channel for the existing coordinate system of the Xenium dat
 
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1_image_reg <- xen_reg$registered_spat[[2]]
-vrImages(Xen_R1[["Assay1"]], channel = "H&E") <- vrImages(Xenium_reg, name = "main_reg", channel = "H&E")
+vrImages(Xen_R1[["Assay1"]], channel = "H&E") <- vrImages(Xen_R1_image_reg, name = "main_reg", channel = "H&E")
 ```
 
 We can now observe the new channels (H&E) available for the Xenium assay using **vrImageChannelNames**.
@@ -548,8 +548,8 @@ vrImageChannelNames(Xen_R1)
 ```
 
 ```
-       Assay    Layer           Sample Spatial                                               Channels
-Assay1 GeoMx Section1 prolonged case 4    main scanimage,DNA,PanCK,CD45,Alpha Smooth Muscle Actin,H&E
+       Assay    Layer  Sample   Spatial  Channels
+Assay1 Xenium Section1 XeniumR1    main  DAPI,H&E
 ```
 
 We can call the registered H&E image of the Xenium data or later put the aligned H&E when calling **vrSpatialPlot** or **vrSpatialFeaturePlot**. 
@@ -564,7 +564,7 @@ vrImages(Xen_R1, channel = "H&E", scale.perc = 5)
 
 ## Alignment of Visium and Visium
 
-In the next use case, we will align **H&E images** associated with Visium data generated from tissue block sections of **adult humans with postmortem dorsolateral prefrontal cortex (DLPFC)**. Two pairs of adjacent sections was obtained from the tissue block of the third donor. Each pair are composed of two 10 $\mu$m serial tissue sections, and pairs are located 300 $\mu$m apart from each other. Hence, we align each pair individually. The datasets can be downloaded from [here](https://research.libd.org/spatialLIBD/). 
+In the next use case, we will align **H&E images** associated with Visium data generated from tissue block sections of **adult humans with postmortem dorsolateral prefrontal cortex (DLPFC)**. Two pairs of adjacent sections were obtained from the tissue block of the third donor. Each pair are composed of two 10 $\mu$m serial tissue sections, and pairs are located 300 $\mu$m apart from each other. Hence, we align each pair individually. The datasets can be downloaded from [here](https://research.libd.org/spatialLIBD/). 
 
 ```{r class.source="watch-out", eval = FALSE} 
 # dependencies
@@ -583,7 +583,7 @@ DLPFC_4 <- importVisium("DLPFC/151676", sample_name = "DLPFC_4")
 
 ### Automated Image Alignment
 
-We will again use the registerSpatialData function to **automatically register two Visium assays (two H&E images)**. This time, we will use the **BRUTE-FORCE** method for automated alignment which we found to be more accurate compared to FLANN when aligning two H&E images. The shiny app also provides two tuning parameters that used by the the BRUTE-FORCE workflow:
+We will again use the registerSpatialData function to **automatically register two Visium assays (two H&E images)**. This time, we will use the **BRUTE-FORCE** method for automated alignment which we found to be more accurate compared to FLANN when aligning two H&E images. The shiny app also provides two tuning parameters that used by the BRUTE-FORCE workflow:
 
 * **# of Features** option specifies the number of maximum image features spotted within each image which later be used to match to the other image.
 * **Match %** specifies the percentage of these features matching at max which in turn used to compute the registration/transformation matrix. 

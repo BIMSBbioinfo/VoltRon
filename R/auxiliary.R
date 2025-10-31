@@ -305,11 +305,9 @@ getBasilisk <- function() {
     "pandas==1.*",
     "anndata==0.8.*",
     "h5py==3.*",
-    "hdf5==1.*",
     "natsort==7.*",
     "packaging==20.*",
     "scipy==1.*",
-    "sqlite==3.*",
     "zarr==2.*",
     "numcodecs==0.*",
     "tifffile==2024.2.12"

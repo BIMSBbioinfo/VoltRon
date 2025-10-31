@@ -153,6 +153,7 @@ registerSpatialData <- function(
           getImageTabPanels(
             length(orig_image_query_list),
             orig_image_channelname_list,
+            centre = centre,
             type = "ref",
             params = mapping_parameters
           ),
@@ -175,6 +176,7 @@ registerSpatialData <- function(
           getImageTabPanels(
             length(orig_image_query_list),
             orig_image_channelname_list,
+            centre = centre,
             type = "query",
             params = mapping_parameters
           ),
@@ -464,13 +466,16 @@ getSideBar <- function(params = NULL) {
 #'
 #' @param len_images the number of query images
 #' @param channel_names the list of channel names for each image
+#' @param centre center reference ID
 #' @param type Either reference (ref) or query (query) image
 #' @param params mapping parameters
 #'
 #' @noRd
-getImageTabPanels <- function(len_images, channel_names, type, params = NULL) {
+getImageTabPanels <- function(len_images, channel_names, centre, type, params = NULL) {
   # get panel label
-  label <- ifelse(type == "ref", "Ref. ", "Query ")
+  # label <- ifelse(type == "ref", "Ref. ", "Query ")
+  label <- "Img "
+  
 
   # call panels
   do.call(
@@ -479,7 +484,7 @@ getImageTabPanels <- function(len_images, channel_names, type, params = NULL) {
       id = paste0('image_tab_panel_', type),
       lapply(seq_len(len_images), function(i) {
         tabPanel(
-          paste0(label, i),
+          paste0(label, i, if(i == centre) " (Ref.)" else NULL),
           br(),
           fluidRow(
             column(
@@ -660,7 +665,11 @@ updateTabPanels <- function(centre, register_ind, input, output, session) {
     updateTabsetPanel(
       session,
       "image_tab_panel_query",
-      paste0("Query ", query_panel_ind)
+      # paste0("Query ", query_panel_ind)
+      paste0("Img ", 
+             query_panel_ind, 
+             if(query_panel_ind == centre) " (Ref.)" else NULL
+      )
     )
     updateTabsetPanel(
       session,
@@ -672,7 +681,11 @@ updateTabPanels <- function(centre, register_ind, input, output, session) {
       updateTabsetPanel(
         session,
         "image_tab_panel_ref",
-        paste0("Ref. ", selected_panel_ind - 1)
+        # paste0("Ref. ", selected_panel_ind - 1)
+        paste0("Img ", 
+               selected_panel_ind - 1, 
+               if((selected_panel_ind - 1) == centre) " (Ref.)" else NULL
+               )
       )
     }
   })
@@ -691,14 +704,22 @@ updateTabPanels <- function(centre, register_ind, input, output, session) {
     updateTabsetPanel(
       session,
       "image_tab_panel_ref",
-      paste0("Ref. ", query_panel_ind)
+      # paste0("Ref. ", query_panel_ind)
+      paste0("Img ", 
+             query_panel_ind, 
+             if(query_panel_ind == centre) " (Ref.)" else NULL
+      )
     )
 
     if (selected_panel_ind == 1) {
       updateTabsetPanel(
         session,
         "image_tab_panel_query",
-        paste0("Query ", selected_panel_ind + 1)
+        # paste0("Query ", selected_panel_ind + 1)
+        paste0("Img ", 
+               selected_panel_ind + 1, 
+               if((selected_panel_ind + 1) == centre) " (Ref.)" else NULL
+        )      
       )
       updateTabsetPanel(
         session,
@@ -726,7 +747,11 @@ updateTabPanels <- function(centre, register_ind, input, output, session) {
     updateTabsetPanel(
       session,
       "image_tab_panel_query",
-      paste0("Query ", selected_panel_ind)
+      # paste0("Query ", selected_panel_ind)
+      paste0("Img ", 
+             selected_panel_ind, 
+             if(selected_panel_ind == centre) " (Ref.)" else NULL
+      )
     )
     selected_panel_ali <- gsub("Reg.", "Ali.", selected_panel)
     updateTabsetPanel(session, "image_tab_panel_alignment", selected_panel_ali)

@@ -9,7 +9,6 @@ importImageData(
   tile.size = 10,
   segments = NULL,
   image_name = "main",
-  channel_names = NULL,
   channels = NULL,
   series = 1,
   resolution = NULL,
@@ -27,11 +26,8 @@ result in a second assay in the VoltRon object to be created}
 
 \item{image_name}{the image name of the Image assay, Default: main}
 
-\item{channel_names}{the channel names of the images if multiple
+\item{channels}{the channel names of the images if multiple
 images are provided}
-
-\item{channels}{the integer indices of the channels to be parsed from
-ome.tiff files.}
 
 \item{series}{the series IDs of the pyramidal image,
 typical an integer starting from 1}
@@ -56,6 +52,6 @@ vrdata <- importImageData(imgfile, image_name = "main")
 imgfile <- c(system.file("extdata", "DAPI.tif", package = "VoltRon"),
              system.file("extdata", "DAPI.tif", package = "VoltRon"))
 vrdata <- importImageData(imgfile, image_name = "main",
-                                   channel_name = c("DAPI", "DAPI2"))
+                                   channels = c("DAPI", "DAPI2"))
 
 }

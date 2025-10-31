@@ -47,15 +47,15 @@ test_that("import image voltron data", {
   expect_error(imgdata <- importImageData("", tile.size = 200, image_name = "main"))
   
   # channel names
-  imgdata <- importImageData(imgfile, tile.size = 200, image_name = "main", channel_names = "DAPI")
+  imgdata <- importImageData(imgfile, tile.size = 200, image_name = "main", channels = "DAPI")
   expect_equal(vrImageChannelNames(imgdata)$Channels, "DAPI")
   expect_error(importImageData(imgfile, tile.size = 10, 
-                               channel_names = c("ch1", "ch3")))
+                               channels = c("ch1", "ch3")))
   # multiple images
   imgfile <- c(imgfile, imgfile)
   imgdata <- importImageData(imgfile, tile.size = 4)
   expect_equal(vrImageChannelNames(imgdata)$Channels, "channel_1,channel_2")
-  imgdata <- importImageData(imgfile, tile.size = 4, channel_names = c("DAPI", "DAPI2"))
+  imgdata <- importImageData(imgfile, tile.size = 4, channels = c("DAPI", "DAPI2"))
   expect_equal(vrImageChannelNames(imgdata)$Channels, "DAPI,DAPI2")
   
   # return
@@ -77,5 +77,4 @@ test_that("import ome.tiff", {
   # ask for channels
   vrimagedata <- importImageData(img.ometiff, series = 1, resolution = 1, channels = 1)
   expect_error(importImageData(img.ometiff, series = 1, resolution = 1, channels = 2))
-  expect_error(importImageData(img.ometiff, series = 1, resolution = 1, channels = 1, channel_names = c("ch1", "ch2")))
 })

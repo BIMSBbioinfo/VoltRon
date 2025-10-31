@@ -467,8 +467,8 @@ table, th, td {
 <div id="roi-analysis" class="section level1">
 <h1>ROI Analysis</h1>
 <p>VoltRon is capable of analyzing readouts from distinct spatial
-technologies including <strong>segmentation (ROI)-based transciptomics
-assays</strong> that capture mRNA abundance from large polygonic regions
+technologies including <strong>segmentation (ROI)-based transcriptomics
+assays</strong> that capture mRNA abundance from large polygonal regions
 on tissue sections. VoltRon recognizes such readouts including ones from
 commercially available tools and allows users to execute a workflow
 similar to ones conducted on bulk RNA-Seq datasets.</p>
@@ -553,7 +553,7 @@ OME.TIFF (XML) file </a>
 <p>
 </p>
 <p>We now import the GeoMx data, and start analyzing 87 user selected
-segments (i.e. region of interests, <strong>ROI</strong>) to check
+segments (i.e. region of interest, <strong>ROI</strong>) to check
 spatial localization of signals. The <strong>importGeoMx</strong>
 function requires:</p>
 <ul>
@@ -640,21 +640,17 @@ suggested by the <a
 href="https://nanostring.com/support-documents/geomx-dsp-data-analysis-user-manual/">GeoMx
 DSP Data Analysis User Manual</a> which scales the ROI profiles to the
 third quartile followed by the geometric mean of all third quartiles
-multipled to the scaled profile.</p>
+multiplied to the scaled profile.</p>
 <pre class="r watch-out"><code>GeoMxR1 &lt;- normalizeData(GeoMxR1, method = &quot;Q3Norm&quot;)</code></pre>
 <p><br></p>
 </div>
 <div id="interactive-subsetting" class="section level2">
 <h2>Interactive Subsetting</h2>
-<p>Spatially informed genomic technologies heavily depend on image
+<p>Spatially informed genomics technologies heavily depend on image
 manipulation as images provide an additional set of information. Hence,
 VoltRon incorporates several interactive built-in utilities. One such
 functionality allows manipulating images of VoltRon assays where users
-can interactively choose subsets of images. However, we first resize the
-morphology image by providing the width of the new image (thus height
-will be reduced to preserve the aspect ratio).</p>
-<pre class="r watch-out"><code># resizing the image
-# GeoMxR1 &lt;- resizeImage(GeoMxR1, size = 4000)</code></pre>
+can interactively choose subsets of images.</p>
 <p>VoltRon provides <strong>a mini Shiny app</strong> for subsetting
 spatial points of a VoltRon object by using the image as a reference.
 This app is particularly useful when multiple tissue sections were
@@ -695,7 +691,7 @@ subset_info_list &lt;- GeoMxR1_subset$subset_info_list[[1]]
 GeoMxR1_subset_list &lt;- list()
 for(i in 1:length(subset_info_list)){
   GeoMxR1_subset_list[[i]]  &lt;- subset(GeoMxR1, image = subset_info_list[i])
-  GeoMxR1_subset_list[[i]] &lt;- samples[i]
+  GeoMxR1_subset_list[[i]]$Sample &lt;- samples[i]
 }
 GeoMxR1 &lt;- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1])</code></pre>
 <p><br></p>

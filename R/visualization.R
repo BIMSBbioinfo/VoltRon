@@ -3850,13 +3850,13 @@ vrViolinPlot <- function(
 
   if (length(features) > 1) {
     if (length(gg) < ncol) {
-      ncol <- length(gg)
+      ncol <- length(features)
     }
     gg <- gg +
       facet_wrap(
         . ~ variable,
         ncol = ncol,
-        nrow = ceiling(length(gg) / ncol),
+        nrow = ceiling(length(features) / ncol),
         scales = "free_y"
       )
   } else {
@@ -4075,15 +4075,16 @@ vrBarPlot <- function(
         facet_grid(variable ~ split.by, scales = "free", space = "free_x")
       return(gg)
     } else {
-      if (length(gg) < ncol) {
-        ncol <- length(gg)
-      }
+      # if (length(gg) < ncol) {
+      #   ncol <- length(gg)
+      # }
       gg <- gg +
         facet_wrap(
           . ~ split.by,
           ncol = ncol,
           nrow = ceiling(length(unique(split.by.col)) / ncol),
-          scales = "free_x"
+          scales = "free_x", 
+          space = "free_x"
         )
       return(gg)
     }
