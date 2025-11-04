@@ -728,7 +728,7 @@ writeHDF5ArrayInImage <- function(
         img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
 
         # write image
-        if (!inherits(img, "ImgArray") || replace) {
+        if (!inherits(img, "ImageArray") || replace) {
           if (verbose) {
             message(
               "Writing '",
@@ -741,11 +741,11 @@ writeHDF5ArrayInImage <- function(
             )
           }
           img <-
-            ImageArray::writeImgArray(
+            ImageArray::writeImageArray(
               img,
               output = gsub(".h5$", "", h5_path),
               name = paste0(name, "/spat_", spat, "/", ch),
-              format = "HDF5ImgArray",
+              format = "HDF5ImageArray",
               replace = FALSE,
               chunkdim = chunkdim,
               level = level,
@@ -832,7 +832,7 @@ writeHDF5ArrayInImage <- function(
 
 #' zarrcreateGroup
 #'
-#' get information of an ImgArray object
+#' get information of an ImageArray object
 #'
 #' @param store the location of (zarr) store
 #' @param name name of the group
@@ -1266,7 +1266,7 @@ writeZarrArrayInImage <- function(
         img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
 
         # write image
-        if (!inherits(img, "ImgArray") || replace) {
+        if (!inherits(img, "ImageArray") || replace) {
           if (verbose) {
             message(
               "Writing '",
@@ -1278,11 +1278,11 @@ writeZarrArrayInImage <- function(
               "'"
             )
           }
-          img <- ImageArray::writeImgArray(
+          img <- ImageArray::writeImageArray(
             img,
             output = gsub(".zarr$", "", zarr_path),
             name = paste0(name, "/spat_", spat, "/", ch),
-            format = "ZarrImgArray",
+            format = "ZarrImageArray",
             replace = FALSE,
             chunkdim = chunkdim,
             level = level,

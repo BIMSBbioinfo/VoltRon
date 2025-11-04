@@ -30,14 +30,15 @@ RUN R -e "install.packages(c('stringr', 'uwot', 'RCDT'), repos='http://cran.rstu
 RUN R -e "BiocManager::install(c('EBImage', 'S4Arrays', 'BiocSingular'))"
 
 # Install Suggested dependencies
-RUN R -e "BiocManager::install(c('DelayedArray'))"
-RUN R -e "BiocManager::install(c('DelayedMatrixStats'))"
-RUN R -e "BiocManager::install(c('HDF5Array'))"
-RUN R -e "devtools::install_github('Huber-group-EMBL/Rarr')"
-RUN R -e "options(timeout = 600000000); remotes::install_github('bnprks/BPCells/r@v0.3.0')"
-RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/ImageArray')"
-RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/HDF5DataFrame')"
-RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/ZarrDataFrame')"
+# RUN R -e "BiocManager::install(c('DelayedArray'))"
+# RUN R -e "BiocManager::install(c('DelayedMatrixStats'))"
+# RUN R -e "BiocManager::install(c('HDF5Array'))"
+# RUN R -e "devtools::install_github('Huber-group-EMBL/Rarr')"
+# RUN R -e "options(timeout = 600000000); remotes::install_github('bnprks/BPCells/r@v0.3.0')"
+# RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/ImageArray')"
+# RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/HDF5DataFrame')"
+# RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/ZarrDataFrame')"
+RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/VoltRonStore')"
 RUN R -e "options(timeout = 600000000); install.packages('Seurat')"
 RUN R -e "BiocManager::install('glmGamPoi')"
 RUN R -e "install.packages('arrow')"
@@ -52,9 +53,6 @@ RUN R -e "install.packages('patchwork')"
 RUN R -e "install.packages('anndata')"
 RUN R -e "install.packages('R.utils')"
 RUN R -e "devtools::install_github('immunogenomics/presto')"
-
-# Install VoltRon dependencies
-RUN R -e "devtools::install_github('Artur-man/VoltRon')"
 
 # Install basilisk and setup environment
 USER rstudio
