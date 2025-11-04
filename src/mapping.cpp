@@ -15,7 +15,7 @@ using namespace cv;
 using namespace cv::xfeatures2d;
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix applyMapping(Rcpp::NumericMatrix coords, Rcpp::List mapping)
+Rcpp::NumericMatrix applyRcppMapping(Rcpp::NumericMatrix coords, Rcpp::List mapping)
 {
   // Get coordinates as Point2f
   std::vector<cv::Point2f> coords_mat = numericMatrixToPoint2f(coords);

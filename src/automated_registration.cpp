@@ -899,7 +899,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
                                              const bool invert_query, const bool invert_ref,
                                              Rcpp::String flipflop_query, Rcpp::String flipflop_ref,
                                              Rcpp::String rotate_query, Rcpp::String rotate_ref,
-                                             Rcpp::String matcher, Rcpp::String method)
+                                             Rcpp::String matcher, Rcpp::String method, Rcpp::String nonrigid)
 {
   // Return data
   Rcpp::List out(5);
@@ -919,7 +919,8 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
 
   // run alignment
   const bool run_TPS = (strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0 || 
-                        strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0);
+                        strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0) && 
+                        strcmp(nonrigid.get_cstring(), "TPS (OpenCV)") == 0;
   const bool run_Affine = (strcmp(method.get_cstring(), "Affine") == 0 || 
                            strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0);
   alignImages(im, imReference, imReg, imOverlay, imMatches,

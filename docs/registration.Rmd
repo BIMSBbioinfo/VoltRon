@@ -499,7 +499,7 @@ Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1")
 # import H&E image 
 Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif",
                                 sample_name = "XeniumR1image", 
-                                channel_names = "H&E")
+                                channels = "H&E")
 Xen_R1_image
 ```
 
@@ -559,6 +559,34 @@ vrImages(Xen_R1, channel = "H&E", scale.perc = 5)
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE.png" class="center">
+
+<br>
+
+### Non-Rigid Alignment
+
+VoltRon allows performing non-rigid image registration and spatial data alignment using the **SimpleITK**'s C++ library. With SimpleITK, we
+conduct a **coarse-to-fine alignment** workflow where we first perform a **global alignment** using FLANN or BRUTE-FORCE methods, and then perform 
+a **fine alignment** using SimpleITK. We first use either affine or homography transformation and then interpolate images, points and segments using B-spline method.
+
+To facilitate non-rigid alignment, we require to install and build SimpleITK locally with [Elastix](https://elastix.dev/) framework.
+
+```{r class.source="watch-out", eval = FALSE} 
+if (!require("devtools", quietly = TRUE))
+    install.packages("devtools")
+devtools::install_github(
+  repo = "SimpleITK/SimpleITKRInstaller", 
+  configure.vars=c("MAKEJ=6", 
+                   "ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON"))
+```
+
+We can then use **registerSpatialData** function as before and select "BSpline (SimpleITK)" option to conduct non-rigid alignment. 
+
+```{r eval = FALSE, class.source="watch-out"}
+library(SimpleITK)
+xen_reg <- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))
+```
+
+<img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE_function_simpleitk.png" class="center">
 
 <br>
 

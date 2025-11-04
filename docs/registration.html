@@ -13,7 +13,7 @@
 
 <title>Image Registration</title>
 
-<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.30/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -908,7 +908,7 @@ Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;Xenium
 # import H&amp;E image 
 Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
                                 sample_name = &quot;XeniumR1image&quot;, 
-                                channel_names = &quot;H&amp;E&quot;)
+                                channels = &quot;H&amp;E&quot;)
 Xen_R1_image</code></pre>
 <pre><code>VoltRon Object 
 XeniumR1image: 
@@ -951,6 +951,33 @@ put the aligned H&amp;E when calling <strong>vrSpatialPlot</strong> or
 <strong>vrSpatialFeaturePlot</strong>.</p>
 <pre class="r watch-out"><code>vrImages(Xen_R1, channel = &quot;H&amp;E&quot;, scale.perc = 5)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="non-rigid-alignment" class="section level3">
+<h3>Non-Rigid Alignment</h3>
+<p>VoltRon allows performing non-rigid image registration and spatial
+data alignment using the <strong>SimpleITK</strong>’s C++ library. With
+SimpleITK, we conduct a <strong>coarse-to-fine alignment</strong>
+workflow where we first perform a <strong>global alignment</strong>
+using FLANN or BRUTE-FORCE methods, and then perform a <strong>fine
+alignment</strong> using SimpleITK. We first use either affine or
+homography transformation and then interpolate images, points and
+segments using B-spline method.</p>
+<p>To facilitate non-rigid alignment, we require to install and build
+SimpleITK locally with <a href="https://elastix.dev/">Elastix</a>
+framework.</p>
+<pre class="r watch-out"><code>if (!require(&quot;devtools&quot;, quietly = TRUE))
+    install.packages(&quot;devtools&quot;)
+devtools::install_github(
+  repo = &quot;SimpleITK/SimpleITKRInstaller&quot;, 
+  configure.vars=c(&quot;MAKEJ=6&quot;, 
+                   &quot;ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON&quot;))</code></pre>
+<p>We can then use <strong>registerSpatialData</strong> function as
+before and select “BSpline (SimpleITK)” option to conduct non-rigid
+alignment.</p>
+<pre class="r watch-out"><code>library(SimpleITK)
+xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))</code></pre>
+<p><img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE_function_simpleitk.png" class="center"></p>
 <p><br></p>
 </div>
 </div>
