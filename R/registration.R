@@ -52,7 +52,7 @@ registerSpatialData <- function(
       channel_names,
       function(chan) {
         img <- vrImages(spat[[assayname]], channel = chan, as.raster = TRUE)
-        if (!inherits(img, "ImgArray")) {
+        if (!inherits(img, "ImageArray")) {
           img <- magick::image_read(img)
         }
         img
@@ -1229,7 +1229,7 @@ applyPerspectiveTransform <- function(
         channel = channel_ind,
         as.raster = TRUE
       )
-      if (!inherits(query_image, "ImgArray")) {
+      if (!inherits(query_image, "ImageArray")) {
         query_image <- magick::image_read(query_image)
       }
       # warped_image <- getRcppWarpImage(
@@ -1251,7 +1251,7 @@ applyPerspectiveTransform <- function(
     # images
     ref_image <- transformImage(reference_image, ref_extension, input)
     query_image <- vrImages(object[[assay]], as.raster = TRUE)
-    if (!inherits(query_image, "ImgArray")) {
+    if (!inherits(query_image, "ImageArray")) {
       query_image <- magick::image_read(query_image)
     }
     query_image <- transformImage(query_image, query_extension, input)
@@ -1333,7 +1333,7 @@ applyPerspectiveTransform <- function(
         channel = channel_ind,
         as.raster = TRUE
       )
-      if (!inherits(query_image, "ImgArray")) {
+      if (!inherits(query_image, "ImageArray")) {
         query_image <- magick::image_read(query_image)
       }
       query_image <- transformImage(query_image, query_extension, input)
@@ -1565,7 +1565,7 @@ manageKeypoints <- function(
           width <- limits_trans[2, 1] - limits_trans[1, 1]
           height <- limits_trans[2, 2] - limits_trans[1, 2]
           if (max(height, width) > 1000) {
-            if (inherits(image_trans, "ImgArray")) {
+            if (inherits(image_trans, "ImageArray")) {
               n.series <- length(image_trans)
               cur_width <- width
               cur_height <- height
@@ -2060,7 +2060,7 @@ manageImageZoomOptions <- function(
           width <- limits_trans[2, 1] - limits_trans[1, 1]
           height <- limits_trans[2, 2] - limits_trans[1, 2]
           if (max(height, width) > 1000) {
-            if (inherits(image_trans, "ImgArray")) {
+            if (inherits(image_trans, "ImageArray")) {
               n.series <- length(image_trans)
               cur_width <- width
               cur_height <- height
@@ -2198,7 +2198,7 @@ getImageOutput <- function(
         height <- img_limits$keypoints[2, 2] - img_limits$keypoints[1, 2]
         if (max(height, width) > 1000) {
           # scale keypoints
-          if (inherits(img_trans$image, "ImgArray")) {
+          if (inherits(img_trans$image, "ImageArray")) {
             n.series <- length(img_trans$image)
             cur_width <- width
             cur_height <- height
@@ -2262,7 +2262,7 @@ plotImage <- function(image, max.pixel.size = NULL) {
       }
     }
     imgggplot <- magick::image_ggplot(image)
-  } else if (inherits(image, "ImgArray")) {
+  } else if (inherits(image, "ImageArray")) {
     img_raster <- ImageArray::as.raster(image, max.pixel.size = max.pixel.size)
     info <- list(width = dim(img_raster)[2], height = dim(img_raster)[1])
     imgggplot <- ggplot2::ggplot(
@@ -2314,7 +2314,7 @@ getImageInfoList <- function(image_list) {
 getImageInfo <- function(image) {
   if (inherits(image, "magick-image")) {
     imginfo <- magick::image_info(image)
-  } else if (inherits(image, "ImgArray")) {
+  } else if (inherits(image, "ImageArray")) {
     imginfo <- ImageArray::getImageInfo(image)
   }
   as.data.frame(imginfo)
@@ -2333,7 +2333,7 @@ getImageInfo <- function(image) {
 rotateImage <- function(image, degrees) {
   if (inherits(image, "magick-image")) {
     image <- magick::image_rotate(image, degrees = degrees)
-  } else if (inherits(image, "ImgArray")) {
+  } else if (inherits(image, "ImageArray")) {
     image <- ImageArray::rotate(image, degrees)
   }
   image
@@ -2351,7 +2351,7 @@ rotateImage <- function(image, degrees) {
 negateImage <- function(image) {
   if (inherits(image, "magick-image")) {
     image <- magick::image_negate(image)
-  } else if (inherits(image, "ImgArray")) {
+  } else if (inherits(image, "ImageArray")) {
     image <- ImageArray::negate(image)
   }
   image
@@ -2369,7 +2369,7 @@ negateImage <- function(image) {
 flipImage <- function(image) {
   if (inherits(image, "magick-image")) {
     image <- magick::image_flip(image)
-  } else if (inherits(image, "ImgArray")) {
+  } else if (inherits(image, "ImageArray")) {
     image <- ImageArray::flip(image)
   }
   image
@@ -2387,7 +2387,7 @@ flipImage <- function(image) {
 flopImage <- function(image) {
   if (inherits(image, "magick-image")) {
     image <- magick::image_flop(image)
-  } else if (inherits(image, "ImgArray")) {
+  } else if (inherits(image, "ImageArray")) {
     image <- ImageArray::flop(image)
   }
   image
@@ -2406,7 +2406,7 @@ flopImage <- function(image) {
 cropImage <- function(image, geometry) {
   if (inherits(image, "magick-image")) {
     image <- magick::image_crop(image, geometry = geometry)
-  } else if (inherits(image, "ImgArray")) {
+  } else if (inherits(image, "ImageArray")) {
     crop_info_int <- as.integer(strsplit(geometry, split = "[x|+]")[[1]])
     image <- ImageArray::crop(
       image,
@@ -2435,7 +2435,7 @@ resize_Image <- function(image, geometry) {
 
   if (inherits(image, "magick-image")) {
     image <- magick::image_resize(image, geometry = geometry)
-  } else if (inherits(image, "ImgArray")) {
+  } else if (inherits(image, "ImageArray")) {
     # get scale factor
     if (grepl("%$", geometry)) {
       scale_factor <- as.numeric(gsub("%$", "", geometry)) / 100
@@ -2570,7 +2570,7 @@ transformImageQueryList <- function(image_list, input) {
 #' @export
 warpImage <- function(ref_image, query_image, mapping) {
   # ref image
-  if (inherits(ref_image, "ImgArray")) {
+  if (inherits(ref_image, "ImageArray")) {
     # ref_image <- as.array(ref_image)
     ref_image <- DelayedArray::realize(ref_image)
     ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
@@ -2579,7 +2579,7 @@ warpImage <- function(ref_image, query_image, mapping) {
   }
 
   # query image
-  if (inherits(query_image, "ImgArray")) {
+  if (inherits(query_image, "ImageArray")) {
     # query_image <- as.array(query_image)
     query_image <- DelayedArray::realize(query_image)
     query_image <- array(as.raw(query_image), dim = dim(query_image))
@@ -2913,7 +2913,7 @@ getRcppManualRegistration <- function(
   method = "TPS"
 ) {
   # ref image
-  if (inherits(ref_image, "ImgArray")) {
+  if (inherits(ref_image, "ImageArray")) {
     # ref_image <- as.array(ref_image)
     ref_image <- DelayedArray::realize(ref_image)
     ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
@@ -2922,7 +2922,7 @@ getRcppManualRegistration <- function(
   }
 
   # query image
-  if (inherits(query_image, "ImgArray")) {
+  if (inherits(query_image, "ImageArray")) {
     # query_image <- as.array(query_image)
     query_image <- DelayedArray::realize(query_image)
     query_image <- array(as.raw(query_image), dim = dim(query_image))
@@ -3300,7 +3300,8 @@ computeAutomatedPairwiseTransform <- function(
 #' @param rotate_ref rotation of reference image
 #' @param matcher the matching method for landmarks/keypoints FLANN or BRUTE-FORCE
 #' @param method the automated registration method, Homography or Homography+TPS
-#'
+#' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
+#' 
 #' @importFrom magick image_read image_data
 #'
 #' @export

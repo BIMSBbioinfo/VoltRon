@@ -70,12 +70,12 @@ annotateSpatialData <- function(
     channel = channel,
     as.raster = TRUE
   )
-  if (!inherits(img, "ImgArray")) {
+  if (!inherits(img, "ImageArray")) {
     if (!requireNamespace("ImageArray")) {
       message("Please install ImageArray package to speed up visualization")
       img <- magick::image_read(img)
     } else {
-      img <- ImageArray::createImgArray(img)
+      img <- ImageArray::createImageArray(img)
     }
   }
   if (!use.image.only) {
@@ -702,7 +702,7 @@ manageImageBrush <- function(
       width <- limits[2, 1] - limits[1, 1]
       height <- limits[2, 2] - limits[1, 2]
       if (max(height, width) > max.pixel.size) {
-        if (inherits(image, "ImgArray")) {
+        if (inherits(image, "ImageArray")) {
           n.series <- length(image)
           cur_width <- width
           cur_height <- height
@@ -765,7 +765,7 @@ manageSelectedCorners <- function(
       width <- limits[2, 1] - limits[1, 1]
       height <- limits[2, 2] - limits[1, 2]
       if (max(height, width) > max.pixel.size) {
-        if (inherits(image, c("ImgArray"))) {
+        if (inherits(image, c("ImageArray"))) {
           n.series <- length(image)
           cur_width <- width
           cur_height <- height
@@ -835,7 +835,7 @@ transformSelectedCorners <- function(
   width <- limits[2, 1] - limits[1, 1]
   height <- limits[2, 2] - limits[1, 2]
   if (max(height, width) > max.pixel.size) {
-    if (inherits(image, "ImgArray")) {
+    if (inherits(image, "ImageArray")) {
       n.series <- length(image)
       cur_width <- width
       cur_height <- height
@@ -886,7 +886,7 @@ transformSpatialLayer <- function(g_spatial, image, ranges, max.pixel.size) {
   width <- limits[2, 1] - limits[1, 1]
   height <- limits[2, 2] - limits[1, 2]
   if (max(height, width) > max.pixel.size) {
-    if (inherits(image, "ImgArray")) {
+    if (inherits(image, "ImageArray")) {
       n.series <- length(image)
       cur_width <- width
       cur_height <- height
