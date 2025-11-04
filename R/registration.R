@@ -4,7 +4,7 @@
 
 #' registerSpatialData
 #'
-#' A mini shiny app to for registering images and spatial coordinates of multiple consequtive spatial datasets
+#' A mini shiny app for registering images and spatial coordinates of multiple consecutive VoltRon objects.
 #'
 #' @param object_list a list of VoltRon (or Seurat) objects
 #' @param reference_spatdata a reference spatial data set, used only if \code{object_list} is \code{NULL}
@@ -52,7 +52,7 @@ registerSpatialData <- function(
       channel_names,
       function(chan) {
         img <- vrImages(spat[[assayname]], channel = chan, as.raster = TRUE)
-        if (!inherits(img, "ImgArray")) {
+        if (!inherits(img, "ImageArray")) {
           img <- magick::image_read(img)
         }
         img
@@ -381,6 +381,23 @@ getSideBar <- function(params = NULL) {
             is.null(params[["Method"]]),
             "Homography",
             params[["Method"]]
+          )
+        )
+      ),
+      br(),
+      column(
+        12,
+        selectInput(
+          "nonrigid",
+          "Non-Rigid Method",
+          choices = c(
+            "TPS (OpenCV)",
+            "BSpline (SimpleITK)"
+          ),
+          selected = ifelse(
+            is.null(params[["nonrigid"]]),
+            "TPS (OpenCV)",
+            params[["nonrigid"]]
           )
         )
       ),
@@ -797,6 +814,34 @@ updateParameterPanels <- function(len_images, params, input, output, session) {
     shinyjs::hide(id = paste0("scaleinfo_ref_image", i))
     shinyjs::hide(id = paste0("scaleinfo_query_image", i))
   }
+  
+  # done event
+  shinyjs::hide(id = "nonrigid")
+  observeEvent(input$Method, {
+    if(grepl("Non-Rigid", input$Method)){
+      shinyjs::show(id = "nonrigid")
+      if (input$automatictag) {
+        choices <- c(
+          "TPS (OpenCV)",
+          "BSpline (SimpleITK)"
+        )
+        selected <- "TPS (OpenCV)"
+      } else{
+        choices <- c(
+          "TPS (OpenCV)"
+        )
+        selected <- "TPS (OpenCV)"
+      }
+      updateSelectInput(
+        session,
+        "nonrigid",
+        choices = choices,
+        selected = selected
+      )
+    } else {
+      shinyjs::hide(id = "nonrigid")
+    }
+  })
 
   observeEvent(input$automatictag, {
     if (input$automatictag) {
@@ -1184,10 +1229,15 @@ applyPerspectiveTransform <- function(
         channel = channel_ind,
         as.raster = TRUE
       )
-      if (!inherits(query_image, "ImgArray")) {
+      if (!inherits(query_image, "ImageArray")) {
         query_image <- magick::image_read(query_image)
       }
-      warped_image <- getRcppWarpImage(
+      # warped_image <- getRcppWarpImage(
+      #   ref_image = reference_image,
+      #   query_image = query_image,
+      #   mapping = mapping
+      # )
+      warped_image <- warpImage(
         ref_image = reference_image,
         query_image = query_image,
         mapping = mapping
@@ -1201,7 +1251,7 @@ applyPerspectiveTransform <- function(
     # images
     ref_image <- transformImage(reference_image, ref_extension, input)
     query_image <- vrImages(object[[assay]], as.raster = TRUE)
-    if (!inherits(query_image, "ImgArray")) {
+    if (!inherits(query_image, "ImageArray")) {
       query_image <- magick::image_read(query_image)
     }
     query_image <- transformImage(query_image, query_extension, input)
@@ -1283,11 +1333,12 @@ applyPerspectiveTransform <- function(
         channel = channel_ind,
         as.raster = TRUE
       )
-      if (!inherits(query_image, "ImgArray")) {
+      if (!inherits(query_image, "ImageArray")) {
         query_image <- magick::image_read(query_image)
       }
       query_image <- transformImage(query_image, query_extension, input)
-      query_image <- getRcppWarpImage(ref_image, query_image, mapping = mapping)
+      # query_image <- getRcppWarpImage(ref_image, query_image, mapping = mapping)
+      query_image <- warpImage(ref_image, query_image, mapping = mapping)
       query_image <- transformImageReverse(query_image, ref_extension, input)
 
       image_reg_list[[channel_ind]] <- query_image
@@ -1334,6 +1385,68 @@ manageMapping <- function(mappings) {
 
   # return
   return(new_mappings)
+}
+
+applyMapping <- function(coords, mapping){
+  mapping_new <- mapping
+  if(!is.null(mapping[[1]][[2]])){
+    if(is(mapping[[1]][[2]][[1]], "_p_itk__simple__TransformixImageFilter")){
+      mapping_new[[1]] <- list(mapping[[1]][[1]], NULL)
+      coords <- applyRcppMapping(coords, mapping_new)
+      coords <- applySimpleITKMapping(coords, mapping[[1]][[2]][[1]])
+    } else {
+      coords <- applyRcppMapping(coords, mapping)
+    }
+  } else {
+    coords <- applyRcppMapping(coords, mapping)
+  }
+  coords
+}
+
+applySimpleITKMapping <- function(coords, mapping){
+  
+  # check SimpleITK
+  if (!requireNamespace('SimpleITK')) {
+    stop("Please install SimpleITK package!: ", 
+         "remotes::install_github('BIMSBbioinfo/SimpleITKRInstaller')", 
+         ", this is gonna take a while :)")
+  }
+  
+  # temp dir, delete later
+  tmpdir <- tempdir()
+  tmpdir <- file.path(tmpdir, "SimpleITK")
+  dir.create(tmpdir, showWarnings = FALSE)
+  
+  # get image
+  input_file <- file.path(tmpdir, "inputpoints.txt")
+  output_file <- file.path(tmpdir, "outputpoints.txt")
+  
+  # apply transformation
+  tfx <- mapping
+  suppressWarnings(file.remove(input_file, showWarnings = FALSE))
+  cat("point\n", nrow(coords), "\n", file = input_file)
+  write.table(coords, input_file, append = TRUE,
+              col.names = FALSE, row.names = FALSE, quote = FALSE)
+  tfx$SetOutputDirectory(tmpdir)
+  tfx$SetFixedPointSetFileName(input_file)
+  tmp <- tfx$Execute()
+
+  # get points
+  lines_coords <- readLines(output_file)
+  coords <- do.call(
+    rbind,
+    lapply(lines_coords, function(x) {
+      tmp <- strsplit(strsplit(x, split = "\\t")[[1]][6], 
+                      split = " ")[[1]][c(5,6)]
+      as.numeric(tmp)
+    })
+  )
+
+  # delete dir
+  unlink(tmpdir, recursive = TRUE)
+  
+  # return 
+  coords
 }
 
 ####
@@ -1452,7 +1565,7 @@ manageKeypoints <- function(
           width <- limits_trans[2, 1] - limits_trans[1, 1]
           height <- limits_trans[2, 2] - limits_trans[1, 2]
           if (max(height, width) > 1000) {
-            if (inherits(image_trans, "ImgArray")) {
+            if (inherits(image_trans, "ImageArray")) {
               n.series <- length(image_trans)
               cur_width <- width
               cur_height <- height
@@ -1781,6 +1894,7 @@ transferParameterInput <- function(params, image_list) {
   input[["MAX_FEATURES"]] <- params[["MAX_FEATURES"]]
   input[["Method"]] <- params[["Method"]]
   input[["Matcher"]] <- params[["Matcher"]]
+  input[["nonrigid"]] <- params[["nonrigid"]]
   for (i in seq_len(len_image)) {
     for (imgtype in c("ref", "query")) {
       input[[paste0("rotate_", imgtype, "_image", i)]] <- params[[paste0(
@@ -1946,7 +2060,7 @@ manageImageZoomOptions <- function(
           width <- limits_trans[2, 1] - limits_trans[1, 1]
           height <- limits_trans[2, 2] - limits_trans[1, 2]
           if (max(height, width) > 1000) {
-            if (inherits(image_trans, "ImgArray")) {
+            if (inherits(image_trans, "ImageArray")) {
               n.series <- length(image_trans)
               cur_width <- width
               cur_height <- height
@@ -2084,7 +2198,7 @@ getImageOutput <- function(
         height <- img_limits$keypoints[2, 2] - img_limits$keypoints[1, 2]
         if (max(height, width) > 1000) {
           # scale keypoints
-          if (inherits(img_trans$image, "ImgArray")) {
+          if (inherits(img_trans$image, "ImageArray")) {
             n.series <- length(img_trans$image)
             cur_width <- width
             cur_height <- height
@@ -2148,7 +2262,7 @@ plotImage <- function(image, max.pixel.size = NULL) {
       }
     }
     imgggplot <- magick::image_ggplot(image)
-  } else if (inherits(image, "ImgArray")) {
+  } else if (inherits(image, "ImageArray")) {
     img_raster <- ImageArray::as.raster(image, max.pixel.size = max.pixel.size)
     info <- list(width = dim(img_raster)[2], height = dim(img_raster)[1])
     imgggplot <- ggplot2::ggplot(
@@ -2200,7 +2314,7 @@ getImageInfoList <- function(image_list) {
 getImageInfo <- function(image) {
   if (inherits(image, "magick-image")) {
     imginfo <- magick::image_info(image)
-  } else if (inherits(image, "ImgArray")) {
+  } else if (inherits(image, "ImageArray")) {
     imginfo <- ImageArray::getImageInfo(image)
   }
   as.data.frame(imginfo)
@@ -2219,7 +2333,7 @@ getImageInfo <- function(image) {
 rotateImage <- function(image, degrees) {
   if (inherits(image, "magick-image")) {
     image <- magick::image_rotate(image, degrees = degrees)
-  } else if (inherits(image, "ImgArray")) {
+  } else if (inherits(image, "ImageArray")) {
     image <- ImageArray::rotate(image, degrees)
   }
   image
@@ -2237,7 +2351,7 @@ rotateImage <- function(image, degrees) {
 negateImage <- function(image) {
   if (inherits(image, "magick-image")) {
     image <- magick::image_negate(image)
-  } else if (inherits(image, "ImgArray")) {
+  } else if (inherits(image, "ImageArray")) {
     image <- ImageArray::negate(image)
   }
   image
@@ -2255,7 +2369,7 @@ negateImage <- function(image) {
 flipImage <- function(image) {
   if (inherits(image, "magick-image")) {
     image <- magick::image_flip(image)
-  } else if (inherits(image, "ImgArray")) {
+  } else if (inherits(image, "ImageArray")) {
     image <- ImageArray::flip(image)
   }
   image
@@ -2273,7 +2387,7 @@ flipImage <- function(image) {
 flopImage <- function(image) {
   if (inherits(image, "magick-image")) {
     image <- magick::image_flop(image)
-  } else if (inherits(image, "ImgArray")) {
+  } else if (inherits(image, "ImageArray")) {
     image <- ImageArray::flop(image)
   }
   image
@@ -2292,7 +2406,7 @@ flopImage <- function(image) {
 cropImage <- function(image, geometry) {
   if (inherits(image, "magick-image")) {
     image <- magick::image_crop(image, geometry = geometry)
-  } else if (inherits(image, "ImgArray")) {
+  } else if (inherits(image, "ImageArray")) {
     crop_info_int <- as.integer(strsplit(geometry, split = "[x|+]")[[1]])
     image <- ImageArray::crop(
       image,
@@ -2321,7 +2435,7 @@ resize_Image <- function(image, geometry) {
 
   if (inherits(image, "magick-image")) {
     image <- magick::image_resize(image, geometry = geometry)
-  } else if (inherits(image, "ImgArray")) {
+  } else if (inherits(image, "ImageArray")) {
     # get scale factor
     if (grepl("%$", geometry)) {
       scale_factor <- as.numeric(gsub("%$", "", geometry)) / 100
@@ -2443,6 +2557,89 @@ transformImageQueryList <- function(image_list, input) {
   return(trans_query_list)
 }
 
+#' warpImage
+#'
+#' Warping a query image given a homography image
+#'
+#' @param ref_image reference image
+#' @param query_image query image
+#' @param mapping a list of the homography matrices and TPS keypoints
+#'
+#' @importFrom magick image_read image_data
+#'
+#' @export
+warpImage <- function(ref_image, query_image, mapping) {
+  # ref image
+  if (inherits(ref_image, "ImageArray")) {
+    # ref_image <- as.array(ref_image)
+    ref_image <- DelayedArray::realize(ref_image)
+    ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
+  } else {
+    ref_image <- magick::image_data(ref_image, channels = "rgb")
+  }
+
+  # query image
+  if (inherits(query_image, "ImageArray")) {
+    # query_image <- as.array(query_image)
+    query_image <- DelayedArray::realize(query_image)
+    query_image <- array(as.raw(query_image), dim = dim(query_image))
+  } else {
+    query_image <- magick::image_data(query_image, channels = "rgb")
+  }
+
+  # mapping
+  mapping_new <- mapping
+  if(!is.null(mapping[[1]][[2]])){
+    if(is(mapping[[1]][[2]][[2]], "_p_itk__simple__TransformixImageFilter")){
+      mapping_new[[1]] <- list(mapping[[1]][[1]], NULL)
+      
+      # warp image in OpenCV
+      query_image <- warpRcppImage(
+        ref_image = ref_image,
+        query_image = query_image,
+        mapping = mapping_new,
+        width1 = dim(ref_image)[2],
+        height1 = dim(ref_image)[3],
+        width2 = dim(query_image)[2],
+        height2 = dim(query_image)[3]
+      )
+      
+      # warp image in SimpleITK
+      if(is.null(mapping[[1]][2])){
+        query_image <- warpSimpleITKImage(
+          ref_image = ref_image,
+          query_image = query_image,
+          mapping = mapping[[1]][[2]][[2]]
+        ) 
+      }
+    } else {
+      # warp image in OpenCV
+      query_image <- warpRcppImage(
+        ref_image = ref_image,
+        query_image = query_image,
+        mapping = mapping_new,
+        width1 = dim(ref_image)[2],
+        height1 = dim(ref_image)[3],
+        width2 = dim(query_image)[2],
+        height2 = dim(query_image)[3]
+      )      
+    }
+  } else {
+    # warp image in OpenCV
+    query_image <- warpRcppImage(
+      ref_image = ref_image,
+      query_image = query_image,
+      mapping = mapping_new,
+      width1 = dim(ref_image)[2],
+      height1 = dim(ref_image)[3],
+      width2 = dim(query_image)[2],
+      height2 = dim(query_image)[3]
+    )    
+  }
+  
+  magick::image_read(query_image)
+}
+
 #' getRcppWarpImage
 #'
 #' Warping a query image given a homography image
@@ -2454,36 +2651,46 @@ transformImageQueryList <- function(image_list, input) {
 #' @importFrom magick image_read image_data
 #'
 #' @export
-getRcppWarpImage <- function(ref_image, query_image, mapping) {
-  # ref image
-  if (inherits(ref_image, "ImgArray")) {
-    # ref_image <- as.array(ref_image)
-    ref_image <- DelayedArray::realize(ref_image)
-    ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
-  } else {
-    ref_image <- magick::image_data(ref_image, channels = "rgb")
+warpSimpleITKImage <- function(ref_image, query_image, mapping) {
+  
+  # check SimpleITK
+  if (!requireNamespace('SimpleITK')) {
+    stop("Please install SimpleITK package!: ", 
+         "remotes::install_github('BIMSBbioinfo/SimpleITKRInstaller')", 
+         ", this is gonna take a while :)")
   }
-
-  # query image
-  if (inherits(query_image, "ImgArray")) {
-    # query_image <- as.array(query_image)
-    query_image <- DelayedArray::realize(query_image)
-    query_image <- array(as.raw(query_image), dim = dim(query_image))
-  } else {
-    query_image <- magick::image_data(query_image, channels = "rgb")
-  }
-
+  
+  # temp dir, delete later
+  tmpdir <- tempdir()
+  tmpdir <- file.path(tmpdir, "SimpleITK")
+  dir.create(tmpdir, showWarnings = FALSE)
+  
+  # prepare images
+  query_image1 <- as_EBImage(query_image)
+  EBImage::writeImage(query_image1, 
+                      files = file.path(tmpdir, "query_image.tiff"),
+                      compression = "LZW", reduce = TRUE)
+  moving <- SimpleITK::ReadImage(file.path(tmpdir, "query_image.tiff"), 
+                                 'sitkUInt8')
+  
+  # register
+  tfx_image <- SimpleITK::TransformixImageFilter()
+  tfx_image$LogToConsoleOff()
+  tfx_image$SetTransformParameterMap(transform_param_map)
+  tfx_image$SetMovingImage(SimpleITK::Image(moving$GetSize(), 'sitkFloat32'))
+  
   # warp image
-  query_image <- warpImage(
-    ref_image = ref_image,
-    query_image = query_image,
-    mapping = mapping,
-    width1 = dim(ref_image)[2],
-    height1 = dim(ref_image)[3],
-    width2 = dim(query_image)[2],
-    height2 = dim(query_image)[3]
-  )
-  magick::image_read(query_image)
+  tfx$SetOutputDirectory(tmpdir)
+  tfx$SetMovingImage(moving)
+  tmp <- tfx$Execute()
+  SimpleITK::WriteImage(
+    SimpleITK::Cast(tfx$GetResultImage(), "sitkUInt8"),
+    file.path(tmpdir, "result_img.tif"))
+  query_image <- magick::image_read(file.path(tmpdir, "result_img.tif"))
+  
+  # delete dir
+  unlink(tmpdir, recursive = TRUE)
+  
 }
 
 ####
@@ -2706,7 +2913,7 @@ getRcppManualRegistration <- function(
   method = "TPS"
 ) {
   # ref image
-  if (inherits(ref_image, "ImgArray")) {
+  if (inherits(ref_image, "ImageArray")) {
     # ref_image <- as.array(ref_image)
     ref_image <- DelayedArray::realize(ref_image)
     ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
@@ -2715,7 +2922,7 @@ getRcppManualRegistration <- function(
   }
 
   # query image
-  if (inherits(query_image, "ImgArray")) {
+  if (inherits(query_image, "ImageArray")) {
     # query_image <- as.array(query_image)
     query_image <- DelayedArray::realize(query_image)
     query_image <- array(as.raw(query_image), dim = dim(query_image))
@@ -2938,19 +3145,19 @@ computeAutomatedPairwiseTransform <- function(
     ref_scale <- input[[paste0("scale_", ref_label, "_image", cur_map[2])]]
 
     # scale images
-    query_image <- resize_Image(
+    query_image_scaled <- resize_Image(
       query_image,
       geometry = magick::geometry_size_percent(100 * query_scale)
     )
-    ref_image <- resize_Image(
+    ref_image_scaled <- resize_Image(
       ref_image,
       geometry = magick::geometry_size_percent(100 * ref_scale)
     )
 
     # register images with OpenCV
     reg <- getRcppAutomatedRegistration(
-      ref_image = ref_image,
-      query_image = query_image,
+      ref_image = ref_image_scaled,
+      query_image = query_image_scaled,
       GOOD_MATCH_PERCENT = as.numeric(input$GOOD_MATCH_PERCENT),
       MAX_FEATURES = as.numeric(input$MAX_FEATURES),
       invert_query = input[[paste0(
@@ -2987,9 +3194,10 @@ computeAutomatedPairwiseTransform <- function(
       )]],
       rotate_ref = input[[paste0("rotate_", ref_label, "_image", cur_map[2])]],
       matcher = input$Matcher,
-      method = input$Method
+      method = input$Method,
+      nonrigid = if(is.null(input$nonrigid)) "None" else input$nonrigid
     )
-
+    
     # update transformation matrix
     if (nrow(reg[[1]][[1]]) == 2) {
       reg[[1]][[1]] <- solve(diag(c(ref_scale, ref_scale))) %*%
@@ -3007,9 +3215,60 @@ computeAutomatedPairwiseTransform <- function(
       reg[[1]][[2]][[2]] <- reg[[1]][[2]][[2]] * (1 / ref_scale)
     }
 
+    # run SimpleITK as fine registration
+    if(grepl("SimpleITK", input$nonrigid) && 
+       grepl("Non-Rigid", input$Method)){
+      if (!requireNamespace('SimpleITK')) {
+        stop("Please install SimpleITK package!: ", 
+             "remotes::install_github('BIMSBbioinfo/SimpleITKRInstaller')", 
+             ", this is gonna take a while :)")
+      }
+
+      tfx <- getSimpleITKAutomatedRegistration(
+        ref_image = ref_image,
+        query_image = query_image,
+        invert_query = input[[paste0(
+          "negate_",
+          query_label,
+          "_image",
+          cur_map[1]
+        )]] ==
+          "Yes",
+        invert_ref = input[[paste0(
+          "negate_",
+          ref_label,
+          "_image",
+          cur_map[2]
+        )]] ==
+          "Yes",
+        flipflop_query = input[[paste0(
+          "flipflop_",
+          query_label,
+          "_image",
+          cur_map[1]
+        )]],
+        flipflop_ref = input[[paste0(
+          "flipflop_",
+          ref_label,
+          "_image",
+          cur_map[2]
+        )]],
+        rotate_query = input[[paste0(
+          "rotate_",
+          query_label,
+          "_image",
+          cur_map[1]
+        )]],
+        rotate_ref = input[[paste0(
+          "rotate_", ref_label, "_image", cur_map[2])]],
+        initial_mapping = list(reg[[1]])
+      )
+      reg$aligned_image <- tfx$aligned_image
+      reg[[1]][[2]] <- tfx$transformation
+    }
+    
     # return transformation matrix and images
     mapping[[kk]] <- reg[[1]]
-    # dest_image <- resize_Image(ref_image, "500x")
     dest_image <- reg$dest_image
     aligned_image <- reg$aligned_image
     alignment_image <- reg$alignment_image
@@ -3041,7 +3300,8 @@ computeAutomatedPairwiseTransform <- function(
 #' @param rotate_ref rotation of reference image
 #' @param matcher the matching method for landmarks/keypoints FLANN or BRUTE-FORCE
 #' @param method the automated registration method, Homography or Homography+TPS
-#'
+#' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
+#' 
 #' @importFrom magick image_read image_data
 #'
 #' @export
@@ -3057,7 +3317,8 @@ getRcppAutomatedRegistration <- function(
   rotate_query = "0",
   rotate_ref = "0",
   matcher = "FLANN",
-  method = "Homography"
+  method = "Homography",
+  nonrigid = "TPS (OpenCV)"
 ) {
   # ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
   # query_image_rast <- magick::image_data(query_image, channels = "rgb")
@@ -3080,7 +3341,8 @@ getRcppAutomatedRegistration <- function(
     rotate_query = rotate_query,
     rotate_ref = rotate_ref,
     matcher = matcher,
-    method = method
+    method = method,
+    nonrigid = nonrigid
   )
 
   # check for null keypoints
@@ -3105,6 +3367,143 @@ getRcppAutomatedRegistration <- function(
     alignment_image = alignment_image,
     overlay_image = overlay_image
   ))
+}
+
+#' getSimpleITKAutomatedRegistration
+#'
+#' Automated registration workflos with Rcpp
+#'
+#' @param ref_image reference image
+#' @param query_image query image
+#' @param invert_query invert query image
+#' @param invert_ref invert reference image
+#' @param flipflop_query flip or flop the query image
+#' @param flipflop_ref flip or flop the reference image
+#' @param rotate_query rotation of query image
+#' @param rotate_ref rotation of reference image
+#'
+#' @importFrom magick as_EBImage 
+#' @importFrom EBImage imageData writeImage
+#' 
+#' @noRd
+getSimpleITKAutomatedRegistration <- function(
+    ref_image,
+    query_image,
+    invert_query = FALSE,
+    invert_ref = FALSE,
+    flipflop_query = "None",
+    flipflop_ref = "None",
+    rotate_query = "0",
+    rotate_ref = "0",
+    initial_mapping = NULL
+){
+  # check SimpleITK
+  if (!requireNamespace('SimpleITK')) {
+    stop("Please install SimpleITK package!: ", 
+         "remotes::install_github('BIMSBbioinfo/SimpleITKRInstaller')", 
+         ", this is gonna take a while :)")
+  }
+  
+  # message 
+  message("MESSAGE: Running B-Spline Alignment")
+  # temp dir, delete later
+  tmpdir <- tempdir()
+  tmpdir <- file.path(tmpdir, "SimpleITK")
+  dir.create(tmpdir, showWarnings = FALSE)
+  
+  # initial mapping
+  ref_image <- rotateImage(ref_image, as.numeric(rotate_ref))
+  if (flipflop_ref == "Flip") {
+    ref_image <- flipImage(ref_image)
+  } else if (flipflop_ref == "Flop") {
+    ref_image <- flopImage(ref_image)
+  }
+  if(invert_ref)
+    ref_image <- magick::image_negate(ref_image)
+  query_image <- rotateImage(query_image, as.numeric(rotate_query))
+  if (flipflop_query == "Flip") {
+    query_image <- flipImage(query_image)
+  } else if (flipflop_query == "Flop") {
+    query_image <- flopImage(query_image)
+  }
+  if(invert_query)
+    query_image <- magick::image_negate(query_image)
+  query_image <- warpImage(ref_image = ref_image,
+                           query_image = query_image,
+                           mapping = initial_mapping)
+  
+  # prepare images
+  ref_image1 <- magick::as_EBImage(ref_image)
+  # ref_image1 <- EBImage::imageData(ref_image1)
+  # dim_img <- 1:length(dim(ref_image))
+  # dim_img[1:2] <- rev(dim_img[1:2])
+  # ref_image1 <- aperm(ref_image1, perm = c(2,1,3))
+  EBImage::writeImage(ref_image1, 
+                      files = file.path(tmpdir, "ref_image.tiff"), 
+                      compression = "LZW", reduce = TRUE)
+  fixed <- SimpleITK::ReadImage(file.path(tmpdir, "ref_image.tiff"), 
+                                'sitkUInt8')
+  query_image1 <- as_EBImage(query_image)
+  # dim_img <- 1:length(dim(query_image))
+  # dim_img[1:2] <- rev(dim_img[1:2])
+  # query_image1 <- EBImage::imageData(query_image1)
+  # query_image1 <- aperm(query_image1, perm = c(2,1))
+  EBImage::writeImage(query_image1, 
+                      files = file.path(tmpdir, "query_image.tiff"),
+                      compression = "LZW", reduce = TRUE)
+  moving <- SimpleITK::ReadImage(file.path(tmpdir, "query_image.tiff"), 
+                                 'sitkUInt8')
+  
+  # get registration for image
+  elx <- SimpleITK::ElastixImageFilter()
+  elx$SetOutputDirectory(tmpdir)
+  elx$SetFixedImage(fixed)
+  elx$SetMovingImage(moving)
+  parameterMapVector = SimpleITK::VectorOfParameterMap()
+  mp <- SimpleITK:::ReadParameterFile(
+    system.file("extdata", "bspline_map.txt", package = "VoltRon")
+  )
+  elx$SetParameterMap(mp)
+  elx$LogToConsoleOff()
+  tmp <- elx$Execute()
+  sitk_img <- SimpleITK::ReadImage(file.path(tmpdir, "result.0.tif"))
+  arr <- SimpleITK::as.array(sitk_img)
+  arr8 <- 255 * (arr - min(arr)) / (max(arr) - min(arr))
+  arr8 <- array(as.integer(arr8), dim = dim(arr))
+  arr8 <- aperm(arr8, perm = c(2,1))
+  aligned_image <- magick::image_read(as.raster(arr8 / 255))
+  transform_param_map <- elx$GetTransformParameterMap()
+  tfx_image <- SimpleITK::TransformixImageFilter()
+  tfx_image$LogToConsoleOff()
+  tfx_image$SetTransformParameterMap(transform_param_map)
+
+  # get transformation for the points and observations
+  elx <- SimpleITK::ElastixImageFilter()
+  elx$SetOutputDirectory(tmpdir)
+  elx$SetFixedImage(moving)
+  elx$SetMovingImage(fixed)
+  parameterMapVector = SimpleITK::VectorOfParameterMap()
+  mp <- SimpleITK:::ReadParameterFile(
+    system.file("extdata", "bspline_map.txt", package = "VoltRon")
+  )
+  elx$SetParameterMap(mp)
+  elx$LogToConsoleOff()
+  tmp <- elx$Execute()
+  transform_param_map <- elx$GetTransformParameterMap()
+  tfx_points <- SimpleITK::TransformixImageFilter()
+  tfx_points$LogToConsoleOff()
+  tfx_points$SetTransformParameterMap(transform_param_map)
+  tfx_points$SetMovingImage(SimpleITK::Image(moving$GetSize(), 'sitkFloat32'))
+  
+  # delete dir
+  unlink(tmpdir, recursive = TRUE)
+  
+  # return
+  return(list(aligned_image = aligned_image, 
+              transformation = list(
+                tfx_points = tfx_points,
+                tfx_image = tfx_image
+              )))
 }
 
 ####

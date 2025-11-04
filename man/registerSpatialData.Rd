@@ -30,5 +30,5 @@ registerSpatialData(
 \item{shiny.options}{a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}}
 }
 \description{
-A mini shiny app to for registering images and spatial coordinates of multiple consequtive spatial datasets
+A mini shiny app for registering images and spatial coordinates of multiple consecutive VoltRon objects.
 }

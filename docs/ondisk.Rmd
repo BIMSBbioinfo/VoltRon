@@ -41,11 +41,11 @@ Emerging spatial omics instruments are capable of generating millions of cells a
 
 We use **BPCells** and **ImageArray** packages to store large feature matrices and images to accelerate operations. Here **BPCells** allows users access and operate on large feature matrices or clustering/spatial analysis, while **ImageArray** provides [image pyramids](https://en.wikipedia.org/wiki/Pyramid_(image_processing)) to allow fast access to large microscopy images. 
 
-You can download these packages from GitHub using **devtools**:
+You can download these packages using our bundle package [VoltRonStore](https://github.com/BIMSBbioinfo/VoltRonStore) from GitHub using **devtools**. Installing VoltRonStore will install all
+dependencies of VoltRon that facilitates on-disk support. 
 
 ```{r class.source="watch-out", eval = FALSE}
-devtools::install_github("bnprks/BPCells/r")
-devtools::install_github("BIMSBbioinfo/ImageArray")
+devtools::install_github("BIMSBbioinfo/VoltRonStore")
 library(BPCells)
 library(ImageArray)
 ```

@@ -12,5 +12,5 @@ zarrcreateGroup(store, name)
 \item{name}{name of the group}
 }
 \description{
-get information of an ImgArray object
+get information of an ImageArray object
 }

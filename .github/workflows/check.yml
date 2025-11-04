@@ -7,6 +7,7 @@ name: R-CMD-check
 jobs:
   check:
     runs-on: ${{ matrix.config.os }}
+    timeout-minutes: 1440
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
       _R_CHECK_TESTS_NLINES_: 0
@@ -148,14 +149,15 @@ jobs:
       # All Other dependencies
       - name: Install Suggested dependencies
         run: |
-          BiocManager::install(c('DelayedArray'))
-          BiocManager::install(c('DelayedMatrixStats'))
-          BiocManager::install(c('HDF5Array'))
-          remotes::install_github('bnprks/BPCells/r@v0.3.0')
-          devtools::install_github("Huber-group-EMBL/Rarr")
-          devtools::install_github('BIMSBbioinfo/ImageArray')
-          devtools::install_github('BIMSBbioinfo/HDF5DataFrame')
-          devtools::install_github('BIMSBbioinfo/ZarrDataFrame')
+          # BiocManager::install(c('DelayedArray'))
+          # BiocManager::install(c('DelayedMatrixStats'))
+          # BiocManager::install(c('HDF5Array'))
+          # remotes::install_github('bnprks/BPCells/r@v0.3.0')
+          # devtools::install_github("Huber-group-EMBL/Rarr")
+          # devtools::install_github('BIMSBbioinfo/ImageArray')
+          # devtools::install_github('BIMSBbioinfo/HDF5DataFrame')
+          # devtools::install_github('BIMSBbioinfo/ZarrDataFrame')
+          devtools::install_github('BIMSBbioinfo/VoltRonStore')
           install.packages("Seurat")
           BiocManager::install("glmGamPoi")
           install.packages('arrow')
@@ -182,6 +184,8 @@ jobs:
           BiocManager::install('basilisk')
           install.packages('reticulate')
           install.packages('patchwork')
+          # TODO: for now dont install SimpleITK
+          # devtools::install_github("SimpleITK/SimpleITKRInstaller", configure.vars=c("MAKEJ=1", "ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON"))
         shell: Rscript {0}
           
       ## R CMD Check

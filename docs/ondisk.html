@@ -13,7 +13,7 @@
 
 <title>ondisk</title>
 
-<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.30/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -475,10 +475,12 @@ operate on large feature matrices or clustering/spatial analysis, while
 <strong>ImageArray</strong> provides <a
 href="https://en.wikipedia.org/wiki/Pyramid_(image_processing)">image
 pyramids</a> to allow fast access to large microscopy images.</p>
-<p>You can download these packages from GitHub using
-<strong>devtools</strong>:</p>
-<pre class="r watch-out"><code>devtools::install_github(&quot;bnprks/BPCells/r&quot;)
-devtools::install_github(&quot;BIMSBbioinfo/ImageArray&quot;)
+<p>You can download these packages using our bundle package <a
+href="https://github.com/BIMSBbioinfo/VoltRonStore">VoltRonStore</a>
+from GitHub using <strong>devtools</strong>. Installing VoltRonStore
+will install all dependencies of VoltRon that facilitates on-disk
+support.</p>
+<pre class="r watch-out"><code>devtools::install_github(&quot;BIMSBbioinfo/VoltRonStore&quot;)
 library(BPCells)
 library(ImageArray)</code></pre>
 <p><br></p>

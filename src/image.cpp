@@ -131,7 +131,7 @@ void scaledDrawMatches(cv::Mat im1, std::vector<cv::KeyPoint> &keypoints1,
 }
   
 // [[Rcpp::export]]
-Rcpp::RawVector warpImage(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, 
+Rcpp::RawVector warpRcppImage(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, 
                           Rcpp::List mapping,
                           const int width1, const int height1,
                           const int width2, const int height2)
