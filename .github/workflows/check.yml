@@ -163,7 +163,7 @@ jobs:
           install.packages('arrow')
           BiocManager::install('RBioFormats')
           BiocManager::install('ComplexHeatmap')
-          devtools::install_github('dmcable/spacexr')
+          BiocManager::install('spacexr')
           devtools::install_github('xuranw/MuSiC')
           BiocManager::install('SingleCellExperiment')
           BiocManager::install('SpatialExperiment')

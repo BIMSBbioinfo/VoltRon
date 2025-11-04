@@ -78,7 +78,8 @@ USER root
 
 # Install spacexr
 RUN apt-get install -y libgsl-dev
-RUN R -e "options(timeout = 600000000); devtools::install_github(\"dmcable/spacexr\")"
+# RUN R -e "options(timeout = 600000000); devtools::install_github(\"dmcable/spacexr\")"
+RUN R -e "options(timeout = 600000000); BiocManager::install(\"spacexr\")"
 
 # increase cache disk size for ImageMagick
 RUN sed -i 's/2GiB/10GiB/g' /etc/ImageMagick-6/policy.xml
