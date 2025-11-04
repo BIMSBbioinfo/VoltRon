@@ -3087,7 +3087,7 @@ importQuPathIF <- function(
   
   # assign cell names
   cellID <- paste0("Cell", 1:length(segments))
-  metadata <- data.table::data.table(id = cellID)
+  metadata <- data.frame(row.names = cellID)
   colnames(rawdata) <- cellID
   names(segments) <- cellID
   rownames(coords) <- cellID
