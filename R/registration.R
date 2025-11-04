@@ -4,7 +4,7 @@
 
 #' registerSpatialData
 #'
-#' A mini shiny app to for registering images and spatial coordinates of multiple consequtive spatial datasets
+#' A mini shiny app for registering images and spatial coordinates of multiple consecutive VoltRon objects.
 #'
 #' @param object_list a list of VoltRon (or Seurat) objects
 #' @param reference_spatdata a reference spatial data set, used only if \code{object_list} is \code{NULL}

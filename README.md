@@ -93,6 +93,8 @@ We also use a specific version of the `Rarr` package geared towards reading and 
 We will use the standard Rarr package once modifications are released to Bioconductor. Thus please use: 
 
 ```
+if (!require("devtools", quietly = TRUE))
+    install.packages("devtools")
 devtools::install_github("Huber-group-EMBL/Rarr")
 ```
 
@@ -104,9 +106,12 @@ Depending on the number of processors the user has, you can modify the `MAKEJ=6`
 hence we add `-DSimpleITK_USE_ELASTIX=ON` to the `ADDITIONAL_SITK_MODULES` argument.
 
 ```
-devtools::install_github("SimpleITK/SimpleITKRInstaller", 
-                         configure.vars=c("MAKEJ=6", 
-                                          "ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON"))
+if (!require("devtools", quietly = TRUE))
+    install.packages("devtools")
+devtools::install_github(
+  repo = "SimpleITK/SimpleITKRInstaller", 
+  configure.vars=c("MAKEJ=6", 
+                   "ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON"))
 ```
 
 For more information, plase visit the [SimpleITK](https://simpleitk.readthedocs.io/en/v2.5.0/about.html) website.

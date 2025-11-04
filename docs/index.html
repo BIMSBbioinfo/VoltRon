@@ -13,7 +13,7 @@
 
 <title>VoltRon</title>
 
-<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.30/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -398,9 +398,9 @@ li.maintext2 {
 <p><br></p>
 <p class="maintext">
 <strong> VoltRon </strong> is a spatial omics analysis toolbox for
-multi-omics integration using spatial image registration. VoltRon is
-also capable of analyzing multiple types of spatially-aware data
-modalities.
+multi-omics integration using spatial data alignment and image
+registration. VoltRon is also capable of analyzing multiple types of
+spatially-aware data modalities.
 </p>
 <ul class="maintext2">
 <li style="padding-bottom: 10px">
@@ -411,22 +411,26 @@ R object.
 <li style="padding-bottom: 10px">
 <strong> End-to-end downstream data analysis </strong> for distinct
 spatial biology technologies are supported. VoltRon visualizes and
-analyzes regions of interests (ROIs), spots, cells, molecules and tiles
-<strong>(under development)</strong>.
+analyzes regions of interests (ROIs), spots, cells, molecules and image
+tiles.
 </li>
 <li style="padding-bottom: 10px">
-<strong> Automated Image Registration </strong> incorporates
-<a href="https://opencv.org/">OpenCV</a> (fully embedded into the
-package using <a href="https://www.rcpp.org/">Rcpp</a>) to detect common
-features across images and achieves registration. Users may interact
-with built-in mini shiny apps to change alignment parameters and
-validate alignment accuracy.
+<strong> Automated Spatial Alignment </strong> incorporates
+<a href="https://opencv.org/">OpenCV</a> and
+<a href="https://simpleitk.org/"> SimpleITK </a> frameworks (fully
+embedded into the package using
+<a href="https://www.rcpp.org/">Rcpp</a>) to detect common features
+across images of spatial assays and achieves alignment (registration).
+Users may interact with built-in mini shiny apps to change alignment
+parameters and validate alignment accuracy.
 </li>
 <li style="padding-bottom: 10px">
-<strong> Manual Image Registration </strong> helps users to select
-common features across spatial datasets using reference images stored in
+<strong> Manual Spatial Alignment </strong> helps users to select common
+features across spatial datasets using reference images stored in
 VoltRon objects. In case automated image registration doesn’t work, you
-can still align images by manually picking landmark points.
+can still align images by manually picking landmark points, and if
+requested, conduct again non-rigid registration using either thin plate
+spline (TPS) or B-spline (SimpleITK) alignment.
 </li>
 <li style="padding-bottom: 10px">
 <p style="padding-bottom: 3px">
@@ -478,7 +482,6 @@ SpatialExperiment (BioConductor) and Giotto.
 </div>
 <div style="width:70%; margin-left: auto; margin-right: auto">
 <div style="float:left; margin-left: auto; margin-right: auto">
-<p><br></p>
 <div id="staying-up-to-date" class="section level2">
 <h2>Staying up-to-date</h2>
 <p>To ask questions please use VoltRon discussion forum on google
@@ -487,7 +490,6 @@ groups.</p>
 <li><a href="https://groups.google.com/forum/#!forum/voltron_discussion"
 class="uri">https://groups.google.com/forum/#!forum/voltron_discussion</a></li>
 </ul>
-<p><br></p>
 </div>
 <div id="installation" class="section level2">
 <h2>Installation</h2>
@@ -513,14 +515,48 @@ href="https://src.fedoraproject.org/rpms/opencv"><code>opencv-devel</code></a>:<
 </div>
 <div id="dependencies" class="section level2">
 <h2>Dependencies</h2>
+<p><br></p>
+<div id="rbioformats" class="section level3">
+<h3>RBioformats</h3>
 <p>VoltRon incorporates <code>RBioformats</code> package to import
 images from <code>ome.tiff</code> files, which requires <a
 href="https://www.oracle.com/java/technologies/downloads/?er=221886">Java
 JDK</a> to be available in your system:</p>
 <p>See <a
 href="https://cran.r-project.org/web/packages/rJava">https://cran.r-project.org/web/packages/rJava</a>
-for more information.</p>
+below for more information.</p>
+</div>
+<div id="rarr" class="section level3">
+<h3>Rarr</h3>
+<p>We also use a specific version of the <code>Rarr</code> package
+geared towards reading and writing missing data types (e.g. character).
+We will use the standard Rarr package once modifications are released to
+Bioconductor. Thus please use:</p>
+<pre class="r"><code>if (!require(&quot;devtools&quot;, quietly = TRUE))
+    install.packages(&quot;devtools&quot;)
+devtools::install_github(&quot;Huber-group-EMBL/Rarr&quot;)</code></pre>
+</div>
+<div id="simpleitk" class="section level3">
+<h3>SimpleITK</h3>
+<p>VoltRon incorporates the <code>SimpleITK</code> package to execute
+non-rigid alignment across assays. You can install SimpleITK from GitHub
+using the following command.</p>
+<p>Depending on the number of processors the user has, you can modify
+the <code>MAKEJ=6</code> argument. We also need
+<code>SimpleElastix</code> module of <code>SimpleITK</code> to be
+installed, hence we add <code>-DSimpleITK_USE_ELASTIX=ON</code> to the
+<code>ADDITIONAL_SITK_MODULES</code> argument.</p>
+<pre class="r"><code>if (!require(&quot;devtools&quot;, quietly = TRUE))
+    install.packages(&quot;devtools&quot;)
+devtools::install_github(
+  repo = &quot;SimpleITK/SimpleITKRInstaller&quot;, 
+  configure.vars=c(&quot;MAKEJ=6&quot;, 
+                   &quot;ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON&quot;))</code></pre>
+<p>For more information, plase visit the <a
+href="https://simpleitk.readthedocs.io/en/v2.5.0/about.html">SimpleITK</a>
+website.</p>
 <p><br></p>
+</div>
 </div>
 <div id="docker-hub" class="section level2">
 <h2>Docker Hub</h2>
@@ -538,7 +574,6 @@ href="https://github.com/BIMSBbioinfo/VoltRon/blob/main/inst/extdata/docker_desk
 for more instructions on how to run the container using <a
 href="https://www.docker.com/products/docker-desktop/">Docker
 Desktop</a>.</p>
-<p><br></p>
 </div>
 <div id="references" class="section level2">
 <h2>References</h2>
