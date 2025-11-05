@@ -70,6 +70,9 @@ RUN R -e "install.packages('anndata')"
 RUN R -e "install.packages('R.utils')"
 RUN R -e "devtools::install_github('immunogenomics/presto')"
 
+# VoltRon
+RUN R -e "devtools::install_github('BIMSBbioinfo/VoltRon')"
+
 # Install basilisk and setup environment
 USER rstudio
 RUN R -e "BiocManager::install('basilisk')"
