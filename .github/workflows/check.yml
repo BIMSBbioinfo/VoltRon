@@ -114,6 +114,17 @@ jobs:
           remotes::install_cran("BiocManager")
         shell: Rscript {0}
       
+      ## Java
+      - name: Install Java
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt upgrade -y
+          sudo apt-get update -y
+          sudo apt-get install -y openjdk-21-jdk
+          export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64/
+          R CMD javareconf -e
+          echo "options(java.parameters = \"-Xmx10g\")" >> $HOME/.Rprofile
+          
       # All Other dependencies
       - name: Install dependencies
         run: |
@@ -126,7 +137,17 @@ jobs:
           install.packages(c("rcmdcheck", "BiocCheck"), repos = BiocManager::repositories())
           remotes::install_local(dependencies = TRUE, repos = BiocManager::repositories(), build_vignettes = FALSE, upgrade = TRUE)
         shell: Rscript {0}
-        
+
+      # rJava installation
+      - name: Install rJava
+        if: runner.os == 'Linux'
+        run: |
+          install.packages('rJava')
+          BiocManager::install('RBioFormats')
+          options(timeout = 600000000)
+          library(RBioFormats)
+        shell: Rscript {0}
+
       ## Linux dependencies for OpenCV
       - name: Install OpenCV for linux
         if: runner.os == 'Linux'
