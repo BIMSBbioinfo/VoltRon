@@ -70,6 +70,9 @@ RUN R -e "install.packages('anndata')"
 RUN R -e "install.packages('R.utils')"
 RUN R -e "devtools::install_github('immunogenomics/presto')"
 
+# VoltRon
+RUN R -e "devtools::install_github('BIMSBbioinfo/VoltRon')"
+
 # Install basilisk and setup environment
 USER rstudio
 RUN R -e "BiocManager::install('basilisk')"
@@ -94,6 +97,3 @@ RUN sh -c 'echo "options(timeout = 600000000)">> /home/rstudio/.Rprofile'
 # SimpleITK
 # TODO: for now dont install SimpleITK
 # RUN R -e "devtools::install_github('SimpleITK/SimpleITKRInstaller', configure.vars=c('MAKEJ=1', 'ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON'))"
-
-# VoltRon
-RUN R -e "devtools::install_github('BIMSBbioinfo/VoltRon')"
