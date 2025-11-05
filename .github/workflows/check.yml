@@ -118,7 +118,9 @@ jobs:
       - name: Install Java
         if: runner.os == 'Linux'
         run: |
-          apt-get install -y openjdk-21-jdk
+          sudo apt upgrade -y
+          sudo apt-get update -y
+          sudo apt-get install -y openjdk-21-jdk
           export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64/
           R CMD javareconf -e
           echo "options(java.parameters = \"-Xmx10g\")" >> /home/rstudio/.Rprofile
