@@ -29,6 +29,22 @@ RUN R -e "install.packages(c('grDevices', 'data.table', 'RcppAnnoy', 'RANN', 'Ma
 RUN R -e "install.packages(c('stringr', 'uwot', 'RCDT'), repos='http://cran.rstudio.com/')"
 RUN R -e "BiocManager::install(c('EBImage', 'S4Arrays', 'BiocSingular'))"
 
+# set up java
+USER root
+RUN apt-get update -y
+RUN apt upgrade -y
+RUN apt-get install -y openjdk-21-jdk
+RUN export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64/
+RUN R CMD javareconf -e
+
+# Install java based packages
+RUN R -e "install.packages('rJava')"
+RUN R -e "BiocManager::install('RBioFormats')"
+RUN sh -c 'echo "options(java.parameters = \"-Xmx10g\")" >> /home/rstudio/.Rprofile'
+USER rstudio
+RUN R -e "options(timeout = 600000000); library(RBioFormats)"
+USER root
+
 # Install Suggested dependencies
 # RUN R -e "BiocManager::install(c('DelayedArray'))"
 # RUN R -e "BiocManager::install(c('DelayedMatrixStats'))"
@@ -59,21 +75,6 @@ USER rstudio
 RUN R -e "BiocManager::install('basilisk')"
 RUN R -e "basilisk::obtainEnvironmentPath(VoltRon::getBasilisk())"
 RUN sh -c 'echo "options(voltron.python.path = \"/home/rstudio/.cache/R/basilisk/1.18.0/VoltRon/0.2.0/VoltRon_basilisk_env/bin/python\")" > /home/rstudio/.Rprofile'
-
-# set up java
-USER root
-RUN apt-get update -y
-RUN apt upgrade -y
-RUN apt-get install -y openjdk-21-jdk
-RUN export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64/
-RUN R CMD javareconf -e
-
-# Install java based packages
-RUN R -e "install.packages('rJava')"
-RUN R -e "BiocManager::install('RBioFormats')"
-RUN sh -c 'echo "options(java.parameters = \"-Xmx10g\")" >> /home/rstudio/.Rprofile'
-USER rstudio
-RUN R -e "options(timeout = 600000000); library(RBioFormats)"
 USER root
 
 # Install spacexr
