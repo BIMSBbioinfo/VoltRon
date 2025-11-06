@@ -170,14 +170,6 @@ jobs:
       # All Other dependencies
       - name: Install Suggested dependencies
         run: |
-          # BiocManager::install(c('DelayedArray'))
-          # BiocManager::install(c('DelayedMatrixStats'))
-          # BiocManager::install(c('HDF5Array'))
-          # remotes::install_github('bnprks/BPCells/r@v0.3.0')
-          # devtools::install_github("Huber-group-EMBL/Rarr")
-          # devtools::install_github('BIMSBbioinfo/ImageArray')
-          # devtools::install_github('BIMSBbioinfo/HDF5DataFrame')
-          # devtools::install_github('BIMSBbioinfo/ZarrDataFrame')
           devtools::install_github('BIMSBbioinfo/VoltRonStore')
           install.packages("Seurat")
           BiocManager::install("glmGamPoi")
