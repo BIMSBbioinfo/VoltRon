@@ -29,15 +29,16 @@ RUN R -e "install.packages(c('grDevices', 'data.table', 'RcppAnnoy', 'RANN', 'Ma
 RUN R -e "install.packages(c('stringr', 'uwot', 'RCDT'), repos='http://cran.rstudio.com/')"
 RUN R -e "BiocManager::install(c('EBImage', 'S4Arrays', 'BiocSingular'))"
 
+# set up java
+USER root
+RUN apt-get update -y
+RUN apt upgrade -y
+RUN apt-get install -y openjdk-21-jdk
+RUN export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64/
+RUN R CMD javareconf -e
+USER rstudio
+
 # Install Suggested dependencies
-# RUN R -e "BiocManager::install(c('DelayedArray'))"
-# RUN R -e "BiocManager::install(c('DelayedMatrixStats'))"
-# RUN R -e "BiocManager::install(c('HDF5Array'))"
-# RUN R -e "devtools::install_github('Huber-group-EMBL/Rarr')"
-# RUN R -e "options(timeout = 600000000); remotes::install_github('bnprks/BPCells/r@v0.3.0')"
-# RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/ImageArray')"
-# RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/HDF5DataFrame')"
-# RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/ZarrDataFrame')"
 RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/VoltRonStore')"
 RUN R -e "options(timeout = 600000000); install.packages('Seurat')"
 RUN R -e "BiocManager::install('glmGamPoi')"
@@ -54,21 +55,17 @@ RUN R -e "install.packages('anndata')"
 RUN R -e "install.packages('R.utils')"
 RUN R -e "devtools::install_github('immunogenomics/presto')"
 
+# VoltRon
+RUN R -e "devtools::install_github('BIMSBbioinfo/VoltRon')"
+
 # Install basilisk and setup environment
 USER rstudio
 RUN R -e "BiocManager::install('basilisk')"
 RUN R -e "basilisk::obtainEnvironmentPath(VoltRon::getBasilisk())"
 RUN sh -c 'echo "options(voltron.python.path = \"/home/rstudio/.cache/R/basilisk/1.18.0/VoltRon/0.2.0/VoltRon_basilisk_env/bin/python\")" > /home/rstudio/.Rprofile'
 
-# set up java
-USER root
-RUN apt-get update -y
-RUN apt upgrade -y
-RUN apt-get install -y openjdk-21-jdk
-RUN export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64/
-RUN R CMD javareconf -e
-
 # Install java based packages
+USER root
 RUN R -e "install.packages('rJava')"
 RUN R -e "BiocManager::install('RBioFormats')"
 RUN sh -c 'echo "options(java.parameters = \"-Xmx10g\")" >> /home/rstudio/.Rprofile'

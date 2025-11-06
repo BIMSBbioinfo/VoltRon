@@ -332,7 +332,7 @@ as.AnnData(Xen_data, assays = "Assay1",
            file = "xendata_clustered_annotated.zarr", flip_coordinates = TRUE)
 ```
 
-We can use the zarr file directly in the **vrSpatialPlot** function to visualize the zarr array interactively in Rstudio viewer. The **reduction** arguement allows the umap of the Xenium data to be visualized alongside with the spatial coordinates of the Xenium cells.
+We can use the zarr file directly in the **vrSpatialPlot** function to visualize the zarr array interactively in RStudio viewer. The **reduction** arguement allows the umap of the Xenium data to be visualized alongside with the spatial coordinates of the Xenium cells.
 
 ```{r class.source="watch-out", eval = FALSE}
 vrSpatialPlot("xendata_clustered_annotated.zarr", group.by = "CellType", reduction = "umap")
