@@ -150,7 +150,7 @@ getSpatialNeighbors <- function(
   spatialedges <- unlist(spatialedges_list)
 
   # make graph and add edges
-  graph <- make_empty_graph(directed = FALSE) + vertices(rownames(coords))
+  graph <- make_empty_graph(directed = FALSE) + vertices(spatialpoints)
   graph <- add_edges(graph, edges = spatialedges)
   graph <- simplify(graph, remove.multiple = TRUE, remove.loops = FALSE)
   vrGraph(object, assay = assay_names, graph.type = graph.key) <- graph
