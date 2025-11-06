@@ -7,6 +7,7 @@ name: R-CMD-check
 jobs:
   check:
     runs-on: ${{ matrix.config.os }}
+    timeout-minutes: 1440
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
       _R_CHECK_TESTS_NLINES_: 0
@@ -113,6 +114,17 @@ jobs:
           remotes::install_cran("BiocManager")
         shell: Rscript {0}
       
+      ## Java
+      - name: Install Java
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt upgrade -y
+          sudo apt-get update -y
+          sudo apt-get install -y openjdk-21-jdk
+          export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64/
+          R CMD javareconf -e
+          echo "options(java.parameters = \"-Xmx10g\")" >> $HOME/.Rprofile
+          
       # All Other dependencies
       - name: Install dependencies
         run: |
@@ -125,7 +137,17 @@ jobs:
           install.packages(c("rcmdcheck", "BiocCheck"), repos = BiocManager::repositories())
           remotes::install_local(dependencies = TRUE, repos = BiocManager::repositories(), build_vignettes = FALSE, upgrade = TRUE)
         shell: Rscript {0}
-        
+
+      # rJava installation
+      - name: Install rJava
+        if: runner.os == 'Linux'
+        run: |
+          install.packages('rJava')
+          BiocManager::install('RBioFormats')
+          options(timeout = 600000000)
+          library(RBioFormats)
+        shell: Rscript {0}
+
       ## Linux dependencies for OpenCV
       - name: Install OpenCV for linux
         if: runner.os == 'Linux'
@@ -148,20 +170,13 @@ jobs:
       # All Other dependencies
       - name: Install Suggested dependencies
         run: |
-          BiocManager::install(c('DelayedArray'))
-          BiocManager::install(c('DelayedMatrixStats'))
-          BiocManager::install(c('HDF5Array'))
-          remotes::install_github('bnprks/BPCells/r@v0.3.0')
-          devtools::install_github("Huber-group-EMBL/Rarr")
-          devtools::install_github('BIMSBbioinfo/ImageArray')
-          devtools::install_github('BIMSBbioinfo/HDF5DataFrame')
-          devtools::install_github('BIMSBbioinfo/ZarrDataFrame')
+          devtools::install_github('BIMSBbioinfo/VoltRonStore')
           install.packages("Seurat")
           BiocManager::install("glmGamPoi")
           install.packages('arrow')
           BiocManager::install('RBioFormats')
           BiocManager::install('ComplexHeatmap')
-          devtools::install_github('dmcable/spacexr')
+          BiocManager::install('spacexr')
           devtools::install_github('xuranw/MuSiC')
           BiocManager::install('SingleCellExperiment')
           BiocManager::install('SpatialExperiment')
@@ -172,7 +187,7 @@ jobs:
           devtools::install_github('vitessce/vitessceR')
           BiocManager::install('TOAST')
           devtools::install_github('xuranw/MuSiC')
-          devtools::install_github('scverse/anndataR')
+          BiocManager::install('anndataR')
           devtools::install_github('drieslab/Giotto')
         shell: Rscript {0}
           
@@ -182,6 +197,8 @@ jobs:
           BiocManager::install('basilisk')
           install.packages('reticulate')
           install.packages('patchwork')
+          # TODO: for now dont install SimpleITK
+          # devtools::install_github("SimpleITK/SimpleITKRInstaller", configure.vars=c("MAKEJ=1", "ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON"))
         shell: Rscript {0}
           
       ## R CMD Check

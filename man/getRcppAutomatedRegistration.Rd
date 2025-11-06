@@ -16,7 +16,8 @@ getRcppAutomatedRegistration(
   rotate_query = "0",
   rotate_ref = "0",
   matcher = "FLANN",
-  method = "Homography"
+  method = "Homography",
+  nonrigid = "TPS (OpenCV)"
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ getRcppAutomatedRegistration(
 \item{matcher}{the matching method for landmarks/keypoints FLANN or BRUTE-FORCE}
 
 \item{method}{the automated registration method, Homography or Homography+TPS}
+
+\item{nonrigid}{the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"}
 }
 \description{
 Automated registration workflos with Rcpp

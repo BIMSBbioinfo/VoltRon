@@ -171,7 +171,7 @@ subsetvrImage <- function(x, subset, spatialpoints = NULL, image = NULL) {
     for (img in vrImageChannelNames(object, return.report = FALSE)) {
       # check if the image is either ondisk or inmemory
       img_data <- object@image[[img]]
-      if (inherits(img_data, "ImgArray")) {
+      if (inherits(img_data, "ImageArray")) {
         crop_info_int <- as.integer(strsplit(image, split = "[x|+]")[[1]])
         img_data <- ImageArray::crop(
           img_data,
@@ -412,7 +412,7 @@ vrImagesvrImage <- function(
       return(img)
     } else {
       # get image as array if image is stored as a DelayedArray
-      if (inherits(img, "ImgArray")) {
+      if (inherits(img, "ImageArray")) {
         img <- DelayedArray::realize(img)
         img <- array(as.raw(img), dim = dim(img))
       }
@@ -464,7 +464,7 @@ vrImagesReplacevrImage <- function(object, channel = NULL, value) {
     object@image[[channel]] <- value
   } else if (inherits(value, "magick-image")) {
     object@image[[channel]] <- magick::image_data(value)
-  } else if (inherits(value, "ImgArray")) {
+  } else if (inherits(value, "ImageArray")) {
     object@image[[channel]] <- value
   } else {
     stop("Please provide either a magick-image or bitmap class image object!")
@@ -1032,7 +1032,7 @@ resizeImagevrImage <- function(object, size = NULL) {
   image_names <- vrImageChannelNames(object)
   for (img in image_names) {
     img_data <- object@image[[img]]
-    if (inherits(img_data, "ImgArray")) {
+    if (inherits(img_data, "ImageArray")) {
       stop("Currently modulateImage only works on in-memory images!")
     } else {
       img_data <- magick::image_read(img_data)
@@ -1184,7 +1184,7 @@ modulateImagevrImage <- function(
   # modulate image
   for (img in channel) {
     img_data <- object@image[[img]]
-    if (inherits(img_data, "ImgArray")) {
+    if (inherits(img_data, "ImageArray")) {
       # stop("Currently modulateImage only works on in-memory images!")
       object@image[[img]] <- ImageArray::modulate(
         object@image[[img]],
@@ -1572,7 +1572,7 @@ demuxVoltRon <- function(
   # get image
   images <- vrImages(object[[vrAssayNames(object)]], as.raster = TRUE)
   if (!is.null(images)) {
-    if (!inherits(images, "ImgArray")) {
+    if (!inherits(images, "ImageArray")) {
       images <- magick::image_read(images)
     }
   } else {
@@ -1605,7 +1605,7 @@ demuxVoltRon <- function(
     scale_factor <- 1
     if (max(imageinfo$height, imageinfo$width) > max.pixel.size) {
       # scale keypoints
-      if (inherits(images, "ImgArray")) {
+      if (inherits(images, "ImageArray")) {
         n.series <- length(images@levels)
         cur_width <- imageinfo$width
         cur_height <- imageinfo$height

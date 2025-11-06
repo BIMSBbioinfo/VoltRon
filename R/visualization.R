@@ -2424,7 +2424,7 @@ vrSpatialPlotImage <- function(
     image <- suppressWarnings({
       vrImages(assay, name = spatial, channel = channel, as.raster = TRUE)
     })
-    if (!is.null(image) & !inherits(image, "ImgArray")) {
+    if (!is.null(image) & !inherits(image, "ImageArray")) {
       image <- magick::image_read(image)
     }
 
@@ -2437,7 +2437,7 @@ vrSpatialPlotImage <- function(
       }
 
       # TODO: is this necessary ?
-      if (inherits(image, "ImgArray")) {
+      if (inherits(image, "ImageArray")) {
         image <- ImageArray::as.raster(image)
       }
 
