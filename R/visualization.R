@@ -3782,7 +3782,7 @@ vrViolinPlot <- function(
 
   # get feature data
   datax <- lapply(features, function(x) {
-    if (x %in% rownames(violindata)) {
+    if (x %in% vrFeatures(object, assay = assay)) {
       return(as.vector(as(violindata[x, , drop = FALSE], "dgCMatrix")))
     } else if (x %in% colnames(metadata)) {
       return(as.vector(

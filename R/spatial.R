@@ -19,9 +19,10 @@ NULL
 #' @param k number of neighbors for kNN.
 #' @param radius When \code{method = "radius"} selected, determines the radius of a neighborhood ball around each spatial point.
 #' @param graph.key the name of the graph.
+#' @param calculate.distances If TRUE, distances between neighbors are also stored in the graph.
 #' @param verbose verbose
 #'
-#' @importFrom igraph add_edges simplify make_empty_graph vertices
+#' @importFrom igraph add_edges simplify make_empty_graph vertices set_edge_attr
 #' @importFrom RCDT delaunay
 #' @importFrom RANN nn2
 #' @importFrom data.table data.table melt
@@ -37,6 +38,7 @@ getSpatialNeighbors <- function(
   k = 10,
   radius = numeric(0),
   graph.key = method,
+  calculate.distances = FALSE, 
   verbose = TRUE
 ) {
   # get coordinates
@@ -118,19 +120,29 @@ getSpatialNeighbors <- function(
     spatialedges <-
       switch(method,
              delaunay = {
-               nnedges <- RCDT::delaunay(coords)
-               nnedges <- as.vector(t(nnedges$edges[,seq_len(2)]))
-               nnedges <- rownames(coords)[nnedges]
+               nnresults <- RCDT::delaunay(coords)
+               nnedges <- data.table::data.table(nnresults$edges[,seq_len(2)])
+               colnames(nnedges) <- c("V1", "value")
+               # nnedges <- as.vector(t(nnresults$edges[,seq_len(2)]))
+               # nnedges <- rownames(coords)[nnedges]
+               # nnedges$V1 <- rownames(coords)[nnedges$V1]
+               # nnedges$value <- rownames(coords)[nnedges$value]
                nnedges
              },
              spatialkNN = {
                # nnedges <- RANN::nn2(coords, k = k + 1)
-               nnedges <- knn_annoy(coords, k = k + 1)
-               names(nnedges) <- c("nn.index", "nn.dist")
-               nnedges <- data.table::melt(data.table::data.table(nnedges$nn.index), id.vars = "V1")
-               nnedges <- nnedges[,c("V1", "value")][V1 > 0 & value > 0]
-               nnedges <- as.vector(t(as.matrix(nnedges)))
-               nnedges <- rownames(coords)[nnedges]
+               nnresults <- knn_annoy(coords, k = k + 1)
+               names(nnresults) <- c("nn.index", "nn.dist")
+               nnedges <- data.table::melt(data.table::data.table(nnresults$nn.index), id.vars = "V1")
+               if(calculate.distances){
+                 nndist <- data.table::data.table(nnresults$nn.dist)
+                 nndist <- data.table::melt(nndist, id.vars = "V1")
+                 nnedges <- data.table::data.table(nnedges, dist = nndist$value)
+               }
+               nnedges <- nnedges[V1 > 0 & value > 0, !"variable"]
+               # nnedges <- as.vector(t(as.matrix(nnedges)))
+               # nnedges$V1 <- rownames(coords)[nnedges$V1]
+               # nnedges$value <- rownames(coords)[nnedges$value]
                nnedges
              },
              radius = {
@@ -138,21 +150,41 @@ getSpatialNeighbors <- function(
                  spot.radius <- vrAssayParams(object[[assy]], param = "nearestpost.distance")
                  radius <- ifelse(is.null(spot.radius), 1, spot.radius)
                }
-               nnedges <- suppressWarnings({RANN::nn2(coords, searchtype = "radius", radius = radius, k = min(300, sqrt(nrow(cur_coords))/2))})
-               nnedges <- data.table::melt(data.table::data.table(nnedges$nn.idx), id.vars = "V1")
-               nnedges <- nnedges[,c("V1", "value")][V1 > 0 & value > 0]
-               nnedges <- as.vector(t(as.matrix(nnedges)))
-               nnedges <- rownames(coords)[nnedges]
+               nnresults <- suppressWarnings({RANN::nn2(coords, searchtype = "radius", radius = radius, k = min(300, sqrt(nrow(cur_coords))/2))})
+               nnedges <- data.table::melt(data.table::data.table(nnresults$nn.idx), id.vars = "V1")
+               if(calculate.distances){
+                 nndist <- data.table::data.table(nnresults$nn.dists)
+                 nndist <- data.table::melt(nndist, id.vars = "V1")
+                 nnedges <- data.table::data.table(nnedges, dist = nndist$value)
+               }
+               nnedges <- nnedges[V1 > 0 & value > 0, !"variable"]
+               # nnedges <- as.vector(t(as.matrix(nnedges)))
+               # nnedges$V1 <- rownames(coords)[nnedges$V1]
+               # nnedges$value <- rownames(coords)[nnedges$value]
                nnedges
              })
+    spatialedges$V1 <- rownames(coords)[spatialedges$V1]
+    spatialedges$value <- rownames(coords)[spatialedges$value]
     spatialedges_list <- c(spatialedges_list, list(spatialedges))
   }
-  spatialedges <- unlist(spatialedges_list)
-
+  # spatialedges <- unlist(spatialedges_list)
+  spatialresults <- do.call(rbind, spatialedges_list)
+  spatialedges <- as.vector(t(as.matrix(spatialresults[,c("V1", "value")])))
+  spatialedges
+  
   # make graph and add edges
   graph <- make_empty_graph(directed = FALSE) + vertices(spatialpoints)
   graph <- add_edges(graph, edges = spatialedges)
-  graph <- simplify(graph, remove.multiple = TRUE, remove.loops = FALSE)
+  
+  # add dist if available
+  if(calculate.distances){
+    spatialdist <- spatialresults$dist
+    graph <- igraph::set_edge_attr(graph, name = "dist", value = spatialdist) 
+  }
+  
+  # add to VoltRon
+  graph <- simplify(graph, remove.multiple = TRUE, remove.loops = FALSE, 
+                    edge.attr.comb = "first")
   vrGraph(object, assay = assay_names, graph.type = graph.key) <- graph
 
   # return
@@ -319,25 +351,24 @@ vrNeighbourhoodEnrichmentSingle <- function(
   from_ids <- neighbors_graph_data[, 1]
   to_ids <- neighbors_graph_data[, 2]
   neighbors_graph_data_list <- vector("list", num.sim + 1)
-  neighbors_graph_data_list[[1]] <- data.frame(
-    neighbors_graph_data,
-    from_value = grp[from_ids],
-    to_value = grp[to_ids],
-    type = "obs"
-  ) %>% 
-    dplyr::group_by(from_value, to_value) %>%
-    dplyr::summarize(mean_value = dplyr::n(), type = type[1])
-  
+  # neighbors_graph_data_list[[1]] <- data.frame(
+  #   neighbors_graph_data,
+  #   from_value = grp[from_ids],
+  #   to_value = grp[to_ids],
+  #   type = "obs"
+  # ) %>% 
+  #   dplyr::group_by(from_value, to_value) %>%
+  #   dplyr::summarize(mean_value = dplyr::n(), type = type[1])
   # TODO: put this back, if above doesn't work
-  for(i in seq_len(num.sim)) {
+  for(i in seq_len(num.sim + 1)) {
     print(i)
-    sim_grp <- grp_sim[, i]
-    neighbors_graph_data_list[[i + 1]] <- data.frame(
+    sim_grp <- if(i == 1) grp else grp_sim[, i-1]
+    neighbors_graph_data_list[[i]] <- data.frame(
       neighbors_graph_data,
       from_value = sim_grp[from_ids],
       to_value = sim_grp[to_ids],
-      type = paste0("sim", i)
-    ) %>% 
+      type = if(i == 1) "obs" else paste0("sim", i)
+    ) %>%
       dplyr::group_by(from_value, to_value) %>%
       dplyr::summarize(mean_value = dplyr::n(), type = type[1])
   }

@@ -569,25 +569,6 @@ subset_metadata <- function(
   metadata
 }
 
-#' #' get_from_metadata
-#' #'
-#' #' @param metadata metadata
-#' #' @param column the column to return
-#' #'
-#' #' @noRd
-#' get_from_metadata <- function(metadata, column){
-#'   if(inherits(metadata, "data.table")){
-#'     column_vector <- metadata[,get(names(metadata)[which(colnames(metadata) == column)])]
-#'   } else {
-#'     if("id" %in% colnames(metadata)){
-#'       column_vector <- as.vector(metadata[match(rownames(datax), as.vector(metadata$id)),column])
-#'     } else{
-#'       column_vector <- metadata[rownames(datax),column]
-#'     }
-#'   }
-#'   column_vector
-#' }
-  
 #' merge.sampleMetadata
 #'
 #' Merging sample.metadata from two VoltRon objects

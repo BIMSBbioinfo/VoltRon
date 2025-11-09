@@ -13,6 +13,7 @@ getSpatialNeighbors(
   k = 10,
   radius = numeric(0),
   graph.key = method,
+  calculate.distances = FALSE,
   verbose = TRUE
 )
 }
@@ -33,6 +34,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{radius}{When \code{method = "radius"} selected, determines the radius of a neighborhood ball around each spatial point.}
 
 \item{graph.key}{the name of the graph.}
+
+\item{calculate.distances}{If TRUE, distances between neighbors are also stored in the graph.}
 
 \item{verbose}{verbose}
 }

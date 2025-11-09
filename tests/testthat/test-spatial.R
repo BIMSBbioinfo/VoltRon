@@ -49,6 +49,29 @@ test_that("spatial neighbors for subsets", {
   expect_equal(1,1L)
 })
 
+test_that("spatial neighbors with distances", {
+  
+  # get data
+  data("xenium_data")
+  
+  # spatial neighbors, spatialkNN
+  xenium_data <- getSpatialNeighbors(xenium_data, method = "spatialkNN", k = 5, verbose = FALSE, 
+                                     calculate.distances = TRUE)
+  graphs <- vrGraph(xenium_data, graph.type = "spatialkNN")
+  graphdist <- igraph::get.edge.attribute(graphs, name = "dist")
+  expect_true(length(graphdist) > 1)
+  
+  # spatial neighbors, radius
+  xenium_data <- getSpatialNeighbors(xenium_data, method = "radius", radius = 10, verbose = FALSE, 
+                                     calculate.distances = TRUE)
+  graphs <- vrGraph(xenium_data, graph.type = "radius")
+  graphdist <- igraph::get.edge.attribute(graphs, name = "dist")
+  expect_true(length(graphdist) > 1)
+  
+  # return
+  expect_equal(1,1L)
+})
+
 test_that("spatial tests", {
   
   # get data
