@@ -252,7 +252,8 @@ vrNeighbourhoodEnrichment <- function(object, assay = NULL, group.by = NULL, gra
       group.by = group.by,
       graph.type = graph.type,
       num.sim = num.sim,
-      seed = seed
+      seed = seed,
+      verbose = verbose
     )
     neigh_results <- c(neigh_results, 
                        list(
@@ -280,6 +281,7 @@ vrNeighbourhoodEnrichment <- function(object, assay = NULL, group.by = NULL, gra
 #' @param graph.type the type of graph to determine spatial neighborhood
 #' @param num.sim the number of simulations
 #' @param seed seed
+#' @param verbose verbose
 #'
 #' @importFrom dplyr group_by bind_rows filter summarize mutate n
 #' @importFrom igraph neighborhood
@@ -290,7 +292,8 @@ vrNeighbourhoodEnrichmentSingle <- function(
     group.by = NULL,
     graph.type = "delaunay",
     num.sim = 1000,
-    seed = 1
+    seed = 1, 
+    verbose = FALSE
 ) {
   # set the seed
   set.seed(seed)
@@ -319,7 +322,8 @@ vrNeighbourhoodEnrichmentSingle <- function(
   }
   
   # get graph and neighborhood
-  message("Getting Neighborhood graph ...")
+  if(verbose)
+    message("Getting Neighborhood graph ...")
   graphx <- vrGraph(object, graph.type = graph.type, assay = names(group.by))
   vertex_names <- igraph::V(graphx)$name
   neighbors_graph <- igraph::neighborhood(graphx, nodes = vertex_names)
@@ -347,7 +351,8 @@ vrNeighbourhoodEnrichmentSingle <- function(
   baseDT  <- as.data.table(neighbors_graph_data)
   
   # get adjacency for observed and simulated pairs
-  message("Simulate Edges ...")
+  if(verbose)
+    message("Simulate Edges ...")
   from_ids <- neighbors_graph_data[, 1]
   to_ids <- neighbors_graph_data[, 2]
   neighbors_graph_data_list <- vector("list", num.sim + 1)
@@ -361,7 +366,8 @@ vrNeighbourhoodEnrichmentSingle <- function(
   #   dplyr::summarize(mean_value = dplyr::n(), type = type[1])
   # TODO: put this back, if above doesn't work
   for(i in seq_len(num.sim + 1)) {
-    print(i)
+    if(verbose)
+      message("Iteration ", i, " ...")
     sim_grp <- if(i == 1) grp else grp_sim[, i-1]
     neighbors_graph_data_list[[i]] <- data.frame(
       neighbors_graph_data,
@@ -375,7 +381,8 @@ vrNeighbourhoodEnrichmentSingle <- function(
   neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data_list)
   
   # get adjacency for observed and simulated pairs
-  message("Calculate Statistics ...")
+  if(verbose)
+    message("Calculate Statistics ...")
   neigh_results <- neighbors_graph_data %>%
     # dplyr::group_by(from_value, to_value, type) %>%
     # dplyr::summarize(mean_value = dplyr::n()) %>%
