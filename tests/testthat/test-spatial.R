@@ -160,8 +160,8 @@ test_that("neighborhood analysis", {
   
   # neighborhood test
   xenium_data <- getSpatialNeighbors(xenium_data, method = "delaunay", verbose = FALSE)
-  results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters", graph.type = "delaunay")
-  expect_error(results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters2", graph.type = "delaunay"))
+  results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters", graph.type = "delaunay", verbose = FALSE)
+  expect_error(results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters2", graph.type = "delaunay", verbose = FALSE))
 })
 
 test_that("multi assay neigh. analysis", {
@@ -196,7 +196,8 @@ test_that("multi assay neigh. analysis", {
                                        assay = c("Assay1", "Assay4"), 
                                        group.by = list(Assay1 = "clusters", 
                                                        Assay4 = "gene"), 
-                                       graph.type = "delaunay")
+                                       graph.type = "delaunay", 
+                                       verbose = FALSE)
 
 })
 
