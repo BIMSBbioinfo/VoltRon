@@ -20,7 +20,7 @@ vrNeighbourhoodEnrichment(
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{group.by}{a column from metadata to seperate spatial points}
+\item{group.by}{a column from metadata to separate spatial points}
 
 \item{graph.type}{the type of graph to determine spatial neighborhood}
 

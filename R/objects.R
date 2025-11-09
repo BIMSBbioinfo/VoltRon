@@ -879,10 +879,11 @@ getBlockConnectivity <- function(object, assay) {
         split(names(components$membership), components$membership)
       )
     } else {
-      assay_list <- c(assay_list, cur_assaynames)
+      assay_list <- c(assay_list, split(cur_assaynames, cur_sections))
     }
   }
-
+  names(assay_list) <- NULL
+  
   # return list
   assay_list
 }
@@ -1082,7 +1083,8 @@ subsetVoltRon <- function(
   # subset graphs
   graph_list <- subset_graphs(
     object,
-    spatialpoints = vrSpatialPoints(metadata, assay = vrAssayNames(object))
+    spatialpoints = vrSpatialPoints(metadata, 
+                                    assay = vrAssayNames(object, assay = "all"))
   )
 
   # set VoltRon class

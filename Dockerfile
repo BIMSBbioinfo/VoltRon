@@ -39,14 +39,6 @@ RUN R CMD javareconf -e
 USER rstudio
 
 # Install Suggested dependencies
-# RUN R -e "BiocManager::install(c('DelayedArray'))"
-# RUN R -e "BiocManager::install(c('DelayedMatrixStats'))"
-# RUN R -e "BiocManager::install(c('HDF5Array'))"
-# RUN R -e "devtools::install_github('Huber-group-EMBL/Rarr')"
-# RUN R -e "options(timeout = 600000000); remotes::install_github('bnprks/BPCells/r@v0.3.0')"
-# RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/ImageArray')"
-# RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/HDF5DataFrame')"
-# RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/ZarrDataFrame')"
 RUN R -e "options(timeout = 600000000); remotes::install_github('BIMSBbioinfo/VoltRonStore')"
 RUN R -e "options(timeout = 600000000); install.packages('Seurat')"
 RUN R -e "BiocManager::install('glmGamPoi')"
@@ -83,7 +75,8 @@ USER root
 
 # Install spacexr
 RUN apt-get install -y libgsl-dev
-RUN R -e "options(timeout = 600000000); devtools::install_github(\"dmcable/spacexr\")"
+# RUN R -e "options(timeout = 600000000); devtools::install_github(\"dmcable/spacexr\")"
+RUN R -e "options(timeout = 600000000); BiocManager::install(\"spacexr\")"
 
 # increase cache disk size for ImageMagick
 RUN sed -i 's/2GiB/10GiB/g' /etc/ImageMagick-6/policy.xml
