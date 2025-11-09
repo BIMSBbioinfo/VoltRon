@@ -2697,9 +2697,15 @@ vrNeighbourhoodEnrichmentPlot <- function(
 
   # make vis matrices
   results$p_adj <- ifelse(results$value > 0, results$p_assoc, results$p_segreg)
+  
+  # TODO: _value or not ? 
+  # results$cell1 <- results$from
+  # results$cell2 <- results$to
+  # entities <- unique(c(results$cell1,results$cell2))
   results$cell1 <- results$from_value
   results$cell2 <- results$to_value
   entities <- unique(c(results$cell1, results$cell2))
+  
   mat <- matrix(nrow = length(entities), ncol = length(entities))
   rownames(mat) <- colnames(mat) <- entities
   mat_padj <- mat
@@ -3776,7 +3782,7 @@ vrViolinPlot <- function(
 
   # get feature data
   datax <- lapply(features, function(x) {
-    if (x %in% rownames(violindata)) {
+    if (x %in% vrFeatures(object, assay = assay)) {
       return(as.vector(as(violindata[x, , drop = FALSE], "dgCMatrix")))
     } else if (x %in% colnames(metadata)) {
       return(as.vector(

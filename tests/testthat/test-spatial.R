@@ -49,6 +49,29 @@ test_that("spatial neighbors for subsets", {
   expect_equal(1,1L)
 })
 
+test_that("spatial neighbors with distances", {
+  
+  # get data
+  data("xenium_data")
+  
+  # spatial neighbors, spatialkNN
+  xenium_data <- getSpatialNeighbors(xenium_data, method = "spatialkNN", k = 5, verbose = FALSE, 
+                                     calculate.distances = TRUE)
+  graphs <- vrGraph(xenium_data, graph.type = "spatialkNN")
+  graphdist <- igraph::get.edge.attribute(graphs, name = "dist")
+  expect_true(length(graphdist) > 1)
+  
+  # spatial neighbors, radius
+  xenium_data <- getSpatialNeighbors(xenium_data, method = "radius", radius = 10, verbose = FALSE, 
+                                     calculate.distances = TRUE)
+  graphs <- vrGraph(xenium_data, graph.type = "radius")
+  graphdist <- igraph::get.edge.attribute(graphs, name = "dist")
+  expect_true(length(graphdist) > 1)
+  
+  # return
+  expect_equal(1,1L)
+})
+
 test_that("spatial tests", {
   
   # get data
@@ -132,11 +155,50 @@ test_that("niche clustering", {
 
 test_that("neighborhood analysis", {
   
+  # data
   data("xenium_data")
   
+  # neighborhood test
   xenium_data <- getSpatialNeighbors(xenium_data, method = "delaunay", verbose = FALSE)
-  results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters", graph.type = "delaunay")
-  expect_error(results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters2", graph.type = "delaunay"))
+  results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters", graph.type = "delaunay", verbose = FALSE)
+  expect_error(results <- vrNeighbourhoodEnrichment(xenium_data, group.by = "clusters2", graph.type = "delaunay", verbose = FALSE))
+})
+
+test_that("multi assay neigh. analysis", {
+  
+  # data
+  data("merged_object")
+  
+  # get spatial neighbors
+  merged_object <- getSpatialNeighbors(merged_object, 
+                                       assay = c("Assay1", "Assay4"), 
+                                       group.by = list(
+                                         Assay1 = "clusters",
+                                         Assay4 = "gene"
+                                         ),
+                                       group.ids = list(
+                                         Assay4 = c("KRT14", "KRT15")
+                                         ),
+                                       graph.key = "delaunay", 
+                                       verbose = FALSE)
+  
+  # check if graph has multiple assays
+  expect_contains(
+    unique(stringr::str_extract(names(V(vrGraph(merged_object, 
+                                                assay = c("Assay1", "Assay4"),
+                                                graph.type = "delaunay"))), 
+                                "Assay[0-9]+$")),
+    c("Assay1", "Assay4")
+  )
+    
+  # neighborhood test
+  results <- vrNeighbourhoodEnrichment(merged_object, 
+                                       assay = c("Assay1", "Assay4"), 
+                                       group.by = list(Assay1 = "clusters", 
+                                                       Assay4 = "gene"), 
+                                       graph.type = "delaunay", 
+                                       verbose = FALSE)
+
 })
 
 test_that("hot spot analysis with tiles", {
@@ -180,6 +242,5 @@ test_that("hot spot analysis with tiles", {
                                       group.ids = c("MyelomaCells", "CD8_TCells"), 
                                       verbose = FALSE, graph.type = "radius", n.tile = 10)})
   vrSpatialPlot(merged_object, group.by = "Count_hotspot_flag")
-  
   
 })

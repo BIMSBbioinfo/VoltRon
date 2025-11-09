@@ -148,6 +148,61 @@ vrSpatialPlot(vr2_merged_acute1, assay = "Xenium_mol",
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_hotspot.png" class="center">
 
+VoltRon allows learning distances between cells and molecules, thus we can calculate the distance between cell types and S2_N and S2_orf1ab
+molecules aggregated in hot spots which we learned previously using **getHotSpotAnalysis**. 
+
+This is achieved by defining metadata columns for both cell and molecule assays in the getSpatialNeighbors function. We can also
+choose which molecules are to be used for calculation.
+
+```{r eval = FALSE, class.source="watch-out"}
+vr2_merged_acute1 <- getSpatialNeighbors(vr2_merged_acute1, 
+                                         assay = c("Assay7", "Assay8"),
+                                         group.by = list(
+                                           Assay7 = "CellType",
+                                           Assay8 = "gene_hotspot_flag"
+                                         ),
+                                         group.ids = list(
+                                           Assay8 = c("hot")
+                                         ),
+                                         method = "radius", radius = 20)
+```
+
+We can now visualize the abundance of hot molecules around each cell type. 
+Here we can see that while infected cells (H.I. Cells), T cells and myofibroblasts
+have considerable amount of surrounding hot spot S2 molecules, fibroblasts and 
+endothelial cells are not.
+
+```{r eval = FALSE, class.source="watch-out"}
+mat <- igraph::as_adjacency_matrix(vrGraph(vr2_merged_acute1, 
+                                           assay = c("Assay7", "Assay8")))
+mat <- mat[vrSpatialPoints(vr2_merged_acute1, assay = "Assay7"),]
+mat <- mat[,vrSpatialPoints(vr2_merged_acute1, assay = "Assay8")]
+vr2_merged_acute1$VirusProximity <- rowSums(mat)
+
+# visualize violinplot 
+vrViolinPlot(vr2_merged_acute1, features = "VirusProximity", 
+             norm = FALSE, group.by = "CellType")
+```
+
+<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_violin_hotspot.png" class="center">
+
+We can visualize particular cells and molecules simultaneously to observe
+the distinct localization of these cell types and hot molecules. We use the 
+**addSpatialLayer** function to overlay these hot spot molecules 
+with a selected set of celltypes from the Xenium assay. 
+
+```{r eval = FALSE, class.source="watch-out"}
+vrSpatialPlot(vr2_merged_acute1, assay = "Xenium", group.by = "CellType", 
+              group.ids = c("Myofibroblasts", "T cells", 
+                            "Fibroblasts", "Endothelial cells "), 
+              plot.segments = TRUE) %>%
+  addSpatialLayer(vr2_merged_acute1, assay = "Xenium_mol", 
+                  group.by = "gene_hotspot_flag", 
+                  group.ids = "hot", colors = list("hot" = "green"))
+```
+
+<img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_hotspot_vs_cells.png" class="center">
+
 ### Automated H&E Registration
 
 VoltRon can analyze and also integrate information from distinct spatial data types such as images, annotations (as regions of interests, i.e. ROIs) and molecules independently. Using such advanced utilities, we can make use of histological information and generate new metadata level information for molecule datasets.
