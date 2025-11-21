@@ -505,8 +505,12 @@ writeHDF5ArrayInMetadata <- function(
               verbose = FALSE
             )
         }
+        # methods::slot(object, name = sn) <-
+        #   HDF5DataFrame::HDF5DataFrame(meta.data_list)
         methods::slot(object, name = sn) <-
-          HDF5DataFrame::HDF5DataFrame(meta.data_list)
+          HDF5DataFrame::HDF5DataFrame(h5_path, 
+                                       name = paste0(name, "/", sn), 
+                                       columns = names(meta.data_list))
       }
     } else {
       meta.data_list <- list()
