@@ -483,8 +483,8 @@ href="https://www.10xgenomics.com/platforms/xenium">Xenium In Situ</a>
 platform. Two tissue sections of 5 <span
 class="math inline">\(\mu\)</span>m thickness are derived from a single
 formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block.
-More information on the spatial datasets and the study can be also be
-found on the <a
+More information on the spatial datasets and the study can also be found
+on the <a
 href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">bioRxiv
 preprint</a>.</p>
 <p>You can import these readouts from the <a
@@ -575,7 +575,7 @@ extracellular molecules such as viral RNA. Using Xenium in situ, we
 locate the open reading frames (ORFs) of genomics and subgenomics RNA of
 SARS-CoV-2, namely <strong>S2_N</strong> and <strong>S2_orf1ab</strong>
 and analyze their abundances over the COVID-19 infected lung tissue.</p>
-<p>Specifically, we analyse readouts of <strong>eight tissue micro array
+<p>Specifically, we analyse readouts of <strong>eight tissue microarray
 (TMA) tissue sections</strong> that were fitted into the scan area of a
 slide loaded on a Xenium in situ instrument. These sections were cut
 from <strong>control and COVID-19 lung tissues</strong> of donors
@@ -585,11 +585,11 @@ href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Xenium_SAR
 <p>For more information on the TMA blocks, see <a
 href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732">GSE190732</a>
 for more information.</p>
-<p>Across these eight TMA section, we investigate a section of acute
-case which is originated from a lung with extreme number of detected
-open reading frames of virus molecules. For convenience, we load a
-VoltRon object where cells are already annotated. You can also find the
-RDS file <a
+<p>Across these eight TMA core, we investigate a core of acute case
+which is originated from a lung with extreme number of detected open
+reading frames of virus molecules. For convenience, we load a VoltRon
+object where cells are already annotated. You can also find the RDS file
+<a
 href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/acutecase1_annotated.rds">here</a>.</p>
 <pre class="r watch-out"><code>vr2_merged_acute1 &lt;- readRDS(file = &quot;acutecase1_annotated.rds&quot;)</code></pre>
 <p>You would see that we have two assays associated with the tissue
@@ -618,11 +618,11 @@ cell segment on top.</p>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/moleculecell_covid_xenium.png" class="center"></p>
 <p>Let us zoom into a specific niche to observe the localization of cell
 free viral RNA and the surrounding cells.</p>
-<pre class="r watch-out"><code>Xen_R1_subset &lt;- subset(Xen_R1, interactive = TRUE)
-Xen_R1_subset &lt;- Xen_R1_subset$subsets[[1]]
-vrSpatialPlot(Xen_R1_subset, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;, 
+<pre class="r watch-out"><code>vr2_merged_acute1_subset &lt;- subset(vr2_merged_acute1, interactive = TRUE)
+vr2_merged_acute1_subset &lt;- vr2_merged_acute1_subset$subsets[[1]]
+vrSpatialPlot(vr2_merged_acute1_subset, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;, 
               group.ids = c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;), pt.size = 0.4) |&gt; 
-  addSpatialLayer(Xen_R1_subset, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;, 
+  addSpatialLayer(vr2_merged_acute1_subset, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;, 
                   plot.segments = TRUE, alpha = 0.7)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/moleculecell_covid_xenium_subset.png" class="center"></p>
 <p><br></p>

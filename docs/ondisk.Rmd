@@ -77,7 +77,7 @@ hddata <- importVisiumHD(dir.path = "VisiumHD/outs/",
 
 ## On-Disk VoltRon Objects
 
-We can now save the VoltRon object to disk, large matrices and images will be written to either **hdf5** or **zarr** files depending on the **format** arguement, and the rest of the R object would be written to an `.rds` file, both under the designated **output**.
+We can now save the VoltRon object to disk, large matrices and images will be written to either **hdf5** or **zarr** files depending on the **format** argument, and the rest of the R object would be written to an `.rds` file, both under the designated **output**.
 
 ```{r class.source="watch-out", eval = FALSE}
 hddata <- saveVoltRon(hddata, format = "HDF5VoltRon", output = "data/VisiumHD")
@@ -105,7 +105,7 @@ hddata <- getPCA(hddata, features = selected_features, dims = 30)
 hddata <- getUMAP(hddata, dims = 1:30)
 ```
 
-We can now visualized genes over embedding or spatial plots.
+We can now visualize genes over embedding or spatial plots.
 
 ```{r class.source="watch-out", eval = FALSE}
 vrEmbeddingFeaturePlot(hddata, features = "Nrgn", embedding = "umap")
@@ -149,7 +149,7 @@ Xen_R1 <- importXenium("Xenium_pup/outs/",
 
 ## On-Disk VoltRon Objects
 
-We can now save the VoltRon object to disk, large matrices and images will be written to either **hdf5** or **zarr** files depending on the **format** arguement, and the rest of the R object would be written to an `.rds` file, both under the designated **output**.
+We can now save the VoltRon object to disk, large matrices and images will be written to either **hdf5** or **zarr** files depending on the **format** argument, and the rest of the R object would be written to an `.rds` file, both under the designated **output**.
 
 ```{r class.source="watch-out", eval = FALSE}
 Xen_R1 <- saveVoltRon(Xen_R1, format = "HDF5VoltRon", 

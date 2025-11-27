@@ -107,7 +107,7 @@ vrSpatialPlot(MBrain_Sec, assay = "Assay1", group.by = "annotation")
 
 <br>
 
-You can also overlay the ROI annotations with the clustered spots to visualize multiple assays in the same time.
+You can also overlay the ROI annotations with the clustered spots to visualize multiple assays at the same time.
 
 ```{r class.source="watch-out", eval = FALSE}
 library(ggnewscale)
@@ -124,7 +124,7 @@ vrSpatialPlot(MBrain_Sec, assay = "Assay1", group.by = "clusters") |>
 VoltRon incorporates utilities 
 
 * **(i)** to convert VoltRon objects into other spatial data objects and files that could be used by platforms, and 
-* **(ii)** to incorporate wrapper functions to call methods from package that achieves interactive visualization
+* **(ii)** to incorporate wrapper functions to call methods from packages that support interactive visualization
 
 <br>
 

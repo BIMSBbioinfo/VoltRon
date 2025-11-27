@@ -191,13 +191,13 @@ plot(img)
 
 <br>
 
-## Squidpy (Anndata, h5ad)
+## Squidpy (AnnData, h5ad)
 
-A true ecosystem friendly computational platform should support data types across multiple computing environments. By allowing users to convert VoltRon objects into annotated data matrix formats such as [anndata](https://github.com/scverse/anndata), we can use built-in spatial data analysis methods available on [squidpy](https://squidpy.readthedocs.io/en/stable/).
+A true ecosystem friendly computational platform should support data types across multiple computing environments. By allowing users to convert VoltRon objects into annotated data matrix formats such as [AnnData](https://github.com/scverse/anndata), we can use built-in spatial data analysis methods available on [squidpy](https://squidpy.readthedocs.io/en/stable/).
 
 You can find the clustered and the annotated Xenium data using VoltRon [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered_annotated.rds). 
 
-Anndata objects wrapped on h5ad files are commonly used by the [scverse](https://www.nature.com/articles/s41587-023-01733-8) ecosystem for single cell analysis which bring together numeruous tools maintained and distributed by a large community effort. Both squidpy and [scanpy](https://scanpy.readthedocs.io/en/stable/) are currently available on scverse. 
+AnnData objects wrapped on h5ad files are commonly used by the [scverse](https://www.nature.com/articles/s41587-023-01733-8) ecosystem for single cell analysis which bring together numeruous tools maintained and distributed by a large community effort. Both squidpy and [scanpy](https://scanpy.readthedocs.io/en/stable/) are currently available on scverse. 
 
 ```{r class.source="watch-out", eval = FALSE}
 Xen_data <- readRDS("Xenium_data_clustered_annotated.rds")
@@ -232,7 +232,7 @@ sc.logging.print_header()
 
 ### Filter and Normalize 
 
-We read the annotated Xenium object that was saved as an h5ad file using the **as.Anndata** function in VoltRon, and process before analysis. For more information using scanpy and squidpy on Xenium datasets, check the [Analyzing Xenium data](https://squidpy.readthedocs.io/en/stable/notebooks/tutorials/tutorial_xenium.html) tutorial at squidpy webpage. 
+We read the annotated Xenium object that was saved as an h5ad file using the **as.AnnData** function in VoltRon, and process before analysis. For more information using scanpy and squidpy on Xenium datasets, check the [Analyzing Xenium data](https://squidpy.readthedocs.io/en/stable/notebooks/tutorials/tutorial_xenium.html) tutorial at squidpy webpage. 
 
 ```{python class.source="watch-out", eval = FALSE}
 adata = sc.read_h5ad("Xen_adata_annotated.h5ad")
@@ -297,7 +297,7 @@ plt.show(ax)
 
 <br>
 
-## Vitessce (Anndata, zarr) 
+## Vitessce (AnnData, zarr) 
  
 In this section, we will transform VoltRon objects of Xenium data into zarr arrays, and use them for interactive visualization in [Vitessce](http://vitessce.io/). We should first download the vitessceR package which incorporates wrapper function to visualize zarr arrays interactively in R.
 

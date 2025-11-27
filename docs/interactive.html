@@ -512,7 +512,7 @@ AAACATGGTGAGAGGA-1_Assay1     1 Visium_decon Section1 Anterior        3  undefin
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/interactive_annotation_plot.png" class="center"></p>
 <p><br></p>
 <p>You can also overlay the ROI annotations with the clustered spots to
-visualize multiple assays in the same time.</p>
+visualize multiple assays at the same time.</p>
 <pre class="r watch-out"><code>library(ggnewscale)
 vrSpatialPlot(MBrain_Sec, assay = &quot;Assay1&quot;, group.by = &quot;clusters&quot;) |&gt; 
   addSpatialLayer(MBrain_Sec, assay = &quot;Assay5&quot;, group.by = &quot;annotation&quot;, alpha = 0.7)</code></pre>
@@ -526,7 +526,7 @@ vrSpatialPlot(MBrain_Sec, assay = &quot;Assay1&quot;, group.by = &quot;clusters&
 <li><strong>(i)</strong> to convert VoltRon objects into other spatial
 data objects and files that could be used by platforms, and</li>
 <li><strong>(ii)</strong> to incorporate wrapper functions to call
-methods from package that achieves interactive visualization</li>
+methods from packages that support interactive visualization</li>
 </ul>
 <p><br></p>
 <div id="vitessce" class="section level2">
