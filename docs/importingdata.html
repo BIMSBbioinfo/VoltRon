@@ -495,7 +495,7 @@ tissue section placed on the slide of the instrument.</p>
 <p>We will use the readouts of <strong>Visium CytAssist</strong>
 platform that was derived from a single tissue section of a breast
 cancer sample. More information on the Visium CytAssist data and the
-study can be also be found on the <a
+study can also be found on the <a
 href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">bioRxiv
 preprint</a>. You can download the data from the <a
 href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
@@ -560,7 +560,7 @@ analysis.</p>
 <p>We will use the readouts of <strong>Visium CytAssist</strong>
 platform that was derived from a single tissue section of a breast
 cancer sample. More information on the Visium CytAssist data and the
-study can be also be found on the <a
+study can also be found on the <a
 href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">bioRxiv
 preprint</a>. You can download the data from the <a
 href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
@@ -615,12 +615,11 @@ class="uri">https://www.biorxiv.org/content/10.1101/2022.10.06.510405v2</a>
 <p>The 10x Genomics <a
 href="https://www.10xgenomics.com/platforms/xenium">Xenium In Situ</a>
 provides spatial localization of both (i) transcripts from a few hundred
-number of genes as well as (ii) the single cells with transcriptomics
+genes as well as (ii) the single cells with transcriptomics
 profiles.</p>
 <p>We will use the readouts of a single Xenium platform replicate that
 was derived from a single tissue section of a breast cancer sample. More
-information on the Xenium data and the study can be also be found on the
-<a
+information on the Xenium data and the study can also be found on the <a
 href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">bioRxiv
 preprint</a>. You can download the data from the <a
 href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
@@ -668,10 +667,10 @@ Assay1     Xenium Section1 XeniumR1
 Assay2 Xenium_mol Section1 XeniumR1</code></pre>
 <p></br></p>
 <p>The Xenium in situ platform provides multiple resolution of the same
-Xenium slide which can be parsed from the OME.TIFF image file of DAPI
+Xenium slide which can be parsed from the OME-TIFF image file of DAPI
 stained tissue section (e.g. morphology_mip.ome.tif). The
 <strong>resolution_level</strong> argument determines the resolution of
-the DAPI image generated from the OME.TIFF file. More information on
+the DAPI image generated from the OME-TIFF file. More information on
 resolution levels can be found <a
 href="https://kb.10xgenomics.com/hc/en-us/articles/11636252598925-What-are-the-Xenium-image-scale-factors-">here</a>.</p>
 <pre class="r watch-out"><code>Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;, import_molecules = TRUE, 
@@ -682,7 +681,7 @@ vrImages(Xen_R1, assay = &quot;Xenium&quot;)</code></pre>
   &lt;chr&gt;  &lt;int&gt;  &lt;int&gt; &lt;chr&gt;      &lt;lgl&gt;    &lt;int&gt; &lt;chr&gt;  
 1 PNG     4427   3222 Gray       FALSE        0 72x72  </code></pre>
 <p></br></p>
-<p>Users can also decide to ignore OME.TIFF file and images, hence only
+<p>Users can also decide to ignore OME-TIFF file and images, hence only
 cells and molecules would be imported.</p>
 <pre class="r watch-out"><code>Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;, import_molecules = TRUE, 
                        use_image = FALSE)</code></pre>
@@ -698,7 +697,7 @@ class="uri">https://www.biochain.com/nanostring-geomx-digital-spatial-profiling/
 </em>
 </p>
 <p>The <a
-href="https://nanostring.com/products/geomx-digital-spatial-profiler/geomx-dsp-overview/">Nanostring’s
+href="https://nanostring.com/products/geomx-digital-spatial-profiler/geomx-dsp-overview/">NanoString’s
 GeoMx Digital Spatial Profiler</a> is a high-plex spatial profiling
 technology which produces segmentation-based protein and RNA assays. The
 instrument allows users to select regions of interest (ROIs) from
@@ -776,22 +775,22 @@ Image file </a>
 ome.tiff
 </td>
 <td>
-The OME.TIFF Image of the scan area
+The OME-TIFF Image of the scan area
 </td>
 <td>
 <a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.ome.tiff">
-OME.TIFF file </a>
+OME-TIFF file </a>
 </td>
 </tr>
 <tr>
 <td>
 </td>
 <td>
-The OME.TIFF Image XML file
+The OME-TIFF Image XML file
 </td>
 <td>
 <a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.ome.tiff.xml" download target="_blank">
-OME.TIFF (XML) file </a>
+OME-TIFF (XML) file </a>
 </td>
 </tr>
 </table>
@@ -803,10 +802,10 @@ GeoMxR1 &lt;- importGeoMx(dcc.path = &quot;DCC-20230427/&quot;,
                        image = &quot;Lu1A1B5umtrueexp.tif&quot;,
                        ome.tiff = &quot;Lu1A1B5umtrueexp.ome.tiff&quot;,
                        sample_name = &quot;GeoMxR1&quot;)</code></pre>
-<p>The OME.TIFF file here provides the ROI coordinates within the
+<p>The OME-TIFF file here provides the ROI coordinates within the
 embedded XML metadata. We can also incorporate the
 <strong>RBioFormats</strong> package to extract the XML metadata from
-the OME.TIFF file. RBioFormats requires rJava and JDK installed, see <a
+the OME-TIFF file. RBioFormats requires rJava and JDK installed, see <a
 href="https://github.com/BIMSBbioinfo/VoltRon?tab=readme-ov-file#dependencies">dependencies</a>
 section for more information.</p>
 <pre class="r watch-out"><code>if(!requireNamespace(&quot;RBioFormats&quot;))
@@ -837,14 +836,14 @@ class="uri">https://www.biorxiv.org/content/10.1101/2021.11.03.467020v1.full</a>
 </em>
 </p>
 <p>The <a
-href="https://nanostring.com/products/cosmx-spatial-molecular-imager/cosmx-smi-single-cell-imaging-de/">Nanostring’s
+href="https://nanostring.com/products/cosmx-spatial-molecular-imager/cosmx-smi-single-cell-imaging-de/">NanoString’s
 CosMx Spatial Molecular Imaging</a> platform is a high-plex spatial
 multiomics technology that captures the spatial localization of both (i)
 transcripts from thousands of genes as well as (ii) the single cells
 with transcriptomics and proteomics profiles.</p>
 <p>We will use the readouts from two slides of a single CosMx
 experiment. You can download the data from the <a
-href="https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/cosmx-smi-mouse-brain-ffpe-dataset/">Nanostring
+href="https://nanostring.com/products/cosmx-spatial-molecular-imager/ffpe-dataset/cosmx-smi-mouse-brain-ffpe-dataset/">NanoString
 website</a>.</p>
 <p>We use the <strong>importCosMx</strong> function to import the CosMx
 readouts and create a VoltRon object. Here, we point to the folder of
@@ -1235,8 +1234,8 @@ only supply an image object. We will use the H&amp;E image derived from
 a tissue section that was first analyzed by The 10x Genomics <a
 href="https://www.10xgenomics.com/platforms/xenium">Xenium In Situ</a>
 platform.</p>
-<p>More information on the Xenium and the study can be also be found on
-the <a
+<p>More information on the Xenium and the study can also be found on the
+<a
 href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">bioRxiv
 preprint</a>. You can download the H&amp;E image from the <a
 href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
@@ -1255,7 +1254,7 @@ Assays: ImageData(Main) </code></pre>
 <p></br></p>
 <div id="ome-tiff" class="section level3">
 <h3>OME-TIFF</h3>
-<p>You can also import images from OME.TIFF files directly. Since these
+<p>You can also import images from OME-TIFF files directly. Since these
 files often come in shape of <a
 href="https://en.wikipedia.org/wiki/Pyramid_(image_processing)">image
 pyramids</a>, we need to use <strong>RBioFormats</strong> the package.
@@ -1264,10 +1263,10 @@ existing resolutions and series in the image.</p>
 <p>RBioFormats requires rJava and JDK installed, see <a
 href="https://github.com/BIMSBbioinfo/VoltRon?tab=readme-ov-file#dependencies">dependencies</a>
 section for more information.</p>
-<p>We will use the post-Xenium OME.TIFF files from the <a
+<p>We will use the post-Xenium OME-TIFF files from the <a
 href="https://www.10xgenomics.com/datasets/xenium-prime-ffpe-neonatal-mouse">Whole
 Mouse Pup slide</a> from the 10X Genomics website. Please download the
-OME.TIFF file from output files.</p>
+OME-TIFF file from output files.</p>
 <pre class="r watch-out"><code># dependencies
 if(!requireNamespace(&quot;RBioFormats&quot;))
   BiocManager::install(&quot;RBioFormats&quot;)

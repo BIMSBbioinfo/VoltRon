@@ -599,17 +599,17 @@ plot(img)</code></pre>
 <p><br></p>
 </div>
 <div id="squidpy-anndata-h5ad" class="section level2">
-<h2>Squidpy (Anndata, h5ad)</h2>
+<h2>Squidpy (AnnData, h5ad)</h2>
 <p>A true ecosystem friendly computational platform should support data
 types across multiple computing environments. By allowing users to
 convert VoltRon objects into annotated data matrix formats such as <a
-href="https://github.com/scverse/anndata">anndata</a>, we can use
+href="https://github.com/scverse/anndata">AnnData</a>, we can use
 built-in spatial data analysis methods available on <a
 href="https://squidpy.readthedocs.io/en/stable/">squidpy</a>.</p>
 <p>You can find the clustered and the annotated Xenium data using
 VoltRon <a
 href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Cellanalysis/Xenium/Xenium_data_clustered_annotated.rds">here</a>.</p>
-<p>Anndata objects wrapped on h5ad files are commonly used by the <a
+<p>AnnData objects wrapped on h5ad files are commonly used by the <a
 href="https://www.nature.com/articles/s41587-023-01733-8">scverse</a>
 ecosystem for single cell analysis which bring together numeruous tools
 maintained and distributed by a large community effort. Both squidpy and
@@ -642,7 +642,7 @@ sc.logging.print_header()</code></pre>
 <div id="filter-and-normalize" class="section level3">
 <h3>Filter and Normalize</h3>
 <p>We read the annotated Xenium object that was saved as an h5ad file
-using the <strong>as.Anndata</strong> function in VoltRon, and process
+using the <strong>as.AnnData</strong> function in VoltRon, and process
 before analysis. For more information using scanpy and squidpy on Xenium
 datasets, check the <a
 href="https://squidpy.readthedocs.io/en/stable/notebooks/tutorials/tutorial_xenium.html">Analyzing
@@ -695,7 +695,7 @@ plt.show(ax)</code></pre>
 </div>
 </div>
 <div id="vitessce-anndata-zarr" class="section level2">
-<h2>Vitessce (Anndata, zarr)</h2>
+<h2>Vitessce (AnnData, zarr)</h2>
 <p>In this section, we will transform VoltRon objects of Xenium data
 into zarr arrays, and use them for interactive visualization in <a
 href="http://vitessce.io/">Vitessce</a>. We should first download the
@@ -721,7 +721,7 @@ object as a zarr array in the specified location.</p>
            file = &quot;xendata_clustered_annotated.zarr&quot;, flip_coordinates = TRUE)</code></pre>
 <p>We can use the zarr file directly in the
 <strong>vrSpatialPlot</strong> function to visualize the zarr array
-interactively in Rstudio viewer. The <strong>reduction</strong>
+interactively in RStudio viewer. The <strong>reduction</strong>
 arguement allows the umap of the Xenium data to be visualized alongside
 with the spatial coordinates of the Xenium cells.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(&quot;xendata_clustered_annotated.zarr&quot;, group.by = &quot;CellType&quot;, reduction = &quot;umap&quot;)</code></pre>

@@ -496,7 +496,7 @@ formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. A 5
 CytAssist and two replicate 5 <span class="math inline">\(\mu\)</span>m
 sections were taken for the Xenium replicates. More information on the
 spatial datasets and the study can be also be found on the <a
-href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">BioArxiv
+href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">BioRxiv
 preprint</a>.</p>
 <p>You can download the Xenium and Visium readouts from the <a
 href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
@@ -683,7 +683,7 @@ Assays: Xenium(Main) Visium
 Features: RNA(Main) </code></pre>
 <p>Here, we can quickly check the change in spatial coordinate systems
 in the new tissue block. The <code>registerSpatialData</code> function
-syncronizes the coordinate systems of all VoltRon objects in the list
+synchronizes the coordinate systems of all VoltRon objects in the list
 before merging. Both Xenium sections have now two coordinate system
 where the registered system <strong>main_reg</strong> is the default
 one.</p>
@@ -871,8 +871,8 @@ vrSpatialPlot(VRBlock, group.by = &quot;annotation&quot;, assay = &quot;Visium&q
 <p><br></p>
 <p>You can also use the <strong>addSpatialLayer</strong> function to
 overlay annotation segments to the spatial plot of the Xenium data.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(VRBlock_new2, group.by = &quot;CellType&quot;, assay = &quot;Assay1&quot;, crop = TRUE) |&gt;
-  addSpatialLayer(VRBlock_new2, assay = &quot;ROIAnnotation&quot;, group.by = &quot;annotation&quot;, spatial = &quot;main&quot;, alpha = 0.4)</code></pre>
+<pre class="r watch-out"><code>vrSpatialPlot(VRBlock, group.by = &quot;CellType&quot;, assay = &quot;Assay1&quot;, crop = TRUE) |&gt;
+  addSpatialLayer(VRBlock, assay = &quot;ROIAnnotation&quot;, group.by = &quot;annotation&quot;, spatial = &quot;main&quot;, alpha = 0.4)</code></pre>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_ROI_xenium_overlay.png" class="center"></p>
 <p><br></p>
 </div>

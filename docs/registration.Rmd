@@ -55,7 +55,7 @@ VoltRon allows users to **align spatial omics datasets of these serial sections*
 
 ## Alignment of Xenium and Visium 
 
-In this use case, we will align **immunofluorescence (IF)** and **H&E images** of the **Xenium In Situ** and **Visium CytAssist** platforms readouts. Three tissue sections are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. A 5 $\mu$m section was taken for Visium CytAssist and two replicate 5 $\mu$m sections were taken for the Xenium replicates. More information on the spatial datasets and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
+In this use case, we will align **immunofluorescence (IF)** and **H&E images** of the **Xenium In Situ** and **Visium CytAssist** platforms readouts. Three tissue sections are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. A 5 $\mu$m section was taken for Visium CytAssist and two replicate 5 $\mu$m sections were taken for the Xenium replicates. More information on the spatial datasets and the study can be also be found on the [BioRxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
  
 You can download the Xenium and Visium readouts from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import **In Situ Replicate 1/2 and Visium Spatial**). Alternatively, you can **download a zipped collection of three Visium and Xenium readouts** from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip). 
 
@@ -237,7 +237,7 @@ Assays: Xenium(Main) Visium
 Features: RNA(Main) 
 ```
 
-Here, we can quickly check the change in spatial coordinate systems in the new tissue block. The `registerSpatialData` function syncronizes the coordinate systems of all VoltRon objects in the list before merging. Both Xenium sections have now two coordinate system where the registered system **main_reg** is the default one.
+Here, we can quickly check the change in spatial coordinate systems in the new tissue block. The `registerSpatialData` function synchronizes the coordinate systems of all VoltRon objects in the list before merging. Both Xenium sections have now two coordinate system where the registered system **main_reg** is the default one.
 
 ```{r class.source="watch-out", eval = FALSE}
 vrSpatialNames(VRBlock, assay = "all")
@@ -469,8 +469,8 @@ vrSpatialPlot(VRBlock, group.by = "annotation", assay = "Visium", crop = TRUE)
 You can also use the **addSpatialLayer** function to overlay annotation segments to the spatial plot of the Xenium data.
  
 ```{r class.source="watch-out", eval = FALSE}
-vrSpatialPlot(VRBlock_new2, group.by = "CellType", assay = "Assay1", crop = TRUE) |>
-  addSpatialLayer(VRBlock_new2, assay = "ROIAnnotation", group.by = "annotation", spatial = "main", alpha = 0.4)
+vrSpatialPlot(VRBlock, group.by = "CellType", assay = "Assay1", crop = TRUE) |>
+  addSpatialLayer(VRBlock, assay = "ROIAnnotation", group.by = "annotation", spatial = "main", alpha = 0.4)
 ```
 
 <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_ROI_xenium_overlay.png" class="center">

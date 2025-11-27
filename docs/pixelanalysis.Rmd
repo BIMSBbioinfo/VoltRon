@@ -54,7 +54,7 @@ Here, images can also be used to build VoltRon objects where pixels (or tiles) a
 
 In this use case, we will analyze the H&E image derived from a tissue section that was first analyzed by The 10x Genomics [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform. Three tissue sections were cut from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. A 5 $\mu$m section was used to generate a single Xenium replicate. The H&E staining was performed on the tissue after the Xenium run.
 
-More information on the Xenium and the study can be also be found on the [BioArxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the H&E image from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) as well (specifically, import the **Post-Xenium H&E image (TIFF)** data). 
+More information on the Xenium and the study can be also be found on the [BioRxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1). You can download the H&E image from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) as well (specifically, import the **Post-Xenium H&E image (TIFF)** data). 
 
 We incorporate **importImageData** to convert an image into a tile/pixel-based spatial dataset. 
 

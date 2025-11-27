@@ -519,9 +519,9 @@ class="math inline">\(\mu\)</span>m.</p>
 <h2>On-Disk VoltRon Objects</h2>
 <p>We can now save the VoltRon object to disk, large matrices and images
 will be written to either <strong>hdf5</strong> or <strong>zarr</strong>
-files depending on the <strong>format</strong> arguement, and the rest
-of the R object would be written to an <code>.rds</code> file, both
-under the designated <strong>output</strong>.</p>
+files depending on the <strong>format</strong> argument, and the rest of
+the R object would be written to an <code>.rds</code> file, both under
+the designated <strong>output</strong>.</p>
 <pre class="r watch-out"><code>hddata &lt;- saveVoltRon(hddata, format = &quot;HDF5VoltRon&quot;, output = &quot;data/VisiumHD&quot;)</code></pre>
 <p>If you want you can load the VoltRon object from the same path as you
 have saved.</p>
@@ -542,7 +542,7 @@ hddata &lt;- getFeatures(hddata, n = 3000)
 selected_features &lt;- getVariableFeatures(hddata)
 hddata &lt;- getPCA(hddata, features = selected_features, dims = 30)
 hddata &lt;- getUMAP(hddata, dims = 1:30)</code></pre>
-<p>We can now visualized genes over embedding or spatial plots.</p>
+<p>We can now visualize genes over embedding or spatial plots.</p>
 <pre class="r watch-out"><code>vrEmbeddingFeaturePlot(hddata, features = &quot;Nrgn&quot;, embedding = &quot;umap&quot;)
 vrSpatialFeaturePlot(hddata, features = &quot;Nrgn&quot;)</code></pre>
 <table>
@@ -591,9 +591,9 @@ Xen_R1 &lt;- importXenium(&quot;Xenium_pup/outs/&quot;,
 <h2>On-Disk VoltRon Objects</h2>
 <p>We can now save the VoltRon object to disk, large matrices and images
 will be written to either <strong>hdf5</strong> or <strong>zarr</strong>
-files depending on the <strong>format</strong> arguement, and the rest
-of the R object would be written to an <code>.rds</code> file, both
-under the designated <strong>output</strong>.</p>
+files depending on the <strong>format</strong> argument, and the rest of
+the R object would be written to an <code>.rds</code> file, both under
+the designated <strong>output</strong>.</p>
 <pre class="r watch-out"><code>Xen_R1 &lt;- saveVoltRon(Xen_R1, format = &quot;HDF5VoltRon&quot;, 
                       output = &quot;data/Xenium_pups&quot;, replace = TRUE)</code></pre>
 <p>If you want you can load the VoltRon object from the same path as you
