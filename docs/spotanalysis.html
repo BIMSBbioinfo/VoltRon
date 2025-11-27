@@ -554,9 +554,8 @@ transcripts of interest. We first visualize mRNAs of ACTA2, a marker for
 smooth muscle cell actin, and TCF7, an early exhausted t cell marker. We
 can interactively select a subset of interest within the tissue section
 and visualize the localization of these transcripts. Here we subset a
-ductal carcinoma niche, and visualize mRNAs of <strong>(i)</strong>
-ACTA2, a marker for smooth muscle cell actin, and <strong>(ii)</strong>
-TCF7, an early exhausted t cell marker.</p>
+ductal carcinoma niche, and visualize mRNAs of ACTA2, KRT15, TACSTD2 and
+CEACAM6.</p>
 <pre class="r watch-out"><code>Xen_R1_subsetinfo &lt;- subset(Xen_R1, interactive = TRUE)
 Xen_R1_subset &lt;- Xen_R1_subsetinfo$subsets[[1]]
 vrSpatialPlot(Xen_R1_subset, assay = &quot;Xenium_mol&quot;, group.by = &quot;gene&quot;,
@@ -586,7 +585,7 @@ clustering these cells. Hence, we remove such cells from the VoltRon
 objects.</p>
 <pre class="r watch-out"><code>Xen_data &lt;- subset(Xen_data, Count &gt; 5)</code></pre>
 <p>VoltRon is capable of reducing dimensionality of datasets using both
-PCA and UMAP which we gonna use to build profile-specific neighborhood
+PCA and UMAP which we will use to build profile-specific neighborhood
 graphs and partition the data into cell types.</p>
 <pre class="r watch-out"><code>Xen_data &lt;- getPCA(Xen_data, dims = 20)
 Xen_data &lt;- getUMAP(Xen_data, dims = 1:20)</code></pre>
@@ -677,7 +676,7 @@ information on hot spot analysis.</p>
 <p>We first have to learn a spatial graph, and in the case of Xenium
 data which is a cell type assay we can use a <a
 href="https://en.wikipedia.org/wiki/Delaunay_triangulation">Delaunay
-tesselation</a> to train the neighborhood graph. This will create a
+tessellation</a> to train the neighborhood graph. This will create a
 second graph in the VoltRon object, representing the spatial
 relationship between cells.</p>
 <pre class="r watch-out"><code>Xen_data &lt;- getSpatialNeighbors(Xen_data, method = &quot;delaunay&quot;)</code></pre>
@@ -833,7 +832,12 @@ metadata. We can Getis-Ord statistics of each individual spot as well as
 the hot and cold annotation of the spots. Each hot spot represents a
 niche whose Spp1 expression as well as neighboring Spp1 expressions are
 high.</p>
-<pre class="r watch-out"><code>library(patchwork)
+<pre class="r watch-out"><code># install patchwork package
+if (!requireNamespace(&quot;patchwork&quot;, quietly = TRUE))
+  install.packages(&quot;patchwork&quot;)
+library(patchwork)
+
+# visualize
 g1 &lt;- vrSpatialFeaturePlot(MBrain_Sec, features = &quot;Spp1_hotspot_stat&quot;, ncol = 1)
 g2 &lt;- vrSpatialPlot(MBrain_Sec, group.by = &quot;Spp1_hotspot_flag&quot;, ncol = 1)
 g1 | g2 </code></pre>
@@ -1004,18 +1008,18 @@ First, we establish <strong>spatial neighborhood graphs</strong> that
 determine the neighbors of each cell on tissue sections.</p>
 <p><a
 href="https://en.wikipedia.org/wiki/Delaunay_triangulation">Delaunay
-tesselations</a> or graphs are commonly used to determine neighbors of
+tessellations</a> or graphs are commonly used to determine neighbors of
 spatial entities. The function <strong>getSpatialNeighbors</strong>
 builds a delaunay graph of all assays of a certain type and detects
 neighbors of cells in a VoltRon object.</p>
 <pre class="r watch-out"><code>vr_merged &lt;- getSpatialNeighbors(vr_merged, method = &quot;delaunay&quot;)</code></pre>
 <p>The graph <strong>delaunay</strong>, which we will use for
-spatially-aware neightborhood analysis, is now the second graph
-available in the VoltRon object along with <strong>SNN</strong>.</p>
+spatially-aware neighborhood analysis, is now the second graph available
+in the VoltRon object along with <strong>SNN</strong>.</p>
 <pre class="r watch-out"><code>vrGraphNames(vr_merged)</code></pre>
 <pre><code>[1] &quot;SNN&quot;      &quot;delaunay&quot;</code></pre>
 <p>Once neighbors are founds, we can apply a <strong>permutation
-test</strong> that compares the number of cell type occurances with an
+test</strong> that compares the number of cell type occurrences with an
 expected number of these occurances under multiple permutations of
 labels in the tissue (fixed coordinates but cells are randomly
 labelled). A similar approach is used to by several spatial analysis

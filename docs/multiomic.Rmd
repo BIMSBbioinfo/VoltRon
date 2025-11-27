@@ -195,7 +195,7 @@ with a selected set of celltypes from the Xenium assay.
 vrSpatialPlot(vr2_merged_acute1, assay = "Xenium", group.by = "CellType", 
               group.ids = c("Myofibroblasts", "T cells", 
                             "Fibroblasts", "Endothelial cells "), 
-              plot.segments = TRUE) %>%
+              plot.segments = TRUE) |>
   addSpatialLayer(vr2_merged_acute1, assay = "Xenium_mol", 
                   group.by = "gene_hotspot_flag", 
                   group.ids = "hot", colors = list("hot" = "green"))
@@ -421,8 +421,8 @@ vr2_merged_acute1 <- annotateSpatialData(vr2_merged_acute1, assay = "Xenium_mol"
 
 ### Visualize annotations
 
-Before visualizing the annotations and molecule localizations in the same time, lets make some changes to the metadata. 
-We basically wanna change the annotation of all ROIs originated from the GeoJson file to have the label **Hyaline Membrane**.
+Before visualizing the annotations and molecule localizations in the same time, let's make some changes to the metadata. 
+We basically want to change the annotation of all ROIs originated from the GeoJson file to have the label **Hyaline Membrane**.
 
 ```{r eval = FALSE, class.source="watch-out"}
 # update molecule metadata
@@ -652,6 +652,7 @@ Now that we have labelled cells whose partitioning is determined by the morpholo
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(Seurat)
+library(dplyr)
 Xen_data_seu <- VoltRon::as.Seurat(Xen_R1_merged, cell.assay = "Xenium", type = "image")
 Xen_data_seu <- NormalizeData(Xen_data_seu, scale.factor = 100)
 Idents(Xen_data_seu) <- "Cluster_kmeans"
@@ -837,7 +838,7 @@ generateGeoJSON(segts, "registered_segments.geojson")
 ```
 
 To perform intensity quantification of cells, simply drag and drop the ome.tiff
-and geojson files to QuPath. You can then navigate to **Analyze -> Calculate Features -> Add Intensity Features**, and click Run after selecting markers where we select CD20 and CD21. If you wanna perform the mean and median intensity calculation of features, you can use the GeoJSON file with registered segments found [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/registered_segments.geojson).
+and geojson files to QuPath. You can then navigate to **Analyze -> Calculate Features -> Add Intensity Features**, and click Run after selecting markers where we select CD20 and CD21. If you want to perform the mean and median intensity calculation of features, you can use the GeoJSON file with registered segments found [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tonsil/registered_segments.geojson).
 
 After calculating mean and median intensities, we navigate to 
 **Measure -> Show Annotation Measurements** and click **Save** to write the 

@@ -484,7 +484,7 @@ vrMainFeatureType(vr_openst) <- "RNA"
 vrSpatialFeaturePlot(vr_openst, assay = c("Assay1", "Assay2"), 
                      features = "SPP1", n.tile = 400, alpha = 1, 
                      background.color = "black")
-vrMainFeatureType(vr_openst) <- "Niche_15"
+vrMainFeatureType(vr_openst) <- "Niche_60"
 vrSpatialFeaturePlot(vr_openst, assay = c("Assay1", "Assay2"), 
                      features = "M1_macrophages", n.tile = 400, alpha = 1, 
                      background.color = "black")

@@ -52,7 +52,7 @@ In this tutorial, we provide a number of examples where we show how VoltRon mana
 
 ## Xenium Breast Cancer Data
 
-In this use case, we analyse readouts of the experiments conducted on example tissue sections analysed by the [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform. Two tissue sections of 5 $\mu$m thickness are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. More information on the spatial datasets and the study can be also be found on the [bioRxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
+In this use case, we analyse readouts of the experiments conducted on example tissue sections analysed by the [Xenium In Situ](https://www.10xgenomics.com/platforms/xenium) platform. Two tissue sections of 5 $\mu$m thickness are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. More information on the spatial datasets and the study can also be found on the [bioRxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
  
 You can import these readouts from the [10x Genomics website](https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast) (specifically, import **In Situ Replicate 1/2**). Alternatively, you can **download a zipped collection of Xenium readouts** from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Xenium_vs_Visium/10X_Xenium_Visium.zip). 
 
@@ -147,11 +147,11 @@ vrSpatialPlot(Xen_R1_subset, assay = "Xenium_mol", group.by = "gene",
 
 Since VoltRon is capable of analyzing localization of sub-cellular entities such as molecules beyond mRNAs, the analysis may also extend to extracellular molecules such as viral RNA. Using Xenium in situ, we locate the open reading frames (ORFs) of genomics and subgenomics RNA of SARS-CoV-2, namely **S2_N** and **S2_orf1ab** and analyze their abundances over the COVID-19 infected lung tissue. 
 
-Specifically, we analyse readouts of **eight tissue micro array (TMA) tissue sections** that were fitted into the scan area of a slide loaded on a Xenium in situ instrument. These sections were cut from **control and COVID-19 lung tissues** of donors categorized based on disease durations (acute and prolonged). You can download the standard Xenium output folder [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Xenium_SARSCOV2.zip).  
+Specifically, we analyse readouts of **eight tissue microarray (TMA) tissue sections** that were fitted into the scan area of a slide loaded on a Xenium in situ instrument. These sections were cut from **control and COVID-19 lung tissues** of donors categorized based on disease durations (acute and prolonged). You can download the standard Xenium output folder [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Xenium_SARSCOV2.zip).  
 
 For more information on the TMA blocks, see [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information. 
 
-Across these eight TMA section, we investigate a section of acute case which is originated from a lung with extreme number of detected open reading frames of virus molecules. For convenience, we load a VoltRon object where cells are already annotated. You can also find the RDS file  [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/acutecase1_annotated.rds).
+Across these eight TMA core, we investigate a core of acute case which is originated from a lung with extreme number of detected open reading frames of virus molecules. For convenience, we load a VoltRon object where cells are already annotated. You can also find the RDS file  [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/acutecase1_annotated.rds).
 
 ```{r eval = FALSE, class.source="watch-out"}
 vr2_merged_acute1 <- readRDS(file = "acutecase1_annotated.rds")
@@ -197,11 +197,11 @@ vrSpatialPlot(vr2_merged_acute1, assay = "Xenium_mol", group.by = "gene",
 Let us zoom into a specific niche to observe the localization of cell free viral RNA and the surrounding cells.
 
 ```{r eval = FALSE, class.source="watch-out"}
-Xen_R1_subset <- subset(Xen_R1, interactive = TRUE)
-Xen_R1_subset <- Xen_R1_subset$subsets[[1]]
-vrSpatialPlot(Xen_R1_subset, assay = "Xenium_mol", group.by = "gene", 
+vr2_merged_acute1_subset <- subset(vr2_merged_acute1, interactive = TRUE)
+vr2_merged_acute1_subset <- vr2_merged_acute1_subset$subsets[[1]]
+vrSpatialPlot(vr2_merged_acute1_subset, assay = "Xenium_mol", group.by = "gene", 
               group.ids = c("S2_N", "S2_orf1ab"), pt.size = 0.4) |> 
-  addSpatialLayer(Xen_R1_subset, assay = "Xenium", group.by = "CellType", 
+  addSpatialLayer(vr2_merged_acute1_subset, assay = "Xenium", group.by = "CellType", 
                   plot.segments = TRUE, alpha = 0.7)
 ```
 

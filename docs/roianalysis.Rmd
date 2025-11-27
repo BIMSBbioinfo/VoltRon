@@ -72,12 +72,12 @@ You can download these tutorial files from here:
     <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.tif"> Image file </a></td>
   </tr>
   <tr>
-    <td>OME.TIFF Image </td>
-    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.ome.tiff"> OME.TIFF file </a></td>
+    <td>OME-TIFF Image </td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.ome.tiff"> OME-TIFF file </a></td>
   </tr>
     <tr>
-    <td>OME.TIFF Image (XML) </td>
-    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.ome.tiff.xml" download target="_blank"> OME.TIFF (XML) file </a></td>
+    <td>OME-TIFF Image (XML) </td>
+    <td><a href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/Lu1A1B5umtrueexp.ome.tiff.xml" download target="_blank"> OME-TIFF (XML) file </a></td>
   </tr>
 </table>
 
@@ -86,11 +86,10 @@ You can download these tutorial files from here:
 We now import the GeoMx data, and start analyzing 87 user selected segments (i.e. region of interest, **ROI**) to check spatial localization of signals. The **importGeoMx** function requires:
 
 * The path to the Digital Count Conversion file, **dcc.path**, and Probe Kit Configuration file, **pkc.file**, which are both provided as the output of the [GeoMx NGS Pipeline](https://emea.illumina.com/products/by-type/informatics-products/basespace-sequence-hub/apps/nanostring-geomxr-ngs-pipeline.html). 
-* The path the to the metadata file, **summarySegment**, and the specific excel sheet that the metadata is found, **summarySegmentSheetName**, the path to the main morphology **image** and the original **ome.tiff (xml)** file, all of which are provided and imported from the DSP Control Center. Please see [GeoMx DSP Data Analysis User Manual](https://nanostring.com/support-documents/geomx-dsp-data-analysis-user-manual/) for more information.
+* The path to the metadata file, **summarySegment**, and the specific excel sheet that the metadata is found, **summarySegmentSheetName**, the path to the main morphology **image** and the original **ome.tiff (xml)** file, all of which are provided and imported from the DSP Control Center. Please see [GeoMx DSP Data Analysis User Manual](https://nanostring.com/support-documents/geomx-dsp-data-analysis-user-manual/) for more information.
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(VoltRon)
-library(xlsx)
 GeoMxR1 <- importGeoMx(dcc.path = "DCC-20230427/", 
                        pkc.file = "Hs_R_NGS_WTA_v1.0.pkc",
                        summarySegment = "segmentSummary.csv",
@@ -223,7 +222,7 @@ GeoMxR1 <- merge(GeoMxR1_subset_list[[1]], GeoMxR1_subset_list[-1])
 
 ## Visualization
 
-We will now select sections of interests from the VoltRon object, and visualize ROIs and features for each of these sections.
+We will now select sections of interest from the VoltRon object, and visualize ROIs and features for each of these sections.
 
 The function **vrSpatialPlot** plots categorical attributes associated with ROIs. In this case, we will visualize types of ROIs that were labelled and annotated during ROI selection. 
 
@@ -378,7 +377,7 @@ DimPlot(scRNAlung, reduction = "umap", label = T, group.by = "Clusters") + NoLeg
 
 <img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_deconvolution_singlecell.png" class="center">
 
-We utilize the **getDeconvolution** function to call wrapper functions for deconvolution algorithms (see ). For all layers with GoeMx assays, an additional assay within the same layer with **\_decon** postfix will be created. The **sc.object** argument can either be a **Seurat** or **SingleCellExperiment** object. 
+We utilize the **getDeconvolution** function to call wrapper functions for deconvolution algorithms. For all layers with GeoMx assays, an additional assay within the same layer with **\_decon** postfix will be created. The **sc.object** argument can either be a **Seurat** or **SingleCellExperiment** object. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(MuSiC)
@@ -451,7 +450,7 @@ vrImages(vrHEimage, scale.perc = 40)
 
 <br>
 
-We can now register the GeoMx slide with the newly imported H&E based VoltRon object. Since two images are associated with TMA sections that are not adjacent, we have to rely on the localization of vessels visible in both images for alignment. VoltRon allows manipulating multiple channels of an image object two choose the best background image for manual landmark selection. For more information on both manual and automated registration of VoltRon objects, see [here](registration.html). 
+We can now register the GeoMx slide with the newly imported H&E based VoltRon object. Since two images are associated with TMA sections that are not adjacent, we have to rely on the localization of vessels visible in both images for alignment. VoltRon allows manipulating multiple channels of an image object to choose the best background image for manual landmark selection. For more information on both manual and automated registration of VoltRon objects, see [here](registration.html). 
 
 VoltRon provides multiple registration methods to align images. Here, after running the **registerSpatialData** function, we choose the **Homography + Non-rigid (TPS)** method which utilizes a perspective transformation on the H&E image followed by a thin plate spline (TPS) alignment. The perspective transformation performs a global alignment between the H&E image and the main GeoMx image (here the scan image with combined antibody channels), and the TPS method allows correct local deformations between the perspective transformed H&E image and the GeoMx image for a more accurate
 

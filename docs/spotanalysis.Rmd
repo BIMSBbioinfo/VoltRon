@@ -114,7 +114,7 @@ Assays: Xenium(Main)
 ## Spatial Visualization
 
 With **vrSpatialPlot**, we can visualize Xenium experiments in both cellular and subcellular context. Since we have not yet started analyzing raw counts of cells, we can first visualize some transcripts of interest. We first visualize mRNAs of ACTA2, a marker for smooth muscle cell actin, and TCF7, an early exhausted t cell marker. 
-We can interactively select a subset of interest within the tissue section and visualize the localization of these transcripts. Here we subset a ductal carcinoma niche, and visualize mRNAs of **(i)** ACTA2, a marker for smooth muscle cell actin, and **(ii)** TCF7, an early exhausted t cell marker.
+We can interactively select a subset of interest within the tissue section and visualize the localization of these transcripts. Here we subset a ductal carcinoma niche, and visualize mRNAs of ACTA2, KRT15, TACSTD2 and CEACAM6.
 
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1_subsetinfo <- subset(Xen_R1, interactive = TRUE)
@@ -142,7 +142,7 @@ Some number of cells in both Xenium replicates might have extremely low counts. 
 Xen_data <- subset(Xen_data, Count > 5)
 ```
 
-VoltRon is capable of reducing dimensionality of datasets using both PCA and UMAP which we gonna use to build profile-specific neighborhood graphs and partition the data into cell types. 
+VoltRon is capable of reducing dimensionality of datasets using both PCA and UMAP which we will use to build profile-specific neighborhood graphs and partition the data into cell types. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_data <- getPCA(Xen_data, dims = 20)
@@ -246,7 +246,7 @@ vrSpatialPlot(Xen_data, group.by = "CellType", pt.size = 0.13, background.color 
 
 VoltRon platform allows users to find hot spots (Regions of increased feature of interest) of several types of spatial entities, for spots, cells, and even molecules. Please see [Molecule Analysis Tutorial](moleculeanalysis.html) for more information on hot spot analysis. 
 
-We first have to learn a spatial graph, and in the case of Xenium data which is a cell type assay we can use a [Delaunay tesselation](https://en.wikipedia.org/wiki/Delaunay_triangulation) to train the neighborhood graph. This will create a second graph in the VoltRon object, representing the spatial relationship between cells.
+We first have to learn a spatial graph, and in the case of Xenium data which is a cell type assay we can use a [Delaunay tessellation](https://en.wikipedia.org/wiki/Delaunay_triangulation) to train the neighborhood graph. This will create a second graph in the VoltRon object, representing the spatial relationship between cells.
 
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_data <- getSpatialNeighbors(Xen_data, method = "delaunay")
@@ -440,7 +440,12 @@ MBrain_Sec <- getHotSpotAnalysis(MBrain_Sec, graph.type = "radius", features = "
 The results of the hot spot analysis (i.e. Getis-Ord statistics, adjusted p-value and hot spot annotation) can later be found in the metadata. We can Getis-Ord statistics of each individual spot as well as the hot and cold annotation of the spots. Each hot spot represents a niche whose Spp1 expression as well as neighboring Spp1 expressions are high.  
 
 ```{r eval = FALSE, class.source="watch-out"}
+# install patchwork package
+if (!requireNamespace("patchwork", quietly = TRUE))
+  install.packages("patchwork")
 library(patchwork)
+
+# visualize
 g1 <- vrSpatialFeaturePlot(MBrain_Sec, features = "Spp1_hotspot_stat", ncol = 1)
 g2 <- vrSpatialPlot(MBrain_Sec, group.by = "Spp1_hotspot_flag", ncol = 1)
 g1 | g2 
@@ -628,13 +633,13 @@ vrViolinPlot(vr_merged, features = c("CD3", "SMA", "Pancytokeratin", "CCR2"),
 
 We use the **vrNeighbourhoodEnrichment** function to detect cell type pairs that co occur within each others' neighborhoods. First, we establish **spatial neighborhood graphs** that determine the neighbors of each cell on tissue sections. 
 
-[Delaunay tesselations](https://en.wikipedia.org/wiki/Delaunay_triangulation) or graphs are commonly used to determine neighbors of spatial entities. The function **getSpatialNeighbors** builds a delaunay graph of all assays of a certain type and detects neighbors of cells in a VoltRon object.
+[Delaunay tessellations](https://en.wikipedia.org/wiki/Delaunay_triangulation) or graphs are commonly used to determine neighbors of spatial entities. The function **getSpatialNeighbors** builds a delaunay graph of all assays of a certain type and detects neighbors of cells in a VoltRon object.
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 vr_merged <- getSpatialNeighbors(vr_merged, method = "delaunay")
 ```
 
-The graph **delaunay**, which we will use for spatially-aware neightborhood analysis, is now the second graph available in the VoltRon object along with **SNN**.
+The graph **delaunay**, which we will use for spatially-aware neighborhood analysis, is now the second graph available in the VoltRon object along with **SNN**.
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 vrGraphNames(vr_merged)
@@ -644,7 +649,7 @@ vrGraphNames(vr_merged)
 [1] "SNN"      "delaunay"
 ```
 
-Once neighbors are founds, we can apply a **permutation test** that compares the number of cell type occurances with an expected number of these occurances under multiple permutations of labels in the tissue (fixed coordinates but cells are randomly labelled). A similar approach is used to by several spatial analysis frameworks and packages ([Schapiro et. al 2017](https://www.nature.com/articles/nmeth.4391), [Palla et. al 2022](https://www.nature.com/articles/s41592-021-01358-2)).
+Once neighbors are founds, we can apply a **permutation test** that compares the number of cell type occurrences with an expected number of these occurances under multiple permutations of labels in the tissue (fixed coordinates but cells are randomly labelled). A similar approach is used to by several spatial analysis frameworks and packages ([Schapiro et. al 2017](https://www.nature.com/articles/nmeth.4391), [Palla et. al 2022](https://www.nature.com/articles/s41592-021-01358-2)).
 
 Here, we will use the original cell type labels annotated by [Mothes et. al 2023](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9922044/).
 
