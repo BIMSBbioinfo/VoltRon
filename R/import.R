@@ -3098,6 +3098,7 @@ importQuPathIF <- function(
     metadata = metadata,
     image = image,
     coords = coords,
+    segments = segments,
     main.assay = "IF",
     assay.type = "cell",
     image_name = image_name,

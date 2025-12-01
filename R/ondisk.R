@@ -1697,6 +1697,15 @@ setMethod(
 #'
 #' @noRd
 .restore_absolute_assay_links_images <- function(object, dir) {
+  
+  # check package
+  if (!requireNamespace('ImageArray')) {
+    stop(
+      "Please install ImageArray package!: 
+         devtools::install_github('BIMSBbioinfo/ImageArray')"
+    )
+  }
+  
   # for each spatial system
   spatial_names <- vrSpatialNames(object)
   for (spat in spatial_names) {
@@ -1726,30 +1735,6 @@ setMethod(
 
   # return
   return(object)
-}
-
-#' .restore_absolute_links_images
-#'
-#' @noRd
-.restore_absolute_links_images <- function(file_path, dir) {
-  file_path <- basename(file_path)
-
-  # get path
-  file_path <- file.path(dir, file_path)
-
-  ## file_path_as_absolute() will fail if the file does
-  ## not exist.
-  if (!file.exists(file_path)) {
-    stop("file_path doesnt exist")
-  }
-  file_path <- file_path_as_absolute(file_path)
-
-  # validate
-  msg <- validate_absolute_path(file_path, paste0("'filepath' slot of object"))
-  if (!isTRUE(msg)) {
-    stop(msg)
-  }
-  file_path
 }
 
 #' .restore_absolute_links
