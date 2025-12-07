@@ -58,14 +58,14 @@ test_that("spatial neighbors with distances", {
   xenium_data <- getSpatialNeighbors(xenium_data, method = "spatialkNN", k = 5, verbose = FALSE, 
                                      calculate.distances = TRUE)
   graphs <- vrGraph(xenium_data, graph.type = "spatialkNN")
-  graphdist <- igraph::get.edge.attribute(graphs, name = "dist")
+  graphdist <- igraph::edge_attr(graphs, name = "dist")
   expect_true(length(graphdist) > 1)
   
   # spatial neighbors, radius
   xenium_data <- getSpatialNeighbors(xenium_data, method = "radius", radius = 10, verbose = FALSE, 
                                      calculate.distances = TRUE)
   graphs <- vrGraph(xenium_data, graph.type = "radius")
-  graphdist <- igraph::get.edge.attribute(graphs, name = "dist")
+  graphdist <- igraph::edge_attr(graphs, name = "dist")
   expect_true(length(graphdist) > 1)
   
   # return
