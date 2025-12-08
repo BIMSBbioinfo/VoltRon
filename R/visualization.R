@@ -2817,6 +2817,7 @@ vrNeighbourhoodEnrichmentPlot <- function(
 #' @param nrow row wise number of plots, for \link{facet_wrap}
 #' @param font.size font size of labels, if label is TRUE
 #' @param pt.size point size
+#' @param shape shape
 #' @param label if TRUE, the labels of the ROI assays will be visualized
 #' @param common.legend whether to use a common legend for all plots, 
 #' see \link{ggarrange}
@@ -2840,6 +2841,7 @@ vrEmbeddingPlot <- function(
   nrow = NULL,
   font.size = 5,
   pt.size = 1,
+  shape = 16,
   label = FALSE,
   common.legend = TRUE,
   collapse.plots = TRUE
@@ -2964,7 +2966,7 @@ vrEmbeddingPlot <- function(
           fill = .data[[group.by]]
         ),
         datax,
-        shape = 16,
+        shape = shape,
         size = pt.size
       )
   }

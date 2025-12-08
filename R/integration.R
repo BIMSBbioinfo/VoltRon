@@ -242,8 +242,7 @@ transferLabels <- function(
         from_metadata,
         to_object,
         to_metadata,
-        transfer_data = transfer_data,
-        new_feature_name = new_feature_name
+        transfer_data = transfer_data
       )
     # update metadata
     object <- addMetadata(
