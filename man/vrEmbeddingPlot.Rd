@@ -17,6 +17,7 @@ vrEmbeddingPlot(
   nrow = NULL,
   font.size = 5,
   pt.size = 1,
+  shape = 16,
   label = FALSE,
   common.legend = TRUE,
   collapse.plots = TRUE
@@ -54,6 +55,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{font.size}{font size of labels, if label is TRUE}
 
 \item{pt.size}{point size}
+
+\item{shape}{shape}
 
 \item{label}{if TRUE, the labels of the ROI assays will be visualized}
 
