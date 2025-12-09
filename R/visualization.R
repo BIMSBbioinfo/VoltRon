@@ -18,7 +18,8 @@ NULL
 #' @param plot.segments plot segments from \link{vrSegments} instead of points
 #' @param group.ids a subset of categories defined in metadata column from \code{group.by}
 #' @param colors the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by
-#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param graph.name if not NULL, the spatial graph is with name \code{graph.name} is visualized as well, see \link{vrGraphNames}
@@ -59,7 +60,7 @@ vrSpatialPlot <- function(
   plot.segments = FALSE,
   group.ids = NULL,
   colors = NULL,
-  n.tile = 0,
+  n.tile = NULL,
   assay = NULL,
   graph.name = NULL,
   graph.edge.color = "orange",
@@ -295,7 +296,8 @@ vrSpatialPlot <- function(
 #' @param plot.segments plot segments from \link{vrSegments} instead of points
 #' @param group.ids a subset of categories defined in metadata column from \code{group.by}
 #' @param colors the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by
-#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param graph if not NULL, the graph is added to the plot
 #' @param graph.edge.color the color of graph edges, if \code{graph} is not NULL.
 #' @param font.size font sizes
@@ -328,7 +330,7 @@ vrSpatialPlotSingle <- function(
   plot.segments = FALSE,
   group.ids = NULL,
   colors = NULL,
-  n.tile = 0,
+  n.tile = NULL,
   graph = NULL,
   graph.edge.color = "orange",
   font.size = 2,
@@ -506,10 +508,8 @@ vrSpatialPlotSingle <- function(
     # spot visualization
   } else if (vrAssayTypes(assay) == "spot") {
     # rasterize if requested or needed
-    if (n.tile > 0 || nrow(coords) > 50000) {
-      if (n.tile == 0) {
-        n.tile <- 1000
-      }
+    n.tile <- .will_tile(n.tile, nrow(coords))
+    if (!is.null(n.tile)) {
       g <- vrGroupPlotTiling(
         g = g,
         data = coords,
@@ -599,10 +599,8 @@ vrSpatialPlotSingle <- function(
       }
     } else {
       # rasterize if requested or needed
-      if (n.tile > 0 || nrow(coords) > 50000) {
-        if (n.tile == 0) {
-          n.tile <- 1000
-        }
+      n.tile <- .will_tile(n.tile, nrow(coords))
+      if (!is.null(n.tile)) {
         g <- vrGroupPlotTiling(
           g = g,
           data = coords,
@@ -681,10 +679,8 @@ vrSpatialPlotSingle <- function(
     }
   } else if (vrAssayTypes(assay) == "tile") {
     # rasterize if requested or needed
-    if (n.tile > 0 || nrow(coords) > 50000) {
-      if (n.tile == 0) {
-        n.tile <- 1000
-      }
+    n.tile <- .will_tile(n.tile, nrow(coords))
+    if (!is.null(n.tile)) {
       g <- vrGroupPlotTiling(
         g = g,
         data = coords,
@@ -737,10 +733,8 @@ vrSpatialPlotSingle <- function(
     }
   } else if (vrAssayTypes(assay) == "molecule") {
     # rasterize if requested or needed
-    if (n.tile > 0 || nrow(coords) > 50000) {
-      if (n.tile == 0) {
-        n.tile <- 1000
-      }
+    n.tile <- .will_tile(n.tile, nrow(coords))
+    if (!is.null(n.tile)) {
       g <- vrGroupPlotTiling(
         g = g,
         data = coords,
@@ -855,7 +849,8 @@ vrSpatialPlotSingle <- function(
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param colors the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by
 #' @param alpha alpha level of colors of visualized points and segments
-#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param pt.size point size
 #' @param cell.shape the shape of the points representing cells, see \link{geom_point}
 #' @param graph if not NULL, the graph is added to the plot
@@ -876,7 +871,7 @@ addSpatialLayer <- function(
   reg = FALSE,
   colors = NULL,
   alpha = 1,
-  n.tile = 0,
+  n.tile = NULL,
   pt.size = 2,
   cell.shape = 21,
   graph = NULL,
@@ -1137,10 +1132,8 @@ addSpatialLayer <- function(
       }
     } else {
       # rasterize if requested or needed
-      if (n.tile > 0 || nrow(coords) > 50000) {
-        if (n.tile == 0) {
-          n.tile <- 1000
-        }
+      n.tile <- .will_tile(n.tile, nrow(coords))
+      if (!is.null(n.tile)) {
         g <- vrGroupPlotTiling(
           g = g,
           data = coords,
@@ -1196,10 +1189,8 @@ addSpatialLayer <- function(
     }
   } else if (vrAssayTypes(assay) == "spot") {
     # rasterize if requested or needed
-    if (n.tile > 0 || nrow(coords) > 50000) {
-      if (n.tile == 0) {
-        n.tile <- 1000
-      }
+    n.tile <- .will_tile(n.tile, nrow(coords))
+    if (!is.null(n.tile)) {
       g <- vrGroupPlotTiling(
         g = g,
         data = coords,
@@ -1240,10 +1231,8 @@ addSpatialLayer <- function(
     # cell visualization
   } else if (vrAssayTypes(assay) == "molecule") {
     # rasterize if requested or needed
-    if (n.tile > 0 || nrow(coords) > 50000) {
-      if (n.tile == 0) {
-        n.tile <- 1000
-      }
+    n.tile <- .will_tile(n.tile, nrow(coords))
+    if (!is.null(n.tile)) {
       g <- vrGroupPlotTiling(
         g = g,
         data = coords,
@@ -1328,7 +1317,8 @@ addSpatialLayer <- function(
 #' @param combine.features whether to combine all features in one plot
 #' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
 #' @param plot.segments plot segments from \link{vrSegments} instead of points
-#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param norm if TRUE, the normalized data is used
 #' @param log if TRUE, data features (excluding metadata features) will be log transformed
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
@@ -1367,7 +1357,7 @@ vrSpatialFeaturePlot <- function(
   combine.features = FALSE,
   group.by = "label",
   plot.segments = FALSE,
-  n.tile = 0,
+  n.tile = NULL,
   norm = TRUE,
   log = FALSE,
   assay = NULL,
@@ -1600,7 +1590,8 @@ vrSpatialFeaturePlot <- function(
 #' @param metadata the metadata associated with the assay
 #' @param feature a feature, either from the rows of rawdata, normdata or columns of the metadata
 #' @param plot.segments plot segments from \link{vrSegments} instead of points
-#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param graph if not NULL, the graph is added to the plot
 #' @param limits limits of the legend of the plot
 #' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
@@ -1635,7 +1626,7 @@ vrSpatialFeaturePlotSingle <- function(
   metadata,
   feature,
   plot.segments = FALSE,
-  n.tile = 0,
+  n.tile = NULL,
   graph = NULL,
   limits,
   group.by = "label",
@@ -1784,10 +1775,8 @@ vrSpatialFeaturePlotSingle <- function(
       )
   } else if (vrAssayTypes(assay) == "spot") {
     # rasterize if requested or needed
-    if (n.tile > 0 || nrow(coords) > 50000) {
-      if (n.tile == 0) {
-        n.tile <- 1000
-      }
+    n.tile <- .will_tile(n.tile, nrow(coords))
+    if (!is.null(n.tile)) {
       g <- vrFeaturePlotTiling(
         g = g,
         data = coords,
@@ -1846,10 +1835,8 @@ vrSpatialFeaturePlotSingle <- function(
         )
     } else {
       # rasterize if requested or needed
-      if (n.tile > 0 || nrow(coords) > 50000) {
-        if (n.tile == 0) {
-          n.tile <- 1000
-        }
+      n.tile <- .will_tile(n.tile, nrow(coords))
+      if (!is.null(n.tile)) {
         g <- vrFeaturePlotTiling(
           g = g,
           data = coords,
@@ -1894,10 +1881,8 @@ vrSpatialFeaturePlotSingle <- function(
     }
   } else if (vrAssayTypes(assay) == "tile") {
     # rasterize if requested or needed
-    if (n.tile > 0 || nrow(coords) > 50000) {
-      if (n.tile == 0) {
-        n.tile <- 1000
-      }
+    n.tile <- .will_tile(n.tile, nrow(coords))
+    if (!is.null(n.tile)) {
       g <- vrFeaturePlotTiling(
         g = g,
         data = coords,
@@ -1984,7 +1969,8 @@ vrSpatialFeaturePlotSingle <- function(
 #' @param metadata the metadata associated with the assay
 #' @param features features, either from the rows of rawdata, normdata or columns of the metadata
 #' @param plot.segments plot segments from \link{vrSegments} instead of points
-#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param graph if not NULL, the graph is added to the plot
 #' @param limits limits of the legend of the plot
 #' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
@@ -2019,7 +2005,7 @@ vrSpatialFeaturePlotCombined <- function(
   metadata,
   features,
   plot.segments = FALSE,
-  n.tile = 0,
+  n.tile = NULL,
   graph = NULL,
   group.by = "label",
   norm = TRUE,
@@ -2109,6 +2095,7 @@ vrSpatialFeaturePlotCombined <- function(
   gg <- list()
   all_data <- NULL
   colors <- get_rasterization_colors(length(features))
+  n.tile <- .will_tile(n.tile, nrow(coords))
   for (feat in features) {
     # get data
     if (feat %in% data_features) {
@@ -2122,10 +2109,7 @@ vrSpatialFeaturePlotCombined <- function(
     midpoint <- sum(limits[[feat]]) / 2
 
     # add points, rasterize if requested or needed
-    if (n.tile > 0 || nrow(coords) > 50000) {
-      if (n.tile == 0) {
-        n.tile <- 1000
-      }
+    if (!is.null(n.tile)) {
       g_single <- ggplot() +
         stat_summary_2d(
           mapping = aes(x = x, y = y, z = score),
@@ -2155,7 +2139,7 @@ vrSpatialFeaturePlotCombined <- function(
         geom_point(
           mapping = aes(x = x, y = y, color = score),
           coords,
-          shape = 16,
+          shape = cell.shape,
           size = pt.size
         ) +
         scale_color_gradientn(
@@ -2245,7 +2229,8 @@ vrSpatialFeaturePlotCombined <- function(
 #'
 #' @param g ggplot object
 #' @param all_data summary data
-#' @param n.tile should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param datax original plotting data
 #' @param segments segments
 #' @param scale_factors scale factors
@@ -2305,10 +2290,8 @@ vrSpatialFeatureCombinePlot <- function(
       )
   } else {
     # tiling or not
-    if (n.tile > 0 || nrow(coords) > 50000) {
-      if (n.tile == 0) {
-        n.tile <- 1000
-      }
+    n.tile <- .will_tile(n.tile, nrow(coords))
+    if (!is.null(n.tile)) {
       all_data <- all_data %>%
         group_by(x, y) %>%
         summarize(
@@ -2807,9 +2790,8 @@ vrNeighbourhoodEnrichmentPlot <- function(
 #' splitting spatial entities into ggplot panels, see \link{facet_wrap}
 #' @param colors the color set for group.by. Should be of the same size 
 #' of group.id (if specified) or unique elements in group.by
-#' @param n.tile should points be aggregated into tiles before 
-#' visualization (see \link{geom_tile}). Applicable only for cells and 
-#' molecules
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
 #' see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
@@ -2835,7 +2817,7 @@ vrEmbeddingPlot <- function(
   group.ids = NULL,
   split.by = NULL,
   colors = NULL,
-  n.tile = 0,
+  n.tile = NULL,
   assay = NULL,
   ncol = 2,
   nrow = NULL,
@@ -2946,10 +2928,8 @@ vrEmbeddingPlot <- function(
   g <- ggplot()
 
   # add points, rasterize if requested or needed
-  if (n.tile > 0 || nrow(datax) > 50000) {
-    if (n.tile == 0) {
-      n.tile <- 1000
-    }
+  n.tile <- .will_tile(n.tile, nrow(datax))
+  if (!is.null(n.tile)) {
     g <- vrGroupPlotTiling(
       g = g,
       data = datax,
@@ -3047,8 +3027,8 @@ vrEmbeddingPlot <- function(
 #' \link{vrFeatures} of raw or normalized data or columns of the 
 #' \link{Metadata}.
 #' @param combine.features whether to combine all features in one plot
-#' @param n.tile should points be aggregated into tiles before visualization 
-#' (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param norm if TRUE, the normalized data is used
 #' @param log if TRUE, data features (excluding metadata features) will be 
 #' log transformed
@@ -3059,6 +3039,7 @@ vrEmbeddingPlot <- function(
 #' @param nrow row wise number of plots, for \link{ggarrange}
 #' @param font.size font size
 #' @param pt.size point size
+#' @param shape shape
 #' @param keep.scale whether unify all scales for all features or not
 #' @param common.legend whether to use a common legend for all plots, 
 #' see \link{ggarrange}
@@ -3073,7 +3054,7 @@ vrEmbeddingFeaturePlot <- function(
   embedding = "pca",
   features = NULL,
   combine.features = FALSE,
-  n.tile = 0,
+  n.tile = NULL,
   norm = TRUE,
   log = FALSE,
   assay = NULL,
@@ -3081,6 +3062,7 @@ vrEmbeddingFeaturePlot <- function(
   nrow = NULL,
   font.size = 2,
   pt.size = 1,
+  shape = 16,
   keep.scale = "feature",
   common.legend = TRUE,
   collapse.plots = TRUE
@@ -3158,6 +3140,7 @@ vrEmbeddingFeaturePlot <- function(
   g <- ggplot()
   all_data <- NULL
   colors <- get_rasterization_colors(length(features))
+  n.tile <- .will_tile(n.tile, nrow(datax))
   for (feat in features) {
     # get data
     if (feat %in% vrFeatures(object, assay = assay)) {
@@ -3186,10 +3169,7 @@ vrEmbeddingFeaturePlot <- function(
       g <- ggplot()
 
       # add points, rasterize if requested or needed
-      if (n.tile > 0 || nrow(datax) > 50000) {
-        if (n.tile == 0) {
-          n.tile <- 1000
-        }
+      if (!is.null(n.tile)) {
         g <- g +
           stat_summary_2d(
             mapping = aes(x = x, y = y, z = score),
@@ -3216,7 +3196,7 @@ vrEmbeddingFeaturePlot <- function(
           geom_point(
             mapping = aes(x = x, y = y, color = score),
             datax,
-            shape = 16,
+            shape = shape,
             size = pt.size
           ) +
           scale_color_gradientn(
@@ -3242,10 +3222,8 @@ vrEmbeddingFeaturePlot <- function(
       g <- ggplot()
 
       # add points, rasterize if requested or needed
-      if (n.tile > 0 || nrow(datax) > 50000) {
-        if (n.tile == 0) {
-          n.tile <- 1000
-        }
+      n.tile <- .will_tile(n.tile, nrow(datax))
+      if (!is.null(n.tile)) {
         g <- vrFeaturePlotTiling(
           g = g,
           data = datax,
@@ -3259,7 +3237,7 @@ vrEmbeddingFeaturePlot <- function(
           geom_point(
             mapping = aes(x = x, y = y, color = score),
             dplyr::arrange(datax, score),
-            shape = 16,
+            shape = shape,
             size = pt.size
           ) +
           scale_color_gradientn(
@@ -3327,8 +3305,8 @@ vrEmbeddingFeaturePlot <- function(
 #' combine.feature=TRUE
 #'
 #' @param all_data summary data
-#' @param n.tile should points be aggregated into tiles before visualization 
-#' (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param datax original plotting data
 #' @param features features
 #' @param embedding embedding
@@ -3346,10 +3324,8 @@ vrEmbeddingFeatureCombinePlot <- function(
   g.combined <- ggplot()
 
   # tiling or not
-  if (n.tile > 0 || nrow(datax) > 50000) {
-    if (n.tile == 0) {
-      n.tile <- 1000
-    }
+  n.tile <- .will_tile(n.tile, nrow(datax))
+  if (!is.null(n.tile)) {
     all_data <- all_data %>%
       group_by(x, y) %>%
       summarize(
@@ -4248,8 +4224,8 @@ vrProportionPlot <- function(
 #' @param data the data frame with coordinates and group identities
 #' @param group.by a column of metadata from \link{Metadata} used as 
 #' grouping label for the spatial entities
-#' @param n.tile should points be aggregated into tiles before visualization 
-#' (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param spot if TRUE, tiling will be done specificall for spot datasets
 #' @param combine.groups if TRUE, tile colors will reflect relative abundance 
@@ -4333,8 +4309,8 @@ vrGroupPlotTiling <- function(
 #' @param g the ggplot figure
 #' @param data the data frame with coordinates and group identities
 #' @param legend_title the legend title of the single plot
-#' @param n.tile should points be aggregated into tiles before visualization 
-#' (see \link{geom_tile}). Applicable only for cells and molecules
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param type embedding or spatial, changes the color scheme
 #'
@@ -4430,4 +4406,29 @@ addEmbeddingPlotStyle <- function(embedding) {
         panel.background = element_blank()
       )
   )
+}
+
+.check_ntile <- function(n.tile){
+  if(is.null(n.tile)){
+    n.tile
+  } else if(!is.numeric(n.tile)){
+    stop("n.tile should be numeric and an integer!")
+  } else {
+    as.integer(n.tile)
+  }
+}
+
+.will_tile <- function(n.tile, n){
+  n.tile <- .check_ntile(n.tile)
+  n_threshold <- 50000
+  default_ntile <- 1000
+  if(is.null(n.tile) && n > n_threshold){
+    default_ntile
+  } else if(is.null(n.tile) && n <= n_threshold){
+    NULL
+  } else if(n.tile == 0){
+    NULL
+  } else if(n.tile > 0){
+    n.tile
+  }
 }
