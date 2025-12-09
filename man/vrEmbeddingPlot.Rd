@@ -11,7 +11,7 @@ vrEmbeddingPlot(
   group.ids = NULL,
   split.by = NULL,
   colors = NULL,
-  n.tile = 0,
+  n.tile = NULL,
   assay = NULL,
   ncol = 2,
   nrow = NULL,
@@ -40,9 +40,8 @@ splitting spatial entities into ggplot panels, see \link{facet_wrap}}
 \item{colors}{the color set for group.by. Should be of the same size 
 of group.id (if specified) or unique elements in group.by}
 
-\item{n.tile}{should points be aggregated into tiles before 
-visualization (see \link{geom_tile}). Applicable only for cells and 
-molecules}
+\item{n.tile}{The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
 see \link{SampleMetadata}.
