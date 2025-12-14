@@ -17,6 +17,7 @@ vrEmbeddingFeaturePlot(
   nrow = NULL,
   font.size = 2,
   pt.size = 1,
+  shape = 16,
   keep.scale = "feature",
   common.legend = TRUE,
   collapse.plots = TRUE
@@ -52,6 +53,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{font.size}{font size}
 
 \item{pt.size}{point size}
+
+\item{shape}{shape}
 
 \item{keep.scale}{whether unify all scales for all features or not}
 

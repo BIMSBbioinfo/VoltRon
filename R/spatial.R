@@ -123,14 +123,9 @@ getSpatialNeighbors <- function(
                nnresults <- RCDT::delaunay(coords)
                nnedges <- data.table::data.table(nnresults$edges[,seq_len(2)])
                colnames(nnedges) <- c("V1", "value")
-               # nnedges <- as.vector(t(nnresults$edges[,seq_len(2)]))
-               # nnedges <- rownames(coords)[nnedges]
-               # nnedges$V1 <- rownames(coords)[nnedges$V1]
-               # nnedges$value <- rownames(coords)[nnedges$value]
                nnedges
              },
              spatialkNN = {
-               # nnedges <- RANN::nn2(coords, k = k + 1)
                nnresults <- knn_annoy(coords, k = k + 1)
                names(nnresults) <- c("nn.index", "nn.dist")
                nnedges <- data.table::melt(data.table::data.table(nnresults$nn.index), id.vars = "V1")
@@ -140,34 +135,35 @@ getSpatialNeighbors <- function(
                  nnedges <- data.table::data.table(nnedges, dist = nndist$value)
                }
                nnedges <- nnedges[V1 > 0 & value > 0, !"variable"]
-               # nnedges <- as.vector(t(as.matrix(nnedges)))
-               # nnedges$V1 <- rownames(coords)[nnedges$V1]
-               # nnedges$value <- rownames(coords)[nnedges$value]
                nnedges
              },
              radius = {
                if(length(radius) == 0){
-                 spot.radius <- vrAssayParams(object[[assy]], param = "nearestpost.distance")
+                 # choose only one spot.radius
+                 assy_radius <- if(length(assy) > 1) assy[1] else assy
+                 spot.radius <- vrAssayParams(object[[assy_radius]], 
+                                              param = "nearestpost.distance")
                  radius <- ifelse(is.null(spot.radius), 1, spot.radius)
                }
-               nnresults <- suppressWarnings({RANN::nn2(coords, searchtype = "radius", radius = radius, k = min(300, sqrt(nrow(cur_coords))/2))})
-               nnedges <- data.table::melt(data.table::data.table(nnresults$nn.idx), id.vars = "V1")
+               nnresults <- suppressWarnings({
+                 RANN::nn2(coords, searchtype = "radius", 
+                           radius = radius, 
+                           k = min(300, sqrt(nrow(cur_coords))/2))})
+               nnedges <- data.table::melt(
+                 data.table::data.table(nnresults$nn.idx), 
+                 id.vars = "V1")
                if(calculate.distances){
                  nndist <- data.table::data.table(nnresults$nn.dists)
                  nndist <- data.table::melt(nndist, id.vars = "V1")
                  nnedges <- data.table::data.table(nnedges, dist = nndist$value)
                }
                nnedges <- nnedges[V1 > 0 & value > 0, !"variable"]
-               # nnedges <- as.vector(t(as.matrix(nnedges)))
-               # nnedges$V1 <- rownames(coords)[nnedges$V1]
-               # nnedges$value <- rownames(coords)[nnedges$value]
                nnedges
              })
     spatialedges$V1 <- rownames(coords)[spatialedges$V1]
     spatialedges$value <- rownames(coords)[spatialedges$value]
     spatialedges_list <- c(spatialedges_list, list(spatialedges))
   }
-  # spatialedges <- unlist(spatialedges_list)
   spatialresults <- do.call(rbind, spatialedges_list)
   spatialedges <- as.vector(t(as.matrix(spatialresults[,c("V1", "value")])))
   spatialedges

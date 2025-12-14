@@ -798,7 +798,7 @@ addLayerConnectivity <- function(object, connectivity, sample, layer) {
 #' @param zlocation zlocation
 #' @param sample sample name
 #'
-#' @noRd
+#' @export
 addBlockConnectivity <- function(
   object,
   connectivity,

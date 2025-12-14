@@ -3224,6 +3224,7 @@ computeAutomatedPairwiseTransform <- function(
     }
 
     # run SimpleITK as fine registration
+    if(is.null(input$nonrigid)) input$nonrigid <- "None"
     if(grepl("SimpleITK", input$nonrigid) && 
        grepl("Non-Rigid", input$Method)){
       if (!requireNamespace('SimpleITK')) {
