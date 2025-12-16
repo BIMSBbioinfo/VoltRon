@@ -758,5 +758,4 @@ vrHeatmapPlot(SRBlock, features = vrFeatures(SRBlock), group.by = "niche_cluster
 ```
 
 <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_DLPFC_nicheclusters.png" class="center">
-
 <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_DLPFC_nicheheatmap.png" class="center">
