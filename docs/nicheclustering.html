@@ -732,8 +732,9 @@ sce.dlpfc.tran.seu &lt;- Seurat::as.Seurat(sce.dlpfc.tran)
 
 # Spot deconvolution
 library(spacexr)
+SRBlock &lt;- readRDS(&quot;Visium&amp;Visium_data_registered.rds&quot;)
 SRBlock &lt;- getDeconvolution(SRBlock, sc.object = sce.dlpfc.tran, 
-                                 sc.cluster = &quot;cellType&quot;, max_cores = 2)
+                            sc.cluster = &quot;cellType&quot;, max_cores = 2)
 SRBlock</code></pre>
 <pre><code>VoltRon Object 
 DLPFC_Block: 

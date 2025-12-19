@@ -369,6 +369,7 @@ Here, we can see that both Xenium layers are clustered and annotated where we ca
 ```{r class.source="watch-out", eval = FALSE}
 VRBlock <- transferData(VRBlock, from = "Assay1", to = "Assay2", features = "CellType", 
                         new_feature_name = "Visium_CellType")
+vrMainAssay(VRBlock) <- "Visium"
 VRBlock
 ```
 
@@ -377,7 +378,7 @@ VoltRon Object
 10XBlock: 
   Layers: Section1 Section2 Section3 
 Assays: Visium(Main) Xenium 
-Features: RNA_pseudo(Main) RNA Visium_CellType 
+Features: RNA(Main) Visium_CellType 
 ```
 
 By visualizing the transferred labels on the Visium spots, we can see abundance of some DCIS and invasive tumor subtypes. 
@@ -409,6 +410,7 @@ VRBlock <- annotateSpatialData(VRBlock, assay = "Visium",
 You can observe the changes in the object and check the assay ID of this new ROI type assay using `SampleMetadata` function.
 
 ```{r class.source="watch-out", eval = FALSE}
+vrMainAssay(VRBlock) <- "Xenium"
 VRBlock
 ```
 
@@ -469,6 +471,8 @@ vrSpatialPlot(VRBlock, group.by = "annotation", assay = "Visium", crop = TRUE)
 You can also use the **addSpatialLayer** function to overlay annotation segments to the spatial plot of the Xenium data.
  
 ```{r class.source="watch-out", eval = FALSE}
+if(!requireNamespace("ggnewscale"))
+  install.packages("ggnewscale")
 vrSpatialPlot(VRBlock, group.by = "CellType", assay = "Assay1", crop = TRUE) |>
   addSpatialLayer(VRBlock, assay = "ROIAnnotation", group.by = "annotation", spatial = "main", alpha = 0.4)
 ```
@@ -494,7 +498,9 @@ if(!requireNamespace("rhdf5"))
 library(VoltRon)
 
 # import Xenium 
-Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1")
+Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1", 
+                       resolution_level = 3,
+                       overwrite_resolution = TRUE)
 
 # import H&E image 
 Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif",
@@ -510,10 +516,10 @@ XeniumR1image:
 Assays: ImageData(Main) 
 ```
 
-Let's take a look at the image of the Xen_R1_image object
+Let's take a look at the image of the Xen_R1_image object. We use the **scale.perc** argument to scale down the image for faster rendering.
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrImages(Xen_R1_image)
+vrImages(Xen_R1_image, scale.perc = 5)
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE.png" class="center">
@@ -524,7 +530,7 @@ vrImages(Xen_R1_image)
 
 We can use the **registerSpatialData** function to warp/align images across multiple VoltRon objects and define these aligned images additional channels of existing coordinate systems of assays in one of these VoltRon objects. 
 
-First we align the H&E image to the DAPI image of the Xenium replicate. Similar to the first use case, we need to negate the DAPI image and change the alignment of the image to match it with the H&E image. We can also scale the resolution of the H&E image to 9103.71x6768.63.
+First we align the H&E image to the DAPI image of the Xenium replicate. Similar to the first use case, we need to negate the DAPI image and rotate the image to match its perspective to the H&E image. We can also scale the resolution of the H&E image to 9103.71x6768.63 in order to speed up the registration, however the original scales can also be used.
 
 ```{r eval = FALSE, class.source="watch-out"}
 xen_reg <- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))
@@ -579,7 +585,7 @@ devtools::install_github(
                    "ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON"))
 ```
 
-We can then use **registerSpatialData** function as before and select "BSpline (SimpleITK)" option to conduct non-rigid alignment. 
+We can then use **registerSpatialData** function as before and select "Affine + Non-Rigid" and "BSpline (SimpleITK)" options to conduct non-rigid alignment. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(SimpleITK)
@@ -678,84 +684,5 @@ SRBlock <- addBlockConnectivity(SRBlock,
                                 sample = "DLPFC_Block")
 ```
 
-### 3D Spot Clustering 
-
-A method to clustering Visium spots is using estimated cell type abundances 
-per each spot as features for the 3D clustering task. Thus, we first deconvolute
-spots into cells using a single cell reference. 
-
-We will use the public single nucleus RNA-seq (snRNA-seq) data from available [here](https://libd-snrnaseq-pilot.s3.us-east-2.amazonaws.com/SCE_DLPFC-n3_tran-etal.rda). See [(Tran, Maynard, Spangler et al., 2021)](https://linkinghub.elsevier.com/retrieve/pii/S0896-6273(21)00655-3) for more information.
-
-We will use this reference for deconvoluting each Visium across 
-each for Visium assay in the VoltRon object. See [Niche Clustering](nicheclustering.html) 
-tutorial for more information on spot deconvolution.
-
-```{r class.source="watch-out", eval = FALSE} 
-# single cell reference
-load("../../data/10X_Visium_DLPFC/SCE_DLPFC-n3_tran-etal.rda")
-
-# prepare reference
-tab <- table(sce.dlpfc.tran$cellType)
-sce.dlpfc.tran <- sce.dlpfc.tran[,sce.dlpfc.tran$cellType %in% names(tab)[tab > 25]]
-sce.dlpfc.tran.seu <- Seurat::as.Seurat(sce.dlpfc.tran)
-
-# Spot deconvolution
-library(spacexr)
-SRBlock <- getDeconvolution(SRBlock, sc.object = sce.dlpfc.tran, 
-                                 sc.cluster = "cellType", max_cores = 2)
-SRBlock
-```
-
-```
-VoltRon Object 
-DLPFC_Block: 
-  Layers: Section1 Section2 Section3 Section4 
-Assays: Visium(Main) 
-Features: RNA(Main) Decon 
-```
-
-We can now calculate 3D neighbors across all spots in the tissue block,
-The **registerSpatialData** function by default returns VoltRon objects whose
-assays set to registered versions of spatial coordinates. Thus we can directly
-use **getSpatialNeighbors** function to calculate 3D neighbors. 
-
-```{r class.source="watch-out", eval = FALSE} 
-# get 3D neighbors
-SRBlock <- getSpatialNeighbors(SRBlock, method = "radius")
-```
-
-The **getNicheAssay** function will aggregate the estimated cell type abundances 
-of all neighboring spots into each spot to create a new feature data type. 
-
-```{r class.source="watch-out", eval = FALSE} 
-# Calculate niche assay and clustering
-vrMainFeatureType(SRBlock) <- "Decon"
-SRBlock <- getNicheAssay(SRBlock, graph.type = "radius")
-SRBlock
-```
-
-```
-VoltRon Object 
-DLPFC_Block: 
-  Layers: Section1 Section2 Section3 Section4 
-Assays: Visium(Main) 
-Features: Decon(Main) RNA Niche 
-```
-
-We will now use the new **Niche** feature set for 3D clustering where 
-niche assay counts are first normalized using centred log ratio (CLR) 
-transformation. We then use K-means for clustering spots into 7 clusters.
-
-```{r class.source="watch-out", eval = FALSE} 
-# Normalize before 3D clustering 
-vrMainFeatureType(SRBlock) <- "Niche"
-SRBlock <- normalizeData(SRBlock, method = "CLR")
-SRBlock <- getClusters(SRBlock, nclus = 7, method = "kmeans", label = "niche_clusters")
-
-# visualize
-vrSpatialPlot(SRBlock, group.by = "niche_clusters", alpha = 1, nrow = 2)
-vrHeatmapPlot(SRBlock, features = vrFeatures(SRBlock), group.by = "niche_clusters")
-```
-
-<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_DLPFC_nicheclusters.png" class="center">
-<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_DLPFC_nicheheatmap.png" class="center">
+The aligned and connected Visium assays of the DLPFC then could be used for 3D spatial analysis, 
+specifically as shown in the [Niche Clustering](nicheclustering.html) tutorial.

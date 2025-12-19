@@ -304,8 +304,9 @@ sce.dlpfc.tran.seu <- Seurat::as.Seurat(sce.dlpfc.tran)
 
 # Spot deconvolution
 library(spacexr)
+SRBlock <- readRDS("Visium&Visium_data_registered.rds")
 SRBlock <- getDeconvolution(SRBlock, sc.object = sce.dlpfc.tran, 
-                                 sc.cluster = "cellType", max_cores = 2)
+                            sc.cluster = "cellType", max_cores = 2)
 SRBlock
 ```
 
