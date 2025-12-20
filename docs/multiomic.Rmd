@@ -56,7 +56,7 @@ Xenium in situ platform is compatible with H&E and immunofluorescence imaging , 
 
 VoltRon is capable of analyzing molecule-level subcellular datasets independent of single cells, and specifically those that may also found outside of these cells. The Xenium run was performed with custom Xenium probes designed to hybridize distinct open reading frames of SARS‑CoV‑2 virus molecules. These subcellular entities which then can be detected both within and outside of cells which allows to understand proliferation mechanics of the virus across the tissue. By aligning the image and the associated pathology annotations of the post-Xenium H&E of this slide, we can transfer labels of annotations to Xenium cells and molecules, thus inferring the abundance of viral RNA further. 
 
-We analyse readouts of **eight tissue micro array (TMA) tissue sections** that were fitted into the scan area of a slide loaded on a Xenium in situ instrument. These sections were cut from **control and COVID-19 lung tissues** of donors categorized based on disease durations (acute and prolonged). You can download the standard Xenium output folder [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Xenium_SARSCOV2.zip). For more information on the TMA blocks, see [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732) for more information. 
+We analyse readouts of **eight tissue micro array (TMA) tissue sections** that were fitted into the scan area of a slide loaded on a Xenium in situ instrument. These sections were cut from **control and COVID-19 lung tissues** of donors categorized based on disease durations (acute and prolonged). You can download the standard Xenium output folder [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Xenium_SARSCOV2.zip). For more information on the TMA blocks, please visit [GSE190732](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732). 
 
 <br>
 
@@ -192,6 +192,8 @@ the distinct localization of these cell types and hot molecules. We use the
 with a selected set of celltypes from the Xenium assay. 
 
 ```{r eval = FALSE, class.source="watch-out"}
+if(!requireNamespace("ggnewscale"))
+  install.packages("ggnewscale")
 vrSpatialPlot(vr2_merged_acute1, assay = "Xenium", group.by = "CellType", 
               group.ids = c("Myofibroblasts", "T cells", 
                             "Fibroblasts", "Endothelial cells "), 
@@ -251,7 +253,7 @@ vrImages(imgdata, assay = "Assay1", scale.perc = 20)
 
 <br>
 
-We now register the H&E image and annotations to the DAPI image of Xenium section using the **registerSpatialData** function. We select FLANN (with "Homography" method) automated registration mode, negate the DAPI image of the Xenium slide, turn 90 degrees to the left and set the scale parameter of both images to **width = 1859**. See [Spatial Data Alignment](registration.html) tutorial for more information. 
+We now register the H&E image and annotations to the DAPI image of Xenium section using the **registerSpatialData** function. We select FLANN (with "Affine" method) automated registration mode, negate the DAPI image of the Xenium slide, turn 90 degrees to the left and set the scale parameter of both images to **width = 1859**. See [Spatial Data Alignment](registration.html) tutorial for more information. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 xen_reg <- registerSpatialData(object_list = list(vr2_merged_acute1, imgdata))

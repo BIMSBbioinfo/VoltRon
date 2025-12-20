@@ -576,7 +576,7 @@ Visium spot, we will use <strong>RCTD</strong> algorithm which is
 accessible with the <a
 href="https://github.com/dmcable/spacexr">spacexr</a> package.</p>
 <pre class="r watch-out"><code>if(!requireNamespace(&quot;spacexr&quot;))
-  devtools::install_github(&quot;dmcable/spacexr&quot;, build_vignettes = FALSE)</code></pre>
+  BiocManager::install(&quot;spacexr&quot;)</code></pre>
 <p>After running <strong>getDeconvolution</strong>, an additional
 feature set within the same Visium assay with name
 <strong>Decon</strong> will be created.</p>
@@ -723,7 +723,7 @@ for Visium assay in the VoltRon object. See <a
 href="nicheclustering.html">Niche Clustering</a> tutorial for more
 information on spot deconvolution.</p>
 <pre class="r watch-out"><code># single cell reference
-load(&quot;../../data/10X_Visium_DLPFC/SCE_DLPFC-n3_tran-etal.rda&quot;)
+load(&quot;SCE_DLPFC-n3_tran-etal.rda&quot;)
 
 # prepare reference
 tab &lt;- table(sce.dlpfc.tran$cellType)
@@ -920,7 +920,7 @@ MLN_3D:
           Section11 Section12 Section13 Section14 Section15 
           Section16 Section17 Section18 Section19 
 Assays: OpenST(Main) 
-Features: Niche_15(Main) RNA </code></pre>
+Features: RNA(Main) </code></pre>
 <p>OpenST cells from <strong>GSE251926</strong> are already called and
 annotated. See the <a
 href="https://www.cell.com/cell/fulltext/S0092-8674(24)00636-6">OpenST
@@ -1000,7 +1000,11 @@ vr_openst &lt;- getClusters(vr_openst, nclus = 6,
 </div>
 <div id="visualization-2" class="section level2">
 <h2>Visualization</h2>
-<pre class="r watch-out"><code>g1 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay1&quot;, group.by = &quot;niche_clusters&quot;, 
+<pre class="r watch-out"><code>if(!requireNamespace(&quot;patchwork&quot;))
+  install.packages(&quot;patchwork&quot;)
+library(patchwork)
+
+g1 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay1&quot;, group.by = &quot;niche_clusters&quot;, 
                     background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
 g2 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay1&quot;, group.by = &quot;annotation&quot;, 
                     background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
@@ -1008,8 +1012,6 @@ g3 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay2&quot;, group.by = &quot;n
                     background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
 g4 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay2&quot;, group.by = &quot;annotation&quot;, 
                     background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
-
-library(patchwork)
 (g1 | g2) / (g3 | g4)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/openst_niche_plot.png" class="center">
 <br></p>

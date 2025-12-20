@@ -138,7 +138,7 @@ In order to integrate the scRNA data and the spatial data sets within the VoltRo
 
 ```{r eval = FALSE, class.source="watch-out"}
 if(!requireNamespace("spacexr"))
-  devtools::install_github("dmcable/spacexr", build_vignettes = FALSE)
+  BiocManager::install("spacexr")
 ```
 
 After running **getDeconvolution**, an additional feature set within the same Visium assay with name **Decon** will be created.
@@ -295,7 +295,7 @@ tutorial for more information on spot deconvolution.
 
 ```{r class.source="watch-out", eval = FALSE} 
 # single cell reference
-load("../../data/10X_Visium_DLPFC/SCE_DLPFC-n3_tran-etal.rda")
+load("SCE_DLPFC-n3_tran-etal.rda")
 
 # prepare reference
 tab <- table(sce.dlpfc.tran$cellType)
@@ -508,7 +508,7 @@ MLN_3D:
           Section11 Section12 Section13 Section14 Section15 
           Section16 Section17 Section18 Section19 
 Assays: OpenST(Main) 
-Features: Niche_15(Main) RNA 
+Features: RNA(Main) 
 ```
 
 OpenST cells from **GSE251926** are already called and annotated. See the [OpenST paper](https://www.cell.com/cell/fulltext/S0092-8674(24)00636-6) for more information.
@@ -606,6 +606,10 @@ vr_openst <- getClusters(vr_openst, nclus = 6,
 ## Visualization
 
 ```{r eval = FALSE, class.source="watch-out"}
+if(!requireNamespace("patchwork"))
+  install.packages("patchwork")
+library(patchwork)
+
 g1 <- vrSpatialPlot(vr_openst, assay = "Assay1", group.by = "niche_clusters", 
                     background.color = "black", n.tile = 400, alpha = 1)
 g2 <- vrSpatialPlot(vr_openst, assay = "Assay1", group.by = "annotation", 
@@ -614,8 +618,6 @@ g3 <- vrSpatialPlot(vr_openst, assay = "Assay2", group.by = "niche_clusters",
                     background.color = "black", n.tile = 400, alpha = 1)
 g4 <- vrSpatialPlot(vr_openst, assay = "Assay2", group.by = "annotation", 
                     background.color = "black", n.tile = 400, alpha = 1)
-
-library(patchwork)
 (g1 | g2) / (g3 | g4)
 ```
 

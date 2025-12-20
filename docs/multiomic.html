@@ -503,9 +503,8 @@ on a Xenium in situ instrument. These sections were cut from
 based on disease durations (acute and prolonged). You can download the
 standard Xenium output folder <a
 href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Xenium_SARSCOV2.zip">here</a>.
-For more information on the TMA blocks, see <a
-href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732">GSE190732</a>
-for more information.</p>
+For more information on the TMA blocks, please visit <a
+href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732">GSE190732</a>.</p>
 <p><br></p>
 <div id="single-cells-and-molecules" class="section level3">
 <h3>Single Cells and Molecules</h3>
@@ -623,7 +622,9 @@ observe the distinct localization of these cell types and hot molecules.
 We use the <strong>addSpatialLayer</strong> function to overlay these
 hot spot molecules with a selected set of celltypes from the Xenium
 assay.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;, 
+<pre class="r watch-out"><code>if(!requireNamespace(&quot;ggnewscale&quot;))
+  install.packages(&quot;ggnewscale&quot;)
+vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quot;, 
               group.ids = c(&quot;Myofibroblasts&quot;, &quot;T cells&quot;, 
                             &quot;Fibroblasts&quot;, &quot;Endothelial cells &quot;), 
               plot.segments = TRUE) |&gt;
@@ -687,11 +688,11 @@ vrImages(imgdata, assay = &quot;Assay1&quot;, scale.perc = 20)</code></pre>
 <p><br></p>
 <p>We now register the H&amp;E image and annotations to the DAPI image
 of Xenium section using the <strong>registerSpatialData</strong>
-function. We select FLANN (with “Homography” method) automated
-registration mode, negate the DAPI image of the Xenium slide, turn 90
-degrees to the left and set the scale parameter of both images to
-<strong>width = 1859</strong>. See <a href="registration.html">Spatial
-Data Alignment</a> tutorial for more information.</p>
+function. We select FLANN (with “Affine” method) automated registration
+mode, negate the DAPI image of the Xenium slide, turn 90 degrees to the
+left and set the scale parameter of both images to <strong>width =
+1859</strong>. See <a href="registration.html">Spatial Data
+Alignment</a> tutorial for more information.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(vr2_merged_acute1, imgdata))</code></pre>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_HE_registration.png" class="center"></p>
 <p><br></p>
