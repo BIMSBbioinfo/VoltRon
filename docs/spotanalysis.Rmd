@@ -536,7 +536,8 @@ acute_case_1:
   Layers: Section1 Section2 
 ... 
 There are 13 samples in total 
-Assays: MELC(Main) 
+Assays: MELC(Main)
+Features: main(Main) 
 ```
 
 <br>
@@ -582,12 +583,12 @@ vrGraphNames(vr_merged)
 ```
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-vr_merged <- getClusters(vr_merged, resolution = 0.8, label = "MELC_Clusters", graph = "SNN")
-
 # install patchwork package
 if (!requireNamespace("patchwork", quietly = TRUE))
   install.packages("patchwork")
 library(patchwork)
+
+vr_merged <- getClusters(vr_merged, resolution = 0.8, label = "MELC_Clusters", graph = "SNN")
 
 # visualize conditions and clusters
 vr_merged$Condition <- gsub("_[0-9]$", "", vr_merged$Sample)
@@ -654,7 +655,7 @@ Once neighbors are founds, we can apply a **permutation test** that compares the
 Here, we will use the original cell type labels annotated by [Mothes et. al 2023](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9922044/).
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-neighborhood_results <- vrNeighbourhoodEnrichment(vr_merged, group.by = "Clusters")
+neighborhood_results <- vrNeighbourhoodEnrichment(vr_merged, group.by = "Clusters", verbose = FALSE)
 ```
 
 The neighborhood analysis provides the results of:
@@ -670,13 +671,13 @@ The number of each cell in a pair in each section is reported to assess the impa
 head(neighborhood_results)
 ```
 
-<div><pre><code style="font-size: 10px;">          from_value     to_value   p_assoc   p_segreg p_assoc_adj p_segreg_adj n_from n_to AssayID Assay    Layer         Sample
-Assay1.1 CD163+ macs  CD163+ macs 0.0000000 1.00000000      0.0000   1.00000000     41   41  Assay1  MELC Section1 control_case_3
-Assay1.2 CD163+ macs CD4+ T cells 0.9380000 0.03300000      0.9980   0.09762866     41   48  Assay1  MELC Section1 control_case_3
-Assay1.3 CD163+ macs  CD8+ Tcells 0.8779011 0.04339051      0.9980   0.09762866     41   11  Assay1  MELC Section1 control_case_3
-Assay1.4 CD163+ macs     NK cells 0.8190000 0.08700000      0.9980   0.15660000     41   15  Assay1  MELC Section1 control_case_3
-Assay1.5 CD163+ macs   endothelia 0.1230000 0.85100000      0.5535   0.95737500     41  139  Assay1  MELC Section1 control_case_3
-Assay1.6 CD163+ macs    epithelia 0.9320000 0.03600000      0.9980   0.09762866     41   39  Assay1  MELC Section1 control_case_3</code></pre></div>
+<div><pre><code style="font-size: 9px;">   from_value     to_value   p_assoc   p_segreg      value p_assoc_adj p_segreg_adj n_from n_to AssayID unique.object_subset.Sample.
+1 CD163+ macs  CD163+ macs 0.0000000 1.00000000  0.4304110      0.0000   1.00000000     41   41  Assay1               control_case_3
+2 CD163+ macs CD4+ T cells 0.9380000 0.03300000 -0.3804436      0.9980   0.09762866     41   48  Assay1               control_case_3
+3 CD163+ macs  CD8+ Tcells 0.8779011 0.04339051 -0.9299209      0.9980   0.09762866     41   11  Assay1               control_case_3
+4 CD163+ macs     NK cells 0.8190000 0.08700000 -0.5373702      0.9980   0.15660000     41   15  Assay1               control_case_3
+5 CD163+ macs   endothelia 0.1230000 0.85100000  0.1155823      0.5535   0.95737500     41  139  Assay1               control_case_3
+6 CD163+ macs    epithelia 0.9320000 0.03600000 -0.4064646      0.9980   0.09762866     41   39  Assay1               control_case_3</code></pre></div>
 
 <br>
 

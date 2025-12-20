@@ -644,7 +644,7 @@ can apply k-means clustering.</p>
 <pre class="r watch-out"><code>Xen_R1_image &lt;- getClusters(Xen_R1_image, method = &quot;kmeans&quot;, 
                             label = &quot;Cluster_kmeans&quot;, data.type = &quot;pca&quot;, 
                             nclus = 10)</code></pre>
-<pre class="r watch-out"><code>vrEmbeddingPlot(Xen_R1_image, embedding = &quot;umap&quot;, group.by = &quot;Cluster_snn&quot;)
+<pre class="r watch-out"><code>vrEmbeddingPlot(Xen_R1_image, embedding = &quot;umap&quot;, group.by = &quot;Cluster_kmeans&quot;)
 vrSpatialPlot(Xen_R1_image, group.by = &quot;Cluster_kmeans&quot;, alpha = 1)</code></pre>
 <table>
 <tbody>
