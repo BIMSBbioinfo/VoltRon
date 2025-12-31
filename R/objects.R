@@ -1345,7 +1345,9 @@ vrDataVoltRon <- function(
       norm = norm,
       ...
     )
-    if (inherits(cur_data, c("dgCMatrix", "CsparseMatrix", "dsparseMatrix"))) {
+    # if (inherits(cur_data, c("dgCMatrix", "CsparseMatrix", 
+    #                          "dsparseMatrix", "Matrix"))) {
+    if (inherits(cur_data, c("Matrix"))) {
       cur_data <- as.matrix(cur_data)
     }
     if (inherits(cur_data, c("data.frame", "Matrix", "matrix"))) {
