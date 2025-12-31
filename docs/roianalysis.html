@@ -819,14 +819,6 @@ HBB    202.7693       4.944228 0.4884175 10.122955 4.370193e-24 3.794888e-21    
 A2M    466.4328       4.925236 0.4542682 10.842133 2.173435e-27 3.774636e-24    A2M Sample_prolonged case 5_prolonged case 4</code></pre>
 </div>
 <p><br></p>
-<!-- Markers of each individual tissue section for each disease duration is shown on the Heatmap.  -->
-<!-- ```{r eval = FALSE, class.source="watch-out"} -->
-<!-- # get DE for all conditions -->
-<!-- vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene),  -->
-<!--               group.by = "Sample", highlight.some = TRUE) -->
-<!-- ``` -->
-<!-- <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap2.png" class="center"> -->
-<!-- <br> -->
 </div>
 <div id="roi-deconvolution" class="section level2">
 <h2>ROI Deconvolution</h2>
@@ -917,7 +909,7 @@ href="pixelanalysis.html">Downstream analysis of Pixels</a> section.</p>
 <p>We will use the H&amp;E image of TMA section taken from the same
 block as the Prolonged case 4. You can download the image from <a
 href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/ROIanalysis/GeoMx/prolonged_case4_HE.tif">here</a>.</p>
-<pre class="r watch-out"><code>vrHEimage &lt;- importImageData(&quot;prolonged_case4_HE.tif&quot;, channel_names = &quot;H&amp;E&quot;)
+<pre class="r watch-out"><code>vrHEimage &lt;- importImageData(&quot;prolonged_case4_HE.tif&quot;, channels = &quot;H&amp;E&quot;)
 vrImages(vrHEimage, scale.perc = 40)</code></pre>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/prolonged_case4_HE.png" class="center"></p>
 <p><br></p>
@@ -941,7 +933,6 @@ transformed H&amp;E image and the GeoMx image for a more accurate</p>
 <pre class="r watch-out"><code>GeoMxR1_subset &lt;- subset(GeoMxR1, sample = c(&quot;prolonged case 4&quot;))
 GeoMxReg &lt;- registerSpatialData(reference_spatdata = GeoMxR1_subset, 
                                 query_spatdata = vrHEimage)</code></pre>
-<!-- <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_manualregistration.png" class="center"> -->
 <div>
 <p><video width="100%" height="100%" controls autoplay>
 <source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/ROIAnalysis.mov" type="video/mp4">

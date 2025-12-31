@@ -20,6 +20,12 @@ test_that("data", {
   data <- vrData(visium_data, features = vrFeatures(visium_data)[1:2], norm = TRUE)
   expect_error(data <- vrData(visium_data, features = "feature", norm = TRUE))
   
+  # get data with Matrix class
+  data <- vrData(visium_data)
+  visium_data@samples$Anterior1@layer$Section1@assay$Visium@data$RNA <- as(data, "dgCMatrix") 
+  visium_data@samples$Anterior1@layer$Section1@assay$Visium@data$RNA_norm <- as(data, "dgCMatrix") 
+  expect_true(inherits(vrData(visium_data), "matrix"))
+  
   # return
   expect_equal(1,1L)
 })

@@ -39,3 +39,31 @@ test_that("integration", {
   # return
   expect_equal(1,1L)
 })
+
+test_that("ROI to ROI", {
+  
+  # update object
+  merged_object2 <- merged_object
+  merged_object2[["Assay3"]]@image$main@coords <- rbind(merged_object2[["Assay3"]]@image$main@coords,
+                                                        merged_object2[["Assay3"]]@image$main@coords[3,])
+  rownames(merged_object2[["Assay3"]]@image$main@coords)[4] <- "DCIS_Subtype3_Assay3"
+  merged_object2[["Assay3"]]@image$main@coords <- merged_object2[["Assay3"]]@image$main@coords[-1,]
+  merged_object2[["Assay3"]]@image$main@segments <- c(merged_object2[["Assay3"]]@image$main@segments,
+                                                      list(merged_object2[["Assay3"]]@image$main@segments[[3]]))
+  names(merged_object2[["Assay3"]]@image$main@segments)[4] <- "DCIS_Subtype3_Assay3"
+  merged_object2[["Assay3"]]@image$main@segments <- merged_object2[["Assay3"]]@image$main@segments[-1]
+  merged_object2@metadata@ROI <- 
+    rbind(merged_object2@metadata@ROI[merged_object2@metadata@ROI$assay_id == "Assay3",],
+          merged_object2@metadata@ROI[3,],
+          merged_object2@metadata@ROI[merged_object2@metadata@ROI$assay_id == "Assay5",])
+  rownames(merged_object2@metadata@ROI)[4] <- "DCIS_Subtype3_Assay3"
+  merged_object2@metadata@ROI$id[4] <- "DCIS_Subtype3_Assay3"
+  merged_object2@metadata@ROI$annotation[4] <- "temp"
+  merged_object2@metadata@ROI <- merged_object2@metadata@ROI[-1,]
+  
+  # transfer from ROI to ROI
+  merged_object2 <- transferData(merged_object2, from = "Assay3", to = "Assay5", features = "annotation", new_feature_name = "annotation2")
+  expect_equal(merged_object2@metadata@ROI$annotation[3], "temp")
+  expect_equal(merged_object2@metadata@ROI$annotation[4], "undefined")
+  expect_equal(merged_object2@metadata@ROI$annotation[6], "DCIS_Subtype2,temp")
+})

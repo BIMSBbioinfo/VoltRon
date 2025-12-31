@@ -10,7 +10,7 @@ vrSpatialFeaturePlot(
   combine.features = FALSE,
   group.by = "label",
   plot.segments = FALSE,
-  n.tile = 0,
+  n.tile = NULL,
   norm = TRUE,
   log = FALSE,
   assay = NULL,
@@ -47,7 +47,8 @@ vrSpatialFeaturePlot(
 
 \item{plot.segments}{plot segments from \link{vrSegments} instead of points}
 
-\item{n.tile}{should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules}
+\item{n.tile}{The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.}
 
 \item{norm}{if TRUE, the normalized data is used}
 

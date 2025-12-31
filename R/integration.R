@@ -71,7 +71,7 @@ transferData <- function(
       object = object,
       from = from,
       to = to,
-      transfer_data = transfer_data
+      transfer_data = transfer_data 
     ))
   } else {
     return(transferFeatureData(
@@ -172,7 +172,8 @@ transferFeatureData <- function(
 #' @param object a VoltRon object
 #' @param from The ID of assay whose data transfer to the second assay
 #' @param to The ID of the target assay where data is transfered to
-#' @param features The set of data or metadata features that are transferred. Only one metadata feature can be transferred at a time.
+#' @param transfer_data The set of data or metadata features that are transferred. 
+#' Only one metadata feature can be transferred at a time.
 #'
 #' @noRd
 transferLabels <- function(
@@ -191,6 +192,27 @@ transferLabels <- function(
   to_object_type <- vrAssayTypes(to_object)
   from_object_type <- vrAssayTypes(from_object)
 
+  # get transfer data type from ROI to others
+  if (from_object_type == "ROI" & to_object_type == "ROI") {
+    # transfer labels
+    transferedLabelsMetadata <-
+      transferLabelsFromROItoROI(
+        from_object,
+        from_metadata,
+        to_object,
+        to_metadata,
+        transfer_data = transfer_data 
+      )
+    
+    # update metadata
+    object <- addMetadata(
+      object,
+      assay = to,
+      value = transferedLabelsMetadata[[colnames(transfer_data)]],
+      label = colnames(transfer_data)
+    )
+  }
+  
   # get transfer data type from ROI to others
   if (from_object_type == "ROI" & to_object_type != "ROI") {
     # transfer labels
@@ -425,63 +447,27 @@ getROIsFromCells <- function(
   return(aggregate_transfer_data)
 }
 
-# getCellsFromTiles <- function(from_object, from_metadata = NULL, to_object, features = NULL, k = 1) {
-#
-#   # get cell and spot coordinates
-#   message("Tile to Cell distances")
-#   coords_cells <- vrCoordinates(to_object)
-#   coords_tiles <- vrCoordinates(from_object)
-#
-#   # get distances from cells to spots
-#   tile_to_cell <- knn_annoy(coords_tiles, coords_cells, k = k)
-#   names(tile_to_cell) <- c("nn.index", "nn.dist")
-#   tile_to_cell_nnid <- data.frame(id = rownames(coords_cells), tile_to_cell$nn.index)
-#   tile_to_cell_nnid <- data.table::melt(tile_to_cell_nnid, id.vars = "id")
-#   tile_id <- vrSpatialPoints(from_object)[tile_to_cell_nnid$value]
-#   tile_to_cell_nnid <- tile_to_cell_nnid$id
-#
-#   # get data
-#   raw_counts <- vrData(from_object, norm = FALSE)
-#   raw_counts <- raw_counts[,tile_id]
-#
-#   # pool cell counts to Spots
-#   message("Aggregating tile profiles in cells")
-#   aggregate_raw_counts <- stats::aggregate(t(as.matrix(raw_counts)), list(tile_to_cell_nnid), mean)
-#   aggregate_raw_counts <- data.frame(barcodes = vrSpatialPoints(to_object)) %>% dplyr::right_join(aggregate_raw_counts, by = c("barcodes" = "Group.1"))
-#   rownames(aggregate_raw_counts) <- aggregate_raw_counts$barcodes
-#   aggregate_raw_counts <- t(aggregate_raw_counts[,-1])
-#   aggregate_raw_counts[is.na(aggregate_raw_counts)] <- 0
-#
-#   # return
-#   return(aggregate_raw_counts)
-# }
-
 transferLabelsFromROI <- function(
-  from_object,
-  from_metadata = NULL,
-  to_object,
-  to_metadata = NULL,
-  transfer_data = NULL
+    from_object,
+    from_metadata = NULL,
+    to_object,
+    to_metadata = NULL,
+    transfer_data = NULL
 ) {
   # get ROI and other coordinates
   segments_roi <- vrSegments(from_object)
   coords <- vrCoordinates(to_object)
   spatialpoints <- rownames(coords)
-
-  # # check if all features are in from_metadata
-  # if(!all(features %in% colnames(from_metadata))){
-  #   stop("Some features are not found in the ROI metadata!")
-  # }
-
+  
   # annotate points in the to object
   for (feat in colnames(transfer_data)) {
     # get from metadata labels
     feat_labels <- transfer_data[, feat]
-
+    
     # get to metadata
     new_label <- rep("undefined", length(spatialpoints))
     names(new_label) <- spatialpoints
-
+    
     for (i in seq_len(length(segments_roi))) {
       cur_poly <- segments_roi[[i]][, c("x", "y")]
       in.list <- sp::point.in.polygon(
@@ -492,8 +478,64 @@ transferLabelsFromROI <- function(
       )
       new_label[rownames(coords)[!!in.list]] <- feat_labels[i]
     }
-
+    
     to_metadata[[feat]] <- new_label
+  }
+  
+  # return label
+  return(to_metadata)
+}
+
+
+transferLabelsFromROItoROI <- function(
+  from_object,
+  from_metadata = NULL,
+  to_object,
+  to_metadata = NULL,
+  transfer_data = NULL
+) {
+  # get ROI and other coordinates
+  from_roi <- vrSegments(from_object)
+  coords <- vrCoordinates(to_object)
+  to_roi <- vrSegments(to_object)
+  to_roi <- do.call(rbind, to_roi)
+  spatialpoints <- rownames(coords)
+
+  # segments_reg <- split(segments_reg, segments_reg[, 1])
+  
+  # annotate points in the to object
+  for (feat in colnames(transfer_data)) {
+    # get from metadata labels
+    feat_labels <- transfer_data[, feat]
+
+    label_list <- list()
+    for (i in seq_len(length(from_roi))) {
+      
+      # get to metadata
+      new_label <- rep("", length(spatialpoints))
+      names(new_label) <- spatialpoints
+      
+      cur_from_poly <- from_roi[[i]][, c("x", "y")]
+      cur_to_poly <- to_roi[, c("x", "y")]
+      
+      in.list <- sp::point.in.polygon(
+        cur_to_poly[, 1],
+        cur_to_poly[, 2],
+        cur_from_poly[, 1],
+        cur_from_poly[, 2]
+      )
+      in.list <- aggregate(in.list, list(to_roi$id), function(x) any(x > 0))
+      new_label[rownames(coords)[!!in.list[["x"]]]] <- feat_labels[i]
+      label_list <- c(label_list, list(new_label))
+    }
+    
+    label_list <- matrix(unlist(label_list), ncol = length(label_list[[1]]))
+    label_list <- apply(label_list, 1, \(x) {
+      x <- x[x != ""]
+      paste(x, collapse = ",")
+    })
+    label_list[label_list == ""] <- "undefined"
+    to_metadata[[feat]] <- label_list
   }
 
   # return label

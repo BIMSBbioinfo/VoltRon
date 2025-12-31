@@ -1,9 +1,4 @@
 #include <Rcpp.h>
-// #include <sys/resource.h>
-// #include <sys/sysctl.h>
-// #include <unistd.h>
-// #include <mach/vm_statistics.h>
-// #include <mach/mach.h>
 
 // OpenCV
 #include <opencv2/opencv.hpp>
@@ -81,12 +76,10 @@ std::string check_transformation_by_point_distribution(Mat &im, Mat &h){
     message = "no distribution";
     return message;
   }
-  // std::vector<cv::Point2f>().swap(gridpoints);
 
   // Compute the standard deviation of the transformed points
   double gridpoints_reg_sd = cppSD(gridpoints_reg);
-  // std::vector<cv::Point2f>().swap(gridpoints_reg);
-  
+
   // get warning message
   if(gridpoints_reg_sd < 1.0 | gridpoints_reg_sd > max(height, width)){
     message = "large distribution";
@@ -222,10 +215,6 @@ void removeCloseMatches(std::vector<cv::Point2f>& points1, std::vector<cv::Point
   }
   
   // Update the original point set with the filtered points
-  // std::vector<Point2f>().swap(points1);
-  // std::vector<Point2f>().swap(points2);
-  // points1 = std::move(filtered_points1);
-  // points2 = std::move(filtered_points2);
   points1 = filtered_points1;
   points2 = filtered_points2;
 }
@@ -236,9 +225,6 @@ void getFLANNMatches(cv::Mat &descriptors1,
                      std::vector<std::vector<DMatch>> &matches12, 
                      std::vector<std::vector<DMatch>> &matches21)
 {
-  // profiler
-  // MemProfiler mp("FLANN Matches");
-  
   cv::FlannBasedMatcher custom_matcher = cv::FlannBasedMatcher(cv::makePtr<cv::flann::KDTreeIndexParams>(5), 
                                                                cv::makePtr<cv::flann::SearchParams>(50, 0, TRUE));
   cv::Ptr<cv::FlannBasedMatcher> matcher = custom_matcher.create();
@@ -260,7 +246,6 @@ void filterDuplicateKeypoints(std::vector<cv::KeyPoint> &keypoints, cv::Mat &des
   
   for (const auto& [_, indices] : point_to_indices) {
     if (indices.size() > 1) {
-      // Find the index with the highest response among duplicates
       int best_idx = *std::max_element(indices.begin(), indices.end(), [&](int a, int b) {
         return keypoints[a].response < keypoints[b].response;
       });
@@ -276,7 +261,6 @@ void filterDuplicateKeypoints(std::vector<cv::KeyPoint> &keypoints, cv::Mat &des
   
   for (int idx : unique_indices) {
     unique_keypoints.push_back(keypoints[idx]);
-    // unique_descriptors.push_back(descriptors.row(idx));
     unique_descriptors.push_back(descriptors.row(idx).clone());
   }
   
@@ -302,10 +286,7 @@ void keepTopKeypoints(std::vector<KeyPoint> &keypoints, Mat &descriptors, SIFTPa
   }
   
   // TODO: we had problems here, were getting heap memory allocation
-  // issues
   keypoints.clear();
-  // descriptors.release();
-  // descriptors = cv::Mat();
   descriptors.create(0, descriptors.cols, descriptors.type());
 
   for (const auto& pair : kp_desc_pairs) {
@@ -377,11 +358,8 @@ bool getSIFTTransformationMatrixSingle(
     Mat &im1Proc, Mat &im2Proc, Mat &h, Mat &mask, 
     Mat &imMatches, 
     std::vector<Point2f> &points1, std::vector<Point2f> &points2, 
-    // std::vector<DMatch> &good_matches, 
     const bool &run_Affine, SIFTParameters params, bool &is_faulty){
-  // profiler
-  // MemProfiler mp("Find Transformation");
-  
+
   //////////////////////
   /// Compute SIFT /////
   //////////////////////
@@ -396,8 +374,7 @@ bool getSIFTTransformationMatrixSingle(
   computeSIFTTiles(im2Proc, keypoints2, descriptors2, sift, params);
   Rcout << "MESSAGE: Generated " << keypoints1.size() << " and " << keypoints2.size() << " keypoints"  << endl;
   Rcout << "DONE: SIFT based key-points detection and descriptors computation" << endl;
-  // log_mem_usage("sift landmarks");
-  
+
   // filter duplicates
   filterDuplicateKeypoints(keypoints1, descriptors1);
   filterDuplicateKeypoints(keypoints2, descriptors2);
@@ -406,8 +383,7 @@ bool getSIFTTransformationMatrixSingle(
   keepTopKeypoints(keypoints1, descriptors1, params);
   keepTopKeypoints(keypoints2, descriptors2, params);
   Rcout << "MESSAGE: Filtered other than " << keypoints1.size() << " and " << keypoints2.size() << " keypoints" << endl;
-  // log_mem_usage("filter landmarks");
-  
+
   ///////////////////////
   /// Compute FLANN /////
   ///////////////////////
@@ -416,8 +392,7 @@ bool getSIFTTransformationMatrixSingle(
   std::vector<std::vector<DMatch>> matches12, matches21;
   getFLANNMatches(descriptors1, descriptors2, matches12, matches21);
   Rcout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
-  // log_mem_usage("flann matching");
-  
+
   // TODO: can I release there now ?
   descriptors1.release();
   descriptors2.release();
@@ -426,8 +401,7 @@ bool getSIFTTransformationMatrixSingle(
   std::vector<DMatch> good_matches;
   getGoodMatches(matches12, matches21, good_matches);
   Rcout << "DONE: get good mutual matches by distance thresholding" << endl;
-  // log_mem_usage("good matches");
-  
+
   // TODO: can I release there now ? 
   std::vector<std::vector<DMatch>>().swap(matches12);
   std::vector<std::vector<DMatch>>().swap(matches21);
@@ -471,8 +445,7 @@ bool getSIFTTransformationMatrixSingle(
     Rcout <<  "WARNING: Found no matches!" << endl;
     return false;
   }
-  // log_mem_usage("find transformation");
-  
+
   // Draw top matches and good ones only
   std::vector<cv::DMatch> top_matches;
   std::vector<cv::KeyPoint> keypoints1_best, keypoints2_best;
@@ -492,18 +465,7 @@ bool getSIFTTransformationMatrixSingle(
     }
   }
   scaledDrawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches);
-  // log_mem_usage("draw matches");
-  
-  // print keypoints
-  // Rcout << "points 1" << endl;
-  // for (int i = 0; i < keypoints1_best2.size(); i++) {
-  //   Rcout << keypoints1_best2[i].pt << endl;
-  // }
-  // Rcout << "points 2" << endl;
-  // for (int i = 0; i < keypoints1_best2.size(); i++) {
-  //   Rcout << keypoints2_best2[i].pt << endl;
-  // }
-  
+
   // TODO: can I release there now ? 
   // std::vector<cv::KeyPoint>().swap(keypoints1_best);
   // std::vector<cv::KeyPoint>().swap(keypoints2_best);
@@ -630,7 +592,6 @@ bool getORBTransformationMatrix(
   Rcout << "DONE: get good matches by distance thresholding" << endl;
   
   // Extract location of good matches
-  // std::vector<Point2f> points1, points2;
   for( size_t i = 0; i < matches.size(); i++ )
   {
     points1.push_back(keypoints1[ matches[i].queryIdx ].pt );
@@ -680,16 +641,6 @@ bool getORBTransformationMatrix(
     }
   }
   scaledDrawMatches(im1Proc, keypoints1_best2, im2Proc, keypoints2_best2, top_matches, imMatches);
-  
-  // print keypoints
-  // Rcout << "points 1" << endl;
-  // for (int i = 0; i < keypoints1_best2.size(); i++) {
-  //   Rcout << keypoints1_best2[i].pt << endl;
-  // }
-  // Rcout << "points 2" << endl;
-  // for (int i = 0; i < keypoints1_best2.size(); i++) {
-  //   Rcout << keypoints2_best2[i].pt << endl;
-  // }
 
   // check number of matches
   return check_matches(mask);
@@ -714,18 +665,13 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   //////////////////////
   
   // Convert images to grayscale
-  // Mat im1Gray, im2Gray;
   Mat im1Proc, im2Proc, im1NormalProc;
-  // cvtColor(im1, im1Gray, cv::COLOR_BGR2GRAY);
-  // cvtColor(im2, im2Gray, cv::COLOR_BGR2GRAY);
   cvtColor(im1, im1Proc, cv::COLOR_BGR2GRAY);
   cvtColor(im2, im2Proc, cv::COLOR_BGR2GRAY);
   
   // Process images
-  // im1Proc = preprocessImage(im1Gray, invert_query, flipflop_query, rotate_query);
   im1Proc = preprocessImage(im1Proc, invert_query, flipflop_query, rotate_query);
   im1NormalProc = preprocessImage(im1, FALSE, flipflop_query, rotate_query);
-  // im2Proc = preprocessImage(im2Gray, invert_ref, flipflop_ref, rotate_ref);
   im2Proc = preprocessImage(im2Proc, invert_ref, flipflop_ref, rotate_ref);
   
   // ////////////////////////////////////
@@ -763,15 +709,10 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   Rcout << "MESSAGE: Registration is " << (is_faulty ? "degenerate!" : "not degenerate!") << endl;
   
   // Use homography to warp image
-  // Mat im1Warp, im1NormalWarp;
   if(h.rows == 2){
-    // warpAffine(im1Proc, im1Warp, h, im2Proc.size());
-    // warpAffine(im1NormalProc, im1NormalWarp, h, im2Proc.size());   
     warpAffine(im1Proc, im1Proc, h, im2Proc.size());
     warpAffine(im1NormalProc, im1NormalProc, h, im2Proc.size());
   } else if(h.rows == 3){
-    // warpPerspective(im1Proc, im1Warp, h, im2Proc.size());
-    // warpPerspective(im1NormalProc, im1NormalWarp, h, im2Proc.size());    
     warpPerspective(im1Proc, im1Proc, h, im2Proc.size());
     warpPerspective(im1NormalProc, im1NormalProc, h, im2Proc.size());
   } else {
@@ -786,24 +727,15 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   ///////////////////////
   
   // continue with TPS or do FLANN only
-  // Mat im1Reg_Warp_nonrigid;
-  // Mat im1Reg_NormalWarp_nonrigid;
-  // Mat im1Combine;
   if(is_faulty || !run_TPS){
     
     // change color map
-    // cv::addWeighted(im2Proc, 0.7, im1Warp, 0.3, 0, im1Combine);
     cv::addWeighted(im2Proc, 0.7, im1Proc, 0.3, 0, im1Proc);
 
     // Reverse process
     im1Reg = reversepreprocessImage(im1NormalProc, flipflop_ref, rotate_ref);
 
-    // return as rgb
-    // cvtColor(im1Combine, im1Overlay, cv::COLOR_GRAY2BGR);
-    // cvtColor(im1Proc, im1Overlay, cv::COLOR_GRAY2BGR);
-    // cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
-
-    // TPS is requested (only if FLANN succeeded)
+  // TPS is requested (only if FLANN succeeded)
   } else {
     
     Rcout << "MESSAGE: Running Thin-Plate-Spline Alignment" << endl;
@@ -849,28 +781,14 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     cv::copyMakeBorder(im1NormalProc, im1NormalProc, 0.0, (int) (y_max - im1NormalProc.rows), 0.0, (x_max - im1NormalProc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
     
     // transform image
-    // Mat im1Reg_Warp_nonrigid;
-    // Mat im1Reg_NormalWarp_nonrigid;
-    // tps->warpImage(im1Proc, im1Reg_Warp_nonrigid);
-    // tps->warpImage(im1NormalProc, im1Reg_NormalWarp_nonrigid);
     tps->warpImage(im1Proc, im1Proc);
     tps->warpImage(im1NormalProc, im1NormalProc);
     
     // resize image
-    // cv::Mat im1Reg_Warp_nonrigid_cropped  = im1Reg_Warp_nonrigid(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
-    // im1Reg_Warp_nonrigid = im1Reg_Warp_nonrigid_cropped.clone();
-    // im1Reg_Warp_nonrigid_cropped.release();
-    // im1Reg_Warp_nonrigid = im1Proc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
     im1Proc = im1Proc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
-    
-    // cv::Mat im1Reg_NormalWarp_nonrigid_cropped  = im1Reg_NormalWarp_nonrigid(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
-    // im1Reg_NormalWarp_nonrigid = im1Reg_NormalWarp_nonrigid_cropped.clone();
-    // im1Reg_NormalWarp_nonrigid_cropped.release();
-    // im1Reg_NormalWarp_nonrigid = im1NormalProc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
     im1NormalProc = im1NormalProc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
     
     // change color map
-    // cv::addWeighted(im2Proc, 0.7, im1Proc, 0.3, 0, im1Reg_Warp_nonrigid);
     cv::addWeighted(im2Proc, 0.7, im1Proc, 0.3, 0, im1Proc);
     
     // Reverse process
@@ -878,7 +796,6 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   }
   
   // return as rgb
-  // cvtColor(im1Reg_Warp_nonrigid, im1Overlay, cv::COLOR_GRAY2BGR);
   cvtColor(im1Proc, im1Overlay, cv::COLOR_GRAY2BGR);
   cvtColor(im2Proc, im2, cv::COLOR_GRAY2BGR);
 
@@ -909,13 +826,9 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
 
   // Read reference image
   cv::Mat imReference = imageToMat(ref_image, width1, height1);
-  // Rcout << object_size_long(ref_image.size())  << endl;
-  // Rcout << object_size_long(sizeof(cv::Mat) + imReference.total() * imReference.elemSize()) << endl;
-
+  
   // Read image to be aligned
   cv::Mat im = imageToMat(query_image, width2, height2);
-  // Rcout << object_size_long(query_image.size()) << endl;
-  // Rcout << object_size_long(sizeof(cv::Mat) + im.total() * im.elemSize()) << endl;
 
   // run alignment
   const bool run_TPS = (strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0 || 
@@ -939,17 +852,13 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
   
   // destination image, registered image, keypoint matching image
   out[1] = matToImage(imReference);
-  // out[1] = R_NilValue;
-  
+
   // check if transformation matrix is calculated, 
   // otherwise return NULL
   if(h.rows > 1){
-    // registered image
-    out[2] = matToImage(imReg);
-    // keypoint matching image
-    out[3] = matToImage(imMatches);
-    // overlay image
-    out[4] = matToImage(imOverlay);
+    out[2] = matToImage(imReg); // registered image
+    out[3] = matToImage(imMatches); // keypoint matching image
+    out[4] = matToImage(imOverlay); // overlay image
   } else {
     out[2] = R_NilValue;
     out[3] = R_NilValue;
@@ -1321,26 +1230,12 @@ void alignImagesFLANN2(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   Rcout << "MESSAGE: Matching " << points1.size() << " keypoints" << endl;
   if(run_Affine){
     std::vector<uint8_t> match_mask;
-    // h = estimateAffine2D(points1,
-    //                      points2,
-    //                      match_mask,
-    //                      cv::RANSAC,
-    //                      params.ransac_pixel_threshold,
-    //                      params.ransac_maxIters,
-    //                      params.ransac_confidence);
     h = estimateAffine2D(points1,
                          points2,
                          match_mask,
                          cv::RANSAC);
     mask = IntVectorToMat(match_mask);
   } else {
-    // h = findHomography(points1,
-    //                    points2,
-    //                    cv::RANSAC,
-    //                    params.ransac_pixel_threshold,
-    //                    mask,
-    //                    params.ransac_maxIters,
-    //                    params.ransac_confidence);
     h = findHomography(points1, points2, RANSAC);
   } 
   

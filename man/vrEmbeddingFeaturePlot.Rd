@@ -9,7 +9,7 @@ vrEmbeddingFeaturePlot(
   embedding = "pca",
   features = NULL,
   combine.features = FALSE,
-  n.tile = 0,
+  n.tile = NULL,
   norm = TRUE,
   log = FALSE,
   assay = NULL,
@@ -17,6 +17,7 @@ vrEmbeddingFeaturePlot(
   nrow = NULL,
   font.size = 2,
   pt.size = 1,
+  shape = 16,
   keep.scale = "feature",
   common.legend = TRUE,
   collapse.plots = TRUE
@@ -33,8 +34,8 @@ vrEmbeddingFeaturePlot(
 
 \item{combine.features}{whether to combine all features in one plot}
 
-\item{n.tile}{should points be aggregated into tiles before visualization 
-(see \link{geom_tile}). Applicable only for cells and molecules}
+\item{n.tile}{The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.}
 
 \item{norm}{if TRUE, the normalized data is used}
 
@@ -52,6 +53,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{font.size}{font size}
 
 \item{pt.size}{point size}
+
+\item{shape}{shape}
 
 \item{keep.scale}{whether unify all scales for all features or not}
 

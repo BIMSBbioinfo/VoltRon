@@ -14,7 +14,7 @@ addSpatialLayer(
   reg = FALSE,
   colors = NULL,
   alpha = 1,
-  n.tile = 0,
+  n.tile = NULL,
   pt.size = 2,
   cell.shape = 21,
   graph = NULL,
@@ -43,7 +43,8 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{alpha}{alpha level of colors of visualized points and segments}
 
-\item{n.tile}{should points be aggregated into tiles before visualization (see \link{geom_tile}). Applicable only for cells and molecules}
+\item{n.tile}{The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.}
 
 \item{pt.size}{point size}
 

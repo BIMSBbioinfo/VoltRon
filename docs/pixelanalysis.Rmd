@@ -241,7 +241,7 @@ Xen_R1_image <- getClusters(Xen_R1_image, method = "kmeans",
 ```
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrEmbeddingPlot(Xen_R1_image, embedding = "umap", group.by = "Cluster_snn")
+vrEmbeddingPlot(Xen_R1_image, embedding = "umap", group.by = "Cluster_kmeans")
 vrSpatialPlot(Xen_R1_image, group.by = "Cluster_kmeans", alpha = 1)
 ```
 

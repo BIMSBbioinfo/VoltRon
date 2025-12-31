@@ -138,7 +138,7 @@ In order to integrate the scRNA data and the spatial data sets within the VoltRo
 
 ```{r eval = FALSE, class.source="watch-out"}
 if(!requireNamespace("spacexr"))
-  devtools::install_github("dmcable/spacexr", build_vignettes = FALSE)
+  BiocManager::install("spacexr")
 ```
 
 After running **getDeconvolution**, an additional feature set within the same Visium assay with name **Decon** will be created.
@@ -270,6 +270,104 @@ vrHeatmapPlot(MBrain_Sec, features = vrFeatures(MBrain_Sec), group.by = "niche_c
 ```
 
 <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_heatmap_clusters.png" class="center">
+
+<br>
+
+# 3D Niche Clustering (Spots)
+
+A method to clustering Visium spots is using estimated cell type abundances per each spot as features for the 3D clustering task. 
+
+In this use case, we demonstrate 3D niche clustering on Visium data generated from tissue block sections of 
+**adult humans with postmortem dorsolateral prefrontal cortex (DLPFC)**. Two pairs of adjacent sections were obtained from the tissue block of the third donor. Each pair are composed of two 10 $\mu$m serial tissue sections, and pairs are located 300 $\mu$m apart from each other. Hence, we align each pair individually. The datasets can be downloaded from [here](https://research.libd.org/spatialLIBD/). 
+
+We use the aligned DLPFC Visium datasets from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Visium_vs_Visium/Visium&Visium_data_registered.rds) which 
+includes four aligned Visium sections from human dorsolateral prefrontal cortex (DLPFC). See [Spatial Data Alignment](registration.html) 
+tutorial for more information on how to align multiple Visium sections into a VoltRon object.
+
+## Spot Deconvolution with RCTD
+
+Thus, we first deconvolute spots into cells using a single cell reference in order to later use the resultsing cell type abundances per each spot for clustering.
+We will use the public single nucleus RNA-seq (snRNA-seq) data from available [here](https://libd-snrnaseq-pilot.s3.us-east-2.amazonaws.com/SCE_DLPFC-n3_tran-etal.rda). See [(Tran, Maynard, Spangler et al., 2021)](https://linkinghub.elsevier.com/retrieve/pii/S0896-6273(21)00655-3) for more information.
+
+We will use this reference for deconvoluting each Visium across 
+each for Visium assay in the VoltRon object. See [Niche Clustering](nicheclustering.html) 
+tutorial for more information on spot deconvolution.
+
+```{r class.source="watch-out", eval = FALSE} 
+# single cell reference
+load("SCE_DLPFC-n3_tran-etal.rda")
+
+# prepare reference
+tab <- table(sce.dlpfc.tran$cellType)
+sce.dlpfc.tran <- sce.dlpfc.tran[,sce.dlpfc.tran$cellType %in% names(tab)[tab > 25]]
+sce.dlpfc.tran.seu <- Seurat::as.Seurat(sce.dlpfc.tran)
+
+# Spot deconvolution
+library(spacexr)
+SRBlock <- readRDS("Visium&Visium_data_registered.rds")
+SRBlock <- getDeconvolution(SRBlock, sc.object = sce.dlpfc.tran, 
+                            sc.cluster = "cellType", max_cores = 2)
+SRBlock
+```
+
+```
+VoltRon Object 
+DLPFC_Block: 
+  Layers: Section1 Section2 Section3 Section4 
+Assays: Visium(Main) 
+Features: RNA(Main) Decon 
+```
+
+## Creating Niche Assay
+
+We can now calculate 3D neighbors across all spots in the tissue block,
+The **registerSpatialData** function by default returns VoltRon objects whose
+assays set to registered versions of spatial coordinates. Thus we can directly
+use **getSpatialNeighbors** function to calculate 3D neighbors. 
+
+```{r class.source="watch-out", eval = FALSE} 
+# get 3D neighbors
+SRBlock <- getSpatialNeighbors(SRBlock, method = "radius")
+```
+
+The **getNicheAssay** function will aggregate the estimated cell type abundances 
+of all neighboring spots into each spot to create a new feature data type. 
+
+```{r class.source="watch-out", eval = FALSE} 
+# Calculate niche assay and clustering
+vrMainFeatureType(SRBlock) <- "Decon"
+SRBlock <- getNicheAssay(SRBlock, graph.type = "radius")
+SRBlock
+```
+
+```
+VoltRon Object 
+DLPFC_Block: 
+  Layers: Section1 Section2 Section3 Section4 
+Assays: Visium(Main) 
+Features: Decon(Main) RNA Niche 
+```
+
+## Clustering
+
+We will now use the new **Niche** feature set for 3D clustering where 
+niche assay counts are first normalized using centred log ratio (CLR) 
+transformation. We then use K-means for clustering spots into 7 clusters.
+
+```{r class.source="watch-out", eval = FALSE} 
+# Normalize before 3D clustering 
+vrMainFeatureType(SRBlock) <- "Niche"
+SRBlock <- normalizeData(SRBlock, method = "CLR")
+SRBlock <- getClusters(SRBlock, nclus = 7, method = "kmeans", label = "niche_clusters")
+
+# visualize
+vrSpatialPlot(SRBlock, group.by = "niche_clusters", alpha = 1, nrow = 2)
+vrHeatmapPlot(SRBlock, features = vrFeatures(SRBlock), group.by = "niche_clusters")
+```
+
+<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_DLPFC_nicheclusters.png" class="center">
+<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_DLPFC_nicheheatmap.png" class="center">
+
 <br>
 
 # Cell-based Niche Clustering {#cellxenium}
@@ -386,7 +484,9 @@ vrHeatmapPlot(Xen_data, features = vrFeatures(Xen_data), group.by = "niche_clust
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_xenium_heatmapclusters.png" class="center">
 <br>
 
-# 3D Niche Clustering
+
+
+# 3D Niche Clustering (Cells)
 
 VoltRon extends coordinate spaces to three dimensions, thus allow analyzing the proximity across observations in three dimensions. 
 
@@ -408,7 +508,7 @@ MLN_3D:
           Section11 Section12 Section13 Section14 Section15 
           Section16 Section17 Section18 Section19 
 Assays: OpenST(Main) 
-Features: Niche_15(Main) RNA 
+Features: RNA(Main) 
 ```
 
 OpenST cells from **GSE251926** are already called and annotated. See the [OpenST paper](https://www.cell.com/cell/fulltext/S0092-8674(24)00636-6) for more information.
@@ -506,6 +606,10 @@ vr_openst <- getClusters(vr_openst, nclus = 6,
 ## Visualization
 
 ```{r eval = FALSE, class.source="watch-out"}
+if(!requireNamespace("patchwork"))
+  install.packages("patchwork")
+library(patchwork)
+
 g1 <- vrSpatialPlot(vr_openst, assay = "Assay1", group.by = "niche_clusters", 
                     background.color = "black", n.tile = 400, alpha = 1)
 g2 <- vrSpatialPlot(vr_openst, assay = "Assay1", group.by = "annotation", 
@@ -514,8 +618,6 @@ g3 <- vrSpatialPlot(vr_openst, assay = "Assay2", group.by = "niche_clusters",
                     background.color = "black", n.tile = 400, alpha = 1)
 g4 <- vrSpatialPlot(vr_openst, assay = "Assay2", group.by = "annotation", 
                     background.color = "black", n.tile = 400, alpha = 1)
-
-library(patchwork)
 (g1 | g2) / (g3 | g4)
 ```
 

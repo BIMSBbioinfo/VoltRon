@@ -369,6 +369,7 @@ Here, we can see that both Xenium layers are clustered and annotated where we ca
 ```{r class.source="watch-out", eval = FALSE}
 VRBlock <- transferData(VRBlock, from = "Assay1", to = "Assay2", features = "CellType", 
                         new_feature_name = "Visium_CellType")
+vrMainAssay(VRBlock) <- "Visium"
 VRBlock
 ```
 
@@ -377,7 +378,7 @@ VoltRon Object
 10XBlock: 
   Layers: Section1 Section2 Section3 
 Assays: Visium(Main) Xenium 
-Features: RNA_pseudo(Main) RNA Visium_CellType 
+Features: RNA(Main) Visium_CellType 
 ```
 
 By visualizing the transferred labels on the Visium spots, we can see abundance of some DCIS and invasive tumor subtypes. 
@@ -409,6 +410,7 @@ VRBlock <- annotateSpatialData(VRBlock, assay = "Visium",
 You can observe the changes in the object and check the assay ID of this new ROI type assay using `SampleMetadata` function.
 
 ```{r class.source="watch-out", eval = FALSE}
+vrMainAssay(VRBlock) <- "Xenium"
 VRBlock
 ```
 
@@ -469,6 +471,8 @@ vrSpatialPlot(VRBlock, group.by = "annotation", assay = "Visium", crop = TRUE)
 You can also use the **addSpatialLayer** function to overlay annotation segments to the spatial plot of the Xenium data.
  
 ```{r class.source="watch-out", eval = FALSE}
+if(!requireNamespace("ggnewscale"))
+  install.packages("ggnewscale")
 vrSpatialPlot(VRBlock, group.by = "CellType", assay = "Assay1", crop = TRUE) |>
   addSpatialLayer(VRBlock, assay = "ROIAnnotation", group.by = "annotation", spatial = "main", alpha = 0.4)
 ```
@@ -494,7 +498,9 @@ if(!requireNamespace("rhdf5"))
 library(VoltRon)
 
 # import Xenium 
-Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1")
+Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1", 
+                       resolution_level = 3,
+                       overwrite_resolution = TRUE)
 
 # import H&E image 
 Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif",
@@ -510,10 +516,10 @@ XeniumR1image:
 Assays: ImageData(Main) 
 ```
 
-Let's take a look at the image of the Xen_R1_image object
+Let's take a look at the image of the Xen_R1_image object. We use the **scale.perc** argument to scale down the image for faster rendering.
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrImages(Xen_R1_image)
+vrImages(Xen_R1_image, scale.perc = 5)
 ```
 
 <img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE.png" class="center">
@@ -524,7 +530,7 @@ vrImages(Xen_R1_image)
 
 We can use the **registerSpatialData** function to warp/align images across multiple VoltRon objects and define these aligned images additional channels of existing coordinate systems of assays in one of these VoltRon objects. 
 
-First we align the H&E image to the DAPI image of the Xenium replicate. Similar to the first use case, we need to negate the DAPI image and change the alignment of the image to match it with the H&E image. We can also scale the resolution of the H&E image to 9103.71x6768.63.
+First we align the H&E image to the DAPI image of the Xenium replicate. Similar to the first use case, we need to negate the DAPI image and rotate the image to match its perspective to the H&E image. We can also scale the resolution of the H&E image to 9103.71x6768.63 in order to speed up the registration, however the original scales can also be used.
 
 ```{r eval = FALSE, class.source="watch-out"}
 xen_reg <- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))
@@ -579,7 +585,7 @@ devtools::install_github(
                    "ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON"))
 ```
 
-We can then use **registerSpatialData** function as before and select "BSpline (SimpleITK)" option to conduct non-rigid alignment. 
+We can then use **registerSpatialData** function as before and select "Affine + Non-Rigid" and "BSpline (SimpleITK)" options to conduct non-rigid alignment. 
 
 ```{r eval = FALSE, class.source="watch-out"}
 library(SimpleITK)
@@ -643,8 +649,6 @@ reg3and4 <- registerSpatialData(object_list = DLPFC_list)
 
 <br>
 
-### 3D Spot Clustering 
-
 We can now combine all sections into one VoltRon object. There are two pairs of serial tissue sections, but both pairs (thus 4 sections) are from the same tissue block. Hence, we can combine these two lists into one list and merge VoltRon objects even though sections were aligned separately. 
 
 ```{r class.source="watch-out", eval = FALSE} 
@@ -658,9 +662,27 @@ VoltRon Object
 DLPFC_Block: 
   Layers: Section1 Section2 Section3 Section4 
 Assays: Visium(Main) 
+Features: RNA(Main)
 ```
 
-<br>
+Now that we have combined registered pairs of adjacent tissue sections, we should define
+the adjacency of these pairs in the tissue block. 
 
-Aligning spots along the z dimension allows us to cluster these spots using both the gene expression similarities and spatial adjacency (both along the x-y direction and in the z direction). We first generate a spatial neighborhood graph and use this graph along with the gene expression neighborhood graph **(under development)**.
+```{r class.source="watch-out", eval = FALSE} 
+# two pairs of adjacent sections
+connectivity <- data.frame(
+  c(1,1,3,3),
+  c(1,2,3,4)
+)
+# adjacent sections are 10 micron apart, and pairs 300 micron
+zlocation <- c(0, 10, 300, 310)*params$tissue_lowres_scalef
 
+# add connectivity information to the block
+SRBlock <- addBlockConnectivity(SRBlock, 
+                                connectivity = connectivity,
+                                zlocation = zlocation,
+                                sample = "DLPFC_Block")
+```
+
+The aligned and connected Visium assays of the DLPFC then could be used for 3D spatial analysis, 
+specifically as shown in the [Niche Clustering](nicheclustering.html) tutorial.
