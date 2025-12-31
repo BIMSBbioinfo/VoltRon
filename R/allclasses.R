@@ -351,17 +351,18 @@ suppressWarnings({
     members = c(
       "data.table",
       "data.frame",
-      if (requireNamespace("S4Vectors", quietly = TRUE)) "DataFrame" else NULL,
-      if (requireNamespace("HDF5DataFrame", quietly = TRUE)) {
-        "HDF5DataFrame"
-      } else {
-        NULL
-      },
-      if (requireNamespace("ZarrDataFrame", quietly = TRUE)) {
-        "ZarrDataFrame"
-      } else {
-        NULL
-      }
+      "DataFrame"
+      # if (requireNamespace("S4Vectors", quietly = TRUE)) "DataFrame" else NULL,
+      # if (requireNamespace("HDF5DataFrame", quietly = TRUE)) {
+      #   "HDF5DataFrame"
+      # } else {
+      #   NULL
+      # },
+      # if (requireNamespace("ZarrDataFrame", quietly = TRUE)) {
+      #   "ZarrDataFrame"
+      # } else {
+      #   NULL
+      # }
     )
   )
 })

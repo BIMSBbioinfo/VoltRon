@@ -966,7 +966,7 @@ as.Giotto <- function(object, assay = NULL, reg = FALSE) {
       )
     } else {
       stop(
-        "Currently VoltRon does only support converting cell type spatial data sets into SpatialExperiment objects!"
+        "Currently VoltRon does only support converting cell type spatial data sets into Giotto objects!"
       )
     }
   }

@@ -576,7 +576,7 @@ Visium spot, we will use <strong>RCTD</strong> algorithm which is
 accessible with the <a
 href="https://github.com/dmcable/spacexr">spacexr</a> package.</p>
 <pre class="r watch-out"><code>if(!requireNamespace(&quot;spacexr&quot;))
-  devtools::install_github(&quot;dmcable/spacexr&quot;, build_vignettes = FALSE)</code></pre>
+  BiocManager::install(&quot;spacexr&quot;)</code></pre>
 <p>After running <strong>getDeconvolution</strong>, an additional
 feature set within the same Visium assay with name
 <strong>Decon</strong> will be created.</p>
@@ -684,8 +684,104 @@ if(!requireNamespace(&quot;ComplexHeatmap&quot;))
 library(ComplexHeatmap)
 vrHeatmapPlot(MBrain_Sec, features = vrFeatures(MBrain_Sec), group.by = &quot;niche_clusters&quot;, 
               show_row_names = T, show_heatmap_legend = T)</code></pre>
-<p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_heatmap_clusters.png" class="center">
-<br></p>
+<p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_heatmap_clusters.png" class="center"></p>
+<p><br></p>
+</div>
+</div>
+<div id="d-niche-clustering-spots" class="section level1">
+<h1>3D Niche Clustering (Spots)</h1>
+<p>A method to clustering Visium spots is using estimated cell type
+abundances per each spot as features for the 3D clustering task.</p>
+<p>In this use case, we demonstrate 3D niche clustering on Visium data
+generated from tissue block sections of <strong>adult humans with
+postmortem dorsolateral prefrontal cortex (DLPFC)</strong>. Two pairs of
+adjacent sections were obtained from the tissue block of the third
+donor. Each pair are composed of two 10 <span
+class="math inline">\(\mu\)</span>m serial tissue sections, and pairs
+are located 300 <span class="math inline">\(\mu\)</span>m apart from
+each other. Hence, we align each pair individually. The datasets can be
+downloaded from <a
+href="https://research.libd.org/spatialLIBD/">here</a>.</p>
+<p>We use the aligned DLPFC Visium datasets from <a
+href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/SpatialDataAlignment/Visium_vs_Visium/Visium&amp;Visium_data_registered.rds">here</a>
+which includes four aligned Visium sections from human dorsolateral
+prefrontal cortex (DLPFC). See <a href="registration.html">Spatial Data
+Alignment</a> tutorial for more information on how to align multiple
+Visium sections into a VoltRon object.</p>
+<div id="spot-deconvolution-with-rctd-1" class="section level2">
+<h2>Spot Deconvolution with RCTD</h2>
+<p>Thus, we first deconvolute spots into cells using a single cell
+reference in order to later use the resultsing cell type abundances per
+each spot for clustering. We will use the public single nucleus RNA-seq
+(snRNA-seq) data from available <a
+href="https://libd-snrnaseq-pilot.s3.us-east-2.amazonaws.com/SCE_DLPFC-n3_tran-etal.rda">here</a>.
+See <a
+href="https://linkinghub.elsevier.com/retrieve/pii/S0896-6273(21)00655-3">(Tran,
+Maynard, Spangler et al., 2021)</a> for more information.</p>
+<p>We will use this reference for deconvoluting each Visium across each
+for Visium assay in the VoltRon object. See <a
+href="nicheclustering.html">Niche Clustering</a> tutorial for more
+information on spot deconvolution.</p>
+<pre class="r watch-out"><code># single cell reference
+load(&quot;SCE_DLPFC-n3_tran-etal.rda&quot;)
+
+# prepare reference
+tab &lt;- table(sce.dlpfc.tran$cellType)
+sce.dlpfc.tran &lt;- sce.dlpfc.tran[,sce.dlpfc.tran$cellType %in% names(tab)[tab &gt; 25]]
+sce.dlpfc.tran.seu &lt;- Seurat::as.Seurat(sce.dlpfc.tran)
+
+# Spot deconvolution
+library(spacexr)
+SRBlock &lt;- readRDS(&quot;Visium&amp;Visium_data_registered.rds&quot;)
+SRBlock &lt;- getDeconvolution(SRBlock, sc.object = sce.dlpfc.tran, 
+                            sc.cluster = &quot;cellType&quot;, max_cores = 2)
+SRBlock</code></pre>
+<pre><code>VoltRon Object 
+DLPFC_Block: 
+  Layers: Section1 Section2 Section3 Section4 
+Assays: Visium(Main) 
+Features: RNA(Main) Decon </code></pre>
+</div>
+<div id="creating-niche-assay-1" class="section level2">
+<h2>Creating Niche Assay</h2>
+<p>We can now calculate 3D neighbors across all spots in the tissue
+block, The <strong>registerSpatialData</strong> function by default
+returns VoltRon objects whose assays set to registered versions of
+spatial coordinates. Thus we can directly use
+<strong>getSpatialNeighbors</strong> function to calculate 3D
+neighbors.</p>
+<pre class="r watch-out"><code># get 3D neighbors
+SRBlock &lt;- getSpatialNeighbors(SRBlock, method = &quot;radius&quot;)</code></pre>
+<p>The <strong>getNicheAssay</strong> function will aggregate the
+estimated cell type abundances of all neighboring spots into each spot
+to create a new feature data type.</p>
+<pre class="r watch-out"><code># Calculate niche assay and clustering
+vrMainFeatureType(SRBlock) &lt;- &quot;Decon&quot;
+SRBlock &lt;- getNicheAssay(SRBlock, graph.type = &quot;radius&quot;)
+SRBlock</code></pre>
+<pre><code>VoltRon Object 
+DLPFC_Block: 
+  Layers: Section1 Section2 Section3 Section4 
+Assays: Visium(Main) 
+Features: Decon(Main) RNA Niche </code></pre>
+</div>
+<div id="clustering-1" class="section level2">
+<h2>Clustering</h2>
+<p>We will now use the new <strong>Niche</strong> feature set for 3D
+clustering where niche assay counts are first normalized using centred
+log ratio (CLR) transformation. We then use K-means for clustering spots
+into 7 clusters.</p>
+<pre class="r watch-out"><code># Normalize before 3D clustering 
+vrMainFeatureType(SRBlock) &lt;- &quot;Niche&quot;
+SRBlock &lt;- normalizeData(SRBlock, method = &quot;CLR&quot;)
+SRBlock &lt;- getClusters(SRBlock, nclus = 7, method = &quot;kmeans&quot;, label = &quot;niche_clusters&quot;)
+
+# visualize
+vrSpatialPlot(SRBlock, group.by = &quot;niche_clusters&quot;, alpha = 1, nrow = 2)
+vrHeatmapPlot(SRBlock, features = vrFeatures(SRBlock), group.by = &quot;niche_clusters&quot;)</code></pre>
+<p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_DLPFC_nicheclusters.png" class="center">
+<img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_DLPFC_nicheheatmap.png" class="center"></p>
+<p><br></p>
 </div>
 </div>
 <div id="cellxenium" class="section level1">
@@ -720,7 +816,7 @@ vrSpatialPlot(Xen_data, group.by = &quot;CellType&quot;, pt.size = 0.13, backgro
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_xenium_clusters.png" class="center"></p>
 <p><br></p>
 </div>
-<div id="creating-niche-assay-1" class="section level2">
+<div id="creating-niche-assay-2" class="section level2">
 <h2>Creating Niche Assay</h2>
 <p>For calculating niche profiles for each cell, we have to first build
 spatial neighborhoods around cells and capture the local cell type
@@ -744,7 +840,7 @@ Assays: Xenium(Main) Visium
 Features: RNA(Main) Niche</code></pre>
 <p><br></p>
 </div>
-<div id="clustering-1" class="section level2">
+<div id="clustering-2" class="section level2">
 <h2>Clustering</h2>
 <p>The Niche assay can be normalized similar to the spot-level niche
 analysis using <strong>centred log ratio (CLR)</strong>
@@ -800,8 +896,8 @@ vrHeatmapPlot(Xen_data, features = vrFeatures(Xen_data), group.by = &quot;niche_
 <br></p>
 </div>
 </div>
-<div id="d-niche-clustering" class="section level1">
-<h1>3D Niche Clustering</h1>
+<div id="d-niche-clustering-cells" class="section level1">
+<h1>3D Niche Clustering (Cells)</h1>
 <p>VoltRon extends coordinate spaces to three dimensions, thus allow
 analyzing the proximity across observations in three dimensions.</p>
 <div id="import-openst-data" class="section level2">
@@ -824,7 +920,7 @@ MLN_3D:
           Section11 Section12 Section13 Section14 Section15 
           Section16 Section17 Section18 Section19 
 Assays: OpenST(Main) 
-Features: Niche_15(Main) RNA </code></pre>
+Features: RNA(Main) </code></pre>
 <p>OpenST cells from <strong>GSE251926</strong> are already called and
 annotated. See the <a
 href="https://www.cell.com/cell/fulltext/S0092-8674(24)00636-6">OpenST
@@ -893,7 +989,7 @@ vrSpatialFeaturePlot(vr_openst, assay = c(&quot;Assay1&quot;, &quot;Assay2&quot;
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/openst_feature_plot.png" class="center">
 <br></p>
 </div>
-<div id="clustering-2" class="section level2">
+<div id="clustering-3" class="section level2">
 <h2>Clustering</h2>
 <p>We incorporate <strong>centred log ratio (CLR)</strong>
 transformation for normalizing cell type abundances before K-means
@@ -904,7 +1000,11 @@ vr_openst &lt;- getClusters(vr_openst, nclus = 6,
 </div>
 <div id="visualization-2" class="section level2">
 <h2>Visualization</h2>
-<pre class="r watch-out"><code>g1 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay1&quot;, group.by = &quot;niche_clusters&quot;, 
+<pre class="r watch-out"><code>if(!requireNamespace(&quot;patchwork&quot;))
+  install.packages(&quot;patchwork&quot;)
+library(patchwork)
+
+g1 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay1&quot;, group.by = &quot;niche_clusters&quot;, 
                     background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
 g2 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay1&quot;, group.by = &quot;annotation&quot;, 
                     background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
@@ -912,8 +1012,6 @@ g3 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay2&quot;, group.by = &quot;n
                     background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
 g4 &lt;- vrSpatialPlot(vr_openst, assay = &quot;Assay2&quot;, group.by = &quot;annotation&quot;, 
                     background.color = &quot;black&quot;, n.tile = 400, alpha = 1)
-
-library(patchwork)
 (g1 | g2) / (g3 | g4)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/openst_niche_plot.png" class="center">
 <br></p>

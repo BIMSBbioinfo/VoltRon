@@ -2605,12 +2605,15 @@ warpImage <- function(ref_image, query_image, mapping) {
       )
       
       # warp image in SimpleITK
-      if(is.null(mapping[[1]][2])){
-        query_image <- warpSimpleITKImage(
-          ref_image = ref_image,
-          query_image = query_image,
-          mapping = mapping[[1]][[2]][[2]]
-        ) 
+      if(!is.null(mapping[[1]][[2]])){
+        if(is(mapping[[1]][[2]][[2]], "_p_itk__simple__TransformixImageFilter")){
+          query_image <- magick::image_read(query_image)
+          query_image <- warpSimpleITKImage(
+            ref_image = ref_image,
+            query_image = query_image,
+            mapping = mapping[[1]][[2]][[2]]
+          ) 
+        }
       }
     } else {
       # warp image in OpenCV
@@ -2637,7 +2640,9 @@ warpImage <- function(ref_image, query_image, mapping) {
     )    
   }
   
-  magick::image_read(query_image)
+  if(!is(query_image, "magick-image"))
+    query_image <- magick::image_read(query_image)
+  query_image
 }
 
 #' getRcppWarpImage
@@ -2674,10 +2679,11 @@ warpSimpleITKImage <- function(ref_image, query_image, mapping) {
                                  'sitkUInt8')
   
   # register
-  tfx_image <- SimpleITK::TransformixImageFilter()
-  tfx_image$LogToConsoleOff()
-  tfx_image$SetTransformParameterMap(transform_param_map)
-  tfx_image$SetMovingImage(SimpleITK::Image(moving$GetSize(), 'sitkFloat32'))
+  # tfx_image <- SimpleITK::TransformixImageFilter()
+  # tfx_image$LogToConsoleOff()
+  # # tfx_image$SetTransformParameterMap(transform_param_map)
+  # tfx_image$SetMovingImage(SimpleITK::Image(moving$GetSize(), 'sitkFloat32'))
+  tfx <- mapping
   
   # warp image
   tfx$SetOutputDirectory(tmpdir)
@@ -2691,6 +2697,8 @@ warpSimpleITKImage <- function(ref_image, query_image, mapping) {
   # delete dir
   unlink(tmpdir, recursive = TRUE)
   
+  # return
+  query_image
 }
 
 ####
@@ -3216,6 +3224,7 @@ computeAutomatedPairwiseTransform <- function(
     }
 
     # run SimpleITK as fine registration
+    if(is.null(input$nonrigid)) input$nonrigid <- "None"
     if(grepl("SimpleITK", input$nonrigid) && 
        grepl("Non-Rigid", input$Method)){
       if (!requireNamespace('SimpleITK')) {
@@ -3382,7 +3391,7 @@ getRcppAutomatedRegistration <- function(
 #' @param rotate_query rotation of query image
 #' @param rotate_ref rotation of reference image
 #'
-#' @importFrom magick as_EBImage 
+#' @importFrom magick as_EBImage image_read
 #' @importFrom EBImage imageData writeImage
 #' 
 #' @noRd
@@ -3419,7 +3428,14 @@ getSimpleITKAutomatedRegistration <- function(
     ref_image <- flopImage(ref_image)
   }
   if(invert_ref)
-    ref_image <- magick::image_negate(ref_image)
+    ref_image <- negateImage(ref_image)
+    # ref_image <- magick::image_negate(ref_image)
+  if (inherits(ref_image, "ImageArray")) {
+    ref_image <- DelayedArray::realize(ref_image)
+    ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
+    ref_image <- magick::image_read(ref_image)
+  }
+    
   query_image <- rotateImage(query_image, as.numeric(rotate_query))
   if (flipflop_query == "Flip") {
     query_image <- flipImage(query_image)
@@ -3427,7 +3443,8 @@ getSimpleITKAutomatedRegistration <- function(
     query_image <- flopImage(query_image)
   }
   if(invert_query)
-    query_image <- magick::image_negate(query_image)
+    query_image <- negateImage(query_image)
+    # query_image <- magick::image_negate(query_image)
   query_image <- warpImage(ref_image = ref_image,
                            query_image = query_image,
                            mapping = initial_mapping)

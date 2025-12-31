@@ -26,7 +26,8 @@ formImage <- function(
   if (inherits(coords, "data.frame")) {
     coords <- as.matrix(coords)
   }
-  if (!inherits(coords, c("matrix", "dgCMatrix", "Matrix", "IterableMatrix"))) {
+  # if (!inherits(coords, c("matrix", "dgCMatrix", "Matrix", "IterableMatrix"))) {
+  if (!inherits(coords, c("matrix", "Matrix", "IterableMatrix"))) {
     stop("Coordinates table should either of a matrix or data.frame class!")
   }
   if (ncol(coords) == 2) {

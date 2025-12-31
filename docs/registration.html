@@ -810,12 +810,13 @@ new pseudo Visium will be collection of abundances of the categories
 within that metadata feature.</p>
 <pre class="r watch-out"><code>VRBlock &lt;- transferData(VRBlock, from = &quot;Assay1&quot;, to = &quot;Assay2&quot;, features = &quot;CellType&quot;, 
                         new_feature_name = &quot;Visium_CellType&quot;)
+vrMainAssay(VRBlock) &lt;- &quot;Visium&quot;
 VRBlock</code></pre>
 <pre><code>VoltRon Object 
 10XBlock: 
   Layers: Section1 Section2 Section3 
 Assays: Visium(Main) Xenium 
-Features: RNA_pseudo(Main) RNA Visium_CellType </code></pre>
+Features: RNA(Main) Visium_CellType </code></pre>
 <p>By visualizing the transferred labels on the Visium spots, we can see
 abundance of some DCIS and invasive tumor subtypes.</p>
 <pre class="r watch-out"><code>vrMainFeatureType(VRBlock) &lt;- &quot;Visium_CellType&quot;
@@ -838,7 +839,8 @@ regions in the Visium section. In the process, a new assay called
 <p><br></p>
 <p>You can observe the changes in the object and check the assay ID of
 this new ROI type assay using <code>SampleMetadata</code> function.</p>
-<pre class="r watch-out"><code>VRBlock</code></pre>
+<pre class="r watch-out"><code>vrMainAssay(VRBlock) &lt;- &quot;Xenium&quot;
+VRBlock</code></pre>
 <pre><code>VoltRon Object 
 10XBlock: 
   Layers: Section1 Section2 Section3 
@@ -871,7 +873,9 @@ vrSpatialPlot(VRBlock, group.by = &quot;annotation&quot;, assay = &quot;Visium&q
 <p><br></p>
 <p>You can also use the <strong>addSpatialLayer</strong> function to
 overlay annotation segments to the spatial plot of the Xenium data.</p>
-<pre class="r watch-out"><code>vrSpatialPlot(VRBlock, group.by = &quot;CellType&quot;, assay = &quot;Assay1&quot;, crop = TRUE) |&gt;
+<pre class="r watch-out"><code>if(!requireNamespace(&quot;ggnewscale&quot;))
+  install.packages(&quot;ggnewscale&quot;)
+vrSpatialPlot(VRBlock, group.by = &quot;CellType&quot;, assay = &quot;Assay1&quot;, crop = TRUE) |&gt;
   addSpatialLayer(VRBlock, assay = &quot;ROIAnnotation&quot;, group.by = &quot;annotation&quot;, spatial = &quot;main&quot;, alpha = 0.4)</code></pre>
 <p><img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_ROI_xenium_overlay.png" class="center"></p>
 <p><br></p>
@@ -903,7 +907,9 @@ if(!requireNamespace(&quot;rhdf5&quot;))
 library(VoltRon)
 
 # import Xenium 
-Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;)
+Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;, 
+                       resolution_level = 3,
+                       overwrite_resolution = TRUE)
 
 # import H&amp;E image 
 Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
@@ -914,8 +920,10 @@ Xen_R1_image</code></pre>
 XeniumR1image: 
   Layers: Section1 
 Assays: ImageData(Main) </code></pre>
-<p>Let’s take a look at the image of the Xen_R1_image object</p>
-<pre class="r watch-out"><code>vrImages(Xen_R1_image)</code></pre>
+<p>Let’s take a look at the image of the Xen_R1_image object. We use the
+<strong>scale.perc</strong> argument to scale down the image for faster
+rendering.</p>
+<pre class="r watch-out"><code>vrImages(Xen_R1_image, scale.perc = 5)</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE.png" class="center"></p>
 <p><br></p>
 <div id="automated-image-alignment-1" class="section level3">
@@ -926,9 +934,10 @@ aligned images additional channels of existing coordinate systems of
 assays in one of these VoltRon objects.</p>
 <p>First we align the H&amp;E image to the DAPI image of the Xenium
 replicate. Similar to the first use case, we need to negate the DAPI
-image and change the alignment of the image to match it with the H&amp;E
+image and rotate the image to match its perspective to the H&amp;E
 image. We can also scale the resolution of the H&amp;E image to
-9103.71x6768.63.</p>
+9103.71x6768.63 in order to speed up the registration, however the
+original scales can also be used.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))</code></pre>
 <p><img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE_function.png" class="center"></p>
 <p><br></p>
@@ -973,8 +982,8 @@ devtools::install_github(
   configure.vars=c(&quot;MAKEJ=6&quot;, 
                    &quot;ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON&quot;))</code></pre>
 <p>We can then use <strong>registerSpatialData</strong> function as
-before and select “BSpline (SimpleITK)” option to conduct non-rigid
-alignment.</p>
+before and select “Affine + Non-Rigid” and “BSpline (SimpleITK)” options
+to conduct non-rigid alignment.</p>
 <pre class="r watch-out"><code>library(SimpleITK)
 xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))</code></pre>
 <p><img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE_function_simpleitk.png" class="center"></p>
@@ -1042,9 +1051,6 @@ matched across images.</p>
 <pre class="r watch-out"><code>DLPFC_list &lt;- list(DLPFC_3, DLPFC_4)
 reg3and4 &lt;- registerSpatialData(object_list = DLPFC_list)</code></pre>
 <p><br></p>
-</div>
-<div id="d-spot-clustering" class="section level3">
-<h3>3D Spot Clustering</h3>
 <p>We can now combine all sections into one VoltRon object. There are
 two pairs of serial tissue sections, but both pairs (thus 4 sections)
 are from the same tissue block. Hence, we can combine these two lists
@@ -1056,13 +1062,27 @@ SRBlock</code></pre>
 <pre><code>VoltRon Object 
 DLPFC_Block: 
   Layers: Section1 Section2 Section3 Section4 
-Assays: Visium(Main) </code></pre>
-<p><br></p>
-<p>Aligning spots along the z dimension allows us to cluster these spots
-using both the gene expression similarities and spatial adjacency (both
-along the x-y direction and in the z direction). We first generate a
-spatial neighborhood graph and use this graph along with the gene
-expression neighborhood graph <strong>(under development)</strong>.</p>
+Assays: Visium(Main) 
+Features: RNA(Main)</code></pre>
+<p>Now that we have combined registered pairs of adjacent tissue
+sections, we should define the adjacency of these pairs in the tissue
+block.</p>
+<pre class="r watch-out"><code># two pairs of adjacent sections
+connectivity &lt;- data.frame(
+  c(1,1,3,3),
+  c(1,2,3,4)
+)
+# adjacent sections are 10 micron apart, and pairs 300 micron
+zlocation &lt;- c(0, 10, 300, 310)*params$tissue_lowres_scalef
+
+# add connectivity information to the block
+SRBlock &lt;- addBlockConnectivity(SRBlock, 
+                                connectivity = connectivity,
+                                zlocation = zlocation,
+                                sample = &quot;DLPFC_Block&quot;)</code></pre>
+<p>The aligned and connected Visium assays of the DLPFC then could be
+used for 3D spatial analysis, specifically as shown in the <a
+href="nicheclustering.html">Niche Clustering</a> tutorial.</p>
 </div>
 </div>
 </div>

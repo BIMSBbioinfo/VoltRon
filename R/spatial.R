@@ -123,14 +123,9 @@ getSpatialNeighbors <- function(
                nnresults <- RCDT::delaunay(coords)
                nnedges <- data.table::data.table(nnresults$edges[,seq_len(2)])
                colnames(nnedges) <- c("V1", "value")
-               # nnedges <- as.vector(t(nnresults$edges[,seq_len(2)]))
-               # nnedges <- rownames(coords)[nnedges]
-               # nnedges$V1 <- rownames(coords)[nnedges$V1]
-               # nnedges$value <- rownames(coords)[nnedges$value]
                nnedges
              },
              spatialkNN = {
-               # nnedges <- RANN::nn2(coords, k = k + 1)
                nnresults <- knn_annoy(coords, k = k + 1)
                names(nnresults) <- c("nn.index", "nn.dist")
                nnedges <- data.table::melt(data.table::data.table(nnresults$nn.index), id.vars = "V1")
@@ -140,34 +135,35 @@ getSpatialNeighbors <- function(
                  nnedges <- data.table::data.table(nnedges, dist = nndist$value)
                }
                nnedges <- nnedges[V1 > 0 & value > 0, !"variable"]
-               # nnedges <- as.vector(t(as.matrix(nnedges)))
-               # nnedges$V1 <- rownames(coords)[nnedges$V1]
-               # nnedges$value <- rownames(coords)[nnedges$value]
                nnedges
              },
              radius = {
                if(length(radius) == 0){
-                 spot.radius <- vrAssayParams(object[[assy]], param = "nearestpost.distance")
+                 # choose only one spot.radius
+                 assy_radius <- if(length(assy) > 1) assy[1] else assy
+                 spot.radius <- vrAssayParams(object[[assy_radius]], 
+                                              param = "nearestpost.distance")
                  radius <- ifelse(is.null(spot.radius), 1, spot.radius)
                }
-               nnresults <- suppressWarnings({RANN::nn2(coords, searchtype = "radius", radius = radius, k = min(300, sqrt(nrow(cur_coords))/2))})
-               nnedges <- data.table::melt(data.table::data.table(nnresults$nn.idx), id.vars = "V1")
+               nnresults <- suppressWarnings({
+                 RANN::nn2(coords, searchtype = "radius", 
+                           radius = radius, 
+                           k = min(300, sqrt(nrow(cur_coords))/2))})
+               nnedges <- data.table::melt(
+                 data.table::data.table(nnresults$nn.idx), 
+                 id.vars = "V1")
                if(calculate.distances){
                  nndist <- data.table::data.table(nnresults$nn.dists)
                  nndist <- data.table::melt(nndist, id.vars = "V1")
                  nnedges <- data.table::data.table(nnedges, dist = nndist$value)
                }
                nnedges <- nnedges[V1 > 0 & value > 0, !"variable"]
-               # nnedges <- as.vector(t(as.matrix(nnedges)))
-               # nnedges$V1 <- rownames(coords)[nnedges$V1]
-               # nnedges$value <- rownames(coords)[nnedges$value]
                nnedges
              })
     spatialedges$V1 <- rownames(coords)[spatialedges$V1]
     spatialedges$value <- rownames(coords)[spatialedges$value]
     spatialedges_list <- c(spatialedges_list, list(spatialedges))
   }
-  # spatialedges <- unlist(spatialedges_list)
   spatialresults <- do.call(rbind, spatialedges_list)
   spatialedges <- as.vector(t(as.matrix(spatialresults[,c("V1", "value")])))
   spatialedges
@@ -423,283 +419,6 @@ vrNeighbourhoodEnrichmentSingle <- function(
   
   # return
   neigh_results
-}
-
-#' vrNeighbourhoodEnrichmentSingle
-#'
-#' Conduct Neighborhood enrichment test for pairs of clusters for a vrAssay
-#'
-#' @param object a VoltRon object
-#' @param group.by a column from metadata to seperate spatial points
-#' @param graph.type the type of graph to determine spatial neighborhood
-#' @param num.sim the number of simulations
-#' @param seed seed
-#'
-#' @importFrom dplyr group_by bind_rows filter summarize mutate n
-#' @importFrom igraph neighborhood
-#'
-#' @noRd
-vrNeighbourhoodEnrichmentSingle_old <- function(
-    object,
-    group.by = NULL,
-    graph.type = "delaunay",
-    num.sim = 1000,
-    seed = 1
-) {
-  # set the seed
-  set.seed(seed)
-  
-  # check groups
-  if(!is.list(group.by)){
-    group.by <- list(group.by)
-    names(group.by) <- vrAssayNames(object)
-  }
-  
-  # get groups
-  grp <- NULL
-  for(assy in names(group.by)){
-    metadata <- Metadata(object, assay = assy)
-    if(group.by[[assy]] %in% colnames(metadata)){
-      cur_grp <- metadata[[group.by[[assy]]]]
-      if("id" %in% colnames(metadata)){
-        names(cur_grp) <- as.vector(metadata$id)
-      } else {
-        names(cur_grp) <- rownames(metadata) 
-      }
-    } else {
-      stop("'", group.by[[assy]], "' is not available in metadata!")
-    } 
-    grp <- c(grp, cur_grp)
-  }
-  
-  # get graph and neighborhood
-  message("Getting Neighborhood graph ...")
-  graphx <- vrGraph(object, graph.type = graph.type, assay = names(group.by))
-  vertex_names <- igraph::V(graphx)$name
-  neighbors_graph <- igraph::neighborhood(graphx, nodes = vertex_names)
-  # graph <- vrGraph(object, graph.type = graph.type, assay = names(group.by))
-  # neighbors_graph <- igraph::neighborhood(graph)
-  # neighbors_graph_data <- lapply(neighbors_graph, function(x) {
-  #   cbind(x$name[1],x$name)[-1,]
-  # })
-  # neighbors_graph_data <- do.call(rbind, neighbors_graph_data)
-  # colnames(neighbors_graph_data) <- c("from", "to")
-  
-  # get neighborhood data
-  node_names <- rep(vertex_names, rep(lapply(neighbors_graph, length)))
-  target_names <- unlist(neighbors_graph)
-  neighbors_graph_data <- cbind(node_names, names(target_names))
-  colnames(neighbors_graph_data) <- c("from", "to")
-  
-  # get simulations
-  message("Permute labels ...")
-  grp <- grp[names(V(graphx))]
-  grp_sim <- replicate(num.sim, sample(grp), simplify = "matrix")
-  rownames(grp_sim) <- names(grp)
-  
-  # optional
-  baseDT  <- as.data.table(neighbors_graph_data)
-  
-  # get adjacency for observed and simulated pairs
-  message("Simulate Edges ...")
-  from_ids <- neighbors_graph_data[, 1]
-  to_ids <- neighbors_graph_data[, 2]
-  neighbors_graph_data_list <- vector("list", num.sim + 1)
-  neighbors_graph_data_list[[1]] <- data.frame(
-    neighbors_graph_data,
-    from_value = grp[from_ids],
-    to_value = grp[to_ids],
-    type = "obs"
-  )
-  
-  # TODO: put this back, if above doesn't work
-  for(i in seq_len(num.sim)) {
-    print(i)
-    sim_grp <- grp_sim[, i]
-    neighbors_graph_data_list[[i + 1]] <- data.frame(
-      neighbors_graph_data,
-      from_value = sim_grp[from_ids],
-      to_value = sim_grp[to_ids],
-      type = paste0("sim", i)
-    )
-  }
-  neighbors_graph_data <- dplyr::bind_rows(neighbors_graph_data_list)
-  
-  # get adjacency for observed and simulated pairs
-  message("Calculate Statistics ...")
-  neigh_results <- neighbors_graph_data %>%
-    dplyr::group_by(from_value, to_value, type) %>%
-    dplyr::summarize(mean_value = dplyr::n()) %>%
-    dplyr::group_by(from_value, to_value) %>%
-    dplyr::mutate(
-      assoc_test = mean_value >
-        ifelse("obs" %in% type, mean_value[type == "obs"], 0),
-      segreg_test = mean_value <
-        ifelse("obs" %in% type, mean_value[type == "obs"], 0)
-    ) %>%
-    dplyr::mutate(majortype = ifelse(type == "obs", "obs", "sim")) %>%
-    dplyr::group_by(from_value, to_value) %>%
-    dplyr::mutate(
-      value = ifelse(
-        sum(majortype == "obs") > 0,
-        log(
-          mean_value[majortype == "obs"] / mean(mean_value[majortype == "sim"])
-        ),
-        0
-      )
-    ) %>%
-    dplyr::filter(type != "obs") %>%
-    dplyr::group_by(from_value, to_value) %>%
-    dplyr::summarize(
-      p_assoc = mean(assoc_test),
-      p_segreg = mean(segreg_test),
-      value = value[1]
-    ) %>%
-    dplyr::mutate(
-      p_assoc_adj = p.adjust(p_assoc, method = "fdr"),
-      p_segreg_adj = p.adjust(p_segreg, method = "fdr")
-    )
-  
-  # number of samples
-  grp_table <- table(grp)
-  neigh_results$n_from <- grp_table[neigh_results$from_value]
-  neigh_results$n_to <- grp_table[neigh_results$to_value]
-  
-  # return
-  neigh_results
-}
-
-#' vrNeighbourhoodEnrichmentSingle
-#'
-#' Conduct Neighborhood enrichment test for pairs of clusters for a vrAssay
-#'
-#' @param object a VoltRon object
-#' @param group.by a column from metadata to seperate spatial points
-#' @param graph.type the type of graph to determine spatial neighborhood
-#' @param num.sim the number of simulations
-#' @param seed seed
-#'
-#' @importFrom dplyr group_by bind_rows filter summarize mutate n
-#' @importFrom igraph neighborhood
-#'
-#' @noRd
-vrNeighbourhoodEnrichmentSingle_old2 <- function(object, group.by = NULL, graph.type = "delaunay", num.sim = 1000, seed = 1) {
-  
-  # set the seed
-  set.seed(seed)
-  
-  # check groups
-  if(!is.list(group.by)){
-    group.by <- list(group.by)
-    names(group.by) <- vrAssayNames(object)
-  }
-  
-  # get groups
-  grp <- NULL
-  for(assy in names(group.by)){
-    metadata <- Metadata(object, assay = assy)
-    if(group.by[[assy]] %in% colnames(metadata)){
-      cur_grp <- metadata[[group.by[[assy]]]]
-      if("id" %in% colnames(metadata)){
-        names(cur_grp) <- as.vector(metadata$id)
-      } else {
-        names(cur_grp) <- rownames(metadata) 
-      }
-    } else {
-      stop("'", group.by[[assy]], "' is not available in metadata!")
-    } 
-    grp <- c(grp, cur_grp)
-  }
-  # spatialpoints <- names(grp)
-  
-  # get graph and neighborhood
-  message("Getting neighborhood graph")
-  graphx <- vrGraph(object, graph.type = graph.type, assay = names(group.by))
-  vertex_names <- igraph::V(graphx)$name
-  neighbors_graph <- igraph::neighborhood(graphx, nodes = vertex_names)
-  spatialpoints <- vertex_names
-  
-  # get neighborhood data
-  node_names <- rep(vertex_names, rep(lapply(neighbors_graph, length)))
-  target_names <- unlist(neighbors_graph)
-  neighbors_graph_data <- data.table::data.table(node_names, names(target_names))
-  neighbors_graph_data <- setNames(neighbors_graph_data, c("from", "to"))
-
-  # get simulations
-  message("Permuting labels")
-  grp <- grp[names(V(graphx))]
-  grp_sim <- replicate(num.sim, sample(grp), simplify = "matrix")
-  grp_sim <- cbind(grp, grp_sim)
-  grp_sim <- data.table::as.data.table(grp_sim)
-
-  # get adjacency for observed and simulated pairs
-  message("Simulating edges")
-  from_ids <- match(neighbors_graph_data$from, vertex_names)
-  to_ids   <- match(neighbors_graph_data$to, vertex_names)
-  # from_ids <- neighbors_graph_data$from
-  # to_ids <- neighbors_graph_data$to
-  message("art1")
-  # idx_lookup <- setNames(seq_len(nrow(grp_sim)), rownames(grp_sim))
-  # from_ids <- idx_lookup[neighbors_graph_data$from]
-  # to_ids   <- idx_lookup[neighbors_graph_data$to]
-  from_labels <- grp_sim[as.integer(from_ids), ]
-  colnames(from_labels) <- c("obs", paste0("sim",1:(ncol(grp_sim)-1)))
-  to_labels   <- grp_sim[as.integer(to_ids), ]
-  colnames(to_labels) <- c("obs", paste0("sim",1:(ncol(grp_sim)-1)))
-  message("art3")
-  
-  # statistics
-  message("Calculating statistics")
-  myfun <- function(x,y){
-    print(head(x))
-    print(head(y))
-    as.data.frame(table(x, y))
-  }
-  # pair_counts <- data.table::copy(from_labels)
-  tmp <- Map(myfun, from_labels, to_labels)
-  # pair_counts[, names(from_labels) := Map(myfun, from_labels, to_labels)]
-  
-    
-  # to_labels <- data.table::melt(data.table::data.table(to_labels),
-  #                               measure.vars  = colnames(to_labels))
-  # to_labels <- data.table::melt(to_labels,
-  #                               measure.vars  = colnames(to_labels))
-  # names(to_labels) <- c("type", "to")
-  # from_labels <- data.table::melt(from_labels,
-  #                               measure.vars  = colnames(from_labels))
-  # names(from_labels) <- c("type", "from")
-  # message("art1")
-  # dt <- data.table(from_labels[,2], 
-  #                  to_labels)
-  # message("art2")
-  # pair_counts <- dt[, .N, by = .(from, to, type)]
-  # message("art3")
-  # pair_counts[, `:=`(
-  #   assoc_test = N > if ("obs" %in% type) N[type == "obs"] else 0,
-  #   segreg_test = N < if ("obs" %in% type) N[type == "obs"] else 0,
-  #   majortype = ifelse(type == "obs", "obs", "sim")
-  # ), by = .(from, to)]
-  # message("art4")
-  # pair_counts[, value := {
-  #   if (sum(majortype == "obs") > 0) {
-  #     obs_val <- N[majortype == "obs"]
-  #     sim_mean <- mean(N[majortype == "sim"])
-  #     if (sim_mean > 0) log(obs_val / sim_mean) else 0
-  #   } else {
-  #     0
-  #   }
-  # }, by = .(from, to)]
-  # pair_counts <- pair_counts[type != "obs"]
-  # pair_counts <- pair_counts[, .(
-  #   p_assoc = mean(assoc_test),
-  #   p_segreg = mean(segreg_test),
-  #   value = value[1]
-  # ), by = .(from, to)]
-  # pair_counts[, p_assoc_adj := p.adjust(p_assoc, method = "fdr")]
-  # pair_counts[, p_segreg_adj := p.adjust(p_segreg, method = "fdr")]
-  
-  # return
-  pair_counts
 }
 
 ####

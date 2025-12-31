@@ -928,7 +928,8 @@ acute_case_1:
   Layers: Section1 Section2 
 ... 
 There are 13 samples in total 
-Assays: MELC(Main) </code></pre>
+Assays: MELC(Main)
+Features: main(Main) </code></pre>
 <p><br></p>
 <p>The prolonged case 4 has two fields of views (FOVs). By subsetting on
 the sample of a prolonged case, we can visualize only these two
@@ -962,12 +963,12 @@ conditions.</p>
 vr_merged &lt;- getProfileNeighbors(vr_merged, dims = 1:10, k = 10, method = &quot;SNN&quot;)
 vrGraphNames(vr_merged)</code></pre>
 <pre><code>[1] &quot;SNN&quot;</code></pre>
-<pre class="r watch-out"><code>vr_merged &lt;- getClusters(vr_merged, resolution = 0.8, label = &quot;MELC_Clusters&quot;, graph = &quot;SNN&quot;)
-
-# install patchwork package
+<pre class="r watch-out"><code># install patchwork package
 if (!requireNamespace(&quot;patchwork&quot;, quietly = TRUE))
   install.packages(&quot;patchwork&quot;)
 library(patchwork)
+
+vr_merged &lt;- getClusters(vr_merged, resolution = 0.8, label = &quot;MELC_Clusters&quot;, graph = &quot;SNN&quot;)
 
 # visualize conditions and clusters
 vr_merged$Condition &lt;- gsub(&quot;_[0-9]$&quot;, &quot;&quot;, vr_merged$Sample)
@@ -1031,7 +1032,7 @@ href="https://www.nature.com/articles/s41592-021-01358-2">Palla et. al
 <p>Here, we will use the original cell type labels annotated by <a
 href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9922044/">Mothes et.
 al 2023</a>.</p>
-<pre class="r watch-out"><code>neighborhood_results &lt;- vrNeighbourhoodEnrichment(vr_merged, group.by = &quot;Clusters&quot;)</code></pre>
+<pre class="r watch-out"><code>neighborhood_results &lt;- vrNeighbourhoodEnrichment(vr_merged, group.by = &quot;Clusters&quot;, verbose = FALSE)</code></pre>
 <p>The neighborhood analysis provides the results of:</p>
 <ul>
 <li>the <strong>association</strong> tests (whether cell types are
@@ -1045,13 +1046,13 @@ assess the impact of the results of the test (i.e. low number of
 abundance in one cell type may indicate low impact).</p>
 <pre class="r watch-out"><code>head(neighborhood_results)</code></pre>
 <div>
-<pre><code style="font-size: 10px;">          from_value     to_value   p_assoc   p_segreg p_assoc_adj p_segreg_adj n_from n_to AssayID Assay    Layer         Sample
-Assay1.1 CD163+ macs  CD163+ macs 0.0000000 1.00000000      0.0000   1.00000000     41   41  Assay1  MELC Section1 control_case_3
-Assay1.2 CD163+ macs CD4+ T cells 0.9380000 0.03300000      0.9980   0.09762866     41   48  Assay1  MELC Section1 control_case_3
-Assay1.3 CD163+ macs  CD8+ Tcells 0.8779011 0.04339051      0.9980   0.09762866     41   11  Assay1  MELC Section1 control_case_3
-Assay1.4 CD163+ macs     NK cells 0.8190000 0.08700000      0.9980   0.15660000     41   15  Assay1  MELC Section1 control_case_3
-Assay1.5 CD163+ macs   endothelia 0.1230000 0.85100000      0.5535   0.95737500     41  139  Assay1  MELC Section1 control_case_3
-Assay1.6 CD163+ macs    epithelia 0.9320000 0.03600000      0.9980   0.09762866     41   39  Assay1  MELC Section1 control_case_3</code></pre>
+<pre><code style="font-size: 9px;">   from_value     to_value   p_assoc   p_segreg      value p_assoc_adj p_segreg_adj n_from n_to AssayID unique.object_subset.Sample.
+1 CD163+ macs  CD163+ macs 0.0000000 1.00000000  0.4304110      0.0000   1.00000000     41   41  Assay1               control_case_3
+2 CD163+ macs CD4+ T cells 0.9380000 0.03300000 -0.3804436      0.9980   0.09762866     41   48  Assay1               control_case_3
+3 CD163+ macs  CD8+ Tcells 0.8779011 0.04339051 -0.9299209      0.9980   0.09762866     41   11  Assay1               control_case_3
+4 CD163+ macs     NK cells 0.8190000 0.08700000 -0.5373702      0.9980   0.15660000     41   15  Assay1               control_case_3
+5 CD163+ macs   endothelia 0.1230000 0.85100000  0.1155823      0.5535   0.95737500     41  139  Assay1               control_case_3
+6 CD163+ macs    epithelia 0.9320000 0.03600000 -0.4064646      0.9980   0.09762866     41   39  Assay1               control_case_3</code></pre>
 </div>
 <p><br></p>
 <pre class="r watch-out"><code>vrNeighbourhoodEnrichmentPlot(neighborhood_results, assay = &quot;Assay1&quot;, type = &quot;assoc&quot;)</code></pre>
