@@ -784,7 +784,8 @@ writeHDF5ArrayInImage <- function(
          remotes::install_github('bnprks/BPCells/r')"
       )
     }
-    if (!inherits(object, "dgCMatrix")) {
+    # if (!inherits(object, "dgCMatrix")) {
+    if (!inherits(object, "Matrix")) {
       object <- as(object, "dgCMatrix")
     }
     object <- BPCells::write_matrix_hdf5(
