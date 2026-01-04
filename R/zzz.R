@@ -60,7 +60,9 @@ utils::globalVariables(
     "assay_id",
     "postfix",
     "cell_assay_id",
-    "obs"
+    "obs",
+    "feat",
+    "osbm"
   ),
   package = "VoltRon",
   add = FALSE
