@@ -1403,6 +1403,7 @@ applyMapping <- function(coords, mapping){
   coords
 }
 
+#' @importFrom utils write.table
 applySimpleITKMapping <- function(coords, mapping){
   
   # check SimpleITK
@@ -1425,7 +1426,7 @@ applySimpleITKMapping <- function(coords, mapping){
   tfx <- mapping
   suppressWarnings(file.remove(input_file, showWarnings = FALSE))
   cat("point\n", nrow(coords), "\n", file = input_file)
-  write.table(coords, input_file, append = TRUE,
+  utils::write.table(coords, input_file, append = TRUE,
               col.names = FALSE, row.names = FALSE, quote = FALSE)
   tfx$SetOutputDirectory(tmpdir)
   tfx$SetFixedPointSetFileName(input_file)
