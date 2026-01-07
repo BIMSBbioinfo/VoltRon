@@ -32,7 +32,7 @@ SystemRequirements: OpenCV 4.8 (or higher): libopencv-dev (Debian, Ubuntu) or
 Encoding: UTF-8
 RoxygenNote: 7.3.3
 biocViews:
-Imports: methods, grDevices, data.table, Matrix, S4Arrays, S4Vectors, 
+Imports: utils, methods, grDevices, data.table, Matrix, S4Arrays, S4Vectors, 
          ids, RcppAnnoy, RANN, igraph, dplyr, ggplot2, ggrepel, ggpubr, 
          rjson, magick, EBImage, sp, rlang, shiny, shinyjs, stringr, 
          BiocSingular, uwot, RCDT
