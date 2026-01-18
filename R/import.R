@@ -337,11 +337,15 @@ generateXeniumImage <- function(
       )
     }
     if (dir.exists(paste0(dir.path, "/morphology_focus"))) {
-      if (verbose) {
-        message("Loading morphology_focus_0000.ome.tif ...")
-      }
+      focus_file <- list.files(file.path(dir.path, "morphology_focus"),
+                                pattern = ".ome.tif$",
+                                full.names = FALSE,
+      )
+      focus_file <- focus_file[grepl("0000", focus_file)]
+      if (verbose)
+        message(paste0("Loading ", focus_file, " ..."))
       morphology_image_lowres <- RBioFormats::read.image(
-        paste0(dir.path, "/morphology_focus/morphology_focus_0000.ome.tif"),
+        file.path(dir.path, "morphology_focus", focus_file),
         resolution = resolution_level,
         subset = list(C = 1)
       )
