@@ -26,7 +26,6 @@ RUN R -e "install.packages(c('shiny', 'devtools', 'BiocManager'), repos='http://
 
 # Install VoltRon dependencies
 RUN R -e "install.packages(c('grDevices', 'data.table', 'RcppAnnoy', 'RANN', 'Matrix', 'dplyr', 'ggplot2', 'ggrepel', 'igraph', 'rjson', 'magick', 'ids', 'sp', 'reshape2', 'rlang', 'ggpubr', 'shinyjs'), repos='http://cran.rstudio.com/')"
-RUN R -e "devtools::install_github('stla/RCDT')"
 RUN R -e "install.packages(c('stringr', 'uwot'), repos='http://cran.rstudio.com/')"
 RUN R -e "BiocManager::install(c('EBImage', 'S4Arrays', 'BiocSingular'))"
 
@@ -55,6 +54,7 @@ RUN R -e "install.packages('patchwork')"
 RUN R -e "install.packages('anndata')"
 RUN R -e "install.packages('R.utils')"
 RUN R -e "devtools::install_github('immunogenomics/presto')"
+RUN R -e "devtools::install_github('stla/RCDT')"
 
 # VoltRon
 RUN R -e "devtools::install_github('BIMSBbioinfo/VoltRon')"
