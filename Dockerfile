@@ -6,6 +6,9 @@ RUN apt-get update
 RUN apt-get install -y libgdal-dev libfftw3-dev libmagick++-dev cmake libhdf5-dev git libopencv-dev libopencv-features2d-dev  
 RUN apt-get install -y libssl-dev libcurl4-openssl-dev libgit2-dev libxml2-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev libz-dev
 
+# RCDT/rgl dependencies
+RUN apt-get install -y libglu1-mesa libglu1-mesa-dev libxext6 libsm6 libxrender1
+    
 # OpenCV
 RUN wget https://github.com/opencv/opencv/archive/refs/tags/4.8.1.zip
 RUN unzip 4.8.1.zip
