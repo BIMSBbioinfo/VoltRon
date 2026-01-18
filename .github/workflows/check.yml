@@ -184,8 +184,8 @@ jobs:
           #   mode = "wb"
           # )
           # install.packages(dest, repos = NULL, type = "source")
-          # devtools::install_github("stla/RCDT")
-          install.packages('RCDT', repos = c('https://stla.r-universe.dev'))
+          devtools::install_github("stla/RCDT")
+          # install.packages('RCDT', repos = c('https://stla.r-universe.dev'))
           
           # add remaining packages
           devtools::install_github('BIMSBbioinfo/VoltRonStore')
