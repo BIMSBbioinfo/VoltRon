@@ -170,6 +170,14 @@ jobs:
       # All Other dependencies
       - name: Install Suggested dependencies
         run: |
+          # TODO: install RCDT from archive for now
+          dest <- file.path(tempdir(), "RCDT_1.3.0.tar.gz")
+          download.file(
+            url  = "https://cran.r-project.org/src/contrib/Archive/RCDT/RCDT_1.3.0.tar.gz",
+            destfile = dest,
+            mode = "wb"
+          )
+          install.packages(dest, repos = NULL, type = "source")   
           devtools::install_github('BIMSBbioinfo/VoltRonStore')
           install.packages("Seurat")
           BiocManager::install("glmGamPoi")
