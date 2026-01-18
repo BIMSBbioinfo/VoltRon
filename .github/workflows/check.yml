@@ -171,10 +171,7 @@ jobs:
       - name: Install Suggested dependencies
         run: |
           # TODO: install RCDT from archive for now
-          install.packages("colorsGen")         
-          install.packages("Polychrome")     
-          install.packages("rgl")     
-          install.packages("Rvcg")     
+          install.packages(c("colorsGen", "Polychrome", "rgl", "Rvcg", "gplots"))
           dest <- file.path(tempdir(), "RCDT_1.3.0.tar.gz")
           download.file(
             url  = "https://cran.r-project.org/src/contrib/Archive/RCDT/RCDT_1.3.0.tar.gz",
