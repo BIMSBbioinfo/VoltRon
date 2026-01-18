@@ -26,7 +26,8 @@ RUN R -e "install.packages(c('shiny', 'devtools', 'BiocManager'), repos='http://
 
 # Install VoltRon dependencies
 RUN R -e "install.packages(c('grDevices', 'data.table', 'RcppAnnoy', 'RANN', 'Matrix', 'dplyr', 'ggplot2', 'ggrepel', 'igraph', 'rjson', 'magick', 'ids', 'sp', 'reshape2', 'rlang', 'ggpubr', 'shinyjs'), repos='http://cran.rstudio.com/')"
-RUN R -e "install.packages(c('stringr', 'uwot', 'RCDT'), repos='http://cran.rstudio.com/')"
+RUN R -e "devtools::install_github('stla/RCDT')"
+RUN R -e "install.packages(c('stringr', 'uwot'), repos='http://cran.rstudio.com/')"
 RUN R -e "BiocManager::install(c('EBImage', 'S4Arrays', 'BiocSingular'))"
 
 # set up java
