@@ -171,6 +171,10 @@ jobs:
       - name: Install Suggested dependencies
         run: |
           # TODO: install RCDT from archive for now
+          install.packages("colorsGen")         
+          install.packages("Polychrome")     
+          install.packages("rgl")     
+          install.packages("Rvcg")     
           dest <- file.path(tempdir(), "RCDT_1.3.0.tar.gz")
           download.file(
             url  = "https://cran.r-project.org/src/contrib/Archive/RCDT/RCDT_1.3.0.tar.gz",
@@ -178,6 +182,8 @@ jobs:
             mode = "wb"
           )
           install.packages(dest, repos = NULL, type = "source")   
+          
+          # add remaining packages
           devtools::install_github('BIMSBbioinfo/VoltRonStore')
           install.packages("Seurat")
           BiocManager::install("glmGamPoi")
