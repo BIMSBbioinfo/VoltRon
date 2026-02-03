@@ -327,6 +327,23 @@ getBasilisk <- function() {
 }
 
 ####
+# Bioformats extensions for pyramids ####
+####
+
+.PYRAMID_FORMATS <- c(
+  ".ome.tiff",    # OME-TIFF pyramidal TIFF variants (OME-TIFF and related) 
+  ".ome.tif",
+  ".ome.tf2",
+  ".ome.tf8",
+  ".ome.btf",
+  ".svs",         # Aperio SVS
+  ".afi",         # Aperio AFI
+  ".ndpi",        # Hamamatsu NDPI
+  ".ndpis"        # Hamamatsu NDPI variants
+)
+
+
+####
 # Other Auxiliary tools ####
 ####
 
