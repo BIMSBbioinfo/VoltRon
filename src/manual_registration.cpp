@@ -58,63 +58,6 @@ void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::List &keypoints,
   im1Reg = im1Reg_cropped.clone();
 }
 
-// align images with affine transformation with TPS algorithm
-void alignImagesAffineTPS_old(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &keypoints,
-                          Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark, 
-                          const bool run_Affine)
-{
-  
-  // seed
-  cv::setRNGSeed(0);
-  RNG rng(12345);
-  Scalar value;
-  
-  // Get landmarks as Point2f
-  std::vector<cv::Point2f> query_mat = numericMatrixToPoint2f(query_landmark);
-  std::vector<cv::Point2f> ref_mat = numericMatrixToPoint2f(reference_landmark);
-  
-  // get matches
-  std::vector<cv::DMatch> matches;
-  for (unsigned int i = 0; i < ref_mat.size(); i++)
-    matches.push_back(cv::DMatch(i, i, 0));
-  
-  // calculate homography transformation
-  Mat im1Affine;
-  std::vector<cv::Point2f> query_reg;
-  if(run_Affine){
-    h = estimateAffine2D(query_mat, ref_mat);
-    Rcout << h << endl;
-    cv::warpAffine(im1, im1Affine, h, im2.size());
-    cv::transform(query_mat, query_reg, h);
-  } else {
-    h = findHomography(query_mat, ref_mat);
-    cv::warpPerspective(im1, im1Affine, h, im2.size());
-    cv::perspectiveTransform(query_mat, query_reg, h);
-  }
-  
-  // calculate TPS transformation
-  Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
-  tps->estimateTransformation(ref_mat, query_reg, matches);
-  
-  // save keypoints 
-  keypoints[0] = point2fToNumericMatrix(ref_mat);
-  keypoints[1] = point2fToNumericMatrix(query_reg); 
-  
-  // determine extension limits for both images
-  int y_max = max(im1Affine.rows, im2.rows);
-  int x_max = max(im1Affine.cols, im2.cols);
-
-  // extend images
-  cv::copyMakeBorder(im1Affine, im1Affine, 0.0, (int) (y_max - im1Affine.rows), 0.0, (x_max - im1Affine.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
-
-  // transform image
-  tps->warpImage(im1Affine, im1Reg);
-  
-  // resize image
-  cv::Mat im1Reg_cropped  = im1Reg(cv::Range(0,im2.size().height), cv::Range(0,im2.size().width));
-  im1Reg = im1Reg_cropped.clone();
-}
-
 // align images with FLANN algorithm
 void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &keypoints,
                           Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark,
@@ -187,7 +130,7 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVe
                                           Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark,
                                           const int width1, const int height1,
                                           const int width2, const int height2,
-                                          Rcpp::String method)
+                                          Rcpp::String method, Rcpp::String nonrigid)
 {
   // Return data
   Rcpp::List out(2);
@@ -204,8 +147,13 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVe
 
   // AffineHomography + Non-rigid (TPS)
   if(strcmp(method.get_cstring(), "Non-Rigid") != 0){
-    const bool run_Affine = ((strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0) || (strcmp(method.get_cstring(), "Affine") == 0));
-    const bool run_TPS = (strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0 || strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0);
+    // const bool run_Affine = ((strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0) || (strcmp(method.get_cstring(), "Affine") == 0));
+    // const bool run_TPS = (strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0 || strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0);
+    const bool run_TPS = (strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0 || 
+                          strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0) && 
+                          strcmp(nonrigid.get_cstring(), "TPS (OpenCV)") == 0;
+    const bool run_Affine = (strcmp(method.get_cstring(), "Affine") == 0 || 
+                             strcmp(method.get_cstring(), "Affine + Non-Rigid") == 0);
     alignImagesAffineTPS(im, imReference, imReg, 
                          h, keypoints,
                          query_landmark, reference_landmark, run_Affine, run_TPS);
