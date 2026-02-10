@@ -420,7 +420,7 @@ getRCTD <- function(object, features = NULL, reference, sc.cluster, ...) {
         )
       }
     } else {
-      full_data[common, ] <- results[common, ]
+      full_data[common, ] <- as.matrix(results[common, ,drop=FALSE])
     }
     results <- full_data
   }
