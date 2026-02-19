@@ -3180,8 +3180,11 @@ importImage <- function(
       # check if image exists
       if (is.character(img)) {
         if (file.exists(img)) {
-          # ome.tiff images
-          if (grepl(".ome.tiff$|.ome.tif$", img)) {
+          # Rbioformat pyramid images
+          formats <- paste(
+            paste0(.PYRAMID_FORMATS, "$"), 
+            collapse = "|")
+          if (grepl(formats, img)) {
             # check image channel size
             channelIDs <- .checkOmeTiffChannels(
               img,
