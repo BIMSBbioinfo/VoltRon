@@ -87,6 +87,14 @@ VoltRon incorporates `RBioformats` package to import images from `ome.tiff` file
 
 See [https://cran.r-project.org/web/packages/rJava](https://cran.r-project.org/web/packages/rJava) below for more information.
 
+### RCDT
+
+`RCDT` package has been archived as of 15.01.2026. Please install as below: 
+
+```
+devtools::install_github('stla/RCDT')
+```
+
 ### SimpleITK
 
 VoltRon incorporates the `SimpleITK` package to execute non-rigid alignment across assays. You can install SimpleITK from GitHub using the following command.
