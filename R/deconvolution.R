@@ -135,21 +135,33 @@ getDeconReference <- function(
         sc.object$music_decon_clusters <- sc.object@meta.data[[sc.cluster]]
 
         # Seurat v5 layer compatibility
-        if (
-          packageVersion("SeuratObject") >= "5.0.0" &&
-            exists("JoinLayers", where = asNamespace("SeuratObject"))
-        ) {
-          sc.object <- SeuratObject::JoinLayers(sc.object, assay = sc.assay)
+        if (utils::packageVersion("SeuratObject") >= "5.0.0") {
+
+          # If layered assay, the user must join the layers beforehand
+          if ("layers" %in% slotNames(sc.object[[sc.assay]])) {
+            if (!"counts" %in% Seurat::Layers(sc.object[[sc.assay]])) {
+              stop(
+                "Seurat v5 layered assay detected. ",
+                "Please run SeuratObject::JoinLayers(sc.object, assay = '",
+                sc.assay,
+                "') before calling getDeconvolution()."
+              )
+            }
+          }
+        
           sccounts <- Seurat::GetAssayData(
             sc.object,
             assay = sc.assay,
             layer = "counts"
           )
+        
         } else {
+        
           sccounts <- Seurat::GetAssayData(
             sc.object[[sc.assay]],
             slot = "counts"
           )
+        
         }
 
         sccounts <- as.matrix(apply(sccounts, 2, ceiling))
@@ -314,7 +326,7 @@ getRCTD <- function(object, features = NULL, reference, sc.cluster, ...) {
   nUMI <- Matrix::colSums(spatialcounts)
 
   # --- spacexr >=v2.0 ---
-  if (packageVersion("spacexr") >= "2.0.0") {
+  if (utils::packageVersion("spacexr") >= "2.0.0") {
     message("Using native spacexr v2.0+ structures...")
     coords_df <- as.data.frame(coords)
 
@@ -485,17 +497,32 @@ getDeconReferenceSpot <- function(
       }
 
       # Seurat v5 layer compatibility
-      if (
-        packageVersion("SeuratObject") >= "5.0.0" &&
-          exists("JoinLayers", where = asNamespace("SeuratObject"))
-      ) {
-        sc.object <- SeuratObject::JoinLayers(sc.object, assay = sc.assay)
+      if (utils::packageVersion("SeuratObject") >= "5.0.0") {
+      
+        assay_obj <- sc.object[[sc.assay]]
+      
+        if ("layers" %in% slotNames(assay_obj)) {
+      
+          layer_names <- Seurat::Layers(assay_obj)
+      
+          if (length(layer_names) > 1) {
+            stop(
+              "Seurat v5 layered assay detected with multiple layers. ",
+              "Please run SeuratObject::JoinLayers(sc.object, assay = '",
+              sc.assay,
+              "') before calling getDeconvolution()."
+            )
+          }
+        }
+      
         sccounts <- Seurat::GetAssayData(
           sc.object,
           assay = sc.assay,
           layer = "counts"
         )
+      
       } else {
+      
         tryCatch(
           {
             sccounts <- sc.object[[sc.assay]]
@@ -504,9 +531,9 @@ getDeconReferenceSpot <- function(
             stop("The assay ", sc.assay, " not found!")
           }
         )
+      
         sccounts <- Seurat::GetAssayData(sccounts, slot = "counts")
       }
-
       if (!inherits(sccounts, "sparseMatrix")) {
         sccounts <- as(sccounts, "dgCMatrix")
       }
@@ -517,12 +544,12 @@ getDeconReferenceSpot <- function(
     } else if (inherits(sc.object, "SingleCellExperiment")) {
       if (!requireNamespace('SingleCellExperiment', quietly = TRUE)) {
         stop(
-          "Please install SingleCellExperiment package for using SCE objects"
+          "Please install the SingleCellExperiment package for using SCE objects."
         )
       }
       if (!is.null(sc.assay)) {
         message(
-          "The sc.assay arguement is provided by ignored for SCE objects!"
+          "The sc.assay argument is provided but ignored for SCE objects!"
         )
       }
       sccounts <- SummarizedExperiment::assays(sc.object)[["counts"]]
@@ -540,7 +567,7 @@ getDeconReferenceSpot <- function(
     sc.nUMI <- colSums(sccounts)
     names(sc.nUMI) <- colnames(sccounts)
 
-    if (packageVersion("spacexr") >= "2.0.0") {
+    if (utils::packageVersion("spacexr") >= "2.0.0") {
       message("Converting to spacexr::Reference object (v2.0+ detected)...")
       reference <- spacexr::Reference(
         counts = sccounts,
