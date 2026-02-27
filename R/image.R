@@ -177,8 +177,8 @@ subsetvrImage <- function(x, subset, spatialpoints = NULL, image = NULL) {
         img_data <- ImageArray::crop(
           img_data,
           ind = list(
-            crop_info_int[3]:(crop_info_int[3] + crop_info_int[1]),
-            crop_info_int[4]:(crop_info_int[4] + crop_info_int[2])
+            x = crop_info_int[3]:(crop_info_int[3] + crop_info_int[1]),
+            y = crop_info_int[4]:(crop_info_int[4] + crop_info_int[2])
           )
         )
         object@image[[img]] <- img_data

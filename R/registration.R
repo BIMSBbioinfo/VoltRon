@@ -2398,8 +2398,8 @@ cropImage <- function(image, geometry) {
     image <- ImageArray::crop(
       image,
       ind = list(
-        crop_info_int[3]:(crop_info_int[3] + crop_info_int[1]),
-        crop_info_int[4]:(crop_info_int[4] + crop_info_int[2])
+        x = crop_info_int[3]:(crop_info_int[3] + crop_info_int[1]),
+        y = crop_info_int[4]:(crop_info_int[4] + crop_info_int[2])
       )
     )
   }
