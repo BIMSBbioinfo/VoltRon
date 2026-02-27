@@ -72,6 +72,7 @@ Suggests:
     basilisk,
     reticulate,
     RBioFormats,
+    VoltRonStore,
     BPCells,
     HDF5Array,
     HDF5DataFrame,
@@ -102,6 +103,8 @@ Suggests:
     anndataR,
     anndata,
     SimpleITK
+Remotes:
+    BIMSBbioinfo/VoltRonStore
 Config/testthat/edition: 3
 LazyData: true
 LazyDataCompression: gzip
