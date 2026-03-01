@@ -118,7 +118,7 @@ getDeconReference <- function(
   } else if (assay.type == "ROI") {
     # check method
     if (!method %in% c("MuSiC")) {
-      warning(
+      message(
         "The selected method is not provided for ROI deconvolution. ",
         "Switching to MuSiC ..."
       )
@@ -458,7 +458,7 @@ getDeconReferenceSpot <- function(
 ) {
   # check method
   if (!method %in% c("RCTD")) {
-    warning(
+    message(
       "The selected method is not provided for spot deconvolution. ",
       "Switching to RCTD"
     )
