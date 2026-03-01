@@ -85,7 +85,7 @@ getDeconvolution <- function(
     }
   }
 
-  return(object)
+  object
 }
 
 #' getDeconReference
@@ -182,7 +182,7 @@ getDeconReference <- function(
   }
 
   # return
-  return(reference)
+  reference
 }
 
 #' getDeconSingle
@@ -261,7 +261,7 @@ getDeconSingle <- function(
   }
 
   # return
-  return(rawdata)
+  rawdata
 }
 
 ####
@@ -446,7 +446,7 @@ getRCTD <- function(object, features = NULL, reference, sc.cluster, ...) {
   norm_weights <- t(as.matrix(norm_weights))
 
   # return
-  return(norm_weights)
+  norm_weights
 }
 
 #' @noRd
@@ -587,7 +587,7 @@ getDeconReferenceSpot <- function(
   }
 
   # return
-  return(reference)
+  reference
 }
 
 ####
