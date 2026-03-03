@@ -10,19 +10,19 @@ RUN apt-get install -y libssl-dev libcurl4-openssl-dev libgit2-dev libxml2-dev l
 RUN apt-get install -y libglu1-mesa libglu1-mesa-dev libxext6 libsm6 libxrender1
     
 # OpenCV
-RUN wget https://github.com/opencv/opencv/archive/refs/tags/4.8.1.zip
-RUN unzip 4.8.1.zip
-RUN rm 4.8.1.zip
-RUN wget https://github.com/opencv/opencv_contrib/archive/refs/tags/4.8.1.zip
-RUN unzip 4.8.1.zip
-RUN rm 4.8.1.zip
-RUN mkdir build
-WORKDIR "build"
-RUN cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D INSTALL_C_EXAMPLES=ON -D INSTALL_PYTHON_EXAMPLES=ON  -D OPENCV_GENERATE_PKGCONFIG=ON -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib-4.8.1/modules/  -D BUILD_opencv_xfeatures2d=ON ../opencv-4.8.1/
-RUN make -j5
-RUN make install
-RUN sh -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf'
-RUN ldconfig
+# RUN wget https://github.com/opencv/opencv/archive/refs/tags/4.8.1.zip
+# RUN unzip 4.8.1.zip
+# RUN rm 4.8.1.zip
+# RUN wget https://github.com/opencv/opencv_contrib/archive/refs/tags/4.8.1.zip
+# RUN unzip 4.8.1.zip
+# RUN rm 4.8.1.zip
+# RUN mkdir build
+# WORKDIR "build"
+# RUN cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D INSTALL_C_EXAMPLES=ON -D INSTALL_PYTHON_EXAMPLES=ON  -D OPENCV_GENERATE_PKGCONFIG=ON -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib-4.8.1/modules/  -D BUILD_opencv_xfeatures2d=ON ../opencv-4.8.1/
+# RUN make -j5
+# RUN make install
+# RUN sh -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf'
+# RUN ldconfig
 
 # Install required R packages
 RUN R -e "install.packages(c('shiny', 'devtools', 'BiocManager'), repos='http://cran.rstudio.com/')"
