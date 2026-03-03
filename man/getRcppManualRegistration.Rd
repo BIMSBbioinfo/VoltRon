@@ -9,7 +9,8 @@ getRcppManualRegistration(
   ref_image,
   query_landmark,
   reference_landmark,
-  method = "TPS"
+  method = "Homography",
+  nonrigid = "TPS (OpenCV)"
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ getRcppManualRegistration(
 \item{reference_landmark}{refernece landmark points}
 
 \item{method}{the automated registration method, either TPS or Homography+TPS}
+
+\item{nonrigid}{the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"}
 }
 \description{
 Manual registration workflow with Rcpp

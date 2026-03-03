@@ -24,21 +24,21 @@
 #' @importFrom utils packageVersion
 #' @export
 getDeconvolution <- function(
-  object,
-  assay = NULL,
-  features = NULL,
-  sc.object,
-  sc.assay = "RNA",
-  sc.cluster = "seurat_clusters",
-  method = "RCTD",
-  ...
+    object,
+    assay = NULL,
+    features = NULL,
+    sc.object,
+    sc.assay = "RNA",
+    sc.cluster = "seurat_clusters",
+    method = "RCTD",
+    ...
 ) {
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
-
+  
   # check assay type
   assay.types <- unique(vrAssayTypes(object, assay = assay))
-
+  
   if (length(assay.types) > 1) {
     stop(
       "Please make sure that only assays of one assay type (cell/spot/ROI) are being deconvoluted at a time!"
@@ -52,19 +52,19 @@ getDeconvolution <- function(
       method = method,
       assay.type = assay.types
     )
-
+    
     # Validate reference construction
     if (is.null(reference)) {
       stop(
         "Deconvolution reference was not constructed. Check your sc.object and assay parameters."
       )
     }
-
+    
     # run a list of assays
     for (assy in assay_names) {
       # get assay
       cur_assay <- object[[assy]]
-
+      
       # RCTD
       rawdata <- getDeconSingle(
         object = cur_assay,
@@ -74,7 +74,7 @@ getDeconvolution <- function(
         sc.cluster = sc.cluster,
         ...
       )
-
+      
       # add cell type mixtures as new featureset
       object <- addFeature(
         object,
@@ -84,7 +84,7 @@ getDeconvolution <- function(
       )
     }
   }
-
+  
   object
 }
 
@@ -104,16 +104,16 @@ getDeconvolution <- function(
 #'
 #' @noRd
 getDeconReference <- function(
-  sc.object,
-  sc.assay = "RNA",
-  sc.cluster = "seurat_clusters",
-  method = "RCTD",
-  assay.type = NULL
+    sc.object,
+    sc.assay = "RNA",
+    sc.cluster = "seurat_clusters",
+    method = "RCTD",
+    assay.type = NULL
 ) {
   # Deconvolute for spots
   if (assay.type == "spot") {
     reference <- getDeconReferenceSpot(sc.object, sc.assay, sc.cluster, method)
-
+    
     # Deconvolute for ROIs
   } else if (assay.type == "ROI") {
     # check method
@@ -124,7 +124,7 @@ getDeconReference <- function(
       )
       method <- "MuSiC"
     }
-
+    
     # deconvolution with MuSiC
     if (method == "MuSiC") {
       message("Configuring Single Cell Assay (Reference) ...")
@@ -133,10 +133,10 @@ getDeconReference <- function(
         reference <- sc.object
       } else if (inherits(sc.object, "Seurat")) {
         sc.object$music_decon_clusters <- sc.object@meta.data[[sc.cluster]]
-
+        
         # Seurat v5 layer compatibility
         if (utils::packageVersion("SeuratObject") >= "5.0.0") {
-
+          
           # If layered assay, the user must join the layers beforehand
           if ("layers" %in% slotNames(sc.object[[sc.assay]])) {
             if (!"counts" %in% Seurat::Layers(sc.object[[sc.assay]])) {
@@ -148,22 +148,22 @@ getDeconReference <- function(
               )
             }
           }
-        
+          
           sccounts <- Seurat::GetAssayData(
             sc.object,
             assay = sc.assay,
             layer = "counts"
           )
-        
+          
         } else {
-        
+          
           sccounts <- Seurat::GetAssayData(
             sc.object[[sc.assay]],
             slot = "counts"
           )
-        
+          
         }
-
+        
         sccounts <- as.matrix(apply(sccounts, 2, ceiling))
         rownames(sccounts) <- rownames(sc.object[[sc.assay]])
         reference <- Seurat::as.SingleCellExperiment(Seurat::CreateSeuratObject(
@@ -180,7 +180,7 @@ getDeconReference <- function(
   } else {
     stop("Unsupported assay type: ", assay.type)
   }
-
+  
   # return
   reference
 }
@@ -201,16 +201,16 @@ getDeconReference <- function(
 #'
 #' @noRd
 getDeconSingle <- function(
-  object,
-  features = NULL,
-  reference,
-  method = "RCTD",
-  sc.cluster,
-  ...
+    object,
+    features = NULL,
+    reference,
+    method = "RCTD",
+    sc.cluster,
+    ...
 ) {
   # get assay type
   assay.type <- vrAssayTypes(object)
-
+  
   # Check that exactly one assay type is returned
   if (length(assay.type) != 1) {
     stop(
@@ -218,7 +218,7 @@ getDeconSingle <- function(
       paste(assay.type, collapse = ", ")
     )
   }
-
+  
   if (assay.type == "spot") {
     # check method
     if (!method %in% c("RCTD")) {
@@ -228,7 +228,7 @@ getDeconSingle <- function(
       )
       method <- "RCTD"
     }
-
+    
     if (method == "RCTD") {
       rawdata <- getRCTD(
         object = object,
@@ -247,7 +247,7 @@ getDeconSingle <- function(
       )
       method <- "MuSiC"
     }
-
+    
     if (method == "MuSiC") {
       message("Running MuSiC for ROI deconvolution ...")
       rawdata <- getMuSiC(
@@ -259,7 +259,7 @@ getDeconSingle <- function(
       )
     }
   }
-
+  
   # return
   rawdata
 }
@@ -288,24 +288,24 @@ getRCTD <- function(object, features = NULL, reference, sc.cluster, ...) {
       "devtools::install_github('dmcable/spacexr')"
     )
   }
-
+  
   # Prepare target spots for final alignment
   target_spots <- vrSpatialPoints(object)
-
+  
   message("Configuring Spatial Assay ...")
-
+  
   # Create spatial data
   spatialcounts <- vrData(object, norm = FALSE)
-
+  
   # Validate coordinates
   coords_raw <- vrCoordinates(object)
-
+  
   if (!all(c("x", "y") %in% colnames(coords_raw))) {
     stop("VoltRon coordinates must contain columns named 'x' and 'y'")
   }
-
+  
   coords <- as.matrix(coords_raw[, c("x", "y")])
-
+  
   # Enforce Feature Selection
   if (!is.null(features)) {
     common_feats <- intersect(rownames(spatialcounts), features)
@@ -314,47 +314,47 @@ getRCTD <- function(object, features = NULL, reference, sc.cluster, ...) {
     }
     spatialcounts <- spatialcounts[common_feats, ]
   }
-
+  
   # Align counts and coords
   common_spots <- intersect(colnames(spatialcounts), rownames(coords))
   if (length(common_spots) == 0) {
     stop("No matching spots found between count data and coordinates.")
   }
-
+  
   spatialcounts <- spatialcounts[, common_spots]
   coords <- coords[common_spots, ]
   nUMI <- Matrix::colSums(spatialcounts)
-
+  
   # --- spacexr >=v2.0 ---
   if (utils::packageVersion("spacexr") >= "2.0.0") {
     message("Using native spacexr v2.0+ structures...")
     coords_df <- as.data.frame(coords)
-
+    
     spatialdata <- spacexr::SpatialRNA(
       coords = coords_df,
       counts = spatialcounts,
       nUMI = nUMI
     )
-
+    
     message("Initializing RCTD...")
     myRCTD <- spacexr::create.RCTD(
       spatialRNA = spatialdata,
       reference = reference,
       ...
     )
-
+    
     message("Calculating Cell Type Compositions of spots with RCTD ...")
-
+    
     args <- list(...)
     if (!"doublet_mode" %in% names(args)) {
       args$doublet_mode <- 'full'
     }
-
+    
     myRCTD <- do.call(
       spacexr::run.RCTD,
       c(list(myRCTD), args[names(args) %in% names(formals(spacexr::run.RCTD))])
     )
-
+    
     results <- myRCTD@results$weights
   } else {
     # Legacy spacexr (< 2.0)
@@ -364,22 +364,22 @@ getRCTD <- function(object, features = NULL, reference, sc.cluster, ...) {
     if (!requireNamespace('SpatialExperiment', quietly = TRUE)) {
       stop("Please install SpatialExperiment package")
     }
-
+    
     message("Using legacy spacexr (< 2.0) structures...")
     spatialdata <- SpatialExperiment::SpatialExperiment(
       assay = list(counts = spatialcounts),
       spatialCoords = coords
     )
-
+    
     if (exists("createRctd", where = asNamespace("spacexr"))) {
       myRCTD <- spacexr::createRctd(
         spatialdata,
         reference,
         cell_type_col = sc.cluster
       )
-
+      
       message("Calculating Cell Type Compositions of spots with RCTD ...")
-
+      
       suppressMessages(
         myRCTD <- spacexr::runRctd(myRCTD, rctd_mode = 'full', ...)
       )
@@ -389,41 +389,41 @@ getRCTD <- function(object, features = NULL, reference, sc.cluster, ...) {
         reference,
         cell_type_col = sc.cluster
       )
-
+      
       message("Calculating Cell Type Compositions of spots with RCTD ...")
-
+      
       suppressMessages(
         myRCTD <- spacexr::run.RCTD(myRCTD, doublet_mode = 'full', ...)
       )
     }
-
+    
     results <- SummarizedExperiment::assay(myRCTD, i = "weights")
   }
-
+  
   # --- Spot Alignment & Zero-Filling ---
   # Standardize to [Spots x Features]
   res_rows <- nrow(results)
   res_cols <- ncol(results)
   n_target <- length(target_spots)
-
+  
   if (res_cols == n_target && res_rows != n_target) {
     results <- t(results)
   }
-
+  
   # Spot Filling
   if (nrow(results) != n_target) {
     full_data <- matrix(0, nrow = n_target, ncol = ncol(results))
     rownames(full_data) <- target_spots
     colnames(full_data) <- colnames(results)
-
+    
     common <- intersect(rownames(full_data), rownames(results))
-
+    
     if (length(common) == 0 && n_target > 0) {
       safe_target <- make.names(target_spots)
       safe_raw <- make.names(rownames(results))
       map_idx <- match(safe_target, safe_raw)
       valid_idx <- which(!is.na(map_idx))
-
+      
       if (length(valid_idx) > 0) {
         full_data[valid_idx, ] <- results[map_idx[valid_idx], ]
       } else {
@@ -436,25 +436,25 @@ getRCTD <- function(object, features = NULL, reference, sc.cluster, ...) {
     }
     results <- full_data
   }
-
+  
   # Normalize
   row_sums <- rowSums(results)
   row_sums[row_sums == 0] <- 1
   norm_weights <- sweep(results, 1, row_sums, "/")
-
+  
   # Final Transpose [Features x Spots]
   norm_weights <- t(as.matrix(norm_weights))
-
+  
   # return
   norm_weights
 }
 
 #' @noRd
 getDeconReferenceSpot <- function(
-  sc.object,
-  sc.assay = NULL,
-  sc.cluster,
-  method
+    sc.object,
+    sc.assay = NULL,
+    sc.cluster,
+    method
 ) {
   # check method
   if (!method %in% c("RCTD")) {
@@ -464,20 +464,20 @@ getDeconReferenceSpot <- function(
     )
     method <- "RCTD"
   }
-
+  
   # deconvolution with RCTD
   if (method == "RCTD") {
     # check package
     if (!requireNamespace('spacexr', quietly = TRUE)) {
       stop("Please install spacexr package to use the RCTD algorithm")
     }
-
+    
     message("Configuring Single Cell Assay (reference) ...")
     if (inherits(sc.object, "Seurat")) {
       if (!requireNamespace('Seurat', quietly = TRUE)) {
         stop("Please install Seurat package for using Seurat objects")
       }
-
+      
       if (is.null(sc.assay)) {
         message(
           "The sc.assay argument is not provided, using",
@@ -486,7 +486,7 @@ getDeconReferenceSpot <- function(
         )
         sc.assay <- Seurat::DefaultAssay(sc.object)
       }
-
+      
       # Central validation: Check if sc.cluster exists in meta.data
       if (!sc.cluster %in% colnames(sc.object@meta.data)) {
         stop(
@@ -495,16 +495,16 @@ getDeconReferenceSpot <- function(
           "' was not found in the Seurat object metadata."
         )
       }
-
+      
       # Seurat v5 layer compatibility
       if (utils::packageVersion("SeuratObject") >= "5.0.0") {
-      
+        
         assay_obj <- sc.object[[sc.assay]]
-      
+        
         if ("layers" %in% slotNames(assay_obj)) {
-      
+          
           layer_names <- Seurat::Layers(assay_obj)
-      
+          
           if (length(layer_names) > 1) {
             stop(
               "Seurat v5 layered assay detected with multiple layers. ",
@@ -514,15 +514,15 @@ getDeconReferenceSpot <- function(
             )
           }
         }
-      
+        
         sccounts <- Seurat::GetAssayData(
           sc.object,
           assay = sc.assay,
           layer = "counts"
         )
-      
+        
       } else {
-      
+        
         tryCatch(
           {
             sccounts <- sc.object[[sc.assay]]
@@ -531,14 +531,14 @@ getDeconReferenceSpot <- function(
             stop("The assay ", sc.assay, " not found!")
           }
         )
-      
+        
         sccounts <- Seurat::GetAssayData(sccounts, slot = "counts")
       }
       if (!inherits(sccounts, "sparseMatrix")) {
         sccounts <- as(sccounts, "dgCMatrix")
       }
       cell_types <- as.factor(sc.object@meta.data[[sc.cluster]])
-
+      
       names(cell_types) <- colnames(sc.object)
       rownames(sccounts) <- rownames(sc.object[[sc.assay]])
     } else if (inherits(sc.object, "SingleCellExperiment")) {
@@ -562,11 +562,11 @@ getDeconReferenceSpot <- function(
     } else {
       stop("The reference should be of either Seurat or SingleCellExperiment!")
     }
-
+    
     # build reference
     sc.nUMI <- colSums(sccounts)
     names(sc.nUMI) <- colnames(sccounts)
-
+    
     if (utils::packageVersion("spacexr") >= "2.0.0") {
       message("Converting to spacexr::Reference object (v2.0+ detected)...")
       reference <- spacexr::Reference(
@@ -578,14 +578,14 @@ getDeconReferenceSpot <- function(
       names(cell_types) <- colnames(sccounts)
       cell_types <- data.frame(cell_types)
       colnames(cell_types) <- sc.cluster
-
+      
       reference <- SingleCellExperiment::SingleCellExperiment(
         assays = sccounts,
         colData = cell_types
       )
     }
   }
-
+  
   # return
   reference
 }
@@ -609,11 +609,11 @@ getDeconReferenceSpot <- function(
 #'
 #' @noRd
 getMuSiC <- function(
-  object,
-  features = NULL,
-  reference,
-  sc.cluster,
-  sc.samples = NULL
+    object,
+    features = NULL,
+    reference,
+    sc.cluster,
+    sc.samples = NULL
 ) {
   if (!requireNamespace('Seurat', quietly = TRUE)) {
     stop(
@@ -633,24 +633,24 @@ getMuSiC <- function(
       "BiocManager::install('SingleCellExperiment')"
     )
   }
-
+  
   if (is.null(sc.samples)) {
     stop(
       "Please provide a metadata column for samples for MuSiC algorithm ",
       "to work, e.g. sc.samples = Sample"
     )
   }
-
+  
   if (is.null(features)) {
     features <- vrFeatures(object)
   }
-
+  
   # Single cell reference data
   reference <- reference[rownames(reference) %in% features, ]
-
+  
   # data
   datax <- as.matrix(vrData(object))
-
+  
   # common features
   common_features <- intersect(rownames(reference), rownames(datax))
   common_features <- intersect(common_features, features)
@@ -659,7 +659,7 @@ getMuSiC <- function(
   }
   reference <- reference[rownames(reference) %in% common_features, ]
   datax <- datax[common_features, ]
-
+  
   # deconvolute
   message("Calculating Cell Type Compositions of ROIs with MuSiC ...")
   results <- MuSiC::music_prop(

@@ -820,23 +820,14 @@ updateParameterPanels <- function(len_images, params, input, output, session) {
   observeEvent(input$Method, {
     if(grepl("Non-Rigid", input$Method)){
       shinyjs::show(id = "nonrigid")
-      if (input$automatictag) {
-        choices <- c(
-          "TPS (OpenCV)",
-          "BSpline (SimpleITK)"
-        )
-        selected <- "TPS (OpenCV)"
-      } else{
-        choices <- c(
-          "TPS (OpenCV)"
-        )
-        selected <- "TPS (OpenCV)"
-      }
       updateSelectInput(
         session,
         "nonrigid",
-        choices = choices,
-        selected = selected
+        choices = c(
+          "TPS (OpenCV)",
+          "BSpline (SimpleITK)"
+        ),
+        selected = "TPS (OpenCV)"
       )
     } else {
       shinyjs::hide(id = "nonrigid")
@@ -884,7 +875,6 @@ updateParameterPanels <- function(len_images, params, input, output, session) {
       }
     } else {
       # Method and Matcher
-      # choices <- c("Non-Rigid", "Homography + Non-Rigid")
       choices <- c(
         "Affine",
         "Homography",
@@ -928,10 +918,6 @@ updateParameterPanels <- function(len_images, params, input, output, session) {
     } else {
       shinyjs::show(id = "GOOD_MATCH_PERCENT")
       shinyjs::show(id = "MAX_FEATURES")
-      # if(grepl("Non-Rigid", input$Method)){
-      #   updateSelectInput(session, "Method", selected = "Homography")
-      #   showNotification("Brute-Force Matching can't be used with Non-Rigid Registration\n")
-      # }
     }
   })
 
@@ -2860,7 +2846,7 @@ computeManualPairwiseTransform <- function(
 
   # reference and target landmarks/keypoints
   mapping <- list()
-  aligned_image <- image_list[[query_ind]]
+  query_image <- image_list[[query_ind]]
   for (kk in seq_len(nrow(mapping_mat))) {
     cur_map <- mapping_mat[kk, ]
     ref_image <- image_list[[cur_map[2]]]
@@ -2886,19 +2872,46 @@ computeManualPairwiseTransform <- function(
 
     # get registered image (including all channels)
     reg <- getRcppManualRegistration(
-      aligned_image,
+      query_image,
       ref_image,
       target_landmark,
       reference_landmark,
-      method = input$Method
+      method = input$Method,
+      nonrigid = if(is.null(input$nonrigid)) "None" else input$nonrigid
     )
+    
+    # run SimpleITK as fine registration
+    if(is.null(input$nonrigid)) input$nonrigid <- "None"
+    if(grepl("SimpleITK", input$nonrigid) && 
+       grepl("Non-Rigid", input$Method)){
+      if (!requireNamespace('SimpleITK')) {
+        stop("Please install SimpleITK package!: ", 
+             "remotes::install_github('BIMSBbioinfo/SimpleITKRInstaller')", 
+             ", this is gonna take a while :)")
+      }
+      
+      tfx <- getSimpleITKAutomatedRegistration(
+        ref_image = ref_image,
+        query_image = query_image,
+        invert_query = FALSE,
+        invert_ref = FALSE,
+        flipflop_query = FALSE,
+        flipflop_ref = FALSE,
+        rotate_query = FALSE,
+        rotate_ref = FALSE,
+        initial_mapping = list(reg[[1]])
+      )
+      reg$aligned_image <- tfx$aligned_image
+      reg[[1]][[2]] <- tfx$transformation
+    }
 
     # return transformation matrix and images
     mapping[[kk]] <- reg[[1]]
     aligned_image <- reg$aligned_image
   }
 
-  return(list(mapping = mapping, aligned_image = aligned_image))
+  return(list(mapping = mapping, 
+              aligned_image = aligned_image))
 }
 
 #' getRcppManualRegistration
@@ -2910,7 +2923,8 @@ computeManualPairwiseTransform <- function(
 #' @param query_landmark query landmark points
 #' @param reference_landmark refernece landmark points
 #' @param method the automated registration method, either TPS or Homography+TPS
-#'
+#' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
+#' 
 #' @importFrom magick image_read image_data
 #'
 #' @export
@@ -2919,11 +2933,11 @@ getRcppManualRegistration <- function(
   ref_image,
   query_landmark,
   reference_landmark,
-  method = "TPS"
+  method = "Homography",
+  nonrigid = "TPS (OpenCV)"
 ) {
   # ref image
   if (inherits(ref_image, "ImageArray")) {
-    # ref_image <- as.array(ref_image)
     ref_image <- DelayedArray::realize(ref_image)
     ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
   } else {
@@ -2932,7 +2946,6 @@ getRcppManualRegistration <- function(
 
   # query image
   if (inherits(query_image, "ImageArray")) {
-    # query_image <- as.array(query_image)
     query_image <- DelayedArray::realize(query_image)
     query_image <- array(as.raw(query_image), dim = dim(query_image))
   } else {
@@ -2950,7 +2963,8 @@ getRcppManualRegistration <- function(
     height1 = dim(ref_image)[3],
     width2 = dim(query_image)[2],
     height2 = dim(query_image)[3],
-    method = method
+    method = method,
+    nonrigid = nonrigid
   )
 
   # check for null keypoints
@@ -3330,8 +3344,6 @@ getRcppAutomatedRegistration <- function(
   method = "Homography",
   nonrigid = "TPS (OpenCV)"
 ) {
-  # ref_image_rast <- magick::image_data(ref_image, channels = "rgb")
-  # query_image_rast <- magick::image_data(query_image, channels = "rgb")
   ref_image <- magick::image_data(ref_image, channels = "rgb")
   query_image <- magick::image_data(query_image, channels = "rgb")
 
@@ -3372,7 +3384,6 @@ getRcppAutomatedRegistration <- function(
   return(list(
     transmat = reg[[1]],
     dest_image = magick::image_read(reg[[2]]),
-    # dest_image = magick::image_read(ref_image),
     aligned_image = aligned_image,
     alignment_image = alignment_image,
     overlay_image = overlay_image
