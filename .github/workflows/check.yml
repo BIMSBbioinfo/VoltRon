@@ -62,8 +62,6 @@ jobs:
           sudo apt-get install -y cmake 
           sudo apt-get install -y libhdf5-dev 
           sudo apt-get install -y git 
-          sudo apt-get install -y libopencv-dev 
-          sudo apt-get install -y libopencv-features2d-dev  
           sudo apt-get install -y libssl-dev 
           sudo apt-get install -y libcurl4-openssl-dev 
           sudo apt-get install -y libgit2-dev 
@@ -162,7 +160,7 @@ jobs:
           # 
           # make -j5
           # sudo make install
-          sudo apt-get install -y libopen-dev 
+          sudo apt-get install -y libopencv-dev 
           sudo apt-get install -y libopencv-contrib-dev 
       
           sudo sh -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf'
