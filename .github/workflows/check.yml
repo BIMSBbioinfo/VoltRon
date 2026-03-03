@@ -152,20 +152,22 @@ jobs:
       - name: Install OpenCV for linux
         if: runner.os == 'Linux'
         run: |
-          ## Edit below if you have any ubuntu/linux dependencies, e.g. OpenCV
-          git clone https://github.com/opencv/opencv.git
-          git clone https://github.com/opencv/opencv_contrib.git
-      
-          mkdir build
-          cd build
-          cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D INSTALL_C_EXAMPLES=ON -D INSTALL_PYTHON_EXAMPLES=ON  -D OPENCV_GENERATE_PKGCONFIG=ON -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules/  -D BUILD_opencv_xfeatures2d=ON ../opencv/
-      
-          make -j5
-          sudo make install
+          # ## Edit below if you have any ubuntu/linux dependencies, e.g. OpenCV
+          # git clone https://github.com/opencv/opencv.git
+          # git clone https://github.com/opencv/opencv_contrib.git
+          # 
+          # mkdir build
+          # cd build
+          # cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D INSTALL_C_EXAMPLES=ON -D INSTALL_PYTHON_EXAMPLES=ON  -D OPENCV_GENERATE_PKGCONFIG=ON -D OPENCV_EXTRA_MODULES_PATH=../opencv_contrib/modules/  -D BUILD_opencv_xfeatures2d=ON ../opencv/
+          # 
+          # make -j5
+          # sudo make install
+          sudo apt-get install -y libopen-dev 
+          sudo apt-get install -y libopencv-contrib-dev 
       
           sudo sh -c 'echo "/usr/local/lib" > /etc/ld.so.conf.d/opencv.conf'
           sudo ldconfig
-          cd /
+          # cd /
           
       # All Other dependencies
       - name: Install Suggested dependencies
