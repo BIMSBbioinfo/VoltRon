@@ -2,10 +2,7 @@
 
 // OpenCV
 #include <opencv2/opencv.hpp>
-#include "opencv2/xfeatures2d.hpp"
-#include "opencv2/features2d.hpp"
 #include "opencv2/shape/shape_transformer.hpp"
-// #include <opencv2/imgproc.hpp>
 
 // Auxiliary
 #include "auxiliary.h"
@@ -14,7 +11,6 @@
 using namespace Rcpp;
 using namespace std;
 using namespace cv;
-using namespace cv::xfeatures2d;
 
 // align images with TPS algorithm
 void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::List &keypoints, 
