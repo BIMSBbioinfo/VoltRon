@@ -5,10 +5,10 @@ PKG_CONFIG_NAME_ALT="opencv"
 PKG_DEB_NAME="libopencv-dev"
 PKG_RPM_NAME="opencv-devel"
 PKG_TEST_HEADER="<opencv2/opencv.hpp>"
-PKG_LIBS="-lopencv_{stitching,superres,videostab,aruco,bgsegm,bioinspired,ccalib,dnn_objdetect,\
-dpm,face,photo,fuzzy,hfs,img_hash,line_descriptor,optflow,reg,rgbd,saliency,stereo,structured_light,\
-phase_unwrapping,surface_matching,tracking,datasets,dnn,plot,shape,video,ml,ximgproc,\
-calib3d,features2d,highgui,videoio,flann,xobjdetect,imgcodecs,objdetect,xphoto,imgproc,core}"
+PKG_LIBS="-lopencv_{stitching,superres,aruco,bgsegm,bioinspired,ccalib,dnn_objdetect,\
+dpm,face,hfs,img_hash,line_descriptor,optflow,reg,rgbd,saliency,\
+phase_unwrapping,surface_matching,tracking,datasets,dnn,plot,shape,ml,ximgproc,\
+calib3d,features2d,flann,xobjdetect,imgcodecs,objdetect,imgproc,core}"
 
 # Use pkg-config if available
 PCVERSION=`pkg-config --version 2>/dev/null`
