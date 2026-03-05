@@ -45,7 +45,7 @@ RUN R -e "devtools::install_github('immunogenomics/presto')"
 RUN R -e "devtools::install_github('stla/RCDT')"
 
 # VoltRon
-RUN R -e "devtools::install_github('BIMSBbioinfo/VoltRon')"
+RUN R -e "devtools::install_github('BIMSBbioinfo/VoltRon@dev')"
 
 # Install basilisk and setup environment
 USER rstudio
