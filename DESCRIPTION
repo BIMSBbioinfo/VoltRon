@@ -1,7 +1,7 @@
 Package: VoltRon
 Type: Package
 Title: VoltRon for Spatial Omics Data Integration and Analysis
-Version: 0.2.3
+Version: 0.2.5
 Depends: R (>= 4.4.0)
 Author@R: 
 	person("Artür", "Manukyan", 
@@ -72,6 +72,7 @@ Suggests:
     basilisk,
     reticulate,
     RBioFormats,
+    VoltRonStore,
     BPCells,
     HDF5Array,
     HDF5DataFrame,
@@ -102,6 +103,9 @@ Suggests:
     anndataR,
     anndata,
     SimpleITK
+Remotes:
+	stla/RCDT,
+    BIMSBbioinfo/VoltRonStore
 Config/testthat/edition: 3
 LazyData: true
 LazyDataCompression: gzip

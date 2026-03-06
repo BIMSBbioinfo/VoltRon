@@ -3,12 +3,12 @@
 \name{vrLayer-methods}
 \alias{vrLayer-methods}
 \alias{[[,vrLayer,character,ANY-method}
-\alias{[[<-,vrLayer,character,ANY,ANY-method}
+\alias{[[<-,vrLayer,character,ANY-method}
 \title{Methods for vrLayer objects}
 \usage{
 \S4method{[[}{vrLayer,character,ANY}(x, i)
 
-\S4method{[[}{vrLayer,character,ANY,ANY}(x, i) <- value
+\S4method{[[}{vrLayer,character,ANY}(x, i) <- value
 }
 \arguments{
 \item{x}{A vrLayer object}
