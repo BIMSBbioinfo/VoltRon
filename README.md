@@ -77,7 +77,31 @@ On **Ubuntu** you may need [`libopencv-dev`](https://packages.debian.org/sid/lib
 sudo apt-get install libopencv-dev
 ```
 
+## Installation (R-universe)
+
+You can also install binaries for some Linux, Windows and MacOS setups via [r-universe](https://bimsbbioinfo.r-universe.dev/builds) which you may require 
+R version >= 4.5.0:
+
+``` r
+install.packages('VoltRon', repos = c('https://bimsbbioinfo.r-universe.dev', 
+                                      'https://cloud.r-project.org'))
+```
+
 ## Dependencies
+
+### VoltRonStore
+
+VoltRon incorporates `VoltRonStore` package to install dependencies necessary to run VoltRon objects on disk for large images and data matrices.
+The script below will install dependencies such `BPCells`, `ImageArray`, `HDF5DataFrame` etc.
+
+``` r
+install.packages('VoltRonStore', repos = c('https://bimsbbioinfo.r-universe.dev', 
+                                           'https://artur-man.r-universe.dev',
+                                           'https://bnprks.r-universe.dev',
+                                           'https://cloud.r-project.org'))
+```
+
+See [https://bimsbbioinfo.r-universe.dev/builds](https://bimsbbioinfo.r-universe.dev/builds) for more information.
 
 ### RBioformats
 
