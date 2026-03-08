@@ -97,7 +97,7 @@ The script below will install dependencies such `BPCells`, `ImageArray`, `HDF5Da
 ``` r
 if (!require("devtools", quietly = TRUE))
     install.packages("devtools")
-devtools::install_github("BIMSBbioinfo/VoltRon")
+devtools::install_github("BIMSBbioinfo/VoltRonStore")
 ```
 
 or from R-universe:
