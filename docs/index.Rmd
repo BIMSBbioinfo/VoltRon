@@ -143,10 +143,15 @@ devtools::install_github("Huber-group-EMBL/Rarr")
 
 ### SimpleITK
 
-VoltRon incorporates the `SimpleITK` package to execute non-rigid alignment across assays. You can install SimpleITK from GitHub using the following command.
+VoltRon incorporates the `SimpleITK` package to execute non-rigid alignment across assays. You can download MacOS-arm (.tgz) or Windows (.zip) binaries from 
+[https://github.com/BIMSBbioinfo/SimpleITKRInstaller/releases](https://github.com/BIMSBbioinfo/SimpleITKRInstaller/releases), and install as below:
 
-Depending on the number of processors the user has, you can modify the `MAKEJ=6` argument. We also need `SimpleElastix` module of `SimpleITK` to be installed, 
-hence we add `-DSimpleITK_USE_ELASTIX=ON` to the `ADDITIONAL_SITK_MODULES` argument.
+``` r
+install.packages("path/to/SimpleITK_2.5.3.tgz", repos = NULL, type = "binary")
+```
+
+You can also install `SimpleITK` from GitHub using the following command. Depending on the number of processors the user has, 
+you can modify the `MAKEJ=6` argument. We also need `SimpleElastix` module of `SimpleITK` to be installed, hence we add `-DSimpleITK_USE_ELASTIX=ON` to the `ADDITIONAL_SITK_MODULES` argument.
 
 ```r
 if (!require("devtools", quietly = TRUE))

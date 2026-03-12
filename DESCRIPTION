@@ -105,7 +105,12 @@ Suggests:
     SimpleITK
 Remotes:
 	stla/RCDT,
-    BIMSBbioinfo/VoltRonStore
+    BIMSBbioinfo/VoltRonStore,
+    bnprks/BPCells/r@v0.3.0,
+    BIMSBbioinfo/VoltRon,
+    BIMSBbioinfo/HDF5DataFrame,
+    BIMSBbioinfo/ZarrDataFrame,
+    Artur-man/ImageArray
 Config/testthat/edition: 3
 LazyData: true
 LazyDataCompression: gzip

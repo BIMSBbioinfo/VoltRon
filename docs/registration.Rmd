@@ -574,7 +574,13 @@ VoltRon allows performing non-rigid image registration and spatial data alignmen
 conduct a **coarse-to-fine alignment** workflow where we first perform a **global alignment** using FLANN or BRUTE-FORCE methods, and then perform 
 a **fine alignment** using SimpleITK. We first use either affine or homography transformation and then interpolate images, points and segments using B-spline method.
 
-To facilitate non-rigid alignment, we require to install and build SimpleITK locally with [Elastix](https://elastix.dev/) framework.
+To facilitate non-rigid alignment, we require to install the SimpleITK package as below:
+
+```{r class.source="watch-out", eval = FALSE} 
+install.packages("path/to/SimpleITK_2.5.3.tgz", repos = NULL, type = "binary")
+```
+
+or if you are not using MacOS-arm or Windows, please build SimpleITK from source with [Elastix](https://elastix.dev/) module enabled. Please note that the building process may take a while.
 
 ```{r class.source="watch-out", eval = FALSE} 
 if (!require("devtools", quietly = TRUE))
