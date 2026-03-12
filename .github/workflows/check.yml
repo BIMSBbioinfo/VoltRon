@@ -49,7 +49,7 @@ jobs:
       - name: Install SimpleITK (Win)
         if: runner.os == 'Windows'
         run: |
-          dest <- tempfile(fileext = ".zip")
+          dest <- "SimpleITK_2.5.3.zip"
           download.file("https://github.com/BIMSBbioinfo/SimpleITKRInstaller/releases/download/2.5.3/SimpleITK_2.5.3.zip", 
                         destfile = dest, mode = "wb")
           install.packages(dest, repos = NULL, type = "binary")
@@ -59,7 +59,7 @@ jobs:
       - name: Install SimpleITK (macOS)
         if: runner.os == 'macOS'
         run: |
-          dest <- tempfile(fileext = ".tgz")
+          dest <- "SimpleITK_2.5.3.tgz"
           download.file("https://github.com/BIMSBbioinfo/SimpleITKRInstaller/releases/download/2.5.3/SimpleITK_2.5.3.tgz", 
                         destfile = dest, mode = "wb")
           install.packages(dest, repos = NULL, type = "binary")
