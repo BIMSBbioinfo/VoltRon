@@ -95,6 +95,14 @@ VoltRon incorporates `VoltRonStore` package to install dependencies necessary to
 The script below will install dependencies such `BPCells`, `ImageArray`, `HDF5DataFrame` etc.
 
 ``` r
+if (!require("devtools", quietly = TRUE))
+    install.packages("devtools")
+devtools::install_github("BIMSBbioinfo/VoltRonStore")
+```
+
+or from R-universe:
+
+``` r
 install.packages('VoltRonStore', repos = c('https://bimsbbioinfo.r-universe.dev', 
                                            'https://artur-man.r-universe.dev',
                                            'https://bnprks.r-universe.dev',
