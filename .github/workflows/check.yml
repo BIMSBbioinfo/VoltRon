@@ -45,11 +45,24 @@ jobs:
           r-version: ${{ matrix.config.r }}
           rtools-version: ${{ matrix.config.rtools-version }}
       
-      ## Windows dependencies
-      - name: Install Windows system dependencies
+      # Install SimpleITK
+      - name: Install SimpleITK (Win)
         if: runner.os == 'Windows'
         run: |
-          ## Edit below if you have any Windows system dependencies
+          dest <- tempfile(fileext = ".tar.gz")
+          download.file("https://github.com/BIMSBbioinfo/SimpleITKRInstaller/releases/download/2.5.3/SimpleITK_2.5.3.zip", 
+                        destfile = dest, mode = "wb")
+          install.packages(dest, repos = NULL, type = "binary")
+        shell: Rscript {0}
+      
+      # Install SimpleITK
+      - name: Install SimpleITK (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          dest <- tempfile(fileext = ".tar.gz")
+          download.file("https://github.com/BIMSBbioinfo/SimpleITKRInstaller/releases/download/2.5.3/SimpleITK_2.5.3.tgz", 
+                        destfile = dest, mode = "wb")
+          install.packages(dest, repos = NULL, type = "binary")
         shell: Rscript {0}
 
       ## linux dependencies
@@ -151,23 +164,9 @@ jobs:
       # All Other dependencies
       - name: Install Suggested dependencies
         run: |
-          # TODO: install RCDT from archive for now
-          # install.packages("colorsGen")         
-          # install.packages("Polychrome")     
-          # install.packages("rgl")     
-          # install.packages("Rvcg")     
-          # install.packages("gplots")
-          # install.packages("xfun")
-          # dest <- file.path(tempdir(), "RCDT_1.3.0.tar.gz")
-          # download.file(
-          #   url  = "https://cran.r-project.org/src/contrib/Archive/RCDT/RCDT_1.3.0.tar.gz",
-          #   destfile = dest,
-          #   mode = "wb"
-          # )
-          # install.packages(dest, repos = NULL, type = "source")
+          # TODO: change install location of RCDT
           devtools::install_github("stla/RCDT")
-          # install.packages('RCDT', repos = c('https://stla.r-universe.dev'))
-          
+
           # add remaining packages
           devtools::install_github('BIMSBbioinfo/VoltRonStore')
           install.packages("Seurat")
@@ -196,8 +195,6 @@ jobs:
           BiocManager::install('basilisk')
           install.packages('reticulate')
           install.packages('patchwork')
-          # TODO: for now dont install SimpleITK
-          # devtools::install_github("SimpleITK/SimpleITKRInstaller", configure.vars=c("MAKEJ=1", "ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON"))
         shell: Rscript {0}
           
       ## R CMD Check
