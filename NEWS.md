@@ -1,3 +1,8 @@
+# VoltRon 0.2.5
+
+-   Added instructions to install VoltRon from [R-universe](https://bimsbbioinfo.r-universe.dev/VoltRon).
+-   Added instructions to install SimpleITK binaries from [BIMSBbioinfo/SimpleITKRInstaller](https://github.com/BIMSBbioinfo/SimpleITKRInstaller/releases).
+
 # VoltRon 0.2.3
 
 -   Non-rigid fine alignment with SimpleITK combined with landmark-based manual coarse alignment. Now, `registerSpatialData` function will let users to select **BSpline (SimpleITK)** method for non-rigid alignment when **Non-Rigid** methods selected.
