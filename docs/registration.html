@@ -972,9 +972,12 @@ using FLANN or BRUTE-FORCE methods, and then perform a <strong>fine
 alignment</strong> using SimpleITK. We first use either affine or
 homography transformation and then interpolate images, points and
 segments using B-spline method.</p>
-<p>To facilitate non-rigid alignment, we require to install and build
-SimpleITK locally with <a href="https://elastix.dev/">Elastix</a>
-framework.</p>
+<p>To facilitate non-rigid alignment, we require to install the
+SimpleITK package as below:</p>
+<pre class="r watch-out"><code>install.packages(&quot;path/to/SimpleITK_2.5.3.tgz&quot;, repos = NULL, type = &quot;binary&quot;)</code></pre>
+<p>or if you are not using MacOS-arm or Windows, please build SimpleITK
+from source with <a href="https://elastix.dev/">Elastix</a> module
+enabled. Please note that the building process may take a while.</p>
 <pre class="r watch-out"><code>if (!require(&quot;devtools&quot;, quietly = TRUE))
     install.packages(&quot;devtools&quot;)
 devtools::install_github(
