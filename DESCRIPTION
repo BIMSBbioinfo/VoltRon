@@ -1,8 +1,8 @@
 Package: VoltRon
 Type: Package
 Title: VoltRon for Spatial Omics Data Integration and Analysis
-Version: 0.2.5
-Depends: R (>= 4.4.0)
+Version: 0.2.6
+Depends: R (>= 4.6.0)
 Author@R: 
 	person("Artür", "Manukyan", 
 		     role=c("aut", "cre"),
@@ -69,6 +69,7 @@ Suggests:
     BiocParallel,
     rhdf5,
     Rarr,
+    ZarrArray,
     basilisk,
     reticulate,
     RBioFormats,
@@ -104,13 +105,12 @@ Suggests:
     anndata,
     SimpleITK
 Remotes:
-	stla/RCDT,
+	  stla/RCDT,
     BIMSBbioinfo/VoltRonStore,
     bnprks/BPCells/r@v0.3.0,
     BIMSBbioinfo/VoltRon,
     BIMSBbioinfo/HDF5DataFrame,
-    BIMSBbioinfo/ZarrDataFrame,
-    Artur-man/ImageArray
+    BIMSBbioinfo/ZarrDataFrame
 Config/testthat/edition: 3
 LazyData: true
 LazyDataCompression: gzip
