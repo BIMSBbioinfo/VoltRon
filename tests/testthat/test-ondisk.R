@@ -6,6 +6,7 @@ skip_if_not_installed("HDF5DataFrame")
 skip_if_not_installed("ZarrDataFrame")
 skip_if_not_installed("ImageArray")
 skip_if_not_installed("BPCells")
+skip_if_not_installed("DelayedMatrixStats")
 
 # create dir
 dir.create(td <- tempfile())

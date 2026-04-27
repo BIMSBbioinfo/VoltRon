@@ -2250,7 +2250,7 @@ plotImage <- function(image, max.pixel.size = NULL) {
     }
     imgggplot <- magick::image_ggplot(image)
   } else if (inherits(image, "ImageArray")) {
-    img_raster <- ImageArray::as.raster(image, max.pixel.size = max.pixel.size)
+    img_raster <- as.raster(image, max.pixel.size = max.pixel.size)
     info <- list(width = dim(img_raster)[2], height = dim(img_raster)[1])
     imgggplot <- ggplot2::ggplot(
       data.frame(x = 0, y = 0),

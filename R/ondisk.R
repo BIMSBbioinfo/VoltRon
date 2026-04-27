@@ -747,9 +747,9 @@ writeHDF5ArrayInImage <- function(
           img <-
             ImageArray::writeImageArray(
               img,
-              output = gsub(".h5$", "", h5_path),
+              output = h5_path,
               name = paste0(name, "/spat_", spat, "/", ch),
-              format = "HDF5ImageArray",
+              format = "hdf5",
               replace = FALSE,
               chunkdim = chunkdim,
               level = level,
@@ -784,16 +784,18 @@ writeHDF5ArrayInImage <- function(
          remotes::install_github('bnprks/BPCells/r')"
       )
     }
-    # if (!inherits(object, "dgCMatrix")) {
-    if (!inherits(object, "Matrix")) {
-      object <- as(object, "dgCMatrix")
+    if (!inherits(object, "CsparseMatrix")) {
+      object <- as(object, "CsparseMatrix")
     }
-    object <- BPCells::write_matrix_hdf5(
-      object,
-      path = h5_path,
-      group = name,
-      overwrite = TRUE
-    )
+    # save only when the data is non zero length
+    if(nrow(object) > 0){
+      object <- BPCells::write_matrix_hdf5(
+        object,
+        path = h5_path,
+        group = name,
+        overwrite = TRUE
+      ) 
+    }
   } else if (feature.vs.obs.engine == "DelayedArray") {
     if (!requireNamespace('HDF5Array')) {
       stop(
@@ -1001,13 +1003,13 @@ writeZarrArrayInMetadata <- function(
           }
           cur_column <- as.array(cur_column)
           meta.data_list[["id"]] <-
-            Rarr::writeZarrArray(
+            ZarrArray::writeZarrArray(
               cur_column,
-              zarr_array_path = file.path(
+              zarr_path = file.path(
                 zarr_path,
                 paste0(name, "/", sn, "/id")
               ),
-              chunk_dim = min(length(cur_column), 2000),
+              chunkdim = min(length(cur_column), 2000),
               nchar = nchar
             )
         }
@@ -1028,13 +1030,13 @@ writeZarrArrayInMetadata <- function(
           }
           cur_column <- as.array(cur_column)
           meta.data_list[[colnames(meta.data)[i]]] <-
-            Rarr::writeZarrArray(
+            ZarrArray::writeZarrArray(
               cur_column,
-              zarr_array_path = file.path(
+              zarr_path = file.path(
                 zarr_path,
                 paste0(name, "/", sn, "/", colnames(meta.data)[i])
               ),
-              chunk_dim = min(length(cur_column), 2000),
+              chunkdim = min(length(cur_column), 2000),
               nchar = nchar
             )
         }
@@ -1092,10 +1094,10 @@ writeZarrArrayInVrData <- function(
           if (!is.array(a)) {
             a <- as.array(a)
           }
-          a <- Rarr::writeZarrArray(
+          a <- ZarrArray::writeZarrArray(
             a,
-            zarr_array_path = file.path(zarr_path, paste0(name, "/", feat)),
-            chunk_dim = chunkdim
+            zarr_path = file.path(zarr_path, paste0(name, "/", feat)),
+            chunkdim = chunkdim
           )
         } else {
           a <- DelayedArray::DelayedArray(a)
@@ -1121,13 +1123,13 @@ writeZarrArrayInVrData <- function(
           if (!is.array(a)) {
             a <- as.array(a)
           }
-          a <- Rarr::writeZarrArray(
+          a <- ZarrArray::writeZarrArray(
             a,
-            zarr_array_path = file.path(
+            zarr_path = file.path(
               zarr_path,
               paste0(name, "/", feat, "_norm")
             ),
-            chunk_dim = chunkdim
+            chunkdim = chunkdim
           )
         } else {
           a <- DelayedArray::DelayedArray(a)
@@ -1157,10 +1159,10 @@ writeZarrArrayInVrData <- function(
         if (!is.array(a)) {
           a <- as.array(a)
         }
-        a <- Rarr::writeZarrArray(
+        a <- ZarrArray::writeZarrArray(
           a,
-          zarr_array_path = file.path(zarr_path, paste0(name, "/rawdata")),
-          chunk_dim = chunkdim
+          zarr_path = file.path(zarr_path, paste0(name, "/rawdata")),
+          chunkdim = chunkdim
         )
       } else {
         a <- DelayedArray::DelayedArray(a)
@@ -1186,10 +1188,10 @@ writeZarrArrayInVrData <- function(
         if (!is.array(a)) {
           a <- as.array(a)
         }
-        a <- Rarr::writeZarrArray(
+        a <- ZarrArray::writeZarrArray(
           a,
-          zarr_array_path = file.path(zarr_path, paste0(name, "/normdata")),
-          chunk_dim = chunkdim
+          zarr_path = file.path(zarr_path, paste0(name, "/normdata")),
+          chunkdim = chunkdim
         )
       } else {
         a <- DelayedArray::DelayedArray(a)
@@ -1248,13 +1250,13 @@ writeZarrArrayInImage <- function(
       if (is.null(chunkdim)) {
         chunkdim <- vapply(dim(coords), function(x) min(x, 1000), numeric(1))
       }
-      coords <- Rarr::writeZarrArray(
+      coords <- ZarrArray::writeZarrArray(
         coords,
-        zarr_array_path = file.path(
+        zarr_path = file.path(
           zarr_path,
           paste0(name, "/spat_", spat, "/coords")
         ),
-        chunk_dim = chunkdim
+        chunkdim = chunkdim
       )
 
       # Rarr::ZarrArray doesnt have rownames
@@ -1285,9 +1287,9 @@ writeZarrArrayInImage <- function(
           }
           img <- ImageArray::writeImageArray(
             img,
-            output = gsub(".zarr$", "", zarr_path),
+            output = zarr_path,
             name = paste0(name, "/spat_", spat, "/", ch),
-            format = "ZarrImageArray",
+            format = "zarr",
             replace = FALSE,
             chunkdim = chunkdim,
             level = level,
