@@ -785,7 +785,7 @@ writeHDF5ArrayInImage <- function(
       )
     }
     if (!inherits(object, "CsparseMatrix")) {
-      object <- as(object, "CsparseMatrix")
+      object <- as(object, "dgCMatrix")
     }
     # save only when the data is non zero length
     if(nrow(object) > 0){
