@@ -2421,7 +2421,7 @@ vrSpatialPlotImage <- function(
 
       # TODO: is this necessary ?
       if (inherits(image, "ImageArray")) {
-        image <- ImageArray::as.raster(image)
+        image <- as.raster(image)
       }
 
       # annotation raster
