@@ -701,22 +701,22 @@ vrImages(visium_data, assay = &quot;Assay1&quot;)</code></pre>
 ## ℹ See also `vignette(&quot;ggplot2-in-packages&quot;)` for more information.
 ## ℹ The deprecated feature was likely used in the magick package.
 ##   Please report the issue at &lt;https://github.com/ropensci/magick/issues&gt;.
-## This warning is displayed once every 8 hours.
+## This warning is displayed once per session.
 ## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.</code></pre>
-<p><img src="voltronobjects_files/figure-html/unnamed-chunk-36-1.png" width="60%" style="display: block; margin: auto;" /></p>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-36-1.png" alt="" width="60%" style="display: block; margin: auto;" /></p>
 <!-- <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/voltronobjects_HE.png" class="center"> -->
 <p><br></p>
 <p>Once you know the name of a specific channel, you can the image of a
 specific channel by providing the name and the associated channel.</p>
 <pre class="r watch-out"><code>vrImages(melc_data, name = &quot;MELC&quot;, channel = &quot;DAPI&quot;)</code></pre>
-<p><img src="voltronobjects_files/figure-html/unnamed-chunk-38-1.png" width="60%" style="display: block; margin: auto;" /></p>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-38-1.png" alt="" width="60%" style="display: block; margin: auto;" /></p>
 <!-- <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_DAPI.png" class="center"> -->
 <p><br></p>
 <p>You can set up the main channel as well as the main spatial system
 name for later use.</p>
 <pre class="r watch-out"><code>vrMainSpatial(melc_data, assay = &quot;Assay1&quot;) &lt;- c(&quot;MELC&quot;, &quot;CD45&quot;)
 vrImages(melc_data)</code></pre>
-<p><img src="voltronobjects_files/figure-html/unnamed-chunk-40-1.png" width="60%" style="display: block; margin: auto;" /></p>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-40-1.png" alt="" width="60%" style="display: block; margin: auto;" /></p>
 <!-- <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_CD45.png" class="center"> -->
 <p><br></p>
 <p>You can also resize the images as they are being returned. This is
@@ -739,7 +739,7 @@ object, and called later again</p>
 <pre><code>##        Assay    Layer         Sample Spatial           Channels
 ## Assay1  MELC Section1 control_case_3    MELC DAPI,CD45,combined</code></pre>
 <pre class="r watch-out"><code>vrImages(melc_data, channel = &quot;combined&quot;)</code></pre>
-<p><img src="voltronobjects_files/figure-html/unnamed-chunk-45-1.png" width="60%" style="display: block; margin: auto;" /></p>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-45-1.png" alt="" width="60%" style="display: block; margin: auto;" /></p>
 <p><br></p>
 </div>
 </div>
@@ -840,14 +840,14 @@ this list. However, it would only subset the main assay (see <a
 href="#assays">vrMainAssay</a>)</p>
 <pre class="r watch-out"><code>selected_features &lt;- vrFeatures(visium_data)
 selected_features[1:20]</code></pre>
-<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;       &quot;Mrpl15&quot;       
-## [10] &quot;Lypla1&quot;        &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;        &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot;
-## [19] &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
+<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;      
+##  [9] &quot;Mrpl15&quot;        &quot;Lypla1&quot;        &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;       
+## [17] &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
 <pre class="r watch-out"><code>visium_data_subset &lt;- subset(visium_data, features = selected_features[1:20])
 vrFeatures(visium_data_subset)</code></pre>
-<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;       &quot;Mrpl15&quot;       
-## [10] &quot;Lypla1&quot;        &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;        &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot;
-## [19] &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
+<pre><code>##  [1] &quot;Xkr4&quot;          &quot;Gm1992&quot;        &quot;Gm19938&quot;       &quot;Gm37381&quot;       &quot;Rp1&quot;           &quot;Sox17&quot;         &quot;Gm37587&quot;       &quot;Gm37323&quot;      
+##  [9] &quot;Mrpl15&quot;        &quot;Lypla1&quot;        &quot;Tcea1&quot;         &quot;Rgs20&quot;         &quot;Gm16041&quot;       &quot;Atp6v1h&quot;       &quot;Oprk1&quot;         &quot;Npbwr1&quot;       
+## [17] &quot;Rb1cc1&quot;        &quot;4732440D04Rik&quot; &quot;Alkal1&quot;        &quot;St18&quot;</code></pre>
 <p><br></p>
 </div>
 <div id="interactive-subsetting" class="section level3">
@@ -939,10 +939,10 @@ merged_object</code></pre>
 <p>Given the description in the VoltRon object, we can call the molecule
 assay for plotting.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(merged_object, assay = &quot;MolAssay&quot;, group.by = &quot;gene&quot;)</code></pre>
-<p><img src="voltronobjects_files/figure-html/unnamed-chunk-73-1.png" width="85%" style="display: block; margin: auto;" /></p>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-73-1.png" alt="" width="85%" style="display: block; margin: auto;" /></p>
 <p>Now, let us do the same with the ROI Assay.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(merged_object, assay = &quot;ROIAssay&quot;, group.by = &quot;annotation&quot;)</code></pre>
-<p><img src="voltronobjects_files/figure-html/unnamed-chunk-74-1.png" width="85%" style="display: block; margin: auto;" /></p>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-74-1.png" alt="" width="85%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="rasterization" class="section level3">
 <h3>Rasterization</h3>
@@ -953,10 +953,10 @@ observations. We use the <strong>n.tile</strong> argument for that.
 Given the value of the argument, the plot will be divided into chunks
 along both x and y axis.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(merged_object, group.by = &quot;clusters&quot;, n.tile = 40)</code></pre>
-<p><img src="voltronobjects_files/figure-html/unnamed-chunk-75-1.png" width="85%" style="display: block; margin: auto;" /></p>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-75-1.png" alt="" width="85%" style="display: block; margin: auto;" /></p>
 <p>This apply to molecule datasets too.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(merged_object, assay = &quot;MolAssay&quot;, group.by = &quot;gene&quot;, n.tile = 40)</code></pre>
-<p><img src="voltronobjects_files/figure-html/unnamed-chunk-76-1.png" width="85%" style="display: block; margin: auto;" /></p>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-76-1.png" alt="" width="85%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="multi-layer-spatial-plots" class="section level3">
 <h3>Multi-Layer Spatial Plots</h3>
@@ -976,7 +976,7 @@ type.</p>
   addSpatialLayer(merged_object, assay = &quot;Assay2&quot;, group.by = &quot;gene&quot;, alpha = 1, 
                   colors = list(KRT15 = &quot;blue&quot;, KRT14 = &quot;green&quot;))</code></pre>
 <pre><code>## Warning: Duplicated `override.aes` is ignored.</code></pre>
-<p><img src="voltronobjects_files/figure-html/unnamed-chunk-78-1.png" width="60%" style="display: block; margin: auto;" /></p>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-78-1.png" alt="" width="60%" style="display: block; margin: auto;" /></p>
 <p><br></p>
 <p>You can also visualize the segments that represents annotations of
 the tissue sections along with the cells.</p>
@@ -985,7 +985,7 @@ the tissue sections along with the cells.</p>
                   group.ids = c(&quot;Immune&quot;, &quot;DCIS_Subtype1&quot;),
                   color = list(Immune = &quot;blue&quot;, DCIS_Subtype1 = &quot;yellow&quot;))</code></pre>
 <pre><code>## Warning: Duplicated `override.aes` is ignored.</code></pre>
-<p><img src="voltronobjects_files/figure-html/unnamed-chunk-79-1.png" width="70%" style="display: block; margin: auto;" /></p>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-79-1.png" alt="" width="70%" style="display: block; margin: auto;" /></p>
 <p><br></p>
 </div>
 <div id="combine-featuresgroups" class="section level3">
@@ -998,21 +998,21 @@ won’t work with features more than two.</p>
 <pre class="r watch-out"><code>data(&quot;xenium_data&quot;)
 vrSpatialFeaturePlot(xenium_data, features = c(&quot;ACTA2&quot;, &quot;TACSTD2&quot;), 
                      norm = TRUE, combine.features = TRUE)</code></pre>
-<p><img src="voltronobjects_files/figure-html/unnamed-chunk-80-1.png" width="60%" style="display: block; margin: auto;" /></p>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-80-1.png" alt="" width="60%" style="display: block; margin: auto;" /></p>
 <p>Similarly, we can apply this to embedding plots too.</p>
 <pre class="r watch-out"><code>data(&quot;xenium_data&quot;)
 vrEmbeddingFeaturePlot(xenium_data, features = c(&quot;ACTA2&quot;, &quot;TACSTD2&quot;), 
                        embedding = &quot;umap&quot;, combine.features = TRUE)</code></pre>
 <pre><code>## Warning in plot_theme(plot): The `x` theme element is not defined in the element hierarchy.</code></pre>
 <pre><code>## Warning in plot_theme(plot): The `y` theme element is not defined in the element hierarchy.</code></pre>
-<p><img src="voltronobjects_files/figure-html/unnamed-chunk-81-1.png" width="60%" style="display: block; margin: auto;" /></p>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-81-1.png" alt="" width="60%" style="display: block; margin: auto;" /></p>
 <p>In order to visualize the density of two molecule per each tile, you
 can define a tiling parameter <strong>n.tile</strong> and also enter
 <strong>combine.graphs=TRUE</strong>.</p>
 <pre class="r watch-out"><code>data(&quot;merged_object&quot;)
 vrSpatialPlot(merged_object, assay = &quot;Assay2&quot;, group.by = &quot;gene&quot;, 
               n.tile = 50, combine.groups = TRUE, group.ids = c(&quot;KRT14&quot;, &quot;KRT15&quot;))</code></pre>
-<p><img src="voltronobjects_files/figure-html/unnamed-chunk-82-1.png" width="60%" style="display: block; margin: auto;" /></p>
+<p><img src="voltronobjects_files/figure-html/unnamed-chunk-82-1.png" alt="" width="60%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="embedding-plots" class="section level3">
 <h3>Embedding Plots</h3>

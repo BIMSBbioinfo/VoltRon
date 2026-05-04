@@ -2250,7 +2250,7 @@ plotImage <- function(image, max.pixel.size = NULL) {
     }
     imgggplot <- magick::image_ggplot(image)
   } else if (inherits(image, "ImageArray")) {
-    img_raster <- ImageArray::as.raster(image, max.pixel.size = max.pixel.size)
+    img_raster <- as.raster(image, max.pixel.size = max.pixel.size)
     info <- list(width = dim(img_raster)[2], height = dim(img_raster)[1])
     imgggplot <- ggplot2::ggplot(
       data.frame(x = 0, y = 0),
@@ -2398,8 +2398,8 @@ cropImage <- function(image, geometry) {
     image <- ImageArray::crop(
       image,
       ind = list(
-        crop_info_int[3]:(crop_info_int[3] + crop_info_int[1]),
-        crop_info_int[4]:(crop_info_int[4] + crop_info_int[2])
+        x = crop_info_int[3]:(crop_info_int[3] + crop_info_int[1]),
+        y = crop_info_int[4]:(crop_info_int[4] + crop_info_int[2])
       )
     )
   }

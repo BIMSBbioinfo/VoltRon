@@ -2,8 +2,6 @@
 
 // OpenCV
 #include <opencv2/opencv.hpp>
-#include "opencv2/xfeatures2d.hpp"
-#include "opencv2/features2d.hpp"
 #include "opencv2/shape/shape_transformer.hpp"
 
 // Internal functions
@@ -12,7 +10,6 @@
 using namespace Rcpp;
 using namespace std;
 using namespace cv;
-using namespace cv::xfeatures2d;
 
 // [[Rcpp::export]]
 Rcpp::NumericMatrix applyRcppMapping(Rcpp::NumericMatrix coords, Rcpp::List mapping)

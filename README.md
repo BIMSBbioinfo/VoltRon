@@ -71,15 +71,45 @@ Depending on the number of required dependencies, installation may be completed 
 
 On **Windows** and **MacOS**, OpenCV will be downloaded automatically upon installation. However, [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html) may be required to be downloaded too, hence this may take some time!
 
-On **Ubuntu** we provide a set of instructions that may help users to build OpenCV with necessary headers [here](https://github.com/BIMSBbioinfo/VoltRon/blob/main/inst/extdata/install_ubuntu.md).
-
-On **Fedora** you may need [`opencv-devel`](https://src.fedoraproject.org/rpms/opencv):
+On **Ubuntu** you may need [`libopencv-dev`](https://packages.debian.org/sid/libopencv-dev):
 
 ```sh
-yum install opencv-devel
+sudo apt-get install libopencv-dev
+```
+
+## Installation (R-universe)
+
+You can also install binaries for some Linux, Windows and MacOS setups via [r-universe](https://bimsbbioinfo.r-universe.dev/builds) which you may require 
+R version >= 4.5.0:
+
+``` r
+install.packages('VoltRon', repos = c('https://bimsbbioinfo.r-universe.dev', 
+                                      'https://cloud.r-project.org'))
 ```
 
 ## Dependencies
+
+### VoltRonStore
+
+VoltRon incorporates `VoltRonStore` package to install dependencies necessary to run VoltRon objects on disk for large images and data matrices.
+The script below will install dependencies such `BPCells`, `ImageArray`, `HDF5DataFrame` etc.
+
+``` r
+if (!require("devtools", quietly = TRUE))
+    install.packages("devtools")
+devtools::install_github("BIMSBbioinfo/VoltRonStore")
+```
+
+or from R-universe:
+
+``` r
+install.packages('VoltRonStore', repos = c('https://bimsbbioinfo.r-universe.dev', 
+                                           'https://artur-man.r-universe.dev',
+                                           'https://bnprks.r-universe.dev',
+                                           'https://cloud.r-project.org'))
+```
+
+See [https://bimsbbioinfo.r-universe.dev/builds](https://bimsbbioinfo.r-universe.dev/builds) for more information.
 
 ### RBioformats
 
@@ -91,18 +121,31 @@ See [https://cran.r-project.org/web/packages/rJava](https://cran.r-project.org/w
 
 `RCDT` package has been archived as of 15.01.2026. Please install as below: 
 
-```
+``` r
 devtools::install_github('stla/RCDT')
+```
+
+or 
+
+``` r
+install.packages('RCDT', repos = c('https://bimsbbioinfo.r-universe.dev', 
+                                   'https://cloud.r-project.org'))
 ```
 
 ### SimpleITK
 
-VoltRon incorporates the `SimpleITK` package to execute non-rigid alignment across assays. You can install SimpleITK from GitHub using the following command.
+VoltRon incorporates the `SimpleITK` package to execute non-rigid alignment across assays. You can download MacOS-arm (.tgz) or Windows (.zip) binaries from 
+[https://github.com/BIMSBbioinfo/SimpleITKRInstaller/releases](https://github.com/BIMSBbioinfo/SimpleITKRInstaller/releases), and install as below:
 
-Depending on the number of processors the user has, you can modify the `MAKEJ=6` argument. We also need `SimpleElastix` module of `SimpleITK` to be installed, 
+``` r
+install.packages("path/to/SimpleITK_2.5.3.tgz", repos = NULL, type = "binary")
+```
+
+You can also install SimpleITK from GitHub using the following command. Depending on the number of processors the user has, 
+you can modify the `MAKEJ=6` argument. We also need `SimpleElastix` module of `SimpleITK` to be installed, 
 hence we add `-DSimpleITK_USE_ELASTIX=ON` to the `ADDITIONAL_SITK_MODULES` argument.
 
-```
+``` r
 if (!require("devtools", quietly = TRUE))
     install.packages("devtools")
 devtools::install_github(
@@ -111,7 +154,7 @@ devtools::install_github(
                    "ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON"))
 ```
 
-For more information, plase visit the [SimpleITK](https://simpleitk.readthedocs.io/en/v2.5.0/about.html) website.
+For more information, plase visit the [SimpleITK](https://simpleitk.readthedocs.io/en/v2.5.3/about.html) website.
 
 ## Docker Hub
 
