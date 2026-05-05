@@ -12,11 +12,11 @@
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param features features
 #' @param sc.object Seurat Object
-#' @param sc.assay assay of the Seurat Object used for the single cell 
+#' @param sc.assay assay of the Seurat Object used for the single cell
 #' data reference
-#' @param sc.cluster metadata column variable used for the single cell 
+#' @param sc.cluster metadata column variable used for the single cell
 #' data reference
-#' @param method Deconvolution method, RCTD (spot), SPOTlight (spot), 
+#' @param method Deconvolution method, RCTD (spot), SPOTlight (spot),
 #' MuSiC (ROI)
 #' @param ... additional parameters passed to method specific functions,
 #' e.g. RCTD, MuSiC.
@@ -32,9 +32,6 @@ getDeconvolution <- function(
     method = "RCTD",
     ...
 ) {
-  # sample metadata
-  sample.metadata <- SampleMetadata(object)
-  
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
   
@@ -80,7 +77,7 @@ getDeconvolution <- function(
     }
   }
   
-  return(object)
+  object
 }
 
 #' getDeconReference
@@ -88,13 +85,13 @@ getDeconvolution <- function(
 #' Establish and produce the single cell reference for deconvolution
 #'
 #' @param sc.object Seurat Object
-#' @param sc.assay assay of the Seurat Object used for the single cell 
+#' @param sc.assay assay of the Seurat Object used for the single cell
 #' data reference
-#' @param sc.cluster metadata column variable used for the single cell 
+#' @param sc.cluster metadata column variable used for the single cell
 #' data reference
-#' @param method Deconvolution method, RCTD (spot), SPOTlight (spot), 
+#' @param method Deconvolution method, RCTD (spot), SPOTlight (spot),
 #' MuSiC (ROI)
-#' @param assay.type the assay type associated with the single cell 
+#' @param assay.type the assay type associated with the single cell
 #' deconvolution reference
 #'
 #' @noRd
@@ -105,47 +102,16 @@ getDeconReference <- function(
     method = "RCTD",
     assay.type = NULL
 ) {
-  # Deconvolute for spots
   if (assay.type == "spot") {
     reference <- getDeconReferenceSpot(sc.object, sc.assay, sc.cluster, method)
-    
-    # Deconvolute for ROIs
   } else if (assay.type == "ROI") {
-    # check method
-    if (!method %in% c("MuSiC")) {
-      message(
-        "The selected method is not provided for ROI deconvolution. ", 
-        "Switching to MuSiC ..."
-      )
-      method <- "MuSiC"
-    }
-    
-    # deconvolution with MuSiC
-    if (method == "MuSiC") {
-      message("Configuring Single Cell Assay (Reference) ...")
-      if (inherits(sc.object, "SingleCellExperiment")) {
-        sc.object$music_decon_clusters <- sc.object[[sc.cluster]]
-        reference <- sc.object
-      } else if (inherits(sc.object, "Seurat")) {
-        sc.object$music_decon_clusters <- sc.object@meta.data[[sc.cluster]]
-        sccounts <- Seurat::GetAssayData(sc.object[[sc.assay]], slot = "counts")
-        sccounts <- as.matrix(apply(sccounts, 2, ceiling))
-        rownames(sccounts) <- rownames(sc.object[[sc.assay]])
-        reference <- Seurat::as.SingleCellExperiment(Seurat::CreateSeuratObject(
-          sccounts,
-          meta.data = sc.object@meta.data
-        ))
-      } else {
-        stop(
-          "'sc.object' should either be of a Seurat or ", 
-          "SingleCellExperiment class!"
-        )
-      }
-    }
+    reference <- getDeconReferenceROI(sc.object, sc.assay, sc.cluster, method)
+  } else {
+    stop("Unsupported assay type: ", assay.type)
   }
   
   # return
-  return(reference)
+  reference
 }
 
 #' getDeconSingle
@@ -154,18 +120,18 @@ getDeconReference <- function(
 #'
 #' @param object a vrAssay object
 #' @param features features
-#' @param reference the single cell deconvolution reference, generated 
+#' @param reference the single cell deconvolution reference, generated
 #' by \code{getDeconReference}
-#' @param method Deconvolution method, RCTD (spot), SPOTlight (spot), 
+#' @param method Deconvolution method, RCTD (spot), SPOTlight (spot),
 #' MuSiC (ROI)
-#' @param sc.cluster metadata column variable used for the single cell 
+#' @param sc.cluster metadata column variable used for the single cell
 #' data reference
 #' @param ... additional parameters passed to method specific functions
 #'
 #' @noRd
 getDeconSingle <- function(
     object,
-    features = features,
+    features = NULL,
     reference,
     method = "RCTD",
     sc.cluster,
@@ -174,18 +140,25 @@ getDeconSingle <- function(
   # get assay type
   assay.type <- vrAssayTypes(object)
   
+  # Check that exactly one assay type is returned
+  if (length(assay.type) != 1) {
+    stop(
+      "getDeconSingle requires exactly one assay type. Detected: ",
+      paste(assay.type, collapse = ", ")
+    )
+  }
+  
   if (assay.type == "spot") {
     # check method
     if (!method %in% c("RCTD")) {
       message(
-        "The selected method is not provided for spot deconvolution. ", 
+        "The selected method is not provided for spot deconvolution. ",
         "Switching to RCTD"
       )
       method <- "RCTD"
     }
     
     if (method == "RCTD") {
-      message("Running RCTD for spot deconvolution ...")
       rawdata <- getRCTD(
         object = object,
         features = features,
@@ -198,7 +171,7 @@ getDeconSingle <- function(
     # check method
     if (!method %in% c("MuSiC")) {
       message(
-        "The selected method is not provided for ROI deconvolution. ", 
+        "The selected method is not provided for ROI deconvolution. ",
         "Switching to MuSiC ..."
       )
       method <- "MuSiC"
@@ -217,7 +190,7 @@ getDeconSingle <- function(
   }
   
   # return
-  return(rawdata)
+  rawdata
 }
 
 ####
@@ -230,52 +203,123 @@ getDeconSingle <- function(
 #'
 #' @param object a VoltRon object
 #' @param features features
-#' @param reference the single cell deconvolution reference, generated 
+#' @param reference the single cell deconvolution reference, generated
 #' \code{getDeconReference}
-#' @param sc.cluster metadata column variable used for the single 
+#' @param sc.cluster metadata column variable used for the single
 #' cell data reference
 #' @param ... additional parameters passed to \code{create.RCTD} function
 #'
 #' @noRd
 getRCTD <- function(object, features = NULL, reference, sc.cluster, ...) {
-  if (!requireNamespace('spacexr')) {
+  if (!requireNamespace('spacexr', quietly = TRUE)) {
     stop(
-      "Please install spacexr package to use the RCTD algorithm: ", 
+      "Please install spacexr package to use the RCTD algorithm: ",
       "devtools::install_github('dmcable/spacexr')"
     )
   }
-  if (!requireNamespace('SingleCellExperiment')) {
-    stop(
-      "Please install SingleCellExperiment package for using SCE objects: 
-         Biocmanager::install('SingleCellExperiment')"
-    )
-  }
   
-  # create spatial data
+  # Prepare target spots for final alignment
+  target_spots <- vrSpatialPoints(object)
+  
   message("Configuring Spatial Assay ...")
+  
+  # Create spatial data
   spatialcounts <- vrData(object, norm = FALSE)
   coords <- as.matrix(as(vrCoordinates(object), "dgCMatrix"))[, c("x", "y")]
-  # spatialnUMI <- colSums(spatialcounts)
-  # spatialdata <- spacexr::createSpatialRNA(coords, spatialcounts, spatialnUMI)
+  
+  # Enforce Feature Selection
+  if (!is.null(features)) {
+    common_feats <- intersect(rownames(spatialcounts), features)
+    if (length(common_feats) == 0) {
+      stop("None of the requested features were found in the spatial assay.")
+    }
+    spatialcounts <- spatialcounts[common_feats, ]
+  }
+  
+  # Align counts and coords
+  common_spots <- intersect(colnames(spatialcounts), rownames(coords))
+  if (length(common_spots) == 0) {
+    stop("No matching spots found between count data and coordinates.")
+  }
+  
+  spatialcounts <- spatialcounts[, common_spots]
+  coords <- coords[common_spots, ]
+  nUMI <- Matrix::colSums(spatialcounts)
+  
+  if (!requireNamespace('SingleCellExperiment', quietly = TRUE)) {
+    stop("Please install SingleCellExperiment package for using SCE objects")
+  }
+  if (!requireNamespace('SpatialExperiment', quietly = TRUE)) {
+    stop("Please install SpatialExperiment package")
+  }
+  
   spatialdata <- SpatialExperiment::SpatialExperiment(
-    assay = spatialcounts,
+    assay = list(counts = spatialcounts),
     spatialCoords = coords
   )
   
-  # Run RCTD
   myRCTD <- spacexr::createRctd(
     spatialdata,
     reference,
     cell_type_col = sc.cluster
   )
+  
   message("Calculating Cell Type Compositions of spots with RCTD ...")
-  myRCTD <- quiet(spacexr::runRctd(myRCTD, rctd_mode = 'full', ...))
+  
+  suppressMessages(
+    myRCTD <- spacexr::runRctd(myRCTD, rctd_mode = 'full', ...)
+  )
+  
   results <- SummarizedExperiment::assay(myRCTD, i = "weights")
-  norm_weights <- sweep(results, 2, colSums(results), "/")
-  norm_weights <- as.matrix(norm_weights)
+  
+  # --- Spot Alignment & Zero-Filling ---
+  # Standardize to [Spots x Features]
+  res_rows <- nrow(results)
+  res_cols <- ncol(results)
+  n_target <- length(target_spots)
+  
+  if (res_cols == n_target && res_rows != n_target) {
+    results <- t(results)
+  }
+  
+  # Spot Filling
+  if (nrow(results) != n_target) {
+    full_data <- matrix(0, nrow = n_target, ncol = ncol(results))
+    rownames(full_data) <- target_spots
+    colnames(full_data) <- colnames(results)
+    
+    common <- intersect(rownames(full_data), rownames(results))
+    
+    if (length(common) == 0 && n_target > 0) {
+      safe_target <- make.names(target_spots)
+      safe_raw <- make.names(rownames(results))
+      map_idx <- match(safe_target, safe_raw)
+      valid_idx <- which(!is.na(map_idx))
+      
+      if (length(valid_idx) > 0) {
+        full_data[valid_idx, ] <- results[map_idx[valid_idx], ]
+      } else {
+        stop(
+          "RCTD finished, but spot names do not match the VoltRon object 
+          (neither exact nor sanitized matches). Check your sample IDs."
+        )
+      }
+    } else {
+      full_data[common, ] <- as.matrix(results[common, ,drop=FALSE])
+    }
+    results <- full_data
+  }
+  
+  # Normalize
+  row_sums <- rowSums(results)
+  row_sums[row_sums == 0] <- 1
+  norm_weights <- sweep(results, 1, row_sums, "/")
+  
+  # Final Transpose [Features x Spots]
+  norm_weights <- t(as.matrix(norm_weights))
   
   # return
-  return(norm_weights)
+  norm_weights
 }
 
 #' @noRd
@@ -288,7 +332,7 @@ getDeconReferenceSpot <- function(
   # check method
   if (!method %in% c("RCTD")) {
     message(
-      "The selected method is not provided for spot deconvolution. ", 
+      "The selected method is not provided for spot deconvolution. ",
       "Switching to RCTD"
     )
     method <- "RCTD"
@@ -297,52 +341,82 @@ getDeconReferenceSpot <- function(
   # deconvolution with RCTD
   if (method == "RCTD") {
     # check package
-    if (!requireNamespace('spacexr')) {
+    if (!requireNamespace('spacexr', quietly = TRUE)) {
       stop("Please install spacexr package to use the RCTD algorithm")
     }
     
     message("Configuring Single Cell Assay (reference) ...")
     if (inherits(sc.object, "Seurat")) {
-      if (!requireNamespace('Seurat')) {
+      if (!requireNamespace('Seurat', quietly = TRUE)) {
         stop("Please install Seurat package for using Seurat objects")
       }
+      
       if (is.null(sc.assay)) {
         message(
-          "The sc.assay arguement is not provided, using",
+          "The sc.assay argument is not provided, using",
           Seurat::DefaultAssay(sc.object),
           "instead!"
         )
+        sc.assay <- Seurat::DefaultAssay(sc.object)
       }
-      tryCatch(
-        {
-          sccounts <- sc.object[[sc.assay]]
-        },
-        error = function(e) {
-          stop("The assay", sc.assay, "not found!")
-        }
-      )
-      sccounts <- Seurat::GetAssayData(sccounts, slot = "counts")
-      cell_types <- as.factor(sc.object@meta.data[[sc.cluster]])
-      rownames(sccounts) <- rownames(sc.object[[sc.assay]])
-      # names(cell_types) <- colnames(sc.object)
-      # sc.nUMI <- colSums(sccounts)
-      # names(sc.nUMI) <- colnames(sc.object)
-    } else if (inherits(sc.object, "SingleCellExperiment")) {
-      if (!requireNamespace('SingleCellExperiment')) {
+      
+      # Central validation: Check if sc.cluster exists in meta.data
+      if (!sc.cluster %in% colnames(sc.object@meta.data)) {
         stop(
-          "Please install SingleCellExperiment package for using SCE objects"
+          "The cluster column '",
+          sc.cluster,
+          "' was not found in the Seurat object metadata."
+        )
+      }
+      
+      # Seurat v5 layer compatibility
+      assay_obj <- sc.object[[sc.assay]]
+      
+      if ("layers" %in% slotNames(assay_obj)) {
+        
+        layer_names <- SeuratObject::Layers(assay_obj)
+        
+        if (length(layer_names) > 1) {
+          stop(
+            "Seurat v5 layered assay detected with multiple layers. ",
+            "Please run SeuratObject::JoinLayers(sc.object, assay = '",
+            sc.assay,
+            "') before calling getDeconvolution()."
+          )
+        }
+      }
+      
+      sccounts <- Seurat::GetAssayData(
+        sc.object,
+        assay = sc.assay,
+        layer = "counts"
+      )
+      
+      if (!inherits(sccounts, "sparseMatrix")) {
+        sccounts <- as(sccounts, "dgCMatrix")
+      }
+      cell_types <- as.factor(sc.object@meta.data[[sc.cluster]])
+      
+      names(cell_types) <- colnames(sc.object)
+      rownames(sccounts) <- rownames(sc.object[[sc.assay]])
+    } else if (inherits(sc.object, "SingleCellExperiment")) {
+      if (!requireNamespace('SingleCellExperiment', quietly = TRUE)) {
+        stop(
+          "Please install the SingleCellExperiment package for using SCE objects."
         )
       }
       if (!is.null(sc.assay)) {
         message(
-          "The sc.assay arguement is provided by ignored for SCE objects!"
+          "The sc.assay argument is provided but ignored for SCE objects!"
         )
       }
       sccounts <- SummarizedExperiment::assays(sc.object)[["counts"]]
       meta.data <- as.data.frame(SingleCellExperiment::colData(sc.object))
       cell_types <- as.factor(meta.data[[sc.cluster]])
-      # sc.nUMI <- colSums(sccounts)
-      # names(sc.nUMI) <- colnames(sc.object)
+      if (!inherits(sccounts, "sparseMatrix")) {
+        sccounts <- as(sccounts, "dgCMatrix")
+      }
+      names(cell_types) <- colnames(sc.object)
     } else {
       stop("The reference should be of either Seurat or SingleCellExperiment!")
     }
@@ -353,14 +427,13 @@ getDeconReferenceSpot <- function(
     names(cell_types) <- colnames(sccounts)
     cell_types <- data.frame(cell_types)
     colnames(cell_types) <- sc.cluster
-    # reference <- spacexr::createReference(sccounts, cell_types, sc.nUMI)
+    
     reference <- SingleCellExperiment::SingleCellExperiment(
       assays = sccounts,
       colData = cell_types
     )
   }
   
-  # return
   reference
 }
 
@@ -374,11 +447,11 @@ getDeconReferenceSpot <- function(
 #'
 #' @param object a vrAssay object
 #' @param features features
-#' @param reference the single cell deconvolution reference, generated 
+#' @param reference the single cell deconvolution reference, generated
 #' \code{getDeconReference}
-#' @param sc.cluster metadata column variable used for the single cell 
+#' @param sc.cluster metadata column variable used for the single cell
 #' data reference
-#' @param sc.samples metadata column in Seurat that provides the samples 
+#' @param sc.samples metadata column in Seurat that provides the samples
 #' in the single cell data
 #'
 #' @noRd
@@ -389,28 +462,28 @@ getMuSiC <- function(
     sc.cluster,
     sc.samples = NULL
 ) {
-  if (!requireNamespace('Seurat')) {
+  if (!requireNamespace('Seurat', quietly = TRUE)) {
     stop(
-      "Please install Seurat package for using Seurat objects: ", 
+      "Please install Seurat package for using Seurat objects: ",
       "install.packages('Seurat')"
     )
   }
-  if (!requireNamespace('MuSiC')) {
+  if (!requireNamespace('MuSiC', quietly = TRUE)) {
     stop(
-      "Please install MuSiC package for ROI deconvolution: ", 
+      "Please install MuSiC package for ROI deconvolution: ",
       "devtools::install_github('xuranw/MuSiC')"
     )
   }
-  if (!requireNamespace('SingleCellExperiment')) {
+  if (!requireNamespace('SingleCellExperiment', quietly = TRUE)) {
     stop(
-      "Please install SingleCellExperiment package for ROI deconvolution: ", 
+      "Please install SingleCellExperiment package for ROI deconvolution: ",
       "BiocManager::install('SingleCellExperiment')"
     )
   }
   
   if (is.null(sc.samples)) {
     stop(
-      "Please provide a metadata column for samples for MuSiC algorithm ", 
+      "Please provide a metadata column for samples for MuSiC algorithm ",
       "to work, e.g. sc.samples = Sample"
     )
   }
@@ -444,4 +517,63 @@ getMuSiC <- function(
     verbose = T
   )
   t(results$Est.prop.weighted)
+}
+
+#' @noRd
+getDeconReferenceROI <- function(
+    sc.object,
+    sc.assay = NULL,
+    sc.cluster,
+    method
+) {
+  # check method
+  if (!method %in% c("MuSiC")) {
+    message(
+      "The selected method is not provided for ROI deconvolution. ",
+      "Switching to MuSiC ..."
+    )
+    method <- "MuSiC"
+  }
+  
+  # deconvolution with MuSiC
+  if (method == "MuSiC") {
+    message("Configuring Single Cell Assay (Reference) ...")
+    if (inherits(sc.object, "SingleCellExperiment")) {
+      sc.object$music_decon_clusters <- sc.object[[sc.cluster]]
+      reference <- sc.object
+    } else if (inherits(sc.object, "Seurat")) {
+      sc.object$music_decon_clusters <- sc.object@meta.data[[sc.cluster]]
+      
+      # If layered assay, the user must join the layers beforehand
+      if ("layers" %in% slotNames(sc.object[[sc.assay]])) {
+        if (!"counts" %in% SeuratObject::Layers(sc.object[[sc.assay]])) {
+          stop(
+            "Seurat v5 layered assay detected. ",
+            "Please run SeuratObject::JoinLayers(sc.object, assay = '",
+            sc.assay,
+            "') before calling getDeconvolution()."
+          )
+        }
+      }
+      
+      sccounts <- Seurat::GetAssayData(
+        sc.object,
+        assay = sc.assay,
+        layer = "counts"
+      )
+      
+      sccounts <- as.matrix(apply(sccounts, 2, ceiling))
+      rownames(sccounts) <- rownames(sc.object[[sc.assay]])
+      reference <- Seurat::as.SingleCellExperiment(Seurat::CreateSeuratObject(
+        sccounts,
+        meta.data = sc.object@meta.data
+      ))
+    } else {
+      stop(
+        "'sc.object' should either be of a Seurat or ",
+        "SingleCellExperiment class!"
+      )
+    }
+  }
+  reference
 }
