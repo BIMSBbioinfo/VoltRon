@@ -52,13 +52,6 @@ getDeconvolution <- function(
       assay.type = assay.types
     )
     
-    # Validate reference construction
-    if (is.null(reference)) {
-      stop(
-        "Deconvolution reference was not constructed. Check your sc.object and assay parameters."
-      )
-    }
-    
     # run a list of assays
     for (assy in assay_names) {
       # get assay
@@ -109,61 +102,10 @@ getDeconReference <- function(
     method = "RCTD",
     assay.type = NULL
 ) {
-  # Deconvolute for spots
   if (assay.type == "spot") {
     reference <- getDeconReferenceSpot(sc.object, sc.assay, sc.cluster, method)
-    
-    # Deconvolute for ROIs
   } else if (assay.type == "ROI") {
-    # check method
-    if (!method %in% c("MuSiC")) {
-      message(
-        "The selected method is not provided for ROI deconvolution. ",
-        "Switching to MuSiC ..."
-      )
-      method <- "MuSiC"
-    }
-    
-    # deconvolution with MuSiC
-    if (method == "MuSiC") {
-      message("Configuring Single Cell Assay (Reference) ...")
-      if (inherits(sc.object, "SingleCellExperiment")) {
-        sc.object$music_decon_clusters <- sc.object[[sc.cluster]]
-        reference <- sc.object
-      } else if (inherits(sc.object, "Seurat")) {
-        sc.object$music_decon_clusters <- sc.object@meta.data[[sc.cluster]]
-        
-        # If layered assay, the user must join the layers beforehand
-        if ("layers" %in% slotNames(sc.object[[sc.assay]])) {
-          if (!"counts" %in% SeuratObject::Layers(sc.object[[sc.assay]])) {
-            stop(
-              "Seurat v5 layered assay detected. ",
-              "Please run SeuratObject::JoinLayers(sc.object, assay = '",
-              sc.assay,
-              "') before calling getDeconvolution()."
-            )
-          }
-        }
-        
-        sccounts <- Seurat::GetAssayData(
-          sc.object,
-          assay = sc.assay,
-          layer = "counts"
-        )
-        
-        sccounts <- as.matrix(apply(sccounts, 2, ceiling))
-        rownames(sccounts) <- rownames(sc.object[[sc.assay]])
-        reference <- Seurat::as.SingleCellExperiment(Seurat::CreateSeuratObject(
-          sccounts,
-          meta.data = sc.object@meta.data
-        ))
-      } else {
-        stop(
-          "'sc.object' should either be of a Seurat or ",
-          "SingleCellExperiment class!"
-        )
-      }
-    }
+    reference <- getDeconReferenceROI(sc.object, sc.assay, sc.cluster, method)
   } else {
     stop("Unsupported assay type: ", assay.type)
   }
@@ -492,7 +434,6 @@ getDeconReferenceSpot <- function(
     )
   }
   
-  # return
   reference
 }
 
@@ -576,4 +517,63 @@ getMuSiC <- function(
     verbose = T
   )
   t(results$Est.prop.weighted)
+}
+
+#' @noRd
+getDeconReferenceROI <- function(
+    sc.object,
+    sc.assay = NULL,
+    sc.cluster,
+    method
+) {
+  # check method
+  if (!method %in% c("MuSiC")) {
+    message(
+      "The selected method is not provided for ROI deconvolution. ",
+      "Switching to MuSiC ..."
+    )
+    method <- "MuSiC"
+  }
+  
+  # deconvolution with MuSiC
+  if (method == "MuSiC") {
+    message("Configuring Single Cell Assay (Reference) ...")
+    if (inherits(sc.object, "SingleCellExperiment")) {
+      sc.object$music_decon_clusters <- sc.object[[sc.cluster]]
+      reference <- sc.object
+    } else if (inherits(sc.object, "Seurat")) {
+      sc.object$music_decon_clusters <- sc.object@meta.data[[sc.cluster]]
+      
+      # If layered assay, the user must join the layers beforehand
+      if ("layers" %in% slotNames(sc.object[[sc.assay]])) {
+        if (!"counts" %in% SeuratObject::Layers(sc.object[[sc.assay]])) {
+          stop(
+            "Seurat v5 layered assay detected. ",
+            "Please run SeuratObject::JoinLayers(sc.object, assay = '",
+            sc.assay,
+            "') before calling getDeconvolution()."
+          )
+        }
+      }
+      
+      sccounts <- Seurat::GetAssayData(
+        sc.object,
+        assay = sc.assay,
+        layer = "counts"
+      )
+      
+      sccounts <- as.matrix(apply(sccounts, 2, ceiling))
+      rownames(sccounts) <- rownames(sc.object[[sc.assay]])
+      reference <- Seurat::as.SingleCellExperiment(Seurat::CreateSeuratObject(
+        sccounts,
+        meta.data = sc.object@meta.data
+      ))
+    } else {
+      stop(
+        "'sc.object' should either be of a Seurat or ",
+        "SingleCellExperiment class!"
+      )
+    }
+  }
+  reference
 }
