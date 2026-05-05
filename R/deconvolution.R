@@ -140,14 +140,6 @@ getDeconSingle <- function(
   # get assay type
   assay.type <- vrAssayTypes(object)
   
-  # Check that exactly one assay type is returned
-  if (length(assay.type) != 1) {
-    stop(
-      "getDeconSingle requires exactly one assay type. Detected: ",
-      paste(assay.type, collapse = ", ")
-    )
-  }
-  
   if (assay.type == "spot") {
     # check method
     if (!method %in% c("RCTD")) {
