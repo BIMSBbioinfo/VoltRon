@@ -3133,7 +3133,7 @@ importQuPathIF <- function(
 #' @param is.RGB If TRUE, all three channel images will be converted to RGB 
 #' images. 
 #' 
-#' @importFrom magick image_read image_info
+#' @importFrom magick image_read image_info image_convert
 #' @importFrom data.table data.table
 #' @importFrom EBImage as.Image colorMode
 #'
@@ -3212,7 +3212,10 @@ importImage <- function(
                   tmp <- img[,, i]
                   EBImage::colorMode(tmp) <- "Grayscale"
                   tmp <- tmp/max(tmp)
-                  magick::image_read(grDevices::as.raster(tmp))
+                  magick::image_convert(
+                    magick::image_read(grDevices::as.raster(tmp)), 
+                    colorspace = "gray"
+                  )
                 })
               }
             } else {
@@ -3221,6 +3224,7 @@ importImage <- function(
             }
             # regular tiff images
           } else {
+            # TODO: should this be converted to a grayscale too ?
             img <- magick::image_read(img)
           }
         } else {

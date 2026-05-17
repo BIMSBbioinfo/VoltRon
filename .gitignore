@@ -17,3 +17,4 @@ dev
 *.tar.xz
 cleanup
 inst/share
+.positai

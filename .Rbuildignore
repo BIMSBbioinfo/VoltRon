@@ -14,3 +14,5 @@ src/Makevars$
 autobrew
 configure.log
 ^[.]?air[.]toml$
+^\.positai$
+^\.claude$
