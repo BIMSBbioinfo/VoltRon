@@ -265,6 +265,7 @@ test_that("multilayer (with tiling)", {
 # Testing plotting functions
 test_that("combined groups for vrspatialplot", {
   
+  skip_if_not_installed("ggnewscale")
   data("merged_object")
   
   # combined groups 
