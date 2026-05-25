@@ -2236,7 +2236,7 @@ getImageOutput <- function(
 #' @importFrom magick image_ggplot
 #'
 #' @noRd
-plotImage <- function(image, max.pixel.size = NULL) {
+plotImage <- function(image, max.pixel.size = NULL, extent = NULL) {
   if (inherits(image, "magick-image")) {
     imageinfo <- getImageInfo(image)
     if (!is.null(max.pixel.size)) {
@@ -2249,8 +2249,19 @@ plotImage <- function(image, max.pixel.size = NULL) {
     }
     imgggplot <- magick::image_ggplot(image)
   } else if (inherits(image, "vrSpatial")) {
-    imageinfo <- getImageInfo(image)
     coords <- vrCoordinates(image)
+    if(is.null(extent)) {
+      extent <- getImageInfo(image)
+      extent <- list(x = c(min(coords[,"x"]),
+                           min(coords[,"x"]) + extent$width),
+                     y = c(min(coords[,"y"]),
+                           min(coords[,"y"]) + extent$height)
+                     )
+    } else {
+      extent <- list(x = c(0, extent$width),
+                     y = c(0, extent$height))
+
+    }
     imgggplot <- ggplot2::ggplot(
       data = coords,
       ggplot2::aes_string("x", "y")
@@ -2259,10 +2270,8 @@ plotImage <- function(image, max.pixel.size = NULL) {
       ggplot2::theme_void() +
       ggplot2::coord_fixed(
       expand = FALSE,
-      xlim = c(min(coords[,"x"]), 
-               min(coords[,"x"]) + imageinfo$width),
-      ylim = c(min(coords[,"y"]), 
-               min(coords[,"y"]) + imageinfo$height)
+      xlim = extent$x,
+      ylim = extent$y
     ) + 
       ggplot2::geom_point()
   } else if (inherits(image, "ImageArray")) {
@@ -2438,16 +2447,23 @@ cropImage <- function(image, geometry) {
 #' @importFrom magick image_resize image_info image_read geometry_size_percent
 #'
 #' @noRd
-resize_Image <- function(image, geometry) {
+resize_Image <- function(image, geometry, extent = NULL) {
   
   # get image info
   image_info_large <- getImageInfo(image)
 
+  # resize magick object
   if (inherits(image, "magick-image")) {
     image <- magick::image_resize(image, geometry = geometry)
+    
+  # resize coordinates
+  # Note: here, coordinates should track extent if given
   } else if (inherits(image, "vrSpatial")) {
-    image <- ggplot_to_magick(plotImage(image))
+    image <- ggplot_to_magick(plotImage(image, extent = extent), 
+                              extent = extent)
     image <- magick::image_resize(image, geometry = geometry)
+    
+  # resize ImageArray object  
   } else if (inherits(image, "ImageArray")) {
     # get scale factor
     if (grepl("%$", geometry)) {
@@ -2479,10 +2495,18 @@ resize_Image <- function(image, geometry) {
 
 #' @importFrom magick image_read
 #' @noRd
-ggplot_to_magick <- function(plot, width = 8, height = 6, dpi = 300, ...) {
+ggplot_to_magick <- function(plot, extent = NULL, width = 8, height = 6, dpi = 300, ...) {
+  
+  # file 
   stopifnot(inherits(plot, "ggplot"))
   tf <- tempfile(fileext = ".png")
   on.exit(unlink(tf), add = TRUE)
+  
+  # if extent is given, adjust file extent
+  if(!is.null(extent))
+    height <- (width/extent$width) * extent$height
+  
+  # save image
   ggplot2::ggsave(
     filename = tf,
     plot = plot,
@@ -2493,6 +2517,7 @@ ggplot_to_magick <- function(plot, width = 8, height = 6, dpi = 300, ...) {
     ...
   )
   
+  # read as magick
   magick::image_read(tf)
 }
 
@@ -2832,10 +2857,29 @@ getManualRegisteration <- function(
       lapply(register_ind, function(i) {
         output[[paste0("plot_query_reg", i)]] <- renderImage(
           {
-            # get image list
+            # resize reference image
+            img_resized <- resize_Image(image_list[[centre]], 
+                                        geometry = "400x")
+            
+            # if coordinates are being resized, track the extent and 
+            # geometry of the reference image
+            if(!is(image_list[[centre]], "vrSpatial")){
+              extent <- getImageInfo(image_list[[centre]]) 
+            } else {
+              extent <- NULL
+            }
+            geometry <- getImageInfo(img_resized)
+            geometry <- paste0(geometry$width, "x", geometry$height)
+            
+            # resize query image
+            aligned_img_resized <- resize_Image(aligned_image_list[[i]], 
+                                                geometry = geometry,
+                                                extent = extent)
+            
+            # replicate query and reference images for slide show
             image_view_list <- list(
-              rep(resize_Image(image_list[[centre]], geometry = "400x"), 5),
-              rep(resize_Image(aligned_image_list[[i]], geometry = "400x"), 5)
+              rep(img_resized, 5),
+              rep(aligned_img_resized, 5)
             )
 
             # make slide show
@@ -2979,6 +3023,8 @@ getRcppManualRegistration <- function(
   # ref image
   if(inherits(ref_image, "vrSpatial")){
     ref_image <- vrCoordinates(ref_image)[,c("x","y")]
+    reference_landmark[, 2] <- max(ref_image[,2]) + min(ref_image[,2]) - reference_landmark[, 2]
+    ref_image[,2] <- max(ref_image[,2]) + min(ref_image[,2]) - ref_image[, 2]
   } else {
     if (inherits(ref_image, "ImageArray")) {
       ref_image <- DelayedArray::realize(ref_image)
@@ -2992,6 +3038,8 @@ getRcppManualRegistration <- function(
   # query image
   if(inherits(query_image, "vrSpatial")){
     query_image <- vrCoordinates(query_image)[,c("x","y")]
+    query_landmark[, 2] <- max(query_image[,2]) + min(query_image[,2]) - query_landmark[, 2]
+    query_image[,2] <- max(query_image[,2]) + min(query_image[,2]) - query_image[, 2]
   } else {
     if (inherits(query_image, "ImageArray")) {
       query_image <- DelayedArray::realize(query_image)
@@ -3003,25 +3051,33 @@ getRcppManualRegistration <- function(
   }
   
   
-  manual_registeration <- 
-    if(ncol(ref_image) == 2 && ncol(query_image) == 2){
-      manual_registeration_matrix
+  reg <- 
+    if(ncol(query_image) == 2){
+      manual_registeration_matrix(
+        query_image,
+        reference_landmark = reference_landmark,
+        query_landmark = query_landmark,
+        width1 = dim(ref_image)[2],
+        height1 = dim(ref_image)[3],
+        width2 = dim(query_image)[2],
+        height2 = dim(query_image)[3],
+        method = method,
+        nonrigid = nonrigid
+      )
     } else {
-      manual_registeration_rawvector
+      manual_registeration_rawvector(
+        ref_image,
+        query_image,
+        reference_landmark = reference_landmark,
+        query_landmark = query_landmark,
+        width1 = dim(ref_image)[2],
+        height1 = dim(ref_image)[3],
+        width2 = dim(query_image)[2],
+        height2 = dim(query_image)[3],
+        method = method,
+        nonrigid = nonrigid
+      )
     }
-  
-  reg <- manual_registeration(
-    ref_image,
-    query_image,
-    reference_landmark = reference_landmark,
-    query_landmark = query_landmark,
-    width1 = dim(ref_image)[2],
-    height1 = dim(ref_image)[3],
-    width2 = dim(query_image)[2],
-    height2 = dim(query_image)[3],
-    method = method,
-    nonrigid = nonrigid
-  )
 
   # check for null keypoints
   if (suppressWarnings(all(lapply(reg[[1]][[2]], is.null)))) {
@@ -3032,6 +3088,7 @@ getRcppManualRegistration <- function(
   aligned_image <- if(ncol(reg[[2]]) == 2){
     rownames(reg[[2]]) <- rownames(query_image)
     colnames(reg[[2]]) <- colnames(query_image)
+    reg[[2]][,2] <- max(reg[[2]][,2]) + min(reg[[2]][,2]) - reg[[2]][, 2]
     vrSpatial(coords = reg[[2]], main_channel = "points")
   } else {
     magick::image_read(reg[[2]])

@@ -274,7 +274,7 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVe
 }
 
 // [[Rcpp::export]]
-Rcpp::List manual_registeration_matrix(Rcpp::NumericMatrix ref_data, Rcpp::NumericMatrix query_data,
+Rcpp::List manual_registeration_matrix(Rcpp::NumericMatrix query_data,
                                        Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark,
                                        const int width1, const int height1,
                                        const int width2, const int height2,
@@ -300,6 +300,7 @@ Rcpp::List manual_registeration_matrix(Rcpp::NumericMatrix ref_data, Rcpp::Numer
                                h, keypoints,
                                query_landmark, reference_landmark,
                                run_Affine, run_TPS);
+   out_trans[0] = matToNumericMatrix(h.clone());
  }
  
  if(strcmp(method.get_cstring(), "Non-Rigid") == 0){
@@ -311,7 +312,6 @@ Rcpp::List manual_registeration_matrix(Rcpp::NumericMatrix ref_data, Rcpp::Numer
  } 
  
  // transformation matrix, can be either a matrix, set of keypoints or both
- out_trans[0] = matToNumericMatrix(h.clone());
  out_trans[1] = keypoints;
  out[0] = out_trans;
  out[1] = dataReg;

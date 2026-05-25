@@ -121,12 +121,11 @@ BEGIN_RCPP
 END_RCPP
 }
 // manual_registeration_matrix
-Rcpp::List manual_registeration_matrix(Rcpp::NumericMatrix ref_data, Rcpp::NumericMatrix query_data, Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark, const int width1, const int height1, const int width2, const int height2, Rcpp::String method, Rcpp::String nonrigid);
-RcppExport SEXP _VoltRon_manual_registeration_matrix(SEXP ref_dataSEXP, SEXP query_dataSEXP, SEXP reference_landmarkSEXP, SEXP query_landmarkSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP, SEXP methodSEXP, SEXP nonrigidSEXP) {
+Rcpp::List manual_registeration_matrix(Rcpp::NumericMatrix query_data, Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark, const int width1, const int height1, const int width2, const int height2, Rcpp::String method, Rcpp::String nonrigid);
+RcppExport SEXP _VoltRon_manual_registeration_matrix(SEXP query_dataSEXP, SEXP reference_landmarkSEXP, SEXP query_landmarkSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP, SEXP methodSEXP, SEXP nonrigidSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type ref_data(ref_dataSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type query_data(query_dataSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type reference_landmark(reference_landmarkSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type query_landmark(query_landmarkSEXP);
@@ -136,7 +135,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type height2(height2SEXP);
     Rcpp::traits::input_parameter< Rcpp::String >::type method(methodSEXP);
     Rcpp::traits::input_parameter< Rcpp::String >::type nonrigid(nonrigidSEXP);
-    rcpp_result_gen = Rcpp::wrap(manual_registeration_matrix(ref_data, query_data, reference_landmark, query_landmark, width1, height1, width2, height2, method, nonrigid));
+    rcpp_result_gen = Rcpp::wrap(manual_registeration_matrix(query_data, reference_landmark, query_landmark, width1, height1, width2, height2, method, nonrigid));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -193,7 +192,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_VoltRon_warpImageAuto", (DL_FUNC) &_VoltRon_warpImageAuto, 7},
     {"_VoltRon_warpImageManual", (DL_FUNC) &_VoltRon_warpImageManual, 7},
     {"_VoltRon_manual_registeration_rawvector", (DL_FUNC) &_VoltRon_manual_registeration_rawvector, 10},
-    {"_VoltRon_manual_registeration_matrix", (DL_FUNC) &_VoltRon_manual_registeration_matrix, 10},
+    {"_VoltRon_manual_registeration_matrix", (DL_FUNC) &_VoltRon_manual_registeration_matrix, 9},
     {"_VoltRon_applyRcppMapping", (DL_FUNC) &_VoltRon_applyRcppMapping, 2},
     {"_VoltRon_build_snn_rank", (DL_FUNC) &_VoltRon_build_snn_rank, 1},
     {"_VoltRon_build_snn_number", (DL_FUNC) &_VoltRon_build_snn_number, 1},
