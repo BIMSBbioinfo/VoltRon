@@ -2820,13 +2820,15 @@ importDBITSeq <- function(
   rnadata <- t(as.matrix(rnadata))
 
   # count matrix Protein
-  protdata <- utils::read.table(
-    path.prot,
-    header = TRUE,
-    sep = "\t",
-    row.names = 1
-  )
-  protdata <- t(as.matrix(protdata))
+  if (!is.null(path.prot)) {
+    protdata <- utils::read.table(
+      path.prot,
+      header = TRUE,
+      sep = "\t",
+      row.names = 1
+    )
+    protdata <- t(as.matrix(protdata))
+  }
 
   # coords
   coords <- sapply(colnames(rnadata), function(x) {
