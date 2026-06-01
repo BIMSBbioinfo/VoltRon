@@ -36,73 +36,6 @@ Rcpp::NumericMatrix replaceNaMatrix(Rcpp::NumericMatrix mat, int replace) {
 }
 
 ////
-// memory
-////
-
-// // memory check
-// void log_mem_usage(const std::string& label = "") {
-//   struct rusage usage;
-//   getrusage(RUSAGE_SELF, &usage);
-//   long rss_b = usage.ru_maxrss;
-//   
-//   double rss_kb = rss_b / 1024.0;
-//   double rss_mb = rss_kb / 1024.0;
-//   double rss_gb = rss_mb / 1024.0;
-//   
-//   Rcpp::Rcout << "Used Memory [" << label << "]: " << rss_gb << " GB" << std::endl;
-// }
-// 
-// void log_mem_macos(const std::string& label = "") {
-//   mach_task_basic_info info;
-//   mach_msg_type_number_t size = MACH_TASK_BASIC_INFO_COUNT;
-//   kern_return_t kr = task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
-//                                (task_info_t)&info, &size);
-//   
-//   if (kr != KERN_SUCCESS) {
-//     Rcpp::Rcerr << "[MEM " << label << "] Failed to get memory info.\n";
-//     return;
-//   }
-//   
-//   double rss_gb = static_cast<double>(info.resident_size) / (1024.0 * 1024.0 * 1024.0);
-//   double virt_gb = static_cast<double>(info.virtual_size) / (1024.0 * 1024.0 * 1024.0);
-//   
-//   Rcpp::Rcout << "[MEM " << label << "] Resident (RSS): "
-//               << rss_gb << " GB, Virtual: " << virt_gb << " GB\n";
-// }
-// 
-// double object_size_long(long bsize) {
-//   
-//   double rss_kb = bsize / 1024.0;
-//   double rss_mb = rss_kb / 1024.0;
-//   double rss_gb = rss_mb / 1024.0;
-//   
-//   return rss_gb;
-// }
-// 
-// double object_size_double(double bsize) {
-//   
-//   double rss_kb = bsize / 1024;
-//   double rss_mb = rss_kb / 1024;
-//   double rss_gb = rss_mb / 1024;
-//   
-//   return rss_gb;
-// }
-// 
-// double get_resident_bytes() {
-//   mach_task_basic_info info;
-//   mach_msg_type_number_t size = MACH_TASK_BASIC_INFO_COUNT;
-//   if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
-//                 (task_info_t)&info, &size) != KERN_SUCCESS) {
-//     return 0;
-//   }
-//   return static_cast<double>(info.resident_size);
-// }
-// 
-// double bytes_to_gb(double bytes) {
-//   return bytes / (1024.0 * 1024.0 * 1024.0);
-// }
-
-////
 // Conversion
 ////
 
@@ -197,6 +130,17 @@ std::vector<double> Point2fToDoubleVector(std::vector<cv::Point2f> &points) {
   return vec;
 }
 
+// Function to convert a cv::Keypoint object to a std::vector<cv:Point2f>
+std::vector<cv::Point2f> KeyPointToPoint2f(std::vector<cv::KeyPoint> &keypoints) {
+  int n = keypoints.size();
+  std::vector<cv::Point2f> points;
+  
+  for (int i = 0; i < n; i++) {
+    points.push_back(keypoints[i].pt);
+  }
+  return points;
+}
+
 // Function to convert a cv::Point2f object to a cv::Mat
 std::vector<cv::Point2f> matToPoint2f(cv::Mat &mat) {
   std::vector<cv::Point2f> points;
@@ -288,4 +232,62 @@ double cppSD(std::vector<cv::Point2f> &points)
   double sd = std::accumulate(inVec.begin(), inVec.end(), 0.0);
   std::vector<double>().swap(inVec);
   return std::sqrt( sd / (n-1) );
+}
+
+double meanDistances(std::vector<cv::Point2f>& pts1,
+                    std::vector<cv::Point2f>& pts2)
+{
+  if (pts1.size() != pts2.size() || pts1.empty())
+    return 0.0;
+
+  double sumDist = 0.0;
+  for (size_t i = 0; i < pts1.size(); ++i)
+  {
+    const double dx = pts1[i].x - pts2[i].x;
+    const double dy = pts1[i].y - pts2[i].y;
+    sumDist += std::sqrt(dx * dx + dy * dy);
+  }
+  
+  return sumDist / pts1.size();
+}
+
+double medianDistances(std::vector<cv::Point2f>& pts1,
+                      std::vector<cv::Point2f>& pts2)
+{
+  if (pts1.size() != pts2.size() || pts1.empty())
+    return 0.0;
+  
+  std::vector<double> distances;
+  distances.reserve(pts1.size());
+  
+  for (size_t i = 0; i < pts1.size(); ++i)
+  {
+    const double dx = pts1[i].x - pts2[i].x;
+    const double dy = pts1[i].y - pts2[i].y;
+    distances.push_back(std::sqrt(dx * dx + dy * dy));
+  }
+  
+  const size_t n = distances.size();
+  const size_t mid = n / 2;
+  
+  std::nth_element(distances.begin(),
+                   distances.begin() + mid,
+                   distances.end());
+  
+  if (n % 2 == 1)
+  {
+    return distances[mid];
+  }
+  else
+  {
+    double upper = distances[mid];
+    
+    std::nth_element(distances.begin(),
+                     distances.begin() + mid - 1,
+                     distances.end());
+    
+    double lower = distances[mid - 1];
+    
+    return (lower + upper) / 2.0;
+  }
 }

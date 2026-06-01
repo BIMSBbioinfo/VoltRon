@@ -37,6 +37,9 @@ cv::Mat IntVectorToMat(std::vector<uint8_t> &points);
 // std::vector<double> vs std::vector<cv::Point2f>
 std::vector<double> KeyPointToDoubleVector(std::vector<cv::KeyPoint> &points);
 std::vector<double> Point2fToDoubleVector(std::vector<cv::Point2f> &points);
+
+// std::vector<cv::KeyPoint> vs std::vector<cv::Point2f>
+std::vector<cv::Point2f> KeyPointToPoint2f(std::vector<cv::KeyPoint> &keypoints);
   
 ////
 // stats
@@ -46,32 +49,8 @@ std::vector<double> Point2fToDoubleVector(std::vector<cv::Point2f> &points);
 double cppSD(std::vector<cv::KeyPoint> &points);
 double cppSD(std::vector<cv::Point2f> &points);
 
-////
-// memory
-////
-
-// void log_mem_usage(const std::string& label);
-// void log_mem_macos(const std::string& label);
-// double object_size_long(long bsize);
-// double object_size_double(double bsize);
-// double get_resident_bytes();
-// double bytes_to_gb(double bytes);
-// 
-// struct MemProfiler {
-//   size_t start;
-//   std::string label;
-// 
-//   MemProfiler(const std::string& lbl) : label(lbl) {
-//     start = get_resident_bytes();
-//   }
-// 
-//   ~MemProfiler() {
-//     size_t end = get_resident_bytes();
-//     double diff = (double) end - (double) start;
-//     if(diff < 0.0) diff = 0.0;
-//     double diff_gb = bytes_to_gb(diff);
-//     Rcpp::Rcout << "[MEM] " << label << ": +" << diff_gb << " GB" << std::endl;
-//   }
-// };
+// mean distance between points
+double meanDistances(std::vector<cv::Point2f> &pts1, std::vector<cv::Point2f> &pts2);
+double medianDistances(std::vector<cv::Point2f> &pts1, std::vector<cv::Point2f> &pts2);
 
 #endif
