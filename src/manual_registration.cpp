@@ -4,8 +4,9 @@
 #include <opencv2/opencv.hpp>
 #include "opencv2/shape/shape_transformer.hpp"
 
-// Auxiliary
+// Library
 #include "auxiliary.h"
+#include "metrics.h"
 
 // Namespaces
 using namespace Rcpp;
@@ -86,6 +87,10 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
     cv::warpPerspective(im1, im1Affine, h, im2.size());
     cv::perspectiveTransform(query_mat, query_reg, h);
   }
+  
+  // get metrics
+  std::vector<double> image_metrics;
+  image_metrics = getAlignmentMetrics(im1Affine, im2, h);
   
   if(!run_TPS){
     

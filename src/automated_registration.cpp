@@ -6,9 +6,10 @@
 #include "opencv2/shape/shape_transformer.hpp"
 // #include <opencv2/imgproc.hpp>
 
-// Internal functions
+// Library
 #include "auxiliary.h"
 #include "image.h"
+#include "metrics.h"
 
 // Namespaces
 using namespace Rcpp;
@@ -30,173 +31,6 @@ struct SIFTParameters
   const float ransac_confidence = 0.95;
   const int ransac_maxIters=2000;
 };
-
-////
-// Quality Control
-////
-
-// check distribution of registered points
-double checkMappedGridDistribution(Mat &im, Mat &h){
-
-  // message
-  std::string message;
-  
-  // get image shape
-  int height = im.rows;
-  int width = im.cols;
-  int height_interval = height > 50 ? (double) height/50.0 : 1;
-  int width_interval = width > 50 ? (double) width/50.0 : 1;
-
-  // perspective transformation of grid points
-  std::vector<cv::Point2f> gridpoints;
-  for (double i = 0.0; i <= height; i += height_interval) {
-    for (double j = 0.0; j <= width; j += width_interval) {
-      gridpoints.push_back(cv::Point2f(j,i));
-    }
-  }
-
-  // register grid points
-  std::vector<cv::Point2f> gridpoints_reg;
-  if (h.rows == 2){
-    cv::transform(gridpoints, gridpoints_reg, h);
-  } else if(h.rows == 3) {
-    cv::perspectiveTransform(gridpoints, gridpoints_reg, h);
-  } 
-
-  // Compute the standard deviation of the transformed points
-  double gridpoints_reg_sd = cppSD(gridpoints_reg);
-
-  // get warning message
-  if(gridpoints_reg_sd < 1.0 | gridpoints_reg_sd > max(height, width)){
-    Rcout << "  WARNING: Transformation may be poor - transformed points grid seem to be concentrated!" << endl;
-  }
-
-  return gridpoints_reg_sd;
-}
-
-bool checkMaskAbundance(Mat &mask){
-  int j=0;
-  for (int i = 0; i < mask.rows; i++) {
-    if (mask.at<uchar>(i)) {
-      j++;
-    }
-  }
-  return j > 6;
-}
-
-// compare the distance between two sets of match points
-double medianMappingDistance(std::vector<cv::Point2f> &keypoints1, std::vector<cv::Point2f> &keypoints2, Mat &h) {
-  std::vector<cv::Point2f> keypoints1_warped;
-  if(keypoints1.size() > 0){
-    if (h.rows == 2){
-      cv::transform(keypoints1, keypoints1_warped, h);
-    } else {
-      cv::perspectiveTransform(keypoints1, keypoints1_warped, h);
-    }
-  }
-  
-  return medianDistances(keypoints1_warped, keypoints2);
-}
-
-// calculate inlier percentage
-int checkInlierPercentage(Mat &mask){
-  int j=0;
-  for (int i = 0; i < mask.rows; i++) {
-    if (mask.at<uchar>(i)) {
-      j++;
-    }
-  }
-  double ratio = (double) j/mask.rows; 
-  double perc = round(100.0 * ratio);
-  return (int) perc;
-}
-
-void maskKeypoints(std::vector<cv::KeyPoint> &keypoints1_good, std::vector<cv::KeyPoint> &keypoints2_good,
-                    std::vector<cv::KeyPoint> &keypoints1_masked, std::vector<cv::KeyPoint> &keypoints2_masked, 
-                    std::vector<cv::DMatch> &top_matches, Mat &mask)
-{
-  int j=0;
-  for (int i = 0; i < mask.rows; i++) {
-    if (mask.at<uchar>(i)) {
-      keypoints1_masked.push_back(keypoints1_good[i]);
-      keypoints2_masked.push_back(keypoints2_good[i]);
-      top_matches.push_back(cv::DMatch(static_cast<int>(j), static_cast<int>(j), 0));
-      j++;
-    }
-  }
-}
-
-// void maskKeypoints(std::vector<cv::KeyPoint> &keypoints1_good, std::vector<cv::KeyPoint> &keypoints2_good,
-//                     std::vector<cv::KeyPoint> &keypoints1_masked, std::vector<cv::KeyPoint> &keypoints2_masked, 
-//                     Mat &mask)
-// {
-//   int j=0;
-//   for (int i = 0; i < mask.rows; i++) {
-//     if (mask.at<uchar>(i)) {
-//       keypoints1_masked.push_back(keypoints1_good[i]);
-//       keypoints2_masked.push_back(keypoints2_good[i]);
-//       j++;
-//     }
-//   }
-// }
-
-// check if keypoints are degenerate
-bool checkDegenerate(double pts1, double pts2) {
-  
-  // get warning message
-  bool is_degenerate = FALSE;
-  if(pts1 < 1.0 | pts2 < 1.0){
-    is_degenerate = TRUE;
-    Rcout << "WARNING: points may be in a degenerate configuration." << endl;
-  } 
-  
-  return is_degenerate;
-}
-
-// do overall checks on keypoints and images
-std::vector<double> getTransformationMetrics(std::vector<cv::Point2f> &points1, 
-                                           std::vector<cv::Point2f> &points2, 
-                                           Mat &im2, Mat &h, Mat &mask) {
-  
-  // metrics list
-  std::vector<double> metrics_list;
-  
-  // Alignment report
-  Rcout << "Alignment Report: " << endl;
-  
-  // Report final keypoints
-  Rcout << "  Calculated transformation matrix with " << points1.size() << " keypoints" << endl;
-  
-  // points stand. dev.
-  double points1_sd = cppSD(points1);
-  double points2_sd = cppSD(points2);
-  if(points1_sd < 1.0 | points2_sd < 1.0){
-    Rcout << "  WARNING: points may be in a degenerate configuration." << endl;
-  } 
-  Rcout << "  Std dev of points: x=" << points1_sd << " y="  << points2_sd << endl;
-  metrics_list.push_back(checkDegenerate(points1_sd, points2_sd));
-  metrics_list.push_back(points1_sd);
-  metrics_list.push_back(points2_sd);
-  
-  // check distribution of points
-  double stddev = checkMappedGridDistribution(im2, h);
-  Rcout << "  Std dev of registered points: " << stddev << endl;
-  metrics_list.push_back(stddev);
-  
-  // warp keypoints and compare 
-  double md = medianMappingDistance(points1, points2, h);
-  Rcout << "  Median distance between points: " << md << endl;
-  if(md > 3){
-    Rcout << "  WARNING: Transformation may be poor - mean euclidean distance of mapped source and destination key points is high!" << endl;
-  } 
-  
-  // get inlier percentages
-  double ratio = checkInlierPercentage(mask);
-  Rcout << "  Inlier Percentage: " << ratio << endl;
-  
-  // return is_degenerate;
-  return metrics_list;
-}
 
 ////
 // Manage Keypoints and Matches
@@ -785,11 +619,6 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
 
   }
   
-  // get metrics
-  std::vector<double> metrics;
-  metrics = getTransformationMetrics(points1, points2, im2, h, mask);
-  Rcout << "Registration is " << (metrics[0] ? "degenerate!" : "not degenerate!") << endl;
-  
   // Use homography to warp image
   if(h.rows == 2){
     warpAffine(im1Proc, im1Proc, h, im2Proc.size());
@@ -801,6 +630,11 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     Rcout << "WARNING: No transformation was found" << endl;
     return;
   }
+  
+  // get metrics
+  std::vector<double> keypoint_metrics, image_metrics; 
+  keypoint_metrics = getKeypointMetrics(points1, points2, im1Proc, im2Proc, h, mask);
+  image_metrics = getAlignmentMetrics(im1Proc, im2Proc, h);
   
   // Rcout << "DONE: warped query image" << endl;
 
