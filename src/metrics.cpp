@@ -137,17 +137,18 @@ bool checkDegenerate(double pts1, double pts2) {
   return is_degenerate;
 }
 
-cv::Mat generateOverlapMask(cv::Mat& im, cv::Mat& h, cv::Size dsize)
+cv::Mat generateOverlapMask(cv::Mat& im, cv::Mat& h, 
+                            cv::Size dsize, cv::Size ssize)
 {
   // generate mask
-  cv::Mat mask = cv::Mat::ones(im.size(), CV_8UC1) * 255;
+  cv::Mat mask = cv::Mat::ones(ssize, CV_8UC1) * 255;
   cv::Mat warped;
   
   // Keep masks crisp: nearest-neighbor only.
   const int interp = cv::INTER_NEAREST;
   const int borderMode = cv::BORDER_CONSTANT;
   const cv::Scalar borderValue(0);
-  
+
   // warp mask
   if (h.rows == 2){
     cv::warpAffine(mask, warped, h, dsize, 
@@ -156,7 +157,7 @@ cv::Mat generateOverlapMask(cv::Mat& im, cv::Mat& h, cv::Size dsize)
     cv::warpPerspective(mask, warped, h, dsize, 
                         interp, borderMode, borderValue);
   }
-  
+
   // Force binary mask again.
   cv::threshold(warped, warped, 0, 255, cv::THRESH_BINARY);
   return warped;
@@ -258,7 +259,8 @@ double NormalizedMutualInfo(cv::Mat& im1, cv::Mat& im2,
   return (ent1+ent2)/ent12;
 }
 
-std::vector<double> getAlignmentMetrics(Mat &im1, Mat &im2, Mat &h){
+std::vector<double> getAlignmentMetrics(Mat &im1, Mat &im2, Mat &h, 
+                                        cv::Size ssize){
   
   // Histogram settings
   int histSize = 256;
@@ -267,8 +269,9 @@ std::vector<double> getAlignmentMetrics(Mat &im1, Mat &im2, Mat &h){
   int channels[] = {0};
   
   // get overlap mask
-  cv::Mat alignmentMask = generateOverlapMask(im1, h, im2.size());
-
+  cv::Mat alignmentMask = generateOverlapMask(im1, h, im2.size(), ssize);
+  // imwrite("mask.tif", alignmentMask);
+  
   // Compute histograms
   cv::Mat hist1, hist2;
   cv::calcHist(&im1, 1, channels, alignmentMask, 
@@ -286,16 +289,16 @@ std::vector<double> getAlignmentMetrics(Mat &im1, Mat &im2, Mat &h){
   metrics.push_back(cv::compareHist(hist1, hist2, cv::HISTCMP_CHISQR));
   metrics.push_back(cv::compareHist(hist1, hist2, cv::HISTCMP_INTERSECT));
   metrics.push_back(cv::compareHist(hist1, hist2, cv::HISTCMP_BHATTACHARYYA));
-  metrics.push_back(jointEntropy(im1, im2, alignmentMask, histSize));
-  metrics.push_back(MutualInfo(im1, im2, alignmentMask, histSize));
-  metrics.push_back(NormalizedMutualInfo(im1, im2, alignmentMask, histSize));
+  // metrics.push_back(jointEntropy(im1, im2, alignmentMask, histSize));
+  // metrics.push_back(MutualInfo(im1, im2, alignmentMask, histSize));
+  // metrics.push_back(NormalizedMutualInfo(im1, im2, alignmentMask, histSize));
   
   Rcout << "  Chi-Square:       " << metrics[0] << std::endl;
   Rcout << "  Intersection:     " << metrics[1] << std::endl;
   Rcout << "  Bhattacharyya:    " << metrics[2] << std::endl;
-  Rcout << "  Joint Entropy:    " << metrics[3] << std::endl;
-  Rcout << "  MutualInfo:       " << metrics[4] << std::endl;
-  Rcout << "  NormalizedMutualInfo: " << metrics[5] << std::endl;
+  // Rcout << "  Joint Entropy:    " << metrics[3] << std::endl;
+  // Rcout << "  MutualInfo:       " << metrics[4] << std::endl;
+  // Rcout << "  NormalizedMutualInfo: " << metrics[5] << std::endl;
   return metrics;
 }
 

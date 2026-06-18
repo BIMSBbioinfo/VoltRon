@@ -90,7 +90,7 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
   
   // get metrics
   std::vector<double> image_metrics;
-  image_metrics = getAlignmentMetrics(im1Affine, im2, h);
+  image_metrics = getAlignmentMetrics(im1Affine, im2, h, im1.size());
   
   if(!run_TPS){
     

@@ -619,6 +619,8 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
 
   }
   
+  // imwrite("img1_before.tif", im1Proc);
+  
   // Use homography to warp image
   if(h.rows == 2){
     warpAffine(im1Proc, im1Proc, h, im2Proc.size());
@@ -634,7 +636,9 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   // get metrics
   std::vector<double> keypoint_metrics, image_metrics; 
   keypoint_metrics = getKeypointMetrics(points1, points2, im1Proc, im2Proc, h, mask);
-  image_metrics = getAlignmentMetrics(im1Proc, im2Proc, h);
+  image_metrics = getAlignmentMetrics(im1Proc, im2Proc, h, im1.size());
+  // imwrite("img1.tif", im1Proc);
+  // imwrite("img2.tif", im2Proc);
   
   // Rcout << "DONE: warped query image" << endl;
 

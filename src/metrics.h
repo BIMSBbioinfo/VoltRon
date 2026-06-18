@@ -22,9 +22,11 @@ void maskKeypoints(std::vector<cv::KeyPoint> &keypoints1_good, std::vector<cv::K
 // check if keypoints are degenerate
 bool checkDegenerate(double pts1, double pts2);
 
-cv::Mat generateOverlapMask(cv::Mat& im, cv::Mat& h, cv::Size dsize);
+cv::Mat generateOverlapMask(cv::Mat& im, cv::Mat& h, 
+                            cv::Size dsize, cv::Size ssize);
 
-std::vector<double> getAlignmentMetrics(cv::Mat &im1, cv::Mat &im2, cv::Mat &h);
+std::vector<double> getAlignmentMetrics(cv::Mat &im1, cv::Mat &im2, cv::Mat &h, 
+                                        cv::Size dsize);
 
 // do overall checks on keypoints and images
 std::vector<double> getKeypointMetrics(std::vector<cv::Point2f> &points1, 
