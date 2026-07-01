@@ -579,11 +579,9 @@ as.AnnData <- function(
 
       # Create anndata using anndataR
       adata <- anndataR::AnnData(
-        obs_names = rownames(metadata),
-        var_names = rownames(data),
         X = t(data),
         obs = metadata,
-        obsm = osbm,
+        obsm = obsm,
         uns = uns
       )
 
