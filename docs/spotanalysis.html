@@ -13,7 +13,7 @@
 
 <title>Cell/Spot Analysis</title>
 
-<script src="site_libs/header-attrs-2.30/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.31/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -535,8 +535,7 @@ vrImages(Xen_R2)</code></pre>
 <p><br></p>
 <p>Once both VoltRon objects are created and images are well-tuned, we
 can merge these two into a single VoltRon object.</p>
-<pre class="r watch-out"><code>Xen_list &lt;- list(Xen_R1, Xen_R2)
-Xen_data &lt;- merge(Xen_list[[1]], Xen_list[-1])</code></pre>
+<pre class="r watch-out"><code>Xen_data &lt;- merge(Xen_R1, Xen_R2)</code></pre>
 <pre><code>VoltRon Object 
 XeniumR1: 
   Layers: Section1 
@@ -697,8 +696,73 @@ cells with increased expression of PGR.</p>
 <p><br></p>
 <pre class="r watch-out"><code>vrSpatialFeaturePlot(Xen_data, features = &quot;PGR&quot;, alpha = 1, 
                      n.tile = 250, background.color = &quot;black&quot;)</code></pre>
-<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_pgr.png" class="center"></p>
-<p><br></p>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_pgr.png" class="center">
+<br></p>
+</div>
+<div id="single-cell-integration" class="section level2">
+<h2>Single Cell Integration</h2>
+<p>VoltRon supports the integration of VoltRon objects with Seurat or
+SingleCellExperiment objects to facilitate the integration of spatial
+and single cell omic data modalities. This integration enables both the
+transfer of features from the scRNA data that are originally not
+available in the spatial assay, or the transfer of annotations from the
+scRNA data that serves as a single cell omics reference.</p>
+<p>As the scRNA reference, we will use the 10x single cell FFPE dataset
+(GSE243275) generated from the same tissue block as the Xenium
+experiment. You can find the single cell data <a
+href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE243275">here</a>.</p>
+<p>We first import the scRNA data as a Seurat object and we also
+normalize the profile of each cell.</p>
+<pre class="r watch-out"><code>if (!requireNamespace(&quot;Seurat&quot;, quietly = TRUE))
+  install.packages(&quot;Seurat&quot;)
+library(Seurat)
+seu &lt;- Seurat::Read10X_h5(&quot;filtered_feature_bc_matrix.h5&quot;)
+seu &lt;- Seurat::CreateSeuratObject(seu)
+seu &lt;- Seurat::NormalizeData(seu, scale.factor = 10000)</code></pre>
+<p>To transfer the features of scRNA to the VoltRon object, we use the
+<code>transferData</code> function. If no features are provided, all
+features from the scRNA object will be transferred. After the transfer
+is complete, a new feature set for the target VoltRon assay will
+appear.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- transferData(Xen_data, seu, to = &quot;Assay1&quot;, 
+                         features = VariableFeatures(seu))
+Xen_data</code></pre>
+<pre><code>VoltRon Object 
+XeniumR1: 
+  Layers: Section1 
+XeniumR2: 
+  Layers: Section1 
+Assays: Xenium(Main) 
+Features: RNA(Main) RNA_import </code></pre>
+<p>Now we can visualize features both existing in the Xenium panel such
+as EPCAM, and compare it with another tumor marker, e.g. CCNB2, that are
+spatially correlated with EPCAM in this tissue section.</p>
+<pre class="r watch-out"><code>if (!requireNamespace(&quot;patchwork&quot;, quietly = TRUE))
+  install.packages(&quot;patchwork&quot;)
+library(patchwork)
+
+vrMainFeatureType(Xen_data) &lt;- &quot;RNA&quot;
+g1 &lt;- vrSpatialFeaturePlot(Xen_data, assay = &quot;Assay1&quot;, 
+                           features = &quot;EPCAM&quot;, n.tile = 200)
+vrMainFeatureType(Xen_data[[&quot;Assay1&quot;]]) &lt;- &quot;Import&quot;
+g2 &lt;- vrSpatialFeaturePlot(Xen_data, assay = &quot;Assay1&quot;, 
+                           features = &quot;CCNB2&quot;, n.tile = 200)
+g1 | g2</code></pre>
+<p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transfer_features.png" class="center">
+<br></p>
+<p>VoltRon also allows transfering cell type annotations (or any
+metadata feature) from a single cell assay to a VoltRon assay. We use
+the cell metadata available in <a
+href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE243275">GSE243275</a>.</p>
+<pre class="r watch-out"><code>Xen_data &lt;- transferData(Xen_data, seu, to = &quot;Assay1&quot;, 
+                         features = &quot;CellType&quot;, 
+                         new_feature_name = &quot;CellType_scRNA&quot;)</code></pre>
+<p>Now we can visualize the transfered annotations on spatially-resolved
+cells.</p>
+<pre class="r watch-out"><code>vrSpatialPlot(Xen_data, assay = &quot;Assay1&quot;, group.by = &quot;CellType_scRNA&quot;, 
+              n.tile = 200)</code></pre>
+<p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transfer_celltype.png" class="center">
+<br></p>
 </div>
 </div>
 <div id="visium-data-analysis" class="section level1">

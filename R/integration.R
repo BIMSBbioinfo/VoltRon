@@ -1,26 +1,8 @@
 ####
-# Data Transfer ####
+# Spatial Data Transfer ####
 ####
 
-#' transferData
-#'
-#' transfer data across assays
-#'
-#' @param object a VoltRon object
-#' @param from the name or class of assay whose data transfered to the second assay
-#' @param to the name or class of target assay where data is transfered to
-#' @param features the set of features from \link{vrFeatures} or metadata columns from \link{Metadata} that are transferred.
-#' Only one metadata feature can be transfered at a time.
-#' @param expand if TRUE, metadata features will be transformed into
-#' dummy features where each category in the feature will be a new feature.
-#' If FALSE, metadata features will not be transformed and transfered as
-#' metadata columns, else the decision will be made automatically.
-#' @param new_feature_name the name of the new feature set created
-#' from the source assay defined in \code{from} argument.
-#' Only used when a new assay in created.
-#'
-#' @export
-transferData <- function(
+.transferData <- function(
   object,
   from = NULL,
   to = NULL,
@@ -83,6 +65,10 @@ transferData <- function(
     ))
   }
 }
+
+#' @rdname transferData
+#' @export
+setMethod("transferData", c("VoltRon", "character"), .transferData)
 
 #' transferFeatureData
 #'
@@ -655,6 +641,210 @@ transferLabelsFromTiles2Cells <- function(
   list(data = raw_counts, type = data_type)
 }
 
+####
+# Single Cell Integtration/Transfer ####
+####
+
+.transferDataSC <- function(
+  object,
+  from,
+  to = NULL,
+  features = NULL,
+  new_feature_name = NULL,
+  sc.assay = NULL,
+  pc.dims = 30,
+  seed = 1
+) {
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = to)
+  
+  # prepare single cell reference
+  message("Preparing Single Cell Reference ...")
+  # if(is.null(features))
+  #   features <- vrFeatures(object, assay = assay_names)
+  reference <- .getTransferReference(from, 
+                                     sc.assay = sc.assay,
+                                     features = features)
+  sccounts <- reference$counts
+
+  # merge single cell with spatial
+  spcounts <- vrData(object, 
+                     assay = assay_names, 
+                     norm = TRUE)
+  inter_features <- intersect(rownames(spcounts),
+                              rownames(sccounts))
+  spcounts <- spcounts[inter_features,]
+  counts <- cbind(spcounts, sccounts[inter_features,])
+  
+  # get integration variable for Harmony
+  vars_use <- rep(c(1,2), c(ncol(spcounts), ncol(sccounts)))
+  
+  # get Harmony-based 
+  imputed_data <- .getHarmonyTransfer(counts, 
+                                      sccounts = sccounts,
+                                      metadata = reference$metadata,
+                                      vars_use = vars_use,
+                                      features = reference$features,
+                                      type = reference$type,
+                                      pc.dims = pc.dims, 
+                                      seed = seed)
+  
+  # add new features
+  for(assy in assay_names){
+    
+    spatialpoints <- vrSpatialPoints(object, assay = assy)
+
+    if(reference$type == "data"){
+      cur_imputed_data <- imputed_data[,spatialpoints]
+      if (is.null(new_feature_name))
+        new_feature_name <- paste(reference$sc.assay, "import", sep = "_")
+      message("Adding new features to VoltRon Object ...")
+      object <- addFeature(
+        object,
+        assay = assy,
+        data = cur_imputed_data,
+        feature_name = new_feature_name
+      ) 
+    } else {
+      cur_imputed_data <- imputed_data[spatialpoints]
+      message("Adding new metadata feature to VoltRon Object ...")
+      if (is.null(new_feature_name))
+        new_feature_name <- reference$features
+      object <- addMetadata(object, assay = assy, 
+                            value = cur_imputed_data, 
+                            label = new_feature_name)
+    }
+  }
+  
+  object
+}
+
+#' @rdname transferData
+#' @export
+setMethod("transferData", c("VoltRon", "Seurat"), .transferDataSC)
+
+#' @rdname transferData
+#' @export
+setMethod("transferData", c("VoltRon", "SingleCellExperiment"), .transferDataSC)
+
+#' @noRd
+.getTransferReference <- function(
+    sc.object,
+    sc.assay = NULL, 
+    features = NULL
+) {
+  
+  # check single cell objects
+  if (inherits(sc.object, "SummarizedExperiment")) {
+    if (!requireNamespace('SummarizedExperiment')) {
+      stop(
+        "Please install SummarizedExperiment package for using SCE objects: 
+         Biocmanager::install('SummarizedExperiment')"
+      )
+    }
+    if(is.null(sc.assay)) sc.assay <- 
+        SummarizedExperiment::assayNames(sc.object)[1]
+    if(!sc.assay %in% SummarizedExperiment::assayNames(sc.object))
+      stop(sc.assay, " was not found in the SummarizedExperiment object!")
+    sccounts <- SummarizedExperiment::assay(sc.object, sc.assay)
+    metadata <- SummarizedExperiment::colData(sc.object)
+    metadata_features <- names(metadata)
+  } else if (inherits(sc.object, "Seurat")) {
+    if (!requireNamespace('Seurat')) {
+      stop(
+        "Please install Seurat package for using Seurat objects!: ",
+        "install.packages('Seurat')"
+      )
+    }
+    if(is.null(sc.assay)) sc.assay <- Seurat::DefaultAssay(sc.object)
+    if(!sc.assay %in% Seurat::Assays(sc.object))
+      stop(sc.assay, " was not found in the Seurat object!")
+    sccounts <- Seurat::GetAssayData(sc.object[[sc.assay]], layer = "data")
+    metadata <- sc.object@meta.data
+    metadata_features <- colnames(metadata)
+  } else {
+    stop(
+      "'sc.object' should either be of a Seurat or ", 
+      "SummarizedExperiment/SingleCellExperiment class!"
+    )
+  }
+  
+  # manage features
+  sc_features <- rownames(sccounts)
+  if(!is.null(features)) 
+    sc_features <- 
+    if(any(features %in% sc_features)) 
+      features[features %in% sc_features]
+  metadata_features <-
+    if(any(features %in% metadata_features))
+      features[features %in% metadata_features]
+  if(length(metadata_features) > 1)
+    stop("Only one metadata feature can be transfered at a time!")
+  if(length(sc_features) > 0 && length(metadata_features) > 0)
+    stop("Data and Metadata features cannot be transfered in the same time!")
+  if(length(sc_features) == 0 && length(metadata_features) == 0)
+    stop("No Features were selected!")
+  features <- c(metadata_features, sc_features)
+  type <- if(length(metadata_features) > 0) "metadata" else "data"
+  
+  # return
+  list(counts = sccounts, 
+       metadata = metadata,
+       features = features, 
+       sc.assay = sc.assay,
+       type = type)
+}
+
+#' @importFrom RANN nn2
+#' @importFrom igraph graph_from_edgelist as_adjacency_matrix
+.getHarmonyTransfer <- function(object, sccounts, metadata, vars_use, 
+                                features, type, pc.dims, k = 20, seed) {
+  
+  message("Running PCA with ", pc.dims, " PCs ...")
+  normdata <- t(object)
+  pr.data <- getPCA(normdata, dims = pc.dims, seed = seed)
+  
+  message("Running Harmony Integration ...")
+  if (!requireNamespace('harmony')) {
+    stop(
+      "Please install harmony package for single cell integration!: ",
+      "install.packages('harmony')"
+    )
+  }
+  hr.data <- harmony::RunHarmony(pr.data, 
+                                 data.frame(vars_use = vars_use), 
+                                 "vars_use", 
+                                 verbose = FALSE)
+  
+  message("Building a kNN graph (k=", k, ") ...")
+  que <- hr.data[vars_use == 1, ]
+  ref <- hr.data[vars_use == 2, ]
+  knn <- RANN::nn2(data=ref, query=que, k=k)
+
+  if(type == "data"){
+    message("Transfering single cell counts ...")
+    el <- cbind(
+      rep(rownames(que), each=k), 
+      rownames(ref)[c(t(knn$nn.idx))])
+    g <- igraph::graph_from_edgelist(el, directed=TRUE)
+    A <- igraph::as_adjacency_matrix(g)
+    cs <- intersect(colnames(A), rownames(ref))
+    ws <- A[rownames(que), cs]*(1/k)
+    sccounts <- sccounts[features, cs]
+    sccounts %*% t(ws) 
+  } else {
+    message("Transfering single cell labels ...")
+    metadata_single <- metadata[[features]]
+    metadata_single <- array(metadata_single[knn$nn.idx], 
+                             dim = dim(knn$nn.idx))
+    metadata_single <- apply(metadata_single, 1, function(x){
+      tmp <- table(x)
+      tmp <- names(tmp)[which.max(tmp)]
+      if(is.null(tmp)) NA else tmp
+    }, simplify = TRUE)
+    setNames(unlist(metadata_single), rownames(que))
+  }
+}
 
 ####
 # Embedding ####

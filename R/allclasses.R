@@ -13,6 +13,27 @@ if (!requireNamespace("BPCells", quietly = TRUE)) {
     })
   })
 }
+if (!requireNamespace("DelayedArray", quietly = TRUE)) {
+  suppressMessages({
+    suppressWarnings({
+      setClass("DelayedMatrix")
+    })
+  })
+}
+if (!requireNamespace("HDF5Array", quietly = TRUE)) {
+  suppressMessages({
+    suppressWarnings({
+      setClass("HDF5Matrix")
+    })
+  })
+}
+if (!requireNamespace("ZarrArray", quietly = TRUE)) {
+  suppressMessages({
+    suppressWarnings({
+      setClass("ZarrMatrix")
+    })
+  })
+}
 
 ## vrImage ####
 
@@ -24,8 +45,6 @@ suppressMessages({
       members = c(
         "matrix",
         "data.frame",
-        # "dgRMatrix",
-        # "dgeMatrix",
         "Matrix",
         "Array",
         "IterableMatrix"
@@ -134,11 +153,11 @@ suppressWarnings({
     "data_matrix",
     members = c(
       "matrix",
-      # "dgCMatrix",
-      # "dgRMatrix",
-      # "dgeMatrix",
       "Matrix",
       "Array",
+      "DelayedMatrix",
+      "HDF5Matrix",
+      "ZarrMatrix",
       "IterableMatrix"
     )
   )

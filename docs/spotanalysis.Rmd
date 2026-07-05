@@ -96,8 +96,7 @@ vrImages(Xen_R2)
 Once both VoltRon objects are created and images are well-tuned, we can merge these two into a single VoltRon object. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-Xen_list <- list(Xen_R1, Xen_R2)
-Xen_data <- merge(Xen_list[[1]], Xen_list[-1])
+Xen_data <- merge(Xen_R1, Xen_R2)
 ```
 
 ```
@@ -277,7 +276,88 @@ vrSpatialFeaturePlot(Xen_data, features = "PGR", alpha = 1,
 ```
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_spatial_xenium_pgr.png" class="center">
+<br>
 
+## Single Cell Integration
+
+VoltRon supports the integration of VoltRon objects with Seurat or SingleCellExperiment objects 
+to facilitate the integration of spatial and single cell omic data modalities. This integration
+enables both the transfer of features from the scRNA data that are originally not available in the spatial assay, or 
+the transfer of annotations from the scRNA data that serves as a single cell omics reference. 
+
+As the scRNA reference, we will use the 10x single cell FFPE dataset (GSE243275) generated from the same tissue block as the Xenium experiment. You can find the single cell data [here](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE243275).  
+
+We first import the scRNA data as a Seurat object and we also normalize the profile of each cell. 
+
+```{r eval = FALSE, class.source="watch-out"}
+if (!requireNamespace("Seurat", quietly = TRUE))
+  install.packages("Seurat")
+library(Seurat)
+seu <- Seurat::Read10X_h5("filtered_feature_bc_matrix.h5")
+seu <- Seurat::CreateSeuratObject(seu)
+seu <- Seurat::NormalizeData(seu, scale.factor = 10000)
+```
+
+To transfer the features of scRNA to the VoltRon object, we use the `transferData` 
+function. If no features are provided, all features from the scRNA object 
+will be transferred. After the transfer is complete, a new feature set for the 
+target VoltRon assay will appear.
+
+```{r eval = FALSE, class.source="watch-out"}
+Xen_data <- transferData(Xen_data, seu, to = "Assay1", 
+                         features = VariableFeatures(seu))
+Xen_data
+```
+
+```
+VoltRon Object 
+XeniumR1: 
+  Layers: Section1 
+XeniumR2: 
+  Layers: Section1 
+Assays: Xenium(Main) 
+Features: RNA(Main) RNA_import 
+```
+
+Now we can visualize features both existing in the Xenium panel such as EPCAM, 
+and compare it with another tumor marker, e.g. CCNB2, that are spatially
+correlated with EPCAM in this tissue section. 
+
+```{r eval = FALSE, class.source="watch-out", fig.align='center'}
+if (!requireNamespace("patchwork", quietly = TRUE))
+  install.packages("patchwork")
+library(patchwork)
+
+vrMainFeatureType(Xen_data) <- "RNA"
+g1 <- vrSpatialFeaturePlot(Xen_data, assay = "Assay1", 
+                           features = "EPCAM", n.tile = 200)
+vrMainFeatureType(Xen_data[["Assay1"]]) <- "Import"
+g2 <- vrSpatialFeaturePlot(Xen_data, assay = "Assay1", 
+                           features = "CCNB2", n.tile = 200)
+g1 | g2
+```
+
+<img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transfer_features.png" class="center">
+<br>
+
+VoltRon also allows transfering cell type annotations (or any metadata feature)
+from a single cell assay to a VoltRon assay. We use the cell metadata available 
+in [GSE243275](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE243275). 
+
+```{r eval = FALSE, class.source="watch-out", fig.align='center'}
+Xen_data <- transferData(Xen_data, seu, to = "Assay1", 
+                         features = "CellType", 
+                         new_feature_name = "CellType_scRNA")
+```
+
+Now we can visualize the transfered annotations on spatially-resolved cells.
+
+```{r eval = FALSE, class.source="watch-out", fig.align='center'}
+vrSpatialPlot(Xen_data, assay = "Assay1", group.by = "CellType_scRNA", 
+              n.tile = 200)
+```
+
+<img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transfer_celltype.png" class="center">
 <br>
 
 # Visium Data Analysis

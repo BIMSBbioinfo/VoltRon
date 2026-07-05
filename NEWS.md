@@ -1,3 +1,13 @@
+# VoltRon 0.2.7
+
+-   `transferData` now allows integrating single cell data object (`Seurat` or `SingleCellExperiment`)
+    for transfering features (e.g. gene expression) or metadata features (e.g. cell types, annotations).
+    
+# VoltRon 0.2.6
+
+-   Fix anndataR conversion by removing `var_names` and `obs_names` arguments and
+    fix other faulty arguments
+
 # VoltRon 0.2.5
 
 -   Added instructions to install VoltRon from [R-universe](https://bimsbbioinfo.r-universe.dev/VoltRon).
