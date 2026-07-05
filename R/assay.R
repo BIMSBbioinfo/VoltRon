@@ -959,7 +959,11 @@ getFeatureTypeData <- function(object, feat_type) {
   vrdata <- lapply(feat_type, function(feat) {
     object@data[[feat]]
   })
-  vrdata_merged <- do.call(rbind, vrdata)
+  if(length(vrdata) > 1){
+    vrdata_merged <- do.call(rbind, vrdata)
+  } else {
+    vrdata_merged <- vrdata[[1]]
+  }
 
   # make rownames unique
   if (length(feat_type) > 1) {
