@@ -32,9 +32,6 @@ getDeconvolution <- function(
     method = "RCTD",
     ...
 ) {
-  # sample metadata
-  sample.metadata <- SampleMetadata(object)
-  
   # get assay names
   assay_names <- vrAssayNames(object, assay = assay)
   

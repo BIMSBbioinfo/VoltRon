@@ -960,7 +960,7 @@ getFeatureTypeData <- function(object, feat_type) {
     object@data[[feat]]
   })
   if(length(vrdata) > 1){
-    vrdata_merged <- do.call(rbind, vrdata)
+    vrdata_merged <- do.call(rbind, vrdata) 
   } else {
     vrdata_merged <- vrdata[[1]]
   }

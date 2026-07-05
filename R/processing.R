@@ -6,7 +6,112 @@ NULL
 # Normalization ####
 ####
 
-normalizeDataVoltRon <- function(
+.normalizeDataMatrix <- function(
+    object,
+    method = "LogNorm",
+    desiredQuantile = 0.9,
+    scale = 0.2,
+    sizefactor = 10000
+) {
+  
+  if (!is.numeric(desiredQuantile)) {
+    stop("desiredQuantile should be numeric")
+  } else {
+    if (!findInterval(desiredQuantile, c(0, 1)) == 1L) {
+      stop("desiredQuantile should be between [0,1]")
+    }
+  }
+  
+  # normalization method
+  if (method == "LogNorm") {
+    normdata <- LogNorm(object, colSums(object), sizefactor)
+  } else if (method == "Q3Norm") {
+    # rawdata[rawdata==0] <- 1
+    qs <- getColQuantiles(object, desiredQuantile)
+    normdata <- getDivideSweep(object, qs / exp(mean(log(qs))))
+  } else if (method == "LogQ3Norm") {
+    # rawdata[rawdata==0] <- 1
+    qs <- getColQuantiles(object, desiredQuantile)
+    normdata <- getDivideSweep(object, qs / exp(mean(log(qs))))
+    normdata <- log(normdata + 1)
+  } else if (method == "CLR") {
+    normdata <- getDivideSweep(object, colSums(object))
+    normdata <- apply(normdata, 2, function(x) {
+      log1p(
+        x = x /
+          (exp(x = sum(log1p(x = x[x > 0]), na.rm = TRUE) / length(x = x)))
+      )
+    })
+  } else if (method == "hyper.arcsine") {
+    normdata <- asinh(object / scale)
+  } else {
+    stop(
+      'Please select one of these methods: "LogNorm",',
+      ' "Q3Norm", "LogQ3Norm" or "CLR"'
+    )
+  }
+  
+  # return
+  return(normdata)
+}
+
+#' @rdname normalizeData
+#' @method normalizeData data_matrix
+#'
+#' @export
+setMethod("normalizeData", "data_matrix", .normalizeDataMatrix)
+
+.normalizeDatavrAssay <- function(
+    object,
+    method = "LogNorm",
+    desiredQuantile = 0.9,
+    scale = 0.2,
+    sizefactor = 10000,
+    feat_type = NULL
+) {
+  # size factor
+  rawdata <- vrData(object, feat_type = feat_type, norm = FALSE)
+  
+  # normalize
+  normdata <- normalizeData(rawdata, 
+                            method = method, 
+                            desiredQuantile = desiredQuantile, 
+                            scale = scale,
+                            sizefactor = sizefactor) 
+  
+  # get normalized data
+  catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
+  catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
+  if (
+    !is(catch_connect1, 'try-error') && !methods::is(catch_connect1, 'error')
+  ) {
+    if (is.null(feat_type)) {
+      feat_type <- vrMainFeatureType(object)
+    }
+    object@data[[paste0(feat_type, "_norm")]] <- normdata
+  } else if (
+    !is(catch_connect2, 'try-error') && !methods::is(catch_connect2, 'error')
+  ) {
+    object@normdata <- normdata
+  }
+  
+  # return
+  return(object)
+}
+
+#' @rdname normalizeData
+#' @method normalizeData vrAssay
+#'
+#' @export
+setMethod("normalizeData", "vrAssay", .normalizeDatavrAssay)
+
+#' @rdname normalizeData
+#' @method normalizeData vrAssayV2
+#'
+#' @export
+setMethod("normalizeData", "vrAssayV2", .normalizeDatavrAssay)
+
+.normalizeDataVoltRon <- function(
   object,
   assay = NULL,
   method = "LogNorm",
@@ -50,91 +155,7 @@ normalizeDataVoltRon <- function(
 #' @method normalizeData VoltRon
 #'
 #' @export
-setMethod("normalizeData", "VoltRon", normalizeDataVoltRon)
-
-normalizeDatavrAssay <- function(
-  object,
-  method = "LogNorm",
-  desiredQuantile = 0.9,
-  scale = 0.2,
-  sizefactor = 10000,
-  feat_type = NULL
-) {
-  # size factor
-  rawdata <- vrData(object, feat_type = feat_type, norm = FALSE)
-
-  if (!is.numeric(desiredQuantile)) {
-    stop("desiredQuantile should be numeric")
-  } else {
-    if (!findInterval(desiredQuantile, c(0, 1)) == 1L) {
-      stop("desiredQuantile should be between [0,1]")
-    }
-  }
-
-  # normalization method
-  if (method == "LogNorm") {
-    normdata <- LogNorm(rawdata, colSums(rawdata), sizefactor)
-  } else if (method == "Q3Norm") {
-    # rawdata[rawdata==0] <- 1
-    qs <- getColQuantiles(rawdata, desiredQuantile)
-    normdata <- getDivideSweep(rawdata, qs / exp(mean(log(qs))))
-  } else if (method == "LogQ3Norm") {
-    # rawdata[rawdata==0] <- 1
-    qs <- getColQuantiles(rawdata, desiredQuantile)
-    normdata <- getDivideSweep(rawdata, qs / exp(mean(log(qs))))
-    normdata <- log(normdata + 1)
-  } else if (method == "CLR") {
-    normdata <- getDivideSweep(rawdata, colSums(rawdata))
-    normdata <- apply(normdata, 2, function(x) {
-      log1p(
-        x = x /
-          (exp(x = sum(log1p(x = x[x > 0]), na.rm = TRUE) / length(x = x)))
-      )
-    })
-  } else if (method == "hyper.arcsine") {
-    normdata <- asinh(rawdata / scale)
-  } else {
-    stop(
-      'Please select one of these methods: "LogNorm",',
-      ' "Q3Norm", "LogQ3Norm" or "CLR"'
-    )
-  }
-
-  # get normalized data
-  catch_connect1 <- try(slot(object, name = "data"), silent = TRUE)
-  catch_connect2 <- try(slot(object, name = "rawdata"), silent = TRUE)
-  if (
-    !is(catch_connect1, 'try-error') && !methods::is(catch_connect1, 'error')
-  ) {
-    if (is.null(feat_type)) {
-      feat_type <- vrMainFeatureType(object)
-    }
-    object@data[[paste0(feat_type, "_norm")]] <- normdata
-  } else if (
-    !is(catch_connect2, 'try-error') && !methods::is(catch_connect2, 'error')
-  ) {
-    object@normdata <- normdata
-  }
-
-  # return
-  return(object)
-}
-
-#' @rdname normalizeData
-#' @method normalizeData vrAssay
-#'
-#' @importFrom stats quantile
-#'
-#' @export
-setMethod("normalizeData", "vrAssay", normalizeDatavrAssay)
-
-#' @rdname normalizeData
-#' @method normalizeData vrAssayV2
-#'
-#' @importFrom stats quantile
-#'
-#' @export
-setMethod("normalizeData", "vrAssayV2", normalizeDatavrAssay)
+setMethod("normalizeData", "VoltRon", .normalizeDataVoltRon)
 
 LogNorm <- function(rawdata, coldepth, sizefactor) {
   if (inherits(rawdata, "IterableMatrix")) {
@@ -374,42 +395,83 @@ getVariableFeatures <- function(object, assay = NULL, n = 3000, ...) {
 # vrEmbeddings ####
 ####
 
-#' getPCA
-#'
-#' calculate PCA of the VoltRon objects
-#'
-#' @param object a VoltRon object
-#' @param assay assay name (exp: Assay1) or assay class
-#' (exp: Visium, Xenium), see \link{SampleMetadata}.
-#' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param features the selected features for PCA reduction
-#' @param feat_type the feature set type
-#' @param data.type the type of data used to calculate PCA from:
-#' "norm" (default), "raw" or an existing embeddings \link{vrEmbeddingNames}.
-#' @param dims the number of dimensions extracted from PCA
-#' @param pca.key the key name for the embedding, default: pca
-#' @param n.workers the number of cores/workers use for parallelization.
-#' @param overwrite Whether the existing embedding with name 'type'
-#' should be overwritten in \link{vrEmbeddings}
-#' @param seed seed
-#'
-#' @importFrom BiocSingular runPCA FastAutoParam
-#'
+.getPCAMatrix <- function(
+    object,
+    dims = 30,
+    n.workers = 1,
+    data.type = "norm",
+    seed = 1
+) {
+  
+  # Compute PCA
+  set.seed(seed)
+  if (inherits(object, "IterableMatrix")) {
+    if (!requireNamespace("BPCells", quietly = TRUE)) {
+      stop(
+        "You have to install BPCells!: remotes::install_github('bnprks/BPCells/r')"
+      )
+    }
+    stats <- BPCells::matrix_stats(object, row_stats="variance")
+    gene_means <- stats$row_stats["mean",]
+    gene_vars <- stats$row_stats["variance",]
+    object <- (object - gene_means) / sqrt(gene_vars)
+    svd <- BPCells::svds(object, k = dims, threads = as.integer(n.workers))
+    pr.data <- BPCells::multiply_cols(svd$v, svd$d)
+  } else {
+    
+    # # transpose because (Delayed)Array and regular matrices needs it.
+    # object <- t(object)
+    
+    if (n.workers > 1) {
+      if (!requireNamespace("BiocParallel", quietly = TRUE)) {
+        stop(
+          "You have to install BiocParallel!: BiocManager::install('BiocParallel')"
+        )
+      }
+      
+      pr.data <- BiocSingular::runPCA(
+        object,
+        rank = dims,
+        scale = TRUE,
+        center = TRUE,
+        BPPARAM = BiocParallel::MulticoreParam(n.workers),
+        BSPARAM = BiocSingular::FastAutoParam()
+      )$x
+    } else {
+      pr.data <- BiocSingular::runPCA(
+        object,
+        rank = dims,
+        scale = TRUE,
+        center = TRUE,
+        BSPARAM = BiocSingular::FastAutoParam()
+      )$x
+    }
+  }
+  
+  # Label and save
+  colnames(pr.data) <- paste0("PC", seq_len(dims))
+  
+  return(pr.data)
+}
+
+#' @rdname getPCA
 #' @export
-getPCA <- function(
-  object,
-  assay = NULL,
-  features = NULL,
-  feat_type = NULL,
-  data.type = "norm",
-  dims = 30,
-  pca.key = "pca",
-  n.workers = 1,
-  overwrite = FALSE,
-  seed = 1
+setMethod("getPCA", "data_matrix", .getPCAMatrix)
+
+.getPCAVoltRon <- function(
+    object,
+    assay = NULL,
+    features = NULL,
+    feat_type = NULL,
+    data.type = "norm",
+    dims = 30,
+    pca.key = "pca",
+    n.workers = 1,
+    overwrite = FALSE,
+    seed = 1
 ) {
   embedding_names <- vrEmbeddingNames(object)
-
+  
   # Choose data source
   if (data.type %in% embedding_names) {
     # get data
@@ -419,7 +481,7 @@ getPCA <- function(
       type = data.type,
       dims = Inf
     )
-
+    
     # check dims and col
     if (dims > ncol(normdata)) {
       message(
@@ -431,10 +493,10 @@ getPCA <- function(
   } else {
     # get assay names
     assay_names <- vrAssayNames(object, assay = assay)
-
+    
     # get shared features and subset
     assay_features <- vrFeatures(object, assay = assay)
-
+    
     # if there are features of a VoltRon object, then get variable features too
     if (length(assay_features) > 0) {
       if (is.null(features)) {
@@ -442,7 +504,7 @@ getPCA <- function(
       }
       object_subset <- subsetVoltRon(object, features = features)
       vrMainAssay(object_subset) <- vrMainAssay(object)
-
+      
       # adjust extraction features length
       if (dims > length(features)) {
         message(
@@ -451,12 +513,12 @@ getPCA <- function(
         )
         dims <- length(features)
       }
-
+      
       # if there are no features in VoltRon object, return the assay as itself
     } else {
       object_subset <- object
     }
-
+    
     # get data
     norm <- data.type == "norm"
     normdata <- vrData(
@@ -466,68 +528,38 @@ getPCA <- function(
       norm = norm
     )
   }
-
-  # Compute PCA
-  set.seed(seed)
-  if (inherits(normdata, "IterableMatrix")) {
-    if (!requireNamespace("BPCells", quietly = TRUE)) {
-      stop(
-        "You have to install BPCells!: remotes::install_github('bnprks/BPCells/r')"
-      )
-    }
-    stats <- BPCells::matrix_stats(normdata, row_stats="variance")
-    gene_means <- stats$row_stats["mean",]
-    gene_vars <- stats$row_stats["variance",]
-    normdata <- (normdata - gene_means) / sqrt(gene_vars)
-    svd <- BPCells::svds(normdata, k = dims, threads = as.integer(n.workers))
-    pr.data <- BPCells::multiply_cols(svd$v, svd$d)
+  
+  # if the data is another embedding, do not transpose
+  input_data <- if (data.type %in% embedding_names || is(normdata, 'IterableMatrix')) {
+    normdata
   } else {
-    input_data <- if (data.type %in% embedding_names) normdata else t(normdata)
-
-    if (n.workers > 1) {
-      if (!requireNamespace("BiocParallel", quietly = TRUE)) {
-        stop(
-          "You have to install BiocParallel!: BiocManager::install('BiocParallel')"
-        )
-      }
-
-      pr.data <- BiocSingular::runPCA(
-        input_data,
-        rank = dims,
-        scale = TRUE,
-        center = TRUE,
-        BPPARAM = BiocParallel::MulticoreParam(n.workers),
-        BSPARAM = BiocSingular::FastAutoParam()
-      )$x
-    } else {
-      pr.data <- BiocSingular::runPCA(
-        input_data,
-        rank = dims,
-        scale = TRUE,
-        center = TRUE,
-        BSPARAM = BiocSingular::FastAutoParam()
-      )$x
-    }
+    t(normdata)
   }
 
-  # Label and save
-  colnames(pr.data) <- paste0("PC", seq_len(dims))
+  # run PCA on data matrix
+  pr.data <- getPCA(input_data, dims = dims, n.workers = n.workers, seed = seed)
+
+  # if the data is another embedding, update names accordingly
   if (data.type %in% embedding_names) {
     rownames(pr.data) <- rownames(normdata)
   } else {
     rownames(pr.data) <- colnames(normdata)
   }
-
+  
+  # import new embeddings
   vrEmbeddings(
     object,
     assay = assay,
     type = pca.key,
     overwrite = overwrite
   ) <- pr.data
-
+  
   return(object)
 }
 
+#' @rdname getPCA
+#' @export
+setMethod("getPCA", "VoltRon", .getPCAVoltRon)
 
 #' getUMAP
 #'
