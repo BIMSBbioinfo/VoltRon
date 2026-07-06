@@ -1210,7 +1210,10 @@ FeatureCollection.</p>
 function to import the data as a VoltRon object. You can select the
 resolution of the channels using <strong>series</strong> and
 <strong>resolution</strong> parameters which will pick the desired level
-from the ome.tiff file.</p>
+from the ome.tiff file. The image file can also be any of pyramid image
+formats supported by BioFormats. See <a
+href="https://bio-formats.readthedocs.io/en/v8.3.0/supported-formats.html">here</a>
+for supported pyramid image formats.</p>
 <pre class="r watch-out"><code>adj_vr &lt;- importQuPathIF(measurements = &quot;measurements.txt&quot;,
                          segments = &quot;measurements.geojson&quot;, 
                          image = &quot;if_exp.ome.tif&quot;, 
@@ -1299,7 +1302,10 @@ globalMetadata:List of 1525
 <p></br></p>
 <p>Now, we can specify the <code>series</code> and
 <code>resolution</code> to select the image layer we want to import to
-VoltRon.</p>
+VoltRon. The image file can also be any of pyramid image formats
+supported by BioFormats. See <a
+href="https://bio-formats.readthedocs.io/en/v8.3.0/supported-formats.html">here</a>
+for supported pyramid image formats.</p>
 <pre class="r watch-out"><code>vrimagedata &lt;- importImageData(ome.tiff, series = 1, resolution = 5)
 vrImages(vrimagedata)</code></pre>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE_OMETIFF.png" class="center"></p>

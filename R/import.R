@@ -3151,23 +3151,27 @@ importImage <- function(
   resolution = NULL,
   is.RGB = TRUE
 ) {
-  # check if image is ome.tiff
+  # Rbioformat pyramid images
+  formats <- paste(
+    paste0(.PYRAMID_FORMATS, "$"), 
+    collapse = "|")
+  # check if image is a Bioformats compatible image
   if (is.character(image)) {
-    if (any(grepl(".ome.tiff$|.ome.tif$", image))) {
+    if (any(grepl(formats, image))) {
       if (!requireNamespace('RBioFormats')) {
         stop(
-          "Please install RBioFormats package to images from the ome.tiff ",
+          "Please install RBioFormats package to import pyramid images ",
           "file!: BiocManager::install('RBioFormats')"
         )
       }
       if (is.null(resolution)) {
         stop(
-          "For importing images from ome.tiff files, please specify ",
+          "For importing images from pyramids, please specify ",
           "resolution. See help(read.metadata) from RBioFormats package."
         )
       }
       if (length(image) > 1) {
-        stop("Only a single ome.tiff file should be used at a time!")
+        stop("Only a single pyramid image file should be used at a time!")
       }
     }
   } else {
@@ -3186,10 +3190,6 @@ importImage <- function(
       # check if image exists
       if (is.character(img)) {
         if (file.exists(img)) {
-          # Rbioformat pyramid images
-          formats <- paste(
-            paste0(.PYRAMID_FORMATS, "$"), 
-            collapse = "|")
           if (grepl(formats, img)) {
             # check image channel size
             channelIDs <- .checkOmeTiffChannels(
