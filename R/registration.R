@@ -1194,11 +1194,26 @@ applyPerspectiveTransform <- function(
     # cur_mapping <- Reduce("%*%", mapping)
     mapping <- manageMapping(mapping)
 
+    # correct for non image coords
+    if(is.null(vrImageChannelNames(object[[assay]], return.report = FALSE))){
+      coords[,"y"] <- max(coords[,"y"]) + min(coords[,"y"]) -  coords[,"y"]
+    }
+    
     # get registered coordinates
     coords_reg <- as.matrix(as(coords, "dgCMatrix"))
     coords_reg[, c("x", "y")] <- applyMapping(coords[, c("x", "y")], mapping)
     rownames(coords_reg) <- rownames(coords)
     colnames(coords_reg) <- colnames(coords)
+    
+    # corrrect back
+    if(is.null(vrImageChannelNames(object[[assay]], return.report = FALSE))){
+      if(inherits(reference_image, "magick-image")){
+        extend <- getImageInfo(reference_image)
+        coords_reg[,"y"] <- extend$height -  coords_reg[,"y"] 
+      } else {
+        coords_reg[,"y"] <- max(coords_reg[,"y"]) + min(coords_reg[,"y"]) -  coords_reg[,"y"] 
+      }
+    }
 
     # get registered segments
     if (length(segments) > 0) {
@@ -3088,7 +3103,11 @@ getRcppManualRegistration <- function(
   aligned_image <- if(ncol(reg[[2]]) == 2){
     rownames(reg[[2]]) <- rownames(query_image)
     colnames(reg[[2]]) <- colnames(query_image)
-    reg[[2]][,2] <- max(reg[[2]][,2]) + min(reg[[2]][,2]) - reg[[2]][, 2]
+    if(ncol(ref_image) == 2){
+      reg[[2]][,2] <- max(reg[[2]][,2]) + min(reg[[2]][,2]) - reg[[2]][, 2]
+    } else {
+      reg[[2]][,2] <- dim(ref_image)[3] - reg[[2]][,2]
+    }
     vrSpatial(coords = reg[[2]], main_channel = "points")
   } else {
     magick::image_read(reg[[2]])

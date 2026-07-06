@@ -3040,7 +3040,7 @@ importImageData <- function(
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
-#' @importFrom data.table data.table
+#' @importFrom data.table data.table fread
 #'
 #' @export
 importQuPathIF <- function(
@@ -3064,8 +3064,12 @@ importQuPathIF <- function(
   )
   
   # rawdata
-  rawdata <- read.table(file = measurements, header = TRUE)
-  rawdata <- t(rawdata)
+  if(inherits(measurements, "character")){
+    rawdata <- data.table::fread(file = measurements, header = TRUE)
+    rawdata <- t(rawdata) 
+  } else {
+    rawdata <- measurements
+  }
   
   # check if segments are paths
   if (inherits(segments, "character")) {
