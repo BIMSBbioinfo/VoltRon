@@ -2890,6 +2890,11 @@ getManualRegisteration <- function(
             aligned_img_resized <- resize_Image(aligned_image_list[[i]], 
                                                 geometry = geometry,
                                                 extent = extent)
+            aligned_img_resized <- magick::image_composite(img_resized, 
+                                                           aligned_img_resized, 
+                                                           operator = "dissolve",
+                                                           compose_args = "58%",
+                                                           gravity="center")
             
             # replicate query and reference images for slide show
             image_view_list <- list(
