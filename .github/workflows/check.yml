@@ -181,6 +181,7 @@ jobs:
           BiocManager::install('SpatialExperiment')
           install.packages('dplyr')
           BiocManager::install('DESeq2')
+          install.packages('harmony')
           install.packages('ggnewscale')
           install.packages('patchwork')
           devtools::install_github('vitessce/vitessceR')

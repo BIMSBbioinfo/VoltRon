@@ -224,11 +224,16 @@ void alignImagesAffineTPS_points(Rcpp::NumericMatrix &query_data,
 }
 
 // [[Rcpp::export]]
-Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image,
-                                          Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark,
-                                          const int width1, const int height1,
-                                          const int width2, const int height2,
-                                          Rcpp::String method, Rcpp::String nonrigid)
+Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, 
+                                          Rcpp::RawVector query_image,
+                                          Rcpp::NumericMatrix reference_landmark, 
+                                          Rcpp::NumericMatrix query_landmark,
+                                          const int width1, 
+                                          const int height1,
+                                          const int width2, 
+                                          const int height2,
+                                          Rcpp::String method, 
+                                          Rcpp::String nonrigid)
 {
   // Return data
   Rcpp::List out(2);
@@ -275,10 +280,10 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVe
 
 // [[Rcpp::export]]
 Rcpp::List manual_registeration_matrix(Rcpp::NumericMatrix query_data,
-                                       Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark,
-                                       const int width1, const int height1,
-                                       const int width2, const int height2,
-                                       Rcpp::String method, Rcpp::String nonrigid)
+                                       Rcpp::NumericMatrix reference_landmark, 
+                                       Rcpp::NumericMatrix query_landmark,
+                                       Rcpp::String method, 
+                                       Rcpp::String nonrigid)
 {
   // Return data
   Rcpp::List out(2);

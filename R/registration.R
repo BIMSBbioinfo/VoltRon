@@ -1196,7 +1196,8 @@ applyPerspectiveTransform <- function(
 
     # correct for non image coords
     if(is.null(vrImageChannelNames(object[[assay]], return.report = FALSE))){
-      coords[,"y"] <- max(coords[,"y"]) + min(coords[,"y"]) -  coords[,"y"]
+      coords_extent <- c(min(coords[,"y"]), max(coords[,"y"]))
+      coords[,"y"] <- coords_extent[2] + coords_extent[1] - coords[,"y"]
     }
     
     # get registered coordinates
@@ -1205,23 +1206,41 @@ applyPerspectiveTransform <- function(
     rownames(coords_reg) <- rownames(coords)
     colnames(coords_reg) <- colnames(coords)
     
-    # corrrect back
+    # correct back
     if(is.null(vrImageChannelNames(object[[assay]], return.report = FALSE))){
       if(inherits(reference_image, "magick-image")){
         extend <- getImageInfo(reference_image)
         coords_reg[,"y"] <- extend$height -  coords_reg[,"y"] 
       } else {
-        coords_reg[,"y"] <- max(coords_reg[,"y"]) + min(coords_reg[,"y"]) -  coords_reg[,"y"] 
+        coords_reg_extent <- c(min(coords_reg[,"y"]), max(coords_reg[,"y"]))
+        coords_reg[,"y"] <- coords_reg_extent[2] + coords_reg_extent[1] - coords_reg[,"y"] 
       }
     }
 
     # get registered segments
     if (length(segments) > 0) {
       segments_reg <- do.call(rbind, segments)
+      
+      # correct for non image coords
+      if(is.null(vrImageChannelNames(object[[assay]], return.report = FALSE))){
+        coords[,"y"] <- coords_extent[2] + coords_extent[1] - coords[,"y"]
+      }
+      
       segments_reg[, colnames(segments_reg) %in% c("x", "y")] <- applyMapping(
         as.matrix(segments_reg[, colnames(segments_reg) %in% c("x", "y")]),
         mapping
       )
+      
+      # correct back
+      if(is.null(vrImageChannelNames(object[[assay]], return.report = FALSE))){
+        if(inherits(reference_image, "magick-image")){
+          extend <- getImageInfo(reference_image)
+          segments_reg[,"y"] <- extend$height -  segments_reg[,"y"] 
+        } else {
+          segments_reg[,"y"] <- coords_reg_extent[2] + coords_reg_extent[1] - segments_reg[,"y"] 
+        }
+      }
+      
       segments_reg <- split(segments_reg, segments_reg[, 1])
       names(segments_reg) <- names(segments)
     } else {
@@ -3077,10 +3096,6 @@ getRcppManualRegistration <- function(
         query_image,
         reference_landmark = reference_landmark,
         query_landmark = query_landmark,
-        width1 = dim(ref_image)[2],
-        height1 = dim(ref_image)[3],
-        width2 = dim(query_image)[2],
-        height2 = dim(query_image)[3],
         method = method,
         nonrigid = nonrigid
       )
@@ -3165,6 +3180,11 @@ getAutomatedRegisteration <- function(
   observeEvent(input$register, {
     # Automated registration
     if (input$automatictag) {
+      
+      # check images 
+      if(any(image_list,\(.) "points" %in% names(.)))
+        stop("Automated registration can only be performed when all assays images!")
+      
       # waiter start
       withProgress(
         message = paste0('Automated Registration (', input$Method, ')'),
