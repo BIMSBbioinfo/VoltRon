@@ -311,9 +311,10 @@ Rcpp::List manual_registeration_matrix(Rcpp::NumericMatrix query_data,
  if(strcmp(method.get_cstring(), "Non-Rigid") == 0){
    alignImagesTPS_points(query_data, dataReg,
                          keypoints,
-                         query_landmark, reference_landmark);
-   keypoints[0] = query_landmark;
-   keypoints[1] = reference_landmark;
+                         query_landmark, 
+                         reference_landmark);
+   keypoints[0] = keypoints[0];
+   keypoints[1] = keypoints[1];
  } 
  
  // transformation matrix, can be either a matrix, set of keypoints or both

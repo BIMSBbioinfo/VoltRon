@@ -3182,7 +3182,7 @@ getAutomatedRegisteration <- function(
     if (input$automatictag) {
       
       # check images 
-      if(any(image_list,\(.) "points" %in% names(.)))
+      if(any(sapply(image_list,\(.) "points" %in% names(.))))
         stop("Automated registration can only be performed when all assays images!")
       
       # waiter start
