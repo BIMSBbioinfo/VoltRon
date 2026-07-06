@@ -598,7 +598,7 @@ transferLabelsFromTiles2Cells <- function(
         )
       } else {
         raw_counts <- vrData(from_object, norm = FALSE)
-        raw_counts <- raw_counts[features, ]
+        raw_counts <- raw_counts[features, , drop = FALSE]
         message(
           "There are ",
           length(setdiff(features, data_features)),

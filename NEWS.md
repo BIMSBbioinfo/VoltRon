@@ -2,6 +2,10 @@
 
 -   `transferData` now allows integrating single cell data object (`Seurat` or `SingleCellExperiment`)
     for transfering features (e.g. gene expression) or metadata features (e.g. cell types, annotations).
+-   `registerSpatialData` now allows registering assays with no images. In case of either one of the assays, 
+    do not have images, assays can be registered with only the manual approach. 
+-   An image-free alignment tutorial has been added where DBIT-Seq and a QuPath processed mIF experiment are
+    aligned using manually selected landmarks.
     
 # VoltRon 0.2.6
 

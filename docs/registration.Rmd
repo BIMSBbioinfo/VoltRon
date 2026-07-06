@@ -2,6 +2,7 @@
 title: "Image Registration"
 output: 
   html_document:
+    code_folding: show
     toc: true
     toc_depth: 5
     toc_float:
@@ -53,7 +54,7 @@ VoltRon allows users to **align spatial omics datasets of these serial sections*
 
 <br>
 
-## Alignment of Xenium and Visium 
+# Xenium vs Visium  
 
 In this use case, we will align **immunofluorescence (IF)** and **H&E images** of the **Xenium In Situ** and **Visium CytAssist** platforms readouts. Three tissue sections are derived from a single formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. A 5 $\mu$m section was taken for Visium CytAssist and two replicate 5 $\mu$m sections were taken for the Xenium replicates. More information on the spatial datasets and the study can be also be found on the [BioRxiv preprint](https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1).
  
@@ -481,7 +482,98 @@ vrSpatialPlot(VRBlock, group.by = "CellType", assay = "Assay1", crop = TRUE) |>
 
 <br>
 
-## Alignment of Xenium and H&E
+# Visium vs Visium 
+
+In the next use case, we will align **H&E images** associated with Visium data generated from tissue block sections of **adult humans with postmortem dorsolateral prefrontal cortex (DLPFC)**. Two pairs of adjacent sections were obtained from the tissue block of the third donor. Each pair are composed of two 10 $\mu$m serial tissue sections, and pairs are located 300 $\mu$m apart from each other. Hence, we align each pair individually. The datasets can be downloaded from [here](https://research.libd.org/spatialLIBD/). 
+
+```{r class.source="watch-out", eval = FALSE} 
+# dependencies
+if(!requireNamespace("rhdf5"))
+  BiocManager::install("rhdf5")
+
+# import Visium data
+library(VoltRon)
+DLPFC_1 <- importVisium("DLPFC/151673", sample_name = "DLPFC_1")
+DLPFC_2 <- importVisium("DLPFC/151674", sample_name = "DLPFC_2")
+DLPFC_3 <- importVisium("DLPFC/151675", sample_name = "DLPFC_3")
+DLPFC_4 <- importVisium("DLPFC/151676", sample_name = "DLPFC_4")
+```
+
+<br>
+
+### Automated Image Alignment
+
+We will again use the registerSpatialData function to **automatically register two Visium assays (two H&E images)**. This time, we will use the **BRUTE-FORCE** method for automated alignment which we found to be more accurate compared to FLANN when aligning two H&E images. The shiny app also provides two tuning parameters that used by the BRUTE-FORCE workflow:
+
+* **# of Features** option specifies the number of maximum image features spotted within each image which later be used to match to the other image.
+* **Match %** specifies the percentage of these features matching at max which in turn used to compute the registration/transformation matrix. 
+
+We will use **1000 features** for this alignment, set **Match %** to 20\% of the features to be matched across images. The quality of the alignment will be determined by the fine tuning of these parameters where users will immediately observe the alignment quality looking at the slideshow. 
+
+```{r class.source="watch-out", eval = FALSE} 
+DLPFC_list <- list(DLPFC_1, DLPFC_2)
+reg1and2 <- registerSpatialData(object_list = DLPFC_list)
+```
+
+<!-- <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/VisiumDLFPCRegistration.gif" class="center"> -->
+
+<div>
+  <video width="100%" height="100%" controls autoplay>
+    <source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/VisiumDLFPCRegistration.mov" type="video/mp4">
+  Your browser does not support the video tag.
+  </video>
+</div>
+
+<br>
+
+We can now apply a similar alignment across the second pair of VoltRon objects. We will use **800 features** for this alignment,  set **Match %** to 50\% of the features to be matched across images.
+
+```{r class.source="watch-out", eval = FALSE} 
+DLPFC_list <- list(DLPFC_3, DLPFC_4)
+reg3and4 <- registerSpatialData(object_list = DLPFC_list)
+```
+
+<br>
+
+We can now combine all sections into one VoltRon object. There are two pairs of serial tissue sections, but both pairs (thus 4 sections) are from the same tissue block. Hence, we can combine these two lists into one list and merge VoltRon objects even though sections were aligned separately. 
+
+```{r class.source="watch-out", eval = FALSE} 
+merge_list <- c(reg1and2$registered_spat, reg3and4$registered_spat)
+SRBlock <- merge(merge_list[[1]], merge_list[-1], samples = "DLPFC_Block")
+SRBlock
+```
+
+```
+VoltRon Object 
+DLPFC_Block: 
+  Layers: Section1 Section2 Section3 Section4 
+Assays: Visium(Main) 
+Features: RNA(Main)
+```
+
+Now that we have combined registered pairs of adjacent tissue sections, we should define
+the adjacency of these pairs in the tissue block. 
+
+```{r class.source="watch-out", eval = FALSE} 
+# two pairs of adjacent sections
+connectivity <- data.frame(
+  c(1,1,3,3),
+  c(1,2,3,4)
+)
+# adjacent sections are 10 micron apart, and pairs 300 micron
+zlocation <- c(0, 10, 300, 310)*params$tissue_lowres_scalef
+
+# add connectivity information to the block
+SRBlock <- addBlockConnectivity(SRBlock, 
+                                connectivity = connectivity,
+                                zlocation = zlocation,
+                                sample = "DLPFC_Block")
+```
+
+The aligned and connected Visium assays of the DLPFC then could be used for 3D spatial analysis, 
+specifically as shown in the [Niche Clustering](nicheclustering.html) tutorial.
+
+# Xenium vs H&E
 
 In this use case, we will align **immunofluorescence (IF)** of the **Xenium In Situ** platform to an **H&E images** generated from the same sections as the Xenium. VoltRon provides built-in utilities to import images as spatial datasets where **tiles** are the spatial points. We will import both Xenium and H&E images into two separate VoltRon objects and overlay H&E images. 
 
@@ -602,93 +694,178 @@ xen_reg <- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))
 
 <br>
 
-## Alignment of Visium and Visium
+# DBIT-Seq vs mIF
 
-In the next use case, we will align **H&E images** associated with Visium data generated from tissue block sections of **adult humans with postmortem dorsolateral prefrontal cortex (DLPFC)**. Two pairs of adjacent sections were obtained from the tissue block of the third donor. Each pair are composed of two 10 $\mu$m serial tissue sections, and pairs are located 300 $\mu$m apart from each other. Hence, we align each pair individually. The datasets can be downloaded from [here](https://research.libd.org/spatialLIBD/). 
+In this use case, we will align **DBiTplus** data (a novel DBIT-Seq protocol that preserves the tissue for multiplex protein imaging) with **multiplex immunofluorescence (mIF)** images generated by a modified CODEX PhenoCycler-Fusion protocol.  
 
-```{r class.source="watch-out", eval = FALSE} 
+More information on the spatial datasets and the study can be also be found on the [DBITplus manuscript](https://www.nature.com/articles/s41592-025-02948-0). You can also download DBIT-Seq and CODEX datasets from: 
+
+* https://zenodo.org/records/17153112 and 
+* https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE308167
+
+### Image Free Alignment
+
+In cases where at least of the spatial omics datasets are missing their images, we can use the spatial
+distribution of the cells, spots or observations from the VoltRon object to align to another objects with either observations or images. 
+
+We first import the DBIT-Seq data, and we also subset based on transcript counts
+by spot to 
+
+```{r eval = FALSE, class.source="watch-out"}
+# DBIT-seq
+vr_dbit <- importDBITSeq(path.rna = "GSM9239729_Mouse_embryo_FFPE_1_stdata_names.tsv")
+vr_dbit <- subset(vr_dbit, Count > 1000)
+```
+
+We use `importQuPathIF` function to import the multiplex IF experiment which 
+was quantified by QuPath. See tutorial on `importQuPathIF` [here](importingdata.html) for more information. 
+
+We first prepare the measurements and segments exported from QuPath as follows: 
+
+```{r eval = FALSE, class.source="watch-out"}
 # dependencies
-if(!requireNamespace("rhdf5"))
-  BiocManager::install("rhdf5")
+if(!requireNamespace("sf"))
+  install.packages("sf")
 
-# import Visium data
-library(VoltRon)
-DLPFC_1 <- importVisium("DLPFC/151673", sample_name = "DLPFC_1")
-DLPFC_2 <- importVisium("DLPFC/151674", sample_name = "DLPFC_2")
-DLPFC_3 <- importVisium("DLPFC/151675", sample_name = "DLPFC_3")
-DLPFC_4 <- importVisium("DLPFC/151676", sample_name = "DLPFC_4")
+# get segments
+library(sf)
+my_sf <- read_sf("../../data/DBIT_plus_GSE308167/Ms_Embryo_031523_Scan1.geojson")
+my_sf <- my_sf[my_sf$objectType=="cell",]
+cell_names <- paste0("cell", seq_along(my_sf$geometry))
+segments <- mapply(function(x,y){
+  tmp <- st_coordinates(x)[,c("X","Y")]/4 # scale to res 3
+  colnames(tmp) <- c("x", "y")
+  data.frame(id = y, tmp)
+}, my_sf$geometry, cell_names, SIMPLIFY = FALSE)
+names(segments) <- cell_names
+
+# get cellular measurements per channel
+measurements <- data.table::fread("Ms_Embryo_031523_Scan1.txt")
+col_pattern <- "^Cell: (.*): Median$"
+cols <- grep(col_pattern, names(measurements), value = TRUE)
+measurements <- measurements[, ..cols]
+names(measurements) <- sub(col_pattern, "\\1", cols)
+measurements <- t(as.matrix(measurements))
+colnames(measurements) <- names(segments)
 ```
+
+Now we can import the experiment processed with QuPath, and we also 
+check the image metadata to select `series` and `resolution`
+
+```{r eval = FALSE, class.source="watch-out"}
+# dependencies
+if(!requireNamespace("RBioFormats"))
+  BiocManager::install("RBioFormats")
+
+# image metadata
+image_file <- "Ms_Embryo_031523_Scan1.qptiff"
+RBioFormats::read.metadata(image_file)
+```
+
+```ImageMetadata list of length 7 
+
+ series res sizeX sizeY sizeC sizeZ sizeT total
+ 1      1   11520 12960 22    1     1     22   
+ 1      2   5760  6480  22    1     1     22   
+ 1      3   2880  3240  22    1     1     22   
+ 1      4   1440  1620  22    1     1     22   
+ 2      1   360   405   3     1     1     3    
+ 3      1   1239  2717  3     1     1     3    
+ 4      1   960   720   3     1     1     3    
+```
+
+```{r eval = FALSE, class.source="watch-out"}
+# import CODEX PhenoCycler-Fusion
+vr_qupath <- importQuPathIF(measurements = measurements, 
+                            image = image_file, 
+                            series = 1, resolution = 3, 
+                            channels = getOmeTiffChannels(image_file),
+                            segments = segments)
+```
+
+Here, the DBIT-Seq data does not have any image, whereas the mIF does. 
+However, we can use the **registerSpatialData** function to warp/align a collection of observations to another collection or an image. Since at least one VoltRon object is missing its image, the resulting alignment 
+can only be performed manually. Thus we select landmark points and perform an affine or homograph transformation.
+ 
+```{r eval = FALSE, class.source="watch-out"}
+dbit_req <- registerSpatialData(reference_spatdata = vr_qupath, 
+                                query_spatdata = vr_dbit)
+```
+
+<img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_DBIT_mIF.png" class="center">
 
 <br>
 
-### Automated Image Alignment
+Now that we have the registered DBIT-Seq spots, we can define these spots 
+as a new assay in a combined VoltRon object, and even transfer the mIF images
+as background to the DBIT-Seq assay. 
 
-We will again use the registerSpatialData function to **automatically register two Visium assays (two H&E images)**. This time, we will use the **BRUTE-FORCE** method for automated alignment which we found to be more accurate compared to FLANN when aligning two H&E images. The shiny app also provides two tuning parameters that used by the BRUTE-FORCE workflow:
+```{r eval = FALSE, class.source="watch-out"}
+vr_qupath_reg <- dbit_reg$registered_spat[[1]]
+dbit_reg <- dbit_reg$registered_spat[[2]]
+vr_all <- addAssay(vr_qupath_reg, 
+                   assay = dbit_reg[["Assay1"]], 
+                   assay_name = "DBIT")
 
-* **# of Features** option specifies the number of maximum image features spotted within each image which later be used to match to the other image.
-* **Match %** specifies the percentage of these features matching at max which in turn used to compute the registration/transformation matrix. 
+# transfer images
+vrImages(vr_all[["Assay2"]], name = "main_reg", channel = "DAPI") <- 
+  vrImages(vr_all, assay = "Assay1", channel = "DAPI")
 
-We will use **1000 features** for this alignment, set **Match %** to 20\% of the features to be matched across images. The quality of the alignment will be determined by the fine tuning of these parameters where users will immediately observe the alignment quality looking at the slideshow. 
+# update radii
+vr_all[["Assay2"]]@params$vis.spot.radius <- 
+  vr_all[["Assay2"]]@params$vis.spot.radius * 5
+vr_all[["Assay2"]]@params$spot.radius <- 
+  vr_all[["Assay2"]]@params$spot.radius * 5
 
-```{r class.source="watch-out", eval = FALSE} 
-DLPFC_list <- list(DLPFC_1, DLPFC_2)
-reg1and2 <- registerSpatialData(object_list = DLPFC_list)
-```
-
-<!-- <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/VisiumDLFPCRegistration.gif" class="center"> -->
-
-<div>
-  <video width="100%" height="100%" controls autoplay>
-    <source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/VisiumDLFPCRegistration.mov" type="video/mp4">
-  Your browser does not support the video tag.
-  </video>
-</div>
-
-<br>
-
-We can now apply a similar alignment across the second pair of VoltRon objects. We will use **800 features** for this alignment,  set **Match %** to 50\% of the features to be matched across images.
-
-```{r class.source="watch-out", eval = FALSE} 
-DLPFC_list <- list(DLPFC_3, DLPFC_4)
-reg3and4 <- registerSpatialData(object_list = DLPFC_list)
-```
-
-<br>
-
-We can now combine all sections into one VoltRon object. There are two pairs of serial tissue sections, but both pairs (thus 4 sections) are from the same tissue block. Hence, we can combine these two lists into one list and merge VoltRon objects even though sections were aligned separately. 
-
-```{r class.source="watch-out", eval = FALSE} 
-merge_list <- c(reg1and2$registered_spat, reg3and4$registered_spat)
-SRBlock <- merge(merge_list[[1]], merge_list[-1], samples = "DLPFC_Block")
-SRBlock
+vr_all
 ```
 
 ```
 VoltRon Object 
-DLPFC_Block: 
-  Layers: Section1 Section2 Section3 Section4 
-Assays: Visium(Main) 
-Features: RNA(Main)
+Sample1: 
+  Layers: Section1 
+Assays: IF(Main) DBIT 
+Features: main(Main)
 ```
 
-Now that we have combined registered pairs of adjacent tissue sections, we should define
-the adjacency of these pairs in the tissue block. 
+<br>
 
-```{r class.source="watch-out", eval = FALSE} 
-# two pairs of adjacent sections
-connectivity <- data.frame(
-  c(1,1,3,3),
-  c(1,2,3,4)
-)
-# adjacent sections are 10 micron apart, and pairs 300 micron
-zlocation <- c(0, 10, 300, 310)*params$tissue_lowres_scalef
+### Data Transfer
 
-# add connectivity information to the block
-SRBlock <- addBlockConnectivity(SRBlock, 
-                                connectivity = connectivity,
-                                zlocation = zlocation,
-                                sample = "DLPFC_Block")
+The combined VoltRon object can be used to transfer features from the mIF 
+experiment to the DBIT-Seq spots. If not features are defined, all features 
+(in this case the mIF markers) will be transfered to DBIT spots as additional 
+feature sets.
+
+```{r eval=FALSE, class.source="watch-out"}
+vr_all <- transferData(vr_all, from = "Assay1", to = "Assay2", new_feature_name = "Protein")
+
+vrMainAssay(vr_qupath_new) <- "DBIT"
+vr_all
 ```
 
-The aligned and connected Visium assays of the DLPFC then could be used for 3D spatial analysis, 
-specifically as shown in the [Niche Clustering](nicheclustering.html) tutorial.
+```
+VoltRon Object 
+Sample1: 
+  Layers: Section1 
+Assays: DBIT(Main) IF 
+Features: RNA(Main) Protein  
+```
+
+<br>
+
+We can visualize the transfered protein expression (i.e. image intensity of the
+marker channel) on both the original mIF assay and the DBIT-Seq spots. 
+
+```{r eval = FALSE, class.source="watch-out"}
+library(patchwork)
+vrFeatureTypeNames(vr_all, assay = "all")
+g1 <- vrSpatialFeaturePlot(vr_all, assay = "Assay1", features = "AQP4", 
+                           channel = "DAPI", n.tile = 400, alpha = 1)
+vrMainFeatureType(vr_all[["Assay2"]]) <- "Protein"
+g2 <- vrSpatialFeaturePlot(vr_all, assay = "Assay2", features = "AQP4", 
+                           channel = "DAPI", alpha = 1, spatial = "main_reg")
+g1 | g2
+```
+
+<img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_transfer_DBIT.png" class="center">

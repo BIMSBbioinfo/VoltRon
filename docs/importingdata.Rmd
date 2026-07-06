@@ -675,16 +675,14 @@ vrImages(vr_object, name = "MELC", channel = "CD45")
 ## Multiplex IF (QuPath)
 
 VoltRon supports the analysis of clustering cells captured from multiplex immunofluorescence (IF) experiment that typically 
-captured and stored in ome.tiff and/or qptiff files of high-resolution images. To process and segment single cells as well as 
-quantifying intensity of protein markers, we can use [QuPath](https://qupath.github.io/) software. Extensions of QuPath such as InstanSeg and
-StarDist could be used to process images, which we then import into VoltRon to build multiple IF assays. 
+captured and stored in ome.tiff and/or qptiff files of high-resolution images. To process and segment single cells as well as quantifying intensity of protein markers, we can use [QuPath](https://qupath.github.io/) software. Extensions of QuPath such as InstanSeg and StarDist could be used to process images, which we then import into VoltRon to build multiple IF assays. 
 
 QuPath allows you do select an ROI, and then the users can go to **Extensions -> InstanSeg -> Run InstanSeg**. The pane of InstanSeg let you
 choose the model for segmentation, device (mps and cuda for gpu support) and the channels to learn the segmentation and calculating features. Once complete, **(i)** the feature x segments (cell) matrix can be exported from **Measurements -> Show Detection Measurements -> save* as a text file, **(ii)** the segments are exported from **Export objects as GeoJSON** excluding measurements and exporting as FeatureCollection. 
 
 <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/import_qupath.png" class="center">
 
-With these files, we can use the **importQuPathIF** function to import the data as a VoltRon object. You can select the resolution of the channels using **series** and **resolution** parameters which will pick the desired level from the ome.tiff file. 
+With these files, we can use the **importQuPathIF** function to import the data as a VoltRon object. You can select the resolution of the channels using **series** and **resolution** parameters which will pick the desired level from the ome.tiff file. The image file can also be any of pyramid image formats supported by BioFormats. See [here](https://bio-formats.readthedocs.io/en/v8.3.0/supported-formats.html) for supported pyramid image formats.
 
 ```{r eval = FALSE, class.source="watch-out"}
 adj_vr <- importQuPathIF(measurements = "measurements.txt",
@@ -782,7 +780,7 @@ globalMetadata:List of 1525
 
 </br>
 
-Now, we can specify the `series` and `resolution` to select the image layer we want to import to VoltRon.
+Now, we can specify the `series` and `resolution` to select the image layer we want to import to VoltRon. The image file can also be any of pyramid image formats supported by BioFormats. See [here](https://bio-formats.readthedocs.io/en/v8.3.0/supported-formats.html) for supported pyramid image formats.
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrimagedata <- importImageData(ome.tiff, series = 1, resolution = 5)

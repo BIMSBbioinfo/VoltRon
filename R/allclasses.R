@@ -124,16 +124,22 @@ setMethod(
   f = 'show',
   signature = 'vrSpatial',
   definition = function(object) {
-    # separate names
-    image_names <- names(object@image)
-    image_id <- seq_along(image_names)
-    image_names_split <- split(image_names, ceiling(image_id / 10))
-
     cat("vrSpatial (VoltRon Spatial) Object \n")
     text <- "Channels:"
-    for (img in image_names_split) {
-      cat(text, paste(img, collapse = ", "), "\n")
-      text <- "         "
+    
+    # separate names
+    image_names <- names(object@image)
+    if(!is.null(image_names)){
+      image_id <- seq_along(image_names)
+      image_names_split <- split(image_names, ceiling(image_id / 10))
+      
+      text <- "Channels:"
+      for (img in image_names_split) {
+        cat(text, paste(img, collapse = ", "), "\n")
+        text <- "         "
+      } 
+    } else {
+      cat(text, "\n")
     }
     return(invisible(x = NULL))
   }

@@ -339,7 +339,8 @@ getBasilisk <- function() {
   ".svs",         # Aperio SVS
   ".afi",         # Aperio AFI
   ".ndpi",        # Hamamatsu NDPI
-  ".ndpis"        # Hamamatsu NDPI variants
+  ".ndpis",       # Hamamatsu NDPI variants
+  ".qptiff"       # CODEX ?
 )
 
 

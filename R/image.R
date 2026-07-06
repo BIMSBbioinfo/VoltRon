@@ -51,8 +51,12 @@ formImage <- function(
   }
 
   # check if the image input is a list
-  if (!is.null(image)) {
+  if(is.null(image) || (is.list(image) && !length(image))){
+    image <- list()
+    main_channel <- ""
+  } else {
     if (is.list(image)) {
+      
       # enter names if there are no names
       if (is.null(names(image))) {
         names(image) <- paste("channel_", seq_len(length(image)), sep = "")
@@ -89,10 +93,7 @@ formImage <- function(
       }
       names(image) <- main_channel
     }
-  } else {
-    image <- list()
-    main_channel <- ""
-  }
+  } 
 
   # make vrimage object
   methods::new(
@@ -834,7 +835,7 @@ setMethod("vrMainChannel<-", "vrImage", vrMainChannelReplacevrImage)
 #' @export
 setMethod("vrMainChannel<-", "vrSpatial", vrMainChannelReplacevrImage)
 
-vrImageChannelNamesVoltRon <- function(object, assay = NULL) {
+vrImageChannelNamesVoltRon <- function(object, assay = NULL, ...) {
   # get assay names
   if (is.null(assay)) {
     assay_names <- vrAssayNames(object, assay = "all")
@@ -852,7 +853,7 @@ vrImageChannelNamesVoltRon <- function(object, assay = NULL) {
 
   # get channel names
   image_channels <- unlist(lapply(assay_names, function(x) {
-    paste(vrImageChannelNames(object[[x]]), collapse = ",")
+    paste(vrImageChannelNames(object[[x]], ...), collapse = ",")
   }))
 
   # return data
@@ -875,7 +876,7 @@ vrImageChannelNamesVoltRon <- function(object, assay = NULL) {
 #' @export
 setMethod("vrImageChannelNames", "VoltRon", vrImageChannelNamesVoltRon)
 
-vrImageChannelNamesvrAssay <- function(object, name = NULL) {
+vrImageChannelNamesvrAssay <- function(object, name = NULL, ...) {
   if (is.null(name)) {
     name <- vrMainSpatial(object)
   } else {
@@ -884,7 +885,7 @@ vrImageChannelNamesvrAssay <- function(object, name = NULL) {
     }
   }
 
-  return(vrImageChannelNames(object@image[[name]]))
+  return(vrImageChannelNames(object@image[[name]], ...))
 }
 
 #' @param name the key of the image
