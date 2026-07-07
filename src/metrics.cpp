@@ -286,16 +286,16 @@ std::vector<double> getAlignmentMetrics(Mat &im1, Mat &im2, Mat &h,
   // Summary
   Rcout << "Alignment Report: " << endl;
   std::vector<double> metrics;
-  metrics.push_back(cv::compareHist(hist1, hist2, cv::HISTCMP_CHISQR));
   metrics.push_back(cv::compareHist(hist1, hist2, cv::HISTCMP_INTERSECT));
   metrics.push_back(cv::compareHist(hist1, hist2, cv::HISTCMP_BHATTACHARYYA));
+  //metrics.push_back(cv::compareHist(hist1, hist2, cv::HISTCMP_CHISQR));
   // metrics.push_back(jointEntropy(im1, im2, alignmentMask, histSize));
   // metrics.push_back(MutualInfo(im1, im2, alignmentMask, histSize));
   // metrics.push_back(NormalizedMutualInfo(im1, im2, alignmentMask, histSize));
   
-  Rcout << "  Chi-Square:       " << metrics[0] << std::endl;
-  Rcout << "  Intersection:     " << metrics[1] << std::endl;
-  Rcout << "  Bhattacharyya:    " << metrics[2] << std::endl;
+  Rcout << "  Intersection:     " << metrics[0] << std::endl;
+  Rcout << "  Bhattacharyya:    " << metrics[1] << std::endl;
+  // Rcout << "  Chi-Square:       " << metrics[0] << std::endl;
   // Rcout << "  Joint Entropy:    " << metrics[3] << std::endl;
   // Rcout << "  MutualInfo:       " << metrics[4] << std::endl;
   // Rcout << "  NormalizedMutualInfo: " << metrics[5] << std::endl;
