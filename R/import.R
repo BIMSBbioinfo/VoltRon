@@ -2820,13 +2820,15 @@ importDBITSeq <- function(
   rnadata <- t(as.matrix(rnadata))
 
   # count matrix Protein
-  protdata <- utils::read.table(
-    path.prot,
-    header = TRUE,
-    sep = "\t",
-    row.names = 1
-  )
-  protdata <- t(as.matrix(protdata))
+  if (!is.null(path.prot)) {
+    protdata <- utils::read.table(
+      path.prot,
+      header = TRUE,
+      sep = "\t",
+      row.names = 1
+    )
+    protdata <- t(as.matrix(protdata))
+  }
 
   # coords
   coords <- sapply(colnames(rnadata), function(x) {
@@ -3038,7 +3040,7 @@ importImageData <- function(
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom magick image_read image_info
-#' @importFrom data.table data.table
+#' @importFrom data.table data.table fread
 #'
 #' @export
 importQuPathIF <- function(
@@ -3062,8 +3064,12 @@ importQuPathIF <- function(
   )
   
   # rawdata
-  rawdata <- read.table(file = measurements, header = TRUE)
-  rawdata <- t(rawdata)
+  if(inherits(measurements, "character")){
+    rawdata <- data.table::fread(file = measurements, header = TRUE)
+    rawdata <- t(rawdata) 
+  } else {
+    rawdata <- measurements
+  }
   
   # check if segments are paths
   if (inherits(segments, "character")) {
@@ -3145,23 +3151,27 @@ importImage <- function(
   resolution = NULL,
   is.RGB = TRUE
 ) {
-  # check if image is ome.tiff
+  # Rbioformat pyramid images
+  formats <- paste(
+    paste0(.PYRAMID_FORMATS, "$"), 
+    collapse = "|")
+  # check if image is a Bioformats compatible image
   if (is.character(image)) {
-    if (any(grepl(".ome.tiff$|.ome.tif$", image))) {
+    if (any(grepl(formats, image))) {
       if (!requireNamespace('RBioFormats')) {
         stop(
-          "Please install RBioFormats package to images from the ome.tiff ",
+          "Please install RBioFormats package to import pyramid images ",
           "file!: BiocManager::install('RBioFormats')"
         )
       }
       if (is.null(resolution)) {
         stop(
-          "For importing images from ome.tiff files, please specify ",
+          "For importing images from pyramids, please specify ",
           "resolution. See help(read.metadata) from RBioFormats package."
         )
       }
       if (length(image) > 1) {
-        stop("Only a single ome.tiff file should be used at a time!")
+        stop("Only a single pyramid image file should be used at a time!")
       }
     }
   } else {
@@ -3180,10 +3190,6 @@ importImage <- function(
       # check if image exists
       if (is.character(img)) {
         if (file.exists(img)) {
-          # Rbioformat pyramid images
-          formats <- paste(
-            paste0(.PYRAMID_FORMATS, "$"), 
-            collapse = "|")
           if (grepl(formats, img)) {
             # check image channel size
             channelIDs <- .checkOmeTiffChannels(

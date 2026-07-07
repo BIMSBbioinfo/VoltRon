@@ -240,6 +240,78 @@ setGeneric("normalizeData", function(object, ...) {
 })
 
 ####
+# Analysis ####
+####
+
+#' transferData
+#'
+#' Transfering features across spatial omics assays and single cell assays (Seurat or SingleCellExperiment). 
+#' This functions facilitates the transfer of features between both (i) VoltRon assays in a common 
+#' coordinate system and tissue block, and also (ii) features between a VoltRon assay and a single cell assay 
+#' with Seurat or SingleCellExperiment object.  
+#'
+#' @param object a VoltRon object
+#' @param from if a character, the name of the assay whose data transfered to the second assay, 
+#' otherwise a single cell object of class Seurat or SingleCellExperiment whose data is 
+#' transfered to the VoltRon assay provided in \code{to}.
+#' @param to the name or class of target assay where data is transfered to
+#' @param features the set of features from \link{vrFeatures} or metadata columns from \link{Metadata} 
+#' that are transferred. Only one metadata feature can be transferred at a time.
+#' @param expand if TRUE, metadata features will be transformed into
+#' dummy features where each category in the feature will be a new feature.
+#' If FALSE, metadata features will not be transformed and transfered as
+#' metadata columns, else the decision will be made automatically.
+#' @param new_feature_name the name of the new feature set created
+#' from the source assay defined in \code{from} argument.
+#' Only used when a new assay in created. If a \code{features} is a metadata 
+#' column and \code{from} is a single cell object of Seurat or 
+#' SingleCellExperiment, then \code{new_feature_name} is the name of the new 
+#' metadata column in the VoltRon object.
+#' @param sc.assay When \code{from} is a single cell object (Seurat or 
+#' SingleCellExperiment), sc.assay can be provided to choose a specific assay
+#' from the single cell object. 
+#' @param pc.dims the number of dimensions extracted from PCA. Only used 
+#' when \code{sc.object} is a Seurat or SingleCellExperiment object.
+#' @param seed seed
+#' @param ... arguments passed to other methods.
+#'
+#' @rdname transferData
+#' @export transferData
+#' @order 1
+setGeneric("transferData", function(object, from, ...) {
+  standardGeneric("transferData")
+})
+
+#' getPCA
+#'
+#' calculate PCA of the VoltRon objects
+#'
+#' @param object a VoltRon object
+#' @param assay assay name (exp: Assay1) or assay class
+#' (exp: Visium, Xenium), see \link{SampleMetadata}.
+#' if NULL, the default assay will be used, see \link{vrMainAssay}.
+#' @param features the selected features for PCA reduction
+#' @param feat_type the feature set type
+#' @param data.type the type of data used to calculate PCA from:
+#' "norm" (default), "raw" or an existing embeddings \link{vrEmbeddingNames}.
+#' @param dims the number of dimensions extracted from PCA
+#' @param pca.key the key name for the embedding, default: pca
+#' @param n.workers the number of cores/workers use for parallelization.
+#' @param overwrite Whether the existing embedding with name 'type'
+#' should be overwritten in \link{vrEmbeddings}
+#' @param seed seed
+#' @param ... arguments passed to other methods.
+#'
+#' @importFrom BiocSingular runPCA FastAutoParam
+#'
+#' @rdname getPCA
+#' @export getPCA
+#' @order 1
+setGeneric("getPCA", function(object, ...) {
+  standardGeneric("getPCA")
+})
+
+####
 # Embedding ####
 ####
 

@@ -13,6 +13,27 @@ if (!requireNamespace("BPCells", quietly = TRUE)) {
     })
   })
 }
+if (!requireNamespace("DelayedArray", quietly = TRUE)) {
+  suppressMessages({
+    suppressWarnings({
+      setClass("DelayedMatrix")
+    })
+  })
+}
+if (!requireNamespace("HDF5Array", quietly = TRUE)) {
+  suppressMessages({
+    suppressWarnings({
+      setClass("HDF5Matrix")
+    })
+  })
+}
+if (!requireNamespace("ZarrArray", quietly = TRUE)) {
+  suppressMessages({
+    suppressWarnings({
+      setClass("ZarrMatrix")
+    })
+  })
+}
 
 ## vrImage ####
 
@@ -24,8 +45,6 @@ suppressMessages({
       members = c(
         "matrix",
         "data.frame",
-        # "dgRMatrix",
-        # "dgeMatrix",
         "Matrix",
         "Array",
         "IterableMatrix"
@@ -105,16 +124,22 @@ setMethod(
   f = 'show',
   signature = 'vrSpatial',
   definition = function(object) {
-    # separate names
-    image_names <- names(object@image)
-    image_id <- seq_along(image_names)
-    image_names_split <- split(image_names, ceiling(image_id / 10))
-
     cat("vrSpatial (VoltRon Spatial) Object \n")
     text <- "Channels:"
-    for (img in image_names_split) {
-      cat(text, paste(img, collapse = ", "), "\n")
-      text <- "         "
+    
+    # separate names
+    image_names <- names(object@image)
+    if(!is.null(image_names)){
+      image_id <- seq_along(image_names)
+      image_names_split <- split(image_names, ceiling(image_id / 10))
+      
+      text <- "Channels:"
+      for (img in image_names_split) {
+        cat(text, paste(img, collapse = ", "), "\n")
+        text <- "         "
+      } 
+    } else {
+      cat(text, "\n")
     }
     return(invisible(x = NULL))
   }
@@ -128,11 +153,11 @@ suppressWarnings({
     "data_matrix",
     members = c(
       "matrix",
-      # "dgCMatrix",
-      # "dgRMatrix",
-      # "dgeMatrix",
       "Matrix",
       "Array",
+      "DelayedMatrix",
+      "HDF5Matrix",
+      "ZarrMatrix",
       "IterableMatrix"
     )
   )

@@ -47,28 +47,42 @@ registerSpatialData <- function(
   # get images from the list of objects
   orig_image_query_list_full <- lapply(spatdata_list, function(spat) {
     assayname <- vrAssayNames(spat)
-    channel_names <- vrImageChannelNames(spat[[assayname]])
-    sapply(
-      channel_names,
-      function(chan) {
-        img <- vrImages(spat[[assayname]], channel = chan, as.raster = TRUE)
-        if (!inherits(img, "ImageArray")) {
-          img <- magick::image_read(img)
-        }
-        img
-      },
-      USE.NAMES = TRUE
-    )
+    channel_names <- vrImageChannelNames(spat[[assayname]], 
+                                         return.report = FALSE)
+    if(is.null(channel_names)) {
+      list(points = vrSpatial(coords = vrCoordinates(spat[[assayname]]),
+                            main_channel = "points"))
+    } else {
+      sapply(
+        channel_names,
+        function(chan) {
+          img <- vrImages(spat[[assayname]], channel = chan, as.raster = TRUE)
+          if(is.null(img)){
+            img <- vrSpatial(coords = vrCoordinates(spat[[assayname]]), 
+                             main_channel = "points")
+          } else if(!inherits(img, "ImageArray")) {
+            img <- magick::image_read(img)
+          }
+          img
+        },
+        USE.NAMES = TRUE
+      ) 
+    }
   })
+  
+  # get representative images
   orig_image_query_list <- lapply(
     orig_image_query_list_full,
     function(spat_img) {
       return(spat_img[[1]])
     }
   )
+  
+  # image channel names
   orig_image_channelname_list <- lapply(spatdata_list, function(spat) {
     assayname <- vrAssayNames(spat)
-    vrImageChannelNames(spat[[assayname]])
+    channels <- vrImageChannelNames(spat[[assayname]], return.report = FALSE)
+    if(is.null(channels)) "points" else channels
   })
 
   ## Parameters ####
@@ -489,10 +503,9 @@ getSideBar <- function(params = NULL) {
 #'
 #' @noRd
 getImageTabPanels <- function(len_images, channel_names, centre, type, params = NULL) {
-  # get panel label
-  # label <- ifelse(type == "ref", "Ref. ", "Query ")
-  label <- "Img "
   
+  # get panel label
+  label <- "Img "
 
   # call panels
   do.call(
@@ -538,7 +551,6 @@ getImageTabPanels <- function(len_images, channel_names, centre, type, params = 
                 paste0("negate_", type, "_image", i),
                 "Negate Image:",
                 choices = c("No", "Yes"),
-                # selected = "No"))
                 selected = ifelse(
                   is.null(params[[paste0("negate_", type, "_image", i)]]),
                   "No",
@@ -563,7 +575,6 @@ getImageTabPanels <- function(len_images, channel_names, centre, type, params = 
                 "Scale Parameter",
                 min = 0,
                 max = 1,
-                # value = 1)),
                 value = ifelse(
                   is.null(params[[paste0("scale_", type, "_image", i)]]),
                   "1",
@@ -603,6 +614,7 @@ getImageTabPanels <- function(len_images, channel_names, centre, type, params = 
 #'
 #' @noRd
 getAlignmentTabPanel <- function(len_images, centre, register_ind) {
+  
   # tab panels
   do.call(
     tabsetPanel,
@@ -631,6 +643,7 @@ getAlignmentTabPanel <- function(len_images, centre, register_ind) {
 #'
 #' @noRd
 getRegisteredImageTabPanels <- function(len_images, centre, register_ind) {
+  
   # tab panels
   do.call(
     tabsetPanel,
@@ -682,7 +695,6 @@ updateTabPanels <- function(centre, register_ind, input, output, session) {
     updateTabsetPanel(
       session,
       "image_tab_panel_query",
-      # paste0("Query ", query_panel_ind)
       paste0("Img ", 
              query_panel_ind, 
              if(query_panel_ind == centre) " (Ref.)" else NULL
@@ -698,7 +710,6 @@ updateTabPanels <- function(centre, register_ind, input, output, session) {
       updateTabsetPanel(
         session,
         "image_tab_panel_ref",
-        # paste0("Ref. ", selected_panel_ind - 1)
         paste0("Img ", 
                selected_panel_ind - 1, 
                if((selected_panel_ind - 1) == centre) " (Ref.)" else NULL
@@ -721,7 +732,6 @@ updateTabPanels <- function(centre, register_ind, input, output, session) {
     updateTabsetPanel(
       session,
       "image_tab_panel_ref",
-      # paste0("Ref. ", query_panel_ind)
       paste0("Img ", 
              query_panel_ind, 
              if(query_panel_ind == centre) " (Ref.)" else NULL
@@ -732,7 +742,6 @@ updateTabPanels <- function(centre, register_ind, input, output, session) {
       updateTabsetPanel(
         session,
         "image_tab_panel_query",
-        # paste0("Query ", selected_panel_ind + 1)
         paste0("Img ", 
                selected_panel_ind + 1, 
                if((selected_panel_ind + 1) == centre) " (Ref.)" else NULL
@@ -764,7 +773,6 @@ updateTabPanels <- function(centre, register_ind, input, output, session) {
     updateTabsetPanel(
       session,
       "image_tab_panel_query",
-      # paste0("Query ", selected_panel_ind)
       paste0("Img ", 
              selected_panel_ind, 
              if(selected_panel_ind == centre) " (Ref.)" else NULL
@@ -1041,8 +1049,10 @@ getRegisteredObject <- function(
 
   # waiter start
   withProgress(message = 'Register Coordinates (and Segments)', value = 0, {
+    
     # register all assays
     for (i in register_ind) {
+      
       # choose image query and ref order
       if (i > ref_ind) {
         ref_extension = paste0("ref_image", ref_ind)
@@ -1184,19 +1194,53 @@ applyPerspectiveTransform <- function(
     # cur_mapping <- Reduce("%*%", mapping)
     mapping <- manageMapping(mapping)
 
+    # correct for non image coords
+    if(is.null(vrImageChannelNames(object[[assay]], return.report = FALSE))){
+      coords_extent <- c(min(coords[,"y"]), max(coords[,"y"]))
+      coords[,"y"] <- coords_extent[2] + coords_extent[1] - coords[,"y"]
+    }
+    
     # get registered coordinates
     coords_reg <- as.matrix(as(coords, "dgCMatrix"))
     coords_reg[, c("x", "y")] <- applyMapping(coords[, c("x", "y")], mapping)
     rownames(coords_reg) <- rownames(coords)
     colnames(coords_reg) <- colnames(coords)
+    
+    # correct back
+    if(is.null(vrImageChannelNames(object[[assay]], return.report = FALSE))){
+      if(inherits(reference_image, "magick-image")){
+        extend <- getImageInfo(reference_image)
+        coords_reg[,"y"] <- extend$height -  coords_reg[,"y"] 
+      } else {
+        coords_reg_extent <- c(min(coords_reg[,"y"]), max(coords_reg[,"y"]))
+        coords_reg[,"y"] <- coords_reg_extent[2] + coords_reg_extent[1] - coords_reg[,"y"] 
+      }
+    }
 
     # get registered segments
     if (length(segments) > 0) {
       segments_reg <- do.call(rbind, segments)
+      
+      # correct for non image coords
+      if(is.null(vrImageChannelNames(object[[assay]], return.report = FALSE))){
+        coords[,"y"] <- coords_extent[2] + coords_extent[1] - coords[,"y"]
+      }
+      
       segments_reg[, colnames(segments_reg) %in% c("x", "y")] <- applyMapping(
         as.matrix(segments_reg[, colnames(segments_reg) %in% c("x", "y")]),
         mapping
       )
+      
+      # correct back
+      if(is.null(vrImageChannelNames(object[[assay]], return.report = FALSE))){
+        if(inherits(reference_image, "magick-image")){
+          extend <- getImageInfo(reference_image)
+          segments_reg[,"y"] <- extend$height -  segments_reg[,"y"] 
+        } else {
+          segments_reg[,"y"] <- coords_reg_extent[2] + coords_reg_extent[1] - segments_reg[,"y"] 
+        }
+      }
+      
       segments_reg <- split(segments_reg, segments_reg[, 1])
       names(segments_reg) <- names(segments)
     } else {
@@ -1205,7 +1249,7 @@ applyPerspectiveTransform <- function(
 
     # get registered image (including all channels)
     image_reg_list <- sapply(
-      vrImageChannelNames(object[[assay]]),
+      vrImageChannelNames(object[[assay]], return.report = FALSE),
       function(x) NULL,
       USE.NAMES = TRUE
     )
@@ -1218,11 +1262,6 @@ applyPerspectiveTransform <- function(
       if (!inherits(query_image, "ImageArray")) {
         query_image <- magick::image_read(query_image)
       }
-      # warped_image <- getRcppWarpImage(
-      #   ref_image = reference_image,
-      #   query_image = query_image,
-      #   mapping = mapping
-      # )
       warped_image <- warpImage(
         ref_image = reference_image,
         query_image = query_image,
@@ -1307,11 +1346,12 @@ applyPerspectiveTransform <- function(
 
     # get registered image (including all channels)
     image_reg_list <- sapply(
-      vrImageChannelNames(object[[assay]]),
+      vrImageChannelNames(object[[assay]], return.report = FALSE),
       function(x) NULL,
       USE.NAMES = TRUE
     )
     for (channel_ind in names(image_reg_list)) {
+      
       # rotate, flip and flop before warping in C++
       ref_image <- transformImage(reference_image, ref_extension, input)
       query_image <- vrImages(
@@ -1323,7 +1363,6 @@ applyPerspectiveTransform <- function(
         query_image <- magick::image_read(query_image)
       }
       query_image <- transformImage(query_image, query_extension, input)
-      # query_image <- getRcppWarpImage(ref_image, query_image, mapping = mapping)
       query_image <- warpImage(ref_image, query_image, mapping = mapping)
       query_image <- transformImageReverse(query_image, ref_extension, input)
 
@@ -1331,7 +1370,7 @@ applyPerspectiveTransform <- function(
     }
   }
 
-  # make new image object
+  # If there are images, make new image object
   vrImages(object[[assay]], reg = TRUE) <- formImage(
     coords = coords_reg,
     segments = segments_reg,
@@ -1460,6 +1499,7 @@ initateKeypoints <- function(
   output,
   session
 ) {
+  
   # initiate keypoints
   if (is.null(keypoints_list)) {
     keypoints_list <- lapply(seq_len(len_images - 1), function(i) {
@@ -1663,10 +1703,8 @@ transformImageKeypoints <- function(
   # flip flop image and keypoints
   input_flipflop <- input[[paste0("flipflop_", extension)]]
   if (input_flipflop == "Flip") {
-    # image <- magick::image_flip(image)
     image <- flipImage(image)
   } else if (input_flipflop == "Flop") {
-    # image <- magick::image_flop(image)
     image <- flopImage(image)
   }
 
@@ -1690,6 +1728,7 @@ transformImageKeypoints <- function(
 #'
 #' @noRd
 transformKeypoints <- function(image, keypoints, extension, input) {
+  
   # get unrotated image info
   image_limits <- unlist(getImageInfo(image)[1, c("width", "height")])
   image_origin <- image_limits / 2
@@ -1817,9 +1856,8 @@ flipflopKeypoint <- function(keypoints, image_limits, flipflop) {
 #'
 #' @noRd
 imageKeypoint <- function(image, keypoints) {
-  if (is.null(keypoints)) {
+  if (is.null(keypoints))
     return(image)
-  }
 
   # select keypoints and texts on image
   image <- image +
@@ -2184,6 +2222,7 @@ getImageOutput <- function(
         width <- img_limits$keypoints[2, 1] - img_limits$keypoints[1, 1]
         height <- img_limits$keypoints[2, 2] - img_limits$keypoints[1, 2]
         if (max(height, width) > 1000) {
+          
           # scale keypoints
           if (inherits(img_trans$image, "ImageArray")) {
             n.series <- length(img_trans$image)
@@ -2196,17 +2235,11 @@ getImageOutput <- function(
                 break
               }
             }
-            img_trans$keypoints[, c("x", "y")] <- img_trans$keypoints[, c(
-              "x",
-              "y"
-            )] *
-              (cur_width / width)
+            img_trans$keypoints[, c("x", "y")] <- 
+              img_trans$keypoints[, c("x","y")] * (cur_width / width)
           } else {
-            img_trans$keypoints[, c("x", "y")] <- img_trans$keypoints[, c(
-              "x",
-              "y"
-            )] *
-              (1000 / width)
+            img_trans$keypoints[, c("x", "y")] <- 
+              img_trans$keypoints[, c("x","y")] * (1000 / width)
           }
         }
 
@@ -2237,7 +2270,7 @@ getImageOutput <- function(
 #' @importFrom magick image_ggplot
 #'
 #' @noRd
-plotImage <- function(image, max.pixel.size = NULL) {
+plotImage <- function(image, max.pixel.size = NULL, extent = NULL) {
   if (inherits(image, "magick-image")) {
     imageinfo <- getImageInfo(image)
     if (!is.null(max.pixel.size)) {
@@ -2249,6 +2282,32 @@ plotImage <- function(image, max.pixel.size = NULL) {
       }
     }
     imgggplot <- magick::image_ggplot(image)
+  } else if (inherits(image, "vrSpatial")) {
+    coords <- vrCoordinates(image)
+    if(is.null(extent)) {
+      extent <- getImageInfo(image)
+      extent <- list(x = c(min(coords[,"x"]),
+                           min(coords[,"x"]) + extent$width),
+                     y = c(min(coords[,"y"]),
+                           min(coords[,"y"]) + extent$height)
+                     )
+    } else {
+      extent <- list(x = c(0, extent$width),
+                     y = c(0, extent$height))
+
+    }
+    imgggplot <- ggplot2::ggplot(
+      data = coords,
+      ggplot2::aes_string("x", "y")
+    ) +      
+      ggplot2::geom_blank() +
+      ggplot2::theme_void() +
+      ggplot2::coord_fixed(
+      expand = FALSE,
+      xlim = extent$x,
+      ylim = extent$y
+    ) + 
+      ggplot2::geom_point()
   } else if (inherits(image, "ImageArray")) {
     img_raster <- as.raster(image, max.pixel.size = max.pixel.size)
     info <- list(width = dim(img_raster)[2], height = dim(img_raster)[1])
@@ -2303,6 +2362,12 @@ getImageInfo <- function(image) {
     imginfo <- magick::image_info(image)
   } else if (inherits(image, "ImageArray")) {
     imginfo <- ImageArray::getImageInfo(image)
+  } else if (inherits(image, "vrSpatial")){
+    coords <- vrCoordinates(image)
+    imginfo <- apply(coords[,c("x", "y")], 2, range) 
+    imginfo <- imginfo[2,] - imginfo[1,]
+    imginfo <- list(width = imginfo[["x"]], height = imginfo[["y"]])
+    imginfo <- as.data.frame(imginfo, row.names = NULL)
   }
   as.data.frame(imginfo)
 }
@@ -2416,12 +2481,23 @@ cropImage <- function(image, geometry) {
 #' @importFrom magick image_resize image_info image_read geometry_size_percent
 #'
 #' @noRd
-resize_Image <- function(image, geometry) {
+resize_Image <- function(image, geometry, extent = NULL) {
+  
   # get image info
   image_info_large <- getImageInfo(image)
 
+  # resize magick object
   if (inherits(image, "magick-image")) {
     image <- magick::image_resize(image, geometry = geometry)
+    
+  # resize coordinates
+  # Note: here, coordinates should track extent if given
+  } else if (inherits(image, "vrSpatial")) {
+    image <- ggplot_to_magick(plotImage(image, extent = extent), 
+                              extent = extent)
+    image <- magick::image_resize(image, geometry = geometry)
+    
+  # resize ImageArray object  
   } else if (inherits(image, "ImageArray")) {
     # get scale factor
     if (grepl("%$", geometry)) {
@@ -2433,7 +2509,6 @@ resize_Image <- function(image, geometry) {
 
     # get scaled array
     scaled_image_info <- ceiling(image_info_large * scale_factor)
-    # image <- as.array(image, min.pixel.size = max(scaled_image_info))
     image <- DelayedArray::realize(
       image,
       min.pixel.size = max(scaled_image_info)
@@ -2450,6 +2525,34 @@ resize_Image <- function(image, geometry) {
     )
   }
   image
+}
+
+#' @importFrom magick image_read
+#' @noRd
+ggplot_to_magick <- function(plot, extent = NULL, width = 8, height = 6, dpi = 300, ...) {
+  
+  # file 
+  stopifnot(inherits(plot, "ggplot"))
+  tf <- tempfile(fileext = ".png")
+  on.exit(unlink(tf), add = TRUE)
+  
+  # if extent is given, adjust file extent
+  if(!is.null(extent))
+    height <- (width/extent$width) * extent$height
+  
+  # save image
+  ggplot2::ggsave(
+    filename = tf,
+    plot = plot,
+    width = width,
+    height = height,
+    dpi = dpi,
+    bg = "white",
+    ...
+  )
+  
+  # read as magick
+  magick::image_read(tf)
 }
 
 #' transformImage
@@ -2558,7 +2661,6 @@ transformImageQueryList <- function(image_list, input) {
 warpImage <- function(ref_image, query_image, mapping) {
   # ref image
   if (inherits(ref_image, "ImageArray")) {
-    # ref_image <- as.array(ref_image)
     ref_image <- DelayedArray::realize(ref_image)
     ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
   } else {
@@ -2567,7 +2669,6 @@ warpImage <- function(ref_image, query_image, mapping) {
 
   # query image
   if (inherits(query_image, "ImageArray")) {
-    # query_image <- as.array(query_image)
     query_image <- DelayedArray::realize(query_image)
     query_image <- array(as.raw(query_image), dim = dim(query_image))
   } else {
@@ -2666,10 +2767,6 @@ warpSimpleITKImage <- function(ref_image, query_image, mapping) {
                                  'sitkUInt8')
   
   # register
-  # tfx_image <- SimpleITK::TransformixImageFilter()
-  # tfx_image$LogToConsoleOff()
-  # # tfx_image$SetTransformParameterMap(transform_param_map)
-  # tfx_image$SetMovingImage(SimpleITK::Image(moving$GetSize(), 'sitkFloat32'))
   tfx <- mapping
   
   # warp image
@@ -2703,6 +2800,7 @@ warpSimpleITKImage <- function(ref_image, query_image, mapping) {
 #'
 #' @noRd
 initiateMappings <- function(len_images, input, output, session) {
+  
   # initiate matrices
   matrix_list <- lapply(seq_len(len_images), function(i) return(NULL))
   names(matrix_list) <- seq_len(len_images)
@@ -2793,10 +2891,34 @@ getManualRegisteration <- function(
       lapply(register_ind, function(i) {
         output[[paste0("plot_query_reg", i)]] <- renderImage(
           {
-            # get image list
+            # resize reference image
+            img_resized <- resize_Image(image_list[[centre]], 
+                                        geometry = "400x")
+            
+            # if coordinates are being resized, track the extent and 
+            # geometry of the reference image
+            if(!is(image_list[[centre]], "vrSpatial")){
+              extent <- getImageInfo(image_list[[centre]]) 
+            } else {
+              extent <- NULL
+            }
+            geometry <- getImageInfo(img_resized)
+            geometry <- paste0(geometry$width, "x", geometry$height)
+            
+            # resize query image
+            aligned_img_resized <- resize_Image(aligned_image_list[[i]], 
+                                                geometry = geometry,
+                                                extent = extent)
+            aligned_img_resized <- magick::image_composite(img_resized, 
+                                                           aligned_img_resized, 
+                                                           operator = "dissolve",
+                                                           compose_args = "58%",
+                                                           gravity="center")
+            
+            # replicate query and reference images for slide show
             image_view_list <- list(
-              rep(resize_Image(image_list[[centre]], geometry = "400x"), 5),
-              rep(resize_Image(aligned_image_list[[i]], geometry = "400x"), 5)
+              rep(img_resized, 5),
+              rep(aligned_img_resized, 5)
             )
 
             # make slide show
@@ -2936,45 +3058,84 @@ getRcppManualRegistration <- function(
   method = "Homography",
   nonrigid = "TPS (OpenCV)"
 ) {
+  
   # ref image
-  if (inherits(ref_image, "ImageArray")) {
-    ref_image <- DelayedArray::realize(ref_image)
-    ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
+  if(inherits(ref_image, "vrSpatial")){
+    ref_image <- vrCoordinates(ref_image)[,c("x","y")]
+    reference_landmark[, 2] <- max(ref_image[,2]) + min(ref_image[,2]) - reference_landmark[, 2]
+    ref_image[,2] <- max(ref_image[,2]) + min(ref_image[,2]) - ref_image[, 2]
   } else {
-    ref_image <- magick::image_data(ref_image, channels = "rgb")
+    if (inherits(ref_image, "ImageArray")) {
+      ref_image <- DelayedArray::realize(ref_image)
+      ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
+    } else {
+      ref_image <- magick::image_data(ref_image, channels = "rgb")
+    }
+    reference_landmark[, 2] <- dim(ref_image)[3] - reference_landmark[, 2]
   }
 
   # query image
-  if (inherits(query_image, "ImageArray")) {
-    query_image <- DelayedArray::realize(query_image)
-    query_image <- array(as.raw(query_image), dim = dim(query_image))
+  if(inherits(query_image, "vrSpatial")){
+    query_image <- vrCoordinates(query_image)[,c("x","y")]
+    query_landmark[, 2] <- max(query_image[,2]) + min(query_image[,2]) - query_landmark[, 2]
+    query_image[,2] <- max(query_image[,2]) + min(query_image[,2]) - query_image[, 2]
   } else {
-    query_image <- magick::image_data(query_image, channels = "rgb")
+    if (inherits(query_image, "ImageArray")) {
+      query_image <- DelayedArray::realize(query_image)
+      query_image <- array(as.raw(query_image), dim = dim(query_image))
+    } else {
+      query_image <- magick::image_data(query_image, channels = "rgb")
+    }
+    query_landmark[, 2] <- dim(query_image)[3] - query_landmark[, 2]
   }
-
-  reference_landmark[, 2] <- dim(ref_image)[3] - reference_landmark[, 2]
-  query_landmark[, 2] <- dim(query_image)[3] - query_landmark[, 2]
-  reg <- manual_registeration_rawvector(
-    ref_image = ref_image,
-    query_image = query_image,
-    reference_landmark = reference_landmark,
-    query_landmark = query_landmark,
-    width1 = dim(ref_image)[2],
-    height1 = dim(ref_image)[3],
-    width2 = dim(query_image)[2],
-    height2 = dim(query_image)[3],
-    method = method,
-    nonrigid = nonrigid
-  )
+  
+  
+  reg <- 
+    if(ncol(query_image) == 2){
+      manual_registeration_matrix(
+        query_image,
+        reference_landmark = reference_landmark,
+        query_landmark = query_landmark,
+        method = method,
+        nonrigid = nonrigid
+      )
+    } else {
+      manual_registeration_rawvector(
+        ref_image,
+        query_image,
+        reference_landmark = reference_landmark,
+        query_landmark = query_landmark,
+        width1 = dim(ref_image)[2],
+        height1 = dim(ref_image)[3],
+        width2 = dim(query_image)[2],
+        height2 = dim(query_image)[3],
+        method = method,
+        nonrigid = nonrigid
+      )
+    }
 
   # check for null keypoints
   if (suppressWarnings(all(lapply(reg[[1]][[2]], is.null)))) {
     reg[[1]] <- list(reg[[1]][[1]], NULL)
   }
+  
+  # check for null images
+  aligned_image <- if(ncol(reg[[2]]) == 2){
+    rownames(reg[[2]]) <- rownames(query_image)
+    colnames(reg[[2]]) <- colnames(query_image)
+    if(ncol(ref_image) == 2){
+      reg[[2]][,2] <- max(reg[[2]][,2]) + min(reg[[2]][,2]) - reg[[2]][, 2]
+    } else {
+      reg[[2]][,2] <- dim(ref_image)[3] - reg[[2]][,2]
+    }
+    vrSpatial(coords = reg[[2]], main_channel = "points")
+  } else {
+    magick::image_read(reg[[2]])
+  }
 
   return(list(
     transmat = reg[[1]],
-    aligned_image = magick::image_read(reg[[2]])
+    aligned_image = aligned_image
   ))
 }
 
@@ -3019,6 +3180,11 @@ getAutomatedRegisteration <- function(
   observeEvent(input$register, {
     # Automated registration
     if (input$automatictag) {
+      
+      # check images 
+      if(any(sapply(image_list,\(.) "points" %in% names(.))))
+        stop("Automated registration can only be performed when all assays images!")
+      
       # waiter start
       withProgress(
         message = paste0('Automated Registration (', input$Method, ')'),

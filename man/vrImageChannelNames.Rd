@@ -11,11 +11,11 @@
 \usage{
 vrImageChannelNames(object, ...)
 
-\S4method{vrImageChannelNames}{VoltRon}(object, assay = NULL)
+\S4method{vrImageChannelNames}{VoltRon}(object, assay = NULL, ...)
 
-\S4method{vrImageChannelNames}{vrAssay}(object, name = NULL)
+\S4method{vrImageChannelNames}{vrAssay}(object, name = NULL, ...)
 
-\S4method{vrImageChannelNames}{vrAssayV2}(object, name = NULL)
+\S4method{vrImageChannelNames}{vrAssayV2}(object, name = NULL, ...)
 
 \S4method{vrImageChannelNames}{vrImage}(object, return.report = TRUE)
 

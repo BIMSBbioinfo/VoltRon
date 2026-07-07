@@ -25,6 +25,10 @@ manual_registeration_rawvector <- function(ref_image, query_image, reference_lan
     .Call('_VoltRon_manual_registeration_rawvector', PACKAGE = 'VoltRon', ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2, method, nonrigid)
 }
 
+manual_registeration_matrix <- function(query_data, reference_landmark, query_landmark, method, nonrigid) {
+    .Call('_VoltRon_manual_registeration_matrix', PACKAGE = 'VoltRon', query_data, reference_landmark, query_landmark, method, nonrigid)
+}
+
 applyRcppMapping <- function(coords, mapping) {
     .Call('_VoltRon_applyRcppMapping', PACKAGE = 'VoltRon', coords, mapping)
 }
