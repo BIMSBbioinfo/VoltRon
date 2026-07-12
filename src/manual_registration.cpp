@@ -128,6 +128,10 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
     cv::perspectiveTransform(query_mat, query_reg, h);
   }
   
+  // TODO: remove later
+  // imwrite("img1.tif", im1Affine);
+  // imwrite("img2.tif", im2);
+  
   // get metrics
   std::vector<double> image_metrics;
   image_metrics = getAlignmentMetrics(im1Affine, im2, h, im1.size());

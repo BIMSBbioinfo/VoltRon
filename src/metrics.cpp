@@ -9,6 +9,7 @@
 // Internal functions
 #include "auxiliary.h"
 #include "image.h"
+#include "matte_mi.h"
 
 // Namespaces
 using namespace Rcpp;
