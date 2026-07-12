@@ -260,8 +260,7 @@ double NormalizedMutualInfo(cv::Mat& im1, cv::Mat& im2,
   return (ent1+ent2)/ent12;
 }
 
-std::vector<double> getAlignmentMetrics(Mat &im1, Mat &im2, Mat &h, 
-                                        cv::Size ssize){
+std::vector<double> getAlignmentMetrics(Mat &im1, Mat &im2, Mat &h, Mat &mask){
   
   // Histogram settings
   int histSize = 256;
@@ -270,14 +269,14 @@ std::vector<double> getAlignmentMetrics(Mat &im1, Mat &im2, Mat &h,
   int channels[] = {0};
   
   // get overlap mask
-  cv::Mat alignmentMask = generateOverlapMask(im1, h, im2.size(), ssize);
-  // imwrite("mask.tif", alignmentMask);
+  // cv::Mat mask = generateOverlapMask(im1, h, im2.size(), ssize);
+  // imwrite("mask.tif", mask);
   
   // Compute histograms
   cv::Mat hist1, hist2;
-  cv::calcHist(&im1, 1, channels, alignmentMask, 
+  cv::calcHist(&im1, 1, channels, mask, 
                hist1, 1, &histSize, &histRange);
-  cv::calcHist(&im2, 1, channels, alignmentMask, 
+  cv::calcHist(&im2, 1, channels, mask, 
                hist2, 1, &histSize, &histRange);
   
   // Normalize histograms
@@ -290,9 +289,9 @@ std::vector<double> getAlignmentMetrics(Mat &im1, Mat &im2, Mat &h,
   metrics.push_back(cv::compareHist(hist1, hist2, cv::HISTCMP_INTERSECT));
   metrics.push_back(cv::compareHist(hist1, hist2, cv::HISTCMP_BHATTACHARYYA));
   //metrics.push_back(cv::compareHist(hist1, hist2, cv::HISTCMP_CHISQR));
-  // metrics.push_back(jointEntropy(im1, im2, alignmentMask, histSize));
-  // metrics.push_back(MutualInfo(im1, im2, alignmentMask, histSize));
-  // metrics.push_back(NormalizedMutualInfo(im1, im2, alignmentMask, histSize));
+  // metrics.push_back(jointEntropy(im1, im2, mask, histSize));
+  // metrics.push_back(MutualInfo(im1, im2, mask, histSize));
+  // metrics.push_back(NormalizedMutualInfo(im1, im2, mask, histSize));
   
   Rcout << "  Intersection:     " << metrics[0] << std::endl;
   Rcout << "  Bhattacharyya:    " << metrics[1] << std::endl;

@@ -10,6 +10,7 @@
 #include "auxiliary.h"
 #include "image.h"
 #include "metrics.h"
+#include "matte_mi.h"
 
 // Namespaces
 using namespace Rcpp;
@@ -569,7 +570,8 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
                  const bool invert_query, const bool invert_ref,
                  const char* flipflop_query, const char* flipflop_ref,
                  const char* rotate_query, const char* rotate_ref,
-                 const bool run_Affine, const bool run_TPS)
+                 const bool run_Affine, const bool run_TPS, 
+                 Mat1d &accuracyMatte)
 {
   
   // parameters
@@ -633,10 +635,18 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     return;
   }
   
-  // get metrics
-  std::vector<double> keypoint_metrics, image_metrics; 
+  // get keypoint metrics
+  std::vector<double> keypoint_metrics; 
   keypoint_metrics = getKeypointMetrics(points1, points2, im1Proc, im2Proc, h, mask);
-  image_metrics = getAlignmentMetrics(im1Proc, im2Proc, h, im1.size());
+
+  // get alignment metrics
+  std::vector<double> image_metrics;
+  cv::Mat alignmentMask = generateOverlapMask(im1Proc, h, im2Proc.size(), im1.size());
+  image_metrics = getAlignmentMetrics(im1Proc, im2Proc, h, alignmentMask);
+  
+  // get matte metric
+  accuracyMatte = chunkedMatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
+
   // imwrite("img1.tif", im1Proc);
   // imwrite("img2.tif", im2Proc);
   
@@ -739,10 +749,11 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
                                              Rcpp::String matcher, Rcpp::String method, Rcpp::String nonrigid)
 {
   // Return data
-  Rcpp::List out(5);
+  Rcpp::List out(6);
   Rcpp::List out_trans(2);
   Rcpp::List keypoints(2);
   Mat imOverlay, imReg, h, imMatches;
+  Mat1d accuracyMatte;
 
   // Read reference image
   cv::Mat imReference = imageToMat(ref_image, width1, height1);
@@ -763,7 +774,8 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
               invert_query, invert_ref,
               flipflop_query.get_cstring(), flipflop_ref.get_cstring(),
               rotate_query.get_cstring(), rotate_ref.get_cstring(),
-              run_Affine, run_TPS);
+              run_Affine, run_TPS, 
+              accuracyMatte);
 
   // transformation matrix, can be either a matrix, set of keypoints or both
   out_trans[0] = matToNumericMatrix(h.clone());
@@ -779,10 +791,12 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
     out[2] = matToImage(imReg); // registered image
     out[3] = matToImage(imMatches); // keypoint matching image
     out[4] = matToImage(imOverlay); // overlay image
+    out[5] = matToNumericMatrix(accuracyMatte); // Matte MI metric
   } else {
     out[2] = R_NilValue;
     out[3] = R_NilValue;
     out[4] = R_NilValue;
+    out[5] = R_NilValue;
   }
   
   // release

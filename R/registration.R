@@ -3195,6 +3195,7 @@ getAutomatedRegisteration <- function(
           overlayed_image_list <- list()
           aligned_image_list <- list()
           alignment_image_list <- list()
+          matte_map_list <- list()
           for (i in register_ind) {
             # Increment the progress bar, and update the detail text.
             incProgress(
@@ -3225,6 +3226,9 @@ getAutomatedRegisteration <- function(
 
             # save matches
             alignment_image_list[[i]] <- results$alignment_image
+            
+            # save matte map
+            matte_map_list[[i]] <- results$matte_map
           }
         }
       )
@@ -3255,11 +3259,30 @@ getAutomatedRegisteration <- function(
       })
 
       # Plot Alignment
+      # lapply(register_ind, function(i) {
+      #   cur_alignment_image <- alignment_image_list[[i]]
+      #   output[[paste0("plot_alignment", i)]] <- renderPlot({
+      #     if (!suppressWarnings(is.na(cur_alignment_image))) {
+      #       magick::image_ggplot(cur_alignment_image)
+      #     }
+      #   })
+      # })
+      
+      # Plot Matte
       lapply(register_ind, function(i) {
-        cur_alignment_image <- alignment_image_list[[i]]
+        cur_alignment_image <- matte_map_list[[i]]
         output[[paste0("plot_alignment", i)]] <- renderPlot({
-          if (!suppressWarnings(is.na(cur_alignment_image))) {
-            magick::image_ggplot(cur_alignment_image)
+          if (!suppressWarnings(!is.matrix(cur_alignment_image))) {
+            cur_alignment_image <- 
+              cur_alignment_image[nrow(cur_alignment_image):1,]
+            ggplot(reshape2::melt(cur_alignment_image), 
+                   aes(Var2, Var1, fill= value)) + 
+              ggplot2::geom_tile() + 
+              ggplot2::theme_void() + 
+              ggplot2::coord_fixed(expand = FALSE) + 
+              ggplot2::scale_fill_gradient(low = "#440154FF", 
+                                           high = "#FDE725FF", 
+                                           name = "Matte's MI")
           }
         })
       })
@@ -3463,6 +3486,7 @@ computeAutomatedPairwiseTransform <- function(
     aligned_image <- reg$aligned_image
     alignment_image <- reg$alignment_image
     overlay_image <- reg$overlay_image
+    matte_map <- reg$matte_map
   }
 
   return(list(
@@ -3470,7 +3494,8 @@ computeAutomatedPairwiseTransform <- function(
     dest_image = dest_image,
     aligned_image = aligned_image,
     alignment_image = alignment_image,
-    overlay_image = overlay_image
+    overlay_image = overlay_image,
+    matte_map = matte_map
   ))
 }
 
@@ -3537,14 +3562,22 @@ getRcppAutomatedRegistration <- function(
   if (suppressWarnings(all(lapply(reg[[1]][[2]], is.null)))) {
     reg[[1]] <- list(reg[[1]][[1]], NULL)
   }
+  
+  # adjust matte mi map
+  tmp <- reg[[6]]
+  tmp[is.na(tmp)] <- 0
+  tmp[tmp < 0] <- 0
+  reg[[6]] <- tmp
 
-  # check for failed registeration
+  # check for failed registration
   aligned_image <-
     if (!is.null(reg[[3]])) magick::image_read(reg[[3]]) else NA
   alignment_image <-
     if (!is.null(reg[[4]])) magick::image_read(reg[[4]]) else NA
   overlay_image <-
     if (!is.null(reg[[5]])) magick::image_read(reg[[5]]) else NA
+  matte_map <-
+    if (!is.null(reg[[6]])) reg[[6]] else NA
 
   # return
   return(list(
@@ -3552,7 +3585,8 @@ getRcppAutomatedRegistration <- function(
     dest_image = magick::image_read(reg[[2]]),
     aligned_image = aligned_image,
     alignment_image = alignment_image,
-    overlay_image = overlay_image
+    overlay_image = overlay_image,
+    matte_map = matte_map
   ))
 }
 

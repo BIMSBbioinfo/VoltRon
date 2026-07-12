@@ -320,8 +320,8 @@ double mattesMiFromValues(
  * This avoids cv::Size's opposite (width, height) ordering.
  */
 struct ChunkSize {
-  int height = 256;
-  int width = 256;
+  int height = 50;
+  int width = 50;
 };
 
 /**
@@ -423,25 +423,27 @@ void validateChunkedMatteMIInputs(
   }
 
 }
-    
-ChunkedNmiMapResult chunkedMatteMIMap(const cv::Mat& fixed,
-                                      const cv::Mat& moving,
-                                      const cv::Mat& mask,
-                                      ChunkSize chunkSize = ChunkSize{},
-                                      int bins = 50) {
-  
+
+// ChunkedNmiMapResult chunkedMatteMIMap(const cv::Mat& fixed,
+cv::Mat1d chunkedMatteMIMap(const cv::Mat& fixed,
+                            const cv::Mat& moving,
+                            const cv::Mat& mask,
+                            int bins = 50) {
+  ChunkSize chunkSize = ChunkSize{};
+
   // validate chunks and return validation map of pixels
-  const int height = fixed.rows;
-  const int width = fixed.cols;
-  cv::Mat1b validGlobal(height, width, static_cast<unsigned char>(0));
-  std::size_t validGlobalCount = 0U;
-  validateChunkedMatteMIInputs(validGlobal,
-                               validGlobalCount,
-                               fixed, 
-                               moving, 
-                               mask, 
-                               chunkSize, 
-                               bins);
+  // const int height = fixed.rows;
+  // const int width = fixed.cols;
+  // cv::Mat1b validGlobal(height, width, static_cast<unsigned char>(0));
+  // std::size_t validGlobalCount = 0U;
+  // validateChunkedMatteMIInputs(validGlobal,
+  //                              validGlobalCount,
+  //                              fixed, 
+  //                              moving, 
+  //                              mask, 
+  //                              chunkSize, 
+  //                              bins);
+  
   
   // Do I need these to be cv_64f ? 
   cv::Mat fixed64;
@@ -455,6 +457,41 @@ ChunkedNmiMapResult chunkedMatteMIMap(const cv::Mat& fixed,
     mask.convertTo(mask64, CV_64F);
   }
   
+  // validate
+  const int height = fixed.rows;
+  const int width = fixed.cols;
+  
+  cv::Mat1b validGlobal(height, width, static_cast<unsigned char>(0));
+  std::size_t validGlobalCount = 0U;
+  
+  for (int y = 0; y < height; ++y) {
+    const double* fixedRow = fixed64.ptr<double>(y);
+    const double* movingRow = moving64.ptr<double>(y);
+    const double* maskRow =
+      mask64.empty() ? nullptr : mask64.ptr<double>(y);
+    unsigned char* validRow = validGlobal.ptr<unsigned char>(y);
+    
+    for (int x = 0; x < width; ++x) {
+      const bool insideMask =
+        maskRow == nullptr || static_cast<bool>(maskRow[x]);
+      
+      const bool valid =
+        insideMask &&
+        std::isfinite(fixedRow[x]) &&
+        std::isfinite(movingRow[x]);
+      
+      if (valid) {
+        validRow[x] = 1U;
+        ++validGlobalCount;
+      }
+    }
+  }
+  
+  if (validGlobalCount == 0U) {
+    throw std::invalid_argument(
+        "The mask contains no valid pixels.");
+  }
+  
   // Calculate one fixed-image range and one moving-image range globally,
   // then reuse those ranges in every chunk. This makes chunk values
   // comparable across the image.
@@ -466,6 +503,8 @@ ChunkedNmiMapResult chunkedMatteMIMap(const cv::Mat& fixed,
   for (int y = 0; y < height; ++y) {
     const double* fixedRow = fixed64.ptr<double>(y);
     const double* movingRow = moving64.ptr<double>(y);
+    const double* maskRow =
+      mask64.empty() ? nullptr : mask64.ptr<double>(y);
     const unsigned char* validRow =
       validGlobal.ptr<unsigned char>(y);
     
@@ -508,16 +547,13 @@ ChunkedNmiMapResult chunkedMatteMIMap(const cv::Mat& fixed,
   const int nRows = ceilDividePositive(height, chunkSize.height);
   const int nCols = ceilDividePositive(width, chunkSize.width);
   
-  ChunkedNmiMapResult result{
-    cv::Mat1d(nRows, nCols),
-    cv::Mat_<cv::Vec4i>(nRows, nCols),
-    cv::Mat_<cv::Vec2d>(nRows, nCols)};
-  
   const double nan =
     std::numeric_limits<double>::quiet_NaN();
   
   // only set nmimap, why need bounds and centers
-  result.nmiMap.setTo(cv::Scalar(nan));
+  cv::Mat1d NmiMap(nRows, nCols);
+  NmiMap.setTo(cv::Scalar(nan));
+  // result.nmiMap.setTo(cv::Scalar(nan));
   // result.bounds.setTo(cv::Scalar::all(0));
   // result.centers.setTo(cv::Scalar::all(0));
   
@@ -574,7 +610,7 @@ ChunkedNmiMapResult chunkedMatteMIMap(const cv::Mat& fixed,
         continue;
       }
       
-      result.nmiMap(row, col) = mattesMiFromValues(
+      NmiMap(row, col) = mattesMiFromValues(
         fixedChunkValues.data(),
         movingChunkValues.data(),
         validPixels,
@@ -584,5 +620,5 @@ ChunkedNmiMapResult chunkedMatteMIMap(const cv::Mat& fixed,
     }
   }
   
-  return result;
+  return NmiMap;
 }

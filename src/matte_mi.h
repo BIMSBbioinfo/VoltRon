@@ -1,8 +1,8 @@
 #include "Rcpp.h"
 #include <opencv2/opencv.hpp>
 
-#ifndef METRICS_H
-#define METRICS_H
+#ifndef MATTE_MI_H
+#define MATTE_MI_H
 
 struct IntensityRange {
   double min;
@@ -21,8 +21,13 @@ bool isValidRange(IntensityRange range);
 double mattesMiFromValues(const double* fixedValues,
                           const double* movingValues,
                           std::size_t count,
-                          std::size_t bins = 64,
+                          std::size_t bins,
                           std::optional<IntensityRange> fixedRange = std::nullopt,
                           std::optional<IntensityRange> movingRange = std::nullopt);
+
+cv::Mat1d chunkedMatteMIMap(const cv::Mat& fixed,
+                            const cv::Mat& moving,
+                            const cv::Mat& mask,
+                            int bins);
   
 #endif

@@ -132,9 +132,15 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
   // imwrite("img1.tif", im1Affine);
   // imwrite("img2.tif", im2);
   
-  // get metrics
+  // // get metrics
+  // std::vector<double> image_metrics;
+  // image_metrics = getAlignmentMetrics(im1Affine, im2, h, im1.size());
+  
+  // get alignment metrics
   std::vector<double> image_metrics;
-  image_metrics = getAlignmentMetrics(im1Affine, im2, h, im1.size());
+  cv::Mat alignmentMask = generateOverlapMask(im1Affine, h, 
+                                              im2.size(), im1Affine.size());
+  image_metrics = getAlignmentMetrics(im1Affine, im2, h, alignmentMask);
   
   if(!run_TPS){
     
