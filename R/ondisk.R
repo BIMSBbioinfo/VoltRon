@@ -706,7 +706,7 @@ writeHDF5ArrayInImage <- function(
     rhdf5::h5createGroup(h5_path, group = paste0(name, "/spat_", spat))
 
     # write coordinates
-    coords <- vrCoordinates(object, spatial_name = spat)
+    coords <- vrCoordinates(object, spatial = spat)
     if (!inherits(coords, c("DelayedArray", "IterableMatrix")) || replace) {
       if (verbose) {
         message("Writing '", name, "' coordinates")
@@ -721,7 +721,7 @@ writeHDF5ArrayInImage <- function(
         verbose = verbose,
         feature.vs.obs.engine = feature.vs.obs.engine
       )
-      vrCoordinates(object, spatial_name = spat) <- coords
+      vrCoordinates(object, spatial = spat) <- coords
     }
 
     # for each channel
@@ -1242,7 +1242,7 @@ writeZarrArrayInImage <- function(
     zarrcreateGroup(zarr_path, paste0(name, "/spat_", spat))
 
     # write coordinates
-    coords <- vrCoordinates(object, spatial_name = spat)
+    coords <- vrCoordinates(object, spatial = spat)
     if (!inherits(coords, c("DelayedArray", "IterableMatrix")) || replace) {
       if (verbose) {
         message("Writing '", name, "' coordinates")
@@ -1262,7 +1262,7 @@ writeZarrArrayInImage <- function(
       # Rarr::ZarrArray doesnt have rownames
       rownames(coords) <- vrSpatialPoints(object)
 
-      vrCoordinates(object, spatial_name = spat) <- coords
+      vrCoordinates(object, spatial = spat) <- coords
     }
 
     # for each channel
@@ -1552,7 +1552,7 @@ setMethod(
   for (spat in spatial_names) {
     # coordinates
     object@image[[spat]]@coords <-
-      .modify_seeds(vrCoordinates(object, spatial_name = spat), function(x) {
+      .modify_seeds(vrCoordinates(object, spatial = spat), function(x) {
         .shorten_assay_links_data(x)
       })
 
@@ -1714,7 +1714,7 @@ setMethod(
   for (spat in spatial_names) {
     # coordinates
     object@image[[spat]]@coords <-
-      .modify_seeds(vrCoordinates(object, spatial_name = spat), function(x) {
+      .modify_seeds(vrCoordinates(object, spatial = spat), function(x) {
         .restore_absolute_links(x, dir)
       })
 

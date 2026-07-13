@@ -13,7 +13,7 @@
 #' @param annotation_assay name of the annotation assay ()
 #' @param use.image.only if TRUE, use only the image
 #' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
-#' @param image_name the name/key of the image
+#' @param spatial the name of the spatial coord system
 #' @param channel the name of the main channel
 #' @param ... additional parameters passed to \link{vrSpatialPlot}.
 #'
@@ -42,7 +42,7 @@ annotateSpatialData <- function(
   shiny.options = list(
     launch.browser = getOption("shiny.launch.browser", interactive())
   ),
-  image_name = NULL,
+  spatial = NULL,
   channel = NULL,
   ...
 ) {
@@ -59,14 +59,14 @@ annotateSpatialData <- function(
   }
 
   # get image name and channel
-  if (is.null(image_name)) {
-    image_name <- vrMainSpatial(object[[assay]])
+  if (is.null(spatial)) {
+    spatial <- vrMainSpatial(object[[assay]])
   }
 
   # get image
   img <- vrImages(
     object[[assay]],
-    name = image_name,
+    spatial = spatial,
     channel = channel,
     as.raster = TRUE
   )
@@ -83,7 +83,7 @@ annotateSpatialData <- function(
     g_spatial <- vrSpatialPlot(
       object,
       assay = assay,
-      spatial = image_name,
+      spatial = spatial,
       channel = channel,
       scale.image = FALSE,
       ...

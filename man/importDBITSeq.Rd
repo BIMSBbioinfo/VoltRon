@@ -10,7 +10,8 @@ importDBITSeq(
   size = 10,
   assay_name = "DBIT-Seq",
   sample_name = NULL,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   channel_name = "H&E",
   ...
 )
@@ -26,7 +27,9 @@ importDBITSeq(
 
 \item{sample_name}{the name of the sample}
 
-\item{image_name}{the image name of the Visium assay, Default: main}
+\item{spatial}{the name of the coordinate system, Default: main}
+
+\item{image_name}{(deprecated) the name of the coordinate system, Default: main}
 
 \item{channel_name}{the channel name of the image of the Visium assay, Default: H&E}
 

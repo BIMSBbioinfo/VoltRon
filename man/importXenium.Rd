@@ -13,7 +13,8 @@ importXenium(
   morphology_image = "morphology_lowres.tif",
   resolution_level = 7,
   overwrite_resolution = TRUE,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   channel_name = "DAPI",
   import_molecules = FALSE,
   verbose = TRUE,
@@ -40,7 +41,9 @@ image, see \link{generateXeniumImage}. Default: 7 (553x402)}
 \item{overwrite_resolution}{if TRUE, the image "file.name" will be generated
 again although it exists at "dir.path"}
 
-\item{image_name}{the image name of the Xenium assay, Default: main}
+\item{spatial}{the name of the coordinate system, Default: main}
+
+\item{image_name}{(deprecated) the name of the coordinate system, Default: main}
 
 \item{channel_name}{the channel name of the image of the Xenium assay,
 Default: DAPI}

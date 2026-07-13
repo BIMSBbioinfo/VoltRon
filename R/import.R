@@ -21,7 +21,8 @@
 #' image, see \link{generateXeniumImage}. Default: 7 (553x402)
 #' @param overwrite_resolution if TRUE, the image "file.name" will be generated
 #' again although it exists at "dir.path"
-#' @param image_name the image name of the Xenium assay, Default: main
+#' @param image_name (deprecated) the name of the coordinate system, Default: main
+#' @param spatial the name of the coordinate system, Default: main
 #' @param channel_name the channel name of the image of the Xenium assay,
 #' Default: DAPI
 #' @param import_molecules if TRUE, molecule assay will be created along with
@@ -45,7 +46,8 @@ importXenium <- function(
   morphology_image = "morphology_lowres.tif",
   resolution_level = 7,
   overwrite_resolution = TRUE,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   channel_name = "DAPI",
   import_molecules = FALSE,
   verbose = TRUE,
@@ -125,6 +127,11 @@ importXenium <- function(
     stop("There are no file named 'cell_boundaries.csv.gz' in the path")
   }
 
+  # get spatial name
+  if (!is.null(spatial)) {
+    image_name <- spatial
+  }
+  
   # create VoltRon object for cells
   cell_object <- formVoltRon(
     rawdata,
@@ -134,7 +141,7 @@ importXenium <- function(
     segments = segments,
     main.assay = assay_name,
     assay.type = "cell",
-    image_name = image_name,
+    spatial = image_name,
     main_channel = channel_name,
     sample_name = sample_name,
     feature_name = ifelse(selected_assay == "Gene Expression", "RNA", "main"),
@@ -224,7 +231,7 @@ importXenium <- function(
         coords = coords,
         image = image,
         type = "molecule",
-        main_image = image_name,
+        main_spatial = image_name,
         main_channel = channel_name
       )
 
@@ -405,7 +412,8 @@ generateXeniumImage <- function(
 #' @param selected_assay selected assay from Visium
 #' @param assay_name the assay name
 #' @param sample_name the name of the sample
-#' @param image_name the image name of the Visium assay, Default: main
+#' @param image_name (deprecated) the name of the coordinate system, Default: main
+#' @param spatial the name of the coordinate system, Default: main
 #' @param channel_name the channel name of the image of the Visium assay,
 #' Default: H&E
 #' @param inTissue if TRUE, only barcodes that are in the tissue will
@@ -425,7 +433,8 @@ importVisium <- function(
   selected_assay = "Gene Expression",
   assay_name = "Visium",
   sample_name = NULL,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   channel_name = "H&E",
   inTissue = TRUE,
   resolution_level = "lowres",
@@ -517,6 +526,11 @@ importVisium <- function(
   } else {
     stop("There are no files named 'scalefactors_json.json' in the path")
   }
+  
+  # get spatial name
+  if (!is.null(spatial)) {
+    image_name <- spatial
+  }
 
   # create VoltRon
   formVoltRon(
@@ -527,7 +541,7 @@ importVisium <- function(
     main.assay = assay_name,
     params = params,
     assay.type = "spot",
-    image_name = image_name,
+    spatial = image_name,
     main_channel = channel_name,
     sample_name = sample_name,
     feature_name = ifelse(selected_assay == "Gene Expression", "RNA", "main"),
@@ -544,7 +558,8 @@ importVisium <- function(
 #' @param selected_assay selected assay from Visium
 #' @param assay_name the assay name
 #' @param sample_name the name of the sample
-#' @param image_name the image name of the Visium assay, Default: main
+#' @param image_name (deprecated) the name of the coordinate system, Default: main
+#' @param spatial the name of the coordinate system, Default: main
 #' @param channel_name the channel name of the image of the Visium assay,
 #' Default: H&E
 #' @param inTissue if TRUE, only barcodes that are in the tissue will be
@@ -565,7 +580,8 @@ importVisiumHD <- function(
   selected_assay = "Gene Expression",
   assay_name = "VisiumHD",
   sample_name = NULL,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   channel_name = "H&E",
   inTissue = TRUE,
   resolution_level = "lowres",
@@ -654,6 +670,11 @@ importVisiumHD <- function(
   } else {
     stop("There are no files named 'scalefactors_json.json' in the path")
   }
+  
+  # get spatial name
+  if (!is.null(spatial)) {
+    image_name <- spatial
+  }
 
   # create VoltRon
   formVoltRon(
@@ -664,7 +685,7 @@ importVisiumHD <- function(
     main.assay = assay_name,
     params = params,
     assay.type = "spot",
-    image_name = image_name,
+    spatial = image_name,
     main_channel = channel_name,
     sample_name = sample_name,
     feature_name = ifelse(selected_assay == "Gene Expression", "RNA", "main"),
@@ -754,7 +775,8 @@ import10Xh5 <- function(filename) {
 #' @param ome.tiff the OME.TIFF file of the GeoMx experiment if exists
 #' @param resolution_level the level of resolution within GeoMx OME-TIFF
 #' image, Default: 3
-#' @param image_name the image name of the Visium assay, Default: main
+#' @param image_name (deprecated) the name of the coordinate system, Default: main
+#' @param spatial the name of the coordinate system, Default: main
 #' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
@@ -774,7 +796,8 @@ importGeoMx <- function(
   segment_polygons = FALSE,
   ome.tiff = NULL,
   resolution_level = 3,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   verbose = TRUE,
   ...
 ) {
@@ -911,6 +934,11 @@ importGeoMx <- function(
     image <- c(list(scanimage = image), channels)
   }
 
+  # get spatial name
+  if (!is.null(spatial)) {
+    image_name <- spatial
+  }
+  
   # create VoltRon for non-negative probes
   object <- formVoltRon(
     rawdata,
@@ -921,7 +949,7 @@ importGeoMx <- function(
     main.assay = assay_name,
     assay.type = "ROI",
     feature_name = "RNA",
-    image_name = image_name,
+    spatial = image_name,
     ...
   )
 
@@ -1477,7 +1505,8 @@ rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level) {
 #' @param path the path to the tiledb folder
 #' @param assay_name the assay name, default: CosMx
 #' @param image the reference morphology image of the CosMx assay
-#' @param image_name the image name of the CosMx assay, Default: main
+#' @param image_name (deprecated) the name of the coordinate system, Default: main
+#' @param spatial the name of the coordinate system, Default: main
 #' @param import_molecules if TRUE, molecule assay will be created along
 #' with cell assay.
 #' @param verbose verbose
@@ -1491,7 +1520,8 @@ importCosMx <- function(
   path,
   assay_name = "CosMx",
   image = NULL,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   import_molecules = FALSE,
   verbose = TRUE,
   method = "CSV",
@@ -1503,7 +1533,7 @@ importCosMx <- function(
       path = path,
       assay_name = assay_name,
       image = image,
-      image_name = image_name,
+      spatial = image_name,
       import_molecules = import_molecules,
       feature_name = feature_name,
       verbose = verbose,
@@ -1512,7 +1542,7 @@ importCosMx <- function(
   } else if (method == "TileDB") {
     stop("TileDB importer is currently deprecated!")
     # vr <- importCosMxTileDB(tiledbURI = path, assay_name = assay_name,
-    #                         image = image, image_name = image_name,
+    #                         image = image, spatial = image_name,
     #                         import_molecules = import_molecules,
     #                         feature_name = feature_name, verbose = verbose,
     #                         ...)
@@ -1529,7 +1559,8 @@ importCosMx <- function(
 #' @param path the path to the tiledb folder
 #' @param assay_name the assay name, default: CosMx
 #' @param image the reference morphology image of the CosMx assay
-#' @param image_name the image name of the CosMx assay, Default: main
+#' @param image_name (deprecated) the name of the coordinate system, Default: main
+#' @param spatial the name of the coordinate system, Default: main
 #' @param import_molecules if TRUE, molecule assay will be created along
 #' with cell assay.
 #' @param feature_name the name/key of the feature set
@@ -1544,7 +1575,8 @@ importCosMxCSV <- function(
   path,
   assay_name = "CosMx",
   image = NULL,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   import_molecules = FALSE,
   feature_name = NULL,
   verbose = TRUE,
@@ -1625,6 +1657,11 @@ importCosMxCSV <- function(
     cur_counts <- counts[, ind]
     cur_segments <- segments[rownames(cur_coords)]
 
+    # get spatial name
+    if (!is.null(spatial)) {
+      image_name <- spatial
+    }
+    
     # create VoltRon object
     cell_object <- formVoltRon(
       data = cur_counts,
@@ -1634,7 +1671,7 @@ importCosMxCSV <- function(
       segments = cur_segments,
       main.assay = assay_name,
       assay.type = "cell",
-      image_name = image_name,
+      spatial = image_name,
       feature_name = feature_name,
       ...
     )
@@ -1680,7 +1717,7 @@ importCosMxCSV <- function(
         coords = mol_coords,
         image = image,
         type = "molecule",
-        main_image = image_name
+        main_spatial = image_name
       )
 
       # merge assays in one section
@@ -1715,7 +1752,7 @@ importCosMxCSV <- function(
 # importCosMxTileDB <- function(tiledbURI,
 #                               assay_name = "CosMx",
 #                               image = NULL,
-#                               image_name = "main",
+#                               spatial = "main",
 #                               import_molecules = FALSE,
 #                               feature_name = NULL,
 #                               verbose = TRUE, ...)
@@ -1997,7 +2034,8 @@ generateCosMxImage <- function(
 #' @param sample_name the name of the sample
 #' @param use_image if TRUE, the DAPI image will be used.
 #' @param resolution_level the level of resolution within TIFF image. Default: 7 (971x638)
-#' @param image_name the image name of the Xenium assay, Default: main
+#' @param image_name (deprecated) the name of the coordinate system, Default: main
+#' @param spatial the name of the coordinate system, Default: main
 #' @param channel_name the channel name of the image of the Xenium assay, Default: DAPI
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
 #' @param verbose verbose
@@ -2018,7 +2056,8 @@ importGenePS <- function(
   sample_name = NULL,
   use_image = TRUE,
   resolution_level = 7,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   channel_name = "DAPI",
   import_molecules = FALSE,
   verbose = TRUE,
@@ -2091,6 +2130,11 @@ importGenePS <- function(
     stop("There are no files ending with '_cellcoordinate.csv' in the path")
   }
 
+  # get spatial name
+  if (!is.null(spatial)) {
+    image_name <- spatial
+  }
+  
   # create VoltRon object for cells
   cell_object <- formVoltRon(
     rawdata,
@@ -2099,7 +2143,7 @@ importGenePS <- function(
     coords,
     main.assay = assay_name,
     assay.type = "cell",
-    image_name = image_name,
+    spatial = image_name,
     main_channel = channel_name,
     sample_name = sample_name,
     feature_name = "RNA",
@@ -2169,7 +2213,7 @@ importGenePS <- function(
         coords = coords,
         image = image,
         type = "molecule",
-        main_image = image_name,
+        main_spatial = image_name,
         main_channel = channel_name
       )
 
@@ -2226,7 +2270,8 @@ importGenePS <- function(
 #' @param h5ad.path path to h5ad file of STOmics output
 #' @param assay_name the assay name
 #' @param sample_name the name of the sample
-#' @param image_name the image name of the Visium assay, Default: main
+#' @param image_name (deprecated) the name of the coordinate system, Default: main
+#' @param spatial the name of the coordinate system, Default: main
 #' @param channel_name the channel name of the image of the Visium assay, Default: H&E
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
@@ -2237,7 +2282,8 @@ importSTOmics <- function(
   h5ad.path,
   assay_name = "STOmics",
   sample_name = NULL,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   channel_name = "H&E",
   ...
 ) {
@@ -2275,6 +2321,11 @@ importSTOmics <- function(
     spot.radius = 0.5 + (binsize - 1),
     vis.spot.radius = 0.5 + (binsize - 1)
   )
+  
+  # get spatial name
+  if (!is.null(spatial)) {
+    image_name <- spatial
+  }
 
   # create VoltRon
   formVoltRon(
@@ -2284,7 +2335,7 @@ importSTOmics <- function(
     main.assay = assay_name,
     params = params,
     assay.type = "spot",
-    image_name = image_name,
+    spatial = image_name,
     main_channel = channel_name,
     sample_name = sample_name,
     feature_name = "RNA",
@@ -2307,7 +2358,8 @@ importSTOmics <- function(
 #' @param dir.path path to PhenoCycler output folder
 #' @param assay_name the assay name of the SR object
 #' @param sample_name the name of the sample
-#' @param image_name the image name of the Xenium assay, Default: main
+#' @param image_name (deprecated) the name of the coordinate system, Default: main
+#' @param spatial the name of the coordinate system, Default: main
 #' @param type Specify which type matrix is being provided.
 #' \itemize{
 #'  \item \dQuote{\code{processor}}: matrix generated by CODEX Processor
@@ -2326,7 +2378,8 @@ importPhenoCycler <- function(
   dir.path,
   assay_name = "PhenoCycler",
   sample_name = NULL,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   type = c('inform', 'processor', 'qupath'),
   filter = 'DAPI|Blank|Empty',
   inform.quant = c('mean', 'total', 'min', 'max', 'std'),
@@ -2400,6 +2453,11 @@ importPhenoCycler <- function(
     }
   }
 
+  # get spatial name
+  if (!is.null(spatial)) {
+    image_name <- spatial
+  }
+  
   # voltron object
   object <- formVoltRon(
     data = rawdata,
@@ -2409,7 +2467,7 @@ importPhenoCycler <- function(
     assay.type = "cell",
     sample_name = sample_name,
     main.assay = assay_name,
-    image_name = image_name,
+    spatial = image_name,
     feature_name = "RNA",
     ...
   )
@@ -2668,7 +2726,8 @@ readPhenoCyclerMat <- function(
 #' @param h5ad.path path to h5ad file of STOmics output
 #' @param assay_name the assay name
 #' @param sample_name the name of the sample
-#' @param image_name the image name of the Visium assay, Default: main
+#' @param image_name (deprecated) the name of the coordinate system, Default: main
+#' @param spatial the name of the coordinate system, Default: main
 #' @param channel_name the channel name of the image of the Visium assay, Default: H&E
 #' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon}
@@ -2681,7 +2740,8 @@ importOpenST <- function(
   h5ad.path,
   assay_name = "OpenST",
   sample_name = NULL,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   channel_name = "H&E",
   verbose = TRUE,
   ...
@@ -2726,6 +2786,11 @@ importOpenST <- function(
     metadata$n_sections <- sections <- 1
   }
 
+  # get spatial name
+  if (!is.null(spatial)) {
+    image_name <- spatial
+  }
+  
   # get individual sections as voltron data if there are any
   vr_data_list <- list()
   if (verbose) {
@@ -2745,7 +2810,7 @@ importOpenST <- function(
         coords = cur_coords,
         main.assay = assay_name,
         sample_name = paste0("Section", sections[i]),
-        image_name = image_name,
+        spatial = image_name,
         main_channel = channel_name,
         feature_name = "RNA",
         ...
@@ -2793,7 +2858,8 @@ importOpenST <- function(
 #' @param size the size of the in situ pixel (defualt is 10 (micron))
 #' @param assay_name the assay name
 #' @param sample_name the name of the sample
-#' @param image_name the image name of the Visium assay, Default: main
+#' @param image_name (deprecated) the name of the coordinate system, Default: main
+#' @param spatial the name of the coordinate system, Default: main
 #' @param channel_name the channel name of the image of the Visium assay, Default: H&E
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
@@ -2806,7 +2872,8 @@ importDBITSeq <- function(
   size = 10,
   assay_name = "DBIT-Seq",
   sample_name = NULL,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   channel_name = "H&E",
   ...
 ) {
@@ -2845,6 +2912,11 @@ importDBITSeq <- function(
   )
   coords <- coords * size * 3 / 2
 
+  # get spatial name
+  if (!is.null(spatial)) {
+    image_name <- spatial
+  }
+  
   # make voltron object
   object <- formVoltRon(
     data = rnadata,
@@ -2852,7 +2924,7 @@ importDBITSeq <- function(
     image = NULL,
     assay.type = "spot",
     params = params,
-    image_name = "main",
+    spatial = image_name,
     main.assay = assay_name,
     sample_name = sample_name,
     feature_name = "RNA",
@@ -2887,7 +2959,8 @@ importDBITSeq <- function(
 #' @param tile.size the size of tiles
 #' @param segments Either a list of segments or a GeoJSON file. This will
 #' result in a second assay in the VoltRon object to be created
-#' @param image_name the image name of the Image assay, Default: main
+#' @param image_name (deprecated) the name of the coordinate system, Default: main
+#' @param spatial the name of the coordinate system, Default: main
 #' @param channels the channel names of the images if multiple
 #' images are provided
 #' @param series the series IDs of the pyramidal image,
@@ -2904,12 +2977,12 @@ importDBITSeq <- function(
 #' @examples
 #' # single image
 #' imgfile <- system.file("extdata", "DAPI.tif", package = "VoltRon")
-#' vrdata <- importImageData(imgfile, image_name = "main")
+#' vrdata <- importImageData(imgfile, spatial = "main")
 #'
 #' # multiple images
 #' imgfile <- c(system.file("extdata", "DAPI.tif", package = "VoltRon"),
 #'              system.file("extdata", "DAPI.tif", package = "VoltRon"))
-#' vrdata <- importImageData(imgfile, image_name = "main",
+#' vrdata <- importImageData(imgfile, spatial = "main",
 #'                                    channels = c("DAPI", "DAPI2"))
 #'
 #' @export
@@ -2917,7 +2990,8 @@ importImageData <- function(
   image,
   tile.size = 10,
   segments = NULL,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   channels = NULL,
   series = 1,
   resolution = NULL,
@@ -2961,6 +3035,11 @@ importImageData <- function(
   # metadata
   metadata <- data.table::data.table(id = rownames(coords))
 
+  # get spatial name
+  if (!is.null(spatial)) {
+    image_name <- spatial
+  }
+  
   # create voltron object with tiles
   object <- formVoltRon(
     data = NULL,
@@ -2970,7 +3049,7 @@ importImageData <- function(
     main.assay = "ImageData",
     assay.type = "tile",
     params = list(tile.size = tile.size),
-    image_name = image_name,
+    spatial = image_name,
     ...
   )
 
@@ -3003,7 +3082,7 @@ importImageData <- function(
       segments = segments,
       image = image,
       type = "ROI",
-      main_image = image_name
+      main_spatial = image_name
     )
 
     # add segments as assay
@@ -3030,7 +3109,8 @@ importImageData <- function(
 #' @param image a single or a list of image paths or magick-image objects
 #' @param segments Either a list of segments or a GeoJSON file. This will
 #' result in a second assay in the VoltRon object to be created
-#' @param image_name the image name of the Image assay, Default: main
+#' @param image_name (deprecated) the name of the coordinate system, Default: main
+#' @param spatial the name of the coordinate system, Default: main
 #' @param channels the channel names of the images if multiple
 #' images are provided
 #' @param series the series IDs of the pyramidal image,
@@ -3047,7 +3127,8 @@ importQuPathIF <- function(
     measurements,
     image,
     segments,
-    image_name = "main",
+    spatial = "main",
+    image_name = NULL,
     channels = NULL,
     series = 1,
     resolution = NULL,    
@@ -3102,6 +3183,11 @@ importQuPathIF <- function(
   names(segments) <- cellID
   rownames(coords) <- cellID
 
+  # get spatial name
+  if (!is.null(spatial)) {
+    image_name <- spatial
+  }
+  
   # create voltron object with tiles
   object <- formVoltRon(
     data = rawdata,
@@ -3111,7 +3197,7 @@ importQuPathIF <- function(
     segments = segments,
     main.assay = "IF",
     assay.type = "cell",
-    image_name = image_name,
+    spatial = image_name,
     ...
   )
   

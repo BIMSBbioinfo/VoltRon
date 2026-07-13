@@ -2,7 +2,7 @@
 # Create vrImage Object ####
 ####
 
-#' formImage
+#' formSpatial
 #'
 #' Create a vrImage (VoltRon image) object
 #'
@@ -15,8 +15,7 @@
 #' @importFrom methods new
 #'
 #' @export
-#'
-formImage <- function(
+formSpatial <- function(
   coords,
   segments = list(),
   image = NULL,
@@ -239,7 +238,7 @@ setMethod("subset", "vrSpatial", subsetvrImage)
 vrImagesVoltRon <- function(
   object,
   assay = NULL,
-  name = NULL,
+  spatial = NULL,
   reg = FALSE,
   channel = NULL,
   as.raster = FALSE,
@@ -258,7 +257,7 @@ vrImagesVoltRon <- function(
     function(assy) {
       vrImages(
         object[[assy]],
-        name = name,
+        spatial = spatial,
         reg = reg,
         channel = channel,
         as.raster = as.raster,
@@ -277,7 +276,7 @@ vrImagesVoltRon <- function(
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
 #' see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param name the name of the main spatial system
+#' @param spatial the name of the main spatial system
 #' @param reg TRUE if registered coordinates of the main image 
 #' (\link{vrMainSpatial}) is requested
 #' @param channel the name of the channel associated with the image
@@ -291,33 +290,34 @@ setMethod("vrImages", "VoltRon", vrImagesVoltRon)
 
 vrImagesvrAssay <- function(
   object,
-  name = NULL,
+  spatial = NULL,
   reg = FALSE,
   channel = NULL,
   as.raster = FALSE,
   scale.perc = 100
 ) {
   # check image name
-  if (is.null(name)) {
-    name <- object@main_image
+  if (is.null(spatial)) {
+    spatial <- object@main_image
   }
 
   # get registered image
   if (reg) {
-    if (!paste0(name, "_reg") %in% vrSpatialNames(object)) {
-      warning("There are no registered images with name ", name, "!")
+    if (!paste0(spatial, "_reg") %in% vrSpatialNames(object)) {
+      warning("There are no registered images with name ", spatial, "!")
     } else {
-      name <- paste0(name, "_reg")
+      spatial <- paste0(spatial, "_reg")
     }
   }
 
   # check main image
-  if (!name %in% vrSpatialNames(object)) {
-    stop(name, " is not among any image in this vrAssay object")
+  if (!spatial %in% vrSpatialNames(object)) {
+    stop(spatial, " is not among any spatial coord system 
+         in this vrAssay object")
   }
 
   return(vrImages(
-    object@image[[name]],
+    object@image[[spatial]],
     channel = channel,
     as.raster = as.raster,
     scale.perc = scale.perc
@@ -336,24 +336,24 @@ setMethod("vrImages", "vrAssayV2", vrImagesvrAssay)
 
 vrImagesReplacevrAssay <- function(
   object,
-  name = NULL,
+  spatial = NULL,
   channel = NULL,
   reg = FALSE,
   value
 ) {
-  if (is.null(name)) {
-    name <- object@main_image
+  if (is.null(spatial)) {
+    spatial <- object@main_image
   }
 
   if (reg) {
-    name <- paste0(name, "_reg")
+    spatial <- paste0(spatial, "_reg")
   }
 
   if (inherits(value, "vrImage") | inherits(value, "vrSpatial")) {
-    object@image[[name]] <- value
+    object@image[[spatial]] <- value
   } else {
     if (!is.null(channel)) {
-      vrImages(object@image[[name]], channel = channel) <- value
+      vrImages(object@image[[spatial]], channel = channel) <- value
     }
   }
   return(object)

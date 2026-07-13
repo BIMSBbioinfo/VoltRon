@@ -373,12 +373,12 @@ vrSpatialPlotSingle <- function(
   g$voltron_params$scale_factors <- scale_factors <- image$scale_factors
 
   # coords
-  coords <- vrCoordinates(assay, spatial_name = spatial_name, reg = reg)
+  coords <- vrCoordinates(assay, spatial = spatial_name, reg = reg)
   if (!inherits(coords, "IterableMatrix")) {
     coords <- as.data.frame(coords)
   }
   coords <- coords / scale_factors
-  segments <- vrSegments(assay, spatial_name = spatial_name)
+  segments <- vrSegments(assay, spatial = spatial_name)
 
   # plotting features
   if (!group.by %in% colnames(metadata)) {
@@ -915,12 +915,12 @@ addSpatialLayer <- function(
   metadata <- Metadata(object, assay = assay_names)
 
   # coords
-  coords <- vrCoordinates(assay, spatial_name = spatial_name, reg = reg)
+  coords <- vrCoordinates(assay, spatial = spatial_name, reg = reg)
   if (!inherits(coords, "IterableMatrix")) {
     coords <- as.data.frame(coords)
   }
   coords <- coords / scale_factors
-  segments <- vrSegments(assay, spatial_name = spatial_name)
+  segments <- vrSegments(assay, spatial = spatial_name)
 
   # adjust group.ids
   if (!group.by %in% colnames(metadata)) {
@@ -1668,12 +1668,12 @@ vrSpatialFeaturePlotSingle <- function(
   scale_factors <- image$scale_factors
 
   # coords
-  coords <- vrCoordinates(assay, spatial_name = spatial_name, reg = reg)
+  coords <- vrCoordinates(assay, spatial = spatial_name, reg = reg)
   if (!inherits(coords, "IterableMatrix")) {
     coords <- as.data.frame(coords)
   }
   coords <- coords / scale_factors
-  segments <- vrSegments(assay, spatial_name = spatial_name)
+  segments <- vrSegments(assay, spatial = spatial_name)
 
   # get image information and plotting features
   midpoint <- sum(limits) / 2
@@ -2049,11 +2049,11 @@ vrSpatialFeaturePlotCombined <- function(
   # data
   coords <- as.data.frame(vrCoordinates(
     assay,
-    spatial_name = spatial_name,
+    spatial = spatial_name,
     reg = reg
   ))
   coords <- coords / scale_factors
-  segments <- vrSegments(assay, spatial_name = spatial_name)
+  segments <- vrSegments(assay, spatial = spatial_name)
   data_features <- features[features %in% vrFeatures(assay)]
   if (length(data_features) > 0) {
     normdata <- vrData(assay, features = data_features, norm = norm)
@@ -2405,7 +2405,7 @@ vrSpatialPlotImage <- function(
   if (spatial %in% vrSpatialNames(assay) && is.null(background.color)) {
     # get image
     image <- suppressWarnings({
-      vrImages(assay, name = spatial, channel = channel, as.raster = TRUE)
+      vrImages(assay, spatial = spatial, channel = channel, as.raster = TRUE)
     })
     if (!is.null(image) & !inherits(image, "ImageArray")) {
       image <- magick::image_read(image)

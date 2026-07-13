@@ -10,7 +10,8 @@ importGenePS(
   sample_name = NULL,
   use_image = TRUE,
   resolution_level = 7,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   channel_name = "DAPI",
   import_molecules = FALSE,
   verbose = TRUE,
@@ -28,7 +29,9 @@ importGenePS(
 
 \item{resolution_level}{the level of resolution within TIFF image. Default: 7 (971x638)}
 
-\item{image_name}{the image name of the Xenium assay, Default: main}
+\item{spatial}{the name of the coordinate system, Default: main}
+
+\item{image_name}{(deprecated) the name of the coordinate system, Default: main}
 
 \item{channel_name}{the channel name of the image of the Xenium assay, Default: DAPI}
 

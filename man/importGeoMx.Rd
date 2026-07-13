@@ -14,7 +14,8 @@ importGeoMx(
   segment_polygons = FALSE,
   ome.tiff = NULL,
   resolution_level = 3,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   verbose = TRUE,
   ...
 )
@@ -43,7 +44,9 @@ OME.TIFF file}
 \item{resolution_level}{the level of resolution within GeoMx OME-TIFF
 image, Default: 3}
 
-\item{image_name}{the image name of the Visium assay, Default: main}
+\item{spatial}{the name of the coordinate system, Default: main}
+
+\item{image_name}{(deprecated) the name of the coordinate system, Default: main}
 
 \item{verbose}{verbose}
 
