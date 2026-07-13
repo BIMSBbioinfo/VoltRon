@@ -260,19 +260,16 @@ double NormalizedMutualInfo(cv::Mat& im1, cv::Mat& im2,
   return (ent1+ent2)/ent12;
 }
 
-std::vector<double> getAlignmentMetrics(Mat &im1, Mat &im2, Mat &h, Mat &mask){
+std::unordered_map<std::string, double> getAlignmentMetrics(Mat &im1, Mat &im2, Mat &h, Mat &mask){
   
-  // Histogram settings
+  // Metrics
+  std::unordered_map<std::string, double> metrics;
+  
+  // Compute histograms
   int histSize = 256;
   float range[] = {0.0, 256.0};
   const float* histRange = {range};
   int channels[] = {0};
-  
-  // get overlap mask
-  // cv::Mat mask = generateOverlapMask(im1, h, im2.size(), ssize);
-  // imwrite("mask.tif", mask);
-  
-  // Compute histograms
   cv::Mat hist1, hist2;
   cv::calcHist(&im1, 1, channels, mask, 
                hist1, 1, &histSize, &histRange);
@@ -284,38 +281,39 @@ std::vector<double> getAlignmentMetrics(Mat &im1, Mat &im2, Mat &h, Mat &mask){
   cv::normalize(hist2, hist2, 0, 1, cv::NORM_MINMAX);
   
   // Summary
-  Rcout << "Alignment Report: " << endl;
-  std::vector<double> metrics;
-  metrics.push_back(cv::compareHist(hist1, hist2, cv::HISTCMP_INTERSECT));
-  metrics.push_back(cv::compareHist(hist1, hist2, cv::HISTCMP_BHATTACHARYYA));
+  Rcout << "Alignment Accuracy (Course): " << endl;
+  metrics["Intersection"] = cv::compareHist(hist1, hist2, cv::HISTCMP_INTERSECT);
+  metrics["Bhattacharyya"] = cv::compareHist(hist1, hist2, cv::HISTCMP_BHATTACHARYYA);
+  metrics["Matte's MI"] = MatteMI(im2, im1, mask, 50);
+  
+  Rcout << "  Intersection:  " << metrics["Intersection"] << std::endl;
+  Rcout << "  Bhattacharyya: " << metrics["Bhattacharyya"] << std::endl;
+  Rcout << "  Matte's MI:    " << metrics["Matte's MI"] << std::endl;
+  
+  // old metrics, keep for comparison
   //metrics.push_back(cv::compareHist(hist1, hist2, cv::HISTCMP_CHISQR));
   // metrics.push_back(jointEntropy(im1, im2, mask, histSize));
   // metrics.push_back(MutualInfo(im1, im2, mask, histSize));
   // metrics.push_back(NormalizedMutualInfo(im1, im2, mask, histSize));
   
-  Rcout << "  Intersection:     " << metrics[0] << std::endl;
-  Rcout << "  Bhattacharyya:    " << metrics[1] << std::endl;
-  // Rcout << "  Chi-Square:       " << metrics[0] << std::endl;
-  // Rcout << "  Joint Entropy:    " << metrics[3] << std::endl;
-  // Rcout << "  MutualInfo:       " << metrics[4] << std::endl;
-  // Rcout << "  NormalizedMutualInfo: " << metrics[5] << std::endl;
   return metrics;
 }
 
 // do overall checks on keypoints and images
-std::vector<double> getKeypointMetrics(std::vector<cv::Point2f> &points1, 
+std::unordered_map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &points1, 
                                        std::vector<cv::Point2f> &points2, 
                                        Mat &im1, Mat &im2, 
                                        Mat &h, Mat &mask) {
   
   // metrics list
-  std::vector<double> metrics_list;
+  std::unordered_map<std::string, double> metrics;
   
   // Alignment report
   Rcout << "Keypoint Report: " << endl;
   
   // Report final keypoints
   Rcout << "  Calculated transformation matrix with " << points1.size() << " keypoints" << endl;
+  metrics["#Keypoints"] = points1.size();
   
   // points stand. dev.
   double points1_sd = cppSD(points1);
@@ -324,14 +322,17 @@ std::vector<double> getKeypointMetrics(std::vector<cv::Point2f> &points1,
     Rcout << "  WARNING: points may be in a degenerate configuration." << endl;
   } 
   Rcout << "  Std dev of points: x=" << points1_sd << " y="  << points2_sd << endl;
-  metrics_list.push_back(checkDegenerate(points1_sd, points2_sd));
-  metrics_list.push_back(points1_sd);
-  metrics_list.push_back(points2_sd);
+  metrics["SD Keypoints (ref.)"] = points1_sd;
+  metrics["SD Keypoints (query)"] = points2_sd;
+  
+  // degenerate ?
+  bool degenerate = checkDegenerate(points1_sd, points2_sd);
+  Rcout << "Registration is " << (degenerate ? "degenerate!" : "not degenerate!") << endl;
   
   // check distribution of points
   double stddev = checkMappedGridDistribution(im2, h);
   Rcout << "  Std dev of registered points: " << stddev << endl;
-  metrics_list.push_back(stddev);
+  metrics["SD Grid points"] = stddev;
   
   // warp keypoints and compare 
   double md = medianMappingDistance(points1, points2, h);
@@ -339,14 +340,13 @@ std::vector<double> getKeypointMetrics(std::vector<cv::Point2f> &points1,
   if(md > 3){
     Rcout << "  WARNING: Transformation may be poor - mean euclidean distance of mapped source and destination key points is high!" << endl;
   } 
+  metrics["Median distance"] = md;
   
   // get inlier percentages
   double ratio = checkInlierPercentage(mask);
   Rcout << "  Inlier Percentage: " << ratio << endl;
-  
-  // degenerate ?
-  Rcout << "Registration is " << (metrics_list[0] ? "degenerate!" : "not degenerate!") << endl;
-  
+  metrics["Inlier Ratio"] = ratio;
+
   // return is_degenerate;
-  return metrics_list;
+  return metrics;
 }

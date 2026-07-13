@@ -619,12 +619,23 @@ getAlignmentTabPanel <- function(len_images, centre, register_ind) {
   do.call(
     tabsetPanel,
     c(
+      # alignment tab panel
       id = 'image_tab_panel_alignment',
       lapply(register_ind, function(i) {
         tabPanel(
           paste0("Ali. ", i, "->", centre),
           br(),
-          fluidRow(imageOutput(paste0("plot_alignment", i)))
+          
+          tabsetPanel(
+            id = "inner_tabs", 
+            tabPanel("Matte's MI Map",
+                     imageOutput(paste0("plot_matte_map", i))),
+            tabPanel("Alignment Stat.",
+                     tableOutput(paste0("alignment_stats", i))),
+            tabPanel("Matching Keypoints",
+                     imageOutput(paste0("plot_keypoint_match", i))),
+            
+          )
         )
       })
     )
@@ -2862,6 +2873,8 @@ getManualRegisteration <- function(
         {
           # Register keypoints
           aligned_image_list <- list()
+          matte_map_list <- list()
+          alignment_stats_list <- list()
           for (i in register_ind) {
             # Increment the progress bar, and update the detail text.
             incProgress(
@@ -2883,6 +2896,12 @@ getManualRegisteration <- function(
 
             # save matches
             aligned_image_list[[i]] <- results$aligned_image
+            
+            # save matte map
+            matte_map_list[[i]] <- results$matte_map
+            
+            # save alignment stats 
+            alignment_stats_list[[i]] <- results$alignment_stats
           }
         }
       )
@@ -2930,7 +2949,35 @@ getManualRegisteration <- function(
           deleteFile = TRUE
         )
       })
+      
+      # Plot Matte
+      lapply(register_ind, function(i) {
+        cur_alignment_image <- matte_map_list[[i]]
+        output[[paste0("plot_matte_map", i)]] <- renderPlot({
+          if (!suppressWarnings(!is.matrix(cur_alignment_image))) {
+            cur_alignment_image <- 
+              cur_alignment_image[nrow(cur_alignment_image):1,]
+            ggplot(reshape2::melt(cur_alignment_image), 
+                   aes(Var2, Var1, fill= value)) + 
+              ggplot2::geom_tile() + 
+              ggplot2::theme_void() + 
+              ggplot2::coord_fixed(expand = FALSE) + 
+              ggplot2::scale_fill_gradient(low = "#440154FF", 
+                                           high = "#FDE725FF", 
+                                           name = "Matte's MI")
+          }
+        })
+      })
 
+      # Plot Alignment Stats
+      lapply(register_ind, function(i) {
+        cur_align_stats <- alignment_stats_list[[i]]
+        output[[paste0("alignment_stats", i)]] <- renderTable({
+          data.frame(Metrics = names(cur_align_stats), 
+                     `Stats.` = cur_align_stats)
+        })
+      })
+      
       # Output summary
       output[["summary"]] <- renderUI({
         str1 <- paste0(" Registration Summary:")
@@ -3030,10 +3077,14 @@ computeManualPairwiseTransform <- function(
     # return transformation matrix and images
     mapping[[kk]] <- reg[[1]]
     aligned_image <- reg$aligned_image
+    matte_map <- reg$matte_map
+    alignment_stats <- reg$alignment_stats
   }
 
   return(list(mapping = mapping, 
-              aligned_image = aligned_image))
+              aligned_image = aligned_image, 
+              matte_map = matte_map, 
+              alignment_stats = alignment_stats))
 }
 
 #' getRcppManualRegistration
@@ -3119,6 +3170,12 @@ getRcppManualRegistration <- function(
     reg[[1]] <- list(reg[[1]][[1]], NULL)
   }
   
+  # adjust matte mi map
+  tmp <- reg[[3]]
+  tmp[is.na(tmp)] <- 0
+  tmp[tmp < 0] <- 0
+  reg[[3]] <- tmp
+  
   # check for null images
   aligned_image <- if(ncol(reg[[2]]) == 2){
     rownames(reg[[2]]) <- rownames(query_image)
@@ -3133,9 +3190,17 @@ getRcppManualRegistration <- function(
     magick::image_read(reg[[2]])
   }
 
+  # check for null data
+  matte_map <-
+    if (!is.null(reg[[3]])) reg[[3]] else NA
+  alignment_stats <-
+    if (!is.null(reg[[4]])) reg[[4]] else NA
+  
   return(list(
     transmat = reg[[1]],
-    aligned_image = aligned_image
+    aligned_image = aligned_image,
+    matte_map = matte_map,
+    alignment_stats = alignment_stats
   ))
 }
 
@@ -3196,6 +3261,7 @@ getAutomatedRegisteration <- function(
           aligned_image_list <- list()
           alignment_image_list <- list()
           matte_map_list <- list()
+          alignment_stats_list <- list()
           for (i in register_ind) {
             # Increment the progress bar, and update the detail text.
             incProgress(
@@ -3229,6 +3295,9 @@ getAutomatedRegisteration <- function(
             
             # save matte map
             matte_map_list[[i]] <- results$matte_map
+            
+            # save alignment stats
+            alignment_stats_list[[i]] <- results$alignment_stats
           }
         }
       )
@@ -3259,31 +3328,40 @@ getAutomatedRegisteration <- function(
       })
 
       # Plot Alignment
-      # lapply(register_ind, function(i) {
-      #   cur_alignment_image <- alignment_image_list[[i]]
-      #   output[[paste0("plot_alignment", i)]] <- renderPlot({
-      #     if (!suppressWarnings(is.na(cur_alignment_image))) {
-      #       magick::image_ggplot(cur_alignment_image)
-      #     }
-      #   })
-      # })
+      lapply(register_ind, function(i) {
+        cur_alignment_image <- alignment_image_list[[i]]
+        output[[paste0("plot_keypoint_match", i)]] <- renderPlot({
+          if (!suppressWarnings(is.na(cur_alignment_image))) {
+            magick::image_ggplot(cur_alignment_image)
+          }
+        })
+      })
       
       # Plot Matte
       lapply(register_ind, function(i) {
         cur_alignment_image <- matte_map_list[[i]]
-        output[[paste0("plot_alignment", i)]] <- renderPlot({
+        output[[paste0("plot_matte_map", i)]] <- renderPlot({
           if (!suppressWarnings(!is.matrix(cur_alignment_image))) {
-            cur_alignment_image <- 
+            cur_alignment_image <-
               cur_alignment_image[nrow(cur_alignment_image):1,]
-            ggplot(reshape2::melt(cur_alignment_image), 
-                   aes(Var2, Var1, fill= value)) + 
-              ggplot2::geom_tile() + 
-              ggplot2::theme_void() + 
-              ggplot2::coord_fixed(expand = FALSE) + 
-              ggplot2::scale_fill_gradient(low = "#440154FF", 
-                                           high = "#FDE725FF", 
+            ggplot(reshape2::melt(cur_alignment_image),
+                   aes(Var2, Var1, fill= value)) +
+              ggplot2::geom_tile() +
+              ggplot2::theme_void() +
+              ggplot2::coord_fixed(expand = FALSE) +
+              ggplot2::scale_fill_gradient(low = "#440154FF",
+                                           high = "#FDE725FF",
                                            name = "Matte's MI")
           }
+        })
+      })
+      
+      # Plot Alignment Stats
+      lapply(register_ind, function(i) {
+        cur_align_stats <- alignment_stats_list[[i]]
+        output[[paste0("alignment_stats", i)]] <- renderTable({
+          data.frame(Metrics = names(cur_align_stats), 
+                     `Stats.` = cur_align_stats)
         })
       })
 
@@ -3487,6 +3565,7 @@ computeAutomatedPairwiseTransform <- function(
     alignment_image <- reg$alignment_image
     overlay_image <- reg$overlay_image
     matte_map <- reg$matte_map
+    alignment_stats <- reg$alignment_stats
   }
 
   return(list(
@@ -3495,7 +3574,8 @@ computeAutomatedPairwiseTransform <- function(
     aligned_image = aligned_image,
     alignment_image = alignment_image,
     overlay_image = overlay_image,
-    matte_map = matte_map
+    matte_map = matte_map,
+    alignment_stats = alignment_stats
   ))
 }
 
@@ -3578,7 +3658,9 @@ getRcppAutomatedRegistration <- function(
     if (!is.null(reg[[5]])) magick::image_read(reg[[5]]) else NA
   matte_map <-
     if (!is.null(reg[[6]])) reg[[6]] else NA
-
+  alignment_stats <- 
+    if (!is.null(reg[[7]])) reg[[7]] else NA
+  
   # return
   return(list(
     transmat = reg[[1]],
@@ -3586,7 +3668,8 @@ getRcppAutomatedRegistration <- function(
     aligned_image = aligned_image,
     alignment_image = alignment_image,
     overlay_image = overlay_image,
-    matte_map = matte_map
+    matte_map = matte_map, 
+    alignment_stats = alignment_stats
   ))
 }
 

@@ -425,10 +425,11 @@ void validateChunkedMatteMIInputs(
 }
 
 // ChunkedNmiMapResult chunkedMatteMIMap(const cv::Mat& fixed,
-cv::Mat1d chunkedMatteMIMap(const cv::Mat& fixed,
-                            const cv::Mat& moving,
-                            const cv::Mat& mask,
-                            int bins = 50) {
+cv::Mat1d MatteMIMap(const cv::Mat& fixed,
+                     const cv::Mat& moving,
+                     const cv::Mat& mask,
+                     int bins = 50) {
+                          
   ChunkSize chunkSize = ChunkSize{};
 
   // validate chunks and return validation map of pixels
@@ -534,11 +535,13 @@ cv::Mat1d chunkedMatteMIMap(const cv::Mat& fixed,
     linearPercentileFromSorted(movingGlobalValues, upperPercentile)
   };
   
+  Rcout << fixedRange.min << " " << fixedRange.max << endl;
   if (!isValidRange(fixedRange)) {
     throw std::invalid_argument(
         "Invalid fixed intensity range.");
   }
   
+  Rcout << movingRange.min << " " << movingRange.max << endl;
   if (!isValidRange(movingRange)) {
     throw std::invalid_argument(
         "Invalid moving intensity range.");
@@ -621,4 +624,343 @@ cv::Mat1d chunkedMatteMIMap(const cv::Mat& fixed,
   }
   
   return NmiMap;
+}
+
+const double* getRowAsDouble(
+    const cv::Mat& image,
+    int row,
+    cv::Mat& scratch) {
+  
+  if (image.depth() == CV_64F) {
+    return image.ptr<double>(row);
+  }
+  
+  image.row(row).convertTo(scratch, CV_64F);
+  return scratch.ptr<double>(0);
+}
+
+double MatteMI(
+    const cv::Mat& fixed,
+    const cv::Mat& moving,
+    const cv::Mat& mask,
+    int bins) {
+  
+  const double nan =
+    std::numeric_limits<double>::quiet_NaN();
+  
+  if (bins < 4U) {
+    throw std::invalid_argument(
+        "bins must be >= 4 for cubic B-spline smoothing.");
+  }
+  
+  const std::size_t binCount =
+    static_cast<std::size_t>(bins);
+  
+  if (binCount >
+        std::numeric_limits<std::size_t>::max() / binCount) {
+    throw std::length_error(
+        "Histogram dimensions are too large.");
+  }
+  
+  /*
+   * Convert the mask to a conventional CV_8U binary mask.
+   *
+   * Every nonzero mask value becomes 255.
+   */
+  cv::Mat1b mask8;
+  
+  if (!mask.empty()) {
+    cv::compare(
+      mask,
+      cv::Scalar::all(0),
+      mask8,
+      cv::CMP_NE);
+  }
+  
+  const int height = fixed.rows;
+  const int width = fixed.cols;
+  
+  /*
+   * Only row-sized double buffers are needed. This avoids converting
+   * both complete images to CV_64F and avoids full-image value vectors.
+   */
+  cv::Mat fixedRowScratch;
+  cv::Mat movingRowScratch;
+  
+  /*
+   * Utility that visits every valid pixel pair.
+   *
+   * This function performs no sampling. Every valid pair is delivered
+   * to the supplied visitor.
+   */
+  auto visitValidPairs = [&](auto&& visitor) {
+    for (int y = 0; y < height; ++y) {
+      const double* fixedRow =
+        getRowAsDouble(
+          fixed,
+          y,
+          fixedRowScratch);
+      
+      const double* movingRow =
+        getRowAsDouble(
+          moving,
+          y,
+          movingRowScratch);
+      
+      const unsigned char* maskRow =
+        mask.empty()
+        ? nullptr
+          : mask8.ptr<unsigned char>(y);
+      
+      for (int x = 0; x < width; ++x) {
+        if (maskRow != nullptr &&
+            maskRow[x] == 0U) {
+          continue;
+        }
+        
+        const double fixedValue = fixedRow[x];
+        const double movingValue = movingRow[x];
+        
+        if (!std::isfinite(fixedValue) ||
+            !std::isfinite(movingValue)) {
+            continue;
+        }
+        
+        visitor(fixedValue, movingValue);
+      }
+    }
+  };
+  
+  /*
+   * First pass:
+   * determine full-image intensity ranges from every valid pixel pair.
+   *
+   * This matches the default behavior of your original Python
+   * _mattes_mi_from_values function when no explicit ranges are supplied.
+   */
+  std::size_t validCount = 0U;
+  
+  double fixedMin =
+    std::numeric_limits<double>::infinity();
+  
+  double fixedMax =
+    -std::numeric_limits<double>::infinity();
+    
+    double movingMin =
+    std::numeric_limits<double>::infinity();
+    
+    double movingMax =
+      -std::numeric_limits<double>::infinity();
+      
+      visitValidPairs(
+        [&](double fixedValue, double movingValue) {
+          ++validCount;
+          
+          fixedMin =
+          std::min(fixedMin, fixedValue);
+          
+          fixedMax =
+            std::max(fixedMax, fixedValue);
+          
+          movingMin =
+            std::min(movingMin, movingValue);
+          
+          movingMax =
+            std::max(movingMax, movingValue);
+        });
+      
+      if (validCount < 2U) {
+        return nan;
+      }
+      
+      const IntensityRange fixedRange{
+        fixedMin,
+        fixedMax
+      };
+      
+      const IntensityRange movingRange{
+        movingMin,
+        movingMax
+      };
+      
+      /*
+       * This follows the behavior of the supplied Python function:
+       * a constant fixed or moving image has an invalid range and returns NaN.
+       */
+      if (!isValidRange(fixedRange) ||
+          !isValidRange(movingRange)) {
+          return nan;
+      }
+      
+      /*
+       * Joint histogram:
+       *
+       * rows    = fixed-image bins
+       * columns = moving-image bins
+       */
+      std::vector<double> jointHistogram(
+          binCount * binCount,
+          0.0);
+      
+      /*
+       * Second pass:
+       * add every valid pixel pair to the Mattes joint histogram.
+       */
+      visitValidPairs(
+        [&](double fixedValue, double movingValue) {
+          /*
+           * Fixed image:
+           * nearest-bin assignment over [0, bins - 1].
+           */
+          const double fixedPosition =
+            scaleToBinPosition(
+              fixedValue,
+              fixedRange,
+              0.0,
+              static_cast<double>(binCount - 1U));
+          
+          std::size_t fixedBin =
+            roundToNearestEvenNonnegative(
+              fixedPosition);
+          
+          fixedBin =
+            std::min(
+              fixedBin,
+              binCount - 1U);
+          
+          /*
+           * Moving image:
+           * continuous coordinate over [1, bins - 2].
+           *
+           * The one-bin margin leaves room for the cubic B-spline
+           * support at both histogram boundaries.
+           */
+          const double movingPosition =
+            scaleToBinPosition(
+              movingValue,
+              movingRange,
+              1.0,
+              static_cast<double>(binCount - 2U));
+          
+          const std::ptrdiff_t baseBin =
+            static_cast<std::ptrdiff_t>(
+              std::floor(movingPosition));
+          
+          /*
+           * Cubic B-spline support covers at most four bins.
+           */
+          for (int offset = -1;
+               offset <= 2;
+               ++offset) {
+            
+            const std::ptrdiff_t movingBin =
+            baseBin +
+            static_cast<std::ptrdiff_t>(offset);
+            
+            if (movingBin < 0 ||
+                movingBin >=
+                static_cast<std::ptrdiff_t>(
+                  binCount)) {
+              continue;
+            }
+            
+            const double weight =
+              cubicBSpline(
+                movingPosition -
+                  static_cast<double>(movingBin));
+            
+            if (weight <= 0.0) {
+              continue;
+            }
+            
+            const std::size_t histogramIndex =
+              fixedBin * binCount +
+              static_cast<std::size_t>(
+                movingBin);
+            
+            jointHistogram[histogramIndex] +=
+              weight;
+          }
+        });
+      
+      const double total =
+        std::accumulate(
+          jointHistogram.begin(),
+          jointHistogram.end(),
+          0.0);
+      
+      if (!(total > 0.0) ||
+          !std::isfinite(total)) {
+          return nan;
+      }
+      
+      /*
+       * Marginal probability distributions.
+       */
+      std::vector<double> px(
+          binCount,
+          0.0);
+      
+      std::vector<double> py(
+          binCount,
+          0.0);
+      
+      for (std::size_t fixedBin = 0;
+           fixedBin < binCount;
+           ++fixedBin) {
+        
+        for (std::size_t movingBin = 0;
+             movingBin < binCount;
+             ++movingBin) {
+          
+          const std::size_t index =
+          fixedBin * binCount +
+          movingBin;
+          
+          const double pxy =
+            jointHistogram[index] / total;
+          
+          px[fixedBin] += pxy;
+          py[movingBin] += pxy;
+        }
+      }
+      
+      /*
+       * MI = sum p(x,y) log(p(x,y) / (p(x)p(y)))
+       */
+      double mi = 0.0;
+      
+      for (std::size_t fixedBin = 0;
+           fixedBin < binCount;
+           ++fixedBin) {
+        
+        for (std::size_t movingBin = 0;
+             movingBin < binCount;
+             ++movingBin) {
+          
+          const std::size_t index =
+          fixedBin * binCount +
+          movingBin;
+          
+          const double pxy =
+            jointHistogram[index] / total;
+          
+          const double productOfMarginals =
+            px[fixedBin] *
+            py[movingBin];
+          
+          if (pxy > 0.0 &&
+              productOfMarginals > 0.0) {
+            
+            mi +=
+              pxy *
+              std::log(
+                pxy /
+                  productOfMarginals);
+          }
+        }
+      }
+      
+      // Natural logarithm: the result is in nats.
+      return mi;
 }

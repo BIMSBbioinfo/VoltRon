@@ -7,6 +7,7 @@
 // Library
 #include "auxiliary.h"
 #include "metrics.h"
+#include "matte_mi.h"
 
 // Namespaces
 using namespace Rcpp;
@@ -98,7 +99,9 @@ void alignImagesTPS_points(Rcpp::NumericMatrix &query_data,
 // align images with FLANN algorithm
 void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &keypoints,
                           Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark,
-                          const bool run_Affine, const bool run_TPS)
+                          const bool run_Affine, const bool run_TPS,
+                          Mat1d &accuracyMatte, 
+                          std::unordered_map<std::string, double> &accuracy)
 {
   // seed
   cv::setRNGSeed(0);
@@ -132,15 +135,13 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
   // imwrite("img1.tif", im1Affine);
   // imwrite("img2.tif", im2);
   
-  // // get metrics
-  // std::vector<double> image_metrics;
-  // image_metrics = getAlignmentMetrics(im1Affine, im2, h, im1.size());
-  
   // get alignment metrics
-  std::vector<double> image_metrics;
   cv::Mat alignmentMask = generateOverlapMask(im1Affine, h, 
                                               im2.size(), im1Affine.size());
-  image_metrics = getAlignmentMetrics(im1Affine, im2, h, alignmentMask);
+  accuracy = getAlignmentMetrics(im1Affine, im2, h, alignmentMask);
+  
+  // get matte metric
+  accuracyMatte = MatteMIMap(im2, im1Affine, alignmentMask, 50);
   
   if(!run_TPS){
     
@@ -251,10 +252,12 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
                                           Rcpp::String nonrigid)
 {
   // Return data
-  Rcpp::List out(2);
+  Rcpp::List out(4);
   Rcpp::List out_trans(2);
   Rcpp::List keypoints(2);
   Mat imReg, h;
+  Mat1d accuracyMatte;
+  std::unordered_map<std::string, double> accuracy;
   
   // get params
   const bool run_TPS = (strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0 || 
@@ -272,7 +275,9 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
     alignImagesAffineTPS(im, imReference, imReg, 
                          h, keypoints,
                          query_landmark, reference_landmark, 
-                         run_Affine, run_TPS);
+                         run_Affine, run_TPS, 
+                         accuracyMatte, 
+                         accuracy);
   }
   
   // Non-rigid (TPS) only
@@ -289,6 +294,8 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
   
   // registered image if exists
   out[1] = matToImage(imReg.clone()); 
+  out[2] = matToNumericMatrix(accuracyMatte); // Matte MI metric
+  out[3] = accuracy;
   
   return out;
 }

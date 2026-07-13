@@ -571,7 +571,8 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
                  const char* flipflop_query, const char* flipflop_ref,
                  const char* rotate_query, const char* rotate_ref,
                  const bool run_Affine, const bool run_TPS, 
-                 Mat1d &accuracyMatte)
+                 Mat1d &accuracyMatte, 
+                 std::unordered_map<std::string, double> &accuracy)
 {
   
   // parameters
@@ -636,16 +637,26 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   }
   
   // get keypoint metrics
-  std::vector<double> keypoint_metrics; 
+  std::unordered_map<std::string, double> keypoint_metrics; 
   keypoint_metrics = getKeypointMetrics(points1, points2, im1Proc, im2Proc, h, mask);
 
   // get alignment metrics
-  std::vector<double> image_metrics;
+  std::unordered_map<std::string, double> image_metrics;
   cv::Mat alignmentMask = generateOverlapMask(im1Proc, h, im2Proc.size(), im1.size());
   image_metrics = getAlignmentMetrics(im1Proc, im2Proc, h, alignmentMask);
+
+  // combine metrics
+  std::unordered_map<std::string, double> temp_map(keypoint_metrics);
+  temp_map.insert(image_metrics.begin(), image_metrics.end());
+  accuracy = temp_map;
+  //   
+  // accuracy.reserve(keypoint_metrics.size() + image_metrics.size());
+  // accuracy.insert(accuracy.end(), keypoint_metrics.begin(), keypoint_metrics.end());
+  // accuracy.insert(accuracy.end(), image_metrics.begin(), image_metrics.end());
+  // Rcout << accuracy.size() << std::endl;
   
   // get matte metric
-  accuracyMatte = chunkedMatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
+  accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
 
   // imwrite("img1.tif", im1Proc);
   // imwrite("img2.tif", im2Proc);
@@ -749,11 +760,12 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
                                              Rcpp::String matcher, Rcpp::String method, Rcpp::String nonrigid)
 {
   // Return data
-  Rcpp::List out(6);
+  Rcpp::List out(7);
   Rcpp::List out_trans(2);
   Rcpp::List keypoints(2);
   Mat imOverlay, imReg, h, imMatches;
   Mat1d accuracyMatte;
+  std::unordered_map<std::string, double> accuracy;
 
   // Read reference image
   cv::Mat imReference = imageToMat(ref_image, width1, height1);
@@ -775,7 +787,8 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
               flipflop_query.get_cstring(), flipflop_ref.get_cstring(),
               rotate_query.get_cstring(), rotate_ref.get_cstring(),
               run_Affine, run_TPS, 
-              accuracyMatte);
+              accuracyMatte, 
+              accuracy);
 
   // transformation matrix, can be either a matrix, set of keypoints or both
   out_trans[0] = matToNumericMatrix(h.clone());
@@ -792,11 +805,13 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
     out[3] = matToImage(imMatches); // keypoint matching image
     out[4] = matToImage(imOverlay); // overlay image
     out[5] = matToNumericMatrix(accuracyMatte); // Matte MI metric
+    out[6] = accuracy; // accuracy scores
   } else {
     out[2] = R_NilValue;
     out[3] = R_NilValue;
     out[4] = R_NilValue;
     out[5] = R_NilValue;
+    out[6] = R_NilValue;
   }
   
   // release

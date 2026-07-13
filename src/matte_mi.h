@@ -25,9 +25,10 @@ double mattesMiFromValues(const double* fixedValues,
                           std::optional<IntensityRange> fixedRange = std::nullopt,
                           std::optional<IntensityRange> movingRange = std::nullopt);
 
-cv::Mat1d chunkedMatteMIMap(const cv::Mat& fixed,
-                            const cv::Mat& moving,
-                            const cv::Mat& mask,
-                            int bins);
+cv::Mat1d MatteMIMap(const cv::Mat& fixed, const cv::Mat& moving,
+                     const cv::Mat& mask, int bins);
+
+double MatteMI(const cv::Mat& fixed, const cv::Mat& moving,
+               const cv::Mat& mask, int bins);
   
 #endif

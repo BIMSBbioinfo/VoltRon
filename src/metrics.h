@@ -25,11 +25,11 @@ bool checkDegenerate(double pts1, double pts2);
 cv::Mat generateOverlapMask(cv::Mat& im, cv::Mat& h, 
                             cv::Size dsize, cv::Size ssize);
 
-std::vector<double> getAlignmentMetrics(cv::Mat &im1, cv::Mat &im2, 
+std::unordered_map<std::string, double> getAlignmentMetrics(cv::Mat &im1, cv::Mat &im2, 
                                         cv::Mat &h, cv::Mat &mask);
 
 // do overall checks on keypoints and images
-std::vector<double> getKeypointMetrics(std::vector<cv::Point2f> &points1, 
+std::unordered_map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &points1, 
                                        std::vector<cv::Point2f> &points2, 
                                        cv::Mat &im1, cv::Mat &im2, 
                                        cv::Mat &h, cv::Mat &mask);
