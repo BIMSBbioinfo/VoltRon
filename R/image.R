@@ -17,19 +17,36 @@
 #' @export
 #'
 formImage <- function(
-  coords,
+  coords = NULL,
   segments = list(),
   image = NULL,
   main_channel = NULL
 ) {
-  # get coordinates
+  # check coords
+  if(is.null(coords)){
+    if(is.list(segments) && length(segments) > 0){
+      segments <- checkSegments(segments)
+    } else {
+      stop("segments have to be a list and non-empty")
+    }
+    coords <- t(vapply(
+      segments,
+      function(dat) {
+        apply(dat[, c("x", "y")], 2, mean)
+      },
+      numeric(2)
+    ))
+    rownames(coords) <- names(segments)
+  }
+  
+  # check matrix
   if (inherits(coords, "data.frame")) {
     coords <- as.matrix(coords)
-  }
-  # if (!inherits(coords, c("matrix", "dgCMatrix", "Matrix", "IterableMatrix"))) {
-  if (!inherits(coords, c("matrix", "Matrix", "IterableMatrix"))) {
+  } else if (!inherits(coords, c("matrix", "Matrix", "IterableMatrix"))) {
     stop("Coordinates table should either of a matrix or data.frame class!")
   }
+  
+  # check dimensions
   if (ncol(coords) == 2) {
     coords <- cbind(coords, 0)
     colnames(coords) <- c("x", "y", "z")
@@ -42,11 +59,11 @@ formImage <- function(
   }
 
   # get segments
-  if (length(segments) > 0) {
+  if(is.list(segments) && length(segments) > 0){
     if (length(segments) == length(rownames(coords))) {
       names(segments) <- rownames(coords)
     } else {
-      stop("Number of segments doesnt match the number of points!")
+      stop("Number of segments do not match with the number of points!")
     }
   }
 
@@ -1505,15 +1522,46 @@ setMethod("vrSegments", "vrSpatial", function(object) {
   return(object@segments)
 })
 
-vrSegmentsReplacevrImage <- function(object, value) {
-  # get coordinates
-  segts <- vrSegments(object)
-
-  # stop if the names are not matching
-  if (any(vapply(names(value), is.null, logical(1)))) {
+checkSegments <- function(segments){
+  
+  # check list
+  if(!is.list(segments))
+    stop("segments have to be a list")
+  
+  # check names
+  if (any(vapply(names(segments), is.null, logical(1)))) {
     stop("Provided coordinates data does not have cell/spot/ROI names")
   }
+  
+  # check dataframe, matrix, x,y coords, id etc.
+  segments <- mapply(function(sg,nm){
+    if(!(is(sg, "matrix") || is(sg, "data.frame")))
+      stop("Segments have to be either matrix or data.frame class!")
+    sg <- data.frame(sg)
+    colsg <- colnames(sg)
+    if(!all(c("x", "y") %in% colsg))
+      stop("Missing x and y coordinates in segments!")
+    if(!"id" %in% colsg){
+      sg$id <- nm
+    } else if(length(unique(sg$id)) > 1) {
+      stop("Manually added 'id' should be unique for each segment!")
+    }
+    sg[,c("id", colnames(sg)[!colnames(sg) %in% "id"])]
+  }, segments, names(segments), SIMPLIFY = FALSE) 
+  
+  # return
+  segments
+}
 
+vrSegmentsReplacevrImage <- function(object, value) {
+  
+  # get segments
+  segts <- vrSegments(object)
+  
+  # process/check segments, correct id etc.
+  value <- checkSegments(value) 
+
+  # stop if the names are not matching
   if (!all(names(value) %in% names(segts))) {
     stop("Cant overwrite coordinates, non-existing cells/spots/ROIs!")
   }

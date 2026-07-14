@@ -35,7 +35,13 @@ vrSegments(object, ...)
 
 \S4method{vrSegments}{vrSpatial}(object)
 
-\S4method{vrSegments}{VoltRon}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
+\S4method{vrSegments}{VoltRon}(
+  object,
+  assay = NULL,
+  image_name = NULL,
+  spatial_name = NULL,
+  reg = FALSE
+) <- value
 
 \S4method{vrSegments}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
 

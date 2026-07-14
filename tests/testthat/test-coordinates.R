@@ -1,4 +1,3 @@
-# Testing functions of manipulating coordinates ####
 test_that("coordinates", {
   
   # get data
@@ -26,6 +25,45 @@ test_that("coordinates", {
   expect_equal(1,1L)
 })
 
+test_that("replace coordinates", {
+  
+  # get data
+  data("merged_object")
+
+  # replace coords of selected assays
+  coords <- vrCoordinates(merged_object, assay = "Assay1")
+  vrCoordinates(merged_object, assay = "Assay1") <- coords[,c("x", "y")] * 2
+
+  # replace coords of multiple assays
+  coords <- vrCoordinates(merged_object, assay = "MolAssay")
+  expect_error(
+    vrCoordinates(merged_object, assay = "MolAssay") <- coords[,c("x", "y")] * 2,
+    "Changing the coordinates of multiple assays in the same time are not permitted"
+  )
+  
+  # replace segments of selected assays
+  segt <- vrSegments(merged_object, assay = "Assay3")
+  segt_new <- lapply(segt, function(sg){
+    sg[,c("x", "y")] <- sg[,c("x", "y")]*2
+    sg
+  })
+  vrSegments(merged_object, assay = "Assay3") <- segt_new
+  
+  # replace coords of multiple assays
+  segt <- vrSegments(merged_object, assay = "ROIAssay")
+  expect_error(
+    vrCoordinates(merged_object, assay = "ROIAssay") <- segt,
+    "Changing the coordinates of multiple assays in the same time are not permitted"
+  )
+  
+  # replace segments without id works
+  segt <- vrSegments(merged_object, assay = "Assay3")
+  segt_new <- lapply(segt, function(sg) sg[,c("x", "y")])
+  vrSegments(merged_object, assay = "Assay3") <- segt_new
+  
+  expect_equal(1,1L)
+})
+
 test_that("2d vs 3d", {
   
   # get data
@@ -44,3 +82,4 @@ test_that("2d vs 3d", {
   
   expect_equal(1,1L)
 })
+
