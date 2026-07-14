@@ -729,7 +729,7 @@ writeHDF5ArrayInImage <- function(
     if (!all(grepl("No Channels", channels))) {
       for (ch in channels) {
         # get image and write to h5
-        img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
+        img <- vrImages(object, spatial = spat, channel = ch, as.raster = TRUE)
 
         # write image
         if (!inherits(img, "ImageArray") || replace) {
@@ -756,7 +756,7 @@ writeHDF5ArrayInImage <- function(
               verbose = FALSE
             )
           suppressWarnings({
-            vrImages(object, name = spat, channel = ch) <- img
+            vrImages(object, spatial = spat, channel = ch) <- img
           })
         }
       }
@@ -1270,7 +1270,7 @@ writeZarrArrayInImage <- function(
     if (!all(grepl("No Channels", channels))) {
       for (ch in channels) {
         # get image and write to h5
-        img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
+        img <- vrImages(object, spatial = spat, channel = ch, as.raster = TRUE)
 
         # write image
         if (!inherits(img, "ImageArray") || replace) {
@@ -1296,7 +1296,7 @@ writeZarrArrayInImage <- function(
             verbose = FALSE
           )
           suppressWarnings({
-            vrImages(object, name = spat, channel = ch) <- img
+            vrImages(object, spatial = spat, channel = ch) <- img
           })
         }
       }
@@ -1420,7 +1420,7 @@ writeZarrArrayInImage <- function(
       cur_path <- try(
         DelayedArray::path(vrImages(
           object,
-          name = spat,
+          spatial = spat,
           channel = ch,
           as.raster = TRUE
         )),
@@ -1560,14 +1560,14 @@ setMethod(
     channels <- vrImageChannelNames(object, name = spat)
     if (!all(grepl("No Channels", channels))) {
       for (ch in channels) {
-        img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
+        img <- vrImages(object, spatial = spat, channel = ch, as.raster = TRUE)
         for (i in seq_len(length(img@levels))) {
           img[[i]] <- .modify_seeds(img[[i]], function(x) {
             .shorten_assay_links_data(x)
           })
         }
         suppressWarnings({
-          vrImages(object, name = spat, channel = ch) <- img
+          vrImages(object, spatial = spat, channel = ch) <- img
         })
       }
     }
@@ -1722,7 +1722,7 @@ setMethod(
     channels <- vrImageChannelNames(object, name = spat)
     if (!all(grepl("No Channels", channels))) {
       for (ch in channels) {
-        img <- vrImages(object, name = spat, channel = ch, as.raster = TRUE)
+        img <- vrImages(object, spatial = spat, channel = ch, as.raster = TRUE)
         # TODO: for now length method for ImageArray
         for (i in seq_len(length(img@levels))) {
           img[[i]] <- .modify_seeds(img[[i]], function(x) {
@@ -1730,7 +1730,7 @@ setMethod(
           })
         }
         suppressWarnings({
-          vrImages(object, name = spat, channel = ch) <- img
+          vrImages(object, spatial = spat, channel = ch) <- img
         })
       }
     }
