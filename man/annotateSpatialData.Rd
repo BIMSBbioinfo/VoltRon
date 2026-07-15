@@ -30,7 +30,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{shiny.options}{a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}}
 
-\item{spatial}{the name of the spatial coord system}
+\item{spatial}{the name of the spatial coordinate system}
 
 \item{channel}{the name of the main channel}
 

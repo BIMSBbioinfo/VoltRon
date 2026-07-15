@@ -32,7 +32,7 @@ NULL
 #' @param cell.shape the shape of the points representing cells, see \link{geom_point}
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param label if TRUE, the labels of the ROI assays will be visualized
-#' @param spatial the name of the main spatial system
+#' @param spatial the name of the spatial coordinate system
 #' @param channel the name of the channel associated with the image
 #' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
 #' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name
@@ -305,7 +305,7 @@ vrSpatialPlot <- function(
 #' @param cell.shape the shape of the points representing cells, see \link{geom_point}
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param plot_title the title of the single plot
-#' @param spatial the name of the main spatial system
+#' @param spatial the name of the spatial coordinate system
 #' @param channel the name of the channel associated with the image
 #' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
 #' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name
@@ -855,7 +855,7 @@ vrSpatialPlotSingle <- function(
 #' @param cell.shape the shape of the points representing cells, see \link{geom_point}
 #' @param graph if not NULL, the graph is added to the plot
 #' @param graph.edge.color the color of graph edges, if \code{graph} is not NULL.
-#' @param spatial the name of the main spatial system
+#' @param spatial the name of the spatial coordinate system
 #' @param combine.groups if TRUE, tile colors will reflect relative abundance of either of two groups, strictly for visualizing two groups when assay is a molecule typed and tiled (see \code{n.tile}).
 #'
 #' @import ggplot2
@@ -1333,7 +1333,7 @@ addSpatialLayer <- function(
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param keep.scale whether unify all scales for all features or not
 #' @param label if TRUE, labels of ROIs will be visualized too
-#' @param spatial the name of the main spatial system
+#' @param spatial the name of the spatial coordinate system
 #' @param channel the name of the channel associated with the image
 #' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
 #' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name
@@ -1605,7 +1605,7 @@ vrSpatialFeaturePlot <- function(
 #' @param label if TRUE, labels of ROIs will be visualized too
 #' @param plot_title the main title of the single plot
 #' @param legend_title the legend title of the single plot
-#' @param spatial the name of the main spatial system
+#' @param spatial the name of the spatial coordinate system
 #' @param channel the name of the channel associated with the image
 #' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
 #' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name
@@ -1984,7 +1984,7 @@ vrSpatialFeaturePlotSingle <- function(
 #' @param label if TRUE, labels of ROIs will be visualized too
 #' @param plot_title the main title of the single plot
 #' @param legend_title the legend title of the single plot
-#' @param spatial the name of the main spatial system
+#' @param spatial the name of the spatial coordinate system
 #' @param channel the name of the channel associated with the image
 #' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
 #' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name
@@ -2357,7 +2357,7 @@ vrSpatialFeatureCombinePlot <- function(
 #'
 #' @param g a ggplot object
 #' @param assay vrAssay object
-#' @param spatial the name of the main spatial system
+#' @param spatial the name of the spatial coordinate system
 #' @param channel the name of the channel associated with the image
 #' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
 #' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name

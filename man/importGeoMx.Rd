@@ -44,9 +44,9 @@ OME.TIFF file}
 \item{resolution_level}{the level of resolution within GeoMx OME-TIFF
 image, Default: 3}
 
-\item{spatial}{the name of the coordinate system, Default: main}
+\item{spatial}{the name of the spatial coordinate system, Default: main}
 
-\item{image_name}{(deprecated) the name of the coordinate system, Default: main}
+\item{image_name}{(deprecated) the name of the spatial coordinate system, Default: main}
 
 \item{verbose}{verbose}
 

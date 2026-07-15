@@ -13,7 +13,7 @@
 #' @param annotation_assay name of the annotation assay ()
 #' @param use.image.only if TRUE, use only the image
 #' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
-#' @param spatial the name of the spatial coord system
+#' @param spatial the name of the spatial coordinate system
 #' @param channel the name of the main channel
 #' @param ... additional parameters passed to \link{vrSpatialPlot}.
 #'

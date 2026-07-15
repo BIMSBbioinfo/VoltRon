@@ -76,7 +76,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{label}{if TRUE, the labels of the ROI assays will be visualized}
 
-\item{spatial}{the name of the main spatial system}
+\item{spatial}{the name of the spatial coordinate system}
 
 \item{channel}{the name of the channel associated with the image}
 

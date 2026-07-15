@@ -293,7 +293,7 @@ vrImagesVoltRon <- function(
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
 #' see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param spatial the name of the main spatial system
+#' @param spatial the name of the spatial coordinate system
 #' @param reg TRUE if registered coordinates of the main image 
 #' (\link{vrMainSpatial}) is requested
 #' @param channel the name of the channel associated with the image
@@ -777,14 +777,14 @@ vrMainChannelvrAssay <- function(object, spatial = NULL) {
   return(vrMainChannel(object@image[[spatial]]))
 }
 
-#' @param spatial the name of the spatial coord. system
+#' @param spatial the name of the spatial coordinate system
 #'
 #' @rdname vrMainChannel
 #' @order 2
 #' @export
 setMethod("vrMainChannel", "vrAssay", vrMainChannelvrAssay)
 
-#' @param spatial the name of the spatial coord. system
+#' @param spatial the name of the spatial coordinate system
 #'
 #' @rdname vrMainChannel
 #' @order 2
@@ -905,14 +905,14 @@ vrImageChannelNamesvrAssay <- function(object, spatial = NULL, ...) {
   return(vrImageChannelNames(object@image[[spatial]], ...))
 }
 
-#' @param spatial the name of the spatial coord. system
+#' @param spatial the name of the spatial coordinate system
 #'
 #' @rdname vrImageChannelNames
 #'
 #' @export
 setMethod("vrImageChannelNames", "vrAssay", vrImageChannelNamesvrAssay)
 
-#' @param spatial the name of the spatial coord. system
+#' @param spatial the name of the spatial coordinate system
 #'
 #' @rdname vrImageChannelNames
 #'
@@ -970,7 +970,7 @@ resizeImageVoltRon <- function(
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
 #' see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param spatial the name of the spatial coord. system
+#' @param spatial the name of the spatial coordinate system
 #' @param reg TRUE if registered coordinates of the main image 
 #' (\link{vrMainSpatial}) is requested
 #' @param size the width of the resized image
@@ -1107,7 +1107,7 @@ modulateImageVoltRon <- function(
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
 #' see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param spatial the name of the spatial coord. system
+#' @param spatial the name of the spatial coordinate system
 #' @param reg TRUE if registered coordinates of the main image 
 #' (\link{vrMainSpatial}) is requested
 #' @param channel the name of the channel associated with the image
@@ -1265,7 +1265,7 @@ combineChannelsVoltRon <- function(
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
 #' see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param spatial the name of the spatial coord. system
+#' @param spatial the name of the spatial coordinate system
 #' @param reg TRUE if registered coordinates of the main image 
 #' (\link{vrMainSpatial}) is requested
 #' @param channels the name of the channel associated with the image

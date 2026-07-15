@@ -21,8 +21,8 @@
 #' image, see \link{generateXeniumImage}. Default: 7 (553x402)
 #' @param overwrite_resolution if TRUE, the image "file.name" will be generated
 #' again although it exists at "dir.path"
-#' @param image_name (deprecated) the name of the coordinate system, Default: main
-#' @param spatial the name of the coordinate system, Default: main
+#' @param image_name (deprecated) the name of the spatial coordinate system, Default: main
+#' @param spatial the name of the spatial coordinate system, Default: main
 #' @param channel_name the channel name of the image of the Xenium assay,
 #' Default: DAPI
 #' @param import_molecules if TRUE, molecule assay will be created along with
@@ -412,8 +412,8 @@ generateXeniumImage <- function(
 #' @param selected_assay selected assay from Visium
 #' @param assay_name the assay name
 #' @param sample_name the name of the sample
-#' @param image_name (deprecated) the name of the coordinate system, Default: main
-#' @param spatial the name of the coordinate system, Default: main
+#' @param image_name (deprecated) the name of the spatial coordinate system, Default: main
+#' @param spatial the name of the spatial coordinate system, Default: main
 #' @param channel_name the channel name of the image of the Visium assay,
 #' Default: H&E
 #' @param inTissue if TRUE, only barcodes that are in the tissue will
@@ -558,8 +558,8 @@ importVisium <- function(
 #' @param selected_assay selected assay from Visium
 #' @param assay_name the assay name
 #' @param sample_name the name of the sample
-#' @param image_name (deprecated) the name of the coordinate system, Default: main
-#' @param spatial the name of the coordinate system, Default: main
+#' @param image_name (deprecated) the name of the spatial coordinate system, Default: main
+#' @param spatial the name of the spatial coordinate system, Default: main
 #' @param channel_name the channel name of the image of the Visium assay,
 #' Default: H&E
 #' @param inTissue if TRUE, only barcodes that are in the tissue will be
@@ -775,8 +775,8 @@ import10Xh5 <- function(filename) {
 #' @param ome.tiff the OME.TIFF file of the GeoMx experiment if exists
 #' @param resolution_level the level of resolution within GeoMx OME-TIFF
 #' image, Default: 3
-#' @param image_name (deprecated) the name of the coordinate system, Default: main
-#' @param spatial the name of the coordinate system, Default: main
+#' @param image_name (deprecated) the name of the spatial coordinate system, Default: main
+#' @param spatial the name of the spatial coordinate system, Default: main
 #' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
@@ -1505,8 +1505,8 @@ rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level) {
 #' @param path the path to the tiledb folder
 #' @param assay_name the assay name, default: CosMx
 #' @param image the reference morphology image of the CosMx assay
-#' @param image_name (deprecated) the name of the coordinate system, Default: main
-#' @param spatial the name of the coordinate system, Default: main
+#' @param image_name (deprecated) the name of the spatial coordinate system, Default: main
+#' @param spatial the name of the spatial coordinate system, Default: main
 #' @param import_molecules if TRUE, molecule assay will be created along
 #' with cell assay.
 #' @param verbose verbose
@@ -1528,6 +1528,11 @@ importCosMx <- function(
   feature_name = NULL,
   ...
 ) {
+  # get spatial name
+  if (!is.null(spatial)) {
+    image_name <- spatial
+  }
+  
   if (method == "CSV") {
     vr <- importCosMxCSV(
       path = path,
@@ -1559,8 +1564,8 @@ importCosMx <- function(
 #' @param path the path to the tiledb folder
 #' @param assay_name the assay name, default: CosMx
 #' @param image the reference morphology image of the CosMx assay
-#' @param image_name (deprecated) the name of the coordinate system, Default: main
-#' @param spatial the name of the coordinate system, Default: main
+#' @param image_name (deprecated) the name of the spatial coordinate system, Default: main
+#' @param spatial the name of the spatial coordinate system, Default: main
 #' @param import_molecules if TRUE, molecule assay will be created along
 #' with cell assay.
 #' @param feature_name the name/key of the feature set
@@ -2034,8 +2039,8 @@ generateCosMxImage <- function(
 #' @param sample_name the name of the sample
 #' @param use_image if TRUE, the DAPI image will be used.
 #' @param resolution_level the level of resolution within TIFF image. Default: 7 (971x638)
-#' @param image_name (deprecated) the name of the coordinate system, Default: main
-#' @param spatial the name of the coordinate system, Default: main
+#' @param image_name (deprecated) the name of the spatial coordinate system, Default: main
+#' @param spatial the name of the spatial coordinate system, Default: main
 #' @param channel_name the channel name of the image of the Xenium assay, Default: DAPI
 #' @param import_molecules if TRUE, molecule assay will be created along with cell assay.
 #' @param verbose verbose
@@ -2270,8 +2275,8 @@ importGenePS <- function(
 #' @param h5ad.path path to h5ad file of STOmics output
 #' @param assay_name the assay name
 #' @param sample_name the name of the sample
-#' @param image_name (deprecated) the name of the coordinate system, Default: main
-#' @param spatial the name of the coordinate system, Default: main
+#' @param image_name (deprecated) the name of the spatial coordinate system, Default: main
+#' @param spatial the name of the spatial coordinate system, Default: main
 #' @param channel_name the channel name of the image of the Visium assay, Default: H&E
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
@@ -2358,8 +2363,8 @@ importSTOmics <- function(
 #' @param dir.path path to PhenoCycler output folder
 #' @param assay_name the assay name of the SR object
 #' @param sample_name the name of the sample
-#' @param image_name (deprecated) the name of the coordinate system, Default: main
-#' @param spatial the name of the coordinate system, Default: main
+#' @param image_name (deprecated) the name of the spatial coordinate system, Default: main
+#' @param spatial the name of the spatial coordinate system, Default: main
 #' @param type Specify which type matrix is being provided.
 #' \itemize{
 #'  \item \dQuote{\code{processor}}: matrix generated by CODEX Processor
@@ -2726,8 +2731,8 @@ readPhenoCyclerMat <- function(
 #' @param h5ad.path path to h5ad file of STOmics output
 #' @param assay_name the assay name
 #' @param sample_name the name of the sample
-#' @param image_name (deprecated) the name of the coordinate system, Default: main
-#' @param spatial the name of the coordinate system, Default: main
+#' @param image_name (deprecated) the name of the spatial coordinate system, Default: main
+#' @param spatial the name of the spatial coordinate system, Default: main
 #' @param channel_name the channel name of the image of the Visium assay, Default: H&E
 #' @param verbose verbose
 #' @param ... additional parameters passed to \link{formVoltRon}
@@ -2858,8 +2863,8 @@ importOpenST <- function(
 #' @param size the size of the in situ pixel (defualt is 10 (micron))
 #' @param assay_name the assay name
 #' @param sample_name the name of the sample
-#' @param image_name (deprecated) the name of the coordinate system, Default: main
-#' @param spatial the name of the coordinate system, Default: main
+#' @param image_name (deprecated) the name of the spatial coordinate system, Default: main
+#' @param spatial the name of the spatial coordinate system, Default: main
 #' @param channel_name the channel name of the image of the Visium assay, Default: H&E
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
@@ -2959,8 +2964,8 @@ importDBITSeq <- function(
 #' @param tile.size the size of tiles
 #' @param segments Either a list of segments. This will result in a second 
 #' assay in the VoltRon object to be created
-#' @param image_name (deprecated) the name of the coordinate system, Default: main
-#' @param spatial the name of the coordinate system, Default: main
+#' @param image_name (deprecated) the name of the spatial coordinate system, Default: main
+#' @param spatial the name of the spatial coordinate system, Default: main
 #' @param channels the channel names of the images if multiple
 #' images are provided
 #' @param series the series IDs of the pyramidal image,
@@ -3103,8 +3108,8 @@ importImageData <- function(
 #' @param image a single or a list of image paths or magick-image objects
 #' @param segments Either a list of segments. This will result in a second 
 #' assay in the VoltRon object to be created
-#' @param image_name (deprecated) the name of the coordinate system, Default: main
-#' @param spatial the name of the coordinate system, Default: main
+#' @param image_name (deprecated) the name of the spatial coordinate system, Default: main
+#' @param spatial the name of the spatial coordinate system, Default: main
 #' @param channels the channel names of the images if multiple
 #' images are provided
 #' @param series the series IDs of the pyramidal image,

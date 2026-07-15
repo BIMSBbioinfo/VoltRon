@@ -725,7 +725,7 @@ flipCoordinatesvrAssay <- function(
   }
   
   # get coordinates
-  coords <- vrCoordinates(object, image_name = image_name, ...)
+  coords <- vrCoordinates(object, spatial = image_name, ...)
   
   # get image info
   image <- vrImages(object, spatial = image_name)
@@ -738,17 +738,17 @@ flipCoordinatesvrAssay <- function(
   
   # flip coordinates
   coords[, "y"] <- height - coords[, "y"]
-  vrCoordinates(object, image_name = image_name, ...) <- coords
+  vrCoordinates(object, spatial = image_name, ...) <- coords
   
   # flip segments
-  segments <- vrSegments(object, image_name = image_name, ...)
+  segments <- vrSegments(object, spatial = image_name, ...)
   if (length(segments) > 0) {
     name_segments <- names(segments)
     segments <- do.call("rbind", segments)
     segments[, "y"] <- height - segments[, "y"]
     segments <- split(segments, segments[, 1])
     names(segments) <- name_segments
-    vrSegments(object, image_name = image_name, ...) <- segments
+    vrSegments(object, spatial = image_name, ...) <- segments
   }
   
   # return
@@ -1325,7 +1325,7 @@ generateTileDatavrAssay <- function(
   return(object)
 }
 
-#' @param spatial the name of the main spatial system
+#' @param spatial the name of the spatial coordinate system
 #' @param reg TRUE if registered coordinates of the main
 #' image (\link{vrMainSpatial}) is requested
 #' @param channel the name of the channel associated with the image

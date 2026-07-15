@@ -38,7 +38,7 @@ vrMainChannel(object, ...) <- value
 
 \item{...}{arguments passed to other methods.}
 
-\item{spatial}{the name of the spatial coord. system}
+\item{spatial}{the name of the spatial coordinate system}
 
 \item{value}{the name of main channel of the spatial system}
 }

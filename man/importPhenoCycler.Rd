@@ -24,9 +24,9 @@ importPhenoCycler(
 
 \item{sample_name}{the name of the sample}
 
-\item{spatial}{the name of the coordinate system, Default: main}
+\item{spatial}{the name of the spatial coordinate system, Default: main}
 
-\item{image_name}{(deprecated) the name of the coordinate system, Default: main}
+\item{image_name}{(deprecated) the name of the spatial coordinate system, Default: main}
 
 \item{type}{Specify which type matrix is being provided.
 \itemize{

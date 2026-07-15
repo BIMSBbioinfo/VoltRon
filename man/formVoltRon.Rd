@@ -47,9 +47,9 @@ formVoltRon(
 
 \item{layer_name}{the name of the layer}
 
-\item{spatial}{the name/key of the spatial coordinate system}
+\item{spatial}{the name of the spatial coordinate system}
 
-\item{image_name}{(deprecated) the name/key of the spatial coordinate system}
+\item{image_name}{(deprecated) the name of the spatial coordinate system}
 
 \item{feature_name}{the name/key of the feature set}
 

@@ -24,9 +24,9 @@ importCosMx(
 
 \item{image}{the reference morphology image of the CosMx assay}
 
-\item{spatial}{the name of the coordinate system, Default: main}
+\item{spatial}{the name of the spatial coordinate system, Default: main}
 
-\item{image_name}{(deprecated) the name of the coordinate system, Default: main}
+\item{image_name}{(deprecated) the name of the spatial coordinate system, Default: main}
 
 \item{import_molecules}{if TRUE, molecule assay will be created along
 with cell assay.}

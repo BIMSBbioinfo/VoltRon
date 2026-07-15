@@ -25,7 +25,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{image_name}{(deprecated, use \code{spatial}) the name/key of the image}
 
-\item{spatial}{the name/key of the spatial system associated with the coordinates}
+\item{spatial}{the name of the spatial coordinate system}
 }
 \description{
 Flip the coordinates of spatial points in the y axis direction.

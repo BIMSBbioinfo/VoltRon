@@ -30,7 +30,7 @@ vrImageChannelNames(object, ...)
 see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{spatial}{the name of the spatial coord. system}
+\item{spatial}{the name of the spatial coordinate system}
 
 \item{return.report}{if TRUE and no image is present, return a character 
 stating that there is no image}
