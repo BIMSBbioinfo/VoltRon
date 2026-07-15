@@ -21,8 +21,8 @@ importImageData(
 
 \item{tile.size}{the size of tiles}
 
-\item{segments}{Either a list of segments or a GeoJSON file. This will
-result in a second assay in the VoltRon object to be created}
+\item{segments}{Either a list of segments. This will result in a second 
+assay in the VoltRon object to be created}
 
 \item{image_name}{the image name of the Image assay, Default: main}
 

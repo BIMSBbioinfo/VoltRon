@@ -34,7 +34,13 @@ vrCoordinates(object, ...)
 
 \S4method{vrCoordinates}{vrSpatial}(object)
 
-\S4method{vrCoordinates}{VoltRon}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
+\S4method{vrCoordinates}{VoltRon}(
+  object,
+  assay = NULL,
+  image_name = NULL,
+  spatial_name = NULL,
+  reg = FALSE
+) <- value
 
 \S4method{vrCoordinates}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
 

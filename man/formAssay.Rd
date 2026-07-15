@@ -6,7 +6,7 @@
 \usage{
 formAssay(
   data = NULL,
-  coords,
+  coords = NULL,
   segments = list(),
   image = NULL,
   params = list(),
