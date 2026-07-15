@@ -260,10 +260,10 @@ double NormalizedMutualInfo(cv::Mat& im1, cv::Mat& im2,
   return (ent1+ent2)/ent12;
 }
 
-std::unordered_map<std::string, double> getAlignmentMetrics(Mat &im1, Mat &im2, Mat &h, Mat &mask){
+std::map<std::string, double> getAlignmentMetrics(Mat &im1, Mat &im2, Mat &h, Mat &mask){
   
   // Metrics
-  std::unordered_map<std::string, double> metrics;
+  std::map<std::string, double> metrics;
   
   // Compute histograms
   int histSize = 256;
@@ -300,13 +300,13 @@ std::unordered_map<std::string, double> getAlignmentMetrics(Mat &im1, Mat &im2, 
 }
 
 // do overall checks on keypoints and images
-std::unordered_map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &points1, 
+std::map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &points1, 
                                        std::vector<cv::Point2f> &points2, 
                                        Mat &im1, Mat &im2, 
                                        Mat &h, Mat &mask) {
   
   // metrics list
-  std::unordered_map<std::string, double> metrics;
+  std::map<std::string, double> metrics;
   
   // Alignment report
   Rcout << "Keypoint Report: " << endl;

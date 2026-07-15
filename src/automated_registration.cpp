@@ -572,7 +572,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
                  const char* rotate_query, const char* rotate_ref,
                  const bool run_Affine, const bool run_TPS, 
                  Mat1d &accuracyMatte, 
-                 std::unordered_map<std::string, double> &accuracy)
+                 std::map<std::string, double> &accuracy)
 {
   
   // parameters
@@ -637,18 +637,33 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   }
   
   // get keypoint metrics
-  std::unordered_map<std::string, double> keypoint_metrics; 
+  std::map<std::string, double> keypoint_metrics; 
   keypoint_metrics = getKeypointMetrics(points1, points2, im1Proc, im2Proc, h, mask);
 
   // get alignment metrics
-  std::unordered_map<std::string, double> image_metrics;
+  std::map<std::string, double> image_metrics;
   cv::Mat alignmentMask = generateOverlapMask(im1Proc, h, im2Proc.size(), im1.size());
   image_metrics = getAlignmentMetrics(im1Proc, im2Proc, h, alignmentMask);
 
   // combine metrics
-  std::unordered_map<std::string, double> temp_map(keypoint_metrics);
-  temp_map.insert(image_metrics.begin(), image_metrics.end());
-  accuracy = temp_map;
+  // std::map<std::string, double> temp_map = keypoint_metrics;
+  // temp_map.insert(image_metrics.begin(), image_metrics.end());
+  // accuracy = temp_map;
+  
+  // combine metrics
+  std::vector<std::pair<std::string, double>> temp_map;
+  temp_map.reserve(keypoint_metrics.size() + image_metrics.size());
+  std::copy(keypoint_metrics.begin(), keypoint_metrics.end(), std::back_inserter(temp_map));
+  std::copy(image_metrics.begin(), image_metrics.end(), std::back_inserter(temp_map));
+  std::map<std::string, double> final_map(temp_map.begin(), temp_map.end());
+  accuracy = final_map;
+  
+  // std::vector<std::pair<int, std::string>> temp_map;
+  // temp_map.reserve(keypoint_metrics.size() + image_metrics.size());
+  // temp_map.insert(temp_map.end(), keypoint_metrics.begin(), keypoint_metrics.end());
+  // temp_map.insert(temp_map.end(), image_metrics.begin(), image_metrics.end());
+  // std::map<int, std::string> accuracy(temp_map.begin(), temp_map.end());
+  
   //   
   // accuracy.reserve(keypoint_metrics.size() + image_metrics.size());
   // accuracy.insert(accuracy.end(), keypoint_metrics.begin(), keypoint_metrics.end());
@@ -765,7 +780,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
   Rcpp::List keypoints(2);
   Mat imOverlay, imReg, h, imMatches;
   Mat1d accuracyMatte;
-  std::unordered_map<std::string, double> accuracy;
+  std::map<std::string, double> accuracy;
 
   // Read reference image
   cv::Mat imReference = imageToMat(ref_image, width1, height1);

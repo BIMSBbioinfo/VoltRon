@@ -101,7 +101,7 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
                           Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark,
                           const bool run_Affine, const bool run_TPS,
                           Mat1d &accuracyMatte, 
-                          std::unordered_map<std::string, double> &accuracy)
+                          std::map<std::string, double> &accuracy)
 {
   // seed
   cv::setRNGSeed(0);
@@ -257,7 +257,7 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
   Rcpp::List keypoints(2);
   Mat imReg, h;
   Mat1d accuracyMatte;
-  std::unordered_map<std::string, double> accuracy;
+  std::map<std::string, double> accuracy;
   
   // get params
   const bool run_TPS = (strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0 || 
