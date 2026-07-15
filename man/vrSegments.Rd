@@ -27,19 +27,25 @@ vrSegments(object, ...)
   as.data.frame = FALSE
 )
 
-\S4method{vrSegments}{vrAssay}(object, image_name = NULL, spatial = NULL, reg = FALSE)
+\S4method{vrSegments}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE)
 
-\S4method{vrSegments}{vrAssayV2}(object, image_name = NULL, spatial = NULL, reg = FALSE)
+\S4method{vrSegments}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, reg = FALSE)
 
 \S4method{vrSegments}{vrImage}(object)
 
 \S4method{vrSegments}{vrSpatial}(object)
 
-\S4method{vrSegments}{VoltRon}(object, image_name = NULL, spatial = NULL, reg = FALSE) <- value
+\S4method{vrSegments}{VoltRon}(
+  object,
+  assay = NULL,
+  image_name = NULL,
+  spatial = NULL,
+  reg = FALSE
+) <- value
 
-\S4method{vrSegments}{vrAssay}(object, image_name = NULL, spatial = NULL, reg = FALSE) <- value
+\S4method{vrSegments}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
 
-\S4method{vrSegments}{vrAssayV2}(object, image_name = NULL, spatial = NULL, reg = FALSE) <- value
+\S4method{vrSegments}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
 
 \S4method{vrSegments}{vrImage}(object) <- value
 

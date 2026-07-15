@@ -11,9 +11,9 @@ flipCoordinates(object, ...)
 
 \S4method{flipCoordinates}{VoltRon}(object, assay = NULL, image_name = NULL, spatial = NULL, ...)
 
-\S4method{flipCoordinates}{vrAssay}(object, image_name = NULL, spatial = NULL, ...)
+\S4method{flipCoordinates}{vrAssay}(object, image_name = NULL, spatial_name = NULL, ...)
 
-\S4method{flipCoordinates}{vrAssayV2}(object, image_name = NULL, spatial = NULL, ...)
+\S4method{flipCoordinates}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, ...)
 }
 \arguments{
 \item{object}{a VoltRon, vrAssay or vrSpatial object.}

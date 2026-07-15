@@ -4,7 +4,12 @@
 \alias{formSpatial}
 \title{formSpatial}
 \usage{
-formSpatial(coords, segments = list(), image = NULL, main_channel = NULL)
+formSpatial(
+  coords = NULL,
+  segments = list(),
+  image = NULL,
+  main_channel = NULL
+)
 }
 \arguments{
 \item{coords}{the coordinates of the spatial points}

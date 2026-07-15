@@ -22,8 +22,8 @@ importImageData(
 
 \item{tile.size}{the size of tiles}
 
-\item{segments}{Either a list of segments or a GeoJSON file. This will
-result in a second assay in the VoltRon object to be created}
+\item{segments}{Either a list of segments. This will result in a second 
+assay in the VoltRon object to be created}
 
 \item{spatial}{the name of the coordinate system, Default: main}
 

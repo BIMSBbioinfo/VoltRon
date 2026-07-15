@@ -1214,8 +1214,18 @@ from the ome.tiff file. The image file can also be any of pyramid image
 formats supported by BioFormats. See <a
 href="https://bio-formats.readthedocs.io/en/v8.3.0/supported-formats.html">here</a>
 for supported pyramid image formats.</p>
-<pre class="r watch-out"><code>adj_vr &lt;- importQuPathIF(measurements = &quot;measurements.txt&quot;,
-                         segments = &quot;measurements.geojson&quot;, 
+<pre class="r watch-out"><code>if(!requireNamespace(&quot;sf&quot;))
+  install.packages(&quot;sf&quot;)
+library(sf)
+
+# get segments
+segments &lt;- read_sf(&quot;measurements.geojson&quot;, type = 3)
+segments &lt;- st_cast(segments, &quot;POLYGON&quot;)
+segments &lt;- generateSegments(segments)
+
+# import data
+adj_vr &lt;- importQuPathIF(measurements = &quot;measurements.txt&quot;,
+                         segments = segments, 
                          image = &quot;if_exp.ome.tif&quot;, 
                          channels = c(&quot;DAPI&quot;, &quot;CD20&quot;, &quot;CD21&quot;), 
                          series = 1,

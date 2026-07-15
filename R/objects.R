@@ -2075,23 +2075,25 @@ setMethod("vrCoordinates", "VoltRon", vrCoordinatesVoltRon)
 
 vrCoordinatesReplaceVoltRon <- function(
   object,
+  assay = NULL,
   image_name = NULL,
   spatial = NULL,
   reg = FALSE,
   value
 ) {
-  # sample metadata
-  sample.metadata <- SampleMetadata(object)
-
-  # check the number of assays in the object
-  if (nrow(sample.metadata) > 1) {
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  if(length(assay_names) > 1){
     stop(
       "Changing the coordinates of multiple assays in the same time are not permitted!"
     )
   }
-
+  
+  # sample metadata
+  sample.metadata <- SampleMetadata(object)
+  
   # get assay
-  cur_assay <- sample.metadata[1, ]
+  cur_assay <- sample.metadata[assay_names, ]
   vrlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
   vrassay <- vrlayer[[cur_assay$Assay]]
 
@@ -2162,21 +2164,25 @@ setMethod("vrSegments", "VoltRon", vrSegmentsVoltRon)
 
 vrSegmentsReplaceVoltRon <- function(
   object,
+  assay = NULL,
   image_name = NULL,
   spatial = NULL,
   reg = FALSE,
   value
 ) {
+  # get assay names
+  assay_names <- vrAssayNames(object, assay = assay)
+  if(length(assay_names) > 1){
+    stop(
+      "Changing the coordinates of multiple assays in the same time are not permitted!"
+    )
+  }
+  
   # sample metadata
   sample.metadata <- SampleMetadata(object)
-
-  # check the number of assays in the object
-  if (nrow(sample.metadata) > 1) {
-    stop("Changing the coordinates of multiple assays are not permitted!")
-  }
-
+  
   # get assay
-  cur_assay <- sample.metadata[1, ]
+  cur_assay <- sample.metadata[assay_names, ]
   vrlayer <- object[[cur_assay$Sample, cur_assay$Layer]]
   vrassay <- vrlayer[[cur_assay$Assay]]
 

@@ -62,6 +62,29 @@ test_that("import image voltron data", {
   expect_equal(1,1L)
 })
 
+test_that("import image voltron data with GeoJSON", {
+  
+  # skip
+  skip_if_not_installed("sf")
+  
+  # get image
+  imgfile <- system.file("extdata", "DAPI.tif", package = "VoltRon")
+
+  # get geojson, and then segments
+  jsonfile <- system.file("extdata", "DAPI.geojson", package = "VoltRon")
+  jsondata <- sf::read_sf(jsonfile)
+  segments <- generateSegments(jsondata, type = "ROI")
+  
+  # import image and segments
+  imgdata <- importImageData(imgfile, 
+                             segments = segments, 
+                             tile.size = 4, 
+                             image_name = "main")
+  expect_equal(nrow(SampleMetadata(imgdata)), 2)
+  expect_equal(SampleMetadata(imgdata)$Assay, c("ImageData", "ROIAnnotation"))
+  
+})
+
 test_that("import ome.tiff", {
   
   # skip

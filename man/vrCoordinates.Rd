@@ -26,19 +26,25 @@ vrCoordinates(object, ...)
   reg = FALSE
 )
 
-\S4method{vrCoordinates}{vrAssay}(object, image_name = NULL, spatial = NULL, reg = FALSE)
+\S4method{vrCoordinates}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE)
 
-\S4method{vrCoordinates}{vrAssayV2}(object, image_name = NULL, spatial = NULL, reg = FALSE)
+\S4method{vrCoordinates}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, reg = FALSE)
 
 \S4method{vrCoordinates}{vrImage}(object)
 
 \S4method{vrCoordinates}{vrSpatial}(object)
 
-\S4method{vrCoordinates}{VoltRon}(object, image_name = NULL, spatial = NULL, reg = FALSE) <- value
+\S4method{vrCoordinates}{VoltRon}(
+  object,
+  assay = NULL,
+  image_name = NULL,
+  spatial = NULL,
+  reg = FALSE
+) <- value
 
-\S4method{vrCoordinates}{vrAssay}(object, image_name = NULL, spatial = NULL, reg = FALSE) <- value
+\S4method{vrCoordinates}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
 
-\S4method{vrCoordinates}{vrAssayV2}(object, image_name = NULL, spatial = NULL, reg = FALSE) <- value
+\S4method{vrCoordinates}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
 
 \S4method{vrCoordinates}{vrImage}(object) <- value
 

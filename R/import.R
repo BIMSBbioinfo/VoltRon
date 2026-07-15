@@ -2957,8 +2957,8 @@ importDBITSeq <- function(
 #'
 #' @param image a single or a list of image paths or magick-image objects
 #' @param tile.size the size of tiles
-#' @param segments Either a list of segments or a GeoJSON file. This will
-#' result in a second assay in the VoltRon object to be created
+#' @param segments Either a list of segments. This will result in a second 
+#' assay in the VoltRon object to be created
 #' @param image_name (deprecated) the name of the coordinate system, Default: main
 #' @param spatial the name of the coordinate system, Default: main
 #' @param channels the channel names of the images if multiple
@@ -3057,14 +3057,8 @@ importImageData <- function(
   if (is.null(segments)) {
     return(object)
   } else {
-    # check if segments are paths
-    if (inherits(segments, "character")) {
-      if (grepl(".geojson$", segments)) {
-        segments <- generateSegments(geojson.file = segments)
-      } else {
-        stop("Only lists or GeoJSON files are accepted as segments input!")
-      }
-    }
+    # check segments
+    segments <- checkSegments(segments)
 
     # make coordinates out of segments
     coords <- t(vapply(
@@ -3107,8 +3101,8 @@ importImageData <- function(
 #'
 #' @param measurements measurements
 #' @param image a single or a list of image paths or magick-image objects
-#' @param segments Either a list of segments or a GeoJSON file. This will
-#' result in a second assay in the VoltRon object to be created
+#' @param segments Either a list of segments. This will result in a second 
+#' assay in the VoltRon object to be created
 #' @param image_name (deprecated) the name of the coordinate system, Default: main
 #' @param spatial the name of the coordinate system, Default: main
 #' @param channels the channel names of the images if multiple
@@ -3146,25 +3140,18 @@ importQuPathIF <- function(
   
   # rawdata
   if(inherits(measurements, "character")){
-    rawdata <- data.table::fread(file = measurements, header = TRUE)
+    rawdata <- data.table::fread(file = measurements, drop = 1)
     rawdata <- t(rawdata) 
   } else {
     rawdata <- measurements
   }
   
-  # check if segments are paths
-  if (inherits(segments, "character")) {
-    if (grepl(".geojson$", segments)) {
-      segments <- generateSegments(geojson.file = segments)
-      segments <- segments[-1]
-    } else {
-      stop("Only lists or GeoJSON files are accepted as segments input!")
-    }
-  }
+  # check segments
+  segments <- checkSegments(segments)
   
   # check dimensions
   if(length(segments) != ncol(rawdata))
-    stop("")
+    stop("segments and data matrix have non-matching observations!")
   
   # make coordinates out of segments
   coords <- t(vapply(
@@ -3175,6 +3162,7 @@ importQuPathIF <- function(
     numeric(2)
   ))
   rownames(coords) <- names(segments)
+  print(apply(coords[,1:2], 2, range))
   
   # assign cell names
   cellID <- paste0("Cell", 1:length(segments))
@@ -3345,8 +3333,46 @@ importImage <- function(
   return(image)
 }
 
-
 #' generateSegments
+#'
+#' The function to import segments from a geojson file
+#'
+#' @param object an object of sf class with each element having a geometry
+#' @param type spatial entity type: ROI or cell
+#'
+#' @importFrom dplyr tibble
+#'
+#' @export
+generateSegments <- function(object, type = c("ROI", "cell")) {
+  type <- match.arg(type)
+  
+  if(!requireNamespace("sf", quietly = TRUE))
+    stop("Please install sf package!: install.packages('sf')")
+  
+  # get segments
+  if (!inherits(object, "sf"))
+    stop("The input should be an sf object")
+  
+  # get geometry
+  geom <- sf::st_geometry(object) 
+  
+  # check polygons
+  geometry_types <- unique(sf::st_geometry_type(geom))
+  if(length(geometry_types) > 1 || !("POLYGON" %in% geometry_types))
+    stop("Only POLYGON geometries can be imported as segments!")
+    
+  segments <- mapply(function(x,y){
+    tmp <- sf::st_coordinates(x)[,c("X","Y")]
+    colnames(tmp) <- c("x", "y")
+    data.frame(id = y, tmp)
+  }, geom, paste0(type,1:nrow(object)), SIMPLIFY = FALSE)
+  names(segments) <- paste0(type, seq_along(segments))
+  
+  # return
+  return(segments)
+}
+
+#' generateSegments_old
 #'
 #' The function to import segments from a geojson file
 #'
@@ -3355,8 +3381,8 @@ importImage <- function(
 #' @importFrom rjson fromJSON
 #' @importFrom dplyr tibble
 #'
-#' @export
-generateSegments <- function(geojson.file) {
+#' @noRd
+generateSegments_old <- function(geojson.file) {
   # get segments
   if (inherits(geojson.file, "character")) {
     if (file.exists(geojson.file)) {
