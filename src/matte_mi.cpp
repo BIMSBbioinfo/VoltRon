@@ -535,13 +535,11 @@ cv::Mat1d MatteMIMap(const cv::Mat& fixed,
     linearPercentileFromSorted(movingGlobalValues, upperPercentile)
   };
   
-  Rcout << fixedRange.min << " " << fixedRange.max << endl;
   if (!isValidRange(fixedRange)) {
     throw std::invalid_argument(
         "Invalid fixed intensity range.");
   }
   
-  Rcout << movingRange.min << " " << movingRange.max << endl;
   if (!isValidRange(movingRange)) {
     throw std::invalid_argument(
         "Invalid moving intensity range.");

@@ -9,6 +9,8 @@ getRcppManualRegistration(
   ref_image,
   query_landmark,
   reference_landmark,
+  invert_query = FALSE,
+  invert_ref = FALSE,
   method = "Homography",
   nonrigid = "TPS (OpenCV)"
 )

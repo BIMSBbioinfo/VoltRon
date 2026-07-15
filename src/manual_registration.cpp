@@ -6,6 +6,7 @@
 
 // Library
 #include "auxiliary.h"
+#include "image.h"
 #include "metrics.h"
 #include "matte_mi.h"
 
@@ -99,6 +100,7 @@ void alignImagesTPS_points(Rcpp::NumericMatrix &query_data,
 // align images with FLANN algorithm
 void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &keypoints,
                           Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark,
+                          const bool invert_query, const bool invert_ref,
                           const bool run_Affine, const bool run_TPS,
                           Mat1d &accuracyMatte, 
                           std::map<std::string, double> &accuracy)
@@ -138,10 +140,15 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
   // get alignment metrics
   cv::Mat alignmentMask = generateOverlapMask(im1Affine, h, 
                                               im2.size(), im1Affine.size());
-  accuracy = getAlignmentMetrics(im1Affine, im2, h, alignmentMask);
-  
-  // get matte metric
-  accuracyMatte = MatteMIMap(im2, im1Affine, alignmentMask, 50);
+
+  // get matte metric, process 
+  Mat im1Proc, im2Proc;
+  cvtColor(im1Affine, im1Proc, cv::COLOR_BGR2GRAY);
+  cvtColor(im2, im2Proc, cv::COLOR_BGR2GRAY);
+  im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
+  im2Proc = preprocessImage(im2Proc, invert_ref, "None", "0");
+  accuracy = getAlignmentMetrics(im1Proc, im2Proc, h, alignmentMask);
+  accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
   
   if(!run_TPS){
     
@@ -248,6 +255,8 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
                                           const int height1,
                                           const int width2, 
                                           const int height2,
+                                          const bool invert_query, 
+                                          const bool invert_ref,
                                           Rcpp::String method, 
                                           Rcpp::String nonrigid)
 {
@@ -275,6 +284,8 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
     alignImagesAffineTPS(im, imReference, imReg, 
                          h, keypoints,
                          query_landmark, reference_landmark, 
+                         invert_query, 
+                         invert_ref,
                          run_Affine, run_TPS, 
                          accuracyMatte, 
                          accuracy);

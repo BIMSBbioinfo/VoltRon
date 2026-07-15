@@ -3045,6 +3045,20 @@ computeManualPairwiseTransform <- function(
       ref_image,
       target_landmark,
       reference_landmark,
+      invert_query = input[[paste0(
+        "negate_",
+        query_label,
+        "_image",
+        cur_map[1]
+      )]] ==
+        "Yes",
+      invert_ref = input[[paste0(
+        "negate_",
+        ref_label,
+        "_image",
+        cur_map[2]
+      )]] ==
+        "Yes",
       method = input$Method,
       nonrigid = if(is.null(input$nonrigid)) "None" else input$nonrigid
     )
@@ -3062,8 +3076,20 @@ computeManualPairwiseTransform <- function(
       tfx <- getSimpleITKAutomatedRegistration(
         ref_image = ref_image,
         query_image = query_image,
-        invert_query = FALSE,
-        invert_ref = FALSE,
+        invert_query = input[[paste0(
+          "negate_",
+          query_label,
+          "_image",
+          cur_map[1]
+        )]] ==
+          "Yes",
+        invert_ref = input[[paste0(
+          "negate_",
+          ref_label,
+          "_image",
+          cur_map[2]
+        )]] ==
+          "Yes",
         flipflop_query = FALSE,
         flipflop_ref = FALSE,
         rotate_query = FALSE,
@@ -3106,6 +3132,8 @@ getRcppManualRegistration <- function(
   ref_image,
   query_landmark,
   reference_landmark,
+  invert_query = FALSE,
+  invert_ref = FALSE,
   method = "Homography",
   nonrigid = "TPS (OpenCV)"
 ) {
@@ -3140,7 +3168,6 @@ getRcppManualRegistration <- function(
     query_landmark[, 2] <- dim(query_image)[3] - query_landmark[, 2]
   }
   
-  
   reg <- 
     if(ncol(query_image) == 2){
       manual_registeration_matrix(
@@ -3156,6 +3183,8 @@ getRcppManualRegistration <- function(
         query_image,
         reference_landmark = reference_landmark,
         query_landmark = query_landmark,
+        invert_query = invert_query,
+        invert_ref = invert_ref,
         width1 = dim(ref_image)[2],
         height1 = dim(ref_image)[3],
         width2 = dim(query_image)[2],

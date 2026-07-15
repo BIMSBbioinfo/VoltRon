@@ -21,8 +21,8 @@ warpImageManual <- function(ref_image, query_image, mapping, width1, height1, wi
     .Call('_VoltRon_warpImageManual', PACKAGE = 'VoltRon', ref_image, query_image, mapping, width1, height1, width2, height2)
 }
 
-manual_registeration_rawvector <- function(ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2, method, nonrigid) {
-    .Call('_VoltRon_manual_registeration_rawvector', PACKAGE = 'VoltRon', ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2, method, nonrigid)
+manual_registeration_rawvector <- function(ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2, invert_query, invert_ref, method, nonrigid) {
+    .Call('_VoltRon_manual_registeration_rawvector', PACKAGE = 'VoltRon', ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2, invert_query, invert_ref, method, nonrigid)
 }
 
 manual_registeration_matrix <- function(query_data, reference_landmark, query_landmark, method, nonrigid) {
