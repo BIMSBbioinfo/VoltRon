@@ -26,7 +26,7 @@ test_that("add cell assay", {
                                   layer = sample_metadata[assay, "Layer"])
   expect_equal(unique(Metadata(xenium_data2)$assay_id), c("Assay1", "Assay2"))
   expect_equal(SampleMetadata(xenium_data2)$Assay, c("Xenium", "Xenium"))
-  expect_equal(rownames(SampleMetadata(xenium_data2)), c("Xenium", "Xenium"))
+  expect_equal(rownames(SampleMetadata(xenium_data2)), c("Assay1", "Assay2"))
   expect_equal(nrow(SampleMetadata(xenium_data2)), 2)
   
   

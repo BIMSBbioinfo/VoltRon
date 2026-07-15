@@ -1528,6 +1528,13 @@ checkSegments <- function(segments){
   if(!is.list(segments))
     stop("segments have to be a list")
   
+  # return if empty
+  if(!length(segments)){
+    return(segments)
+  } else if(is.null(names(segments))){
+    stop("segments have to be named!")
+  }
+
   # check names
   if (any(vapply(names(segments), is.null, logical(1)))) {
     stop("Provided coordinates data does not have cell/spot/ROI names")
@@ -1535,7 +1542,7 @@ checkSegments <- function(segments){
   
   # check dataframe, matrix, x,y coords, id etc.
   segments <- mapply(function(sg,nm){
-    if(!(is(sg, "matrix") || is(sg, "data.frame")))
+    if(!is(sg, "matrix") && !is(sg, "data.frame"))
       stop("Segments have to be either matrix or data.frame class!")
     sg <- data.frame(sg)
     colsg <- colnames(sg)

@@ -25,6 +25,30 @@ test_that("coordinates", {
   expect_equal(1,1L)
 })
 
+test_that("segments",{
+  
+  # get data
+  data("visium_data")
+  
+  # segments
+  segments <- vrSegments(visium_data)
+  expect_warning(segments <- vrSegments(visium_data, reg = TRUE))
+  expect_warning(segments <- vrSegments(visium_data, assay = "Assay1", reg = TRUE))
+  
+  # get data
+  data("merged_object")
+  
+  # check segments
+  segments <- vrSegments(merged_object)
+  expect_equal(segments, checkSegments(segments))
+  expect_error(checkSegments(list(2,3)), "segments have to be named")
+  names(segments) <- NULL
+  expect_error(checkSegments(segments), "segments have to be named")
+
+  expect_equal(1,1L)
+  
+})
+
 test_that("replace coordinates", {
   
   # get data
@@ -40,6 +64,12 @@ test_that("replace coordinates", {
     vrCoordinates(merged_object, assay = "MolAssay") <- coords[,c("x", "y")] * 2,
     "Changing the coordinates of multiple assays in the same time are not permitted"
   )
+})
+
+test_that("replace segments", {
+  
+  # get data
+  data("merged_object")
   
   # replace segments of selected assays
   segt <- vrSegments(merged_object, assay = "Assay3")
