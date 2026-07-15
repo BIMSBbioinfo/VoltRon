@@ -670,7 +670,7 @@ segments &lt;- generateSegments(segments)
 
 # get image
 imgdata &lt;- importImageData(&quot;acutecase1_HE.jpg&quot;, 
-                           segments = &quot;acutecase1_membrane.geojson&quot;, 
+                           segments = segments, 
                            sample_name = &quot;acute case 1 (HE)&quot;)
 imgdata &lt;- flipCoordinates(imgdata, assay = &quot;ROIAnnotation&quot;)
 imgdata</code></pre>
