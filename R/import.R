@@ -3267,8 +3267,11 @@ generateSegments <- function(object, type = c("ROI", "cell")) {
   if (!inherits(object, "sf"))
     stop("The input should be an sf object")
   
+  # get geometry
+  geom <- sf::st_geometry(object) 
+  
   # check polygons
-  geometry_types <- unique(sf::st_geometry_type(object$geometry))
+  geometry_types <- unique(sf::st_geometry_type(geom))
   if(length(geometry_types) > 1 || !("POLYGON" %in% geometry_types))
     stop("Only POLYGON geometries can be imported as segments!")
     
@@ -3276,7 +3279,7 @@ generateSegments <- function(object, type = c("ROI", "cell")) {
     tmp <- sf::st_coordinates(x)[,c("X","Y")]
     colnames(tmp) <- c("x", "y")
     data.frame(id = y, tmp)
-  }, object$geometry, paste0(type,1:nrow(object)), SIMPLIFY = FALSE)
+  }, geom, paste0(type,1:nrow(object)), SIMPLIFY = FALSE)
   names(segments) <- paste0(type, seq_along(segments))
   
   # return
