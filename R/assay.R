@@ -621,12 +621,12 @@ setMethod("addFeature", "vrAssayV2", addFeaturevrAssayV2)
 vrCoordinatesvrAssay <- function(
     object,
     image_name = NULL,
-    spatial_name = NULL,
+    spatial = NULL,
     reg = FALSE
 ) {
   # get spatial name
-  if (!is.null(spatial_name)) {
-    image_name <- spatial_name
+  if (!is.null(spatial)) {
+    image_name <- spatial
   }
   
   # check main image
@@ -671,13 +671,13 @@ setMethod("vrCoordinates", "vrAssayV2", vrCoordinatesvrAssay)
 vrCoordinatesReplacevrAssay <- function(
     object,
     image_name = NULL,
-    spatial_name = NULL,
+    spatial = NULL,
     reg = FALSE,
     value
 ) {
   # get spatial name
-  if (!is.null(spatial_name)) {
-    image_name <- spatial_name
+  if (!is.null(spatial)) {
+    image_name <- spatial
   }
   
   # check main image
@@ -716,21 +716,21 @@ setMethod("vrCoordinates<-", "vrAssayV2", vrCoordinatesReplacevrAssay)
 flipCoordinatesvrAssay <- function(
     object,
     image_name = NULL,
-    spatial_name = NULL,
+    spatial = NULL,
     ...
 ) {
   # get spatial name
-  if (!is.null(spatial_name)) {
-    image_name <- spatial_name
+  if (!is.null(spatial)) {
+    image_name <- spatial
   }
   
   # get coordinates
   coords <- vrCoordinates(object, image_name = image_name, ...)
   
   # get image info
-  image <- vrImages(object, name = image_name)
+  image <- vrImages(object, spatial = image_name)
   if (!is.null(image)) {
-    imageinfo <- magick::image_info(vrImages(object, name = image_name))
+    imageinfo <- magick::image_info(vrImages(object, spatial = image_name))
     height <- imageinfo$height
   } else {
     height <- max(coords[, "y"])
@@ -772,12 +772,12 @@ setMethod("flipCoordinates", "vrAssayV2", flipCoordinatesvrAssay)
 vrSegmentsvrAssay <- function(
     object,
     image_name = NULL,
-    spatial_name = NULL,
+    spatial = NULL,
     reg = FALSE
 ) {
   # get spatial name
-  if (!is.null(spatial_name)) {
-    image_name <- spatial_name
+  if (!is.null(spatial)) {
+    image_name <- spatial
   }
   
   # check main image
@@ -820,13 +820,13 @@ setMethod("vrSegments", "vrAssayV2", vrSegmentsvrAssay)
 vrSegmentsReplacevrAssay <- function(
     object,
     image_name = NULL,
-    spatial_name = NULL,
+    spatial = NULL,
     reg = FALSE,
     value
 ) {
   # get spatial name
-  if (!is.null(spatial_name)) {
-    image_name <- spatial_name
+  if (!is.null(spatial)) {
+    image_name <- spatial
   }
   
   # check main image
@@ -1274,7 +1274,7 @@ updateData <- function(object, value) {
 
 generateTileDatavrAssay <- function(
   object,
-  name = NULL,
+  spatial = NULL,
   reg = FALSE,
   channel = NULL
 ) {
@@ -1284,7 +1284,7 @@ generateTileDatavrAssay <- function(
     # make image data
     image_data <- as.numeric(vrImages(
       object,
-      spatial = name,
+      spatial = spatial,
       reg = reg,
       channel = channel,
       as.raster = TRUE
@@ -1325,7 +1325,7 @@ generateTileDatavrAssay <- function(
   return(object)
 }
 
-#' @param name the name of the main spatial system
+#' @param spatial the name of the main spatial system
 #' @param reg TRUE if registered coordinates of the main
 #' image (\link{vrMainSpatial}) is requested
 #' @param channel the name of the channel associated with the image

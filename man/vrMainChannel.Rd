@@ -15,17 +15,17 @@
 \usage{
 vrMainChannel(object, ...)
 
-\S4method{vrMainChannel}{vrAssay}(object, name = NULL)
+\S4method{vrMainChannel}{vrAssay}(object, spatial = NULL)
 
-\S4method{vrMainChannel}{vrAssayV2}(object, name = NULL)
+\S4method{vrMainChannel}{vrAssayV2}(object, spatial = NULL)
 
 \S4method{vrMainChannel}{vrImage}(object)
 
 \S4method{vrMainChannel}{vrSpatial}(object)
 
-\S4method{vrMainChannel}{vrAssay}(object, name = NULL) <- value
+\S4method{vrMainChannel}{vrAssay}(object, spatial = NULL) <- value
 
-\S4method{vrMainChannel}{vrAssayV2}(object, name = NULL) <- value
+\S4method{vrMainChannel}{vrAssayV2}(object, spatial = NULL) <- value
 
 \S4method{vrMainChannel}{vrImage}(object) <- value
 
@@ -38,7 +38,7 @@ vrMainChannel(object, ...) <- value
 
 \item{...}{arguments passed to other methods.}
 
-\item{name}{the name of the image}
+\item{spatial}{the name of the spatial coord. system}
 
 \item{value}{the name of main channel of the spatial system}
 }

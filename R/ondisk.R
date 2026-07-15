@@ -725,7 +725,7 @@ writeHDF5ArrayInImage <- function(
     }
 
     # for each channel
-    channels <- vrImageChannelNames(object, name = spat)
+    channels <- vrImageChannelNames(object, spatial = spat)
     if (!all(grepl("No Channels", channels))) {
       for (ch in channels) {
         # get image and write to h5
@@ -1266,7 +1266,7 @@ writeZarrArrayInImage <- function(
     }
 
     # for each channel
-    channels <- vrImageChannelNames(object, name = spat)
+    channels <- vrImageChannelNames(object, spatial = spat)
     if (!all(grepl("No Channels", channels))) {
       for (ch in channels) {
         # get image and write to h5
@@ -1415,7 +1415,7 @@ writeZarrArrayInImage <- function(
   spatial_names <- vrSpatialNames(object)
   for (spat in spatial_names) {
     # for each channel
-    channels <- vrImageChannelNames(object, name = spat)
+    channels <- vrImageChannelNames(object, spatial = spat)
     for (ch in channels) {
       cur_path <- try(
         DelayedArray::path(vrImages(
@@ -1557,7 +1557,7 @@ setMethod(
       })
 
     # for each channel
-    channels <- vrImageChannelNames(object, name = spat)
+    channels <- vrImageChannelNames(object, spatial = spat)
     if (!all(grepl("No Channels", channels))) {
       for (ch in channels) {
         img <- vrImages(object, spatial = spat, channel = ch, as.raster = TRUE)
@@ -1719,7 +1719,7 @@ setMethod(
       })
 
     # for each channel
-    channels <- vrImageChannelNames(object, name = spat)
+    channels <- vrImageChannelNames(object, spatial = spat)
     if (!all(grepl("No Channels", channels))) {
       for (ch in channels) {
         img <- vrImages(object, spatial = spat, channel = ch, as.raster = TRUE)

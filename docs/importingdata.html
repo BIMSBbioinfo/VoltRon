@@ -522,7 +522,7 @@ assay as well as the name of the image. The
 collection of assays, layers (sections) and samples (tissue blocks)
 within the R object.</p>
 <pre class="r watch-out"><code>Vis_R1 &lt;- importVisium(dir.path = &quot;Visium/&quot;, sample_name = &quot;VisiumR1&quot;, 
-                       assay_name = &quot;Visium_assay&quot;, image_name = &quot;H&amp;E_stain&quot;)
+                       assay_name = &quot;Visium_assay&quot;, spatial = &quot;H&amp;E_stain&quot;)
 SampleMetadata(Vis_R1)</code></pre>
 <pre><code>              Assay    Layer   Sample
 Assay1 Visium_assay Section1 VisiumR1</code></pre>
@@ -1003,7 +1003,8 @@ Protein) channels that is deposited to NCBI/GEO (<a
 href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE137986">GSE137986</a>).</p>
 <pre class="r watch-out"><code>vr_dbit &lt;- importDBITSeq(path.rna = &quot;GSM4189615_0719cL.tsv&quot;, 
                          path.prot = &quot;GSM4202309_0719aL.tsv&quot;, 
-                         size = 10, sample_name = &quot;E10_Eye_2&quot;, image_name = &quot;main&quot;)</code></pre>
+                         size = 10, sample_name = &quot;E10_Eye_2&quot;, 
+                         spatial = &quot;main&quot;)</code></pre>
 <pre><code>VoltRon Object 
 E10_Eye_2: 
   Layers: Section1 
@@ -1145,7 +1146,7 @@ vr_object&lt;- formVoltRon(data = intensity_data,
                         main.assay = &quot;MELC&quot;,
                         assay.type = &quot;cell&quot;,
                         sample_name = &quot;control_case_3&quot;,
-                        image_name = &quot;DAPI&quot;)
+                        spatial = &quot;DAPI&quot;)
 vr_object</code></pre>
 <pre><code>VoltRon Object 
 control_case_3: 
@@ -1164,15 +1165,15 @@ vr_object&lt;- formVoltRon(data = intensity_data,
                         main.assay = &quot;MELC&quot;,
                         assay.type = &quot;cell&quot;,
                         sample_name = &quot;control_case_3&quot;,
-                        image_name = &quot;MELC&quot;)</code></pre>
+                        spatial = &quot;MELC&quot;)</code></pre>
 <p>These channels then can be interrogated and used as background images
 for spatial plots and spatial feature plots as well.</p>
 <pre class="r watch-out"><code>vrImageChannelNames(vr_object)</code></pre>
 <pre><code>       Assay    Layer         Sample Spatial  Channels
 Assay1  MELC Section1 control_case_3    MELC DAPI,CD45</code></pre>
 <p>You can extract each of these channels individually.</p>
-<pre class="r watch-out"><code>vrImages(vr_object, name = &quot;MELC&quot;, channel = &quot;DAPI&quot;)
-vrImages(vr_object, name = &quot;MELC&quot;, channel = &quot;CD45&quot;)</code></pre>
+<pre class="r watch-out"><code>vrImages(vr_object, spatial = &quot;MELC&quot;, channel = &quot;DAPI&quot;)
+vrImages(vr_object, spatial = &quot;MELC&quot;, channel = &quot;CD45&quot;)</code></pre>
 <table>
 <tr>
 <td>
@@ -1256,7 +1257,7 @@ Genomics website</a> as well (specifically, import the
 <strong>Post-Xenium H&amp;E image (TIFF)</strong> data).</p>
 <pre class="r watch-out"><code>Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
                                 sample_name = &quot;XeniumR1image&quot;, 
-                                image_name = &quot;H&amp;E&quot;)
+                                spatial = &quot;H&amp;E&quot;)
 Xen_R1_image</code></pre>
 <pre><code>VoltRon Object 
 XeniumR1image: 
