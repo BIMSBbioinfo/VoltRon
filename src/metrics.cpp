@@ -315,6 +315,11 @@ std::map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &point
   Rcout << "  Calculated transformation matrix with " << points1.size() << " keypoints" << endl;
   metrics["#Keypoints"] = points1.size();
   
+  // get inlier percentages
+  double ratio = checkInlierPercentage(mask);
+  Rcout << "  Inlier Percentage: " << ratio << endl;
+  metrics["Inlier Ratio"] = ratio;
+  
   // points stand. dev.
   double points1_sd = cppSD(points1);
   double points2_sd = cppSD(points2);
@@ -322,8 +327,8 @@ std::map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &point
     Rcout << "  WARNING: points may be in a degenerate configuration." << endl;
   } 
   Rcout << "  Std dev of points: x=" << points1_sd << " y="  << points2_sd << endl;
-  metrics["SD Keypoints (ref.)"] = points1_sd;
-  metrics["SD Keypoints (query)"] = points2_sd;
+  metrics["Std. dev. (ref. keypoints)"] = points1_sd;
+  metrics["Std. dev. (query keypoints)"] = points2_sd;
   
   // degenerate ?
   bool degenerate = checkDegenerate(points1_sd, points2_sd);
@@ -332,7 +337,7 @@ std::map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &point
   // check distribution of points
   double stddev = checkMappedGridDistribution(im2, h);
   Rcout << "  Std dev of registered points: " << stddev << endl;
-  metrics["SD Grid points"] = stddev;
+  metrics["Std. dev. (grid points)"] = stddev;
   
   // warp keypoints and compare 
   double md = medianMappingDistance(points1, points2, h);
@@ -341,11 +346,6 @@ std::map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &point
     Rcout << "  WARNING: Transformation may be poor - mean euclidean distance of mapped source and destination key points is high!" << endl;
   } 
   metrics["Median distance"] = md;
-  
-  // get inlier percentages
-  double ratio = checkInlierPercentage(mask);
-  Rcout << "  Inlier Percentage: " << ratio << endl;
-  metrics["Inlier Ratio"] = ratio;
 
   // return is_degenerate;
   return metrics;

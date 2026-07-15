@@ -3222,8 +3222,18 @@ getRcppManualRegistration <- function(
   # check for null data
   matte_map <-
     if (!is.null(reg[[3]])) reg[[3]] else NA
-  alignment_stats <-
-    if (!is.null(reg[[4]])) reg[[4]] else NA
+  metrics <- .ALIGNMENT_ACCURACY_METRICS
+  alignment_stats <- {
+    if (!is.null(reg[[4]])){
+      if(!all(names(reg[[4]]) %in% metrics)){
+        stop("There are missing accuracy metrics!")
+      } else {
+        reg[[4]][metrics]
+      }
+    } else{
+      NA
+    }
+  }
   
   return(list(
     transmat = reg[[1]],
@@ -3687,9 +3697,19 @@ getRcppAutomatedRegistration <- function(
     if (!is.null(reg[[5]])) magick::image_read(reg[[5]]) else NA
   matte_map <-
     if (!is.null(reg[[6]])) reg[[6]] else NA
-  alignment_stats <- 
-    if (!is.null(reg[[7]])) reg[[7]] else NA
-  
+  metrics <- c(.ALIGNMENT_ACCURACY_METRICS, .ALIGNMENT_KEYPOINT_METRICS)
+  alignment_stats <- {
+    if (!is.null(reg[[7]])){
+      if(!all(names(reg[[7]]) %in% metrics)){
+        stop("There are missing accuracy metrics!")
+      } else {
+        reg[[7]][metrics]
+      }
+    } else{
+      NA
+    }
+  }
+
   # return
   return(list(
     transmat = reg[[1]],
