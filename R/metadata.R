@@ -559,7 +559,7 @@ subset_metadata <- function(
           metadata$id
         else 
           rownames(metadata)
-        selected_sp <- spatialpoints[spatialpoints %in% as.vector(metadata$id)]
+        selected_sp <- spatialpoints[spatialpoints %in% cur_column]
         metadata <- metadata[selected_sp, ]
       } else if (!is.null(features)) {
         if (inherits(metadata, "data.table")) {
