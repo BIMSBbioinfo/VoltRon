@@ -4,7 +4,6 @@
 #include <opencv2/opencv.hpp>
 #include "opencv2/features2d.hpp"
 #include "opencv2/shape/shape_transformer.hpp"
-// #include <opencv2/imgproc.hpp>
 
 // Library
 #include "auxiliary.h"
@@ -640,8 +639,8 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
 
   // get alignment metrics
   std::map<std::string, double> image_metrics;
-  cv::Mat alignmentMask = generateOverlapMask(im1Proc, h, im2Proc.size(), im1Proc.size());
-  image_metrics = getAlignmentMetrics(im1Proc, im2Proc, h, alignmentMask);
+  cv::Mat alignmentMask = generateOverlapMask(im2Proc.size(), h, im1Proc.size());
+  image_metrics = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask);
 
   // combine metrics
   // std::map<std::string, double> temp_map = keypoint_metrics;

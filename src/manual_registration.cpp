@@ -17,7 +17,10 @@ using namespace cv;
 
 // align images with TPS algorithm
 void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::List &keypoints, 
-                    Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark)
+                    Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark,
+                    const bool invert_query, const bool invert_ref,
+                    Mat1d &accuracyMatte, 
+                    std::map<std::string, double> &accuracy)
 {
 
   // seed
@@ -34,6 +37,9 @@ void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::List &keypoints,
   for (unsigned int i = 0; i < ref_mat.size(); i++)
     matches.push_back(cv::DMatch(i, i, 0));
 
+  // message
+  Rcout << "Running Thin-Plate-Spline Alignment" << endl;
+  
   // calculate transformation
   Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
   tps->estimateTransformation(ref_mat, query_mat, matches);
@@ -47,14 +53,34 @@ void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::List &keypoints,
   int x_max = max(im1.cols, im2.cols);
 
   // extend images
-  cv::copyMakeBorder(im1, im1, 0.0, (int) (y_max - im1.rows), 0.0, (x_max - im1.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+  cv::copyMakeBorder(im1, im1, 
+                     0.0, (int) (y_max - im1.rows), 
+                     0.0, (x_max - im1.cols), 
+                     cv::BORDER_CONSTANT, 
+                     Scalar(0, 0, 0));
 
   // transform image
   tps->warpImage(im1, im1Reg);
-
+  
+  
   // resize image
-  cv::Mat im1Reg_cropped  = im1Reg(cv::Range(0,im2.size().height), cv::Range(0,im2.size().width));
+  cv::Mat im1Reg_cropped  = im1Reg(cv::Range(0,im2.size().height), 
+                                   cv::Range(0,im2.size().width));
   im1Reg = im1Reg_cropped.clone();
+  
+  // get alignment metrics
+  cv::Mat alignmentMask = generateOverlapMask(im2.size(),
+                                              tps, 
+                                              im1Reg.size());
+  
+  // get matte metric, process 
+  Mat im1Proc, im2Proc;
+  cvtColor(im1Reg, im1Proc, cv::COLOR_BGR2GRAY);
+  cvtColor(im2, im2Proc, cv::COLOR_BGR2GRAY);
+  im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
+  im2Proc = preprocessImage(im2Proc, invert_ref, "None", "0");
+  accuracy = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask);
+  accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
 }
 
 // align images with TPS algorithm
@@ -134,8 +160,9 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
   }
   
   // get alignment metrics
-  cv::Mat alignmentMask = generateOverlapMask(im1Affine, h, 
-                                              im2.size(), im1Affine.size());
+  cv::Mat alignmentMask = generateOverlapMask(im2.size(), 
+                                              h, 
+                                              im1Affine.size());
 
   // get matte metric, process 
   Mat im1Proc, im2Proc;
@@ -143,7 +170,7 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
   cvtColor(im2, im2Proc, cv::COLOR_BGR2GRAY);
   im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
   im2Proc = preprocessImage(im2Proc, invert_ref, "None", "0");
-  accuracy = getAlignmentMetrics(im1Proc, im2Proc, h, alignmentMask);
+  accuracy = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask);
   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
   
   if(!run_TPS){
@@ -291,7 +318,12 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
   if(strcmp(method.get_cstring(), "Non-Rigid") == 0){
     alignImagesTPS(im, imReference, imReg, 
                    keypoints, 
-                   query_landmark, reference_landmark);
+                   query_landmark, 
+                   reference_landmark,
+                   invert_query, 
+                   invert_ref,
+                   accuracyMatte, 
+                   accuracy);
   }
   
   // transformation matrix, can be either a matrix, set of keypoints or both

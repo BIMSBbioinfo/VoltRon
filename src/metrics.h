@@ -1,5 +1,11 @@
 #include "Rcpp.h"
 #include <opencv2/opencv.hpp>
+#include "opencv2/shape/shape_transformer.hpp"
+
+// Namespaces
+using namespace Rcpp;
+using namespace std;
+using namespace cv;
 
 #ifndef METRICS_H
 #define METRICS_H
@@ -22,11 +28,17 @@ void maskKeypoints(std::vector<cv::KeyPoint> &keypoints1_good, std::vector<cv::K
 // check if keypoints are degenerate
 bool checkDegenerate(double pts1, double pts2);
 
-cv::Mat generateOverlapMask(cv::Mat& im, cv::Mat& h, 
-                            cv::Size dsize, cv::Size ssize);
+cv::Mat generateOverlapMask(cv::Size dsize,
+                            cv::Mat& h, 
+                            cv::Size ssize);
 
-std::map<std::string, double> getAlignmentMetrics(cv::Mat &im1, cv::Mat &im2, 
-                                        cv::Mat &h, cv::Mat &mask);
+cv::Mat generateOverlapMask(cv::Size dsize, 
+                            Ptr<ThinPlateSplineShapeTransformer>& tps, 
+                            cv::Size ssize);
+
+std::map<std::string, double> getAlignmentMetrics(cv::Mat &im1, 
+                                                  cv::Mat &im2, 
+                                                  cv::Mat &mask);
 
 // do overall checks on keypoints and images
 std::map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &points1, 

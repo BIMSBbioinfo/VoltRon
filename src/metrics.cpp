@@ -4,7 +4,6 @@
 #include <opencv2/opencv.hpp>
 #include "opencv2/features2d.hpp"
 #include "opencv2/shape/shape_transformer.hpp"
-// #include <opencv2/imgproc.hpp>
 
 // Internal functions
 #include "auxiliary.h"
@@ -138,8 +137,9 @@ bool checkDegenerate(double pts1, double pts2) {
   return is_degenerate;
 }
 
-cv::Mat generateOverlapMask(cv::Mat& im, cv::Mat& h, 
-                            cv::Size dsize, cv::Size ssize)
+cv::Mat generateOverlapMask(cv::Size dsize,
+                            cv::Mat& h, 
+                            cv::Size ssize)
 {
   // generate mask
   cv::Mat mask = cv::Mat::ones(ssize, CV_8UC1) * 255;
@@ -159,6 +159,28 @@ cv::Mat generateOverlapMask(cv::Mat& im, cv::Mat& h,
                         interp, borderMode, borderValue);
   }
 
+  // Force binary mask again.
+  cv::threshold(warped, warped, 0, 255, cv::THRESH_BINARY);
+  return warped;
+}
+
+cv::Mat generateOverlapMask(cv::Size dsize, 
+                            Ptr<ThinPlateSplineShapeTransformer>& tps,
+                            cv::Size ssize)
+{
+  // generate mask
+  cv::Mat mask = cv::Mat::ones(ssize, CV_8UC1) * 255;
+  cv::Mat warped;
+  
+  // Keep masks crisp: nearest-neighbor only.
+  const int interp = cv::INTER_NEAREST;
+  const int borderMode = cv::BORDER_CONSTANT;
+  const cv::Scalar borderValue(0);
+  
+  // warp mask
+  tps->warpImage(mask, warped, 
+                 interp, borderMode, borderValue);
+  
   // Force binary mask again.
   cv::threshold(warped, warped, 0, 255, cv::THRESH_BINARY);
   return warped;
@@ -260,7 +282,7 @@ double NormalizedMutualInfo(cv::Mat& im1, cv::Mat& im2,
   return (ent1+ent2)/ent12;
 }
 
-std::map<std::string, double> getAlignmentMetrics(Mat &im1, Mat &im2, Mat &h, Mat &mask){
+std::map<std::string, double> getAlignmentMetrics(Mat &im1, Mat &im2, Mat &mask){
   
   // Metrics
   std::map<std::string, double> metrics;
