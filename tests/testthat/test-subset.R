@@ -41,3 +41,25 @@ test_that("subset image", {
     expect_null(subset(visium_data, image = "25x20+243+190"))
   )
 })
+
+test_that("subset metadata (data.table)", {
+  
+  # visium
+  data("merged_object")
+  
+  # subset data.table, features
+  md <- Metadata(merged_object, assay = "Assay2")
+  expect_true(
+    is(subset_metadata(md, features = c("qv", "gene")), "data.table")
+  )
+  expect_true(
+      is(subset_metadata(md, features = c("gene")), "vector")
+  )
+  
+  # subset spatial points
+  set.seed(1)
+  spatialpoints <- sample(md$id, 100)
+  md_subset <- subset_metadata(md, spatialpoints = spatialpoints)
+  expect_identical(md_subset$id, spatialpoints)
+  
+})
