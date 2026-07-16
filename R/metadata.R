@@ -550,11 +550,6 @@ subset_metadata <- function(
       } else if (!is.null(samples)) {
         metadata <- subset(metadata, subset = Sample %in% samples)
       } else if (!is.null(spatialpoints)) {
-        # if ("id" %in% colnames(metadata)) {
-        #   metadata <- metadata[metadata$id %in% spatialpoints, ]
-        # } else {
-        #   metadata <- metadata[rownames(metadata) %in% spatialpoints, ]
-        # }
         cur_column <- if ("id" %in% colnames(metadata)) 
           metadata$id
         else 
@@ -568,9 +563,6 @@ subset_metadata <- function(
             metadata[,..selected_features] 
           else 
             metadata[[selected_features]]
-          # metadata <- metadata[, get(names(metadata)[which(
-          #   colnames(metadata) == features
-          # )])]
         } else {
           metadata <- metadata[, features, drop = drop]
         }
