@@ -2952,30 +2952,34 @@ getManualRegisteration <- function(
       
       # Plot Matte
       lapply(register_ind, function(i) {
-        cur_alignment_image <- matte_map_list[[i]]
-        output[[paste0("plot_matte_map", i)]] <- renderPlot({
-          if (!suppressWarnings(!is.matrix(cur_alignment_image))) {
-            cur_alignment_image <- 
-              cur_alignment_image[nrow(cur_alignment_image):1,]
-            ggplot(reshape2::melt(cur_alignment_image), 
-                   aes(Var2, Var1, fill= value)) + 
-              ggplot2::geom_tile() + 
-              ggplot2::theme_void() + 
-              ggplot2::coord_fixed(expand = FALSE) + 
-              ggplot2::scale_fill_gradient(low = "#440154FF", 
-                                           high = "#FDE725FF", 
-                                           name = "Matte's MI")
-          }
-        })
+        if(length(matte_map_list)){
+          cur_alignment_image <- matte_map_list[[i]]
+          output[[paste0("plot_matte_map", i)]] <- renderPlot({
+            if (!suppressWarnings(!is.matrix(cur_alignment_image))) {
+              cur_alignment_image <- 
+                cur_alignment_image[nrow(cur_alignment_image):1,]
+              ggplot(reshape2::melt(cur_alignment_image), 
+                     aes(Var2, Var1, fill= value)) + 
+                ggplot2::geom_tile() + 
+                ggplot2::theme_void() + 
+                ggplot2::coord_fixed(expand = FALSE) + 
+                ggplot2::scale_fill_gradient(low = "#440154FF", 
+                                             high = "#FDE725FF", 
+                                             name = "Matte's MI")
+            }
+          }) 
+        }
       })
 
       # Plot Alignment Stats
       lapply(register_ind, function(i) {
-        cur_align_stats <- alignment_stats_list[[i]]
-        output[[paste0("alignment_stats", i)]] <- renderTable({
-          data.frame(Metrics = names(cur_align_stats), 
-                     `Stats.` = cur_align_stats)
-        })
+        if(length(alignment_stats_list)){
+          cur_align_stats <- alignment_stats_list[[i]]
+          output[[paste0("alignment_stats", i)]] <- renderTable({
+            data.frame(Metrics = names(cur_align_stats), 
+                       `Stats.` = cur_align_stats)
+          })
+        }
       })
       
       # Output summary
@@ -3199,12 +3203,6 @@ getRcppManualRegistration <- function(
     reg[[1]] <- list(reg[[1]][[1]], NULL)
   }
   
-  # adjust matte mi map
-  tmp <- reg[[3]]
-  tmp[is.na(tmp)] <- 0
-  tmp[tmp < 0] <- 0
-  reg[[3]] <- tmp
-  
   # check for null images
   aligned_image <- if(ncol(reg[[2]]) == 2){
     rownames(reg[[2]]) <- rownames(query_image)
@@ -3220,19 +3218,29 @@ getRcppManualRegistration <- function(
   }
 
   # check for null data
-  matte_map <-
-    if (!is.null(reg[[3]])) reg[[3]] else NA
-  metrics <- .ALIGNMENT_ACCURACY_METRICS
-  alignment_stats <- {
-    if (!is.null(reg[[4]])){
-      if(!all(names(reg[[4]]) %in% metrics)){
-        stop("There are missing accuracy metrics!")
-      } else {
-        reg[[4]][metrics]
+  if(length(reg) > 2){
+    matte_map <-
+      if (!is.null(reg[[3]])) {
+        tmp <- reg[[3]]
+        tmp[is.na(tmp)] <- 0
+        tmp[tmp < 0] <- 0
+        tmp
+      } else NA
+    metrics <- .ALIGNMENT_ACCURACY_METRICS
+    alignment_stats <- {
+      if (!is.null(reg[[4]])){
+        if(!all(names(reg[[4]]) %in% metrics)){
+          stop("There are missing accuracy metrics!")
+        } else {
+          reg[[4]][metrics]
+        }
+      } else{
+        NA
       }
-    } else{
-      NA
-    }
+    } 
+  } else {
+    matte_map <- NULL
+    alignment_stats <- NULL
   }
   
   return(list(

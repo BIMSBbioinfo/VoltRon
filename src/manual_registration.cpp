@@ -133,10 +133,6 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
     cv::perspectiveTransform(query_mat, query_reg, h);
   }
   
-  // TODO: remove later
-  // imwrite("img1.tif", im1Affine);
-  // imwrite("img2.tif", im2);
-  
   // get alignment metrics
   cv::Mat alignmentMask = generateOverlapMask(im1Affine, h, 
                                               im2.size(), im1Affine.size());
