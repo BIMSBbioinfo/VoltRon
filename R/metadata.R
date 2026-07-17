@@ -522,7 +522,7 @@ subset_metadata <- function(
       metadata <- metadata[cur_column %in% samples, ]
     } else if (!is.null(spatialpoints)) {
       selected_sp <- spatialpoints[spatialpoints %in% as.vector(metadata$id)]
-      metadata <- metadata[match(selected_sp, metadata$id), ]
+      metadata <- metadata[match(selected_sp, as.vector(metadata$id)), ]
     } else if (!is.null(features)) {
       metadata <- metadata[, features]
     } else {
