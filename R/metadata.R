@@ -555,7 +555,7 @@ subset_metadata <- function(
         else 
           rownames(metadata)
         selected_sp <- spatialpoints[spatialpoints %in% cur_column]
-        metadata <- metadata[selected_sp, ]
+        metadata <- metadata[match(selected_sp, cur_column), ]
       } else if (!is.null(features)) {
         if (inherits(metadata, "data.table")) {
           selected_features <- features[features %in% colnames(metadata)]
