@@ -163,7 +163,6 @@ subsetvrAssay <- function(
 
     if (length(features) > 0) {
       object <- subsetData(object, features = features)
-      object <- subsetData(object, features = features)
     } else {
       stop("none of the provided features are found in the assay")
     }
@@ -184,7 +183,8 @@ subsetvrAssay <- function(
 
       # data
       object <- subsetData(object, spatialpoints = spatialpoints)
-      object <- subsetData(object, spatialpoints = spatialpoints)
+      # TODO: why two ?
+      # object <- subsetData(object, spatialpoints = spatialpoints)
 
       # embeddings
       for (embed in vrEmbeddingNames(object)) {
@@ -218,7 +218,6 @@ subsetvrAssay <- function(
       spatialpoints <- rownames(vrCoordinates(object@image[[img]]))
 
       # data
-      object <- subsetData(object, spatialpoints = spatialpoints)
       object <- subsetData(object, spatialpoints = spatialpoints)
 
       # embeddings
@@ -422,32 +421,30 @@ subsetData <- function(object, spatialpoints = NULL, features = NULL) {
   if (!is.null(features)) {
     if (inherits(object, "vrAssay")) {
       if (nrow(object@rawdata) > 0) {
-        object@rawdata <- object@rawdata[
-          rownames(object@rawdata) %in% features,
-          ,
-          drop = FALSE
-        ]
-        object@normdata <- object@normdata[
-          rownames(object@normdata) %in% features,
-          ,
-          drop = FALSE
-        ]
+        # raw data
+        selected_features <- features[features %in% rownames(object@rawdata)]
+        object@rawdata <- object@rawdata[selected_features,,drop = FALSE]
+        # normalized data
+        selected_features <- features[features %in% rownames(object@normdata)]
+        object@normdata <- object@normdata[selected_features,,drop = FALSE]
       }
     } else {
       main <- vrMainFeatureType(object)
       if (nrow(object@data[[main]]) > 0) {
-        object@data[[main]] <- object@data[[main]][
-          rownames(object@data[[main]]) %in% features,
-          ,
-          drop = FALSE
+        # raw data
+        selected_features <- features[
+          features %in% rownames(object@data[[main]])
         ]
-        object@data[[paste0(main, "_norm")]] <- object@data[[paste0(
-          main,
-          "_norm"
-        )]][
-          rownames(object@data[[paste0(main, "_norm")]]) %in% features,
-          ,
-          drop = FALSE
+        object@data[[main]] <- object@data[[main]][
+          selected_features,, drop = FALSE
+        ]
+        # normalized data
+        selected_features <- features[
+          features %in% rownames(object@data[[paste0(main, "_norm")]])
+        ]
+        object@data[[paste0(main, "_norm")]] <- 
+          object@data[[paste0(main, "_norm")]][
+            selected_features,,drop = FALSE
         ]
       }
     }
@@ -457,29 +454,29 @@ subsetData <- function(object, spatialpoints = NULL, features = NULL) {
   if (!is.null(spatialpoints)) {
     if (inherits(object, "vrAssay")) {
       if (ncol(object@rawdata) > 0) {
-        object@rawdata <- object@rawdata[,
-          colnames(object@rawdata) %in% spatialpoints,
-          drop = FALSE
-        ]
-        object@normdata <- object@normdata[,
-          colnames(object@normdata) %in% spatialpoints,
-          drop = FALSE
-        ]
+        # raw data
+        selected_sp <- 
+          spatialpoints[spatialpoints %in% colnames(object@rawdata)]
+        object@rawdata <- object@rawdata[, selected_sp, drop = FALSE]
+        # normalized data
+        selected_sp <- 
+          spatialpoints[spatialpoints %in% colnames(object@normdata)]
+        object@normdata <- object@normdata[, selected_sp, drop = FALSE]
       }
     } else {
       for (nm in vrFeatureTypeNames(object)) {
         if (ncol(object@data[[nm]]) > 0) {
-          object@data[[nm]] <- object@data[[nm]][,
-            colnames(object@data[[nm]]) %in% spatialpoints,
-            drop = FALSE
-          ]
-          object@data[[paste0(nm, "_norm")]] <- object@data[[paste0(
-            nm,
-            "_norm"
-          )]][,
-            colnames(object@data[[paste0(nm, "_norm")]]) %in% spatialpoints,
-            drop = FALSE
-          ]
+          # raw data
+          selected_sp <- 
+            spatialpoints[spatialpoints %in% colnames(object@data[[nm]])]
+          object@data[[nm]] <- object@data[[nm]][, selected_sp, drop = FALSE]
+          # normalized data
+          selected_sp <- 
+            spatialpoints[
+              spatialpoints %in% colnames(object@data[[paste0(nm, "_norm")]])
+            ]
+          object@data[[paste0(nm, "_norm")]] <- 
+            object@data[[paste0(nm, "_norm")]][, selected_sp, drop = FALSE]
         }
       }
     }

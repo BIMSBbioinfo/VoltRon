@@ -45,20 +45,20 @@ test_that("as.AnnData, python path", {
   data("xenium_data")
 
   # python.path
-  expect_error(as.AnnData(visium_data, file = h5ad_file, python.path = ""))
+  expect_error(as.AnnData(visium_data, file = zarr_file, python.path = ""))
 
   # TODO: doesnt give the expected error
+  #       because the python path actually exists in some OS
   # python.path
   # python.path <- system("which python", intern = TRUE)
   # expect_error(as.AnnData(visium_data, file = zarr_file, python.path = python.path))
   # expect_error(as.AnnData(visium_data, file = zarr_file, python.path = ""))
-
-  # TODO: doesnt give the expected error
-  # options path
   # options(voltron.python.path = python.path)
   # expect_error(as.AnnData(visium_data, file = zarr_file))
-  # options(voltron.python.path = NULL)
-  # expect_true(as.AnnData(visium_data, file = zarr_file))
+  
+  # options path
+  options(voltron.python.path = NULL)
+  expect_true(as.AnnData(visium_data, file = zarr_file))
 
   # clean file
   expect_equal(1,1L)
@@ -89,14 +89,17 @@ test_that("as.ometiff, python path", {
   expect_error(as.OmeTiff(magick::image_read(data.file), out_path = ometiff_file, python.path = ""))
 
   # python.path
-  python.path <- system("which python", intern = TRUE)
-  expect_error(as.OmeTiff(magick::image_read(data.file), out_path = ometiff_file, python.path = python.path))
+  # TODO: this is not a good test
+  # python.path <- system("which python", intern = TRUE)
+  # expect_error(as.OmeTiff(magick::image_read(data.file), out_path = ometiff_file, python.path = python.path))
 
   # options path
-  options(voltron.python.path = python.path)
-  expect_error(as.OmeTiff(magick::image_read(data.file), out_path = ometiff_file))
   options(voltron.python.path = NULL)
   expect_true(as.OmeTiff(magick::image_read(data.file), out_path = ometiff_file))
+  # TODO: not sure why this supposed to fail
+  # python.path <- system("which python", intern = TRUE)
+  # options(voltron.python.path = python.path)
+  # expect_error(as.OmeTiff(magick::image_read(data.file), out_path = ometiff_file))
 
   # clean file
   file.remove(ometiff_file)

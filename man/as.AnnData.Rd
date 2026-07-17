@@ -9,7 +9,7 @@ as.AnnData(
   file,
   assay = NULL,
   flip_coordinates = FALSE,
-  method = "anndata",
+  method = "anndataR",
   create.ometiff = FALSE,
   python.path = NULL,
   ...
