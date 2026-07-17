@@ -1,6 +1,5 @@
 #include <Rcpp.h>
-
-// OpenCV
+#include <optional>
 #include <opencv2/opencv.hpp>
 
 // Internal functions

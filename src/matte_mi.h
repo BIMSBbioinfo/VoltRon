@@ -1,4 +1,5 @@
 #include "Rcpp.h"
+#include <optional>
 #include <opencv2/opencv.hpp>
 
 #ifndef MATTE_MI_H
