@@ -6,11 +6,11 @@ test_that("spatialpoints", {
   
   # get spatial points
   expect_equal(head(vrSpatialPoints(visium_data)),
-               c("AAAGGCTCTCGCGCCG-1_Assay1","AAATGGCCCGTGCCCT-1_Assay1","AAATTACACGACTCTG-1_Assay1","AAGACATACGTGGTTT-1_Assay1",
-                 "ACCTACTATAAATCTA-1_Assay1", "ACGCGGGCCAAGGACA-1_Assay1"))
+               c("CCTTGACCACTTTATT-1_Assay1", "ATTTGTCTTGGGAGCT-1_Assay1", "TCACGCATTGTAGATC-1_Assay1", "CCGAGCTGTGCTTGTC-1_Assay1",
+                 "GCATGGGTACTGACGC-1_Assay1", "AGTCGGCCCAAACGAC-1_Assay1"))
   expect_equal(head(vrSpatialPoints(visium_data, assay = "Assay1")),
-               c("AAAGGCTCTCGCGCCG-1_Assay1","AAATGGCCCGTGCCCT-1_Assay1","AAATTACACGACTCTG-1_Assay1","AAGACATACGTGGTTT-1_Assay1", 
-                 "ACCTACTATAAATCTA-1_Assay1", "ACGCGGGCCAAGGACA-1_Assay1"))
+               c("CCTTGACCACTTTATT-1_Assay1", "ATTTGTCTTGGGAGCT-1_Assay1", "TCACGCATTGTAGATC-1_Assay1", "CCGAGCTGTGCTTGTC-1_Assay1",
+                 "GCATGGGTACTGACGC-1_Assay1", "AGTCGGCCCAAACGAC-1_Assay1"))
   
   # subset on spatial points
   spatialpoints <- vrSpatialPoints(visium_data)
