@@ -489,11 +489,14 @@ subset_metadata <- function(
       } else if (!is.null(samples)) {
         metadata <- subset(metadata, subset = Sample %in% samples)
       } else if (!is.null(spatialpoints)) {
-        metadata <- subset(metadata, subset = id %in% spatialpoints)
+        selected_sp <- spatialpoints[spatialpoints %in% metadata$id]
+        metadata <- metadata[match(selected_sp, id)]
       } else if (!is.null(features)) {
-        metadata <- metadata[, get(names(metadata)[which(
-          colnames(metadata) %in% features
-        )])]
+        selected_features <- features[features %in% colnames(metadata)]
+        metadata <- if(length(selected_features) > 1) 
+          metadata[,..selected_features] 
+        else 
+          metadata[[selected_features]]
       } else {
         stop("No assay, sample or spatial points were provided!")
       }
@@ -518,8 +521,8 @@ subset_metadata <- function(
       cur_column <- as.vector(metadata$Sample)
       metadata <- metadata[cur_column %in% samples, ]
     } else if (!is.null(spatialpoints)) {
-      cur_column <- as.vector(metadata$id)
-      metadata <- metadata[cur_column %in% spatialpoints, ]
+      selected_sp <- spatialpoints[spatialpoints %in% as.vector(metadata$id)]
+      metadata <- metadata[match(selected_sp, as.vector(metadata$id)), ]
     } else if (!is.null(features)) {
       metadata <- metadata[, features]
     } else {
@@ -547,20 +550,22 @@ subset_metadata <- function(
       } else if (!is.null(samples)) {
         metadata <- subset(metadata, subset = Sample %in% samples)
       } else if (!is.null(spatialpoints)) {
-        if ("id" %in% colnames(metadata)) {
-          metadata <- metadata[metadata$id %in% spatialpoints, ]
-        } else {
-          metadata <- metadata[rownames(metadata) %in% spatialpoints, ]
-        }
+        cur_column <- if ("id" %in% colnames(metadata)) 
+          metadata$id
+        else 
+          rownames(metadata)
+        selected_sp <- spatialpoints[spatialpoints %in% cur_column]
+        metadata <- metadata[match(selected_sp, cur_column), ]
       } else if (!is.null(features)) {
         if (inherits(metadata, "data.table")) {
-          metadata <- metadata[, get(names(metadata)[which(
-            colnames(metadata) == features
-          )])]
+          selected_features <- features[features %in% colnames(metadata)]
+          metadata <- if(length(selected_features) > 1) 
+            metadata[,..selected_features] 
+          else 
+            metadata[[selected_features]]
         } else {
           metadata <- metadata[, features, drop = drop]
         }
-        # metadata <- metadata[,features, drop = drop]
       } else {
         stop("No assay, sample or spatial points were provided!")
       }

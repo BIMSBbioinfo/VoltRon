@@ -209,14 +209,24 @@ vrSpatialPlot(vr2_merged_acute1, assay = "Xenium", group.by = "CellType",
 
 VoltRon can analyze and also integrate information from distinct spatial data types such as images, annotations (as regions of interests, i.e. ROIs) and molecules independently. Using such advanced utilities, we can make use of histological information and generate new metadata level information for molecule datasets.
 
-We will first import both histological images and manual annotations using the **importImageData** function which accepts both images to generate tile/pixel level datasets but also allows one to import either a list of segments or [GeoJSON](https://geojson.org/) objects for create ROI-level datasets as separate assays in a single VoltRon layer. The .geojson file was generated using [QuPath](https://qupath.github.io/) on the same section H&E image of one Xenium section with the acute COVID-19 case. We also have to flip the coordinates of ROI annotations also for they were directly imported from QuPath which incorporates a reverse coordinate system on the y-axis.
+We will first import both histological images and manual annotations using the **importImageData** function which accepts both images to generate tile/pixel level datasets but also allows one to import either a list of segments to create ROI-level datasets as separate assays in a single VoltRon layer. The .geojson file was generated using [QuPath](https://qupath.github.io/) on the same section H&E image of one Xenium section with the acute COVID-19 case. We use the **sf** package to import these segments and then
+process them to generate a list of polygons. We also have to flip the coordinates of ROI annotations also for they were directly imported from QuPath which incorporates a reverse coordinate system on the y-axis.
 
 Once imported, the resulting VoltRon object will have two assays in a single layer, one for tile dataset of the H&E image and the other for ROI based annotations of again the same image. You can download the H&E image from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/acutecase1_HE.jpg), and download the json file from [here](https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/acutecase1_membrane.geojson).
 
 ```{r eval = FALSE, class.source="watch-out"}
+if(!requireNamespace("sf"))
+  install.packages("sf")
+library(sf)
+
+# get segments
+segments <- read_sf("acutecase1_membrane.geojson", type = 3)
+segments <- st_cast(segments, "POLYGON")
+segments <- generateSegments(segments)
+
 # get image
 imgdata <- importImageData("acutecase1_HE.jpg", 
-                           segments = "acutecase1_membrane.geojson", 
+                           segments = segments, 
                            sample_name = "acute case 1 (HE)")
 imgdata <- flipCoordinates(imgdata, assay = "ROIAnnotation")
 imgdata
@@ -267,10 +277,10 @@ Once registered, we can isolate the registered H&E data and use it further analy
 
 ```{r eval = FALSE, class.source="watch-out"}
 imgdata_reg <- xen_reg$registered_spat[[2]]
-vrImages(vr2_merged_acute1[["Assay7"]], name = "main", channel = "H&E") <- 
-  vrImages(imgdata_reg, assay = "Assay1", name = "main_reg")
-vrImages(vr2_merged_acute1[["Assay8"]], name = "main", channel = "H&E") <- 
-  vrImages(imgdata_reg, assay = "Assay1", name = "main_reg")
+vrImages(vr2_merged_acute1[["Assay7"]], spatial = "main", channel = "H&E") <- 
+  vrImages(imgdata_reg, assay = "Assay1", spatial = "main_reg")
+vrImages(vr2_merged_acute1[["Assay8"]], spatial = "main", channel = "H&E") <- 
+  vrImages(imgdata_reg, assay = "Assay1", spatial = "main_reg")
 ```
 
 We can now observe the new channels available for the both molecule and cell-level assays of Xenium data. 
@@ -314,7 +324,7 @@ Once the H&E image is registered and transfered to the Xenium data, we can conve
 ```{r eval = FALSE, class.source="watch-out"}
 # convert VoltRon object to h5ad
 as.AnnData(vr2_merged_acute1, assay = "Xenium", file = "vr2_merged_acute1.h5ad", 
-           flip_coordinates = TRUE, name = "main", channel = "H&E")
+           flip_coordinates = TRUE, spatial = "main", channel = "H&E")
 ```
 
 To run TissUUmaps please follow installation instructions [here](https://tissuumaps.github.io/installation/), then you can simply drag and drop both the h5ad file and png file to the application.
@@ -624,7 +634,7 @@ Xen_R1_merged <- transferData(Xen_R1_merged,
                               expand = FALSE)
 
 # transfer image
-vrImages(Xen_R1_merged[["Assay2"]], name = "main_reg", channel = "H&E") <- 
+vrImages(Xen_R1_merged[["Assay2"]], spatial = "main_reg", channel = "H&E") <- 
   vrImages(Xen_R1_merged, assay = "Assay1")
 ```
 
@@ -817,9 +827,9 @@ We can also transfer the CD20, and CD21 channels to the registered coordinate
 space of the Xenium data. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrImages(xen_tonsil[["Assay1"]], name = "main_reg", channel = "CD20") <- 
+vrImages(xen_tonsil[["Assay1"]], spatial = "main_reg", channel = "CD20") <- 
   vrImages(if_tonsil, channel = "CD20")
-vrImages(xen_tonsil[["Assay1"]], name = "main_reg", channel = "CD21") <- 
+vrImages(xen_tonsil[["Assay1"]], spatial = "main_reg", channel = "CD21") <- 
   vrImages(if_tonsil, channel = "CD21")
 ```
 

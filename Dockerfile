@@ -9,6 +9,9 @@ RUN apt-get install -y libssl-dev libcurl4-openssl-dev libgit2-dev libxml2-dev l
 # RCDT/rgl dependencies
 RUN apt-get install -y libglu1-mesa libglu1-mesa-dev libxext6 libsm6 libxrender1
 
+# sf dependencies
+RUN apt-get install -y libuv1-dev
+
 # Install required R packages
 RUN R -e "install.packages(c('shiny', 'devtools', 'BiocManager'), repos='http://cran.rstudio.com/')"
 

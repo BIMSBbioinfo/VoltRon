@@ -1382,7 +1382,7 @@ applyPerspectiveTransform <- function(
   }
 
   # If there are images, make new image object
-  vrImages(object[[assay]], reg = TRUE) <- formImage(
+  vrImages(object[[assay]], reg = TRUE) <- formSpatial(
     coords = coords_reg,
     segments = segments_reg,
     image = image_reg_list

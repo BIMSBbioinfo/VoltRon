@@ -19,7 +19,7 @@ vrImages(object, ...)
 \S4method{vrImages}{VoltRon}(
   object,
   assay = NULL,
-  name = NULL,
+  spatial = NULL,
   reg = FALSE,
   channel = NULL,
   as.raster = FALSE,
@@ -28,7 +28,7 @@ vrImages(object, ...)
 
 \S4method{vrImages}{vrAssay}(
   object,
-  name = NULL,
+  spatial = NULL,
   reg = FALSE,
   channel = NULL,
   as.raster = FALSE,
@@ -37,7 +37,7 @@ vrImages(object, ...)
 
 \S4method{vrImages}{vrAssayV2}(
   object,
-  name = NULL,
+  spatial = NULL,
   reg = FALSE,
   channel = NULL,
   as.raster = FALSE,
@@ -48,9 +48,9 @@ vrImages(object, ...)
 
 \S4method{vrImages}{vrSpatial}(object, channel = NULL, as.raster = FALSE, scale.perc = 100)
 
-\S4method{vrImages}{vrAssay}(object, name = NULL, channel = NULL, reg = FALSE) <- value
+\S4method{vrImages}{vrAssay}(object, spatial = NULL, channel = NULL, reg = FALSE) <- value
 
-\S4method{vrImages}{vrAssayV2}(object, name = NULL, channel = NULL, reg = FALSE) <- value
+\S4method{vrImages}{vrAssayV2}(object, spatial = NULL, channel = NULL, reg = FALSE) <- value
 
 \S4method{vrImages}{vrImage}(object, channel = NULL) <- value
 
@@ -67,7 +67,7 @@ vrImages(object, ...) <- value
 see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{name}{the name of the main spatial system}
+\item{spatial}{the name of the spatial coordinate system}
 
 \item{reg}{TRUE if registered coordinates of the main image 
 (\link{vrMainSpatial}) is requested}

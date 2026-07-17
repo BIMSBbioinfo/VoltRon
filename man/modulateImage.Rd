@@ -14,7 +14,7 @@ modulateImage(object, ...)
 \S4method{modulateImage}{VoltRon}(
   object,
   assay = NULL,
-  name = NULL,
+  spatial = NULL,
   reg = FALSE,
   channel = NULL,
   brightness = 100,
@@ -25,7 +25,7 @@ modulateImage(object, ...)
 
 \S4method{modulateImage}{vrAssay}(
   object,
-  name = NULL,
+  spatial = NULL,
   reg = FALSE,
   channel = NULL,
   brightness = 100,
@@ -36,7 +36,7 @@ modulateImage(object, ...)
 
 \S4method{modulateImage}{vrAssayV2}(
   object,
-  name = NULL,
+  spatial = NULL,
   reg = FALSE,
   channel = NULL,
   brightness = 100,
@@ -72,7 +72,7 @@ modulateImage(object, ...)
 see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{name}{the name of the image}
+\item{spatial}{the name of the spatial coordinate system}
 
 \item{reg}{TRUE if registered coordinates of the main image 
 (\link{vrMainSpatial}) is requested}

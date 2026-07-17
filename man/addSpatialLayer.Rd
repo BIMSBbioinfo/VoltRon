@@ -54,7 +54,7 @@ Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of
 
 \item{graph.edge.color}{the color of graph edges, if \code{graph} is not NULL.}
 
-\item{spatial}{the name of the main spatial system}
+\item{spatial}{the name of the spatial coordinate system}
 
 \item{combine.groups}{if TRUE, tile colors will reflect relative abundance of either of two groups, strictly for visualizing two groups when assay is a molecule typed and tiled (see \code{n.tile}).}
 }

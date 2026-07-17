@@ -61,7 +61,7 @@ We incorporate **importImageData** to convert an image into a tile/pixel-based s
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif",
                                 sample_name = "XeniumR1image", 
-                                image_name = "H&E", tile.size = 100)
+                                spatial = "H&E", tile.size = 100)
 Xen_R1_image
 ```
 
@@ -187,7 +187,7 @@ We first import the H&E image to VoltRon. This time we will set the tile size to
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif",
                                 sample_name = "XeniumR1image",
-                                image_name = "H&E", tile.size = 128)
+                                spatial = "H&E", tile.size = 128)
 Xen_R1_image@metadata
 ```
 

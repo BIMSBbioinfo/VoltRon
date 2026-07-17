@@ -8,7 +8,8 @@ importPhenoCycler(
   dir.path,
   assay_name = "PhenoCycler",
   sample_name = NULL,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   type = c("inform", "processor", "qupath"),
   filter = "DAPI|Blank|Empty",
   inform.quant = c("mean", "total", "min", "max", "std"),
@@ -23,7 +24,9 @@ importPhenoCycler(
 
 \item{sample_name}{the name of the sample}
 
-\item{image_name}{the image name of the Xenium assay, Default: main}
+\item{spatial}{the name of the spatial coordinate system, Default: main}
+
+\item{image_name}{(deprecated) the name of the spatial coordinate system, Default: main}
 
 \item{type}{Specify which type matrix is being provided.
 \itemize{

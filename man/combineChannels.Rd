@@ -14,7 +14,7 @@ combineChannels(object, ...)
 \S4method{combineChannels}{VoltRon}(
   object,
   assay = NULL,
-  name = NULL,
+  spatial = NULL,
   reg = FALSE,
   channels = NULL,
   colors = NULL,
@@ -23,7 +23,7 @@ combineChannels(object, ...)
 
 \S4method{combineChannels}{vrAssay}(
   object,
-  name = NULL,
+  spatial = NULL,
   reg = FALSE,
   channels = NULL,
   colors = NULL,
@@ -32,7 +32,7 @@ combineChannels(object, ...)
 
 \S4method{combineChannels}{vrAssayV2}(
   object,
-  name = NULL,
+  spatial = NULL,
   reg = FALSE,
   channels = NULL,
   colors = NULL,
@@ -62,7 +62,7 @@ combineChannels(object, ...)
 see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{name}{the name of the image}
+\item{spatial}{the name of the spatial coordinate system}
 
 \item{reg}{TRUE if registered coordinates of the main image 
 (\link{vrMainSpatial}) is requested}

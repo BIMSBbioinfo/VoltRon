@@ -192,17 +192,17 @@ vrCoordinates(visium_data, assay = "Assay1")
 Each assay a VoltRon object may incorporate indefinite number of coordinate systems. One can look for these coordinate systems using the **vrMainSpatial** function, and select one of systems to call coordinates (see [vrMainSpatial](#image))
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrCoordinates(visium_data, spatial_name = "main")
+vrCoordinates(visium_data, spatial = "main")
 ```
 
 The **reg** option in the **vrCoordinates** function looks for a registered version of the main coordinate system and returns its coordinates (if there is any).
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrCoordinates(visium_data, spatial_name = "main", reg = TRUE)
+vrCoordinates(visium_data, spatial = "main", reg = TRUE)
 ```
 
 ```{r echo = FALSE, class.source="watch-out"}
-head(vrCoordinates(visium_data, spatial_name = "main", reg = TRUE),6)
+head(vrCoordinates(visium_data, spatial = "main", reg = TRUE),6)
 ```
 
 <br>
@@ -213,8 +213,8 @@ The arguments of the **vrSegments** functions are identical to vrCoordinates and
 vrSegments(xenium_data)
 vrSegments(xenium_data, assay = "Xenium")
 vrSegments(xenium_data, assay = "Assay1")
-vrSegments(xenium_data, spatial_name = "main")
-vrSegments(xenium_data, spatial_name = "main", reg = TRUE)
+vrSegments(xenium_data, spatial = "main")
+vrSegments(xenium_data, spatial = "main", reg = TRUE)
 ```
 
 ```{r echo = FALSE, class.source="watch-out"}
@@ -306,11 +306,11 @@ magick::image_ggplot(vrImages(visium_data))
 Once you know the name of a specific channel, you can the image of a specific channel by providing the name and the associated channel.
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrImages(melc_data, name = "MELC", channel = "DAPI")
+vrImages(melc_data, spatial = "MELC", channel = "DAPI")
 ```
 
 ```{r echo = FALSE, class.source="watch-out", fig.align='center', fig.height=5, fig.width=6, out.width="60%"}
-magick::image_ggplot(vrImages(melc_data, name = "MELC", channel = "DAPI"))
+magick::image_ggplot(vrImages(melc_data, spatial = "MELC", channel = "DAPI"))
 ```
 
 <!-- <img width="50%" height="50%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_DAPI.png" class="center"> -->

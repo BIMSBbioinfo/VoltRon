@@ -952,7 +952,8 @@ image, and the other with the one that is registered.</p>
 <p>We can also exchange images where the H&amp;E image now is registered
 to the perspective of the GeoMx channels, and can be defined as a new
 channel in the original GeoMx object.</p>
-<pre class="r watch-out"><code>vrImages(GeoMxR1_subset[[&quot;Assay1&quot;]], name = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- vrImages(vrHEimage_reg, name = &quot;main_reg&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
+<pre class="r watch-out"><code>vrImages(GeoMxR1_subset[[&quot;Assay1&quot;]], spatial = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- 
+  vrImages(vrHEimage_reg, spatial = &quot;main_reg&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
 <p>We can now observe the new channels (H&amp;E) available for the GeoMx
 assay using <strong>vrImageChannelNames</strong>. H&amp;E is saved as a
 separate channel along with the originally available antibody channels

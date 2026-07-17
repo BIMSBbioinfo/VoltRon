@@ -11,11 +11,11 @@
 \usage{
 resizeImage(object, ...)
 
-\S4method{resizeImage}{VoltRon}(object, assay = NULL, name = NULL, reg = FALSE, size = NULL)
+\S4method{resizeImage}{VoltRon}(object, assay = NULL, spatial = NULL, reg = FALSE, size = NULL)
 
-\S4method{resizeImage}{vrAssay}(object, name = NULL, reg = FALSE, size = NULL)
+\S4method{resizeImage}{vrAssay}(object, spatial = NULL, reg = FALSE, size = NULL)
 
-\S4method{resizeImage}{vrAssayV2}(object, name = NULL, reg = FALSE, size = NULL)
+\S4method{resizeImage}{vrAssayV2}(object, spatial = NULL, reg = FALSE, size = NULL)
 
 \S4method{resizeImage}{vrImage}(object, size = NULL)
 
@@ -30,7 +30,7 @@ resizeImage(object, ...)
 see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{name}{the name of the image}
+\item{spatial}{the name of the spatial coordinate system}
 
 \item{reg}{TRUE if registered coordinates of the main image 
 (\link{vrMainSpatial}) is requested}

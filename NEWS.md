@@ -6,6 +6,13 @@
     do not have images, assays can be registered with only the manual approach. 
 -   An image-free alignment tutorial has been added where DBIT-Seq and a QuPath processed mIF experiment are
     aligned using manually selected landmarks.
+-   Now `importImageData` and `importQuPathIF` functions only work with segments already converted to a
+    list by the user, or the `generateSegments` function whose arguement is an **sf** object. 
+-   The `formAssay` function now accepts only segments without the user manually generating coordinates 
+    (or centroids).
+-   The `name` argument in functions like `vrImages`, `vrCoordinates` and `vrSegments` is replaced
+    with `spatial` which is the name of the spatial coordinate system of the assay, spatial object. 
+-   The `formImage` function is replaced with `formSpatial` to avoid confusion. 
     
 # VoltRon 0.2.6
 
