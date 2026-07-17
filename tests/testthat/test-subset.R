@@ -67,7 +67,7 @@ test_that("subset metadata (data.table)", {
 test_that("subset metadata (data.frame)", {
   
   # get data
-  data("xenium_data")
+  data("merged_object")
   
   # subset data.table, features
   md <- Metadata(merged_object, assay = "Assay1")
@@ -83,6 +83,13 @@ test_that("subset metadata (data.frame)", {
   spatialpoints <- sample(md$id, 100)
   md_subset <- subset_metadata(md, spatialpoints = spatialpoints)
   expect_identical(md_subset$id, spatialpoints)
+  
+  # subset spatial points (works without id)
+  set.seed(1)
+  spatialpoints <- sample(md$id, 100)
+  md$id <- NULL
+  md_subset <- subset_metadata(md, spatialpoints = spatialpoints)
+  expect_identical(rownames(md_subset), spatialpoints)
   
 })
 

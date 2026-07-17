@@ -230,7 +230,7 @@ Xen_R1 <- importXenium("Xenium_R1/outs", sample_name = "XeniumR1", resolution_le
 # import H&E image
 Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif",
                                 sample_name = "XeniumR1image",
-                                image_name = "H&E")
+                                spatial = "H&E")
 ```
 
 <br>
@@ -295,7 +295,7 @@ xen_reg <- registerSpatialData(object_list = list(Xen_R1_disk, Xen_R1_image_disk
 ```{r class.source="watch-out", eval = FALSE}
 # transfer aligned H&E to Xenium data
 Xenium_reg <- xen_reg$registered_spat[[2]]
-vrImages(Xen_R1_disk[["Assay1"]], name = "main", channel = "H&E") <- vrImages(Xenium_reg, name = "H&E_reg")
+vrImages(Xen_R1_disk[["Assay1"]], spatial = "main", channel = "H&E") <- vrImages(Xenium_reg, spatial = "H&E_reg")
 
 # visualize
 vrImages(Xen_R1_disk, channel = "H&E", scale.perc = 10)

@@ -636,7 +636,7 @@ Now we create a new channel for the existing coordinate system of the Xenium dat
 
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1_image_reg <- xen_reg$registered_spat[[2]]
-vrImages(Xen_R1[["Assay1"]], channel = "H&E") <- vrImages(Xen_R1_image_reg, name = "main_reg", channel = "H&E")
+vrImages(Xen_R1[["Assay1"]], channel = "H&E") <- vrImages(Xen_R1_image_reg, spatial = "main_reg", channel = "H&E")
 ```
 
 We can now observe the new channels (H&E) available for the Xenium assay using **vrImageChannelNames**.
@@ -808,7 +808,7 @@ vr_all <- addAssay(vr_qupath_reg,
                    assay_name = "DBIT")
 
 # transfer images
-vrImages(vr_all[["Assay2"]], name = "main_reg", channel = "DAPI") <- 
+vrImages(vr_all[["Assay2"]], spatial = "main_reg", channel = "DAPI") <- 
   vrImages(vr_all, assay = "Assay1", channel = "DAPI")
 
 # update radii

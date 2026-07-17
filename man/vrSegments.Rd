@@ -22,14 +22,14 @@ vrSegments(object, ...)
   object,
   assay = NULL,
   image_name = NULL,
-  spatial_name = NULL,
+  spatial = NULL,
   reg = FALSE,
   as.data.frame = FALSE
 )
 
-\S4method{vrSegments}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE)
+\S4method{vrSegments}{vrAssay}(object, image_name = NULL, spatial = NULL, reg = FALSE)
 
-\S4method{vrSegments}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, reg = FALSE)
+\S4method{vrSegments}{vrAssayV2}(object, image_name = NULL, spatial = NULL, reg = FALSE)
 
 \S4method{vrSegments}{vrImage}(object)
 
@@ -39,13 +39,13 @@ vrSegments(object, ...)
   object,
   assay = NULL,
   image_name = NULL,
-  spatial_name = NULL,
+  spatial = NULL,
   reg = FALSE
 ) <- value
 
-\S4method{vrSegments}{vrAssay}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
+\S4method{vrSegments}{vrAssay}(object, image_name = NULL, spatial = NULL, reg = FALSE) <- value
 
-\S4method{vrSegments}{vrAssayV2}(object, image_name = NULL, spatial_name = NULL, reg = FALSE) <- value
+\S4method{vrSegments}{vrAssayV2}(object, image_name = NULL, spatial = NULL, reg = FALSE) <- value
 
 \S4method{vrSegments}{vrImage}(object) <- value
 
@@ -61,9 +61,9 @@ vrSegments(object, ...) <- value
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{image_name}{(deprecated, use \code{spatial_name}) the name/key of the image associated with the coordinates}
+\item{image_name}{(deprecated, use \code{spatial}) the name/key of the image associated with the coordinates}
 
-\item{spatial_name}{the name/key of the spatial system associated with the coordinates}
+\item{spatial}{the name of the spatial coordinate system}
 
 \item{reg}{TRUE if registered coordinates of the main image (\link{vrMainImage}) is requested}
 

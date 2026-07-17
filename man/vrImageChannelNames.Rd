@@ -13,9 +13,9 @@ vrImageChannelNames(object, ...)
 
 \S4method{vrImageChannelNames}{VoltRon}(object, assay = NULL, ...)
 
-\S4method{vrImageChannelNames}{vrAssay}(object, name = NULL, ...)
+\S4method{vrImageChannelNames}{vrAssay}(object, spatial = NULL, ...)
 
-\S4method{vrImageChannelNames}{vrAssayV2}(object, name = NULL, ...)
+\S4method{vrImageChannelNames}{vrAssayV2}(object, spatial = NULL, ...)
 
 \S4method{vrImageChannelNames}{vrImage}(object, return.report = TRUE)
 
@@ -30,7 +30,7 @@ vrImageChannelNames(object, ...)
 see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{name}{the key of the image}
+\item{spatial}{the name of the spatial coordinate system}
 
 \item{return.report}{if TRUE and no image is present, return a character 
 stating that there is no image}

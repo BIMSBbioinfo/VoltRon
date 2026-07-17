@@ -88,7 +88,7 @@ While importing the readouts, we can also determine the name of the assay as wel
 
 ```{r eval = FALSE, class.source="watch-out"}
 Vis_R1 <- importVisium(dir.path = "Visium/", sample_name = "VisiumR1", 
-                       assay_name = "Visium_assay", image_name = "H&E_stain")
+                       assay_name = "Visium_assay", spatial = "H&E_stain")
 SampleMetadata(Vis_R1)
 ```
 
@@ -488,7 +488,8 @@ We use the example with developing eye field in a E10 mouse embryo using 10-μm 
 ```{r eval = FALSE, class.source="watch-out"}
 vr_dbit <- importDBITSeq(path.rna = "GSM4189615_0719cL.tsv", 
                          path.prot = "GSM4202309_0719aL.tsv", 
-                         size = 10, sample_name = "E10_Eye_2", image_name = "main")
+                         size = 10, sample_name = "E10_Eye_2", 
+                         spatial = "main")
 ```
 
 ```
@@ -616,7 +617,7 @@ vr_object<- formVoltRon(data = intensity_data,
                         main.assay = "MELC",
                         assay.type = "cell",
                         sample_name = "control_case_3",
-                        image_name = "DAPI")
+                        spatial = "DAPI")
 vr_object
 ```
 
@@ -641,7 +642,7 @@ vr_object<- formVoltRon(data = intensity_data,
                         main.assay = "MELC",
                         assay.type = "cell",
                         sample_name = "control_case_3",
-                        image_name = "MELC")
+                        spatial = "MELC")
 ```
 
 These channels then can be interrogated and used as background images for spatial plots and spatial feature plots as well.
@@ -658,8 +659,8 @@ Assay1  MELC Section1 control_case_3    MELC DAPI,CD45
 You can extract each of these channels individually.
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrImages(vr_object, name = "MELC", channel = "DAPI")
-vrImages(vr_object, name = "MELC", channel = "CD45")
+vrImages(vr_object, spatial = "MELC", channel = "DAPI")
+vrImages(vr_object, spatial = "MELC", channel = "CD45")
 ```
 
 
@@ -724,7 +725,7 @@ More information on the Xenium and the study can also be found on the [bioRxiv p
 ```{r eval = FALSE, class.source="watch-out"}
 Xen_R1_image <- importImageData("Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif",
                                 sample_name = "XeniumR1image", 
-                                image_name = "H&E")
+                                spatial = "H&E")
 Xen_R1_image
 ```
 

@@ -11,9 +11,9 @@ generateTileData(object, ...)
 
 \S4method{generateTileData}{VoltRon}(object, assay = NULL, ...)
 
-\S4method{generateTileData}{vrAssay}(object, name = NULL, reg = FALSE, channel = NULL)
+\S4method{generateTileData}{vrAssay}(object, spatial = NULL, reg = FALSE, channel = NULL)
 
-\S4method{generateTileData}{vrAssayV2}(object, name = NULL, reg = FALSE, channel = NULL)
+\S4method{generateTileData}{vrAssayV2}(object, spatial = NULL, reg = FALSE, channel = NULL)
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object.}
@@ -23,7 +23,7 @@ generateTileData(object, ...)
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{name}{the name of the main spatial system}
+\item{spatial}{the name of the spatial coordinate system}
 
 \item{reg}{TRUE if registered coordinates of the main
 image (\link{vrMainSpatial}) is requested}

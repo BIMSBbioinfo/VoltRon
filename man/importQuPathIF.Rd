@@ -8,7 +8,8 @@ importQuPathIF(
   measurements,
   image,
   segments,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   channels = NULL,
   series = 1,
   resolution = NULL,
@@ -23,7 +24,9 @@ importQuPathIF(
 \item{segments}{Either a list of segments. This will result in a second 
 assay in the VoltRon object to be created}
 
-\item{image_name}{the image name of the Image assay, Default: main}
+\item{spatial}{the name of the spatial coordinate system, Default: main}
+
+\item{image_name}{(deprecated) the name of the spatial coordinate system, Default: main}
 
 \item{channels}{the channel names of the images if multiple
 images are provided}

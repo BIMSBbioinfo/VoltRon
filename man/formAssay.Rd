@@ -12,7 +12,8 @@ formAssay(
   params = list(),
   type = "ROI",
   name = "Assay1",
-  main_image = "image_1",
+  main_spatial = "image_1",
+  main_image = NULL,
   main_featureset = NULL,
   assay_version = "v2",
   ...
@@ -33,13 +34,15 @@ formAssay(
 
 \item{name}{the name of the assay}
 
-\item{main_image}{the name of the main_image}
+\item{main_spatial}{the name of the main spatial coordinate system}
+
+\item{main_image}{(deprecated) the name of the main spatial coordinate system}
 
 \item{main_featureset}{the name of the main_featureset}
 
 \item{assay_version}{the assay version}
 
-\item{...}{additional arguements passed to \link{formImage}}
+\item{...}{additional arguements passed to \link{formSpatial}}
 }
 \description{
 Create a vrAssay (VoltRon assay) object

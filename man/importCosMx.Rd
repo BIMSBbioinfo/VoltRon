@@ -8,7 +8,8 @@ importCosMx(
   path,
   assay_name = "CosMx",
   image = NULL,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   import_molecules = FALSE,
   verbose = TRUE,
   method = "CSV",
@@ -23,7 +24,9 @@ importCosMx(
 
 \item{image}{the reference morphology image of the CosMx assay}
 
-\item{image_name}{the image name of the CosMx assay, Default: main}
+\item{spatial}{the name of the spatial coordinate system, Default: main}
+
+\item{image_name}{(deprecated) the name of the spatial coordinate system, Default: main}
 
 \item{import_molecules}{if TRUE, molecule assay will be created along
 with cell assay.}

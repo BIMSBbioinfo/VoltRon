@@ -277,10 +277,10 @@ Once registered, we can isolate the registered H&E data and use it further analy
 
 ```{r eval = FALSE, class.source="watch-out"}
 imgdata_reg <- xen_reg$registered_spat[[2]]
-vrImages(vr2_merged_acute1[["Assay7"]], name = "main", channel = "H&E") <- 
-  vrImages(imgdata_reg, assay = "Assay1", name = "main_reg")
-vrImages(vr2_merged_acute1[["Assay8"]], name = "main", channel = "H&E") <- 
-  vrImages(imgdata_reg, assay = "Assay1", name = "main_reg")
+vrImages(vr2_merged_acute1[["Assay7"]], spatial = "main", channel = "H&E") <- 
+  vrImages(imgdata_reg, assay = "Assay1", spatial = "main_reg")
+vrImages(vr2_merged_acute1[["Assay8"]], spatial = "main", channel = "H&E") <- 
+  vrImages(imgdata_reg, assay = "Assay1", spatial = "main_reg")
 ```
 
 We can now observe the new channels available for the both molecule and cell-level assays of Xenium data. 
@@ -324,7 +324,7 @@ Once the H&E image is registered and transfered to the Xenium data, we can conve
 ```{r eval = FALSE, class.source="watch-out"}
 # convert VoltRon object to h5ad
 as.AnnData(vr2_merged_acute1, assay = "Xenium", file = "vr2_merged_acute1.h5ad", 
-           flip_coordinates = TRUE, name = "main", channel = "H&E")
+           flip_coordinates = TRUE, spatial = "main", channel = "H&E")
 ```
 
 To run TissUUmaps please follow installation instructions [here](https://tissuumaps.github.io/installation/), then you can simply drag and drop both the h5ad file and png file to the application.
@@ -634,7 +634,7 @@ Xen_R1_merged <- transferData(Xen_R1_merged,
                               expand = FALSE)
 
 # transfer image
-vrImages(Xen_R1_merged[["Assay2"]], name = "main_reg", channel = "H&E") <- 
+vrImages(Xen_R1_merged[["Assay2"]], spatial = "main_reg", channel = "H&E") <- 
   vrImages(Xen_R1_merged, assay = "Assay1")
 ```
 
@@ -827,9 +827,9 @@ We can also transfer the CD20, and CD21 channels to the registered coordinate
 space of the Xenium data. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-vrImages(xen_tonsil[["Assay1"]], name = "main_reg", channel = "CD20") <- 
+vrImages(xen_tonsil[["Assay1"]], spatial = "main_reg", channel = "CD20") <- 
   vrImages(if_tonsil, channel = "CD20")
-vrImages(xen_tonsil[["Assay1"]], name = "main_reg", channel = "CD21") <- 
+vrImages(xen_tonsil[["Assay1"]], spatial = "main_reg", channel = "CD21") <- 
   vrImages(if_tonsil, channel = "CD21")
 ```
 
