@@ -433,7 +433,7 @@ subsetData <- function(object, spatialpoints = NULL, features = NULL) {
         ]
         # normalized data
         selected_features <- features[
-          features %in% rownames(object@data[[main]])
+          features %in% rownames(object@data[[paste0(main, "_norm")]])
         ]
         object@data[[paste0(main, "_norm")]] <- 
           object@data[[paste0(main, "_norm")]][
