@@ -100,9 +100,9 @@ Suggests:
     anndataR,
     anndata,
     SimpleITK,
-	  harmony
+    harmony
 Remotes:
-	  stla/RCDT,
+    stla/RCDT,
     BIMSBbioinfo/VoltRonStore,
     bnprks/BPCells/r@v0.3.0,
     BIMSBbioinfo/VoltRon,
