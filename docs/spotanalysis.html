@@ -1050,14 +1050,18 @@ and heatmaps (<strong>vrHeatmapPlot</strong>) to further investigate the
 enrichment of markers across newly clustered datasets.
 <strong>Note:</strong> the vrHeatmapPlot function would require you to
 have the <strong>ComplexHeatmap</strong> package in your namespace.</p>
-<pre class="r watch-out"><code># install patchwork package
-if (!requireNamespace(&quot;ComplexHeatmap&quot;, quietly = TRUE))
+<pre class="r watch-out"><code># install packages if necessary
+if(!requireNamespace(&quot;ComplexHeatmap&quot;))
   BiocManager::install(&quot;ComplexHeatmap&quot;)
+if (!requireNamespace(&#39;viridisLite&#39;))
+  install.packages(&#39;viridisLite&#39;)
 library(ComplexHeatmap)
+library(viridisLite)
 
 # Visualize Markers
 vrHeatmapPlot(vr_merged, features = vrFeatures(vr_merged), 
-              group.by = &quot;MELC_Clusters&quot;, show_row_names = TRUE)</code></pre>
+              group.by = &quot;MELC_Clusters&quot;, show_row_names = TRUE, 
+              col = viridis(100))</code></pre>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_heatmapclusters.png" class="center"></p>
 <p><br></p>
 <pre class="r watch-out"><code>vrViolinPlot(vr_merged, features = c(&quot;CD3&quot;, &quot;SMA&quot;, &quot;Pancytokeratin&quot;, &quot;CCR2&quot;), 
