@@ -3534,6 +3534,7 @@ vrScatterPlot <- function(
 #' @param n_highlight the number of row labels shown, 
 #' if \code{show_row_names} is TRUE
 #' @param font.size font size
+#' @param col color palette to be used for the heatmap.
 #' @param ... additional parameters passed to \link{getVariableFeatures}
 #'
 #' @importFrom stats quantile
@@ -3553,18 +3554,13 @@ vrHeatmapPlot <- function(
   highlight.some = FALSE,
   n_highlight = 30,
   font.size = 13.2,
+  col,
   ...
 ) {
   if (!requireNamespace('ComplexHeatmap')) {
     stop(
       "Please install ComplexHeatmap package to use the Heatmap function!: ", 
       "BiocManager::install('ComplexHeatmap')"
-    )
-  }
-  if (!requireNamespace('viridisLite')) {
-    stop(
-      "Please install viridisLite package to use the Heatmap function!: ", 
-      "install.packages('viridisLite')"
     )
   }
 
@@ -3685,7 +3681,7 @@ vrHeatmapPlot <- function(
       labels = legend_label
     ),
     right_annotation = ha,
-    col = viridisLite::viridis(100)
+    col = col
   )
 }
 

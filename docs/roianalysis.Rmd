@@ -307,10 +307,16 @@ FLNA     44.50957       1.270025 0.3243115 3.916066 9.000548e-05 1.985331e-02   
 The **vrHeatmapPlot** takes a set of features for any type of spatial point (cells, spots and ROIs) and visualizes scaled data per each feature. We select **highlight.some = TRUE** to annotate features which could be large in size where you can also select the number of such highlighted genes with **n_highlight**. There seems to be two groups of fibrotic regions that most likely associated with two prolonged case samples. 
 
 ```{r eval = FALSE, class.source="watch-out"}
-# get DE for all conditions
+# install packages if necessary
+if(!requireNamespace("ComplexHeatmap"))
+  BiocManager::install("ComplexHeatmap")
+if (!requireNamespace('viridisLite'))
+  install.packages('viridisLite')
 library(ComplexHeatmap)
+library(viridisLite)
+
 vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene), group.by = "ROI.type", 
-              highlight.some = TRUE, n_highlight = 40)
+              highlight.some = TRUE, n_highlight = 40, col = viridis(100))
 ```
 
 <img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap.png" class="center">
