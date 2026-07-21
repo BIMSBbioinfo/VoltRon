@@ -687,14 +687,18 @@ g1 | g2
 VoltRon provides both violin plots (**vrViolinPlot**) and heatmaps (**vrHeatmapPlot**) to further investigate the enrichment of markers across newly clustered datasets. **Note:** the vrHeatmapPlot function would require you to have the **ComplexHeatmap** package in your namespace. 
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
-# install patchwork package
-if (!requireNamespace("ComplexHeatmap", quietly = TRUE))
+# install packages if necessary
+if(!requireNamespace("ComplexHeatmap"))
   BiocManager::install("ComplexHeatmap")
+if (!requireNamespace('viridisLite'))
+  install.packages('viridisLite')
 library(ComplexHeatmap)
+library(viridisLite)
 
 # Visualize Markers
 vrHeatmapPlot(vr_merged, features = vrFeatures(vr_merged), 
-              group.by = "MELC_Clusters", show_row_names = TRUE)
+              group.by = "MELC_Clusters", show_row_names = TRUE, 
+              col = viridis(100))
 ```
 
 <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_heatmapclusters.png" class="center">

@@ -687,10 +687,15 @@ head(as.data.frame(markers_image_top))
 Heatmap visualization of these clusters reveal markers of tumor, stroma and immune niches. 
 
 ```{r eval = FALSE, class.source="watch-out"}
+if (!requireNamespace('viridisLite'))
+  install.packages('viridisLite')
+library(viridisLite)
+
 Xen_R1_merged <- normalizeData(Xen_R1_merged, sizefactor = 1000)
 vrHeatmapPlot(Xen_R1_merged, group.by = "Cluster_kmeans", 
               features = unique(markers_image_top$gene), 
-              show_row_names = TRUE)
+              show_row_names = TRUE, 
+              col = viridis(100))
 ```
 
 <img width="85%" height="85%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_heatmap_cell.png" class="center">
