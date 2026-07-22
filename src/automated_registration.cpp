@@ -397,8 +397,8 @@ void getSIFTTransformationMatrix(
   
   // check variable
   bool check;
-  Rcout << "Calculating" << (run_Affine ? " Affine " : " Homography ") << "Transformation Matrix" << endl;
-  
+  Rcout << "Calculating" << (run_Affine ? " (Affine) " : " (Homography) ") << "Transformation Matrix" << endl;
+
   Rcout << "Round 1: No histogram equalization" << endl;
   
   // find matches and points
@@ -508,7 +508,7 @@ bool getORBTransformationMatrix(
   
   // check variable
   Rcout << "Calculating" << (run_Affine ? " (Affine) " : " (Homography) ") << "Transformation Matrix" << endl;
-    
+
   // Find transformation matrix
   if(points1.size() > 0){
     if(run_Affine){
@@ -571,7 +571,8 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
                  const char* rotate_query, const char* rotate_ref,
                  const bool run_Affine, const bool run_TPS, 
                  Mat1d &accuracyMatte, 
-                 std::map<std::string, double> &accuracy)
+                 std::map<std::string, double> &accuracy_coarse,
+                 std::map<std::string, double> &accuracy_fine)
 {
   
   // parameters
@@ -602,7 +603,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   if(strcmp(matcher.get_cstring(), "BRUTE-FORCE") == 0){
     
     // message
-    Rcout << "Running BRUTE-FORCE Alignment" << endl;
+    Rcout << "Running Coarse Alignment (BRUTE-FORCE)" << endl;
     
     // run ORB
     bool check;
@@ -613,7 +614,8 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   } else {
     
     // message
-    Rcout << "Running SIFT+FLANN Alignment" << ((run_TPS) ? " with TPS" : "") << endl;
+    // Rcout << "Running SIFT+FLANN Alignment" << ((run_TPS) ? " with TPS" : "") << endl;
+    Rcout << "Running Coarse Alignment (SIFT+FLANN)" << endl;
     
     // run SIFT
     getSIFTTransformationMatrix(im1Proc, im2Proc, h, mask, imMatches,
@@ -640,12 +642,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   // get alignment metrics
   std::map<std::string, double> image_metrics;
   cv::Mat alignmentMask = generateOverlapMask(im2Proc.size(), h, im1Proc.size());
-  image_metrics = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask);
-
-  // combine metrics
-  // std::map<std::string, double> temp_map = keypoint_metrics;
-  // temp_map.insert(image_metrics.begin(), image_metrics.end());
-  // accuracy = temp_map;
+  image_metrics = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Coarse");
   
   // combine metrics
   std::vector<std::pair<std::string, double>> temp_map;
@@ -653,19 +650,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   std::copy(keypoint_metrics.begin(), keypoint_metrics.end(), std::back_inserter(temp_map));
   std::copy(image_metrics.begin(), image_metrics.end(), std::back_inserter(temp_map));
   std::map<std::string, double> final_map(temp_map.begin(), temp_map.end());
-  accuracy = final_map;
-  
-  // std::vector<std::pair<int, std::string>> temp_map;
-  // temp_map.reserve(keypoint_metrics.size() + image_metrics.size());
-  // temp_map.insert(temp_map.end(), keypoint_metrics.begin(), keypoint_metrics.end());
-  // temp_map.insert(temp_map.end(), image_metrics.begin(), image_metrics.end());
-  // std::map<int, std::string> accuracy(temp_map.begin(), temp_map.end());
-  
-  //   
-  // accuracy.reserve(keypoint_metrics.size() + image_metrics.size());
-  // accuracy.insert(accuracy.end(), keypoint_metrics.begin(), keypoint_metrics.end());
-  // accuracy.insert(accuracy.end(), image_metrics.begin(), image_metrics.end());
-  // Rcout << accuracy.size() << std::endl;
+  accuracy_coarse = final_map;
   
   // get matte metric
   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
@@ -688,8 +673,8 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   // TPS is requested (only if FLANN succeeded)
   } else {
     
-    Rcout << "Calculating Thin-Plate-Spline Interpolation" << endl;
-    
+    Rcout << "Running Fine Alignment (Thin-Plate-Spline)" << endl;
+
     // Filtered points (inliers) based on the mask
     std::vector<cv::Point2f> filtered_points1;
     std::vector<cv::Point2f> filtered_points2;
@@ -722,21 +707,43 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     keypoints[0] = point2fToNumericMatrix(filtered_points2);
     keypoints[1] = point2fToNumericMatrix(filtered_points1_reg); 
     
-    // determine extension limits for both images
-    int y_max = max(im1Proc.rows, im2.rows);
-    int x_max = max(im1Proc.cols, im2.cols);
+    // warp overlap mask
+    cv::imwrite("before.png", alignmentMask);
+    alignmentMask = warpTPSImage(im2Proc, alignmentMask, tps,
+                                 im2.rows, im2.cols, 
+                                 cv::INTER_NEAREST);
+    // cv::Mat alignmentMask = generateOverlapMask(im2Proc,
+    //                                             tps,
+    //                                             im1Proc.size());
     
-    // extend images
-    cv::copyMakeBorder(im1Proc, im1Proc, 0.0, (int) (y_max - im1Proc.rows), 0.0, (x_max - im1Proc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
-    cv::copyMakeBorder(im1NormalProc, im1NormalProc, 0.0, (int) (y_max - im1NormalProc.rows), 0.0, (x_max - im1NormalProc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    // transform image using trained tps
+    // im1Proc = warpTPSImage(im2Proc, im1Proc, tps, cv::INTER_LINEAR);
+    // im1NormalProc = warpTPSImage(im2Proc, im1NormalProc, tps, cv::INTER_LINEAR);
     
-    // transform image
-    tps->warpImage(im1Proc, im1Proc);
-    tps->warpImage(im1NormalProc, im1NormalProc);
+    // im1Proc = warpTPSImage(im2Proc, im1Proc, tps, 
+    //                        im2.rows, im2.cols, cv::INTER_LINEAR);
+    // im1NormalProc = warpTPSImage(im2Proc, im1NormalProc, tps, 
+    //                              im2.rows, im2.cols, cv::INTER_LINEAR);
+
+    // // determine extension limits for both images
+    // int y_max = max(im1Proc.rows, im2.rows);
+    // int x_max = max(im1Proc.cols, im2.cols);
+    // 
+    // // extend images and mask
+    // cv::copyMakeBorder(im1Proc, im1Proc, 0.0, (int) (y_max - im1Proc.rows), 0.0, (x_max - im1Proc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    // cv::copyMakeBorder(im1NormalProc, im1NormalProc, 0.0, (int) (y_max - im1NormalProc.rows), 0.0, (x_max - im1NormalProc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    // 
+    // // transform image
+    // tps->warpImage(im1Proc, im1Proc);
+    // tps->warpImage(im1NormalProc, im1NormalProc);
+    // 
+    // // resize image
+    // im1Proc = im1Proc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
+    // im1NormalProc = im1NormalProc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
     
-    // resize image
-    im1Proc = im1Proc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
-    im1NormalProc = im1NormalProc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
+    // get matte metric, process 
+    accuracy_fine = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Fine");
+    accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
     
     // change color map
     cv::addWeighted(im2Proc, 0.7, im1Proc, 0.3, 0, im1Proc);
@@ -769,12 +776,12 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
                                              Rcpp::String matcher, Rcpp::String method, Rcpp::String nonrigid)
 {
   // Return data
-  Rcpp::List out(7);
+  Rcpp::List out(8);
   Rcpp::List out_trans(2);
   Rcpp::List keypoints(2);
   Mat imOverlay, imReg, h, imMatches;
   Mat1d accuracyMatte;
-  std::map<std::string, double> accuracy;
+  std::map<std::string, double> accuracy_coarse, accuracy_fine;
 
   // Read reference image
   cv::Mat imReference = imageToMat(ref_image, width1, height1);
@@ -797,7 +804,8 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
               rotate_query.get_cstring(), rotate_ref.get_cstring(),
               run_Affine, run_TPS, 
               accuracyMatte, 
-              accuracy);
+              accuracy_coarse, 
+              accuracy_fine);
 
   // transformation matrix, can be either a matrix, set of keypoints or both
   out_trans[0] = matToNumericMatrix(h.clone());
@@ -814,13 +822,15 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
     out[3] = matToImage(imMatches); // keypoint matching image
     out[4] = matToImage(imOverlay); // overlay image
     out[5] = matToNumericMatrix(accuracyMatte); // Matte MI metric
-    out[6] = accuracy; // accuracy scores
+    out[6] = accuracy_coarse; // accuracy scores (coarse)
+    out[7] = accuracy_fine; // accuracy scores (fine)
   } else {
     out[2] = R_NilValue;
     out[3] = R_NilValue;
     out[4] = R_NilValue;
     out[5] = R_NilValue;
     out[6] = R_NilValue;
+    out[7] = R_NilValue;
   }
   
   // release

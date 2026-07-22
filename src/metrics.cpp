@@ -164,13 +164,13 @@ cv::Mat generateOverlapMask(cv::Size dsize,
   return warped;
 }
 
-cv::Mat generateOverlapMask(cv::Size dsize, 
+cv::Mat generateOverlapMask(cv::Mat ref_image, 
                             Ptr<ThinPlateSplineShapeTransformer>& tps,
                             cv::Size ssize)
 {
   // generate mask
   cv::Mat mask = cv::Mat::ones(ssize, CV_8UC1) * 255;
-  cv::Mat warped;
+  // cv::Mat warped;
   
   // Keep masks crisp: nearest-neighbor only.
   const int interp = cv::INTER_NEAREST;
@@ -178,12 +178,29 @@ cv::Mat generateOverlapMask(cv::Size dsize,
   const cv::Scalar borderValue(0);
   
   // warp mask
-  tps->warpImage(mask, warped, 
-                 interp, borderMode, borderValue);
+  // Rcout << "artur" << endl;
+  // Rcout << mask.size() << endl;
+  // cv::imwrite("alignmentMask.png", mask);
+  // Rcout << "artur" << endl;
+  
+  // Rcout << 
+  // tps->warpImage(mask, warped, 
+  //                interp, borderMode, borderValue);
+  // tps->warpImage(mask, mask,
+  //                interp, borderMode, borderValue);
+  Rcout << ref_image.rows << " " << ref_image.cols << endl;
+  mask = warpTPSImage(ref_image, mask, tps, 
+                      ref_image.rows, ref_image.cols, interp);
+  
+  // warp mask
+  // Rcout << "artur" << endl;
+  // Rcout << mask.size() << endl;
+  // cv::imwrite("alignmentMask_after.png", mask);
+  // Rcout << "artur" << endl;
   
   // Force binary mask again.
-  cv::threshold(warped, warped, 0, 255, cv::THRESH_BINARY);
-  return warped;
+  cv::threshold(mask, mask, 0, 255, cv::THRESH_BINARY);
+  return mask;
 }
 
 double Entropy(cv::Mat& im1, cv::Mat& overlapMask, int bins = 256) {
@@ -282,7 +299,8 @@ double NormalizedMutualInfo(cv::Mat& im1, cv::Mat& im2,
   return (ent1+ent2)/ent12;
 }
 
-std::map<std::string, double> getAlignmentMetrics(Mat &im1, Mat &im2, Mat &mask){
+std::map<std::string, double> getAlignmentMetrics(Mat &im1, Mat &im2, 
+                                                  Mat &mask, std::string type){
   
   // Metrics
   std::map<std::string, double> metrics;
@@ -303,7 +321,7 @@ std::map<std::string, double> getAlignmentMetrics(Mat &im1, Mat &im2, Mat &mask)
   cv::normalize(hist2, hist2, 0, 1, cv::NORM_MINMAX);
   
   // Summary
-  Rcout << "Alignment Accuracy (Course): " << endl;
+  Rcout << "Alignment Accuracy (" << type << "): " << endl;
   metrics["Intersection"] = cv::compareHist(hist1, hist2, cv::HISTCMP_INTERSECT);
   metrics["Bhattacharyya"] = cv::compareHist(hist1, hist2, cv::HISTCMP_BHATTACHARYYA);
   metrics["Matte's MI"] = MatteMI(im2, im1, mask, 50);

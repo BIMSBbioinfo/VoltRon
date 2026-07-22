@@ -3406,9 +3406,11 @@ getAutomatedRegisteration <- function(
       # Plot Alignment Stats
       lapply(register_ind, function(i) {
         cur_align_stats <- alignment_stats_list[[i]]
+        print(cur_align_stats)
         output[[paste0("alignment_stats", i)]] <- renderTable({
-          data.frame(Metrics = names(cur_align_stats), 
-                     `Stats.` = cur_align_stats)
+          data.frame(Metrics = names(cur_align_stats[["coarse"]]), 
+                     `Coarse` = cur_align_stats[["coarse"]],
+                     `Fine` = cur_align_stats[["fine"]])
         })
       })
 
@@ -3703,10 +3705,16 @@ getRcppAutomatedRegistration <- function(
     if (!is.null(reg[[4]])) magick::image_read(reg[[4]]) else NA
   overlay_image <-
     if (!is.null(reg[[5]])) magick::image_read(reg[[5]]) else NA
+  
+  # check alignment accuracy and matte maps
   matte_map <-
     if (!is.null(reg[[6]])) reg[[6]] else NA
-  metrics <- c(.ALIGNMENT_ACCURACY_METRICS, .ALIGNMENT_KEYPOINT_METRICS)
-  alignment_stats <- {
+  alignment_stats <- list()
+  print(reg[[7]])
+  print(reg[[8]])
+  metrics <- c(.ALIGNMENT_ACCURACY_METRICS, 
+               .ALIGNMENT_KEYPOINT_METRICS)
+  alignment_stats[["coarse"]] <- {
     if (!is.null(reg[[7]])){
       if(!all(names(reg[[7]]) %in% metrics)){
         stop("There are missing accuracy metrics!")
@@ -3717,6 +3725,19 @@ getRcppAutomatedRegistration <- function(
       NA
     }
   }
+  alignment_stats[["fine"]] <- {
+    # metrics <- .ALIGNMENT_ACCURACY_METRICS
+    if (!is.null(reg[[8]])){
+      if(!all(names(reg[[8]]) %in% metrics)){
+        stop("There are missing accuracy metrics!")
+      } else {
+        reg[[8]][metrics]
+      }
+    } else{
+      NA
+    }
+  }
+  print(alignment_stats[["fine"]])
 
   # return
   return(list(

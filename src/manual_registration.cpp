@@ -38,8 +38,8 @@ void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::List &keypoints,
     matches.push_back(cv::DMatch(i, i, 0));
 
   // message
-  Rcout << "Running Thin-Plate-Spline Alignment" << endl;
-  
+  Rcout << "Running Course Alignment (Thin-Plate-Spline)" << endl;
+
   // calculate transformation
   Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
   tps->estimateTransformation(ref_mat, query_mat, matches);
@@ -48,38 +48,44 @@ void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::List &keypoints,
   keypoints[0] = point2fToNumericMatrix(ref_mat);
   keypoints[1] = point2fToNumericMatrix(query_mat); 
   
-  // determine extension limits for both images
-  int y_max = max(im1.rows, im2.rows);
-  int x_max = max(im1.cols, im2.cols);
-
-  // extend images
-  cv::copyMakeBorder(im1, im1, 
-                     0.0, (int) (y_max - im1.rows), 
-                     0.0, (x_max - im1.cols), 
-                     cv::BORDER_CONSTANT, 
-                     Scalar(0, 0, 0));
-
-  // transform image
-  tps->warpImage(im1, im1Reg);
+  // transform image using trained tps
+  im1Reg = warpTPSImage(im2, im1, tps, 
+                        im2.rows, im2.cols, cv::INTER_LINEAR);
   
+  // // determine extension limits for both images
+  // int y_max = max(im1.rows, im2.rows);
+  // int x_max = max(im1.cols, im2.cols);
+  // 
+  // // extend images
+  // cv::copyMakeBorder(im1, im1, 
+  //                    0.0, (int) (y_max - im1.rows), 
+  //                    0.0, (x_max - im1.cols), 
+  //                    cv::BORDER_CONSTANT, 
+  //                    Scalar(0, 0, 0));
+  // 
+  // // transform image
+  // tps->warpImage(im1, im1Reg);
+  // 
+  // 
+  // // resize image
+  // cv::Mat im1Reg_cropped  = im1Reg(cv::Range(0,im2.size().height), 
+  //                                  cv::Range(0,im2.size().width));
+  // im1Reg = im1Reg_cropped.clone();
   
-  // resize image
-  cv::Mat im1Reg_cropped  = im1Reg(cv::Range(0,im2.size().height), 
-                                   cv::Range(0,im2.size().width));
-  im1Reg = im1Reg_cropped.clone();
-  
-  // get alignment metrics
-  cv::Mat alignmentMask = generateOverlapMask(im2.size(),
-                                              tps, 
-                                              im1Reg.size());
-  
-  // get matte metric, process 
+  // process 
   Mat im1Proc, im2Proc;
   cvtColor(im1Reg, im1Proc, cv::COLOR_BGR2GRAY);
   cvtColor(im2, im2Proc, cv::COLOR_BGR2GRAY);
   im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
   im2Proc = preprocessImage(im2Proc, invert_ref, "None", "0");
-  accuracy = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask);
+  
+  // get alignment mask
+  cv::Mat alignmentMask = generateOverlapMask(im2Proc,
+                                              tps, 
+                                              im1Proc.size());
+  
+  // get alignment metrics
+  accuracy = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Course");
   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
 }
 
@@ -147,6 +153,7 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
   
   // calculate homography transformation
   Rcout << "Calculating" << (run_Affine ? " (Affine) " : " (Homography) ") << "Transformation Matrix" << endl;
+
   Mat im1Affine;
   std::vector<cv::Point2f> query_reg;
   if(run_Affine){
@@ -159,18 +166,18 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
     cv::perspectiveTransform(query_mat, query_reg, h);
   }
   
-  // get alignment metrics
+  // get alignment metrics for course registration
   cv::Mat alignmentMask = generateOverlapMask(im2.size(), 
                                               h, 
-                                              im1Affine.size());
+                                              im1.size());
 
-  // get matte metric, process 
+  // get matte metric, process image before
   Mat im1Proc, im2Proc;
   cvtColor(im1Affine, im1Proc, cv::COLOR_BGR2GRAY);
   cvtColor(im2, im2Proc, cv::COLOR_BGR2GRAY);
   im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
   im2Proc = preprocessImage(im2Proc, invert_ref, "None", "0");
-  accuracy = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask);
+  accuracy = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Course");
   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
   
   if(!run_TPS){
@@ -181,8 +188,8 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
   } else {
     
     // message
-    Rcout << "Running Thin-Plate-Spline Alignment" << endl;
-    
+    Rcout << "Running Fine Alignment (Thin-Plate-Spline)" << endl;
+
     // calculate TPS transformation
     Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
     tps->estimateTransformation(ref_mat, query_reg, matches);
@@ -191,19 +198,37 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
     keypoints[0] = point2fToNumericMatrix(ref_mat);
     keypoints[1] = point2fToNumericMatrix(query_reg); 
     
-    // determine extension limits for both images
-    int y_max = max(im1Affine.rows, im2.rows);
-    int x_max = max(im1Affine.cols, im2.cols);
+    // transform image using trained tps
+    im1Reg = warpTPSImage(im2, im1Affine, tps, 
+                          im2.rows, im2.cols, cv::INTER_LINEAR);
     
-    // extend images
-    cv::copyMakeBorder(im1Affine, im1Affine, 0.0, (int) (y_max - im1Affine.rows), 0.0, (x_max - im1Affine.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    // // determine extension limits for both images
+    // int y_max = max(im1Affine.rows, im2.rows);
+    // int x_max = max(im1Affine.cols, im2.cols);
+    // 
+    // // extend images
+    // cv::copyMakeBorder(im1Affine, im1Affine, 0.0, (int) (y_max - im1Affine.rows), 0.0, (x_max - im1Affine.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    // 
+    // // transform image
+    // tps->warpImage(im1Affine, im1Reg);
+    // 
+    // // resize image
+    // cv::Mat im1Reg_cropped  = im1Reg(cv::Range(0,im2.size().height), cv::Range(0,im2.size().width));
+    // im1Reg = im1Reg_cropped.clone();
     
-    // transform image
-    tps->warpImage(im1Affine, im1Reg);
+    // get alignment metrics
+    cv::Mat alignmentMask = generateOverlapMask(im2, 
+                                                tps, 
+                                                im1Affine.size());
     
-    // resize image
-    cv::Mat im1Reg_cropped  = im1Reg(cv::Range(0,im2.size().height), cv::Range(0,im2.size().width));
-    im1Reg = im1Reg_cropped.clone();
+    // get matte metric, process 
+    Mat im1Proc, im2Proc;
+    cvtColor(im1Reg, im1Proc, cv::COLOR_BGR2GRAY);
+    cvtColor(im2, im2Proc, cv::COLOR_BGR2GRAY);
+    im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
+    im2Proc = preprocessImage(im2Proc, invert_ref, "None", "0");
+    accuracy = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Fine");
+    accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
   }
 }
 
@@ -235,6 +260,7 @@ void alignImagesAffineTPS_points(Rcpp::NumericMatrix &query_data,
   
   // calculate homography transformation
   Rcout << "Calculating" << (run_Affine ? " (Affine) " : " (Homography) ") << "Transformation Matrix" << endl;
+
   std::vector<cv::Point2f> query_reg;
   std::vector<cv::Point2f> query_data_reg;
   if(run_Affine){
@@ -250,8 +276,8 @@ void alignImagesAffineTPS_points(Rcpp::NumericMatrix &query_data,
   if(run_TPS){
     
     // message
-    Rcout << "Running Thin-Plate-Spline Alignment" << endl;
-    
+    Rcout << "Running Fine Alignment (Thin-Plate-Spline)" << endl;
+
     // calculate TPS transformation
     Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
     tps->estimateTransformation(ref_mat, query_reg, matches);
