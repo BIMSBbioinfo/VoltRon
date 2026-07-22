@@ -135,7 +135,8 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
                           const bool invert_query, const bool invert_ref,
                           const bool run_Affine, const bool run_TPS,
                           Mat1d &accuracyMatte, 
-                          std::map<std::string, double> &accuracy)
+                          std::map<std::string, double> &accuracy_coarse,
+                          std::map<std::string, double> &accuracy_fine)
 {
   // seed
   cv::setRNGSeed(0);
@@ -153,7 +154,8 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
   
   // calculate homography transformation
   Rcout << "Calculating" << (run_Affine ? " (Affine) " : " (Homography) ") << "Transformation Matrix" << endl;
-
+  
+  // warp image
   Mat im1Affine;
   std::vector<cv::Point2f> query_reg;
   if(run_Affine){
@@ -177,7 +179,7 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
   cvtColor(im2, im2Proc, cv::COLOR_BGR2GRAY);
   im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
   im2Proc = preprocessImage(im2Proc, invert_ref, "None", "0");
-  accuracy = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Course");
+  accuracy_coarse = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Course");
   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
   
   if(!run_TPS){
@@ -198,6 +200,11 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
     keypoints[0] = point2fToNumericMatrix(ref_mat);
     keypoints[1] = point2fToNumericMatrix(query_reg); 
     
+    // warp overlap mask
+    alignmentMask = warpTPSImage(im2, alignmentMask, tps,
+                                 im2.rows, im2.cols,
+                                 cv::INTER_NEAREST);
+    
     // transform image using trained tps
     im1Reg = warpTPSImage(im2, im1Affine, tps, 
                           im2.rows, im2.cols, cv::INTER_LINEAR);
@@ -216,18 +223,13 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
     // cv::Mat im1Reg_cropped  = im1Reg(cv::Range(0,im2.size().height), cv::Range(0,im2.size().width));
     // im1Reg = im1Reg_cropped.clone();
     
-    // get alignment metrics
-    cv::Mat alignmentMask = generateOverlapMask(im2, 
-                                                tps, 
-                                                im1Affine.size());
-    
     // get matte metric, process 
     Mat im1Proc, im2Proc;
     cvtColor(im1Reg, im1Proc, cv::COLOR_BGR2GRAY);
     cvtColor(im2, im2Proc, cv::COLOR_BGR2GRAY);
     im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
     im2Proc = preprocessImage(im2Proc, invert_ref, "None", "0");
-    accuracy = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Fine");
+    accuracy_fine = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Fine");
     accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
   }
 }
@@ -310,12 +312,12 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
                                           Rcpp::String nonrigid)
 {
   // Return data
-  Rcpp::List out(4);
+  Rcpp::List out(5);
   Rcpp::List out_trans(2);
   Rcpp::List keypoints(2);
   Mat imReg, h;
   Mat1d accuracyMatte;
-  std::map<std::string, double> accuracy;
+  std::map<std::string, double> accuracy_coarse, accuracy_fine;
   
   // get params
   const bool run_TPS = (strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0 || 
@@ -337,7 +339,8 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
                          invert_ref,
                          run_Affine, run_TPS, 
                          accuracyMatte, 
-                         accuracy);
+                         accuracy_coarse, 
+                         accuracy_fine);
   }
   
   // Non-rigid (TPS) only
@@ -349,7 +352,7 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
                    invert_query, 
                    invert_ref,
                    accuracyMatte, 
-                   accuracy);
+                   accuracy_coarse);
   }
   
   // transformation matrix, can be either a matrix, set of keypoints or both
@@ -357,10 +360,11 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
   out_trans[1] = keypoints;
   out[0] = out_trans;
   
-  // registered image if exists
+  // registered image and accuracy if exists
   out[1] = matToImage(imReg.clone()); 
   out[2] = matToNumericMatrix(accuracyMatte); // Matte MI metric
-  out[3] = accuracy;
+  out[3] = accuracy_coarse;
+  out[4] = accuracy_fine;
   
   return out;
 }
