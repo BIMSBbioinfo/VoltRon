@@ -150,6 +150,8 @@ cv::Mat generateOverlapMask(cv::Size dsize,
   const int borderMode = cv::BORDER_CONSTANT;
   const cv::Scalar borderValue(0);
 
+  cv::imwrite("before.png", mask);
+
   // warp mask
   if (h.rows == 2){
     cv::warpAffine(mask, warped, h, dsize, 
@@ -158,6 +160,8 @@ cv::Mat generateOverlapMask(cv::Size dsize,
     cv::warpPerspective(mask, warped, h, dsize, 
                         interp, borderMode, borderValue);
   }
+  
+  cv::imwrite("after.png", warped);
 
   // Force binary mask again.
   cv::threshold(warped, warped, 0, 255, cv::THRESH_BINARY);

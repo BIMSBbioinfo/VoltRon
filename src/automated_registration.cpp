@@ -287,8 +287,6 @@ bool getSIFTTransformationMatrixSingle(
   Ptr<Feature2D> sift = cv::SIFT::create(params.sift_nfeatures);
   computeSIFTTiles(im1Proc, keypoints1, descriptors1, sift, params);
   computeSIFTTiles(im2Proc, keypoints2, descriptors2, sift, params);
-  // Rcout << "Generated " << keypoints1.size() << " and " << keypoints2.size() << " keypoints"  << endl;
-  // Rcout << "DONE: SIFT based key-points detection and descriptors computation" << endl;
 
   // filter duplicates
   filterDuplicateKeypoints(keypoints1, descriptors1);
@@ -297,7 +295,6 @@ bool getSIFTTransformationMatrixSingle(
   // get top key points
   keepTopKeypoints(keypoints1, descriptors1, params);
   keepTopKeypoints(keypoints2, descriptors2, params);
-  // Rcout << "Filtered other than " << keypoints1.size() << " and " << keypoints2.size() << " keypoints" << endl;
 
   ///////////////////////
   /// Compute FLANN /////
@@ -306,7 +303,6 @@ bool getSIFTTransformationMatrixSingle(
   // Match features using FLANN matching
   std::vector<std::vector<DMatch>> matches12, matches21;
   getFLANNMatches(descriptors1, descriptors2, matches12, matches21);
-  // Rcout << "DONE: FLANN - Fast Library for Approximate Nearest Neighbors - descriptor matching" << endl;
 
   // TODO: can I release there now ?
   descriptors1.release();
@@ -315,8 +311,7 @@ bool getSIFTTransformationMatrixSingle(
   // Find good matches
   std::vector<DMatch> good_matches;
   getGoodMatches(matches12, matches21, good_matches);
-  // Rcout << "DONE: get good mutual matches by distance thresholding" << endl;
-  
+
   ///////////////////////
   /// Find Homography ///
   ///////////////////////
@@ -485,22 +480,19 @@ bool getORBTransformationMatrix(
   Ptr<Feature2D> orb = ORB::create(MAX_FEATURES);
   orb->detectAndCompute(im1Proc, Mat(), keypoints1, descriptors1);
   orb->detectAndCompute(im2Proc, Mat(), keypoints2, descriptors2);
-  // Rcout << "DONE: orb based key-points detection and descriptors computation" << endl;
-  
+
   // Match features.
   std::vector<DMatch> matches;
   Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
   matcher->match(descriptors1, descriptors2, matches, Mat());
-  // Rcout << "DONE: BruteForce-Hamming - descriptor matching" << endl;
-  
+
   // Sort matches by score
   std::sort(matches.begin(), matches.end());
   
   // Remove not so good matches
   const int numGoodMatches = matches.size() * GOOD_MATCH_PERCENT;
   matches.erase(matches.begin()+numGoodMatches, matches.end());
-  //Rcout << "DONE: get good matches by distance thresholding" << endl;
-  
+
   // Extract location of good matches
   for( size_t i = 0; i < matches.size(); i++ )
   {
@@ -625,7 +617,10 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
 
   }
   
-  // Use homography to warp image
+  // warp mask and image
+  cv::Mat alignmentMask = generateOverlapMask(im2Proc.size(), 
+                                              h, 
+                                              im1Proc.size());
   if(h.rows == 2){
     warpAffine(im1Proc, im1Proc, h, im2Proc.size());
     warpAffine(im1NormalProc, im1NormalProc, h, im2Proc.size());
@@ -639,12 +634,13 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   
   // get keypoint metrics
   std::map<std::string, double> keypoint_metrics;
-  keypoint_metrics = getKeypointMetrics(points1, points2, im1Proc, im2Proc, h, mask);
+  keypoint_metrics = getKeypointMetrics(points1, points2, 
+                                        im1Proc, im2Proc, h, mask);
 
   // get alignment metrics
   std::map<std::string, double> image_metrics;
-  cv::Mat alignmentMask = generateOverlapMask(im2Proc.size(), h, im1Proc.size());
-  image_metrics = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Coarse");
+  image_metrics = getAlignmentMetrics(im1Proc, im2Proc, 
+                                      alignmentMask, "Coarse");
   
   // combine metrics
   std::vector<std::pair<std::string, double>> temp_map;
@@ -657,8 +653,6 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   // get matte metric
   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
   
-  // Rcout << "DONE: warped query image" << endl;
-
   ///////////////////////
   /// Find Homography ///
   ///////////////////////
@@ -702,39 +696,34 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     keypoints[1] = point2fToNumericMatrix(points1_reg); 
     
     // warp overlap mask
-    cv::imwrite("before.png", alignmentMask);
-    cv::imwrite("before_image.png", im1Proc);
-    // alignmentMask = warpTPSImage(im2Proc, alignmentMask, tps,
-    //                              im2.rows, im2.cols, 
-    //                              cv::INTER_NEAREST);
-    
-    // // transform image using trained tps
-    // im1Proc = warpTPSImage(im2Proc, im1Proc, tps, 
-    //                        im2.rows, im2.cols, cv::INTER_LINEAR);
-    // im1NormalProc = warpTPSImage(im2Proc, im1NormalProc, tps, 
-    //                              im2.rows, im2.cols, cv::INTER_LINEAR);
+    alignmentMask = warpTPSImage(im2Proc, alignmentMask, tps,
+                                 im2.rows, im2.cols,
+                                 cv::INTER_NEAREST);
 
-    // determine extension limits for both images
-    int y_max = max(im1Proc.rows, im2.rows);
-    int x_max = max(im1Proc.cols, im2.cols);
+    // transform image using trained tps
+    im1Proc = warpTPSImage(im2Proc, im1Proc, tps,
+                           im2.rows, im2.cols, cv::INTER_LINEAR);
+    im1NormalProc = warpTPSImage(im2Proc, im1NormalProc, tps,
+                                 im2.rows, im2.cols, cv::INTER_LINEAR);
 
-    // extend images and mask
-    cv::copyMakeBorder(im1Proc, im1Proc, 0.0, (int) (y_max - im1Proc.rows), 0.0, (x_max - im1Proc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
-    cv::copyMakeBorder(im1NormalProc, im1NormalProc, 0.0, (int) (y_max - im1NormalProc.rows), 0.0, (x_max - im1NormalProc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
-    cv::copyMakeBorder(alignmentMask, alignmentMask, 0.0, (int) (y_max - alignmentMask.rows), 0.0, (x_max - alignmentMask.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
-    
-    // transform image
-    tps->warpImage(im1Proc, im1Proc);
-    tps->warpImage(im1NormalProc, im1NormalProc);
-    tps->warpImage(alignmentMask, alignmentMask, cv::INTER_NEAREST);
-    
-    // resize image
-    im1Proc = im1Proc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
-    im1NormalProc = im1NormalProc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
-    alignmentMask = alignmentMask(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
-    
-    cv::imwrite("after.png", alignmentMask);
-    cv::imwrite("after_image.png", im1Proc);
+    // // determine extension limits for both images
+    // int y_max = max(im1Proc.rows, im2.rows);
+    // int x_max = max(im1Proc.cols, im2.cols);
+    // 
+    // // extend images and mask
+    // cv::copyMakeBorder(im1Proc, im1Proc, 0.0, (int) (y_max - im1Proc.rows), 0.0, (x_max - im1Proc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    // cv::copyMakeBorder(im1NormalProc, im1NormalProc, 0.0, (int) (y_max - im1NormalProc.rows), 0.0, (x_max - im1NormalProc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    // cv::copyMakeBorder(alignmentMask, alignmentMask, 0.0, (int) (y_max - alignmentMask.rows), 0.0, (x_max - alignmentMask.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    // 
+    // // transform image
+    // tps->warpImage(im1Proc, im1Proc);
+    // tps->warpImage(im1NormalProc, im1NormalProc);
+    // tps->warpImage(alignmentMask, alignmentMask, cv::INTER_NEAREST);
+    // 
+    // // resize image
+    // im1Proc = im1Proc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
+    // im1NormalProc = im1NormalProc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
+    // alignmentMask = alignmentMask(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
     
     // get matte metric, process 
     accuracy_fine = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Fine");
