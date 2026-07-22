@@ -164,7 +164,7 @@ cv::Mat generateOverlapMask(cv::Size dsize,
   return warped;
 }
 
-cv::Mat generateOverlapMask(cv::Mat ref_image, 
+cv::Mat generateOverlapMask(cv::Mat& ref_image, 
                             Ptr<ThinPlateSplineShapeTransformer>& tps,
                             cv::Size ssize)
 {

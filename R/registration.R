@@ -3714,12 +3714,14 @@ getRcppAutomatedRegistration <- function(
   print(reg[[8]])
   metrics <- c(.ALIGNMENT_ACCURACY_METRICS, 
                .ALIGNMENT_KEYPOINT_METRICS)
+  metrics_set <- setNames(rep(NA, length(metrics)), metrics)
   alignment_stats[["coarse"]] <- {
     if (!is.null(reg[[7]])){
       if(!all(names(reg[[7]]) %in% metrics)){
         stop("There are missing accuracy metrics!")
       } else {
-        reg[[7]][metrics]
+        metrics_set[metrics] <- reg[[7]][metrics]
+        metrics_set
       }
     } else{
       NA
@@ -3731,7 +3733,8 @@ getRcppAutomatedRegistration <- function(
       if(!all(names(reg[[8]]) %in% metrics)){
         stop("There are missing accuracy metrics!")
       } else {
-        reg[[8]][metrics]
+        metrics_set[metrics] <- reg[[8]][metrics]
+        metrics_set
       }
     } else{
       NA

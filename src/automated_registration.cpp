@@ -709,37 +709,38 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     
     // warp overlap mask
     cv::imwrite("before.png", alignmentMask);
-    alignmentMask = warpTPSImage(im2Proc, alignmentMask, tps,
-                                 im2.rows, im2.cols, 
-                                 cv::INTER_NEAREST);
-    // cv::Mat alignmentMask = generateOverlapMask(im2Proc,
-    //                                             tps,
-    //                                             im1Proc.size());
+    cv::imwrite("before_image.png", im1Proc);
+    // alignmentMask = warpTPSImage(im2Proc, alignmentMask, tps,
+    //                              im2.rows, im2.cols, 
+    //                              cv::INTER_NEAREST);
     
-    // transform image using trained tps
-    // im1Proc = warpTPSImage(im2Proc, im1Proc, tps, cv::INTER_LINEAR);
-    // im1NormalProc = warpTPSImage(im2Proc, im1NormalProc, tps, cv::INTER_LINEAR);
-    
+    // // transform image using trained tps
     // im1Proc = warpTPSImage(im2Proc, im1Proc, tps, 
     //                        im2.rows, im2.cols, cv::INTER_LINEAR);
     // im1NormalProc = warpTPSImage(im2Proc, im1NormalProc, tps, 
     //                              im2.rows, im2.cols, cv::INTER_LINEAR);
 
-    // // determine extension limits for both images
-    // int y_max = max(im1Proc.rows, im2.rows);
-    // int x_max = max(im1Proc.cols, im2.cols);
-    // 
-    // // extend images and mask
-    // cv::copyMakeBorder(im1Proc, im1Proc, 0.0, (int) (y_max - im1Proc.rows), 0.0, (x_max - im1Proc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
-    // cv::copyMakeBorder(im1NormalProc, im1NormalProc, 0.0, (int) (y_max - im1NormalProc.rows), 0.0, (x_max - im1NormalProc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
-    // 
-    // // transform image
-    // tps->warpImage(im1Proc, im1Proc);
-    // tps->warpImage(im1NormalProc, im1NormalProc);
-    // 
-    // // resize image
-    // im1Proc = im1Proc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
-    // im1NormalProc = im1NormalProc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
+    // determine extension limits for both images
+    int y_max = max(im1Proc.rows, im2.rows);
+    int x_max = max(im1Proc.cols, im2.cols);
+
+    // extend images and mask
+    cv::copyMakeBorder(im1Proc, im1Proc, 0.0, (int) (y_max - im1Proc.rows), 0.0, (x_max - im1Proc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    cv::copyMakeBorder(im1NormalProc, im1NormalProc, 0.0, (int) (y_max - im1NormalProc.rows), 0.0, (x_max - im1NormalProc.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    cv::copyMakeBorder(alignmentMask, alignmentMask, 0.0, (int) (y_max - alignmentMask.rows), 0.0, (x_max - alignmentMask.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    
+    // transform image
+    tps->warpImage(im1Proc, im1Proc);
+    tps->warpImage(im1NormalProc, im1NormalProc);
+    tps->warpImage(alignmentMask, alignmentMask, cv::INTER_NEAREST);
+    
+    // resize image
+    im1Proc = im1Proc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
+    im1NormalProc = im1NormalProc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
+    alignmentMask = alignmentMask(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
+    
+    cv::imwrite("after.png", alignmentMask);
+    cv::imwrite("after_image.png", im1Proc);
     
     // get matte metric, process 
     accuracy_fine = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Fine");

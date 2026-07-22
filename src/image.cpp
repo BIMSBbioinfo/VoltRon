@@ -130,8 +130,8 @@ void scaledDrawMatches(cv::Mat im1, std::vector<cv::KeyPoint> &keypoints1,
 cv::Mat warpTPSImage(cv::Mat& ref_image, 
                      cv::Mat& query_image, 
                      Ptr<ThinPlateSplineShapeTransformer>& tps, 
-                     const int border_x,
                      const int border_y,
+                     const int border_x,
                      const int interpolation){
   
   // determine extension limits for both images
@@ -148,8 +148,6 @@ cv::Mat warpTPSImage(cv::Mat& ref_image,
   cv::Mat query_image_reg;
   tps->warpImage(query_image, query_image_reg, interpolation);
 
-  cv::imwrite("after.png", query_image_reg);
-  
   // resize image
   query_image_reg  = query_image_reg(
     cv::Range(0,ref_image.size().height), 

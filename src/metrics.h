@@ -32,7 +32,7 @@ cv::Mat generateOverlapMask(cv::Size dsize,
                             cv::Mat& h, 
                             cv::Size ssize);
 
-cv::Mat generateOverlapMask(cv::Mat ref_image, 
+cv::Mat generateOverlapMask(cv::Mat& ref_image, 
                             Ptr<ThinPlateSplineShapeTransformer>& tps, 
                             cv::Size ssize);
 
