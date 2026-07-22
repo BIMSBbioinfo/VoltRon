@@ -91,7 +91,9 @@ void getGoodMatches(std::vector<std::vector<DMatch>> &matches12,std::vector<std:
 }
 
 // remove duplicate keypoints for TPS
-void removeCloseMatches(std::vector<cv::Point2f>& points1, std::vector<cv::Point2f>& points2, float threshold = std::numeric_limits<float>::epsilon()) {
+void removeCloseMatches(std::vector<cv::Point2f>& points1, 
+                        std::vector<cv::Point2f>& points2, 
+                        float threshold = std::numeric_limits<float>::epsilon()) {
   
   // Create a vector to store filtered points
   std::vector<cv::Point2f> filtered_points1;
@@ -410,7 +412,7 @@ void getSIFTTransformationMatrix(
   // equalize first image if fails
   if(!check){
     
-    // clear points
+    // clear points, mask is reset itself
     points1.clear();
     points2.clear();
 
@@ -429,7 +431,7 @@ void getSIFTTransformationMatrix(
   // equalize second image if fails
   if(!check){
     
-    // clear points
+    // clear points, mask is reset itself
     points1.clear();
     points2.clear();
 
@@ -447,7 +449,7 @@ void getSIFTTransformationMatrix(
   // last try with both equalized images
   if(!check){
     
-    // clear points
+    // clear points, mask is reset itself
     points1.clear();
     points2.clear();
 
@@ -634,18 +636,13 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   }
   
   // get keypoint metrics
-  std::map<std::string, double> keypoint_metrics; 
+  std::map<std::string, double> keypoint_metrics;
   keypoint_metrics = getKeypointMetrics(points1, points2, im1Proc, im2Proc, h, mask);
 
   // get alignment metrics
   std::map<std::string, double> image_metrics;
   cv::Mat alignmentMask = generateOverlapMask(im2Proc.size(), h, im1Proc.size());
   image_metrics = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask);
-
-  // combine metrics
-  // std::map<std::string, double> temp_map = keypoint_metrics;
-  // temp_map.insert(image_metrics.begin(), image_metrics.end());
-  // accuracy = temp_map;
   
   // combine metrics
   std::vector<std::pair<std::string, double>> temp_map;
@@ -654,19 +651,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   std::copy(image_metrics.begin(), image_metrics.end(), std::back_inserter(temp_map));
   std::map<std::string, double> final_map(temp_map.begin(), temp_map.end());
   accuracy = final_map;
-  
-  // std::vector<std::pair<int, std::string>> temp_map;
-  // temp_map.reserve(keypoint_metrics.size() + image_metrics.size());
-  // temp_map.insert(temp_map.end(), keypoint_metrics.begin(), keypoint_metrics.end());
-  // temp_map.insert(temp_map.end(), image_metrics.begin(), image_metrics.end());
-  // std::map<int, std::string> accuracy(temp_map.begin(), temp_map.end());
-  
-  //   
-  // accuracy.reserve(keypoint_metrics.size() + image_metrics.size());
-  // accuracy.insert(accuracy.end(), keypoint_metrics.begin(), keypoint_metrics.end());
-  // accuracy.insert(accuracy.end(), image_metrics.begin(), image_metrics.end());
-  // Rcout << accuracy.size() << std::endl;
-  
+
   // get matte metric
   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
   
@@ -690,37 +675,29 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     
     Rcout << "Calculating Thin-Plate-Spline Interpolation" << endl;
     
-    // Filtered points (inliers) based on the mask
-    std::vector<cv::Point2f> filtered_points1;
-    std::vector<cv::Point2f> filtered_points2;
-    for (int i = 0; i < mask.rows; i++) {
-      if (mask.at<uchar>(i)) {
-        filtered_points1.push_back(points1[i]);
-        filtered_points2.push_back(points2[i]);
-      }
-    }
-    removeCloseMatches(filtered_points1, filtered_points2);
+    // remove close looking matches
+    removeCloseMatches(points1, points2);
     
     // transform query
-    std::vector<cv::Point2f> filtered_points1_reg;
+    std::vector<cv::Point2f> points1_reg;
     if (h.rows == 2){
-      cv::transform(filtered_points1, filtered_points1_reg, h);
+      cv::transform(points1, points1_reg, h);
     } else {
-      cv::perspectiveTransform(filtered_points1, filtered_points1_reg, h);
+      cv::perspectiveTransform(points1, points1_reg, h);
     }
     
     // get TPS matches
     std::vector<cv::DMatch> matches;
-    for (unsigned int i = 0; i < filtered_points2.size(); i++)
+    for (unsigned int i = 0; i < points2.size(); i++)
       matches.push_back(cv::DMatch(i, i, 0));
     
     // calculate TPS transformation
     Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
-    tps->estimateTransformation(filtered_points2, filtered_points1_reg, matches);
+    tps->estimateTransformation(points2, points1_reg, matches);
     
     // save keypoints 
-    keypoints[0] = point2fToNumericMatrix(filtered_points2);
-    keypoints[1] = point2fToNumericMatrix(filtered_points1_reg); 
+    keypoints[0] = point2fToNumericMatrix(points2);
+    keypoints[1] = point2fToNumericMatrix(points1_reg); 
     
     // determine extension limits for both images
     int y_max = max(im1Proc.rows, im2.rows);
@@ -737,7 +714,6 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     // resize image
     im1Proc = im1Proc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
     im1NormalProc = im1NormalProc(cv::Range(0,im2Proc.size().height), cv::Range(0,im2Proc.size().width));
-    
     // change color map
     cv::addWeighted(im2Proc, 0.7, im1Proc, 0.3, 0, im1Proc);
     
