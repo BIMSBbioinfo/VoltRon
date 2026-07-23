@@ -12,21 +12,19 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // accuracy_rawvector
-Rcpp::List accuracy_rawvector(Rcpp::RawVector& ref_image, Rcpp::RawVector& query_image, Rcpp::NumericMatrix trans_mat, const int width1, const int height1, const int width2, const int height2, const bool invert_query, const bool invert_ref);
-RcppExport SEXP _VoltRon_accuracy_rawvector(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP trans_matSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP, SEXP invert_querySEXP, SEXP invert_refSEXP) {
+Rcpp::List accuracy_rawvector(Rcpp::RawVector& ref_image, Rcpp::RawVector& query_image, Rcpp::RawVector& mask, const int width, const int height, std::string type, bool overlay_images);
+RcppExport SEXP _VoltRon_accuracy_rawvector(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP maskSEXP, SEXP widthSEXP, SEXP heightSEXP, SEXP typeSEXP, SEXP overlay_imagesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::RawVector& >::type ref_image(ref_imageSEXP);
     Rcpp::traits::input_parameter< Rcpp::RawVector& >::type query_image(query_imageSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type trans_mat(trans_matSEXP);
-    Rcpp::traits::input_parameter< const int >::type width1(width1SEXP);
-    Rcpp::traits::input_parameter< const int >::type height1(height1SEXP);
-    Rcpp::traits::input_parameter< const int >::type width2(width2SEXP);
-    Rcpp::traits::input_parameter< const int >::type height2(height2SEXP);
-    Rcpp::traits::input_parameter< const bool >::type invert_query(invert_querySEXP);
-    Rcpp::traits::input_parameter< const bool >::type invert_ref(invert_refSEXP);
-    rcpp_result_gen = Rcpp::wrap(accuracy_rawvector(ref_image, query_image, trans_mat, width1, height1, width2, height2, invert_query, invert_ref));
+    Rcpp::traits::input_parameter< Rcpp::RawVector& >::type mask(maskSEXP);
+    Rcpp::traits::input_parameter< const int >::type width(widthSEXP);
+    Rcpp::traits::input_parameter< const int >::type height(heightSEXP);
+    Rcpp::traits::input_parameter< std::string >::type type(typeSEXP);
+    Rcpp::traits::input_parameter< bool >::type overlay_images(overlay_imagesSEXP);
+    rcpp_result_gen = Rcpp::wrap(accuracy_rawvector(ref_image, query_image, mask, width, height, type, overlay_images));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -216,7 +214,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_VoltRon_accuracy_rawvector", (DL_FUNC) &_VoltRon_accuracy_rawvector, 9},
+    {"_VoltRon_accuracy_rawvector", (DL_FUNC) &_VoltRon_accuracy_rawvector, 7},
     {"_VoltRon_automated_registeration_rawvector", (DL_FUNC) &_VoltRon_automated_registeration_rawvector, 17},
     {"_VoltRon_replaceNaMatrix", (DL_FUNC) &_VoltRon_replaceNaMatrix, 2},
     {"_VoltRon_warpRcppImage", (DL_FUNC) &_VoltRon_warpRcppImage, 7},

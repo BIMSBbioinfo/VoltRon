@@ -3627,8 +3627,12 @@ computeAutomatedPairwiseTransform <- function(
           "rotate_", ref_label, "_image", cur_map[2])]],
         initial_mapping = list(reg[[1]])
       )
-      reg$aligned_image <- tfx$aligned_image
       reg[[1]][[2]] <- tfx$transformation
+      reg$aligned_image <- tfx$aligned_image
+      reg$overlay_image <- tfx$overlay_image
+      reg$matte_map <- tfx$matte_map
+      reg$alignment_stats$fine[names(tfx$alignment_metrics)] <- 
+        tfx$alignment_metrics
     }
     
     # return transformation matrix and images
@@ -3841,7 +3845,7 @@ getSimpleITKAutomatedRegistration <- function(
   if(invert_query)
     query_image <- negateImage(query_image)
   
-  # generate coarse mapped mask
+  # generate coarse mapped mask by warping
   ref_info <- getImageInfo(ref_image)
   query_info <- getImageInfo(query_image)
   mask <- generateOverlapMask(c(ref_info$width, ref_info$height),
@@ -3853,10 +3857,7 @@ getSimpleITKAutomatedRegistration <- function(
                            query_image = query_image,
                            mapping = initial_mapping)
   
-  # temp stop
-  stop()
-  
-  # prepare images
+  # prepare images and masks
   ref_image1 <- magick::as_EBImage(ref_image)
   EBImage::writeImage(ref_image1, 
                       files = file.path(tmpdir, "ref_image.tiff"), 
@@ -3869,7 +3870,7 @@ getSimpleITKAutomatedRegistration <- function(
                       compression = "LZW", reduce = TRUE)
   moving <- SimpleITK::ReadImage(file.path(tmpdir, "query_image.tiff"), 
                                  'sitkUInt8')
-  mask <- SimpleITK::as.image(mask)
+  mask <- SimpleITK::as.image(array(mask, rev(dim(mask))))
   
   # get registration for image
   elx <- SimpleITK::ElastixImageFilter()
@@ -3893,6 +3894,14 @@ getSimpleITKAutomatedRegistration <- function(
   tfx_image <- SimpleITK::TransformixImageFilter()
   tfx_image$LogToConsoleOff()
   tfx_image$SetTransformParameterMap(transform_param_map)
+  
+  # warp mask
+  tfx_image$SetMovingImage(mask)
+  tmp <- tfx_image$Execute()
+  aligned_mask <- SimpleITK::as.array(tfx_image$GetResultImage())
+  aligned_mask <- array(aligned_mask, dim = c(dim(aligned_mask), 1))
+  aligned_mask <- aperm(aligned_mask, c(2,1,3))
+  aligned_mask <- magick::image_read(aligned_mask)
 
   # get transformation for the points and observations
   elx <- SimpleITK::ElastixImageFilter()
@@ -3915,8 +3924,21 @@ getSimpleITKAutomatedRegistration <- function(
   # delete dir
   unlink(tmpdir, recursive = TRUE)
   
+  # calculate alignment accuracy
+  results <- getAlignmentAccuracy(ref_image, 
+                                  aligned_image, 
+                                  aligned_mask,
+                                  "Fine")
+  
+  # convert images
+  overlay_image <-
+    if (!is.null(results[[3]])) magick::image_read(results[[3]]) else NA
+
   # return
   return(list(aligned_image = aligned_image, 
+              alignment_metrics = results[[1]],
+              matte_map = results[[2]],
+              overlay_image = overlay_image,
               transformation = list(
                 tfx_points = tfx_points,
                 tfx_image = tfx_image
@@ -4003,3 +4025,46 @@ getNonInteractiveRegistration <- function(
     )
   )
 }
+
+####
+# Accuracy ####
+####
+
+getAlignmentAccuracy <- function(ref_image, 
+                                 query_image, 
+                                 mask, 
+                                 type){
+  
+  # image info
+  ref_info <- getImageInfo(ref_image)
+  query_info <- getImageInfo(query_image)
+  
+  # ref image
+  if (inherits(ref_image, "ImageArray")) {
+    ref_image <- DelayedArray::realize(ref_image)
+    ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
+  } else {
+    ref_image <- magick::image_data(ref_image, channels = "rgb")
+  }
+  
+  # query image
+  if (inherits(query_image, "ImageArray")) {
+    query_image <- DelayedArray::realize(query_image)
+    query_image <- array(as.raw(query_image), dim = dim(query_image))
+  } else {
+    query_image <- magick::image_data(query_image, channels = "rgb")
+  }
+  
+  # mask
+  mask <- magick::image_data(mask, channels = "rgb")
+  
+  # calculate alignment accuracy
+  accuracy_rawvector(ref_image, 
+                     query_image, 
+                     mask, 
+                     width = ref_info$width, 
+                     height = ref_info$height, 
+                     type, 
+                     overlay_images = TRUE)
+}
+
