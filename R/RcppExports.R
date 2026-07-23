@@ -37,6 +37,10 @@ applyRcppMapping <- function(coords, mapping) {
     .Call('_VoltRon_applyRcppMapping', PACKAGE = 'VoltRon', coords, mapping)
 }
 
+generateOverlapMask <- function(dsize, trans_mat, ssize) {
+    .Call('_VoltRon_generateOverlapMask', PACKAGE = 'VoltRon', dsize, trans_mat, ssize)
+}
+
 build_snn_rank <- function(neighbors) {
     .Call('_VoltRon_build_snn_rank', PACKAGE = 'VoltRon', neighbors)
 }

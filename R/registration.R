@@ -1399,94 +1399,6 @@ applyPerspectiveTransform <- function(
 }
 
 ####
-# Managing Mappings ####
-####
-
-manageMapping <- function(mappings) {
-  # check if all transformations are homography
-  allHomography <- suppressWarnings(all(lapply(mappings, function(map) {
-    nrow(map[[1]] > 0) && is.null(map[[2]])
-  })))
-
-  # change the mapping
-  new_mappings <- list()
-  if (allHomography) {
-    mappings <- lapply(mappings, function(map) map[[1]])
-    new_mappings <- list(
-      list(Reduce("%*%", mappings), NULL)
-    )
-  } else {
-    new_mappings <- mappings
-  }
-
-  # return
-  return(new_mappings)
-}
-
-applyMapping <- function(coords, mapping){
-  mapping_new <- mapping
-  if(!is.null(mapping[[1]][[2]])){
-    if(is(mapping[[1]][[2]][[1]], "_p_itk__simple__TransformixImageFilter")){
-      mapping_new[[1]] <- list(mapping[[1]][[1]], NULL)
-      coords <- applyRcppMapping(coords, mapping_new)
-      coords <- applySimpleITKMapping(coords, mapping[[1]][[2]][[1]])
-    } else {
-      coords <- applyRcppMapping(coords, mapping)
-    }
-  } else {
-    coords <- applyRcppMapping(coords, mapping)
-  }
-  coords
-}
-
-#' @importFrom utils write.table
-applySimpleITKMapping <- function(coords, mapping){
-  
-  # check SimpleITK
-  if (!requireNamespace('SimpleITK')) {
-    stop("Please install SimpleITK package!: ", 
-         "remotes::install_github('BIMSBbioinfo/SimpleITKRInstaller')", 
-         ", this is gonna take a while :)")
-  }
-  
-  # temp dir, delete later
-  tmpdir <- tempdir()
-  tmpdir <- file.path(tmpdir, "SimpleITK")
-  dir.create(tmpdir, showWarnings = FALSE)
-  
-  # get image
-  input_file <- file.path(tmpdir, "inputpoints.txt")
-  output_file <- file.path(tmpdir, "outputpoints.txt")
-  
-  # apply transformation
-  tfx <- mapping
-  suppressWarnings(file.remove(input_file, showWarnings = FALSE))
-  cat("point\n", nrow(coords), "\n", file = input_file)
-  utils::write.table(coords, input_file, append = TRUE,
-              col.names = FALSE, row.names = FALSE, quote = FALSE)
-  tfx$SetOutputDirectory(tmpdir)
-  tfx$SetFixedPointSetFileName(input_file)
-  tmp <- tfx$Execute()
-
-  # get points
-  lines_coords <- readLines(output_file)
-  coords <- do.call(
-    rbind,
-    lapply(lines_coords, function(x) {
-      tmp <- strsplit(strsplit(x, split = "\\t")[[1]][6], 
-                      split = " ")[[1]][c(5,6)]
-      as.numeric(tmp)
-    })
-  )
-
-  # delete dir
-  unlink(tmpdir, recursive = TRUE)
-  
-  # return 
-  coords
-}
-
-####
 # Managing Parameters ####
 ####
 
@@ -2566,6 +2478,99 @@ ggplot_to_magick <- function(plot, extent = NULL, width = 8, height = 6, dpi = 3
   magick::image_read(tf)
 }
 
+####
+# Managing Mappings ####
+####
+
+manageMapping <- function(mappings) {
+  # check if all transformations are homography
+  allHomography <- suppressWarnings(all(lapply(mappings, function(map) {
+    nrow(map[[1]] > 0) && is.null(map[[2]])
+  })))
+  
+  # change the mapping
+  new_mappings <- list()
+  if (allHomography) {
+    mappings <- lapply(mappings, function(map) map[[1]])
+    new_mappings <- list(
+      list(Reduce("%*%", mappings), NULL)
+    )
+  } else {
+    new_mappings <- mappings
+  }
+  
+  # return
+  return(new_mappings)
+}
+
+applyMapping <- function(coords, mapping){
+  mapping_new <- mapping
+  if(!is.null(mapping[[1]][[2]])){
+    if(is(mapping[[1]][[2]][[1]], "_p_itk__simple__TransformixImageFilter")){
+      mapping_new[[1]] <- list(mapping[[1]][[1]], NULL)
+      coords <- applyRcppMapping(coords, mapping_new)
+      coords <- applySimpleITKMapping(coords, mapping[[1]][[2]][[1]])
+    } else {
+      coords <- applyRcppMapping(coords, mapping)
+    }
+  } else {
+    coords <- applyRcppMapping(coords, mapping)
+  }
+  coords
+}
+
+#' @importFrom utils write.table
+applySimpleITKMapping <- function(coords, mapping){
+  
+  # check SimpleITK
+  if (!requireNamespace('SimpleITK')) {
+    stop("Please install SimpleITK package!: ", 
+         "remotes::install_github('BIMSBbioinfo/SimpleITKRInstaller')", 
+         ", this is gonna take a while :)")
+  }
+  
+  # temp dir, delete later
+  tmpdir <- tempdir()
+  tmpdir <- file.path(tmpdir, "SimpleITK")
+  dir.create(tmpdir, showWarnings = FALSE)
+  
+  # get image
+  input_file <- file.path(tmpdir, "inputpoints.txt")
+  output_file <- file.path(tmpdir, "outputpoints.txt")
+  
+  # apply transformation
+  tfx <- mapping
+  suppressWarnings(file.remove(input_file, showWarnings = FALSE))
+  cat("point\n", nrow(coords), "\n", file = input_file)
+  utils::write.table(coords, input_file, append = TRUE,
+                     col.names = FALSE, row.names = FALSE, quote = FALSE)
+  tfx$SetOutputDirectory(tmpdir)
+  tfx$SetFixedPointSetFileName(input_file)
+  tmp <- tfx$Execute()
+  
+  # get points
+  lines_coords <- readLines(output_file)
+  coords <- do.call(
+    rbind,
+    lapply(lines_coords, function(x) {
+      tmp <- strsplit(strsplit(x, split = "\\t")[[1]][6], 
+                      split = " ")[[1]][c(5,6)]
+      as.numeric(tmp)
+    })
+  )
+  
+  # delete dir
+  unlink(tmpdir, recursive = TRUE)
+  
+  # return 
+  coords
+}
+
+
+####
+# Managing Transformations ####
+####
+
 #' transformImage
 #'
 #' Apply given transformations to a magick image
@@ -2708,7 +2713,6 @@ warpImage <- function(ref_image, query_image, mapping) {
         if(is(mapping[[1]][[2]][[2]], "_p_itk__simple__TransformixImageFilter")){
           query_image <- magick::image_read(query_image)
           query_image <- warpSimpleITKImage(
-            ref_image = ref_image,
             query_image = query_image,
             mapping = mapping[[1]][[2]][[2]]
           ) 
@@ -2748,14 +2752,13 @@ warpImage <- function(ref_image, query_image, mapping) {
 #'
 #' Warping a query image given a homography image
 #'
-#' @param ref_image reference image
 #' @param query_image query image
 #' @param mapping a list of the homography matrices and TPS keypoints
 #'
 #' @importFrom magick image_read image_data
 #'
 #' @export
-warpSimpleITKImage <- function(ref_image, query_image, mapping) {
+warpSimpleITKImage <- function(query_image, mapping) {
   
   # check SimpleITK
   if (!requireNamespace('SimpleITK')) {
@@ -3829,7 +3832,6 @@ getSimpleITKAutomatedRegistration <- function(
     ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
     ref_image <- magick::image_read(ref_image)
   }
-    
   query_image <- rotateImage(query_image, as.numeric(rotate_query))
   if (flipflop_query == "Flip") {
     query_image <- flipImage(query_image)
@@ -3838,32 +3840,36 @@ getSimpleITKAutomatedRegistration <- function(
   }
   if(invert_query)
     query_image <- negateImage(query_image)
-    # query_image <- magick::image_negate(query_image)
+  
+  # generate coarse mapped mask
+  ref_info <- getImageInfo(ref_image)
+  query_info <- getImageInfo(query_image)
+  mask <- generateOverlapMask(c(ref_info$width, ref_info$height),
+                              initial_mapping[[1]][[1]],
+                              c(query_info$width, query_info$height))
+  
+  # warp image
   query_image <- warpImage(ref_image = ref_image,
                            query_image = query_image,
                            mapping = initial_mapping)
   
+  # temp stop
+  stop()
+  
   # prepare images
   ref_image1 <- magick::as_EBImage(ref_image)
-  # ref_image1 <- EBImage::imageData(ref_image1)
-  # dim_img <- 1:length(dim(ref_image))
-  # dim_img[1:2] <- rev(dim_img[1:2])
-  # ref_image1 <- aperm(ref_image1, perm = c(2,1,3))
   EBImage::writeImage(ref_image1, 
                       files = file.path(tmpdir, "ref_image.tiff"), 
                       compression = "LZW", reduce = TRUE)
   fixed <- SimpleITK::ReadImage(file.path(tmpdir, "ref_image.tiff"), 
                                 'sitkUInt8')
   query_image1 <- as_EBImage(query_image)
-  # dim_img <- 1:length(dim(query_image))
-  # dim_img[1:2] <- rev(dim_img[1:2])
-  # query_image1 <- EBImage::imageData(query_image1)
-  # query_image1 <- aperm(query_image1, perm = c(2,1))
   EBImage::writeImage(query_image1, 
                       files = file.path(tmpdir, "query_image.tiff"),
                       compression = "LZW", reduce = TRUE)
   moving <- SimpleITK::ReadImage(file.path(tmpdir, "query_image.tiff"), 
                                  'sitkUInt8')
+  mask <- SimpleITK::as.image(mask)
   
   # get registration for image
   elx <- SimpleITK::ElastixImageFilter()

@@ -150,8 +150,6 @@ cv::Mat generateOverlapMask(cv::Size dsize,
   const int borderMode = cv::BORDER_CONSTANT;
   const cv::Scalar borderValue(0);
 
-  cv::imwrite("before.png", mask);
-
   // warp mask
   if (h.rows == 2){
     cv::warpAffine(mask, warped, h, dsize, 
@@ -160,8 +158,6 @@ cv::Mat generateOverlapMask(cv::Size dsize,
     cv::warpPerspective(mask, warped, h, dsize, 
                         interp, borderMode, borderValue);
   }
-  
-  cv::imwrite("after.png", warped);
 
   // Force binary mask again.
   cv::threshold(warped, warped, 0, 255, cv::THRESH_BINARY);
@@ -174,37 +170,29 @@ cv::Mat generateOverlapMask(cv::Mat& ref_image,
 {
   // generate mask
   cv::Mat mask = cv::Mat::ones(ssize, CV_8UC1) * 255;
-  // cv::Mat warped;
-  
+
   // Keep masks crisp: nearest-neighbor only.
   const int interp = cv::INTER_NEAREST;
-  const int borderMode = cv::BORDER_CONSTANT;
-  const cv::Scalar borderValue(0);
+  // const int borderMode = cv::BORDER_CONSTANT;
+  // const cv::Scalar borderValue(0);
   
-  // warp mask
-  // Rcout << "artur" << endl;
-  // Rcout << mask.size() << endl;
-  // cv::imwrite("alignmentMask.png", mask);
-  // Rcout << "artur" << endl;
-  
-  // Rcout << 
-  // tps->warpImage(mask, warped, 
-  //                interp, borderMode, borderValue);
-  // tps->warpImage(mask, mask,
-  //                interp, borderMode, borderValue);
-  Rcout << ref_image.rows << " " << ref_image.cols << endl;
   mask = warpTPSImage(ref_image, mask, tps, 
                       ref_image.rows, ref_image.cols, interp);
-  
-  // warp mask
-  // Rcout << "artur" << endl;
-  // Rcout << mask.size() << endl;
-  // cv::imwrite("alignmentMask_after.png", mask);
-  // Rcout << "artur" << endl;
   
   // Force binary mask again.
   cv::threshold(mask, mask, 0, 255, cv::THRESH_BINARY);
   return mask;
+}
+
+// [[Rcpp::export]]
+Rcpp::IntegerVector generateOverlapMask(Rcpp::NumericVector& dsize, 
+                                        Rcpp::NumericMatrix& trans_mat,
+                                        Rcpp::NumericVector& ssize){
+  cv::Mat h = numericMatrixToMat(trans_mat);
+  cv::Mat mask = generateOverlapMask(cv::Size((int) dsize[0], (int) dsize[1]),
+                                     h,
+                                     cv::Size((int) ssize[0], (int) ssize[1]));
+  return matToMask(mask);
 }
 
 double Entropy(cv::Mat& im1, cv::Mat& overlapMask, int bins = 256) {

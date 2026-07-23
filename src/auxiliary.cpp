@@ -41,8 +41,6 @@ Rcpp::NumericMatrix replaceNaMatrix(Rcpp::NumericMatrix mat, int replace) {
 
 // Function to convert a cv::Mat object to a RawVector for magick images
 Rcpp::RawVector matToImage(const cv::Mat &mat) {
-  // profiler
-  // MemProfiler mp("Mat -> Image");
   
   // Create RawVector object
   Rcpp::RawVector rawvec(mat.total() * mat.elemSize());
@@ -56,8 +54,6 @@ Rcpp::RawVector matToImage(const cv::Mat &mat) {
 
 // Function to convert a RawVector for magick images to a cv::Mat object
 cv::Mat imageToMat(Rcpp::RawVector &image_data, int width, int height) {
-  // profiler
-  // MemProfiler mp("Image -> Mat");
   
   // Create cv::Mat object
   cv::Mat mat(height, width, CV_8UC3, image_data.begin());
@@ -66,6 +62,19 @@ cv::Mat imageToMat(Rcpp::RawVector &image_data, int width, int height) {
   cv::cvtColor(mat, mat, cv::COLOR_RGBA2BGR);
   
   return mat;
+}
+
+// Function to convert a cv::Mat object to a RawVector for magick images
+Rcpp::IntegerVector matToMask(const cv::Mat &mat) {
+  
+  // Create RawVector object
+  Rcpp::IntegerVector intvec(mat.total() * mat.elemSize());
+  intvec.attr("dim") = Rcpp::Dimension(1, mat.cols, mat.rows);
+  
+  // Copy Mat data to RawVector
+  std::memcpy(intvec.begin(), mat.data, intvec.size());
+  
+  return intvec;
 }
 
 // Function to convert a NumericMatrix object to a cv::Mat

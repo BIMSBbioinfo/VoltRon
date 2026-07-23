@@ -38,7 +38,7 @@ void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::List &keypoints,
     matches.push_back(cv::DMatch(i, i, 0));
 
   // message
-  Rcout << "Running Course Alignment (Thin-Plate-Spline)" << endl;
+  Rcout << "Running Coarse Alignment (Thin-Plate-Spline)" << endl;
 
   // calculate transformation
   Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
@@ -85,7 +85,7 @@ void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::List &keypoints,
                                               im1Proc.size());
   
   // get alignment metrics
-  accuracy = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Course");
+  accuracy = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Coarse");
   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
 }
 
@@ -168,7 +168,7 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
     cv::perspectiveTransform(query_mat, query_reg, h);
   }
   
-  // get alignment metrics for course registration
+  // get alignment metrics for Coarse registration
   cv::Mat alignmentMask = generateOverlapMask(im2.size(), 
                                               h, 
                                               im1.size());
@@ -179,7 +179,7 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
   cvtColor(im2, im2Proc, cv::COLOR_BGR2GRAY);
   im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
   im2Proc = preprocessImage(im2Proc, invert_ref, "None", "0");
-  accuracy_coarse = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Course");
+  accuracy_coarse = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Coarse");
   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
   
   if(!run_TPS){
@@ -247,6 +247,9 @@ void alignImagesAffineTPS_points(Rcpp::NumericMatrix &query_data,
   cv::setRNGSeed(0);
   RNG rng(12345);
   Scalar value;
+  
+  // message
+  Rcout << "Running Coarse Alignment (Manual)" << endl;
   
   // Get landmarks as Point2f
   std::vector<cv::Point2f> query_mat = numericMatrixToPoint2f(query_landmark);

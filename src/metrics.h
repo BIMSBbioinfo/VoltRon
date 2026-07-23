@@ -28,6 +28,7 @@ void maskKeypoints(std::vector<cv::KeyPoint> &keypoints1_good, std::vector<cv::K
 // check if keypoints are degenerate
 bool checkDegenerate(double pts1, double pts2);
 
+// generate overlap mask for alignment
 cv::Mat generateOverlapMask(cv::Size dsize,
                             cv::Mat& h, 
                             cv::Size ssize);
@@ -36,12 +37,17 @@ cv::Mat generateOverlapMask(cv::Mat& ref_image,
                             Ptr<ThinPlateSplineShapeTransformer>& tps, 
                             cv::Size ssize);
 
+// cv::Mat generateOverlapMask(Rcpp::NumericVector dsize,
+//                             Rcpp::NumericMatrix trans_mat,
+//                             Rcpp::NumericVector ssize);
+
+// get alignment metrics
 std::map<std::string, double> getAlignmentMetrics(cv::Mat &im1, 
                                                   cv::Mat &im2, 
                                                   cv::Mat &mask, 
                                                   std::string type);
 
-// do overall checks on keypoints and images
+// do overall checks on keypoints and metrics
 std::map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &points1, 
                                        std::vector<cv::Point2f> &points2, 
                                        cv::Mat &im1, cv::Mat &im2, 

@@ -19,6 +19,9 @@ Rcpp::NumericMatrix replaceNaMatrix(Rcpp::NumericMatrix mat, int replace);
 Rcpp::RawVector matToImage(const cv::Mat &mat);
 cv::Mat imageToMat(Rcpp::RawVector &image_data, int width, int height);
 
+// cv::Mat vs Rcpp::RawVector(Image) with 2 dim (mostly for masks)
+Rcpp::IntegerVector matToMask(const cv::Mat &mat);
+
 // cv::Mat vs Rcpp::NumericMatrix 
 cv::Mat numericMatrixToMat(Rcpp::NumericMatrix nm);
 Rcpp::NumericMatrix matToNumericMatrix(cv::Mat m);

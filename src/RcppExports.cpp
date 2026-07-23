@@ -168,6 +168,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// generateOverlapMask
+Rcpp::IntegerVector generateOverlapMask(Rcpp::NumericVector& dsize, Rcpp::NumericMatrix& trans_mat, Rcpp::NumericVector& ssize);
+RcppExport SEXP _VoltRon_generateOverlapMask(SEXP dsizeSEXP, SEXP trans_matSEXP, SEXP ssizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector& >::type dsize(dsizeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type trans_mat(trans_matSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector& >::type ssize(ssizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(generateOverlapMask(dsize, trans_mat, ssize));
+    return rcpp_result_gen;
+END_RCPP
+}
 // build_snn_rank
 Rcpp::List build_snn_rank(Rcpp::IntegerMatrix neighbors);
 RcppExport SEXP _VoltRon_build_snn_rank(SEXP neighborsSEXP) {
@@ -212,6 +225,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_VoltRon_manual_registeration_rawvector", (DL_FUNC) &_VoltRon_manual_registeration_rawvector, 12},
     {"_VoltRon_manual_registeration_matrix", (DL_FUNC) &_VoltRon_manual_registeration_matrix, 5},
     {"_VoltRon_applyRcppMapping", (DL_FUNC) &_VoltRon_applyRcppMapping, 2},
+    {"_VoltRon_generateOverlapMask", (DL_FUNC) &_VoltRon_generateOverlapMask, 3},
     {"_VoltRon_build_snn_rank", (DL_FUNC) &_VoltRon_build_snn_rank, 1},
     {"_VoltRon_build_snn_number", (DL_FUNC) &_VoltRon_build_snn_number, 1},
     {"_VoltRon_replacePatternInRcppVectorWrapper", (DL_FUNC) &_VoltRon_replacePatternInRcppVectorWrapper, 3},
