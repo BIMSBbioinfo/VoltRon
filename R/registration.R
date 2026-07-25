@@ -3893,7 +3893,7 @@ getSimpleITKAutomatedRegistration <- function(
   elx$SetOutputDirectory(tmpdir)
   elx$SetFixedImage(fixed)
   elx$SetMovingImage(moving)
-  elx$SetMovingMask(mask)
+  # elx$SetMovingMask(mask)
   parameterMapVector = SimpleITK::VectorOfParameterMap()
   mp <- SimpleITK:::ReadParameterFile(
     system.file("extdata", "bspline_map.txt", package = "VoltRon")
