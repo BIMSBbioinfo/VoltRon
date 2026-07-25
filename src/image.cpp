@@ -207,9 +207,7 @@ void warpImage(cv::Mat& ref_image,
       // transform image using trained tps
       im_temp = warpTPSImage(ref_image, query_image, tps, 
                              ref_image.rows, ref_image.cols, cv::INTER_LINEAR);
-      // warpTPSImage(ref_image, query_image, tps, cv::INTER_LINEAR);
-      // im_temp = query_image;
-      
+
       // // determine extension limits for both images
       // int y_max = max(query_image.rows, ref_image.rows);
       // int x_max = max(query_image.cols, ref_image.cols);

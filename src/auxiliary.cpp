@@ -80,19 +80,6 @@ Rcpp::IntegerVector matToMask(const cv::Mat &mat) {
   return intvec;
 }
 
-// // Function to convert a cv::Mat object to a RawVector for magick images
-// Rcpp::RawVector matToMask(const cv::Mat &mat) {
-//   
-//   // Create RawVector object
-//   Rcpp::RawVector rawvec(mat.total() * mat.elemSize());
-//   rawvec.attr("dim") = Rcpp::Dimension(mat.rows, mat.cols);
-//   
-//   // Copy Mat data to RawVector
-//   std::memcpy(rawvec.begin(), mat.data, rawvec.size());
-//   
-//   return rawvec;
-// }
-
 // Function to convert a NumericMatrix object to a cv::Mat
 cv::Mat numericMatrixToMat(Rcpp::NumericMatrix nm) {
   cv::Mat m(nm.rows(), nm.cols(), CV_64F);

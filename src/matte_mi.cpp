@@ -419,26 +419,6 @@ cv::Mat1d MatteMIMap(const cv::Mat& fixed,
       const bool insideMask =
         maskRow == nullptr || static_cast<bool>(maskRow[x]);
       
-      // if(!std::isfinite(fixedRow[x])){
-      //   Rcout << "Fixed: "<< fixedRow[x] << endl;
-      // }
-      // if(!std::isfinite(movingRow[x])){
-      //   Rcout << "Moving: "<< movingRow[x] << endl;
-      // }
-      
-      // if(insideMask){
-      //   temp_counter += 1;
-      //   if (temp_counter % 100 == 0){
-      //     Rcout << "Fixed: "<< fixedRow[x] << endl;
-      //     Rcout << "Moving: "<< movingRow[x] << endl; 
-      //   }
-      // }
-      
-      // temp_counter += 1;
-      // if (temp_counter % 100 == 0){
-      //   Rcout << "Mask: "<< maskRow[x] << endl;
-      // }
-      
       const bool valid =
         insideMask &&
         std::isfinite(fixedRow[x]) &&

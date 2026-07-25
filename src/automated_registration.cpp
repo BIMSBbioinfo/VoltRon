@@ -705,17 +705,6 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
                            im2Proc.rows, im2Proc.cols, cv::INTER_LINEAR);
     im1NormalProc = warpTPSImage(im2Proc, im1NormalProc, tps,
                                  im2Proc.rows, im2Proc.cols, cv::INTER_LINEAR);
-    
-    // // warp overlap mask
-    // alignmentMask = warpTPSImage(im2Proc, alignmentMask, tps,
-    //                              im2.rows, im2.cols,
-    //                              cv::INTER_NEAREST);
-    // 
-    // // transform image using trained tps
-    // im1Proc = warpTPSImage(im2Proc, im1Proc, tps,
-    //                        im2.rows, im2.cols, cv::INTER_LINEAR);
-    // im1NormalProc = warpTPSImage(im2Proc, im1NormalProc, tps,
-    //                              im2.rows, im2.cols, cv::INTER_LINEAR);
 
     // // determine extension limits for both images
     // int y_max = max(im1Proc.rows, im2.rows);

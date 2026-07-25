@@ -110,20 +110,6 @@ void maskKeypoints(std::vector<cv::KeyPoint> &keypoints1_good, std::vector<cv::K
   }
 }
 
-// void maskKeypoints(std::vector<cv::KeyPoint> &keypoints1_good, std::vector<cv::KeyPoint> &keypoints2_good,
-//                     std::vector<cv::KeyPoint> &keypoints1_masked, std::vector<cv::KeyPoint> &keypoints2_masked, 
-//                     Mat &mask)
-// {
-//   int j=0;
-//   for (int i = 0; i < mask.rows; i++) {
-//     if (mask.at<uchar>(i)) {
-//       keypoints1_masked.push_back(keypoints1_good[i]);
-//       keypoints2_masked.push_back(keypoints2_good[i]);
-//       j++;
-//     }
-//   }
-// }
-
 // check if keypoints are degenerate
 bool checkDegenerate(double pts1, double pts2) {
   
