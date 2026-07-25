@@ -3880,35 +3880,26 @@ getSimpleITKAutomatedRegistration <- function(
   # moving <- SimpleITK::ReadImage(file.path(tmpdir, "query_image.tiff"),
   #                                'sitkUInt8')
   fixed <- convertToSitkImage(ref_image)
-  SimpleITK::Cast(fixed, "sitkUInt8")
+  fixed <- SimpleITK::Cast(fixed, "sitkUInt8")
   moving <- convertToSitkImage(query_image)
-  SimpleITK::Cast(moving, "sitkUInt8")
-  mask <- SimpleITK::as.image(array(mask, rev(dim(mask))))
-  SimpleITK::Cast(mask, "sitkUInt8")
+  moving <- SimpleITK::Cast(moving, "sitkUInt8")
+  # mask <- SimpleITK::as.image(array(mask, rev(dim(mask))))
+  mask <- SimpleITK::as.image(array(as.integer(mask != 0L), 
+                                    rev(dim(mask))))
+  mask <- SimpleITK::Cast(mask, "sitkUInt8")
   
   # get registration for image
   elx <- SimpleITK::ElastixImageFilter()
   elx$SetOutputDirectory(tmpdir)
   elx$SetFixedImage(fixed)
   elx$SetMovingImage(moving)
+  elx$SetMovingMask(mask)
   parameterMapVector = SimpleITK::VectorOfParameterMap()
   mp <- SimpleITK:::ReadParameterFile(
     system.file("extdata", "bspline_map.txt", package = "VoltRon")
   )
-  
-  # grid_config <- makeGridSamplingSchedule(
-  #   fixed_image = fixed,
-  #   parameter_map = mp,
-  #   target_samples = 50000L
-  # )
-  # mp$set(
-  #   "SampleGridSpacing",
-  #   grid_config$parameter_values
-  # )
-  
   elx$SetParameterMap(mp)
-  # elx$LogToConsoleOff()
-  elx$LogToConsoleOn()
+  elx$LogToConsoleOff()
   tmp <- elx$Execute()
   sitk_img <- SimpleITK::ReadImage(file.path(tmpdir, "result.0.tif"))
   arr <- SimpleITK::as.array(sitk_img)
@@ -3922,9 +3913,13 @@ getSimpleITKAutomatedRegistration <- function(
   tfx_image$SetTransformParameterMap(transform_param_map)
   
   # warp mask
-  tfx_image$SetMovingImage(mask)
-  tmp <- tfx_image$Execute()
-  aligned_mask <- SimpleITK::as.array(tfx_image$GetResultImage())
+  tfx_mask <- SimpleITK::TransformixImageFilter()
+  tfx_mask$LogToConsoleOff()
+  tfx_mask$SetTransformParameterMap(transform_param_map)
+  mask$CopyInformation(moving)
+  tfx_mask$SetMovingImage(mask)
+  tmp <- tfx_mask$Execute()
+  aligned_mask <- SimpleITK::as.array(tfx_mask$GetResultImage())
   aligned_mask <- array(aligned_mask, dim = c(dim(aligned_mask), 1))
   aligned_mask <- aperm(aligned_mask, c(2,1,3))
   aligned_mask <- magick::image_read(aligned_mask)
@@ -3933,6 +3928,7 @@ getSimpleITKAutomatedRegistration <- function(
   elx <- SimpleITK::ElastixImageFilter()
   elx$SetOutputDirectory(tmpdir)
   elx$SetFixedImage(moving)
+  elx$SetFixedMask(mask)
   elx$SetMovingImage(fixed)
   parameterMapVector = SimpleITK::VectorOfParameterMap()
   mp <- SimpleITK:::ReadParameterFile(
@@ -3969,92 +3965,6 @@ getSimpleITKAutomatedRegistration <- function(
                 tfx_points = tfx_points,
                 tfx_image = tfx_image
               )))
-}
-
-makeGridSamplingSchedule <- function(
-    fixed_image,
-    parameter_map,
-    target_samples = 50000L, 
-    number_of_resolutions = 10
-) {
-  image_size <- as.numeric(fixed_image$GetSize())
-  
-  if (!is.numeric(target_samples) ||
-      length(target_samples) != 1L ||
-      !is.finite(target_samples) ||
-      target_samples < 1) {
-    stop("'target_samples' must be a positive number.")
-  }
-  
-  number_of_dimensions <- length(image_size)
-  
-  # Default ITK schedule:
-  # nres = 4 -> 8, 4, 2, 1
-  shrink_factors <- 2^rev(
-    seq.int(0L, number_of_resolutions - 1L)
-  )
-  pyramid_schedule <- matrix(
-    rep(shrink_factors, each = number_of_dimensions),
-    nrow = number_of_resolutions,
-    ncol = number_of_dimensions,
-    byrow = TRUE
-  )
-  
-  # ITK calculates the pyramid image size as:
-  # floor(original size / shrink factor), with a minimum of 1.
-  original_sizes <- matrix(
-    rep(image_size, times = number_of_resolutions),
-    nrow = number_of_resolutions,
-    ncol = number_of_dimensions,
-    byrow = TRUE
-  )
-  
-  level_sizes <- floor(original_sizes / pyramid_schedule)
-  level_sizes[level_sizes < 1] <- 1
-  
-  level_pixels <- apply(level_sizes, 1L, prod)
-  
-  # At small/coarse levels, use all pixels.
-  # At large/fine levels, choose spacing to stay around target_samples.
-  effective_target <- pmin(
-    as.double(target_samples),
-    level_pixels
-  )
-  
-  spacing <- as.integer(
-    pmax(
-      1,
-      ceiling(sqrt(level_pixels / effective_target))
-    )
-  )
-  
-  spacing_matrix <- cbind(spacing, spacing)
-  
-  # Exact expected count before any mask filtering.
-  expected_samples <-
-    (
-      1 + (level_sizes[, 1] - 1) %/% spacing_matrix[, 1]
-    ) *
-    (
-      1 + (level_sizes[, 2] - 1) %/% spacing_matrix[, 2]
-    )
-  
-  list(
-    # Elastix requires:
-    # sx0 sy0 sx1 sy1 ...
-    parameter_values = as.character(c(t(spacing_matrix))),
-    
-    report = data.frame(
-      resolution = seq_len(number_of_resolutions) - 1L,
-      pyramid_width = level_sizes[, 1],
-      pyramid_height = level_sizes[, 2],
-      shrink_x = pyramid_schedule[, 1],
-      shrink_y = pyramid_schedule[, 2],
-      grid_spacing_x = spacing_matrix[, 1],
-      grid_spacing_y = spacing_matrix[, 2],
-      expected_samples = expected_samples
-    )
-  )
 }
 
 ####
