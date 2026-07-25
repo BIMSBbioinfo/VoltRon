@@ -2478,6 +2478,18 @@ ggplot_to_magick <- function(plot, extent = NULL, width = 8, height = 6, dpi = 3
   magick::image_read(tf)
 }
 
+#' @noRd
+convertToSitkImage <- function(img){
+  # img_info <- magick::image_info(img)
+  img_data <- magick::image_data(img, channels = "gray")
+  dim_img <- dim(img_data)
+  img_data <- as.vector(img_data, mode = "integer")
+  # dim(img_data) <- c(3, img_info$width, img_info$height)
+  dim(img_data) <- dim_img
+  img_data <- aperm(img_data, c(2,3,1))
+  SimpleITK::as.image(img_data, isVector = TRUE)
+}
+
 ####
 # Managing Mappings ####
 ####
@@ -3851,6 +3863,7 @@ getSimpleITKAutomatedRegistration <- function(
   mask <- generateOverlapMask(c(ref_info$width, ref_info$height),
                               initial_mapping[[1]][[1]],
                               c(query_info$width, query_info$height))
+  # mask <- magick::image_read(mask)
   
   # warp image
   query_image <- warpImage(ref_image = ref_image,
@@ -3858,19 +3871,20 @@ getSimpleITKAutomatedRegistration <- function(
                            mapping = initial_mapping)
   
   # prepare images and masks
-  ref_image1 <- magick::as_EBImage(ref_image)
-  EBImage::writeImage(ref_image1, 
-                      files = file.path(tmpdir, "ref_image.tiff"), 
-                      compression = "LZW", reduce = TRUE)
-  fixed <- SimpleITK::ReadImage(file.path(tmpdir, "ref_image.tiff"), 
-                                'sitkUInt8')
-  query_image1 <- as_EBImage(query_image)
-  EBImage::writeImage(query_image1, 
-                      files = file.path(tmpdir, "query_image.tiff"),
-                      compression = "LZW", reduce = TRUE)
-  moving <- SimpleITK::ReadImage(file.path(tmpdir, "query_image.tiff"), 
-                                 'sitkUInt8')
+  # magick::image_write(ref_image, file.path(tmpdir, "ref_image.tiff"),
+  #             compression = "LZW")
+  # fixed <- SimpleITK::ReadImage(file.path(tmpdir, "ref_image.tiff"),
+  #                               'sitkUInt8')
+  # magick::image_write(query_image, file.path(tmpdir, "query_image.tiff"),
+  #             compression = "LZW")
+  # moving <- SimpleITK::ReadImage(file.path(tmpdir, "query_image.tiff"),
+  #                                'sitkUInt8')
+  fixed <- convertToSitkImage(ref_image)
+  SimpleITK::Cast(fixed, "sitkUInt8")
+  moving <- convertToSitkImage(query_image)
+  SimpleITK::Cast(moving, "sitkUInt8")
   mask <- SimpleITK::as.image(array(mask, rev(dim(mask))))
+  SimpleITK::Cast(mask, "sitkUInt8")
   
   # get registration for image
   elx <- SimpleITK::ElastixImageFilter()
@@ -3881,15 +3895,27 @@ getSimpleITKAutomatedRegistration <- function(
   mp <- SimpleITK:::ReadParameterFile(
     system.file("extdata", "bspline_map.txt", package = "VoltRon")
   )
+  
+  # grid_config <- makeGridSamplingSchedule(
+  #   fixed_image = fixed,
+  #   parameter_map = mp,
+  #   target_samples = 50000L
+  # )
+  # mp$set(
+  #   "SampleGridSpacing",
+  #   grid_config$parameter_values
+  # )
+  
   elx$SetParameterMap(mp)
-  elx$LogToConsoleOff()
+  # elx$LogToConsoleOff()
+  elx$LogToConsoleOn()
   tmp <- elx$Execute()
   sitk_img <- SimpleITK::ReadImage(file.path(tmpdir, "result.0.tif"))
   arr <- SimpleITK::as.array(sitk_img)
-  arr8 <- 255 * (arr - min(arr)) / (max(arr) - min(arr))
-  arr8 <- array(as.integer(arr8), dim = dim(arr))
-  arr8 <- aperm(arr8, perm = c(2,1))
-  aligned_image <- magick::image_read(as.raster(arr8 / 255))
+  arr <- (arr - min(arr)) / (max(arr) - min(arr))
+  arr <- array(arr, dim = dim(arr))
+  arr <- aperm(arr, perm = c(2,1))
+  aligned_image <- magick::image_read(as.raster(arr))
   transform_param_map <- elx$GetTransformParameterMap()
   tfx_image <- SimpleITK::TransformixImageFilter()
   tfx_image$LogToConsoleOff()
@@ -3943,6 +3969,92 @@ getSimpleITKAutomatedRegistration <- function(
                 tfx_points = tfx_points,
                 tfx_image = tfx_image
               )))
+}
+
+makeGridSamplingSchedule <- function(
+    fixed_image,
+    parameter_map,
+    target_samples = 50000L, 
+    number_of_resolutions = 10
+) {
+  image_size <- as.numeric(fixed_image$GetSize())
+  
+  if (!is.numeric(target_samples) ||
+      length(target_samples) != 1L ||
+      !is.finite(target_samples) ||
+      target_samples < 1) {
+    stop("'target_samples' must be a positive number.")
+  }
+  
+  number_of_dimensions <- length(image_size)
+  
+  # Default ITK schedule:
+  # nres = 4 -> 8, 4, 2, 1
+  shrink_factors <- 2^rev(
+    seq.int(0L, number_of_resolutions - 1L)
+  )
+  pyramid_schedule <- matrix(
+    rep(shrink_factors, each = number_of_dimensions),
+    nrow = number_of_resolutions,
+    ncol = number_of_dimensions,
+    byrow = TRUE
+  )
+  
+  # ITK calculates the pyramid image size as:
+  # floor(original size / shrink factor), with a minimum of 1.
+  original_sizes <- matrix(
+    rep(image_size, times = number_of_resolutions),
+    nrow = number_of_resolutions,
+    ncol = number_of_dimensions,
+    byrow = TRUE
+  )
+  
+  level_sizes <- floor(original_sizes / pyramid_schedule)
+  level_sizes[level_sizes < 1] <- 1
+  
+  level_pixels <- apply(level_sizes, 1L, prod)
+  
+  # At small/coarse levels, use all pixels.
+  # At large/fine levels, choose spacing to stay around target_samples.
+  effective_target <- pmin(
+    as.double(target_samples),
+    level_pixels
+  )
+  
+  spacing <- as.integer(
+    pmax(
+      1,
+      ceiling(sqrt(level_pixels / effective_target))
+    )
+  )
+  
+  spacing_matrix <- cbind(spacing, spacing)
+  
+  # Exact expected count before any mask filtering.
+  expected_samples <-
+    (
+      1 + (level_sizes[, 1] - 1) %/% spacing_matrix[, 1]
+    ) *
+    (
+      1 + (level_sizes[, 2] - 1) %/% spacing_matrix[, 2]
+    )
+  
+  list(
+    # Elastix requires:
+    # sx0 sy0 sx1 sy1 ...
+    parameter_values = as.character(c(t(spacing_matrix))),
+    
+    report = data.frame(
+      resolution = seq_len(number_of_resolutions) - 1L,
+      pyramid_width = level_sizes[, 1],
+      pyramid_height = level_sizes[, 2],
+      shrink_x = pyramid_schedule[, 1],
+      shrink_y = pyramid_schedule[, 2],
+      grid_spacing_x = spacing_matrix[, 1],
+      grid_spacing_y = spacing_matrix[, 2],
+      expected_samples = expected_samples
+    )
+  )
 }
 
 ####

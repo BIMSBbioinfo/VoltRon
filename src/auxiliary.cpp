@@ -66,7 +66,7 @@ cv::Mat imageToMat(Rcpp::RawVector &image_data, int width, int height) {
 
 // Function to convert a cv::Mat object to a RawVector for magick images
 Rcpp::IntegerVector matToMask(const cv::Mat &mat) {
-  
+
   cv::Mat intMat;
   mat.convertTo(intMat, CV_32S);
   Rcpp::IntegerVector intvec(intMat.total());
@@ -76,9 +76,22 @@ Rcpp::IntegerVector matToMask(const cv::Mat &mat) {
     static_cast<std::size_t>(intvec.size()) * sizeof(int)
   );
   intvec.attr("dim") = Rcpp::Dimension(intMat.rows, intMat.cols);
-  
+
   return intvec;
 }
+
+// // Function to convert a cv::Mat object to a RawVector for magick images
+// Rcpp::RawVector matToMask(const cv::Mat &mat) {
+//   
+//   // Create RawVector object
+//   Rcpp::RawVector rawvec(mat.total() * mat.elemSize());
+//   rawvec.attr("dim") = Rcpp::Dimension(mat.rows, mat.cols);
+//   
+//   // Copy Mat data to RawVector
+//   std::memcpy(rawvec.begin(), mat.data, rawvec.size());
+//   
+//   return rawvec;
+// }
 
 // Function to convert a NumericMatrix object to a cv::Mat
 cv::Mat numericMatrixToMat(Rcpp::NumericMatrix nm) {

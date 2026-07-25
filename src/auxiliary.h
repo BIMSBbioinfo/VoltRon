@@ -21,6 +21,7 @@ cv::Mat imageToMat(Rcpp::RawVector &image_data, int width, int height);
 
 // cv::Mat vs Rcpp::RawVector(Image) with 2 dim (mostly for masks)
 Rcpp::IntegerVector matToMask(const cv::Mat &mat);
+// Rcpp::RawVector matToMask(const cv::Mat &mat);
 
 // cv::Mat vs Rcpp::NumericMatrix 
 cv::Mat numericMatrixToMat(Rcpp::NumericMatrix nm);

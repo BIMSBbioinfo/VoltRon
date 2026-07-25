@@ -380,49 +380,6 @@ double linearPercentileFromSorted(
   return lower + fraction * (upper - lower);
 }
 
-void validateChunkedMatteMIInputs(
-    cv::Mat1b& validGlobal,
-    std::size_t& validGlobalCount,
-    const cv::Mat& fixed,
-    const cv::Mat& moving,
-    const cv::Mat& mask,
-    ChunkSize chunkSize,
-    int bins) {
-  
-  const int height = fixed.rows;
-  const int width = fixed.cols;
-  
-  for (int y = 0; y < height; ++y) {
-    const double* fixedRow = fixed.ptr<double>(y);
-    const double* movingRow = moving.ptr<double>(y);
-    const double* maskRow =
-      mask.empty() ? nullptr : mask.ptr<double>(y);
-    unsigned char* validRow = validGlobal.ptr<unsigned char>(y);
-    
-    for (int x = 0; x < width; ++x) {
-      const bool insideMask =
-        maskRow == nullptr || static_cast<bool>(maskRow[x]);
-      
-      const bool valid =
-        insideMask &&
-        std::isfinite(fixedRow[x]) &&
-        std::isfinite(movingRow[x]);
-      
-      if (valid) {
-        validRow[x] = 1U;
-        ++validGlobalCount;
-      }
-    }
-  }
-
-  // stop if no pixels are valid  
-  if (validGlobalCount == 0U) {
-    throw std::invalid_argument(
-        "The mask contains no valid pixels.");
-  }
-
-}
-
 // ChunkedNmiMapResult chunkedMatteMIMap(const cv::Mat& fixed,
 cv::Mat1d MatteMIMap(const cv::Mat& fixed,
                      const cv::Mat& moving,
@@ -430,20 +387,6 @@ cv::Mat1d MatteMIMap(const cv::Mat& fixed,
                      int bins = 50) {
                           
   ChunkSize chunkSize = ChunkSize{};
-
-  // validate chunks and return validation map of pixels
-  // const int height = fixed.rows;
-  // const int width = fixed.cols;
-  // cv::Mat1b validGlobal(height, width, static_cast<unsigned char>(0));
-  // std::size_t validGlobalCount = 0U;
-  // validateChunkedMatteMIInputs(validGlobal,
-  //                              validGlobalCount,
-  //                              fixed, 
-  //                              moving, 
-  //                              mask, 
-  //                              chunkSize, 
-  //                              bins);
-  
   
   // Do I need these to be cv_64f ? 
   cv::Mat fixed64;
@@ -464,6 +407,7 @@ cv::Mat1d MatteMIMap(const cv::Mat& fixed,
   cv::Mat1b validGlobal(height, width, static_cast<unsigned char>(0));
   std::size_t validGlobalCount = 0U;
   
+  int temp_counter = 0; 
   for (int y = 0; y < height; ++y) {
     const double* fixedRow = fixed64.ptr<double>(y);
     const double* movingRow = moving64.ptr<double>(y);
@@ -474,6 +418,26 @@ cv::Mat1d MatteMIMap(const cv::Mat& fixed,
     for (int x = 0; x < width; ++x) {
       const bool insideMask =
         maskRow == nullptr || static_cast<bool>(maskRow[x]);
+      
+      // if(!std::isfinite(fixedRow[x])){
+      //   Rcout << "Fixed: "<< fixedRow[x] << endl;
+      // }
+      // if(!std::isfinite(movingRow[x])){
+      //   Rcout << "Moving: "<< movingRow[x] << endl;
+      // }
+      
+      // if(insideMask){
+      //   temp_counter += 1;
+      //   if (temp_counter % 100 == 0){
+      //     Rcout << "Fixed: "<< fixedRow[x] << endl;
+      //     Rcout << "Moving: "<< movingRow[x] << endl; 
+      //   }
+      // }
+      
+      // temp_counter += 1;
+      // if (temp_counter % 100 == 0){
+      //   Rcout << "Mask: "<< maskRow[x] << endl;
+      // }
       
       const bool valid =
         insideMask &&
@@ -640,7 +604,7 @@ double MatteMI(
     const cv::Mat& fixed,
     const cv::Mat& moving,
     const cv::Mat& mask,
-    int bins) {
+    int bins = 50) {
   
   const double nan =
     std::numeric_limits<double>::quiet_NaN();
@@ -697,18 +661,18 @@ double MatteMI(
           fixed,
           y,
           fixedRowScratch);
-      
+
       const double* movingRow =
         getRowAsDouble(
           moving,
           y,
           movingRowScratch);
-      
+
       const unsigned char* maskRow =
         mask.empty()
         ? nullptr
           : mask8.ptr<unsigned char>(y);
-      
+
       for (int x = 0; x < width; ++x) {
         if (maskRow != nullptr &&
             maskRow[x] == 0U) {

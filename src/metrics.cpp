@@ -193,6 +193,7 @@ Rcpp::IntegerVector generateOverlapMask(Rcpp::NumericVector& dsize,
                                      h,
                                      cv::Size((int) ssize[0], (int) ssize[1]));
   return matToMask(mask);
+  // return matToImage(mask);
 }
 
 double Entropy(cv::Mat& im1, cv::Mat& overlapMask, int bins = 256) {
