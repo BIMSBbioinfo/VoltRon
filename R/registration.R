@@ -627,7 +627,7 @@ getAlignmentTabPanel <- function(len_images, centre, register_ind) {
           br(),
           
           tabsetPanel(
-            id = "inner_tabs", 
+            id = paste("inner_tabs", "i"), 
             tabPanel("Alignment Stat.",
                      tableOutput(paste0("alignment_stats", i))),
             tabPanel("Matte's MI Map",
@@ -3237,6 +3237,8 @@ getRcppManualRegistration <- function(
 
   # check for null data
   if(length(reg) > 2){
+    
+    # check matte map
     matte_map <-
       if (!is.null(reg[[3]])) {
         tmp <- reg[[3]]
@@ -3245,7 +3247,7 @@ getRcppManualRegistration <- function(
         tmp
       } else NA
     
-    # alignment accuracy
+    # check alignment statistics
     alignment_stats <- list()
     metrics <- .ALIGNMENT_ACCURACY_METRICS
     metrics_set <- setNames(rep(NA, length(metrics)), metrics)
@@ -3746,9 +3748,17 @@ getRcppAutomatedRegistration <- function(
   overlay_image <-
     if (!is.null(reg[[5]])) magick::image_read(reg[[5]]) else NA
   
-  # check alignment accuracy and matte maps
+  # check matte maps
   matte_map <-
-    if (!is.null(reg[[6]])) reg[[6]] else NA
+    if (!is.null(reg[[6]])){
+      tmp <- reg[[6]]
+      tmp[is.na(tmp)] <- 0
+      tmp[tmp < 0] <- 0
+      tmp
+      
+    } else NA
+  
+  # check alignment statistics
   alignment_stats <- list()
   metrics <- c(.ALIGNMENT_ACCURACY_METRICS, 
                .ALIGNMENT_KEYPOINT_METRICS)
@@ -3766,7 +3776,6 @@ getRcppAutomatedRegistration <- function(
     }
   }
   alignment_stats[["fine"]] <- {
-    # metrics <- .ALIGNMENT_ACCURACY_METRICS
     if (!is.null(reg[[8]])){
       if(!all(names(reg[[8]]) %in% metrics)){
         stop("There are missing accuracy metrics!")

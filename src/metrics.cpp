@@ -336,8 +336,8 @@ std::map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &point
   double points1_sd = cppSD(points1);
   double points2_sd = cppSD(points2);
   Rcout << "  Std dev of points: x=" << points1_sd << " y="  << points2_sd << endl;
-  metrics["sd ref. kpts (>1?)"] = points1_sd;
-  metrics["sd query kpts (>1?)"] = points2_sd;
+  metrics["sd query kpts (>1?)"] = points1_sd;
+  metrics["sd ref. kpts (>1?)"] = points2_sd;
   
   // degenerate ?
   bool degenerate_points = checkDegenerate(points1_sd, points2_sd);
@@ -362,7 +362,7 @@ std::map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &point
 
   // report degenerate
   if((bool) metrics["Degenerate"]){
-    Rcout << "  WARNING: Registration is degenerate!") << endl;
+    Rcout << "  WARNING: Registration is degenerate!" << endl;
   } 
   
   // return is_degenerate;

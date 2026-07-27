@@ -224,11 +224,10 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
     // im1Reg = im1Reg_cropped.clone();
     
     // get matte metric, process 
+    // im2 is already processed
     Mat im1Proc, im2Proc;
     cvtColor(im1Reg, im1Proc, cv::COLOR_BGR2GRAY);
-    cvtColor(im2, im2Proc, cv::COLOR_BGR2GRAY);
     im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
-    im2Proc = preprocessImage(im2Proc, invert_ref, "None", "0");
     accuracy_fine = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Fine");
     accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
   }

@@ -631,7 +631,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     Rcout << "WARNING: No transformation was found" << endl;
     return;
   }
-  
+
   // get keypoint metrics
   std::map<std::string, double> keypoint_metrics;
   keypoint_metrics = getKeypointMetrics(points1, points2, 
