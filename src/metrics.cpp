@@ -361,7 +361,9 @@ std::map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &point
   metrics["Median distance"] = md;
 
   // report degenerate
-  Rcout << "  WARNING: Registration is " << ((bool) metrics["Degenerate"] ? "degenerate!" : "not degenerate!") << endl;
+  if((bool) metrics["Degenerate"]){
+    Rcout << "  WARNING: Registration is degenerate!") << endl;
+  } 
   
   // return is_degenerate;
   return metrics;
