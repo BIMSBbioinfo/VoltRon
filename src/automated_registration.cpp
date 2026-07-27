@@ -636,6 +636,7 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   std::map<std::string, double> keypoint_metrics;
   keypoint_metrics = getKeypointMetrics(points1, points2, 
                                         im1Proc, im2Proc, h, mask);
+  is_faulty = (bool) keypoint_metrics["Degenerate"];
 
   // get alignment metrics
   std::map<std::string, double> image_metrics;
