@@ -225,7 +225,7 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
     
     // get matte metric, process 
     // im2 is already processed
-    Mat im1Proc, im2Proc;
+    Mat im1Proc;
     cvtColor(im1Reg, im1Proc, cv::COLOR_BGR2GRAY);
     im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
     accuracy_fine = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Fine");
