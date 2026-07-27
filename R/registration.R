@@ -844,7 +844,7 @@ updateParameterPanels <- function(len_images, params, input, output, session) {
         "nonrigid",
         choices = c(
           "TPS (OpenCV)",
-          "BSpline (SimpleITK)"
+          if(input$Method != "Non-Rigid") "BSpline (SimpleITK)" else NULL
         ),
         selected = "TPS (OpenCV)"
       )
