@@ -52,26 +52,6 @@ void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::List &keypoints,
   im1Reg = warpTPSImage(im2, im1, tps, 
                         im2.rows, im2.cols, cv::INTER_LINEAR);
   
-  // // determine extension limits for both images
-  // int y_max = max(im1.rows, im2.rows);
-  // int x_max = max(im1.cols, im2.cols);
-  // 
-  // // extend images
-  // cv::copyMakeBorder(im1, im1, 
-  //                    0.0, (int) (y_max - im1.rows), 
-  //                    0.0, (x_max - im1.cols), 
-  //                    cv::BORDER_CONSTANT, 
-  //                    Scalar(0, 0, 0));
-  // 
-  // // transform image
-  // tps->warpImage(im1, im1Reg);
-  // 
-  // 
-  // // resize image
-  // cv::Mat im1Reg_cropped  = im1Reg(cv::Range(0,im2.size().height), 
-  //                                  cv::Range(0,im2.size().width));
-  // im1Reg = im1Reg_cropped.clone();
-  
   // process 
   Mat im1Proc, im2Proc;
   cvtColor(im1Reg, im1Proc, cv::COLOR_BGR2GRAY);
@@ -82,7 +62,7 @@ void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::List &keypoints,
   // get alignment mask
   cv::Mat alignmentMask = generateOverlapMask(im2Proc,
                                               tps, 
-                                              im1Proc.size());
+                                              im1.size());
   
   // get alignment metrics
   accuracy = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Coarse");
@@ -208,20 +188,6 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
     // transform image using trained tps
     im1Reg = warpTPSImage(im2, im1Affine, tps, 
                           im2.rows, im2.cols, cv::INTER_LINEAR);
-    
-    // // determine extension limits for both images
-    // int y_max = max(im1Affine.rows, im2.rows);
-    // int x_max = max(im1Affine.cols, im2.cols);
-    // 
-    // // extend images
-    // cv::copyMakeBorder(im1Affine, im1Affine, 0.0, (int) (y_max - im1Affine.rows), 0.0, (x_max - im1Affine.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
-    // 
-    // // transform image
-    // tps->warpImage(im1Affine, im1Reg);
-    // 
-    // // resize image
-    // cv::Mat im1Reg_cropped  = im1Reg(cv::Range(0,im2.size().height), cv::Range(0,im2.size().width));
-    // im1Reg = im1Reg_cropped.clone();
     
     // get matte metric, process 
     // im2 is already processed

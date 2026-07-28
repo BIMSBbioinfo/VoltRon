@@ -2973,13 +2973,16 @@ getManualRegisteration <- function(
             if (!suppressWarnings(!is.matrix(cur_alignment_image))) {
               cur_alignment_image <- 
                 cur_alignment_image[nrow(cur_alignment_image):1,]
-              ggplot(reshape2::melt(cur_alignment_image), 
-                     aes(Var2, Var1, fill= value)) + 
+              cur_alignment_image <- 
+                as.data.frame(as.table(cur_alignment_image))
+              ggplot(cur_alignment_image,
+                     aes(Var2, Var1, fill= Freq)) +
                 ggplot2::geom_tile() + 
                 ggplot2::theme_void() + 
                 ggplot2::coord_fixed(expand = FALSE) + 
                 ggplot2::scale_fill_gradient(low = "#440154FF", 
                                              high = "#FDE725FF", 
+                                             # na.value = NA,
                                              name = "Matte's MI")
             }
           }) 
@@ -3242,7 +3245,7 @@ getRcppManualRegistration <- function(
     matte_map <-
       if (!is.null(reg[[3]])) {
         tmp <- reg[[3]]
-        tmp[is.na(tmp)] <- 0
+        # tmp[is.na(tmp)] <- 0
         tmp[tmp < 0] <- 0
         tmp
       } else NA
@@ -3428,8 +3431,10 @@ getAutomatedRegisteration <- function(
           if (!suppressWarnings(!is.matrix(cur_alignment_image))) {
             cur_alignment_image <-
               cur_alignment_image[nrow(cur_alignment_image):1,]
-            ggplot(reshape2::melt(cur_alignment_image),
-                   aes(Var2, Var1, fill= value)) +
+            cur_alignment_image <- 
+              as.data.frame(as.table(cur_alignment_image))
+            ggplot(cur_alignment_image,
+                   aes(Var2, Var1, fill= Freq)) +
               ggplot2::geom_tile() +
               ggplot2::theme_void() +
               ggplot2::coord_fixed(expand = FALSE) +
@@ -3733,12 +3738,6 @@ getRcppAutomatedRegistration <- function(
   if (suppressWarnings(all(lapply(reg[[1]][[2]], is.null)))) {
     reg[[1]] <- list(reg[[1]][[1]], NULL)
   }
-  
-  # adjust matte mi map
-  tmp <- reg[[6]]
-  tmp[is.na(tmp)] <- 0
-  tmp[tmp < 0] <- 0
-  reg[[6]] <- tmp
 
   # check for failed registration
   aligned_image <-
@@ -3752,7 +3751,7 @@ getRcppAutomatedRegistration <- function(
   matte_map <-
     if (!is.null(reg[[6]])){
       tmp <- reg[[6]]
-      tmp[is.na(tmp)] <- 0
+      # tmp[is.na(tmp)] <- 0
       tmp[tmp < 0] <- 0
       tmp
       
@@ -3892,9 +3891,9 @@ getSimpleITKAutomatedRegistration <- function(
   fixed <- SimpleITK::Cast(fixed, "sitkUInt8")
   moving <- convertToSitkImage(query_image)
   moving <- SimpleITK::Cast(moving, "sitkUInt8")
-  # mask <- SimpleITK::as.image(array(mask, rev(dim(mask))))
-  mask <- SimpleITK::as.image(array(as.integer(mask != 0L), 
-                                    rev(dim(mask))))
+  mask <- SimpleITK::as.image(array(mask, rev(dim(mask))))
+  # mask <- SimpleITK::as.image(array(as.integer(mask != 0L), 
+  #                                   rev(dim(mask))))
   mask <- SimpleITK::Cast(mask, "sitkUInt8")
   
   # get registration for image
