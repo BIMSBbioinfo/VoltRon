@@ -2917,7 +2917,14 @@ vrEmbeddingPlot <- function(
           colnames(metadata) == split.by
         )])]
       } else {
-        datax[[split.by]] <- as.factor(metadata[rownames(datax), split.by])
+        if ("id" %in% colnames(metadata)) {
+          datax[[split.by]] <- as.factor(as.vector(metadata[
+            match(rownames(datax), as.vector(metadata$id)),
+            split.by
+          ]))
+        } else {
+          datax[[split.by]] <- as.factor(metadata[rownames(datax), split.by])
+        }
       }
     } else {
       stop("Column ", split.by, " cannot be found in metadata!")
@@ -4049,9 +4056,6 @@ vrBarPlot <- function(
         facet_grid(variable ~ split.by, scales = "free", space = "free_x")
       return(gg)
     } else {
-      # if (length(gg) < ncol) {
-      #   ncol <- length(gg)
-      # }
       gg <- gg +
         facet_wrap(
           . ~ split.by,
