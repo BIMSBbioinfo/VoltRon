@@ -627,13 +627,13 @@ getAlignmentTabPanel <- function(len_images, centre, register_ind) {
           br(),
           
           tabsetPanel(
-            id = paste("inner_tabs", "i"), 
+            id = paste0("inner_tabs", i), 
             tabPanel("Alignment Stat.",
                      tableOutput(paste0("alignment_stats", i))),
             tabPanel("Matte's MI Map",
                      imageOutput(paste0("plot_matte_map", i))),
             tabPanel("Matching Keypoints",
-                     imageOutput(paste0("plot_keypoint_match", i))),
+                     imageOutput(paste0("plot_keypoint_match", i)))
             
           )
         )

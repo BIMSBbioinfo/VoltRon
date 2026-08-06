@@ -618,15 +618,18 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   }
   
   // warp mask and image
-  cv::Mat alignmentMask = generateOverlapMask(im2Proc.size(), 
-                                              h, 
-                                              im1Proc.size());
-  if(h.rows == 2){
-    warpAffine(im1Proc, im1Proc, h, im2Proc.size());
-    warpAffine(im1NormalProc, im1NormalProc, h, im2Proc.size());
-  } else if(h.rows == 3){
-    warpPerspective(im1Proc, im1Proc, h, im2Proc.size());
-    warpPerspective(im1NormalProc, im1NormalProc, h, im2Proc.size());
+  cv::Mat alignmentMask;
+  if(!h.empty()){
+    alignmentMask = generateOverlapMask(im2Proc.size(), 
+                                        h, 
+                                        im1Proc.size()); 
+    if(h.rows == 2){
+      warpAffine(im1Proc, im1Proc, h, im2Proc.size());
+      warpAffine(im1NormalProc, im1NormalProc, h, im2Proc.size());
+    } else if(h.rows == 3){
+      warpPerspective(im1Proc, im1Proc, h, im2Proc.size());
+      warpPerspective(im1NormalProc, im1NormalProc, h, im2Proc.size());
+    }
   } else {
     Rcout << "WARNING: No transformation was found" << endl;
     return;
