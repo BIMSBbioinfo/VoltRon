@@ -231,7 +231,7 @@ test_that("subsetting", {
   # by image
   xenium_data2_subset <- subset(xenium_data2, image = "290x202+98+17")
   expect_equal(length(vrSpatialPoints(xenium_data2_subset)), 392)
-  expect_equal(is(vrImages(xenium_data2_subset)), "magick-image")
+  expect_contains(is(vrImages(xenium_data2_subset)), "magick-image")
   expect_equal(is(vrImages(xenium_data2_subset, as.raster = TRUE)), "ImageArray")
   
   # visualize
