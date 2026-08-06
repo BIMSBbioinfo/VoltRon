@@ -556,14 +556,25 @@ bool getORBTransformationMatrix(
 ////
 
 // align images with FLANN algorithm
-void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay, 
-                 Mat &imMatches, Mat &h, Rcpp::List &keypoints,
-                 const float GOOD_MATCH_PERCENT, const int MAX_FEATURES,
+void alignImages(Mat &im1, 
+                 Mat &im2, 
+                 Mat &im1Reg, 
+                 Mat &im1Overlay, 
+                 Mat &imMatches, 
+                 Mat &h, 
+                 Rcpp::List &keypoints,
+                 const float GOOD_MATCH_PERCENT, 
+                 const int MAX_FEATURES,
                  Rcpp::String matcher,
-                 const bool invert_query, const bool invert_ref,
-                 const char* flipflop_query, const char* flipflop_ref,
-                 const char* rotate_query, const char* rotate_ref,
-                 const bool run_Affine, const bool run_TPS, 
+                 const bool invert_query, 
+                 const bool invert_ref,
+                 const char* flipflop_query, 
+                 const char* flipflop_ref,
+                 const char* rotate_query, 
+                 const char* rotate_ref,
+                 const bool run_Affine, 
+                 const bool run_TPS, 
+                 const bool compute_matte_map,
                  Mat1d &accuracyMatte, 
                  std::map<std::string, double> &accuracy_coarse,
                  std::map<std::string, double> &accuracy_fine)
@@ -619,10 +630,17 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   
   // warp mask and image
   cv::Mat alignmentMask;
+  std::map<std::string, double> keypoint_metrics;
   if(!h.empty()){
     alignmentMask = generateOverlapMask(im2Proc.size(), 
                                         h, 
                                         im1Proc.size()); 
+    
+    // get keypoint metrics before warping
+    keypoint_metrics = getKeypointMetrics(points1, points2, 
+                                          im1Proc, im2Proc, h, mask);
+    is_faulty = (bool) keypoint_metrics["Degenerate"];
+    
     if(h.rows == 2){
       warpAffine(im1Proc, im1Proc, h, im2Proc.size());
       warpAffine(im1NormalProc, im1NormalProc, h, im2Proc.size());
@@ -634,12 +652,6 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     Rcout << "WARNING: No transformation was found" << endl;
     return;
   }
-
-  // get keypoint metrics
-  std::map<std::string, double> keypoint_metrics;
-  keypoint_metrics = getKeypointMetrics(points1, points2, 
-                                        im1Proc, im2Proc, h, mask);
-  is_faulty = (bool) keypoint_metrics["Degenerate"];
 
   // get alignment metrics
   std::map<std::string, double> image_metrics;
@@ -655,7 +667,8 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
   accuracy_coarse = final_map;
   
   // get matte metric
-  accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
+  if(compute_matte_map)
+    accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
   
   ///////////////////////
   /// Find Homography ///
@@ -712,7 +725,8 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
     
     // get matte metric, process 
     accuracy_fine = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Fine");
-    accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
+    if(compute_matte_map)
+      accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
     
     // change color map
     cv::addWeighted(im2Proc, 0.7, im1Proc, 0.3, 0, im1Proc);
@@ -735,14 +749,24 @@ void alignImages(Mat &im1, Mat &im2, Mat &im1Reg, Mat &im1Overlay,
 }
 
 // [[Rcpp::export]]
-Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::RawVector& query_image,
-                                             const int width1, const int height1,
-                                             const int width2, const int height2,
-                                             const float GOOD_MATCH_PERCENT, const int MAX_FEATURES,
-                                             const bool invert_query, const bool invert_ref,
-                                             Rcpp::String flipflop_query, Rcpp::String flipflop_ref,
-                                             Rcpp::String rotate_query, Rcpp::String rotate_ref,
-                                             Rcpp::String matcher, Rcpp::String method, Rcpp::String nonrigid)
+Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, 
+                                             Rcpp::RawVector& query_image,
+                                             const int width1, 
+                                             const int height1,
+                                             const int width2, 
+                                             const int height2,
+                                             const float GOOD_MATCH_PERCENT, 
+                                             const int MAX_FEATURES,
+                                             const bool invert_query, 
+                                             const bool invert_ref,
+                                             Rcpp::String flipflop_query, 
+                                             Rcpp::String flipflop_ref,
+                                             Rcpp::String rotate_query, 
+                                             Rcpp::String rotate_ref,
+                                             Rcpp::String matcher, 
+                                             Rcpp::String method, 
+                                             Rcpp::String nonrigid,
+                                             const bool compute_matte_map = true)
 {
   // Return data
   Rcpp::List out(8);
@@ -772,6 +796,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::R
               flipflop_query.get_cstring(), flipflop_ref.get_cstring(),
               rotate_query.get_cstring(), rotate_ref.get_cstring(),
               run_Affine, run_TPS, 
+              compute_matte_map,
               accuracyMatte, 
               accuracy_coarse, 
               accuracy_fine);

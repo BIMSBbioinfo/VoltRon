@@ -37,10 +37,6 @@ cv::Mat generateOverlapMask(cv::Mat& ref_image,
                             Ptr<ThinPlateSplineShapeTransformer>& tps, 
                             cv::Size ssize);
 
-// cv::Mat generateOverlapMask(Rcpp::NumericVector dsize,
-//                             Rcpp::NumericMatrix trans_mat,
-//                             Rcpp::NumericVector ssize);
-
 // get alignment metrics
 std::map<std::string, double> getAlignmentMetrics(cv::Mat &im1, 
                                                   cv::Mat &im2, 

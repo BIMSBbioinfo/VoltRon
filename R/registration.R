@@ -3031,7 +3031,8 @@ computeManualPairwiseTransform <- function(
   keypoints_list,
   query_ind,
   ref_ind,
-  input
+  input,
+  compute_matte_map = TRUE
 ) {
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -3085,7 +3086,8 @@ computeManualPairwiseTransform <- function(
       )]] ==
         "Yes",
       method = input$Method,
-      nonrigid = if(is.null(input$nonrigid)) "None" else input$nonrigid
+      nonrigid = if(is.null(input$nonrigid)) "None" else input$nonrigid,
+      compute_matte_map = compute_matte_map
     )
     
     # run SimpleITK as fine registration
@@ -3119,7 +3121,8 @@ computeManualPairwiseTransform <- function(
         flipflop_ref = FALSE,
         rotate_query = FALSE,
         rotate_ref = FALSE,
-        initial_mapping = list(reg[[1]])
+        initial_mapping = list(reg[[1]]),
+        compute_matte_map = compute_matte_map
       )
       reg[[1]][[2]] <- tfx$transformation
       reg$aligned_image <- tfx$aligned_image
@@ -3248,7 +3251,6 @@ getRcppManualRegistration <- function(
     matte_map <-
       if (!is.null(reg[[3]])) {
         tmp <- reg[[3]]
-        # tmp[is.na(tmp)] <- 0
         tmp[tmp < 0] <- 0
         tmp
       } else NA
@@ -3443,6 +3445,7 @@ getAutomatedRegisteration <- function(
               ggplot2::coord_fixed(expand = FALSE) +
               ggplot2::scale_fill_gradient(low = "#440154FF",
                                            high = "#FDE725FF",
+                                           # na.value = NA,
                                            name = "Matte's MI")
           }
         })
@@ -3488,7 +3491,8 @@ computeAutomatedPairwiseTransform <- function(
   channel_names,
   query_ind,
   ref_ind,
-  input
+  input,
+  compute_matte_map = TRUE
 ) {
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -3580,7 +3584,8 @@ computeAutomatedPairwiseTransform <- function(
       rotate_ref = input[[paste0("rotate_", ref_label, "_image", cur_map[2])]],
       matcher = input$Matcher,
       method = input$Method,
-      nonrigid = if(is.null(input$nonrigid)) "None" else input$nonrigid
+      nonrigid = if(is.null(input$nonrigid)) "None" else input$nonrigid, 
+      compute_matte_map = compute_matte_map
     )
     
     # update transformation matrix
@@ -3647,7 +3652,8 @@ computeAutomatedPairwiseTransform <- function(
         )]],
         rotate_ref = input[[paste0(
           "rotate_", ref_label, "_image", cur_map[2])]],
-        initial_mapping = list(reg[[1]])
+        initial_mapping = list(reg[[1]]), 
+        compute_matte_map = compute_matte_map
       )
       reg[[1]][[2]] <- tfx$transformation
       reg$aligned_image <- tfx$aligned_image
@@ -3712,7 +3718,8 @@ getRcppAutomatedRegistration <- function(
   rotate_ref = "0",
   matcher = "FLANN",
   method = "Homography",
-  nonrigid = "TPS (OpenCV)"
+  nonrigid = "TPS (OpenCV)",
+  compute_matte_map = TRUE
 ) {
   ref_image <- magick::image_data(ref_image, channels = "rgb")
   query_image <- magick::image_data(query_image, channels = "rgb")
@@ -3734,7 +3741,8 @@ getRcppAutomatedRegistration <- function(
     rotate_ref = rotate_ref,
     matcher = matcher,
     method = method,
-    nonrigid = nonrigid
+    nonrigid = nonrigid,
+    compute_matte_map = compute_matte_map
   )
 
   # check for null keypoints
@@ -3754,7 +3762,6 @@ getRcppAutomatedRegistration <- function(
   matte_map <-
     if (!is.null(reg[[6]])){
       tmp <- reg[[6]]
-      # tmp[is.na(tmp)] <- 0
       tmp[tmp < 0] <- 0
       tmp
       
@@ -3828,7 +3835,8 @@ getSimpleITKAutomatedRegistration <- function(
     flipflop_ref = "None",
     rotate_query = "0",
     rotate_ref = "0",
-    initial_mapping = NULL
+    initial_mapping = NULL,
+    compute_matte_map = TRUE
 ){
   # check SimpleITK
   if (!requireNamespace('SimpleITK')) {
@@ -3959,16 +3967,25 @@ getSimpleITKAutomatedRegistration <- function(
   results <- getAlignmentAccuracy(ref_image, 
                                   aligned_image, 
                                   aligned_mask,
-                                  "Fine")
+                                  "Fine", 
+                                  compute_matte_map)
   
   # convert images
   overlay_image <-
     if (!is.null(results[[3]])) magick::image_read(results[[3]]) else NA
+  
+  # check matte maps
+  matte_map <-
+    if (!is.null(results[[2]])){
+      tmp <- results[[2]]
+      tmp[tmp < 0] <- 0
+      tmp
+    } else NA
 
   # return
   return(list(aligned_image = aligned_image, 
               alignment_metrics = results[[1]],
-              matte_map = results[[2]],
+              matte_map = matte_map,
               overlay_image = overlay_image,
               transformation = list(
                 tfx_points = tfx_points,
@@ -4022,7 +4039,8 @@ getNonInteractiveRegistration <- function(
         channel_names = channel_names,
         query_ind = i,
         ref_ind = centre,
-        input = mapping_parameters
+        input = mapping_parameters,
+        compute_matte_map = FALSE
       )
     } else {
       flag <- checkKeypoints(mapping_parameters$keypoints)
@@ -4031,7 +4049,8 @@ getNonInteractiveRegistration <- function(
         keypoints_list = mapping_parameters$keypoints,
         query_ind = i,
         ref_ind = centre,
-        input = mapping_parameters
+        input = mapping_parameters,
+        compute_matte_map = FALSE
       )
     }
 
@@ -4061,15 +4080,27 @@ getNonInteractiveRegistration <- function(
 # Accuracy ####
 ####
 
+#' getAlignmentAccuracy
+#'
+#' get accuracy measurements from two aligned images
+#'
+#' @param ref_image reference image
+#' @param query_image query image
+#' @param mask alignment mask
+#'
+#' @importFrom DelayedArray realize
+#' @importFrom magick image_data
+#' 
+#' @noRd
 getAlignmentAccuracy <- function(ref_image, 
                                  query_image, 
                                  mask, 
-                                 type){
+                                 type,
+                                 compute_matte_map = TRUE){
   
   # image info
   ref_info <- getImageInfo(ref_image)
-  query_info <- getImageInfo(query_image)
-  
+
   # ref image
   if (inherits(ref_image, "ImageArray")) {
     ref_image <- DelayedArray::realize(ref_image)
@@ -4096,6 +4127,7 @@ getAlignmentAccuracy <- function(ref_image,
                      width = ref_info$width, 
                      height = ref_info$height, 
                      type, 
-                     overlay_images = TRUE)
+                     overlay_images = TRUE,
+                     compute_matte_map = compute_matte_map)
 }
 

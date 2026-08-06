@@ -108,7 +108,7 @@ bool checkDegenerate(double pts1, double pts2) {
   
   // get warning message
   bool is_degenerate = FALSE;
-  if(pts1 < 1.0 | pts2 < 1.0){
+  if(pts1 < 1.0 || pts2 < 1.0){
     is_degenerate = TRUE;
     Rcout << "WARNING: points may be in a degenerate configuration." << endl;
   } 
@@ -289,8 +289,8 @@ std::map<std::string, double> getAlignmentMetrics(Mat &im1, Mat &im2,
                hist2, 1, &histSize, &histRange);
   
   // Normalize histograms
-  cv::normalize(hist1, hist1, 0, 1, cv::NORM_MINMAX);
-  cv::normalize(hist2, hist2, 0, 1, cv::NORM_MINMAX);
+  // cv::normalize(hist1, hist1, 0, 1, cv::NORM_MINMAX);
+  // cv::normalize(hist2, hist2, 0, 1, cv::NORM_MINMAX);
   hist1 /= cv::sum(hist1)[0];
   hist2 /= cv::sum(hist2)[0];
   
@@ -348,7 +348,7 @@ std::map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &point
   // check distribution of points
   double stddev = checkMappedGridDistribution(im1, h);
   Rcout << "  Std dev of registered points: " << stddev << endl;
-  if(stddev < 1.0 | stddev > max(im2.rows, im2.cols)){
+  if(stddev < 1.0 || stddev > max(im2.rows, im2.cols)){
     Rcout << "  WARNING: Transformation may be poor - transformed points grid seem to be concentrated!" << endl;
     metrics["Degenerate"] = 1.0;
   }

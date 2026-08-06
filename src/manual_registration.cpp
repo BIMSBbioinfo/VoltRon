@@ -110,10 +110,18 @@ void alignImagesTPS_points(Rcpp::NumericMatrix &query_data,
 }
 
 // align images with FLANN algorithm
-void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &keypoints,
-                          Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark,
-                          const bool invert_query, const bool invert_ref,
-                          const bool run_Affine, const bool run_TPS,
+void alignImagesAffineTPS(Mat &im1, 
+                          Mat &im2, 
+                          Mat &im1Reg, 
+                          Mat &h, 
+                          Rcpp::List &keypoints,
+                          Rcpp::NumericMatrix query_landmark, 
+                          Rcpp::NumericMatrix reference_landmark,
+                          const bool invert_query, 
+                          const bool invert_ref,
+                          const bool run_Affine, 
+                          const bool run_TPS,
+                          const bool compute_matte_map, 
                           Mat1d &accuracyMatte, 
                           std::map<std::string, double> &accuracy_coarse,
                           std::map<std::string, double> &accuracy_fine)
@@ -195,7 +203,8 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
     cvtColor(im1Reg, im1Proc, cv::COLOR_BGR2GRAY);
     im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
     accuracy_fine = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Fine");
-    accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
+    if(compute_matte_map)
+      accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
   }
 }
 
@@ -277,7 +286,8 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
                                           const bool invert_query, 
                                           const bool invert_ref,
                                           Rcpp::String method, 
-                                          Rcpp::String nonrigid)
+                                          Rcpp::String nonrigid,
+                                          const bool compute_matte_map = true)
 {
   // Return data
   Rcpp::List out(5);
@@ -305,7 +315,9 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
                          query_landmark, reference_landmark, 
                          invert_query, 
                          invert_ref,
-                         run_Affine, run_TPS, 
+                         run_Affine, 
+                         run_TPS, 
+                         compute_matte_map,
                          accuracyMatte, 
                          accuracy_coarse, 
                          accuracy_fine);
