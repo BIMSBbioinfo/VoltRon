@@ -3121,8 +3121,11 @@ computeManualPairwiseTransform <- function(
         rotate_ref = FALSE,
         initial_mapping = list(reg[[1]])
       )
-      reg$aligned_image <- tfx$aligned_image
       reg[[1]][[2]] <- tfx$transformation
+      reg$aligned_image <- tfx$aligned_image
+      reg$matte_map <- tfx$matte_map
+      reg$alignment_stats$fine[names(tfx$alignment_metrics)] <- 
+        tfx$alignment_metrics
     }
 
     # return transformation matrix and images
@@ -3902,7 +3905,6 @@ getSimpleITKAutomatedRegistration <- function(
   elx$SetFixedImage(fixed)
   elx$SetMovingImage(moving)
   # elx$SetMovingMask(mask)
-  parameterMapVector = SimpleITK::VectorOfParameterMap()
   mp <- SimpleITK:::ReadParameterFile(
     system.file("extdata", "bspline_map.txt", package = "VoltRon")
   )
@@ -3938,7 +3940,6 @@ getSimpleITKAutomatedRegistration <- function(
   elx$SetFixedImage(moving)
   elx$SetFixedMask(mask)
   elx$SetMovingImage(fixed)
-  parameterMapVector = SimpleITK::VectorOfParameterMap()
   mp <- SimpleITK:::ReadParameterFile(
     system.file("extdata", "bspline_map.txt", package = "VoltRon")
   )

@@ -346,10 +346,8 @@ std::map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &point
   metrics["Degenerate"] = (double) degenerate_points;
   
   // check distribution of points
-  // double stddev = checkMappedGridDistribution(im2, h);
   double stddev = checkMappedGridDistribution(im1, h);
   Rcout << "  Std dev of registered points: " << stddev << endl;
-  // if(stddev < 1.0 | stddev > max(im1.rows, im1.cols)){
   if(stddev < 1.0 | stddev > max(im2.rows, im2.cols)){
     Rcout << "  WARNING: Transformation may be poor - transformed points grid seem to be concentrated!" << endl;
     metrics["Degenerate"] = 1.0;

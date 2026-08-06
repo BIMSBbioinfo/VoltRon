@@ -372,8 +372,6 @@ Rcpp::List manual_registeration_matrix(Rcpp::NumericMatrix query_data,
                          keypoints,
                          query_landmark, 
                          reference_landmark);
-   keypoints[0] = keypoints[0];
-   keypoints[1] = keypoints[1];
  } 
  
  // transformation matrix, can be either a matrix, set of keypoints or both
