@@ -119,7 +119,7 @@ test_that("registeration non-rigid simpleitk", {
                       query_spatdata = xenium_data, 
                       mapping_parameters = mapping_parameters_nonrigid, 
                       interactive = FALSE)
-  
+  print()
   # return
   expect_equal(1,1L)
 })
