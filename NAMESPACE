@@ -124,6 +124,7 @@ export(warpImage)
 export(warpSimpleITKImage)
 export(zarrcreateGroup)
 exportClasses(VoltRon)
+exportClasses(data_matrix)
 exportClasses(vrAssay)
 exportClasses(vrAssayV2)
 exportClasses(vrBlock)
@@ -184,172 +185,209 @@ exportMethods(vrSpatialNames)
 exportMethods(vrSpatialPoints)
 import(ggplot2)
 import(shiny)
+importClassesFrom(Matrix,Matrix)
 importClassesFrom(Matrix,dgCMatrix)
 importClassesFrom(Matrix,dgRMatrix)
 importClassesFrom(Matrix,dgeMatrix)
 importClassesFrom(S4Arrays,Array)
 importClassesFrom(data.table,data.table)
-importFrom(BiocSingular,FastAutoParam)
-importFrom(BiocSingular,runPCA)
-importFrom(EBImage,as.Image)
-importFrom(EBImage,colorMode)
-importFrom(EBImage,imageData)
-importFrom(EBImage,writeImage)
-importFrom(Matrix,Matrix)
-importFrom(Matrix,colSums)
-importFrom(Matrix,rowMeans)
-importFrom(Matrix,rowSums)
-importFrom(Matrix,sparseMatrix)
-importFrom(Matrix,t)
+importFrom(BiocSingular,
+  FastAutoParam,
+  runPCA
+)
+importFrom(EBImage,
+  as.Image,
+  colorMode,
+  imageData,
+  writeImage
+)
+importFrom(Matrix,
+  Matrix,
+  colSums,
+  rowMeans,
+  rowSums,
+  sparseMatrix,
+  t
+)
 importFrom(RANN,nn2)
 importFrom(RCDT,delaunay)
-importFrom(RcppAnnoy,AnnoyEuclidean)
-importFrom(RcppAnnoy,AnnoyManhattan)
+importFrom(RcppAnnoy,
+  AnnoyEuclidean,
+  AnnoyManhattan
+)
 importFrom(S4Vectors,DataFrame)
-importFrom(data.table,alloc.col)
-importFrom(data.table,as.data.table)
-importFrom(data.table,chmatch)
-importFrom(data.table,data.table)
-importFrom(data.table,fread)
-importFrom(data.table,is.data.table)
-importFrom(data.table,melt)
-importFrom(data.table,set)
-importFrom(data.table,setkey)
-importFrom(dplyr,"%>%")
-importFrom(dplyr,add_row)
-importFrom(dplyr,arrange)
-importFrom(dplyr,as_tibble)
-importFrom(dplyr,bind_cols)
-importFrom(dplyr,bind_rows)
-importFrom(dplyr,coalesce)
-importFrom(dplyr,desc)
-importFrom(dplyr,distinct)
-importFrom(dplyr,filter)
-importFrom(dplyr,full_join)
-importFrom(dplyr,group_by)
-importFrom(dplyr,left_join)
-importFrom(dplyr,mutate)
-importFrom(dplyr,mutate_all)
-importFrom(dplyr,n)
-importFrom(dplyr,n_distinct)
-importFrom(dplyr,right_join)
-importFrom(dplyr,select)
-importFrom(dplyr,summarize)
-importFrom(dplyr,tibble)
-importFrom(ggplot2,annotation_custom)
-importFrom(ggplot2,annotation_raster)
-importFrom(ggplot2,coord_fixed)
-importFrom(ggplot2,geom_rect)
-importFrom(ggplot2,ggplot)
-importFrom(ggplot2,ggproto)
-importFrom(ggplot2,xlim)
-importFrom(ggplot2,ylim)
+importFrom(data.table,
+  alloc.col,
+  as.data.table,
+  chmatch,
+  data.table,
+  fread,
+  is.data.table,
+  melt,
+  set,
+  setkey
+)
+importFrom(dplyr,
+  "%>%",
+  add_row,
+  arrange,
+  as_tibble,
+  bind_cols,
+  bind_rows,
+  coalesce,
+  desc,
+  distinct,
+  filter,
+  full_join,
+  group_by,
+  left_join,
+  mutate,
+  mutate_all,
+  n,
+  n_distinct,
+  right_join,
+  select,
+  summarize,
+  tibble
+)
+importFrom(ggplot2,
+  annotation_custom,
+  annotation_raster,
+  coord_fixed,
+  geom_rect,
+  ggplot,
+  ggproto,
+  xlim,
+  ylim
+)
 importFrom(ggpubr,ggarrange)
 importFrom(ggrepel,geom_label_repel)
-importFrom(grDevices,as.raster)
-importFrom(grDevices,col2rgb)
-importFrom(grDevices,hcl)
-importFrom(grDevices,rgb)
-importFrom(grDevices,rgb2hsv)
-importFrom(grid,gpar)
-importFrom(grid,pointsGrob)
-importFrom(grid,rasterGrob)
-importFrom(grid,unit)
+importFrom(grDevices,
+  as.raster,
+  col2rgb,
+  hcl,
+  rgb,
+  rgb2hsv
+)
+importFrom(grid,
+  gpar,
+  pointsGrob,
+  rasterGrob,
+  unit
+)
 importFrom(ids,random_id)
-importFrom(igraph,"E<-")
-importFrom(igraph,"V<-")
-importFrom(igraph,E)
-importFrom(igraph,V)
-importFrom(igraph,add_edges)
-importFrom(igraph,as_adjacency_matrix)
-importFrom(igraph,as_data_frame)
-importFrom(igraph,cluster_leiden)
-importFrom(igraph,components)
-importFrom(igraph,disjoint_union)
-importFrom(igraph,edge_attr_names)
-importFrom(igraph,get.data.frame)
-importFrom(igraph,graph_from_adjacency_matrix)
-importFrom(igraph,graph_from_edgelist)
-importFrom(igraph,induced_subgraph)
-importFrom(igraph,make_empty_graph)
-importFrom(igraph,neighborhood)
-importFrom(igraph,set_edge_attr)
-importFrom(igraph,simplify)
-importFrom(igraph,subgraph)
-importFrom(igraph,union)
-importFrom(igraph,vcount)
-importFrom(igraph,vertices)
-importFrom(magick,as_EBImage)
-importFrom(magick,geometry_size_percent)
-importFrom(magick,image_blank)
-importFrom(magick,image_composite)
-importFrom(magick,image_contrast)
-importFrom(magick,image_convert)
-importFrom(magick,image_crop)
-importFrom(magick,image_data)
-importFrom(magick,image_flip)
-importFrom(magick,image_flop)
-importFrom(magick,image_ggplot)
-importFrom(magick,image_info)
-importFrom(magick,image_join)
-importFrom(magick,image_modulate)
-importFrom(magick,image_negate)
-importFrom(magick,image_raster)
-importFrom(magick,image_read)
-importFrom(magick,image_resize)
-importFrom(magick,image_rotate)
-importFrom(magick,image_scale)
-importFrom(magick,image_write)
-importFrom(methods,"slot<-")
-importFrom(methods,as)
-importFrom(methods,is)
-importFrom(methods,new)
-importFrom(methods,slot)
-importFrom(methods,slotNames)
+importFrom(igraph,
+  "E<-",
+  "V<-",
+  E,
+  V,
+  add_edges,
+  as_adjacency_matrix,
+  as_data_frame,
+  cluster_leiden,
+  components,
+  disjoint_union,
+  edge_attr_names,
+  get.data.frame,
+  graph_from_adjacency_matrix,
+  graph_from_edgelist,
+  induced_subgraph,
+  make_empty_graph,
+  neighborhood,
+  set_edge_attr,
+  simplify,
+  subgraph,
+  union,
+  vcount,
+  vertices
+)
+importFrom(magick,
+  as_EBImage,
+  geometry_size_percent,
+  image_blank,
+  image_composite,
+  image_contrast,
+  image_convert,
+  image_crop,
+  image_data,
+  image_flip,
+  image_flop,
+  image_ggplot,
+  image_info,
+  image_join,
+  image_modulate,
+  image_negate,
+  image_raster,
+  image_read,
+  image_resize,
+  image_rotate,
+  image_scale,
+  image_write
+)
+importFrom(methods,
+  "slot<-",
+  as,
+  is,
+  new,
+  slot,
+  slotNames
+)
 importFrom(rjson,fromJSON)
-importFrom(rlang,"%||%")
-importFrom(rlang,'!!')
-importFrom(rlang,dots_list)
-importFrom(rlang,enquo)
-importFrom(rlang,eval_tidy)
-importFrom(rlang,list2)
-importFrom(rlang,quo_get_expr)
-importFrom(rlang,quo_name)
-importFrom(rlang,quo_text)
-importFrom(rlang,sym)
-importFrom(shiny,HTML)
-importFrom(shiny,reactiveValuesToList)
-importFrom(shiny,tags)
-importFrom(shiny,validateCssUnit)
-importFrom(shinyjs,hide)
-importFrom(shinyjs,show)
-importFrom(shinyjs,useShinyjs)
+importFrom(rlang,
+  "%||%",
+  '!!',
+  dots_list,
+  enquo,
+  eval_tidy,
+  list2,
+  quo_get_expr,
+  quo_name,
+  quo_text,
+  sym
+)
+importFrom(shiny,
+  HTML,
+  reactiveValuesToList,
+  tags,
+  validateCssUnit
+)
+importFrom(shinyjs,
+  hide,
+  show,
+  useShinyjs
+)
 importFrom(sp,point.in.polygon)
-importFrom(stats,aggregate)
-importFrom(stats,as.formula)
-importFrom(stats,cutree)
-importFrom(stats,dist)
-importFrom(stats,hclust)
-importFrom(stats,kmeans)
-importFrom(stats,loess)
-importFrom(stats,median)
-importFrom(stats,na.omit)
-importFrom(stats,pnorm)
-importFrom(stats,predict)
-importFrom(stats,quantile)
-importFrom(stats,setNames)
-importFrom(stats,var)
-importFrom(stringr,str_extract)
-importFrom(stringr,str_order)
-importFrom(stringr,str_pad)
-importFrom(stringr,str_remove)
-importFrom(stringr,str_replace)
-importFrom(stringr,str_sort)
-importFrom(utils,.DollarNames)
-importFrom(utils,capture.output)
-importFrom(utils,head)
-importFrom(utils,read.csv)
-importFrom(utils,read.table)
-importFrom(utils,write.table)
+importFrom(stats,
+  aggregate,
+  as.formula,
+  cutree,
+  dist,
+  hclust,
+  kmeans,
+  loess,
+  median,
+  na.omit,
+  pnorm,
+  predict,
+  quantile,
+  setNames,
+  var
+)
+importFrom(stringr,
+  str_extract,
+  str_order,
+  str_pad,
+  str_remove,
+  str_replace,
+  str_sort
+)
+importFrom(utils,
+  .DollarNames,
+  capture.output,
+  head,
+  read.csv,
+  read.table,
+  write.table
+)
 importFrom(uwot,umap)
 useDynLib(VoltRon)

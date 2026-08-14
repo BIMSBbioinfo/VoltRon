@@ -1,39 +1,40 @@
 #' @include zzz.R
 #' @include allgenerics.R
+#' @importClassesFrom Matrix Matrix
 #' @useDynLib VoltRon
 NULL
 
 ## Auxiliary ####
 
-# pseudo IterableMatrix for BPCells
-if (!requireNamespace("BPCells", quietly = TRUE)) {
-  suppressMessages({
-    suppressWarnings({
-      setClass("IterableMatrix")
-    })
-  })
-}
-if (!requireNamespace("DelayedArray", quietly = TRUE)) {
-  suppressMessages({
-    suppressWarnings({
-      setClass("DelayedMatrix")
-    })
-  })
-}
-if (!requireNamespace("HDF5Array", quietly = TRUE)) {
-  suppressMessages({
-    suppressWarnings({
-      setClass("HDF5Matrix")
-    })
-  })
-}
-if (!requireNamespace("ZarrArray", quietly = TRUE)) {
-  suppressMessages({
-    suppressWarnings({
-      setClass("ZarrMatrix")
-    })
-  })
-}
+# # pseudo IterableMatrix for BPCells
+# if (!requireNamespace("BPCells", quietly = TRUE)) {
+#   suppressMessages({
+#     suppressWarnings({
+#       setClass("IterableMatrix")
+#     })
+#   })
+# }
+# if (!requireNamespace("DelayedArray", quietly = TRUE)) {
+#   suppressMessages({
+#     suppressWarnings({
+#       setClass("DelayedMatrix")
+#     })
+#   })
+# }
+# if (!requireNamespace("HDF5Array", quietly = TRUE)) {
+#   suppressMessages({
+#     suppressWarnings({
+#       setClass("HDF5Matrix")
+#     })
+#   })
+# }
+# if (!requireNamespace("ZarrArray", quietly = TRUE)) {
+#   suppressMessages({
+#     suppressWarnings({
+#       setClass("ZarrMatrix")
+#     })
+#   })
+# }
 
 ## vrImage ####
 
@@ -45,9 +46,10 @@ suppressMessages({
       members = c(
         "matrix",
         "data.frame",
-        "Matrix",
-        "Array",
-        "IterableMatrix"
+        "Matrix"
+        # "Matrix",
+        # "Array",
+        # "IterableMatrix"
       )
     )
   })
@@ -147,18 +149,20 @@ setMethod(
 
 ## vrAssay ####
 
+#' @exportClass data_matrix
 # Set class union
 suppressWarnings({
   setClassUnion(
     "data_matrix",
     members = c(
       "matrix",
-      "Matrix",
-      "Array",
-      "DelayedMatrix",
-      "HDF5Matrix",
-      "ZarrMatrix",
-      "IterableMatrix"
+      "Matrix"
+      # "Matrix",
+      # "Array",
+      # "DelayedMatrix",
+      # "HDF5Matrix",
+      # "ZarrMatrix",
+      # "IterableMatrix"
     )
   )
 })
@@ -377,17 +381,6 @@ suppressWarnings({
       "data.table",
       "data.frame",
       "DataFrame"
-      # if (requireNamespace("S4Vectors", quietly = TRUE)) "DataFrame" else NULL,
-      # if (requireNamespace("HDF5DataFrame", quietly = TRUE)) {
-      #   "HDF5DataFrame"
-      # } else {
-      #   NULL
-      # },
-      # if (requireNamespace("ZarrDataFrame", quietly = TRUE)) {
-      #   "ZarrDataFrame"
-      # } else {
-      #   NULL
-      # }
     )
   )
 })

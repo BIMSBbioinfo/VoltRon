@@ -67,3 +67,21 @@ utils::globalVariables(
   package = "VoltRon",
   add = FALSE
 )
+
+.onLoad <- function(libname, pkgname) {
+  ns <- asNamespace(pkgname)
+  
+  optional <- c(
+    BPCells        = "IterableMatrix",
+    DelayedArray   = "DelayedMatrix"
+  )
+  
+  for (pkg in names(optional)) {
+    if (requireNamespace(pkg, quietly = TRUE)) {
+      methods::setIs(optional[[pkg]], "data_matrix", where = ns)
+      # conditional methods go here too, same reason:
+      # methods::setMethod("vrData", optional[[pkg]], function(object, ...) ...)
+    }
+  }
+  invisible()
+}
