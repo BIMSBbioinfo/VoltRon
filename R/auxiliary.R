@@ -59,6 +59,43 @@ fixVoltRon <- function(object) {
 }
 
 ####
+# Bioformats extensions for image pyramids ####
+####
+
+.PYRAMID_FORMATS <- c(
+  ".ome.tiff",    # OME-TIFF pyramidal TIFF variants (OME-TIFF and related) 
+  ".ome.tif",
+  ".ome.tf2",
+  ".ome.tf8",
+  ".ome.btf",
+  ".svs",         # Aperio SVS
+  ".afi",         # Aperio AFI
+  ".ndpi",        # Hamamatsu NDPI
+  ".ndpis",       # Hamamatsu NDPI variants
+  ".qptiff"       # CODEX ?
+)
+
+####
+# Alignment Metrics ####
+####
+
+.ALIGNMENT_ACCURACY_METRICS <- c(
+  "Intersection",
+  "Bhattacharyya",
+  "Matte's MI"
+)
+
+.ALIGNMENT_KEYPOINT_METRICS <- c(
+  "#Keypoints",
+  "Inlier Perc.",
+  "sd ref. kpts (>1?)",
+  "sd query kpts (>1?)",
+  "sd grid (in [w,h]?)",
+  "Median distance",
+  "Degenerate"
+)
+
+####
 # Matrix Operations ####
 ####
 
@@ -325,24 +362,6 @@ getBasilisk <- function() {
 
   py_env
 }
-
-####
-# Bioformats extensions for pyramids ####
-####
-
-.PYRAMID_FORMATS <- c(
-  ".ome.tiff",    # OME-TIFF pyramidal TIFF variants (OME-TIFF and related) 
-  ".ome.tif",
-  ".ome.tf2",
-  ".ome.tf8",
-  ".ome.btf",
-  ".svs",         # Aperio SVS
-  ".afi",         # Aperio AFI
-  ".ndpi",        # Hamamatsu NDPI
-  ".ndpis",       # Hamamatsu NDPI variants
-  ".qptiff"       # CODEX ?
-)
-
 
 ####
 # Other Auxiliary tools ####

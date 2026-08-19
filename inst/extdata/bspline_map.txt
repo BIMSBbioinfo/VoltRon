@@ -35,3 +35,4 @@
 (WriteTransformParametersEachResolution "true")
 (ResultImageFormat "tif")
 (ResultImagePixelType "unsigned char")
+(RandomSeed 121212)
