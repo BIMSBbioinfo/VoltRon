@@ -619,12 +619,23 @@ getAlignmentTabPanel <- function(len_images, centre, register_ind) {
   do.call(
     tabsetPanel,
     c(
+      # alignment tab panel
       id = 'image_tab_panel_alignment',
       lapply(register_ind, function(i) {
         tabPanel(
           paste0("Ali. ", i, "->", centre),
           br(),
-          fluidRow(imageOutput(paste0("plot_alignment", i)))
+          
+          tabsetPanel(
+            id = paste0("inner_tabs", i), 
+            tabPanel("Alignment Stat.",
+                     tableOutput(paste0("alignment_stats", i))),
+            tabPanel("Matte's MI Map",
+                     imageOutput(paste0("plot_matte_map", i))),
+            tabPanel("Matching Keypoints",
+                     imageOutput(paste0("plot_keypoint_match", i)))
+            
+          )
         )
       })
     )
@@ -833,7 +844,7 @@ updateParameterPanels <- function(len_images, params, input, output, session) {
         "nonrigid",
         choices = c(
           "TPS (OpenCV)",
-          "BSpline (SimpleITK)"
+          if(input$Method != "Non-Rigid") "BSpline (SimpleITK)" else NULL
         ),
         selected = "TPS (OpenCV)"
       )
@@ -1385,94 +1396,6 @@ applyPerspectiveTransform <- function(
 
   # return object
   return(object)
-}
-
-####
-# Managing Mappings ####
-####
-
-manageMapping <- function(mappings) {
-  # check if all transformations are homography
-  allHomography <- suppressWarnings(all(lapply(mappings, function(map) {
-    nrow(map[[1]] > 0) && is.null(map[[2]])
-  })))
-
-  # change the mapping
-  new_mappings <- list()
-  if (allHomography) {
-    mappings <- lapply(mappings, function(map) map[[1]])
-    new_mappings <- list(
-      list(Reduce("%*%", mappings), NULL)
-    )
-  } else {
-    new_mappings <- mappings
-  }
-
-  # return
-  return(new_mappings)
-}
-
-applyMapping <- function(coords, mapping){
-  mapping_new <- mapping
-  if(!is.null(mapping[[1]][[2]])){
-    if(is(mapping[[1]][[2]][[1]], "_p_itk__simple__TransformixImageFilter")){
-      mapping_new[[1]] <- list(mapping[[1]][[1]], NULL)
-      coords <- applyRcppMapping(coords, mapping_new)
-      coords <- applySimpleITKMapping(coords, mapping[[1]][[2]][[1]])
-    } else {
-      coords <- applyRcppMapping(coords, mapping)
-    }
-  } else {
-    coords <- applyRcppMapping(coords, mapping)
-  }
-  coords
-}
-
-#' @importFrom utils write.table
-applySimpleITKMapping <- function(coords, mapping){
-  
-  # check SimpleITK
-  if (!requireNamespace('SimpleITK')) {
-    stop("Please install SimpleITK package!: ", 
-         "remotes::install_github('BIMSBbioinfo/SimpleITKRInstaller')", 
-         ", this is gonna take a while :)")
-  }
-  
-  # temp dir, delete later
-  tmpdir <- tempdir()
-  tmpdir <- file.path(tmpdir, "SimpleITK")
-  dir.create(tmpdir, showWarnings = FALSE)
-  
-  # get image
-  input_file <- file.path(tmpdir, "inputpoints.txt")
-  output_file <- file.path(tmpdir, "outputpoints.txt")
-  
-  # apply transformation
-  tfx <- mapping
-  suppressWarnings(file.remove(input_file, showWarnings = FALSE))
-  cat("point\n", nrow(coords), "\n", file = input_file)
-  utils::write.table(coords, input_file, append = TRUE,
-              col.names = FALSE, row.names = FALSE, quote = FALSE)
-  tfx$SetOutputDirectory(tmpdir)
-  tfx$SetFixedPointSetFileName(input_file)
-  tmp <- tfx$Execute()
-
-  # get points
-  lines_coords <- readLines(output_file)
-  coords <- do.call(
-    rbind,
-    lapply(lines_coords, function(x) {
-      tmp <- strsplit(strsplit(x, split = "\\t")[[1]][6], 
-                      split = " ")[[1]][c(5,6)]
-      as.numeric(tmp)
-    })
-  )
-
-  # delete dir
-  unlink(tmpdir, recursive = TRUE)
-  
-  # return 
-  coords
 }
 
 ####
@@ -2555,6 +2478,109 @@ ggplot_to_magick <- function(plot, extent = NULL, width = 8, height = 6, dpi = 3
   magick::image_read(tf)
 }
 
+#' @noRd
+convertToSitkImage <- function(img){
+  img_data <- magick::image_data(img, channels = "gray")
+  dim_img <- dim(img_data)
+  img_data <- as.vector(img_data, mode = "integer")
+  dim(img_data) <- dim_img
+  img_data <- aperm(img_data, c(2,3,1))
+  SimpleITK::as.image(img_data, isVector = TRUE)
+}
+
+####
+# Managing Mappings ####
+####
+
+manageMapping <- function(mappings) {
+  # check if all transformations are homography
+  allHomography <- suppressWarnings(all(lapply(mappings, function(map) {
+    nrow(map[[1]] > 0) && is.null(map[[2]])
+  })))
+  
+  # change the mapping
+  new_mappings <- list()
+  if (allHomography) {
+    mappings <- lapply(mappings, function(map) map[[1]])
+    new_mappings <- list(
+      list(Reduce("%*%", mappings), NULL)
+    )
+  } else {
+    new_mappings <- mappings
+  }
+  
+  # return
+  return(new_mappings)
+}
+
+applyMapping <- function(coords, mapping){
+  mapping_new <- mapping
+  if(!is.null(mapping[[1]][[2]])){
+    if(is(mapping[[1]][[2]][[1]], "_p_itk__simple__TransformixImageFilter")){
+      mapping_new[[1]] <- list(mapping[[1]][[1]], NULL)
+      coords <- applyRcppMapping(coords, mapping_new)
+      coords <- applySimpleITKMapping(coords, mapping[[1]][[2]][[1]])
+    } else {
+      coords <- applyRcppMapping(coords, mapping)
+    }
+  } else {
+    coords <- applyRcppMapping(coords, mapping)
+  }
+  coords
+}
+
+#' @importFrom utils write.table
+applySimpleITKMapping <- function(coords, mapping){
+  
+  # check SimpleITK
+  if (!requireNamespace('SimpleITK')) {
+    stop("Please install SimpleITK package!: ", 
+         "remotes::install_github('BIMSBbioinfo/SimpleITKRInstaller')", 
+         ", this is gonna take a while :)")
+  }
+  
+  # temp dir, delete later
+  tmpdir <- tempdir()
+  tmpdir <- file.path(tmpdir, "SimpleITK")
+  dir.create(tmpdir, showWarnings = FALSE)
+  
+  # get image
+  input_file <- file.path(tmpdir, "inputpoints.txt")
+  output_file <- file.path(tmpdir, "outputpoints.txt")
+  
+  # apply transformation
+  tfx <- mapping
+  suppressWarnings(file.remove(input_file, showWarnings = FALSE))
+  cat("point\n", nrow(coords), "\n", file = input_file)
+  utils::write.table(coords, input_file, append = TRUE,
+                     col.names = FALSE, row.names = FALSE, quote = FALSE)
+  tfx$SetOutputDirectory(tmpdir)
+  tfx$SetFixedPointSetFileName(input_file)
+  tmp <- tfx$Execute()
+  
+  # get points
+  lines_coords <- readLines(output_file)
+  coords <- do.call(
+    rbind,
+    lapply(lines_coords, function(x) {
+      tmp <- strsplit(strsplit(x, split = "\\t")[[1]][6], 
+                      split = " ")[[1]][c(5,6)]
+      as.numeric(tmp)
+    })
+  )
+  
+  # delete dir
+  unlink(tmpdir, recursive = TRUE)
+  
+  # return 
+  coords
+}
+
+
+####
+# Managing Transformations ####
+####
+
 #' transformImage
 #'
 #' Apply given transformations to a magick image
@@ -2622,7 +2648,6 @@ transformImageReverse <- function(image, extension, input) {
 transformImageQueryList <- function(image_list, input) {
   # length of images
   len_register <- length(image_list) - 1
-
   trans_query_list <- lapply(seq_len(len_register), function(i) {
     reactive({
       list(
@@ -2697,7 +2722,6 @@ warpImage <- function(ref_image, query_image, mapping) {
         if(is(mapping[[1]][[2]][[2]], "_p_itk__simple__TransformixImageFilter")){
           query_image <- magick::image_read(query_image)
           query_image <- warpSimpleITKImage(
-            ref_image = ref_image,
             query_image = query_image,
             mapping = mapping[[1]][[2]][[2]]
           ) 
@@ -2737,14 +2761,13 @@ warpImage <- function(ref_image, query_image, mapping) {
 #'
 #' Warping a query image given a homography image
 #'
-#' @param ref_image reference image
 #' @param query_image query image
 #' @param mapping a list of the homography matrices and TPS keypoints
 #'
 #' @importFrom magick image_read image_data
 #'
 #' @export
-warpSimpleITKImage <- function(ref_image, query_image, mapping) {
+warpSimpleITKImage <- function(query_image, mapping) {
   
   # check SimpleITK
   if (!requireNamespace('SimpleITK')) {
@@ -2839,9 +2862,6 @@ getManualRegisteration <- function(
   output,
   session
 ) {
-  # the number of registrations
-  len_register <- length(image_list) - 1
-
   # Registration events
   observeEvent(input$register, {
     # get key points as list
@@ -2861,7 +2881,10 @@ getManualRegisteration <- function(
         value = 0,
         {
           # Register keypoints
-          aligned_image_list <- list()
+          aligned_image_list <- 
+            matte_map_list <- 
+            alignment_stats_list <- 
+            lapply(seq_along(image_list), \(.) NULL)
           for (i in register_ind) {
             # Increment the progress bar, and update the detail text.
             incProgress(
@@ -2883,6 +2906,12 @@ getManualRegisteration <- function(
 
             # save matches
             aligned_image_list[[i]] <- results$aligned_image
+            
+            # save matte map
+            matte_map_list[[i]] <- results$matte_map
+            
+            # save alignment stats 
+            alignment_stats_list[[i]] <- results$alignment_stats
           }
         }
       )
@@ -2930,8 +2959,47 @@ getManualRegisteration <- function(
           deleteFile = TRUE
         )
       })
+      
+      # Plot Matte
+      lapply(register_ind, function(i) {
+        if(length(matte_map_list)){
+          cur_alignment_image <- matte_map_list[[i]]
+          output[[paste0("plot_matte_map", i)]] <- renderPlot({
+            if (!suppressWarnings(!is.matrix(cur_alignment_image))) {
+              cur_alignment_image <- 
+                cur_alignment_image[nrow(cur_alignment_image):1,]
+              cur_alignment_image <- 
+                as.data.frame(as.table(cur_alignment_image))
+              ggplot(cur_alignment_image,
+                     aes(Var2, Var1, fill= Freq)) +
+                ggplot2::geom_tile() + 
+                ggplot2::theme_void() + 
+                ggplot2::coord_fixed(expand = FALSE) + 
+                ggplot2::scale_fill_gradient(low = "#440154FF", 
+                                             high = "#FDE725FF", 
+                                             # na.value = NA,
+                                             name = "Matte's MI")
+            }
+          }) 
+        }
+      })
 
+      # Plot Alignment Stats
+      lapply(register_ind, function(i) {
+        if(length(alignment_stats_list)){
+          cur_align_stats <- alignment_stats_list[[i]]
+          output[[paste0("alignment_stats", i)]] <- renderTable({
+            tab <- data.frame(Metrics = names(cur_align_stats[["coarse"]]), 
+                              `Coarse` = cur_align_stats[["coarse"]])
+            if(!all(is.na(cur_align_stats[["fine"]])))
+              tab$Fine <- cur_align_stats[["fine"]]
+            tab
+          }, digits = 5, na = "")
+        }
+      })
+      
       # Output summary
+      len_register <- length(image_list) - 1
       output[["summary"]] <- renderUI({
         str1 <- paste0(" Registration Summary:")
         str2 <- paste0("# of Images: ", length(image_list))
@@ -2952,6 +3020,7 @@ getManualRegisteration <- function(
 #' @param query_ind the index of the query image
 #' @param ref_ind the index of the reference image
 #' @param input input
+#' @param compute_matte_map Should matte map be computed ? 
 #'
 #' @noRd
 computeManualPairwiseTransform <- function(
@@ -2959,7 +3028,8 @@ computeManualPairwiseTransform <- function(
   keypoints_list,
   query_ind,
   ref_ind,
-  input
+  input,
+  compute_matte_map = TRUE
 ) {
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -2998,8 +3068,23 @@ computeManualPairwiseTransform <- function(
       ref_image,
       target_landmark,
       reference_landmark,
+      invert_query = input[[paste0(
+        "negate_",
+        query_label,
+        "_image",
+        cur_map[1]
+      )]] ==
+        "Yes",
+      invert_ref = input[[paste0(
+        "negate_",
+        ref_label,
+        "_image",
+        cur_map[2]
+      )]] ==
+        "Yes",
       method = input$Method,
-      nonrigid = if(is.null(input$nonrigid)) "None" else input$nonrigid
+      nonrigid = if(is.null(input$nonrigid)) "None" else input$nonrigid,
+      compute_matte_map = compute_matte_map
     )
     
     # run SimpleITK as fine registration
@@ -3015,25 +3100,45 @@ computeManualPairwiseTransform <- function(
       tfx <- getSimpleITKAutomatedRegistration(
         ref_image = ref_image,
         query_image = query_image,
-        invert_query = FALSE,
-        invert_ref = FALSE,
+        invert_query = input[[paste0(
+          "negate_",
+          query_label,
+          "_image",
+          cur_map[1]
+        )]] ==
+          "Yes",
+        invert_ref = input[[paste0(
+          "negate_",
+          ref_label,
+          "_image",
+          cur_map[2]
+        )]] ==
+          "Yes",
         flipflop_query = FALSE,
         flipflop_ref = FALSE,
         rotate_query = FALSE,
         rotate_ref = FALSE,
-        initial_mapping = list(reg[[1]])
+        initial_mapping = list(reg[[1]]),
+        compute_matte_map = compute_matte_map
       )
-      reg$aligned_image <- tfx$aligned_image
       reg[[1]][[2]] <- tfx$transformation
+      reg$aligned_image <- tfx$aligned_image
+      reg$matte_map <- tfx$matte_map
+      reg$alignment_stats$fine[names(tfx$alignment_metrics)] <- 
+        tfx$alignment_metrics
     }
 
     # return transformation matrix and images
     mapping[[kk]] <- reg[[1]]
     aligned_image <- reg$aligned_image
+    matte_map <- reg$matte_map
+    alignment_stats <- reg$alignment_stats
   }
 
   return(list(mapping = mapping, 
-              aligned_image = aligned_image))
+              aligned_image = aligned_image, 
+              matte_map = matte_map, 
+              alignment_stats = alignment_stats))
 }
 
 #' getRcppManualRegistration
@@ -3044,8 +3149,11 @@ computeManualPairwiseTransform <- function(
 #' @param ref_image reference image
 #' @param query_landmark query landmark points
 #' @param reference_landmark refernece landmark points
+#' @param invert_query invert query image
+#' @param invert_ref invert reference image
 #' @param method the automated registration method, either TPS or Homography+TPS
 #' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
+#' @param compute_matte_map Should matte map be computed ? 
 #' 
 #' @importFrom magick image_read image_data
 #'
@@ -3055,8 +3163,11 @@ getRcppManualRegistration <- function(
   ref_image,
   query_landmark,
   reference_landmark,
+  invert_query = FALSE,
+  invert_ref = FALSE,
   method = "Homography",
-  nonrigid = "TPS (OpenCV)"
+  nonrigid = "TPS (OpenCV)", 
+  compute_matte_map = TRUE
 ) {
   
   # ref image
@@ -3089,7 +3200,6 @@ getRcppManualRegistration <- function(
     query_landmark[, 2] <- dim(query_image)[3] - query_landmark[, 2]
   }
   
-  
   reg <- 
     if(ncol(query_image) == 2){
       manual_registeration_matrix(
@@ -3105,6 +3215,8 @@ getRcppManualRegistration <- function(
         query_image,
         reference_landmark = reference_landmark,
         query_landmark = query_landmark,
+        invert_query = invert_query,
+        invert_ref = invert_ref,
         width1 = dim(ref_image)[2],
         height1 = dim(ref_image)[3],
         width2 = dim(query_image)[2],
@@ -3133,9 +3245,55 @@ getRcppManualRegistration <- function(
     magick::image_read(reg[[2]])
   }
 
+  # check for null data
+  if(length(reg) > 2){
+    
+    # check matte map
+    matte_map <-
+      if (!is.null(reg[[3]])) {
+        tmp <- reg[[3]]
+        tmp[tmp < 0] <- 0
+        tmp
+      } else NA
+    
+    # check alignment statistics
+    alignment_stats <- list()
+    metrics <- .ALIGNMENT_ACCURACY_METRICS
+    metrics_set <- setNames(rep(NA, length(metrics)), metrics)
+    alignment_stats[["coarse"]] <- {
+      if (!is.null(reg[[4]])){
+        if(!all(names(reg[[4]]) %in% metrics)){
+          stop("There are missing accuracy metrics!")
+        } else {
+          metrics_set[metrics] <- reg[[4]][metrics]
+          metrics_set
+        }
+      } else{
+        NA
+      }
+    }
+    alignment_stats[["fine"]] <- {
+      if (!is.null(reg[[5]])){
+        if(!all(names(reg[[5]]) %in% metrics)){
+          stop("There are missing accuracy metrics!")
+        } else {
+          metrics_set[metrics] <- reg[[5]][metrics]
+          metrics_set
+        }
+      } else{
+        NA
+      }
+    }
+  } else {
+    matte_map <- NULL
+    alignment_stats <- NULL
+  }
+  
   return(list(
     transmat = reg[[1]],
-    aligned_image = aligned_image
+    aligned_image = aligned_image,
+    matte_map = matte_map,
+    alignment_stats = alignment_stats
   ))
 }
 
@@ -3173,9 +3331,6 @@ getAutomatedRegisteration <- function(
   output,
   session
 ) {
-  # the number of registrations
-  len_register <- length(image_list) - 1
-
   # Registration events
   observeEvent(input$register, {
     # Automated registration
@@ -3191,10 +3346,13 @@ getAutomatedRegisteration <- function(
         value = 0,
         {
           # Register keypoints
-          dest_image_list <- list()
-          overlayed_image_list <- list()
-          aligned_image_list <- list()
-          alignment_image_list <- list()
+          dest_image_list <- 
+            overlayed_image_list <- 
+            aligned_image_list <-
+            alignment_image_list <- 
+            matte_map_list <- 
+            alignment_stats_list <- 
+            lapply(seq_along(image_list), \(.) NULL)
           for (i in register_ind) {
             # Increment the progress bar, and update the detail text.
             incProgress(
@@ -3225,6 +3383,12 @@ getAutomatedRegisteration <- function(
 
             # save matches
             alignment_image_list[[i]] <- results$alignment_image
+            
+            # save matte map
+            matte_map_list[[i]] <- results$matte_map
+            
+            # save alignment stats
+            alignment_stats_list[[i]] <- results$alignment_stats
           }
         }
       )
@@ -3257,14 +3421,49 @@ getAutomatedRegisteration <- function(
       # Plot Alignment
       lapply(register_ind, function(i) {
         cur_alignment_image <- alignment_image_list[[i]]
-        output[[paste0("plot_alignment", i)]] <- renderPlot({
+        output[[paste0("plot_keypoint_match", i)]] <- renderPlot({
           if (!suppressWarnings(is.na(cur_alignment_image))) {
             magick::image_ggplot(cur_alignment_image)
           }
         })
       })
+      
+      # Plot Matte
+      lapply(register_ind, function(i) {
+        cur_alignment_image <- matte_map_list[[i]]
+        output[[paste0("plot_matte_map", i)]] <- renderPlot({
+          if (!suppressWarnings(!is.matrix(cur_alignment_image))) {
+            cur_alignment_image <-
+              cur_alignment_image[nrow(cur_alignment_image):1,]
+            cur_alignment_image <- 
+              as.data.frame(as.table(cur_alignment_image))
+            ggplot(cur_alignment_image,
+                   aes(Var2, Var1, fill= Freq)) +
+              ggplot2::geom_tile() +
+              ggplot2::theme_void() +
+              ggplot2::coord_fixed(expand = FALSE) +
+              ggplot2::scale_fill_gradient(low = "#440154FF",
+                                           high = "#FDE725FF",
+                                           # na.value = NA,
+                                           name = "Matte's MI")
+          }
+        })
+      })
+      
+      # Plot Alignment Stats
+      lapply(register_ind, function(i) {
+        cur_align_stats <- alignment_stats_list[[i]]
+        output[[paste0("alignment_stats", i)]] <- renderTable({
+          tab <- data.frame(Metrics = names(cur_align_stats[["coarse"]]), 
+                     `Coarse` = cur_align_stats[["coarse"]])
+          if(!all(is.na(cur_align_stats[["fine"]])))
+            tab$Fine <- cur_align_stats[["fine"]]
+          tab
+        }, digits = 5, na = "")
+      })
 
       # Output summary
+      len_register <- length(image_list) - 1
       output[["summary"]] <- renderUI({
         str1 <- paste0(" Registration Summary:")
         str2 <- paste0("# of Images: ", length(image_list))
@@ -3285,6 +3484,7 @@ getAutomatedRegisteration <- function(
 #' @param query_ind the index of the query image
 #' @param ref_ind the index of the reference image
 #' @param input input
+#' @param compute_matte_map Should matte map be computed ? 
 #'
 #' @noRd
 computeAutomatedPairwiseTransform <- function(
@@ -3292,7 +3492,8 @@ computeAutomatedPairwiseTransform <- function(
   channel_names,
   query_ind,
   ref_ind,
-  input
+  input,
+  compute_matte_map = TRUE
 ) {
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -3384,7 +3585,8 @@ computeAutomatedPairwiseTransform <- function(
       rotate_ref = input[[paste0("rotate_", ref_label, "_image", cur_map[2])]],
       matcher = input$Matcher,
       method = input$Method,
-      nonrigid = if(is.null(input$nonrigid)) "None" else input$nonrigid
+      nonrigid = if(is.null(input$nonrigid)) "None" else input$nonrigid, 
+      compute_matte_map = compute_matte_map
     )
     
     # update transformation matrix
@@ -3451,10 +3653,15 @@ computeAutomatedPairwiseTransform <- function(
         )]],
         rotate_ref = input[[paste0(
           "rotate_", ref_label, "_image", cur_map[2])]],
-        initial_mapping = list(reg[[1]])
+        initial_mapping = list(reg[[1]]), 
+        compute_matte_map = compute_matte_map
       )
-      reg$aligned_image <- tfx$aligned_image
       reg[[1]][[2]] <- tfx$transformation
+      reg$aligned_image <- tfx$aligned_image
+      reg$overlay_image <- tfx$overlay_image
+      reg$matte_map <- tfx$matte_map
+      reg$alignment_stats$fine[names(tfx$alignment_metrics)] <- 
+        tfx$alignment_metrics
     }
     
     # return transformation matrix and images
@@ -3463,6 +3670,8 @@ computeAutomatedPairwiseTransform <- function(
     aligned_image <- reg$aligned_image
     alignment_image <- reg$alignment_image
     overlay_image <- reg$overlay_image
+    matte_map <- reg$matte_map
+    alignment_stats <- reg$alignment_stats
   }
 
   return(list(
@@ -3470,7 +3679,9 @@ computeAutomatedPairwiseTransform <- function(
     dest_image = dest_image,
     aligned_image = aligned_image,
     alignment_image = alignment_image,
-    overlay_image = overlay_image
+    overlay_image = overlay_image,
+    matte_map = matte_map,
+    alignment_stats = alignment_stats
   ))
 }
 
@@ -3491,6 +3702,7 @@ computeAutomatedPairwiseTransform <- function(
 #' @param matcher the matching method for landmarks/keypoints FLANN or BRUTE-FORCE
 #' @param method the automated registration method, Homography or Homography+TPS
 #' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
+#' @param compute_matte_map Should matte map be computed ? 
 #' 
 #' @importFrom magick image_read image_data
 #'
@@ -3508,7 +3720,8 @@ getRcppAutomatedRegistration <- function(
   rotate_ref = "0",
   matcher = "FLANN",
   method = "Homography",
-  nonrigid = "TPS (OpenCV)"
+  nonrigid = "TPS (OpenCV)",
+  compute_matte_map = TRUE
 ) {
   ref_image <- magick::image_data(ref_image, channels = "rgb")
   query_image <- magick::image_data(query_image, channels = "rgb")
@@ -3530,7 +3743,8 @@ getRcppAutomatedRegistration <- function(
     rotate_ref = rotate_ref,
     matcher = matcher,
     method = method,
-    nonrigid = nonrigid
+    nonrigid = nonrigid,
+    compute_matte_map = compute_matte_map
   )
 
   # check for null keypoints
@@ -3538,13 +3752,52 @@ getRcppAutomatedRegistration <- function(
     reg[[1]] <- list(reg[[1]][[1]], NULL)
   }
 
-  # check for failed registeration
+  # check for failed registration
   aligned_image <-
     if (!is.null(reg[[3]])) magick::image_read(reg[[3]]) else NA
   alignment_image <-
     if (!is.null(reg[[4]])) magick::image_read(reg[[4]]) else NA
   overlay_image <-
     if (!is.null(reg[[5]])) magick::image_read(reg[[5]]) else NA
+  
+  # check matte maps
+  matte_map <-
+    if (!is.null(reg[[6]])){
+      tmp <- reg[[6]]
+      tmp[tmp < 0] <- 0
+      tmp
+      
+    } else NA
+  
+  # check alignment statistics
+  alignment_stats <- list()
+  metrics <- c(.ALIGNMENT_ACCURACY_METRICS, 
+               .ALIGNMENT_KEYPOINT_METRICS)
+  metrics_set <- setNames(rep(NA, length(metrics)), metrics)
+  alignment_stats[["coarse"]] <- {
+    if (!is.null(reg[[7]])){
+      if(!all(names(reg[[7]]) %in% metrics)){
+        stop("There are missing accuracy metrics!")
+      } else {
+        metrics_set[metrics] <- reg[[7]][metrics]
+        metrics_set
+      }
+    } else{
+      NA
+    }
+  }
+  alignment_stats[["fine"]] <- {
+    if (!is.null(reg[[8]])){
+      if(!all(names(reg[[8]]) %in% metrics)){
+        stop("There are missing accuracy metrics!")
+      } else {
+        metrics_set[metrics] <- reg[[8]][metrics]
+        metrics_set
+      }
+    } else{
+      NA
+    }
+  }
 
   # return
   return(list(
@@ -3552,7 +3805,9 @@ getRcppAutomatedRegistration <- function(
     dest_image = magick::image_read(reg[[2]]),
     aligned_image = aligned_image,
     alignment_image = alignment_image,
-    overlay_image = overlay_image
+    overlay_image = overlay_image,
+    matte_map = matte_map, 
+    alignment_stats = alignment_stats
   ))
 }
 
@@ -3568,7 +3823,8 @@ getRcppAutomatedRegistration <- function(
 #' @param flipflop_ref flip or flop the reference image
 #' @param rotate_query rotation of query image
 #' @param rotate_ref rotation of reference image
-#'
+#' @param compute_matte_map Should matte map be computed ? 
+#' 
 #' @importFrom magick as_EBImage image_read
 #' @importFrom EBImage imageData writeImage
 #' 
@@ -3582,7 +3838,8 @@ getSimpleITKAutomatedRegistration <- function(
     flipflop_ref = "None",
     rotate_query = "0",
     rotate_ref = "0",
-    initial_mapping = NULL
+    initial_mapping = NULL,
+    compute_matte_map = TRUE
 ){
   # check SimpleITK
   if (!requireNamespace('SimpleITK')) {
@@ -3613,7 +3870,6 @@ getSimpleITKAutomatedRegistration <- function(
     ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
     ref_image <- magick::image_read(ref_image)
   }
-    
   query_image <- rotateImage(query_image, as.numeric(rotate_query))
   if (flipflop_query == "Flip") {
     query_image <- flipImage(query_image)
@@ -3622,39 +3878,35 @@ getSimpleITKAutomatedRegistration <- function(
   }
   if(invert_query)
     query_image <- negateImage(query_image)
-    # query_image <- magick::image_negate(query_image)
+  
+  # generate coarse mapped mask by warping
+  ref_info <- getImageInfo(ref_image)
+  query_info <- getImageInfo(query_image)
+  mask <- generateOverlapMask(c(ref_info$width, ref_info$height),
+                              initial_mapping[[1]][[1]],
+                              c(query_info$width, query_info$height))
+  # mask <- magick::image_read(mask)
+  
+  # warp image
   query_image <- warpImage(ref_image = ref_image,
                            query_image = query_image,
                            mapping = initial_mapping)
   
-  # prepare images
-  ref_image1 <- magick::as_EBImage(ref_image)
-  # ref_image1 <- EBImage::imageData(ref_image1)
-  # dim_img <- 1:length(dim(ref_image))
-  # dim_img[1:2] <- rev(dim_img[1:2])
-  # ref_image1 <- aperm(ref_image1, perm = c(2,1,3))
-  EBImage::writeImage(ref_image1, 
-                      files = file.path(tmpdir, "ref_image.tiff"), 
-                      compression = "LZW", reduce = TRUE)
-  fixed <- SimpleITK::ReadImage(file.path(tmpdir, "ref_image.tiff"), 
-                                'sitkUInt8')
-  query_image1 <- as_EBImage(query_image)
-  # dim_img <- 1:length(dim(query_image))
-  # dim_img[1:2] <- rev(dim_img[1:2])
-  # query_image1 <- EBImage::imageData(query_image1)
-  # query_image1 <- aperm(query_image1, perm = c(2,1))
-  EBImage::writeImage(query_image1, 
-                      files = file.path(tmpdir, "query_image.tiff"),
-                      compression = "LZW", reduce = TRUE)
-  moving <- SimpleITK::ReadImage(file.path(tmpdir, "query_image.tiff"), 
-                                 'sitkUInt8')
+  # prepare images and masks
+  fixed <- convertToSitkImage(ref_image)
+  fixed <- SimpleITK::Cast(fixed, "sitkUInt8")
+  moving <- convertToSitkImage(query_image)
+  moving <- SimpleITK::Cast(moving, "sitkUInt8")
+  # mask <- SimpleITK::as.image(array(mask, rev(dim(mask))))
+  mask <- SimpleITK::as.image(array(mask, dim(mask)))
+  mask <- SimpleITK::Cast(mask, "sitkUInt8")
   
   # get registration for image
   elx <- SimpleITK::ElastixImageFilter()
   elx$SetOutputDirectory(tmpdir)
   elx$SetFixedImage(fixed)
   elx$SetMovingImage(moving)
-  parameterMapVector = SimpleITK::VectorOfParameterMap()
+  # elx$SetMovingMask(mask) # Should we move the mask ?
   mp <- SimpleITK:::ReadParameterFile(
     system.file("extdata", "bspline_map.txt", package = "VoltRon")
   )
@@ -3663,21 +3915,33 @@ getSimpleITKAutomatedRegistration <- function(
   tmp <- elx$Execute()
   sitk_img <- SimpleITK::ReadImage(file.path(tmpdir, "result.0.tif"))
   arr <- SimpleITK::as.array(sitk_img)
-  arr8 <- 255 * (arr - min(arr)) / (max(arr) - min(arr))
-  arr8 <- array(as.integer(arr8), dim = dim(arr))
-  arr8 <- aperm(arr8, perm = c(2,1))
-  aligned_image <- magick::image_read(as.raster(arr8 / 255))
+  arr <- (arr - min(arr)) / (max(arr) - min(arr))
+  arr <- array(arr, dim = dim(arr))
+  arr <- aperm(arr, perm = c(2,1))
+  aligned_image <- magick::image_read(as.raster(arr))
   transform_param_map <- elx$GetTransformParameterMap()
   tfx_image <- SimpleITK::TransformixImageFilter()
   tfx_image$LogToConsoleOff()
   tfx_image$SetTransformParameterMap(transform_param_map)
+  
+  # warp mask
+  tfx_mask <- SimpleITK::TransformixImageFilter()
+  tfx_mask$LogToConsoleOff()
+  tfx_mask$SetTransformParameterMap(transform_param_map)
+  mask$CopyInformation(moving)
+  tfx_mask$SetMovingImage(mask)
+  tmp <- tfx_mask$Execute()
+  aligned_mask <- SimpleITK::as.array(tfx_mask$GetResultImage())
+  aligned_mask <- array(aligned_mask, dim = c(dim(aligned_mask), 1))
+  aligned_mask <- aperm(aligned_mask, c(2,1,3))
+  aligned_mask <- magick::image_read(aligned_mask)
 
   # get transformation for the points and observations
   elx <- SimpleITK::ElastixImageFilter()
   elx$SetOutputDirectory(tmpdir)
   elx$SetFixedImage(moving)
+  elx$SetFixedMask(mask)
   elx$SetMovingImage(fixed)
-  parameterMapVector = SimpleITK::VectorOfParameterMap()
   mp <- SimpleITK:::ReadParameterFile(
     system.file("extdata", "bspline_map.txt", package = "VoltRon")
   )
@@ -3693,8 +3957,30 @@ getSimpleITKAutomatedRegistration <- function(
   # delete dir
   unlink(tmpdir, recursive = TRUE)
   
+  # calculate alignment accuracy
+  results <- getAlignmentAccuracy(ref_image, 
+                                  aligned_image, 
+                                  aligned_mask,
+                                  "Fine", 
+                                  compute_matte_map)
+  
+  # convert images
+  overlay_image <-
+    if (!is.null(results[[3]])) magick::image_read(results[[3]]) else NA
+  
+  # check matte maps
+  matte_map <-
+    if (!is.null(results[[2]])){
+      tmp <- results[[2]]
+      tmp[tmp < 0] <- 0
+      tmp
+    } else NA
+
   # return
   return(list(aligned_image = aligned_image, 
+              alignment_metrics = results[[1]],
+              matte_map = matte_map,
+              overlay_image = overlay_image,
               transformation = list(
                 tfx_points = tfx_points,
                 tfx_image = tfx_image
@@ -3747,7 +4033,8 @@ getNonInteractiveRegistration <- function(
         channel_names = channel_names,
         query_ind = i,
         ref_ind = centre,
-        input = mapping_parameters
+        input = mapping_parameters,
+        compute_matte_map = FALSE
       )
     } else {
       flag <- checkKeypoints(mapping_parameters$keypoints)
@@ -3756,7 +4043,8 @@ getNonInteractiveRegistration <- function(
         keypoints_list = mapping_parameters$keypoints,
         query_ind = i,
         ref_ind = centre,
-        input = mapping_parameters
+        input = mapping_parameters,
+        compute_matte_map = FALSE
       )
     }
 
@@ -3781,3 +4069,60 @@ getNonInteractiveRegistration <- function(
     )
   )
 }
+
+####
+# Accuracy ####
+####
+
+#' getAlignmentAccuracy
+#'
+#' get accuracy measurements from two aligned images
+#'
+#' @param ref_image reference image
+#' @param query_image query image
+#' @param mask alignment mask
+#' @param type type 
+#' @param compute_matte_map Should matte map be computed ?
+#'
+#' @importFrom magick image_data
+#' 
+#' @noRd
+getAlignmentAccuracy <- function(ref_image, 
+                                 query_image, 
+                                 mask, 
+                                 type,
+                                 compute_matte_map = TRUE){
+  
+  # image info
+  ref_info <- getImageInfo(ref_image)
+
+  # ref image
+  if (inherits(ref_image, "ImageArray")) {
+    ref_image <- DelayedArray::realize(ref_image)
+    ref_image <- array(as.raw(ref_image), dim = dim(ref_image))
+  } else {
+    ref_image <- magick::image_data(ref_image, channels = "rgb")
+  }
+  
+  # query image
+  if (inherits(query_image, "ImageArray")) {
+    query_image <- DelayedArray::realize(query_image)
+    query_image <- array(as.raw(query_image), dim = dim(query_image))
+  } else {
+    query_image <- magick::image_data(query_image, channels = "rgb")
+  }
+  
+  # mask
+  mask <- magick::image_data(mask, channels = "rgb")
+  
+  # calculate alignment accuracy
+  accuracy_rawvector(ref_image, 
+                     query_image, 
+                     mask, 
+                     width = ref_info$width, 
+                     height = ref_info$height, 
+                     type, 
+                     overlay_images = TRUE,
+                     compute_matte_map = compute_matte_map)
+}
+

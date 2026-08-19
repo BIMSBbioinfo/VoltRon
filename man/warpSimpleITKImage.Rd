@@ -4,11 +4,9 @@
 \alias{warpSimpleITKImage}
 \title{getRcppWarpImage}
 \usage{
-warpSimpleITKImage(ref_image, query_image, mapping)
+warpSimpleITKImage(query_image, mapping)
 }
 \arguments{
-\item{ref_image}{reference image}
-
 \item{query_image}{query image}
 
 \item{mapping}{a list of the homography matrices and TPS keypoints}

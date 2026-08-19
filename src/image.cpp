@@ -126,18 +126,41 @@ void scaledDrawMatches(cv::Mat im1, std::vector<cv::KeyPoint> &keypoints1,
   // draw matches
   drawMatches(im1, keypoints1, im2, keypoints2, top_matches, imMatches);
 }
+
+cv::Mat warpTPSImage(cv::Mat& ref_image, 
+                     cv::Mat& query_image, 
+                     Ptr<ThinPlateSplineShapeTransformer>& tps, 
+                     const int border_y,
+                     const int border_x,
+                     const int interpolation){
   
-// [[Rcpp::export]]
-Rcpp::RawVector warpRcppImage(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, 
-                          Rcpp::List mapping,
-                          const int width1, const int height1,
-                          const int width2, const int height2)
-{
-  // Read reference image
-  cv::Mat imReference = imageToMat(ref_image, width1, height1);
+  // determine extension limits for both images
+  int y_max = max(query_image.rows, border_y);
+  int x_max = max(query_image.cols, border_x);
+
+  // extend images
+  cv::copyMakeBorder(query_image, query_image,
+                     0.0, (int) (y_max - query_image.rows),
+                     0.0, (x_max - query_image.cols),
+                     cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+
+  // transform image
+  cv::Mat query_image_reg;
+  tps->warpImage(query_image, query_image_reg, interpolation);
+
+  // resize image
+  query_image_reg  = query_image_reg(
+    cv::Range(0,ref_image.size().height), 
+    cv::Range(0,ref_image.size().width));
   
-  // Read image to be aligned
-  cv::Mat im = imageToMat(query_image, width2, height2);
+  // return 
+  return query_image_reg.clone();
+}
+
+void warpImage(cv::Mat& ref_image, 
+               cv::Mat& query_image, 
+               Rcpp::List mapping){
+  
   cv::Mat im_temp;
   
   // list 
@@ -155,11 +178,11 @@ Rcpp::RawVector warpRcppImage(Rcpp::RawVector ref_image, Rcpp::RawVector query_i
       
       // transform coordinates
       if(h.rows == 2){
-        cv::warpAffine(im, im_temp, h, imReference.size()); 
+        cv::warpAffine(query_image, im_temp, h, ref_image.size()); 
       } else {
-        cv::warpPerspective(im, im_temp, h, imReference.size());    
+        cv::warpPerspective(query_image, im_temp, h, ref_image.size());    
       }
-      im = im_temp;
+      query_image = im_temp;
     } 
     
     // non-rigid warping
@@ -177,35 +200,47 @@ Rcpp::RawVector warpRcppImage(Rcpp::RawVector ref_image, Rcpp::RawVector query_i
       
       // calculate transformation
       Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
+      
+      // estimate transformation
       tps->estimateTransformation(ref_mat, query_mat, matches);
       
-      // determine extension limits for both images
-      int y_max = max(im.rows, imReference.rows);
-      int x_max = max(im.cols, imReference.cols);
-      
-      // extend images
-      cv::copyMakeBorder(im, im, 0.0, (int) (y_max - im.rows), 0.0, (x_max - im.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
-      
-      // transform image
-      tps->warpImage(im, im_temp);
-      
-      // resize image
-      cv::Mat im_temp_cropped  = im_temp(cv::Range(0,imReference.size().height), cv::Range(0,imReference.size().width));
-      im_temp = im_temp_cropped.clone();
+      // transform image using trained tps
+      im_temp = warpTPSImage(ref_image, query_image, tps, 
+                             ref_image.rows, ref_image.cols, cv::INTER_LINEAR);
       
     } else {
       
       // pass registered object
-      im_temp = im;
+      im_temp = query_image;
     }
     
-    im = im_temp;
+    query_image = im_temp;
   }
+}
+  
+// [[Rcpp::export]]
+Rcpp::RawVector warpRcppImage(Rcpp::RawVector ref_image, 
+                              Rcpp::RawVector query_image, 
+                              Rcpp::List mapping,
+                              const int width1, const int height1,
+                              const int width2, const int height2)
+{
+  // Read reference image
+  cv::Mat imReference = imageToMat(ref_image, width1, height1);
+  
+  // Read image to be aligned
+  cv::Mat im = imageToMat(query_image, width2, height2);
+  
+  // warp image
+  warpImage(imReference, im, mapping);
   
   // return
   return matToImage(im);
 } 
 
+/////
+// Legacy ////
+/////
 
 // [[Rcpp::export]]
 Rcpp::RawVector warpImageAuto(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, 

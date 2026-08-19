@@ -4,8 +4,11 @@
 #include <opencv2/opencv.hpp>
 #include "opencv2/shape/shape_transformer.hpp"
 
-// Auxiliary
+// Library
 #include "auxiliary.h"
+#include "image.h"
+#include "metrics.h"
+#include "matte_mi.h"
 
 // Namespaces
 using namespace Rcpp;
@@ -13,8 +16,17 @@ using namespace std;
 using namespace cv;
 
 // align images with TPS algorithm
-void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::List &keypoints, 
-                    Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark)
+void alignImagesTPS(Mat &im1, 
+                    Mat &im2, 
+                    Mat &im1Reg, 
+                    Rcpp::List &keypoints, 
+                    Rcpp::NumericMatrix query_landmark, 
+                    Rcpp::NumericMatrix reference_landmark,
+                    const bool invert_query, 
+                    const bool invert_ref,
+                    const bool compute_matte_map, 
+                    Mat1d &accuracyMatte, 
+                    std::map<std::string, double> &accuracy)
 {
 
   // seed
@@ -31,6 +43,9 @@ void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::List &keypoints,
   for (unsigned int i = 0; i < ref_mat.size(); i++)
     matches.push_back(cv::DMatch(i, i, 0));
 
+  // message
+  Rcout << "Running Coarse Alignment (Thin-Plate-Spline)" << endl;
+
   // calculate transformation
   Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
   tps->estimateTransformation(ref_mat, query_mat, matches);
@@ -39,19 +54,26 @@ void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::List &keypoints,
   keypoints[0] = point2fToNumericMatrix(ref_mat);
   keypoints[1] = point2fToNumericMatrix(query_mat); 
   
-  // determine extension limits for both images
-  int y_max = max(im1.rows, im2.rows);
-  int x_max = max(im1.cols, im2.cols);
-
-  // extend images
-  cv::copyMakeBorder(im1, im1, 0.0, (int) (y_max - im1.rows), 0.0, (x_max - im1.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
-
-  // transform image
-  tps->warpImage(im1, im1Reg);
-
-  // resize image
-  cv::Mat im1Reg_cropped  = im1Reg(cv::Range(0,im2.size().height), cv::Range(0,im2.size().width));
-  im1Reg = im1Reg_cropped.clone();
+  // transform image using trained tps
+  im1Reg = warpTPSImage(im2, im1, tps, 
+                        im2.rows, im2.cols, cv::INTER_LINEAR);
+  
+  // process 
+  Mat im1Proc, im2Proc;
+  cvtColor(im1Reg, im1Proc, cv::COLOR_BGR2GRAY);
+  cvtColor(im2, im2Proc, cv::COLOR_BGR2GRAY);
+  im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
+  im2Proc = preprocessImage(im2Proc, invert_ref, "None", "0");
+  
+  // get alignment mask
+  cv::Mat alignmentMask = generateOverlapMask(im2Proc,
+                                              tps, 
+                                              im1.size());
+  
+  // get alignment metrics
+  accuracy = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Coarse");
+  if(compute_matte_map)
+    accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
 }
 
 // align images with TPS algorithm
@@ -95,9 +117,21 @@ void alignImagesTPS_points(Rcpp::NumericMatrix &query_data,
 }
 
 // align images with FLANN algorithm
-void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &keypoints,
-                          Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark,
-                          const bool run_Affine, const bool run_TPS)
+void alignImagesAffineTPS(Mat &im1, 
+                          Mat &im2, 
+                          Mat &im1Reg, 
+                          Mat &h, 
+                          Rcpp::List &keypoints,
+                          Rcpp::NumericMatrix query_landmark, 
+                          Rcpp::NumericMatrix reference_landmark,
+                          const bool invert_query, 
+                          const bool invert_ref,
+                          const bool run_Affine, 
+                          const bool run_TPS,
+                          const bool compute_matte_map, 
+                          Mat1d &accuracyMatte, 
+                          std::map<std::string, double> &accuracy_coarse,
+                          std::map<std::string, double> &accuracy_fine)
 {
   // seed
   cv::setRNGSeed(0);
@@ -115,6 +149,8 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
   
   // calculate homography transformation
   Rcout << "Calculating" << (run_Affine ? " (Affine) " : " (Homography) ") << "Transformation Matrix" << endl;
+  
+  // warp image
   Mat im1Affine;
   std::vector<cv::Point2f> query_reg;
   if(run_Affine){
@@ -127,7 +163,24 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
     cv::perspectiveTransform(query_mat, query_reg, h);
   }
   
+  // get alignment metrics for Coarse registration
+  cv::Mat alignmentMask = generateOverlapMask(im2.size(), 
+                                              h, 
+                                              im1.size());
+
+  // get matte metric, process image before
+  Mat im1Proc, im2Proc;
+  cvtColor(im1Affine, im1Proc, cv::COLOR_BGR2GRAY);
+  cvtColor(im2, im2Proc, cv::COLOR_BGR2GRAY);
+  im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
+  im2Proc = preprocessImage(im2Proc, invert_ref, "None", "0");
+  accuracy_coarse = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Coarse");
+  
   if(!run_TPS){
+    
+    // compute matte map if finishing alignment
+    if(compute_matte_map)
+      accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
     
     // clone and exit
     im1Reg = im1Affine.clone();
@@ -135,8 +188,8 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
   } else {
     
     // message
-    Rcout << "Running Thin-Plate-Spline Alignment" << endl;
-    
+    Rcout << "Running Fine Alignment (Thin-Plate-Spline)" << endl;
+
     // calculate TPS transformation
     Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
     tps->estimateTransformation(ref_mat, query_reg, matches);
@@ -145,19 +198,23 @@ void alignImagesAffineTPS(Mat &im1, Mat &im2, Mat &im1Reg, Mat &h, Rcpp::List &k
     keypoints[0] = point2fToNumericMatrix(ref_mat);
     keypoints[1] = point2fToNumericMatrix(query_reg); 
     
-    // determine extension limits for both images
-    int y_max = max(im1Affine.rows, im2.rows);
-    int x_max = max(im1Affine.cols, im2.cols);
+    // warp overlap mask
+    alignmentMask = warpTPSImage(im2, alignmentMask, tps,
+                                 im2.rows, im2.cols,
+                                 cv::INTER_NEAREST);
     
-    // extend images
-    cv::copyMakeBorder(im1Affine, im1Affine, 0.0, (int) (y_max - im1Affine.rows), 0.0, (x_max - im1Affine.cols), cv::BORDER_CONSTANT, Scalar(0, 0, 0));
+    // transform image using trained tps
+    im1Reg = warpTPSImage(im2, im1Affine, tps, 
+                          im2.rows, im2.cols, cv::INTER_LINEAR);
     
-    // transform image
-    tps->warpImage(im1Affine, im1Reg);
-    
-    // resize image
-    cv::Mat im1Reg_cropped  = im1Reg(cv::Range(0,im2.size().height), cv::Range(0,im2.size().width));
-    im1Reg = im1Reg_cropped.clone();
+    // get matte metric, process 
+    // im2 is already processed
+    Mat im1Proc;
+    cvtColor(im1Reg, im1Proc, cv::COLOR_BGR2GRAY);
+    im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
+    accuracy_fine = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Fine");
+    if(compute_matte_map)
+      accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
   }
 }
 
@@ -175,6 +232,9 @@ void alignImagesAffineTPS_points(Rcpp::NumericMatrix &query_data,
   RNG rng(12345);
   Scalar value;
   
+  // message
+  Rcout << "Running Coarse Alignment (Manual)" << endl;
+  
   // Get landmarks as Point2f
   std::vector<cv::Point2f> query_mat = numericMatrixToPoint2f(query_landmark);
   std::vector<cv::Point2f> ref_mat = numericMatrixToPoint2f(reference_landmark);
@@ -189,6 +249,7 @@ void alignImagesAffineTPS_points(Rcpp::NumericMatrix &query_data,
   
   // calculate homography transformation
   Rcout << "Calculating" << (run_Affine ? " (Affine) " : " (Homography) ") << "Transformation Matrix" << endl;
+
   std::vector<cv::Point2f> query_reg;
   std::vector<cv::Point2f> query_data_reg;
   if(run_Affine){
@@ -204,8 +265,8 @@ void alignImagesAffineTPS_points(Rcpp::NumericMatrix &query_data,
   if(run_TPS){
     
     // message
-    Rcout << "Running Thin-Plate-Spline Alignment" << endl;
-    
+    Rcout << "Running Fine Alignment (Thin-Plate-Spline)" << endl;
+
     // calculate TPS transformation
     Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
     tps->estimateTransformation(ref_mat, query_reg, matches);
@@ -232,14 +293,19 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
                                           const int height1,
                                           const int width2, 
                                           const int height2,
+                                          const bool invert_query, 
+                                          const bool invert_ref,
                                           Rcpp::String method, 
-                                          Rcpp::String nonrigid)
+                                          Rcpp::String nonrigid,
+                                          const bool compute_matte_map = true)
 {
   // Return data
-  Rcpp::List out(2);
+  Rcpp::List out(5);
   Rcpp::List out_trans(2);
   Rcpp::List keypoints(2);
   Mat imReg, h;
+  Mat1d accuracyMatte;
+  std::map<std::string, double> accuracy_coarse, accuracy_fine;
   
   // get params
   const bool run_TPS = (strcmp(method.get_cstring(), "Homography + Non-Rigid") == 0 || 
@@ -257,14 +323,27 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
     alignImagesAffineTPS(im, imReference, imReg, 
                          h, keypoints,
                          query_landmark, reference_landmark, 
-                         run_Affine, run_TPS);
+                         invert_query, 
+                         invert_ref,
+                         run_Affine, 
+                         run_TPS, 
+                         compute_matte_map,
+                         accuracyMatte, 
+                         accuracy_coarse, 
+                         accuracy_fine);
   }
   
   // Non-rigid (TPS) only
   if(strcmp(method.get_cstring(), "Non-Rigid") == 0){
     alignImagesTPS(im, imReference, imReg, 
                    keypoints, 
-                   query_landmark, reference_landmark);
+                   query_landmark, 
+                   reference_landmark,
+                   invert_query, 
+                   invert_ref,
+                   compute_matte_map,
+                   accuracyMatte, 
+                   accuracy_coarse);
   }
   
   // transformation matrix, can be either a matrix, set of keypoints or both
@@ -272,8 +351,11 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
   out_trans[1] = keypoints;
   out[0] = out_trans;
   
-  // registered image if exists
+  // registered image and accuracy if exists
   out[1] = matToImage(imReg.clone()); 
+  out[2] = matToNumericMatrix(accuracyMatte); // Matte MI metric
+  out[3] = accuracy_coarse;
+  out[4] = accuracy_fine;
   
   return out;
 }
@@ -313,8 +395,6 @@ Rcpp::List manual_registeration_matrix(Rcpp::NumericMatrix query_data,
                          keypoints,
                          query_landmark, 
                          reference_landmark);
-   keypoints[0] = keypoints[0];
-   keypoints[1] = keypoints[1];
  } 
  
  // transformation matrix, can be either a matrix, set of keypoints or both
