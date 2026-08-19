@@ -463,7 +463,7 @@ void getSIFTTransformationMatrix(
   
 }
 
-bool getORBTransformationMatrix(
+void getORBTransformationMatrix(
     Mat &im1Proc, Mat &im2Proc, Mat &h, Mat &mask, 
     Mat &imMatches, std::vector<Point2f> &points1, std::vector<Point2f> &points2, 
     const bool &run_Affine, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES, bool &is_faulty){
@@ -521,7 +521,6 @@ bool getORBTransformationMatrix(
     }
   } else {
     Rcout <<  "WARNING: Found no matches!" << endl;
-    return false;
   }
 
   // filter keypoints by good matches
@@ -546,9 +545,6 @@ bool getORBTransformationMatrix(
   // draw matches
   scaledDrawMatches(im1Proc, keypoints1_masked, im2Proc, keypoints2_masked, 
                     top_matches, imMatches);
-  
-  // check number of matches
-  return checkMaskAbundance(mask);
 }
 
 ////
@@ -611,10 +607,9 @@ void alignImages(Mat &im1,
     Rcout << "Running Coarse Alignment (BRUTE-FORCE)" << endl;
     
     // run ORB
-    bool check;
-    check = getORBTransformationMatrix(im1Proc, im2Proc, h, mask, imMatches,
-                                       points1, points2, run_Affine, 
-                                       GOOD_MATCH_PERCENT, MAX_FEATURES, is_faulty);
+    getORBTransformationMatrix(im1Proc, im2Proc, h, mask, imMatches,
+                               points1, points2, run_Affine, 
+                               GOOD_MATCH_PERCENT, MAX_FEATURES, is_faulty);
     
   } else {
     
@@ -666,16 +661,16 @@ void alignImages(Mat &im1,
   std::map<std::string, double> final_map(temp_map.begin(), temp_map.end());
   accuracy_coarse = final_map;
   
-  // get matte metric
-  if(compute_matte_map)
-    accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
-  
   ///////////////////////
   /// Find Homography ///
   ///////////////////////
   
   // continue with TPS or do FLANN only
   if(is_faulty || !run_TPS){
+    
+    // compute matte map if finishing alignment
+    if(compute_matte_map)
+      accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
     
     // change color map
     cv::addWeighted(im2Proc, 0.7, im1Proc, 0.3, 0, im1Proc);

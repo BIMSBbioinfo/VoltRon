@@ -207,23 +207,6 @@ void warpImage(cv::Mat& ref_image,
       // transform image using trained tps
       im_temp = warpTPSImage(ref_image, query_image, tps, 
                              ref_image.rows, ref_image.cols, cv::INTER_LINEAR);
-
-      // // determine extension limits for both images
-      // int y_max = max(query_image.rows, ref_image.rows);
-      // int x_max = max(query_image.cols, ref_image.cols);
-      // 
-      // // extend images
-      // cv::copyMakeBorder(query_image, query_image, 
-      //                    0.0, (int) (y_max - query_image.rows), 
-      //                    0.0, (x_max - query_image.cols), 
-      //                    cv::BORDER_CONSTANT, Scalar(0, 0, 0));
-      // 
-      // // transform image
-      // tps->warpImage(query_image, im_temp);
-      // 
-      // // resize image
-      // cv::Mat im_temp_cropped  = im_temp(cv::Range(0,ref_image.size().height), cv::Range(0,ref_image.size().width));
-      // im_temp = im_temp_cropped.clone();
       
     } else {
       

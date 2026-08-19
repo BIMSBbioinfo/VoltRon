@@ -12,7 +12,8 @@ getRcppManualRegistration(
   invert_query = FALSE,
   invert_ref = FALSE,
   method = "Homography",
-  nonrigid = "TPS (OpenCV)"
+  nonrigid = "TPS (OpenCV)",
+  compute_matte_map = TRUE
 )
 }
 \arguments{
@@ -24,9 +25,15 @@ getRcppManualRegistration(
 
 \item{reference_landmark}{refernece landmark points}
 
+\item{invert_query}{invert query image}
+
+\item{invert_ref}{invert reference image}
+
 \item{method}{the automated registration method, either TPS or Homography+TPS}
 
 \item{nonrigid}{the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"}
+
+\item{compute_matte_map}{Should matte map be computed ?}
 }
 \description{
 Manual registration workflow with Rcpp

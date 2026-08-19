@@ -75,8 +75,9 @@ Rcpp::IntegerVector matToMask(const cv::Mat &mat) {
     intMat.data,
     static_cast<std::size_t>(intvec.size()) * sizeof(int)
   );
-  intvec.attr("dim") = Rcpp::Dimension(intMat.rows, intMat.cols);
-
+  // intvec.attr("dim") = Rcpp::Dimension(intMat.rows, intMat.cols);
+  intvec.attr("dim") = Rcpp::Dimension(intMat.cols, intMat.rows);
+  
   return intvec;
 }
 

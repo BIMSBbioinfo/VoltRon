@@ -33,8 +33,8 @@ void scaledDrawMatches(cv::Mat im1, std::vector<cv::KeyPoint> &keypoints1,
 cv::Mat warpTPSImage(cv::Mat& ref_image, 
                      cv::Mat& query_image, 
                      Ptr<ThinPlateSplineShapeTransformer>& tps,
-                     const int border_x,
                      const int border_y,
+                     const int border_x,
                      const int interpolation);
     
 Rcpp::RawVector warpImage(Rcpp::RawVector ref_image, 

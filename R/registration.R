@@ -2480,11 +2480,9 @@ ggplot_to_magick <- function(plot, extent = NULL, width = 8, height = 6, dpi = 3
 
 #' @noRd
 convertToSitkImage <- function(img){
-  # img_info <- magick::image_info(img)
   img_data <- magick::image_data(img, channels = "gray")
   dim_img <- dim(img_data)
   img_data <- as.vector(img_data, mode = "integer")
-  # dim(img_data) <- c(3, img_info$width, img_info$height)
   dim(img_data) <- dim_img
   img_data <- aperm(img_data, c(2,3,1))
   SimpleITK::as.image(img_data, isVector = TRUE)
@@ -2650,7 +2648,6 @@ transformImageReverse <- function(image, extension, input) {
 transformImageQueryList <- function(image_list, input) {
   # length of images
   len_register <- length(image_list) - 1
-
   trans_query_list <- lapply(seq_len(len_register), function(i) {
     reactive({
       list(
@@ -2865,9 +2862,6 @@ getManualRegisteration <- function(
   output,
   session
 ) {
-  # the number of registrations
-  len_register <- length(image_list) - 1
-
   # Registration events
   observeEvent(input$register, {
     # get key points as list
@@ -2887,9 +2881,10 @@ getManualRegisteration <- function(
         value = 0,
         {
           # Register keypoints
-          aligned_image_list <- list()
-          matte_map_list <- list()
-          alignment_stats_list <- list()
+          aligned_image_list <- 
+            matte_map_list <- 
+            alignment_stats_list <- 
+            lapply(seq_along(image_list), \(.) NULL)
           for (i in register_ind) {
             # Increment the progress bar, and update the detail text.
             incProgress(
@@ -3004,6 +2999,7 @@ getManualRegisteration <- function(
       })
       
       # Output summary
+      len_register <- length(image_list) - 1
       output[["summary"]] <- renderUI({
         str1 <- paste0(" Registration Summary:")
         str2 <- paste0("# of Images: ", length(image_list))
@@ -3024,6 +3020,7 @@ getManualRegisteration <- function(
 #' @param query_ind the index of the query image
 #' @param ref_ind the index of the reference image
 #' @param input input
+#' @param compute_matte_map Should matte map be computed ? 
 #'
 #' @noRd
 computeManualPairwiseTransform <- function(
@@ -3152,8 +3149,11 @@ computeManualPairwiseTransform <- function(
 #' @param ref_image reference image
 #' @param query_landmark query landmark points
 #' @param reference_landmark refernece landmark points
+#' @param invert_query invert query image
+#' @param invert_ref invert reference image
 #' @param method the automated registration method, either TPS or Homography+TPS
 #' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
+#' @param compute_matte_map Should matte map be computed ? 
 #' 
 #' @importFrom magick image_read image_data
 #'
@@ -3166,7 +3166,8 @@ getRcppManualRegistration <- function(
   invert_query = FALSE,
   invert_ref = FALSE,
   method = "Homography",
-  nonrigid = "TPS (OpenCV)"
+  nonrigid = "TPS (OpenCV)", 
+  compute_matte_map = TRUE
 ) {
   
   # ref image
@@ -3330,9 +3331,6 @@ getAutomatedRegisteration <- function(
   output,
   session
 ) {
-  # the number of registrations
-  len_register <- length(image_list) - 1
-
   # Registration events
   observeEvent(input$register, {
     # Automated registration
@@ -3348,12 +3346,13 @@ getAutomatedRegisteration <- function(
         value = 0,
         {
           # Register keypoints
-          dest_image_list <- list()
-          overlayed_image_list <- list()
-          aligned_image_list <- list()
-          alignment_image_list <- list()
-          matte_map_list <- list()
-          alignment_stats_list <- list()
+          dest_image_list <- 
+            overlayed_image_list <- 
+            aligned_image_list <-
+            alignment_image_list <- 
+            matte_map_list <- 
+            alignment_stats_list <- 
+            lapply(seq_along(image_list), \(.) NULL)
           for (i in register_ind) {
             # Increment the progress bar, and update the detail text.
             incProgress(
@@ -3464,6 +3463,7 @@ getAutomatedRegisteration <- function(
       })
 
       # Output summary
+      len_register <- length(image_list) - 1
       output[["summary"]] <- renderUI({
         str1 <- paste0(" Registration Summary:")
         str2 <- paste0("# of Images: ", length(image_list))
@@ -3484,6 +3484,7 @@ getAutomatedRegisteration <- function(
 #' @param query_ind the index of the query image
 #' @param ref_ind the index of the reference image
 #' @param input input
+#' @param compute_matte_map Should matte map be computed ? 
 #'
 #' @noRd
 computeAutomatedPairwiseTransform <- function(
@@ -3701,6 +3702,7 @@ computeAutomatedPairwiseTransform <- function(
 #' @param matcher the matching method for landmarks/keypoints FLANN or BRUTE-FORCE
 #' @param method the automated registration method, Homography or Homography+TPS
 #' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
+#' @param compute_matte_map Should matte map be computed ? 
 #' 
 #' @importFrom magick image_read image_data
 #'
@@ -3821,7 +3823,8 @@ getRcppAutomatedRegistration <- function(
 #' @param flipflop_ref flip or flop the reference image
 #' @param rotate_query rotation of query image
 #' @param rotate_ref rotation of reference image
-#'
+#' @param compute_matte_map Should matte map be computed ? 
+#' 
 #' @importFrom magick as_EBImage image_read
 #' @importFrom EBImage imageData writeImage
 #' 
@@ -3890,21 +3893,12 @@ getSimpleITKAutomatedRegistration <- function(
                            mapping = initial_mapping)
   
   # prepare images and masks
-  # magick::image_write(ref_image, file.path(tmpdir, "ref_image.tiff"),
-  #             compression = "LZW")
-  # fixed <- SimpleITK::ReadImage(file.path(tmpdir, "ref_image.tiff"),
-  #                               'sitkUInt8')
-  # magick::image_write(query_image, file.path(tmpdir, "query_image.tiff"),
-  #             compression = "LZW")
-  # moving <- SimpleITK::ReadImage(file.path(tmpdir, "query_image.tiff"),
-  #                                'sitkUInt8')
   fixed <- convertToSitkImage(ref_image)
   fixed <- SimpleITK::Cast(fixed, "sitkUInt8")
   moving <- convertToSitkImage(query_image)
   moving <- SimpleITK::Cast(moving, "sitkUInt8")
-  mask <- SimpleITK::as.image(array(mask, rev(dim(mask))))
-  # mask <- SimpleITK::as.image(array(as.integer(mask != 0L), 
-  #                                   rev(dim(mask))))
+  # mask <- SimpleITK::as.image(array(mask, rev(dim(mask))))
+  mask <- SimpleITK::as.image(array(mask, dim(mask)))
   mask <- SimpleITK::Cast(mask, "sitkUInt8")
   
   # get registration for image
@@ -3912,7 +3906,7 @@ getSimpleITKAutomatedRegistration <- function(
   elx$SetOutputDirectory(tmpdir)
   elx$SetFixedImage(fixed)
   elx$SetMovingImage(moving)
-  # elx$SetMovingMask(mask)
+  # elx$SetMovingMask(mask) # Should we move the mask ?
   mp <- SimpleITK:::ReadParameterFile(
     system.file("extdata", "bspline_map.txt", package = "VoltRon")
   )
@@ -4087,8 +4081,9 @@ getNonInteractiveRegistration <- function(
 #' @param ref_image reference image
 #' @param query_image query image
 #' @param mask alignment mask
+#' @param type type 
+#' @param compute_matte_map Should matte map be computed ?
 #'
-#' @importFrom DelayedArray realize
 #' @importFrom magick image_data
 #' 
 #' @noRd

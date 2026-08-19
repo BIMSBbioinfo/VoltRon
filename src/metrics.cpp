@@ -152,8 +152,6 @@ cv::Mat generateOverlapMask(cv::Mat& ref_image,
 
   // Keep masks crisp: nearest-neighbor only.
   const int interp = cv::INTER_NEAREST;
-  // const int borderMode = cv::BORDER_CONSTANT;
-  // const cv::Scalar borderValue(0);
   
   mask = warpTPSImage(ref_image, mask, tps, 
                       ref_image.rows, ref_image.cols, interp);

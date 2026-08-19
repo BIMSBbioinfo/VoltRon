@@ -16,9 +16,15 @@ using namespace std;
 using namespace cv;
 
 // align images with TPS algorithm
-void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::List &keypoints, 
-                    Rcpp::NumericMatrix query_landmark, Rcpp::NumericMatrix reference_landmark,
-                    const bool invert_query, const bool invert_ref,
+void alignImagesTPS(Mat &im1, 
+                    Mat &im2, 
+                    Mat &im1Reg, 
+                    Rcpp::List &keypoints, 
+                    Rcpp::NumericMatrix query_landmark, 
+                    Rcpp::NumericMatrix reference_landmark,
+                    const bool invert_query, 
+                    const bool invert_ref,
+                    const bool compute_matte_map, 
                     Mat1d &accuracyMatte, 
                     std::map<std::string, double> &accuracy)
 {
@@ -66,7 +72,8 @@ void alignImagesTPS(Mat &im1, Mat &im2, Mat &im1Reg, Rcpp::List &keypoints,
   
   // get alignment metrics
   accuracy = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Coarse");
-  accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
+  if(compute_matte_map)
+    accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
 }
 
 // align images with TPS algorithm
@@ -168,9 +175,12 @@ void alignImagesAffineTPS(Mat &im1,
   im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
   im2Proc = preprocessImage(im2Proc, invert_ref, "None", "0");
   accuracy_coarse = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Coarse");
-  accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
   
   if(!run_TPS){
+    
+    // compute matte map if finishing alignment
+    if(compute_matte_map)
+      accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
     
     // clone and exit
     im1Reg = im1Affine.clone();
@@ -331,6 +341,7 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
                    reference_landmark,
                    invert_query, 
                    invert_ref,
+                   compute_matte_map,
                    accuracyMatte, 
                    accuracy_coarse);
   }

@@ -389,14 +389,6 @@ cv::Mat1d MatteMIMap(
   return nmiMap;
 }
 
-cv::Mat1d chunkedMatteMIMap(
-    const cv::Mat& fixed,
-    const cv::Mat& moving,
-    const cv::Mat& mask,
-    int bins) {
-  return MatteMIMap(fixed, moving, mask, bins);
-}
-
 double MatteMI(
     const cv::Mat& fixed,
     const cv::Mat& moving,

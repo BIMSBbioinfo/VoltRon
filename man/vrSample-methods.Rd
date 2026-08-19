@@ -29,13 +29,13 @@ packages
 }
 \section{Functions}{
 \itemize{
-\item \code{x[[i}: Accessing vrLayer objects from \code{vrSample} objects
+\item \code{x = vrSample[[i = character, j = ANY]]}: Accessing vrLayer objects from \code{vrSample} objects
 
-\item \code{`[[`(x = vrSample, i = character, j = ANY) <- value}: Accessing vrLayer objects from \code{vrSample} objects
+\item \code{x = vrSample[[i = character, j = ANY]] <- value}: Accessing vrLayer objects from \code{vrSample} objects
 
-\item \code{x[[i}: (deprecated) Accessing vrLayer objects from \code{vrBlock} objects
+\item \code{x = vrBlock[[i = character, j = ANY]]}: (deprecated) Accessing vrLayer objects from \code{vrBlock} objects
 
-\item \code{`[[`(x = vrBlock, i = character, j = ANY) <- value}: (deprecated) Overwriting vrLayer objects from \code{vrBlock} objects
+\item \code{x = vrBlock[[i = character, j = ANY]] <- value}: (deprecated) Overwriting vrLayer objects from \code{vrBlock} objects
 
 }}
 \concept{vrsample}
