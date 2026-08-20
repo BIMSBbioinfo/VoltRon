@@ -1,5 +1,5 @@
 # packages 
-# skip_if_not_installed("VoltRonStore")
+skip_if_not_installed("VoltRonStore")
 # skip_if_not_installed("rhdf5")
 # skip_if_not_installed("Rarr")
 # skip_if_not_installed("HDF5Array")

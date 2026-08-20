@@ -26,7 +26,6 @@ NULL
   if (method == "LogNorm") {
     normdata <- LogNorm(object, colSums(object), sizefactor)
   } else if (method == "Q3Norm") {
-    # rawdata[rawdata==0] <- 1
     qs <- getColQuantiles(object, desiredQuantile)
     normdata <- getDivideSweep(object, qs / exp(mean(log(qs))))
   } else if (method == "LogQ3Norm") {
@@ -174,7 +173,6 @@ LogNorm <- function(rawdata, coldepth, sizefactor) {
            BiocManager::install('DelayedArray')"
       )
     }
-    # normdata <- DelayedArray::sweep(rawdata, 2L, coldepth, FUN = "/")
     normdata <- t(t(rawdata) / coldepth)
     normdata <- log(normdata * sizefactor + 1)
   } else {

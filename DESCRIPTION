@@ -73,7 +73,7 @@ Suggests:
     rhdf5,
     Rarr,
     ZarrArray,
-    VoltRonStore,
+    VoltRonStore (>= 0.1.2),
     BPCells,
     HDF5Array,
     HDF5DataFrame,
