@@ -1,4 +1,4 @@
-# VoltRon 0.2.7
+# VoltRon 0.3.0
 
 -   `registerSpatialData` now allows registering assays with no images. In case of either one of the assays, 
     do not have images, assays can be registered with only the manual approach. 

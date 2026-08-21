@@ -1,57 +1,20 @@
 #' @include zzz.R
 #' @include allgenerics.R
+#' @importClassesFrom Matrix Matrix
 #' @useDynLib VoltRon
 NULL
-
-## Auxiliary ####
-
-# pseudo IterableMatrix for BPCells
-if (!requireNamespace("BPCells", quietly = TRUE)) {
-  suppressMessages({
-    suppressWarnings({
-      setClass("IterableMatrix")
-    })
-  })
-}
-if (!requireNamespace("DelayedArray", quietly = TRUE)) {
-  suppressMessages({
-    suppressWarnings({
-      setClass("DelayedMatrix")
-    })
-  })
-}
-if (!requireNamespace("HDF5Array", quietly = TRUE)) {
-  suppressMessages({
-    suppressWarnings({
-      setClass("HDF5Matrix")
-    })
-  })
-}
-if (!requireNamespace("ZarrArray", quietly = TRUE)) {
-  suppressMessages({
-    suppressWarnings({
-      setClass("ZarrMatrix")
-    })
-  })
-}
 
 ## vrImage ####
 
 # Set class union
-suppressMessages({
-  suppressWarnings({
-    setClassUnion(
-      "image_matrix",
-      members = c(
-        "matrix",
-        "data.frame",
-        "Matrix",
-        "Array",
-        "IterableMatrix"
-      )
-    )
-  })
-})
+setClassUnion(
+  "image_matrix",
+  members = c(
+    "matrix",
+    "data.frame",
+    "Matrix"
+  )
+)
 
 #' The vrImage (VoltRon Image) Class
 #'
@@ -63,11 +26,10 @@ suppressMessages({
 #' @name vrImage-class
 #' @rdname vrImage-class
 #' @exportClass vrImage
-#'
 vrImage <- setClass(
   Class = 'vrImage',
   slots = c(
-    coords = 'image_matrix',
+    coords = "ANY",
     segments = 'list',
     image = "list",
     main_channel = "character"
@@ -107,11 +69,10 @@ setMethod(
 #' @name vrSpatial-class
 #' @rdname vrSpatial-class
 #' @exportClass vrSpatial
-#'
 vrSpatial <- setClass(
   Class = 'vrSpatial',
   slots = c(
-    coords = 'image_matrix',
+    coords = "ANY",
     segments = 'list',
     image = "list",
     main_channel = "character"
@@ -147,21 +108,13 @@ setMethod(
 
 ## vrAssay ####
 
-# Set class union
-suppressWarnings({
-  setClassUnion(
-    "data_matrix",
-    members = c(
-      "matrix",
-      "Matrix",
-      "Array",
-      "DelayedMatrix",
-      "HDF5Matrix",
-      "ZarrMatrix",
-      "IterableMatrix"
-    )
+setClassUnion(
+  "data_matrix",
+  members = c(
+    "matrix",
+    "Matrix"
   )
-})
+)
 
 #' The vrAssay (VoltRon Assay) Class
 #'
@@ -181,8 +134,8 @@ suppressWarnings({
 vrAssay <- setClass(
   Class = 'vrAssay',
   slots = c(
-    rawdata = 'data_matrix',
-    normdata = 'data_matrix',
+    rawdata = 'ANY',
+    normdata = 'ANY',
     featuredata = 'data.frame',
     embeddings = "list",
     image = "list",
@@ -278,7 +231,6 @@ setOldClass(Classes = c('igraph'))
 #' @name vrLayer-class
 #' @rdname vrLayer-class
 #' @exportClass vrLayer
-#'
 vrLayer <- setClass(
   Class = 'vrLayer',
   slots = c(
@@ -311,7 +263,6 @@ setMethod(
 #' @name vrSample-class
 #' @rdname vrSample-class
 #' @exportClass vrSample
-#'
 vrSample <- setClass(
   Class = 'vrSample',
   slots = c(
@@ -345,7 +296,6 @@ setMethod(
 #' @name vrBlock-class
 #' @rdname vrBlock-class
 #' @exportClass vrBlock
-#'
 vrBlock <- setClass(
   Class = 'vrBlock',
   slots = c(
@@ -377,17 +327,6 @@ suppressWarnings({
       "data.table",
       "data.frame",
       "DataFrame"
-      # if (requireNamespace("S4Vectors", quietly = TRUE)) "DataFrame" else NULL,
-      # if (requireNamespace("HDF5DataFrame", quietly = TRUE)) {
-      #   "HDF5DataFrame"
-      # } else {
-      #   NULL
-      # },
-      # if (requireNamespace("ZarrDataFrame", quietly = TRUE)) {
-      #   "ZarrDataFrame"
-      # } else {
-      #   NULL
-      # }
     )
   )
 })
@@ -403,7 +342,6 @@ suppressWarnings({
 #' @name vrMetadata-class
 #' @rdname vrMetadata-class
 #' @exportClass vrMetadata
-#'
 vrMetadata <- setClass(
   Class = 'vrMetadata',
   slots = c(

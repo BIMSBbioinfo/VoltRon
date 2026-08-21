@@ -35,6 +35,17 @@ saveVoltRon <- function(
     stop("'object' must be a VoltRon object")
   }
 
+  # check VoltRonStore
+  if (!requireNamespace('VoltRonStore')) {
+    stop(
+      "Please install VoltRonStore package: 
+       install.packages('VoltRonStore', repos = c('https://bimsbbioinfo.r-universe.dev', 
+                                                   'https://artur-man.r-universe.dev',
+                                                   'https://bnprks.r-universe.dev',
+                                                   'https://cloud.r-project.org'))"
+    )
+  }
+  
   # check if the object was previously saved on disk
   paths <- .get_unique_links(object)
   paths <- unique(vapply(paths, file_path_as_absolute, character(1)))
@@ -140,10 +151,14 @@ saveVoltRon <- function(
 #'
 #' @export
 loadVoltRon <- function(dir = "my_se") {
-  if (!requireNamespace('DelayedArray')) {
+  # check VoltRonStore
+  if (!requireNamespace('VoltRonStore')) {
     stop(
-      "Please install DelayedArray package!: 
-         BiocManager::install('DelayedArray')"
+      "Please install VoltRonStore package: 
+       install.packages('VoltRonStore', repos = c('https://bimsbbioinfo.r-universe.dev', 
+                                                   'https://artur-man.r-universe.dev',
+                                                   'https://bnprks.r-universe.dev',
+                                                   'https://cloud.r-project.org'))"
     )
   }
 

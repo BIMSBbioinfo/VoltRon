@@ -1,7 +1,7 @@
 Package: VoltRon
 Type: Package
 Title: VoltRon for Spatial Omics Data Integration and Analysis
-Version: 0.2.7
+Version: 0.3.0
 Depends: R (>= 4.6.0)
 Author@R: 
 	person("Artür", "Manukyan", 
@@ -73,7 +73,7 @@ Suggests:
     rhdf5,
     Rarr,
     ZarrArray,
-    VoltRonStore,
+    VoltRonStore (>= 0.1.2),
     BPCells,
     HDF5Array,
     HDF5DataFrame,

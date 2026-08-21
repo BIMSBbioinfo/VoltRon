@@ -1,12 +1,5 @@
 # packages 
-skip_if_not_installed("rhdf5")
-skip_if_not_installed("Rarr")
-skip_if_not_installed("HDF5Array")
-skip_if_not_installed("HDF5DataFrame")
-skip_if_not_installed("ZarrDataFrame")
-skip_if_not_installed("ImageArray")
-skip_if_not_installed("BPCells")
-skip_if_not_installed("DelayedMatrixStats")
+skip_if_not_installed("VoltRonStore")
 
 # create dir
 dir.create(td <- tempfile())

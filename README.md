@@ -18,16 +18,20 @@
    
    <ul class="maintext2">
     <li style="padding-bottom: 10px">
-      <strong> Unique data structure </strong> of VoltRon allows users to seamlessly define tissue blocks, layers and multiple assay types in one R object.
-    </li>
-    <li style="padding-bottom: 10px">
-      <strong> End-to-end downstream data analysis </strong> for distinct spatial biology technologies are supported. VoltRon visualizes and analyzes regions of interests (ROIs), spots, cells, molecules and tiles **(under development)**.
-    </li>
-    <li style="padding-bottom: 10px">
-      <strong> Automated Image Registration </strong> incorporates <a href="https://opencv.org/">OpenCV</a> (fully embedded into the package using <a href="https://www.rcpp.org/">Rcpp</a>) to detect common features across images and achieves registration. Users may interact with built-in mini shiny apps to change alignment parameters and validate alignment accuracy.
-    </li>
-    <li style="padding-bottom: 10px">
-      <strong> Manual Image Registration </strong> helps users to select common features across spatial datasets using reference images stored in VoltRon objects. In case automated image registration doesn't work, you can still align images by manually picking landmark points.
+    <p style="padding-bottom: 3px"> 
+      <strong> Coarse-to-fine Image Alignment </strong> incorporates <a href="https://opencv.org/">OpenCV</a> (<strong>Coarse</strong>) and <a href="https://simpleitk.org/">SimpleITK</a> (<strong>Fine</strong>) tools to align images and spatial omics datasets across same or adjacent tissue sections. Users may interact with built-in mini shiny apps to change alignment parameters and validate alignment accuracy.
+    </p>
+    <ul class="maintext3">
+      <li style="padding-bottom: 10px">
+        <strong> Automated Image Registration </strong> uses SIFT and ORB methods (OpenCV) to detect common features across images automatically whereas B-Spline interpolation is used to improve alignment accuracy of local structures.   
+      </li>
+      <li style="padding-bottom: 10px">
+        <strong> Manual Image Registration </strong> helps users to select common features across spatial datasets using reference images stored in VoltRon objects. In case automated image registration doesn't work, you can still align images by manually picking landmark points. Users can also employ B-Spline interpolation after manual coarse alignment.
+      </li>
+      <li style="padding-bottom: 10px">
+        <strong> Non-rigid Image Registration </strong> is performed using both B-Spline (SimpleITK) and Thin-plate-spline (TPS, OpenCV) interpolation methods.
+      </li>
+    </ul>  
     </li>
     <li style="padding-bottom: 10px">
     <p style="padding-bottom: 3px"> <strong> Spatially Aware Analysis </strong> allows detecting spatial patterns across cells, spots, molecules and other entities. </p>
@@ -44,22 +48,22 @@
     </ul>  
     </li>
     <li>
-    <p> <strong> Support for Big Data </strong> for VoltRon objects enables storing large feature data matrices and large microscopic images of tissues on disk without overloading memory, thus allowing analysis on large datasets with ease. VoltRon stores large images as pyramid structures to speed up visualization and data retrieval. </p>
-    </li>
-    <li style="padding-bottom: 10px">
-    <p> <strong> Interoperability across R/Python frameworks </strong> allows users to convert VoltRon objects to a large number of objects used by other spatial omic platforms such as Seurat, Squidpy (AnnData), SpatialExperiment (BioConductor) and Giotto. </p>
+    <p> <strong> Support for Larger-than-memory data </strong> enables storing large feature data matrices and large microscopic images of tissues on disk without overloading memory, thus allowing analysis on large datasets with ease. VoltRon stores large images as pyramid structures to speed up visualization and data retrieval. </p>
     </li>
   </ul>
 
-## Staying up-to-date
-
-To ask questions please use VoltRon discussion forum on google groups.
-
-- https://groups.google.com/forum/#!forum/voltron_discussion
-
 ## Installation
 
-Install from the GitHub repository using devtools (with R version 4.3.0 or higher):
+You can install for Linux, Windows and MacOS setups via [r-universe](https://bimsbbioinfo.r-universe.dev/builds) which you may require 
+R version >= 4.5.0:
+
+``` r
+install.packages('VoltRon', repos = c('https://bimsbbioinfo.r-universe.dev', 
+                                      'https://bioc.r-universe.dev',
+                                      'https://cloud.r-project.org'))
+```
+
+The development version can also be installed from GitHub repository using devtools:
 
 ``` r
 if (!require("devtools", quietly = TRUE))
@@ -75,16 +79,6 @@ On **Ubuntu** you may need [`libopencv-dev`](https://packages.debian.org/sid/lib
 
 ```sh
 sudo apt-get install libopencv-dev
-```
-
-## Installation (R-universe)
-
-You can also install binaries for some Linux, Windows and MacOS setups via [r-universe](https://bimsbbioinfo.r-universe.dev/builds) which you may require 
-R version >= 4.5.0:
-
-``` r
-install.packages('VoltRon', repos = c('https://bimsbbioinfo.r-universe.dev', 
-                                      'https://cloud.r-project.org'))
 ```
 
 ## Dependencies
@@ -104,33 +98,12 @@ or from R-universe:
 
 ``` r
 install.packages('VoltRonStore', repos = c('https://bimsbbioinfo.r-universe.dev', 
-                                           'https://artur-man.r-universe.dev',
+                                           'https://bioc.r-universe.dev',
                                            'https://bnprks.r-universe.dev',
                                            'https://cloud.r-project.org'))
 ```
 
 See [https://bimsbbioinfo.r-universe.dev/builds](https://bimsbbioinfo.r-universe.dev/builds) for more information.
-
-### RBioformats
-
-VoltRon incorporates `RBioformats` package to import images from `ome.tiff` files, which requires [Java JDK](https://www.oracle.com/java/technologies/downloads/?er=221886) to be available in your system:
-
-See [https://cran.r-project.org/web/packages/rJava](https://cran.r-project.org/web/packages/rJava) below for more information.
-
-### RCDT
-
-`RCDT` package has been archived as of 15.01.2026. Please install as below: 
-
-``` r
-devtools::install_github('stla/RCDT')
-```
-
-or 
-
-``` r
-install.packages('RCDT', repos = c('https://bimsbbioinfo.r-universe.dev', 
-                                   'https://cloud.r-project.org'))
-```
 
 ### SimpleITK
 
@@ -155,6 +128,33 @@ devtools::install_github(
 ```
 
 For more information, plase visit the [SimpleITK](https://simpleitk.readthedocs.io/en/v2.5.3/about.html) website.
+
+### RBioformats
+
+VoltRon incorporates `RBioformats` package to import images from `ome.tiff` files, which requires [Java JDK](https://www.oracle.com/java/technologies/downloads/?er=221886) to be available in your system:
+
+See [https://cran.r-project.org/web/packages/rJava](https://cran.r-project.org/web/packages/rJava) below for more information.
+
+### RCDT
+
+`RCDT` package has been archived as of 15.01.2026. Please install as below: 
+
+``` r
+devtools::install_github('stla/RCDT')
+```
+
+or 
+
+``` r
+install.packages('RCDT', repos = c('https://bimsbbioinfo.r-universe.dev', 
+                                   'https://cloud.r-project.org'))
+```
+
+## Staying up-to-date
+
+To ask questions please use VoltRon discussion forum on google groups.
+
+- https://groups.google.com/forum/#!forum/voltron_discussion
 
 ## Docker Hub
 
