@@ -1,7 +1,7 @@
 Package: VoltRon
 Type: Package
 Title: VoltRon for Spatial Omics Data Integration and Analysis
-Version: 0.2.7
+Version: 0.3.0
 Depends: R (>= 4.6.0)
 Author@R: 
 	person("Artür", "Manukyan", 
@@ -103,7 +103,7 @@ Suggests:
     harmony
 Remotes:
     stla/RCDT,
-    BIMSBbioinfo/VoltRonStore,
+    BIMSBbioinfo/VoltRonStore@dev,
     bnprks/BPCells/r@v0.3.0,
     BIMSBbioinfo/VoltRon,
     BIMSBbioinfo/HDF5DataFrame,
