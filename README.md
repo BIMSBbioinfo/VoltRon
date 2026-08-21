@@ -59,6 +59,7 @@ R version >= 4.5.0:
 
 ``` r
 install.packages('VoltRon', repos = c('https://bimsbbioinfo.r-universe.dev', 
+                                      'https://bioc.r-universe.dev',
                                       'https://cloud.r-project.org'))
 ```
 
@@ -97,32 +98,12 @@ or from R-universe:
 
 ``` r
 install.packages('VoltRonStore', repos = c('https://bimsbbioinfo.r-universe.dev', 
+                                           'https://bioc.r-universe.dev',
                                            'https://bnprks.r-universe.dev',
                                            'https://cloud.r-project.org'))
 ```
 
 See [https://bimsbbioinfo.r-universe.dev/builds](https://bimsbbioinfo.r-universe.dev/builds) for more information.
-
-### RBioformats
-
-VoltRon incorporates `RBioformats` package to import images from `ome.tiff` files, which requires [Java JDK](https://www.oracle.com/java/technologies/downloads/?er=221886) to be available in your system:
-
-See [https://cran.r-project.org/web/packages/rJava](https://cran.r-project.org/web/packages/rJava) below for more information.
-
-### RCDT
-
-`RCDT` package has been archived as of 15.01.2026. Please install as below: 
-
-``` r
-devtools::install_github('stla/RCDT')
-```
-
-or 
-
-``` r
-install.packages('RCDT', repos = c('https://bimsbbioinfo.r-universe.dev', 
-                                   'https://cloud.r-project.org'))
-```
 
 ### SimpleITK
 
@@ -147,6 +128,27 @@ devtools::install_github(
 ```
 
 For more information, plase visit the [SimpleITK](https://simpleitk.readthedocs.io/en/v2.5.3/about.html) website.
+
+### RBioformats
+
+VoltRon incorporates `RBioformats` package to import images from `ome.tiff` files, which requires [Java JDK](https://www.oracle.com/java/technologies/downloads/?er=221886) to be available in your system:
+
+See [https://cran.r-project.org/web/packages/rJava](https://cran.r-project.org/web/packages/rJava) below for more information.
+
+### RCDT
+
+`RCDT` package has been archived as of 15.01.2026. Please install as below: 
+
+``` r
+devtools::install_github('stla/RCDT')
+```
+
+or 
+
+``` r
+install.packages('RCDT', repos = c('https://bimsbbioinfo.r-universe.dev', 
+                                   'https://cloud.r-project.org'))
+```
 
 ## Staying up-to-date
 
