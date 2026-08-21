@@ -103,7 +103,7 @@ Suggests:
     harmony
 Remotes:
     stla/RCDT,
-    BIMSBbioinfo/VoltRonStore@dev,
+    BIMSBbioinfo/VoltRonStore,
     bnprks/BPCells/r@v0.3.0,
     BIMSBbioinfo/VoltRon,
     BIMSBbioinfo/HDF5DataFrame,
