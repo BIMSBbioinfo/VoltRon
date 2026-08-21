@@ -484,15 +484,14 @@ SpatialExperiment (BioConductor) and Giotto.
 <div style="float:left; margin-left: auto; margin-right: auto">
 <div id="installation" class="section level2">
 <h2>Installation</h2>
-<p>You can also install binaries for some Linux, Windows and MacOS
-setups via <a
-href="https://bimsbbioinfo.r-universe.dev/builds">r-universe</a> which
-you may require R version &gt;= 4.5.0:</p>
+<p>You can install binaries for some Linux, Windows and MacOS setups via
+<a href="https://bimsbbioinfo.r-universe.dev/builds">r-universe</a>
+which you may require R version &gt;= 4.5.0:</p>
 <pre class="r"><code>install.packages(&#39;VoltRon&#39;, repos = c(&#39;https://bimsbbioinfo.r-universe.dev&#39;, 
                                       &#39;https://bioc.r-universe.dev&#39;,
                                       &#39;https://cloud.r-project.org&#39;))</code></pre>
-<p>The development version can be installed from GitHub repository using
-devtools:</p>
+<p>The development version also can be installed from GitHub repository
+using devtools:</p>
 <pre class="r"><code>if (!require(&quot;devtools&quot;, quietly = TRUE))
     install.packages(&quot;devtools&quot;)
 devtools::install_github(&quot;BIMSBbioinfo/VoltRon&quot;)</code></pre>

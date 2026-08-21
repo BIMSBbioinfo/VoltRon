@@ -54,7 +54,7 @@
 
 ## Installation
 
-You can also install binaries for some Linux, Windows and MacOS setups via [r-universe](https://bimsbbioinfo.r-universe.dev/builds) which you may require 
+You can install for Linux, Windows and MacOS setups via [r-universe](https://bimsbbioinfo.r-universe.dev/builds) which you may require 
 R version >= 4.5.0:
 
 ``` r
@@ -63,7 +63,7 @@ install.packages('VoltRon', repos = c('https://bimsbbioinfo.r-universe.dev',
                                       'https://cloud.r-project.org'))
 ```
 
-The development version can be installed from GitHub repository using devtools:
+The development version can also be installed from GitHub repository using devtools:
 
 ``` r
 if (!require("devtools", quietly = TRUE))
