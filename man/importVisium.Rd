@@ -9,7 +9,8 @@ importVisium(
   selected_assay = "Gene Expression",
   assay_name = "Visium",
   sample_name = NULL,
-  image_name = "main",
+  spatial = "main",
+  image_name = NULL,
   channel_name = "H&E",
   inTissue = TRUE,
   resolution_level = "lowres",
@@ -25,7 +26,9 @@ importVisium(
 
 \item{sample_name}{the name of the sample}
 
-\item{image_name}{the image name of the Visium assay, Default: main}
+\item{spatial}{the name of the spatial coordinate system, Default: main}
+
+\item{image_name}{(deprecated) the name of the spatial coordinate system, Default: main}
 
 \item{channel_name}{the channel name of the image of the Visium assay,
 Default: H&E}

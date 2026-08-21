@@ -5,10 +5,10 @@ test_that("image", {
   
   # get image
   images <- vrImages(visium_data)
-  images <- vrImages(visium_data, name = "main")
-  expect_error(images <- vrImages(visium_data, name = "main2"))
-  images <- vrImages(visium_data, name = "main", channel = "H&E")
-  expect_warning(images <- vrImages(visium_data, name = "main", channel = "H&E2"))
+  images <- vrImages(visium_data, spatial = "main")
+  expect_error(images <- vrImages(visium_data, spatial = "main2"))
+  images <- vrImages(visium_data, spatial = "main", channel = "H&E")
+  expect_warning(images <- vrImages(visium_data, spatial = "main", channel = "H&E2"))
   
   # manipulate image
   visium_data_resize <- resizeImage(visium_data, size = 400)
@@ -40,14 +40,14 @@ test_that("import image voltron data", {
   imgfile <- system.file("extdata", "DAPI.tif", package = "VoltRon")
 
   # tile size
-  imgdata <- importImageData(imgfile, tile.size = 4, image_name = "main")
-  imgdata <- importImageData(imgfile, tile.size = 1, image_name = "main")
-  imgdata <- importImageData(imgfile, tile.size = 200, image_name = "main")
+  imgdata <- importImageData(imgfile, tile.size = 4, spatial = "main")
+  imgdata <- importImageData(imgfile, tile.size = 1, spatial = "main")
+  imgdata <- importImageData(imgfile, tile.size = 200, spatial = "main")
   expect_equal(vrImageChannelNames(imgdata)$Spatial, "main")
-  expect_error(imgdata <- importImageData("", tile.size = 200, image_name = "main"))
+  expect_error(imgdata <- importImageData("", tile.size = 200, spatial = "main"))
   
   # channel names
-  imgdata <- importImageData(imgfile, tile.size = 200, image_name = "main", channels = "DAPI")
+  imgdata <- importImageData(imgfile, tile.size = 200, spatial = "main", channels = "DAPI")
   expect_equal(vrImageChannelNames(imgdata)$Channels, "DAPI")
   expect_error(importImageData(imgfile, tile.size = 10, 
                                channels = c("ch1", "ch3")))
@@ -60,6 +60,29 @@ test_that("import image voltron data", {
   
   # return
   expect_equal(1,1L)
+})
+
+test_that("import image voltron data with GeoJSON", {
+  
+  # skip
+  skip_if_not_installed("sf")
+  
+  # get image
+  imgfile <- system.file("extdata", "DAPI.tif", package = "VoltRon")
+
+  # get geojson, and then segments
+  jsonfile <- system.file("extdata", "DAPI.geojson", package = "VoltRon")
+  jsondata <- sf::read_sf(jsonfile)
+  segments <- generateSegments(jsondata, type = "ROI")
+  
+  # import image and segments
+  imgdata <- importImageData(imgfile, 
+                             segments = segments, 
+                             tile.size = 4, 
+                             image_name = "main")
+  expect_equal(nrow(SampleMetadata(imgdata)), 2)
+  expect_equal(SampleMetadata(imgdata)$Assay, c("ImageData", "ROIAnnotation"))
+  
 })
 
 test_that("import ome.tiff", {

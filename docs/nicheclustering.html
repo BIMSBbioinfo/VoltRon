@@ -13,7 +13,7 @@
 
 <title>Niche Clustering</title>
 
-<script src="site_libs/header-attrs-2.30/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.31/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -679,11 +679,14 @@ type abundances across these niche clusters. You will need to have
 <pre class="r watch-out"><code># install packages if necessary
 if(!requireNamespace(&quot;ComplexHeatmap&quot;))
   BiocManager::install(&quot;ComplexHeatmap&quot;)
+if (!requireNamespace(&#39;viridisLite&#39;))
+  install.packages(&#39;viridisLite&#39;)
+library(ComplexHeatmap)
+library(viridisLite)
 
 # heatmap of niches
-library(ComplexHeatmap)
 vrHeatmapPlot(MBrain_Sec, features = vrFeatures(MBrain_Sec), group.by = &quot;niche_clusters&quot;, 
-              show_row_names = T, show_heatmap_legend = T)</code></pre>
+              show_row_names = T, show_heatmap_legend = T, col = viridis(100))</code></pre>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_heatmap_clusters.png" class="center"></p>
 <p><br></p>
 </div>
@@ -778,7 +781,8 @@ SRBlock &lt;- getClusters(SRBlock, nclus = 7, method = &quot;kmeans&quot;, label
 
 # visualize
 vrSpatialPlot(SRBlock, group.by = &quot;niche_clusters&quot;, alpha = 1, nrow = 2)
-vrHeatmapPlot(SRBlock, features = vrFeatures(SRBlock), group.by = &quot;niche_clusters&quot;)</code></pre>
+vrHeatmapPlot(SRBlock, features = vrFeatures(SRBlock), group.by = &quot;niche_clusters&quot;, 
+              col = viridis(100))</code></pre>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_DLPFC_nicheclusters.png" class="center">
 <img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_DLPFC_nicheheatmap.png" class="center"></p>
 <p><br></p>
@@ -888,10 +892,15 @@ abundantly.</p>
 <pre class="r watch-out"><code># install packages if necessary
 if(!requireNamespace(&quot;ComplexHeatmap&quot;))
   BiocManager::install(&quot;ComplexHeatmap&quot;)
+if (!requireNamespace(&#39;viridisLite&#39;))
+  install.packages(&#39;viridisLite&#39;)
+library(ComplexHeatmap)
+library(viridisLite)
 
 # heatmap of niches
 library(ComplexHeatmap)
-vrHeatmapPlot(Xen_data, features = vrFeatures(Xen_data), group.by = &quot;niche_clusters&quot;)</code></pre>
+vrHeatmapPlot(Xen_data, features = vrFeatures(Xen_data), group.by = &quot;niche_clusters&quot;, 
+              col = viridis(100))</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/decon_xenium_heatmapclusters.png" class="center">
 <br></p>
 </div>
@@ -1025,11 +1034,15 @@ and Endothelial Venules.</p>
 <pre class="r watch-out"><code># install packages if necessary
 if(!requireNamespace(&quot;ComplexHeatmap&quot;))
   BiocManager::install(&quot;ComplexHeatmap&quot;)
+if (!requireNamespace(&#39;viridisLite&#39;))
+  install.packages(&#39;viridisLite&#39;)
+library(ComplexHeatmap)
+library(viridisLite)
 
 # heatmap of niches
 library(ComplexHeatmap)
 vrHeatmapPlot(vr_openst, features = vrFeatures(vr_openst), 
-              group.by = &quot;niche_clusters&quot;)</code></pre>
+              group.by = &quot;niche_clusters&quot;, col = viridis(100))</code></pre>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/openst_heatmap_plot.png" class="center">
 <br></p>
 </div>

@@ -13,7 +13,7 @@
 
 <title>ROI Analysis</title>
 
-<script src="site_libs/header-attrs-2.30/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.31/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -783,10 +783,16 @@ annotate features which could be large in size where you can also select
 the number of such highlighted genes with <strong>n_highlight</strong>.
 There seems to be two groups of fibrotic regions that most likely
 associated with two prolonged case samples.</p>
-<pre class="r watch-out"><code># get DE for all conditions
+<pre class="r watch-out"><code># install packages if necessary
+if(!requireNamespace(&quot;ComplexHeatmap&quot;))
+  BiocManager::install(&quot;ComplexHeatmap&quot;)
+if (!requireNamespace(&#39;viridisLite&#39;))
+  install.packages(&#39;viridisLite&#39;)
 library(ComplexHeatmap)
+library(viridisLite)
+
 vrHeatmapPlot(GeoMxR1, features = unique(DEresults_sig$gene), group.by = &quot;ROI.type&quot;, 
-              highlight.some = TRUE, n_highlight = 40)</code></pre>
+              highlight.some = TRUE, n_highlight = 40, col = viridis(100))</code></pre>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/roi_heatmap.png" class="center"></p>
 <p><br></p>
 <p>In order to get a deeper understanding of differences between
@@ -952,7 +958,8 @@ image, and the other with the one that is registered.</p>
 <p>We can also exchange images where the H&amp;E image now is registered
 to the perspective of the GeoMx channels, and can be defined as a new
 channel in the original GeoMx object.</p>
-<pre class="r watch-out"><code>vrImages(GeoMxR1_subset[[&quot;Assay1&quot;]], name = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- vrImages(vrHEimage_reg, name = &quot;main_reg&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
+<pre class="r watch-out"><code>vrImages(GeoMxR1_subset[[&quot;Assay1&quot;]], spatial = &quot;main&quot;, channel = &quot;H&amp;E&quot;) &lt;- 
+  vrImages(vrHEimage_reg, spatial = &quot;main_reg&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
 <p>We can now observe the new channels (H&amp;E) available for the GeoMx
 assay using <strong>vrImageChannelNames</strong>. H&amp;E is saved as a
 separate channel along with the originally available antibody channels

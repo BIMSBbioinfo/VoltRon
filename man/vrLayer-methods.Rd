@@ -23,9 +23,9 @@ packages
 }
 \section{Functions}{
 \itemize{
-\item \code{x[[i}: Accessing vrAssay objects from \code{vrLayer} objects
+\item \code{x = vrLayer[[i = character, j = ANY]]}: Accessing vrAssay objects from \code{vrLayer} objects
 
-\item \code{`[[`(x = vrLayer, i = character, j = ANY) <- value}: Overwriting vrAssay objects from \code{vrLayer} objects
+\item \code{x = vrLayer[[i = character, j = ANY]] <- value}: Overwriting vrAssay objects from \code{vrLayer} objects
 
 }}
 \concept{vrlayer}

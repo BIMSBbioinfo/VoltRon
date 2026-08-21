@@ -41,3 +41,88 @@ test_that("subset image", {
     expect_null(subset(visium_data, image = "25x20+243+190"))
   )
 })
+
+test_that("subset metadata (data.table)", {
+  
+  # visium
+  data("merged_object")
+  
+  # subset data.table, features
+  md <- Metadata(merged_object, assay = "Assay2")
+  expect_true(
+    is(subset_metadata(md, features = c("qv", "gene")), "data.table")
+  )
+  expect_true(
+      is(subset_metadata(md, features = c("gene")), "vector")
+  )
+  
+  # subset spatial points
+  set.seed(1)
+  spatialpoints <- sample(md$id, 100)
+  md_subset <- subset_metadata(md, spatialpoints = spatialpoints)
+  expect_identical(md_subset$id, spatialpoints)
+  
+})
+
+test_that("subset metadata (data.frame)", {
+  
+  # get data
+  data("merged_object")
+  
+  # subset data.table, features
+  md <- Metadata(merged_object, assay = "Assay1")
+  expect_true(
+    is(subset_metadata(md, features = c("clusters", "CellType")), "data.frame")
+  )
+  expect_true(
+    is(subset_metadata(md, features = c("clusters")), "vector")
+  )
+  
+  # subset spatial points
+  set.seed(1)
+  spatialpoints <- sample(md$id, 100)
+  md_subset <- subset_metadata(md, spatialpoints = spatialpoints)
+  expect_identical(md_subset$id, spatialpoints)
+  
+  # subset spatial points (works without id)
+  set.seed(1)
+  spatialpoints <- sample(md$id, 100)
+  md$id <- NULL
+  md_subset <- subset_metadata(md, spatialpoints = spatialpoints)
+  expect_identical(rownames(md_subset), spatialpoints)
+  
+})
+
+test_that("subset metadata (on-disk)", {
+  
+  # get data
+  data("merged_object")
+  
+  # create dir
+  dir.create(td <- tempfile())
+  output_h5ad <- paste0(td, "/xenium_data_h5_test")
+  
+  # on disk object
+  merged_object2 <- saveVoltRon(merged_object, 
+                                output = output_h5ad, 
+                                format = "HDF5VoltRon", 
+                                replace = TRUE, 
+                                verbose = FALSE)
+  merged_object2 <- loadVoltRon(dir = output_h5ad)
+  
+  # subset DataFrame, features
+  md <- Metadata(merged_object2, assay = "Assay2")
+  expect_true(
+    is(subset_metadata(md, features = c("qv", "gene")), "DataFrame")
+  )
+  expect_true(
+    is(subset_metadata(md, features = c("gene")), "DelayedArray")
+  )
+  
+  # subset spatial points
+  set.seed(1)
+  spatialpoints <- sample(md$id, 100)
+  md_subset <- subset_metadata(md, spatialpoints = spatialpoints)
+  expect_true(all(as.vector(md_subset$id) == spatialpoints))
+  
+})

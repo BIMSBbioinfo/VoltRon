@@ -2,21 +2,20 @@
 % Please edit documentation in R/allgenerics.R, R/processing.R
 \name{normalizeData}
 \alias{normalizeData}
-\alias{normalizeData,VoltRon-method}
+\alias{normalizeData,data_matrix-method}
 \alias{normalizeData,vrAssay-method}
 \alias{normalizeData,vrAssayV2-method}
+\alias{normalizeData,VoltRon-method}
 \title{Normalize Data}
 \usage{
 normalizeData(object, ...)
 
-\S4method{normalizeData}{VoltRon}(
+\S4method{normalizeData}{data_matrix}(
   object,
-  assay = NULL,
   method = "LogNorm",
   desiredQuantile = 0.9,
   scale = 0.2,
-  sizefactor = 10000,
-  feat_type = NULL
+  sizefactor = 10000
 )
 
 \S4method{normalizeData}{vrAssay}(
@@ -36,14 +35,21 @@ normalizeData(object, ...)
   sizefactor = 10000,
   feat_type = NULL
 )
+
+\S4method{normalizeData}{VoltRon}(
+  object,
+  assay = NULL,
+  method = "LogNorm",
+  desiredQuantile = 0.9,
+  scale = 0.2,
+  sizefactor = 10000,
+  feat_type = NULL
+)
 }
 \arguments{
 \item{object}{a VoltRon or vrAssay object.}
 
 \item{...}{arguments passed to other methods.}
-
-\item{assay}{assay name (exp: Assay1) or assay class
-if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{method}{the normalization method: "LogNorm",
 "Q3Norm", "LogQ3Norm", "CLR" or "hyper.arcsine".}
@@ -56,6 +62,9 @@ or "LogQuanNorm" is selected as \code{method}.}
 \item{sizefactor}{size factor if \code{method} is selected as \code{LogNorm}}
 
 \item{feat_type}{the feature set type}
+
+\item{assay}{assay name (exp: Assay1) or assay class
+if NULL, the default assay will be used, see \link{vrMainAssay}.}
 }
 \description{
 Given a VoltRon or vrAssay object, normalize the raw count data.

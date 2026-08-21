@@ -13,7 +13,7 @@
 
 <title>VoltRon</title>
 
-<script src="site_libs/header-attrs-2.30/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.31/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -482,19 +482,16 @@ SpatialExperiment (BioConductor) and Giotto.
 </div>
 <div style="width:70%; margin-left: auto; margin-right: auto">
 <div style="float:left; margin-left: auto; margin-right: auto">
-<div id="staying-up-to-date" class="section level2">
-<h2>Staying up-to-date</h2>
-<p>To ask questions please use VoltRon discussion forum on google
-groups.</p>
-<ul>
-<li><a href="https://groups.google.com/forum/#!forum/voltron_discussion"
-class="uri">https://groups.google.com/forum/#!forum/voltron_discussion</a></li>
-</ul>
-</div>
 <div id="installation" class="section level2">
 <h2>Installation</h2>
-<p>Install from the GitHub repository using devtools (with R version
-4.3.0 or higher):</p>
+<p>You can install binaries for some Linux, Windows and MacOS setups via
+<a href="https://bimsbbioinfo.r-universe.dev/builds">r-universe</a>
+which you may require R version &gt;= 4.5.0:</p>
+<pre class="r"><code>install.packages(&#39;VoltRon&#39;, repos = c(&#39;https://bimsbbioinfo.r-universe.dev&#39;, 
+                                      &#39;https://bioc.r-universe.dev&#39;,
+                                      &#39;https://cloud.r-project.org&#39;))</code></pre>
+<p>The development version also can be installed from GitHub repository
+using devtools:</p>
 <pre class="r"><code>if (!require(&quot;devtools&quot;, quietly = TRUE))
     install.packages(&quot;devtools&quot;)
 devtools::install_github(&quot;BIMSBbioinfo/VoltRon&quot;)</code></pre>
@@ -511,26 +508,25 @@ href="https://packages.debian.org/sid/libopencv-dev"><code>libopencv-dev</code><
 </div>
 <div id="dependencies" class="section level2">
 <h2>Dependencies</h2>
-<p><br></p>
-<div id="rbioformats" class="section level3">
-<h3>RBioformats</h3>
-<p>VoltRon incorporates <code>RBioformats</code> package to import
-images from <code>ome.tiff</code> files, which requires <a
-href="https://www.oracle.com/java/technologies/downloads/?er=221886">Java
-JDK</a> to be available in your system:</p>
-<p>See <a
-href="https://cran.r-project.org/web/packages/rJava">https://cran.r-project.org/web/packages/rJava</a>
-below for more information.</p>
-</div>
-<div id="rarr" class="section level3">
-<h3>Rarr</h3>
-<p>We also use a specific version of the <code>Rarr</code> package
-geared towards reading and writing missing data types (e.g. character).
-We will use the standard Rarr package once modifications are released to
-Bioconductor. Thus please use:</p>
+<div id="voltronstore" class="section level3">
+<h3>VoltRonStore</h3>
+<p>VoltRon incorporates <code>VoltRonStore</code> package to install
+dependencies necessary to run VoltRon objects on disk for large images
+and data matrices. The script below will install dependencies such
+<code>BPCells</code>, <code>ImageArray</code>,
+<code>HDF5DataFrame</code> etc.</p>
 <pre class="r"><code>if (!require(&quot;devtools&quot;, quietly = TRUE))
     install.packages(&quot;devtools&quot;)
-devtools::install_github(&quot;Huber-group-EMBL/Rarr&quot;)</code></pre>
+devtools::install_github(&quot;BIMSBbioinfo/VoltRonStore&quot;)</code></pre>
+<p>or from R-universe:</p>
+<pre class="r"><code>install.packages(&#39;VoltRonStore&#39;, repos = c(&#39;https://bimsbbioinfo.r-universe.dev&#39;, 
+                                           &#39;https://bioc.r-universe.dev&#39;,
+                                           &#39;https://bnprks.r-universe.dev&#39;,
+                                           &#39;https://cloud.r-project.org&#39;))</code></pre>
+<p>See <a
+href="https://bimsbbioinfo.r-universe.dev/builds">https://bimsbbioinfo.r-universe.dev/builds</a>
+for more information.</p>
+<p><br></p>
 </div>
 <div id="simpleitk" class="section level3">
 <h3>SimpleITK</h3>
@@ -540,9 +536,9 @@ Windows (.zip) binaries from <a
 href="https://github.com/BIMSBbioinfo/SimpleITKRInstaller/releases">https://github.com/BIMSBbioinfo/SimpleITKRInstaller/releases</a>,
 and install as below:</p>
 <pre class="r"><code>install.packages(&quot;path/to/SimpleITK_2.5.3.tgz&quot;, repos = NULL, type = &quot;binary&quot;)</code></pre>
-<p>You can also install <code>SimpleITK</code> from GitHub using the
-following command. Depending on the number of processors the user has,
-you can modify the <code>MAKEJ=6</code> argument. We also need
+<p>You can also install SimpleITK from GitHub using the following
+command. Depending on the number of processors the user has, you can
+modify the <code>MAKEJ=6</code> argument. We also need
 <code>SimpleElastix</code> module of <code>SimpleITK</code> to be
 installed, hence we add <code>-DSimpleITK_USE_ELASTIX=ON</code> to the
 <code>ADDITIONAL_SITK_MODULES</code> argument.</p>
@@ -553,10 +549,40 @@ devtools::install_github(
   configure.vars=c(&quot;MAKEJ=6&quot;, 
                    &quot;ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON&quot;))</code></pre>
 <p>For more information, plase visit the <a
-href="https://simpleitk.readthedocs.io/en/v2.5.0/about.html">SimpleITK</a>
+href="https://simpleitk.readthedocs.io/en/v2.5.3/about.html">SimpleITK</a>
 website.</p>
 <p><br></p>
 </div>
+<div id="rbioformats" class="section level3">
+<h3>RBioformats</h3>
+<p>VoltRon incorporates <code>RBioformats</code> package to import
+images from <code>ome.tiff</code> files, which requires <a
+href="https://www.oracle.com/java/technologies/downloads/?er=221886">Java
+JDK</a> to be available in your system:</p>
+<p>See <a
+href="https://cran.r-project.org/web/packages/rJava">https://cran.r-project.org/web/packages/rJava</a>
+below for more information.</p>
+<p><br></p>
+</div>
+<div id="rcdt" class="section level3">
+<h3>RCDT</h3>
+<p><code>RCDT</code> package has been archived as of 15.01.2026. Please
+install as below:</p>
+<pre class="r"><code>devtools::install_github(&#39;stla/RCDT&#39;)</code></pre>
+<p>or</p>
+<pre class="r"><code>install.packages(&#39;RCDT&#39;, repos = c(&#39;https://bimsbbioinfo.r-universe.dev&#39;, 
+                                   &#39;https://cloud.r-project.org&#39;))</code></pre>
+<p><br></p>
+</div>
+</div>
+<div id="staying-up-to-date" class="section level2">
+<h2>Staying up-to-date</h2>
+<p>To ask questions please use VoltRon discussion forum on google
+groups.</p>
+<ul>
+<li><a href="https://groups.google.com/forum/#!forum/voltron_discussion"
+class="uri">https://groups.google.com/forum/#!forum/voltron_discussion</a></li>
+</ul>
 </div>
 <div id="docker-hub" class="section level2">
 <h2>Docker Hub</h2>

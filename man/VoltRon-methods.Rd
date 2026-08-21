@@ -69,13 +69,13 @@ packages
 
 \item \code{.DollarNames(VoltRon)}: Autocompletion for \code{$} access for \code{VoltRon} objects
 
-\item \code{x[[i}: Accessing vrAssay or vrSample objects from \code{VoltRon} objects
+\item \code{x = VoltRon[[i = character, j = missing]]}: Accessing vrAssay or vrSample objects from \code{VoltRon} objects
 
-\item \code{`[[`(x = VoltRon, i = character, j = missing) <- value}: Overwriting vrAssay or vrSample objects from \code{VoltRon} objects
+\item \code{x = VoltRon[[i = character, j = missing]] <- value}: Overwriting vrAssay or vrSample objects from \code{VoltRon} objects
 
-\item \code{x[[i}: Accessing vrLayer objects from \code{VoltRon} objects
+\item \code{x = VoltRon[[i = character, j = character]]}: Accessing vrLayer objects from \code{VoltRon} objects
 
-\item \code{`[[`(x = VoltRon, i = character, j = character) <- value}: Overwriting vrLayer objects from \code{VoltRon} objects
+\item \code{x = VoltRon[[i = character, j = character]] <- value}: Overwriting vrLayer objects from \code{VoltRon} objects
 
 }}
 \concept{voltron}

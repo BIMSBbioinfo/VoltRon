@@ -17,7 +17,8 @@ getRcppAutomatedRegistration(
   rotate_ref = "0",
   matcher = "FLANN",
   method = "Homography",
-  nonrigid = "TPS (OpenCV)"
+  nonrigid = "TPS (OpenCV)",
+  compute_matte_map = TRUE
 )
 }
 \arguments{
@@ -46,6 +47,8 @@ getRcppAutomatedRegistration(
 \item{method}{the automated registration method, Homography or Homography+TPS}
 
 \item{nonrigid}{the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"}
+
+\item{compute_matte_map}{Should matte map be computed ?}
 }
 \description{
 Automated registration workflos with Rcpp

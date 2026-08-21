@@ -18,6 +18,7 @@ vrHeatmapPlot(
   highlight.some = FALSE,
   n_highlight = 30,
   font.size = 13.2,
+  col,
   ...
 )
 }
@@ -55,6 +56,8 @@ reproducible by \code{seed} argument}
 if \code{show_row_names} is TRUE}
 
 \item{font.size}{font size}
+
+\item{col}{color palette to be used for the heatmap.}
 
 \item{...}{additional parameters passed to \link{getVariableFeatures}}
 }

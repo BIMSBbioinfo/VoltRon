@@ -1,7 +1,7 @@
 Package: VoltRon
 Type: Package
 Title: VoltRon for Spatial Omics Data Integration and Analysis
-Version: 0.2.6
+Version: 0.3.0
 Depends: R (>= 4.6.0)
 Author@R: 
 	person("Artür", "Manukyan", 
@@ -30,7 +30,6 @@ License: MIT + file LICENSE
 SystemRequirements: OpenCV 4.8 (or higher): libopencv-dev (Debian, Ubuntu) or 
                     opencv-devel (Fedora)
 Encoding: UTF-8
-RoxygenNote: 7.3.3
 biocViews:
 Imports: utils, methods, grDevices, data.table, Matrix, S4Arrays, S4Vectors, 
          ids, RcppAnnoy, RANN, igraph, dplyr, ggplot2, ggrepel, ggpubr, 
@@ -64,22 +63,22 @@ Collate:
     'visualization.R'
 Suggests:
     testthat (>= 3.0.0),
+    arrow,
+    RBioFormats,
+    basilisk,
+    reticulate,
     DelayedArray,
     DelayedMatrixStats,
     BiocParallel,
     rhdf5,
     Rarr,
     ZarrArray,
-    basilisk,
-    reticulate,
-    RBioFormats,
-    VoltRonStore,
+    VoltRonStore (>= 0.1.2),
     BPCells,
     HDF5Array,
     HDF5DataFrame,
     ZarrDataFrame,
     ImageArray,
-    viridisLite,
     SpatialExperiment,
     SingleCellExperiment,
     SummarizedExperiment,
@@ -93,19 +92,17 @@ Suggests:
     sf,
     ComplexHeatmap,
     xlsx,
-    reshape2,
-    arrow,
     vitessceR,
-    geojsonR,
     circlize,
     rstudioapi,
     ggforce,
     ggnewscale,
     anndataR,
     anndata,
-    SimpleITK
+    SimpleITK,
+    harmony
 Remotes:
-	  stla/RCDT,
+    stla/RCDT,
     BIMSBbioinfo/VoltRonStore,
     bnprks/BPCells/r@v0.3.0,
     BIMSBbioinfo/VoltRon,
@@ -114,3 +111,4 @@ Remotes:
 Config/testthat/edition: 3
 LazyData: true
 LazyDataCompression: gzip
+Config/roxygen2/version: 8.1.0

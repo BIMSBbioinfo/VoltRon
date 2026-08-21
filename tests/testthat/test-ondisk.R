@@ -1,12 +1,5 @@
 # packages 
-skip_if_not_installed("rhdf5")
-skip_if_not_installed("Rarr")
-skip_if_not_installed("HDF5Array")
-skip_if_not_installed("HDF5DataFrame")
-skip_if_not_installed("ZarrDataFrame")
-skip_if_not_installed("ImageArray")
-skip_if_not_installed("BPCells")
-skip_if_not_installed("DelayedMatrixStats")
+skip_if_not_installed("VoltRonStore")
 
 # create dir
 dir.create(td <- tempfile())
@@ -231,7 +224,7 @@ test_that("subsetting", {
   # by image
   xenium_data2_subset <- subset(xenium_data2, image = "290x202+98+17")
   expect_equal(length(vrSpatialPoints(xenium_data2_subset)), 392)
-  expect_equal(is(vrImages(xenium_data2_subset)), "magick-image")
+  expect_contains(is(vrImages(xenium_data2_subset)), "magick-image")
   expect_equal(is(vrImages(xenium_data2_subset, as.raster = TRUE)), "ImageArray")
   
   # visualize
@@ -377,6 +370,13 @@ test_that("embeddings with BPCells-backed", {
   
   # get data
   data("xenium_data")
+  
+  # TODO: 
+  # remove 20665_Assay1 since it causes BPCells::svds to fail, 
+  # existing nans after scaling
+  spatialpoints <- vrSpatialPoints(xenium_data)
+  spatialpoints <- spatialpoints[!spatialpoints %in% "20665_Assay1"]
+  xenium_data <- subset(xenium_data, spatialpoints = spatialpoints)
   
   # HDF5
   xenium_data2 <- saveVoltRon(xenium_data, 

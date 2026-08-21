@@ -11,9 +11,27 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// accuracy_rawvector
+Rcpp::List accuracy_rawvector(Rcpp::RawVector& ref_image, Rcpp::RawVector& query_image, Rcpp::RawVector& mask, const int width, const int height, std::string type, bool overlay_images, const bool compute_matte_map);
+RcppExport SEXP _VoltRon_accuracy_rawvector(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP maskSEXP, SEXP widthSEXP, SEXP heightSEXP, SEXP typeSEXP, SEXP overlay_imagesSEXP, SEXP compute_matte_mapSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::RawVector& >::type ref_image(ref_imageSEXP);
+    Rcpp::traits::input_parameter< Rcpp::RawVector& >::type query_image(query_imageSEXP);
+    Rcpp::traits::input_parameter< Rcpp::RawVector& >::type mask(maskSEXP);
+    Rcpp::traits::input_parameter< const int >::type width(widthSEXP);
+    Rcpp::traits::input_parameter< const int >::type height(heightSEXP);
+    Rcpp::traits::input_parameter< std::string >::type type(typeSEXP);
+    Rcpp::traits::input_parameter< bool >::type overlay_images(overlay_imagesSEXP);
+    Rcpp::traits::input_parameter< const bool >::type compute_matte_map(compute_matte_mapSEXP);
+    rcpp_result_gen = Rcpp::wrap(accuracy_rawvector(ref_image, query_image, mask, width, height, type, overlay_images, compute_matte_map));
+    return rcpp_result_gen;
+END_RCPP
+}
 // automated_registeration_rawvector
-Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::RawVector& query_image, const int width1, const int height1, const int width2, const int height2, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES, const bool invert_query, const bool invert_ref, Rcpp::String flipflop_query, Rcpp::String flipflop_ref, Rcpp::String rotate_query, Rcpp::String rotate_ref, Rcpp::String matcher, Rcpp::String method, Rcpp::String nonrigid);
-RcppExport SEXP _VoltRon_automated_registeration_rawvector(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP, SEXP GOOD_MATCH_PERCENTSEXP, SEXP MAX_FEATURESSEXP, SEXP invert_querySEXP, SEXP invert_refSEXP, SEXP flipflop_querySEXP, SEXP flipflop_refSEXP, SEXP rotate_querySEXP, SEXP rotate_refSEXP, SEXP matcherSEXP, SEXP methodSEXP, SEXP nonrigidSEXP) {
+Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image, Rcpp::RawVector& query_image, const int width1, const int height1, const int width2, const int height2, const float GOOD_MATCH_PERCENT, const int MAX_FEATURES, const bool invert_query, const bool invert_ref, Rcpp::String flipflop_query, Rcpp::String flipflop_ref, Rcpp::String rotate_query, Rcpp::String rotate_ref, Rcpp::String matcher, Rcpp::String method, Rcpp::String nonrigid, const bool compute_matte_map);
+RcppExport SEXP _VoltRon_automated_registeration_rawvector(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP, SEXP GOOD_MATCH_PERCENTSEXP, SEXP MAX_FEATURESSEXP, SEXP invert_querySEXP, SEXP invert_refSEXP, SEXP flipflop_querySEXP, SEXP flipflop_refSEXP, SEXP rotate_querySEXP, SEXP rotate_refSEXP, SEXP matcherSEXP, SEXP methodSEXP, SEXP nonrigidSEXP, SEXP compute_matte_mapSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -34,7 +52,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::String >::type matcher(matcherSEXP);
     Rcpp::traits::input_parameter< Rcpp::String >::type method(methodSEXP);
     Rcpp::traits::input_parameter< Rcpp::String >::type nonrigid(nonrigidSEXP);
-    rcpp_result_gen = Rcpp::wrap(automated_registeration_rawvector(ref_image, query_image, width1, height1, width2, height2, GOOD_MATCH_PERCENT, MAX_FEATURES, invert_query, invert_ref, flipflop_query, flipflop_ref, rotate_query, rotate_ref, matcher, method, nonrigid));
+    Rcpp::traits::input_parameter< const bool >::type compute_matte_map(compute_matte_mapSEXP);
+    rcpp_result_gen = Rcpp::wrap(automated_registeration_rawvector(ref_image, query_image, width1, height1, width2, height2, GOOD_MATCH_PERCENT, MAX_FEATURES, invert_query, invert_ref, flipflop_query, flipflop_ref, rotate_query, rotate_ref, matcher, method, nonrigid, compute_matte_map));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -101,8 +120,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // manual_registeration_rawvector
-Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark, const int width1, const int height1, const int width2, const int height2, Rcpp::String method, Rcpp::String nonrigid);
-RcppExport SEXP _VoltRon_manual_registeration_rawvector(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP reference_landmarkSEXP, SEXP query_landmarkSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP, SEXP methodSEXP, SEXP nonrigidSEXP) {
+Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark, const int width1, const int height1, const int width2, const int height2, const bool invert_query, const bool invert_ref, Rcpp::String method, Rcpp::String nonrigid, const bool compute_matte_map);
+RcppExport SEXP _VoltRon_manual_registeration_rawvector(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP reference_landmarkSEXP, SEXP query_landmarkSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP, SEXP invert_querySEXP, SEXP invert_refSEXP, SEXP methodSEXP, SEXP nonrigidSEXP, SEXP compute_matte_mapSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -114,9 +133,27 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type height1(height1SEXP);
     Rcpp::traits::input_parameter< const int >::type width2(width2SEXP);
     Rcpp::traits::input_parameter< const int >::type height2(height2SEXP);
+    Rcpp::traits::input_parameter< const bool >::type invert_query(invert_querySEXP);
+    Rcpp::traits::input_parameter< const bool >::type invert_ref(invert_refSEXP);
     Rcpp::traits::input_parameter< Rcpp::String >::type method(methodSEXP);
     Rcpp::traits::input_parameter< Rcpp::String >::type nonrigid(nonrigidSEXP);
-    rcpp_result_gen = Rcpp::wrap(manual_registeration_rawvector(ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2, method, nonrigid));
+    Rcpp::traits::input_parameter< const bool >::type compute_matte_map(compute_matte_mapSEXP);
+    rcpp_result_gen = Rcpp::wrap(manual_registeration_rawvector(ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2, invert_query, invert_ref, method, nonrigid, compute_matte_map));
+    return rcpp_result_gen;
+END_RCPP
+}
+// manual_registeration_matrix
+Rcpp::List manual_registeration_matrix(Rcpp::NumericMatrix query_data, Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark, Rcpp::String method, Rcpp::String nonrigid);
+RcppExport SEXP _VoltRon_manual_registeration_matrix(SEXP query_dataSEXP, SEXP reference_landmarkSEXP, SEXP query_landmarkSEXP, SEXP methodSEXP, SEXP nonrigidSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type query_data(query_dataSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type reference_landmark(reference_landmarkSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type query_landmark(query_landmarkSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type method(methodSEXP);
+    Rcpp::traits::input_parameter< Rcpp::String >::type nonrigid(nonrigidSEXP);
+    rcpp_result_gen = Rcpp::wrap(manual_registeration_matrix(query_data, reference_landmark, query_landmark, method, nonrigid));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -129,6 +166,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type coords(coordsSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type mapping(mappingSEXP);
     rcpp_result_gen = Rcpp::wrap(applyRcppMapping(coords, mapping));
+    return rcpp_result_gen;
+END_RCPP
+}
+// generateOverlapMask
+Rcpp::IntegerVector generateOverlapMask(Rcpp::NumericVector& dsize, Rcpp::NumericMatrix& trans_mat, Rcpp::NumericVector& ssize);
+RcppExport SEXP _VoltRon_generateOverlapMask(SEXP dsizeSEXP, SEXP trans_matSEXP, SEXP ssizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector& >::type dsize(dsizeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type trans_mat(trans_matSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector& >::type ssize(ssizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(generateOverlapMask(dsize, trans_mat, ssize));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -167,13 +217,16 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_VoltRon_automated_registeration_rawvector", (DL_FUNC) &_VoltRon_automated_registeration_rawvector, 17},
+    {"_VoltRon_accuracy_rawvector", (DL_FUNC) &_VoltRon_accuracy_rawvector, 8},
+    {"_VoltRon_automated_registeration_rawvector", (DL_FUNC) &_VoltRon_automated_registeration_rawvector, 18},
     {"_VoltRon_replaceNaMatrix", (DL_FUNC) &_VoltRon_replaceNaMatrix, 2},
     {"_VoltRon_warpRcppImage", (DL_FUNC) &_VoltRon_warpRcppImage, 7},
     {"_VoltRon_warpImageAuto", (DL_FUNC) &_VoltRon_warpImageAuto, 7},
     {"_VoltRon_warpImageManual", (DL_FUNC) &_VoltRon_warpImageManual, 7},
-    {"_VoltRon_manual_registeration_rawvector", (DL_FUNC) &_VoltRon_manual_registeration_rawvector, 10},
+    {"_VoltRon_manual_registeration_rawvector", (DL_FUNC) &_VoltRon_manual_registeration_rawvector, 13},
+    {"_VoltRon_manual_registeration_matrix", (DL_FUNC) &_VoltRon_manual_registeration_matrix, 5},
     {"_VoltRon_applyRcppMapping", (DL_FUNC) &_VoltRon_applyRcppMapping, 2},
+    {"_VoltRon_generateOverlapMask", (DL_FUNC) &_VoltRon_generateOverlapMask, 3},
     {"_VoltRon_build_snn_rank", (DL_FUNC) &_VoltRon_build_snn_rank, 1},
     {"_VoltRon_build_snn_number", (DL_FUNC) &_VoltRon_build_snn_number, 1},
     {"_VoltRon_replacePatternInRcppVectorWrapper", (DL_FUNC) &_VoltRon_replacePatternInRcppVectorWrapper, 3},

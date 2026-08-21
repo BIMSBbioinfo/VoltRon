@@ -1,3 +1,26 @@
+# VoltRon 0.3.0
+
+-   `registerSpatialData` now allows registering assays with no images. In case of either one of the assays, 
+    do not have images, assays can be registered with only the manual approach. 
+-   The Shiny interface for `registerSpatialData` now reports on the accuracy of the alignment using multiple
+    metrics such as Intersection, Bhattacharyya and Matte's Mutual Information.
+-   An image-free alignment tutorial has been added where DBIT-Seq and a QuPath processed mIF experiment are
+    aligned using manually selected landmarks.
+-   `transferData` now allows integrating single cell data object (`Seurat` or `SingleCellExperiment`)
+    for transfering features (e.g. gene expression) or metadata features (e.g. cell types, annotations).
+-   Now `importImageData` and `importQuPathIF` functions only work with segments already converted to a
+    list by the user, or the `generateSegments` function whose argument is an **sf** object. 
+-   The `formAssay` function now accepts only segments without the user manually generating coordinates 
+    (or centroids).
+-   The `name` argument in functions like `vrImages`, `vrCoordinates` and `vrSegments` is replaced
+    with `spatial` which is the name of the spatial coordinate system of the assay, spatial object. 
+-   The `formImage` function is replaced with `formSpatial` to avoid confusion. 
+    
+# VoltRon 0.2.6
+
+-   Fix anndataR conversion by removing `var_names` and `obs_names` arguments and
+    fix other faulty arguments
+
 # VoltRon 0.2.5
 
 -   Added instructions to install VoltRon from [R-universe](https://bimsbbioinfo.r-universe.dev/VoltRon).

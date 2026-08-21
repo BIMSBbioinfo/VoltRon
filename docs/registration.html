@@ -13,7 +13,7 @@
 
 <title>Image Registration</title>
 
-<script src="site_libs/header-attrs-2.30/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.31/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -33,6 +33,7 @@
 <link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 <link href="site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet" />
@@ -221,6 +222,9 @@ $(document).ready(function () {
 </style>
 
 <!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
 
 
 
@@ -432,6 +436,14 @@ div.tocify {
 
 <div id="header">
 
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
 
 
 <h1 class="title toc-ignore">Image Registration</h1>
@@ -485,8 +497,9 @@ C++ library fully embedded in the VoltRon package.</p>
 </tbody>
 </table>
 <p><br></p>
-<div id="alignment-of-xenium-and-visium" class="section level2">
-<h2>Alignment of Xenium and Visium</h2>
+</div>
+<div id="xenium-vs-visium" class="section level1">
+<h1>Xenium vs Visium</h1>
 <p>In this use case, we will align <strong>immunofluorescence
 (IF)</strong> and <strong>H&amp;E images</strong> of the <strong>Xenium
 In Situ</strong> and <strong>Visium CytAssist</strong> platforms
@@ -882,119 +895,8 @@ vrSpatialPlot(VRBlock, group.by = &quot;CellType&quot;, assay = &quot;Assay1&quo
 </div>
 </div>
 </div>
-<div id="alignment-of-xenium-and-he" class="section level2">
-<h2>Alignment of Xenium and H&amp;E</h2>
-<p>In this use case, we will align <strong>immunofluorescence
-(IF)</strong> of the <strong>Xenium In Situ</strong> platform to an
-<strong>H&amp;E images</strong> generated from the same sections as the
-Xenium. VoltRon provides built-in utilities to import images as spatial
-datasets where <strong>tiles</strong> are the spatial points. We will
-import both Xenium and H&amp;E images into two separate VoltRon objects
-and overlay H&amp;E images.</p>
-<p>You can download the Xenium readout and the H&amp;E image of the same
-tissue section from the <a
-href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
-Genomics website</a> (specifically, import <strong>In Situ Replicate
-1</strong> and <strong>Supplemental: Post-Xenium H&amp;E image
-(TIFF)</strong>).</p>
-<pre class="r watch-out"><code># dependencies
-if(!requireNamespace(&quot;RBioFormats&quot;))
-  BiocManager::install(&quot;RBioFormats&quot;)
-if(!requireNamespace(&quot;arrow&quot;))
-  install.packages(&quot;arrow&quot;)
-if(!requireNamespace(&quot;rhdf5&quot;))
-  BiocManager::install(&quot;rhdf5&quot;)
-library(VoltRon)
-
-# import Xenium 
-Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;, 
-                       resolution_level = 3,
-                       overwrite_resolution = TRUE)
-
-# import H&amp;E image 
-Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
-                                sample_name = &quot;XeniumR1image&quot;, 
-                                channels = &quot;H&amp;E&quot;)
-Xen_R1_image</code></pre>
-<pre><code>VoltRon Object 
-XeniumR1image: 
-  Layers: Section1 
-Assays: ImageData(Main) </code></pre>
-<p>Let’s take a look at the image of the Xen_R1_image object. We use the
-<strong>scale.perc</strong> argument to scale down the image for faster
-rendering.</p>
-<pre class="r watch-out"><code>vrImages(Xen_R1_image, scale.perc = 5)</code></pre>
-<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE.png" class="center"></p>
-<p><br></p>
-<div id="automated-image-alignment-1" class="section level3">
-<h3>Automated Image Alignment</h3>
-<p>We can use the <strong>registerSpatialData</strong> function to
-warp/align images across multiple VoltRon objects and define these
-aligned images additional channels of existing coordinate systems of
-assays in one of these VoltRon objects.</p>
-<p>First we align the H&amp;E image to the DAPI image of the Xenium
-replicate. Similar to the first use case, we need to negate the DAPI
-image and rotate the image to match its perspective to the H&amp;E
-image. We can also scale the resolution of the H&amp;E image to
-9103.71x6768.63 in order to speed up the registration, however the
-original scales can also be used.</p>
-<pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))</code></pre>
-<p><img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE_function.png" class="center"></p>
-<p><br></p>
-<p>Now we create a new channel for the existing coordinate system of the
-Xenium data. Here, the spatial key of the registered H&amp;E image will
-be <strong>main_reg</strong>. We choose the destination of the
-registered image which is the first Assay of the Xenium data
-(i.e. <strong>Assay1</strong>). The original DAPI coordinate system, and
-we give a name for the new image/channel which is
-<strong>H&amp;E</strong>.</p>
-<pre class="r watch-out"><code>Xen_R1_image_reg &lt;- xen_reg$registered_spat[[2]]
-vrImages(Xen_R1[[&quot;Assay1&quot;]], channel = &quot;H&amp;E&quot;) &lt;- vrImages(Xen_R1_image_reg, name = &quot;main_reg&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
-<p>We can now observe the new channels (H&amp;E) available for the
-Xenium assay using <strong>vrImageChannelNames</strong>.</p>
-<pre class="r watch-out"><code>vrImageChannelNames(Xen_R1)</code></pre>
-<pre><code>       Assay    Layer  Sample   Spatial  Channels
-Assay1 Xenium Section1 XeniumR1    main  DAPI,H&amp;E</code></pre>
-<p>We can call the registered H&amp;E image of the Xenium data or later
-put the aligned H&amp;E when calling <strong>vrSpatialPlot</strong> or
-<strong>vrSpatialFeaturePlot</strong>.</p>
-<pre class="r watch-out"><code>vrImages(Xen_R1, channel = &quot;H&amp;E&quot;, scale.perc = 5)</code></pre>
-<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE.png" class="center"></p>
-<p><br></p>
-</div>
-<div id="non-rigid-alignment" class="section level3">
-<h3>Non-Rigid Alignment</h3>
-<p>VoltRon allows performing non-rigid image registration and spatial
-data alignment using the <strong>SimpleITK</strong>’s C++ library. With
-SimpleITK, we conduct a <strong>coarse-to-fine alignment</strong>
-workflow where we first perform a <strong>global alignment</strong>
-using FLANN or BRUTE-FORCE methods, and then perform a <strong>fine
-alignment</strong> using SimpleITK. We first use either affine or
-homography transformation and then interpolate images, points and
-segments using B-spline method.</p>
-<p>To facilitate non-rigid alignment, we require to install the
-SimpleITK package as below:</p>
-<pre class="r watch-out"><code>install.packages(&quot;path/to/SimpleITK_2.5.3.tgz&quot;, repos = NULL, type = &quot;binary&quot;)</code></pre>
-<p>or if you are not using MacOS-arm or Windows, please build SimpleITK
-from source with <a href="https://elastix.dev/">Elastix</a> module
-enabled. Please note that the building process may take a while.</p>
-<pre class="r watch-out"><code>if (!require(&quot;devtools&quot;, quietly = TRUE))
-    install.packages(&quot;devtools&quot;)
-devtools::install_github(
-  repo = &quot;SimpleITK/SimpleITKRInstaller&quot;, 
-  configure.vars=c(&quot;MAKEJ=6&quot;, 
-                   &quot;ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON&quot;))</code></pre>
-<p>We can then use <strong>registerSpatialData</strong> function as
-before and select “Affine + Non-Rigid” and “BSpline (SimpleITK)” options
-to conduct non-rigid alignment.</p>
-<pre class="r watch-out"><code>library(SimpleITK)
-xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))</code></pre>
-<p><img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE_function_simpleitk.png" class="center"></p>
-<p><br></p>
-</div>
-</div>
-<div id="alignment-of-visium-and-visium" class="section level2">
-<h2>Alignment of Visium and Visium</h2>
+<div id="visium-vs-visium" class="section level1">
+<h1>Visium vs Visium</h1>
 <p>In the next use case, we will align <strong>H&amp;E images</strong>
 associated with Visium data generated from tissue block sections of
 <strong>adult humans with postmortem dorsolateral prefrontal cortex
@@ -1016,7 +918,7 @@ DLPFC_2 &lt;- importVisium(&quot;DLPFC/151674&quot;, sample_name = &quot;DLPFC_2
 DLPFC_3 &lt;- importVisium(&quot;DLPFC/151675&quot;, sample_name = &quot;DLPFC_3&quot;)
 DLPFC_4 &lt;- importVisium(&quot;DLPFC/151676&quot;, sample_name = &quot;DLPFC_4&quot;)</code></pre>
 <p><br></p>
-<div id="automated-image-alignment-2" class="section level3">
+<div id="automated-image-alignment-1" class="section level3">
 <h3>Automated Image Alignment</h3>
 <p>We will again use the registerSpatialData function to
 <strong>automatically register two Visium assays (two H&amp;E
@@ -1088,6 +990,271 @@ used for 3D spatial analysis, specifically as shown in the <a
 href="nicheclustering.html">Niche Clustering</a> tutorial.</p>
 </div>
 </div>
+<div id="xenium-vs-he" class="section level1">
+<h1>Xenium vs H&amp;E</h1>
+<p>In this use case, we will align <strong>immunofluorescence
+(IF)</strong> of the <strong>Xenium In Situ</strong> platform to an
+<strong>H&amp;E images</strong> generated from the same sections as the
+Xenium. VoltRon provides built-in utilities to import images as spatial
+datasets where <strong>tiles</strong> are the spatial points. We will
+import both Xenium and H&amp;E images into two separate VoltRon objects
+and overlay H&amp;E images.</p>
+<p>You can download the Xenium readout and the H&amp;E image of the same
+tissue section from the <a
+href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-breast">10x
+Genomics website</a> (specifically, import <strong>In Situ Replicate
+1</strong> and <strong>Supplemental: Post-Xenium H&amp;E image
+(TIFF)</strong>).</p>
+<pre class="r watch-out"><code># dependencies
+if(!requireNamespace(&quot;RBioFormats&quot;))
+  BiocManager::install(&quot;RBioFormats&quot;)
+if(!requireNamespace(&quot;arrow&quot;))
+  install.packages(&quot;arrow&quot;)
+if(!requireNamespace(&quot;rhdf5&quot;))
+  BiocManager::install(&quot;rhdf5&quot;)
+library(VoltRon)
+
+# import Xenium 
+Xen_R1 &lt;- importXenium(&quot;Xenium_R1/outs&quot;, sample_name = &quot;XeniumR1&quot;, 
+                       resolution_level = 3,
+                       overwrite_resolution = TRUE)
+
+# import H&amp;E image 
+Xen_R1_image &lt;- importImageData(&quot;Xenium_FFPE_Human_Breast_Cancer_Rep1_he_image.tif&quot;,
+                                sample_name = &quot;XeniumR1image&quot;, 
+                                channels = &quot;H&amp;E&quot;)
+Xen_R1_image</code></pre>
+<pre><code>VoltRon Object 
+XeniumR1image: 
+  Layers: Section1 
+Assays: ImageData(Main) </code></pre>
+<p>Let’s take a look at the image of the Xen_R1_image object. We use the
+<strong>scale.perc</strong> argument to scale down the image for faster
+rendering.</p>
+<pre class="r watch-out"><code>vrImages(Xen_R1_image, scale.perc = 5)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/importdata_HE.png" class="center"></p>
+<p><br></p>
+<div id="automated-image-alignment-2" class="section level3">
+<h3>Automated Image Alignment</h3>
+<p>We can use the <strong>registerSpatialData</strong> function to
+warp/align images across multiple VoltRon objects and define these
+aligned images additional channels of existing coordinate systems of
+assays in one of these VoltRon objects.</p>
+<p>First we align the H&amp;E image to the DAPI image of the Xenium
+replicate. Similar to the first use case, we need to negate the DAPI
+image and rotate the image to match its perspective to the H&amp;E
+image. We can also scale the resolution of the H&amp;E image to
+9103.71x6768.63 in order to speed up the registration, however the
+original scales can also be used.</p>
+<pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))</code></pre>
+<p><img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE_function.png" class="center"></p>
+<p><br></p>
+<p>Now we create a new channel for the existing coordinate system of the
+Xenium data. Here, the spatial key of the registered H&amp;E image will
+be <strong>main_reg</strong>. We choose the destination of the
+registered image which is the first Assay of the Xenium data
+(i.e. <strong>Assay1</strong>). The original DAPI coordinate system, and
+we give a name for the new image/channel which is
+<strong>H&amp;E</strong>.</p>
+<pre class="r watch-out"><code>Xen_R1_image_reg &lt;- xen_reg$registered_spat[[2]]
+vrImages(Xen_R1[[&quot;Assay1&quot;]], channel = &quot;H&amp;E&quot;) &lt;- vrImages(Xen_R1_image_reg, spatial = &quot;main_reg&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
+<p>We can now observe the new channels (H&amp;E) available for the
+Xenium assay using <strong>vrImageChannelNames</strong>.</p>
+<pre class="r watch-out"><code>vrImageChannelNames(Xen_R1)</code></pre>
+<pre><code>       Assay    Layer  Sample   Spatial  Channels
+Assay1 Xenium Section1 XeniumR1    main  DAPI,H&amp;E</code></pre>
+<p>We can call the registered H&amp;E image of the Xenium data or later
+put the aligned H&amp;E when calling <strong>vrSpatialPlot</strong> or
+<strong>vrSpatialFeaturePlot</strong>.</p>
+<pre class="r watch-out"><code>vrImages(Xen_R1, channel = &quot;H&amp;E&quot;, scale.perc = 5)</code></pre>
+<p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE.png" class="center"></p>
+<p><br></p>
+</div>
+<div id="non-rigid-alignment" class="section level3">
+<h3>Non-Rigid Alignment</h3>
+<p>VoltRon allows performing non-rigid image registration and spatial
+data alignment using the <strong>SimpleITK</strong>’s C++ library. With
+SimpleITK, we conduct a <strong>coarse-to-fine alignment</strong>
+workflow where we first perform a <strong>global alignment</strong>
+using FLANN or BRUTE-FORCE methods, and then perform a <strong>fine
+alignment</strong> using SimpleITK. We first use either affine or
+homography transformation and then interpolate images, points and
+segments using B-spline method.</p>
+<p>To facilitate non-rigid alignment, we require to install the
+SimpleITK package as below:</p>
+<pre class="r watch-out"><code>install.packages(&quot;path/to/SimpleITK_2.5.3.tgz&quot;, repos = NULL, type = &quot;binary&quot;)</code></pre>
+<p>or if you are not using MacOS-arm or Windows, please build SimpleITK
+from source with <a href="https://elastix.dev/">Elastix</a> module
+enabled. Please note that the building process may take a while.</p>
+<pre class="r watch-out"><code>if (!require(&quot;devtools&quot;, quietly = TRUE))
+    install.packages(&quot;devtools&quot;)
+devtools::install_github(
+  repo = &quot;SimpleITK/SimpleITKRInstaller&quot;, 
+  configure.vars=c(&quot;MAKEJ=6&quot;, 
+                   &quot;ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON&quot;))</code></pre>
+<p>We can then use <strong>registerSpatialData</strong> function as
+before and select “Affine + Non-Rigid” and “BSpline (SimpleITK)” options
+to conduct non-rigid alignment.</p>
+<pre class="r watch-out"><code>library(SimpleITK)
+xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))</code></pre>
+<p><img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_HE_function_simpleitk.png" class="center"></p>
+<p><br></p>
+</div>
+</div>
+<div id="dbit-seq-vs-mif" class="section level1">
+<h1>DBIT-Seq vs mIF</h1>
+<p>In this use case, we will align <strong>DBiTplus</strong> data (a
+novel DBIT-Seq protocol that preserves the tissue for multiplex protein
+imaging) with <strong>multiplex immunofluorescence (mIF)</strong> images
+generated by a modified CODEX PhenoCycler-Fusion protocol.</p>
+<p>More information on the spatial datasets and the study can be also be
+found on the <a
+href="https://www.nature.com/articles/s41592-025-02948-0">DBITplus
+manuscript</a>. You can also download DBIT-Seq and CODEX datasets
+from:</p>
+<ul>
+<li><a href="https://zenodo.org/records/17153112"
+class="uri">https://zenodo.org/records/17153112</a> and</li>
+<li><a
+href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE308167"
+class="uri">https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE308167</a></li>
+</ul>
+<div id="image-free-alignment" class="section level3">
+<h3>Image Free Alignment</h3>
+<p>In cases where at least of the spatial omics datasets are missing
+their images, we can use the spatial distribution of the cells, spots or
+observations from the VoltRon object to align to another objects with
+either observations or images.</p>
+<p>We first import the DBIT-Seq data, and we also subset based on
+transcript counts by spot to</p>
+<pre class="r watch-out"><code># DBIT-seq
+vr_dbit &lt;- importDBITSeq(path.rna = &quot;GSM9239729_Mouse_embryo_FFPE_1_stdata_names.tsv&quot;)
+vr_dbit &lt;- subset(vr_dbit, Count &gt; 1000)</code></pre>
+<p>We use <code>importQuPathIF</code> function to import the multiplex
+IF experiment which was quantified by QuPath. See tutorial on
+<code>importQuPathIF</code> <a href="importingdata.html">here</a> for
+more information.</p>
+<p>We first prepare the measurements and segments exported from QuPath
+as follows:</p>
+<pre class="r watch-out"><code># dependencies
+if(!requireNamespace(&quot;sf&quot;))
+  install.packages(&quot;sf&quot;)
+
+# get segments
+library(sf)
+my_sf &lt;- read_sf(&quot;../../data/DBIT_plus_GSE308167/Ms_Embryo_031523_Scan1.geojson&quot;)
+my_sf &lt;- my_sf[my_sf$objectType==&quot;cell&quot;,]
+cell_names &lt;- paste0(&quot;cell&quot;, seq_along(my_sf$geometry))
+segments &lt;- mapply(function(x,y){
+  tmp &lt;- st_coordinates(x)[,c(&quot;X&quot;,&quot;Y&quot;)]/4 # scale to res 3
+  colnames(tmp) &lt;- c(&quot;x&quot;, &quot;y&quot;)
+  data.frame(id = y, tmp)
+}, my_sf$geometry, cell_names, SIMPLIFY = FALSE)
+names(segments) &lt;- cell_names
+
+# get cellular measurements per channel
+measurements &lt;- data.table::fread(&quot;Ms_Embryo_031523_Scan1.txt&quot;)
+col_pattern &lt;- &quot;^Cell: (.*): Median$&quot;
+cols &lt;- grep(col_pattern, names(measurements), value = TRUE)
+measurements &lt;- measurements[, ..cols]
+names(measurements) &lt;- sub(col_pattern, &quot;\\1&quot;, cols)
+measurements &lt;- t(as.matrix(measurements))
+colnames(measurements) &lt;- names(segments)</code></pre>
+<p>Now we can import the experiment processed with QuPath, and we also
+check the image metadata to select <code>series</code> and
+<code>resolution</code></p>
+<pre class="r watch-out"><code># dependencies
+if(!requireNamespace(&quot;RBioFormats&quot;))
+  BiocManager::install(&quot;RBioFormats&quot;)
+
+# image metadata
+image_file &lt;- &quot;Ms_Embryo_031523_Scan1.qptiff&quot;
+RBioFormats::read.metadata(image_file)</code></pre>
+<p>```ImageMetadata list of length 7</p>
+<p>series res sizeX sizeY sizeC sizeZ sizeT total 1 1 11520 12960 22 1 1
+22<br />
+1 2 5760 6480 22 1 1 22<br />
+1 3 2880 3240 22 1 1 22<br />
+1 4 1440 1620 22 1 1 22<br />
+2 1 360 405 3 1 1 3<br />
+3 1 1239 2717 3 1 1 3<br />
+4 1 960 720 3 1 1 3</p>
+<pre><code>
+
+```{.r .watch-out}
+# import CODEX PhenoCycler-Fusion
+vr_qupath &lt;- importQuPathIF(measurements = measurements, 
+                            image = image_file, 
+                            series = 1, resolution = 3, 
+                            channels = getOmeTiffChannels(image_file),
+                            segments = segments)</code></pre>
+<p>Here, the DBIT-Seq data does not have any image, whereas the mIF
+does. However, we can use the <strong>registerSpatialData</strong>
+function to warp/align a collection of observations to another
+collection or an image. Since at least one VoltRon object is missing its
+image, the resulting alignment can only be performed manually. Thus we
+select landmark points and perform an affine or homograph
+transformation.</p>
+<pre class="r watch-out"><code>dbit_req &lt;- registerSpatialData(reference_spatdata = vr_qupath, 
+                                query_spatdata = vr_dbit)</code></pre>
+<p><img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_DBIT_mIF.png" class="center"></p>
+<p><br></p>
+<p>Now that we have the registered DBIT-Seq spots, we can define these
+spots as a new assay in a combined VoltRon object, and even transfer the
+mIF images as background to the DBIT-Seq assay.</p>
+<pre class="r watch-out"><code>vr_qupath_reg &lt;- dbit_reg$registered_spat[[1]]
+dbit_reg &lt;- dbit_reg$registered_spat[[2]]
+vr_all &lt;- addAssay(vr_qupath_reg, 
+                   assay = dbit_reg[[&quot;Assay1&quot;]], 
+                   assay_name = &quot;DBIT&quot;)
+
+# transfer images
+vrImages(vr_all[[&quot;Assay2&quot;]], spatial = &quot;main_reg&quot;, channel = &quot;DAPI&quot;) &lt;- 
+  vrImages(vr_all, assay = &quot;Assay1&quot;, channel = &quot;DAPI&quot;)
+
+# update radii
+vr_all[[&quot;Assay2&quot;]]@params$vis.spot.radius &lt;- 
+  vr_all[[&quot;Assay2&quot;]]@params$vis.spot.radius * 5
+vr_all[[&quot;Assay2&quot;]]@params$spot.radius &lt;- 
+  vr_all[[&quot;Assay2&quot;]]@params$spot.radius * 5
+
+vr_all</code></pre>
+<pre><code>VoltRon Object 
+Sample1: 
+  Layers: Section1 
+Assays: IF(Main) DBIT 
+Features: main(Main)</code></pre>
+<p><br></p>
+</div>
+<div id="data-transfer" class="section level3">
+<h3>Data Transfer</h3>
+<p>The combined VoltRon object can be used to transfer features from the
+mIF experiment to the DBIT-Seq spots. If not features are defined, all
+features (in this case the mIF markers) will be transfered to DBIT spots
+as additional feature sets.</p>
+<pre class="r watch-out"><code>vr_all &lt;- transferData(vr_all, from = &quot;Assay1&quot;, to = &quot;Assay2&quot;, new_feature_name = &quot;Protein&quot;)
+
+vrMainAssay(vr_qupath_new) &lt;- &quot;DBIT&quot;
+vr_all</code></pre>
+<pre><code>VoltRon Object 
+Sample1: 
+  Layers: Section1 
+Assays: DBIT(Main) IF 
+Features: RNA(Main) Protein  </code></pre>
+<p><br></p>
+<p>We can visualize the transfered protein expression (i.e. image
+intensity of the marker channel) on both the original mIF assay and the
+DBIT-Seq spots.</p>
+<pre class="r watch-out"><code>library(patchwork)
+vrFeatureTypeNames(vr_all, assay = &quot;all&quot;)
+g1 &lt;- vrSpatialFeaturePlot(vr_all, assay = &quot;Assay1&quot;, features = &quot;AQP4&quot;, 
+                           channel = &quot;DAPI&quot;, n.tile = 400, alpha = 1)
+vrMainFeatureType(vr_all[[&quot;Assay2&quot;]]) &lt;- &quot;Protein&quot;
+g2 &lt;- vrSpatialFeaturePlot(vr_all, assay = &quot;Assay2&quot;, features = &quot;AQP4&quot;, 
+                           channel = &quot;DAPI&quot;, alpha = 1, spatial = &quot;main_reg&quot;)
+g1 | g2</code></pre>
+<p><img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_transfer_DBIT.png" class="center"></p>
+</div>
 </div>
 
 
@@ -1125,6 +1292,11 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("show" === "show");
+});
+</script>
 
 <script>
 $(document).ready(function ()  {

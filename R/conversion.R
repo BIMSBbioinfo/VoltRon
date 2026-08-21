@@ -357,7 +357,7 @@ as.AnnData <- function(
   file,
   assay = NULL,
   flip_coordinates = FALSE,
-  method = "anndata",
+  method = "anndataR",
   create.ometiff = FALSE,
   python.path = NULL,
   ...
@@ -448,7 +448,8 @@ as.AnnData <- function(
       ))
     }
   } else {
-    segmentations_array <- array(dim = nrow(coords))
+    # segmentations_array <- array(dim = nrow(coords))
+    segmentations_array <- NULL
   }
 
   # Images
@@ -476,10 +477,11 @@ as.AnnData <- function(
     obsm,
     list(
       spatial = coords,
-      spatial_AssayID = coords,
-      segmentation = segmentations_array
+      spatial_AssayID = coords
     )
   )
+  # segments can be null so add later
+  obsm[["segmentation"]] = segmentations_array
 
   # save as zarr
   if (grepl(".zarr[/]?$", file)) {
@@ -543,7 +545,6 @@ as.AnnData <- function(
         metadata = metadata,
         obsm = obsm,
         coords = coords,
-        segments = segmentations_array,
         uns = uns,
         file = file
       )
@@ -567,57 +568,30 @@ as.AnnData <- function(
 
     # save as h5ad
   } else if (grepl(".h5ad$", file)) {
-    # Check and use a package for saving h5ad
-    if (method == "anndataR") {
-      if (!requireNamespace('anndataR', quietly = TRUE)) {
-        stop(
-          "The anndataR package is not installed. Please choose the 'anndata' ",
-          "method or install anndataR: devtools::",
-          "install_github('scverse/anndataR')"
-        )
-      }
+    if(method == "anndata")
+      message("anndata is deprecated for h5ad files in VoltRon! ", 
+              "Using anndataR instead,")
 
-      # Create anndata using anndataR
-      adata <- anndataR::AnnData(
-        obs_names = rownames(metadata),
-        var_names = rownames(data),
-        X = t(data),
-        obs = metadata,
-        obsm = osbm,
-        uns = uns
-      )
-
-      # Write to h5ad file using anndataR
-      anndataR::write_h5ad(adata, path = file)
-    } else if (method == "anndata") {
-      if (!requireNamespace('anndata', quietly = TRUE)) {
-        stop(
-          "The anndata package is not installed. Please choose the 'anndataR' method or ",
-          "install anndata: install.packages('anndata')"
-        )
-      }
-
-      # check reticulate
-      python.path <- getPythonPath(python.path)
-      if (!is.null(python.path)) {
-        reticulate::use_python(python.path)
-      }
-
-      # Create anndata using anndata
-      adata <- anndata::AnnData(
-        X = t(data),
-        obs = metadata,
-        obsm = obsm,
-        uns = uns
-      )
-
-      # Write to h5ad file using anndata
-      anndata::write_h5ad(adata, filename = file)
-    } else {
+    if (!requireNamespace('anndataR', quietly = TRUE)) {
       stop(
-        "Invalid method selected. Please choose either 'anndataR' or 'anndata'."
+        "The anndataR package is not installed. Please choose the 'anndata' ",
+        "method or install anndataR: devtools::",
+        "install_github('scverse/anndataR')"
       )
     }
+    
+    # Create anndata using anndataR
+    adata <- anndataR::AnnData(
+      X = t(data),
+      obs = metadata,
+      obsm = obsm,
+      uns = uns
+    )
+    
+    # Write to h5ad file using anndataR
+    if(file.exists(file))
+        file.remove(file)
+    anndataR::write_h5ad(adata, path = file)
   } else {
     stop("the 'file' should have an .h5ad, .zarr or .zarr/ extension")
   }

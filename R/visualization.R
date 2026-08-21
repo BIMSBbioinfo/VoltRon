@@ -32,7 +32,7 @@ NULL
 #' @param cell.shape the shape of the points representing cells, see \link{geom_point}
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param label if TRUE, the labels of the ROI assays will be visualized
-#' @param spatial the name of the main spatial system
+#' @param spatial the name of the spatial coordinate system
 #' @param channel the name of the channel associated with the image
 #' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
 #' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name
@@ -305,7 +305,7 @@ vrSpatialPlot <- function(
 #' @param cell.shape the shape of the points representing cells, see \link{geom_point}
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param plot_title the title of the single plot
-#' @param spatial the name of the main spatial system
+#' @param spatial the name of the spatial coordinate system
 #' @param channel the name of the channel associated with the image
 #' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
 #' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name
@@ -373,12 +373,12 @@ vrSpatialPlotSingle <- function(
   g$voltron_params$scale_factors <- scale_factors <- image$scale_factors
 
   # coords
-  coords <- vrCoordinates(assay, spatial_name = spatial_name, reg = reg)
+  coords <- vrCoordinates(assay, spatial = spatial_name, reg = reg)
   if (!inherits(coords, "IterableMatrix")) {
     coords <- as.data.frame(coords)
   }
   coords <- coords / scale_factors
-  segments <- vrSegments(assay, spatial_name = spatial_name)
+  segments <- vrSegments(assay, spatial = spatial_name)
 
   # plotting features
   if (!group.by %in% colnames(metadata)) {
@@ -855,7 +855,7 @@ vrSpatialPlotSingle <- function(
 #' @param cell.shape the shape of the points representing cells, see \link{geom_point}
 #' @param graph if not NULL, the graph is added to the plot
 #' @param graph.edge.color the color of graph edges, if \code{graph} is not NULL.
-#' @param spatial the name of the main spatial system
+#' @param spatial the name of the spatial coordinate system
 #' @param combine.groups if TRUE, tile colors will reflect relative abundance of either of two groups, strictly for visualizing two groups when assay is a molecule typed and tiled (see \code{n.tile}).
 #'
 #' @import ggplot2
@@ -915,12 +915,12 @@ addSpatialLayer <- function(
   metadata <- Metadata(object, assay = assay_names)
 
   # coords
-  coords <- vrCoordinates(assay, spatial_name = spatial_name, reg = reg)
+  coords <- vrCoordinates(assay, spatial = spatial_name, reg = reg)
   if (!inherits(coords, "IterableMatrix")) {
     coords <- as.data.frame(coords)
   }
   coords <- coords / scale_factors
-  segments <- vrSegments(assay, spatial_name = spatial_name)
+  segments <- vrSegments(assay, spatial = spatial_name)
 
   # adjust group.ids
   if (!group.by %in% colnames(metadata)) {
@@ -1333,7 +1333,7 @@ addSpatialLayer <- function(
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param keep.scale whether unify all scales for all features or not
 #' @param label if TRUE, labels of ROIs will be visualized too
-#' @param spatial the name of the main spatial system
+#' @param spatial the name of the spatial coordinate system
 #' @param channel the name of the channel associated with the image
 #' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
 #' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name
@@ -1605,7 +1605,7 @@ vrSpatialFeaturePlot <- function(
 #' @param label if TRUE, labels of ROIs will be visualized too
 #' @param plot_title the main title of the single plot
 #' @param legend_title the legend title of the single plot
-#' @param spatial the name of the main spatial system
+#' @param spatial the name of the spatial coordinate system
 #' @param channel the name of the channel associated with the image
 #' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
 #' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name
@@ -1668,12 +1668,12 @@ vrSpatialFeaturePlotSingle <- function(
   scale_factors <- image$scale_factors
 
   # coords
-  coords <- vrCoordinates(assay, spatial_name = spatial_name, reg = reg)
+  coords <- vrCoordinates(assay, spatial = spatial_name, reg = reg)
   if (!inherits(coords, "IterableMatrix")) {
     coords <- as.data.frame(coords)
   }
   coords <- coords / scale_factors
-  segments <- vrSegments(assay, spatial_name = spatial_name)
+  segments <- vrSegments(assay, spatial = spatial_name)
 
   # get image information and plotting features
   midpoint <- sum(limits) / 2
@@ -1984,7 +1984,7 @@ vrSpatialFeaturePlotSingle <- function(
 #' @param label if TRUE, labels of ROIs will be visualized too
 #' @param plot_title the main title of the single plot
 #' @param legend_title the legend title of the single plot
-#' @param spatial the name of the main spatial system
+#' @param spatial the name of the spatial coordinate system
 #' @param channel the name of the channel associated with the image
 #' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
 #' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name
@@ -2049,11 +2049,11 @@ vrSpatialFeaturePlotCombined <- function(
   # data
   coords <- as.data.frame(vrCoordinates(
     assay,
-    spatial_name = spatial_name,
+    spatial = spatial_name,
     reg = reg
   ))
   coords <- coords / scale_factors
-  segments <- vrSegments(assay, spatial_name = spatial_name)
+  segments <- vrSegments(assay, spatial = spatial_name)
   data_features <- features[features %in% vrFeatures(assay)]
   if (length(data_features) > 0) {
     normdata <- vrData(assay, features = data_features, norm = norm)
@@ -2357,7 +2357,7 @@ vrSpatialFeatureCombinePlot <- function(
 #'
 #' @param g a ggplot object
 #' @param assay vrAssay object
-#' @param spatial the name of the main spatial system
+#' @param spatial the name of the spatial coordinate system
 #' @param channel the name of the channel associated with the image
 #' @param background.color the color of plot background if a channel is not specified, or the spatial coord system doesnt have an image.
 #' @param background (DEPRECATED) the background of the plot. Either an image name, see \link{vrImageNames} or a vector of length two with image name
@@ -2405,7 +2405,7 @@ vrSpatialPlotImage <- function(
   if (spatial %in% vrSpatialNames(assay) && is.null(background.color)) {
     # get image
     image <- suppressWarnings({
-      vrImages(assay, name = spatial, channel = channel, as.raster = TRUE)
+      vrImages(assay, spatial = spatial, channel = channel, as.raster = TRUE)
     })
     if (!is.null(image) & !inherits(image, "ImageArray")) {
       image <- magick::image_read(image)
@@ -2917,7 +2917,14 @@ vrEmbeddingPlot <- function(
           colnames(metadata) == split.by
         )])]
       } else {
-        datax[[split.by]] <- as.factor(metadata[rownames(datax), split.by])
+        if ("id" %in% colnames(metadata)) {
+          datax[[split.by]] <- as.factor(as.vector(metadata[
+            match(rownames(datax), as.vector(metadata$id)),
+            split.by
+          ]))
+        } else {
+          datax[[split.by]] <- as.factor(metadata[rownames(datax), split.by])
+        }
       }
     } else {
       stop("Column ", split.by, " cannot be found in metadata!")
@@ -3534,6 +3541,7 @@ vrScatterPlot <- function(
 #' @param n_highlight the number of row labels shown, 
 #' if \code{show_row_names} is TRUE
 #' @param font.size font size
+#' @param col color palette to be used for the heatmap.
 #' @param ... additional parameters passed to \link{getVariableFeatures}
 #'
 #' @importFrom stats quantile
@@ -3553,18 +3561,13 @@ vrHeatmapPlot <- function(
   highlight.some = FALSE,
   n_highlight = 30,
   font.size = 13.2,
+  col,
   ...
 ) {
   if (!requireNamespace('ComplexHeatmap')) {
     stop(
       "Please install ComplexHeatmap package to use the Heatmap function!: ", 
       "BiocManager::install('ComplexHeatmap')"
-    )
-  }
-  if (!requireNamespace('viridisLite')) {
-    stop(
-      "Please install viridisLite package to use the Heatmap function!: ", 
-      "install.packages('viridisLite')"
     )
   }
 
@@ -3685,7 +3688,7 @@ vrHeatmapPlot <- function(
       labels = legend_label
     ),
     right_annotation = ha,
-    col = viridisLite::viridis(100)
+    col = col
   )
 }
 
@@ -4053,9 +4056,6 @@ vrBarPlot <- function(
         facet_grid(variable ~ split.by, scales = "free", space = "free_x")
       return(gg)
     } else {
-      # if (length(gg) < ncol) {
-      #   ncol <- length(gg)
-      # }
       gg <- gg +
         facet_wrap(
           . ~ split.by,
