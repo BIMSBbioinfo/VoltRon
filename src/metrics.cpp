@@ -20,7 +20,7 @@ using namespace cv;
 ////
 
 // check distribution of registered points
-double checkMappedGridDistribution(Mat &im, Mat &h){
+std::vector<double> checkMappedGridDistribution(Mat &im, Mat &h){
   
   // message
   std::string message;
@@ -48,7 +48,10 @@ double checkMappedGridDistribution(Mat &im, Mat &h){
   } 
 
   // Compute the standard deviation of the transformed points
-  return cppSD(gridpoints_reg);
+  std::vector<double> stds(2);
+  stds[0] = cppSD(gridpoints_reg, 0);
+  stds[1] = cppSD(gridpoints_reg, 1);
+  return(stds);
 }
 
 bool checkMaskAbundance(Mat &mask){
@@ -104,16 +107,22 @@ void maskKeypoints(std::vector<cv::KeyPoint> &keypoints1_good, std::vector<cv::K
 }
 
 // check if keypoints are degenerate
-bool checkDegenerate(double pts1, double pts2) {
+bool checkDegenerate(double pts1, double pts2, double pts3, double pts4) {
   
   // get warning message
-  bool is_degenerate = FALSE;
+  bool is_degenerate_x = FALSE;
   if(pts1 < 1.0 || pts2 < 1.0){
-    is_degenerate = TRUE;
-    Rcout << "WARNING: points may be in a degenerate configuration." << endl;
+    is_degenerate_x = TRUE;
   } 
-  
-  return is_degenerate;
+  bool is_degenerate_y = FALSE;
+  if(pts3 < 1.0 || pts4 < 1.0){
+    is_degenerate_y = TRUE;
+  } 
+  if(is_degenerate_y || is_degenerate_x){
+    Rcout << "WARNING: points may be in a degenerate configuration." << endl;
+  }
+
+  return (is_degenerate_y || is_degenerate_x);
 }
 
 cv::Mat generateOverlapMask(cv::Size dsize,
@@ -325,7 +334,7 @@ std::map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &point
   
   // Report final keypoints
   Rcout << "  Calculated transformation matrix with " << points1.size() << " keypoints" << endl;
-  metrics["#Keypoints"] = points1.size();
+  metrics["#Matches"] = points1.size();
   
   // get inlier percentages
   double ratio = checkInlierPercentage(mask);
@@ -334,30 +343,35 @@ std::map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &point
   
   // points stand. dev.
   double points1_sd = cppSD(points1);
+  double points1_sd_y = cppSD(points1, 1);
+  metrics["sd query(x) (>1?)"] = points1_sd;
+  metrics["sd query(y) (>1?)"] = points1_sd_y;
+  Rcout << "  Std dev of query points: x=" << points1_sd << " y="  << points1_sd_y << endl;
   double points2_sd = cppSD(points2);
-  Rcout << "  Std dev of points: x=" << points1_sd << " y="  << points2_sd << endl;
-  metrics["sd query kpts (>1?)"] = points1_sd;
-  metrics["sd ref. kpts (>1?)"] = points2_sd;
+  double points2_sd_y = cppSD(points2, 1);
+  metrics["sd ref(x) (>1?)"] = points2_sd;
+  metrics["sd ref(y) (>1?)"] = points2_sd_y;
+  Rcout << "  Std dev of ref points: x=" << points2_sd << " y="  << points2_sd_y << endl;
   
   // degenerate ?
-  bool degenerate_points = checkDegenerate(points1_sd, points2_sd);
+  bool degenerate_points = checkDegenerate(points1_sd, points2_sd, 
+                                           points1_sd_y, points2_sd_y);
   metrics["Degenerate"] = (double) degenerate_points;
   
   // check distribution of points
-  double stddev = checkMappedGridDistribution(im1, h);
-  Rcout << "  Std dev of registered points: " << stddev << endl;
-  if(stddev < 1.0 || stddev > max(im2.rows, im2.cols)){
+  std::vector<double> stddev = checkMappedGridDistribution(im1, h);
+  Rcout << "  Std dev of registered grid points: x=" << stddev[0] << " y="  << stddev[1] << endl;
+  if(stddev[0] < 1.0 || stddev[0] > im2.cols ||
+     stddev[1] < 1.0 || stddev[1] > im2.rows ){
     Rcout << "  WARNING: Transformation may be poor - transformed points grid seem to be concentrated!" << endl;
     metrics["Degenerate"] = 1.0;
   }
-  metrics["sd grid (in [w,h]?)"] = stddev;
+  metrics["sd grid (x) [w,h]?"] = stddev[0];
+  metrics["sd grid (y) [w,h]?"] = stddev[1];
   
   // warp keypoints and check median distances 
   double md = medianMappingDistance(points1, points2, h);
   Rcout << "  Median distance between points: " << md << endl;
-  if(md > 3){
-    Rcout << "  WARNING: Transformation may be poor - mean euclidean distance of mapped source and destination key points is high!" << endl;
-  } 
   metrics["Median distance"] = md;
 
   // report degenerate

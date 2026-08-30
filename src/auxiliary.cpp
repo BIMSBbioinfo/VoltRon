@@ -124,21 +124,31 @@ Rcpp::NumericMatrix point2fToNumericMatrix(std::vector<cv::Point2f> &points) {
 }
 
 // Function to convert a cv::Keypoint object to a std::vector<double>
-std::vector<double> KeyPointToDoubleVector(std::vector<cv::KeyPoint> &points) {
+std::vector<double> KeyPointToDoubleVector(std::vector<cv::KeyPoint> &points,
+                                           int axes = 0) {
   int n = points.size();
   std::vector<double> vec(n);
   for (int i = 0; i < n; i++) {
-    vec[i] = (double) points[i].pt.x;
+    if(axes == 0){
+      vec[i] = (double) points[i].pt.x; 
+    } else {
+      vec[i] = (double) points[i].pt.y; 
+    }
   }
   return vec;
 }
 
 // Function to convert a cv::Point2f object to a std::vector<double>
-std::vector<double> Point2fToDoubleVector(std::vector<cv::Point2f> &points) {
+std::vector<double> Point2fToDoubleVector(std::vector<cv::Point2f> &points, 
+                                          int axes = 0) {
   int n = points.size();
   std::vector<double> vec(n);
   for (int i = 0; i < n; i++) {
-    vec[i] = (double) points[i].x;
+    if(axes == 0){
+      vec[i] = (double) points[i].x; 
+    } else {
+      vec[i] = (double) points[i].y; 
+    }
   }
   return vec;
 }
@@ -209,9 +219,9 @@ cv::Mat IntVectorToMat(std::vector<uint8_t> &points) {
 ////
 
 // calculate standard deviation of a vector
-double cppSD(std::vector<cv::KeyPoint> &points)
+double cppSD(std::vector<cv::KeyPoint> &points, int axes)
 {
-  std::vector<double> inVec = KeyPointToDoubleVector(points);
+  std::vector<double> inVec = KeyPointToDoubleVector(points, axes);
   int n = inVec.size();
   double sum = std::accumulate(inVec.begin(), inVec.end(), 0.0);
   double mean = sum / inVec.size();
@@ -228,9 +238,9 @@ double cppSD(std::vector<cv::KeyPoint> &points)
   return std::sqrt( sd / (n-1) );
 }
 
-double cppSD(std::vector<cv::Point2f> &points)
+double cppSD(std::vector<cv::Point2f> &points, int axes)
 {
-  std::vector<double> inVec = Point2fToDoubleVector(points);
+  std::vector<double> inVec = Point2fToDoubleVector(points, axes);
   int n = inVec.size();
   double sum = std::accumulate(inVec.begin(), inVec.end(), 0.0);
   double mean = sum / inVec.size();

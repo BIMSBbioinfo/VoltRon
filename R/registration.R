@@ -3773,13 +3773,14 @@ getRcppAutomatedRegistration <- function(
   alignment_stats <- list()
   metrics <- c(.ALIGNMENT_ACCURACY_METRICS, 
                .ALIGNMENT_KEYPOINT_METRICS)
-  metrics_set <- setNames(rep(NA, length(metrics)), metrics)
   alignment_stats[["coarse"]] <- {
     if (!is.null(reg[[7]])){
       if(!all(names(reg[[7]]) %in% metrics)){
         stop("There are missing accuracy metrics!")
       } else {
+        metrics_set <- setNames(rep(NA, length(metrics)), metrics)
         metrics_set[metrics] <- reg[[7]][metrics]
+        metrics_set <- .collapse_xy(metrics_set)
         metrics_set
       }
     } else{
@@ -3791,7 +3792,9 @@ getRcppAutomatedRegistration <- function(
       if(!all(names(reg[[8]]) %in% metrics)){
         stop("There are missing accuracy metrics!")
       } else {
+        metrics_set <- setNames(rep(NA, length(metrics)), metrics)
         metrics_set[metrics] <- reg[[8]][metrics]
+        metrics_set <- .collapse_xy(metrics_set)
         metrics_set
       }
     } else{
@@ -3809,6 +3812,43 @@ getRcppAutomatedRegistration <- function(
     matte_map = matte_map, 
     alignment_stats = alignment_stats
   ))
+}
+
+.collapse_xy <- function(m, digits = 4, yes_no = "Degenerate") {
+  
+  fmt <- function(v) formatC(v, format = "g", digits = digits)
+  
+  nms <- names(m)
+  if (is.null(nms)) nms <- rep("", length(m))
+  
+  keep <- rep(TRUE, length(m))
+  vals <- rep(NA_character_, length(m))
+  
+  # collapse each (x) / (y) pair into a single cell
+  for (i in seq_along(m)) {
+    if (!keep[i]) next
+    if (!grepl("(x)", nms[i], fixed = TRUE)) next
+    
+    j <- match(sub("(x)", "(y)", nms[i], fixed = TRUE), nms)
+    if (is.na(j)) next                    # no matching y, leave alone
+    
+    vals[i] <- paste0("(", fmt(m[i]), ", ", fmt(m[j]), ")")
+    nms[i]  <- sub("(x)", "(x,y)", nms[i], fixed = TRUE)
+    keep[j] <- FALSE                      # drop the y entry
+  }
+  
+  # everything not paired gets plain formatting
+  un <- is.na(vals)
+  vals[un] <- fmt(m[un])
+  
+  # flag-style metrics become Yes / No
+  ln <- nms %in% yes_no
+  if (any(ln)) {
+    flag <- m[ln]
+    vals[ln] <- ifelse(is.na(flag), "NA", ifelse(flag == 1, "Yes", "No"))
+  }
+  
+  noquote(setNames(vals[keep], nms[keep]))
 }
 
 #' getSimpleITKAutomatedRegistration
