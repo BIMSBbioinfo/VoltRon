@@ -45,7 +45,8 @@ Rcpp::List accuracy_rawvector(Rcpp::RawVector& ref_image,
   // get matte map
   Mat1d accuracyMatte;
   if(compute_matte_map){
-    accuracyMatte = MatteMIMap(im2Proc, im1Proc, maskReg, 50);
+    // accuracyMatte = MatteMIMap(im2Proc, im1Proc, maskReg, 50);
+    accuracyMatte = getTiledAlignmentMetrics(im2Proc, im1Proc, maskReg);
     out[1] = matToNumericMatrix(accuracyMatte); // Matte MI metric 
   } else {
     out[1] = R_NilValue;

@@ -669,8 +669,10 @@ void alignImages(Mat &im1,
   if(is_faulty || !run_TPS){
     
     // compute matte map if finishing alignment
+    // if(compute_matte_map)
+    //   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
     if(compute_matte_map)
-      accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
+      accuracyMatte = getTiledAlignmentMetrics(im2Proc, im1Proc, alignmentMask);
     
     // change color map
     cv::addWeighted(im2Proc, 0.7, im1Proc, 0.3, 0, im1Proc);
@@ -720,8 +722,10 @@ void alignImages(Mat &im1,
     
     // get matte metric, process 
     accuracy_fine = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Fine");
+    // if(compute_matte_map)
+    //   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
     if(compute_matte_map)
-      accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
+      accuracyMatte = getTiledAlignmentMetrics(im2Proc, im1Proc, alignmentMask);
     
     // change color map
     cv::addWeighted(im2Proc, 0.7, im1Proc, 0.3, 0, im1Proc);
