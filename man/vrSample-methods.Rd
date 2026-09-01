@@ -3,18 +3,18 @@
 \name{vrSample-methods}
 \alias{vrSample-methods}
 \alias{[[,vrSample,character,ANY-method}
-\alias{[[<-,vrSample,character,ANY-method}
+\alias{[[<-,vrSample,character,ANY,ANY-method}
 \alias{[[,vrBlock,character,ANY-method}
-\alias{[[<-,vrBlock,character,ANY-method}
+\alias{[[<-,vrBlock,character,ANY,ANY-method}
 \title{Methods for vrSample objects}
 \usage{
 \S4method{[[}{vrSample,character,ANY}(x, i)
 
-\S4method{[[}{vrSample,character,ANY}(x, i) <- value
+\S4method{[[}{vrSample,character,ANY,ANY}(x, i) <- value
 
 \S4method{[[}{vrBlock,character,ANY}(x, i)
 
-\S4method{[[}{vrBlock,character,ANY}(x, i) <- value
+\S4method{[[}{vrBlock,character,ANY,ANY}(x, i) <- value
 }
 \arguments{
 \item{x}{A vrSample object}

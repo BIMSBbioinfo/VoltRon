@@ -18,7 +18,7 @@ getRcppAutomatedRegistration(
   matcher = "FLANN",
   method = "Homography",
   nonrigid = "TPS (OpenCV)",
-  compute_matte_map = TRUE
+  compute_ssim_map = TRUE
 )
 }
 \arguments{
@@ -48,7 +48,7 @@ getRcppAutomatedRegistration(
 
 \item{nonrigid}{the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"}
 
-\item{compute_matte_map}{Should matte map be computed ?}
+\item{compute_ssim_map}{Should SSIM map be computed ?}
 }
 \description{
 Automated registration workflos with Rcpp

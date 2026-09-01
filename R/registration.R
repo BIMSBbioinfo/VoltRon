@@ -630,8 +630,8 @@ getAlignmentTabPanel <- function(len_images, centre, register_ind) {
             id = paste0("inner_tabs", i), 
             tabPanel("Alignment Stat.",
                      tableOutput(paste0("alignment_stats", i))),
-            tabPanel("Matte's MI Map",
-                     imageOutput(paste0("plot_matte_map", i))),
+            tabPanel("Local SSIM",
+                     imageOutput(paste0("plot_ssim_map", i))),
             tabPanel("Matching Keypoints",
                      imageOutput(paste0("plot_keypoint_match", i)))
             
@@ -2882,7 +2882,7 @@ getManualRegisteration <- function(
         {
           # Register keypoints
           aligned_image_list <- 
-            matte_map_list <- 
+            ssim_map_list <- 
             alignment_stats_list <- 
             lapply(seq_along(image_list), \(.) NULL)
           for (i in register_ind) {
@@ -2907,8 +2907,8 @@ getManualRegisteration <- function(
             # save matches
             aligned_image_list[[i]] <- results$aligned_image
             
-            # save matte map
-            matte_map_list[[i]] <- results$matte_map
+            # save SSIM map
+            ssim_map_list[[i]] <- results$ssim_map
             
             # save alignment stats 
             alignment_stats_list[[i]] <- results$alignment_stats
@@ -2960,11 +2960,11 @@ getManualRegisteration <- function(
         )
       })
       
-      # Plot Matte
+      # Plot SSIM
       lapply(register_ind, function(i) {
-        if(length(matte_map_list)){
-          cur_alignment_image <- matte_map_list[[i]]
-          output[[paste0("plot_matte_map", i)]] <- renderPlot({
+        if(length(ssim_map_list)){
+          cur_alignment_image <- ssim_map_list[[i]]
+          output[[paste0("plot_ssim_map", i)]] <- renderPlot({
             if (!suppressWarnings(!is.matrix(cur_alignment_image))) {
               cur_alignment_image <- 
                 cur_alignment_image[nrow(cur_alignment_image):1,]
@@ -2978,7 +2978,7 @@ getManualRegisteration <- function(
                 ggplot2::scale_fill_gradient(low = "#440154FF", 
                                              high = "#FDE725FF", 
                                              # na.value = NA,
-                                             name = "Matte's MI")
+                                             name = "SSIM")
             }
           }) 
         }
@@ -3020,7 +3020,7 @@ getManualRegisteration <- function(
 #' @param query_ind the index of the query image
 #' @param ref_ind the index of the reference image
 #' @param input input
-#' @param compute_matte_map Should matte map be computed ? 
+#' @param compute_ssim_map Should SSIM map be computed ? 
 #'
 #' @noRd
 computeManualPairwiseTransform <- function(
@@ -3029,7 +3029,7 @@ computeManualPairwiseTransform <- function(
   query_ind,
   ref_ind,
   input,
-  compute_matte_map = TRUE
+  compute_ssim_map = TRUE
 ) {
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -3084,7 +3084,7 @@ computeManualPairwiseTransform <- function(
         "Yes",
       method = input$Method,
       nonrigid = if(is.null(input$nonrigid)) "None" else input$nonrigid,
-      compute_matte_map = compute_matte_map
+      compute_ssim_map = compute_ssim_map
     )
     
     # run SimpleITK as fine registration
@@ -3119,11 +3119,11 @@ computeManualPairwiseTransform <- function(
         rotate_query = FALSE,
         rotate_ref = FALSE,
         initial_mapping = list(reg[[1]]),
-        compute_matte_map = compute_matte_map
+        compute_ssim_map = compute_ssim_map
       )
       reg[[1]][[2]] <- tfx$transformation
       reg$aligned_image <- tfx$aligned_image
-      reg$matte_map <- tfx$matte_map
+      reg$ssim_map <- tfx$ssim_map
       reg$alignment_stats$fine[names(tfx$alignment_metrics)] <- 
         tfx$alignment_metrics
     }
@@ -3131,13 +3131,13 @@ computeManualPairwiseTransform <- function(
     # return transformation matrix and images
     mapping[[kk]] <- reg[[1]]
     aligned_image <- reg$aligned_image
-    matte_map <- reg$matte_map
+    ssim_map <- reg$ssim_map
     alignment_stats <- reg$alignment_stats
   }
 
   return(list(mapping = mapping, 
               aligned_image = aligned_image, 
-              matte_map = matte_map, 
+              ssim_map = ssim_map, 
               alignment_stats = alignment_stats))
 }
 
@@ -3153,7 +3153,7 @@ computeManualPairwiseTransform <- function(
 #' @param invert_ref invert reference image
 #' @param method the automated registration method, either TPS or Homography+TPS
 #' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
-#' @param compute_matte_map Should matte map be computed ? 
+#' @param compute_ssim_map Should SSIM map be computed ? 
 #' 
 #' @importFrom magick image_read image_data
 #'
@@ -3167,7 +3167,7 @@ getRcppManualRegistration <- function(
   invert_ref = FALSE,
   method = "Homography",
   nonrigid = "TPS (OpenCV)", 
-  compute_matte_map = TRUE
+  compute_ssim_map = TRUE
 ) {
   
   # ref image
@@ -3248,8 +3248,8 @@ getRcppManualRegistration <- function(
   # check for null data
   if(length(reg) > 2){
     
-    # check matte map
-    matte_map <-
+    # check SSIM map
+    ssim_map <-
       if (!is.null(reg[[3]])) {
         tmp <- reg[[3]]
         tmp[tmp < 0] <- 0
@@ -3285,14 +3285,14 @@ getRcppManualRegistration <- function(
       }
     }
   } else {
-    matte_map <- NULL
+    ssim_map <- NULL
     alignment_stats <- NULL
   }
   
   return(list(
     transmat = reg[[1]],
     aligned_image = aligned_image,
-    matte_map = matte_map,
+    ssim_map = ssim_map,
     alignment_stats = alignment_stats
   ))
 }
@@ -3350,7 +3350,7 @@ getAutomatedRegisteration <- function(
             overlayed_image_list <- 
             aligned_image_list <-
             alignment_image_list <- 
-            matte_map_list <- 
+            ssim_map_list <- 
             alignment_stats_list <- 
             lapply(seq_along(image_list), \(.) NULL)
           for (i in register_ind) {
@@ -3384,8 +3384,8 @@ getAutomatedRegisteration <- function(
             # save matches
             alignment_image_list[[i]] <- results$alignment_image
             
-            # save matte map
-            matte_map_list[[i]] <- results$matte_map
+            # save SSIM map
+            ssim_map_list[[i]] <- results$ssim_map
             
             # save alignment stats
             alignment_stats_list[[i]] <- results$alignment_stats
@@ -3428,10 +3428,10 @@ getAutomatedRegisteration <- function(
         })
       })
       
-      # Plot Matte
+      # Plot SSIM
       lapply(register_ind, function(i) {
-        cur_alignment_image <- matte_map_list[[i]]
-        output[[paste0("plot_matte_map", i)]] <- renderPlot({
+        cur_alignment_image <- ssim_map_list[[i]]
+        output[[paste0("plot_ssim_map", i)]] <- renderPlot({
           if (!suppressWarnings(!is.matrix(cur_alignment_image))) {
             cur_alignment_image <-
               cur_alignment_image[nrow(cur_alignment_image):1,]
@@ -3445,7 +3445,7 @@ getAutomatedRegisteration <- function(
               ggplot2::scale_fill_gradient(low = "#440154FF",
                                            high = "#FDE725FF",
                                            # na.value = NA,
-                                           name = "Matte's MI")
+                                           name = "SSIM")
           }
         })
       })
@@ -3484,7 +3484,7 @@ getAutomatedRegisteration <- function(
 #' @param query_ind the index of the query image
 #' @param ref_ind the index of the reference image
 #' @param input input
-#' @param compute_matte_map Should matte map be computed ? 
+#' @param compute_ssim_map Should SSIM map be computed ? 
 #'
 #' @noRd
 computeAutomatedPairwiseTransform <- function(
@@ -3493,7 +3493,7 @@ computeAutomatedPairwiseTransform <- function(
   query_ind,
   ref_ind,
   input,
-  compute_matte_map = TRUE
+  compute_ssim_map = TRUE
 ) {
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -3586,7 +3586,7 @@ computeAutomatedPairwiseTransform <- function(
       matcher = input$Matcher,
       method = input$Method,
       nonrigid = if(is.null(input$nonrigid)) "None" else input$nonrigid, 
-      compute_matte_map = compute_matte_map
+      compute_ssim_map = compute_ssim_map
     )
     
     # update transformation matrix
@@ -3654,12 +3654,12 @@ computeAutomatedPairwiseTransform <- function(
         rotate_ref = input[[paste0(
           "rotate_", ref_label, "_image", cur_map[2])]],
         initial_mapping = list(reg[[1]]), 
-        compute_matte_map = compute_matte_map
+        compute_ssim_map = compute_ssim_map
       )
       reg[[1]][[2]] <- tfx$transformation
       reg$aligned_image <- tfx$aligned_image
       reg$overlay_image <- tfx$overlay_image
-      reg$matte_map <- tfx$matte_map
+      reg$ssim_map <- tfx$ssim_map
       reg$alignment_stats$fine[names(tfx$alignment_metrics)] <- 
         tfx$alignment_metrics
     }
@@ -3670,7 +3670,7 @@ computeAutomatedPairwiseTransform <- function(
     aligned_image <- reg$aligned_image
     alignment_image <- reg$alignment_image
     overlay_image <- reg$overlay_image
-    matte_map <- reg$matte_map
+    ssim_map <- reg$ssim_map
     alignment_stats <- reg$alignment_stats
   }
 
@@ -3680,7 +3680,7 @@ computeAutomatedPairwiseTransform <- function(
     aligned_image = aligned_image,
     alignment_image = alignment_image,
     overlay_image = overlay_image,
-    matte_map = matte_map,
+    ssim_map = ssim_map,
     alignment_stats = alignment_stats
   ))
 }
@@ -3702,7 +3702,7 @@ computeAutomatedPairwiseTransform <- function(
 #' @param matcher the matching method for landmarks/keypoints FLANN or BRUTE-FORCE
 #' @param method the automated registration method, Homography or Homography+TPS
 #' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
-#' @param compute_matte_map Should matte map be computed ? 
+#' @param compute_ssim_map Should SSIM map be computed ? 
 #' 
 #' @importFrom magick image_read image_data
 #'
@@ -3721,7 +3721,7 @@ getRcppAutomatedRegistration <- function(
   matcher = "FLANN",
   method = "Homography",
   nonrigid = "TPS (OpenCV)",
-  compute_matte_map = TRUE
+  compute_ssim_map = TRUE
 ) {
   ref_image <- magick::image_data(ref_image, channels = "rgb")
   query_image <- magick::image_data(query_image, channels = "rgb")
@@ -3744,7 +3744,7 @@ getRcppAutomatedRegistration <- function(
     matcher = matcher,
     method = method,
     nonrigid = nonrigid,
-    compute_matte_map = compute_matte_map
+    compute_ssim_map = compute_ssim_map
   )
 
   # check for null keypoints
@@ -3760,8 +3760,8 @@ getRcppAutomatedRegistration <- function(
   overlay_image <-
     if (!is.null(reg[[5]])) magick::image_read(reg[[5]]) else NA
   
-  # check matte maps
-  matte_map <-
+  # check SSIM maps
+  ssim_map <-
     if (!is.null(reg[[6]])){
       tmp <- reg[[6]]
       tmp[tmp < 0] <- 0
@@ -3809,7 +3809,7 @@ getRcppAutomatedRegistration <- function(
     aligned_image = aligned_image,
     alignment_image = alignment_image,
     overlay_image = overlay_image,
-    matte_map = matte_map, 
+    ssim_map = ssim_map, 
     alignment_stats = alignment_stats
   ))
 }
@@ -3863,7 +3863,7 @@ getRcppAutomatedRegistration <- function(
 #' @param flipflop_ref flip or flop the reference image
 #' @param rotate_query rotation of query image
 #' @param rotate_ref rotation of reference image
-#' @param compute_matte_map Should matte map be computed ? 
+#' @param compute_ssim_map Should SSIM map be computed ? 
 #' 
 #' @importFrom magick as_EBImage image_read
 #' @importFrom EBImage imageData writeImage
@@ -3879,7 +3879,7 @@ getSimpleITKAutomatedRegistration <- function(
     rotate_query = "0",
     rotate_ref = "0",
     initial_mapping = NULL,
-    compute_matte_map = TRUE
+    compute_ssim_map = TRUE
 ){
   # check SimpleITK
   if (!requireNamespace('SimpleITK')) {
@@ -4002,14 +4002,14 @@ getSimpleITKAutomatedRegistration <- function(
                                   aligned_image, 
                                   aligned_mask,
                                   "Fine", 
-                                  compute_matte_map)
+                                  compute_ssim_map)
   
   # convert images
   overlay_image <-
     if (!is.null(results[[3]])) magick::image_read(results[[3]]) else NA
   
-  # check matte maps
-  matte_map <-
+  # check SSIM maps
+  ssim_map <-
     if (!is.null(results[[2]])){
       tmp <- results[[2]]
       tmp[tmp < 0] <- 0
@@ -4019,7 +4019,7 @@ getSimpleITKAutomatedRegistration <- function(
   # return
   return(list(aligned_image = aligned_image, 
               alignment_metrics = results[[1]],
-              matte_map = matte_map,
+              ssim_map = ssim_map,
               overlay_image = overlay_image,
               transformation = list(
                 tfx_points = tfx_points,
@@ -4074,7 +4074,7 @@ getNonInteractiveRegistration <- function(
         query_ind = i,
         ref_ind = centre,
         input = mapping_parameters,
-        compute_matte_map = FALSE
+        compute_ssim_map = FALSE
       )
     } else {
       flag <- checkKeypoints(mapping_parameters$keypoints)
@@ -4084,7 +4084,7 @@ getNonInteractiveRegistration <- function(
         query_ind = i,
         ref_ind = centre,
         input = mapping_parameters,
-        compute_matte_map = FALSE
+        compute_ssim_map = FALSE
       )
     }
 
@@ -4122,7 +4122,7 @@ getNonInteractiveRegistration <- function(
 #' @param query_image query image
 #' @param mask alignment mask
 #' @param type type 
-#' @param compute_matte_map Should matte map be computed ?
+#' @param compute_ssim_map Should SSIM map be computed ?
 #'
 #' @importFrom magick image_data
 #' 
@@ -4131,7 +4131,7 @@ getAlignmentAccuracy <- function(ref_image,
                                  query_image, 
                                  mask, 
                                  type,
-                                 compute_matte_map = TRUE){
+                                 compute_ssim_map = TRUE){
   
   # image info
   ref_info <- getImageInfo(ref_image)
@@ -4163,6 +4163,6 @@ getAlignmentAccuracy <- function(ref_image,
                      height = ref_info$height, 
                      type, 
                      overlay_images = TRUE,
-                     compute_matte_map = compute_matte_map)
+                     compute_ssim_map = compute_ssim_map)
 }
 
