@@ -283,22 +283,14 @@ double NormalizedMutualInfo(cv::Mat& im1, cv::Mat& im2,
 
 const double kNaN = std::numeric_limits<double>::quiet_NaN();
 
-// ---------------------------------------------------------------------------
-// Result bundle. The three maps are coarse grids (one cell per tile) holding
-// the per-tile value, or NaN where the tile was skipped. Keep them: a scalar
-// tells you *whether* alignment is bad, the map tells you *where*.
-// ---------------------------------------------------------------------------
 struct TiledMetrics {
   double intersection  = kNaN;   // pixel-weighted mean, higher = better
   double bhattacharyya = kNaN;   // pixel-weighted mean, LOWER = better
   double ssim          = kNaN;   // pixel-weighted mean, higher = better
-  double ssim_median   = kNaN;   // robust alternative, ignores outlier tiles
-  
+
   int n_total          = 0;      // tiles in the grid
-  int n_valid          = 0;      // tiles that passed both guards
   int n_drop_coverage  = 0;      // dropped: too little mask overlap
-  int n_drop_flat      = 0;      // dropped: both tiles near-constant
-  
+
   cv::Mat1d inter_map;           // CV_64FC1, nTilesY x nTilesX, NaN = skipped
   cv::Mat1d bhatta_map;
   cv::Mat1d ssim_map;
@@ -370,29 +362,6 @@ TiledMetrics tiledAlignmentMetrics(const cv::Mat& im1,
                                    double minCoverage = 0.5,
                                    double varFactor   = 4.0)
 {
-  // ---- 0. validate up front, with readable errors ------------------------
-  // These fire as exceptions naming the actual types, which is what catches a
-  // commented-out conversion or a caller handing you 16-bit microscopy data.
-  CV_Assert(!im1.empty() && !im2.empty());
-  CV_CheckEQ(im1.size(), im2.size(), "image pair must have identical size");
-  CV_CheckDepthEQ(im1.depth(), CV_8U, "tiledAlignmentMetrics expects CV_8U");
-  CV_CheckDepthEQ(im2.depth(), CV_8U, "tiledAlignmentMetrics expects CV_8U");
-  CV_Assert(nBins > 0 && nBins <= 256 && (256 % nBins == 0));
-  CV_Assert(tile > 1);
-  if (!mask.empty()) {
-    CV_CheckEQ(mask.size(), im1.size(), "mask must match image size");
-    CV_CheckDepthEQ(mask.depth(), CV_8U, "mask must be CV_8U");
-  }
-  
-  // ---- 1. reduce to single channel --------------------------------------
-  // NOTE ON ALIASING: `g1 = im1` is a shallow copy -- the two Mats share one
-  // pixel buffer. That is safe here only because we never write through g1.
-  // Do not add in-place operations on g1/g2 without cloning first.
-  cv::Mat g1, g2;
-  if (im1.channels() > 1) cv::extractChannel(im1, g1, 0); else g1 = im1;
-  if (im2.channels() > 1) cv::extractChannel(im2, g2, 0); else g2 = im2;
-  
-  // ---- 2. SSIM constants -------------------------------------------------
   // L is the dynamic range. For CV_8U it is 255 by definition, which is one
   // reason to keep the data 8-bit: you cannot get L wrong.
   const double L  = 255.0;
@@ -407,13 +376,13 @@ TiledMetrics tiledAlignmentMetrics(const cv::Mat& im1,
   // max(varA,varB) >= varFactor*C2 (default 4*58.52 ~= 234) drops them.
   const double varThresh = varFactor * C2;
   
-  // ---- 3. histogram setup, hoisted out of the loop ----------------------
+  // histogram setup, hoisted out of the loop
   const int   histSize256 = 256;
   float       range[]     = {0.0f, 256.0f};   // NB upper bound is EXCLUSIVE
   const float* histRange  = {range};
   const int   channels[]  = {0};
   
-  // ---- 4. tile grid ------------------------------------------------------
+  // tile grid
   const int nY = (im1.rows + tile - 1) / tile;   // ceil, so edge tiles included
   const int nX = (im1.cols + tile - 1) / tile;
   
@@ -432,7 +401,7 @@ TiledMetrics tiledAlignmentMetrics(const cv::Mat& im1,
   
   cv::Mat h1, h2, prod;   // declared outside; OpenCV reuses the buffers
   
-  // ---- 5. THE SINGLE LOOP -----------------------------------------------
+  // loop over tiles
   for (int ty = 0; ty < nY; ++ty) {
     for (int tx = 0; tx < nX; ++tx) {
       
@@ -443,8 +412,8 @@ TiledMetrics tiledAlignmentMetrics(const cv::Mat& im1,
       const cv::Rect roi(x0, y0, tw, th);
       
       // ROI views -- no pixel data is copied here.
-      const cv::Mat ta = g1(roi);
-      const cv::Mat tb = g2(roi);
+      const cv::Mat ta = im1(roi);
+      const cv::Mat tb = im2(roi);
       const cv::Mat tm = mask.empty() ? cv::Mat() : mask(roi);
       
       // --- GUARD 1: mask coverage. Cheap, so do it before any real work.
@@ -492,36 +461,24 @@ TiledMetrics tiledAlignmentMetrics(const cv::Mat& im1,
       const double ssim = lum * cs;
       
       // --- record
-      // R.inter_map .at<float>(ty, tx) = static_cast<float>(inter);
-      // R.bhatta_map.at<float>(ty, tx) = static_cast<float>(bhatta);
-      // R.ssim_map.at<float>(ty, tx) = static_cast<float>(ssim);
-      // --- record
-      R.inter_map (ty, tx) = inter;    // Mat1d: no template arg, no cast
+      R.inter_map (ty, tx) = inter; 
       R.bhatta_map(ty, tx) = bhatta;
       R.ssim_map  (ty, tx) = ssim;
       
-      const double w = valid;      // pixel-count weight
+      const double w = valid;   
       wSum    += w;
       wInter  += w * inter;
       wBhatta += w * bhatta;
       wSsim   += w * ssim;
       ssimVals.push_back(ssim);
-      ++R.n_valid;
     }
   }
   
-  // ---- 6. aggregate ------------------------------------------------------
+  // aggregate
   if (wSum > 0.0) {
     R.intersection  = wInter  / wSum;
     R.bhattacharyya = wBhatta / wSum;
     R.ssim          = wSsim   / wSum;
-    
-    // Median is worth reporting alongside the mean: a handful of catastrophic
-    // tiles (tissue tear, air bubble, stitching seam) drag the mean down while
-    // the median still describes the bulk of the overlap.
-    const size_t m = ssimVals.size() / 2;
-    std::nth_element(ssimVals.begin(), ssimVals.begin() + m, ssimVals.end());
-    R.ssim_median = ssimVals[m];
   }
   return R;
 }
@@ -537,36 +494,17 @@ std::map<std::string, double> getAlignmentMetrics(Mat &im1, Mat &im2,
   // Metrics
   std::map<std::string, double> metrics;
   
-  // // Compute histograms
-  // int histSize = 256;
-  // float range[] = {0.0, 256.0};
-  // const float* histRange = {range};
-  // int channels[] = {0};
-  // cv::Mat hist1, hist2;
-  // cv::calcHist(&im1, 1, channels, mask, 
-  //              hist1, 1, &histSize, &histRange);
-  // cv::calcHist(&im2, 1, channels, mask, 
-  //              hist2, 1, &histSize, &histRange);
-  
-  // // Normalize histograms
-  // // cv::normalize(hist1, hist1, 0, 1, cv::NORM_MINMAX);
-  // // cv::normalize(hist2, hist2, 0, 1, cv::NORM_MINMAX);
-  // hist1 /= cv::sum(hist1)[0];
-  // hist2 /= cv::sum(hist2)[0];
-  
   // tiled metrics:
   TiledMetrics t = tiledAlignmentMetrics(im1, im2, mask);
   
   // Summary
   Rcout << "Alignment Accuracy (" << type << "): " << endl;
-  // metrics["Intersection"] = cv::compareHist(hist1, hist2, cv::HISTCMP_INTERSECT);
-  // metrics["Bhattacharyya"] = cv::compareHist(hist1, hist2, cv::HISTCMP_BHATTACHARYYA);
-  // metrics["SSIM"] = tiledSSIM(im2, im1, mask, 50);
   metrics["Matte's MI"] = MatteMI(im2, im1, mask, 50);
   metrics["SSIM"] = t.ssim;
   metrics["Intersection"] = t.intersection;
   metrics["Bhattacharyya"] = t.bhattacharyya;
   
+  //. Report
   Rcout << "  Matte's MI:    " << metrics["Matte's MI"] << std::endl;
   Rcout << "  SSIM:          " << metrics["SSIM"] << std::endl;
   Rcout << "  Intersection:  " << metrics["Intersection"] << std::endl;
