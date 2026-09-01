@@ -2,6 +2,11 @@
 
 -   Both x and y coordinates of SIFT/ORB landmarks are now checked after 
     alignment with `registerSpatialData`.  
+-   Intersection, Bhattacharyya, and newly added Structural Similarity index
+    measure is now calculated for chunks of image pairs and visualized as
+    `Local SSIM` to show regions of good and bad alignment. Aggregate 
+    values of these three measures are also used to report on the global 
+    alignment score.
 
 # VoltRon 0.3.0
 
