@@ -1,3 +1,8 @@
+# VoltRon 0.3.1
+
+-   Both x and y coordinates of SIFT/ORB landmarks are now checked after 
+    alignment with `registerSpatialData`.  
+
 # VoltRon 0.3.0
 
 -   `registerSpatialData` now allows registering assays with no images. In case of either one of the assays, 
