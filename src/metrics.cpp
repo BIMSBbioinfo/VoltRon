@@ -410,9 +410,6 @@ TiledMetrics tiledAlignmentMetrics(const cv::Mat& im1,
   
   TiledMetrics R;
   R.n_total    = nY * nX;
-  // R.inter_map  = cv::Mat(nY, nX, CV_32F, cv::Scalar(std::nanf("")));
-  // R.bhatta_map = cv::Mat(nY, nX, CV_32F, cv::Scalar(std::nanf("")));
-  // R.ssim_map   = cv::Mat(nY, nX, CV_32F, cv::Scalar(std::nanf("")));
   R.inter_map  = cv::Mat1d(nY, nX, kNaN);
   R.bhatta_map = cv::Mat1d(nY, nX, kNaN);
   R.ssim_map   = cv::Mat1d(nY, nX, kNaN);
@@ -461,7 +458,7 @@ TiledMetrics tiledAlignmentMetrics(const cv::Mat& im1,
       // --- GUARD 2: flat tiles. Skip only when BOTH are near-constant. If one
       //     has texture and the other does not, that is a real mismatch and we
       //     want SSIM to report it as low, not to discard the tile.
-      if (std::max(var1, var2) < varThresh) { ++R.n_drop_flat; continue; }
+      // if (std::max(var1, var2) < varThresh) { ++R.n_drop_flat; continue; }
       
       // --- histogram metrics, off the rebinned pair (no extra image pass)
       const cv::Mat p1 = rebinAndNormalise(h1, nBins);
@@ -556,20 +553,15 @@ std::map<std::string, double> getAlignmentMetrics(Mat &im1, Mat &im2,
   // metrics["Intersection"] = cv::compareHist(hist1, hist2, cv::HISTCMP_INTERSECT);
   // metrics["Bhattacharyya"] = cv::compareHist(hist1, hist2, cv::HISTCMP_BHATTACHARYYA);
   // metrics["SSIM"] = tiledSSIM(im2, im1, mask, 50);
+  metrics["Matte's MI"] = MatteMI(im2, im1, mask, 50);
+  metrics["SSIM"] = t.ssim;
   metrics["Intersection"] = t.intersection;
   metrics["Bhattacharyya"] = t.bhattacharyya;
-  metrics["SSIM"] = t.ssim;
-  metrics["Matte's MI"] = MatteMI(im2, im1, mask, 50);
   
+  Rcout << "  Matte's MI:    " << metrics["Matte's MI"] << std::endl;
+  Rcout << "  SSIM:          " << metrics["SSIM"] << std::endl;
   Rcout << "  Intersection:  " << metrics["Intersection"] << std::endl;
   Rcout << "  Bhattacharyya: " << metrics["Bhattacharyya"] << std::endl;
-  Rcout << "  Matte's MI:    " << metrics["Matte's MI"] << std::endl;
-  
-  // old metrics, keep for comparison
-  //metrics.push_back(cv::compareHist(hist1, hist2, cv::HISTCMP_CHISQR));
-  // metrics.push_back(jointEntropy(im1, im2, mask, histSize));
-  // metrics.push_back(MutualInfo(im1, im2, mask, histSize));
-  // metrics.push_back(NormalizedMutualInfo(im1, im2, mask, histSize));
   
   return metrics;
 }
