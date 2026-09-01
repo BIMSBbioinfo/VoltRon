@@ -47,7 +47,7 @@ Rcpp::List accuracy_rawvector(Rcpp::RawVector& ref_image,
   if(compute_ssim_map){
     // accuracyMatte = MatteMIMap(im2Proc, im1Proc, maskReg, 50);
     accuracyMatte = getTiledAlignmentMetrics(im2Proc, im1Proc, maskReg);
-    out[1] = matToNumericMatrix(accuracyMatte); // Matte MI metric 
+    out[1] = matToNumericMatrix(accuracyMatte); // SSIM metric 
   } else {
     out[1] = R_NilValue;
   }

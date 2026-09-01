@@ -396,9 +396,6 @@ TiledMetrics tiledAlignmentMetrics(const cv::Mat& im1,
   // plain mean over tiles, because masked tiles contribute unequal areas and a
   // half-covered edge tile should not count as much as a full interior one.
   double wSum = 0.0, wInter = 0.0, wBhatta = 0.0, wSsim = 0.0;
-  std::vector<double> ssimVals;
-  ssimVals.reserve(R.n_total);
-  
   cv::Mat h1, h2, prod;   // declared outside; OpenCV reuses the buffers
   
   // loop over tiles
@@ -470,7 +467,6 @@ TiledMetrics tiledAlignmentMetrics(const cv::Mat& im1,
       wInter  += w * inter;
       wBhatta += w * bhatta;
       wSsim   += w * ssim;
-      ssimVals.push_back(ssim);
     }
   }
   
@@ -504,7 +500,7 @@ std::map<std::string, double> getAlignmentMetrics(Mat &im1, Mat &im2,
   metrics["Intersection"] = t.intersection;
   metrics["Bhattacharyya"] = t.bhattacharyya;
   
-  //. Report
+  // Report
   Rcout << "  Matte's MI:    " << metrics["Matte's MI"] << std::endl;
   Rcout << "  SSIM:          " << metrics["SSIM"] << std::endl;
   Rcout << "  Intersection:  " << metrics["Intersection"] << std::endl;

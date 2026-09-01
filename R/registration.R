@@ -3252,7 +3252,7 @@ getRcppManualRegistration <- function(
     ssim_map <-
       if (!is.null(reg[[3]])) {
         tmp <- reg[[3]]
-        tmp[tmp < 0] <- 0
+        # tmp[tmp < 0] <- 0
         tmp
       } else NA
     
@@ -3764,7 +3764,7 @@ getRcppAutomatedRegistration <- function(
   ssim_map <-
     if (!is.null(reg[[6]])){
       tmp <- reg[[6]]
-      tmp[tmp < 0] <- 0
+      # tmp[tmp < 0] <- 0
       tmp
       
     } else NA
@@ -4012,7 +4012,7 @@ getSimpleITKAutomatedRegistration <- function(
   ssim_map <-
     if (!is.null(results[[2]])){
       tmp <- results[[2]]
-      tmp[tmp < 0] <- 0
+      # tmp[tmp < 0] <- 0
       tmp
     } else NA
 
