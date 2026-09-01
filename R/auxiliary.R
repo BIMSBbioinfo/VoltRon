@@ -87,11 +87,14 @@ fixVoltRon <- function(object) {
 )
 
 .ALIGNMENT_KEYPOINT_METRICS <- c(
-  "#Keypoints",
+  "#Matches",
   "Inlier Perc.",
-  "sd ref. kpts (>1?)",
-  "sd query kpts (>1?)",
-  "sd grid (in [w,h]?)",
+  "sd query(x) (>1?)",
+  "sd query(y) (>1?)",
+  "sd ref(x) (>1?)",
+  "sd ref(y) (>1?)",
+  "sd grid (x) [w,h]?",
+  "sd grid (y) [w,h]?",
   "Median distance",
   "Degenerate"
 )

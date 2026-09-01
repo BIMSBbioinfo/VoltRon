@@ -39,8 +39,10 @@ cv::Mat point2fToMat(std::vector<cv::Point2f> &points);
 cv::Mat IntVectorToMat(std::vector<uint8_t> &points);
 
 // std::vector<double> vs std::vector<cv::Point2f>
-std::vector<double> KeyPointToDoubleVector(std::vector<cv::KeyPoint> &points);
-std::vector<double> Point2fToDoubleVector(std::vector<cv::Point2f> &points);
+std::vector<double> KeyPointToDoubleVector(std::vector<cv::KeyPoint> &points,
+                                           int axes);
+std::vector<double> Point2fToDoubleVector(std::vector<cv::Point2f> &points,
+                                          int axes);
 
 // std::vector<cv::KeyPoint> vs std::vector<cv::Point2f>
 std::vector<cv::Point2f> KeyPointToPoint2f(std::vector<cv::KeyPoint> &keypoints);
@@ -50,8 +52,8 @@ std::vector<cv::Point2f> KeyPointToPoint2f(std::vector<cv::KeyPoint> &keypoints)
 ////
   
 // standard deviation
-double cppSD(std::vector<cv::KeyPoint> &points);
-double cppSD(std::vector<cv::Point2f> &points);
+double cppSD(std::vector<cv::KeyPoint> &points, int axes = 0);
+double cppSD(std::vector<cv::Point2f> &points, int axes = 0);
 
 // mean distance between points
 double meanDistances(std::vector<cv::Point2f> &pts1, std::vector<cv::Point2f> &pts2);
