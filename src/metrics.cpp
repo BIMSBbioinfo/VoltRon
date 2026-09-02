@@ -182,7 +182,6 @@ Rcpp::IntegerVector generateOverlapMask(Rcpp::NumericVector& dsize,
                                      h,
                                      cv::Size((int) ssize[0], (int) ssize[1]));
   return matToMask(mask);
-  // return matToImage(mask);
 }
 
 double Entropy(cv::Mat& im1, cv::Mat& overlapMask, int bins = 256) {
@@ -362,6 +361,8 @@ TiledMetrics tiledAlignmentMetrics(const cv::Mat& im1,
                                    double minCoverage = 0.5,
                                    double varFactor   = 4.0)
 {
+  CV_Assert(nBins > 0 && nBins <= 256 && 256 % nBins == 0);
+  
   // L is the dynamic range. For CV_8U it is 255 by definition, which is one
   // reason to keep the data 8-bit: you cannot get L wrong.
   const double L  = 255.0;

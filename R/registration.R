@@ -3124,6 +3124,8 @@ computeManualPairwiseTransform <- function(
       reg[[1]][[2]] <- tfx$transformation
       reg$aligned_image <- tfx$aligned_image
       reg$ssim_map <- tfx$ssim_map
+      reg$alignment_stats$coarse[names(tfx$pre_alignment_metrics)] <- 
+        tfx$pre_alignment_metrics
       reg$alignment_stats$fine[names(tfx$alignment_metrics)] <- 
         tfx$alignment_metrics
     }
@@ -3249,12 +3251,7 @@ getRcppManualRegistration <- function(
   if(length(reg) > 2){
     
     # check SSIM map
-    ssim_map <-
-      if (!is.null(reg[[3]])) {
-        tmp <- reg[[3]]
-        # tmp[tmp < 0] <- 0
-        tmp
-      } else NA
+    ssim_map <- if (!is.null(reg[[3]])) reg[[3]] else NA
     
     # check alignment statistics
     alignment_stats <- list()
@@ -3660,6 +3657,8 @@ computeAutomatedPairwiseTransform <- function(
       reg$aligned_image <- tfx$aligned_image
       reg$overlay_image <- tfx$overlay_image
       reg$ssim_map <- tfx$ssim_map
+      reg$alignment_stats$coarse[names(tfx$pre_alignment_metrics)] <- 
+        tfx$pre_alignment_metrics
       reg$alignment_stats$fine[names(tfx$alignment_metrics)] <- 
         tfx$alignment_metrics
     }
@@ -3761,13 +3760,7 @@ getRcppAutomatedRegistration <- function(
     if (!is.null(reg[[5]])) magick::image_read(reg[[5]]) else NA
   
   # check SSIM maps
-  ssim_map <-
-    if (!is.null(reg[[6]])){
-      tmp <- reg[[6]]
-      # tmp[tmp < 0] <- 0
-      tmp
-      
-    } else NA
+  ssim_map <- if (!is.null(reg[[6]])) reg[[6]] else NA
   
   # check alignment statistics
   alignment_stats <- list()
@@ -3925,19 +3918,26 @@ getSimpleITKAutomatedRegistration <- function(
   mask <- generateOverlapMask(c(ref_info$width, ref_info$height),
                               initial_mapping[[1]][[1]],
                               c(query_info$width, query_info$height))
-  # mask <- magick::image_read(mask)
-  
+  mask_img <- magick::image_read(as.raster(t(mask) / 255))   
+
   # warp image
   query_image <- warpImage(ref_image = ref_image,
                            query_image = query_image,
                            mapping = initial_mapping)
+  
+  # compute pre accuracy
+  results_pre <- getAlignmentAccuracy(ref_image, 
+                                      query_image, 
+                                      mask_img,
+                                      "Coarse", 
+                                      FALSE)
+  results_pre[[1]] <- .collapse_xy(results_pre[[1]])
   
   # prepare images and masks
   fixed <- convertToSitkImage(ref_image)
   fixed <- SimpleITK::Cast(fixed, "sitkUInt8")
   moving <- convertToSitkImage(query_image)
   moving <- SimpleITK::Cast(moving, "sitkUInt8")
-  # mask <- SimpleITK::as.image(array(mask, rev(dim(mask))))
   mask <- SimpleITK::as.image(array(mask, dim(mask)))
   mask <- SimpleITK::Cast(mask, "sitkUInt8")
   
@@ -4003,21 +4003,18 @@ getSimpleITKAutomatedRegistration <- function(
                                   aligned_mask,
                                   "Fine", 
                                   compute_ssim_map)
+  results[[1]] <- .collapse_xy(results[[1]])
   
   # convert images
   overlay_image <-
     if (!is.null(results[[3]])) magick::image_read(results[[3]]) else NA
   
   # check SSIM maps
-  ssim_map <-
-    if (!is.null(results[[2]])){
-      tmp <- results[[2]]
-      # tmp[tmp < 0] <- 0
-      tmp
-    } else NA
+  ssim_map <- if (!is.null(results[[2]])) results[[2]] else NA
 
   # return
   return(list(aligned_image = aligned_image, 
+              pre_alignment_metrics = results_pre[[1]],
               alignment_metrics = results[[1]],
               ssim_map = ssim_map,
               overlay_image = overlay_image,
