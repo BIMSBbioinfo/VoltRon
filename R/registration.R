@@ -3926,11 +3926,14 @@ getSimpleITKAutomatedRegistration <- function(
                            mapping = initial_mapping)
   
   # compute pre accuracy
-  results_pre <- getAlignmentAccuracy(ref_image, 
-                                      query_image, 
-                                      mask_img,
-                                      "Coarse", 
-                                      FALSE)
+  results_pre <- getAlignmentAccuracy(
+    magick::image_convert(ref_image, 
+                          colorspace = "gray"), 
+    magick::image_convert(query_image, 
+                          colorspace = "gray"), 
+    mask_img,
+    "Coarse", 
+    FALSE)
   results_pre[[1]] <- .collapse_xy(results_pre[[1]])
   
   # prepare images and masks
@@ -3954,11 +3957,6 @@ getSimpleITKAutomatedRegistration <- function(
   elx$LogToConsoleOff()
   tmp <- elx$Execute()
   sitk_img <- SimpleITK::ReadImage(file.path(tmpdir, "result.0.tif"))
-  arr <- SimpleITK::as.array(sitk_img)
-  arr <- (arr - min(arr)) / (max(arr) - min(arr))
-  arr <- array(arr, dim = dim(arr))
-  arr <- aperm(arr, perm = c(2,1))
-  aligned_image <- magick::image_read(as.raster(arr))
   transform_param_map <- elx$GetTransformParameterMap()
   tfx_image <- SimpleITK::TransformixImageFilter()
   tfx_image$LogToConsoleOff()
@@ -3998,11 +3996,15 @@ getSimpleITKAutomatedRegistration <- function(
   unlink(tmpdir, recursive = TRUE)
   
   # calculate alignment accuracy
-  results <- getAlignmentAccuracy(ref_image, 
-                                  aligned_image, 
-                                  aligned_mask,
-                                  "Fine", 
-                                  compute_ssim_map)
+  aligned_image <- .sitk_to_magick(sitk_img)
+  results <- getAlignmentAccuracy(
+    magick::image_convert(ref_image, 
+                          colorspace = "gray"), 
+    magick::image_convert(aligned_image, 
+                          colorspace = "gray"), 
+    aligned_mask,
+    "Fine", 
+    compute_ssim_map)
   results[[1]] <- .collapse_xy(results[[1]])
   
   # convert images
@@ -4022,6 +4024,14 @@ getSimpleITKAutomatedRegistration <- function(
                 tfx_points = tfx_points,
                 tfx_image = tfx_image
               )))
+}
+
+.sitk_to_magick <- function(sitk_img, lo = 0, hi = 255){
+  arr <- SimpleITK::as.array(sitk_img)
+  arr <- pmin(pmax(arr, lo), hi)
+  arr <- (arr - lo) / (hi - lo)
+  arr <- aperm(array(arr, dim = dim(arr)), perm = c(2, 1))
+  magick::image_read(as.raster(arr))
 }
 
 ####
