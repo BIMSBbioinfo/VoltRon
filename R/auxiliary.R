@@ -80,9 +80,10 @@ fixVoltRon <- function(object) {
 ####
 
 .ALIGNMENT_ACCURACY_METRICS <- c(
+  "SSIM",
+  "Matte's MI",
   "Intersection",
-  "Bhattacharyya",
-  "Matte's MI"
+  "Bhattacharyya"
 )
 
 .ALIGNMENT_KEYPOINT_METRICS <- c(

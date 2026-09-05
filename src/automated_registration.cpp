@@ -570,7 +570,7 @@ void alignImages(Mat &im1,
                  const char* rotate_ref,
                  const bool run_Affine, 
                  const bool run_TPS, 
-                 const bool compute_matte_map,
+                 const bool compute_ssim_map,
                  Mat1d &accuracyMatte, 
                  std::map<std::string, double> &accuracy_coarse,
                  std::map<std::string, double> &accuracy_fine)
@@ -669,8 +669,10 @@ void alignImages(Mat &im1,
   if(is_faulty || !run_TPS){
     
     // compute matte map if finishing alignment
-    if(compute_matte_map)
-      accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
+    // if(compute_ssim_map)
+    //   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
+    if(compute_ssim_map)
+      accuracyMatte = getTiledAlignmentMetrics(im2Proc, im1Proc, alignmentMask);
     
     // change color map
     cv::addWeighted(im2Proc, 0.7, im1Proc, 0.3, 0, im1Proc);
@@ -720,8 +722,10 @@ void alignImages(Mat &im1,
     
     // get matte metric, process 
     accuracy_fine = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Fine");
-    if(compute_matte_map)
-      accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
+    // if(compute_ssim_map)
+    //   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
+    if(compute_ssim_map)
+      accuracyMatte = getTiledAlignmentMetrics(im2Proc, im1Proc, alignmentMask);
     
     // change color map
     cv::addWeighted(im2Proc, 0.7, im1Proc, 0.3, 0, im1Proc);
@@ -761,7 +765,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image,
                                              Rcpp::String matcher, 
                                              Rcpp::String method, 
                                              Rcpp::String nonrigid,
-                                             const bool compute_matte_map = true)
+                                             const bool compute_ssim_map = true)
 {
   // Return data
   Rcpp::List out(8);
@@ -791,7 +795,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image,
               flipflop_query.get_cstring(), flipflop_ref.get_cstring(),
               rotate_query.get_cstring(), rotate_ref.get_cstring(),
               run_Affine, run_TPS, 
-              compute_matte_map,
+              compute_ssim_map,
               accuracyMatte, 
               accuracy_coarse, 
               accuracy_fine);

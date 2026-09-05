@@ -37,6 +37,11 @@ cv::Mat generateOverlapMask(cv::Mat& ref_image,
                             Ptr<ThinPlateSplineShapeTransformer>& tps, 
                             cv::Size ssize);
 
+// get tiled alignment metrics
+cv::Mat1d getTiledAlignmentMetrics(cv::Mat &im1, 
+                                   cv::Mat &im2, 
+                                   cv::Mat &mask);
+
 // get alignment metrics
 std::map<std::string, double> getAlignmentMetrics(cv::Mat &im1, 
                                                   cv::Mat &im2, 
