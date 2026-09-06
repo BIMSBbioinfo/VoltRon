@@ -35,8 +35,9 @@
 #' @importFrom data.table fread
 #' @importFrom ids random_id
 #'
+#' @return VoltRon object
+#' 
 #' @export
-#'
 importXenium <- function(
   dir.path,
   selected_assay = "Gene Expression",
@@ -311,9 +312,10 @@ importXenium <- function(
 #' among 1 to 8. Lower incides of resolutions have higher higher resolutions,
 #' e.g. 1 for 35416x25778. Note that you may need to allocate larger memory of
 #' Java to import higher resolution images.
-#'
+#' 
+#' @returns NULL
+#' 
 #' @export
-#'
 generateXeniumImage <- function(
   dir.path,
   increase.contrast = TRUE,
@@ -426,9 +428,10 @@ generateXeniumImage <- function(
 #' @importFrom magick image_read image_info
 #' @importFrom rjson fromJSON
 #' @importFrom utils read.csv
-#'
+#' 
+#' @return VoltRon object
+#' 
 #' @export
-#'
 importVisium <- function(
   dir.path,
   selected_assay = "Gene Expression",
@@ -572,9 +575,10 @@ importVisium <- function(
 #' @importFrom magick image_read image_info
 #' @importFrom rjson fromJSON
 #' @importFrom utils read.csv
-#'
+#' 
+#' @return VoltRon object
+#' 
 #' @export
-#'
 importVisiumHD <- function(
   dir.path,
   bin.size = "8",
@@ -705,6 +709,8 @@ importVisiumHD <- function(
 #' @param filename the path to h5 file
 #'
 #' @importFrom Matrix sparseMatrix
+#' 
+#' @returns a sparse matrix of 10X counts
 #'
 #' @export
 import10Xh5 <- function(filename) {
@@ -784,9 +790,10 @@ import10Xh5 <- function(filename) {
 #' @importFrom dplyr %>% full_join
 #' @importFrom utils read.csv
 #' @importFrom magick image_info image_read
-#'
+#' 
+#' @return VoltRon object
+#' 
 #' @export
-#'
 importGeoMx <- function(
   dcc.path,
   pkc.file,
@@ -1516,6 +1523,8 @@ rescaleGeoMxImage <- function(img, summary, imageinfo, resolution_level) {
 #' @param feature_name the name/key of the feature set.
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
+#' @return VoltRon object
+#' 
 #' @export
 importCosMx <- function(
   path,
@@ -1888,7 +1897,9 @@ importCosMxCSV <- function(
 #' @importFrom magick image_read image_contrast image_composite image_blank
 #' @importFrom EBImage writeImage
 #' @importFrom stringr str_pad
-#'
+#' 
+#' @return a magick-image object
+#' 
 #' @export
 generateCosMxImage <- function(
   dir.path,
@@ -2047,9 +2058,10 @@ generateCosMxImage <- function(
 #' @importFrom ids random_id
 #' @importFrom grDevices as.raster
 #' @importFrom EBImage as.Image
-#'
+#' 
+#' @return VoltRon object
+#' 
 #' @export
-#'
 importGenePS <- function(
   dir.path,
   assay_name = "GenePS",
@@ -2276,8 +2288,10 @@ importGenePS <- function(
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom methods as
+#' 
+#' @return VoltRon object
+#' 
 #' @export
-#'
 importSTOmics <- function(
   h5ad.path,
   assay_name = "STOmics",
@@ -2372,7 +2386,9 @@ importSTOmics <- function(
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom magick image_info image_read
-#'
+#' 
+#' @return VoltRon object
+#' 
 #' @export
 importPhenoCycler <- function(
   dir.path,
@@ -2734,7 +2750,9 @@ readPhenoCyclerMat <- function(
 #'
 #' @importFrom methods as
 #' @importFrom Matrix t
-#'
+#' 
+#' @return VoltRon object
+#' 
 #' @export
 importOpenST <- function(
   h5ad.path,
@@ -2864,7 +2882,9 @@ importOpenST <- function(
 #' @param ... additional parameters passed to \link{formVoltRon}
 #'
 #' @importFrom utils read.table
-#'
+#' 
+#' @return VoltRon object
+#' 
 #' @export
 importDBITSeq <- function(
   path.rna,
@@ -2984,7 +3004,9 @@ importDBITSeq <- function(
 #'              system.file("extdata", "DAPI.tif", package = "VoltRon"))
 #' vrdata <- importImageData(imgfile, spatial = "main",
 #'                                    channels = c("DAPI", "DAPI2"))
-#'
+#'                                    
+#' @return VoltRon object
+#' 
 #' @export
 importImageData <- function(
   image,
@@ -3100,7 +3122,7 @@ importImageData <- function(
 #' import an QuPath-quantified IF assay as VoltRon object
 #'
 #' @param measurements the path to the QuPath measurements file that includes
-#' intensity of channel intensities for each cell.
+#' channel intensities for each cell.
 #' @param image a single or a list of image paths or magick-image objects
 #' @param segments Either a list of segments. This will result in a second 
 #' assay in the VoltRon object to be created
@@ -3116,7 +3138,9 @@ importImageData <- function(
 #'
 #' @importFrom magick image_read image_info
 #' @importFrom data.table data.table fread
-#'
+#' 
+#' @return VoltRon object
+#' 
 #' @export
 importQuPathIF <- function(
     measurements,
@@ -3342,6 +3366,8 @@ importImage <- function(
 #' @param type spatial entity type: ROI or cell
 #'
 #' @importFrom dplyr tibble
+#' 
+#' @return a list of dataframes each associated with segments
 #'
 #' @export
 generateSegments <- function(object, type = c("ROI", "cell")) {
@@ -3381,6 +3407,8 @@ generateSegments <- function(object, type = c("ROI", "cell")) {
 #' @param file the GeoJSON file, typically to be used by QuPath software.
 #'
 #' @importFrom rjson fromJSON
+#' 
+#' @returns NULL
 #'
 #' @export
 generateGeoJSON <- function(segments, file) {
@@ -3480,6 +3508,8 @@ generateGeoJSON <- function(segments, file) {
 #' Function that returns the channel names of an image in a ome.tiff file
 #'
 #' @param ome.tiff location to ome.tiff file
+#' 
+#' @returns a vector of channel names
 #'
 #' @export
 getOmeTiffChannels <- function(ome.tiff){

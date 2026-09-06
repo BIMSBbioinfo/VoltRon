@@ -39,9 +39,7 @@ getRcppManualRegistration(
 }
 Defaults to \code{"Affine"}.}
 
-\item{compute_ssim_map}{Should SSIM map be computed ?}
-
-\item{nonrigid_method}{Non-rigid interpolation method, used only when
+\item{nonrigid}{Non-rigid interpolation method, used only when
 \code{method} includes \code{"Non-Rigid"}. One of:
 \itemize{
   \item \code{"TPS (OpenCV)"}
@@ -49,8 +47,10 @@ Defaults to \code{"Affine"}.}
 }
 Defaults to \code{"TPS (OpenCV)"}.
 \code{"BSpline (SimpleITK)"} requires the \pkg{SimpleITK} package
-built with the Elastix module; see the package README for binaries, or 
+built with the Elastix module; see the package README for binaries, 
 or instructions for installation.}
+
+\item{compute_ssim_map}{Should SSIM map be computed ?}
 }
 \description{
 Manual registration workflow with Rcpp

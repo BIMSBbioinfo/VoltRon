@@ -316,21 +316,8 @@ void histStats(const cv::Mat& h256, double& n, double& mu, double& var) {
   if (var < 0.0) var = 0.0;   // clamp the tiny negative that rounding can give
 }
 
-// ---------------------------------------------------------------------------
 // Collapse a 256-bin histogram into nBins by summing adjacent groups, then
 // L1-normalise so it is a probability distribution.
-//
-// WHY REBIN AT ALL: a 50x50 tile has only 2500 pixels. Spread over 256 bins
-// that averages under 10 counts per bin, so most bins are near-empty and the
-// comparison is dominated by sampling noise. 32 bins gives ~78 counts per bin.
-// Fewer bins = more robust but coarser. nBins must divide 256.
-//
-// WHY L1-NORMALISE: intersection is scale-dependent -- without normalising it
-// just reports pixel counts. After normalising, intersection lands in [0,1] and
-// equals 1 - total-variation distance. It also simplifies OpenCV's
-// Bhattacharyya, whose 1/sqrt(H1bar*H2bar*N^2) prefactor becomes exactly 1,
-// leaving the clean Hellinger form sqrt(1 - sum(sqrt(h1*h2))).
-// ---------------------------------------------------------------------------
 cv::Mat rebinAndNormalise(const cv::Mat& h256, int nBins) {
   const int group = 256 / nBins;
   cv::Mat out = cv::Mat::zeros(nBins, 1, CV_32F);
@@ -343,16 +330,6 @@ cv::Mat rebinAndNormalise(const cv::Mat& h256, int nBins) {
   return out;
 }
 
-// ---------------------------------------------------------------------------
-// tiledAlignmentMetrics
-//
-//   im1, im2     CV_8U, same size. Multi-channel input uses channel 0.
-//   mask         CV_8U same size, non-zero = valid. Pass an empty Mat for all.
-//   tile         tile edge in pixels (50 as requested)
-//   nBins        histogram bins for the two histogram metrics (must divide 256)
-//   minCoverage  fraction of a tile that must be inside the mask to count
-//   varFactor    flat-tile rejection threshold, as a multiple of C2
-// ---------------------------------------------------------------------------
 TiledMetrics tiledAlignmentMetrics(const cv::Mat& im1,
                                    const cv::Mat& im2,
                                    const cv::Mat& mask,
@@ -371,10 +348,7 @@ TiledMetrics tiledAlignmentMetrics(const cv::Mat& im1,
   
   // Flat-tile rejection threshold. Two INDEPENDENT near-constant patches score
   // SSIM ~= 1.0 and intersection ~= 1.0, because when the variances are small
-  // next to C2 the constant dominates and forces the ratio toward 1. Empty
-  // background tiles would then report perfect agreement while measuring
-  // nothing, and in a tissue image most tiles are background. Requiring
-  // max(varA,varB) >= varFactor*C2 (default 4*58.52 ~= 234) drops them.
+  // next to C2 the constant dominates and forces the ratio toward 1.
   const double varThresh = varFactor * C2;
   
   // histogram setup, hoisted out of the loop
@@ -409,20 +383,18 @@ TiledMetrics tiledAlignmentMetrics(const cv::Mat& im1,
       const int tw = std::min(tile, im1.cols - x0);
       const cv::Rect roi(x0, y0, tw, th);
       
-      // ROI views -- no pixel data is copied here.
+      // per tile
       const cv::Mat ta = im1(roi);
       const cv::Mat tb = im2(roi);
       const cv::Mat tm = mask.empty() ? cv::Mat() : mask(roi);
       
-      // --- GUARD 1: mask coverage. Cheap, so do it before any real work.
+      // mask coverage. 
       const double area  = static_cast<double>(tw) * static_cast<double>(th);
       const double valid = tm.empty() ? area
       : static_cast<double>(cv::countNonZero(tm));
       if (valid < minCoverage * area) { ++R.n_drop_coverage; continue; }
       
-      // --- ONE histogram per image. This is the whole trick: it yields the
-      //     counts, the exact mean, the exact variance, and (after rebinning)
-      //     the distributions for intersection and Bhattacharyya.
+      // histogram per tile
       cv::calcHist(&ta, 1, channels, tm, h1, 1, &histSize256, &histRange);
       cv::calcHist(&tb, 1, channels, tm, h2, 1, &histSize256, &histRange);
       
@@ -430,11 +402,6 @@ TiledMetrics tiledAlignmentMetrics(const cv::Mat& im1,
       histStats(h1, n1, mu1, var1);
       histStats(h2, n2, mu2, var2);
       if (n1 <= 1.0 || n2 <= 1.0) { ++R.n_drop_coverage; continue; }
-      
-      // --- GUARD 2: flat tiles. Skip only when BOTH are near-constant. If one
-      //     has texture and the other does not, that is a real mismatch and we
-      //     want SSIM to report it as low, not to discard the tile.
-      // if (std::max(var1, var2) < varThresh) { ++R.n_drop_flat; continue; }
       
       // --- histogram metrics, off the rebinned pair (no extra image pass)
       const cv::Mat p1 = rebinAndNormalise(h1, nBins);
@@ -452,8 +419,7 @@ TiledMetrics tiledAlignmentMetrics(const cv::Mat& im1,
       // done in double and the usual cancellation worry does not apply here.
       const double cov = exy - mu1 * mu2;
       
-      // Standard SSIM with alpha=beta=gamma=1 and C3=C2/2, which collapses the
-      // three components into two factors: luminance, then contrast*structure.
+      // calculate SSIM 
       const double lum = (2.0 * mu1 * mu2 + C1) / (mu1 * mu1 + mu2 * mu2 + C1);
       const double cs  = (2.0 * cov       + C2) / (var1      + var2      + C2);
       const double ssim = lum * cs;

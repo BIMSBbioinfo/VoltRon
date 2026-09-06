@@ -54,7 +54,7 @@
 
 ## Installation
 
-You can install for Linux, Windows and MacOS setups via [r-universe](https://bimsbbioinfo.r-universe.dev/builds) which you may require 
+You can install for Windows and MacOS and some Linux setups via [r-universe](https://bimsbbioinfo.r-universe.dev/builds) which requires 
 R version >= 4.6.0:
 
 ``` r

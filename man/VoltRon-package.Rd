@@ -15,7 +15,7 @@ Authors:
   \item Artür Manukyan \email{artur-man@hotmail.com} (\href{https://orcid.org/0000-0002-0441-9517}{ORCID})
   \item Ella Bahry
   \item Raj Prateek Rai
-  \item Wei-che Ko
+  \item Wei-Che Ko
   \item Markus Landthaler
   \item Altuna Akalin
 }

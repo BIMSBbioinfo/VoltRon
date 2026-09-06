@@ -355,7 +355,7 @@ formVoltRon <- function(
   colnames(data) <- entityID
 
   # Coordinates
-  if (!missing(coords)) {
+  if (!missing(coords) && !is.null(coords)) {
     if (inherits(coords, "data.frame")) {
       coords <- as.matrix(coords)
     }
@@ -1118,7 +1118,7 @@ subsetVoltRon <- function(
 #' @param image the subseting string passed to \link[magick]{image_crop}
 #' @param interactive TRUE if interactive subsetting on the image is demanded
 #' @param use.points.only if \code{interactive} is \code{TRUE}, use spatial points instead of the reference image
-#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} argument of \link[ggplot2]{shinyApp}. For more information, see \link[ggplot2]{runApp}
+#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} argument of \link[shiny]{shinyApp}. For more information, see \link[shiny]{runApp}
 #'
 #' @rdname subset
 #' @aliases subset

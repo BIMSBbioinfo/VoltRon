@@ -563,7 +563,7 @@ connectivity <- data.frame(
 
 # adjacent sections are 10 micron apart, and pairs 300 micron
 library(rjson)
-params <- rjson::fromJSON("scalefactors_json.json")
+params <- rjson::fromJSON(file = "scalefactors_json.json")
 zlocation <- c(0, 10, 300, 310)*params$tissue_lowres_scalef
 
 # add connectivity information to the block
@@ -669,7 +669,7 @@ VoltRon allows performing non-rigid image registration and spatial data alignmen
 conduct a **coarse-to-fine alignment** workflow where we first perform a **global alignment** using FLANN or BRUTE-FORCE methods, and then perform 
 a **fine alignment** using SimpleITK. We first use either affine or homography transformation and then interpolate images, points and segments using B-spline method in SimpleITK.
 
-To use B-spline based fine alignment, we require to install the SimpleITK package as below. 
+To use B-spline based fine alignment, we need to install the SimpleITK package as below. 
 You can find releases of SimpleITK R package binaries in the [releases](https://github.com/BIMSBbioinfo/SimpleITKRInstaller/releases) page.
 
 ```{r class.source="watch-out", eval = FALSE} 
@@ -709,7 +709,7 @@ More information on the spatial datasets and the study can also be found on the 
 
 ### Image Free Alignment
 
-In cases where at least one of the spatial omics datasets is missing their images, we can use the spatial
+In cases where at least one of the spatial omics datasets is missing its images, we can use the spatial
 distribution of the cells, spots or observations from the VoltRon object to align to another objects with either observations or images. 
 
 We first import the DBIT-Seq data, and we also subset based on transcript 

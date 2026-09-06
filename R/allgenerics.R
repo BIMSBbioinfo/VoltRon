@@ -521,7 +521,7 @@ setGeneric("vrImages<-", function(object, ..., value) {
 #' vrImageNames
 #'
 #' Get names of all images. 
-#' The vrImage objects are deprecated for \code{vrSpatial} class.
+#' The vrImage objects are deprecated in favor of the \code{vrSpatial} class.
 #'
 #' @param object a VoltRon or vrAssay object.
 #' @param ... arguments passed to other methods.

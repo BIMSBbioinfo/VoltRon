@@ -18,7 +18,7 @@ importQuPathIF(
 }
 \arguments{
 \item{measurements}{the path to the QuPath measurements file that includes
-intensity of channel intensities for each cell.}
+channel intensities for each cell.}
 
 \item{image}{a single or a list of image paths or magick-image objects}
 
@@ -39,6 +39,9 @@ typically an integer starting from 1}
 pyramidal image, typically an integer starting from 1}
 
 \item{...}{additional parameters passed to \link{formVoltRon}}
+}
+\value{
+VoltRon object
 }
 \description{
 import an QuPath-quantified IF assay as VoltRon object

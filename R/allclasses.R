@@ -18,7 +18,7 @@ setClassUnion(
 
 #' The vrImage (VoltRon Image) Class
 #' 
-#' The vrImage objects are deprecated for \code{vrSpatial} class.
+#' The vrImage objects are deprecated in favor of the \code{vrSpatial} class.
 #'
 #' @slot coords spatial coordinates of the assay
 #' @slot segments spatial coordinates of the segments, if available

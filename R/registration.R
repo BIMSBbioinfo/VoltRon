@@ -12,7 +12,7 @@
 #' @param keypoints (DEPRECATED) a list of tables, each points to matching keypoints from registered images.
 #' @param mapping_parameters for manual image registration, a list of tables, each points to matching keypoints from registered images, and for automated image registration, a set of mapping parameters
 #' @param interactive if TRUE, the shiny application for image registration will be triggered, otherwise 'mapping_parameters' or 'keypoints' should be defined.
-#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} argument of \link[ggplot2]{shinyApp}. For more information, see \link[ggplot2]{runApp}
+#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} argument of \link[shiny]{shinyApp}. For more information, see \link[shiny]{runApp}
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs show hide
@@ -487,8 +487,8 @@ getSideBar <- function(params = NULL) {
              `data-placement` = "right",
              title = 
                paste0(
-                 "In case of users prefering to manually registering images ",
-                 ", user can select keypoints by left clicking on images. ",
+                 "In case of users prefering to manually registering images, ",
+                 "users can select keypoints by left clicking on images. ",
                  "Equal number of keypoints for each pairs of images have to ",
                  "selected."
                )
@@ -572,7 +572,7 @@ getSideBar <- function(params = NULL) {
              title = 
                paste0(
                  "Number of matching keypoints across images. ", 
-                 "Larger values indicate the quality of detected keypoints. d"
+                 "Larger values indicate the quality of detected keypoints."
                )
       )),
       p(span("Inlier Perc.:",
@@ -594,7 +594,7 @@ getSideBar <- function(params = NULL) {
                paste0(
                  "The standard deviation of reference and query keypoints across x and y ", 
                  "axes. Values smaller than 1 or larger than image extent indicate a ", 
-                 "degenerate"
+                 "degenerate image transformation."
                )
       )),
       p(span("sd grid (x,y) (>1?):",
@@ -607,7 +607,7 @@ getSideBar <- function(params = NULL) {
                  "axes. These points are selected in a grid fashion from the ", 
                  "query image and transformed. Then their coordinates are ", 
                  "checked. Values smaller than 1 or larger than image extent indicate a ", 
-                 "degenerate"
+                 "degenerate image transformation."
                )
       )),
       p(span("Median Distance:",
@@ -617,7 +617,7 @@ getSideBar <- function(params = NULL) {
              title = 
                paste0(
                  "The median of the distance between paired reference image ", 
-                 "keypoints and registered query image keypoints.",
+                 "keypoints and registered query image keypoints. ",
                  "This value is typically close to zero or around 1 (in pixel) ",
                  "units for accurate transformation matrix calculations."
                )
@@ -990,7 +990,7 @@ updateParameterPanels <- function(len_images, params, input, output, session) {
       updateSelectInput(
         session,
         "nonrigid",
-        choices <- if(input$Method != "Non-Rigid") 
+        choices = if(input$Method != "Non-Rigid") 
           .NONRIGID_METHODS 
         else 
           "TPS (OpenCV)",
@@ -2027,6 +2027,26 @@ transferParameterInput <- function(params, image_list) {
 .NONRIGID_METHODS <- c("TPS (OpenCV)",
                        "BSpline (SimpleITK)")
 
+.ALIGNMENT_ACCURACY_METRICS <- c(
+  "SSIM",
+  "Matte's MI",
+  "Intersection",
+  "Bhattacharyya"
+)
+
+.ALIGNMENT_KEYPOINT_METRICS <- c(
+  "# of Matches",
+  "Inlier Perc.",
+  "sd query(x) (>1?)",
+  "sd query(y) (>1?)",
+  "sd ref(x) (>1?)",
+  "sd ref(y) (>1?)",
+  "sd grid (x) [w,h]?",
+  "sd grid (y) [w,h]?",
+  "Median distance",
+  "Degenerate"
+)
+
 #' @noRd
 param_method <- function(methods) {
   c(
@@ -2040,14 +2060,14 @@ param_method <- function(methods) {
 
 #' @noRd
 param_nonrigid_method <- function() {
-  c("@param nonrigid_method Non-rigid interpolation method, used only when",
+  c("@param nonrigid Non-rigid interpolation method, used only when",
     paste0("  \\code{method} includes \\code{\"Non-Rigid\"}. One of:"),
     "  \\itemize{",
     paste0("    \\item \\code{\"", .NONRIGID_METHODS, "\"}"),
     "  }",
     paste0("  Defaults to \\code{\"", .NONRIGID_METHODS[1], "\"}."),
     "  \\code{\"BSpline (SimpleITK)\"} requires the \\pkg{SimpleITK} package",
-    "  built with the Elastix module; see the package README for binaries, or ",
+    "  built with the Elastix module; see the package README for binaries, ",
     "  or instructions for installation.")
 }
 
@@ -2844,7 +2864,8 @@ transformImageQueryList <- function(image_list, input) {
 
 #' warpImage
 #'
-#' Warping a query image given a homography image
+#' Warping a query image onto a reference image given a set of mapping 
+#' functions.
 #'
 #' @param ref_image reference image
 #' @param query_image query image
@@ -2929,7 +2950,7 @@ warpImage <- function(ref_image, query_image, mapping) {
 
 #' getRcppWarpImage
 #'
-#' Warping a query image given a homography image
+#' Warping a query image onto a reference image using SimpleITK.
 #'
 #' @param query_image query image
 #' @param mapping a list of the homography matrices and TPS keypoints
@@ -4015,8 +4036,6 @@ getRcppAutomatedRegistration <- function(
 }
 
 #' getSimpleITKAutomatedRegistration
-#'
-#' Automated registration workflows with Rcpp
 #'
 #' @param ref_image reference image
 #' @param query_image query image

@@ -27,5 +27,5 @@ to "all", then provides a summary of spatial systems across all assays}
 }
 \description{
 Get names of all images. 
-The vrImage objects are deprecated for \code{vrSpatial} class.
+The vrImage objects are deprecated in favor of the \code{vrSpatial} class.
 }

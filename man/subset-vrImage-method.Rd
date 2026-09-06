@@ -17,5 +17,5 @@
 }
 \description{
 Given a vrImage object, subset the object given one of the attributes.
-The vrImage objects are deprecated for \code{vrSpatial} class.
+The vrImage objects are deprecated in favor of the \code{vrSpatial} class.
 }

@@ -214,7 +214,7 @@ subsetvrImage <- function(x, subset, spatialpoints = NULL, image = NULL) {
 #' Subsetting vrImage objects
 #'
 #' Given a vrImage object, subset the object given one of the attributes.
-#' The vrImage objects are deprecated for \code{vrSpatial} class.
+#' The vrImage objects are deprecated in favor of the \code{vrSpatial} class.
 #'
 #' @param x A vrImage object
 #' @param subset Logical statement for subsetting
@@ -1602,8 +1602,8 @@ setMethod("vrSegments<-", "vrSpatial", vrSegmentsReplacevrImage)
 #' @param max.pixel.size the initial width of the object image
 #' @param use.points.only use spatial points instead of the reference image
 #' @param shiny.options a list of shiny options (launch.browser, host, 
-#' port etc.) passed \code{options} argument of \link[ggplot2]{shinyApp}. 
-#' For more information, see \link[ggplot2]{runApp}
+#' port etc.) passed \code{options} argument of \link[shiny]{shinyApp}. 
+#' For more information, see \link[shiny]{runApp}
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs

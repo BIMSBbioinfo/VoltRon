@@ -37,7 +37,7 @@
 
 \item{use.points.only}{if \code{interactive} is \code{TRUE}, use spatial points instead of the reference image}
 
-\item{shiny.options}{a list of shiny options (launch.browser, host, port etc.) passed \code{options} argument of \link[ggplot2]{shinyApp}. For more information, see \link[ggplot2]{runApp}}
+\item{shiny.options}{a list of shiny options (launch.browser, host, port etc.) passed \code{options} argument of \link[shiny]{shinyApp}. For more information, see \link[shiny]{runApp}}
 }
 \description{
 Given a VoltRon object, subset the object given one of the attributes
