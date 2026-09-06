@@ -24,7 +24,8 @@ generateCosMxImage(
 
 \item{verbose}{verbose}
 
-\item{...}{additional parameters passed to the \link{writeImage} function}
+\item{...}{additional parameters passed to the \link[EBImage]{writeImage} 
+function}
 }
 \description{
 Generates a low resolution Morphology image of the CosMx experiment

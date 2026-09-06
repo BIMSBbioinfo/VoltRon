@@ -12,7 +12,7 @@
 #' @param keypoints (DEPRECATED) a list of tables, each points to matching keypoints from registered images.
 #' @param mapping_parameters for manual image registration, a list of tables, each points to matching keypoints from registered images, and for automated image registration, a set of mapping parameters
 #' @param interactive if TRUE, the shiny application for image registration will be triggered, otherwise 'mapping_parameters' or 'keypoints' should be defined.
-#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
+#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} argument of \link[ggplot2]{shinyApp}. For more information, see \link[ggplot2]{runApp}
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs show hide
@@ -384,13 +384,7 @@ getSideBar <- function(params = NULL) {
         selectInput(
           "Method",
           "Method",
-          choices = c(
-            "Affine",
-            "Homography",
-            "Non-Rigid",
-            "Affine + Non-Rigid",
-            "Homography + Non-Rigid"
-          ),
+          choices = .METHODS,
           selected = ifelse(
             is.null(params[["Method"]]),
             "Homography",
@@ -450,10 +444,7 @@ getSideBar <- function(params = NULL) {
         selectInput(
           "nonrigid",
           "Non-Rigid Method",
-          choices = c(
-            "TPS (OpenCV)",
-            "BSpline (SimpleITK)"
-          ),
+          choices = .NONRIGID_METHODS,
           selected = ifelse(
             is.null(params[["nonrigid"]]),
             "TPS (OpenCV)",
@@ -999,10 +990,10 @@ updateParameterPanels <- function(len_images, params, input, output, session) {
       updateSelectInput(
         session,
         "nonrigid",
-        choices = c(
+        choices <- if(input$Method != "Non-Rigid") 
+          .NONRIGID_METHODS 
+        else 
           "TPS (OpenCV)",
-          if(input$Method != "Non-Rigid") "BSpline (SimpleITK)" else NULL
-        ),
         selected = "TPS (OpenCV)"
       )
     } else {
@@ -1013,12 +1004,7 @@ updateParameterPanels <- function(len_images, params, input, output, session) {
   observeEvent(input$automatictag, {
     if (input$automatictag) {
       # Method and Matcher
-      choices <- c(
-        "Affine",
-        "Homography",
-        "Affine + Non-Rigid",
-        "Homography + Non-Rigid"
-      )
+      choices <- .METHODS[!.METHODS %in% c("Non-Rigid")]
       selected <- ifelse(
         is.null(params[["Method"]]),
         choices[1],
@@ -1051,13 +1037,7 @@ updateParameterPanels <- function(len_images, params, input, output, session) {
       }
     } else {
       # Method and Matcher
-      choices <- c(
-        "Affine",
-        "Homography",
-        "Affine + Non-Rigid",
-        "Homography + Non-Rigid",
-        "Non-Rigid"
-      )
+      choices <- .METHODS
       selected <- ifelse(
         is.null(params[["Method"]]),
         choices[1],
@@ -2036,6 +2016,39 @@ transferParameterInput <- function(params, image_list) {
   }
 
   input
+}
+
+.METHODS <- c("Affine",
+              "Homography",
+              "Affine + Non-Rigid",
+              "Homography + Non-Rigid",
+              "Non-Rigid")
+
+.NONRIGID_METHODS <- c("TPS (OpenCV)",
+                       "BSpline (SimpleITK)")
+
+#' @noRd
+param_method <- function(methods) {
+  c(
+    "@param method Registration method. One of:",
+    paste0("  \\itemize{"),
+    paste0("    \\item \\code{\"", methods, "\"}"),
+    "  }",
+    paste0("  Defaults to \\code{\"", methods[1], "\"}.")
+  )
+}
+
+#' @noRd
+param_nonrigid_method <- function() {
+  c("@param nonrigid_method Non-rigid interpolation method, used only when",
+    paste0("  \\code{method} includes \\code{\"Non-Rigid\"}. One of:"),
+    "  \\itemize{",
+    paste0("    \\item \\code{\"", .NONRIGID_METHODS, "\"}"),
+    "  }",
+    paste0("  Defaults to \\code{\"", .NONRIGID_METHODS[1], "\"}."),
+    "  \\code{\"BSpline (SimpleITK)\"} requires the \\pkg{SimpleITK} package",
+    "  built with the Elastix module; see the package README for binaries, or ",
+    "  or instructions for installation.")
 }
 
 ####
@@ -3307,11 +3320,11 @@ computeManualPairwiseTransform <- function(
 #' @param query_image query image
 #' @param ref_image reference image
 #' @param query_landmark query landmark points
-#' @param reference_landmark refernece landmark points
+#' @param reference_landmark reference landmark points
 #' @param invert_query invert query image
 #' @param invert_ref invert reference image
-#' @param method the automated registration method, either TPS or Homography+TPS
-#' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
+#' @eval param_method(.METHODS)
+#' @eval param_nonrigid_method()
 #' @param compute_ssim_map Should SSIM map be computed ? 
 #' 
 #' @importFrom magick image_read image_data
@@ -3324,7 +3337,7 @@ getRcppManualRegistration <- function(
   reference_landmark,
   invert_query = FALSE,
   invert_ref = FALSE,
-  method = "Homography",
+  method = "Affine",
   nonrigid = "TPS (OpenCV)", 
   compute_ssim_map = TRUE
 ) {
@@ -3843,7 +3856,7 @@ computeAutomatedPairwiseTransform <- function(
 
 #' getRcppAutomatedRegistration
 #'
-#' Automated registration workflos with Rcpp
+#' Automated registration workflows with Rcpp
 #'
 #' @param ref_image reference image
 #' @param query_image query image
@@ -3856,8 +3869,8 @@ computeAutomatedPairwiseTransform <- function(
 #' @param rotate_query rotation of query image
 #' @param rotate_ref rotation of reference image
 #' @param matcher the matching method for landmarks/keypoints FLANN or BRUTE-FORCE
-#' @param method the automated registration method, Homography or Homography+TPS
-#' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
+#' @eval param_method(.METHODS[!.METHODS %in% c("Non-Rigid")])
+#' @eval param_nonrigid_method()
 #' @param compute_ssim_map Should SSIM map be computed ? 
 #' 
 #' @importFrom magick image_read image_data
@@ -3875,7 +3888,7 @@ getRcppAutomatedRegistration <- function(
   rotate_query = "0",
   rotate_ref = "0",
   matcher = "FLANN",
-  method = "Homography",
+  method = "Affine",
   nonrigid = "TPS (OpenCV)",
   compute_ssim_map = TRUE
 ) {
@@ -4003,7 +4016,7 @@ getRcppAutomatedRegistration <- function(
 
 #' getSimpleITKAutomatedRegistration
 #'
-#' Automated registration workflos with Rcpp
+#' Automated registration workflows with Rcpp
 #'
 #' @param ref_image reference image
 #' @param query_image query image

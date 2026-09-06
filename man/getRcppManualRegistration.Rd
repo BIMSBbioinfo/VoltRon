@@ -11,7 +11,7 @@ getRcppManualRegistration(
   reference_landmark,
   invert_query = FALSE,
   invert_ref = FALSE,
-  method = "Homography",
+  method = "Affine",
   nonrigid = "TPS (OpenCV)",
   compute_ssim_map = TRUE
 )
@@ -23,17 +23,34 @@ getRcppManualRegistration(
 
 \item{query_landmark}{query landmark points}
 
-\item{reference_landmark}{refernece landmark points}
+\item{reference_landmark}{reference landmark points}
 
 \item{invert_query}{invert query image}
 
 \item{invert_ref}{invert reference image}
 
-\item{method}{the automated registration method, either TPS or Homography+TPS}
-
-\item{nonrigid}{the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"}
+\item{method}{Registration method. One of:
+\itemize{
+  \item \code{"Affine"}
+  \item \code{"Homography"}
+  \item \code{"Affine + Non-Rigid"}
+  \item \code{"Homography + Non-Rigid"}
+  \item \code{"Non-Rigid"}
+}
+Defaults to \code{"Affine"}.}
 
 \item{compute_ssim_map}{Should SSIM map be computed ?}
+
+\item{nonrigid_method}{Non-rigid interpolation method, used only when
+\code{method} includes \code{"Non-Rigid"}. One of:
+\itemize{
+  \item \code{"TPS (OpenCV)"}
+  \item \code{"BSpline (SimpleITK)"}
+}
+Defaults to \code{"TPS (OpenCV)"}.
+\code{"BSpline (SimpleITK)"} requires the \pkg{SimpleITK} package
+built with the Elastix module; see the package README for binaries, or 
+or instructions for installation.}
 }
 \description{
 Manual registration workflow with Rcpp

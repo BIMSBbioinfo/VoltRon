@@ -16,10 +16,10 @@ formSpatial(
 
 \item{segments}{the list of segments each associated with a spatial point}
 
-\item{image}{a singelton or list of images as magick-image objects}
+\item{image}{a singleton or list of images as magick-image objects}
 
-\item{main_channel}{the key of the main channel of vrImage object}
+\item{main_channel}{the key of the main channel of vrSpatial object}
 }
 \description{
-Create a vrImage (VoltRon image) object
+Create a vrSpatial object
 }

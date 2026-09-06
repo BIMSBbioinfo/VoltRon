@@ -60,7 +60,7 @@ setMethod("updateAssay", "vrAssayV2", updateAssayvrAssayV2)
 #' @param data the feature matrix of spatialpoints
 #' @param coords the coordinates of the spatial points
 #' @param segments the list of segments each associated with a spatial point (optional)
-#' @param image a singelton or list of images as magick-image objects
+#' @param image a singleton or list of images as magick-image objects
 #' @param params additional parameters of the object
 #' @param type the type of the assay (tile, molecule, cell, spot or ROI)
 #' @param name the name of the assay
@@ -68,7 +68,7 @@ setMethod("updateAssay", "vrAssayV2", updateAssayvrAssayV2)
 #' @param main_spatial the name of the main spatial coordinate system
 #' @param main_featureset the name of the main_featureset
 #' @param assay_version the assay version
-#' @param ... additional arguements passed to \link{formSpatial}
+#' @param ... additional arguments passed to \link{formSpatial}
 #'
 #' @importFrom methods new
 #'
@@ -247,7 +247,7 @@ subsetvrAssay <- function(
 #' @param subset Logical statement for subsetting
 #' @param spatialpoints the set of spatial points to subset the object
 #' @param features the set of features to subset the object
-#' @param image the subseting string passed to \link{image_crop}
+#' @param image the subseting string passed to \link[magick]{image_crop}
 #'
 #' @method subset vrAssay
 #' @order 4
@@ -265,7 +265,7 @@ setMethod("subset", "vrAssay", subsetvrAssay)
 #' @param subset Logical statement for subsetting
 #' @param spatialpoints the set of spatial points to subset the object
 #' @param features the set of features to subset the object
-#' @param image the subseting string passed to \link{image_crop}
+#' @param image the subseting string passed to \link[magick]{image_crop}
 #'
 #' @method subset vrAssayV2
 #' @order 4
@@ -279,7 +279,7 @@ setMethod("subset", "vrAssayV2", subsetvrAssay)
 #'
 #' @param coords the coordinates of the spatial points
 #' @param imageinfo the magick image info associated with the image
-#' @param crop_info the subseting string passed to \link{image_crop}
+#' @param crop_info the subseting string passed to \link[magick]{image_crop}
 #'
 subsetCoordinates <- function(coords, imageinfo, crop_info) {
   # get crop information
@@ -340,7 +340,7 @@ subsetCoordinates <- function(coords, imageinfo, crop_info) {
 #'
 #' @param segments the list of segments each associated with a spatial point
 #' @param imageinfo the magick image info associated with the image
-#' @param crop_info the subseting string passed to \link{image_crop}
+#' @param crop_info the subseting string passed to \link[magick]{image_crop}
 #'
 #' @importFrom dplyr bind_rows
 subsetSegments <- function(segments, imageinfo, crop_info) {

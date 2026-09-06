@@ -17,7 +17,8 @@ importQuPathIF(
 )
 }
 \arguments{
-\item{measurements}{measurements}
+\item{measurements}{the path to the QuPath measurements file that includes
+intensity of channel intensities for each cell.}
 
 \item{image}{a single or a list of image paths or magick-image objects}
 

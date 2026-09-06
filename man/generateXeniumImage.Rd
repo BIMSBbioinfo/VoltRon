@@ -34,7 +34,8 @@ Default: morphology_lowres.tif}
 
 \item{verbose}{verbose}
 
-\item{...}{additional parameters passed to the \link{writeImage} function}
+\item{...}{additional parameters passed to the \link[EBImage]{writeImage} 
+function}
 }
 \description{
 Generate a low resolution DAPI image of the Xenium experiment

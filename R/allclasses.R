@@ -17,6 +17,8 @@ setClassUnion(
 )
 
 #' The vrImage (VoltRon Image) Class
+#' 
+#' The vrImage objects are deprecated for \code{vrSpatial} class.
 #'
 #' @slot coords spatial coordinates of the assay
 #' @slot segments spatial coordinates of the segments, if available
@@ -64,7 +66,7 @@ setMethod(
 #' @slot coords spatial coordinates of the assay
 #' @slot segments spatial coordinates of the segments, if available
 #' @slot image image of the spatial assay, bitmap class
-#' @slot main_channel the key of the main channel of vrImage object
+#' @slot main_channel the key of the main channel of vrSpatial object
 #'
 #' @name vrSpatial-class
 #' @rdname vrSpatial-class
@@ -122,7 +124,7 @@ setClassUnion(
 #' @slot normdata normalized data
 #' @slot featuredata feature metadata
 #' @slot embeddings list of embeddings
-#' @slot image a list of vrImage objects
+#' @slot image a list of vrSpatial objects
 #' @slot params additional parameters used by different assay types
 #' @slot type the type of the assay (tile, molecule, cell, spot, ROI)
 #' @slot name the assay name
@@ -170,7 +172,7 @@ setMethod(
 #' @slot data list of count/normalized datasets
 #' @slot featuredata list of feature metadata
 #' @slot embeddings list of embeddings
-#' @slot image a list of vrImage objects
+#' @slot image a list of vrSpatial objects
 #' @slot params additional parameters used by different assay types
 #' @slot type the type of the assay (tile, molecule, cell, spot, ROI)
 #' @slot name the assay name

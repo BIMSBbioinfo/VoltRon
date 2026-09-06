@@ -7,3 +7,17 @@
 \description{
 VoltRon is a spatial omic analysis toolbox for multi-omics integration using spatial image registration. VoltRon is capable of analyzing multiple types and modalities of spatially-aware datasets. VoltRon visualizes and analyzes regions of interests (ROIs), spots, cells, molecules and event tiles.
 }
+\author{
+\strong{Maintainer}: Artür Manukyan \email{artur-man@hotmail.com} (\href{https://orcid.org/0000-0002-0441-9517}{ORCID})
+
+Authors:
+\itemize{
+  \item Artür Manukyan \email{artur-man@hotmail.com} (\href{https://orcid.org/0000-0002-0441-9517}{ORCID})
+  \item Ella Bahry
+  \item Raj Prateek Rai
+  \item Wei-che Ko
+  \item Markus Landthaler
+  \item Altuna Akalin
+}
+
+}

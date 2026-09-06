@@ -19,7 +19,7 @@ The vrAssay (VoltRon Assay) Class
 
 \item{\code{embeddings}}{list of embeddings}
 
-\item{\code{image}}{a list of vrImage objects}
+\item{\code{image}}{a list of vrSpatial objects}
 
 \item{\code{params}}{additional parameters used by different assay types}
 

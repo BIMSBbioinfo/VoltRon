@@ -15,7 +15,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{n}{the number of features}
 
-\item{...}{additional arguements passed to \link{vrFeatureData}}
+\item{...}{additional arguments passed to \link{vrFeatureData}}
 }
 \description{
 get shared variable features across multiple assays

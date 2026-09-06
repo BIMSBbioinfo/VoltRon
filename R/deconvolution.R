@@ -305,7 +305,7 @@ getDeconReferenceSpot <- function(
       }
       if (is.null(sc.assay)) {
         message(
-          "The sc.assay arguement is not provided, using",
+          "The sc.assay argument is not provided, using",
           Seurat::DefaultAssay(sc.object),
           "instead!"
         )
@@ -332,7 +332,7 @@ getDeconReferenceSpot <- function(
       }
       if (!is.null(sc.assay)) {
         message(
-          "The sc.assay arguement is provided by ignored for SCE objects!"
+          "The sc.assay argument is provided by ignored for SCE objects!"
         )
       }
       sccounts <- SummarizedExperiment::assays(sc.object)[["counts"]]

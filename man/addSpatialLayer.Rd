@@ -43,7 +43,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{alpha}{alpha level of colors of visualized points and segments}
 
-\item{n.tile}{The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+\item{n.tile}{The number of tiles on x-and y-axis for rasterizing points (see \link[ggplot2]{geom_tile}). The rasterization is performed automatically for large number of points 
 Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.}
 
 \item{pt.size}{point size}

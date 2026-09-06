@@ -298,7 +298,8 @@ importXenium <- function(
 #' @param file.name the name of the lowred morphology image.
 #' Default: morphology_lowres.tif
 #' @param verbose verbose
-#' @param ... additional parameters passed to the \link{writeImage} function
+#' @param ... additional parameters passed to the \link[EBImage]{writeImage} 
+#' function
 #'
 #' @importFrom EBImage writeImage
 #'
@@ -1881,7 +1882,8 @@ importCosMxCSV <- function(
 #' @param increase.contrast increase the contrast of the image before writing
 #' @param output.path The path to the new morphology image created if the image should be saved to a location other than Xenium output folder.
 #' @param verbose verbose
-#' @param ... additional parameters passed to the \link{writeImage} function
+#' @param ... additional parameters passed to the \link[EBImage]{writeImage} 
+#' function
 #'
 #' @importFrom magick image_read image_contrast image_composite image_blank
 #' @importFrom EBImage writeImage
@@ -3097,7 +3099,8 @@ importImageData <- function(
 #'
 #' import an QuPath-quantified IF assay as VoltRon object
 #'
-#' @param measurements measurements
+#' @param measurements the path to the QuPath measurements file that includes
+#' intensity of channel intensities for each cell.
 #' @param image a single or a list of image paths or magick-image objects
 #' @param segments Either a list of segments. This will result in a second 
 #' assay in the VoltRon object to be created

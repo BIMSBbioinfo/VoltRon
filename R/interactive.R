@@ -11,8 +11,8 @@
 #' @inheritParams shiny::runApp
 #' @param plot_g the ggplot plot
 #' @param shiny.options a list of shiny options (launch.browser, host,
-#' port etc.) passed \code{options} arguement of \link{shinyApp}.
-#' For more information, see \link{runApp}
+#' port etc.) passed \code{options} argument of \link[ggplot2]{shinyApp}.
+#' For more information, see \link[ggplot2]{runApp}
 #'
 #' @importFrom shinyjs useShinyjs
 #'
@@ -109,8 +109,8 @@ mod_app_server <- function(id, plot_g = NULL) {
 #' configure_shiny_options
 #'
 #' @param shiny.options a list of shiny options (launch.browser, host, 
-#' port etc.) passed \code{options} arguement of \link{shinyApp}. 
-#' For more information, see \link{runApp}
+#' port etc.) passed \code{options} argument of \link[ggplot2]{shinyApp}. 
+#' For more information, see \link[ggplot2]{runApp}
 #'
 #' @noRd
 configure_shiny_options <- function(shiny.options) {

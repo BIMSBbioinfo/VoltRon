@@ -36,9 +36,9 @@ grouping label for the spatial entities}
 
 \item{plot.points}{if TRUE, measures are visualized as points as well.}
 
-\item{ncol}{column wise number of plots, for \link{ggarrange}}
+\item{ncol}{column wise number of plots, for \link[ggplot2]{ggarrange}}
 
-\item{nrow}{row wise number of plots, for \link{ggarrange}}
+\item{nrow}{row wise number of plots, for \link[ggplot2]{ggarrange}}
 }
 \description{
 vrViolinPlot

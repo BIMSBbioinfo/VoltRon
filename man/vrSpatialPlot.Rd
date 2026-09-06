@@ -50,7 +50,7 @@ vrSpatialPlot(
 
 \item{colors}{the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by}
 
-\item{n.tile}{The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+\item{n.tile}{The number of tiles on x-and y-axis for rasterizing points (see \link[ggplot2]{geom_tile}). The rasterization is performed automatically for large number of points 
 Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
@@ -62,9 +62,9 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{reduction}{used by \code{vrSpatialPlotVitessce} to visualize an embedding alongside with the spatial plot.}
 
-\item{ncol}{column wise number of plots, for \link{ggarrange}}
+\item{ncol}{column wise number of plots, for \link[ggplot2]{ggarrange}}
 
-\item{nrow}{row wise number of plots, for \link{ggarrange}}
+\item{nrow}{row wise number of plots, for \link[ggplot2]{ggarrange}}
 
 \item{font.size}{font size}
 
@@ -100,13 +100,13 @@ and main channel (\link{vrMainChannel}) will be in the background. Otherwise the
 
 \item{legend.loc}{the location of the legend, default is "right"}
 
-\item{common.legend}{whether to use a common legend for all plots, see \link{ggarrange}}
+\item{common.legend}{whether to use a common legend for all plots, see \link[ggplot2]{ggarrange}}
 
 \item{collapse.plots}{whether to combine all ggplots}
 
 \item{interactive}{if TRUE, run interactive plot}
 
-\item{shiny.options}{a list of shiny options (browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}}
+\item{shiny.options}{a list of shiny options (browser, host, port etc.) passed \code{options} argument of \link[shiny]{shinyApp}. For more information, see \link[shiny]{runApp}}
 }
 \description{
 Plotting identification of spatially resolved cells, spots, and ROI on associated images from multiple assays in a VoltRon object.
