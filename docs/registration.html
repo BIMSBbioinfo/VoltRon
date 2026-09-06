@@ -586,10 +586,16 @@ center</strong> of the list) would be taken as the image of reference,
 and hence all other images (or spatial datasets) are to be aligned to
 the Visium data. Then, registerSpatialData will return a list of VoltRon
 objects whose assays include both the original and registered versions
-of spatial coordinates. The shiny app will provide <strong>two
-images</strong> for this task:</p>
+of spatial coordinates. The shiny app will also provide <strong>multiple
+panels</strong> as a result of the alignment:</p>
 <ul>
-<li>An image that shows the matched points across two images, and</li>
+<li>A table of image alignment and landmark metrics that shows the
+accuracy the alignment.</li>
+<li>A map of <strong>local Structural Similarity Index Measures
+(SSIM)</strong> of tiles of size 50x50 that reports on the spatial
+similarity of images after alignment</li>
+<li>An image that highlights matched landmarks across both images that
+are used to calculate the transformation matrix.</li>
 <li>A slideshow of the reference and registered images that demonstrates
 the alignment accuracy.</li>
 </ul>

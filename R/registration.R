@@ -402,23 +402,6 @@ getSideBar <- function(params = NULL) {
       column(
         12,
         selectInput(
-          "nonrigid",
-          "Non-Rigid Method",
-          choices = c(
-            "TPS (OpenCV)",
-            "BSpline (SimpleITK)"
-          ),
-          selected = ifelse(
-            is.null(params[["nonrigid"]]),
-            "TPS (OpenCV)",
-            params[["nonrigid"]]
-          )
-        )
-      ),
-      br(),
-      column(
-        12,
-        selectInput(
           "Matcher",
           "Matcher",
           choices = c("FLANN", "BRUTE-FORCE"),
@@ -462,6 +445,23 @@ getSideBar <- function(params = NULL) {
         )
       ),
       br(),
+      column(
+        12,
+        selectInput(
+          "nonrigid",
+          "Non-Rigid Method",
+          choices = c(
+            "TPS (OpenCV)",
+            "BSpline (SimpleITK)"
+          ),
+          selected = ifelse(
+            is.null(params[["nonrigid"]]),
+            "TPS (OpenCV)",
+            params[["nonrigid"]]
+          )
+        )
+      ),
+      br(),
       column(12, shiny::actionButton("register", "Register!")),
       br(),
     ),
@@ -475,18 +475,171 @@ getSideBar <- function(params = NULL) {
       br()
     ),
     br(),
-    h4("How to use"),
-    p(style = "font-size: 12px;", strong("Single-L-click:"), "Select point"),
-    p(style = "font-size: 12px;", strong("Single-L-hold-drag:"), "Select area"),
-    p(
-      style = "font-size: 12px;",
-      strong("Double-L-click (selected area):"),
-      "Zoom in"
+    
+    tags$script(HTML(
+      "$(function(){ $('body').tooltip({selector: '[data-toggle=\"tooltip\"]'}); });"
+    )),
+    
+    tags$head(tags$style(HTML(
+      ".info-panels p  { margin-bottom: 2px; line-height: 1.3; }
+       .info-panels h4 { margin-top: 14px; margin-bottom: 4px; }
+       .info-panels h4:first-child { margin-top: 0; }"
+    ))),
+    
+    div(
+      id = "help-panel", 
+      class = "info-panels",
+      h4("How to use:"),
+      p(span("Selecting keypoints",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "In case of users prefering to manually registering images ",
+                 ", user can select keypoints by left clicking on images. ",
+                 "Equal number of keypoints for each pairs of images have to ",
+                 "selected."
+               )
+      )),
+      p(span("Zoom in",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "Left-click and hold for selecting an area, a green box will ", 
+                 "appear, and double left-clicking on the area will zoom in to ",
+                 "that location."
+               )
+      )),
+      p(span("Zoom out",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "Double left-click on the image without selecting an area ",
+                 "zooms out the image to its original extent."
+               )
+      )),
+      br()
     ),
-    p(
-      style = "font-size: 12px;",
-      strong("Double-L-click (no area):"),
-      "Zoom out"
+
+    div(
+      id = "alignment-panel", 
+      class = "info-panels",
+      h4("Alignment Metrics:"),
+      p(span("SSIM:",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "The global Structural Similarity Index Measure (SSIM) ", 
+                 "calculated by the arithmetic mean of local SSIM scores of each", 
+                 "overlapping tiles from aligned images."
+               )
+      )),
+      p(span("Matte's MI:",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "Matte's Mutual Information score calculated from aligned images."
+               )
+      )),
+      p(span("Intersection:",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "The global intersection similarity measure ", 
+                 "calculated by the arithmetic mean of local SSIM scores of each", 
+                 "overlapping tiles from aligned images."
+               )
+      )),
+      p(span("Bhattacharyya:",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "The global Bhattacharyya similarity measure ", 
+                 "calculated by the arithmetic mean of local SSIM scores of each", 
+                 "overlapping tiles from aligned images."
+               )
+      )),
+
+      h4("Keypoint Metrics:"),
+      p(span("# of Matches:",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "Number of matching keypoints across images. ", 
+                 "Larger values indicate the quality of detected keypoints. d"
+               )
+      )),
+      p(span("Inlier Perc.:",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "The percentage of matching keypoints (inliers) that are ", 
+                 "selected by RANSAC from the initial set of matching keypoints. ", 
+                 "Larger values indicate the quality of detected keypoints."
+               )
+      )),
+      p(span("sd (x,y) (>1?):",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "The percentage of matching keypoints (inliers) that are ", 
+                 "selected by RANSAC from the initial set of matching keypoints. ", 
+                 "Larger values indicate the quality of detected keypoints."
+               )
+      )),
+      p(span("sd grid (x,y) (>1?):",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "The standard deviation of registered grid points across x and y ", 
+                 "axes. Values smaller than 1 or larger than image extend indicate a ", 
+                 "degenerate"
+               )
+      )),
+      p(span("Median Distance:",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "The median of the distance between paired reference image ", 
+                 "keypoints and registered query image keypoints.",
+                 "This value is typically close to zero or around 1 (in pixel) ",
+                 "units for accurate transformation matrix calculations."
+               )
+      )),
+      p(span("Degenerate:",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "'Yes' if standard deviation of keypoints and registered grid ",
+                 "points are smaller than 1 or larger than the extend of the ",
+                 "image."
+               )
+      ))
     )
   )
 }
@@ -628,7 +781,7 @@ getAlignmentTabPanel <- function(len_images, centre, register_ind) {
           
           tabsetPanel(
             id = paste0("inner_tabs", i), 
-            tabPanel("Alignment Stat.",
+            tabPanel("Alignment Metrics",
                      tableOutput(paste0("alignment_stats", i))),
             tabPanel("Local SSIM",
                      imageOutput(paste0("plot_ssim_map", i))),
@@ -818,8 +971,10 @@ updateTabPanels <- function(centre, register_ind, input, output, session) {
 updateParameterPanels <- function(len_images, params, input, output, session) {
   # done event
   shinyjs::hide(id = "done")
+  shinyjs::hide(id = "alignment-panel")
   observeEvent(input$register, {
     shinyjs::show(id = "done")
+    shinyjs::show(id = "alignment-panel")
   })
 
   # registration panels/buttons

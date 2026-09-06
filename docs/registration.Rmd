@@ -115,9 +115,13 @@ vrImages(Xen_R2)
 
 In order to achieve data transfer and integration across these two modalities, we need to first make sure that spatial coordinates of these three datasets are perfectly aligned. To this end, we will make use of the **registerSpatialData** function which calls a **shiny app** embedded into VoltRon. The function takes a single list as an input where the order of VoltRon objects in the list should be the same as the **order of serial sections**. 
 
-We will make use of the **registerSpatialData** function to **automatically register two Xenium assays onto the Visium assay**. The Visium CytAssist image (or the **image on the center** of the list) would be taken as the image of reference, and hence all other images (or spatial datasets) are to be aligned to the Visium data. Then, registerSpatialData will return a list of VoltRon objects whose assays include both the original and registered versions of spatial coordinates. The shiny app will provide **two images** for this task: 
+We will make use of the **registerSpatialData** function to **automatically register two Xenium assays onto the Visium assay**. The Visium CytAssist image (or the **image on the center** of the list) would be taken as the image of reference, and hence all other images (or spatial datasets) are to be aligned to the Visium data. Then, registerSpatialData will return a list of VoltRon objects whose assays include both the original and registered versions of spatial coordinates. The shiny app will also provide **multiple panels** as a result of the alignment: 
 
-* An image that shows the matched points across two images, and 
+* A table of image alignment and landmark metrics that shows the accuracy the alignment.
+* A map of **local Structural Similarity Index Measures (SSIM)** of tiles of size 50x50 that reports on the 
+  spatial similarity of images after alignment
+* An image that highlights matched landmarks across both images that are used to calculate the 
+  transformation matrix.
 * A slideshow of the reference and registered images that demonstrates the alignment accuracy. 
 
 We will select **FLANN** method for automated alignment which incorporates the **SIFT** method for automated keypoints selection and utilizes the **Fast library for Approximate Nearest Neighbors (FLANN) algorithm** for matching keypoints. **NOTE:** For better alignment performance, users can incorporate image manipulation tools above each image and sync images into the same orientation by rotating, flipping (horizontally and vertically) and negating these images. We always negate DAPI images to align them onto H&E images.  
