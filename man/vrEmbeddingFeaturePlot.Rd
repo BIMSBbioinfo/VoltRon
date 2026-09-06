@@ -46,9 +46,9 @@ log transformed}
 see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{ncol}{column wise number of plots, for \link[ggplot2]{ggarrange}}
+\item{ncol}{column wise number of plots, for \link[ggpubr]{ggarrange}}
 
-\item{nrow}{row wise number of plots, for \link[ggplot2]{ggarrange}}
+\item{nrow}{row wise number of plots, for \link[ggpubr]{ggarrange}}
 
 \item{font.size}{font size}
 
@@ -59,7 +59,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{keep.scale}{whether unify all scales for all features or not}
 
 \item{common.legend}{whether to use a common legend for all plots, 
-see \link[ggplot2]{ggarrange}}
+see \link[ggpubr]{ggarrange}}
 
 \item{collapse.plots}{whether to combine all ggplots}
 }

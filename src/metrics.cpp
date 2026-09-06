@@ -346,11 +346,6 @@ TiledMetrics tiledAlignmentMetrics(const cv::Mat& im1,
   const double C1 = (0.01 * L) * (0.01 * L);   //  6.5025
   const double C2 = (0.03 * L) * (0.03 * L);   // 58.5225
   
-  // Flat-tile rejection threshold. Two INDEPENDENT near-constant patches score
-  // SSIM ~= 1.0 and intersection ~= 1.0, because when the variances are small
-  // next to C2 the constant dominates and forces the ratio toward 1.
-  const double varThresh = varFactor * C2;
-  
   // histogram setup, hoisted out of the loop
   const int   histSize256 = 256;
   float       range[]     = {0.0f, 256.0f};   // NB upper bound is EXCLUSIVE

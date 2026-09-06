@@ -40,9 +40,9 @@ grouping label for the spatial entities}
 \item{log}{if TRUE, data features (excluding metadata features) 
 will be log transformed}
 
-\item{ncol}{column wise number of plots, for \link[ggplot2]{ggarrange}}
+\item{ncol}{column wise number of plots, for \link[ggpubr]{ggarrange}}
 
-\item{nrow}{row wise number of plots, for \link[ggplot2]{ggarrange}}
+\item{nrow}{row wise number of plots, for \link[ggpubr]{ggarrange}}
 }
 \description{
 vrBarPlot

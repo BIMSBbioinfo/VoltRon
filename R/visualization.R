@@ -25,11 +25,11 @@ NULL
 #' @param graph.name if not NULL, the spatial graph is with name \code{graph.name} is visualized as well, see \link{vrGraphNames}
 #' @param graph.edge.color the colors of the graph edges, if \code{graph.name} is not NULL.
 #' @param reduction used by \code{vrSpatialPlotVitessce} to visualize an embedding alongside with the spatial plot.
-#' @param ncol column wise number of plots, for \link[ggplot2]{ggarrange}
-#' @param nrow row wise number of plots, for \link[ggplot2]{ggarrange}
+#' @param ncol column wise number of plots, for \link[ggpubr]{ggarrange}
+#' @param nrow row wise number of plots, for \link[ggpubr]{ggarrange}
 #' @param font.size font size
 #' @param pt.size point size
-#' @param cell.shape the shape of the points representing cells, see \link{geom_point}
+#' @param cell.shape the shape of the points representing cells, see \link[ggplot2]{geom_point}
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param label if TRUE, the labels of the ROI assays will be visualized
 #' @param spatial the name of the spatial coordinate system
@@ -45,7 +45,7 @@ NULL
 #' @param legend.text.size the size of the text at the legend
 #' @param scale.image if TRUE, background image will be scaled down to a low resolution (width: 1000px)
 #' @param legend.loc the location of the legend, default is "right"
-#' @param common.legend whether to use a common legend for all plots, see \link[ggplot2]{ggarrange}
+#' @param common.legend whether to use a common legend for all plots, see \link[ggpubr]{ggarrange}
 #' @param collapse.plots whether to combine all ggplots
 #' @param interactive if TRUE, run interactive plot
 #' @param shiny.options a list of shiny options (browser, host, port etc.) passed \code{options} argument of \link[shiny]{shinyApp}. For more information, see \link[shiny]{runApp}
@@ -302,7 +302,7 @@ vrSpatialPlot <- function(
 #' @param graph.edge.color the color of graph edges, if \code{graph} is not NULL.
 #' @param font.size font sizes
 #' @param pt.size point size
-#' @param cell.shape the shape of the points representing cells, see \link{geom_point}
+#' @param cell.shape the shape of the points representing cells, see \link[ggplot2]{geom_point}
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param plot_title the title of the single plot
 #' @param spatial the name of the spatial coordinate system
@@ -852,7 +852,7 @@ vrSpatialPlotSingle <- function(
 #' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link[ggplot2]{geom_tile}). The rasterization is performed automatically for large number of points 
 #' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param pt.size point size
-#' @param cell.shape the shape of the points representing cells, see \link{geom_point}
+#' @param cell.shape the shape of the points representing cells, see \link[ggplot2]{geom_point}
 #' @param graph if not NULL, the graph is added to the plot
 #' @param graph.edge.color the color of graph edges, if \code{graph} is not NULL.
 #' @param spatial the name of the spatial coordinate system
@@ -1324,11 +1324,11 @@ addSpatialLayer <- function(
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param graph.name if not NULL, the spatial graph is with name \code{graph.name} is visualized as well, see \link{vrGraphNames}
-#' @param ncol column wise number of plots, for \link[ggplot2]{ggarrange}
-#' @param nrow row wise number of plots, for \link[ggplot2]{ggarrange}
+#' @param ncol column wise number of plots, for \link[ggpubr]{ggarrange}
+#' @param nrow row wise number of plots, for \link[ggpubr]{ggarrange}
 #' @param font.size font size
 #' @param pt.size point size
-#' @param cell.shape the shape of the points representing cells, see \link{geom_point}
+#' @param cell.shape the shape of the points representing cells, see \link[ggplot2]{geom_point}
 #' @param title.size title size of legend and plot
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param keep.scale whether unify all scales for all features or not
@@ -1342,7 +1342,7 @@ addSpatialLayer <- function(
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
 #' @param scale.image if TRUE, background image will be scaled down to a low resolution (width: 1000px)
-#' @param common.legend whether to use a common legend for all plots, see \link[ggplot2]{ggarrange}
+#' @param common.legend whether to use a common legend for all plots, see \link[ggpubr]{ggarrange}
 #' @param legend.loc the location of the legend, default is "right"
 #' @param collapse.plots whether to combine all ggplots
 #'
@@ -1599,7 +1599,7 @@ vrSpatialFeaturePlot <- function(
 #' @param log if TRUE, data features (excluding metadata features) will be log transformed
 #' @param font.size font sizes
 #' @param pt.size point size
-#' @param cell.shape the shape of the points representing cells, see \link{geom_point}
+#' @param cell.shape the shape of the points representing cells, see \link[ggplot2]{geom_point}
 #' @param title.size title size of legend and plot
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param label if TRUE, labels of ROIs will be visualized too
@@ -1978,7 +1978,7 @@ vrSpatialFeaturePlotSingle <- function(
 #' @param log if TRUE, data features (excluding metadata features) will be log transformed
 #' @param font.size font sizes
 #' @param pt.size point size
-#' @param cell.shape the shape of the points representing cells, see \link{geom_point}
+#' @param cell.shape the shape of the points representing cells, see \link[ggplot2]{geom_point}
 #' @param title.size title size of legend and plot
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param label if TRUE, labels of ROIs will be visualized too
@@ -2802,7 +2802,7 @@ vrNeighbourhoodEnrichmentPlot <- function(
 #' @param shape shape
 #' @param label if TRUE, the labels of the ROI assays will be visualized
 #' @param common.legend whether to use a common legend for all plots, 
-#' see \link[ggplot2]{ggarrange}
+#' see \link[ggpubr]{ggarrange}
 #' @param collapse.plots whether to combine all ggplots
 #'
 #' @import ggplot2
@@ -3042,14 +3042,14 @@ vrEmbeddingPlot <- function(
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
 #' see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param ncol column wise number of plots, for \link[ggplot2]{ggarrange}
-#' @param nrow row wise number of plots, for \link[ggplot2]{ggarrange}
+#' @param ncol column wise number of plots, for \link[ggpubr]{ggarrange}
+#' @param nrow row wise number of plots, for \link[ggpubr]{ggarrange}
 #' @param font.size font size
 #' @param pt.size point size
 #' @param shape shape
 #' @param keep.scale whether unify all scales for all features or not
 #' @param common.legend whether to use a common legend for all plots, 
-#' see \link[ggplot2]{ggarrange}
+#' see \link[ggpubr]{ggarrange}
 #' @param collapse.plots whether to combine all ggplots
 #'
 #' @import ggplot2
@@ -3710,8 +3710,8 @@ vrHeatmapPlot <- function(
 #' @param norm if TRUE, the normalized data is used
 #' @param pt.size point size
 #' @param plot.points if TRUE, measures are visualized as points as well.
-#' @param ncol column wise number of plots, for \link[ggplot2]{ggarrange}
-#' @param nrow row wise number of plots, for \link[ggplot2]{ggarrange}
+#' @param ncol column wise number of plots, for \link[ggpubr]{ggarrange}
+#' @param nrow row wise number of plots, for \link[ggpubr]{ggarrange}
 #'
 #' @import ggplot2
 #' @importFrom data.table data.table melt
@@ -3867,8 +3867,8 @@ vrViolinPlot <- function(
 #' @param norm if TRUE, the normalized data is used
 #' @param log if TRUE, data features (excluding metadata features) 
 #' will be log transformed
-#' @param ncol column wise number of plots, for \link[ggplot2]{ggarrange}
-#' @param nrow row wise number of plots, for \link[ggplot2]{ggarrange}
+#' @param ncol column wise number of plots, for \link[ggpubr]{ggarrange}
+#' @param nrow row wise number of plots, for \link[ggpubr]{ggarrange}
 #'
 #' @import ggplot2
 #' @importFrom data.table data.table melt
@@ -4079,8 +4079,8 @@ vrBarPlot <- function(
 #' @param split.by the column to split the barplots by
 #' @param split.method either facet_grid or facet_wrap, not affected 
 #' if \code{split.by} is \code{NULL}
-#' @param ncol column wise number of plots, for \link[ggplot2]{ggarrange}
-#' @param nrow row wise number of plots, for \link[ggplot2]{ggarrange}
+#' @param ncol column wise number of plots, for \link[ggpubr]{ggarrange}
+#' @param nrow row wise number of plots, for \link[ggpubr]{ggarrange}
 #'
 #' @import ggplot2
 #' @importFrom data.table data.table melt

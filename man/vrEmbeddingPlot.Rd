@@ -60,7 +60,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{label}{if TRUE, the labels of the ROI assays will be visualized}
 
 \item{common.legend}{whether to use a common legend for all plots, 
-see \link[ggplot2]{ggarrange}}
+see \link[ggpubr]{ggarrange}}
 
 \item{collapse.plots}{whether to combine all ggplots}
 }

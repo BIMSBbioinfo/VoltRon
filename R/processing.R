@@ -46,7 +46,7 @@ NULL
   } else {
     stop(
       'Please select one of these methods: "LogNorm",',
-      ' "Q3Norm", "LogQ3Norm" or "CLR"'
+      ' "Q3Norm", "LogQ3Norm", "CLR" or "hyper.arcsine"'
     )
   }
   

@@ -983,7 +983,7 @@ connectivity &lt;- data.frame(
 
 # adjacent sections are 10 micron apart, and pairs 300 micron
 library(rjson)
-params &lt;- rjson::fromJSON(&quot;scalefactors_json.json&quot;)
+params &lt;- rjson::fromJSON(file = &quot;scalefactors_json.json&quot;)
 zlocation &lt;- c(0, 10, 300, 310)*params$tissue_lowres_scalef
 
 # add connectivity information to the block
@@ -1085,7 +1085,7 @@ using FLANN or BRUTE-FORCE methods, and then perform a <strong>fine
 alignment</strong> using SimpleITK. We first use either affine or
 homography transformation and then interpolate images, points and
 segments using B-spline method in SimpleITK.</p>
-<p>To use B-spline based fine alignment, we require to install the
+<p>To use B-spline based fine alignment, we need to install the
 SimpleITK package as below. You can find releases of SimpleITK R package
 binaries in the <a
 href="https://github.com/BIMSBbioinfo/SimpleITKRInstaller/releases">releases</a>
@@ -1130,7 +1130,7 @@ class="uri">https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE308167</a></li
 <div id="image-free-alignment" class="section level3">
 <h3>Image Free Alignment</h3>
 <p>In cases where at least one of the spatial omics datasets is missing
-their images, we can use the spatial distribution of the cells, spots or
+its images, we can use the spatial distribution of the cells, spots or
 observations from the VoltRon object to align to another objects with
 either observations or images.</p>
 <p>We first import the DBIT-Seq data, and we also subset based on

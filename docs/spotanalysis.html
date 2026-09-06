@@ -975,8 +975,8 @@ opposite direction to the commonly used coordinate spaces.</p>
   vr_list[[vrassay$Section]] &lt;- resizeImage(vr_list[[vrassay$Section]], size = 600)
 }</code></pre>
 <p>Finally, we merge these assays into one VoltRon object. The
-<strong>samples</strong> arguement in the merge function determines
-which assays are layers of a single tissue sample/block.</p>
+<strong>samples</strong> argument in the merge function determines which
+assays are layers of a single tissue sample/block.</p>
 <pre class="r watch-out"><code>vr_merged &lt;- merge(vr_list[[1]], vr_list[-1], samples = sample_metadata$Sample)
 vr_merged </code></pre>
 <pre><code>VoltRon Object 

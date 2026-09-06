@@ -48,7 +48,7 @@ Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of
 
 \item{pt.size}{point size}
 
-\item{cell.shape}{the shape of the points representing cells, see \link{geom_point}}
+\item{cell.shape}{the shape of the points representing cells, see \link[ggplot2]{geom_point}}
 
 \item{graph}{if not NULL, the graph is added to the plot}
 

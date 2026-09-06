@@ -59,15 +59,15 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
 \item{graph.name}{if not NULL, the spatial graph is with name \code{graph.name} is visualized as well, see \link{vrGraphNames}}
 
-\item{ncol}{column wise number of plots, for \link[ggplot2]{ggarrange}}
+\item{ncol}{column wise number of plots, for \link[ggpubr]{ggarrange}}
 
-\item{nrow}{row wise number of plots, for \link[ggplot2]{ggarrange}}
+\item{nrow}{row wise number of plots, for \link[ggpubr]{ggarrange}}
 
 \item{font.size}{font size}
 
 \item{pt.size}{point size}
 
-\item{cell.shape}{the shape of the points representing cells, see \link{geom_point}}
+\item{cell.shape}{the shape of the points representing cells, see \link[ggplot2]{geom_point}}
 
 \item{title.size}{title size of legend and plot}
 
@@ -93,7 +93,7 @@ and main channel (\link{vrMainChannel}) will be in the background. Otherwise the
 
 \item{scale.image}{if TRUE, background image will be scaled down to a low resolution (width: 1000px)}
 
-\item{common.legend}{whether to use a common legend for all plots, see \link[ggplot2]{ggarrange}}
+\item{common.legend}{whether to use a common legend for all plots, see \link[ggpubr]{ggarrange}}
 
 \item{legend.loc}{the location of the legend, default is "right"}
 
