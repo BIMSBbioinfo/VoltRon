@@ -524,7 +524,7 @@ std::map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &point
   
   // Report final keypoints
   Rcout << "  Calculated transformation matrix with " << points1.size() << " keypoints" << endl;
-  metrics["#Matches"] = points1.size();
+  metrics["# of Matches"] = points1.size();
   
   // get inlier percentages
   double ratio = checkInlierPercentage(mask);

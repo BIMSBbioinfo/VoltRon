@@ -557,8 +557,8 @@ getSideBar <- function(params = NULL) {
              title = 
                paste0(
                  "The global intersection similarity measure ", 
-                 "calculated by the arithmetic mean of local SSIM scores of each", 
-                 "overlapping tiles from aligned images."
+                 "calculated by the arithmetic mean of intersection scores ", 
+                 "of each overlapping tiles from aligned images."
                )
       )),
       p(span("Bhattacharyya:",
@@ -568,8 +568,8 @@ getSideBar <- function(params = NULL) {
              title = 
                paste0(
                  "The global Bhattacharyya similarity measure ", 
-                 "calculated by the arithmetic mean of local SSIM scores of each", 
-                 "overlapping tiles from aligned images."
+                 "calculated by the arithmetic mean of Bhattacharyya scores ",
+                 "of each overlapping tiles from aligned images."
                )
       )),
 
@@ -601,9 +601,9 @@ getSideBar <- function(params = NULL) {
              `data-placement` = "right",
              title = 
                paste0(
-                 "The percentage of matching keypoints (inliers) that are ", 
-                 "selected by RANSAC from the initial set of matching keypoints. ", 
-                 "Larger values indicate the quality of detected keypoints."
+                 "The standard deviation of reference and query keypoints across x and y ", 
+                 "axes. Values smaller than 1 or larger than image extent indicate a ", 
+                 "degenerate"
                )
       )),
       p(span("sd grid (x,y) (>1?):",
@@ -613,7 +613,9 @@ getSideBar <- function(params = NULL) {
              title = 
                paste0(
                  "The standard deviation of registered grid points across x and y ", 
-                 "axes. Values smaller than 1 or larger than image extend indicate a ", 
+                 "axes. These points are selected in a grid fashion from the ", 
+                 "query image and transformed. Then their coordinates are ", 
+                 "checked. Values smaller than 1 or larger than image extent indicate a ", 
                  "degenerate"
                )
       )),
@@ -636,7 +638,7 @@ getSideBar <- function(params = NULL) {
              title = 
                paste0(
                  "'Yes' if standard deviation of keypoints and registered grid ",
-                 "points are smaller than 1 or larger than the extend of the ",
+                 "points are smaller than 1 or larger than the extent of the ",
                  "image."
                )
       ))
@@ -1375,8 +1377,8 @@ applyPerspectiveTransform <- function(
     # correct back
     if(is.null(vrImageChannelNames(object[[assay]], return.report = FALSE))){
       if(inherits(reference_image, "magick-image")){
-        extend <- getImageInfo(reference_image)
-        coords_reg[,"y"] <- extend$height -  coords_reg[,"y"] 
+        extent <- getImageInfo(reference_image)
+        coords_reg[,"y"] <- extent$height -  coords_reg[,"y"] 
       } else {
         coords_reg_extent <- c(min(coords_reg[,"y"]), max(coords_reg[,"y"]))
         coords_reg[,"y"] <- coords_reg_extent[2] + coords_reg_extent[1] - coords_reg[,"y"] 
@@ -1400,8 +1402,8 @@ applyPerspectiveTransform <- function(
       # correct back
       if(is.null(vrImageChannelNames(object[[assay]], return.report = FALSE))){
         if(inherits(reference_image, "magick-image")){
-          extend <- getImageInfo(reference_image)
-          segments_reg[,"y"] <- extend$height -  segments_reg[,"y"] 
+          extent <- getImageInfo(reference_image)
+          segments_reg[,"y"] <- extent$height -  segments_reg[,"y"] 
         } else {
           segments_reg[,"y"] <- coords_reg_extent[2] + coords_reg_extent[1] - segments_reg[,"y"] 
         }

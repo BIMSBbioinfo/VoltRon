@@ -636,7 +636,7 @@ xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2),
 taken as the image of reference</strong>. Hence, in order to align the
 first Xenium Replicate to the Visium dataset, we can create a list of
 two VoltRon objects as given below.</p>
-<pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Vis, Xen_R2))</code></pre>
+<pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Vis, Xen_R1))</code></pre>
 <p><br></p>
 </div>
 <div id="manual-image-alignment" class="section level3">
@@ -931,9 +931,9 @@ found to be more accurate compared to FLANN when aligning two H&amp;E
 images. The shiny app also provides two tuning parameters that used by
 the BRUTE-FORCE workflow:</p>
 <ul>
-<li><strong># of Features</strong> option specifies the maximu number of
-features spotted within each image which will later be used to match to
-the other image.</li>
+<li><strong># of Features</strong> option specifies the maximum number
+of features spotted within each image which will later be used to match
+to the other image.</li>
 <li><strong>Match %</strong> specifies the percentage of these features
 matching at max which is in turn used to compute the
 registration/transformation matrix.</li>
@@ -982,7 +982,8 @@ connectivity &lt;- data.frame(
 )
 
 # adjacent sections are 10 micron apart, and pairs 300 micron
-params &lt;- jsonlite::read_json(&quot;scalefactors_json.json&quot;)
+library(rjson)
+params &lt;- rjson::fromJSON(&quot;scalefactors_json.json&quot;)
 zlocation &lt;- c(0, 10, 300, 310)*params$tissue_lowres_scalef
 
 # add connectivity information to the block
@@ -1084,7 +1085,7 @@ using FLANN or BRUTE-FORCE methods, and then perform a <strong>fine
 alignment</strong> using SimpleITK. We first use either affine or
 homography transformation and then interpolate images, points and
 segments using B-spline method in SimpleITK.</p>
-<p>To us B-spline based fine alignment, we require to install the
+<p>To use B-spline based fine alignment, we require to install the
 SimpleITK package as below. You can find releases of SimpleITK R package
 binaries in the <a
 href="https://github.com/BIMSBbioinfo/SimpleITKRInstaller/releases">releases</a>
@@ -1128,7 +1129,7 @@ class="uri">https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE308167</a></li
 </ul>
 <div id="image-free-alignment" class="section level3">
 <h3>Image Free Alignment</h3>
-<p>In cases where at least one of the spatial omics datasets are missing
+<p>In cases where at least one of the spatial omics datasets is missing
 their images, we can use the spatial distribution of the cells, spots or
 observations from the VoltRon object to align to another objects with
 either observations or images.</p>

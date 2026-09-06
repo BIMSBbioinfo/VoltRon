@@ -87,7 +87,7 @@ fixVoltRon <- function(object) {
 )
 
 .ALIGNMENT_KEYPOINT_METRICS <- c(
-  "#Matches",
+  "# of Matches",
   "Inlier Perc.",
   "sd query(x) (>1?)",
   "sd query(y) (>1?)",
