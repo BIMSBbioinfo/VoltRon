@@ -9,6 +9,9 @@ import10Xh5(filename)
 \arguments{
 \item{filename}{the path to h5 file}
 }
+\value{
+a sparse matrix of 10X counts
+}
 \description{
 import the sparse matrix from the H5 file
 }

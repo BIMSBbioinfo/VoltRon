@@ -41,6 +41,9 @@ be kept (default: TRUE)}
 
 \item{...}{additional parameters passed to \link{formVoltRon}}
 }
+\value{
+VoltRon object
+}
 \description{
 Importing Visium data
 }

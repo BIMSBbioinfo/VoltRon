@@ -18,18 +18,18 @@ NULL
 #' @param plot.segments plot segments from \link{vrSegments} instead of points
 #' @param group.ids a subset of categories defined in metadata column from \code{group.by}
 #' @param colors the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by
-#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link[ggplot2]{geom_tile}). The rasterization is performed automatically for large number of points 
 #' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param graph.name if not NULL, the spatial graph is with name \code{graph.name} is visualized as well, see \link{vrGraphNames}
 #' @param graph.edge.color the colors of the graph edges, if \code{graph.name} is not NULL.
 #' @param reduction used by \code{vrSpatialPlotVitessce} to visualize an embedding alongside with the spatial plot.
-#' @param ncol column wise number of plots, for \link{ggarrange}
-#' @param nrow row wise number of plots, for \link{ggarrange}
+#' @param ncol column wise number of plots, for \link[ggpubr]{ggarrange}
+#' @param nrow row wise number of plots, for \link[ggpubr]{ggarrange}
 #' @param font.size font size
 #' @param pt.size point size
-#' @param cell.shape the shape of the points representing cells, see \link{geom_point}
+#' @param cell.shape the shape of the points representing cells, see \link[ggplot2]{geom_point}
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param label if TRUE, the labels of the ROI assays will be visualized
 #' @param spatial the name of the spatial coordinate system
@@ -45,10 +45,10 @@ NULL
 #' @param legend.text.size the size of the text at the legend
 #' @param scale.image if TRUE, background image will be scaled down to a low resolution (width: 1000px)
 #' @param legend.loc the location of the legend, default is "right"
-#' @param common.legend whether to use a common legend for all plots, see \link{ggarrange}
+#' @param common.legend whether to use a common legend for all plots, see \link[ggpubr]{ggarrange}
 #' @param collapse.plots whether to combine all ggplots
 #' @param interactive if TRUE, run interactive plot
-#' @param shiny.options a list of shiny options (browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
+#' @param shiny.options a list of shiny options (browser, host, port etc.) passed \code{options} argument of \link[shiny]{shinyApp}. For more information, see \link[shiny]{runApp}
 #'
 #' @import ggplot2
 #' @importFrom ggpubr ggarrange
@@ -296,13 +296,13 @@ vrSpatialPlot <- function(
 #' @param plot.segments plot segments from \link{vrSegments} instead of points
 #' @param group.ids a subset of categories defined in metadata column from \code{group.by}
 #' @param colors the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by
-#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link[ggplot2]{geom_tile}). The rasterization is performed automatically for large number of points 
 #' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param graph if not NULL, the graph is added to the plot
 #' @param graph.edge.color the color of graph edges, if \code{graph} is not NULL.
 #' @param font.size font sizes
 #' @param pt.size point size
-#' @param cell.shape the shape of the points representing cells, see \link{geom_point}
+#' @param cell.shape the shape of the points representing cells, see \link[ggplot2]{geom_point}
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param plot_title the title of the single plot
 #' @param spatial the name of the spatial coordinate system
@@ -849,10 +849,10 @@ vrSpatialPlotSingle <- function(
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param colors the color set for group.by. Should be of the same size of group.id (if specified) or unique elements in group.by
 #' @param alpha alpha level of colors of visualized points and segments
-#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link[ggplot2]{geom_tile}). The rasterization is performed automatically for large number of points 
 #' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param pt.size point size
-#' @param cell.shape the shape of the points representing cells, see \link{geom_point}
+#' @param cell.shape the shape of the points representing cells, see \link[ggplot2]{geom_point}
 #' @param graph if not NULL, the graph is added to the plot
 #' @param graph.edge.color the color of graph edges, if \code{graph} is not NULL.
 #' @param spatial the name of the spatial coordinate system
@@ -1317,18 +1317,18 @@ addSpatialLayer <- function(
 #' @param combine.features whether to combine all features in one plot
 #' @param group.by a column of metadata from \link{Metadata} used as grouping label for the spatial entities
 #' @param plot.segments plot segments from \link{vrSegments} instead of points
-#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link[ggplot2]{geom_tile}). The rasterization is performed automatically for large number of points 
 #' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param norm if TRUE, the normalized data is used
 #' @param log if TRUE, data features (excluding metadata features) will be log transformed
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param graph.name if not NULL, the spatial graph is with name \code{graph.name} is visualized as well, see \link{vrGraphNames}
-#' @param ncol column wise number of plots, for \link{ggarrange}
-#' @param nrow row wise number of plots, for \link{ggarrange}
+#' @param ncol column wise number of plots, for \link[ggpubr]{ggarrange}
+#' @param nrow row wise number of plots, for \link[ggpubr]{ggarrange}
 #' @param font.size font size
 #' @param pt.size point size
-#' @param cell.shape the shape of the points representing cells, see \link{geom_point}
+#' @param cell.shape the shape of the points representing cells, see \link[ggplot2]{geom_point}
 #' @param title.size title size of legend and plot
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param keep.scale whether unify all scales for all features or not
@@ -1342,7 +1342,7 @@ addSpatialLayer <- function(
 #' @param reg TRUE if registered coordinates of the main image (\link{vrMainSpatial}) is requested
 #' @param crop whether to crop an image of a spot assay to the extend of spots
 #' @param scale.image if TRUE, background image will be scaled down to a low resolution (width: 1000px)
-#' @param common.legend whether to use a common legend for all plots, see \link{ggarrange}
+#' @param common.legend whether to use a common legend for all plots, see \link[ggpubr]{ggarrange}
 #' @param legend.loc the location of the legend, default is "right"
 #' @param collapse.plots whether to combine all ggplots
 #'
@@ -1590,7 +1590,7 @@ vrSpatialFeaturePlot <- function(
 #' @param metadata the metadata associated with the assay
 #' @param feature a feature, either from the rows of rawdata, normdata or columns of the metadata
 #' @param plot.segments plot segments from \link{vrSegments} instead of points
-#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link[ggplot2]{geom_tile}). The rasterization is performed automatically for large number of points 
 #' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param graph if not NULL, the graph is added to the plot
 #' @param limits limits of the legend of the plot
@@ -1599,7 +1599,7 @@ vrSpatialFeaturePlot <- function(
 #' @param log if TRUE, data features (excluding metadata features) will be log transformed
 #' @param font.size font sizes
 #' @param pt.size point size
-#' @param cell.shape the shape of the points representing cells, see \link{geom_point}
+#' @param cell.shape the shape of the points representing cells, see \link[ggplot2]{geom_point}
 #' @param title.size title size of legend and plot
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param label if TRUE, labels of ROIs will be visualized too
@@ -1969,7 +1969,7 @@ vrSpatialFeaturePlotSingle <- function(
 #' @param metadata the metadata associated with the assay
 #' @param features features, either from the rows of rawdata, normdata or columns of the metadata
 #' @param plot.segments plot segments from \link{vrSegments} instead of points
-#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link[ggplot2]{geom_tile}). The rasterization is performed automatically for large number of points 
 #' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param graph if not NULL, the graph is added to the plot
 #' @param limits limits of the legend of the plot
@@ -1978,7 +1978,7 @@ vrSpatialFeaturePlotSingle <- function(
 #' @param log if TRUE, data features (excluding metadata features) will be log transformed
 #' @param font.size font sizes
 #' @param pt.size point size
-#' @param cell.shape the shape of the points representing cells, see \link{geom_point}
+#' @param cell.shape the shape of the points representing cells, see \link[ggplot2]{geom_point}
 #' @param title.size title size of legend and plot
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param label if TRUE, labels of ROIs will be visualized too
@@ -2229,7 +2229,7 @@ vrSpatialFeaturePlotCombined <- function(
 #'
 #' @param g ggplot object
 #' @param all_data summary data
-#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link[ggplot2]{geom_tile}). The rasterization is performed automatically for large number of points 
 #' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param datax original plotting data
 #' @param segments segments
@@ -2787,22 +2787,22 @@ vrNeighbourhoodEnrichmentPlot <- function(
 #' @param group.ids a subset of categories defined in metadata column 
 #' from \code{group.by}
 #' @param split.by a column of metadata from \link{Metadata} used as 
-#' splitting spatial entities into ggplot panels, see \link{facet_wrap}
+#' splitting spatial entities into ggplot panels, see \link[ggplot2]{facet_wrap}
 #' @param colors the color set for group.by. Should be of the same size 
 #' of group.id (if specified) or unique elements in group.by
-#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link[ggplot2]{geom_tile}). The rasterization is performed automatically for large number of points 
 #' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
 #' see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param ncol column wise number of plots, for \link{facet_wrap}
-#' @param nrow row wise number of plots, for \link{facet_wrap}
+#' @param ncol column wise number of plots, for \link[ggplot2]{facet_wrap}
+#' @param nrow row wise number of plots, for \link[ggplot2]{facet_wrap}
 #' @param font.size font size of labels, if label is TRUE
 #' @param pt.size point size
 #' @param shape shape
 #' @param label if TRUE, the labels of the ROI assays will be visualized
 #' @param common.legend whether to use a common legend for all plots, 
-#' see \link{ggarrange}
+#' see \link[ggpubr]{ggarrange}
 #' @param collapse.plots whether to combine all ggplots
 #'
 #' @import ggplot2
@@ -3034,7 +3034,7 @@ vrEmbeddingPlot <- function(
 #' \link{vrFeatures} of raw or normalized data or columns of the 
 #' \link{Metadata}.
 #' @param combine.features whether to combine all features in one plot
-#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link[ggplot2]{geom_tile}). The rasterization is performed automatically for large number of points 
 #' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param norm if TRUE, the normalized data is used
 #' @param log if TRUE, data features (excluding metadata features) will be 
@@ -3042,14 +3042,14 @@ vrEmbeddingPlot <- function(
 #' @param assay assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
 #' see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
-#' @param ncol column wise number of plots, for \link{ggarrange}
-#' @param nrow row wise number of plots, for \link{ggarrange}
+#' @param ncol column wise number of plots, for \link[ggpubr]{ggarrange}
+#' @param nrow row wise number of plots, for \link[ggpubr]{ggarrange}
 #' @param font.size font size
 #' @param pt.size point size
 #' @param shape shape
 #' @param keep.scale whether unify all scales for all features or not
 #' @param common.legend whether to use a common legend for all plots, 
-#' see \link{ggarrange}
+#' see \link[ggpubr]{ggarrange}
 #' @param collapse.plots whether to combine all ggplots
 #'
 #' @import ggplot2
@@ -3312,7 +3312,7 @@ vrEmbeddingFeaturePlot <- function(
 #' combine.feature=TRUE
 #'
 #' @param all_data summary data
-#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link[ggplot2]{geom_tile}). The rasterization is performed automatically for large number of points 
 #' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param datax original plotting data
 #' @param features features
@@ -3710,8 +3710,8 @@ vrHeatmapPlot <- function(
 #' @param norm if TRUE, the normalized data is used
 #' @param pt.size point size
 #' @param plot.points if TRUE, measures are visualized as points as well.
-#' @param ncol column wise number of plots, for \link{ggarrange}
-#' @param nrow row wise number of plots, for \link{ggarrange}
+#' @param ncol column wise number of plots, for \link[ggpubr]{ggarrange}
+#' @param nrow row wise number of plots, for \link[ggpubr]{ggarrange}
 #'
 #' @import ggplot2
 #' @importFrom data.table data.table melt
@@ -3867,8 +3867,8 @@ vrViolinPlot <- function(
 #' @param norm if TRUE, the normalized data is used
 #' @param log if TRUE, data features (excluding metadata features) 
 #' will be log transformed
-#' @param ncol column wise number of plots, for \link{ggarrange}
-#' @param nrow row wise number of plots, for \link{ggarrange}
+#' @param ncol column wise number of plots, for \link[ggpubr]{ggarrange}
+#' @param nrow row wise number of plots, for \link[ggpubr]{ggarrange}
 #'
 #' @import ggplot2
 #' @importFrom data.table data.table melt
@@ -4079,8 +4079,8 @@ vrBarPlot <- function(
 #' @param split.by the column to split the barplots by
 #' @param split.method either facet_grid or facet_wrap, not affected 
 #' if \code{split.by} is \code{NULL}
-#' @param ncol column wise number of plots, for \link{ggarrange}
-#' @param nrow row wise number of plots, for \link{ggarrange}
+#' @param ncol column wise number of plots, for \link[ggpubr]{ggarrange}
+#' @param nrow row wise number of plots, for \link[ggpubr]{ggarrange}
 #'
 #' @import ggplot2
 #' @importFrom data.table data.table melt
@@ -4224,7 +4224,7 @@ vrProportionPlot <- function(
 #' @param data the data frame with coordinates and group identities
 #' @param group.by a column of metadata from \link{Metadata} used as 
 #' grouping label for the spatial entities
-#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link[ggplot2]{geom_tile}). The rasterization is performed automatically for large number of points 
 #' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param spot if TRUE, tiling will be done specificall for spot datasets
@@ -4309,7 +4309,7 @@ vrGroupPlotTiling <- function(
 #' @param g the ggplot figure
 #' @param data the data frame with coordinates and group identities
 #' @param legend_title the legend title of the single plot
-#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+#' @param n.tile The number of tiles on x-and y-axis for rasterizing points (see \link[ggplot2]{geom_tile}). The rasterization is performed automatically for large number of points 
 #' Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.
 #' @param alpha alpha level of colors of visualized points and segments
 #' @param type embedding or spatial, changes the color scheme

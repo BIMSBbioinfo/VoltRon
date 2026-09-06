@@ -31,13 +31,13 @@
 
 \item{features}{the set of features to subset the object}
 
-\item{image}{the subseting string passed to \link{image_crop}}
+\item{image}{the subseting string passed to \link[magick]{image_crop}}
 
 \item{interactive}{TRUE if interactive subsetting on the image is demanded}
 
 \item{use.points.only}{if \code{interactive} is \code{TRUE}, use spatial points instead of the reference image}
 
-\item{shiny.options}{a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}}
+\item{shiny.options}{a list of shiny options (launch.browser, host, port etc.) passed \code{options} argument of \link[shiny]{shinyApp}. For more information, see \link[shiny]{runApp}}
 }
 \description{
 Given a VoltRon object, subset the object given one of the attributes

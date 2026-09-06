@@ -493,13 +493,20 @@ block with multiple layers and assays).</p>
 <p>The <strong>Metadata</strong> function calls the metadata table of
 the main assay type (see <a href="#assays">vrMainAssay</a>).</p>
 <pre class="r watch-out"><code>Metadata(visium_data)</code></pre>
-<pre><code>##                                                  id Count assay_id  Assay    Layer    Sample
-## CCTTGACCACTTTATT-1_Assay1 CCTTGACCACTTTATT-1_Assay1  2350   Assay1 Visium Section1 Anterior1
-## ATTTGTCTTGGGAGCT-1_Assay1 ATTTGTCTTGGGAGCT-1_Assay1 16200   Assay1 Visium Section1 Anterior1
-## TCACGCATTGTAGATC-1_Assay1 TCACGCATTGTAGATC-1_Assay1 29377   Assay1 Visium Section1 Anterior1
-## CCGAGCTGTGCTTGTC-1_Assay1 CCGAGCTGTGCTTGTC-1_Assay1 32380   Assay1 Visium Section1 Anterior1
-## GCATGGGTACTGACGC-1_Assay1 GCATGGGTACTGACGC-1_Assay1 25433   Assay1 Visium Section1 Anterior1
-## AGTCGGCCCAAACGAC-1_Assay1 AGTCGGCCCAAACGAC-1_Assay1 18906   Assay1 Visium Section1 Anterior1</code></pre>
+<pre><code>##                                                  id Count assay_id  Assay    Layer
+## CCTTGACCACTTTATT-1_Assay1 CCTTGACCACTTTATT-1_Assay1  2350   Assay1 Visium Section1
+## ATTTGTCTTGGGAGCT-1_Assay1 ATTTGTCTTGGGAGCT-1_Assay1 16200   Assay1 Visium Section1
+## TCACGCATTGTAGATC-1_Assay1 TCACGCATTGTAGATC-1_Assay1 29377   Assay1 Visium Section1
+## CCGAGCTGTGCTTGTC-1_Assay1 CCGAGCTGTGCTTGTC-1_Assay1 32380   Assay1 Visium Section1
+## GCATGGGTACTGACGC-1_Assay1 GCATGGGTACTGACGC-1_Assay1 25433   Assay1 Visium Section1
+## AGTCGGCCCAAACGAC-1_Assay1 AGTCGGCCCAAACGAC-1_Assay1 18906   Assay1 Visium Section1
+##                              Sample
+## CCTTGACCACTTTATT-1_Assay1 Anterior1
+## ATTTGTCTTGGGAGCT-1_Assay1 Anterior1
+## TCACGCATTGTAGATC-1_Assay1 Anterior1
+## CCGAGCTGTGCTTGTC-1_Assay1 Anterior1
+## GCATGGGTACTGACGC-1_Assay1 Anterior1
+## AGTCGGCCCAAACGAC-1_Assay1 Anterior1</code></pre>
 <p>You can also specify the assay ID or the assay type to call metadata
 of a subset of spatial points.</p>
 <pre class="r watch-out"><code>Metadata(visium_data, assay = &quot;Visium&quot;)
@@ -523,12 +530,14 @@ spot, cell, molecule and tile).</p>
 <p>The <strong>vrSpatialPoints</strong> function return the IDs of these
 entities for further downstream operations, such as subsetting etc.</p>
 <pre class="r watch-out"><code>vrSpatialPoints(visium_data)</code></pre>
-<pre><code>## [1] &quot;CCTTGACCACTTTATT-1_Assay1&quot; &quot;ATTTGTCTTGGGAGCT-1_Assay1&quot; &quot;TCACGCATTGTAGATC-1_Assay1&quot;</code></pre>
+<pre><code>## [1] &quot;CCTTGACCACTTTATT-1_Assay1&quot; &quot;ATTTGTCTTGGGAGCT-1_Assay1&quot;
+## [3] &quot;TCACGCATTGTAGATC-1_Assay1&quot;</code></pre>
 <p>You can also specify the assay ID or the assay type to call metadata
 of a subset of spatial points.</p>
 <pre class="r watch-out"><code>vrSpatialPoints(visium_data, assay = &quot;Visium&quot;)
 vrSpatialPoints(visium_data, assay = &quot;Assay1&quot;)</code></pre>
-<pre><code>## [1] &quot;CCTTGACCACTTTATT-1_Assay1&quot; &quot;ATTTGTCTTGGGAGCT-1_Assay1&quot; &quot;TCACGCATTGTAGATC-1_Assay1&quot;</code></pre>
+<pre><code>## [1] &quot;CCTTGACCACTTTATT-1_Assay1&quot; &quot;ATTTGTCTTGGGAGCT-1_Assay1&quot;
+## [3] &quot;TCACGCATTGTAGATC-1_Assay1&quot;</code></pre>
 <p><br></p>
 </div>
 <div id="assays" class="section level2">
@@ -582,14 +591,15 @@ vrCoordinates(visium_data, assay = &quot;Assay1&quot;)</code></pre>
 <p><br></p>
 <p>Each assay a VoltRon object may incorporate indefinite number of
 coordinate systems. One can look for these coordinate systems using the
-<strong>vrMainSpatial</strong> function, and select one of systems to
-call coordinates (see <a href="#image">vrMainSpatial</a>)</p>
+<strong>vrSpatialNames</strong> function, and select one of systems to
+call coordinates (see <a href="#image">vrSpatialNames</a>)</p>
 <pre class="r watch-out"><code>vrCoordinates(visium_data, spatial = &quot;main&quot;)</code></pre>
 <p>The <strong>reg</strong> option in the <strong>vrCoordinates</strong>
 function looks for a registered version of the main coordinate system
 and returns its coordinates (if there is any).</p>
 <pre class="r watch-out"><code>vrCoordinates(visium_data, spatial = &quot;main&quot;, reg = TRUE)</code></pre>
-<pre><code>## Warning in .local(object, ...): There are no registered spatial systems with name main!</code></pre>
+<pre><code>## Warning in .local(object, ...): There are no registered spatial systems with name
+## main!</code></pre>
 <pre><code>##                                   x        y z
 ## CCTTGACCACTTTATT-1_Assay1 463.78658 183.1497 0
 ## ATTTGTCTTGGGAGCT-1_Assay1 374.97419 275.8864 0
@@ -683,8 +693,8 @@ a list of for further use.</p>
 <pre class="r watch-out"><code>vrImageChannelNames(melc_data)
 vrImageChannelNames(melc_data, assay = &quot;MELC&quot;)
 vrImageChannelNames(melc_data, assay = &quot;Assay1&quot;)</code></pre>
-<pre><code>##        Assay    Layer         Sample Spatial  Channels
-## Assay1  MELC Section1 control_case_3    MELC DAPI,CD45</code></pre>
+<pre><code>##        Assay    Layer         Sample Spatial           Channels
+## Assay1  MELC Section1 control_case_3    MELC DAPI,CD45,combined</code></pre>
 <p><br></p>
 </div>
 <div id="get-and-set-images" class="section level3">
@@ -726,6 +736,8 @@ provide an associate list of colors.</p>
 <pre class="r watch-out"><code>melc_data &lt;- combineChannels(melc_data, 
                              channels = c(&quot;DAPI&quot;, &quot;CD45&quot;), colors = c(&quot;grey&quot;, &quot;green&quot;), 
                              channel_key = &quot;combined&quot;)</code></pre>
+<pre><code>## Warning in .local(object, ..., value = value): A channel with name &#39;combined&#39; already exists in this vrImage object. 
+##  Overwriting ...</code></pre>
 <p>These new images can be stored as new channels within the same image
 object, and called later again</p>
 <pre class="r watch-out"><code>vrImageChannelNames(melc_data)</code></pre>
@@ -816,7 +828,8 @@ visium_data_subset</code></pre>
 href="#spatialpoints">vrSpatialPoints</a>)</p>
 <pre class="r watch-out"><code>selected_points &lt;- vrSpatialPoints(visium_data)
 selected_points[1:20]</code></pre>
-<pre><code>## [1] &quot;CCTTGACCACTTTATT-1_Assay1&quot; &quot;ATTTGTCTTGGGAGCT-1_Assay1&quot; &quot;TCACGCATTGTAGATC-1_Assay1&quot;</code></pre>
+<pre><code>## [1] &quot;CCTTGACCACTTTATT-1_Assay1&quot; &quot;ATTTGTCTTGGGAGCT-1_Assay1&quot;
+## [3] &quot;TCACGCATTGTAGATC-1_Assay1&quot;</code></pre>
 <pre class="r watch-out"><code>visium_data_subset &lt;- subset(visium_data, spatialpoints = selected_points[1:20])
 visium_data_subset</code></pre>
 <pre><code>## VoltRon Object 
@@ -998,8 +1011,10 @@ vrSpatialFeaturePlot(xenium_data, features = c(&quot;ACTA2&quot;, &quot;TACSTD2&
 <pre class="r watch-out"><code>data(&quot;xenium_data&quot;)
 vrEmbeddingFeaturePlot(xenium_data, features = c(&quot;ACTA2&quot;, &quot;TACSTD2&quot;), 
                        embedding = &quot;umap&quot;, combine.features = TRUE)</code></pre>
-<pre><code>## Warning in plot_theme(plot): The `x` theme element is not defined in the element hierarchy.</code></pre>
-<pre><code>## Warning in plot_theme(plot): The `y` theme element is not defined in the element hierarchy.</code></pre>
+<pre><code>## Warning in plot_theme(plot): The `x` theme element is not defined in the element
+## hierarchy.</code></pre>
+<pre><code>## Warning in plot_theme(plot): The `y` theme element is not defined in the element
+## hierarchy.</code></pre>
 <p><img src="voltronobjects_files/figure-html/unnamed-chunk-81-1.png" alt="" width="60%" style="display: block; margin: auto;" /></p>
 <p>In order to visualize the density of two molecule per each tile, you
 can define a tiling parameter <strong>n.tile</strong> and also enter

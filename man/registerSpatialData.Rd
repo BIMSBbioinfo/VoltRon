@@ -27,7 +27,7 @@ registerSpatialData(
 
 \item{interactive}{if TRUE, the shiny application for image registration will be triggered, otherwise 'mapping_parameters' or 'keypoints' should be defined.}
 
-\item{shiny.options}{a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}}
+\item{shiny.options}{a list of shiny options (launch.browser, host, port etc.) passed \code{options} argument of \link[shiny]{shinyApp}. For more information, see \link[shiny]{runApp}}
 }
 \description{
 A mini shiny app for registering images and spatial coordinates of multiple consecutive VoltRon objects.

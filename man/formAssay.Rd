@@ -26,7 +26,7 @@ formAssay(
 
 \item{segments}{the list of segments each associated with a spatial point (optional)}
 
-\item{image}{a singelton or list of images as magick-image objects}
+\item{image}{a singleton or list of images as magick-image objects}
 
 \item{params}{additional parameters of the object}
 
@@ -42,7 +42,7 @@ formAssay(
 
 \item{assay_version}{the assay version}
 
-\item{...}{additional arguements passed to \link{formSpatial}}
+\item{...}{additional arguments passed to \link{formSpatial}}
 }
 \description{
 Create a vrAssay (VoltRon assay) object

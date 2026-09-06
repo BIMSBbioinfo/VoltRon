@@ -13,8 +13,9 @@
 
 \item{spatialpoints}{the set of spatial points to subset the object}
 
-\item{image}{the subseting string passed to \link{image_crop}}
+\item{image}{the subseting string passed to \link[magick]{image_crop}}
 }
 \description{
 Given a vrImage object, subset the object given one of the attributes.
+The vrImage objects are deprecated in favor of the \code{vrSpatial} class.
 }

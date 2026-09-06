@@ -29,7 +29,7 @@ formVoltRon(
 
 \item{metadata}{a metadata object of class \link{vrMetadata}}
 
-\item{image}{a singelton or list of images as magick-image objects}
+\item{image}{a singleton or list of images as magick-image objects}
 
 \item{coords}{the coordinates of the spatial points}
 

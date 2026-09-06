@@ -11,7 +11,7 @@ subsetSegments(segments, imageinfo, crop_info)
 
 \item{imageinfo}{the magick image info associated with the image}
 
-\item{crop_info}{the subseting string passed to \link{image_crop}}
+\item{crop_info}{the subseting string passed to \link[magick]{image_crop}}
 }
 \description{
 subsetting segments given cropping parameters of a magick image objects

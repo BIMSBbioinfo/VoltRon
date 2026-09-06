@@ -28,9 +28,9 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{split.method}{either facet_grid or facet_wrap, not affected 
 if \code{split.by} is \code{NULL}}
 
-\item{ncol}{column wise number of plots, for \link{ggarrange}}
+\item{ncol}{column wise number of plots, for \link[ggpubr]{ggarrange}}
 
-\item{nrow}{row wise number of plots, for \link{ggarrange}}
+\item{nrow}{row wise number of plots, for \link[ggpubr]{ggarrange}}
 }
 \description{
 vrPercentagePlot

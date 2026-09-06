@@ -327,7 +327,7 @@ mergevrMetadata <- function(x, y) {
 
   # check if all are VoltRon
   if (!all(lapply(object_list, class) == "vrMetadata")) {
-    stop("All arguements have to be of vrMetadata class")
+    stop("All arguments have to be of vrMetadata class")
   }
 
   # choose objects

@@ -43,6 +43,9 @@ images.}
 
 \item{...}{additional parameters passed to \link{formVoltRon}}
 }
+\value{
+VoltRon object
+}
 \description{
 import an image as VoltRon object
 }
@@ -56,5 +59,5 @@ imgfile <- c(system.file("extdata", "DAPI.tif", package = "VoltRon"),
              system.file("extdata", "DAPI.tif", package = "VoltRon"))
 vrdata <- importImageData(imgfile, spatial = "main",
                                    channels = c("DAPI", "DAPI2"))
-
+                                   
 }

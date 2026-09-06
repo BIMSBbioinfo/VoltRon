@@ -17,6 +17,6 @@ The vrSpatial (VoltRon Spatial) Class
 
 \item{\code{image}}{image of the spatial assay, bitmap class}
 
-\item{\code{main_channel}}{the key of the main channel of vrImage object}
+\item{\code{main_channel}}{the key of the main channel of vrSpatial object}
 }}
 

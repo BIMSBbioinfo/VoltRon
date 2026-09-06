@@ -404,33 +404,35 @@ spatially-aware data modalities.
 </p>
 <ul class="maintext2">
 <li style="padding-bottom: 10px">
-<strong> Unique data structure </strong> of VoltRon allows users to
-seamlessly define tissue blocks, layers and multiple assay types in one
-R object.
+<p style="padding-bottom: 3px">
+<strong> Coarse-to-fine Image Alignment </strong> incorporates
+<a href="https://opencv.org/">OpenCV</a> (<strong>Coarse</strong>) and
+<a href="https://simpleitk.org/">SimpleITK</a> (<strong>Fine</strong>)
+tools to align images and spatial omics datasets across same or adjacent
+tissue sections. Users may interact with built-in mini shiny apps to
+change alignment parameters and validate alignment accuracy.
+</p>
+<ul class="maintext3">
+<li style="padding-bottom: 10px">
+<strong> Automated Image Registration </strong> uses SIFT and ORB
+methods (OpenCV) to detect common features across images automatically
+whereas B-Spline interpolation is used to improve alignment accuracy of
+local structures.<br />
+
 </li>
 <li style="padding-bottom: 10px">
-<strong> End-to-end downstream data analysis </strong> for distinct
-spatial biology technologies are supported. VoltRon visualizes and
-analyzes regions of interests (ROIs), spots, cells, molecules and image
-tiles.
-</li>
-<li style="padding-bottom: 10px">
-<strong> Automated Spatial Alignment </strong> incorporates
-<a href="https://opencv.org/">OpenCV</a> and
-<a href="https://simpleitk.org/"> SimpleITK </a> frameworks (fully
-embedded into the package using
-<a href="https://www.rcpp.org/">Rcpp</a>) to detect common features
-across images of spatial assays and achieves alignment (registration).
-Users may interact with built-in mini shiny apps to change alignment
-parameters and validate alignment accuracy.
-</li>
-<li style="padding-bottom: 10px">
-<strong> Manual Spatial Alignment </strong> helps users to select common
-features across spatial datasets using reference images stored in
+<strong> Manual Image Registration </strong> helps users to select
+common features across spatial datasets using reference images stored in
 VoltRon objects. In case automated image registration doesn’t work, you
-can still align images by manually picking landmark points, and if
-requested, conduct again non-rigid registration using either thin plate
-spline (TPS) or B-spline (SimpleITK) alignment.
+can still align images by manually picking landmark points. Users can
+also employ B-Spline interpolation after manual coarse alignment.
+</li>
+<li style="padding-bottom: 10px">
+<strong> Non-rigid Image Registration </strong> is performed using both
+B-Spline (SimpleITK) and Thin-plate-spline (TPS, OpenCV) interpolation
+methods.
+</li>
+</ul>
 </li>
 <li style="padding-bottom: 10px">
 <p style="padding-bottom: 3px">
@@ -438,7 +440,7 @@ spline (TPS) or B-spline (SimpleITK) alignment.
 patterns across cells, spots, molecules and other entities.
 </p>
 <ul class="maintext3">
-<li style="padding-bottom: 10px padding-top: 12px">
+<li style="padding-bottom: 10px padding-top: 10px">
 <strong>(Niche Clustering: Spots)</strong> VoltRon allows integration to
 single cell RNA datasets using
 <a href="https://satijalab.org/seurat/">Seurat</a>,
@@ -454,28 +456,20 @@ neighborhoods around cells to cluster local cellular compositions around
 all cells which in turn informs users on cell types that are likely
 within proximity to each other.
 </li>
-<li style="padding-bottom: 10px">
+<li style="padding-bottom: 1px">
 <strong>(Hot Spot Detection)</strong> VoltRon detects region of locally
 spatial patterns of cells/molecules/spots that are abundant in
 biological events and/or features.
 </li>
 </ul>
 </li>
-<li style="padding-bottom: 10px">
+<li>
 <p>
-<strong> Support for Big Data </strong> for VoltRon objects enables
-storing large feature data matrices and large microscopic images of
-tissues on disk without overloading memory, thus allowing analysis on
-large datasets with ease. VoltRon stores large images as pyramid
-structures to speed up visualization and data retrieval.
-</p>
-</li>
-<li style="padding-bottom: 10px">
-<p>
-<strong> Interoperability across R/Python frameworks </strong> allows
-users to convert VoltRon objects to a large number of objects used by
-other spatial omics platforms such as Seurat, Squidpy (AnnData),
-SpatialExperiment (BioConductor) and Giotto.
+<strong> Support for Larger-than-memory data </strong> enables storing
+large feature data matrices and large microscopic images of tissues on
+disk without overloading memory, thus allowing analysis on large
+datasets with ease. VoltRon stores large images as pyramid structures to
+speed up visualization and data retrieval.
 </p>
 </li>
 </ul>
@@ -484,9 +478,9 @@ SpatialExperiment (BioConductor) and Giotto.
 <div style="float:left; margin-left: auto; margin-right: auto">
 <div id="installation" class="section level2">
 <h2>Installation</h2>
-<p>You can install binaries for some Linux, Windows and MacOS setups via
-<a href="https://bimsbbioinfo.r-universe.dev/builds">r-universe</a>
-which you may require R version &gt;= 4.5.0:</p>
+<p>You can install binaries for Windows and MacOS and some Linux setups
+via <a href="https://bimsbbioinfo.r-universe.dev/builds">r-universe</a>
+which requires R version &gt;= 4.6.0:</p>
 <pre class="r"><code>install.packages(&#39;VoltRon&#39;, repos = c(&#39;https://bimsbbioinfo.r-universe.dev&#39;, 
                                       &#39;https://bioc.r-universe.dev&#39;,
                                       &#39;https://cloud.r-project.org&#39;))</code></pre>
@@ -607,7 +601,7 @@ Desktop</a>.</p>
 Plumbom, I., … &amp; Akalin, A. (2023). <a
 href="https://www.biorxiv.org/content/10.1101/2023.12.15.571667v1">VoltRon:
 A Spatial Omics Analysis Platform for Multi-Resolution and Multi-omics
-Integration using Image Registration</a>. bioRxiv, 2023-12. d</p>
+Integration using Image Registration</a>. bioRxiv, 2023-12.</p>
 <p>To ask questions please use VoltRon discussion forum on <a
 href="https://groups.google.com/forum/#!forum/voltron_discussion">Google
 groups</a>.</p>

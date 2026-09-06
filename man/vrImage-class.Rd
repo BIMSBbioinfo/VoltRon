@@ -6,7 +6,7 @@
 \alias{vrImage}
 \title{The vrImage (VoltRon Image) Class}
 \description{
-The vrImage (VoltRon Image) Class
+The vrImage objects are deprecated in favor of the \code{vrSpatial} class.
 }
 \section{Slots}{
 

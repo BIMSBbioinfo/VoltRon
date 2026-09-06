@@ -189,7 +189,7 @@ vrCoordinates(visium_data, assay = "Assay1")
 
 <br>
 
-Each assay a VoltRon object may incorporate indefinite number of coordinate systems. One can look for these coordinate systems using the **vrMainSpatial** function, and select one of systems to call coordinates (see [vrMainSpatial](#image))
+Each assay a VoltRon object may incorporate indefinite number of coordinate systems. One can look for these coordinate systems using the **vrSpatialNames** function, and select one of systems to call coordinates (see [vrSpatialNames](#image))
 
 ```{r eval = FALSE, class.source="watch-out"}
 vrCoordinates(visium_data, spatial = "main")

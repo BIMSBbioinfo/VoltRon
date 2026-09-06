@@ -46,7 +46,7 @@ NULL
   } else {
     stop(
       'Please select one of these methods: "LogNorm",',
-      ' "Q3Norm", "LogQ3Norm" or "CLR"'
+      ' "Q3Norm", "LogQ3Norm", "CLR" or "hyper.arcsine"'
     )
   }
   
@@ -144,8 +144,8 @@ setMethod("normalizeData", "vrAssayV2", .normalizeDatavrAssay)
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param method the normalization method: "LogNorm",
 #' "Q3Norm", "LogQ3Norm", "CLR" or "hyper.arcsine".
-#' @param desiredQuantile the quantile of the data if "QuanNorm"
-#' or "LogQuanNorm" is selected as \code{method}.
+#' @param desiredQuantile the quantile of the data if "Q3Norm"
+#' or "LogQ3Norm" is selected as \code{method}.
 #' @param scale the scale parameter for the hyperbolic arcsine transformation
 #' @param sizefactor size factor if \code{method} is selected as \code{LogNorm}
 #' @param feat_type the feature set type
@@ -342,7 +342,7 @@ getMaxCount <- function(rawdata, max.count) {
 #' (exp: Visium, Xenium), see \link{SampleMetadata}.
 #' if NULL, the default assay will be used, see \link{vrMainAssay}.
 #' @param n the number of features
-#' @param ... additional arguements passed to \link{vrFeatureData}
+#' @param ... additional arguments passed to \link{vrFeatureData}
 #'
 #' @importFrom dplyr full_join
 #' @importFrom utils head

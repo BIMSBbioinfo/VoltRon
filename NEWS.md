@@ -46,7 +46,7 @@
 
     <https://bioinformatics.mdc-berlin.de/VoltRon/registration.html#Non-Rigid_Alignment>
 
--   Added 'channels' arguement to `ImportImageData` to parse only requested channels from OME-TIFF files.
+-   Added 'channels' argument to `ImportImageData` to parse only requested channels from OME-TIFF files.
 
     <https://bioinformatics.mdc-berlin.de/VoltRon/importingdata.html#OME-TIFF>
 

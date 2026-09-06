@@ -475,7 +475,7 @@ body {
 <p>Spatial genomics technologies often generate diverse images and
 spatial readouts, even though the tissue slices are from adjacent
 sections of a single tissue block. Hence, the alignment of images and
-spatial coordinates across tissue sections are of utmost importance to
+spatial coordinates across tissue sections is of utmost importance to
 dissect the correct spatial closeness across these sections.</p>
 <p>VoltRon allows users to <strong>align spatial omics datasets of these
 serial sections</strong> for data transfer and 3 dimensional stack
@@ -508,7 +508,7 @@ formalin-fixed, paraffin-embedded (FFPE) breast cancer tissue block. A 5
 <span class="math inline">\(\mu\)</span>m section was taken for Visium
 CytAssist and two replicate 5 <span class="math inline">\(\mu\)</span>m
 sections were taken for the Xenium replicates. More information on the
-spatial datasets and the study can be also be found on the <a
+spatial datasets and the study can also be found on the <a
 href="https://www.biorxiv.org/content/10.1101/2022.10.06.510405v1">BioRxiv
 preprint</a>.</p>
 <p>You can download the Xenium and Visium readouts from the <a
@@ -562,7 +562,7 @@ vrImages(Vis)</code></pre>
 <p>Although images of the first Xenium replicate and the Visium assay
 are workable, we have to adjust the brightness of the second Xenium
 replicate before image alignment. You can use
-<strong>modulateImage</strong> function to change the brightness and`
+<strong>modulateImage</strong> function to change the brightness and
 saturation of the reference image of this VoltRon object. This
 functionality is optional for VoltRon objects and should be used when
 images require further adjustments.</p>
@@ -586,12 +586,18 @@ center</strong> of the list) would be taken as the image of reference,
 and hence all other images (or spatial datasets) are to be aligned to
 the Visium data. Then, registerSpatialData will return a list of VoltRon
 objects whose assays include both the original and registered versions
-of spatial coordinates. The shiny app will provide <strong>two
-images</strong> for this task:</p>
+of spatial coordinates. The shiny app will also provide <strong>multiple
+panels</strong> as a result of the alignment:</p>
 <ul>
-<li>An image that shows the matched points across two images, and</li>
-<li>A slideshow with of the reference and registered images that
-demonstrates the alignment accuracy.</li>
+<li>A table of image alignment and landmark metrics that shows the
+accuracy the alignment.</li>
+<li>A map of <strong>local Structural Similarity Index Measures
+(SSIM)</strong> of tiles of size 50x50 that reports on the spatial
+similarity of images after alignment</li>
+<li>An image that highlights matched landmarks across both images that
+are used to calculate the transformation matrix.</li>
+<li>A slideshow of the reference and registered images that demonstrates
+the alignment accuracy.</li>
 </ul>
 <p>We will select <strong>FLANN</strong> method for automated alignment
 which incorporates the <strong>SIFT</strong> method for automated
@@ -603,7 +609,6 @@ images into the same orientation by rotating, flipping (horizontally and
 vertically) and negating these images. We always negate DAPI images to
 align them onto H&amp;E images.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))</code></pre>
-<!-- <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration_FLANN.gif" class="center"> -->
 <div>
 <p><video width="100%" height="100%" controls autoplay>
 <source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration_FLANN.mov" type="video/mp4">
@@ -631,7 +636,7 @@ xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2),
 taken as the image of reference</strong>. Hence, in order to align the
 first Xenium Replicate to the Visium dataset, we can create a list of
 two VoltRon objects as given below.</p>
-<pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Vis, Xen_R2))</code></pre>
+<pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Vis, Xen_R1))</code></pre>
 <p><br></p>
 </div>
 <div id="manual-image-alignment" class="section level3">
@@ -645,7 +650,6 @@ automated mode, <strong>the image on the center</strong> will be taken
 as reference and the users will be able to observe the quality of the
 registration and remove/reselect keypoints as they see fit.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2))</code></pre>
-<!-- <img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration.gif" class="center"> -->
 <div>
 <p><video width="100%" height="100%" controls autoplay>
 <source src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/XeniumVisiumRegistration_Manual.mov" type="video/mp4">
@@ -673,13 +677,13 @@ xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Vis, Xen_R2),
                                interactive = FALSE)</code></pre>
 <p>In case there are only two images, <strong>the first image will be
 taken as the image of reference</strong>. Hence, in order to align the
-first Xenium Replicate to the Visium dataset. We can create a list of
+first Xenium Replicate to the Visium dataset, we can create a list of
 two VoltRon objects as given below.</p>
-<pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Vis, Xen_R2))</code></pre>
+<pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Vis, Xen_R1))</code></pre>
 <p><br></p>
 </div>
-<div id="combine-voltron-object" class="section level3">
-<h3>Combine VoltRon object</h3>
+<div id="combine-voltron-objects" class="section level3">
+<h3>Combine VoltRon objects</h3>
 <p>Now that the VoltRon objects of Xenium and Visium datasets are
 accurately aligned, we can combine these objects to create <strong>one
 VoltRon object with three layers</strong>. Since all sections are
@@ -697,7 +701,7 @@ Features: RNA(Main) </code></pre>
 <p>Here, we can quickly check the change in spatial coordinate systems
 in the new tissue block. The <code>registerSpatialData</code> function
 synchronizes the coordinate systems of all VoltRon objects in the list
-before merging. Both Xenium sections have now two coordinate system
+before merging. Both Xenium sections have now two coordinate systems
 where the registered system <strong>main_reg</strong> is the default
 one.</p>
 <pre class="r watch-out"><code>vrSpatialNames(VRBlock, assay = &quot;all&quot;)</code></pre>
@@ -722,7 +726,7 @@ can be summarized to generate:</p>
 <div id="data-transfer-cells-spots" class="section level4">
 <h4>Data Transfer (Cells-&gt;Spots)</h4>
 <p>We must first determine the names of the assays where labels are
-transfered <strong>from</strong> one <strong>to</strong> the other. For
+transferred <strong>from</strong> one <strong>to</strong> the other. For
 the sake of this tutorial, we can select Assay1 of <strong>Xenium as the
 source</strong> assay and the Assay2 of <strong>Visium as the
 destination</strong> assay.</p>
@@ -733,13 +737,12 @@ Assay2 Visium Section2 10XBlock
 Assay3 Xenium Section3 10XBlock</code></pre>
 <p>The <strong>transferData</strong> function detects the types of both
 the <strong>source (from)</strong> and the <strong>destination
-(to)</strong> assays and determines the how the data should be
-transfered. We can first transfer data from the Xenium assay to the
-Visium assay (hence <strong>Cells -&gt; Spots</strong>), the raw count
-data of each cell in the source Xenium assay will be aggregated into
-spots in a new count feature data type in the Visium assay. The new
-feature data with aggregated counts will be named
-<strong>RNA_pseudo</strong>.</p>
+(to)</strong> assays and determines how the data should be transferred.
+We can first transfer data from the Xenium assay to the Visium assay
+(hence <strong>Cells -&gt; Spots</strong>), the raw count data of each
+cell in the source Xenium assay will be aggregated into spots in a new
+count feature data type in the Visium assay. The new feature data with
+aggregated counts will be named <strong>RNA_pseudo</strong>.</p>
 <pre class="r watch-out"><code>VRBlock &lt;- transferData(VRBlock, from = &quot;Assay1&quot;, to = &quot;Assay2&quot;)</code></pre>
 <p>VoltRon supports multiple feature type within each assay. Now, the
 Visium assay includes two spot-type features:</p>
@@ -756,7 +759,7 @@ VRBlock</code></pre>
 Assays: Visium(Main) Xenium 
 Features: RNA(Main) RNA_pseudo </code></pre>
 <p>We can now visualize both the original and aggregated counts of a
-gene, such as ERBB2 and ESR1 that marks ductal carcinoma in situ (DCIS)
+gene, such as ERBB2 and ESR1 that mark ductal carcinoma in situ (DCIS)
 regions, to validate the correlation of gene signatures across adjacent
 tissue sections, and to validate the accuracy of the automated image
 alignment. Here, PGR is also expressed at a small DCIS region found on
@@ -817,9 +820,9 @@ vrSpatialPlot(VRBlock, assay = &quot;Xenium&quot;, group.by = &quot;CellType&quo
 <p>Here, we can see that both Xenium layers are clustered and annotated
 where we can use these cell annotations and transfer them to the Visium
 assay to create a new feature data of <strong>estimated cell type
-abundances</strong>. If the features argument is specified, and if its a
-single metadata feature with, e.g. cell types, then the each spot at the
-new pseudo Visium will be collection of abundances of the categories
+abundances</strong>. If the features argument is specified, and if it’s
+a single metadata feature with, e.g. cell types, then each spot in the
+new pseudo Visium will be a collection of abundances of the categories
 within that metadata feature.</p>
 <pre class="r watch-out"><code>VRBlock &lt;- transferData(VRBlock, from = &quot;Assay1&quot;, to = &quot;Assay2&quot;, features = &quot;CellType&quot;, 
                         new_feature_name = &quot;Visium_CellType&quot;)
@@ -835,13 +838,13 @@ abundance of some DCIS and invasive tumor subtypes.</p>
 <pre class="r watch-out"><code>vrMainFeatureType(VRBlock) &lt;- &quot;Visium_CellType&quot;
 vrSpatialFeaturePlot(VRBlock, assay = &quot;Visium&quot;,
                      features = c(&quot;IT_1&quot;,&quot;DCIS_2&quot;), 
-                     crop = TRUE, alpha = 1, ncol = 3)</code></pre>
+                     crop = TRUE, alpha = 1, ncol = 2)</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_CellType.png" class="center"></p>
 <p><br></p>
 </div>
 <div id="label-transfer-rois-" class="section level4">
 <h4>Label Transfer (ROIs-&gt;…)</h4>
-<p>VoltRon allows users to annotate regions of interests (ROIs) in a
+<p>VoltRon allows users to annotate regions of interest (ROIs) in a
 given assay and transfer the annotations to these ROIs across other
 assays within the same tissue block. Let us annotate two specific tumor
 regions in the Visium section. In the process, a new assay called
@@ -928,11 +931,11 @@ found to be more accurate compared to FLANN when aligning two H&amp;E
 images. The shiny app also provides two tuning parameters that used by
 the BRUTE-FORCE workflow:</p>
 <ul>
-<li><strong># of Features</strong> option specifies the number of
-maximum image features spotted within each image which later be used to
-match to the other image.</li>
+<li><strong># of Features</strong> option specifies the maximum number
+of features spotted within each image which will later be used to match
+to the other image.</li>
 <li><strong>Match %</strong> specifies the percentage of these features
-matching at max which in turn used to compute the
+matching at max which is in turn used to compute the
 registration/transformation matrix.</li>
 </ul>
 <p>We will use <strong>1000 features</strong> for this alignment, set
@@ -977,7 +980,10 @@ connectivity &lt;- data.frame(
   c(1,1,3,3),
   c(1,2,3,4)
 )
+
 # adjacent sections are 10 micron apart, and pairs 300 micron
+library(rjson)
+params &lt;- rjson::fromJSON(file = &quot;scalefactors_json.json&quot;)
 zlocation &lt;- c(0, 10, 300, 310)*params$tissue_lowres_scalef
 
 # add connectivity information to the block
@@ -994,7 +1000,7 @@ href="nicheclustering.html">Niche Clustering</a> tutorial.</p>
 <h1>Xenium vs H&amp;E</h1>
 <p>In this use case, we will align <strong>immunofluorescence
 (IF)</strong> of the <strong>Xenium In Situ</strong> platform to an
-<strong>H&amp;E images</strong> generated from the same sections as the
+<strong>H&amp;E image</strong> generated from the same sections as the
 Xenium. VoltRon provides built-in utilities to import images as spatial
 datasets where <strong>tiles</strong> are the spatial points. We will
 import both Xenium and H&amp;E images into two separate VoltRon objects
@@ -1038,7 +1044,7 @@ rendering.</p>
 <h3>Automated Image Alignment</h3>
 <p>We can use the <strong>registerSpatialData</strong> function to
 warp/align images across multiple VoltRon objects and define these
-aligned images additional channels of existing coordinate systems of
+aligned images as additional channels of existing coordinate systems of
 assays in one of these VoltRon objects.</p>
 <p>First we align the H&amp;E image to the DAPI image of the Xenium
 replicate. Similar to the first use case, we need to negate the DAPI
@@ -1053,9 +1059,8 @@ original scales can also be used.</p>
 Xenium data. Here, the spatial key of the registered H&amp;E image will
 be <strong>main_reg</strong>. We choose the destination of the
 registered image which is the first Assay of the Xenium data
-(i.e. <strong>Assay1</strong>). The original DAPI coordinate system, and
-we give a name for the new image/channel which is
-<strong>H&amp;E</strong>.</p>
+(i.e. <strong>Assay1</strong>). We give a name for the new image/channel
+which is <strong>H&amp;E</strong>.</p>
 <pre class="r watch-out"><code>Xen_R1_image_reg &lt;- xen_reg$registered_spat[[2]]
 vrImages(Xen_R1[[&quot;Assay1&quot;]], channel = &quot;H&amp;E&quot;) &lt;- vrImages(Xen_R1_image_reg, spatial = &quot;main_reg&quot;, channel = &quot;H&amp;E&quot;)</code></pre>
 <p>We can now observe the new channels (H&amp;E) available for the
@@ -1079,9 +1084,12 @@ workflow where we first perform a <strong>global alignment</strong>
 using FLANN or BRUTE-FORCE methods, and then perform a <strong>fine
 alignment</strong> using SimpleITK. We first use either affine or
 homography transformation and then interpolate images, points and
-segments using B-spline method.</p>
-<p>To facilitate non-rigid alignment, we require to install the
-SimpleITK package as below:</p>
+segments using B-spline method in SimpleITK.</p>
+<p>To use B-spline based fine alignment, we need to install the
+SimpleITK package as below. You can find releases of SimpleITK R package
+binaries in the <a
+href="https://github.com/BIMSBbioinfo/SimpleITKRInstaller/releases">releases</a>
+page.</p>
 <pre class="r watch-out"><code>install.packages(&quot;path/to/SimpleITK_2.5.3.tgz&quot;, repos = NULL, type = &quot;binary&quot;)</code></pre>
 <p>or if you are not using MacOS-arm or Windows, please build SimpleITK
 from source with <a href="https://elastix.dev/">Elastix</a> module
@@ -1107,9 +1115,9 @@ xen_reg &lt;- registerSpatialData(object_list = list(Xen_R1, Xen_R1_image))</cod
 novel DBIT-Seq protocol that preserves the tissue for multiplex protein
 imaging) with <strong>multiplex immunofluorescence (mIF)</strong> images
 generated by a modified CODEX PhenoCycler-Fusion protocol.</p>
-<p>More information on the spatial datasets and the study can be also be
+<p>More information on the spatial datasets and the study can also be
 found on the <a
-href="https://www.nature.com/articles/s41592-025-02948-0">DBITplus
+href="https://www.nature.com/articles/s41592-025-02948-0">DBiTplus
 manuscript</a>. You can also download DBIT-Seq and CODEX datasets
 from:</p>
 <ul>
@@ -1121,14 +1129,13 @@ class="uri">https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE308167</a></li
 </ul>
 <div id="image-free-alignment" class="section level3">
 <h3>Image Free Alignment</h3>
-<p>In cases where at least of the spatial omics datasets are missing
-their images, we can use the spatial distribution of the cells, spots or
+<p>In cases where at least one of the spatial omics datasets is missing
+its images, we can use the spatial distribution of the cells, spots or
 observations from the VoltRon object to align to another objects with
 either observations or images.</p>
 <p>We first import the DBIT-Seq data, and we also subset based on
-transcript counts by spot to</p>
-<pre class="r watch-out"><code># DBIT-seq
-vr_dbit &lt;- importDBITSeq(path.rna = &quot;GSM9239729_Mouse_embryo_FFPE_1_stdata_names.tsv&quot;)
+transcript counts.</p>
+<pre class="r watch-out"><code>vr_dbit &lt;- importDBITSeq(path.rna = &quot;GSM9239729_Mouse_embryo_FFPE_1_stdata_names.tsv&quot;)
 vr_dbit &lt;- subset(vr_dbit, Count &gt; 1000)</code></pre>
 <p>We use <code>importQuPathIF</code> function to import the multiplex
 IF experiment which was quantified by QuPath. See tutorial on
@@ -1142,7 +1149,7 @@ if(!requireNamespace(&quot;sf&quot;))
 
 # get segments
 library(sf)
-my_sf &lt;- read_sf(&quot;../../data/DBIT_plus_GSE308167/Ms_Embryo_031523_Scan1.geojson&quot;)
+my_sf &lt;- read_sf(&quot;Ms_Embryo_031523_Scan1.geojson&quot;)
 my_sf &lt;- my_sf[my_sf$objectType==&quot;cell&quot;,]
 cell_names &lt;- paste0(&quot;cell&quot;, seq_along(my_sf$geometry))
 segments &lt;- mapply(function(x,y){
@@ -1170,19 +1177,17 @@ if(!requireNamespace(&quot;RBioFormats&quot;))
 # image metadata
 image_file &lt;- &quot;Ms_Embryo_031523_Scan1.qptiff&quot;
 RBioFormats::read.metadata(image_file)</code></pre>
-<p>```ImageMetadata list of length 7</p>
-<p>series res sizeX sizeY sizeC sizeZ sizeT total 1 1 11520 12960 22 1 1
-22<br />
-1 2 5760 6480 22 1 1 22<br />
-1 3 2880 3240 22 1 1 22<br />
-1 4 1440 1620 22 1 1 22<br />
-2 1 360 405 3 1 1 3<br />
-3 1 1239 2717 3 1 1 3<br />
-4 1 960 720 3 1 1 3</p>
-<pre><code>
+<pre><code>ImageMetadata list of length 7 
 
-```{.r .watch-out}
-# import CODEX PhenoCycler-Fusion
+ series res sizeX sizeY sizeC sizeZ sizeT total
+ 1      1   11520 12960 22    1     1     22   
+ 1      2   5760  6480  22    1     1     22   
+ 1      3   2880  3240  22    1     1     22   
+ 1      4   1440  1620  22    1     1     22   
+ 2      1   360   405   3     1     1     3    
+ 3      1   1239  2717  3     1     1     3    
+ 4      1   960   720   3     1     1     3    </code></pre>
+<pre class="r watch-out"><code># import CODEX PhenoCycler-Fusion
 vr_qupath &lt;- importQuPathIF(measurements = measurements, 
                             image = image_file, 
                             series = 1, resolution = 3, 
@@ -1193,9 +1198,9 @@ does. However, we can use the <strong>registerSpatialData</strong>
 function to warp/align a collection of observations to another
 collection or an image. Since at least one VoltRon object is missing its
 image, the resulting alignment can only be performed manually. Thus we
-select landmark points and perform an affine or homograph
+select landmark points and perform an affine or homography
 transformation.</p>
-<pre class="r watch-out"><code>dbit_req &lt;- registerSpatialData(reference_spatdata = vr_qupath, 
+<pre class="r watch-out"><code>dbit_reg &lt;- registerSpatialData(reference_spatdata = vr_qupath, 
                                 query_spatdata = vr_dbit)</code></pre>
 <p><img width="92%" height="92%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/registration_DBIT_mIF.png" class="center"></p>
 <p><br></p>
@@ -1229,12 +1234,12 @@ Features: main(Main)</code></pre>
 <div id="data-transfer" class="section level3">
 <h3>Data Transfer</h3>
 <p>The combined VoltRon object can be used to transfer features from the
-mIF experiment to the DBIT-Seq spots. If not features are defined, all
-features (in this case the mIF markers) will be transfered to DBIT spots
-as additional feature sets.</p>
+mIF experiment to the DBIT-Seq spots. If no features are defined, all
+features (in this case the mIF markers) will be transferred to DBIT
+spots as additional feature sets.</p>
 <pre class="r watch-out"><code>vr_all &lt;- transferData(vr_all, from = &quot;Assay1&quot;, to = &quot;Assay2&quot;, new_feature_name = &quot;Protein&quot;)
 
-vrMainAssay(vr_qupath_new) &lt;- &quot;DBIT&quot;
+vrMainAssay(vr_all) &lt;- &quot;DBIT&quot;
 vr_all</code></pre>
 <pre><code>VoltRon Object 
 Sample1: 
@@ -1242,11 +1247,10 @@ Sample1:
 Assays: DBIT(Main) IF 
 Features: RNA(Main) Protein  </code></pre>
 <p><br></p>
-<p>We can visualize the transfered protein expression (i.e. image
+<p>We can visualize the transferred protein expression (i.e. image
 intensity of the marker channel) on both the original mIF assay and the
 DBIT-Seq spots.</p>
 <pre class="r watch-out"><code>library(patchwork)
-vrFeatureTypeNames(vr_all, assay = &quot;all&quot;)
 g1 &lt;- vrSpatialFeaturePlot(vr_all, assay = &quot;Assay1&quot;, features = &quot;AQP4&quot;, 
                            channel = &quot;DAPI&quot;, n.tile = 400, alpha = 1)
 vrMainFeatureType(vr_all[[&quot;Assay2&quot;]]) &lt;- &quot;Protein&quot;

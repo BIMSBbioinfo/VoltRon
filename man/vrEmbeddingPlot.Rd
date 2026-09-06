@@ -35,21 +35,21 @@ grouping label for the spatial entities}
 from \code{group.by}}
 
 \item{split.by}{a column of metadata from \link{Metadata} used as 
-splitting spatial entities into ggplot panels, see \link{facet_wrap}}
+splitting spatial entities into ggplot panels, see \link[ggplot2]{facet_wrap}}
 
 \item{colors}{the color set for group.by. Should be of the same size 
 of group.id (if specified) or unique elements in group.by}
 
-\item{n.tile}{The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+\item{n.tile}{The number of tiles on x-and y-axis for rasterizing points (see \link[ggplot2]{geom_tile}). The rasterization is performed automatically for large number of points 
 Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.}
 
 \item{assay}{assay name (exp: Assay1) or assay class (exp: Visium, Xenium), 
 see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{ncol}{column wise number of plots, for \link{facet_wrap}}
+\item{ncol}{column wise number of plots, for \link[ggplot2]{facet_wrap}}
 
-\item{nrow}{row wise number of plots, for \link{facet_wrap}}
+\item{nrow}{row wise number of plots, for \link[ggplot2]{facet_wrap}}
 
 \item{font.size}{font size of labels, if label is TRUE}
 
@@ -60,7 +60,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{label}{if TRUE, the labels of the ROI assays will be visualized}
 
 \item{common.legend}{whether to use a common legend for all plots, 
-see \link{ggarrange}}
+see \link[ggpubr]{ggarrange}}
 
 \item{collapse.plots}{whether to combine all ggplots}
 }

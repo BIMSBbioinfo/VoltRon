@@ -16,7 +16,7 @@ getRcppAutomatedRegistration(
   rotate_query = "0",
   rotate_ref = "0",
   matcher = "FLANN",
-  method = "Homography",
+  method = "Affine",
   nonrigid = "TPS (OpenCV)",
   compute_ssim_map = TRUE
 )
@@ -44,12 +44,28 @@ getRcppAutomatedRegistration(
 
 \item{matcher}{the matching method for landmarks/keypoints FLANN or BRUTE-FORCE}
 
-\item{method}{the automated registration method, Homography or Homography+TPS}
+\item{method}{Registration method. One of:
+\itemize{
+  \item \code{"Affine"}
+  \item \code{"Homography"}
+  \item \code{"Affine + Non-Rigid"}
+  \item \code{"Homography + Non-Rigid"}
+}
+Defaults to \code{"Affine"}.}
 
-\item{nonrigid}{the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"}
+\item{nonrigid}{Non-rigid interpolation method, used only when
+\code{method} includes \code{"Non-Rigid"}. One of:
+\itemize{
+  \item \code{"TPS (OpenCV)"}
+  \item \code{"BSpline (SimpleITK)"}
+}
+Defaults to \code{"TPS (OpenCV)"}.
+\code{"BSpline (SimpleITK)"} requires the \pkg{SimpleITK} package
+built with the Elastix module; see the package README for binaries, 
+or instructions for installation.}
 
 \item{compute_ssim_map}{Should SSIM map be computed ?}
 }
 \description{
-Automated registration workflos with Rcpp
+Automated registration workflows with Rcpp
 }

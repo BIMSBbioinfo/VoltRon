@@ -933,14 +933,14 @@ class="uri">https://tep.cancer.illinois.edu/phenocycler-fusion-system/</a>
 PhenoCycler (<a href="https://www.akoyabio.com/">Akoya Biosciences</a>)
 readouts and create a VoltRon object. The function supports multiple
 readouts types depending on how the readouts were generated, this is
-controlled by the <strong>type</strong> arguement. For more information
-on all arguements of the function, see
+controlled by the <strong>type</strong> argument. For more information
+on all arguments of the function, see
 <strong>help(importPhenoCycler)</strong>.</p>
 <p>We used the Human FFPE tonsil tissue example with 83000 cells which
 could be found <a
 href="https://akoya.app.box.com/s/lqaz1eyefni57sfynveh03e9sdy4aeuk">here</a>.
-You have to download the contents and <strong>dir.path</strong>
-arguement should be set to the location of the
+You have to download the contents and <strong>dir.path</strong> argument
+should be set to the location of the
 <strong>Example-dataset-for-MAV</strong> folder.</p>
 <pre class="r watch-out"><code>vr_pheno &lt;- importPhenoCycler(dir.path = &quot;Example-dataset-for-MAV/&quot;, type = &quot;processor&quot;, 
                               sample_name = &quot;Tonsil18AB&quot;)</code></pre>

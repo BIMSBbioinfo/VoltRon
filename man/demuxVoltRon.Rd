@@ -19,8 +19,8 @@ demuxVoltRon(
 \item{use.points.only}{use spatial points instead of the reference image}
 
 \item{shiny.options}{a list of shiny options (launch.browser, host, 
-port etc.) passed \code{options} arguement of \link{shinyApp}. 
-For more information, see \link{runApp}}
+port etc.) passed \code{options} argument of \link[shiny]{shinyApp}. 
+For more information, see \link[shiny]{runApp}}
 }
 \description{
 Subsetting/demultiplexing of the VoltRon Object using interactive shiny app

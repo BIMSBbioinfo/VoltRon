@@ -12,7 +12,7 @@
 #' @param keypoints (DEPRECATED) a list of tables, each points to matching keypoints from registered images.
 #' @param mapping_parameters for manual image registration, a list of tables, each points to matching keypoints from registered images, and for automated image registration, a set of mapping parameters
 #' @param interactive if TRUE, the shiny application for image registration will be triggered, otherwise 'mapping_parameters' or 'keypoints' should be defined.
-#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
+#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} argument of \link[shiny]{shinyApp}. For more information, see \link[shiny]{runApp}
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs show hide
@@ -384,34 +384,11 @@ getSideBar <- function(params = NULL) {
         selectInput(
           "Method",
           "Method",
-          choices = c(
-            "Affine",
-            "Homography",
-            "Non-Rigid",
-            "Affine + Non-Rigid",
-            "Homography + Non-Rigid"
-          ),
+          choices = .METHODS,
           selected = ifelse(
             is.null(params[["Method"]]),
             "Homography",
             params[["Method"]]
-          )
-        )
-      ),
-      br(),
-      column(
-        12,
-        selectInput(
-          "nonrigid",
-          "Non-Rigid Method",
-          choices = c(
-            "TPS (OpenCV)",
-            "BSpline (SimpleITK)"
-          ),
-          selected = ifelse(
-            is.null(params[["nonrigid"]]),
-            "TPS (OpenCV)",
-            params[["nonrigid"]]
           )
         )
       ),
@@ -462,6 +439,20 @@ getSideBar <- function(params = NULL) {
         )
       ),
       br(),
+      column(
+        12,
+        selectInput(
+          "nonrigid",
+          "Non-Rigid Method",
+          choices = .NONRIGID_METHODS,
+          selected = ifelse(
+            is.null(params[["nonrigid"]]),
+            "TPS (OpenCV)",
+            params[["nonrigid"]]
+          )
+        )
+      ),
+      br(),
       column(12, shiny::actionButton("register", "Register!")),
       br(),
     ),
@@ -475,18 +466,173 @@ getSideBar <- function(params = NULL) {
       br()
     ),
     br(),
-    h4("How to use"),
-    p(style = "font-size: 12px;", strong("Single-L-click:"), "Select point"),
-    p(style = "font-size: 12px;", strong("Single-L-hold-drag:"), "Select area"),
-    p(
-      style = "font-size: 12px;",
-      strong("Double-L-click (selected area):"),
-      "Zoom in"
+    
+    tags$script(HTML(
+      "$(function(){ $('body').tooltip({selector: '[data-toggle=\"tooltip\"]'}); });"
+    )),
+    
+    tags$head(tags$style(HTML(
+      ".info-panels p  { margin-bottom: 2px; line-height: 1.3; }
+       .info-panels h4 { margin-top: 14px; margin-bottom: 4px; }
+       .info-panels h4:first-child { margin-top: 0; }"
+    ))),
+    
+    div(
+      id = "help-panel", 
+      class = "info-panels",
+      h4("How to use:"),
+      p(span("Selecting keypoints",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "In case of users prefering to manually registering images, ",
+                 "users can select keypoints by left clicking on images. ",
+                 "Equal number of keypoints for each pairs of images have to ",
+                 "selected."
+               )
+      )),
+      p(span("Zoom in",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "Left-click and hold for selecting an area, a green box will ", 
+                 "appear, and double left-clicking on the area will zoom in to ",
+                 "that location."
+               )
+      )),
+      p(span("Zoom out",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "Double left-click on the image without selecting an area ",
+                 "zooms out the image to its original extent."
+               )
+      )),
+      br()
     ),
-    p(
-      style = "font-size: 12px;",
-      strong("Double-L-click (no area):"),
-      "Zoom out"
+
+    div(
+      id = "alignment-panel", 
+      class = "info-panels",
+      h4("Alignment Metrics:"),
+      p(span("SSIM:",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "The global Structural Similarity Index Measure (SSIM) ", 
+                 "calculated by the arithmetic mean of local SSIM scores of each", 
+                 "overlapping tiles from aligned images."
+               )
+      )),
+      p(span("Matte's MI:",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "Matte's Mutual Information score calculated from aligned images."
+               )
+      )),
+      p(span("Intersection:",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "The global intersection similarity measure ", 
+                 "calculated by the arithmetic mean of intersection scores ", 
+                 "of each overlapping tiles from aligned images."
+               )
+      )),
+      p(span("Bhattacharyya:",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "The global Bhattacharyya similarity measure ", 
+                 "calculated by the arithmetic mean of Bhattacharyya scores ",
+                 "of each overlapping tiles from aligned images."
+               )
+      )),
+
+      h4("Keypoint Metrics:"),
+      p(span("# of Matches:",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "Number of matching keypoints across images. ", 
+                 "Larger values indicate the quality of detected keypoints."
+               )
+      )),
+      p(span("Inlier Perc.:",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "The percentage of matching keypoints (inliers) that are ", 
+                 "selected by RANSAC from the initial set of matching keypoints. ", 
+                 "Larger values indicate the quality of detected keypoints."
+               )
+      )),
+      p(span("sd (x,y) (>1?):",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "The standard deviation of reference and query keypoints across x and y ", 
+                 "axes. Values smaller than 1 or larger than image extent indicate a ", 
+                 "degenerate image transformation."
+               )
+      )),
+      p(span("sd grid (x,y) (>1?):",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "The standard deviation of registered grid points across x and y ", 
+                 "axes. These points are selected in a grid fashion from the ", 
+                 "query image and transformed. Then their coordinates are ", 
+                 "checked. Values smaller than 1 or larger than image extent indicate a ", 
+                 "degenerate image transformation."
+               )
+      )),
+      p(span("Median Distance:",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "The median of the distance between paired reference image ", 
+                 "keypoints and registered query image keypoints. ",
+                 "This value is typically close to zero or around 1 (in pixel) ",
+                 "units for accurate transformation matrix calculations."
+               )
+      )),
+      p(span("Degenerate:",
+             icon("info-circle"),
+             `data-toggle`    = "tooltip",
+             `data-placement` = "right",
+             title = 
+               paste0(
+                 "'Yes' if standard deviation of keypoints and registered grid ",
+                 "points are smaller than 1 or larger than the extent of the ",
+                 "image."
+               )
+      ))
     )
   )
 }
@@ -628,7 +774,7 @@ getAlignmentTabPanel <- function(len_images, centre, register_ind) {
           
           tabsetPanel(
             id = paste0("inner_tabs", i), 
-            tabPanel("Alignment Stat.",
+            tabPanel("Alignment Metrics",
                      tableOutput(paste0("alignment_stats", i))),
             tabPanel("Local SSIM",
                      imageOutput(paste0("plot_ssim_map", i))),
@@ -818,8 +964,10 @@ updateTabPanels <- function(centre, register_ind, input, output, session) {
 updateParameterPanels <- function(len_images, params, input, output, session) {
   # done event
   shinyjs::hide(id = "done")
+  shinyjs::hide(id = "alignment-panel")
   observeEvent(input$register, {
     shinyjs::show(id = "done")
+    shinyjs::show(id = "alignment-panel")
   })
 
   # registration panels/buttons
@@ -842,10 +990,10 @@ updateParameterPanels <- function(len_images, params, input, output, session) {
       updateSelectInput(
         session,
         "nonrigid",
-        choices = c(
+        choices = if(input$Method != "Non-Rigid") 
+          .NONRIGID_METHODS 
+        else 
           "TPS (OpenCV)",
-          if(input$Method != "Non-Rigid") "BSpline (SimpleITK)" else NULL
-        ),
         selected = "TPS (OpenCV)"
       )
     } else {
@@ -856,12 +1004,7 @@ updateParameterPanels <- function(len_images, params, input, output, session) {
   observeEvent(input$automatictag, {
     if (input$automatictag) {
       # Method and Matcher
-      choices <- c(
-        "Affine",
-        "Homography",
-        "Affine + Non-Rigid",
-        "Homography + Non-Rigid"
-      )
+      choices <- .METHODS[!.METHODS %in% c("Non-Rigid")]
       selected <- ifelse(
         is.null(params[["Method"]]),
         choices[1],
@@ -894,13 +1037,7 @@ updateParameterPanels <- function(len_images, params, input, output, session) {
       }
     } else {
       # Method and Matcher
-      choices <- c(
-        "Affine",
-        "Homography",
-        "Affine + Non-Rigid",
-        "Homography + Non-Rigid",
-        "Non-Rigid"
-      )
+      choices <- .METHODS
       selected <- ifelse(
         is.null(params[["Method"]]),
         choices[1],
@@ -1220,8 +1357,8 @@ applyPerspectiveTransform <- function(
     # correct back
     if(is.null(vrImageChannelNames(object[[assay]], return.report = FALSE))){
       if(inherits(reference_image, "magick-image")){
-        extend <- getImageInfo(reference_image)
-        coords_reg[,"y"] <- extend$height -  coords_reg[,"y"] 
+        extent <- getImageInfo(reference_image)
+        coords_reg[,"y"] <- extent$height -  coords_reg[,"y"] 
       } else {
         coords_reg_extent <- c(min(coords_reg[,"y"]), max(coords_reg[,"y"]))
         coords_reg[,"y"] <- coords_reg_extent[2] + coords_reg_extent[1] - coords_reg[,"y"] 
@@ -1245,8 +1382,8 @@ applyPerspectiveTransform <- function(
       # correct back
       if(is.null(vrImageChannelNames(object[[assay]], return.report = FALSE))){
         if(inherits(reference_image, "magick-image")){
-          extend <- getImageInfo(reference_image)
-          segments_reg[,"y"] <- extend$height -  segments_reg[,"y"] 
+          extent <- getImageInfo(reference_image)
+          segments_reg[,"y"] <- extent$height -  segments_reg[,"y"] 
         } else {
           segments_reg[,"y"] <- coords_reg_extent[2] + coords_reg_extent[1] - segments_reg[,"y"] 
         }
@@ -1879,6 +2016,59 @@ transferParameterInput <- function(params, image_list) {
   }
 
   input
+}
+
+.METHODS <- c("Affine",
+              "Homography",
+              "Affine + Non-Rigid",
+              "Homography + Non-Rigid",
+              "Non-Rigid")
+
+.NONRIGID_METHODS <- c("TPS (OpenCV)",
+                       "BSpline (SimpleITK)")
+
+.ALIGNMENT_ACCURACY_METRICS <- c(
+  "SSIM",
+  "Matte's MI",
+  "Intersection",
+  "Bhattacharyya"
+)
+
+.ALIGNMENT_KEYPOINT_METRICS <- c(
+  "# of Matches",
+  "Inlier Perc.",
+  "sd query(x) (>1?)",
+  "sd query(y) (>1?)",
+  "sd ref(x) (>1?)",
+  "sd ref(y) (>1?)",
+  "sd grid (x) [w,h]?",
+  "sd grid (y) [w,h]?",
+  "Median distance",
+  "Degenerate"
+)
+
+#' @noRd
+param_method <- function(methods) {
+  c(
+    "@param method Registration method. One of:",
+    paste0("  \\itemize{"),
+    paste0("    \\item \\code{\"", methods, "\"}"),
+    "  }",
+    paste0("  Defaults to \\code{\"", methods[1], "\"}.")
+  )
+}
+
+#' @noRd
+param_nonrigid_method <- function() {
+  c("@param nonrigid Non-rigid interpolation method, used only when",
+    paste0("  \\code{method} includes \\code{\"Non-Rigid\"}. One of:"),
+    "  \\itemize{",
+    paste0("    \\item \\code{\"", .NONRIGID_METHODS, "\"}"),
+    "  }",
+    paste0("  Defaults to \\code{\"", .NONRIGID_METHODS[1], "\"}."),
+    "  \\code{\"BSpline (SimpleITK)\"} requires the \\pkg{SimpleITK} package",
+    "  built with the Elastix module; see the package README for binaries, ",
+    "  or instructions for installation.")
 }
 
 ####
@@ -2674,7 +2864,8 @@ transformImageQueryList <- function(image_list, input) {
 
 #' warpImage
 #'
-#' Warping a query image given a homography image
+#' Warping a query image onto a reference image given a set of mapping 
+#' functions.
 #'
 #' @param ref_image reference image
 #' @param query_image query image
@@ -2759,7 +2950,7 @@ warpImage <- function(ref_image, query_image, mapping) {
 
 #' getRcppWarpImage
 #'
-#' Warping a query image given a homography image
+#' Warping a query image onto a reference image using SimpleITK.
 #'
 #' @param query_image query image
 #' @param mapping a list of the homography matrices and TPS keypoints
@@ -3150,11 +3341,11 @@ computeManualPairwiseTransform <- function(
 #' @param query_image query image
 #' @param ref_image reference image
 #' @param query_landmark query landmark points
-#' @param reference_landmark refernece landmark points
+#' @param reference_landmark reference landmark points
 #' @param invert_query invert query image
 #' @param invert_ref invert reference image
-#' @param method the automated registration method, either TPS or Homography+TPS
-#' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
+#' @eval param_method(.METHODS)
+#' @eval param_nonrigid_method()
 #' @param compute_ssim_map Should SSIM map be computed ? 
 #' 
 #' @importFrom magick image_read image_data
@@ -3167,7 +3358,7 @@ getRcppManualRegistration <- function(
   reference_landmark,
   invert_query = FALSE,
   invert_ref = FALSE,
-  method = "Homography",
+  method = "Affine",
   nonrigid = "TPS (OpenCV)", 
   compute_ssim_map = TRUE
 ) {
@@ -3686,7 +3877,7 @@ computeAutomatedPairwiseTransform <- function(
 
 #' getRcppAutomatedRegistration
 #'
-#' Automated registration workflos with Rcpp
+#' Automated registration workflows with Rcpp
 #'
 #' @param ref_image reference image
 #' @param query_image query image
@@ -3699,8 +3890,8 @@ computeAutomatedPairwiseTransform <- function(
 #' @param rotate_query rotation of query image
 #' @param rotate_ref rotation of reference image
 #' @param matcher the matching method for landmarks/keypoints FLANN or BRUTE-FORCE
-#' @param method the automated registration method, Homography or Homography+TPS
-#' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
+#' @eval param_method(.METHODS[!.METHODS %in% c("Non-Rigid")])
+#' @eval param_nonrigid_method()
 #' @param compute_ssim_map Should SSIM map be computed ? 
 #' 
 #' @importFrom magick image_read image_data
@@ -3718,7 +3909,7 @@ getRcppAutomatedRegistration <- function(
   rotate_query = "0",
   rotate_ref = "0",
   matcher = "FLANN",
-  method = "Homography",
+  method = "Affine",
   nonrigid = "TPS (OpenCV)",
   compute_ssim_map = TRUE
 ) {
@@ -3845,8 +4036,6 @@ getRcppAutomatedRegistration <- function(
 }
 
 #' getSimpleITKAutomatedRegistration
-#'
-#' Automated registration workflos with Rcpp
 #'
 #' @param ref_image reference image
 #' @param query_image query image

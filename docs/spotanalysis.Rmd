@@ -595,7 +595,7 @@ for(i in 1:nrow(sample_metadata)){
 }
 ```
 
-Finally, we merge these assays into one VoltRon object. The **samples** arguement in the merge function determines which assays are layers of a single tissue sample/block.
+Finally, we merge these assays into one VoltRon object. The **samples** argument in the merge function determines which assays are layers of a single tissue sample/block.
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 vr_merged <- merge(vr_list[[1]], vr_list[-1], samples = sample_metadata$Sample)

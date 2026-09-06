@@ -9,6 +9,9 @@ getOmeTiffChannels(ome.tiff)
 \arguments{
 \item{ome.tiff}{location to ome.tiff file}
 }
+\value{
+a vector of channel names
+}
 \description{
 Function that returns the channel names of an image in a ome.tiff file
 }

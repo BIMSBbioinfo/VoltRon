@@ -34,7 +34,7 @@ vrEmbeddingFeaturePlot(
 
 \item{combine.features}{whether to combine all features in one plot}
 
-\item{n.tile}{The number of tiles on x-and y-axis for rasterizing points (see \link{geom_tile}). The rasterization is performed automatically for large number of points 
+\item{n.tile}{The number of tiles on x-and y-axis for rasterizing points (see \link[ggplot2]{geom_tile}). The rasterization is performed automatically for large number of points 
 Only applicable to spots, cells and molecules. If \code{n.tile = 0} will turn of automated rasterization.}
 
 \item{norm}{if TRUE, the normalized data is used}
@@ -46,9 +46,9 @@ log transformed}
 see \link{SampleMetadata}.
 if NULL, the default assay will be used, see \link{vrMainAssay}.}
 
-\item{ncol}{column wise number of plots, for \link{ggarrange}}
+\item{ncol}{column wise number of plots, for \link[ggpubr]{ggarrange}}
 
-\item{nrow}{row wise number of plots, for \link{ggarrange}}
+\item{nrow}{row wise number of plots, for \link[ggpubr]{ggarrange}}
 
 \item{font.size}{font size}
 
@@ -59,7 +59,7 @@ if NULL, the default assay will be used, see \link{vrMainAssay}.}
 \item{keep.scale}{whether unify all scales for all features or not}
 
 \item{common.legend}{whether to use a common legend for all plots, 
-see \link{ggarrange}}
+see \link[ggpubr]{ggarrange}}
 
 \item{collapse.plots}{whether to combine all ggplots}
 }

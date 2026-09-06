@@ -41,6 +41,9 @@ importGenePS(
 
 \item{...}{additional parameters passed to \link{formVoltRon}}
 }
+\value{
+VoltRon object
+}
 \description{
 Importing GenePS data
 }

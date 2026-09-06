@@ -26,5 +26,6 @@ If NULL, the default assay will be used, see \link{vrMainAssay}. If equals
 to "all", then provides a summary of spatial systems across all assays}
 }
 \description{
-Get names of all images
+Get names of all images. 
+The vrImage objects are deprecated in favor of the \code{vrSpatial} class.
 }

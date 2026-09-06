@@ -40,6 +40,9 @@ folder of CSVs or with TileDB array.}
 
 \item{...}{additional parameters passed to \link{formVoltRon}}
 }
+\value{
+VoltRon object
+}
 \description{
 Import CosMx data
 }

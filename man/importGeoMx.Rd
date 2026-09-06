@@ -52,6 +52,9 @@ image, Default: 3}
 
 \item{...}{additional parameters passed to \link{formVoltRon}}
 }
+\value{
+VoltRon object
+}
 \description{
 Import GeoMx data
 }

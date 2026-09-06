@@ -1,15 +1,15 @@
 ####
-# Create vrImage Object ####
+# Create vrSpatial Object ####
 ####
 
 #' formSpatial
 #'
-#' Create a vrImage (VoltRon image) object
+#' Create a vrSpatial object
 #'
 #' @param coords the coordinates of the spatial points
 #' @param segments the list of segments each associated with a spatial point
-#' @param image a singelton or list of images as magick-image objects
-#' @param main_channel the key of the main channel of vrImage object
+#' @param image a singleton or list of images as magick-image objects
+#' @param main_channel the key of the main channel of vrSpatial object
 #'
 #' @importFrom magick image_data image_read image_info
 #' @importFrom methods new
@@ -111,7 +111,7 @@ formSpatial <- function(
     }
   } 
 
-  # make vrimage object
+  # make vrSpatial object
   methods::new(
     "vrSpatial",
     coords = coords,
@@ -121,7 +121,7 @@ formSpatial <- function(
   )
 }
 
-### Subset vrImage objects ####
+### Subset vrSpatial objects ####
 
 subsetvrImage <- function(x, subset, spatialpoints = NULL, image = NULL) {
   # start
@@ -214,11 +214,12 @@ subsetvrImage <- function(x, subset, spatialpoints = NULL, image = NULL) {
 #' Subsetting vrImage objects
 #'
 #' Given a vrImage object, subset the object given one of the attributes.
+#' The vrImage objects are deprecated in favor of the \code{vrSpatial} class.
 #'
 #' @param x A vrImage object
 #' @param subset Logical statement for subsetting
 #' @param spatialpoints the set of spatial points to subset the object
-#' @param image the subseting string passed to \link{image_crop}
+#' @param image the subseting string passed to \link[magick]{image_crop}
 #'
 #' @method subset vrImage
 #' @order 5
@@ -236,7 +237,7 @@ setMethod("subset", "vrImage", subsetvrImage)
 #' @param x A vrSpatial object
 #' @param subset Logical statement for subsetting
 #' @param spatialpoints the set of spatial points to subset the object
-#' @param image the subseting string passed to \link{image_crop}
+#' @param image the subseting string passed to \link[magick]{image_crop}
 #'
 #' @method subset vrSpatial
 #' @order 5
@@ -408,7 +409,7 @@ vrImagesvrImage <- function(
       warning(
         "'",
         channel,
-        "' is not among any channel in this vrImage object!"
+        "' is not among any channel in this vrSpatial object!"
       )
       return(NULL)
     }
@@ -1601,8 +1602,8 @@ setMethod("vrSegments<-", "vrSpatial", vrSegmentsReplacevrImage)
 #' @param max.pixel.size the initial width of the object image
 #' @param use.points.only use spatial points instead of the reference image
 #' @param shiny.options a list of shiny options (launch.browser, host, 
-#' port etc.) passed \code{options} arguement of \link{shinyApp}. 
-#' For more information, see \link{runApp}
+#' port etc.) passed \code{options} argument of \link[shiny]{shinyApp}. 
+#' For more information, see \link[shiny]{runApp}
 #'
 #' @import shiny
 #' @importFrom shinyjs useShinyjs

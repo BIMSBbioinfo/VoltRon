@@ -227,7 +227,7 @@ setMethod(
 #'
 #' @param data the feature matrix of spatialpoints
 #' @param metadata a metadata object of class \link{vrMetadata}
-#' @param image a singelton or list of images as magick-image objects
+#' @param image a singleton or list of images as magick-image objects
 #' @param coords the coordinates of the spatial points
 #' @param segments the list of segments each associated with a spatial point
 #' @param sample.metadata a data frame of the sample metadata, see \link{SampleMetadata}
@@ -355,7 +355,7 @@ formVoltRon <- function(
   colnames(data) <- entityID
 
   # Coordinates
-  if (!is.null(coords)) {
+  if (!missing(coords) && !is.null(coords)) {
     if (inherits(coords, "data.frame")) {
       coords <- as.matrix(coords)
     }
@@ -1115,10 +1115,10 @@ subsetVoltRon <- function(
 #' @param assays the set of assays to subset the object
 #' @param spatialpoints the set of spatial points to subset the object
 #' @param features the set of features to subset the object
-#' @param image the subseting string passed to \link{image_crop}
+#' @param image the subseting string passed to \link[magick]{image_crop}
 #' @param interactive TRUE if interactive subsetting on the image is demanded
 #' @param use.points.only if \code{interactive} is \code{TRUE}, use spatial points instead of the reference image
-#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} arguement of \link{shinyApp}. For more information, see \link{runApp}
+#' @param shiny.options a list of shiny options (launch.browser, host, port etc.) passed \code{options} argument of \link[shiny]{shinyApp}. For more information, see \link[shiny]{runApp}
 #'
 #' @rdname subset
 #' @aliases subset
@@ -1173,7 +1173,7 @@ mergeVoltRon <- function(
 
   # check if all are VoltRon
   if (!all(lapply(object_list, class) == "VoltRon")) {
-    stop("All arguements have to be of VoltRon class")
+    stop("All arguments have to be of VoltRon class")
   }
 
   # sample metadata list

@@ -11,6 +11,9 @@ generateSegments(object, type = c("ROI", "cell"))
 
 \item{type}{spatial entity type: ROI or cell}
 }
+\value{
+a list of dataframes each associated with segments
+}
 \description{
 The function to import segments from a geojson file
 }
