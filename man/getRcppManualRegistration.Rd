@@ -13,7 +13,11 @@ getRcppManualRegistration(
   invert_ref = FALSE,
   method = "Homography",
   nonrigid = "TPS (OpenCV)",
+<<<<<<< HEAD
+  compute_ssim_map = TRUE
+=======
   compute_matte_map = TRUE
+>>>>>>> main_bimsb
 )
 }
 \arguments{
@@ -33,7 +37,11 @@ getRcppManualRegistration(
 
 \item{nonrigid}{the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"}
 
+<<<<<<< HEAD
+\item{compute_ssim_map}{Should SSIM map be computed ?}
+=======
 \item{compute_matte_map}{Should matte map be computed ?}
+>>>>>>> main_bimsb
 }
 \description{
 Manual registration workflow with Rcpp

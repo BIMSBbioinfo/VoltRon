@@ -24,7 +24,7 @@ void alignImagesTPS(Mat &im1,
                     Rcpp::NumericMatrix reference_landmark,
                     const bool invert_query, 
                     const bool invert_ref,
-                    const bool compute_matte_map, 
+                    const bool compute_ssim_map, 
                     Mat1d &accuracyMatte, 
                     std::map<std::string, double> &accuracy)
 {
@@ -72,8 +72,10 @@ void alignImagesTPS(Mat &im1,
   
   // get alignment metrics
   accuracy = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Coarse");
-  if(compute_matte_map)
-    accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
+  // if(compute_ssim_map)
+  //   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
+  if(compute_ssim_map)
+    accuracyMatte = getTiledAlignmentMetrics(im2Proc, im1Proc, alignmentMask);
 }
 
 // align images with TPS algorithm
@@ -128,7 +130,7 @@ void alignImagesAffineTPS(Mat &im1,
                           const bool invert_ref,
                           const bool run_Affine, 
                           const bool run_TPS,
-                          const bool compute_matte_map, 
+                          const bool compute_ssim_map, 
                           Mat1d &accuracyMatte, 
                           std::map<std::string, double> &accuracy_coarse,
                           std::map<std::string, double> &accuracy_fine)
@@ -179,8 +181,10 @@ void alignImagesAffineTPS(Mat &im1,
   if(!run_TPS){
     
     // compute matte map if finishing alignment
-    if(compute_matte_map)
-      accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
+    // if(compute_ssim_map)
+    //   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
+    if(compute_ssim_map)
+      accuracyMatte = getTiledAlignmentMetrics(im2Proc, im1Proc, alignmentMask);
     
     // clone and exit
     im1Reg = im1Affine.clone();
@@ -213,8 +217,10 @@ void alignImagesAffineTPS(Mat &im1,
     cvtColor(im1Reg, im1Proc, cv::COLOR_BGR2GRAY);
     im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
     accuracy_fine = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Fine");
-    if(compute_matte_map)
-      accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
+    // if(compute_ssim_map)
+    //   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
+    if(compute_ssim_map)
+      accuracyMatte = getTiledAlignmentMetrics(im2Proc, im1Proc, alignmentMask);
   }
 }
 
@@ -297,7 +303,7 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
                                           const bool invert_ref,
                                           Rcpp::String method, 
                                           Rcpp::String nonrigid,
-                                          const bool compute_matte_map = true)
+                                          const bool compute_ssim_map = true)
 {
   // Return data
   Rcpp::List out(5);
@@ -327,7 +333,7 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
                          invert_ref,
                          run_Affine, 
                          run_TPS, 
-                         compute_matte_map,
+                         compute_ssim_map,
                          accuracyMatte, 
                          accuracy_coarse, 
                          accuracy_fine);
@@ -341,7 +347,7 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
                    reference_landmark,
                    invert_query, 
                    invert_ref,
-                   compute_matte_map,
+                   compute_ssim_map,
                    accuracyMatte, 
                    accuracy_coarse);
   }

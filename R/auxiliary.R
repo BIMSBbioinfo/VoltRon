@@ -76,26 +76,6 @@ fixVoltRon <- function(object) {
 )
 
 ####
-# Alignment Metrics ####
-####
-
-.ALIGNMENT_ACCURACY_METRICS <- c(
-  "Intersection",
-  "Bhattacharyya",
-  "Matte's MI"
-)
-
-.ALIGNMENT_KEYPOINT_METRICS <- c(
-  "#Keypoints",
-  "Inlier Perc.",
-  "sd ref. kpts (>1?)",
-  "sd query kpts (>1?)",
-  "sd grid (in [w,h]?)",
-  "Median distance",
-  "Degenerate"
-)
-
-####
 # Matrix Operations ####
 ####
 
