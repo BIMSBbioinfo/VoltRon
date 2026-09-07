@@ -3919,7 +3919,7 @@ getSimpleITKAutomatedRegistration <- function(
                               initial_mapping[[1]][[1]],
                               c(query_info$width, query_info$height))
   mask_img <- magick::image_read(as.raster(t(mask) / 255))   
-
+  
   # warp image
   query_image <- warpImage(ref_image = ref_image,
                            query_image = query_image,
