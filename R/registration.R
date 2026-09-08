@@ -384,13 +384,7 @@ getSideBar <- function(params = NULL) {
         selectInput(
           "Method",
           "Method",
-          choices = c(
-            "Affine",
-            "Homography",
-            "Non-Rigid",
-            "Affine + Non-Rigid",
-            "Homography + Non-Rigid"
-          ),
+          choices = .METHODS,
           selected = ifelse(
             is.null(params[["Method"]]),
             "Homography",
@@ -404,10 +398,7 @@ getSideBar <- function(params = NULL) {
         selectInput(
           "nonrigid",
           "Non-Rigid Method",
-          choices = c(
-            "TPS (OpenCV)",
-            "BSpline (SimpleITK)"
-          ),
+          choices = .NONRIGID_METHODS,
           selected = ifelse(
             is.null(params[["nonrigid"]]),
             "TPS (OpenCV)",
@@ -842,10 +833,10 @@ updateParameterPanels <- function(len_images, params, input, output, session) {
       updateSelectInput(
         session,
         "nonrigid",
-        choices = c(
+        choices = if(input$Method != "Non-Rigid") 
+          .NONRIGID_METHODS 
+        else 
           "TPS (OpenCV)",
-          if(input$Method != "Non-Rigid") "BSpline (SimpleITK)" else NULL
-        ),
         selected = "TPS (OpenCV)"
       )
     } else {
@@ -856,12 +847,7 @@ updateParameterPanels <- function(len_images, params, input, output, session) {
   observeEvent(input$automatictag, {
     if (input$automatictag) {
       # Method and Matcher
-      choices <- c(
-        "Affine",
-        "Homography",
-        "Affine + Non-Rigid",
-        "Homography + Non-Rigid"
-      )
+      choices <- .METHODS[!.METHODS %in% "Non-Rigid"]
       selected <- ifelse(
         is.null(params[["Method"]]),
         choices[1],
@@ -894,13 +880,7 @@ updateParameterPanels <- function(len_images, params, input, output, session) {
       }
     } else {
       # Method and Matcher
-      choices <- c(
-        "Affine",
-        "Homography",
-        "Affine + Non-Rigid",
-        "Homography + Non-Rigid",
-        "Non-Rigid"
-      )
+      choices <- .METHODS
       selected <- ifelse(
         is.null(params[["Method"]]),
         choices[1],
@@ -1879,6 +1859,59 @@ transferParameterInput <- function(params, image_list) {
   }
 
   input
+}
+
+.METHODS <- c("Affine",
+              "Homography",
+              "Affine + Non-Rigid",
+              "Homography + Non-Rigid",
+              "Non-Rigid")
+
+.NONRIGID_METHODS <- c("TPS (OpenCV)",
+                       "BSpline (SimpleITK)")
+
+.ALIGNMENT_ACCURACY_METRICS <- c(
+  "SSIM",
+  "Matte's MI",
+  "Intersection",
+  "Bhattacharyya"
+)
+
+.ALIGNMENT_KEYPOINT_METRICS <- c(
+  "# of Matches",
+  "Inlier Perc.",
+  "sd query(x) (>1?)",
+  "sd query(y) (>1?)",
+  "sd ref(x) (>1?)",
+  "sd ref(y) (>1?)",
+  "sd grid (x) [w,h]?",
+  "sd grid (y) [w,h]?",
+  "Median distance",
+  "Degenerate"
+)
+
+#' @noRd
+param_method <- function(methods) {
+  c(
+    "@param method Registration method. One of:",
+    paste0("  \\itemize{"),
+    paste0("    \\item \\code{\"", methods, "\"}"),
+    "  }",
+    paste0("  Defaults to \\code{\"", methods[1], "\"}.")
+  )
+}
+
+#' @noRd
+param_nonrigid_method <- function() {
+  c("@param nonrigid Non-rigid interpolation method, used only when",
+    paste0("  \\code{method} includes \\code{\"Non-Rigid\"}. One of:"),
+    "  \\itemize{",
+    paste0("    \\item \\code{\"", .NONRIGID_METHODS, "\"}"),
+    "  }",
+    paste0("  Defaults to \\code{\"", .NONRIGID_METHODS[1], "\"}."),
+    "  \\code{\"BSpline (SimpleITK)\"} requires the \\pkg{SimpleITK} package",
+    "  built with the Elastix module; see the package README for binaries, ",
+    "  or instructions for installation.")
 }
 
 ####
