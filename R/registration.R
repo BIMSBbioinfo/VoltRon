@@ -3063,8 +3063,7 @@ computeManualPairwiseTransform <- function(
   keypoints_list,
   query_ind,
   ref_ind,
-  input,
-  compute_accuracy = TRUE
+  input
 ) {
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -3098,7 +3097,7 @@ computeManualPairwiseTransform <- function(
     }
     
     # check non-rigid
-    if(is.null(input$nonrigid)) input$nonrigid <- "None"
+    nonrigid <- if(is.null(input$nonrigid)) "None" else input$nonrigid
 
     # get registered image (including all channels)
     reg <- getRcppManualRegistration(
@@ -3121,12 +3120,12 @@ computeManualPairwiseTransform <- function(
       )]] ==
         "Yes",
       method = input$Method,
-      nonrigid = input$nonrigid,
-      compute_accuracy = if (grepl("SimpleITK", input$nonrigid)) FALSE else compute_accuracy
+      nonrigid = nonrigid,
+      compute_accuracy = !grepl("SimpleITK", nonrigid)
     )
     
     # run SimpleITK as fine registration
-    if(grepl("SimpleITK", input$nonrigid) && 
+    if(grepl("SimpleITK", nonrigid) && 
        grepl("Non-Rigid", input$Method)){
       if (!requireNamespace('SimpleITK')) {
         stop("Please install SimpleITK package!: ", 
@@ -3155,8 +3154,7 @@ computeManualPairwiseTransform <- function(
         flipflop_ref = FALSE,
         rotate_query = FALSE,
         rotate_ref = FALSE,
-        initial_mapping = list(reg[[1]]),
-        compute_accuracy = compute_accuracy
+        initial_mapping = list(reg[[1]])
       )
       reg[[1]][[2]] <- tfx$transformation
       reg$aligned_image <- tfx$aligned_image
@@ -3264,7 +3262,8 @@ getRcppManualRegistration <- function(
         width2 = dim(query_image)[2],
         height2 = dim(query_image)[3],
         method = method,
-        nonrigid = nonrigid
+        nonrigid = nonrigid, 
+        compute_accuracy = compute_accuracy
       )
     }
 
@@ -3528,8 +3527,7 @@ computeAutomatedPairwiseTransform <- function(
   channel_names,
   query_ind,
   ref_ind,
-  input,
-  compute_accuracy = TRUE
+  input
 ) {
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -3581,7 +3579,7 @@ computeAutomatedPairwiseTransform <- function(
     )
     
     # check non-rigid
-    if(is.null(input$nonrigid)) input$nonrigid <- "None"
+    nonrigid <- if(is.null(input$nonrigid)) "None" else input$nonrigid
 
     # register images with OpenCV
     reg <- getRcppAutomatedRegistration(
@@ -3624,8 +3622,8 @@ computeAutomatedPairwiseTransform <- function(
       rotate_ref = input[[paste0("rotate_", ref_label, "_image", cur_map[2])]],
       matcher = input$Matcher,
       method = input$Method,
-      nonrigid = input$nonrigid,
-      compute_accuracy = if (grepl("SimpleITK", input$nonrigid)) FALSE else compute_accuracy
+      nonrigid = nonrigid,
+      compute_accuracy = !grepl("SimpleITK", nonrigid)
     )
     
     # update transformation matrix
@@ -3646,7 +3644,7 @@ computeAutomatedPairwiseTransform <- function(
     }
 
     # run SimpleITK as fine registration
-    if(grepl("SimpleITK", input$nonrigid) && 
+    if(grepl("SimpleITK", nonrigid) && 
        grepl("Non-Rigid", input$Method)){
       if (!requireNamespace('SimpleITK')) {
         stop("Please install SimpleITK package!: ", 
@@ -3691,8 +3689,7 @@ computeAutomatedPairwiseTransform <- function(
         )]],
         rotate_ref = input[[paste0(
           "rotate_", ref_label, "_image", cur_map[2])]],
-        initial_mapping = list(reg[[1]]), 
-        compute_accuracy = compute_accuracy
+        initial_mapping = list(reg[[1]])
       )
       reg[[1]][[2]] <- tfx$transformation
       reg$aligned_image <- tfx$aligned_image
@@ -3902,7 +3899,6 @@ getRcppAutomatedRegistration <- function(
 #' @param flipflop_ref flip or flop the reference image
 #' @param rotate_query rotation of query image
 #' @param rotate_ref rotation of reference image
-#' @param compute_accuracy Should accuracy metrics be computed ? 
 #' 
 #' @importFrom magick as_EBImage image_read
 #' @importFrom EBImage imageData writeImage
@@ -3917,8 +3913,7 @@ getSimpleITKAutomatedRegistration <- function(
     flipflop_ref = "None",
     rotate_query = "0",
     rotate_ref = "0",
-    initial_mapping = NULL,
-    compute_accuracy = TRUE
+    initial_mapping = NULL
 ){
   # check SimpleITK
   if (!requireNamespace('SimpleITK')) {
@@ -3926,13 +3921,6 @@ getSimpleITKAutomatedRegistration <- function(
          "remotes::install_github('BIMSBbioinfo/SimpleITKRInstaller')", 
          ", this is gonna take a while :)")
   }
-  
-  # message 
-  message("MESSAGE: Running B-Spline Alignment")
-  # temp dir, delete later
-  tmpdir <- tempdir()
-  tmpdir <- file.path(tmpdir, "SimpleITK")
-  dir.create(tmpdir, showWarnings = FALSE)
   
   # initial mapping
   ref_image <- rotateImage(ref_image, as.numeric(rotate_ref))
@@ -3972,22 +3960,24 @@ getSimpleITKAutomatedRegistration <- function(
                            mapping = initial_mapping)
   
   # compute pre accuracy
-  if(compute_accuracy){
-    results_pre <- getAlignmentAccuracy(
-      magick::image_convert(ref_image, 
-                            colorspace = "gray"), 
-      magick::image_convert(query_image, 
-                            colorspace = "gray"), 
-      mask_img,
-      "Coarse")
-    results_pre[[1]] <- .collapse_xy(results_pre[[1]])
-    
-    # check SSIM maps
-    coarse_ssim_map <- if (!is.null(results_pre[[2]])) .check_ssim_map(results_pre[[2]]) else NA 
-  } else {
-    results_pre <- list(NULL)
-    coarse_ssim_map <- NULL
-  }
+  results_pre <- getAlignmentAccuracy(
+    magick::image_convert(ref_image, 
+                          colorspace = "gray"), 
+    magick::image_convert(query_image, 
+                          colorspace = "gray"), 
+    mask_img,
+    "Coarse")
+  results_pre[[1]] <- .collapse_xy(results_pre[[1]])
+  
+  # check SSIM maps
+  coarse_ssim_map <- if (!is.null(results_pre[[2]])) .check_ssim_map(results_pre[[2]]) else NA 
+  
+  # message 
+  message("MESSAGE: Running B-Spline Alignment")
+  # temp dir, delete later
+  tmpdir <- tempdir()
+  tmpdir <- file.path(tmpdir, "SimpleITK")
+  dir.create(tmpdir, showWarnings = FALSE)
   
   # prepare images and masks
   fixed <- convertToSitkImage(ref_image)
@@ -4052,22 +4042,17 @@ getSimpleITKAutomatedRegistration <- function(
   unlink(tmpdir, recursive = TRUE)
   
   # calculate alignment accuracy
-  if(compute_accuracy){
-    results <- getAlignmentAccuracy(
-      magick::image_convert(ref_image, 
-                            colorspace = "gray"), 
-      magick::image_convert(aligned_image, 
-                            colorspace = "gray"), 
-      aligned_mask,
-      "Fine")
-    results[[1]] <- .collapse_xy(results[[1]])
-    
-    # check SSIM maps
-    fine_ssim_map <- if (!is.null(results[[2]])) .check_ssim_map(results[[2]]) else NA
-  } else {
-    results <- list(NULL,NULL,NULL)
-    fine_ssim_map <- NULL
-  }
+  results <- getAlignmentAccuracy(
+    magick::image_convert(ref_image, 
+                          colorspace = "gray"), 
+    magick::image_convert(aligned_image, 
+                          colorspace = "gray"), 
+    aligned_mask,
+    "Fine")
+  results[[1]] <- .collapse_xy(results[[1]])
+  
+  # check SSIM maps
+  fine_ssim_map <- if (!is.null(results[[2]])) .check_ssim_map(results[[2]]) else NA
   
   # convert images
   overlay_image <-
