@@ -3023,16 +3023,14 @@ getManualRegisteration <- function(
 
       # Plot Alignment Stats
       lapply(register_ind, function(i) {
-        if(length(alignment_stats_list)){
-          cur_align_stats <- alignment_stats_list[[paste0(i)]]
-          output[[paste0("alignment_stats", i)]] <- renderTable({
-            tab <- data.frame(Metrics = names(cur_align_stats[["coarse"]]), 
-                              `Coarse` = cur_align_stats[["coarse"]])
-            if(!all(is.na(cur_align_stats[["fine"]])))
-              tab$Fine <- cur_align_stats[["fine"]]
-            tab
-          }, digits = 5, na = "")
-        }
+        cur_align_stats <- alignment_stats_list[[paste0(i)]]
+        output[[paste0("alignment_stats", i)]] <- renderTable({
+          tab <- data.frame(Metrics = names(cur_align_stats[["coarse"]]), 
+                            `Coarse` = cur_align_stats[["coarse"]])
+          if(!all(is.na(cur_align_stats[["fine"]])))
+            tab$Fine <- cur_align_stats[["fine"]]
+          tab
+        }, digits = 5, na = "")
       })
       
       # Output summary
@@ -3098,6 +3096,9 @@ computeManualPairwiseTransform <- function(
       ref_label = "query"
       query_label = "ref"
     }
+    
+    # check non-rigid
+    if(is.null(input$nonrigid)) input$nonrigid <- "None"
 
     # get registered image (including all channels)
     reg <- getRcppManualRegistration(
@@ -3120,12 +3121,11 @@ computeManualPairwiseTransform <- function(
       )]] ==
         "Yes",
       method = input$Method,
-      nonrigid = if(is.null(input$nonrigid)) "None" else input$nonrigid,
+      nonrigid = input$nonrigid,
       compute_accuracy = if (grepl("SimpleITK", input$nonrigid)) FALSE else compute_accuracy
     )
     
     # run SimpleITK as fine registration
-    if(is.null(input$nonrigid)) input$nonrigid <- "None"
     if(grepl("SimpleITK", input$nonrigid) && 
        grepl("Non-Rigid", input$Method)){
       if (!requireNamespace('SimpleITK')) {
@@ -3297,12 +3297,12 @@ getRcppManualRegistration <- function(
     # check alignment statistics
     alignment_stats <- list()
     metrics <- .ALIGNMENT_ACCURACY_METRICS
-    metrics_set <- setNames(rep(NA, length(metrics)), metrics)
     alignment_stats[["coarse"]] <- {
       if (!is.null(reg[[5]])){
         if(!all(names(reg[[5]]) %in% metrics)){
           stop("There are missing accuracy metrics!")
         } else {
+          metrics_set <- setNames(rep(NA, length(metrics)), metrics)
           metrics_set[metrics] <- reg[[5]][metrics]
           metrics_set
         }
@@ -3315,6 +3315,7 @@ getRcppManualRegistration <- function(
         if(!all(names(reg[[6]]) %in% metrics)){
           stop("There are missing accuracy metrics!")
         } else {
+          metrics_set <- setNames(rep(NA, length(metrics)), metrics)
           metrics_set[metrics] <- reg[[6]][metrics]
           metrics_set
         }
@@ -3578,6 +3579,9 @@ computeAutomatedPairwiseTransform <- function(
       ref_image,
       geometry = magick::geometry_size_percent(100 * ref_scale)
     )
+    
+    # check non-rigid
+    if(is.null(input$nonrigid)) input$nonrigid <- "None"
 
     # register images with OpenCV
     reg <- getRcppAutomatedRegistration(
@@ -3620,7 +3624,7 @@ computeAutomatedPairwiseTransform <- function(
       rotate_ref = input[[paste0("rotate_", ref_label, "_image", cur_map[2])]],
       matcher = input$Matcher,
       method = input$Method,
-      nonrigid = if(is.null(input$nonrigid)) "None" else input$nonrigid, 
+      nonrigid = input$nonrigid,
       compute_accuracy = if (grepl("SimpleITK", input$nonrigid)) FALSE else compute_accuracy
     )
     
@@ -3642,7 +3646,6 @@ computeAutomatedPairwiseTransform <- function(
     }
 
     # run SimpleITK as fine registration
-    if(is.null(input$nonrigid)) input$nonrigid <- "None"
     if(grepl("SimpleITK", input$nonrigid) && 
        grepl("Non-Rigid", input$Method)){
       if (!requireNamespace('SimpleITK')) {
@@ -3969,17 +3972,22 @@ getSimpleITKAutomatedRegistration <- function(
                            mapping = initial_mapping)
   
   # compute pre accuracy
-  results_pre <- getAlignmentAccuracy(
-    magick::image_convert(ref_image, 
-                          colorspace = "gray"), 
-    magick::image_convert(query_image, 
-                          colorspace = "gray"), 
-    mask_img,
-    "Coarse")
-  results_pre[[1]] <- .collapse_xy(results_pre[[1]])
-  
-  # check SSIM maps
-  coarse_ssim_map <- if (!is.null(results_pre[[2]])) .check_ssim_map(results_pre[[2]]) else NA
+  if(compute_accuracy){
+    results_pre <- getAlignmentAccuracy(
+      magick::image_convert(ref_image, 
+                            colorspace = "gray"), 
+      magick::image_convert(query_image, 
+                            colorspace = "gray"), 
+      mask_img,
+      "Coarse")
+    results_pre[[1]] <- .collapse_xy(results_pre[[1]])
+    
+    # check SSIM maps
+    coarse_ssim_map <- if (!is.null(results_pre[[2]])) .check_ssim_map(results_pre[[2]]) else NA 
+  } else {
+    results_pre <- list(NULL)
+    coarse_ssim_map <- NULL
+  }
   
   # prepare images and masks
   fixed <- convertToSitkImage(ref_image)
@@ -4037,22 +4045,29 @@ getSimpleITKAutomatedRegistration <- function(
   tfx_points$SetTransformParameterMap(transform_param_map)
   tfx_points$SetMovingImage(SimpleITK::Image(moving$GetSize(), 'sitkFloat32'))
   
+  # aligned image
+  aligned_image <- .sitk_to_magick(sitk_img)
+  
   # delete dir
   unlink(tmpdir, recursive = TRUE)
   
   # calculate alignment accuracy
-  aligned_image <- .sitk_to_magick(sitk_img)
-  results <- getAlignmentAccuracy(
-    magick::image_convert(ref_image, 
-                          colorspace = "gray"), 
-    magick::image_convert(aligned_image, 
-                          colorspace = "gray"), 
-    aligned_mask,
-    "Fine")
-  results[[1]] <- .collapse_xy(results[[1]])
-  
-  # check SSIM maps
-  fine_ssim_map <- if (!is.null(results[[2]])) .check_ssim_map(results[[2]]) else NA
+  if(compute_accuracy){
+    results <- getAlignmentAccuracy(
+      magick::image_convert(ref_image, 
+                            colorspace = "gray"), 
+      magick::image_convert(aligned_image, 
+                            colorspace = "gray"), 
+      aligned_mask,
+      "Fine")
+    results[[1]] <- .collapse_xy(results[[1]])
+    
+    # check SSIM maps
+    fine_ssim_map <- if (!is.null(results[[2]])) .check_ssim_map(results[[2]]) else NA
+  } else {
+    results <- list(NULL,NULL,NULL)
+    fine_ssim_map <- NULL
+  }
   
   # convert images
   overlay_image <-
@@ -4127,8 +4142,7 @@ getNonInteractiveRegistration <- function(
         channel_names = channel_names,
         query_ind = i,
         ref_ind = centre,
-        input = mapping_parameters,
-        compute_accuracy = TRUE
+        input = mapping_parameters
       )
     } else {
       flag <- checkKeypoints(mapping_parameters$keypoints)
@@ -4137,8 +4151,7 @@ getNonInteractiveRegistration <- function(
         keypoints_list = mapping_parameters$keypoints,
         query_ind = i,
         ref_ind = centre,
-        input = mapping_parameters,
-        compute_accuracy = TRUE
+        input = mapping_parameters
       )
     }
 
@@ -4241,7 +4254,6 @@ getAlignmentAccuracy <- function(ref_image,
       ggplot2::coord_fixed(expand = FALSE) + 
       ggplot2::scale_fill_gradient(low = "#440154FF", 
                                    high = "#FDE725FF", 
-                                   # na.value = NA,
                                    limits = c(0, 1),
                                    name = "SSIM")
   }
