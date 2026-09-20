@@ -2864,12 +2864,9 @@ warpSimpleITKImage <- function(query_image, mapping) {
 #' Initiate shiny reactive values for registration matrices
 #'
 #' @param len_images the number of query images
-#' @param input shiny input
-#' @param output shiny output
-#' @param session shiny session
 #'
 #' @noRd
-initiateMappings <- function(len_images, input, output, session) {
+initiateMappings <- function(len_images) {
   
   # initiate matrices
   matrix_list <- lapply(seq_len(len_images), function(i) return(NULL))
@@ -3012,21 +3009,16 @@ getManualRegisteration <- function(
       
       # Plot Coarse SSIM
       lapply(register_ind, function(i) {
-        if(length(ssim_map_list)){
-          output[[paste0("plot_coarse_ssim_map", i)]] <- renderPlot({
-            .plot_ssim_map(ssim_map_list[[paste0(i)]]$Coarse)
-          })
-        }
+        output[[paste0("plot_coarse_ssim_map", i)]] <- renderPlot({
+          .plot_ssim_map(ssim_map_list[[paste0(i)]]$Coarse)
+        })
       })
       
       # Plot Fine SSIM
       lapply(register_ind, function(i) {
-        if(length(ssim_map_list)){
-          cur_alignment_image <- ssim_map_list[[paste0(i)]]$Fine
-          output[[paste0("plot_fine_ssim_map", i)]] <- renderPlot({
-            .plot_ssim_map(ssim_map_list[[paste0(i)]]$Fine)
-          })
-        }
+        output[[paste0("plot_fine_ssim_map", i)]] <- renderPlot({
+          .plot_ssim_map(ssim_map_list[[paste0(i)]]$Fine)
+        })
       })
 
       # Plot Alignment Stats
@@ -3299,8 +3291,8 @@ getRcppManualRegistration <- function(
   if(length(reg) > 2){
     
     # check SSIM map
-    coarse_ssim_map <- if (!is.null(reg[[3]])) .adjust_ssim_map(reg[[3]]) else NA
-    fine_ssim_map <- if (!is.null(reg[[4]])) .adjust_ssim_map(reg[[4]]) else NA
+    coarse_ssim_map <- if (!is.null(reg[[3]])) .check_ssim_map(reg[[3]]) else NA
+    fine_ssim_map <- if (!is.null(reg[[4]])) .check_ssim_map(reg[[4]]) else NA
     
     # check alignment statistics
     alignment_stats <- list()
@@ -3331,7 +3323,8 @@ getRcppManualRegistration <- function(
       }
     }
   } else {
-    ssim_map <- NULL
+    coarse_ssim_map <- NULL
+    fine_ssim_map <- NULL
     alignment_stats <- NULL
   }
   
@@ -3350,7 +3343,7 @@ getRcppManualRegistration <- function(
 
 #' getAutomatedRegisteration
 #'
-#' Manual registeration of images using manually entered keypoints
+#' Automated registeration of images using manually entered keypoints
 #'
 #' @param registration_mapping_list a list of mapping matrices used for registering VoltRon objects
 #' @param ssim_map_list a list of matrices reporting local coarse and fine ssim maps for each registration
@@ -3480,21 +3473,16 @@ getAutomatedRegisteration <- function(
       
       # Plot Coarse SSIM
       lapply(register_ind, function(i) {
-        if(length(ssim_map_list)){
-          output[[paste0("plot_coarse_ssim_map", i)]] <- renderPlot({
-            .plot_ssim_map(ssim_map_list[[paste0(i)]]$Coarse)
-          })
-        }
+        output[[paste0("plot_coarse_ssim_map", i)]] <- renderPlot({
+          .plot_ssim_map(ssim_map_list[[paste0(i)]]$Coarse)
+        })
       })
       
       # Plot Fine SSIM
       lapply(register_ind, function(i) {
-        if(length(ssim_map_list)){
-          cur_alignment_image <- ssim_map_list[[paste0(i)]]$Fine
-          output[[paste0("plot_fine_ssim_map", i)]] <- renderPlot({
-            .plot_ssim_map(ssim_map_list[[paste0(i)]]$Fine)
-          })
-        }
+        output[[paste0("plot_fine_ssim_map", i)]] <- renderPlot({
+          .plot_ssim_map(ssim_map_list[[paste0(i)]]$Fine)
+        })
       })
       
       # Plot Alignment Stats
@@ -3813,8 +3801,8 @@ getRcppAutomatedRegistration <- function(
     if (!is.null(reg[[5]])) magick::image_read(reg[[5]]) else NA
   
   # check SSIM maps
-  coarse_ssim_map <- if (!is.null(reg[[6]])) .adjust_ssim_map(reg[[6]]) else NA
-  fine_ssim_map <- if (!is.null(reg[[7]])) .adjust_ssim_map(reg[[7]]) else NA
+  coarse_ssim_map <- if (!is.null(reg[[6]])) .check_ssim_map(reg[[6]]) else NA
+  fine_ssim_map <- if (!is.null(reg[[7]])) .check_ssim_map(reg[[7]]) else NA
   
   # check alignment statistics
   alignment_stats <- list()
@@ -3992,7 +3980,7 @@ getSimpleITKAutomatedRegistration <- function(
   results_pre[[1]] <- .collapse_xy(results_pre[[1]])
   
   # check SSIM maps
-  coarse_ssim_map <- if (!is.null(results_pre[[2]])) .adjust_ssim_map(results_pre[[2]]) else NA
+  coarse_ssim_map <- if (!is.null(results_pre[[2]])) .check_ssim_map(results_pre[[2]]) else NA
   
   # prepare images and masks
   fixed <- convertToSitkImage(ref_image)
@@ -4066,7 +4054,7 @@ getSimpleITKAutomatedRegistration <- function(
   results[[1]] <- .collapse_xy(results[[1]])
   
   # check SSIM maps
-  fine_ssim_map <- if (!is.null(results[[2]])) .adjust_ssim_map(results[[2]]) else NA
+  fine_ssim_map <- if (!is.null(results[[2]])) .check_ssim_map(results[[2]]) else NA
   
   # convert images
   overlay_image <-
@@ -4127,7 +4115,9 @@ getNonInteractiveRegistration <- function(
   }
 
   # Register images
-  registration_mapping_list <- list()
+  registration_mapping_list <- 
+    ssim_map_list <- 
+    alignment_stats_list <- list()
   for (i in register_ind) {
     # Increment the progress bar, and update the detail text.
     message("Registering Image ", i)
@@ -4140,7 +4130,7 @@ getNonInteractiveRegistration <- function(
         query_ind = i,
         ref_ind = centre,
         input = mapping_parameters,
-        compute_ssim_map = FALSE
+        compute_ssim_map = TRUE
       )
     } else {
       flag <- checkKeypoints(mapping_parameters$keypoints)
@@ -4150,12 +4140,19 @@ getNonInteractiveRegistration <- function(
         query_ind = i,
         ref_ind = centre,
         input = mapping_parameters,
-        compute_ssim_map = FALSE
+        compute_ssim_map = TRUE
       )
     }
 
     # save transformation matrix
     registration_mapping_list[[paste0(i)]] <- results$mapping
+    
+    # save SSIM map
+    ssim_map_list[[paste0(i)]] <- list(Coarse = results$coarse_ssim_map,
+                                       Fine = results$fine_ssim_map)
+    
+    # save alignment stats 
+    alignment_stats_list[[paste0(i)]] <- results$alignment_stats
   }
 
   # return the list of registered voltron objects
@@ -4163,6 +4160,10 @@ getNonInteractiveRegistration <- function(
     list(
       keypoints = mapping_parameters$keypoints,
       mapping_parameters = mapping_parameters,
+      accuracy_metrics = list(
+        metrics = alignment_stats_list, 
+        ssim_maps = ssim_map_list
+      ),
       registered_spat = getRegisteredObjectNonShiny(
         obj_list,
         registration_mapping_list,
@@ -4234,6 +4235,7 @@ getAlignmentAccuracy <- function(ref_image,
 
 #' @noRd
 .plot_ssim_map <- function(map){
+  map <- .adjust_ssim_map(map)
   if (!suppressWarnings(!is.matrix(map))) {
     map <- 
       as.data.frame(as.table(map))
@@ -4249,6 +4251,12 @@ getAlignmentAccuracy <- function(ref_image,
                                    name = "SSIM")
   }
 }
+
+#' @noRd
+.check_ssim_map <- function(map){
+  if(all(dim(map) == 0)) return(NA)
+  map
+} 
 
 #' @noRd
 .adjust_ssim_map <- function(map){

@@ -361,8 +361,8 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
   
   // registered image and accuracy if exists
   out[1] = matToImage(imReg.clone()); 
-  out[2] = matToNumericMatrix(coarse_ssim_map); // Matte MI metric
-  out[3] = matToNumericMatrix(fine_ssim_map); // Matte MI metric
+  out[2] = matToNumericMatrix(coarse_ssim_map); // Coarse SSIM map
+  out[3] = matToNumericMatrix(fine_ssim_map); // Fine SSIM map
   out[4] = accuracy_coarse;
   out[5] = accuracy_fine;
   

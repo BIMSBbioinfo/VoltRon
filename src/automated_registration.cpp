@@ -816,8 +816,8 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image,
     out[2] = matToImage(imReg); // registered image
     out[3] = matToImage(imMatches); // keypoint matching image
     out[4] = matToImage(imOverlay); // overlay image
-    out[5] = matToNumericMatrix(coarse_ssim_map); // Matte MI metric
-    out[6] = matToNumericMatrix(fine_ssim_map); // Matte MI metric
+    out[5] = matToNumericMatrix(coarse_ssim_map); // Coarse SSIM map
+    out[6] = matToNumericMatrix(fine_ssim_map); // Fine SSIM map
     out[7] = accuracy_coarse; // accuracy scores (coarse)
     out[8] = accuracy_fine; // accuracy scores (fine)
   } else {
