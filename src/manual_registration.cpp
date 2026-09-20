@@ -24,7 +24,7 @@ void alignImagesTPS(Mat &im1,
                     Rcpp::NumericMatrix reference_landmark,
                     const bool invert_query, 
                     const bool invert_ref,
-                    const bool compute_ssim_map, 
+                    const bool compute_accuracy, 
                     Mat1d &coarse_ssim_map, 
                     std::map<std::string, double> &accuracy)
 {
@@ -71,11 +71,9 @@ void alignImagesTPS(Mat &im1,
                                               im1.size());
   
   // get alignment metrics
-  accuracy = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Coarse");
-  // if(compute_ssim_map)
-  //   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
-  if(compute_ssim_map)
-    coarse_ssim_map = getTiledAlignmentMetrics(im2Proc, im1Proc, alignmentMask);
+  if(compute_accuracy)
+    accuracy = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, 
+                                   "Coarse", coarse_ssim_map);
 }
 
 // align images with TPS algorithm
@@ -130,7 +128,7 @@ void alignImagesAffineTPS(Mat &im1,
                           const bool invert_ref,
                           const bool run_Affine, 
                           const bool run_TPS,
-                          const bool compute_ssim_map, 
+                          const bool compute_accuracy, 
                           Mat1d &coarse_ssim_map,
                           Mat1d &fine_ssim_map,
                           std::map<std::string, double> &accuracy_coarse,
@@ -177,15 +175,13 @@ void alignImagesAffineTPS(Mat &im1,
   cvtColor(im2, im2Proc, cv::COLOR_BGR2GRAY);
   im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
   im2Proc = preprocessImage(im2Proc, invert_ref, "None", "0");
-  accuracy_coarse = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Coarse");
   
+  // accuracy
+  if(compute_accuracy)
+    accuracy_coarse = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, 
+                                          "Coarse", coarse_ssim_map);
+
   if(!run_TPS){
-    
-    // compute matte map if finishing alignment
-    // if(compute_ssim_map)
-    //   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
-    if(compute_ssim_map)
-      coarse_ssim_map = getTiledAlignmentMetrics(im2Proc, im1Proc, alignmentMask);
     
     // clone and exit
     im1Reg = im1Affine.clone();
@@ -217,11 +213,9 @@ void alignImagesAffineTPS(Mat &im1,
     Mat im1Proc;
     cvtColor(im1Reg, im1Proc, cv::COLOR_BGR2GRAY);
     im1Proc = preprocessImage(im1Proc, invert_query, "None", "0");
-    accuracy_fine = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Fine");
-    // if(compute_ssim_map)
-    //   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
-    if(compute_ssim_map)
-      fine_ssim_map = getTiledAlignmentMetrics(im2Proc, im1Proc, alignmentMask);
+    if(compute_accuracy)
+      accuracy_fine = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, 
+                                          "Fine", fine_ssim_map);
   }
 }
 
@@ -304,7 +298,7 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
                                           const bool invert_ref,
                                           Rcpp::String method, 
                                           Rcpp::String nonrigid,
-                                          const bool compute_ssim_map = true)
+                                          const bool compute_accuracy = true)
 {
   // Return data
   Rcpp::List out(6);
@@ -334,7 +328,7 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
                          invert_ref,
                          run_Affine, 
                          run_TPS, 
-                         compute_ssim_map,
+                         compute_accuracy,
                          coarse_ssim_map, 
                          fine_ssim_map,
                          accuracy_coarse, 
@@ -349,7 +343,7 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
                    reference_landmark,
                    invert_query, 
                    invert_ref,
-                   compute_ssim_map,
+                   compute_accuracy,
                    coarse_ssim_map, 
                    accuracy_coarse);
   }

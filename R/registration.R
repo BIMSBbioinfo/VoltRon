@@ -3057,7 +3057,7 @@ getManualRegisteration <- function(
 #' @param query_ind the index of the query image
 #' @param ref_ind the index of the reference image
 #' @param input input
-#' @param compute_ssim_map Should SSIM map be computed ? 
+#' @param compute_accuracy Should accuracy metrics be computed ? 
 #'
 #' @noRd
 computeManualPairwiseTransform <- function(
@@ -3066,7 +3066,7 @@ computeManualPairwiseTransform <- function(
   query_ind,
   ref_ind,
   input,
-  compute_ssim_map = TRUE
+  compute_accuracy = TRUE
 ) {
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -3121,7 +3121,7 @@ computeManualPairwiseTransform <- function(
         "Yes",
       method = input$Method,
       nonrigid = if(is.null(input$nonrigid)) "None" else input$nonrigid,
-      compute_ssim_map = compute_ssim_map
+      compute_accuracy = if (grepl("SimpleITK", input$nonrigid)) FALSE else compute_accuracy
     )
     
     # run SimpleITK as fine registration
@@ -3156,7 +3156,7 @@ computeManualPairwiseTransform <- function(
         rotate_query = FALSE,
         rotate_ref = FALSE,
         initial_mapping = list(reg[[1]]),
-        compute_ssim_map = compute_ssim_map
+        compute_accuracy = compute_accuracy
       )
       reg[[1]][[2]] <- tfx$transformation
       reg$aligned_image <- tfx$aligned_image
@@ -3195,7 +3195,7 @@ computeManualPairwiseTransform <- function(
 #' @param invert_ref invert reference image
 #' @param method the automated registration method, either TPS or Homography+TPS
 #' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
-#' @param compute_ssim_map Should SSIM map be computed ? 
+#' @param compute_accuracy Should accuracy metrics be computed ? 
 #' 
 #' @importFrom magick image_read image_data
 #'
@@ -3209,7 +3209,7 @@ getRcppManualRegistration <- function(
   invert_ref = FALSE,
   method = "Homography",
   nonrigid = "TPS (OpenCV)", 
-  compute_ssim_map = TRUE
+  compute_accuracy = TRUE
 ) {
   
   # ref image
@@ -3519,7 +3519,7 @@ getAutomatedRegisteration <- function(
 #' @param query_ind the index of the query image
 #' @param ref_ind the index of the reference image
 #' @param input input
-#' @param compute_ssim_map Should SSIM map be computed ? 
+#' @param compute_accuracy Should accuracy metrics be computed ? 
 #'
 #' @noRd
 computeAutomatedPairwiseTransform <- function(
@@ -3528,7 +3528,7 @@ computeAutomatedPairwiseTransform <- function(
   query_ind,
   ref_ind,
   input,
-  compute_ssim_map = TRUE
+  compute_accuracy = TRUE
 ) {
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -3621,7 +3621,7 @@ computeAutomatedPairwiseTransform <- function(
       matcher = input$Matcher,
       method = input$Method,
       nonrigid = if(is.null(input$nonrigid)) "None" else input$nonrigid, 
-      compute_ssim_map = compute_ssim_map
+      compute_accuracy = if (grepl("SimpleITK", input$nonrigid)) FALSE else compute_accuracy
     )
     
     # update transformation matrix
@@ -3689,7 +3689,7 @@ computeAutomatedPairwiseTransform <- function(
         rotate_ref = input[[paste0(
           "rotate_", ref_label, "_image", cur_map[2])]],
         initial_mapping = list(reg[[1]]), 
-        compute_ssim_map = compute_ssim_map
+        compute_accuracy = compute_accuracy
       )
       reg[[1]][[2]] <- tfx$transformation
       reg$aligned_image <- tfx$aligned_image
@@ -3742,7 +3742,7 @@ computeAutomatedPairwiseTransform <- function(
 #' @param matcher the matching method for landmarks/keypoints FLANN or BRUTE-FORCE
 #' @param method the automated registration method, Homography or Homography+TPS
 #' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
-#' @param compute_ssim_map Should SSIM map be computed ? 
+#' @param compute_accuracy Should accuracy metrics be computed ? 
 #' 
 #' @importFrom magick image_read image_data
 #'
@@ -3761,7 +3761,7 @@ getRcppAutomatedRegistration <- function(
   matcher = "FLANN",
   method = "Homography",
   nonrigid = "TPS (OpenCV)",
-  compute_ssim_map = TRUE
+  compute_accuracy = TRUE
 ) {
   ref_image <- magick::image_data(ref_image, channels = "rgb")
   query_image <- magick::image_data(query_image, channels = "rgb")
@@ -3784,7 +3784,7 @@ getRcppAutomatedRegistration <- function(
     matcher = matcher,
     method = method,
     nonrigid = nonrigid,
-    compute_ssim_map = compute_ssim_map
+    compute_accuracy = compute_accuracy
   )
 
   # check for null keypoints
@@ -3899,7 +3899,7 @@ getRcppAutomatedRegistration <- function(
 #' @param flipflop_ref flip or flop the reference image
 #' @param rotate_query rotation of query image
 #' @param rotate_ref rotation of reference image
-#' @param compute_ssim_map Should SSIM map be computed ? 
+#' @param compute_accuracy Should accuracy metrics be computed ? 
 #' 
 #' @importFrom magick as_EBImage image_read
 #' @importFrom EBImage imageData writeImage
@@ -3915,7 +3915,7 @@ getSimpleITKAutomatedRegistration <- function(
     rotate_query = "0",
     rotate_ref = "0",
     initial_mapping = NULL,
-    compute_ssim_map = TRUE
+    compute_accuracy = TRUE
 ){
   # check SimpleITK
   if (!requireNamespace('SimpleITK')) {
@@ -3975,8 +3975,7 @@ getSimpleITKAutomatedRegistration <- function(
     magick::image_convert(query_image, 
                           colorspace = "gray"), 
     mask_img,
-    "Coarse", 
-    compute_ssim_map)
+    "Coarse")
   results_pre[[1]] <- .collapse_xy(results_pre[[1]])
   
   # check SSIM maps
@@ -4049,8 +4048,7 @@ getSimpleITKAutomatedRegistration <- function(
     magick::image_convert(aligned_image, 
                           colorspace = "gray"), 
     aligned_mask,
-    "Fine", 
-    compute_ssim_map)
+    "Fine")
   results[[1]] <- .collapse_xy(results[[1]])
   
   # check SSIM maps
@@ -4130,7 +4128,7 @@ getNonInteractiveRegistration <- function(
         query_ind = i,
         ref_ind = centre,
         input = mapping_parameters,
-        compute_ssim_map = TRUE
+        compute_accuracy = TRUE
       )
     } else {
       flag <- checkKeypoints(mapping_parameters$keypoints)
@@ -4140,7 +4138,7 @@ getNonInteractiveRegistration <- function(
         query_ind = i,
         ref_ind = centre,
         input = mapping_parameters,
-        compute_ssim_map = TRUE
+        compute_accuracy = TRUE
       )
     }
 
@@ -4189,7 +4187,6 @@ getNonInteractiveRegistration <- function(
 #' @param query_image query image
 #' @param mask alignment mask
 #' @param type type 
-#' @param compute_ssim_map Should SSIM map be computed ?
 #'
 #' @importFrom magick image_data
 #' 
@@ -4197,8 +4194,7 @@ getNonInteractiveRegistration <- function(
 getAlignmentAccuracy <- function(ref_image, 
                                  query_image, 
                                  mask, 
-                                 type,
-                                 compute_ssim_map = TRUE){
+                                 type){
   
   # image info
   ref_info <- getImageInfo(ref_image)
@@ -4229,8 +4225,7 @@ getAlignmentAccuracy <- function(ref_image,
                      width = ref_info$width, 
                      height = ref_info$height, 
                      type, 
-                     overlay_images = TRUE,
-                     compute_ssim_map = compute_ssim_map)
+                     overlay_images = TRUE)
 }
 
 #' @noRd

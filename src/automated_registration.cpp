@@ -570,7 +570,7 @@ void alignImages(Mat &im1,
                  const char* rotate_ref,
                  const bool run_Affine, 
                  const bool run_TPS, 
-                 const bool compute_ssim_map,
+                 const bool compute_accuracy,
                  Mat1d &coarse_ssim_map, 
                  Mat1d &fine_ssim_map,
                  std::map<std::string, double> &accuracy_coarse,
@@ -651,8 +651,10 @@ void alignImages(Mat &im1,
 
   // get alignment metrics
   std::map<std::string, double> image_metrics;
-  image_metrics = getAlignmentMetrics(im1Proc, im2Proc, 
-                                      alignmentMask, "Coarse");
+  if(compute_accuracy){
+    image_metrics = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, 
+                                        "Coarse", coarse_ssim_map);
+  }
   
   // combine metrics
   std::vector<std::pair<std::string, double>> temp_map;
@@ -668,12 +670,6 @@ void alignImages(Mat &im1,
   
   // continue with TPS or do FLANN only
   if(is_faulty || !run_TPS){
-    
-    // compute matte map if finishing alignment
-    // if(compute_ssim_map)
-    //   accuracyMatte = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
-    if(compute_ssim_map)
-      coarse_ssim_map = getTiledAlignmentMetrics(im2Proc, im1Proc, alignmentMask);
     
     // change color map
     cv::addWeighted(im2Proc, 0.7, im1Proc, 0.3, 0, im1Proc);
@@ -721,12 +717,11 @@ void alignImages(Mat &im1,
     im1NormalProc = warpTPSImage(im2Proc, im1NormalProc, tps,
                                  im2Proc.rows, im2Proc.cols, cv::INTER_LINEAR);
     
-    // get matte metric, process 
-    accuracy_fine = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, "Fine");
-    // if(compute_ssim_map)
-    //   coarse_ssim_map = MatteMIMap(im2Proc, im1Proc, alignmentMask, 50);
-    if(compute_ssim_map)
-      fine_ssim_map = getTiledAlignmentMetrics(im2Proc, im1Proc, alignmentMask);
+    // get metrics and ssim maps, process 
+    if(compute_accuracy){
+      accuracy_fine = getAlignmentMetrics(im1Proc, im2Proc, alignmentMask, 
+                                          "Fine", fine_ssim_map);
+    }
     
     // change color map
     cv::addWeighted(im2Proc, 0.7, im1Proc, 0.3, 0, im1Proc);
@@ -766,7 +761,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image,
                                              Rcpp::String matcher, 
                                              Rcpp::String method, 
                                              Rcpp::String nonrigid,
-                                             const bool compute_ssim_map = true)
+                                             const bool compute_accuracy = true)
 {
   // Return data
   Rcpp::List out(9);
@@ -796,7 +791,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image,
               flipflop_query.get_cstring(), flipflop_ref.get_cstring(),
               rotate_query.get_cstring(), rotate_ref.get_cstring(),
               run_Affine, run_TPS, 
-              compute_ssim_map,
+              compute_accuracy,
               coarse_ssim_map, 
               fine_ssim_map,
               accuracy_coarse, 

@@ -13,7 +13,7 @@ getRcppManualRegistration(
   invert_ref = FALSE,
   method = "Homography",
   nonrigid = "TPS (OpenCV)",
-  compute_ssim_map = TRUE
+  compute_accuracy = TRUE
 )
 }
 \arguments{
@@ -33,7 +33,7 @@ getRcppManualRegistration(
 
 \item{nonrigid}{the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"}
 
-\item{compute_ssim_map}{Should SSIM map be computed ?}
+\item{compute_accuracy}{Should accuracy metrics be computed ?}
 }
 \description{
 Manual registration workflow with Rcpp

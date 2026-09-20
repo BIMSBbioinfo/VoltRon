@@ -38,8 +38,8 @@ cv::Mat generateOverlapMask(cv::Mat& ref_image,
                             cv::Size ssize);
 
 // get tiled alignment metrics
-cv::Mat1d getTiledAlignmentMetrics(cv::Mat &im1, 
-                                   cv::Mat &im2, 
+cv::Mat1d getTiledAlignmentMetrics(cv::Mat &im1,
+                                   cv::Mat &im2,
                                    cv::Mat &mask);
 
 
@@ -47,7 +47,8 @@ cv::Mat1d getTiledAlignmentMetrics(cv::Mat &im1,
 std::map<std::string, double> getAlignmentMetrics(cv::Mat &im1, 
                                                   cv::Mat &im2, 
                                                   cv::Mat &mask, 
-                                                  std::string type);
+                                                  std::string type,
+                                                  cv::Mat1d &map);
 
 // do overall checks on keypoints and metrics
 std::map<std::string, double> getKeypointMetrics(std::vector<cv::Point2f> &points1, 
