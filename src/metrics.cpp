@@ -480,19 +480,18 @@ TiledMetrics tiledAlignmentMetrics(const cv::Mat& im1,
   return R;
 }
 
-cv::Mat1d getTiledAlignmentMetrics(Mat &im1, Mat &im2, Mat &mask){
-  TiledMetrics t = tiledAlignmentMetrics(im1, im2, mask);
-  return t.ssim_map;
-}
-
 std::map<std::string, double> getAlignmentMetrics(Mat &im1, Mat &im2, 
-                                                  Mat &mask, std::string type){
+                                                  Mat &mask, std::string type, 
+                                                  Mat1d &map){
   
   // Metrics
   std::map<std::string, double> metrics;
   
   // tiled metrics:
   TiledMetrics t = tiledAlignmentMetrics(im1, im2, mask);
+  
+  // SSIM map
+  map = t.ssim_map;
   
   // Summary
   Rcout << "Alignment Accuracy (" << type << "): " << endl;
