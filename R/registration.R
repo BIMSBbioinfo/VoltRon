@@ -1884,11 +1884,16 @@ transferParameterInput <- function(params, image_list) {
 .NONRIGID_METHODS <- c("TPS (OpenCV)",
                        "BSpline (SimpleITK)")
 
+# .ALIGNMENT_ACCURACY_METRICS <- c(
+#   "SSIM",
+#   "Matte's MI",
+#   "Intersection",
+#   "Bhattacharyya"
+# )
+
 .ALIGNMENT_ACCURACY_METRICS <- c(
   "SSIM",
-  "Matte's MI",
-  "Intersection",
-  "Bhattacharyya"
+  "Matte's MI"
 )
 
 .ALIGNMENT_KEYPOINT_METRICS <- c(
