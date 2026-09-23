@@ -4004,7 +4004,7 @@ getSimpleITKAutomatedRegistration <- function(
   elx$SetParameterMap(mp)
   elx$LogToConsoleOff()
   tmp <- elx$Execute()
-  sitk_img <- SimpleITK::ReadImage(file.path(tmpdir, "result.0.tif"))
+  sitk_img <- elx$GetResultImage()
   transform_param_map <- elx$GetTransformParameterMap()
   tfx_image <- SimpleITK::TransformixImageFilter()
   tfx_image$LogToConsoleOff()
