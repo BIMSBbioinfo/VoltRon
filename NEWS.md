@@ -1,3 +1,8 @@
+# VoltRon 0.3.2
+
+-   Intersection and Bhattacharyya measures are deprecated where SSIM and
+    Matte's MI are used only after registration.
+
 # VoltRon 0.3.1
 
 -   Both x and y coordinates of SIFT/ORB landmarks are now checked after 
